@@ -57,7 +57,7 @@ noinst_HEADERS	=	CReadoutMain.h Skeleton.h CTCLAuthorizer.h	\
 INCLUDES	=	-I@top_srcdir@/sbs/vmemodules	\
 			-I@top_srcdir@/sbs/nsclapi	\
 			-I@top_srcdir@/base/exception	\
-			-I@top_srcdir@/base/tclplus	\
+			@LIBTCLPLUS_CFLAGS@	\
 			-I@top_srcdir@/base/headers	\
 			-I@top_srcdir@/servers/portmanager	\
 			-I@top_srcdir@/base/dataflow		\
@@ -71,7 +71,6 @@ libSBSProductionReadout_la_LIBADD	=	@top_srcdir@/sbs/vmemodules/libSBSDeviceSupp
 						@top_srcdir@/sbs/nsclapi/libSBSVmeAPI.la		\
 						@top_srcdir@/daq/format/libdataformat.la		\
 						@top_srcdir@/base/exception/libException.la	\
-						@top_srcdir@/base/tclplus/libtclPlus.la		\
 						@top_srcdir@/servers/portmanager/libPortManager.la \
 						@top_srcdir@/base/dataflow/libDataFlow.la	\
 						@top_srcdir@/sbs/
@@ -79,7 +78,7 @@ libSBSProductionReadout_la_LIBADD	=	@top_srcdir@/sbs/vmemodules/libSBSDeviceSupp
 
 
 libSBSProductionReadout_la_LDFLAGS	=	-version-info	1:0:0	\
-						$(TCL_LDFLAGS) $(THREADLD_FLAGS)
+						@LIBTCLPLUS_LDFLAGS@ $(TCL_LDFLAGS) $(THREADLD_FLAGS)
 
 EXTRA_DIST	=	options.ggo Skeleton.cpp UserMakefile.in SBSRdoMakeIncludes.in SBSReadout.xml
 
@@ -93,7 +92,9 @@ Readout_LDADD	= libSBSProductionReadout.la	\
 		@top_builddir@/sbs/vmemodules/libSBSDeviceSupport.la \
 		  @top_srcdir@/base/exception/libException.la	\
 		  @top_srcdir@/base/thread/libdaqthreads.la \
-		  @top_srcdir@/base/tclplus/libtclPlus.la $(THREADLD_FLAGS)
+		  $(THREADLD_FLAGS)
+
+Readout_LDFLAGS = @LIBTCLPLUS_LDFLAGS@
 
 CLEANFILES = options.c options.h
 
@@ -150,14 +151,13 @@ tests_LDADD = 	CExperiment.lo	\
 		CVariableBuffers.lo				\
 		@top_srcdir@/daq/format/libdataformat.la	\
 		@top_srcdir@/base/dataflow/libDataFlow.la	\
-		@top_srcdir@/base/tclplus/libtclPlus.la		\
 		@top_srcdir@/base/exception/libException.la	\
 		@top_srcdir@/sbs/nsclapi/libSBSVmeAPI.la	\
 		@top_srcdir@/base/thread/libdaqthreads.la	\
 		$(TCL_LDFLAGS) 					\
 		$(CPPUNIT_LDFLAGS)  $(THREADLD_FLAGS)
 
-tests_LDFLAGS=-Wl,"-rpath-link=$(libdir)"
+tests_LDFLAGS= @LIBTCLPLUS_LDFLAGS@ -Wl,"-rpath-link=$(libdir)"
 
 
 

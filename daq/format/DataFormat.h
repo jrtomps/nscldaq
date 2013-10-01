@@ -163,10 +163,16 @@ static const uint16_t GLOM_TIMESTAMP_AVERAGE = 2;
 #endif
 
 
+// Macro to make packed structs:
+
+
+
+#define PSTRUCT struct __attribute__((__packed__))
+
 
 /*!  All ring items have common header structures: */
 
-typedef struct _RingItemHeader {
+typedef PSTRUCT _RingItemHeader {
   uint32_t     s_size;
   uint32_t     s_type;
 } RingItemHeader, *pRingItemHeader;
@@ -176,7 +182,7 @@ typedef struct _RingItemHeader {
    size field (11.0 and later)
 */
 
-typedef struct _BodyHeader {
+typedef PSTRUCT _BodyHeader {
   uint32_t   s_size;		/* 0 or sizeof(DataSourceHeader) */
   uint64_t   s_timestamp;
   uint32_t   s_sourceId;
@@ -190,7 +196,7 @@ typedef struct _BodyHeader {
   header and a generic body
 */
 
-typedef struct _RingItem {
+typedef PSTRUCT _RingItem {
   RingItemHeader s_header;
   union {
     struct {
@@ -211,7 +217,7 @@ typedef struct _RingItem {
   as reflected by the fact that they contain a union as shown below:
 
 */
-typedef struct _StateChangeItemBody {
+typedef PSTRUCT _StateChangeItemBody {
   uint32_t        s_runNumber;
   uint32_t        s_timeOffset;
   uint32_t        s_Timestamp;
@@ -219,7 +225,7 @@ typedef struct _StateChangeItemBody {
   char            s_title[TITLE_MAXSIZE+1];
 } StateChangeItemBody, *pStateChangeItemBody;
 
-typedef struct _StateChangeItem  {
+typedef PSTRUCT _StateChangeItem  {
     RingItemHeader s_header;
     union {
         struct {
@@ -239,7 +245,7 @@ typedef struct _StateChangeItem  {
    a body header too:
 */
 
-typedef struct _ScalerItemBody {
+typedef PSTRUCT _ScalerItemBody {
   uint32_t        s_intervalStartOffset;
   uint32_t        s_intervalEndOffset;
   uint32_t        s_timestamp;
@@ -249,7 +255,7 @@ typedef struct _ScalerItemBody {
   uint32_t        s_scalers[];
 } ScalerItemBody, *pScalerItemBody;
 
-typedef struct _ScalerItem {
+typedef PSTRUCT _ScalerItem {
     RingItemHeader s_header;
     union {
         struct {
@@ -269,7 +275,7 @@ typedef struct _ScalerItem {
   are back to back in the body of the ring buffer. item.
 */
 
-typedef struct _TextItemBody {
+typedef PSTRUCT _TextItemBody {
   uint32_t       s_timeOffset;
   uint32_t       s_timestamp;
   uint32_t       s_stringCount;
@@ -277,7 +283,7 @@ typedef struct _TextItemBody {
   char           s_strings[];
 } TextItemBody, *pTextItemBody;
 
-typedef struct _TextItem {
+typedef PSTRUCT _TextItem {
     RingItemHeader s_header;
     union {
         struct {
@@ -296,7 +302,7 @@ typedef struct _TextItem {
   For now a physics event is just a header and a body of uint16_t's.
 */
 
-typedef struct _PhysicsEventItem {
+typedef PSTRUCT _PhysicsEventItem {
     RingItemHeader s_header;
     union {
         struct {
@@ -315,14 +321,14 @@ typedef struct _PhysicsEventItem {
    need to know how many physics events have been produced
    so that they can figure out the sampling fraction.
 */
-typedef struct __PhysicsEventCountItemBody {
+typedef PSTRUCT __PhysicsEventCountItemBody {
   uint32_t       s_timeOffset;
   uint32_t       s_offsetDivisor;
   uint32_t       s_timestamp;
   uint64_t       s_eventCount;	/* Maybe 4Gevents is too small ;-) */
 } PhysicsEventCountItemBody, *pPhysicsEventCountItemBody;
 
-typedef struct _PhysicsEventCountItem {
+typedef PSTRUCT _PhysicsEventCountItem {
     RingItemHeader   s_header;
     union {
         struct {
@@ -341,7 +347,7 @@ typedef struct _PhysicsEventCountItem {
  * ring buffer for monitoring software:
  * (EVB_FRAGMENT):
  */
-typedef struct _EventBuilderFragment {
+typedef PSTRUCT _EventBuilderFragment {
   RingItemHeader s_header;
   BodyHeader     s_bodyHeader;
   uint8_t       s_body[];	/* Really s_payload bytes of data.. */
@@ -352,7 +358,7 @@ typedef struct _EventBuilderFragment {
  * version numbers:
  */
 
-typedef struct _DataFormat {
+typedef PSTRUCT _DataFormat {
     RingItemHeader s_header;
     uint32_t       s_mbz;              /* No body header */
     uint16_t       s_majorVersion;     /* FORMAT_MAJOR */
@@ -362,7 +368,7 @@ typedef struct _DataFormat {
 /**
  *  Information about glom parameters:
  */
-typedef struct _GlomParameters  {
+typedef PSTRUCT _GlomParameters  {
     RingItemHeader s_header;
     uint32_t       s_mbz;
     uint64_t       s_coincidenceTicks;

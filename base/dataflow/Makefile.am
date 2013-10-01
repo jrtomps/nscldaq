@@ -11,7 +11,7 @@ noinst_HEADERS         = ringbufint.h Asserts.h testcommon.h CRingCommand.h
 INCLUDES = -I@top_srcdir@/base/exception \
 	   -I@top_srcdir@/base/headers 	\
 	   -I@top_srcdir@/servers/portmanager \
-	   -I@top_srcdir@/base/tclplus	\
+		@LIBTCLPLUS_CFLAGS@	\
 	   -I@top_srcdir@/base/uri	\
 	   -I@top_srcdir@/base/os	\
 		$(TCL_FLAGS)		\
@@ -32,11 +32,10 @@ libDataFlow_la_CXXFLAGS = $(THREADCXX_FLAGS) $(AM_CXXFLAGS)
 libRingBuffer_la_SOURCES = ringPackage.cpp CRingCommand.cpp
 libRingBuffer_la_DEPENDENCIES = libDataFlow.la ringtostdoutsw.o stdintoringsw.o
 
-libRingBuffer_la_LIBADD  = 	@top_srcdir@/base/tclplus/libtclPlus.la \
-				@top_srcdir@/base/dataflow/libDataFlow.la \
+libRingBuffer_la_LIBADD  = 	@top_srcdir@/base/dataflow/libDataFlow.la \
 				@top_srcdir@/base/exception/libException.la
 
-libRingBuffer_la_LDFLAGS = 	$(TCL_LDFLAGS) \
+libRingBuffer_la_LDFLAGS = 	@LIBTCLPLUS_LDFLAGS@ $(TCL_LDFLAGS) \
 				-version-info $(SOVERSION) \
 				-Wl,"-rpath-link=$(libdir)"	\
 				$(THREADLD_FLAGS)

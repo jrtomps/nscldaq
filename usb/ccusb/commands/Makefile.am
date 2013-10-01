@@ -17,7 +17,7 @@ INCLUDES		= 	-I@top_srcdir@/usb/ccusb/threadcomm	\
 				-I@top_srcdir@/usb/ccusb/daqconfig	\
 				-I@top_srcdir@/usb/ccusb		\
 				-I@top_srcdir@/usb/ccusb/ccusb		\
-				-I@top_srcdir@/base/tclplus		\
+				@LIBTCLPLUS_CFLAGS@	\
 				-I@top_srcdir@/base/exception		\
 				-I@top_srcdir@/base/headers		\
 				-I@top_srcdir@/base/thread		\
@@ -27,7 +27,7 @@ libCCUSBCommands_la_LIBADD	= 	@top_builddir@/usb/ccusb/rdothread/libCCUSBRdoThre
 				@top_builddir@/usb/ccusb/threadcomm/libCCUSBThreadComm.la	\
 				@top_builddir@/usb/ccusb/router/libCCUSBRouter.la	\
 				@top_builddir@/usb/ccusb/daqconfig/libCCUSBConfig.la	\
-				@top_builddir@/base/tclplus/libtclPlus.la 	\
+				@LIBTCLPLUS_LDFLAGS@	\
 				@top_builddir@/base/thread/libdaqthreads.la	\
 			        @top_builddir@/base/exception/libException.la \
 				$(TCL_LDFLAGS)

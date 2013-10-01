@@ -28,7 +28,7 @@ libVMUSBDevices_la_SOURCES	= 	CConfigurableObject.cpp	\
 INCLUDES	= 	-I$(top_srcdir)/usb/vmusb/vmusb 	\
 			-I$(top_srcdir)/usb/vmusb/daqconfig 	\
 			-I$(top_srcdir)/usb/vmusb		\
-			-I$(top_srcdir)/base/tclplus          \
+			@LIBTCLPLUS_CFLAGS@		\
 			-I$(top_srcdir)/base/exception	\
 			-I$(top_srcdir)/base/headers		\
 			@TCL_FLAGS@ 
@@ -37,7 +37,7 @@ libVMUSBDevices_la_CXXFLAGS=@THREADCXX_FLAGS@
 
 
 libVMUSBDevices_la_LIBADD	= $(top_builddir)/usb/vmusb/vmusb/libVMUSB.la \
-				$(top_builddir)/base/tclplus/libtclPlus.la \
+					@LIBTCLPLUS_LDFLAGS@	\
 				  @TCL_LDFLAGS@ \
 				-lm @THREADLD_FLAGS@
 
@@ -81,7 +81,7 @@ install-data-local:
 tests: TestRunner.cpp $(TESTS)
 	$(CXX) -g -o tests -I. -I$(prefix)/include $(CPPUNIT_INCLUDES) \
 	TestRunner.cpp  $(TESTS) -L$(prefix)/lib -lVMUSBDevices -lVMUSB -lConfig \
-	$(NSCLDAQ_LIB) -ltclPlus -lException  $(TCL_LDFLAGS) \
+	$(NSCLDAQ_LIB) @LIBTCLPLUS_LDFLAGS@ -lException  $(TCL_LDFLAGS) \
 	-Wl,"-rpath=$(libdir)" -Wl,"-rpath=$(daqdir)/lib" \
 	$(CPPUNIT_LDFLAGS)
 

@@ -27,7 +27,7 @@ noinst_HEADERS		= CVMUSB.h   \
 
 libVMUSB_CXXFLAGS=@THREADCXX_FLAGS@
 
-INCLUDES		= $(USBSWITCHES) -I$(top_srcdir)/base/headers -I$(top_srcdir)/base/tclplus  \
+INCLUDES		= $(USBSWITCHES) -I$(top_srcdir)/base/headers @LIBTCLPLUS_CFLAGS@  \
 			-I@top_srcdir@/base/tcpip \
 			 -I$(top_srcdir)/base/exception @TCL_FLAGS@
 
@@ -37,7 +37,7 @@ libVMUSBRemote_la_LIBADD = @top_builddir@/usb/vmusb/vmusb/libVMUSB.la \
 	@TCL_LDFLAGS@ \
 	@top_builddir@/base/tcpip/libTcp.la \
 	@top_builddir@/base/exception/libException.la \
-	@top_builddir@/base/tclplus/libtclPlus.la -lException @THREADLD_FLAGS@
+	@LIBTCLPLUS_LDFLAGS@ -lException @THREADLD_FLAGS@
 
 #IVP tests:
 

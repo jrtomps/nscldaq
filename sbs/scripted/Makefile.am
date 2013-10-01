@@ -90,7 +90,7 @@ noinst_HEADERS= CScriptedSegment.h	\
 INCLUDES=  $(VMEBUILDEADERS) \
 	-I@top_srcdir@/base/headers 	\
 	-I@top_srcdir@/base/exception \
-	-I@top_srcdir@/base/tclplus \
+	@LIBTCLPLUS_CFLAGS@	\
 	-I@top_srcdir@/sbs/nsclapi 	\
 	-I@top_srcdir@/sbs/vmemodules\
 	-I@top_srcdir@/sbs/readout   \
@@ -105,10 +105,12 @@ ScriptedReadout_LDADD = @top_srcdir@/sbs/scripted/libScriptedRdo.la   \
 	@top_srcdir@/sbs/readout/libSBSProductionReadout.la		\
 	@top_srcdir@/sbs/vmemodules/libSBSDeviceSupport.la	\
 	@top_srcdir@/sbs/nsclapi/libSBSVmeAPI.la		\
-	@top_srcdir@/base/tclplus/libtclPlus.la		\
 	@top_srcdir@/base/thread/libdaqthreads.la	\
-	@top_srcdir@/base/exception/libException.la $(TCL_LDFLAGS) \
+	@top_srcdir@/base/exception/libException.la \
+	@LIBTCLPLUS_LDFLAGS@ \
+	$(TCL_LDFLAGS) \
 	-lpthread
+
 
 EXTRA_DIST=Makefile.skel scriptedreadout_Makefile.include
 

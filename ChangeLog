@@ -494,3 +494,6 @@ Feb 1, 2012 - Feb 24, 2012
         * Document new format of Glom parametesr ring item and methods/parameters
           that set/get the timestamp policy.
 
+        * Use tclplus deb package if availalble, fallback to local copy in
+	  libtcl
+

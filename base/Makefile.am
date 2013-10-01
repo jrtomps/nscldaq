@@ -1,3 +1,3 @@
-SUBDIRS = 	os  exception tclplus CopyrightTools cvt uri thread headers tclwidgets \
+SUBDIRS = 	os  exception CopyrightTools cvt uri thread headers tclwidgets \
 		security  tcpip plotchart bltsubst 
 
