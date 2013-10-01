@@ -34,7 +34,7 @@ INCLUDES			= 	-I@top_srcdir@/usb/ccusb		\
 					-I@top_srcdir@/usb/ccusb/threadcomm	\
 					-I@top_srcdir@/usb/ccusb/rdothread	\
 					-I@top_srcdir@/usb/ccusb/router	\
-					@LIBTCPLUS_CFLAGS@	\
+					@LIBTCLPLUS_CFLAGS@	\
 					-I@top_srcdir@/base/exception	\
 					-I@top_srcdir@/base/headers	\
 					-I@top_srcdir@/base/thread	\
