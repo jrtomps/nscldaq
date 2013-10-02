@@ -8,10 +8,10 @@ libCCCUSBReadoutList_la_SOURCES = CCCUSBReadoutList_wrap.cxx
  BUILT_SOURCES=CCCUSB_wrap.cxx CCCUSBReadoutList_wrap.cxx
 
  CCCUSB_wrap.cxx:	CCCUSB.h
-	 swig -c++ -debug-classes  -tcl  -namespace  -pkgversion 1.0  CCCUSB.h
+	 @SWIG@ -c++ -debug-classes  -tcl  -namespace  -pkgversion 1.0  CCCUSB.h
 
  CCCUSBReadoutList_wrap.cxx: CCCUSBReadoutList.h
-	 swig -c++ -debug-classes  -tcl  -namespace  -pkgversion 1.0  CCCUSBReadoutList.h
+	 @SWIG@ -c++ -debug-classes  -tcl  -namespace  -pkgversion 1.0  CCCUSBReadoutList.h
 
 
  INCLUDES		= @TCL_FLAGS@ @USBSWITCHES@ @THREADCXX_FLAGS@

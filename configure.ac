@@ -16,11 +16,9 @@ AC_PROG_INSTALL
 AC_PROG_LIBTOOL
 
 
-AC_CHECK_PROG(HAVE_GENGETOPT, [gengetopt], true, false)
 AC_CHECK_PROG(HAVE_DOCBOOK2PDF, [docbook2pdf], true, false)
 AC_CHECK_PROG(HAVE_XMLTO, [xmlto], true, false)
 AC_CHECK_PROG(MANDB, mandb, mandb, echo)
-AC_CHECK_PROG(SWIG, [swig], [swig], [])
 
 AC_CHECK_LIB([X11], [XSetWindowBackground])
 AC_CHECK_LIB([Xt], [XtManage])
@@ -89,32 +87,24 @@ SOVERSION="10:0:0"
 #
 #  Local tests:
 #
-# Ensure swig is installed:
 
-if test x$SWIG == x
-then
-	AC_MSG_ERROR([Can't find SWIG in your program search path.])
-fi
+# Ensure swig is installed: -- this is used to generate wrappers for the
+#  VMUSB and CCUSB libraries for use within Tcl drivers.
+#
+#  Earlier swig versions than 1.3 may well work, however this is the
+#  version I used when first successfully building the wrappers
+# (ubuntu lucid lynx).
+#
+AX_PKG_SWIG([1.3], [], [ AC_MSG_ERROR([Swig is required to build nscldaq])])
+
 
 # We use gengetopt in a few places.  Ideally it's been found by now in the
 # path if not we'll need to do the withval thing.. or prompt the user to
 # give us a --with-gengetopt-path
 #
+AX_GENGETOPT
 
-if test x$HAVE_GENGETOPT == xtrue
-then
-	GENGETOPT=gengetopt
-else
-	AC_ARG_WITH(gengetopt-path,
-			[ --with-gengetopt-path=directory that has gengetopt],
-			[GENGETOPT=$withval],
-			GENGETOPT="")
-  if test x$GENGETOPT == x
-  then
-	AC_MSG_ERROR([Can't find gengetopt in path, install it or help me out with --with-gengetopt-path])
-  fi
-fi
-
+# Tcl/Tk is pervasive in NCLDAQ so we need to have it too:
 
 AX_TCL
 
@@ -377,7 +367,6 @@ AC_SUBST(EPICS_LDFLAGS)
 AC_SUBST(EPICS_BIN)
 
 
-AC_SUBST(GENGETOPT)
 
 AC_SUBST(CPPUNIT_LDFLAGS)
 

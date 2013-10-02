@@ -79,11 +79,11 @@ libCVMUSB_la_LIBADD  = libVMUSB.la @THREADLD_FLAGS@
 BUILT_SOURCES=CVMUSB_wrap.cxx CVMUSBReadoutList_wrap.cxx
 
 CVMUSB_wrap.cxx:	CVMUSB.h
-	swig -c++ -debug-classes -tcl -namespace -pkgversion 1.0 CVMUSB.h
+	@SWIG@ -c++ -debug-classes -tcl -namespace -pkgversion 1.0 CVMUSB.h
 
 libCVMUSBReadoutList_la_SOURCES = CVMUSBReadoutList_wrap.cxx
 libCVMUSBReadoutList_la_LIBADD = libVMUSB.la @THREADLD_FLAGS@
 
 
 CVMUSBReadoutList_wrap.cxx: CVMUSBReadoutList.h
-	swig -c++ -debug-classes -tcl -namespace -pkgversion 1.0 CVMUSBReadoutList.h
+	@SWIG@ -c++ -debug-classes -tcl -namespace -pkgversion 1.0 CVMUSBReadoutList.h
