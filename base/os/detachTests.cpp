@@ -7,6 +7,7 @@
 #include "daqshm.h"
 
 
+
 class detachTests : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(detachTests);
   CPPUNIT_TEST(notattached);
@@ -20,6 +21,7 @@ public:
   void setUp() {
   }
   void tearDown() {
+    CDAQShm::remove(shmName);
   }
 protected:
   void notattached();
