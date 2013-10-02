@@ -221,7 +221,7 @@ AC_ARG_ENABLE([usb],
 
 if test "$enableusb" == "yes"
 then
-
+	AX_LIBUSB
 	AM_CONDITIONAL([BUILD_USB], [true])
 else
 	AM_CONDITIONAL([BUILD_USB], [false])

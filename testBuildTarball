@@ -1,0 +1,19 @@
+#!/bin/bash -xe
+
+
+rm -rf /tmp/11.0
+
+version=`grep AC_INIT configure.ac | cut -f2 -d" " | sed s/,//`
+
+rm -rf nscldaq-${version}
+
+tar xzf nscldaq-${version}.tar.gz
+cd nscldaq-${version}
+
+./configure --prefix=/tmp/11.0
+make clean all
+make check
+make install
+make installcheck
+
+rm -rf /tmp/11.0
