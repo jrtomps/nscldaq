@@ -64,13 +64,13 @@ include_HEADERS =	CADC2530.h	\
 
 
 INCLUDES	=	-I@top_srcdir@/base/headers 	\
-			-I@top_srcdir@/base/exception	\
+			@LIBTCLPLUS_CFLAGS@	\
 			-I@top_srcdir@/sbs/nsclapi	\
 			-I@top_srcdir@/sbs/driver/include \
 			-DHAVE_VME_MAPPING -DHAVE_SBSVME_INTERFACE
 
 
-libSBSDeviceSupport_la_LIBADD =	@top_srcdir@/base/exception/libException.la	\
+libSBSDeviceSupport_la_LIBADD =	@LIBTCLPLUS_LDFLAGS@	\
 				@top_srcdir@/sbs/nsclapi/libSBSVmeAPI.la	\
 				@top_srcdir@/sbs/driver/src/libbtp.la
 

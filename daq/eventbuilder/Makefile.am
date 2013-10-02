@@ -46,7 +46,7 @@ noinst_HEADERS = CFragmentHandlerCommand.h CFragmentHandler.h cmdline.h \
 INCLUDES =  \
 	-I@top_srcdir@/daq/format \
 	-I@top_srcdir@/base/tcpip \
-	-I@top_srcdir@/base/exception  \
+	@LIBTCLPLUS_CFLAGS@	\
 	-I@top_srcdir@/base/headers	\
 	-I@top_srcdir@/base/tcpip        \
 	-I@top_srcdir@/servers/portmanager \
@@ -59,9 +59,9 @@ libEventBuilderClient_la_LIBADD = @top_builddir@/base/tcpip/libTcp.la \
 	@top_builddir@/servers/portmanager/libPortManager.la   \
 	@top_builddir@/base/tcpip/libTcp.la	\
 	@top_builddir@/base/os/libdaqshm.la		\
-	@top_builddir@/base/exception/libException.la
+	@LIBTCLPLUS_LDFLAGS@
 
-libEventBuilder_la_LIBADD = @top_builddir@/base/exception/libException.la \
+libEventBuilder_la_LIBADD = @LIBTCLPLUS_LDFLAGS@	\
 	@top_builddir@/base/os/libdaqshm.la    \
 	@TCL_LDFLAGS@ @THREADLD_FLAGS@
 

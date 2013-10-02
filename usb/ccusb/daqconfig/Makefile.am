@@ -37,13 +37,11 @@ noinst_HEADERS		=	CConfiguration.h 	\
 INCLUDES		= 	-I@top_srcdir@/usb/ccusb/devices	\
 				-I@top_srcdir@/usb/ccusb		\
 				@LIBTCLPLUS_CFLAGS@		\
-				-I@top_srcdir@/base/exception		\
 				-I@top_srcdir@/base/headers		\
 				$(TCL_FLAGS) @THREADCXX_FLAGS@
 
 libCCUSBConfig_la_LIBADD	=	@top_builddir@/usb/ccusb/devices/libCCUSBDevices.la 	\
 				@LIBTCLPLUS_LDFLAGS@	\
-				@top_builddir@/base/exception/libException.la	\
 				$(TCL_LDFLAGS) @THREADLD_FLAGS@
 
 

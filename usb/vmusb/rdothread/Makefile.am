@@ -16,7 +16,7 @@ INCLUDES		= -I@top_srcdir@/usb/vmusb/threadcomm 	\
 			-I@top_srcdir@/usb/vmusb/vmusb		\
 			-I@top_srcdir@/usb/vmusb/daqconfig	\
 			-I@top_srcdir@/usb/vmusb/tclserver @TCL_FLAGS@ \
-			-I@top_srcdir@/base/exception	\
+			@LIBTCLPLUS_CFLAGS@		\
 			-I@top_srcdir@/base/headers	\
 			-I@top_srcdir@/base/thread	\
 			-I@top_srcdir@/usb/vmusb
@@ -25,6 +25,6 @@ INCLUDES		= -I@top_srcdir@/usb/vmusb/threadcomm 	\
 libVMUSBRdoThread_la_LIBADD	= @top_srcdir@/usb/vmusb/threadcomm/libVMUSBThreadComm.la	\
 			  @top_srcdir@/usb/vmusb/devices/libVMUSBDevices.la	\
 			  @top_srcdir@/usb/vmusb/vmusb/libVMUSB.la		\
-			@top_srcdir@/base/exception/libException.la             \
+			@LIBTCLPLUS_LDFLAGS@					\
 			@top_srcdir@/base/thread/libdaqthreads.la @THREADLD_FLAGS@
 

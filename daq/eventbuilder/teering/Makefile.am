@@ -22,7 +22,7 @@ teering_LDADD = @top_builddir@/daq/eventbuilder/libEventBuilderClient.la \
 	@top_builddir@/base/dataflow/libRingBuffer.la     \
 	@top_builddir@/base/dataflow/libDataFlow.la	\
 	@top_builddir@/base/os/libdaqshm.la		 \
-	@top_builddir@/base/exception/libException.la \
+	@LIBTCLPLUS_LDFLAGS@	\
 	@THREADLD_FLAGS@
 
 teering_LDFLAGS= -Wl,"-rpath=@libdir@"

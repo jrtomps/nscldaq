@@ -29,7 +29,6 @@ INCLUDES	= 	-I$(top_srcdir)/usb/vmusb/vmusb 	\
 			-I$(top_srcdir)/usb/vmusb/daqconfig 	\
 			-I$(top_srcdir)/usb/vmusb		\
 			@LIBTCLPLUS_CFLAGS@		\
-			-I$(top_srcdir)/base/exception	\
 			-I$(top_srcdir)/base/headers		\
 			@TCL_FLAGS@ 
 
@@ -81,7 +80,7 @@ install-data-local:
 tests: TestRunner.cpp $(TESTS)
 	$(CXX) -g -o tests -I. -I$(prefix)/include $(CPPUNIT_INCLUDES) \
 	TestRunner.cpp  $(TESTS) -L$(prefix)/lib -lVMUSBDevices -lVMUSB -lConfig \
-	$(NSCLDAQ_LIB) @LIBTCLPLUS_LDFLAGS@ -lException  $(TCL_LDFLAGS) \
+	$(NSCLDAQ_LIB) @LIBTCLPLUS_LDFLAGS@  $(TCL_LDFLAGS) \
 	-Wl,"-rpath=$(libdir)" -Wl,"-rpath=$(daqdir)/lib" \
 	$(CPPUNIT_LDFLAGS)
 

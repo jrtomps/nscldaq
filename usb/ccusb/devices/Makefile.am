@@ -19,14 +19,12 @@ INCLUDES	= 	-I$(top_srcdir)/usb/ccusb/ccusb \
 			-I$(top_srcdir)/usb/ccusb/daqconfig \
 			-I$(top_srcdir)/usb/ccusb		\
 			@LIBTCLPLUS_CFLAGS@		\
-			-I$(top_srcdir)/base/exception		\
 			-I$(top_srcdir)/base/headers		\
 			@TCL_FLAGS@ @THREADCXX_FLAGS@
 
 
 libCCUSBDevices_la_LIBADD	= $(top_builddir)/usb/ccusb/ccusb/libCCUSB.la \
 				@LIBTCLPLUS_LDFLAGS@	\
-				$(top_builddir)/base/exception/libException.la \
 				  @TCL_LDFLAGS@ @THREADLD_FLAGS@
 
 noinst_HEADERS			= 	CConfigurableObject.h	\

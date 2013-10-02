@@ -10,7 +10,7 @@ noinst_HEADERS		=	COutputThread.h		\
 INCLUDES		= -I@top_srcdir@/usb/vmusb/threadcomm -DLAST_CHANCE \
 			-I@top_srcdir@/usb/vmusb/tclserver $(TCL_FLAGS) \
 			-I@top_srcdir@/usb/vmusb/vmusb -I@top_srcdir@/base/thread \
-			-I@top_srcdir@/base/exception \
+			@LIBTCLPLUS_CFLAGS@		\
 			-I@top_srcdir@/base/headers  \
 			-I@top_srcdir@/usb/vmusb	\
 			-I@top_srcdir@/base/dataflow	\
@@ -19,7 +19,7 @@ INCLUDES		= -I@top_srcdir@/usb/vmusb/threadcomm -DLAST_CHANCE \
 
 libVMUSBRouter_la_CXXFLAGS=@THREADCXX_FLAGS@
 
-libVMUSBRouter_la_LIBADD	= @top_srcdir@/base/exception/libException.la \
+libVMUSBRouter_la_LIBADD	= @LIBTCLPLUS_LDFLAGS@	\
 	@top_srcdir@/usb/vmusb/threadcomm/libVMUSBThreadComm.la \
 	@top_srcdir@/base/thread/libdaqthreads.la \
 	@top_srcdir@/base/dataflow/libRingBuffer.la \

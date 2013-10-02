@@ -57,13 +57,11 @@ INCLUDES		= 	-I@top_srcdir@/usb/vmusb/devices	\
 				-I@top_srcdir@/usb/vmusb		\
 				@LIBTCLPLUS_CFLAGS@		\
 				-I@top_srcdir@/base/headers		\
-				-I@top_srcdir@/base/exception		\
 				$(TCL_FLAGS) 
 
 
 libVMUSBConfig_la_LIBADD	=	@top_srcdir@/usb/vmusb/devices/libVMUSBDevices.la \
 				@LIBTCLPLUS_LDFLAGS@	\
-				@top_srcdir@/base/exception/libException.la	\
 				$(TCL_LDFLAGS) @THREADLD_FLAGS@
 
 install-data-local:

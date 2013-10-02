@@ -141,7 +141,8 @@ AC_CHECK_FILE([/usr/include/TCLInterpreterObject.h], [systemtcl="yes"], [systemt
 if test $systemtcl = "yes"
 then
 	LIBTCLPLUS_CFLAGS=""
-	LIBTCLPLUS_LDFLAGS="-ltclPlus -lException"
+	LIBEXCEPTION_LDFLAGS="-lException"
+	LIBTCLPLUS_LDFLAGS="-ltclPlus ${LIBEXCEPTION_LDFLAGS}"
 	AC_MSG_RESULT([Found in  system libraries])
 else
 	AC_MSG_RESULT([Need to build local tagged copy])
@@ -150,7 +151,8 @@ else
 	then
 		(cd libtcl; ./configure --prefix=${prefix}; make clean install)
 		LIBTCLPLUS_CFLAGS="-I${prefix}/include"
-		LIBTCLPLUS_LDFLAGS=-"L${prefix}/lib -ltclPlus -lException -Wl,\"-rpath=${prefix}/lib\""
+		LIBEXCEPTION_LDFLAGS="-L${prefix}/lib -lException -Wl,\"-rpath=${prefis}/lib\""
+		LIBTCLPLUS_LDFLAGS="-L${prefix}/lib -ltclPlus ${LIBEXCEPTION_LDFLAGS}"
 	else
 		AC_MSG_ERROR([I seem to be missing libtcl, please use tcl++incorp.sh to fill it with a tagged release of libtclplus])
 	fi
@@ -158,6 +160,7 @@ else
 fi
 AC_SUBST(LIBTCLPLUS_CFLAGS)
 AC_SUBST(LIBTCLPLUS_LDFLAGS)
+AC_SUBST(LIBEXCEPTION_LDFLAGS)
 
 
 

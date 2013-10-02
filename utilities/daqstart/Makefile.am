@@ -9,9 +9,9 @@ noinst_HEADERS = cmdline.h CDAQStart.h  CFileSinkCreator.h \
 		CSinkFactory.h grep.h
 
 INCLUDES	= -I@top_srcdir@/base/os \
-	-I@top_srcdir@/base/headers -I@top_srcdir@/base/exception -I.
+	-I@top_srcdir@/base/headers @LIBTCLPLUS_CFLAGS@
 
-daqstart_LDADD = @top_builddir@/base/exception/libException.la	\
+daqstart_LDADD = @LIBEXCEPTION_LDFLAGS@ \
 	@top_builddir@/base/os/libdaqshm.la  \
 	$(THREADLD_FLAGS)
 
@@ -34,7 +34,7 @@ noinst_PROGRAMS = unittests
 unittests_SOURCES = $(TESTABLEUNITS) CFileSinkTests.cpp SinkCreatorTests.cpp \
 	FactoryTests.cpp LocalMonitoredProgram.cpp  grep.cpp TestRunner.cpp
 
-unittests_LDADD = $(CPPUNIT_LDFLAGS) @top_builddir@/base/exception/libException.la \
+unittests_LDADD = $(CPPUNIT_LDFLAGS) @LIBEXCEPTION_LDFLAGS@ \
 	@top_builddir@/base/os/libdaqshm.la
 
 

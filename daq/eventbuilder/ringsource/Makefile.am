@@ -45,7 +45,7 @@ ringtestoptions.h: ringtestoptions.ggo
 ringTestSource_LDADD = \
 	@top_builddir@/daq/format/libdataformat.la \
 	@top_builddir@/base/dataflow/libDataFlow.la \
-	@top_builddir@/base/exception/libException.la \
+	@LIBEXCEPTION_LDFLAGS@	\
 	-ldl 
 
 .FIRST: 
@@ -56,7 +56,8 @@ clean-local:
 
 INCLUDES=-I.. -I@top_srcdir@/base/dataflow \
 	-I@top_srcdir@/daq/format \
-	-I@top_srcdir@/base/exception -I@top_srcdir@/base/headers \
+	@LIBTCLPLUS_CFLAGS@	 \
+	 -I@top_srcdir@/base/headers \
 	-I@top_srcdir@/base/os
 
 ringFragmentSource_LDADD=  		 \

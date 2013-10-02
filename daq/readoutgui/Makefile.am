@@ -62,11 +62,11 @@ SecretTk_LDFLAGS= $(TCL_LDFLAGS) $(X11LIBS)
 lib_LTLIBRARIES = libWait.la
 libWait_la_SOURCES = WaitPackage.cpp
 
-libWait_la_LDFLAGS =	@top_srcdir@/base/exception/libException.la	\
+libWait_la_LDFLAGS =	@LIBTCLPLUS_LDFLAGS@	\
 			@top_srcdir@/base/CopyrightTools/libLicense.la	 \
 			-version-info $(SOVERSION)
 
-libWait_la_LIBADD =  @LIBTCLPLUS_LDFLAGS@ -lException  \
+libWait_la_LIBADD =  @LIBTCLPLUS_LDFLAGS@ \
 	$(TCL_LDFLAGS)	$(X11LIBS)  -lLicense  \
 	-lm -lstdc++ -lgcc -lc
 

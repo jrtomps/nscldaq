@@ -89,7 +89,6 @@ noinst_HEADERS= CScriptedSegment.h	\
 
 INCLUDES=  $(VMEBUILDEADERS) \
 	-I@top_srcdir@/base/headers 	\
-	-I@top_srcdir@/base/exception \
 	@LIBTCLPLUS_CFLAGS@	\
 	-I@top_srcdir@/sbs/nsclapi 	\
 	-I@top_srcdir@/sbs/vmemodules\
@@ -106,7 +105,6 @@ ScriptedReadout_LDADD = @top_srcdir@/sbs/scripted/libScriptedRdo.la   \
 	@top_srcdir@/sbs/vmemodules/libSBSDeviceSupport.la	\
 	@top_srcdir@/sbs/nsclapi/libSBSVmeAPI.la		\
 	@top_srcdir@/base/thread/libdaqthreads.la	\
-	@top_srcdir@/base/exception/libException.la \
 	@LIBTCLPLUS_LDFLAGS@ \
 	$(TCL_LDFLAGS) \
 	-lpthread

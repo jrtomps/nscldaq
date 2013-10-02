@@ -41,7 +41,7 @@ include_HEADERS	= CRingSelectionPredicate.h	\
 
 
 INCLUDES	= -I@top_srcdir@/base/dataflow	\
-		  -I@top_srcdir@/base/exception	\
+		@LIBTCLPLUS_CFLAGS@	\
 		-I@top_srcdir@/base/headers	\
 		-I@top_srcdir@/base/uri		\
 		-I@top_srcdir@/base/os
@@ -53,7 +53,7 @@ libdataformat_la_LDFLAGS	= -version-info $(SOVERSION)	\
 libdataformat_la_LIBADD	= @top_builddir@/base/dataflow/libDataFlow.la \
 			@top_builddir@/base/uri/liburl.la		\
 			@top_builddir@/base/os/libdaqshm.la		\
-			@top_builddir@/base/exception/libException.la
+			@LIBEXCEPTION_LDFLAGS@
 
 
 libdataformat_la_CXXFLAGS = $(THREADCXX_FLAGS) $(AM_CXXFLAGS)
@@ -71,7 +71,7 @@ unittests_SOURCES	= TestRunner.cpp selecttest.cpp desiredtests.cpp	\
 unittests_LDADD		= -L$(libdir) $(CPPUNIT_LDFLAGS) 		\
 			@top_builddir@/base/dataflow/libDataFlow.la 	\
 			@top_builddir@/daq/format/libdataformat.la	\
-			@top_builddir@/base/exception/libException.la 
+			@LIBEXCEPTION_LDFLAGS@
 
 
 

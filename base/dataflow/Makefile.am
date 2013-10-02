@@ -8,8 +8,7 @@ include_HEADERS        = CRingBuffer.h CRingMaster.h CRemoteAccess.h
 
 noinst_HEADERS         = ringbufint.h Asserts.h testcommon.h CRingCommand.h
 
-INCLUDES = -I@top_srcdir@/base/exception \
-	   -I@top_srcdir@/base/headers 	\
+INCLUDES =  -I@top_srcdir@/base/headers 	\
 	   -I@top_srcdir@/servers/portmanager \
 		@LIBTCLPLUS_CFLAGS@	\
 	   -I@top_srcdir@/base/uri	\
@@ -21,8 +20,7 @@ libDataFlow_la_LDFLAGS =  -version-info $(SOVERSION) \
 	                  -Wl,"-rpath-link=$(libdir)" 	\
 			-lrt $(THREADLD_FLAGS)
 
-libDataFlow_la_LIBADD  = @top_srcdir@/base/exception/libException.la \
-			@top_srcdir@/servers/portmanager/libPortManager.la \
+libDataFlow_la_LIBADD  = @top_srcdir@/servers/portmanager/libPortManager.la \
 			@top_srcdir@/base/uri/liburl.la 	\
 			@top_srcdir@/base/os/libdaqshm.la	\
 			$(THREADLD_FLAGS)
@@ -32,10 +30,9 @@ libDataFlow_la_CXXFLAGS = $(THREADCXX_FLAGS) $(AM_CXXFLAGS)
 libRingBuffer_la_SOURCES = ringPackage.cpp CRingCommand.cpp
 libRingBuffer_la_DEPENDENCIES = libDataFlow.la ringtostdoutsw.o stdintoringsw.o
 
-libRingBuffer_la_LIBADD  = 	@top_srcdir@/base/dataflow/libDataFlow.la \
-				@top_srcdir@/base/exception/libException.la
+libRingBuffer_la_LIBADD  = 	@top_srcdir@/base/dataflow/libDataFlow.la 
 
-libRingBuffer_la_LDFLAGS = 	@LIBTCLPLUS_LDFLAGS@ $(TCL_LDFLAGS) \
+libRingBuffer_la_LDFLAGS = 	@LIBEXCEPTION_LDFLAGS@ $(TCL_LDFLAGS) \
 				-version-info $(SOVERSION) \
 				-Wl,"-rpath-link=$(libdir)"	\
 				$(THREADLD_FLAGS)
@@ -60,7 +57,7 @@ ringtostdoutsw.o: ringtostdoutsw.ggo
 	$(CC) -c ringtostdoutsw.c $(THREADC_FLAGS)
 
 ringtostdout_LDADD	= ringtostdoutsw.o libDataFlow.la \
-			@top_builddir@/base/exception/libException.la \
+			@LIBEXCEPTION_LDFLAGS@	\
 			@top_builddir@/base/os/libdaqshm.la	\
 			$(THREADLD_FLAGS)
 
@@ -74,7 +71,7 @@ stdintoringsw.o: stdintoringsw.ggo
 	$(CC) -c stdintoringsw.c $(THREADC_FLAGS)
 
 stdintoring_LDADD	= stdintoringsw.o libDataFlow.la	\
-			@top_builddir@/base/exception/libException.la \
+			@LIBEXCEPTION_LDFLAGS@ \
 			$(THREADLD_FLAGS)
 
 stdintoring_CXXFLAGS =	$(THREADCXX_FLAGS) $(AM_CXXFLAGS)
@@ -91,7 +88,7 @@ unittests_SOURCES = TestRunner.cpp StaticTests.cpp TransferTests.cpp testcommon.
 		ManageTest.cpp WhilePredTest.cpp crmastertests.cpp RemoteTests.cpp
 
 unittests_LDADD   = -L@prefix@/lib $(CPPUNIT_LDFLAGS) \
-			@top_builddir@/base/exception/libException.la \
+			@LIBEXCEPTION_LDFLAGS@	\
 			-lDataFlow 
 
 unittests_LDFLAGS = -Wl,"-rpath-link=$(libdir)"
@@ -99,13 +96,13 @@ unittests_LDFLAGS = -Wl,"-rpath-link=$(libdir)"
 
 producer_SOURCES	=	producer.cpp
 
-producer_LDADD    = -L@prefix@/lib -lDataFlow @top_builddir@/base/exception/libException.la 
+producer_LDADD    = -L@prefix@/lib -lDataFlow @LIBEXCEPTION_LDFLAGS@
 
 producer_LDFLAGS  = -Wl,"-rpath-link=$(libdir)"
 
 consumer_SOURCES	=	consumer.cpp
 
-consumer_LDADD    = -L@prefix@/lib -lDataFlow @top_builddir@/base/exception/libException.la
+consumer_LDADD    = -L@prefix@/lib -lDataFlow @LIBEXCEPTION_LDFLAGS@
 
 consumer_LDFLAGS  = -Wl,"-rpath-link=$(libdir)"
 
