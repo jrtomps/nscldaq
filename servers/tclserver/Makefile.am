@@ -6,7 +6,7 @@ tclserver_LDADD = @LIBTCLPLUS_LDFLAGS@ \
 	 @top_builddir@/servers/portmanager/libPortManager.la \
 	 @top_builddir@/base/CopyrightTools/libLicense.la    \
 	 @top_builddir@/base/os/libdaqshm.la	\
-	 @top_builddir@/base/exception/libException.la    \
+	@LIBEXCEPTION_LDFLAGS@	\
 	$(TCL_LDFLAGS) \
 	$(X11LIBS)  	\
 	$(THREADLD_FLAGS)

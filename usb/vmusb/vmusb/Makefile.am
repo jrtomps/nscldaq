@@ -29,15 +29,14 @@ libVMUSB_CXXFLAGS=@THREADCXX_FLAGS@
 
 INCLUDES		= $(USBSWITCHES) -I$(top_srcdir)/base/headers @LIBTCLPLUS_CFLAGS@  \
 			-I@top_srcdir@/base/tcpip \
-			 -I$(top_srcdir)/base/exception @TCL_FLAGS@
+			  @TCL_FLAGS@
 
 libVMUSB_la_LIBADD       = @top_srcdir@/base/tcpip/libTcp.la $(USB_LIBS)  
 
 libVMUSBRemote_la_LIBADD = @top_builddir@/usb/vmusb/vmusb/libVMUSB.la \
 	@TCL_LDFLAGS@ \
 	@top_builddir@/base/tcpip/libTcp.la \
-	@top_builddir@/base/exception/libException.la \
-	@LIBTCLPLUS_LDFLAGS@ -lException @THREADLD_FLAGS@
+	@LIBEXCEPTION_LDFLAGS@  @THREADLD_FLAGS@
 
 #IVP tests:
 

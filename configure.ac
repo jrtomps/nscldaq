@@ -415,11 +415,9 @@ AC_CONFIG_FILES([Makefile
                  base/CopyrightTools/Makefile
                  base/bltsubst/Makefile
                  base/cvt/Makefile
-                 base/exception/Makefile
 		 base/thread/Makefile
                  base/headers/Makefile
                  base/security/Makefile
-                 base/tclplus/Makefile
                  base/tclwidgets/Makefile
                  base/uri/Makefile
 		 base/dataflow/Makefile
