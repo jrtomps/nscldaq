@@ -154,7 +154,12 @@ AC_SUBST(LIBEXCEPTION_LDFLAGS)
 
 
 
-# Epics:
+# Epics
+#
+#  This is only probed for and build if --enable-epics-tools=yes is provided
+#  at configuration time.  Oncethat's done, AX_EPICS provideas all the defs
+#  and the EPICS/BUILD_EPICS_TOOLS enables those in the Makefiles.
+#
 
 
 BUILD_EPICS_TOOLS=no
@@ -166,7 +171,7 @@ AC_ARG_ENABLE([epics-tools],
 if test "$BUILD_EPICS_TOOLS" == "yes"
 then
 
-AX_EPICS
+	AX_EPICS
 	AM_CONDITIONAL([EPICS], [true])
 	AM_CONDITIONAL(BUILD_EPICS_TOOLS, [true])
 
@@ -216,65 +221,10 @@ AC_ARG_ENABLE([usb],
 
 if test "$enableusb" == "yes"
 then
-	headerdirs="/usr/include /usr/local/include"
-	libdirs="/lib /usr/lib /usr/local/lib /usr/lib/x86_64-linux-gnu"
 
-	usbheaderdir=""
-	usblibdir=""
-
-	AC_MSG_CHECKING([for libusb headers])
-	AC_ARG_WITH(usb-headerdir,
-		[   --with-usb-headerdir=Path to usb.h],
-		[usbheaderdir=$withval],[])
-
-	if test "$usbheaderdir" == ""
-	then
-	   	for dir in $headerdirs
-   		do
-			if test "$usbheaderdir" == ""
-      			then
-				AC_CHECK_FILE([$dir/usb.h],
-					[usbheaderdir=$dir])
-			fi
-   		done
-	fi
-
-	if test "$usbheaderdir" != ""
-	then
-		USBSWITCHES="-I${usbheaderdir}"
-		AC_MSG_RESULT([found in $usbheaderdir])
-	else
-		AC_MSG_ERROR([Can't find usb.h install libusb development or try using --with-usb-header-dir to help me find it])
-	fi
-
-	AC_MSG_CHECKING([for libusb library]) 
-	AC_ARG_WITH(usb-libdir,
-		[   --with-usb-libdir=Path to libusb.a],
-		[usblibdir=$withval],[])
-
-	if test "$usblibdir" == ""
-	then	
-   		for dir in $libdirs
-   		do	
-      			if test "$usblibdir" == ""
-      			then
-				AC_CHECK_FILE([$dir/libusb.a],
-					[usblibdir=$dir])
-      			fi
-   		done
-	fi
-
-	if test "$usblibdir" != "" 
-	then
-		USB_LIBS="-L${usblibdir} -lusb"
-  		 AC_MSG_RESULT([found in $usblibdir])
-	else
-		AC_MSG_ERROR([Can't find libusb.a install libusb or try using --with-usb-libdir to tell me where to find it])
-	fi 
-	#  If we got this far the symbos can be exported to the makefiles:
-
-	AC_SUBST(USBSWITCHES)
-	AC_SUBST(USB_LIBS)
+	AM_CONDITIONAL([BUILD_USB], [true])
+else
+	AM_CONDITIONAL([BUILD_USB], [false])
 fi
 
 
@@ -301,7 +251,6 @@ AC_SUBST(CPPUNIT_LDFLAGS)
 
 AM_CONDITIONAL([PDFDOCS], [test x$HAVE_DOCBOOK2PDF = xtrue])
 AM_CONDITIONAL([XMLMANS], [test x$HAVE_XMLTO = xtrue])
-AM_CONDITIONAL([BUILD_USB], [test x$enableusb = xyes])
 
 #
 #  Threading is hard coded to -pthread now.
@@ -419,4 +368,3 @@ AC_CONFIG_FILES([Makefile
 		 docconfig/Makefile])
 
 AC_OUTPUT
-
