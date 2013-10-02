@@ -493,7 +493,8 @@ Feb 1, 2012 - Feb 24, 2012
           --timestamp-policy switch.
         * Document new format of Glom parametesr ring item and methods/parameters
           that set/get the timestamp policy.
-
         * Use tclplus deb package if availalble, fallback to local copy in
 	  libtcl
-
+	* Encapsulate the SWIG autoconf test in an m4 test.
+	* Encapsulate the gengetopt test in an m4 test.
+        * Encapsulate the EPICS tests/defs in an m4 test.

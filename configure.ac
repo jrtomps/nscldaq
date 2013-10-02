@@ -156,18 +156,6 @@ AC_SUBST(LIBEXCEPTION_LDFLAGS)
 
 # Epics:
 
-#  Requires --enable-epics-tools=yes
-#   Look for epics in:
-#    /usr/local/epics
-#    /opt/epics
-#    /soft/intel/epics   [nscl].
-#    --with-epics-rootdir=
-# Underneath that we have (we require intel linux remember):
-#    include                  - the include directory
-#    include/os/linux-x86     - os specific includes.
-#    lib/linux-x86            - libs
-#    bin/linux-x86/caRepeater - The caRepeater program.
-#
 
 BUILD_EPICS_TOOLS=no
 AC_ARG_ENABLE([epics-tools],
@@ -178,66 +166,13 @@ AC_ARG_ENABLE([epics-tools],
 if test "$BUILD_EPICS_TOOLS" == "yes"
 then
 
-epicstestdirs="/usr/local/epics /opt/epics /usr/lib/epics"
-haveepics="no"
+AX_EPICS
+	AM_CONDITIONAL([EPICS], [true])
+	AM_CONDITIONAL(BUILD_EPICS_TOOLS, [true])
 
-
-AC_MSG_CHECKING([ for epics includes, libs and binaries])
-
-#  Check for --with-epics-rootdir....
-
-AC_ARG_WITH(epics-rootdir,
-	[  --with-epics-rootdir=top level directory of EPICS install (requires --enable-epics-tools)],
-	[haveepics="yes"
-	 epicsroot="$withval"],
-	[haveepics="no"])
-
-#
-#  Figure out which architecture specific directory to use.
-#
-#   For now we're just going to support various types of linux:
-#   linux-x86_64 (64 bit linux) and linxu-x86 (32 bit linux).
-#   Later this can be expanded to other os's and archs.
-#
-bits=`arch`
-kernel=`uname |tr [A-Z] [a-z]`
-
-case $bits in
-   i686 | i386)
-   	bits=x86
-   ;;
-esac
-
-epicsarch=$kernel-$bits
-
-
-if test $haveepics == "no"
-then
-   for dir in $epicstestdirs
-   do
-      if test $haveepics == "no"
-      then
-        AC_CHECK_FILE([${dir}/include/cadef.h],
-	              [haveepics="yes"
-                       epicsroot=$dir])
-      fi
-   done
-fi
-
-#  If we found epics we can build the software that needs it.
-#  otherwise it's optional.
-
-if test $haveepics == "yes"
-then
-	# Have epics:
-
-   epics=true
-   EPICS_INCLUDES="-I$epicsroot/include -I$epicsroot/include/os/Linux"
-   EPICS_LDFLAGS="-L$epicsroot/lib/$epicsarch -lca -Wl,\"-rpath=$epicsroot/lib/$epicsarch\""
-   EPICS_BIN="-DEPICS_BIN=\"\\\"$epicsroot/bin/$epicsarch\\\"\""
 else
-   epics=false
-fi
+	AM_CONDITIONAL([EPICS], [false])
+	AM_CONDITIONAL(BUILD_EPICS_TOOLS, [false])
 
 fi
 
@@ -357,14 +292,8 @@ AC_SUBST(TCL_FLAGS)
 AC_SUBST(TCL_LDFLAGS)
 AC_SUBST(TCLSH_CMD)
 
-echo "Epics: " x$haveepics
 
-AM_CONDITIONAL([EPICS], [test x$haveepics = xyes])
-AM_CONDITIONAL(BUILD_EPICS_TOOLS, [test x$BUILD_EPICS_TOOLS = xyes])
 
-AC_SUBST(EPICS_INCLUDES)
-AC_SUBST(EPICS_LDFLAGS)
-AC_SUBST(EPICS_BIN)
 
 
 
