@@ -29,6 +29,6 @@ install-data-local:
 	echo "Version: "NSCLDAQ-$(VERSION) built on `hostname` `date` > $(prefix)/VERSION
 
 
-EXTRA_DIST=dotests introduction.xml
+EXTRA_DIST=dotests introduction.xml libtcl
 
 TESTS=./dotests
