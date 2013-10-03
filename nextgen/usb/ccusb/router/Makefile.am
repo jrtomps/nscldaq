@@ -9,7 +9,7 @@ noinst_HEADERS		=	COutputThread.h		\
 
 INCLUDES		= -I@top_srcdir@/usb/ccusb/threadcomm  \
 			-I@top_srcdir@/usb/ccusb		\
-			-I@top_srcdir@/base/exception		\
+			@LIBTCLPLUS_CFLAGS@			\
 			-I@top_srcdir@/base/headers		\
 			-I@top_srcdir@/base/dataflow		\
 			-I@top_srcdir@/daq/format		\
@@ -18,7 +18,7 @@ INCLUDES		= -I@top_srcdir@/usb/ccusb/threadcomm  \
 
 
 libCCUSBRouter_la_LIBADD	= @top_srcdir@/usb/ccusb/threadcomm/libCCUSBThreadComm.la \
-			@top_builddir@/base/exception/libException.la \
+			@LIBTCLPLUS_LDFLAGS@		\
 			@top_builddir@/base/dataflow/libRingBuffer.la \
 			@top_builddir@/daq/format/libdataformat.la		\
 			@top_builddir@/base/thread/libdaqthreads.la @THREADLD_FLAGS@

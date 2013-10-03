@@ -5,8 +5,7 @@ libSBSVme_la_SOURCES =  VMECommand.cpp VMEMapCommand.cpp VMEPackage.cpp
 
 libSBSVme_la_LDFLAGS =  	-version-info 1:0:0 -Wl,"-rpath=$(libdir)"
 
-libSBSVme_la_LIBADD = @top_srcdir@/base/tclplus/libtclPlus.la    \
-		@top_srcdir@/base/exception/libException.la \
+libSBSVme_la_LIBADD = @LIBTCLPLUS_LDFLAGS@ \
 		@top_srcdir@/sbs/nsclapi//libSBSVmeAPI.la       \
 		@top_srcdir@/base/CopyrightTools/libLicense.la     \
 		$(TCL_LDFLAGS) 					\
@@ -14,8 +13,9 @@ libSBSVme_la_LIBADD = @top_srcdir@/base/tclplus/libtclPlus.la    \
 		-lm -lstdc++ -lgcc -lc
 
 
-INCLUDES = -I@top_srcdir@/base/headers -I@top_srcdir@/base/exception \
-	-I@top_srcdir@/sbs/nsclapi -I@top_srcdir@/base/tclplus \
+INCLUDES = -I@top_srcdir@/base/headers  \
+	-I@top_srcdir@/sbs/nsclapi \
+	@LIBTCLPLUS_CFLAGS@	\
 	-I@top_srcdir@/base/CopyrightTools \
 	$(TCL_FLAGS) -DHOME=\"$(prefix)\"
 

@@ -23,9 +23,10 @@ BUILT_SOURCES = cmdline.h
 
 noinst_HEADERS = CTheApplication.h Globals.h
 
-INCLUDES = -I$(top_srcdir)/usb/vmusb/vmusb -I$(top_srcdir)/usb/vmusb/devices -I$(top_srcdir)/usb/vmusb/threadcomm -I$(top_srcdir)/usb/vmusb/router -I$(top_srcdir)/usb/vmusb/rdothreaed \
+INCLUDES = -I$(top_srcdir)/usb/vmusb/vmusb -I$(top_srcdir)/usb/vmusb/devices \
+	-I$(top_srcdir)/usb/vmusb/threadcomm -I$(top_srcdir)/usb/vmusb/router -I$(top_srcdir)/usb/vmusb/rdothreaed \
 	-I$(top_srcdir)/usb/vmusb/tclserver -I$(top_srcdir)/usb/vmusb/daqconfig -I$(top_srcdir)/usb/vmusb/commands  \
-	-I$(top_srcdir)/base/tclplus -I$(top_srcdir)/base/exception \
+	@LIBTCLPLUS_CFLAGS@ \
 	-I$(top_srcdir)/base/thread	\
 	-I$(top_srcdir)/base/headers	\
 	-I$(top_srcdir)/base/dataflow   \
@@ -40,8 +41,7 @@ VMUSBReadout_LDADD	= cmdline.o $(top_builddir)/usb/vmusb/devices/libVMUSBDevices
 		$(top_builddir)/usb/vmusb/commands/libVMUSBCommands.la	\
 		$(top_builddir)/base/dataflow/libDataFlow.la \
 		@top_builddir@/usb/vmusb/vmusb/libVMUSB.la	\
-		$(top_builddir)/base/tclplus/libtclPlus.la \
-		$(top_builddir)/base/exception/libException.la \
+		@LIBTCLPLUS_LDFLAGS@ \
 		$(top_builddir)/base/thread/libdaqthreads.la	\
 		$(TCL_LDFLAGS) $(USB_LIBS) @THREADLD_FLAGS@
 

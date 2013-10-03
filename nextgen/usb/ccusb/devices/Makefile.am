@@ -18,15 +18,13 @@ libCCUSBDevices_la_SOURCES	= 	CConfigurableObject.cpp	\
 INCLUDES	= 	-I$(top_srcdir)/usb/ccusb/ccusb \
 			-I$(top_srcdir)/usb/ccusb/daqconfig \
 			-I$(top_srcdir)/usb/ccusb		\
-			-I$(top_srcdir)/base/tclplus		\
-			-I$(top_srcdir)/base/exception		\
+			@LIBTCLPLUS_CFLAGS@		\
 			-I$(top_srcdir)/base/headers		\
 			@TCL_FLAGS@ @THREADCXX_FLAGS@
 
 
 libCCUSBDevices_la_LIBADD	= $(top_builddir)/usb/ccusb/ccusb/libCCUSB.la \
-				$(top_builddir)/base/tclplus/libtclPlus.la	\
-				$(top_builddir)/base/exception/libException.la \
+				@LIBTCLPLUS_LDFLAGS@ \
 				  @TCL_LDFLAGS@ @THREADLD_FLAGS@
 
 noinst_HEADERS			= 	CConfigurableObject.h	\

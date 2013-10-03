@@ -4,8 +4,9 @@ noinst_HEADERS		= CGaurdedObject.h CBufferQueue.h
 
 libVMUSBThreadComm_la_CXXFLAGS = @THREADCXX_FLAGS@
 
-INCLUDES		= -I$(top_builddir)/base/exception -I$(top_builddir)/base/headers
-libVMUSBThreadComm_la_LIBADD =  $(top_builddir)/base/exception/libException.la @THREADLD_FLAGS@
+INCLUDES		= @LIBTCLPLUS_CFLAGS@ \
+	-I$(top_builddir)/base/headers
+libVMUSBThreadComm_la_LIBADD =  @LIBTCLPLUS_LDFLAGS@ @THREADLD_FLAGS@
 
 
 install-data:

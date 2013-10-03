@@ -8,7 +8,7 @@ noinst_HEADERS		=	 ../StringsToIntegers.h RingSelectorMain.h
 
 BUILT_SOURCES	= parser.h
 
-INCLUDES		= 	-I@top_srcdir@/base/exception	\
+INCLUDES		= 	@LIBTCLPLUS_CFLAGS@	\
 				-I@top_srcdir@/base/headers	\
 				-I@top_srcdir@/daq/format	\
 			        -I@top_srcdir@/base/dataflow \
@@ -18,7 +18,7 @@ ringselector_LDADD	=  	parser.o 					\
 				@top_builddir@/daq/format/libdataformat.la	\
 				@top_builddir@/base/dataflow/libDataFlow.la	\
 				@top_builddir@/base/os/libdaqshm.la		\
-				@top_builddir@/base/exception/libException.la	\
+				@LIBEXCEPTION_LDFLAGS@				\
 				$(THREADLD_FLAGS) 
 
 ringselector_CXXFLAGS	=	$(THREADCXX_FLAGS) $(AM_CXXFLAGS)
@@ -53,7 +53,7 @@ stringstointtests_SOURCES	=	TestRunner.cpp str2int.cpp
 stringstointtests_LDADD		= ../StringsToIntegers.lo	\
 				-L$(libdir)			\
 				$(CPPUNIT_LDFLAGS)		\
-				@top_builddir@/base/exception/libException.la
+				@LIBEXCEPTION_LDFLAGS@
 
 stringstointtests_LDFLAGS	=	-Wl,"-rpath-link=$(libdir)"
 
@@ -63,7 +63,7 @@ selectortests_LDADD	=	$(CPPUNIT_LDFLAGS)	\
 				@top_builddir@/base/os/libdaqshm.la \
 				@top_builddir@/daq/format/libdataformat.la	\
 				@top_builddir@/base/dataflow/libDataFlow.la			\
-				@top_builddir@/base/exception/libException.la
+				@LIBEXCEPTION_LDFLAGS@
 
 selectortests_LDFLAGS	=	-Wl,"-rpath=link=$(libdir)"
 

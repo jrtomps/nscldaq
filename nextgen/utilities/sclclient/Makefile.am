@@ -13,7 +13,7 @@ noinst_HEADERS		=	TclServerConnection.h		\
 INCLUDES		=	-I@top_srcdir@/base/headers	\
 				-I@top_srcdir@/base/dataflow	\
 				-I@top_srcdir@/daq/format	\
-				-I@top_srcdir@/base/exception	\
+				@LIBTCLPLUS_CFLAGS@		\
 				-I@top_srcdir@/servers/portmanager \
 				-I@top_srcdir@/base/os
 
@@ -28,7 +28,7 @@ sclclient_LDADD		=	sclclientargs.o			\
 				@top_builddir@/servers/portmanager/libPortManager.la \
 				@top_builddir@/base/uri/liburl.la			\
 				@top_builddir@/base/os/libdaqshm.la    \
-				@top_builddir@/base/exception/libException.la	\
+				@LIBEXCEPTION_LDFLAGS@			\
 				$(THREADLD_FLAGS)
 
 sclclient_CXXFLAGS	=	$(THREADCXX_FLAGS) $(AM_CXXFLAGS)

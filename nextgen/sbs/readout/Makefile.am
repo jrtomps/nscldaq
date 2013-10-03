@@ -56,8 +56,7 @@ noinst_HEADERS	=	CReadoutMain.h Skeleton.h CTCLAuthorizer.h	\
 
 INCLUDES	=	-I@top_srcdir@/sbs/vmemodules	\
 			-I@top_srcdir@/sbs/nsclapi	\
-			-I@top_srcdir@/base/exception	\
-			-I@top_srcdir@/base/tclplus	\
+			@LIBTCLPLUS_CFLAGS@	\
 			-I@top_srcdir@/base/headers	\
 			-I@top_srcdir@/servers/portmanager	\
 			-I@top_srcdir@/base/dataflow		\
@@ -69,8 +68,7 @@ INCLUDES	=	-I@top_srcdir@/sbs/vmemodules	\
 libSBSProductionReadout_la_LIBADD	=	@top_srcdir@/sbs/vmemodules/libSBSDeviceSupport.la	\
 						@top_srcdir@/sbs/nsclapi/libSBSVmeAPI.la		\
 						@top_srcdir@/daq/format/libdataformat.la		\
-						@top_srcdir@/base/exception/libException.la	\
-						@top_srcdir@/base/tclplus/libtclPlus.la		\
+						@LIBTCLPLUS_LDFLAGS@	\
 						@top_srcdir@/servers/portmanager/libPortManager.la \
 						@top_srcdir@/base/dataflow/libDataFlow.la	\
 						@top_srcdir@/sbs/
@@ -90,9 +88,9 @@ Readout_SOURCES = Skeleton.cpp
 Readout_DEPENDENCIES = libSBSProductionReadout.la
 Readout_LDADD	= libSBSProductionReadout.la	\
 		@top_builddir@/sbs/vmemodules/libSBSDeviceSupport.la \
-		  @top_srcdir@/base/exception/libException.la	\
+		@LIBTCLPLUS_LDFLAGS@	\
 		  @top_srcdir@/base/thread/libdaqthreads.la \
-		  @top_srcdir@/base/tclplus/libtclPlus.la $(THREADLD_FLAGS)
+		 $(THREADLD_FLAGS)
 
 CLEANFILES = options.c options.h
 
@@ -149,8 +147,7 @@ tests_LDADD = 	CExperiment.lo	\
 		CVariableBuffers.lo				\
 		@top_srcdir@/daq/format/libdataformat.la	\
 		@top_srcdir@/base/dataflow/libDataFlow.la	\
-		@top_srcdir@/base/tclplus/libtclPlus.la		\
-		@top_srcdir@/base/exception/libException.la	\
+		@LIBTCLPLUS_LDFLAGS@	\
 		@top_srcdir@/sbs/nsclapi/libSBSVmeAPI.la	\
 		@top_srcdir@/base/thread/libdaqthreads.la	\
 		$(TCL_LDFLAGS) 					\

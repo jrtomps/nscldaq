@@ -3,9 +3,7 @@ bin_PROGRAMS= frag2ring
 
 lib_LTLIBRARIES=libEventBuilder.la  libEventBuilderClient.la 
 
-#eventorderer_LDFLAGS= @TCL_LDFLAGS@ \
-#		-Wl,"-rpath=@libdir@" \
-#		@THREAD_LDFLAGS@
+
 
 
 libEventBuilder_la_SOURCES = OrdererPackage.cpp CFragmentHandlerCommand.cpp CFragmentHandler.cpp \
@@ -48,12 +46,11 @@ noinst_HEADERS = CFragmentHandlerCommand.h CFragmentHandler.h cmdline.h \
 INCLUDES = -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS \
 	-I@top_srcdir@/daq/format \
 	-I@top_srcdir@/base/tcpip \
-	-I@top_srcdir@/base/exception  \
 	-I@top_srcdir@/base/headers	\
 	-I@top_srcdir@/base/tcpip        \
 	-I@top_srcdir@/servers/portmanager \
 	-I@top_srcdir@/base/os \
-	-I@top_srcdir@/base/tclplus	\
+	@LIBTCLPLUS_CFLAGS@	\
 	@THREADCXX_FLAGS@ @TCL_FLAGS@
 
 
@@ -61,10 +58,9 @@ libEventBuilderClient_la_LIBADD = @top_builddir@/base/tcpip/libTcp.la \
 	@top_builddir@/servers/portmanager/libPortManager.la   \
 	@top_builddir@/base/tcpip/libTcp.la	\
 	@top_builddir@/base/os/libdaqshm.la		\
-	@top_builddir@/base/exception/libException.la
+	@LIBEXCEPTION_LDFLAGS@
 
-libEventBuilder_la_LIBADD = @top_builddir@/base/tclplus/libtclPlus.la \
-	@top_builddir@/base/exception/libException.la \
+libEventBuilder_la_LIBADD = @LIBTCLPLUS_LDFLAGS@ \
 	@top_builddir@/base/os/libdaqshm.la    \
 	@top_builddir@/servers/portmanager/libPortManager.la \
 	@top_builddir@/base/tcpip/libTcp.la \

@@ -62,16 +62,14 @@ SecretTk_LDFLAGS= $(TCL_LDFLAGS) $(X11LIBS)
 lib_LTLIBRARIES = libWait.la
 libWait_la_SOURCES = WaitPackage.cpp
 
-libWait_la_LDFLAGS =	@top_srcdir@/base/tclplus/libtclPlus.la		\
-			@top_srcdir@/base/exception/libException.la	\
+libWait_la_LDFLAGS =	@LIBTCLPLUS_LDFLAGS@	\
 			@top_srcdir@/base/CopyrightTools/libLicense.la	 \
 			-version-info $(SOVERSION)
 
-libWait_la_LIBADD =  -ltclPlus -lException  \
-	$(TCL_LDFLAGS)	$(X11LIBS)  -lLicense  \
+libWait_la_LIBADD =  $(TCL_LDFLAGS)	$(X11LIBS)  -lLicense  \
 	-lm -lstdc++ -lgcc -lc
 
 INCLUDES =	-I@top_srcdir@/base/headers	\
-		-I@top_srcdir@/base/tclplus/	\
+		@LIBTCLPLUS_CFLAGS@		\
 		-I@top_srcdir@/base/CopyrightTools \
 		$(TCL_FLAGS) -DHOME=\"$(prefix)\"

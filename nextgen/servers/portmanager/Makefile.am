@@ -8,7 +8,7 @@ libPortManager_la_SOURCES = CPortManagerException.cpp \
 include_HEADERS = CPortManagerException.h \
 		  CPortManager.h
 
-libPortManager_la_LDFLAGS = @top_builddir@/base/exception/libException.la \
+libPortManager_la_LDFLAGS = @LIBEXCEPTION_LDFLAGS@	\
 			@top_builddir@/base/os/libdaqshm.la   \
 			-version-info $(SOVERSION) \
 			-Wl,"-rpath=$(libdir)"	\
@@ -19,7 +19,8 @@ libPortManager_la_CXXFLAGS = $(THREADCXX_FLAGS) 	\
 				$(TCL_FLAGS)		\
 				$(AM_CXXFLAGS)
 
-INCLUDES = -I@top_srcdir@/base/headers -I@top_srcdir@/base/exception \
+INCLUDES = -I@top_srcdir@/base/headers \
+	@LIBTCLPLUS_CFLAGS@	\
 	-I@top_srcdir@/base/os		\
 		-DHOME=\"$(prefix)\"
 
@@ -58,7 +59,7 @@ EXTRA_DIST =$(TCLPACKAGES) $(TCLAPPS) $(TCLTESTS)  portmanager.xml
 noinst_PROGRAMS = cpptest
 
 cpptest_SOURCES = cpptest.cpp
-cpptest_LDADD= -L. -lPortManager -L@top_srcdir@/base/exception -lException
+cpptest_LDADD= -L. -lPortManager @LIBEXCEPTION_LDFLAGS@
 
 check-TESTS: cpptest
 	for f in *.test;do $(TCLSH_CMD) $$f; done

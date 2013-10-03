@@ -213,6 +213,38 @@ else
 	AM_CONDITIONAL([BUILD_USB], [false])
 fi
 
+#
+#  IF systemtcl is yes we're pretty much done.. otherwise
+#  we need to configure/build/install libtcl into prefix and then set
+#  the flags:
+
+AC_MSG_CHECKING([libtcl++ installed as package (e.g. .deb)])
+
+AC_CHECK_FILE([/usr/include/TCLInterpreterObject.h], [systemtcl="yes"], [systemtcl="no"])
+
+if test $systemtcl = "yes"
+then
+	LIBTCLPLUS_CFLAGS=""
+	LIBEXCEPTION_LDFLAGS="-lException"
+	LIBTCLPLUS_LDFLAGS="-ltclPlus ${LIBEXCEPTION_LDFLAGS}"
+	AC_MSG_RESULT([Found in  system libraries])
+else
+	AC_MSG_RESULT([Need to build local tagged copy])
+	AC_CHECK_FILE([./libtcl/configure], [havelibtcldir="yes"], [havelibtcldir="no"])
+	if test $havelibtcldir = "yes"
+	then
+		(cd libtcl; ./configure --prefix=${prefix}; make clean install)
+		LIBTCLPLUS_CFLAGS="-I${prefix}/include"
+		LIBEXCEPTION_LDFLAGS="-L${prefix}/lib -lException -Wl,\"-rpath=${prefis}/lib\""
+		LIBTCLPLUS_LDFLAGS="-L${prefix}/lib -ltclPlus ${LIBEXCEPTION_LDFLAGS}"
+	else
+		AC_MSG_ERROR([I seem to be missing libtcl, please use tcl++incorp.sh to fill it with a tagged release of libtclplus])
+	fi
+
+fi
+AC_SUBST(LIBTCLPLUS_CFLAGS)
+AC_SUBST(LIBTCLPLUS_LDFLAGS)
+AC_SUBST(LIBEXCEPTION_LDFLAGS)
 
 
 #----------------------------------------------------------------------------

@@ -9,7 +9,7 @@ eventlog_DEPENDENCIES	=	eventlogargs.o
 BUILT_SOURCES		= 	eventlogargs.h
 
 INCLUDES 		=	-I@top_srcdir@/base/headers		\
-				-I@top_srcdir@/base/exception		\
+				@LIBTCLPLUS_CFLAGS@	\
 				-I@top_srcdir@/daq/format		\
 			        -I@top_srcdir@/base/dataflow	\
 				-I@top_srcdir@/base/os
@@ -17,7 +17,7 @@ INCLUDES 		=	-I@top_srcdir@/base/headers		\
 eventlog_LDADD		=	eventlogargs.o	\
 				@top_builddir@/daq/format/libdataformat.la	\
 				@top_builddir@/base/dataflow/libDataFlow.la	\
-				@top_builddir@/base/exception/libException.la	\
+				@LIBEXCEPTION_LDFLAGS@			\
 				@top_builddir@/base/os/libdaqshm.la		\
 				$(THREADLD_FLAGS)
 
@@ -51,4 +51,4 @@ fakeruns_SOURCES	= 	fakeruns.cpp
 fakeruns_LDADD		=	@top_srcdir@/daq/format/libdataformat.la	\
 				@top_srcdir@/base/dataflow/libDataFlow.la	\
 				@top_builddir@/base/os/libdaqshm.la              \
-				@top_srcdir@/base/exception/libException.la
+				@LIBEXCEPTION_LDFLAGS@
