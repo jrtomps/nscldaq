@@ -106,14 +106,15 @@ formatTriggerCountItem(uint32_t runTime, time_t stamp, uint64_t triggerCount)
 pScalerItem
 formatScalerItem(unsigned scalerCount, time_t timestamp, uint32_t btime, uint32_t etime, void* pCounters)
 {
-  pScalerItem pItem = (pScalerItem)malloc(sizeof(ScalerItem) + (scalerCount-1)*sizeof(uint32_t));
+  size_t allocationSize = sizeof(ScalerItem) + (scalerCount)*sizeof(uint32_t) - sizeof(uint32_t);
+  pScalerItem pItem = (pScalerItem)malloc(allocationSize);
 
 
   if(!pItem) {
     return pItem;
   }
   
-  pItem->s_header.s_size = sizeof(ScalerItem) + (scalerCount-1)*sizeof(uint32_t);
+  pItem->s_header.s_size = sizeof(ScalerItem) + (scalerCount)*sizeof(uint32_t) - sizeof(uint32_t);
   pItem->s_header.s_type = INCREMENTAL_SCALERS;
   pItem->s_intervalStartOffset = btime;
   pItem->s_intervalEndOffset   = etime;

@@ -438,3 +438,20 @@ Feb 1, 2012 - Feb 24, 2012
 	- Add -clearveto to CHINP.cpp
 	- Fix 32/64 bit uncleanliness in camac.h (J.T.).
 
+10.2-103
+	Merged in other 10.2 branches.
+10.2-104
+	* Added m4 tests for swig, cppunit, epics, gengetopt and tcl.
+	* Modified configure.ac to use m4 based tests above.
+	* Added support for Jenkins CI build system (script to locate,
+	unpack and build/test from tarball.
+	* Use centralized tclplus library (if installed from .deb. use
+	that else pull in a local copy from tcllib directory, see
+	tcl++incorp script in top level directory to pull that library in
+	from an svn tag.  Note as well that tcllib is an EXTRA_DIST so
+	that it winds up in the tarball.
+	* Fix error in daq/format/ringitem.c - itemsize is using unsigned
+	arithmetic so we want to be sure that we're never getting negative
+	size components.
+	* Remove EPICS unit tests since they are specific to NSCL
+	Environment and therefore won't run for other installers.

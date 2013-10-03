@@ -59,9 +59,7 @@ install-data-local:
 	$(mkinstalldirs) @prefix@/vmusbdriver
 	$(mkinstalldirs) @prefix@/vmusbdriver/includes
 	$(INSTALL_DATA)  CVMUSB*.h @prefix@/vmusbdriver/includes
-	echo "Registering swig packages with lib's pkgIndex.tcl"
-	echo "package ifneeded cvmusbreadoutlist 1.0 [list load [file join $dir libCVMUSBReadoutList.so]]" >> @libdir@/pkgIndex.tcl
-	echo "package ifneeded cvmusb 1.0 [list load [file join $dir libCVMUSB.so]]" >> @libdir@/pkgIndex.tcl
+
 
 
 clean-local:
@@ -80,11 +78,11 @@ libCVMUSB_la_LIBADD  = libVMUSB.la @THREADLD_FLAGS@
 BUILT_SOURCES=CVMUSB_wrap.cxx CVMUSBReadoutList_wrap.cxx
 
 CVMUSB_wrap.cxx:	CVMUSB.h
-	swig -c++ -debug-classes -tcl -namespace -pkgversion 1.0 CVMUSB.h
+	@SWIG@ -c++ -debug-classes -tcl -namespace -pkgversion 1.0 CVMUSB.h
 
 libCVMUSBReadoutList_la_SOURCES = CVMUSBReadoutList_wrap.cxx
 libCVMUSBReadoutList_la_LIBADD = libVMUSB.la @THREADLD_FLAGS@
 
 
 CVMUSBReadoutList_wrap.cxx: CVMUSBReadoutList.h
-	swig -c++ -debug-classes -tcl -namespace -pkgversion 1.0 CVMUSBReadoutList.h
+	@SWIG@ -c++ -debug-classes -tcl -namespace -pkgversion 1.0 CVMUSBReadoutList.h
