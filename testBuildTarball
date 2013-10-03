@@ -15,5 +15,5 @@ make clean all
 make install
 make check
 
-
+rm -rf nscldaq-${version}
 rm -rf /tmp/11.0
