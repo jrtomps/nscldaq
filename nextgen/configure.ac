@@ -82,7 +82,7 @@ AM_INIT_AUTOMAKE([])
 # Makefile exports -- need a way to compute this from the version string in the init macro
 # Note that linker does something funky linke turn a:b:c into so.a.c.b
 
-SOVERSION="10:2:104"
+SOVERSION="10:2:0"
 
 
 
