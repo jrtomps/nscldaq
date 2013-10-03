@@ -20,7 +20,7 @@ public:
   void setUp() {
   }
   void tearDown() {
-    CDAQShm::remove(detachTests:shmName);
+    CDAQShm::remove(shmName);
   }
 protected:
   void notattached();
