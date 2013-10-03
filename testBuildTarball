@@ -12,8 +12,8 @@ cd nscldaq-${version}
 
 ./configure --prefix=/tmp/11.0
 make clean all
-make check
 make install
-make installcheck
+make check
+
 
 rm -rf /tmp/11.0
