@@ -300,7 +300,7 @@ CConfigurableObject::getIntegerParameter(string name)
   if (end == value.c_str()) {
     string msg = "Expected an integer parameter value for config. parameter ";
     msg += name;
-    msg += "got: ";
+    msg += " got: ";
     msg += value;
     throw msg;
   }
