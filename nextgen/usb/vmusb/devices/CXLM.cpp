@@ -577,7 +577,7 @@ CXLM::loadSRAMA(CVMUSB& controller, void* image, uint32_t bytes) throw(std::stri
   
 
   uint32_t*           p    = reinterpret_cast<uint32_t*>(image);
-  static uint32_t    dest = sramA();
+  uint32_t    dest = sramA();
 
   cerr << hex << "LOADSRAMA - SRAM A base address is " << dest << endl << dec;
 
