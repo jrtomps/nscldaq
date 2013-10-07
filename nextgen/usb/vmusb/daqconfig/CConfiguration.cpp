@@ -152,7 +152,7 @@ CConfiguration::processConfiguration(string configFile)
     throw;
   }
   catch (CException& error) {
-    cerr << "CConfiguration::processConfiguration caught CExcpetion : "
+    cerr << "CConfiguration::processConfiguration caught CException : "
 	 << error.ReasonText() << " while " << error.WasDoing() << endl;
     cerr << Tcl_GetStringResult(m_pInterp->getInterpreter()) << endl;
     throw;
