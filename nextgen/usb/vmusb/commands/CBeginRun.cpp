@@ -116,7 +116,7 @@ CBeginRun::operator()(CTCLInterpreter& interp,
   // Now we can start the run.
 
   Globals::pConfig = new CConfiguration;
-  string errorMessage = "begin - Configuration fie processing failed: ";
+  string errorMessage = "begin - Configuration file processing failed: ";
   try {
     Globals::pConfig->processConfiguration(Globals::configurationFilename);
   }
