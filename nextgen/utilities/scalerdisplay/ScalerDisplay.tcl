@@ -54,7 +54,7 @@ set me [info script]
 set mydirectory [file dirname $me]
 set bindir     $mydirectory/../bin
 set scriptdir  $mydirectory/../TclLibs/ScalerDisplay
-puts "Runing $scriptdir/scaler.tcl"
+puts "Running $scriptdir/scaler.tcl"
 source $scriptdir/scaler.tcl
 puts running
 
