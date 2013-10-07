@@ -579,7 +579,7 @@ CXLM::loadSRAMA(CVMUSB& controller, void* image, uint32_t bytes) throw(std::stri
   uint32_t*           p    = reinterpret_cast<uint32_t*>(image);
   static uint32_t    dest = sramA();
 
-  cerr << hex << "LOADSRAMA - SRAM A base addresss is " << dest << endl << dec;
+  cerr << hex << "LOADSRAMA - SRAM A base address is " << dest << endl << dec;
 
   if (bytes == 0) return;	// Stupid edge case but we'll handle it correctly.
 
@@ -598,7 +598,7 @@ CXLM::loadSRAMA(CVMUSB& controller, void* image, uint32_t bytes) throw(std::stri
 					sizeof(data), &data);
     if (status < 0) {
       string error = strerror(errno);
-      string msg   = "CXM::loadSRAMA - list execution failed to load the SRAM: ";
+      string msg   = "CXLM::loadSRAMA - list execution failed to load the SRAM: ";
       msg         += error;
       throw msg;
     }
@@ -619,7 +619,7 @@ CXLM::loadSRAMA(CVMUSB& controller, void* image, uint32_t bytes) throw(std::stri
     int status = controller. executeList(loadList, &readData, sizeof(size_t), &readData);
     if (status < 0) {
       string error = strerror(errno);
-      string msg   = "CXM::loadSRAMA - list execution failed to load the SRAM: ";
+      string msg   = "CXLM::loadSRAMA - list execution failed to load the SRAM: ";
       msg         += error;
       throw msg;
     }
