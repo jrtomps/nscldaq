@@ -6,6 +6,8 @@ libVMUSB_la_SOURCES 	=  CVMUSBusb.cpp CVMUSBReadoutList.cpp CVMUSBEthernet.cpp \
 	CVMUSB.cpp
 
 
+
+
 libVMUSBRemote_la_SOURCES = CVMUSBReadoutList.cpp \
 	CVMUSBRemote.cpp \
 	CVMUSBEthernet.cpp
@@ -32,7 +34,7 @@ INCLUDES		= $(USBSWITCHES) -I$(top_srcdir)/base/headers \
 			-I@top_srcdir@/base/tcpip \
 			  @TCL_FLAGS@
 
-libVMUSB_la_LIBADD       = @top_srcdir@/base/tcpip/libTcp.la $(USB_LIBS)  
+libVMUSB_la_LIBADD       = @top_srcdir@/base/tcpip/libTcp.la $(USB_LIBS) @LIBTCLPLUS_LDFLAGS@  
 
 libVMUSBRemote_la_LIBADD = @top_builddir@/usb/vmusb/vmusb/libVMUSB.la \
 	@TCL_LDFLAGS@ \
@@ -74,7 +76,7 @@ EXTRA_DIST = $(TEST_MODULES)
 # Swig interface generation:
 
 libCVMUSB_la_SOURCES = CVMUSB_wrap.cxx
-libCVMUSB_la_LIBADD  = libVMUSB.la @THREADLD_FLAGS@
+libCVMUSB_la_LIBADD  = libVMUSB.la @LIBTCLPLUS_CFLAGS@ @THREADLD_FLAGS@
 
 BUILT_SOURCES=CVMUSB_wrap.cxx CVMUSBReadoutList_wrap.cxx
 

@@ -455,3 +455,7 @@ Feb 1, 2012 - Feb 24, 2012
 	size components.
 	* Remove EPICS unit tests since they are specific to NSCL
 	Environment and therefore won't run for other installers.
+	* Add definition of gpTCLApplication to the swigized VMUSB
+	library so that it can be used in standalone mode too.
+
+	

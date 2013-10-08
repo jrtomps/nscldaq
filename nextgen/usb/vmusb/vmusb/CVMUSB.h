@@ -23,6 +23,7 @@
 %{
 #define _FLATTEN_NESTED_CLASSES
 #include <CVMUSB.h>
+  void* gpTCLApplication = 0;
 %}
 #endif
 
