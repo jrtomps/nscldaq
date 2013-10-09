@@ -77,7 +77,7 @@ AM_INIT_AUTOMAKE([foreign])
 
 # Makefile exports:
 
-SOVERSION="10:0:0"
+SOVERSION="11:0:0"
 
 
 
