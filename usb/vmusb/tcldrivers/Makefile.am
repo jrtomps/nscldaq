@@ -3,8 +3,8 @@ DRIVERDest=@prefix@/TclLibs/vmusbdrivers
 install-exec-local:
 	$(mkinstalldirs) @prefix@/TclLibs
 	$(mkinstalldirs) $(DRIVERDest)
-	$(INSTALL_SCRIPT) *driver.tcl $(DRIVERDest)
-	$(INSTALL_SCRIPT) VMUSBDriverSupport.tcl $(DRIVERDest)
+	$(INSTALL_SCRIPT) @srcdir@/*driver.tcl $(DRIVERDest)
+	$(INSTALL_SCRIPT) @srcdir@/VMUSBDriverSupport.tcl $(DRIVERDest)
 	echo "pkg_mkIndex -verbose $(DRIVERDest) *.tcl" | $(TCLSH_CMD)
 
 #

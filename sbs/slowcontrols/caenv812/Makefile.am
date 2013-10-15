@@ -1,6 +1,6 @@
-DRIVERDIR=$(prefix)/TclLibs/caenv812
-APPDIR=$(prefix)/bin
-HELPDIR=$(prefix)/TclLibs/data/caenv812
+DRIVERDIR=@prefix@/TclLibs/caenv812
+APPDIR=@prefix@/bin
+HELPDIR=@prefix@/TclLibs/data/caenv812
 
 
 PACKAGES=CFD812.tcl CFDState.tcl caenv812Gui.tcl
@@ -13,10 +13,10 @@ HELPFILES=close.html exit.html filemenu.html gui.html helpmenu.html \
 install-exec-local:
 	$(mkinstalldirs)  $(DRIVERDIR) $(APPDIR) $(HELPDIR)
 	chmod o+rx $(DRIVERDIR) $(APPDIR) $(HELPDIR)
-	$(INSTALL_SCRIPT) $(PACKAGES) $(DRIVERDIR)
-	for f in $(APPS); do $(INSTALL_SCRIPT) $$f $(APPDIR)/`basename $$f .tcl`; done
-	$(INSTALL_SCRIPT) $(APPS)     $(APPDIR)
-	$(INSTALL_DATA)   $(HELPFILES) $(HELPDIR)
+	for f in $(PACKAGES); do $(INSTALL_SCRIPT) @srcdir@/$$f $(DRIVERDIR); done
+	for f in $(APPS); do $(INSTALL_SCRIPT) @srcdir@/$$f $(APPDIR)/`basename $$f .tcl`; done
+	for f in $(APPS); do $(INSTALL_SCRIPT) @srcdir@/$$f $(APPDIR); done
+	for f in $(HELPFILES); do $(INSTALL_DATA)   @srcdir@/$$f $(HELPDIR); done
 	echo "pkg_mkIndex $(DRIVERDIR) *.tcl" | $(TCLSH_CMD)
 
 

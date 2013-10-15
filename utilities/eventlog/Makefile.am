@@ -26,12 +26,12 @@ eventlog_CXXFLAGS	=	$(THREADCXX_FLAGS) $(AM_CXXFLAGS)
 # Gengetopt stuff.
 
 eventlogargs.h: eventlogargs.ggo
-	$(GENGETOPT) <eventlogargs.ggo --file=eventlogargs
+	$(GENGETOPT) <@top_srcdir@/utilities/eventlog/eventlogargs.ggo --file=eventlogargs
 	$(CC) -c -I. eventlogargs.c
 
 
 eventlogargs.o: eventlogargs.ggo
-	$(GENGETOPT) <eventlogargs.ggo --file=eventlogargs
+	$(GENGETOPT) <@top_srcdir@/utilities/eventlog/eventlogargs.ggo --file=eventlogargs
 	$(CC) -c -I. eventlogargs.c
 
 # Extra files to distribute.
@@ -48,7 +48,7 @@ noinst_PROGRAMS		=	fakeruns
 
 fakeruns_SOURCES	= 	fakeruns.cpp
 
-fakeruns_LDADD		=	@top_srcdir@/daq/format/libdataformat.la	\
-				@top_srcdir@/base/dataflow/libDataFlow.la	\
+fakeruns_LDADD		=	@top_builddir@/daq/format/libdataformat.la	\
+				@top_builddir@/base/dataflow/libDataFlow.la	\
 				@top_builddir@/base/os/libdaqshm.la              \
 				@LIBEXCEPTION_LDFLAGS@

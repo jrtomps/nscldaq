@@ -1,6 +1,6 @@
-DRIVERDIR=$(prefix)/TclLibs/vhq
-APPDIR=$(prefix)/bin
-HELPDIR=$(prefix)/TclLibs/data/vhq
+DRIVERDIR=@prefix@/TclLibs/vhq
+APPDIR=@prefix@/bin
+HELPDIR=@prefix@/TclLibs/data/vhq
 
 
 PACKAGES=vhqPanel.tcl vhq202m.tcl
@@ -14,9 +14,9 @@ HELPFILES= configfile.html configilimit.html configmenu.html \
 install-exec-local:
 	$(mkinstalldirs)  $(DRIVERDIR) $(APPDIR) $(HELPDIR)
 	chmod o+rx $(DRIVERDIR) $(APPDIR) $(HELPDIR)
-	$(INSTALL_SCRIPT) $(PACKAGES) $(DRIVERDIR)
-	for f in $(APPS); do $(INSTALL_SCRIPT) $$f $(APPDIR)/`basename $$f .tcl`; done
-	$(INSTALL_DATA)   $(HELPFILES) $(HELPDIR)
+	for f in $(PACKAGES); do $(INSTALL_SCRIPT) @srcdir@/$$f $(DRIVERDIR); done
+	for f in $(APPS); do $(INSTALL_SCRIPT) @srcdir@/$$f $(APPDIR)/`basename $$f .tcl`; done
+	for f in $(HELPFILES); do $(INSTALL_DATA)   @srcdir@/$$f $(HELPDIR); done
 	echo "pkg_mkIndex $(DRIVERDIR) *.tcl" | $(TCLSH_CMD)
 
 

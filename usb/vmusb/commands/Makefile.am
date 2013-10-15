@@ -26,10 +26,10 @@ INCLUDES		= 	-I@top_srcdir@/usb/vmusb/threadcomm	\
 				$(TCL_FLAGS) 
 
 
-libVMUSBCommands_la_LIBADD	= 	@top_srcdir@/usb/vmusb/rdothread/libVMUSBRdoThread.la	\
-				@top_srcdir@/usb/vmusb/threadcomm/libVMUSBThreadComm.la	\
-				@top_srcdir@/usb/vmusb/router/libVMUSBRouter.la	\
-				@top_srcdir@/usb/vmusb/daqconfig/libVMUSBConfig.la	\
+libVMUSBCommands_la_LIBADD	= 	@top_builddir@/usb/vmusb/rdothread/libVMUSBRdoThread.la	\
+				@top_builddir@/usb/vmusb/threadcomm/libVMUSBThreadComm.la	\
+				@top_builddir@/usb/vmusb/router/libVMUSBRouter.la	\
+				@top_builddir@/usb/vmusb/daqconfig/libVMUSBConfig.la	\
 				@LIBTCLPLUS_LDFLAGS@		\
-				@top_srcdir@/base/thread/libdaqthreads.la	\
+				@top_builddir@/base/thread/libdaqthreads.la	\
 				$(TCL_LDFLAGS) @THREADLD_FLAGS@

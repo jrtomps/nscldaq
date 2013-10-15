@@ -3,22 +3,24 @@ bin_PROGRAMS = compatibilitybuffer compatibilitylogger BufferToRing convert10to1
 noinst_HEADERS = buffer.h buftypes.h CBufferConverter.h CLogRun.h \
     OldDataFormat.h
 
-compatibilitybuffer_SOURCES = compatibilitybuffer.cpp CBufferConverter.cpp
+compatibilitybuffer_SOURCES = compatibilitybuffer.cpp CBufferConverter.cpp \
+	@srcdir@/parser.c
 
 EXTRA_DIST=compatibilitybuffer.ggo loggeroptions.ggo eventlog-compat.in \
 	spectcldaq.in spectcldaq.server.tcl compatibility.xml s800toring.in \
 	netcat.tcl
 
 
-compatibilitybuffer_LDADD = parser.o \
+compatibilitybuffer_LDADD = \
 	@top_builddir@/daq/format/libdataformat.la
 
 INCLUDES = -I@top_srcdir@/daq/format -I@top_srcdir@/base/headers \
 	-I@top_srcdir@/base/os
 
-compatibilitylogger_SOURCES = compatibilitylogger.cpp CLogRun.cpp
+compatibilitylogger_SOURCES = compatibilitylogger.cpp CLogRun.cpp \
+	@srcdir@/loggeroptions.c
 
-compatibilitylogger_LDADD = loggeroptions.o
+
 
 BufferToRing_SOURCES = BufferToRing.cpp
 BufferToRing_LDADD   = @top_builddir@/daq/format/libdataformat.la \
@@ -29,13 +31,17 @@ convert10to11_SOURCES = Convert10to11.cpp
 convert10to11_LDADD = @top_builddir@/daq/format/libdataformat.la \
     @top_builddir@/base/os/libdaqshm.la
 
+
+#  Anything that is generated from a .in file is in builddir anything
+#  else is in srcdir:
+
 install-exec-local:
 	$(mkinstalldirs) $(bindir)
-	$(INSTALL_SCRIPT) eventlog-compat $(bindir)
-	$(INSTALL_SCRIPT) spectcldaq $(bindir)
-	$(INSTALL_SCRIPT) spectcldaq.server.tcl  $(bindir)/spectcldaq.server
-	$(INSTALL_SCRIPT) s800toring  $(bindir)
-	$(INSTALL_SCRIPT) netcat.tcl $(bindir)
+	$(INSTALL_SCRIPT) @builddir@/eventlog-compat $(bindir)
+	$(INSTALL_SCRIPT) @builddir@/spectcldaq $(bindir)
+	$(INSTALL_SCRIPT) @srcdir@/spectcldaq.server.tcl  $(bindir)/spectcldaq.server
+	$(INSTALL_SCRIPT) @builddir@/s800toring  $(bindir)
+	$(INSTALL_SCRIPT) @srcdir@/netcat.tcl $(bindir)
 
 
 #----------------------------------------------------------------
@@ -43,27 +49,20 @@ install-exec-local:
 #  This stuff is needed to be sure that gengetopt builds the stuff 
 #  we need prior to application compilations.
 
-compatibilitybuffer_DEPENDENCIES =  parser.o
 
-BUILT_SOURCES = parser.h loggeroptions.h
+BUILT_SOURCES = @srcdir@/parser.c @srcdir@/loggeroptions.c
 
-parser.h: compatibilitybuffer.ggo
-	$(GENGETOPT) <compatibilitybuffer.ggo --file=parser
-	$(CC) -c parser.c
+@srcdir@/parser.c: @srcdir@/parser.h
 
-parser.o: compatibilitybuffer.ggo
-	$(GENGETOPT) <compatibilitybuffer.ggo --file=parser
-	$(CC) -c parser.c
+@srcdir@/parser.h: @srcdir@/compatibilitybuffer.ggo
+	$(GENGETOPT) <@srcdir@/compatibilitybuffer.ggo --file=parser \
+		--output-dir=@srcdir@
 
 
-compatibilitylogger_DEPENDENCIES = loggeroptions.o
+@srcdir@/loggeroptions.c: @srcdir@/loggeroptions.h
 
-loggeroptions.h: loggeroptions.ggo
-	$(GENGETOPT) <loggeroptions.ggo --file=loggeroptions
-	$(CC) -c loggeroptions.c
-
-loggeroptions.o: loggeroptions.ggo
-	$(GENGETOPT) <loggeroptions.ggo --file=loggeroptions
-	$(CC) -c loggeroptions.c
+@srcdir@/loggeroptions.h: @srcdir@/loggeroptions.ggo
+	$(GENGETOPT) <@srcdir@/loggeroptions.ggo --file=loggeroptions \
+		--output-dir=@srcdir@
 
 

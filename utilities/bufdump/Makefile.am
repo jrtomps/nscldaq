@@ -2,18 +2,17 @@ bin_PROGRAMS	=	dumper
 
 
 dumper_SOURCES	=	BufdumpMain.cpp		\
-			../StringsToIntegers.cpp	\
-			dumper.cpp
-
-dumper_DEPENDENCIES = 	dumperargs.o
+			@srcdir@/../StringsToIntegers.cpp	\
+			dumper.cpp @srcdir@/dumperargs.c
 
 noinst_HEADERS	=	BufdumpMain.h		\
-			../StringsToIntegers.h
+			@srcdir@/../StringsToIntegers.h
 
-BUILT_SOURCES	=	dumperargs.h dumperargs.c
+BUILT_SOURCES	=	@srcdir@/dumperargs.c
 
 
-INCLUDES 		=	-I.. 					\
+INCLUDES 		=	-I@srcdir@/.. 				\
+				-I.. 					\
 				-I@top_srcdir@/base/headers		\
 				-I@top_srcdir@/base/uri			\
 				@LIBTCLPLUS_CFLAGS@			\
@@ -21,7 +20,7 @@ INCLUDES 		=	-I.. 					\
 			        -I@top_srcdir@/base/dataflow		\
 				-I@top_srcdir@/base/os
 
-dumper_LDADD		=	dumperargs.o	\
+dumper_LDADD		=		\
 				@top_builddir@/base/uri/liburl.la			\
 				@top_builddir@/daq/format/libdataformat.la	\
 				@top_builddir@/base/dataflow/libDataFlow.la	\
@@ -31,22 +30,16 @@ dumper_LDADD		=	dumperargs.o	\
 				$(THREADLD_FLAGS)
 
 clean-local:
-	rm -f dumperargs.h dumperargs.c dumperargs.o
+	rm -f @srcdir@/dumperargs.h  dumperargs.o $(BUILT_SOURCES)
 
 dumper_CXXFLAGS = $(THREADCXX_FLAGS) $(AM_CXXFLAGS)
 
-dumperargs.h: dumperargs.ggo
+@srcdir@/dumperargs.c: @srcdir@/dumperargs.h
 
 
-
-dumperargs.c:
-	$(GENGETOPT) <dumperargs.ggo --file=dumperargs --unamed-opts="OPTIONS"
-
-
-
-dumperargs.o: dumperargs.c dumperargs.h
-	$(GENGETOPT) <dumperargs.ggo --file=dumperargs --unamed-opts="OPTIONS"
-	$(CC) -c -I. dumperargs.c $(THREADCFLAGS)
+@srcdir@/dumperargs.h: @srcdir@/dumperargs.ggo 
+	$(GENGETOPT) < @srcdir@/dumperargs.ggo \
+		--output-dir=@srcdir@ --file=dumperargs --unamed-opts="OPTIONS"
 
 
 EXTRA_DIST=dumperargs.ggo dumper.xml

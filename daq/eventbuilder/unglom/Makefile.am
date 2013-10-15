@@ -1,6 +1,6 @@
 bin_PROGRAMS=unglom
 
-unglom_SOURCES=unglom.cpp cmdline.c
+unglom_SOURCES=unglom.cpp @srcdir@/cmdline.c
 
 INCLUDES=-I@top_srcdir@/daq/eventbuilder \
 	-I@top_srcdir@/daq/format       \
@@ -14,11 +14,12 @@ unglom_LDADD = @top_builddir@/daq/format/libdataformat.la  \
 	@top_builddir@/base/os/libdaqshm.la	\
 	@LIBTCLPLUS_LDFLAGS@
 
-BUILT_SOURCES = cmdline.c cmdline.h
+BUILT_SOURCES = @srcdir@/cmdline.c @srcdir@/cmdline.h
 
-cmdline.c: cmdline.h
+@srcdir@/cmdline.c: @srcdir@/cmdline.h
 
-cmdline.h: cmdline.ggo
-	@GENGETOPT@ --input=cmdline.ggo
+@srcdir@/cmdline.h: @srcdir@/cmdline.ggo
+	@GENGETOPT@ --input=@srcdir@/cmdline.ggo \
+		--output-dir=@srcdir@
 
 EXTRA_DIST=cmdline.ggo

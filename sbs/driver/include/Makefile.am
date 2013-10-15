@@ -1,7 +1,7 @@
 install-data-local:
-	$(mkinstalldirs) $(prefix)/include
-	for f in *.h; do \
-	  $(INSTALL_DATA) $$f $(prefix)/include; \
+	$(mkinstalldirs) @prefix@/include
+	for f in $(EXTRA_DIST); do \
+	  $(INSTALL_DATA) @srcdir@/$$f @prefix@/include; \
         done
 
 EXTRA_DIST =btapi.h \

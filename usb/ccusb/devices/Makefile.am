@@ -15,15 +15,15 @@ libCCUSBDevices_la_SOURCES	= 	CConfigurableObject.cpp	\
 					CTclModule.cpp
 
 
-INCLUDES	= 	-I$(top_srcdir)/usb/ccusb/ccusb \
-			-I$(top_srcdir)/usb/ccusb/daqconfig \
-			-I$(top_srcdir)/usb/ccusb		\
+INCLUDES	= 	-I@top_srcdir@/usb/ccusb/ccusb \
+			-I@top_srcdir@/usb/ccusb/daqconfig \
+			-I@top_srcdir@/usb/ccusb		\
 			@LIBTCLPLUS_CFLAGS@		\
-			-I$(top_srcdir)/base/headers		\
+			-I@top_srcdir@/base/headers		\
 			@TCL_FLAGS@ @THREADCXX_FLAGS@
 
 
-libCCUSBDevices_la_LIBADD	= $(top_builddir)/usb/ccusb/ccusb/libCCUSB.la \
+libCCUSBDevices_la_LIBADD	= @top_builddir@/usb/ccusb/ccusb/libCCUSB.la \
 				@LIBTCLPLUS_LDFLAGS@	\
 				  @TCL_LDFLAGS@ @THREADLD_FLAGS@
 
@@ -46,4 +46,4 @@ noinst_HEADERS			= 	CConfigurableObject.h	\
 install-data-local:
 	$(mkinstalldirs) @prefix@/ccusbdriver
 	$(mkinstalldirs) @prefix@/ccusbdriver/includes
-	$(INSTALL_DATA)  *.h @prefix@/ccusbdriver/includes
+	$(INSTALL_DATA)  @srcdir@/*.h @prefix@/ccusbdriver/includes

@@ -27,11 +27,11 @@ noinst_HEADERS		= CVMUSB.h   \
 
 libVMUSB_CXXFLAGS=@THREADCXX_FLAGS@
 
-INCLUDES		= $(USBSWITCHES) -I$(top_srcdir)/base/headers @LIBTCLPLUS_CFLAGS@  \
+INCLUDES		= $(USBSWITCHES) -I@top_srcdir@/base/headers @LIBTCLPLUS_CFLAGS@  \
 			-I@top_srcdir@/base/tcpip \
 			  @TCL_FLAGS@
 
-libVMUSB_la_LIBADD       = @top_srcdir@/base/tcpip/libTcp.la $(USB_LIBS)  
+libVMUSB_la_LIBADD       = @top_builddir@/base/tcpip/libTcp.la $(USB_LIBS)  
 
 libVMUSBRemote_la_LIBADD = @top_builddir@/usb/vmusb/vmusb/libVMUSB.la \
 	@TCL_LDFLAGS@ \
@@ -45,9 +45,9 @@ TEST_MODULES = TestRunner.cpp regTests.cpp  vmeTests.cpp
 
 
 tests: $(TEST_MODULES)
-	$(CXX) -g -o tests -I. -I$(prefix)/include $(CPPUNIT_INCLUDES) \
-	$(TEST_MODULES) $(CPPUNIT_LDFLAGS) -L$(prefix)/lib -lVMUSB \
-	-Wl,"-rpath=$(prefix)/lib"
+	$(CXX) -g -o tests -I. -I@prefix@/include $(CPPUNIT_INCLUDES) \
+	$(TEST_MODULES) $(CPPUNIT_LDFLAGS) -L@prefix@/lib -lVMUSB \
+	-Wl,"-rpath=@prefix@/lib"
 
 installcheck-local: tests
 	./tests
@@ -57,7 +57,7 @@ installcheck-local: tests
 install-data-local:
 	$(mkinstalldirs) @prefix@/vmusbdriver
 	$(mkinstalldirs) @prefix@/vmusbdriver/includes
-	$(INSTALL_DATA)  CVMUSB*.h @prefix@/vmusbdriver/includes
+	for f in @srcdir@/CVMUSB*.h; do $(INSTALL_DATA)  $$f  @prefix@/vmusbdriver/includes; done
 	echo "Registering swig packages with lib's pkgIndex.tcl"
 	echo "package ifneeded cvmusbreadoutlist 1.0 [list load [file join \$$dir libCVMUSBReadoutList.so]]" >> @libdir@/pkgIndex.tcl
 	echo "package ifneeded cvmusb 1.0 [list load [file join \$$dir libCVMUSB.so]]" >> @libdir@/pkgIndex.tcl
@@ -73,17 +73,18 @@ EXTRA_DIST = $(TEST_MODULES)
 
 # Swig interface generation:
 
-libCVMUSB_la_SOURCES = CVMUSB_wrap.cxx
+libCVMUSB_la_SOURCES = @srcdir@/CVMUSB_wrap.cxx
 libCVMUSB_la_LIBADD  = libVMUSB.la @THREADLD_FLAGS@
 
-BUILT_SOURCES=CVMUSB_wrap.cxx CVMUSBReadoutList_wrap.cxx
+BUILT_SOURCES=@srcdir@/CVMUSB_wrap.cxx @srcdir@/CVMUSBReadoutList_wrap.cxx
 
-CVMUSB_wrap.cxx:	CVMUSB.h
-	@SWIG@ -c++ -debug-classes -tcl -namespace -pkgversion 1.0 CVMUSB.h
+@srcdir@/CVMUSB_wrap.cxx:	@srcdir@/CVMUSB.h
+	@SWIG@ -c++ -outdir @srcdir@ -debug-classes -tcl -namespace -pkgversion 1.0 @srcdir@/CVMUSB.h 
 
-libCVMUSBReadoutList_la_SOURCES = CVMUSBReadoutList_wrap.cxx
+libCVMUSBReadoutList_la_SOURCES = @srcdir@/CVMUSBReadoutList_wrap.cxx
 libCVMUSBReadoutList_la_LIBADD = libVMUSB.la @THREADLD_FLAGS@
 
 
-CVMUSBReadoutList_wrap.cxx: CVMUSBReadoutList.h
-	@SWIG@ -c++ -debug-classes -tcl -namespace -pkgversion 1.0 CVMUSBReadoutList.h
+@srcdir@/CVMUSBReadoutList_wrap.cxx: @srcdir@/CVMUSBReadoutList.h
+	@SWIG@ -c++ -outdir @srcdir@ -debug-classes -tcl -namespace -pkgversion 1.0 \
+	 @srcdir@/CVMUSBReadoutList.h 

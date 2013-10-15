@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.61)
-AC_INIT(nscldaq, 11.0, fox@nscl.msu.edu)
+AC_INIT(nscldaq, 11.0-rc2, fox@nscl.msu.edu)
 
 AC_CONFIG_SRCDIR([/utilities/StringsToIntegers.h])
 AC_CONFIG_HEADER([config.h])
@@ -136,10 +136,10 @@ then
 	AC_MSG_RESULT([Found in  system libraries])
 else
 	AC_MSG_RESULT([Need to build local tagged copy])
-	AC_CHECK_FILE([./libtcl/configure], [havelibtcldir="yes"], [havelibtcldir="no"])
+	AC_CHECK_FILE([${srcdir}/libtcl/configure], [havelibtcldir="yes"], [havelibtcldir="no"])
 	if test $havelibtcldir = "yes"
 	then
-		(cd libtcl; ./configure --prefix=${prefix}; make clean install)
+		(cd ${srcdir}/libtcl; ./configure --prefix=${prefix}; make clean install)
 		LIBTCLPLUS_CFLAGS="-I${prefix}/include"
 		LIBEXCEPTION_LDFLAGS="-L${prefix}/lib -lException -Wl,\"-rpath=${prefis}/lib\""
 		LIBTCLPLUS_LDFLAGS="-L${prefix}/lib -ltclPlus ${LIBEXCEPTION_LDFLAGS}"

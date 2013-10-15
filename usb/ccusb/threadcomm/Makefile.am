@@ -9,4 +9,4 @@ libCCUSBThreadComm_la_LIBADD = @LIBTCLPLUS_LDFLAGS@ @THREADLD_FLAGS@
 install-data-local:
 	$(mkinstalldirs) @prefix@/ccusbdriver
 	$(mkinstalldirs) @prefix@/ccusbdriver/includes
-	$(INSTALL_DATA)  *.h @prefix@/ccusbdriver/includes
+	$(INSTALL_DATA)  @srcdir@/*.h @prefix@/ccusbdriver/includes

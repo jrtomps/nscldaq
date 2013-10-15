@@ -12,7 +12,7 @@ SUBDIRS = 	ccusb 		\
 
 bin_PROGRAMS = CCUSBReadout
 
-CCUSBReadout_SOURCES = CTheApplication.cpp Globals.cpp 
+CCUSBReadout_SOURCES = CTheApplication.cpp Globals.cpp @srcdir@/cmdline.c
 
 noinst_HEADERS = CTheApplication.h Globals.h
 
@@ -28,7 +28,7 @@ INCLUDES = -I@top_srcdir@/usb/ccusb/ccusb -I@top_srcdir@/usb/ccusb/devices \
 	$(TCL_FLAGS) @THREADCXX_FLAGS@ 
 
 
-CCUSBReadout_LDADD	= cmdline.o @top_builddir@/usb/ccusb/devices/libCCUSBDevices.la	\
+CCUSBReadout_LDADD	=  @top_builddir@/usb/ccusb/devices/libCCUSBDevices.la	\
 	@top_builddir@/usb/ccusb/commands/libCCUSBCommands.la	\
 	@top_builddir@/usb/ccusb/daqconfig/libCCUSBConfig.la		\
 	@top_builddir@/usb/ccusb/rdothread/libCCUSBRdoThread.la	\
@@ -45,20 +45,16 @@ CCUSBReadout_LDADD	= cmdline.o @top_builddir@/usb/ccusb/devices/libCCUSBDevices.
 
 CCUSBReadout_LDFLAGS=-Wl,"-rpath=$(libdir)"
 
-CCUSBReadout_DEPENDENCIES = cmdline.o
-BUILT_SOURCES = cmdline.h
-cmdline.h: commandline.ggo
-	$(GENGETOPT) <commandline.ggo
+BUILT_SOURCES = @srcdir@/cmdline.c
 
+@srcdir@/cmdline.c: @srcdir@/cmdline.h
 
+@srcdir@/cmdline.h: @srcdir@/commandline.ggo
+	@GENGETOPT@ < @srcdir@/commandline.ggo --output-dir=@srcdir@
 
-cmdline.o: commandline.ggo
-	$(GENGETOPT) <commandline.ggo
-	$(CC) -c -I. cmdline.c $(THREADCFLAGS)
-
-EXTRA_DIST=commandline.ggo ccusb.xml
+EXTRA_DIST= commandline.ggo ccusb.xml
 
 install-data-local:
 	$(mkinstalldirs) @prefix@/ccusbdriver
 	$(mkinstalldirs) @prefix@/ccusbdriver/includes
-	$(INSTALL_DATA)  *.h @prefix@/ccusbdriver/includes
+	$(INSTALL_DATA)  @srcdir@/*.h @prefix@/ccusbdriver/includes

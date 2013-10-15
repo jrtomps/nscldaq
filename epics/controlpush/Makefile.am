@@ -16,7 +16,7 @@
 #  This application requires epics:
 
 if EPICS
-LIBDIR=$(prefix)/TclLibs
+LIBDIR=@prefix@/TclLibs
 
 bin_PROGRAMS        = controlpush
 
@@ -50,7 +50,8 @@ controlpush_CXXFLAGS = $(THREADCXX_FLAGS) $(AM_CXXFLAGS)
 
 
 cmdline.c: options.ggo
-	$(GENGETOPT) --unamed-opts <options.ggo
+	$(GENGETOPT) --unamed-opts <@top_srcdir@/epics/controlpush/options.ggo \
+		--output-dir=@top_srcdir@/epics/controlpush
 
 EXTRA_DIST = options.ggo  Channels.dat  controlpush.xml
 

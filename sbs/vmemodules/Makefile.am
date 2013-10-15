@@ -71,8 +71,8 @@ INCLUDES	=	-I@top_srcdir@/base/headers 	\
 
 
 libSBSDeviceSupport_la_LIBADD =	@LIBTCLPLUS_LDFLAGS@	\
-				@top_srcdir@/sbs/nsclapi/libSBSVmeAPI.la	\
-				@top_srcdir@/sbs/driver/src/libbtp.la
+				@top_builddir@/sbs/nsclapi/libSBSVmeAPI.la	\
+				@top_builddir@/sbs/driver/src/libbtp.la
 
 libSBSDeviceSupport_la_LDFLAGS=	-version-info	1:0:0
 

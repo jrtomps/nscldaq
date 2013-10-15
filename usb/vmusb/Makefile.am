@@ -24,39 +24,40 @@ BUILT_SOURCES = cmdline.h
 
 noinst_HEADERS = CTheApplication.h Globals.h
 
-INCLUDES = -I$(top_srcdir)/usb/vmusb/vmusb -I$(top_srcdir)/usb/vmusb/devices -I$(top_srcdir)/usb/vmusb/threadcomm -I$(top_srcdir)/usb/vmusb/router -I$(top_srcdir)/usb/vmusb/rdothreaed \
-	-I$(top_srcdir)/usb/vmusb/tclserver -I$(top_srcdir)/usb/vmusb/daqconfig -I$(top_srcdir)/usb/vmusb/commands  \
+INCLUDES = -I@top_srcdir@/usb/vmusb/vmusb -I@top_srcdir@/usb/vmusb/devices -I@top_srcdir@/usb/vmusb/threadcomm -I@top_srcdir@/usb/vmusb/router -I@top_srcdir@/usb/vmusb/rdothreaed \
+	-I@top_srcdir@/usb/vmusb/tclserver -I@top_srcdir@/usb/vmusb/daqconfig -I@top_srcdir@/usb/vmusb/commands  \
 	@LIBTCLPLUS_CFLAGS@ \
-	-I$(top_srcdir)/base/thread	\
-	-I$(top_srcdir)/base/headers	\
-	-I$(top_srcdir)/base/dataflow   \
+	-I@top_srcdir@/base/thread	\
+	-I@top_srcdir@/base/headers	\
+	-I@top_srcdir@/base/dataflow   \
         -I@top_srcdir@/servers/portmanager \
 	$(TCL_FLAGS) $(USBSWITCHES) 
 
-VMUSBReadout_LDADD	= cmdline.o $(top_builddir)/usb/vmusb/devices/libVMUSBDevices.la	\
-		$(top_builddir)/usb/vmusb/threadcomm/libVMUSBThreadComm.la	\
-		$(top_builddir)/usb/vmusb/router/libVMUSBRouter.la	\
-		$(top_builddir)/usb/vmusb/rdothread/libVMUSBRdoThread.la	\
-		$(top_builddir)/usb/vmusb/tclserver/libVMUSBControlServer.la	\
-		$(top_builddir)/usb/vmusb/daqconfig/libVMUSBConfig.la	\
-		$(top_builddir)/usb/vmusb/commands/libVMUSBCommands.la	\
+VMUSBReadout_LDADD	= cmdline.o @top_builddir@/usb/vmusb/devices/libVMUSBDevices.la	\
+		@top_builddir@/usb/vmusb/threadcomm/libVMUSBThreadComm.la	\
+		@top_builddir@/usb/vmusb/router/libVMUSBRouter.la	\
+		@top_builddir@/usb/vmusb/rdothread/libVMUSBRdoThread.la	\
+		@top_builddir@/usb/vmusb/tclserver/libVMUSBControlServer.la	\
+		@top_builddir@/usb/vmusb/daqconfig/libVMUSBConfig.la	\
+		@top_builddir@/usb/vmusb/commands/libVMUSBCommands.la	\
                 @top_builddir@/servers/portmanager/libPortManager.la \
-		$(top_builddir)/base/dataflow/libDataFlow.la \
+		@top_builddir@/base/dataflow/libDataFlow.la \
 		@top_builddir@/usb/vmusb/vmusb/libVMUSB.la	\
 		@LIBTCLPLUS_LDFLAGS@	\
-		$(top_builddir)/base/thread/libdaqthreads.la	\
+		@top_builddir@/base/thread/libdaqthreads.la	\
 		$(TCL_LDFLAGS) $(USB_LIBS) @THREADLD_FLAGS@
 
 
 VMUSBReadout_LDFLAGS=-Wl,"-rpath=$(libdir)"
 
 cmdline.h: commandline.ggo
-	$(GENGETOPT) <commandline.ggo
+	$(GENGETOPT) <@top_srcdir@/usb/vmusb/commandline.ggo \
+		@output-dir=@top_srcdir@/usb/vmusb
 
 
 
 cmdline.o: commandline.ggo
-	$(GENGETOPT) <commandline.ggo
+	$(GENGETOPT) <@top_srcdir@/usb/vmusb/commandline.ggo
 	$(CC) -c -I. cmdline.c $(THREADCFLAGS)
 
 EXTRA_DIST=commandline.ggo vmusbReadout.xml

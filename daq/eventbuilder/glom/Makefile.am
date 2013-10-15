@@ -1,10 +1,9 @@
 bin_PROGRAMS=glom
 
-glom_SOURCES= glom.c glomMain.cpp
+glom_SOURCES= @srcdir@/glom.c glomMain.cpp
 
-noinst_HEADERS = glom.h
 
-BUILT_SOURCES = glom.c glom.h
+BUILT_SOURCES = @srcdir@/glom.c
 
 INCLUDES = -I@top_srcdir@/daq/eventbuilder \
 	-I@top_srcdir@/daq/format          \
@@ -14,9 +13,10 @@ glom_LDADD = @top_builddir@/daq/eventbuilder/libEventBuilderClient.la  \
 	@top_builddir@/daq/format/libdataformat.la                     \
 	@top_builddir@/base/os/libdaqshm.la
 
-glom.c:  glom.h
+@srcdir@/glom.c:  @srcdir@/glom.h
 
-glom.h: glom.ggo
-	@GENGETOPT@ --input=glom.ggo --file-name=glom
+@srcdir@/glom.h: @srcdir@/glom.ggo
+	@GENGETOPT@ --input=@srcdir@/glom.ggo \
+		--output-dir=@srcdir@ --file-name=glom
 
 EXTRA_DIST=glom.ggo glom.xml

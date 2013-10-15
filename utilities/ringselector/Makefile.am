@@ -28,11 +28,11 @@ ringselector_CXXFLAGS	=	$(THREADCXX_FLAGS) $(AM_CXXFLAGS)
 #----------------------- Gengetopt stuff:
 
 parser.h: parser.ggo
-	$(GENGETOPT) <parser.ggo --file=parser
+	$(GENGETOPT) <@top_srcdir@/utilities/ringselector/parser.ggo --file=parser
 	$(CC)  -c parser.c
 
 parser.o: parser.ggo
-	$(GENGETOPT) <parser.ggo --file=parser 
+	$(GENGETOPT) <@top_srcdir@/utilities/ringselector/parser.ggo --file=parser 
 	$(CC) -c parser.c
 
 #----------------------- extra files to distribute.

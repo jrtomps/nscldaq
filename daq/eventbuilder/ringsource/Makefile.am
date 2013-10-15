@@ -9,38 +9,39 @@ libS800TimeExtractor_la_SOURCES = s800timestamp.c
 libGretinaTimeExtractor_la_SOURCES = gretinaTimestamp.c
 
 
-ringFragmentSource_SOURCES=rfcmdline.c CRingSource.cpp Main.cpp GetOpt.cpp
+ringFragmentSource_SOURCES=@srcdir@/rfcmdline.c CRingSource.cpp Main.cpp GetOpt.cpp
 
 ringTestSource_SOURCES= ringTestSource.cpp ringtestoptions.c TestSource.cpp
 
 noinst_HEADERS=CRingSource.h s800.h TestSource.h
 
 
-BUILT_SOURCES = rfcmdline.c rfcmdline.h  ringtestoptions.c ringtestoptions.h
+BUILT_SOURCES = @srcdir@/rfcmdline.c @srcdir@/rfcmdline.h  \
+	@srcdir@/ringtestoptions.c @srcdir@/ringtestoptions.h @srcdir@/options.ggo
 
 #
 #  This is a bit funky.  We copy the options.ggo skeleton file and add to it
 #  options needed for the ring buffer...then generate cmdline.{h,c}
 
-rfcmdline.c: ../options.ggo
-	cp ../options.ggo .
-	echo option \"ring\" r \"URL of ring from which fragments come\" string required >> options.ggo
-	echo option \"timestampextractor\" t \"Shared library with timestamp extraction code\" string required >>options.ggo
-	$(GENGETOPT) --input=options.ggo -F rfcmdline
+@srcdir@/options.ggo: @top_srcdir@/daq/eventbuilder/options.ggo
+	cp @top_srcdir@/daq/eventbuilder/options.ggo  @srcdir@
+	echo option \"ring\" r \"URL of ring from which fragments come\" string required >> @srcdir@/options.ggo
+	echo option \"timestampextractor\" t \"Shared library with timestamp extraction code\" string required >> \
+		@srcdir@/options.ggo
 
-rfcmdline.h: ../options.ggo
-	cp ../options.ggo .
-	echo option \"ring\" r \"URL of ring from which fragments come\" string required >> options.ggo
-	echo option \"timestampextractor\" t \"Shared library with timestamp extraction code\" string required >>options.ggo
-	$(GENGETOPT) --input=options.ggo -F rfcmdline
+@srcdir@/rfcmdline.c: @srcdir@/rfcmdline.h
 
 
+@srcdir@/rfcmdline.h: @srcdir@/options.ggo
+	$(GENGETOPT) --output-dir=@srcdir@ \
+		--input=@srcdir@/options.ggo -F rfcmdline
 
-ringtestoptions.c: ringtestoptions.ggo
-	$(GENGETOPT) --input=ringtestoptions.ggo --file=ringtestoptions
+@srcdir@/ringtestoptions.c: @srcdir@/ringtestoptions.h
 
-ringtestoptions.h: ringtestoptions.ggo
-	$(GENGETOPT) --input=ringtestoptions.ggo --file=ringtestoptions
+
+@srcdir@/ringtestoptions.h: @srcdir@/ringtestoptions.ggo
+	$(GENGETOPT) --input=@srcdir@/ringtestoptions.ggo \
+		--output-dir=@srcdir@ --file=ringtestoptions
 
 ringTestSource_LDADD = \
 	@top_builddir@/daq/format/libdataformat.la \
@@ -52,9 +53,9 @@ ringTestSource_LDADD = \
 	rm -rf $(BUILT_SOURCES)
 
 clean-local:
-	-rm -rf $(BUILT_SOURCES)
+	-rm -rf $(BUILT_SOURCES) @srcdir@/$(BUILT_SOURCES)
 
-INCLUDES=-I.. -I@top_srcdir@/base/dataflow \
+INCLUDES=-I@top_srcdir@/daq/eventbuilder -I@top_srcdir@/base/dataflow \
 	-I@top_srcdir@/daq/format \
 	@LIBTCLPLUS_CFLAGS@	 \
 	 -I@top_srcdir@/base/headers \

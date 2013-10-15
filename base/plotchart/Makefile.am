@@ -15,7 +15,8 @@ files=pkgIndex.tcl xyplot.tcl plotanim.tcl plotannot.tcl plotaxis.tcl plotbind.t
 
 install-exec-local:
 	$(mkinstalldirs) $(destdir)
-	@INSTALL_SCRIPT@ $(files) $(destdir)
+	for f in $(files); do @INSTALL_SCRIPT@ @srcdir@/$$f $(destdir); done
+
 
 EXTRA_DIST=$(files)
 

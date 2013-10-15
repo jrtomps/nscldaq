@@ -27,7 +27,7 @@ frag2ring_LDADD = @top_builddir@/daq/format/libdataformat.la \
 
 FRAMEWORK_SOURCEFILES =  GetOpt.cpp Main.cpp options.ggo
 
-FRAMEWORK_SKELETON = Makefile_Skeleton $(FRAMEWORK_SOURCEFILES)
+FRAMEWORK_SKELETON =  $(FRAMEWORK_SOURCEFILES)
 
 
 include_HEADERS = CEventOrderClient.h fragment.h CEVBClientApp.h EVBFramework.h \
@@ -88,16 +88,16 @@ SKELDIR=@prefix@/skeletons/eventbuilder
 
 install-exec-hook:
 	$(mkinstalldirs) $(prefix)/TclLibs/EventBuilder
-	$(INSTALL_SCRIPT) $(TCL_PACKAGE_FILES) $(prefix)/TclLibs/EventBuilder
+	for f in $(TCL_PACKAGE_FILES); do @INSTALL_SCRIPT@ @srcdir@/$$f $(prefix)/TclLibs/EventBuilder; done
 	rm -f $(prefix)/TclLibs/EventBuilder/libEventBuilder.so
 	$(LN_S) @libdir@/libEventBuilder.so $(prefix)/TclLibs/EventBuilder/libEventBuilder.so
 	echo "pkg_mkIndex -verbose $(prefix)/TclLibs/EventBuilder *.tcl *.so" |@TCLSH_CMD@ 
 	$(mkinstalldirs) $(SKELDIR)
-	$(INSTALL_DATA) $(FRAMEWORK_SKELETON) $(SKELDIR)
-	mv $(SKELDIR)/Makefile_Skeleton $(SKELDIR)/Makefile
-	$(INSTALL_SCRIPT) startOrderer @prefix@/bin
+	for f in $(FRAMEWORK_SKELETON); do $(INSTALL_DATA) @srcdir@/$$f $(SKELDIR); done
+	$(INSTALL_SCRIPT) @builddir@/Makefile_Skeleton $(SKELDIR)/Makefile
+	$(INSTALL_SCRIPT) @builddir@/startOrderer @prefix@/bin
 	$(mkinstalldirs) @prefix@/TclLibs/EVBCallouts
-	$(INSTALL_SCRIPT) $(TCL_EVB_PACKAGE_FILES) @prefix@/TclLibs/EVBCallouts
+	for f in $(TCL_EVB_PACKAGE_FILES); do $(INSTALL_SCRIPT) @srcdir@/$$f @prefix@/TclLibs/EVBCallouts; done
 	echo "pkg_mkIndex -verbose $(prefix)/TclLibs/EVBCallouts *.tcl *.so" |@TCLSH_CMD@ 
 
 
@@ -128,8 +128,11 @@ check-TESTS:
 BUILT_SOURCES=cmdline.h cmdline.c
 
 cmdline.h: options.ggo
-	$(GENGETOPT) --input=options.ggo
+	$(GENGETOPT) --input=@top_srcdir@/daq/eventbuilder/options.ggo \
+		--output-dir=@top_srcdir@/daq/eventbuilder
 
 cmdline.c: options.ggo
-	$(GENGETOPT) --input=options.ggo
+	$(GENGETOPT) --input=@top_srcdir@/daq/eventbuilder/options.ggo \
+		--output-dir=@top_srcdir@/daq/eventbuilder
+
 

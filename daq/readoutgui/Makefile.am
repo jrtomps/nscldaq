@@ -1,11 +1,11 @@
 install-exec-local:
 	$(mkinstalldirs) $(prefix)/bin
 	$(mkinstalldirs) $(prefix)/TclLibs/Stager
-	$(INSTALL_SCRIPT) $(TCLPACKAGES) $(prefix)/TclLibs/Stager
-	$(INSTALL_SCRIPT) InstallRoot.tcl $(prefix)/TclLibs/Stager
-	for f in $(TCLAPPS); do $(INSTALL_SCRIPT) $$f  $(prefix)/bin/`basename $$f .tcl`; done
-	$(INSTALL_SCRIPT) ReadoutShell.tcl $(prefix)/bin
-	$(INSTALL_SCRIPT) RunReadout.sh  $(prefix)/TclLibs
+	for f in  $(TCLPACKAGES); do install @srcdir@/$$f $(prefix)/TclLibs/Stager; done
+	$(INSTALL_SCRIPT) @builddir@/InstallRoot.tcl $(prefix)/TclLibs/Stager
+	for f in $(TCLAPPS); do $(INSTALL_SCRIPT) @srcdir@/$$f  $(prefix)/bin/`basename $$f .tcl`; done
+	$(INSTALL_SCRIPT) @srcdir@/ReadoutShell.tcl $(prefix)/bin
+	$(INSTALL_SCRIPT) @srcdir@/RunReadout.sh  $(prefix)/TclLibs
 	echo "pkg_mkIndex -verbose $(prefix)/TclLibs/Stager *.tcl" | $(TCLSH_CMD)
 	echo Adjusting installation location of libWait.so compiled tcl extension.
 	mv $(prefix)/lib/libWait.* $(prefix)/TclLibs
@@ -63,7 +63,7 @@ lib_LTLIBRARIES = libWait.la
 libWait_la_SOURCES = WaitPackage.cpp
 
 libWait_la_LDFLAGS =	@LIBTCLPLUS_LDFLAGS@	\
-			@top_srcdir@/base/CopyrightTools/libLicense.la	 \
+			@top_builddir@/base/CopyrightTools/libLicense.la	 \
 			-version-info $(SOVERSION)
 
 libWait_la_LIBADD =  @LIBTCLPLUS_LDFLAGS@ \

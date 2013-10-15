@@ -25,11 +25,11 @@ libVMUSBDevices_la_SOURCES	= 	CConfigurableObject.cpp	\
 					CVMUSBControl.cpp
 
 
-INCLUDES	= 	-I$(top_srcdir)/usb/vmusb/vmusb 	\
-			-I$(top_srcdir)/usb/vmusb/daqconfig 	\
-			-I$(top_srcdir)/usb/vmusb		\
+INCLUDES	= 	-I@top_srcdir@/usb/vmusb/vmusb 	\
+			-I@top_srcdir@/usb/vmusb/daqconfig 	\
+			-I@top_srcdir@/usb/vmusb		\
 			@LIBTCLPLUS_CFLAGS@		\
-			-I$(top_srcdir)/base/headers		\
+			-I@top_srcdir@/base/headers		\
 			@TCL_FLAGS@ 
 
 libVMUSBDevices_la_CXXFLAGS=@THREADCXX_FLAGS@
@@ -74,7 +74,7 @@ noinst_HEADERS			= 	CConfigurableObject.h	\
 install-data-local:
 	$(mkinstalldirs) @prefix@/vmusbdriver
 	$(mkinstalldirs) @prefix@/vmusbdriver/includes
-	$(INSTALL_DATA)  *.h @prefix@/vmusbdriver/includes
+	$(INSTALL_DATA)  @srcdir@/*.h @prefix@/vmusbdriver/includes
 
 
 tests: TestRunner.cpp $(TESTS)

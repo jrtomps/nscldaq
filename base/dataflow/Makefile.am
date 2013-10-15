@@ -20,17 +20,17 @@ libDataFlow_la_LDFLAGS =  -version-info $(SOVERSION) \
 	                  -Wl,"-rpath-link=$(libdir)" 	\
 			-lrt $(THREADLD_FLAGS)
 
-libDataFlow_la_LIBADD  = @top_srcdir@/servers/portmanager/libPortManager.la \
-			@top_srcdir@/base/uri/liburl.la 	\
-			@top_srcdir@/base/os/libdaqshm.la	\
+libDataFlow_la_LIBADD  = @top_builddir@/servers/portmanager/libPortManager.la \
+			@top_builddir@/base/uri/liburl.la 	\
+			@top_builddir@/base/os/libdaqshm.la	\
 			$(THREADLD_FLAGS)
 
 libDataFlow_la_CXXFLAGS = $(THREADCXX_FLAGS) $(AM_CXXFLAGS)
 
 libRingBuffer_la_SOURCES = ringPackage.cpp CRingCommand.cpp
-libRingBuffer_la_DEPENDENCIES = libDataFlow.la ringtostdoutsw.o stdintoringsw.o
+libRingBuffer_la_DEPENDENCIES = libDataFlow.la
 
-libRingBuffer_la_LIBADD  = 	@top_srcdir@/base/dataflow/libDataFlow.la 
+libRingBuffer_la_LIBADD  = 	@top_builddir@/base/dataflow/libDataFlow.la 
 
 libRingBuffer_la_LDFLAGS = 	@LIBEXCEPTION_LDFLAGS@ $(TCL_LDFLAGS) \
 				-version-info $(SOVERSION) \
@@ -47,30 +47,37 @@ libRingBuffer_la_CXXFLAGS	=	$(THREADCXX_FLAGS) \
 
 bin_PROGRAMS 	= ringtostdout stdintoring
 
-ringtostdout_SOURCES = ringtostdout.cpp
+ringtostdout_SOURCES = ringtostdout.cpp  @srcdir@/ringtostdoutsw.c
 
 ringtostdout_DEPENDENCIES =  libDataFlow.la
 
+BUILT_SOURCES=@srcdir@/ringtostdoutsw.c @srcdir@/stdintoringsw.ggo
 
-ringtostdoutsw.o: ringtostdoutsw.ggo
-	$(GENGETOPT) <ringtostdoutsw.ggo --file=ringtostdoutsw --unamed-opts
-	$(CC) -c ringtostdoutsw.c $(THREADC_FLAGS)
+@srcdir@/ringtostdoutsw.c: ringtostdoutsw.h
 
-ringtostdout_LDADD	= ringtostdoutsw.o libDataFlow.la \
+ringtostdoutsw.h: ringtostdoutsw.ggo
+	@GENGETOPT@ <@srcdir@/ringtostdoutsw.ggo \
+		--output-dir=@srcdir@ --file ringtostdoutsw
+
+@srcdir@/stdintoringsw.c: stdintoringsw.h
+
+stdintoringsw.h: stdintoringsw.ggo
+	@GENGETOPT@ <@srcdir@/stdintoringsw.ggo \
+		--output-dir=@srcdir@/dataflow --file=stdintoringsw --unamed-opts
+
+ringtostdout_LDADD	=  libDataFlow.la \
 			@LIBEXCEPTION_LDFLAGS@	\
 			@top_builddir@/base/os/libdaqshm.la	\
 			$(THREADLD_FLAGS)
 
 ringtostdout_CXXFLAGS	=  $(AM_CXXFLAGS) $(THREADCXX_FLAGS)
 
-stdintoring_SOURCES = stdintoring.cpp
+stdintoring_SOURCES = stdintoring.cpp @srcdir@/stdintoringsw.c
 stdintoring_DEPENDENCIES = libDataFlow.la 
 
-stdintoringsw.o: stdintoringsw.ggo
-	$(GENGETOPT) <stdintoringsw.ggo --file=stdintoringsw --unamed-opts
-	$(CC) -c stdintoringsw.c $(THREADC_FLAGS)
 
-stdintoring_LDADD	= stdintoringsw.o libDataFlow.la	\
+
+stdintoring_LDADD	=  libDataFlow.la	\
 			@LIBEXCEPTION_LDFLAGS@ \
 			$(THREADLD_FLAGS)
 
@@ -115,8 +122,8 @@ EXTRA_DIST=ringprimitives.xml ringbuffer.xml ringlib.xml ringmaster.xml ringpipe
 #-------------- My installation... includes tcl scripts/packages.
 
 install-exec-local: 
-	$(INSTALL_SCRIPT) RingMaster.tcl @bindir@/RingMaster
+	$(INSTALL_SCRIPT) @srcdir@/RingMaster.tcl @bindir@/RingMaster
 	$(mkinstalldirs)  @prefix@/TclLibs
-	$(INSTALL_SCRIPT) .libs/libRingBuffer.* @prefix@/TclLibs
-	$(INSTALL_SCRIPT) ringbuffer.tcl @bindir@/ringbuffer
+	$(INSTALL_SCRIPT) @builddir@/.libs/libRingBuffer.* @prefix@/TclLibs
+	$(INSTALL_SCRIPT) @srcdir@/ringbuffer.tcl @bindir@/ringbuffer
 

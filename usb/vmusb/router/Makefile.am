@@ -20,7 +20,7 @@ INCLUDES		= -I@top_srcdir@/usb/vmusb/threadcomm -DLAST_CHANCE \
 libVMUSBRouter_la_CXXFLAGS=@THREADCXX_FLAGS@
 
 libVMUSBRouter_la_LIBADD	= @LIBTCLPLUS_LDFLAGS@	\
-	@top_srcdir@/usb/vmusb/threadcomm/libVMUSBThreadComm.la \
-	@top_srcdir@/base/thread/libdaqthreads.la \
-	@top_srcdir@/base/dataflow/libRingBuffer.la \
-	@top_srcdir@/daq/format/libdataformat.la @THREADLD_FLAGS@
+	@top_builddir@/usb/vmusb/threadcomm/libVMUSBThreadComm.la \
+	@top_builddir@/base/thread/libdaqthreads.la \
+	@top_builddir@/base/dataflow/libRingBuffer.la \
+	@top_builddir@/daq/format/libdataformat.la @THREADLD_FLAGS@

@@ -18,7 +18,7 @@ INCLUDES		= -I@top_srcdir@/usb/ccusb/threadcomm  \
 
 
 
-libCCUSBRouter_la_LIBADD	= @top_srcdir@/usb/ccusb/threadcomm/libCCUSBThreadComm.la \
+libCCUSBRouter_la_LIBADD	= @top_builddir@/usb/ccusb/threadcomm/libCCUSBThreadComm.la \
 			@LIBTCLPLUS_LDFLAGS@				\
 			@top_builddir@/base/dataflow/libRingBuffer.la \
 			@top_builddir@/daq/format/libdataformat.la		\
@@ -27,4 +27,4 @@ libCCUSBRouter_la_LIBADD	= @top_srcdir@/usb/ccusb/threadcomm/libCCUSBThreadComm.
 install-data-local:
 	$(mkinstalldirs) @prefix@/ccusbdriver
 	$(mkinstalldirs) @prefix@/ccusbdriver/includes
-	$(INSTALL_DATA)  *.h @prefix@/ccusbdriver/includes
+	$(INSTALL_DATA)  @srcdir@/*.h @prefix@/ccusbdriver/includes

@@ -11,7 +11,7 @@ include_HEADERS = CVMEInterface.h SBSBit3API.h CVME.h \
 libSBSVmeAPI_la_LDFLAGS =  -version-info 1:0:0
 
 libSBSVmeAPI_la_LIBADD = @LIBTCLPLUS_LDFLAGS@	\
-			@top_srcdir@/sbs/driver/src/libbtp.la
+			@top_builddir@/sbs/driver/src/libbtp.la
 
 
 

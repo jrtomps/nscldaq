@@ -8,5 +8,3 @@ INCLUDES		= @LIBTCLPLUS_CFLAGS@ -I$(top_builddir)/base/headers
 libVMUSBThreadComm_la_LIBADD =  @LIBTCLPLUS_LDFLAGS@  @THREADLD_FLAGS@
 
 
-install-data:
-	$(INSTALL_DATA) @srcdir@CBufferQueue.cpp @prefix@/include

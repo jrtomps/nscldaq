@@ -1,15 +1,15 @@
 bin_PROGRAMS = teering
 
-teering_SOURCES = teering.cpp tcmdline.c ../fragment.c
+teering_SOURCES = teering.cpp @srcdir@/tcmdline.c ../fragment.c
 
-BUILT_SOURCES=tcmdline.c
+BUILT_SOURCES=@srcdir@/tcmdline.c
 
-noinst_HEADERS=tcmdline.h
+@srcdir@/tcmdline.c: @srcdir@/tcmdline.h
 
-tcmdline.h: tcmdline.c
 
-tcmdline.c: options.ggo
-	$(GENGETOPT) --input=options.ggo -F tcmdline
+@srcdir@/tcmdline.h: @srcdir@/options.ggo
+	$(GENGETOPT) --input=@srcdir@/options.ggo \
+		--output-dir=@srcdir@ -F tcmdline
 
 INCLUDES = -I@top_srcdir@/daq/eventbuilder  \
 	-I@top_srcdir@/daq/format \

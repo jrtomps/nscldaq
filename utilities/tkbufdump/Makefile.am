@@ -1,8 +1,8 @@
 install-exec-local:
 	$(mkinstalldirs) @prefix@/tkbufdump
-	$(INSTALL_SCRIPT) *.tcl @prefix@/tkbufdump
-	$(INSTALL_DATA)   *.html @prefix@/tkbufdump
-	$(INSTALL_DATA)   packets.def @prefix@/tkbufdump
+	for f in *.tcl; do $(INSTALL_SCRIPT) @srcdir@/$$f @prefix@/tkbufdump; done
+	for f in *.html; do $(INSTALL_DATA)   @srcdir@/$$f @prefix@/tkbufdump; done
+	$(INSTALL_DATA)   @srcdir@/packets.def @prefix@/tkbufdump
 	$(mkinstalldirs) @prefix@/bin
 	echo "#!/bin/bash"  > @prefix@/bin/tkdumper
 	echo "@prefix@/tkbufdump/tkbufdump.tcl" >> @prefix@/bin/tkdumper

@@ -25,8 +25,8 @@ install-data-local:
 	echo "pkg_mkIndex @prefix@/TclLibs *.so" >makeindex.tcl
 	$(TCLSH_CMD) <makeindex.tcl
 	$(INSTALL_SCRIPT) config.h @prefix@/include
-	$(MANDB) $(prefix)/share/man
-	echo "Version: "NSCLDAQ-$(VERSION) built on `hostname` `date` > $(prefix)/VERSION
+	$(MANDB) @prefix@/share/man
+	echo "Version: "NSCLDAQ-$(VERSION) built on `hostname` `date` > @prefix@/VERSION
 
 
 EXTRA_DIST=dotests introduction.xml libtcl

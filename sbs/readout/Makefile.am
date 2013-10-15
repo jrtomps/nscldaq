@@ -66,13 +66,13 @@ INCLUDES	=	-I@top_srcdir@/sbs/vmemodules	\
 			$(TCL_FLAGS) $(THREADCXX_FLAGS)	\
 			-DHAVE_VME_MAPPING -DHAVE_SBSVME_INTERFACE
 
-libSBSProductionReadout_la_LIBADD	=	@top_srcdir@/sbs/vmemodules/libSBSDeviceSupport.la	\
-						@top_srcdir@/sbs/nsclapi/libSBSVmeAPI.la		\
-						@top_srcdir@/daq/format/libdataformat.la		\
-						@top_srcdir@/servers/portmanager/libPortManager.la \
-						@top_srcdir@/base/dataflow/libDataFlow.la	\
-						@top_srcdir@/sbs/
-						@top_srcdir@/sbs/driver/src/libbtp.la
+libSBSProductionReadout_la_LIBADD	=	@top_builddir@/sbs/vmemodules/libSBSDeviceSupport.la	\
+						@top_builddir@/sbs/nsclapi/libSBSVmeAPI.la		\
+						@top_builddir@/daq/format/libdataformat.la		\
+						@top_builddir@/servers/portmanager/libPortManager.la \
+						@top_builddir@/base/dataflow/libDataFlow.la	\
+						@top_builddir@/sbs/
+						@top_builddir@/sbs/driver/src/libbtp.la
 
 
 libSBSProductionReadout_la_LDFLAGS	=	-version-info	1:0:0	\
@@ -88,7 +88,7 @@ Readout_SOURCES = Skeleton.cpp
 Readout_DEPENDENCIES = libSBSProductionReadout.la
 Readout_LDADD	= libSBSProductionReadout.la	\
 		@top_builddir@/sbs/vmemodules/libSBSDeviceSupport.la \
-		  @top_srcdir@/base/thread/libdaqthreads.la \
+		  @top_builddir@/base/thread/libdaqthreads.la \
 		  $(THREADLD_FLAGS)
 
 Readout_LDFLAGS = @LIBTCLPLUS_LDFLAGS@
@@ -99,19 +99,21 @@ install-exec-local:
 	$(mkinstalldirs) @prefix@/skeletons/sbs
 	$(mkinstalldirs) @prefix@/etc
 	$(mkinstalldirs) @prefix@/include/sbsreadout
-	$(INSTALL_SCRIPT) Skeleton.cpp @prefix@/skeletons/sbs
-	$(INSTALL_SCRIPT) Skeleton.h @prefix@/skeletons/sbs
+	$(INSTALL_SCRIPT) @srcdir@/Skeleton.cpp @prefix@/skeletons/sbs
+	$(INSTALL_SCRIPT) @srcdir@/Skeleton.h @prefix@/skeletons/sbs
 	$(INSTALL_SCRIPT) UserMakefile @prefix@/skeletons/sbs/Makefile
 	$(INSTALL_SCRIPT) SBSRdoMakeIncludes @prefix@/etc
-	$(INSTALL_SCRIPT) *.h @prefix@/include/sbsreadout
+	$(INSTALL_SCRIPT) @srcdir@/*.h @prefix@/include/sbsreadout
 
 
 options.c:	options.ggo
-	$(GENGETOPT) <options.ggo --file=options
+	$(GENGETOPT) <@top_srcdir@/sbs/readout/options.ggo --file=options \
+		--output-dir=@top_srcdir@/sbs/readout
 
 
 options.h:	options.ggo
-	$(GENGETOPT) < options.ggo --file=options
+	$(GENGETOPT) < @top_srcdir@/sbs/readout/options.ggo --file=options \
+		--output-dir=@top_srcdir@/sbs/readout
 
 clean-local:
 	-rm -f options.c options.h
@@ -146,10 +148,10 @@ tests_LDADD = 	CExperiment.lo	\
 		CDocumentedVars.lo				\
 		CVarList.lo					\
 		CVariableBuffers.lo				\
-		@top_srcdir@/daq/format/libdataformat.la	\
-		@top_srcdir@/base/dataflow/libDataFlow.la	\
-		@top_srcdir@/sbs/nsclapi/libSBSVmeAPI.la	\
-		@top_srcdir@/base/thread/libdaqthreads.la	\
+		@top_builddir@/daq/format/libdataformat.la	\
+		@top_builddir@/base/dataflow/libDataFlow.la	\
+		@top_builddir@/sbs/nsclapi/libSBSVmeAPI.la	\
+		@top_builddir@/base/thread/libdaqthreads.la	\
 		$(TCL_LDFLAGS) 					\
 		$(CPPUNIT_LDFLAGS)  $(THREADLD_FLAGS)
 

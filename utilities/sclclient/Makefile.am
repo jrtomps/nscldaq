@@ -5,12 +5,12 @@ noinst_PROGRAMS         =       testData
 sclclient_SOURCES	=	TclServerConnection.cpp		\
 				TcpClient.cpp			\
 				sclclientMain.cpp		\
-				sclclient.cpp
+				sclclient.cpp @srcdir@/sclclientargs.c
 
 noinst_HEADERS		=	TclServerConnection.h		\
 				TcpClient.h			\
-				sclclientMain.h			\
-				sclclientargs.h
+				sclclientMain.h	
+
 
 INCLUDES		=	-I@top_srcdir@/base/headers	\
 				-I@top_srcdir@/base/dataflow	\
@@ -19,12 +19,10 @@ INCLUDES		=	-I@top_srcdir@/base/headers	\
 				-I@top_srcdir@/servers/portmanager \
 				-I@top_srcdir@/base/os
 
-sclclient_DEPENDENCIES	=	sclclientargs.o
 
-BUILT_SOURCES		= 	sclclientargs.o
+BUILT_SOURCES		= 	@srcdir@/sclclientargs.c
 
-sclclient_LDADD		=	sclclientargs.o			\
-				@top_builddir@/servers/portmanager/libPortManager.la \
+sclclient_LDADD		=	@top_builddir@/servers/portmanager/libPortManager.la \
 				@top_builddir@/daq/format/libdataformat.la	\
 				@top_builddir@/base/dataflow/libDataFlow.la	\
 				@top_builddir@/servers/portmanager/libPortManager.la \
@@ -46,14 +44,14 @@ testData_LDADD          =       @top_builddir@/servers/portmanager/libPortManage
 				@LIBEXCEPTION_LDFLAGS@ 	\
 				$(THREADLD_FLAGS)
 
+CLEANFILES=@srcdir@/scliclient.cpp @srcdir@/sclclient.h
 
 
-sclclientargs.o: sclclientargs.ggo
-	$(GENGETOPT) <sclclientargs.ggo --file sclclientargs
-	$(CC) -c -I. sclclientargs.c
+@srcdir@/sclclientargs.c: @srcdir@/sclclientargs.h
 
-sclclientargs.h: sclclientargs.ggo
-	$(GENGETOPT) <sclclientargs.ggo --file sclclientargs
+@srcdir@/sclclientargs.h: @srcdir@/sclclientargs.ggo
+	$(GENGETOPT) < @srcdir@sclclientargs.ggo --file sclclientargs \
+		--output-dir=@srcdir@
 
 
 EXTRA_DIST		= 	sclclientargs.ggo	\

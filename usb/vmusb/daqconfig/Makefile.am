@@ -60,11 +60,11 @@ INCLUDES		= 	-I@top_srcdir@/usb/vmusb/devices	\
 				$(TCL_FLAGS) 
 
 
-libVMUSBConfig_la_LIBADD	=	@top_srcdir@/usb/vmusb/devices/libVMUSBDevices.la \
+libVMUSBConfig_la_LIBADD	= @top_builddir@/usb/vmusb/devices/libVMUSBDevices.la \
 				@LIBTCLPLUS_LDFLAGS@	\
 				$(TCL_LDFLAGS) @THREADLD_FLAGS@
 
 install-data-local:
 	$(mkinstalldirs) @prefix@/vmusbdriver
 	$(mkinstalldirs) @prefix@/vmusbdriver/includes
-	$(INSTALL_DATA)  *.h @prefix@/vmusbdriver/includes
+	$(INSTALL_DATA)  @srcdir@/*.h @prefix@/vmusbdriver/includes

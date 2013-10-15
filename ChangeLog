@@ -498,3 +498,7 @@ Feb 1, 2012 - Feb 24, 2012
 	* Encapsulate the SWIG autoconf test in an m4 test.
 	* Encapsulate the gengetopt test in an m4 test.
         * Encapsulate the EPICS tests/defs in an m4 test.
+11.0-rc2 Sprint for DDAS SBC reaodout board and then some.
+	* Issue #1765 - open rc2 development sprint.
+	* Issue #433  - Support out of tree builds.
+	

@@ -1,8 +1,8 @@
 install-exec-local:
 	$(mkinstalldirs) $(bindir)
-	$(mkinstalldirs) $(prefix)/TclLibs/ScalerDisplay
-	$(INSTALL_SCRIPT) $(TCLPACKAGES) $(prefix)/TclLibs/ScalerDisplay
-	$(INSTALL_SCRIPT) ScalerDisplay ScalerDisplay.tcl $(bindir)
+	$(mkinstalldirs) @prefix@/TclLibs/ScalerDisplay
+	for f in $(TCLPACKAGES); do $(INSTALL_SCRIPT) @srcdir@/$$f @prefix@/TclLibs/ScalerDisplay; done
+	$(INSTALL_SCRIPT) @builddir@/ScalerDisplay @srcdir@/ScalerDisplay.tcl $(bindir)
 
 
 TCLPACKAGES=scaler.tcl 

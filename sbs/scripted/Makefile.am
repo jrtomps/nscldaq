@@ -45,7 +45,7 @@ libScriptedRdo_la_SOURCES = 	CScriptedSegment.cpp		\
 
 libScriptedRdo_la_LDFLAGS = -version-info $(SOVERSION)
 
-ScriptedReadout_LDFLAGS = -Wl,"-rpath=$(prefix)/lib"
+ScriptedReadout_LDFLAGS = -Wl,"-rpath=@prefix@/lib"
 
 
 noinst_HEADERS= CScriptedSegment.h	\
@@ -94,17 +94,17 @@ INCLUDES=  $(VMEBUILDEADERS) \
 	-I@top_srcdir@/sbs/vmemodules\
 	-I@top_srcdir@/sbs/readout   \
 	-DVME $(TCL_FLAGS) \
-	-DINSTDIR=\"$(prefix)\" -g -pthread
+	-DINSTDIR=\"@prefix@\" -g -pthread
 
 
 
 
 
-ScriptedReadout_LDADD = @top_srcdir@/sbs/scripted/libScriptedRdo.la   \
-	@top_srcdir@/sbs/readout/libSBSProductionReadout.la		\
-	@top_srcdir@/sbs/vmemodules/libSBSDeviceSupport.la	\
-	@top_srcdir@/sbs/nsclapi/libSBSVmeAPI.la		\
-	@top_srcdir@/base/thread/libdaqthreads.la	\
+ScriptedReadout_LDADD = @top_builddir@/sbs/scripted/libScriptedRdo.la   \
+	@top_builddir@/sbs/readout/libSBSProductionReadout.la		\
+	@top_builddir@/sbs/vmemodules/libSBSDeviceSupport.la	\
+	@top_builddir@/sbs/nsclapi/libSBSVmeAPI.la		\
+	@top_builddir@/base/thread/libdaqthreads.la	\
 	@LIBTCLPLUS_LDFLAGS@ \
 	$(TCL_LDFLAGS) \
 	-lpthread
@@ -116,7 +116,7 @@ EXTRA_DIST=Makefile.skel scriptedreadout_Makefile.include
 #
 #   Now the extra installation stuff:
 #
-#   We make:   $(prefix)/contrib/scriptedReadout
+#   We make:   @prefix@/contrib/scriptedReadout
 #                           ..                  /include
 #                          ..                   /skel
 #                            ..                 /src
@@ -129,19 +129,19 @@ EXTRA_DIST=Makefile.skel scriptedreadout_Makefile.include
 #  in                                     .../skel
 #
 install-exec-local:
-	$(mkinstalldirs)     $(prefix)/contrib
-	$(mkinstalldirs)     $(prefix)/contrib/scriptedReadout
-	$(mkinstalldirs)     $(prefix)/contrib/scriptedReadout/include
-	$(mkinstalldirs)     $(prefix)/contrib/scriptedReadout/skel
-	$(mkinstalldirs)     $(prefix)/contrib/scriptedReadout/src
-	$(mkinstalldirs)     $(prefix)/etc
-	$(INSTALL_DATA)   *.cpp $(prefix)/contrib/scriptedReadout/src
-	$(INSTALL_DATA)   *.h   $(prefix)/contrib/scriptedReadout/include
-	$(INSTALL_DATA)    Skeleton.cpp Skeleton.h  \
-				$(prefix)/contrib/scriptedReadout/skel
-	echo INSTDIR=$(prefix)                                 > Makefile.user
-	cat  Makefile.skel                                    >> Makefile.user
-	$(INSTALL_DATA) Makefile.user \
-		$(prefix)/contrib/scriptedReadout/skel/Makefile
-	$(INSTALL_DATA) scriptedreadout_Makefile.include \
-	        $(prefix)/etc
+	$(mkinstalldirs)     @prefix@/contrib
+	$(mkinstalldirs)     @prefix@/contrib/scriptedReadout
+	$(mkinstalldirs)     @prefix@/contrib/scriptedReadout/include
+	$(mkinstalldirs)     @prefix@/contrib/scriptedReadout/skel
+	$(mkinstalldirs)     @prefix@/contrib/scriptedReadout/src
+	$(mkinstalldirs)     @prefix@/etc
+	$(INSTALL_DATA)   @srcdir@/*.cpp @prefix@/contrib/scriptedReadout/src
+	$(INSTALL_DATA)   @srcdir@/*.h   @prefix@/contrib/scriptedReadout/include
+	$(INSTALL_DATA)    @srcdir@/Skeleton.cpp @srcdir@/Skeleton.h  \
+				@prefix@/contrib/scriptedReadout/skel
+	echo INSTDIR=@prefix@                                 > Makefile.user
+	cat  @srcdir@/Makefile.skel                                    >> Makefile.user
+	$(INSTALL_DATA) @srcdir@/Makefile.user \
+		@prefix@/contrib/scriptedReadout/skel/Makefile
+	$(INSTALL_DATA) @srcdir@/scriptedreadout_Makefile.include \
+	        @prefix@/etc

@@ -20,13 +20,13 @@ daqstart_CXXFLAGS=$(THREADCXX_FLAGS) -D_GNU_SOURCE $(AM_CXXFLAGS)
 
 
 cmdline.c: daqstart.ggo
-	$(GENGETOPT) --unamed-opts <daqstart.ggo
+	$(GENGETOPT) --unamed-opts <@top_srcdir@/utilities/daqstart/daqstart.ggo
 
 EXTRA_DIST=daqstart.ggo popup.tcl daqstart.xml Makefile.am
 
 
 install-exec-local:
-	$(INSTALL_SCRIPT) popup.tcl $(bindir)/PopUp
+	$(INSTALL_SCRIPT) @srcdir@/popup.tcl $(bindir)/PopUp
 
 
 noinst_PROGRAMS = unittests

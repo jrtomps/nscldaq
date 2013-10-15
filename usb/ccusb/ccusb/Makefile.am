@@ -2,16 +2,18 @@ lib_LTLIBRARIES		= libCCUSB.la libCCCUSB.la libCCCUSBReadoutList.la
 libCCUSB_la_SOURCES	= CCCUSB.cpp CCCUSBReadoutList.cpp
 include_HEADERS         = CCCUSB.h   CCCUSBReadoutList.h
 
-libCCCUSB_la_SOURCES    = CCCUSB_wrap.cxx
-libCCCUSBReadoutList_la_SOURCES = CCCUSBReadoutList_wrap.cxx
+libCCCUSB_la_SOURCES    = @srcdir@/CCCUSB_wrap.cxx
+libCCCUSBReadoutList_la_SOURCES = @srcdir@/CCCUSBReadoutList_wrap.cxx
 
- BUILT_SOURCES=CCCUSB_wrap.cxx CCCUSBReadoutList_wrap.cxx
+ BUILT_SOURCES=@srcdir@/CCCUSB_wrap.cxx @srcdir@/CCCUSBReadoutList_wrap.cxx
 
- CCCUSB_wrap.cxx:	CCCUSB.h
-	 @SWIG@ -c++ -debug-classes  -tcl  -namespace  -pkgversion 1.0  CCCUSB.h
+ @srcdir@/CCCUSB_wrap.cxx:	 @srcdir@/CCCUSB.h
+	 @SWIG@ -c++ -debug-classes  -tcl  -namespace  -pkgversion 1.0  -outdir @srcdir@ \
+		@srcdir@/CCCUSB.h
 
- CCCUSBReadoutList_wrap.cxx: CCCUSBReadoutList.h
-	 @SWIG@ -c++ -debug-classes  -tcl  -namespace  -pkgversion 1.0  CCCUSBReadoutList.h
+  @srcdir@/CCCUSBReadoutList_wrap.cxx:  @srcdir@/CCCUSBReadoutList.h
+	 @SWIG@ -c++ -debug-classes  -tcl  -namespace  -pkgversion 1.0  -outdir @srcdir@ \
+		@srcdir@/CCCUSBReadoutList.h
 
 
  INCLUDES		= @TCL_FLAGS@ @USBSWITCHES@ @THREADCXX_FLAGS@
@@ -25,13 +27,13 @@ libCCCUSBReadoutList_la_SOURCES = CCCUSBReadoutList_wrap.cxx
 install-data-local:
 	$(mkinstalldirs) @prefix@/ccusbdriver
 	$(mkinstalldirs) @prefix@/ccusbdriver/includes
-	$(INSTALL_DATA)  *.h @prefix@/ccusbdriver/includes
+	$(INSTALL_DATA)  @srcdir@/*.h @prefix@/ccusbdriver/includes
 	echo "package ifneeded cccusb 1.0 [list load [file join \$$dir libCCCUSB.so]]" >> @libdir@/pkgIndex.tcl
 	echo "package ifneeded cccusbreadoutlist 1.0 [list load [file join \$$dir libCCCUSBReadoutList.so]]" >> @libdir@/pkgIndex.tcl
 
 
 
 clean-local:
-	$(RM) -f CCCUSB_wrap.cxx
-	$(RM) -f CCCUSBReadoutList_wrap.cxx
+	$(RM) -f $(BUILT_SOURCES)
+
 

@@ -21,7 +21,7 @@ libPortManager_la_CXXFLAGS = $(THREADCXX_FLAGS) 	\
 
 INCLUDES = -I@top_srcdir@/base/headers @LIBTCLPLUS_CFLAGS@ \
 	-I@top_srcdir@/base/os		\
-		-DHOME=\"$(prefix)\"
+		-DHOME=\"@prefix@\"
 
 TCLPACKAGES=ConnectionManager.tcl \
 	Log.tcl \
@@ -38,11 +38,11 @@ TCLTESTS=connectionmanager.test portallocator.test portmanager.test log.test
 #   We're counting on the top level makefile to build the package directory.
 #
 install-exec-local:
-	$(mkinstalldirs) $(prefix)/bin
-	$(mkinstalldirs) $(prefix)/TclLibs/PortManager
-	$(INSTALL_SCRIPT) $(TCLPACKAGES) $(prefix)/TclLibs/PortManager
-	$(INSTALL_SCRIPT) $(TCLAPPS)     $(prefix)/bin/DaqPortManager
-	echo "pkg_mkIndex $(prefix)/TclLibs/PortManager *.tcl" | $(TCLSH_CMD)
+	$(mkinstalldirs) @prefix@/bin
+	$(mkinstalldirs) @prefix@/TclLibs/PortManager
+	for f in  $(TCLPACKAGES); do @INSTALL_SCRIPT@ @srcdir@/$$f @prefix@/TclLibs/PortManager; done
+	for f in  $(TCLAPPS); do @INSTALL_SCRIPT@ @srcdir@/$$f     @prefix@/bin/DaqPortManager; done
+	echo "pkg_mkIndex @prefix@/TclLibs/PortManager *.tcl" | @TCLSH_CMD@
 
 
 #
@@ -61,5 +61,5 @@ cpptest_SOURCES = cpptest.cpp
 cpptest_LDADD= -L. -lPortManager @LIBEXCEPTION_LDFLAGS@
 
 check-TESTS: cpptest
-	for f in *.test;do $(TCLSH_CMD) $$f; done
+	for f in *.test;do @TCLSH_CMD@ $$f; done
 	cpptest
