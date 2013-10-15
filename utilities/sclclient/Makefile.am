@@ -2,7 +2,7 @@ bin_PROGRAMS		=	sclclient
 
 noinst_PROGRAMS         =       testData
 
-sclclient_SOURCES	=	TclServerConnection.cpp		\
+sclclientSOURCES	=	TclServerConnection.cpp		\
 				TcpClient.cpp			\
 				sclclientMain.cpp		\
 				sclclient.cpp @srcdir@/sclclientargs.c
@@ -44,13 +44,13 @@ testData_LDADD          =       @top_builddir@/servers/portmanager/libPortManage
 				@LIBEXCEPTION_LDFLAGS@ 	\
 				$(THREADLD_FLAGS)
 
-CLEANFILES=@srcdir@/scliclient.cpp @srcdir@/sclclient.h
+CLEANFILES=@srcdir@/sclclientargs.c @srcdir@/sclclientargs.h
 
 
 @srcdir@/sclclientargs.c: @srcdir@/sclclientargs.h
 
 @srcdir@/sclclientargs.h: @srcdir@/sclclientargs.ggo
-	$(GENGETOPT) < @srcdir@sclclientargs.ggo --file sclclientargs \
+	$(GENGETOPT) < @srcdir@/sclclientargs.ggo --file sclclientargs \
 		--output-dir=@srcdir@
 
 
