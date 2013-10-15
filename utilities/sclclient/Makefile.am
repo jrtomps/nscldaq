@@ -2,7 +2,7 @@ bin_PROGRAMS		=	sclclient
 
 noinst_PROGRAMS         =       testData
 
-sclclientSOURCES	=	TclServerConnection.cpp		\
+sclclient_SOURCES	=	TclServerConnection.cpp		\
 				TcpClient.cpp			\
 				sclclientMain.cpp		\
 				sclclient.cpp @srcdir@/sclclientargs.c
