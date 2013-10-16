@@ -50,7 +50,9 @@ proc processLog {} {
 }
 testCleanup
 
-source Log.tcl
+set here [file dirname [info script]]
+
+source [file join $here Log.tcl]
 package require Log
 
 
