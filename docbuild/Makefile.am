@@ -25,6 +25,7 @@ clean-local:
 	-rm -f *.pdf
 	-rm -f *.[0-9]*
 	-rm -f daq.xml
+	-rm -f daq.html daq.mans tutorial.pdf tutorial.html
 
 
 
@@ -47,7 +48,7 @@ daq.pdf: daq.xml
 	$(DOCBOOK2PDF) daq.xml
 
 
-daq.mans: daq.xml
+daq.mans: daq.xml				
 	- $(DOCBOOK2MAN) daq.xml
 	touch daq.mans
 
@@ -61,12 +62,12 @@ daq.xml:
 	$(TCLSH_CMD) @srcdir@/docbuilder.tcl @top_srcdir@/docconfig "NSCL DAQ Software Documentation" @top_srcdir@ >daq.xml
 
 
-tutorial.pdf: tutorial.xml
+tutorial.pdf: @srcdir@/tutorial.xml
 	$(DOCBOOK2PDF) @srcdir@/tutorial.xml
 
-tutorial.html: tutorial.xml
+tutorial.html: @srcdir@/tutorial.xml
 	- rm -rf tuthtml
-	mkdir tuthtml
+	mkdir @builddir@/tuthtml
 	- $(DOCBOOK2HTML) -o @builddir@/tuthtml @srcdir@/tutorial.xml
 	touch tutorial.html
 
