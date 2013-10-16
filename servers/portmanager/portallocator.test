@@ -9,13 +9,15 @@ if {[lsearch [namespace children] ::tcltest] == -1} {
     namespace import ::tcltest::*
 }
 
+set here [file dirname [info script]]
+lappend auto_path $here
 
-lappend auto_path .
 
-source Log.tcl
-source PortManager.tcl
-source ConnectionManager.tcl
-source portAllocator.tcl
+
+source [file join $here Log.tcl]
+source [file join $here PortManager.tcl]
+source [file join $here ConnectionManager.tcl]
+source [file join $here portAllocator.tcl]
 
 package require Log
 package require PortManager
