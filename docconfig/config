@@ -1,2 +1,2 @@
 introduction commands utilities libraries servers frameworks
-1compatibility 1daq 1epics 1evb 1tcl 1sbsReadout 1usbReadout 3daq 3ccusb 3evb 3vmusb 3tcl 3sbsReadout 3usbReadout 5daq 5tcl
+1compatibility 1daq 1epics 1evb 1tcl 1sbsReadout 1usbReadout 3daq 3ccusb 3evb 3rdogui 3provider 3vmusb 3tcl 3sbsReadout 3usbReadout 5daq 5tcl

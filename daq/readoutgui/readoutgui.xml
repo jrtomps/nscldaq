@@ -10,7 +10,7 @@
     <itemizedlist>
         <listitem>
             <para>
-                Run a data source in a remote system.
+               Run data sources.
             </para>
         </listitem>
         <listitem>
@@ -54,36 +54,16 @@
             </para>
         </warning>
         <para>
-            <command>ReadoutShell</command> accepts two command line options:
+            <command>ReadoutShell</command>  for NSCLDAQ-11.0 does not take
+            any parameters.  The first time you run it (and optionally other
+            times it is run), you must specify the set of data source types and
+            data sources it will start.  This is done usig the
+            <guimenu>Data Source</guimenu>-><guimenuitem>Add...</guimenuitem>,
+            <guimenu>Data Source</guimenu>-><guimenuitem>Delete...</guimenuitem> and
+            <guimenu>Data Source</guimenu>-><guimenuitem>Modify...</guimenuitem> menu entries.
+            Each time the data source configuration is modified, Readout will save
+            that configuration and restore it the next time it is started.
         </para>
-        <variablelist>
-            <varlistentry>
-                <term><option>-host</option>=<replaceable>hostname</replaceable></term>
-                <listitem>
-                    <para>
-                        Specifies on which system Readout will be run.  You must
-                        be able to do an ssh login to that host by means
-                        of ssh key exchange (without a password).  You can
-                        find out how to set this up by googling for
-                        <literal>setting up ssh keys</literal>.
-                    </para>
-                    <para>
-                    </para>
-                </listitem>
-            </varlistentry>
-            <varlistentry>
-                <term><option>-path</option>=<replaceable>readout-path</replaceable></term>
-                <listitem>
-                    <para>
-                        Specifies the full path to the readout program
-                        ReadoutShell should run.  This path must be accessible
-                        on the system that runs ReadoutGui and the users's home
-                        directory must be shared between that system and the
-                        system designated by the <option>-host</option> option.
-                    </para>
-                </listitem>
-            </varlistentry>
-        </variablelist>
         <para>
            By default, the system assumes data will be put in a ringbuffer on
            the same system as the readout program with a name the same as your
@@ -101,10 +81,12 @@
            RINGNAME=s800</command> prior t running the GUI.
         </para>
         <para>
-            When the GUI starts it will attempt start the readout program specified
-            in the remote host specified.  All output from that program will
-            appear in the large output window on the GUI.  Below are a few
-            of the common controls you'll need to know how to use:
+            When the readout GUI starts up it will not start the data sources.
+            This must be done using the <guibutton>Start Data Source</guibutton>
+            on the Readout GUI control panel.  If any data sources report
+            failures at any time, all data sources will be asked to stop.  You can
+            then use the Start button to restart them.  Until all data sources
+            have reported they are running runs cannot be started.
         </para>
         <variablelist>
             <varlistentry>
@@ -345,15 +327,20 @@ stagearea +
                     <term><command>OnStart</command></term>
                     <listitem>
                         <para>
-                            This proc is called just after the readout program
-                            has been asked to start.  There is no gaurentee that
-                            by the time OnStart begins executing, the readout
-                            program is able to accept and act on commands. It
-                            may be appropriate to delay some appropriate time
-                            period to allow it to initialize.
-                            A common use of this callback is to define
-                            run and state variables in a readout framework
-                            so that it can log those to file.
+                            This proc is called when all data sources have
+                            reported a successful start.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>OnDsFail</command> <parameter>dsId</parameter></term>
+                    <listitem>
+                        <para>
+                            This proc is called when a data source has
+                            exited unexpectedly. The proc is passed the
+                            data source Id as a parameter.  See the data source
+                            documentation and API documentation for more about
+                            the data source Id and what it can be used for.
                         </para>
                     </listitem>
                 </varlistentry>
@@ -566,9 +553,1861 @@ proc OnStart {} {
     
         </section>
     </section>
+    <section>
+        <title>The run state machine</title>
+        <para>
+            With the introduction of data sources, the run state machine
+            executed by the ReadoutGUI is somewhat more complex than that of
+            NSCLDAQ-10.0 and prior releases.
+        </para>
+        <para>
+            This section describes the new state machine, its states and
+            what can cause transitions between the states.
+        </para>
+        <para>
+            The main point is that in addition to the old state machine
+            a new state <literal>Not ready</literal> has been introduced that
+            the system is in when the data sources have not been started
+            and an addtional state <literal>Starting</literal> that the
+            system is in when the event sources are being started.
+        </para>
+        <para>
+            The full state machine is shown below:
+        </para>
+        <figure id='rdoguifig-statemachine'>
+            <title>ReadoutGUI state machine</title>
+            <mediaobject>
+               <imageobject>
+                    <imagedata fileref='RunState.jpg' format='JPEG' />
+                </imageobject>
+               <imageobject>
+                    <imagedata fileref='RunState.eps' format='EPS' />
+               </imageobject>
+            </mediaobject>
+        </figure>
+
+    </section>
+    <section>
+        <title>Data Sources</title>
+        <para>
+            A data source is a provider of data to the NSCL DAQ system.
+            Simple experiments may only have a single data source (e.g. the
+            SBS or VM/USB readout framework).  More complex experiments,
+            using the NSCL event builder, may have several data sources.
+            ReadoutGUI uses Data source providers to manage data sources.
+            Several pre-written data source providers are part of the NSCLDAQ distribution.
+            Data source providers can also be written to handle special circumstances.
+        </para>
+        <para>
+            Data source providers are manipulated by users by the <guimenu>Data Source</guimenu>
+            menu.
+        </para>
+        <para>
+            A data source provider is a Tcl package with a name of the form
+            <emphasis>SourceType_</emphasis><literal>provider</literal>. Where
+            <emphasis>SourceType</emphasis> is the type of data source that is
+            being provided.  In Tcl, packages are made known to the interpreter
+            by:
+            <orderedlist>
+                <listitem>
+                    <para>Issuing the <command>package provide</command>
+                    command within the package itself.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Placing the Tcl code that provides the package in
+                        a directory and using the tclsh command
+                        <command>pkg_mkIndex</command> to produce a pacakge
+                        index file.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Setting the <literal>TCLLIBPATH</literal> environment
+                        variable to a space separated list of directories
+                        that contain the packages and their indices
+                    </para>
+                </listitem>
+            </orderedlist>
+        </para>
+        <example>
+            <title>Creating a data provider for <literal>MySource</literal></title>
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        Create a Tcl file with the <command>package provide</command> command
+                    </para>
+                    <programlisting>
+                        package provide MySource_provider 1.0
+                    </programlisting>
+                </listitem>
+                <listitem>
+                    <para>
+                        Put the script that is the provider into a directory
+                        (let's call it <filename>~/myproviders</filename>).
+                    </para>
+                </listitem>
+                <listitem>
+                      <para>
+                        Create a package index for the <filename>~/myproviders</filename>
+                        directory.
+                      </para>
+                      <programlisting>
+                        <userinput>tclsh</userinput>
+                        <prompt>% </prompt><userinput>pkg_mkIndex ~/myproviders *.tcl</userinput>
+                      </programlisting>
+                </listitem>
+            </itemizedlist>
+        </example>
+        <para>
+            A data source provider is just a tcl script provided as a 
+            Tcl package that provides a well defined set of procedures.
+            In order to avoid conflicting with other data source providers,
+            these procedures must be defined within a namespace that matches
+            the name of the data source (e.g. <literal>::MySource::</literal> in
+            the example above).
+        </para>
+        <para>
+            The provider may provide the following <command>procs</command>. A
+            provider only needs to define the set of <command>procs</command> it
+            needs to operate. Reasonable default behavior occurs if the proc
+            is not defined by the provider.  See the reference section
+            3provider for information
+            that describes each proc in detail.
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term>
+                    <link linkend='provider3-parameters'>parameters</link>
+                </term>
+                <listitem>
+                    <para>
+                        Provides a description of additional parameters
+                        required by the data source provider to describe
+                        a specific data source instance.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <link linkend='provider3-start'>start</link>
+                </term>
+                <listitem>
+                    <para>
+                        Starts the data source.  If the data source is
+                        started correctly, the proc should return a true boolean
+                        value else false.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><link linkend='provider3-check'>check</link></term>
+                <listitem>
+                    <para>
+                        Tests to see if the data source is running,
+                        returns true if so.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><link linkend='provider3-stop'>stop</link></term>
+                <listitem>
+                    <para>
+                        Stops the data source.  Returns true if the data source
+                        was successfully stopped.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><link linkend='provider3-begin'>begin</link></term>
+                <listitem>
+                    <para>
+                        Called to start a run.  The begin proc is passed
+                        the number of the new run and the title string.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><link linkend='provider3-pause'>pause</link></term>
+                <listitem>
+                    <para>
+                        Called to pause a run.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><link linkend='provider3-resume'>resume</link></term>
+                <listitem>
+                    <para>
+                        Called to resume a paused run.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><link linkend='provider3-end'>end</link></term>
+                <listitem>
+                    <para>
+                        Called to end a paused run.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><link  linkend='provider3-capabilities'>capabilities</link></term>
+                <listitem>
+                    <para>
+                        Returns a description of the data source's capabilities.
+                        For example, some data sources are not capable of
+                        pausing a run.  Those data sources cause the Paused state
+                        to be removed from the run state machine (and make
+                        the Pause button disappear).
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+        <para>
+            The readout GUI also provides mechanisms for ReadoutCallouts scripts
+            to locate data source providers.  When a data source is added,
+            it is assigned an id.  The following <command>proc</command>s are
+            provided by the ReadoutGUI API that provide information about the
+            run state machine and supply access to data source providers.
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term><link linkend='rdogui3-getState'>getState</link></term>
+                <listitem>
+                <para>
+                    Returns the current state of the run.  States are referred
+                    to by name as described in the diagram above.
+                </para></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><link linkend='rdogui3-listSourceIds'>listSourceIds</link></term>
+                <listitem>
+                    <para>
+                        Returns a list of the source ids that are currently
+                        known.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><link linkend='rdogui3-getSourceInfo'>getSourceInfo</link></term>
+                <listitem>
+                    <para>
+                        Given a sourceid (from e.g. listSourceIds), returns
+                        information about the source provider.  The information
+                        returned includes the namespace the source provider uses
+                        for its <command>proc</command>s and the parameterization
+                        of the provider.
+                    </para>
+                    <para>
+                        Note that this information allows ReadoutCallouts code
+                        to invoke arbitrary <command>proc</command>s defined
+                        by that provider in its namespace.  Each provider may,
+                        of course define <command>proc</command>s in addition
+                        to those required by the readout GUI.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><link linkend='rdogui3-addSource'>addSource</link></term>
+                <listitem>
+                    <para>
+                        Adds a data source to the readout GUI.  This
+                        <command>proc</command> returns the data sourcd id.
+                        See reference material for more information.
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+
+    </section>
 </chapter>
 
 <!-- /chapter -->
+
+<!-- manpage 3provider -->
+
+      <refentry id='provider3-parameters'>
+        <refmeta>
+           <refentrytitle id='provider3-parameters-title'>parameters</refentrytitle>
+           <manvolnum>3provider</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>parameters</refname>
+           <refpurpose>Return information about data source parameterization</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+          <command>
+<replaceable>set parameterization </replaceable>[<replaceable>provider-namespace</replaceable>::parameters]
+          </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Data source provider <command>proc</command> that must return
+            information about the parameters used to connect a data source
+            provider to a specific data source instance.  This information
+            is prompted for and given to the providers's <command>start</command>
+            <command>proc</command> by the ReadoutGui when adding a data
+            source.  Note that this proc must be defined within the namespace
+            of the provider e.g. <command>MyProvider::parameters</command>.
+           </para>
+           <para>
+            The data must be returned in a Tcl <command>dict</command> the keys
+            of the dict are the names of the parameters.  The values are either
+            lists that are one or two elements long and contain:
+           </para>
+           <orderedlist>
+            <listitem><para>
+                Prompt string for the parameter.   This is required.
+            </para></listitem>
+            <listitem>
+                <para>
+                    Script that validates the parameter.  The script will have
+                    the candidate parameter appended to it, and must return
+                    a boolean true if the canidate parameter is valid.
+                    This is optional and, if not provided, all parameter
+                    values are considered legal.
+                </para>
+            </listitem>
+           </orderedlist>
+           <para>
+            If a provider does not define this <command>proc</command> it is
+            assumed not to require any parameters (e.g. it's a one of a kind
+            data source provider).
+           </para>
+        </refsect1>
+      </refentry>
+      <refentry id="provider3-start">
+        <refmeta>
+           <refentrytitle id='provider3-start-title'>start</refentrytitle>
+           <manvolnum>3provider</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>start</refname>
+           <refpurpose>Start a data source instance</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+<replaceable>provider-namespace</replaceable>::start <replaceable>paramdict</replaceable>
+          </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Requests that a data source provider start an instance of the data
+            source types it can manage.   The data source parameterization
+            was prompted for by the ReadoutGUI and loaded into the
+            <parameter>paramdict</parameter>.  This dictionary has keys that
+            are the parameter names and values that are the parameter values
+            received by the prompt.  An additional key <literal>sourceid</literal>
+            has a value that is a unique value over all data source instances.
+            This can be used by the data source provider to keep track of state
+            that is specific to an instance of a data source it manages.
+           </para>
+           <para>
+            This proc must be defined by all data source providers.
+           </para>
+        </refsect1>
+      </refentry>
+
+      <refentry id="provider3-check">
+        <refmeta>
+           <refentrytitle>check</refentrytitle>
+           <manvolnum>3provider</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>check</refname>
+           <refpurpose>Check status of a data source</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+<replaceable>set status</replaceable> [<replaceable>ProviderNamespace</replaceable>::check <replaceable>sourceId</replaceable>]
+          </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Called to check if a data source instance is still live and healthy.
+            <parameter>sourceId</parameter> is the id that was assigned to the
+            source id instance in the dict passed to <command>start</command>.
+            The proc is required to return a boolean true value if the source is
+            live and healthy, false otherwise.
+           </para>
+           <para>
+            If the data source provider does not define this proc, the source
+            is assumed to be alive.
+           </para>
+        </refsect1>
+
+      </refentry>
+
+      <refentry id="provider3-stop">
+        <refmeta>
+           <refentrytitle>stop</refentrytitle>
+           <manvolnum>3provider</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>stop</refname>
+           <refpurpose>stop a data source instance</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+<replaceable>ProviderNamespace</replaceable>::stop <replaceable>sourceId</replaceable>
+          </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Asks the provider to stop the data source specified by
+            <parameter>sourceId</parameter>.  <parameter>sourceId</parameter> was
+            a source id passed in to the <command>start</command> proc.  Once the
+            data source is stopped, the provider can destroy any state information
+            it has about that data source instance.
+           </para>
+           <para>
+            Note that the provider may get a request to stop a data source
+            that failed (e.g. after a call to <command>check</command> returned
+            false).  It is up to the provider to decide what to do in this case
+            however;  it should not throw an error condition and it should
+            ensure that all state information saved for the source is destroyed.
+           </para>
+        </refsect1>
+
+      </refentry>
+      <refentry id="provider3-begin">
+        <refmeta>
+           <refentrytitle>begin</refentrytitle>
+           <manvolnum>3provider</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>begin</refname>
+           <refpurpose>Start a run</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+<replaceable>ProviderNamespace</replaceable>::begin <replaceable>sourceId runNum title</replaceable>
+          </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Called to start a run.  The <parameter>sourceId</parameter> is a source
+            id that identifies the data source instance.  <parameter>runNum</parameter>
+            is the number of the run being started.  This may be ignored if there's
+            no concept of a run number in the data source.  <parameter>title</parameter>
+            is the current run title.  Again this can be ignored by data sources
+            that don't have a concept of a run title.
+           </para>
+        </refsect1>
+
+      </refentry>
+      <refentry id="provider3-pause">
+        <refmeta>
+           <refentrytitle>pause</refentrytitle>
+           <manvolnum>3provider</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>pause</refname>
+           <refpurpose>Pause a data source's run</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+<replaceable>ProviderNamespace</replaceable>::pause <replaceable>sourceId</replaceable>
+          </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Requests the data source provider to pause data taking in the data
+            source instance identified by <parameter>sourceId</parameter>.  If
+            the data source provider has indicated (via its <command>capabilities</command>
+            command) it is unable to support run pauses, no <command>pause</command>
+            operations will be attempted by the ReadoutGUI.   
+           </para>
+           <para>
+            It is an error to report a capability to pause a run but not provide
+            a <command>proc</command> that can do that.  That error is detected
+            when the package is loaded.
+           </para>
+        </refsect1>
+
+      </refentry>
+
+      <refentry id="provider3-resume">
+        <refmeta>
+           <refentrytitle>resume</refentrytitle>
+           <manvolnum>3provider</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>resume</refname>
+           <refpurpose>Resume data taking for a source.</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+<replaceable>ProviderNamespace</replaceable>::resume <replaceable>sourceId</replaceable>
+          </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Called to request a data source provider resume a paused run.
+            <parameter>sourceId</parameter> identifies which source instance
+            should be resumed.  If the data source provider has indicated it is
+            not capable of pausing (via its <command>capabilities</command> command),
+            this will never be called for any data source as Pause/Resume will be
+            disabled.
+           </para>
+        </refsect1>
+      </refentry>
+
+      <refentry id="provider3-end">
+        <refmeta>
+           <refentrytitle>end</refentrytitle>
+           <manvolnum>3provider</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>end</refname>
+           <refpurpose>end the run</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+<replaceable>ProviderNamespace</replaceable>::end <replaceable>sourceId</replaceable>
+          </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Called to request the data source provider end data taking on
+            the data source identified by <replaceable>sourceId</replaceable>.
+
+           </para>
+        </refsect1>
+      </refentry>
+
+      <refentry id="provider3-capabilities">
+        <refmeta>
+           <refentrytitle>capabilities</refentrytitle>
+           <manvolnum>3provider</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>capabilities</refname>
+           <refpurpose>Fetch provider capabilities</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+set <replaceable>aDict </replaceable>[<replaceable>ProviderNamespace</replaceable>::capabilities]
+          </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Returns the capabilities of a data source provider.  These are returned
+            as a <command>dict</command> with the following keys/values:
+           </para>
+           <variablelist>
+            <varlistentry>
+                <term>canpause</term>
+                <listitem>
+                    <para>
+                        True if the class of data sources managed by this
+                        provider supports paused runs.  False otherwise.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>runsHaveTitles</term>
+                <listitem>
+                    <para>
+                        If true, the data source runs have titles.  If no data
+                        source support titles, the user interface will not allow
+                        you to set run titles.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>runsHaveNumbers</term>
+                <listitem>
+                    <para>
+                        IF true, the data source runs have a run number.  If no
+                        data sources support run numbers, the user interface
+                        will not allow you to set run numbers.
+                    </para>
+                </listitem>
+            </varlistentry>
+           </variablelist>
+        </refsect1>
+
+      </refentry>
+
+<!-- /manpage -->
+
+<!-- manpage 3rdogui --> <!-- Add full docs of ReadoutGUI API -->
+      <refentry id="rdogui3-packages">
+        <refmeta>
+           <refentrytitle>ReadoutGUI API packages</refentrytitle>
+           <manvolnum>3rdogui</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>ReadoutGUI API packages</refname>
+           <refpurpose>Packages into which the ReadoutGUI API is divided.</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+package require ReadoutState
+          </command>
+<command>
+package require ReadoutGui
+</command>
+<command>
+package require ReadoutGUIPanel
+</command>
+
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+            <variablelist>
+                <para>
+                    The Readout GUI packages your script can use are:
+                </para>
+                <varlistentry>
+                    <term>ReadoutState</term>
+                    <listitem>
+                        <para>
+                            Provides the ability to manipulate and inquire
+                            about the state of the system.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                 <varlistentry>
+                    <term>ReadoutGui</term>
+                    <listitem>
+                        <para>
+                            Provides the ability to do things that the
+                            GUI elements can cause to happen.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>ReadoutGUIPanel</term>
+                    <listitem>
+                        <para>
+                            Provides access to the gui elements of the
+                            user interface itself.  
+                        </para>
+                    </listitem>
+                </varlistentry>
+          </variablelist>
+
+        </refsect1>
+
+      </refentry>
+
+
+      <refentry id="rdogui3-getState">
+        <refmeta>
+           <refentrytitle>getState</refentrytitle>
+           <manvolnum>3rdogui</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>getState</refname>
+           <refpurpose>Get current state</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+<command>
+package require ReadoutState
+</command>
+
+<command>
+package require ReadoutState
+</command>
+              <command>
+<replaceable>set state </replaceable>[ReadoutState::getState]
+              </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Returns the current state the ReadoutGui state machine is in.  The
+            state machine diagram in <link linkend='rdoguifig-statemachine' /> is
+            actually a simplification of the full state maching executed by the
+            ReadoutGUI.  Since it can take a macroscopic time for any state
+            transition, there are intermediate states in between all states
+            after the system is started.
+           </para>
+           <para>
+            The set of states this proc can return are:
+           </para>
+           <variablelist>
+            <varlistentry>
+                <term>NotReady</term>
+                <listitem>
+                    <para>
+                        The data sources have not yet been started.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>Starting</term>
+                <listitem>
+                    <para>
+                        The data sources have been told to start but have not
+                        yet finished starting.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>Stopping</term>
+                <listitem>
+                    <para>
+                        The data sources are shutting down.  This can either be
+                        due to an explicit request for shutdown or because one
+                        of the data sources has failed.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>Halted</term>
+                <listitem>
+                    <para>
+                        The data sources are all running but no data taking is
+                        being done.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>Activating</term>
+                <listitem>
+                    <para>The data sources have been told to take data
+                    (either a <command>begin</command> or a <command>resume</command>
+                    can trigger this state) but are not all yet taking data.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>Active</term>
+                <listitem>
+                    <para>
+                        The data sources are all taking data.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>Halting</term>
+                <listitem>
+                    <para>
+                        Data taking in sources is shutting down to transition
+                        to the <literal>Halted</literal> state.  This is
+                        triggered by an <command>end</command> from either
+                        of the <literal>Active</literal> or <literal>Paused</literal>
+                        states.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>Pausing</term>
+                <listitem>
+                    <para>The data sources have been asked to pause but
+                    not all of them have paused yet.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>Paused</term>
+                <listitem>
+                    <para>All data sources are in the paused state.</para>
+                </listitem>
+            </varlistentry>
+           </variablelist>
+        </refsect1>
+      </refentry>
+
+      <refentry id="rdogui3-listSourceIds">
+        <refmeta>
+           <refentrytitle>listSourceIds</refentrytitle>
+           <manvolnum>3rdogui</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>listSourceIds</refname>
+           <refpurpose>Get a list of the active data sources</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+<command>
+package require ReadoutState
+</command>
+
+              <command>
+<replaceable>set sources </replaceable>[ReadoutState::listSourceids]
+          </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Returns a Tcl list of the source ids for the data sources that
+            are currently either running or starting.  See
+            <link linkend='rdogui3-getSourceInfo' endterm='rdogui3-getSourceInfo-title' />
+            for how to get more information about a source instance.
+           </para>
+        </refsect1>
+
+      </refentry>
+      <refentry id="rdogui3-getSourceInfo">
+        <refmeta>
+           <refentrytitle id='rdogui3-getSourceInfo-title'>getSourceInfo</refentrytitle>
+           <manvolnum>3rdogui</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>getSourceInfo</refname>
+           <refpurpose>Get desription of a data source</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+<command>
+package require ReadoutState
+</command>
+
+              <command>
+<replaceable>set infodict</replaceable> [ReadoutState::getSourceInfo <replaceable>sourceId</replaceable>]
+          </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Return information that is known about a data source given its
+            <parameter>sourceId</parameter>.  The data are returned as a dict.
+            Keys of the dict include the names of the source's parameters and
+            their values.  The dict returned will have the following additional
+            keys:
+           </para>
+           <variablelist>
+            <varlistentry>
+                <term>parameterization</term>
+                <listitem>
+                    <para>
+                        The dict that defines the parameterizations for data
+                        sources of this type.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>provider</term>
+                <listitem>
+                    <para>The namespace the provider <command>proc</command>s are
+                    defined within.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>state</term>
+                <listitem>
+                    <para>State of the data source provider.  This can have
+                    any of the values <command>getState</command> can have.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>id</term>
+                <listitem>
+                    <para>The id of the source instance.
+                    </para>
+                </listitem>
+            </varlistentry>
+           </variablelist>
+        </refsect1>
+
+      </refentry>
+
+      <refentry id="rdogui3-addSource">
+        <refmeta>
+           <refentrytitle>addSource</refentrytitle>
+           <manvolnum>3rdogui</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>addSource</refname>
+           <refpurpose>Add a data source instance.</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+<command>
+package require ReadoutState
+</command>
+
+              <command>
+ReadoutState::addSource <replaceable>providerName parameterDict</replaceable>
+          </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Starts a new source under the management of the data source
+            provider <parameter>providerName</parameter>.  <parameter>parameterDict</parameter>
+            provides the parameters needed by the provider to create/connect
+            to the data source.  A unique data source id will be assigned to the
+            new data source and added to <parameter>parameterDict</parameter> which
+            will then be passed to the <command>start</command> proc of the
+            data source provider.
+           </para>
+           <para>
+            <command>addSource</command> returns the source id that was assigned
+            to this data source.
+           </para>
+        </refsect1>
+
+      </refentry>
+
+      <refentry id="rdogui3-setTitle">
+        <refmeta>
+           <refentrytitle>setTitle</refentrytitle>
+           <manvolnum>rdogui3</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>setTitle</refname>
+           <refpurpose>Set the next run title</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+package require ReadoutState
+          </command>
+              <command>
+ReadoutState::setTitle <replaceable>newTitle</replaceable>
+              </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+                Sets the title string for the next run. Unlike
+                the GUI, which does not allow title string
+                changes until the run is halted, the software
+                can change this string at any time and the new
+                value will be reflected in the GUI. The Readout
+                program, however, only receives a new title
+                string just prior to the start of a run, and
+                prior to the call to <command>OnBegin</command>.
+                Therefore it is strongly suggested that your code only change the
+            title when the run is not active or paused.
+           </para>
+           <para>
+            The <parameter>newTitle</parameter> is the new title value.
+           </para>
+        </refsect1>
+      </refentry>
+
+      <refentry id="rdogui3-setRun">
+        <refmeta>
+           <refentrytitle id='rdogui3-setRun-title'>setRun</refentrytitle>
+           <manvolnum>3rdogui</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>setRun</refname>
+           <refpurpose>Set the run number of the next run.</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+package require RunState
+          </command>
+              <command>
+RunState::setRun <replaceable>new-run-number</replaceable>
+              </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Sets the run number for the next run to
+            <parameter>new-run-number</parameter>. See setTitle for for
+            what this means and when the Readout
+            program will actually see this setting.
+           </para>
+           <para>
+            Unlike the GUI, the API allows you to set a new run number
+            even during a run (state is <literal>Active</literal> or
+            <literal>Paused</literal>).   This change is reflected in the
+            GUI.  It is strongly suggested that your code only change the
+            title when the run is not active or paused.
+           </para>
+        </refsect1>
+      </refentry>
+      <refentry id="rdogui3-getRun">
+        <refmeta>
+           <refentrytitle>getRun</refentrytitle>
+           <manvolnum>3rdogui</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>getRun</refname>
+           <refpurpose>Get the run number</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+package require ReadoutState
+          </command>
+              <command>
+<replaceable>set run [</replaceable>ReadoutState::getRun<replaceable>]</replaceable>
+              </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Return the current value of the run number.  Note that the meaning
+            of this value can be pathological if user extensions modify the
+            run number (via <link linkend='rdogui3-setRun' endterm='rdogui3-setRun-title' />).
+            Normally, if the run is in progress (<literal>Active</literal> or
+            <literal>Paused</literal> and related states), The run number represents the
+            run number of the current run.  On the other hand, if the run is not
+            ongoing, the run number represents the run number that will be used
+            for the next run.
+           </para>
+           <para>
+             If <link linkend='rdogui3-setRun' endterm='rdogui3-setRun-title' />
+             has been used to set the run number, then this returns
+             the value sent to the most recent call of setRun.
+           </para>
+        </refsect1>
+
+      </refentry>
+
+      <refentry id="rdogui3-incRun">
+        <refmeta>
+           <refentrytitle>incRun</refentrytitle>
+           <manvolnum>3rdogui</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>incRun</refname>
+           <refpurpose>Increment run number</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+ReadoutState
+          </command>
+              <command>
+ReadoutState::incRun
+              </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Increments the GUI run  number. Unlike the GUI, the API allows you
+            to set a new run number
+            even during a run (state is <literal>Active</literal> or
+            <literal>Paused</literal>).   This change is reflected in the
+            GUI.  It is strongly suggested that your code only change the
+            title when the run is not active or paused.
+           </para>
+        </refsect1>
+
+      </refentry>
+
+      <refentry id="rdogui3-getRecording">
+        <refmeta>
+           <refentrytitle>getRecording</refentrytitle>
+           <manvolnum>3rdogui</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>getRecording</refname>
+           <refpurpose>Get the recording state</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+package require ReadoutState
+          </command>
+              <command>
+<replaceable>set state [</replaceable>ReadoutState::getRecording<replaceable>]</replaceable>
+              </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Returns the current recording state (the valueo ofthe record data
+            check box).  This can return pathological values if this state
+            variable was set while a run is on-going.  
+           </para>
+        </refsect1>
+
+      </refentry>
+
+      <refentry id="rdogui3-enableRecording">
+        <refmeta>
+           <refentrytitle>enableRecording</refentrytitle>
+           <manvolnum>3rdogui</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>enaleRecording</refname>
+           <refpurpose>Enable event recording</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+package require ReadoutState
+          </command>
+              <command>
+ReadoutState::enableRecording
+              </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Enables event recording.  This takes effect at the start of the
+            next run.
+           </para>
+        </refsect1>
+
+      </refentry>
+      <refentry id="rdogui3-disableRecording">
+        <refmeta>
+           <refentrytitle>disableRecording</refentrytitle>
+           <manvolnum>3rdogui</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>disableRecording</refname>
+           <refpurpose>Disable event recording</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+package require ReadoutState
+          </command>
+              <command>
+ReadoutState::disableEventRecording
+              </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Disable event recording. This takes effect at the start of the next
+            data taking run.
+           </para>
+        </refsect1>
+      </refentry>
+
+      <refentry id="rdogui3-isTimedRun">
+        <refmeta>
+           <refentrytitle>isTimedRun</refentrytitle>
+           <manvolnum>3rdogui</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>isTimedRun</refname>
+           <refpurpose>Check if timed runs are requested</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+package require ReadoutState
+          </command>
+              <command>
+<replaceable>set timed [</replaceable>ReadoutState::isTimedRun<replaceable>]</replaceable>
+              </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Returns a true boolean value if the Timed
+            run checkbox is enabled.  If this has not been maniuplated
+            programmatically by user code, this indicates that the active run
+            is a timed run or, if the run is halted, that then ext run will be.
+           </para>
+        </refsect1>
+
+      </refentry>
+      <refentry id="rdogui3-TimedRun">
+        <refmeta>
+           <refentrytitle>TimedRun</refentrytitle>
+           <manvolnum>3rdogui</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>TimedRun</refname>
+           <refpurpose>Enable next run as timed.</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+package require ReadoutState
+          </command>
+              <command>
+ReadoutState::TimedRun
+              </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+                Enables the next run to be a timed run. 
+           </para>
+        </refsect1>
+
+      </refentry>
+
+      <refentry id="rdogui3-notTimedRun">
+        <refmeta>
+           <refentrytitle>notTimedRun</refentrytitle>
+           <manvolnum>3rdogui</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>notTimedRun</refname>
+           <refpurpose>Disable next run as timed</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+package require ReadoutState
+          </command>
+              <command>
+ReadoutState::notTimedRun
+              </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Says that the next run will not be a timed
+            run.
+           </para>
+        </refsect1>
+
+      </refentry>
+
+      <refentry id="rdogui3-timedLength">
+        <refmeta>
+           <refentrytitle>timedLength</refentrytitle>
+           <manvolnum>3rdogui</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>timedLength</refname>
+           <refpurpose>Get length of a timed run</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+package require ReadoutState
+          </command>
+              <command>
+ReadoutState::timedLength
+              </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Returns the length of a timed run. The
+             length is returned as the number of seconds
+             the run would last.
+           </para>
+        </refsect1>
+
+      </refentry>
+
+      <refentry id="rdogui3-setTimedLength">
+        <refmeta>
+           <refentrytitle>setTimedLength</refentrytitle>
+           <manvolnum>3rdogui</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>setTimedLength</refname>
+           <refpurpose>Set length of timed run</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+package require ReadoutState
+          </command>
+              <command>
+ReadoutState::setTimedLength <replaceable>seconds</replaceable>
+              </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Sets the length of the timed run in seconds.
+             You must also enabled timed running in
+             order for this to mean anything.
+           </para>
+        </refsect1>
+
+      </refentry>
+      <refentry id="rdogui3-isExecuting">
+        <refmeta>
+           <refentrytitle>isExecuting</refentrytitle>
+           <manvolnum>3rdogui</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>isExecuting</refname>
+           <refpurpose>Are all data sources alive?</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+package require ReadoutControl
+          </command>
+              <command>
+ReadoutControl::isExecuting
+              </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            This is a legacy API element and should not be used
+            for new applciations.  <literal>true</literal> is
+            returned if all data sources are running.
+           </para>
+        </refsect1>
+
+      </refentry>
+
+      <refentry id="rdogui3-ExitReadoutProgram">
+        <refmeta>
+           <refentrytitle>ExitReadoutProgram</refentrytitle>
+           <manvolnum>3rdogui</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>ExitReadoutProgram</refname>
+           <refpurpose>Shutdown data sources</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+package require ReadoutControl
+          </command>
+              <command>
+ReadoutControl::ExitReadoutProgram
+              </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            This is a legacy API element and should not be used by new
+            applications.  If the run is active it is ended.  All data sources
+            are then requested to terminate.  On successful completion, the
+            system state should be <literal>NotReady</literal>.
+           </para>
+        </refsect1>
+      </refentry>
+
+      <refentry id="rdogui3-StartReadoutProgram">
+        <refmeta>
+           <refentrytitle>StartReadoutProgram</refentrytitle>
+           <manvolnum>3rdogui</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>StartReadoutProgram</refname>
+           <refpurpose>Transition to "Ready" state.</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+package require ReadoutControl
+          </command>
+              <command>
+ReadoutControl::StartReadoutProgram
+              </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            This is a legacy API element and should not be used in new applications.
+            The system is forced into the Ready state as follows:
+            <itemizedlist>
+                <listitem>
+                    <para>If the system is taking data or paused, the
+                    run is halted putting the system into the <literal>Halted</literal>
+                    state.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        From the <literal>Halted</literal>state,
+                        any live data sources are forced to stop utting the
+                        system into the <literal>NotReady</literal> state.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        From the NotReady state all data sources are started.
+                        On successful completion, the system should be in the
+                        <literal>Halted</literal> state.
+                    </para>
+                </listitem>
+            </itemizedlist>
+           </para>
+        </refsect1>
+
+      </refentry>
+
+      <refentry id="rdogui3-Start">
+        <refmeta>
+           <refentrytitle>Start</refentrytitle>
+           <manvolnum>3rdogui</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>Start</refname>
+           <refpurpose>Start data sources</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+package require ReadoutGui
+          </command>
+              <command>
+ReadoutGui::Start
+              </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Activates the <guibutton>Start</guibutton> button.  This starts
+            all data sources using the same code invoked by the
+            <guibutton>Start</guibutton> button.  It is an error to invoke this
+            unless the system state is <literal>NotReady</literal>.  Note
+            that if some data sources are started and others not, only those
+            that are not running are started (e.g. if one data source failed
+            only the failed source is started.).
+           </para>
+        </refsect1>
+
+      </refentry>
+      <refentry id="rdogui3-Restart">
+        <refmeta>
+           <refentrytitle>Restart</refentrytitle>
+           <manvolnum>3rdogui</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>Restart</refname>
+           <refpurpose>Restart data sources</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+package require ReadoutGui
+          </command>
+              <command>
+ReadoutGui::Restart
+                </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Activates the ui elements to restart the data sources.  If
+            the run is active or paused, this will make the run stop after
+            which all running data sources will be stopped and then started
+            again.  If this is all successful, the state of the system will
+            be <literal>Halted</literal>.
+           </para>
+        </refsect1>
+      </refentry>
+
+      <refentry id="rdogui3-Begin">
+        <refmeta>
+           <refentrytitle>Begin</refentrytitle>
+           <manvolnum>3rdogui</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>Begin</refname>
+           <refpurpose>Click the begin button</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+packagte require ReadoutGui
+          </command>
+              <command>
+ReadoutGui::Begin
+              </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Simulates a press of the Begin button. This
+            attempts to start a run. Note that
+            programmatically, there are no protections
+            at this level against beginning a run that
+            is already running. You should inquire the
+            state of the system prior to attempting to
+            start a run.            
+           </para>
+        </refsect1>
+      </refentry>
+
+      <refentry id="rdogui3-Pause">
+        <refmeta>
+           <refentrytitle>Pause</refentrytitle>
+           <manvolnum>3rdogui</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>Pause</refname>
+           <refpurpose>Click the pause button.</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+package require ReadoutGui
+          </command>
+              <command>
+ReadoutGui::Pause
+              </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Simulates a press of the
+            <guibutton>Pause</guibutton> button.
+            as for <command>Begin</command> the state
+            should be checked to ensure it is
+            <literal>Active</literal> before invoking this.
+           </para>
+        </refsect1>
+
+      </refentry>
+
+      <refentry id="rdogui3-Resume">
+        <refmeta>
+           <refentrytitle>Resume</refentrytitle>
+           <manvolnum>3rdogui</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>Resume</refname>
+           <refpurpose>Click the resume button</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+package require ReadoutGui
+          </command>
+              <command>
+ReadoutGui::Resume
+              </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Simulates a click of the
+            <guibutton>Resume</guibutton> button.
+            The caller should ensure the state is <literal>Paused</literal>
+            before invoking this.            
+           </para>
+        </refsect1>
+
+      </refentry>
+      <refentry id="rdogui3-End">
+        <refmeta>
+           <refentrytitle>End</refentrytitle>
+           <manvolnum>3rdogui</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>End</refname>
+           <refpurpose>Click the end button</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+          </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+                Simulates a click of the
+                <guibutton>End</guibutton> button. As before,
+                ensure this is legal by checking the state and ensuring
+                the transition requested is legal.
+           </para>
+        </refsect1>
+      </refentry>
+      <refentry id="rdogui3-addUserMenu">
+        <refmeta>
+           <refentrytitle>addUserMenu</refentrytitle>
+           <manvolnum>3rdogui</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>addUserMenu</refname>
+           <refpurpose>Add a user menu to the Readout GUI</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+package require ReadoutGUIPanel
+          </command>
+              <command>
+<replaceable>set menu [</replaceable> ReadoutGuiPanel::addUserMenu<replaceable>ident label]</replaceable>
+              </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Adds a user menu to the menubar on the Readout GUI.
+            <parameter>ident</parameter> is an identifier for the menu and
+            will be used as the last part of the widget path for the menu you need
+            to configure.  <parameter>label</parameter> will be the text that will
+            appear in the menu bar that, when clicked, drops down you custom menu.
+           </para>
+           <para>
+            <command>addUserMenu</command> returns the full path to the menu to
+            which you can add commands and other menu items.  For more
+            information on how to do that, see the Tcl/Tk <command>menu</command>
+            manpage.
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              EXAMPLES
+           </title>
+           <example>
+            <title>Adding a user menu to the Readout GUI</title>
+            <programlisting>
+package require ReadoutGUIPanel
+...
+set menu [ReadoutGuiPanel::addUserMenu mymenu {Special Data Source}]
+$menu add command -label {Source FPGA} -command mydatasource::boot
+$menu add command -label {Set FPA parameters} -command mydatasource::setParameters
+
+...
+##
+# Establish the existence of the ::mydatasource Namespace.
+#
+namespace eval ::mydatasource {
+
+}
+
+##
+# ::mydatasource::boot
+#
+#    Load fpga firmware.  This proc might further prompt for a firmware
+#    file and the interact with a data source to do the firmware load.
+#
+proc ::mydatasource::boot {} {
+...
+}
+##
+#  setParameters
+#
+#   set fpag fimrware parameters.  This proc might prompt for the
+#   firmware settable parameters and then interact with some data source
+#   provider to set the firmware parameters.
+#
+proc ::mydatasource::setParameters {} {
+...
+}
+            </programlisting>
+           </example>
+        </refsect1>
+
+      </refentry>
+      <refentry id="rdogui3-addUserFrame">
+        <refmeta>
+           <refentrytitle>addUserFrame</refentrytitle>
+           <manvolnum>3rdogui</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>addUserFrame</refname>
+           <refpurpose>Add a frame to the Readout Gui for user controls/displays</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+package require ReadoutGUIPanel
+          </command>
+              <command>
+<replaceable>set frame [</replaceable>ReadoutGUIPanel::addUserFrame <replaceable>ident]</replaceable>
+              </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Adds a frame to the bottom of the panel
+              (you can add as many user frames as you want).
+              By frame we mean a Tk frame widget.
+              <replaceable>ident</replaceable>
+              is the last element of the frame's widget
+              path. The full path will be returned.
+          </para>
+          <para>
+              At this time, the frame will span the width
+              of the Readout GUI toplevel widget. Once
+              you have created this frame you can stock
+              it with whatever widgets you want. 
+        </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              EXAMPLES
+           </title>
+            <example>
+               <title>Adding and populating a Readout GUI user frame</title>
+               <programlisting>
+package require ReadoutGUIPanel
+...
+set frame [ReadoutGUIPanel::addUserFrame myframe]
+button $frame.load -text {Load Micro} -command ::myframe::load
+grid $frame.load
+grid $frame
+...
+namespace eval ::myframe {
+
+}
+...
+##
+# Handle my frame's load micro button.
+#
+proc ::myframe::load {} {
+...
+}
+               </programlisting>
+            </example>
+        </refsect1>
+      </refentry>
+
+      <refentry id="rdogui3-getSourceCount">
+        <refmeta>
+           <refentrytitle>getSourceCount</refentrytitle>
+           <manvolnum>3rdogui</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>getSourceCount</refname>
+           <refpurpose>Get number of data sources</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+package provide Experiment
+          </command>
+              <command>
+<replaceable>set sourceCount [</replaceable>Experiment::getSourceCount<replaceable>]</replaceable>
+              </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Returns the number of event sources that have been defined.
+           </para>
+        </refsect1>
+
+      </refentry>
+
+
+<!-- /manpage -->
 
 <!-- manpage 1daq -->
       <refentry id="manpage_readoutshell">
@@ -614,48 +2453,7 @@ $DAQROOT/bin/ReadoutShell <optional><option>-host</option>=<replaceable>readout-
                 box to the user.
            </para>
         </refsect1>
-        <refsect1>
-           <title>
-              OPTIONS
-           </title>
-           <variablelist>
-                <varlistentry>
-                    <term><option>-host</option>=<replaceable>readout-host</replaceable></term>
-                    <listitem>
-                        <para>
-                            Specifies that
-                            <parameter>readout-host</parameter>  is the name of the computer
-                            on which the Readout program should be run. hostname
-                            is also used as the data source to which the readout
-                            gui connects other pieces of the system it controls,
-                            most importantly, the eventlog event data logging
-                            program.
-                        </para>
-                    </listitem>
-                </varlistentry>
-                <varlistentry>
-                    <term><option>-path</option>=<replaceable>readout-program-path</replaceable></term>
-                    <listitem>
-                        <para>
-                            Specifies
-                            <parameter>readout-program-path</parameter> as the
-                            readout program that should be run.  The path  must
-                            be absolute as you cannot make any assumptions about
-                            the working directory in which it is resolved.
-                            This is an important point that is sometimes missed:
-                        </para>
-                        <para>
-                            Suppose your current working directory is ~/readout
-                            and the Readout program is stored in
-                            <filename>~/software/readout/Readout</filename>.
-                            Specifying the readout program as
-                            <filename>../software/readout/Readout</filename>
-                            will not work as expected.
-                        </para>
-                    </listitem>
-                </varlistentry>
-           </variablelist>
-        </refsect1>
+
         <refsect1>
             <title>FILES</title>
             <para>
@@ -909,1041 +2707,7 @@ $DAQROOT/bin/ReadoutShell <optional><option>-host</option>=<replaceable>readout-
                     loaded prior to invoking <command>proc</command>s from the
                     package.
                 </para>
-                <variablelist>
-                    <para>
-                        The Readout GUI package your script can use are:
-                    </para>
-                    <varlistentry>
-                        <term>ReadoutState</term>
-                        <listitem>
-                            <para>
-                                Provides the ability to manipulate and inquire
-                                about the state of the system.
-                            </para>
-                        </listitem>
-                    </varlistentry>
-                    <varlistentry>
-                        <term>ReadoutControl</term>
-                        <listitem>
-                            <para>
-                                Provides the ability to control the readout
-                                program.
-                            </para>
-                        </listitem>
-                    </varlistentry>
-                    <varlistentry>
-                        <term>ReadoutGui</term>
-                        <listitem>
-                            <para>
-                                Provides the ability to do things that the
-                                GUI elements can cause to happen.
-                            </para>
-                        </listitem>
-                    </varlistentry>
-                    <varlistentry>
-                        <term>ReadougGUIPanel</term>
-                        <listitem>
-                            <para>
-                                Provides access to the gui elements of the
-                                user interface itself.  Note the first
-                                <literal>g</literal> in this package name
-                                is <emphasis>not</emphasis> a typo.
-                            </para>
-                        </listitem>
-                    </varlistentry>
-                    <varlistentry>
-                        <term>Experiment</term>
-                        <listitem>
-                            <para>
-                                Provides entries that allow you to interrogate
-                                and describe the number of data sources that
-                                are going into the event builder if any.
-                            </para>
-                        </listitem>
-                    </varlistentry>
-                </variablelist>
-                <refsect3>
-                    <title>Programmatic interface</title>
-                    <subtitle>ReadoutState package</subtitle>
-                    <para>
-                        The ReadoutState package manipulates and gets access
-                        to various state values of the Readout GUI.  These commands
-                        are located in the <literal>ReadoutState</literal> namespace.
-                        If you don't want to qualify calls with
-                        <literal>ReadoutState::</literal>, you can
-                        <command>namespace import ReadoutState::*</command>.
-                        The descriptions below assume this has been done.
-                    </para>
-                    <variablelist>
-                        <varlistentry>
-                            <term><command>setTitle</command> <replaceable>newTitle</replaceable></term>
-                            <listitem>
-                                <para>
-                                    Sets the title string for the next run. Unlike
-                                    the GUI, which does not allow title string
-                                    changes until the run is halted, the software
-                                    can change this string at any time and the new
-                                    value will be reflected in the GUI. The Readout
-                                    program, however, only receives a new title
-                                    string just prior to the start of a run, and
-                                    prior to the call to <command>OnBegin</command>.
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>setRun</command> <replaceable>runNumber</replaceable></term>
-                            <listitem>
-                                <para>
-                                     Sets the run number for the next run that
-                                     Readout will start. See setTitle for for
-                                     what this means and when the Readout
-                                     program will actually see this setting.
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>getRun</command></term>
-                            <listitem>
-                                <para>
-                                    Returns the run number
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>incRun</command></term>
-                            <listitem>
-                                <para>
-                                     Increments the run number held by the GUI.
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>setScalerCount</command> <replaceable>scalers</replaceable></term>
-                            <listitem>
-                                <para>
-                                     Sets the number of scalers the user wants
-                                     read out. This is updated in the readout
-                                     program at the start of the next run. It is
-                                     possible for the readout software to
-                                     override this value programmtically. It is
-                                     intended for scaler readout software that
-                                     knows how to use this value to adjust the
-                                     set of scalers that are actually being read.
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>getScalerCount</command></term>
-                            <listitem>
-                                <para>
-                                     Returns the proposed number of scalers
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>setScalerPeriod</command> <replaceable>timInSeconds</replaceable></term>
-                            <listitem>
-                                <para>
-                                    Sets the number of seconds between timed
-                                    scaler readout in seconds.  Note that it
-                                    is up to the application code to select
-                                    a timed trigger and to modify the time interval
-                                    based on this value at the beginning of each
-                                    run.  The value will be pushed into the
-                                    main interpreter's <varname>frequency</varname>
-                                    variable.
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>getScalerPeriod</command></term>
-                            <listitem>
-                                <para>
-                                    Returns the number of seconds between
-                                    periodic scaler readouts.
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>getRecording</command></term>
-                            <listitem>
-                                <para>
-                                     Returns true if event recording is enabled.
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>enableRecording</command></term>
-                            <listitem>
-                                <para>
-                                    Enables event recording. As with all of
-                                    these parameters, event recording determines
-                                    what happens at the start of the next run.
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>disableRecording</command></term>
-                            <listitem>
-                                <para>
-                                    Disable event recording.
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>isTimedRun</command></term>
-                            <listitem>
-                                <para>
-                                    Returns a true boolean value if the Timed
-                                    run checkbox is enabled.
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>TimedRun</command></term>
-                            <listitem>
-                                <para>
-                                    Enables the next run to be a timed run.
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>notTimedRun</command></term>
-                            <listitem>
-                                <para>                                   
-                                    Says that the next run will not be a timed
-                                    run.
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>timedLength</command></term>
-                            <listitem>
-                                <para>
-                                    Returns the length of a timed run. The
-                                    length is returned as the number of seconds
-                                    the run would last.
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>setTimedLength</command> <replaceable>seconds</replaceable></term>
-                            <listitem>
-                                <para>
-                                     Sets the length of the timed run in seconds.
-                                     You must also enabled timed running in
-                                     order for this to mean anything.
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                    </variablelist>
-                </refsect3>
-                <refsect3>
-                    <title>Programmatic interface</title>
-                    <subtitle>ReadoutControl package</subtitle>
-                    <para>
-                        This package allows you to set and inquire the
-                        known state of the Readout program.  You can us it
-                        to send arbitrary messages to the readout program
-                        or to perform specific state transitions of the run.
-                    </para>
-                    <para>
-                       Where you force a state change in the Readout program
-                       that the GUI normally forces (e.g. starting a run), it
-                       is important that you use the higher level functions to
-                       do that so that the GUI remains consistent with the state
-                       of the Readout. If, for example, you start a run by
-                       sending the begin command directly to the Readout program,
-                       the run control buttons will not reflect that the run can
-                       be halted. Use of e.g.
-                       <command>ReadoutControl::Begin</command> maintains
-                       the state correspondence.
-                    </para>
-                    <para>
-                        All of the procs described in this section are
-                        in the <literal>ReadoutControl</literal> namespace.
-                        If you don't want to prefix each command with
-                        <literal>::ReadoutControl::</literal> you should
-                        import the namespace using
-                        <command>namespace import ::ReadoutControl::*</command>.
-                    </para>
-                    <variablelist>
-                        <varlistentry>
-                            <term><command>getReadoutState</command></term>
-                            <listitem>
-                                <para>
-                                     Returns the known state of the readout program.
-                                     This can be any of the following textual values:
-                                </para>
-                                <variablelist>
-                                    <varlistentry>
-                                        <term><literal>NotLoaded</literal></term>
-                                        <listitem>
-                                            <para>
-                                                The Readout program is not running.
-                                                Either it was never started, or it
-                                                failed.
-                                            </para>
-                                        </listitem>
-                                    </varlistentry>
-                                    <varlistentry>
-                                        <term><literal>NotRunning</literal></term>
-                                        <listitem>
-                                            <para>
-                                                The Readout program is present, but
-                                                the run is in the halted state.
-                                            </para>
-                                        </listitem>
-                                    </varlistentry>
-                                    <varlistentry>
-                                        <term><literal>Paused</literal></term>
-                                        <listitem>
-                                            <para>
-                                                The readout program has an active
-                                                run that is currently paused.
-                                            </para>
-                                        </listitem>
-                                    </varlistentry>
-                                    <varlistentry>
-                                        <term><literal>Active</literal></term>
-                                        <listitem>
-                                            <para>
-                                                The readout program has an active
-                                                run and is taking data.
-                                            </para>
-                                        </listitem>
-                                    </varlistentry>
-                                </variablelist>
-                            </listitem>
-                        </varlistentry>                    
-                        <varlistentry>
-                            <term><command>isExecuting</command></term>
-                            <listitem>
-                                <para>
-                                     Returns a
-                                     <literal>true</literal>
-                                     boolean value if the Readout
-                                     program is executing. That is if
-                                     <command>ReadoutControl::getReadoutState</command>
-                                     would not return
-                                     <literal>NotLoaded</literal>
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>SendCommand</command> <replaceable>string</replaceable></term>
-                            <listitem>
-                                <para>
-                                     Sends a literalcommand to the readout program.
-                                     In the case of the SBS Readout skeleton
-                                     you might use this in e.g.
-                                     <command>OnStart</command>
-                                     to force the readout program to source some
-                                     configuration script.
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>SetReadoutProgram</command> <replaceable>host path</replaceable></term>
-                            <listitem>
-                                <para>
-                                   Determines which readout program will be run
-                                   next, and on which system. host specifies the
-                                   target processor, and path should be the full
-                                   absolute path to the program. If you have a
-                                   relative path you can use the Tcl
-                                   <command>file normalize</command>
-                                   command to turn it into an absolute path.
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>ExitReadoutProgram</command></term>
-                            <listitem>
-                                <para>
-                                     Forces the readout program to exit. T
-                                     his is done as follows:
-                                     <orderedlist>
-                                        <listitem><para>The 
-                                        <command>end</command>
-                                        command is sent to the program.
-                                        </para></listitem>
-                                        <listitem><para>The
-                                        <command>exit</command>
-                                        command is sent to the program.
-                                        </para></listitem>
-                                        <listitem><para>The pipe open to the
-                                        readout program is closed.
-                                        </para>
-                                        </listitem>
-                                     </orderedlist>
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>StartReadoutProgram</command></term>
-                            <listitem>
-                                <para>
-                                   Starts the readout program using the current
-                                   target host and path. If the readout program
-                                   is running it is stopped. This means that to
-                                   programmatically change readout programs you
-                                   can do something like this:
-                                   <informalexample>
-                                    <programlisting>
-package require ReadoutControl
-
-set newProgram ~/daq/Readout/Readout
-set host       spdaq22
-ReadoutControl::SetReadoutProgram $host [file normalize $newProgram]
-ReadoutControl::StartReadoutProgram
-                                    </programlisting>
-                                   </informalexample>
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>SetRun</command> <replaceable>runNumber</replaceable></term>
-                            <listitem>
-                                <para>
-                                     Sends a command to the readout program to
-                                     set the run number to number. You should
-                                     normally use the functions in the package
-                                     ReadoutState to do this, in order to maintain
-                                     synchronization between the GUI and the
-                                     Readout program state.
-                                </para>
-                                <para>
-                                    If the ReadoutGui believes the readout
-                                    program is in the
-                                    <literal>NotRunning</literal> state, an
-                                    error will be thrown.
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>SetTitle</command> <replaceable>newTitleString</replaceable></term>
-                            <listitem>
-                                <para>
-                                    Sends a message to the readout program to
-                                    change its title. You should normally use
-                                    the functions in the package ReadoutState to
-                                    do this, in order to maintain synchronization
-                                    between the GUI and the Readout program state.
-                                </para>
-                                <para>
-                                     If the ReadoutGui believes the readout
-                                     program is not in the
-                                     <literal>NotRunning</literal>
-                                     state, an error will be thrown.
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>Begin</command></term>
-                            <listitem>
-                                <para>
-                                    Sends a message to the readout software to
-                                    start a run. You should normally use the
-                                    functions in the package ReadoutState to do
-                                    this, in order to maintain synchronization
-                                    between the GUI and the Readout program state.
-                                </para>
-                                <para>
-                                    If the ReadoutGui believes the readout
-                                    program is not in the
-                                    <literal>NotRunning</literal>
-                                    state, an error will be thrown.
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>End</command></term>
-                            <listitem>
-                                <para>
-                                    Sends a message to the readout software
-                                    ending any active run. You should normally
-                                    use the functions in the package ReadoutState
-                                    to do this, in order to maintain synchronization
-                                    between the GUI and the Readout program state.
-                                </para>
-                                <para>
-                                    If the ReadoutGui believes the readout
-                                    program is in the
-                                    <literal>NotRunning</literal>
-                                    state, an error will be thrown.
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>Pause</command></term>
-                            <listitem>
-                                <para>
-                                    Pauses any active run. You should normally
-                                    use the functions in the package ReadoutState
-                                    to do this, in order to maintain synchronization
-                                    between the GUI and the Readout program state.
-                                </para>
-                                <para>
-                                    If the ReadoutGui believes the readout
-                                    program is not in the
-                                    <literal>Active</literal> state, an error will be thrown.
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>Resume</command></term>
-                            <listitem>
-                                <para>
-                                    Sends a message to the readout software to
-                                    resume a paused run. You should normally use
-                                    the functions in the package ReadoutState to
-                                    do this, in order to maintain synchronization
-                                    between the GUI and the Readout program state.
-                                </para>
-                                <para>
-                                    If the ReadoutGui believes the readout
-                                    program is not in the <literal>Paused</literal>
-                                    state, an error will be thrown.
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                    </variablelist> 
-                </refsect3>
-                <refsect3>
-                    <title>Programmatic interface</title>
-                    <subtitle>ReadoutGUI package</subtitle>
-                    <para>
-                        This package provides access to the functions that
-                        the graphical user interface itself calls in response
-                        to button pushes.  Often using these methods is the
-                        safest way to do something as gthen you are duplicating the
-                        action of the GUI elements.
-                    </para>
-                    <para>
-                        All procs described here are in the
-                        <literal>ReadoutGui::</literal> namespace.  If you don't
-                        want to have to precede each function name with
-                        <literal>::ReadoutGUI</literal>, use
-                        <command>namespace import ::ReadoutGui::*</command>
-                    </para>
-                    <variablelist>
-                        <varlistentry>
-                            <term><command>Start</command></term>
-                            <listitem>
-                                <para>
-                                    Simulates the
-                                    <guimenu>File</guimenu>&#8594;<guisubmenu>Start</guisubmenu>
-                                    menu selection. The Readout program selected
-                                    is started on the target host without any
-                                    attempt to stop any existing Readout.
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>Restart</command></term>
-                            <listitem>
-                                <para>
-                                     Simulates the
-                                     <guimenu>File</guimenu>&#8594;
-                                     <guisubmenu>Restart</guisubmenu>
-                                     menu choice. This attempts to stop an
-                                     existing Readout program before starting a
-                                     new instance of the selected Readout program
-                                     in the target host.
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>Begin</command></term>
-                            <listitem>
-                                <para>
-                                    Simulates a press of the Begin button. This
-                                    attempts to start a run. Note that
-                                    programmatically, there are no protections
-                                    at this level against beginning a run that
-                                    is already running. You should inquire the
-                                    state of the system prior to attempting to
-                                    start a run. For example:
-                                </para>
-                                <informalexample>
-                                    <programlisting>
-
-if {[ReadoutControl::getReadoutState] eq "NotRunning"} {
-   ReadoutGui::Begin
-} else {
-   # Here recover from the fact that the run
-   # Cannot be started at this point in time.
-}
-                                    </programlisting>
-                                </informalexample>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>Pause</command></term>
-                            <listitem>
-                                <para>
-                                    Simulates a press of the
-                                    <guibutton>Pause</guibutton> button.
-                                    as for <command>Begin</command> the state
-                                    should be checked to ensure it is
-                                    <literal>Active</literal> before invoking this.
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>Resume</command></term>
-                            <listitem>
-                                <para>
-                                    Simulates a click of the
-                                    <guibutton>Resume</guibutton> button.
-                                    Call <command>getState</command> to ensure
-                                    the state is <literal>Paused</literal>
-                                    before invoking this.
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>End</command></term>
-                            <listitem>
-                                <para>
-                                   Simulates a click of the
-                                   <guibutton>End</guibutton> button. As before,
-                                   ensure this is legal by comparing the return value of
-                                   <command>getState</command> to either
-                                   <literal>Paused</literal> or
-                                   <literal>Active</literal>> (paused runs can
-                                   be ended without resumption.
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        
-                    </variablelist>
-                </refsect3>
-                <refsect3>
-                    <title>Programmatic interface</title>
-                    <subtitle>Controllling the GUI</subtitle>
-                    <para>
-                        The <literal>ReadougGUIPanel</literal> package
-                        provides access to the graphical user interfaces
-                        that make up the readout gui.  YOu can use this to
-                        modify the state of existing widgets as well as to
-                        add new widges of your own to the GUI.
-                    </para>
-                    <para>
-                        All functions in this section  are in the
-                        namespace <literal>ReadougGUIPanel</literal>.
-                        To avoid needing to qualify each reference you can:
-                        <command>namespace import ::ReadougGUIPanel::*</command>.
-                    </para>
-                    <variablelist>
-                        <varlistentry>
-                            <term><command>addUserMenu</command> <replaceable>ident label</replaceable></term>
-                            <listitem>
-                                <para>
-                                    Allows you to add a user menu to the menubar
-                                    of the GUI. The
-                                    <replaceable>ident</replaceable> parameter is used as
-                                    the last element of the menu widget path.
-                                    <replaceable>label</replaceable> is the
-                                    text string that will label the element.
-                                </para>
-                                <para>
-                                    The actual full widget path of the menu
-                                    created is returned. You can use this path
-                                    to modify the menu configuration or to add
-                                    elements to the menu.
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>addUserFrame</command> <replaceable>ident</replaceable></term>
-                            <listitem>
-                                <para>
-                                    Adds a frame to the bottom of the panel
-                                    (you can add as many user frames as you want).
-                                    By frame we mean a Tk frame widget.
-                                    <replaceable>ident</replaceable>
-                                    is the last element of the frame's widget
-                                    path. The full path will be returned.
-                                </para>
-                                <para>
-                                    At this time, the frame will span the width
-                                    of the Readout GUI toplevel widget. Once
-                                    you have created this frame you can stock
-                                    it with whatever widgets you want. The
-                                    example below is a bit silly.
-                                </para>
-                                <informalexample>
-                                    <programlisting>
-
-set frame [ReadougGUIPanel::addUserFrame myframe]
-button $frame.beep -text Beep -command {puts beep}
-button $frame.bop  -text Bop  -command {puts bop}
-button $frame.beebop -text BeeBop -command {puts "Now that's rockin'"}
-grid $frame.beep $frame.bop
-grid $frame.beebop
-                                    </programlisting>
-                                </informalexample>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>getHost</command></term>
-                            <listitem>
-                                <para>
-                                    Returns the host in which the readout program will be, or is running
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>getPath</command></term>
-                            <listitem>
-                                <para>
-                                    Returns the path to the readout program that
-                                    will be, or is running in the target host.
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>setTitle</command> <replaceable>newTitle</replaceable></term>
-                            <listitem>
-                                <para>
-                                    Sets the title string in the ReadoutGUI widget to
-                                    <replaceable>newTitle</replaceable>.
-                                    If a run is started via the GUI,
-                                    <replaceable>newTitle</replaceable>
-                                    will be the title of that run.
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>getTitle</command></term>
-                            <listitem>
-                                <para>
-                                    Returns the contents of the title widget in
-                                    the GUI. Unless manually, or programmatically
-                                    modified, this is the title of the next or
-                                    current run.
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>getRunNumber</command></term>
-                            <listitem>
-                                <para>
-                                    Returns the contents of the run number widget.
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>setRun</command> <replaceable>newRunNumber</replaceable></term>
-                            <listitem>
-                                <para>
-                                    Sets the run number widget contents to
-                                    <replaceable>newRunNumber</replaceable>
-                                    this will be the run number for the next run.
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>incrRun</command></term>
-                            <listitem>
-                                <para>
-                                    Increments the run number (adds one to it).
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>setHost</command> <replaceable>hostname</replaceable></term>
-                            <listitem>
-                                <para>
-                                    Sets the target host for the readout program to
-                                    <replaceable>hostname</replaceable>.
-                                    The next time the readout program is started,
-                                    it will be run in
-                                    <replaceable>hostname</replaceable>
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>setPath</command> <replaceable>path</replaceable></term>
-                            <listitem>
-                                <para>
-                                    Sets a new readout program to
-                                    <replaceable>path</replaceable>.
-                                    It is safest if this is the full path to the
-                                    program or script to run. The file normalize
-                                    command can be used to turn relative paths
-                                    into absolute paths. For example:
-                                </para>
-                                <informalexample>
-                                    <programlisting>
-
-set absolutePath [file normalize ../Readout]
-ReadougGUIPanel::setPath $absolutePath
-                                    </programlisting>
-                                </informalexample>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>recordOff</command></term>
-                            <listitem>
-                                <para>
-                                    Turns off the Record checkbutton. Unless
-                                    modified, the next run will not be recorded
-                                    to disk.
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>recordOn</command></term>
-                            <listitem>
-                                <para>
-                                     Turns on the Record checkbutton. Unless
-                                     modified, the next run will be recorded to
-                                     disk.
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>setScalers</command> <replaceable>channels period</replaceable></term>
-                            <listitem>
-                                <para>
-                                    Sets the hint of the number of scalers and
-                                    the scaler readout period. Unless modified,
-                                    these parameter are fed to the readout
-                                    program at the start of the next run.
-                                    <replaceable>period</replaceable> is the
-                                    integer number of seconds between scaler
-                                    trigger. <replaceable>channels</replaceable>
-                                    is the number of channels requested.
-                                </para>
-                                <para>
-                                    Note that in the SBS readout framework it
-                                    is up to application specific code to do
-                                    something with these numbers.  The
-                                    VM-USB and CC-USB frameworks configure the
-                                    scaler readout period in the configuration
-                                    file when setting up the scaler stack.
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>getScalers</command></term>
-                            <listitem>
-                                <para>                                   
-                                    Returns a two element list containing the
-                                    ReadoutGui's understanding of the
-                                    number of scalers to be read and the interval
-                                    in seconds between scaler readouts.
-                                </para>
-                                <para>
-                                    Once again these numbers could be completely
-                                    meaningless depending on the use made of them
-                                    by specific readout frameworks and any
-                                    application specific code that may be
-                                    grafted into those frameworks.
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>recordData</command></term>
-                            <listitem>
-                                <para>
-                                    Returns a
-                                    <literal>true</literal>
-                                    value if the Record checkbutton is checked.
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>outputText</command> <replaceable>text</replaceable></term>
-                            <listitem>
-                                <para>
-                                     Appends text to the GUI's text window. This
-                                     window contains the output from the readout
-                                     program as well as anything else put there
-                                     via this call.
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>isTimed</command></term>
-                            <listitem>
-                                <para>
-                                    Returns a
-                                    <literal>true</literal>
-                                    value if the Timed Run check box is checked.
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>setTimed</command> <replaceable>state</replaceable></term>
-                            <listitem>
-                                <para>
-                                    Sets the Timed Run check button to
-                                    <replaceable>state</replaceable>.
-                                    This governs whether or not the next run is
-                                    a timed run.
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>getRequestedRunTime</command></term>
-                            <listitem>
-                                <para>
-                                    Returns the length of a timed run if the
-                                    Timed Run were set at the start of the run.
-                                    The time is returned in seconds
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>setRequestedRunTime</command> <replaceable>seconds</replaceable></term>
-                            <listitem>
-                                <para>
-                                   Sets the desired timed run duration to 
-                                   <replaceable>seconds</replaceable>.
-                                   This does not modify the state of the Timed
-                                   Run check button however.
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                    </variablelist>
-                </refsect3>
-                <refsect3>
-                    <title>Programmatic interface</title>
-                    <subtitle>Experiment package</subtitle>
-                    <para>
-                        This package provides an interface to the experiment as
-                        a whole. At this time the main purpose is to allow you
-                        to communicate to the event logger the number of
-                        event sources that must indicate an end of run before
-                        the event log file is closed.
-                    </para>
-                    <para>
-                        If you are using the
-                        event builder, each end of run item is passed through
-                        as part of a barrier event.  There should therefore
-                        be one end of run item per event source and they all should
-                        be the last item in the run.
-                    </para>
-                    <variablelist>
-                        <varlistentry>
-                            <term><command>Experiment::getSourceCount</command></term>
-                            <listitem>
-                                <para>
-                                    Returns the number of event sources that
-                                    have been declared.  If never set, this defaults
-                                    to 1.
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                            <term><command>Experiment::setSourceCount</command> <parameter>n</parameter></term>
-                            <listitem>
-                                <para>
-                                    Sets the nnumber of event sources in the experiment.
-                                    If the run is being recorded, the event logger
-                                    will expect <parameter>n</parameter> end of
-                                    run items.  If not received within a fairly
-                                    long timeout, the event file is closed with
-                                    an error message.
-                                </para>
-                            </listitem>
-                        </varlistentry>
-                    </variablelist>
-                </refsect3>
             </refsect2>
-        </refsect1>
-        <refsect1>
-            <title>EXAMPLE</title>
-            <para>
-                The toy extension below logs state transitions and
-                Readout startups to file.
-            </para>
-            <example>
-                <title>Logging extension to readout gui</title>
-                <programlisting>
-
-set filename [file join ~ readout.log]
-
-proc logToFile message {
-   global filename
-   
-   set fd [open $filename "w+"]
-   set timestamp [clock format [clock seconds]]
-   puts $fd "$timestamp : $message"
-   close $fd
-}
-proc OnBegin run {
-   logToFile "Run $run Begun"
-}
-proc OnEnd run {
-   logToFile "Run $run has ended"
-}
-proc OnPause run {
-   logToFile "Run $run has been paused"
-}
-proc OnResume run {
-   logToFile "Run $run has been resumed"
-}
-proc OnStart {} {
-   logToFile "Readout program has been started"
-}
-                </programlisting>
-            </example>
-            <example>
-                <title>Setting the number of event sources</title>
-                <para>
-                    The code fragment below informs the event logger there are
-                    three data sources from which end of run items must be
-                    received to end the run:
-                </para>
-                <programlisting>
-package require Experiment
-...
-proc OnStart {} {
-    Experiment::setSourceCount 3
-}
-                </programlisting>
-            </example>
-            <example>
-                <title>Altering the number of event sources</title>
-                <para>
-                    If you have segmented your ReadoutCallouts into a package
-                    for each data source you may need to have the code for each
-                    data source increment the data source count.  You might do
-                    this by having the overall OnStart code do something like this:
-                </para>
-                <programlisting>
-                    
-# ReadoutCallouts.tcl
-package require Experiment
-
-proc addSource {} {
-        set sources [Expermiment::getSourceCount]
-        incr sources 
-        Experiment::setSourceCount $sources
-}
-..
-proc OnStart {} {
-    foreach source [list Source1 Source2 Source3] {
-        package require $source
-        $source::OnStart
-        addSource;       # count one more source in the experiment.
-    }
-    
-    # The loop will over count sources since the source count starts at 1:
-    # and setSourceCount won't allow us to set the source count to 0.
-    
-    set sources [Experiment::getSourceCount]
-    incr sources -1
-    Experiment::setSourceCount $sources
-}
-                </programlisting>
-            </example>
-                
         </refsect1>
       </refentry>
 

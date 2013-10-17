@@ -501,4 +501,5 @@ Feb 1, 2012 - Feb 24, 2012
 11.0-rc2 Sprint for DDAS SBC reaodout board and then some.
 	* Issue #1765 - open rc2 development sprint.
 	* Issue #433  - Support out of tree builds.
+	* Issue #1045 - Pure plugin architecture for ReadoutShell.
 	

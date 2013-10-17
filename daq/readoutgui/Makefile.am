@@ -1,6 +1,7 @@
 install-exec-local:
 	$(mkinstalldirs) $(prefix)/bin
 	$(mkinstalldirs) $(prefix)/TclLibs/Stager
+	$(mkinstalldirs) @prefix@/share/html
 	for f in  $(TCLPACKAGES); do install @srcdir@/$$f $(prefix)/TclLibs/Stager; done
 	$(INSTALL_SCRIPT) @builddir@/InstallRoot.tcl $(prefix)/TclLibs/Stager
 	for f in $(TCLAPPS); do $(INSTALL_SCRIPT) @srcdir@/$$f  $(prefix)/bin/`basename $$f .tcl`; done
@@ -9,6 +10,7 @@ install-exec-local:
 	echo "pkg_mkIndex -verbose $(prefix)/TclLibs/Stager *.tcl" | $(TCLSH_CMD)
 	echo Adjusting installation location of libWait.so compiled tcl extension.
 	mv $(prefix)/lib/libWait.* $(prefix)/TclLibs
+	$(INSTALL_DATA) @srcdir@/RunState.jpg @srcdir@/RunState.eps @prefix@/share/html
 
 TCLPACKAGES=Configuration.tcl \
 	DAQParameters.tcl \
@@ -49,7 +51,7 @@ EXTRA_DIST = $(TCLPACKAGES) $(TCLAPPS) $(TCLTESTS) \
 	scalerParameterDialog.ui \
 	selectReadout.ui \
 	warning.tcl InstallRoot.tcl.in \
-	readoutgui.xml
+	readoutgui.xml RunState.eps RunState.jpg
 
 
 bin_PROGRAMS =  SecretTk
