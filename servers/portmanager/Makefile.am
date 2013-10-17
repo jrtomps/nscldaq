@@ -62,4 +62,4 @@ cpptest_LDADD= -L. -lPortManager @LIBEXCEPTION_LDFLAGS@
 
 check-TESTS: cpptest
 	for f in @srcdir@/*.test;do @TCLSH_CMD@ $$f; done
-	cpptest
+	@builddir@/cpptest
