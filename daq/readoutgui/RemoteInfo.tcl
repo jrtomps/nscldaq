@@ -19,7 +19,7 @@
 #
 #  
 package provide RemoteInfo 1.0
-package require rsh
+package require ssh
 namespace eval RemoteInfo  {
 #                             OS   Vers Tape Dir    Spec
     variable TapeDriveSpecs {{Linux {} /dev/        nst?}  
@@ -52,13 +52,13 @@ namespace eval RemoteInfo  {
 #      Return name of operating system.
 #
    proc GetOs {host} {
-       set Os [rsh::rsh $host uname]       
+       set Os [ssh::ssh $host uname]       
        return [LastLine $Os]
    }
 #
 #     Return version number of OS release.
    proc GetOsVsn {host} {
-       set Version [rsh::rsh $host "uname -r"]
+       set Version [ssh::ssh $host "uname -r"]
        return [LastLine $Version]
    }
 #
@@ -103,7 +103,7 @@ namespace eval RemoteInfo  {
        set mask [GetTapeListMask $OS $V]
        set command ls
        lappend command $mask
-       set drives [rsh::rsh $host $command]
+       set drives [ssh::ssh $host $command]
        return [SelectDrives $drives $mask]
    }
    namespace export GetOs GetOsVsn GetTapeListMask GetTapeDrives

@@ -15,12 +15,12 @@
 
 # (C) Copyright Michigan State University 1938, All rights reserved 
 #
-# rsh is a package which supports the issuance of a remote shell
+# ssh is a package which supports the issuance of a remote shell
 # command on a system with shared filesystem.
 #
-package provide rsh 1.0
+package provide ssh 1.0
 package require Wait
-namespace eval  rsh {
+namespace eval  ssh {
     #
     # Allows access to the current user/node on remote nodes in the 'cluster'
     proc AllowMe {} {
@@ -33,7 +33,7 @@ namespace eval  rsh {
 	    exec chmod 0600 $home/.rhosts
 	}
     }
-    proc rsh {host command} {
+    proc ssh {host command} {
 	AllowMe
 	set stat [catch {set output [eval exec ssh $host $command]} error]
 	if {$stat != 0} {
@@ -41,7 +41,7 @@ namespace eval  rsh {
 	}
 	return $output
     }
-    proc rshpipe {host command access} {
+    proc sshpipe {host command access} {
 	AllowMe
 	lappend command {"2>&1"}
 #	return [open "|ssh $host $command  " $access]
@@ -49,28 +49,28 @@ namespace eval  rsh {
     }
 
     #
-    #   rshpid - Uses the Pipe command to open a pipe to the
+    #   sshpid - Uses the Pipe command to open a pipe to the
     #            command.  The pipe has an input and an output end.
     #            The command runs asynchronously.
     #   Parameters:
     #       host   command
     #   Returns:
     #     list containing in order:
-    #        pid    - Process ID of the rsh shell.
+    #        pid    - Process ID of the ssh shell.
     #        inpipe - Pipe to read from to get output/error from process.
     #        outpipe- Pipe to write to to send data to the process.
     #
     #
-    proc rshpid {host command} {
+    proc sshpid {host command} {
 	AllowMe
 	set pipes [Pipe]
 	set rpipe [lindex $pipes 0]
 	set wpipe [lindex $pipes 1]
-#	puts "rshpid 'rsh $command'"
+#	puts "sshpid 'ssh $command'"
 	set pid [exec ssh $host $command >&@ $wpipe <@ $rpipe &]
 
 	return "$pid $rpipe $wpipe"
     }
 
-    namespace export rsh rshpipe rshpid
+    namespace export ssh sshpipe sshpid
 }

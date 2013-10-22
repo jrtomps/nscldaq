@@ -16,7 +16,7 @@
 
 
 package provide ReadoutControl 2.0
-package require rsh
+package require ssh
 package require ExpFileSystem
 package require ReadoutState
 package require DAQParameters
@@ -274,13 +274,13 @@ proc ::ReadoutControl::StartReadoutProgram {} {
     set path [file dirname $ReadoutProgram]
     set name [file tail    $Executable]
 
-	#  Now do the rsh.
+	#  Now do the ssh.
 
     if {$script == ""} {	;# Run directly.
-	set fd [rsh::rshpipe $ReadoutHost $Executable r+]
+	set fd [ssh::sshpipe $ReadoutHost $Executable r+]
 
     } else {		;# Run via env setup script.
-	set fd [rsh::rshpipe $ReadoutHost "$script $path $Executable" r+]	
+	set fd [ssh::sshpipe $ReadoutHost "$script $path $Executable" r+]	
 
     }
     if {![eof $fd]} {

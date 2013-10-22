@@ -18,7 +18,7 @@
 #  Package to provide a gui for the readout software.  Includes
 #  a GUI to select the readout program. The assumptions are:
 #
-#  o Readout program will/may run on a remote system (over an rsh pipe).
+#  o Readout program will/may run on a remote system (over an ssh pipe).
 #  o If readout program runs on a remote system, it completely shares
 #    the user's directory structure.
 #
