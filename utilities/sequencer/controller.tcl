@@ -113,7 +113,7 @@ proc planAborted {} {
             for {set run $runNumber} {$run < $lastRun} {incr run} {
                 deleteData $run
             }
-            ::ReadougGUIPanel::setRun $runNumber;    # Reset the run number to first run of aborted plan.
+            ::ReadoutGUIPanel::setRun $runNumber;    # Reset the run number to first run of aborted plan.
         }
 
     }
@@ -136,7 +136,7 @@ proc startPlannedRun {button table} {
 
         # Force the timed run on.
 
-        ReadougGUIPanel::setTimed 1
+        ReadoutGUIPanel::setTimed 1
 
         # Start the run.  vwait for the
         # run to end so that we can call

@@ -8,7 +8,7 @@ proc epicsAccess name {
     puts "Setting up access to $name"
 }
 proc setTitle {name title} {
-    ReadougGUIPanel::setTitle $title
+    ReadoutGUIPanel::setTitle $title
     return 0
 }
 

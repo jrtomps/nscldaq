@@ -571,7 +571,7 @@ proc EVBC::_HandleDataSourceInput {fd info id} {
 # @param msg - the message to output.
 #
 proc EVBC::_Output msg {
-    ReadougGUIPanel::outputText "[clock format [clock seconds]] $msg"
+    ReadoutGUIPanel::outputText "[clock format [clock seconds]] $msg"
 }
 #-----------------------------------------------------------------------------
 ##

@@ -504,3 +504,5 @@ Feb 1, 2012 - Feb 24, 2012
 	* Issue #1045 - Pure plugin architecture for ReadoutShell.
 	* Task  #1729 - Add --run switch to eventlog so ReadoutGui can
 	     explicitly set the run number.
+	* Changing the bogus ReadougGUIPanel -> ReadoutGUIPanel as it
+	always should have been if I'd not been so lazy.

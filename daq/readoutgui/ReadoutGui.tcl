@@ -67,7 +67,7 @@ proc ReadoutGui::isTestSystem {} {
 proc ReadoutGui::timestampOutput text {
 	set stamp [clock format [clock seconds]]
 	set output [format $text $stamp]
-	ReadougGUIPanel::outputText "$output\n"
+	ReadoutGUIPanel::outputText "$output\n"
 	
 }
 # ReadoutGui::setGuiBuiltCallback callback
@@ -98,7 +98,7 @@ proc ReadoutGui::NeedHostandProgram {} {
 #     2    - Start the run and overwrite the data.
 #
 proc ReadoutGui::OverwriteCheck {} {
-    set run [ReadougGUIPanel::getRunNumber]
+    set run [ReadoutGUIPanel::getRunNumber]
     if {[Experiment::RunFileExists $run]} {
 	set testrun $run
 	incr testrun
@@ -156,7 +156,7 @@ proc ReadoutGui::UpdateLinks {segments} {
 #  cmd   - The command that was sent.
 #
 proc ReadoutGui::RdoCommand {cmd} {
-    ReadougGUIPanel::outputText "$cmd\n"
+    ReadoutGUIPanel::outputText "$cmd\n"
 }
 # ReadoutGui::SaveSettings
 # Save Readout Settings to configuration database and write
@@ -169,8 +169,8 @@ proc ReadoutGui::SaveSettings {} {
     ::ReadoutState::setRun   [ReadoutControl::GetRun]
     ::ReadoutState::setScalerCount  [ReadoutState::getScalerCount]
     ::ReadoutState::setScalerPeriod [ReadoutState::getScalerPeriod]
-    set host   [ReadougGUIPanel::getHost]
-    set rdpath [ReadougGUIPanel::getPath]
+    set host   [ReadoutGUIPanel::getHost]
+    set rdpath [ReadoutGUIPanel::getPath]
     if {[catch {::DAQParameters::sourceHostIs $host} msg]} {
 	tk_dialog .badhost {Bad Host} \
 	    "Readout program run host: $host is bad: $msg" \
@@ -213,7 +213,7 @@ proc ReadoutGui::SourceFile {filename} {
 #
 #
 proc ReadoutGui::TimeToEndRun {seconds} {
-    set runLength [ReadougGUIPanel::getRequestedRunTime]
+    set runLength [ReadoutGUIPanel::getRequestedRunTime]
     if {$seconds >= $runLength} {
 	return 1
     } else {
@@ -224,7 +224,7 @@ proc ReadoutGui::TimeToEndRun {seconds} {
 #   Clear the elapsed time label in the readout gui panel.
 #
 proc ReadoutGui::ClearElapsedTime {} {
-    ::ReadougGUIPanel::setActiveTime "0 0:0:0.0"
+    ::ReadoutGUIPanel::setActiveTime "0 0:0:0.0"
     set ::ReadoutGui::TotalSegmentTime 0
     ::BeginRun
 }
@@ -273,7 +273,7 @@ proc ReadoutGui::SecondElapsed {} {
     set elapsedSeconds [::RunTime::elapsedTime]
     set formatted [::RunTime::formattedTime]
 
-    ::ReadougGUIPanel::setActiveTime $formatted
+    ::ReadoutGUIPanel::setActiveTime $formatted
 
     #
     #  Update the status line for the event file:
@@ -306,7 +306,7 @@ proc ReadoutGui::SecondElapsed {} {
     } else {
 	set status "No run file segments for run $run yet"
     }
-    ReadougGUIPanel::setStatusLine $status
+    ReadoutGUIPanel::setStatusLine $status
 
 
     #
@@ -320,7 +320,7 @@ proc ReadoutGui::SecondElapsed {} {
     #  repropogated first.
     #
 
-    if {[ReadougGUIPanel::isTimed] && 
+    if {[ReadoutGUIPanel::isTimed] && 
 	(([ReadoutControl::getReadoutState] eq "Active") || 
          ([ReadoutControl::getReadoutState] eq "Paused"))} {
 	if {[ReadoutGui::TimeToEndRun $elapsedSeconds]} {
@@ -339,7 +339,7 @@ proc ReadoutGui::ReadoutInput {fd} {
     variable OutputWidget
     if {![eof $fd]} {
 	set text [read $fd 1000]
-	ReadougGUIPanel::outputText $text ;# Assume fd is nonblock.
+	ReadoutGUIPanel::outputText $text ;# Assume fd is nonblock.
 	update idle
     }
 }
@@ -350,8 +350,8 @@ proc ReadoutGui::ReadoutInput {fd} {
 #  and program.
 #
 proc ReadoutGui::HaveReadout {} {
-    set host [ReadougGUIPanel::getHost]
-    set path [ReadougGUIPanel::getPath]
+    set host [ReadoutGUIPanel::getHost]
+    set path [ReadoutGUIPanel::getPath]
 
     if {($host == "") || ($path == "")} {
 	return 0
@@ -360,7 +360,7 @@ proc ReadoutGui::HaveReadout {} {
     }
 }
 
-# ReadougGui::onExit
+# ReadoutGui::onExit
 #  Exit callback handler established to be called whenthe program exits.
 #
 #
@@ -388,7 +388,7 @@ proc ReadoutGui::CleanupRun {State} {
 	    set nrun [ReadoutControl::GetRun]
 	    incr nrun
 	    ReadoutControl::SetRun $nrun
-	    ReadougGUIPanel::setRun $nrun
+	    ReadoutGUIPanel::setRun $nrun
 	}
     }
 }
@@ -402,7 +402,7 @@ proc ReadoutGui::CleanupRun {State} {
 proc ReadoutGui::ReadoutExited {RunStateonExit} {
     timestampOutput "%s : The Readout program exited!"
     ReadoutGui::CleanupRun $RunStateonExit
-    ReadougGUIPanel::readoutNotRunning
+    ReadoutGUIPanel::readoutNotRunning
     bells notify -interval 2500 -pattern {100 200 400 500}
     set doWhat [tk_dialog .rdoexited {Readout Exited} \
 		{The readout program exited.  What would you like to do?} \
@@ -451,8 +451,8 @@ proc ReadoutGui::Start {} {
     
 
     ReadoutControl::StartReadoutProgram
-    ReadougGUIPanel::readoutRunning
-    ReadougGUIPanel::runIsHalted
+    ReadoutGUIPanel::readoutRunning
+    ReadoutGUIPanel::runIsHalted
     ReadoutControl::ShowAll
     ReadoutControl::SetOnExit ::ReadoutGui::ReadoutExited
 }
@@ -503,14 +503,14 @@ proc ReadoutGui::StartRunTimers {} {
 
     puts "Starting Run timers."
     ReadoutGui::StartElapsedTimer
-    ReadougGUIPanel::outputText "Run Starting\n"
+    ReadoutGUIPanel::outputText "Run Starting\n"
     ReadoutGui::SaveSettings
     if {[ReadoutControl::isTapeOn]} {
-	ReadougGUIPanel::isRecording
+	ReadoutGUIPanel::isRecording
 	# $EventStatusLineWidget config -bg green
 	# $OutputWidget config -bg green
     } else {
-	ReadougGUIPanel::notRecording
+	ReadoutGUIPanel::notRecording
 	# set EventFileStatusLine ""
     }
 }
@@ -520,13 +520,13 @@ proc ReadoutGui::StartRunTimers {} {
 #
 proc ReadoutGui::Begin {} {
 
-    ReadougGUIPanel::runIsStarting
+    ReadoutGUIPanel::runIsStarting
 
     #  If necessary, check to see what to do
     #  if the user is ovewriting:
     #
 
-    if {[ReadougGUIPanel::recordData]} {
+    if {[ReadoutGUIPanel::recordData]} {
 	ReadoutState::enableRecording
 	ReadoutControl::EnableTape
 	set action [ReadoutGui::OverwriteCheck]
@@ -535,7 +535,7 @@ proc ReadoutGui::Begin {} {
 	}
 	if {$action == 1} {;	# Turn off tape.. but run.
 	    ReadoutControl::DisableTape
-	    ReadougGUIPanel::recordOff
+	    ReadoutGUIPanel::recordOff
 	}
 	#  2 overwrite if needed.
 
@@ -546,12 +546,12 @@ proc ReadoutGui::Begin {} {
     }
     # Update the scaler info with the GUI's idea of what it should be.
 
-    set scalerinfo [ReadougGUIPanel::getScalers]
+    set scalerinfo [ReadoutGUIPanel::getScalers]
     ReadoutState::setScalerCount  [lindex $scalerinfo 0]
     ReadoutState::setScalerPeriod [lindex $scalerinfo 1]
 
-    ReadoutControl::SetRun   [::ReadougGUIPanel::getRunNumber]
-    ReadoutControl::SetTitle [::ReadougGUIPanel::getTitle]
+    ReadoutControl::SetRun   [::ReadoutGUIPanel::getRunNumber]
+    ReadoutControl::SetTitle [::ReadoutGUIPanel::getTitle]
     
     timestampOutput "%s : Starting a new run"
 
@@ -566,19 +566,19 @@ proc ReadoutGui::Begin {} {
 	# Also  start the timers needed to show the status line and
 	# increment the elapsed run time.
 	
-	if {[ReadougGUIPanel::isTimed]} {
+	if {[ReadoutGUIPanel::isTimed]} {
 	    ReadoutState::TimedRun
-	    ReadoutState::setTimedLength [ReadougGUIPanel::getRequestedRunTime]
+	    ReadoutState::setTimedLength [ReadoutGUIPanel::getRequestedRunTime]
 	} else {
 	    ReadoutState::notTimedRun
 	}
 	ReadoutGui::ClearElapsedTime;    # NO paused segments, new run.
 	if {[ReadoutControl::isTapeOn]} {
-	    ReadougGUIPanel::isRecording
+	    ReadoutGUIPanel::isRecording
 	    # $EventStatusLineWidget config -bg green
 	    # $OutputWidget config -bg green
 	} else {
-	    ReadougGUIPanel::notRecording
+	    ReadoutGUIPanel::notRecording
 	    # set EventFileStatusLine ""
 	}
 	ReadoutGui::StartElapsedTimer
@@ -586,9 +586,9 @@ proc ReadoutGui::Begin {} {
     if {$failureCheck} {
 	tk_messageBox -icon error -title {Run start failed:} \
 	    -message "$msg $::errorInfo" -type ok
-	ReadougGUIPanel::runIsHalted
+	ReadoutGUIPanel::runIsHalted
     } else {
-	ReadougGUIPanel::runIsActive
+	ReadoutGUIPanel::runIsActive
 
     }
 
@@ -600,8 +600,8 @@ proc ReadoutGui::Begin {} {
 #
 proc ReadoutGui::Pause {} {
  #   ReadoutGui::StopRunTimers
-    ReadougGUIPanel::runIsPaused
-    ReadougGUIPanel::setStatusLine {Run paused}
+    ReadoutGUIPanel::runIsPaused
+    ReadoutGUIPanel::setStatusLine {Run paused}
 	timestampOutput "%s : Pausing the run"
     ReadoutControl::Pause
 }
@@ -612,8 +612,8 @@ proc ReadoutGui::Resume {} {
 	timestampOutput "%s : Resuming the run"
     ReadoutControl::Resume
     ReadoutControl::ShowAll
-    ReadougGUIPanel::runIsActive
-    ReadougGUIPanel::setStatusLine {Run started}
+    ReadoutGUIPanel::runIsActive
+    ReadoutGUIPanel::setStatusLine {Run started}
     ReadoutGui::StartElapsedTimer;    # Accumulate active time across pause.
 }
 #  ReadoutGui::StopRunTimers
@@ -629,19 +629,19 @@ proc ReadoutGui::StopRunTimers {} {
 #    being done.
 #
 proc ReadoutGui::End {} {
-    ReadougGUIPanel::runIsEnding
+    ReadoutGUIPanel::runIsEnding
 
     set failed [catch {
 
 	timestampOutput "%s : Ending the run"
     ReadoutControl::End
     if {[ReadoutControl::isTapeOn]} {
-	ReadougGUIPanel::incrRun
-	ReadoutControl::SetRun [ReadougGUIPanel::getRunNumber]
+	ReadoutGUIPanel::incrRun
+	ReadoutControl::SetRun [ReadoutGUIPanel::getRunNumber]
     }
-    ReadougGUIPanel::normalColors
+    ReadoutGUIPanel::normalColors
 
-    ReadougGUIPanel::setStatusLine {Run Ended}
+    ReadoutGUIPanel::setStatusLine {Run Ended}
     ReadoutControl::ShowAll
     ReadoutGui::SaveSettings
     if {$::nomonitor} {
@@ -653,7 +653,7 @@ proc ReadoutGui::End {} {
 	tk_messageBox -icon error -title {Run end failed:} \
 	    -message $msg -type ok
     }
-    ReadougGUIPanel::runIsHalted
+    ReadoutGUIPanel::runIsHalted
 
 }
 #
@@ -684,13 +684,13 @@ proc ReadoutGui::ReadoutController {topname} {
 	set topname .
     }
 
-    ::ReadougGUIPanel::init $topname
+    ::ReadoutGUIPanel::init $topname
 
     # Re-title the window depending on the testedness of this:
 
     if {[ReadoutGui::isTestSystem]} {
 	set theGuiTitle "Run Control - TEST VERSION OF SOFTWARE"
-	::ReadougGUIPanel::runInTestVersion
+	::ReadoutGUIPanel::runInTestVersion
     } else {
 	set theGuiTitle "Run Control"
     }
@@ -718,22 +718,22 @@ proc ReadoutGui::ReadoutController {topname} {
     #  Set up the GUI  with the values of the configuration
     # settings:
 
-    ReadougGUIPanel::setTitle   $title
-    ReadougGUIPanel::setRun     $run
-    ReadougGUIPanel::setHost    $host
-    ReadougGUIPanel::setPath    $path
-    ReadougGUIPanel::setScalers $scalers $period
+    ReadoutGUIPanel::setTitle   $title
+    ReadoutGUIPanel::setRun     $run
+    ReadoutGUIPanel::setHost    $host
+    ReadoutGUIPanel::setPath    $path
+    ReadoutGUIPanel::setScalers $scalers $period
 
     if 0 {
     if {$recording} {
-	ReadougGUIPanel::recordOn
+	ReadoutGUIPanel::recordOn
     } else {
-	ReadougGUIPanel::recordOff
+	ReadoutGUIPanel::recordOff
     }
     }
-    ReadougGUIPanel::setTimed $timedrun
+    ReadoutGUIPanel::setTimed $timedrun
     if {$timedlen ne ""} {
-	ReadougGUIPanel::setRequestedRunTime $timedlen
+	ReadoutGUIPanel::setRequestedRunTime $timedlen
     }
 
     # Setup the readout control package with this as well.
@@ -743,7 +743,7 @@ proc ReadoutGui::ReadoutController {topname} {
 
 
     ::ReadoutGui::StartRunTimers
-    ::ReadougGUIPanel::normalColors
+    ::ReadoutGUIPanel::normalColors
 
     # Establish callback handlers for input from the Readout Program:
     #
@@ -756,12 +756,12 @@ proc ReadoutGui::ReadoutController {topname} {
 
         #  Set the callbacks for the control buttons
 
-    ReadougGUIPanel::startStopCallbacks   ::ReadoutGui::Begin ::ReadoutGui::End
-    ReadougGUIPanel::pauseResumeCallbacks ::ReadoutGui::Pause ::ReadoutGui::Resume
-    ReadougGUIPanel::setExitCallback      ::ReadoutGui::onExit
-    ReadougGUIPanel::setStartCallback     ::ReadoutGui::Start
-    ReadougGUIPanel::setRestartCallback   ::ReadoutGui::Restart
-    ReadougGUIPanel::setSourceCallback    ::ReadoutGui::SourceFile
+    ReadoutGUIPanel::startStopCallbacks   ::ReadoutGui::Begin ::ReadoutGui::End
+    ReadoutGUIPanel::pauseResumeCallbacks ::ReadoutGui::Pause ::ReadoutGui::Resume
+    ReadoutGUIPanel::setExitCallback      ::ReadoutGui::onExit
+    ReadoutGUIPanel::setStartCallback     ::ReadoutGui::Start
+    ReadoutGUIPanel::setRestartCallback   ::ReadoutGui::Restart
+    ReadoutGUIPanel::setSourceCallback    ::ReadoutGui::SourceFile
 
     # set other callbacks and initialize other packages.
 
@@ -778,8 +778,8 @@ proc ReadoutGui::ReadoutController {topname} {
     if {[::ReadoutGui::HaveReadout]} {
 	::ReadoutGui::Start
     } else {
-	::ReadougGUIPanel::ghostBegin
-	::ReadougGUIPanel::readoutNotRunning
+	::ReadoutGUIPanel::ghostBegin
+	::ReadoutGUIPanel::readoutNotRunning
     }
 
    

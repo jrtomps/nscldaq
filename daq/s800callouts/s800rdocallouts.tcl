@@ -188,7 +188,7 @@ proc s800::pipeReadable fd {
 	close $fd
 	set ::s800::pipelineRunning 0
     } else {
-	ReadougGUIPanel::outputText "s800: [gets $fd]"
+	ReadoutGUIPanel::outputText "s800: [gets $fd]"
     }
 } 
 
@@ -368,7 +368,7 @@ proc s800::OnEnd {} {
     puts "Recording state [ReadoutState::getRecording]"
     if {[ReadoutState::getRecording] == 0} {
 	puts "Attempting to increment run."
-	ReadougGUIPanel::incrRun;	# change s800 run #
+	ReadoutGUIPanel::incrRun;	# change s800 run #
 
     }
 }

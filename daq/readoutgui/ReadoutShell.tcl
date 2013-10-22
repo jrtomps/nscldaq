@@ -49,7 +49,7 @@ package require Tk
 
 
 
-namespace eval ReadougGUIPanel {}
+namespace eval ReaoutGUIPanel {}
 
 package require ReadoutGui
 package require Experiment
