@@ -203,6 +203,21 @@ eventlog <optional>options...</optional>
                 </para>
             </listitem>
         </varlistentry>
+	<varlistentry>
+	  <term><option>--run</option> <replaceable>number</replaceable></term>
+	  <listitem>
+	    <para>
+	      When present, the <parameter>number</parameter> unconditionally sets
+	      the run number for the run.  This requires the <option>--oneshot</option>
+	      switch to be present and eventlog will exit with an error if that is not
+	      the case.  This switch is intended to be used with a set of event sources
+	      that either don't have the concept of a run number or, alternatively,
+	      cannot synchronize their run numbers.  The NSCLDAQ-11 readoutGui will
+	      use this switch to force the run number of event files created to match the
+	      run number in  the ReadoutGUI run number entry.
+	    </para>
+	  </listitem>
+	</varlistentry>
      </variablelist>
   </refsect1>
 

@@ -169,7 +169,8 @@ class noData :  public CRingBuffer::CRingBufferPredicate
      close(fd);
    }
 
-   // Now we need to hunt for the BEGIN_RUN item:
+   // Now we need to hunt for the BEGIN_RUN item...however if there's a run
+   // number override we just use that run number unconditionally.
 
    bool warned = false;
    CRingItem* pItem;
@@ -182,45 +183,49 @@ class noData :  public CRingBuffer::CRingBufferPredicate
 
      // If necessary, hunt for the begin run.
 
-     while (1) {
-       pItem = CRingItem::getFromRing(*m_pRing, all);
-       
-       /*
-         As of NSCLDAQ-11 it is possible for the item just before a begin run
-         to be a Ring format item:
-       */
-       
-       if (pItem->type() == RING_FORMAT) {
+     if (!m_fRunNumberOverride) {
+       while (1) {
+	 pItem = CRingItem::getFromRing(*m_pRing, all);
+	 
+	 /*
+	   As of NSCLDAQ-11 it is possible for the item just before a begin run
+	   to be a Ring format item:
+	 */
+	 
+	 if (pItem->type() == RING_FORMAT) {
         pFormatItem = pItem;
-       } else if (pItem->type() == BEGIN_RUN) {
-         break;
-       } else {
-        // Ring format item must >exactly< precede BEGIN_RUN:
-        delete pFormatItem;
-        pFormatItem = 0;
+	 } else if (pItem->type() == BEGIN_RUN) {
+	   break;
+	 } else {
+	   // Ring format item must >exactly< precede BEGIN_RUN:
+	   delete pFormatItem;
+	   pFormatItem = 0;
+	 }
+	 
+	 if (!warned && !pFormatItem) {
+	   warned = true;
+	   cerr << "**Warning - first item received was not a begin run. Skipping until we get one\n";
+	 }
        }
-
-       if (!warned && !pFormatItem) {
-	 warned = true;
-	 cerr << "**Warning - first item received was not a begin run. Skipping until we get one\n";
-       }
+       
+       // Now we have the begin run item; and potentially the ring format item
+       // too:
+       
+       CRingStateChangeItem item(*pItem);
+       recordRun(item, pFormatItem);
+       delete pFormatItem;    // delete 0 is a no-op.
+       delete pItem;
+       pFormatItem = 0;
+       
+       // Return/exit after making our .exited file if this is a one-shot.
+     } else {
+       recordRun(*(reinterpret_cast<const CRingStateChangeItem*>(0)), 0);
      }
-     // Now we have the begin run item; and potentially the ring format item
-     // too:
-
-     CRingStateChangeItem item(*pItem);
-     recordRun(item, pFormatItem);
-     delete pFormatItem;    // delete 0 is a no-op.
-     delete pItem;
-     pFormatItem = 0;
-
-     // Return/exit after making our .exited file if this is a one-shot.
-
      if (m_exitOnEndRun) {
        string exitedFile = m_eventDirectory;
        exitedFile       += "/.exited";
        int fd = open(exitedFile.c_str(), O_WRONLY | O_CREAT,
-		 S_IRWXU);
+		     S_IRWXU);
        if (fd == -1) {
 	 perror("Could not open .exited file");
 	 exit(EXIT_FAILURE);
@@ -253,21 +258,38 @@ class noData :  public CRingBuffer::CRingBufferPredicate
  EventLogMain::recordRun(const CRingStateChangeItem& item, CRingItem* pFormatItem)
  {
    unsigned int segment        = 0;
-   uint32_t     runNumber      = item.getRunNumber();
+   uint32_t     runNumber;
    uint64_t     bytesInSegment = 0;
-   int          fd             = openEventSegment(runNumber, segment);
+   int          fd;
    unsigned     endsRemaining  = m_nSourceCount;
    CAllButPredicate p;
 
-   CRingItem*   pItem = new CRingStateChangeItem(item);
+   CRingItem*   pItem;
    uint16_t     itemType;
 
-    // If there is a format item, write it out to file:
-    
-    if (pFormatItem) {
-        bytesInSegment += itemSize(*pFormatItem);
-        writeItem(fd, *pFormatItem);
-    }
+
+   // Figure out what file to open and how to set the pItem:
+
+   if (m_fRunNumberOverride) {
+     runNumber  = m_nOverrideRunNumber;
+     fd         = openEventSegment(runNumber, segment);
+     pItem      = CRingItem::getFromRing(*m_pRing, p);
+   } else {
+     runNumber  = item.getRunNumber();
+     fd         = openEventSegment(runNumber, segment);
+     pItem      = new CRingStateChangeItem(item);
+   }
+
+   // If there is a format item, write it out to file:
+   // Note there won't be if the run number has been overridden.
+   
+   if (pFormatItem) {
+     bytesInSegment += itemSize(*pFormatItem);
+     writeItem(fd, *pFormatItem);
+
+   }
+
+ 
 
    while(1) {
 
@@ -348,7 +370,14 @@ class noData :  public CRingBuffer::CRingBufferPredicate
    if (parsed.oneshot_given) {
      m_exitOnEndRun = true;
    }
-
+   if (parsed.run_given && !parsed.oneshot_given) {
+     std::cerr << "--oneshot is required to specify --run\n";
+     exit(EXIT_FAILURE);
+   }
+   if (parsed.run_given) {
+     m_fRunNumberOverride = true;
+     m_nOverrideRunNumber = parsed.run_arg;
+   }
    // And the segment size:
 
    if (parsed.segmentsize_given) {

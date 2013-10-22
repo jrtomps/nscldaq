@@ -2647,8 +2647,10 @@ delete pItem;                                                <co id="scaler.dele
          <programlisting>
 #include &lt;CRingStateChangeItem&gt;
          </programlisting>
-         <synopsis>
+         <classsynopsis>
             <ooclass><classname>CRingStateChangeItem</classname></ooclass>
+	 </classsynopsis>
+	 <synopsis>
             <constructorsynopsis>
                 <methodname>CRingStateChangeItem</methodname>
                 <methodparam>
@@ -2808,7 +2810,7 @@ delete pItem;                                                <co id="scaler.dele
             </methodsynopsis>
             
             <!-- end of 11.0 additions -->
-
+	};
          </synopsis>
       </refsynopsisdiv>
       <refsect1>
@@ -3809,6 +3811,8 @@ item.commitToRing(aring);
          </programlisting>
          <classsynopsis>
             <ooclass><classname>CRingPhysicsEventCountItem</classname></ooclass>
+	 </classsynopsis>
+	 <synopsis>
             <constructorsynopsis>
                 <methodname>CRingPhysicsEventCountItem</methodname>
                 <void />
@@ -3952,8 +3956,8 @@ item.commitToRing(aring);
             </methodsynopsis>
 
             <!-- end of 11.0 additions -->
-
-         </classsynopsis>
+}
+         </synopsis>
       </refsynopsisdiv>
       <refsect1>
          <title>Description</title>
@@ -4201,10 +4205,10 @@ item.commitToRing(aring);
         <programlisting>
 #include &lt;CRingFragmentItem.h&gt;
         </programlisting>
-        <synopsis>
        <classsynopsis>
-           <ooclass><classname>CRingFragmentItem</classname></ooclass>
-       </classsynopsis> : public CRingItem {}
+           <ooclass><classname>CRingFragmentItem : public CRingItem </classname></ooclass>
+       </classsynopsis> 
+       <synopsis>
           <constructorsynopsis>
          <methodname>CRingFragmentItem</methodname>
          <methodparam>
@@ -4681,9 +4685,11 @@ item.commitToRing(aring);
         <programlisting>
 #include &lt;CUnknownFragment.h&gt;
         </programlisting>
-        <synopsis>
+        <classsynopsis>
 
-            <ooclass><classname>CRingFragment</classname></ooclass> : public <classname>CRingFragmentItem</classname>
+            <ooclass><classname>CRingFragment : public CRingItem</classname></ooclass>
+	</classsynopsis>
+	<synopsis>
             <constructorsynopsis>
                 <methodname>CUnknownFragment</methodname>
                 <methodparam>
@@ -4748,6 +4754,7 @@ item.commitToRing(aring);
                 <type>std::string</type><methodname>typeName</methodname>
                 <void /><modifier> const</modifier>
             </methodsynopsis>
+}
         </synopsis>
        </refsynopsisdiv>
        <refsect1>
@@ -4788,8 +4795,10 @@ item.commitToRing(aring);
         <programlisting>
 #include &lt;CRingFormatItem.h&gt;
         </programlisting>
-        <synopsis>
-            <ooclass><classname>CRingFormatItem</classname></ooclass> : public CRingItem
+        <classsynopsis>
+            <ooclass><classname>CRingFormatItem : public CRingItem</classname></ooclass>
+	</classsynopsis>
+       <synopsis>
             <constructorsynopsis>
                 <methodname>CDataFormatItem</methodname><void />
             </constructorsynopsis>
@@ -5114,8 +5123,10 @@ item.commitToRing(aring);
 #include &lt;CGlomParameters.h&gt;
             </programlisting>
         
-        <synopsis>
-            <ooclass><classname>CGlomParameters</classname></ooclass> : public CRingItem {
+        <classsynopsis>
+            <ooclass><classname>CGlomParameters  : public CRingItem </classname></ooclass>
+	</classsynopsis>
+	<synopsis>
             <constructorsynopsis>
                 <methodname>CGlomParameters</methodname>
                 <methodparam>
@@ -5472,6 +5483,8 @@ item.commitToRing(aring);
          </programlisting>
          <classsynopsis>
             <ooclass><classname>CRingSelectionPredicate</classname></ooclass>
+	 </classsynopsis>
+	 <synopsis>
             <constructorsynopsis>
                 <methodname>CRingSelectionPredicate</methodname>
                 <void />
@@ -5588,8 +5601,8 @@ item.commitToRing(aring);
                     <type>std::vector&lt;ItemType&gt;</type> <parameter>selections</parameter>
                 </methodparam>
             </methodsynopsis>
-
-         </classsynopsis>
+};
+         </synopsis>
       </refsynopsisdiv>
       <refsect1>
          <title>Description</title>
@@ -5904,6 +5917,8 @@ item.commitToRing(aring);
          </programlisting>
          <classsynopsis>
             <ooclass><classname>CAllButPredicate</classname></ooclass>
+	 </classsynopsis>
+	 <synopsis>
             <constructorsynopsis>
                 <methodname>CAllButPredicate</methodname>
                 <void />
@@ -5977,7 +5992,8 @@ item.commitToRing(aring);
                     <type>uint32_t</type> <parameter>type</parameter>
                 </methodparam>
             </methodsynopsis>
-         </classsynopsis>
+}
+         </synopsis>
       </refsynopsisdiv>
       <refsect1>
          <title>Description</title>
@@ -6124,6 +6140,8 @@ item.commitToRing(aring);
          </programlisting>
          <classsynopsis>
             <ooclass><classname>CDesiredTypesPredicate</classname></ooclass>
+	 </classsynopsis>
+	 <synopsis>
             <constructorsynopsis>
                 <methodname>CDesiredTypesPredicate</methodname> <void />
             </constructorsynopsis>
@@ -6193,8 +6211,8 @@ item.commitToRing(aring);
                     <type>bool</type> <parameter>sample</parameter><initializer>false</initializer>
                 </methodparam>
             </methodsynopsis>
-
-         </classsynopsis>
+}
+         </synopsis>
       </refsynopsisdiv>
       <refsect1>
          <title>Description</title>

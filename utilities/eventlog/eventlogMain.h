@@ -57,6 +57,8 @@ class EventLogMain
   uint64_t          m_segmentSize;
   bool              m_exitOnEndRun;
   unsigned          m_nSourceCount;
+  bool              m_fRunNumberOverride;
+  uint32_t          m_nOverrideRunNumber;
   
   // Constructors and canonicals:
 

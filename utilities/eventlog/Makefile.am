@@ -44,7 +44,7 @@ EXTRA_DIST		=	eventlogargs.ggo eventlog.xml
 #
 # Test programs.
 #
-noinst_PROGRAMS		=	fakeruns
+noinst_PROGRAMS		=	fakeruns eventlogTests
 
 fakeruns_SOURCES	= 	fakeruns.cpp
 
@@ -52,3 +52,14 @@ fakeruns_LDADD		=	@top_builddir@/daq/format/libdataformat.la	\
 				@top_builddir@/base/dataflow/libDataFlow.la	\
 				@top_builddir@/base/os/libdaqshm.la              \
 				@LIBEXCEPTION_LDFLAGS@
+
+eventlogTests_SOURCES = TestRunner.cpp eventlogTests.cpp
+eventlogTests_CPPFLAGS=@CPPUNIT_CFLAGS@
+eventlogTests_LDADD   = @CPPUNIT_LDFLAGS@ \
+				@top_builddir@/daq/format/libdataformat.la	\
+				@top_builddir@/base/dataflow/libDataFlow.la	\
+				@LIBEXCEPTION_LDFLAGS@			\
+				@top_builddir@/base/os/libdaqshm.la		\
+				$(THREADLD_FLAGS)
+
+TESTS=eventlogTests
