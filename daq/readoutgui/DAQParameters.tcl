@@ -204,7 +204,7 @@ proc DAQParameters::getEncryptedPasswd {} {
 #   InvalidSize  - value < 128.
 proc DAQParameters::setBufferSize value {
     if {$value < 128} {
-        "error DAQParameters::InvalidSize - Buffer sizes less than 128 are not allowed value was: $value"
+        error "DAQParameters::InvalidSize - Buffer sizes less than 128 are not allowed value was: $value"
     }
     Configuration::Set BufferSize $value
 }

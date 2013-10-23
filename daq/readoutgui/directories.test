@@ -72,23 +72,23 @@ tcltest::test ExpFileSystem-3.0 {ExpFileSystem::WhereisRun}  {
 
 tcltest::test ExpFileSystem-4.0 {ExpFileSystem::GenRunFileBase} {
     ExpFileSystem::GenRunFileBase 123
-} run123
+} run-0123
 
 tcltest::test ExpFileSystem-4.1 {ExpFileSystem::GenRunFile seq = 0} {
     ExpFileSystem::GenRunFile 432
-} run432-4096.evt
+} run-0432-00.evt
 
 tcltest::test ExpFileSystem-4.2 {ExpFileSystem::GenRunFile seq = 456} {
     ExpFileSystem::GenRunFile 432 456
-} run432_456-4096.evt
+} run-0432-456.evt
 
 tcltest::test ExpFileSystem-4.3 {ExpFileSystem::WhereisRunFile 555} {
     ExpFileSystem::WhereisRunFile 555
-} [file join $stagearea experiment run555 run555-4096.evt]
+} [file join $stagearea experiment run555 run-0555-00.evt]
 
 tcltest::test ExpFileSystem-4.4 {ExpFileSystem::WhereisRunFile 555 666} {
     ExpFileSystem::WhereisRunFile 555 666
-} [file join $stagearea experiment run555 run555_666-4096.evt]
+} [file join $stagearea experiment run555 run-0555-666.evt]
 
 #  Stagearea pieces:
 
@@ -158,6 +158,5 @@ if {[file exists [file join $here pkgIndex.tcl.saved]]} {
 }
 #  Get rid of the directories we made:
 
-::tcltest::removeDirectory $stagearea
 file delete $expdir
 

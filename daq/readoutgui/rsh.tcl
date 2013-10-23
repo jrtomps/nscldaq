@@ -21,20 +21,8 @@
 package provide ssh 1.0
 package require Wait
 namespace eval  ssh {
-    #
-    # Allows access to the current user/node on remote nodes in the 'cluster'
-    proc AllowMe {} {
-	global env
-	set user [exec whoami]
-	set host [exec hostname]
-	set home $env(HOME)
-	if {[catch {exec grep -c $host $home/.rhosts}] != 0} {
-	    exec echo $host $user >> $home/.rhosts
-	    exec chmod 0600 $home/.rhosts
-	}
-    }
+
     proc ssh {host command} {
-	AllowMe
 	set stat [catch {set output [eval exec ssh $host $command]} error]
 	if {$stat != 0} {
 	    append output "\n"  $error
@@ -42,7 +30,6 @@ namespace eval  ssh {
 	return $output
     }
     proc sshpipe {host command access} {
-	AllowMe
 	lappend command {"2>&1"}
 #	return [open "|ssh $host $command  " $access]
 	return [open "|ssh $host $command '2>&1'  " $access]
@@ -62,14 +49,14 @@ namespace eval  ssh {
     #
     #
     proc sshpid {host command} {
-	AllowMe
+
 	set pipes [Pipe]
 	set rpipe [lindex $pipes 0]
 	set wpipe [lindex $pipes 1]
 #	puts "sshpid 'ssh $command'"
 	set pid [exec ssh $host $command >&@ $wpipe <@ $rpipe &]
 
-	return "$pid $rpipe $wpipe"
+	return [list $pid $rpipe $wpipe]
     }
 
     namespace export ssh sshpipe sshpid

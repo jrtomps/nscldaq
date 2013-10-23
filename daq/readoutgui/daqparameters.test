@@ -90,7 +90,7 @@ tcltest::test DAQParameters-3.1 {DAQParameters::setReadoutPath not executable} {
         set msg "Non executable worked:"
     }
     set msg
-} {DAQParameters::NotExecutable}
+} "DAQParameters::NotExecutable - [file normalize [file join $env(HERE) daqparameters.test]] is not executable therefore not a readout program"
 
 tcltest::test DAQParameters-3.2 {DAQParameters::setReadoutPath not found} {
     clearDAQParameterConfiguration
@@ -101,44 +101,15 @@ tcltest::test DAQParameters-3.2 {DAQParameters::setReadoutPath not found} {
 
     set msg
 
-} {DAQParameters::NotFound}
+} {DAQParameters::NotFound - There is no readout program at ./nosuchfile}
 
 tcltest::test DAQParameters-3.3 {DAQParameters::setReadoutPath round trip} {
     clearDAQParameterConfiguration
 
     DAQParameters::readoutPathIs [info nameofexecutable]
     DAQParameters::getReadoutPath
-
 } [info nameofexecutable]
 
-#  FtpServer manipulation .. There's an assumption that ftp.nscl.msu.edu is reachable and
-#  a valid ftp server.
-
-tcltest::test DAQParameters-4.0 {DAQParameters::ftpHostIs good host} {
-    clearDAQParameterConfiguration
-
-    DAQParameters::ftpHostIs ftp.nscl.msu.edu
-
-    Configuration::get FtpHost
-} {ftp.nscl.msu.edu}
-
-tcltest::test DAQParameters-4.1 {DAQParameters::ftpHostIs not an ftp server} {
-    clearDAQParameterConfiguration
-
-    if {![catch {DAQParameters::ftpHostIs nsclgw1.nscl.msu.edu} msg]} {
-        set msg {Bad  ftp host worked}
-    }
-    set msg
-} {DAQParameters::HostNotFTPServer}
-
-tcltest::test DAQParameters-4.2 {DAQParameters::ftpHostIs round trip} {
-    clearDAQParameterConfiguration
-
-    DAQParameters::ftpHostIs ftp.nscl.msu.edu
-
-    DAQParameters::getFtpHost
-
-} {ftp.nscl.msu.edu}
 
 #  Password handling tests.
 
@@ -196,6 +167,7 @@ tcltest::test DAQParameters-6.0 {DAQParameters::setBuffersize ok value} {
     DAQParameters::setBufferSize 16384
     set configuration::BufferSize
 } 16384
+
 tcltest::test DAQParameters-6.1 {DAQParameters::setBuffersize bad value} {
     clearDAQParameterConfiguration
 
@@ -204,7 +176,7 @@ tcltest::test DAQParameters-6.1 {DAQParameters::setBuffersize bad value} {
     }
     set msg
 
-} {DAQParameters::InvalidSize}
+} {DAQParameters::InvalidSize - Buffer sizes less than 128 are not allowed value was: 64}
 
 tcltest::test DAQParameters-6.2 {DAQParameters::setBuffersize round trip} {
     clearDAQParameterConfiguration
@@ -217,4 +189,4 @@ unset env(DAQHOST)
 unset env(EVTHOST)
 unset env(RDOFILE)
 
-tcltest::cleanupTests
+# tcltest::cleanupTests

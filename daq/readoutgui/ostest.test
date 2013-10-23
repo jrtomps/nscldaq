@@ -102,39 +102,6 @@ tcltest::test OS-2.1 {OS::DiskSpace. no setup required} {unix} {
 set testdu [exec which du]
 set testtolerance 20
 
-tcltest::test OS-3.0 {Unix::DiskSpace. Must override ::Unix::gnudu} {unix} {
-
-    set dusaved $::Unix::gnudu
-    set ::Unix::gnudu $testdu
-
-    set unixresult [::Unix::DiskSpaceWLinks .]
-    set result [exec $testdu -skcL . | tail -1]
-    set myresult [lindex $result 0]
-
-
-
-    set ::Unix::gnudu $testdu
-    if {abs($myresult - $unixresult) < $testtolerance} {
-        set return 1
-    } else {
-        set return "::Unix::DiskSpaceWLinks sb $myresult is $unixresult"
-    }
-    set return
-} 1
-
-tcltest::test OS-3.1 {::OS::DiskSpaceWlinks .} {unix} {
-    set result [exec $testdu -skcL . | tail -1]
-    set myresult [lindex $result 0]
-
-    set unixresult [::OS::DiskSpaceWLinks .]
-
-    if {abs($myresult - $unixresult) < $testtolerance} {
-        set return 1
-    } else {
-        set return "::OS::DiskSpaceWLinks sb $myresult is $unixresult"
-    }
-    set return
-} 1
 
 # 4.x FreeSpace
 

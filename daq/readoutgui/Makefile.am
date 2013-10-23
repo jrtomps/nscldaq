@@ -33,18 +33,26 @@ TCLPACKAGES=Configuration.tcl \
 	warning.tcl \
 	bells.tcl   \
 	Monitor.tcl \
-	RunTime.tcl
+	RunTime.tcl \
+	sshProvider.tcl
 
 TCLAPPS=ReadoutShell
 
 
 TCLTESTS = daqparameters.test directories.test experiment.test filesystem.test \
-	initconfig.test installroot.test  ostest.test readoutcontrol.test \
-	readoutguitest.tk  scalerparametergui.tk \
-	selectreadoutest.tk  system.test \
-	testrunner.tk tests.test
+	initconfig.test installroot.test system.test tests.test  ostest.test 
 
-EXTRA_DIST = $(TCLPACKAGES) $(TCLAPPS) $(TCLTESTS) \
+TKTESTS =	readoutguitest.tk  scalerparametergui.tk \
+	selectreadoutest.tk  tclTests.tcl \
+	testrunner.tk
+
+check-TESTS:
+	TCLLIBPATH=@prefix@/TclLibs HERE=@srcdir@ @TCLSH_CMD@ tclTests.tcl
+	@@ echo "readoutcontrol.test and tests.test load packages that produce output on stderr"
+	@@ echo "This is the source of the "Test files exiting with errors"  message."
+
+
+EXTRA_DIST = $(TCLPACKAGES) $(TCLAPPS) $(TCLTESTS) $(TKTESTS)\
 	ReadoutShell.tcl   \
 	ReadougGUIPanel.ui \
 	RunReadout.sh \

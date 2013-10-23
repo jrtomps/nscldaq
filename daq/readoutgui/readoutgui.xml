@@ -32,6 +32,12 @@
                 Tcl scripted extensions that are called at specific times.
             </para>
         </listitem>
+        <listitem>
+            <para>
+                Write a data source provider that defines how ReadoutGUI interacts
+                with data source programs.
+            </para>
+        </listitem>
     </itemizedlist>
     <para>
         For reference information see the
@@ -820,7 +826,12 @@ proc OnStart {} {
                 </listitem>
             </varlistentry>
         </variablelist>
-
+        <para>
+            For a heavily commented data source provider you can look at the file
+            <filename>$DAQROOT/TclLibs/Stager/sshProvider.tcl</filename>.  Where
+            <literal>$DAQROOT</literal> is the top level directory of an NSCLDAQ
+            11.0 or later installation tree.
+        </para>
     </section>
 </chapter>
 
@@ -1912,6 +1923,61 @@ ReadoutState::setTimedLength <replaceable>seconds</replaceable>
              order for this to mean anything.
            </para>
         </refsect1>
+      </refentry>
+      <refentry id="rdogui3-Log">
+        <refmeta>
+           <refentrytitle>Log</refentrytitle>
+           <manvolnum>3rdogui</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>Log</refname>
+           <refpurpose>Log to the output window</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+package require ReadoutGUIPanel
+          </command>
+              <command>
+ReadoutGUIPanel::Log <replaceable>source severity message</replaceable>
+              </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Produces a structured message that is displayed on the output window.
+            <parameter>source</parameter> should say something about the component
+            that created the message.  <parameter>severity</parameter> is intended to
+            describe the severity of the message (e.g. Success, Error, Warning, Failure, Info).
+            <parameter>message</parameter> is the descriptive message to output.
+           </para>
+           <para>
+            The message output will be of the form <literal>timestamp : source : severity : message</literal>
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              EXAMPLE
+           </title>
+           <informalexample>
+            <programlisting>
+ReadoutGUIPanel::Log ssh@george success {Run Started}
+            </programlisting>
+           </informalexample>
+           <para>
+            Will produce a message like:
+            </para>
+           <informalexample>
+            <programlisting>
+
+Tue Oct 22 10:48:42 EDT 2013 : ssh@george : success : Run Started
+            </programlisting>
+           </informalexample>
+        </refsect1>
+
 
       </refentry>
       <refentry id="rdogui3-isExecuting">

@@ -61,7 +61,7 @@ tcltest::test InitializeConfiguration-1.2 {InitializeConfiguration::addSubsystem
     }
     set msg
 
-} {InitializeConfiguration::NoSuchPackage}
+} {InitializeConfiguration::NoSuchPackage - configuration package does not exist could not be found in tcl library path}
 
 #  Tests for addConfigFile:
 #
@@ -87,7 +87,7 @@ tcltest::test InitializeConfiguration-2.1 {InitializeConfiguration::addConfigFil
         set msg "Nonexistent file worked!"
     }
     set msg
-} {InitializeConfiguration::FileNotFound}
+} {InitializeConfiguration::FileNotFound - Configuration file nosuchfile.anywhere could not be found}
 
 tcltest::test InitializeConfiguration-2.2 {
     InitializeConfiguration::addconfigFile protected file} {
@@ -104,7 +104,7 @@ tcltest::test InitializeConfiguration-2.2 {
 
     set msg
 
-} {InitializeConfiguration::FileNotReadable}
+	} "InitializeConfiguration::FileNotReadable - Configuration file [file normalize [file join $env(HERE) configuration.file]] is not readable by this user"
 
 
 
@@ -119,23 +119,6 @@ proc testing::setDefaults {} {
 proc testing::environmentOverrides {} {
     Configuration::Set testingEnv   done
 }
-
-tcltest::test InitializeConfiguration-3.0 {InitializeConfiguration::initialize} {
-    clearInitializationLists
-
-    InitializeConfiguration::addSubsystem testing
-    set file [::tcltest::makeFile {set testingFile done} config.file]
-    InitializeConfiguration::addConfigFile $file
-
-    InitializeConfiguration::initialize
-    ::tcltest::removeFile $file
-
-
-    foreach var {testingDefaults testingEnv testingFile} {
-        lappend valuelist [Configuration::get $var]
-    }
-    set valuelist
-} {done done done}
 
 
 namespace delete testing
