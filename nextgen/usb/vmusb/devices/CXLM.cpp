@@ -217,7 +217,7 @@ CXLM::loadFirmware(CVMUSB& controller, string path) throw(std::string)
 {
   uint32_t base = m_pConfiguration->getUnsignedParameter("-base");
 
-  cerr << hex << "Loading firmware for XLM at " << base << endl << dec;
+//  cerr << hex << "Loading firmware for XLM at " << base << endl << dec;
 
   // Prep the FPGA for loading.  Specifically:
   // 1. Set the load source to SRAMA
@@ -263,7 +263,7 @@ CXLM::loadFirmware(CVMUSB& controller, string path) throw(std::string)
 
     uint32_t owner =0;
     controller.vmeRead32(base + BUSAOwner, registerAmod, &owner);
-    cerr << "BUSA Owner is: " << owner << endl;
+//    cerr << "BUSA Owner is: " << owner << endl;
 
     // Open and read the entire fpga file into memory (can't be too large)
 
@@ -296,7 +296,7 @@ CXLM::loadFirmware(CVMUSB& controller, string path) throw(std::string)
       // release the 'force'.
       // Remove the reset from the FPGA:
       
-      cerr << "Firmware loaded in SRAMA\n";
+//      cerr << "Firmware loaded in SRAMA\n";
 
       CVMUSBReadoutList  finalize;
       finalize.addWrite32(base + BusRequest, registerAmod, (uint32_t)0);	// Release bus request.
@@ -319,7 +319,7 @@ CXLM::loadFirmware(CVMUSB& controller, string path) throw(std::string)
     }
     delete []contents;
     delete []sramAImage;
-    cerr << "FPGA Should now be started\n";
+//    cerr << "FPGA Should now be started\n";
 
   }
   
@@ -579,7 +579,7 @@ CXLM::loadSRAMA(CVMUSB& controller, void* image, uint32_t bytes) throw(std::stri
   uint32_t*           p    = reinterpret_cast<uint32_t*>(image);
   uint32_t    dest = sramA();
 
-  cerr << hex << "LOADSRAMA - SRAM A base address is " << dest << endl << dec;
+//  cerr << hex << "LOADSRAMA - SRAM A base address is " << dest << endl << dec;
 
   if (bytes == 0) return;	// Stupid edge case but we'll handle it correctly.
 
