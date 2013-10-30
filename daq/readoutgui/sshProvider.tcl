@@ -15,6 +15,7 @@
 ##
 # @file sshProvider.tcl
 # @brief Provide a data source on the end of an ssh pipeline.
+# @author Ron Fox
 #
 
 
@@ -77,10 +78,10 @@ proc ::SSHPipe::start params {
     
     # Extract the parameters from the dict:
     
-    set sid [dict get $params sourcid]
+    set sid [dict get $params sourceid]
     set host [dict get $params host]
     set program [dict get $params path]
-    set params  [dict get $params parameters]
+    set cmdparams  [dict get $params parameters]
     
     # Assume the path is locally valid as well.
     
@@ -90,7 +91,7 @@ proc ::SSHPipe::start params {
     
     #  Start the ssh pipeline:
     
-    set pipeinfo [::ssh::sshpid $host "$program $params"]
+    set pipeinfo [::ssh::sshpid $host "$program $cmdparams"]
     
     # Set up our context entry in activeProviders:
     
@@ -107,7 +108,7 @@ proc ::SSHPipe::start params {
     
     #  Set up the listener for input from the program:
     
-    fconfigure [lindex $pipeinfo 0] -blocking 0 -buffering line
+    fconfigure [lindex $pipeinfo 1] -blocking 0 -buffering line
     fileevent [lindex $pipeinfo 1] readable [list ::SSHPipe::_readable $sid]
 }
 ##
@@ -140,12 +141,11 @@ proc ::SSHPipe::stop source {
     if {[::SSHPipe::_notIdle $source]} {
         ::SSHPipe::_attemptEnd $source
     }
-    ::SSHPipe::_send exit
-    
+    ::SSHPipe::_send $source exit
+    Wait -pid [dict get $::SSHPipe::activeProviders($source) sshpid]
     
     dict set ::SSHPipe::activeProviders($source) closing true
     
-    ::SSHPipe::_close $source
 }
 ##
 # begin
@@ -162,11 +162,11 @@ proc ::SSHPipe::stop source {
 proc ::SSHPipe::begin {source runNum title} {
     
     ::SSHPipe::_errorIfDead $source
-    set sourceInfo ::SSHPipe::activeProviders($source)
+    set sourceInfo $::SSHPipe::activeProviders($source)
  
     if {[::SSHPipe::_notIdle $source]} {
-        set host [dict get $sourceInfo host]
-        set path [dict get $sourceInfo path]
+        set host [dict get $sourceInfo parameterization host]
+        set path [dict get $sourceInfo parameterization path]
         error "A run is already active in $path@$host"
     }
     
@@ -179,8 +179,10 @@ proc ::SSHPipe::begin {source runNum title} {
     
     ::SSHPipe::_send $source begin
     
+
     dict set sourceInfo idle false
     set ::SSHPipe::activeProviders($source) $sourceInfo
+
 }
 ##
 # pause
@@ -197,9 +199,10 @@ proc ::SSHPipe::pause source {
     ::SSHPipe::_errorIfDead $source
  
     if {![::SSHPipe::_notIdle $source]} {
-        set sourceInfo ::SSHPipe::activeProviders($source)
-        set host [dict get $sourceInfo host]
-        set path [dict get $sourceInfo path]
+        set sourceInfo $::SSHPipe::activeProviders($source)
+
+        set host [dict get $sourceInfo parameterization host]
+        set path [dict get $sourceInfo parameterization path]
         error "A run is not active in $path@$host so no pause is possible."
     }    
     ::SSHPipe::_send $source pause
@@ -217,9 +220,9 @@ proc ::SSHPipe::pause source {
 #
 proc ::SSHPipe::resume source {
     if {![::SSHPipe::_notIdle $source]} {
-        set sourceInfo ::SSHPipe::activeProviders($source)
-        set host [dict get $sourceInfo host]
-        set path [dict get $sourceInfo path]
+        set sourceInfo $::SSHPipe::activeProviders($source)
+        set host [dict get $sourceInfo parameterization host]
+        set path [dict get $sourceInfo parameterization path]
         error "A run is not active in $path@$host so no resume is possible."
     }    
     ::SSHPipe::_send $source resume    
@@ -237,12 +240,15 @@ proc ::SSHPipe::resume source {
 #
 proc ::SSHPipe::end source {
     if {![::SSHPipe::_notIdle $source]} {
-        set sourceInfo ::SSHPipe::activeProviders($source)
-        set host [dict get $sourceInfo host]
-        set path [dict get $sourceInfo path]
+        set sourceInfo $::SSHPipe::activeProviders($source)
+        set host [dict get $sourceInfo parameterization host]
+        set path [dict get $sourceInfo parameterization path]
         error "A run is not active in $path@$host so no end is possible."
     }    
-    ::SSHPipe::_send $source end 
+    ::SSHPipe::_send $source end
+    
+    dict set ::SSHPipe::activeProviders($source) idle true
+
 }
 ##
 # capabilities
@@ -277,13 +283,16 @@ proc ::SSHPipe::capabilities {} {
 # @param source  - Id of the source that just fired.
 #
 proc ::SSHPipe::_readable source {
+    
     set sourceInfo $::SSHPipe::activeProviders($source)
     set fd [dict get $sourceInfo inpipe]
+    catch {
+        if {[eof $fd]} {
+            ::SSHPipe::_sourceExited $source
+        } else {
     
-    if {[eof $fd]} {
-        ::SSHPipe::_sourceExited source
-    } else {
-        ::SSHPipe::_readInput
+            ::SSHPipe::_readInput $source
+        }
     }
 }
 ##
@@ -295,8 +304,10 @@ proc ::SSHPipe::_readable source {
 # @param source  - Source id of the source that exited.
 #
 proc ::SSHPipe::_sourceExited source {
+
     set sourceInfo $::SSHPipe::activeProviders($source)
-    filevent [dict get $sourceInfo inpipe] ""
+
+    fileevent [dict get $sourceInfo inpipe] readable ""
     
     dict set sourceInfo alive false
     
@@ -305,18 +316,18 @@ proc ::SSHPipe::_sourceExited source {
     set path [dict get $sourceInfo parameterization path]
     
     if {$input ne  ""} {
-        ReadoutGUIPPanel::Log SSHPipe@$host Input $input
+        ReadoutGUIPanel::Log SSHPipe@$host Input $input
         dict set sourceInfo line ""
     }
-    ReadoutGUIPPanel::Log SSHPipe@$host Exiting  \
+    ReadoutGUIPanel::Log SSHPipe@$host Exiting  \
         "Source $path@$host exited"
-    
-    Wait -pid [dict get $sourceInfo sshpid]
+
+
     
     close [dict get $sourceInfo inpipe]
     
-    if {[dict get $sourceInfo exiting]} {
-        array unset ::SSHPipe::activeProvider $sourcde
+    if {[dict get $sourceInfo closing]} {
+        array unset ::SSHPipe::activeProviders $source
     } else {
         set ::SSHPipe::activeProviders($source) $sourceInfo
     }
@@ -333,23 +344,23 @@ proc ::SSHPipe::_sourceExited source {
 # @param source - Id of the source to read from.
 #
 proc ::SSHPipe::_readInput source {
-    
+  
     set sourceInfo $::SSHPipe::activeProviders($source)
     set host [dict get $sourceInfo parameterization host]
     set path [dict get $sourceInfo parameterization path]
     
-    append data [dict get $sourceInfo line ] [read [dict get $sourceInfo inpipe]]
-
-    set line [split $data "\n"]
-    while {[llength $line] > 1} {
-        set aline "[lindex $line 0]\n"
-        ReadoutGUIPanel::Log SSHPipe@$host Input $aline
-        set line  [lreplace $line 0 0]
+    set input [read [dict get $sourceInfo inpipe]]
+    if {[string length $input] > 0} {
+        append data [dict get $sourceInfo line ] $input
+        if {[string first "\n" $data] != -1} {
+            set data [::SSHPipe::_LogCompleteLines $host $data]
+        }
+        dict set sourceInfo line $data
+    
+        
     }
     
-    dict set sourceInfo line $line
-    set activeProviders($source) $sourceInfo
-                                              
+    set ::SSHPipe::activeProviders($source) $sourceInfo                                          
 }
 
 ##
@@ -381,9 +392,8 @@ proc ::SSHPipe::_attemptEnd source {
 # @param msg    - The message to send.
 #
 proc ::SSHPipe::_send {source msg} {
-    set fd [dict get $::SSHPipe::activeProviders($source) outpipe] 
-    puts  $fd $msg
-    flush $fd
+    set fd [dict get $::SSHPipe::activeProviders($source) outpipe]
+    puts $fd $msg
 }
 ##
 # _close
@@ -401,12 +411,31 @@ proc ::SSHPipe::_close source {
 #  @throw If we are no longer connected to the source or it is shutting down:
 #
 proc ::SSHPipe::_errorIfDead source {
-    set sourceInfo ::SSHPipe::activeProviders($source)
-    set host       [dict get $sourceInfo host]
-    set program    [dict get $sourceInfo path]
+    set sourceInfo $::SSHPipe::activeProviders($source)
+    
+    set host       [dict get $sourceInfo parameterization host]
+    set program    [dict get $sourceInfo parameterization path]
     
     if {(![::SSHPipe::check $source]) || [dict get $sourceInfo closing]} {
         error "SSHPipe source $program@$host is closing or no longer running"
     }
      
+}
+##
+# _LogCompleteLines
+#
+#  Logs the complete lines from a string to the ReadoutGUIPanel text widget
+#
+# @param host   - The host we're controlling.
+# @param lines  - Text that has t least one \n in it.
+# @return string - (possibly empty) residual string defined as the stuff in lines
+#                  after the very last \n.
+#
+proc ::SSHPipe::_LogCompleteLines {host lines} {
+    set lastIndex [string last "\n" $lines ]
+    foreach line [split [string range $lines 0 [expr {$lastIndex - 1}]] "\n"] {
+        ReadoutGUIPanel::Log SSHPipe@$host Input "$line\n"
+    }
+    
+    return [string replace $lines 0 $lastIndex]
 }
