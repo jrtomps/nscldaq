@@ -197,10 +197,12 @@ CTCLWait::operator()(CTCLInterpreter& pInterp,
 
   int   rpid = waitpid(pid, &status, flags);
 
+
   // Compute and return result.
 
 
   if(rpid < 0) {
+
     Tcl_SetErrno(errno);
     rResult = Tcl_ErrnoId();
     rResult += ":";

@@ -61,10 +61,16 @@ snit::type s800rctl {
     #
     #
     destructor {
-	if {$socket ne ""} {
-	    $self setMaster
-	    close $socket
-	}
+        #
+        #  The catch is in case we're being destroyed because we lost
+        #  our connection.
+        #
+        catch {
+            if {$socket ne ""} {
+                $self setMaster
+                close $socket
+            }
+        }
     }
 
     #------------------------------------------------------------------

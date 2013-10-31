@@ -1,0 +1,410 @@
+package require tcltest
+
+# mock packages and their implementations.
+
+package provide ssh 1.0
+package provide ReadoutGUIPanel 1.0
+
+package require Wait
+package require SSHPipe_Provider
+
+namespace eval ssh {}
+namespace eval ReadoutGUIPanel {}
+
+
+namespace eval mytests {
+    variable lastpid
+    variable lastinfd
+    variable lastoutfd
+    variable logcount 0
+    variable log
+    array set log [list]
+}
+
+
+##
+# Run program over ssh (substitute a pipe)
+#
+proc ssh::sshpid {host program} {
+    set pipes [Pipe]
+    set ::mytests::lastinfd [lindex $pipes 0]
+    set ::mytests::lastoutfd [lindex $pipes 1]
+    set fd [open "|$program" a+]
+    set ::mytests::lastinfd $fd
+    set ::mytests::lastoutfd $fd
+    set ::mytests::lastpid [pid $fd]
+    fconfigure $::mytests::lastoutfd -buffering line
+    
+    return [list $::mytests::lastpid $::mytests::lastinfd $::mytests::lastoutfd]
+}
+proc ReadoutGUIPanel::Log {source severity msg} {
+    set ::mytests::log($::mytests::logcount) [dict create source $source severity $severity message $msg]
+    incr ::mytests::logcount
+}
+
+proc ::mytests::clearlog {} {
+    array unset ::mytests::log *
+    set ::mytests::logcount 0
+}
+
+# Test parameters proc:
+
+tcltest::test paramters-1 {Get the right dict from parameters} \
+-body {
+    set dict [::SSHPipe::parameters]
+    
+} -result $::SSHPipe::parameterization
+
+
+# Test Start
+
+tcltest::test start-1 {Bad program fails} \
+-body {
+    set status [catch {::SSHPipe::start \
+        [dict create sourceid 1 host localhost path junky-junk parameters ""]} \
+        msg]
+    list $status $msg
+        
+} -result [list 1 "SSHPipe data source: Cannot start junky-junk as it is not executable"]
+
+
+tcltest::test start-2 {Start echo, check activeProviders contents.} \
+-setup {
+    set cat [exec which cat];    # Full path
+} \
+-cleanup {
+    array unset ::SSHPipe::activeProviders(0)
+    ::mytests::clearlog
+} \
+-body {
+    set parameters [dict create host localhost sourceid 0 path $cat parameters ""]
+    SSHPipe::start $parameters
+    set actual [lsort $::SSHPipe::activeProviders(0)]
+    set should [lsort [dict create \
+        sshpid  $::mytests::lastpid    \
+        inpipe  $::mytests::lastinfd   \
+        outpipe $::mytests::lastoutfd  \
+        alive   true        \
+        closing false       \
+        idle    true        \
+        line    ""          \
+        parameterization $parameters \
+    ]]
+    puts $::mytests::lastoutfd "some output\n"
+    vwait ::SSHPipe::activeProviders(0)
+    exec kill -9 $::mytests::lastpid
+    vwait ::SSHPipe::activeProviders(0)
+
+    expr {$should == $actual}
+} -result 1
+
+##
+# tests for ::SSHPipe::Check.
+#
+
+tcltest::test check-1 {After start, check should give true} \
+-setup {
+    set cat [exec which cat]
+} \
+-cleanup {
+    exec kill -9 $::mytests::lastpid
+    vwait ::SSHPipe::activeProviders(0)
+    catch {fclose $::mytests::lastinfd}
+    catch {fclose $::mytests::lastoutfd}
+
+    catch {array unset ::SSHPipe::activeProviders 0}
+    ::mytests::clearlog
+    
+} \
+-body {
+    ::SSHPipe::start [dict create \
+        host localhost path $cat parameters "" sourceid 0 \
+    ]
+    puts $::mytests::lastoutfd "Some output $::mytests::lastpid"
+    vwait ::SSHPipe::activeProviders(0)
+    set ok [::SSHPipe::check 0]
+} -result true
+
+tcltest::test check-2 {After killing a started source, check should give false} \
+-setup {
+    set cat [exec which cat]
+} \
+-cleanup {
+    catch {fclose $::mytests::lastinfd}
+    catch {fclose $::mytests::lastoutfd}
+
+    catch {array unset ::SSHPipe::activeProviders 0}
+    ::mytests::clearlog
+    
+} \
+-body {
+    ::SSHPipe::start [dict create \
+        host localhost path $cat parameters "" sourceid 0 \
+    ]
+    puts $::mytests::lastoutfd "Some output $::mytests::lastpid"
+    vwait ::SSHPipe::activeProviders(0)
+    
+    exec kill -9 $::mytests::lastpid
+    vwait ::SSHPipe::activeProviders(0);    #Wait for sshpipe to notice exit.
+    vwait ::SSHPipe::activeProviders(0)
+    vwait ::SSHPipe::activeProviders(0)
+    SSHPipe::check 0
+     
+}  -result false
+
+# Tests for stop
+#
+tcltest::test stop-1 {After starting a source stopping it kills/cleans it} \
+-setup {
+    set tclsh $::env(tcl)
+    ::SSHPipe::start [dict create \
+        host localhost path $tclsh parameters "" sourceid 0 \
+    ]
+
+} \
+-cleanup {
+    ::mytests::clearlog
+} \
+-body {
+    ::SSHPipe::stop 0
+    vwait ::SSHPipe::activeProviders(0);   #Echo of exit command
+    vwait ::SSHPipe::activeProviders(0);   #EOF?
+    array names ::SSHPipe::activeProviders 0
+    
+} -result ""
+
+#  Test begin
+
+tcltest::test begin-1 {begin on an idle run is ok} \
+-setup {
+   set cat [exec which cat]
+   ::SSHPipe::start [dict create \
+        host localhost path $cat parameters "" sourceid 0 \
+    ]
+   
+} \
+-cleanup {
+    exec kill -9 $::mytests::lastpid
+    vwait ::SSHPipe::activeProviders(0);   #blank
+    vwait ::SSHPipe::activeProviders(0);   #EOF (i Hope). 
+     ::mytests::clearlog
+    catch {array unset ::SSHPipe::activeProviders(0)}
+} \
+-body {
+    ::SSHPipe::begin 0 1234 {This is a test}
+    vwait ::SSHPipe::activeProviders(0);  # Wait for echo set run
+    vwait ::SSHPipe::activeProviders(0);  # Set title
+    vwait ::SSHPipe::activeProviders(0);  # begin
+    vwait ::SSHPipe::activeProviders(0);
+       
+    set state [dict get $::SSHPipe::activeProviders(0) idle]
+    set msgCount $::mytests::logcount
+    list $state $msgCount $::mytests::log(0) $::mytests::log(1) $::mytests::log(2)
+} -result [list false 3 [dict create source \
+    SSHPipe@localhost severity Input message "set run 1234\n"] \
+    [dict create source SSHPipe@localhost severity Input message "set title {This is a test}\n"] \
+    [dict create source SSHPipe@localhost severity Input message "begin\n"] \
+    ]
+
+tcltest::test begin-2 {begin on a run that is not idle fails} \
+-setup {
+   set cat [exec which cat]
+   ::SSHPipe::start [dict create \
+        host localhost path $cat parameters "" sourceid 0 \
+    ]    
+} \
+-cleanup {
+    exec kill -9 $::mytests::lastpid
+    vwait ::SSHPipe::activeProviders(0);   #blank
+    vwait ::SSHPipe::activeProviders(0);   #EOF (i Hope). 
+     ::mytests::clearlog
+    catch {array unset ::SSHPipe::activeProviders(0)} 
+} \
+-body {
+    ::SSHPipe::begin 0 1234 {This is a test}
+    vwait ::SSHPipe::activeProviders(0);  # Wait for echo set run
+    vwait ::SSHPipe::activeProviders(0);  # Set title
+    vwait ::SSHPipe::activeProviders(0);  # begin
+    vwait ::SSHPipe::activeProviders(0);
+    
+    # Already running so begin should fail
+    
+    set status [catch {::SSHPipe::begin 0 124 {This is a test}} msg]
+    list $status $msg
+      
+} -result [list 1 "A run is already active in [exec which cat]@localhost"]
+## Tests for Pause
+#
+
+tcltest::test pause-1 {Pause running run ok} \
+-setup {
+   set cat [exec which cat]
+   ::SSHPipe::start [dict create \
+        host localhost path $cat parameters "" sourceid 0 \
+    ]    
+} \
+-cleanup {
+    exec kill -9 $::mytests::lastpid
+    vwait ::SSHPipe::activeProviders(0);   #blank
+    vwait ::SSHPipe::activeProviders(0);   #EOF (i Hope). 
+     ::mytests::clearlog
+    catch {array unset ::SSHPipe::activeProviders(0)} 
+} \
+-body {
+    ::SSHPipe::begin 0 1234 {This is a test}
+    vwait ::SSHPipe::activeProviders(0);  # Wait for echo set run
+    vwait ::SSHPipe::activeProviders(0);  # Set title
+    vwait ::SSHPipe::activeProviders(0);  # begin
+    vwait ::SSHPipe::activeProviders(0);
+    vwait ::SSHPipe::activeProviders(0);
+    vwait ::SSHPipe::activeProviders(0);
+
+    ::mytests::clearlog;                 # fresh log:
+    ::SSHPipe::pause 0
+    vwait ::SSHPipe::activeProviders(0);  # Pause
+        
+    list $::mytests::logcount $::mytests::log(0)
+    
+} -result [list 1 [dict create source SSHPipe@localhost severity Input message "pause\n"]]
+
+tcltest::test pause-2 {Pause run that is idle (fails)} \
+-setup {
+   set cat [exec which cat]
+   ::SSHPipe::start [dict create \
+        host localhost path $cat parameters "" sourceid 0 \
+    ]    
+} \
+-cleanup {
+    exec kill -9 $::mytests::lastpid
+    vwait ::SSHPipe::activeProviders(0);   #blank
+    vwait ::SSHPipe::activeProviders(0);   #EOF (i Hope). 
+     ::mytests::clearlog
+    catch {array unset ::SSHPipe::activeProviders(0)} 
+} \
+-body {
+    set status [catch {SSHPipe::pause 0} msg]
+    list $status $msg
+} -result [list 1 "A run is not active in [exec which cat]@localhost so no pause is possible."]
+
+
+## Tests for the end operation note end is really just like pause but
+#  afterwards on success we are in the idle state:
+
+tcltest::test end-1 {End running run ok} \
+-setup {
+   set cat [exec which cat]
+   ::SSHPipe::start [dict create \
+        host localhost path $cat parameters "" sourceid 0 \
+    ]    
+} \
+-cleanup {
+    exec kill -9 $::mytests::lastpid
+    vwait ::SSHPipe::activeProviders(0);   #blank
+    vwait ::SSHPipe::activeProviders(0);   #EOF (i Hope). 
+     ::mytests::clearlog
+    catch {array unset ::SSHPipe::activeProviders(0)} 
+} \
+-body {
+    ::SSHPipe::begin 0 1234 {This is a test}
+    vwait ::SSHPipe::activeProviders(0);  # Wait for echo set run
+    vwait ::SSHPipe::activeProviders(0);  # Set title
+    vwait ::SSHPipe::activeProviders(0);  # begin
+    vwait ::SSHPipe::activeProviders(0);
+    vwait ::SSHPipe::activeProviders(0);
+    vwait ::SSHPipe::activeProviders(0);
+    vwait ::SSHPipe::activeProviders(0);
+    
+    ::mytests::clearlog;                 # fresh log:
+    ::SSHPipe::end 0
+    vwait ::SSHPipe::activeProviders(0);  # Pause
+    set state [dict get $::SSHPipe::activeProviders(0) idle]
+        
+    list $::mytests::logcount $state $::mytests::log(0)
+    
+} -result [list 1 true [dict create source SSHPipe@localhost severity Input message "end\n"]]
+
+tcltest::test end-2 {End run that is idle (fails)} \
+-setup {
+   set cat [exec which cat]
+   ::SSHPipe::start [dict create \
+        host localhost path $cat parameters "" sourceid 0 \
+    ]    
+} \
+-cleanup {
+    exec kill -9 $::mytests::lastpid
+    vwait ::SSHPipe::activeProviders(0);   #blank
+    vwait ::SSHPipe::activeProviders(0);   #EOF (i Hope). 
+     ::mytests::clearlog
+    catch {array unset ::SSHPipe::activeProviders(0)} 
+} \
+-body {
+    set status [catch {SSHPipe::end 0} msg]
+    list $status $msg
+} -result [list 1 "A run is not active in [exec which cat]@localhost so no end is possible."]
+
+# Resume is like a begin, however it is required _not_ to be idle.
+
+tcltest::test resume-1 {resume on an active run is ok} \
+-setup {
+   set cat [exec which cat]
+   ::SSHPipe::start [dict create \
+        host localhost path $cat parameters "" sourceid 0 \
+    ]
+   
+} \
+-cleanup {
+    exec kill -9 $::mytests::lastpid
+    vwait ::SSHPipe::activeProviders(0);   #blank
+    vwait ::SSHPipe::activeProviders(0);   #EOF (i Hope). 
+     ::mytests::clearlog
+    catch {array unset ::SSHPipe::activeProviders(0)}
+} \
+-body {
+    ::SSHPipe::begin 0 1234 {This is a test}
+    vwait ::SSHPipe::activeProviders(0);  # Wait for echo set run
+    vwait ::SSHPipe::activeProviders(0);  # Set title
+    vwait ::SSHPipe::activeProviders(0);  # begin
+    vwait ::SSHPipe::activeProviders(0);
+    
+    ::SSHPipe::pause 0
+    vwait ::SSHPipe::activeProviders(0);   # Pause the run (in case we use full state machine)
+    ::mytests::clearlog
+
+    ::SSHPipe::resume 0;                   #legally resume the run.
+    vwait ::SSHPipe::activeProviders(0)
+    
+       
+    set state [dict get $::SSHPipe::activeProviders(0) idle]
+    set msgCount $::mytests::logcount
+    list $state $msgCount $::mytests::log(0)
+} -result [list false 1 [dict create source \
+    SSHPipe@localhost severity Input message "resume\n"]
+    ]
+
+tcltest::test resume-2 {begin on a run that is not idle fails} \
+-setup {
+   set cat [exec which cat]
+   ::SSHPipe::start [dict create \
+        host localhost path $cat parameters "" sourceid 0 \
+    ]    
+} \
+-cleanup {
+    exec kill -9 $::mytests::lastpid
+    vwait ::SSHPipe::activeProviders(0);   #blank
+    vwait ::SSHPipe::activeProviders(0);   #EOF (i Hope). 
+     ::mytests::clearlog
+    catch {array unset ::SSHPipe::activeProviders(0)} 
+} \
+-body {
+ 
+    # not running so begin should fail
+    
+    set status [catch {::SSHPipe::resume 0} msg]
+    list $status $msg
+      
+} -result [list 1 "A run is not active in [exec which cat]@localhost so no resume is possible."]
+
+
+# Report results:
+
+tcltest::cleanupTests

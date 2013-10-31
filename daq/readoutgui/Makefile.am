@@ -34,20 +34,21 @@ TCLPACKAGES=Configuration.tcl \
 	bells.tcl   \
 	Monitor.tcl \
 	RunTime.tcl \
-	sshProvider.tcl
+	sshProvider.tcl s800Provider.tcl
 
 TCLAPPS=ReadoutShell
 
 
 TCLTESTS = daqparameters.test directories.test experiment.test filesystem.test \
-	initconfig.test installroot.test system.test tests.test  ostest.test 
+	initconfig.test installroot.test system.test tests.test  ostest.test \
+	sshpipe.test s800.test
 
 TKTESTS =	readoutguitest.tk  scalerparametergui.tk \
 	selectreadoutest.tk  tclTests.tcl \
 	testrunner.tk
 
 check-TESTS:
-	TCLLIBPATH=@prefix@/TclLibs HERE=@srcdir@ @TCLSH_CMD@ tclTests.tcl
+	TCLLIBPATH=@prefix@/TclLibs HERE=@srcdir@ tcl=@TCLSH_CMD@ @TCLSH_CMD@ tclTests.tcl
 	@@ echo "readoutcontrol.test and tests.test load packages that produce output on stderr"
 	@@ echo "This is the source of the "Test files exiting with errors"  message."
 
@@ -59,7 +60,7 @@ EXTRA_DIST = $(TCLPACKAGES) $(TCLAPPS) $(TCLTESTS) $(TKTESTS)\
 	scalerParameterDialog.ui \
 	selectReadout.ui \
 	warning.tcl InstallRoot.tcl.in \
-	readoutgui.xml RunState.eps RunState.jpg
+	readoutgui.xml RunState.eps RunState.jpg s800fake.tcl
 
 
 bin_PROGRAMS =  SecretTk
