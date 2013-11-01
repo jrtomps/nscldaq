@@ -106,6 +106,16 @@ Name             Type        Default         Meaning
 -readscalers      bool       false          If true the module scalers are read (first A then B).
 -incremental      bool       true           If true, the scalers are cleared after the read.
 
+-transfer_after_timeout bool false          If true, the module emits packet end signal after 
+                                            the time specified by -transfertimeout
+-transfer_after_nevents bool false          If true, the module emits packet end signal after
+                                            the number of events specified by -transferafter 
+
+-transfertimeout integer    0               Number of seconds in excess of 1 second after
+                                            which a packet end signal is issued. limited to [0-15]
+-transferafter   integer    0               Number of events after which the packet end signal 
+                                            is issued. Must be in range [0,255].
+
 
 \endverbatim
 
@@ -148,6 +158,7 @@ private:
   void configureGdg2(CCCUSB& controller);
   void configureDevices(CCCUSB& controller);
   void configureLED(CCCUSB& controller);
+  void configureBulkTransfer(CCCUSB& controller);
 };
 
 #endif

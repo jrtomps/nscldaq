@@ -88,6 +88,9 @@ static const char* scalerBInputs[] = {
   "disabled", "nimi1", "nimi2", "nimi3", "event", "carrya", "dgga", "dggb", 0
 };
 
+static const char* bulkTransferModeValues[] = {
+  "timeout", "nevents", 0
+};
 
 
 // Range of gdg delays/widths
@@ -107,6 +110,18 @@ static CConfigurableObject::limit maxdelayb(0x7fffffff);
 static CConfigurableObject::Limits DelayA(mindelay, maxdelaya);
 static CConfigurableObject::Limits DelayB(mindelay, maxdelayb);
 
+// bulk transfer timeout:
+
+static CConfigurableObject::limit minTransferTimeout(0);
+static CConfigurableObject::limit maxTransferTimeout(15);
+static CConfigurableObject::Limits TransferTimeoutLimits(minTransferTimeout,
+                                                         maxTransferTimeout);
+// bulk transfer nevents:
+
+static CConfigurableObject::limit minTransferNumEvents(0);
+static CConfigurableObject::limit maxTransferNumEvents(255);
+static CConfigurableObject::Limits TransferNumEventsLimits(minTransferNumEvents,
+                                                           maxTransferNumEvents);
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // Canonicals:
@@ -227,6 +242,18 @@ CCCUSBModule::onAttach(CReadoutModule& configuration)
   configuration.addBooleanParameter("-readscalers", false);
   configuration.addBooleanParameter("-incremental", false);
 
+  // Control bulk transfer 
+
+  configuration.addBooleanParameter("-transfer_after_timeout", false);
+  configuration.addParameter("-transfertimeout",
+                                CConfigurableObject::isInteger,
+                                &TransferTimeoutLimits,"0");
+                                
+  configuration.addBooleanParameter("-transfer_after_nevents", false);
+  configuration.addParameter("-transferafter",
+                              CConfigurableObject::isInteger,
+                              &TransferNumEventsLimits,"0");
+
 }
 /*!
 
@@ -245,7 +272,7 @@ CCCUSBModule::Initialize(CCCUSB& controller)
   configureDevices(controller);
   configureOutput(controller);
   configureLED(controller);
-
+  configureBulkTransfer(controller);
 
 }
  
@@ -505,3 +532,48 @@ CCCUSBModule::configureLED(CCCUSB& controller)
   controller.writeLedSelector(registerValue);
   
 } 
+
+
+/**
+ * configureBulkTransfer
+ *
+ * Configure the value of the bulk transfer register.  This determines when data buffers are
+ * transferred from the usb device to the host computer. Care should be taken when setting 
+ * because an improper configuration will greatly change the performance of the device. 
+ *
+ * @param controller - reference to the CC-USB  object that represents the CAMAC controller.
+ *
+ */
+void 
+CCCUSBModule::configureBulkTransfer(CCCUSB& controller)
+{
+    uint32_t registerValue;
+
+    // Read the current settings
+    controller.readUSBBulkTransferSetup(registerValue);
+
+    // If user specified the timeout, set those bits appropriately
+    if (getBoolParameter("-transfer_after_timeout")) {
+        uint32_t timeout = ( m_pConfiguration->getIntegerParameter("-transfertimeout")
+                << CCCUSB::TransferSetupRegister::timeoutShift );
+
+        // Set only the timeout bits without disturbing the remaining bits
+        registerValue &= ( ~ CCCUSB::TransferSetupRegister::timeoutMask );
+        registerValue |= (timeout && CCCUSB::TransferSetupRegister::timeoutMask) ;
+    } 
+
+    // If user specified the nevents, set those bits appropriately
+    if (getBoolParameter("-transfer_after_nevents")) {
+        uint32_t nevents = ( m_pConfiguration->getIntegerParameter("-transferafter")
+                << CCCUSB::TransferSetupRegister::multiBufferCountShift );
+
+        // Set only the nevents bits without disturbing the remaining bits
+        registerValue &= ( ~ CCCUSB::TransferSetupRegister::multiBufferCountMask );
+        registerValue |= (nevents && CCCUSB::TransferSetupRegister::multiBufferCountMask) ;
+    }
+
+    // if the user did not choose to configure the register differently, the
+    // same settings that were read from the register are written back.
+    controller.writeUSBBulkTransferSetup(registerValue);
+
+}

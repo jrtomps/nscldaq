@@ -346,20 +346,6 @@ CAcquisitionThread::startDaq()
   				CCCUSB::OutputSourceRegister::nimO2Acquire |
   				CCCUSB::OutputSourceRegister::nimO3BusyEnd);
 
-
-  // The CCUSB has two stacks to load; an event stack and a scaler stack.
-  // though the loop below makes you believe it might have an arbitrary number...
-  // it still should work.
-
-  cerr << "Loading " << Stacks.size() << " Stacks to cc-usb\n";
-  for(int i =0; i < Stacks.size(); i++) {
-    CStack* pStack = dynamic_cast<CStack*>(Stacks[i]->getHardwarePointer());
-    assert(pStack);
-    pStack->Initialize(*m_pCamac);    // INitialize daq hardware associated with the stack.
-    pStack->loadStack(*m_pCamac);     // Load into CC-USB .. The stack knows if it is event or scaler
-    pStack->enableStack(*m_pCamac);   // Enable the trigger logic for the stack.
-  }
- 
   // Set up the buffer size and mode:
   // don't want multibuffering...1sec timeout is fine.
 
@@ -374,7 +360,18 @@ CAcquisitionThread::startDaq()
   m_pCamac->writeGlobalMode((CCCUSB::GlobalModeRegister::bufferLen4K << CCCUSB::GlobalModeRegister::bufferLenShift));
 
 
- 
+  // The CCUSB has two stacks to load; an event stack and a scaler stack.
+  // though the loop below makes you believe it might have an arbitrary number...
+  // it still should work.
+
+  cerr << "Loading " << Stacks.size() << " Stacks to cc-usb\n";
+  for(int i =0; i < Stacks.size(); i++) {
+    CStack* pStack = dynamic_cast<CStack*>(Stacks[i]->getHardwarePointer());
+    assert(pStack);
+    pStack->Initialize(*m_pCamac);    // INitialize daq hardware associated with the stack.
+    pStack->loadStack(*m_pCamac);     // Load into CC-USB .. The stack knows if it is event or scaler
+    pStack->enableStack(*m_pCamac);   // Enable the trigger logic for the stack.
+  }
 
   CCusbToAutonomous();
 
