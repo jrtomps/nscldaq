@@ -126,6 +126,8 @@ public:
       writeActionRegister((uint16_t)value);
     }
 
+    // Create an empty readout list
+    CCCUSBReadoutList* createReadoutList() const;
 
     // The following execute single CAMAC operations.
     // note that the CC-USB defines all registers but the action register to live in

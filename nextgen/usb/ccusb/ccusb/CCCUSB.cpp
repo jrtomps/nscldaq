@@ -200,6 +200,17 @@ CCCUSB::reconnect()
   openUsb();
 }
 
+
+/** Create a readout list that this understands.
+ *
+ * @return an empty CCCUSBReadoutList
+ */
+CCCUSBReadoutList*
+CCCUSB::createReadoutList() const 
+{
+  return new CCCUSBReadoutList;
+}
+
 ////////////////////////////////////////////////////////////////////
 //////////////////////// Register operations ///////////////////////
 ////////////////////////////////////////////////////////////////////

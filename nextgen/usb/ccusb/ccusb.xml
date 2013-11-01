@@ -3607,6 +3607,11 @@ Get <replaceable>name parameter</replaceable>
               </methodparam>
             </methodsynopsis>
             <methodsynopsis>
+              <type>CCCUSBReadoutList*</type>
+              <methodname>createReadoutList</methodname>
+                <void />
+            </methodsynopsis>
+            <methodsynopsis>
               <type>int</type>
               <methodname>simpleWrite16</methodname>
               <methodparam>
@@ -4682,6 +4687,20 @@ Get <replaceable>name parameter</replaceable>
                             supplies symoblic definitions for bits in the action
                             register.  See the Action register section of 
                             PUBLIC VARIABLES, TYPES and CONSTANTS below.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <methodsynopsis>
+                         <type>CCCUSBReadoutList*</type>
+                         <methodname>createReadoutList<methodname>
+                         <void />
+                       </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Creates an empty readout list. 
                         </para>
                     </listitem>
                 </varlistentry>
@@ -9858,6 +9877,11 @@ cccusb::CCCUSB_serialNo <replaceable>usb-device</replaceable>
             <cmdsynopsis>
                 <command>
 <replaceable>object</replaceable> writeActionRegister <replaceable>value</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> createReadoutList
                 </command>
             </cmdsynopsis>
             <cmdsynopsis>
