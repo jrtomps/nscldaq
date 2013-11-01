@@ -5627,6 +5627,10 @@ stack config scalers -trigger scaler -modules $scalers -period 2
            </methodparam>
         </constructorsynopsis>
         <methodsynopsis>
+            <type>CVMUSBReadoutList*</type> <methodname>createReadoutList</methodname>
+            <void />
+        </methodsynopsis>
+        <methodsynopsis>
             <type>void</type> <methodname>writeActionRegister</methodname>
             <methodparam>
                 <type>uint16_t</type> <parameter>value</parameter>
@@ -6823,6 +6827,19 @@ stack config scalers -trigger scaler -modules $scalers -period 2
                         Constructs a <classname>CVMUSB</classname> object given
                         a <type>usb_device</type> pointer typically gotten from
                         <methodname>CVMUSB::enumerate</methodname>
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <type>CVMUSBReadoutList*</type> <methodname>createReadoutList</methodname>
+                        <void />
+                    </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Creates an empty readout list.
                     </para>
                 </listitem>
             </varlistentry>
@@ -12038,6 +12055,11 @@ package require cvmusb
         <cmdsynopsis>
             <command>
 <replaceable>object</replaceable> readVector
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> createReadoutList 
             </command>
         </cmdsynopsis>
         <cmdsynopsis>

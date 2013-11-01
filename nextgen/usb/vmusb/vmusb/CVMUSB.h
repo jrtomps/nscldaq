@@ -202,6 +202,9 @@ public:
     }
 
 
+
+    // create an empty CVMUSBReadoutList
+    CVMUSBReadoutList* createReadoutList() const;
     
 
     // VME transfer operations (1 shot)
