@@ -114,7 +114,17 @@ AX_TCL
 #  those in m4/tcl.m4
 #
 TCL_FLAGS="${TCL_CPPFLAGS} ${TK_CPPFLAGS}"
-TCL_LDFLAGS="${TK_LIBS} ${TCL_LIBS}"
+
+# Check for redundancy of libieee in the LD_LIBS
+TCL_LDFLAGS=${TK_LIBS}
+for tclname in ${TCL_LIBS}
+do
+    if test $tclname != "-lieee" 
+    then 
+        TCL_LDFLAGS="$TCL_LDFLAGS $tclname"
+    fi
+done
+#TCL_LDFLAGS="${TK_LIBS} ${TCL_LIBS}"
 TCLSH_CMD=${TCLSH} 
 
 
