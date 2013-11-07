@@ -44,7 +44,7 @@ tcltest::test S800-parameters-1 {Check contents of the s800 parameter dict: } \
 tcltest::test S800-capabilities-1 {Check contents of s800 capabilities dict} \
 -body {
     ::S800::capabilities
-} -result [dict create canpause false runsHaveTitles true runsHaveNumbers true]
+} -result [dict create canPause false runsHaveTitles true runsHaveNumbers true]
 
 ## start tests.
 

@@ -2,6 +2,7 @@
 
 package require tcltest
 
+
 # Setup the tests by ensuring that we have a package
 # directory for the script dir and that it is in the
 # auto_path.
@@ -16,7 +17,9 @@ if {[file exists [file join $here pkgIndex.tcl]]} {
     file rename [file join $here pkgIndex.tcl] \
                 [file join $here pkgIndex.tcl.saved]
 }
+
 pkg_mkIndex $here *.tcl
+
 
 #  Set up the configuration of the directory system:
 
@@ -24,10 +27,12 @@ pkg_mkIndex $here *.tcl
 package require ExpFileSystemConfig
 package require ExpFileSystem
 
+
+
 # We'll set up a staging area and an expdir below us:
 
 set stagearea [::tcltest::makeDirectory stagearea]
-set expdir    [file join stagearea .. expdir]
+set expdir    [file join $stagearea .. expdir]
 
 set env(EVENTS) $stagearea
 set env(EXPDIR) $expdir
@@ -50,7 +55,10 @@ proc isDirectory {path} {
     return 1
 }
 
+
+
 # Test ability to create correct root names.
+
 
 tcltest::test ExpFileSystem-1.0 {ExpFileSystem::GetStage} {
     ExpFileSystem::GetStage

@@ -1,0 +1,10 @@
+##
+# Very simple ssh program simulator
+# just copies stdin to stdout a line at a time:
+
+while {![eof stdin]} {
+    if {![eof stdout]} {
+        puts [gets stdin]
+        flush stdout
+    }
+}

@@ -209,7 +209,7 @@ proc ::S800::end id {
 #
 proc S800::capabilities {} {
     return [dict create \
-        canpause        false   \
+        canPause        false   \
         runsHaveTitles  true    \
         runsHaveNumbers true    \
     ]

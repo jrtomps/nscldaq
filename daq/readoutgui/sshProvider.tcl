@@ -219,12 +219,14 @@ proc ::SSHPipe::pause source {
 #         word that we are not already paused.
 #
 proc ::SSHPipe::resume source {
+
     if {![::SSHPipe::_notIdle $source]} {
         set sourceInfo $::SSHPipe::activeProviders($source)
         set host [dict get $sourceInfo parameterization host]
         set path [dict get $sourceInfo parameterization path]
         error "A run is not active in $path@$host so no resume is possible."
-    }    
+    }
+
     ::SSHPipe::_send $source resume    
 }
 ##
@@ -255,12 +257,12 @@ proc ::SSHPipe::end source {
 #    Returns a dict with the capabilities of SSHPipe data sources.
 #
 #  This fills in the following:
-#  *   canpause        - true
+#  *   canPause        - true
 #  *   runsHaveTitles  - true
 #  *   runsHaveNumbers - true
 #
 proc ::SSHPipe::capabilities {} {
-    return [dict create canpause true runsHaveTitles true runsHaveNumbers true]
+    return [dict create canPause true runsHaveTitles true runsHaveNumbers true]
 }
 #-------------------------------------------------------------------------------
 # Private utilities:
@@ -283,14 +285,12 @@ proc ::SSHPipe::capabilities {} {
 # @param source  - Id of the source that just fired.
 #
 proc ::SSHPipe::_readable source {
-    
     set sourceInfo $::SSHPipe::activeProviders($source)
     set fd [dict get $sourceInfo inpipe]
     catch {
         if {[eof $fd]} {
             ::SSHPipe::_sourceExited $source
         } else {
-    
             ::SSHPipe::_readInput $source
         }
     }
@@ -304,7 +304,6 @@ proc ::SSHPipe::_readable source {
 # @param source  - Source id of the source that exited.
 #
 proc ::SSHPipe::_sourceExited source {
-
     set sourceInfo $::SSHPipe::activeProviders($source)
 
     fileevent [dict get $sourceInfo inpipe] readable ""
@@ -324,8 +323,8 @@ proc ::SSHPipe::_sourceExited source {
 
 
     
-    close [dict get $sourceInfo inpipe]
-    
+    catch {close [dict get $sourceInfo inpipe]} message
+      
     if {[dict get $sourceInfo closing]} {
         array unset ::SSHPipe::activeProviders $source
     } else {
@@ -350,13 +349,13 @@ proc ::SSHPipe::_readInput source {
     set path [dict get $sourceInfo parameterization path]
     
     set input [read [dict get $sourceInfo inpipe]]
+
     if {[string length $input] > 0} {
         append data [dict get $sourceInfo line ] $input
         if {[string first "\n" $data] != -1} {
             set data [::SSHPipe::_LogCompleteLines $host $data]
         }
         dict set sourceInfo line $data
-    
         
     }
     
@@ -393,7 +392,8 @@ proc ::SSHPipe::_attemptEnd source {
 #
 proc ::SSHPipe::_send {source msg} {
     set fd [dict get $::SSHPipe::activeProviders($source) outpipe]
-    puts $fd $msg
+    puts -nonewline $fd "$msg\n"
+    flush $fd
 }
 ##
 # _close

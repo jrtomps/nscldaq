@@ -9,7 +9,7 @@
 # The proc names 'ui' and 'init' are reserved.
 #
 
-package require Tk 8.4
+package require Tk
 package require ScalerParameterGUI
 package require selectReadoutDialog
 # Declare the namespace for this dialog
@@ -43,7 +43,7 @@ namespace eval ReadoutGUIPanel {
 }
 
 # Source the ui file, which must exist
-source [file join [file dirname [info script]] ReadoutGUIPanel_ui.tcl]
+source [file join [file dirname [info script]] ReadougGUIPanel_ui.tcl]
 
 # BEGIN USER CODE
 package provide ReadoutGUIPanel 1.0
@@ -598,7 +598,7 @@ proc ReadoutGUIPanel::outputText text {
 #  @param sev - severity of the log 
 #  @param msg - The message to log
 #
-proc RedougGUIPanel::Log {src sev msg} {
+proc ReadoutGUIPanel::Log {src sev msg} {
     set timestamp [clock format [clock seconds]]
     set msg "$timestamp : $src : $sev - $msg"
     outputText $msg
