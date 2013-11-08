@@ -28,17 +28,18 @@ package require fileutil
 #
 if {[info proc ::fileutil::relative] eq ""} {
     namespace eval ::fileutil {}; # Otherwise pkg_mkIndex fails.
+    ##
     # ::fileutil::relative --
     #
     #	Taking two _directory_ paths, a base and a destination, computes the path
     #	of the destination relative to the base.
     #
     # Arguments:
-    #	base	The path to make the destination relative to.
-    #	dst	The destination path
+    #	@param base	The path to make the destination relative to.
+    #	@param dst	The destination path
     #
     # Results:
-    #	The path of the destination, relative to the base.
+    #	@return string - The path of the destination, relative to the base.
 
     proc ::fileutil::relative {base dst} {
 	# Ensure that the link to directory 'dst' is properly done relative to
@@ -140,7 +141,7 @@ proc Experiment::link {destination source} {
 
 # Experiment::runcompare
 #    Compares two run files and determines which
-#    is the smaller.
+#    is the smaller earlier run (smaller run number).
 proc Experiment::runcompare {r1 r2} {
     set r1 [file tail $r1]
     set r2 [file tail $r2]
