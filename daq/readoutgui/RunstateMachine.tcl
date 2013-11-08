@@ -349,7 +349,7 @@ snit::type RunstateMachineSingleton {
         }
         # The delegates and this magic take care of the rest.
         
-        install StateMachine using [set $actualObject]
+        install StateMachine using set actualObject
         
     }
 }

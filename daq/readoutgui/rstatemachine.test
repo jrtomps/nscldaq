@@ -402,6 +402,40 @@ tcltest::test introspect-getstate {Check that we can know the current state} \
     set result
 } -result [list Active Halted NotReady Paused Starting]
 
+
+#-----------------------------------------------------------------------------
+#
+# Singleton tests
+
+tcltest::test singleton {Check that instantiating a two runstate singletons refer to the same beast} \
+-setup {
+    set s1 [RunstateMachineSingleton %AUTO%]
+    set s2 [RunstateMachineSingleton %AUTO%]
+    namespace eval testBundle {
+        variable action ""
+        proc enter {old new} {
+            variable action
+            set action [list enter $old $new]
+        }
+        proc leave {old new} {
+            variable action
+          #  set action [list left $old $new]
+        }
+        proc attach {current} {
+            variable action
+           # set action [list attach $current]
+        }
+        namespace export enter leave attach
+    }
+    $s1 addCalloutBundle testBundle       
+} \
+-cleanup {
+    $s1 removeCalloutBundle testBundle;   #In case we get more singleton tests
+} \
+-body {
+    $s2 listCalloutBundles
+} -result testBundle
+
 #-----------------------------------------------------------------------------
 #  
 
