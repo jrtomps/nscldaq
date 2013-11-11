@@ -1,0 +1,233 @@
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2013.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Author:
+#            Ron Fox
+#            NSCL
+#            Michigan State University
+#            East Lansing, MI 48824-1321
+
+##
+# @file eventlog.test
+# @brief Tests for the eventlog bundle package.
+# @author Ron Fox <fox@nscl.msu.edu>
+
+
+package require tcltest
+package require eventLogBundle
+package require ReadoutState
+package require RunstateMachine
+package require Configuration
+package require ExpFileSystem
+
+
+#------------------------------------------------------------------------------
+#  eventlogBundle is a bundle and can be registered/unregistered.
+
+tcltest::test register {::EventLog::register registers the bundle with the singleton} \
+-setup {
+    set m [RunstateMachineSingleton %AUTO%]
+    
+} \
+-cleanup {
+    $m removeCalloutBundle EventLog
+    $m destroy
+} \
+-body {
+    ::EventLog::register
+    $m listCalloutBundles
+} -result EventLog
+
+
+tcltest::test unregister {::EventLog::unregister unregisters the bundle with the singleton} \
+-setup {
+    set m [RunstateMachineSingleton %AUTO%]
+    ::EventLog::register
+} \
+-cleanup {
+   
+    $m destroy
+} \
+-body {
+    ::EventLog::unregister
+    $m listCalloutBundles
+} -result [list]
+
+#-----------------------------------------------------------------------------
+# Test the data/control methods:
+#
+
+tcltest::test getPid {::EventLog::getPid reflects the ::EventLog::loggerPid value} \
+-setup {
+    set oldPid $::EventLog::loggerPid
+    set ::EventLog::loggerPid 1234
+} \
+-cleanup {
+    set ::EventLog::loggerPid $oldPid;    # Restore original value.
+} \
+-body {
+    ::EventLog::getPid
+} -result 1234
+
+tcltest::test setStartupTimeout {::EventLog::startupTimeout should reflect settings} \
+-setup {
+    set oldValue $::EventLog::startupTimeout
+} \
+-cleanup {
+    set ::EventLog::startupTimeout $oldValue
+} \
+-body {
+    ::EventLog::setStartupTimeout 666
+    set ::EventLog::startupTimeout
+} -result 666
+
+tcltest::test getStartupTimeout {EventLog::getStartupTimeout shouild reflect the variable} \
+-setup {
+    set oldValue $::EventLog::startupTimeout
+    ::EventLog::setStartupTimeout 12345
+} \
+-cleanup {
+    ::EventLog::setStartupTimeout $oldValue
+} \
+-body {
+    ::EventLog::getStartupTimeout
+} -result 12345
+
+tcltest::test getShutdownTimeout {::EventLog::getShutdownTimeout should reflect the variable} \
+-setup {
+    set old $::EventLog::shutdownTimeout
+    set ::EventLog::shutdownTimeout 11111
+} -cleanup {
+    set ::EventLog::shutdownTimeout $old
+} -body {
+    ::EventLog::getShutdownTimeout
+} -result 11111
+
+tcltest::test setShutdownTimeout {::EventLog::setShutdownTimeout should be reflected in get} \
+-setup {
+    set old [::EventLog::getShutdownTimeout]
+    
+} -cleanup {
+    set ::EventLog::shutdownTimeout $old
+} -body {
+    ::EventLog::setShutdownTimeout 5440
+    ::EventLog::getShutdownTimeout
+} -result 5440
+
+tcltest::test setFilePollInterval {::EventLog::filePollInterval shouild track the setting} \
+-setup {
+    set old $::EventLog::filePollInterval
+} -cleanup {
+    set ::EventLog::filePollInterval $old
+} -body {
+    ::EventLog::setFilePollInterval 999
+    set ::EventLog::filePollInterval
+} -result 999
+
+tcltest::test getFilePollInterval {::EventLog::getFilePollInterval should track the setting} \
+-setup {
+    set old $::EventLog::filePollInterval
+    
+} -cleanup {
+    ::EventLog::setFilePollInterval $old
+} -body {
+    ::EventLog::setFilePollInterval 98765
+    ::EventLog::getFilePollInterval
+} -result 98765
+
+#------------------------------------------------------------------------------
+#  Run state transitions with event logging turned on
+#
+tcltest::test begin-nologging {Begin without event logging does not start evlog} \
+-setup {
+    set m [RunstateMachineSingleton %AUTO%]
+    ::EventLog::register
+    
+    ::ReadoutState::setRecording 0
+    $m _setState Halted;               # Ready to go.
+    
+} -cleanup {
+    ::EventLog::unregister
+    $m destroy
+} -body {
+    $m transition Active
+    ::EventLog::getPid
+} -result -1
+
+#-----------------------------------------------------------------------------
+#  Run state transitions with event logging turned on.
+#  For our logger we'll use cat | touch .started | touch .exited
+#  This shouild make something that will hang around and
+#  also make all of the appropriate files. 
+#
+
+set cat   [exec which cat]
+set touch [exec which touch]
+set testEventLogger "$cat | $touch .started | $touch .exited"
+
+set here [pwd];           # This will get changed...
+set stagearea [tcltest::makeDirectory stagearea $here]
+::Configuration::Set StageArea $stagearea
+::Configuration::Set Experiment [file join $here experiment]
+
+
+tcltest::test begin-logging {Begin run with logging on should set a non -1 PID for the logger} \
+-setup {
+    set m [RunstateMachineSingleton %AUTO%]
+    ::EventLog::register
+    
+    ::ReadoutState::setRecording 1
+    Configuration::Set EventLogger  $testEventLogger
+    ExpFileSystem::CreateHierarchy;   # Build a test stagearea.
+
+    
+    $m _setState Halted;               # Ready to go.    
+} -cleanup {
+    catch {exec kill -9 [::EventLog getPid]}
+    ::EventLog::unregister
+    $m destroy
+    tcltest::removeDirectory stagearea $here;    #  Here's hoping it's recursive.
+    file delete [::Configuration::get Experiment]
+    
+} -body {
+    $m transition Active
+    expr {[::EventLog::getPid] ne -1}
+} -result 1
+
+tcltest::test end-logging {End run with logging should reset the PID back to -1} \
+-setup {
+    set m [RunstateMachineSingleton %AUTO%]
+    ::EventLog::register
+    
+    ::ReadoutState::setRecording 1
+    Configuration::Set EventLogger  $testEventLogger
+    ExpFileSystem::CreateHierarchy;   # Build a test stagearea.
+    ReadoutState::setRun 123
+    
+    $m _setState Halted;               # Ready to go.
+    $m transition Active;              # run is on now.
+    set loggerPid [::EventLog::getPid]
+    set ::EventLog::protectFiles 0
+} -cleanup {
+    catch {exec kill -9 $loggerPid}
+    ::EventLog::unregister
+    $m destroy
+    tcltest::removeDirectory stagearea $here;    #  Here's hoping it's recursive.
+    file delete [::Configuration::get Experiment]
+    
+} -body {
+    $m transition Halted;               # stop the run
+    ::EventLog::getPid
+
+} -result -1
+#------------------------------------------------------------------------------
+#  Report test results.
+
+
+tcltest::cleanupTests
+

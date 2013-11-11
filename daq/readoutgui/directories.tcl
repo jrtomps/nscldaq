@@ -21,14 +21,7 @@ package require DAQParameters
 package require Diagnostics
 
 namespace eval ExpFileSystem {
-    namespace export WhereareRetainedEventFiles
-    namespace export WhereareCompleteEventFiles
-    namespace export WhereisCurrentEventData GenRunFileBase
-    namespace export WhereisRunFile GenRunFile WhereisRun
-    namespace export WhereisCurrentData GetStage
-    namespace export CreateHierarchy
-    namespace export WhereisMetadata
-    namespace export WhereisStagedMetaData
+ 
 }
 
 
@@ -51,11 +44,8 @@ proc ExpFileSystem::CreateHierarchy {}  {
 
     set stagearea [ExpFileSystemConfig::getStageArea]
 
-
-    file mkdir [file join $stagearea current]
     file mkdir [file join $stagearea complete]
-    file mkdir [file join [ExpFileSystem::WhereisMetadata] current]
-    file mkdir [file join $stagearea retained]
+    file mkdir [file join [ExpFileSystem::getMetadataRoot] current]
     file mkdir [file join $stagearea staged]
 
     #  Now make the link to it, if it does not already exist.
@@ -68,151 +58,105 @@ proc ExpFileSystem::CreateHierarchy {}  {
             error {ExpFileSystem::CreateHierarchy Conflicting existing files in the way}
         }
     } else {
-        catch {exec ln -s [file join [ExpFileSystem::WhereisMetadata]] $expdir}
+        catch {exec ln -s [file join [ExpFileSystem::getMetadataRoot]] $expdir}
     }
 }
-    # GetStage
-    #    Returns the directory of the stagearea.
-    #
-proc ExpFileSystem::GetStage {} {
+##
+# getStageArea
+#
+# @return string  - Location of the current stage are:
+#
+proc ExpFileSystem::getStageArea {} {
     return [ExpFileSystemConfig::getStageArea]
 }
-    # WhereisCurrentData
-    #    Returns the directory that holds the current run metadata
-    #
-proc ExpFileSystem::WhereisCurrentData {} {
-    set expdir [ExpFileSystem::WhereisMetadata]
+# getMetadataRoot:
+#  
+# @return string - top level directory of the metadata tree (the run view).
+#
+#
+proc ExpFileSystem::getMetadataRoot {} {
+    return [file join [ExpFileSystemConfig::getStageArea] experiment]
+}
+
+
+##
+# getCurrentMetadataDir
+#
+# @return string The directory that holds the current run's metadata
+#
+proc ExpFileSystem::getCurrentRunDir {} {
+    set expdir [ExpFileSystem::getMetadataRoot]
     return [file join $expdir current]
 }
-    # WhereisRun
-    #    Returns the directory that holds the current run.
-    #    This is the run[mmm] directory in the experiment dir.
-    #
-proc ExpFileSystem::WhereisRun {num} {
-    set expdir [ExpFileSystem::WhereisMetadata]
+##
+# getRunDir
+#
+# @return string  - The directory that holds the current run metadata
+#                   and event data file.
+#
+proc ExpFileSystem::getRunDir {num} {
+    set expdir [ExpFileSystem::getMetadataRoot]
     append subdirname run $num
     return [file join $expdir $subdirname]
 }
-#  GenRunFileBase
-#     Returns the basename of a run file.
-#     A run filename has the form:
-#         [format run%d-%d.evt  run segment]
-#     We're going to return the run%d part of this.
+#  genEventfileBasename.
 #
-proc ExpFileSystem::GenRunFileBase {num} {
+# @param run - Run number for which we are generating the files.
+#
+#   @return string - Event file base name.
+#
+# An event filename is of the form:
+#    run-<runnum>-<segment>.evt
+# Where:
+# * <runnum> is the  file runnumber and is encoded in %04d form.
+# * <segment> is the segemt of the run and is encoded in %02d form.
+#   segments are used to limit file sizes to that which can easily be
+#   accessed by NFS (< 2Gbytes/segment).
+#
+proc ExpFileSystem::genEventfileBasename {num} {
     return [format run-%04d $num]
 }
-# GenRunFile
+# genEventFilename
 #    Generate the full name of a run file.
-# Parameters:
-#    num   - Run number.
-#    seq   - The sequence number of the file.
-# NOTES:
-#    See GenRunFileBase for a discussion of the form of
+#
+#  @param   num   - Run number.
+#  @param  seq   - The sequence number of the file.
+#
+# @return string - Filename for the event file specified by the parameters.
+#
+# @note    See GenRunFileBase for a discussion of the form of
 #    these files.
 #
-proc ExpFileSystem::GenRunFile {num {seq 0}} {
+proc ExpFileSystem::genEventFilename {num {seq 0}} {
 
-    set fname [GenRunFileBase $num]
-
-
-
-    set fname [format %s-%02d.evt $fname  $seq]
-
-    return $fname
+    set fname [::ExpFileSystem::genEventfileBasename $num]
+    return  [format %s-%02d.evt $fname  $seq]
 }
-# WhereisRunFile
+# getEventFilename
 #    Return the full path to a selected event file
 #    The assumption is that the run has already ended.
 #    This implies that the run file is now in the experiment/run
 #    directory.
-# Parameters:
-#  num  - The run number we are interested in.
-#  seq  - The sequence number of the file within the run.
 #
-proc ExpFileSystem::WhereisRunFile {num {seq 0}} {
-    set expdir [ExpFileSystem::WhereisMetadata]
-    set subdir [format run%d $num]
-    set filename [ExpFileSystem::GenRunFile $num $seq]
-    return [file join $expdir $subdir $filename]
+# @param  num  - The run number we are interested in.
+# @param  seq  - The sequence number of the file within the run.
+#
+# @return string - a fully absolute path to the event file
+#                  for a given run and sequence.
+#
+proc ExpFileSystem::getEventFilename {num {seq 0}} {
+    set dir [::ExpFileSystem::getRundir $num]
+    set filename [::ExpFileSystem::genEventFilename $num $seq]
+    return [file join $dir $filename]
 }
 
-# WhereisCurrentEventData
-#     Returns the directory in which the current run file can be found.
+# getCompleteEventfileDir
+#   @return string - The name of the directory in links to completed
+#                    event files are maintained (event file view).
 #
-proc ExpFileSystem::WhereisCurrentEventData {} {
-    set eventdir [ExpFileSystemConfig::getStageArea]
-    return [file join $eventdir current]
-
-}
-# WhereareCompleteEventFiles
-#    Returns the name of the directory in which the current
-#    event files can be found.  Note that this is
-#    a deprecated function as the run files are now in the
-#    experiment area.  For compatibility, the stagearea/complete
-#    directory is maintained containing links to all the event files.
-#
-proc ExpFileSystem::WhereareCompleteEventFiles {} {
+proc ExpFileSystem::getCompleteEventfileDir {} {
     set stage [ExpFileSystemConfig::getStageArea]
     return [file join $stage complete]
 }
-# WhereareRetainedEventFiles
-#    This retuns the location of the retained event files.
-#    On a stage pass, it is possible to designate event files
-#    as retainable.  These files, when the stage pass is complete
-#    are moved to the directory described by this proc.
-#
-proc ExpFileSystem::WhereareRetainedEventFiles {} {
-    set stage [ExpFileSystemConfig::getStageArea]
-    return [file join $stage retained]
 
-}
-# WherisMetadata:
-#   Returns the top level metadata directory path
-#
-proc ExpFileSystem::WhereisMetadata {} {
-    return [file join [ExpFileSystemConfig::getStageArea] experiment]
-}
-# WhereisStagedMetaData:
-#    When a run is staged, it is moved to the
-#    staged directory so that it is clear that
-#    it is no longer elligible for staging.
-#    This proc describes where that is.
-#
-proc ExpFileSystem::WhereisStagedMetaData {} {
-    set stagedir [ExpFileSystemConfig::getStageArea]
-    return [file join $stagedir staged]
-}
 
-#
-#   If an old-style file organization exists attempt to convert it:
-#
-proc ExpFileSystem::Convert {} {
-    set expdir [ExpFileSystemConfig::getExperimentDirectory]
-    if {[file isdirectory $expdir] && [catch {file readlink $expdir}]} {
-	set answer [tk_messageBox -type okcancel -title {Import Old style} \
-			-message \
-			{The structure of experiment files has changed slightly.
-It looks like you may have an old experiment file scheme. If you click ok below,
-We'll convert it to a new style scheme.  If you click cancel we'll exit so you can
-think about what you really want to do}]
-	if {$answer eq "cancel"} exit
-	
-	# Conversion consists of moving the expdir -> stagedir.
-	
-	set stagearea [ExpFileSystemConfig::getStageArea]
-	file mkdir $stagearea
-
-	set destdir [file join $stagearea [file tail $expdir]]
-	if {[file exists $destdir]} {
-	    tk_messageBox -type ok -title {Double dealing} \
-		-message \
-		"The conversion would move $expdir to $destdir, however
-$destdir already exists.  Exiting to give you a chance to decide what to do.
-if $destdir is empty you should just delete it"
-	}
-	exec mv $expdir $stagearea
-
-    }
-}
-		      
