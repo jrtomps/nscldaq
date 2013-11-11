@@ -36,6 +36,7 @@ TCLPACKAGES=Configuration.tcl \
 	RunTime.tcl \
 	DataSourceManager.tcl \
 	RunstateMachine.tcl \
+	rdoCalloutsBundle.tcl \
 	sshProvider.tcl s800Provider.tcl
 
 TCLAPPS=ReadoutShell
@@ -43,7 +44,8 @@ TCLAPPS=ReadoutShell
 
 TCLTESTS = daqparameters.test directories.test experiment.test filesystem.test \
 	initconfig.test installroot.test system.test tests.test  ostest.test \
-	sshpipe.test s800.test dsourcemgr.test rstatemachine.test
+	sshpipe.test s800.test dsourcemgr.test rstatemachine.test rdocallouts.test \
+	rdostate.test
 
 TKTESTS =	readoutguitest.tk  scalerparametergui.tk \
 	selectreadoutest.tk  tclTests.tcl \

@@ -1,27 +1,28 @@
-#
 #    This software is Copyright by the Board of Trustees of Michigan
-#    State University (c) Copyright 2005.
+#    State University (c) Copyright 2013.
 #
 #    You may use this software under the terms of the GNU public license
 #    (GPL).  The terms of this license are described at:
 #
 #     http://www.gnu.org/licenses/gpl.txt
 #
-#     Author:
-#             Ron Fox
-#	     NSCL
-#	     Michigan State University
-#	     East Lansing, MI 48824-1321
-#
+#    Author:
+#            Ron Fox
+#            NSCL
+#            Michigan State University
+#            East Lansing, MI 48824-1321
 
-#  RunState - This package manages the configuration and state of data taking
-#             (readout initial parameters).  Its purpose is to provide persistent
-#             state from run to run of the readout program/gui/stager.
-#
-package provide ReadoutState 1.0
+##
+# @file ReadoutState.tcl
+# @brief Maintain run state
+# @author Ron Fox <fox@nscl.msu.edu>
+
+package provide ReadoutState 2.0
 package require Configuration
+package require RunstateMachine
 
 namespace eval  ReadoutState {
+    namespace export attach enter leave
 }
 
 # ReadoutState::setDefaults
@@ -30,8 +31,6 @@ namespace eval  ReadoutState {
 proc ReadoutState::setDefaults {} {
     Configuration::Set RunTitle       {Set a new title}
     Configuration::Set RunNumber      1
-    Configuration::Set ScalerCount    0
-    Configuration::Set ScalerInterval 2;       # more common than the old 10.
     Configuration::Set Recording      0;       # Event recording enabled.
     Configuration::Set Timed          0;       # Timed run enabled.
     Configuration::Set TimedLength    0;       # Seconds of a timed run.
@@ -41,14 +40,10 @@ proc ReadoutState::setDefaults {} {
 # Override any of the overridable members via environment variables:
 #    Configuration            EnvName:
 #    RunTitle                 EXPTITLE
-#    ScalerCount              SCALERS
-#    ScalerInterval           SCALERINTERVAL
 #
 proc ReadoutState::environmentOverrides {} {
 
    Configuration::readEnvironment RunTitle        EXPTITLE {Set a new title}
-   Configuration::readEnvironment ScalerCount     SCALERS        0
-   Configuration::readEnvironment ScalerInterval  SCALERINTERVAL 2
 
 }
 # ReadoutState::setTitle string
@@ -123,31 +118,6 @@ proc ReadoutState::setScalerCount scalers {
 proc ReadoutState::getScalerCount {} {
     return [Configuration::get ScalerCount]
 }
-# ReadoutState::setScalerPeriod time
-#
-#    sets the number of seconds between scaler readouts. This
-#    must be an integer value > 0.
-# Parameters:
-#    time   - Number of seconds desired between scaler readouts.
-# Errors:
-#    NotInteger - time is not an integer.
-#    LeZero     - Time is <= 0.
-#
-proc ReadoutState::setScalerPeriod time {
-    if {![string is integer -strict $time]} {
-        error "ReadoutState::NotInteger - Seconds  between scaler reads was not an integer was: $time"
-    }
-    if {$time <= 0} {
-        error "ReadoutState::LeZero - Seconds between scaler reads was not greater than 0 was: $time"
-    }
-    Configuration::Set ScalerInterval $time
-}
-# ReadoutState::getScalerPeriod
-#    Return the number of seconds between periodic scaler events.
-#
-proc ReadoutState::getScalerPeriod {} {
-    return [Configuration::get ScalerInterval]
-}
 # ReadoutState::getRecording
 #     Return state of the recording flag.
 #
@@ -199,3 +169,71 @@ proc ReadoutState::timedLength {} {
 proc ReadoutState::setTimedLength {value} {
     Configuration::Set TimedLength $value
 }
+
+#------------------------------------------------------------------------------
+#
+#   Bundle interfaces - These methods allow the package to be registered
+#                       in the run state machine.  Mostly this is just to
+#                       maintain the run number when recording is enabled.
+#
+##
+# ::ReadoutState::attach
+#
+#   Invoked when the callout bundle is first registered to the state machine.
+#   For now this does nothing.
+#
+proc ::ReadoutState::attach {state} {}
+##
+# enter
+#   Called when a new state is entered (after the state transition is complete)
+#   This increments the run number if:
+#   * The prior state was one of [list Active Paused]
+#   * Recording was enabled for the run.
+#
+# @param from - Prior state.
+# @param to   - Next state.
+#
+proc ::ReadoutState::enter {from to} {
+    if {$from in [list Active Paused]} {
+        if {[::ReadoutState::getRecording]} {
+            ::ReadoutState::incRun
+        }
+    }
+}
+##
+# leave
+#
+#   Called when a state is being left (state variable not  yet changed)/
+#
+# @param from - Prior state.
+# @param to   - Next state.
+#
+proc ::ReadoutState::leave {from to} {}
+
+
+#------------------------------------------------------------------------------
+#  Registration/unregistration
+#
+
+##
+# register
+#
+#   Register the bundle with the readout state machine singleton.
+#
+proc ::ReadoutState::register {} {
+    set stateMachine [RunstateMachineSingleton  %AUTO%]
+    $stateMachine addCalloutBundle ReadoutState
+    $stateMachine destroy
+}
+##
+# unregister
+#
+#   Provided for testing...unregisters the bundle from the state machine singleton
+#
+proc ::ReadoutState::unregister {} {
+    set stateMachine [RunstateMachineSingleton  %AUTO%]
+    $stateMachine removeCalloutBundle ReadoutState
+    $stateMachine destroy
+    
+}
+
