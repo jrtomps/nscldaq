@@ -173,6 +173,7 @@ proc ::EventLog::_cdCurrent {} {
 #        We will establish a file readable handler for the event logger so that
 #        can relay input to the output log windows and throw up an error dialog
 #        if the fd closes unexpectedly.
+# TODO: Handler for event logger output.
 #
 proc ::EventLog::_startLogger {} {
     set ::EventLog::loggerFd [open "| [DAQParameters::getEventLogger]" r]
