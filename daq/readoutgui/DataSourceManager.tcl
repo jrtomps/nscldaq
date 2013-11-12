@@ -20,6 +20,7 @@
 
 package provide DataSourceManager 1.0
 package require snit
+package require ReadoutState
 
 ##
 # @class
@@ -506,4 +507,94 @@ snit::type DataSourceManager {
         }
         return $outdict
     }
+}
+
+#------------------------------------------------------------------------------
+#
+# Hooks to get this stuff integrated into the rest of the system.
+#  - Singleton Data source manager object.
+#  - Callback bundle for the RunstateMachine.
+#
+
+##
+# @class DataSourceManagerSingleton
+#
+#   This class encapsulates a single DataSourceManager so that no matter
+#  how many instantiations of the DataSourceManagerSingleton there's only one
+#  underlying object.   Effectively this is a snit implementation of the
+#  GOF singleton pattern.
+#
+snit::type DataSourcemanagerSingleton {
+    component singleton
+    
+    delegate method * to singleton
+    delegate option * to singleton
+    
+    typevariable actualObject ""
+    
+    constructor args {
+        if {$actualObject eq ""} {
+            set actualObject [DataSourceManager %AUTO%]
+        }
+        
+        install singleton using set actualObject
+    }
+}
+
+##
+#  Bundle declaration:
+#  Note the bundle is only going to be used to handle run starts/stops etc.
+#  the 'uber supervisor' will handle loading data source providers
+#  starting sources and so on.
+#
+namespace eval ::DataSourceManager {}
+
+##
+# ::DataSourceManager::attach  
+#
+#   Called when the data source manager is attached to the run state machine.
+#   does nothing for now.
+#
+# @param state - the current state machine state.
+#
+proc ::DataSourceManager::attach {state} {}
+##
+# ::DataSourceManager::enter
+#
+#   Called when a state is entered.  The following are done:
+#   Halted -> Active : start data sources.
+#   Paused -> Active : Resume data source.
+#
+# @param from - The state that was left.
+# @param to   - The state being entered.
+#
+proc ::DataSourceManager::enter {from to} {
+    set mgr [DataSourceManagerSingleton %AUTO%]
+    
+    if {($from eq "Halted") && ($to eq "Active")} {
+        $mgr begin [::DataSource::getRun] [::DataSource::getTitle]
+    }
+    if {($from eq "Paused") && ($to eq "Active")} {
+        $mgr resume
+    }
+    $mgr destroy
+}
+##
+# ::DataSourceManager::leave
+#
+#  Called when a state is left.  The following are done:
+#
+#  {Active, Paused} -> Halted : Stop the run.
+#
+# @param from - the state being left.
+# @param to   - The state that will be entered.
+# 
+proc ::DataSourceManager::leave {from to} {
+    set mgr [DataSourceManagerSingleton %AUTO%]
+    
+    if {($from in [list Active Paused]) && ($to eq "Halted")} {
+        $mgr end
+    }
+    
+    $mgr destroy
 }

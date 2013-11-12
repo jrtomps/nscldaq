@@ -22,6 +22,9 @@ package require DAQParameters
 package require RunstateMachine
 package require ReadoutState
 package require ExpFileSystem
+package require ReadoutGUIPanel
+package require Diagnostics
+
 
 
 ##
@@ -168,16 +171,42 @@ proc ::EventLog::_cdCurrent {} {
     cd [::ExpFileSystem::getCurrentRunDir]
 }
 ##
+# ::EventLog::_startLogger
 #  Start the event logger and set it's pid in the loggerPid variable.
 #  @note The event logger is started as a pipeline open on an fd for read.
 #        We will establish a file readable handler for the event logger so that
 #        can relay input to the output log windows and throw up an error dialog
 #        if the fd closes unexpectedly.
-# TODO: Handler for event logger output.
 #
 proc ::EventLog::_startLogger {} {
     set ::EventLog::loggerFd [open "| [DAQParameters::getEventLogger]" r]
     set ::EventLog::loggerPid [pid $::EventLog::loggerFd]
+    set fd [lindex $::EventLog::loggerFd end]
+    fconfigure $fd -buffering line
+    fileevent $fd readable ::EventLog::_handleInput
+}
+##
+# ::EventLog::_handleInput
+#    - If input comes in, read it and log it to the console window.
+#    - If there's an EOF on input and it's unexpected, throw up an error
+#      that the event logger looks like it unexpectedly exited.
+#    - Either way on EOF, mark the logger exited and close the File descriptor.
+#      setting the variable to [list]
+#
+proc ::EventLog::_handleInput {} {
+    set fd [lindex $::EventLog::loggerFd end]
+    if {[eof $fd]} {
+        if {!$::EventLog::expectingExit} {
+            ::ReadoutGUIPanel::Log EventLogManager *ERROR* {Unexpected event log error!}
+            ::Diagnostics::Error {The event logger exited unexpectedly!!}
+        }
+        close $fd
+        set ::EventLog::loggerFd [list]
+        set ::EventLog::loggerPid -1
+    } else {
+        set line [gets $fd]
+        ::ReadoutGUIPanel::Log EventLogManager input $line
+    }
 }
 ##
 # Wait for the appearance of a file.  The event logger uses . files to synchronize
@@ -298,8 +327,9 @@ proc ::EventLog::runEnding {} {
         ::EventLog::_waitForFile .exited $::EventLog::shutdownTimeout \
             $::EventLog::filePollInterval
         set ::EventLog::loggerPid -1
-        ::EventLog::_finalizeRun
+        
     }
+    ::EventLog::_finalizeRun
 }
 
 

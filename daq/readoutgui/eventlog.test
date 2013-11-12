@@ -17,6 +17,11 @@
 # @brief Tests for the eventlog bundle package.
 # @author Ron Fox <fox@nscl.msu.edu>
 
+#  Mocks:
+
+package provide Diagnostics 1.0
+package provide ReadoutGUIPanel 1.0
+
 
 package require tcltest
 package require eventLogBundle
@@ -25,6 +30,14 @@ package require RunstateMachine
 package require Configuration
 package require ExpFileSystem
 
+#------------------------------------------------------------------------------
+#   Procs for the mocks:
+
+namespace eval ::Diagnostics {}
+namespace eval ::ReadoutGUIPanel {}
+
+proc ::Diagnostics::Error  msg {}
+proc ::ReadoutGUIPanel::Log {src sev msg} {}
 
 #------------------------------------------------------------------------------
 #  eventlogBundle is a bundle and can be registered/unregistered.
