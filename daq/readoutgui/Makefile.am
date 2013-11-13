@@ -38,6 +38,7 @@ TCLPACKAGES=Configuration.tcl \
 	RunstateMachine.tcl \
 	rdoCalloutsBundle.tcl \
 	eventLogBundle.tcl \
+	DataSourceUI.tcl     \
 	sshProvider.tcl s800Provider.tcl
 
 TCLAPPS=ReadoutShell
