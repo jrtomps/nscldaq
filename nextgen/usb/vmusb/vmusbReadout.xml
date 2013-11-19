@@ -2227,9 +2227,50 @@ vmusb cget name
                         </para>
                     </listitem>
                 </varlistentry>
-                
-   
-              </variablelist>
+                <varlistentry>
+		  <term><option>-dgga</option></term>
+		  <listitem>
+		    <para>
+		      Sets the source if the start for DGGA this can be one of:
+		      <literal>off, nimi1, nimi2 ,trigger, endofevent, usbtrigger,</literal>
+		      or <literal>pulser</literal>
+		      and default to <literal>pulser</literal>
+		    </para>
+		  </listitem>
+		</varlistentry>
+                <varlistentry>
+		  <term><option>-dggb</option></term>
+		  <listitem>
+		    <para>
+		      Sets the source if the start for DGGB this can be one of:
+		      <literal>off, nimi1, nimi2, trigger, endofevent, usbtrigger,</literal>
+		      or <literal>pulser</literal>
+		      and default to <literal>pulser</literal>
+		    </para>
+		  </listitem>
+		</varlistentry>
+
+	      <varlistentry>
+		<term><option>-widtha</option>, <option>-widthb</option></term>
+		<listitem>
+		  <para>
+		  Sets the width of the the A/B dgg output.  This defaults to 
+		  1 which is the minimum width (see the VMUSB manual for the units
+		  of this value.
+		  </para>
+		</listitem>
+	      </varlistentry>
+	      <varlistentry>
+		<term><option>-delaya</option>, <option>-delayb</option></term>
+		<listitem>
+		<para>
+		  Sets the delay of the A/B dgg output.  This defaults to 0.
+		  The delay value is a 32 bit integer that is spread out across the
+		  VM-USB delay and coarse delay registers. 
+		  See the VM-USB manual for more information.
+		</para>
+		</listitem>
+	      </varlistentry>
            </refsect1>
    
          </refentry>

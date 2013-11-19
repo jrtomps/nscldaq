@@ -25,6 +25,7 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 #include <sys/ioctl.h>
 #include <CVMEInterface.h>
 
+#include <stdint.h>
 
 #include <string>
 #include <sys/mman.h>
@@ -213,13 +214,13 @@ int CVMEMapCommand::Get(CTCLInterpreter& rInterp, CTCLResult& rResult,
 
   CVMEInterface::Lock();
 
-  ULong_t nValue;
+  uint32_t nValue;
   switch(nSize) {
   case SZ_LONG:
-    nValue = m_pSpace->peekl(nOffset/sizeof(long));
+    nValue = m_pSpace->peekl(nOffset/sizeof(uint32_t));
     break;
   case SZ_WORD:
-    nValue = m_pSpace->peekw(nOffset/sizeof(short));
+    nValue = m_pSpace->peekw(nOffset/sizeof(uint16_t));
     break;
   case SZ_BYTE:
     nValue = m_pSpace->peekb(nOffset);
@@ -256,9 +257,9 @@ int CVMEMapCommand::Set(CTCLInterpreter& rInterp, CTCLResult& rResult,
   //
   if(nArgs != 2) return Usage(rResult);
 
-  Long_t nOffset;
-  Long_t nValue;
-  Char_t* pOffset = *pArgs;
+  uint32_t nOffset;
+  uint32_t nValue;
+  uint8_t* pOffset = reinterpret_cast<uint8_t*>(*pArgs);
 
   try {
     nOffset = CVmeCommand::TextToULong(*pArgs);
@@ -284,7 +285,7 @@ int CVMEMapCommand::Set(CTCLInterpreter& rInterp, CTCLResult& rResult,
   // the address window represented by this command:
 
   if(nOffset >= m_nSize) {
-    rResult += pOffset;
+    rResult += *pArgs;
     rResult +=" is outside the address window";
     return TCL_ERROR;
   }
@@ -292,10 +293,10 @@ int CVMEMapCommand::Set(CTCLInterpreter& rInterp, CTCLResult& rResult,
   CVMEInterface::Lock();
   switch(nSize) {
   case SZ_LONG:
-    m_pSpace->pokel(nValue, nOffset/sizeof(long));
+    m_pSpace->pokel(nValue, nOffset/sizeof(uint32_t));
     break;
   case SZ_WORD:
-    m_pSpace->pokew(nValue, nOffset/sizeof(UShort_t));
+    m_pSpace->pokew(nValue, nOffset/sizeof(uint16_t));
     break;
   case SZ_BYTE:
     m_pSpace->pokeb(nValue, nOffset);
