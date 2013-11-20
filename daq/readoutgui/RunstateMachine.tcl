@@ -113,7 +113,7 @@ snit::type RunstateMachine {
     #  the states are alphabetized so that the order is predictable.
     #
     # @return list  alphabetized list of allowed states.
-    method listStates {} {
+    typemethod listStates {} {
         lsort -ascii -increasing [array names validTransitions]
     }
     ##
@@ -124,7 +124,7 @@ snit::type RunstateMachine {
     # @param stateName - The state being queried.
     # @return list     - list of valid next states.
     #
-    method listTransitions stateName {
+    typemethod listTransitions stateName {
         return $validTransitions($stateName)
     }
     ##

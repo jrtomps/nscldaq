@@ -356,27 +356,27 @@ tcltest::test transitions-3 {Transitions invoke the enter callback} \
 
 tcltest::test introspect-states {List the set of allowed states} \
 -setup {
-    set s [RunstateMachine %AUTO%]
+    
 } \
 -cleanup  {
-    $s destroy
+    
 } \
 -body {
-   $s listStates 
+   RunstateMachine listStates 
 } \
 -result [list Active Halted NotReady Paused Starting]
 
 tcltest::test introspect-transitions {List the allowed transitions} \
 -setup {
-    set s [RunstateMachine %AUTO%]
+    
 } \
 -cleanup  {
-    $s destroy
+    
 } \
 -body {
     set result [list]
-    foreach state [$s listStates] {
-        lappend result $state [$s listTransitions $state]
+    foreach state [RunstateMachine listStates] {
+        lappend result $state [RunstateMachine listTransitions $state]
     }
     set result
 } \
@@ -395,7 +395,7 @@ tcltest::test introspect-getstate {Check that we can know the current state} \
 } \
 -body {
     set result [list]
-    foreach state [$s listStates] {
+    foreach state [RunstateMachine listStates] {
         $s _setState $state
         lappend result [$s getState]
     }

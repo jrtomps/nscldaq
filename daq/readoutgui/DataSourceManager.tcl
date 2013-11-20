@@ -598,3 +598,5 @@ proc ::DataSourceManager::leave {from to} {
     
     $mgr destroy
 }
+##
+# TODO: - Figure out how to manage Not Ready -> Starting -> Halted transitions.
