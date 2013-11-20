@@ -457,5 +457,6 @@ Feb 1, 2012 - Feb 24, 2012
 	Environment and therefore won't run for other installers.
 	* Add definition of gpTCLApplication to the swigized VMUSB
 	library so that it can be used in standalone mode too.
-
+	* Fix issues with 64/32bit uncleanliness in vmetcl.
+	
 	

@@ -46,6 +46,8 @@
 #include <Refptr.h>
 #endif
 
+#include <stdint.h>
+
 template<class T>
 class CVME
 {
@@ -115,9 +117,9 @@ private:
 
   // Type conversion operators
  public:
-  volatile UChar_t*      asChar();
-  volatile UShort_t*  asShort();
-  volatile ULong_t*   asLong();
+  volatile uint8_t*      asChar();
+  volatile uint16_t*  asShort();
+  volatile uint32_t*   asLong();
 };
 
 
@@ -537,52 +539,52 @@ CVME<T>::getcurrptr()
      containing data of type UChar_t.
 */
 template<class T>
-volatile UChar_t*
+volatile uint8_t*
 CVME<T>::asChar()
 {
-  volatile UChar_t* p = (UChar_t*)m_pRCptr->getStart();
-  p         += m_pRCptr->getOffset() * sizeof(T)/sizeof(UChar_t);
+  volatile uint8_t* p = (uint8_t*)m_pRCptr->getStart();
+  p         += m_pRCptr->getOffset() * sizeof(T)/sizeof(uint8_t);
 
   return p;
 
 }
 
 /*
-  \fn CVME<UShort_t> CVME<T>::asShort()
+  \fn CVME<uint16_t> CVME<T>::asShort()
 
   Operation Type:
      Type conversion operator
 
   Purpose:
      Returns this as a CVME which maps m_pStart to an address space
-     containing data of type UShort_t.
+     containing data of type uint16_t.
 */
 template<class T>
-volatile UShort_t*
+volatile uint16_t*
 CVME<T>::asShort()
 {
-  volatile UShort_t* p = (UShort_t*)m_pRCptr->getStart();
-  p         += m_nOffset * sizeof(T)/sizeof(UShort_t);
+  volatile uint16_t* p = (uint16_t*)m_pRCptr->getStart();
+  p         += m_nOffset * sizeof(T)/sizeof(uint16_t);
 
   return p;
 }
 
 /*
-  \fn CVME<ULong_t> CVME<T>::asLong()
+  \fn CVME<uint32_t> CVME<T>::asLong()
 
   Operation Type:
      Type conversion operator
 
   Purpose:
      Returns this as a CVME which maps m_pStart to an address space
-     containing data of type ULong_t.
+     containing data of type uint32_t.
 */
 template<class T>
-volatile ULong_t*
+volatile uint32_t*
 CVME<T>::asLong()
 {
-  volatile ULong_t* p = (ULong_t*)m_pRCptr->getStart();
-  p         += m_nOffset * sizeof(T)/sizeof(ULong_t);
+  volatile uint32_t* p = (uint32_t*)m_pRCptr->getStart();
+  p         += m_nOffset * sizeof(T)/sizeof(uint32_t);
 
   return p;
 }

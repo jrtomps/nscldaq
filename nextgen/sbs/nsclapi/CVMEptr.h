@@ -74,7 +74,7 @@
 #endif
 #endif
 
-
+#include <stdint.h>
 template<class T>
 class CVMEptr
 {
