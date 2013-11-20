@@ -801,3 +801,290 @@ proc ::ReadoutGUIPanel::recordData {} {
     set r [::RunControlSingleton::getInstance]
     $r cget -recording
 }
+
+#--------------------------------------------------------------------------------
+#
+#  Elapsed run time widget and related API elements.
+#
+
+
+##
+# @class Stopwatch
+#
+#  This non graphical type is used to provide a self contained timer/stopwatch:
+#
+# METHODS:
+#    start       - Start the timer from the last known initial time.
+#    stop        - Stop the timer.
+#    reset       - Reset the elapsed time to zero.
+#    addAlarm    - add a Callback invoked at the global level
+#                  when the elapsed time reaches a specified value.
+#    removeAlarm - Remove an alarm.
+#    isRunning   - Tests for the timer running.
+#    elapsedTime - Get the elapsed time.
+#
+# NOTE:
+#    There is the assumption the event loop is working since this all uses after.
+#
+snit::type Stopwatch {
+    
+    ##
+    #  elapsedTime - Number of milli-seconds we've been running.
+    #  afterId     - ID of the tcl after command/scheduler...-1 if not running.
+    #  alarms      - Array of callbacks.  Array inidices are elapsed times in seconds
+    #                values are lists of commands called when that time is hit.
+    #
+    variable elapsedTimeMs 0
+    variable afterId    -1
+    variable alarms -array [list]
+    
+    variable timerResolution 250;   # Ms per tick.
+    
+    ##
+    # destructor needs to kill off any after scheduled so it does not call into
+    # a deleted object:
+    
+    destructor {
+        $self _stopTimer
+    }
+    #-------------------------------------------------------------------------
+    # Public methods.
+    #
+    
+    ##
+    # Start the timer.  Note the elapsed time is not reset.  This is because
+    # we are allowed to pause the timer (stop/restart)...e.g. if a run is paused.
+    #
+    # @throw  if the timer is already running
+    #
+    method start {} {
+        if {![$self isRunning] } {
+            $self _startTimer
+        } else {
+            error "Timer is already running!"
+        }
+    }
+    ##
+    # Stop the timer.
+    #
+    # @throw  if the timer is already halted.
+    #
+    method stop {} {
+        if {[$self isRunning]} {
+            $self _stopTimer
+        } else {
+            error "Timer is already stopped"
+        }
+    }
+    ##
+    # Reset the elapsed time to zero.  Like a stopwatch this is allowed when
+    # the timer is running, however in the run control case, this will typically
+    # happen when the run state machine leaves halted for active.
+    #
+    method reset {} {
+        set elapsedTimeMs 0
+    }
+    ##
+    #  addAlarm
+    #
+    #  Add an alarm to the stopwatch.  This is normally used to
+    #  force an end to a timed run.  The alarm is called when the elapsedTimeMs
+    #  is at least when seconds of total time.
+    #
+    # @param when   - When in seconds the alarm script should fire.
+    # @param script - The script to run (at global level) if the alarm fires.
+    #
+    # @note several alarms can be set...even on the same time.
+    # @note recurring alarms are not yet supported, however a script can
+    #       remove itself and schedule a later alarm for itself.
+    # @throw if when is not an integer or is less than zero.
+    #
+    method addAlarm {when script} {
+        if {![string is integer -strict $when] || ($when < 0)} {
+            error "Alarms must be set on an integer number of seconds > 0: $when"
+        }
+        set when [expr {$when*1000}]
+        lappend alarms($when) $script
+    }
+    ##
+    # removeAlarm
+    #
+    #  Removes an existing alarm.
+    #
+    # @param when - the time the alarm was set form.#
+    # @param script - The script to remove.
+    #
+    # @throw - If when is illegal (see addAlarm)
+    # @throw - If there are no alarms for when.
+    # @throw - If the script is not registered at the time specified by when.
+    #
+    method removeAlarm {when script} {
+        if {![string is integer -strict $when] || ($when < 0)} {
+            error "Alarms can only be removed from an integer number of ssecnods > 0: $when"
+        }
+        set whenMs [expr {$when*1000}]
+        if {[array names alarms $whenMs] eq ""} {
+            error "There are no alarms set for $when"
+        }
+        
+        set whichOne [lsearch -exact $alarms($whenMs) $script]
+        if {$whichOne == -1} {
+            error "The script specified was not registerd as an alarm for $when :\n $script"
+        }
+        set alarms($whenMs) [lreplace $alarms($whenMs) $whichOne $whichOne]
+        if {[llength $alarms($whenMs)] == 0} {
+            array unset alarms $whenMs;     # eliminate empty lists.
+        }
+    }
+    ##
+    # isRunning
+    #
+    # @return bool - True if the timer is timing false otherwise.
+    #
+    method isRunning {} {
+        return [expr {$afterId != -1}]
+    }
+    ##
+    # elapsedTime
+    #   Give the elapsed time in milliseconds.
+    method elapsedTime {} {
+        return $elapsedTimeMs
+    }
+    #--------------------------------------------------------------------------
+    # Private methods
+    
+    
+    ##
+    # _startTimer
+    #
+    #   Set up the first after.  Note that the caller is supposed to ensure
+    #   we are running.
+    #
+    method _startTimer {} {
+        set afterId [after $timerResolution [mymethod _tick]]
+    }
+    ##
+    # _stopTimer
+    #   Stops the timer.  The caller is supposed to ensure it's not already stopped.
+    #
+    method _stopTimer {} {
+        after cancel $afterId
+        set afterId -1
+    }
+    ##
+    # _tick
+    #    called when timer tick must be counted.
+    #
+    method _tick {} {
+        incr elapsedTimeMs $timerResolution
+        $self _startTimer;     # schedules the next one.
+        $self _callScripts;    # this order gives a more stable time.
+    }
+    ##
+    # _callScripts
+    #    Invokes all the scripts set for this elapsed time.
+    #
+    method _callScripts {} {
+        if {[array names alarms $elapsedTimeMs] ne ""} {
+            foreach script $alarms($elapsedTimeMs) {
+                uplevel #0 $script
+            }
+        }
+    }
+}
+##
+# @class ElapsedTimeDisplay
+#
+#    UI element that shows an elapsed time.  Note the timing functions are
+#    performed by a Stopwatch component which has its full user interface
+#    exposed however reset is intercepted to re-set our first alarm.
+#
+snit::widgetadaptor ElapsedTimeDisplay {
+    component clock
+    delegate method * to clock
+    
+    variable formattedNow "0 00:00:00"
+    variable nextAlarm     1
+    
+    ##
+    #  constructor
+    #    * Hull is a tk::frame.
+    #    * The contents are a label that tracks formattedNow.
+    #    * We establish our first alarm handler at 1 second to update now.
+    #    * No configuration processing is done.
+    constructor args {
+        installhull using ttk::frame
+        install clock using Stopwatch %AUTO%
+        
+        ttk::label $win.time -textvariable [myvar formattedNow]
+        grid $win.time -sticky nsew
+        
+        $clock addAlarm 1 [mymethod _tick]
+    }
+    
+    destructor {
+        destroy $clock
+    }
+    ##
+    # reset
+    #
+    #  Intercept the reset method so that we can kill off our nextAlarm
+    #  and reset the alarm back to 1.
+    #
+    method reset {} {
+        $clock removeAlarm $nextAlarm [mymethod _tick]
+        $clock addAlarm     1         [mymethod _tick]
+        set nextAlarm       1
+        
+        set formattedNow "0 00:00:00"
+        
+        $clock reset
+    
+    }
+    #--------------------------------------------------------------------------
+    # private methods
+    
+    ##
+    # _tick
+    #    Alarm handler from the stopwatch.
+    #    - Compute the new formattedNow from the elapsed time.
+    #    - Kill off the alarm that fired.
+    #    - Set up our next alarm.
+    #
+    method _tick {} {
+        set now [$clock elapsedTime]
+        $self _formatTime $now
+        
+        # Reschedule:
+        
+        $clock removeAlarm $nextAlarm [mymethod _tick]
+        incr nextAlarm
+        $clock addAlarm $nextAlarm [mymethod _tick]
+    }
+    ##
+    # _formatTime
+    #     compute the new value for formatted now
+    #
+    # @param now - Now in ms.
+    #
+    method _formatTime {now} {
+        
+        # Convert to now in ms to seconds:
+        
+        set now [expr {int($now/1000)}]
+        
+        #  Figure out the broken down time:
+        
+        set seconds [expr {$now % 60}]
+        set now     [expr {int($now/60)}]; # Minutes
+        set min     [expr {$now % 60}]
+        set now     [expr {int($now/60)}]; # Hours
+        set hours   [expr {$now %24}]
+        set days    [expr {int($now/24)}]
+        
+        # Format it:
+        
+        set formattedNow [format "%d %02d:%02d:%02d" $days $hours $min $seconds]
+    }
+}
+
