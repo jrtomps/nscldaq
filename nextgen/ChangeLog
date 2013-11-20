@@ -458,5 +458,8 @@ Feb 1, 2012 - Feb 24, 2012
 	* Add definition of gpTCLApplication to the swigized VMUSB
 	library so that it can be used in standalone mode too.
 	* Fix issues with 64/32bit uncleanliness in vmetcl.
-	
-	
+	* Deal with the double def of -lieee in SBSRDO Makefiles -> TCL_LIBS
+	  and don't use THREAD_LDFLAGS since tcl builds must be threaded
+	for any of this to work.
+	* Add missing libs -lSBSDeviceSupport -lSBSVmeAPI to SBSRDO
+	makefile include directory. 
