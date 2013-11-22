@@ -1087,4 +1087,798 @@ snit::widgetadaptor ElapsedTimeDisplay {
         set formattedNow [format "%d %02d:%02d:%02d" $days $hours $min $seconds]
     }
 }
+##
+# Encapsulate the elapsed time GUI element as a singleton so that
+# it can be accessed consistently by the API elements in the ReadoutGUIPanel
+# package.
+#
+namespace eval  ::ElapsedTime {
+    variable theInstance ""
+    namespace export attach enter leave
+}
 
+##
+#  ::ElapsedTime::getInstance
+#    Returns the elapsed time instance singleton:
+#    *   If it does not yet exist it is created with the widget path provided.
+#    *   Regardless the single instance is returned.
+#
+# @param  w - The widget path (optional unless this creates) to the widget.
+# @return string -widget path to the singleton.
+#
+proc ::ElapsedTime::getInstance {{w ""}} {
+    if {$::ElapsedTime::theInstance eq ""} {
+        set ::ElapsedTime::theInstance [ElapsedTimeDisplay $w]
+        set rstate [RunstateMachineSingleton %AUTO%]
+        $rstate addCalloutBundle ElapsedTime
+        $rstate destroy
+    }
+    return $::ElapsedTime::theInstance
+}
+##
+# ::ElapsedTime::attach
+#
+#   Called at attach time.  If the run is active we're going to start
+#   the clock even though the elapsed time won't be right.
+#
+# @param state - The state we are in at the time of attachment.
+#
+proc ::ElapsedTime::attach {state} {
+    if {$state eq "Active"} {
+        set timer [::ElapsedTime::getInstance]
+        $timer start
+    }
+}
+##
+# ::ElapsedTime::enter
+#
+#  Called when a state is entered:
+#  *  Halted -> Active : clear and start timer.
+#  *  Paused  -> Active : start.
+#  *  Active -> Anything other than active : Stop timer
+#
+# @param from - Prior state.
+# @param to   - Current state.
+#
+proc ::ElapsedTime::enter  {from to} {
+    set timer [::ElapsedTime::getInstance]
+    if {($from eq "Halted") && ($to eq "Active")} {
+        $timer reset
+        $timer start
+    } elseif {($from eq "Paused") && ($to eq "Active")} {
+        $timer start
+    } elseif {$from  eq "Active"} {
+        $timer stop
+    }
+}
+##
+# ::ElapsedTime::leave
+#
+#   Called when a state is being left.  This is not used by us.
+#
+# @param from - state being left.
+# @param to   - State we are going to enter.
+proc ::ElapsedTime::leave  {from to} {}
+
+
+
+##
+# ReadoutGUIPanel::getRunTime
+#
+#   Returns the current time into the run in seconds.
+#
+# @return integer
+#
+proc ::ReadoutGUIPanel::getRunTime {} {
+    set w [::ElapsedTime::getInstance]
+    return [expr {int([$w elapsedTime]/1000)}]
+}
+#---------------------------------------------------------------------------
+#
+# Timed run controls and API
+#  Note that there's the usual singleton and a registration bundle that
+#  makes it possible, when a timed run is active to register an alarm with the
+#  elapsed time that ends the run.
+# 
+#
+
+##
+# @class TimedRunControls
+#
+#   This control consists of a mechanism to choose a run duration along
+#   with a checkbutton that is lit when a run should be timed.
+#   
+# LAYOUT
+#   +-----------------------------------------------------+
+#   |  [ ] timed run  [ ] days  [ ] hrs [ ] min [ ] sec   |
+#   +-----------------------------------------------------+
+#
+#   Days is a spin box while hrs/min/sec are comboboxes.
+#
+#  OPTIONS:
+#    -state  - State of the controls (disabled, normal, readonly e.g.).
+#    -days   - Number of days
+#    -hours  - Number of hours
+#    -mins   - Number of minutes
+#    -secs   - Number of seconds.
+#    -timed  - If the run is timed.
+#
+snit::widgetadaptor TimedRunControls {
+    option -state -default normal -configuremethod _changeState
+    option -days  -default 0 -configuremethod _changeDays
+    option -hours 0
+    option -mins  0
+    option -secs  0
+    option -timed 0
+    
+    #  List of widget path tails to the widgets controlled by the
+    #  -state option.
+    
+    variable editableWidgets [list onoff days hrs min secs]
+    
+    ##
+    # constructor
+    #    Build the widget and lay it out.
+    #
+    # @param args -the -option/value configuration pairs.
+    #
+    constructor args {
+        installhull using ttk::frame
+        
+        # Make a list that runs 0-59
+        
+        for {set i 0} {$i < 60} {incr i} {
+            lappend values $i
+        }
+        
+        ttk::checkbutton $win.onoff  \
+            -text {Timed Run} -onvalue 1 -offvalue 0 -variable [myvar options(-timed)]
+        
+        ttk::spinbox $win.days -from 0 -to 36500 -increment 1 \
+            -command [mymethod _updateDays] -format "%6.0f"  -width 6
+        $win.days set 0
+        
+        ttk::label $win.daysep -text "-"
+        ttk::combobox $win.hrs -values [lrange $values 0 23] \
+            -textvariable [myvar options(-hours)] -width 2
+        ttk::label $win.hrsep -text ":"
+        ttk::combobox $win.min -values $values -width 2 \
+            -textvariable [myvar options(-mins)]
+        ttk::label $win.minsep -text ":"
+        ttk::combobox $win.secs -values $values -width 2 \
+            -textvariable [myvar options(-secs)]
+        
+        
+        $self configurelist $args
+        
+        grid $win.onoff $win.days $win.daysep $win.hrs $win.hrsep $win.min $win.minsep $win.secs
+        
+    }
+    #---------------------------------------------------------------------------
+    #
+    #  Configuration operations:
+    
+    ##
+    # _changeState
+    #    Modifies the state of all of the widgets that arec changeable.
+    #    This is used when e.g. the run is active, to prevent the values and
+    #    enable from being modified.
+    #
+    # @param optname - the name of the option that is being modified (-state).
+    # @param value   - the new value which is one of normal or disabled.
+    #
+    method _changeState {optname value} {
+        set options($optname) $value
+        foreach tail $editableWidgets {
+            $win.$tail configure -state $value
+        }
+        
+    }
+    ##
+    # _changeDays
+    #   Called when the -days value was configured.  Updates the
+    #   widget contents.
+    #
+    # @param optname - the option being configured.
+    # @param value   -  new value.
+    #
+    method _changeDays  {optname value} {
+        set options($optname) $value
+        $win.days set $value
+    }
+    #---------------------------------------------------------------------------
+    #  Action handlers.
+    #
+    
+    ##
+    # Called when the days widget is modified.  This modification is propagated
+    # to options(-days)
+    #
+    method _updateDays {} {
+        set options(-days) [$win.days get]
+    }
+    
+}
+#-----------------------------------------------------------------------------
+# Singleton pattern implementation and API:
+
+namespace eval ::TimedRun {
+    variable theInstance ""
+    variable lastAlarmTime 0
+    namespace export attach enter leave
+}
+
+##
+# TimedRun::getInstance
+#    Returns the singleton instance, creating it if needed.
+#
+# @param win - optional parameter that is the path to the widget.
+# @param args - optional parameter that are the configuration option/value pairs.
+#
+# @return win - Path to the object.
+#
+proc ::TimedRun::getInstance {{win ""} args} {
+    if {$::TimedRun::theInstance eq ""} {
+        set ::TimedRun::theInstance [TimedRunControls $win]
+        if {[llength $args] > 0} {
+            $win configure {*}$args
+        }
+        set sm [RunstateMachineSingleton %AUTO%]
+        $sm addCalloutBundle TimedRun
+    }
+    return $::TimedRun::theInstance
+}
+
+#  Callback bundle:
+
+##
+# ::TimedRun::attach
+#
+#    Called when the singleton instance is attached to the state machine.
+#    set the widget state appropriately:
+#    *   {Paused, Active} -> disabled.
+#    *    other           -> normal
+#
+proc ::TimedRun::attach {state} {
+    
+    set w  [::TimedRun::getInstance]
+    if {$state in [list Paused Active]} {
+        set state disabled
+    } else {
+        set state normal
+    }
+    $w configure -state $state
+}
+##
+# ::TimedRun::leave
+#    Called when a state is left (not used).
+#
+# @param from - the state we are leaving
+# @param to   - The next state.
+#
+proc ::TimedRun::leave {from to} {}
+##
+#  ::TimedRun::enter
+#
+#    Called when a new state has been entered.
+#    *  any -> {Active, Paused} -> state disabled.
+#    *  any other transitions   -> state normal
+#    *  Halted -> Active and timed run button set, set an alarm to end the run.
+#    *  {Paused, Active} ->Halted and timed run button set, cancel the alarm
+proc ::TimedRun::enter {from to} {
+    
+    set w [::TimedRun::getInstance]
+    
+    # normal/disabled state handling:
+    
+    if {$to in [list Active Paused]} {
+        set state disabled
+    } else {
+        set state normal
+    }
+    $w configure -state $state
+    
+    #  Timed run handling:
+    
+    if {[$w cget -timed]} {
+        set et [::ElapsedTime::getInstance]
+        if {($from eq "Halted") && ($to eq "Active")} {
+            
+            # Compute the run length, save it in ::TimedRun::lastAlarmTime
+            # and setup an _alarm for tha time.
+            
+            set secs [$w cget -secs]
+            set mins [$w cget -mins]
+            set hrs  [$w cget -hours]
+            set days [$w cget -days]
+            
+            set runTime [expr {(($days*24 + $hrs)*60 + $mins)*60 + $secs}]
+            
+            $et addAlarm  $runTime ::TimedRun::_alarm
+            set ::TimedRun::lastAlarmTime $runTime
+            
+        } elseif {($from in [list Paused Active]) && $to eq ("Halted")} {
+            # Remove the last alarm set.
+            
+            $et removeAlarm $::TimedRun::lastAlarmTime ::TimedRun::_alarm
+        }
+    }
+}
+
+##
+# ::TimedRun::_alarm
+#
+#   Called when a timed run time expires.  This is just going to request
+#   a transition to halted.  The state machine callbacks do the rest of the work.
+#
+proc ::TimedRun::_alarm {} {
+    set sm [RunstateMachineSingleton %AUTO%]
+    $sm transition Halted
+    $sm destroy
+}
+
+# API Functions for the length of the run.
+
+##
+# ReadoutGUIPanel::isTimed
+#
+# @return boolean - if the GUI's timed button is checked.
+#
+proc ::ReadoutGUIPanel::isTimed {} {
+    set w [::ElapsedTime::getInstance]
+    return [$w cget -timed]
+}
+##
+# ReadoutGUIPanel::setTimed
+#
+#   Sets the state of teh GUI time checkbutton.
+#
+# @param state - new state (boolean)
+#
+proc ::ReadoutGUIPanel::setTimed {state} {
+    set w [::ElapsedTime::getInstance]
+    $w configure -state $state
+}
+##
+# ::ReadoutGUIPanel::getRequestedRunTime
+#
+# @return integer - number of seconds in the d-hh:mm:ss request.
+#
+proc ::ReadoutGUIPanel::getRequestedRunTime {} {
+    set w [::ElapsedTime::getInstance]
+    set secs [$w cget -secs]
+    set mins [$w cget -mins]
+    set hrs  [$w cget -hours]
+    set days [$w cget -days]
+    
+    return [expr {
+        ((($days*24) + $hrs * 60) + $mins *60) + $secs
+    }]
+}
+##
+# ::ReadoutGUIPanel::setRequestedRunTime
+#
+#   Set the length of a timed run.  This only has meaning
+#   *  If the timed run is enabled (::ReadoutGUIPanel::setTimed 1)
+#   *  At the start of the next run.
+#
+# @param secs  - number of seconds desired for the next run.
+#
+proc ::ReadoutGUIPanel::setRequestedRunTime secs {
+    set seconds   [expr {$secs % 60}]
+    set remainder [expr {int($secs / 60)}]
+    set mins      [expr {$remainder % 60}]
+    set remainder [expr {int($remainder /60)}]
+    set hours     [expr {$remainder % 24}]
+    set days      [expr {int($remainder / 24) }]
+    
+    set w [::ElapsedTime::getInstance]
+    $w configure -secs $seconds -mins $mins -hours $hours -days $days
+}
+#------------------------------------------------------------------------------
+#  Logging/output
+
+##
+# @class OutputWindow
+#   Provides a widget that can be used to output lines of text. Two interesting
+#   features of the output window are the history limit and logging classes.
+#   The -history option allows the client to configure the number of lines of
+#   text that will be retained on the widget.  This prevents the memory storage
+#   of the widget from growing without bounds.
+#
+#  Logging classes are used with the log method.   The -logclasses option
+#  defines a list of log item types that the log method will accept (an
+#  error is thrown if log is called with a log type not in that list).
+#  -showlog defines a list of log item types the log method will actually
+#  display on the screen.  The initial set of log classes are:
+#  *   output - intended to display output from some source (e.g. a data source program).
+#  *   log    - intended to log some interesting event (e.g. the run started).
+#  *   error  - intended to log some error condition.
+#  *   warning- intended to log some condition that could be a problem.
+#  *   debug  - intended for debugging output.
+#
+#  -showlog defines how or if items will be displayed.  It consists of a
+#      list in the form accepted by array set.  The keys to the array are
+#      log classes.  If a log class is not in the list it will not be displayed.
+#      the elements of the array are lists of option/value pairs where each
+#      option is an option accepted by the text widget tag configure operation.
+#      As you might guess, log entries are given a tag that matches their logclass
+#      Therefore changes to the -showlog are dynamic with the exception of the
+#      addition/removal of classes from the list which only affect future log
+#      operations. By default these are (note debug is not displayed):
+#      *  output [list]
+#      *  log    [list]
+#      *  error  -foreground red -background white
+#      *  warning -foreground yellow
+#     @note a dict could be just as easily used as a list with keys the option names
+#           and values the option values.
+#
+# LAYOUT:
+#   +---------------------------------------------------------------+
+#   | +---------------------------------------------+--+            |
+#   | |  text widget                                |sb|            |
+#   | +---------------------------------------------+--+            |
+#   | |    scrollbar                                |               |
+#   | +---------------------------------------------+
+#   +---------------------------------------------------------------+
+#
+# OPTIONS:
+#    -foreground - Widget foreground color
+#    -background - Widget background color
+#    -width      - Width of widget in characters.
+#    -height     - Height of widget in characters.
+#    -history    - Number of lines of historical text that are retained.
+#    -logclasses - Defines the set of log classes accepted by the log method.
+#    -showlog    - Defines which of the log classes will actually be displayed.
+# METHODS:
+#   puts         - puts data to the widget
+#   clear        - clear the entire text and history.
+#   log          - Make a timestamped log entry.
+#   get          - Returns all of the characters in windowm, visible and historic
+#   open         - Opens a log file for the widget.  The file is opened for
+#                  append access. From this point on all data output will be logged
+#                  to this file.
+#   close        - closes the log file.
+#
+snit::widgetadaptor OutputWindow {
+    component text
+    
+    delegate option -foreground to text
+    delegate option -background to text
+    delegate option -width      to text
+    delegate option -height     to text
+
+    option -history    -default 1000
+    option -logclasses -default [list output log error warning debug]
+    option -showlog    -default [list                         \
+        output  [list]                                        \
+        log     [list]                                        \
+        error   [list -background white -foreground red]      \
+        warning [list -foreground magenta]                     \
+    ] -configuremethod _updateTagOptions
+    
+    # If non empty, this is the log file fd.
+    
+    variable logfileFd  ""
+    
+    ##
+    # constructor
+    #   Builds the text widget along with horizontal and vertical scrollbars.
+    #   the widget is set to -state disabled so that users can't type at it.
+    #
+    # @param args - The configuration options for the text widget.
+    #
+    constructor args {
+        installhull using ttk::frame
+        
+        # Widget creation
+        
+        install text using text $win.text -xscrollcommand [list $win.xsb set] \
+            -yscrollcommand [list $win.ysb set] -wrap none -background grey
+        ttk::scrollbar $win.ysb -orient vertical   -command [list $text yview]
+        ttk::scrollbar $win.xsb -orient horizontal -command [list $text xview]
+        
+        # widget layout:
+        
+        grid $text $win.ysb -sticky nsew
+        grid $win.xsb       -sticky new
+        
+        $self configurelist $args
+        $self _updateTagOptions -showlog $options(-showlog)
+    }
+    ##
+    # destructor
+    #   Ensure we don't leak file descriptors:
+    #
+    destructor {
+        if {$logfileFd ne ""} {
+            close $logfileFd
+        }
+    }
+    
+    #---------------------------------------------------------------------------
+    # Public methods:
+    #
+    
+    ##
+    # puts
+    #   Puts simple text to the output window.
+    #
+    # @param args - This can be one or two parameters:
+    #               *  text       - the text is output followed by a newline.
+    #               * -nonewline  - The text is output with no trailing newline.
+    #
+    method puts  {args}       {
+
+        if {[llength $args] == 1} {
+            set line "[lindex $args 0]\n"
+        } elseif {([llength $args] == 2) && ([lindex $args 0] eq "-nonewline")} {
+            set line [lindex $args 1]
+        } else {
+            error "use puts ?-nonewline Text"
+        }
+        $self _output "__notag___" $line
+    }
+    ##
+    # clear
+    #    Clears the entire widget.
+    #
+    method clear {}           {
+        $text delete 0.0 end
+    }
+    ##
+    # log
+    #    Make a log like message.  A log message gets a timestamp and is
+    #   associated with log class (-logclasses).  Further more, -showlog can
+    #   associate rendering options with these messages.
+    #
+    # @param class - The log class associated with the message (must be in
+    #                -logclasses)
+    # @param msg   - The messagde to log.
+    method log   {class msg} {
+        set timestamp [clock format [clock seconds]]
+        if {$class ni $options(-logclasses)} {
+            error "'$class' is not one of the known classes: {$options(-logclasses)}"
+        }
+        array set logRenditions $options(-showlog)
+        if {$class in [array names logRenditions]} {
+            $self _output $class "$timestamp : $class : $msg\n"
+        }
+    }
+    ##
+    # get
+    #   Return the text in the widget.  No effor is made to return information
+    #   about the rendering of the text... only the text itself is returned.
+    #
+    # @return - string containing all of the text in the output window.
+    #
+    method get   {}           {
+        return [$text get 0.0 end]
+    }
+    ##
+    # open
+    #   Open a file and log subsequent output to it as well as to the window.
+    #   *   If a file is already open it is closed.
+    #   *   the file is opened for append access (a+).
+    #   *   Output will be logged to the file until close is called or until
+    #       a different file is opened.
+    #
+    # @param filename  - Name of the file to open.
+    #
+    # @throw if the file is not writable.
+    #
+    method open  {filename}   {
+    
+        #  Close any open file:
+        
+        if {$logfileFd ne ""} {
+            $self close
+        }
+        #  Open the new file
+        
+        set logfileFd [open $filename "a+"]
+    }
+    ##
+    # Close the log file.
+    # @throw it is an error to close when no log file is active.
+    #
+    method close {}           {
+        if {$logfileFd eq ""} {
+            error "No logfile is open"
+        } else {
+            close $logfileFd
+            set logfileFd ""
+        }
+    }
+    
+    #--------------------------------------------------------------------------
+    #  Configuration processors.
+    
+    
+    ##
+    # _updateTagOptions
+    #
+    #  Processes a new set of -showlog values.  These get turned into tag
+    #  configuration.
+    #
+    # @param optname  - The option being configured
+    # @param value    - The new value for this option.
+    #
+    # @note see the class comments for more informationabout the value.
+    #
+    method _updateTagOptions {optname value} {
+        #
+        #  By putting the values into an array whose values are treated as dicts
+        #  locally we
+        #  - make it easy to iterate over the tags.
+        #  - Syntax check the dictionary definition lists.
+        
+        array set tagInfo $value
+        
+        foreach tag [array names tagInfo] {
+            set tagConfig $tagInfo($tag)
+            if {([llength $tagConfig] % 2) == 1} {
+                error "log option lists must be even but the one for '$tag' is not: {$tagConfig}"
+            }
+            dict for {tagopt tagoptValue} $tagConfig {
+                $text tag configure $tag $tagopt $tagoptValue
+            }
+        }
+        
+        #
+        # If we got here, everything is legal:
+        #
+        set options($optname) $value
+        
+    }
+    #--------------------------------------------------------------------------
+    # Private methods
+    
+    ##
+    # _output
+    #    Centralized output/file-logging/history-trimming output method:
+    #
+    # @param tag  - Tag to associate with the output.
+    # @param text - Data to output.
+    #
+    method _output {tag data} {
+        
+        # Output the data to the widget:
+        
+        $text insert end $data  $tag
+        $text yview -pickplace end
+        
+        # Limit the number of lines that can appear.
+        
+        set lines [$text count -lines 0.0 end]
+        if {$lines > $options(-history)} {
+            $text delete 0.0 "end - $options(-history) lines"
+        }
+        # Log to file if we must:
+        
+        if {$logfileFd != ""} {
+            puts -nonewline $logfileFd $data
+            flush $logfileFd
+        }
+    }
+}
+
+#
+#  Singleton and bundle to ensure state transitions get logged.
+#
+namespace eval ::Output {
+    variable theInstance ""
+    namespace export enter leave attach
+}
+
+
+##
+# Output::getInstance
+#
+#   Return the singleton instance of the OutputWindow creating it if needed.
+#
+# @param win - (Only required for the creation). Window path for the output window.
+# @param args- (Optional, only seen at creation). Configuration parameters for
+#               the output window.
+#
+proc Output::getInstance { {win {}} args} {
+    if {$::Output::theInstance eq ""} {
+        set ::Output::theInstance [OutputWindow $win {*}$args]
+        set sm [RunstateMachineSingleton %AUTO%]
+        $sm addCalloutBundle Output
+        $sm destroy
+    }
+    return $::Output::theInstance
+}
+#
+# Callout bundle methods.. These log stuff to the singleton OutputWindow.
+#
+
+##
+# ::Output::attach
+#   Outputs a debug message indicating attached and which state.
+#
+# @param state - The current state.
+#
+proc ::Output::attach {state} {
+    set w [::Output::getInstance]
+    $w log debug "Attached to state machine state is: $state"
+}
+##
+# ::Output::enter
+#   State machine finished a transition.
+#   Make a log level entry indicating we completed a state transition.
+#
+# @param from - the state we left.
+# @param to   - The state we are now in.
+#
+proc ::Output::enter  {from to} {
+    set w [::Output::getInstance]
+    $w log log "Run state changed: $from -> $to"
+}
+##
+# ::Output::leave
+#   Called when a state transition is beginning.
+#   Make a debug entry indicating this.
+#
+# @param from - State we are leaving.
+# @param to   - State we are headed for
+#
+proc ::Output::leave  {from to} {
+    set w [::Output::getInstance]
+    $w log debug "Run leaving state $from heading for state $to"
+}
+
+#
+#  API for the output window.
+#
+
+##
+#  ::ReadoutGUIPanel::isRecording
+#     Set the text widget to the recording colors.
+#     (dark green background with white foreground).
+# 
+proc ::ReadoutGUIPanel::isRecording {} {
+    set w [::Output::getInstance]
+    $w configure -background darkgreen -foreground white
+}
+##
+# ::ReadoutGUIPanel::notRecording
+#   set the text widget to the non-recording colors of background grey
+#   foreground black.
+#
+proc ::ReadoutGUIPanel::notRecording {} {
+    set w [::Output::getInstance]
+    $w configure -background grey -foreground black
+}
+##
+# ::ReadoutGUIPanel::normalColors
+#
+#  Synonym for notRecording.
+#
+proc ::ReadoutGUIPanel::normalColors {} {
+    ::ReadoutGUIPanel::notRecording   
+}
+##
+# ::ReadoutGUIPanel::outputText
+#    Output a line of text to the output widget.
+#
+# @param text - text to write,  a newline is appended to it.
+#
+proc ::ReadoutGUIPanel::outputText {text} {
+    set w [::Output::getInstance]
+    $w puts $text
+}
+##
+# ::ReadoutGUIPanel::log
+#
+#   Creates a log entry on on the text window.
+#
+# @param src  - The creator of the log.
+# @param class - The log class (see -logclasses option on OutputWindow)
+# @param msg   - Meat of the message.
+#
+proc ::ReadoutGUIPanel::log {src class msg} {
+    set w [::Output::getInstance]
+    $w log $class "$src: $msg"
+}
