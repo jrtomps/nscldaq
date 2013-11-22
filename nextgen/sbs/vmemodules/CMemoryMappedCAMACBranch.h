@@ -21,7 +21,6 @@
 #ifndef __CCAMACBRANCH_H
 #include "CCAMACBranch.h"
 #endif
-
 /*!
    The important set of CAMAC interfaces we deal with are memory mapped..
    that is they occupy some space in VME memory, and an operation

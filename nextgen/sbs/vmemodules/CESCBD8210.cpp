@@ -59,7 +59,8 @@ static const unsigned    BRANCH_SHIFT = 19;
    \param vmeCrate - Number of the VME crates this is in. This defaults to zero
                      which issuitable for single VME crate systems.
 */
-CESCBD8210::CESCBD8210(unsigned branch, unsigned vmeCrate)
+CESCBD8210::CESCBD8210(unsigned branch, unsigned vmeCrate) :
+CMemoryMappedCAMACBranch(false)
 {
   if (!(m_pBranches[branch][vmeCrate])) {
     mapBranch(branch, vmeCrate);
