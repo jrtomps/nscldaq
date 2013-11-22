@@ -754,5 +754,5 @@ uint32_t
 CSIS3820:: ChannelOffset(uint32_t base, 
 			 uint32_t  chan)
 {
-  return base + chan*sizeof(unsigned long);
+  return base + chan*sizeof(uint32_t);
 }

@@ -226,7 +226,7 @@ CSIS3300::CSIS3300(uint32_t nBaseAddress,
 
   // CSR Block:
 
-  m_pModuleId    = m_pCsrs + (4/sizeof(long));
+  m_pModuleId    = m_pCsrs + (4/sizeof(uint32_t));
 
   // If the module is not an SIS 3300 or 3301 according to the
   // module Id register throw a hissy fit:
@@ -244,12 +244,12 @@ CSIS3300::CSIS3300(uint32_t nBaseAddress,
   
 
   m_pCsr         = m_pCsrs;
-  m_pAcqReg      = m_pCsrs + (0x10/sizeof(long));
-  m_pResetKey    = m_pCsrs + (0x20/sizeof(long));
-  m_pStart       = m_pCsrs + (0x30/sizeof(long));
-  m_pStop        = m_pCsrs + (0x34/sizeof(long));
-  m_pStartDelay  = m_pCsrs + (0x14/sizeof(long));
-  m_pStopDelay   = m_pCsrs + (0x18/sizeof(long));
+  m_pAcqReg      = m_pCsrs + (0x10/sizeof(uint32_t));
+  m_pResetKey    = m_pCsrs + (0x20/sizeof(uint32_t));
+  m_pStart       = m_pCsrs + (0x30/sizeof(uint32_t));
+  m_pStop        = m_pCsrs + (0x34/sizeof(uint32_t));
+  m_pStartDelay  = m_pCsrs + (0x14/sizeof(uint32_t));
+  m_pStopDelay   = m_pCsrs + (0x18/sizeof(uint32_t));
 
 
   m_pEventConfig = (volatile uint32_t*)CVMEInterface::Map(m_nFd,
@@ -262,30 +262,30 @@ CSIS3300::CSIS3300(uint32_t nBaseAddress,
 							m_nBase + 0x200000, 
 							0x3000);
 
-  m_pThresholds[0] = m_pEi1 + (4/sizeof(long));
-  m_pAddressReg1    = m_pEi1 + (8/sizeof(long));
-  m_pEventDirectory1= m_pEi1 + (0x1000/sizeof(long));
+  m_pThresholds[0] = m_pEi1 + (4/sizeof(uint32_t));
+  m_pAddressReg1    = m_pEi1 + (8/sizeof(uint32_t));
+  m_pEventDirectory1= m_pEi1 + (0x1000/sizeof(uint32_t));
 
   m_pEi2 = (volatile uint32_t*)CVMEInterface::Map(m_nFd, 
 						       m_nBase + 0x280000, 
 						       0x3000);
-  m_pThresholds[1] = m_pEi2 + (4/sizeof(long));
-  m_pAddressReg2    = m_pEi2 + (8/sizeof(long));
-  m_pEventDirectory2= m_pEi2 + (0x1000/sizeof(long));
+  m_pThresholds[1] = m_pEi2 + (4/sizeof(uint32_t));
+  m_pAddressReg2    = m_pEi2 + (8/sizeof(uint32_t));
+  m_pEventDirectory2= m_pEi2 + (0x1000/sizeof(uint32_t));
 
   m_pEi3 = (volatile uint32_t*)CVMEInterface::Map(m_nFd, 
 						       m_nBase + 0x300000, 
 						       0x3000);
-  m_pThresholds[2] = m_pEi3 + (4/sizeof(long));
-  m_pAddressReg3    = m_pEi3 + (8/sizeof(long));
-  m_pEventDirectory3= m_pEi3 + (0x1000/sizeof(long));
+  m_pThresholds[2] = m_pEi3 + (4/sizeof(uint32_t));
+  m_pAddressReg3    = m_pEi3 + (8/sizeof(uint32_t));
+  m_pEventDirectory3= m_pEi3 + (0x1000/sizeof(uint32_t));
  
   m_pEi4 = (volatile uint32_t*)CVMEInterface::Map(m_nFd, 
 						       m_nBase + 0x380000, 
 						       0x3000);
-  m_pThresholds[3] = m_pEi4 + (4/sizeof(long));
-  m_pAddressReg4    = m_pEi4 + (8/sizeof(long));
-  m_pEventDirectory4= m_pEi4 + (0x1000/sizeof(long));
+  m_pThresholds[3] = m_pEi4 + (4/sizeof(uint32_t));
+  m_pAddressReg4    = m_pEi4 + (8/sizeof(uint32_t));
+  m_pEventDirectory4= m_pEi4 + (0x1000/sizeof(uint32_t));
 
 
   
@@ -931,9 +931,9 @@ CSIS3300::ReadAGroup(void* pbuffer,
     int nReadSize = (nPagesize - nEventEnd);
     if(nReadSize > 0) {
       CVMEInterface::Read((void*)m_nFd,
-			  nBase + nEventEnd*sizeof(long),
+			  nBase + nEventEnd*sizeof(uint32_t),
 			  Samples,
-			  nReadSize*sizeof(long));
+			  nReadSize*sizeof(uint32_t));
     }
 
     // The second read, if necessary, is from 0 ->nEventEnd-1.
@@ -944,7 +944,7 @@ CSIS3300::ReadAGroup(void* pbuffer,
       CVMEInterface::Read((void*)m_nFd,
 			  nBase,
 			  &(Samples[nOffset]),
-			  nReadSize*sizeof(long));
+			  nReadSize*sizeof(uint32_t));
     }
     nLongs = nPagesize;
   }
@@ -953,7 +953,7 @@ CSIS3300::ReadAGroup(void* pbuffer,
     if(nEventEnd > 0) {
       CVMEInterface::Read((void*)m_nFd,
 			  nBase, Samples, 
-			  (nEventEnd*sizeof(long)));
+			  (nEventEnd*sizeof(uint32_t)));
       nLongs = nEventEnd;
     } 
     else {			// nothing to read...
@@ -961,7 +961,7 @@ CSIS3300::ReadAGroup(void* pbuffer,
     }
   }
 
-  return nLongs*sizeof(uint32_t)/sizeof(unsigned short);
+  return nLongs*sizeof(uint32_t)/sizeof(uint16_t);
 
 }
 

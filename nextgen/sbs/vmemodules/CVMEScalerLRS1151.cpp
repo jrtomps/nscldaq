@@ -35,10 +35,10 @@ static const unsigned int nVmeMapSize = 256;
 // the si  CCamacModule  m_Scaler;	//!< The scaler module representations.  CCamacModule  m_Scaler;	//!< The scaler module representations.ze units of the register size: nameB  - Byte, nameW -word nameL - long
 //
 static const unsigned int ResetW        = 0;// Full Reset of the module.
-static const unsigned int BIMW          = (0x10/sizeof(short));
-static const unsigned int ChannelResetL = (0x40/sizeof(long));
-static const unsigned int ChannelL      = (0x80/sizeof(long));
-static const unsigned int ModIdL        = (0xfa/sizeof(long));
+static const unsigned int BIMW          = (0x10/sizeof(uint16_t));
+static const unsigned int ChannelResetL = (0x40/sizeof(uint32_t));
+static const unsigned int ChannelL      = (0x80/sizeof(uint32_t));
+static const unsigned int ModIdL        = (0xfa/sizeof(uint32_t));
 
 /*! 
   Construct a module at the designated site:

@@ -463,3 +463,4 @@ Feb 1, 2012 - Feb 24, 2012
 	for any of this to work.
 	* Add missing libs -lSBSDeviceSupport -lSBSVmeAPI to SBSRDO
 	makefile include directory. 
+        * Fix some sizeof(xxx) 64/32 bit uncleanlinesses in sbs/vmemodules

@@ -157,7 +157,7 @@ struct Registers {
 // the board:
 
 struct ROM {
-  unsigned short  pad1[0x26/sizeof(short)];  // 0x8000 - 0x8024
+  unsigned short  pad1[0x26/sizeof(uint16_t)];  // 0x8000 - 0x8024
   unsigned short  OUIMSB;                    // 0x8026
   unsigned short  pad2;                      // 0x8028
   unsigned short  OUI;                       // 0x802a
@@ -173,8 +173,8 @@ struct ROM {
   unsigned short  BoardIdLSB;                // 0x803e
   unsigned short  pad8[7];                   // 0x8040-0x804c
   unsigned short  Revision;                  // 0x804e
-  unsigned short  pad9[0xb0/sizeof(short)];  // 0x8050 - 0x8100
-  unsigned short  pad10[0xe00/sizeof(short)]; // 0x8100 - 0x8ffe
+  unsigned short  pad9[0xb0/sizeof(uint16_t)];  // 0x8050 - 0x8100
+  unsigned short  pad10[0xe00/sizeof(uint16_t)]; // 0x8100 - 0x8ffe
   unsigned short  pad11;                     // 0x8f00
   unsigned short  SerialMSB;                 // 0x8f02
   unsigned short  pad12;                     // 0x8f04
@@ -190,8 +190,8 @@ struct ROM {
 
 /// Short offset associated with a struct/field.
 
-#define ShortOffset(structname, field) Offset(structname, field)/sizeof(short)
-#define LongOffset(structname, field)  Offset(structname, field)/sizeof(long)
+#define ShortOffset(structname, field) Offset(structname, field)/sizeof(uint16_t)
+#define LongOffset(structname, field)  Offset(structname, field)/sizeof(uint32_t)
 
 /// Read the buffer:
 ///
@@ -891,7 +891,7 @@ CAENcard::readEvent(void* buf)
     if(0 && (getFirmware() >= 0x808) ) {	// Raw chancount reliable... NOT
       
       ReadBufferBlock(pBuf, nRawChancnt+1);
-      return (nRawChancnt+2)*sizeof(long);
+      return (nRawChancnt+2)*sizeof(uint32_t);
 
     } else {
       uint32_t datum;

@@ -34,7 +34,7 @@ using namespace std;
 #define Offset(structname, field) ((unsigned int)&(((structname*)0x0)->field))
 
 // Short and Long noffset associated with a struct/field.
-#define ShortOffset(structname, field) (Offset(structname,field)/sizeof(uint16_5))
+#define ShortOffset(structname, field) (Offset(structname,field)/sizeof(uint16_t))
 #define LongOffset(structname, field)  (Offset(structname,field)/sizeof(uint32_t))
 
 // VME crate definitions
@@ -416,7 +416,7 @@ const std::string& CADC2530::toString() {
 */                                                             
 int CADC2530::readListEvent(void* buf,int lngsLeft) {
   int lngcnt = 0;
-  unsigned int *lptr = (unsigned int*)buf; 
+  uint32_t *lptr = (uint32_t*)buf; 
 
   // Need at least a header and EOB
   if (lngsLeft < 2) return(0);
@@ -440,12 +440,12 @@ int CADC2530::readListEvent(void* buf,int lngsLeft) {
       lngcnt++; 
     } 
 #else
-    memcpy(lptr, const_cast<const unsigned int*>(my_pMemory+my_cureventpos), 
-	   (chans+1)*sizeof(unsigned int));
+    memcpy(lptr, const_cast<const uint32_t*>(my_pMemory+my_cureventpos), 
+	   (chans+1)*sizeof(uint32_t));
 #endif
   } 
 
-  return lngcnt*sizeof(unsigned int);
+  return lngcnt*sizeof(uint32_t);
 }
 
 /*==============================================================*/
@@ -467,12 +467,12 @@ int CADC2530::readListEvent(void* buf,int lngsLeft) {
 */                                                             
 int CADC2530::readListEvents(void* buf,int& nEvents) {
   int lngcnt = 0;
-  unsigned int *lptr = (unsigned int*)buf; 
+  uint32_t *lptr = (uint32_t*)buf; 
 
   // First check list memory boundaries
   unsigned int listaddr = getListAddress();
   if (listaddr == 0) {
-    if (dataReady()) listaddr = (CADC2530_MEMSIZE/sizeof(unsigned int));
+    if (dataReady()) listaddr = (CADC2530_MEMSIZE/sizeof(uint32_t));
   }
 
   // Now read the events
@@ -515,14 +515,14 @@ int CADC2530::readHistogramChannel(void* buf,int channum) {
   } 
 
   int chstart = (channum - 1) * CADC2530_HISTOCHANSIZE;
-  unsigned int *lptr = (unsigned int*)buf; 
+  uint32_t *lptr = (uint32_t*)buf; 
 
 
   for (int i = 0; i < CADC2530_HISTOCHANSIZE; i++) {
     lptr[i] = ((volatile uint32_t*)my_pMemory)[chstart+i];
   }
 
-  return (CADC2530_HISTOCHANSIZE * sizeof(unsigned int));
+  return (CADC2530_HISTOCHANSIZE * sizeof(uint32_t));
 }
 
 /*==============================================================*/
