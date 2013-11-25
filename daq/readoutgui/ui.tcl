@@ -2126,18 +2126,138 @@ snit::widgetadaptor ReadoutGUI {
     #   * Load        - Loads a script by doing a source at the global level.
     #   * Add Library - Adds a library directory to the auto_path.
     #   * <separator>
+    #   * Log         - Select a log file for the output widget.
+    #   * Log Disable - Turn off logging in the output wigdget.
+    #   * <separator>
     #   * Exit        - Ends any active run and exits the application.
     #
     method _populateFileMenu {} {
         $menubar addMenu File
-        $menubar addCommand   File Load [mymethod _sourceFile]
-        $menubar addCommand   File {Add Library} [mymethod _extendAutoPath]
+        $menubar addCommand   File Load... [mymethod _sourceFile]
+        $menubar addCommand   File {Add Library...} [mymethod _extendAutoPath]
         $menubar addSeparator File
-        $menubar addCommand   File {Exit} [mymethod _Exit]
+        $menubar addCommand   File Log... [mymethod _chooseLogfile]
+        $menubar addCommand   File {Disable Log} [mymethod _stopLogging]
+        $menubar addSeparator File
+        $menubar addCommand   File {Exit...} [mymethod _Exit]
     }
+    #--------------------------------------------------------------------------
+    #  Private methods:
+    #
     
-    method _sourceFile {} {}
-    method _extendAutoPath {} {}
-    method _Exit {} {}
+    ##
+    # _stopRun
+    #     Ensure the run state machine is not in an non halted state
+    #     If the state is Active or Paused, the machine is transitioned to
+    #     Halted.
+    #
+    method _stopRun {} {
+        set sm [RunstateMachineSingleton %AUTO%]
+        if {[$sm getState] in [list Active Paused]} {
+            $sm transition Halted
+        }
+        $sm destroy
+    }
+    ##
+    #  Stop all data sources.
+    #
+    method _stopDataSources {} {}
+    
+    #--------------------------------------------------------------------------
+    #  Menu bar handlers:
+    #
+    
+    ##
+    # _sourceFile
+    #    Sources a file at the top level.  This can be used to add plugins
+    #    to the ReadoutGUI.  Since this is a menubar function;
+    #    the file sourced is gottenvia tk_getOpenFile.
+    #    *  .tcl - is the normal default filetype and the default extension
+    #    *  .tk  - is also an option for extension filtering.
+    #    *  .*   - is an option for extension filtering.
+    #
+    method _sourceFile {} {
+        set scriptPath [tk_getOpenFile -defaultextension .tcl -parent $win  \
+            -title {Choose script file}             \
+            -filetypes [list                        \
+                [list {Tcl Scripts} {.tcl}]         \
+                [list {Tk Scripts}  {.tk"}]         \
+                [list {All Files}    *]             \
+            ]]
+        #
+        #  The dialog returns "" if cancel is clicked
+        #
+        if {$scriptPath ne ""} {
+            uplevel #0 source $scriptPath
+        }
+    }
+    ##
+    # _extendAutoPath
+    #    Adds another directory to the ::auto_path list.  The directory
+    #    is prompted fro using tcl_ChooseDirectory
+    #
+    method _extendAutoPath {} {
+        set packageDirectory [tk_chooseDirectory -mustexist 1 -parent $win \
+            -title {Choose Package directory}]
+        if {$packageDirectory ne ""} {
+            lappend ::auto_path $packageDirectory
+        }
+    }
+    ##
+    # _chooseLogfile
+    #
+    #   The output widget has the capability of logging all output to a file
+    #   this menu item prompts for the log file name and initiate logging.
+    #   Logging will continue until the _stopLogging menu item is invoked or
+    #   alternatively some external code stops logging.   If the user
+    #   requests a different log file, logging will continue in that file.
+    #
+    method _chooseLogfile {} {
+        set logFilename [tk_getSaveFile -defaultextension log -parent $win \
+            -title {Choose log file}                                        \
+            -filetypes [list                                                \
+                [list {Log files} .log]                                     \
+                [list {Text files} .txt]                                    \
+                [list {All Files}   *]                                      \
+        ]]
+        if {$logFilename ne ""} {
+            $output open $logFilename
+        }
+    }
+    ##
+    # _stopLogging
+    #    Close the output window logfile if any is active.
+    #    At this point this is done just by catching a call to
+    #    $output close.
+    #    TODO:  The menu item should be disabled when logging is off
+    #           and enabled otherwise.
+    #
+    method _stopLogging {} {
+        catch {$output close}
+    }
+    ##
+    # _Exit
+    #   Prompt for confirmation and exit.
+    #   If exit is confirmed then
+    #   *  If the run state is one of the active ones (Active, Paused) the run
+    #      state machine is asked to stop the run.
+    #   *  Data sources are asked to exit.
+    #   *  The state is then transitioned to NotReady to ensure that all
+    #      state transition handlers run
+    #   *  The exit command is performed with a 0 (normal) exit code.
+    method _Exit {} {
+        set confirm [tk_messageBox -default no -type yesno -parent $win \
+            -title {Really Exit?} -icon question \
+            -message {Are you sure you want to exit?} \
+            ]
+        if {$confirm eq "yes"} {
+            $self _stopRun
+            $self _stopDataSources
+            set sm [RunstateMachineSingleton %AUTO]
+            $sm transition NotReady
+            $sm destroy;                # though there's not much point to this:
+            exit 0;                     # since we're exiting now.
+        }
+    }
 }
 

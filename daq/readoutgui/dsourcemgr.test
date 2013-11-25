@@ -367,6 +367,24 @@ tcltest::test stop-2 {Stopping a data source Removes it from the data source set
 } \
 -result [list]
 
+tcltest::test stopall {Stop all data sources uh...stops them all} \
+-setup {
+    set manager [DataSourceManager %AUTO%]
+    $manager load S800
+    startServer
+    set sid [$manager addSource \
+        S800 [dict create host localhost port $::s800test::port]]
+} \
+-cleanup {
+    $manager destroy
+    stopServer
+    set ::S800::state halted        
+} \
+-body {
+    $manager stopAll
+    $manager sources
+} \
+-result [list]
 
 # Tests for starting a run.
 

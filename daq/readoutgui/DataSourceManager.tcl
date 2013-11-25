@@ -32,12 +32,24 @@ package require ReadoutState
 #  of all of the sources it is managing.
 #
 # TYPEMETHODS:
-#   enumerate - list the set of data sources.  These are the names of packages
+#   enumerateProviders - list the set of data sources.  These are the names of packages
 #               that end in _Provider with the _Provider hacked off.
 #
 # METHODS:
 #   load      - Load a data source provider into an instance of a data source
 #               manager.
+#   parameters - Get the parameterization of a data source provider.
+#   capabilities - Get the capabilities of a data source provider.
+#   systemCapabilities - Get the capabilities of the system.  This is the
+#                        intersection of all capabilities of starte data sources.
+#   addSource     - Start a data source.
+#   check         - Check the liveness of all data sources.
+#   stop          - Stop a single data source.
+#   stopAll       - Stop all data sources.
+#   begin         - Start a run in all data sources.
+#   end           - end the run in all data sources.
+#   pause         - Pause the run in all data sources.
+#   resume        - Resume the run in all data sources.         
 snit::type DataSourceManager {
     
     #---------------------------------------------------------------------------
@@ -268,6 +280,17 @@ snit::type DataSourceManager {
         #  Remove information about it:
         
         array unset dataSources $id
+    }
+    ##
+    # stopAll
+    #    Stop all data sources in the order in which they were started.
+    #
+    method stopAll {} {
+        if {![catch {$self _listOrderedSources ignore} sources]} {
+            foreach id $sources {
+                $self stop $id
+            }
+        }
     }
     ##
     # Begin runs in all of the active data sources
