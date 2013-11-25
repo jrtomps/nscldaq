@@ -158,8 +158,8 @@ public:
 
   void Latch() const;		                    //!< Latch scalers.
   uint32_t      ReadLatchedChannel(unsigned int num) const;
-  void          ReadAllLatchedChannels(unsigned long* buffer) const;
-  void          LatchAndRead(unsigned long* buffer) const;
+  void          ReadAllLatchedChannels(uint32_t* buffer) const;
+  void          LatchAndRead(uint32_t* buffer) const;
 
   // Utility functions:
 

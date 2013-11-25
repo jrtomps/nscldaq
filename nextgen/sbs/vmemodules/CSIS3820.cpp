@@ -680,7 +680,7 @@ CSIS3820:: ReadLatchedChannel(unsigned int num) const
 
 */
 void
-CSIS3820:: ReadAllLatchedChannels(unsigned long* buffer) const
+CSIS3820:: ReadAllLatchedChannels(uint32_t* buffer) const
 {
   for(int i =0; i < ChannelCount; i++) {
     *buffer++ = ReadLatchedChannel(i);
@@ -694,7 +694,7 @@ CSIS3820:: ReadAllLatchedChannels(unsigned long* buffer) const
      Pointer to user buffer to hold the scalers.
 */
 void
-CSIS3820:: LatchAndRead(unsigned long* buffer) const
+CSIS3820::LatchAndRead(uint32_t* buffer) const
 {
   Latch();
   ReadAllLatchedChannels(buffer);
