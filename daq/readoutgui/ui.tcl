@@ -164,6 +164,8 @@ snit::widgetadaptor readoutMenubar {
 #   *    The main window is the toplevel.
 #
 
+
+
 ##
 # ::ReadoutGUIPanel::addUserMenu
 #
@@ -401,6 +403,21 @@ snit::widgetadaptor RunIdentification {
 #
 namespace eval ::ReadoutGUIPanel {
     variable runIdWidget ""
+}
+
+##
+#  ::ReadoutGUIPanel::getRunIdInstance
+#
+# return/create the runid instance.
+#
+# @param widget (only looked at the first time)
+# @return widget path - to the run id widget.
+#
+proc ::ReadoutGUIPanel::getRunIdInstance {{widget {}}} {
+    if {$::ReadoutGUIPanel::runIdWidget eq ""} {
+        set ::ReadoutGUIPanel::runIdWidget [RunIdentification  $widget]
+    }
+    return $::ReadoutGUIPanel::runIdWidget
 }
 
 ##
@@ -1017,7 +1034,8 @@ snit::widgetadaptor ElapsedTimeDisplay {
         install clock using Stopwatch %AUTO%
         
         ttk::label $win.time -textvariable [myvar formattedNow]
-        grid $win.time -sticky nsew
+        ttk::label $win.label -text {Active Run Time}
+        grid $win.time $win.label -sticky nsew 
         
         $clock addAlarm 1 [mymethod _tick]
     }
@@ -1882,3 +1900,244 @@ proc ::ReadoutGUIPanel::log {src class msg} {
     set w [::Output::getInstance]
     $w log $class "$src: $msg"
 }
+
+#------------------------------------------------------------------------------
+# Status area -- This will be a set of very customizable lines.
+#
+
+##
+# @class StatusArea
+#
+#   Provides a very customizable widget for displaying status information.
+#   The status information is divided into several status lines.
+#   Each status line is internally managed but has contents that are externally
+#   controlled.
+#
+# METHODS:
+#    addWidget   - Add an arbitrary widget to the bottom of the status area.
+#    addMessage  - Add a message line to the bottom of the status area.
+#    setMessage  - Set the text of a message widgetg
+#    statusItems - List the set of status items that are managed.
+#    messageHandles - List the message handles.
+#
+snit::widgetadaptor StatusArea {
+    delegate option * to hull
+    
+    variable index 0
+    variable messages [list]
+    
+    ##
+    # constructor
+    #    Construct the container
+    constructor args {
+        installhull using ttk::frame
+        
+        $self configurelist $args
+    }
+    ##
+    #  addWidget
+    #    Adds as widget and grid's it at the bottom of the status
+    #    line.  The widget is made sticky nsew.
+    #
+    # @param args - Widget creation command line minus the window name.
+    #               e.g. to add a label widget that tracks the
+    #               value of some global varialbe 'theText':
+    #               $sa addWidget label -textvariable ::theText
+    #
+    # @return widget path - the created widget.
+    #    
+    method addWidget args {
+        set command [lindex $args 0]
+        set config  [lrange $args 1 end]
+        set window  $win.child[incr index]
+        
+        $command $window {*}$config
+        grid $window -sticky nsew
+        
+        return $window
+    }
+    ##
+    # addMessage
+    #    Convenience method that adds a label into which
+    #    status text can be placed.
+    #
+    # @param msg - (optional) initial message contents.
+    #
+    # @return integer - handle that can be used in future calls to setMessage
+    #
+    method addMessage {{msg {}}} {
+        set win [$self addWidget ttk::label -text $msg]
+        set handle [llength $messages]
+        lappend messages $win
+        return $handle
+    }
+    ##
+    # setMessage
+    #
+    #   Sets new contents for a status message line.
+    #
+    # @param handle - A message handle gotten from addMessage.
+    # @param text   - The new text
+    # @param args   - optional additional configuration options
+    #                 e.g. -foreground -background
+    #
+    method setMessage {handle text args} {
+        if {$handle >= [llength $messages]} {
+            error "Invalid message handle"
+        }
+        set widget [lindex $messages $handle]
+        
+        $widget configure -text $text {*}$args
+    }
+    ##
+    # statusItems
+    #
+    #  Returns the list of widgets that are managed as top level status
+    #  items.  Note that if the client creates a frame stocked with widges,
+    #  this only returns that frame not the contents of the frame.
+    #  Further more, message objects are no different than any other widget
+    #
+    # @return list - List of widget windows.
+    #
+    method statusItems {} {
+        return [winfo children $win]
+    }
+    ##
+    # messageHandles
+    #
+    # @return list - of message object handles.
+    #
+    method messageHandles {} {
+        return $messages
+    }
+    
+}
+##
+#  Singleton pattern implementation for the status bar.
+#
+namespace eval ::StatusBar {
+    variable theInstance ""
+}
+
+##
+# ::StatusBar::getInstance
+#
+# Return the current instance of the status bar, creating it if needed.
+#
+# @param widget  -Path to the widget -- only looked at in the first call.
+#
+proc ::StatusBar::getInstance {{widget {}}} {
+    if {$::StatusBar::theInstance eq ""} {
+        set ::StatusBar::theInstance [StatusArea $widget]
+    }
+    return $::StatusBar::theInstance
+}
+
+#-----------------------------------------------------------------------------
+#
+#  Full Run control GUI base.  We build using the singletons so that
+#  external bits and pieces of the run control system can find us.
+#
+
+##
+# @class ReadoutGUI
+#    The fully assembled readout control panel.
+#
+# LAYOUT:
+#
+#    +------------------------------------------------+
+#    | Run identification                             |
+#    | +-----------------------+                      |
+#    | | Run controls          | Elapsed time         |
+#    | |                       | Timed Run            |
+#    | +-----------------------+                      |
+#    | +-------------------------------------------+  |
+#    | |    Output window.                         |  |
+#                    ...
+#    | +-------------------------------------------+  |
+#    |    status lines                                |
+#                          ...
+#    +------------------------------------------------+
+#
+snit::widgetadaptor ReadoutGUI {
+    component menubar
+    component runid
+    component runcontrol
+    component elapsedtime
+    component timedrun
+    component output
+    component statusbar
+    
+    delegate option * to hull
+    
+    ##
+    # constructor
+    #   All the work gets done here.  The remainder of the application
+    #   just connects via the singletons and the run state machine.
+    #
+    #
+    # @param args - hull (ttk::frame) options
+    #
+    constructor args {
+        installhull using ttk::frame
+        $self configurelist $args
+        
+        #  Make the menubar infrastructure.  We only handle the
+        #  File menu.  See _populateFileMenu for more. There is an implicit
+        #  assumption that we are in the top level widget.
+        #  TODO:  - figure out how to not make that true.
+        
+        install menubar using readoutMenubar $win.menu
+        . configure -menu $menubar
+        $self _populateFileMenu
+        
+        # Install the components
+        
+        
+        install runid using ::ReadoutGUIPanel::getRunIdInstance $win.runid
+        install runcontrol using ::RunControlSingleton::getInstance $win.rctl
+        install elapsedtime using ::ElapsedTime::getInstance $win.elapsed
+        install timedrun    using ::TimedRun::getInstance $win.timed
+        install output      using ::Output::getInstance $win.output
+        install statusbar   using ::StatusBar::getInstance $win.status
+        
+        # Lay them all out:
+        
+        grid $runid       -sticky nsew  -columnspan 2 -row 0 -column 0
+        grid $runcontrol  -sticky nsew  -rowspan    2 -row 1 -column 0
+        grid $elapsedtime -sticky nsew -row 1 -column 1
+        grid $timedrun    -sticky nsew -row 2 -column 1
+        grid $output      -sticky nsew -row 3 -column 0 -columnspan 2
+        grid $statusbar   -sticky nsew -row 4 -column 0 -columnspan 2
+        
+        
+        # configure
+        
+        $self configurelist $args
+
+    }
+    #--------------------------------------------------------------------------
+    #  Private methods
+    #
+    
+    ##
+    # _populateFileMenu
+    #   Populate the file menu which consists of the following:
+    #   * Load        - Loads a script by doing a source at the global level.
+    #   * Add Library - Adds a library directory to the auto_path.
+    #   * <separator>
+    #   * Exit        - Ends any active run and exits the application.
+    #
+    method _populateFileMenu {} {
+        $menubar addMenu File
+        $menubar addCommand   File Load [mymethod _sourceFile]
+        $menubar addCommand   File {Add Library} [mymethod _extendAutoPath]
+        $menubar addSeparator File
+        $menubar addCommand   File {Exit} [mymethod _Exit]
+    }
+    
+    method _sourceFile {} {}
+    method _extendAutoPath {} {}
+    method _Exit {} {}
+}
+
