@@ -20,7 +20,7 @@
 
 package provide rdoCalloutsBundle 1.0
 package require RunstateMachine
-package require ReadoutState
+package require ReadoutGUIPanel
 
 ##
 #  Provides a RunstateMachine callback bundle that implements the old
@@ -104,14 +104,14 @@ proc ::rdoCallouts::enter {from to} {
     
     if {($from in [list Active Paused]) && ($to eq "Halted")} {
         if {[info procs ::OnEnd] ne ""} {
-            uplevel #0 ::OnEnd [::ReadoutState::getRun]
+            uplevel #0 ::OnEnd [::ReadoutGUIPanel::getRun]
         }
     }
     # ->Paused : OnPaused
     
     if {$to eq "Paused"} {
         if {[info procs ::OnPause] ne ""} {
-            uplevel #0 ::OnPause [::ReadoutState::getRun]
+            uplevel #0 ::OnPause [::ReadoutGUIPanel::getRun]
         }
     }
 }
@@ -130,13 +130,13 @@ proc ::rdoCallouts::leave {from to} {
     
     if {($from eq "Halted") &&($to eq "Active")} {
         if {[info procs ::OnBegin] ne ""} {
-            uplevel #0 ::OnBegin [::ReadoutState::getRun]
+            uplevel #0 ::OnBegin [::ReadoutGUIPanel::getRun]
         }
     }
     # Paused -> Active : OnResume
     if {($from eq "Paused") && ($to eq "Active")} {
         if {[info procs ::OnResume] ne ""} {
-            uplevel #0 ::OnResume [::ReadoutState::getRun]
+            uplevel #0 ::OnResume [::ReadoutGUIPanel::getRun]
         }
     }
 }

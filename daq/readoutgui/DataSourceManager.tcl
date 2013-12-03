@@ -20,7 +20,8 @@
 
 package provide DataSourceManager 1.0
 package require snit
-package require ReadoutState
+package require ReadoutGUIPanel
+
 
 ##
 # @class
@@ -214,9 +215,6 @@ snit::type DataSourceManager {
         $self _requireLoaded $providerName
         set sourceId [$self _allocateSourceId]
         dict set params sourceid $sourceId
-        if {[catch {::${providerName}::start $params} msg]} {
-            error "$providerName provider failed to start the source: $msg"
-        }
         
         set dataSources($sourceId)  [dict create provider $providerName {*}$params]
         return $sourceId
@@ -289,6 +287,20 @@ snit::type DataSourceManager {
         if {![catch {$self _listOrderedSources ignore} sources]} {
             foreach id $sources {
                 $self stop $id
+            }
+        }
+    }
+    ##
+    # startAll
+    #   Start all data sources:
+    #
+    method startAll {} {
+        if {![catch {$self _listOrderedSources ignore} sources]} {
+            foreach id $sources {
+                set paramDict $dataSources($id)
+                set providerType [dict get $paramDict provider]
+                dict set paramDict sourceid $id
+                ::${providerType}::start $paramDict
             }
         }
     }
@@ -443,7 +455,6 @@ snit::type DataSourceManager {
         set messages [list]
         foreach id $sources {
             set provider [dict get $dataSources($id) provider]
-            puts "Resuming $provider : $id"
             if {[catch {::${provider}::resume $id} msg]} {
                 lappend messages [list [list $provider $id] $msg]
             }
@@ -566,23 +577,22 @@ snit::type DataSourcemanagerSingleton {
 
 ##
 #  Bundle declaration:
-#  Note the bundle is only going to be used to handle run starts/stops etc.
-#  the 'uber supervisor' will handle loading data source providers
-#  starting sources and so on.
 #
-namespace eval ::DataSourceManager {}
+namespace eval ::DataSourceMgr {
+    namespace export leave enter attach
+}
 
 ##
-# ::DataSourceManager::attach  
+# ::DataSourceMgr::attach  
 #
 #   Called when the data source manager is attached to the run state machine.
 #   does nothing for now.
 #
 # @param state - the current state machine state.
 #
-proc ::DataSourceManager::attach {state} {}
+proc ::DataSourceMgr::attach {state} {}
 ##
-# ::DataSourceManager::enter
+# ::DataSourceMgr::enter
 #
 #   Called when a state is entered.  The following are done:
 #   Halted -> Active : start data sources.
@@ -591,11 +601,11 @@ proc ::DataSourceManager::attach {state} {}
 # @param from - The state that was left.
 # @param to   - The state being entered.
 #
-proc ::DataSourceManager::enter {from to} {
-    set mgr [DataSourceManagerSingleton %AUTO%]
+proc ::DataSourceMgr::enter {from to} {
+    set mgr [DataSourcemanagerSingleton %AUTO%]
     
     if {($from eq "Halted") && ($to eq "Active")} {
-        $mgr begin [::DataSource::getRun] [::DataSource::getTitle]
+        $mgr begin [::ReadoutGUIPanel::getRun] [::ReadoutGUIPanel::getTitle]
     }
     if {($from eq "Paused") && ($to eq "Active")} {
         $mgr resume
@@ -603,7 +613,7 @@ proc ::DataSourceManager::enter {from to} {
     $mgr destroy
 }
 ##
-# ::DataSourceManager::leave
+# ::DataSourceMgr::leave
 #
 #  Called when a state is left.  The following are done:
 #
@@ -612,14 +622,46 @@ proc ::DataSourceManager::enter {from to} {
 # @param from - the state being left.
 # @param to   - The state that will be entered.
 # 
-proc ::DataSourceManager::leave {from to} {
-    set mgr [DataSourceManagerSingleton %AUTO%]
+proc ::DataSourceMgr::leave {from to} {
+    set mgr [DataSourcemanagerSingleton %AUTO%]
+    
+    #  If leaving NotReady for Starting...start the data sources and,
+    #  if successful, schedule a transition from Starting to Halted.
+    #
+    if {($from eq "NotReady") && ($to eq "Starting")} {
+        $mgr startAll
+        
+        after idle  {
+            set sm [RunstateMachineSingleton %AUTO%]
+            $sm transition Halted
+            $sm destroy
+        }
+    }
     
     if {($from in [list Active Paused]) && ($to eq "Halted")} {
         $mgr end
+    }
+    if {($from eq "Active") && ($to eq "Paused")} {
+        $mgr pause
     }
     
     $mgr destroy
 }
 ##
-# TODO: - Figure out how to manage Not Ready -> Starting -> Halted transitions.
+# ::DataSourceMgr::register
+#    Register our bundle with the state machine singleton.
+#
+proc ::DataSourceMgr::register {} {
+    set mgr [RunstateMachineSingleton %AUTO%]
+    $mgr addCalloutBundle DataSourceMgr
+    $mgr destroy
+}
+##
+# ::DataSourceMgr::unregister
+#   remove ourselves as a callout.
+#
+proc ::DataSourceMgr::unregister {} {
+    set mgr [RunstateMachineSingleton %AUTO%]
+    $mgr removeCalloutBundle DataSourceMgr
+    $mgr destroy    
+}

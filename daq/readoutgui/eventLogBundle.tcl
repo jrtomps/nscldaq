@@ -20,10 +20,11 @@
 package provide eventLogBundle 1.0
 package require DAQParameters
 package require RunstateMachine
-package require ReadoutState
+
 package require ExpFileSystem
 package require ReadoutGUIPanel
 package require Diagnostics
+package require ui
 
 
 
@@ -244,7 +245,7 @@ proc ::EventLog::_waitForFile {name waitTimeout pollInterval} {
 proc ::EventLog::_finalizeRun {} {
     set srcdir [::ExpFileSystem::getCurrentRunDir]
     set completeDir [::ExpFileSystem::getCompleteEventfileDir]
-    set run [ReadoutState::getRun]
+    set run [ReadoutGUIPanel::getRun]
     set destDir [::ExpFileSystem::getRunDir $run]
     
     # Make the run directory:
@@ -299,7 +300,8 @@ proc ::EventLog::_finalizeRun {} {
 #
 proc ::EventLog::runStarting {} {
     
-    if {[::ReadoutState::getRecording]} {
+    if {[::ReadoutGUIPanel::recordData]} {
+        puts "Recording data!!"
         ::EventLog::_cdCurrent
         ::EventLog::_startLogger
         ::EventLog::_waitForFile .started $::EventLog::startupTimeout \
@@ -322,14 +324,16 @@ proc ::EventLog::runEnding {} {
     # ne is used below because the logger could be a pipeline in which case
     # ::EventLog::loggerPid will be a list of pids which freaks out ==.
     
+    puts "Logger pid: $::EventLog::loggerPid"
     if {$::EventLog::loggerPid ne -1} {
         set ::EventLog::expectingExit 1
         ::EventLog::_waitForFile .exited $::EventLog::shutdownTimeout \
             $::EventLog::filePollInterval
         set ::EventLog::loggerPid -1
+        ::EventLog::_finalizeRun
         
     }
-    ::EventLog::_finalizeRun
+   
 }
 
 

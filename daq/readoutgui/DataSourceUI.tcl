@@ -179,7 +179,7 @@ snit::widgetadaptor PromptDataSource {
     #            of each key are a list consisting of in order
     #            *   The prompt string for the parameter.
     #            *   The path to the prompting widget for the parameter.
-    #            *   The vale of the widget (entry).
+    #            *   The value of the widget (entry).
     #
     method getForm {} {
         set result $formDescription
@@ -255,6 +255,8 @@ snit::widgetadaptor PromptDataSource {
 #      widget.
 # OPTIONS
 #  -form    - Sets the widget that will appear in the control area.
+#  -showcancel - Determines if the widget displays the cancel button.  If
+#                false, only the Ok button is displayed.
 # METHODS
 #  controlarea - Returns the parent that should be used when creating the
 #                -form widget.
@@ -265,7 +267,8 @@ snit::widgetadaptor PromptDataSource {
 snit::widgetadaptor DialogWrapper {
     component controlarea;                 # The wrapped widget.
 
-    option -form -default ""  -configuremethod _setControlArea    
+    option -form -default ""  -configuremethod _setControlArea
+    option -showcancel true;      # TODO: implement -showcancel.
     delegate option * to controlarea
     delegate method * to controlarea
     

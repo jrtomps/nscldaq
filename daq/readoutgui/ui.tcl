@@ -16,7 +16,7 @@
 # @file ui.tcl
 # @brief Readout GUI User interface elements.
 # @author Ron Fox <fox@nscl.msu.edu>
-package require Tk
+catch {package require Tk};    # In batch tests there's no display!
 package require snit
 package require RunstateMachine
 
@@ -1896,7 +1896,7 @@ proc ::ReadoutGUIPanel::outputText {text} {
 # @param class - The log class (see -logclasses option on OutputWindow)
 # @param msg   - Meat of the message.
 #
-proc ::ReadoutGUIPanel::log {src class msg} {
+proc ::ReadoutGUIPanel::Log {src class msg} {
     set w [::Output::getInstance]
     $w log $class "$src: $msg"
 }
@@ -2161,7 +2161,16 @@ snit::widgetadaptor ReadoutGUI {
     ##
     #  Stop all data sources.
     #
-    method _stopDataSources {} {}
+    method _stopDataSources {} {
+        set mgr [DataSourcemanagerSingleton %AUTO%]
+        set sm [RunstateMachineSingleton %AUTO%]
+        
+        if {[$sm getState] ne "NotReady"} {
+            $mgr stopAll
+        }
+        $sm destroy
+        $mgr destroy
+    }
     
     #--------------------------------------------------------------------------
     #  Menu bar handlers:
@@ -2253,8 +2262,10 @@ snit::widgetadaptor ReadoutGUI {
         if {$confirm eq "yes"} {
             $self _stopRun
             $self _stopDataSources
-            set sm [RunstateMachineSingleton %AUTO]
-            $sm transition NotReady
+            set sm [RunstateMachineSingleton %AUTO%]
+            if {[$sm getState] ne "NotReady"} {
+                $sm transition NotReady
+            }
             $sm destroy;                # though there's not much point to this:
             exit 0;                     # since we're exiting now.
         }

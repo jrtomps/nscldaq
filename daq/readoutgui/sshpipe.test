@@ -65,7 +65,7 @@ tcltest::test start-1 {Bad program fails} \
         msg]
     list $status $msg
         
-} -result [list 1 "SSHPipe data source: Cannot start junky-junk as it is not executable"]
+} -result [list 1 "SSHPipe data source: Cannot start 'junky-junk' as it is not executable"]
 
 
 tcltest::test start-2 {Start echo, check activeProviders contents.} \
@@ -201,9 +201,9 @@ tcltest::test begin-1 {begin on an idle run is ok} \
     set msgCount $::mytests::logcount
     list $state $msgCount $::mytests::log(0) $::mytests::log(1) $::mytests::log(2)
 } -result [list false 3 [dict create source \
-    SSHPipe@localhost severity Input message "set run 1234\n"] \
-    [dict create source SSHPipe@localhost severity Input message "set title {This is a test}\n"] \
-    [dict create source SSHPipe@localhost severity Input message "begin\n"] \
+    SSHPipe@localhost severity output message "set run 1234\n"] \
+    [dict create source SSHPipe@localhost severity output message "set title {This is a test}\n"] \
+    [dict create source SSHPipe@localhost severity output message "begin\n"] \
     ]
 
 tcltest::test begin-2 {begin on a run that is not idle fails} \
@@ -262,10 +262,11 @@ tcltest::test pause-1 {Pause running run ok} \
     ::mytests::clearlog;                 # fresh log:
     ::SSHPipe::pause 0
     vwait ::SSHPipe::activeProviders(0);  # Pause
-        
+    vwait ::SSHPipe::activeProviders(0)
+
     list $::mytests::logcount $::mytests::log(0)
     
-} -result [list 1 [dict create source SSHPipe@localhost severity Input message "pause\n"]]
+} -result [list 1 [dict create source SSHPipe@localhost severity output message "pause\n"]]
 
 tcltest::test pause-2 {Pause run that is idle (fails)} \
 -setup {
@@ -317,11 +318,18 @@ tcltest::test end-1 {End running run ok} \
     ::mytests::clearlog;                 # fresh log:
     ::SSHPipe::end 0
     vwait ::SSHPipe::activeProviders(0);  # Pause
+    vwait ::SSHPipe::activeProviders(0)
+
     set state [dict get $::SSHPipe::activeProviders(0) idle]
         
-    list $::mytests::logcount $state $::mytests::log(0)
+    set result [list $::mytests::logcount $state ]
+    if {$::mytests::logcount > 0} {
+       lappend result $::mytests::log(0)
+    }
+    set result
+
     
-} -result [list 1 true [dict create source SSHPipe@localhost severity Input message "end\n"]]
+} -result [list 1 true [dict create source SSHPipe@localhost severity output message "end\n"]]
 
 tcltest::test end-2 {End run that is idle (fails)} \
 -setup {
@@ -368,17 +376,23 @@ tcltest::test resume-1 {resume on an active run is ok} \
     
     ::SSHPipe::pause 0
     vwait ::SSHPipe::activeProviders(0);   # Pause the run (in case we use full state machine)
+    vwait ::SSHPipe::activeProviders(0)
     ::mytests::clearlog
 
     ::SSHPipe::resume 0;                   #legally resume the run.
     vwait ::SSHPipe::activeProviders(0)
-    
+    vwait ::SSHPipe::activeProviders(0)
+    vwait ::SSHPipe::activeProviders(0)
        
     set state [dict get $::SSHPipe::activeProviders(0) idle]
     set msgCount $::mytests::logcount
-    list $state $msgCount $::mytests::log(0)
+    set result [list $state $msgCount]
+    if {$msgCount > 0} {
+	lappend result $::mytests::log(0)
+    }
+    set result
 } -result [list false 1 [dict create source \
-    SSHPipe@localhost severity Input message "resume\n"]
+    SSHPipe@localhost severity output message "resume\n"]
     ]
 
 tcltest::test resume-2 {begin on a run that is not idle fails} \

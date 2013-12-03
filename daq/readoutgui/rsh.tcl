@@ -50,13 +50,11 @@ namespace eval  ssh {
     #
     proc sshpid {host command} {
 
-	set pipes [Pipe]
-	set rpipe [lindex $pipes 0]
-	set wpipe [lindex $pipes 1]
-#	puts "sshpid 'ssh $command'"
-	set pid [exec ssh $host $command >&@ $wpipe <@ $rpipe &]
 
-	return [list $pid $rpipe $wpipe]
+        set pipe [open "|  ssh  $host $command 2>&1" a+]
+	set pid [lindex [pid $pipe] 0]
+
+	return [list $pid $pipe $pipe]
     }
 
     namespace export ssh sshpipe sshpid

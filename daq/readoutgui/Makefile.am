@@ -5,7 +5,6 @@ install-exec-local:
 	for f in  $(TCLPACKAGES); do install @srcdir@/$$f $(prefix)/TclLibs/Stager; done
 	$(INSTALL_SCRIPT) @builddir@/InstallRoot.tcl $(prefix)/TclLibs/Stager
 	for f in $(TCLAPPS); do $(INSTALL_SCRIPT) @srcdir@/$$f  $(prefix)/bin/`basename $$f .tcl`; done
-	$(INSTALL_SCRIPT) @srcdir@/ReadoutShell.tcl $(prefix)/bin
 	$(INSTALL_SCRIPT) @srcdir@/RunReadout.sh  $(prefix)/TclLibs
 	echo "pkg_mkIndex -verbose $(prefix)/TclLibs/Stager *.tcl" | $(TCLSH_CMD)
 	echo Adjusting installation location of libWait.so compiled tcl extension.
@@ -15,25 +14,13 @@ install-exec-local:
 TCLPACKAGES=Configuration.tcl \
 	DAQParameters.tcl \
 	ExpFileSystemConfig.tcl \
-	Experiment.tcl \
 	InitializeConfiguration.tcl \
 	OS.tcl          \
-	ReadougGUIPanel.tcl ReadougGUIPanel_ui.tcl \
-	ReadoutControl.tcl \
-	ReadoutGui.tcl \
-	ReadoutState.tcl \
-	RemoteInfo.tcl    \
-	ScalerParameterGUI.tcl \
 	UniqueInstance.tcl \
 	directories.tcl \
 	rsh.tcl \
-	scalerParameterDialog.tcl scalerParameterDialog_ui.tcl \
-	selectReadout.tcl selectReadout_ui.tcl \
-	selectReadoutDialog.tcl \
 	warning.tcl \
 	bells.tcl   \
-	Monitor.tcl \
-	RunTime.tcl \
 	DataSourceManager.tcl \
 	RunstateMachine.tcl \
 	rdoCalloutsBundle.tcl \
@@ -42,10 +29,9 @@ TCLPACKAGES=Configuration.tcl \
 	ui.tcl	\
 	sshProvider.tcl s800Provider.tcl
 
-TCLAPPS=ReadoutShell
 
 
-TCLTESTS = daqparameters.test directories.test experiment.test filesystem.test \
+TCLTESTS =    filesystem.test \
 	initconfig.test installroot.test system.test tests.test  ostest.test \
 	sshpipe.test s800.test dsourcemgr.test rstatemachine.test rdocallouts.test \
 	rdostate.test eventlog.test
@@ -62,7 +48,6 @@ check-TESTS:
 
 
 EXTRA_DIST = $(TCLPACKAGES) $(TCLAPPS) $(TCLTESTS) $(TKTESTS)\
-	ReadoutShell.tcl   \
 	ReadougGUIPanel.ui \
 	RunReadout.sh \
 	scalerParameterDialog.ui \

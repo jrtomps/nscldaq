@@ -30,10 +30,10 @@ package require ReadoutGUIPanel
 #
 
 namespace eval ::S800 {
-    variable host
-    variable port
-    variable sourceid
-    variable rctlObject
+    variable host     ""
+    variable port     ""
+    variable sourceid ""
+    variable rctlObject ""
     
     #
     #  This variable contains the state of the connection and run:

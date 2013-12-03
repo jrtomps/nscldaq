@@ -19,11 +19,25 @@
 
 package require tcltest
 package require RunstateMachine
-package require ReadoutState
 
 
 
+#
+# Mock object
 
+package provide ReadoutGUIPanel 1.0
+
+namespace eval ::ReadoutGUIPanel {
+    variable run -1
+}
+
+proc ReadoutGUIPanel::setRun num {
+    set ::ReadoutGUIPanel::run $num
+}
+
+proc ReadoutGUIPanel::getRun {} {
+    return $::ReadoutGUIPanel::run
+}
 
 #-------------------------------------------------------------------------------
 #  rdoCalloutsBundle is a bundle:
@@ -214,8 +228,7 @@ tcltest::test OnBegin-called {Test OnBegin called when Halted is left for Active
         }
     } ReadoutCallouts.tcl [pwd]
 
-    ::ReadoutState::register
-    ::ReadoutState::setRun 1234
+    ::ReadoutGUIPanel::setRun 1234
 
     package require rdoCalloutsBundle
     set s [RunstateMachineSingleton %AUTO%]
@@ -225,7 +238,6 @@ tcltest::test OnBegin-called {Test OnBegin called when Halted is left for Active
 } \
 -cleanup {
     $s removeCalloutBundle rdoCallouts
-    ::ReadoutState::unregister
     $s destroy
     
     package forget rdoCalloutsBundle
@@ -250,9 +262,8 @@ tcltest::test OnEndCalled-1   {On end called entering Halted from Active} \
         }
     } ReadoutCallouts.tcl [pwd]
 
-    ::ReadoutState::register
-    ::ReadoutState::setRun 1234
-    ::ReadoutState::setRecording 0
+    ::ReadoutGUIPanel::setRun 1234
+    
 
     package require rdoCalloutsBundle
     set s [RunstateMachineSingleton %AUTO%]
@@ -262,7 +273,7 @@ tcltest::test OnEndCalled-1   {On end called entering Halted from Active} \
 } \
 -cleanup {
     $s removeCalloutBundle rdoCallouts
-    ::ReadoutState::unregister
+
     $s destroy
     
     package forget rdoCalloutsBundle
@@ -287,9 +298,9 @@ tcltest::test OnEndCalled-2   {On end called entering Halted from Paused} \
         }
     } ReadoutCallouts.tcl [pwd]
 
-    ::ReadoutState::register
-    ::ReadoutState::setRun 1234
-    ::ReadoutState::setRecording 0
+
+    ::ReadoutGUIPanel::setRun 1234
+
 
     package require rdoCalloutsBundle
     set s [RunstateMachineSingleton %AUTO%]
@@ -299,7 +310,7 @@ tcltest::test OnEndCalled-2   {On end called entering Halted from Paused} \
 } \
 -cleanup {
     $s removeCalloutBundle rdoCallouts
-    ::ReadoutState::unregister
+    
     $s destroy
     
     package forget rdoCalloutsBundle
@@ -324,9 +335,7 @@ tcltest::test onpause-called {OnPause called in Active -> Paused transition} \
         }
     } ReadoutCallouts.tcl [pwd]
 
-    ::ReadoutState::register
-    ::ReadoutState::setRun 1234
-    ::ReadoutState::setRecording 0
+    ::ReadoutGUIPanel::setRun 1234
 
     package require rdoCalloutsBundle
     set s [RunstateMachineSingleton %AUTO%]
@@ -336,7 +345,6 @@ tcltest::test onpause-called {OnPause called in Active -> Paused transition} \
 } \
 -cleanup {
     $s removeCalloutBundle rdoCallouts
-    ::ReadoutState::unregister
     $s destroy
     
     package forget rdoCalloutsBundle
@@ -361,9 +369,9 @@ tcltest::test onresume-called {OnResume called when Paused left for Active} \
         }
     } ReadoutCallouts.tcl [pwd]
 
-    ::ReadoutState::register
-    ::ReadoutState::setRun 1234
-    ::ReadoutState::setRecording 0
+    
+    ::ReadoutGUIPanel::setRun 1234
+    
 
     package require rdoCalloutsBundle
     set s [RunstateMachineSingleton %AUTO%]
@@ -373,7 +381,7 @@ tcltest::test onresume-called {OnResume called when Paused left for Active} \
 } \
 -cleanup {
     $s removeCalloutBundle rdoCallouts
-    ::ReadoutState::unregister
+    
     $s destroy
     
     package forget rdoCalloutsBundle

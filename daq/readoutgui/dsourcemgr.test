@@ -223,6 +223,7 @@ tcltest::test addSource-2 {Add source for existing provider ok} \
 -body {
     set sourceId [$manager addSource \
         S800 [dict create host localhost port $::s800test::port]]
+    $manager startAll
     set status [::S800::check $sourceId]
     list $sourceId $status
     
@@ -237,12 +238,13 @@ tcltest::test addSource-3 {Add source failed in provider} \
     $manager destroy
 } \
 -body {
-    set status [catch {$manager addSource \
+      $manager addSource \
         S800 [dict create host no-such-host port $::s800test::port]
-    } msg]
+    
+    set status [catch {$manager startAll} msg]
     list $status $msg
     
-} -result [list 1 "S800 provider failed to start the source: Error in constructor: couldn't open socket: no such device or address (No address associated with hostname)"]
+} -result [list 1 "Error in constructor: couldn't open socket: no such device or address (No address associated with hostname)"]
 
 # Tests for the manager check method.
 
@@ -272,6 +274,7 @@ tcltest::test check-2 {Check with a single running source is an dict with 1's fo
 -body {
     set sourceId [$manager addSource \
         S800 [dict create host localhost port $::s800test::port]]
+    $manager startAll  
     $manager check
     
 } -result [dict create 0 1]
@@ -289,7 +292,9 @@ tcltest::test check-3 {Check with a failed source is a dict with sid 0} \
 -body {
    set sourceId [$manager addSource \
         S800 [dict create host localhost port $::s800test::port]]
-   
+
+   $manager startAll
+
    # Now that the source is established yank the server out from underneath the
    # source:
    
@@ -407,7 +412,8 @@ tcltest::test begin-2 {Starting s800 data source when running should work} \
     $manager load S800
     startServer
     set sid [$manager addSource \
-        S800 [dict create host localhost port $::s800test::port]]    
+        S800 [dict create host localhost port $::s800test::port]] 
+    $manager startAll
 } \
 -cleanup {
     $manager destroy
@@ -429,6 +435,7 @@ tcltest::test begin-3 {Begin run in active state is an error} \
     startServer
     set sid [$manager addSource \
         S800 [dict create host localhost port $::s800test::port]]
+    $manager startAll
     $manager begin 666 "Already starting the run"
 } \
 -cleanup {
@@ -469,6 +476,7 @@ tcltest::test end-2 {End run with active run is fine} \
     startServer
     set sid [$manager addSource \
         S800 [dict create host localhost port $::s800test::port]]
+    $manager startAll
     $manager begin 666 "Already starting the run"
 } \
 -cleanup {
@@ -492,6 +500,7 @@ tcltest::test end-3 {End run with halted run is an error} \
     startServer
     set sid [$manager addSource \
         S800 [dict create host localhost port $::s800test::port]]
+    $manager startAll
 } \
 -cleanup {
     $manager destroy
@@ -571,6 +580,7 @@ tcltest::test pause-3 {Pause when paused is an error} \
          host localhost path $program  sourceid 0 \
          parameters  "[file join [file dirname [info script]] sshsimulator.testscript]" \
      ]]
+    $manager startAll
     $manager begin  1234 "This is a title"
     vwait ::SSHPipe::activeProviders(0);  # Wait for echo set run
 
@@ -599,7 +609,7 @@ tcltest::test pause-4 {Pause when inactive is an error} \
          host localhost path $program  sourceid 0 \
          parameters  "[file join [file dirname [info script]] sshsimulator.testscript]" \
      ]]
-    
+    $manager startAll
 } \
 -cleanup {
     exec kill -9 $::mytests::lastpid
@@ -627,12 +637,14 @@ tcltest::test pause-5 {Can't pause a run if all sources are not capable} \
          host localhost path $program  sourceid 0 \
          parameters  "[file join [file dirname [info script]] sshsimulator.testscript]" \
      ]]
-    
+  
     # Start the ssh data source
     
     set s800SourceId [$manager addSource \
         S800 [dict create host localhost port $::s800test::port]]
-    
+
+    $manager startAll
+  
     # Start the run in both:
     
     $manager begin  1234 "This is a title"
@@ -680,6 +692,7 @@ tcltest::test resume-2 {Only paused runs can be resumed} \
          host localhost path $program  sourceid 0 \
          parameters  "[file join [file dirname [info script]] sshsimulator.testscript]" \
      ]]
+    $manager startAll
     $manager begin  1234 "This is a title"
     vwait ::SSHPipe::activeProviders(0);  # Wait for echo set run
 

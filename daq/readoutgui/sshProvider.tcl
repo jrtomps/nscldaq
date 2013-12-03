@@ -86,7 +86,7 @@ proc ::SSHPipe::start params {
     # Assume the path is locally valid as well.
     
     if {![file executable $program]} {
-        error "SSHPipe data source: Cannot start $program as it is not executable"
+        error "SSHPipe data source: Cannot start '$program' as it is not executable"
     }
     
     #  Start the ssh pipeline:
@@ -108,7 +108,7 @@ proc ::SSHPipe::start params {
     
     #  Set up the listener for input from the program:
     
-    fconfigure [lindex $pipeinfo 1] -blocking 0 -buffering line
+    fconfigure [lindex $pipeinfo 1] -blocking 0 -buffering none -buffersize 10
     fileevent [lindex $pipeinfo 1] readable [list ::SSHPipe::_readable $sid]
 }
 ##
@@ -315,10 +315,10 @@ proc ::SSHPipe::_sourceExited source {
     set path [dict get $sourceInfo parameterization path]
     
     if {$input ne  ""} {
-        ReadoutGUIPanel::Log SSHPipe@$host Input $input
+        ReadoutGUIPanel::Log SSHPipe@$host output $input
         dict set sourceInfo line ""
     }
-    ReadoutGUIPanel::Log SSHPipe@$host Exiting  \
+    ReadoutGUIPanel::Log SSHPipe@$host warning  \
         "Source $path@$host exited"
 
 
@@ -349,6 +349,7 @@ proc ::SSHPipe::_readInput source {
     set path [dict get $sourceInfo parameterization path]
     
     set input [read [dict get $sourceInfo inpipe]]
+
 
     if {[string length $input] > 0} {
         append data [dict get $sourceInfo line ] $input
@@ -392,7 +393,7 @@ proc ::SSHPipe::_attemptEnd source {
 #
 proc ::SSHPipe::_send {source msg} {
     set fd [dict get $::SSHPipe::activeProviders($source) outpipe]
-    puts -nonewline $fd "$msg\n"
+    puts  $fd "$msg"
     flush $fd
 }
 ##
@@ -434,7 +435,7 @@ proc ::SSHPipe::_errorIfDead source {
 proc ::SSHPipe::_LogCompleteLines {host lines} {
     set lastIndex [string last "\n" $lines ]
     foreach line [split [string range $lines 0 [expr {$lastIndex - 1}]] "\n"] {
-        ReadoutGUIPanel::Log SSHPipe@$host Input "$line\n"
+        ReadoutGUIPanel::Log SSHPipe@$host output "$line\n"
     }
     
     return [string replace $lines 0 $lastIndex]
