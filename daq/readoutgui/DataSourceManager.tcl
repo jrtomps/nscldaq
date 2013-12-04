@@ -681,4 +681,4 @@ proc ::DataSourceMgr::unregister {} {
     $mgr destroy    
 }
 
-ReadoutGuiApp r
+
