@@ -34,7 +34,7 @@ TCLPACKAGES=Configuration.tcl \
 TCLTESTS =    filesystem.test \
 	initconfig.test installroot.test system.test tests.test  ostest.test \
 	sshpipe.test s800.test dsourcemgr.test rstatemachine.test rdocallouts.test \
-	rdostate.test eventlog.test
+	 eventlog.test
 
 
 TKTESTS =	readoutguitest.tk  scalerparametergui.tk \
