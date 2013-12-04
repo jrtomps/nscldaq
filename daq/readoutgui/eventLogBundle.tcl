@@ -62,7 +62,7 @@ namespace eval ::EventLog {
     #
     variable loggerPid         -1
     variable startupTimeout    10
-    variable shutdownTimeout   20
+    variable shutdownTimeout   600
     variable filePollInterval 100
     variable protectFiles       1
     
@@ -180,7 +180,8 @@ proc ::EventLog::_cdCurrent {} {
 #        if the fd closes unexpectedly.
 #
 proc ::EventLog::_startLogger {} {
-    set ::EventLog::loggerFd [open "| [DAQParameters::getEventLogger]" r]
+    ReadoutGUIPanel::isRecording
+    set ::EventLog::loggerFd [open "| [DAQParameters::getEventLogger] --oneshot 2>&1" r]
     set ::EventLog::loggerPid [pid $::EventLog::loggerFd]
     set fd [lindex $::EventLog::loggerFd end]
     fconfigure $fd -buffering line
@@ -197,16 +198,23 @@ proc ::EventLog::_startLogger {} {
 proc ::EventLog::_handleInput {} {
     set fd [lindex $::EventLog::loggerFd end]
     if {[eof $fd]} {
+        # Need to close off the fd before the pop up shows as that will
+        # re-enter the event loop
+        
+        fileevent $fd readable [list]
+        catch {close $fd}
+
+        # Log to the output window and pop up and error.
+
         if {!$::EventLog::expectingExit} {
-            ::ReadoutGUIPanel::Log EventLogManager *ERROR* {Unexpected event log error!}
+            ::ReadoutGUIPanel::Log EventLogManager error {Unexpected event log error!}
             ::Diagnostics::Error {The event logger exited unexpectedly!!}
         }
-        close $fd
         set ::EventLog::loggerFd [list]
         set ::EventLog::loggerPid -1
     } else {
         set line [gets $fd]
-        ::ReadoutGUIPanel::Log EventLogManager input $line
+        ::ReadoutGUIPanel::Log EventLogManager output $line
     }
 }
 ##
@@ -303,6 +311,12 @@ proc ::EventLog::runStarting {} {
     if {[::ReadoutGUIPanel::recordData]} {
         puts "Recording data!!"
         ::EventLog::_cdCurrent
+ 
+        # Ensure there are no stale synch files:
+
+        file delete -force .exiting
+        file delete -force .started
+        
         ::EventLog::_startLogger
         ::EventLog::_waitForFile .started $::EventLog::startupTimeout \
                 $::EventLog::filePollInterval
@@ -327,11 +341,18 @@ proc ::EventLog::runEnding {} {
     puts "Logger pid: $::EventLog::loggerPid"
     if {$::EventLog::loggerPid ne -1} {
         set ::EventLog::expectingExit 1
+        puts "Waiting for .exit"
         ::EventLog::_waitForFile .exited $::EventLog::shutdownTimeout \
             $::EventLog::filePollInterval
+        puts "Got .exited or timed out."
         set ::EventLog::loggerPid -1
         ::EventLog::_finalizeRun
+        file delete -force .exited;   # So it's not there next time!!
         
+        # Incremnt the run number:
+        
+        ReadoutGUIPanel::incrRun
+        ReadoutGUIPanel::normalColors
     }
    
 }

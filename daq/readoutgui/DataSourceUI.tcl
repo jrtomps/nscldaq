@@ -268,7 +268,7 @@ snit::widgetadaptor DialogWrapper {
     component controlarea;                 # The wrapped widget.
 
     option -form -default ""  -configuremethod _setControlArea
-    option -showcancel true;      # TODO: implement -showcancel.
+    option -showcancel -default true   -configuremethod _showCancelConfig
     delegate option * to controlarea
     delegate method * to controlarea
     
@@ -297,6 +297,8 @@ snit::widgetadaptor DialogWrapper {
         grid $win.actionframe.ok $win.actionframe.cancel
         grid $win.controlframe -sticky nsew
         grid $win.actionframe
+        
+        $self configurelist $args
     }
     ##
     # destructor
@@ -379,6 +381,25 @@ snit::widgetadaptor DialogWrapper {
         grid $widget -in $win.controlframe -sticky nsew
         
         set options($optname) $widget
+    }
+    ##
+    # _showCancelConfig
+    #    Modify the value of the -showcancel option.
+    #
+    # @param optname - option name.
+    # @param value   - new value.
+    #
+    method _showCancelConfig {optname value} {
+        set old $options($optname)
+        set options($optname $value)
+        
+        if {$old != $value} {
+            if {$value} {
+                grid $win.actionframe.cancel -row 0 -column 1
+            } else {
+                grid forget $win.actionframe.cancel
+            }
+        }
     }
     #---------------------------------------------------------------------------
     #  Private action handlers.

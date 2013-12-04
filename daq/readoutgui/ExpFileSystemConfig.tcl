@@ -62,3 +62,9 @@ proc ExpFileSystemConfig::getStageArea {} {
 proc ExpFileSystemConfig::getExperimentDirectory {} {
     return [Configuration::get Experiment]
 }
+
+#
+#   Loading the package initializes it:
+#
+ExpFileSystemConfig::setDefaults
+ExpFileSystemConfig::environmentOverrides

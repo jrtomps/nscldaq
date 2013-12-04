@@ -63,3 +63,8 @@ proc DAQParameters::environmentOverrides {} {
 proc DAQParameters::getEventLogger {}  {
     return [Configuration::get EventLogger]
 }
+
+#  Initialize on load:
+
+DAQParameters::setDefaults
+DAQParameters::environmentOverrides

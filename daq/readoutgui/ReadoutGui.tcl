@@ -26,6 +26,8 @@ package require eventLogBundle
 package require DataSourceManager
 package require DataSourceUI
 package require rdoCalloutsBundle;     # Auto registers.
+package require ExpFileSystem
+package require Diagnostics
 
 ##
 # @class ProviderList
@@ -52,31 +54,33 @@ package require rdoCalloutsBundle;     # Auto registers.
 # OPTIONS
 #   -sources - the list of source dicts from the data source manager.
 #
+
 snit::widgetadaptor ProviderList {
     option -sources -default [list] -configuremethod _updateDisplay
     component table
-    component dialog
-    
-    delegate method * to dialog
-    
-    variable columns [list {Source Id} {Source Type} Parameter Value] 
+
+    variable columns [list {Source Id} {Source Type} Parameter Value]
+    variable selectedId ""
+     
     ##
-    #  constructor
-    #     Construct and layout the dialog
-    # @param args - configuration parameters.
+    # constructor
+    #   construct the object.
+    #    * hull is instantiated as a ttk::frame to get the colors right
+    #    * The table component is instantiated as an appropriately
+    #      configured ttk::treeview.
+    #    * configuration options are processed which, if -sources is specified,
+    #      adds the set of sourcdes to the treeview.
     #
     constructor args {
-        installhull using toplevel
-        
-        install dialog using DialogWrapper $win.dialog
-        set tableContainer [$dialog controlarea]
-        set f [ttk::frame $tableContainer.f]
+        installhull using ttk::frame
+        set f $win
         install table using ttk::treeview $f.table  \
             -xscrollcommand [list $f.hsb set] -yscrollcommand [list $f.vsb set] \
-            -columns $columns -display $columns -show headings
+            -columns [concat hiddenid $columns] -display $columns -show headings
         foreach col $columns {
             $table heading $col -text $col
         }
+        $table tag bind items <Button-1> [mymethod _selectItem %x %y]
         
         ttk::scrollbar $f.vsb -command [list $table yview] -orient vertical
         ttk::scrollbar $f.hsb -command [list $table xview] -orient horizontal
@@ -84,12 +88,35 @@ snit::widgetadaptor ProviderList {
         grid $table $f.vsb -sticky nsew
         grid $f.hsb -sticky nsew
         grid $f  -sticky nsew
-        $dialog configure -form $f -showcancel 0
-        grid $dialog -sticky nsew
         
         $self configurelist $args
-        
-        $self modal
+    }
+    #-------------------------------------------------------------------------
+    # Public methods
+    
+    ##
+    #  getSelected
+    #
+    # Get the selected data source.
+    #
+    method getSelected {} {
+        return $selectedId
+    }
+    #-------------------------------------------------------------------------
+    # Private methods
+    #
+    
+    ##
+    # _selectItem
+    
+    method _selectItem {x y} {
+        set item [$table identify item $x $y]
+        if {$item ne ""} {
+            set selectedId [lindex [$table item $item -values] 0]
+        } else {
+            set selectedId "";    # Click not on element.
+        }
+        puts "Selected. $selectedId"
     }
     #-------------------------------------------------------------------------
     # Configuration handling
@@ -114,14 +141,90 @@ snit::widgetadaptor ProviderList {
             
             # This leaves only the parameterization in source
             
-            $table insert {} end -values [list $id $type]
+            set parent [$table insert {} end \
+                -values [list $id $id $type] -tags items]
             dict for {param value} $source {
-                $table insert {} end -values [list "" "" $param $value] 
+                $table insert {} end \
+                    -values [list $id "" "" $param $value] -tags items
             }
             
         }
     }
 }
+
+##
+# @class ProviderListDialog
+#   Produces a dialog list wrapped in a dialog.
+#
+snit::widgetadaptor ProviderListDialog {
+    
+    component table
+    component dialog
+    
+    delegate option -sources to table
+    delegate method * to dialog
+    
+   ##
+    #  constructor
+    #     Construct and layout the dialog
+    # @param args - configuration parameters.
+    #
+    constructor args {
+        installhull using toplevel
+        
+        install dialog using DialogWrapper $win.dialog -showcancel 0
+        set tableContainer [$dialog controlarea]
+        install table using ProviderList $tableContainer.t
+        $dialog configure -form $table
+        
+        grid $dialog -sticky nsew
+        
+        $self configurelist $args
+        
+        $self modal
+    }
+
+}
+##
+# @class ProviderSelectDialog
+#   This is similar to ProviderList dialog however we also expose the
+#   ability of the ProviderList to keep track of which source id is
+#   selected.  We also make visible the cancel button which allows
+#   the user to change their mind about selecting a data source.
+#   Furthermore  the client must make use of the modal method directly
+#   rather than the constructor calling it.
+#
+snit::widgetadaptor ProviderSelectDialog {
+    
+    component table
+    component dialog
+    
+    delegate option -sources to table
+    delegate method  getSelected to table
+    delegate method * to dialog
+    
+   ##
+    #  constructor
+    #     Construct and layout the dialog
+    # @param args - configuration parameters.
+    #
+    constructor args {
+        installhull using toplevel
+        
+        install dialog using DialogWrapper $win.dialog -showcancel 1
+        set tableContainer [$dialog controlarea]
+        install table using ProviderList $tableContainer.t
+        $dialog configure -form $table
+        
+        grid $dialog -sticky nsew
+        
+        $self configurelist $args
+        
+        
+    }
+
+}
+
 
 ##
 # @class ReadoutGuiApp
@@ -171,6 +274,7 @@ snit::type ReadoutGuiApp {
         pack .gui
         
         $self _createDataSourceMenu
+        $self _checkFilesystem
     }
     
     #--------------------------------------------------------------------------
@@ -188,7 +292,7 @@ snit::type ReadoutGuiApp {
         install dataSourceMenu using ::ReadoutGUIPanel::addUserMenu dataSource {Data Source}
         
         $dataSourceMenu add command -label "Add..." -command [mymethod _addProvider]
-        $dataSourceMenu add command -label "Delete..." 
+        $dataSourceMenu add command -label "Delete..." -command [mymethod _deleteProvider]
         $dataSourceMenu add separator
         $dataSourceMenu add command -label "List" -command [mymethod _listDataProviders]
         
@@ -199,13 +303,24 @@ snit::type ReadoutGuiApp {
     #   its  parameters...when one is selected and parameterized, it is added
     #   to the set of managed data sources
     #
+    #   Legal only if the state is in {NotReady, Halted} and forces the state
+    #   to not ready.  
+    #
     method _addProvider {} {
+        if {[$stateMachine getState] ni [list NotReady Halted]} {
+            Diagnostics::Error "You can only add data sources when no run is ongoing"
+            return
+        }
+        
         set provider [DataSourceUI::getProvider \
             [DataSourceManager enumerateProviders]]
         #
         # Prompt for the data source parameters only if a data source was selected:
         #
         if {$provider ne ""} {
+            $dataSources stopAll
+            $stateMachine transition NotReady
+            
             catch {$dataSources load $provider};    # May be loaded.
             set requiredParams [$dataSources parameters $provider]
             set parameters [DataSourceUI::getParameters $requiredParams]
@@ -230,9 +345,69 @@ snit::type ReadoutGuiApp {
     #
     method _listDataProviders {} {
         set sources [$dataSources sources]
-        puts $sources
-        ProviderList .providers -sources $sources
-        destroy .providers
+        ProviderListDialog .providers -sources $sources
+        catch {destroy .providers};   # In case they used X not Ok.
+    }
+    ##
+    # _deleteProvider
+    #   Prompt for a provider to remove from the current list of providers.
+    #   *   Illegal when the state is not in {NotReady, Halted}
+    #   *   Will force the system into the NotReady state and all data sources
+    #       will need to be restarted.
+    #
+    method _deleteProvider {} {
+        if {[$stateMachine getState] ni [list NotReady Halted]} {
+            Diagnostics::Error "You can only remove data sources when no run is ongoing"
+            return
+        }
+
+        set sources [$dataSources sources]
+        ProviderSelectDialog .providers -sources $sources
+        if {[.providers modal] eq "Ok"} {
+            set sid [.providers getSelected]
+            
+            if {$sid ne ""} {
+                $dataSources stopAll
+                $stateMachine transition NotReady
+                $dataSources removeSource $sid
+            }
+        }
+        catch {destroy  .providers}
+    }
+    
+    ##
+    # _checkFilesystem
+    #    *  Ensure there's a stagearea.
+    #    *  Ensure the stagearea has the minimal components of
+    #       current, complete, experiment... if not
+    #    * Create the hierarchy.
+    #
+    method _checkFilesystem {} {
+        set stagearea [ExpFileSystem::getStageArea]
+        if {![isDirOrLink $stagearea]} {
+            Diagnostics::Error \
+                "The stagearea '$stagearea' is not a directory or symbolic link\n Event recording will fail"
+            return
+        }
+        #
+        #  If the stage area is a link follow that linke to its target directory
+        #
+        if {[isLink $stagearea]} {
+            set stagearea [file link $stagearea]
+        }
+        set stagearea [file normalize $stagearea]
+        #
+        #  Check for the required subdirectories:
+        #
+        set haveCurrent    [file isdirectory [file join $stagearea current]]
+        set haveComplete   [file isdirectory [file join $stagearea complete]]
+        set haveExperiment [file isdirectory [file join $stagearea experiment]]
+        
+        if {$haveCurrent && $haveComplete && $haveExperiment} {
+            return ;                        # Hierarchy already there.
+        }
+        ExpFileSystem::CreateHierarchy
+        
     }
     #--------------------------------------------------------------------------
     #  Procs
@@ -245,4 +420,26 @@ snit::type ReadoutGuiApp {
         }
         return $result
     }
+    ##
+    # isLink
+    #   @param path - a path to check.
+    #   @return bool - True if the path is a link false otherwise.
+    # 
+    proc isLink {path} {
+        set status [catch {file link $path}]
+        return [expr {!$status}]
+    }
+    ##
+    # isDirOrLink
+    #
+    #  @param path - the path to check.
+    #  @return bool - True if the path is a directory or a link false otherwise.
+    #
+    proc isDirOrLink {path} {
+        if {[file isdirectory $path]} {
+            return 1
+        }
+        return [isLink $path]
+    }
 }
+ReadoutGuiApp r

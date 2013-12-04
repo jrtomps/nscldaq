@@ -220,6 +220,16 @@ snit::type DataSourceManager {
         return $sourceId
     }
     ##
+    # removeSource
+    #   Remove a data source
+    #
+    # @param id - id of the source to remove.
+    #
+    method removeSource id {
+        $self stop $id ;     #checks for existence too
+        array unset dataSources $id
+    }
+    ##
     # check
     #
     #   Return a dict with information about all of the data sources.
@@ -266,6 +276,13 @@ snit::type DataSourceManager {
     # @throw  - It is an error to stop a source that does not exist.
     #
     method stop id {
+        set sm [RunstateMachineSingleton %AUTO%]
+        set rstate [$sm getState]
+        $sm destroy
+        
+        if {$rstate eq "NotReady"} {
+            return
+        }
         if {[array names dataSources $id] eq ""} {
             error "There is no data source with the id 0"
         }
@@ -275,9 +292,7 @@ snit::type DataSourceManager {
         set providerType [dict get $dataSources($id) provider]
         ::${providerType}::stop $id
         
-        #  Remove information about it:
-        
-        array unset dataSources $id
+
     }
     ##
     # stopAll
@@ -665,3 +680,5 @@ proc ::DataSourceMgr::unregister {} {
     $mgr removeCalloutBundle DataSourceMgr
     $mgr destroy    
 }
+
+ReadoutGuiApp r

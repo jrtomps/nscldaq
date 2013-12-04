@@ -27,7 +27,8 @@ TCLPACKAGES=Configuration.tcl \
 	eventLogBundle.tcl \
 	DataSourceUI.tcl     \
 	ui.tcl	\
-	sshProvider.tcl s800Provider.tcl
+	sshProvider.tcl s800Provider.tcl \
+	ReadoutGui.tcl
 
 
 

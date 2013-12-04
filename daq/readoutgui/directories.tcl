@@ -46,7 +46,7 @@ proc ExpFileSystem::CreateHierarchy {}  {
 
     file mkdir [file join $stagearea complete]
     file mkdir [file join [ExpFileSystem::getMetadataRoot] current]
-    file mkdir [file join $stagearea staged]
+    file mkdir [file join  $stagearea current]
 
     #  Now make the link to it, if it does not already exist.
 
@@ -58,7 +58,7 @@ proc ExpFileSystem::CreateHierarchy {}  {
             error {ExpFileSystem::CreateHierarchy Conflicting existing files in the way}
         }
     } else {
-        catch {exec ln -s [file join [ExpFileSystem::getMetadataRoot]] $expdir}
+        file link -symbolic $expdir [file join [ExpFileSystem::getMetadataRoot]] 
     }
 }
 ##

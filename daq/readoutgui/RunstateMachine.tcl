@@ -69,7 +69,7 @@ snit::type RunstateMachine {
     #  Class variables:
     
     typevariable validTransitions -array {
-        NotReady {Starting}
+        NotReady {NotReady Starting}
         Starting {NotReady Halted}
         Halted   {NotReady Active}
         Active   {NotReady Halted Paused}
