@@ -18,6 +18,7 @@
 # @author Ron Fox <fox@nscl.msu.edu>
 
 package provide eventLogBundle 1.0
+package require Tk
 package require DAQParameters
 package require RunstateMachine
 
@@ -25,6 +26,12 @@ package require ExpFileSystem
 package require ReadoutGUIPanel
 package require Diagnostics
 package require ui
+package require snit
+
+package require ring
+
+package require portAllocator
+package require DataSourceUI
 
 
 
@@ -65,6 +72,13 @@ namespace eval ::EventLog {
     variable shutdownTimeout   600
     variable filePollInterval 100
     variable protectFiles       1
+
+    # Installation root:
+    #  Assumes we're in a subdirectory of TclLibs relative to the installation
+    #  root.
+    #
+    variable DAQRoot  [file normalize \
+        [file join [file dirname [info script]] .. ..]]
     
     ##
     # @var loggerfd       - File descriptor open on the event logger.
@@ -81,6 +95,7 @@ namespace eval ::EventLog {
     # Export the bundle interface methods
     
     namespace export attach enter leave
+
 }
 
 #------------------------------------------------------------------------------
@@ -181,7 +196,10 @@ proc ::EventLog::_cdCurrent {} {
 #
 proc ::EventLog::_startLogger {} {
     ReadoutGUIPanel::isRecording
-    set ::EventLog::loggerFd [open "| [DAQParameters::getEventLogger] --oneshot 2>&1" r]
+    set logger [DAQParameters::getEventLogger]
+    set ring   [DAQParameters::getEventLoggerRing]
+    set ::EventLog::loggerFd \
+        [open "| $logger --source $ring  --oneshot 2>&1" r]
     set ::EventLog::loggerPid [pid $::EventLog::loggerFd]
     set fd [lindex $::EventLog::loggerFd end]
     fconfigure $fd -buffering line
@@ -427,4 +445,317 @@ proc ::EventLog::unregister {} {
     $sm removeCalloutBundle EventLog
     $sm destroy
     
+}
+#----------------------------------------------------------------------------
+#
+#   The code in this section provides user interface code to
+#   prompt for the event logger's parameters and stor them so that
+#   the next call of ::EventLog::_startLogger will use those parameters.
+#   The supported parameters are:
+#   *  EventLogger - the event logger program to use.  This program must
+#                    support or at least ignore the -oneshot switch.
+#   *  EventLoggerRing - The name of the ring buffer from which the
+#                    event logger gets data.   This should be a URI
+#                    not a local ring name.  However, if it is not a URI,
+#                    tcp://localhost/ is prepended to the ring name.
+#
+#
+
+##
+# @class EventLog::RingBrowser
+#
+#  A ring browser window.  Allows users to select a ring from a set of ring
+#  in the form ring@hostname
+#
+# LAYOUT:
+#  +----------------------------+
+#  |  +-------------------+-+   |
+#  |  | ring listbox      |s|   |
+#              ...
+#  |  +-------------------+-+   |
+#  +----------------------------+
+# OPTIONS:
+#      -rings  - Information about the rings as passed in from the ring master.
+#
+# METHODS:
+#   getSelected - Returns the selected ring in the form ring@hostname
+#
+snit::widgetadaptor EventLog::RingBrowser {
+    option -rings -default [list] -configuremethod _stockListbox
+    
+    ##
+    # constructor
+    #
+    #    Constructs the user interface and runs the configurlist method
+    #    which may (or may not) stock the listbox.
+    #
+    # @param args - the option/value pairs.
+    #
+    constructor args {
+        installhull using ttk::frame
+        
+        listbox $win.list -selectmode single -yscrollcommand [list $win.vsb set]
+        ttk::scrollbar $win.vsb -orient vertical -command [list $win.list yview]
+        
+        grid $win.list $win.vsb -sticky nsew
+        
+        $self configurelist $args
+    }
+    #-------------------------------------------------------------------------
+    # Public methods:
+    
+    ##
+    # getSelected
+    #
+    #  @return if there's an active selected ring, returns it other wise
+    #          returns an empty string.
+    #
+    method getSelected {} {
+        return [$win.list get [$win.list index active]]
+    }
+    #-------------------------------------------------------------------------
+    # Configuration methods
+    #
+    
+    ##
+    # _stockListbox
+    #
+    #   Update the set of rings that are shown in the list box.
+    #
+    # @param optname - option name (-ring)
+    # @param optvalue - List of ring usage statistics from the ringmaster.
+    #                   The keypoints are:
+    #                  * The first element of each list item is the ring name.
+    #                  * Proxy rings are of the form host.ring
+    #
+    method _stockListbox {optname value} {
+        set options($optname) $value
+        
+        $win.list delete 0 end
+        
+        foreach ringUsage $value {
+            set name [lindex $ringUsage 0]
+            set nameList [split $name .]
+            if {[llength $nameList] == 1} {
+                set ringName $nameList@localhost
+            } else {
+                #
+                #  This code allows for rings remote rings with .'s in them
+                #  (though not local rings).
+                #
+                set host [lindex $nameList 0]
+                set ring [join [lrange $nameList 1 end] .]
+                set ringName $ring@$host
+            }
+            $win.list insert end $ringName
+        }
+    }
+    
+    
+}
+
+##
+# @class EventLog::ParameterPrompter
+#
+#     Provides a dialog form which allows users to override the current set of
+#     event logger parameters.
+#     By dialog form we mean a form that can be attached to a DialogWrapper.
+# LAYOUT:
+#     +-------------------------------------------------+
+#     | Event Log program <current value> [Browse]      |
+#     | Data Source       <current value> [Known Rings] |
+#     +-------------------------------------------------+
+#
+# Key:  Stuff that's not quoted in something are labels, Stuff quoted in
+#       <> are entries, and stuff quoted in [] are buttons.
+#
+#  @note the [Local Rings] button provides a list of rings to choose from
+#        The list includes the local rings and the proxy rings that have already
+#        been defined.
+#        
+#
+#  OPTIONS:
+#      -logger  - Value of the event logger.
+#      -ring    - URI that points to the ring buffer.
+#
+
+snit::widgetadaptor EventLog::ParameterPrompter {
+    option -logger 
+    option -ring   
+    
+    
+    ##
+    # constructor
+    #   Build and stock the useer interface.  We're going to bind the
+    #   entry values to the option variables so  there's no need to
+    #   build -configuremethod methods to track those.
+    #
+    # @param args - Configuration option/values.
+    #
+    # @note - The defaults for the parameters are gotten from the
+    #         current configuration so typically the dialog is self
+    #         configured.
+    #
+    constructor args {
+        installhull using ttk::frame
+        
+        # Can't seem to do this when tcl is compiling to byte code.
+        
+        set options(-logger) [::DAQParameters::getEventLogger]
+        set options(-ring)   [::DAQParameters::getEventLoggerRing]
+        
+        $self configurelist $args
+        
+        ttk::label  $win.loglabel -text {Event log program}
+        ttk::entry  $win.logger       \
+            -textvariable [myvar options(-logger)] -width 40
+        ttk::button $win.browselogger \
+            -text {Browse...} -command [mymethod _browseLogger]
+        
+        ttk::label $win.datasourcelabel -text {Data Source Ring URI}
+        ttk::entry $win.datasource    \
+            -textvariable [myvar options(-ring)] -width 40
+        ttk::button $win.knownrings    \
+            -text {Known Rings...} -command [mymethod _browseRings]
+        
+        grid $win.loglabel $win.logger $win.browselogger -sticky w
+        grid $win.datasourcelabel $win.datasource $win.knownrings -sticky w
+        
+    }
+    #------------------------------------------------------------------------
+    # Private methods
+    #
+    
+    ##
+    # _browseLogger
+    #
+    # Browse the NSCLDAQ installation space for event logger programs.
+    # Allow the user to select one.  This is just a file browser window where:
+    #  * The initial directory is the bin directory of the installation tree
+    #    in which we've been installed.
+    #  * The default filetype is ""
+    #  * File types allowed are "", .sh .bash or all files.
+    #
+    method _browseLogger {} {
+        set file [tk_getOpenFile  \
+            -initialdir [file join $::EventLog::DAQRoot bin]  \
+            -parent $win -title "Choose event logger" \
+            -filetypes [list \
+                { {All Files}     *}                          \
+               { {Shell scripts} {.sh}       }              \
+                { {Bash scripts}  {.bash}     }              \
+            ]]
+        if {$file ne ""} {
+            set options(-logger) $file
+        }
+    }
+    
+    ##
+    # _browseRing
+    #  Pops up a dialog that provides a list of the ring buffers
+    #  and the hosts they belong to and allows the user to select from
+    #  a ring from them...or not.
+    #  If a ring was selected, it populates the options(-ring) entry.
+    
+    method _browseRings  {} {
+        toplevel $win.ringbrowser
+        set dlg [DialogWrapper $win.ringbrowser.dialog]
+        $dlg configure \
+            -form [EventLog::RingBrowser [$dlg controlarea].f \
+                -rings [getRingUsage]]
+        pack $dlg
+        set action [$win.ringbrowser.dialog modal]
+
+        
+        if {$action eq "Ok"} {
+            set ring  [[$dlg controlarea].f getSelected]
+            #
+            #  User may click Ok without selecting a ring!
+            #
+            if {$ring ne ""} {
+                set options(-ring) [ringToUri $ring]
+            }
+        }
+        destroy $win.ringbrowser
+        
+    }
+    
+    #--------------------------------------------------------------------------
+    #   Procs
+    #
+    
+    ## ringToUri
+    #
+    #  Convert a ring name of the form name@host to a valid ring URI.
+    #
+    # @param ringName - The ring name in the form ring@host
+    #
+    # @return string  - The URI for the ring.
+    #
+    proc ringToUri ringName {
+        set ringInfo [split $ringName @];   # list of {ring hostname}
+        return tcp://[lindex $ringInfo 1]/[lindex $ringInfo 0]
+    }
+    
+    ##
+    # getRingUsage
+    #
+    #  Get the rings used/known by a ringmaster.
+    #
+    # @param host - defaults to localhost Host for which to ask for this
+    #               information
+    #
+    # @return list - Returns the list from the LIST command to that ringmaster.
+    #
+    proc getRingUsage {{host localhost}} {
+        portAllocator create manager -hostname $host
+        set ports [manager listPorts]
+        manager destroy
+    
+        set port -1
+        foreach item $ports {
+            set port [lindex $item 0]
+            set app  [lindex $item 1]
+            if {$app eq "RingMaster"} {
+                set port $port
+                break
+            }
+        }
+        if {$port == -1} {
+            error "No RingMaster server  on $host"
+        }
+    
+        set sock [socket $host $port]
+        fconfigure $sock -buffering line
+        puts $sock LIST
+        gets $sock OK
+        if {$OK ne "OK"} {
+            error "Expected OK from Ring master but got $OK"
+        }
+        gets $sock info
+        close $sock
+        return $info
+    }
+
+}
+##
+# EventLog::promptParameters
+#
+#   Proc that instantiatesthe parameter prompter and, if OK was fetched,
+#   sets the parameters in the configuration.
+#
+proc EventLog::promptParameters {} {
+    toplevel .eventlogsettings
+    set dlg [DialogWrapper  .eventlogsettings.dialog]
+    set ctl [$dlg controlarea]
+    $dlg configure \
+        -form [EventLog::ParameterPrompter $ctl.f]
+    pack $dlg
+    set action [$dlg modal]
+    
+    if {$action eq "Ok"} {
+        Configuration::Set EventLogger [$ctl.f cget -logger]
+        Configuration::Set EventLoggerRing [$ctl.f cget -ring]
+    }
+    destroy .eventlogsettings
 }

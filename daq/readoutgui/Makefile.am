@@ -10,6 +10,7 @@ install-exec-local:
 	echo Adjusting installation location of libWait.so compiled tcl extension.
 	mv $(prefix)/lib/libWait.* $(prefix)/TclLibs
 	$(INSTALL_DATA) @srcdir@/RunState.jpg @srcdir@/RunState.eps @prefix@/share/html
+	echo "pkg_mkIndex -verbose $(prefix)/TclLibs *.so" | $(TCLSH_CMD)
 
 TCLPACKAGES=Configuration.tcl \
 	DAQParameters.tcl \

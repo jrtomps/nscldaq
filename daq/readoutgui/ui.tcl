@@ -2090,8 +2090,8 @@ snit::widgetadaptor ReadoutGUI {
         install menubar using readoutMenubar $win.menu
         . configure -menu $menubar
         $self _populateFileMenu
-        
-        # Install the components
+ 
+         # Install the components
         
         
         install runid using ::ReadoutGUIPanel::getRunIdInstance $win.runid
@@ -2141,9 +2141,14 @@ snit::widgetadaptor ReadoutGUI {
         $menubar addSeparator File
         $menubar addCommand   File {Exit...} [mymethod _Exit]
     }
+
+    
     #--------------------------------------------------------------------------
     #  Private methods:
     #
+    
+    
+
     
     ##
     # _stopRun

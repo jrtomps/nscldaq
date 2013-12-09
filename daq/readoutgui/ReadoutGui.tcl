@@ -251,6 +251,7 @@ snit::type ReadoutGuiApp {
     component readoutGui
     component stateMachine
     component dataSourceMenu
+    component settingsMenu
 
     
     ##
@@ -274,6 +275,7 @@ snit::type ReadoutGuiApp {
         pack .gui
         
         $self _createDataSourceMenu
+        $self _createSettingsMenu
         $self _checkFilesystem
     }
     
@@ -297,6 +299,21 @@ snit::type ReadoutGuiApp {
         $dataSourceMenu add command -label "List" -command [mymethod _listDataProviders]
         
     }
+    ##
+    # _createSettingsMenu
+    #
+    #   Populate the settingsm enu which consists of the following:
+    #
+    #   * Event Recording... - Event logger settings.
+    #
+    method _createSettingsMenu {} {
+        install settingsMenu using ::ReadoutGUIPanel::addUserMenu Settings Settings
+        $settingsMenu add command -label  {Event Recording...} -command [mymethod _eventLoggerSettings]
+    }
+    #--------------------------------------------------------------------------
+    # Data source menu handlers:
+    #
+    
     ##
     # _addProvider
     #   Work with the DataSourceUI package to prompt for a  data source and
@@ -409,6 +426,19 @@ snit::type ReadoutGuiApp {
         ExpFileSystem::CreateHierarchy
         
     }
+    #--------------------------------------------------------------------------
+    # Settings menu handler:
+    #
+    
+    ##
+    # _eventLoggerSettings
+    #   Prompt for event logger settings and make it so they apply to the
+    #   next start of the event logger (next begin run with recording enabled).
+    #
+    method _eventLoggerSettings {} {
+        EventLog::promptParameters
+    }
+    
     #--------------------------------------------------------------------------
     #  Procs
     

@@ -43,6 +43,7 @@ namespace eval DAQParameters {
 proc DAQParameters::setDefaults {} {
     
     Configuration::Set EventLogger [file join [InstallRoot::Where] bin eventlog]
+    Configuration::Set EventLoggerRing "tcp://localhost/$::tcl_platform(user)"
 }
 # DAQParameters::environmentOverrides
 #   Overrides the defaults with information from the environment
@@ -54,6 +55,7 @@ proc DAQParameters::environmentOverrides {} {
 
 
     Configuration::readEnvironment EventLogger EVENTLOGGER
+    Configuration::readEnvironment EventLoggerRing EVENTLOGGER_RING
 }
 
 #
@@ -62,6 +64,12 @@ proc DAQParameters::environmentOverrides {} {
 #
 proc DAQParameters::getEventLogger {}  {
     return [Configuration::get EventLogger]
+}
+##
+#  Return the name of the ring from which data are logged:
+#
+proc DAQParameters::getEventLoggerRing {} {
+    return [Configuration::get EventLoggerRing]
 }
 
 #  Initialize on load:
