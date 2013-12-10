@@ -21,6 +21,7 @@ package provide eventLogBundle 1.0
 package require Tk
 package require DAQParameters
 package require RunstateMachine
+package require DataSourceManager
 
 package require ExpFileSystem
 package require ReadoutGUIPanel
@@ -187,6 +188,38 @@ proc ::EventLog::_cdCurrent {} {
     cd [::ExpFileSystem::getCurrentRunDir]
 }
 ##
+# ::EventLog::_computeLoggerSwitches
+#
+# @return the command line options the logger should use:
+#
+proc ::EventLog::_computeLoggerSwitches {} {
+    
+    # Base switches:
+    
+    set ring   [DAQParameters::getEventLoggerRing] 
+    set switches "--source=$ring "
+    
+    # If requested, use the --number-of-sources switch:
+    
+    if {[DAQParameters::getUseNsrcsFlag]} {
+        set sm [DataSourcemanagerSingleton %AUTO%]
+        set mySources [llength [$sm sources]]
+        set adtlSources [DAQParameters::getAdditionalSourceCount]
+        set totsrc [expr {$mySources + $adtlSources}]
+        $sm destroy
+        append switches " --number-of-sources=$totsrc"
+    }
+    # If requested get the run number from the GUI and force it:
+    
+    if {[DAQParameters::getRunNumberOverrideFlag]} {
+        set run [::ReadoutGUIPanel::getRun]
+        append switches " --run=$run"
+    }
+    
+    append switches " --oneshot 2>&1"
+    return $switches
+}
+##
 # ::EventLog::_startLogger
 #  Start the event logger and set it's pid in the loggerPid variable.
 #  @note The event logger is started as a pipeline open on an fd for read.
@@ -197,9 +230,10 @@ proc ::EventLog::_cdCurrent {} {
 proc ::EventLog::_startLogger {} {
     ReadoutGUIPanel::isRecording
     set logger [DAQParameters::getEventLogger]
-    set ring   [DAQParameters::getEventLoggerRing]
+    
+    set switches [::EventLog::_computeLoggerSwitches]
     set ::EventLog::loggerFd \
-        [open "| $logger --source $ring  --oneshot 2>&1" r]
+        [open "| $logger $switches" r]
     set ::EventLog::loggerPid [pid $::EventLog::loggerFd]
     set fd [lindex $::EventLog::loggerFd end]
     fconfigure $fd -buffering line
@@ -327,7 +361,6 @@ proc ::EventLog::_finalizeRun {} {
 proc ::EventLog::runStarting {} {
     
     if {[::ReadoutGUIPanel::recordData]} {
-        puts "Recording data!!"
         ::EventLog::_cdCurrent
  
         # Ensure there are no stale synch files:
@@ -356,13 +389,11 @@ proc ::EventLog::runEnding {} {
     # ne is used below because the logger could be a pipeline in which case
     # ::EventLog::loggerPid will be a list of pids which freaks out ==.
     
-    puts "Logger pid: $::EventLog::loggerPid"
+    
     if {$::EventLog::loggerPid ne -1} {
         set ::EventLog::expectingExit 1
-        puts "Waiting for .exit"
         ::EventLog::_waitForFile .exited $::EventLog::shutdownTimeout \
             $::EventLog::filePollInterval
-        puts "Got .exited or timed out."
         set ::EventLog::loggerPid -1
         ::EventLog::_finalizeRun
         file delete -force .exited;   # So it's not there next time!!
@@ -577,11 +608,22 @@ snit::widgetadaptor EventLog::RingBrowser {
 #  OPTIONS:
 #      -logger  - Value of the event logger.
 #      -ring    - URI that points to the ring buffer.
+#      -usensrcs - Boolean... start eventlogger with --number-of-sources switch
+#      -additionalsrcs - integer - number of sources in the event builder not
+#                    managed by the data source manager.
+#      -forcerun  - Boolean... force the run number from GUI rather than using the
+#                   one in the begin event (used if no sources provide begin events.)
 #
 
 snit::widgetadaptor EventLog::ParameterPrompter {
+    component additionalSources
+    
     option -logger 
-    option -ring   
+    option -ring
+    option -usensrcs          -configuremethod _enableDisableAdditionalSources
+    option -additionalsources -configuremethod _setAdditionalSources \
+                              -cgetmethod      _getAdditionalSources
+    option -forcerun
     
     
     ##
@@ -601,10 +643,14 @@ snit::widgetadaptor EventLog::ParameterPrompter {
         
         # Can't seem to do this when tcl is compiling to byte code.
         
-        set options(-logger) [::DAQParameters::getEventLogger]
-        set options(-ring)   [::DAQParameters::getEventLoggerRing]
+        set options(-logger)            [::DAQParameters::getEventLogger]
+        set options(-ring)              [::DAQParameters::getEventLoggerRing]
+        set options(-usensrcs)          [::DAQParameters::getUseNsrcsFlag]
+        set options(-additionalsources) [DAQParameters::getAdditionalSourceCount]
+        set options(-forcerun)          [DAQParameters::getRunNumberOverrideFlag]
         
-        $self configurelist $args
+        
+
         
         ttk::label  $win.loglabel -text {Event log program}
         ttk::entry  $win.logger       \
@@ -618,13 +664,108 @@ snit::widgetadaptor EventLog::ParameterPrompter {
         ttk::button $win.knownrings    \
             -text {Known Rings...} -command [mymethod _browseRings]
         
+        message $win.help -text "
+The next three settings are a bit advanced as they have to do with multiple \
+source and event building where some of the sources are not NSCLDAQ sources. \n
+'Use  --number-of-sources' should normally be checked if you are using the \
+event logger from nscldaq-11.0 or later but not checked if you need to use an \
+earlier event logger.  Use 'Additional sources' to adjust the number of end run \
+events to expect.  If 0, --number-of-sources is set to the number of event \
+sources you specified to this program.  This parameter can be negative if \
+some of the sources we're controlling don't produce end of run events. \n
+Check the 'Use GUI Run number' if none of your data sources produce a begin \
+run event from which the event file name can be derived or if the run numbers they \
+do produce are not those the GUI requests.  Note again, this requires the \
+NSCLDAQ-11.0 eventlog program or later. "
+        
+        set f [ttk::frame $win.sourceparams]
+        ttk::checkbutton $f.usensrcs -variable [myvar options(-usensrcs)] \
+            -onvalue 1 -offvalue 0 -text {Use --number-of-sources} \
+            -command [mymethod _updateAdditionalSources]
+        ttk::label       $f.adsrclabel -text {Additional Sources}
+        install additionalSources using \
+            ttk::spinbox $f.additionalsources -from -10 -to 10 -increment 1 \
+                -width 4
+        $f.additionalsources set $options(-additionalsources)
+        $self _updateAdditionalSources
+        
+    
+        ttk::checkbutton $win.forcerun -text {Use GUI Run number} \
+            -variable [myvar options(-forcerun)] -onvalue 1 -offvalue 0
+        
         grid $win.loglabel $win.logger $win.browselogger -sticky w
         grid $win.datasourcelabel $win.datasource $win.knownrings -sticky w
+        grid $win.help -columnspan 3 -sticky ew
         
+        grid $f.usensrcs          -row 0 -column 0 -sticky w
+        grid $f.adsrclabel        -row 0 -column 1 -sticky w -padx 30
+        grid $f.additionalsources -row 0 -column 2 -sticky e 
+        grid $f -columnspan 3     -sticky nsew
+        
+        grid $win.forcerun
+        
+        $self configurelist $args
+        
+    }
+    #------------------------------------------------------------------------
+    # Configuration handlers:
+    #
+    
+    ##
+    # _enableDisableAdditionalSources
+    #
+    #   Enables or disables the aditionalSources compoment depending on
+    #   the state of the new value of -usensrcs
+    #
+    # @param optname - Name of option being configured.
+    # @param value   - new value for the option
+    #
+    method _enableDisableAdditionalSources {optname value} {
+        set options($optname) $value
+        $self _updateAdditionalSources
+    }
+    
+    ##
+    # _setAdditionalSources
+    #
+    #  Called to configure a new number of sources.  Sets the spinbox value
+    #  from the new option.  There's no real point in maintaining the
+    #  options array value as the spinbox will just change out from underneath us
+    #  so we use a cget handler (See _getAdditionalSources below)
+    #
+    # @param optname - name of the option being configured.
+    # @param value   - New requested value.
+    #
+    method _setAdditionalSources {optname value} {
+        $additionalSources set $value
+    }
+    ##
+    # _getAdditionalSources
+    #
+    #   Get the value of the additiona sources spinbox.
+    #
+    # @param optname - option name -- ignored.
+    #
+    method _getAdditionalSources optname {
+        return [$additionalSources get]
     }
     #------------------------------------------------------------------------
     # Private methods
     #
+    
+    ##
+    # _updateAdditionalSources
+    #
+    #  Set the state of the additional sources spinbox depending on the
+    #  whether or not that option is enabled.
+    #
+    method _updateAdditionalSources {} {
+        if {!$options(-usensrcs)} {
+            $additionalSources configure -state disabled
+        } else {
+            $additionalSources configure -state normal
+        }
+    }
     
     ##
     # _browseLogger
@@ -754,8 +895,27 @@ proc EventLog::promptParameters {} {
     set action [$dlg modal]
     
     if {$action eq "Ok"} {
-        Configuration::Set EventLogger [$ctl.f cget -logger]
-        Configuration::Set EventLoggerRing [$ctl.f cget -ring]
+        Configuration::Set EventLogger               [$ctl.f cget -logger]
+        Configuration::Set EventLoggerRing           [$ctl.f cget -ring]
+        Configuration::Set EventLogUseNsrcsFlag      [$ctl.f cget -usensrcs]
+        Configuration::Set EventLogAdditionalSources [$ctl.f cget -additionalsources]
+        Configuration::Set EventLogUseGUIRunNumber   [$ctl.f cget -forcerun]
+        
+        # If we're usin gthe nsrcs flag and it would currently be negative warn:
+        
+        if {[DAQParameters::getUseNsrcsFlag]} {
+            set sm [DataSourcemanagerSingleton %AUTO%]
+            set mySources [llength [$sm sources]]
+            set adtlSources [DAQParameters::getAdditionalSourceCount]
+            set totsrc [expr {$mySources + $adtlSources}]
+        
+            if {$totsrc < 0} {
+                tk_messageBox -parent .eventlogsettings -title {Negative source count} \
+                    -icon warning -type ok \
+                    -message "Your total source count is negative: $mySources managed by us $adtlSources additional sources -> $totsrc total sources"
+            }
+            $sm destroy
+        }
     }
     destroy .eventlogsettings
 }
