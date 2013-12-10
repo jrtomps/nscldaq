@@ -75,6 +75,7 @@ static const uint32_t MONITORED_VARIABLES = 11;
 
 // Scaler data:
 
+
 static const uint32_t INCREMENTAL_SCALERS = 20;
 static const uint32_t TIMESTAMPED_NONINCR_SCALERS =21;
 

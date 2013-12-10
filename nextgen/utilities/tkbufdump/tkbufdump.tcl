@@ -1,5 +1,5 @@
 #! /usr/bin/tclsh
-set version "V1.0"
+set version "V2.0"
 #  This program is a GUI event inspector.
 #  It uses ringselector in sampling mode to accept events from an
 #  event source.  The software free runs event acceptance and, when requested,
@@ -24,7 +24,12 @@ source [file join $here scalerformatter.tcl]
 source [file join $here stringlistformatter.tcl]
 source [file join $here physicsformatter.tcl]
 
-set daqbin /usr/opt/daq/10.0/bin
+
+# Assume we are installed in nscldaq and want it's data sources.
+
+set daqbin $here
+
+#set daqbin /usr/opt/daq/10.0/bin
 
 #  mainwindow
 #

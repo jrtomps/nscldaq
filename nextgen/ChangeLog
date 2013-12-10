@@ -465,4 +465,6 @@ Feb 1, 2012 - Feb 24, 2012
 	makefile include directory. 
         * Fix some sizeof(xxx) 64/32 bit uncleanlinesses in sbs/vmemodules
         * CSIS3820 works now for sure (based on MoNA testing).
+	* Added some more SWIG bridges to functions that need non-builtin
+	  argument types.
 	

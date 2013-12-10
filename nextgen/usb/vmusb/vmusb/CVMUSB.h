@@ -171,12 +171,21 @@ public:
     }
 
     virtual void     writeDGG_A(uint32_t value);
+    void writeDGG_A(int value) {
+      writeDGG_A((uint32_t)value); // SWIG
+    }
     virtual uint32_t readDGG_A();
 
     virtual void     writeDGG_B(uint32_t value);
+    void writeDGG_B(int value) {
+      writeDGG_B((uint32_t)value); // SWIG
+    }
     virtual uint32_t readDGG_B();
 
     virtual void     writeDGG_Extended(uint32_t value);
+    void writeDGG_Extended(int value) {
+      writeDGG_Extended((uint32_t)value);
+    }
     virtual uint32_t readDGG_Extended();
 
     virtual uint32_t readScalerA();
@@ -658,6 +667,10 @@ private:
 }
 
  inline int getuint16(uint16_t value) {
+  return value;
+}
+
+inline int getuint32(uint32_t value) {
   return value;
 }
 
