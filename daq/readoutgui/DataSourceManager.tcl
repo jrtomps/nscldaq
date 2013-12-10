@@ -72,6 +72,9 @@ snit::type DataSourceManager {
     #    we can just use package names to find them.
     #
     typemethod enumerateProviders {} {
+        # Ensure all known packages are known:
+        
+        catch {package require this-package-does-not-exist}
         
         # Get the package names for the *_Provider packages:
         

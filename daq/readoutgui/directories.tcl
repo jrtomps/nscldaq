@@ -159,4 +159,12 @@ proc ExpFileSystem::getCompleteEventfileDir {} {
     return [file join $stage complete]
 }
 
-
+##
+# getCurrentEventFileDir
+#
+# @return string - path to directory that has the current event files.
+#
+proc ExpFileSystem::getCurrentEventFileDir {} {
+    set stage [ExpFileSystemConfig::getStageArea]
+    return  [file join $stage current]
+}

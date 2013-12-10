@@ -73,6 +73,12 @@ namespace eval ::EventLog {
     variable shutdownTimeout   600
     variable filePollInterval 100
     variable protectFiles       1
+    
+    #  For our status line:
+    
+    variable statusBarManager ""
+    variable statusbar         ""
+    variable statusUpdateId    -1;     # After Id used to poll for status updates.
 
     # Installation root:
     #  Assumes we're in a subdirectory of TclLibs relative to the installation
@@ -216,7 +222,7 @@ proc ::EventLog::_computeLoggerSwitches {} {
         append switches " --run=$run"
     }
     
-    append switches " --oneshot 2>&1"
+    append switches " --oneshot"
     return $switches
 }
 ##
@@ -229,8 +235,7 @@ proc ::EventLog::_computeLoggerSwitches {} {
 #
 proc ::EventLog::_startLogger {} {
     ReadoutGUIPanel::isRecording
-    set logger [DAQParameters::getEventLogger]
-    
+    set logger [DAQParameters::getEventLogger] 
     set switches [::EventLog::_computeLoggerSwitches]
     set ::EventLog::loggerFd \
         [open "| $logger $switches" r]
@@ -254,12 +259,12 @@ proc ::EventLog::_handleInput {} {
         # re-enter the event loop
         
         fileevent $fd readable [list]
-        catch {close $fd}
+        catch {close $fd} msg
 
         # Log to the output window and pop up and error.
 
         if {!$::EventLog::expectingExit} {
-            ::ReadoutGUIPanel::Log EventLogManager error {Unexpected event log error!}
+            ::ReadoutGUIPanel::Log EventLogManager error "Unexpected event log error! $msg"
             ::Diagnostics::Error {The event logger exited unexpectedly!!}
         }
         set ::EventLog::loggerFd [list]
@@ -346,6 +351,66 @@ proc ::EventLog::_finalizeRun {} {
     }
     
 }
+##
+# ::EventLog::_getSegmentInfo
+#
+#   Looks at the current event file areas to see how many segments there are
+#   and how much total space that consumes.
+#
+# @return list first element is the number of event segments found, the second
+#              the total Mbytes of storage used.
+#
+proc ::EventLog::_getSegmentInfo {} {
+    set eventDir [ExpFileSystem::getCurrentRunDir]
+    set run [::ReadoutGUIPanel::getRun]
+    
+    set filename [format "run-%04d*.evt" $run]
+    set filepat [file join $eventDir $filename]
+
+    set    segments [glob -nocomplain $filepat]
+    set    size     0.0
+    set    nsegments [llength $segments]
+    foreach segment $segments {
+	if {![catch {file size $segment} segsize]} {
+	    set size [expr {$size + $segsize/1024.0}]
+	}
+    }
+    set size [format %.2f [expr {$size/1024.0}]]
+    
+    
+    return [list $nsegments $size]
+}
+
+##
+# ::EventLog::_setStatusLine
+#
+#   Manage the data in the event logger status line:
+#
+# @param repeatInterval - ms after which to schedule an update.
+#
+proc ::EventLog::_setStatusLine repeatInterval {
+    set run [::ReadoutGUIPanel::getRun]
+    
+    set fileinfo [::EventLog::_getSegmentInfo]
+    
+    $::EventLog::statusBarManager setMessage $::EventLog::statusbar \
+        "Recording data for Run: $run : \
+[lindex $fileinfo 0] segments found totalling [lindex $fileinfo 1] Mbytes"
+    
+    set ::EventLog::statusUpdateId \
+        [after $repeatInterval [list ::EventLog::_setStatusLine $repeatInterval]]
+}
+##
+# ::EventLog::_duplicateRun
+#
+#  @return boolean true if the run we are about to write already exists.
+#          we're going to define 'exists' as having a run directory in the
+#          experiment view.
+#
+proc ::EventLog::_duplicateRun {} {
+    set runDirPath [::ExpFileSystem::getRunDir [::ReadoutGUIPanel::getRun]]
+    return [file exists $runDirPath]
+}
 
 #------------------------------------------------------------------------------
 # Actions:
@@ -361,6 +426,9 @@ proc ::EventLog::_finalizeRun {} {
 proc ::EventLog::runStarting {} {
     
     if {[::ReadoutGUIPanel::recordData]} {
+        if {[::EventLog::_duplicateRun]} {
+            error "This run already has an event file."
+        }
         ::EventLog::_cdCurrent
  
         # Ensure there are no stale synch files:
@@ -372,6 +440,7 @@ proc ::EventLog::runStarting {} {
         ::EventLog::_waitForFile .started $::EventLog::startupTimeout \
                 $::EventLog::filePollInterval
         set ::EventLog::expectingExit 0
+        ::EventLog::_setStatusLine 2000
     }
 }
 ##
@@ -402,6 +471,13 @@ proc ::EventLog::runEnding {} {
         
         ReadoutGUIPanel::incrRun
         ReadoutGUIPanel::normalColors
+        
+        if {$::EventLog::statusUpdateId != -1} {
+            after cancel $::EventLog::statusUpdateId
+            set EventLog::statusUpdateId -1
+            $::EventLog::statusBarManager setMessage $::EventLog::statusbar \
+                {Run ended}
+        }
     }
    
 }
@@ -463,6 +539,13 @@ proc ::EventLog::register {} {
     set sm [::RunstateMachineSingleton %AUTO%]
     $sm addCalloutBundle EventLog
     $sm destroy
+    
+    # Create our status bar... just a long label that we'll update
+    # every second when runs are active.
+    
+    set ::EventLog::statusBarManager      [::StatusBar::getInstance]
+    set ::EventLog::statusbar \
+        [$::EventLog::statusBarManager addMessage {No Event Segments yet}]
 }
 ##
 #  ::EventLog::unregister

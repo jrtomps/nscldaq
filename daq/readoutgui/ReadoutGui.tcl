@@ -266,17 +266,17 @@ snit::type ReadoutGuiApp {
     #
     constructor args {
         install stateMachine using RunstateMachineSingleton %AUTO%
-        
         install dataSources  using DataSourcemanagerSingleton %AUTO%
-        ::DataSourceMgr::register
-        
-        ::EventLog::register
         install readoutGUI using ReadoutGUI .gui
         pack .gui
         
         $self _createDataSourceMenu
         $self _createSettingsMenu
         $self _checkFilesystem
+
+        ::DataSourceMgr::register
+        
+        ::EventLog::register
     }
     
     #--------------------------------------------------------------------------
@@ -340,7 +340,13 @@ snit::type ReadoutGuiApp {
             
             catch {$dataSources load $provider};    # May be loaded.
             set requiredParams [$dataSources parameters $provider]
-            set parameters [DataSourceUI::getParameters $requiredParams]
+            set parameters [DataSourceUI::getParameters $provider $requiredParams]
+            #
+            #  Probably a cancellation on the dialg
+            #
+            if {$parameters eq ""} {
+                return
+            }
             set parameters [convertPromptedValues $parameters]
            
             $dataSources addSource $provider $parameters

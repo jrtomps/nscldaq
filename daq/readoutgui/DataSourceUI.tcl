@@ -447,27 +447,45 @@ proc DataSourceUI::getProvider providers {
 # DataSourceUI::getParameters
 #
 #  Popup Dialog that queries the user for the parameters associated with a
-#  provider.
+#  provider.    If the provider has a prompter of its own (package $provider_Prompter).
+#  that package is loaded and ${provider}::promptParameters is called instead of
+#  using our own default dialog.  This separation of packages allows the provider to
+#  be free of Tk and hence testable with tcltest in a noninteractive shell (e.g.
+#  Jenkins) at the cost of a bit more complexity.
 #
+# @param provider   - The provider name.
 # @param parameters - The parameter description dict from the data source
 #                     provider.
 # @return dict      - If Ok is clicked, the form contents dict from PromptDataSource
 #                     is returned else an empty dict.
 #
-proc DataSourceUI::getParameters parameters {
-    toplevel .parameterprompter
-    set w [DialogWrapper .parameterprompter.dialog]
-    $w configure \
-        -form [PromptDataSource [$w controlarea].f -parameters $parameters]
+proc DataSourceUI::getParameters {provider parameters} {
     
-    pack $w
-    set action [$w modal]
-    
-    set result ""
-    if {$action eq "Ok"} {
-        set result [[$w controlarea].f getForm]
+    set providerPrompter "${provider}_Prompter"
+
+    if {[lsearch -exact [package names] $providerPrompter] != -1} {
+        #
+        #  The provider has a prompter of its own!
+        
+        package require $providerPrompter
+        return [${provider}::promptParameters]
+    } else {
+        #  Use the generic ugly prompter.
+        #
+        toplevel .parameterprompter
+        set w [DialogWrapper .parameterprompter.dialog]
+        $w configure \
+            -form [PromptDataSource [$w controlarea].f -parameters $parameters]
+        
+        pack $w
+        set action [$w modal]
+        
+        set result ""
+        if {$action eq "Ok"} {
+            set result [[$w controlarea].f getForm]
+        }
+        destroy .parameterprompter
+        
+        return $result
     }
-    destroy .parameterprompter
-    
-    return $result
 }
