@@ -356,7 +356,7 @@ snit::type ReadoutGuiApp {
             
             set caps [$dataSources systemCapabilities]
             if {![dict get $caps canPause]} {
-                [::RunControlSingleton::getInstance] configure -pausable 0
+                [::RunControlSingleton::getInstance] configure -pauseable 0
             }
         }
     }
