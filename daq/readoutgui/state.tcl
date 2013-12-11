@@ -89,4 +89,18 @@ snit::type StateManager {
     method listStateVariables {} {
         return $registeredVariables
     }
+    ##
+    # save
+    #   Saves the configuration.
+    #   * -file must  have been configured.
+    #   * The registered variables are itereated over and the getter
+    #     for each is called.
+    #   * A set command for the registered variable is written to the
+    #    specified -file
+    #
+    method save {} {
+        if {$options(-file) eq ""} {
+            error {Cannot save prior to configuring -file}
+        }
+    }
 }

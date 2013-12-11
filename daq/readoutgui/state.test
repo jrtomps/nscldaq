@@ -104,10 +104,13 @@ tcltest::test save-1 {Save without -file set is an error} \
 } \
 -cleanup {
     a destroy
+    catch {file delete settings.test}
 } \
 -body {
-    a 
-}
+   
+    set status [catch {a save} message]
+    list $status $message
+} -result [list 1 {Cannot save prior to configuring -file}]
 
 tcltest::test save-2 {Save with nothing monitored is an empty file}
 
