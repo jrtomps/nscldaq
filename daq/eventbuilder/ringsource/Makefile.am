@@ -67,6 +67,6 @@ ringFragmentSource_LDADD=  		 \
 	@top_builddir@/base/dataflow/libDataFlow.la \
 	@top_builddir@/base/dataflow/libRingBuffer.la \
 	@top_builddir@/base/os/libdaqshm.la	\
-	$(THREAD_LDFLAGS) -lefence
+	$(THREAD_LDFLAGS) 
 
 EXTRA_DIST=ringsource.xml ringtestoptions.ggo
