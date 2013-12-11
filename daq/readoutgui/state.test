@@ -88,11 +88,16 @@ tcltest::test register-list-3 {Registration order is preserved} \
 
 # Save/restore tests use the infrastructure below:
 
-set a {this is one variable}
-set b {this is another variable}
+set aa {this is one variable}
+set bb {this is another variable}
+
+#
+#  Setter puts stuff in the ::restored:: namespace which must be
+#  created/cleaned up by the test.  This prevents the original
+#  aa/bb from being overwritten.
 
 proc setter {varname value} {
-    set ::$varname $value
+    set ::restored::$varname $value
 }
 proc getter {varname} {
     set ::$varname
@@ -112,11 +117,163 @@ tcltest::test save-1 {Save without -file set is an error} \
     list $status $message
 } -result [list 1 {Cannot save prior to configuring -file}]
 
-tcltest::test save-2 {Save with nothing monitored is an empty file}
 
-tcltest::test save-3 {Save with a registered makes a file with set a...}
+tcltest::test save-2 {Save with nothing monitored is an empty file} \
+-setup {
+    StateManager a
+    set fullpath [file join [tcltest::temporaryDirectory] settings.test]
+} \
+-cleanup {
+    a destroy
+    tcltest::removeFile settings.test
+} \
+-body {
+    
+    a configure -file $fullpath
+    a save
+    set fd [open $fullpath r]
+    set contents [read $fd]
+    close $fd
+    set contents
+} -result {}
 
-tcltest::test save-4 {Save with a,b, registered makes a file with set a, set b}
+tcltest::test save-3 {Save with a registered makes a file with set a...} \
+-setup {
+    StateManager a
+    set fullpath [file join [tcltest::temporaryDirectory] settings.test]
+    a addStateVariable aa getter setter
+    interp create -safe slave
+    interp expose slave source
+} \
+-cleanup {
+    a destroy
+    tcltest::removeFile settings.test
+    interp delete slave
+} \
+-body {
+    
+    a configure -file $fullpath
+    a save
+    interp eval slave source $fullpath
+    interp eval slave set aa
+    
+} -result $aa
+
+
+tcltest::test save-4 {Save with a,b, registered makes a file with set a, set b} \
+-setup {
+    StateManager a
+    set fullpath [file join [tcltest::temporaryDirectory] settings.test]
+    a addStateVariable aa getter setter
+    a addStateVariable bb getter setter
+    interp create -safe slave
+    interp expose slave source
+} \
+-cleanup {
+    a destroy
+    tcltest::removeFile settings.test
+    interp delete slave
+} \
+-body {
+    
+    a configure -file $fullpath
+    a save
+    interp eval slave source $fullpath
+    set varaa [interp eval slave set aa]
+    set varbb [interp eval slave set bb]
+    
+    list $varaa $varbb
+} -result [list $aa $bb]
+
+
+#------------------------------------------------------------------------------
+# Restore tests.
+#
+
+tcltest::test restore-0 {Restore without -file configured fails} \
+-setup {
+    StateManager a
+} \
+-cleanup {
+    a destroy 
+} \
+-body {
+    set status [catch {a restore} text]
+    list $status $text
+} -result [list 1 {Cannot restore prior to configuring -file}]
+
+
+tcltest::test restore-1 {Restore with no vars saved does nothing} \
+-setup {
+    set fullpath [file join [tcltest::temporaryDirectory] settings.test]
+    StateManager a -file $fullpath
+    a save
+    
+    namespace eval ::restored:: {}
+} \
+-cleanup {
+    a destroy
+    namespace delete ::restored
+} \
+-body {
+    a restore
+    info var ::restored::*
+} -result [list]
+
+
+
+tcltest::test restore-2 {Restore with aa saved makes aa in ::restored::} \
+-setup {
+    set fullpath [file join [tcltest::temporaryDirectory] settings.test]
+    StateManager a -file $fullpath
+    a addStateVariable aa getter setter
+    a save
+    
+    namespace eval ::restored:: {}
+} \
+-cleanup {
+    a destroy
+    namespace delete ::restored
+} \
+-body {
+    a restore
+    list [info var ::restored::*] [set ::restored::aa]
+    
+} -result [list ::restored::aa $aa]
+
+
+tcltest::test restore-3 {restore with aa,bb saved makes both in ::restored::} \
+-setup {
+    set fullpath [file join [tcltest::temporaryDirectory] settings.test]
+    StateManager a -file $fullpath
+    a addStateVariable aa getter setter
+    a addStateVariable bb getter setter
+    a save
+    
+    namespace eval ::restored:: {}
+} \
+-cleanup {
+    a destroy
+    namespace delete ::restored
+} \
+-body {
+    a restore
+    list [lsort [info var ::restored::*]] [set ::restored::aa] [set ::restored::bb]
+    
+} -result [list [list ::restored::aa ::restored::bb] $aa $bb]
+
+tcltest::test restore-4 {Restore from nonexistent file is an error} \
+-setup {
+    StateManager a -file /no/such/file/exists.txt
+} \
+-cleanup {
+    a destroy
+} \
+-body {
+    set status [catch {a restore} message]
+    list $status $message
+} -result [list 1 {The restore file '/no/such/file/exists.txt' does not exist or is not readable}]
+
 
 
 # Report the test results.

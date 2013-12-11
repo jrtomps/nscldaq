@@ -74,11 +74,11 @@ snit::type StateManager {
     # @param getter - Command to get the variable value.
     # @param setter - Command to set the variable value.
     #
-    method addStateVariable {name getter value} {
+    method addStateVariable {name getter setter} {
         if {[lsearch -exact -index 0 $registeredVariables $name] != -1} {
             error "There is already a registration for the variable '$name'"
         }
-        lappend registeredVariables [list $name $getter $value]
+        lappend registeredVariables [list $name $getter $setter]
     }
     ##
     # listStateVariables
@@ -102,5 +102,52 @@ snit::type StateManager {
         if {$options(-file) eq ""} {
             error {Cannot save prior to configuring -file}
         }
+        set fd [open $options(-file) w]
+        
+        # Now iterate over the variables, getting values and writing
+        # set commands.
+        
+        foreach variable $registeredVariables {
+            
+            set varname [lindex $variable 0]
+            set getter  [lindex $variable 1]
+            set value [$getter $varname]
+            puts $fd [list set $varname $value]
+        }
+        
+        #  Close the file
+        
+        close $fd
+    }
+    ##
+    # restore
+    #   Restores the configuratino
+    #   * -file must have been configured.
+    #   * A safe interpreter is created and [source] exposed
+    #   * The -file is sourced into the interpreter.
+    #   * For each variable in the registered list, if that variable
+    #     exists in the slave interpreter, that variable's setter is called.
+    #
+    method restore {} {
+        if {$options(-file) eq "" } {
+            error {Cannot restore prior to configuring -file}
+        }
+        if {![file readable $options(-file)]} {
+            error "The restore file '$options(-file)' does not exist or is not readable"
+        }
+        interp create -safe StateManagerInterp
+        StateManagerInterp expose source
+        StateManagerInterp eval source $options(-file)
+        
+        foreach variable $registeredVariables {
+            set varname [lindex $variable 0]
+            set setter  [lindex $variable 2]
+            
+            if {[StateManagerInterp eval info vars $varname] eq $varname} {
+                set value [StateManagerInterp eval set $varname]
+                $setter $varname $value
+            }
+        }
+        interp delete StateManagerInterp
     }
 }
