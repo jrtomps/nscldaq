@@ -44,7 +44,7 @@
 using std::string;
 using std::cerr;
 using std::endl;
-
+using std::cout;
 
 // constant defintitions.
 
@@ -267,6 +267,7 @@ class noData :  public CRingBuffer::CRingBufferPredicate
    CRingItem*   pItem;
    uint16_t     itemType;
 
+   cout << "Event logger will expect " << endsRemaining << " end run records\n";
 
    // Figure out what file to open and how to set the pItem:
 
@@ -314,6 +315,7 @@ class noData :  public CRingBuffer::CRingBufferPredicate
 
      if(itemType == END_RUN) {
        endsRemaining--;
+       cout << "Saw one end of run, " << endsRemaining << " left\n";
        if (endsRemaining == 0) {
 	 break;
        }

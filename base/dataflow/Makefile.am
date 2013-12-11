@@ -32,7 +32,7 @@ libRingBuffer_la_DEPENDENCIES = libDataFlow.la
 
 libRingBuffer_la_LIBADD  = 	@top_builddir@/base/dataflow/libDataFlow.la 
 
-libRingBuffer_la_LDFLAGS = 	@LIBEXCEPTION_LDFLAGS@ $(TCL_LDFLAGS) \
+libRingBuffer_la_LDFLAGS = 	@LIBTCLPLUS_LDFLAGS@ $(TCL_LDFLAGS) \
 				-version-info $(SOVERSION) \
 				-Wl,"-rpath-link=$(libdir)"	\
 				$(THREADLD_FLAGS)
@@ -126,5 +126,6 @@ install-exec-local:
 	$(INSTALL_SCRIPT) @srcdir@/RingMaster.tcl @bindir@/RingMaster
 	$(mkinstalldirs)  @prefix@/TclLibs
 	$(INSTALL_SCRIPT) @builddir@/.libs/libRingBuffer.* @prefix@/TclLibs
+	echo "pkg_mkIndex -verbose @prefix@/TclLibs *.so" | $(TCLSH_CMD)
 	$(INSTALL_SCRIPT) @srcdir@/ringbuffer.tcl @bindir@/ringbuffer
 

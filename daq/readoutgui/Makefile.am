@@ -30,14 +30,15 @@ TCLPACKAGES=Configuration.tcl \
 	ui.tcl	\
 	sshProvider.tcl sshPrompt.tcl \
 	 s800Provider.tcl \
-	ReadoutGui.tcl 
+	ReadoutGui.tcl \
+	state.tcl
 
 
 
 TCLTESTS =    filesystem.test \
 	initconfig.test installroot.test system.test tests.test  ostest.test \
 	sshpipe.test s800.test dsourcemgr.test rstatemachine.test rdocallouts.test \
-	 eventlog.test
+	 eventlog.test state.test
 
 
 TKTESTS =	readoutguitest.tk  scalerparametergui.tk \

@@ -506,3 +506,4 @@ Feb 1, 2012 - Feb 24, 2012
 	     explicitly set the run number.
 	* Changing the bogus ReadougGUIPanel -> ReadoutGUIPanel as it
 	always should have been if I'd not been so lazy.
+	* Added documentation for ReadoutGUIPanel::Log method.
