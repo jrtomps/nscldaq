@@ -30,6 +30,7 @@
 package provide DAQParameters 1.0
 package require Configuration
 package require InstallRoot
+package require StateManager
 
 
 namespace eval DAQParameters {
@@ -122,3 +123,17 @@ proc  DAQParameters::getRunNumberOverrideFlag {} {
 
 DAQParameters::setDefaults
 DAQParameters::environmentOverrides
+
+#  Register the daq parameters with the StateManagerSingleton to ensure
+#  they get saved/restored.  It's up to another module to set the save file.
+# 
+set DAQParameters::stateManager [StateManagerSingleton %AUTO%]
+$DAQParameters::stateManager addStateVariable EventLogger  Configuration::get Configuration::Set
+$DAQParameters::stateManager addStateVariable EventLoggerRing  Configuration::get Configuration::Set
+$DAQParameters::stateManager addStateVariable EventLogUseNsrcsFlag  Configuration::get Configuration::Set
+$DAQParameters::stateManager addStateVariable EventLogAdditionalSources  Configuration::get Configuration::Set
+$DAQParameters::stateManager addStateVariable EventLogUseGUIRunNumber  Configuration::get Configuration::Set
+
+
+
+$DAQParameters::stateManager destroy

@@ -111,7 +111,7 @@ snit::type StateManager {
             
             set varname [lindex $variable 0]
             set getter  [lindex $variable 1]
-            set value [$getter $varname]
+            set value [{*}$getter $varname]
             puts $fd [list set $varname $value]
         }
         
@@ -145,9 +145,41 @@ snit::type StateManager {
             
             if {[StateManagerInterp eval info vars $varname] eq $varname} {
                 set value [StateManagerInterp eval set $varname]
-                $setter $varname $value
+                {*}$setter $varname $value
             }
         }
         interp delete StateManagerInterp
     }
+}
+
+##
+# @class StateManagerSingleton
+#
+#   This is provided for applications that need a single state saver.
+#
+snit::type StateManagerSingleton {
+    component instance
+    
+    delegate option * to instance
+    delegate method * to instance
+    
+    typevariable theInstance ""
+    
+    ##
+    # constructor
+    #    If this is the first construction, create the instance.
+    #    Regardless, install the instance as the instance component.
+    #    all options and methods are  delegated to the instance component
+    #    so this will appear exactly like a state manager oject.
+    #
+    # @param args - configuration options.
+    #
+    constructor args {
+        if {$theInstance eq ""} {
+            set theInstance [StateManager %AUTO%]
+        }
+        install instance using set theInstance
+        $self configurelist $args
+    }
+    
 }

@@ -19,9 +19,11 @@
 catch {package require Tk};    # In batch tests there's no display!
 package require snit
 package require RunstateMachine
+package require StateManager
 
 package provide ui   1.0
 package provide ReadoutGUIPanel 1.0
+
 
 namespace eval ::ReadoutGUIPanel {}
 
@@ -1443,7 +1445,7 @@ proc ::TimedRun::_alarm {} {
 # @return boolean - if the GUI's timed button is checked.
 #
 proc ::ReadoutGUIPanel::isTimed {} {
-    set w [::ElapsedTime::getInstance]
+    set w [::TimedRun::getInstance]
     return [$w cget -timed]
 }
 ##
@@ -1454,8 +1456,8 @@ proc ::ReadoutGUIPanel::isTimed {} {
 # @param state - new state (boolean)
 #
 proc ::ReadoutGUIPanel::setTimed {state} {
-    set w [::ElapsedTime::getInstance]
-    $w configure -state $state
+    set w [::TimedRun::getInstance]
+    $w configure -timed $state
 }
 ##
 # ::ReadoutGUIPanel::getRequestedRunTime
@@ -1463,7 +1465,7 @@ proc ::ReadoutGUIPanel::setTimed {state} {
 # @return integer - number of seconds in the d-hh:mm:ss request.
 #
 proc ::ReadoutGUIPanel::getRequestedRunTime {} {
-    set w [::ElapsedTime::getInstance]
+    set w [::TimedRun::getInstance]
     set secs [$w cget -secs]
     set mins [$w cget -mins]
     set hrs  [$w cget -hours]
@@ -1490,7 +1492,7 @@ proc ::ReadoutGUIPanel::setRequestedRunTime secs {
     set hours     [expr {$remainder % 24}]
     set days      [expr {int($remainder / 24) }]
     
-    set w [::ElapsedTime::getInstance]
+    set w [::TimedRun::getInstance]
     $w configure -secs $seconds -mins $mins -hours $hours -days $days
 }
 #------------------------------------------------------------------------------
@@ -2272,6 +2274,14 @@ snit::widgetadaptor ReadoutGUI {
                 $sm transition NotReady
             }
             $sm destroy;                # though there's not much point to this:
+            #
+            #  Save the state
+            #
+            
+            set state [StateManagerSingleton %AUTO%]
+            $state save
+            $state destroy
+            
             exit 0;                     # since we're exiting now.
         }
     }

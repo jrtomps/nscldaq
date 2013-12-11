@@ -102,6 +102,16 @@ proc setter {varname value} {
 proc getter {varname} {
     set ::$varname
 }
+#
+#  These getter/setters are used in tests to ensure that
+#  multiword getter/setters can be supplied
+#
+proc complexgetter {bravo varname} {
+    set ::$varname
+}
+proc complexsetter {bravo varname value} {
+    set ::restored::$varname $value
+}
 
 tcltest::test save-1 {Save without -file set is an error} \
 -setup {
@@ -185,6 +195,27 @@ tcltest::test save-4 {Save with a,b, registered makes a file with set a, set b} 
     list $varaa $varbb
 } -result [list $aa $bb]
 
+tcltest::test save-5 {Save a with complex getter should give correct save file} \
+-setup {
+    StateManager a
+    set fullpath [file join [tcltest::temporaryDirectory] settings.test]
+    a addStateVariable aa [list complexgetter junk] setter
+    interp create -safe slave
+    interp expose slave source
+} \
+-cleanup {
+    a destroy
+    tcltest::removeFile settings.test
+    interp delete slave
+} \
+-body {
+    
+    a configure -file $fullpath
+    a save
+    interp eval slave source $fullpath
+    interp eval slave set aa
+    
+} -result $aa
 
 #------------------------------------------------------------------------------
 # Restore tests.
@@ -273,6 +304,25 @@ tcltest::test restore-4 {Restore from nonexistent file is an error} \
     set status [catch {a restore} message]
     list $status $message
 } -result [list 1 {The restore file '/no/such/file/exists.txt' does not exist or is not readable}]
+
+tcltest::test restore-5 {Restore with complex setter should work fine} \
+-setup {
+    set fullpath [file join [tcltest::temporaryDirectory] settings.test]
+    StateManager a -file $fullpath
+    a addStateVariable aa getter [list complexsetter 1234]
+    a save
+    
+    namespace eval ::restored:: {}
+} \
+-cleanup {
+    a destroy
+    namespace delete ::restored
+} \
+-body {
+    a restore
+    list [info var ::restored::*] [set ::restored::aa]
+    
+} -result [list ::restored::aa $aa]
 
 
 

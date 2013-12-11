@@ -28,6 +28,7 @@ package require DataSourceUI
 package require rdoCalloutsBundle;     # Auto registers.
 package require ExpFileSystem
 package require Diagnostics
+package require StateManager
 
 ##
 # @class ProviderList
@@ -261,6 +262,7 @@ snit::type ReadoutGuiApp {
     #    *  Connect the data source manager to the run state machine
     #    *  Connect the eventLogger to the run state machine
     #    *  Make the menus for the data source manager.
+    #    *  Register the things we need to save.
     #
     # @param args - not used as we have no options to be concerned with.
     #
@@ -277,6 +279,35 @@ snit::type ReadoutGuiApp {
         ::DataSourceMgr::register
         
         ::EventLog::register
+        
+        # State is saved to the stagearea root in the file .settings.tcl
+        # this is a hidden file from the user's standpoint.
+        
+        set savedFile [file join [ExpFileSystem::getStageArea] .settings.tcl]
+        set state [StateManagerSingleton %AUTO% -file $savedFile]
+        
+        # Set up Run state saving.
+        
+        $state addStateVariable run       [mymethod _getRun]       [mymethod _setRun]
+        $state addStateVariable title     [mymethod _getTitle]     [mymethod _setTitle]
+        $state addStateVariable recording [mymethod _getRecording] [mymethod _setRecording]
+        $state addStateVariable timedRun  [mymethod _getTimedRun]  [mymethod _setTimedRun]
+        $state addStateVariable duration  [mymethod _getDuration]  [mymethod _setDuration]
+        $state addStateVariable dataSources [mymethod _getSources] [mymethod _setSources]
+        
+        # If the file exists restore it now (other parts of the app  have had
+        # their chance by now to register state variable handlers)
+        
+        if {[file readable $savedFile]} {
+            $state restore
+        }
+        
+        $state destroy
+        
+        # Arrange for the state to be saved on transitions to Active and Halted
+        # (after the run number increments e.g.).
+        
+        $stateMachine addCalloutBundle ReadoutGUIStateManagement
     }
     
     #--------------------------------------------------------------------------
@@ -284,6 +315,136 @@ snit::type ReadoutGuiApp {
     #  Private methods:
     #
     
+    ##
+    # _getRun
+    #
+    #    Retrieves the current run number for the state saver.
+    #
+    # @param name - The state variable that will be used (run).
+    # @return integer current run number.
+    #
+    method _getRun {name} {
+        return [::ReadoutGUIPanel::getRun]
+    }
+    ##
+    # _setRun
+    #    set the run number durig a state restore:
+    #
+    # @param name - name of the state variable (ignored).
+    # @param value - Value (new run number).
+    #
+    method _setRun {name value} {
+        ::ReadoutGUIPanel::setRun $value
+    }
+    ##
+    # _getTitle
+    #
+    # @param name - state variable name.
+    # @return string - Current title
+    #
+    method _getTitle {name} {
+        return [::ReadoutGUIPanel::getTitle]
+    }
+    ##
+    # _setTitle
+    #
+    # @param name - state variable name.
+    # @param value - New value for the title string.
+    #
+    method _setTitle {name value} {
+        ::ReadoutGUIPanel::setTitle $value
+    }
+    ##
+    # _getRecording
+    #
+    # @param name - state variable name for the recording flag.
+    # @return boolean - stateu of the recording flag.
+    #
+    method _getRecording {name} {
+        return [::ReadoutGUIPanel::recordData]
+    }
+    ##
+    # _setRecording
+    #
+    # @param name - state variable name
+    # @param value - Desired state of recording flag.
+    #
+    method _setRecording {name value} {
+        if {$value} {
+            ::ReadoutGUIPanel::recordOn
+        } else {
+            ::ReadoutGUIPanel::recordOff
+        }
+    }
+    ##
+    # _getTimedRun
+    #
+    # @param name state variable name.
+    # @return bool - Flag to indicate if a run is timed.
+    #
+    method _getTimedRun {name} {
+        return [::ReadoutGUIPanel::isTimed]
+    }
+    ##
+    # _setTimedRun
+    #
+    # @param name - name of state variable.
+    # @param value - Value of state variable.
+    #
+    method _setTimedRun {name value} {
+        ::ReadoutGUIPanel::setTimed $value
+    }
+    ##
+    # _getDuration
+    #
+    # @param name- name of state variable
+    # @return integer - number of seconds for requested run time.
+    #
+    method _getDuration {name} {
+        return [::ReadoutGUIPanel::getRequestedRunTime]
+    }
+    ##
+    # _setDuration
+    #
+    # @param name - name of state variable.
+    # @param value - number of seconds in requested run time.
+    #
+    method _setDuration {name value} {
+        ::ReadoutGUIPanel::setRequestedRunTime $value
+    }
+    ##
+    # _getSources
+    #
+    #   Returns the set of data sources.  These are just a list
+    #   dicts.
+    #
+    # @param name - Name of state variable.
+    # @return list of dicts see above.
+    #
+    method _getSources {name} {
+        return [$dataSources sources]
+    }
+    ##
+    # _setSources
+    #    Sets the current bunch of data sources to match those described by
+    #   the value parameter.
+    #
+    # @param name - state variable name.
+    # @param value - List of dicts as returned from $dataSources sources
+    #
+    method _setSources {name value} {
+        foreach sourceDict $value {
+            set provider [dict get $sourceDict provider]
+            
+            # Remove extraneous dicts to forma pure parameterization dict.
+            
+            dict unset sourceDict provider
+            dict unset sourceDict sourceid
+            
+            catch [$dataSources load $provider];   #Make sure the provider's loaded
+            $dataSources addSource $provider $sourceDict
+        }
+    }
     ##
     # _createDataSourceMenu
     #
@@ -478,4 +639,37 @@ snit::type ReadoutGuiApp {
         return [isLink $path]
     }
 }
+namespace eval ::ReadoutGUIStateManagement {
+    namespace export enter leave attach
+}
+##
+# ::ReadoutGUIStateManagement::attach
+#
+#  No op but required bundle proc.
+#
+proc ::ReadoutGUIStateManagement::attach {state} {
+    
+}
+##
+# ::ReadoutGUIStateManagement::leave
+#   No up but required bundle proc.
+#
+proc ::ReadoutGUIStateManagement::leave {from to} {}
+##
+#  ::ReadoutGUIStateManagement::enter
+#
+#  Enter a new state.  If the state is in {Active, Halted}
+#  The StateManagerSingleton is asked to save the state.
+#
+# @param from - state being left (ignored)
+# @param to   - state being entered (see above)
+#
+proc ::ReadoutGUIStateManagement::enter {from to} {
+    if {$to in [list Active Halted NotReady]} {
+        set manager [StateManagerSingleton %AUTO%]
+        $manager save
+        $manager destroy
+    }
+}
+
 ReadoutGuiApp r
