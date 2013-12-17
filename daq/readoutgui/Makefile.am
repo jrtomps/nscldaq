@@ -31,7 +31,8 @@ TCLPACKAGES=Configuration.tcl \
 	sshProvider.tcl sshPrompt.tcl \
 	 s800Provider.tcl \
 	ReadoutGui.tcl \
-	state.tcl
+	state.tcl \
+	DataSourceMonitor.tcl
 
 
 

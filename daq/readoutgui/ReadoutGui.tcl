@@ -24,6 +24,7 @@ package require ui
 package require RunstateMachine
 package require eventLogBundle
 package require DataSourceManager
+package require DataSourceMonitor
 package require DataSourceUI
 package require rdoCalloutsBundle;     # Auto registers.
 package require ExpFileSystem
@@ -270,15 +271,15 @@ snit::type ReadoutGuiApp {
         install stateMachine using RunstateMachineSingleton %AUTO%
         install dataSources  using DataSourcemanagerSingleton %AUTO%
         install readoutGUI using ReadoutGUI .gui
-        pack .gui
+        grid .gui -sticky nsew
         
         $self _createDataSourceMenu
         $self _createSettingsMenu
         $self _checkFilesystem
 
         ::DataSourceMgr::register
-        
         ::EventLog::register
+        ::DataSourceMonitor::register
         
         # State is saved to the stagearea root in the file .settings.tcl
         # this is a hidden file from the user's standpoint.
@@ -441,7 +442,7 @@ snit::type ReadoutGuiApp {
             dict unset sourceDict provider
             dict unset sourceDict sourceid
             
-            catch [$dataSources load $provider];   #Make sure the provider's loaded
+            catch {$dataSources load $provider};   #Make sure the provider's loaded
             $dataSources addSource $provider $sourceDict
         }
     }

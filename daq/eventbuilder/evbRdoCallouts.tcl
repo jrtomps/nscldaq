@@ -623,7 +623,7 @@ proc EVBC::_StartGui {} {
     # Glom building or not and coincidence window.
     
     
-    set glom [ttk::labelframe  $window.glom -text {Event Building parameters}]
+    set glom [ttk::labelframe  $window.glom -text {Event Building parameters (vsn 11)}]
     set EVBC::buildEvents [$EVBC::applicationOptions cget -glombuild]
     
     ttk::checkbutton $glom.build -text {Build} -onvalue true -offvalue false \
@@ -703,6 +703,7 @@ proc EVBC::_StartGui {} {
     set dimensions [grid size .]
     set rows       [lindex $dimensions 1]
     set cols       [lindex $dimensions 0]
+    puts "$rows $cols"
     incr rows
     grid $window  -row $rows -column 0 -columnspan $cols
     

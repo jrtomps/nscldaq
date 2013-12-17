@@ -69,9 +69,9 @@ libEventBuilder_la_LDFLAGS=@LIBTCLPLUS_LDFLAGS@
 
 TCL_PACKAGE_FILES=ConnectionManager.tcl callbackManager.tcl eventOrderer.tcl \
 	connectionList.tcl observer.tcl barriers.tcl GUI.tcl inputStatistics.tcl \
-	late.tcl outputStatistics.tcl utility.tcl
+	late.tcl outputStatistics.tcl utility.tcl 
 
-TCL_EVB_PACKAGE_FILES=evbRdoCallouts.tcl
+TCL_EVB_PACKAGE_FILES=evbRdoCallouts.tcl evbRdoCallouts10.tcl
 
 TCL_TEST_FILES=tclTests.tcl cbmanagerTests.test cmanagerCallbacks.test
 

@@ -287,7 +287,7 @@ snit::type DataSourceManager {
             return
         }
         if {[array names dataSources $id] eq ""} {
-            error "There is no data source with the id 0"
+            error "There is no data source with the id $id"
         }
         
         # Stop the data source:
@@ -304,7 +304,7 @@ snit::type DataSourceManager {
     method stopAll {} {
         if {![catch {$self _listOrderedSources ignore} sources]} {
             foreach id $sources {
-                $self stop $id
+                catch {$self stop $id};    # In case there are stopped sources.
             }
         }
     }
@@ -394,8 +394,10 @@ snit::type DataSourceManager {
         set messages [list]
         foreach id $sources {
             set provider [dict get $dataSources($id) provider]
-            if {[catch {::${provider}::end $id} msg]} {
-                lappend messages [list [list $provider $id] $msg]
+            if {[::${provider}::check $id]} {  ; # Don't end known dead srcs.
+                if {[catch {::${provider}::end $id} msg]} {
+                    lappend messages [list [list $provider $id] $msg]
+                }
             }
         }
         set state inactive;      # TODO: Is this really right if errors?

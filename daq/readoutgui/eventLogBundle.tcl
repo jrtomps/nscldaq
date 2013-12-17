@@ -18,6 +18,9 @@
 # @author Ron Fox <fox@nscl.msu.edu>
 
 package provide eventLogBundle 1.0
+package provide Experiment     2.0;   # For compatibility with event builder.
+
+
 package require Tk
 package require DAQParameters
 package require RunstateMachine
@@ -70,7 +73,7 @@ namespace eval ::EventLog {
     #
     variable loggerPid         -1
     variable startupTimeout    10
-    variable shutdownTimeout   600
+    variable shutdownTimeout   30
     variable filePollInterval 100
     variable protectFiles       1
     
@@ -103,6 +106,19 @@ namespace eval ::EventLog {
     
     namespace export attach enter leave
 
+}
+
+# For compatibility with 10.x event builders...provide shutdownTimeout but
+# trace changes to update ::EventLog::shutdownTimeout
+
+namespace eval ::Experiment {
+    variable fileWaitTimeout $::EventLog::shutdownTimeout
+}
+
+trace add variable ::Experiment::fileWaitTieout write ::EventLog::_updateShutdownTimeout 
+
+proc ::EventLog::_updateShutdownTimeout {name1 name2 op} {
+    set ::EventLog::shutdownTimeout $::Experiment::fileWaitTimeout
 }
 
 #------------------------------------------------------------------------------
@@ -203,6 +219,13 @@ proc ::EventLog::_computeLoggerSwitches {} {
     # Base switches:
     
     set ring   [DAQParameters::getEventLoggerRing] 
+
+    # Compatibility with 10.x:
+
+    if {[info proc ::Experiemnt::spectrodaqURL] ne ""} {
+	set ring [::Experiment::spectrodaqURL localhost]
+    }
+
     set switches "--source=$ring "
     
     # If requested, use the --number-of-sources switch:
@@ -408,8 +431,24 @@ proc ::EventLog::_setStatusLine repeatInterval {
 #          experiment view.
 #
 proc ::EventLog::_duplicateRun {} {
-    set runDirPath [::ExpFileSystem::getRunDir [::ReadoutGUIPanel::getRun]]
-    return [file exists $runDirPath]
+    
+    set run [::ReadoutGUIPanel::getRun]
+    
+    # Two possibilities;  If the run was properly ended, there will be a
+    # run directory in the experimnent view
+    
+    set runDirPath [::ExpFileSystem::getRunDir $run]
+   
+   # If the run was improperly ended, there could be event segments in the
+   # current directory.  We'll look for them with glob.
+   #
+   
+   set checkGlob [::ExpFileSystem::getCurrentRunDir]
+   set checkGlob [file join $checkGlob [::ExpFileSystem::genEventfileBasename $run]*.evt ]
+   
+   set eventSegments [llength [glob -nocomplain $checkGlob]]
+   
+    return [expr {[file exists $runDirPath] || ($eventSegments > 0)}]
 }
 
 #------------------------------------------------------------------------------
@@ -427,7 +466,7 @@ proc ::EventLog::runStarting {} {
     
     if {[::ReadoutGUIPanel::recordData]} {
         if {[::EventLog::_duplicateRun]} {
-            error "This run already has an event file."
+            error "Run already has event data or segments"
         }
         ::EventLog::_cdCurrent
  

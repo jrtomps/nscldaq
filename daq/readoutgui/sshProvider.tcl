@@ -330,6 +330,10 @@ proc ::SSHPipe::_sourceExited source {
     } else {
         set ::SSHPipe::activeProviders($source) $sourceInfo
     }
+    #
+    #  Remove the source from the active providers array
+    #
+    array unset ::SSHPipe::activeProviders($source)
     
     
 }

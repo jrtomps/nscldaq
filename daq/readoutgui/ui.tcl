@@ -26,6 +26,7 @@ package provide ReadoutGUIPanel 1.0
 
 
 namespace eval ::ReadoutGUIPanel {}
+namespace eval ::ReadougGUIPanel {}
 
 #------------------------------------------------------------------------------
 # Menubar:
@@ -1889,6 +1890,7 @@ proc ::ReadoutGUIPanel::outputText {text} {
     set w [::Output::getInstance]
     $w puts $text
 }
+proc ::ReadougGUIPanel::outputText {text}  { ::ReadoutGUIPanel::outputText $text }
 ##
 # ::ReadoutGUIPanel::log
 #
@@ -1901,6 +1903,11 @@ proc ::ReadoutGUIPanel::outputText {text} {
 proc ::ReadoutGUIPanel::Log {src class msg} {
     set w [::Output::getInstance]
     $w log $class "$src: $msg"
+    
+    update idletasks
+    update idletasks;        # Ensure the UI is updated in case
+    update idletasks;        # the log is prior to some event loop dead wait.
+    update idletasks
 }
 
 #------------------------------------------------------------------------------
