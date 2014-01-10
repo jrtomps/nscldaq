@@ -159,7 +159,7 @@ CRingItem::operator==(const CRingItem& rhs) const
 
   // Now there's nothing for it but to compare the contents:
 
-  return (memcmp(m_pItem, rhs.m_pItem, sizeof(RingItemHeader) + m_storageSize) == 0);
+  return (memcmp(m_pItem, rhs.m_pItem, m_pItem->s_header.s_size) == 0);
 }
 /*!
   Inequality is just the logical inverse of equality.  This can take time, see

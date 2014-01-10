@@ -31,6 +31,7 @@ class ritemtests : public CppUnit::TestFixture {
   CPPUNIT_TEST(copyconstruct);
   CPPUNIT_TEST(tsconstruct);
   CPPUNIT_TEST(addbodyheader);
+  CPPUNIT_TEST(equality);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -52,6 +53,7 @@ protected:
   void sampling();
   void tsconstruct();
   void addbodyheader();
+  void equality();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(ritemtests);
@@ -388,4 +390,13 @@ ritemtests::addbodyheader()
         EQ(i, *p++);
     }
     
+}
+
+void ritemtests::equality()
+{
+    CRingItem item0(30,8192);
+    CRingItem item1(item0);
+
+    ASSERT( item0 == item1 );
+
 }
