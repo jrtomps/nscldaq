@@ -41,6 +41,12 @@
 #endif
 #endif
 
+#ifndef __CPPRTL_TYPEINFO
+#include <typeinfo>
+#ifndef __CPPRTL_TYPEINFO
+#define __CPPRTL_TYPEINFO
+#endif
+#endif
 
 struct _RingItem;
 
@@ -59,6 +65,7 @@ public:
   CPhysicsEventItem(uint64_t timestamp, uint32_t source, uint32_t barrier,
                     size_t maxBody=8192);
 
+  CPhysicsEventItem(const CRingItem& rhs) throw(std::bad_cast);
   CPhysicsEventItem(const CPhysicsEventItem& rhs);
   virtual ~CPhysicsEventItem();
 

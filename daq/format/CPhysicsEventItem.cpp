@@ -19,6 +19,7 @@
 #include <sstream>
 #include <stdio.h>
 
+#include <iostream>
 /**
  * @file CPhysicsEventItem.cpp
  * @brief  wrapping of CRingItem - just needed to get the toString method.
@@ -40,6 +41,15 @@ CPhysicsEventItem::CPhysicsEventItem(
     
 }
 
+CPhysicsEventItem::CPhysicsEventItem(const CRingItem& rhs) throw(std::bad_cast)
+  : CRingItem(rhs)
+{
+  if (type() != PHYSICS_EVENT) {
+    throw std::bad_cast();
+  }
+}
+
+
 CPhysicsEventItem::CPhysicsEventItem(const CPhysicsEventItem& rhs) :
   CRingItem(rhs) {}
 
@@ -60,7 +70,7 @@ CPhysicsEventItem::operator==(const CPhysicsEventItem& rhs) const
 
 int 
 CPhysicsEventItem::operator!=(const CPhysicsEventItem& rhs) const
-{
+{ 
   return CRingItem::operator!=(rhs);
 }
 
