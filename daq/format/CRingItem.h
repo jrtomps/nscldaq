@@ -93,6 +93,7 @@ public:
   void*  getBodyPointer() const;
   void*  getBodyCursor();
   _RingItem*  getItemPointer();
+  const _RingItem* getItemPointer() const;
   uint32_t type() const;
   bool mustSwap() const;
   bool hasBodyHeader() const;
