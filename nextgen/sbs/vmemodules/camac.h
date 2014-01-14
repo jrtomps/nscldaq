@@ -57,7 +57,7 @@
 ** VME address space.
 */
 
-static inline long getlong(volatile void* a) {
+static inline uint32_t getlong(volatile void* a) {
   uint16_t* p = (uint16_t*)a;
   long    l = p[0];
   l   = l << 16;
@@ -67,7 +67,7 @@ static inline long getlong(volatile void* a) {
 
 static inline void putlong(int32_t v,volatile void *a)
 {                                      
-  volatile short* p = (volatile short*)a;
+  volatile uint16_t* p = (volatile uint16_t*)a;
   *p = (v >> 16) & 0xff;                 
   p++;                                   
   *p = (v & 0xffff);                     

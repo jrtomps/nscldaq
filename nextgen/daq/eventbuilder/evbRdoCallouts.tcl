@@ -176,7 +176,7 @@ proc EVBC::start args {
     
     
     set EVBC::pipefd [open "| $pipecommand" w+]
-    fconfigure $EVBC::pipefd -buffering line
+    fconfigure $EVBC::pipefd -buffering line -blocking 0
     fileevent $EVBC::pipefd readable EVBC::_PipeInputReady
     
     
@@ -213,7 +213,7 @@ proc EVBC::start args {
 	    }
 	}
 	if {!$found} {
-	    update;update;update
+	    update idletasks
 	    after 500
 	} else {
 	    set i 100
@@ -394,9 +394,7 @@ proc EVBC::initialize args {
     namespace eval ::Experiment {
         proc spectrodaqURL system {
             
-            puts "Calling the right url getter: $EVBC::destRing"
             catch [list ringbuffer create $EVBC::destRing] msg;  #ensure ring exists first.
-            puts "Ringmsg $EVBC::destRing: $msg"
  
             return "tcp://localhost/$EVBC::destRing"
         }

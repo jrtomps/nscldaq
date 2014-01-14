@@ -54,7 +54,7 @@ CLogRun::operator()()
   bool seenBor = false;
   char fileBuffer[m_nBufferSize];
   int  segnum = 0;
-  size_t segsize;
+  size_t segsize = 0;
   while (!seenBor) {
     std::cin.read(fileBuffer, m_nBufferSize);
     if (std::cin.fail() || std::cin.eof()) {
