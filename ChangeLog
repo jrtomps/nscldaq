@@ -498,8 +498,8 @@ Feb 1, 2012 - Feb 24, 2012
 	* Encapsulate the SWIG autoconf test in an m4 test.
 	* Encapsulate the gengetopt test in an m4 test.
         * Encapsulate the EPICS tests/defs in an m4 test.
-11.0-rc2 Sprint for DDAS SBC reaodout board and then some.
-	* Issue #1765 - open rc2 development sprint.
+11.0-rc3 Sprint for DDAS SBC reaodout board and then some.
+	* Issue #1765 - open rc3 development sprint.
 	* Issue #433  - Support out of tree builds.
 	* Issue #1045 - Pure plugin architecture for ReadoutShell.
 	* Task  #1729 - Add --run switch to eventlog so ReadoutGui can
@@ -510,5 +510,9 @@ Feb 1, 2012 - Feb 24, 2012
         * Issue #1045 - Redo event GUI to support multiple readouts.
         *   Add control over readout gui's log window characteristics
         *   Add sshPipe provider wd parameter.
-        *   Expose that parameter in the prompter for the source in the gui.
-        
+        *   Expose that parameter in the prompter for the source in the
+	gui.
+	* Issue #1654 better document the CEventSegment methods for
+	handling event rejection and timestap/event source injection.
+
+
