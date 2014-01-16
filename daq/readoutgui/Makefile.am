@@ -14,7 +14,7 @@ install-exec-local:
 	$(INSTALL_DATA) @srcdir@/eventlogsettings.jpg @srcdir@/eventlogsettings.eps @prefix@/share/html
 	echo "pkg_mkIndex -verbose $(prefix)/TclLibs *.so" | $(TCLSH_CMD)
 	$(INSTALL_SCRIPT) ReadoutShell.tcl @bindir@/ReadoutShell
-	$(INSTALL_SCRIPT) start.bash @bindir@/start.bash
+	$(INSTALL_SCRIPT) @srcdir@/start.bash @bindir@/start.bash
 
 
 TCLPACKAGES=Configuration.tcl \
@@ -43,8 +43,8 @@ TCLPACKAGES=Configuration.tcl \
 
 TCLTESTS =    filesystem.test \
 	initconfig.test installroot.test system.test tests.test  ostest.test \
-	sshpipe.test s800.test dsourcemgr.test rstatemachine.test rdocallouts.test \
-	 eventlog.test state.test
+	sshpipe.test s800.test  rstatemachine.test rdocallouts.test \
+	  state.test
 
 
 TKTESTS =	readoutguitest.tk  scalerparametergui.tk \
