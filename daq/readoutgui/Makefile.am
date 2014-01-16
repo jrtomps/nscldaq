@@ -62,7 +62,8 @@ EXTRA_DIST = $(TCLPACKAGES) $(TCLAPPS) $(TCLTESTS) $(TKTESTS)\
 	warning.tcl InstallRoot.tcl.in \
 	readoutgui.xml RunState.eps RunState.jpg s800fake.tcl\
 	readoutshell.jpg readoutshell.eps \
-	sshsimulator.testscript start.bash
+	sshsimulator.testscript start.bash \
+	eventlogsettings.jpg eventlogsettings.eps
 
 
 bin_PROGRAMS =  SecretTk
