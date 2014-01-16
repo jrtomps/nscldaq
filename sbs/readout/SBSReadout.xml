@@ -166,6 +166,48 @@
                             value of othe <option>--sourceid</option> command
                             line option.
                         </para>
+                        <para>
+                            The base class, <classname>CEventSegment</classname>
+                            provides some utilities that can be useful when
+                            reading and event segment.  Refer to
+                            the manpage 
+                            <link linkend='manpage.ceventsegment'
+                                endterm='manpage.ceventsegment_title' />
+                            for reference material that covers the utilities
+                            described below
+                        </para>
+                        <para>
+                            One set of utilties allow event segments to prevent
+                            the event from appearing in the data stream.
+                            By callilng <methodname>reject</methodname> all subsequent
+                            event segments still run but the resulting event is
+                            discarded.  If you know that it is not necessary
+                            for subsequent event segments to run (e.g. to keep
+                            the hardware sane), you can call <methodname>rejectImmediatly</methodname>.
+                            That function aborts event segment processing when
+                            the current segment returns and discards the data
+                            read to this point.
+                        </para>
+                        <para>
+                            The <methodname>keep</methodname> method can be called
+                            to reset the state of the event to prevent it from
+                            being discarded.  This can happen if either the
+                            event segment assumes an event is bad and needs to be
+                            convinced otherwise or if a subsequent event segment
+                            wants to ensure that an <methodname>reject</methodname>
+                            by a prior event segment is not honored.
+                        </para>
+                        <para>
+                            Finally, the <methodname>setTimestamp</methodname>
+                            and <methodname>setSourceId</methodname> methods
+                            ensure the event has an event header that contains
+                            the timestamp and source id specified to those
+                            methods.  This must be used in an environment
+                            that employs the NSCL event builder in order to
+                            provide events with the information needed by the
+                            ring data source so that the timestamp and source id
+                            can be automatically deduced.
+                        </para>
                     </listitem>
                 </varlistentry>
             </variablelist>
@@ -2169,7 +2211,7 @@ MySegment::read(void* pBuffer, size_t maxlen)
 
     <refentry id="manpage.ceventsegment">
       <refmeta>
-         <refentrytitle>CEventSegment</refentrytitle>
+         <refentrytitle id="manpage.ceventsegment_title">CEventSegment</refentrytitle>
          <manvolnum>3sbsReadout</manvolnum>
       </refmeta>
       <refnamediv>
