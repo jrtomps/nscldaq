@@ -19,10 +19,12 @@
 #
 
 
+# unset ::env(DISPLAY);     # Prevent Tk?
 package provide SSHPipe_Provider 1.0
 package require ssh
 package require Wait
 package require ReadoutGUIPanel
+package require InstallRoot
 
 # Establish the namespace in which the methods live:
 
@@ -30,6 +32,7 @@ namespace eval ::SSHPipe {
     variable parameterization [dict create \
         host [list {Host name}]             \
         path [list {Path to executable}]    \
+        wdir [list {Working directory}]    \
         parameters [list {Command parameters}] \
     ]
     #
@@ -80,6 +83,16 @@ proc ::SSHPipe::start params {
     
     set sid [dict get $params sourceid]
     set host [dict get $params host]
+
+    # wdir is a late addition, this code should allow
+    # dicts without it to continue to function.
+
+    if {[dict exists $params wdir]} {
+        set wd [dict get $params wdir]
+    } else {
+        set wd ~
+        dict set params wdir ~
+    }
     set program [dict get $params path]
     set cmdparams  [dict get $params parameters]
     
@@ -89,9 +102,13 @@ proc ::SSHPipe::start params {
         error "SSHPipe data source: Cannot start '$program' as it is not executable"
     }
     
-    #  Start the ssh pipeline:
+    set starter [file join [InstallRoot::Where] bin start.bash]
     
-    set pipeinfo [::ssh::sshpid $host "$program $cmdparams"]
+    #  Start the ssh pipeline:
+   
+
+   set pipeinfo [::ssh::sshpid $host "$starter $wd \"$program $cmdparams\""]
+
     
     # Set up our context entry in activeProviders:
     
@@ -110,6 +127,7 @@ proc ::SSHPipe::start params {
     
     fconfigure [lindex $pipeinfo 1] -blocking 0 -buffering none -buffersize 10
     fileevent [lindex $pipeinfo 1] readable [list ::SSHPipe::_readable $sid]
+
 }
 ##
 # check
@@ -304,6 +322,7 @@ proc ::SSHPipe::_readable source {
 # @param source  - Source id of the source that exited.
 #
 proc ::SSHPipe::_sourceExited source {
+
     set sourceInfo $::SSHPipe::activeProviders($source)
 
     fileevent [dict get $sourceInfo inpipe] readable ""
@@ -353,8 +372,6 @@ proc ::SSHPipe::_readInput source {
     set path [dict get $sourceInfo parameterization path]
     
     set input [read [dict get $sourceInfo inpipe]]
-
-
     if {[string length $input] > 0} {
         append data [dict get $sourceInfo line ] $input
         if {[string first "\n" $data] != -1} {
@@ -384,7 +401,7 @@ proc ::SSHPipe::_notIdle source {
 # @param source - id of source to end.
 #
 proc ::SSHPipe::_attemptEnd source {
-    ::SSHPipe::_send source end
+    ::SSHPipe::_send $source end
     dict set ::SSHPipe::activeProviders($source) idle true
 }
 ##
@@ -407,6 +424,7 @@ proc ::SSHPipe::_send {source msg} {
 # @param source - source id.
 #
 proc ::SSHPipe::_close source {
+
     close [dict get $::SSHPipe::activeProviders($source) outpipe]
 }
 ##

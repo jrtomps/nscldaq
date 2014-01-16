@@ -56,6 +56,8 @@ package require StateManager
 # OPTIONS
 #   -sources - the list of source dicts from the data source manager.
 #
+# METHODS
+#   getSelected - Returns the source id of the selected data source.
 
 snit::widgetadaptor ProviderList {
     option -sources -default [list] -configuremethod _updateDisplay
@@ -118,7 +120,6 @@ snit::widgetadaptor ProviderList {
         } else {
             set selectedId "";    # Click not on element.
         }
-        puts "Selected. $selectedId"
     }
     #-------------------------------------------------------------------------
     # Configuration handling
@@ -309,6 +310,11 @@ snit::type ReadoutGuiApp {
         # (after the run number increments e.g.).
         
         $stateMachine addCalloutBundle ReadoutGUIStateManagement
+        
+        # The output window can be a bit wider than default:
+        
+        set ow [Output::getInstance]
+        $ow configure -width 90
     }
     
     #--------------------------------------------------------------------------
@@ -445,6 +451,8 @@ snit::type ReadoutGuiApp {
             catch {$dataSources load $provider};   #Make sure the provider's loaded
             $dataSources addSource $provider $sourceDict
         }
+	$self _setPausability
+
     }
     ##
     # _createDataSourceMenu
@@ -471,6 +479,7 @@ snit::type ReadoutGuiApp {
     method _createSettingsMenu {} {
         install settingsMenu using ::ReadoutGUIPanel::addUserMenu Settings Settings
         $settingsMenu add command -label  {Event Recording...} -command [mymethod _eventLoggerSettings]
+        $settingsMenu add command -label {Log window...}  -command [mymethod _logWindowSettings]
     }
     #--------------------------------------------------------------------------
     # Data source menu handlers:
@@ -516,10 +525,8 @@ snit::type ReadoutGuiApp {
             # If the collective system cannot pause, we need to turn off'
             # the pause button:
             
-            set caps [$dataSources systemCapabilities]
-            if {![dict get $caps canPause]} {
-                [::RunControlSingleton::getInstance] configure -pauseable 0
-            }
+	    $self _setPausability
+
         }
     }
     ##
@@ -558,6 +565,8 @@ snit::type ReadoutGuiApp {
             }
         }
         catch {destroy  .providers}
+	$self _setPausability
+
     }
     
     ##
@@ -604,9 +613,28 @@ snit::type ReadoutGuiApp {
     #   next start of the event logger (next begin run with recording enabled).
     #
     method _eventLoggerSettings {} {
-        EventLog::promptParameters
+        ::EventLog::promptParameters
     }
-    
+    ##
+    # _logWindowSettings
+    #
+    #  Prompt for log window settings and apply immediately.
+    #
+    method _logWindowSettings {} {
+        ::Output::promptSettings
+    }
+    ##
+    # _setPausability
+    # 
+    #  Check the capabilities to determine if we are pausable.  Set the
+    #  user interface accordingly.
+    #
+    method _setPausability {} {
+	set caps [$dataSources systemCapabilities]
+	set pauseable [dict get $caps canPause]
+	set pauseable [expr {$pauseable ? 1 : 0}];           #normalize.
+	[::RunControlSingleton::getInstance] configure -pauseable $pauseable
+    }
     #--------------------------------------------------------------------------
     #  Procs
     
@@ -673,4 +701,3 @@ proc ::ReadoutGUIStateManagement::enter {from to} {
     }
 }
 
-ReadoutGuiApp r

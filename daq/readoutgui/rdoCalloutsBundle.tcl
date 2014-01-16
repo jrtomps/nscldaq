@@ -44,7 +44,7 @@ package require ReadoutGUIPanel
 #  In addition, the following new callbacks are implemented:
 #
 #  * OnFail     - Called when NotReady is entered from any other state. (tested)
-#  * OnStart - Called when Starting is entered from NotReady (tested)
+
 
 #
 #
@@ -74,7 +74,7 @@ proc ::rdoCallouts::attach {state} {}
 # 
 proc ::rdoCallouts::enter {from to} {
     
-    # Starting -> Halted : OnStarStarting
+    # Starting -> Halted : OnStarting
     
     if {($from eq "Starting")  &&  ($to eq "Halted")} {
         if {[info procs ::OnStart] ne ""} {
@@ -85,7 +85,7 @@ proc ::rdoCallouts::enter {from to} {
     
     # Any -> NotReady : OnFail
     
-    if {$to eq "NotReady"} {
+    if {($from ne "NotReady") && ($to eq "NotReady") } {
         if {[info procs ::OnFail] ne ""} {
             uplevel #0 ::OnFail
             return
@@ -161,7 +161,7 @@ proc ::rdoCallouts::reload {} {
 
     # Look for an load the new file:
     
-    foreach directory [list ~ ~/experiment/current [pwd]] {
+    foreach directory [list ~ ~/stagearea/experiment/current [pwd]] {
         set candidate [file join $directory ReadoutCallouts.tcl]
         if {[file readable $candidate]} {
             uplevel #0 source $candidate

@@ -79,7 +79,7 @@ eventlog --source=tcp://spdaq22/fox --path=/user/0400x/stagearea/current --onesh
 
 <refentry id="manpage.eventlog">
   <refmeta>
-     <refentrytitle>eventlog</refentrytitle>
+     <refentrytitle id='manpage.eventlog_title'>eventlog</refentrytitle>
      <manvolnum>1daq</manvolnum>
   </refmeta>
   <refnamediv>

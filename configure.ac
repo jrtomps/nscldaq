@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.61)
-AC_INIT(nscldaq, 11.0-rc2, fox@nscl.msu.edu)
+AC_INIT(nscldaq, 11.0-rc3, fox@nscl.msu.edu)
 
 AC_CONFIG_SRCDIR([/utilities/StringsToIntegers.h])
 AC_CONFIG_HEADER([config.h])
@@ -327,6 +327,7 @@ AC_CONFIG_FILES([Makefile
 		 daq/format/Makefile
 		 daq/readoutgui/Makefile
 		 daq/readoutgui/InstallRoot.tcl
+		 daq/readoutgui/ReadoutShell.tcl
 		 daq/s800callouts/Makefile
 		 daq/eventbuilder/Makefile daq/eventbuilder/Makefile_Skeleton
 		 daq/eventbuilder/ringsource/Makefile

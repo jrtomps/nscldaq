@@ -80,7 +80,7 @@ snit::type DataSourceManager {
         
         set names [package names]
         set providerPackages [lsearch -all -inline -glob $names *_Provider]
-        
+
         # Cut off the _Provider part to get the provider name:
         
         set endLength [string length _Provider]
@@ -157,7 +157,7 @@ snit::type DataSourceManager {
     # systemCapabilities
     #
     #   Returns the system capabilities.  this is defined as the set of capabilities
-    #   all providers have.  Thus for each element in the dict, if any element is
+    #   all running data sources have.  Thus for each element in the dict, if any element is
     #   false, the value of the system capability is false.  If a provider does
     #   not mention a capability it is assumed to not be supported as well.
     #
@@ -171,7 +171,8 @@ snit::type DataSourceManager {
         #    there and the provider's
         
         set merged [dict create]
-        foreach provider $loadedProviders {
+        foreach sourceId [lsort -integer -increasing [array names dataSources]] {
+            set provider [dict get $dataSources($sourceId) provider]
             set providerCap [::${provider}::capabilities]
             dict for {cap value} $providerCap {
                 if {[dict exists $merged $cap]} {

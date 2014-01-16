@@ -10,7 +10,12 @@ install-exec-local:
 	echo Adjusting installation location of libWait.so compiled tcl extension.
 	mv $(prefix)/lib/libWait.* $(prefix)/TclLibs
 	$(INSTALL_DATA) @srcdir@/RunState.jpg @srcdir@/RunState.eps @prefix@/share/html
+	$(INSTALL_DATA) @srcdir@/readoutshell.jpg @srcdir@/readoutshell.eps @prefix@/share/html
+	$(INSTALL_DATA) @srcdir@/eventlogsettings.jpg @srcdir@/eventlogsettings.eps @prefix@/share/html
 	echo "pkg_mkIndex -verbose $(prefix)/TclLibs *.so" | $(TCLSH_CMD)
+	$(INSTALL_SCRIPT) ReadoutShell.tcl @bindir@/ReadoutShell
+	$(INSTALL_SCRIPT) start.bash @bindir@/start.bash
+
 
 TCLPACKAGES=Configuration.tcl \
 	DAQParameters.tcl \
@@ -53,13 +58,11 @@ check-TESTS:
 
 
 EXTRA_DIST = $(TCLPACKAGES) $(TCLAPPS) $(TCLTESTS) $(TKTESTS)\
-	ReadougGUIPanel.ui \
 	RunReadout.sh \
-	scalerParameterDialog.ui \
-	selectReadout.ui \
 	warning.tcl InstallRoot.tcl.in \
 	readoutgui.xml RunState.eps RunState.jpg s800fake.tcl\
-	sshsimulator.testscript
+	readoutshell.jpg readoutshell.eps \
+	sshsimulator.testscript start.bash
 
 
 bin_PROGRAMS =  SecretTk

@@ -382,7 +382,7 @@ tcltest::test introspect-transitions {List the allowed transitions} \
 } \
 -result [list Active   [list NotReady Halted Paused] \
       Halted   [list NotReady Active]        \
-      NotReady [list Starting]               \
+      NotReady [list NotReady Starting]               \
       Paused   [list NotReady Halted Active] \
       Starting [list NotReady Halted]]
 

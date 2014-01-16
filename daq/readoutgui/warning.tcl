@@ -58,7 +58,6 @@ namespace eval Diagnostics {
 	Dialog Information $text info 0
     }
     proc Warning {text} {
-	puts "Warning: $text"
 	Dialog Warning $text warning 1
     }
 

@@ -55,7 +55,7 @@ namespace eval ::RdoCallouts10 {
     package forget EVBUtilities
     package forget EvbOrderer
     package forget EventBuilder
-    package forget Observerd
+    package forget Observer
 
     # this requires the 10.x event builder.
 

@@ -4,7 +4,11 @@
 
 while {![eof stdin]} {
     if {![eof stdout]} {
-        puts [gets stdin]
+        set line [gets stdin]
+        puts stdout $line
         flush stdout
+        if {$line eq "exit"} {
+            exit 0
+        }
     }
 }

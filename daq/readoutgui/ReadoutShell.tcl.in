@@ -1,0 +1,20 @@
+#!/bin/sh
+# Start tclsh \
+    exec @TCLSH_CMD@ ${0} ${@}
+
+if {([array names ::env TCLLIBPATH] ne "") && ([array names ::env TCLLIBPATH_OK] eq "")} {
+	package require Tk
+	tk_messageBox -title {TCLLIBPATH Defined} -type ok -icon error \
+	    -message {The TCLLIBPATH environment variable is defined. If it contains daq directories prior other than this version that will cause 
+problems.  If you are sure your TCLLIBPATH is safe to use with ReadoutGUI also define the environment variable TCLLIBPATH_OK to anything}
+	exit
+
+}
+
+set here [file dirname [info script]]
+set tcllibs [file normalize [file join $here ../TclLibs]]
+set auto_path [concat $tcllibs $auto_path]
+
+package require ReadoutGui
+
+ReadoutGuiApp r

@@ -20,6 +20,7 @@ catch {package require Tk};    # In batch tests there's no display!
 package require snit
 package require RunstateMachine
 package require StateManager
+package require DataSourceUI
 
 package provide ui   1.0
 package provide ReadoutGUIPanel 1.0
@@ -426,7 +427,7 @@ proc ::ReadoutGUIPanel::getRunIdInstance {{widget {}}} {
 ##
 # ::ReadoutGUIPanel::ghostWidgets
 #
-#    Disables all the widgets that need to be turned off whent he run is
+#    Disables all the widgets that need to be turned off when he run is
 #    either paused or active
 #
 # TODO:  Be sure to also get the recording enable checkbox when that's added.
@@ -1595,7 +1596,7 @@ snit::widgetadaptor OutputWindow {
         # Widget creation
         
         install text using text $win.text -xscrollcommand [list $win.xsb set] \
-            -yscrollcommand [list $win.ysb set] -wrap none -background grey
+            -yscrollcommand [list $win.ysb set] -wrap word -background grey -state disabled
         ttk::scrollbar $win.ysb -orient vertical   -command [list $text yview]
         ttk::scrollbar $win.xsb -orient horizontal -command [list $text xview]
         
@@ -1603,6 +1604,7 @@ snit::widgetadaptor OutputWindow {
         
         grid $text $win.ysb -sticky nsew
         grid $win.xsb       -sticky new
+        
         
         $self configurelist $args
         $self _updateTagOptions -showlog $options(-showlog)
@@ -1657,7 +1659,7 @@ snit::widgetadaptor OutputWindow {
     #                -logclasses)
     # @param msg   - The messagde to log.
     method log   {class msg} {
-        set timestamp [clock format [clock seconds]]
+        set timestamp [clock format [clock seconds] -format {%D %T} ]
         if {$class ni $options(-logclasses)} {
             error "'$class' is not one of the known classes: {$options(-logclasses)}"
         }
@@ -1750,7 +1752,6 @@ snit::widgetadaptor OutputWindow {
         # If we got here, everything is legal:
         #
         set options($optname) $value
-        
     }
     #--------------------------------------------------------------------------
     # Private methods
@@ -1766,8 +1767,10 @@ snit::widgetadaptor OutputWindow {
         
         # Output the data to the widget:
         
+	$text configure -state normal
         $text insert end $data  $tag
         $text yview -pickplace end
+	$text configure -state disabled
         
         # Limit the number of lines that can appear.
         
@@ -1849,7 +1852,171 @@ proc ::Output::leave  {from to} {
     set w [::Output::getInstance]
     $w log debug "Run leaving state $from heading for state $to"
 }
+##
+# @class OuputWindowSettings
+#
+#   For to prompt the output window settings. This is normally wrapped
+#   in a dialog.
+#
+# LAYOUT:
+#   +----------------------------------------------------------------+
+#   | Rows: [^V]   Columns [^V] History [^V] [ ] show debug messages |
+#   +----------------------------------------------------------------+
+#
+#   * Plain text are labels.
+#   * [^V] are spinboxes
+#   * [ ] is a checkbutton.
+#
+# OPTIONS:
+#   *  -rows    - Number of displayed rows of text.
+#   *  -columns - Number of displayed text columns
+#   *  -history - Number of lines of history text displayed.
+#   *  -debug   - boolean on to display debug log messages.
+#
+#
+snit::widgetadaptor OutputWindowSettings {
+    option -rows    -configuremethod  _setSpinbox -cgetmethod _getSpinbox
+    option -columns -configuremethod  _setSpinbox -cgetmethod _getSpinbox
+    option -history -configuremethod _setSpinbox -cgetmethod _getSpinbox
+    option -debug
+    
+    ##
+    # constructor
+    #    Create the widgets, bind them to the options and lay them out
+    #    As shown in the LAYOUT comments section
+    #
+    # @args configuration options.
+    #
+    constructor args {
+        installhull using ttk::frame
+        
+        # Widget creation:
+        
+        ttk::label $win.rowlabel -text {Rows: }
+        ttk::spinbox $win.rows -from 10 -to 40 -increment 1 -width 3
+        
+        ttk::label $win.collabel -text {Columns: }
+        ttk::spinbox $win.columns -from 40 -to 132 -increment 1 -width 4
+        
+        ttk::label $win.historylabel -text {History lines: }
+        ttk::spinbox $win.history -from 500 -to 10000 -increment 100 -width 6
+        
+        ttk::checkbutton $win.debug -text {Show debugging output} \
+            -variable [myvar options(-debug)] -onvalue 1 -offvalue 0
+        
+        # widget layout:
+        
+        grid $win.rowlabel $win.rows $win.collabel $win.columns \
+            $win.historylabel $win.history $win.debug
+        
+        $self configurelist $args
+        
+    }
+    #--------------------------------------------------------------------------
+    #
+    #  Configuration get/set operations.
+    
+    ##
+    # _setSpinBox
+    #
+    #  Sets the spinbox associated with an option.  The spinbox must be
+    #  named win.optionname where optionname is the option name with the -
+    #  stripped.  e.g. for the -rows option the spinbox is named
+    #  $win.rows
+    #
+    # @param optname - Name of the option.
+    # @param value   - New value for the option.
+    #
+    method _setSpinbox {optname value} {
+        set name [string range $optname 1 end];    # Strip off the leading$
+        $win.$name set $value
+    }
+    ##
+    # _getSpinbox
+    #
+    #   Gets the value of an option associated with a spinbox.  See
+    #   _setSpinbox above for naming requirements
+    #
+    # @param optname - name of the option being queried.
+    #
+    method _getSpinbox optname {
+        set name [string range $optname 1 end]
+        return [$win.$name get]
+    }
+}
+##
+# ::Output::_isDebugging
+#
+#  Determins if the set of items in -showlog for an output widget
+#  is consistent with displaying debug output. Specifically is there
+#  A 'debug' entry.
+#
+# @param output - widget command for an Output window.
+#
+# @return boolean - true if debugging is being displayed else false.
+#
+proc ::Output::_isDebugging {output} {
+    array set logRenditions [$output cget -showlog]
+    return [expr {[array names logRenditions debug] ne ""}]
+}
+##
+# ::Output::_setShowDebug
+#
+#  Sets an output widget to show or not show debug log entries depending
+#  on the state
+#
+# @param widget - ouput widget's command.
+# @param state - bool true if debugging should be displayed and false otherwise.
+#
+proc ::Output::_setShowDebug {widget state} {
+    array set logRenditions [$widget cget -showlog]
+    if {$state} {
+        set logRenditions(debug) [list]
+    } else {
+        array unset logRenditions debug; 
+    }
+    $widget configure -showlog [array get logRenditions]
+}
 
+##
+#  Prompt for new settings. The following settings are possible:
+#  * -width
+#  * -height
+#  * -history
+#  * enable/disable debug output.
+#
+proc ::Output::promptSettings {} {
+    
+    # Make the toplevel and wrapper.
+    
+    toplevel .outputsettings
+    set w [DialogWrapper .outputsettings.dialog]
+    set frame [$w controlarea]
+    
+    # Create the form and stock it with the current values from the
+    # output singleton.  Note that the effort to compute the debug option
+    # is delegated to a private proc.
+    
+    set output [::Output::getInstance]
+    set form [OutputWindowSettings $frame.form \
+        -rows [$output cget -height] -columns [$output cget -width] \
+        -history [$output cget -history]]
+    $form configure -debug [::Output::_isDebugging $output]
+    
+    $w configure -form $form
+
+    # Do th layout and wait for the user:
+    
+    pack $w
+    set action [$w modal]
+    if {$action eq "Ok"} {
+        $output configure -width [$form cget -columns] -height [$form cget -rows]
+        $output configure -history [$form cget -history]
+        ::Output::_setShowDebug $output [$form cget -debug]
+    }
+    destroy .outputsettings
+    
+}
 #
 #  API for the output window.
 #
@@ -1925,7 +2092,7 @@ proc ::ReadoutGUIPanel::Log {src class msg} {
 # METHODS:
 #    addWidget   - Add an arbitrary widget to the bottom of the status area.
 #    addMessage  - Add a message line to the bottom of the status area.
-#    setMessage  - Set the text of a message widgetg
+#    setMessage  - Set the text of a message widget
 #    statusItems - List the set of status items that are managed.
 #    messageHandles - List the message handles.
 #

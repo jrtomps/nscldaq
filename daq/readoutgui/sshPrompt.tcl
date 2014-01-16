@@ -79,18 +79,20 @@ proc ::SSHPipe::paramEnvironmentOverrides {} {
 # parameters passed to the program.
 #
 # LAYOUT:
-#    +-----------------------------------------+
-#    | Host:   [ entry widget ]                |
-#    | Readout:[ entry widget ]  <Browse...>   |
-#    | Parameters: [ entry widget]             |
-#    +-----------------------------------------+
-#    | <Ok>   <Cancel>                         |
-#    +-----------------------------------------+
+#    +--------------------------------------------------------------------+
+#    | Host:   [ entry widget ]                                           |
+#    | Readout:[ entry widget ]  <Browse...>                              |
+#    | Working directory [entry] <Browse...> [ ] Same as Readout program. |
+#    | Parameters: [ entry widget]                                        |
+#    +--------------------------------------------------------------------+
+#    | <Ok>   <Cancel>                                                    |
+#    +--------------------------------------------------------------------+
 #
 # OPTIONS:
 #   -host    - Name of the host the program runs on.
 #   -program - Path to the readout program that is run on the ssh pipe.
 #   -parameters - Optional parameters
+#   -defaultdir - Default working directory.
 #
 # METHODS
 #   modal    - Block until either OK or Cancel has been clicked (or the dialog
@@ -98,10 +100,14 @@ proc ::SSHPipe::paramEnvironmentOverrides {} {
 #
 snit::widgetadaptor ::SSHPipe::ParameterPromptDialog {
     component wrapper
+    component form
     
     option -host       
     option -program    
-    option -parameters 
+    option -parameters
+    option -defaultdir -default ""
+    
+    variable sameAsProgram 1
     
     delegate method modal to wrapper
     
@@ -121,9 +127,11 @@ snit::widgetadaptor ::SSHPipe::ParameterPromptDialog {
         set options(-host)    [Configuration::get SSHPipeHost]
         set options(-program) [Configuration::get SSHPipeProgram]
         set options(-parameters) ""
+        set options(-defaultdir) ""
         
         install wrapper using DialogWrapper $win.wrapper
-        set f [$wrapper controlarea]
+        install form using $wrapper controlarea
+        set f $form
         
         ttk::label $f.hostlabel  -text {Host name:}
         ttk::entry $f.host       -textvariable [myvar options(-host)]
@@ -132,14 +140,32 @@ snit::widgetadaptor ::SSHPipe::ParameterPromptDialog {
         ttk::entry  $f.program      -textvariable [myvar options(-program)]
         ttk::button $f.findprogram  -text Browse... -command [mymethod _browseProgram]
         
+        ttk::label $f.dirlabel -text {Working directory}
+        ttk::entry $f.dir     -textvariable  [myvar options(-defaultdir)] \
+            -state disabled
+        ttk::button $f.dirbrowse -text Browse... -command [mymethod _browseWD]
+        ttk::checkbutton $f.samedir -text {Same as Readout} -variable [myvar sameAsProgram] \
+            -onvalue 1 -offvalue 0 -command [mymethod _sameDirButton]
+        
         ttk::label  $f.paramlabel   -text {Command line options}
         ttk::entry  $f.params       -textvariable [myvar options(-parameters)]
         
         grid $f.hostlabel $f.host
         grid $f.programlabel $f.program $f.findprogram
+        grid $f.dirlabel $f.dir $f.dirbrowse $f.samedir
         grid $f.paramlabel $f.params
         
         pack $wrapper
+        
+        # Set <Return>, and <FocusOut> events on $f.program so that
+        # if the sameAsProgram variable is true the directory
+        # of the program prpagates into the directory path.
+        #
+        bind $f.program <Return> [mymethod _programChanged]
+        bind $f.program <FocusOut> [mymethod _programChanged]
+        $self _sameDirButton;    # Set initial state properly.
+        
+        # Configure
         
         $self configurelist $args
         
@@ -148,6 +174,81 @@ snit::widgetadaptor ::SSHPipe::ParameterPromptDialog {
     # Private methods.
     #
     
+    ##
+    # _sameDirButton
+    #   Invoked when the checkbutton changes that
+    #   selects the wd be the same as the program
+    #   * If the state is same (1), _programChanged is invoked
+    #     to update the state and the widget is left in the
+    #     disabled state.
+    #   * If the state is notsame (0) the state f the entry widget
+    #     is left as normal.
+    #
+    method _sameDirButton {} {
+        if {$sameAsProgram} {
+            $self _programChanged
+            set state disabled
+        } else {
+            set state normal
+        }
+            $form.dir configure -state $state
+            $form.dirbrowse configure -state $state
+
+    }
+    ##
+    # _browseWD
+    #
+    #   Browse for a directory to use as the cwd.
+    #   The result is set in the $form.dir field.
+    #   That field is assumed to  not be disbled because the browse button
+    #   -state is coupled to that of the entry.
+    #
+    method _browseWD      {} {
+        #
+        #  Initial dir is by priority
+        #  - The current value.
+        #  - The program's directory if it has one.
+        #  - The current working directory if not
+        
+        set programPath [$form.program get]
+        if {[$form.dir get] ne ""} {
+            set initialdir [file normalize [$form.dir get]]
+        } elseif {[$form.program get] ne ""} {
+            set initialdir [file dirname [$form.program get]]
+        } else {
+            set initialdir [pwd]
+        }
+        
+        set wd [tk_chooseDirectory -initialdir $initialdir -mustexist true \
+            -parent $win -title "Choose working directory"]
+        if {$wd ne ""} {
+            $form.dir delete 0 end
+            $form.dir insert end $wd
+        }
+    }
+    ##
+    # _programChanged
+    #
+    # Called when the readout program has functionally changed.
+    # if $sameAsProgram is true, the directory path to the program
+    # is set as the working directory.
+    # Note that regardless if no directory has been chosen yet the program's
+    # dir is set.
+    # 
+    method _programChanged {} {
+        if {$sameAsProgram || ([$form.dir get] eq "") } {
+            set state [$form.dir cget -state]
+            $form.dir configure -state normal
+            
+            set program [$form.program get]
+            if {$program ne ""} {
+                set wd [file dirname $program]
+                $form.dir delete 0 end
+                $form.dir insert end $wd
+            }
+            $form.dir configure -state $state
+        }
+    }
     
     ##
     # _browseProgram
@@ -165,6 +266,7 @@ snit::widgetadaptor ::SSHPipe::ParameterPromptDialog {
             set f [$wrapper controlarea]
             $f.program delete 0 end
             $f.program insert end $filename
+            $self _programChanged;          # If needed update directory
         }
     }
 }
@@ -183,7 +285,8 @@ proc ::SSHPipe::promptParameters {} {
     set action [.sshpipeprompt modal]
     if {$action eq "Ok"} {
         set result [::SSHPipe::parameters]
-        array set optionlookup [list host -host path -program parameters -parameters]
+        array set optionlookup [list host -host path -program \
+            parameters -parameters wdir -defaultdir]
         dict for {key value} $result {
             dict lappend result $key [list] [.sshpipeprompt cget $optionlookup($key)]
         }

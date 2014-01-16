@@ -19,7 +19,9 @@
 
 package require tcltest
 package require DataSourceManager
+package require RunstateMachine
 package provide ReadoutGUIPanel 1.0
+
 
 namespace eval  ::s800test {
     variable port 1234
@@ -39,7 +41,7 @@ proc stopServer {} {
 
 }
 
-
+set debug 1
 
 # Source enumeration note:  The list below must be modified if more
 # data sources become part of the standard installation!!!
@@ -51,6 +53,10 @@ tcltest::test enumerate-1 {Test ability for mgr to enumerate sources} \
 -body {
     DataSourceManager enumerateProviders
 } -result $sources
+
+if {$debug} {
+    tcltest::cleanupTests
+}
 
 # Test package loads  For our test packages we'll use the s800 package because
 # we know we have  a decent simulator for it.
@@ -66,6 +72,10 @@ tcltest::test load-1 {Load a nonexistent package} \
   set status [catch {$manager load NoSuchPackage} msg]
   list $status $msg
 } -result [list 1 {No provider named NoSuchPackage could be found check the package load path}]
+
+if {$debug} {
+    tcltest::cleanupTests
+}
 
 tcltest::test load-2 {Load package correctly} \
 -setup {
@@ -85,6 +95,10 @@ tcltest::test load-2 {Load package correctly} \
     
 } -result 0
 
+if {$debug} {
+    tcltest::cleanupTests
+}
+
 tcltest::test load-3 {Load of package with no namespace no good.} \
 -setup {
     package provide Bad_Provider 0.0.7;    # Does not provide a namespace
@@ -100,6 +114,10 @@ tcltest::test load-3 {Load of package with no namespace no good.} \
     list $status $msg
 } -result {1 {The Bad_Provider package does not provide the ::Bad:: namespace so it cannot be a provider.}}
 
+if {$debug} {
+    tcltest::cleanupTests
+}
+
 tcltest::test load-4 {Load of an already loaded package is an error} \
 -setup {
     set manager [DataSourceManager %AUTO%]
@@ -112,6 +130,10 @@ tcltest::test load-4 {Load of an already loaded package is an error} \
     set status [catch {$manager load S800} msg]
     list $status $msg
 } -result [list 1 {The S800 provider is already loaded.}]
+
+if {$debug} {
+    tcltest::cleanupTests
+}
 
 ##
 #  Test the ability to get package parameterizations from the manager:
@@ -130,6 +152,10 @@ tcltest::test parameters-1 {Get parameterization of S800 package} \
 } -result [::S800::parameters]
 
 
+if {$debug} {
+    tcltest::cleanupTests
+}
+
 tcltest::test parameters-2 {Parameterization of a package not loaded fails} \
 -setup {
     set manager [DataSourceManager %AUTO%]
@@ -142,6 +168,11 @@ tcltest::test parameters-2 {Parameterization of a package not loaded fails} \
     
     list $status $msg
 } -result [list 1 "The S800 provider is not loaded."]
+
+
+if {$debug} {
+    tcltest::cleanupTests
+}
 
 ##
 # Test individual capabilities get
@@ -160,6 +191,10 @@ tcltest::test getcap-1 {Get capabilities of a loaded package ok.} \
 } -result  [::S800::capabilities]
 
 
+if {$debug} {
+    tcltest::cleanupTests
+}
+
 tcltest::test getcap-2 {Get capabilities of non-loaded pkg is bad} \
 -setup {
     set manager [DataSourceManager %AUTO%]
@@ -174,6 +209,9 @@ tcltest::test getcap-2 {Get capabilities of non-loaded pkg is bad} \
     list $status $msg
 } -result  [list 1 {The S800 provider is not loaded.}]
 
+if {$debug} {
+    tcltest::cleanupTests
+}
 
 ##
 # Test global capabilities get.
@@ -190,6 +228,10 @@ tcltest::test syscap-1 {Get system capabilities} \
 -body {
     $manager systemCapabilities
 } -result [::S800::capabilities]
+
+if {$debug} {
+    tcltest::cleanupTests
+}
 
 ##
 # addSource tests - add data sources
@@ -229,6 +271,10 @@ tcltest::test addSource-2 {Add source for existing provider ok} \
     
 } -result [list 0 1];   # White box - sources are allocated sequentially from 0:
 
+if {$debug} {
+    tcltest::cleanupTests
+}
+
 tcltest::test addSource-3 {Add source failed in provider} \
 -setup {
     set manager [DataSourceManager %AUTO%]
@@ -246,6 +292,9 @@ tcltest::test addSource-3 {Add source failed in provider} \
     
 } -result [list 1 "Error in constructor: couldn't open socket: no such device or address (No address associated with hostname)"]
 
+if {$debug} {
+    tcltest::cleanupTests
+}
 # Tests for the manager check method.
 
 tcltest::test check-1 {Check with no running sources is an empty dict} \
@@ -279,6 +328,10 @@ tcltest::test check-2 {Check with a single running source is an dict with 1's fo
     
 } -result [dict create 0 1]
 
+if {$debug} {
+    tcltest::cleanupTests
+}
+
 tcltest::test check-3 {Check with a failed source is a dict with sid 0} \
 -setup {
     set manager [DataSourceManager %AUTO%]
@@ -303,7 +356,9 @@ tcltest::test check-3 {Check with a failed source is a dict with sid 0} \
    $manager check
 } -result [dict create 0 0]
 
-
+if {$debug} {
+    tcltest::cleanupTests
+}
 # Tests for sources (get info about all data sources)
 
 tcltest::test sources-1 {[sources] when there are none gives an empty list} \
@@ -317,6 +372,10 @@ tcltest::test sources-1 {[sources] when there are none gives an empty list} \
     $manager sources    
 } \
 -result [list]
+
+if {$debug} {
+    tcltest::cleanupTests
+}
 
 tcltest::test sources-2 {[sources] when there is a source gives a list of source info dicts} \
 -setup {
@@ -336,12 +395,16 @@ tcltest::test sources-2 {[sources] when there is a source gives a list of source
 } \
 -result [list [dict create host localhost port $::s800test::port provider S800 sourceid 0]]
 
-
+if {$debug} {
+    tcltest::cleanupTests
+}
 # Tests for stopping a data source
 
 tcltest::test stop-1 {Stopping a data source that does not exist is an error} \
 -setup {
     set manager [DataSourceManager %AUTO%]
+    set sm      [RunstateMachineSingleton %AUTO%]
+    $sm _setState Halted
 } \
 -cleanup {
     $manager destroy
@@ -360,6 +423,9 @@ tcltest::test stop-2 {Stopping a data source Removes it from the data source set
     startServer
     set sid [$manager addSource \
         S800 [dict create host localhost port $::s800test::port]]
+    $manager startAll
+    set sm      [RunstateMachineSingleton %AUTO%]
+    $sm _setState Halted
 } \
 -cleanup {
     $manager destroy
@@ -367,29 +433,12 @@ tcltest::test stop-2 {Stopping a data source Removes it from the data source set
     set ::S800::state halted        
 } \
 -body {
-    $manager stop $sid
+    $manager removeSource $sid
     $manager sources
 } \
 -result [list]
 
-tcltest::test stopall {Stop all data sources uh...stops them all} \
--setup {
-    set manager [DataSourceManager %AUTO%]
-    $manager load S800
-    startServer
-    set sid [$manager addSource \
-        S800 [dict create host localhost port $::s800test::port]]
-} \
--cleanup {
-    $manager destroy
-    stopServer
-    set ::S800::state halted        
-} \
--body {
-    $manager stopAll
-    $manager sources
-} \
--result [list]
+
 
 # Tests for starting a run.
 
@@ -532,9 +581,6 @@ namespace eval ::ReadoutGUIPanel {}
 # Run program over ssh (substitute a pipe)
 #
 proc ssh::sshpid {host program} {
-    set pipes [Pipe]
-    set ::mytests::lastinfd [lindex $pipes 0]
-    set ::mytests::lastoutfd [lindex $pipes 1]
 
     set fd [open "| $program" a+]
     set ::mytests::lastinfd $fd
@@ -583,7 +629,7 @@ tcltest::test pause-3 {Pause when paused is an error} \
     $manager startAll
     $manager begin  1234 "This is a title"
     vwait ::SSHPipe::activeProviders(0);  # Wait for echo set run
-
+    parray 
     ::mytests::clearlog;                 # fresh log:
 } \
 -cleanup {

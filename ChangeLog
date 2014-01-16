@@ -507,4 +507,8 @@ Feb 1, 2012 - Feb 24, 2012
 	* Changing the bogus ReadougGUIPanel -> ReadoutGUIPanel as it
 	always should have been if I'd not been so lazy.
 	* Added documentation for ReadoutGUIPanel::Log method.
-        * Issue #1045 - Redo event builder to support multiple readouts.
+        * Issue #1045 - Redo event GUI to support multiple readouts.
+        *   Add control over readout gui's log window characteristics
+        *   Add sshPipe provider wd parameter.
+        *   Expose that parameter in the prompter for the source in the gui.
+        

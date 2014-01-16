@@ -53,6 +53,8 @@ namespace eval ::EVBC {
     
     set glomTsPolicy        earliest
 }
+
+
 #-------------------------------------------------------------------------------
 ##
 # @class EVBC::StartOptions
@@ -205,7 +207,7 @@ proc EVBC::start args {
     
     
     set EVBC::pipefd [open "| $pipecommand" w+]
-    fconfigure $EVBC::pipefd -buffering line
+    fconfigure $EVBC::pipefd -buffering line -blocking 0
     fileevent $EVBC::pipefd readable EVBC::_PipeInputReady
     
     
@@ -242,7 +244,7 @@ proc EVBC::start args {
 	    }
 	}
 	if {!$found} {
-	    update;update;update
+	    update idletasks
 	    after 500
 	} else {
 	    set i 100
@@ -352,7 +354,7 @@ proc EVBC::startRingSource {sourceRingUrl timestampExtractorLib id info} {
     # The trick with cat below ensures that we get both stderr and stdout.
     #
     set fd [open "| $ringSource |& cat" r]
-    fconfigure $fd -buffering line
+    fconfigure $fd -buffering line -blocking 0
     fileevent $fd readable [list EVBC::_HandleDataSourceInput $fd $info $id]
 }
 ##
@@ -480,7 +482,8 @@ proc EVBC::onBegin {} {
         }
             
         if {[info commands startEVBSources] ne ""} {
-            after 1000 startEVBSources
+	    EVBC::_waitForEventBuilder
+            startEVBSources
         }
     } else {
 	EVBC::reset
@@ -845,4 +848,36 @@ proc EVBC::_Exiting w {
         EVBC::stop
 
     }
+}
+#------------------------------------------------------------------------------
+##
+# @fn EVBC::_waitForEventBuilder
+#
+#  Waits for the event builder to be ready to accept TCP/IP connections
+#  By now it's assumed the event builder is visible to the port manager.
+#
+#
+proc _waitForEventBuidler {} {
+
+    # Figure out which port the event builder is listening on:
+
+    set ports [::portAllocator create %AUTO%]
+    set me $::tcl_platform[user]
+    set name ORDERER:$me
+    set port -1
+    set allocations [$ports listPorts]
+    foreach allocation $allocations {
+	if {([lindex $allocation 1] eq $name) && ([lindex $allocatoin 2] eq $me)} {
+	    set port [lindex $allocation 0]
+	    break
+	}
+    }
+    $ports destroy
+
+    #  Try to connect every 100ms until success:
+
+    while {[catch {socket localhost $port} fd]} {
+	after 100
+    }
+    close $fd
 }

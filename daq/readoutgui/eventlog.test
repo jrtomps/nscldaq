@@ -29,6 +29,7 @@ package require eventLogBundle
 package require RunstateMachine
 package require Configuration
 package require ExpFileSystem
+package require snit
 
 #------------------------------------------------------------------------------
 #   Procs for the mocks:
@@ -36,8 +37,16 @@ package require ExpFileSystem
 namespace eval ::Diagnostics {}
 namespace eval ::ReadoutGUIPanel {}
 
+
+snit::type StatusBar {
+    method addMessage msg {return junk}
+    method setMessage {id msg} {}
+}
+StatusBar fakeStatusBar
+
 proc ::Diagnostics::Error  msg {}
 proc ::ReadoutGUIPanel::Log {src sev msg} {}
+proc ::StatusBar::getInstance {} {return fakeStatusBar}
 
 #------------------------------------------------------------------------------
 #  eventlogBundle is a bundle and can be registered/unregistered.

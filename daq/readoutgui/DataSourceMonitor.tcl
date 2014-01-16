@@ -99,7 +99,7 @@ proc ::DataSourceMonitor::_checkSources ms {
             #
             # Dicts have a string rep like a list of key value so:
             #
-            set parameterization [join $sourceInfo " = "] 
+            set parameterization [join [string trim $sourceInfo] " = "] 
             ::ReadoutGUIPanel::Log DataSourceMonitor error \
                 "Data source $sourceId exited ($provider $parameterization)"
             
