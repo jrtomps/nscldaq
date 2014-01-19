@@ -1240,6 +1240,7 @@ CConfigurableObject::releaseConstraintCheckers()
   while (!m_constraints.empty()) {
     DynamicConstraint Item = m_constraints.front();
     (Item.s_Releaser)(Item.s_pObject); // Release the constraint.
+    m_constraints.pop_front();
   }
   m_constraints.clear();
 }
