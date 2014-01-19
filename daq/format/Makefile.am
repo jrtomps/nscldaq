@@ -18,7 +18,8 @@ libdataformat_la_SOURCES = CRingSelectionPredicate.cpp	\
 			CRingItemFactory.cpp		\
 			ringitem.c			\
 			CDataSource.cpp CRingDataSource.cpp CFileDataSource.cpp  \
-			CDataSourceFactory.cpp
+			CDataSourceFactory.cpp \
+      CFileDataSink.cpp CFileDataSinkFactory.cpp
 
 
 include_HEADERS	= CRingSelectionPredicate.h	\
@@ -37,7 +38,8 @@ include_HEADERS	= CRingSelectionPredicate.h	\
                         CUnknownFragment.h      \
 			DataFormat.h	\
 			CDataSource.h CRingDataSource.h CFileDataSource.h \
-			CDataSourceFactory.h
+			CDataSourceFactory.h \
+      CDataSink.h CFileDataSink.h CDataSinkFactory.h
 
 
 INCLUDES	= -I@top_srcdir@/base/dataflow	\
@@ -67,7 +69,8 @@ unittests_SOURCES	= TestRunner.cpp selecttest.cpp desiredtests.cpp	\
 			scalertests.cpp texttest.cpp physcounttests.cpp		\
 			formatoutputtests.cpp dataformattests.cpp       \
                         fragmenttest.cpp glomparamtests.cpp factorytests.cpp \
-                      physeventtests.cpp
+                      physeventtests.cpp filedatasinktests.cpp \
+                     datasinkfactorytests.cpp
 
 unittests_LDADD		= -L$(libdir) $(CPPUNIT_LDFLAGS) 		\
 			@top_builddir@/base/dataflow/libDataFlow.la 	\
