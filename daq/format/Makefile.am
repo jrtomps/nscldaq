@@ -17,9 +17,10 @@ libdataformat_la_SOURCES = CRingSelectionPredicate.cpp	\
                         CUnknownFragment.cpp            \
 			CRingItemFactory.cpp		\
 			ringitem.c			\
+      RingItemComparisons.cpp \
 			CDataSource.cpp CRingDataSource.cpp CFileDataSource.cpp  \
 			CDataSourceFactory.cpp \
-      CFileDataSink.cpp CFileDataSinkFactory.cpp
+      CFileDataSink.cpp CDataSinkFactory.cpp
 
 
 include_HEADERS	= CRingSelectionPredicate.h	\
@@ -37,6 +38,7 @@ include_HEADERS	= CRingSelectionPredicate.h	\
                         CGlomParameters.h       \
                         CUnknownFragment.h      \
 			DataFormat.h	\
+      RingItemComparisons.h \
 			CDataSource.h CRingDataSource.h CFileDataSource.h \
 			CDataSourceFactory.h \
       CDataSink.h CFileDataSink.h CDataSinkFactory.h
@@ -74,6 +76,7 @@ unittests_SOURCES	= TestRunner.cpp selecttest.cpp desiredtests.cpp	\
 
 unittests_LDADD		= -L$(libdir) $(CPPUNIT_LDFLAGS) 		\
 			@top_builddir@/base/dataflow/libDataFlow.la 	\
+			@top_builddir@/base/uri/liburl.la 	\
 			@top_builddir@/daq/format/libdataformat.la	\
 			@LIBEXCEPTION_LDFLAGS@
 

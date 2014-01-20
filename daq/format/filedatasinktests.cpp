@@ -9,12 +9,12 @@
 #include <CPhysicsEventItem.h>
 #include <CRingScalerItem.h>
 #include <CFileDataSource.h>
-#include <CIStreamDataSource.h>
-#include <RingItemUtils.h>
+#include <RingItemComparisons.h>
 #include <fstream>
 #include <string>
 #include <fcntl.h>
 #include <errno.h>
+#include <URL.h>
 
 #define private public
 
@@ -152,15 +152,17 @@ void CFileDataSinkTest::testPutItem()
 {
     using namespace std;
 
-    std::string fname = "testOutFile0.bin";
+    std::string fname = "./testOutFile0.bin";
     {
       CFileDataSink sink(fname);
       sink.putItem(m_item);
       sink.flush();
     }
-
-    std::ifstream ifile(fname.c_str(), ios::binary);
-    CIStreamDataSource source(ifile);
+    
+    std::vector<uint16_t> dummy;
+    URL uri(string("file://") + fname);
+    
+    CFileDataSource source(uri, dummy);
 
     CRingItem* new_item = source.getItem();
 

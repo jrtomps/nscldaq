@@ -1,10 +1,6 @@
-#ifndef CDataSinkFactoryTEST_H
-#define CDataSinkFactoryTEST_H
-
 #include <fstream>
 #include <cppunit/extensions/HelperMacros.h>
 
-#include <CFileDataSink.h>
 #include <URIFormatException.h>
 #include <string>
 #include <fcntl.h>
@@ -13,7 +9,7 @@
 #define private public
 
 #include "CDataSinkFactory.h"
-
+#include <CFileDataSink.h>
 
 // A test suite 
 class CDataSinkFactoryTest : public CppUnit::TestFixture
