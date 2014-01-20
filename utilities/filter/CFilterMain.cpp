@@ -1,0 +1,176 @@
+
+#include "CFilterMain.h"
+#include "CCompositeFilter.h"
+#include "CMediator.h"
+#include "CDataSourceFactory.h"
+#include "CDataSinkFactory.h"
+#include <string>
+#include <DataFormat.h>
+#include <StringsToIntegers.h>
+#include <vector>
+#include <iostream>
+#include <stdlib.h>
+#include "CFatalException.h"
+
+/**! Constructor
+  Constructs a mediator object with a CCaesarFilter
+  as the default filter. 
+
+  \throw can throw a CFatalException
+
+*/
+CFilterMain::CFilterMain(int argc, char** argv)
+  : m_mediator(0,new CCompositeFilter,0)
+{
+  cmdline_parser(argc,argv,&m_argsInfo);  
+
+  try {
+    // Set up the data source 
+    CDataSource* source = constructDataSource(); 
+    m_mediator.setDataSource(source);
+
+    // Set up the sink source 
+    CDataSink* sink = constructDataSink(); 
+    m_mediator.setDataSink(sink);
+
+  } catch (CException& exc) {
+    std::cout << exc.ReasonText() << std::endl;
+    throw CFatalException();
+  }
+}
+
+
+CFilterMain::~CFilterMain() throw()
+{}
+
+/**! Append a filter to the mediator's ccomposite filter
+  Note that because the filter argument will be used solely 
+  to call a clone, it is very important that any derived class
+  will provide its own clone method.
+
+  \param filter a template of the filter to register
+ */
+void CFilterMain::registerFilter(CFilter* filter)
+{
+  // We will always have a composite filter in this main
+  CCompositeFilter* main_filter=0;
+  main_filter = dynamic_cast<CCompositeFilter*>(m_mediator.getFilter());
+
+  main_filter->registerFilter(filter);
+}
+
+/////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////
+////// Private utilities
+
+/**! Construct a data source
+    A data source must provide a sample and an excludes list along
+    with a uri. The default value for this is stdin. 
+  
+    \exception May propagate CErrnoException,s CURLFormatException,
+        or CFatalException
+*/
+CDataSource* CFilterMain::constructDataSource()
+{
+  // Set up default source type
+  std::string source_name("file:///stdin/");
+  if (m_argsInfo.source_given) {
+    source_name = std::string(m_argsInfo.source_arg);
+  } 
+
+  // Set up the sampling 
+  std::vector<uint16_t> sample = constructSampleList();
+  
+  // Set up the excludes
+  std::vector<uint16_t> exclude = constructExcludesList();
+  
+  CDataSource* source=0;
+  return CDataSourceFactory().makeSource(source_name,sample,exclude);
+}
+
+/**! Set up the data sink
+  
+    Based on user's argument --sink, generates the appropriate source
+    type.
+*/
+CDataSink* CFilterMain::constructDataSink()
+{
+  // Set up default source type
+  std::string sink_name("file:///stdout/");
+  if (m_argsInfo.sink_given) {
+    sink_name = std::string(m_argsInfo.sink_arg);
+  } 
+
+  CDataSink* sink=0;
+  return CDataSinkFactory().makeSink(sink_name);
+}
+
+/**! The main loop
+    This is just a wrapper around the mediator's mainLoop. It is here
+    that the processing occurs in the application. 
+*/
+void CFilterMain::operator()()
+{
+  
+  m_mediator.mainLoop();
+
+}
+
+
+/**! Convert user's string arguments to integers 
+  This translates the user's command line input for the --sample option
+  from ring item type names to their numerical identifiers. 
+
+  \return a list of ring-item numbers corresponding to user's --sample option
+*/
+std::vector<uint16_t> 
+CFilterMain::constructSampleList() 
+{
+
+  std::vector<uint16_t> sample;
+  std::vector<int> s;
+  if (m_argsInfo.sample_given) {
+    try {
+      s = stringListToIntegers(std::string(m_argsInfo.sample_arg));
+    }
+    catch (...) {
+      std::cerr << "Invalid value for --sample, must be a list of item types was: "
+        << std::string(m_argsInfo.sample_arg) << std::endl;
+      throw CFatalException();
+    }
+    for(int i=0; i < s.size(); i++) {
+      sample.push_back(s[i]);
+    }
+  }
+
+  return sample;
+}
+
+/**! 
+  Makes a call to the stringListToIntegers that maps the
+  the names of ring item types to their associated identifying
+  numbers. 
+
+  \return a list of ring item numbers
+*/
+std::vector<uint16_t> 
+CFilterMain::constructExcludesList()
+{
+  std::vector<uint16_t> exclude;
+  std::vector<int> e;
+  if (m_argsInfo.exclude_given) {
+    try {
+      e = stringListToIntegers(std::string(m_argsInfo.exclude_arg));
+    }
+    catch (...) {
+      std::cerr << "Invalid value for --exclude, must be a list of item types was: "
+        << std::string(m_argsInfo.sample_arg) << std::endl;
+      throw CFatalException();
+      
+    }
+    for (int i = 0; i < e.size(); i++) {
+      exclude.push_back(e[i]);
+    }
+  }
+  return exclude;
+}

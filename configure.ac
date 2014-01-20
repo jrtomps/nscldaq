@@ -314,6 +314,7 @@ AC_CONFIG_FILES([Makefile
 		 utilities/eventlog/Makefile
 		 utilities/sclclient/Makefile
 		 utilities/tkbufdump/Makefile
+		 utilities/filter/Makefile
 		 utilities/compatibility/Makefile
 		 utilities/compatibility/eventlog-compat
 		 utilities/compatibility/spectcldaq
