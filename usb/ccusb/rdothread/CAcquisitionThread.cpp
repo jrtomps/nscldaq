@@ -326,6 +326,19 @@ CAcquisitionThread::startDaq()
 	 << " errno: " << errno <<endl;
     exit(status);
   }
+
+  // DEFAULTS SETTINGS FOR TRANSFER
+  // Set up the buffer size and mode:
+  // don't want multibuffering...1sec timeout is fine.
+  m_pCamac->writeUSBBulkTransferSetup(0 << CCCUSB::TransferSetupRegister::timeoutShift);
+
+  // The global mode:
+  //   4kword buffer
+  //   Single event seperator.
+  //   Single header word.
+  //
+  m_pCamac->writeGlobalMode((CCCUSB::GlobalModeRegister::bufferLen4K << CCCUSB::GlobalModeRegister::bufferLenShift));
+
   // Process the configuration. This must be done in a way that preserves the
   // Interpreter since loadStack and Initialize for each stack will need the
   // interpreter for our support of tcl drivers.
@@ -359,21 +372,6 @@ CAcquisitionThread::startDaq()
     pStack->loadStack(*m_pCamac);     // Load into CC-USB .. The stack knows if it is event or scaler
     pStack->enableStack(*m_pCamac);   // Enable the trigger logic for the stack.
   }
- 
-  // Set up the buffer size and mode:
-  // don't want multibuffering...1sec timeout is fine.
-
-  m_pCamac->writeUSBBulkTransferSetup(0 << CCCUSB::TransferSetupRegister::timeoutShift);
-
-
-  // The global mode:
-  //   4kword buffer
-  //   Single event seperator.
-  //   Single header word.
-  //
-  m_pCamac->writeGlobalMode((CCCUSB::GlobalModeRegister::bufferLen4K << CCCUSB::GlobalModeRegister::bufferLenShift));
-
-
  
 
   CCusbToAutonomous();

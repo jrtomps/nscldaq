@@ -148,6 +148,8 @@ private:
   void configureGdg2(CCCUSB& controller);
   void configureDevices(CCCUSB& controller);
   void configureLED(CCCUSB& controller);
+  void configureBulkTransfer(CCCUSB& controller);
+  void configureBufferLength(CCCUSB& controller);
 };
 
 #endif
