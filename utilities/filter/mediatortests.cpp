@@ -295,6 +295,7 @@ void CMediatorTest::testTransparentMainLoop()
 //  std::ofstream ofile (outfname.c_str());
 //  m_source = new CIStreamDataSource(ifile);
 //  m_sink = new COStreamDataSink(ofile);
+  try {
   URL uri(proto+infname);
   m_source = new CFileDataSource(uri, std::vector<uint16_t>());
   m_sink = new CFileDataSink(outfname);
@@ -310,6 +311,13 @@ void CMediatorTest::testTransparentMainLoop()
   tearDown();
   // set up defaults so that we don't segfault at tearDown
   setUp();
+  } catch (CException& exc) {
+    std::cout << "Caught exception:" << exc.ReasonText() << std::endl;
+  } catch (int errcode) {
+    std::cout << "Caught integer " << errcode << std::endl;
+  } catch (std::string errmsg) {
+    std::cout << "Caught integer " << errmsg << std::endl;
+  }
 
   CPPUNIT_ASSERT( filesEqual(infname,outfname) );
 }
