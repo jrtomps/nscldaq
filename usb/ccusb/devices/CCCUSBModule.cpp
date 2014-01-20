@@ -113,12 +113,12 @@ static CConfigurableObject::Limits DelayA(mindelay, maxdelaya);
 static CConfigurableObject::Limits DelayB(mindelay, maxdelayb);
 
 // Limits for number of buffers to transfer 
-static CConfigurableObject::limit minbufs2transfer(1);
+static CConfigurableObject::limit minbufs2transfer(-1);
 static CConfigurableObject::limit maxbufs2transfer(255);
 static CConfigurableObject::Limits BulkTransferLimits(minbufs2transfer, 
                                                       maxbufs2transfer);
 // uav bulk transfer timeout limits
-static CConfigurableObject::limit mintransfertimeout(0);
+static CConfigurableObject::limit mintransfertimeout(-1);
 static CConfigurableObject::limit maxtransfertimeout(15);
 static CConfigurableObject::Limits BulkTransferTimeoutLimits(mintransfertimeout, 
                                                             maxtransfertimeout);

@@ -2393,6 +2393,54 @@ ccusb cget name
                     </para>
                 </listitem>
             </varlistentry>
+            <varlistentry>
+                <term><option>-bulktransfermode</option></term>
+                <listitem>
+                    <para>
+                        This enum parameter provides user control over the 
+                        criteria for a usb bulk transfers. This can be any
+                        of the following: <literal>default, nbuffers, timeout</literal>.
+                        The <literal>default</literal> provides the default behavior of 
+                        timeout of 1 second. The nbuffers <literal>nbuffers</literal> 
+                        allows the user to specify a number of data buffers to be 
+                        bundled in a given USB bulk write. The user must specify the
+                        <literal>-nbuffers2transfer</literal> options. The <literal>timeout</literal>
+                        generate a packet end after the time specified for the timeout.
+                        The user must specify the <literal>-bulktransfertimeout</literal>
+                        option for this mode. 
+                   </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-nbuffers2transfer</option></term>
+                <listitem>
+                    <para>
+                      This integer parameter specifies the number of buffers to 
+                      bundle in a given usb bulk write. This must be a number between
+                      1 and 255.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-bulktransfertimeout</option></term>
+                <listitem>
+                    <para>
+                        Specifies the timeout value for a the usb bulk transfer mode.
+                        Values are between 0 and 15 and specify the number of seconds 
+                        beyond 1 second to timeout.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-bufferlength</option></term>
+                <listitem>
+                    <para>
+                        Enum that specifies the buffer size used by the CCUSB. This can
+                        be any of the following values: 4096, 2048, 1024, 512, 256, 128, 
+                        64, singleevent
+                    </para>
+                </listitem>
+            </varlistentry>
             
            </variablelist>
         </refsect1>
