@@ -48,7 +48,7 @@ class CCompositeFilter : public CFilter
     const_iterator end() const { return m_filter.end(); }
 
     void clear() { clearFilters() ;}
-    size_t size() const { m_filter.size();}
+    size_t size() const { return m_filter.size();}
 
   private:
     // Free all dynamically allocated memory resize container 
