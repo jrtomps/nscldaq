@@ -365,6 +365,12 @@ COutputThread::scaler(void* pData)
   uint16_t  header  = *pHeader;
   uint32_t* pBody   = reinterpret_cast<uint32_t*>(pHeader+1); // Pointer to the scalers.
 
+  //  If next word is a buffer terminator end rather than continuing to prevent
+  //  the throw in the next conditional block.
+  if (header == 0xffff) {
+      return;
+  }
+
   // See Issue #424 - for now throw an error  if there's a continuation segment:
 
   if (header & CCUSBContinuation) {
