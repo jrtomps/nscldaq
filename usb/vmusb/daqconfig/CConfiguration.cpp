@@ -38,6 +38,7 @@
 #include "CAddTclDriver.h"
 #include "CHiRACommand.h"
 #include "CVMUSBCommand.h"
+#include "CDelayCommand.h"
 
 #include <CReadoutModule.h>
 #include <TCLInterpreter.h>
@@ -95,6 +96,7 @@ CConfiguration::CConfiguration() :
   m_Commands.push_back(new CAddTclDriver(*m_pInterp, *this));
   m_Commands.push_back(new CHiRACommand(*m_pInterp, *this));
   m_Commands.push_back(new CVMUSBCommand(*m_pInterp, *this));
+  m_Commands.push_back(new CDelayCommand(*m_pInterp, *this));
 
 }
 /*!

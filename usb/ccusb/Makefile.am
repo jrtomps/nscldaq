@@ -45,6 +45,8 @@ CCUSBReadout_LDADD	=  @top_builddir@/usb/ccusb/devices/libCCUSBDevices.la	\
 
 CCUSBReadout_LDFLAGS=-Wl,"-rpath=$(libdir)"
 
+CCUSBReadout_CXXFLAGS= -g
+
 BUILT_SOURCES = @srcdir@/cmdline.c
 
 @srcdir@/cmdline.c: @srcdir@/cmdline.h
