@@ -20,7 +20,8 @@ libdataformat_la_SOURCES = CRingSelectionPredicate.cpp	\
       RingItemComparisons.cpp \
 			CDataSource.cpp CRingDataSource.cpp CFileDataSource.cpp  \
 			CDataSourceFactory.cpp \
-      CFileDataSink.cpp CDataSinkFactory.cpp
+      CFileDataSink.cpp CDataSinkFactory.cpp \
+      CRingDataSink.cpp
 
 
 include_HEADERS	= CRingSelectionPredicate.h	\
@@ -41,7 +42,8 @@ include_HEADERS	= CRingSelectionPredicate.h	\
       RingItemComparisons.h \
 			CDataSource.h CRingDataSource.h CFileDataSource.h \
 			CDataSourceFactory.h \
-      CDataSink.h CFileDataSink.h CDataSinkFactory.h
+      CDataSink.h CFileDataSink.h CDataSinkFactory.h \
+      CRingDataSink.h
 
 
 INCLUDES	= -I@top_srcdir@/base/dataflow	\
