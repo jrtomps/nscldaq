@@ -246,7 +246,7 @@ CCCUSBModule::onAttach(CReadoutModule& configuration)
   // Control the bulk transfer
   configuration.addEnumParameter("-bulktransfermode", 
                                   bulkTransferModeValues, "default");
-  configuration.addParameter("-nbufferstransfer", CConfigurableObject::isInteger,
+  configuration.addParameter("-nbuffers2transfer", CConfigurableObject::isInteger,
                           &BulkTransferLimits,"-1");
   configuration.addParameter("-bulktransfertimeout", CConfigurableObject::isInteger,
                           &BulkTransferTimeoutLimits,"-1");
