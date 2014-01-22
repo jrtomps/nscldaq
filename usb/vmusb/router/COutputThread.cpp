@@ -116,7 +116,8 @@ COutputThread::COutputThread(std::string ring) :
   m_nWordsInBuffer(0),
   m_ringName(ring),
   m_pRing(0),
-  m_pTimestampExtractor(0)
+  m_pEvtTimestampExtractor(0),
+  m_pSclrTimestampExtractor(0)
 {
   
 }
@@ -560,10 +561,28 @@ COutputThread::scaler(void* pData)
 
   // Create the final scaler item and submit it to the ring.
 
-  CRingScalerItem scalers(NULL_TIMESTAMP, Globals::sourceId, BARRIER_NOTBARRIER,
-                          m_elapsedSeconds, endTime, timestamp, counterData);
-  scalers.commitToRing(*m_pRing);
+  CRingItem* pEvent;
+  if (m_pSclrTimestampExtractor) {
+    pEvent = new CRingScalerItem(m_pSclrTimestampExtractor(pData), 
+                                 Globals::sourceId, 
+                                 BARRIER_NOTBARRIER,
+                                 m_elapsedSeconds, 
+                                 endTime, 
+                                 timestamp, 
+                                 counterData);
+  } else {
+    pEvent = new CRingScalerItem(NULL_TIMESTAMP, 
+                                 Globals::sourceId, 
+                                 BARRIER_NOTBARRIER,
+                                 m_elapsedSeconds, 
+                                 endTime, 
+                                 timestamp, 
+                                 counterData);
+  }
+
+  pEvent->commitToRing(*m_pRing);
   m_elapsedSeconds = endTime;
+  delete pEvent;
 }
 
 
@@ -652,9 +671,9 @@ COutputThread::event(void* pData)
     // body header.
     
     CRingItem* pEvent;
-    if (m_pTimestampExtractor) {
+    if (m_pEvtTimestampExtractor) {
         pEvent = new CRingItem(
-            PHYSICS_EVENT, m_pTimestampExtractor(m_pBuffer), Globals::sourceId,
+            PHYSICS_EVENT, m_pEvtTimestampExtractor(m_pBuffer), Globals::sourceId,
             BARRIER_NOTBARRIER, m_nWordsInBuffer*sizeof(uint16_t) + 100
         );        
     } else {
@@ -748,17 +767,26 @@ COutputThread::getTimestampExtractor()
         }
         // Locate the function entry point:
         
-        void* pFunction = dlsym(pDllHandle, "getTimestamp");
-        if (!pFunction) {
-            std::cerr << "Unable to locate getTimestamp  in "
+        void* pEvtFunction = dlsym(pDllHandle, "getEventTimestamp");
+        if (!pEvtFunction) {
+            std::cerr << "Unable to locate getEventTimestamp  in "
                 << Globals::pTimestampExtractor << " "
                 << dlerror() << std::endl;
             exit(EXIT_FAILURE);
         }
+
+        pSclrFunction = dlsym(pDllHandle, "getEventSclrTimestamp");
+        if (!pSclrFunction) {
+            std::cerr << "Unable to locate getScalerTimestamp  in "
+                << Globals::pTimestampExtractor << " "
+                << dlerror() << std::endl;
+            exit(EXIT_FAILURE);
+        }
+
         // save the entry point and close the handle (RTLD_NODELETE) keeps
         // the .so/.dll in  memory:
-        
-        m_pTimestampExtractor = reinterpret_cast<TimestampExtractor>(pFunction);
+        m_pEvtTimestampExtractor = reinterpret_cast<TimestampExtractor>(pEvtFunction);
+        m_pSclrTimestampExtractor = reinterpret_cast<TimestampExtractor>(pSclrFunction);
         dlclose(pDllHandle);
         
     }
