@@ -373,6 +373,27 @@ CAcquisitionThread::startDaq()
   //  m_pVme->writeActionRegister(CVMUSB::ActionRegister::sysReset);
   m_pVme->writeActionRegister(0);
 
+  // Set up the buffer size and mode:
+
+  m_pVme->writeBulkXferSetup(0 << CVMUSB::TransferSetupRegister::timeoutShift); // don't want multibuffering...1sec timeout is fine.
+
+  // The global mode:
+  //   13k buffer
+  //   Single event seperator.
+  //   Aligned on 16 bits.
+  //   Single header word.
+  //   Bus request level 4.
+  //   Flush scalers on a single event.
+  //
+  m_pVme->writeGlobalMode((4 << CVMUSB::GlobalModeRegister::busReqLevelShift) | 
+			  //			  CVMUSB::GlobalModeRegister::flushScalers            |
+			  CVMUSB::GlobalModeRegister::mixedBuffers            |
+			  // CVMUSB::GlobalModeRegister::spanBuffers             |
+			  (CVMUSB::GlobalModeRegister::bufferLen13K << 
+			   CVMUSB::GlobalModeRegister::bufferLenShift));
+
+
+
   // Process the configuration. This must be done in a way that preserves the
   // Interpreter since loadStack and Initialize for each stack will need the
   // interpreter for our support of tcl drivers.
@@ -407,28 +428,6 @@ CAcquisitionThread::startDaq()
     size_t currentOffset = CStack::getOffset();
     m_pVme->loadList(7, list, currentOffset); // The tcl server will periodically trigger the list.
   }
-
-  // Set up the buffer size and mode:
-
-  m_pVme->writeBulkXferSetup(0 << CVMUSB::TransferSetupRegister::timeoutShift); // don't want multibuffering...1sec timeout is fine.
-
-
-  // The global mode:
-  //   13k buffer
-  //   Single event seperator.
-  //   Aligned on 16 bits.
-  //   Single header word.
-  //   Bus request level 4.
-  //   Flush scalers on a single event.
-  //
-  m_pVme->writeGlobalMode((4 << CVMUSB::GlobalModeRegister::busReqLevelShift) | 
-			  //			  CVMUSB::GlobalModeRegister::flushScalers            |
-			  CVMUSB::GlobalModeRegister::mixedBuffers            |
-			  // CVMUSB::GlobalModeRegister::spanBuffers             |
-			  (CVMUSB::GlobalModeRegister::bufferLen13K << 
-			   CVMUSB::GlobalModeRegister::bufferLenShift));
-
-
 
 
   // Start the VMUSB in data taking mode:
