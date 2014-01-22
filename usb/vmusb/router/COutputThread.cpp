@@ -745,11 +745,11 @@ COutputThread::attachRing()
  *    Fills in m_pTimestampExtractor if this should be non-null
  *    - If the Globals::pTimestampExtractor is non-null
  *      it is a path to a shared lib that is mapped.
- *    - If successfully mapped, the entry point getTimestamp() is located
- *    - If that's found the pointer to getTimestamp is filled in for
- *      m_pTimestampExtractor.
- *  Errors in mapping the shared lib and/or in getting the getTimestamp pointer
- *  result in an error message and program exit with EXIT_FAILURE
+ *    - If successfully mapped, the entry points getEventTimestamp() and
+ *      and getScalerTimestamp() are located
+ *    - If that's found the pointer to getEventTimestamp is filled in for
+ *      m_pEvtTimestampExtractor and the getScalerTimestamp is filled in for
+ *      m_pSclrTimestampExtractor.
  */
 void
 COutputThread::getTimestampExtractor()
@@ -769,24 +769,22 @@ COutputThread::getTimestampExtractor()
         
         void* pEvtFunction = dlsym(pDllHandle, "getEventTimestamp");
         if (!pEvtFunction) {
-            std::cerr << "Unable to locate getEventTimestamp  in "
+            std::cerr << "Warning: Unable to locate getEventTimestamp  in "
                 << Globals::pTimestampExtractor << " "
                 << dlerror() << std::endl;
-            exit(EXIT_FAILURE);
+            m_pEvtTimestampExtractor = reinterpret_cast<TimestampExtractor>(pEvtFunction);
         }
 
-        pSclrFunction = dlsym(pDllHandle, "getEventSclrTimestamp");
+        void* pSclrFunction = dlsym(pDllHandle, "getScalerTimestamp");
         if (!pSclrFunction) {
-            std::cerr << "Unable to locate getScalerTimestamp  in "
+            std::cerr << "Warning: Unable to locate getScalerTimestamp  in "
                 << Globals::pTimestampExtractor << " "
                 << dlerror() << std::endl;
-            exit(EXIT_FAILURE);
+            m_pSclrTimestampExtractor = reinterpret_cast<TimestampExtractor>(pSclrFunction);
         }
 
         // save the entry point and close the handle (RTLD_NODELETE) keeps
         // the .so/.dll in  memory:
-        m_pEvtTimestampExtractor = reinterpret_cast<TimestampExtractor>(pEvtFunction);
-        m_pSclrTimestampExtractor = reinterpret_cast<TimestampExtractor>(pSclrFunction);
         dlclose(pDllHandle);
         
     }
