@@ -273,6 +273,8 @@ snit::type ReadoutGuiApp {
         install dataSources  using DataSourcemanagerSingleton %AUTO%
         install readoutGUI using ReadoutGUI .gui
         grid .gui -sticky nsew
+        grid rowconfigure . 0 -weight 1
+        grid columnconfigure . 0 -weight 1
         
         $self _createDataSourceMenu
         $self _createSettingsMenu
@@ -315,6 +317,8 @@ snit::type ReadoutGuiApp {
         
         set ow [Output::getInstance]
         $ow configure -width 90
+        grid columnconfigure $ow 0 -weight 1 
+        grid rowconfigure $ow 0 -weight 1 
     }
     
     #--------------------------------------------------------------------------
