@@ -2288,18 +2288,6 @@ snit::widgetadaptor ReadoutGUI {
         
         # Lay them all out:
        
-        puts $runid 
-        puts $runcontrol 
-        puts $elapsedtime
-        puts $timedrun
-        puts $output
-        puts $statusbar
-#        grid $runid       -sticky nsew  -columnspan 2 -row 0 -column 0
-#        grid $runcontrol  -sticky nsew  -rowspan    2 -row 1 -column 0
-#        grid $elapsedtime -sticky nsew -row 1 -column 1
-#        grid $timedrun    -sticky nsew -row 2 -column 1
-#        grid $output      -sticky nsew -row 3 -column 0 -columnspan 2
-#        grid $statusbar   -sticky nsew -row 4 -column 0 -columnspan 2
         grid $runid       -sticky nsew -columnspan 2 -row 0 -column 0
         grid $runcontrol  -sticky nsw  -rowspan    2 -row 1 -column 0
         grid $elapsedtime -sticky se -row 1 -column 1 
