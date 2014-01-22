@@ -326,6 +326,8 @@ CAcquisitionThread::startDaq()
 	 << " errno: " << errno <<endl;
     exit(status);
   }
+  cerr << "CCUSB located firmware revision: " << hex << fware << dec << endl;
+
 
   // DEFAULTS SETTINGS FOR TRANSFER
   // Set up the buffer size and mode:
@@ -339,6 +341,14 @@ CAcquisitionThread::startDaq()
   //
   m_pCamac->writeGlobalMode((CCCUSB::GlobalModeRegister::bufferLen4K << CCCUSB::GlobalModeRegister::bufferLenShift));
 
+  // Set up the default  ouptuts, 
+  //  NIM 01  - Busy.
+  //  NIM 02  - Acquire
+  //  NIM 03  - end of busy.
+  m_pCamac->writeOutputSelector(CCCUSB::OutputSourceRegister::nimO1Busy |
+      CCCUSB::OutputSourceRegister::nimO2Acquire |
+      CCCUSB::OutputSourceRegister::nimO3BusyEnd);
+
   // Process the configuration. This must be done in a way that preserves the
   // Interpreter since loadStack and Initialize for each stack will need the
   // interpreter for our support of tcl drivers.
@@ -346,18 +356,6 @@ CAcquisitionThread::startDaq()
   Globals::pConfig = new CConfiguration;
   Globals::pConfig->processConfiguration(Globals::configurationFilename);
   std::vector<CReadoutModule*> Stacks = Globals::pConfig->getStacks();
-
-  cerr << "CCUSB located firmware revision: " << hex << fware << dec << endl;
-
-  // Set up the default  ouptuts, 
-  //  NIM 01  - Busy.
-  //  NIM 02  - Acquire
-  //  NIM 03  - end of busy.
-
-
-    m_pCamac->writeOutputSelector(CCCUSB::OutputSourceRegister::nimO1Busy |
-  				CCCUSB::OutputSourceRegister::nimO2Acquire |
-  				CCCUSB::OutputSourceRegister::nimO3BusyEnd);
 
 
   // The CCUSB has two stacks to load; an event stack and a scaler stack.
