@@ -400,6 +400,12 @@ COutputThread::scaler(void* pData)
   uint16_t  header  = *pHeader;
   uint32_t* pBody   = reinterpret_cast<uint32_t*>(pHeader+1); // Pointer to the scalers.
 
+  //  If next word is a buffer terminator end rather than continuing to prevent
+  //  the throw in the next conditional block.
+  if (header == 0xffff) {
+      return;
+  }
+
   // See Issue #424 - for now throw an error  if there's a continuation segment:
 
   if (header & CCUSBContinuation) {
@@ -475,8 +481,8 @@ COutputThread::events(DataBuffer& inBuffer)
 
       uint16_t* pNextWord = reinterpret_cast<uint16_t*>(pContents);
       if (*pNextWord != 0xffff) {
-	cerr << "Ran out of events but did not see buffer terminator\n";
-	cerr << nWords << " remaining unprocessed\n";
+        cerr << "Ran out of events but did not see buffer terminator\n";
+        cerr << nWords << " remaining unprocessed\n";
       }
 
       break;			// trusting event count vs word count(?).
@@ -491,7 +497,7 @@ COutputThread::events(DataBuffer& inBuffer)
     event(pContents);
 
     // Point at the next event and compute the remaining word and event counts.
-    
+
     pContents += eventLength + 1; // Event count is not self inclusive.
     nWords    -= (eventLength + 1);
     nEvents--;
@@ -511,7 +517,7 @@ COutputThread::events(DataBuffer& inBuffer)
  * @return uint8_t*
  * @retval Pointer to the output buffer.
  */
-uint8_t* 
+  uint8_t* 
 COutputThread::newOutputBuffer()
 {
   return reinterpret_cast<uint8_t*>(malloc(m_nOutputBufferSize));
