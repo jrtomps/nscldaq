@@ -91,7 +91,19 @@ snit::widgetadaptor ProviderList {
         
         grid $table $f.vsb -sticky nsew
         grid $f.hsb -sticky nsew
-        grid $f  -sticky nsew
+#       JRT postfix
+#        grid $f  -sticky nsew
+        
+        grid rowconfigure $win 0 -weight 1
+        grid rowconfigure $win 1 -weight 0
+        grid columnconfigure $win 0 -weight 1
+        grid columnconfigure $win 1 -weight 0
+
+        #configure whether cols in treeview stretch on resize
+        $table column #1 -stretch off -width 100
+        $table column #2 -stretch off -width 100
+        $table column #3 -stretch off -width 100
+        $table column #4 -stretch on -width 500
         
         $self configurelist $args
     }
@@ -181,6 +193,10 @@ snit::widgetadaptor ProviderListDialog {
         $dialog configure -form $table
         
         grid $dialog -sticky nsew
+        grid rowconfigure $win 0 -weight 1
+        grid columnconfigure $win 0 -weight 1
+        grid rowconfigure $dialog 0 -weight 1
+        grid columnconfigure $dialog 0 -weight 1
         
         $self configurelist $args
         
@@ -220,6 +236,8 @@ snit::widgetadaptor ProviderSelectDialog {
         $dialog configure -form $table
         
         grid $dialog -sticky nsew
+        grid rowconfigure $win 0 -weight 1
+        grid columnconfigure $win 0 -weight 1
         
         $self configurelist $args
         
@@ -273,6 +291,8 @@ snit::type ReadoutGuiApp {
         install dataSources  using DataSourcemanagerSingleton %AUTO%
         install readoutGUI using ReadoutGUI .gui
         grid .gui -sticky nsew
+        grid rowconfigure . 0 -weight 1
+        grid columnconfigure . 0 -weight 1
         
         $self _createDataSourceMenu
         $self _createSettingsMenu
@@ -315,6 +335,8 @@ snit::type ReadoutGuiApp {
         
         set ow [Output::getInstance]
         $ow configure -width 90
+        grid columnconfigure $ow 0 -weight 1 
+        grid rowconfigure $ow 0 -weight 1 
     }
     
     #--------------------------------------------------------------------------
@@ -538,6 +560,7 @@ snit::type ReadoutGuiApp {
     method _listDataProviders {} {
         set sources [$dataSources sources]
         ProviderListDialog .providers -sources $sources
+        grid rowconfigure . 0 -weight 1
         catch {destroy .providers};   # In case they used X not Ok.
     }
     ##

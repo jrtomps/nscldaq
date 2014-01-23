@@ -290,8 +290,9 @@ snit::widgetadaptor RunIdentification {
         # Grid them in a horizontal strip;
         
         if {[llength $widgets] > 0} {
-            grid {*}$widgets
+            grid {*}$widgets -sticky new
         }
+        grid rowconfigure $win 0 -weight 0
         
     }
     ##
@@ -587,10 +588,14 @@ snit::widgetadaptor RunControl {
         ttk::checkbutton $win.record -text Record -onvalue 1 -offvalue 0 \
             -variable [myvar options(-recording)]
         
-        grid $win.start -columnspan 2
-        grid $win.beginend $win.pauseresume
-        grid $win.record -columnspan 2
-        
+        grid $win.start -columnspan 2 -sticky n
+        grid $win.beginend $win.pauseresume -sticky n
+        grid $win.record -columnspan 2 -sticky n
+
+        grid rowconfigure $win 0 -weight 0        
+        grid rowconfigure $win 1 -weight 0        
+        grid rowconfigure $win 2 -weight 0        
+
         install stateMachine using RunstateMachineSingleton %AUTO%
         $self _updateAppearance
         
@@ -1040,6 +1045,8 @@ snit::widgetadaptor ElapsedTimeDisplay {
         ttk::label $win.time -textvariable [myvar formattedNow]
         ttk::label $win.label -text {Active Run Time}
         grid $win.time $win.label -sticky nsew 
+        grid rowconfigure $win 0 -weight 0
+        grid columnconfigure $win 0 -weight 0
         
         $clock addAlarm 1 [mymethod _tick]
     }
@@ -1273,7 +1280,8 @@ snit::widgetadaptor TimedRunControls {
         
         $self configurelist $args
         
-        grid $win.onoff $win.days $win.daysep $win.hrs $win.hrsep $win.min $win.minsep $win.secs
+        grid $win.onoff $win.days $win.daysep $win.hrs $win.hrsep $win.min $win.minsep $win.secs -sticky nsew
+        grid rowconfigure $win 0 -weight 0
         
     }
     #---------------------------------------------------------------------------
@@ -2129,6 +2137,7 @@ snit::widgetadaptor StatusArea {
         
         $command $window {*}$config
         grid $window -sticky nsew
+        grid rowconfigure $window 0 -weight 0
         
         return $window
     }
@@ -2278,15 +2287,22 @@ snit::widgetadaptor ReadoutGUI {
         install statusbar   using ::StatusBar::getInstance $win.status
         
         # Lay them all out:
-        
-        grid $runid       -sticky nsew  -columnspan 2 -row 0 -column 0
-        grid $runcontrol  -sticky nsew  -rowspan    2 -row 1 -column 0
-        grid $elapsedtime -sticky nsew -row 1 -column 1
-        grid $timedrun    -sticky nsew -row 2 -column 1
+       
+        grid $runid       -sticky nsew -columnspan 2 -row 0 -column 0
+        grid $runcontrol  -sticky nsw  -rowspan    2 -row 1 -column 0
+        grid $elapsedtime -sticky se -row 1 -column 1 
+        grid $timedrun    -sticky ne -row 2 -column 1
         grid $output      -sticky nsew -row 3 -column 0 -columnspan 2
         grid $statusbar   -sticky nsew -row 4 -column 0 -columnspan 2
         
-        
+        grid rowconfigure $win 0 -weight 0        
+        grid rowconfigure $win 1 -weight 0        
+        grid rowconfigure $win 2 -weight 0        
+        grid rowconfigure $win 3 -weight 1        
+        grid rowconfigure $win 4 -weight 0        
+        grid columnconfigure $win 0 -weight 1
+        grid columnconfigure $win 1 -weight 1
+
         # configure
         
         $self configurelist $args

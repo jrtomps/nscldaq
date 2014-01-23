@@ -51,7 +51,7 @@ namespace eval  ssh {
     proc sshpid {host command} {
 
 
-        set pipe [open "|  ssh -o \"StrictHostKeyChecking no\"  $host $command 2>&1" a+]
+        set pipe [open "|  ssh -o \"StrictHostKeyChecking no\"  $host $command |& cat" a+]
 	set pid [lindex [pid $pipe] 0]
 
 	return [list $pid $pipe $pipe]

@@ -297,7 +297,12 @@ snit::widgetadaptor DialogWrapper {
         grid $win.actionframe.ok $win.actionframe.cancel
         grid $win.controlframe -sticky nsew
         grid $win.actionframe
-        
+
+        grid rowconfigure $win 0 -weight 1       
+        grid columnconfigure $win 0 -weight 1       
+        grid rowconfigure $win.controlframe 0 -weight 1       
+        grid columnconfigure $win.controlframe 0 -weight 1       
+ 
         $self configurelist $args
     }
     ##

@@ -222,7 +222,7 @@ proc ::EventLog::_computeLoggerSwitches {} {
 
     # Compatibility with 10.x:
 
-    if {[info proc ::Experiemnt::spectrodaqURL] ne ""} {
+    if {[info proc ::Experiment::spectrodaqURL] ne ""} {
 	set ring [::Experiment::spectrodaqURL localhost]
     }
 
@@ -368,7 +368,7 @@ proc ::EventLog::_finalizeRun {} {
     #   - A chmod -R is done to set the contents to 0x550 as well.
     
     if {$::EventLog::protectFiles} {
-        exec sh << "chmod -R 0550 [file join $destDir *]"
+        exec sh << "chmod -R 0550 [glob [file join $destDir *]]"
         file attributes $destDir -permissions 0550 
         file attributes [file join $destDir ..] -permissions 0550 
     }
