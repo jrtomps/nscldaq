@@ -833,6 +833,7 @@ proc EVBC::_SetGuiState {widget state} {
 #
 proc EVBC::_ChangeDestRing {name index op} {
     $EVBC::applicationOptions configure -destring $EVBC::destRing
+    ::Configuration::Set EventLoggerRing "tcp://localhost/$EVBC::destRing"
 }
 #------------------------------------------------------------------------------
 ##
