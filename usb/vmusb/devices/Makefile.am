@@ -23,12 +23,23 @@ libVMUSBDevices_la_SOURCES	= 	CConfigurableObject.cpp	\
 					CTclModule.cpp \
 					CHiRA.cpp	\
 					CVMUSBControl.cpp \
-          CDelay.cpp
+					CDelay.cpp \
+					CCBD8210CamacBranchDriver.cpp \
+					@top_srcdir@/usb/common/devices/CCrateController.cpp \
+					CCBD8210CrateController.cpp \
+					CCBD8210ReadoutList.cpp \
+					CVMECamacBranch.cpp \
+					@top_srcdir@/usb/common/devices/CBCNAF.cpp \
+					@top_srcdir@/usb/common/devices/CCNAF.cpp \
+					@top_srcdir@/usb/common/devices/CNAF.cpp \
+					CULMTrigger.cpp \
+					CLeCroy4300B.cpp
 
 
 INCLUDES	= 	-I@top_srcdir@/usb/vmusb/vmusb 	\
 			-I@top_srcdir@/usb/vmusb/daqconfig 	\
 			-I@top_srcdir@/usb/vmusb		\
+			-I@top_srcdir@/usb/common/devices		\
 			@LIBTCLPLUS_CFLAGS@		\
 			-I@top_srcdir@/base/headers		\
 			@TCL_FLAGS@ 
@@ -38,7 +49,7 @@ libVMUSBDevices_la_CXXFLAGS=@THREADCXX_FLAGS@
 
 libVMUSBDevices_la_LIBADD	= $(top_builddir)/usb/vmusb/vmusb/libVMUSB.la \
 					@LIBTCLPLUS_LDFLAGS@	\
-				  @TCL_LDFLAGS@ \
+					@TCL_LDFLAGS@ \
 				-lm @THREADLD_FLAGS@
 
 noinst_HEADERS			= 	CConfigurableObject.h	\
@@ -69,8 +80,15 @@ noinst_HEADERS			= 	CConfigurableObject.h	\
 					CTclModule.h		\
 					CHiRA.h			\
 					CVMUSBControl.h \
-          CDelay.h
-
+					CDelay.h \
+					CCBD8210CamacBranchDriver.h \
+					@top_srcdir@/usb/common/devices/CCrateController.h \
+					CCBD8210CrateController.h \
+					CCBD8210ReadoutList.h \
+					CVMECamacBranch.h \
+					@top_srcdir@/usb/common/devices/CBCNAF.h \
+					@top_srcdir@/usb/common/devices/CCNAF.h \
+					@top_srcdir@/usb/common/devices/CNAF.h 
 
 
 install-data-local:

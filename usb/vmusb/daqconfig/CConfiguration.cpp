@@ -39,6 +39,10 @@
 #include "CHiRACommand.h"
 #include "CVMUSBCommand.h"
 #include "CDelayCommand.h"
+#include "CVMECamacBranchCommand.h"
+#include "CVMECamacCrateCommand.h"
+#include "CVMEULMTriggerCommand.h"
+#include "CVMELeCroy4300BCommand.h"
 
 #include <CReadoutModule.h>
 #include <TCLInterpreter.h>
@@ -97,6 +101,10 @@ CConfiguration::CConfiguration() :
   m_Commands.push_back(new CHiRACommand(*m_pInterp, *this));
   m_Commands.push_back(new CVMUSBCommand(*m_pInterp, *this));
   m_Commands.push_back(new CDelayCommand(*m_pInterp, *this));
+  m_Commands.push_back(new CVMECamacBranchCommand(*m_pInterp, *this));
+  m_Commands.push_back(new CVMECamacCrateCommand(*m_pInterp, *this));
+  m_Commands.push_back(new CVMEULMTriggerCommand(*m_pInterp, *this));
+  m_Commands.push_back(new CVMELeCroy4300BCommand(*m_pInterp, *this));
 
 }
 /*!
@@ -154,7 +162,7 @@ CConfiguration::processConfiguration(string configFile)
     throw;
   }
   catch (CException& error) {
-    cerr << "CConfiguration::processConfiguration caught CExcpetion : "
+    cerr << "CConfiguration::processConfiguration caught CException : "
 	 << error.ReasonText() << " while " << error.WasDoing() << endl;
     cerr << Tcl_GetStringResult(m_pInterp->getInterpreter()) << endl;
     throw;

@@ -22,7 +22,11 @@ libVMUSBConfig_la_SOURCES	= 	CADCCommand.cpp		\
 				CAddTclDriver.cpp	\
 				CHiRACommand.cpp	\
 				CVMUSBCommand.cpp \
-        CDelayCommand.cpp
+				CDelayCommand.cpp \
+				CVMECamacBranchCommand.cpp \
+				CVMECamacCrateCommand.cpp \
+				CVMEULMTriggerCommand.cpp \
+				CVMELeCroy4300BCommand.cpp
 
 libVMUSBConfig_la_CXXFLAGS=@THREADCXX_FLAGS@
 
@@ -50,13 +54,19 @@ noinst_HEADERS		=	CADCCommand.h  		\
 				CAddTclDriver.h		\
 				CHiRACommand.h		\
 				CVMUSBCommand.h \
-        CDelayCommand.h
+				CDelayCommand.h \
+				CVMECamacBranchCommand.h \
+				CVMECamacCrateCommand.h \
+				CVMEULMTriggerCommand.h \
+				CVMELeCroy4300BCommand.h
 
 
 
 
 INCLUDES		= 	-I@top_srcdir@/usb/vmusb/devices	\
 				-I@top_srcdir@/usb/vmusb		\
+				-I@top_srcdir@/usb/vmusb/vmusb		\
+				-I@top_srcdir@/usb/common/devices		\
 				@LIBTCLPLUS_CFLAGS@		\
 				-I@top_srcdir@/base/headers		\
 				$(TCL_FLAGS) 
