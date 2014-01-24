@@ -1914,9 +1914,10 @@ snit::widgetadaptor OutputWindowSettings {
         
         # widget layout:
         
-        grid $win.rowlabel $win.rows $win.collabel $win.columns \
-            $win.historylabel $win.history $win.debug
-        
+      #  grid $win.rowlabel $win.rows $win.collabel $win.columns \
+      #      $win.historylabel $win.history $win.debug
+	grid $win.historylabel $win.history $win.debug; # Lazy way to remove row/col.
+ 
         $self configurelist $args
         
     }

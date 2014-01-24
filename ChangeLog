@@ -514,5 +514,11 @@ Feb 1, 2012 - Feb 24, 2012
 	gui.
 	* Issue #1654 better document the CEventSegment methods for
 	handling event rejection and timestap/event source injection.
+	* Fold in fix for double de-alloc in CConfigurable object from
+	Jeromy.
+	* Issue #1876 Ensure all output is captured by the ssh pipe
+	(stupid redirection tricks).
 
+11.0-rc4 Networked trigger management and misc fixes.
+	
 
