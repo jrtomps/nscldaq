@@ -755,6 +755,12 @@ COutputThread::getTimestampExtractor()
         // save the entry point and close the handle (RTLD_NODELETE) keeps
         // the .so/.dll in  memory:
         
+        if (m_pSclrTimestampExtractor==0 && m_pEvtTimestampExtractor==0) {
+            std::cerr << "Fatal error: user provided library with neither"
+                      << " timestamp extractor function" << std::endl;
+            exit(EXIT_FAILURE);
+        }
+
         dlclose(pDllHandle);
         
     }
