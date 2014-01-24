@@ -772,6 +772,7 @@ COutputThread::getTimestampExtractor()
             std::cerr << "Warning: Unable to locate getEventTimestamp  in "
                 << Globals::pTimestampExtractor << " "
                 << dlerror() << std::endl;
+        } else {
             m_pEvtTimestampExtractor = reinterpret_cast<TimestampExtractor>(pEvtFunction);
         }
 
@@ -780,6 +781,7 @@ COutputThread::getTimestampExtractor()
             std::cerr << "Warning: Unable to locate getScalerTimestamp  in "
                 << Globals::pTimestampExtractor << " "
                 << dlerror() << std::endl;
+        } else {
             m_pSclrTimestampExtractor = reinterpret_cast<TimestampExtractor>(pSclrFunction);
         }
 
