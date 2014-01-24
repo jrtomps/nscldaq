@@ -120,7 +120,8 @@ private:
   uint8_t*     m_pBuffer;
   uint8_t*     m_pCursor;
   size_t       m_nWordsInBuffer;
-  TimestampExtractor m_pTimestampExtractor;
+  TimestampExtractor m_pEvtTimestampExtractor;
+  TimestampExtractor m_pSclrTimestampExtractor;
   
   // Constuctors and other canonicals.
 
