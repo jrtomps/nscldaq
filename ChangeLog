@@ -520,5 +520,8 @@ Feb 1, 2012 - Feb 24, 2012
 	(stupid redirection tricks).
 
 11.0-rc4 Networked trigger management and misc fixes.
-	
+	* Issue #1760  - Don't rethrow exception in XXUSB CTheApplication.cpp
+	operator() -- just exit since there's no other exception handler.
+	* Remove lines/cols from outputwindow settings...it's now resizeable
+
 
