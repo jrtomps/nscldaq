@@ -3265,9 +3265,186 @@ sis3804 config scaler1 -refpulser true
         </refsect1>
       
       </refentry>
+ 
+       <refentry id="vmusb3-hinp">
+         <refmeta>
+            <refentrytitle id='vmusb3-hinp-title'>hinp</refentrytitle>
+            <manvolnum>3vmusb</manvolnum>
+         </refmeta>
+         <refnamediv>
+            <refname>hinp</refname>
+            <refpurpose>XLM-XXV with Wash-U HINP firmware.</refpurpose>
+         </refnamediv>
+         
+         <refsynopsisdiv>
+           <cmdsynopsis>
+            <command>
+hinp ceate <replaceable>name ?options?</replaceable>
+          </command>
+           </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+hinp config <replaceable>name ?options?</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+hinp cget <replaceable>name</replaceable>
+                </command>
+            </cmdsynopsis>
+
+         </refsynopsisdiv>
+         <refsect1>
+            <title>DESCRIPTION</title>
+            <para>
+                This command was contributed to this framework by Jon Elson
+                from Washington University in St.Louis.  It supports readout of
+                an XLM-XXV which runs the HINP firmware and communicates with
+                Wash-U ASICS.
+            </para>
+         </refsect1>
+         <refsect1>
+            <title>
+               OPTIONS
+            </title>
+            <variablelist>
+                <varlistentry>
+                    <term><option>-base</option> <replaceable>base-address</replaceable></term>
+                    <listitem>
+                        <para>
+                            Sets the base address of the XLM board.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-firmware</option> <replaceable>file-name</replaceable></term>
+                    <listitem>
+                        <para>
+                            This option is accepted without error but ignored.
+                            The firmware for HINP modules should be loaded and
+                            configured using the Chip control program that is
+                            available from Wash-U.  For that program to operate
+                            the
+                            VMUSBReadout program must be running.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-readsramb</option> <replaceable>boolean</replaceable></term>
+                    <listitem>
+                        <para>
+                            When used with the XLM-XXV, this option should be
+                            <literal>false</literal>, which is the default.  If
+                            used with an external FADC (see e.g.
+                            <link linkend='vmusb3-hira' endterm='vmusb3-hira-title' />)
+                            this should be true, indicating one set of motherboards
+                            must be read from SRAM B.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-havefadc</option> <replaceable>boolean</replaceable></term>
+                    <listitem>
+                        <para>
+                            When used with the XLM-XXV this option shouild be
+                            <literal>true</literal> indicating the XLM has an on-board
+                            FADC.  Set <literal>false</literal> if e.g. using
+                            in a <link  linkend='vmusb3-hira' endterm='vmusb3-hira-title' />
+                            HiRA configuration where the FADCs are external to the
+                            XLM.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-clearveto</option> <replaceable>boolean</replaceable></term>
+                    <listitem>
+                        <para>
+                            If <literal>true</literal> (the default), the
+                            veto output is cleared prior to the first event and
+                            after each event is read.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                
+                
+            </variablelist>
+         </refsect1>
+ 
+       </refentry>
+      
+       <refentry id="vmusb3-psd">
+         <refmeta>
+            <refentrytitle id='vmusb3-psd-tite'>psd</refentrytitle>
+            <manvolnum>3vmusb</manvolnum>
+         </refmeta>
+         <refnamediv>
+            <refname>psd</refname>
+            <refpurpose>XLM with Wash-U pulse shape discrmination firmware</refpurpose>
+         </refnamediv>
+         
+         <refsynopsisdiv>
+           <cmdsynopsis>
+               <command>
+psd create <replaceable>name ?options?</replaceable>
+          </command>
+           </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+psd config <replaceable>name ?options?</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+psd cget <replaceable>name</replaceable>
+                </command>
+            </cmdsynopsis>
+
+         </refsynopsisdiv>
+         <refsect1>
+            <title>DESCRIPTION</title>
+            <para>
+                Creates and configures an XLM-XXV module that runs the
+                Washington University PSD firmware to interface with the
+                WASH-U motherboards.  This driver was contributed by Jon Elson
+                of Washington University in St. Louis.
+            </para>
+         </refsect1>
+         <refsect1>
+            <title>
+               OPTIONS
+            </title>
+            <variablelist>
+                <varlistentry>
+                    <term><option>-base</option> <replaceable>base-address</replaceable></term>
+                    <listitem>
+                        <para>
+                            Configures the XLM base address for the module.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-firmware</option> <replaceable>filename</replaceable></term>
+                    <listitem>
+                        <para>
+                            This option is accepted without error but ignored.
+                            This is because the firmware is normally loaded
+                            and configured via
+                            the CHIP control program available from Wash-U.
+                            Note tha the CHIP control program requires that the
+                            VMUSBReadout program be running.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                
+            </variablelist>
+         </refsect1>
+ 
+       </refentry>
+      
+      
       <refentry id="vmusb3-hira">
         <refmeta>
-           <refentrytitle>hira</refentrytitle>
+           <refentrytitle id='vmusb3-hira-title'>hira</refentrytitle>
            <manvolnum>3vmusb</manvolnum>
         </refmeta>
         <refnamediv>
