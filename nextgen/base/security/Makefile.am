@@ -8,10 +8,11 @@ include_HEADERS = AccessListCheck.h  Authenticator.h \
 	IOInteractor.h Interactor.h PasswordCheck.h StringInteractor.h \
 	TclAccessListCheck.h UnixUserCheck.h
 libSecurity_la_LDFLAGS = @top_builddir@/base/os/libdaqshm.la \
+	@LIBEXCEPTION_LDFLAGS@ \
 	-version-info $(SOVERSION) -Wl,"-rpath=$(libdir)" \
 		$(THREADLD_FLAGS)
 
-libSecurity_la_CXXFLAGS	= $(THREADCXX_FLAGS) $(AM_CXXFLAGS)
+libSecurity_la_CXXFLAGS	= $(THREADCXX_FLAGS) $(AM_CXXFLAGS) @LIBTCLPLUS_CFLAGS@
 
 INCLUDES = -I@top_srcdir@/base/headers -I@top_srcdir@/base/tclplus \
 	-I@top_srcdir@/base/os $(TCL_FLAGS) $(SPECTRODAQ_FLAGS)

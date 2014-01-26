@@ -2271,6 +2271,7 @@ vmusb cget name
 		</para>
 		</listitem>
 	      </varlistentry>
+	    </variablelist>
            </refsect1>
    
          </refentry>

@@ -4694,7 +4694,7 @@ Get <replaceable>name parameter</replaceable>
                     <term>
                         <methodsynopsis>
                          <type>CCCUSBReadoutList*</type>
-                         <methodname>createReadoutList<methodname>
+                         <methodname>createReadoutList</methodname>
                          <void />
                        </methodsynopsis>
                     </term>

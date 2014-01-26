@@ -467,4 +467,5 @@ Feb 1, 2012 - Feb 24, 2012
         * CSIS3820 works now for sure (based on MoNA testing).
 	* Added some more SWIG bridges to functions that need non-builtin
 	  argument types.
-	
+	* Added CSIS3820::ReadHighBits to give support for the 48 bit
+	scaler channels.

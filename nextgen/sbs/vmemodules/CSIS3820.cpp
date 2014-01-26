@@ -62,6 +62,10 @@ static const unsigned int InputModeMask(0x0070000);
 static const unsigned int LatchModeMask(0x00000070);
 static const unsigned int NONCLEARINGMODE(1);
 
+// bits 32-47 of channel 1/17 48 bit channels:
+
+static const unsigned int HIGHBITS(0x210);
+
 				//  Reset key register.
 
 static const unsigned int RESET(0x400);
@@ -632,6 +636,19 @@ CSIS3820::ReadAllChannels(uint32_t* buffer) const
   for(unsigned int i =0; i < ChannelCount; i++) {
     *buffer++ = ReadChannel(i);
   }
+}
+/**
+ * ReadHighBits
+ *
+ *   Reads the register that contains the high 16 bits of channels
+ *   1 and 17 which are  48 channel scalers.
+ *
+ * @return uint32_t
+ */
+uint32_t
+CSIS3820::ReadHighBits()
+{
+  return peek(HIGHBITS);
 }
 /*!
    Latch the current counters into the shadow registers.

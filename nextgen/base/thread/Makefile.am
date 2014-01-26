@@ -9,9 +9,11 @@ include_HEADERS = dshwrappthreads.h  dshwrapthreads.h  Runnable.h  SyncGuard.h  
 		CMutex.h		\
 		CCondition.h CSynchronizedThread.h 
 
-INCLUDES = -I$(top_srcdir)/base/headers -I$(top_srcdir)/base/exception -DUSE_PTHREADS
+INCLUDES = -I$(top_srcdir)/base/headers -I$(top_srcdir)/base/exception -DUSE_PTHREADS \
+	@LIBTCLPLUS_CFLAGS@
 
-libdaqthreads_la_LDFLAGS = -version-info $(SOVERSION) \
+libdaqthreads_la_LDFLAGS = @LIBEXCEPTION_LDFLAGS@ \
+	-version-info $(SOVERSION) \
 		-Wl,"-rpath-link=$(libdir)"	\
 		$(THREADLD_FLAGS)
 libdaqthreads_la_CXXFLAGS=$(THREADCXX_FLAGS)

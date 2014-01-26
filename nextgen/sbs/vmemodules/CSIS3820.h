@@ -155,6 +155,7 @@ public:
 
   uint32_t      ReadChannel(unsigned int num) const; //!< read live channel.
   void          ReadAllChannels(uint32_t* buffer) const; 
+  uint32_t      ReadHighBits();
 
   void Latch() const;		                    //!< Latch scalers.
   uint32_t      ReadLatchedChannel(unsigned int num) const;
