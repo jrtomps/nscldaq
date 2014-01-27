@@ -21,6 +21,7 @@ class CDataSinkFactoryTest : public CppUnit::TestFixture
     CPPUNIT_TEST ( testStdout );
     CPPUNIT_TEST ( testStdoutDash );
     CPPUNIT_TEST ( testFailOnStdin );
+    CPPUNIT_TEST ( testRingSink );
     CPPUNIT_TEST_SUITE_END();
 
     public:
@@ -30,6 +31,7 @@ class CDataSinkFactoryTest : public CppUnit::TestFixture
     void testStdout();
     void testStdoutDash();
     void testFailOnStdin();
+    void testRingSink();
 
 };
 
@@ -61,8 +63,7 @@ void CDataSinkFactoryTest::testStdout()
 void CDataSinkFactoryTest::testStdoutDash()
 {
   CDataSinkFactory factory;
-  CFileDataSink* sink = 
-      dynamic_cast<CFileDataSink*>(factory.makeSink("-"));
+  CFileDataSink* sink = dynamic_cast<CFileDataSink*>(factory.makeSink("-"));
   CPPUNIT_ASSERT ( 0 != sink );
   CPPUNIT_ASSERT_EQUAL( STDOUT_FILENO, sink->m_fd );
   delete sink;
@@ -75,10 +76,28 @@ void CDataSinkFactoryTest::testFailOnStdin()
   try {
     sink = factory.makeSink("file:///stdin");
   } catch (int err) {
-    std::cout << "errno = " << err << std::endl;
+    std::stringstream errmsg; errmsg << "errno = " << err << std::endl;
+    CPPUNIT_FAIL(errmsg.str().c_str());
   } catch (CURIFormatException& exc) {
-    std::cout << exc.ReasonText() << std::endl;
+    CPPUNIT_FAIL(exc.ReasonText());
   }
+
+  if (sink!=0) { delete sink; }
+}
+
+void CDataSinkFactoryTest::testRingSink()
+{
+  CDataSinkFactory factory;
+  CDataSink* sink;
+  try {
+    sink = factory.makeSink("ring://localhost/myring");
+  } catch (int err) {
+    std::stringstream errmsg; errmsg << "errno = " << err << std::endl;
+    CPPUNIT_FAIL( errmsg.str().c_str() );
+  } catch (CURIFormatException& exc) {
+    CPPUNIT_FAIL( exc.ReasonText() );
+  }
+
 
   if (sink!=0) { delete sink; }
 }

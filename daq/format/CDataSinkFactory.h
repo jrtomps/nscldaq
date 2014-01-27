@@ -34,6 +34,11 @@ class CDataSinkFactory
        Create a file data sink for the specified file    
     */
     CDataSink* makeFileSink(std::string fname); 
+
+    /**!
+       Create a ring data sink with the specified name
+    */
+    CDataSink* makeRingSink(std::string ringname); 
 };
 
 #endif

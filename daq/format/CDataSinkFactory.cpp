@@ -1,6 +1,7 @@
 
 #include "CDataSinkFactory.h"
 #include "CFileDataSink.h"
+#include "CRingDataSink.h"
 #include <URL.h>
 #include <string>
 #include <iostream>
@@ -34,7 +35,9 @@ CDataSink* CDataSinkFactory::makeSink(std::string uri)
     sink = makeFileSink(url.getPath());
 
   } else if (url.getProto()=="ring") {
-    sink = 0;
+
+    sink = makeRingSink(url.getPath());
+
   } 
 
   return sink;
@@ -67,6 +70,36 @@ CDataSink* CDataSinkFactory::makeFileSink(std::string fname)
       sink = new CFileDataSink(fname);
 
     }
+  } catch (CErrnoException& err) {
+    // If either of the above constructor throw,
+    // then sink may not equal 0 but the memory will
+    // have been freed. Ensure that this send out a
+    // result that indicates failure
+    sink = 0;
+  }
+
+  return sink;
+}
+
+/**! Handle the construction of a ring data sink from a path
+*
+* On successful construction of a CRingDataSink, a pointer to
+* the dynamically allocated object will be passed to the caller.
+* The caller will own the object at this point.
+*
+* This may throw as a result of the constructor. 
+* 
+* \return pointer to a sink on success, 0 on failure 
+*/
+CDataSink* CDataSinkFactory::makeRingSink(std::string fname) 
+{
+
+  CDataSink* sink=0;
+
+  try {
+
+      sink = new CRingDataSink(fname);
+
   } catch (CErrnoException& err) {
     // If either of the above constructor throw,
     // then sink may not equal 0 but the memory will

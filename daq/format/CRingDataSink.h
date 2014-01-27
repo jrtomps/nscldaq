@@ -5,7 +5,7 @@
 
 #include <CDataSink.h>
 
-#include <URL.h>
+#include <string>
 
 class CRingItem;
 class CRingBuffer;
@@ -14,10 +14,10 @@ class CRingDataSink : public CDataSink
 {
   private:
     CRingBuffer*  m_pRing;
-    URL  m_url;
-  
+    std::string   m_url; 
+ 
   public:
-    CRingDataSink(URL& url);
+    CRingDataSink(std::string url);
     virtual ~CRingDataSink();
 
   private:
@@ -27,7 +27,7 @@ class CRingDataSink : public CDataSink
     int operator!=(const CRingDataSink& rhs) const;
 
   public:
-    void putItem(const CRingItem* item);
+    void putItem(const CRingItem& item);
 
   private:
     void openRing();

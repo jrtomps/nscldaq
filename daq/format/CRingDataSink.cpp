@@ -4,7 +4,7 @@
 #include <CRingItem.h>
 #include <URL.h>
 
-CRingDataSink::CRingDataSink(URL& url)
+CRingDataSink::CRingDataSink(std::string url)
   : m_pRing(0),
     m_url(url)
 {
@@ -17,16 +17,15 @@ CRingDataSink::~CRingDataSink()
   m_pRing;
 }
 
-void CRingDataSink::putItem(const CRingItem* item)
+void CRingDataSink::putItem(const CRingItem& item)
 {
-  CRingItem* the_item = const_cast<CRingItem*>(item); 
+  CRingItem& the_item = const_cast<CRingItem&>(item); 
 
-  the_item->commitToRing(*m_pRing);
+  the_item.commitToRing(*m_pRing);
 }
 
 
 void CRingDataSink::openRing()
 {
-  std::string uri(m_url);
-  m_pRing = CRingBuffer::createAndProduce(uri);
+  m_pRing = CRingBuffer::createAndProduce(m_url);
 }
