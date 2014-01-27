@@ -19,6 +19,7 @@
 #include "CRingDataSource.h"
 
 #include <URL.h>
+#include <unistd.h>
 
 /**
  * makeSource
@@ -42,23 +43,46 @@ CDataSource*
 CDataSourceFactory::makeSource(std::string uri, 
 				   std::vector<uint16_t> sample , std::vector<uint16_t>exclude)
 {
-  CDataSource *pSource;
-  URL parsedURI(uri);
-  if (parsedURI.getProto() == std::string("file")) {
-    // File data source:
+  CDataSource *pSource = 0;
 
-    pSource = new CFileDataSource(parsedURI, exclude);
+  // Deal with the special case of stdin
+  if (uri == std::string("-")) {
+    // stdin source
+    pSource = new CFileDataSource(STDIN_FILENO, exclude);
 
-  } else if (parsedURI.getProto() == std::string("tcp")) {
-    // ringbuffer (local or remote):
-
-    pSource = new CRingDataSource(parsedURI, sample, exclude);
   } else {
-    std::string msg = "Invalid URL protocol ";
-    msg            += parsedURI.getProto();
-    msg            += " in Ring data source URI: ";
-    msg            + uri;
-    throw msg;
+    // The source id must have been a uri... do what the protocol 
+    // demands
+    URL parsedURI(uri);
+
+    if (parsedURI.getProto() == std::string("file")) {
+      // File data source:
+
+      pSource = new CFileDataSource(parsedURI, exclude);
+
+    } else if (parsedURI.getProto() == std::string("tcp")) {
+      // ringbuffer (local or remote):
+
+      pSource = new CRingDataSource(parsedURI, sample, exclude);
+
+    } else if (parsedURI.getProto() == std::string("ring")) {
+
+      // create a tcp protocol from this
+      std::string url = "tcp://";
+      url += parsedURI.getHostName() + ":";
+      url += parsedURI.getPort() + "/";
+      url += parsedURI.getPath();
+
+      parsedURI = URL(url);
+      pSource = new CRingDataSource(parsedURI, sample, exclude);
+
+    } else {
+      std::string msg = "Invalid URL protocol ";
+      msg            += parsedURI.getProto();
+      msg            += " in Ring data source URI: ";
+      msg            + uri;
+      throw msg;
+    }
   }
 
   return pSource;
