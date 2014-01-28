@@ -26,7 +26,9 @@
 CMediator::CMediator(CDataSource* source, CFilter* filter, CDataSink* sink)
 : m_pSource(source),
   m_pFilter(filter),
-  m_pSink(sink)
+  m_pSink(sink),
+  m_nToProcess(-1),
+  m_nToSkip(-1)
 {}
 
 /**! Destructor
@@ -55,6 +57,9 @@ CMediator::~CMediator()
     m_pSink = 0;
   }
 
+  m_nToProcess = -1;
+  m_nToSkip = -1;
+
 }
 
 /**! The main loop
@@ -73,7 +78,19 @@ void CMediator::mainLoop()
   CDataSource& source = *m_pSource;
   CDataSink& sink = *m_pSink;
 
+  // Set up some counters
+  int tot_iter=0, proc_iter=0, nskip=0, nprocess=0;
+
+  nskip = m_nToSkip;
+  nprocess = m_nToProcess;
+
   while (1) {
+    
+    // Check if all has been processed that was requested
+    if (proc_iter>=nprocess && nprocess>=0) {
+      break;
+    }
+  
     // Get a new item
     // Exit if the item returned is null
     item = source.getItem();
@@ -81,24 +98,34 @@ void CMediator::mainLoop()
       break;
     }
 
-    // handle the item and get a pointer to 
-    // to the new item
-    const CRingItem* new_item = handleItem(item);
+    // only process if we have skipped the requested number
+    if (tot_iter>=nskip) {
 
-    // Send the new item on to the sink
-    sink.putItem(*new_item);
+      // handle the item and get a pointer to 
+      // to the new item
+      const CRingItem* new_item = handleItem(item);
 
-    // It is possible that the filter did nothing more than
-    // return a pointer to the same object. Therefore, only
-    // delete the returned item if it is different.
-    if ( new_item != item ) {
-      delete new_item;
-    } 
+      // Send the new item on to the sink
+      sink.putItem(*new_item);
+
+      // It is possible that the filter did nothing more than
+      // return a pointer to the same object. Therefore, only
+      // delete the returned item if it is different.
+      if ( new_item != item ) {
+        delete new_item;
+      } 
+      
+      // Increment the number processed
+      ++proc_iter;
+    }
+    
 
     // delete original item
     // THE FILTER MUST NOT HAVE DELETED THE OBJECT PASSED IT!!!
     delete item;
 
+    // Increment our counter
+    ++tot_iter;
   }
 
 }

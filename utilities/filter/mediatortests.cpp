@@ -34,15 +34,20 @@ class CMediatorTest : public CppUnit::TestFixture
   private:
     // Define a test filter to return some testable results
     class CTestFilter : public CFilter {
+      private:
+        int m_nProcessed;
+  
+      public:
+       CTestFilter() : CFilter(), m_nProcessed(0) {}
 
       virtual const CRingItem* handleStateChangeItem(const CRingStateChangeItem*) 
-      { return new CRingStateChangeItem(BEGIN_RUN);}
+      { ++m_nProcessed; return new CRingStateChangeItem(BEGIN_RUN);}
 
       virtual const CRingItem* handleScalerItem(const CRingScalerItem* ) 
-      { return new CRingScalerItem(200);}
+      { ++m_nProcessed; return new CRingScalerItem(200);}
 
       virtual const CRingItem* handleTextItem(const CRingTextItem*) 
-      { 
+      { ++m_nProcessed; 
         std::vector<std::string> str_vec;
         str_vec.push_back("0000");
         str_vec.push_back("1111");
@@ -51,15 +56,17 @@ class CMediatorTest : public CppUnit::TestFixture
       }
 
       virtual const CRingItem* handlePhysicsEventItem(const CPhysicsEventItem* ) 
-      {return new CPhysicsEventItem(4096);}
+      { ++m_nProcessed; return new CPhysicsEventItem(4096);}
 
       virtual const CRingItem* 
         handlePhysicsEventCountItem(const CRingPhysicsEventCountItem*) 
-        { return new CRingPhysicsEventCountItem(static_cast<uint64_t>(4),
-            static_cast<uint32_t>(1001));}
+        { ++m_nProcessed; 
+            return new CRingPhysicsEventCountItem(static_cast<uint64_t>(4),
+                                                  static_cast<uint32_t>(1001));}
 
       virtual const CRingItem* handleFragmentItem(const CRingFragmentItem*)
-      { 
+      {
+        ++m_nProcessed; 
         return new CRingFragmentItem(static_cast<uint64_t>(10101),
             static_cast<uint32_t>(1),
             static_cast<uint32_t>(2),
@@ -68,8 +75,9 @@ class CMediatorTest : public CppUnit::TestFixture
       }
 
       virtual const CRingItem* handleRingItem(const CRingItem*) 
-      { return new CRingItem(100);}
+      { ++m_nProcessed; return new CRingItem(100);}
 
+      int getNProcessed() const { return m_nProcessed;}
     };
 
   private:
@@ -93,6 +101,9 @@ class CMediatorTest : public CppUnit::TestFixture
     CPPUNIT_TEST ( testHandlePhysicsEventCountItem );
     CPPUNIT_TEST ( testHandleFragmentItem );
     CPPUNIT_TEST ( testHandleGenericItem );
+    CPPUNIT_TEST ( testSkipNone );
+    CPPUNIT_TEST ( testSkipSome );
+    CPPUNIT_TEST ( testProcessSome );
 
     CPPUNIT_TEST ( testTransparentMainLoop );
     CPPUNIT_TEST_SUITE_END();
@@ -113,6 +124,10 @@ class CMediatorTest : public CppUnit::TestFixture
     void testHandleFragmentItem();
     void testHandleGenericItem();
 
+    void testSkipNone();
+    void testSkipSome();
+    void testProcessSome();
+
     void testTransparentMainLoop();
 
   private:
@@ -123,6 +138,10 @@ class CMediatorTest : public CppUnit::TestFixture
 
     bool filesEqual(std::string fname0, std::string fname1);
     bool compareEqual(CRingItem& item0, CRingItem& item1);
+    void setUpSkipTestFile(int nToSkip, 
+                           std::string infname, 
+                           std::string ofname);
+
 };
 
 
@@ -282,6 +301,161 @@ void CMediatorTest::testHandleGenericItem()
   delete new_item;
 }
 
+
+void CMediatorTest::testSkipNone()
+{
+  tearDown();
+
+  // This should have no effect on any default behavior
+  // We will simply test this as the TransparentMainLoop
+  m_mediator.setSkipCount(0);
+
+  std::string proto("file://");
+  std::string infname("./run-0000-00.evt");
+  std::string outfname("./copy-run-0000-00.evt");
+
+  try {
+    URL uri(proto+infname);
+    m_source = new CFileDataSource(uri, std::vector<uint16_t>());
+    m_sink = new CFileDataSink(outfname);
+
+    m_mediator.setDataSource(m_source);
+    m_mediator.setDataSink(m_sink);
+    m_mediator.setFilter(new CFilter);
+
+    m_mediator.mainLoop();
+
+    // kill all of the sinks and sources
+    tearDown();
+    // set up defaults so that we don't segfault at tearDown
+    setUp();
+  } catch (CException& exc) {
+    std::stringstream errmsg; errmsg << "Caught exception:" << exc.ReasonText();
+    CPPUNIT_FAIL(errmsg.str().c_str()); 
+  } catch (int errcode) {
+    std::stringstream errmsg; errmsg << "Caught integer " << errcode;
+    CPPUNIT_FAIL(errmsg.str().c_str()); 
+  } catch (std::string errmsg) {
+    CPPUNIT_FAIL(errmsg.c_str()); 
+  }
+
+  CPPUNIT_ASSERT( filesEqual(infname,outfname) );
+
+}
+
+void CMediatorTest::testSkipSome()
+{
+  tearDown();
+ 
+  int nToSkip=4;
+
+  std::string proto("file://");
+  std::string infname("./run-0000-00.evt");
+  std::string outfname("./copy-run-0000-00.evt");
+  std::string modeloutfname("./model-skip-run-0000-00.evt");
+
+  // Generate the file to compare against that we manually skipped over
+  setUpSkipTestFile(nToSkip, proto+infname, modeloutfname);
+
+  try {
+    URL uri(proto+infname);
+    m_source = new CFileDataSource(uri, std::vector<uint16_t>());
+    m_sink = new CFileDataSink(outfname);
+
+    m_mediator.setDataSource(m_source);
+    m_mediator.setDataSink(m_sink);
+    m_mediator.setFilter(new CFilter);
+
+    m_mediator.setSkipCount(nToSkip);
+
+    m_mediator.mainLoop();
+
+    // kill all of the sinks and sources
+    tearDown();
+    // set up defaults so that we don't segfault at tearDown
+    setUp();
+  } catch (CException& exc) {
+    std::stringstream errmsg; errmsg << "Caught exception:" << exc.ReasonText();
+    CPPUNIT_FAIL(errmsg.str().c_str()); 
+  } catch (int errcode) {
+    std::stringstream errmsg; errmsg << "Caught integer " << errcode;
+    CPPUNIT_FAIL(errmsg.str().c_str()); 
+  } catch (std::string errmsg) {
+    CPPUNIT_FAIL(errmsg.c_str()); 
+  }
+
+  CPPUNIT_ASSERT( filesEqual(modeloutfname,outfname) );
+
+}
+
+void CMediatorTest::setUpSkipTestFile(int nToSkip, 
+                                      std::string infname, 
+                                      std::string ofname)
+{
+  URL uri(infname);
+  CDataSource* source = new CFileDataSource(uri, std::vector<uint16_t>());
+  CDataSink* sink = new CFileDataSink(ofname);
+  CFilter* filt = new CFilter;
+  CMediator* med = new CMediator(source,filt,sink);
+
+  // Extract the number of events we want to skip
+  // These will not end up in the sink
+  for (int i=0; i<nToSkip; ++i) { 
+    const CRingItem* item = source->getItem();
+    if (item!=0) delete item;
+  }
+
+  // Then run the main loop
+  med->mainLoop();
+
+  // Cleanup (the source, sink, and filter are owned by the mediator)
+  delete med;
+}
+
+void CMediatorTest::testProcessSome()
+{
+  tearDown();
+ 
+  int nToProcess=11;
+
+  std::string proto("file://");
+  std::string infname("./run-0000-00.evt");
+  std::string outfname("./copy-run-0000-00.evt");
+
+  try {
+    URL uri(proto+infname);
+    m_source = new CFileDataSource(uri, std::vector<uint16_t>());
+    m_sink = new CFileDataSink(outfname);
+    m_filter = new CTestFilter;
+
+    m_mediator.setDataSource(m_source);
+    m_mediator.setDataSink(m_sink);
+    m_mediator.setFilter(m_filter);
+
+    m_mediator.setProcessCount(nToProcess);
+
+    m_mediator.mainLoop();
+
+    CPPUNIT_ASSERT_EQUAL(nToProcess, 
+                         static_cast<CTestFilter*>(m_filter)->getNProcessed());
+
+    // kill all of the sinks and sources
+    tearDown();
+    // set up defaults so that we don't segfault at tearDown
+    setUp();
+  } catch (CException& exc) {
+    std::stringstream errmsg; errmsg << "Caught exception:" << exc.ReasonText();
+    CPPUNIT_FAIL(errmsg.str().c_str()); 
+  } catch (int errcode) {
+    std::stringstream errmsg; errmsg << "Caught integer " << errcode;
+    CPPUNIT_FAIL(errmsg.str().c_str()); 
+  } catch (std::string errmsg) {
+    CPPUNIT_FAIL(errmsg.c_str()); 
+  }
+
+
+}
+
 void CMediatorTest::testTransparentMainLoop()
 {
   tearDown();
@@ -314,11 +488,13 @@ void CMediatorTest::testTransparentMainLoop()
     // set up defaults so that we don't segfault at tearDown
     setUp();
   } catch (CException& exc) {
-    std::cout << "Caught exception:" << exc.ReasonText() << std::endl;
+    std::stringstream errmsg; errmsg << "Caught exception:" << exc.ReasonText();
+    CPPUNIT_FAIL(errmsg.str().c_str()); 
   } catch (int errcode) {
-    std::cout << "Caught integer " << errcode << std::endl;
+    std::stringstream errmsg; errmsg << "Caught integer " << errcode;
+    CPPUNIT_FAIL(errmsg.str().c_str()); 
   } catch (std::string errmsg) {
-    std::cout << "Caught integer " << errmsg << std::endl;
+    CPPUNIT_FAIL(errmsg.c_str()); 
   }
 
   CPPUNIT_ASSERT( filesEqual(infname,outfname) );

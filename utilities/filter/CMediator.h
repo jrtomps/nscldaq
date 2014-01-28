@@ -13,6 +13,8 @@ class CMediator
     CDataSource* m_pSource; //!< the source
     CFilter* m_pFilter; //!< the filter 
     CDataSink* m_pSink; //!< the sink 
+    int  m_nToProcess; //!< number to process
+    int  m_nToSkip; //!< number to skip
 
   public:
     // The constructor
@@ -79,6 +81,12 @@ class CMediator
     /**! The main loop
     */
     void mainLoop();
+
+    /**! Set the number to skip */
+    void setSkipCount(int nEvents) { m_nToSkip = nEvents; }
+
+    /**! Set the number to process */
+    void setProcessCount(int nEvents) { m_nToProcess = nEvents; }
 
   protected:
     /**! Delegate item to proper handler of filter
