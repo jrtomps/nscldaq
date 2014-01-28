@@ -84,7 +84,7 @@ void CFilterMain::registerFilter(CFilter* filter)
 CDataSource* CFilterMain::constructDataSource()
 {
   // Set up default source type
-  std::string source_name("file:///stdin/");
+  std::string source_name("-");
   if (m_argsInfo.source_given) {
     source_name = std::string(m_argsInfo.source_arg);
   } 
@@ -107,7 +107,7 @@ CDataSource* CFilterMain::constructDataSource()
 CDataSink* CFilterMain::constructDataSink()
 {
   // Set up default source type
-  std::string sink_name("file:///stdout/");
+  std::string sink_name("-");
   if (m_argsInfo.sink_given) {
     sink_name = std::string(m_argsInfo.sink_arg);
   } 

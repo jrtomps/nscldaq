@@ -28,6 +28,8 @@ class CFilterMainTest : public CppUnit::TestFixture
     CPPUNIT_TEST_SUITE( CFilterMainTest );
     CPPUNIT_TEST ( testBadSourceFail );
     CPPUNIT_TEST ( testBadSinkFail );
+    CPPUNIT_TEST ( testSkipTransmitted );
+    CPPUNIT_TEST ( testCountTransmitted );
 
     CPPUNIT_TEST_SUITE_END();
 
@@ -38,6 +40,8 @@ class CFilterMainTest : public CppUnit::TestFixture
     void testBadSourceFail();
     void testNoSourceFail();
     void testBadSinkFail();
+    void testSkipTransmitted();
+    void testCountTransmitted();
 
     void testSetMembers();
 
@@ -84,7 +88,7 @@ void CFilterMainTest::testBadSinkFail()
 {
   int argc = 3;
   const char* argv[] = {"Main",
-                      "--source=file:///stdin/",
+                      "--source=-",
                       "--sink=badproto://nofile"};
   // Ensure that this thing only throws a CFatalException
   CPPUNIT_ASSERT_THROW( CFilterMain app(argc, 
@@ -93,3 +97,22 @@ void CFilterMainTest::testBadSinkFail()
 
 }
 
+void CFilterMainTest::testSkipTransmitted()
+{
+  int argc = 2;
+  const char* argv[] = {"Main",
+                      "--skip=5"};
+  // Ensure that this thing only throws a CFatalException
+  CFilterMain app(argc, const_cast<char**>(argv)); 
+  CPPUNIT_ASSERT_EQUAL(5, app.m_mediator.m_nToSkip);
+}
+
+void CFilterMainTest::testCountTransmitted()
+{
+  int argc = 2;
+  const char* argv[] = {"Main",
+                      "--count=5"};
+  // Ensure that this thing only throws a CFatalException
+  CFilterMain app(argc, const_cast<char**>(argv)); 
+  CPPUNIT_ASSERT_EQUAL(5, app.m_mediator.m_nToProcess);
+}
