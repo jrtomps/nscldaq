@@ -40,13 +40,13 @@ class CMediatorTest : public CppUnit::TestFixture
       public:
        CTestFilter() : CFilter(), m_nProcessed(0) {}
 
-      virtual const CRingItem* handleStateChangeItem(const CRingStateChangeItem*) 
+      virtual CRingItem* handleStateChangeItem(CRingStateChangeItem*) 
       { ++m_nProcessed; return new CRingStateChangeItem(BEGIN_RUN);}
 
-      virtual const CRingItem* handleScalerItem(const CRingScalerItem* ) 
+      virtual CRingItem* handleScalerItem(CRingScalerItem* ) 
       { ++m_nProcessed; return new CRingScalerItem(200);}
 
-      virtual const CRingItem* handleTextItem(const CRingTextItem*) 
+      virtual CRingItem* handleTextItem(CRingTextItem*) 
       { ++m_nProcessed; 
         std::vector<std::string> str_vec;
         str_vec.push_back("0000");
@@ -55,16 +55,16 @@ class CMediatorTest : public CppUnit::TestFixture
         return new CRingTextItem(PACKET_TYPES,str_vec);
       }
 
-      virtual const CRingItem* handlePhysicsEventItem(const CPhysicsEventItem* ) 
+      virtual CRingItem* handlePhysicsEventItem(CPhysicsEventItem* ) 
       { ++m_nProcessed; return new CPhysicsEventItem(4096);}
 
-      virtual const CRingItem* 
-        handlePhysicsEventCountItem(const CRingPhysicsEventCountItem*) 
+      virtual CRingItem* 
+        handlePhysicsEventCountItem(CRingPhysicsEventCountItem*) 
         { ++m_nProcessed; 
             return new CRingPhysicsEventCountItem(static_cast<uint64_t>(4),
                                                   static_cast<uint32_t>(1001));}
 
-      virtual const CRingItem* handleFragmentItem(const CRingFragmentItem*)
+      virtual CRingItem* handleFragmentItem(CRingFragmentItem*)
       {
         ++m_nProcessed; 
         return new CRingFragmentItem(static_cast<uint64_t>(10101),
@@ -74,7 +74,7 @@ class CMediatorTest : public CppUnit::TestFixture
             static_cast<uint32_t>(3));
       }
 
-      virtual const CRingItem* handleRingItem(const CRingItem*) 
+      virtual CRingItem* handleRingItem(CRingItem*) 
       { ++m_nProcessed; return new CRingItem(100);}
 
       int getNProcessed() const { return m_nProcessed;}

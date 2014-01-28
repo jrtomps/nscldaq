@@ -71,7 +71,7 @@ CMediator::~CMediator()
 */
 void CMediator::mainLoop()
 {
-  const CRingItem* item=0;
+  CRingItem* item=0;
   
   // Dereference our pointers before entering
   // the main loop
@@ -103,7 +103,7 @@ void CMediator::mainLoop()
 
       // handle the item and get a pointer to 
       // to the new item
-      const CRingItem* new_item = handleItem(item);
+      CRingItem* new_item = handleItem(item);
 
       // Send the new item on to the sink
       sink.putItem(*new_item);
@@ -132,10 +132,10 @@ void CMediator::mainLoop()
 
 
 
-const CRingItem* CMediator::handleItem(const CRingItem* item)
+CRingItem* CMediator::handleItem(CRingItem* item)
 {
   // initial pointer to filtered item
-  const CRingItem* fitem = item;
+  CRingItem* fitem = item;
   switch(item->type()) {
 
     // State change items
@@ -143,34 +143,34 @@ const CRingItem* CMediator::handleItem(const CRingItem* item)
     case END_RUN:
     case PAUSE_RUN:
     case RESUME_RUN:
-      fitem = m_pFilter->handleStateChangeItem(static_cast<const CRingStateChangeItem*>(item));
+      fitem = m_pFilter->handleStateChangeItem(static_cast<CRingStateChangeItem*>(item));
       break;
 
       // Documentation items
     case PACKET_TYPES:
     case MONITORED_VARIABLES:
-      fitem = m_pFilter->handleTextItem(static_cast<const CRingTextItem*>(item));
+      fitem = m_pFilter->handleTextItem(static_cast<CRingTextItem*>(item));
       break;
 
       // Scaler items
     case PERIODIC_SCALERS:
-      fitem = m_pFilter->handleScalerItem(static_cast<const CRingScalerItem*>(item));
+      fitem = m_pFilter->handleScalerItem(static_cast<CRingScalerItem*>(item));
       break;
 
       // Physics event item
     case PHYSICS_EVENT:
-      fitem = m_pFilter->handlePhysicsEventItem(static_cast<const CPhysicsEventItem*>(item));
+      fitem = m_pFilter->handlePhysicsEventItem(static_cast<CPhysicsEventItem*>(item));
       break;
 
       // Physics event count
     case PHYSICS_EVENT_COUNT:
-      fitem = m_pFilter->handlePhysicsEventCountItem(static_cast<const CRingPhysicsEventCountItem*>(item));
+      fitem = m_pFilter->handlePhysicsEventCountItem(static_cast<CRingPhysicsEventCountItem*>(item));
       break;
 
       // Event builder fragment handlers
     case EVB_FRAGMENT:
     case EVB_UNKNOWN_PAYLOAD:
-      fitem = m_pFilter->handleFragmentItem(static_cast<const CRingFragmentItem*>(item));
+      fitem = m_pFilter->handleFragmentItem(static_cast<CRingFragmentItem*>(item));
       break;
 
       // Handle any other generic ring item...this can be 

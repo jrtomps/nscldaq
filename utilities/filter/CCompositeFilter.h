@@ -32,13 +32,13 @@ class CCompositeFilter : public CFilter
     virtual ~CCompositeFilter();
 
     // Handlers
-    virtual const CRingItem* handleRingItem(const CRingItem* item);
-    virtual const CRingItem* handleStateChangeItem(const CRingStateChangeItem* item);
-    virtual const CRingItem* handleScalerItem(const CRingScalerItem* item);
-    virtual const CRingItem* handleTextItem(const CRingTextItem* item);
-    virtual const CRingItem* handlePhysicsEventItem(const CPhysicsEventItem* item);
-    virtual const CRingItem* handlePhysicsEventCountItem(const CRingPhysicsEventCountItem* item);
-    virtual const CRingItem* handleFragmentItem(const CRingFragmentItem* item);
+    virtual CRingItem* handleRingItem(CRingItem* item);
+    virtual CRingItem* handleStateChangeItem(CRingStateChangeItem* item);
+    virtual CRingItem* handleScalerItem(CRingScalerItem* item);
+    virtual CRingItem* handleTextItem(CRingTextItem* item);
+    virtual CRingItem* handlePhysicsEventItem(CPhysicsEventItem* item);
+    virtual CRingItem* handlePhysicsEventCountItem(CRingPhysicsEventCountItem* item);
+    virtual CRingItem* handleFragmentItem(CRingFragmentItem* item);
 
     // iterator interface
     iterator begin() { return m_filter.begin(); }

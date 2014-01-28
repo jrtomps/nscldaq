@@ -35,27 +35,41 @@ class CFilter
     virtual CFilter* clone() const { return new CFilter();}
   
     // The default handlers
-    virtual const CRingItem* handleRingItem(const CRingItem* pItem) 
-    { return static_cast<const CRingItem*>(pItem);}
+    virtual CRingItem* handleRingItem(CRingItem* pItem) 
+    {
+       return pItem;
+    }
 
-    virtual const CRingItem* handleStateChangeItem(const CRingStateChangeItem* pItem) 
-    { return static_cast<const CRingItem*>(pItem);}
+    virtual CRingItem* handleStateChangeItem(CRingStateChangeItem* pItem) 
+    {
+       return static_cast<CRingItem*>(pItem);
+    }
 
-    virtual const CRingItem* handleScalerItem(const CRingScalerItem* pItem) 
-    { return static_cast<const CRingItem*>(pItem);}
+    virtual CRingItem* handleScalerItem(CRingScalerItem* pItem) 
+    {
+       return static_cast<CRingItem*>(pItem);
+    }
 
-    virtual const CRingItem* handleTextItem(const CRingTextItem* pItem) 
-    { return static_cast<const CRingItem*>(pItem);}
+    virtual CRingItem* handleTextItem(CRingTextItem* pItem) 
+    {
+       return static_cast<CRingItem*>(pItem);
+    }
 
-    virtual const CRingItem* handlePhysicsEventItem(const CPhysicsEventItem* pItem) 
-    {return static_cast<const CRingItem*>(pItem);}
+    virtual CRingItem* handlePhysicsEventItem(CPhysicsEventItem* pItem) 
+    {
+       return static_cast<CRingItem*>(pItem);
+    }
 
-    virtual const CRingItem* 
-    handlePhysicsEventCountItem(const CRingPhysicsEventCountItem* pItem) 
-    { return static_cast<const CRingItem*>(pItem);}
+    virtual CRingItem* 
+    handlePhysicsEventCountItem(CRingPhysicsEventCountItem* pItem) 
+    {
+       return static_cast<CRingItem*>(pItem);
+    }
 
-    virtual const CRingItem* handleFragmentItem(const CRingFragmentItem* pItem)
-    { return static_cast<const CRingItem*>(pItem);}
+    virtual CRingItem* handleFragmentItem(CRingFragmentItem* pItem)
+    {
+       return static_cast<CRingItem*>(pItem);
+    }
 
 };
 

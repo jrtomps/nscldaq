@@ -91,7 +91,7 @@ class CMediator
   protected:
     /**! Delegate item to proper handler of filter
     */
-    const CRingItem* handleItem(const CRingItem* item);
+    CRingItem* handleItem(CRingItem* item);
 
 };
 

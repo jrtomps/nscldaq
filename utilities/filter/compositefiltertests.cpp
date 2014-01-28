@@ -31,13 +31,13 @@ class CCompositeFilterTest : public CppUnit::TestFixture
 
       virtual CTestFilter* clone() const { return new CTestFilter;}
 
-      virtual const CRingItem* handleStateChangeItem(const CRingStateChangeItem*) 
+      virtual CRingItem* handleStateChangeItem(CRingStateChangeItem*) 
       { return new CRingStateChangeItem(BEGIN_RUN);}
 
-      virtual const CRingItem* handleScalerItem(const CRingScalerItem* ) 
+      virtual CRingItem* handleScalerItem(CRingScalerItem* ) 
       { return new CRingScalerItem(200);}
 
-      virtual const CRingItem* handleTextItem(const CRingTextItem*) 
+      virtual CRingItem* handleTextItem(CRingTextItem*) 
       { 
         std::vector<std::string> str_vec;
         str_vec.push_back("0000");
@@ -46,15 +46,15 @@ class CCompositeFilterTest : public CppUnit::TestFixture
         return new CRingTextItem(PACKET_TYPES,str_vec);
       }
 
-      virtual const CRingItem* handlePhysicsEventItem(const CPhysicsEventItem* ) 
+      virtual CRingItem* handlePhysicsEventItem(CPhysicsEventItem* ) 
       {return new CPhysicsEventItem(4096);}
 
-      virtual const CRingItem* 
-        handlePhysicsEventCountItem(const CRingPhysicsEventCountItem*) 
+      virtual CRingItem* 
+        handlePhysicsEventCountItem(CRingPhysicsEventCountItem*) 
         { return new CRingPhysicsEventCountItem(static_cast<uint64_t>(4),
             static_cast<uint32_t>(1001));}
 
-      virtual const CRingItem* handleFragmentItem(const CRingFragmentItem*)
+      virtual CRingItem* handleFragmentItem(CRingFragmentItem*)
       { 
         return new CRingFragmentItem(static_cast<uint64_t>(10101),
             static_cast<uint32_t>(1),
@@ -63,7 +63,7 @@ class CCompositeFilterTest : public CppUnit::TestFixture
             static_cast<uint32_t>(3));
       }
 
-      virtual const CRingItem* handleRingItem(const CRingItem*) 
+      virtual CRingItem* handleRingItem(CRingItem*) 
       { return new CRingItem(100);}
 
     };
@@ -124,7 +124,7 @@ class CCompositeFilterTest : public CppUnit::TestFixture
 //    void testTransparentMainLoop();
 
   private:
-  template<class T>  const CRingItem* setupAndRunFilter(const CRingItem* item);
+  template<class T>  CRingItem* setupAndRunFilter(CRingItem* item);
 };
 
 
@@ -174,10 +174,10 @@ void CCompositeFilterTest::testRegisterFilter()
 void CCompositeFilterTest::testProcessTransparentFilter()
 {
   // CReate a generic new item to pass in
-  const CRingItem* item = new CRingItem(100,100); 
+  CRingItem* item = new CRingItem(100,100); 
   // Setup composite with transparent filter and handle the 
   // ring item with it
-  const CRingItem* new_item = setupAndRunFilter<CFilter>(item);
+  CRingItem* new_item = setupAndRunFilter<CFilter>(item);
   // Verify that the composite didn't delete my item
   CPPUNIT_ASSERT( new_item == item );
   
@@ -189,8 +189,8 @@ void CCompositeFilterTest::testProcessTransparentFilter()
 }
 
 template<class T>
-const CRingItem* 
-CCompositeFilterTest::setupAndRunFilter(const CRingItem* item)
+CRingItem* 
+CCompositeFilterTest::setupAndRunFilter(CRingItem* item)
 {
   // Create a transparent filter
   m_filter = new T;
@@ -209,10 +209,10 @@ CCompositeFilterTest::setupAndRunFilter(const CRingItem* item)
 void CCompositeFilterTest::testTransparentStateChangeItem()
 {
   // CReate a generic new item to pass in
-  const CRingItem* item = new CRingStateChangeItem(END_RUN); 
+  CRingItem* item = new CRingStateChangeItem(END_RUN); 
   // Setup composite with transparent filter and handle the 
   // ring item with it
-  const CRingItem* new_item = setupAndRunFilter<CFilter>(item);
+  CRingItem* new_item = setupAndRunFilter<CFilter>(item);
   // Verify that the composite didn't delete my item
   CPPUNIT_ASSERT( new_item == item );
 
@@ -226,10 +226,10 @@ void CCompositeFilterTest::testTransparentStateChangeItem()
 void CCompositeFilterTest::testTestStateChangeItem()
 {
   // CReate a generic new item to pass in
-  const CRingItem* item = new CRingStateChangeItem(END_RUN); 
+  CRingItem* item = new CRingStateChangeItem(END_RUN); 
   // Setup composite with transparent filter and handle the 
   // ring item with it
-  const CRingItem* new_item = setupAndRunFilter<CTestFilter>(item);
+  CRingItem* new_item = setupAndRunFilter<CTestFilter>(item);
   // Verify that the composite didn't delete my item
   CPPUNIT_ASSERT( new_item != item );
 
@@ -247,10 +247,10 @@ void CCompositeFilterTest::testTestStateChangeItem()
 // Create scaler item
 void CCompositeFilterTest::testTransparentScalerItem()
 {
-  const CRingItem* item = new CRingScalerItem (300);
+  CRingItem* item = new CRingScalerItem (300);
   // Setup composite with transparent filter and handle the 
   // ring item with it
-  const CRingItem* new_item = setupAndRunFilter<CFilter>(item);
+  CRingItem* new_item = setupAndRunFilter<CFilter>(item);
   // Verify that the composite didn't delete my item
   CPPUNIT_ASSERT( new_item == item );
 
@@ -264,14 +264,14 @@ void CCompositeFilterTest::testTransparentScalerItem()
 // Create scaler item
 void CCompositeFilterTest::testTestScalerItem()
 {
-  const CRingItem* item = new CRingScalerItem (300);
+  CRingItem* item = new CRingScalerItem (300);
   // Setup composite with transparent filter and handle the 
   // ring item with it
-  const CRingItem* new_item = setupAndRunFilter<CTestFilter>(item);
+  CRingItem* new_item = setupAndRunFilter<CTestFilter>(item);
   // Verify that the composite didn't delete my item
   CPPUNIT_ASSERT( new_item != item );
 
-  const CRingScalerItem* new_sclr = static_cast<const CRingScalerItem*>(new_item);
+  CRingScalerItem* new_sclr = static_cast<CRingScalerItem*>(new_item);
   CPPUNIT_ASSERT( 200 == new_sclr->getScalerCount() );
 
   if (item != new_item) {
@@ -286,9 +286,9 @@ void CCompositeFilterTest::testTransparentTextItem()
 {
   std::vector<std::string> str_vec;
   str_vec.push_back("testing 123");
-  const CRingTextItem* item = new CRingTextItem(MONITORED_VARIABLES,str_vec);
+  CRingTextItem* item = new CRingTextItem(MONITORED_VARIABLES,str_vec);
 
-  const CRingItem* new_item = setupAndRunFilter<CFilter>(item);
+  CRingItem* new_item = setupAndRunFilter<CFilter>(item);
 
   CPPUNIT_ASSERT (new_item == item);
 
@@ -305,10 +305,10 @@ void CCompositeFilterTest::testTestTextItem()
 {
   std::vector<std::string> str_vec;
   str_vec.push_back("testing 123");
-  const CRingTextItem* item = new CRingTextItem(MONITORED_VARIABLES,str_vec);
-  const CRingItem* new_item = setupAndRunFilter<CTestFilter>(item);
+  CRingTextItem* item = new CRingTextItem(MONITORED_VARIABLES,str_vec);
+  CRingItem* new_item = setupAndRunFilter<CTestFilter>(item);
   // Test filter should always return 200 scalers
-  const CRingTextItem* new_text = dynamic_cast<const CRingTextItem*>(new_item);
+  CRingTextItem* new_text = dynamic_cast<CRingTextItem*>(new_item);
 
   CPPUNIT_ASSERT( 3 == new_text->getStrings().size() );
   CPPUNIT_ASSERT( "0000" == new_text->getStrings()[0] );
@@ -325,9 +325,9 @@ void CCompositeFilterTest::testTestTextItem()
 // PhysicsEvent item
 void CCompositeFilterTest::testTransparentPhysicsEventItem()
 {
-  const CPhysicsEventItem* item = new CPhysicsEventItem(8192);
+  CPhysicsEventItem* item = new CPhysicsEventItem(8192);
 
-  const CRingItem* new_item = setupAndRunFilter<CFilter>(item);
+  CRingItem* new_item = setupAndRunFilter<CFilter>(item);
 
   CPPUNIT_ASSERT( item == new_item );
 
@@ -341,12 +341,12 @@ void CCompositeFilterTest::testTransparentPhysicsEventItem()
 // PhysicsEvent item
 void CCompositeFilterTest::testTestPhysicsEventItem()
 {
-  const CPhysicsEventItem* item = new CPhysicsEventItem(8192);
+  CPhysicsEventItem* item = new CPhysicsEventItem(8192);
 
-  const CRingItem* new_item = setupAndRunFilter<CTestFilter>(item);
+  CRingItem* new_item = setupAndRunFilter<CTestFilter>(item);
   CPPUNIT_ASSERT( item != new_item );
 
-  const CPhysicsEventItem* new_evt = dynamic_cast<const CPhysicsEventItem*>(new_item);
+  CPhysicsEventItem* new_evt = dynamic_cast<CPhysicsEventItem*>(new_item);
 
   CPPUNIT_ASSERT( 4096 == new_evt->getStorageSize() );
 
@@ -360,13 +360,13 @@ void CCompositeFilterTest::testTestPhysicsEventItem()
 // PhysicsEventCount item
 void CCompositeFilterTest::testTransparentPhysicsEventCountItem()
 {
-  const CRingPhysicsEventCountItem* item = 0;
+  CRingPhysicsEventCountItem* item = 0;
   item =  new CRingPhysicsEventCountItem(static_cast<uint64_t>(100),
                                          static_cast<uint32_t>(100));
 
-  const CRingItem* new_item = setupAndRunFilter<CFilter>(item);
-  const CRingPhysicsEventCountItem* new_cnt 
-    = dynamic_cast<const CRingPhysicsEventCountItem*>(new_item);
+  CRingItem* new_item = setupAndRunFilter<CFilter>(item);
+  CRingPhysicsEventCountItem* new_cnt 
+    = dynamic_cast<CRingPhysicsEventCountItem*>(new_item);
 
   CPPUNIT_ASSERT( item == new_item);
 
@@ -380,13 +380,13 @@ void CCompositeFilterTest::testTransparentPhysicsEventCountItem()
 // PhysicsEventCount item
 void CCompositeFilterTest::testTestPhysicsEventCountItem()
 {
-  const CRingPhysicsEventCountItem* item = 0;
+  CRingPhysicsEventCountItem* item = 0;
   item =  new CRingPhysicsEventCountItem(static_cast<uint64_t>(100),
                                          static_cast<uint32_t>(100));
 
-  const CRingItem* new_item = setupAndRunFilter<CTestFilter>(item);
-  const CRingPhysicsEventCountItem* new_cnt 
-    = dynamic_cast<const CRingPhysicsEventCountItem*>(new_item);
+  CRingItem* new_item = setupAndRunFilter<CTestFilter>(item);
+  CRingPhysicsEventCountItem* new_cnt 
+    = dynamic_cast<CRingPhysicsEventCountItem*>(new_item);
 
   CPPUNIT_ASSERT( item != new_item);
   CPPUNIT_ASSERT( static_cast<uint64_t>(4) == new_cnt->getEventCount() );
@@ -402,13 +402,13 @@ void CCompositeFilterTest::testTestPhysicsEventCountItem()
 // RingFragmentItem
 void CCompositeFilterTest::testTransparentFragmentItem()
 {
-  const CRingFragmentItem* item = new CRingFragmentItem(static_cast<uint64_t>(0),
+  CRingFragmentItem* item = new CRingFragmentItem(static_cast<uint64_t>(0),
                                                         static_cast<uint32_t>(0),
                                                         static_cast<uint32_t>(0),
                                                         reinterpret_cast<void*>(0),
                                                         static_cast<uint32_t>(0));
 
-  const CRingItem* new_item = setupAndRunFilter<CFilter>(item);
+  CRingItem* new_item = setupAndRunFilter<CFilter>(item);
 
   CPPUNIT_ASSERT( new_item == item);
 
@@ -422,17 +422,17 @@ void CCompositeFilterTest::testTransparentFragmentItem()
 // RingFragmentItem
 void CCompositeFilterTest::testTestFragmentItem()
 {
-  const CRingFragmentItem* item = new CRingFragmentItem(static_cast<uint64_t>(0),
+  CRingFragmentItem* item = new CRingFragmentItem(static_cast<uint64_t>(0),
                                                         static_cast<uint32_t>(0),
                                                         static_cast<uint32_t>(0),
                                                         reinterpret_cast<void*>(0),
                                                         static_cast<uint32_t>(0));
 
-  const CRingItem* new_item = setupAndRunFilter<CTestFilter>(item);
+  CRingItem* new_item = setupAndRunFilter<CTestFilter>(item);
 
   CPPUNIT_ASSERT( new_item != item);
 
-  const CRingFragmentItem* new_frag = dynamic_cast<const CRingFragmentItem*>(new_item);
+  CRingFragmentItem* new_frag = dynamic_cast<CRingFragmentItem*>(new_item);
   CPPUNIT_ASSERT( static_cast<uint64_t>(10101) == new_frag->timestamp());
   CPPUNIT_ASSERT( static_cast<uint32_t>(1) == new_frag->source());
   CPPUNIT_ASSERT( static_cast<uint32_t>(2) == const_cast<CRingFragmentItem*>(new_frag)->payloadSize());
@@ -448,8 +448,8 @@ void CCompositeFilterTest::testTestFragmentItem()
 // Create some generic item type to force testing of handleRingItem()
 void CCompositeFilterTest::testTransparentGenericItem()
 {
-  const CRingItem* item = new CRingItem(1000);    
-  const CRingItem* new_item = setupAndRunFilter<CFilter>(item);
+  CRingItem* item = new CRingItem(1000);    
+  CRingItem* new_item = setupAndRunFilter<CFilter>(item);
   CPPUNIT_ASSERT( item == new_item );
 
   if (item != new_item) {
@@ -462,8 +462,8 @@ void CCompositeFilterTest::testTransparentGenericItem()
 // Create some generic item type to force testing of handleRingItem()
 void CCompositeFilterTest::testTestGenericItem()
 {
-  const CRingItem* item = new CRingItem(1000);    
-  const CRingItem* new_item = setupAndRunFilter<CTestFilter>(item);
+  CRingItem* item = new CRingItem(1000);    
+  CRingItem* new_item = setupAndRunFilter<CTestFilter>(item);
   CPPUNIT_ASSERT( item != new_item );
   // Test filter should always return type 100
   CPPUNIT_ASSERT( 100 == new_item->type() );

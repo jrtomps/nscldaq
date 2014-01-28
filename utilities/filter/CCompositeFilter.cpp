@@ -108,14 +108,14 @@ void CCompositeFilter::registerFilter(const CFilter* filter)
   \param item the ring item to process
   \return a pointer to the output of the last filter registered to the composite
 */  
-const CRingItem* CCompositeFilter::handleRingItem(const CRingItem* item)
+CRingItem* CCompositeFilter::handleRingItem(CRingItem* item)
 {
   iterator it = begin(); 
   iterator itend = end(); 
 
   // Initialize some pointers to keep track of returned objects
-  const CRingItem* pItem0=item;
-  const CRingItem* pItem1=pItem0;
+  CRingItem* pItem0=item;
+  CRingItem* pItem1=pItem0;
   while (it!=itend) {
 
     // pass the first item to the filter and get the filtered item 
@@ -142,18 +142,18 @@ const CRingItem* CCompositeFilter::handleRingItem(const CRingItem* item)
    is done except that handleStateChangeItem(const CRingStateChangleItem*) is 
    called.
 */
-const CRingItem* CCompositeFilter::handleStateChangeItem(const CRingStateChangeItem* item)
+CRingItem* CCompositeFilter::handleStateChangeItem(CRingStateChangeItem* item)
 {
   iterator it = begin(); 
   iterator itend = end(); 
 
   // Initialize some pointers to keep track of returned objects
-  const CRingItem* pItem0=item;
-  const CRingItem* pItem1=pItem0;
-  const CRingStateChangeItem* state_item = 0;
+  CRingItem* pItem0=item;
+  CRingItem* pItem1=pItem0;
+  CRingStateChangeItem* state_item = 0;
   while (it!=itend) {
 
-    state_item = static_cast<const CRingStateChangeItem*>(pItem0);
+    state_item = static_cast<CRingStateChangeItem*>(pItem0);
 
     // pass the first item to the filter and get the filtered item 
     pItem1 = (*it)->handleStateChangeItem(state_item);
@@ -179,18 +179,18 @@ const CRingItem* CCompositeFilter::handleStateChangeItem(const CRingStateChangeI
    is done except that handleScalerItem(const CScalerItem*) is 
    called.
 */
-const CRingItem* CCompositeFilter::handleScalerItem(const CRingScalerItem* item)
+CRingItem* CCompositeFilter::handleScalerItem(CRingScalerItem* item)
 {
   iterator it = begin(); 
   iterator itend = end(); 
 
   // Initialize some pointers to keep track of returned objects
-  const CRingItem* pItem0=item;
-  const CRingItem* pItem1=pItem0;
-  const CRingScalerItem* state_item = 0;
+  CRingItem* pItem0=item;
+  CRingItem* pItem1=pItem0;
+  CRingScalerItem* state_item = 0;
   while (it!=itend) {
 
-    state_item = static_cast<const CRingScalerItem*>(pItem0);
+    state_item = static_cast<CRingScalerItem*>(pItem0);
 
     // pass the first item to the filter and get the filtered item 
     pItem1 = (*it)->handleScalerItem(state_item);
@@ -216,18 +216,18 @@ const CRingItem* CCompositeFilter::handleScalerItem(const CRingScalerItem* item)
    is done except that handleTextItem(const CTextItem*) is 
    called.
 */
-const CRingItem* CCompositeFilter::handleTextItem(const CRingTextItem* item)
+CRingItem* CCompositeFilter::handleTextItem(CRingTextItem* item)
 {
   iterator it = begin(); 
   iterator itend = end(); 
 
   // Initialize some pointers to keep track of returned objects
-  const CRingItem* pItem0=item;
-  const CRingItem* pItem1=pItem0;
-  const CRingTextItem* state_item = 0;
+  CRingItem* pItem0=item;
+  CRingItem* pItem1=pItem0;
+  CRingTextItem* state_item = 0;
   while (it!=itend) {
 
-    state_item = static_cast<const CRingTextItem*>(pItem0);
+    state_item = static_cast<CRingTextItem*>(pItem0);
 
     // pass the first item to the filter and get the filtered item 
     pItem1 = (*it)->handleTextItem(state_item);
@@ -253,18 +253,18 @@ const CRingItem* CCompositeFilter::handleTextItem(const CRingTextItem* item)
    is done except that handlePhysicsEventItem(const CPhysicsEventItem*) is 
    called.
 */
-const CRingItem* CCompositeFilter::handlePhysicsEventItem(const CPhysicsEventItem* item)
+CRingItem* CCompositeFilter::handlePhysicsEventItem(CPhysicsEventItem* item)
 {
   iterator it = begin(); 
   iterator itend = end(); 
 
   // Initialize some pointers to keep track of returned objects
-  const CRingItem* pItem0=item;
-  const CRingItem* pItem1=pItem0;
-  const CPhysicsEventItem* state_item = 0;
+  CRingItem* pItem0=item;
+  CRingItem* pItem1=pItem0;
+  CPhysicsEventItem* state_item = 0;
   while (it!=itend) {
 
-    state_item = static_cast<const CPhysicsEventItem*>(pItem0);
+    state_item = static_cast<CPhysicsEventItem*>(pItem0);
 
     // pass the first item to the filter and get the filtered item 
     pItem1 = (*it)->handlePhysicsEventItem(state_item);
@@ -290,18 +290,18 @@ const CRingItem* CCompositeFilter::handlePhysicsEventItem(const CPhysicsEventIte
    is done except that handlePhysicsEventCountItem(const CRingPhysicsEventCountItem*) is 
    called.
 */
-const CRingItem* CCompositeFilter::handlePhysicsEventCountItem(const CRingPhysicsEventCountItem* item)
+CRingItem* CCompositeFilter::handlePhysicsEventCountItem(CRingPhysicsEventCountItem* item)
 {
   iterator it = begin(); 
   iterator itend = end(); 
 
   // Initialize some pointers to keep track of returned objects
-  const CRingItem* pItem0=item;
-  const CRingItem* pItem1=pItem0;
-  const CRingPhysicsEventCountItem* state_item = 0;
+  CRingItem* pItem0=item;
+  CRingItem* pItem1=pItem0;
+  CRingPhysicsEventCountItem* state_item = 0;
   while (it!=itend) {
 
-    state_item = static_cast<const CRingPhysicsEventCountItem*>(pItem0);
+    state_item = static_cast<CRingPhysicsEventCountItem*>(pItem0);
 
     // pass the first item to the filter and get the filtered item 
     pItem1 = (*it)->handlePhysicsEventCountItem(state_item);
@@ -327,18 +327,18 @@ const CRingItem* CCompositeFilter::handlePhysicsEventCountItem(const CRingPhysic
    is done except that handleFragmentItem(const CFragmentItem*) is 
    called.
 */
-const CRingItem* CCompositeFilter::handleFragmentItem(const CRingFragmentItem* item)
+CRingItem* CCompositeFilter::handleFragmentItem(CRingFragmentItem* item)
 {
   iterator it = begin(); 
   iterator itend = end(); 
 
   // Initialize some pointers to keep track of returned objects
-  const CRingItem* pItem0=item;
-  const CRingItem* pItem1=pItem0;
-  const CRingFragmentItem* state_item = 0;
+  CRingItem* pItem0=item;
+  CRingItem* pItem1=pItem0;
+  CRingFragmentItem* state_item = 0;
   while (it!=itend) {
 
-    state_item = static_cast<const CRingFragmentItem*>(pItem0);
+    state_item = static_cast<CRingFragmentItem*>(pItem0);
 
     // pass the first item to the filter and get the filtered item 
     pItem1 = (*it)->handleFragmentItem(state_item);
