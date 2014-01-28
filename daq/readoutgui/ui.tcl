@@ -592,10 +592,11 @@ snit::widgetadaptor RunControl {
         grid $win.beginend $win.pauseresume -sticky n
         grid $win.record -columnspan 2 -sticky n
 
+        grid configure $win -padx 5 -pady 5
         grid rowconfigure $win 0 -weight 0        
         grid rowconfigure $win 1 -weight 0        
         grid rowconfigure $win 2 -weight 0        
-
+       
         install stateMachine using RunstateMachineSingleton %AUTO%
         $self _updateAppearance
         
@@ -1282,6 +1283,7 @@ snit::widgetadaptor TimedRunControls {
         
         grid $win.onoff $win.days $win.daysep $win.hrs $win.hrsep $win.min $win.minsep $win.secs -sticky nsew
         grid rowconfigure $win 0 -weight 0
+        grid configure $win -ipadx 5 -ipady 5
         
     }
     #---------------------------------------------------------------------------
