@@ -13,8 +13,9 @@
 #include "CFatalException.h"
 
 /**! Constructor
-  Constructs a mediator object with a CCaesarFilter
-  as the default filter. 
+  Constructs a mediator object with a CCompositeFilter
+  as the default filter. We also set up the proper 
+  skip and processing counts that user supplied.
 
   \throw can throw a CFatalException
 
@@ -32,6 +33,16 @@ CFilterMain::CFilterMain(int argc, char** argv)
     // Set up the sink source 
     CDataSink* sink = constructDataSink(); 
     m_mediator.setDataSink(sink);
+
+    // set up the skip and count args
+    if (m_argsInfo.skip_given) {
+      m_mediator.setSkipCount(m_argsInfo.skip_arg);
+    }  
+
+    if (m_argsInfo.count_given) {
+      m_mediator.setProcessCount(m_argsInfo.count_arg);
+    }  
+
 
   } catch (CException& exc) {
     std::cout << exc.ReasonText() << std::endl;
@@ -107,11 +118,10 @@ CDataSink* CFilterMain::constructDataSink()
 
 /**! The main loop
     This is just a wrapper around the mediator's mainLoop. It is here
-    that the processing occurs in the application. 
-*/
+    that the processing occurs in the application. */
 void CFilterMain::operator()()
 {
-  
+
   m_mediator.mainLoop();
 
 }
