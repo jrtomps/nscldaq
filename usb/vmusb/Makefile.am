@@ -52,12 +52,12 @@ VMUSBReadout_LDFLAGS=-Wl,"-rpath=$(libdir)"
 
 cmdline.h: commandline.ggo
 	$(GENGETOPT) <@top_srcdir@/usb/vmusb/commandline.ggo \
-		@output-dir=@top_srcdir@/usb/vmusb
+		@output-dir=@top_srcdir@/usb/vmusb --set-version=@VERSION@
 
 
 
 cmdline.o: commandline.ggo
-	$(GENGETOPT) <@top_srcdir@/usb/vmusb/commandline.ggo
+	$(GENGETOPT) <@top_srcdir@/usb/vmusb/commandline.ggo --set-version=@VERSION@
 	$(CC) -c -I. cmdline.c $(THREADCFLAGS)
 
 EXTRA_DIST=commandline.ggo vmusbReadout.xml

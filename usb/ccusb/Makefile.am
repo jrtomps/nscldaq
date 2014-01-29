@@ -50,7 +50,7 @@ BUILT_SOURCES = @srcdir@/cmdline.c
 @srcdir@/cmdline.c: @srcdir@/cmdline.h
 
 @srcdir@/cmdline.h: @srcdir@/commandline.ggo
-	@GENGETOPT@ < @srcdir@/commandline.ggo --output-dir=@srcdir@
+	@GENGETOPT@ < @srcdir@/commandline.ggo --output-dir=@srcdir@ --set-version=@VERSION@
 
 EXTRA_DIST= commandline.ggo ccusb.xml
 

@@ -140,7 +140,7 @@ int CTheApplication::operator()(int argc, char** argv)
     );
   }
 
-  cerr << "VM-USB scriptable readout version " << versionString << endl;
+  //  cerr << "VM-USB scriptable readout version " << versionString << endl;
 
   // If --enumerate was given, just enumerate the VM-USB modules connected to the
   // system on stdout and exit.

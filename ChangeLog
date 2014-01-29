@@ -508,7 +508,7 @@ Feb 1, 2012 - Feb 24, 2012
 	always should have been if I'd not been so lazy.
 	* Added documentation for ReadoutGUIPanel::Log method.
         * Issue #1045 - Redo event GUI to support multiple readouts.
-        *   Add control over readout gui's log window characteristics
+        *   Add control over readout gui's log window charact>eristics
         *   Add sshPipe provider wd parameter.
         *   Expose that parameter in the prompter for the source in the
 	gui.
@@ -525,4 +525,7 @@ Feb 1, 2012 - Feb 24, 2012
 	* Remove lines/cols from outputwindow settings...it's now resizeable
         * Issue #1850 - Add skeleton build tests to Jenkins job.l
 	* Issue #1824 - Add and install documentation for unglom.
-
+        * Issue #1761 - Make the xxusbReadout frameworks not output versions
+          by default and synch their versions with nscldaq version when
+          used with the --version option.
+          

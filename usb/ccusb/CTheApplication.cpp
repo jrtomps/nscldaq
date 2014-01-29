@@ -136,7 +136,7 @@ int CTheApplication::operator()(int argc, char** argv)
   }
 
 
-  cerr << "CC-USB scriptable readout version " << versionString << endl;
+  //cerr << "CC-USB scriptable readout version " << versionString << endl;
 
   // If we were just asked to enumerate the interfaces do so and exit:
 
