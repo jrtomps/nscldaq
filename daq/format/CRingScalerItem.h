@@ -57,6 +57,8 @@
 */
 class CRingScalerItem : public CRingItem
 {
+public:
+  static uint32_t m_ScalerFormatMask;
 
   // Constructors and canonicals.:
 

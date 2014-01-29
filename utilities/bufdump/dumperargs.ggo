@@ -7,4 +7,5 @@ option "skip"   m "number of items to skip before dumping" int optional
 option "count"  c "Number of items to dump before exiting" int optional
 option "sample" S "List of item types to sample" string optional
 option "exclude" e "List of item types to exclude from the dump" string optional
+option "scaler-width" w "Number of bits wide scaler counters are" int optional default="32"
 

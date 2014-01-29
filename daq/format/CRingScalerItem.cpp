@@ -22,6 +22,8 @@
 
 using namespace std;
 
+uint32_t CRingScalerItem::m_ScalerFormatMask(0xffffffff); // by default scalers are 32 bits wide.
+
 ///////////////////////////////////////////////////////////////////////////////////////
 //
 // Constructors and other canonicals.
@@ -425,6 +427,9 @@ CRingScalerItem::toString() const
   float start = computeStartTime();
   string   time  = timeString(getTimestamp());
   vector<uint32_t> scalers = getScalers();
+  for (int i =0; i < scalers.size(); i++) {
+    scalers[i] = scalers[i] & m_ScalerFormatMask; // Mask off unused bits.
+  }
 
   float   duration = end - start;
 

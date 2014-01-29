@@ -24,6 +24,8 @@
 #include <StringsToIntegers.h>
 #include <CDataSource.h>
 #include <CDataSourceFactory.h>
+#include <CRingScalerItem.h>
+
 #include "dumperargs.h"
 
 #include <iostream>
@@ -98,6 +100,19 @@ BufdumpMain::operator()(int argc, char** argv)
     std::cerr << "Only switches are allowed, not command line parameters\n";
     cmdline_parser_print_help();
     return EXIT_FAILURE;
+  }
+
+  // Set the scaler format mask... note 32 is a bit pathalogical in a 
+  // for uint32_t values...note also the max is 32 bits:
+
+  if ((parse.scaler_width_arg > 32) ||  (parse.scaler_width_arg <= 0)) {
+    std::cerr << "The --scaler-width flag value must be greater than zero and 32 or less, was: " 
+	      << parse.scaler_width_arg << std::endl;
+    return EXIT_FAILURE;
+  } else if (parse.scaler_width_arg == 32) {
+    CRingScalerItem::m_ScalerFormatMask = 0xffffffff;
+  } else {
+    CRingScalerItem::m_ScalerFormatMask = (1 << parse.scaler_width_arg) - 1;
   }
 
   // figure out the sample/exclusion vectors:

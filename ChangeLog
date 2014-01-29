@@ -528,4 +528,10 @@ Feb 1, 2012 - Feb 24, 2012
         * Issue #1761 - Make the xxusbReadout frameworks not output versions
           by default and synch their versions with nscldaq version when
           used with the --version option.
-          
+	* Issue #1835 - Remove duplicated VmeModule.{h,cpp} -- chose the
+	one in nsclapi over the one in vmemodules.
+        * Issue #1827 - Add --scaler-width option to dumper to deal with 
+	   X/Q bits in CCUSB Scalers e.g.  This was done by introducing a
+	public static attribute CRingScalerItem::m_ScalerFormatMask which
+	toString ands with scaler values.
+	

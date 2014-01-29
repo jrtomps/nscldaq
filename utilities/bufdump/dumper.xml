@@ -331,6 +331,20 @@ dumper <replaceable>?options?</replaceable>
             </listitem>
         </varlistentry>
         <varlistentry>
+            <term><option>--scaler-width</option>=<replaceable>bits</replaceable></term>
+            <listitem>
+                <para>
+                    Specifies the width of scaler counters in bits.  Unused
+                    bits will be masked off prior to output.  This is useful for
+                    some CAMAC readout systems where scaler values can hav additional
+                    bits at the top end that are not meaningful.
+                    <parameter>bits</parameter> must be a positive number
+                    that is at most <literal>32</literal>.
+                </para>
+            </listitem>
+        </varlistentry>
+        
+        <varlistentry>
             <term><option>--source</option>=<replaceable>URL</replaceable></term>
             <listitem>
                 <para>
