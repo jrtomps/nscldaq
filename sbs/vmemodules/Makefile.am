@@ -18,7 +18,6 @@ libSBSDeviceSupport_la_SOURCES =	CADC2530.cpp		\
 					Nimout.cpp	\
 					sis3300.cpp	\
 					v890.cpp	\
-					VmeModule.cpp	\
 					CMemoryMappedCAMACBranch.cpp	\
 					CESCBD8210.cpp	\
 					CVC32CC32.cpp	\
@@ -54,7 +53,6 @@ include_HEADERS =	CADC2530.h	\
 			v890.h		\
 			wienercamac.h	\
 			wienermacros.h	\
-			VmeModule.h	\
 			CVME.h CVMEptr.h \
 			CCAMACBranch.h	\
 			CMemoryMappedCAMACBranch.h \
