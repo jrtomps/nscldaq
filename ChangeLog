@@ -523,5 +523,6 @@ Feb 1, 2012 - Feb 24, 2012
 	* Issue #1760  - Don't rethrow exception in XXUSB CTheApplication.cpp
 	operator() -- just exit since there's no other exception handler.
 	* Remove lines/cols from outputwindow settings...it's now resizeable
-
+        * Issue #1850 - Add skeleton build tests to Jenkins job.l
+	* Issue #1824 - Add and install documentation for unglom.
 
