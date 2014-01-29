@@ -279,6 +279,11 @@ AC_SUBST(KERNEL_SOURCE_DIR)
 AM_CONDITIONAL([BUILD_SBS_DRIVER], [test "$BUILD_SBS" == "yes"])
 
 
+#
+# Ensure that resources for testing are accessible
+# for out of tree builds
+#
+AC_CONFIG_LINKS([utilities/filter/run-0000-00.evt:utilities/filter/run-0000-00.evt])
 
 
 #---------------------------------------------------------------------------
