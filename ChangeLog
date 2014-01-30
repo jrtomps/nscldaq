@@ -534,4 +534,6 @@ Feb 1, 2012 - Feb 24, 2012
 	   X/Q bits in CCUSB Scalers e.g.  This was done by introducing a
 	public static attribute CRingScalerItem::m_ScalerFormatMask which
 	toString ands with scaler values.
+	* Issue #1825 - Document SBS readout commands and key variables.
+	
 	

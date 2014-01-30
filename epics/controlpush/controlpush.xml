@@ -75,7 +75,7 @@
 
 <refentry id="manpage.controlpush">
     <refmeta>
-        <refentrytitle>controlpush</refentrytitle>
+        <refentrytitle id='manpage.controlpush-title'>controlpush</refentrytitle>
         <manvolnum>1epics</manvolnum>
     </refmeta>
     <refnamediv>

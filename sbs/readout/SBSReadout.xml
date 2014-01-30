@@ -4239,7 +4239,146 @@ Readout <replaceable>options...</replaceable>
     
      </variablelist>
   </refsect1>
-
+  <refsect1>
+    <title>COMMANDS</title>
+    <para>
+        The Readout program runs a Tcl interpreter.  The Tcl <command>set</command>
+        command can set some variables that have meaning to the Readout program.
+        See VARIABLES below for a list of those. This section describes commands
+        that have been added to the base Tcl interpreter for the Readout program.
+    </para>
+    <variablelist>
+        <varlistentry>
+            <term><command>begin</command></term>
+            <listitem>
+                <para>
+                    Starts a data taking run.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><command>end</command></term>
+            <listitem>
+                <para>
+                    Ends a data taking run.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><command>pause</command></term>
+            <listitem>
+                <para>
+                    Pauses a data taking run.  
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><command>resume</command></term>
+            <listitem>
+                <para>
+                    Resumes a data taking run that was paused.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><command>runvar</command> <replaceable>varname</replaceable></term>
+            <listitem>
+                <para>
+                    Designates <parameter>varname</parameter> as a Tcl variable
+                    that will be written out to the event stream in a documentation
+                    ring item.  Normally the values of these variables are set
+                    either by the users's experiment specific code, or via external
+                    programs interacting with Readout's Tcl server.  One example
+                    of this is the use of the
+                    <link linkend='manpage.controlpush' endterm='manpage.controlpush-title' />
+                    program to push the values of Tcl variables into the interpreter. 
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><command>serverauth</command> <replaceable>subcommand ?parameters?</replaceable></term>
+            <listitem>
+                <para>
+                    This controls access to the Tcl server embedded in the
+                    Readout program.  By default only connections from
+                    <literal>localhost</literal> (the host Reaout is running in)
+                    are allowed. Note that this command must be issued to the
+                    Tcl server not to the main command interpreter.
+                </para>
+                <para>
+                    Subcommands are as follows:
+                </para>
+                <variablelist>
+                    <varlistentry>
+                        <term><command>add</command> <replaceable>host-or-ip</replaceable></term>
+                        <listitem>
+                            <para>
+                                Adds a new <parameter>host-or-ip</parameter> to the
+                                list of hosts that are allowed to connect.
+                                <parameter>host-or-ip</parameter> is either the
+                                DNS name of a host (e.g. <literal>u6pc3</literal>) or
+                                the IP address of that host in dotted numeric form
+                                (e.g. <literal>35.9.56.23</literal>).
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><command>list</command></term>
+                        <listitem>
+                            <para>
+                                Lists the hosts that are allowed to connect
+                                to the Tcl server. The returned value is a list of
+                                hosts.  Each host is a two element hostname/IP address
+                                list.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><command>delete</command> <replaceable>host-or-ip</replaceable></term>
+                        <listitem>
+                            <para>
+                                Removes the specified <replaceable>host-or-ip</replaceable>
+                                from the list of hosts authorized to connect.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    
+                </variablelist>
+            </listitem>
+        </varlistentry>
+        
+    </variablelist>
+  </refsect1>
+  <refsect1>
+    <title>VARIABLES</title>
+    <para>
+        Besides the variables that have been defined via the <command>runvar</command>
+        command to put in documentation ring items, some variables have
+        special meaning for Readout:
+    </para>
+    <variablelist>
+        <varlistentry>
+            <term><varname>title</varname></term>
+            <listitem>
+                <para>
+                    This variable contains the run title string that appears
+                    in run state transition events.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><varname>run</varname></term>
+            <listitem>
+                <para>
+                    This variable contains the run number as it appears in the
+                    run state transition events.  <varname>run</varname> must
+                    be a positive integer.  The ReadoutGUI enforces this restriction.
+                </para>
+            </listitem>
+        </varlistentry>
+        
+    </variablelist>
+  </refsect1>
 </refentry>
 
 <!-- /manpage -->
