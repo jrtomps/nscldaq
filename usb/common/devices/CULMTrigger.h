@@ -30,6 +30,7 @@ class CULMTrigger : public CReadoutHardwareT<Controller,RdoList>
     void onAttach(CReadoutModule& config);
     void Initialize(Controller& config);
     void addReadoutList(RdoList& config);
+    void onEndRun(Controller& config);
 
     CULMTrigger* clone() const {
         return new CULMTrigger(*this);

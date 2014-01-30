@@ -49,6 +49,7 @@ public:
   virtual void onAttach(CReadoutModule& configuration) = 0;
   virtual void Initialize(CVMUSB& controller) = 0;
   virtual void addReadoutList(CVMUSBReadoutList& list) = 0;
+  virtual void onEndRun(CVMUSB& ) {}
   virtual CReadoutHardware* clone() const = 0;
 };
 

@@ -440,6 +440,7 @@ CAcquisitionThread::startDaq()
    - Forcing a scaler trigger (action register write)
    - Setting clearing the DAQ start bit (action register write)
    - draining data from the VMUSB:
+   - Call shutdown the hardware in the stacks
 */
 void
 CAcquisitionThread::stopDaq()
@@ -447,6 +448,18 @@ CAcquisitionThread::stopDaq()
   m_pVme->writeActionRegister(CVMUSB::ActionRegister::scalerDump);
   m_pVme->writeActionRegister(0);
   drainUsb();
+
+  cerr << "Running on end routines" << endl; 
+  for(int i =0; i < m_Stacks.size(); i++) {
+    CStack* pStack = dynamic_cast<CStack*>(m_Stacks[i]->getHardwarePointer());
+    
+    assert(pStack);
+    pStack->onEndRun(*m_pVme);   // Enable the trigger logic for the stack.
+
+    
+  }
+
+
 }
 /*!
   Pause the daq. This means doing a stopDaq() and fielding 

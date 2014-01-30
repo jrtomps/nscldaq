@@ -136,6 +136,13 @@ class CCamacCompat : public CReadoutHardware
         */
         void addReadoutList(CVMUSBReadoutList& controller) { throw;}
         
+        /**! \brief call onEndRun 
+        *
+        *   This ensures that no one actually tries to use this. 
+        *
+        *   \throws unnamed exception
+        */
+        void onEndRun(CVMUSB& controller) { throw; }
 
         /**! Polymorphic copy constructor
         *

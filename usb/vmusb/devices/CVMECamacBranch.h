@@ -129,6 +129,18 @@ class CVMECamacBranch : public CReadoutHardware
     */
     void addReadoutList(CVMUSBReadoutList& list);
 
+    /**! \brief onEndRun routine
+    *
+    *   This function is called at the end of a run. It 
+    *   acquires the list of crates registered to the branch
+    *   each time it is called so that the user can reconfigure
+    *   between runs. Once the crates are retrieved, each registered crate's
+    *   onEndRun routine is called.
+    *
+    *   \param controller the CVMUSB controller
+    */
+    void onEndRun(CVMUSB& controller);
+
     /**! \brief Polymorphic copy constructor 
     *
     *   \return a copy of this object

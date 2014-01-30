@@ -476,6 +476,7 @@ CCCUSBModule::configureDevices(CCCUSB& controller)
   controller.writeDeviceSourceSelectors(0);
 
   uint16_t qx;
+  // Clear scalers
   controller.simpleControl(25,12,15, qx);
   controller.writeDeviceSourceSelectors(registerValue);
 

@@ -76,6 +76,22 @@ void CCamacCrate<Controller,RdoList>::addReadoutList(RdoList& list)
 
 }
 
+template<class Controller, class RdoList> 
+void CCamacCrate<Controller,RdoList>::onEndRun(Controller& controller)
+{
+   // get the registered hardware
+   CrateElements elements = getCrateElements();
+
+   // iterate through them,
+   typename CrateElements::iterator it = elements.begin();
+   const typename CrateElements::iterator end = elements.end();
+
+   while (it!=end) {
+        (*it)->onEndRun(controller);
+        ++it;
+   }
+
+}
 
 template<class Controller, class RdoList>
 int CCamacCrate<Controller,RdoList>::getCrateIndex() const

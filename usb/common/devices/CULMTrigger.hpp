@@ -192,6 +192,12 @@ void CULMTrigger<Controller,RdoList>::addReadoutList(RdoList& list)
 //    std::cout << "ADD ME BACK" << std::endl;
 }
 
+template<class Controller, class RdoList>
+void CULMTrigger<Controller,RdoList>::onEndRun(Controller& controller)
+{
+  setGo(controller,0);
+  doClear(controller);
+}
 
 template<class Controller, class RdoList>
 int 

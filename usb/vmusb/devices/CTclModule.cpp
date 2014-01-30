@@ -96,6 +96,22 @@ CTclModule::addReadoutList(CVMUSBReadoutList& list)
   m_pInterp->GlobalEval(command.c_str());
 }
 /**
+ * onEndRun must generate the swig 'pointer', execute the command's
+ * onEndRun subcommand, passing the swig pointer on our interpreter.
+ *
+ * @param controller - Reference to a CVMUSB controller object.
+ */
+void
+CTclModule::onEndRun(CVMUSB& controller)
+{
+  std::string pointer = swigPointer(&controller, "CVMUSB");
+  std::string command = m_command;
+  command            += " onEndRun ";
+  command            += pointer;
+
+  m_pInterp->GlobalEval(command.c_str());
+}
+/**
  * Clone is just a virtual copy construction:
  *
  */

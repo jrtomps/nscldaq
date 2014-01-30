@@ -29,6 +29,9 @@ class CLeCroy4300B : public CReadoutHardwareT<Controller, RdoList>
     void onAttach(CReadoutModule& config);
     void Initialize(Controller& config);
     void addReadoutList(RdoList& config);
+  
+    // no op
+    void onEndRun(Controller& ) {}
 
     CLeCroy4300B* clone() const {
         return new CLeCroy4300B(*this);

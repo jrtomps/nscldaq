@@ -99,6 +99,14 @@ class CLeCroy4434 : public CReadoutHardwareT<Controller,RdoList>
     */
     void addReadoutList(RdoList& rdolist);
 
+    /**! \brief onEndRun routine 
+    *
+    *   This is a no-op 
+    *
+    *   \param controller an abstract camac crate controller
+    */
+    void onEndRun(Controller& controller) {}
+
     /**! \brief Virtual copy constructor
     *
     *   Copies the object in a polymorphic manner.

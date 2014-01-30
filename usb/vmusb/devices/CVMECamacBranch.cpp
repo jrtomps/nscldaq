@@ -140,6 +140,39 @@ void CVMECamacBranch::addReadoutList(CVMUSBReadoutList& list)
 
 }
 
+/**!
+*   Handles the creatio of the virtual crate modules that get 
+*   passed to the crates registered to it.
+*/
+void CVMECamacBranch::onEndRun(CVMUSB& controller)
+{
+    int branchID = m_pConfig->getIntegerParameter("-branch");
+
+    // This passes the hardware back from it...
+    // The wrapped crates are unwrapped before passing back the list
+    BranchElements crates = getBranchElements();
+
+    CCBD8210CrateController* adapted_controller; 
+
+    iterator crate_it = crates.begin();
+    const iterator crate_end = crates.end();
+    
+    for(; crate_it != crate_end; ++crate_it) {
+
+        // Set up the crate controller
+        int crate_index = (*crate_it)->getCrateIndex();
+
+        adapted_controller = m_brDriver->createCrateController(branchID, 
+                                                               crate_index);
+        adapted_controller->setController(controller);
+
+        // Turn control over to the crate to do end of run operations 
+        // on its components 
+        (*crate_it)->onEndRun(*adapted_controller);
+
+        delete adapted_controller; // don't leak
+    }
+}
 
 ///! This is where I get the hardware objects for the registered crates.
 /**!

@@ -121,6 +121,16 @@ class CCamacCrate : public CReadoutHardwareT<Controller,RdoList>
         */
         void addReadoutList(RdoList& list);
 
+        /**! \brief End of run routine  
+        *
+        *   Acquires the set of hardware registered to the crate via the 
+        *   -modules parameter and calls their respective onEndRun 
+        *   routines in the order they were registered.
+        *
+        *   \param list the readout list to fill
+        */
+        void onEndRun(Controller& controller);
+
         /**! \brief Polymorphic copy constructor
         *
         *   \return a pointer to a dynamically allocated copy of this object.

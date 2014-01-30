@@ -388,6 +388,14 @@ CAcquisitionThread::stopDaq()
 
 
   drainUsb();
+
+  cerr << "Calling end of run operations\n";
+  std::vector<CReadoutModule*> Stacks = Globals::pConfig->getStacks();
+  for(int i =0; i < Stacks.size(); i++) {
+    CStack* pStack = dynamic_cast<CStack*>(Stacks[i]->getHardwarePointer());
+    assert(pStack);
+    pStack->onEndRun(*m_pCamac);    // Call onEndRun for daq hardware associated with the stack.
+  }
 }
 /*!
   Pause the daq. This means doing a stopDaq() and fielding 
