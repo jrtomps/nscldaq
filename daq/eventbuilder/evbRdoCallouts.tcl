@@ -482,7 +482,7 @@ proc EVBC::onBegin {} {
         }
             
         if {[info commands startEVBSources] ne ""} {
-	    EVBC::_waitForEventBuilder
+            EVBC::_waitForEventBuilder
             startEVBSources
         }
     } else {
@@ -858,17 +858,17 @@ proc EVBC::_Exiting w {
 #  By now it's assumed the event builder is visible to the port manager.
 #
 #
-proc _waitForEventBuidler {} {
+proc EVBC::_waitForEventBuilder {} {
 
     # Figure out which port the event builder is listening on:
 
     set ports [::portAllocator create %AUTO%]
-    set me $::tcl_platform[user]
+    set me $::tcl_platform(user)
     set name ORDERER:$me
     set port -1
     set allocations [$ports listPorts]
     foreach allocation $allocations {
-	if {([lindex $allocation 1] eq $name) && ([lindex $allocatoin 2] eq $me)} {
+	if {([lindex $allocation 1] eq $name) && ([lindex $allocation 2] eq $me)} {
 	    set port [lindex $allocation 0]
 	    break
 	}

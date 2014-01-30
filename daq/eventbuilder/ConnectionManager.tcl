@@ -279,7 +279,7 @@ snit::type EVB::Connection {
 	# The header is a string, but the body is a counted binary block:
 
 	if {[catch {$self _ReadCountedString $socket} header]} {
-	    catcl {puts $socket "ERROR {Could not read header expecting CONNECT}"}; # Might fail.
+	    catch {puts $socket "ERROR {Could not read header expecting CONNECT}"}; # Might fail.
 	    $self _Close ERROR
 	    return
 	}
