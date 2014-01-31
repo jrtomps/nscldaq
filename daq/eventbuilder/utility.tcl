@@ -111,16 +111,19 @@ snit::widgetadaptor EVB::utility::sortedWidget {
     constructor args {
         installhull using ttk::labelframe
         
-        install lefttitle  using ttk::label $win.lefttitle -width 10
+        install lefttitle  using ttk::label $win.lefttitle -width 10 
         install righttitle using ttk::label $win.righttitle -width 10
         install container  using ::iwidgets::scrolledframe $win.container \
             -hscrollmode none -vscrollmode dynamic
         
         # Layout the widgets inside the hull frame.
         
-        grid $win.lefttitle $win.righttitle
-        grid $win.container -columnspan 2 -sticky nsew
         
+        grid $win.lefttitle $win.righttitle -sticky ew -padx 5 -pady 5
+        grid $win.container -columnspan 2 -sticky nsew -padx 5 -pady 5
+
+        grid columnconfigure $win {0 1} -weight 1
+
         $self configurelist $args
     }
 

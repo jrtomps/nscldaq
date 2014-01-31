@@ -85,9 +85,9 @@ snit::widgetadaptor ::EVB::outputSummary {
         
         #  Create the widgets (all ttk::label s)
         
-        ttk::label $win.fragl   -text {Total fragments}
-        ttk::label $win.idl     -text {source id}
-        ttk::label $win.countl  -text {fragment count}
+        ttk::label $win.fragl   -text {Total Fragments}
+        ttk::label $win.idl     -text {Source ID}
+        ttk::label $win.countl  -text {Fragment Count}
         ttk::label $win.hotl    -text {Hottest}
         ttk::label $win.coldl   -text {Coldest}
         
@@ -99,11 +99,12 @@ snit::widgetadaptor ::EVB::outputSummary {
         
         # Lay them out
         
-        grid $win.fragl   -           $win.frag
+        grid $win.fragl   -           $win.frag 
         grid x            $win.idl    $win.countl
-        grid $win.hotl    $win.hotid  $win.hotcount  -sticky e
-        grid $win.coldl   $win.coldid $win.coldcount -sticky e
-        
+        grid $win.hotl    $win.hotid  $win.hotcount  
+        grid $win.coldl   $win.coldid $win.coldcount 
+        grid columnconfigure $win {0 1 2 3} -weight 1 -uniform a 
+
         # Process the initial configuration.
         
         $self configurelist $args
