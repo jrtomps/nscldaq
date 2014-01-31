@@ -535,5 +535,8 @@ Feb 1, 2012 - Feb 24, 2012
 	public static attribute CRingScalerItem::m_ScalerFormatMask which
 	toString ands with scaler values.
 	* Issue #1825 - Document SBS readout commands and key variables.
-	
+
+1.0-rc5 
+	* Issue #1834 - Add SBS and vmsub firmware upgraders for CAEN
+	products.
 	

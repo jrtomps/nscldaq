@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.61)
-AC_INIT(nscldaq, 11.0-rc4, fox@nscl.msu.edu)
+AC_INIT(nscldaq, 11.0-rc5, fox@nscl.msu.edu)
 
 AC_CONFIG_SRCDIR([/utilities/StringsToIntegers.h])
 AC_CONFIG_HEADER([config.h])
@@ -300,6 +300,7 @@ AC_CONFIG_FILES([Makefile
 		 base/dataflow/Makefile
                  base/plotchart/Makefile
 		 base/tcpip/Makefile
+		 caenfw-common/Makefile
 		 servers/Makefile
 		 servers/tclserver/Makefile
                  servers/portmanager/Makefile
@@ -355,6 +356,7 @@ AC_CONFIG_FILES([Makefile
 		 sbs/slowcontrols/vhs/Makefile
 		 sbs/scripted/Makefile
 		 sbs/VmeDevice/Makefile
+		 sbs/caenfwloader/Makefile
 		 usb/Makefile
                  usb/loaders/Makefile
 		 usb/vmusb/Makefile
@@ -375,6 +377,7 @@ AC_CONFIG_FILES([Makefile
 		 usb/ccusb/driverkit/Makefile-template
 		 usb/ccusb/driverkit/CCUSBDriverIncludes
                  usb/ccusb/controlpanels/Makefile
+		 usb/caenfwloader/Makefile
 		 docbuild/Makefile
 		 docconfig/Makefile])
 

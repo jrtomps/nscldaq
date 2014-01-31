@@ -15,7 +15,7 @@ if BUILD_USB
 endif
 
 
-SUBDIRS =	 base servers base/dataflow  \
+SUBDIRS =	 base caenfw-common servers base/dataflow  \
 		daq utilities docbuild docconfig $(SBSDIRS) $(EPICSDIRS) $(USBDIR)
 
 

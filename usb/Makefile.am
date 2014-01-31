@@ -1,4 +1,4 @@
-SUBDIRS=vmusb ccusb loaders
+SUBDIRS=vmusb ccusb loaders caenfwloader
 
 #
 #  Index the swig wrapper for the XX_USB packages:
