@@ -92,27 +92,6 @@ static const uint8_t  blockTransferAmod(CVMUSBReadoutList::a32UserBlock);
 static const float    vmusbClockTick(12.5);
 static const float    busDelay(200/vmusbClockTick); // delay to allow for arbitration
 
-namespace tmp 
-{
-    // Stand-ins for utility functions defined in c++11.
-    // Once we can use the new std without fear of portability,
-    // code using this should be easily replaced by ::tmp -> ::std
-
-    int stoi(const std::string& str) // does not include default args
-    {
-        return ::atoi(str.c_str());
-    }
-
-    unsigned long stoul(const std::string& str) 
-    {
-        return ::strtoul(str.c_str(),NULL,0);
-    }
-}
-
-
-
-
-
 //////////////////////////////////////////////////////////////////////////////////////////////
 // Constructors and other 'canonical' methods
 
@@ -121,7 +100,7 @@ namespace tmp
  * typically only be used to make a 'template' instance which will be cloned to
  * create instances that are bound to configurations and actual hardware.
  */
-CXLMFERA::CXLMFERA() : CXLM1()
+CXLMFERA::CXLMFERA() : CXLM()
 {
     // This will point to an instance's config base class protected).
     //  m_pConfiguration = 0;	
@@ -134,7 +113,7 @@ CXLMFERA::CXLMFERA() : CXLM1()
  * 
  * @param rhs  - Template device that is being copied to create the  new device.
  */
-CXLMFERA::CXLMFERA(const CXLMFERA& rhs) : CXLM1(rhs)
+CXLMFERA::CXLMFERA(const CXLMFERA& rhs) : CXLM(rhs)
 {
 
 }
@@ -167,7 +146,7 @@ void
 CXLMFERA::onAttach(CReadoutModule& configuration)
 {
     // superclass adds the -base and -firmware flags
-    CXLM1::onAttach(configuration);
+    CXLM::onAttach(configuration);
 
   // The -id parameter is the value of the marker inserted in the event.
   // This sets bounds on the limits of the configuration id read at FPGA address
@@ -249,7 +228,6 @@ CXLMFERA::Initialize(CVMUSB& controller)
             throw errmsg.str(); 
         } 
 
-//        std::cout << "*** XLMFERA initialization ... COMPLETE " << std::endl;
     }
     catch (std::string& what) {
         std::cerr << "!!! " << what << std::endl;
@@ -286,21 +264,13 @@ void CXLMFERA::myloadFirmware(CVMUSB& controller, std::string fname)
 		if (bytes[i] == 0xFF) break;
 	}
 
-
-//    uint32_t inhibitAddr= Interface() + ForceOffBus;
-//    uint32_t enableInhibit = 1;
-//    list.addWrite32(inhibitAddr, registerAmod, enableInhibit);
-
-    // Request VMEbus control of bus 
+    // Busses to request 
     const uint32_t busses = REQ_A | REQ_X;
-//    addBusAccess(list,busses,busDelay);
-//    addBusAccess(list,busses,0);
 
     // Acquire the bus:
     // 1. inhibit FPGA and DSP
     // 2. Request busses A and X
     CXLMBusController lock(controller,*this,busses,1,0);
-//    CXLMBusController lock(controller,*this,busses,1,busDelay);
 
     CVMUSBReadoutList list;
     list.clear();
@@ -312,40 +282,28 @@ void CXLMFERA::myloadFirmware(CVMUSB& controller, std::string fname)
 		llow = ((blow&0x7)<<2) + ((blow&0x8)<<7);
 		lhigh = ((bhigh&0x7)<<2) + ((bhigh&0x8)<<7);
 		word = llow + (lhigh<<16);
-//		srama[(j-i)] = word;
-        list.addWrite32(sramA()+(j-i)*sizeof(uint32_t),CVMUSBReadoutList::a32UserData,word);       
-        list.addRead32(sramA()+(j-i)*sizeof(uint32_t),CVMUSBReadoutList::a32UserData);       
-        if ((j-i)%64 == 0) {
-            
-            uint32_t data[2048];
-            size_t nbytes;
-            int status = controller.executeList(list,
-                    &data,
-                    sizeof(data), &nbytes);
-            if (status < 0) {
-               // string error = strerror(errno);
-                string msg   = "000 CXLM1::loadSRAMA - list execution failed to load the SRAM: ";
-                msg         += -100;
-                throw msg;
-            }
-            list.clear();
-        }
-//		check = srama[(j-i)];
-//		if (check != word) {
-//			cout << "Invalid write to SRAMA at address " << hex << (j-i)*4 << " configuring " << getName() << " (slot " << getSlot() << " )" << endl;
-//			cout << "Data: " << hex << word << ", Check: " << hex << check << endl;
-//			exit(1);
-//		}
-	}
 
-	// Set FPGA boot source to SRAMA
-//	SetFPGABoot(0x10000);  in XLM72V_CESV the readback from 0x800008 is 0x2 not 0x10000!
-//	vme[2] = 0x10000;
-//	check = vme[2];
-//	if (check != 0x2) {
-//		cout << "Failed to set boot source in " << getName() << " (slot " << getSlot() << " )" << endl;
-//		exit(1);
-//	}
+    list.addWrite32(sramA()+(j-i)*sizeof(uint32_t),
+        CVMUSBReadoutList::a32UserData,
+        word);       
+    list.addRead32(sramA()+(j-i)*sizeof(uint32_t),
+        CVMUSBReadoutList::a32UserData);       
+    if ((j-i)%64 == 0) {
+
+      uint32_t data[2048];
+      size_t nbytes;
+      int status = controller.executeList(list,
+          &data,
+          sizeof(data), &nbytes);
+      if (status < 0) {
+        string msg   = "000 CXLM::loadSRAMA - list execution failed to load the SRAM: ";
+        msg         += -100;
+        throw msg;
+      }
+      list.clear();
+    }
+  }
+
     // set boot src
     uint32_t bootSrcAddr = Interface() + BootSrc; 
     list.addWrite32(bootSrcAddr, registerAmod, BootSRAMA);
@@ -357,8 +315,7 @@ void CXLMFERA::myloadFirmware(CVMUSB& controller, std::string fname)
             &data,
             sizeof(data), &nbytes);
     if (status < 0) {
-        //string error = strerror(errno);
-        string msg   = "1111 CXLM1::loadSRAMA - list execution failed to load the SRAM: ";
+        string msg   = "1111 CXLM::loadSRAMA - list execution failed to load the SRAM: ";
         msg         += -100;//error;
         throw msg;
     }
@@ -496,7 +453,7 @@ void CXLMFERA::checkConfiguration(CVMUSB& controller)
     CVMUSBReadoutList cmdList;
 
     cmdList.addWrite32(inhibitAddr, registerAmod,uint32_t(1));
-    addBusAccess(cmdList,CXLM1::REQ_X,::busDelay);    
+    addBusAccess(cmdList,CXLM::REQ_X,::busDelay);    
 
     cmdList.addRead32(FPGA(),registerAmod);
 

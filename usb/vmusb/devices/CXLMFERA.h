@@ -1,7 +1,7 @@
 
 
 #include <stdint.h>
-#include "CXLM1.h"
+#include "CXLM.h"
 
 #ifndef CVMUSB_H
 class CVMUSB;
@@ -17,7 +17,7 @@ class CVMUSBReadoutList;
 
 /**! An XLM driver for FERA ECLLine readout
 */
-class CXLMFERA : public CXLM1 
+class CXLMFERA : public CXLM 
 {
     friend class CXLMBusController;
 
