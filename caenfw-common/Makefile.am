@@ -10,7 +10,7 @@ noinst_HEADERS = CFASegment.h flash.h CAENComm.h
 
 install-exec-local:
 	$(mkinstalldirs) @prefix@/etc/caenfw
-	$(INSTALL_DATA) *.txt @prefix@/etc/caenfw
+	$(INSTALL_DATA) @top_srcdir@/caenfw-common/*.txt @prefix@/etc/caenfw
 
 
 
