@@ -8,4 +8,4 @@ vmusbcaenupgrader_LDADD = @top_builddir@/caenfw-common/libcaenfwloadCommon.la \
 	@top_builddir@/usb/vmusb/vmusb/libVMUSB.la \
 	@LIBTCLPLUS_LDFLAGS@ @TCL_LDFLAGS@
 
-EXTRA_DIST =- vmusbcaenupgrader.xml
+EXTRA_DIST =  vmusbcaenupgrader.xml
