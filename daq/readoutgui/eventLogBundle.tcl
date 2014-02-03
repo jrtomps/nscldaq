@@ -359,7 +359,7 @@ proc ::EventLog::_finalizeRun {} {
     #  Now what's left gets recursively/link-followed copied to the destDir
     #  using tar.
     
-    set tarcmd "(cd $srcdir; tar chf - .) | (cd $destDir tar xpf -)"
+    set tarcmd "(cd $srcdir; tar chf - .) | (cd $destDir; tar xpf -)"
     exec sh << $tarcmd
     
     # If required, protect the files:
@@ -368,7 +368,9 @@ proc ::EventLog::_finalizeRun {} {
     #   - A chmod -R is done to set the contents to 0x550 as well.
     
     if {$::EventLog::protectFiles} {
-        exec sh << "chmod -R 0550 [glob [file join $destDir *]]"
+        set files [glob -directory $destDir -types {f d} *]
+        puts $files
+        exec sh << "chmod -R 0550 $files"
         file attributes $destDir -permissions 0550 
         file attributes [file join $destDir ..] -permissions 0550 
     }
