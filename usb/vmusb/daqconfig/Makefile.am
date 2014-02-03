@@ -26,7 +26,8 @@ libVMUSBConfig_la_SOURCES	= 	CADCCommand.cpp		\
 				CVMECamacBranchCommand.cpp \
 				CVMECamacCrateCommand.cpp \
 				CVMEULMTriggerCommand.cpp \
-				CVMELeCroy4300BCommand.cpp
+				CVMELeCroy4300BCommand.cpp \
+				CXLMFERACommand.cpp
 
 libVMUSBConfig_la_CXXFLAGS=@THREADCXX_FLAGS@
 
@@ -58,7 +59,9 @@ noinst_HEADERS		=	CADCCommand.h  		\
 				CVMECamacBranchCommand.h \
 				CVMECamacCrateCommand.h \
 				CVMEULMTriggerCommand.h \
-				CVMELeCroy4300BCommand.h
+				CVMELeCroy4300BCommand.h \
+				CXLMFERACommand.h
+
 
 
 

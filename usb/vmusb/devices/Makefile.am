@@ -33,7 +33,8 @@ libVMUSBDevices_la_SOURCES	= 	CConfigurableObject.cpp	\
 					@top_srcdir@/usb/common/devices/CCNAF.cpp \
 					@top_srcdir@/usb/common/devices/CNAF.cpp \
 					CULMTrigger.cpp \
-					CLeCroy4300B.cpp
+					CLeCroy4300B.cpp \
+					CXLMFERA.cpp
 
 
 INCLUDES	= 	-I@top_srcdir@/usb/vmusb/vmusb 	\
@@ -88,7 +89,8 @@ noinst_HEADERS			= 	CConfigurableObject.h	\
 					CVMECamacBranch.h \
 					@top_srcdir@/usb/common/devices/CBCNAF.h \
 					@top_srcdir@/usb/common/devices/CCNAF.h \
-					@top_srcdir@/usb/common/devices/CNAF.h 
+					@top_srcdir@/usb/common/devices/CNAF.h \
+					CXLMFERA.h
 
 
 install-data-local:

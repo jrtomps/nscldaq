@@ -43,6 +43,7 @@
 #include "CVMECamacCrateCommand.h"
 #include "CVMEULMTriggerCommand.h"
 #include "CVMELeCroy4300BCommand.h"
+#include "CXLMFERACommand.h"
 
 #include <CReadoutModule.h>
 #include <TCLInterpreter.h>
@@ -105,6 +106,7 @@ CConfiguration::CConfiguration() :
   m_Commands.push_back(new CVMECamacCrateCommand(*m_pInterp, *this));
   m_Commands.push_back(new CVMEULMTriggerCommand(*m_pInterp, *this));
   m_Commands.push_back(new CVMELeCroy4300BCommand(*m_pInterp, *this));
+  m_Commands.push_back(new CXLMFERACommand(*m_pInterp, *this));
 
 }
 /*!
