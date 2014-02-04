@@ -12,12 +12,15 @@ libCCUSBDevices_la_SOURCES	= 	CConfigurableObject.cpp	\
 					CC1205.cpp	\
 					CCCUSBModule.cpp	\
 					CPH7132.cpp	\
-					CTclModule.cpp
+					CTclModule.cpp	\
+					CLRS4434.cpp \
+					CCamacCrate.cpp
 
 
 INCLUDES	= 	-I@top_srcdir@/usb/ccusb/ccusb \
 			-I@top_srcdir@/usb/ccusb/daqconfig \
 			-I@top_srcdir@/usb/ccusb		\
+			-I@top_srcdir@/usb/common/devices		\
 			@LIBTCLPLUS_CFLAGS@		\
 			-I@top_srcdir@/base/headers		\
 			@TCL_FLAGS@ @THREADCXX_FLAGS@
