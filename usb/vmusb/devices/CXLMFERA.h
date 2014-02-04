@@ -106,17 +106,6 @@ class CXLMFERA : public CXLM
                 ~CXLMBusController(); 
 
             private:
-                /**! \brief Verify requested busses are obtained
-                 *
-                 * Iteratively executes vme reads to the XLM for a finite number
-                 * of iterations. Determines the requested busses from the 
-                 * m_request data member and checks ownership of these. Once 
-                 * all of the busses are owned by the VMEbus, the iterations
-                 * cease.
-                 *
-                 *   \return ownership of desired busses acquired = true, otherwise false 
-                 */
-                bool successfulArbitration();
 
                 /**! \brief Unconditionally release busses 
                  *   Release ownership of all busses and clear FPGA and DSP inhibit.

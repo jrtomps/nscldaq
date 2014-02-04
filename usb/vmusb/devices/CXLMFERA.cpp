@@ -211,9 +211,7 @@ CXLMFERA::Initialize(CVMUSB& controller)
         // Adds some delay to test if the bad sramA[0] value is 
         // due to incomplete initialization
         CVMUSBReadoutList list;
-//  Added just now.
         list.addDelay(100);
-//        addClear(list);
         list.addDelay(100);
         uint32_t dummy;
         size_t dsize;
@@ -332,15 +330,7 @@ void CXLMFERA::bootFPGA(CVMUSB& controller)
     uint32_t base = m_pConfiguration->getUnsignedParameter("-base");
     
     // Acquire busses A and X
-//    uint32_t busses = REQ_A | REQ_X;
-//    CXLMBusController lock(controller,*this,busses,1,busDelay);
-//    std::cout << "   Booting FPGA ..." << std::flush;
-//
     CVMUSBReadoutList list;
-
-//    // set boot src
-//    uint32_t bootSrcAddr = Interface() + BootSrc; 
-//    list.addWrite32(bootSrcAddr, registerAmod, BootSRAMA);
 
     // reset fpga
     uint32_t resetAddr = Interface() + Interrupt; 
@@ -496,12 +486,6 @@ void CXLMFERA::addReadoutList(CVMUSBReadoutList& list)
     int id = m_pConfiguration->getIntegerParameter("-id");
     if (id>=0) list.addMarker(static_cast<uint16_t>(id));
 
-//    list.addDelay(150);
-//    for (int i=0; i<10; ++i) {
-//        list.addRead32(Interface()+BusAOwner,registerAmod);
-//        list.addRead32(Interface()+BusBOwner,registerAmod);
-//    }
-
     addSramAReadout(list);
 
     if (id>=0) list.addMarker(static_cast<uint16_t>(id));
@@ -524,7 +508,6 @@ void CXLMFERA::addSramAReadout(CVMUSBReadoutList& list)
 
     // Request VMEbus control of bus 
     const uint32_t busses = REQ_A;
-//    addBusAccess(list,busses,busDelay);
     addBusAccess(list,busses,0);
 
 
@@ -537,12 +520,10 @@ void CXLMFERA::addSramAReadout(CVMUSBReadoutList& list)
 
     // Now add the block transfer whose length is dtermined by the
     // previous command. 
-//    list.addMaskedCountBlockRead32(sramAAddr+0x000000,
-    list.addMaskedCountBlockRead32(sramAAddr,
+    list.addMaskedCountBlockRead32(sramAAddr + 1*sizeof(uint32_t),
                                    blockTransferAmod);
 
     // Release the bus
-//    addBusAccess(list,0,busDelay);
     addBusAccess(list,0,0/*no delay*/);
     list.addWrite32(inhibitAddr, registerAmod,uint32_t(0));
 
@@ -564,57 +545,6 @@ CXLMFERA::clone() const
   return new CXLMFERA(*this);
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-
-
-/*
- * This section of code provides the package initialization code.
- * The Tcl interpreter will call it when the package is loaded.
- * You need to make the driver known to the framework and indicate that you were
- * succesful doing so.  Naturally you can do whatever other initialization you might
- * require here.
- * There are a set of requirements that must be met if Tcl is to locate your package:
- *
- *  The name of the initialization function is derived from the library name you build 
- * (see the Makefile that came with this kit).  If you created libtemplatedriver.so 
- * the name of the initialization function must be Templatedriver_Init
- * The name of the Tcl package you must provide is Templatedriver in that case.
- *
- * The initialization function must also specify C language call methods
- *
- * @param pInterp - Pointer to the raw Tcl Interpreter that is loading this object.
- *
- * @return int 
- * @retval TCL_OK - success.
- * @retval TCL_ERROR - failure.
- */
-extern "C" {
-  /*
-   * You should modify the name below to match you Makefile
-   * MODIFY ME HERE */
-  int Xlmfera_Init(Tcl_Interp* pInterp)
-  /* END MODIFICATIONS */
-  {
-
-    // Create a Tcl package so that pkg_mkIndex could find us:
-
-    /* Change the name (Tempatedriver) to match the initialization function.
-     * as you evolve the driver you may also want to modify the package version (1.0)
-     * MODFIY ME HERE */
-    Tcl_PkgProvide(pInterp, "XLMFERA", "1.0");
-
-    /* Register the driver command.  In the line below change the first parameter
-     * to the correct Tcl command you want the driver bound to:
-     *
-     * MODIFY ME HERE */
-
-    CUserCommand::addDriver("XLMFERA", new CXLMFERA);
-
-    /* END MODIFICATIONS */
-    return TCL_OK;
-    
-  }
-}
 
 CXLMFERA::CXLMBusController::CXLMBusController(CVMUSB& controller, 
                             CXLMFERA& xlm, 
@@ -653,17 +583,6 @@ CXLMFERA::CXLMBusController::CXLMBusController(CVMUSB& controller,
         std::cerr << "readout list failed to execute with error " << status;
         std::cerr << std::endl;
     }
-//    if (!successfulArbitration()) {
-//        // note that this will not invoke this object's dtor 
-//        // b/c we never finished the ctor
-//        
-//        // Therefore, ensure that we clean up
-//        releaseBusses();
-//
-//        std::string msg("CXLMBusController::CXLMBusController(CVMUB&,CXLM&,uint32_t)");
-//        msg += " failed to satisfy request";
-//        throw msg;
-//    } 
 
 #ifdef PRINTBUSLOCK
     std::cout << "### XLM VMEBus successfully accquired : ";
@@ -704,57 +623,3 @@ void CXLMFERA::CXLMBusController::releaseBusses()
 
 }
 
-bool CXLMFERA::CXLMBusController::successfulArbitration()
-{
-
-    uint32_t busAOwnerAddr = (m_interfaceAddr | 0x10000);
-    uint32_t busBOwnerAddr = (m_interfaceAddr | 0x10004);
-    uint32_t busXOwnerAddr = (m_interfaceAddr | 0x10008);
-
-    // Figure  out what busses were requested by the VMEbus       
-    bool busREQ_A = false;
-    bool busREQ_B = false;
-    bool busREQ_X = false;
-    if ((m_request&0x000001)!=0) busREQ_A=true; 
-    if ((m_request&0x000002)!=0) busREQ_B=true; 
-    if ((m_request&0x010000)!=0) busREQ_X=true; 
-
-    //Block until the VMEbus has acquired the requested busses
-    uint32_t data=0;   
-    unsigned int attempt = 0;
-    unsigned int maxPolls = 100;
-    bool busAArbitrated= !busREQ_A;
-    bool busBArbitrated= !busREQ_B;
-    bool busXArbitrated= !busREQ_X;
-    bool arbitrationIncomplete=true;
-    while ( arbitrationIncomplete && attempt<maxPolls ) {
-        // verify VMEbus has ownership of specified buses.
-
-        if (busREQ_A) {
-            m_controller.vmeRead32(busAOwnerAddr,
-                    registerAmod,
-                    &data);
-            if (data==1) busAArbitrated=true;
-        }
-        if (busREQ_B){
-            m_controller.vmeRead32(busBOwnerAddr,
-                    registerAmod,
-                    &data);
-            if (data==1) busBArbitrated=true;
-        }
-        if (busREQ_X){
-            m_controller.vmeRead32(busXOwnerAddr,
-                    registerAmod,
-                    &data);
-            if (data==1) busXArbitrated=true;
-        }
-        arbitrationIncomplete = ! (busAArbitrated 
-                && busBArbitrated 
-                && busXArbitrated);
-        ++attempt; 
-    }
-
-    // if attempt == maxPolls, then arbitration failed
-    return (attempt != maxPolls);
-
-}
