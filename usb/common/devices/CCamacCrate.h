@@ -5,8 +5,6 @@
 #include <string>
 #include <stdint.h>
 #include "CReadoutHardwareT.h"
-#include "CCBD8210CrateController.h"
-#include "CCBD8210ReadoutList.h"
 
 ///////////////////
 // Fwd declarations
