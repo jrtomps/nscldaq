@@ -154,8 +154,8 @@ int CCBD8210CrateController::simpleRead24( int n, int a, int f, uint32_t& data, 
 
 int CCBD8210CrateController::simpleControl(int n, int a, int f, uint16_t& qx)
 {
-    uint16_t dummy;
-    return simpleRead16(n,a,f,dummy,qx);
+    uint32_t dummy;
+    return simpleRead24(n,a,f,dummy,qx);
 }
 
 
