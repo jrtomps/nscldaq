@@ -11,7 +11,9 @@ libCCUSBConfig_la_SOURCES	= 	CConfiguration.cpp	\
 				CCCUSBCommand.cpp	\
 				CPH7132Command.cpp	\
 				CUserCommand.cpp	\
-				CAddTclDriver.cpp
+				CAddTclDriver.cpp \
+				CLRS4434Command.cpp \
+				CCamacCrateCommand.cpp
 
 
 #				CScalerCommand.cpp
@@ -30,12 +32,18 @@ noinst_HEADERS		=	CConfiguration.h 	\
 				CCCUSBCommand.h		\
 				CPH7132Command.h	\
 				CUserCommand.h		\
-				CAddTclDriver.h
+				CAddTclDriver.h \
+				CLRS4434Command.h \
+				CCamacCrateCommand.h
+
+
 
 
 
 INCLUDES		= 	-I@top_srcdir@/usb/ccusb/devices	\
 				-I@top_srcdir@/usb/ccusb		\
+				-I@top_srcdir@/usb/ccusb/ccusb		\
+				-I@top_srcdir@/usb/common/devices		\
 				@LIBTCLPLUS_CFLAGS@		\
 				-I@top_srcdir@/base/headers		\
 				$(TCL_FLAGS) @THREADCXX_FLAGS@
