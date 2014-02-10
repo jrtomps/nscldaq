@@ -37,6 +37,8 @@ static const char* Copyright = "(C) Copyright Michigan State University 2014, Al
 #include <CRingFragmentItem.h>
 #include <CFileDataSource.h>
 #include <CFileDataSink.h>
+#include <CDataSinkFactory.h>
+#include <CDataSourceFactory.h>
 
 #include "CFilter.h"
 
@@ -126,6 +128,14 @@ class CMediatorTest : public CppUnit::TestFixture
     CPPUNIT_TEST ( testProcessSome );
 
     CPPUNIT_TEST ( testTransparentMainLoop );
+
+    CPPUNIT_TEST ( test2Begins0Ends );
+    CPPUNIT_TEST ( test1Begins0Ends );
+    CPPUNIT_TEST ( test0Begins0Ends );
+    CPPUNIT_TEST ( test1Begins1Ends );
+    CPPUNIT_TEST ( test2Begins1Ends );
+    CPPUNIT_TEST ( test2Begins2Ends );
+//    CPPUNIT_TEST ( testMultiSourceStates );
     CPPUNIT_TEST_SUITE_END();
 
   public:
@@ -149,6 +159,13 @@ class CMediatorTest : public CppUnit::TestFixture
     void testProcessSome();
 
     void testTransparentMainLoop();
+    void test2Begins0Ends();
+    void test1Begins0Ends();
+    void test0Begins0Ends();
+    void test1Begins1Ends();
+    void test2Begins1Ends();
+    void test2Begins2Ends();
+//    void testMultiSourceStates();
 
   private:
     size_t writeRingItemToFile(CRingItem& item,
@@ -519,6 +536,119 @@ void CMediatorTest::testTransparentMainLoop()
 
   CPPUNIT_ASSERT( filesEqual(infname,outfname) );
 }
+
+void CMediatorTest::test2Begins0Ends()
+{
+  
+  CRingStateChangeItem  begin (BEGIN_RUN);
+  m_mediator.handleItem(&begin);
+  m_mediator.handleItem(&begin);
+
+  CPPUNIT_ASSERT_EQUAL( false,
+                        m_mediator.stateChangesAreSymmetric() );
+
+}
+
+void CMediatorTest::test1Begins0Ends()
+{
+  
+  CRingStateChangeItem  begin (BEGIN_RUN);
+  m_mediator.handleItem(&begin);
+
+  CPPUNIT_ASSERT_EQUAL( false,
+                        m_mediator.stateChangesAreSymmetric() );
+
+}
+
+void CMediatorTest::test0Begins0Ends()
+{
+  
+  // these are symmetric but we don't count them b/c there have
+  // been no start runs
+  CPPUNIT_ASSERT_EQUAL( false,
+                        m_mediator.stateChangesAreSymmetric() );
+
+}
+
+void CMediatorTest::test1Begins1Ends()
+{
+  
+  CRingStateChangeItem  begin (BEGIN_RUN);
+  CRingStateChangeItem  end (END_RUN);
+  m_mediator.handleItem(&begin);
+  m_mediator.handleItem(&end);
+
+  CPPUNIT_ASSERT_EQUAL( true,
+                        m_mediator.stateChangesAreSymmetric() );
+
+}
+
+void CMediatorTest::test2Begins1Ends()
+{
+  
+
+  CRingStateChangeItem  begin (BEGIN_RUN);
+  CRingStateChangeItem  end (END_RUN);
+  m_mediator.handleItem(&begin);
+  m_mediator.handleItem(&begin);
+  m_mediator.handleItem(&end);
+
+  CPPUNIT_ASSERT_EQUAL( false,
+                        m_mediator.stateChangesAreSymmetric() );
+
+}
+
+void CMediatorTest::test2Begins2Ends()
+{
+  
+  CRingStateChangeItem  begin (BEGIN_RUN);
+  CRingStateChangeItem  end (END_RUN);
+  m_mediator.handleItem(&begin);
+  m_mediator.handleItem(&begin);
+  m_mediator.handleItem(&end);
+  m_mediator.handleItem(&end);
+
+  CPPUNIT_ASSERT_EQUAL( true,
+                        m_mediator.stateChangesAreSymmetric() );
+
+}
+
+//void CMediatorTest::testMultiSourceStates()
+//{
+//  tearDown();
+//  CRingStateChangeItem  begin (BEGIN_RUN);
+//  CRingStateChangeItem  end (END_RUN);
+//  CDataSinkFactory factory;
+//  CDataSink* sink = factory.makeSink("file://./test.evt");
+//
+//  sink->putItem(begin);
+//  sink->putItem(begin);
+//  sink->putItem(end);
+//  sink->putItem(end);
+//  delete sink;
+//
+//  CDataSinkFactory snkfactory;
+//  CDataSource* source = CDataSourceFactory::makeSource("file://./test.evt",
+//                                                        std::vector<uint16_t>(),
+//                                                        std::vector<uint16_t>());
+//  sink = snkfactory.makeSink("-");
+//  
+//  CTestFilter* filt = new CTestFilter();
+//  m_mediator.setFilter(filt);
+//  m_mediator.setDataSource(source);
+//  m_mediator.setDataSink(sink);
+//
+//  m_mediator.mainLoop();
+//  
+//  // If we got here we succeeded...
+//  // Make sure we processed all of the events
+//  CPPUNIT_ASSERT( 4 == filt->getNProcessed() );
+//
+//  tearDown();
+//  setUp();
+//}
+//
+//
 
 bool CMediatorTest::filesEqual(std::string fname0, std::string fname1)
 {

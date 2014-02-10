@@ -49,6 +49,7 @@ class CFilterMainTest : public CppUnit::TestFixture
     CPPUNIT_TEST ( testBadSinkFail );
     CPPUNIT_TEST ( testSkipTransmitted );
     CPPUNIT_TEST ( testCountTransmitted );
+    CPPUNIT_TEST ( testOneShot );
 
     CPPUNIT_TEST_SUITE_END();
 
@@ -63,6 +64,7 @@ class CFilterMainTest : public CppUnit::TestFixture
     void testCountTransmitted();
 
     void testSetMembers();
+    void testOneShot();
 
   private:
 };
@@ -135,3 +137,14 @@ void CFilterMainTest::testCountTransmitted()
   CFilterMain app(argc, const_cast<char**>(argv)); 
   CPPUNIT_ASSERT_EQUAL(5, app.m_mediator.m_nToProcess);
 }
+
+void CFilterMainTest::testOneShot()
+{
+  int argc = 2;
+  const char* argv[] = {"Main",
+                      "--oneshot"};
+  // Ensure that this thing only throws a CFatalException
+  CFilterMain app(argc, const_cast<char**>(argv)); 
+  CPPUNIT_ASSERT_EQUAL(true, app.m_mediator.m_isOneShot);
+}
+

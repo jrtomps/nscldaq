@@ -46,7 +46,10 @@ CMediator::CMediator(CDataSource* source, CFilter* filter, CDataSink* sink)
   m_pFilter(filter),
   m_pSink(sink),
   m_nToProcess(-1),
-  m_nToSkip(-1)
+  m_nToSkip(-1),
+  m_isOneShot(false),
+  m_nBegins(0),
+  m_nEnds(0)
 {}
 
 /**! Destructor
@@ -78,6 +81,10 @@ CMediator::~CMediator()
   m_nToProcess = -1;
   m_nToSkip = -1;
 
+  m_isOneShot = false;
+  m_nBegins = 0;
+  m_nEnds = 0;
+
 }
 
 /**! The main loop
@@ -108,7 +115,7 @@ void CMediator::mainLoop()
     if (proc_iter>=nprocess && nprocess>=0) {
       break;
     }
-  
+
     // Get a new item
     // Exit if the item returned is null
     item = source.getItem();
@@ -142,6 +149,21 @@ void CMediator::mainLoop()
     // THE FILTER MUST NOT HAVE DELETED THE OBJECT PASSED IT!!!
     delete item;
 
+    // Check if we have found symmetric begin and end runs
+    if (m_isOneShot) {
+      if (stateChangesAreSymmetric()) {
+        break;
+      }
+    } 
+ 
+    // Check if we have found symmetric begin and end runs
+    if (m_isOneShot) {
+      if (stateChangesAreSymmetric()) {
+        break;
+      }
+    } 
+ 
+
     // Increment our counter
     ++tot_iter;
   }
@@ -161,7 +183,9 @@ CRingItem* CMediator::handleItem(CRingItem* item)
     case END_RUN:
     case PAUSE_RUN:
     case RESUME_RUN:
-      fitem = m_pFilter->handleStateChangeItem(static_cast<CRingStateChangeItem*>(item));
+      // Note that this is calling a CMediator::handleStateChange method
+      // to update our begin and end run state change counts
+      fitem = handleStateChangeItem(static_cast<CRingStateChangeItem*>(item));
       break;
 
       // Documentation items
@@ -200,3 +224,18 @@ CRingItem* CMediator::handleItem(CRingItem* item)
 
   return fitem;
 }
+
+
+CRingItem* CMediator::handleStateChangeItem(CRingStateChangeItem* item)
+{
+  uint32_t type = item->type();
+  if (type==BEGIN_RUN) {
+    ++m_nBegins;
+  } else if (type==END_RUN) {
+    ++m_nEnds;
+  }
+
+  return  m_pFilter->handleStateChangeItem(item);
+}
+
+

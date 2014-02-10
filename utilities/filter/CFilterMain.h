@@ -21,7 +21,6 @@
 #define CFILTERMAIN_H
 
 #include <CMediator.h>
-#include "filterargs.h"
 #include <vector> 
 #include <stdint.h>
 #include <CFatalException.h>
@@ -29,14 +28,14 @@
 class CDataSource;
 class CFilter;
 class CDataSink;
-
+struct gengetopt_args_info;
 
 class CFilterMain
 {
   
   private:
     CMediator m_mediator; //!< The mediator
-    struct gengetopt_args_info m_argsInfo; //!< The parsed options
+    struct gengetopt_args_info* m_argsInfo; //!< The parsed options
 
   public:
     /**! Constructor
@@ -68,7 +67,8 @@ class CFilterMain
   
       \param filter a template of the filter to register
     */
-    void registerFilter(CFilter* filter);
+    void registerFilter(const CFilter* filter);
+
 
   private:
     // Private utility functions 

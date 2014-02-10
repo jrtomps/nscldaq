@@ -28,6 +28,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2014, Al
 #include <vector>
 #include <iostream>
 #include <stdlib.h>
+#include "filterargs.h"
 #include "CFatalException.h"
 
 /**! Constructor
@@ -39,9 +40,10 @@ static const char* Copyright = "(C) Copyright Michigan State University 2014, Al
 
 */
 CFilterMain::CFilterMain(int argc, char** argv)
-  : m_mediator(0,new CCompositeFilter,0)
+  : m_mediator(0,new CCompositeFilter,0),
+  m_argsInfo(new gengetopt_args_info)
 {
-  cmdline_parser(argc,argv,&m_argsInfo);  
+  cmdline_parser(argc,argv,m_argsInfo);  
 
   try {
     // Set up the data source 
@@ -53,13 +55,19 @@ CFilterMain::CFilterMain(int argc, char** argv)
     m_mediator.setDataSink(sink);
 
     // set up the skip and count args
-    if (m_argsInfo.skip_given) {
-      m_mediator.setSkipCount(m_argsInfo.skip_arg);
+    if (m_argsInfo->skip_given) {
+      m_mediator.setSkipCount(m_argsInfo->skip_arg);
     }  
 
-    if (m_argsInfo.count_given) {
-      m_mediator.setProcessCount(m_argsInfo.count_arg);
+    if (m_argsInfo->count_given) {
+      m_mediator.setProcessCount(m_argsInfo->count_arg);
     }  
+
+    if (m_argsInfo->oneshot_given) {
+      m_mediator.setOneShot(true);
+    } else {
+      m_mediator.setOneShot(false);
+    } 
 
 
   } catch (CException& exc) {
@@ -70,7 +78,9 @@ CFilterMain::CFilterMain(int argc, char** argv)
 
 
 CFilterMain::~CFilterMain() throw()
-{}
+{
+  delete m_argsInfo;
+}
 
 /**! Append a filter to the mediator's ccomposite filter
   Note that because the filter argument will be used solely 
@@ -79,14 +89,16 @@ CFilterMain::~CFilterMain() throw()
 
   \param filter a template of the filter to register
  */
-void CFilterMain::registerFilter(CFilter* filter)
+void CFilterMain::registerFilter(const CFilter* filter)
 {
   // We will always have a composite filter in this main
   CCompositeFilter* main_filter=0;
   main_filter = dynamic_cast<CCompositeFilter*>(m_mediator.getFilter());
 
   main_filter->registerFilter(filter);
+  
 }
+
 
 /////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
@@ -103,8 +115,8 @@ CDataSource* CFilterMain::constructDataSource()
 {
   // Set up default source type
   std::string source_name("-");
-  if (m_argsInfo.source_given) {
-    source_name = std::string(m_argsInfo.source_arg);
+  if (m_argsInfo->source_given) {
+    source_name = std::string(m_argsInfo->source_arg);
   } 
 
   // Set up the sampling 
@@ -126,12 +138,15 @@ CDataSink* CFilterMain::constructDataSink()
 {
   // Set up default source type
   std::string sink_name("-");
-  if (m_argsInfo.sink_given) {
-    sink_name = std::string(m_argsInfo.sink_arg);
+  if (m_argsInfo->sink_given) {
+    sink_name = std::string(m_argsInfo->sink_arg);
   } 
 
-  CDataSink* sink=0;
-  return CDataSinkFactory().makeSink(sink_name);
+  CDataSink* sink=CDataSinkFactory().makeSink(sink_name);
+  if (sink==0) {
+    throw std::string("Failed to create data sink");
+  }
+  return sink;
 }
 
 /**! The main loop
@@ -157,13 +172,13 @@ CFilterMain::constructSampleList()
 
   std::vector<uint16_t> sample;
   std::vector<int> s;
-  if (m_argsInfo.sample_given) {
+  if (m_argsInfo->sample_given) {
     try {
-      s = stringListToIntegers(std::string(m_argsInfo.sample_arg));
+      s = stringListToIntegers(std::string(m_argsInfo->sample_arg));
     }
     catch (...) {
       std::cerr << "Invalid value for --sample, must be a list of item types was: "
-        << std::string(m_argsInfo.sample_arg) << std::endl;
+        << std::string(m_argsInfo->sample_arg) << std::endl;
       throw CFatalException();
     }
     for(int i=0; i < s.size(); i++) {
@@ -186,13 +201,13 @@ CFilterMain::constructExcludesList()
 {
   std::vector<uint16_t> exclude;
   std::vector<int> e;
-  if (m_argsInfo.exclude_given) {
+  if (m_argsInfo->exclude_given) {
     try {
-      e = stringListToIntegers(std::string(m_argsInfo.exclude_arg));
+      e = stringListToIntegers(std::string(m_argsInfo->exclude_arg));
     }
     catch (...) {
       std::cerr << "Invalid value for --exclude, must be a list of item types was: "
-        << std::string(m_argsInfo.sample_arg) << std::endl;
+        << std::string(m_argsInfo->sample_arg) << std::endl;
       throw CFatalException();
       
     }

@@ -23,6 +23,8 @@ class CDataSource;
 class CFilter;
 class CDataSink;
 class CRingItem;
+class CRingStateChangeItem;
+
 
 class CMediator
 {
@@ -32,6 +34,9 @@ class CMediator
     CDataSink* m_pSink; //!< the sink 
     int  m_nToProcess; //!< number to process
     int  m_nToSkip; //!< number to skip
+    bool m_isOneShot; //!< exit after symmetric begin/ end runs 
+    int m_nBegins; //!< number of begin run events 
+    int m_nEnds; //!< number of end run events 
 
   public:
     // The constructor
@@ -105,10 +110,18 @@ class CMediator
     /**! Set the number to process */
     void setProcessCount(int nEvents) { m_nToProcess = nEvents; }
 
+    void setOneShot(bool yesno) { m_isOneShot = yesno; }
+
   protected:
     /**! Delegate item to proper handler of filter
     */
-    CRingItem* handleItem(CRingItem* item);
+    CRingItem* handleItem(CRingItem* item); 
+
+    CRingItem* handleStateChangeItem(CRingStateChangeItem* item);
+
+    bool stateChangesAreSymmetric() const {
+      return (m_nBegins==m_nEnds && m_nBegins!=0);
+    }
 
 };
 
