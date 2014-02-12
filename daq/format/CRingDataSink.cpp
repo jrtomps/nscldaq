@@ -45,5 +45,15 @@ void CRingDataSink::putItem(const CRingItem& item)
 
 void CRingDataSink::openRing()
 {
-  m_pRing = CRingBuffer::createAndProduce(m_url);
+  // try to open the ring as a producer...
+  // check if the ring exists... if it does just
+  // try to attach to it as a producer. If a producer
+  // exists, this will throw a CErrnoException of errno=EACCES
+  if (CRingBuffer::isRing(m_url)) {
+    m_pRing = new CRingBuffer(m_url,CRingBuffer::producer);
+  } else {
+    // If we are here, no ring exists already with the desired
+    // name so we can create and produce
+    m_pRing = CRingBuffer::createAndProduce(m_url);
+  }
 }

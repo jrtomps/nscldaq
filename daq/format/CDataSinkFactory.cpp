@@ -94,6 +94,7 @@ CDataSink* CDataSinkFactory::makeFileSink(std::string fname)
     // have been freed. Ensure that this send out a
     // result that indicates failure
     sink = 0;
+    throw CErrnoException(err);
   }
 
   return sink;
@@ -124,6 +125,7 @@ CDataSink* CDataSinkFactory::makeRingSink(std::string fname)
     // have been freed. Ensure that this send out a
     // result that indicates failure
     sink = 0;
+    throw CErrnoException(err);
   }
 
   return sink;
