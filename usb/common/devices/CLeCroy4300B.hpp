@@ -51,6 +51,7 @@ void  CLeCroy4300B<Controller,RdoList>::onAttach(CReadoutModule& config)
     m_pConfig->addIntListParameter("-pedestals",16);
 
     m_pConfig->addIntegerParameter("-cmdregister",0);
+    m_pConfig->addBooleanParameter("-camacclear",false);
 }
 
 template<class Controller, class RdoList>
@@ -73,11 +74,9 @@ void CLeCroy4300B<Controller,RdoList>::Initialize(Controller& controller)
 template<class Controller, class RdoList>
 void CLeCroy4300B<Controller,RdoList>::addReadoutList(RdoList& list)
 {
-    // note that this shuld not be used...however for the sake of 
-    // continuity with the old system, i add the eventwise clear
-
-//    addClear(list);
-
+    if (m_pConfig->getBoolParameter("-camacclear")) {
+      addClear(list);
+    }
 }
 
 template<class Controller, class RdoList> 
