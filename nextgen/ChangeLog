@@ -469,3 +469,9 @@ Feb 1, 2012 - Feb 24, 2012
 	  argument types.
 	* Added CSIS3820::ReadHighBits to give support for the 48 bit
 	scaler channels.
+	* Fix error in event orderer...was not paying attention to the
+	buffering window time as such a data source that only emitted
+	auto-assigned timestamp events (e.g. scalers) would not allow data
+	from the more lively source to be sent out.
+
+	
