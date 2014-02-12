@@ -86,6 +86,8 @@ void  CULMTrigger<Controller,RdoList>::onAttach(CReadoutModule& config)
 
 
     m_pConfig->addBooleanParameter("-forceFirmwareLoad",true);
+    m_pConfig->addBooleanParameter("-readRegister",true);
+    m_pConfig->addBooleanParameter("-eventwiseClear",true);
 
 }
 
@@ -188,9 +190,18 @@ template<class Controller, class RdoList>
 void CULMTrigger<Controller,RdoList>::addReadoutList(RdoList& list)
 {
     int slot = m_pConfig->getIntegerParameter("-slot"); 
-    list.addRead16(slot,0,3);
-//    std::cout << "ADD ME BACK" << std::endl;
+    // read trigger register
+    if (m_pConfig->getBoolParameter("-readRegister")) {
+      addRegisterRead(list);
+    }
+
+    // clear the register
+    if (m_pConfig->getBoolParameter("-eventwiseClear")) {
+      addRegisterClear(list);
+    }
 }
+
+
 
 template<class Controller, class RdoList>
 void CULMTrigger<Controller,RdoList>::onEndRun(Controller& controller)
@@ -568,14 +579,6 @@ bool CULMTrigger<Controller,RdoList>::isConfigured(Controller& controller)
 }
 
 template<class Controller, class RdoList>
-int CULMTrigger<Controller,RdoList>::doClear(Controller& controller) 
-{
-    uint16_t qx=0;
-    int slot = m_pConfig->getIntegerParameter("-slot"); 
-    return controller.simpleControl(slot,0,9,qx);
-}
-
-template<class Controller, class RdoList>
 int CULMTrigger<Controller,RdoList>::setGo(Controller& controller, bool onoff) 
 {
     uint16_t qx=0;
@@ -639,3 +642,68 @@ int CULMTrigger<Controller,RdoList>::getTStampMode(Controller& controller, TStam
     
 }
 
+//////////////////////////////////////////////////////////
+//  Register read
+//
+
+// Add a read of the register to the readoutlist 
+template<class Controller, class RdoList>
+void CULMTrigger<Controller,RdoList>::addRegisterRead(RdoList& list)
+{
+  int slot = m_pConfig->getIntegerParameter("-slot"); 
+  list.addRead16(slot,0,3);
+}
+
+// Add a read of the register to the readoutlist 
+template<class Controller, class RdoList>
+int CULMTrigger<Controller,RdoList>::doRegisterRead(Controller& controller,
+                                                    uint16_t& data )
+{
+  uint16_t qx = 0;
+  int slot = m_pConfig->getIntegerParameter("-slot"); 
+  int status = controller.simpleRead16(slot,0,3,data,qx);
+}
+
+////////////////////////////////////////////////////////////
+// Module clear
+// Does the following:
+//  1. Clears latches
+//  2. Trigger register
+//  3. Timestamp clock
+
+// Add a clear to the readoutlist 
+template<class Controller, class RdoList>
+void CULMTrigger<Controller,RdoList>::addClear(RdoList& list)
+{
+  int slot = m_pConfig->getIntegerParameter("-slot"); 
+  list.addControl(slot,0,9);
+}
+
+template<class Controller, class RdoList>
+int CULMTrigger<Controller,RdoList>::doClear(Controller& controller) 
+{
+    uint16_t qx=0;
+    int slot = m_pConfig->getIntegerParameter("-slot"); 
+    return controller.simpleControl(slot,0,9,qx);
+}
+
+////////////////////////////////////////////////////////////
+// Register clear
+// Add a register clear to the readoutlist 
+// The main difference between register clear and clear
+template<class Controller, class RdoList>
+void CULMTrigger<Controller,RdoList>::addRegisterClear(RdoList& list)
+{
+  int slot = m_pConfig->getIntegerParameter("-slot"); 
+  list.addControl(slot,0,10);
+}
+
+// Add a register clear to the readoutlist 
+// The main difference between register clear and clear
+template<class Controller, class RdoList>
+int CULMTrigger<Controller,RdoList>::doRegisterClear(Controller& controller)
+{
+  uint16_t qx=0;
+  int slot = m_pConfig->getIntegerParameter("-slot"); 
+  return controller.simpleControl(slot,0,10,qx);
+}

@@ -47,6 +47,13 @@ class CULMTrigger : public CReadoutHardwareT<Controller,RdoList>
 
     bool isConfigured(Controller& ctlr);
 
+    void addRegisterRead(RdoList& list);
+    int doRegisterRead(Controller& controller,uint16_t& data);
+
+    void addRegisterClear(RdoList& list);
+    int doRegisterClear(Controller& controller);
+
+    void addClear(RdoList& list);
     int doClear(Controller& ctlr);
     
     // Setters
@@ -60,6 +67,7 @@ class CULMTrigger : public CReadoutHardwareT<Controller,RdoList>
     int getGo(Controller& ctlr, bool& onoff);
     int getTStampMode(Controller& ctlr, TStampMode& mode);
 
+    
 }; // class ULMTrigger
 
 #include "CULMTrigger.hpp"
