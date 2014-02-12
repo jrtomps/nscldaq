@@ -35,7 +35,7 @@ CCompositeFilter::CCompositeFilter()
 * \param rhs the filter to copy
 */
 CCompositeFilter::CCompositeFilter(const CCompositeFilter& rhs)
-  : m_filter()
+  : CFilter(rhs), m_filter()
 {
   const_iterator it = rhs.begin();
   const_iterator itend = rhs.end();

@@ -72,6 +72,7 @@ CFilterMain::CFilterMain(int argc, char** argv)
 
   } catch (CException& exc) {
     std::cout << exc.ReasonText() << std::endl;
+    std::cout << exc.WasDoing() << std::endl;
     throw CFatalException();
   }
 }
@@ -96,7 +97,6 @@ void CFilterMain::registerFilter(const CFilter* filter)
   main_filter = dynamic_cast<CCompositeFilter*>(m_mediator.getFilter());
 
   main_filter->registerFilter(filter);
-  
 }
 
 
@@ -143,9 +143,6 @@ CDataSink* CFilterMain::constructDataSink()
   } 
 
   CDataSink* sink=CDataSinkFactory().makeSink(sink_name);
-  if (sink==0) {
-    throw std::string("Failed to create data sink");
-  }
   return sink;
 }
 

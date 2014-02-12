@@ -49,7 +49,7 @@ class CFilter
     virtual ~CFilter() {}
 
     // Virtual constructor
-    virtual CFilter* clone() const { return new CFilter();}
+    virtual CFilter* clone() const { return new CFilter(*this);}
   
     // The default handlers
     virtual CRingItem* handleRingItem(CRingItem* pItem) 
