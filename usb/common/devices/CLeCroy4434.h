@@ -1,22 +1,14 @@
 
-#ifndef CLECROY4434_H
-#define CLECROY4434_H
+#ifndef CLeCroy4434_H
+#define CLeCroy4434_H
 
 #include "CReadoutHardwareT.h"
-#include "CCBD8210CrateController.h"
-#include "CCBD8210ReadoutList.h"
 #include <CReadoutModule.h>
 //class CReadoutModule;
-
-namespace csr
-{
 
 // forward declaration of the class
 template<class Controller, class RdoList> class CLeCroy4434;
 
-// Provide the typedef of the specialization for the CBD8210 driver 
-typedef 
-CLeCroy4434<CCBD8210CrateController,CCBD8210ReadoutList> CCBD8210LeCroy4434;
     
 /**! \brief A hybrid camac driver for the LeCroy4434 scaler 
 *
@@ -142,7 +134,6 @@ class CLeCroy4434 : public CReadoutHardwareT<Controller,RdoList>
     void addReadAll(RdoList& list);
 };
 
-}
 #include "CLeCroy4434.hpp"
 
 #endif

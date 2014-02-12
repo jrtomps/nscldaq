@@ -13,8 +13,8 @@
 	     Michigan State University
 	     East Lansing, MI 48824-1321
 */
-#ifndef __CLRS4434COMMAND_H
-#define __CLRS4434COMMAND_H
+#ifndef __CLeCroy4434COMMAND_H
+#define __CLeCroy4434COMMAND_H
 
 #ifndef __TCLOBJECTPROCESSOR_H
 #include <TCLObjectProcessor.h>
@@ -42,8 +42,8 @@ class CConfiguration;
 class CReadoutModule;
 
 /*!
-   This class provides a command that creates the CLRS4434 class.  See
-   ../devices/CLRS4434.h for information about the configuration options
+   This class provides a command that creates the CLeCroy4434 class.  See
+   ../devices/CLeCroy4434.h for information about the configuration options
    that device supports.  The PH7xx objects support Phillips CAMAC ADC, TDC
    and QDC modules in autonomous data taking mode.
 \verbatim
@@ -59,24 +59,24 @@ class CReadoutModule;
 
 
 */
-class CLRS4434Command : public CTCLObjectProcessor
+class CLeCroy4434Command : public CTCLObjectProcessor
 {
 private:
   CConfiguration& m_Config;	// This is the global configuration of devices.
 
   // Allowed canonicals
 public:
-  CLRS4434Command(CTCLInterpreter& interp,
+  CLeCroy4434Command(CTCLInterpreter& interp,
 		CConfiguration& config,
-		std::string     commandName = std::string("lrs4434"));
-  virtual ~CLRS4434Command();
+		std::string     commandName = std::string("LeCroy4434"));
+  virtual ~CLeCroy4434Command();
 
   // Forbidden canonicals:
 private:
-  CLRS4434Command(const CLRS4434Command& rhs);
-  CLRS4434Command& operator=(const CLRS4434Command& rhs);
-  int operator==(const CLRS4434Command& rhs) const;
-  int operator!=(const CLRS4434Command& rhs) const;
+  CLeCroy4434Command(const CLeCroy4434Command& rhs);
+  CLeCroy4434Command& operator=(const CLeCroy4434Command& rhs);
+  int operator==(const CLeCroy4434Command& rhs) const;
+  int operator!=(const CLeCroy4434Command& rhs) const;
 public:
 
 

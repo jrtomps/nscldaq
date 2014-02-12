@@ -4,9 +4,6 @@
 #include "CConfiguration.h"
 #include "CamacSlotLimits.h"
 
-namespace csr 
-{
-
 // Defines some useful constants for the command register
 static const uint16_t ECLSCL_TEST (0x8000);
 static const uint16_t ECLSCL_BD   (0x2000);
@@ -63,6 +60,8 @@ void  CLeCroy4434<Controller,RdoList>::onAttach(CReadoutModule& config)
                             CConfigurableObject::isInteger,
                             &SlotLimits,
                             "1");
+
+  m_pConfig->addBooleanParameter("-incremental",false);
 }
 
 template<class Controller, class RdoList>
@@ -70,8 +69,6 @@ void CLeCroy4434<Controller,RdoList>::Initialize(Controller& controller)
 {
     int slot = m_pConfig->getIntegerParameter("-slot"); 
   
-    std::cout << "HELLO" << std::endl;
-
     uint16_t qx=0;
     // clear module & disable aux bus the module 
     // by writing to the command register
@@ -84,9 +81,11 @@ void CLeCroy4434<Controller,RdoList>::Initialize(Controller& controller)
 template<class Controller, class RdoList>
 void CLeCroy4434<Controller,RdoList>::addReadoutList(RdoList& list)
 {
-    std::cout << "READOUT LIST" << std::endl;
     addReadAll(list);
-    addClear(list);
+
+    if (m_pConfig->getBoolParameter("-incremental")) {
+        addClear(list);
+    }
 }
 
 
@@ -133,8 +132,3 @@ void CLeCroy4434<Controller,RdoList>::addRead(RdoList& list, int a)
     list.addRead24(slot,0,0);
 }
 
-// make the specialization for the CBD8210 name visible w/ ext. linkage
-//extern template class CLeCroy4434<CCBD8210CrateController,CCBD8210ReadoutList>;
-//template class CLecroy4434<CCCUSB,CCCUSBReadoutList> CamacLeCroy4434;
-
-} // namespace csr

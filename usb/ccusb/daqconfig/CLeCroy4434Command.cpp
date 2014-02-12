@@ -14,13 +14,13 @@
 	     East Lansing, MI 48824-1321
 */
 #include <config.h>
-#include "CLRS4434Command.h"
+#include "CLeCroy4434Command.h"
 
 #include <TCLInterpreter.h>
 #include <TCLObject.h>
 #include <CConfiguration.h>
 #include <CReadoutModule.h>
-#include <CLRS4434.h>
+#include <CLeCroy4434.h>
 #include <CCCUSB.h>
 #include <CCCUSBReadoutList.h>
 #include <CCamacCompat.hpp>
@@ -28,7 +28,7 @@
 
 using namespace std;
 
-//   Implementation of the CLRS4434Command class.
+//   Implementation of the CLeCroy4434Command class.
 
 /**************************************************************************/
 /*                 Implementations of canonical methods                   */
@@ -45,7 +45,7 @@ using namespace std;
    \param commandName std::string
        Name of the command to register.
 */
-CLRS4434Command::CLRS4434Command(CTCLInterpreter& interp,
+CLeCroy4434Command::CLeCroy4434Command(CTCLInterpreter& interp,
 			     CConfiguration& config,
 			     std::string     commandName) :
   CTCLObjectProcessor(interp, commandName),
@@ -56,7 +56,7 @@ CLRS4434Command::CLRS4434Command(CTCLInterpreter& interp,
 /*!
    The base class destructor will unregister us from the interpreter:
 */
-CLRS4434Command::~CLRS4434Command()
+CLeCroy4434Command::~CLeCroy4434Command()
 {
 }
 
@@ -87,7 +87,7 @@ CLRS4434Command::~CLRS4434Command()
 
 */
 int
-CLRS4434Command::operator()(CTCLInterpreter& interp,
+CLeCroy4434Command::operator()(CTCLInterpreter& interp,
 			  std::vector<CTCLObject>& objv)
 {
   // require at least 3 parameters.
@@ -144,7 +144,7 @@ CLRS4434Command::operator()(CTCLInterpreter& interp,
      turn them into error strings and TCL_ERROR returns.
 */
 int
-CLRS4434Command::create(CTCLInterpreter& interp,
+CLeCroy4434Command::create(CTCLInterpreter& interp,
 		       std::vector<CTCLObject>& objv)
 {
   // Need to make sure the word count of the command is valid.
@@ -173,7 +173,7 @@ CLRS4434Command::create(CTCLInterpreter& interp,
   // Since the module is unique, we can create it we won't register it until
   // the configuration is successful;
 
-  CLRS4434<CCCUSB,CCCUSBReadoutList> scaler;
+  CLeCroy4434<CCCUSB,CCCUSBReadoutList> scaler;
   CReadoutHardware* hybrid_hardware = compat_clone(scaler);
   pModule        = new CReadoutModule(name, *hybrid_hardware); // Also attaches pScaler to configuration.
   delete hybrid_hardware;
@@ -214,7 +214,7 @@ CLRS4434Command::create(CTCLInterpreter& interp,
 
 */
 int
-CLRS4434Command::config(CTCLInterpreter& interp,
+CLeCroy4434Command::config(CTCLInterpreter& interp,
 		      std::vector<CTCLObject>& objv)
 {
   // Ensure the parameter counts are valid:
@@ -263,7 +263,7 @@ CLRS4434Command::config(CTCLInterpreter& interp,
      value pair...e.g. {-base 0x80000000} ...
 */
 int
-CLRS4434Command::cget(CTCLInterpreter& interp,
+CLeCroy4434Command::cget(CTCLInterpreter& interp,
 		    std::vector<CTCLObject>& objv)
 {
   if (objv.size() != 3) {
@@ -295,7 +295,7 @@ CLRS4434Command::cget(CTCLInterpreter& interp,
    Return the confguration.
 */
 CConfiguration*
-CLRS4434Command::getConfiguration()
+CLeCroy4434Command::getConfiguration()
 {
   return &m_Config;
 }
@@ -309,7 +309,7 @@ CLRS4434Command::getConfiguration()
 
 */
 void
-CLRS4434Command::Usage(std::string msg, std::vector<CTCLObject> objv)
+CLeCroy4434Command::Usage(std::string msg, std::vector<CTCLObject> objv)
 {
   string result("ERROR: ");
   result += msg;
@@ -343,7 +343,7 @@ CLRS4434Command::Usage(std::string msg, std::vector<CTCLObject> objv)
     TCL_ERROR - The configuration failed...and the interpreter result says why.
 */
 int
-CLRS4434Command:: configure(CTCLInterpreter&         interp,
+CLeCroy4434Command:: configure(CTCLInterpreter&         interp,
 			  CReadoutModule*          pModule,
 			  std::vector<CTCLObject>& config,
 			  int                      firstPair)
@@ -389,7 +389,7 @@ CLRS4434Command:: configure(CTCLInterpreter&         interp,
   out of the various exception handlers:
 */
 string
-CLRS4434Command::configMessage(std::string base,
+CLeCroy4434Command::configMessage(std::string base,
 			    std::string key,
 			    std::string value,
 			    std::string errorMessage)
