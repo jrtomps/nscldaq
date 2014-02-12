@@ -53,7 +53,7 @@ class CFilterMain
     /**! Destructor
       This does absolutely nothing.
     */
-    ~CFilterMain() throw();
+    ~CFilterMain();
 
     /**! Main loop 
       Executes the CMediator::mainLoop() 

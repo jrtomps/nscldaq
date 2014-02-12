@@ -22,7 +22,8 @@ include_HEADERS	=  CFilterMain.h \
 INCLUDES	= -I@top_srcdir@/utilities \
     @LIBTCLPLUS_CFLAGS@	\
 		-I@top_srcdir@/base/uri		\
-    -I@top_srcdir@/daq/format
+    -I@top_srcdir@/daq/format \
+    -I@top_srcdir@/base/dataflow
 
 libfilter_la_LDFLAGS	= -version-info $(SOVERSION)	\
 				-Wl,"-rpath-link=$(libdir)" -lrt \
@@ -49,7 +50,7 @@ libfilter_la_DEPENDENCIES = @srcdir@/filterargs.h
 
 #------------------- Tests:
 
-noinst_PROGRAMS = unittests
+noinst_PROGRAMS = unittests testapp
 
 unittests_SOURCES	= TestRunner.cpp  \
             mediatortests.cpp \
@@ -64,8 +65,19 @@ unittests_LDADD		= -L$(libdir) $(CPPUNIT_LDFLAGS) 		\
 			@LIBEXCEPTION_LDFLAGS@
 
 
+unittests_CXXFLAGS = $(AM_CXXFLAGS)
 
 unittests_LDFLAGS	= -Wl,"-rpath-link=$(libdir)"
+
+
+testapp_SOURCES = TestApp.cpp
+testapp_LDADD = -L$(libdir) $(CPPUNIT_LDFLAGS) 		\
+			@top_builddir@/base/dataflow/libDataFlow.la 	\
+			@top_builddir@/base/uri/liburl.la 	\
+			@top_builddir@/daq/format/libdataformat.la	\
+			@top_builddir@/utilities/filter/libfilter.la	\
+			@LIBEXCEPTION_LDFLAGS@
+testapp_LDFLAGS	= -Wl,"-rpath-link=$(libdir)"
 
 
 TESTS=./unittests

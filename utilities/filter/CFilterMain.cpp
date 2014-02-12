@@ -78,7 +78,7 @@ CFilterMain::CFilterMain(int argc, char** argv)
 }
 
 
-CFilterMain::~CFilterMain() throw()
+CFilterMain::~CFilterMain()
 {
   delete m_argsInfo;
 }
