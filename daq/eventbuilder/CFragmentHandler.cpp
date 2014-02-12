@@ -603,6 +603,23 @@ CFragmentHandler::flushQueues(bool completely)
       break;		// If there are more fragments they are barriers.
     }
   }
+
+  // Now we need to flush all fragments that are older than the build window.
+  // This deals with the case of a source that just doesn't emit fragments
+  // very often (e.g. scaler only case).
+  
+  while (!queuesEmpty()) {
+    if ((m_nNow - m_nOldestReceived) < m_nBuildWindow) break; // Nothing old enough.
+    std::pair<time_t, ::EVB::pFragment>* p = popOldest();
+    if (p) {
+        sortedFragments.push_back(p->second);
+        delete p;
+    } else {
+        break;
+    }
+  }
+  
+
   // Observe the fragments we have now:
   
   observe(sortedFragments);
@@ -787,9 +804,10 @@ CFragmentHandler::popOldest()
       }
 #endif
       m_nMostRecentlyPopped = m_nOldest;
-      m_nOldest = nextOldest;
+      if (nextOldest != UINT64_MAX) {
+	m_nOldest = nextOldest;
+      }
       m_nOldestReceived = nextReceived;
-  
     }
     /*
        If we could not find one and there's no barrier pending, recompute m_nOldest and 
