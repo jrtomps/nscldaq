@@ -33,7 +33,7 @@
 #include <CPH7132Command.h>
 #include <CCCUSBCommand.h>
 #include <CAddTclDriver.h>
-#include <CLRS4434Command.h>
+#include <CLeCroy4434Command.h>
 #include <CCamacCrateCommand.h>
 #include <iostream>
 
@@ -75,7 +75,7 @@ CConfiguration::CConfiguration() :
   m_Commands.push_back(new CCCUSBCommand(*m_pInterp, *this));
   m_Commands.push_back(new CPH7132Command(*m_pInterp, *this));
   m_Commands.push_back(new CAddTclDriver(*m_pInterp, *this));
-  m_Commands.push_back(new CLRS4434Command(*m_pInterp, *this));
+  m_Commands.push_back(new CLeCroy4434Command(*m_pInterp, *this));
   m_Commands.push_back(new CCamacCrateCommand(*m_pInterp, *this));
 
 }
