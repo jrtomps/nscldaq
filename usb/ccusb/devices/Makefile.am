@@ -13,7 +13,7 @@ libCCUSBDevices_la_SOURCES	= 	CConfigurableObject.cpp	\
 					CCCUSBModule.cpp	\
 					CPH7132.cpp	\
 					CTclModule.cpp	\
-					CLRS4434.cpp \
+					CLeCroy4434.cpp \
 					CCamacCrate.cpp
 
 
