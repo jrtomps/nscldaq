@@ -199,6 +199,7 @@ SConfigurableObject::Configure(CTCLInterpreter& rInterp,
     if(pParam != m_Configuration.end()) {
       CConfigurationParameter* p = *pParam;
       nStatus = (*p)(rInterp, rResult, Parameter.c_str());
+      if (nStatus != TCL_OK) return nStatus;    // Stop on error right away.
     }
     else {
       nStatus = TCL_ERROR;

@@ -264,7 +264,7 @@ CScriptedSegment::addUserWrittenCreators()
   - CCAENV785Creator  - Creates CAEN V785 ADC modules.
   - CCAENV792Creator  - Creates CAEN V792 QDC modules (works for the 892)
   - CCAENV830Creator  - Creates CAEN V830 scaler modules.
-  - CSIS3300Creator   - Creates SIS 3300 scaler mdoules.
+  - CSIS3300Creator   - Creates SIS 3300 FADC mdoules.
   - CV1x90Creator     - Creates a CAEN V1190/1290 multihit tdc module.
   - CPacketCreator    - Creates a packet ..which holds other modules.
 
@@ -278,4 +278,7 @@ CScriptedSegment::addStandardCreators()
   addCreator(*(new CCAENV775Creator()));
   addCreator(*(new CCAENV785Creator()));
   addCreator(*(new CCAENV792Creator()));
+  addCreator(*(new CCAENV830Creator()));
+  addCreator(*(new CSIS3300Creator()));
+  addCreator(*(new CV1x90Creator("v1x90")));
 }

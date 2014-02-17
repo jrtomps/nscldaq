@@ -1,6 +1,6 @@
 <!-- chapter frameworks -->
-<chapter>
-    <title>The SBS Readout framework</title>
+<chapter id='chap-sbsrdo'>
+    <title id='chap-sbsrdo-title'>The SBS Readout framework</title>
     <para>
         This chapter describes a framework for reading out events via the SBS
         PCI/VME bus bridge interface.  This chapter describes

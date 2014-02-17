@@ -327,7 +327,7 @@ public:
   CIntArrayParam (const std::string& rName, 
                   unsigned int size,
                   int nDefault = 0);
-  CIntArrayParam (const std::string&, 
+  CIntArrayParam (const std::string& rName, 
                   unsigned int size,
                   int nLow, 
                   int nHigh, 

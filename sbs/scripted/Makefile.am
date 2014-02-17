@@ -110,7 +110,7 @@ ScriptedReadout_LDADD = @top_builddir@/sbs/scripted/libScriptedRdo.la   \
 	-lpthread
 
 
-EXTRA_DIST=Makefile.skel scriptedreadout_Makefile.include
+EXTRA_DIST=Makefile.skel scriptedreadout_Makefile.include scripted.xml
 
 
 #

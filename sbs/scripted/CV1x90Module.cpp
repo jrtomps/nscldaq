@@ -78,6 +78,7 @@ CV1x90Module::CV1x90Module(string           name,
   // Various timing widths etc.
 
   AddIntParam(string("windowwidth"), 0);
+  AddIntParam(string("offset"), 0);
   AddIntParam(string("extramargin"), 0);
   AddIntParam(string("rejectmargin"), 0);
   
@@ -209,6 +210,7 @@ CV1x90Module::Initialize()
     // These timing parameters are only neeed in trigger matching mode:
 
     m_pModule->SetWindowWidth(getIntegerValue("windowwidth"));
+    m_pModule->SetWindowOffset(getIntegerValue("offset"));
     m_pModule->SetExtraSearchMargin(getIntegerValue("extramargin"));
     m_pModule->SetRejectMargin(getIntegerValue("rejectmargin"));
 
@@ -223,7 +225,7 @@ CV1x90Module::Initialize()
     m_pModule->EnableTDCEncapsulation();
   }
   else {
-    m_pModule->EnableTDCEncapsulation();
+    m_pModule->DisableTDCEncapsulation();
   }
 
   // Determine how the signals are interpreterd, and  the various resolution parameters.

@@ -25,6 +25,18 @@
 #endif
 #endif
 
+// Note we use this to get a definition of useconds_t
+// This may need to be typedef'd here once that' gets yanked
+// out (usleep that uses it is POSIX deprecated).
+
+
+#ifndef __CRT_UNISTD_H
+#include <unistd.h>
+#ifndef __CRT_UNISTD_H
+#define __CRT_UNISTD_H
+#endif
+#endif
+
 /**
  * Static methods that encapsulate operating system calls.
  */
@@ -32,6 +44,7 @@ class Os {
 public:
   static std::string whoami();		//< Logged in userm
   static bool authenticateUser(std::string sUser, std::string sPassword);
+  static int  usleep(useconds_t usec);
 };
 
 #endif
