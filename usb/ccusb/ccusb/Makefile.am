@@ -16,13 +16,17 @@ libCCCUSBReadoutList_la_SOURCES = @srcdir@/CCCUSBReadoutList_wrap.cxx
 		@srcdir@/CCCUSBReadoutList.h
 
 
- INCLUDES		= @TCL_FLAGS@ @USBSWITCHES@ @THREADCXX_FLAGS@
+ INCLUDES		= -I@top_srcdir@/base/os \
+		@TCL_FLAGS@ @USBSWITCHES@ @THREADCXX_FLAGS@
 
- libCCUSB_la_LIBADD	= @USB_LIBS@   @THREADLD_FLAGS@
+ libCCUSB_la_LIBADD	= @top_builddir@/base/os/libdaqshm.la \
+	 @USB_LIBS@   @THREADLD_FLAGS@
 
- libCCCUSB_la_LIBADD     = libCCUSB.la @THREADLD_FLAGS@ 
+ libCCCUSB_la_LIBADD     = libCCUSB.la @top_builddir@/base/os/libdaqshm.la \
+			@THREADLD_FLAGS@ 
 
- libCCCUSBReadoutList_la_LIBADD = libCCUSB.la @THREADLD_FLAGS@ 
+ libCCCUSBReadoutList_la_LIBADD = libCCUSB.la @top_builddir@/base/os/libdaqshm.la \
+			@THREADLD_FLAGS@ 
 
 install-data-local:
 	$(mkinstalldirs) @prefix@/ccusbdriver

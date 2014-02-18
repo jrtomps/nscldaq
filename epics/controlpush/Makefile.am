@@ -36,6 +36,7 @@ noinst_HEADERS= cmdline.h CApplication.h CChannelList.h \
 
 controlpush_LDADD   =   @top_builddir@/base/tcpip/libTcp.la	\
 			@LIBEXCEPTION_LDFLAGS@	\
+			@top_builddir@/base/os/libdaqshm.la	\
 			@top_builddir@/base/CopyrightTools/libLicense.la \
 			$(EPICS_LDFLAGS)  $(THREADLD_FLAGS)
 controlpush_LDFLAGS= -Wl,"-rpath=$(libdir)"
@@ -44,6 +45,7 @@ INCLUDES            =	@LIBTCLPLUS_CFLAGS@		\
 			-I@top_srcdir@/base/CopyrightTools	\
 			-I@top_srcdir@/base/headers		\
 			-I@top_srcdir@/base/tcpip	\
+			-I@top_srcdir@/base/os	\
 			$(EPICS_BIN) $(EPICS_INCLUDES) 
 
 controlpush_CXXFLAGS = $(THREADCXX_FLAGS) $(AM_CXXFLAGS)

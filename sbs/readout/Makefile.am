@@ -61,8 +61,9 @@ INCLUDES	=	-I@top_srcdir@/sbs/vmemodules	\
 			-I@top_srcdir@/servers/portmanager	\
 			-I@top_srcdir@/base/dataflow		\
 			-I@top_srcdir@/daq/format		\
-			-I@top_srcdir@/base/thread \
+			-I@top_srcdir@/base/thread 		\
                         -I@top_srcdir@/daq/eventbuilder         \
+			-I@top_srcdir@/base/os			\
 			$(TCL_FLAGS) $(THREADCXX_FLAGS)	\
 			-DHAVE_VME_MAPPING -DHAVE_SBSVME_INTERFACE
 
@@ -71,7 +72,8 @@ libSBSProductionReadout_la_LIBADD	=	@top_builddir@/sbs/vmemodules/libSBSDeviceSu
 						@top_builddir@/daq/format/libdataformat.la		\
 						@top_builddir@/servers/portmanager/libPortManager.la \
 						@top_builddir@/base/dataflow/libDataFlow.la	\
-						@top_builddir@/sbs/
+						@top_builddir@/sbs/				\
+						@top_builddir@/base/os/libdaqshm.la			\
 						@top_builddir@/sbs/driver/src/libbtp.la
 
 
@@ -152,6 +154,7 @@ tests_LDADD = 	CExperiment.lo	\
 		@top_builddir@/base/dataflow/libDataFlow.la	\
 		@top_builddir@/sbs/nsclapi/libSBSVmeAPI.la	\
 		@top_builddir@/base/thread/libdaqthreads.la	\
+		@top_builddir@/base/os/libdaqshm.la		\
 		$(TCL_LDFLAGS) 					\
 		$(CPPUNIT_LDFLAGS)  $(THREADLD_FLAGS)
 

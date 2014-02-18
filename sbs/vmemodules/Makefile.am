@@ -65,10 +65,12 @@ INCLUDES	=	-I@top_srcdir@/base/headers 	\
 			@LIBTCLPLUS_CFLAGS@	\
 			-I@top_srcdir@/sbs/nsclapi	\
 			-I@top_srcdir@/sbs/driver/include \
-			-DHAVE_VME_MAPPING -DHAVE_SBSVME_INTERFACE
+			-DHAVE_VME_MAPPING -DHAVE_SBSVME_INTERFACE \
+			-I@top_srcdir@/base/os
 
 
 libSBSDeviceSupport_la_LIBADD =	@LIBTCLPLUS_LDFLAGS@	\
+				@top_builddir@/base/os/libdaqshm.la	\
 				@top_builddir@/sbs/nsclapi/libSBSVmeAPI.la	\
 				@top_builddir@/sbs/driver/src/libbtp.la
 

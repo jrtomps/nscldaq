@@ -29,6 +29,8 @@
 #include <Exception.h>
 #include <Globals.h>
 #include <CConfiguration.h>
+#include <os.h>
+
 #include <iostream>
 
 #include <stdlib.h>
@@ -483,7 +485,7 @@ CAcquisitionThread::drainUsb()
 	cerr << "Desparate measures being employed to attempt final drain\n";
 	m_pCamac->writeActionRegister(CCCUSB::ActionRegister::clear);
 	m_pCamac->writeActionRegister(0);
-	usleep(100);
+	Os::usleep(100);
 	status = m_pCamac->usbRead(pBuffer->s_rawData, pBuffer->s_storageSize,
 				 &bytesRead, DRAINTIMEOUTS*1000);
 	cerr << "Final desparate attempt to flush usb fifo got status: " 

@@ -46,6 +46,7 @@ BUILT_SOURCES = @srcdir@/rfcmdline.c @srcdir@/rfcmdline.h  \
 ringTestSource_LDADD = \
 	@top_builddir@/daq/format/libdataformat.la \
 	@top_builddir@/base/dataflow/libDataFlow.la \
+	@top_builddir@/base/os/libdaqshm.la	\
 	@LIBEXCEPTION_LDFLAGS@	\
 	-ldl 
 

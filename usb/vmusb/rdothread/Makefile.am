@@ -19,12 +19,15 @@ INCLUDES		= -I@top_srcdir@/usb/vmusb/threadcomm 	\
 			@LIBTCLPLUS_CFLAGS@		\
 			-I@top_srcdir@/base/headers	\
 			-I@top_srcdir@/base/thread	\
-			-I@top_srcdir@/usb/vmusb
+			-I@top_srcdir@/usb/vmusb	\
+			-I@top_srcdir@/base/os
 
 
 libVMUSBRdoThread_la_LIBADD	= @top_builddir@/usb/vmusb/threadcomm/libVMUSBThreadComm.la	\
 			  @top_builddir@/usb/vmusb/devices/libVMUSBDevices.la	\
 			  @top_builddir@/usb/vmusb/vmusb/libVMUSB.la		\
 			@LIBTCLPLUS_LDFLAGS@					\
-			@top_builddir@/base/thread/libdaqthreads.la @THREADLD_FLAGS@
+			@top_builddir@/base/thread/libdaqthreads.la \
+			@top_builddir@/base/os/libdaqshm.la	\
+			@THREADLD_FLAGS@
 

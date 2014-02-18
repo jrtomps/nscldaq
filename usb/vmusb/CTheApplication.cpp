@@ -33,6 +33,7 @@
 #include <tcl.h>
 #include <DataBuffer.h>
 #include <CRingBuffer.h>
+#include <os.h>
 
 #include <CPortManager.h>
 
@@ -257,7 +258,7 @@ CTheApplication::startOutputThread(std::string ring)
 {
   COutputThread* router = new COutputThread(ring);
   router->start();
-  usleep(500);
+  Os::usleep(500);
 
 }
 /* 
@@ -272,7 +273,7 @@ CTheApplication::startTclServer()
   pServer->start(tclServerPort, Globals::controlConfigFilename.c_str(),
 		   *Globals::pUSBController);
   Globals::pTclServer = pServer; // Save for readout.
-  usleep(500);
+  Os::usleep(500);
 }
 /*
     Start the Tcl interpreter, we use the static AppInit as a trampoline into the

@@ -44,6 +44,7 @@ using namespace std;		// Needed here for spectrodaq
 #include <unistd.h>
 #include <sys/mman.h>
 #include <stdio.h>
+#include <os.h>
 
 
 #include <iostream>
@@ -735,7 +736,7 @@ void
 CSIS3300::StrobeUserOut(int time)
 {
  *m_pCsrs = 0x2;
- usleep(time);
+ Os::usleep(time);
  *m_pCsrs = 0;
 }
 

@@ -24,4 +24,10 @@ noinst_HEADERS = TclAuthorizer.h \
 	serverinstance.h
 
 
-EXTRA_DIST = tclserver.xml
+EXTRA_DIST = tclserver.xml serverPackage.tcl
+
+install-exec-local:
+	$(mkinstalldirs) @prefix@/TclLibs
+	$(mkinstalldirs) @prefix@/TclLibs/tclserver
+	$(INSTALL_SCRIPT) @srcdir@/serverPackage.tcl @prefix@/TclLibs/tclserver
+	echo "pkg_mkIndex @prefix@/TclLibs/tclserver *.tcl" | @TCLSH_CMD@

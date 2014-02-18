@@ -15,6 +15,8 @@
 #include <string>
 #include <CNullTrigger.h>
 #include <tcl.h>
+#include <os.h>
+
 
 // class under test gets its member data exposed for me:
 //
@@ -222,7 +224,7 @@ experimentTests::stop()
 
   Tcl_Interp* pInterp = Tcl_CreateInterp();
   while (!Tcl_DoOneEvent(0)) {
-    usleep(500);
+    Os::usleep(500);
   }
 
   CRingItem* pItem = CRingItem::getFromRing(consumer, pred);

@@ -5,6 +5,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <os.h>
 
 
 
@@ -42,7 +43,7 @@ startRepeater(int argc, char** argv)
     perror("Child: execlp failed!!");
     exit(errno);
   }
-  usleep(1000);
+  Os::usleep(1000);
 }
 
 /*!

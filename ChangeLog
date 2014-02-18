@@ -541,3 +541,8 @@ Feb 1, 2012 - Feb 24, 2012
 	products.
 	* Issue #1878 - Add documentation for the SBS Scripted readout
 	framework. 
+	* Issue #1721 - Remove use of usleep as that's posix deprecated.
+	This was done by creating an Os::usleep function that used
+	nanosleep which is still posix good and rewriting all uses of
+	usleep as Os::usleep.
+	

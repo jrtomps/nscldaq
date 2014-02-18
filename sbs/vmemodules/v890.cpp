@@ -22,6 +22,7 @@
 #include <unistd.h>
 #include <assert.h>
 #include <stdio.h>
+#include <os.h>
 
 using namespace std;
 
@@ -358,7 +359,7 @@ void
 CAENV890::Reset()
 {
   ((volatile CAENRegisters*)m_pModule)->m_Reset = 0;
-  usleep(1*1024*1024);		// That's a megasecond :-).
+  Os::usleep(1*1024*1024);		// That's a megasecond :-).
 }
 /*!
   Do a module clear:
@@ -831,7 +832,7 @@ CAENV890::WriteMicro(uint16_t opcode)
 
   while((pModule->m_MicroHandshake & UH_WRITE_OK) == 0)
     ;
-  usleep(assinine_delay);
+  Os::usleep(assinine_delay);
   pModule->m_Micro = opcode;
 }
 
@@ -850,7 +851,7 @@ CAENV890::ReadMicro()
   volatile CAENRegisters* pModule = (volatile CAENRegisters*)m_pModule;
   while((pModule->m_MicroHandshake & UH_READ_OK) == 0)
     ;
-  usleep(assinine_delay);
+  Os::usleep(assinine_delay);
   return pModule->m_Micro;
 }
 /*!

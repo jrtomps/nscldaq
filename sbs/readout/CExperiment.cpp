@@ -41,6 +41,8 @@
 #include <vector>
 #include <string>
 #include <fragment.h>
+#include <os.h>
+
 
 using namespace std;
 
@@ -630,7 +632,7 @@ CExperiment::ScheduleEndRunBuffer(bool pause)
    //       so that the thread and its thread local storage stays alive for the duration
    //       of the event handling...for now kludge it up this way.
 
-  usleep(1000);
+  Os::usleep(1000);
 
 }
 /*!
