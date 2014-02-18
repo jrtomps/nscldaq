@@ -1,6 +1,10 @@
 NSCLDAQ-10.0 throws away spectrodaq as the data distribution server, replacing
 it with a set of ring buffers and their proxies.
 
+NSCLDAQ-11.0 Makes significant changes to the bodies of ring items in order to
+better support the event builder.
+
+
 See http://docs.nscl.msu.edu/daq for documentation including how to 
 port existing software from older versions of NSCLDAQ as well
 as how to hook in your SpecTcl data analysis software.
