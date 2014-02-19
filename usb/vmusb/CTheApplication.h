@@ -92,6 +92,7 @@ private:
   static std::string makeConfigFile(std::string baseName);
   static std::string destinationRing(const char* pRingName);
 
+  static void ExitHandler(void* pData);
 
 };
 #endif

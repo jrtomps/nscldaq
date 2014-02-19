@@ -27,6 +27,7 @@ noinst_HEADERS = CTheApplication.h Globals.h
 INCLUDES = -I@top_srcdir@/usb/vmusb/vmusb -I@top_srcdir@/usb/vmusb/devices \
 	-I@top_srcdir@/usb/vmusb/threadcomm -I@top_srcdir@/usb/vmusb/router -I@top_srcdir@/usb/vmusb/rdothreaed \
 	-I@top_srcdir@/usb/vmusb/tclserver -I@top_srcdir@/usb/vmusb/daqconfig -I@top_srcdir@/usb/vmusb/commands  \
+	-I@top_srcdir@/usb/vmusb/rdothread	\
 	@LIBTCLPLUS_CFLAGS@ \
 	-I@top_srcdir@/base/thread	\
 	-I@top_srcdir@/base/headers	\

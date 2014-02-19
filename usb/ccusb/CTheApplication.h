@@ -85,5 +85,7 @@ private:
   static int AppInit(Tcl_Interp* interp);
   static std::string makeConfigFile(std::string baseName);
 
+  static void ExitHandler(void* pData);
+
 };
 #endif

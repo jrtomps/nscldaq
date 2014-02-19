@@ -88,7 +88,9 @@ private:
   void processCommand(CControlQueues::opCode command);
   void processBuffer(DataBuffer* pBuffer);
   void startDaq();
+public:				// To allow exit handler to stop acquisition
   void stopDaq();
+private:
   void pauseDaq();
   void CCusbToAutonomous();
   void drainUsb();

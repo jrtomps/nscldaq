@@ -545,4 +545,7 @@ Feb 1, 2012 - Feb 24, 2012
 	This was done by creating an Os::usleep function that used
 	nanosleep which is still posix good and rewriting all uses of
 	usleep as Os::usleep.
+	* Add exit handlers to XXUSBReadout so that if the process exits
+	with acquisition active the XXUSB controller is told to exit
+	acquisition mode and buffers are dumped.
 	
