@@ -341,7 +341,7 @@ proc EVBC::startS800Source {ringUrl id {desc {S800 USB data}}} {
     #
     set extractor  [file join $EVBC::daqtop lib libS800TimeExtractor.so]
     
-    EVB::startRingSource $ringUrl $extractor $id $desc
+    EVBC::startRingSource $ringUrl $extractor $id $desc
     
 }
 
