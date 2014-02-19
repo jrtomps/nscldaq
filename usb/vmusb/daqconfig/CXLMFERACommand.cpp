@@ -173,7 +173,6 @@ CXLMFERACommand::create(CTCLInterpreter& interp, vector<CTCLObject>& objv)
     status = configure(interp,pModule, objv); 
   }
 
-  std::cout << name << " (status==TCL_OK) = " << (status==TCL_OK) << std::endl;
   if (status == TCL_OK ) {
     m_Config.addAdc(pModule);
     m_Config.setResult(name);
