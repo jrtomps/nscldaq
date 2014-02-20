@@ -811,8 +811,9 @@ CFragmentHandler::popOldest()
       m_nMostRecentlyPopped = m_nOldest;
       if (nextOldest != UINT64_MAX) {
         m_nOldest = nextOldest;
-        m_nOldestReceived = nextReceived;
       }
+      m_nOldestReceived = nextReceived;
+
     }
     /*
        If we could not find one and there's no barrier pending, recompute m_nOldest and 
