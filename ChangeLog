@@ -545,7 +545,9 @@ Feb 1, 2012 - Feb 24, 2012
 	This was done by creating an Os::usleep function that used
 	nanosleep which is still posix good and rewriting all uses of
 	usleep as Os::usleep.
-	* Add exit handlers to XXUSBReadout so that if the process exits
+	* Issue #1762 add exit handlers to XXUSBReadout so that if the process exits
 	with acquisition active the XXUSB controller is told to exit
-	acquisition mode and buffers are dumped.
-	
+	acquisition mode and buffers are dumped.	
+        * Issue #1899 Add dcoumentation for glom.
+        * Roll in Jeromy's fix for s800 ring data source startup in evb 
+         Readout callouts.
