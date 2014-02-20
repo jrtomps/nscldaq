@@ -536,7 +536,7 @@ Feb 1, 2012 - Feb 24, 2012
 	toString ands with scaler values.
 	* Issue #1825 - Document SBS readout commands and key variables.
 
-1.0-rc5 
+11.0-rc5 
 	* Issue #1834 - Add SBS and vmsub firmware upgraders for CAEN
 	products.
 	* Issue #1878 - Add documentation for the SBS Scripted readout
@@ -551,3 +551,5 @@ Feb 1, 2012 - Feb 24, 2012
         * Issue #1899 Add dcoumentation for glom.
         * Roll in Jeromy's fix for s800 ring data source startup in evb 
          Readout callouts.
+
+11.0-rc6
