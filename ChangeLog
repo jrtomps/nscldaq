@@ -553,3 +553,4 @@ Feb 1, 2012 - Feb 24, 2012
          Readout callouts.
 
 11.0-rc6
+        *   Issue #1814 - Add run state callbacks to CEventSegment
