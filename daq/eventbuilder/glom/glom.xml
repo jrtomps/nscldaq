@@ -26,6 +26,27 @@
         For reference information on glom see:
         <link linkend='daq1_glom' endterm='daq1_glom_title' />
     </para>
+    <section>
+        <title>Format of glom's output</title>
+        <para>
+            Glom's output consists of ring items with the following format:
+        </para>
+        <orderedlist>
+            <listitem>
+                <para>
+                    A uint32_t size in bytes of the event.  This size is self inclusive
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    A series of <type>FlatFragment</type> items
+                    as defined in the <filename>fragment.h</filename> header file.
+                    The number of fragments is the number required to completely fill
+                    the event as determined by the size above.
+                </para>
+            </listitem>
+        </orderedlist>
+    </section>
 </chapter>
 <!-- /chapter -->
 
@@ -116,6 +137,27 @@ glom <replaceable>options</replaceable>
                     </listitem>
                 </varlistentry>
             </variablelist>
+        </refsect1>
+        <refsect1>
+            <title>OUTPUT FORMAT</title>
+            <para>
+                Glom's output consists of ring items with the following format:
+            </para>
+            <orderedlist>
+                <listitem>
+                    <para>
+                        A uint32_t size in bytes of the event.  This size is self inclusive
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        A series of <type>FlatFragment</type> items
+                        as defined in the <filename>fragment.h</filename> header file.
+                        The number of fragments is the number required to completely fill
+                        the event as determined by the size above.
+                    </para>
+                </listitem>
+            </orderedlist>            
         </refsect1>
         <refsect1>
             <title>KNOWN ISSUES</title>
