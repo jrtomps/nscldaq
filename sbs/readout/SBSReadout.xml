@@ -1367,6 +1367,27 @@ Skeleton::SetupReadout(CExperiment* pExperiment)
                     <type>size_t</type> <parameter>maxwords</parameter>
                     </methodparam>
                 </methodsynopsis>
+	    <methodsynopsis>
+	      <modifier>virtual</modifier>
+	      <type>void</type> <methodname>onBegin</methodname>
+	      <void />
+	    </methodsynopsis>
+	    <methodsynopsis>
+	      <modifier>virtual</modifier>
+	      <type>void</type> <methodname>onEnd</methodname>
+	      <void />
+	    </methodsynopsis>
+	    <methodsynopsis>
+	      <modifier>virtual</modifier>
+	      <type>void</type> <methodname>onPause</methodname>
+	      <void />
+	    </methodsynopsis>
+	    <methodsynopsis>
+	      <modifier>virtual</modifier>
+	      <type>void</type> <methodname>onResume</methodname>
+	      <void />
+	    </methodsynopsis>
+	    
             <methodsynopsis>
                 <type>void</type> <methodname>AddEventSegment</methodname>
                 <methodparam>
@@ -1500,6 +1521,49 @@ Skeleton::SetupReadout(CExperiment* pExperiment)
                 The method returns the number of words that were read by this
                 segment.
                 </para>
+	    <methodsynopsis>
+	      <modifier>virtual</modifier>
+	      <type>void</type> <methodname>onBegin</methodname>
+	      <void />
+	    </methodsynopsis>
+	    <para>
+	      Invokes <methodname>onBegin</methodname> for all
+	      event segments in the compound. If there are nested segments,
+	      traversal is depth first.
+	    </para>
+	    <methodsynopsis>
+	      <modifier>virtual</modifier>
+	      <type>void</type> <methodname>onEnd</methodname>
+	      <void />
+	    </methodsynopsis>
+	    <para>
+	      Invokes <methodname>onEnd</methodname> for all
+	      event segments in the compound. If there are nested segments,
+	      traversal is depth first.
+	    </para>
+
+	    <methodsynopsis>
+	      <modifier>virtual</modifier>
+	      <type>void</type> <methodname>onPause</methodname>
+	      <void />
+	    </methodsynopsis>
+	    <para>
+	      Invokes <methodname>onPause</methodname> for all
+	      event segments in the compound. If there are nested segments,
+	      traversal is depth first.
+	    </para>
+
+	    <methodsynopsis>
+	      <modifier>virtual</modifier>
+	      <type>void</type> <methodname>onResume</methodname>
+	      <void />
+	    </methodsynopsis>
+	    <para>
+	      Invokes <methodname>onResume</methodname> for all
+	      event segments in the compound. If there are nested segments,
+	      traversal is depth first.
+	    </para>
+
             <methodsynopsis>
                 <type>void</type> <methodname>AddEventSegment</methodname>
                 <methodparam>
@@ -2253,6 +2317,27 @@ MySegment::read(void* pBuffer, size_t maxlen)
                     </methodparam>
                 <modifier>=0</modifier>
                 </methodsynopsis>
+	    <methodsynopsis>
+	      <modifier>virtual</modifier>
+	      <type>void</type> <methodname>onBegin</methodname>
+	      <void />
+	    </methodsynopsis>
+	    <methodsynopsis>
+	      <modifier>virtual</modifier>
+	      <type>void</type> <methodname>onEnd</methodname>
+	      <void />
+	    </methodsynopsis>
+	    <methodsynopsis>
+	      <modifier>virtual</modifier>
+	      <type>void</type> <methodname>onPause</methodname>
+	      <void />
+	    </methodsynopsis>
+	    <methodsynopsis>
+	      <modifier>virtual</modifier>
+	      <type>void</type> <methodname>onResume</methodname>
+	      <void />
+	    </methodsynopsis>
+	    
             <methodsynopsis>
                 <modifier>virtual</modifier>
                 <type>bool</type> <methodname>isComposite</methodname>
@@ -2351,6 +2436,49 @@ MySegment::read(void* pBuffer, size_t maxlen)
             associated with the event segment and put it in <parameter>pBuffer</parameter>.
             At most <parameter>maxwords</parameter> words of data should be read.
             </para>
+	    <methodsynopsis>
+	      <modifier>virtual</modifier>
+	      <type>void</type> <methodname>onBegin</methodname>
+	      <void />
+	    </methodsynopsis>
+	    <para>
+	      This method is invoked when the begin run event has been sent out
+	      but before the readout program is responding to event triggers.
+	      The base class implementation is to do nothing, so this is an optional
+	      method.
+	    </para>
+	    <methodsynopsis>
+	      <modifier>virtual</modifier>
+	      <type>void</type> <methodname>onEnd</methodname>
+	      <void />
+	    </methodsynopsis>
+	    <para>
+	      This method is invoked after the trigger loop has stopped responding
+	      to triggers as the run is ending but before the end run event has been 
+	      emitted.
+	      The base class method is to do nothing making this an optional method.
+	    </para>
+	    <methodsynopsis>
+	      <modifier>virtual</modifier>
+	      <type>void</type> <methodname>onPause</methodname>
+	      <void />
+	    </methodsynopsis>
+	    <para>
+	      This method is invoked after the trigger loop has stopped responding
+	      to triggers as the run is pausing, but before the pause run event has
+	      been emitted.
+	      The base class method does nothing making this an optional method.
+	    </para>
+	    <methodsynopsis>
+	      <modifier>virtual</modifier>
+	      <type>void</type> <methodname>onResume</methodname>
+	      <void />
+	    </methodsynopsis>
+	    <para>
+	      This method is invoked after a resume event has been emitted when a run
+	      is resuming but before the trigger thread has begun to poll for triggers.
+	      The base class method does nothing making this an optional method.
+	    </para>
         <methodsynopsis>
             <modifier>virtual</modifier>
             <type>bool</type> <methodname>isComposite</methodname>

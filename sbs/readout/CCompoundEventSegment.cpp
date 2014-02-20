@@ -53,6 +53,51 @@ public:
   }
 };
 
+/*
+   Visitor that invokes onBegin for a segment:
+*/
+class BeginVisitor : public CCompoundEventSegment::CVisitor
+{
+public:
+  virtual void operator()(CEventSegment* pSegment) {
+    pSegment->onBegin();
+  }
+};
+
+/*
+   Visitor that invokes onEnd for a segment:
+*/
+class EndVisitor : public  CCompoundEventSegment::CVisitor
+{
+public:
+  virtual void operator()(CEventSegment* pSegment) {
+    pSegment->onEnd();
+  }
+};
+
+/*
+   Visitor that invokes onPause for a segment.
+*/
+class PauseVisitor : public CCompoundEventSegment::CVisitor
+{
+public:
+  virtual void operator()(CEventSegment* pSegment) {
+    pSegment->onPause();
+  }
+};
+/*
+   Visitor that invokes onResume for a segment:
+*/
+class ResumeVisitor : public CCompoundEventSegment::CVisitor
+{
+public:
+  virtual void operator()(CEventSegment* pSegment) {
+    pSegment->onResume();
+  }
+
+};
+
+
 /*!
   Initialize the event segments by visiting them with a
   InitializeVisitor
@@ -86,6 +131,49 @@ CCompoundEventSegment::disable()
   DisableVisitorE v;
   visit(v);
 }
+
+/**
+ * onBegin
+ *   We invoke onBegin for all component members.
+ *   Traversal is recursively depth first.
+ */
+void
+CCompoundEventSegment::onBegin()
+{
+  BeginVisitor v;
+  visit(v);
+}
+/**
+ * onEnd
+ *   Invokes onEnd for all component members.
+ */
+void
+CCompoundEventSegment::onEnd()
+{
+  EndVisitor v;
+  visit(v);
+}
+/**
+ * onPause
+ *    Invokes onPause for all component members.
+ */
+void
+CCompoundEventSegment::onPause()
+{
+  PauseVisitor v;
+  visit(v);
+}
+/**
+ * onResume
+ *    Invokes onResume for all component members.
+ */
+void
+CCompoundEventSegment::onResume()
+{
+  ResumeVisitor v;
+  visit(v);
+}
+
 /*!
   Read can't be done with a visitor in a copy free manner.
   We'll iterate here calling read which in turn will recurse as needed,

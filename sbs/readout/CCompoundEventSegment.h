@@ -69,6 +69,10 @@ public:
   virtual void   clear();
   virtual void   disable();
   virtual size_t read(void* pBuffer, size_t maxwords);
+  virtual void   onBegin();
+  virtual void   onEnd();
+  virtual void   onPause();
+  virtual void   onResume();
 
 
 
