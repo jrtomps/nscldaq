@@ -73,7 +73,10 @@ typedef struct _S800event {
 typedef struct _S800timestamp {
   uint16_t s_size;		/* in 16 bit words. */
   uint16_t s_type;		/* packet type. S800_TIMESTAMP_PACKET */  
-  uint64_t s_timestamp;		/* 64 bit timestamp. */
+  uint16_t s_timestamp0;		/* 64 bit timestamp [15:0]  */
+  uint16_t s_timestamp16;		/* 64 bit timestamp [31:16] */
+  uint16_t s_timestamp32;		/* 64 bit timestamp [47:32] */
+  uint16_t s_timestamp48;		/* 64 bit timestamp [64:48] */
 
 } S800timestamp, *pS800timestamp;
 

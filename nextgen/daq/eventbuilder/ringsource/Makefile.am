@@ -69,4 +69,21 @@ ringFragmentSource_LDADD=  		 \
 	GetOpt.lo cmdline.lo \
 	$(THREAD_LDFLAGS) 
 
+#------------------- Tests:
+
+noinst_PROGRAMS = unittests
+
+unittests_SOURCES	= TestRunner.cpp s800timestamptests.cpp
+ 
+unittests_LDADD		= -L$(libdir) $(CPPUNIT_LDFLAGS) 		\
+			@top_builddir@/daq/eventbuilder/ringsource/libS800TimeExtractor.la 	\
+			@top_builddir@/daq/format/libdataformat.la	\
+			@LIBEXCEPTION_LDFLAGS@
+
+unittests_LDFLAGS	= -Wl,"-rpath-link=$(libdir)"
+
+
+TESTS=./unittests
+
+
 EXTRA_DIST=ringsource.xml ringtestoptions.ggo

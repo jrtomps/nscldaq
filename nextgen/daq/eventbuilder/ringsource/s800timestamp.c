@@ -86,7 +86,21 @@ timestamp(pPhysicsEventItem item)
   while(nRemaining > 0) {
     if (pNextPacket->s_type == S800_TIMESTAMP_PACKET) {
       pTimestamp = (pS800timestamp)pNextPacket;
-      return (pTimestamp->s_timestamp); 
+  
+      // Fill the timestamp
+      uint64_t tstamp=0, temp=0;
+      tstamp = pTimestamp->s_timestamp0;
+
+      temp = pTimestamp->s_timestamp16;
+      tstamp |= (temp<<16);
+
+      temp = pTimestamp->s_timestamp32;
+      tstamp |= (temp<<32);
+
+      temp = pTimestamp->s_timestamp48;
+      tstamp |= (temp<<48);
+
+      return tstamp; 
     }
     /* skip to the next packet */
     
