@@ -60,4 +60,20 @@ namespace eval ::RdoCallouts10 {
     # this requires the 10.x event builder.
 
     package require evbcallouts
+
+
+    #  This is a bit of dirt that should replace the Method used to get
+    #  the ring URL.  We can't just set env(RINGNAME) because we also
+    #  want to force the system to localhost:
+    
+    namespace eval ::Experiment {
+        proc spectrodaqURL system {
+            
+            puts "Calling the right url getter: $EVBC::destRing"
+            catch [list ringbuffer create $EVBC::destRing] msg;  #ensure ring exists first.
+            puts "Ringmsg $EVBC::destRing: $msg"
+ 
+            return "tcp://localhost/$EVBC::destRing"
+        }
+    } 
 }

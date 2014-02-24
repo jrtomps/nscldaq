@@ -1,0 +1,49 @@
+
+package require tcltest
+
+eval ::tcltest::configure $argv
+
+# require 11.0 evbcallouts
+package require evbcallouts
+package require eventLogBundle
+package require Configuration 
+
+# kill the window
+destroy .
+
+puts "evbrdocallouts.test auto_path = $auto_path"
+
+
+tcltest::test rdo11-0 {test computeLoggerSwitches uses EVBC::destRing} -setup {
+      # set RINGNAME to something
+      array set env [list RINGNAME elephant]
+
+      # choose to use the dest ring
+      set EVBC::setsEvtlogSource true
+
+      # set destRing to something... 
+      set EVBC::destRing hehehe
+
+} -body {
+   # this calls the switches
+   set switches [::EventLog::_computeLoggerSwitches]
+   return [lindex $switches 0] 
+} -result "--source=tcp://localhost/$EVBC::destRing"
+
+tcltest::test rdo11-1 {test computeLoggerSwitches doesn't use EVBC::destRing} -setup {
+
+      # set RINGNAME to something
+      array set env [list RINGNAME elephant]
+
+      # choose to use the dest ring
+      set EVBC::setsEvtlogSource false
+
+      # set destRing to something... 
+      set EVBC::destRing hehehe
+
+} -body {
+   # this calls the switches
+   set switches [::EventLog::_computeLoggerSwitches]
+   return [lindex $switches 0] 
+} -result "--source=[::Configuration::get EventLoggerRing]"
+

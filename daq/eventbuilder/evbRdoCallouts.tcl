@@ -50,6 +50,8 @@ namespace eval ::EVBC {
     set intermediateRing     ""
     set intermediateRingName ""
     set destRing             $::tcl_platform(user)
+
+    set setsEvtlogSource    false
     
     set glomTsPolicy        earliest
 }
@@ -112,12 +114,16 @@ snit::type EVBC::StartOptions {
 #   *  EVBC::startOptions options are installed as a component.
 #   * -gui  - enable or disable the GUI.
 #   * -restart - Do or don't restart the event buildeer pipeline each onBegin
+#   * -setdestringasevtlogsource - Force the value in dest. ring text entry to
+#                override the global eventlog settings when written to
 #
 snit::type EVBC::AppOptions {
     component startOptions
     
     option -gui     true
     option -restart true
+    option -setdestringasevtlogsource false
+
     delegate option * to startOptions
     delegate method * to startOptions
     
@@ -417,21 +423,6 @@ proc EVBC::initialize args {
     
     bind . <Destroy> +[list EVBC::_Exiting %W]
     
-    
-    #  This is a bit of dirt that should replace the Method used to get
-    #  the ring URL.  We can't just set env(RINGNAME) because we also
-    #  want to force the system to localhost:
-    
-    namespace eval ::Experiment {
-        proc spectrodaqURL system {
-            
-            puts "Calling the right url getter: $EVBC::destRing"
-            catch [list ringbuffer create $EVBC::destRing] msg;  #ensure ring exists first.
-            puts "Ringmsg $EVBC::destRing: $msg"
- 
-            return "tcp://localhost/$EVBC::destRing"
-        }
-    } 
 }
 #------------------------------------------------------------------------------
 ##
@@ -626,7 +617,8 @@ proc EVBC::_StartGui {} {
     # Glom building or not and coincidence window.
     
     
-    set glom [ttk::labelframe  $window.glom -text {Event Building parameters (vsn 11)}]
+    set glom [ttk::labelframe  $window.glom -text {Event Building parameters (vsn 11)} \
+                      -padding 6]
     set EVBC::buildEvents [$EVBC::applicationOptions cget -glombuild]
     
     ttk::checkbutton $glom.build -text {Build} -onvalue true -offvalue false \
@@ -650,23 +642,24 @@ proc EVBC::_StartGui {} {
     
     set policies [$::EVBC::applicationOptions getGlomTsPolicies]
     ttk::label $glom.plabel -text "Ts is: "
-    grid $glom.plabel -row 1 -column 0
+    grid $glom.plabel -row 1 -column 0 -padx 5 -pady 3
     set col 1
     foreach policy $policies {
         radiobutton $glom.$policy \
             -variable ::EVBC::glomTsPolicy -value $policy -text $policy \
             -command [list $EVBC::applicationOptions configure -glomtspolicy $policy]
-        grid $glom.$policy -row 1 -column $col
+        grid $glom.$policy -row 1 -column $col -pady 3
         
         incr col
     }
     
-    grid $glom -row 0 -column 0
+    grid $glom -row 0 -column 0 -sticky nsew
     
     #  Enable/disable intermediate ring and which ring it is:
     
-    set intermediate [ttk::labelframe $window.intermediate -text {Ordered Fragment Ring}]
-    ttk::checkbutton $intermediate.enable -text Enable \
+    set intermediate [ttk::labelframe $window.intermediate -text {Ordered Fragment Ring} \
+                          -padding 6]
+    ttk::checkbutton $intermediate.enable -text {Tee output to this ring}\
         -onvalue true -offvalue false \
         -command [list EVBC::_IntermediateEnableDisable $intermediate.enable $intermediate.ringname] \
         -variable EVBC::intermediateRing
@@ -688,19 +681,28 @@ proc EVBC::_StartGui {} {
     
     EVBC::_IntermediateEnableDisable $intermediate.enable $intermediate.ringname
     
-    grid $intermediate.enable $intermediate.ringname $intermediate.ringlbl
-    grid $intermediate -row 0 -column 1
+    grid $intermediate.enable -columnspan 2 -sticky w -padx 5 -pady 3
+    grid $intermediate.ringlbl $intermediate.ringname -padx 5 -pady 3
+    grid $intermediate -row 0 -column 1 -sticky nsew
     
     
-    set destringWin [ttk::labelframe $window.dest -text {Destination Ring}]
+    set destringWin [ttk::labelframe $window.dest -text {Destination Ring} \
+                        -padding 6]
+    ttk::label $destringWin.ringlbl -text {Name}
     ttk::entry $destringWin.ringname -textvariable EVBC::destRing -width 15
     set EVBC::destRing [$EVBC::applicationOptions cget -destring]
     trace add variable  EVBC::destRing  write \
         [list EVBC::_ChangeDestRing]
+    ttk::checkbutton $destringWin.change -variable EVBC::setsEvtlogSource \
+                     -onvalue true -offvalue false -text {Use for recording}
+    trace add variable EVBC::setsEvtlogSource write EVBC::_ChangeSetsEvtlogSource
     
-    grid $destringWin.ringname
-    grid $destringWin -row 0 -column 2
+    grid $destringWin.ringlbl -row 0 -column 0 -sticky e -padx 5 -pady 3 
+    grid $destringWin.ringname -row 0 -column 1 -sticky w -padx 5 -pady 3
+    grid $destringWin.change -columnspan 2  -padx 5 -pady 3
+    grid $destringWin -row 0 -column 2 -sticky nsew
     
+
     # Figure out where to grid the GUI:
     
     set dimensions [grid size .]
@@ -708,7 +710,7 @@ proc EVBC::_StartGui {} {
     set cols       [lindex $dimensions 0]
     puts "$rows $cols"
     incr rows
-    grid $window  -row $rows -column 0 -columnspan $cols
+    grid $window  -row $rows -column 0 
     
     set EVBC::guiFrame $window
     
@@ -833,8 +835,22 @@ proc EVBC::_SetGuiState {widget state} {
 #
 proc EVBC::_ChangeDestRing {name index op} {
     $EVBC::applicationOptions configure -destring $EVBC::destRing
-    ::Configuration::Set EventLoggerRing "tcp://localhost/$EVBC::destRing"
+    if {[$EVBC::applicationOptions cget -setdestringasevtlogsource] } {
+      ::Configuration::Set EventLoggerRing "tcp://localhost/$EVBC::destRing"
+    }
 }
+
+proc EVBC::_ChangeSetsEvtlogSource {name index op} {
+    set oldring [::Configuration::get EventLoggerRing]
+    $EVBC::applicationOptions configure -setdestringasevtlogsource $EVBC::setsEvtlogSource 
+    if { [ $EVBC::applicationOptions cget -setdestringasevtlogsource ] } {
+        puts "Changing ..."
+        ::Configuration::Set EventLoggerRing "tcp://localhost/$EVBC::destRing"
+    }
+    set newring [::Configuration::get EventLoggerRing]
+    ReadoutGUIPanel::Log EVB log "Eventlog source changed $oldring --> $newring"
+}
+
 #------------------------------------------------------------------------------
 ##
 # @fn EVBC::_Exiting
