@@ -473,5 +473,8 @@ Feb 1, 2012 - Feb 24, 2012
 	buffering window time as such a data source that only emitted
 	auto-assigned timestamp events (e.g. scalers) would not allow data
 	from the more lively source to be sent out.
+        * Fix error in ReadoutGUI - timed runs fail badly if it takes more
+        than .5 seconds to end the run.
+
 
 	
