@@ -324,6 +324,7 @@ proc ReadoutGui::SecondElapsed {} {
 	(([ReadoutControl::getReadoutState] eq "Active") || 
          ([ReadoutControl::getReadoutState] eq "Paused"))} {
 	if {[ReadoutGui::TimeToEndRun $elapsedSeconds]} {
+	    ReadoutGui::StopElapsedTimer
 	    ReadoutGui::End
 	}
     }
