@@ -475,6 +475,7 @@ Feb 1, 2012 - Feb 24, 2012
 	from the more lively source to be sent out.
         * Fix error in ReadoutGUI - timed runs fail badly if it takes more
         than .5 seconds to end the run.
-
-
+        * Fix edge case in CRingBuffer::isRing - if there are files in
+	/dev/shm that are smaller than a minimal ringbuffer segfaults
+	occur.
 	

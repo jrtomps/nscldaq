@@ -502,6 +502,8 @@ CXLM::loadFile(std::string path, void* contents, uint32_t size) throw(std::strin
 	  string msg   = "CXLM::loadFile - read(2) failed on firmware file: ";
 	  msg         += error;
 	  throw msg;
+	} else {
+	  bytesRead = 0;
 	}
       }
       else {

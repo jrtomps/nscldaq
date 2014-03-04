@@ -291,6 +291,16 @@ bool
 CRingBuffer::isRing(string name)
 {
   std::string fullName = shmName(name);
+
+  // Check accessibility and the size of the shm. 
+  // Need to be able to get the size...and the size needs to be at least the size ofr
+  // a RingBuffer
+
+  ssize_t shmSize = CDAQShm::size(fullName);
+  if (shmSize < sizeof(RingBuffer)) { // Catches failures too since then shmSize < 0
+    return false;
+  }
+  
   try {
     pRingBuffer p        = reinterpret_cast<pRingBuffer>(CDAQShm::attach(fullName));
     if (!p) return false;
