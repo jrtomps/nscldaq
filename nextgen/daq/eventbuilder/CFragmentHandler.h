@@ -213,6 +213,7 @@ private:
   time_t                       m_nBuildWindow;
   time_t                       m_nNow;
   time_t                       m_nOldestReceived;
+  time_t                       m_nMostRecentlyEmptied;
 
 
   uint32_t                     m_nFragmentsLastPeriod; //!< # fragments in last flush check interval.

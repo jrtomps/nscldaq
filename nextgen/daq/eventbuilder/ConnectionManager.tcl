@@ -72,6 +72,7 @@ snit::type EVB::Connection {
 
 
     variable callbacks
+    variable expecting
 
 
 
@@ -93,6 +94,19 @@ snit::type EVB::Connection {
 	}
 	$callbacks destroy
     }
+    ##
+    # tryRead
+    #    Check to see if there are data currently buffered in our channel
+    #    and if so dispatch.  During this , the -fragmentcommand is disabled.
+    #
+    method tryRead {} {
+	if {[chan pending input $options(-socket)] > 0} {
+	    $callbacks register -fragmentcommand [list]; # turn off callback
+	    $expecting $options(-socket)
+	    $callbacks register -fragmentcommand $options(-fragmentcommand); #  Restore.
+	}
+    }
+
     #----------------------------------------------------------------------------
     # Configuration
     #
@@ -107,6 +121,7 @@ snit::type EVB::Connection {
 	$callbacks register $option $script
 	set options($option) $script
     }
+
 
     #------------------------------------------------------------------------------
     # Private methods:
@@ -244,6 +259,7 @@ snit::type EVB::Connection {
     method _Expecting {method newState} {
 	fileevent $options(-socket) readable [mymethod $method $options(-socket)] 
 	set options(-state) $newState
+	set expecting $method
     }
     ##
     # Called to close the connection
@@ -423,7 +439,6 @@ snit::type EVB::ConnectionManager {
 
     constructor args {
         set result [catch {
-        puts stderr "CM Constructor"
 	$self configurelist $args; # To get the port.
 
 	set lastFragment [clock seconds]
@@ -435,9 +450,7 @@ snit::type EVB::ConnectionManager {
 	$callbacks define -connectcommand
 	$callbacks define -disconnectcommand
 
-        puts stderr "setting up server socket $options(-port)"
 	set serverSocket [socket -server [mymethod _NewConnection] $options(-port)]
-        puts stderr "Setup"
 
 	# watch timeouts at 1/2 the timeout interval:
 
@@ -571,6 +584,16 @@ snit::type EVB::ConnectionManager {
 	    EVB::reviveSocket [$connection cget -socket]
 	    set cindex [lsearch -exact $timedoutSources $connection]
 	    set timedoutSources [lreplace $timedoutSources $cindex $cindex]
+	}
+	# Now ensure none of the connections gets starved by calling their
+	# tryRead -- this is because I think under heavy unbalanced load, the
+	# event dispatcher may not be fair, only dispatching the first readable socket
+	# even if other sockets are readable...and if that socket becomes readable...
+	#
+	foreach c [array names connections] {
+	    if {$c != $connection} {
+		$c tryRead
+	    }
 	}
     }
     ##

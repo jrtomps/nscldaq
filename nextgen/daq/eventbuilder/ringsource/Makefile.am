@@ -1,5 +1,5 @@
 bin_PROGRAMS    = ringFragmentSource
-noinst_PROGRAMS = ringTestSource
+noinst_PROGRAMS = ringTestSource unittests
 lib_LTLIBRARIES= libTimeExtractorTest.la libS800TimeExtractor.la libGretinaTimeExtractor.la
 
 libTimeExtractorTest_la_SOURCES = testTimeExtractor.c	
@@ -31,9 +31,6 @@ cmdline.c: ../options.ggo
 
 GetOpt.cpp: ../GetOpt.cpp ../GetOpt.h
 	cp ../GetOpt.{cpp,h} .
-
-ringtestoptions.h: ringtestoptions.ggo
-	$(GENGETOPT) --input=ringtestoptions.ggo --file=ringtestoptions
 
 ringtestoptions.h: ringtestoptions.ggo
 	$(GENGETOPT) --input=ringtestoptions.ggo --file=ringtestoptions
@@ -71,7 +68,6 @@ ringFragmentSource_LDADD=  		 \
 
 #------------------- Tests:
 
-noinst_PROGRAMS = unittests
 
 unittests_SOURCES	= TestRunner.cpp s800timestamptests.cpp
  

@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.61)
-AC_INIT(nscldaq, 10.2-104-1, fox@nscl.msu.edu)
+AC_INIT(nscldaq, 10.2-105, fox@nscl.msu.edu)
 
 AC_CONFIG_SRCDIR([/utilities/StringsToIntegers.h])
 AC_CONFIG_HEADER([config.h])
