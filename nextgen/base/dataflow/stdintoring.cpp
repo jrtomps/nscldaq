@@ -10,7 +10,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <sys/select.h>
-
+#include <stdint.h>
 
 using namespace std;
 
@@ -160,6 +160,8 @@ putData(CRingBuffer& ring, void* pBuffer, size_t nBytes)
   struct header *pLastItem;
   int           lastSize = 0;
 
+
+
   while(nBytes > sizeof(struct header)) {
     pHeader = reinterpret_cast<struct header*>(p);
     uint32_t size = computeSize(pHeader);
@@ -179,7 +181,6 @@ putData(CRingBuffer& ring, void* pBuffer, size_t nBytes)
       // Move the remainder of the buffer down to the start
       // must use memmove because this could be an overlapping
       // move
-      //   memmove(pBuffer, p, nBytes);
       break;
     }
 
@@ -232,8 +233,8 @@ mainLoop(string ring, int timeout, int mindata)
 
   CRingBuffer& source(*pSource);
   CRingBuffer::Usage use = source.getUsage();
-  if (mindata > use.s_putSpace/2) {
-    mindata = use.s_putSpace/2;
+  if (mindata > use.s_bufferSpace/2) {
+    mindata = use.s_bufferSpace/2;
   }
   // In order to deal with timeouts reasonably well, we need to turn off
   // blocking on stdin.
@@ -246,10 +247,11 @@ mainLoop(string ring, int timeout, int mindata)
     perror("stdintoring Failed to set stin nonblocking");
     return (EXIT_FAILURE);
   }
-  char* pBuffer   = new char[mindata];
+  uint8_t* pBuffer   = (uint8_t*)malloc(mindata);
   size_t readSize   = mindata; 
   size_t readOffset = 0; 
   size_t leftoverData = 0;
+  size_t totalRead    = 0;
 
   while (1) {
 
@@ -266,7 +268,7 @@ mainLoop(string ring, int timeout, int mindata)
     timeval selectTimeout;
     selectTimeout.tv_sec = timeout;
     selectTimeout.tv_usec= 0;
-    int stat = select(STDIN_FILENO+1, &readfds, &writefds, &exceptfds, &selectTimeout);
+    int stat = select(STDIN_FILENO+1, &readfds, &writefds, &exceptfds, NULL);
     // Three cases:
     // stat = 0... just do the next pass of the loop.
     // stat = -1   an error detected by select, but could be EINTR which is ok.
@@ -282,11 +284,32 @@ mainLoop(string ring, int timeout, int mindata)
       else if (stat == 1) {
 	ssize_t nread = read(STDIN_FILENO, pBuffer + readOffset, readSize);
 	if (nread > 0) {
-	  leftoverData = putData(source, pBuffer, nread + leftoverData);
-	  readOffset = leftoverData;
-	  readSize   = mindata - leftoverData;
-	  if (readSize == 0) {
-	    exit(EXIT_FAILURE);
+	  totalRead += nread;
+	  /* If the header says the first ring item won't fit:
+	     - If the first ring item is bigger than the ring we can't go on.
+	     - If the first ring item will fit in the ring, enlarge the buffer.
+	  */
+	  struct header* pHeader = reinterpret_cast<struct header*>(pBuffer);
+	  uint32_t firstItemSize = computeSize(pHeader);
+	  if(firstItemSize > mindata) {
+	    if (firstItemSize > use.s_bufferSpace) {
+	      cerr << "Exiting because I just got an event that won't fit in the ring..enlarge the ring\n";
+	      exit(EXIT_FAILURE);
+	    } else {
+	      cerr << "item larger than --minsize, reallocating bufer to " << firstItemSize + readOffset << endl;
+	      mindata = firstItemSize + readOffset;
+	      pBuffer = reinterpret_cast<uint8_t*>(realloc(pBuffer, firstItemSize + readOffset));
+	      readOffset += nread;
+	      readSize    = mindata - readOffset;
+	    }
+	  } else {
+	    leftoverData = putData(source, pBuffer, totalRead);
+	    readOffset = leftoverData;
+	    readSize   = mindata - leftoverData;
+	    totalRead = leftoverData;
+	    if (readSize == 0) {
+	      exit(EXIT_FAILURE);
+	    }
 	  }
 	}
 	if (nread < 0) {
