@@ -38,7 +38,9 @@ TCLPACKAGES=Configuration.tcl \
 	ReadoutGui.tcl \
 	state.tcl \
 	DataSourceMonitor.tcl \
-	remoteControl.tcl
+	remoteControl.tcl \
+	ReadoutGuiClient.tcl
+
 
 
 TCLTESTS =    filesystem.test \
