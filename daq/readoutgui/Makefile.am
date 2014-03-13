@@ -37,8 +37,8 @@ TCLPACKAGES=Configuration.tcl \
 	 s800Provider.tcl \
 	ReadoutGui.tcl \
 	state.tcl \
-	DataSourceMonitor.tcl
-
+	DataSourceMonitor.tcl \
+	remoteControl.tcl
 
 
 TCLTESTS =    filesystem.test \

@@ -115,11 +115,12 @@ namespace eval ::Experiment {
     variable fileWaitTimeout $::EventLog::shutdownTimeout
 }
 
-trace add variable ::Experiment::fileWaitTieout write ::EventLog::_updateShutdownTimeout 
 
 proc ::EventLog::_updateShutdownTimeout {name1 name2 op} {
     set ::EventLog::shutdownTimeout $::Experiment::fileWaitTimeout
 }
+trace add variable ::Experiment::fileWaitTimeout write ::EventLog::_updateShutdownTimeout 
+
 
 #------------------------------------------------------------------------------
 #
