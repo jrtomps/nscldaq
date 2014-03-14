@@ -554,3 +554,10 @@ Feb 1, 2012 - Feb 24, 2012
 
 11.0-rc6
         *   Issue #1814 - Add run state callbacks to CEventSegment
+        *   Issue #1916 - Fix buffer overflow error in nscldaq-11.0
+        *   Added ReadoutGuiRemoteControl package that can remotely control
+            readout GUI.
+        *   Added ReadoutGuiClient.tcl - low level client procs for ReadoutGuiRemoteControl package.
+        *   Added ReadoutGUIProvider.tcl - Data source provider for remote ReadoutGUIs.
+
+	
