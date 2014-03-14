@@ -60,6 +60,16 @@
                 those modules into a VM-USB readout DAQ configuration file.
             </para>
         </listitem>
+	<listitem>
+	  <para>
+	    How to write device support modules for the slow control server in C++
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    How to write device support modules for the slow control server in Tcl.
+	  </para>
+	</listitem>
         <listitem>
             <para>
                 The slow controls protocol and its primitives.
@@ -1381,7 +1391,1386 @@ Module config cfd -base 0x1245000 \
                 <filename>lib</filename> subdirectory.
             </para>
         </section>
+	<section>
+	  <title>Writing slow control drivers in C++</title>
+	  <para>
+	    Slow control drivers can be dynamically loaded into the TclServer
+	    that runs the slow controls software.  This section provides
+	    an overview to the process of writing these drivers and loading them
+	    into your VMUSBReadout program.
+	  </para>
+	  <para>
+	    Slow control drivers consist of the following pair of classes:
+	  </para>
+	  <variablelist>
+	    <varlistentry>
+	      <term>The driver</term>
+	      <listitem>
+		<para>
+		  Contains the actual code to translate Set, Get, Update
+		  and Mon operations into actions on the hardware or internal
+		  data or both.
+		  Drivers are classes that are derived from
+		  <classname>CControlHardware</classname>  They also
+		  contain a configurable object called a <classname>CControlModule</classname>
+		  which provides support for an option configuration database much like
+		  that of readout drivers.
+		</para>
+	      </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term>A driver creator</term>
+	      <listitem>
+		<para>
+		  This object is registered with a module factory and associated with
+		  a module type.  It provides a method that creates a specific module
+		  driver type.  The factory is used by the <command>Module</command>
+		  command to create specific drivers.
+		</para>
+		<para>
+		  The driver creator must be a subclass of <classname>CModuleCreator</classname>
+		</para>
+	      </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term>An initialization function</term>
+	      <listitem>
+		<para>
+		  The initialization function is called when the driver is loaded
+		  either via the Tcl <command>load</command> command or via the
+		  <command>package require</command> command if you create a Tcl
+		  package index that supports loading your driver in that manner.
+		</para>
+		<para>
+		  The initialization function must have <literal>C</literal> bindings
+		  and is expected to register the creator with the module factory
+		</para>
+	      </listitem>
+	    </varlistentry>
+	  </variablelist>
+	  <para>
+	  These three bits of code must be compiled and linked together into a
+	  shared object.  The resulting shared object must have no dangling external
+	  references outside of the VMUSBReadout program or else it cannot be loaded
+	  by the Tcl server's interpreter.
+	</para>
+	<para>
+	  What I mean by a dangling reference is best illustrated by an example.
+	  Suppose you need the function <function>crypt</function> in your driver
+	  (<command>man crypt</command> to know what that does).  That function
+	  lives in the <filename>libcrypt</filename> library.  For a library intended 
+	  to be linked into other code to make a complete program, it's not necessary
+	  for your libarary to link explicitly to <filename>libcrypt</filename> so long
+	  as the program itself is linke to <filename>libcrypt</filename>.
+	  For a shared library used as a slow control driver, however no expclicitly
+	  linking it to <filename>libcrypt</filename> would leave an undefined reference
+	  that Tcl would not know how to satisfy, so the <command>load</command> of the
+	  library would fail.
+	</para>
+	<section>
+	  <title>Driver requirements</title>
+	  <para>
+	    A Slow controls device driver is a class that is derived from
+	    the 
+	    <link linkend='vmusb3_ccontrolhardware' 
+		  endterm='vmusb3_ccontrolhardware_title' /> abstract base class.
+	    In this section I will briefly go over the mandatory and optional 
+	    requirements of a driver class as well as providing an annotated
+	    sample (if silly) driver.
+	  </para>
+	  <para>
+	    The <link linkend='vmusb3_ccontrolhardware' 
+		  endterm='vmusb3_ccontrolhardware_title' /> class is an abstract
+	    base class.  This means it has some virtual methods that are not 
+	    implemented and must be implemented by derived classes.
+	    In addition the name of the object being created (<command>Module</command>
+	    command's name) is maintained by the base class.  
+	  </para>
+	  <para>
+	    These constraints mean that a control driver class must implement the
+	    following member functions.
+	  </para>
+	  <variablelist>
+	    <varlistentry>
+	      <term>constructor</term>
+	      <listitem>
+		<para>
+		  The class must implement a constructor that takes as a parameter
+		  (at least) a <classname>std::string</classname> modulename which
+		  it passes to the base class constructor.
+		</para>
+	      </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><methodname>onAttach</methodname> 
+	            (<type>CControlModule&amp;</type> <parameter>configuration</parameter>)
+	      </term>
+	      <listitem>
+		<para>
+		  <methodname>onAttach</methodname> is called when the driver's
+		  configuration object <parameter>configuration</parameter> is being
+		  attached to the object.  The base class provides a protected data
+		  item named <varname>m_pConfig</varname> in which a pointer to the
+		  <parameter>configuration</parameter> can be stored for future use.
+		</para>
+		<para>
+		  The <methodname>onAttach</methodname> method is also where you must
+		  define your configuration options and their constraints.  Soon after this
+		  method is invoked, the driver is likely to have to respond to 
+		  requests to configure values into these parameters.
+		  As with readout drivers, the process of giving values to configuration
+		  options transparent to your driver code.  When you need to know the
+		  value of an option, you just ask the <parameter>configuration</parameter>
+		  and it's magically there.
+		</para>
+	      </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term>
+		<methodname>Update</methodname>(<type>CVMUSB&amp;</type> <parameter>vme</parameter>
+	      </term>
+	      <listitem>
+		<para>
+		  For some devices it is necessary to maintain an internal state
+		  that describes the device.  This is done for devices that are
+		  write only such as the V812.  For those devicdes it is useful to be able
+		  to refresh the device state from an internal copy of what the state should
+		  be.  <methodname>Update</methodname> is provided for that  purpose.
+		  This method must be implemented though the implementation can be empty.
+		</para>
+		<para>
+		  The <parameter>vme</parameter> parameter is a reference to a VMUSB controller
+		  object that can be used to perform VME operations or to execute a 
+		  <classname>CVMUSBReadoutList</classname> of operations built up by this
+		  method.
+		</para>
+	      </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term>
+		<methodname>Set</methodname>(<type>CVMUSB&amp;</type> <parameter>vme</parameter>, 
+		<type>std::string</type> <parameter>parameter</parameter>,
+		<type>std::string</type> <parameter>value</parameter>)
+	      </term>
+	      <listitem>
+		<para>
+		  Fundamentally, slow control device drivers manage some settable 
+		  parameters in a device.  The driver associates a name with each parameter.
+		  The <methodname>Set</methodname> operation provides a new value for a parameter.
+		  The driver is expected to propagate that value out to the device.
+		</para>
+		<para>
+		  The <parameter>parameter</parameter> argument is the name of the parameter to
+		  modify.  Names are assigned by the driver and known to the client via documentation.
+		  <parameter>value</parameter> is the new value for the parameter. The driver is
+		  responsible for all validity checking and error reporting in the event the parameter
+		  value is not valid.
+		</para>
+		<para>
+		  <parameter>vme</parameter> is a reference to a VMUSB controller object that is used
+		  by the driver to perform VME operations or list of VME operations encapsulated in
+		  a <classname>CVMUSBReaoutList</classname>
+		</para>
+	      </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term>
+		<methodname>Get</methodname>(<type>CVMUSB&amp;</type> <parameter>vme</parameter>,
+		<type>std::string</type> <parameter>parameter</parameter>)
+	      </term>
+	      <listitem>
+		<para>
+		  This is expected to return the value of a <parameter>parameter</parameter> in 
+		  the hardware.  The <parameter>vme</parameter> can be used to perform the
+		  needed VME operations or lists of VME operations encapsulated in a
+		  <classname>CVMUSBReadouList</classname>
+		</para>
+	      </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><methodname>clone</methodname>(<type>const CControllerHardware&amp;</type> <parameter>rhs</parameter>)
+	      </term>
+	      <listitem>
+		<para>
+		  There are times when the framework needs to create a copy of a driver instance. When 
+		    this happens <methodname>clone</methodname> is invoked.  The
+		    <parameter>rhs</parameter> object is the object we are copying into ourselves.  If the object
+		    has no additional state it can just cop construct the
+		    <classname>CControlMdoule</classname> configuration into <varname>m_pConfig</varname>.
+		</para>
+	      </listitem>
+	    </varlistentry>
+	  </variablelist>
+	  <para>
+	    In addition to the mandatory methods above, you can implement several optional
+	    methods if required.
+	  </para>
+	  <variablelist>
+	    <varlistentry>
+	      <term><methodname>Initialize</methodname>(<type>CVMUSB&amp;</type> <parameter>vme</parameter>)
+	      </term>
+	      <listitem>
+		<para>
+		  If you need to perform any one-time initialization of your
+		  hardware you can do that here.  An example of where this is used
+		  is with the CAEN V812 driver.   The V812 registers
+		  are write only.  Therefore, the driver maintains a
+		  configuration file with settings and at initialization
+		  time, that configuration file is read and loaded into the
+		  device returning it to a known state.
+		</para>
+		<para>
+		  The <parameter>vme</parameter> parameter is a reference to
+		  a VMUSB controller object.  It can be used to perform
+		  operations on the VME crate or to execute 
+		  <classname>CVMUSBReadoutList</classname> objects the
+		  method builds.
+		</para>
+	      </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><methodname>addMonitorList</methodname> (<type>CVMUSBReadoutList&amp;</type> <parameter>vmeList</parameter>)
+	      </term>
+	      <listitem>
+		<para>
+		  For some devices, the ability set and get parameters is not the whole story. 
+		  This is especially the case because in order to set or get a parameter, active data taking must
+		  be stopped and restarted which is time-consuming.  Consider, for example, a VME Bias supply
+		  controller.  A control panel would want to monitor the supply for trips periodically and display
+		  those trips regardless of whether or not data taking is active.  This  is accomplisshed with
+		  a monitor list.
+		</para>
+		<para>
+		  The monitor list is one of the 8 stacks supported by the VM-USB.  It contains a set of operations
+		  that are periodically performed by manually triggering the list in the action register.  The
+		  data routing software forwards data from this list to the Tcl server for processing.  Since this list
+		  can be triggered just like any other acquisition mode list, no time consuming stop/start is needed
+		  when data taking is active.  If data taking is inactive the list is periodically issued as an
+		  immediate mode list.
+		</para>
+		<para>
+		  <methodname>addMonitorList</methodname> provides an opportunity for a driver to specify a set
+		  of VME operations to perform to gather the needed data to monitor the device.
+		  This is optional and the default method adds nothing to the list.
+		</para>
+	      </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term>
+		<methodname>processMonitorList</methodname>(<type>void*</type> <parameter>pData</parameter>,
+		<type>size_t</type> <parameter>remaining</parameter>)
+	      </term>
+	      <listitem>
+		<para>
+		  This is called when the data from a monitorlist becomes available.  The drivers
+		  <methodname>processMonitorList</methodname> are called in the same order in which their
+		  <methodname>addMonitorList</methodname> methods were called.
+		  <parameter>pData</parameter> is a pointer to the as yet unprocesssed part of the
+		  data read by the monitor list while <parameter>remaining</parameter> is the number
+		  of bytes of unprocessed data in that list.
+		  The return value from this method should be a pointer to the first unprocessed
+		  byte of monitor list data after the data consumed by this driver.
+		</para>
+		<para>
+		  Normally the driver will pull data out of the monitor list and store it internall for
+		  the next call to <methodname>getMonitoredData</methodname> below.  It's up to the driver
+		  how the data are stored.
+		</para>
+		<para>
+		  The base class implementation just returns <parameter>pData</parameter> which is
+		  exactly right for a driver that does not use monitor lists.
+		</para>
+	      </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term>
+		<methodname>getMonitoredData</methodname>()
+	      </term>
+	      <listitem>
+		<para>
+		  This is called when the Mon command is issued for this device.  The driver
+		  should package up the most recently received data from the monitor list and return it
+		  to the caller as a string in the documented form.  Note: Since many clients are in Tcl
+                  it is convenient to return these data as a properly formatted Tcl list.
+		</para>
+	      </listitem>
+	    </varlistentry>		  
+	  </variablelist>
+	  <para>
+	    Let's look at the code for a rather silly user written driver a piece at a time.
+	    The driver is not going to interact with any hardware.  What it will do is provide
+	    the configuration options <option>-anint</option> which will hold an integer,
+	    <option>-astring</option> which holds an arbitraty string, and 
+	    <option>-alist</option> which holds a list of integers.
+	    The Set and Get operations will modify and retrieve these options.
+	    The driver won't support monitor lists.
+	  </para>
+	  <section>
+	    <title>The driver</title>
+	    <para>
+	      This section provides an annotated view of the driver source code.  For clarity,
+	      the header and driver are combined in a single file.  Comments that might ordinarily
+	      be in the source code are in the annotations instead.
+	    </para>
+	    <example>
+	      <title>Control driver headers</title>
+	      <programlisting>
+#include &lt;CControlHardware.h&gt;
+#include &lt;CControlModule.h&gt;
+#include &lt;CVMUSB.h&gt;
+#include &lt;CVMUSBReadoutList.h&gt;
+	      </programlisting>
+	    </example>
+	    <para>
+	      This section of the driver sourcde includes the headers required by the driver 
+	      itself.  The headers are:
+	    </para>
+	    <orderedlist>
+	      <listitem><para>
+		<filename>CControlHardware.h</filename> the base class for the
+		driver class
+	      </para></listitem>
+	      <listitem><para>
+		<filename>CControlModule.h</filename>  the specialized version of the 
+		configurable object that is used by control drivers is a  <classname>CControlModule</classname>
+		this includes the command dispatching that makes configuration transparent
+		to your driver code, as well as the harness for dispatching the driver
+		calls themselves and marshalling them in a way that makes them available
+		to the clients.
+	      </para></listitem>
+	      <listitem><para>
+		<filename>CVMSUB.h</filename> Defines the class that provides access to
+		the VMUSB.
+	      </para></listitem>
+	      <listitem><para>
+		<filename>CVMUSBReadoutList.h</filename>  provides a class for constructing
+		VME lists of operations that can b executed immediately for better
+		performance than single operations with the <classname>CVMUSB</classname>
+	      </para></listitem>
+	    </orderedlist>
+	    <example>
+	      <title>Control driver class definition</title>
+	      <programlisting>
+class CUserDriver : public CControlHardware
+{
+
+public:
+  CUserDriver(std::string name);
+  virtual void onAttach(CControlModule&amp; configuration);
+  virtual std::string Update(CVMUSB&amp; vme);
+  virtual std::string Set(CVMUSB&amp; vme, 
+			  std::string parameter, 
+			  std::string value);
+  virtual std::string Get(CVMUSB&amp; vme, 
+			  std::string parameter);
+  virtual void clone(const CControlHardware&amp; rhs);
+
+};
+	      </programlisting>
+	    </example>
+	    <para>
+	      The key points are that the user driver inherits from the
+	      <classname>CControlHardware</classname> base class. Since
+	      <classname>CControlHardware</classname> is an abstract base class,
+	      it is necessary to define all abstract methods.  Furthermore, since
+	      <classname>CControlHardware</classname> has no default constructor,
+	      our driver must define a constructor that is capable of passing the
+	      driver instance name (module name) to the base class.
+	    </para>
+	    <example>
+	      <title>Control driver constructor</title>
+	      <programlisting>
+CUserDriver::CUserDriver(std::string name) :
+  CControlHardware(name)
+{}
+	      </programlisting>
+	    </example>
+	    <para>
+	      The only mandatory function of the constructor is to provide the
+	      instance <parameter>name</parameter> to the base class.  The
+	      instance name is the name provided to the <command>Module create</command>.
+	      Naturally if the driver has internal instance data that requires
+	      initialization, the constructor is where this should be done.
+	    </para>
+	    <example>
+	      <title>Control driver <methodname>onAttach</methodname> method</title>
+	      <programlisting>
+void
+CUserDriver::onAttach(CControlModule&amp; configuration)
+{
+  m_pConfig = &amp;configuration;	       <co id='ctldriver-onattach-saveconfig' />
+  m_pConfig-&gt;addIntegerParameter("-anint", 0);
+  m_pConfig-&gt;addParameter("-astring", NULL, NULL, ""); <co id='ctldriver-onattach-makeparams' />
+  m_pConfig-&gt;addIntListParameter("-alist", 16);
+
+}
+	      </programlisting>
+	    </example>
+	    <para>
+	      <methodname>onAttache</methodname> is called when a driver instance
+	      is being created and attached to its configuration object. The
+	      <parameter>configuration</parameter> is passed as a parameter to the
+	      method.  The numbers inthe example text are referenced below in the
+	      annotations:
+	    </para>
+	    <calloutlist>
+	      <callout arearefs='ctldriver-onattach-saveconfig'>
+		<para>
+		  The base class (<classname>CControlHardware</classname>) 
+		  provides a protected data member <varname>m_pConfig</varname>
+		  that is intended to hold a pointer to the driver instance's
+		  configuration object (<classname>CControlModule</classname>).
+		  It is usually important to be able to access your configuration
+		  later in the life cycle of the driver.
+		</para>
+	      </callout>
+	      <callout arearefs='ctldriver-onattach-makeparams'>
+		<para>
+		  Drivers normally are parameterized by a set of configuration 
+		  paramters.  These are defined/described and constrained in the
+		  <methodname>onAttache</methodname> method.  For this toy
+		  driver we just define the options
+		  <option>-anint</option> which is constrained to be an integer,
+		  <option>-astring</option> which is unconstrained and
+		  <option>-alist</option> which is constrained to be a list of
+		  16 integer parameters.
+		</para>
+		<para>
+		  Normal drivers will defined at least a 
+		  <option>-base</option> option which is intended to hold
+		  the base address of the device being controlled.
+		</para>
+	      </callout>
+	    </calloutlist>
+	    <example>
+	      <title>Control driver <methodname>Update</methodname></title>
+	      <programlisting>
+std::string
+CUserDriver::Update(CVMUSB&amp; vme)
+{
+  return "OK";
+}
+	      </programlisting>
+	    </example>
+	    <para>
+	      Some devices have write only registers.  Since it is not possible
+	      to determine the device state by reading the device registers, it is
+	      useful to have an operation that will set the device to a known state.
+	      Typcially this state is maintained in a set of <firstterm>shadow registers</firstterm>
+	      that are maintained in the driver instance,and possibly read from a 
+	      file that is also maintained by that instance or by a control panel for the
+	      device.  
+	    </para>
+	    <para>
+	      The <methodname>Update</methodname> method is intended to provide a mechanism
+	      for device control panel clients to request the driver set the hardware to a known
+	      state. The method should return the string <literal>OK</literal> on success or
+	      a streing of the form <literal>ERROR - </literal><replaceable>some descriptive error message</replaceable>
+	      normally control panels, on seeing the first return word is <literal>ERROR</literal>
+	      will parse the error message out and display it for the user.
+	    </para>
+	    <example>
+	      <title>Control driver <methodname>Set</methodname> method.</title>
+	      <programlisting>
+
+std::string
+CUserDriver::Set(CVMUSB&amp; vme,    
+                 std::string parameter,           <co id='ctldriver-set-params' />
+                 std::string value)
+{
+  try {
+    m_pConfig-&gt;configure(parameter, value);   <co id='ctldriver-set-configure' />
+    return "OK";
+  }
+  catch (std::string msg) {	// configure reports errors via std::string exceptions.
+    std::string status = "ERROR - ";
+    status += msg;
+    return status;                              <co id='ctldriver-set-error' />
+  }
+}
+	      </programlisting>
+	    </example>
+
+	    <para>
+	      The <methodname>Set</methodname> is intended to provide a new
+	      value for a device parameter.  When you write a device driver
+	      you must give names to each device parameter you want to allow
+	      clients to control.  These names are used by the client to identify
+	      device parameters both for the <methodname>Set</methodname> and
+	      the <methodname>Get</methodname> we will discuss next.
+	    </para>
+	    <para>
+	      In our toy driver, we have no hardware to modify so we are accepting the
+	      names of our configuration options as the parameter names.  Normal drivers
+	      will need to pull their base address from the configuration
+	      and use them, along with the value of the <parameter>parameter</parameter>
+	      parameter to know what to do to change the requested
+	      parameter to <parameter>value</parameter>.
+	    </para>
+	    <calloutlist>
+	      <callout arearefs='ctldriver-set-params'>
+		<para>
+		  The parameters passed to the <methodname>Set</methodname> are:
+		  <variablelist>
+		    <varlistentry>
+		      <term><parameter>vme</parameter></term>
+		      <listitem><para>
+			A <classname>CVMUSB</classname> object reference
+			that can be used to either perform direct VME operations
+			or to execute <classname>CVMUSBReadoutList</classname>
+			objects that have been created and stocked this 
+			method.
+		      </para></listitem>
+		    </varlistentry>
+		    <varlistentry>
+		      <term><parameter>parameter</parameter></term>
+		      <listitem><para>
+			The name of the parameter to modify.
+		      </para></listitem>
+		    </varlistentry>
+		    <varlistentry>
+		      <term><parameter>value</parameter></term>
+		      <listitem><para>
+			The stringified version of the new value to 
+			set for the parameter.  This parameter is always
+			a <classname>std::string</classname> and therefore
+			may require conversion by the driver.
+		      </para></listitem>
+		    </varlistentry>
+		  </variablelist>
+		</para>
+	      </callout>
+	      <callout arearefs='ctldriver-set-configure'>
+		<para>
+		  Since we are using our configuration parameters as device
+		    parameters, this line just attempts to set the requested
+		    configuration parameter to the reqested value.
+		  </para>
+		  <para>
+		    The <methodname>configure</methodname> throws 
+		    <classname>std::string</classname> exceptions
+		    on errors.  Hence the <methodname>configure</methodname>
+		    operation is done in a <literal>try</literal> block.
+		  </para>
+		</callout>
+		<callout arearefs='ctldriver-set-error'>
+		  <para>
+		    Error exceptions are caught by this
+		    <literal>catch</literal> block where they are turned
+		    into error messages.  The return value from
+		    the <methodname>Set</methodname> method is either
+		    <literal>OK</literal> (No error) or
+		    <literal>ERROR -</literal> followeed by an error
+		    message string.
+		  </para>
+		</callout>
+	      </calloutlist>
+	      <example>
+		<title>Control driver <methodname>Get</methodname> method</title>
+		<programlisting>
+
+std::string
+CUserDriver::Get(CVMUSB&amp; vme, std::string parameter) <co id='ctldriver-get-params' />
+{
+  try {
+    return m_pConfig-&gt;cget(parameter);                <co id='ctldriver-get-cget' />
+  }
+  catch (std::string msg) {
+    std::string retval = "ERROR - ";                    <co id='ctldriver-get-error' />
+    retval += msg;
+    return msg;
+  }
+}
+		</programlisting>
+	      </example>
+	      <para>
+		The <methodname>Get</methodname> method is used by control panel
+		clients to fetch values of device parameters from the driver.
+	      </para>
+	      <calloutlist>
+		<callout arearefs='ctldriver-get-params'>
+		  <para>
+		    The parameters for the <methodname>Get</methodname> are:
+		    <variablelist>
+		      <varlistentry>
+			<term><parameter>vme</parameter></term>
+			<listitem><para>
+			  Reference to a <classname>CVMUSB</classname> controller
+			  object that can be used to perform VME operations directly
+			  or to execute <classname>CVMUSBReadoutList</classname>
+			  objects that are created and filled by this method.
+			</para></listitem>
+		      </varlistentry>
+		      <varlistentry>
+			<term><parameter>parameter</parameter></term>
+			<listitem><para>
+			  The name of the parameter to modify.
+			</para></listitem>
+		      </varlistentry>
+		    </variablelist>
+		  </para>
+		</callout>
+		<callout arearefs='ctldriver-get-cget' >
+		  <para>
+		    In our toy driver our parameter names are configuration option names.
+		    In a real driver we would typically need to retrieve the
+		    <option>-base</option> value to locate our device in VME space.
+		    We would then use the value of <parameter>parameter</parameter>
+		    to determine which value to fetch.  That value would be 
+		    represented as a string and then returned to the caller.
+		  </para>
+	      </callout>
+	      <callout arearefs='ctldriver-get-error'>
+		<para>
+		  In the toy driver, <methodname>cget</methodname> can throw an
+		  exception.  We turn this into an error return indicated by
+		  returning a string of the form
+		  <literal>ERROR -</literal>  followed by a descriptive error
+		  string.
+		</para>
+	      </callout>
+	      </calloutlist>
+	      <example>
+		<title>Control driver <methodname>clone</methodname> method</title>
+		<programlisting>
+void
+CUserDriver::clone(const CControlHardware&amp; rhs)
+{
+  CControlHardware* pRhs = const_cast&lt;CControlHardware*&gt;(&amp;rhs);
+  m_pConfig = new CControlModule(*(pRhs->getConfiguration()));
+}
+		</programlisting>
+	      </example>
+	      <para>
+		All control drivers must supply a <methodname>clone</methodname>
+		method.  This method must clone a <parameter>rhs</parameter> object
+		into <varname>this</varname>.  The minimal work that must be done
+		is to clone the <parameter>rhs</parameter> configuration into our
+		<varname>m_pConfig</varname>.
+	      </para>
+	      <para>
+		Any internal data the driver has must also be copied.  Wether this can
+		be a shallow or deep copy is up to the needs of the driver.
+	      </para>
+	  </section>
+	  <section>
+	    <title>The creator</title>
+	    <para>
+	      The creator is used by the extensible module factory. It captures
+	      knowledge of how to create a driver instance.  The factory matches
+	      driver type names with creators and uses the creator to produce
+	      the correct constructor.
+	    </para>
+	    <example>
+	      <title>Control driver creator</title>
+	      <programlisting>
+#include &lt;CModuleCreator.h&gt;                             <co id='cltcreator-headers' />
+   
+class CUserDriverCreator : public CModuleCreator              <co id='ctlcreator-classdef' />
+{
+public:
+  virtual CControlHardware* operator()(std::string name);     <co id='ctlcreator-functordef' />
+};
+
+CControlHardware*
+CUserDriverCreator::operator()(std::string name)
+{
+  return new CUserDriver(name);                               <co id='ctlcreator-new' />
+}
+	      </programlisting>
+	    </example>
+	    <calloutlist>
+	      <callout arearefs='cltcreator-headers'>
+		<para>
+		  The creator must have <classname>CModuleCreator</classname> as 
+		  a base class.   This line includes the header for that class.
+		</para>
+	      </callout>
+	      <callout arearefs='ctlcreator-classdef'>
+		<para>
+		  This is the class definition for the crator.  By convention
+		  the name of a creator is built from the name of the class
+		  it creates with <literal>Creator</literal> suffixed.
+		  As previously described this class must inherit from
+		  <classname>CModuleCreator</classname>
+		</para>
+	      </callout>
+	      <callout arearefs='ctlcreator-functordef'>
+		<para>
+		  The creator must define and implement a functor
+		  (<methodname>operator()</methodname>).  This method
+		  must take the <parameter>name</parameter> of a
+		  module as a parameter and return a dynamically
+		  allocated <classname>CControlHardware*</classname>
+		  whose underlying type is the same as the type we are
+		  supposed to be creating.
+		</para>
+	      </callout>
+	      <callout arearefs='ctlcreator-new'>
+		<para>
+		  The implementation of the functor operator is usually 
+		  as simple as what's shown here.  Just
+		  <literal>new</literal> into existence the object
+		  and return its pointer.
+		</para>
+	      </callout>
+	    </calloutlist>
+	  </section>
+	  <section>
+	    <title>The initialization function</title>
+	    <para>
+	      The initialization function is called automatically by the
+	      Tcl <command>load</command> or <command>package require</command>
+	      command used to load the driver into the interpreter.
+	      The initialization function must have a specific name that matches
+	      the name of the library/package it is built into.  The name must be
+	      of the form described in 
+	      <ulink url='http://www.tcl.tk/man/tcl8.5/TclCmd/load.htm'>
+		http://www.tcl.tk/man/tcl8.5/TclCmd/load.htm
+	      </ulink>
+	      Unless otherwise specified in the <command>load</command> command,
+	      the package name is the part of the name of the library that follows
+	      the <literal>lib</literal> part but before the file type.  E.g. for
+	      a shared library named <filename>libMyControlDriver.so</filename>,
+	      the initialization function should be
+	      <literal>Mycontroldriver</literal>
+	    </para>
+	    <para> 
+	      Here is the initialization function for our sample driver:
+	    </para>
+	    <example>
+	      <title>Control driver initialization</title>
+	      <programlisting>
+#include &lt;CModuleFactory.h&gt;                          <co id='ctldriver-init-headers' />
+#include &lt;tcl.h&gt;
+
+extern "C" {                                               <co id='ctldriver-init-cbinding' />
+  int Userdriver_Init(Tcl_Interp* pInterp)                 <co id='ctldriver-init-prototype' />
+  {
+    CModuleFactory* pFact = CModuleFactory::instance();    <co id='ctldriver-init-factget' />
+    pFact->addCreator("mydriver", new CUserDriverCreator); <co id='ctldriver-init-creator' />
+
+    return TCL_OK;                                         <co id='ctldriver-init-status' />
+  }
+  
+}
+	      </programlisting>
+	    </example>
+	    <calloutlist>
+	      <callout arearefs='ctldriver-init-headers'>
+		<para>
+		  The headers required for the initialization function are (in addition
+		  to any header that defines the module creator):
+		  <variablelist>
+		    <varlistentry>
+			<term><filename>CModuleFactory.h</filename></term>
+			<listitem><para>
+			  Defines the <classname>CModuleFactory</classname>
+			  singleton which is the class in which our creator must
+			  be registered.
+			</para></listitem>
+		      </varlistentry>
+		      <varlistentry>
+			<term><filename>tcl.h</filename></term>
+			<listitem><para>
+			  Contains interface definitions for the API to the
+			  Tcl interpreter.
+			</para></listitem>
+		      </varlistentry>
+		    </variablelist>
+		  </para>
+		</callout>
+		<callout arearefs='ctldriver-init-cbinding'>
+		  <para>
+		    The Tcl interpreter needs to be able to compute
+		    the function name explicitly.   Since C++ function names
+		    are <firstterm>decorated</firstterm> in ways that depend on
+		    their signatures, the initialization function must be 
+		    declared with C name bindings.  This is done with the
+		    <literal>extern "C"</literal> block shown here.
+		  </para>
+		</callout>
+		<callout arearefs='ctldriver-init-prototype'>
+		  <para>
+		    The initialization functdion takes an interpreter
+		    (<type>Tcl_Interp*</type>) as a parameter and returns
+		    an <type>int</type> status.  The normal return status
+		    is <literal>TCL_OK</literal>.  The failure return status is
+		    <literal>TCL_ERROR</literal> and  an error message can be
+		    put in the interpreter result (using e.g.
+		    <ulink url='http://www.tcl.tk/man/tcl8.5/TclLib/SetResult.htm'>
+		      Tcl_SetResult</ulink>).
+		  </para>
+		</callout>
+		<callout arearefs='ctldriver-init-factget'>
+		  <para>
+		    The main work of the intitialization function is to register
+		    the module creator with the module factory.  The
+		    <function>CModuleFactory::instance()</function>
+		    returns a pointer to the 
+		    <ulink url='http://en.wikipedia.org/wiki/Singleton_pattern'>
+		      singleton instance</ulink>
+		    of the factory.
+		  </para>
+		</callout>
+		<callout arearefs='ctldriver-init-creator'>
+		  <para>
+		    Registers the new creator object associating it with the
+		    module type <literal>mydriver</literal>
+		  </para>
+		</callout>
+		<callout arearefs='ctldriver-init-status'>
+		  <para>
+		    Returns a normal status value.
+		  </para>
+		</callout>
+	    </calloutlist>
+
+	  </section>
+	  <section>
+	    <title>Building the driver and using it.</title>
+	    <para>
+	      Compiled drivers must be built as shared libraries.  You can then
+	      either use the Tcl <command>load</command> command to directly
+	      load them or build a <filename>pkg_Index.tcl</filename> in a 
+	      Tcl library directory and use <command>package require</command>
+	      instead.
+	    </para>
+	    <para>
+	      Regardless of the choices you make, if you have bundled your
+	      driver into a single file you can build it using:
+	    </para>
+	    <informalexample>
+	      <cmdsynopsis><command>
+g++ -shared -o libMyDriver.so MyDriver.cpp
+	      </command></cmdsynopsis>
+	    </informalexample>
+	    <para>
+	      Note that you don't need to specify libraries that are
+	      included in the readout program, however you do need to
+	      resolve any other undefined symbols that are in libraries
+	      not part of the readout program.
+	    </para>
+
+	  </section>
+	</section>
+	
     </section>
+    <section>
+      <title>Writing slow control drivers in Tcl</title>
+      <para>
+	Using the SWIG wrappers for the <classname>CVMUSB</classname> and
+	<classname>CVMUSBReadoutList</classname> classes and the
+	<literal>tcl</literal> wrapper module type you can write
+	slow control modules using pure Tcl. A Tcl driver is a command ensemble
+	that defines the following subcommands:
+      </para>
+      <variablelist>
+	<varlistentry>
+	  <term><command>Initialize</command></term>
+	  <listitem><para>
+	    Called by the wrapper's <methodname>Initialize</methodname>
+	    to perform initialization.
+	  </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><command>Update</command></term>
+	  <listitem><para>
+	    Called by the wrapper's <methodname>Update</methodname>
+	    method.
+	  </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><command>Set</command></term>
+	  <listitem><para>
+	    Called by the wrapper's <methodname>Set</methodname> method.
+	  </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><command>Get</command></term>
+	  <listitem><para>
+	    Called by the wrapper's <methodname>Get</methodname> method.
+	  </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><command>addMonitorList</command></term>
+	  <listitem>
+	    <para>
+	      Called by the wrappers <methodname>addMonitorList</methodname>
+	      method.  This method must be supplied though it need not do
+	      anything.
+	    </para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><command>processMonitorList</command></term>
+	  <listitem><para>
+	    Called by the wrappers's <methodname>processMonitorList</methodname>.
+	    Again while this  method must be supplied, it need not do anything
+	    (except return 0 indicating it has not processed antyhing from the monitor
+	    list).
+	  </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><command>getMonitoredData</command></term>
+	  <listitem>
+	    <para>
+	      Called from the wrapper's <methodname>getMonitoredData</methodname>.
+	      Must be defined but need not do anything useful if the driver
+	      does not make use of monitor lists.
+	    </para>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+      <para>
+	The remainder of this section will pick apart a Tcl driver that performs
+	the same basic function as the C++ driver we wrote in the previous section.
+	We will also show how to incorporate the driver into a 
+	<filename>controlconfig.tcl</filename> file.
+      </para>
+      <para>
+	For this example we will use a driver written using snit. incrTcl or 
+	Xotcl or even namespace ensembles can be used to implement drivers, or
+	even just a Tcl procedure of only one instance is going to be supported.
+      </para>
+      <para>
+	Let's start by looking at the overall framework of the driver:
+      </para>
+      <example>
+	<title>Control drivers - structure of a Tcl driver</title>
+	<programlisting>
+
+package provide Mydriver 1.0
+package require cvmusb                            <co id='ctldriver-tclstruct-packages' />
+package require cvmusbreadoutlist
+
+
+snit::type Mydriver {                            <co id='ctldriver-tclstruct-snittype' />
+    option -anint -configuremethod _validInt
+    option -astring                              <co id='ctldriver-tclstruct-options' />
+    option -alist -configuremethod _validIntList
+
+    constructor args {
+       ...
+       $self configurelist $args                <co id='ctldriver-tclstruct-constructor' />
+    }
+
+    method Initialize vme {...}
+    method Update     vme {...}
+    method Set        {vme parameter value} {...}
+    method Get       {vme parameter} {...}     <co id='ctldriver-tclstruct-methods' />
+    method addMonitorList vmeList {...}
+    method processMonitorList data {...}
+    method getMonitoredData {...}
+
+    #  Private method:
+    
+    method _validInt {optname value} {...}      <co id='ctldriver-tclstruct-configmethods' />
+    method _validIntList {optname value} {...}
+    
+
+}
+	</programlisting>
+      </example>
+      <calloutlist>
+	<callout arearefs='ctldriver-tclstruct-packages'>
+	  <para>
+	    This section of code defines a package name; <literal>Mydriver</literal>
+	    and specifies it to have a version of <literal>1.0</literal>.  This
+	    allows the Tcl command 
+	    <ulink url='http://www.tcl.tk/man/tcl8.5/TclCmd/pkgMkIndex.htm'>
+	    <command>pkg_mkIndex</command></ulink>
+	    to create a <filename>pkgIndex.tcl</filename> package index that includes 
+	    the <literal>Mydriver</literal> package.
+	    The two <command>package require</command> packages include the packages
+	    that implement SWIG wrappings of the <classname>CVMUSB</classname>
+	    and <classname>CVMUSBReadoutList</classname> classes.
+	  </para>
+	</callout>
+	<callout arearefs='ctldriver-tclstruct-snittype'>
+	  <para>
+	    Snit classes are declared with the <command>snit::type</command> 
+	    command.  That command takes two parameters, the typename
+	    (<literal>Mydriver</literal>), and the body of the type definition
+	    which begins with the <literal>{</literal>.
+	  </para>
+	</callout>
+	<callout arearefs='ctldriver-tclstruct-options'>
+	  <para>
+	    The <command>option</command>, defined within a <command>snit::type</command>
+	    body declares a configuration option for objects created with this type.
+	    These three lines declare the three configuration options we said we would 
+	    support.  We want to perform validation on the
+	    <option>-anint</option> and the <option>-alist</option>.  The
+	    <option>-configuremethod</option> option in the
+	    <command>option</command> provides the name of a method that
+	    will be called when the option is configured.  This provides for
+	    validation.
+	  </para>
+	</callout>
+
+	<callout arearefs='ctldriver-tclstruct-constructor'>
+	  <para>
+	    The constructor  method must do all internal initializations,
+	    it should also process the configuration options that were passed
+	    on the construction command line.  The built-in method
+	    <methodname>configurelist</methodname> processes a list of
+	    option/value pairs.  Precisely what the <parameter>args</parameter>
+	    parameter contains.
+	  </para>
+	</callout>
+	<callout arearefs='ctldriver-tclstruct-methods'>
+	  <para>
+	    These lines of code are skeletal definitions of the 
+	    methods we are required to implement in a Tcl driver. 
+	    The <command>method</command> in a <command>snit::type</command>
+	    is used to create object methods for a Snit object.  We will
+	    look at the bodies of these methods in separate sections.
+	  </para>
+	</callout>
+	<callout arearefs='ctldriver-tclstruct-configmethods'>
+	  <para>
+	    These lines of code create skeletal definitions of the methods
+	    we established as configuration handlers via the 
+	    <option>-configuremethod</option>.  Confifgure methods take a pair of parameters.
+	    <parameter>optname</parameter> is the name of the parameter being configured
+	    while <parameter>value</parameter> is the proposed new value for that parameter.
+	    This parameterization allows configuremethods to be shared between several
+	    options (for example if we had more than one option we wanted to constrain
+	    to be an integer.
+	  </para>
+	</callout>
+      </calloutlist>
+      <section>
+	<title>Initialize</title>
+	<para>
+	  The full implementation of the <methodname>Initialize</methodname> is shown
+	  below:
+	</para>
+	<example>
+	  <title>Tcl control driver <methodname>Initialize</methodname> method</title>
+	  <programlisting>
+    method Initialize vme {
+    
+    }
+	  </programlisting>
+	</example>
+	<para>
+	  The <methodname>Initialize</methodname> does nothing for our driver.
+	  For a real driver the options might be queried to find the base address
+	  of the hardware as well as other static configuration options.  The 
+	  <parameter>vme</parameter> argument, which is a Swig wrapped
+	  <classname>CVUSB</classname> object would then be used to perform the
+	  VME transactions needed to initialize the device.
+	</para>
+	<para>
+	  In the event of an error while executing this method, the wrapper
+	  will pull the result of the command as a string, and throw it as a
+	  <classname>std::string</classname> exception.  This is the accepted way
+	  for drivers to indicate errors in their <methodname>Initialize</methodname>
+	  methods
+	</para>
+      </section>
+      <section>
+        <title>The update method</title>
+        <para>
+            The <methodname>Update</methodname> method servesthe same function
+            in a Tcl driver as in a C++ driver.  In our case the implementationis
+        </para>
+        <example>
+            <title>Tcl control driver <methodname>Update</methodname> method</title>
+            <programlisting>
+    method Update vme {
+        return "OK"
+    }
+            </programlisting>
+        </example>
+        <para>
+            The <parameter>vme</parameter> is a SWIG encapsulated
+            <classname>CVMUSB</classname> object that, in a real driver,
+            would be used to perform VME operations or execute lists created
+            via  <classname>CVMUSBReadoutList</classname> objects created and
+            filled in by this method.
+        </para>
+        <para>
+            The return string of <literal>OK</literal> indicates a normal
+            completion.  Tcl methods have two mechanisms to return errors.
+            Returning a string that begins with <literal>ERROR - </literal>
+            and concludes with an error message, or simply executing the
+            <command>error</command> with an error message argument.
+            The wrapper will map error returns into an <literal>ERROR - </literal>
+            string return with the value of the string passed t the
+            <command>error</command> command appended to the end of the
+            error return string.
+        </para>
+      </section>
+      <section>
+        <title>The Set method</title>
+        <para>
+            As with the C++ driver, the <methodname>Set</methodname> method is
+            used to process client requests to change a device parameter.
+            The Tcl version of this method is:
+        </para>
+        <example>
+            <title>Tcl control driver <methodname>Set</methodname> method</title>
+            <programlisting>
+    method Set {vme parameter value} {
+        $self configure $parameter $value
+        return "OK"
+    }
+            </programlisting>
+        </example>
+        <para>
+            The parameters passed into this are the same as those passed into
+            a C++ driver's set, however the <parameter>vme</parameter> parameter
+            is a swig wrapped <classname>CVMUSB</classname> object.
+        </para>
+        <para>
+            By using the <methodname>configure</methodname> method rather than
+            just directly writing to the <varname>options</varname> array
+            we force the call of any <option>-configuremethod</option> code
+            that may do validations and throw errors.
+        </para>
+        <para>
+            The return of <literal>OK</literal> indicates successful completion,
+            an error will be converted by the wrapper into a return string of the form
+            <literal>ERROR - </literal><replaceable>intepreter error result string</replaceable>.
+            This allows errors from the <methodname>configurmethod</methodname>,
+            including specifying an invalid option name as well as failures
+            in validation by the <option>-configuremethod</option> code to be
+            naturally mapped back to proper error returns.
+        </para>
+        <para>
+            In a real driver, the <parameter>vme</parameter> parameter will
+            be used to perform VME operations.  In addition you can choose
+            to explicitly return an error string, or use the
+            <command>error</command> command to report failures.
+        </para>
+      </section>
+      <section>
+        <title>The Get method</title>
+        <para>
+            As with the C++ driver this is called to fetch the value of a
+            driver parameter.  Our toy driver fetches configuration parameters
+            rather than hardware parameters.
+        </para>
+        <example>
+            <title>Tcl control driver <methodname>Get</methodname> method</title>
+            <programlisting>
+    method Get {vme parameter} {
+        if {[array names options $parameter] eq ""} {
+            error "Invalid parameter name: $parameter"
+        }
+        return $options($parameter)
+    }
+            </programlisting>
+        </example>
+        <para>
+            Our driver ensures the value of <parameter>parameter</parameter> really
+            is an option name and then returns the option value from the
+            <varname>options</varname> array.
+            By doing the check for <command>array names options $parameter</command>
+            we can produce a more meaningful error message than would be
+            produced if we just let <command>return $options($parameter)</command>
+            error.
+        </para>
+        <para>
+            Instead of the <command>error</command> command we could have just
+            as easily done a <command>return "ERROR - Invalid parameter name: $parameter"</command>
+        </para>
+        <para>
+            A real driver would use the <parameter>vme</parameter> parameter,
+            which is a Swig wrapped <classname>CVMUSB</classname> object
+            to fetch the value of the parameter from the hardware.
+        </para>
+      </section>
+      <section>
+	<title>The addMonitorList method</title>
+	<para>
+	  Since we are not using monitor lists, this method is trivial:
+	</para>
+	<example>
+	  <title>Tcl control drer <methodname>addMonitorList</methodname> method</title>
+	  <programlisting>
+    method addMonitorList vmeList {
+    }
+	  </programlisting>
+	</example>
+	<para>
+	  The <parameter>vmeList</parameter> is a <classname>CVMEReadoutList</classname>
+	  that is wrapped by Swig.  A driver that uses monitor lists would add operations
+	  to the list as needed to retrieve the data being monitored from the device.
+	</para>
+      </section>
+      <section>
+	<title>The processMonitorList method</title>
+	<para>
+	  <methodname>processMonitorList</methodname> is called with the data read
+	  by the monitor list marshalled into a Tcl list of bytes (string representation).
+	  The method is expected to process what it needs from the front of the list
+	  and return a count of the number of bytes processed.  Since we are not using
+	  monitor lists, our implementation is:
+	</para>
+	<example>
+	  <title>Tcl control driver <methodname>processMonitorList</methodname> method</title>
+	  <programlisting>
+    method processMonitorList data {
+        return 0
+    }
+	  </programlisting>
+	</example>
+      </section>
+      <section>
+	<title>The getMonitoredData method</title>
+	<para>
+	  If using a monitor list, this method typically returns the data
+	  last processed by <methodname>processMonitorList</methodname> with
+	  <literal>OK - </literal> prepended to indicate a successful completion.
+	  As usual an <command>error</command> or script errors will result in
+	  a return of <literal>ERROR - </literal> with the result string appended.
+	</para>
+	<para>
+	  Since we are not using a monitor list, it's appropriate for us
+	  to return an error condition:
+	</para>
+	<example>
+	  <title>Tcl control driver <methodname>getMonitoredData</methodname> method</title>
+	  <programlisting>
+    method getMonitoredData {} {
+        error "This driver has no monitored data"
+    }
+          </programlisting>
+	</example>
+      </section>
+      <section>
+	<title>Validating the command options</title>
+	<para>
+	  The only thing left to do is write the option validation methods
+	  <methodname>_validInd</methodname> and <methodname>_validIntList</methodname>.
+	</para>
+	<note><title>Note</title>
+	<para>
+	  Snit does not have method visibility control, that is all methods
+	  are public.   By convention, methods that are not intended to be
+	  called by a client are given names that start with a <literal>_</literal>.
+	  Therefore these methods should be considered private.
+	</para>
+	</note>
+	<example>
+	  <title>Tcl control driver validation</title>
+	  <programlisting>
+    method _validInt {optname value} {
+        if {[string is integer -strict $value]} {                  <co id='tcldriver-validate-isinteger' />
+	    set options($optname) $value                           <co id='tcldriver-validate-setintopt' />
+        } else {
+            error "$optname must be configured with an integer was given '$value'" <co id='tcldriver-validate-intinvalid' />
+        }
+    }
+    method _validIntList {optname value} {
+        if {![info complete $value]} {                            <co id='tldriver-validate-islist' />
+            error "$optname must be given an integer list and '$value' isn't one"
+        }
+
+	set elements [llength $value]
+        if {$elements != 16} {                                    <co id='tcldriver-validate-listcount' />
+	    error "$optname must be given an integer list 16 '$value" as $elements"
+	}
+	
+	foreach item $value {                                     <co id='tcldriver-validate-intelements' />
+            if {![string is integer -strict $item]} {             
+	       error "$optname list elements must be integer but '$item' in '$value' is not"
+            }
+        }
+	set options($optname) $value                              <co id='tcldriver-validate-setlistopt' />
+    }
+	  </programlisting>
+	</example>
+	<calloutlist>
+	  <callout arearefs='tcldriver-validate-isinteger'>
+	    <para>
+	      The <command>string is integer -strict</command> command takes its argument
+	      and returns true if the argument is an integer and non-blank (a blank integer
+	      can be interpreted as a zero).
+	    </para>
+	  </callout>
+	  <callout arearefs='tcldriver-validate-setintopt'>
+	    <para>
+	      This sets the appropriate element of the <varname>options</varname>
+	      array.  This array is used by e.g. <command>cget</command> to
+	      return configuration options, unless overridden with a <option>-cgetmethod</option>.
+	    </para>
+	  </callout>
+	  <callout arearefs='tcldriver-validate-intinvalid'>
+	    <para>
+	      If the option value does not validate as an integer, an error is thrown.  Note 
+	      that we have seen that errors are mapped by the wrapper into the appropriate
+	      error indication to the driver framework.
+	    </para>
+	  </callout>
+	  <callout arearefs='tldriver-validate-islist'>
+	    <para>
+	      This trick checks that <varname>value</varname> is a valid list.  This works
+	      because complete commands must be valid Tcl lists as well.
+	    </para>
+	  </callout>
+	  <callout arearefs='tcldriver-validate-listcount'>
+	    <para>
+	      This ensures the list has exactly 16 elements, else an error is thrown.
+	    </para>
+	  </callout>
+	  <callout arearefs='tcldriver-validate-intelements'>
+	    <para>
+	      Element by element, the list is checked to ensure that all elements are
+	      valid integers.
+	    </para>
+	  </callout>
+	  <callout arearefs='tcldriver-validate-setlistopt'>
+	    <para>
+	      If by now we have not errored out, the value is valid and is set in the
+	      <varname>options</varname> array.
+	    </para>
+	  </callout>
+	</calloutlist>
+      </section>
+      <section>
+	<title>Using a Tcl control driver</title>
+	<para>
+	  To use a Tcl control driver you must:
+	</para>
+	<orderedlist>
+	  <listitem><para>
+	    Incorporate the driver into your <filename>controlconfig.tcl</filename>
+	    script either using the <command>source</command> or 
+	    <command>package require</command> command.
+	  </para></listitem>
+	  <listitem><para>
+	    Create an instance of your driver if needed.  In the case of
+	    our toy driver, this means a command like:
+	    <command>Mydriver aninstance</command> to create a command
+	    ensemble named <literal>aninstance</literal>
+	  </para></listitem>
+	  <listitem><para>
+	    If necessary configure our driver instance.
+	  </para></listitem>
+	  <listitem><para>
+	    Wrap your driver with the <literal>tcl</literal> module type:
+	    <informalexample>
+	      <programlisting>
+Module create tcl atcldriver
+Module config atcldriver -ensemble aninstance
+	      </programlisting>
+	    </informalexample>
+	  </para></listitem>
+	</orderedlist>
+	
+	<para>
+	  The key point is that the <option>-ensemble</option> for a 
+	  <literal>tcl</literal> module provides the base name of the
+	  command ensemble that Tcl driver wraps.
+	</para>
+      </section>
+    </section>
+  </section>
     <section>
         <title>Pushing external data into the event stream</title>
         <para>
@@ -11981,7 +13370,471 @@ bool myTypeChecker(std::string name, std::string value, void* arg)
            </refsect1>
            
         </refentry>
-        
+      <refentry id='vmusb3_ccontrolhardware'>
+         <refmeta>
+	   <refentrytitle id='vmusb3_ccontrolhardware_title'>CControlHardware</refentrytitle>
+	   <manvolnum>3vmusb</manvolnum>
+	 </refmeta>
+	 <refnamediv>
+	   <refname>CControlHardware</refname>
+	   <refpurpose>Base class for slow controls drivers</refpurpose>
+	 </refnamediv>
+	 <refsynopsisdiv>
+	   <synopsis>
+	     #include &lt;CControlHardware.h&gt;
+	     class <ooclass><classname>CControlHardware</classname></ooclass> {
+             protected:
+                 CControlModule* m_pConfig;
+             public:
+	         <constructorsynopsis>
+		   <methodname>CControlModule</methodname>
+		   <methodparam>
+		     <type>std::string</type><parameter>name</parameter>
+		   </methodparam>
+		 </constructorsynopsis>
+		 <methodsynopsis>
+		   <type>CControlModule*</type> <methodname>getConifguration</methodname>
+		   <void />
+		 </methodsynopsis>
+		 <methodsynopsis>
+		   <modifier>virtual</modifier>
+		   <type>void</type> <methodname>onAttach</methodname>
+		   <methodparam>
+		     <type>CControlModule&amp;</type> <parameter>configuration</parameter>
+		   </methodparam>
+		   <modifier> = 0</modifier>
+		 </methodsynopsis>
+		 <methodsynopsis>
+		   <modifier>virtual</modifier>
+		   <type>void</type> <methodname>Initialize</methodname>
+		   <methodparam>
+		     <type>CVMUSB&amp;</type> <parameter>vme</parameter>
+		   </methodparam>
+		   <modifier> = 0</modifier>
+		 </methodsynopsis>
+		 <methodsynopsis>
+		   <modifier>virtual</modifier>
+		   <type>std::string</type><methodname>Update</methodname>
+		   <methodparam>
+		     <type>CVMUSB&amp;</type> <parameter>vme</parameter>
+		   </methodparam>
+		 </methodsynopsis>
+		 <methodsynopsis>
+		   <modifier>virtual</modifier>
+		   <type>std::string</type> <methodname>Set</methodname>
+		   <methodparam>
+		     <type>CVMUSB&amp;</type><parameter> vme</parameter>
+		   </methodparam>
+		   <methodparam>
+		     <type>std::string</type> <parameter>parameter</parameter>
+		   </methodparam>
+		   <methodparam>
+		     <type>std::string</type><parameter> value</parameter>
+		   </methodparam>
+		   <modifier>= 0</modifier>
+		 </methodsynopsis>
+		 <methodsynopsis>
+		   <modifier>virtual</modifier>
+                   <type>std::string</type><methodname>Get</methodname>
+		   <methodparam>
+		     <type>CVMUSB&amp;</type><parameter> vme</parameter>
+		   </methodparam>
+		   <methodparam>
+		     <type>std::string</type> <parameter>parameter</parameter>
+		   </methodparam>
+		   <modifier> = 0</modifier>
+		 </methodsynopsis>
+		 <methodsynopsis>
+		   <modifier>virtual</modifier>
+		   <type>void</type> <methodname> clone</methodname>
+		   <methodparam>
+		     <modifier>const</modifier>
+		     <type> CControlHardware&amp;</type> <parameter> rhs</parameter>
+		   </methodparam>
+		   <modifier>= 0</modifier>
+		 </methodsynopsis>
+		 <methodsynopsis>
+		   <modifier>virtual</modifier>
+		   <type>void</type> <methodname> addMonitorList</methodname>
+		   <methodparam>
+		     <type>CVMUSBReadoutList&amp;</type> <parameter> vmeList</parameter>
+		   </methodparam>
+		 </methodsynopsis>
+		 <methodsynopsis>
+		   <modifier>virtual</modifier>
+		   <type>void*</type> <methodname>processMonitorList</methodname>
+		   <methodparam>
+		     <type>void*</type><parameter> pData</parameter>
+		   </methodparam>
+		   <methodparam>
+		     <type>size_t</type><parameter> remaining</parameter>
+		   </methodparam>
+		 </methodsynopsis>
+		 <methodsynopsis>
+		   <modifier> virtual</modifier>
+		   <type>std::string</type>
+		   <methodname>getMonitoredData</methodname>
+		   <void />
+		 </methodsynopsis>
+		 
+	     };
+           </synopsis>
+         </refsynopsisdiv>
+	 <refsect1>
+	   <title>DESCRIPTION</title> 
+	   <para>
+	     <classname>CControlHardware</classname> is an abstract base class for
+	     slow control drivers.  To build a driver one must build a concrete
+	     derived class, a <classname>CModuleCreator</classname> and register 
+	     them with the <classname>CModuleFactory</classname> which associates
+	     a module type string with a creator.
+	   </para>
+	   <para>
+	     The base class and its <classname>CControLModule</classname> take care
+	     of configuration management, command dispatching and parameter marshalling
+	     for the methods of this class.  This framework therefore frees people
+	     writing controls support software from most tasks not directly related to
+	     controlling their devices.
+	   </para>
+	   <para>
+	     The driver framework supports get and set operations and these transparently 
+	     interrupt data taking if active.  Thus a series of sets or gets performed
+	     while data taking is active can take a substantial time as each get or set
+	     will pause data taking, flush in-flight buffers, perform the operatin and then
+	     resume data taking.
+	   </para>
+	   <para>
+	     In addition to get and set operations, the driver supports using a periodically
+	     triggered list to monitor device state.  This monitoring does
+	     <emphasis>not</emphasis> impact data taking other than the time required to
+	     execute the list.   This mechanism is normally used to support the recognition
+	     of exceptional states in the hardware (e.g. trips in detector bias supplies).
+	   </para>
+	   <para>
+	     Implementation of the set/get interface is mandatory (those methods are pure
+	     virtual)  Implementation of the monitor list operations is optional, as there
+	     are do-nothing default behaviors defined in this base class.
+	   </para>
+	 </refsect1>
+        <refsect1>
+            <title>METHODS</title>
+            <variablelist>
+                <varlistentry>
+                    <term>
+                        <constructorsynopsis>
+                          <methodname>CControlModule</methodname>
+                          <methodparam>
+                            <type>std::string</type><parameter>name</parameter>
+                          </methodparam>
+                        </constructorsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            The base class constructor makes a correspondence between
+                            the name of the module and the actual device.  Therefore
+                            when you construct an object you should invoke this
+                            base class constructor passing <parameter>name</parameter>
+                            the name passed into your own constructor>
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <methodsynopsis>
+                          <type>CControlModule*</type> <methodname>getConifguration</methodname>
+                          <void />
+                        </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Obtains the configuration object from the module.
+                            Your own methods can refer directly to the
+                            <varname>m_pConfig</varname> member variable.
+                            See MEMBER DATA below for more information.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <methodsynopsis>
+                          <modifier>virtual</modifier>
+                          <type>void</type> <methodname>onAttach</methodname>
+                          <methodparam>
+                            <type>CControlModule&amp;</type> <parameter>configuration</parameter>
+                          </methodparam>
+                          <modifier> = 0</modifier>
+                        </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            This method must be implemented by concrete classes.
+                            It is invoked as a new module instance is being
+                            put together internally and hooked into the
+                            slow controls server.  <parameter>configuration</parameter>
+                            is the coniguration object.  Its address should be
+                            stored in <varname>m_pConfig</varname> (see
+                            MEMBER DATA) below.
+                        </para>
+                        <para>
+                            This method should also be used to define any
+                            configuration options you need.  Normally drivers will
+                            define at least an option to allow the hardware to be
+                            located.  For modules with base addressing this is
+                            normally an option named <option>-base</option>
+       H                 </para>
+                    </listitem>
+                </varlistentry>
+		<varlistentry>
+		  <term>
+                        <methodsynopsis>
+                          <modifier>virtual</modifier>
+                          <type>void</type> <methodname>Initialize</methodname>
+                          <methodparam>
+                            <type>CVMUSB&amp;</type> <parameter>vme</parameter>
+                          </methodparam>
+                          <modifier> = 0</modifier>
+                        </methodsynopsis>
+		  </term>
+		<listitem>
+		  <para>
+		    Optional method that can be implemented by concrete sub-classes.
+		    The method is intended to do one-time initialization of the hardware
+		    being controlled by this driver.  <parameter>vme</parameter>
+		    is a reference to a VMUSB controller object.  This object can
+		    perform VME operations on behalf of the method or execute
+		    <classname>CVMUSBReadoutLists</classname> this method builds.
+		  </para>
+		  <para>
+		    If this method is not implemented the base class method does nothing.
+		  </para>
+		</listitem>
+	      </varlistentry>
+	      <varlistentry>
+		<term>
+                        <methodsynopsis>
+                          <modifier>virtual</modifier>
+                          <type>std::string</type><methodname>Update</methodname>
+                          <methodparam>
+                            <type>CVMUSB&amp;</type> <parameter>vme</parameter>
+                          </methodparam>
+			  <modifier>= 0</modifier>
+                        </methodsynopsis>
+		</term>
+		<listitem>
+		  <para>
+		    This method must be implemented by concrete sub-classes.
+		    It is intended for use by drivers that work with devices that have 
+		    write only state.  The method is called by clients that want to
+		    push shadow data out to the write only state of the device.  Typically,
+		    a device of this sort would have an initialization file that
+		    describes the desired initial state of the device.  The <methodname>Update</methodname>
+		    often is a means to push that state out to the device when the GUI starts and
+		    reads in the same initializationfile.
+		  </para>
+		</listitem>
+	      </varlistentry>
+              <varlistentry>
+                <term>
+                        <methodsynopsis>
+                          <modifier>virtual</modifier>
+                          <type>std::string</type> <methodname>Set</methodname>
+                          <methodparam>
+                            <type>CVMUSB&amp;</type><parameter> vme</parameter>
+                          </methodparam>
+                          <methodparam>
+                            <type>std::string</type> <parameter>parameter</parameter>
+                          </methodparam>
+                          <methodparam>
+                            <type>std::string</type><parameter> value</parameter>
+                          </methodparam>
+                          <modifier>= 0</modifier>
+                        </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        This method must be implemented by concrete sub-classes.
+                        The framework will call this in response to a request
+                        by a client to make a setting for this instance of the driver.
+                        The <parameter>vme</parameter> object is a
+                        <classname>CVMUSB</classname> object that can be used to
+                        perform individual VME operations or execute immediate
+                        <classname>CVMUSBReadoutList</classname> objects
+                        created and filled by this method.
+                    </para>
+                    <para>
+                        <parameter>parameter</parameter> is a string that specifies
+                        the name of the parameter the client wants to set.
+                        The parameter names that are supported by a driver are
+                        up to the driver and hardware specific.  If the
+                        client requests a parameter that is not supoprted an
+                        error should be returned.
+                    </para>
+                    <para>
+                        The <parameter>value</parameter> parameter is the
+                        new value requested by the client.  If this value is
+                        not legal for the parameter (e.g. a string that is not
+                        an integer for an integer parameter), an error should
+                        be returned.
+                    </para>
+                    <para>
+                        The return value of this method is a
+                        <classname>std::string</classname>.  On successful
+                        completion this should be the value <literal>OK</literal>.
+                        On failure, this should be a string that begins with
+                        the word <literal>ERROR</literal> and, after some whitespace
+                        provides a human readable message describing the error.
+                    </para>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term>
+                        <methodsynopsis>
+                          <modifier>virtual</modifier>
+                          <type>std::string</type> <methodname>Get</methodname>		   
+                          <methodparam>
+                            <type>CVMUSB&amp;</type><parameter> vme</parameter>
+                          </methodparam>
+                          <methodparam>
+                            <type>std::string</type> <parameter>parameter</parameter>
+                          </methodparam>
+                          <modifier> = 0</modifier>
+                        </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        This method must be implemented by a concrete class.
+                        It is invoked by the framework when a client requests the
+                        value of a parameter from this instance of the driver.
+                    </para>
+                    <para>
+                        <parameter>vme</parameter> is a <classname>CVMUSB</classname>
+                        object that can be used to perform simple VME operations
+                        or execute <classname>CVMUSBReadoutList</classname> objects
+                        created by this method. 
+                    </para>
+                    <para>
+                        <parameter>parameter</parameter> is the name of a parameter
+                        supported by the driver.  The parameter names that are supported by a driver are
+                        up to the driver and hardware specific.  If the
+                        client requests a parameter that is not supoprted an
+                        error should be returned.
+                    </para>
+                    <para>
+                        The return value of this method is a
+                        <classname>std::string</classname>.  On successful
+                        completion this should be the value <literal>OK</literal>.
+                        On failure, this should be a string that begins with
+                        the word <literal>ERROR</literal> and, after some whitespace
+                        provides a human readable message describing the error.
+                    </para>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term>
+                          <methodsynopsis>
+                            <modifier>virtual</modifier>
+                            <type>void</type> <methodname> clone</methodname>
+                            <methodparam>
+                              <modifier>const</modifier>
+                              <type> CControlHardware&amp;</type> <parameter> rhs</parameter>
+                            </methodparam>
+                            <modifier>= 0</modifier>
+                          </methodsynopsis>
+                </term>
+                <listitem>
+                  <para>
+                      This must be implemented by concrete subclasses.  It is a
+                      virtual copy constructor in the sense that the state of the
+                      <parameter>rhs</parameter> object must be copied to the state
+                      of <varname>this</varname>
+                  </para>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term>
+                        <methodsynopsis>
+                          <modifier>virtual</modifier>
+                          <type>void</type> <methodname> addMonitorList</methodname>
+                          <methodparam>
+                            <type>CVMUSBReadoutList&amp;</type> <parameter> vmeList</parameter>
+                          </methodparam>
+                        </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        This method need only be implemented by drivers for
+                        devies that require continuous monitoring.
+                        <parameter>vmeList</parameter> is a reference for
+                        a <classname>CVMUSBReadoutList</classname> to which this
+                        call must add appropriate operations to obtain the
+                        data fromt he device that needs to be monitored.
+                        See also <methodname>processMonitorList</methodname> and
+                        <methodname>getMonitoredData</methodname>
+                    </para>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term>
+                        <methodsynopsis>
+                          <modifier>virtual</modifier>
+                          <type>void*</type> <methodname>processMonitorList</methodname>
+                          <methodparam>
+                            <type>void*</type><parameter> pData</parameter>
+                          </methodparam>
+                          <methodparam>
+                            <type>size_t</type><parameter> remaining</parameter>
+                          </methodparam>
+                        </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Called for each execution of the monitor list built up
+                        via <methodname>addMonitorList</methodname>.
+                        <parameter>pData</parameter> points to the data
+                        for this device from that list and
+                        <parameter>remaining</parameter> is the number of bytes
+                        of data remaining in that buffer.
+                    </para>
+                    <para>
+                        The method must return a pointer to the first byte in
+                        the buffer pointed to by <parameter>pData</parameter>
+                        beyond the data returned by this driver's monitor list.
+                    </para>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term>
+                        <methodsynopsis>
+                          <modifier> virtual</modifier>
+                          <type>std::string</type>
+                          <methodname>getMonitoredData</methodname>
+                          <void />
+                        </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Called to return the most recently received data from
+                        the driver's monitor list.  The data are encoded
+                        as a string that must begin with the word
+                        <literal>OK</literal>.  normally the remainder of the
+                        string is whitespace separated followed by a well formed
+                        Tcl list containing the data from the monitor list.
+                    </para>
+                    <para>
+                        If the device does not use monitor lists the return
+                        value should be <literal>ERROR</literal>
+                    </para>
+                </listitem>
+              </varlistentry>
+            </variablelist>
+        </refsect1>
+	<refsect1>
+            <title>MEMBER DATA</title>
+            <para>
+            </para>
+        </refsect1>
+       </refentry>
+
       <refentry id="vmusb3-cvmusb-swig">
         <refmeta>
            <refentrytitle>cvmusb</refentrytitle>
@@ -14772,6 +16625,10 @@ watch <replaceable>name</replaceable>
            </para>
         </refsect1>
       </refentry>
+
+
+<!-- /manpage -->
+<!-- manpage 5vmusb -->
 
     <refentry id="vmusb5-slowcontrols-protocol">
       <refmeta>
