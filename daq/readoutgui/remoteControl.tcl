@@ -257,10 +257,7 @@ snit::type ReadoutGuiRemoteControl {
         # None of these are legal if the run is not halted:
         
         set sm [::RunstateMachineSingleton %AUTO%]
-        if {[$sm getState] ne "Halted" } {
-            $self _reply ERROR "State must be halted to perform set operations"
-            return
-        }
+        set state [$sm getState]
         $sm destroy
         
         if {$what eq "slave"} {
@@ -268,9 +265,14 @@ snit::type ReadoutGuiRemoteControl {
                 $self _reply ERROR "Slave state must be a boolean was: $value"
                 return
             } else {
+            
                 set rctlPanel [::RunControlSingleton::getInstance]
                 set current [$rctlPanel isSlave]
                 if {$value} {
+                    if {$state ne "Halted" } {
+                        $self _reply ERROR "State must be halted to perform set operations"
+                        return
+                    }
                     if {!$current} {
                         $rctlPanel slave
                         $self _reply OK
@@ -281,11 +283,8 @@ snit::type ReadoutGuiRemoteControl {
                 } else {
                     if {$current} {
                         $rctlPanel master
-                    } else {
-                        $self _reply ERROR "Turning off slave while already not in slave mode"
-                        return
                     }
-                    
+                    $self _reply OK
                 }
             }            
             
@@ -308,6 +307,7 @@ snit::type ReadoutGuiRemoteControl {
                 return
             }
           ::ReadoutGUIPanel::setTitle $value
+          $self _reply OK
         
         } elseif {$what eq "recording"} {
             if {[_notBoolean $value]} {

@@ -152,7 +152,7 @@ proc ::SSHPipe::check source {
 #        input pipe.  Here we just mark the dict indicating deletion is ok.
 #
 proc ::SSHPipe::stop source {
-    
+
     # Attempt to end any non-halted run.
     
     
@@ -161,7 +161,6 @@ proc ::SSHPipe::stop source {
     }
     ::SSHPipe::_send $source exit
     Wait -pid [dict get $::SSHPipe::activeProviders($source) sshpid]
-    
     dict set ::SSHPipe::activeProviders($source) closing true
     
 }

@@ -139,7 +139,6 @@ snit::type ReadoutGUIOutputClient {
             fconfigure $clientfd -buffering line
             fileevent $clientfd readable [mymethod _onReadable]
         }  msg]
-        puts $msg;    #Debugging
         return [expr {!$failure}]
         
     }

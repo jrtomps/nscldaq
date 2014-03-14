@@ -39,7 +39,7 @@ TCLPACKAGES=Configuration.tcl \
 	state.tcl \
 	DataSourceMonitor.tcl \
 	remoteControl.tcl \
-	ReadoutGuiClient.tcl
+	ReadoutGuiClient.tcl readoutGuiProvider.tcl
 
 
 
