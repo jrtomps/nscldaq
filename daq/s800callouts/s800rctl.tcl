@@ -113,7 +113,7 @@ snit::type s800rctl {
     # NAKs result in error throws:
     #
     method end {} {
-	set result [$self Transaction end] 
+	set result [$self Transaction end]
 	$self ThrowIfNak $result
     }
     ##
@@ -229,7 +229,6 @@ snit::type s800rctl {
     #   is thrown.
     method Transaction {command} {
 
-
 	#  If the socket is disconnected (empty $socket) try to reconnect:
 
 	if {$socket eq ""} {
@@ -256,10 +255,10 @@ snit::type s800rctl {
 	# null out socket and throw an error.
 
 
-
+        
 	set response [$self ReadWithTimeout $options(-timeout)]
 	if {($response eq "") || [eof $socket]} {
-	    error "No response from the s800 or EOF"
+	    error "No response from the s800 or EOF [eof $socket]"
 	}
 
 	# Analyze the result:
