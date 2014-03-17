@@ -116,6 +116,11 @@ class CVMUSBReadoutList;
  *  * -delaya       - DGGA start delay in 12.ns units (uint32_t).
  *  * -widthb       - DGGB output width in 12.5ns units (uint16_t)
  *  * -delayb       - DGGB start delay in 12.5ns units (uint32_t).
+ *  * -mixedbuffers - Allows mixing of scaler data and event data in same buffer (dflt: true)
+ *  * -spanbuffers  - Allows events to span buffer boundaries (dflt: true)
+ *  * -forcescalerdump  - Scaler buffer output immediately following scaler stack execution (dflt: false)
+ *  * -busreqlevel  - Bus req level for vme bus arbitration (dflt: 4) 
+ 
  */
 
 class CVMUSBControl : public CReadoutHardware
@@ -147,6 +152,10 @@ public:
   virtual void Initialize(CVMUSB& controller);
   virtual void addReadoutList(CVMUSBReadoutList& list);
   virtual CReadoutHardware* clone() const;
+
+private:
+  void configureGlobalMode(CVMUSB& controller);
+  void configureEventsPerBuffer(CVMUSB& controller);
 };
 
 #endif
