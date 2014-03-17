@@ -54,7 +54,6 @@ CHINPCommand::CHINPCommand(CTCLInterpreter& interp,
   CTCLObjectProcessor(interp, commandName),
   m_Config(config)
 {
-  cout << "CHINPCommand constructor" << endl;
 }
 /*!
    Destructor is a no-op but chains to the base class which unregisters
@@ -62,7 +61,6 @@ CHINPCommand::CHINPCommand(CTCLInterpreter& interp,
 */
 CHINPCommand::~CHINPCommand()
 {
-  cout << "CHINPCommand destructor" << endl;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -96,7 +94,6 @@ CHINPCommand::operator()(CTCLInterpreter& interp, vector<CTCLObject>& objv)
     Usage("Insufficient command parameters", objv);
     return TCL_ERROR;
   }
-  cout << "CHINPCommand processor" << endl;
   // Get the subcommand keyword and dispatch or error:
 
   string subcommand = objv[1];
@@ -138,7 +135,6 @@ int
 CHINPCommand::create(CTCLInterpreter& interp, vector<CTCLObject>& objv)
 {
   // Need to have exactly 4 elements, command 'create' name base.
-  cout << "CHINPCommand::create called" << endl;
 
   if (objv.size() != 4) {
     Usage("Not enough parameters for create subcommand", objv);
@@ -197,7 +193,6 @@ CHINPCommand::create(CTCLInterpreter& interp, vector<CTCLObject>& objv)
 int
 CHINPCommand::config(CTCLInterpreter& interp, vector<CTCLObject>& objv)
 {
-  cout << "performing config function of HINP" << endl;
   if ( (objv.size() < 5) || ((objv.size() & 1) == 0)) {
     Usage("Incorrect number of command parameters for config", objv);
     return TCL_ERROR;
@@ -253,7 +248,6 @@ CHINPCommand::config(CTCLInterpreter& interp, vector<CTCLObject>& objv)
 int
 CHINPCommand::cget(CTCLInterpreter& interp, vector<CTCLObject>& objv)
 {
-  cout << "performing cget function of HINP" << endl;
   if (objv.size() != 3) {
     Usage("Invalid command parameter count for cget", objv);
     return TCL_ERROR;
@@ -286,7 +280,6 @@ CHINPCommand::cget(CTCLInterpreter& interp, vector<CTCLObject>& objv)
 CConfiguration* 
 CHINPCommand::getConfiguration()
 {
-  cout << "performing getConfiguration function of HINP" << endl;
   return &m_Config;
 }
 

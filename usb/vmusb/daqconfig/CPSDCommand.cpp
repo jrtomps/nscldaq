@@ -54,7 +54,6 @@ CPSDCommand::CPSDCommand(CTCLInterpreter& interp,
   CTCLObjectProcessor(interp, commandName),
   m_Config(config)
 {
-  cout << "CPSDCommand constructor" << endl;
 }
 /*!
    Destructor is a no-op but chains to the base class which unregisters
@@ -62,7 +61,6 @@ CPSDCommand::CPSDCommand(CTCLInterpreter& interp,
 */
 CPSDCommand::~CPSDCommand()
 {
-  cout << "CPSDCommand destructor" << endl;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -96,7 +94,6 @@ CPSDCommand::operator()(CTCLInterpreter& interp, vector<CTCLObject>& objv)
     Usage("Insufficient command parameters", objv);
     return TCL_ERROR;
   }
-  cout << "CPSDCommand processor" << endl;
   // Get the subcommand keyword and dispatch or error:
 
   string subcommand = objv[1];
@@ -138,7 +135,6 @@ int
 CPSDCommand::create(CTCLInterpreter& interp, vector<CTCLObject>& objv)
 {
   // Need to have exactly 4 elements, command 'create' name base.
-  cout << "CPSDCommand::create called" << endl;
 
   if (objv.size() != 4) {
     Usage("Not enough parameters for create subcommand", objv);
@@ -197,7 +193,6 @@ CPSDCommand::create(CTCLInterpreter& interp, vector<CTCLObject>& objv)
 int
 CPSDCommand::config(CTCLInterpreter& interp, vector<CTCLObject>& objv)
 {
-  cout << "performing config function of PSD" << endl;
   if ( (objv.size() < 5) || ((objv.size() & 1) == 0)) {
     Usage("Incorrect number of command parameters for config", objv);
     return TCL_ERROR;
@@ -253,7 +248,6 @@ CPSDCommand::config(CTCLInterpreter& interp, vector<CTCLObject>& objv)
 int
 CPSDCommand::cget(CTCLInterpreter& interp, vector<CTCLObject>& objv)
 {
-  cout << "performing cget function of PSD" << endl;
   if (objv.size() != 3) {
     Usage("Invalid command parameter count for cget", objv);
     return TCL_ERROR;
@@ -286,7 +280,6 @@ CPSDCommand::cget(CTCLInterpreter& interp, vector<CTCLObject>& objv)
 CConfiguration* 
 CPSDCommand::getConfiguration()
 {
-  cout << "performing getConfiguration function of PSD" << endl;
   return &m_Config;
 }
 
