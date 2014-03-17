@@ -345,16 +345,14 @@ CVMUSBControl::addReadoutList(CVMUSBReadoutList& list)
 {
   if (m_pConfiguration->getBoolParameter("-readscalers")) {
 
-    // Scalers are disabled when read.
-
-    uint32_t disable = m_nDeviceSourceSelector &
-      (~(CVMUSB::DeviceSourceRegister::scalerAEnable |
-	 CVMUSB::DeviceSourceRegister::scalerBEnable));
-
-    list.addRegisterWrite(CVMUSB::RegisterOffsets::DEVSrcRegister,
-			  disable);
-
     // Read the scalers.
+    // New firmware versions introduced latching of the scaler 
+    // values into a shadow register on every clock cycle. When
+    // the busy goes high, this stops such that the scaler value
+    // is not updated until the busy is released. The scaler value
+    // is then the scaler value when the event stack begins executing. 
+    // This means that we can safely read the scalers without fear of them 
+    // becoming corrupted during the read.
 
     list.addRegisterRead(CVMUSB::RegisterOffsets::ScalerA);
     list.addRegisterRead(CVMUSB::RegisterOffsets::ScalerB);
@@ -363,18 +361,13 @@ CVMUSBControl::addReadoutList(CVMUSBReadoutList& list)
     // If necessary, clear the scalers
 
     if (m_pConfiguration->getBoolParameter("-incremental")) {
-      disable |= CVMUSB::DeviceSourceRegister::scalerAReset
-	| CVMUSB::DeviceSourceRegister::scalerBReset;
+      uint32_t reset = (m_nDeviceSourceSelector 
+                         | CVMUSB::DeviceSourceRegister::scalerAReset
+                         | CVMUSB::DeviceSourceRegister::scalerBReset);
       list.addRegisterWrite(CVMUSB::RegisterOffsets::DEVSrcRegister,
-			    disable);
+			    reset);
     }
 
-    // Re-enable the scalers.
-
-    list.addRegisterWrite(CVMUSB::RegisterOffsets::DEVSrcRegister,
-			  m_nDeviceSourceSelector);
-    list.addRegisterWrite(CVMUSB::RegisterOffsets::DEVSrcRegister,
-			  m_nDeviceSourceSelector);
   }
 }
 /**
