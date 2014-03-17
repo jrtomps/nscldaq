@@ -424,7 +424,7 @@ CAcquisitionThread::startDaq()
   m_pVme->writeGlobalMode((4 << CVMUSB::GlobalModeRegister::busReqLevelShift) | 
 			  //			  CVMUSB::GlobalModeRegister::flushScalers            |
 			  CVMUSB::GlobalModeRegister::mixedBuffers            |
-			  CVMUSB::GlobalModeRegister::spanBuffers             |
+		//	  CVMUSB::GlobalModeRegister::spanBuffers             |
 			  (CVMUSB::GlobalModeRegister::bufferLen13K << 
 			   CVMUSB::GlobalModeRegister::bufferLenShift));
 
