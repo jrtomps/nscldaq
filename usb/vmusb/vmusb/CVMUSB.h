@@ -200,8 +200,11 @@ public:
       writeBulkXferSetup((uint32_t)value);
     }
 
-
-    
+    virtual void writeEventsPerBuffer(uint32_t value);
+    virtual uint32_t readEventsPerBuffer(void);
+    void     writeEventsPerBuffer(int value) { // SWIG
+      writeEventsPerBuffer((uint32_t)value);
+    }
 
     // VME transfer operations (1 shot)
 
@@ -433,11 +436,10 @@ public:
 	static const uint16_t bufferLenSingle  = 9;
 	static const uint16_t spanBuffers      = 0x10;
 	static const uint16_t mixedBuffers     = 0x20;
-	static const uint16_t doubleSeparator  = 0x40;
+	static const uint16_t flushScalers     = 0x40;
 	static const uint16_t align32          = 0x80;
 	
 	static const uint16_t doubleHeader     = 0x100;
-	static const uint16_t flushScalers     = 0x200;
 	static const uint16_t busReqLevelMask  = 0x7000;
 	static const uint16_t busReqLevelShift = 12;
     };
