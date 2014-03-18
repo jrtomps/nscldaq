@@ -558,6 +558,11 @@ Feb 1, 2012 - Feb 24, 2012
         *   Added ReadoutGuiRemoteControl package that can remotely control
             readout GUI.
         *   Added ReadoutGuiClient.tcl - low level client procs for ReadoutGuiRemoteControl package.
-        *   Added ReadoutGUIProvider.tcl - Data source provider for remote ReadoutGUIs.
+        *   Added ReadoutGUIProvider.tcl - Data source provider for remote
+	ReadoutGUIs.
+	* Fix errors in stdintoring that cause it to blow up badly if a
+	single event does not fit in the --minsize buffer.
+	* Add some new manpage sections.
+	* Fix edge case ordering errors in event builder/orderer section.
 
 	
