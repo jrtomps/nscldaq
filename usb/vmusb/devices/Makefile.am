@@ -34,7 +34,9 @@ libVMUSBDevices_la_SOURCES	= 	CConfigurableObject.cpp	\
 					@top_srcdir@/usb/common/devices/CNAF.cpp \
 					CULMTrigger.cpp \
 					CLeCroy4300B.cpp \
-					CXLMFERA.cpp 
+					CXLMFERA.cpp \
+					CXLMTimestamp.cpp \
+					C3820Tstamp.cpp 
 
 
 INCLUDES	= 	-I@top_srcdir@/usb/vmusb/vmusb 	\
@@ -90,27 +92,15 @@ noinst_HEADERS			= 	CConfigurableObject.h	\
 					@top_srcdir@/usb/common/devices/CBCNAF.h \
 					@top_srcdir@/usb/common/devices/CCNAF.h \
 					@top_srcdir@/usb/common/devices/CNAF.h \
-					CXLMFERA.h 
+					CXLMFERA.h \
+					CXLMTimestamp.h  \
+					C3820Tstamp.h 
+
 
 install-data-local:
 	$(mkinstalldirs) @prefix@/vmusbdriver
 	$(mkinstalldirs) @prefix@/vmusbdriver/includes
 	$(INSTALL_DATA)  @srcdir@/*.h @prefix@/vmusbdriver/includes
-
-
-noinst_PROGRAMS = unittests
-
-unittests_SOURCES = TestRunner.cpp cvmusbtest.cpp
-
-unittests_LDADD = -L$(prefix)/lib -lVMUSBDevices -lVMUSB -lVMUSBConfig \
-                	$(NSCLDAQ_LIB) 
-
-unittests_LDFLAGS = @LIBTCLPLUS_LDFLAGS@  $(TCL_LDFLAGS) \
-                  -Wl,"-rpath=$(libdir)" -Wl,"-rpath=$(daqdir)/lib" \
-                	$(CPPUNIT_LDFLAGS)
-
-check-TESTS:
-	./unittests 
 
 tests: TestRunner.cpp $(TESTS)
 	$(CXX) -g -o tests -I. -I$(prefix)/include $(CPPUNIT_INCLUDES) \

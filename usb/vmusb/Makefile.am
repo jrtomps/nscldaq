@@ -8,7 +8,8 @@ SUBDIRS = 	vmusb 		\
 		 commands	\
 		driverkit	\
 		tcldrivers	\
-		controlpanels
+		controlpanels	\
+		devtests
 
 
 bin_PROGRAMS = VMUSBReadout
