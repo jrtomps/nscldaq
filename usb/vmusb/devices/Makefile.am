@@ -35,8 +35,8 @@ libVMUSBDevices_la_SOURCES	= 	CConfigurableObject.cpp	\
 					CULMTrigger.cpp \
 					CLeCroy4300B.cpp \
 					CXLMFERA.cpp \
-					CXLMTimestamp.cpp \
-					C3820Tstamp.cpp 
+					CXLMTimestamp.cpp 
+#					C3820Tstamp.cpp 
 
 
 INCLUDES	= 	-I@top_srcdir@/usb/vmusb/vmusb 	\
@@ -93,8 +93,8 @@ noinst_HEADERS			= 	CConfigurableObject.h	\
 					@top_srcdir@/usb/common/devices/CCNAF.h \
 					@top_srcdir@/usb/common/devices/CNAF.h \
 					CXLMFERA.h \
-					CXLMTimestamp.h  \
-					C3820Tstamp.h 
+					CXLMTimestamp.h 
+#					C3820Tstamp.h 
 
 
 install-data-local:
