@@ -156,10 +156,7 @@ CXLMFERA::onAttach(CReadoutModule& configuration)
                                         max,
                                         0x54000041);
 
-    // Allow user to add an identifier specify this data as a packet
-    // if it is negative, then ignore it
-  m_pConfiguration->addIntegerParameter("-id",-1);
-  
+  m_pConfiguration->addBooleanParameter("-forceFirmwareLoad",false);
 
 }
 /**
@@ -182,54 +179,65 @@ CXLMFERA::Initialize(CVMUSB& controller)
     // We'll almost always need the module base address.  This line gets it from the
     // configuration database for you:
     uint32_t base = m_pConfiguration->getUnsignedParameter("-base");
-    int id = m_pConfiguration->getIntegerParameter("-id");
 
     std::cout << hex << "\n*** CXLMFERA @ base=0x" << base << ") " << dec;
-    std::cout << "initialization ... " << std::endl;
-
-    if (id<0) {
-        std::cout << "User specified no id for this data.";
-        std::cout << "None will be outputted";
-        std::cout << std::endl;
-    } 
     try {
 
         std::string firmwareFname = m_pConfiguration->cget("-firmware"); 
 
-        // Was previously the AXLM72V_CES::Configure
+        bool forceFirmwareLoad = m_pConfiguration->getBoolParameter("-forceFirmwareLoad");
 
-        // Load firmware file and also boot the XLM
-        // loadFirmware(controller,firmwareFname);
-        myloadFirmware(controller,firmwareFname);
+        uint16_t qx=0;
+        int status = 0;
+        if (forceFirmwareLoad || ! isConfigured(controller)) {
+          std::cout << "    Loading firmware" << std::flush;
+          // Was previously the AXLM72V_CES::Configure
 
+          // Load firmware file and also boot the XLM
+          // loadFirmware(controller,firmwareFname);
+          myloadFirmware(controller,firmwareFname);
 
-        // Begins the AXFERA::Initialize()
-        checkConfiguration(controller);
+          if (!isConfigured(controller)) {
+
+            std::cout << " FAIL";
+            std::cout << std::endl;
+
+            std::ostringstream errmsg;
+            errmsg << "CXLMFERA::isConfiguration(CVMUSB&) ";
+            errmsg << "FPGA configuration does not match user specified configurationID ";
+            throw errmsg.str(); 
+          } else {
+            std::cout << " COMPLETE" << std::endl;
+          }
+        }
 
         initializeFPGA(controller);
 
-        // Adds some delay to test if the bad sramA[0] value is 
-        // due to incomplete initialization
-        CVMUSBReadoutList list;
-        list.addDelay(100);
-        list.addDelay(100);
-        uint32_t dummy;
-        size_t dsize;
-
-        int status = controller.executeList(list,(void*)&dummy,sizeof(dummy),&dsize);
-
-        if (status<0) {
-            std::ostringstream errmsg;
-            errmsg << "CXLMFERA::Initialize(CVMUSB&) ";
-            errmsg << "failed to execute list on delay with error ";
-            errmsg << "(status=" << status << ")";
-            throw errmsg.str(); 
-        } 
+        //        // Adds some delay to test if the bad sramA[0] value is 
+        //        // due to incomplete initialization
+        //        CVMUSBReadoutList list;
+        //        list.addDelay(100);
+        //        list.addDelay(100);
+        //        uint32_t dummy;
+        //        size_t dsize;
+        //
+        //        int status = controller.executeList(list,(void*)&dummy,sizeof(dummy),&dsize);
+        //
+        //        if (status<0) {
+        //            std::ostringstream errmsg;
+        //            errmsg << "CXLMFERA::Initialize(CVMUSB&) ";
+        //            errmsg << "failed to execute list on delay with error ";
+        //            errmsg << "(status=" << status << ")";
+        //            throw errmsg.str(); 
+        //        } 
 
     }
     catch (std::string& what) {
         std::cerr << "!!! " << what << std::endl;
     }
+
+    std::cout << " SUCCESS";
+    std::cout << std::endl;
 
   /* END MODIFICATIONS */
 
@@ -430,7 +438,7 @@ void CXLMFERA::addClear(CVMUSBReadoutList& list)
 /** 
   * Read back the value stored in
 */
-void CXLMFERA::checkConfiguration(CVMUSB& controller)
+bool CXLMFERA::isConfigured(CVMUSB& controller)
 {
 
     std::cout << "--- Validating FPGA configuration ..." << std::flush;
@@ -455,20 +463,7 @@ void CXLMFERA::checkConfiguration(CVMUSB& controller)
 
     controller.executeList(cmdList,&data,sizeof(data),&nBytesRead);
 
-    if (data[0] != configID) {
-        std::cout << " FAIL";
-        std::cout << std::endl;
-
-        std::ostringstream errmsg;
-        errmsg << "CXLMFERA::checkConfiguration(CVMUSB&) ";
-        errmsg << "FPGA configuration (" << data[0] << ")";
-        errmsg << " does not match user specified configurationID ";
-        errmsg << "(" << configID << ")"; 
-        errmsg << " read " << nBytesRead;
-        throw errmsg.str(); 
-    } 
-    std::cout << " SUCCESS";
-    std::cout << std::endl;
+    return (data[0]==configID);
 
 }
 
@@ -482,13 +477,7 @@ void CXLMFERA::checkConfiguration(CVMUSB& controller)
  */
 void CXLMFERA::addReadoutList(CVMUSBReadoutList& list)
 {
-
-    int id = m_pConfiguration->getIntegerParameter("-id");
-    if (id>=0) list.addMarker(static_cast<uint16_t>(id));
-
     addSramAReadout(list);
-
-    if (id>=0) list.addMarker(static_cast<uint16_t>(id));
 
     addClear(list);
 }

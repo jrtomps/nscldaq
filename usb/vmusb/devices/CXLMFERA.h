@@ -41,7 +41,7 @@ class CXLMFERA : public CXLM
     private:
 
         // initialization routines
-        void checkConfiguration(CVMUSB& controller);
+        bool isConfigured(CVMUSB& controller);
         void bootFPGA(CVMUSB& controller);
         void initializeFPGA(CVMUSB& controller);
         void myloadFirmware(CVMUSB& controller, std::string fname);

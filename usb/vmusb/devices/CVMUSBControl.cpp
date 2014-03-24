@@ -369,8 +369,8 @@ CVMUSBControl::addReadoutList(CVMUSBReadoutList& list)
       (~(CVMUSB::DeviceSourceRegister::scalerAEnable |
 	 CVMUSB::DeviceSourceRegister::scalerBEnable));
 
-    list.addRegisterWrite(CVMUSB::RegisterOffsets::DEVSrcRegister,
-			  disable);
+//   list.addRegisterWrite(CVMUSB::RegisterOffsets::DEVSrcRegister,
+//			  disable);
 
     // Read the scalers.
 
@@ -389,8 +389,8 @@ CVMUSBControl::addReadoutList(CVMUSBReadoutList& list)
 
     // Re-enable the scalers.
 
-    list.addRegisterWrite(CVMUSB::RegisterOffsets::DEVSrcRegister,
-			  m_nDeviceSourceSelector);
+//    list.addRegisterWrite(CVMUSB::RegisterOffsets::DEVSrcRegister,
+//			  m_nDeviceSourceSelector);
 //    list.addRegisterWrite(CVMUSB::RegisterOffsets::DEVSrcRegister,
 //			  m_nDeviceSourceSelector);
   }
