@@ -82,9 +82,6 @@ testapp_LDFLAGS	= -Wl,"-rpath-link=$(libdir)"
 
 TESTS=./unittests
 
-EXTRA_DIST		=	filterargs.ggo
-#EXTRA_DIST		=	filterargs.ggo filter.xml
-
 #-------------------- Filter Kit
 
 install-data-local:
@@ -94,4 +91,4 @@ install-data-local:
     @srcdir@/SkeletonMain.cpp @prefix@/filterkit
 	$(INSTALL_DATA) Makefile-template @prefix@/filterkit/Makefile
 
-EXTRA_DIST = CTemplateFilter.cpp Makefile-template.in FilterIncludes.in
+EXTRA_DIST = filterargs.ggo CTemplateFilter.cpp Makefile-template.in FilterIncludes.in
