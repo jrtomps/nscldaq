@@ -84,3 +84,14 @@ TESTS=./unittests
 
 EXTRA_DIST		=	filterargs.ggo
 #EXTRA_DIST		=	filterargs.ggo filter.xml
+
+#-------------------- Filter Kit
+
+install-data-local:
+	$(mkinstalldirs) @prefix@/filterkit
+	$(INSTALL_DATA) FilterIncludes \
+		@srcdir@/CTemplateFilter.cpp \
+    @srcdir@/SkeletonMain.cpp @prefix@/filterkit
+	$(INSTALL_DATA) Makefile-template @prefix@/filterkit/Makefile
+
+EXTRA_DIST = CTemplateFilter.cpp Makefile-template.in FilterIncludes.in
