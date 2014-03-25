@@ -333,10 +333,10 @@ proc ::SSHPipe::_sourceExited source {
     set path [dict get $sourceInfo parameterization path]
     
     if {$input ne  ""} {
-        ReadoutGUIPanel::Log SSHPipe@$host output $input
+        ReadoutGUIPanel::Log SSHPipe@$host:$source output $input
         dict set sourceInfo line ""
     }
-    ReadoutGUIPanel::Log SSHPipe@$host warning  \
+    ReadoutGUIPanel::Log SSHPipe@$host:$source warning  \
         "Source $path@$host exited"
 
 
@@ -374,7 +374,7 @@ proc ::SSHPipe::_readInput source {
     if {[string length $input] > 0} {
         append data [dict get $sourceInfo line ] $input
         if {[string first "\n" $data] != -1} {
-            set data [::SSHPipe::_LogCompleteLines $host $data]
+            set data [::SSHPipe::_LogCompleteLines $source $host $data]
         }
         dict set sourceInfo line $data
         
@@ -448,15 +448,16 @@ proc ::SSHPipe::_errorIfDead source {
 #
 #  Logs the complete lines from a string to the ReadoutGUIPanel text widget
 #
+# @param source - The id of the source logging the data
 # @param host   - The host we're controlling.
 # @param lines  - Text that has t least one \n in it.
 # @return string - (possibly empty) residual string defined as the stuff in lines
 #                  after the very last \n.
 #
-proc ::SSHPipe::_LogCompleteLines {host lines} {
+proc ::SSHPipe::_LogCompleteLines {source host lines} {
     set lastIndex [string last "\n" $lines ]
     foreach line [split [string range $lines 0 [expr {$lastIndex - 1}]] "\n"] {
-        ReadoutGUIPanel::Log SSHPipe@$host output "$line\n"
+        ReadoutGUIPanel::Log SSHPipe@$host:$source output "$line\n"
     }
     
     return [string replace $lines 0 $lastIndex]

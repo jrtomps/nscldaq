@@ -566,3 +566,6 @@ Feb 1, 2012 - Feb 24, 2012
 	* Fix edge case ordering errors in event builder/orderer section.
 	* Fix Issue #1928 - Event orderer GUI.tcl was never updating the
           total output fragment count ui element.
+        * Issue #1927 (sort of) appended source id to identification of
+	  source of message so user doesn't have to worry about how to
+          name stuff.
