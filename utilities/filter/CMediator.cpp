@@ -235,7 +235,7 @@ CRingItem* CMediator::handleStateChangeItem(CRingStateChangeItem* item)
     ++m_nEnds;
   }
 
-  return  m_pFilter->handleStateChangeItem(item);
+  return m_pFilter->handleStateChangeItem(item);
 }
 
 
