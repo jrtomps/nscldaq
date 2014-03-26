@@ -13,7 +13,9 @@ cd nscldaq-${version}
 ./configure --prefix=/tmp/nextgen
 make clean all
 make install
+chmod u+x nscldaq
 ./nscldaq start
+sleep 10			# Let the daemons start.
 make check
 ./nscldaq stop
 
