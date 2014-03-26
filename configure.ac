@@ -287,6 +287,7 @@ AM_CONDITIONAL([BUILD_SBS_DRIVER], [test "$BUILD_SBS" == "yes"])
 #
 
 AC_CONFIG_FILES([Makefile
+		nscldaq
 		base/Makefile
 		base/os/Makefile
                  base/CopyrightTools/Makefile
