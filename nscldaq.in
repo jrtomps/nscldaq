@@ -1,0 +1,155 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          nscldaq
+# Required-Start:    $network $time $named $remote_fs $syslog
+# Required-Stop:     $network $time $named $remote_fs $syslog
+# Should-Start:      nscldaq
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: NSCL data acquisition daemons
+# Description:       NSCL data acquisition daemons
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+# notes on style http://www.debian.org/doc/debian-policy/ch-opersys.html
+# explain some of the choices here, expecting that this will become
+# part of a nscl-maintained debian package some day
+
+# The following are defaults that can be overidden in /etc/default/nscldaq:
+DAQHOME=@prefix@
+#export TCLLIBPATH="${DAQHOME}/Scripts" #not sure why this is here, nothing uses it
+BIT3DEVICES=5       # Number of bit 3 devices.
+PORTMGRSWITCHES="-log `pwd`/portman.log -portfile `pwd`/test.port -pidfile `pwd`/pid"  
+
+# load daq defaults overrides
+[ -r /etc/default/nscldaq ] && . /etc/default/nscldaq
+
+# the following do not come from /etc/default/daq and are instead
+# constructed from those paths
+PIDFILEDIR=.
+
+PORTMANAGER="${DAQHOME}/bin/DaqPortManager"
+PORTMANAGERNAME="nscldaq-portmaster"
+PORTMANAGERPIDFILE="${PIDFILEDIR}/${PORTMANAGERNAME}.pid"
+RINGMASTER="${DAQHOME}/bin/RingMaster"
+RINGMASTERNAME="nscldaq-ringmaster"
+RINGMASTERPIDFILE="${PIDFILEDIR}/${RINGMASTERNAME}.pid"
+
+# escape hatch in case nscldaq is not installed but this script is
+# (should be marked as a conffile in dpkg if this came from a deb
+# so this is a legitimate state to be in...)
+test -f "${PORTMANAGER}" || exit 0
+test -f "${RINGMASTER}"  || exit 0
+
+# make us a directory to stash pidfiles in
+mkdir -p "${PIDFILEDIR}"
+
+start_portmanager() {
+  ### we should only reach this if ${PORTMANAGER} already exists
+  /sbin/start-stop-daemon --start \
+    --quiet \
+    --pidfile "${PORTMANAGERPIDFILE}" --make-pidfile --background \
+    --startas "${PORTMANAGER}" -- ${PORTMGRSWITCHES}
+  return $?
+}
+
+stop_portmanager() {
+  /sbin/start-stop-daemon --stop --retry 5 --oknodo \
+    --quiet \
+    --pidfile "${PORTMANAGERPIDFILE}"
+  retval=$?
+  if test "0" == "${retval}"
+  then
+    rm -f "${PORTMANAGERPIDFILE}"
+  fi
+  return ${retval}
+}
+
+start_ringmaster() {
+  ### we should only reach this if ${RINGMASTER} already exists
+  /sbin/start-stop-daemon --start \
+    --quiet \
+    --pidfile "${RINGMASTERPIDFILE}" --make-pidfile --background \
+    --startas "${RINGMASTER}"
+  return $?
+}
+
+stop_ringmaster() {
+  /sbin/start-stop-daemon --stop --retry 5 --oknodo \
+    --quiet \
+    --pidfile "${RINGMASTERPIDFILE}"
+  retval=$?
+  if test "0" == "${retval}"
+  then
+    rm -f "${RINGMASTERPIDFILE}"
+  fi
+  return ${retval}
+}
+
+case "$1" in 
+  start)
+    log_daemon_msg "Starting DAQ daemons"
+
+    log_progress_msg "${PORTMANAGERNAME}"
+    start_portmanager
+
+    log_progress_msg "${RINGMASTERNAME}"
+    start_ringmaster
+
+
+    log_end_msg 0
+    ;;
+
+  stop)
+    log_daemon_msg "Stopping DAQ daemons"
+
+    log_progress_msg "${RINGMASTERNAME}"
+    stop_ringmaster
+
+    log_progress_msg "${PORTMANAGERNAME}"
+    stop_portmanager
+
+    log_end_msg 0
+    ;;
+
+  status)
+    unset status
+    log_begin_msg "${PORTMANAGERNAME} "
+    status_of_proc -p "${PORTMANAGERPIDFILE}" "${PORTMANAGERNAME}" " process" && status="0" || status="$?"
+    if test "0" == "${status}"
+    then
+      echo ${PORTMANAGERNAME} PID: `cat "${PORTMANAGERPIDFILE}"`
+    else
+      echo ${PORTMANAGERNAME} not running
+      exit ${status}
+    fi
+
+    unset status
+    log_begin_msg "${RINGMASTERNAME} "
+    status_of_proc -p "${RINGMASTERPIDFILE}" "${RINGMASTERNAME}" "process"  && status="0" || status="$?"
+    if test "0" == "${status}"
+    then
+      echo ${RINGMASTERNAME} PID: `cat "${RINGMASTERPIDFILE}"`
+    else
+      echo ${RINGMASTERNAME} not running
+      exit ${status}
+    fi
+
+    unset status
+    ;;
+
+  restart|force-reload)
+    log_begin_msg "Restarting DAQ daemons:"
+    echo
+      $0 stop
+      $0 start
+    log_end_msg $?
+    ;;
+
+  *)
+    echo "Usage: $0 {start|stop|status|restart|force-reload}" >&2
+    exit 1
+esac
+
+exit 0
