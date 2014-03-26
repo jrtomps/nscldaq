@@ -13,7 +13,9 @@ cd nscldaq-${version}
 ./configure --prefix=/tmp/nextgen
 make clean all
 make install
+./nscldaq start
 make check
+./nscldaq stop
 
 rm -rf nscldaq-${version}
 rm -rf /tmp/nextgen

@@ -12,8 +12,8 @@
 #  installed, but if not, built from the export directory.
 #
 #  
-#  NOTE: As of September 19, 2013 the tab to use is
-#       libtclplus-v1.2-002
+#  NOTE: As of March 26, 2014, the tag to use is
+#       libtclplus-v1.2-004
 # 
 
 baseURL="https://svn.code.sf.net/p/nscldaq/code/tags"
