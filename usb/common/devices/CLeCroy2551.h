@@ -6,11 +6,9 @@
 #include "CCBD8210CrateController.h"
 #include "CCBD8210ReadoutList.h"
 #include <CReadoutModule.h>
-#include "CCamacBranchException.h"
+#include <CCamacBranchException.h>
 //class CReadoutModule;
 
-namespace csr
-{
 
 template<class Controller, class RdoList> class CLeCroy2551;
 
@@ -42,13 +40,12 @@ class CLeCroy2551 : public CReadoutHardwareT<Controller,RdoList>
 
     private:
     void addClearAll(RdoList& list);
-    void addRead(RdoList& list,int chan) throw(CInvalidA);
+    void addRead(RdoList& list,int chan);
 //    void addReadAndClear(RdoList& list,int a);
 //    void addTestLAM(RdoList& list);
     void addReadAll(RdoList& list);
 };
 
-}
 #include "CLeCroy2551.hpp"
 
 #endif

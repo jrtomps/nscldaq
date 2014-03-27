@@ -1,12 +1,8 @@
 
 #include <stdint.h>
 #include <iostream>
-#include "CCamacBranchException.h"
 #include "CConfiguration.h"
 #include "CamacSlotLimits.h"
-
-namespace csr 
-{
 
 template<class Controller, class RdoList>
 CLeCroy2551<Controller,RdoList>::CLeCroy2551() 
@@ -83,7 +79,7 @@ void CLeCroy2551<Controller,RdoList>::addClearAll(RdoList& list)
 //////////////
 
 template<class Controller, class RdoList>
-void CLeCroy2551<Controller,RdoList>::addRead(RdoList& list, int chan) throw (CInvalidA)
+void CLeCroy2551<Controller,RdoList>::addRead(RdoList& list, int chan)
 {
     int slot = m_pConfig->getIntegerParameter("-slot"); 
     if (chan>11 || chan<0) {
@@ -103,4 +99,3 @@ void CLeCroy2551<Controller,RdoList>::addReadAll(RdoList& list)
 //extern template class CLeCroy2551<CCBD8210CrateController,CCBD8210ReadoutList>;
 //template class CLecroy2551<CCCUSB,CCCUSBReadoutList> CamacLeCroy2551;
 
-} // namespace csr

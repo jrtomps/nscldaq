@@ -2,6 +2,7 @@
 #ifndef CULMTRIGGER_H
 #define CULMTRIGGER_H
 
+#include <stdint.h>
 #include "CReadoutHardwareT.h"
 #include "CCamacBranchException.h"
 #include <CReadoutModule.h>

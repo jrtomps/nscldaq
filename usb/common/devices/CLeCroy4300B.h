@@ -41,7 +41,8 @@ class CLeCroy4300B : public CReadoutHardwareT<Controller, RdoList>
     private:
     void writePedestals(Controller& controller, const std::vector<int>& peds);
     void execClear(Controller& controller);
-    void setCommandRegister(Controller& controller);
+    void setCommandRegister(Controller& controller, uint16_t cmdreg);
+    void configureCommandRegister(Controller& controller);
     void addClear(RdoList& list);
     void handleStatus(int status);
     void handleQ(uint16_t q);

@@ -50,7 +50,25 @@ void  CLeCroy4300B<Controller,RdoList>::onAttach(CReadoutModule& config)
 
     m_pConfig->addIntListParameter("-pedestals",16);
 
-    m_pConfig->addIntegerParameter("-cmdregister",0);
+    // Provides direct access to the command register
+    //    m_pConfig->addIntegerParameter("-cmdregister",0);
+
+    // The following provide flags to set the command register
+    m_pConfig->addIntegerParameter("-vsn",0,255,0);
+
+    m_pConfig->addBooleanParameter("-eclpedsub",false);
+    m_pConfig->addBooleanParameter("-eclcompression",false);
+    m_pConfig->addBooleanParameter("-eclenable",false);
+
+    m_pConfig->addBooleanParameter("-camacpedsub",false);
+    m_pConfig->addBooleanParameter("-camaccompression",false);
+    m_pConfig->addBooleanParameter("-camacseqrdo",false);
+    m_pConfig->addBooleanParameter("-camaclam",false);
+
+    m_pConfig->addBooleanParameter("-overflowsuppress",false);
+
+    // Determines whether the module should be cleared via 
+    // the camac backplane or not
     m_pConfig->addBooleanParameter("-camacclear",false);
 }
 
@@ -66,7 +84,8 @@ void CLeCroy4300B<Controller,RdoList>::Initialize(Controller& controller)
 
     writePedestals(controller,peds);
 
-    setCommandRegister(controller);
+//    setCommandRegister(controller);
+    configureCommandRegister(controller);
 
 }
 
@@ -132,10 +151,11 @@ void CLeCroy4300B<Controller,RdoList>::addClear(RdoList& list)
 
 
 template<class Controller, class RdoList>
-void CLeCroy4300B<Controller,RdoList>::setCommandRegister(Controller& controller)
+void CLeCroy4300B<Controller,RdoList>::setCommandRegister(Controller& controller, 
+                                                          uint16_t cmdreg)
 {
     int slot = m_pConfig->getIntegerParameter("-slot"); 
-    int cmdreg = m_pConfig->getIntegerParameter("-cmdregister"); 
+//    int cmdreg = m_pConfig->getIntegerParameter("-cmdregister"); 
 
     // Check that user has provided a value been specified.
     // If not, complain and return.
@@ -163,10 +183,53 @@ void CLeCroy4300B<Controller,RdoList>::setCommandRegister(Controller& controller
 
     // Is it the same
     if ( cmdreg != reg) {
-        std::cerr << "!!! CLeCroy2551::Initialize(Controller&) Failed to read back" << std::endl;
-        std::cerr << "    same value that was previously written." << std::endl;
+        std::cerr << "!!! CLeCroy4300B::setCommandRegister(Controller&, uint16_t)";
+        std::cerr << " Failed to read back same value that was previously written." << std::endl;
     }
 
+}
+
+template<class Controller, class RdoList>
+void CLeCroy4300B<Controller,RdoList>::configureCommandRegister(Controller& controller)
+{
+    uint16_t vsn = m_pConfig->getUnsignedParameter("-vsn"); 
+
+    uint16_t reg = vsn;
+    
+    if (m_pConfig->getBoolParameter("-eclpedsub")) {
+      reg |= (1<<8);
+    } 
+
+    if (m_pConfig->getBoolParameter("-eclcompression")) {
+      reg |= (1<<9);
+    } 
+
+    if (m_pConfig->getBoolParameter("-eclenable")) {
+      reg |= (1<<10);
+    } 
+
+    if (m_pConfig->getBoolParameter("-camacpedsub")) {
+      reg |= (1<<11);
+    } 
+
+    if (m_pConfig->getBoolParameter("-camaccompression")) {
+      reg |= (1<<12);
+    } 
+
+    if (m_pConfig->getBoolParameter("-camacseqrdo")) {
+      reg |= (1<<13);
+    } 
+
+    if (m_pConfig->getBoolParameter("-camaclam")) {
+      reg |= (1<<14);
+    } 
+
+    if (m_pConfig->getBoolParameter("-overflowsuppress")) {
+      reg |= (1<<15);
+    } 
+
+    setCommandRegister(controller, reg);
+  
 }
 
 template<class Controller, class RdoList>
