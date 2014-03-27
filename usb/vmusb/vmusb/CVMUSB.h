@@ -58,6 +58,13 @@
 #endif
 
 
+#ifndef __CVMUSBREADOUTLIST_H
+#include <CVMUSBReadoutList.h>
+#ifndef __CVMUSBREADOUTLIST_H
+#define __CVMUSBREADOUTLIST_H
+#endif
+#endif
+
 //  The structures below are defined in <usb.h> which is included
 //  by the implementation and can be treated as opaque by any of our
 //  clients (they are in fact opaque in usb.h if memory servers.
@@ -65,10 +72,6 @@
 struct usb_device;
 struct usb_dev_handle;
 
-
-// Forward Class definitions:
-
-class CVMUSBReadoutList;
 
 /*!
    This class is part of the support package for the Wiener/JTEC VM-USB 
@@ -127,6 +130,8 @@ private:
     int operator==(const CVMUSB& rhs) const;
     int operator!=(const CVMUSB& rhs) const;
 public:
+
+    CVMUSBReadoutList* createReadoutList() const { return new CVMUSBReadoutList(); }
 
     // Register I/O operations.
 public:
