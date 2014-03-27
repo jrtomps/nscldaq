@@ -22,7 +22,7 @@ class CInvalidA : public CCamacBranchException
     private:
         int m_a;
     public:
-        CInvalidA(int a);
+        CInvalidA(int a) : m_a(a) {}
         const char* what() const;
 };
 
