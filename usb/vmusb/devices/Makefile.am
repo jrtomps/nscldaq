@@ -28,16 +28,17 @@ libVMUSBDevices_la_SOURCES	= 	CConfigurableObject.cpp	\
 					@top_srcdir@/usb/common/devices/CCrateController.cpp \
 					CCBD8210CrateController.cpp \
 					CCBD8210ReadoutList.cpp \
-					CVMECamacBranch.cpp \
+					CCBDCamacBranch.cpp \
 					@top_srcdir@/usb/common/devices/CBCNAF.cpp \
 					@top_srcdir@/usb/common/devices/CCNAF.cpp \
 					@top_srcdir@/usb/common/devices/CNAF.cpp \
 					CULMTrigger.cpp \
 					CLeCroy4300B.cpp \
+					CLeCroy4434.cpp \
 					CXLMFERA.cpp \
-					CXLMTimestamp.cpp 
-#					C3820Tstamp.cpp 
-
+					CXLMTimestamp.cpp \
+					CLeCroy2551.cpp \
+					@top_srcdir@/usb/common/devices/CCamacBranchException.cpp 
 
 INCLUDES	= 	-I@top_srcdir@/usb/vmusb/vmusb 	\
 			-I@top_srcdir@/usb/vmusb/daqconfig 	\
@@ -88,13 +89,15 @@ noinst_HEADERS			= 	CConfigurableObject.h	\
 					@top_srcdir@/usb/common/devices/CCrateController.h \
 					CCBD8210CrateController.h \
 					CCBD8210ReadoutList.h \
-					CVMECamacBranch.h \
+					CCBDCamacBranch.h \
 					@top_srcdir@/usb/common/devices/CBCNAF.h \
 					@top_srcdir@/usb/common/devices/CCNAF.h \
 					@top_srcdir@/usb/common/devices/CNAF.h \
 					CXLMFERA.h \
-					CXLMTimestamp.h 
-#					C3820Tstamp.h 
+					CXLMTimestamp.h \
+					@top_srcdir@/usb/common/devices/CCamacBranchException.h 
+
+
 
 
 install-data-local:

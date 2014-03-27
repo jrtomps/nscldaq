@@ -15710,6 +15710,93 @@ CBDCamacBranch config branch0 -crates [list crate0]
   </refsect1>
 </refentry>
 
+  
+<refentry id="vmusb3-XLMTimestamp">
+  <refmeta>
+     <refentrytitle>XLMTimestamp</refentrytitle>
+     <manvolnum>3vmusb</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>XLMTimestamp</refname>
+     <refpurpose>control an XLM running 64-bit latching scaler firmware</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <cmdsynopsis>
+	<command>
+XLMTimestamp create <replaceable>name base</replaceable>
+	</command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+XLMTimestamp config <replaceable>name option value ...</replaceable>
+        </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+XLMTimestamp cget <replaceable>name</replaceable>
+        </command>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+
+     <para>
+      The XLMTimestamp module is a driver to control an JTech XLM running a 64-bit latching scaler firmware. It is intended to be used specifically with the stamp64.bit firmware written by Daniel Bazin at the NSCL.
+    </para>
+
+  <para>
+  During initialization, the firmware is loaded and all scalers are cleared. 
+  </para>
+
+  <para>
+  At the end of the run, no actions are taken. 
+  </para>
+
+  <para>
+  During stack execution initiated by an event trigger, the 64-bits of scaler are read out in two 32-bit chunks. The lower 32-bits are read first and the upper 32-bits are read second. 
+  </para>
+
+  </refsect1>
+  <refsect1>
+     <title>
+	OPTIONS
+     </title>
+     <variablelist>
+
+	    <varlistentry>
+	      <term><command>-base</command> <replaceable>value</replaceable></term>
+	      <listitem>
+		    <para>
+          Specifies the base address of the module. See the manual on how to address the XLM. When the module is using geographic addressing, the slot number is pushed up 27 bits (i.e. slot 10 produces a base address of 0x50000000).
+		    </para>
+	       </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>-firmware</command> <replaceable>path</replaceable></term>
+	      <listitem>
+		    <para>
+          The path to the stamp64.bit firmware file.
+		    </para>
+	       </listitem>
+	    </varlistentry>
+
+   </variablelist>
+  </refsect1>
+  <refsect1>
+      <title>EXAMPLES</title>
+      <example>
+         <programlisting>
+          xlmtstamp create tstamp -base 0x50000000
+          xlmtstamp config tstamp -firmware /user/s800/server/fpga/stamp64.bit
+         </programlisting>
+      </example>
+      <para>
+        Sets up an XLM in slot 10 to run the stamp64.bit firmware.
+      </para>
+  </refsect1>
+</refentry>
 
 
    <!-- caenchain command - aggregate 785's into CBLT chains -->

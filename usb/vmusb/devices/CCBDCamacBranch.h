@@ -37,7 +37,7 @@ typedef CCamacCrate<CCBD8210CrateController,CCBD8210ReadoutList> CCBD8210Crate;
 *   it could be replaced by anything in the future that is 
 *   based on the CCamacBranchDriver interface in the future.
 */
-class CVMECamacBranch : public CReadoutHardware
+class CCBDCamacBranch : public CReadoutHardware
 {
     private:
     // Define some useful types to improve readability
@@ -62,7 +62,7 @@ class CVMECamacBranch : public CReadoutHardware
     *  Instantiates the camac branch driver. Sets m_pConfig to 0.
     * 
     */
-    CVMECamacBranch(); 
+    CCBDCamacBranch(); 
 
     ///! \brief Copy constructor
     /**!
@@ -73,7 +73,7 @@ class CVMECamacBranch : public CReadoutHardware
     *
     *   \param rhs the target to copy
     */
-    CVMECamacBranch(const CVMECamacBranch& rhs); 
+    CCBDCamacBranch(const CCBDCamacBranch& rhs); 
 
     /**! \brief Assignment operator
     *
@@ -82,13 +82,13 @@ class CVMECamacBranch : public CReadoutHardware
     *
     *   \param rhs the target to copy
     */
-    CVMECamacBranch& operator=(const CVMECamacBranch& rhs); 
+    CCBDCamacBranch& operator=(const CCBDCamacBranch& rhs); 
 
     /**! \brief Destructor
     *
     *   Deletes the camac branch driver.
     */
-    ~CVMECamacBranch();
+    ~CCBDCamacBranch();
 
     /**! \brief Set up the configuration parameters
     *
@@ -145,7 +145,7 @@ class CVMECamacBranch : public CReadoutHardware
     *
     *   \return a copy of this object
     */
-    virtual CVMECamacBranch* clone() const { return new CVMECamacBranch(*this);}
+    virtual CCBDCamacBranch* clone() const { return new CCBDCamacBranch(*this);}
 
     /**! \brief Acquire the registered crates
     *
@@ -171,6 +171,6 @@ class CVMECamacBranch : public CReadoutHardware
     */
     static bool crateChecker(std::string name, std::string proposedValue, void* arg);
 
-}; // class CVMECamacBranch
+}; // class CCBDCamacBranch
 
 #endif

@@ -1,7 +1,7 @@
 
 #include <typeinfo>
 #include <iostream>
-#include "CVMECamacBranch.h"
+#include "CCBDCamacBranch.h"
 #include "CCBD8210CamacBranchDriver.h"
 #include "CCBD8210CrateController.h"
 #include "CCamacCompat.hpp"
@@ -9,7 +9,7 @@
 #include <tcl.h>
 #include "CConfiguration.h"
 
-CVMECamacBranch::CVMECamacBranch() 
+CCBDCamacBranch::CCBDCamacBranch() 
 : CReadoutHardware(), 
   m_brDriver(new CCBD8210CamacBranchDriver()),
   m_pConfig(0)
@@ -17,7 +17,7 @@ CVMECamacBranch::CVMECamacBranch()
 }
 
 // Make a deep copy
-CVMECamacBranch::CVMECamacBranch(const CVMECamacBranch& rhs)
+CCBDCamacBranch::CCBDCamacBranch(const CCBDCamacBranch& rhs)
  : CReadoutHardware(rhs),
    m_brDriver(new CCBD8210CamacBranchDriver()),
    m_pConfig(0)
@@ -30,7 +30,7 @@ CVMECamacBranch::CVMECamacBranch(const CVMECamacBranch& rhs)
 // Make a deep copy
 // no need to copy CCBD8210CamacBranchDriver b/c it doesn't hold
 // any state. 
-CVMECamacBranch& CVMECamacBranch::operator=(const CVMECamacBranch& rhs)
+CCBDCamacBranch& CCBDCamacBranch::operator=(const CCBDCamacBranch& rhs)
 {
     if (this!=&rhs) {
 
@@ -45,7 +45,7 @@ CVMECamacBranch& CVMECamacBranch::operator=(const CVMECamacBranch& rhs)
 
 // objects are owned by the CConfiguration and not this. No need to delete
 // the crates
-CVMECamacBranch::~CVMECamacBranch() 
+CCBDCamacBranch::~CCBDCamacBranch() 
 {
    
     // Only this needs to be copied
@@ -53,7 +53,7 @@ CVMECamacBranch::~CVMECamacBranch()
 }
 
 
-void CVMECamacBranch::onAttach(CReadoutModule& config)
+void CCBDCamacBranch::onAttach(CReadoutModule& config)
 {
 
     // store the pointe to the parent
@@ -63,7 +63,7 @@ void CVMECamacBranch::onAttach(CReadoutModule& config)
     m_pConfig->addIntegerParameter("-branch",0);
 
     m_pConfig->addParameter("-crates",
-            CVMECamacBranch::crateChecker, NULL, "");
+            CCBDCamacBranch::crateChecker, NULL, "");
 }
 
 
@@ -71,7 +71,7 @@ void CVMECamacBranch::onAttach(CReadoutModule& config)
 *   Handles the creatio of the virtual crate modules that get 
 *   passed to the crates registered to it.
 */
-void CVMECamacBranch::Initialize(CVMUSB& controller)
+void CCBDCamacBranch::Initialize(CVMUSB& controller)
 {
     int branchID = m_pConfig->getIntegerParameter("-branch");
 
@@ -115,7 +115,7 @@ void CVMECamacBranch::Initialize(CVMUSB& controller)
     }
 }
 
-void CVMECamacBranch::addReadoutList(CVMUSBReadoutList& list)
+void CCBDCamacBranch::addReadoutList(CVMUSBReadoutList& list)
 {
     int branchID = m_pConfig->getIntegerParameter("-branch");
 
@@ -144,7 +144,7 @@ void CVMECamacBranch::addReadoutList(CVMUSBReadoutList& list)
 *   Handles the creatio of the virtual crate modules that get 
 *   passed to the crates registered to it.
 */
-void CVMECamacBranch::onEndRun(CVMUSB& controller)
+void CCBDCamacBranch::onEndRun(CVMUSB& controller)
 {
     int branchID = m_pConfig->getIntegerParameter("-branch");
 
@@ -181,7 +181,7 @@ void CVMECamacBranch::onEndRun(CVMUSB& controller)
 *
 *   This means that anything registered to the branch must be a CCamacCompat object.
 */
-CVMECamacBranch::BranchElements CVMECamacBranch::getBranchElements()
+CCBDCamacBranch::BranchElements CCBDCamacBranch::getBranchElements()
 {
 
     CConfiguration* pConfiguration   = Globals::pConfig;
@@ -195,7 +195,7 @@ CVMECamacBranch::BranchElements CVMECamacBranch::getBranchElements()
     sValue = m_pConfig->cget("-crates");
     Tcl_SplitList(NULL, sValue.c_str(), &argc, &argv);
     if (argc <= 0) {
-        std::cout << "CVMECamacBranch::getBranchElements()";
+        std::cout << "CCBDCamacBranch::getBranchElements()";
         std::cout << " found empty argument list";
         std::cout << std::endl;
     }
@@ -230,7 +230,7 @@ CVMECamacBranch::BranchElements CVMECamacBranch::getBranchElements()
     return result;
 }
 
-bool CVMECamacBranch::crateChecker(std::string name, std::string proposedValue, void* arg)
+bool CCBDCamacBranch::crateChecker(std::string name, std::string proposedValue, void* arg)
 {
   int             argc;
   const char**    argv;
