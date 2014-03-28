@@ -155,7 +155,7 @@ public:
 
 
     virtual void     writeDAQSettings(uint32_t value);
-    virtual uint32_t readDAQSettings();
+    virtual int readDAQSettings();
     void writeDAQSettings(int value) { // SWIG
       writeDAQSettings((uint32_t) value);
     }
