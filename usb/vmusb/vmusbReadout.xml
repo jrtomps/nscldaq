@@ -14778,6 +14778,7 @@ watch <replaceable>name</replaceable>
      <refentrytitle>delay</refentrytitle>
      <manvolnum>3vmusb</manvolnum>
   </refmeta>
+
   <refnamediv>
      <refname>delay</refname>
      <refpurpose>Insert a stack delay.</refpurpose>
@@ -14785,44 +14786,50 @@ watch <replaceable>name</replaceable>
   
   <refsynopsisdiv>
     <cmdsynopsis>
-	<command>
+    	<command>
 delay create <replaceable>name base</replaceable>
-	</command>
+	    </command>
     </cmdsynopsis>
+    
     <cmdsynopsis>
-        <command>
+      <command>
 delay config <replaceable>name option value ...</replaceable>
-        </command>
+      </command>
     </cmdsynopsis>
+  
     <cmdsynopsis>
         <command>
 delay cget <replaceable>name</replaceable>
         </command>
     </cmdsynopsis>
+ 
   </refsynopsisdiv>
+
   <refsect1>
      <title>DESCRIPTION</title>
      <para>
       This command creates a wait point in a stack. 	
      </para>
-  <refsect1>
-     <title>
-	OPTIONS
-     </title>
-     <variablelist>
-	<varlistentry>
-	    <term><command>-value</command> <replaceable>value</replaceable></term>
-	    <listitem>
-		<para>
-                  Defines the duration of delay in units of 200 ns. 
-		</para>
-	    </listitem>
-	 </varlistentry>
-   </variablelist>
   </refsect1>
+
+  <refsect1>
+     <title>OPTIONS</title>
+  
+     <variablelist>
+	    <varlistentry>
+	       <term><command>-value</command> <replaceable>value</replaceable></term>
+	       <listitem>
+		       <para>Defines the duration of delay in units of 200 ns.</para>
+	       </listitem>
+	     </varlistentry>
+     </variablelist>
+ 
+  </refsect1>
+
   <refsect1>
       <title>EXAMPLES</title>
       <example>
+        <title>A simple delay example</title>
          <programlisting>
 delay create delay0 -value 4 
          </programlisting>
@@ -14831,6 +14838,7 @@ delay create delay0 -value 4
         Defines an 800 ns delay.
       </para>
   </refsect1>
+
 </refentry>
 
 <refentry id="vmusb3-CBDCamacBranch">
@@ -14838,6 +14846,7 @@ delay create delay0 -value 4
      <refentrytitle>CBDCamacBranch</refentrytitle>
      <manvolnum>3vmusb</manvolnum>
   </refmeta>
+
   <refnamediv>
      <refname>CBDCamacBranch</refname>
      <refpurpose>run a CAMAC branch through a CES CBD8210 bridge</refpurpose>
@@ -14845,51 +14854,64 @@ delay create delay0 -value 4
   
   <refsynopsisdiv>
     <cmdsynopsis>
-	<command>
+    	<command>
 CBDCamacBranch create <replaceable>name base</replaceable>
-	</command>
+	    </command>
     </cmdsynopsis>
+    
     <cmdsynopsis>
-        <command>
+      <command>
 CBDCamacBranch config <replaceable>name option value ...</replaceable>
-        </command>
+      </command>
     </cmdsynopsis>
+  
     <cmdsynopsis>
-        <command>
+      <command>
 CBDCamacBranch cget <replaceable>name</replaceable>
-        </command>
+      </command>
     </cmdsynopsis>
-  </refsynopsisdiv>
+ 
+   </refsynopsisdiv>
+  
   <refsect1>
-     <title>DESCRIPTION</title>
-     <para>
+    <title>DESCRIPTION</title>
+    
+    <para>
 When the user intends to read out CAMAC devices through the VM-USB this driver can be used if the branch driver is a CES CBD8210. This class maintains a camac branch driver object that must encapsulate the necessary functionality for controlling the CAMAC devices on its branch. The camac branch driver essentially provides the means for translating standard bcnaf commands to VME commands that are executable by the VM-USB in a command stack. It must also properly implements the CCamacBranchDriver interface. 
-     </para>
+    </para>
+    
     <para>
 A CAMAC branch is just a bunch of CAMAC crates strung together with a common branch number. For this reason, the CBDCamacBranch must be told which branch number it is operating on and also the camac crates that exist on the branch. Be sure that the camac crates registered to the branch are consistent with the driver being used by the CBDCamacBranch. In other words, modules prefixed by CBD, like CBDCamacCrates, must be registered to the CBDCamacBranch if the driver has been defined as a CES CBD8210.
     </para>
-  <para>
-  At initialization the following operations occur:
+    
+    <para>
+    At initialization the following operations occur:
     <orderedlist>
-     <listitem>
-      <para> Setup the appropriate camac branch driver </para>
-     </listitem>
-     <listitem>
-      <para> The branch driver will initiate the branch </para>
-     </listitem>
-     <listitem>
-      <para> Call initialize for each crate registered to the branch </para>
-     </listitem>
-  </orderedlist>
-  </para>
+      <listitem>
+        <para> Setup the appropriate camac branch driver </para>
+      </listitem>
+      
+      <listitem>
+        <para> The branch driver will initiate the branch </para>
+      </listitem>
+     
+      <listitem>
+        <para> Call initialize for each crate registered to the branch </para>
+      </listitem>
+  
+    </orderedlist>
+    </para>
 
-  <para>
-  At the end of the run, the specific end of run operations are called for each crate registered to the branch.
-  </para>
+    <para>
+    At the end of the run, the specific end of run operations are called for each crate registered to the branch.
+    </para>
 
-  <para>
-During execution of an event stack, the operations defined in each crate are executed in the order that the crate list was passed.
-  </para>
+    <para>
+    During execution of an event stack, the operations defined in each crate are executed in the order that the crate list was passed.
+    </para>
+  
+  </refsect1>
+
   <refsect1>
      <title>
 	OPTIONS
@@ -14916,6 +14938,7 @@ During execution of an event stack, the operations defined in each crate are exe
   <refsect1>
       <title>EXAMPLES</title>
       <example>
+        <title>Sample setup of two camac crates on branch 0</title>
          <programlisting>
 # define some camac crates
 CBDCamacCrate create crate1 -crate 1
@@ -14958,6 +14981,7 @@ CBDCamacCrate cget <replaceable>name</replaceable>
         </command>
     </cmdsynopsis>
   </refsynopsisdiv>
+
   <refsect1>
      <title>DESCRIPTION</title>
      <para>
@@ -14975,6 +14999,8 @@ At the end of every run, the end of run procedures will be called for all of the
   <para>
 During stack execution initiated by an event trigger, the event-wise procedures of each of the registered modules will be executed in the order that they were listed.
   </para>
+
+  </refsect1>
 
   <refsect1>
      <title>
@@ -15003,6 +15029,7 @@ During stack execution initiated by an event trigger, the event-wise procedures 
   <refsect1>
       <title>EXAMPLES</title>
       <example>
+        <title>Sample setup of a single LeCroy 2551</title>
          <programlisting>
 CBDLeCroy2551 create sclr -slot 10
 
@@ -15185,6 +15212,7 @@ The virtual station number to associate with the target device. This will be inc
   <refsect1>
       <title>EXAMPLES</title>
       <example>
+         <title>Sample setup of a few FERAs</title>
          <programlisting>
 CBDLeCroy4300B create fera -slot 10 
 CBDLeCroy4300B config fera -pedestals \
@@ -15238,7 +15266,6 @@ CBDLeCroy4434 cget <replaceable>name</replaceable>
   </refsynopsisdiv>
   <refsect1>
      <title>DESCRIPTION</title>
-     <para>
     <para>
 The CBDLeCroy4434 is intended to control a LeCroy 4434 scaler situated on a camac branch rooted in a VME crate by a CES CBD8210 branch driver. If you intend to utilize the driver in a camac crate controlled by a CCUSB, see the LeCroy4434 command. It provides the exact same functionality but understands the CCUSB to be its controller.
   </para>
@@ -15260,7 +15287,7 @@ The CBDLeCroy4434 cannot be registered as a stack module by itself. Instead it m
   <programlisting>
 
   Read all channels
-  if "-camacclear" is true
+  if "-incremental" is true
       Clear the module
   </programlisting>
 
@@ -15293,8 +15320,9 @@ The CBDLeCroy4434 cannot be registered as a stack module by itself. Instead it m
   <refsect1>
       <title>EXAMPLES</title>
       <example>
+         <title>Sample setup of a single scaler</title>
          <programlisting>
-CBDLeCroy4300B create sclr -slot 10
+CBDLeCroy4434 create sclr -slot 10
 
 # Create a crate to stick it in
 CBDCamacCrate create crate0 -crate 1
@@ -15340,7 +15368,6 @@ CBDLeCroy2551 cget <replaceable>name</replaceable>
   </refsynopsisdiv>
   <refsect1>
      <title>DESCRIPTION</title>
-     <para>
     <para>
 The CBDLeCroy2551 is intended to control a LeCroy 2551 scaler situated on a camac branch rooted in a VME crate by a CES CBD8210 branch driver. If you intend to utilize the driver in a camac crate controlled by a CCUSB, see the LeCroy2551 command. It provides the exact same functionality but understands the CCUSB to be its controller.
   </para>
@@ -15358,7 +15385,11 @@ The CBDLeCroy2551 cannot be registered as a stack module by itself. Instead it m
   </para>
 
   <para>
-  During stack execution initiated by an event trigger, all 12 scaler channels are read individually.
+  During stack execution initiated by an event trigger, all 12 scaler channels are read individually. There is no clear at the end of an event.
+  </para>
+
+  <para>
+  It is important for the user to understand that format of the data is outputted by the VMUSB when this scaler is used. Each channel readout consists of two separate 16-bit reads that accomplish the reading of the upper bits followed by the lower 16-bits of the actual scaler value. This is done because the CBD8210 is a D16 device rather than a D32 device. There is no getting around it. What this means is that the actual scaler values need to be filtered or processed before they look like meaningful numbers.
   </para>
 
   </refsect1>
@@ -15380,6 +15411,7 @@ The CBDLeCroy2551 cannot be registered as a stack module by itself. Instead it m
   <refsect1>
       <title>EXAMPLES</title>
       <example>
+         <title>Simple setup of a single scaler</title>
          <programlisting>
 CBDLeCroy2551 create sclr -slot 10
 
@@ -15427,7 +15459,6 @@ CBDULMTrigger cget <replaceable>name</replaceable>
   </refsynopsisdiv>
   <refsect1>
      <title>DESCRIPTION</title>
-     <para>
     <para>
 The CBDULMTrigger is intended to control a LeCroy 2367 ULM situated on a camac branch rooted in a VME crate by a CES CBD8210 branch driver. If you intend to utilize the driver in a camac crate controlled by a CCUSB, see the ULMTrigger command. It provides the exact same functionality but understands the CCUSB to be its controller.
   </para>
@@ -15666,6 +15697,7 @@ if "-eventwiseClear" is true
   <refsect1>
       <title>EXAMPLES</title>
       <example>
+         <title>Setup of a single ULM trigger module</title>
          <programlisting>
 # Define values for each parameter in TRIGGER array
 CBDULMTrigger create sclr -slot 23
@@ -15787,6 +15819,7 @@ XLMTimestamp cget <replaceable>name</replaceable>
   <refsect1>
       <title>EXAMPLES</title>
       <example>
+         <title>Simple setup of a single timestamp module</title>
          <programlisting>
           xlmtstamp create tstamp -base 0x50000000
           xlmtstamp config tstamp -firmware /user/s800/server/fpga/stamp64.bit
@@ -15798,6 +15831,115 @@ XLMTimestamp cget <replaceable>name</replaceable>
   </refsect1>
 </refentry>
 
+<refentry id="vmusb3-XLMFERA">
+  <refmeta>
+     <refentrytitle>XLMFERA</refentrytitle>
+     <manvolnum>3vmusb</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>XLMFERA</refname>
+     <refpurpose>control an XLM72V running firmware to readout FERA via ECL ports</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <cmdsynopsis>
+	<command>
+XLMFERA create <replaceable>name base</replaceable>
+	</command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+XLMFERA config <replaceable>name option value ...</replaceable>
+        </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+XLMFERA cget <replaceable>name</replaceable>
+        </command>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+
+     <para>
+      The XLMFERA module is a driver to control a JTech XLM72V running firmware to handle readout of FERA modules via ECL ports. The XLM actually interfaces with a LeCroy 4301 FERA driver to accomplish this. The firmware associated with this is the xferajan.bit firmware that was written primarily by an unknown author but was assisted by Jan Toke (JTech). 
+    </para>
+
+    <para>
+     This is just a derived class of the CXLM base class. 
+    </para>
+
+  <para>
+  During initialization, the firmware is loaded. The user must provide the path to the firmware file by means of the -firmware option. If no firmware file is specified or the path provided is invalid, an exception will be thrown. The firmware will always be validated on initialization by a validation test. This validation test reads the signature of the firmware from the device and compares it to the value passed by the -configuration option. If these numbers are not identical or the -forceFirmwareLoad flag is set to true, the firmware will be loaded. The user will be alerted to the success of the validation via messages printed to the console. Immediately following the firmware load, the validation test is repeated and the user will be alerted of the results. An exception will be thrown if the validation test fails at this point.
+  </para>
+
+  <para>
+  At the end of the run, no actions are taken. 
+  </para>
+
+  <para>
+  During stack execution, a block transfer is executed. First, the lowest 16-bits of memory in the sramA is read via a 32-bit read. The value of these 16-bits will be used to specify the number of 32-bit transfers to execute in a subsequent block transfer. The block transfer will begin at 5th byte of sramA (i.e. the second 32-bits).
+  </para>
+
+  </refsect1>
+  <refsect1>
+     <title>
+	OPTIONS
+     </title>
+     <variablelist>
+
+	    <varlistentry>
+	      <term><command>-base</command> <replaceable>value</replaceable></term>
+	      <listitem>
+		    <para>
+          Specifies the base address of the module. See the manual on how to address the XLM. When the module is using geographic addressing, the slot number is pushed up 27 bits (i.e. slot 10 produces a base address of 0x50000000).
+		    </para>
+	       </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>-firmware</command> <replaceable>path</replaceable></term>
+	      <listitem>
+		    <para>
+          The path to the xferajan.bit firmware file.
+		    </para>
+	       </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>-configurationID</command> <replaceable>value</replaceable></term>
+	      <listitem>
+		    <para>
+          The value to use in the validation test. Default is 0x54000041. 
+		    </para>
+	       </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>-forceFirmwareLoad</command> <replaceable>bool</replaceable></term>
+	      <listitem>
+		    <para>
+          Force reload of the firmware every run regardless of whether the XLM passes the validation test.
+		    </para>
+	       </listitem>
+	    </varlistentry>
+
+   </variablelist>
+  </refsect1>
+  <refsect1>
+      <title>EXAMPLES</title>
+      <example>
+         <title>Simple setup of a single timestamp module</title>
+         <programlisting>
+          XLMFERA create myxlm -base 0x50000000
+          XLMFERA config myxlm -firmware /user/s800/server/fpga/xferajan.bit
+         </programlisting>
+      </example>
+      <para>
+        Sets up an XLM in slot 10 to run the xferajan.bit firmware.
+      </para>
+  </refsect1>
+</refentry>
 
    <!-- caenchain command - aggregate 785's into CBLT chains -->
     <refentry id="vmusb5-slowcontrols-protocol">
