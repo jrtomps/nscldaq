@@ -305,8 +305,8 @@ proc ::ReadoutControl::StartReadoutProgram {} {
 	    catch {exec kill -9 $::ReadoutControl::sclclientPid};  # Kill and errors don't matter.
 	}
 	set sourceUrl [Experiment::spectrodaqURL $ReadoutHost]
-	set ::ReadoutControl::sclclientPid \
-	    [exec $::bindir/sclclient -p $::TclServerPort -s $sourceUrl &]
+	#set ::ReadoutControl::sclclientPid \
+	#    [exec $::bindir/sclclient -p $::TclServerPort -s $sourceUrl &]
 	
     } else {
         close $fd

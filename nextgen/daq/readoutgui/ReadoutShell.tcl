@@ -282,7 +282,7 @@ proc SourceExperimentFiles {} {
 #
 proc setupConfiguration arglist {
     global textWidgetHeight
-    set ::nomonitor false
+    set ::nomonitor true	# nomonitor is actually obsolete.
     foreach item $arglist {
 
 	#  If we're running in a tcl server, 
