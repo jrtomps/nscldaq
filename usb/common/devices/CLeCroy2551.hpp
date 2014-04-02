@@ -66,7 +66,8 @@ template<class Controller, class RdoList>
 void CLeCroy2551<Controller,RdoList>::addReadoutList(RdoList& list)
 {
     addReadAll(list);
-    addClearAll(list);
+// I could not get this to work properly so I am disabling it.
+//    addClearAll(list);
 }
 
 ////////////////

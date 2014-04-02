@@ -3,17 +3,12 @@
 #define CLECROY2551_H
 
 #include "CReadoutHardwareT.h"
-#include "CCBD8210CrateController.h"
-#include "CCBD8210ReadoutList.h"
 #include <CReadoutModule.h>
 #include <CCamacBranchException.h>
 //class CReadoutModule;
 
 
 template<class Controller, class RdoList> class CLeCroy2551;
-
-typedef 
-CLeCroy2551<CCBD8210CrateController,CCBD8210ReadoutList> CCBD8210LeCroy2551;
 
 template<class Controller, class RdoList>
 class CLeCroy2551 : public CReadoutHardwareT<Controller,RdoList>
