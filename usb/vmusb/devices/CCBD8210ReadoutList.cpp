@@ -57,7 +57,7 @@ void CCBD8210ReadoutList::addRead24(int n, int a, int f)
         m_rdoList->addRead16(addr | word16bit, CVMUSBReadoutList::a24UserData);
 //        m_rdoList->addRead32(addr, CVMUSBReadoutList::a24UserData);
         // testing an added delay of 1 clock cycle
-        m_rdoList->addDelay(10);
+        m_rdoList->addDelay(5);
     }
 }
 
@@ -98,11 +98,9 @@ void CCBD8210ReadoutList::addWrite24(int n, int a, int f, uint32_t data)
 void CCBD8210ReadoutList::addControl(int n, int a, int f)
 {
     if (m_rdoList) {
-        uint32_t addr = CCBD8210CamacBranchDriver::convertToAddress(m_branch,m_crate,n,a,f);
-        uint32_t word16bit = CCBD8210CamacBranchDriver::BIT16;
-        addr = word16bit | addr;
 
         addRead24(n,a,f);
+         
 //        m_rdoList->addRead16(addr, CVMUSBReadoutList::a24UserData);
         // testing an added delay of 1 clock cycle
 //        m_rdoList->addDelay(1);
