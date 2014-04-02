@@ -40,7 +40,8 @@ class CCBD8210CrateController : public CCrateController
     void setController(CVMUSB& controller) { m_ctlr = &controller;}
 
     bool qTest();
-
+    bool xTest();
+    uint16_t formXQ(uint16_t x, uint16_t q) const;
 };
 
 #endif

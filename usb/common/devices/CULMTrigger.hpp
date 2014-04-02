@@ -124,60 +124,79 @@ void CULMTrigger<Controller,RdoList>::Initialize(Controller& controller)
     int val;
     val = m_pConfig->getIntegerParameter("-pcDelay");
     controller.simpleWrite16(slot,0,16,uint16_t(val),qx);
+    handleQX(qx,slot,0,16);
 
     val = m_pConfig->getIntegerParameter("-pcWidth");
     controller.simpleWrite16(slot,1,16,uint16_t(val),qx);
+    handleQX(qx,slot,1,16);
 
     val = m_pConfig->getIntegerParameter("-scDelay");
     controller.simpleWrite16(slot,2,16,uint16_t(val),qx);
+    handleQX(qx,slot,2,16);
 
     val = m_pConfig->getIntegerParameter("-scWidth");
     controller.simpleWrite16(slot,3,16,uint16_t(val),qx);
+    handleQX(qx,slot,3,16);
 
     val = m_pConfig->getIntegerParameter("-psDelay");
     controller.simpleWrite16(slot,4,16,uint16_t(val),qx);
+    handleQX(qx,slot,4,16);
 
     val = m_pConfig->getIntegerParameter("-ccWidth");
     controller.simpleWrite16(slot,5,16,uint16_t(val),qx);
+    handleQX(qx,slot,5,16);
 
     val = m_pConfig->getIntegerParameter("-ssDelay");
     controller.simpleWrite16(slot,6,16,uint16_t(val),qx);
+    handleQX(qx,slot,6,16);
 
     val = m_pConfig->getIntegerParameter("-bypasses");
     controller.simpleWrite16(slot,7,16,uint16_t(val),qx);
+    handleQX(qx,slot,7,16);
 
     val = m_pConfig->getIntegerParameter("-pdFactor");
     controller.simpleWrite16(slot,8,16,uint16_t(val),qx);
+    handleQX(qx,slot,8,16);
 
     val = m_pConfig->getIntegerParameter("-sdFactor");
     controller.simpleWrite16(slot,9,16,uint16_t(val),qx);
+    handleQX(qx,slot,9,16);
 
     val = m_pConfig->getIntegerParameter("-triggerBox");
     controller.simpleWrite16(slot,10,16,uint16_t(val),qx);
+    handleQX(qx,slot,10,16);
 
     val = m_pConfig->getIntegerParameter("-inspect1");
     controller.simpleWrite16(slot,0,17,uint16_t(val),qx);
+    handleQX(qx,slot,0,17);
 
     val = m_pConfig->getIntegerParameter("-inspect2");
     controller.simpleWrite16(slot,1,17,uint16_t(val),qx);
+    handleQX(qx,slot,1,17);
 
     val = m_pConfig->getIntegerParameter("-inspect3");
     controller.simpleWrite16(slot,2,17,uint16_t(val),qx);
+    handleQX(qx,slot,2,17);
 
     val = m_pConfig->getIntegerParameter("-inspect4");
     controller.simpleWrite16(slot,3,17,uint16_t(val),qx);
+    handleQX(qx,slot,3,17);
 
     val = m_pConfig->getIntegerParameter("-adcWidth");
     controller.simpleWrite16(slot,0,18,uint16_t(val),qx);
+    handleQX(qx,slot,0,18);
 
     val = m_pConfig->getIntegerParameter("-qdcWidth");
     controller.simpleWrite16(slot,1,18,uint16_t(val),qx);
+    handleQX(qx,slot,1,18);
 
     val = m_pConfig->getIntegerParameter("-tdcWidth");
     controller.simpleWrite16(slot,2,18,uint16_t(val),qx);
+    handleQX(qx,slot,2,18);
 
     val = m_pConfig->getIntegerParameter("-coincWidth");
     controller.simpleWrite16(slot,3,18,uint16_t(val),qx);
+    handleQX(qx,slot,3,18);
 
     setTStampMode(controller, EXTERNALLATCH);
 
@@ -256,7 +275,7 @@ CULMTrigger<Controller,RdoList>::loadFirmware2(Controller& controller,
     do {
       controller.simpleControl(slot,0,14,qx);
       ++nAttempts;
-    } while (qx==0 && nAttempts==timeout); 
+    } while ((qx&0x1)==0 && nAttempts==timeout); 
 
     if (nAttempts==timeout) {
         std::cerr << "CULMTrigger failed to become ready" << std::endl; 
@@ -333,7 +352,7 @@ CULMTrigger<Controller,RdoList>::loadFirmware2(Controller& controller,
 	do {
 		controller.simpleControl(slot,0,13,qx);
 		usleep(1);
-	} while (qx==0 && (timeout-- > 0));
+	} while ((qx&0x1)==0 && (timeout-- > 0));
 	if (timeout == -1) {
 		std::cerr << "timeout while CULMTrigger checking done" << std::endl;
  //       return -12;
@@ -391,7 +410,7 @@ CULMTrigger<Controller,RdoList>::loadFirmware(Controller& controller,
     do {
       controller.simpleControl(slot,0,14,qx);
       --timeout;
-    } while (qx==0 && timeout>0); 
+    } while ((qx&0x1)==0 && timeout>0); 
     
 
     if (timeout==0) {
@@ -400,61 +419,72 @@ CULMTrigger<Controller,RdoList>::loadFirmware(Controller& controller,
     } 
 
     // at this point the ULM should be ready
-    unsigned int nBytes=0, nCount=0;
+    unsigned int actualBytes=0, nBytes=0, nCount=0;
 
     // Figure out the number of bytes...which actually serves little purpose.
     // Regardless, this extracts 3 bytes from the file and then peek at fourth.
-    nBytes = determineNBytes(controller,file);
-    c = file.get(); 
-
+//    nBytes = determineNBytes(controller,file);
+    std::streampos curpos = file.tellg();
+    file.seekg(0,std::ios::end);
+    actualBytes = (file.tellg() - curpos); 
+    nBytes = ((file.tellg() - curpos)/10)*10; // make it a nice integral of 10
+    file.seekg(curpos);
+//    c = file.get(); 
+ 
+    std::cout << "Bytes left to read = " << nBytes << std::endl;
     std::cout.precision(2);
     std::cout.flags(std::ios::fixed);
    
     uint16_t data = c;
-	do {
-		controller.simpleWrite16(slot,0,16,data,qx);
-//		SendChar(controller, c);
-		controller.simpleControl(slot,0,13,qx);
-		if (qx) {
+    do {
+      controller.simpleWrite16(slot,0,16,data,qx);
+      //		SendChar(controller, c);
+      controller.simpleControl(slot,0,13,qx);
+      if (qx&0x01) {
         // it is normal to be done b4 eof so dont print anything. 
         // in fact, if nCount==30991, at this point we ultimately take the exit.
-//            std::cerr << "CULMULMTrigger configuration done before end of file";
-//            std::cerr << std::endl;
-            break;
-		}
-		c = file.get();
+        //            std::cerr << "CULMULMTrigger configuration done before end of file";
+        //            std::cerr << std::endl;
+        break;
+      }
+      c = file.get();
 
-        data = c;
-		nCount++;
+      data = c;
+      nCount++;
 
-    if (nCount%(nBytes/10)==0) {
-      std::cout << "\r    Loading configuration " << std::setw(6) << (100.0*nCount)/nBytes << "% complete" << std::flush;
-    }
+      if (nCount%(nBytes/10)==0) {
+        std::cout << "\r    Loading configuration " 
+          << std::setw(6) << (100.0*nCount)/nBytes
+          << "% complete  (Total bytes read = " << nCount << ")" 
+          << std::flush;
+      }
 
-		if (nCount > nBytes) {
-            std::cerr << "\nCULMTrigger is reading more bytes than expected!";
-            std::cout << std::endl;
-        }
+      if (nCount > actualBytes) {
+        std::cerr << "\nCULMTrigger is reading more bytes than expected!";
+        std::cerr << " (expected=" << actualBytes << ", currently at " << nCount << ")";
+        std::cout << std::endl;
+      }
     } while (file.good());
 
     std::cout << std::endl;
+    usleep(1000);
+    // test Xilinx DONE line until ready
+    timeout = 1000; 
+    int nAttempts = 0; 
+    do {
+      controller.simpleControl(slot,0,13,qx);
+      handleQX(qx,slot,0,13);
+      usleep(1);
+    } while ((qx&0x1)==0 && (++nAttempts < timeout));
+    if (nAttempts == timeout) {
+      std::cerr << "timeout while CULMTrigger checking done" << std::endl;
+      return -12;
+    } 
 
-	// test Xilinx DONE line until ready
-	timeout = 100; 
-	int nAttempts = 0; 
-	do {
-		controller.simpleControl(slot,0,13,qx);
-		usleep(1);
-	} while (qx==0 && (++nAttempts < timeout));
-	if (nAttempts == timeout) {
-		std::cerr << "timeout while CULMTrigger checking done" << std::endl;
-        return -12;
-	} 
-	
 
-	usleep(10);
-	controller.simpleControl(slot,0,9,qx);  // exit programming mode
-	usleep(10);
+    usleep(10);
+    controller.simpleControl(slot,0,9,qx);  // exit programming mode
+    usleep(10);
     file.close();
 
     return 0;
@@ -462,12 +492,12 @@ CULMTrigger<Controller,RdoList>::loadFirmware(Controller& controller,
 
 
 template<class Controller, class RdoList>
-unsigned int
+  unsigned int
 CULMTrigger<Controller,RdoList>::determineNBytes(Controller& controller, 
-                                                 std::ifstream& file)
+    std::ifstream& file)
 {	
-    unsigned char c;
-    unsigned int nBytes = 0;
+  unsigned char c;
+  unsigned int nBytes = 0;
 
     c = 0xff;
 
@@ -496,24 +526,24 @@ CULMTrigger<Controller,RdoList>::determineNBytes(Controller& controller,
 template<class Controller, class RdoList>
 void CULMTrigger<Controller,RdoList>::SendChar(Controller& ctlr, unsigned char c)
 {	
-    int slot = m_pConfig->getIntegerParameter("-slot"); 
-    int timeout = 100;	
+  int slot = m_pConfig->getIntegerParameter("-slot"); 
+  int timeout = 100;	
 
-    uint16_t data = 0;
-    uint16_t qx=0;
-	do {
-		ctlr.simpleRead16(slot,0,12,data,qx);
-		//usleep(1);
-	} while (qx==0 && (timeout-- > 0));
-	if (timeout == 0) {
-		std::cerr << "timeout while CULMTrigger waiting to write";
-        std::cerr << std::endl;
-	} else {
-        data = 0;
-        data  |= (c & 0xff);
-		ctlr.simpleWrite16(slot,0,16,data,qx);
-		//usleep(1);
-	}
+  uint16_t data = 0;
+  uint16_t qx=0;
+  do {
+    ctlr.simpleControl(slot,0,12,qx);
+    //usleep(1);
+  } while ((qx&0x1)==0 && (timeout-- > 0));
+  if (timeout == 0) {
+    std::cerr << "timeout while CULMTrigger waiting to write";
+    std::cerr << std::endl;
+  } else {
+    data = 0;
+    data  |= (c & 0xff);
+    ctlr.simpleWrite16(slot,0,16,data,qx);
+    //usleep(1);
+  }
 }
 
 
@@ -550,7 +580,12 @@ bool CULMTrigger<Controller,RdoList>::isConfigured(Controller& controller)
             std::cerr << " read(" << slot <<",15,0) returned with code " << status;
             std::cerr << std::endl;
         }
-    } while (qx==0 && (++nAttempts < timeout));
+    } while ((qx&0x1)==0 && (++nAttempts < timeout));
+
+    if ((qx&0x1)==0) {
+      std::cerr << "Timed out while reading module ID (" << slot << ",15,0)";
+      std::cerr << " : q=" << (0x1&qx) << " x=" << (qx>>1) << std::endl;
+    }
     
     nAttempts=0;
     do {
@@ -561,7 +596,12 @@ bool CULMTrigger<Controller,RdoList>::isConfigured(Controller& controller)
             std::cerr << " read(" << slot << ",14,0) returned with code " << status;
             std::cerr << std::endl;
         }
-    } while (qx==0 && (++nAttempts < timeout));
+    } while ((qx&0x1)==0 && (++nAttempts < timeout));
+
+    if ((qx&0x1)==0) {
+      std::cerr << "Timed out while reading configuration (" << slot << ",14,0)";
+      std::cerr << " : q=" << (0x1&qx) << " x=" << (qx>>1) << std::endl;
+    }
 
 
     if (modID==2367 && config==configID) {
@@ -572,6 +612,7 @@ bool CULMTrigger<Controller,RdoList>::isConfigured(Controller& controller)
         retflag=false;
         std::cout << "    - User specified -configuration (" << configID << ")"
             << " was not found. Instead found " << config;
+        std::cout << "\n    - modID read was (" << modID << ")";
         std::cout <<  std::endl; 
     }
 
@@ -706,4 +747,14 @@ int CULMTrigger<Controller,RdoList>::doRegisterClear(Controller& controller)
   uint16_t qx=0;
   int slot = m_pConfig->getIntegerParameter("-slot"); 
   return controller.simpleControl(slot,0,10,qx);
+}
+
+template<class Controller, class RdoList>
+void CULMTrigger<Controller,RdoList>::handleQX(uint16_t qx, int n, int a, int f) const
+{
+  if ((qx&0x1)==0 || (qx>>1)==0) {
+    std::cerr << "Command (" << n << "," << a << "," << f << ")";
+    std::cerr << " produced (Q,X) = (" << (0x1&qx) << "," << (qx>>1) << ")";
+    std::cerr << std::endl;
+  }
 }

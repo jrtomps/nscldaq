@@ -18,6 +18,9 @@ class CCBD8210CamacBranchDriver : public CCamacBranchDriver
     static const uint32_t BIT16;
     static const uint32_t BIT24;
     static const uint16_t QMask;
+    static const uint16_t XMask;
+    static const uint16_t QShift;
+    static const uint16_t XShift;
 
     public:
     CCBD8210CamacBranchDriver();

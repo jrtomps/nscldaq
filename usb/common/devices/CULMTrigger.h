@@ -68,6 +68,8 @@ class CULMTrigger : public CReadoutHardwareT<Controller,RdoList>
     int getGo(Controller& ctlr, bool& onoff);
     int getTStampMode(Controller& ctlr, TStampMode& mode);
 
+    void handleQX(uint16_t qx, int n, int a, int f) const;
+
     
 }; // class ULMTrigger
 

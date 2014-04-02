@@ -65,6 +65,9 @@ static const uint16_t BDMask   (0x001000);
 static const uint16_t TOMask   (0x002000);
 static const uint16_t XMask    (0x004000);
 const uint16_t CCBD8210CamacBranchDriver::QMask    (0x008000);
+const uint16_t CCBD8210CamacBranchDriver::XMask    (0x004000);
+const uint16_t CCBD8210CamacBranchDriver::QShift   (15);
+const uint16_t CCBD8210CamacBranchDriver::XShift   (14);
 
 
 // Come back to these defs

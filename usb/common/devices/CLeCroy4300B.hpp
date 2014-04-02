@@ -124,7 +124,7 @@ CLeCroy4300B<Controller,RdoList>::writePedestals(Controller& controller,
             // write the pedestal to chan i
             status = controller.simpleWrite16(slot,i,17,ped_i,qx);
             handleStatus(status);
-            handleQ(qx);
+            handleQ(qx&0x1);
         } while (qx==0);
     }
 }
@@ -137,7 +137,7 @@ void CLeCroy4300B<Controller,RdoList>::execClear(Controller& controller)
     uint16_t qx;
     int status = controller.simpleControl(slot,0,9, qx);
     handleStatus(status);
-    handleQ(qx);
+    handleQ(qx&0x1);
 
 }
 
@@ -171,7 +171,7 @@ void CLeCroy4300B<Controller,RdoList>::setCommandRegister(Controller& controller
     // Write command register
     int status = controller.simpleWrite16(slot,0,16,cmdreg,qx);
     handleStatus(status);
-    handleQ(qx);
+    handleQ(qx&0x1);
 
     // wait a little
     usleep(10);
@@ -179,7 +179,7 @@ void CLeCroy4300B<Controller,RdoList>::setCommandRegister(Controller& controller
     // Read back the command register
     status = controller.simpleRead16(slot,0,0,reg,qx);
     handleStatus(status);
-    handleQ(qx);
+    handleQ(qx&0x1);
 
     // Is it the same
     if ( cmdreg != reg) {

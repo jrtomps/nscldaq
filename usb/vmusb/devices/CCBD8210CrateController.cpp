@@ -45,7 +45,9 @@ int CCBD8210CrateController::simpleWrite16(int n, int a, int f, uint16_t data, u
             std::cerr << " failed vmeWrite16 with error = " << status;
             std::cerr << std::endl;
         }
-        qx = qTest();
+        bool q = qTest();
+        bool x = xTest();
+        qx = formXQ(x,q);
     }
     return status;
 }
@@ -82,7 +84,9 @@ int CCBD8210CrateController::simpleWrite24(int n, int a, int f, uint32_t data, u
             std::cerr << std::endl;
         }
 
-        qx = qTest();
+        bool q = qTest();
+        bool x = xTest();
+        qx = formXQ(x,q);
     }   
     return status;
 }
@@ -113,7 +117,9 @@ int CCBD8210CrateController::simpleRead16( int n, int a, int f, uint16_t& data, 
             std::cerr << std::endl;
         }
 
-        qx = qTest();
+        bool q = qTest();
+        bool x = xTest();
+        qx = formXQ(x,q);
     }
     return status;
 }
@@ -147,7 +153,9 @@ int CCBD8210CrateController::simpleRead24( int n, int a, int f, uint32_t& data, 
         data  = (  lodata & 0xffff );
         data |= ( (hidata & 0xff)<<16 );
 
-        qx = qTest();
+        bool q = qTest();
+        bool x = xTest();
+        qx = formXQ(x,q);
     }
     return status;
 }
@@ -181,6 +189,28 @@ bool CCBD8210CrateController::qTest()
     return flag;
 }
 
+bool CCBD8210CrateController::xTest() 
+{
+    bool flag = false;
+    if (m_ctlr) {
+
+        uint32_t addr = CCBD8210CamacBranchDriver::convertToAddress(m_branch,0,29,0,0);
+        uint32_t word16bit = CCBD8210CamacBranchDriver::BIT16;
+        addr = word16bit | addr;
+
+        uint16_t res = 0;
+        int status = m_ctlr->vmeRead16(addr, CVMUSBReadoutList::a24UserData, &res);
+        if (status<0) {
+            std::cerr << "CCBD8210CrateController::qTest()";
+            std::cerr << " failed vmeRead16 with error = " << status;
+            std::cerr << std::endl;
+        }
+        res &= CCBD8210CamacBranchDriver::XMask;
+        flag = (res > 0);
+    }
+    return flag;
+}
+
 int CCBD8210CrateController::executeList(CCamacReadoutList& list, void* pbuffer, 
                                             size_t bufsize, size_t *nbytes)
 {
@@ -200,4 +230,9 @@ int CCBD8210CrateController::executeList(CCamacReadoutList& list, void* pbuffer,
 
     } 
     return status;
+}
+
+uint16_t CCBD8210CrateController::formXQ(uint16_t x, uint16_t q) const
+{
+  return ((x<<1) | q);
 }
