@@ -57,6 +57,13 @@
 #endif
 #endif
 
+#ifndef __CCCUSBREADOUTLIST_H
+#include <CCCUSBReadoutList.h>
+#ifndef __CCCUSBREADOUTLIST_H
+#define __CCCUSBREADOUTLIST_H
+#endif
+#endif
+
 //  The structures below are defined in <usb.h> which is included
 //  by the implementation and can be treated as opaque by any of our
 //  clients (they are in fact opaque in usb.h if memory servers.
@@ -66,8 +73,6 @@ struct usb_dev_handle;
 
 
 // Forward Class definitions:
-
-class CCCUSBReadoutList;
 
 /*!
   This class is the low level support for the Wiener/JTEC CCUSB module.
@@ -118,6 +123,9 @@ private:
     int operator!=(const CCCUSB& rhs) const;
 public:
     void reconnect();
+
+    CCCUSBReadoutList* createReadoutList() const { return new CCCUSBReadoutList; }
+
 
     // Register I/O operations.
 public:
