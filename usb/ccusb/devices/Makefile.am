@@ -14,7 +14,9 @@ libCCUSBDevices_la_SOURCES	= 	CConfigurableObject.cpp	\
 					CPH7132.cpp	\
 					CTclModule.cpp	\
 					CLeCroy4434.cpp \
-					CCamacCrate.cpp
+					CCamacCrate.cpp \
+					CLeCroy4300B.cpp \
+					CULMTrigger.cpp
 
 
 INCLUDES	= 	-I@top_srcdir@/usb/ccusb/ccusb \

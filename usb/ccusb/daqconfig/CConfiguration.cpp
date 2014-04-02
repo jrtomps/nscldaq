@@ -33,10 +33,16 @@
 #include <CPH7132Command.h>
 #include <CCCUSBCommand.h>
 #include <CAddTclDriver.h>
-#include <CLeCroy4434Command.h>
-#include <CCamacCrateCommand.h>
+#include <CULMTrigger.h>
+#include <CUserCommand.h>
 #include <iostream>
-
+#include <CCCUSB.h>
+#include <CCCUSBReadoutList.h>
+#include <CCamacCompat.hpp>
+#include <CLeCroy4300B.h>
+#include <CLeCroy4434.h>
+#include <CLeCroy2551.h>
+#include <CCamacCrate.h>
 #include <tcl.h>
 #include <algorithm>
 
@@ -75,9 +81,24 @@ CConfiguration::CConfiguration() :
   m_Commands.push_back(new CCCUSBCommand(*m_pInterp, *this));
   m_Commands.push_back(new CPH7132Command(*m_pInterp, *this));
   m_Commands.push_back(new CAddTclDriver(*m_pInterp, *this));
-  m_Commands.push_back(new CLeCroy4434Command(*m_pInterp, *this));
-  m_Commands.push_back(new CCamacCrateCommand(*m_pInterp, *this));
+  
+  typedef CCCUSB Ctlr;
+  typedef CCCUSBReadoutList RdoList;
 
+  m_Commands.push_back(new CUserCommand(*m_pInterp, *this, "CamacCrate", 
+                            compat_clone(CCamacCrate<Ctlr,RdoList>())) );
+
+  m_Commands.push_back(new CUserCommand(*m_pInterp, *this, "ULMTrigger", 
+                            compat_clone(CULMTrigger<CCCUSB,CCCUSBReadoutList>())) );
+
+  m_Commands.push_back(new CUserCommand(*m_pInterp, *this, "LeCroy4300B", 
+                            compat_clone(CLeCroy4300B<Ctlr,RdoList>())) );
+
+  m_Commands.push_back(new CUserCommand(*m_pInterp, *this, "LeCroy4434", 
+                            compat_clone(CLeCroy4434<Ctlr,RdoList>())) );
+
+  m_Commands.push_back(new CUserCommand(*m_pInterp, *this, "LeCroy2551", 
+                            compat_clone(CLeCroy2551<Ctlr,RdoList>())) );
 }
 /*!
    Destruction must:
