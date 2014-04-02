@@ -3438,6 +3438,747 @@ Module cget <replaceable>name</replaceable>
                 </informalexample>
             </para>
         </refsect1>
+        </refentry>
+
+        <refentry id="ccusb3-CamacCrate">
+          <refmeta>
+            <refentrytitle>CamacCrate</refentrytitle>
+            <manvolnum>3ccusb</manvolnum>
+          </refmeta>
+
+          <refnamediv>
+            <refname>CamacCrate</refname>
+            <refpurpose>group modules into a crate</refpurpose>
+          </refnamediv>
+
+          <refsynopsisdiv>
+            <cmdsynopsis>
+              <command>
+                CamacCrate create <replaceable>name base</replaceable>
+              </command>
+            </cmdsynopsis>
+            
+            <cmdsynopsis>
+              <command>
+                CamacCrate config <replaceable>name option value ...</replaceable>
+              </command>
+            </cmdsynopsis>
+        
+            <cmdsynopsis>
+              <command>
+                CamacCrate cget <replaceable>name</replaceable>
+              </command>
+            </cmdsynopsis>
+
+          </refsynopsisdiv>
+        
+        <refsect1>
+            <title>DESCRIPTION</title>
+     <para>
+The CamacCrate command defines a container-type driver that holds a registry of modules. It is designed to make it trivial to convert a daqconfig.tcl script that sets up a crate running on a CBD8210 branch to one being controlled by a CC-USB. Contrary to the CBDCamacCrate, this does not need to be registered to a CAMAC branch and can instead be loaded directly into a stack.
+     </para>
+
+  <para>
+At the start of every run, the initialization procedures will be called for all of the registered modules in the order the modules were listed.
+  </para>
+
+  <para>
+At the end of every run, the end of run procedures will be called for all of the registered module in the order the modules were listed.
+  </para>
+
+  <para>
+During stack execution initiated by an event trigger, the event-wise procedures of each of the registered modules will be executed in the order that they were listed.
+  </para>
+
+  </refsect1>
+  <refsect1>
+     <title>
+	OPTIONS
+     </title>
+     <variablelist>
+	    <varlistentry>
+	      <term><command>-crate</command> <replaceable>value</replaceable></term>
+	      <listitem>
+		    <para>
+        Specifies the crate index. Default is 0.
+		    </para>
+	       </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><command>-modules</command> <replaceable>list</replaceable></term>
+	      <listitem>
+		    <para>
+        Specify a proper tcl list of modules to be registered with this crate. these must all be compatible with a CC-USB controller. The order in which modules are listed will be the order in which each module is serviced. A single module can be registered to multiple CamacCrates. Default is an empty list. 
+		    </para>
+	       </listitem>
+	    </varlistentry>
+  </variablelist>
+
+  </refsect1>
+  <refsect1>
+      <title>EXAMPLES</title>
+      <example>
+          <title>A simple crate setup containing a single scaler</title>
+         <programlisting>
+LeCroy2551 create sclr -slot 10
+
+# Create a crate to stick it in
+CamacCrate create crate0 -crate 1
+CamacCrate config crate0 -modules [list sclr]
+         </programlisting>
+      </example>
+      <para>
+       Defines a camac crate with a single LeCroy2551 to operate on with a CBD8210 branch driver. This crate is labeled with index 1 on the branch and the branch is labeled with index 0.
+      </para>
+  </refsect1>
+</refentry>
+
+<refentry id="ccusb3-LeCroy4300B">
+  <refmeta>
+     <refentrytitle>LeCroy4300B</refentrytitle>
+     <manvolnum>3ccusb</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>LeCroy4300B</refname>
+     <refpurpose>control a LeCroy 4300B FERA</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <cmdsynopsis>
+	<command>
+LeCroy4300B create <replaceable>name base</replaceable>
+	</command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+    <command>
+LeCroy4300B config <replaceable>name option value ...</replaceable>
+        </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+LeCroy4300B cget <replaceable>name</replaceable>
+        </command>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+  <para>
+  This provides control over a LeCroy 4300B FERA that lives in a crate controlled by a CC-USB. This is the counterpart to the CBDLeCroy4300B driver that is functional in the VMUSBReadout framework. The currently described driver needn't be registered to a CamacCrate to function. 
+  </para>
+  <para>
+There are a number of options that are provided to ultimately control the command register of the device. The command register is what establishes how the FERA will read out its data. Two options must be specified to operate the device, -pedestals and slot. If either of these are not specified, the initialization of the module will fail. 
+  </para>
+
+  <para>
+  During initialization the following operations occur:
+    <orderedlist>
+     <listitem> 
+        <para> Clear the module </para>
+     </listitem>
+     <listitem>
+      <para> Write all pedestals passed to the -pedestal option </para>
+     </listitem>
+     <listitem>
+      <para> Compute the command register from user define options and write it to the module </para>
+     </listitem>
+  </orderedlist>
+  </para>
+
+  <para>
+  At the end of the run, no actions are taken. 
+  </para>
+
+  <para>
+  During stack execution initiated by an event trigger, this driver will operate based on the following logic:
+  <programlisting>
+
+  if "-camacclear" is true
+      Clear the module
+
+  </programlisting>
+  
+  </para>
+  </refsect1>
+  <refsect1>
+     <title>
+	OPTIONS
+     </title>
+     <variablelist>
+	    <varlistentry>
+	      <term><command>-slot</command> <replaceable>value</replaceable></term>
+	      <listitem>
+		    <para>
+        Specifies the slot of the CAMAC crate the target module is occupying. DEFAULT is 1.
+		    </para>
+	       </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><command>-pedestals</command> <replaceable>list</replaceable></term>
+	      <listitem>
+		    <para>
+          A proper tcl list of 16 integer parameters defining the pedestals for each of the 16 channels. The first element of the list will configure the first channel of the FERA, the second element will configure the second channel, and so on. REQUIRED
+		    </para>
+	       </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><command>-vsn</command> <replaceable>num</replaceable></term>
+	      <listitem>
+		    <para>
+The virtual station number to associate with the target device. This will be included in the header if data compression is enabled. 
+		    </para>
+	       </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><command>-eclpedsub</command> <replaceable>bool</replaceable></term>
+	      <listitem>
+		    <para>
+        	Specify whether to use pedestal subtraction in ECL port readout (aka. EPS). Default is false.
+		    </para>
+	       </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><command>-eclcompression</command> <replaceable>bool</replaceable></term>
+	      <listitem>
+		    <para>
+          Specify whether to enable a data compression cycle before ECL port readout (aka. ECE). Default is false.
+		    </para>
+	       </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><command>-eclenable</command> <replaceable>bool</replaceable></term>
+	      <listitem>
+		    <para>
+        	Specify whether to enable ECL port readout (aka. EEN). Default is false.
+		    </para>
+	       </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><command>-camacpedsub</command> <replaceable>bool</replaceable></term>
+	      <listitem>
+		    <para>
+          Specify whether to use pedestal subtraction in CAMAC readout (aka. CPS). Default is false.
+		    </para>
+	       </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><command>-camaccompression</command> <replaceable>bool</replaceable></term>
+	      <listitem>
+		    <para>
+          Specify whether to enable a data compression cycle before CAMAC readout (aka. CCE). Default is false.
+		    </para>
+	       </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><command>-camacseqrdo</command> <replaceable>bool</replaceable></term>
+	      <listitem>
+		    <para>
+          Specify whether to configure the device for sequential readout in CAMAC (aka. CSR). Default is false.
+		    </para>
+	       </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><command>-camaclam</command> <replaceable>bool</replaceable></term>
+	      <listitem>
+		    <para>
+          Specify whether the allow the device to emit a LAM when data is available to be read (aka. CLE). Default is false.
+		    </para>
+	       </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><command>-overflowsuppress</command> <replaceable>bool</replaceable></term>
+	      <listitem>
+		    <para>
+          Specify whether to suppress output of overflows as well as zeros (aka. OAFS). Default is false.
+		    </para>
+	       </listitem>
+	    </varlistentry>
+   </variablelist>
+  </refsect1>
+  <refsect1>
+      <title>EXAMPLES</title>
+      <example>
+          <title>A simple setup of one FERA</title>
+         <programlisting>
+LeCroy4300B create fera -slot 10 
+LeCroy4300B config fera -pedestals \
+          [list 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
+LeCroy4300B config fera -eclenable on
+LeCroy4300B config fera -eclpedsub on
+LeCroy4300B config fera -eclcompression on
+LeCroy4300B config fera -camacclear off
+         </programlisting>
+      </example>
+      <para>
+        Sets up a LeCroy 4300B module with all pedestals 1 to be read out by the ECL ports. The FERA resides in slot 10.
+      </para>
+  </refsect1>
+</refentry>
+
+<refentry id="ccusb3-LeCroy4434">
+  <refmeta>
+     <refentrytitle>LeCroy4434</refentrytitle>
+     <manvolnum>3ccusb</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>LeCroy4434</refname>
+     <refpurpose>control a LeCroy 4434 Scaler</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <cmdsynopsis>
+	<command>
+LeCroy4434 create <replaceable>name base</replaceable>
+	</command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+      <command>
+LeCroy4434 config <replaceable>name option value ...</replaceable>
+        </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+LeCroy4434 cget <replaceable>name</replaceable>
+        </command>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+    <para>
+The LeCroy4434 is intended to control a LeCroy 4434 scaler situated on in a crate controlled by a CC-USB. It is the counterpart to the CBDLeCroy4434 module that is functional in the VMUSBReadout framework. 
+  </para>
+
+  <para>
+The CBDLeCroy4434 can be registered directly to a stack or to a CamacCrate. 
+  </para>
+
+  <para>
+  During initialization, all scalers are cleared and the auxiliary bus is disabled. 
+  </para>
+
+  <para>
+  At the end of the run, no actions are taken. 
+  </para>
+
+  <para>
+  During stack execution initiated by an event trigger, this driver will operate based on the following logic:
+  <programlisting>
+
+  Read all channels
+  if "-incremental" is true
+      Clear the module
+  </programlisting>
+
+  Just as a note, the latch and the clear are not atomic.
+  </para>
+  </refsect1>
+  <refsect1>
+     <title>
+	OPTIONS
+     </title>
+     <variablelist>
+	    <varlistentry>
+	      <term><command>-slot</command> <replaceable>value</replaceable></term>
+	      <listitem>
+		    <para>
+        Specifies the slot of the CAMAC crate the target module is occupying. Default is 1.
+		    </para>
+	       </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><command>-incremental</command> <replaceable>bool</replaceable></term>
+	      <listitem>
+		    <para>
+          Specifies whether to clear the scalers on each event after latching them. Default is false.
+		    </para>
+	       </listitem>
+	    </varlistentry>
+   </variablelist>
+  </refsect1>
+  <refsect1>
+      <title>EXAMPLES</title>
+      <example>
+         <title>A simple setup of one scaler</title>
+         <programlisting>
+LeCroy4434 create sclr -slot 10
+         </programlisting>
+      </example>
+      <para>
+        Sets up a LeCroy 4434 scaler module in slot 10.
+      </para>
+  </refsect1>
+</refentry>
+  
+<refentry id="ccusb3-LeCroy2551">
+  <refmeta>
+     <refentrytitle>LeCroy2551</refentrytitle>
+     <manvolnum>3ccusb</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>LeCroy2551</refname>
+     <refpurpose>control a LeCroy 2551 Scaler</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <cmdsynopsis>
+	<command>
+LeCroy2551 create <replaceable>name base</replaceable>
+	</command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+      <command>
+LeCroy2551 config <replaceable>name option value ...</replaceable>
+        </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+LeCroy2551 cget <replaceable>name</replaceable>
+        </command>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+    <para>
+The LeCroy2551 is intended to control a LeCroy 2551 scaler situated on a crate controlled by a CC-USB. It is the counterpart to the CBDLeCroy4434 driver that lives in the VMUSBReadout framework. In this case, the LeCroy2551 can be registered directly to a stack and does not need to be registered first to a CamacCrate. There is no reason you cannot register it to a CamacCrate though.
+  </para>
+
+  <para>
+  During initialization, all scalers are cleared. 
+  </para>
+
+  <para>
+  At the end of the run, no actions are taken. 
+  </para>
+
+  <para>
+  During stack execution initiated by an event trigger, all 12 scaler channels are read individually.
+  </para>
+
+  </refsect1>
+  <refsect1>
+     <title>
+	OPTIONS
+     </title>
+     <variablelist>
+	    <varlistentry>
+	      <term><command>-slot</command> <replaceable>value</replaceable></term>
+	      <listitem>
+		    <para>
+        Specifies the slot of the CAMAC crate the target module is occupying. Default is 1.
+		    </para>
+	       </listitem>
+	    </varlistentry>
+   </variablelist>
+  </refsect1>
+  <refsect1>
+      <title>EXAMPLES</title>
+      <example>
+          <title>A simple setup of a single scaler</title>
+         <programlisting>
+LeCroy2551 create sclr -slot 10
+         </programlisting>
+      </example>
+      <para>
+        Sets up a LeCroy 2551 scaler module in slot 10.
+      </para>
+  </refsect1>
+</refentry>
+
+<refentry id="ccusb3-ULMTrigger">
+  <refmeta>
+     <refentrytitle>ULMTrigger</refentrytitle>
+     <manvolnum>3ccusb</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>ULMTrigger</refname>
+     <refpurpose>control a LeCroy 2637 ULM running trigger firmware</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <cmdsynopsis>
+	<command>
+ULMTrigger create <replaceable>name base</replaceable>
+	</command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+ULMTrigger config <replaceable>name option value ...</replaceable>
+        </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+ULMTrigger cget <replaceable>name</replaceable>
+        </command>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+    <para>
+The ULMTrigger is intended to control a LeCroy 2367 ULM situated in a crate controlled by a CC-USB. It is the counterpart to the CBDULMTrigger driver that lives in the VMUSBReadout framework. In this case, the ULMTrigger does not need to be registered first to a CamacCrate, though it still can be. Instead, it can be directly registered to a stack.
+  </para>
+
+  <para>
+Two options need to be specified to function properly. The first is firmware which defines the location of the firmware file to load. The second is the slot number in the camac crate it lives in. This will only work properly if running the usbtrig.bit firmware that Daniel Bazin has written. 
+  </para>
+
+  <para>
+  On initialization the module will always be cleared and the GO bit set to 1.
+  </para>
+
+  <para>
+  At the end of the run, the GO bit is set to 0.
+  </para>
+
+  <para>
+  During stack execution initiated by an event trigger, the following logic is carried out:
+
+  <programlisting>
+if "-registerRead" is true
+    Read the register
+
+if "-eventwiseClear" is true
+    Clear the register
+  </programlisting>
+  
+  By default, both -registerRead and -eventwiseClear are set to false.
+  </para>
+
+  </refsect1>
+  <refsect1>
+     <title>
+	OPTIONS
+     </title>
+     <variablelist>
+	    <varlistentry>
+	      <term><command>-slot</command> <replaceable>value</replaceable></term>
+	      <listitem>
+		    <para>
+        Specifies the slot of the CAMAC crate the target module is occupying. Default is 1.
+		    </para>
+	       </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><command>-firmware</command> <replaceable>path</replaceable></term>
+	      <listitem>
+		    <para>
+        The path to the firmware file usbtrig.bit. Default is "".
+		    </para>
+	      </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><command>-readRegister</command> <replaceable>bool</replaceable></term>
+	      <listitem>
+		    <para>
+        Specifies whether to add a hit register read into the event stack. Defaults to true.
+		    </para>
+	      </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><command>-eventwiseClear</command> <replaceable>bool</replaceable></term>
+	      <listitem>
+		    <para>
+        Specifies whether to send a clear command via the CAMAC dataway at the end of the event. Defaults to true.
+		    </para>
+	      </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><command>-forceFirmwareLoad</command> <replaceable>bool</replaceable></term>
+	      <listitem>
+		    <para>
+        By default, the ULM will only load the firmware if it fails to validate the configuration. This occurs always after a bad firmware load or after a crate has been power cycled. Firmware loads take a bit of time so it is worthwhile to skip reloading the firmware on every run. However, sometimes it may be considered useful. This option causes the firmware to be loaded at the start of EVERY run. Defaults to false.
+		    </para>
+	      </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><command>-configuration</command> <replaceable>num</replaceable></term>
+	      <listitem>
+		    <para>
+        Specifies the number that will be used to validate a successful firmware configuration. This number is compared to the value returned by the function A=15 F=0.
+		    </para>
+	      </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><command>-pcDelay</command> <replaceable>num</replaceable></term>
+	      <listitem>
+		    <para>
+        Unknown. Default is 0.
+		    </para>
+	      </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><command>-pcWidth</command> <replaceable>num</replaceable></term>
+	      <listitem>
+		    <para>
+        Unknown. Default is 0.
+		    </para>
+	      </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><command>-scDelay</command> <replaceable>num</replaceable></term>
+	      <listitem>
+		    <para>
+        Unknown. Default is 0.
+		    </para>
+	      </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><command>-scWidth</command> <replaceable>num</replaceable></term>
+	      <listitem>
+		    <para>
+        Unknown. Default is 0.
+		    </para>
+	      </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><command>-ccWidth</command> <replaceable>num</replaceable></term>
+	      <listitem>
+		    <para>
+        Unknown. Default is 0.
+		    </para>
+	      </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><command>-ssDelay</command> <replaceable>num</replaceable></term>
+	      <listitem>
+		    <para>
+        Unknown. Default is 0.
+		    </para>
+	      </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><command>-bypasses</command> <replaceable>num</replaceable></term>
+	      <listitem>
+		    <para>
+        Unknown. Default is 0.
+		    </para>
+	      </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><command>-pdFactor</command> <replaceable>num</replaceable></term>
+	      <listitem>
+		    <para>
+        Unknown. Default is 0.
+		    </para>
+	      </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><command>-sdFactor</command> <replaceable>num</replaceable></term>
+	      <listitem>
+		    <para>
+        Unknown. Default is 0.
+		    </para>
+	      </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><command>-triggerBox</command> <replaceable>num</replaceable></term>
+	      <listitem>
+		    <para>
+        Unknown. Default is 0.
+		    </para>
+	      </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><command>-inspect1</command> <replaceable>num</replaceable></term>
+	      <listitem>
+		    <para>
+        Unknown. Default is 0.
+		    </para>
+	      </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><command>-inspect2</command> <replaceable>num</replaceable></term>
+	      <listitem>
+		    <para>
+        Unknown. Default is 0.
+		    </para>
+	      </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><command>-inspect3</command> <replaceable>num</replaceable></term>
+	      <listitem>
+		    <para>
+        Unknown. Default is 0.
+		    </para>
+	      </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><command>-inspect4</command> <replaceable>num</replaceable></term>
+	      <listitem>
+		    <para>
+        Unknown. Default is 0.
+		    </para>
+	      </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><command>-adcWidth</command> <replaceable>num</replaceable></term>
+	      <listitem>
+		    <para>
+        Unknown. Default is 0.
+		    </para>
+	      </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><command>-qdcWidth</command> <replaceable>num</replaceable></term>
+	      <listitem>
+		    <para>
+        Unknown. Default is 0.
+		    </para>
+	      </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><command>-tdcWidth</command> <replaceable>num</replaceable></term>
+	      <listitem>
+		    <para>
+        Unknown. Default is 0.
+		    </para>
+	      </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><command>-coincWidth</command> <replaceable>num</replaceable></term>
+	      <listitem>
+		    <para>
+        Unknown. Default is 0.
+		    </para>
+	      </listitem>
+	    </varlistentry>
+   </variablelist>
+  </refsect1>
+  <refsect1>
+      <title>EXAMPLES</title>
+      <example>
+         <title>A simple setup of a single ULM</title>
+         <programlisting>
+# Define values for each parameter in TRIGGER array
+ULMTrigger create sclr -slot 23
+ULMTrigger config ulm firmware /user/s800/server/fpga/usbtrig.bit
+ULMTrigger config ulm -pcDelay $TRIGGER(PCDelay) \
+                  -pcWidth $TRIGGER(PCWidth) \
+                  -scDelay $TRIGGER(SCDelay) \
+                  -scWidth $TRIGGER(SCWidth) \
+                  -psDelay $TRIGGER(PSDelay) \
+                  -ccWidth $TRIGGER(CCWidth) \
+                  -ssDelay $TRIGGER(SSDelay) \
+                  -bypasses $TRIGGER(Bypasses) \
+                  -pdFactor $TRIGGER(PDFactor) \
+                  -sdFactor $TRIGGER(SDFactor) \
+                  -triggerBox $TRIGGER(TriggerBox) \
+                  -inspect1 $TRIGGER(Inspect1) \
+                  -inspect2 $TRIGGER(Inspect2) \
+                  -inspect3 $TRIGGER(Inspect3) \
+                  -inspect4 $TRIGGER(Inspect4) \
+                  -adcWidth $TRIGGER(ADCWidth) \
+                  -qdcWidth $TRIGGER(QDCWidth) \
+                  -tdcWidth $TRIGGER(TDCWidth) \
+                  -coincWidth $TRIGGER(CoincidenceWidth) \
+                  -configuration $TRIGGER(configuration) 
+ULMTrigger config trig -forceFirmwareLoad off
+ULMTrigger config trig -readRegister on
+ULMTrigger config trig -eventwiseClear off
+         </programlisting>
+      </example>
+      <para>
+        Sets up a ULM module in slot 23.
+      </para>
+  </refsect1>
 
       </refentry>
       <refentry id="ccusb3-ControlProtocol">
