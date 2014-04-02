@@ -135,7 +135,7 @@ public:
 
 
     void     writeDAQSettings(uint32_t value);
-    uint32_t readDAQSettings();
+    int readDAQSettings();
 
 
 

@@ -100,7 +100,7 @@ void CMockVMUSB::writeDAQSettings(uint32_t value)
   recordOperation("readDAQSettings", value);
 }
 
-uint32_t CMockVMUSB::readDAQSettings()
+int CMockVMUSB::readDAQSettings()
 {
   uint32_t value = m_registers[0x8];
   // add entry to log that we did this operation

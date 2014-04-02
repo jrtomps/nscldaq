@@ -335,7 +335,7 @@ CVMUSB::writeDAQSettings(uint32_t value)
   \return uint32_t
   \retval The value read from the register.
 */
-uint32_t
+int
 CVMUSB::readDAQSettings()
 {
     return readRegister(DAQSetRegister);
