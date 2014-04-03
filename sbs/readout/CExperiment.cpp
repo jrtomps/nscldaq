@@ -42,6 +42,8 @@
 #include <string>
 #include <fragment.h>
 #include <os.h>
+#include <CCondition.h>
+#include <CMutex.h>
 
 
 using namespace std;
@@ -54,6 +56,8 @@ typedef struct _EndRunEvent {
   Tcl_Event     tclEvent;
   bool         pause;
   CExperiment* pExperiment;	// Pointer to the experiment object.
+  CMutex*      pLock;            // Lock for condition variable.
+  CConditionVariable* pCondVar;      // Condition variable.
 
 } EndRunEvent, *pEndRunEvent;
 
@@ -637,6 +641,10 @@ CExperiment::ScheduleEndRunBuffer(bool pause)
   pEvent->tclEvent.proc = CExperiment::HandleEndRunEvent;
   pEvent->pause         = pause;
   pEvent->pExperiment   = this;
+  pEvent->pLock         = new CMutex;
+  pEvent->pCondVar      = new CConditionVariable;
+  
+  pEvent->pLock->lock();                // Required to wait on condition.
 
   CTCLInterpreter* pInterp = gpTCLApplication->getInterpreter();
   Tcl_ThreadId     thread  = gpTCLApplication->getThread();
@@ -644,12 +652,23 @@ CExperiment::ScheduleEndRunBuffer(bool pause)
   Tcl_ThreadQueueEvent(thread, 
 		       reinterpret_cast<Tcl_Event*>(pEvent),
 		       TCL_QUEUE_TAIL);
+  
+  // The handler is going to
+  // 1. acquire the mutex (that will synch us with the wait start)
+  // 2. do its stuff
+  // 3. Free the event, but not the mutex and condition variable.
+  // 4. Signal the condition variable.
+  
+  CMutex* pMutex               = pEvent->pLock;    // Tcl Event storage might
+  CConditionVariable *pCondVar = pEvent->pCondVar; // get re-used.
+  
+  pEvent->pCondVar->wait(*(pMutex));
 
-   // TODO: This should really be a cond wait on the end run buffer being done
-   //       so that the thread and its thread local storage stays alive for the duration
-   //       of the event handling...for now kludge it up this way.
-
-  Os::usleep(1000);
+  // Now the run is ended so we can release the mutex and destroy all the bits.
+  
+  pMutex->unlock();
+  delete(pMutex);
+  delete(pCondVar);
 
 }
 /*!
@@ -659,8 +678,11 @@ CExperiment::ScheduleEndRunBuffer(bool pause)
 int CExperiment::HandleEndRunEvent(Tcl_Event* evPtr, int flags)
 {
   pEndRunEvent pEvent = reinterpret_cast<pEndRunEvent>(evPtr);
+  pEvent->pLock->lock();                 // Wait for signaller to condwait.
   CExperiment* pExperiment  = pEvent->pExperiment;
   pExperiment->syncEndRun(pEvent->pause);
+  pEvent->pCondVar->signal();             // Tell signaller we're done.
+  pEvent->pLock->unlock();                // And this releases it to run.
   return 1;
 }
 
