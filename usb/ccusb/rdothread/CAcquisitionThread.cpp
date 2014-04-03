@@ -312,6 +312,9 @@ CAcquisitionThread::processBuffer(DataBuffer* pBuffer)
 void
 CAcquisitionThread::startDaq()
 {
+  char junk[100000];
+  size_t moreJunk;
+  m_pCamac->usbRead(junk, sizeof(junk), &moreJunk, 1*1000); // One second timeout.
 
   m_pCamac->writeActionRegister(CCCUSB::ActionRegister::clear);
 
