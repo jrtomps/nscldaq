@@ -106,7 +106,17 @@ Name             Type        Default         Meaning
 -readscalers      bool       false          If true the module scalers are read (first A then B).
 -incremental      bool       true           If true, the scalers are cleared after the read.
 
+-bulktransfermode  enum      default        USB Bulk transfer configuration. Defaults to setting
+                                            in CAcqusitionThread which is a timeout of 1 second.
+                                            One of: timeout, nbuffers
+-nbuffers2transfer integer   -1             Must be specified to use in nbuffer mode of USB
+                                            Bulk Transfer. Error will be produced if user 
+                                            does not specify it.
+-bulktransfertimeout integer -1              Number of seconds after 1 second to emit a 
+                                            "packet end" 
 
+-bufferlength     integer     4096          Specifies the size of buffers used by the CCUSB.
+                                            One of : 4096, 2048, 1024, 512, 256, 128, 64, singleevent
 \endverbatim
 
 */
@@ -148,6 +158,8 @@ private:
   void configureGdg2(CCCUSB& controller);
   void configureDevices(CCCUSB& controller);
   void configureLED(CCCUSB& controller);
+  void configureBulkTransfer(CCCUSB& controller);
+  void configureBufferLength(CCCUSB& controller);
 };
 
 #endif

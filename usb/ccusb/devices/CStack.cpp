@@ -188,6 +188,24 @@ CStack::addReadoutList(CCCUSBReadoutList& list)
     p++;
   }
 }
+
+/*!
+  Calls the end-of-run routins for the stack after data taking.  We will iterate 
+  through all modules read out by the stack. 
+*/
+void
+CStack::onEndRun(CCCUSB& controller)
+{
+  StackElements modules = getStackElements();
+  StackElements::iterator p = modules.begin();
+  while(p != modules.end()) {
+    CReadoutHardware* pModule = *p;                       // Wraps the hardware.
+
+    pModule->onEndRun(controller); 
+
+    p++;
+  }
+}
 /*!
   Clone virtualizes copy construction.
 

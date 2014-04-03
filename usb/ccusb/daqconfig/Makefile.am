@@ -34,8 +34,12 @@ noinst_HEADERS		=	CConfiguration.h 	\
 
 
 
+
+
 INCLUDES		= 	-I@top_srcdir@/usb/ccusb/devices	\
 				-I@top_srcdir@/usb/ccusb		\
+				-I@top_srcdir@/usb/ccusb/ccusb		\
+				-I@top_srcdir@/usb/common/devices		\
 				@LIBTCLPLUS_CFLAGS@		\
 				-I@top_srcdir@/base/headers		\
 				$(TCL_FLAGS) @THREADCXX_FLAGS@

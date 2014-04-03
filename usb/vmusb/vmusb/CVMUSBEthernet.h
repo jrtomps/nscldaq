@@ -113,7 +113,7 @@ public:
     int readGlobalMode();
 
     void     writeDAQSettings(uint32_t value);
-    uint32_t readDAQSettings();
+    int readDAQSettings();
 
     void     writeLEDSource(uint32_t value);
     int readLEDSource();

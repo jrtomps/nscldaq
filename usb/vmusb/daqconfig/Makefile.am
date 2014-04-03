@@ -21,7 +21,7 @@ libVMUSBConfig_la_SOURCES	= 	CADCCommand.cpp		\
 				CUserCommand.cpp	\
 				CAddTclDriver.cpp	\
 				CHiRACommand.cpp	\
-				CVMUSBCommand.cpp
+				CVMUSBCommand.cpp 
 
 libVMUSBConfig_la_CXXFLAGS=@THREADCXX_FLAGS@
 
@@ -48,13 +48,14 @@ noinst_HEADERS		=	CADCCommand.h  		\
 				CUserCommand.h		\
 				CAddTclDriver.h		\
 				CHiRACommand.h		\
-				CVMUSBCommand.h
-
+				CVMUSBCommand.h 
 
 
 
 INCLUDES		= 	-I@top_srcdir@/usb/vmusb/devices	\
 				-I@top_srcdir@/usb/vmusb		\
+				-I@top_srcdir@/usb/vmusb/vmusb		\
+				-I@top_srcdir@/usb/common/devices		\
 				@LIBTCLPLUS_CFLAGS@		\
 				-I@top_srcdir@/base/headers		\
 				$(TCL_FLAGS) 

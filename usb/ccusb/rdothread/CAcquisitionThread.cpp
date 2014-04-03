@@ -314,6 +314,9 @@ CAcquisitionThread::processBuffer(DataBuffer* pBuffer)
 void
 CAcquisitionThread::startDaq()
 {
+  char junk[100000];
+  size_t moreJunk;
+  m_pCamac->usbRead(junk, sizeof(junk), &moreJunk, 1*1000); // One second timeout.
 
   m_pCamac->writeActionRegister(CCCUSB::ActionRegister::clear);
 
@@ -328,6 +331,29 @@ CAcquisitionThread::startDaq()
 	 << " errno: " << errno <<endl;
     exit(status);
   }
+  cerr << "CCUSB located firmware revision: " << hex << fware << dec << endl;
+
+
+  // DEFAULTS SETTINGS FOR TRANSFER
+  // Set up the buffer size and mode:
+  // don't want multibuffering...1sec timeout is fine.
+  m_pCamac->writeUSBBulkTransferSetup(0 << CCCUSB::TransferSetupRegister::timeoutShift);
+
+  // The global mode:
+  //   4kword buffer
+  //   Single event seperator.
+  //   Single header word.
+  //
+  m_pCamac->writeGlobalMode((CCCUSB::GlobalModeRegister::bufferLen4K << CCCUSB::GlobalModeRegister::bufferLenShift));
+
+  // Set up the default  ouptuts, 
+  //  NIM 01  - Busy.
+  //  NIM 02  - Acquire
+  //  NIM 03  - end of busy.
+  m_pCamac->writeOutputSelector(CCCUSB::OutputSourceRegister::nimO1Busy |
+      CCCUSB::OutputSourceRegister::nimO2Acquire |
+      CCCUSB::OutputSourceRegister::nimO3BusyEnd);
+
   // Process the configuration. This must be done in a way that preserves the
   // Interpreter since loadStack and Initialize for each stack will need the
   // interpreter for our support of tcl drivers.
@@ -335,18 +361,6 @@ CAcquisitionThread::startDaq()
   Globals::pConfig = new CConfiguration;
   Globals::pConfig->processConfiguration(Globals::configurationFilename);
   std::vector<CReadoutModule*> Stacks = Globals::pConfig->getStacks();
-
-  cerr << "CCUSB located firmware revision: " << hex << fware << dec << endl;
-
-  // Set up the default  ouptuts, 
-  //  NIM 01  - Busy.
-  //  NIM 02  - Acquire
-  //  NIM 03  - end of busy.
-
-
-    m_pCamac->writeOutputSelector(CCCUSB::OutputSourceRegister::nimO1Busy |
-  				CCCUSB::OutputSourceRegister::nimO2Acquire |
-  				CCCUSB::OutputSourceRegister::nimO3BusyEnd);
 
 
   // The CCUSB has two stacks to load; an event stack and a scaler stack.
@@ -361,21 +375,6 @@ CAcquisitionThread::startDaq()
     pStack->loadStack(*m_pCamac);     // Load into CC-USB .. The stack knows if it is event or scaler
     pStack->enableStack(*m_pCamac);   // Enable the trigger logic for the stack.
   }
- 
-  // Set up the buffer size and mode:
-  // don't want multibuffering...1sec timeout is fine.
-
-  m_pCamac->writeUSBBulkTransferSetup(0 << CCCUSB::TransferSetupRegister::timeoutShift);
-
-
-  // The global mode:
-  //   4kword buffer
-  //   Single event seperator.
-  //   Single header word.
-  //
-  m_pCamac->writeGlobalMode((CCCUSB::GlobalModeRegister::bufferLen4K << CCCUSB::GlobalModeRegister::bufferLenShift));
-
-
  
 
   CCusbToAutonomous();
@@ -394,6 +393,14 @@ CAcquisitionThread::stopDaq()
 
 
   drainUsb();
+
+  cerr << "Calling end of run operations\n";
+  std::vector<CReadoutModule*> Stacks = Globals::pConfig->getStacks();
+  for(int i =0; i < Stacks.size(); i++) {
+    CStack* pStack = dynamic_cast<CStack*>(Stacks[i]->getHardwarePointer());
+    assert(pStack);
+    pStack->onEndRun(*m_pCamac);    // Call onEndRun for daq hardware associated with the stack.
+  }
 }
 /*!
   Pause the daq. This means doing a stopDaq() and fielding 

@@ -24,6 +24,10 @@
 #include "CReadoutModule.h"
 #include <CVMUSB.h>
 #include <CVMUSBReadoutList.h>
+#include <iostream>
+#include <iomanip>
+#include <sstream>
+#include <CErrnoException.h>
 
 
 /*------------------------------------------------------------------------------
@@ -86,9 +90,13 @@ static const char* dggBStartEnum[] = {
   "off", "nimi1", "nimi2", "trigger", "endofevent", "usbtrigger", "pulser", 0
 };
 
+static const char* bufferLengthEnum[] = {
+  "13k","8k","4k","2k","1k","512","256","128","64", "evtcount",0
+};
 
 // Maximum value for 16 bit word:
 
+static const int MaxInt12(0x0fff);
 static const int MaxInt16(0xffff);
 
 /*-------------------------------------------------------------------------------------
@@ -199,6 +207,13 @@ CVMUSBControl::onAttach(CReadoutModule& configuration)
   m_pConfiguration->addIntegerParameter("-delaya", 0);
   m_pConfiguration->addIntegerParameter("-delayb", 0);
 
+  m_pConfiguration->addBooleanParameter("-mixedbuffers",false);
+  m_pConfiguration->addBooleanParameter("-spanbuffers",false);
+  m_pConfiguration->addBooleanParameter("-forcescalerdump",false);
+  m_pConfiguration->addIntegerParameter("-busreqlevel",0,7,4);
+
+  m_pConfiguration->addEnumParameter("-bufferlength", bufferLengthEnum, "13k"); 
+  m_pConfiguration->addIntegerParameter("-eventsperbuffer", 1, MaxInt12, 1); 
 }
 /**
  * Initialize
@@ -327,6 +342,9 @@ CVMUSBControl::Initialize(CVMUSB& controller)
   m_nDeviceSourceSelector = devSource;
   m_nLedSourceSelector    = ledSourceSelect;
 
+  configureGlobalMode(controller);
+
+  configureEventsPerBuffer(controller);
 }
 /**
  * addReadoutList
@@ -351,8 +369,8 @@ CVMUSBControl::addReadoutList(CVMUSBReadoutList& list)
       (~(CVMUSB::DeviceSourceRegister::scalerAEnable |
 	 CVMUSB::DeviceSourceRegister::scalerBEnable));
 
-    list.addRegisterWrite(CVMUSB::RegisterOffsets::DEVSrcRegister,
-			  disable);
+//   list.addRegisterWrite(CVMUSB::RegisterOffsets::DEVSrcRegister,
+//			  disable);
 
     // Read the scalers.
 
@@ -371,12 +389,87 @@ CVMUSBControl::addReadoutList(CVMUSBReadoutList& list)
 
     // Re-enable the scalers.
 
-    list.addRegisterWrite(CVMUSB::RegisterOffsets::DEVSrcRegister,
-			  m_nDeviceSourceSelector);
-    list.addRegisterWrite(CVMUSB::RegisterOffsets::DEVSrcRegister,
-			  m_nDeviceSourceSelector);
+//    list.addRegisterWrite(CVMUSB::RegisterOffsets::DEVSrcRegister,
+//			  m_nDeviceSourceSelector);
+//    list.addRegisterWrite(CVMUSB::RegisterOffsets::DEVSrcRegister,
+//			  m_nDeviceSourceSelector);
   }
 }
+
+void CVMUSBControl::configureGlobalMode(CVMUSB& controller)
+{
+  using namespace std;
+
+  uint16_t glbl_mode = controller.readGlobalMode();
+  cout << "Old mode register = 0x" << hex << setfill('0') << setw(4) << glbl_mode;
+  cout << dec << setfill(' ') << endl;
+  
+  if (m_pConfiguration->getBoolParameter("-spanbuffers")) {
+     glbl_mode |= CVMUSB::GlobalModeRegister::spanBuffers;
+  } else {
+     glbl_mode &= (~CVMUSB::GlobalModeRegister::spanBuffers);
+  }
+
+  if (m_pConfiguration->getBoolParameter("-mixedbuffers")) {
+     glbl_mode |= CVMUSB::GlobalModeRegister::mixedBuffers;
+  } else {
+     glbl_mode &= (~CVMUSB::GlobalModeRegister::mixedBuffers);
+  }
+
+  if (m_pConfiguration->getBoolParameter("-forcescalerdump")) {
+     glbl_mode |= CVMUSB::GlobalModeRegister::flushScalers;
+  } else {
+     glbl_mode &= (~CVMUSB::GlobalModeRegister::flushScalers);
+  }
+
+  uint16_t breq = m_pConfiguration->getUnsignedParameter("-busreqlevel");
+  glbl_mode &= (~CVMUSB::GlobalModeRegister::busReqLevelMask);
+  glbl_mode |= (CVMUSB::GlobalModeRegister::busReqLevelMask 
+                  & (breq << CVMUSB::GlobalModeRegister::busReqLevelShift));
+
+  uint16_t buflen = m_pConfiguration->getEnumParameter("-bufferlength",bufferLengthEnum);
+  glbl_mode &= (~CVMUSB::GlobalModeRegister::bufferLenMask);
+  glbl_mode |= (CVMUSB::GlobalModeRegister::bufferLenMask 
+                 & (buflen << CVMUSB::GlobalModeRegister::bufferLenShift));
+
+  controller.writeGlobalMode(glbl_mode);
+ 
+  // Read back our value and check to see that it is what we set.
+  uint16_t new_glbl_mode = controller.readGlobalMode();
+
+  if (glbl_mode == new_glbl_mode) {
+    cout << "New mode register = 0x" << hex << setfill('0') << setw(4) << new_glbl_mode;
+    cout << dec << setfill(' ') << endl;
+  } else {
+    stringstream msg;
+    msg << "FAILURE when setting global mode register to 0x" << hex << setfill('0') << setw(4) << glbl_mode;
+    msg << " , 0x" << hex << setfill('0') << setw(4) << new_glbl_mode << " was set instead";
+    cout << dec << setfill(' ') << endl;
+
+    throw CErrnoException(msg.str());
+  }
+
+}
+
+void CVMUSBControl::configureEventsPerBuffer(CVMUSB& controller)
+{
+  uint32_t evtperbuf = m_pConfiguration->getUnsignedParameter("-eventsperbuffer");
+  controller.writeEventsPerBuffer(evtperbuf); 
+
+  uint32_t newval = controller.readEventsPerBuffer();
+
+  // Check that it was set to what we specified 
+  if (newval != (evtperbuf&0xfff)) {
+    using namespace std;
+    stringstream msg;
+    msg << "FAILURE when setting events per buffer to 0x" << hex << setfill('0') << setw(4) << evtperbuf; 
+    msg << " , 0x" << hex << setfill('0') << setw(4) << newval << " was set instead";
+    cout << dec << setfill(' ') << endl;
+
+    throw CErrnoException(msg.str());
+  }
+}
+
 /**
  * clone
  *

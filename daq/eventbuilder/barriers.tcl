@@ -85,10 +85,14 @@ snit::widgetadaptor EVB::BarrierStats::Summary {
         
         # Lay them out.
         
-        grid x                $win.title        x
-        grid $win.completel   $win.incompletel  $win.heterogenousl
-        grid $win.complete    $win.incomplete   $win.heterogenous -sticky e
+        grid x                $win.title        x -padx 5
+        grid $win.completel   $win.incompletel  $win.heterogenousl -padx 5
+        grid $win.complete    $win.incomplete   $win.heterogenous  -padx 5
         
+        grid columnconfigure $win {0 1 2} -weight 1 -uniform a
+        
+        grid configure $win -padx 5 -pady 5 
+
         $self configurelist $args
     }
 }
@@ -178,11 +182,12 @@ snit::widgetadaptor EVB::BarrierStats::queueBarriers {
     #
     constructor args {
         installhull using ::EVB::utility::sortedWidget \
-            -lefttitle Srcid   \
+            -lefttitle "Source ID"  \
             -create [mymethod _CreateSource]           \
             -update [mymethod _UpdateSourceElement]   \
-            -width 200 -height 400
-        
+            -width 250 -height 100
+      
+        grid configure $win -padx 5 -pady 5  
         $self configurelist $args
     }
     
@@ -273,9 +278,11 @@ snit::widgetadaptor EVB::BarrierStats::incomplete {
     #
     constructor args {
         installhull using ::EVB::utility::sortedPair \
-	    -title {Missing barrier frags} \
-            -lefttitle Srcid -righttitle Missing
-        
+	    -title {Missing Barrier Fragments} \
+            -lefttitle "Source ID" -righttitle Missing
+       
+        grid configure $win -sticky nsew 
+        grid columnconfigure $win 0 -weight 1 
         $self configurelist $args
     }
 }
@@ -307,15 +314,15 @@ proc EVB::test::BarrierSummary {} {
     # Control panel for test:
     
     toplevel .panel
-    label .panel.completel -text {complete}
+    label .panel.completel -text {Complete}
     entry .panel.complete  -textvariable -completecount
     grid .panel.completel .panel.complete
     
-    label .panel.incompletel -text {incomplete}
+    label .panel.incompletel -text {Incomplete}
     entry .panel.incomplete  -textvariable -incompletecount
     grid  .panel.incompletel .panel.incomplete
     
-    label .panel.heterogenousl -text {heterogenous}
+    label .panel.heterogenousl -text {Heterogenous}
     entry .panel.heterogenous -textvariable -heterogenouscount
     grid  .panel.heterogenousl .panel.heterogenous
     

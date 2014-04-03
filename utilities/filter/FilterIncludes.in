@@ -1,0 +1,40 @@
+KITDIR   = @prefix@/filterkit
+LIBDIR   = @prefix@/lib
+INCLUDES = @prefix@/filterkit/include
+MAININCLUDES = @prefix@/include
+TCL_FLAGS= @TCL_FLAGS@
+TCL_LDFLAGS=@TCL_LDFLAGS@
+
+
+# Compilation flags:
+
+CXXFLAGS = -g -fPIC -I. -I$(MAININCLUDES) -I$(INCLUDES)   $(TCL_FLAGS) @THREADCXX_FLAGS@
+CCFLAGS=$(CXXFLAGS)
+
+LDFLAGS = $(LIBDIR)/libdaqshm.so	\
+	$(LIBDIR)/libdataformat.so	\
+	$(LIBDIR)/liburl.so	\
+	$(LIBDIR)/libfilter.so	\
+	-L/usr/lib -lException \
+	$(TCL_LDFLAGS) @THREADLD_FLAGS@
+
+# Compilation rules:
+
+#  C++ compilations.  note that all the build rules should be identical
+#
+
+.cpp.o:
+	$(CXX) -g -c  $(CXXFLAGS) $(USERCXXFLAGS) $<
+
+.cxx.o:
+	$(CXX) -g -c  $(CXXFLAGS) $(USERCXXFLAGS) $<
+
+.cc.o:
+	$(CXX) -g -c  $(CXXFLAGS) $(USERCXXFLAGS) $<
+
+#
+#  C compilation(s) if more are aded the build rules should be identical.
+
+.c.o:
+	$(CC)  -g -c  $(CCFLAGS) $(USERCCFLAGS) $<
+

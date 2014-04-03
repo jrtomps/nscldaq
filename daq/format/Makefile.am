@@ -17,8 +17,11 @@ libdataformat_la_SOURCES = CRingSelectionPredicate.cpp	\
                         CUnknownFragment.cpp            \
 			CRingItemFactory.cpp		\
 			ringitem.c			\
+      RingItemComparisons.cpp \
 			CDataSource.cpp CRingDataSource.cpp CFileDataSource.cpp  \
-			CDataSourceFactory.cpp
+			CDataSourceFactory.cpp \
+      CFileDataSink.cpp CDataSinkFactory.cpp \
+      CRingDataSink.cpp
 
 
 include_HEADERS	= CRingSelectionPredicate.h	\
@@ -36,8 +39,11 @@ include_HEADERS	= CRingSelectionPredicate.h	\
                         CGlomParameters.h       \
                         CUnknownFragment.h      \
 			DataFormat.h	\
+      RingItemComparisons.h \
 			CDataSource.h CRingDataSource.h CFileDataSource.h \
-			CDataSourceFactory.h
+			CDataSourceFactory.h \
+      CDataSink.h CFileDataSink.h CDataSinkFactory.h \
+      CRingDataSink.h
 
 
 INCLUDES	= -I@top_srcdir@/base/dataflow	\
@@ -67,10 +73,13 @@ unittests_SOURCES	= TestRunner.cpp selecttest.cpp desiredtests.cpp	\
 			scalertests.cpp texttest.cpp physcounttests.cpp		\
 			formatoutputtests.cpp dataformattests.cpp       \
                         fragmenttest.cpp glomparamtests.cpp factorytests.cpp \
-                      physeventtests.cpp
+                      physeventtests.cpp filedatasinktests.cpp \
+                     datasinkfactorytests.cpp \
+                     datasourcefactorytests.cpp
 
 unittests_LDADD		= -L$(libdir) $(CPPUNIT_LDFLAGS) 		\
 			@top_builddir@/base/dataflow/libDataFlow.la 	\
+			@top_builddir@/base/uri/liburl.la 	\
 			@top_builddir@/daq/format/libdataformat.la	\
 			@LIBEXCEPTION_LDFLAGS@
 

@@ -187,12 +187,14 @@ snit::widgetadaptor EVB::lateFragments {
         
         install summary using ::EVB::lateSummary $win.summary
         install container using ::EVB::utility::sortedWidget $win.container \
-            -title {Late frags by src} -lefttitle {Id count} -righttitle {worst} \
+            -title {Late Fragments By Source} -lefttitle {Id count} -righttitle {worst} \
             -create [mymethod _CreateSource] -update [mymethod _UpdateSource]
         
         grid $summary -sticky new
         grid $container -sticky sew
-        
+         
+        grid columnconfigure $win 0 -weight 1
+
         $self configurelist $args
     }
     ##

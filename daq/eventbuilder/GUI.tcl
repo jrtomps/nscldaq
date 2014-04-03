@@ -149,12 +149,18 @@ snit::widgetadaptor ::EVB::summary {
             $win.connections -text {Connections}
         
         # layout the widgets:
-        
-        grid $inputSummary   -row 0 -column 0 -rowspan 2 -sticky nsew
-        grid $outputSummary  -row 0 -column 1 -sticky nsew
-        grid $barrierSummary -row 1 -column 1 -sticky nsew
-        grid $connectionList -row 2 -column 0 -columnspan 2 -sticky nsew
-        
+       
+        grid $inputSummary   -row 0 -column 0 -rowspan 2 -sticky nsew -padx 5 -pady 5
+        grid $outputSummary  -row 0 -column 1 -sticky nsew -padx 5 -pady 5
+        grid $barrierSummary -row 1 -column 1 -sticky nsew -padx 5 -pady 5
+        grid $connectionList -row 2 -column 0 -columnspan 2 -sticky nsew -padx 5 -pady 5
+       
+        grid columnconfigure $win 0 -weight 1 
+        grid columnconfigure $win 1 -weight 1 
+        grid rowconfigure $win 2 -weight 1 
+    
+        grid columnconfigure $inputSummary 0 -weight 1
+        grid rowconfigure $inputSummary 0 -weight 1
         
         $self configurelist $args
     }
@@ -200,19 +206,27 @@ snit::widgetadaptor ::EVB::sourceStatistics {
         # Create the components:
         
         install queuestats using EVB::inputStatistics::queueStats $win.queue \
-            -width 250 -height 300 -title {Queue statistics}
+            -width 250 -height 100 -title {Queue statistics}
         
         install barrierstats using EVB::BarrierStats::queueBarriers $win.barrier \
-            -width 250 -height 300 -title {Barrier statistics}
+            -width 250 -height 100 -title {Barrier statistics}
         
         install connections using EVB::connectionList $win.connections \
-            -text "Connected clients"
+            -text "Connected clients" 
         
         # Layout the components:
-        
-        grid $queuestats $barrierstats -sticky nsew
-        grid $connections -row 1 -column 0 -columnspan 2 -sticky ew
-        
+ 
+#        grid configure $win -padx 5 -pady 5 
+
+        grid $queuestats -row 0 -column 0 -sticky nsew -padx 5 -pady 5
+        grid $barrierstats -row 0 -column 1 -sticky nsew  -padx 5 -pady 5
+        grid $connections -column 0 -columnspan 2 -sticky nsew \
+                                           -padx 5 -pady 5
+
+        grid columnconfigure $win {0 1} -weight 1 -uniform a
+        grid rowconfigure $win 0 -weight 0 
+        grid rowconfigure $win 1 -weight 1 -minsize 100
+
         # process the options:
         
         $self configurelist $args
@@ -286,10 +300,14 @@ snit::widgetadaptor EVB::barrierStatistics {
         
         install  summary using EVB::BarrierStats::Summary $win.summary
         install perQueue using EVB::BarrierStats::queueBarriers  $win.perqueue
-        
+       
+         
         grid $summary -sticky new
         grid $perQueue -sticky news
-            
+  
+        grid configure $win -padx 5 -pady 5 
+        grid columnconfigure $win 0 -weight 1           
+  
         $self configurelist $args
     }
 }
@@ -326,8 +344,12 @@ snit::widgetadaptor EVB::errorStatistics {
         install lateStats using       EVB::lateFragments            $win.late
         install incompleteStats using EVB::BarrierStats::incomplete $win.inc
         
-        grid $win.late $win.inc
-        
+        grid $win.late $win.inc -sticky nsew -padx 5 -pady 5
+        grid columnconfigure $win 0 -weight 1 -uniform a 
+        grid rowconfigure $win 0 -weight 1 
+
+        grid configure $win -padx 5 -pady 5 
+
         $self configurelist $args
     }
     #-----------------------------------------------------------------------
@@ -406,6 +428,10 @@ snit::widgetadaptor EVB::statusNotebook {
         $hull add $errorStats -text {Errors}
         
         $self configurelist $args
+
+        grid rowconfigure $win 0 -weight 1
+        grid columnconfigure $win 0 -weight 1
+
     }
     #------------------------------------------------------------------------
     # Public methods:

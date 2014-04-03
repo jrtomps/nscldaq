@@ -526,6 +526,11 @@ snit::type sis330xDriver {
 
 
     }
+
+    method onEndRun vmusb {
+
+    }
+
     #-----------------------------------------------------------------------
     #
     # Private utilties:

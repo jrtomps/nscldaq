@@ -279,6 +279,11 @@ AC_SUBST(KERNEL_SOURCE_DIR)
 AM_CONDITIONAL([BUILD_SBS_DRIVER], [test "$BUILD_SBS" == "yes"])
 
 
+#
+# Ensure that resources for testing are accessible
+# for out of tree builds
+#
+AC_CONFIG_LINKS([utilities/filter/run-0000-00.evt:utilities/filter/run-0000-00.evt])
 
 
 #---------------------------------------------------------------------------
@@ -316,6 +321,9 @@ AC_CONFIG_FILES([Makefile
 		 utilities/eventlog/Makefile
 		 utilities/sclclient/Makefile
 		 utilities/tkbufdump/Makefile
+		 utilities/filter/Makefile
+		 utilities/filter/Makefile-template
+		 utilities/filter/FilterIncludes
 		 utilities/compatibility/Makefile
 		 utilities/compatibility/eventlog-compat
 		 utilities/compatibility/spectcldaq
@@ -369,6 +377,7 @@ AC_CONFIG_FILES([Makefile
 		 usb/vmusb/tcldrivers/Makefile
 		 usb/vmusb/driverkit/VMUSBDriverIncludes
                  usb/vmusb/controlpanels/Makefile usb/vmusb/controlpanels/cv6533/Makefile
+		 usb/vmusb/devtests/Makefile
 		 usb/ccusb/Makefile
 		 usb/ccusb/ccusb/Makefile usb/ccusb/devices/Makefile 
 		 usb/ccusb/threadcomm/Makefile usb/ccusb/router/Makefile

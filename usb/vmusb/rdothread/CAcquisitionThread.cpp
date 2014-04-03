@@ -374,6 +374,27 @@ CAcquisitionThread::startDaq()
   //  m_pVme->writeActionRegister(CVMUSB::ActionRegister::sysReset);
   m_pVme->writeActionRegister(0);
 
+  // Set up the buffer size and mode:
+
+  m_pVme->writeBulkXferSetup(0 << CVMUSB::TransferSetupRegister::timeoutShift); // don't want multibuffering...1sec timeout is fine.
+
+  // The global mode:
+  //   13k buffer
+  //   Single event seperator.
+  //   Aligned on 16 bits.
+  //   Single header word.
+  //   Bus request level 4.
+  //   Flush scalers on a single event.
+  //
+  m_pVme->writeGlobalMode((4 << CVMUSB::GlobalModeRegister::busReqLevelShift) | 
+			  //			  CVMUSB::GlobalModeRegister::flushScalers            |
+			  CVMUSB::GlobalModeRegister::mixedBuffers            |
+			  // CVMUSB::GlobalModeRegister::spanBuffers             |
+			  (CVMUSB::GlobalModeRegister::bufferLen13K << 
+			   CVMUSB::GlobalModeRegister::bufferLenShift));
+
+
+
   // Process the configuration. This must be done in a way that preserves the
   // Interpreter since loadStack and Initialize for each stack will need the
   // interpreter for our support of tcl drivers.
@@ -409,28 +430,6 @@ CAcquisitionThread::startDaq()
     m_pVme->loadList(7, list, currentOffset); // The tcl server will periodically trigger the list.
   }
 
-  // Set up the buffer size and mode:
-
-  m_pVme->writeBulkXferSetup(0 << CVMUSB::TransferSetupRegister::timeoutShift); // don't want multibuffering...1sec timeout is fine.
-
-
-  // The global mode:
-  //   13k buffer
-  //   Single event seperator.
-  //   Aligned on 16 bits.
-  //   Single header word.
-  //   Bus request level 4.
-  //   Flush scalers on a single event.
-  //
-  m_pVme->writeGlobalMode((4 << CVMUSB::GlobalModeRegister::busReqLevelShift) | 
-			  //			  CVMUSB::GlobalModeRegister::flushScalers            |
-			  CVMUSB::GlobalModeRegister::mixedBuffers            |
-			  // CVMUSB::GlobalModeRegister::spanBuffers             |
-			  (CVMUSB::GlobalModeRegister::bufferLen13K << 
-			   CVMUSB::GlobalModeRegister::bufferLenShift));
-
-
-
 
   // Start the VMUSB in data taking mode:
 
@@ -442,6 +441,7 @@ CAcquisitionThread::startDaq()
    - Forcing a scaler trigger (action register write)
    - Setting clearing the DAQ start bit (action register write)
    - draining data from the VMUSB:
+   - Call shutdown the hardware in the stacks
 */
 void
 CAcquisitionThread::stopDaq()
@@ -449,6 +449,18 @@ CAcquisitionThread::stopDaq()
   m_pVme->writeActionRegister(CVMUSB::ActionRegister::scalerDump);
   m_pVme->writeActionRegister(0);
   drainUsb();
+
+  cerr << "Running on end routines" << endl; 
+  for(int i =0; i < m_Stacks.size(); i++) {
+    CStack* pStack = dynamic_cast<CStack*>(m_Stacks[i]->getHardwarePointer());
+    
+    assert(pStack);
+    pStack->onEndRun(*m_pVme);   // Enable the trigger logic for the stack.
+
+    
+  }
+
+
 }
 /*!
   Pause the daq. This means doing a stopDaq() and fielding 

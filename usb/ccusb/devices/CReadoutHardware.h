@@ -75,6 +75,7 @@ public:
   virtual void onAttach(CReadoutModule& configuration) = 0;
   virtual void Initialize(CCCUSB& controller) = 0;
   virtual void addReadoutList(CCCUSBReadoutList& list) = 0;
+  virtual void onEndRun(CCCUSB& controller) {} 
   virtual CReadoutHardware* clone() const = 0;
 
   // Utilities factored out of derived classes:

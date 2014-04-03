@@ -88,8 +88,13 @@ static const char* scalerBInputs[] = {
   "disabled", "nimi1", "nimi2", "nimi3", "event", "carrya", "dgga", "dggb", 0
 };
 
+static const char* bulkTransferModeValues[] = {
+  "default","nbuffers", "timeout",0
+};
 
-
+static const char* bufferLengthValues[] = {
+  "4096","2048","1024","512","256","128","64","singleevent",0
+};
 // Range of gdg delays/widths
 
 
@@ -107,6 +112,16 @@ static CConfigurableObject::limit maxdelayb(0x7fffffff);
 static CConfigurableObject::Limits DelayA(mindelay, maxdelaya);
 static CConfigurableObject::Limits DelayB(mindelay, maxdelayb);
 
+// Limits for number of buffers to transfer 
+static CConfigurableObject::limit minbufs2transfer(-1);
+static CConfigurableObject::limit maxbufs2transfer(255);
+static CConfigurableObject::Limits BulkTransferLimits(minbufs2transfer, 
+                                                      maxbufs2transfer);
+// uav bulk transfer timeout limits
+static CConfigurableObject::limit mintransfertimeout(-1);
+static CConfigurableObject::limit maxtransfertimeout(15);
+static CConfigurableObject::Limits BulkTransferTimeoutLimits(mintransfertimeout, 
+                                                            maxtransfertimeout);
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // Canonicals:
@@ -227,6 +242,18 @@ CCCUSBModule::onAttach(CReadoutModule& configuration)
   configuration.addBooleanParameter("-readscalers", false);
   configuration.addBooleanParameter("-incremental", false);
 
+
+  // Control the bulk transfer
+  configuration.addEnumParameter("-bulktransfermode", 
+                                  bulkTransferModeValues, "default");
+  configuration.addParameter("-nbuffers2transfer", CConfigurableObject::isInteger,
+                          &BulkTransferLimits,"-1");
+  configuration.addParameter("-bulktransfertimeout", CConfigurableObject::isInteger,
+                          &BulkTransferTimeoutLimits,"-1");
+
+  // Control buffer size
+  configuration.addEnumParameter("-bufferlength", 
+                                  bufferLengthValues, "4096");
 }
 /*!
 
@@ -239,13 +266,17 @@ void
 CCCUSBModule::Initialize(CCCUSB& controller)
 {
   // the action is delegated to a series of utility functions:
+  uint32_t firm;
+  controller.readFirmware(firm);
+  cout << "CCUSB firmware=" << hex << firm << dec << endl;
 
   configureGdg1(controller);
   configureGdg2(controller);
   configureDevices(controller);
   configureOutput(controller);
   configureLED(controller);
-
+  configureBulkTransfer(controller);
+  configureBufferLength(controller);
 
 }
  
@@ -262,10 +293,12 @@ CCCUSBModule::addReadoutList(CCCUSBReadoutList& list)
 {
 
   if (m_pConfiguration->getBoolParameter("-readscalers")) {
-    list.addWrite24(25, 6, 16, m_deviceSource & ~(
-		    (CCCUSB::DeviceSourceSelectorsRegister::scalerAEnable
-		     | CCCUSB::DeviceSourceSelectorsRegister::scalerBEnable)));
-
+//    list.addWrite24(25, 6, 16, m_deviceSource & ~(
+//          (CCCUSB::DeviceSourceSelectorsRegister::scalerAEnable
+//           | CCCUSB::DeviceSourceSelectorsRegister::scalerBEnable)
+//           | CCCUSB::DeviceSourceSelectorsRegister::scalerAFreeze
+//           | CCCUSB::DeviceSourceSelectorsRegister::scalerBFreeze
+//          ));
    
     // Read the scalers:
 
@@ -276,9 +309,11 @@ CCCUSBModule::addReadoutList(CCCUSBReadoutList& list)
 
       list.addWrite24(25, 6, 16, m_deviceSource 
 		      | CCCUSB::DeviceSourceSelectorsRegister::scalerAReset
-		      | CCCUSB::DeviceSourceSelectorsRegister::scalerBReset);
+          | CCCUSB::DeviceSourceSelectorsRegister::scalerAFreeze
+		      | CCCUSB::DeviceSourceSelectorsRegister::scalerBReset
+          | CCCUSB::DeviceSourceSelectorsRegister::scalerBFreeze );
     }
-    list.addWrite24(25, 6, 16, m_deviceSource);
+//    list.addWrite24(25, 6, 16, m_deviceSource);
 
 
   }
@@ -418,14 +453,12 @@ CCCUSBModule::configureDevices(CCCUSB& controller)
   // Scaler A:
 
   registerValue |= (m_pConfiguration->getEnumParameter("-scalera", scalerAInputs)
-    << CCCUSB::DeviceSourceSelectorsRegister::scalerAShift)
-    |  CCCUSB::DeviceSourceSelectorsRegister::scalerAEnable;
+    << CCCUSB::DeviceSourceSelectorsRegister::scalerAShift);
 
   // Scaler B:
 
   registerValue |= (m_pConfiguration->getEnumParameter("-scalerb", scalerBInputs)
-    << CCCUSB::DeviceSourceSelectorsRegister::scalerBShift)
-    |  CCCUSB::DeviceSourceSelectorsRegister::scalerBEnable;
+      << CCCUSB::DeviceSourceSelectorsRegister::scalerBShift);
 
   // DGGA:
   
@@ -437,26 +470,41 @@ CCCUSBModule::configureDevices(CCCUSB& controller)
   registerValue |= m_pConfiguration->getEnumParameter("-gdgbsource", GdgSourceValues)
     << CCCUSB::DeviceSourceSelectorsRegister::DGGBShift;
 
-  // Clear the scalers first...
-
-
-  controller.writeDeviceSourceSelectors(CCCUSB::DeviceSourceSelectorsRegister::scalerAReset
-					|  CCCUSB::DeviceSourceSelectorsRegister::scalerAEnable
-					| CCCUSB::DeviceSourceSelectorsRegister::scalerBReset
-					| CCCUSB::DeviceSourceSelectorsRegister::scalerBEnable
-					);
+  // First disable scalers by writing zero to their enable bits and 1 to their freeze bits 
+  controller.writeDeviceSourceSelectors( CCCUSB::DeviceSourceSelectorsRegister::scalerAFreeze
+                                         | CCCUSB::DeviceSourceSelectorsRegister::scalerBFreeze );
+  uint32_t reg;
+  controller.readDeviceSourceSelectors(reg);
   controller.writeDeviceSourceSelectors(0);
+  controller.readDeviceSourceSelectors(reg);
+
+  // Write the new values to the code bits...
+  controller.writeDeviceSourceSelectors(registerValue);
+  m_deviceSource = registerValue;
+  controller.readDeviceSourceSelectors(reg);
+
+  // Enable and reset the scalers.
+  controller.writeDeviceSourceSelectors(CCCUSB::DeviceSourceSelectorsRegister::scalerAEnable
+                                         | CCCUSB::DeviceSourceSelectorsRegister::scalerAFreeze);
+  controller.readDeviceSourceSelectors(reg);
+  controller.writeDeviceSourceSelectors(CCCUSB::DeviceSourceSelectorsRegister::scalerBEnable
+                                         | CCCUSB::DeviceSourceSelectorsRegister::scalerBFreeze);
+
+  controller.readDeviceSourceSelectors(reg);
+
+  controller.writeDeviceSourceSelectors( reg 
+      | CCCUSB::DeviceSourceSelectorsRegister::scalerAReset
+      | CCCUSB::DeviceSourceSelectorsRegister::scalerAFreeze
+      | CCCUSB::DeviceSourceSelectorsRegister::scalerBReset
+      | CCCUSB::DeviceSourceSelectorsRegister::scalerBFreeze
+      );
+  controller.readDeviceSourceSelectors(reg);
 
   uint16_t qx;
+  // Clear scalers atomically
   controller.simpleControl(25,12,15, qx);
-  controller.writeDeviceSourceSelectors(registerValue);
 
-
-
-  m_deviceSource = registerValue;
-  
-  
-
+  controller.readDeviceSourceSelectors(reg);
 
 }
 /**
@@ -505,3 +553,123 @@ CCCUSBModule::configureLED(CCCUSB& controller)
   controller.writeLedSelector(registerValue);
   
 } 
+
+/**
+ * configureBulkTransfer
+ *
+ * Configure the value of the USB bulk transfer register.  
+ * This determines the criteria for when data is transfered from the USB
+ * device to the host.
+ *
+ * @param controller - reference to the CC-USB  object that represents the CAMAC controller.
+ *
+ */
+void
+CCCUSBModule::configureBulkTransfer(CCCUSB& controller)
+{
+  uint32_t registerValue = 0;
+
+  int mode = m_pConfiguration->getEnumParameter("-bulktransfermode",bulkTransferModeValues);
+
+  // Deal with each mode
+  if (mode==0) { // default
+    // do nothing b/c the CAcquisitionThread has already set the default values
+
+  } else if (mode==1) { // user defined number of buffers to transfer 
+    int nbuffers = m_pConfiguration->getIntegerParameter("-nbuffers2transfer");
+    if (nbuffers==-1) {
+      std::string errmsg("-nbuffers2transfer is required by -bulktransfermode=nbuffers");
+      errmsg += " and has not be set";
+      throw errmsg;
+    }
+    registerValue |= ((nbuffers << CCCUSB::TransferSetupRegister::multiBufferCountShift) 
+                        & CCCUSB::TransferSetupRegister::multiBufferCountMask);
+
+
+
+  } else if (mode==2) { // timeout mode
+    int timeout = m_pConfiguration->getIntegerParameter("-bulktransfertimeout");
+    if (timeout==-1) {
+      std::string errmsg("-bulktransfertimeout is required by -bulktransfermode=timeout");
+      errmsg += " and has not be set";
+      throw errmsg;
+    }
+    registerValue |= ((timeout << CCCUSB::TransferSetupRegister::timeoutShift) 
+                        & CCCUSB::TransferSetupRegister::timeoutMask);
+
+  }
+  
+  // Set the new transfer setup
+  controller.writeUSBBulkTransferSetup(registerValue); 
+  
+} 
+
+
+
+/**
+ * configureBufferLength
+ *
+ * Configure the size of the buffers generated by the CCUSB. This can force bulk transfer of data
+ * to occur more or less frequently.
+ *
+ * @param controller - reference to the CC-USB  object that represents the CAMAC controller.
+ *
+ */
+void CCCUSBModule::configureBufferLength(CCCUSB& controller)
+{
+
+  uint16_t registerValue = 0;
+  uint16_t newValue = 0;
+
+  if (controller.readGlobalMode(registerValue)<0) {
+    throw std::string("CCCUSBModule::configureBufferLength(CCCUSB&) Failure reading global mode");
+  } 
+
+  int mode = m_pConfiguration->getEnumParameter("-bufferlength",bufferLengthValues);
+
+  switch(mode) {
+    case 0: //4096
+      newValue = (CCCUSB::GlobalModeRegister::bufferLen4K 
+                        << CCCUSB::GlobalModeRegister::bufferLenShift);
+      break;
+    case 1: // 2048
+      newValue = (CCCUSB::GlobalModeRegister::bufferLen2K 
+                        << CCCUSB::GlobalModeRegister::bufferLenShift);
+      break;
+    case 2: // 1024 
+      newValue = (CCCUSB::GlobalModeRegister::bufferLen1K 
+                        << CCCUSB::GlobalModeRegister::bufferLenShift);
+      break;
+    case 3: // 512 
+      newValue = (CCCUSB::GlobalModeRegister::bufferLen512 
+                        << CCCUSB::GlobalModeRegister::bufferLenShift);
+      break;
+    case 4: // 256 
+      newValue = (CCCUSB::GlobalModeRegister::bufferLen256 
+                        << CCCUSB::GlobalModeRegister::bufferLenShift);
+      break;
+    case 5: // 128 
+      newValue = (CCCUSB::GlobalModeRegister::bufferLen128
+                        << CCCUSB::GlobalModeRegister::bufferLenShift);
+      break;
+    case 6: // 64
+      newValue = (CCCUSB::GlobalModeRegister::bufferLen64
+                        << CCCUSB::GlobalModeRegister::bufferLenShift);
+      break;
+    case 7: // Single event
+      newValue = (CCCUSB::GlobalModeRegister::bufferLenSingle
+                        << CCCUSB::GlobalModeRegister::bufferLenShift);
+      break;
+  }
+
+  // Mask this new value so that we don't disturb other bits
+  newValue &= CCCUSB::GlobalModeRegister::bufferLenMask;
+
+  // Clear the buffer len bits
+  registerValue &= (~CCCUSB::GlobalModeRegister::bufferLenMask);
+  registerValue |= newValue;
+
+  // Write the new bits
+  controller.writeGlobalMode(registerValue);
+
+}

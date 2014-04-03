@@ -12,7 +12,8 @@ exec tclsh ${0} ${@}
 #
 #   Useful consts.
 #
-set Licensefile ~fox/license/License.txt
+set here [file dirname [info script]]
+set Licensefile "$here/License.txt"
 
 set ticks [clock seconds]
 set year  [clock format $ticks -format %Y]

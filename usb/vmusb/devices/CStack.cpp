@@ -224,6 +224,24 @@ CStack::addReadoutList(CVMUSBReadoutList& list)
     p++;
   }
 }
+
+/*!
+   Executes the end of run operations of stack hardware. Unless hardware 
+   implements their own custom onEndRun method, the default is a noop. 
+*/
+void
+CStack::onEndRun(CVMUSB& controller)
+{
+  StackElements modules = getStackElements();
+  StackElements::iterator p = modules.begin();
+  while(p != modules.end()) {
+    CReadoutHardware* pModule = *p;                                // Wraps the hardware.
+
+    pModule->onEndRun(controller); 
+
+    p++;
+  }
+}
 /*!
   Clone virtualizes copy construction.
 

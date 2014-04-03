@@ -122,6 +122,7 @@ public:
   virtual void onAttach(CReadoutModule& configuration);
   virtual void Initialize(CVMUSB& controller);
   virtual void addReadoutList(CVMUSBReadoutList& list);
+  virtual void onEndRun(CVMUSB& controller);
   virtual CReadoutHardware* clone() const;
 
   // Public interfaces specific to CStack

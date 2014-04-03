@@ -58,6 +58,13 @@
 #endif
 
 
+#ifndef __CVMUSBREADOUTLIST_H
+#include <CVMUSBReadoutList.h>
+#ifndef __CVMUSBREADOUTLIST_H
+#define __CVMUSBREADOUTLIST_H
+#endif
+#endif
+
 //  The structures below are defined in <usb.h> which is included
 //  by the implementation and can be treated as opaque by any of our
 //  clients (they are in fact opaque in usb.h if memory servers.
@@ -65,10 +72,6 @@
 struct usb_device;
 struct usb_dev_handle;
 
-
-// Forward Class definitions:
-
-class CVMUSBReadoutList;
 
 /*!
    This class is part of the support package for the Wiener/JTEC VM-USB 
@@ -128,6 +131,8 @@ private:
     int operator!=(const CVMUSB& rhs) const;
 public:
 
+    CVMUSBReadoutList* createReadoutList() const { return new CVMUSBReadoutList(); }
+
     // Register I/O operations.
 public:
     virtual void     reconnect(); /* Drop USB/open USb. */
@@ -150,7 +155,7 @@ public:
 
 
     virtual void     writeDAQSettings(uint32_t value);
-    virtual uint32_t readDAQSettings();
+    virtual int readDAQSettings();
     void writeDAQSettings(int value) { // SWIG
       writeDAQSettings((uint32_t) value);
     }
@@ -200,8 +205,11 @@ public:
       writeBulkXferSetup((uint32_t)value);
     }
 
-
-    
+    virtual void writeEventsPerBuffer(uint32_t value);
+    virtual uint32_t readEventsPerBuffer(void);
+    void     writeEventsPerBuffer(int value) { // SWIG
+      writeEventsPerBuffer((uint32_t)value);
+    }
 
     // VME transfer operations (1 shot)
 
@@ -433,11 +441,10 @@ public:
 	static const uint16_t bufferLenSingle  = 9;
 	static const uint16_t spanBuffers      = 0x10;
 	static const uint16_t mixedBuffers     = 0x20;
-	static const uint16_t doubleSeparator  = 0x40;
+	static const uint16_t flushScalers     = 0x40;
 	static const uint16_t align32          = 0x80;
 	
 	static const uint16_t doubleHeader     = 0x100;
-	static const uint16_t flushScalers     = 0x200;
 	static const uint16_t busReqLevelMask  = 0x7000;
 	static const uint16_t busReqLevelShift = 12;
     };

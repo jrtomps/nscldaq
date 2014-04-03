@@ -123,17 +123,25 @@ snit::widget ::EVB::inputStatistics::summaryDisplay {
         
         # Layout the widgets
         #
-        grid $innerHull.fraglabel          $innerHull.fragments
-        grid $innerHull.oldlabel           $innerHull.oldest 
-        grid $innerHull.newlabel           $innerHull.newest
+        grid $innerHull.fraglabel -row 0 -column 0 -padx 5 
+        grid $innerHull.fragments -row 0 -column 1 -columnspan 3 -padx 5
+        grid $innerHull.oldlabel -row 1 -column 0 -padx 5
+        grid $innerHull.oldest -row 1 -column 1 -columnspan 3 -padx 5
+        grid $innerHull.newlabel -row 2 -column 0 -padx 5
+        grid $innerHull.newest -row 2 -column 1 -columnspan 3 -padx 5
 
-        grid $innerHull.deepIdLabel    -row 3 -column 0
-        grid $innerHull.deepid         -row 3 -column 1 -sticky e
-        grid $innerHull.deepIdSepLabel -row 3 -column 2
-        grid $innerHull.deepdepth      -row 3 -column 3
+        grid $innerHull.deepIdLabel    -row 3 -column 0 -sticky e -padx 5
+        grid $innerHull.deepid         -row 3 -column 1 -sticky e -padx 5
+        grid $innerHull.deepIdSepLabel -row 3 -column 2 -sticky e -padx 5
+        grid $innerHull.deepdepth      -row 3 -column 3 -sticky e -padx 5
 
         grid $innerHull -sticky nsew
-        
+          
+        grid rowconfigure $win 0 -weight 0
+        grid columnconfigure $win 0  -weight 1
+        grid rowconfigure $win.innerhull 0 -weight 0
+        grid columnconfigure $win.innerhull {0 1 2 3} -weight 1
+          
         $self configurelist $args
     }
 }
@@ -238,10 +246,10 @@ snit::widgetadaptor EVB::inputStatistics::queueStats  {
     #
     constructor args {
         installhull using EVB::utility::sortedWidget \
-            -lefttitle src -create [mymethod _CreateWidget] \
+            -lefttitle Source -create [mymethod _CreateWidget] \
             -update [mymethod _UpdateWidget] \
-            -width 250 -height 300
-        
+            -width 250 -height 300 
+        grid columnconfigure $win 0 -weight 1
         $self configurelist $args
     }
     #-------------------------------------------------------------------------

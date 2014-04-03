@@ -47,8 +47,15 @@ snit::widgetadaptor EVB::connectionList {
 	
 
 	grid $win.table -sticky nsew
-        $self configurelist $args
+  grid columnconfigure $win 0 -weight 1
+  grid rowconfigure $win 0 -weight 1
 
+  $win.table column #1 -stretch on  
+  $win.table column #2 -stretch on  
+  $win.table column #3 -stretch on  
+  $win.table column #4 -stretch on
+  
+  $self configurelist $args
 	$self _update;			# Stock the table and reschedule the update periodicity.
     }
     #-----------------------------------------------------------------------

@@ -293,6 +293,7 @@ snit::type ReadoutGuiApp {
         grid .gui -sticky nsew
         grid rowconfigure . 0 -weight 1
         grid columnconfigure . 0 -weight 1
+        grid configure .gui -padx 5 -pady 5
         
         $self _createDataSourceMenu
         $self _createSettingsMenu

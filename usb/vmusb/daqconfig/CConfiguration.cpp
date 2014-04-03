@@ -38,6 +38,18 @@
 #include "CAddTclDriver.h"
 #include "CHiRACommand.h"
 #include "CVMUSBCommand.h"
+#include "CDelay.h"
+#include "CCBDCamacBranch.h"
+#include "CCamacCrate.h"
+#include "CULMTrigger.h"
+#include "CLeCroy4300B.h"
+#include "CLeCroy4434.h"
+#include "CLeCroy2551.h"
+#include "CXLMFERA.h"
+#include "CCBD8210CrateController.h"
+#include "CCBD8210ReadoutList.h"
+#include "CUserCommand.h"
+//#include "C3820TstampCommand.h"
 
 #include <CReadoutModule.h>
 #include <TCLInterpreter.h>
@@ -96,6 +108,34 @@ CConfiguration::CConfiguration() :
   m_Commands.push_back(new CHiRACommand(*m_pInterp, *this));
   m_Commands.push_back(new CVMUSBCommand(*m_pInterp, *this));
 
+  m_Commands.push_back(new CUserCommand(*m_pInterp, *this, "delay", new CDelay));
+
+  m_Commands.push_back(new CUserCommand(*m_pInterp, *this, "XLMFERA", new CXLMFERA));
+
+  m_Commands.push_back(new CUserCommand(*m_pInterp, *this, "CBDCamacBranch", 
+                                        new CCBDCamacBranch) );
+
+  // Add hybrid drivers
+  typedef CCBD8210CrateController Ctlr;
+  typedef CCBD8210ReadoutList RdoList;
+
+  m_Commands.push_back(new CUserCommand(*m_pInterp, *this, "CBDCamacCrate", 
+                            compat_clone(CCamacCrate<Ctlr,RdoList>())) );
+
+  m_Commands.push_back(new CUserCommand(*m_pInterp, *this, "CBDULMTrigger", 
+                            compat_clone(CULMTrigger<Ctlr,RdoList>())) );
+
+  m_Commands.push_back(new CUserCommand(*m_pInterp, *this, "CBDLeCroy4300B", 
+                            compat_clone(CLeCroy4300B<Ctlr,RdoList>())) );
+
+  m_Commands.push_back(new CUserCommand(*m_pInterp, *this, "CBDLeCroy4434", 
+                            compat_clone(CLeCroy4434<Ctlr,RdoList>())) );
+
+  m_Commands.push_back(new CUserCommand(*m_pInterp, *this, "CBDLeCroy2551", 
+                            compat_clone(CLeCroy2551<Ctlr,RdoList>())) );
+    
+//  m_Commands.push_back(new C3820TstampCommand(*m_pInterp, *this));
+
 }
 /*!
    Destruction must:
@@ -152,7 +192,7 @@ CConfiguration::processConfiguration(string configFile)
     throw;
   }
   catch (CException& error) {
-    cerr << "CConfiguration::processConfiguration caught CExcpetion : "
+    cerr << "CConfiguration::processConfiguration caught CException : "
 	 << error.ReasonText() << " while " << error.WasDoing() << endl;
     cerr << Tcl_GetStringResult(m_pInterp->getInterpreter()) << endl;
     throw;

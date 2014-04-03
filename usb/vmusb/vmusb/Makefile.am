@@ -3,7 +3,8 @@ lib_LTLIBRARIES		= libVMUSB.la libVMUSBRemote.la libCVMUSB.la \
 
 libVMUSB_la_SOURCES 	=  CVMUSBusb.cpp CVMUSBReadoutList.cpp CVMUSBEthernet.cpp \
 	CVMUSBFactory.cpp \
-	CVMUSB.cpp
+	CVMUSB.cpp \
+	CMockVMUSB.cpp
 
 
 libVMUSBRemote_la_SOURCES = CVMUSBReadoutList.cpp \
@@ -18,7 +19,8 @@ noinst_HEADERS		= CVMUSB.h   \
 	CVMUSBusb.h	\
 	CVMUSBEthernet.h \
 	CVMUSBRemote.h       \
-	CVMUSBFactory.h
+	CVMUSBFactory.h \
+	CMockVMUSB.h
 
 
 

@@ -337,7 +337,7 @@ CVMUSB::writeDAQSettings(uint32_t value)
   \return uint32_t
   \retval The value read from the register.
 */
-uint32_t
+int
 CVMUSB::readDAQSettings()
 {
     return readRegister(DAQSetRegister);
@@ -579,7 +579,7 @@ CVMUSB::readIrqMask()
 
 ///////////////////////////////////////////////////////////////////////
 /*!
-    write the bluk transfer setup register.  This register
+    write the bulk transfer setup register.  This register
     sets up a few of the late breaking data taking parameters
     that are built to allow data to flow through the USB more
     effectively.  For bit/mask/shift-count definitions of this
@@ -600,6 +600,28 @@ CVMUSB::readBulkXferSetup()
 {
     return readRegister(USBSetup);
 }
+
+///////////////////////////////////////////////////////////////////////
+/*!
+    write the events per buffer register.  This register
+    controls the number of events after which to close a buffer
+    when the buffer length bits of the global mode register 
+    are set to 9. If that is not the case, this register is ignored.
+    \param value : uint32_t
+      The value to write to the register.
+*/
+void 
+CVMUSB::writeEventsPerBuffer(uint32_t value)
+{
+    writeRegister(ExtractMask, (0xfff&value));
+}
+
+uint32_t 
+CVMUSB::readEventsPerBuffer(void)
+{
+  return readRegister(ExtractMask);
+}
+
 /////////////////////////////////////////////////////////////////////////
 /////////////////////////// VME Transfer Ops ////////////////////////////
 /////////////////////////////////////////////////////////////////////////
