@@ -20,6 +20,7 @@ LIBDIR=@prefix@/TclLibs
 
 bin_PROGRAMS        = controlpush
 
+BUILT_SOURCES = cmdline.c
 
 APPITEMS= cmdline.c CApplication.cpp CChannelList.cpp \
 			CStrings.cpp \
