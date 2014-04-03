@@ -266,6 +266,9 @@ void
 CCCUSBModule::Initialize(CCCUSB& controller)
 {
   // the action is delegated to a series of utility functions:
+  uint32_t firm;
+  controller.readFirmware(firm);
+  cout << "CCUSB firmware=" << hex << firm << dec << endl;
 
   configureGdg1(controller);
   configureGdg2(controller);
@@ -290,10 +293,12 @@ CCCUSBModule::addReadoutList(CCCUSBReadoutList& list)
 {
 
   if (m_pConfiguration->getBoolParameter("-readscalers")) {
-    list.addWrite24(25, 6, 16, m_deviceSource & ~(
-		    (CCCUSB::DeviceSourceSelectorsRegister::scalerAEnable
-		     | CCCUSB::DeviceSourceSelectorsRegister::scalerBEnable)));
-
+//    list.addWrite24(25, 6, 16, m_deviceSource & ~(
+//          (CCCUSB::DeviceSourceSelectorsRegister::scalerAEnable
+//           | CCCUSB::DeviceSourceSelectorsRegister::scalerBEnable)
+//           | CCCUSB::DeviceSourceSelectorsRegister::scalerAFreeze
+//           | CCCUSB::DeviceSourceSelectorsRegister::scalerBFreeze
+//          ));
    
     // Read the scalers:
 
@@ -304,9 +309,11 @@ CCCUSBModule::addReadoutList(CCCUSBReadoutList& list)
 
       list.addWrite24(25, 6, 16, m_deviceSource 
 		      | CCCUSB::DeviceSourceSelectorsRegister::scalerAReset
-		      | CCCUSB::DeviceSourceSelectorsRegister::scalerBReset);
+          | CCCUSB::DeviceSourceSelectorsRegister::scalerAFreeze
+		      | CCCUSB::DeviceSourceSelectorsRegister::scalerBReset
+          | CCCUSB::DeviceSourceSelectorsRegister::scalerBFreeze );
     }
-    list.addWrite24(25, 6, 16, m_deviceSource);
+//    list.addWrite24(25, 6, 16, m_deviceSource);
 
 
   }
@@ -446,14 +453,12 @@ CCCUSBModule::configureDevices(CCCUSB& controller)
   // Scaler A:
 
   registerValue |= (m_pConfiguration->getEnumParameter("-scalera", scalerAInputs)
-    << CCCUSB::DeviceSourceSelectorsRegister::scalerAShift)
-    |  CCCUSB::DeviceSourceSelectorsRegister::scalerAEnable;
+    << CCCUSB::DeviceSourceSelectorsRegister::scalerAShift);
 
   // Scaler B:
 
   registerValue |= (m_pConfiguration->getEnumParameter("-scalerb", scalerBInputs)
-    << CCCUSB::DeviceSourceSelectorsRegister::scalerBShift)
-    |  CCCUSB::DeviceSourceSelectorsRegister::scalerBEnable;
+      << CCCUSB::DeviceSourceSelectorsRegister::scalerBShift);
 
   // DGGA:
   
@@ -465,27 +470,41 @@ CCCUSBModule::configureDevices(CCCUSB& controller)
   registerValue |= m_pConfiguration->getEnumParameter("-gdgbsource", GdgSourceValues)
     << CCCUSB::DeviceSourceSelectorsRegister::DGGBShift;
 
-  // Clear the scalers first...
-
-
-  controller.writeDeviceSourceSelectors(CCCUSB::DeviceSourceSelectorsRegister::scalerAReset
-					|  CCCUSB::DeviceSourceSelectorsRegister::scalerAEnable
-					| CCCUSB::DeviceSourceSelectorsRegister::scalerBReset
-					| CCCUSB::DeviceSourceSelectorsRegister::scalerBEnable
-					);
+  // First disable scalers by writing zero to their enable bits and 1 to their freeze bits 
+  controller.writeDeviceSourceSelectors( CCCUSB::DeviceSourceSelectorsRegister::scalerAFreeze
+                                         | CCCUSB::DeviceSourceSelectorsRegister::scalerBFreeze );
+  uint32_t reg;
+  controller.readDeviceSourceSelectors(reg);
   controller.writeDeviceSourceSelectors(0);
+  controller.readDeviceSourceSelectors(reg);
+
+  // Write the new values to the code bits...
+  controller.writeDeviceSourceSelectors(registerValue);
+  m_deviceSource = registerValue;
+  controller.readDeviceSourceSelectors(reg);
+
+  // Enable and reset the scalers.
+  controller.writeDeviceSourceSelectors(CCCUSB::DeviceSourceSelectorsRegister::scalerAEnable
+                                         | CCCUSB::DeviceSourceSelectorsRegister::scalerAFreeze);
+  controller.readDeviceSourceSelectors(reg);
+  controller.writeDeviceSourceSelectors(CCCUSB::DeviceSourceSelectorsRegister::scalerBEnable
+                                         | CCCUSB::DeviceSourceSelectorsRegister::scalerBFreeze);
+
+  controller.readDeviceSourceSelectors(reg);
+
+  controller.writeDeviceSourceSelectors( reg 
+      | CCCUSB::DeviceSourceSelectorsRegister::scalerAReset
+      | CCCUSB::DeviceSourceSelectorsRegister::scalerAFreeze
+      | CCCUSB::DeviceSourceSelectorsRegister::scalerBReset
+      | CCCUSB::DeviceSourceSelectorsRegister::scalerBFreeze
+      );
+  controller.readDeviceSourceSelectors(reg);
 
   uint16_t qx;
-  // Clear scalers
+  // Clear scalers atomically
   controller.simpleControl(25,12,15, qx);
-  controller.writeDeviceSourceSelectors(registerValue);
 
-
-
-  m_deviceSource = registerValue;
-  
-  
-
+  controller.readDeviceSourceSelectors(reg);
 
 }
 /**
