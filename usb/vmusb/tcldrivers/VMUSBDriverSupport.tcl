@@ -236,3 +236,22 @@ proc ::VMUSBDriverSupport::validIntList {value {fewest ""} {most ""} {low ""} {h
 proc ::VMUSBDriverSupport::validBoolList {value {fewest ""} {most ""}} {
     VMUSBDriverSupport::validList $value $fewest $most VMUSBDriverSupport::validBool
 }
+
+
+
+proc ::VMUSBDriverSupport::list_to_rdolist {atcllist} { 
+
+  set len [llength $atcllist]
+  set vecptr [cvmusbreadoutlist::vecuint32_create $len ]
+
+  for {set i 0} {$i < $len} {incr i} {
+    cvmusbreadoutlist::vecuint32_set $vecptr $i [lindex $atcllist $i] 
+  }
+  
+  set rdolist [cvmusbreadoutlist::CVMUSBReadoutList rdolist \
+                [cvmusbreadoutlist::vecuint32_ptr2ref $vecptr]]
+  return $rdolist
+
+}
+
+
