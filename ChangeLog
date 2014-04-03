@@ -569,3 +569,7 @@ Feb 1, 2012 - Feb 24, 2012
         * Issue #1927 (sort of) appended source id to identification of
 	  source of message so user doesn't have to worry about how to
           name stuff.
+  * New drivers added to VMUSBReadout and CCUSBReadout
+  * Filter framework included
+  * Some aesthetics improved on ReadoutGUI
+  * Extra configuration controls added in vmusb driver
