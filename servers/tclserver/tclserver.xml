@@ -49,6 +49,16 @@
 serverauth add spdaq20.nscl.msu.edu
             </programlisting>
         </example>
+        <section>
+            <title>Tcl server package</title>
+            <para>
+                TclServer is also available as a package that can be incorporated
+                into Tcl scripts.
+                For information about that, see:
+                <link linkend='tcl3_tclserver_class'
+                      endterm='tcl3_tclserver_class_title' />
+            </para>
+        </section>
 </chapter>
 
 <!-- /chapter -->
@@ -218,4 +228,183 @@ serverauth list
   </refsect1>
  
 </refentry>
+<!-- /manpage -->
+
+<!-- manpage 3tcl -->
+
+      <refentry id="tcl3_tclserver_class">
+        <refmeta>
+           <refentrytitle id="tcl3_tclserver_class_title">TclServer</refentrytitle>
+           <manvolnum>3tcl</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>TclServer</refname>
+           <refpurpose>Embeddable Tcl Server script object</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+package require TclServer
+          </command>
+          </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+set <replaceable>server</replaceable> [TclServer %AUTO% <replaceable>?options?</replaceable>]
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>$server methodname ?params?</replaceable>
+                </command>
+            </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            <classname>TclServer</classname> provides a pure Tcl Tcl server that
+            can be embedded into a script.  A script using
+            <classname>TclServer</classname> must be based on the Tcl event
+            loop as that is used to dispatch connection and input events.
+           </para>
+           <para>
+            In insecure environments you should probably embed the
+            <classname>TclServer</classname> in a secure slave interpreter.
+            Users can implement authentication protocols via the
+            <option>-onconnect</option> script.   Error handling can also be
+            customized via the <option>-onerror</option> script.
+           </para>
+           <para>
+            The sever can be in two states.   In the <literal>inactive</literal>
+            state the server is not listening for new connections.  Prior connections
+            could still be executing.  In the <literal>active</literal> state,
+            the server is listening for connections on the port configured
+            via the <option>-port</option> option.
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              OPTIONS
+           </title>
+           <para>
+            Several options control the way the server works:
+           </para>
+           <variablelist>
+            <varlistentry>
+                <term><option>-port</option> <replaceable>port-num</replaceable></term>
+                <listitem>
+                    <para>
+                        Determines which TCP/IP port the server will listen on
+                        for client connections.  This can only be configured when
+                        the server is in the <literal>inactive</literal> state.
+                        See the <methodname>start</methodname> and
+                        <methodname>stop</methodname> methods in the METHODS
+                        section below for more information.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-onconnect</option> <replaceable>script</replaceable></term>
+                <listitem>
+                    <para>
+                        Specifies a script to be called when a connection
+                        request is received.  The script must take three parameters
+                        which are in order;
+                    </para>
+                    <orderedlist>
+                        <listitem><para>The socket fd on which data are transferred </para></listitem>
+                        <listitem><para>The IP address of the client</para></listitem>
+                        <listitem><para>The port assigned the client</para></listitem>
+                    </orderedlist>
+                    <para>
+                        If the script returns false, the connection will be immediately
+                        closed by the server.  If true, the server will set up
+                        to handle commands from the client.  This option therefore
+                        allows users of the <classname>TclServer</classname> object
+                        to implement authentication protocols.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-onerror</option> <replaceable>script</replaceable></term>
+                <listitem>
+                    <para>
+                        Specifies a script that will be called whenever a remotely
+                        requested script has thrown an error.  The script is called
+                        with three parameters that are in order:
+                    </para>
+                    <orderedlist>
+                        <listitem><para>The channel on which the script was received.</para></listitem>
+                        <listitem><para>The command that caused the error.</para></listitem>
+                        <listitem><para>The error message produced by the command.</para></listitem>
+                    </orderedlist>
+                    <para>
+                        If the script returns <literal>false</literal> the
+                        client connection is closed by the server.  If the
+                        script returns <literal>true</literal> the client
+                        connection remains open.
+                    </para>
+                </listitem>
+            </varlistentry>
+                
+           </variablelist>
+        </refsect1>
+        <refsect1>
+            <title>METHODS</title>
+            <para>
+                The following methods control the server.
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><methodname>start</methodname></term>
+                    <listitem>
+                        <para>
+                            Starts the server.  This puts the server into the
+                            <literal>active</literal> mode.  Configuring the
+                            <option>-port</option> option when <literal>active</literal>
+                            results in an error.  If the server is already
+                            <literal>active</literal> an error is also thrown.
+                        </para>
+                        <para>
+                            If the <option>-port</option> configuration option is
+                            not a legal positive integer an error will be thrown.
+                            If a privileged port is chosen but the application does
+                            not have privilege the <command>socket -server</command>
+                            command will throw an error.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><methodname>stop</methodname></term>
+                    <listitem>
+                        <para>
+                            Stops the server.  This puts the server into the
+                            <literal>inactive</literal> state.  Note that
+                            this only stops listening for new connections.
+                            Existing connections are retained unless or until
+                            the <methodname>close</methodname> method is invoked.
+                        </para>
+                        <para>
+                            It is an error to <methodname>stop</methodname> the
+                            server when it is <literal>inactive</literal>.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><methodname>close</methodname></term>
+                    <listitem>
+                        <para>
+                            Closes all active client connections.   This can be
+                            performed in any server state.  It is not an error
+                            to <methodname>close</methodname> if there are no
+                            active connections.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </refsect1>
+      </refentry>
+
+
 <!-- /manpage -->

@@ -23,7 +23,7 @@
 #include "CReadoutModule.h"
 #include <CVMUSB.h>
 #include <CVMUSBReadoutList.h>
-
+#include <os.h>
 
 #include <tcl.h>
 
@@ -292,7 +292,7 @@ CV1x90::Initialize(CVMUSB& controller)
 
   controller.vmeWrite16(base + CCAENV1x90Registers::WReset, initamod, (uint16_t)0);
   WaitMicro(controller, base);
-  usleep(1000);			// Wait another msec just in case.
+  Os::usleep(1000);			// Wait another msec just in case.
   WaitMicro(controller,base);	// ..and wait for the micro to be ready.
 
   // Figure out m_Model, m_Suffix, m_nChipCount, and m_nChannelCount

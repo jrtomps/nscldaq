@@ -23,6 +23,8 @@
 #include <string>
 #include <iostream>
 #include <CVMEInterface.h>
+#include <os.h>
+
 
 using namespace std;
 
@@ -279,7 +281,7 @@ int CAENcard_767::readOpcode(uint16_t *value, int maxRetry)
   
   //take the prescribed 10ms timeout before reading the value
   
-  usleep(10000);
+  Os::usleep(10000);
   
   //now read the register and return
   *value = m_pSpace->peekw(CAEN_767_OPCODE);
@@ -304,7 +306,7 @@ CAENcard_767::writeOpcode(uint16_t value, int maxRetry)
     
     //take the prescribed 10ms timeout before reading the value
     
-    usleep(10000);
+    Os::usleep(10000);
     
     //now write the register and return
     
@@ -339,7 +341,7 @@ int CAENcard_767::opcodeWait(int maxRetry)
   
   //take the prescribed 10ms timeout before doing anything else
   
-  usleep(10000);
+  Os::usleep(10000);
   
   return( i );
   

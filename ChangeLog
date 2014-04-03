@@ -508,7 +508,7 @@ Feb 1, 2012 - Feb 24, 2012
 	always should have been if I'd not been so lazy.
 	* Added documentation for ReadoutGUIPanel::Log method.
         * Issue #1045 - Redo event GUI to support multiple readouts.
-        *   Add control over readout gui's log window characteristics
+        *   Add control over readout gui's log window charact>eristics
         *   Add sshPipe provider wd parameter.
         *   Expose that parameter in the prompter for the source in the
 	gui.
@@ -519,6 +519,53 @@ Feb 1, 2012 - Feb 24, 2012
 	* Issue #1876 Ensure all output is captured by the ssh pipe
 	(stupid redirection tricks).
 
-11.0-rc4 Networked trigger management and misc fixes.
-	
+11.0-rc4  Misc fixes.
+	* Issue #1760  - Don't rethrow exception in XXUSB CTheApplication.cpp
+	operator() -- just exit since there's no other exception handler.
+	* Remove lines/cols from outputwindow settings...it's now resizeable
+        * Issue #1850 - Add skeleton build tests to Jenkins job.l
+	* Issue #1824 - Add and install documentation for unglom.
+        * Issue #1761 - Make the xxusbReadout frameworks not output versions
+          by default and synch their versions with nscldaq version when
+          used with the --version option.
+	* Issue #1835 - Remove duplicated VmeModule.{h,cpp} -- chose the
+	one in nsclapi over the one in vmemodules.
+        * Issue #1827 - Add --scaler-width option to dumper to deal with 
+	   X/Q bits in CCUSB Scalers e.g.  This was done by introducing a
+	public static attribute CRingScalerItem::m_ScalerFormatMask which
+	toString ands with scaler values.
+	* Issue #1825 - Document SBS readout commands and key variables.
 
+11.0-rc5 
+	* Issue #1834 - Add SBS and vmsub firmware upgraders for CAEN
+	products.
+	* Issue #1878 - Add documentation for the SBS Scripted readout
+	framework. 
+	* Issue #1721 - Remove use of usleep as that's posix deprecated.
+	This was done by creating an Os::usleep function that used
+	nanosleep which is still posix good and rewriting all uses of
+	usleep as Os::usleep.
+	* Issue #1762 add exit handlers to XXUSBReadout so that if the process exits
+	with acquisition active the XXUSB controller is told to exit
+	acquisition mode and buffers are dumped.	
+        * Issue #1899 Add dcoumentation for glom.
+        * Roll in Jeromy's fix for s800 ring data source startup in evb 
+         Readout callouts.
+
+11.0-rc6
+        *   Issue #1814 - Add run state callbacks to CEventSegment
+        *   Issue #1916 - Fix buffer overflow error in nscldaq-11.0
+        *   Added ReadoutGuiRemoteControl package that can remotely control
+            readout GUI.
+        *   Added ReadoutGuiClient.tcl - low level client procs for ReadoutGuiRemoteControl package.
+        *   Added ReadoutGUIProvider.tcl - Data source provider for remote
+	ReadoutGUIs.
+	* Fix errors in stdintoring that cause it to blow up badly if a
+	single event does not fit in the --minsize buffer.
+	* Add some new manpage sections.
+	* Fix edge case ordering errors in event builder/orderer section.
+	* Fix Issue #1928 - Event orderer GUI.tcl was never updating the
+          total output fragment count ui element.
+        * Issue #1927 (sort of) appended source id to identification of
+	  source of message so user doesn't have to worry about how to
+          name stuff.

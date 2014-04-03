@@ -110,7 +110,7 @@ ScriptedReadout_LDADD = @top_builddir@/sbs/scripted/libScriptedRdo.la   \
 	-lpthread
 
 
-EXTRA_DIST=Makefile.skel scriptedreadout_Makefile.include
+EXTRA_DIST=Makefile.skel scriptedreadout_Makefile.include scripted.xml
 
 
 #
@@ -129,19 +129,19 @@ EXTRA_DIST=Makefile.skel scriptedreadout_Makefile.include
 #  in                                     .../skel
 #
 install-exec-local:
-	$(mkinstalldirs)     @prefix@/contrib
-	$(mkinstalldirs)     @prefix@/contrib/scriptedReadout
-	$(mkinstalldirs)     @prefix@/contrib/scriptedReadout/include
-	$(mkinstalldirs)     @prefix@/contrib/scriptedReadout/skel
-	$(mkinstalldirs)     @prefix@/contrib/scriptedReadout/src
+	$(mkinstalldirs)     @prefix@/skeletons
+	$(mkinstalldirs)     @prefix@/skeletons/scriptedReadout
+	$(mkinstalldirs)     @prefix@/skeletons/scriptedReadout/include
+	$(mkinstalldirs)     @prefix@/skeletons/scriptedReadout/skel
+	$(mkinstalldirs)     @prefix@/skeletons/scriptedReadout/src
 	$(mkinstalldirs)     @prefix@/etc
-	$(INSTALL_DATA)   @srcdir@/*.cpp @prefix@/contrib/scriptedReadout/src
-	$(INSTALL_DATA)   @srcdir@/*.h   @prefix@/contrib/scriptedReadout/include
+	$(INSTALL_DATA)   @srcdir@/*.cpp @prefix@/skeletons/scriptedReadout/src
+	$(INSTALL_DATA)   @srcdir@/*.h   @prefix@/skeletons/scriptedReadout/include
 	$(INSTALL_DATA)    @srcdir@/Skeleton.cpp @srcdir@/Skeleton.h  \
-				@prefix@/contrib/scriptedReadout/skel
+				@prefix@/skeletons/scriptedReadout/skel
 	echo INSTDIR=@prefix@                                 > Makefile.user
 	cat  @srcdir@/Makefile.skel                                    >> Makefile.user
 	$(INSTALL_DATA) @srcdir@/Makefile.user \
-		@prefix@/contrib/scriptedReadout/skel/Makefile
+		@prefix@/skeletons/scriptedReadout/skel/Makefile
 	$(INSTALL_DATA) @srcdir@/scriptedreadout_Makefile.include \
 	        @prefix@/etc

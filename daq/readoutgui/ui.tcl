@@ -566,6 +566,8 @@ snit::widgetadaptor RunControl {
         Paused   [list {beginend End}   {pauseresume Resume}]               \
     ]
     
+    variable slave 0
+    
     ##
     # constructor
     #
@@ -575,6 +577,11 @@ snit::widgetadaptor RunControl {
     #   - Install the RunStateMachine singleton as our stateMachine component.
     #   - Make our appearance match the statemachine's current state.
     #   - configure any options provided at instantiation time.
+    #
+    # METHODS
+    #     slave - Set slave mode by making the buttons go away
+    #     master- Set master mode by relaying out the UI.
+    #     isSlave - Return slave state.
     #
     # @param args - The -option value configuration options provided at
     #               instantiation time.
@@ -587,16 +594,10 @@ snit::widgetadaptor RunControl {
         ttk::button $win.pauseresume -text Pause -command [mymethod _pauseresume]
         ttk::checkbutton $win.record -text Record -onvalue 1 -offvalue 0 \
             -variable [myvar options(-recording)]
+        ttk::label $win.slavemode -text "Currently  in slave mode (NotReady)"
         
-        grid $win.start -columnspan 2 -sticky n
-        grid $win.beginend $win.pauseresume -sticky n
-        grid $win.record -columnspan 2 -sticky n
-
-        grid configure $win -padx 5 -pady 5
-        grid rowconfigure $win 0 -weight 0        
-        grid rowconfigure $win 1 -weight 0        
-        grid rowconfigure $win 2 -weight 0        
-       
+        $self _layoutWidgets
+        
         install stateMachine using RunstateMachineSingleton %AUTO%
         $self _updateAppearance
         
@@ -614,6 +615,25 @@ snit::widgetadaptor RunControl {
         }
     }
     
+    method slave {} {
+        if {!$slave} {
+            set slave 1
+            grid forget  $win.start $win.beginend $win.record $win.pauseresume
+            grid $win.slavemode
+        }
+    }
+    method master {} {
+        if {$slave} {
+            set slave 0
+            grid forget $win.slavemode
+            $self _layoutWidgets
+            $self _changePauseVisibility -pauseable $options(-pauseable)
+        }
+        
+    }
+    method isSlave {} {
+        return $slave
+    }
     #---------------------------------------------------------------------------
     #  Configuration methods
     
@@ -705,7 +725,21 @@ snit::widgetadaptor RunControl {
     #---------------------------------------------------------------------------
     #  Other private methods:
     #
-    
+    ##
+    # _layoutWidgets
+    #    Called to do the initial layout of the widgets (modulo pause/resume)
+    #
+    method _layoutWidgets {} {
+        grid $win.start -columnspan 2 -sticky n
+        grid $win.beginend $win.pauseresume -sticky n
+        grid $win.record -columnspan 2 -sticky n
+
+        grid configure $win -padx 5 -pady 5
+        grid rowconfigure $win 0 -weight 0        
+        grid rowconfigure $win 1 -weight 0        
+        grid rowconfigure $win 2 -weight 0        
+        
+    }
     ##
     # _updateAppearance
     #   Called to make the widget appearance consistent with the current run
@@ -714,6 +748,8 @@ snit::widgetadaptor RunControl {
     #
     method _updateAppearance {} {
         set state [$stateMachine getState]
+        
+        $win.slavemode configure -text "Currently  in slave mode ($state)"
         
         # Widget states:
         
@@ -1562,6 +1598,8 @@ proc ::ReadoutGUIPanel::setRequestedRunTime secs {
 #    -history    - Number of lines of historical text that are retained.
 #    -logclasses - Defines the set of log classes accepted by the log method.
 #    -showlog    - Defines which of the log classes will actually be displayed.
+#    -monitorcmd - Defines a command to call when stuff is output to the window.
+#                  the text of the output is appended to the command.
 # METHODS:
 #   puts         - puts data to the widget
 #   clear        - clear the entire text and history.
@@ -1588,6 +1626,7 @@ snit::widgetadaptor OutputWindow {
         error   [list -background white -foreground red]      \
         warning [list -foreground magenta]                     \
     ] -configuremethod _updateTagOptions
+    option -monitorcmd [list]
     
     # If non empty, this is the log file fd.
     
@@ -1793,6 +1832,12 @@ snit::widgetadaptor OutputWindow {
         if {$logfileFd != ""} {
             puts -nonewline $logfileFd $data
             flush $logfileFd
+        }
+        # If there is a non null -monitorcmd hand it the text:
+        
+        set cmd $options(-monitorcmd)
+        if {$cmd ne ""} {
+            uplevel #0 $cmd "{$data}"
         }
     }
 }

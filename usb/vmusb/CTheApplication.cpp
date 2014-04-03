@@ -33,6 +33,8 @@
 #include <tcl.h>
 #include <DataBuffer.h>
 #include <CRingBuffer.h>
+#include <CAcquisitionThread.h>
+#include <os.h>
 
 #include <CPortManager.h>
 
@@ -84,7 +86,7 @@ CTheApplication::CTheApplication()
 {
   if (m_Exists) {
     cerr << "Attempted to create more than one instance of the application\n";
-    exit(EX_SOFTWARE);
+    Tcl_Exit(EX_SOFTWARE);
   }
   m_Exists = true;
   m_pInterpreter = static_cast<CTCLInterpreter*>(NULL);
@@ -140,14 +142,14 @@ int CTheApplication::operator()(int argc, char** argv)
     );
   }
 
-  cerr << "VM-USB scriptable readout version " << versionString << endl;
+  //  cerr << "VM-USB scriptable readout version " << versionString << endl;
 
   // If --enumerate was given, just enumerate the VM-USB modules connected to the
   // system on stdout and exit.
 
   if (parsedArgs.enumerate_given) {
     enumerateVMUSB();
-    exit(EXIT_SUCCESS);
+    Tcl_Exit(EXIT_SUCCESS);
   }
 
   try {				// Last chance exception catching...
@@ -209,7 +211,7 @@ int CTheApplication::operator()(int argc, char** argv)
         if(end == portString.c_str()) {       // failed.
             std::cerr << "--port string must be either a number or 'managed'\n";
             cmdline_parser_print_help();
-            exit(EXIT_FAILURE);
+            Tcl_Exit(EXIT_FAILURE);
         } else {
             tclServerPort = port;
         }
@@ -221,22 +223,22 @@ int CTheApplication::operator()(int argc, char** argv)
   }
   catch (string msg) {
     cerr << "CTheApplication caught a string exception: " << msg << endl;
-    exit(EXIT_FAILURE);
+    Tcl_Exit(EXIT_FAILURE);
   }
   catch (const char* msg) {
     cerr << "CTheApplication caught a char* excpetion " << msg << endl;
-    exit(EXIT_FAILURE);
+    Tcl_Exit(EXIT_FAILURE);
 
   }
   catch (CException& error) {
     cerr << "CTheApplication caught an NCLDAQ exception: " 
 	 << error.ReasonText() << " while " << error.WasDoing() << endl;
 
-    exit(EXIT_FAILURE);
+    Tcl_Exit(EXIT_FAILURE);
   }
   catch (...) {
     cerr << "CTheApplication thread caught an excpetion of unknown type\n";
-    exit(EXIT_FAILURE);
+    Tcl_Exit(EXIT_FAILURE);
 
   }
     return EX_SOFTWARE; // keep compiler happy, startInterpreter should not return.
@@ -257,7 +259,7 @@ CTheApplication::startOutputThread(std::string ring)
 {
   COutputThread* router = new COutputThread(ring);
   router->start();
-  usleep(500);
+  Os::usleep(500);
 
 }
 /* 
@@ -272,7 +274,7 @@ CTheApplication::startTclServer()
   pServer->start(tclServerPort, Globals::controlConfigFilename.c_str(),
 		   *Globals::pUSBController);
   Globals::pTclServer = pServer; // Save for readout.
-  usleep(500);
+  Os::usleep(500);
 }
 /*
     Start the Tcl interpreter, we use the static AppInit as a trampoline into the
@@ -282,6 +284,7 @@ CTheApplication::startTclServer()
 void
 CTheApplication::startInterpreter()
 {
+  Tcl_CreateExitHandler(CTheApplication::ExitHandler, reinterpret_cast<ClientData>(this));
   Tcl_Main(m_Argc, m_Argv, CTheApplication::AppInit);
 }
 
@@ -403,6 +406,24 @@ CTheApplication::destinationRing(const char* pRingName)
     return std::string(pRingName);
   } else {
     return CRingBuffer::defaultRing();
+  }
+}
+
+/** 
+ * ExitHandler
+ *   This is invoked when the application is about to exit.  If the acquisition thread
+ *   is actively taking data, we stop data taking and flush the buffers.  This is an attempt
+ *   to reduce the number of times the VM-USB is left in the hung state.
+ * 
+ * @param pData - Actually a pointer to the application (in case we need it for later).
+ *
+ */
+void
+CTheApplication::ExitHandler(ClientData pData)
+{
+  CAcquisitionThread* pReadout = CAcquisitionThread::getInstance();
+  if (pReadout->isRunning()) {
+    pReadout->stopDaq();	// Flushes buffers etc. too.
   }
 }
 

@@ -1,0 +1,149 @@
+<!-- chapter utilities -->
+
+<chapter>
+    <title>unglom</title>
+    <para>
+        Time stamped event building requires that you choose a coincidence
+        window that defines which fragments are correlated to form an event.
+        The coincidence window is specified using the <option>-dt</option>
+        option on the
+        <link linkend='daq1_glom' endterm='daq1_glom_title' /> command.
+        If this time window is incorrectly chosen events may not be correctly built.
+    </para>
+    <para>
+        The <command>unglom</command> command is a filter (input from
+        standard input and output to standard output) that takes  the
+        data output from
+        <link linkend='daq1_glom' endterm='daq1_glom_title' /> and breaks it up
+        into its constituent fragments again.  Once that's done, the idea is
+        that you can use
+        <link linkend='daq1_glom' endterm='daq1_glom_title' /> again to
+        rebuild the events from the original fragments with a different
+        coincidence time window.;
+    </para>
+    <para>
+        For reference information about <command>unglom</command>
+        see:
+        <link linkend='daq1_unglom' endterm='daq1_unglom_title' />
+    </para>
+    <para>
+        Below is an example of using <command>unglom</command> together
+        with <command>glom</command> in a pipeline to rebuild an event
+        file with a new coincidence window.
+    </para>
+    <example>
+        <title>Using unglom and glom to re-build events</title>
+        <programlisting>
+unglom &lt;run-0001-00.evt --id 1 | glom --dt=100 &gt;run0001-00-reglommed.evt
+        </programlisting>
+    </example>
+    <para>
+        Naturally a script could be written either to accept an input/output file
+        as parameters or to iterate over an entire set of event files.
+    </para>
+</chapter>
+
+<!-- /chapter -->
+
+<!-- manpage 1daq -->
+      <refentry id="daq1_unglom">
+        <refmeta>
+           <refentrytitle id='daq1_unglom_title'>unglom</refentrytitle>
+           <manvolnum>1daq</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>unglom</refname>
+           <refpurpose>Break up an event file into event fragments</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+unglom <replaceable>?options?</replaceable>
+          </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+                <command>unglom</command> is a filter that accepts an event
+                file on its standard input and produces and event file on
+                its standard output.
+           </para>
+           <para>
+                The input event file is assumed to have come from the output
+                of
+                <link linkend='daq1_glom' endterm='daq1_glom_title' /> in event
+                building mode.  The output event file will be decomposed back into
+                the original event fragments that made up the events built by
+                <link linkend='daq1_glom' endterm='daq1_glom_title' />.
+           </para>
+           <para>
+                Normally <command>unglom</command> will be a stage in a pipeline
+                that will rebuild events using a different time value for the
+                coincidence window than originally used to build the event file.
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              OPTIONS
+           </title>
+           <variablelist>
+            <varlistentry>
+                <term><option>--help</option></term>
+                <listitem>
+                    <para>
+                        All other options are ignored and brief program usage
+                        help is output to stdout.  The program then exits without
+                        processing stdin.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>--version</option></term>
+                <listitem>
+                    <para>
+                        All other options are ignored and the program version is
+                        printed to stdout.  The program then exits without
+                        processing stdin.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>--id</option>=<replaceable>non-event-fragment-id</replaceable></term>
+                <listitem>
+                    <para>
+                        Pre NSCLDAQ-11.0, and NSCLDAQ-11.0 and alter data that
+                        do not have body headers,
+                        non-event fragments do not have information
+                        about their source-ids.  The value of this option is used
+                        as the source id for non-event fragments in that case.
+                        For NSCLDAQ-11.0 data, if the non-event fragments have a
+                        body header, the event source in that header is used as
+                        the fragment id instead.  
+                    </para>
+                </listitem>
+            </varlistentry>
+            
+           </variablelist>
+        </refsect1>
+        <refsect1>
+            <title>EXAMPLES</title>
+            <para>
+                The example below converts a glommed event file named
+                <filename>run-0001-00.evt</filename>
+                into a glommed event file named
+                <filename>run-0001-00-dt=100.evt</filename> where the coincidence
+                interval is <literal>100</literal> clock ticks.  Any non event
+                fragments that don't have an id are given the source id 0.
+            </para>
+            <informalexample>
+                <programlisting>
+unglom &lt;run-0001-00.evt --id=0 | glom --dt=100 &gt;run-0001-00-dt=100.evt
+                </programlisting>
+            </informalexample>
+        </refsect1>
+      </refentry>
+
+<!-- /manpage -->

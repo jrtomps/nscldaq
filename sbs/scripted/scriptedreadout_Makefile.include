@@ -19,7 +19,7 @@
 
 DAQLIBS=$(INSTDIR)/lib
 DAQINCLUDE=$(INSTDIR)/include
-SCRIPTINCLUDES=$(INSTDIR)/contrib/scriptedReadout/include
+SCRIPTINCLUDES=$(INSTDIR)/skeletons/scriptedReadout/include
 
 
 CXXFLAGS+= -D__UNIX__  $(TCL_FLAGS) \

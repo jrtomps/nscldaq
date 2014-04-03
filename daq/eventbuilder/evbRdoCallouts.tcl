@@ -182,7 +182,7 @@ proc EVBC::start args {
     #
     set bindir [file join $EVBC::daqtop bin]
     set orderer [file join $bindir startOrderer]
-    set pipecommand tclsh;        # TODO - this should be @TCLSH_CMD@
+    set pipecommand "tclsh 2>/dev/null";        # TODO - this should be @TCLSH_CMD@
     
     #  If -teering is not null hook teering into the pipeline:
     
@@ -306,9 +306,9 @@ proc EVBC::reset {}  {
 #  @exception The event builder pipeline is not running.
 #
 proc EVBC::flush {} {
-    EVBC::_CheckPipeline EVBC::flush
+    #EVBC::_CheckPipeline EVBC::flush
     
-    puts $EVBC::pipefd EVB::flushqueues
+    #puts $EVBC::pipefd EVB::flushqueues
 }
 #------------------------------------------------------------------------------
 ##
@@ -378,7 +378,7 @@ proc EVBC::startS800Source {ringUrl id {desc {S800 USB data}}} {
     #
     set extractor  [file join $EVBC::daqtop lib libS800TimeExtractor.so]
     
-    EVB::startRingSource $ringUrl $extractor $id $desc
+    EVBC::startRingSource $ringUrl $extractor $id $desc
     
 }
 

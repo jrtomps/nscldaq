@@ -314,13 +314,28 @@ snit::type DataSourceManager {
     #   Start all data sources:
     #
     method startAll {} {
+        set failures 0
         if {![catch {$self _listOrderedSources ignore} sources]} {
             foreach id $sources {
                 set paramDict $dataSources($id)
                 set providerType [dict get $paramDict provider]
                 dict set paramDict sourceid $id
-                ::${providerType}::start $paramDict
+                if {[catch {::${providerType}::start $paramDict} msg]} {
+                    incr failures
+                    lappend errors $msg
+                }
             }
+        }
+        if {$failures > 0} {
+            # standard stop does nothing if we are in Not ready so we need
+            # to stop on our own:
+            
+            foreach id [array names dataSources] {
+                set provider [dict get $dataSources($id) provider]
+                catch {::${provider}::stop $id}
+            }
+            
+            error "At least one source could not start: $errors"
         }
     }
     ##
@@ -358,7 +373,7 @@ snit::type DataSourceManager {
             set provider [dict get $dataSources($id) provider]
             if {[catch {::${provider}::begin $id $runNumber $title} msg]} {
                 foreach sid $startedSourceIds {
-                    set provider [dict get $dataSources($id) provider]]
+                    set provider [dict get $dataSources($id) provider]
                     ::${provider}::end $sid
                 }
                 error "Failed when starting $provider data source $id: $msg"

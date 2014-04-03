@@ -46,12 +46,14 @@ INCLUDES	= 	-I@top_srcdir@/usb/vmusb/vmusb 	\
 			-I@top_srcdir@/usb/common/devices		\
 			@LIBTCLPLUS_CFLAGS@		\
 			-I@top_srcdir@/base/headers		\
+			-I@top_srcdir@/base/os			\
 			@TCL_FLAGS@ 
 
 libVMUSBDevices_la_CXXFLAGS=@THREADCXX_FLAGS@
 
 
 libVMUSBDevices_la_LIBADD	= $(top_builddir)/usb/vmusb/vmusb/libVMUSB.la \
+				@top_builddir@/base/os/libdaqshm.la	\
 					@LIBTCLPLUS_LDFLAGS@	\
 					@TCL_LDFLAGS@ \
 				-lm @THREADLD_FLAGS@

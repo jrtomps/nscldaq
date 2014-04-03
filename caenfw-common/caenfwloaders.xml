@@ -1,0 +1,35 @@
+<!-- chapter utilities -->
+<chapter>
+    <title>CAEN Firmware loaders</title>
+    <para>
+        CAEN provides graphical and command line tools that load firmware into
+        the FPGAs in their devices.  NSCLDAQ includes ports of the command line
+        tool to both the SBS and VME VME controllers.
+        These tools allow users to update fimrware as well as to install
+        license keys into boards that will hold licensed firmware.
+    </para>
+    <para>
+        See
+        <link linkend='utilities1-sbscaenupgrader' endterm='utilities1-sbscaenupgrader-title' />
+        for information about the SBS firmware maintenance tool.
+        See
+        <link linkend='utilities1-vmusbcaenupgrader' endterm='utilities1-vmusbcaenupgrader-title' />
+        for information about the VMUSB firmware maintenance tool.
+    </para>
+    <formalpara>
+        <title>Parameter files</title>
+        <para>
+            CAEN devices vary somewhat in how they are programmed.  CAEN
+            uses parameter files to describe to the firmware loader how
+            each devide operates.  These files (or at least those available
+            at the time NSCLDAQ was packaged) are installed in
+            <filename>$DAQROOT/etc/caenfw</filename> where
+            <filename>$DAQROOT</filename> is the top level directory of your
+            NSCLDAQ installation.
+        </para>
+    </formalpara>
+    
+</chapter>
+
+<!-- /chapter -->
+

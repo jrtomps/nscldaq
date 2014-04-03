@@ -18,7 +18,6 @@ libSBSDeviceSupport_la_SOURCES =	CADC2530.cpp		\
 					Nimout.cpp	\
 					sis3300.cpp	\
 					v890.cpp	\
-					VmeModule.cpp	\
 					CMemoryMappedCAMACBranch.cpp	\
 					CESCBD8210.cpp	\
 					CVC32CC32.cpp	\
@@ -54,7 +53,6 @@ include_HEADERS =	CADC2530.h	\
 			v890.h		\
 			wienercamac.h	\
 			wienermacros.h	\
-			VmeModule.h	\
 			CVME.h CVMEptr.h \
 			CCAMACBranch.h	\
 			CMemoryMappedCAMACBranch.h \
@@ -67,10 +65,12 @@ INCLUDES	=	-I@top_srcdir@/base/headers 	\
 			@LIBTCLPLUS_CFLAGS@	\
 			-I@top_srcdir@/sbs/nsclapi	\
 			-I@top_srcdir@/sbs/driver/include \
-			-DHAVE_VME_MAPPING -DHAVE_SBSVME_INTERFACE
+			-DHAVE_VME_MAPPING -DHAVE_SBSVME_INTERFACE \
+			-I@top_srcdir@/base/os
 
 
 libSBSDeviceSupport_la_LIBADD =	@LIBTCLPLUS_LDFLAGS@	\
+				@top_builddir@/base/os/libdaqshm.la	\
 				@top_builddir@/sbs/nsclapi/libSBSVmeAPI.la	\
 				@top_builddir@/sbs/driver/src/libbtp.la
 

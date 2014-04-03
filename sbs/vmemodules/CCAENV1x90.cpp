@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <os.h>
 
 #include <string>
 #include <vector>
@@ -1080,7 +1081,7 @@ CCAENV1x90::SaveUserConfig()
 {
   WriteMicro(CCAENV1x90Opcodes::SAVE_USER_CONFIG);
   WaitMicroWrite();
-  usleep(10000);		// Carlo says wait 10ms after this opcode.
+  Os::usleep(10000);		// Carlo says wait 10ms after this opcode.
 }
 /*!
 Reloads the last saved user configuration into the TDC.  
@@ -1106,7 +1107,7 @@ CCAENV1x90::AutoLoadUserConfig()
 {
   WriteMicro(CCAENV1x90Opcodes::AUTOLOAD_USER_CONFIG);
   WaitMicroWrite();
-  usleep(10000);		// Carlo says wait 10ms after this opcode.
+  Os::usleep(10000);		// Carlo says wait 10ms after this opcode.
 
 }
 /*!
@@ -1124,7 +1125,7 @@ CCAENV1x90::AutoLoadDefaultConfig()
 {
   WriteMicro(CCAENV1x90Opcodes::AUTOLOAD_DEF_CONFIG);
   WaitMicroWrite();
-  usleep(10000);		// Carlo says wait 10ms after this opcode.
+  Os::usleep(10000);		// Carlo says wait 10ms after this opcode.
 
 }
 /*!

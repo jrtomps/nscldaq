@@ -339,7 +339,21 @@ snit::type ReadoutGuiApp {
         grid columnconfigure $ow 0 -weight 1 
         grid rowconfigure $ow 0 -weight 1 
     }
-    
+    ##
+    # slave
+    #    Put the user interface into remote control (slave) mode.
+    #    This just means disabling the run control GUI.
+    #
+    method slave {} {
+    }
+    ##
+    # master
+    #   Take the user interface out of remote control mode.
+    #
+    method master {} {
+    }
+
+
     #--------------------------------------------------------------------------
     #
     #  Private methods:

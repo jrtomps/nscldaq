@@ -24,6 +24,8 @@
 #include <string>
 #include <unistd.h>
 #include <stdio.h>
+#include <os.h>
+
 
 
 using namespace std;
@@ -178,7 +180,7 @@ CCCUSB::~CCCUSB()
 {
     usb_release_interface(m_handle, 0);
     usb_close(m_handle);
-    usleep(5000);
+    Os::usleep(5000);
 }
 
 
@@ -195,7 +197,7 @@ CCCUSB::reconnect()
 {
   usb_release_interface(m_handle, 0);
   usb_close(m_handle);
-  usleep(1000);
+  Os::usleep(1000);
 
   openUsb();
 }
@@ -1518,5 +1520,5 @@ CCCUSB::openUsb()
     usb_clear_halt(m_handle, ENDPOINT_IN);
     usb_clear_halt(m_handle, ENDPOINT_OUT);
    
-    usleep(100);
+    Os::usleep(100);
 }

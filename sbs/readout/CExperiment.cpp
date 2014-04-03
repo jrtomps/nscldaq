@@ -41,6 +41,8 @@
 #include <vector>
 #include <string>
 #include <fragment.h>
+#include <os.h>
+
 
 using namespace std;
 
@@ -215,6 +217,16 @@ CExperiment::Start(bool resume)
 	elapsedTime, stamp,
         std::string(m_pRunState->m_pTitle).substr(0, TITLE_MAXSIZE));
     item.commitToRing(*m_pRing);
+
+    // Now invoke either onBegin or onResume in the event segment.
+
+    if (m_pReadout) {
+      if (resume) {
+	m_pReadout->onResume();
+      } else {
+	m_pReadout->onBegin();
+      }
+    }
     
     DocumentPackets();		// output a documentation packet.
     
@@ -299,7 +311,13 @@ CExperiment::syncEndRun(bool pause)
   }
   if (m_pReadout) {
     m_pReadout->disable();
+    if (pause) {
+      m_pReadout->onPause();
+    } else {
+      m_pReadout->onEnd();
+    }
   }
+
     
   // 
 
@@ -313,6 +331,7 @@ CExperiment::syncEndRun(bool pause)
   uint16_t        itemType;
   RunState::State finalState;
   if (pause) {
+
     itemType   = PAUSE_RUN;
     finalState = RunState::paused;
   }
@@ -630,7 +649,7 @@ CExperiment::ScheduleEndRunBuffer(bool pause)
    //       so that the thread and its thread local storage stays alive for the duration
    //       of the event handling...for now kludge it up this way.
 
-  usleep(1000);
+  Os::usleep(1000);
 
 }
 /*!

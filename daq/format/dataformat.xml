@@ -2085,6 +2085,7 @@ delete item;                                           <co id="cringitem.delete"
          </programlisting>
          <synopsis>
             <ooclass><classname>CRingScalerItem</classname></ooclass>
+            <varname>CRingScalerItem::m_ScalerFormatMask(32)</varname>
             <constructorsynopsis>
                 <methodname>CRingScalerItem</methodname>
                 <methodparam>
@@ -2527,6 +2528,14 @@ delete item;                                           <co id="cringitem.delete"
             the scalers were acquired.  Note that the rate is only produced
             for incremental scalers.
         </para>
+        <para>
+            The public static variable <varname>CRingScalerItem::m_ScalerFormatMask</varname>
+            is bitwise anded with each scaler item after the scaler items are
+            fetched from the ring item prior to output. This allows
+            a clean formatting of scaler counters that have fewer than 32 bits
+            but have garbage in their top bits.
+        </para>
+        
         <!-- end of 11.0 additions -->
 
       </refsect1>

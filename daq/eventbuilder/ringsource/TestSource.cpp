@@ -22,6 +22,7 @@
 #include <CRingItem.h>
 #include <CRingStateChangeItem.h>
 #include <CRingScalerItem.h>
+#include <os.h>
 
 /**
  * operator()
@@ -105,7 +106,7 @@ TestSource::someEventData(CRingBuffer& ring, int events)
     event.setBodyCursor(p);
     event.commitToRing(ring);
     if (m_delay) {
-      usleep(m_delay);
+      Os::usleep(m_delay);
     }
 
   }

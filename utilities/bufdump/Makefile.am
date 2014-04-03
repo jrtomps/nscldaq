@@ -39,7 +39,8 @@ dumper_CXXFLAGS = $(THREADCXX_FLAGS) $(AM_CXXFLAGS)
 
 @srcdir@/dumperargs.h: @srcdir@/dumperargs.ggo 
 	$(GENGETOPT) < @srcdir@/dumperargs.ggo \
-		--output-dir=@srcdir@ --file=dumperargs --unamed-opts="OPTIONS"
+		--output-dir=@srcdir@ --file=dumperargs --unamed-opts="OPTIONS" \
+		--set-version=@VERSION@
 
 
 EXTRA_DIST=dumperargs.ggo dumper.xml

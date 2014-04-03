@@ -92,8 +92,15 @@ proc ::S800::start params {
     ::S800::_setConnectionObject $sid $connection
     ::S800::_setState $sid idle
     
-    $connection setSlave;    # Take over control.
     
+    
+    if {[catch {$connection setSlave} msg] } {
+        # Failed to set slave mode
+        # back out and report to the caller as an error:
+        
+        ::S800::_failed $sid;    # Will do all the right stuff.
+        error $msg
+    }
 }
 ##
 # check

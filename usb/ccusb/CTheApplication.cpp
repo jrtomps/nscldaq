@@ -33,6 +33,7 @@
 #include <DataBuffer.h>
 #include <TclServer.h>
 #include <CRingBuffer.h>
+#include <CAcquisitionThread.h>
 
 #include <CPortManager.h>
 
@@ -136,7 +137,7 @@ int CTheApplication::operator()(int argc, char** argv)
   }
 
 
-  cerr << "CC-USB scriptable readout version " << versionString << endl;
+  //cerr << "CC-USB scriptable readout version " << versionString << endl;
 
   // If we were just asked to enumerate the interfaces do so and exit:
 
@@ -235,6 +236,7 @@ CTheApplication::startOutputThread(std::string ring)
 void
 CTheApplication::startInterpreter()
 {
+  Tcl_CreateExitHandler(CTheApplication::ExitHandler, reinterpret_cast<ClientData>(this));
   Tcl_Main(m_Argc, m_Argv, CTheApplication::AppInit);
 }
 
@@ -432,6 +434,22 @@ CTheApplication::destinationRing(const char* pRingName)
   }
 }
 
+/**
+ * ExitHandler
+ *
+ * Called when Tcl is exiting the application.  If data taking is in progress,
+ * stop it and flush the buffers.
+ *
+ * @param pData - Actually a pointer to the application object in case we need it later on.
+ */
+void
+CTheApplication::ExitHandler(ClientData pData)
+{
+  CAcquisitionThread* pReadout = CAcquisitionThread::getInstance();
+  if (pReadout->isRunning()) {
+    pReadout->stopDaq();	// Also flushes buffers
+  }
+}
 
 /**
  * Create the application object and transfer control to it.

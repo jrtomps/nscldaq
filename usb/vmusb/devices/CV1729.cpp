@@ -35,6 +35,8 @@
 #include <string>
 #include <string.h>
 #include <errno.h>
+#include <os.h>
+
 #include <iostream>
 using namespace std;
 
@@ -265,7 +267,7 @@ CV1729::Initialize(CVMUSB& controller)
   uint32_t base = m_pConfiguration->getUnsignedParameter("-base"); // module base address.
 
   controller.vmeWrite32(base+RESET, setupAmod, (uint32_t)0); // Reset board.
-  usleep(500);					   // Wait a bit to ensure it complete.
+  Os::usleep(500);					   // Wait a bit to ensure it complete.
 
   // After reset is done all of the parameters can be set by list operations:
 

@@ -37,7 +37,9 @@ TCLPACKAGES=Configuration.tcl \
 	 s800Provider.tcl \
 	ReadoutGui.tcl \
 	state.tcl \
-	DataSourceMonitor.tcl
+	DataSourceMonitor.tcl \
+	remoteControl.tcl \
+	ReadoutGuiClient.tcl readoutGuiProvider.tcl
 
 
 

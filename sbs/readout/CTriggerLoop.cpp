@@ -24,6 +24,7 @@
 #include <string>
 #include <stdlib.h>
 #include <CVMEInterface.h>
+#include <os.h>
 
 #include <stdio.h>
 
@@ -73,7 +74,7 @@ CTriggerLoop::start()
     // Now wait here until we know the thread is running
     
     while (!m_running) {
-      usleep(500);
+      Os::usleep(500);
     }
   }
   else {

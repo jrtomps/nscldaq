@@ -18,6 +18,8 @@
 
 #include "CVMUSB.h"
 #include "CVMUSBReadoutList.h"
+#include <os.h>
+
 #include <usb.h>
 #include <errno.h>
 #include <string.h>
@@ -206,7 +208,7 @@ CVMUSB::CVMUSB(struct usb_device* device) :
     usb_clear_halt(m_handle, ENDPOINT_IN);
     usb_clear_halt(m_handle, ENDPOINT_OUT);
 
-    usleep(100);
+    Os::usleep(100);
     
     // Now set the irq mask so that all bits are set..that:
     // - is the only way to ensure the m_irqMask value matches the register.
@@ -224,7 +226,7 @@ CVMUSB::~CVMUSB()
   if (m_handle) {
     usb_release_interface(m_handle, 0);
     usb_close(m_handle);
-    usleep(5000); 
+    Os::usleep(5000); 
   }
 }
 /**

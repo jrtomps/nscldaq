@@ -30,6 +30,7 @@
 #include <string>
 #include <Exception.h>
 #include <TclServer.h>
+#include <os.h>
 
 #include <iostream>
 
@@ -595,7 +596,7 @@ CAcquisitionThread::bootToTheHead()
 	cerr << "Desperate measures being employed to attempt final drain\n";
 	m_pVme->writeActionRegister(CVMUSB::ActionRegister::sysReset);
 	m_pVme->writeActionRegister(0);
-	usleep(100);
+	Os::usleep(100);
 	m_pVme->vmeRead32(0, CVMUSBReadoutList::a32UserData, &junk);
 	uint8_t buffer[13*1024*2];
 	size_t  bytesRead;

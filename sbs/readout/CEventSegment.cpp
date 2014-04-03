@@ -70,6 +70,45 @@ CEventSegment::read(void* pBuffer, size_t maxwords)
   return 0;
 }
 
+/**
+ * onBegin
+ *   Invoked just prior to starting data taking at a begin run.  At
+ *   the point when called, the trigger thread is not yet started.
+ *
+ */
+void 
+CEventSegment::onBegin()
+{}
+
+/**
+ * onEnd
+ *   Invoked just prior to emitting the end of run event.
+ *   At this time the trigger thread has stopped (or at least
+ *   won't be processing any more triggers)  but the end run event has not
+ *   yet been emitted.
+ */
+void
+CEventSegment::onEnd()
+{}
+/**
+ * onPause
+ *   Invoked just prior to emitting  a pause event. At this time
+ *   the trigger thread has stopped (or at least won't process any
+ *   more triggers).
+ */
+void
+CEventSegment::onPause()
+{
+}
+/**
+ * onResume
+ *    Invoked just after emitting a resume event. This is done before
+ *    any triggers are processed.
+ */
+void
+CEventSegment::onResume()
+{}
+
 /*!
    Event segments are not composites:
 */

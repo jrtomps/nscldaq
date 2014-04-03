@@ -14,8 +14,8 @@ cd nscldaq-${version}
 make clean all
 make install
 chmod u+x nscldaq
-./nscldaq start 
-sleep 10        # Wait for daemons to start.
+./nscldaq start
+sleep 10
 make check
 ./nscldaq stop
 

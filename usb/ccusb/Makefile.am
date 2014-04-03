@@ -18,7 +18,7 @@ noinst_HEADERS = CTheApplication.h Globals.h
 
 INCLUDES = -I@top_srcdir@/usb/ccusb/ccusb -I@top_srcdir@/usb/ccusb/devices \
 	-I@top_srcdir@/usb/ccusb/threadcomm -I@top_srcdir@/usb/ccusb/router \
-	-I@top_srcdir@/usb/ccusb/rdothreaed \
+	-I@top_srcdir@/usb/ccusb/rdothread \
 	 -I@top_srcdir@/usb/ccusb/daqconfig -I@top_srcdir@/usb/ccusb/commands \
 	-I@top_srcdir@/usb/ccusb/tclserver  \
 	-I@top_srcdir@/base/headers @LIBTCLPLUS_CFLAGS@ \
@@ -52,7 +52,7 @@ BUILT_SOURCES = @srcdir@/cmdline.c
 @srcdir@/cmdline.c: @srcdir@/cmdline.h
 
 @srcdir@/cmdline.h: @srcdir@/commandline.ggo
-	@GENGETOPT@ < @srcdir@/commandline.ggo --output-dir=@srcdir@
+	@GENGETOPT@ < @srcdir@/commandline.ggo --output-dir=@srcdir@ --set-version=@VERSION@
 
 EXTRA_DIST= commandline.ggo ccusb.xml
 

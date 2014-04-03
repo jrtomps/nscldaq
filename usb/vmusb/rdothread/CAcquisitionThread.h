@@ -91,7 +91,9 @@ private:
   void processCommand(CControlQueues::opCode command);
   void processBuffer(DataBuffer* pBuffer);
   void startDaq();
-  void stopDaq();
+public:
+  void stopDaq();		// public for the exit handler.
+private:
   void pauseDaq();
   void VMusbToAutonomous();
   void drainUsb();

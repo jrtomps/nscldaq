@@ -19,6 +19,10 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <time.h>
+
+static const unsigned NSEC_PER_SEC(1000000000); // nanoseconds/second.
+
 
 /**
  * Get name of current user.
@@ -69,4 +73,42 @@ Os::authenticateUser(std::string sUser, std::string sPassword)
   std::string EncryptedEntry(crypt(sPassword.c_str(), EncryptedPassword.c_str()));
   
   return EncryptedPassword == EncryptedEntry;
+}
+/**
+ * Os::usleep
+ *
+ *    Wrapper for nanosleep since usleep is deprecated in POSIX
+ *    but nanosleep is consider good.
+ *
+ * @param usec - Number of microseconds to sleep.
+ * @return int - Status (0 on success, -1 on error)
+ * 
+ * @note No attempt is made to map errnos from usleep -> nanosleep...so you'll 
+ *       get then nanosleep errnos directly.
+ * @note We assume useconds_t is an unsigned int like type.
+ */
+int
+Os::usleep(useconds_t usec)
+{
+  // usec must be converted to nanoseconds and then busted into
+  // seconds and remaning nanoseconds
+  // we're going to assume there's no overflow from this:
+  
+  useconds_t nsec = usec* 1000;			// 1000 ns in a microsecond.
+
+  // Construct the nanosleep specification:
+
+  struct timespec delay;
+  delay.tv_sec  = nsec/NSEC_PER_SEC;
+  delay.tv_nsec = nsec % NSEC_PER_SEC;
+
+
+  struct timespec remaining;
+  int stat;
+
+  // Usleep is interrupted with no clue left about the remainnig time:
+
+  return nanosleep(&delay, &remaining);
+
+ 
 }

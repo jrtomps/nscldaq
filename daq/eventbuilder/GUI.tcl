@@ -604,6 +604,7 @@ proc EVB::maintainGUI {widget {ms 2000}} {
 	    set coldestCount $counts
 	}
     }
+    set totalFrags [lindex $outputStats 0]
 
     # Add Barrier statistics to the dict:
 
@@ -659,7 +660,8 @@ proc EVB::maintainGUI {widget {ms 2000}} {
         -coldestoutid $coldestSrc -coldestoutcount  $coldestCount     \
 	-completebarriers [lindex $completeBarriers 0]                \
 	-incompletebarriers [lindex $incompleteBarriers 0]            \
-	-mixedbarriers      [lindex $completeBarriers 2] 
+	-mixedbarriers      [lindex $completeBarriers 2]              \
+	-outfragments $totalFrags
 
     $barriers configure -incompletecount [lindex $incompleteBarriers 0] \
 	-completecount [lindex $completeBarriers 0] \

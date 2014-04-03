@@ -1,0 +1,262 @@
+<!-- manpage 1utilities -->
+      <refentry id="utilities1-sbscaenupgrader">
+        <refmeta>
+           <refentrytitle id='utilities1-sbscaenupgrader-title'>sbscaenupgrader</refentrytitle>
+           <manvolnum>1utilities</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>sbscaenupgrader</refname>
+           <refpurpose>CAEN's cvUpgrader for the SBS VME interface</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+sbscaenupgrader <replaceable>ConfFile</replaceable> PCI_OPTLINK <replaceable>config-options device-options</replaceable>
+          </command>
+          </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+sbscaenupgrader -KeyInfo PCI_OPTLINK <replaceable>device-options</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+sbscaenupgrader -License PCI_OPTLINK <replaceable>device-options license-options</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+sbscaenupgrader -Key  <replaceable>key-value</replaceable> PCI_OPTLINK <replaceable>device-options</replaceable>
+                </command>
+            </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            The CAEN firmware maintenance command line utility has four invocation
+            forms shown in SYNOPSIS above.  These respectively.
+           </para>
+           <orderedlist>
+            <listitem><para>Load firmware configurations into the flash memory
+                that programs the FPGA on power up.
+                </para></listitem>
+            <listitem><para>Retrieves the per board key information required
+                for CAEN to generate a license
+                </para>
+            </listitem>
+            <listitem><para>Remove a license key from the board</para></listitem>
+            <listitem><para>License a board to use firmware</para></listitem>
+           </orderedlist>
+           <para>
+            Note that some firmware require licenses or else they will operate
+            in demo mode and go catatonic after 30minutes.
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              OPTIONS
+           </title>
+           <para>
+            Command line options come in three categories:
+           </para>
+            <itemizedlist>
+                <listitem><para>Configuration options describe actions to take
+                with respect to the firmware configuration file.
+                </para></listitem>
+                <listitem><para>Device options describe the device being manipulated.
+                </para></listitem>
+                <listitem><para>License options describe the operation to be
+                    performed on the license key in a board.
+                    </para></listitem>
+            </itemizedlist>
+            <refsect2>
+                <title>Configuration Options</title>
+                <variablelist>
+                    <varlistentry>
+                        <term><option>-backup</option></term>
+                        <listitem>
+                            <para>
+                                Loads the firmware into the backup image location.
+                                Avoid doing this.  The backup image is intended
+                                to rescue you if you load firmware that leaves
+                                the board unusable.  
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><option>-key</option> <replaceable>key-value</replaceable></term>
+                        <listitem>
+                            <para>
+                                Provides a license key for the firmware that
+                                is being loaded.  Some of CAEN's firmware will only
+                                run in demo mode (30minutes) unless a license
+                                key is purchased and loaded.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><option>-no_verify</option></term>
+                        <listitem>
+                            <para>
+                                Only load the firmware don't verify the firmware
+                                image after load.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><option>-verify_only</option></term>
+                        <listitem>
+                            <para>
+                                Don't load the firmware only verify that the
+                                contents of the firmware file match those
+                                in the flash memory.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    
+                    
+                </variablelist>
+            </refsect2>
+            <refsect2>
+                <title>Device Options</title>
+                <variablelist>
+                    <varlistentry>
+                        <term><option>-param</option> <replaceable>filename</replaceable></term>
+                        <listitem>
+                            <para>
+                                Specifies the paramete file for the device
+                                being manipulated.  If not specified, this
+                                defaults to <filename>cvUpgrade_params.txt</filename>.
+                                Parameter files for many common CAEN modules are
+                                also distributed in the <filename>etc/caenfw</filename>
+                                diretory of the NSCLDAQ installation.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><option>-link</option> <replaceable>crate-num</replaceable></term>
+                        <listitem>
+                            <para>
+                                The SBS crate number in which the device lives.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><option>-VMEbaseaddress</option> <replaceable>address32</replaceable></term>
+                        <listitem>
+                            <para>
+                                The 32 bit base address of the board being
+                                manipulated.  This is an 8 digit hexadecimal
+                                value without the leading 0x e.g.
+                                <literal>32100000</literal> NOT
+                                <literal>0x32100000</literal>.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    
+                </variablelist>
+            </refsect2>
+            <refsect2>
+                <title>License Options</title>
+                <variablelist>
+                    <varlistentry>
+                        <term><option>-delete</option></term>
+                        <listitem>
+                            <para>
+                                Specfies that the <option>-License</option>
+                                operation is being performed to remove the
+                                license key from the module.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    
+                </variablelist>
+            </refsect2>
+        </refsect1>
+        <refsect1>
+            <title>EXAMPLES</title>
+            <para>
+                These examples are lightly modified from the CAEN
+                README for their application.  Major differences are only
+                how the link is specified.
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term>Load firmware file into a V1724 base address 0x32100000</term>
+                    <listitem>
+                        <informalexample>
+                            <programlisting>
+sbscaenupgrader V1724_rev1.6_6.6.rbf PCI_OPTLINK -link 0 \
+    -VMEbaseaddress 032100000 \
+    -param /usr/opt/daq/11.0/etc/caenfw/CVupgrade_params_Digitizers.txt
+                            </programlisting>
+                        </informalexample>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>Retrieve the ID code for the board above</term>
+                    <listitem>
+                    <informalexample>
+                        <programlisting>
+sbscaenupgrader -KeyInfo PCI_OPTLINK -link 0 -VMEbaseaddress 3210000 \
+    -param /usr/opt/daq/11.0/etc/caenfw/CVupgrade_params_Digitizers.txt
+                        </programlisting>
+                    </informalexample>
+                    <para>
+                        The information needed for CAEN to construct a license
+                        key is written into the file
+                        <filename>BoardInfo-MN-SN.dat</filename>
+                        where MN is the model number and SN is the
+                        serial number of the board.
+                    </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>Load firmware and license it.</term>
+                    <listitem>
+                        <informalexample>
+                            <programlisting>
+sbscaenupgrader v1495vme_rev1.0.rbf PIC_OPTLINK -link 0 -key ABCDWEF1234568789 \
+    -VMEbaseaddress 33220000 \
+    -param /usr/opt/daq/11.0/ec/caenfw/CVupgrade_params_V1495_VME.txt
+                            </programlisting>
+                        </informalexample>
+                        <para>
+                            The license key value <literal>ABCDWEF123456789</literal>
+                            is obtained from CAEN after providing them with the key
+                            information file gotten using the <option>-KeyInfo</option>
+                            option as shown above.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>Retrieve license information from a digitizer.</term>
+                    <listitem>
+                        <informalexample>
+                            <programlisting>
+sbscaenupgrader -License PCI_OPTLINK -link 0 =-VMEbaseaddress 32100000 \
+    -param /user/opt/daq/11.0/etc/caenfw/CVupgrade_params_Digitizers.txt
+                            </programlisting>
+                        </informalexample>
+                        
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>Un-license a digitizer's firmware:</term>
+                    <listitem>
+                        <informalexample>
+                            <programlisting>
+sbscaenupgrader -License PCI_OPTLINK -link 0 -VMEbaseaddress 32100000 \
+    -param /user/opt/daq/11.0/etc/caenfw/CVupgrade_params_Digitizers.txt -delete
+                            </programlisting>
+                        </informalexample>
+                    </listitem>
+                </varlistentry>
+                
+            </variablelist>
+        </refsect1>
+      </refentry>
+
+<!-- /manpage -->

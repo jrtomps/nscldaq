@@ -835,6 +835,12 @@ package require portAllocator
     </cmdsynopsis>
     <cmdsynopsis>
         <command>
+<replaceable>::name</replaceable> findServer <replaceable>service ?user?</replaceable>
+        </command>
+    </cmdsynopsis>
+
+    <cmdsynopsis>
+        <command>
 <replaceable>::name</replaceable> allocatePort <replaceable>application</replaceable>
         </command>
     </cmdsynopsis>
@@ -905,6 +911,20 @@ package require portAllocator
               element sublist containing in order, the allocated port,  the  name  of
               the application holding the port, and the name of the user that is
               running the application.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><command><replaceable>::name</replaceable> findServer <replaceable>service ?user?</replaceable></command>
+            </term>
+            <listitem>
+                <para>
+                    Finds the port on which a server is listening.
+                    <parameter>service</parameter> is the name of the service
+                    advertised by the application and <parameter>user</parameter>
+                    if suppled specifiest the user that is running that service.
+                    If not provided, <parameter>user</parameter> defaults to that
+                    of the logged in user.
                 </para>
             </listitem>
         </varlistentry>

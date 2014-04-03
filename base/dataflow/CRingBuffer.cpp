@@ -811,7 +811,7 @@ CRingBuffer::availablePutSpace()
     // wait a bit and try again so that we are not looking at get pointers in flux.
     //
     if (pClients->s_pid == 0) {
-      usleep(100);		// Wait 100usec.
+      Os::usleep(100);		// Wait 100usec.
       i = 0;			// and reset the loop.
       minFree  = pHeader->s_dataBytes-1;
       pClients = reinterpret_cast<pClientInformation>(reinterpret_cast<char*>(m_pRing) + 
@@ -980,7 +980,7 @@ CRingBuffer::While(CRingBuffer::CRingBufferPredicate& pred)
 void
 CRingBuffer::pollblock()
 {
-  usleep(m_pollInterval * 1000); // wait a bit before checking condition.  
+  Os::usleep(m_pollInterval * 1000); // wait a bit before checking condition.  
 }
 
 //////////////////////////////////////////////////////////////////////////////

@@ -141,7 +141,10 @@ void
 CFragmentHandler::addFragments(size_t nSize, EVB::pFlatFragment pFragments)
 {
     m_nNow = time(NULL);
-    if (m_nNow < m_nOldestReceived) m_nOldestReceived = m_nNow; // Really done first time.
+    if (m_nNow < m_nOldestReceived) {
+      m_nOldestReceived = m_nNow; // Really done first time.
+      m_nMostRecentlyEmptied = m_nNow;
+    }
 
 
 
@@ -170,7 +173,7 @@ CFragmentHandler::addFragments(size_t nSize, EVB::pFlatFragment pFragments)
       pFragments  = reinterpret_cast<EVB::pFlatFragment>(pNext);
       nSize -= fragmentSize;
     }
-
+    findOldest();		// Probably not needed but pretty quick.
     flushQueues();		// flush events with received time stamps older than m_nNow - m_nBuildWindow
 
 
@@ -582,6 +585,7 @@ CFragmentHandler::clearQueues()
 void
 CFragmentHandler::flushQueues(bool completely)
 {
+ loop: 			// avoid recursion with a good old fashioned goto.
   m_nNow = time(NULL);
 
 
@@ -596,16 +600,37 @@ CFragmentHandler::flushQueues(bool completely)
     if (p) {
       sortedFragments.push_back(p->second);
       delete p;
-      if ((m_nNow - m_nOldestReceived <= m_nBuildWindow) && (!completely)) {
-	break;		// No more genuine fragments
-      }
     } else {
       break;		// If there are more fragments they are barriers.
     }
   }
+
+  // Now we need to flush all fragments that are older than the build window.
+  // This deals with the case of a source that just doesn't emit fragments
+  // very often (e.g. scaler only case).
+  // This should only be done if the most recently emptied queue was emptied outside
+  // the build interval time.
+
+  if ((m_nNow - m_nMostRecentlyEmptied) > m_nBuildWindow) {
+    while (!queuesEmpty()) {
+      if ((m_nMostRecentlyEmptied - m_nOldestReceived) < m_nBuildWindow) {
+	break; // Nothing old enough.
+      }
+      std::pair<time_t, ::EVB::pFragment>* p = popOldest();
+      if (p) {
+        sortedFragments.push_back(p->second);
+        delete p;
+      } else {
+        break;
+      }
+    }
+  }
+  
+
   // Observe the fragments we have now:
   
   observe(sortedFragments);
+  findOldest();			// Ensure we know which the oldest is.
   
   // If a barrier is pending check it and, if the flush was complete,
   // tail call to continue building:
@@ -617,9 +642,8 @@ CFragmentHandler::flushQueues(bool completely)
   // tail call:
   
   if (!queuesEmpty() && completely) {
-    flushQueues(completely);
+    goto loop;
   }
-  findOldest();			// Ensure we know which the oldest is.
 }
     
 
@@ -647,178 +671,56 @@ std::pair<time_t, ::EVB::pFragment>*
 CFragmentHandler::popOldest()
 {
     uint64_t nextOldest = UINT64_MAX;   // Must be older than that.
-    time_t   nextReceived = m_nNow;      // Next most recently received.
-    std::pair<time_t, ::EVB::pFragment>* pOldest(0);
-
+    Sources::iterator   pOldestQ;       // Iterator indicating the oldest fragment.
+ 
     /*
-       This loop does 2 things:  Find the first fragment that
-       has a timestamp that matches m_nOldest and set it to
-       pOLdest, and find the next value for m_nOldest
-    */
+      Find the oldest fragment:
+      *  Barrier fragments are immune from return.
+      *  If indeed we find one, it's removed from it's queue.
+      *  If indeed we find one, the oldest info is recomputed 
+      */
 
-    std::vector<uint32_t> sourceIds;
-    std::vector<uint64_t> timestampValues;
 
-    int nonEmptyQs = 0;
-    for(Sources::iterator p = m_FragmentQueues.begin();
-        p != m_FragmentQueues.end(); p++) {
+    int i = 1;
+    for (Sources::iterator p = m_FragmentQueues.begin(); 
+	 p != m_FragmentQueues.end(); p++) {
       if (!p->second.s_queue.empty()) {
-	nonEmptyQs++;
-
-	std::pair<time_t, ::EVB::pFragment> Frag = p->second.s_queue.front();
-
-	sourceIds.push_back(p->first);
-	timestampValues.push_back(Frag.second->s_header.s_timestamp);
-
-	// Zero timestamps at the front of a queue shouild be pretty strange
-
-#ifdef DEBUG
-	if (Frag.second->s_header.s_timestamp == 0) {
-	  std::cerr << "Front of a queue has timestamp of zero!!\n";
-	  dumpFragment(Frag.second);
-	}
-#endif
-	// We can only process non-barriers.
-	
-	if (Frag.second->s_header.s_barrier == 0) {
-
-	  uint64_t stamp = Frag.second->s_header.s_timestamp;
-	  time_t   received = Frag.first;
-
-
-	  /* This condition is met for the first queue whose
-	     head fragment has a timestamp == m_nOldest.
-	  */
-
-	  if (stamp < m_nOldest) {
-	    std::cerr << "Found a time stamp older than m_nOldest!!\n";
-	    std::cerr << std::hex << "Oldest: " << m_nOldest
-		      << " Stamp: " << stamp << std::dec << std::endl;
-
-	  } else if (((stamp - m_nOldest) > 0x100000000ll) && !m_fBarrierPending) {
-	    std::cerr << "Element at front of queue " << p->first 
-		      << " look like a big skip: " << std::hex
-		      << stamp << " : " << m_nOldest << std::dec << std::endl;
-	  }
-
-	  if((stamp == m_nOldest) && !pOldest) {
-	    
-	    /*  This is the one we will return, so save it as pOldest
-	        and remove it from the queue.
-	    */
-	    pOldest  = new std::pair<time_t, EVB::pFragment>(Frag);
-	    p->second.s_queue.pop();
-#ifdef DEBUG
-	    if (pOldest->second->s_header.s_timestamp == 0ll) {
-	      std::cerr << "Popped a tstamp 0 fragment: \n";
-	      dumpFragment(pOldest->second);
-	    }
-#endif
-	    /* It's possible the next fragment in the queue
-	       also has the smallests remaining timestamp
-	       so we need to grab it for the comparisons at
-	       the bottom of the loop.
-	    */
-
-	    if(!p->second.s_queue.empty()) {
-	      Frag = p->second.s_queue.front();
-	      
-	      received = Frag.first;
-	      stamp = Frag.second->s_header.s_timestamp;
-	      sourceIds.push_back(p->first);
-	      timestampValues.push_back(stamp);
-	    
-	      /* If the current queue is empty, that means that
-		 the current fragment is 'the one' and it emptied
-		 out its queue.  We don't want to update the times
-		 in that case because by definition that will be
-		 oldest not next oldest...and will prevent us from getting
-		 the 'right' next oldest.
-	      */
-	      
-	    }
-	  }
-	  if ((stamp < nextOldest) && 
-	      (Frag.second->s_header.s_barrier == 0)) nextOldest = stamp;
-	  if (received < nextReceived) nextReceived = received;
-	  
-	  /* This is only true if we found a second fragment with the
-	     same timestamp as m_nOldest.  In that case we don't
-	     have to process any more queues because m_nOldest won't be
-	     modified.
-	  */
-	  
-	  if (nextOldest == m_nOldest) break;
+	std::pair<time_t, ::EVB::pFragment> frag = p->second.s_queue.front();   // head of queue.
+	if (frag.second->s_header.s_barrier == 0) {                             // only non-barriers.
+	  if (frag.second->s_header.s_timestamp < nextOldest) {                 // Oldest one yet.
+	    pOldestQ = p;
+	    nextOldest = frag.second->s_header.s_timestamp;
+	  } 
 	} else {
-	  m_fBarrierPending = true;	// There's at least on barrier fragment.
-	}
+	  m_fBarrierPending = true; // Mark a pending barrier.
+	} 
       }
+
+      i++;
     }
 
-    /*
-      If we found an oldest segment we are done and can update all of the times
-      etc.
-    */
 
-    if (pOldest) {
-#ifdef DEBUG
-      if (nonEmptyQs < 2) {
-	std:: cerr << "Not all queues had data: new oldest: " 
-		   << std::hex << nextOldest << std::endl;
-      }
-#endif
-      if ((nextOldest - m_nOldest) > 0x100000000ll && (nextOldest != NULL_TIMESTAMP)) {
-	std::cerr << "CFragmentHandler::popOldest next oldest is way in the future: "
-		  << std::hex << nextOldest <<  " : " << m_nOldest  << std::endl;
 
-	std::cerr << "Oldest timestamp found was: " << pOldest->second->s_header.s_timestamp 
-		  << std::endl;
-	for (int i =0; i < sourceIds.size(); i++) {
-	  std::cerr << "Source ID: " << sourceIds[i] << " Timestamp: " << timestampValues[i] 
-		    << std::endl;
-	}
+    if (nextOldest != UINT64_MAX) { // Found one in pOldestQ.
+      std::pair<time_t, ::EVB::pFragment> oldestFrag = pOldestQ->second.s_queue.front();
+      pOldestQ->second.s_queue.pop();
+      
+      // If this queue has been emptied mark that time:
 
-	std::cerr << std::dec;
+      if (pOldestQ->second.s_queue.empty()) {
+	m_nMostRecentlyEmptied = time(NULL);
       }
-#ifdef DEBUG
-      if (nextOldest < m_nOldest) {
-	std::cerr << "Oldest decreasing from " << std::hex << m_nOldest
-		  << "  to " << nextOldest << std::dec << std::endl;
-      }
-#endif
-      m_nMostRecentlyPopped = m_nOldest;
-      m_nOldest = nextOldest;
-      m_nOldestReceived = nextReceived;
-  
-    }
-    /*
-       If we could not find one and there's no barrier pending, recompute m_nOldest and 
-       try again... that may result in a null return in which case we have nothing left
-       to pop.
-    */
-    if (!pOldest) {
-#ifdef DEBUG
-      std::cerr<< "Findoldest\n";
-#endif
       findOldest();
-#ifdef DEBUG
-      std::cerr << "back popoldest recursion\n";
-#endif
-      if (!m_fBarrierPending) {
-	return popOldest();
-      }
 
+
+      return new std::pair<time_t, ::EVB::pFragment>(oldestFrag);
+    } else {			    // Either all barriers or all empty.
+      return 0;
     }
-#ifdef DEBUG
-    if (m_nOldest == 0) {
-      std::cerr << "popOldest assigned oldest => 0\n";
-    }
-    if (!pOldest) {
-      std::cerr << "No queue had front matching "
-		<< std:: hex << m_nOldest << std::dec << "... or all batrriers\n";
-    }
-#endif
-    return pOldest;
+
+    // Should not get here but...
+    return 0;
+
 }
 
 /**
@@ -940,6 +842,7 @@ CFragmentHandler::addFragment(EVB::pFlatFragment pFragment)
     if(timestamp < m_nMostRecentlyPopped) {
       dataLate(*pFrag);
     }
+    
     if ((timestamp < m_nOldest)) {
 	if ((m_nOldest - timestamp) > 0x100000000ll) {
 	  std::cerr << "addFragment... timestamp taking a big step back from : " << std::hex
@@ -1114,7 +1017,7 @@ CFragmentHandler::generateBarrier(std::vector<EVB::pFragment>& outputList)
 
   BarrierSummary result;
 
-  std::cerr << "Generating a barrier\n";
+
   
   for (Sources::iterator p = m_FragmentQueues.begin(); p!= m_FragmentQueues.end(); p++) {
     if (!p->second.s_queue.empty()) {
@@ -1126,15 +1029,15 @@ CFragmentHandler::generateBarrier(std::vector<EVB::pFragment>& outputList)
             std::pair<uint32_t, uint32_t>(p->first, pFront->s_header.s_barrier)
         );
       } else {
-	std::cerr << "Missing barrier fragment from queue: " << p->first << std::endl;
+
 	result.s_missingSources.push_back(p->first);
       }
     } else {
-      std::cerr << "Empty queue in barrier check: " << p->first << std::endl;
+
       result.s_missingSources.push_back(p->first); // just as missing if the queue is empty.
     }
   }
-  std::cerr << "outputting a barrier\n";  
+
   m_fBarrierPending = false;
   findOldest();
 
@@ -1153,7 +1056,7 @@ CFragmentHandler::generateBarrier(std::vector<EVB::pFragment>& outputList)
 void
 CFragmentHandler::generateMalformedBarrier(std::vector<EVB::pFragment>& outputList)
 {
-  std::cerr << "Was asked to make a malformed barrier\n";
+
   BarrierSummary bs = generateBarrier(outputList);
  
   partialBarrier(bs.s_typesPresent, bs.s_missingSources);
@@ -1176,7 +1079,7 @@ CFragmentHandler::goodBarrier(std::vector<EVB::pFragment>& outputList)
   if (bs.s_missingSources.empty()) {
     observeGoodBarrier(bs.s_typesPresent);
   } else {
-    std::cerr << "Though I had a good barrier but there are missing sources\n";
+
     partialBarrier(bs.s_typesPresent, bs.s_missingSources);
   }
 }
@@ -1192,10 +1095,13 @@ void
 CFragmentHandler::findOldest()
 {
   uint64_t oldest = UINT64_MAX;		// Automatically right if all queues are empty.
+  time_t   oldestReceived = ~0;         // All ones.
 
   for (Sources::iterator p = m_FragmentQueues.begin(); p != m_FragmentQueues.end(); p++) {
     if (!p->second.s_queue.empty()) {
-      ::EVB::pFragment pf = p->second.s_queue.front().second;
+      std::pair<time_t, ::EVB::pFragment> front =  p->second.s_queue.front();
+      ::EVB::pFragment pf = front.second;
+
       if ((pf->s_header.s_timestamp < oldest) && (pf->s_header.s_barrier ==0)) { // nonbarriers only counted
 #ifdef DEBUG
 	std::cerr << "Find oldest changing from "
@@ -1208,17 +1114,19 @@ CFragmentHandler::findOldest()
 #endif
 	oldest = pf->s_header.s_timestamp;
       }
+      if (front.first < oldestReceived) {
+	oldestReceived = front.first;
+      }
     }
   }
   if (oldest != UINT64_MAX) {
     m_nOldest = oldest;
   }
-#ifdef DEBUG
-  if (m_nOldest == 0) {
-    std::cerr << "findoldest found 0\n";
+  if (oldestReceived != (~0)) {
+    m_nOldestReceived = oldestReceived;
   }
-#endif
-  
+
+
 
 }
 /**
@@ -1325,7 +1233,7 @@ CFragmentHandler::checkBarrier(bool completeFlush)
   // If we got here and a complete flush is requested, we must have an incomplete barrier:
 
   if (completeFlush) {
-    std::cerr << "Complete flush requested ..malformed barrier\n";
+
     generateMalformedBarrier(outputList);
     observe(outputList);
     findOldest();

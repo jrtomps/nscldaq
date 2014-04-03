@@ -1730,7 +1730,158 @@ ReadoutGuiApp  r                                  <co id='custom_readoutgui_inst
             </variablelist>
         </section>
     </section>
-    
+    <section>
+        <title>Remote control package</title>
+        <para>
+            For some systems it is useful to have a Readout GUI that can run
+            independently for testing and then be controlled by another Readout
+            GUI for integrated operation.  The current implementation of the
+            ReadoutShell allows you to start a remote control server that is
+            highly compatible with the S800 remote run control protocol (designed by
+            Daniel Bazin and Scott Williams).
+        </para>
+        <para>
+            Similarly a single readout GUI data source can be added as a data
+            source.  Note that this data source is layered on top of the
+            S800 provider and therefore only one of either a remote control
+            readout gui or S800 can be controlled at a time.  In the future, this
+            restriction will be removed.
+        </para>
+        <para>
+            In addition to providing remote control, there is support for relaying
+            output that goes to the server's output window to the output window of the
+            client.
+        </para>
+        <para>
+            To allow your readout GUI to implement a remote control/monitor
+            server, add the following lines towards the front of your
+            <filename>ReadoutCallouts.tcl</filename>  script:
+        </para>
+        <example>
+            <title>Enabling remote control/monitoring of the Readout GUI</title>
+            <programlisting>
+package require ReadoutGuiRemoteControl  <co id='remoteserver_require' />
+
+ReadoutGuiRemoteControl %AUTO%           <co id='remoteserver_control' />
+OutputMonitor %AUTO%                     <co id='remoteserver_monitor' />
+            </programlisting>
+        </example>
+        <calloutlist>
+            <callout arearefs='remoteserver_require'>
+                <para>
+                    Pulls in the code that implements the server components.
+                    The server component includes a server for commands and a
+                    second server that forwards output to the Output window.
+                </para>
+            </callout>
+            <callout arearefs='remoteserver_control'>
+                <para>
+                    Starts an instance of the remote control server.
+                    This server allows a remote client to take over the
+                    Readout GUI and command it to start and stop runs.
+                </para>
+            </callout>
+            <callout arearefs='remoteserver_monitor' >
+                <para>
+                    Starts an intance of the output window monitor
+                    server.  This server allows a remote client to spy on
+                    what is being sent to the server's ouput window.
+                </para>
+            </callout>
+        </calloutlist>
+        <para>
+            On the client side of this picture there are two layers of software.
+            The lower layer provides location services to support connecting with
+            the servers. The upper layer implements a data source povider of type
+            <literal>RemoteGUI</literal>.  Since this provider is implemented in terms
+            of the <literal>S800</literal> provider, and since that provider only supports a single
+            client, You can only have a single <literal>S800</literal> data
+            source or a single <literal>RemoteGUI</literal> data source.
+        </para>
+        <para>
+            Note that when using these servers, they make use of the NSCLDAQ
+            port registrar/allocator. As such each service is identified by a
+            service name and a username.  The service names are:
+            <variablelist>
+                <varlistentry>
+                    <term><literal>ReadoutGUIRemoteControl</literal></term>
+                    <listitem>
+                        <para>
+                            The Remote control server.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>ReadoutGUIOutput</literal></term>
+                    <listitem>
+                        <para>
+                            The output window monitor server.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </para>
+        <para>
+            The remainder of this section describes the <literal>ReadoutGuiClient</literal>
+            package, the lower level of the client software.  The upper level is
+            not described because it is just a data source like any other
+            data source.  In most cases you can just use the data source and
+            don't need to know about the existence of the lower layers.
+        </para>
+        <para>
+            The <literal>ReadoutGuiClient</literal> package provides location
+            services (translations from host/port pairs to a remote TCP/IP port
+            number) as well as a convenience <literal>snit::type</literal> you
+            can use to monitor the output window.
+        </para>
+        <formalpara>
+            <title>Location services</title>
+            <para>
+                Two procs allow you to translate between a username and host and
+                the port that a server will accept connections.
+                <function>readoutGUIControlPort</function> takes the <parameter>host</parameter>
+                and <parameter>user</parameter> the server runs on and returns
+                the port of the remote control server for the ReadoutGUI run on that
+                host by that user.
+                <orderedlist>
+                    <listitem>
+                        <para> The <parameter>user</parameter> parameter can
+                        be omitted and defaults to the logged in client user.
+                        </para>
+                    </listitem>
+                    <listitem>
+                        <para>
+                            If no server is listening, the return value is an
+                            empty string.
+                        </para>
+                    </listitem>
+                    <listitem>
+                        <para>
+                            If a server is listening, the return vale is the
+                            port on which it is listening.
+                        </para>
+                        </listitem>
+                </orderedlist>
+            </para>
+        </formalpara>
+        <para>
+            <function>readoutGUIOutputPort</function> does the same thing that
+            <function>readoutGUIControlPort</function> does but looks up the port
+            for the Readout GUI output window monitor server.
+        </para>
+        <formalpara>
+            <title>ReadoutGUIOutputClient</title>
+            <para><classname>ReadoutGUIOutputClient</classname> provides a
+            snit::type that is a complete client of the output window monitor
+            server.
+            </para>
+        </formalpara>
+        <para>
+            See <link linkend='rdogui3_readoutguioutputclient'
+            endterm='rdogui3_readoutguioutputclient_title' /> for full documentation
+            of this class.
+        </para>
+    </section>
     
 </chapter>
 <!-- /chapter -->
@@ -5978,6 +6129,17 @@ set <replaceable>elapsedTime</replaceable> [::ElapsedTime::getInstance]
                         </listitem>
                     </varlistentry>
                     <varlistentry>
+                        <term><option>-monitorcmd</option> <replaceable>script</replaceable></term>
+                        <listitem>
+                            <para>
+                                Provides a script that is invoked whenever output is added to
+                                the window.  The ouptut is appended quoted into
+                                a single word at the end of the <replaceable>script</replaceable>.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    
+                    <varlistentry>
                         <term><option>-showlog</option> <replaceable>dict-of-option-lists</replaceable></term>
                         <listitem>
                             <para>
@@ -7526,4 +7688,124 @@ $DAQROOT/bin/ReadoutShell
             </variablelist>
         </refsect1>
       </refentry>
+        <refentry id="rdogui3_readoutguioutputclient">
+          <refmeta>
+             <refentrytitle id="rdogui3_readoutguioutputclient_title">ReadoutGUIOutputClient</refentrytitle>
+             <manvolnum>3rdogui</manvolnum>
+          </refmeta>
+          <refnamediv>
+             <refname>ReadoutGUIOutputClient</refname>
+             <refpurpose>Readout gui output monitor client.</refpurpose>
+          </refnamediv>
+          
+          <refsynopsisdiv>
+            <cmdsynopsis>
+                <command>
+ReadoutGUIOutputClient <replaceable>name ?options?</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>name method params</replaceable>                    
+                </command>
+            </cmdsynopsis>
+
+          </refsynopsisdiv>
+          <refsect1>
+             <title>DESCRIPTION</title>
+             <para>
+                <classname>ReadoutGUIOutputClient</classname> provides a packaged
+                client for the output  monitor for applications that use the event
+                loop.  Note that Tcl/Tk applications by default use the event loop.
+                When a client object is constructed, it creates a new command ensemble
+                whose sub commands are the method names of the object.  The command
+                name can either be specified or a unique one can be assigned by
+                specifying the special object name <literal>%AUTO%</literal>.
+                Regardless the constructor returns the name of the command as its
+                result.  Thus e.g.:
+             </para>
+             <informalexample>
+                <programlisting>
+set outputMonitor [ReadoutGUIOutputClient %AUTO%]
+$outputMonitor configure -host spdaq123.nscl.msu.edu
+                </programlisting>
+             </informalexample>
+             <para>
+                is a pretty common pattern.
+             </para>
+          </refsect1>
+          <refsect1>
+             <title>
+                OPTIONS
+             </title>
+             <para>
+                <classname>ReadoutGUIOutputClient</classname> objects include
+                the <command>configure</command> and <command>cget</command>
+                commands that manipulate and query configuration options of the
+                object.  Normally one configures the object and then invokes
+                the <command>connect</command> method to start processing
+                data.  See METHODS for more about <command>connect</command>.
+             </para>
+             <variablelist>
+                <varlistentry>
+                    <term><option>-host</option></term>
+                    <listitem>
+                        <para>
+                            Specifies the name or IP address of the host that
+                            is running the server.  The default value, if not
+                            explicitly configured is <literal>localhost</literal>
+                            which corresponds to the system running the application.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-user</option></term>
+                    <listitem>
+                        <para>
+                            Specifies the user that is running the server application.
+                            If not configured, the default value is the current
+                            logged in user; <literal>$::tcl_platform(user)</literal>.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>-outputcmd</command></term>
+                    <listitem>
+                        <para>
+                            The value of this option is a script that is executed
+                            whenever something was output to the server's output
+                            window.  The text that was output is passed as an
+                            additional argument to the script.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-closecmd</option></term>
+                    <listitem>
+                        <para>
+                            The value of this option is a script that is executed
+                            when the object loses connection with the command server.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                
+                
+             </variablelist>
+          </refsect1>
+            <refsect1>
+                <title>METHODS</title>
+                <para>
+                    There is only one method <methodname>connect</methodname>
+                    it has no additional parameters and should be invoked once
+                    the object is configured.  <methodname>connect</methodname>
+                    attempts to make the connection with the server and
+                    sets up the fileevents to invoke the <option>-outputcmd</option>
+                    and <option>-closecmd</option> scripts at appropriate times.
+                </para>
+                <para>
+                    Failures result in an error signal.
+                </para>
+            </refsect1>
+        </refentry>
+      
 <!-- /manpage -->

@@ -34,7 +34,7 @@
 #  object is destroyed under the assumption that the application will
 #  listen on a service port for the lifetime of the application.
 
-package provide portAllocator 0.1
+package provide portAllocator 1.0
 package require snit
 
 ::snit::type portAllocator {
@@ -98,6 +98,30 @@ package require snit
         $self CloseServer
         return $portlist
     }
+    ##
+    # findServer
+    #   Locates a server given the service name and username.
+    # @param service - The service we are hunting for.
+    # @param user    - Name of the user providing the service, defaults to
+    #                  the logged in user.
+    # @return mixed  - An integer port number if the service is found or "" if
+    #                  not.
+    #
+    method findServer {service {user {}}} {
+        if {$user eq ""} {
+            set user $::tcl_platform(user)
+        }
+        
+        set allocations [$self listPorts]
+        set port ""
+        foreach server $allocations {
+            if {([lindex $server 1] eq $service) && ([lindex $server 2]  eq $user)} {
+                set port [lindex $server 0]
+            }
+        }
+        return $port
+    }
+    #
     # allocatePort:
     #    Asks the server to allocate a port to the specified
     #    application.
