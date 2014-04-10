@@ -19,10 +19,6 @@
 using namespace std;
 
 
-#ifndef SHM_TESTFILE
-#define SHM_TESTFILE "mgrtest"
-#endif
-
 
 class ManageTests : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(ManageTests);
@@ -33,9 +29,10 @@ class ManageTests : public CppUnit::TestFixture {
 
 
 private:
-
+    std::string SHM_TESTFILE;
 public:
   void setUp() {
+    SHM_TESTFILE= uniqueRing("mgrtest");
     CRingBuffer::create(string(SHM_TESTFILE));
   }
   void tearDown() {

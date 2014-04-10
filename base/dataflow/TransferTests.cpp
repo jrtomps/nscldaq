@@ -22,9 +22,8 @@ using namespace std;
 
 // Default name of shared memory special file:
 
-#ifndef SHM_TESTFILE
-#define SHM_TESTFILE "xfertest"
-#endif
+
+static std::string SHM_TESTFILE;
 
 static string getFullName()
 {
@@ -51,6 +50,7 @@ private:
 public:
   // Setup is to create a ring buffer and teardown is to destroy it:
   void setUp() {
+    SHM_TESTFILE = uniqueRing("xfertest");
     CRingBuffer::create(SHM_TESTFILE);
   }
   void tearDown() {
@@ -78,7 +78,7 @@ CPPUNIT_TEST_SUITE_REGISTRATION(XferTests);
 void XferTests::simpleput() {
   CRingBuffer ring(string(SHM_TESTFILE), CRingBuffer::producer);
 
-  pRingBuffer        pBuffer = reinterpret_cast<pRingBuffer>(mapRingBuffer(SHM_TESTFILE));
+  pRingBuffer        pBuffer = reinterpret_cast<pRingBuffer>(mapRingBuffer(SHM_TESTFILE.c_str()));
   pClientInformation pPut    = &(pBuffer->s_producer);
 
   // Check the initial format of the put 'pointer'
@@ -124,7 +124,7 @@ void XferTests::wrapput()
 {
   CRingBuffer ring(string(SHM_TESTFILE), CRingBuffer::producer);
 
-  pRingBuffer        pBuffer = reinterpret_cast<pRingBuffer>(mapRingBuffer(SHM_TESTFILE));
+  pRingBuffer        pBuffer = reinterpret_cast<pRingBuffer>(mapRingBuffer(SHM_TESTFILE.c_str()));
   pClientInformation pPut    = &(pBuffer->s_producer);
 
 
@@ -178,7 +178,7 @@ void XferTests::edgewrap()
 {
   CRingBuffer ring(string(SHM_TESTFILE), CRingBuffer::producer);
 
-  pRingBuffer        pBuffer = reinterpret_cast<pRingBuffer>(mapRingBuffer(SHM_TESTFILE));
+  pRingBuffer        pBuffer = reinterpret_cast<pRingBuffer>(mapRingBuffer(SHM_TESTFILE.c_str()));
   pClientInformation pPut    = &(pBuffer->s_producer);
   pRingHeader pHeader = &(pBuffer->s_header);
 
@@ -227,7 +227,7 @@ void XferTests::simpleget()
   CRingBuffer ring(string(SHM_TESTFILE), CRingBuffer::producer);
   CRingBuffer gring(string(SHM_TESTFILE), CRingBuffer::consumer);
 
-  pRingBuffer        pBuffer = reinterpret_cast<pRingBuffer>(mapRingBuffer(SHM_TESTFILE));
+  pRingBuffer        pBuffer = reinterpret_cast<pRingBuffer>(mapRingBuffer(SHM_TESTFILE.c_str()));
   pClientInformation pPut    = &(pBuffer->s_producer);
   pRingHeader pHeader = &(pBuffer->s_header);
 
@@ -274,7 +274,7 @@ void XferTests::wrapget()
   CRingBuffer ring(string(SHM_TESTFILE), CRingBuffer::producer);
   CRingBuffer gring(string(SHM_TESTFILE), CRingBuffer::consumer);
 
-  pRingBuffer        pBuffer = reinterpret_cast<pRingBuffer>(mapRingBuffer(SHM_TESTFILE));
+  pRingBuffer        pBuffer = reinterpret_cast<pRingBuffer>(mapRingBuffer(SHM_TESTFILE.c_str()));
   pClientInformation pPut    = &(pBuffer->s_producer);
   pRingHeader pHeader = &(pBuffer->s_header);
 
@@ -317,7 +317,7 @@ void XferTests::edgewrapget()
   CRingBuffer ring(string(SHM_TESTFILE), CRingBuffer::producer);
   CRingBuffer cring(string(SHM_TESTFILE), CRingBuffer::consumer);
 
-  pRingBuffer        pBuffer = reinterpret_cast<pRingBuffer>(mapRingBuffer(SHM_TESTFILE));
+  pRingBuffer        pBuffer = reinterpret_cast<pRingBuffer>(mapRingBuffer(SHM_TESTFILE.c_str()));
   pClientInformation pPut    = &(pBuffer->s_producer);
   pClientInformation pGet    =  pBuffer->s_consumers;
   pRingHeader pHeader = &(pBuffer->s_header);

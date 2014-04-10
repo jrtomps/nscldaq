@@ -15,6 +15,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <iostream>
+#include "testcommon.h"
 
 using namespace std;
 
@@ -71,7 +72,7 @@ void rmasterTests::registration()
   
   bool thrown = false;
   try {
-    localMaster.notifyCreate("dummyring");
+    localMaster.notifyCreate(uniqueRing("dummyring"));
   }
   catch(...) {
     thrown = true;
@@ -79,7 +80,7 @@ void rmasterTests::registration()
   if (thrown) {
   ASSERT(!thrown);
   } else {
-    localMaster.notifyDestroy("dummyring");
+    localMaster.notifyDestroy(uniqueRing("dummyring"));
   }
 
   // non local can't and throws an ENOTSUPP errno exception.
@@ -94,7 +95,7 @@ void rmasterTests::registration()
 
   int errcode;
   try {
-    remoteMaster.notifyCreate("anewring");
+    remoteMaster.notifyCreate(uniqueRing("anewring"));
   }
   catch (CErrnoException &error) {
     errcode = error.ReasonCode();
@@ -127,7 +128,7 @@ rmasterTests::unregister()
 
   // Add a test ring...
 
-  localMaster.notifyCreate("testRing");
+  localMaster.notifyCreate(uniqueRing("testRing"));
   
   // Should not be able to remove from the remote:
 
@@ -135,7 +136,7 @@ rmasterTests::unregister()
   bool wrongException(false);
   int  code;
   try {
-    remoteMaster.notifyDestroy(string("testRing"));
+    remoteMaster.notifyDestroy(uniqueRing("testRing"));
   }
   catch (CErrnoException& error) {
     thrown = true;
@@ -154,7 +155,7 @@ rmasterTests::unregister()
 
   thrown = false;
   try {
-    localMaster.notifyDestroy(string("testRing"));
+    localMaster.notifyDestroy(uniqueRing("testRing"));
   }
   catch (...) {
     thrown = true;
@@ -167,7 +168,7 @@ rmasterTests::unregister()
   wrongException = false;
 
   try {
-    localMaster.notifyDestroy(string("testRing"));
+    localMaster.notifyDestroy(uniqueRing("testRing"));
   }
   catch(string msg) {
     thrown = true;
@@ -186,13 +187,13 @@ void rmasterTests::duplicatereg()
 {
   CRingMaster master;
 
-  master.notifyCreate("duplicate");
+  master.notifyCreate(uniqueRing("duplicate"));
 
   bool thrown(false);
   bool wrongException(false);
 
   try {
-    master.notifyCreate("duplicate");
+    master.notifyCreate(uniqueRing("duplicate"));
   } 
   catch (string msg) {
     thrown = true;
@@ -205,7 +206,7 @@ void rmasterTests::duplicatereg()
   ASSERT(thrown);
   ASSERT(!wrongException);
   
-  master.notifyDestroy("duplicate");
+  master.notifyDestroy(uniqueRing("duplicate"));
 }
 
 // Get data from a remote ring.
@@ -216,14 +217,14 @@ void
 rmasterTests::getdata()
 {
 
-  try { CRingBuffer::remove("remote"); } catch (...) {}
-  CRingBuffer::create("remote");
+  try { CRingBuffer::remove(uniqueRing("remote")); } catch (...) {}
+  CRingBuffer::create(uniqueRing("remote"));
   CRingMaster master;
   
   bool thrown(false);
   int socket;
   try {
-    socket = master.requestData("remote");
+    socket = master.requestData(uniqueRing("remote"));
   }
   catch (...) {
     thrown = true;
@@ -244,5 +245,5 @@ rmasterTests::getdata()
   EQ(string("127.0.0.1"), textaddr);
 
   shutdown(socket, SHUT_RDWR);
-  CRingBuffer::remove("remote");
+  CRingBuffer::remove(uniqueRing("remote"));
 }

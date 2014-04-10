@@ -14,12 +14,9 @@
 #include <testcommon.h>
 
 #include <string>
+#include <iostream>
 
 using namespace std;
-
-#ifndef SHM_TESTFILE
-#define SHM_TESTFILE "infotest"
-#endif
 
 
 class InfoTests : public CppUnit::TestFixture {
@@ -32,9 +29,11 @@ class InfoTests : public CppUnit::TestFixture {
 
 
 private:
+    std::string SHM_TESTFILE;
 
 public:
   void setUp() {
+    SHM_TESTFILE = uniqueRing("infotest");
     CRingBuffer::create(string(SHM_TESTFILE));
   }
   void tearDown() {
@@ -55,7 +54,7 @@ CPPUNIT_TEST_SUITE_REGISTRATION(InfoTests);
 // Test the ability to set the polling interval.
 
 void InfoTests::interval() {
-  CRingBuffer ring(string(SHM_TESTFILE));
+  CRingBuffer ring(SHM_TESTFILE);
 
   unsigned long initial = ring.getPollInterval();
   unsigned long original= ring.setPollInterval(initial+2);
@@ -76,7 +75,7 @@ void InfoTests::usageempty()
   CRingBuffer ring(string(SHM_TESTFILE), CRingBuffer::producer);
   CRingBuffer::Usage use = ring.getUsage();
 
-  pRingBuffer pRing = reinterpret_cast<pRingBuffer>(mapRingBuffer(SHM_TESTFILE));
+  pRingBuffer pRing = reinterpret_cast<pRingBuffer>(mapRingBuffer(SHM_TESTFILE.c_str()));
   RingHeader& header(pRing->s_header);
 
   size_t bufferSpace = header.s_dataBytes;
@@ -102,20 +101,22 @@ void InfoTests::usageempty()
 //
 void InfoTests::usage1consumer()
 {
-  CRingBuffer cons(string(SHM_TESTFILE));
-  CRingBuffer prod(string(SHM_TESTFILE), CRingBuffer::producer);
+  CRingBuffer cons(SHM_TESTFILE);
+  CRingBuffer prod(SHM_TESTFILE, CRingBuffer::producer);
+  pRingBuffer pRing = reinterpret_cast<pRingBuffer>(mapRingBuffer(SHM_TESTFILE.c_str()));
+  RingHeader& header(pRing->s_header);
 
   char msg[100];		// contents don' matter for this test...
-  prod.put(msg, sizeof(msg));
 
+  CRingBuffer::Usage u = cons.getUsage();
+  EQ(header.s_dataBytes -1, u.s_putSpace);
+  prod.put(msg, 100);
+  
   CRingBuffer::Usage use = prod.getUsage();
-
-  pRingBuffer pRing = reinterpret_cast<pRingBuffer>(mapRingBuffer(SHM_TESTFILE));
-  RingHeader& header(pRing->s_header);
 
   size_t bufferSpace = header.s_dataBytes;
   EQ(bufferSpace,  use.s_bufferSpace);
-  EQ(header.s_dataBytes - sizeof(msg) -1, use.s_putSpace);
+  EQ(header.s_dataBytes - 100 -1, use.s_putSpace);
   EQ(getpid(),            use.s_producer);
   EQ(sizeof(msg),         use.s_maxGetSpace);
   EQ(sizeof(msg),         use.s_minGetSpace);
@@ -127,16 +128,16 @@ void InfoTests::usage1consumer()
 }
 void InfoTests::usageconsumers()
 {
-  CRingBuffer prod(string(SHM_TESTFILE), CRingBuffer::producer);
-  CRingBuffer c1(string(SHM_TESTFILE));
-  CRingBuffer c2(string(SHM_TESTFILE));
-  CRingBuffer c3(string(SHM_TESTFILE));
+  CRingBuffer prod(SHM_TESTFILE, CRingBuffer::producer);
+  CRingBuffer c1(SHM_TESTFILE);
+  CRingBuffer c2(SHM_TESTFILE);
+  CRingBuffer c3(SHM_TESTFILE);
 
   char msg[100];		// contents don' matter for this test...
   prod.put(msg, sizeof(msg));
 
 
-  pRingBuffer pRing = reinterpret_cast<pRingBuffer>(mapRingBuffer(SHM_TESTFILE));
+  pRingBuffer pRing = reinterpret_cast<pRingBuffer>(mapRingBuffer(SHM_TESTFILE.c_str()));
   RingHeader& header(pRing->s_header);
 
   // Get different amounts from each of the consumers:

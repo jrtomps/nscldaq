@@ -16,6 +16,7 @@
 #include <sys/wait.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "testcommon.h"
 
@@ -26,9 +27,6 @@ using namespace std;
 
 // Default name of shared memory special file:
 
-#ifndef SHM_TESTFILE
-#define SHM_TESTFILE "blocktest"
-#endif
 
 
 
@@ -39,11 +37,14 @@ class BlockTest : public CppUnit::TestFixture {
   CPPUNIT_TEST(blocktilread);
   CPPUNIT_TEST_SUITE_END();
 
-
+ 
 private:
-
+    std::string SHM_TESTFILE;
 public:
   void setUp() {
+ 
+    SHM_TESTFILE = uniqueRing("blocking");
+ 
     CRingBuffer::create(string(SHM_TESTFILE));
   }
   void tearDown() {
@@ -66,7 +67,7 @@ CPPUNIT_TEST_SUITE_REGISTRATION(BlockTest);
 // If there's no data, the reader should bock.
 
 void BlockTest::reader() {
-  CRingBuffer ring(string(SHM_TESTFILE));
+  CRingBuffer ring(SHM_TESTFILE);
   char buffer[100];
 
   // Non blocking...but no data..
@@ -93,7 +94,7 @@ void BlockTest::blocktilwrite()
   if (pid) {			// parent
     char buffer[100];
     sleep(1);
-    CRingBuffer ring(string(SHM_TESTFILE));
+    CRingBuffer ring(SHM_TESTFILE);
     
     memset(buffer, 0, sizeof(buffer));
     size_t  nread = ring.get(buffer, sizeof(buffer), sizeof(buffer));	// Wait as long as needed .. up to 136 years.
@@ -133,8 +134,8 @@ void BlockTest::blocktilwrite()
 
 void BlockTest::blocktilread()
 {
-  CRingBuffer prod(string(SHM_TESTFILE), CRingBuffer::producer);
-  CRingBuffer g(string(SHM_TESTFILE));
+  CRingBuffer prod(SHM_TESTFILE, CRingBuffer::producer);
+  CRingBuffer g(SHM_TESTFILE);
 
   char buffer[1024];
   for (int i =0; i < 1024; i++) {
