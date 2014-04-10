@@ -1,7 +1,7 @@
 #!/bin/bash -xe
 
 
-rm -rf /tmp/nextgen
+rm -rf ${WORKSPACE}/nextgen
 
 version=`grep AC_INIT configure.ac | cut -f2 -d" " | sed s/,//`
 
@@ -10,7 +10,7 @@ rm -rf nscldaq-${version}
 tar xzf nscldaq-${version}.tar.gz
 cd nscldaq-${version}
 
-./configure --prefix=/tmp/nextgen
+./configure --prefix=${WORKSPACE}/nextgen
 make clean all
 make install
 chmod u+x nscldaq
@@ -20,4 +20,4 @@ make check
 ./nscldaq stop
 
 rm -rf nscldaq-${version}
-rm -rf /tmp/nextgen
+rm -rf ${WORKSPACE}/nextgen
