@@ -14,6 +14,8 @@
 #include <string>
 #include <iostream>
 
+extern std::string uniqueName(std::string);
+
 class EvlogTest : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(EvlogTest);
   CPPUNIT_TEST(autorun);
@@ -25,12 +27,12 @@ private:
   CRingBuffer* pRing;
 public:
   void setUp() {
-    pRing = CRingBuffer::createAndProduce("evlog");
+    pRing = CRingBuffer::createAndProduce(uniqueName("evlog"));
 
   }
   void tearDown() {
     delete pRing;
-    CRingBuffer::remove("evlog");
+    CRingBuffer::remove(uniqueName("evlog"));
   }
 private: 
   pid_t startEventLog(std::string switches);
@@ -72,7 +74,11 @@ EvlogTest::startEventLog(std::string tail)
  * - unlink the event file.
  */
 void EvlogTest::autorun() {
-  pid_t evlogPid = startEventLog("--oneshot  --source=tcp://localhost/evlog");
+  std::string uri="tcp://localhost/";
+  uri += uniqueName("evlog");
+  std::string switches = ("--oneshot --source=");
+  switches += uri;
+  pid_t evlogPid = startEventLog(switches);
 
 
   // Create the run.
@@ -104,7 +110,11 @@ void EvlogTest::autorun() {
 void
 EvlogTest::overriderun()
 {
-  pid_t evlogPid = startEventLog("--oneshot --source=tcp://localhost/evlog --run=5");
+  std::string uri="tcp://localhost/";
+  uri += uniqueName("evlog");
+  std::string switches = ("--oneshot --run=5 --source=");
+  switches += uri;
+  pid_t evlogPid = startEventLog(switches);
 
   // Create the run.
 
