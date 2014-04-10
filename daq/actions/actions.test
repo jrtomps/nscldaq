@@ -1,0 +1,114 @@
+
+package require Actions 1.0
+package require tcltest
+
+tcltest::test parseDirectiveERR {Test that ERRMSG directives succeed
+} -body {
+  set message "ERRMSG HERE is an ERROR"
+  ::Actions::parseDirective "$message"
+} -result {ERRMSG {HERE is an ERROR}}
+
+tcltest::test parseDirectiveLOG {Test that LOGMSG directives succeed
+} -body {
+  set message "LOGMSG HERE is an log"
+  ::Actions::parseDirective $message
+} -result {LOGMSG {HERE is an log}} 
+
+tcltest::test parseDirectiveWRN {Test that WRNMSG directives succeed
+} -body {
+  set message "WRNMSG HERE is a warning"
+  ::Actions::parseDirective $message
+} -result {WRNMSG {HERE is a warning}} 
+
+tcltest::test parseDirectiveTCLCMD {Test that TCLCMD directives succeed
+} -body {
+  set message "TCLMSG puts my message"
+  ::Actions::parseDirective $message
+} -result {TCLMSG {puts my message}} 
+
+tcltest::test parseDirectiveOUTPUT {Test that OUTPUT directives succeed
+} -body {
+  set message "OUTPUT HERE is some output"
+  ::Actions::parseDirective $message
+} -result {OUTPUT {HERE is some output}} 
+
+tcltest::test parseDirectiveDBG {Test that DEBMSG directives succeed
+} -body {
+  set message "DBGMSG HERE is some debugging output"
+  ::Actions::parseDirective $message
+} -result {DBGMSG {HERE is some debugging output}} 
+
+
+namespace eval testHandlers {
+  proc handleLog msg { puts -nonewline "log $msg"}
+  proc handleError msg { puts -nonewline "error $msg"}
+  proc handleWarning msg { puts -nonewline "warning $msg"}
+  proc handleTclCommand msg { puts -nonewline "tcl $msg"}
+  proc handleOutput msg { puts -nonewline "output $msg"}
+  proc handleDebug msg { puts -nonewline "debug $msg"}
+
+  namespace export handleLog handleError handleWarning \
+                  handleTclCommand handleOutput handleDebug
+  namespace ensemble create
+}
+
+tcltest::test handleMessageLOG {test handleDirective for LOGMSG
+} -setup {
+  set ::Actions::actionBundle testHandlers
+} -cleanup {
+  set ::Actions::actionBundle DefaultActions 
+} -body {
+  set parsedmsg [list LOGMSG {my message}]
+  ::Actions::handleMessage $parsedmsg
+} -output {log my message}
+
+tcltest::test handleMessageERROR {test handleDirective for ERRMSG
+} -setup {
+  set ::Actions::actionBundle testHandlers
+} -cleanup {
+  set ::Actions::actionBundle DefaultActions 
+} -body {
+  set parsedmsg [list ERRMSG {my message}]
+  ::Actions::handleMessage $parsedmsg
+} -output {error my message}
+
+tcltest::test handleMessageWRN {test handleDirective for WRNMSG
+} -setup {
+  set ::Actions::actionBundle testHandlers
+} -cleanup {
+  set ::Actions::actionBundle DefaultActions 
+} -body {
+  set parsedmsg [list WRNMSG {my message}]
+  ::Actions::handleMessage $parsedmsg
+} -output {warning my message}
+
+tcltest::test handleMessageTCLCMD {test handleDirective for TCLCMD 
+} -setup {
+  set ::Actions::actionBundle testHandlers
+} -cleanup {
+  set ::Actions::actionBundle DefaultActions 
+} -body {
+  set parsedmsg [list TCLCMD {my message}]
+  ::Actions::handleMessage $parsedmsg
+} -output {tcl my message}
+
+
+tcltest::test handleMessageOUTPUT {test handleDirective for OUTPUT 
+} -setup {
+  set ::Actions::actionBundle testHandlers
+} -cleanup {
+  set ::Actions::actionBundle DefaultActions 
+} -body {
+  set parsedmsg [list OUTPUT {my message}]
+  ::Actions::handleMessage $parsedmsg
+} -output {output my message}
+
+tcltest::test handleMessageDBG {test handleDirective for DBGMSG 
+} -setup {
+  set ::Actions::actionBundle testHandlers
+} -cleanup {
+  set ::Actions::actionBundle DefaultActions 
+} -body {
+  set parsedmsg [list DBGMSG {my message}]
+  ::Actions::handleMessage $parsedmsg
+} -output {debug my message}
