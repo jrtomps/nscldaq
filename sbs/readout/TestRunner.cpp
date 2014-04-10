@@ -2,6 +2,11 @@
 #include <cppunit/ui/text/TestRunner.h>
 #include <string>
 #include <iostream>
+#include <sys/types.h>
+#include <unistd.h>
+#include <stdio.h>
+
+
 using namespace std;
 
 int main(int argc, char** argv)
@@ -23,4 +28,15 @@ int main(int argc, char** argv)
     wasSucessful = false;
   }
   return !wasSucessful;
+}
+
+// Make unique name from a base name
+
+std::string uniqueName(std::string base) 
+{
+  pid_t pid = getpid();
+  char fullName[10000];
+  sprintf(fullName, "%s_%d", base.c_str(), pid);
+
+  return std::string(fullName);
 }

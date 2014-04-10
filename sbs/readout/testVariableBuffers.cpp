@@ -26,7 +26,9 @@
 
 using namespace std;
 
-static const string RINGNAME("testring");
+extern std::string uniqueName(std::string);
+
+static const string RINGNAME(uniqueName("testring"));
 
 class VarBufs : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(VarBufs);
