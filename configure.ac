@@ -345,6 +345,7 @@ AC_CONFIG_FILES([Makefile
 		 daq/eventbuilder/glom/Makefile
 		 daq/eventbuilder/unglom/Makefile
 		 daq/eventbuilder/startOrderer
+		 daq/actions/Makefile
 		 sbs/Makefile
 		 sbs/driver/Makefile
 		 sbs/driver/src/Makefile
