@@ -3,35 +3,41 @@ package provide DefaultActions 1.0
 package require ReadoutGUIPanel
 
 namespace eval DefaultActions {
+  variable name
 
   proc handleError str { 
+    variable name
     set trimmedstr [string trimright $str " \n"]
-      ReadoutGuiPanel::Log error $trimmedstr
+    ReadoutGUIPanel::Log $name error $trimmedstr
   }
 
   proc handleLog {str} {
+    variable name
     set trimmedstr [string trimright $str " \n"]
-    ReadoutGuiPanel::Log log $trimmedstr
+    ReadoutGUIPanel::Log $name log $trimmedstr
   }
 
   proc handleWarning {str} {
+    variable name
     set trimmedstr [string trimright $str " \n"]
-    ReadoutGuiPanel::Log warning $trimmedstr
+    ReadoutGUIPanel::Log $name warning $trimmedstr
   }
 
   proc handleDebug {str} {
+    variable name
     set trimmedstr [string trimright $str " \n"]
-    ReadoutGuiPanel::Log debug $trimmedstr
+    ReadoutGUIPanel::Log $name debug $trimmedstr
   }
 
   proc handleOutput {str} {
+    variable name
     set trimmedstr [string trimright $str " \n"]
-    ReadoutGuiPanel::Log output $trimmedstr
+    ReadoutGUIPanel::Log $name output $trimmedstr
   }
 
   proc handleTclCommand {str} {
     set trimmedstr [string trimright $str " \n"]
-    eval $trimmedstr
+    uplevel #0 eval $trimmedstr
   }
 
   namespace export handleError handleLog \

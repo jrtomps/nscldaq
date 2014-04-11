@@ -2,42 +2,73 @@
 package require Actions 1.0
 package require tcltest
 
-tcltest::test parseDirectiveERR {Test that ERRMSG directives succeed
-} -body {
-  set message "ERRMSG HERE is an ERROR"
-  ::Actions::parseDirective "$message"
-} -result {ERRMSG {HERE is an ERROR}}
 
-tcltest::test parseDirectiveLOG {Test that LOGMSG directives succeed
+tcltest::test buildPktERR {Test that ERRMSG directives succeed
+} -setup {
+  set ::Actions::line "ERRMSG 10 abcdefghij"
 } -body {
-  set message "LOGMSG HERE is an log"
-  ::Actions::parseDirective $message
-} -result {LOGMSG {HERE is an log}} 
+  ::Actions::buildPacket
+} -result {ERRMSG abcdefghij 10}
 
-tcltest::test parseDirectiveWRN {Test that WRNMSG directives succeed
+tcltest::test buildPktLOG {Test that LOGMSG directives succeed
+} -setup {
+  set ::Actions::line "LOGMSG 10 abcdefghij"
 } -body {
-  set message "WRNMSG HERE is a warning"
-  ::Actions::parseDirective $message
-} -result {WRNMSG {HERE is a warning}} 
+  ::Actions::buildPacket
+} -result {LOGMSG abcdefghij 10}
 
-tcltest::test parseDirectiveTCLCMD {Test that TCLCMD directives succeed
+tcltest::test buildPktWRN {Test that WRNMSG directives succeed
+} -setup {
+  set ::Actions::line "WRNMSG 10 abcdefghij"
 } -body {
-  set message "TCLMSG puts my message"
-  ::Actions::parseDirective $message
-} -result {TCLMSG {puts my message}} 
+  ::Actions::buildPacket
+} -result {WRNMSG abcdefghij 10}
 
-tcltest::test parseDirectiveOUTPUT {Test that OUTPUT directives succeed
+tcltest::test buildPktTCLCMD {Test that TCLCMD directives succeed
+} -setup {
+  set ::Actions::line "TCLCMD 10 abcdefghij"
 } -body {
-  set message "OUTPUT HERE is some output"
-  ::Actions::parseDirective $message
-} -result {OUTPUT {HERE is some output}} 
+  ::Actions::buildPacket
+} -result {TCLCMD abcdefghij 10}
 
-tcltest::test parseDirectiveDBG {Test that DEBMSG directives succeed
+tcltest::test buildPktOUTPUT {Test that OUTPUT directives succeed
+} -setup {
+  set ::Actions::line "OUTPUT 10 abcdefghij"
 } -body {
-  set message "DBGMSG HERE is some debugging output"
-  ::Actions::parseDirective $message
-} -result {DBGMSG {HERE is some debugging output}} 
+  ::Actions::buildPacket
+} -result {OUTPUT abcdefghij 10}
 
+tcltest::test buildPktDBGMSG {Test that DBGMSG directives succeed
+} -setup {
+  set ::Actions::line "DBGMSG 10 abcdefghij"
+} -body {
+  ::Actions::buildPacket
+} -result {DBGMSG abcdefghij 10}
+
+tcltest::test buildPktIncomplete {Test that packet building stops on incomplete pkt
+} -setup {
+  set ::Actions::line "DBGMSG 16 abcdefghij"
+} -body {
+  ::Actions::buildPacket
+} -result {}
+
+tcltest::test buildPktWithNewline {Test that packet is handled with internal newlines 
+} -setup {
+  set ::Actions::line {OUTPUT 4 a
+
+b} 
+} -body {
+  ::Actions::buildPacket
+} -result {OUTPUT {a
+
+b} 4}
+
+tcltest::test buildPktWithMultiDirs {Test that only first packet outputted if multiple are present
+} -setup {
+  set ::Actions::line {OUTPUT 4 abcd OUTPUT 4 efgh OUTPUT 4 ijkl}
+} -body {
+  ::Actions::buildPacket
+} -result {OUTPUT abcd 4}
 
 namespace eval testHandlers {
   proc handleLog msg { puts -nonewline "log $msg"}
@@ -51,6 +82,23 @@ namespace eval testHandlers {
                   handleTclCommand handleOutput handleDebug
   namespace ensemble create
 }
+
+tcltest::test handleNonPktNoDirective {Test that fully non-directive data is properly handled
+} -setup {
+  set ::Actions::line "abcdefghij"
+  set ::Actions::actionBundle testHandlers
+} -body {
+  ::Actions::handleNonPacket
+} -output {output abcdefghij}
+
+tcltest::test handleNonPktWithDirective {Test that directive data is properly handled
+} -setup {
+  set ::Actions::line "abcdefERRMSG 4 ghij"
+  set ::Actions::actionBundle testHandlers
+} -body {
+  ::Actions::handleNonPacket
+} -output {output abcdef}
+
 
 tcltest::test handleMessageLOG {test handleDirective for LOGMSG
 } -setup {

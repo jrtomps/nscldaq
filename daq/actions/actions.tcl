@@ -1,63 +1,148 @@
+# actions.tcl
+#
+# A tcl package to handle the parsing of a basic messaging protocol
+# to allow communication between devices in a pipeline and the ReadoutGUI.
+#
+# Things that need to be fixed. 
+#   - Need to fix the leaking of the process.
+#   - sometimes a newline is prepended to an output and that needs to be 
+#     fixed.
+#
+
 
 package provide Actions 1.0
 
+
 namespace eval Actions {
-  variable line
-  variable errors [dict create 0 "no directive provided"]
+  
+  variable line "" 
+  variable incomplete 0 
+  variable errors [dict create 0 " unable to parse directive"]
+  variable legalDirectives {ERRMSG LOGMSG WRNMSG TCLCMD OUTPUT DBGMSG}
   variable directiveMap { ERRMSG 0 LOGMSG 1 WRNMSG 2 
                           TCLCMD 3 OUTPUT 4 DBGMSG 5} 
 
   variable actionBundle DefaultActions
 
   proc onReadable {fd} {
-    variable line 
-    variable errors 
-
+    variable incomplete 0
+    
     if { [eof $fd] } {
+      # unregister itself
       chan event $fd readable ""
       catch {close $fd} msg
+      puts "End of file reached"
     } else {
-
-      set input [read $fd ]
-      if {[string length $input] > 0} {
-        append data $line $input
-        if {[string first "\n" $data] != -1} {
-          append $line $data
-
-          catch {set parsedLine [parseDirective $line]} msg
-          if {$msg eq [dict get $errors 0]} {
-            return -code error $msg
-          } else {
-            handleMessage $parsedLine
-          }
-          # reset our line to a null string
-          set $line ""
-        }
-      
-      }; # end of nonzero input
+      handleReadable $fd 
     }
   }
 
-  proc parseDirective {full_line} {
-    variable errors
-    # directives have a form "DIRECTIVE message"
-    # so we just need to find the first space
+  proc handleReadable {fd} {
+    variable line
+    variable incomplete 
 
-    set parsedLine [list]
+    # read what the channel has to give us
+    set input [chan read $fd ]
 
-    set index [string first { } $full_line]
-    if { $index != -1 } {
-      set dir [string range $full_line 0 [expr $index-1]] 
-      set msg [string range $full_line [expr $index+1] end]
-      lappend parsedLine $dir 
-      lappend parsedLine $msg
-    } else {
-      return -code error [dict get $errors 0]
-    }
+    append line "$input"
+    set line [string trimright $line "\n"]
 
-    return $parsedLine
+    while {[string length $line]>0 && !($incomplete)} {
+
+      set firstWord [extractFirstWord $line]
+
+      # if we have a legal directive, treat it
+      # as a packet
+      if {[isLegalDirective $firstWord]} {
+        set parsedLine [buildPacket ]
+        if {!("$parsedLine" eq "")} {
+          handleMessage $parsedLine
+          set incomplete 0
+        } 
+      } else {
+        handleNonPacket
+      }
+    }; # end of nonzero input
+  }
+ 
+  proc extractFirstWord {sentence} {
+    return [string range $sentence 0 5]
   }
 
+  # The first word was detected as a legal directive so 
+  # we expect that there is a well formed packet. Try to
+  # read the whole thing. If the full packet isn't there,
+  # return a null string and move on. 
+  # If the packet is found, truncate "line" so that the 
+  # packet is no longer being outputted.
+  proc buildPacket {} {
+    variable line
+    variable incomplete
+
+    set incomplete 1
+
+    # find first and second word boundaries 
+    set b1 [string first { } $line 0]
+    if {$b1 == -1} return
+    set b2 [string first { } $line [expr $b1+1]]
+    if {$b2 == -1} return
+    
+    set pktSize [string trim [string range $line $b1 $b2] { \n}]
+    set totalLength [string length $line]
+    set remChars [expr $totalLength - ($b2+1)]
+
+    if {$remChars >= $pktSize} {
+       set b3 [expr $b2+$pktSize]
+       lappend parsedLine [extractFirstWord $line] 
+       lappend parsedLine [string range $line [expr $b2+1] $b3] 
+       lappend parsedLine [string range $line [expr $b1+1] [expr $b2-1]] 
+
+       set incomplete 0
+       set line [string range $line [expr $b3+1] end] 
+
+       return $parsedLine
+    } else {
+       return ""
+    }
+
+  }
+
+  # Deal with non packet output... we simply output
+  # everything we have up until a valid directive is 
+  # found 
+  # if we find a directive, output everything up to that
+  # directive, pop the outputted msg from the front of line,
+  # return.
+
+  proc handleNonPacket {} {
+    variable line
+    variable legalDirectives
+  
+    # Check if line contains any legal directives
+    foreach dir $legalDirectives {
+      set index [string first $dir $line]
+      if {$index != -1} {
+        set msg [string range $line 0 [expr $index-1]]
+        set line [string range $line $index end]
+
+        handleOutput $msg
+        return ""
+      }
+    }
+
+    # if we are here then we didn't find any directives
+    handleOutput $line
+    set line ""
+  } 
+
+  # Determine if there word is a legal directive
+  proc isLegalDirective {word} {
+    variable legalDirectives
+    return [expr {$word in $legalDirectives}]
+  }
+
+  # Jump-table of sorts for passing various 
+  # handlers to their handlers
   proc handleMessage {parsedLine} {
     variable directiveMap
 
