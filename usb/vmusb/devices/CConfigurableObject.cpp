@@ -644,7 +644,59 @@ CConfigurableObject::addIntListParameter(std::string name, unsigned minLength, u
   addParameter(name, CConfigurableObject::isIntList, pConstraint, defaultList);
   
 }
-
+/**
+ * addIntListParameter
+ *    Add an integer list parameter where the list elements are range checked.
+ *
+ * @param name      - name of the parameter.
+ * @param minValue - Smallest allowed value for the integer.
+ * @param maxValue - Largest allowed value for the integer.
+ * @param minLength - Minimum number of elements in the list.
+ * @param maxLength - Maximum number of elements inthe list.
+ * @param defaultVal - Default value given to each list element.
+ * @param defaultLength - Default list length (minLength if not given).
+ */
+void
+CConfigurableObject::addIntListParameter(std::string name, int minValue, int maxValue,
+                           unsigned minlength, unsigned maxLength, unsigned defaultSize,
+			   int defaultVal)
+{
+    // Figure out the actual list size and build the default list.
+    // string operations are much simpler than Tcl list ones since each element is an integer.
+  
+  
+    defaultSize = computeDefaultSize(minlength, maxLength, defaultSize);
+    std::string defaultList = simpleList(itos(defaultVal), defaultSize);
+  
+    // First build the constraint on the values of the list:
+    
+    Limits* pRange = reinterpret_cast<Limits*>(malloc(sizeof(Limits)));
+    pRange->first.s_checkMe  = true;
+    pRange->first.s_value    = minValue;
+    pRange->second.s_checkMe = true;
+    pRange->second.s_value   = maxValue;
+    DynamicConstraint c = {                  // Ensure this gets destroyed.
+       free,
+       reinterpret_cast<void*>(pRange)
+     };
+     m_constraints.push_back(c);
+     
+     // Now the list constraint with the above used with the element
+     // constraints:
+     
+     isListParameter* pConstraint =
+        reinterpret_cast<isListParameter*>(malloc(sizeof(isListParameter)));
+     *pConstraint = isListParameter(minlength, maxLength, TypeCheckInfo(isInteger,pRange));  
+    DynamicConstraint l = {
+        free,
+        reinterpret_cast<void*>(pConstraint)
+    };
+    m_constraints.push_back(l);
+    
+    // Add the parameter:
+  
+    addParameter(name, CConfigurableObject::isIntList, pConstraint, defaultList);    
+}
 
 
 /**

@@ -1,4 +1,5 @@
-lib_LTLIBRARIES			= libVMUSBControlServer.la
+lib_LTLIBRARIES			= libVMUSBControlServer.la libUserDriver.la
+
 
 libVMUSBControlServer_la_CXXFLAGS	= @THREADCXX_FLAGS@
 
@@ -17,7 +18,16 @@ libVMUSBControlServer_la_SOURCES	= 	CControlHardware.cpp	\
 					CMonCommand.cpp         \
 					Server.cpp		\
 					ChicoTrigger.cpp        \
-					CWatchCommand.cpp
+					CWatchCommand.cpp	\
+					CModuleFactory.cpp	\
+					CModuleCreator.cpp	\
+					CJtecgdgCreator.cpp	\
+					CV812Creator.cpp	\
+					CVMUSBCreator.cpp	\
+					CV6533Creator.cpp	\
+					CChicoTriggerCreator.cpp \
+					CTclModuleCreator.cpp    \
+					CTclControlModule.cpp
 
 noinst_HEADERS			=	CGDG.h			\
 					CV812.h			\
@@ -34,7 +44,17 @@ noinst_HEADERS			=	CGDG.h			\
 					CMonCommand.h          \
 					TclServer.h		\
 					ChicoTrigger.h		\
-					CWatchCommand.h
+					CWatchCommand.h		\
+					CModuleFactory.h	\
+					CModuleCreator.h	\
+					CJtecgdgCreator.h       \
+					CV812Creator.h		\
+					CVMUSBCreator.h		\
+					CV6533Creator.h		\
+					CChicoTriggerCreator.h	\
+					CTclModuleCreator.h	\
+					CTclControlModule.h
+
 
 INCLUDES			= 	-I@top_srcdir@/usb/vmusb/vmusb		\
 					-I@top_srcdir@/daq/format                 \
@@ -58,3 +78,12 @@ libVMUSBControlServer_la_LIBADD	= 	@top_builddir@/usb/vmusb/vmusb/libVMUSB.la   
 					@top_builddir@/base/os/libdaqshm.la	\
 					@top_builddir@/base/thread/libdaqthreads.la \
 					@TCL_LDFLAGS@ @THREADLD_FLAGS@
+
+libUserDriver_la_SOURCES  = CUserDriverSample.cpp
+
+install-data-local:
+	$(mkinstalldirs) @prefix@/vmusbdriver
+	$(mkinstalldirs) @prefix@/vmusbdriver/includes
+	$(mkinstalldirs) @prefix@/vmusbdriver/example
+	$(INSTALL_DATA)  @srcdir@/*.h @prefix@/vmusbdriver/includes
+	$(INSTALL_DATA)  @srcdir@/CUserDriverSample.cpp @prefix@/vmusbdriver/example

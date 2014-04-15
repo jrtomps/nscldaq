@@ -1,5 +1,5 @@
 package "VMUSBReadout"
-version "5.0"
+version "5.1"
 purpose "Read data from VME crates via Wiener/JTec VM-USB"
 
 option "serialno"  s "Serial number of VM usb VMnnn" string typestr="SerialNo"  optional

@@ -128,6 +128,7 @@ public:
   // selectors:
 
   CVMUSBReadoutList getMonitorList(); /* Allow rdothread to get a copy. */
+  CTCLInterpreter* getInterp() {return m_pInterpreter;} /* For Tcl drivers. */
 
   // Adaptor to spectrodaq threading.
 

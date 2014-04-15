@@ -226,6 +226,9 @@ public:
   void addIntListParameter(std::string name, unsigned size, int defaultVal = 0);
   void addIntListParameter(std::string name, unsigned minlength, unsigned maxLength,
 			   int defaultVal = 0, int defaultSize = -1);
+  void addIntListParameter(std::string name, int minValue, int maxValue,
+                           unsigned minlength, unsigned maxLength, unsigned defaultSize,
+			   int defaultVal);
  
 
   void addStringListParameter(std::string name, unsigned size, std::string defaultVal = "");

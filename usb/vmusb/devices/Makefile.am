@@ -107,12 +107,4 @@ install-data-local:
 	$(mkinstalldirs) @prefix@/vmusbdriver/includes
 	$(INSTALL_DATA)  @srcdir@/*.h @prefix@/vmusbdriver/includes
 
-tests: TestRunner.cpp $(TESTS)
-	$(CXX) -g -o tests -I. -I$(prefix)/include $(CPPUNIT_INCLUDES) \
-	TestRunner.cpp  $(TESTS) -L$(prefix)/lib -lVMUSBDevices -lVMUSB -lConfig \
-	$(NSCLDAQ_LIB) @LIBTCLPLUS_LDFLAGS@  $(TCL_LDFLAGS) \
-	-Wl,"-rpath=$(libdir)" -Wl,"-rpath=$(daqdir)/lib" \
-	$(CPPUNIT_LDFLAGS)
 
-
-EXTRA_DIST=TestRunner.cpp $(TESTS)

@@ -28,6 +28,13 @@ using namespace std;
 #include <CV6533.h>
 #include <CVMUSBModule.h>
 #include <ChicoTrigger.h>
+#include "CModuleFactory.h"
+#include "CChicoTriggerCreator.h"
+#include "CJtecgdgCreator.h"
+#include "CV6533Creator.h"
+#include "CV812Creator.h"
+#include "CVMUSBCreator.h"
+#include "CTclModuleCreator.h"
 
 /*!
    Construct the command. 
@@ -45,7 +52,19 @@ CModuleCommand::CModuleCommand(CTCLInterpreter& interp,
 			      TclServer&       server) :
   CTCLObjectProcessor(interp, "Module"),
   m_Server(server)  
-{}
+{
+  // Register the standard creators:
+
+  CModuleFactory* pFact = CModuleFactory::instance();
+  pFact->addCreator("jtecgdg", new CJtecgdgCreator);
+  pFact->addCreator("caenv812", new CV812Creator);
+  pFact->addCreator("caenv895", new CV812Creator); // not a typo these create the same type.
+  pFact->addCreator("vmusb", new CVMUSBCreator);
+  pFact->addCreator("v6533", new CV6533Creator);
+  pFact->addCreator("ChicoTrigger", new CChicoTriggerCreator);
+  pFact->addCreator("tcl", new CTclModuleCreator);
+
+}
 //! Destroy the module.. no op provided only as a chain to the base class destructor.
 CModuleCommand::~CModuleCommand()
 {}
@@ -116,29 +135,13 @@ CModuleCommand::create(CTCLInterpreter& interp,
   string name = objv[3];
 
   CControlHardware* pModule;
-
-  if (type == "jtecgdg") {
-    pModule = new CGDG(name);
-  }
-  else if (type == "caenv812") {
-    pModule = new CV812(name);
-  }
-  else if (type == "caenv895") {
-    pModule = new CV812(name);	// Not a typo.  the 895/812 module are the same.
-  }
-  else if (type == "vmusb") {
-    pModule = new CVMUSBModule(name);
-  }
-  else if (type == "v6533") {
-    pModule = new CV6533(name);
-  }
-  else if (type == "ChicoTrigger") {
-    pModule = new ChicoTrigger(name);
-  }
-  else {
+  CModuleFactory*   pFact = CModuleFactory::instance();
+  pModule  = pFact->create(type, name);
+  if (!pModule) {
     m_Server.setResult("module create: Invalid type, must be one of jtecgdg, caenv182, caenvg895, vmusb, v6533 ChicoTrigger");
     return TCL_ERROR;
   }
+
   CControlModule*   pConfig = pModule->getConfiguration();
   pModule->onAttach(*pConfig);
   m_Server.addModule(pConfig);
