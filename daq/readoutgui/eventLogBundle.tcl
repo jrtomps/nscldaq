@@ -317,6 +317,7 @@ proc ::EventLog::_waitForFile {name waitTimeout pollInterval} {
         }
         incr waitTimeoutMs -$pollInterval
         after $pollInterval
+	update;			# keep the event loop semi-live. TODO: Deactivate buttons.
     }
     return 0
 }
