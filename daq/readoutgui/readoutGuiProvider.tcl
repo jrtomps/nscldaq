@@ -141,7 +141,7 @@ proc ::RemoteGUI::capabilities {} {
 #
 proc ::RemoteGUI::_handleOutput output {
     set ow [::Output::getInstance]
-    $ow puts $output
+    $ow puts "Relayed: $output"
 }
 ##
 # _outserverClosed
