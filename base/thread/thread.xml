@@ -373,6 +373,13 @@ g++ -o mythreadedapp -I$DAQROOT/include mythreadedapp.cpp -L$DAQROOT/lib -lthrea
                     provide monitor like synchronization semantics.
                 </para>
             </listitem>
+            <listitem><para>
+                <link linkend='manpage.ccondition' endterm='manpage.ccondition-title' />
+                documents condition variables.  Condition variables are a
+                synchronziation scheme that allows a thread to wait for a specific
+                condition to be signalled by another thread.
+                </para>
+            </listitem> 
         </itemizedlist>
     </section>
 </chapter>
@@ -994,7 +1001,820 @@ Macros:
         </para>
       </refsect1>
    </refentry>
+	 <refentry id="manpage.cmutex">
+       <refmeta>
+          <refentrytitle id="manpage.cmutex-title">CMutex</refentrytitle>
+          <manvolnum>3daq</manvolnum>
+       </refmeta>
+       <refnamediv>
+          <refname>CMutex</refname>
+          <refpurpose>C++ encapsulation of pthread mutexes.</refpurpose>
+       </refnamediv>
+       
+       <refsynopsisdiv>
+        <synopsis>
+            #include &lt;CMutex.h&gt;
+            class <ooclass><classname>CMutexAttr</classname></ooclass> {
+            <methodsynopsis>
+                <modifier></modifier>
+                <type> void </type>
+                <methodname>setShared</methodname>
+                <void />
+                
+                <modifier></modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier></modifier>
+                <type>void </type>
+                <methodname>setUnshared</methodname>
+                <void />
+                <modifier></modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier></modifier>
+                <type>bool </type>
+                <methodname>isShareable</methodname>
+                <void />
+                <modifier></modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier></modifier>
+                <type>void </type>
+                <methodname>setType</methodname>
+                <methodparam>
+                    <type>int</type><parameter> type</parameter>
+                </methodparam>
+                <modifier></modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier></modifier>
+                <type>int  </type>
+                <methodname>getType</methodname>
+                <void />
+                <modifier></modifier>
+            </methodsynopsis>  
+};
+        class <ooclass><classname>CMutex</classname></ooclass> {
+           <constructorsynopsis>
+          <methodname>CMutex</methodname>
+          <void />
+           </constructorsynopsis>
+           <constructorsynopsis>
+          <methodname>CMutex</methodname>
+          <methodparam>
+            <type>pthread_mutexattr_t&amp;</type><parameter> attributes</parameter>
+          </methodparam>
+           </constructorsynopsis>
+           <constructorsynopsis>
+          <methodname>CMutex</methodname>
+          <methodparam>
+            <type>CMutexAttr&amp;</type><parameter> attributes</parameter>
+          </methodparam>
+           </constructorsynopsis>
+           <methodsynopsis>
+               <modifier></modifier>
+               <type>void</type>
+               <methodname> lock</methodname>
+               <void />
+               <modifier></modifier>
+           </methodsynopsis>
+           <methodsynopsis>
+               <modifier></modifier>
+               <type>bool </type>
+               <methodname>trylock</methodname>
+               <void />
+               <modifier></modifier>
+           </methodsynopsis>  
+            <methodsynopsis>
+                <modifier></modifier>
+                <type>void </type>
+                <methodname>unlock</methodname>
+                <void />
+                <modifier></modifier>
+            </methodsynopsis>  
+        
+};
 
+        </synopsis>
+       </refsynopsisdiv>
+       <refsect1>
+          <title>DESCRIPTION</title>
+          <para>
+            The pthreads threading library provides several synchorization primitives.
+            The simplest is a Mutual Exclusion (Mutex) primitive.  A mutex can
+            be used as a guard for critical regions of code (critical regions
+            of code are sections of code that are shared between threads but which
+            can only safely be executed by one thread at a time). Or for guards
+            of data structure arguments that are not inherently thread-atomic.
+          </para>
+          <para>
+            A mutex can be <firstterm>locked</firstterm> by one thread at a time,
+            if a thread attempts to lock a mutex it will block until the
+            mutex is unlocked.  A locked mutex can be unlocked only by the
+            thread that has it locked.
+          </para>
+          <para>
+            Linux mutexes come in a three flavors; <literal>PTHREAD_MUTEX_FAST_NP</literal>
+            which have very little error checking associated with them and
+            once locked may not be locked again the same thread <literal>PTHREAD_MUTEX_RECURSIVE_NP</literal>
+            which can be thought of as a counting mutex (the same thread can lock
+            the mutex several times, and to actually unlock the mutex it must
+            be unlocked as many times as it was locked).  <literal>PTHREAD_MUTEX_ERRORCHECK_NP</literal>
+            mutexes have extensive error checking at the cost of performance.
+            The NP in these symbols imply that these types are not POSIX standard.
+          </para>
+            <para>
+                Mutexes may also have sharing attributes.  A shared mutex
+                can live in a shared memory section that is in the address
+                space of several processes and can synchrnoize between processes
+                that have access to the Mutex, while an unshared mutex can
+                only synchronize threads within the same process.
+            </para>
+       </refsect1>
+       <refsect1>
+          <title>
+         METHODS
+          </title>
+          <variablelist>
+            <varlistentry>
+                <term>
+                    <constructorsynopsis>
+                   <methodname>CMutex</methodname>
+                   <void />
+                    </constructorsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Constructs a mutex with default attributes.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <constructorsynopsis>
+                   <methodname>CMutex</methodname>
+                   <methodparam>
+                     <type>pthread_mutexattr_t&amp;</type><parameter> attributes</parameter>
+                   </methodparam>
+                    </constructorsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Constructs a mutex with the attributes defined by the
+                        raw pthread <parameter>attributes</parameter> parameter.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <constructorsynopsis>
+                   <methodname>CMutex</methodname>
+                   <methodparam>
+                     <type>CMutexAttr&amp;</type><parameter> attributes</parameter>
+                   </methodparam>
+                    </constructorsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Constructs a mutex with the attributes defined by the
+                        <classname>CMutexAttr</classname> encapsualted
+                        <parameter>attributes</parameter>.  See
+                        <literal>PUBLIC VARIABLES, TYPES and CONSTANTS</literal>
+                        below for more information about <classname>CMutexAttr</classname>
+                        objects.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier></modifier>
+                        <type>void</type>
+                        <methodname> lock</methodname>
+                        <void />
+                        <modifier></modifier>
+                    </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Locks the mutex.  If the mutex is currently locked
+                        by another thread, the calling thread is placed at the
+                        back of the mutex wait queue and blocked until it is its
+                        turn to obtain the lock.
+                    </para>
+                    <para>
+                        If the thread is already locked by the calling thread,
+                        and the mutex is a recursive mutex, the lock count is
+                        incremented and the method returns immediately.  If,
+                        in this case, the mutex is not a recursive mutex, the
+                        method behavior is not defined.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier></modifier>
+                        <type>bool </type>
+                        <methodname>trylock</methodname>
+                        <void />
+                        <modifier></modifier>
+                    </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Attempts to lock the mutex.  If successful,
+                        the method returns <literal>true</literal> and the
+                        thread holds the mutex lock.   If the mutex is already
+                        locked by another thread, returns <literal>false</literal>
+                        but does not block.
+                    </para>
+                    <para>
+                        See <methodname>lock</methodname> for behavior if the
+                        mutex is already locked by the calling thread.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                     <methodsynopsis>
+                         <modifier></modifier>
+                         <type>void </type>
+                         <methodname>unlock</methodname>
+                         <void />
+                         <modifier></modifier>
+                     </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Unlocks the mutex.  To call this, the thread must hold
+                        the lock.
+                    </para>
+                    <para>
+                        If the mutex is not recursive and there
+                        is are threads blocked on the mutex, the one blocked
+                        longest ago is atomically granted the mutex and scheduled
+                        to run.  Note that scheduling the process to run does not
+                        mean the thread immediately runs.
+                    </para>
+                    <para>
+                        If the mutex is recursive, the lock count is decremented
+                        and, if zero, the mutex is released by the thread.
+                        If the mutex is released, and there are thread blocked on
+                        the mutex, the one blocked
+                        longest ago is atomically granted the mutex and scheduled
+                        to run.
+                    </para>
+                </listitem>
+            </varlistentry>
+          </variablelist>
+       </refsect1>
+        <refsect1>
+           <title>PUBLIC VARIABLES, TYPES and CONSTANTS</title>
+           <para>
+            Mutex attributes can be set at construction time.  This is done
+            either by configuring a raw <type>pthread_mutexattr_t</type> and
+            configuring it via the normal pthread functions, or by creating a
+            <classname>CMutexAttr</classname> object and using its methods to
+            configuring it.
+            <classname>CMutex</classname> has constructors that accept references
+            to either object and use those references to set the attributes of the
+            pthread mutex it wraps.
+           </para>
+           <para>
+            Below are methods defined <classname>CMutexAttr</classname> objects.
+           </para>
+           <variablelist>
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier></modifier>
+                        <type> void </type>
+                        <methodname>setShared</methodname>
+                        <void />                
+                        <modifier></modifier>
+                    </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Sets the attribute such that a created mutex can be shared
+                         between processes.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier></modifier>
+                        <type>void </type>
+                        <methodname>setUnshared</methodname>
+                        <void />
+                        <modifier></modifier>
+                    </methodsynopsis>
+                </term>
+                <listitem><para>
+                    Sets the attributes such that a created mutex must be
+                    process private.
+                    </para></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier></modifier>
+                        <type>bool </type>
+                        <methodname>isShareable</methodname>
+                        <void />
+                        <modifier></modifier>
+                    </methodsynopsis>
+                </term>
+                <listitem><para>
+                    Returns <literal>true</literal> if the attributes would create
+                    a shareable mutex.
+                    </para></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier></modifier>
+                        <type>void </type>
+                        <methodname>setType</methodname>
+                        <methodparam>
+                            <type>int</type><parameter> type</parameter>
+                        </methodparam>
+                        <modifier></modifier>
+                    </methodsynopsis>
+                </term>
+                <listitem><para>
+                    Sets the mutex <parameter>type</parameter> see
+                    <literal>DESCRIPTION</literal> above for legal values
+                    for the <parameter>type</parameter> parameter.
+                    </para></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                
+                    <methodsynopsis>
+                        <modifier></modifier>
+                        <type>int  </type>
+                        <methodname>getType</methodname>
+                        <void />
+                        <modifier></modifier>
+                    </methodsynopsis>  
+                </term>
+                <listitem><para>
+                    Returns the current type for the attribute block.
+                    </para></listitem>
+            </varlistentry>
+           </variablelist>
+        </refsect1>
+     </refentry>     
 
+	 <refentry id="manpage.ccondition">
+       <refmeta>
+          <refentrytitle id="manpage.ccondition-title">CCondition</refentrytitle>
+          <manvolnum>3daq</manvolnum>
+       </refmeta>
+       <refnamediv>
+          <refname>CCondition</refname>
+          <refpurpose>Encapsulate POSIX condition variables.</refpurpose>
+       </refnamediv>
+       
+       <refsynopsisdiv>
+        <synopsis>
+            #include &lt;CCondition.h&gt;
+            struct <ooclass><classname>CConditionAttributes</classname></ooclass> {
+            <methodsynopsis>
+                <modifier></modifier>
+                <type>void </type>
+                <methodname>setShared</methodname>
+                <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier></modifier>
+                <type>void </type>
+                <methodname>setUnshared</methodname>
+                <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier></modifier>
+                <type>bool </type>
+                <methodname>isShared</methodname>
+                <void />
+            </methodsynopsis>
+            
+            class <ooclass><classname>CConditionVariable</classname></ooclass> {
+           <constructorsynopsis>
+                <methodname>CConditionVariable</methodname>
+                <void />
+            </constructorsynopsis>
+           <constructorsynopsis>
+                <methodname>CConditionVariable</methodname>
+                <methodparam>
+                    <type>pthread_condattr_t&amp;</type><parameter> attr</parameter>
+                </methodparam>
+            </constructorsynopsis>
+           <constructorsynopsis>
+                <methodname>CConditionVariable</methodname>
+                <methodparam>
+                    <type>CConditionAttributes&amp;</type><parameter> attr</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <methodsynopsis>
+                <modifier></modifier>
+                <type>void </type>
+                <methodname>signal</methodname>
+                <void />
+            </methodsynopsis>  
+            <methodsynopsis>
+                <modifier></modifier>
+                <type>void </type>
+                <methodname>broadcast</methodname>
+                <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier></modifier>
+                <type>bool </type>
+                <methodname>timedwait</methodname>
+                <methodparam>
+                    <type>CMutex&amp;</type><parameter> mutex</parameter>
+                </methodparam>
+                <methodparam>
+                    <modifier>const</modifier><type> struct timespec*</type>
+                    <parameter>abstime</parameter>
+                </methodparam>
+            </methodsynopsis>  
+            <methodsynopsis>
+                <modifier></modifier>
+                <type>bool </type>
+                <methodname>timedwait</methodname>
+                <methodparam>
+                    <type>pthread_mutex_t*</type><parameter> mutex</parameter>
+                </methodparam>
+                <methodparam>
+                    <modifier>const</modifier><type> struct timespec*</type>
+                    <parameter>abstime</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier></modifier>
+                <type>bool </type>
+                <methodname>timedwait</methodname>
+                <methodparam>
+                    <type>CMutex&amp;</type><parameter> mutex</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>int</type><parameter>milliseconds</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier></modifier>
+                <type>bool </type>
+                <methodname>timedwait</methodname>
+                <methodparam>
+                    <type>pthread_mutex_t*</type><parameter> mutex</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>int</type><parameter> milliseconds</parameter>
+                </methodparam>
+                <exceptionname></exceptionname>
+                <modifier></modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier></modifier>
+                <type>void </type>
+                <methodname>wait</methodname>
+                <methodparam>
+                    <type>CMutex&amp;</type><parameter> mutex</parameter>
+                </methodparam>
+                
+            </methodsynopsis>  
+            <methodsynopsis>
+                <modifier></modifier>
+                <type>void </type>
+                <methodname>wait</methodname>
+                <methodparam>
+                    <type>pthread_mutex_t*</type><parameter> mutex</parameter>
+                </methodparam>
+                <exceptionname></exceptionname>
+                <modifier></modifier>
+            </methodsynopsis>
+};
+        </synopsis>
+       </refsynopsisdiv>
+       <refsect1>
+          <title>DESCRIPTION</title>
+          <para>
+            This class encapsulates POSIX pthread condition variables.  A condition
+            variable allows a thread to atomically wait for another thread to
+            signal a condition.  Condition variables are used in conjunction
+            with mutexes as follows (once the mutex and condition variable are created):
+          </para>
+          <orderedlist>
+            <listitem><para>
+                Thread 1 takes the mutex.
+                </para></listitem>
+            <listitem><para>
+                Thread 1 performs one of the wait operations.  The condition
+                variable atomically releases the mutex and blocks the thread
+                on the condition varaible.
+                </para></listitem>
+            <listitem><para>
+                Thread 2 locks the same mutext (associated with the condition
+                variable).
+                </para></listitem>
+            <listitem><para>
+                Thread 2 signals to wake the next thread blocked on the condition
+                or broadcasts to wake all blocked threads.  At this time,
+                Thread 1's condition variable block is completed and the operating
+                system attempts to acquire the mutex which keeps thread 1 blocked.
+                </para></listitem>
+            <listitem><para>
+                Thread 2 unlocks the mutex.  At this time, Thread 1 gains the
+                mutex lock and becomes unblocked.
+                </para></listitem>
+            <listitem><para>
+                Thread 2 releases its mutex lock.
+                </para></listitem>
+          </orderedlist>
+          <para>
+            This class is intended to be used either with raw pthread mutexes
+            <type>pthread_mutex_t*</type> and
+            The <classname>CMutex</classname> class wrapper for pthread mutexes.
+          </para>
+       </refsect1>
+       <refsect1>
+          <title>
+         METHODS
+          </title>
+          <variablelist>
+            <varlistentry>
+                <term>
+                    <constructorsynopsis>
+                         <methodname>CConditionVariable</methodname>
+                         <void />
+                     </constructorsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Constructs a condition variable with the default
+                        attrributes.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <constructorsynopsis>
+                         <methodname>CConditionVariable</methodname>
+                         <methodparam>
+                             <type>pthread_condattr_t&amp;</type><parameter> attr</parameter>
+                         </methodparam>
+                     </constructorsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Constructs a condition variable with attributes defined by
+                        the raw pthreads condition variable <parameter>attr</parameter>
+                        as its attributes.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <constructorsynopsis>
+                         <methodname>CConditionVariable</methodname>
+                         <methodparam>
+                             <type>CConditionAttributes&amp;</type><parameter> attr</parameter>
+                         </methodparam>
+                     </constructorsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Constructs a condition variable with attributes set by
+                        the <classname>CConditionAttrbiutes</classname> <parameter>attr</parameter>
+                        parameter.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                     <methodsynopsis>
+                         <modifier></modifier>
+                         <type>void </type>
+                         <methodname>signal</methodname>
+                         <void />
+                     </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Signals the condition variable.  The calling thread must
+                        have a lock on the mutex associated with the waits on
+                        the condition variable.  One thread will be released from
+                        condition wait (however it will still be waiting to obtain
+                        the mutext lock).
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>  
+                     <methodsynopsis>
+                         <modifier></modifier>
+                         <type>void </type>
+                         <methodname>broadcast</methodname>
+                         <void />
+                     </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Broadcasts a condition variable.  This is the same as
+                        <methodname>signal</methodname> except all waiting
+                        threads are released from condition wait and attempt
+                        to acquire the associated mutex.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                     <methodsynopsis>
+                         <modifier></modifier>
+                         <type>bool </type>
+                         <methodname>timedwait</methodname>
+                         <methodparam>
+                             <type>CMutex&amp;</type><parameter> mutex</parameter>
+                         </methodparam>
+                         <methodparam>
+                             <modifier>const</modifier><type> struct timespec*</type>
+                             <parameter>abstime</parameter>
+                         </methodparam>
+                     </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Waits on the condition variable until either the condition
+                        variable is signalled (or broadcast), or until the absolute
+                        time specified by <parameter>abstime</parameter> is
+                        reached.  The thread must be holding the <parameter>mutex</parameter>
+                        to call this.
+                    </para>
+                    <para>
+                        If the condition variable was signalled before the timeout,
+                        <literal>true</literal> is returned and the thread is
+                        holding the <parameter>mutex</parameter>.
+                        If the wait timed out, the method returns
+                        <literal>false</literal> and the thread is not holding
+                        the mutex.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>  
+                     <methodsynopsis>
+                         <modifier></modifier>
+                         <type>bool </type>
+                         <methodname>timedwait</methodname>
+                         <methodparam>
+                             <type>pthread_mutex_t*</type><parameter> mutex</parameter>
+                         </methodparam>
+                         <methodparam>
+                             <modifier>const</modifier><type> struct timespec*</type>
+                             <parameter>abstime</parameter>
+                         </methodparam>
+                     </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        This is the same as the previous function however
+                        the <parameter>mutex</parameter> parameter is a raw
+                        posix mutex rather than one wrapped in a
+                        <classname>CMutex</classname> object.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                     <methodsynopsis>
+                         <modifier></modifier>
+                         <type>bool </type>
+                         <methodname>timedwait</methodname>
+                         <methodparam>
+                             <type>CMutex&amp;</type><parameter> mutex</parameter>
+                         </methodparam>
+                         <methodparam>
+                             <type>int</type><parameter>milliseconds</parameter>
+                         </methodparam>
+                     </methodsynopsis>
+                     <methodsynopsis>
+                         <modifier></modifier>
+                         <type>bool </type>
+                         <methodname>timedwait</methodname>
+                         <methodparam>
+                             <type>pthread_mutex_t*</type><parameter> mutex</parameter>
+                         </methodparam>
+                         <methodparam>
+                             <type>int</type><parameter> milliseconds</parameter>
+                         </methodparam>
+                         <exceptionname></exceptionname>
+                         <modifier></modifier>
+                     </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Same as above, however the timeout
+                        is specified in milliseconds from the time of the call.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                     <methodsynopsis>
+                         <modifier></modifier>
+                         <type>void </type>
+                         <methodname>wait</methodname>
+                         <methodparam>
+                             <type>CMutex&amp;</type><parameter> mutex</parameter>
+                         </methodparam>
+                         
+                     </methodsynopsis>  
+                     <methodsynopsis>
+                         <modifier></modifier>
+                         <type>void </type>
+                         <methodname>wait</methodname>
+                         <methodparam>
+                             <type>pthread_mutex_t*</type><parameter> mutex</parameter>
+                         </methodparam>
+                         <exceptionname></exceptionname>
+                         <modifier></modifier>
+                     </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Waits for the mutex without any bound on the timet the
+                        thread will block.
+                    </para>
+                </listitem>
+            </varlistentry>
+          </variablelist>
+       </refsect1>
+        <refsect1>
+           <title>PUBLIC VARIABLES, TYPES and CONSTANTS</title>
+           <para>
+                The behavior of pthread entities is controled by an attribute
+                block that is passed to the methods that create them.
+                <classname>CConditionAttributes</classname> is a struct that
+                wraps the <type>pthread_condattr_t</type> attribute block for
+                condition variables with methods that make it easy to set up the
+                block.
+           </para>
+            <variablelist>
+                <varlistentry>
+                    <term>
+                        <methodsynopsis>
+                            <modifier></modifier>
+                            <type>void </type>
+                            <methodname>setShared</methodname>
+                            <void />
+                        </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Sets the sharing attribute to:
+                            <literal>PTHREAD_PROCESS_SHARED</literal>.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <methodsynopsis>
+                            <modifier></modifier>
+                            <type>void </type>
+                            <methodname>setUnshared</methodname>
+                            <void />
+                        </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Sets the sharing attribute to:
+                            <literal>PTHREAD_PROCESS_PRIVATE
+                            </literal>
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <methodsynopsis>
+                            <modifier></modifier>
+                            <type>bool </type>
+                            <methodname>isShared</methodname>
+                            <void />
+                        </methodsynopsis>
+                    </term>
+                    <listitem><para>
+                        Returns <literal>true</literal> if the sharing attribute
+                        is <literal>PTHREAD_PROCESS_SHARED</literal>
+                        </para></listitem>
+                </varlistentry>
+                
+           </variablelist>
+        </refsect1>
+     </refentry>     
 
 <!-- /manpage -->
