@@ -24,6 +24,11 @@ using namespace std;
 #include <CControlHardware.h>
 #include <TclServer.h>
 
+#include "CModuleFactory.h"
+#include "CCAEN894Creator.h"
+#include "CPH7106Creator.h"
+#include "CTclModuleCreator.h"
+
 #include "C894.h"
 #include "CPH7106.h"
 
@@ -44,10 +49,18 @@ CModuleCommand::CModuleCommand(CTCLInterpreter& interp,
 			      TclServer&       server) :
   CTCLObjectProcessor(interp, "Module"),
   m_Server(server)  
-{}
+{
+  CModuleFactory* pFact = CModuleFactory::instance();
+  pFact->addCreator("caen894", new CCAEN894Creator);
+  pFact->addCreator("ph7106", new CPH7106Creator);
+  pFact->addCreator("tcl",    new CTclModuleCreator);
+}
 //! Destroy the module.. no op provided only as a chain to the base class destructor.
 CModuleCommand::~CModuleCommand()
-{}
+{
+
+
+}
 
 
 /*!
@@ -114,23 +127,18 @@ CModuleCommand::create(CTCLInterpreter& interp,
   string type = objv[2];
   string name = objv[3];
 
-  CControlHardware* pModule;
+  CModuleFactory* pFact = CModuleFactory::instance();
 
-  if (type == "caen894") {
-    pModule = new C894(name);
-  }
-  else  if (type == "ph7106") {
-    pModule = new CPH7106(name);
-  }
-  else {
-    m_Server.setResult("module create: Invalid type, must be caen894 or ph7106");
+  CControlHardware* pModule = pFact->create(name, type);
+  if (pModule) {
+    CControlModule*   pConfig = pModule->getConfiguration();
+    pModule->onAttach(*pConfig);
+    m_Server.addModule(pConfig);
+    m_Server.setResult(name); 
+  } else {
+    m_Server.setResult("Invalid module type");
     return TCL_ERROR;
   }
-   
-  CControlModule*   pConfig = pModule->getConfiguration();
-  pModule->onAttach(*pConfig);
-  m_Server.addModule(pConfig);
-  m_Server.setResult(name);
   
 
   return TCL_OK;

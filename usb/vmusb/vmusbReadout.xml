@@ -2251,7 +2251,18 @@ g++ -shared -o libMyDriver.so MyDriver.cpp
 	      resolve any other undefined symbols that are in libraries
 	      not part of the readout program.
 	    </para>
-
+            <para>
+	      To use the driver you need to load it into the interpreter
+	      and the use the <command>Module</command> to make an instance
+	      and to maniuplate that instance.  For example:
+	    </para>
+	    <informalexample>
+	      <programlisting>
+load [file join [file dirname [info script]] libMyDriver.so]
+Module create testModule mydriver
+Module config testModule -anint 1234
+	      </programlisting>
+	    </informalexample>
 	  </section>
 	</section>
 	
@@ -2756,7 +2767,7 @@ snit::type Mydriver {                            <co id='ctldriver-tclstruct-sni
 	    Wrap your driver with the <literal>tcl</literal> module type:
 	    <informalexample>
 	      <programlisting>
-Module create tcl atcldriver
+Module create  atcldriver tcl
 Module config atcldriver -ensemble aninstance
 	      </programlisting>
 	    </informalexample>

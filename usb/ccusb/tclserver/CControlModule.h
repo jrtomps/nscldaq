@@ -72,10 +72,10 @@ private:
 public:
   // Functions:
 
-  void        Initialize(CCCUSB& vme);
-  std::string Update(CCCUSB& vme);
-  std::string Set(CCCUSB& vme, const char* what, const char* value);
-  std::string Get(CCCUSB& vme, const char* what);
+  void        Initialize(CCCUSB& crate);
+  std::string Update(CCCUSB& crate);
+  std::string Set(CCCUSB& crate, const char* what, const char* value);
+  std::string Get(CCCUSB& crate, const char* what);
 
 };
 

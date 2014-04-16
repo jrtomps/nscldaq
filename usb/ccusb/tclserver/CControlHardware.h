@@ -47,7 +47,7 @@ class CControlModule;
 
 class CControlHardware
 {
-private:
+protected:
   CControlModule* m_pConfig;
 public:
   // Canonicals:
