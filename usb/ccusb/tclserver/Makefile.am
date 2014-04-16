@@ -71,3 +71,5 @@ install-data-local:
 	$(INSTALL_DATA)  @srcdir@/*.h @prefix@/ccusbdriver/includes
 	$(INSTALL_DATA)  @srcdir@/sampleDriver.cpp @prefix@/ccusbdriver/example
 	$(INSTALL_DATA)  @srcdir@/driver_Makefile @prefix@/ccusbdriver/example/Makefile
+
+EXTRA_DIST=driver_Makefile.in sampleDriver.cpp
