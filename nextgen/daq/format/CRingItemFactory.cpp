@@ -199,6 +199,7 @@ CRingItemFactory::isKnownItemType(const void* pItem)
     knownItemTypes.insert(MONITORED_VARIABLES);
 
     knownItemTypes.insert(INCREMENTAL_SCALERS);
+    knownItemTypes.insert(TIMESTAMPED_NONINCR_SCALERS);
     knownItemTypes.insert(PHYSICS_EVENT);
     knownItemTypes.insert(PHYSICS_EVENT_COUNT);
     knownItemTypes.insert(EVB_FRAGMENT);
