@@ -24,6 +24,7 @@
 #include "CRingStateChangeItem.h"
 #include "CRingTextItem.h"
 #include "CPhysicsEventItem.h"
+#include "CRingTimestampedRunningScalerItem.h"
 #include "DataFormat.h"
 
 #include <vector>
@@ -96,6 +97,8 @@ CRingItemFactory::createRingItem(const CRingItem& item)
       );
       
     }
+  case TIMESTAMPED_NONINCR_SCALERS:
+    return new CRingTimestampedRunningScalerItem(item);
 
     // Physics trigger:
 

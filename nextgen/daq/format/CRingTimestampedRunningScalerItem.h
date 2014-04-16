@@ -60,7 +60,7 @@ private:
   pNonIncrTimestampedScaler m_pItem;
 
   // Canonical operations:
-
+public:
   CRingTimestampedRunningScalerItem(uint64_t eventTimestamp,
 				    uint32_t startTime,
 				    uint32_t stopTime,
