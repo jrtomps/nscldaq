@@ -128,6 +128,18 @@ eventlog <optional>options...</optional>
 	OPTIONS
      </title>
      <variablelist>
+       <varlistentry>
+	 <term><option>--checksum</option></term>
+	 <listitem>
+	   <para>
+	     If present, an SHA512 checksum is computed over the data in each run
+	     and output to a file named <filename>run-nnnn.sha512</filename> in the
+	     same directory as the event file.  The checksum should match the value
+	     that would be produced by the command:
+	     <command>sha512sum run-nnnn*.evt</command>
+	   </para>
+	 </listitem>
+       </varlistentry>
         <varlistentry>
             <term><option>--number-of-sources</option>=<replaceable>n</replaceable></term>
             <listitem>
