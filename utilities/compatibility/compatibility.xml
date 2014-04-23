@@ -835,6 +835,134 @@ $DAQROOT/bin/BufferToRing <optional>buffer-size</optional>
         </refsect1>
 
       </refentry>
+      <refentry id="compatibility1-bufdump">
+        <refmeta>
+           <refentrytitle>bufdump</refentrytitle>
+           <manvolnum>1compatibility</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>bufdump</refname>
+           <refpurpose>Dump NSCLDAQ event files earlier than version 10.0</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+$DAQHOME/bin/bufdump ?options? ?files?
+          </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            <application>bufdump</application> is actually a script that pipes
+            together <application>BufferToRing</application> with
+            <application>dumper</application> to dump data from old style NSCL
+            event files as ring items.
+           </para>
+           <para>
+            If there are filename arguments on the command line, all files given
+            are dumped in the order in which they appear.  If no files are given,
+            the data for the command is accepted on standard input, allowing this
+            program to live inside a unix pipeline.
+           </para>
+           <para>
+            Most of the <application>dumper</application> options are available.
+            See OPTIONS below for the specific options that are available.
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              OPTIONS
+           </title>
+           <variablelist>
+            <varlistentry>
+                <term><option>--skip</option>, <option>-m</option></term>
+                <listitem>
+                    <para>
+                        The value of this option determines how many
+                        translated ring items are skipped before the data are
+                        dumped.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>--count</option>, <option>-c</option></term>
+                <listitem>
+                    <para>
+                        The value of this option determines how many translated
+                        ring items are dumped before the program exits.  If omitted
+                        the entire data source is dumped.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>--sample</option>, <option>-S</option></term>
+                <listitem>
+                    <para>
+                        This option has no effect and is supplied only for
+                        compatibility with the <application>dumper</application>
+                        program.  This is because <application>bufdump</application>
+                        cannot directly take data from a ring buffer.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>--excldue</option>, <option>-e</option></term>
+                <listitem>
+                    <para>
+                        The value of this option is a list of buffer types that
+                        should not be dumped.  Multiple buffer types should
+                        be separated by commas.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>--scaler-width</option>, <option>-w</option></term>
+                <listitem>
+                    <para>
+                        The value of this option is the width, in bits, of
+                        scaler counters in the data.  This is used to generate
+                        a mask that removes any extraneous bits from the unused
+                        bits of scalers whose width is less than <literal>32</literal>
+                    </para>
+                </listitem>
+            </varlistentry>
+            
+           </variablelist>
+        </refsect1>
+        <refsect1>
+            <title>EXAMPLES</title>
+            <example>
+                <title>Dumping all data from an old style event file</title>
+                <programlisting>
+$DAQROOT/bin/bufdump ~/stagearea/complete/run-124-4096.evt
+                </programlisting>
+            </example>
+            <example>
+                <title>Dumping all data but event data from an old style event file</title>
+                <programlisting>
+$DAQROOT/bin/bufdump --exclude=PHYSICS_EVENT ~/stagearea/complete/run-124-4096.evt
+                </programlisting>
+            </example>
+            <para>
+                Multiple event files can be used as well:
+            </para>
+            <example>
+                <title> Dumping all but physics data from several event files</title>
+                <programlisting>
+$DAQROOT/bin/bufdump --exclude=PHYSICS_EVENT ~/stagearea/complete/run-124-4096.evt \
+                                             ~/stagearea/complete/run-125-4096.evt  \
+                                             ~/stagearea/complete/run-126-4096.evt
+# wild cards can be used:
+
+$DAQROOT/bin/bufdump --exclude=PHYSICS_EVENT ~/stagearea/complete/*.evt
+                </programlisting>
+            </example>
+        </refsect1>
+
+      </refentry>
 
     
 
