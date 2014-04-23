@@ -70,8 +70,10 @@ static uint64_t triggers;
  */
 bool getBuffer (uint16_t* pBuffer,  size_t nBytes)
 {
+  size_t nread;
   try {
-    size_t read = io::readData(STDIN_FILENO, pBuffer, nBytes);
+    nread = io::readData(STDIN_FILENO, pBuffer, nBytes);
+    if (nread < nBytes) return false;
   }
   catch(int e) {
     if (e) {
