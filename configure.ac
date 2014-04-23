@@ -27,6 +27,11 @@ AC_CHECK_LIB([Xt], [XtManage])
 
 AM_PATH_CPPUNIT
 
+# Checksums in eventlog require openssl for the digest libs:
+
+AX_CHECK_OPENSSL([AC_MSG_RESULT([found openssl])],[AC_MSG_ERROR([Open SSL  is required but can't be found])])
+
+
 #
 #   For compatibility with existing AC_Substs:
 
@@ -236,6 +241,8 @@ then
 else
 	AM_CONDITIONAL([BUILD_USB], [false])
 fi
+
+
 
 
 #----------------------------------------------------------------------------
