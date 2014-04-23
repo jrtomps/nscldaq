@@ -227,7 +227,7 @@ proc ::EventLog::_computeLoggerSwitches {} {
 	set ring [::Experiment::spectrodaqURL localhost]
     }
 
-    set switches "--source=$ring "
+    set switches "--source=$ring --checksum --oneshot"
     
     # If requested, use the --number-of-sources switch:
     
@@ -246,7 +246,6 @@ proc ::EventLog::_computeLoggerSwitches {} {
         append switches " --run=$run"
     }
     
-    append switches " --oneshot"
     return $switches
 }
 ##
@@ -352,6 +351,17 @@ proc ::EventLog::_finalizeRun {} {
         file rename -force $eventFile $destFile
         lappend mvdNames $destFile
     }
+    #
+    #  If there is a checksum file (there should be) move that to the experiment directory
+    #
+
+    set cksumFile [file join $srcdir "${fileBaseName}.sha512"]
+    set destFile [file join $destDir [file tail $cksumFile]]
+    if {[file readable $cksumFile]} {
+	file rename -force $cksumFile $destFile
+    }
+
+    #  If 
     #  Make links in the complete directory for all mvdNames:
     
     foreach file $mvdNames {
