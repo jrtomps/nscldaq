@@ -1,0 +1,127 @@
+#!/bin/bash
+#
+#   This is a dumper for old style event files.  It is a pipeline from BuferToRing | dumper
+#   Note that by definition sources must be files or must be stdin to allow this to live as a file
+#
+# USAGE:
+#   bufdump ?options? source
+#
+#  If 'source' is - the input s stdin, otherwise it is a path to the file to dump.
+# OPTIONS
+#  (Note, these are passed to dumper directly.
+#
+#   --skip,-m   - Number of items (events) to skip.
+#   --count,-c  - Number of items to dump before exiting.
+#   --sample,-S - Item types to sample
+#   --exclude,-e - Item types to exclude.
+#   --scaler-width, -w - Numberr of bits wide the scalers are.
+#
+
+
+prefix=@prefix@
+bindir=$prefix/bin
+
+
+args=`getopt -o m:c:S:e:w:h --long help,skip:,count:,sample:,exclude:,scaler-width: -- $*`
+
+
+catargs=""
+dumperargs=""
+
+
+set -- $args
+
+for i
+do
+     case "$i"
+     in
+        -m|--skip)
+	        OIFS=$IFS
+		param=($i)
+		IFS=$OIFS
+		if test ${#param[@]} = 2
+		then
+		  arg=${param[1]}
+                else
+		  arg=$2
+                  shift
+                fi
+		dumperargs="$dumperargs --skip=$arg"
+		shift
+		;;
+        -c|--count)
+	        OIFS=$IFS
+		param=($i)
+		IFS=$OIFS
+		if test ${#param[@]} = 2
+		then
+		  arg=${param[1]}
+                else
+		  arg=$2
+                  shift
+                fi
+		dumperargs="$dumperargs --count=$arg"
+		shift
+		;;
+	-S|--sample)
+	        OIFS=$IFS
+		param=($i)
+		IFS=$OIFS
+		if test ${#param[@]} = 2
+		then
+		  arg=${param[1]}
+                else
+		  arg=$2
+                  shift
+                fi
+		dumperargs="$dumperargs --sample=$arg"
+		shift
+		;;
+	-e|--exclude)
+	        OIFS=$IFS
+		param=($i)
+		IFS=$OIFS
+		if test ${#param[@]} = 2
+		then
+		  arg=${param[1]}
+                else
+		  arg=$2
+                  shift
+                fi
+		dumperargs="$dumperargs --exclude=$arg"
+		shift
+		;;
+	-w|--scaler-width)
+	        OIFS=$IFS
+		param=($i)
+		IFS=$OIFS
+		if test ${#param[@]} = 2
+		then
+		  arg=${param[1]}
+                else
+		  arg=$2
+                  shift
+                fi
+		dumperargs="$dumperargs --scaler-width=$arg"
+		shift
+		;;
+	--)
+		shift
+		break
+		;;
+
+     esac
+done
+for i
+do
+    catargs="$catargs $i"
+done
+
+
+dumperargs=`echo $dumperargs |tr -d "'"  `
+catargs=`echo $catargs | tr -d "'" `
+
+
+
+cat $catargs | $bindir/BufferToRing 8192 | $bindir/dumper $dumperargs --source=-
+
