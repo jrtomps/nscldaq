@@ -583,3 +583,6 @@ Feb 1, 2012 - Feb 24, 2012
 	* Some aesthetics improved on ReadoutGUI
 	* Extra configuration controls added in vmusb driver
 
+11.0-rc6-001
+	* Issue #1942 - compatibiliby mode buffer dump script.
+	* Issue #1939 - Add checksum.
