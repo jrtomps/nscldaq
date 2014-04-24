@@ -74,7 +74,7 @@ namespace eval ::EventLog {
     variable loggerPid         -1
     variable startupTimeout    10
     variable shutdownTimeout   30
-    variable filePollInterval   1
+    variable filePollInterval 100
     variable protectFiles       1
     
     #  For our status line:
