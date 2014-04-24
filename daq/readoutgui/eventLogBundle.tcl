@@ -74,7 +74,7 @@ namespace eval ::EventLog {
     variable loggerPid         -1
     variable startupTimeout    10
     variable shutdownTimeout   30
-    variable filePollInterval 100
+    variable filePollInterval   1
     variable protectFiles       1
     
     #  For our status line:
@@ -203,14 +203,6 @@ proc ::EventLog::getLoggerPath {} {}
 # Utility methods
 
 ##
-# ::EventLog::_cdCurrent
-#
-#  Change directory to the place current event files should be written.
-#
-proc ::EventLog::_cdCurrent {} {
-    cd [::ExpFileSystem::getCurrentRunDir]
-}
-##
 # ::EventLog::_computeLoggerSwitches
 #
 # @return the command line options the logger should use:
@@ -241,6 +233,9 @@ proc ::EventLog::_computeLoggerSwitches {} {
     }
     # If requested get the run number from the GUI and force it:
     
+    # Generate run files in the current directory without cd'ing anywhere
+    append switches " --path=[::ExpFileSystem::getCurrentRunDir]"
+
     if {[DAQParameters::getRunNumberOverrideFlag]} {
         set run [::ReadoutGUIPanel::getRun]
         append switches " --run=$run"
@@ -482,15 +477,15 @@ proc ::EventLog::runStarting {} {
         if {[::EventLog::_duplicateRun]} {
             error "Run already has event data or segments"
         }
-        ::EventLog::_cdCurrent
  
         # Ensure there are no stale synch files:
-
-        file delete -force .exiting
-        file delete -force .started
+        set startFile [file join [::ExpFileSystem::getCurrentRunDir] .started]
+        set exitFile [file join [::ExpFileSystem::getCurrentRunDir] .exited]
+        file delete -force $startFile 
+        file delete -force $exitFile 
         
         ::EventLog::_startLogger
-        ::EventLog::_waitForFile .started $::EventLog::startupTimeout \
+        ::EventLog::_waitForFile $startFile $::EventLog::startupTimeout \
                 $::EventLog::filePollInterval
         set ::EventLog::expectingExit 0
         ::EventLog::_setStatusLine 2000
@@ -508,17 +503,19 @@ proc ::EventLog::runStarting {} {
 #
 proc ::EventLog::runEnding {} {
     
+    set startFile [file join [::ExpFileSystem::getCurrentRunDir] .started]
+    set exitFile [file join [::ExpFileSystem::getCurrentRunDir] .exited]
     # ne is used below because the logger could be a pipeline in which case
     # ::EventLog::loggerPid will be a list of pids which freaks out ==.
     
-    
     if {$::EventLog::loggerPid ne -1} {
         set ::EventLog::expectingExit 1
-        ::EventLog::_waitForFile .exited $::EventLog::shutdownTimeout \
+        ::EventLog::_waitForFile $exitFile $::EventLog::shutdownTimeout \
             $::EventLog::filePollInterval
         set ::EventLog::loggerPid -1
         ::EventLog::_finalizeRun
-        file delete -force .exited;   # So it's not there next time!!
+        file delete -force $startFile;   # So it's not there next time!!
+        file delete -force $exitFile;   # So it's not there next time!!
         
         # Incremnt the run number:
         

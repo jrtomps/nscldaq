@@ -46,6 +46,7 @@ StatusBar fakeStatusBar
 
 proc ::Diagnostics::Error  msg {}
 proc ::ReadoutGUIPanel::Log {src sev msg} {}
+proc ::ReadoutGUIPanel::isRecording {} { return true }
 proc ::StatusBar::getInstance {} {return fakeStatusBar}
 
 #------------------------------------------------------------------------------
@@ -161,6 +162,26 @@ tcltest::test getFilePollInterval {::EventLog::getFilePollInterval should track 
     ::EventLog::setFilePollInterval 98765
     ::EventLog::getFilePollInterval
 } -result 98765
+
+
+tcltest::test currentDirPassedToSwitches {::EventLog::_computeLoggerSwitches adds --path opt
+} -body {
+  set sw [::EventLog::_computeLoggerSwitches]
+  set currdir [::ExpFileSystem::getCurrentRunDir]
+  string match "* --path=$currdir*" $sw
+} -result 1 
+  
+tcltest::test startLoggerStaysInPWD {::EventLog::_startLogger remains in pwd } \
+-setup {
+  set oldpwd [pwd]
+} -cleanup {
+  cd $oldpwd
+  catch {close $::EventLog::loggerFd} msg
+} -body {
+  ::EventLog::_startLogger
+  set newpwd [pwd]
+  set inpwd [string equal $newpwd $oldpwd]
+} -result 1 
 
 #------------------------------------------------------------------------------
 #  Run state transitions with event logging turned on
