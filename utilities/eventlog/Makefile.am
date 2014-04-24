@@ -39,6 +39,10 @@ eventlogargs.o: eventlogargs.ggo
 
 EXTRA_DIST		=	eventlogargs.ggo eventlog.xml
 
+#  Need to clean the products of processing eventlogargs.ggo:
+
+clean-local:
+	rm -f eventlogargs.h eventlogargs.c
 
 
 #-------------------------------------------------------------

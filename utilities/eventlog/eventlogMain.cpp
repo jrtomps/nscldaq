@@ -1,4 +1,4 @@
-/*
+if/*
     This software is Copyright by the Board of Trustees of Michigan
     State University (c) Copyright 2005.
 
@@ -78,7 +78,9 @@ class noData :  public CRingBuffer::CRingBufferPredicate
    m_exitOnEndRun(false),
    m_nSourceCount(1),
    m_fRunNumberOverride(false),
-   m_pChecksumContext(0)
+   m_pChecksumContext(0),
+   m_nBeginsSeen(0),
+   m_fChangeRunOk(false)
  {
  }
 
@@ -197,8 +199,9 @@ class noData :  public CRingBuffer::CRingBufferPredicate
 	 */
 	 
 	 if (pItem->type() == RING_FORMAT) {
-        pFormatItem = pItem;
+	   pFormatItem = pItem;
 	 } else if (pItem->type() == BEGIN_RUN) {
+	   m_nBeginsSeen = 1;
 	   break;
 	 } else {
 	   // Ring format item must >exactly< precede BEGIN_RUN:
@@ -334,7 +337,10 @@ class noData :  public CRingBuffer::CRingBufferPredicate
        break;
      }
      pItem =  CRingItem::getFromRing(*m_pRing, p);
-
+     if(isBadItem(*pItem, runNumber)) {
+       std::cerr << "Eventlog: Data indicates probably the run ended in error exiting\n";
+       exit(EXIT_FAILURE);
+     }
    } 
    //
    //  If checksumming, finalize the checksum and write out the checksum file as well.
@@ -447,6 +453,7 @@ class noData :  public CRingBuffer::CRingBufferPredicate
    // Checksum flag:
 
    m_fChecksum = (parsed.checksum_flag != 0);
+   m_fChangeRunOk = (parsed.combine_runs_flag != 0);
 
  }
 
@@ -634,4 +641,45 @@ EventLogMain::shaFile(int run) const
   fileName += ".sha512";
 
   return fileName;
+}
+/**
+ * isBadItem
+ *     This method is called to determine if we've gotten a ring item that
+ *      might indicate we need to exit in --one-shot mode:
+ *      -  If --combine-runs is set, or --one-shot not set, return false.
+ *      -  If the run number changed from the one we are recording,
+ *         true.
+ *      -  If we had more begin runs than m_nSourceCount, true
+ *      -  None of these, return false.
+ *
+ * @param item      - Reference to the ring item to check.
+ * @param runNumber - the current run number.
+ *
+ * @return bool
+ * @retval true  - there's something fishy about this -- probably we should exit.
+ * @retval false - as near as we can tell everything is ok.
+ */
+bool
+EventLogMain::isBadItem(CRingItem& item, int runNumber)
+{
+  // For some states of program options we just don't care about the
+  // data
+
+  if (m_fChangeRunOk || (!m_exitOnEndRun)) {
+    return false;
+  }
+  // For the rest we only care about state changes -- begins in fact
+
+  if (item.type() == BEGIN_RUN) {
+    m_nBeginsSeen++;
+    if (m_nBeginsSeen > m_nSourceCount) {
+      return true;
+    }
+    CRingStateChangeItem begin(item);
+    if (begin.getRunNumber() != runNumber) {
+      return true;
+    }
+  }
+  return false;
+
 }

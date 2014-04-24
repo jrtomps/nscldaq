@@ -230,6 +230,16 @@ eventlog <optional>options...</optional>
 	    </para>
 	  </listitem>
 	</varlistentry>
+	<varlistentry>
+	  <term><option>--combine-runs</option></term>
+	  <listitem>
+	    <para>
+	      When present, the normal checks in <option>--one-shot</option> mode
+	      that would make the event logger exit if run numbers are observed to change
+	      or if there are too many begin runs, are not made.
+	    </para>
+	  </listitem>
+	</varlistentry>
      </variablelist>
   </refsect1>
 
