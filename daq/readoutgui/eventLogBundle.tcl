@@ -52,6 +52,11 @@ package require DataSourceUI
 #                                       and finalizes the event and ancillary data.
 #  * {Paused,Active} -> Halted (enter): Cleans up the logger start and logger
 #                                       done files.
+#  * {Paused, Active} -> NotReady(enter):
+#                                       If the eventlogPID is set force the
+#                                       eventlog to exit and finalize the run.
+#
+#            
 #
 #  The EventLogger DAQ configuration parameter is used to determine which
 #  event logger is started (DaqParameters).
@@ -311,7 +316,7 @@ proc ::EventLog::_waitForFile {name waitTimeout pollInterval} {
         }
         incr waitTimeoutMs -$pollInterval
         after $pollInterval
-	update;			# keep the event loop semi-live. TODO: Deactivate buttons.
+#	update idletasks;			# keep the event loop semi-live. TODO: Deactivate buttons.
     }
     return 0
 }
@@ -472,6 +477,17 @@ proc ::EventLog::_duplicateRun {} {
 #   * Wait for the .started file to appear.
 #
 proc ::EventLog::runStarting {} {
+
+    #  If there's already an event logger just force it to exit.
+
+    if {$::EventLog::loggerPid ne -1} {
+	foreach pid $::EventLog::loggerPid {
+	    catch {exec kill -9 $pid};            # Catch because the pipeline could run down.
+	    set ::EventLog::loggerPid -1
+	}
+    }
+
+    # Now if desired start the new run.
     
     if {[::ReadoutGUIPanel::recordData]} {
         if {[::EventLog::_duplicateRun]} {
@@ -512,6 +528,9 @@ proc ::EventLog::runEnding {} {
         set ::EventLog::expectingExit 1
         ::EventLog::_waitForFile $exitFile $::EventLog::shutdownTimeout \
             $::EventLog::filePollInterval
+	foreach pid $::EventLog::loggerPid {
+	    catch {exec kill -9 $pid}; # in case waitforfile timed out.
+	}
         set ::EventLog::loggerPid -1
         ::EventLog::_finalizeRun
         file delete -force $startFile;   # So it's not there next time!!
@@ -556,6 +575,9 @@ proc ::EventLog::attach {state} {
 proc ::EventLog::enter {from to} {
     if {($from in [list Active Paused]) && ($to eq "Halted")} {
         ::EventLog::runEnding
+    }
+    if {($from in [list Active Paused]) && ($to eq "NotReady")} {
+	::EventLog::runEnding
     }
 }
 ##
