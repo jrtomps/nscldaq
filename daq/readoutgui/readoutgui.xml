@@ -1733,153 +1733,74 @@ ReadoutGuiApp  r                                  <co id='custom_readoutgui_inst
     <section>
         <title>Remote control package</title>
         <para>
-            For some systems it is useful to have a Readout GUI that can run
-            independently for testing and then be controlled by another Readout
-            GUI for integrated operation.  The current implementation of the
-            ReadoutShell allows you to start a remote control server that is
-            highly compatible with the S800 remote run control protocol (designed by
-            Daniel Bazin and Scott Williams).
+            When doing event building, it can be useful to have a ReadoutGUI for
+            each data source and then another ReadoutGUI that controls them all.
+            Doing this allows data sources to be worked on independently when
+            it is not necessary to run all of them together to build events.
+            The remote control packages for the ReadoutGUI support this
+            mode of operation.
         </para>
         <para>
-            Similarly a single readout GUI data source can be added as a data
-            source.  Note that this data source is layered on top of the
-            S800 provider and therefore only one of either a remote control
-            readout gui or S800 can be controlled at a time.  In the future, this
-            restriction will be removed.
+            If you choose to use this approach you must enable the ReadoutGUIs
+            that will be slaved to the master control panel to:
+            <itemizedlist>
+                <listitem><para>
+                    Run a remote control server component that allows the master
+                    GUI to tell it what to  do.
+                    </para></listitem>
+                <listitem><para>
+                    Run a remote console monitor component that allows the master
+                    GUI to relay output that goes to the slave output window to
+                    the master's output window.
+                    </para></listitem>
+            </itemizedlist>
         </para>
         <para>
-            In addition to providing remote control, there is support for relaying
-            output that goes to the server's output window to the output window of the
-            client.
+            This is done by adding the following two lines to the slave
+            GUI's <filename>ReadoutCallouts.tcl</filename> file:
         </para>
-        <para>
-            To allow your readout GUI to implement a remote control/monitor
-            server, add the following lines towards the front of your
-            <filename>ReadoutCallouts.tcl</filename>  script:
-        </para>
-        <example>
-            <title>Enabling remote control/monitoring of the Readout GUI</title>
+        <informalexample>
             <programlisting>
-package require ReadoutGuiRemoteControl  <co id='remoteserver_require' />
+package require ReadoutGuiRemoteControl   <co id='remote_control_package' />
 
-ReadoutGuiRemoteControl %AUTO%           <co id='remoteserver_control' />
-OutputMonitor %AUTO%                     <co id='remoteserver_monitor' />
+ReadoutGuiRemoteControl %AUTO%           <co id='remote_control_controlserver' />
+OutputMonitor           %AUTO%           <co id='remote_control_outputmonitor' />
             </programlisting>
-        </example>
+        </informalexample>
         <calloutlist>
-            <callout arearefs='remoteserver_require'>
+            <callout arearefs='remote_control_package'>
                 <para>
-                    Pulls in the code that implements the server components.
-                    The server component includes a server for commands and a
-                    second server that forwards output to the Output window.
+                    The remote control software is an optional component.
+                    This line incorporates that component into the ReadoutGUI
                 </para>
             </callout>
-            <callout arearefs='remoteserver_control'>
+            <callout arearefs='remote_control_controlserver'>
                 <para>
-                    Starts an instance of the remote control server.
-                    This server allows a remote client to take over the
-                    Readout GUI and command it to start and stop runs.
+                    This line starts the remote control server.  The remote
+                    control server advertises itself with the port manager
+                    so that remote processes can determine where it is listening
+                    for TCP/IP connections.
                 </para>
             </callout>
-            <callout arearefs='remoteserver_monitor' >
+            <callout arearefs='remote_control_outputmonitor'>
                 <para>
-                    Starts an intance of the output window monitor
-                    server.  This server allows a remote client to spy on
-                    what is being sent to the server's ouput window.
+                    This line starts the output window relay server.  It also
+                    advertises itself with the port manager.  Clients that connect
+                    to this server will receive a copy of all output destined
+                    for the slave's output window.
                 </para>
             </callout>
         </calloutlist>
         <para>
-            On the client side of this picture there are two layers of software.
-            The lower layer provides location services to support connecting with
-            the servers. The upper layer implements a data source povider of type
-            <literal>RemoteGUI</literal>.  Since this provider is implemented in terms
-            of the <literal>S800</literal> provider, and since that provider only supports a single
-            client, You can only have a single <literal>S800</literal> data
-            source or a single <literal>RemoteGUI</literal> data source.
+            To use a slave UI, you must run a readout shell and add data sources
+            with the RemoteGUI data source provder for each slave you want your master
+            to control.  You will need to know which system is running the slave GUI
+            and under which user name it is running.
         </para>
         <para>
-            Note that when using these servers, they make use of the NSCLDAQ
-            port registrar/allocator. As such each service is identified by a
-            service name and a username.  The service names are:
-            <variablelist>
-                <varlistentry>
-                    <term><literal>ReadoutGUIRemoteControl</literal></term>
-                    <listitem>
-                        <para>
-                            The Remote control server.
-                        </para>
-                    </listitem>
-                </varlistentry>
-                <varlistentry>
-                    <term><literal>ReadoutGUIOutput</literal></term>
-                    <listitem>
-                        <para>
-                            The output window monitor server.
-                        </para>
-                    </listitem>
-                </varlistentry>
-            </variablelist>
-        </para>
-        <para>
-            The remainder of this section describes the <literal>ReadoutGuiClient</literal>
-            package, the lower level of the client software.  The upper level is
-            not described because it is just a data source like any other
-            data source.  In most cases you can just use the data source and
-            don't need to know about the existence of the lower layers.
-        </para>
-        <para>
-            The <literal>ReadoutGuiClient</literal> package provides location
-            services (translations from host/port pairs to a remote TCP/IP port
-            number) as well as a convenience <literal>snit::type</literal> you
-            can use to monitor the output window.
-        </para>
-        <formalpara>
-            <title>Location services</title>
-            <para>
-                Two procs allow you to translate between a username and host and
-                the port that a server will accept connections.
-                <function>readoutGUIControlPort</function> takes the <parameter>host</parameter>
-                and <parameter>user</parameter> the server runs on and returns
-                the port of the remote control server for the ReadoutGUI run on that
-                host by that user.
-                <orderedlist>
-                    <listitem>
-                        <para> The <parameter>user</parameter> parameter can
-                        be omitted and defaults to the logged in client user.
-                        </para>
-                    </listitem>
-                    <listitem>
-                        <para>
-                            If no server is listening, the return value is an
-                            empty string.
-                        </para>
-                    </listitem>
-                    <listitem>
-                        <para>
-                            If a server is listening, the return vale is the
-                            port on which it is listening.
-                        </para>
-                        </listitem>
-                </orderedlist>
-            </para>
-        </formalpara>
-        <para>
-            <function>readoutGUIOutputPort</function> does the same thing that
-            <function>readoutGUIControlPort</function> does but looks up the port
-            for the Readout GUI output window monitor server.
-        </para>
-        <formalpara>
-            <title>ReadoutGUIOutputClient</title>
-            <para><classname>ReadoutGUIOutputClient</classname> provides a
-            snit::type that is a complete client of the output window monitor
-            server.
-            </para>
-        </formalpara>
-        <para>
-            See <link linkend='rdogui3_readoutguioutputclient'
-            endterm='rdogui3_readoutguioutputclient_title' /> for full documentation
-            of this class.
+            At this time you can only have a single master control panel control
+            any single slave control panel.  This restriction might be lifted in the
+            future.
         </para>
     </section>
     
