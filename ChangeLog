@@ -588,4 +588,6 @@ Feb 1, 2012 - Feb 24, 2012
 	* Issue #1939 - Add checksum.
 	* Issue #1930 - Reduce the chance there will be event logs that
 	hand around on failures and actually record data.
+	* Issue #1941 - Re-assert the width of the field each insertion in
+	CRingItem::toString as it is apparently a one-shot thing.
 	
