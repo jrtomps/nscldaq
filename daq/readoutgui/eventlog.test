@@ -50,6 +50,32 @@ proc ::ReadoutGUIPanel::isRecording {} { return true }
 proc ::StatusBar::getInstance {} {return fakeStatusBar}
 
 #------------------------------------------------------------------------------
+#  Run state transitions with event logging turned on
+#
+#  need to re-do this with a mock object.
+#
+
+#-----------------------------------------------------------------------------
+#  Run state transitions with event logging turned on.
+#  For our logger we'll use cat | touch .started | touch .exited
+#  This shouild make something that will hang around and
+#  also make all of the appropriate files. 
+#
+set here [pwd];           # This will get changed...
+set stagearea [tcltest::makeDirectory stagearea $here]
+::Configuration::Set StageArea $stagearea
+::Configuration::Set Experiment [file join $here experiment]
+
+set cat   [exec which cat]
+set touch [exec which touch]
+set startFile [file join [::Configuration::get StageArea] .started]
+set exitFile [file join [::Configuration::get StageArea] .exited]
+set testEventLogger "$touch $startFile && $touch $exitFile"
+::Configuration::Set EventLogger $testEventLogger 
+
+
+
+#------------------------------------------------------------------------------
 #  eventlogBundle is a bundle and can be registered/unregistered.
 
 tcltest::test register {::EventLog::register registers the bundle with the singleton} \
@@ -173,38 +199,25 @@ tcltest::test currentDirPassedToSwitches {::EventLog::_computeLoggerSwitches add
   
 tcltest::test startLoggerStaysInPWD {::EventLog::_startLogger remains in pwd } \
 -setup {
+  global testEventLogger
+  global ::env
+  global ::here
   set oldpwd [pwd]
+  set oldlogger [::Configuration::get EventLogger]
+  ::Configuration::Set EventLogger $testEventLogger 
+  set oldexpdir [array get ::env STAGEAREA]
+  array set ::env [list STAGEAREA [file join $here stagearea]]
 } -cleanup {
+  global testEventLogger
   cd $oldpwd
   catch {close $::EventLog::loggerFd} msg
+  ::Configuration::Set EventLogger $oldlogger 
+  array set ::env $oldexpdir
 } -body {
   ::EventLog::_startLogger
   set newpwd [pwd]
   set inpwd [string equal $newpwd $oldpwd]
 } -result 1 
-
-#------------------------------------------------------------------------------
-#  Run state transitions with event logging turned on
-#
-#  need to re-do this with a mock object.
-#
-
-#-----------------------------------------------------------------------------
-#  Run state transitions with event logging turned on.
-#  For our logger we'll use cat | touch .started | touch .exited
-#  This shouild make something that will hang around and
-#  also make all of the appropriate files. 
-#
-
-set cat   [exec which cat]
-set touch [exec which touch]
-set testEventLogger "$cat | $touch .started | $touch .exited"
-
-set here [pwd];           # This will get changed...
-set stagearea [tcltest::makeDirectory stagearea $here]
-::Configuration::Set StageArea $stagearea
-::Configuration::Set Experiment [file join $here experiment]
-
 
 
 #------------------------------------------------------------------------------
