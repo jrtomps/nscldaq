@@ -590,4 +590,7 @@ Feb 1, 2012 - Feb 24, 2012
 	hand around on failures and actually record data.
 	* Issue #1941 - Re-assert the width of the field each insertion in
 	CRingItem::toString as it is apparently a one-shot thing.
+	* Issue #1919 - Provide optional argument for VM/CCusb loaders.
+	This is done by providing an optional program parameter after the
+	firmware file that is the serial number string (e.g. V1234).
 	

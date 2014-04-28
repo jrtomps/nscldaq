@@ -19,16 +19,29 @@
 
 
 
-int main(int argc, char *fname[])
+int main(int argc, char** argv)
 {
-
-  //Make sure the number of arguements is correct
-  if(argc != 2)
-  {
-    printf("\n\n Must provide a firmware file name as an argument\n\n");
-    return 0;
-  }
-
+  char* fname;
+    char* serial(0);
+    
+    if ((argc < 2) || (argc > 3)) {
+        printf("\nUsage:\n");
+        printf("    vmusloader  firmware-file [serial-string]\n");
+        printf("Where:\n");
+        printf("     firmware-file - is a Xilinx .bit or .bin formatted firmware file\n");
+        printf("     serial-string - if present is the serial number of the VM-USB to flash\n");
+        return -1;
+            
+    }
+    
+    // By now we know the filename is present
+    
+    fname = argv[1];
+    
+    if (argc == 3) {
+        serial = argv[2];
+    }
+    
   struct usb_device *dev;
   xxusb_device_type devices[100]; 
   time_t t1, t2;
@@ -45,23 +58,35 @@ int main(int argc, char *fname[])
 
 
 	printf("\n*************************************************************************\n\n");
-	printf("                   WIENER VM_USB Firmware upgrade\n");
-  
+	printf("                   WIENER VM_USB Firmware upgrade\n");  
+        printf("\n*************************************************************************\n");
+
+
   //open VM_USB
-  xxusb_devices_find(devices);
-printf("\n*************************************************************************\n");
-  dev = devices[0].usbdev;
-  udev = xxusb_device_open(dev); 
-	if(!udev)
-	{
-    printf("\nUnable to open a VM_USB device\n");
-    return 0;
+  
+  if (serial) {
+    udev = xxusb_serial_open(serial);
+  } else {
+    if(xxusb_devices_find(devices) <= 0) {
+      printf("There are no VM-USB devices on this system\n");
+      return 0;
+    }
+    dev = devices[0].usbdev;
+    udev = xxusb_device_open(dev);
   }
+    if(!udev)
+    {
+            printf("\nUnable to open a VM_USB device\n");
+            if (serial) {
+	      printf("VM-USB with serial %s probably is not attached.\n", serial);
+            }
+            return 0;
+    }
 	  
 	  
 	//open Firmware File  
   ik=0;
-	if ((fptr=fopen(fname[1],"rb"))==NULL)
+	if ((fptr=fopen(fname,"rb"))==NULL)
 	{
     printf("\n File not Found\n");
 	  return 0;

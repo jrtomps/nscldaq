@@ -12,9 +12,7 @@
     </para>
     <para>
         These loaders work both with Xilinx <filename>.bit</filename> and
-        <filename>.bin</filename> files.  Unfortunately, they currently only work
-        with a single device plugged into the VM-USB since the programs locate
-        and burn the first VM or CC USB device found.
+        <filename>.bin</filename> files.  
     </para>
     <para>
         The XX-USB devices have four load locations. Which one runs and which
@@ -73,7 +71,7 @@
         <refsynopsisdiv>
           <cmdsynopsis>
             <command>
-ccusbloader <replaceable>firmware-filename</replaceable>
+ccusbloader <replaceable>firmware-filename <optional>serial-string</optional></replaceable>
           </command>
           </cmdsynopsis>
 
@@ -85,6 +83,11 @@ ccusbloader <replaceable>firmware-filename</replaceable>
             selected firmware location. See
             <link linkend='usbloaders_chap' endterm='usbloaders_chap_title' />
             for the full load procedure. 
+           </para>
+           <para>
+            If <replaceable>serial-string</replaceable> is provided it must be
+            a serial number string for a powered up device attached to the system.
+            The CC-USB with that serial number will be used.
            </para>
         </refsect1>
         <refsect1>
@@ -113,7 +116,7 @@ ccusbloader <replaceable>firmware-filename</replaceable>
         <refsynopsisdiv>
           <cmdsynopsis>
             <command>
-vmusbloader <replaceable>firmware-filename</replaceable>
+vmusbloader <replaceable>firmware-filename <optional>serial-string</optional></replaceable>
           </command>
           </cmdsynopsis>
 
@@ -125,6 +128,11 @@ vmusbloader <replaceable>firmware-filename</replaceable>
             selected firmware location. See
             <link linkend='usbloaders_chap' endterm='usbloaders_chap_title' />
             for the full load procedure. 
+           </para>
+           <para>
+            If <replaceable>serial-string</replaceable> is provided it must be
+            a serial number string for a powered up device attached to the system.
+            The VM-USB with that serial number will be used.
            </para>
         </refsect1>
         <refsect1>
