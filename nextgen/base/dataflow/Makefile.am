@@ -24,7 +24,7 @@ libDataFlow_la_LIBADD  = @LIBEXCEPTION_LDFLAGS@ \
 			@top_srcdir@/servers/portmanager/libPortManager.la \
 			@top_srcdir@/base/uri/liburl.la 	\
 			@top_srcdir@/base/os/libdaqshm.la	\
-			$(THREADLD_FLAGS)
+			$(THREADLD_FLAGS) -lrt
 
 libDataFlow_la_CXXFLAGS = $(THREADCXX_FLAGS) $(AM_CXXFLAGS)
 
@@ -33,7 +33,7 @@ libRingBuffer_la_DEPENDENCIES = libDataFlow.la ringtostdoutsw.o stdintoringsw.o
 
 libRingBuffer_la_LIBADD  = 	@LIBTCLPLUS_LDFLAGS@	\
 				@top_srcdir@/base/dataflow/libDataFlow.la \
-				@top_srcdir@/base/os/libdaqshm.la
+				@top_srcdir@/base/os/libdaqshm.la -lrt
 
 libRingBuffer_la_LDFLAGS = 	$(TCL_LDFLAGS) \
 				-version-info $(SOVERSION) \
@@ -62,7 +62,7 @@ ringtostdoutsw.o: ringtostdoutsw.ggo
 ringtostdout_LDADD	= ringtostdoutsw.o libDataFlow.la \
 			@LIBEXCEPTION_LDFLAGS@ \
 			@top_builddir@/base/os/libdaqshm.la	\
-			$(THREADLD_FLAGS)
+			$(THREADLD_FLAGS) -lrt
 
 ringtostdout_CXXFLAGS	=  $(AM_CXXFLAGS) $(THREADCXX_FLAGS)
 
@@ -76,7 +76,7 @@ stdintoringsw.o: stdintoringsw.ggo
 stdintoring_LDADD	= stdintoringsw.o libDataFlow.la	\
 			@LIBEXCEPTION_LDFLAGS@ \
 			@top_builddir@/base/os/libdaqshm.la \
-			$(THREADLD_FLAGS)
+			$(THREADLD_FLAGS) -lrt
 
 stdintoring_CXXFLAGS =	$(THREADCXX_FLAGS) $(AM_CXXFLAGS)
 
@@ -94,7 +94,7 @@ unittests_SOURCES = TestRunner.cpp StaticTests.cpp TransferTests.cpp testcommon.
 unittests_LDADD   = -L@prefix@/lib $(CPPUNIT_LDFLAGS) \
 			@LIBEXCEPTION_LDFLAGS@ \
 			@top_builddir@/base/os/libdaqshm.la \
-			@top_builddir@/base/dataflow/libDataFlow.la
+			@top_builddir@/base/dataflow/libDataFlow.la -lrt
 
 unittests_LDFLAGS = -Wl,"-rpath-link=$(libdir)"
 
@@ -103,7 +103,7 @@ producer_SOURCES	=	producer.cpp
 
 producer_LDADD    = -L@prefix@/lib @top_builddir@/base/dataflow/libDataFlow.la \
 		@LIBEXCEPTION_LDFLAGS@ \
-		@top_builddir@/base/os/libdaqshm.la 
+		@top_builddir@/base/os/libdaqshm.la -lrt
 
 producer_LDFLAGS  = -Wl,"-rpath-link=$(libdir)"
 
@@ -111,7 +111,7 @@ consumer_SOURCES	=	consumer.cpp
 
 consumer_LDADD    = -L@prefix@/lib @top_builddir@/base/dataflow/libDataFlow.la \
 	@LIBEXCEPTION_LDFLAGS@ \
-	@top_builddir@/base/os/libdaqshm.la
+	@top_builddir@/base/os/libdaqshm.la -lrt
 
 consumer_LDFLAGS  = -Wl,"-rpath-link=$(libdir)"
 

@@ -387,6 +387,8 @@ CRingAccess::local(std::string host)
   std::string fqhostname(hostInfo->ai_canonname);
   freeaddrinfo(hostInfo);
 
+  if (fqhostname == host) return true;
+
   // If the host has no periods append the domain name from
   // fqhostname.
 

@@ -64,7 +64,7 @@ ringFragmentSource_LDADD=  		 \
 	@top_builddir@/base/dataflow/libRingBuffer.la \
 	@top_builddir@/base/os/libdaqshm.la	\
 	GetOpt.lo cmdline.lo \
-	$(THREAD_LDFLAGS) 
+	$(THREAD_LDFLAGS) -ldl
 
 #------------------- Tests:
 
@@ -74,7 +74,7 @@ unittests_SOURCES	= TestRunner.cpp s800timestamptests.cpp
 unittests_LDADD		= -L$(libdir) $(CPPUNIT_LDFLAGS) 		\
 			@top_builddir@/daq/eventbuilder/ringsource/libS800TimeExtractor.la 	\
 			@top_builddir@/daq/format/libdataformat.la	\
-			@LIBEXCEPTION_LDFLAGS@
+			@LIBEXCEPTION_LDFLAGS@ -ldl
 
 unittests_LDFLAGS	= -Wl,"-rpath-link=$(libdir)"
 

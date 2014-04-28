@@ -475,7 +475,7 @@ bool bufferToRing (void* pBuffer)
       break;
     default:
       fprintf(stderr, "Got a buffer whose type we did not expect: %d\n", type);
-      fprintf(stderr, "Ingoring the data in this buffer!!\n", type);
+      fprintf(stderr, "Ingoring the data in this buffer!!\n");
       return false;
       break;
   }
