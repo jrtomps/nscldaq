@@ -135,8 +135,8 @@ CServerInstance::OnCommand()
   if (m_authenticated) {
     status = Tcl_Eval(Context.pInterp, 
 		      Tcl_DStringValue(&(Context.command)));
-    Tcl_Write(Context.DialogChannel, Context.pInterp->result,
-	      strlen(Context.pInterp->result));
+    Tcl_Write(Context.DialogChannel, Tcl_GetStringResult(Context.pInterp),
+	      strlen(Tcl_GetStringResult(Context.pInterp)));
     Tcl_Write(Context.DialogChannel, eol, strlen(eol));
     Tcl_Flush(Context.DialogChannel);
     

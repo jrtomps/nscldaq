@@ -139,8 +139,8 @@ CServerInstance::OnCommand()
     
     status = Tcl_Eval(Context.pInterp, 
 		      Tcl_DStringValue(&(Context.command)));
-    Tcl_Write(Context.DialogChannel, Context.pInterp->result,
-	      strlen(Context.pInterp->result));
+    Tcl_Write(Context.DialogChannel, Tcl_GetStringResult(Context.pInterp),
+	      strlen(Tcl_GetStringResult(Context.pInterp)));
     Tcl_Write(Context.DialogChannel, eol, strlen(eol));
     Tcl_Flush(Context.DialogChannel);
     
@@ -200,7 +200,7 @@ CServerInstance::OnError(int nError)
        << Tcl_DStringValue(&(Context.command))
        << "'\n";
   cerr << "Tcl Error message was: '"
-       << Context.pInterp->result
+       << Tcl_GetStringResult(Context.pInterp)
        << "'";
 
 }

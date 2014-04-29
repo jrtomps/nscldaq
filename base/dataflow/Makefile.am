@@ -35,7 +35,7 @@ libRingBuffer_la_LIBADD  = 	@top_builddir@/base/dataflow/libDataFlow.la
 libRingBuffer_la_LDFLAGS = 	@LIBTCLPLUS_LDFLAGS@ $(TCL_LDFLAGS) \
 				-version-info $(SOVERSION) \
 				-Wl,"-rpath-link=$(libdir)"	\
-				$(THREADLD_FLAGS)
+				$(THREADLD_FLAGS) -lrt
 
 libRingBuffer_la_CXXFLAGS	=	$(THREADCXX_FLAGS) \
 					$(AM_CXXFLAGS)
@@ -68,7 +68,7 @@ stdintoringsw.h: stdintoringsw.ggo
 ringtostdout_LDADD	=  libDataFlow.la \
 			@LIBEXCEPTION_LDFLAGS@	\
 			@top_builddir@/base/os/libdaqshm.la	\
-			$(THREADLD_FLAGS)
+			$(THREADLD_FLAGS) -lrt
 
 ringtostdout_CXXFLAGS	=  $(AM_CXXFLAGS) $(THREADCXX_FLAGS)
 
@@ -80,7 +80,7 @@ stdintoring_DEPENDENCIES = libDataFlow.la @srcdir@/stdintoringsw.h
 
 stdintoring_LDADD	=  libDataFlow.la	\
 			@LIBEXCEPTION_LDFLAGS@ \
-			$(THREADLD_FLAGS)
+			$(THREADLD_FLAGS) -lrt
 
 stdintoring_CXXFLAGS =	$(THREADCXX_FLAGS) $(AM_CXXFLAGS)
 
@@ -97,20 +97,20 @@ unittests_SOURCES = TestRunner.cpp StaticTests.cpp TransferTests.cpp testcommon.
 
 unittests_LDADD   = -L@prefix@/lib $(CPPUNIT_LDFLAGS) \
 			@LIBEXCEPTION_LDFLAGS@	\
-			-lDataFlow 
+			-lDataFlow  -lrt
 
 unittests_LDFLAGS = -Wl,"-rpath-link=$(libdir)"
 
 
 producer_SOURCES	=	producer.cpp
 
-producer_LDADD    = -L@prefix@/lib -lDataFlow @LIBEXCEPTION_LDFLAGS@
+producer_LDADD    = -L@prefix@/lib -lDataFlow @LIBEXCEPTION_LDFLAGS@ -lrt
 
 producer_LDFLAGS  = -Wl,"-rpath-link=$(libdir)"
 
 consumer_SOURCES	=	consumer.cpp
 
-consumer_LDADD    = -L@prefix@/lib -lDataFlow @LIBEXCEPTION_LDFLAGS@
+consumer_LDADD    = -L@prefix@/lib -lDataFlow @LIBEXCEPTION_LDFLAGS@ -lrt
 
 consumer_LDFLAGS  = -Wl,"-rpath-link=$(libdir)"
 
