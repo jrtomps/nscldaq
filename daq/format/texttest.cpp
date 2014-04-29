@@ -16,7 +16,7 @@
 #include <vector>
 #include <time.h>
 #include <string.h>
-
+#include <iostream>
 using namespace std;
 
 class texttests : public CppUnit::TestFixture {
@@ -135,20 +135,24 @@ void texttests::castcons()
   pText->s_body.u_noBodyHeader.s_body.s_timeOffset = 1234;
   pText->s_body.u_noBodyHeader.s_body.s_timestamp  = 4321;
   pText->s_body.u_noBodyHeader.s_body.s_stringCount= 4;
-  char* p = pText->s_body.u_noBodyHeader.s_body.s_strings;
+  char* p = &(pText->s_body.u_noBodyHeader.s_body.s_strings[0]);
+
   string s1("String 1");
   string s2("string 2");
   string s3("string 3");
   string s4("last string");
 
-  strcpy(p, s1.c_str());
-  p += strlen(p)+1;
+
+
+
+  memcpy(p, s1.c_str(), strlen(s1.c_str()) + 1 );
+  p += strlen(s1.c_str())+1;
   strcpy(p, s2.c_str());
-  p += strlen(p)+1;
+  p += strlen(s2.c_str())+1;
   strcpy(p, s3.c_str());
-  p += strlen(p)+1;
+  p += strlen(s3.c_str())+1;
   strcpy(p, s4.c_str());
-  p += strlen(p)+1;
+  p += strlen(s4.c_str())+1;
   ritem.setBodyCursor(p);
   ritem.updateSize();
 

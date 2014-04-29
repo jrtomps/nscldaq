@@ -69,10 +69,13 @@ CDataSourceFactory::makeSource(std::string uri,
     } else if (parsedURI.getProto() == std::string("ring")) {
 
       // create a tcp protocol from this
+      // ports have no meaning for ring data sources.
+
       std::string url = "tcp://";
-      url += parsedURI.getHostName() + ":";
-      url += parsedURI.getPort() + "/";
+      url += parsedURI.getHostName() + "/"; // host separates from ringname with /
       url += parsedURI.getPath();
+
+      
 
       parsedURI = URL(url);
       pSource = new CRingDataSource(parsedURI, sample, exclude);
