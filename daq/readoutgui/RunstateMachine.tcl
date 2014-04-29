@@ -353,3 +353,48 @@ snit::type RunstateMachineSingleton {
         
     }
 }
+
+
+##------------------------------------------------------------
+# Convenience functions
+#
+
+proc start {} {
+  set machine [RunstateMachineSingleton %AUTO%]
+  if { [catch { $machine transition Starting } msg] } {
+    error "start failed with message : $msg"
+  }
+  $machine destroy
+}
+
+proc begin {} {
+  set machine [RunstateMachineSingleton %AUTO%]
+  if { [catch { $machine transition Active } msg] } {
+    error "begin failed with message : $msg"
+  }
+  $machine destroy
+}
+
+proc end {} {
+  set machine [RunstateMachineSingleton %AUTO%]
+  if { [catch { $machine transition Halted } msg] } {
+    error "end failed with message : $msg"
+  }
+  $machine destroy
+}
+
+proc pause {} {
+  set machine [RunstateMachineSingleton %AUTO%]
+  if { [catch { $machine transition Paused } msg] } {
+    error "pause failed with message : $msg"
+  }
+  $machine destroy
+}
+
+proc resume {} {
+  set machine [RunstateMachineSingleton %AUTO%]
+  if { [catch { $machine transition Active } msg] } {
+    error "resume failed with message : $msg"
+  }
+  $machine destroy
+}

@@ -438,6 +438,167 @@ tcltest::test singleton {Check that instantiating a two runstate singletons refe
 
 #-----------------------------------------------------------------------------
 #  
+# Convenience function tests
+
+tcltest::test convenience-start {Check that start sets the state to Starting
+} -setup {
+    set s [RunstateMachineSingleton %AUTO%]
+    $s _setState NotReady
+    namespace eval testBundle {
+        variable action ""
+        proc enter {old new} {
+            variable action
+            set action [list enter $old $new]
+        }
+        proc leave {old new} {
+            variable action
+          #  set action [list left $old $new]
+        }
+        proc attach {current} {
+            variable action
+           # set action [list attach $current]
+        }
+        namespace export enter leave attach
+    }
+    $s addCalloutBundle testBundle    
+} \
+-cleanup {
+    $s removeCalloutBundle testBundle;   #In case we get more singleton tests
+    namespace delete testBundle
+} \
+-body {
+    start
+    set ::testBundle::action
+} \
+-result [list enter NotReady Starting]
+
+tcltest::test convenience-begin {Check that begin sets the state to Active
+} -setup {
+    set s [RunstateMachineSingleton %AUTO%]
+    $s _setState Halted
+    namespace eval testBundle {
+        variable action ""
+        proc enter {old new} {
+            variable action
+            set action [list enter $old $new]
+        }
+        proc leave {old new} {
+            variable action
+          #  set action [list left $old $new]
+        }
+        proc attach {current} {
+            variable action
+           # set action [list attach $current]
+        }
+        namespace export enter leave attach
+    }
+    $s addCalloutBundle testBundle    
+} \
+-cleanup {
+    $s removeCalloutBundle testBundle;   #In case we get more singleton tests
+    namespace delete testBundle
+} \
+-body {
+    begin
+    set ::testBundle::action
+} \
+-result [list enter Halted Active]
+
+tcltest::test convenience-end {Check that end sets the state to Halted
+} -setup {
+    set s [RunstateMachineSingleton %AUTO%]
+    $s _setState Active 
+    namespace eval testBundle {
+        variable action ""
+        proc enter {old new} {
+            variable action
+            set action [list enter $old $new]
+        }
+        proc leave {old new} {
+            variable action
+          #  set action [list left $old $new]
+        }
+        proc attach {current} {
+            variable action
+           # set action [list attach $current]
+        }
+        namespace export enter leave attach
+    }
+    $s addCalloutBundle testBundle    
+} \
+-cleanup {
+    $s removeCalloutBundle testBundle;   #In case we get more singleton tests
+    namespace delete testBundle
+} \
+-body {
+    end 
+    set ::testBundle::action
+} \
+-result [list enter Active Halted]
+
+tcltest::test convenience-pause {Check that pause sets the state to Paused 
+} -setup {
+    set s [RunstateMachineSingleton %AUTO%]
+    $s _setState Active 
+    namespace eval testBundle {
+        variable action ""
+        proc enter {old new} {
+            variable action
+            set action [list enter $old $new]
+        }
+        proc leave {old new} {
+            variable action
+          #  set action [list left $old $new]
+        }
+        proc attach {current} {
+            variable action
+           # set action [list attach $current]
+        }
+        namespace export enter leave attach
+    }
+    $s addCalloutBundle testBundle    
+} \
+-cleanup {
+    $s removeCalloutBundle testBundle;   #In case we get more singleton tests
+    namespace delete testBundle
+} \
+-body {
+    pause
+    set ::testBundle::action
+} \
+-result [list enter Active Paused]
+
+tcltest::test convenience-resume {Check that resume sets the state to Active
+} -setup {
+    set s [RunstateMachineSingleton %AUTO%]
+    $s _setState Paused 
+    namespace eval testBundle {
+        variable action ""
+        proc enter {old new} {
+            variable action
+            set action [list enter $old $new]
+        }
+        proc leave {old new} {
+            variable action
+          #  set action [list left $old $new]
+        }
+        proc attach {current} {
+            variable action
+           # set action [list attach $current]
+        }
+        namespace export enter leave attach
+    }
+    $s addCalloutBundle testBundle    
+} \
+-cleanup {
+    $s removeCalloutBundle testBundle;   #In case we get more singleton tests
+    namespace delete testBundle
+} \
+-body {
+    resume
+    set ::testBundle::action
+} \
+-result [list enter Paused Active]
 
 #  Report test results.
 
