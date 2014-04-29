@@ -594,3 +594,8 @@ Feb 1, 2012 - Feb 24, 2012
 	This is done by providing an optional program parameter after the
 	firmware file that is the serial number string (e.g. V1234).
 	
+Open rc7 work.
+	*  Get good compilation/tests on Ubunti 14.04 (trusty).
+	*  Modify default size in CRingItem so that instatiation
+	   with default size does not cause dynamic buffer allocation.
+	

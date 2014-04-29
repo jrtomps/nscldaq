@@ -80,7 +80,7 @@ void ritemtests::construct() {
 
   EQ((void*)small.m_pItem->s_body.u_noBodyHeader.s_body, (void*)small.m_pCursor);
   EQ((uint32_t)0, small.m_pItem->s_body.u_noBodyHeader.s_mbz);
-  EQ(CRingItemStaticBufferSize, small.m_storageSize);
+  EQ(CRingItemStaticBufferSize-10, small.m_storageSize);
   EQ(false, small.m_swapNeeded);
 
   // Let's look at the member data for big:
