@@ -38,27 +38,27 @@ namespace Actions
     }  
 
     void BeginRun () {
-        TCLCommand ( "DefaultActions begin" );
+        TCLCommand ( "begin" );
     }
 
     void PauseRun () {
-        TCLCommand ( "DefaultActions::pause" );
+        TCLCommand ( "pause" );
     }
 
     void ResumRun () {
-        TCLCommand ( "DefaultActions::resume" );
+        TCLCommand ( "resume" );
     }
 
     void EndRun () {
-        std::string tclcmd;
-        tclcmd =  "set sm [RunstateMachineSingleton %AUTO]; ";
-        tclcmd += "set state [$sm getState]; ";
-        tclcmd += "if {$state in [list Paused Active]} {";
-        tclcmd += "  $sm transition Halted ";
-        tclcmd += "} else { ";
-        tclcmd += "  ERROR: end run clicked when state is $state";
-        tclcmd += "}; $sm destroy";
-        TCLCommand ( tclcmd );
+//        std::string tclcmd;
+//        tclcmd =  "set sm [RunstateMachineSingleton %AUTO]; ";
+//        tclcmd += "set state [$sm getState]; ";
+//        tclcmd += "if {$state in [list Paused Active]} {";
+//        tclcmd += "  $sm transition Halted ";
+//        tclcmd += "} else { ";
+//        tclcmd += "  ERROR: end run clicked when state is $state";
+//        tclcmd += "}; $sm destroy";
+        TCLCommand ( "end" );
     }
 }
 
