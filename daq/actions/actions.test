@@ -160,3 +160,6 @@ tcltest::test handleMessageDBG {test handleDirective for DBGMSG
   set parsedmsg [list DBGMSG {my message}]
   ::Actions::handleMessage $parsedmsg
 } -output {debug my message}
+
+
+tcltest::cleanupTests
