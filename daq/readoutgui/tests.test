@@ -84,7 +84,7 @@ tcltest::test Wait-8 {Wait - polll with eventual completion} {
     set done 0
     after 1100 "set done 1"
     vwait done
-    set result [Wait -pid $pid -poll]
+    set result [Wait -pid $pid ]
     expr [lindex $result 0] == $pid
 }  1
   
@@ -130,7 +130,7 @@ tcltest::test Combined-1 {Combined - Wait and pipe together} {
 	set line [gets $r]
     }
     close $r
-    set done [Wait -poll -pid $pid]
+    set done [Wait  -pid $pid]
     expr [lindex $done 0] == $pid
 } 1
 
