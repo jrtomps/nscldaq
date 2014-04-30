@@ -147,11 +147,11 @@ void texttests::castcons()
 
   memcpy(p, s1.c_str(), strlen(s1.c_str()) + 1 );
   p += strlen(s1.c_str())+1;
-  strcpy(p, s2.c_str());
+  memcpy(p, s2.c_str(), strlen(s2.c_str()) + 1);
   p += strlen(s2.c_str())+1;
-  strcpy(p, s3.c_str());
+  memcpy(p, s3.c_str(), strlen(s3.c_str()) + 1);
   p += strlen(s3.c_str())+1;
-  strcpy(p, s4.c_str());
+  memcpy(p, s4.c_str(), strlen(s4.c_str()) +1 );
   p += strlen(s4.c_str())+1;
   ritem.setBodyCursor(p);
   ritem.updateSize();
