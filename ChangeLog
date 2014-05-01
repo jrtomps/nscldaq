@@ -598,4 +598,7 @@ Open rc7 work.
 	*  Get good compilation/tests on Ubunti 14.04 (trusty).
 	*  Modify default size in CRingItem so that instatiation
 	   with default size does not cause dynamic buffer allocation.
+	*  Ensure that failure to build/install documentation won't cause
+	build failure (e.g. user does not have docbook installed on
+	system).
 	
