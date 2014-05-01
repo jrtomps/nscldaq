@@ -12,12 +12,12 @@ install-exec-local: daq.html daq.mans tutorial.pdf tutorial.html
 	$(mkinstalldirs) $(prefix)/share/tuthtml
 	for i in 1 2 3 4 5 6 7 8; do $(mkinstalldirs) $(prefix)/share/man/man$$i; done
 	- for i in 1 2 3 4 5 6 7 8; do for f in *.$$i*; do  $(INSTALL_DATA) $$f $(prefix)/share/man/man$$i; done; done
-	$(INSTALL_DATA) html/* $(prefix)/share/html
-	$(mkinstalldirs) $(prefix)/share/images $(prefix)/share/images/callouts
-	$(INSTALL_DATA) images/*.gif $(prefix)/share/images;
-	$(INSTALL_DATA) images/callouts/*.gif  $(prefix)/share/images/callouts
-	$(INSTALL_DATA) tutorial.pdf $(prefix)/share
-	$(INSTALL_DATA) tuthtml/*   $(prefix)/share/tuthtml
+	- $(INSTALL_DATA) html/* $(prefix)/share/html
+	- $(mkinstalldirs) $(prefix)/share/images $(prefix)/share/images/callouts
+	- $(INSTALL_DATA) images/*.gif $(prefix)/share/images;
+	- $(INSTALL_DATA) images/callouts/*.gif  $(prefix)/share/images/callouts
+	- $(INSTALL_DATA) tutorial.pdf $(prefix)/share
+	- $(INSTALL_DATA) tuthtml/*   $(prefix)/share/tuthtml
 
 
 

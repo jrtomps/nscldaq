@@ -488,5 +488,7 @@ Feb 1, 2012 - Feb 24, 2012
 	       exit.
 	* Fix Issue #1928 - Event orderer GUI was never updating the total
 	fragment counter in the UI.
-	
-	
+10.2-106
+	* Incorporate new VM/CCUSB software additions (Jeromy).
+	* Fix error in the build for installing documentation when docbook
+	is not installed.
