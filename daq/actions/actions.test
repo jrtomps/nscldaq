@@ -5,69 +5,96 @@ package require tcltest
 
 tcltest::test buildPktERR {Test that ERRMSG directives succeed
 } -setup {
-  set ::Actions::line "ERRMSG 10 abcdefghij"
+  set action [::Actions %AUTO%]
+  $action setLine "ERRMSG 10 abcdefghij"
+} -cleanup {
+  $action destroy
 } -body {
-  ::Actions::buildPacket
+  $action buildPacket
 } -result {ERRMSG abcdefghij 10}
 
 tcltest::test buildPktLOG {Test that LOGMSG directives succeed
 } -setup {
-  set ::Actions::line "LOGMSG 10 abcdefghij"
+  set action [::Actions %AUTO%]
+  $action setLine "LOGMSG 10 abcdefghij"
+} -cleanup {
+  $action destroy
 } -body {
-  ::Actions::buildPacket
+  $action buildPacket
 } -result {LOGMSG abcdefghij 10}
 
 tcltest::test buildPktWRN {Test that WRNMSG directives succeed
 } -setup {
-  set ::Actions::line "WRNMSG 10 abcdefghij"
+  set action [::Actions %AUTO%]
+  $action setLine "WRNMSG 10 abcdefghij"
+} -cleanup {
+  $action destroy
 } -body {
-  ::Actions::buildPacket
+  $action buildPacket
 } -result {WRNMSG abcdefghij 10}
 
 tcltest::test buildPktTCLCMD {Test that TCLCMD directives succeed
 } -setup {
-  set ::Actions::line "TCLCMD 10 abcdefghij"
+  set action [::Actions %AUTO%]
+  $action setLine "TCLCMD 10 abcdefghij"
+} -cleanup {
+  $action destroy
 } -body {
-  ::Actions::buildPacket
+  $action buildPacket
 } -result {TCLCMD abcdefghij 10}
 
 tcltest::test buildPktOUTPUT {Test that OUTPUT directives succeed
 } -setup {
-  set ::Actions::line "OUTPUT 10 abcdefghij"
+  set action [::Actions %AUTO%]
+  $action setLine "OUTPUT 10 abcdefghij"
+} -cleanup {
+  $action destroy
 } -body {
-  ::Actions::buildPacket
+  $action buildPacket
 } -result {OUTPUT abcdefghij 10}
 
 tcltest::test buildPktDBGMSG {Test that DBGMSG directives succeed
 } -setup {
-  set ::Actions::line "DBGMSG 10 abcdefghij"
+  set action [::Actions %AUTO%]
+  $action setLine "DBGMSG 10 abcdefghij"
+} -cleanup {
+  $action destroy
 } -body {
-  ::Actions::buildPacket
+  $action buildPacket
 } -result {DBGMSG abcdefghij 10}
 
 tcltest::test buildPktIncomplete {Test that packet building stops on incomplete pkt
 } -setup {
-  set ::Actions::line "DBGMSG 16 abcdefghij"
+  set action [::Actions %AUTO%]
+  $action setLine "DBGMSG 16 abcdefghij"
+} -cleanup {
+  $action destroy
 } -body {
-  ::Actions::buildPacket
+  $action buildPacket
 } -result {}
 
 tcltest::test buildPktWithNewline {Test that packet is handled with internal newlines 
 } -setup {
-  set ::Actions::line {OUTPUT 4 a
+  set action [::Actions %AUTO%]
+  $action setLine {OUTPUT 4 a
 
 b} 
+} -cleanup {
+  $action destroy
 } -body {
-  ::Actions::buildPacket
+  $action buildPacket
 } -result {OUTPUT {a
 
 b} 4}
 
 tcltest::test buildPktWithMultiDirs {Test that only first packet outputted if multiple are present
 } -setup {
-  set ::Actions::line {OUTPUT 4 abcd OUTPUT 4 efgh OUTPUT 4 ijkl}
+  set action [::Actions %AUTO%]
+  $action setLine {OUTPUT 4 abcd OUTPUT 4 efgh OUTPUT 4 ijkl}
+} -cleanup {
+  $action destroy
 } -body {
-  ::Actions::buildPacket
+  $action buildPacket
 } -result {OUTPUT abcd 4}
 
 namespace eval testHandlers {
@@ -85,80 +112,84 @@ namespace eval testHandlers {
 
 tcltest::test handleNonPktNoDirective {Test that fully non-directive data is properly handled
 } -setup {
-  set ::Actions::line "abcdefghij"
-  set ::Actions::actionBundle testHandlers
+  set action [::Actions %AUTO% -actionbundle testHandlers]
+  $action setLine "abcdefghij"
+} -cleanup {
+  $action destroy
 } -body {
-  ::Actions::handleNonPacket
+  $action handleNonPacket
 } -output {output abcdefghij}
 
 tcltest::test handleNonPktWithDirective {Test that directive data is properly handled
 } -setup {
-  set ::Actions::line "abcdefERRMSG 4 ghij"
-  set ::Actions::actionBundle testHandlers
+  set action [::Actions %AUTO% -actionbundle testHandlers]
+  $action setLine "abcdefERRMSG 4 ghij"
+} -cleanup {
+  $action destroy
 } -body {
-  ::Actions::handleNonPacket
+  $action handleNonPacket
 } -output {output abcdef}
 
 
 tcltest::test handleMessageLOG {test handleDirective for LOGMSG
 } -setup {
-  set ::Actions::actionBundle testHandlers
+  set action [::Actions %AUTO% -actionbundle testHandlers]
 } -cleanup {
-  set ::Actions::actionBundle DefaultActions 
+  $action destroy
 } -body {
   set parsedmsg [list LOGMSG {my message}]
-  ::Actions::handleMessage $parsedmsg
+  $action handleMessage $parsedmsg
 } -output {log my message}
 
 tcltest::test handleMessageERROR {test handleDirective for ERRMSG
 } -setup {
-  set ::Actions::actionBundle testHandlers
+  set action [::Actions %AUTO% -actionbundle testHandlers]
 } -cleanup {
-  set ::Actions::actionBundle DefaultActions 
+  $action destroy
 } -body {
   set parsedmsg [list ERRMSG {my message}]
-  ::Actions::handleMessage $parsedmsg
+  $action handleMessage $parsedmsg
 } -output {error my message}
 
 tcltest::test handleMessageWRN {test handleDirective for WRNMSG
 } -setup {
-  set ::Actions::actionBundle testHandlers
+  set action [::Actions %AUTO% -actionbundle testHandlers]
 } -cleanup {
-  set ::Actions::actionBundle DefaultActions 
+  $action destroy
 } -body {
   set parsedmsg [list WRNMSG {my message}]
-  ::Actions::handleMessage $parsedmsg
+  $action handleMessage $parsedmsg
 } -output {warning my message}
 
 tcltest::test handleMessageTCLCMD {test handleDirective for TCLCMD 
 } -setup {
-  set ::Actions::actionBundle testHandlers
+  set action [::Actions %AUTO% -actionbundle testHandlers]
 } -cleanup {
-  set ::Actions::actionBundle DefaultActions 
+  $action destroy
 } -body {
   set parsedmsg [list TCLCMD {my message}]
-  ::Actions::handleMessage $parsedmsg
+  $action handleMessage $parsedmsg
 } -output {tcl my message}
 
 
 tcltest::test handleMessageOUTPUT {test handleDirective for OUTPUT 
 } -setup {
-  set ::Actions::actionBundle testHandlers
+  set action [::Actions %AUTO% -actionbundle testHandlers]
 } -cleanup {
-  set ::Actions::actionBundle DefaultActions 
+  $action destroy
 } -body {
   set parsedmsg [list OUTPUT {my message}]
-  ::Actions::handleMessage $parsedmsg
+  $action handleMessage $parsedmsg
 } -output {output my message}
 
 tcltest::test handleMessageDBG {test handleDirective for DBGMSG 
 } -setup {
-  set ::Actions::actionBundle testHandlers
+  set action [::Actions %AUTO% -actionbundle testHandlers]
 } -cleanup {
-  set ::Actions::actionBundle DefaultActions 
+  $action destroy
 } -body {
   set parsedmsg [list DBGMSG {my message}]
-  ::Actions::handleMessage $parsedmsg
+  $action handleMessage $parsedmsg
 } -output {debug my message}
 
 

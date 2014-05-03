@@ -11,9 +11,10 @@
 
 
 package provide Actions 1.0
+package require snit
 
 
-namespace eval Actions {
+snit::type Actions {
   
   variable line "" 
   variable incomplete 0 
@@ -22,24 +23,29 @@ namespace eval Actions {
   variable directiveMap { ERRMSG 0 LOGMSG 1 WRNMSG 2 
                           TCLCMD 3 OUTPUT 4 DBGMSG 5} 
 
-  variable actionBundle DefaultActions
+  option -actionbundle -default DefaultActions
 
-  proc onReadable {fd} {
-    variable incomplete 0
-    
+  constructor {args} {
+    $self configurelist $args
+  }
+
+  method onReadable {fd} {
+    set incomplete 0 
+
     if { [eof $fd] } {
       # unregister itself
       chan event $fd readable ""
       catch {close $fd} msg
       puts "End of file reached"
     } else {
-      handleReadable $fd 
+      $self handleReadable $fd 
     }
   }
 
-  proc handleReadable {fd} {
-    variable line
-    variable incomplete 
+  method getLine {} { return $line }
+  method setLine {str} { set line $str }
+
+  method handleReadable {fd} {
 
     # read what the channel has to give us
     set input [chan read $fd ]
@@ -49,23 +55,23 @@ namespace eval Actions {
 
     while {[string length $line]>0 && !($incomplete)} {
 
-      set firstWord [extractFirstWord $line]
+      set firstWord [$self extractFirstWord $line]
 
       # if we have a legal directive, treat it
       # as a packet
-      if {[isLegalDirective $firstWord]} {
-        set parsedLine [buildPacket ]
+      if {[$self isLegalDirective $firstWord]} {
+        set parsedLine [$self buildPacket ]
         if {!("$parsedLine" eq "")} {
-          handleMessage $parsedLine
+          $self handleMessage $parsedLine
           set incomplete 0
         } 
       } else {
-        handleNonPacket
+        $self handleNonPacket
       }
     }; # end of nonzero input
   }
  
-  proc extractFirstWord {sentence} {
+  method extractFirstWord {sentence} {
     return [string range $sentence 0 5]
   }
 
@@ -75,9 +81,7 @@ namespace eval Actions {
   # return a null string and move on. 
   # If the packet is found, truncate "line" so that the 
   # packet is no longer being outputted.
-  proc buildPacket {} {
-    variable line
-    variable incomplete
+  method buildPacket {} {
 
     set incomplete 1
 
@@ -93,7 +97,7 @@ namespace eval Actions {
 
     if {$remChars >= $pktSize} {
        set b3 [expr $b2+$pktSize]
-       lappend parsedLine [extractFirstWord $line] 
+       lappend parsedLine [$self extractFirstWord $line] 
        lappend parsedLine [string range $line [expr $b2+1] $b3] 
        lappend parsedLine [string range $line [expr $b1+1] [expr $b2-1]] 
 
@@ -114,9 +118,7 @@ namespace eval Actions {
   # directive, pop the outputted msg from the front of line,
   # return.
 
-  proc handleNonPacket {} {
-    variable line
-    variable legalDirectives
+  method handleNonPacket {} {
   
     # Check if line contains any legal directives
     foreach dir $legalDirectives {
@@ -125,68 +127,60 @@ namespace eval Actions {
         set msg [string range $line 0 [expr $index-1]]
         set line [string range $line $index end]
 
-        handleOutput $msg
+        $self handleOutput $msg
         return ""
       }
     }
 
     # if we are here then we didn't find any directives
-    handleOutput $line
+    $self handleOutput $line
     set line ""
   } 
 
   # Determine if there word is a legal directive
-  proc isLegalDirective {word} {
-    variable legalDirectives
+  method isLegalDirective {word} {
     return [expr {$word in $legalDirectives}]
   }
 
   # Jump-table of sorts for passing various 
   # handlers to their handlers
-  proc handleMessage {parsedLine} {
-    variable directiveMap
+  method handleMessage {parsedLine} {
 
     set directive [lindex $parsedLine 0]
     set msg [lindex $parsedLine 1]
     set dirId [dict get $directiveMap $directive]
     switch $dirId {
-      0 { handleError $msg }
-      1 { handleLog $msg }
-      2 { handleWarning $msg }
-      3 { handleTclCommand $msg }
-      4 { handleOutput $msg }
-      5 { handleDebug $msg }
+      0 { $self handleError $msg }
+      1 { $self handleLog $msg }
+      2 { $self handleWarning $msg }
+      3 { $self handleTclCommand $msg }
+      4 { $self handleOutput $msg }
+      5 { $self handleDebug $msg }
     } 
   }
 
-  proc handleError {str} {
-     variable actionBundle
-     $actionBundle handleError $str
+  method handleError {str} {
+     $options(-actionbundle) handleError $str
   }
 
-  proc handleLog {str} {
-    variable actionBundle
-    $actionBundle handleLog $str
+  method handleLog {str} {
+    $options(-actionbundle) handleLog $str
   }
 
-  proc handleWarning {str} {
-    variable actionBundle
-    $actionBundle handleWarning $str
+  method handleWarning {str} {
+    $options(-actionbundle) handleWarning $str
   }
 
-  proc handleDebug {str} {
-    variable actionBundle
-    $actionBundle handleDebug $str
+  method handleDebug {str} {
+    $options(-actionbundle) handleDebug $str
   }
 
-  proc handleOutput {str} {
-    variable actionBundle
-    $actionBundle handleOutput $str
+  method handleOutput {str} {
+    $options(-actionbundle) handleOutput $str
   }
 
-  proc handleTclCommand {str} {
-    variable actionBundle
-    $actionBundle handleTclCommand $str
+  method handleTclCommand {str} {
+    $options(-actionbundle) handleTclCommand $str
   }
 }
 
