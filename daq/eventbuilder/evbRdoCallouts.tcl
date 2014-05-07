@@ -874,11 +874,7 @@ proc EVBC::_Exiting w {
 #  By now it's assumed the event builder is visible to the port manager.
 #
 #
-<<<<<<< .mine
-proc ::EVBC::_waitForEventBuilder {} {
-=======
 proc EVBC::_waitForEventBuilder {} {
->>>>>>> .r3469
 
     # Figure out which port the event builder is listening on:
 
