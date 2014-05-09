@@ -397,6 +397,7 @@ AC_CONFIG_FILES([Makefile
 		 usb/ccusb/driverkit/CCUSBDriverIncludes
                  usb/ccusb/controlpanels/Makefile
 		 usb/caenfwloader/Makefile
+		 experimentConfiguration/Makefile
 		 docbuild/Makefile
 		 docconfig/Makefile])
 
