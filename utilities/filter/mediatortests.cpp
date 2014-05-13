@@ -26,6 +26,8 @@ static const char* Copyright = "(C) Copyright Michigan State University 2014, Al
 #include <string>
 #include <vector>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include <URL.h>
 
@@ -102,6 +104,37 @@ class CMediatorTest : public CppUnit::TestFixture
       int getNProcessed() const { return m_nProcessed;}
     };
 
+    class TestFilter2 : public CFilter {
+      public :
+        TestFilter2* clone() const { return new TestFilter2(*this); }
+
+        CRingItem* handleScalerItem(CRingScalerItem*) {
+          return 0;
+        }
+
+        CRingItem* handleTextItem(CRingTextItem*) {
+          return 0;
+        }
+
+        CRingItem* handleFragmentItem(CRingFragmentItem*) {
+          return 0;
+        }
+        CRingItem* handlePhysicsEventCountItem(CRingPhysicsEventCountItem*) {
+          return 0;
+        }
+
+        CRingItem* handlePhysicsEventItem(CPhysicsEventItem*) {
+          return 0;
+        }
+        CRingItem* handleStateChangeItem(CRingStateChangeItem*) {
+          return 0;
+        }
+
+        CRingItem* handleRingItem(CRingItem*) {
+          return 0;
+        }
+    };
+
   private:
     CFilter* m_filter;
     CDataSource* m_source;
@@ -135,6 +168,8 @@ class CMediatorTest : public CppUnit::TestFixture
     CPPUNIT_TEST ( test1Begins1Ends );
     CPPUNIT_TEST ( test2Begins1Ends );
     CPPUNIT_TEST ( test2Begins2Ends );
+
+    CPPUNIT_TEST ( testFilterReturnsNULL );
 //    CPPUNIT_TEST ( testMultiSourceStates );
     CPPUNIT_TEST_SUITE_END();
 
@@ -166,6 +201,8 @@ class CMediatorTest : public CppUnit::TestFixture
     void test2Begins1Ends();
     void test2Begins2Ends();
 //    void testMultiSourceStates();
+
+    void testFilterReturnsNULL();
 
   private:
     size_t writeRingItemToFile(CRingItem& item,
@@ -613,6 +650,53 @@ void CMediatorTest::test2Begins2Ends()
 
 }
 
+void CMediatorTest::testFilterReturnsNULL() 
+{
+  tearDown();
+  
+  // Set up the mediator
+  std::string proto("file://");
+  std::string infname("./run-0000-00.evt");
+  std::string outfname("./copy2-run-0000-00.evt");
+
+//  std::ifstream ifile (infname.c_str());
+//  std::ofstream ofile (outfname.c_str());
+//  m_source = new CIStreamDataSource(ifile);
+//  m_sink = new COStreamDataSink(ofile);
+  try {
+    URL uri(proto+infname);
+    std::cout << "\nOpening data source = " << infname << std::endl;
+    m_source = new CFileDataSource(uri, std::vector<uint16_t>());
+    std::cout << "\nOpening data sink = " << outfname << std::endl;
+    m_sink = new CFileDataSink(outfname);
+    m_filter = new TestFilter2;
+
+    m_mediator.setDataSource(m_source);
+    m_mediator.setDataSink(m_sink);
+    m_mediator.setFilter(m_filter);
+
+    m_mediator.mainLoop();
+
+    // kill all of the sinks and sources
+    tearDown();
+    // set up defaults so that we don't segfault at tearDown
+    setUp();
+  } catch (CException& exc) {
+    std::stringstream errmsg; errmsg << "Caught exception:" << exc.ReasonText();
+    CPPUNIT_FAIL(errmsg.str().c_str()); 
+  } catch (int errcode) {
+    std::stringstream errmsg; errmsg << "Caught integer " << errcode;
+    CPPUNIT_FAIL(errmsg.str().c_str()); 
+  } catch (std::string errmsg) {
+    CPPUNIT_FAIL(errmsg.c_str()); 
+  }
+
+  struct stat st;
+  stat(outfname.c_str(), &st);
+  CPPUNIT_ASSERT_EQUAL( 0, int(st.st_size) );
+}
+
+
 //void CMediatorTest::testMultiSourceStates()
 //{
 //  tearDown();
@@ -677,4 +761,7 @@ size_t CMediatorTest::writeRingItemToFile(CRingItem& item,
 
     return nbytes;
 }
+
+
+
 

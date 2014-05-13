@@ -92,7 +92,7 @@ CRingItem* handleRingItem(CRingItem*);
     </para>
 
     <para>
-     Each handler accepts as an argument a ring item read from the source and will output a ring item to send to the sink. The framework will use the type of each ring item it reads from the source to call the appropriate handler method. Also, it is worth noting that handlers that receive a specific ring item type can actually output any ring item type. It is not clear why the user would want to do this, but it is possible to, for example, mutate scaler items into physics event items by means of a filter. 
+     Each handler accepts as an argument a ring item read from the source and will output a ring item to send to the sink. The framework will use the type of each ring item it reads from the source to call the appropriate handler method. Also, it is worth noting that handlers that receive a specific ring item type can actually output any ring item type. It is not clear why the user would want to do this, but it is possible to, for example, mutate scaler items into physics event items by means of a filter. It is also possible to prevent an item from being sent to the sink by return 0 from a handler. 
     </para>
 
     <para>
@@ -121,7 +121,7 @@ CRingItem* CFilter::handleTextItem(CRingTextItem* item) {
     <title>Building a composite filter</title>
 
     <para>
-     A special filter is provided that allows users to stack primitive filters together into a composite filter. This composite filter, CCompositeFilter, maintains a list of registered filters and will call their respective handlers in the order in which they were registered to it. The output of the first filter is fed as an input to the second filter and so on. For this reason, each subsequent filter must know how to parse the data outputted from the previous filter.
+     A special filter is provided that allows users to stack primitive filters together into a composite filter. This composite filter, CCompositeFilter, maintains a list of registered filters and will call their respective handlers in the order in which they were registered to it. The output of the first filter is fed as an input to the second filter and so on. For this reason, each subsequent filter must know how to parse the data outputted from the previous filter. If a primitive filter returns 0, the composite filter will stop iterating through its filters and return 0.
     </para> 
 
     <para>

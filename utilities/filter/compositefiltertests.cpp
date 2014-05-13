@@ -88,6 +88,16 @@ class CCompositeFilterTest : public CppUnit::TestFixture
 
     };
 
+  // Defines a class to test that the CCompositeFilter exits after
+  // a primitive returns null.
+    class TFilterNull : public CFilter {
+      virtual CRingItem* handleRingItem(CRingItem*) {
+        return 0;
+      }
+
+      virtual TFilterNull* clone() const { return new TFilterNull(*this); }
+    };
+
   private:
     CFilter* m_filter;
     CCompositeFilter* m_composite;
@@ -115,6 +125,7 @@ class CCompositeFilterTest : public CppUnit::TestFixture
     CPPUNIT_TEST ( testTestFragmentItem );
     CPPUNIT_TEST ( testTransparentGenericItem );
     CPPUNIT_TEST ( testTestGenericItem );
+    CPPUNIT_TEST ( testExitsOnNullReturn );
 
     CPPUNIT_TEST_SUITE_END();
 
@@ -140,6 +151,7 @@ class CCompositeFilterTest : public CppUnit::TestFixture
     void testTestFragmentItem();
     void testTransparentGenericItem();
     void testTestGenericItem();
+    void testExitsOnNullReturn();
 
 //    void testTransparentMainLoop();
 
@@ -494,3 +506,32 @@ void CCompositeFilterTest::testTestGenericItem()
 
   delete item;
 }
+
+// Create some generic item type to force testing of handleRingItem()
+void CCompositeFilterTest::testExitsOnNullReturn()
+{
+  CRingItem* item = new CRingItem(1000);    
+
+  // Create a test filter 
+  CFilter* m_filter = new TFilterNull;
+  // Register it
+  m_composite->registerFilter(m_filter);
+  m_filter = new CTestFilter;
+  m_composite->registerFilter(m_filter);
+
+  // Clone the composite to avoid double frees is tearDown
+  CCompositeFilter* comp = m_composite->clone();
+
+  // Set up the mediator
+  CMediator mediator(0,comp,0);
+  CRingItem* new_item = mediator.handleItem(item);
+
+  CPPUNIT_ASSERT( 0 == new_item );
+
+  if (item != new_item) {
+    delete new_item;
+  }
+
+  delete item;
+}
+

@@ -96,7 +96,6 @@ CMediator::~CMediator()
 */
 void CMediator::mainLoop()
 {
-  CRingItem* item=0;
   
   // Dereference our pointers before entering
   // the main loop
@@ -118,7 +117,7 @@ void CMediator::mainLoop()
 
     // Get a new item
     // Exit if the item returned is null
-    item = source.getItem();
+    CRingItem* item = source.getItem();
     if (item==0) {
       break;
     }
@@ -130,9 +129,14 @@ void CMediator::mainLoop()
       // to the new item
       CRingItem* new_item = handleItem(item);
 
-      // Send the new item on to the sink
-      sink.putItem(*new_item);
-
+      // Only send an item if it is not null.
+      // The user could return null to prevent sending data
+      // to the sink
+      if (new_item!=0) {
+        // Send the new item on to the sink
+        sink.putItem(*new_item);
+      }
+    
       // It is possible that the filter did nothing more than
       // return a pointer to the same object. Therefore, only
       // delete the returned item if it is different.
