@@ -492,3 +492,9 @@ Feb 1, 2012 - Feb 24, 2012
 	* Incorporate new VM/CCUSB software additions (Jeromy).
 	* Fix error in the build for installing documentation when docbook
 	is not installed.
+
+10.2-107
+	* Fix for Issue #2035 - See commit of Revision r3517 for
+	CFragmentHanlder.cpp in trunk/nextgen/daq/eventbuilder
+
+	
