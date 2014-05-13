@@ -603,4 +603,6 @@ Open rc7 work.
 	system).
 	*  Add directory tree top for experiment configurator.
 	*  Add installation point for Python libraries.
+	*  Roll event builder fix back from 10.2-107
+
 	
