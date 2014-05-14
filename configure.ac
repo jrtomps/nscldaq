@@ -93,6 +93,11 @@ SOVERSION="11:0:0"
 #  Local tests:
 #
 
+# Ensure Python is 2.7 or greater, and the packages/dependencies we need
+
+AM_PATH_PYTHON([2.7], [], [AC_MSG_ERROR([Python 2.7 or higher is needed for NSCLDAQ])])
+AX_PYQT
+
 # Ensure swig is installed: -- this is used to generate wrappers for the
 #  VMUSB and CCUSB libraries for use within Tcl drivers.
 #
@@ -300,6 +305,7 @@ AC_CONFIG_LINKS([utilities/filter/run-0000-00.evt:utilities/filter/run-0000-00.e
 
 AC_CONFIG_FILES([Makefile
 		nscldaq
+		daqsetup.bash
 		base/Makefile
 		base/os/Makefile
                  base/CopyrightTools/Makefile
@@ -336,6 +342,7 @@ AC_CONFIG_FILES([Makefile
 		 utilities/compatibility/spectcldaq
 		 utilities/compatibility/s800toring
 		 utilities/compatibility/bufdump
+		 utilities/experimentConfiguration/Makefile
                  epics/chanlog/Makefile
                  epics/controlpush/Makefile
                  epics/epicsdisplay/Makefile
@@ -397,7 +404,6 @@ AC_CONFIG_FILES([Makefile
 		 usb/ccusb/driverkit/CCUSBDriverIncludes
                  usb/ccusb/controlpanels/Makefile
 		 usb/caenfwloader/Makefile
-		 experimentConfiguration/Makefile
 		 docbuild/Makefile
 		 docconfig/Makefile])
 

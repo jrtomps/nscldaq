@@ -605,6 +605,8 @@ Open rc7 work.
 	*  Add installation point for Python libraries.
 	*  Roll event builder fix back from 10.2-107 (Issue #2035)
 	*  Roll in Issue #2035 - data rate smoother change.
-	
+        *  Feature #1953 - Experiment configuration editor: Users create a
+           new (empty) project
+        *  Add a daqsetup.bash script to installation that provides environment
 
 	

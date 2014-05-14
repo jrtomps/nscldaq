@@ -16,7 +16,7 @@ endif
 
 
 SUBDIRS =	 base caenfw-common servers base/dataflow  \
-		daq utilities docbuild docconfig experimentConfiguration $(SBSDIRS) $(EPICSDIRS) $(USBDIR)
+		daq utilities docbuild docconfig $(SBSDIRS) $(EPICSDIRS) $(USBDIR)
 
 
 install-data-local:
@@ -29,6 +29,7 @@ install-data-local:
 	$(MANDB) @prefix@/share/man
 	touch @prefix@/pythonLibs/nscldaq/__init__.py
 	echo "Version: "NSCLDAQ-$(VERSION) built on `hostname` `date` > @prefix@/VERSION
+	$(INSTALL_SCRIPT) daqsetup.bash @prefix@
 
 
 EXTRA_DIST=dotests introduction.xml libtcl
