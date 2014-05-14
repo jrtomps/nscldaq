@@ -613,7 +613,7 @@ CFragmentHandler::flushQueues(bool completely)
 
   time_t firstOldest = m_nOldestReceived;
   if ((m_nNow - m_nOldestReceived) > m_nBuildWindow) {
-    while (!queuesEmpty() && ((m_nNow - m_nOldestReceived) > m_nBuildWindow/4) ) {
+    while (!queuesEmpty() && ((m_nNow - m_nOldestReceived) > m_nBuildWindow) ) {
       std::pair<time_t, ::EVB::pFragment>* p = popOldest();
       if (p) {
         sortedFragments.push_back(p->second);
@@ -633,7 +633,10 @@ CFragmentHandler::flushQueues(bool completely)
   
 
   // Observe the fragments we have now:
-  
+#ifdef DEBUG  
+  std::cerr << "Pushing " << sortedFragments.size() << " to stdout\n";
+#endif
+
   observe(sortedFragments);
   findOldest();			// Ensure we know which the oldest is.
   
