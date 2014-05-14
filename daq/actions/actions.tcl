@@ -36,7 +36,6 @@ snit::type Actions {
       # unregister itself
       chan event $fd readable ""
       catch {close $fd} msg
-      puts "End of file reached"
     } else {
       $self handleReadable $fd 
     }
@@ -51,10 +50,10 @@ snit::type Actions {
     set input [chan read $fd ]
 
     append line "$input"
-    set line [string trimright $line "\n"]
+    set line [string trimright $line " \0\n"]
 
     while {[string length $line]>0 && !($incomplete)} {
-
+      set line [string trim $line]
       set firstWord [$self extractFirstWord $line]
 
       # if we have a legal directive, treat it
