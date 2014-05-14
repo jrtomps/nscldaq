@@ -496,5 +496,5 @@ Feb 1, 2012 - Feb 24, 2012
 10.2-107
 	* Fix for Issue #2035 - See commit of Revision r3517 for
 	CFragmentHanlder.cpp in trunk/nextgen/daq/eventbuilder
-
-	
+        * Issue #2035 - use a larger low water mark for time based
+	flushing to smooth out the data 
