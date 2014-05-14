@@ -608,5 +608,7 @@ Open rc7 work.
         *  Feature #1953 - Experiment configuration editor: Users create a
            new (empty) project
         *  Add a daqsetup.bash script to installation that provides environment
+        *  Feature #1954 - Experiment configuration editor: Users open an existing
+           project (not necessarily empty).
 
 	

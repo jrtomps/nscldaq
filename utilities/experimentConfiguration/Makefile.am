@@ -1,6 +1,6 @@
 
 
-PACKAGE_FILES = project.py state.py filemenu.py
+PACKAGE_FILES = project.py state.py filemenu.py projectdisplay.py
 
 MAINS = experimentConfiguration.py
 

@@ -22,7 +22,7 @@
 import sys
 from PyQt4 import QtGui
 
-from nscldaq.expconfiguration import filemenu
+from nscldaq.expconfiguration import filemenu, projectdisplay
 
 
 ##
@@ -48,6 +48,7 @@ class MainWindow(QtGui.QMainWindow):
         # Set up the menus.
         
         self._fileMenu = filemenu.FileMenu(self)
+        self._projectUi= projectdisplay.ProjectDisplay(self)
         
         # Enable the statusbar:
         

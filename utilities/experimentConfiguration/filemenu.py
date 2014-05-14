@@ -45,11 +45,21 @@ class FileMenu:
         menubar = mainWindow.menuBar()
         filemenu = menubar.addMenu('&File')
         
-        newProjectAction = QtGui.QAction('New', mainWindow)
+        # File->New...
+        
+        newProjectAction = QtGui.QAction('New...', mainWindow)
         newProjectAction.setShortcut('Ctrl+N')
         newProjectAction.setStatusTip('Create a new project file')
         newProjectAction.triggered.connect(self._new)
         filemenu.addAction(newProjectAction)
+        
+        # File->Open...
+        
+        openProjectAction = QtGui.QAction('Open...', mainWindow)
+        openProjectAction.setShortcut('Ctrl+O')
+        openProjectAction.setStatusTip('Open an existing project file')
+        openProjectAction.triggered.connect(self._open)
+        filemenu.addAction(openProjectAction)
         
     ##
     # _new
@@ -59,7 +69,7 @@ class FileMenu:
     #
     def _new(self):
         fname = QtGui.QFileDialog.getSaveFileName(
-            self._mainWindow, 'SaveFile', os.getcwd(),'*.experiment', 
+            self._mainWindow, 'Save File', os.getcwd(),'*.experiment'
         )
         #  Cancel will give a size zero string:
         
@@ -76,6 +86,27 @@ class FileMenu:
             myProject  = project.Project(fname)
             myProject.create()
             state.State.project = myProject
+            
+            # Update the UI:
+            
+            self._mainWindow.centralWidget().clear()
             self._mainWindow.setWindowTitle(fname)
             
+    ##
+    # _open
+    #   Open an existing file as a project.
+    #
+    def _open(self):
+        fname = QtGui.QFileDialog.getOpenFileName(
+            self._mainWindow, 'Open File', os.getcwd(), '*.experiment'
+        )
+        # Cancel will give us a 0 length string so:
         
+        if fname.size() > 0:
+            fname = str(fname)
+            myProject = project.Project(fname)
+            myProject.open()
+            state.State.project = myProject
+            
+            self._mainWindow.centralWidget().populate()
+            self._mainWindow.setWindowTitle(fname)
