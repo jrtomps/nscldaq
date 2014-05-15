@@ -410,7 +410,6 @@ class Rings:
             result.append(r)
         
         conn.row_factory = oldFact
-        
         return result
     #-------------------------------------------------------------------------
     # Public interface
