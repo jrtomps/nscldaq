@@ -7,7 +7,7 @@
 
 # Assume that if DAQROOT is defined, we're already set up.
 
-if test x$DAQROOT = x
+if test x${DAQROOT} = x
 then
     export DAQROOT=@prefix@
     export DAQBIN=$DAQROOT/bin

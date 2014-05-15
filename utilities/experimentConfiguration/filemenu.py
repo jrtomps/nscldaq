@@ -61,6 +61,16 @@ class FileMenu:
         openProjectAction.triggered.connect(self._open)
         filemenu.addAction(openProjectAction)
         
+        
+        # Separator and exit:
+        
+        filemenu.addSeparator()
+        exitProjectAction = QtGui.QAction('Exit', mainWindow)
+        exitProjectAction.setStatusTip('Exit program (note all changes are saved')
+        exitProjectAction.triggered.connect(mainWindow.close)
+        filemenu.addAction(exitProjectAction)
+        
+        
     ##
     # _new
     #   Prompt for and create a new project file.
@@ -89,7 +99,7 @@ class FileMenu:
             
             # Update the UI:
             
-            self._mainWindow.centralWidget().clear()
+            self._mainWindow.centralWidget().populate()
             self._mainWindow.setWindowTitle(fname)
             
     ##

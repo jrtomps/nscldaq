@@ -31,6 +31,7 @@ import sqlite3
 class Project:
     def __init__(self, dbPath):
         self.connection = sqlite3.connect(dbPath)
+        self.connection.isolation_level = None
         self.connection.execute('PRAGMA foreign_keys = on')
     ##
     # open
@@ -333,6 +334,21 @@ class Hosts:
                          ''', (id,))
         else:
             raise RuntimeError('project.Hosts.delete - no such host to delete')
+    ##
+    # modify
+    #   Change the name of an existing host.
+    #
+    # @param id      - id of the host.
+    # @param newName - new name for the host.
+    #
+    def modify(self, id, newName):
+        conn = self._project.connection
+        if self._exists(id, 'id'):
+            conn.execute('''
+                UPDATE hosts set host_name=? WHERE id= ?
+                         ''', (newName, id))
+        else:
+            raise RuntimeError('project.Hosts.modify - no such host id')
             
 #------------------------------------------------------------------------------
 

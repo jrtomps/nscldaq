@@ -151,6 +151,30 @@ class projectHostsTest(unittest.TestCase):
     def test_id_nonexist(self):
         self.assertEquals(None, self._hosts.id('no.such.host'))
     
+    ##
+    # test_modify_ok
+    #    Test changing the name of an existing host.
+    #
+    def test_modify_ok(self):
+        host='test.nscl.msu.edu'
+        mhost='spdaq.nscl.msu.edu'
+        id  = self._hosts.add(host)
+        self._hosts.modify(id, mhost)
+        self.assertEquals(id, self._hosts.id(mhost))
+        
+    ##
+    # test_modify_nosuch
+    #   exception if modifying the name of a host that does not exist.
+    #
+    def test_modify_nosuch(self):
+        thrown = False
+        try:
+            self._hosts.modify(1234, 'no.such.item')
+        except RuntimeError:
+            thrown = True
+        except:
+            pass
+        self.assertTrue(thrown)
         
 if __name__ == '__main__':
     unittest.main()
