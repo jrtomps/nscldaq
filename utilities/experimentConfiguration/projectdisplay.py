@@ -41,7 +41,17 @@ class ProjectDisplay(QtGui.QFrame):
     def __init__(self, parent):
         super(ProjectDisplay, self).__init__(parent)
         parent.setCentralWidget(self)
-        
+        self._setupUi
+    
+    ##
+    #  _setupUi
+    #    Setup our user interface widgets (the contents of the frame).
+    #
+    def _setupUi(self):
+        pass
+    
+    #--------------------------------------------------------------------
+    # Public methods
     ##
     # clear
     #    Clear the project (called after  a new project has been created)

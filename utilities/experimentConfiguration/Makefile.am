@@ -19,7 +19,7 @@ install-exec-local:
 check-TESTS:
 	PYTHONPATH=$(INSTDIR) @PYTHON@ @srcdir@/run_all_tests.py
 
-EXTRA_DIST = $(PACKAGE_FILES) $(MAIN_SCRIPTS) \
+EXTRA_DIST = $(PACKAGE_FILES) $(MAINS) \
 projectConsumerTest.py \
 projectHostsTest.py \
 projectLoggerTest.py \
