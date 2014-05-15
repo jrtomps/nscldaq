@@ -13,8 +13,8 @@ INSTDIR = @prefix@/pythonLibs/nscldaq/expconfiguration
 install-exec-local:
 	$(mkinstalldirs)  $(INSTDIR)
 	touch $(INSTDIR)/__init__.py 
-	$(INSTALL_SCRIPT) $(PACKAGE_FILES) $(INSTDIR)
-	$(INSTALL_SCRIPT) $(MAINS) @bindir@
+	for f in  $(PACKAGE_FILES); do $(INSTALL_SCRIPT) @srcdir@/$$f $(INSTDIR); done
+	for f in $(MAINS); do $(INSTALL_SCRIPT) @srcdir@/$$f @bindir@; done
 
 check-TESTS:
 	PYTHONPATH=$(INSTDIR) @PYTHON@ @srcdir@/run_all_tests.py
