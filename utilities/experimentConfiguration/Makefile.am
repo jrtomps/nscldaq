@@ -1,6 +1,7 @@
 
 
-PACKAGE_FILES = project.py state.py filemenu.py projectdisplay.py
+PACKAGE_FILES = project.py state.py filemenu.py projectdisplay.py \
+	ringspec.py
 
 MAINS = experimentConfiguration.py
 

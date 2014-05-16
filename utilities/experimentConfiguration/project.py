@@ -443,7 +443,7 @@ class Rings:
         curs   = conn.cursor()
         
         curs.execute('''
-            INSERT INTO rings (name, host_id, sourceid) VALUES(?,?,?)
+            INSERT INTO rings (name, host_id, sourceid) VALUES (?,?,?)
                      ''', (name, hostid, sourceid)
         )
         return curs.lastrowid

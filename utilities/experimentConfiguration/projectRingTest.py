@@ -142,7 +142,32 @@ class projectRingTest(unittest.TestCase):
         self.assertNotEquals(None, row)
         self.assertEquals(ringid, row[0])
         self.assertEqual(ringname, row[1])
-        self.assertEqual(hostid, row[2])        
+        self.assertEqual(hostid, row[2])
+        
+    ##
+    # test_addwhost_srcid
+    #
+    def test_addwhost_srcid(self):
+        hostname = 'test.nscl.msu.edu'
+        ringname = 'fox'
+        
+        hostid = self._hosts.add(hostname)
+
+        srcid  = 1234
+        ringid = self._rings.add_withHostname(ringname, hostname, False, srcid)
+        conn = self._project.connection
+        curs = conn.cursor()
+        curs.execute('''
+            SELECT * FROM rings WHERE name=?
+                     ''', (ringname,))
+        
+        
+        row = curs.fetchone()
+        self.assertNotEquals(None, row)
+        self.assertEquals(ringid, row[0])
+        self.assertEqual(ringname, row[1])
+        self.assertEqual(hostid, row[2])
+        self.assertEqual(srcid, row[3])
         
         
     ##
