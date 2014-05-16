@@ -5,6 +5,18 @@ PACKAGE_FILES = project.py state.py filemenu.py projectdisplay.py \
 
 MAINS = experimentConfiguration.py
 
+TESTS = projectConsumerTest.py \
+projectHostsTest.py \
+projectLoggerTest.py \
+projectOpenTest.py \
+projectProgramTest.py \
+project.py \
+projectRingTest.py \
+projectSourceTest.py \
+run_all_tests.py \
+schemaTest.py	\
+projectProducerTest.py
+
 INSTDIR = @prefix@/pythonLibs/nscldaq/expconfiguration
 
 # Install hook.. create the directory  in which we'll install the modules/packages.
@@ -20,14 +32,5 @@ install-exec-local:
 check-TESTS:
 	PYTHONPATH=$(INSTDIR) @PYTHON@ @srcdir@/run_all_tests.py
 
-EXTRA_DIST = $(PACKAGE_FILES) $(MAINS) \
-projectConsumerTest.py \
-projectHostsTest.py \
-projectLoggerTest.py \
-projectOpenTest.py \
-projectProgramTest.py \
-project.py \
-projectRingTest.py \
-projectSourceTest.py \
-run_all_tests.py \
-schemaTest.py
+EXTRA_DIST = $(PACKAGE_FILES) $(MAINS) $(TESTS)
+
