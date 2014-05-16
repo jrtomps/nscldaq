@@ -14,8 +14,8 @@ project.py \
 projectRingTest.py \
 projectSourceTest.py \
 run_all_tests.py \
-schemaTest.py	\
-projectProducerTest.py
+schemaTest.py	
+
 
 INSTDIR = @prefix@/pythonLibs/nscldaq/expconfiguration
 
