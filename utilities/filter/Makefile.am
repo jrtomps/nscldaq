@@ -5,6 +5,7 @@ lib_LTLIBRARIES	=	libfilter.la
 libfilter_la_SOURCES = CFilterMain.cpp \
                        CMediator.cpp \
                        CCompositeFilter.cpp \
+                       COneShotHandler.cpp \ 
                        @srcdir@/../StringsToIntegers.cpp \
                        @srcdir@/filterargs.c
                        
@@ -17,6 +18,7 @@ include_HEADERS	=  CFilterMain.h \
                    CMediator.h \
                    CFilter.h \
                    CCompositeFilter.h  \
+                   COneShotHandler.h \ 
                    CFatalException.h
 
 INCLUDES	= -I@top_srcdir@/utilities \
@@ -55,7 +57,8 @@ noinst_PROGRAMS = unittests testapp
 unittests_SOURCES	= TestRunner.cpp  \
             mediatortests.cpp \
             filtermaintests.cpp  \
-            compositefiltertests.cpp
+            compositefiltertests.cpp \
+            oneshothandlertests.cpp
 
 unittests_LDADD		= -L$(libdir) $(CPPUNIT_LDFLAGS) 		\
 			@top_builddir@/base/dataflow/libDataFlow.la 	\

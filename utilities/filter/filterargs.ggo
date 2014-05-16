@@ -9,3 +9,4 @@ option "count"   c "Number of items to process before exiting" int optional
 option "sample"  S "List of item types to sample" string optional 
 option "exclude" e "List of item types to remove from data stream" string optional
 option "oneshot" o   "Record one run and exit, making synchronization files" optional
+option "number-of-sources" n  "Number of data sources being built" int  optional default="1" 
