@@ -21,6 +21,7 @@
 # @author <fox@nscl.msu.edu>
 import sys
 from PyQt4 import QtGui, QtCore
+from nscldaq.expconfiguration import formdialog
 
 ##
 # @class SpinBox
@@ -195,52 +196,19 @@ class RingForm(QtGui.QFrame):
 #   other than the dialog methods is form() which obtains the form
 #   associated with the dialog
 #
-class RingDialog(QtGui.QDialog):
+class RingDialog(formdialog.FormDialog):
     ##
     # __init__
     #   Construction
     #   *  Create/Layout the widgets.
     #   *  Connect button box signals to dialog slots
     def __init__(self, parent = None):
-        super(RingDialog, self).__init__(parent)
+        form = RingForm()
+        super(RingDialog, self).__init__(form, parent)
         
-        # Create and layout the widgets.
-        
-        self._form    =  RingForm(self)
-        self._buttons =  QtGui.QDialogButtonBox(
-            QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel
-        )
-        self.setWindowTitle('Specify Ring')
-        
-        layout = QtGui.QVBoxLayout()
-        self.setLayout(layout)
-        layout.addWidget(self._form)
-        layout.addWidget(self._buttons)
-        
-        # Connect the button box signals to the dialog slots:
-        
-        self._buttons.accepted.connect(self.accept)
-        self._buttons.rejected.connect(self.reject)
-        
-        #
-        self.setModal(True)
-        
-    #--------------------------------------------------------------------------
-    # public methods
     
-    ##
-    # form
-    #   Returns the dialog form so values can be set and fished out
-    #
-    # @return RingForm
-    #
-    def form(self):
-        return self._form
-       
-##
-#  Used for testing
-#
-def main():
+
+if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
     ex = RingDialog()
     form = ex.form()
@@ -257,7 +225,3 @@ def main():
         print('source Id: %d'  % (form.sourceId()))
     else:
         print('cancel')
-    
-
-if __name__ == '__main__':
-    main()
