@@ -40,7 +40,6 @@ class CDataSinkFactoryTest : public CppUnit::TestFixture
     CDataSinkFactoryTest();
 
     CPPUNIT_TEST_SUITE( CDataSinkFactoryTest );
-    CPPUNIT_TEST ( testStdout );
     CPPUNIT_TEST ( testStdoutDash );
 //    CPPUNIT_TEST ( testFailOnStdin );
     CPPUNIT_TEST ( testRingSink );
@@ -74,17 +73,6 @@ void CDataSinkFactoryTest::setUp()
 
 void CDataSinkFactoryTest::tearDown()
 {}
-
-void CDataSinkFactoryTest::testStdout()
-{
-  CDataSinkFactory factory;
-  CFileDataSink* sink = 
-      dynamic_cast<CFileDataSink*>(factory.makeSink("file:///stdout"));
-  CPPUNIT_ASSERT ( 0 != sink );
-  CPPUNIT_ASSERT_EQUAL( STDOUT_FILENO, sink->m_fd );
-
-  delete sink;
-}
 
 void CDataSinkFactoryTest::testStdoutDash()
 {
