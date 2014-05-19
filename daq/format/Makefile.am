@@ -21,7 +21,8 @@ libdataformat_la_SOURCES = CRingSelectionPredicate.cpp	\
 			CDataSource.cpp CRingDataSource.cpp CFileDataSource.cpp  \
 			CDataSourceFactory.cpp \
       CFileDataSink.cpp CDataSinkFactory.cpp \
-      CRingDataSink.cpp
+      CRingDataSink.cpp \
+      CDataSinkException.cpp
 
 
 include_HEADERS	= CRingSelectionPredicate.h	\
@@ -43,7 +44,8 @@ include_HEADERS	= CRingSelectionPredicate.h	\
 			CDataSource.h CRingDataSource.h CFileDataSource.h \
 			CDataSourceFactory.h \
       CDataSink.h CFileDataSink.h CDataSinkFactory.h \
-      CRingDataSink.h
+      CRingDataSink.h \
+      CDataSinkException.h
 
 
 INCLUDES	= -I@top_srcdir@/base/dataflow	\

@@ -41,7 +41,7 @@ CDataSink* CDataSinkFactory::makeSink(std::string uri)
 
   // Treat the special case of -
   if (uri=="-") {
-    uri = "file:///stdout";
+    sink = makeFileSink(uri);
   }
 
   // parse the uri
@@ -52,7 +52,7 @@ CDataSink* CDataSinkFactory::makeSink(std::string uri)
 
     sink = makeFileSink(url.getPath());
 
-  } else if (url.getProto()=="ring") {
+  } else if (url.getProto()=="ring" || url.getProto()=="tcp") {
 
     sink = makeRingSink(url.getPath());
 
@@ -79,7 +79,7 @@ CDataSink* CDataSinkFactory::makeFileSink(std::string fname)
 
   try {
 
-    if (fname=="/stdout") {
+    if (fname=="-") {
 
       sink = new CFileDataSink(STDOUT_FILENO);
 
