@@ -38,7 +38,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2014, Al
 #define private public
 #define protected public
 #include "CCompositeFilter.h"
-#include "CMediator.h"
+#include "CInfiniteMediator.h"
 #undef private
 #undef protected 
 
@@ -233,7 +233,7 @@ CCompositeFilterTest::setupAndRunFilter(CRingItem* item)
   CCompositeFilter* comp = m_composite->clone();
 
   // Set up the mediator
-  CMediator mediator(0,comp,0);
+  CInfiniteMediator mediator(0,comp,0);
   
   return mediator.handleItem(item);
 }
@@ -523,7 +523,7 @@ void CCompositeFilterTest::testExitsOnNullReturn()
   CCompositeFilter* comp = m_composite->clone();
 
   // Set up the mediator
-  CMediator mediator(0,comp,0);
+  CInfiniteMediator mediator(0,comp,0);
   CRingItem* new_item = mediator.handleItem(item);
 
   CPPUNIT_ASSERT( 0 == new_item );

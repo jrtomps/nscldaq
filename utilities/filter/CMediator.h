@@ -34,9 +34,6 @@ class CMediator
     CDataSink* m_pSink; //!< the sink 
     int  m_nToProcess; //!< number to process
     int  m_nToSkip; //!< number to skip
-    bool m_isOneShot; //!< exit after symmetric begin/ end runs 
-    int m_nBegins; //!< number of begin run events 
-    int m_nEnds; //!< number of end run events 
 
   public:
     // The constructor
@@ -51,6 +48,13 @@ class CMediator
     CMediator& operator=(const CMediator&);
 
   public:
+
+    /**! The main loop
+    *   
+    *  This is to be defined by the derived class.
+    *
+    */
+    virtual void mainLoop() = 0;
 
     /**! Set the filter
       This transfers ownership of the object to this CMediator.
@@ -99,29 +103,29 @@ class CMediator
     */
     CFilter* getFilter() { return m_pFilter;}
 
-
-    /**! The main loop
+    /**! Access to the source 
     */
-    void mainLoop();
+    CDataSource* getDataSource() { return m_pSource;}
+
+    /**! Access to the sink 
+    */
+    CDataSink* getDataSink() { return m_pSink;}
+
 
     /**! Set the number to skip */
     void setSkipCount(int nEvents) { m_nToSkip = nEvents; }
+    /**! Get the number to skip */
+    int getSkipCount(void) const { return m_nToSkip; }
 
     /**! Set the number to process */
     void setProcessCount(int nEvents) { m_nToProcess = nEvents; }
-
-    void setOneShot(bool yesno) { m_isOneShot = yesno; }
+    /**! Get the number to process */
+    int getProcessCount(void) const { return m_nToProcess; }
 
   protected:
     /**! Delegate item to proper handler of filter
     */
-    CRingItem* handleItem(CRingItem* item); 
-
-    CRingItem* handleStateChangeItem(CRingStateChangeItem* item);
-
-    bool stateChangesAreSymmetric() const {
-      return (m_nBegins==m_nEnds && m_nBegins!=0);
-    }
+    virtual CRingItem* handleItem(CRingItem* item); 
 
 };
 

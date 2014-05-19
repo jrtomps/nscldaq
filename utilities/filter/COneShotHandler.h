@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <map>
 
+class CRingItem;
 class CRingStateChangeItem;
 
 class COneShotHandler 
@@ -21,7 +22,7 @@ class COneShotHandler
 
     void initialize(CRingStateChangeItem* item);
 
-    void update(CRingStateChangeItem* item);
+    void update(CRingItem* item);
 
     bool waitingForBegin() const;
     bool complete() const;
@@ -34,5 +35,6 @@ class COneShotHandler
     bool validType(uint32_t type) const;
     void clearCounts();
     
+    void updateState(CRingStateChangeItem* item);
 };
 #endif

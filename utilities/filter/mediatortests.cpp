@@ -48,12 +48,12 @@ static const char* Copyright = "(C) Copyright Michigan State University 2014, Al
 
 #define private public
 #define protected public
-#include "CMediator.h"
+#include "CInfiniteMediator.h"
 #undef private
 #undef protected
 
 // A test suite 
-class CMediatorTest : public CppUnit::TestFixture
+class CInfiniteMediatorTest : public CppUnit::TestFixture
 {
   private:
     // Define a test filter to return some testable results
@@ -139,12 +139,12 @@ class CMediatorTest : public CppUnit::TestFixture
     CFilter* m_filter;
     CDataSource* m_source;
     CDataSink* m_sink;
-    CMediator m_mediator;
+    CInfiniteMediator* m_mediator;
 
   public:
-    CMediatorTest();
+    CInfiniteMediatorTest();
 
-    CPPUNIT_TEST_SUITE( CMediatorTest );
+    CPPUNIT_TEST_SUITE( CInfiniteMediatorTest );
     CPPUNIT_TEST ( testConstructor );
 
     CPPUNIT_TEST ( testSetMembers );
@@ -161,13 +161,6 @@ class CMediatorTest : public CppUnit::TestFixture
     CPPUNIT_TEST ( testProcessSome );
 
     CPPUNIT_TEST ( testTransparentMainLoop );
-
-    CPPUNIT_TEST ( test2Begins0Ends );
-    CPPUNIT_TEST ( test1Begins0Ends );
-    CPPUNIT_TEST ( test0Begins0Ends );
-    CPPUNIT_TEST ( test1Begins1Ends );
-    CPPUNIT_TEST ( test2Begins1Ends );
-    CPPUNIT_TEST ( test2Begins2Ends );
 
     CPPUNIT_TEST ( testFilterReturnsNULL );
 //    CPPUNIT_TEST ( testMultiSourceStates );
@@ -194,12 +187,6 @@ class CMediatorTest : public CppUnit::TestFixture
     void testProcessSome();
 
     void testTransparentMainLoop();
-    void test2Begins0Ends();
-    void test1Begins0Ends();
-    void test0Begins0Ends();
-    void test1Begins1Ends();
-    void test2Begins1Ends();
-    void test2Begins2Ends();
 //    void testMultiSourceStates();
 
     void testFilterReturnsNULL();
@@ -220,82 +207,83 @@ class CMediatorTest : public CppUnit::TestFixture
 
 
 // Register it with the test factory
-CPPUNIT_TEST_SUITE_REGISTRATION( CMediatorTest );
+CPPUNIT_TEST_SUITE_REGISTRATION( CInfiniteMediatorTest );
 
-CMediatorTest::CMediatorTest()
+CInfiniteMediatorTest::CInfiniteMediatorTest()
     : m_filter(0),
     m_source(0),
     m_sink(0),
-    m_mediator(m_source,m_filter,m_sink)
+    m_mediator(0)
 {}
 
 
-void CMediatorTest::setUp()
+void CInfiniteMediatorTest::setUp()
 {
   std::vector<uint16_t> dummy;
   m_filter = new CTestFilter;
   m_source = new CFileDataSource(STDIN_FILENO, dummy);
   m_sink = new CFileDataSink(STDOUT_FILENO);
-  
-  m_mediator.setDataSource(m_source);
-  m_mediator.setFilter(m_filter);
-  m_mediator.setDataSink(m_sink);
+
+  m_mediator = new CInfiniteMediator(m_source,m_filter,m_sink);
+  m_mediator->setDataSource(m_source);
+  m_mediator->setFilter(m_filter);
+  m_mediator->setDataSink(m_sink);
 }
 
-void CMediatorTest::tearDown()
+void CInfiniteMediatorTest::tearDown()
 {
   // Call the destructor to free
   // owned memory
-  m_mediator.~CMediator();
+  delete m_mediator;
 }
 
 
-void CMediatorTest::testConstructor()
+void CInfiniteMediatorTest::testConstructor()
 {
-  CPPUNIT_ASSERT_EQUAL( m_source, m_mediator.m_pSource);
-  CPPUNIT_ASSERT_EQUAL( m_filter, m_mediator.m_pFilter);
-  CPPUNIT_ASSERT_EQUAL( m_sink, m_mediator.m_pSink);
+  CPPUNIT_ASSERT_EQUAL( m_source, m_mediator->m_pSource);
+  CPPUNIT_ASSERT_EQUAL( m_filter, m_mediator->m_pFilter);
+  CPPUNIT_ASSERT_EQUAL( m_sink, m_mediator->m_pSink);
 }
 
-void CMediatorTest::testSetMembers()
+void CInfiniteMediatorTest::testSetMembers()
 {
     CFilter* new_filter = 0;
-    CFilter* old_filter = m_mediator.setFilter(new_filter);
+    CFilter* old_filter = m_mediator->setFilter(new_filter);
     CPPUNIT_ASSERT_EQUAL( m_filter, old_filter );
-    CPPUNIT_ASSERT_EQUAL( new_filter, m_mediator.m_pFilter );
+    CPPUNIT_ASSERT_EQUAL( new_filter, m_mediator->m_pFilter );
 
     CDataSource* new_source = 0;
-    CDataSource* old_source = m_mediator.setDataSource(new_source);
+    CDataSource* old_source = m_mediator->setDataSource(new_source);
     CPPUNIT_ASSERT_EQUAL( m_source,  old_source );
-    CPPUNIT_ASSERT_EQUAL( new_source, m_mediator.m_pSource );
+    CPPUNIT_ASSERT_EQUAL( new_source, m_mediator->m_pSource );
 
     CDataSink* new_sink = 0;
-    CDataSink* old_sink = m_mediator.setDataSink(new_sink);
+    CDataSink* old_sink = m_mediator->setDataSink(new_sink);
     CPPUNIT_ASSERT_EQUAL( m_sink , old_sink );
-    CPPUNIT_ASSERT_EQUAL( new_sink , m_mediator.m_pSink );
+    CPPUNIT_ASSERT_EQUAL( new_sink , m_mediator->m_pSink );
 
 }
 
 
-void CMediatorTest::testHandleStateChangeItem()
+void CInfiniteMediatorTest::testHandleStateChangeItem()
 {
     const CRingItem* new_item=0; 
 
     // Create some generic item type to force testing of handleStateChangeItem()
     {
       CRingStateChangeItem my_state_item(END_RUN);    
-      new_item = m_mediator.handleItem(&my_state_item);
+      new_item = m_mediator->handleItem(&my_state_item);
       // Test filter should always return type BEGIN_RUN
       CPPUNIT_ASSERT( BEGIN_RUN == new_item->type() );
       delete new_item;
     }
 } 
     // Create scaler item
-void CMediatorTest::testHandleScalerItem()
+void CInfiniteMediatorTest::testHandleScalerItem()
 {
   CRingScalerItem my_sclr_item(300);
 
-  const CRingItem* new_item = m_mediator.handleItem(&my_sclr_item);
+  const CRingItem* new_item = m_mediator->handleItem(&my_sclr_item);
 
   const CRingScalerItem* new_sclr = dynamic_cast<const CRingScalerItem*>(new_item);
   // Test filter should always return 200 scalers
@@ -304,12 +292,12 @@ void CMediatorTest::testHandleScalerItem()
 }
   
     // Text item
-void CMediatorTest::testHandleTextItem()
+void CInfiniteMediatorTest::testHandleTextItem()
 {
   std::vector<std::string> str_vec;
   str_vec.push_back("testing 123");
   CRingTextItem my_text_item(MONITORED_VARIABLES,str_vec);
-  const CRingItem* new_item = m_mediator.handleItem(&my_text_item);
+  const CRingItem* new_item = m_mediator->handleItem(&my_text_item);
   // Test filter should always return 200 scalers
   const CRingTextItem* new_text = dynamic_cast<const CRingTextItem*>(new_item);
 
@@ -321,11 +309,11 @@ void CMediatorTest::testHandleTextItem()
 }
 
 // PhysicsEvent item
-void CMediatorTest::testHandlePhysicsEventItem()
+void CInfiniteMediatorTest::testHandlePhysicsEventItem()
 {
   CPhysicsEventItem my_evt_item(8192);
 
-  const CRingItem* new_item = m_mediator.handleItem(&my_evt_item);
+  const CRingItem* new_item = m_mediator->handleItem(&my_evt_item);
 
   const CPhysicsEventItem* new_evt = dynamic_cast<const CPhysicsEventItem*>(new_item);
 
@@ -334,12 +322,12 @@ void CMediatorTest::testHandlePhysicsEventItem()
 }    
 
     // PhysicsEventCount item
-void CMediatorTest::testHandlePhysicsEventCountItem()
+void CInfiniteMediatorTest::testHandlePhysicsEventCountItem()
 {
   CRingPhysicsEventCountItem my_cnt_item(static_cast<uint64_t>(100),
                                          static_cast<uint32_t>(100));
 
-  const CRingItem* new_item = m_mediator.handleItem(&my_cnt_item);
+  const CRingItem* new_item = m_mediator->handleItem(&my_cnt_item);
   const CRingPhysicsEventCountItem* new_cnt 
     = dynamic_cast<const CRingPhysicsEventCountItem*>(new_item);
 
@@ -349,14 +337,14 @@ void CMediatorTest::testHandlePhysicsEventCountItem()
 }    
 
 // RingFragmentItem
-void CMediatorTest::testHandleFragmentItem()
+void CInfiniteMediatorTest::testHandleFragmentItem()
 {
   CRingFragmentItem my_frag_item(static_cast<uint64_t>(0),
       static_cast<uint32_t>(0),
       static_cast<uint32_t>(0),
       reinterpret_cast<void*>(0),
       static_cast<uint32_t>(0));
-  const CRingItem* new_item = m_mediator.handleItem(&my_frag_item);
+  const CRingItem* new_item = m_mediator->handleItem(&my_frag_item);
   const CRingFragmentItem* new_frag = dynamic_cast<const CRingFragmentItem*>(new_item);
   CPPUNIT_ASSERT( static_cast<uint64_t>(10101) == new_frag->timestamp());
   CPPUNIT_ASSERT( static_cast<uint32_t>(1) == new_frag->source());
@@ -366,23 +354,23 @@ void CMediatorTest::testHandleFragmentItem()
 }
 
 // Create some generic item type to force testing of handleRingItem()
-void CMediatorTest::testHandleGenericItem()
+void CInfiniteMediatorTest::testHandleGenericItem()
 {
   CRingItem my_generic_item(1000);    
-  const CRingItem* new_item = m_mediator.handleItem(&my_generic_item);
+  const CRingItem* new_item = m_mediator->handleItem(&my_generic_item);
   // Test filter should always return type 100
   CPPUNIT_ASSERT( 100 == new_item->type() );
   delete new_item;
 }
 
 
-void CMediatorTest::testSkipNone()
+void CInfiniteMediatorTest::testSkipNone()
 {
   tearDown();
 
   // This should have no effect on any default behavior
   // We will simply test this as the TransparentMainLoop
-  m_mediator.setSkipCount(0);
+  m_mediator->setSkipCount(0);
 
   std::string proto("file://");
   std::string infname("./run-0000-00.evt");
@@ -393,11 +381,11 @@ void CMediatorTest::testSkipNone()
     m_source = new CFileDataSource(uri, std::vector<uint16_t>());
     m_sink = new CFileDataSink(outfname);
 
-    m_mediator.setDataSource(m_source);
-    m_mediator.setDataSink(m_sink);
-    m_mediator.setFilter(new CFilter);
+    m_mediator->setDataSource(m_source);
+    m_mediator->setDataSink(m_sink);
+    m_mediator->setFilter(new CFilter);
 
-    m_mediator.mainLoop();
+    m_mediator->mainLoop();
 
     // kill all of the sinks and sources
     tearDown();
@@ -417,7 +405,7 @@ void CMediatorTest::testSkipNone()
 
 }
 
-void CMediatorTest::testSkipSome()
+void CInfiniteMediatorTest::testSkipSome()
 {
   tearDown();
  
@@ -436,13 +424,13 @@ void CMediatorTest::testSkipSome()
     m_source = new CFileDataSource(uri, std::vector<uint16_t>());
     m_sink = new CFileDataSink(outfname);
 
-    m_mediator.setDataSource(m_source);
-    m_mediator.setDataSink(m_sink);
-    m_mediator.setFilter(new CFilter);
+    m_mediator->setDataSource(m_source);
+    m_mediator->setDataSink(m_sink);
+    m_mediator->setFilter(new CFilter);
 
-    m_mediator.setSkipCount(nToSkip);
+    m_mediator->setSkipCount(nToSkip);
 
-    m_mediator.mainLoop();
+    m_mediator->mainLoop();
 
     // kill all of the sinks and sources
     tearDown();
@@ -462,7 +450,7 @@ void CMediatorTest::testSkipSome()
 
 }
 
-void CMediatorTest::setUpSkipTestFile(int nToSkip, 
+void CInfiniteMediatorTest::setUpSkipTestFile(int nToSkip, 
                                       std::string infname, 
                                       std::string ofname)
 {
@@ -470,7 +458,7 @@ void CMediatorTest::setUpSkipTestFile(int nToSkip,
   CDataSource* source = new CFileDataSource(uri, std::vector<uint16_t>());
   CDataSink* sink = new CFileDataSink(ofname);
   CFilter* filt = new CFilter;
-  CMediator* med = new CMediator(source,filt,sink);
+  CInfiniteMediator* med = new CInfiniteMediator(source,filt,sink);
 
   // Extract the number of events we want to skip
   // These will not end up in the sink
@@ -486,7 +474,7 @@ void CMediatorTest::setUpSkipTestFile(int nToSkip,
   delete med;
 }
 
-void CMediatorTest::testProcessSome()
+void CInfiniteMediatorTest::testProcessSome()
 {
   tearDown();
  
@@ -502,13 +490,13 @@ void CMediatorTest::testProcessSome()
     m_sink = new CFileDataSink(outfname);
     m_filter = new CTestFilter;
 
-    m_mediator.setDataSource(m_source);
-    m_mediator.setDataSink(m_sink);
-    m_mediator.setFilter(m_filter);
+    m_mediator->setDataSource(m_source);
+    m_mediator->setDataSink(m_sink);
+    m_mediator->setFilter(m_filter);
 
-    m_mediator.setProcessCount(nToProcess);
+    m_mediator->setProcessCount(nToProcess);
 
-    m_mediator.mainLoop();
+    m_mediator->mainLoop();
 
     CPPUNIT_ASSERT_EQUAL(nToProcess, 
                          static_cast<CTestFilter*>(m_filter)->getNProcessed());
@@ -530,7 +518,7 @@ void CMediatorTest::testProcessSome()
 
 }
 
-void CMediatorTest::testTransparentMainLoop()
+void CInfiniteMediatorTest::testTransparentMainLoop()
 {
   tearDown();
   
@@ -551,11 +539,11 @@ void CMediatorTest::testTransparentMainLoop()
     m_sink = new CFileDataSink(outfname);
     m_filter = new CFilter;
 
-    m_mediator.setDataSource(m_source);
-    m_mediator.setDataSink(m_sink);
-    m_mediator.setFilter(m_filter);
+    m_mediator->setDataSource(m_source);
+    m_mediator->setDataSink(m_sink);
+    m_mediator->setFilter(m_filter);
 
-    m_mediator.mainLoop();
+    m_mediator->mainLoop();
 
     // kill all of the sinks and sources
     tearDown();
@@ -574,83 +562,7 @@ void CMediatorTest::testTransparentMainLoop()
   CPPUNIT_ASSERT( filesEqual(infname,outfname) );
 }
 
-void CMediatorTest::test2Begins0Ends()
-{
-  
-  CRingStateChangeItem  begin (BEGIN_RUN);
-  m_mediator.handleItem(&begin);
-  m_mediator.handleItem(&begin);
-
-  CPPUNIT_ASSERT_EQUAL( false,
-                        m_mediator.stateChangesAreSymmetric() );
-
-}
-
-void CMediatorTest::test1Begins0Ends()
-{
-  
-  CRingStateChangeItem  begin (BEGIN_RUN);
-  m_mediator.handleItem(&begin);
-
-  CPPUNIT_ASSERT_EQUAL( false,
-                        m_mediator.stateChangesAreSymmetric() );
-
-}
-
-void CMediatorTest::test0Begins0Ends()
-{
-  
-  // these are symmetric but we don't count them b/c there have
-  // been no start runs
-  CPPUNIT_ASSERT_EQUAL( false,
-                        m_mediator.stateChangesAreSymmetric() );
-
-}
-
-void CMediatorTest::test1Begins1Ends()
-{
-  
-  CRingStateChangeItem  begin (BEGIN_RUN);
-  CRingStateChangeItem  end (END_RUN);
-  m_mediator.handleItem(&begin);
-  m_mediator.handleItem(&end);
-
-  CPPUNIT_ASSERT_EQUAL( true,
-                        m_mediator.stateChangesAreSymmetric() );
-
-}
-
-void CMediatorTest::test2Begins1Ends()
-{
-  
-
-  CRingStateChangeItem  begin (BEGIN_RUN);
-  CRingStateChangeItem  end (END_RUN);
-  m_mediator.handleItem(&begin);
-  m_mediator.handleItem(&begin);
-  m_mediator.handleItem(&end);
-
-  CPPUNIT_ASSERT_EQUAL( false,
-                        m_mediator.stateChangesAreSymmetric() );
-
-}
-
-void CMediatorTest::test2Begins2Ends()
-{
-  
-  CRingStateChangeItem  begin (BEGIN_RUN);
-  CRingStateChangeItem  end (END_RUN);
-  m_mediator.handleItem(&begin);
-  m_mediator.handleItem(&begin);
-  m_mediator.handleItem(&end);
-  m_mediator.handleItem(&end);
-
-  CPPUNIT_ASSERT_EQUAL( true,
-                        m_mediator.stateChangesAreSymmetric() );
-
-}
-
-void CMediatorTest::testFilterReturnsNULL() 
+void CInfiniteMediatorTest::testFilterReturnsNULL() 
 {
   tearDown();
   
@@ -671,11 +583,11 @@ void CMediatorTest::testFilterReturnsNULL()
     m_sink = new CFileDataSink(outfname);
     m_filter = new TestFilter2;
 
-    m_mediator.setDataSource(m_source);
-    m_mediator.setDataSink(m_sink);
-    m_mediator.setFilter(m_filter);
+    m_mediator->setDataSource(m_source);
+    m_mediator->setDataSink(m_sink);
+    m_mediator->setFilter(m_filter);
 
-    m_mediator.mainLoop();
+    m_mediator->mainLoop();
 
     // kill all of the sinks and sources
     tearDown();
@@ -697,7 +609,7 @@ void CMediatorTest::testFilterReturnsNULL()
 }
 
 
-//void CMediatorTest::testMultiSourceStates()
+//void CInfiniteMediatorTest::testMultiSourceStates()
 //{
 //  tearDown();
 //  CRingStateChangeItem  begin (BEGIN_RUN);
@@ -718,11 +630,11 @@ void CMediatorTest::testFilterReturnsNULL()
 //  sink = snkfactory.makeSink("-");
 //  
 //  CTestFilter* filt = new CTestFilter();
-//  m_mediator.setFilter(filt);
-//  m_mediator.setDataSource(source);
-//  m_mediator.setDataSink(sink);
+//  m_mediator->setFilter(filt);
+//  m_mediator->setDataSource(source);
+//  m_mediator->setDataSink(sink);
 //
-//  m_mediator.mainLoop();
+//  m_mediator->mainLoop();
 //  
 //  // If we got here we succeeded...
 //  // Make sure we processed all of the events
@@ -734,7 +646,7 @@ void CMediatorTest::testFilterReturnsNULL()
 //
 //
 
-bool CMediatorTest::filesEqual(std::string fname0, std::string fname1)
+bool CInfiniteMediatorTest::filesEqual(std::string fname0, std::string fname1)
 {
   std::ifstream filein(fname0.c_str());
   std::ifstream fileout(fname1.c_str());
@@ -748,7 +660,7 @@ bool CMediatorTest::filesEqual(std::string fname0, std::string fname1)
 }
 
 
-size_t CMediatorTest::writeRingItemToFile(CRingItem& item, 
+size_t CInfiniteMediatorTest::writeRingItemToFile(CRingItem& item, 
         std::string fname,
                                                 std::ios::openmode mode)
 {

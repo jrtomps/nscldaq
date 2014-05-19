@@ -20,11 +20,11 @@
 #ifndef CFILTERMAIN_H
 #define CFILTERMAIN_H
 
-#include <CMediator.h>
 #include <vector> 
 #include <stdint.h>
 #include <CFatalException.h>
 
+class CMediator;
 class CDataSource;
 class CFilter;
 class CDataSink;
@@ -34,7 +34,7 @@ class CFilterMain
 {
   
   private:
-    CMediator m_mediator; //!< The mediator
+    CMediator* m_mediator; //!< The mediator
     struct gengetopt_args_info* m_argsInfo; //!< The parsed options
 
   public:

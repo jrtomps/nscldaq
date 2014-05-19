@@ -46,10 +46,7 @@ CMediator::CMediator(CDataSource* source, CFilter* filter, CDataSink* sink)
   m_pFilter(filter),
   m_pSink(sink),
   m_nToProcess(-1),
-  m_nToSkip(-1),
-  m_isOneShot(false),
-  m_nBegins(0),
-  m_nEnds(0)
+  m_nToSkip(-1)
 {}
 
 /**! Destructor
@@ -80,101 +77,7 @@ CMediator::~CMediator()
 
   m_nToProcess = -1;
   m_nToSkip = -1;
-
-  m_isOneShot = false;
-  m_nBegins = 0;
-  m_nEnds = 0;
-
 }
-
-/**! The main loop
-  This is the workhorse of the application. Items are retrieved 
-  from the source, passed to the filter, and then the item returned 
-  by the filter is sent to the
-  sink. During each iteration through this process, the item retrieved
-  from the source and the filter are properly managed.
-*/
-void CMediator::mainLoop()
-{
-  
-  // Dereference our pointers before entering
-  // the main loop
-  CDataSource& source = *m_pSource;
-  CDataSink& sink = *m_pSink;
-
-  // Set up some counters
-  int tot_iter=0, proc_iter=0, nskip=0, nprocess=0;
-
-  nskip = m_nToSkip;
-  nprocess = m_nToProcess;
-
-  while (1) {
-    
-    // Check if all has been processed that was requested
-    if (proc_iter>=nprocess && nprocess>=0) {
-      break;
-    }
-
-    // Get a new item
-    // Exit if the item returned is null
-    CRingItem* item = source.getItem();
-    if (item==0) {
-      break;
-    }
-
-    // only process if we have skipped the requested number
-    if (tot_iter>=nskip) {
-
-      // handle the item and get a pointer to 
-      // to the new item
-      CRingItem* new_item = handleItem(item);
-
-      // Only send an item if it is not null.
-      // The user could return null to prevent sending data
-      // to the sink
-      if (new_item!=0) {
-        // Send the new item on to the sink
-        sink.putItem(*new_item);
-      }
-    
-      // It is possible that the filter did nothing more than
-      // return a pointer to the same object. Therefore, only
-      // delete the returned item if it is different.
-      if ( new_item != item ) {
-        delete new_item;
-      } 
-      
-      // Increment the number processed
-      ++proc_iter;
-    }
-    
-
-    // delete original item
-    // THE FILTER MUST NOT HAVE DELETED THE OBJECT PASSED IT!!!
-    delete item;
-
-    // Check if we have found symmetric begin and end runs
-    if (m_isOneShot) {
-      if (stateChangesAreSymmetric()) {
-        break;
-      }
-    } 
- 
-    // Check if we have found symmetric begin and end runs
-    if (m_isOneShot) {
-      if (stateChangesAreSymmetric()) {
-        break;
-      }
-    } 
- 
-
-    // Increment our counter
-    ++tot_iter;
-  }
-
-}
-
-
 
 CRingItem* CMediator::handleItem(CRingItem* item)
 {
@@ -187,9 +90,7 @@ CRingItem* CMediator::handleItem(CRingItem* item)
     case END_RUN:
     case PAUSE_RUN:
     case RESUME_RUN:
-      // Note that this is calling a CMediator::handleStateChange method
-      // to update our begin and end run state change counts
-      fitem = handleStateChangeItem(static_cast<CRingStateChangeItem*>(item));
+      fitem = m_pFilter->handleStateChangeItem(static_cast<CRingStateChangeItem*>(item));
       break;
 
       // Documentation items
@@ -227,19 +128,6 @@ CRingItem* CMediator::handleItem(CRingItem* item)
   }
 
   return fitem;
-}
-
-
-CRingItem* CMediator::handleStateChangeItem(CRingStateChangeItem* item)
-{
-  uint32_t type = item->type();
-  if (type==BEGIN_RUN) {
-    ++m_nBegins;
-  } else if (type==END_RUN) {
-    ++m_nEnds;
-  }
-
-  return m_pFilter->handleStateChangeItem(item);
 }
 
 

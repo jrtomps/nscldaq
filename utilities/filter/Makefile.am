@@ -4,8 +4,11 @@ lib_LTLIBRARIES	=	libfilter.la
 
 libfilter_la_SOURCES = CFilterMain.cpp \
                        CMediator.cpp \
+                       COneShotMediator.cpp \
+                       CInfiniteMediator.cpp \
                        CCompositeFilter.cpp \
                        COneShotHandler.cpp \ 
+                       COneShotException.cpp \
                        @srcdir@/../StringsToIntegers.cpp \
                        @srcdir@/filterargs.c
                        
@@ -16,10 +19,13 @@ noinst_HEADERS = @srcdir@/../StringsToIntegers.h \
 
 include_HEADERS	=  CFilterMain.h \
                    CMediator.h \
+                   COneShotMediator.h \
+                   CInfiniteMediator.h \
                    CFilter.h \
                    CCompositeFilter.h  \
                    COneShotHandler.h \ 
-                   CFatalException.h
+                   CFatalException.h \
+                   COneShotException.h
 
 INCLUDES	= -I@top_srcdir@/utilities \
     @LIBTCLPLUS_CFLAGS@	\

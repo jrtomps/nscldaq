@@ -20,6 +20,8 @@ static const char* Copyright = "(C) Copyright Michigan State University 2014, Al
 #include "CFilterMain.h"
 #include "CCompositeFilter.h"
 #include "CMediator.h"
+#include "COneShotMediator.h"
+#include "CInfiniteMediator.h"
 #include "CDataSourceFactory.h"
 #include "CDataSinkFactory.h"
 #include <string>
@@ -40,34 +42,34 @@ static const char* Copyright = "(C) Copyright Michigan State University 2014, Al
 
 */
 CFilterMain::CFilterMain(int argc, char** argv)
-  : m_mediator(0,new CCompositeFilter,0),
+  : m_mediator(0),
   m_argsInfo(new gengetopt_args_info)
 {
   cmdline_parser(argc,argv,m_argsInfo);  
 
   try {
+    if (m_argsInfo->oneshot_given) {
+      m_mediator = new COneShotMediator(0,new CCompositeFilter,0,
+          m_argsInfo->number_of_sources_arg); 
+    } 
     // Set up the data source 
     CDataSource* source = constructDataSource(); 
-    m_mediator.setDataSource(source);
+    m_mediator->setDataSource(source);
 
     // Set up the sink source 
     CDataSink* sink = constructDataSink(); 
-    m_mediator.setDataSink(sink);
+    std::cout << "Sink = 0x" << std::hex << sink << std::dec << std::endl;
+    m_mediator->setDataSink(sink);
 
     // set up the skip and count args
     if (m_argsInfo->skip_given) {
-      m_mediator.setSkipCount(m_argsInfo->skip_arg);
+      m_mediator->setSkipCount(m_argsInfo->skip_arg);
     }  
 
     if (m_argsInfo->count_given) {
-      m_mediator.setProcessCount(m_argsInfo->count_arg);
+      m_mediator->setProcessCount(m_argsInfo->count_arg);
     }  
 
-    if (m_argsInfo->oneshot_given) {
-      m_mediator.setOneShot(true);
-    } else {
-      m_mediator.setOneShot(false);
-    } 
 
 
   } catch (CException& exc) {
@@ -81,6 +83,7 @@ CFilterMain::CFilterMain(int argc, char** argv)
 CFilterMain::~CFilterMain()
 {
   delete m_argsInfo;
+  delete m_mediator;
 }
 
 /**! Append a filter to the mediator's ccomposite filter
@@ -94,7 +97,7 @@ void CFilterMain::registerFilter(const CFilter* filter)
 {
   // We will always have a composite filter in this main
   CCompositeFilter* main_filter=0;
-  main_filter = dynamic_cast<CCompositeFilter*>(m_mediator.getFilter());
+  main_filter = dynamic_cast<CCompositeFilter*>(m_mediator->getFilter());
 
   main_filter->registerFilter(filter);
 }
@@ -151,8 +154,12 @@ CDataSink* CFilterMain::constructDataSink()
     that the processing occurs in the application. */
 void CFilterMain::operator()()
 {
-
-  m_mediator.mainLoop();
+  try {
+    m_mediator->mainLoop();
+  } catch (CException& exc) {
+    std::cerr << exc.WasDoing() << " : " << exc.ReasonText() << std::endl;
+    throw CFatalException(); 
+  }
 
 }
 

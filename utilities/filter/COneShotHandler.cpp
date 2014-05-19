@@ -2,6 +2,7 @@
 #include <COneShotHandler.h>
 #include <CRingStateChangeItem.h>
 #include <DataFormat.h>
+#include <COneShotException.h>
 #include <ErrnoException.h>
 #include <limits>
 #include <sstream>
@@ -31,57 +32,54 @@ COneShotHandler::COneShotHandler(unsigned int ntrans)
 * 
 * @throws CErrnoException when run number changes unexpectedly
 */
-void COneShotHandler::update(CRingStateChangeItem* pItem)
+void COneShotHandler::update(CRingItem* pItem)
 {
   uint32_t type = pItem->type();
-  std::ostringstream errmsg;
 
   // if we have already reached our limit, throw
   if (m_complete) {
-    errmsg << "COneShotHandler::update(CRingStateChangeItem*) : Passed ";
-    errmsg << "an unexpected, extra state change item";
-    throw CErrnoException( errmsg.str() );
-  }
-
-  // Check that the run number hasn't changed unexpectedly
-  uint32_t run = pItem->getRunNumber();
-  if (run != m_cachedRunNo  &&  m_cachedRunNo != defaultRunNumber) {
-
-    errmsg << "COneShotHandler::update(CRingStateChangeItem*) : More ";
-    errmsg << " begin runs detected than expected";
-
-    throw CErrnoException(errmsg.str());
+    throw COneShotException("COneShotHandler::update(CRingStateChangeItem*)",
+                            "Unexpected, extra state change item");
   }
 
   if (validType(type)) {
-    // Only do something if we understand the state change
-
-    if (type==BEGIN_RUN) {
-      if (waitingForBegin()) {
-        // Handle the first begin run specially
-        initialize(pItem);
-
-        ++m_stateCounts[type];
-
-      } else if (getCount(BEGIN_RUN) >= m_nExpectedSources) {
-        // Handle if there are too many BEGIN_RUNS 
-        errmsg << "COneShotHandler::update(CRingStateChangeItem*) : ";
-        errmsg << "Too many begin runs observed. Expecting only " << m_nExpectedSources;
-        throw CErrnoException(errmsg.str());
-
-      }
-    } else {
-      if (! waitingForBegin()) { 
-        ++m_stateCounts[type]; 
-      }
-    }
-   
-  } else {
-    std::cerr << "COneShotHandler::update(CRingStateChangeItem*) : ";
-    std::cerr << "Type " << type << " is not an understand transition";
-    std::cerr << std::endl;
+    updateState(static_cast<CRingStateChangeItem*>(pItem));
   }
-  
+}
+
+void COneShotHandler::updateState(CRingStateChangeItem* pItem)
+{
+  // Check that the run number hasn't changed unexpectedly
+  uint32_t run = pItem->getRunNumber();
+  if (run != m_cachedRunNo  &&  m_cachedRunNo != defaultRunNumber) {
+    throw COneShotException("COneShotHandler::update(CRingStateChangeItem*)",
+        "More begin runs detected than expected");
+  }
+
+  // Only do something if we understand the state change
+  uint32_t type = pItem->type();
+  if (type==BEGIN_RUN) {
+    if (waitingForBegin()) {
+      // Handle the first begin run specially
+      initialize(pItem);
+
+      ++m_stateCounts[type];
+
+    } else if (getCount(BEGIN_RUN) >= m_nExpectedSources) {
+      // Handle if there are too many BEGIN_RUNS 
+      std::ostringstream errmsg;
+      errmsg << "Too many begin runs observed. Expecting only " 
+        << m_nExpectedSources;
+      throw COneShotException("COneShotHandler::update(CRingStateChangeItem*)",
+          errmsg.str());
+
+    }
+  } else {
+    if (! waitingForBegin()) { 
+      ++m_stateCounts[type]; 
+    }
+  }
+
   m_complete = (getCount(END_RUN)==m_nExpectedSources);
 }
 
