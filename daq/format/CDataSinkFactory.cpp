@@ -42,22 +42,23 @@ CDataSink* CDataSinkFactory::makeSink(std::string uri)
   // Treat the special case of -
   if (uri=="-") {
     sink = makeFileSink(uri);
+  } else {
+
+    // parse the uri
+    URL url(uri);
+
+    // 
+    if (url.getProto()=="file") {
+
+      sink = makeFileSink(url.getPath());
+
+    } else if (url.getProto()=="ring" || url.getProto()=="tcp") {
+
+      sink = makeRingSink(url.getPath());
+
+    } 
+
   }
-
-  // parse the uri
-  URL url(uri);
-  
-  // 
-  if (url.getProto()=="file") {
-
-    sink = makeFileSink(url.getPath());
-
-  } else if (url.getProto()=="ring" || url.getProto()=="tcp") {
-
-    sink = makeRingSink(url.getPath());
-
-  } 
-
   return sink;
 
 }
