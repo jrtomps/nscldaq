@@ -48,9 +48,12 @@ CFilterMain::CFilterMain(int argc, char** argv)
   cmdline_parser(argc,argv,m_argsInfo);  
 
   try {
+
     if (m_argsInfo->oneshot_given) {
       m_mediator = new COneShotMediator(0,new CCompositeFilter,0,
           m_argsInfo->number_of_sources_arg); 
+    } else {
+      m_mediator = new CInfiniteMediator(0,new CCompositeFilter,0);
     } 
     // Set up the data source 
     CDataSource* source = constructDataSource(); 
@@ -58,7 +61,6 @@ CFilterMain::CFilterMain(int argc, char** argv)
 
     // Set up the sink source 
     CDataSink* sink = constructDataSink(); 
-    std::cout << "Sink = 0x" << std::hex << sink << std::dec << std::endl;
     m_mediator->setDataSink(sink);
 
     // set up the skip and count args

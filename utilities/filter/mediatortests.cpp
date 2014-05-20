@@ -234,7 +234,7 @@ void CInfiniteMediatorTest::tearDown()
 {
   // Call the destructor to free
   // owned memory
-  delete m_mediator;
+  delete m_mediator; m_mediator=0;
 }
 
 
@@ -370,6 +370,7 @@ void CInfiniteMediatorTest::testSkipNone()
 
   // This should have no effect on any default behavior
   // We will simply test this as the TransparentMainLoop
+  m_mediator = new CInfiniteMediator(0,0,0);
   m_mediator->setSkipCount(0);
 
   std::string proto("file://");
@@ -424,6 +425,7 @@ void CInfiniteMediatorTest::testSkipSome()
     m_source = new CFileDataSource(uri, std::vector<uint16_t>());
     m_sink = new CFileDataSink(outfname);
 
+    m_mediator = new CInfiniteMediator(0,0,0);
     m_mediator->setDataSource(m_source);
     m_mediator->setDataSink(m_sink);
     m_mediator->setFilter(new CFilter);
@@ -490,6 +492,7 @@ void CInfiniteMediatorTest::testProcessSome()
     m_sink = new CFileDataSink(outfname);
     m_filter = new CTestFilter;
 
+    m_mediator = new CInfiniteMediator(0,0,0);
     m_mediator->setDataSource(m_source);
     m_mediator->setDataSink(m_sink);
     m_mediator->setFilter(m_filter);
@@ -539,6 +542,7 @@ void CInfiniteMediatorTest::testTransparentMainLoop()
     m_sink = new CFileDataSink(outfname);
     m_filter = new CFilter;
 
+    m_mediator = new CInfiniteMediator(0,0,0);
     m_mediator->setDataSource(m_source);
     m_mediator->setDataSink(m_sink);
     m_mediator->setFilter(m_filter);
@@ -583,6 +587,7 @@ void CInfiniteMediatorTest::testFilterReturnsNULL()
     m_sink = new CFileDataSink(outfname);
     m_filter = new TestFilter2;
 
+    m_mediator = new CInfiniteMediator(0,0,0);
     m_mediator->setDataSource(m_source);
     m_mediator->setDataSink(m_sink);
     m_mediator->setFilter(m_filter);

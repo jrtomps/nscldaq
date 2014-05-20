@@ -20,7 +20,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2014, Al
 
 #include <cppunit/extensions/HelperMacros.h>
 #include <algorithm>
-#include <ErrnoException.h>
+#include <COneShotException.h>
 #include <stdint.h>
 #include <limits>
 #include <CRingStateChangeItem.h>
@@ -170,7 +170,7 @@ void COneShotHandlerTest::testThrowOnExtraStateChange()
   handler.m_complete = true;
   
   CRingStateChangeItem pause(PAUSE_RUN);
-  CPPUNIT_ASSERT_THROW(handler.update(&pause), CErrnoException);
+  CPPUNIT_ASSERT_THROW(handler.update(&pause), COneShotException);
   
 }
 
@@ -181,19 +181,19 @@ void COneShotHandlerTest::testThrowOnRunNoChange()
   
   CRingStateChangeItem end(END_RUN);
   end.setRunNumber(30);
-  CPPUNIT_ASSERT_THROW(handler.update(&end), CErrnoException);
+  CPPUNIT_ASSERT_THROW(handler.update(&end), COneShotException);
   
   CRingStateChangeItem begin(BEGIN_RUN);
   begin.setRunNumber(30);
-  CPPUNIT_ASSERT_THROW(handler.update(&begin), CErrnoException);
+  CPPUNIT_ASSERT_THROW(handler.update(&begin), COneShotException);
 
   CRingStateChangeItem pause(PAUSE_RUN);
   pause.setRunNumber(30);
-  CPPUNIT_ASSERT_THROW(handler.update(&pause), CErrnoException);
+  CPPUNIT_ASSERT_THROW(handler.update(&pause), COneShotException);
 
   CRingStateChangeItem resume(RESUME_RUN);
   resume.setRunNumber(30);
-  CPPUNIT_ASSERT_THROW(handler.update(&resume), CErrnoException);
+  CPPUNIT_ASSERT_THROW(handler.update(&resume), COneShotException);
 }
 
 
@@ -218,5 +218,5 @@ void COneShotHandlerTest::testTooManyBegins()
 
   CRingStateChangeItem begin(BEGIN_RUN);
   
-  CPPUNIT_ASSERT_THROW(handler.update(&begin),CErrnoException);
+  CPPUNIT_ASSERT_THROW(handler.update(&begin),COneShotException);
 }
