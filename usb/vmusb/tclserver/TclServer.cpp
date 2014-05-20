@@ -197,7 +197,7 @@ TclServer::operator()()
     throw;
   }
   catch (CException& err) {
-    cerr << "CAcquisitino thread caught a daq exception: "
+    cerr << "CAcquisition thread caught a daq exception: "
 	 << err.ReasonText() << " while " << err.WasDoing() << endl;
     throw;
   }
