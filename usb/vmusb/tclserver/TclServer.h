@@ -133,14 +133,16 @@ public:
 
   virtual void run();
 
+  // Initialize the the modules
+  void readConfigFile();
+  void initModules();
+
 protected:
   int operator()();
 
 private:
   void sendWatchedVariables();
   void initInterpreter();
-  void readConfigFile();
-  void initModules();
   void startTcpServer();
   void createMonitorList();
   void EventLoop();
