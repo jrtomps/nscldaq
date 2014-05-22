@@ -55,7 +55,6 @@ noinst_HEADERS		=	CADCCommand.h  		\
 INCLUDES		= 	-I@top_srcdir@/usb/vmusb/devices	\
 				-I@top_srcdir@/usb/vmusb		\
 				-I@top_srcdir@/usb/vmusb/vmusb		\
-				-I@top_srcdir@/usb/vmusb/tclserver		\
 				-I@top_srcdir@/usb/common/devices		\
 				@LIBTCLPLUS_CFLAGS@		\
 				-I@top_srcdir@/base/headers		\

@@ -47,12 +47,7 @@ static const uint8_t   blockTransferAmod(CVMUSBReadoutList::a32UserBlock);
 static const float     vmusbClockTick(12.5);
 static const float     busDelay(10/vmusbClockTick); // ticks to delay prior to getting the bus.
 // map some XLM register addresses
-static const uint32_t  BUSAOwner  (0x810000); // Shows who has bus A (SRAM A)
-static const uint32_t  BUSBOwner  (0x810004); // Shows who has bus B (SRAM B)
-static const uint32_t  BUSXOwner  (0x810008); // Shows who has bus X (FPGA).
 static const uint32_t  ForceOffBus(0x80000c); // Register to force FPGA/DSP off bus.
-// bits in XLM registers
-static const uint32_t ForceOffBusForce(0x00000001); // Force all but VME off bus.
 
 // FPGA mode bits:
 

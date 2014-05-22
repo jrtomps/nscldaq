@@ -27,7 +27,8 @@ libVMUSBControlServer_la_SOURCES	= 	CControlHardware.cpp	\
 					CV6533Creator.cpp	\
 					CChicoTriggerCreator.cpp \
 					CTclModuleCreator.cpp    \
-					CTclControlModule.cpp
+					CTclControlModule.cpp \
+					CXLMControls.cpp
 
 noinst_HEADERS			=	CGDG.h			\
 					CV812.h			\
@@ -53,7 +54,8 @@ noinst_HEADERS			=	CGDG.h			\
 					CV6533Creator.h		\
 					CChicoTriggerCreator.h	\
 					CTclModuleCreator.h	\
-					CTclControlModule.h
+					CTclControlModule.h	\
+					CXLMControls.h
 
 
 INCLUDES			= 	-I@top_srcdir@/usb/vmusb/vmusb		\
@@ -69,7 +71,7 @@ INCLUDES			= 	-I@top_srcdir@/usb/vmusb/vmusb		\
 					-I@top_srcdir@/base/os		\
 					@TCL_FLAGS@
 
-libVMUSBControlServer_la_LIBADD	= 	@top_builddir@/usb/vmusb/vmusb/libVMUSB.la          \
+libVMUSBControlServer_la_LIBADD	= 	@top_builddir@/usb/vmusb/vmusb/libVMUSB.la \
 					@top_builddir@/usb/vmusb/devices/libVMUSBDevices.la \
 					@top_builddir@/usb/vmusb/threadcomm/libVMUSBThreadComm.la \
 					@top_builddir@/usb/vmusb/rdothread/libVMUSBRdoThread.la \

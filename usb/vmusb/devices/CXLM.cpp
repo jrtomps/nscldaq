@@ -17,7 +17,6 @@
 #include "CXLM.h"
 
 #include "CReadoutModule.h"
-#include "CControlModule.h"
 
 #include <CVMUSB.h>
 #include <CVMUSBReadoutList.h>
@@ -47,60 +46,6 @@ static const uint8_t   registerAmod(CVMUSBReadoutList::a32UserData);
 static const uint8_t   sramaAmod(CVMUSBReadoutList::a32UserData);
 static const uint8_t   blockTransferAmod(CVMUSBReadoutList::a32UserBlock); 
 
-//  Base addresses of 'unstructured' areas.
-
-static const uint32_t  SRAMA(0x000000);	//  Base address of static ram A
-static const uint32_t  SRAMB(0x200000);	//  Base address of static RAM B
-static const uint32_t  FPGABase (0x400000); //  Base address of FPGA `register' set.
-static const uint32_t  DSP  (0x600000); //  Base address of DSP interface.
-static const uint32_t  InterfaceBase(0x800000);
-
-// Interface layout:
-
-static const uint32_t  BusRequest (0x800000); // Register for submitting bus requests.
-static const uint32_t  Interrupt  (0x800004); // Interrupt/reset register.
-static const uint32_t  FPGABootSrc(0x800008); // Select boot source for FPGA.
-static const uint32_t  ForceOffBus(0x80000c); // Register to force FPGA/DSP off bus.
-static const uint32_t  BUSAOwner  (0x810000); // Shows who has bus A (SRAM A)
-static const uint32_t  BUSBOwner  (0x810004); // Shows who has bus B (SRAM B)
-static const uint32_t  BUSXOwner  (0x810008); // Shows who has bus X (FPGA).
-static const uint32_t  IRQSerial  (0x820048); // Write for IRQ id reads serial number.
-static const uint32_t  POLLISR    (0x820824); // 'mailbox' betweenFPGA and DSP.
-
-// Note that the REQ_A/B/X definitions above define the bits in the bus request register
-// therefore we don't define these bits here.
-
-// Bits in Interrupt register; Note these are 'negative logic bits' in that to assert
-// the reset, the bit shown below should be set to zero.
-
-static const uint32_t InterruptResetFPGA    (0x00000001);
-static const uint32_t InterruptResetDSP     (0x00000002);
-static const uint32_t InterruptInterruptFPGA(0x00010000);
-static const uint32_t InterruptInterruptDSP (0x00020000);
-
-// Boot source register contents.  This defines where the FPGA loads its
-// microcode from.  There are 4 ROM locations as well as the possibility
-// to load the microcode in to SRAM A.  This is coded rather than bits.
-
-static const uint32_t BootSrcRom0 (0x00000000);	// Load from sector 0 of PROM.
-static const uint32_t BootSrcRom1 (0x00000001);	// Load from sector 1 of PROM.
-static const uint32_t BootSrcRom2 (0x00000002); // Load from sector 2 of PROM.
-static const uint32_t BootSrcRom3 (0x00000003); // Load from sector 3 of PROM.
-static const uint32_t BootSrcSRAMA(0x00010000);	// Load from SRAM A image.
-
-// The ForceOffBus register only has a single bit.... the LSB.  When set, the FPGA
-// and DSP are forced off the bus.  When clear they are allowed to arbitrate for the bus.
-// XLM Manual 4.3.1.4 states that even when that bit is set the VME bus host must arbitrate
-// for the bus via the BusRequest register.
-
-static const uint32_t ForceOffBusForce(0x00000001); // Force all but VME off bus.
-
-// BUS*Owner values.  These describe who is actually the owner of the specific bus.
-
-static const uint32_t BusOwnerNone(0);	// Bus not owned.
-static const uint32_t BusOwnerVME (1);	// VME host owns bus.
-static const uint32_t BusOwnerFPGA(2);	// Bus owned by FPGA.
-static const uint32_t BusOwnerDSP (3);	// Bus owned by DSP.
 
 // The IRQ/serial number register is some mess of bits; both in/out
 // we're just going to define a function for extracting the serial number from a read:
@@ -756,32 +701,8 @@ void loadSRAM(CVMUSB& controller, uint32_t dest, void* image, uint32_t bytes)
 
 
 }
+
 } // end of Utils namespace
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////// SLOW CONTROLS FOR FIRMWARE LOADS ////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////
-
-void CXLMSlowControls::onAttach(CControlModule& config)
-{
-  m_pConfig = &config;
-  m_pConfig->addParameter("-base", CConfigurableObject::isInteger, NULL, "0");
-  m_pConfig->addParameter("-firmware", Utils::validFirmwareFile, NULL, "");
-}
-
-void CXLMSlowControls::Initialize(CVMUSB& controller)
-{
-  uint32_t base = m_pConfig->getUnsignedParameter("-base");
-  std::string path = m_pConfig->cget("-firmware");
-  loadFirmware(controller, base, SRAMA, path);
-}
-
-void CXLMSlowControls::clone(const CXLMSlowControls& controller) {}
-std::string CXLMSlowControls::Update(CVMUSB& controller) {}
-std::string CXLMSlowControls::Set(CVMUSB& controller, std::string what, std::string val) {}
-std::string CXLMSlowControls::Get(CVMUSB& controller, std::string what) {}
-
 
 } // end of XLM namespace
 

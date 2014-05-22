@@ -43,7 +43,6 @@ libVMUSBDevices_la_SOURCES	= 	CConfigurableObject.cpp	\
 INCLUDES	= 	-I@top_srcdir@/usb/vmusb/vmusb 	\
 			-I@top_srcdir@/usb/vmusb/daqconfig 	\
 			-I@top_srcdir@/usb/vmusb		\
-			-I@top_srcdir@/usb/vmusb/tclserver	\
 			-I@top_srcdir@/usb/common/devices	\
 			@LIBTCLPLUS_CFLAGS@		\
 			-I@top_srcdir@/base/headers		\
@@ -54,7 +53,6 @@ libVMUSBDevices_la_CXXFLAGS=@THREADCXX_FLAGS@
 
 
 libVMUSBDevices_la_LIBADD	= $(top_builddir)/usb/vmusb/vmusb/libVMUSB.la \
-				@top_builddir@/usb/vmusb/tclserver/libVMUSBControlServer.la	\
 				@top_builddir@/base/os/libdaqshm.la	\
 					@LIBTCLPLUS_LDFLAGS@	\
 					@TCL_LDFLAGS@ \

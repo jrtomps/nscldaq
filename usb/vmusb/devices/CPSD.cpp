@@ -107,7 +107,7 @@ CPSD::Initialize(CVMUSB& controller)
 
   base = sramA();  // base addr of VME module
   CXLM::accessBus(controller, static_cast<uint32_t>(CXLM::REQ_X));
-  controller.vmeRead32(base+BUSXOwner, registerAmod, &test2);
+  controller.vmeRead32(base+XLM::BUSXOwner, registerAmod, &test2);
   printf("bus control X reads %x\n",test2);
   fpga = FPGA();           // establish base address of module's FPGA
   controller.vmeRead32(base+0x820048, registerAmod, &test2);
