@@ -244,7 +244,7 @@ CVMUSB::reconnect()
 /**!
 *
 */
-const CVMUSB::ShadowRegister& CVMUSB::getShadowRegisters() const {
+const CVMUSB::ShadowRegisters& CVMUSB::getShadowRegisters() const {
   return m_regShadow;
 }
 
@@ -558,7 +558,7 @@ CVMUSB::readVector(int which)
 {
     unsigned int regno = whichToISV(which);
     m_regShadow.interruptVectors[regno] = readRegister(regno);
-    return m_regShadow.intteruptVectors[regno]; 
+    return m_regShadow.interruptVectors[regno]; 
 }
 
 /*!

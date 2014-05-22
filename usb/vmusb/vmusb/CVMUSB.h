@@ -164,7 +164,7 @@ public:
 public:
 
     /**! Acquire the shadow registers  */
-    const ShadowRegister& getShadowRegisters() const;
+    const ShadowRegisters& getShadowRegisters() const;
 
     virtual void     writeActionRegister(uint16_t value);
 //    void     writeActionRegister(int value) { // SWIG
