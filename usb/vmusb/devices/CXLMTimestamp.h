@@ -4,7 +4,7 @@
 
 #include <CXLM.h>
 
-class CXLMTimestamp : public CXLM
+class CXLMTimestamp : public XLM::CXLM
 {
 
 public:

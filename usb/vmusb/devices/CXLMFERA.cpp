@@ -100,7 +100,7 @@ static const float    busDelay(200/vmusbClockTick); // delay to allow for arbitr
  * typically only be used to make a 'template' instance which will be cloned to
  * create instances that are bound to configurations and actual hardware.
  */
-CXLMFERA::CXLMFERA() : CXLM()
+CXLMFERA::CXLMFERA() : XLM::CXLM()
 {
     // This will point to an instance's config base class protected).
     //  m_pConfiguration = 0;	
@@ -113,7 +113,7 @@ CXLMFERA::CXLMFERA() : CXLM()
  * 
  * @param rhs  - Template device that is being copied to create the  new device.
  */
-CXLMFERA::CXLMFERA(const CXLMFERA& rhs) : CXLM(rhs)
+CXLMFERA::CXLMFERA(const CXLMFERA& rhs) : XLM::CXLM(rhs)
 {
 
 }

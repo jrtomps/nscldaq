@@ -70,6 +70,9 @@ static const uint8_t  blockTransferAmod      (CVMUSBReadoutList::a32UserBlock);
 static const uint8_t  privBlockTransferAmod  (CVMUSBReadoutList::a32PrivBlock);
 
 
+// Import the XLM namesapce
+using namespace XLM;
+
 
 CXLMTimestamp::CXLMTimestamp()  : CXLM() {}
 

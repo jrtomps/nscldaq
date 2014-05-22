@@ -124,7 +124,7 @@ class CVMUSBReadoutList;
    At end of read the readout must 'reset' the XLM by touching its register set.
 */
 
-class CPSD : public CXLM
+class CPSD : public XLM::CXLM
 {
 public:
   CPSD();

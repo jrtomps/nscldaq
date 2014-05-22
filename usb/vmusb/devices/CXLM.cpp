@@ -17,6 +17,7 @@
 #include "CXLM.h"
 
 #include "CReadoutModule.h"
+#include "CControlModule.h"
 
 #include <CVMUSB.h>
 #include <CVMUSBReadoutList.h>
@@ -33,16 +34,6 @@
 #include<iostream>
 
 using namespace std;
-
-//////////////////////////////////////////////////////////////////////////////
-/////////////////////  Class level constants  ////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////
-
-//  These constants define bits in the XLM bus request/ownership register:
-
-const uint32_t CXLM::REQ_A(0x00000001);
-const uint32_t CXLM::REQ_B(0x00000002);
-const uint32_t CXLM::REQ_X(0x00010000);
 
 /////////////////////////////////////////////////////////////////////////////
 /////////////////////  File level constants /////////////////////////////////
@@ -119,6 +110,22 @@ static inline uint32_t serial(uint32_t rawRegister)
   return (rawRegister && 0x1ff) >> 16; // Bits 16-25 of the 32 bit data word 4.3.1.6 Xlm manual
 }
 
+/////////////////////////////////////////////////////
+// Begin namespace XLM implementation
+//
+namespace XLM 
+{
+
+//////////////////////////////////////////////////////////////////////////////////
+/////////////////////  Class level constants  ////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+
+//  These constants define bits in the XLM bus request/ownership register:
+
+const uint32_t CXLM::REQ_A(0x00000001);
+const uint32_t CXLM::REQ_B(0x00000002);
+const uint32_t CXLM::REQ_X(0x00010000);
+
 //////////////////////////////////////////////////////////////////////////////////
 //////////////////////////// Canonical methods ///////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////
@@ -194,7 +201,7 @@ CXLM::onAttach(CReadoutModule& configuration)
   configuration.addParameter("-base", CConfigurableObject::isInteger, NULL, "0");
 
   configuration.addParameter("-firmware",
-			     validFirmwareFile, NULL, "");
+			     Utils::validFirmwareFile, NULL, "");
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -202,7 +209,7 @@ CXLM::onAttach(CReadoutModule& configuration)
 /////////////////////////////////////////////////////////////////////////////////
 
 /*!
-  Load a firmware file intothe FPGA.  Normally this will be used by:
+  Load a firmware file into the FPGA.  Normally this will be used by:
   loadFirmware(vmusb, cget("-firmware")); .. that is loading the firmware that
   has been configured via the -firmware configuration parameter.
 
@@ -216,6 +223,117 @@ void
 CXLM::loadFirmware(CVMUSB& controller, string path) throw(std::string)
 {
   uint32_t base = m_pConfiguration->getUnsignedParameter("-base");
+
+  XLM::loadFirmware(controller, base, sramA(), path);
+
+}
+
+/*!
+  Access some combination of the busses.  The assumption is that since this
+  is a one shot, and since I'm ensured that I'll get the bus within 200ns, the host
+  will not be able to turn the read around faster than that and therefore I don't need
+  to check that I actually have the bus.
+
+  Note this can be used to release the busses by not setting the appropriate 
+  bus request bits.
+
+  @param controller - VMUSB controller object.
+  @param accessPattern - bitwise oro of one of the following:
+  - CXLM::REQ_X   - Request the X (FPGA) bus.
+  - CXLM::REQ_A   - Request the A (SRAM A) bus.
+  - CXLM::REQ_B   - Request the B (SRAM B) bus.
+
+*/
+void
+CXLM::accessBus(CVMUSB& controller, uint32_t accessPattern)
+{
+  uint32_t base = m_pConfiguration->getUnsignedParameter("-base");
+  XLM::accessBus(controller, base, accessPattern);
+}
+
+/*!
+  Adds a bus access request to a readout list.
+  @param list - Reference to a VMUSBReadout list to which the appropriate instructions will be added.
+  @param accessPattern - The requested access pattern, See accessBus above for a description of this.
+  @param delay - Delay to insert after the bus request.  This should be the worst case time between
+                 arbitration request and grant..determined by the FPGA firmware you are using.
+		 delay is in 12.5ns units.
+*/
+void
+CXLM::addBusAccess(CVMUSBReadoutList& list, uint32_t accessPattern,
+		   uint8_t delay)
+{
+  uint32_t base = m_pConfiguration->getUnsignedParameter("-base");
+
+  XLM::addBusAccess(list, base, accessPattern, delay);
+
+}
+
+/*! 
+  Convenience function to return the base address of SRAM A
+  @return uint32_t
+  @retval -base + SRAMA
+
+*/
+uint32_t
+CXLM::sramA()
+{
+  return m_pConfiguration->getUnsignedParameter("-base") + SRAMA;
+}
+/*!
+  Convenience function to return the base address of SRAM B
+  @return uint32_t
+  @retval -base + SRAM
+*/
+uint32_t 
+CXLM::sramB()
+{
+  return m_pConfiguration->getUnsignedParameter("-base") + SRAMB;
+}
+/*!
+  Convenience function to return the base address of the FPGA register set.  These are the 
+  registers that are maintained by the FPGA firmware, not the interface registers.
+  @return uint32_t
+  @retval -base + FPGA
+*/
+uint32_t
+CXLM::FPGA()
+{
+  uint32_t b =    m_pConfiguration->getUnsignedParameter("-base");
+  return b + FPGABase;
+}
+
+/*!
+  Convenience function to return the interface register set base... though really low level access functions
+  to those registers ought to be added to this base class with application level functions only in the 
+  derived class
+  @return uint32_t
+  @return -base + Interface
+
+*/
+uint32_t
+CXLM::Interface()
+{
+  return m_pConfiguration->getUnsignedParameter("-base")  + InterfaceBase;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////// Namespace functions /////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+/*!
+  Load a firmware file into the FPGA in interactive mode. 
+
+  @param controller  - Reference to a CVMUSB controller object.
+  @param path Path to the firmware file.  This has to have been validated as existing
+              and readable by the caller.  Note that if this value came from
+	      -firmware, this has already been done by the configuration subsystem.
+  @exception std::string If there is an error.
+*/
+void loadFirmware(CVMUSB& controller, uint32_t base, uint32_t sramAddr, std::string path)
+{
+  // introduce the Utils namespace
+  using namespace Utils;
 
   cerr << hex << "Loading firmware for XLM at " << base << endl << dec;
 
@@ -242,7 +360,7 @@ CXLM::loadFirmware(CVMUSB& controller, string path) throw(std::string)
     initList.addWrite32(base + ForceOffBus, registerAmod, ForceOffBusForce); // Inhibit FPGA Bus access.
     initList.addWrite32(base + Interrupt,   registerAmod,  InterruptResetFPGA); // Hold FPGA reset.
     initList.addWrite32(base + FPGABootSrc, registerAmod, BootSrcSRAMA); // Set boot source
-    addBusAccess(initList,  REQ_A, 0);                                    //  Request bus A.
+    addBusAccess(initList, base, CXLM::REQ_A, 0);                         //  Request bus A.
 
     
     // run the list:
@@ -290,7 +408,7 @@ CXLM::loadFirmware(CVMUSB& controller, string path) throw(std::string)
       }
 
       remapBits(sramAImage, pc, bytesInFile);
-      loadSRAMA(controller, sramAImage, bytesInFile*sizeof(uint32_t));
+      loadSRAM(controller, sramAddr, sramAImage, bytesInFile*sizeof(uint32_t));
       
       // Release the SRAMA Bus, 
       // release the 'force'.
@@ -325,7 +443,6 @@ CXLM::loadFirmware(CVMUSB& controller, string path) throw(std::string)
   
 
 }
-
 /*!
   Access some combination of the busses.  The assumption is that since this
   is a one shot, and since I'm ensured that I'll get the bus within 200ns, the host
@@ -342,10 +459,8 @@ CXLM::loadFirmware(CVMUSB& controller, string path) throw(std::string)
   - CXLM::REQ_B   - Request the B (SRAM B) bus.
 
 */
-void
-CXLM::accessBus(CVMUSB& controller, uint32_t accessPattern)
+void accessBus(CVMUSB& controller, uint32_t base, uint32_t accessPattern)
 {
-  uint32_t base = m_pConfiguration->getUnsignedParameter("-base");
   controller.vmeWrite32(base + BusRequest, registerAmod, accessPattern);
 }
 
@@ -357,12 +472,9 @@ CXLM::accessBus(CVMUSB& controller, uint32_t accessPattern)
                  arbitration request and grant..determined by the FPGA firmware you are using.
 		 delay is in 12.5ns units.
 */
-void
-CXLM::addBusAccess(CVMUSBReadoutList& list, uint32_t accessPattern,
+void addBusAccess(CVMUSBReadoutList& list, uint32_t base, uint32_t accessPattern,
 		   uint8_t delay)
 {
-  uint32_t base = m_pConfiguration->getUnsignedParameter("-base");
-
   list.addWrite32(base + BusRequest, registerAmod, accessPattern);
   if ( delay > 0) {		// Don't delay if none requested.
     list.addDelay(delay);
@@ -370,57 +482,19 @@ CXLM::addBusAccess(CVMUSBReadoutList& list, uint32_t accessPattern,
 
 }
 
-/*! 
-  Convenience function to return the base address of SRAM A
-  @return uint32_t
-  @retval -base + SRAMA
 
-*/
-uint32_t
-CXLM::sramA()
-{
-  return m_pConfiguration->getUnsignedParameter("-base") + SRAMA;
-}
-/*!
-  Convenience function to return the base address of SRAM B
-  @return uint32_t
-  @retval -base + SRAM
-*/
-uint32_t 
-CXLM::sramB()
-{
-  return m_pConfiguration->getUnsignedParameter("-base") + SRAMB;
-}
-/*!
-  Convenience function to return the base address of the FPGA register set.  These are the 
-  registers that are maintained by the FPGA firmware, not the interface registers.
-  @return uint32_t
-  @retval -base + FPGA
-*/
-uint32_t
-CXLM::FPGA()
-{
-  uint32_t b =    m_pConfiguration->getUnsignedParameter("-base");
-  return b + FPGABase;
-}
-/*!
-  Convenience function to return the interface register set base... though really low level access functions
-  to those registers ought to be added to this base class with application level functions only in the 
-  derived class
-  @return uint32_t
-  @return -base + Interface
-
-*/
-uint32_t
-CXLM::Interface()
-{
-  return m_pConfiguration->getUnsignedParameter("-base")  + InterfaceBase;
-}
-//////////////////////////////////////////////////////////////////////////////////////////
+// ...oooOOOooo......oooOOOooo......oooOOOooo......oooOOOooo......oooOOOooo......oooOOOooo......oooOOOooo...
+// /////////////////////////////////////////////////////////////////////////////////////////////////////////   
 //
-// Private utility functions.
-//
+/**! A namespace to store utility functions
+    \namespace Utils
 
+  These functions do not need to be as visible as loadFirmware becuase they are primarily used 
+  to implement loadFirmware. For this reason, they will be grouped into the XLM::Utils namespace.
+  
+*/
+namespace Utils
+{
 /**
  * Determines if a file is a valid firmware file.  At this point we just use access(2) to see if
  * the file exists and is readable by us.  This is a configuration validator and hence must
@@ -433,8 +507,7 @@ CXLM::Interface()
  * @retval true - Firmware file is valid.
  * @retval false - Firmware file is not valid.
  */
-bool 
-CXLM::validFirmwareFile(string name, string value, void* arg)
+bool validFirmwareFile(string name, string value, void* arg)
 {
   int status = access(value.c_str(), R_OK);
 
@@ -443,6 +516,7 @@ CXLM::validFirmwareFile(string name, string value, void* arg)
 
   return (status == 0);
 }
+
 /**
  * Returns the size of a file.  The file must already exist and  be a valid target for 
  * stat(2). As this is used in the firmware load process, this has typically been assured by
@@ -452,8 +526,7 @@ CXLM::validFirmwareFile(string name, string value, void* arg)
  * @retval Number of bytes in the file.  This includes 'holes' if the file is spares.
  * @throw std::string - if stat fails.
  */
-uint32_t
-CXLM::fileSize(string path) throw(std::string)
+uint32_t fileSize(string path)
 {
   struct stat fileInfo;
   int status = stat(path.c_str(), &fileInfo);
@@ -473,8 +546,7 @@ CXLM::fileSize(string path) throw(std::string)
  * @param bytes - Number of bytes in the file.
  * @throw std::string on any system call error.
  */
-void
-CXLM::loadFile(std::string path, void* contents, uint32_t size) throw(std::string)
+void loadFile(std::string path, void* contents, uint32_t size)
 {
   int fd = open(path.c_str(), O_RDONLY);
   if (fd < 0) {
@@ -519,6 +591,7 @@ CXLM::loadFile(std::string path, void* contents, uint32_t size) throw(std::strin
 
   close(fd); 			// should _NEVER_ fail.
 }
+
 /**
  * Remap the bits of a firmware file into an SRAM image.  Each byte maps to some scattered set of
  * bits in an SRAM longword.  The mapping is defined by the table bitMap below.
@@ -527,8 +600,7 @@ CXLM::loadFile(std::string path, void* contents, uint32_t size) throw(std::strin
  * @param bytes     - Number of bytes in fileImage.  It is up to the caller to ensure that the
  *                    size of sramImage is at least bytes*sizeof(uint32_t) big.
  */
-void
-CXLM::remapBits(void* sramImage, void* fileImage, uint32_t bytes)
+void remapBits(void* sramImage, void* fileImage, uint32_t bytes)
 {
   static const uint32_t bitMap[]  = {
     0x4, 0x8, 0x10, 0x400, 0x40000, 0x80000, 0x100000, 0x4000000
@@ -551,21 +623,9 @@ CXLM::remapBits(void* sramImage, void* fileImage, uint32_t bytes)
   }
 
 }
-/**
- * given a block of bytes, loads it into SRAMA.
- * - This is done 256bytes at a time.
- * - This block transfers are done.
- * - For now we don't trust Jan to do block writes larger than that quite correctly.
- * - We _do_ build a list of block writes and execute them all at once.
- * - Assumption: the image is an even multiple of uint32_t.
- *
- * @param controller - CVMUSB controller object reference.
- * @param image      - Bytes to load in the SRAMA
- * @param bytes      - sizeof the image in bytes.
- * @throw std::string - in the event of an error executing a VM-USB list.
- */
-void
-CXLM::loadSRAMA(CVMUSB& controller, void* image, uint32_t bytes) throw(std::string)
+
+
+void loadSRAM(CVMUSB& controller, uint32_t dest, void* image, uint32_t bytes)
 {
   static const size_t   blockSize = 256;
   static const size_t   vblockSize = blockSize;
@@ -573,10 +633,7 @@ CXLM::loadSRAMA(CVMUSB& controller, void* image, uint32_t bytes) throw(std::stri
 
   // for now load it one byte at a time... in 256 tansfer chunks:
 
-  
-
   uint32_t*           p    = reinterpret_cast<uint32_t*>(image);
-  static uint32_t    dest = sramA();
 
   cerr << hex << "LOADSRAMA - SRAM A base addresss is " << dest << endl << dec;
 
@@ -597,7 +654,7 @@ CXLM::loadSRAMA(CVMUSB& controller, void* image, uint32_t bytes) throw(std::stri
 					sizeof(data), &data);
     if (status < 0) {
       string error = strerror(errno);
-      string msg   = "CXM::loadSRAMA - list execution failed to load the SRAM: ";
+      string msg   = "CXLM::loadSRAMA - list execution failed to load the SRAM: ";
       msg         += error;
       throw msg;
     }
@@ -615,7 +672,7 @@ CXLM::loadSRAMA(CVMUSB& controller, void* image, uint32_t bytes) throw(std::stri
     // Write the block:
 
     size_t readData;
-    int status = controller. executeList(loadList, &readData, sizeof(size_t), &readData);
+    int status = controller.executeList(loadList, &readData, sizeof(size_t), &readData);
     if (status < 0) {
       string error = strerror(errno);
       string msg   = "CXM::loadSRAMA - list execution failed to load the SRAM: ";
@@ -629,7 +686,7 @@ CXLM::loadSRAMA(CVMUSB& controller, void* image, uint32_t bytes) throw(std::stri
   /// Some tests for Jan.
 
   uint32_t* compareData = new uint32_t[blockSize];
-  uint32_t src         = sramA();
+  uint32_t src         = dest;
   size_t   bytesRead;
   size_t   bytesLeft   = nBytes;
 
@@ -661,7 +718,7 @@ CXLM::loadSRAMA(CVMUSB& controller, void* image, uint32_t bytes) throw(std::stri
 
   cerr << "Verifying SRAMA contents\n";
   p        = reinterpret_cast<uint32_t*>(image);
-  dest     = sramA();
+  dest     = dest;
   uint32_t* pSram = new uint32_t[vblockSize];
   size_t    xfered = 0;
 
@@ -699,3 +756,34 @@ CXLM::loadSRAMA(CVMUSB& controller, void* image, uint32_t bytes) throw(std::stri
 
 
 }
+} // end of Utils namespace
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////// SLOW CONTROLS FOR FIRMWARE LOADS ////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+void CXLMSlowControls::onAttach(CControlModule& config)
+{
+  m_pConfig = &config;
+  m_pConfig->addParameter("-base", CConfigurableObject::isInteger, NULL, "0");
+  m_pConfig->addParameter("-firmware", Utils::validFirmwareFile, NULL, "");
+}
+
+void CXLMSlowControls::Initialize(CVMUSB& controller)
+{
+  uint32_t base = m_pConfig->getUnsignedParameter("-base");
+  std::string path = m_pConfig->cget("-firmware");
+  loadFirmware(controller, base, SRAMA, path);
+}
+
+void CXLMSlowControls::clone(const CXLMSlowControls& controller) {}
+std::string CXLMSlowControls::Update(CVMUSB& controller) {}
+std::string CXLMSlowControls::Set(CVMUSB& controller, std::string what, std::string val) {}
+std::string CXLMSlowControls::Get(CVMUSB& controller, std::string what) {}
+
+
+} // end of XLM namespace
+
+
+

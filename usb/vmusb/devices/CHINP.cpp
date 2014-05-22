@@ -59,6 +59,11 @@ static const uint32_t ForceOffBusForce(0x00000001); // Force all but VME off bus
 static const uint32_t MODE_UNIFIED(1);
 static const uint32_t MODE_HAVEFADC(4);
 
+
+// Import the XLM namespace
+using namespace XLM;
+
+
 ////////////////////////////////////////////////////////////////////////////////////////
 //  Canonical function implementations:
 ////////////////////////////////////////////////////////////////////////////////////////

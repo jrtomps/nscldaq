@@ -33,6 +33,7 @@ Device driver for the WASHINGTON U. PSD-ADC chip
 #include <unistd.h>
 
 using namespace std;
+using namespace XLM;
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // Local constant definitions:

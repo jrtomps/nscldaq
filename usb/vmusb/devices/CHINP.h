@@ -125,7 +125,7 @@ class CVMUSBReadoutList;
    At end of read the readout must 'reset' the XLM by touching its register set.
 */
 
-class CHINP : public CXLM
+class CHINP : public XLM::CXLM
 {
 public:
   CHINP();

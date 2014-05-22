@@ -72,7 +72,7 @@ class CVMUSBReadoutList;
    At end of read the readout must 'reset' the XLM by touching its register set.
 */
 
-class CMASE : public CXLM
+class CMASE : public XLM::CXLM
 {
 public:
   CMASE();

@@ -17,7 +17,7 @@ class CVMUSBReadoutList;
 
 /**! An XLM driver for FERA ECLLine readout
 */
-class CXLMFERA : public CXLM 
+class CXLMFERA : public XLM::CXLM 
 {
     friend class CXLMBusController;
 

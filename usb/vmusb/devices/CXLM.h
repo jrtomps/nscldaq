@@ -42,10 +42,15 @@
 #endif
 #endif
 
+#ifndef __CCONTROLHARDWARE_H
+#include "CControlHardware.h"
+#endif
+
 
 // Forward class definitions:
 
 class CReadoutModule;
+class CControlModule;
 class CVMUSB;
 class CVMUSBReadoutList;
 
@@ -60,6 +65,9 @@ class CVMUSBReadoutList;
 
 
 */
+namespace XLM
+{
+
 class CXLM : public CReadoutHardware
 {
 protected:			// Data available to derived classes:
@@ -72,7 +80,6 @@ public:				// 'constants'.
   static const uint32_t  REQ_X;		// FPGA bus.
   static const uint32_t  REQ_A;		// SRAM A bus
   static const uint32_t  REQ_B;		// SRAM B bus
-
 
 public:				// Canonicals:
   CXLM();
@@ -90,7 +97,6 @@ public:
   virtual void onAttach(CReadoutModule& configuration);  
 
   // XLM support functions derived classes can use these:
-
 protected:
   void loadFirmware(CVMUSB& controller,  std::string path) throw(std::string);
   void accessBus(CVMUSB& controller,  uint32_t accessPattern);
@@ -102,13 +108,84 @@ protected:
   uint32_t sramB();		// Return base address of SRAM B
   uint32_t FPGA();		// Return base address of FPGA 'registers'.
   uint32_t Interface();		/* Return the base address of the interface registers. */
-
-private:
-  static bool validFirmwareFile(std::string name, std::string value, void* arg);
-  uint32_t fileSize(std::string path) throw(std::string);
-  void     loadFile(std::string path, void* contents, uint32_t size) throw(std::string);
-  void     remapBits(void* sramImage, void* fileImage,  uint32_t bytes);
-  void     loadSRAMA(CVMUSB& controller, void* image, uint32_t bytes) throw(std::string);
 };
+
+///////////////////////////////////////////////////////////////////////////////
+//////////////////////// NAMESPACE FUNCTIONS //////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+/**! \fn loadFirmware(CVMUSB& ctlr, uint32_t baseAddr, 
+                      uint32_t sramAddr, std::string fmwrpath)
+*
+* Implements the firmware loading algorithm for the  
+*
+*   \param controller the VM-USB device to communicate through
+*   \param baseAddr   the base address of the target XLM
+*   \param sramAddr   the address of the sram (SRAMA = 0x000000, SRAMB = 0x200000)
+*   \param filename   path to the firmware file
+*/ 
+extern 
+void loadFirmware(CVMUSB& controller, uint32_t baseAddr, uint32_t sramAddr, std::string filename);
+
+/**! \fn accessBus(CVMUSB& ctlr, uint32_t baseAddr, uint32_t accessPattern)
+*
+* Obtain ownership of select internal busses in the XLM (A, B, and X)  
+*
+*   \param controller     the VM-USB device to communicate through
+*   \param baseAddr       the base address of the target XLM
+*   \param accessPattern  the bit-wise OR of CXLM::REQ_A, CXLM::REQ_B, 
+*                         and CXLM::REQ_X
+*/ 
+extern 
+void accessBus(CVMUSB& controller, uint32_t base, uint32_t accessPattern);
+
+/**! \fn addBusAccess(CVMUSBReadoutList& ctlr, uint32_t baseAddr, 
+                      uint32_t accessPattern, uint8_t delay)
+*
+* Add commands to a readout list that will acquire ownership of select internal
+* busses in the XLM (A, B, and X)  
+*
+*   \param controller     the VM-USB device to communicate through
+*   \param baseAddr       the base address of the target XLM
+*   \param accessPattern  the bit-wise OR of CXLM::REQ_A, CXLM::REQ_B, 
+*                         and CXLM::REQ_X
+*   \param delay          delay length in units of 12.5 ns to delay proceeding 
+*                         execution of subsequent VME commands in the stack 
+*/ 
+extern 
+void addBusAccess(CVMUSBReadoutList& list, uint32_t base, uint32_t accessPattern, uint8_t delay);
+
+///////////////////////////////////////////////////////////////////////////////
+//////////////////////// NAMESPACE UTILITY FUNCTIONS //////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+namespace Utils 
+{
+  static bool validFirmwareFile(std::string name, std::string value, void* arg);
+  extern uint32_t fileSize(std::string path);
+  extern void loadFile(std::string path, void* contents, uint32_t size);
+  extern void loadSRAM(CVMUSB& controller, uint32_t dest_addr, void* image, uint32_t bytes);
+  extern void remapBits(void* sramImage, void* fileImage,  uint32_t bytes);
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+//////////////////////// SLOW CONTROLS FOR FIRMWARE LOADS /////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+class CXLMSlowControls : public CControlHardware
+{
+  public:
+  virtual void clone( const CXLMSlowControls& rhs);
+
+  virtual void onAttach (CControlModule& config);
+  virtual void Initialize(CVMUSB& controller);
+  virtual std::string Update(CVMUSB& vme);
+  virtual std::string Set(CVMUSB& vme, std::string what, std::string value);
+  virtual std::string Get(CVMUSB& vme, std::string what);
+
+};
+
+} // end of namespace
 
 #endif
