@@ -5,9 +5,11 @@
 
 class CCamacBranchException
 {
-    public :
-        virtual const char* what() const { return "CamacBranchException"; }    
-
+public :
+  CCamacBranchException() {}
+  virtual ~CCamacBranchException() {}
+  virtual const char* what() const { return "CamacBranchException"; }    
+  
 };
 
 class CBadBCNAF : public CCamacBranchException
@@ -19,11 +21,12 @@ class CBadBCNAF : public CCamacBranchException
 
 class CInvalidA : public CCamacBranchException
 {
-    private:
-        int m_a;
-    public:
-        CInvalidA(int a) : m_a(a) {}
-        const char* what() const;
+private:
+  int m_a;
+public:
+  CInvalidA(int a) : CCamacBranchException(), m_a(a) {}
+  ~CInvalidA() {}
+  virtual const char* what() const;
 };
 
 class CBadFirmwareFile : public CCamacBranchException

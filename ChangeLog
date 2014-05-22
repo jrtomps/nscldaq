@@ -568,8 +568,49 @@ Feb 1, 2012 - Feb 24, 2012
           total output fragment count ui element.
         * Issue #1927 (sort of) appended source id to identification of
 	  source of message so user doesn't have to worry about how to
-          name stuff.
-  * New drivers added to VMUSBReadout and CCUSBReadout
-  * Filter framework included
-  * Some aesthetics improved on ReadoutGUI
-  * Extra configuration controls added in vmusb driver
+          name stuff (C++ and Tcl).
+	* Issue #700 Support user written drivers for VM-USB slow controls
+	server.
+	* Issue #544 Provide a convenience function to make range checked
+	integer lists in VMUSBReadout.
+	* Issue #699 Support user written slow controls drivers for the
+	CC-USB slow controls server (C++ and Tcl)
+	* Issue #1722  Use round trip synchronization rather than a delay 
+	  to know when runs are totally ended.
+	* Issue #1793 - Uniquify the ring used by tests.
+	* New drivers added to VMUSBReadout and CCUSBReadout
+	* Filter framework included
+	* Some aesthetics improved on ReadoutGUI
+	* Extra configuration controls added in vmusb driver
+
+11.0-rc6-001
+	* Issue #1942 - compatibiliby mode buffer dump script.
+	* Issue #1939 - Add checksum.
+	* Issue #1930 - Reduce the chance there will be event logs that
+	hand around on failures and actually record data.
+	* Issue #1941 - Re-assert the width of the field each insertion in
+	CRingItem::toString as it is apparently a one-shot thing.
+	* Issue #1919 - Provide optional argument for VM/CCusb loaders.
+	This is done by providing an optional program parameter after the
+	firmware file that is the serial number string (e.g. V1234).
+	
+Open rc7 work.
+	*  Get good compilation/tests on Ubunti 14.04 (trusty).
+	*  Modify default size in CRingItem so that instatiation
+	   with default size does not cause dynamic buffer allocation.
+	*  Ensure that failure to build/install documentation won't cause
+	build failure (e.g. user does not have docbook installed on
+	system).
+	*  Add directory tree top for experiment configurator.
+	*  Add installation point for Python libraries.
+	*  Roll event builder fix back from 10.2-107 (Issue #2035)
+	*  Roll in Issue #2035 - data rate smoother change.
+        *  Feature #1953 - Experiment configuration editor: Users create a
+           new (empty) project
+        *  Add a daqsetup.bash script to installation that provides environment
+        *  Feature #1954 - Experiment configuration editor: Users open an existing
+           project (not necessarily empty).
+        *  Feature #1951 - Users create an inventory of the hosts involved in
+           the experiment.
+	*  Feature #1952  - Users create an inventory of the ringbuffers
+	involved in the experiment.

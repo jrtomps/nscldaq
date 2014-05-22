@@ -611,11 +611,9 @@ CFragmentHandler::flushQueues(bool completely)
   // This should only be done if the most recently emptied queue was emptied outside
   // the build interval time.
 
-  if ((m_nNow - m_nMostRecentlyEmptied) > m_nBuildWindow) {
-    while (!queuesEmpty()) {
-      if ((m_nMostRecentlyEmptied - m_nOldestReceived) < m_nBuildWindow) {
-	break; // Nothing old enough.
-      }
+  time_t firstOldest = m_nOldestReceived;
+  if ((m_nNow - m_nOldestReceived) > m_nBuildWindow) {
+    while (!queuesEmpty() && ((m_nNow - m_nOldestReceived) > m_nBuildWindow) ) {
       std::pair<time_t, ::EVB::pFragment>* p = popOldest();
       if (p) {
         sortedFragments.push_back(p->second);
@@ -624,6 +622,13 @@ CFragmentHandler::flushQueues(bool completely)
         break;
       }
     }
+#ifdef DEBUG
+    if (queuesEmpty()) {
+      std::cerr << "Empty queues\n";
+    } else {
+      std::cerr << "Not empty\n";
+    }
+#endif
   }
   
 
@@ -1094,8 +1099,11 @@ CFragmentHandler::goodBarrier(std::vector<EVB::pFragment>& outputList)
 void
 CFragmentHandler::findOldest()
 {
+
   uint64_t oldest = UINT64_MAX;		// Automatically right if all queues are empty.
-  time_t   oldestReceived = ~0;         // All ones.
+  time_t   oldestReceived = (static_cast<uint64_t>(~0)) >> 1;  // All ones except sign bit in case time_t is signed
+  time_t   firstOldest    = oldestReceived;
+
 
   for (Sources::iterator p = m_FragmentQueues.begin(); p != m_FragmentQueues.end(); p++) {
     if (!p->second.s_queue.empty()) {
@@ -1122,7 +1130,7 @@ CFragmentHandler::findOldest()
   if (oldest != UINT64_MAX) {
     m_nOldest = oldest;
   }
-  if (oldestReceived != (~0)) {
+  if (oldestReceived != firstOldest) {
     m_nOldestReceived = oldestReceived;
   }
 

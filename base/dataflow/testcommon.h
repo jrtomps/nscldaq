@@ -18,5 +18,6 @@
 
 void* mapRingBuffer(const char* name);
 std::string shmName(std::string name);
+std::string uniqueRing(std::string basename);
 
 #endif

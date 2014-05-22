@@ -19,7 +19,6 @@
 
 package provide StateManager 1.0
 package require snit
-package require ReadoutGui
 
 ##
 # @class StateManager

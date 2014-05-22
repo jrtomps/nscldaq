@@ -22,11 +22,14 @@ SUBDIRS =	 base caenfw-common servers base/dataflow  \
 install-data-local:
 	$(mkinstalldirs) @prefix@/TclLibs
 	$(mkinstalldirs) @prefix@/include
+	$(mkinstalldirs) @prefix@/pythonLibs @prefix@/pythonLibs/nscldaq
 	echo "pkg_mkIndex @prefix@/TclLibs *.so" >makeindex.tcl
 	$(TCLSH_CMD) <makeindex.tcl
 	$(INSTALL_SCRIPT) config.h @prefix@/include
 	$(MANDB) @prefix@/share/man
+	touch @prefix@/pythonLibs/nscldaq/__init__.py
 	echo "Version: "NSCLDAQ-$(VERSION) built on `hostname` `date` > @prefix@/VERSION
+	$(INSTALL_SCRIPT) daqsetup.bash @prefix@
 
 
 EXTRA_DIST=dotests introduction.xml libtcl

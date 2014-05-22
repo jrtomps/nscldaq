@@ -11,7 +11,13 @@ libCCUSBControlServer_la_SOURCES	= 	CControlHardware.cpp	\
 					Server.cpp		\
 					C894.cpp		\
 					CPH7106.cpp		\
-					CWatchCommand.cpp
+					CWatchCommand.cpp	\
+					CModuleFactory.cpp	\
+					CModuleCreator.cpp	\
+					CCAEN894Creator.cpp     \
+					CPH7106Creator.cpp	\
+					CTclControlModule.cpp	\
+					CTclModuleCreator.cpp
 
 noinst_HEADERS			=	CSetCommand.h		\
 					server.h		\
@@ -25,7 +31,14 @@ noinst_HEADERS			=	CSetCommand.h		\
 					TclServer.h		\
 					C894.h			\
 					CPH7106.h		\
-					CWatchCommand.h
+					CWatchCommand.h		\
+					CModuleFactory.h	\
+					CModuleCreator.h	\
+					CCAEN894Creator.h	\
+					CPH7106Creator.h	\
+					CTclControlModule.h	\
+					CTclModuleCreator.h
+
 
 INCLUDES			= 	-I@top_srcdir@/usb/ccusb		\
 					-I@top_srcdir@/daq/format		\
@@ -54,4 +67,9 @@ libCCUSBControlServer_la_LIBADD	= 	@top_builddir@/usb/ccusb/ccusb/libCCUSB.la   
 install-data-local:
 	$(mkinstalldirs) @prefix@/ccusbdriver
 	$(mkinstalldirs) @prefix@/ccusbdriver/includes
+	$(mkinstalldirs) @prefix@/ccusbdriver/example
 	$(INSTALL_DATA)  @srcdir@/*.h @prefix@/ccusbdriver/includes
+	$(INSTALL_DATA)  @srcdir@/sampleDriver.cpp @prefix@/ccusbdriver/example
+	$(INSTALL_DATA)  @builddir@/driver_Makefile @prefix@/ccusbdriver/example/Makefile
+
+EXTRA_DIST=driver_Makefile.in sampleDriver.cpp

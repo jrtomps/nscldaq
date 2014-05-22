@@ -42,6 +42,7 @@ install-exec-local:
 	$(INSTALL_SCRIPT) @srcdir@/spectcldaq.server.tcl  $(bindir)/spectcldaq.server
 	$(INSTALL_SCRIPT) @builddir@/s800toring  $(bindir)
 	$(INSTALL_SCRIPT) @srcdir@/netcat.tcl $(bindir)
+	$(INSTALL_SCRIPT) @builddir@/bufdump $(bindir)
 
 
 #----------------------------------------------------------------

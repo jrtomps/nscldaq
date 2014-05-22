@@ -25,9 +25,11 @@
 #include <CExperiment.h>
 #undef private
 
+extern std::string uniqueName(std::string);
+
 using namespace std;
 
-static string ringName("experimentTest");
+static const string ringName(uniqueName("experimentTest"));
 static string testTitle("This is my title");
 
 class experimentTests : public CppUnit::TestFixture {

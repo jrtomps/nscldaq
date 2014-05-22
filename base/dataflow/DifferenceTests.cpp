@@ -18,9 +18,7 @@ using namespace std;
 
 // Default name of shared memory special file:
 
-#ifndef SHM_TESTFILE
-#define SHM_TESTFILE "difftest"
-#endif
+
 
 
 class DiffTests : public CppUnit::TestFixture {
@@ -40,16 +38,19 @@ private:
   pClientInformation m_pPut;
   pClientInformation m_pGet;
   
+  std::string SHM_TESTFILE;
+  
 public:
 
   void setUp() {
+    SHM_TESTFILE= uniqueRing("difftest");
     m_pProducer = 0;
     m_pConsumer = 0;
     CRingBuffer::create(string(SHM_TESTFILE));
     m_pProducer = new CRingBuffer(string(SHM_TESTFILE), CRingBuffer::producer);
     m_pConsumer = new CRingBuffer(string(SHM_TESTFILE), CRingBuffer::consumer);
 
-    m_pRing   = (pRingBuffer)mapRingBuffer(SHM_TESTFILE);
+    m_pRing   = (pRingBuffer)mapRingBuffer(SHM_TESTFILE.c_str());
     m_pHeader = reinterpret_cast<pRingHeader>(m_pRing);
     m_pPut    = &(m_pRing->s_producer);
     m_pGet    = m_pRing->s_consumers;

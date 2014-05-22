@@ -70,8 +70,10 @@ static uint64_t triggers;
  */
 bool getBuffer (uint16_t* pBuffer,  size_t nBytes)
 {
+  size_t nread;
   try {
-    size_t read = io::readData(STDIN_FILENO, pBuffer, nBytes);
+    nread = io::readData(STDIN_FILENO, pBuffer, nBytes);
+    if (nread < nBytes) return false;
   }
   catch(int e) {
     if (e) {
@@ -470,7 +472,7 @@ bool bufferToRing (void* pBuffer)
       break;
     default:
       fprintf(stderr, "Got a buffer whose type we did not expect: %d\n", type);
-      fprintf(stderr, "Ingoring the data in this buffer!!\n", type);
+      fprintf(stderr, "Ingoring the data in this buffer!!\n");
       return false;
       break;
   }

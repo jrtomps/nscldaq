@@ -20,6 +20,7 @@ using std::string;
 
 class CConfiguration;
 class CCCUSB;
+class TclServer;
 
 namespace Globals {
   CConfiguration*    pConfig;
@@ -30,4 +31,5 @@ namespace Globals {
   unsigned           scalerPeriod;
   unsigned           sourceId;
   char*              pTimestampExtractor;
+  TclServer*      pTclServer;
 };

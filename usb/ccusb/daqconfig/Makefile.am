@@ -11,14 +11,13 @@ libCCUSBConfig_la_SOURCES	= 	CConfiguration.cpp	\
 				CCCUSBCommand.cpp	\
 				CPH7132Command.cpp	\
 				CUserCommand.cpp	\
-				CAddTclDriver.cpp
+				CAddTclDriver.cpp 	\
+				@top_srcdir@/usb/common/devices/CCamacBranchException.cpp	
 
 
-#				CScalerCommand.cpp
 
 
 noinst_HEADERS		=	CConfiguration.h 	\
-				CScalerCommand.h	\
 				CStackCommand.h		\
 				CPH7xxCommand.h		\
 				CAD811Command.h		\
@@ -32,6 +31,7 @@ noinst_HEADERS		=	CConfiguration.h 	\
 				CUserCommand.h		\
 				CAddTclDriver.h
 
+#				CScalerCommand.h
 
 
 
@@ -45,8 +45,8 @@ INCLUDES		= 	-I@top_srcdir@/usb/ccusb/devices	\
 				$(TCL_FLAGS) @THREADCXX_FLAGS@
 
 libCCUSBConfig_la_LIBADD	=	@top_builddir@/usb/ccusb/devices/libCCUSBDevices.la 	\
-				@LIBTCLPLUS_LDFLAGS@	\
-				$(TCL_LDFLAGS) @THREADLD_FLAGS@
+				$(TCL_LDFLAGS) @THREADLD_FLAGS@ \
+				@LIBTCLPLUS_LDFLAGS@	
 
 
 install-data-local:

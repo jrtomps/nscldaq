@@ -12,14 +12,15 @@ INCLUDES 		=	-I@top_srcdir@/base/headers		\
 				@LIBTCLPLUS_CFLAGS@			\
 				-I@top_srcdir@/daq/format		\
 			        -I@top_srcdir@/base/dataflow	\
-				-I@top_srcdir@/base/os
+				-I@top_srcdir@/base/os		\
+				@OPENSSL_INCLUDES@
 
 eventlog_LDADD		=	eventlogargs.o	\
 				@top_builddir@/daq/format/libdataformat.la	\
 				@top_builddir@/base/dataflow/libDataFlow.la	\
 				@LIBEXCEPTION_LDFLAGS@			\
 				@top_builddir@/base/os/libdaqshm.la		\
-				$(THREADLD_FLAGS)
+				$(THREADLD_FLAGS) @OPENSSL_LDFLAGS@ @OPENSSL_LIBS@
 
 eventlog_CXXFLAGS	=	$(THREADCXX_FLAGS) $(AM_CXXFLAGS)
 
@@ -38,6 +39,10 @@ eventlogargs.o: eventlogargs.ggo
 
 EXTRA_DIST		=	eventlogargs.ggo eventlog.xml
 
+#  Need to clean the products of processing eventlogargs.ggo:
+
+clean-local:
+	rm -f eventlogargs.h eventlogargs.c
 
 
 #-------------------------------------------------------------

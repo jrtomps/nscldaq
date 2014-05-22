@@ -10,6 +10,7 @@
 #include <CRingBuffer.h>
 #include <DataFormat.h>
 
+extern std::string uniqueName(std::string);
 
 class desiredtests : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(desiredtests);
@@ -23,10 +24,10 @@ private:
 
 public:
   void setUp() {
-    CRingBuffer::create("pred");
+    CRingBuffer::create(uniqueName("pred"));
   }
   void tearDown() {
-    CRingBuffer::remove("pred");
+    CRingBuffer::remove(uniqueName("pred"));
   }
 protected:
   void selecttest();
@@ -38,8 +39,8 @@ CPPUNIT_TEST_SUITE_REGISTRATION(desiredtests);
 // Check that we will select the right types of things.
 
 void desiredtests::selecttest() {
-  CRingBuffer prod("pred", CRingBuffer::producer);
-  CRingBuffer cons("pred", CRingBuffer::consumer);
+  CRingBuffer prod(uniqueName("pred"), CRingBuffer::producer);
+  CRingBuffer cons(uniqueName("pred"), CRingBuffer::consumer);
   
   CDesiredTypesPredicate p;
   p.addDesiredType(123);
@@ -59,8 +60,8 @@ void desiredtests::selecttest() {
 // Check that sampling behaves correctly.
 
 void desiredtests::sampletest() {
-  CRingBuffer prod("pred", CRingBuffer::producer);
-  CRingBuffer cons("pred", CRingBuffer::consumer);
+  CRingBuffer prod(uniqueName("pred"), CRingBuffer::producer);
+  CRingBuffer cons(uniqueName("pred"), CRingBuffer::consumer);
 
   
   CDesiredTypesPredicate p;

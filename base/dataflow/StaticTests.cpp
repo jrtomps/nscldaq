@@ -20,13 +20,10 @@
 
 using namespace std;
 
-
+static std::string SHM_TESTFILE;
 
 // Default name of shared memory special file:
 
-#ifndef SHM_TESTFILE
-#define SHM_TESTFILE "statictest"
-#endif
 
 
 static string getFullName()
@@ -52,9 +49,11 @@ class StaticRingTest : public CppUnit::TestFixture {
 
 
 private:
+    
 
 public:
   void setUp() {
+    SHM_TESTFILE = uniqueRing("statictest");
     string fullName = "/";
     fullName += SHM_TESTFILE;
     shm_unlink(fullName.c_str()); // Dangling stuff.
@@ -157,7 +156,7 @@ void StaticRingTest::format()
 
   // independently map and check the header...
 
-  void* map = mapRingBuffer(SHM_TESTFILE);
+  void* map = mapRingBuffer(SHM_TESTFILE.c_str());
   
   pRingBuffer        pRing         = reinterpret_cast<pRingBuffer>(map);
   pRingHeader        pHeader       = &(pRing->s_header);

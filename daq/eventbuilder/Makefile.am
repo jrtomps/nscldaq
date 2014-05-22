@@ -121,7 +121,7 @@ unittests_LDADD = libEventBuilderClient.la \
 unittests_DEPENDENCIES = cmdline.o cmdline.h
 
 check-TESTS:
-	TCLLIBPATH=@prefix@/TclLibs @TCLSH_CMD@ tclTests.tcl
+	TCLLIBPATH=@prefix@/TclLibs HERE=@srcdir@ tcl=@TCLSH_CMD@ @TCLSH_CMD@ @srcdir@/tclTests.tcl
 #	./unittests 
 
 

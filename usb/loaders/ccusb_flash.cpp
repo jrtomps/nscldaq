@@ -19,16 +19,12 @@
 
 
 
-int main(int argc, char *fname[])
+int main(int argc, char** argv)
 {
 
-  //Make sure the number of arguements is correct
-  if(argc != 2)
-  {
-    printf("\n\n Must provide a firmware file name as an argument\n\n");
-    return 0;
-  }
-
+ 
+  char* fname;
+  char* serial(0);
   struct usb_device *dev;
   xxusb_device_type devices[100]; 
   time_t t1, t2;
@@ -43,24 +39,56 @@ int main(int argc, char *fname[])
   int ret;
 
 
+    // parameter processing:
+    
+    if ((argc < 2) || (argc > 3)) {
+        printf("Usage\n");
+        printf("   %s firmware-file [serial-string]", argv[0]);
+        printf("Where:\n");
+        printf("    firmware-file - Is a .bit or .bin formatted Xilinx firmware file\n");
+        printf("    serial-string - If present is the specific serial number of the CC-USB to flash\n");
+        return -1;
+    }
+    fname = argv[1];
+    
+    if(argc == 3) {
+        serial = argv[2];
+    }
+
 
 	printf("\n*************************************************************************\n\n");
 	printf("                   WIENER VM_USB Firmware upgrade\n");
+        printf("\n*************************************************************************\n");
+  
+
   
   //open CC_USB
-  xxusb_devices_find(devices);
-  dev = devices[0].usbdev;
-  udev = xxusb_device_open(dev); 
-	if(!udev)
-	{
-    printf("\nUnable to open a CC_USB device\n");
-    return 0;
-  }
+  
+    if (serial) {
+        udev = xxusb_serial_open(serial);
+      
+    } else {
+      if (xxusb_devices_find(devices) <= 0) {
+	printf("There are no CC_CSB controllers on this system\n");
+	return 0;
+      }
+      dev = devices[0].usbdev;
+      udev = xxusb_device_open(dev); 
+      
+    }
+    if(!udev)
+    {
+      printf("\nUnable to open a CC_USB device\n");
+      if (serial) {
+        printf("Possibly there is no CC_USB with the serial: %s\n", serial);
+      }
+      return 0;
+    }
 	  
 	  
 	//open Firmware File  
   ik=0;
-	if ((fptr=fopen(fname[1],"rb"))==NULL)
+	if ((fptr=fopen(fname,"rb"))==NULL)
 	{
     printf("\n File not Found\n");
 	  return 0;

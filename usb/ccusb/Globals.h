@@ -27,6 +27,7 @@
 
 class CConfiguration;
 class CCCUSB;
+class TclServer;
 
 #include <stdint.h>
 
@@ -50,6 +51,8 @@ namespace Globals {
   extern unsigned        scalerPeriod;
   extern unsigned        sourceId;
   extern char*           pTimestampExtractor;
+  extern TclServer*      pTclServer;
+  
 };
 
 #endif

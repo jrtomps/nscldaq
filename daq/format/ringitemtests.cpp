@@ -18,6 +18,9 @@
 
 #include <CRingBuffer.h>
 
+std::string uniqueName(std::string);
+
+
 using namespace std;
 
 class ritemtests : public CppUnit::TestFixture {
@@ -77,7 +80,7 @@ void ritemtests::construct() {
 
   EQ((void*)small.m_pItem->s_body.u_noBodyHeader.s_body, (void*)small.m_pCursor);
   EQ((uint32_t)0, small.m_pItem->s_body.u_noBodyHeader.s_mbz);
-  EQ(CRingItemStaticBufferSize, small.m_storageSize);
+  EQ(CRingItemStaticBufferSize-10, small.m_storageSize);
   EQ(false, small.m_swapNeeded);
 
   // Let's look at the member data for big:
@@ -164,7 +167,7 @@ ritemtests::cursor()
 void
 ritemtests::toring()
 {
-  CRingBuffer::create("items");
+  CRingBuffer::create(uniqueName("items"));
 
   try {
     // Create fill an item
@@ -176,8 +179,8 @@ ritemtests::toring()
     }
     item.setBodyCursor(pData);
 
-    CRingBuffer prod("items", CRingBuffer::producer);
-    CRingBuffer cons("items", CRingBuffer::consumer);
+    CRingBuffer prod(uniqueName("items"), CRingBuffer::producer);
+    CRingBuffer cons(uniqueName("items"), CRingBuffer::consumer);
 
     item.commitToRing(prod);
 
@@ -200,10 +203,10 @@ ritemtests::toring()
     }
   }
   catch(...) {
-    CRingBuffer::remove("items");
+    CRingBuffer::remove(uniqueName("items"));
     throw;
   }
-  CRingBuffer::remove("items");
+  CRingBuffer::remove(uniqueName("items"));
 
 
 }
@@ -215,7 +218,7 @@ ritemtests::toring()
 void
 ritemtests::fromring()
 {
-  CRingBuffer::create("items");
+  CRingBuffer::create(uniqueName("items"));
   
   try {
     CRingItem item(0x1234);
@@ -225,8 +228,8 @@ ritemtests::fromring()
     }
     item.setBodyCursor(pData);
 
-    CRingBuffer prod("items", CRingBuffer::producer);
-    CRingBuffer cons("items", CRingBuffer::consumer);
+    CRingBuffer prod(uniqueName("items"), CRingBuffer::producer);
+    CRingBuffer cons(uniqueName("items"), CRingBuffer::consumer);
 
     item.commitToRing(prod);
 
@@ -246,11 +249,11 @@ ritemtests::fromring()
     
   }
   catch (...) {
-    CRingBuffer::remove("items");
+    CRingBuffer::remove(uniqueName("items"));
     throw;
   
   }
-  CRingBuffer::remove("items");
+  CRingBuffer::remove(uniqueName("items"));
 
 
 }
@@ -262,15 +265,15 @@ ritemtests::fromring()
 void
 ritemtests::selection()
 {
-  CRingBuffer::create("items");
+  CRingBuffer::create(uniqueName("items"));
 
   try {
     CRingItem i1(1);
     CRingItem i2(2);
 
 
-    CRingBuffer prod("items", CRingBuffer::producer);
-    CRingBuffer cons("items", CRingBuffer::consumer);
+    CRingBuffer prod(uniqueName("items"), CRingBuffer::producer);
+    CRingBuffer cons(uniqueName("items"), CRingBuffer::consumer);
 
     i1.commitToRing(prod);
     i2.commitToRing(prod);
@@ -283,11 +286,11 @@ ritemtests::selection()
 
   }
   catch(...) {
-    CRingBuffer::remove("items");
+    CRingBuffer::remove(uniqueName("items"));
     throw;
   }
 
-  CRingBuffer::remove("items");
+  CRingBuffer::remove(uniqueName("items"));
 }
 
 // Let's get data with sampling.
@@ -297,7 +300,7 @@ ritemtests::selection()
 void 
 ritemtests::sampling()
 {
-   CRingBuffer::create("items");
+   CRingBuffer::create(uniqueName("items"));
 
   try {
     CRingItem i1(1);
@@ -309,8 +312,8 @@ ritemtests::sampling()
     *pData++ = 2;
     i2.setBodyCursor(pData);
 
-    CRingBuffer prod("items", CRingBuffer::producer);
-    CRingBuffer cons("items", CRingBuffer::consumer);
+    CRingBuffer prod(uniqueName("items"), CRingBuffer::producer);
+    CRingBuffer cons(uniqueName("items"), CRingBuffer::consumer);
 
     i1.commitToRing(prod);
     i2.commitToRing(prod);
@@ -324,11 +327,11 @@ ritemtests::sampling()
 
   }
   catch(...) {
-    CRingBuffer::remove("items");
+    CRingBuffer::remove(uniqueName("items"));
     throw;
   }
 
-  CRingBuffer::remove("items");
+  CRingBuffer::remove(uniqueName("items"));
 } 
 
 /**

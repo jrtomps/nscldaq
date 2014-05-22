@@ -39,8 +39,8 @@ CCUSBReadout_LDADD	=  @top_builddir@/usb/ccusb/devices/libCCUSBDevices.la	\
 	@top_builddir@/usb/ccusb/tclserver/libCCUSBControlServer.la \
         @top_builddir@/servers/portmanager/libPortManager.la \
 	@top_builddir@/base/dataflow/libDataFlow.la \
-	@LIBTCLPLUS_LDFLAGS@	\
 	@top_builddir@/base/thread/libdaqthreads.la		\
+	@LIBTCLPLUS_LDFLAGS@	\
 	@TCL_LDFLAGS@ @THREADLD_FLAGS@ 
 
 CCUSBReadout_LDFLAGS=-Wl,"-rpath=$(libdir)"

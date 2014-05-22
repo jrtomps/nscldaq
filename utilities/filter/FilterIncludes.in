@@ -8,14 +8,14 @@ TCL_LDFLAGS=@TCL_LDFLAGS@
 
 # Compilation flags:
 
-CXXFLAGS = -g -fPIC -I. -I$(MAININCLUDES) -I$(INCLUDES)   $(TCL_FLAGS) @THREADCXX_FLAGS@
+CXXFLAGS = -g -fPIC -I. -I$(MAININCLUDES) -I$(INCLUDES)   $(TCL_FLAGS) @THREADCXX_FLAGS@ @LIBTCLPLUS_CFLAGS@
 CCFLAGS=$(CXXFLAGS)
 
 LDFLAGS = $(LIBDIR)/libdaqshm.so	\
 	$(LIBDIR)/libdataformat.so	\
 	$(LIBDIR)/liburl.so	\
 	$(LIBDIR)/libfilter.so	\
-	-L/usr/lib -lException \
+	@LIBEXCEPTION_LDFLAGS@ \
 	$(TCL_LDFLAGS) @THREADLD_FLAGS@ \
 	-Wl,-rpath=$(LIBDIR)
 

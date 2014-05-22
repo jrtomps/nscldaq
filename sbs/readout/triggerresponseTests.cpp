@@ -30,7 +30,9 @@
 
 using namespace std;
 
-static string ringName("testring");
+extern std::string uniqueName(std::string);
+
+static string ringName(uniqueName("testring"));
 
 
 // Exercises the various trigger operations on the CExperiment class.

@@ -2251,7 +2251,18 @@ g++ -shared -o libMyDriver.so MyDriver.cpp
 	      resolve any other undefined symbols that are in libraries
 	      not part of the readout program.
 	    </para>
-
+            <para>
+	      To use the driver you need to load it into the interpreter
+	      and the use the <command>Module</command> to make an instance
+	      and to maniuplate that instance.  For example:
+	    </para>
+	    <informalexample>
+	      <programlisting>
+load [file join [file dirname [info script]] libMyDriver.so]
+Module create testModule mydriver
+Module config testModule -anint 1234
+	      </programlisting>
+	    </informalexample>
 	  </section>
 	</section>
 	
@@ -2756,7 +2767,7 @@ snit::type Mydriver {                            <co id='ctldriver-tclstruct-sni
 	    Wrap your driver with the <literal>tcl</literal> module type:
 	    <informalexample>
 	      <programlisting>
-Module create tcl atcldriver
+Module create  atcldriver tcl
 Module config atcldriver -ensemble aninstance
 	      </programlisting>
 	    </informalexample>
@@ -11972,6 +11983,25 @@ class <ooclass><classname>CConfigurableObject</classname></ooclass>
         </methodparam>
     </methodsynopsis>
     <methodsynopsis>
+        <modifier></modifier>
+        <type>void</type>
+        <methodname>addIntListParam</methodname>
+        <methodparam><type>std::string</type> <parameter>name</parameter></methodparam>
+        <methodparam><type>int</type> <parameter>minvalue</parameter></methodparam>
+        <methodparam><type>int</type> <parameter>maxvalue</parameter></methodparam>
+        <methodparam><type>unsigned</type> <parameter>minlength</parameter></methodparam>
+        <methodparam><type>unsigned</type> <parameter>maxlength</parameter></methodparam>
+         <methodparam>
+            <type>int</type> <parameter>defaultVal</parameter>
+        </methodparam>
+        <methodparam>
+            <type>int</type> <parameter>defaultSize</parameter>
+        </methodparam>       
+        
+        <exceptionname></exceptionname>
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
         <type>void</type> <methodname>addStringListParameter</methodname>
         <methodparam>
             <type>std::string</type> <parameter>name</parameter>
@@ -12786,6 +12816,38 @@ static const char* validEnums[] = {
                                 <parameter>minlength</parameter> and
                                 <parameter>maxLength</parameter> and the
                                 list has an initial value of <parameter>defaultSize</parameter>
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>
+                                <methodsynopsis>
+                                    <modifier></modifier>
+                                    <type>void</type>
+                                    <methodname>addIntListParam</methodname>
+                                    <methodparam><type>std::string</type> <parameter>name</parameter></methodparam>
+                                    <methodparam><type>int</type> <parameter>minvalue</parameter></methodparam>
+                                    <methodparam><type>int</type> <parameter>maxvalue</parameter></methodparam>
+                                    <methodparam><type>unsigned</type> <parameter>minlength</parameter></methodparam>
+                                    <methodparam><type>unsigned</type> <parameter>maxlength</parameter></methodparam>
+                                     <methodparam>
+                                        <type>int</type> <parameter>defaultVal</parameter>
+                                    </methodparam>
+                                    <methodparam>
+                                        <type>int</type> <parameter>defaultSize</parameter>
+                                    </methodparam>       
+                                    
+                                    <exceptionname></exceptionname>
+                                    <modifier></modifier>
+                                </methodsynopsis>  
+                        </term>
+                        <listitem>
+                            <para>
+                                Same as the other <methodname>addIntListParam</methodname>
+                                methods however <parameter>minvalue</parameter>
+                                and <parameter>maxvalue</parameter>
+                                place constraints on the value that can be given to each
+                                element of the list.
                             </para>
                         </listitem>
                     </varlistentry>
@@ -16212,7 +16274,7 @@ Module cget <replaceable>name</replaceable>
                 </refsect3>
             </refsect2>
             <refsect2>
-                <title>caenv812/canev895</title>
+                <title>caenv812/caen895</title>
                 <para>
                     The CAEN V812 is a VME 16 channel constant fraction
                     disriminator while the V895 is a software compatible

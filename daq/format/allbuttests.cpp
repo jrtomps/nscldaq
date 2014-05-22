@@ -7,7 +7,7 @@
 #include "CAllButPredicate.h"
 #include "DataFormat.h"
 
-
+extern std::string uniqueName(std::string);
 
 class allbuttests : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(allbuttests);
@@ -24,14 +24,14 @@ private:
 
 public:
   void setUp() {
-    CRingBuffer::create("pred");
-    pCons = new CRingBuffer("pred", CRingBuffer::consumer);
-    pProd = new CRingBuffer("pred", CRingBuffer::producer);
+    CRingBuffer::create(uniqueName("pred"));
+    pCons = new CRingBuffer(uniqueName("pred"), CRingBuffer::consumer);
+    pProd = new CRingBuffer(uniqueName("pred"), CRingBuffer::producer);
   }
   void tearDown() {
     delete pCons;
     delete pProd;   
-    CRingBuffer::remove("pred");
+    CRingBuffer::remove(uniqueName("pred"));
 
   }
 protected:

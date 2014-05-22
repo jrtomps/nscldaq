@@ -59,7 +59,11 @@ class EventLogMain
   unsigned          m_nSourceCount;
   bool              m_fRunNumberOverride;
   uint32_t          m_nOverrideRunNumber;
-  
+  bool              m_fChecksum;
+  void*             m_pChecksumContext;  
+  uint32_t          m_nBeginsSeen;
+  bool              m_fChangeRunOk;
+
   // Constructors and canonicals:
 
 public:
@@ -88,6 +92,8 @@ private:
   bool  dirOk(std::string dirname) const;
   bool  dataTimeout();
   size_t itemSize(CRingItem& item) const;
+  std::string shaFile(int runNumber) const;
+  bool isBadItem(CRingItem& item, int runNumber);
 };
 
 

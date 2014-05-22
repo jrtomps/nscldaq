@@ -473,7 +473,7 @@ proc EVBC::onBegin {} {
         }
             
         if {[info commands startEVBSources] ne ""} {
-            EVBC::_waitForEventBuilder
+	    ::EVBC::_waitForEventBuilder
             startEVBSources
         }
     } else {

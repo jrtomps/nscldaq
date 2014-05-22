@@ -125,7 +125,7 @@ CTclModule::clone() const
  * This is of the form _address_p_typename
  * @param obj - pointer to the object.
  * @param type - Type name.
- *
+ *`
  * @return std::string
  */
 std::string

@@ -37,7 +37,8 @@ libfilter_la_LDFLAGS	= -version-info $(SOVERSION)	\
 				-Wl,"-rpath-link=$(libdir)" -lrt \
 				$(THREADLD_FLAGS)
 
-libfilter_la_LIBADD	= @top_builddir@/base/dataflow/libDataFlow.la \
+libfilter_la_LIBADD	= @top_builddir@/daq/format/libdataformat.la \
+			@top_builddir@/base/dataflow/libDataFlow.la \
 			@top_builddir@/base/uri/liburl.la		\
 			@top_builddir@/base/os/libdaqshm.la		\
 			@LIBEXCEPTION_LDFLAGS@

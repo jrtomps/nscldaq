@@ -198,7 +198,10 @@ TclServer::initInterpreter()
 
 
   Tcl_Interp*  pInterp = Tcl_CreateInterp();
+  Tcl_Init(pInterp);
   m_pInterpreter       = new CTCLInterpreter(pInterp);
+
+  ::Globals::pTclServer = this;
 
   
   // Add the commands... these don't get saved.. as they will live forever

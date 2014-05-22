@@ -52,6 +52,11 @@ package require DataSourceUI
 #                                       and finalizes the event and ancillary data.
 #  * {Paused,Active} -> Halted (enter): Cleans up the logger start and logger
 #                                       done files.
+#  * {Paused, Active} -> NotReady(enter):
+#                                       If the eventlogPID is set force the
+#                                       eventlog to exit and finalize the run.
+#
+#            
 #
 #  The EventLogger DAQ configuration parameter is used to determine which
 #  event logger is started (DaqParameters).
@@ -203,14 +208,6 @@ proc ::EventLog::getLoggerPath {} {}
 # Utility methods
 
 ##
-# ::EventLog::_cdCurrent
-#
-#  Change directory to the place current event files should be written.
-#
-proc ::EventLog::_cdCurrent {} {
-    cd [::ExpFileSystem::getCurrentRunDir]
-}
-##
 # ::EventLog::_computeLoggerSwitches
 #
 # @return the command line options the logger should use:
@@ -227,7 +224,7 @@ proc ::EventLog::_computeLoggerSwitches {} {
 	set ring [::Experiment::spectrodaqURL localhost]
     }
 
-    set switches "--source=$ring "
+    set switches "--source=$ring --checksum --oneshot"
     
     # If requested, use the --number-of-sources switch:
     
@@ -241,12 +238,14 @@ proc ::EventLog::_computeLoggerSwitches {} {
     }
     # If requested get the run number from the GUI and force it:
     
+    # Generate run files in the current directory without cd'ing anywhere
+    append switches " --path=[::ExpFileSystem::getCurrentRunDir]"
+
     if {[DAQParameters::getRunNumberOverrideFlag]} {
         set run [::ReadoutGUIPanel::getRun]
         append switches " --run=$run"
     }
     
-    append switches " --oneshot"
     return $switches
 }
 ##
@@ -317,6 +316,7 @@ proc ::EventLog::_waitForFile {name waitTimeout pollInterval} {
         }
         incr waitTimeoutMs -$pollInterval
         after $pollInterval
+#	update idletasks;			# keep the event loop semi-live. TODO: Deactivate buttons.
     }
     return 0
 }
@@ -351,6 +351,17 @@ proc ::EventLog::_finalizeRun {} {
         file rename -force $eventFile $destFile
         lappend mvdNames $destFile
     }
+    #
+    #  If there is a checksum file (there should be) move that to the experiment directory
+    #
+
+    set cksumFile [file join $srcdir "${fileBaseName}.sha512"]
+    set destFile [file join $destDir [file tail $cksumFile]]
+    if {[file readable $cksumFile]} {
+	file rename -force $cksumFile $destFile
+    }
+
+    #  If 
     #  Make links in the complete directory for all mvdNames:
     
     foreach file $mvdNames {
@@ -466,20 +477,31 @@ proc ::EventLog::_duplicateRun {} {
 #   * Wait for the .started file to appear.
 #
 proc ::EventLog::runStarting {} {
+
+    #  If there's already an event logger just force it to exit.
+
+    if {$::EventLog::loggerPid ne -1} {
+	foreach pid $::EventLog::loggerPid {
+	    catch {exec kill -9 $pid};            # Catch because the pipeline could run down.
+	    set ::EventLog::loggerPid -1
+	}
+    }
+
+    # Now if desired start the new run.
     
     if {[::ReadoutGUIPanel::recordData]} {
         if {[::EventLog::_duplicateRun]} {
             error "Run already has event data or segments"
         }
-        ::EventLog::_cdCurrent
  
         # Ensure there are no stale synch files:
-
-        file delete -force .exiting
-        file delete -force .started
+        set startFile [file join [::ExpFileSystem::getCurrentRunDir] .started]
+        set exitFile [file join [::ExpFileSystem::getCurrentRunDir] .exited]
+        file delete -force $startFile 
+        file delete -force $exitFile 
         
         ::EventLog::_startLogger
-        ::EventLog::_waitForFile .started $::EventLog::startupTimeout \
+        ::EventLog::_waitForFile $startFile $::EventLog::startupTimeout \
                 $::EventLog::filePollInterval
         set ::EventLog::expectingExit 0
         ::EventLog::_setStatusLine 2000
@@ -497,17 +519,22 @@ proc ::EventLog::runStarting {} {
 #
 proc ::EventLog::runEnding {} {
     
+    set startFile [file join [::ExpFileSystem::getCurrentRunDir] .started]
+    set exitFile [file join [::ExpFileSystem::getCurrentRunDir] .exited]
     # ne is used below because the logger could be a pipeline in which case
     # ::EventLog::loggerPid will be a list of pids which freaks out ==.
     
-    
     if {$::EventLog::loggerPid ne -1} {
         set ::EventLog::expectingExit 1
-        ::EventLog::_waitForFile .exited $::EventLog::shutdownTimeout \
+        ::EventLog::_waitForFile $exitFile $::EventLog::shutdownTimeout \
             $::EventLog::filePollInterval
+	foreach pid $::EventLog::loggerPid {
+	    catch {exec kill -9 $pid}; # in case waitforfile timed out.
+	}
         set ::EventLog::loggerPid -1
         ::EventLog::_finalizeRun
-        file delete -force .exited;   # So it's not there next time!!
+        file delete -force $startFile;   # So it's not there next time!!
+        file delete -force $exitFile;   # So it's not there next time!!
         
         # Incremnt the run number:
         
@@ -548,6 +575,9 @@ proc ::EventLog::attach {state} {
 proc ::EventLog::enter {from to} {
     if {($from in [list Active Paused]) && ($to eq "Halted")} {
         ::EventLog::runEnding
+    }
+    if {($from in [list Active Paused]) && ($to eq "NotReady")} {
+	::EventLog::runEnding
     }
 }
 ##

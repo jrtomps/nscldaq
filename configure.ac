@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.61)
-AC_INIT(nscldaq, 11.0-rc6, fox@nscl.msu.edu)
+AC_INIT(nscldaq, 11.0-rc7, fox@nscl.msu.edu)
 
 AC_CONFIG_SRCDIR([/utilities/StringsToIntegers.h])
 AC_CONFIG_HEADER([config.h])
@@ -26,6 +26,11 @@ AC_CHECK_LIB([Xt], [XtManage])
 
 
 AM_PATH_CPPUNIT
+
+# Checksums in eventlog require openssl for the digest libs:
+
+AX_CHECK_OPENSSL([AC_MSG_RESULT([found openssl])],[AC_MSG_ERROR([Open SSL  is required but can't be found])])
+
 
 #
 #   For compatibility with existing AC_Substs:
@@ -87,6 +92,11 @@ SOVERSION="11:0:0"
 #
 #  Local tests:
 #
+
+# Ensure Python is 2.7 or greater, and the packages/dependencies we need
+
+AM_PATH_PYTHON([2.7], [], [AC_MSG_ERROR([Python 2.7 or higher is needed for NSCLDAQ])])
+AX_PYQT
 
 # Ensure swig is installed: -- this is used to generate wrappers for the
 #  VMUSB and CCUSB libraries for use within Tcl drivers.
@@ -238,6 +248,8 @@ else
 fi
 
 
+
+
 #----------------------------------------------------------------------------
 
 # Exports to the makefiles:
@@ -293,6 +305,7 @@ AC_CONFIG_LINKS([utilities/filter/run-0000-00.evt:utilities/filter/run-0000-00.e
 
 AC_CONFIG_FILES([Makefile
 		nscldaq
+		daqsetup.bash
 		base/Makefile
 		base/os/Makefile
                  base/CopyrightTools/Makefile
@@ -328,6 +341,8 @@ AC_CONFIG_FILES([Makefile
 		 utilities/compatibility/eventlog-compat
 		 utilities/compatibility/spectcldaq
 		 utilities/compatibility/s800toring
+		 utilities/compatibility/bufdump
+		 utilities/experimentConfiguration/Makefile
                  epics/chanlog/Makefile
                  epics/controlpush/Makefile
                  epics/epicsdisplay/Makefile
@@ -383,6 +398,7 @@ AC_CONFIG_FILES([Makefile
 		 usb/ccusb/ccusb/Makefile usb/ccusb/devices/Makefile 
 		 usb/ccusb/threadcomm/Makefile usb/ccusb/router/Makefile
 		 usb/ccusb/rdothread/Makefile usb/ccusb/tclserver/Makefile 
+		 usb/ccusb/tclserver/driver_Makefile
 		 usb/ccusb/daqconfig/Makefile  usb/ccusb/commands/Makefile
 		 usb/ccusb/driverkit/Makefile
 		 usb/ccusb/driverkit/Makefile-template

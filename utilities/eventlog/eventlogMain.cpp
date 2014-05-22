@@ -14,6 +14,7 @@
 	     East Lansing, MI 48824-1321
 */
 #include <config.h>
+#include <openssl/evp.h>
 #include "eventlogMain.h"
 #include "eventlogargs.h"
 
@@ -75,7 +76,11 @@ class noData :  public CRingBuffer::CRingBufferPredicate
    m_eventDirectory(string(".")),
    m_segmentSize((static_cast<uint64_t>(1.9*G))),
    m_exitOnEndRun(false),
-   m_nSourceCount(1)
+   m_nSourceCount(1),
+   m_fRunNumberOverride(false),
+   m_pChecksumContext(0),
+   m_nBeginsSeen(0),
+   m_fChangeRunOk(false)
  {
  }
 
@@ -166,6 +171,7 @@ class noData :  public CRingBuffer::CRingBufferPredicate
        perror("Could not open the .started file");
        exit(EXIT_FAILURE);
      }
+
      close(fd);
    }
 
@@ -193,8 +199,9 @@ class noData :  public CRingBuffer::CRingBufferPredicate
 	 */
 	 
 	 if (pItem->type() == RING_FORMAT) {
-        pFormatItem = pItem;
+	   pFormatItem = pItem;
 	 } else if (pItem->type() == BEGIN_RUN) {
+	   m_nBeginsSeen = 1;
 	   break;
 	 } else {
 	   // Ring format item must >exactly< precede BEGIN_RUN:
@@ -267,7 +274,6 @@ class noData :  public CRingBuffer::CRingBufferPredicate
    CRingItem*   pItem;
    uint16_t     itemType;
 
-   cout << "Event logger will expect " << endsRemaining << " end run records\n";
 
    // Figure out what file to open and how to set the pItem:
 
@@ -315,7 +321,6 @@ class noData :  public CRingBuffer::CRingBufferPredicate
 
      if(itemType == END_RUN) {
        endsRemaining--;
-       cout << "Saw one end of run, " << endsRemaining << " left\n";
        if (endsRemaining == 0) {
 	 break;
        }
@@ -332,8 +337,47 @@ class noData :  public CRingBuffer::CRingBufferPredicate
        break;
      }
      pItem =  CRingItem::getFromRing(*m_pRing, p);
-
+     if(isBadItem(*pItem, runNumber)) {
+       std::cerr << "Eventlog: Data indicates probably the run ended in error exiting\n";
+       exit(EXIT_FAILURE);
+     }
    } 
+   //
+   //  If checksumming, finalize the checksum and write out the checksum file as well.
+   //  by  now m_pChecksumContext is only set if m_fChecksum was true when the run
+   //  files were opened.
+   //
+   if (m_pChecksumContext) {
+     EVP_MD_CTX* pCtx = reinterpret_cast<EVP_MD_CTX*>(m_pChecksumContext);
+     unsigned char* pDigest = reinterpret_cast<unsigned char*>(OPENSSL_malloc(EVP_MD_size(EVP_sha512())));
+     unsigned int   len;
+       
+     // Not quite sure what to do if pDigest failed to malloc...for now
+     // silently ignore...
+
+     if (pDigest) {
+       EVP_DigestFinal_ex(pCtx, pDigest, &len);
+       std::string digestFilename = shaFile(runNumber);
+       FILE* shafp = fopen(digestFilename.c_str(), "w");
+
+     
+       // Again not quite sure what to do if the open failed.
+       if (shafp) {
+	 unsigned char* p = pDigest;
+	 for (int i =0; i < len;i++) {
+	   fprintf(shafp, "%02x", *p++);
+	 }
+	 fprintf(shafp, "\n");
+	 fclose(shafp);
+       }
+       // Release the digest storage and the context.
+       OPENSSL_free(pDigest);
+
+     }
+     EVP_MD_CTX_destroy(pCtx);
+     m_pChecksumContext = 0;
+       
+   }
 
    close(fd);
 
@@ -406,6 +450,10 @@ class noData :  public CRingBuffer::CRingBufferPredicate
      cerr << "Could not open the data source: " << ringUrl << endl;
      exit(EXIT_FAILURE);
    }
+   // Checksum flag:
+
+   m_fChecksum = (parsed.checksum_flag != 0);
+   m_fChangeRunOk = (parsed.combine_runs_flag != 0);
 
  }
 
@@ -524,7 +572,29 @@ void
 EventLogMain::writeItem(int fd, CRingItem& item)
 {
     try {
-        io::writeData(fd, item.getItemPointer(), itemSize(item));
+      void*    pItem = item.getItemPointer();
+      uint32_t nBytes= itemSize(item);
+
+      // If necessary create the checksum context
+      // If checksumming add the ring item to the sum.
+
+      if (m_fChecksum) {
+	if (!m_pChecksumContext) {
+	  m_pChecksumContext = EVP_MD_CTX_create();
+	  if (!m_pChecksumContext) throw errno;
+	  if(EVP_DigestInit_ex(
+	      reinterpret_cast<EVP_MD_CTX*>(m_pChecksumContext), EVP_sha512(), NULL) != 1) {
+	    EVP_MD_CTX_destroy(reinterpret_cast<EVP_MD_CTX*>(m_pChecksumContext));
+	    m_pChecksumContext = 0;
+	    throw std::string("Unable to initialize the checksum digest");
+	  }
+
+	}
+	EVP_DigestUpdate(
+           reinterpret_cast<EVP_MD_CTX*>(m_pChecksumContext), pItem, nBytes);
+      }
+
+      io::writeData(fd, pItem, nBytes);
     }
     catch(int err) {
       if(err) {
@@ -533,7 +603,11 @@ EventLogMain::writeItem(int fd, CRingItem& item)
         cerr << "Output file closed out from underneath us\n";
       }
       exit(EXIT_FAILURE);
-    }    
+    }
+    catch (std::string e) {
+      std::cerr << e << std::endl;
+      exit(EXIT_FAILURE);
+    }
 }
 /**
 * itemSize
@@ -546,4 +620,66 @@ size_t
 EventLogMain::itemSize(CRingItem& item) const
 {
     return ::itemSize(reinterpret_cast<pRingItem>(item.getItemPointer()));
+}
+/**
+ * shaFile
+ *    Compute the filename for the checksum for a run.
+ *
+ * @param run - Run number
+ * 
+ * @return std::string - the filename.
+ */
+std::string
+EventLogMain::shaFile(int run) const
+{
+  char runNumber[100];
+  sprintf(runNumber, "%04d", run);
+
+  std::string fileName = m_eventDirectory;
+  fileName+= "/run-";
+  fileName+= runNumber;
+  fileName += ".sha512";
+
+  return fileName;
+}
+/**
+ * isBadItem
+ *     This method is called to determine if we've gotten a ring item that
+ *      might indicate we need to exit in --one-shot mode:
+ *      -  If --combine-runs is set, or --one-shot not set, return false.
+ *      -  If the run number changed from the one we are recording,
+ *         true.
+ *      -  If we had more begin runs than m_nSourceCount, true
+ *      -  None of these, return false.
+ *
+ * @param item      - Reference to the ring item to check.
+ * @param runNumber - the current run number.
+ *
+ * @return bool
+ * @retval true  - there's something fishy about this -- probably we should exit.
+ * @retval false - as near as we can tell everything is ok.
+ */
+bool
+EventLogMain::isBadItem(CRingItem& item, int runNumber)
+{
+  // For some states of program options we just don't care about the
+  // data
+
+  if (m_fChangeRunOk || (!m_exitOnEndRun)) {
+    return false;
+  }
+  // For the rest we only care about state changes -- begins in fact
+
+  if (item.type() == BEGIN_RUN) {
+    m_nBeginsSeen++;
+    if (m_nBeginsSeen > m_nSourceCount) {
+      return true;
+    }
+    CRingStateChangeItem begin(item);
+    if (begin.getRunNumber() != runNumber) {
+      return true;
+    }
+  }
+  return false;
+
 }

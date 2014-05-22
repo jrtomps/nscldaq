@@ -370,11 +370,16 @@ CRingAccess::local(std::string host)
 
   if (host == std::string("localhost")) return true;
 
+
   // Create the fqdn of the local host:
   // TODO: Error handling from gethostname and getaddrinfo
   //
   char hostname[HOST_NAME_MAX+1];
   gethostname(hostname, sizeof(hostname));
+
+  if (host == std::string(hostname)) {
+    return true;
+  }
 
   struct addrinfo  hints = {AI_CANONNAME | AI_V4MAPPED | AI_ADDRCONFIG,
 			    AF_UNSPEC, 0, 0, 

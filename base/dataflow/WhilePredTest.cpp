@@ -5,12 +5,9 @@
 #include "Asserts.h"
 #include <CRingBuffer.h>
 #include <string.h>
+#include "testcommon.h"
 
 using namespace std;
-
-#ifndef SHM_TESTFILE
-#define SHM_TESTFILE "whilepred"
-#endif
 
 
 class WhilePredTest : public CppUnit::TestFixture {
@@ -20,9 +17,10 @@ class WhilePredTest : public CppUnit::TestFixture {
 
 
 private:
-
+    std::string SHM_TESTFILE;
 public:
   void setUp() {
+    SHM_TESTFILE = uniqueRing("whilepred");
     CRingBuffer::create(string(SHM_TESTFILE));
   }
   void tearDown() {

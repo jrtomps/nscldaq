@@ -13,6 +13,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <stdio.h>
+#include <stdio.h>
 
 // Map a ring buffer, return the mapping address.
 // fails the test if there's an error.
@@ -48,4 +49,17 @@ std::string shmName(std::string name)
  full += name;
  return name;
 
+}
+
+//
+// Given a base name, returns a unique ring name.
+// done by qualifying the basename with the pid.
+// Limitations - total ring name must be < 1000 chars.
+std::string uniqueRing(std::string baseName)
+{
+    pid_t pid = getpid();
+    char fullName[1000];
+    sprintf(fullName, "%s_%d", baseName.c_str(), pid);
+    return std::string(fullName);
+    
 }

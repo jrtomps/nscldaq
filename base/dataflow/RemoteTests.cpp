@@ -7,6 +7,7 @@
 #include <CRingBuffer.h>
 #include <CRemoteAccess.h>
 #include <string.h>
+#include "testcommon.h"
 
 using namespace std;
 
@@ -25,10 +26,10 @@ private:
 
 public:
   void setUp() {
-    CRingBuffer::create(string("urllocal"));
+    CRingBuffer::create(uniqueRing("urllocal"));
   }
   void tearDown() {
-    CRingBuffer::remove(string("urllocal"));  
+    CRingBuffer::remove(uniqueRing("urllocal"));  
   }
 protected:
   void sizeTest();
@@ -115,8 +116,12 @@ RemoteTests::urllocal()
   bool caught = false;
   CRingBuffer* pConsumer(0);
   try {
-    CRingBuffer  producer("urllocal", CRingBuffer::producer);
-    pConsumer = CRingAccess::daqConsumeFrom("tcp://localhost/urllocal");
+    std::string ring = uniqueRing("urllocal");
+    std::string uri  = "tcp://localhost/";
+    uri += ring;
+    CRingBuffer  producer(ring, CRingBuffer::producer);
+    
+    pConsumer = CRingAccess::daqConsumeFrom(uri);
    
     ASSERT(pConsumer);
 
@@ -169,10 +174,13 @@ RemoteTests::urlremote()
   bool caught = false;
   CRingBuffer* pConsumer(0);
   try {
-    CRingBuffer  producer("urllocal", CRingBuffer::producer);
+    std::string ring = uniqueRing("urllocal");
+    
+    CRingBuffer  producer(ring, CRingBuffer::producer);
     string url("tcp://");
     url += hostName;
-    url += "/urllocal";
+    url += "/";
+    url += ring;
     pConsumer = CRingAccess::daqConsumeFrom(url);
    
     sleep(1);			//  Let everything settle in and start.

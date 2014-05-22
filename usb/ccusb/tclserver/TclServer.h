@@ -89,6 +89,7 @@ public:
   void            setResult(std::string resultText);
 
   virtual void    init();
+  CTCLInterpreter* getInterp() { return m_pInterpreter; }
 protected:
   void operator()();
 

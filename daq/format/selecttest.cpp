@@ -19,6 +19,8 @@
 
 using namespace std;
 
+extern std::string uniqueName(std::string base);
+
 
 // We need a predicate that is concrete as we're testing an ABC.
 // We'll also want it to expose some of the protected members.
@@ -65,7 +67,7 @@ public:
   }
   void tearDown() {
     try {
-      CRingBuffer::remove("pred");
+      CRingBuffer::remove(uniqueName("pred"));
     }
     catch(...) {}
   }
@@ -155,11 +157,11 @@ void selecttest::addItem()
 void selecttest::eval()
 {
   TestPred p(5);
-  CRingBuffer::create("pred");
+  CRingBuffer::create(uniqueName("pred"));
 
   try {
-    CRingBuffer prod("pred", CRingBuffer::producer);
-    CRingBuffer cons("pred", CRingBuffer::consumer);
+    CRingBuffer prod(uniqueName("pred"), CRingBuffer::producer);
+    CRingBuffer cons(uniqueName("pred"), CRingBuffer::consumer);
     
     // No header:
 
@@ -205,10 +207,10 @@ void selecttest::eval()
     
   }
   catch(...) {
-    CRingBuffer::remove("pred");
+    CRingBuffer::remove(uniqueName("pred"));
     throw;
   }
-  CRingBuffer::remove("pred");
+  CRingBuffer::remove(uniqueName("pred"));
   
   
 }
@@ -219,11 +221,11 @@ void selecttest::eval()
 //
 void selecttest::sample()
 {
-  CRingBuffer::create("pred");
+  CRingBuffer::create(uniqueName("pred"));
 
   try {
-    CRingBuffer prod("pred", CRingBuffer::producer);
-    CRingBuffer cons("pred");
+    CRingBuffer prod(uniqueName("pred"), CRingBuffer::producer);
+    CRingBuffer cons(uniqueName("pred"));
 
     // Set up the predicate for 5 with sample...
 
@@ -255,9 +257,9 @@ void selecttest::sample()
 
   }
   catch(...) {
-    CRingBuffer::remove("pred");
+    CRingBuffer::remove(uniqueName("pred"));
     throw;
   }
 
-  CRingBuffer::remove("pred");
+  CRingBuffer::remove(uniqueName("pred"));
 }
