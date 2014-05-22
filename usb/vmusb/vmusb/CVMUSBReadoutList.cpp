@@ -154,6 +154,16 @@ CVMUSBReadoutList::get() const
 {
    return m_list;
 }
+
+/*!
+  Append the contents of another readoutlist to this one
+*/
+void CVMUSBReadoutList::append(const CVMUSBReadoutList& list)
+{
+  const std::vector<uint32_t>& other = list.get();
+  m_list.insert(m_list.end(), other.begin(), other.end());
+}
+
 /////////////////////////////////////////////////////////////////////
 //  register operations.
 

@@ -14,17 +14,6 @@
 	     East Lansing, MI 48824-1321
 */
 
-#ifdef SWIG
-#ifndef _FLATTEN_NESTED_CLASSES
-#define _FLATTEN_NESTED_CLASSES
-#endif
-%module CVMUSBReadoutList
-%{
-#define _FLATTEN_NESTED_CLASSES
-#include <CVMUSBReadoutList.h>
-%}
-#endif
-
 #ifndef __CVMUSBREADOUTLIST_H
 #define __CVMUSBREADOUTLIST_H
 
@@ -105,14 +94,18 @@ public:
   size_t                size() const;
   std::vector<uint32_t> get()  const;
   
+
+  // Append readout list
+  void append(const CVMUSBReadoutList& list);
+
   // Register operations 
   
 public:
   void addRegisterRead(unsigned int address);
   void addRegisterWrite(unsigned int address, uint32_t data);
-  void addRegisterWrite(unsigned int address, int data) { // SWIG
-    addRegisterWrite(address, (uint32_t)data);
-  }
+//  void addRegisterWrite(unsigned int address, int data) { // SWIG
+//    addRegisterWrite(address, (uint32_t)data);
+//  }
 
     // Single shot VME operations.  Note that these are only supported
     // in natural alignments, as otherwise it is not so easy to let the
@@ -124,16 +117,16 @@ public:
   void addWrite32(uint32_t address, uint8_t amod, uint32_t datum);
   void addWrite16(uint32_t address, uint8_t amod, uint16_t datum);
   void addWrite8(uint32_t address,  uint8_t amod, uint8_t datum);
-  void addWrite32(int address, int amod, int data) { // SWIG
-    addWrite32((uint32_t)address, (uint8_t)amod, (uint32_t)data);
-  }
-  void addWrite16(int address, int amod, int data) { // SWIG
-    addWrite16((uint32_t)address, (uint8_t)amod, (uint16_t)data);
-  }
-  void addWrite8(int address, int amod, int data) { // SWIG
-    addWrite8((uint32_t)address, (uint8_t)amod, (uint8_t)data);
-  }
-
+//  void addWrite32(int address, int amod, int data) { // SWIG
+//    addWrite32((uint32_t)address, (uint8_t)amod, (uint32_t)data);
+//  }
+//  void addWrite16(int address, int amod, int data) { // SWIG
+//    addWrite16((uint32_t)address, (uint8_t)amod, (uint16_t)data);
+//  }
+//  void addWrite8(int address, int amod, int data) { // SWIG
+//    addWrite8((uint32_t)address, (uint8_t)amod, (uint8_t)data);
+//  }
+//
 
 
   // Reads:
@@ -141,15 +134,15 @@ public:
   void addRead32(uint32_t address, uint8_t amod);
   void addRead16(uint32_t address, uint8_t amod);
   void addRead8(uint32_t address, uint8_t amod);
-  void addRead32(int address, int amod) { // SWIG
-    addRead32((uint32_t)address, (uint8_t)amod);
-  }
-  void addRead16(int address, int amod) { // SWIG
-    addRead16((uint32_t)address, (uint8_t)amod);
-  }  
-  void addRead8(int address, int amod) { // SWIG
-    addRead8((uint32_t)address, (uint8_t)amod);
-  }
+//  void addRead32(int address, int amod) { // SWIG
+//    addRead32((uint32_t)address, (uint8_t)amod);
+//  }
+//  void addRead16(int address, int amod) { // SWIG
+//    addRead16((uint32_t)address, (uint8_t)amod);
+//  }  
+//  void addRead8(int address, int amod) { // SWIG
+//    addRead8((uint32_t)address, (uint8_t)amod);
+//  }
 
 
   // Block transfer operations. 
@@ -160,15 +153,15 @@ public:
   void addFifoRead16(uint32_t baseAddress, uint8_t amod, size_t transfers);
   void addBlockWrite32(uint32_t baseAddresss, uint8_t amod, void* data, 
 		       size_t transfers);
-  void addBlockRead32(int base, int amod, int transfers) { // SWIG
-    addBlockRead32((uint32_t)base, (uint8_t)amod, (size_t)transfers);
-  }
-  void addFifoRead32(int base, int amod,int  transfers) { // SWIG
-    addFifoRead32((uint32_t)base, (uint8_t)amod, (size_t)transfers);
-  }
-  void addFifoRead16(int base, int amod, int transfers) { // SWIG
-    addFifoRead16((uint32_t)base, (uint8_t)amod, (size_t)transfers);
-  }
+//  void addBlockRead32(int base, int amod, int transfers) { // SWIG
+//    addBlockRead32((uint32_t)base, (uint8_t)amod, (size_t)transfers);
+//  }
+//  void addFifoRead32(int base, int amod,int  transfers) { // SWIG
+//    addFifoRead32((uint32_t)base, (uint8_t)amod, (size_t)transfers);
+//  }
+//  void addFifoRead16(int base, int amod, int transfers) { // SWIG
+//    addFifoRead16((uint32_t)base, (uint8_t)amod, (size_t)transfers);
+//  }
   // NOTE: addBlockWrite is not supported for SWIG at this time...
   //       need to figure out how I'd want to implement it.
 
@@ -187,36 +180,36 @@ public:
   void addBlockCountRead32(uint32_t address, uint32_t mask, uint8_t amod);
   void addMaskedCountBlockRead32(uint32_t address, uint8_t amod);
   void addMaskedCountFifoRead32(uint32_t address, uint8_t amod);
-  void addBlockCountRead8(int a, int m, int am) { // SWIG
-    addBlockCountRead8((uint32_t)a, uint32_t(m), (uint8_t)am);
-  }
-  void addBlockCountRead16(int a, int m, int am) { // SWIG
-    addBlockCountRead16((uint32_t)a, uint32_t(m), (uint8_t)am);
-  }
-  void addBlockCountRead32(int a, int m, int am) { // SWIG
-    addBlockCountRead32((uint32_t)a, uint32_t(m), (uint8_t)am);
-  }
-  void addMaskedCountBlockRead32(int a, int am) { // SWIG
-    addMaskedCountBlockRead32((uint32_t)a, (uint8_t)am);
-  }
-  void addMaskedCountFifoRead32(int a, int am) { // SWIG
-    addMaskedCountFifoRead32((uint32_t)a, (uint8_t)am);
-  }
+//  void addBlockCountRead8(int a, int m, int am) { // SWIG
+//    addBlockCountRead8((uint32_t)a, uint32_t(m), (uint8_t)am);
+//  }
+//  void addBlockCountRead16(int a, int m, int am) { // SWIG
+//    addBlockCountRead16((uint32_t)a, uint32_t(m), (uint8_t)am);
+//  }
+//  void addBlockCountRead32(int a, int m, int am) { // SWIG
+//    addBlockCountRead32((uint32_t)a, uint32_t(m), (uint8_t)am);
+//  }
+//  void addMaskedCountBlockRead32(int a, int am) { // SWIG
+//    addMaskedCountBlockRead32((uint32_t)a, (uint8_t)am);
+//  }
+//  void addMaskedCountFifoRead32(int a, int am) { // SWIG
+//    addMaskedCountFifoRead32((uint32_t)a, (uint8_t)am);
+//  }
 
 
 
   // Miscellaneous:
 
   void addDelay(uint8_t clocks);
-  void addDelay(int clocks) {	// SWIG
-    addDelay((uint8_t)clocks);
-  }
+//  void addDelay(int clocks) {	// SWIG
+//    addDelay((uint8_t)clocks);
+//  }
 
 
   void addMarker(uint16_t value);
-  void addMarker(int value) {	// SWIG
-    addMarker((uint16_t) value);
-  }
+//  void addMarker(int value) {	// SWIG
+//    addMarker((uint16_t) value);
+//  }
 
 
   // Debugging:
@@ -275,5 +268,28 @@ private:
 
 };
 
+inline std::vector<uint32_t>* vecuint32_create(int size)
+{
+  return new std::vector<uint32_t>(size);
+}
+
+inline void vecuint32_pushback(std::vector<uint32_t>* vec, uint32_t val)
+{
+  vec->push_back(val); 
+}
+
+inline void vecuint32_set(std::vector<uint32_t>* vec, int index, uint32_t val)
+{
+  if (index >= vec->size()) {
+    vec->resize(index+1);
+  }
+
+  (*vec)[index] = val;
+}
+
+inline std::vector<uint32_t>& vecuint32_ptr2ref(std::vector<uint32_t>* vec)
+{
+  return *vec;
+}
 
 #endif

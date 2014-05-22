@@ -31,12 +31,9 @@ libVMUSB_CXXFLAGS=@THREADCXX_FLAGS@
 
 INCLUDES		= $(USBSWITCHES) -I@top_srcdir@/base/headers @LIBTCLPLUS_CFLAGS@  \
 			-I@top_srcdir@/base/tcpip \
-			-I@top_srcdir@/base/os	\
 			  @TCL_FLAGS@
 
-libVMUSB_la_LIBADD       = @top_builddir@/base/tcpip/libTcp.la \
-			@top_builddir@/base/os/libdaqshm.la	\
-				$(USB_LIBS)  
+libVMUSB_la_LIBADD       = @top_builddir@/base/tcpip/libTcp.la $(USB_LIBS)  
 
 libVMUSBRemote_la_LIBADD = @top_builddir@/usb/vmusb/vmusb/libVMUSB.la \
 	@TCL_LDFLAGS@ \
@@ -46,7 +43,9 @@ libVMUSBRemote_la_LIBADD = @top_builddir@/usb/vmusb/vmusb/libVMUSB.la \
 #IVP tests:
 
 
-TEST_MODULES = TestRunner.cpp regTests.cpp  vmeTests.cpp
+TEST_MODULES = @srcdir@/TestRunner.cpp \
+              @srcdir@/regTests.cpp \
+              @srcdir@/vmeTests.cpp
 
 
 tests: $(TEST_MODULES)
@@ -79,21 +78,17 @@ EXTRA_DIST = $(TEST_MODULES)
 # Swig interface generation:
 
 libCVMUSB_la_SOURCES = @srcdir@/CVMUSB_wrap.cxx
-libCVMUSB_la_LIBADD  = libVMUSB.la \
-			@top_builddir@/base/os/libdaqshm.la	\
-			@THREADLD_FLAGS@
+libCVMUSB_la_LIBADD  = libVMUSB.la @THREADLD_FLAGS@
 
 BUILT_SOURCES=@srcdir@/CVMUSB_wrap.cxx @srcdir@/CVMUSBReadoutList_wrap.cxx
 
 @srcdir@/CVMUSB_wrap.cxx:	@srcdir@/CVMUSB.h
-	@SWIG@ -c++ -outdir @srcdir@ -debug-classes -tcl -namespace -pkgversion 1.0 @srcdir@/CVMUSB.h 
+	@SWIG@ -c++ -outdir @srcdir@ -debug-classes -tcl -namespace -pkgversion 1.0 @srcdir@/CVMUSB.i
 
 libCVMUSBReadoutList_la_SOURCES = @srcdir@/CVMUSBReadoutList_wrap.cxx
-libCVMUSBReadoutList_la_LIBADD = libVMUSB.la \
-				@top_builddir@/base/os/libdaqshm.la	\
-				@THREADLD_FLAGS@
+libCVMUSBReadoutList_la_LIBADD = libVMUSB.la @THREADLD_FLAGS@
 
 
 @srcdir@/CVMUSBReadoutList_wrap.cxx: @srcdir@/CVMUSBReadoutList.h
 	@SWIG@ -c++ -outdir @srcdir@ -debug-classes -tcl -namespace -pkgversion 1.0 \
-	 @srcdir@/CVMUSBReadoutList.h 
+	 @srcdir@/CVMUSBReadoutList.i 

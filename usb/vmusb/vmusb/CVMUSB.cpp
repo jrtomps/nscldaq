@@ -18,8 +18,6 @@
 
 #include "CVMUSB.h"
 #include "CVMUSBReadoutList.h"
-#include <os.h>
-
 #include <usb.h>
 #include <errno.h>
 #include <string.h>
@@ -180,7 +178,8 @@ CVMUSB::serialNo(struct usb_device* dev)
 CVMUSB::CVMUSB(struct usb_device* device) :
     m_handle(0),
     m_device(device),
-    m_timeout(DEFAULT_TIMEOUT)
+    m_timeout(DEFAULT_TIMEOUT),
+    m_regShadow()
 {
     m_handle  = usb_open(m_device);
     if (!m_handle) {
@@ -208,7 +207,7 @@ CVMUSB::CVMUSB(struct usb_device* device) :
     usb_clear_halt(m_handle, ENDPOINT_IN);
     usb_clear_halt(m_handle, ENDPOINT_OUT);
 
-    Os::usleep(100);
+    usleep(100);
     
     // Now set the irq mask so that all bits are set..that:
     // - is the only way to ensure the m_irqMask value matches the register.
@@ -226,7 +225,7 @@ CVMUSB::~CVMUSB()
   if (m_handle) {
     usb_release_interface(m_handle, 0);
     usb_close(m_handle);
-    Os::usleep(5000); 
+    usleep(5000); 
   }
 }
 /**
@@ -240,6 +239,16 @@ CVMUSB::reconnect()
 ////////////////////////////////////////////////////////////////////
 //////////////////////// Register operations ///////////////////////
 ////////////////////////////////////////////////////////////////////
+
+
+/**!
+*
+*/
+const CVMUSB::ShadowRegister& CVMUSB::getShadowRegisters() const {
+  return m_regShadow;
+}
+
+
 /*!
     Writing a value to the action register.  This is really the only
     special case for this code.  The action register is the only
@@ -277,6 +286,9 @@ CVMUSB::writeActionRegister(uint16_t value)
     if (status != outSize) {
 	throw "usb_bulk_write wrote different size than expected";
     }
+
+    // Store the written value into the shadow register if we succeeded
+    m_regShadow.action = value;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -292,7 +304,8 @@ CVMUSB::writeActionRegister(uint16_t value)
 int
 CVMUSB::readFirmwareID()
 {
-    return readRegister(FIDRegister);
+    m_regShadow.firmwareID = readRegister(FIDRegister);
+    return m_regShadow.firmwareID; 
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -306,6 +319,7 @@ void
 CVMUSB::writeGlobalMode(uint16_t value)
 {
     writeRegister(GMODERegister, static_cast<uint32_t>(value));
+    m_regShadow.globalMode = value; 
 }
 
 /*!
@@ -316,7 +330,8 @@ CVMUSB::writeGlobalMode(uint16_t value)
 int
 CVMUSB::readGlobalMode()
 {
-    return static_cast<uint16_t>(readRegister(GMODERegister));
+    m_regShadow.globalMode = static_cast<uint16_t>(readRegister(GMODERegister));
+    return m_regShadow.globalMode; 
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -331,6 +346,7 @@ void
 CVMUSB::writeDAQSettings(uint32_t value)
 {
     writeRegister(DAQSetRegister, value);
+    m_regShadow.daqSettings = value;
 }
 /*!
   Read the data acquisition settings register.
@@ -340,7 +356,8 @@ CVMUSB::writeDAQSettings(uint32_t value)
 int
 CVMUSB::readDAQSettings()
 {
-    return readRegister(DAQSetRegister);
+    m_regShadow.daqSettings = readRegister(DAQSetRegister);
+    return m_regShadow.daqSettings; 
 }
 //////////////////////////////////////////////////////////////////////////
 /*!
@@ -360,6 +377,7 @@ void
 CVMUSB::writeLEDSource(uint32_t value)
 {
     writeRegister(LEDSrcRegister, value);
+    m_regShadow.ledSources = value;
 }
 /*!
    Read the LED Source register.  
@@ -369,7 +387,8 @@ CVMUSB::writeLEDSource(uint32_t value)
 int
 CVMUSB::readLEDSource()
 {
-    return readRegister(LEDSrcRegister);
+    m_regShadow.ledSources = readRegister(LEDSrcRegister);
+    return m_regShadow.ledSources; 
 }
 /////////////////////////////////////////////////////////////////////////
 /*!
@@ -389,6 +408,7 @@ void
 CVMUSB::writeDeviceSource(uint32_t value)
 {
     writeRegister(DEVSrcRegister, value);
+    m_regShadow.deviceSources = value;
 }
 /*!
    Read the device source register.
@@ -398,7 +418,8 @@ CVMUSB::writeDeviceSource(uint32_t value)
 int
 CVMUSB::readDeviceSource()
 {
-    return readRegister(DEVSrcRegister);
+    m_regShadow.deviceSources = readRegister(DEVSrcRegister);
+    return m_regShadow.deviceSources; 
 }
 /////////////////////////////////////////////////////////////////////////
 /*!
@@ -412,6 +433,7 @@ void
 CVMUSB::writeDGG_A(uint32_t value)
 {
     writeRegister(DGGARegister, value);
+    m_regShadow.dggA = value;
 }
 /*!
    Read the register controlling the delay and fine width of 
@@ -422,7 +444,8 @@ CVMUSB::writeDGG_A(uint32_t value)
 uint32_t
 CVMUSB::readDGG_A()
 {
-    return readRegister(DGGARegister);
+    m_regShadow.dggA = readRegister(DGGARegister);
+    return m_regShadow.dggA;
 }
 /*!
   Write the gate with and delay for the B dgg. See writeDGG_A for
@@ -432,6 +455,7 @@ void
 CVMUSB::writeDGG_B(uint32_t value)
 {
     writeRegister(DGGBRegister, value);
+    m_regShadow.dggB = value;
 }
 /*!
    Reads the control register for the B channel DGG.  See readDGG_A
@@ -440,7 +464,8 @@ CVMUSB::writeDGG_B(uint32_t value)
  uint32_t
  CVMUSB::readDGG_B()
 {
-    return readRegister(DGGBRegister);
+    m_regShadow.dggB = readRegister(DGGBRegister);
+    return m_regShadow.dggB;
 }
 
 /*!
@@ -452,6 +477,7 @@ void
 CVMUSB::writeDGG_Extended(uint32_t value)
 {
     writeRegister(DGGExtended, value);
+    m_regShadow.dggExtended = value;
 }
 /*!
    Read the value of the DGG extension register.
@@ -459,7 +485,8 @@ CVMUSB::writeDGG_Extended(uint32_t value)
 uint32_t
 CVMUSB::readDGG_Extended()
 {
-    return readRegister(DGGExtended);
+    m_regShadow.dggExtended = readRegister(DGGExtended);
+    return m_regShadow.dggExtended;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -505,7 +532,8 @@ CVMUSB::writeVector(int which, uint32_t value)
 {
     unsigned int regno = whichToISV(which);
     writeRegister(regno, value);
-    
+    m_regShadow.interruptVectors[regno] = value;
+
     // Horrible kluge... 
     // set the tops of the vectors to 0xfffffff in keeping with what 8bit
     // interrupters (the only type  I know of) require).
@@ -529,7 +557,8 @@ int
 CVMUSB::readVector(int which)
 {
     unsigned int regno = whichToISV(which);
-    return readRegister(regno);
+    m_regShadow.interruptVectors[regno] = readRegister(regno);
+    return m_regShadow.intteruptVectors[regno]; 
 }
 
 /*!
@@ -558,14 +587,15 @@ CVMUSB::writeIrqMask(uint8_t mask)
 
   writeGlobalMode(oldGlobalMode); // restor the old globalmode.
 
-  m_irqMask = mask;
+  m_regShadow.irqMask = mask;
+  
 }
 /*!
    Read the interrupt mask.  This 8 bit register has bits set for each
    interrupt level that should be ignoered by the VM-USB.
    @return uint8_t
    @retval contents of the mask register.
-*/;
+*/
 int
 CVMUSB::readIrqMask()
 {
@@ -573,7 +603,7 @@ CVMUSB::readIrqMask()
   // can't actually read it without destroying it, we're just going to use
   // a copy of the value:
 
-  return m_irqMask;
+  return m_regShadow.irqMask; 
 }
 
 
@@ -591,6 +621,7 @@ void
 CVMUSB::writeBulkXferSetup(uint32_t value)
 {
     writeRegister(USBSetup, value);
+    m_regShadow.bulkTransferSetup = value;
 }
 /*!
    Read the bulk transfer setup register.
@@ -598,7 +629,8 @@ CVMUSB::writeBulkXferSetup(uint32_t value)
 int
 CVMUSB::readBulkXferSetup()
 {
-    return readRegister(USBSetup);
+    m_regShadow.bulkTransferSetup = readRegister(USBSetup);
+    return m_regShadow.bulkTransferSetup;
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -614,12 +646,14 @@ void
 CVMUSB::writeEventsPerBuffer(uint32_t value)
 {
     writeRegister(ExtractMask, (0xfff&value));
+    m_regShadow.eventsPerBuffer = value;
 }
 
 uint32_t 
 CVMUSB::readEventsPerBuffer(void)
 {
-  return readRegister(ExtractMask);
+  m_regShadow.eventsPerBuffer = readRegister(ExtractMask);
+  return m_regShadow.eventsPerBuffer; 
 }
 
 /////////////////////////////////////////////////////////////////////////
