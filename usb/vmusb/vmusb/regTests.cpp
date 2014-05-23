@@ -5,8 +5,12 @@
 #include "Asserts.h"
 #include <usb.h>
 #include <CVMUSB.h>
+#include <CVMUSBusb.h>
 #include <vector>
 #include <stdio.h>
+
+class TCLApplication;
+TCLApplication* gpTCLApplication = 0;
 
 using namespace std;
 
@@ -36,7 +40,7 @@ public:
       cerr << " NO USB interfaces\n";
       exit(0);
     }
-    m_pInterface = new CVMUSB(devices[0]);
+    m_pInterface = new CVMUSBusb(devices[0]);
   }
   void tearDown() {
     delete m_pInterface;
@@ -123,7 +127,8 @@ void registerTests::devsrc()
 {
   uint32_t usedBits =    0x77331f1f; // 7777 not 77ff since reset is momentary.
 
-  m_pInterface->writeDeviceSource(0xffffffff);
+//  m_pInterface->writeDeviceSource(0x7fffffff);
+  m_pInterface->writeDeviceSource(usedBits);
   uint32_t value = m_pInterface->readDeviceSource();
   EQMSG("ones", usedBits, (value & usedBits));
 

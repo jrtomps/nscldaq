@@ -49,9 +49,9 @@ TEST_MODULES = @srcdir@/TestRunner.cpp \
 
 
 tests: $(TEST_MODULES)
-	$(CXX) -g -o tests -I. -I@prefix@/include $(CPPUNIT_INCLUDES) \
+	$(CXX) -g -o tests -I@srcdir@ -I@prefix@/include $(CPPUNIT_INCLUDES) \
 	$(TEST_MODULES) $(CPPUNIT_LDFLAGS) -L@prefix@/lib -lVMUSB \
-	-Wl,"-rpath=@prefix@/lib"
+	-Wl,"-rpath=@prefix@/lib" @TCL_LDFLAGS@ @LIBTCLPLUS_LDFLAGS@
 
 installcheck-local: tests
 	./tests
