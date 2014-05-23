@@ -102,7 +102,7 @@ class CVMUSB
     */ 
     struct ShadowRegisters {
       uint16_t action;
-      int firmwareID;
+      uint32_t firmwareID;
       uint16_t globalMode;
       uint32_t daqSettings;
       uint32_t ledSources;
@@ -110,7 +110,7 @@ class CVMUSB
       uint32_t dggA; 
       uint32_t dggB; 
       uint32_t dggExtended; 
-      uint32_t eventsPerBuffer;
+      uint16_t eventsPerBuffer;
       std::vector<uint16_t> interruptVectors;
       uint16_t irqMask;
       uint32_t bulkTransferSetup;
