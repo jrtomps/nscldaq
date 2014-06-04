@@ -142,10 +142,6 @@ public:
 
     void setDefaultTimeout(int ms); // Can alter internally used timeouts.
 
-    // Register bit definintions.
-
-public: 
-
 private:
     void openVMUsb();
 
