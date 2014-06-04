@@ -31,6 +31,7 @@ libVMUSB_CXXFLAGS=@THREADCXX_FLAGS@
 
 INCLUDES		= $(USBSWITCHES) -I@top_srcdir@/base/headers @LIBTCLPLUS_CFLAGS@  \
 			-I@top_srcdir@/base/tcpip \
+			-I@top_srcdir@/base/os \
 			  @TCL_FLAGS@
 
 libVMUSB_la_LIBADD       = @top_builddir@/base/tcpip/libTcp.la $(USB_LIBS)  
