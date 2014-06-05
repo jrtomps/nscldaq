@@ -33,7 +33,7 @@
         <title>Dumping data from the event file segment
             <filename>/user/0400x/complete/run-1234-00.evt</filename></title>
         <screen>
-<command>dumper --source=file://user/0400x/complete/run-1234-00.evt</command>
+<command>dumper --source=file:///user/0400x/complete/run-1234-00.evt</command>
         </screen>
     </example>
     <para>
