@@ -36,6 +36,7 @@ package require ring
 
 package require portAllocator
 package require DataSourceUI
+package require versionUtils
 
 
 
@@ -208,11 +209,50 @@ proc ::EventLog::getLoggerPath {} {}
 # Utility methods
 
 ##
+# ::EventLog::_extractEventLogVersion
+#
+# Given a path containing a path name, this will extract a version
+# number
+#
+proc ::EventLog::_getLoggerVersion {evtlogpath} {
+
+  # Open a pipe to read from
+  set pipe [open "|$evtlogpath --version" r]
+  chan configure $pipe -buffering line
+
+  # enable blocking because I want to make sure that I get
+  # the value immediately and don't proceed otherwise.
+  chan configure $pipe -blocking on
+
+  set line [read $pipe]
+  if { [string equal $line ""] } {
+    error "Cannot determine eventlog version"
+  } else {
+    if {[catch {close $pipe} msg]} {
+      puts "Exceptional exit of eventlog : $msg"
+    }
+  }
+
+  # Trim off the newline and whitespace at the end
+  set line [string trim $line "\n "]
+
+
+  set splitLine [split $line { }]
+  if {[llength $splitLine] < 2 && ([lindex $splitLine 0] ne "EventLog")} {
+    error "eventlog --version returned something different from \"EventLog VSN#\" : \"$splitLine\""
+  }
+  return [lindex $splitLine 1]
+}
+
+
+##
 # ::EventLog::_computeLoggerSwitches
+#
+# @param loggerVersion the version of the eventlog program
 #
 # @return the command line options the logger should use:
 #
-proc ::EventLog::_computeLoggerSwitches {} {
+proc ::EventLog::_computeLoggerSwitches {{loggerVersion 1.0}} {
     
     # Base switches:
     
@@ -221,10 +261,20 @@ proc ::EventLog::_computeLoggerSwitches {} {
     # Compatibility with 10.x:
 
     if {[info proc ::Experiment::spectrodaqURL] ne ""} {
-	set ring [::Experiment::spectrodaqURL localhost]
+      set ring [::Experiment::spectrodaqURL localhost]
     }
-
-    set switches "--source=$ring --checksum --oneshot"
+  
+    # Check that the logger in use returns a version that is greater
+    # than or equal to 11.0. This is equivalent to 11.0 <= loggerVersion
+    # as is actually computed
+    set minVersion 11.0-rc6 
+    set parsedVersion [::versionUtils::parseVersion $loggerVersion]
+    set parsedMinVersion [::versionUtils::parseVersion $minVersion]
+    if {[::versionUtils::lessThan $parsedMinVersion $parsedVersion]} {
+      set switches "--source=$ring --checksum --oneshot"
+    } else {
+      set switches "--source=$ring --oneshot"
+    } 
     
     # If requested, use the --number-of-sources switch:
     
@@ -259,7 +309,8 @@ proc ::EventLog::_computeLoggerSwitches {} {
 proc ::EventLog::_startLogger {} {
     ReadoutGUIPanel::isRecording
     set logger [DAQParameters::getEventLogger] 
-    set switches [::EventLog::_computeLoggerSwitches]
+    set loggerVsn [::EventLog::_getLoggerVersion $logger]
+    set switches [::EventLog::_computeLoggerSwitches $loggerVsn]
     set ::EventLog::loggerFd \
         [open "| $logger $switches" r]
     set ::EventLog::loggerPid [pid $::EventLog::loggerFd]
