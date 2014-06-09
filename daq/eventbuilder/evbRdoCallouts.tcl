@@ -362,6 +362,8 @@ proc EVBC::startRingSource {sourceRingUrl timestampExtractorLib id info} {
     set fd [open "| $ringSource |& cat" r]
     fconfigure $fd -buffering line -blocking 0
     fileevent $fd readable [list EVBC::_HandleDataSourceInput $fd $info $id]
+
+    puts [format "EVBC::startRingSource completed @ %d" [clock microseconds]]
 }
 ##
 # @fn EVBC::startS800Source
@@ -416,7 +418,13 @@ proc EVBC::initialize args {
         if {[$EVBC::applicationOptions cget -gui] && [$EVBC::applicationOptions cget -restart]} {
             EVBC::_StartGui
         }
-        
+
+        # if -gui is true, start it
+        if {[$EVBC::applicationOptions cget -gui]} {
+            EVBC::_StartGui
+        }
+    
+         
     }
     #
     #  If the app is being destroyed kill the event builder too:
