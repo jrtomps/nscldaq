@@ -27,12 +27,14 @@ eventlog_CXXFLAGS	=	$(THREADCXX_FLAGS) $(AM_CXXFLAGS)
 # Gengetopt stuff.
 
 eventlogargs.h: eventlogargs.ggo
-	$(GENGETOPT) <@top_srcdir@/utilities/eventlog/eventlogargs.ggo --file=eventlogargs
+	$(GENGETOPT) <@top_srcdir@/utilities/eventlog/eventlogargs.ggo --file=eventlogargs \
+								--set-version=@VERSION@
 	$(CC) -c -I. eventlogargs.c
 
 
 eventlogargs.o: eventlogargs.ggo
-	$(GENGETOPT) <@top_srcdir@/utilities/eventlog/eventlogargs.ggo --file=eventlogargs
+	$(GENGETOPT) <@top_srcdir@/utilities/eventlog/eventlogargs.ggo --file=eventlogargs \
+								--set-version=@VERSION@
 	$(CC) -c -I. eventlogargs.c
 
 # Extra files to distribute.
