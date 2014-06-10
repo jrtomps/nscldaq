@@ -36,6 +36,8 @@ CFragmentHandler* CFragmentHandler::m_pInstance(0);
 
 static const time_t DefaultBuildWindow(20); // default seconds to accumulate data before ordering.
 static const uint32_t IdlePollInterval(2);  // Seconds between idle polls.
+static const time_t DefaultStartupTimeout(2); // default seconds to accumulate data before ordering.
+static time_t timeOfFirstSubmission(UINT64_MAX); // 
 
 /*---------------------------------------------------------------------
  * Debugging
@@ -81,6 +83,7 @@ CFragmentHandler::CFragmentHandler()
 
 {
     m_nBuildWindow = DefaultBuildWindow;
+    m_nStartupTimeout = DefaultStartupTimeout;
     m_pInstance = this;
     resetTimestamps();
 
@@ -137,6 +140,7 @@ CFragmentHandler::getInstance()
 static  EVB::FragmentHeader lastHeader;
 static bool first(true);
 
+
 void
 CFragmentHandler::addFragments(size_t nSize, EVB::pFlatFragment pFragments)
 {
@@ -146,7 +150,9 @@ CFragmentHandler::addFragments(size_t nSize, EVB::pFlatFragment pFragments)
       m_nMostRecentlyEmptied = m_nNow;
     }
 
-
+    if (first) {
+      timeOfFirstSubmission = m_nNow;
+    }
 
     while (nSize) {
       EVB::pFragmentHeader pHeader = &(pFragments->s_header);
@@ -174,7 +180,11 @@ CFragmentHandler::addFragments(size_t nSize, EVB::pFlatFragment pFragments)
       nSize -= fragmentSize;
     }
     findOldest();		// Probably not needed but pretty quick.
-    flushQueues();		// flush events with received time stamps older than m_nNow - m_nBuildWindow
+    if (m_nNow-timeOfFirstSubmission > m_nStartupTimeout) {
+      // Don't flush until we have allowed time for all data sources to 
+      // establish themselves
+      flushQueues();		// flush events with received time stamps older than m_nNow - m_nBuildWindow
+    }
 
 
 }
@@ -688,17 +698,17 @@ CFragmentHandler::popOldest()
 
     int i = 1;
     for (Sources::iterator p = m_FragmentQueues.begin(); 
-	 p != m_FragmentQueues.end(); p++) {
+        p != m_FragmentQueues.end(); p++) {
       if (!p->second.s_queue.empty()) {
-	std::pair<time_t, ::EVB::pFragment> frag = p->second.s_queue.front();   // head of queue.
-	if (frag.second->s_header.s_barrier == 0) {                             // only non-barriers.
-	  if (frag.second->s_header.s_timestamp < nextOldest) {                 // Oldest one yet.
-	    pOldestQ = p;
-	    nextOldest = frag.second->s_header.s_timestamp;
-	  } 
-	} else {
-	  m_fBarrierPending = true; // Mark a pending barrier.
-	} 
+        std::pair<time_t, ::EVB::pFragment> frag = p->second.s_queue.front();   // head of queue.
+        if (frag.second->s_header.s_barrier == 0) {                             // only non-barriers.
+          if (frag.second->s_header.s_timestamp < nextOldest) {                 // Oldest one yet.
+            pOldestQ = p;
+            nextOldest = frag.second->s_header.s_timestamp;
+          } 
+        } else {
+          m_fBarrierPending = true; // Mark a pending barrier.
+        } 
       }
 
       i++;
@@ -709,7 +719,7 @@ CFragmentHandler::popOldest()
     if (nextOldest != UINT64_MAX) { // Found one in pOldestQ.
       std::pair<time_t, ::EVB::pFragment> oldestFrag = pOldestQ->second.s_queue.front();
       pOldestQ->second.s_queue.pop();
-      
+
       // If this queue has been emptied mark that time:
 
       if (pOldestQ->second.s_queue.empty()) {
@@ -1308,7 +1318,13 @@ CFragmentHandler::IdlePoll(ClientData data)
   if (!pHandler->m_nFragmentsLastPeriod) {
     pHandler->m_nNow = time(NULL);	// Update tod.
     pHandler->findOldest();		// Update oldest fragment time.
-    pHandler->flushQueues();
+    if (pHandler->m_nNow - timeOfFirstSubmission < pHandler->m_nStartupTimeout) { 
+      // Only flush after we have given time for all sources
+      // establish their queues
+      // Also... timeOfFirstSubmission is guaranteed to exist 
+      // because nFragmentLastPeriod is not 0
+      pHandler->flushQueues();
+    }
   } else {
     pHandler->m_nFragmentsLastPeriod = 0;
   }
