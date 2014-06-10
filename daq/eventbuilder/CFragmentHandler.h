@@ -269,6 +269,8 @@ public:
   void setBuildWindow(time_t windowWidth);
   time_t getBuildWindow() const;
 
+  void setStartupTimeout(time_t duration);
+  time_t getStartupTimeout() const;
   // Observer management:
 
 public:

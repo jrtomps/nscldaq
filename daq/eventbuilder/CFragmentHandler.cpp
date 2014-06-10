@@ -28,6 +28,7 @@
 #include <stdint.h>
 
 
+
 /*---------------------------------------------------------------------
 ** Static  data:
 */
@@ -212,6 +213,32 @@ time_t
 CFragmentHandler::getBuildWindow() const
 {
   return m_nBuildWindow;
+}
+/**
+ * setStartupTimeout
+ * 
+ * Set the startup timeout duration.  The startup timeout duration determines the amount
+ * of time after the first fragment is received when calls to flushQueues is not allowed. This is
+ * to ensure that all queues have been created before flushing.
+ * 
+ * @param duration - the number of seconds to use as the startup timeout
+ */
+void
+CFragmentHandler::setStartupTimeout(time_t duration)
+{
+    m_nStartupTimeout = duration;
+}
+/**
+ * getStartupTimeout
+ *
+ * Return the value of the current startup timeout duration
+ *
+ * @return time_t - duration of the startup timeout 
+ */
+time_t
+CFragmentHandler::getStartupTimeout() const
+{
+  return m_nStartupTimeout;
 }
 
 /**
@@ -1240,6 +1267,13 @@ CFragmentHandler::checkBarrier(bool completeFlush)
   m_nNow = time(NULL);		// Update the time.
   size_t nBarriers = countPresentBarriers();
 
+#ifdef DEBUG
+  std::cerr << "checkBarrier(): nqueues=" << m_FragmentQueues.size();
+  std::cerr << " nbarriers=" << nBarriers; 
+  std::cerr << std::endl; 
+#endif
+  
+
 
   // Check for all queues having barriers:
   if (nBarriers == m_FragmentQueues.size()) {
@@ -1318,7 +1352,7 @@ CFragmentHandler::IdlePoll(ClientData data)
   if (!pHandler->m_nFragmentsLastPeriod) {
     pHandler->m_nNow = time(NULL);	// Update tod.
     pHandler->findOldest();		// Update oldest fragment time.
-    if (pHandler->m_nNow - timeOfFirstSubmission < pHandler->m_nStartupTimeout) { 
+    if (pHandler->m_nNow - timeOfFirstSubmission > pHandler->m_nStartupTimeout) { 
       // Only flush after we have given time for all sources
       // establish their queues
       // Also... timeOfFirstSubmission is guaranteed to exist 
