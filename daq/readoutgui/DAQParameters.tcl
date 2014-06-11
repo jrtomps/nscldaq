@@ -48,6 +48,7 @@ proc DAQParameters::setDefaults {} {
     Configuration::Set EventLogUseNsrcsFlag      1
     Configuration::Set EventLogAdditionalSources 0
     Configuration::Set EventLogUseGUIRunNumber   0
+    Configuration::Set EventLogUseChecksumFlag   1
 }
 # DAQParameters::environmentOverrides
 #   Overrides the defaults with information from the environment
@@ -63,6 +64,7 @@ proc DAQParameters::environmentOverrides {} {
     Configuration::readEnvironment EventLogUseNsrcsFlag      EVENTLOGGER_NSRCSFLAGS_SUPPORTED
     Configuration::readEnvironment EventLogAdditionalSources EVENTLOGGER_UNCONTROLLED_SOURCE_COUNT
     Configuration::readEnvironment EventLogUseGUIRunNumber   EVENTLOGGER_USE_GUI_RUNNUM
+    Configuration::readEnvironment EventLogUseChecksumFlag   EVENTLOGGER_USE_CHECKSUM_FLAG
     
 }
 
@@ -119,6 +121,17 @@ proc  DAQParameters::getRunNumberOverrideFlag {} {
     return [Configuration::get EventLogUseGUIRunNumber]
 }
 
+##
+# DAQParameters::getUseChecksumFlag
+#
+# @return bool - If true, the --checksum switch should be added to invocations
+#                event logger. The --checksum option is only valid to use in
+#                version later than 11.0-rc6 of eventlog so caution should be 
+#                used here. 
+#
+proc  DAQParameters::getUseChecksumFlag {} {
+    return [Configuration::get EventLogUseChecksumFlag]
+}
 #  Initialize on load:
 
 DAQParameters::setDefaults
@@ -133,6 +146,7 @@ $DAQParameters::stateManager addStateVariable EventLoggerRing  Configuration::ge
 $DAQParameters::stateManager addStateVariable EventLogUseNsrcsFlag  Configuration::get Configuration::Set
 $DAQParameters::stateManager addStateVariable EventLogAdditionalSources  Configuration::get Configuration::Set
 $DAQParameters::stateManager addStateVariable EventLogUseGUIRunNumber  Configuration::get Configuration::Set
+$DAQParameters::stateManager addStateVariable EventLogUseChecksumFlag  Configuration::get Configuration::Set
 
 
 

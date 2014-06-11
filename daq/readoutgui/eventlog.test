@@ -30,6 +30,7 @@ package require RunstateMachine
 package require Configuration
 package require ExpFileSystem
 package require snit
+package require DAQParameters 
 
 #------------------------------------------------------------------------------
 #   Procs for the mocks:
@@ -71,7 +72,7 @@ set touch [exec which touch]
 set echo [exec which echo]
 set startFile [file join [::Configuration::get StageArea] .started]
 set exitFile [file join [::Configuration::get StageArea] .exited]
-set testEventLogger "$echo EventLog 1.0 ; $touch $startFile && $touch $exitFile"
+set testEventLogger "$echo EventLog 11.0 ; $touch $startFile && $touch $exitFile"
 ::Configuration::Set EventLogger $testEventLogger 
 
 
@@ -193,7 +194,7 @@ tcltest::test getFilePollInterval {::EventLog::getFilePollInterval should track 
 
 tcltest::test currentDirPassedToSwitches {::EventLog::_computeLoggerSwitches adds --path opt
 } -body {
-  set sw [::EventLog::_computeLoggerSwitches]
+  set sw [::EventLog::_computeLoggerSwitches 11.0]
   set currdir [::ExpFileSystem::getCurrentRunDir]
   string match "* --path=$currdir*" $sw
 } -result 1 
@@ -224,17 +225,20 @@ tcltest::test startLoggerStaysInPWD {::EventLog::_startLogger remains in pwd } \
 # Tests to ensure that the checksum switch is handled properly depending on the version of the code
 # being used.
 
+set incompatibleChecksumMsg "The selected version of eventlog does not support the --checksum option! Go to the Settings > Event Recording and deselect the \"Compute checksum\" option"
+
+
 tcltest::test vsn1p0EventlogGetsNoChecksum {::EventLog::_computeLoggerSwitches adds --checksum only if vsn > 11.0
 } -body {
-  set sw [::EventLog::_computeLoggerSwitches 1.0]
-  string match "*--checksum*" $sw 
-} -result 0 
+  ::EventLog::_computeLoggerSwitches 1.0
+} -returnCodes 1 -result $incompatibleChecksumMsg 
+
 
 tcltest::test vsn11p0rc7EventlogGetsChecksum {::EventLog::_computeLoggerSwitches adds --checksum vsn > 11.0 
 } -body {
   set sw [::EventLog::_computeLoggerSwitches 11.0-rc6]
   string match "* --checksum*" $sw 
-} -result 0 
+} -returnCodes 1 -result $incompatibleChecksumMsg 
 
 tcltest::test vsn11p0rc7EventlogGetsChecksum {::EventLog::_computeLoggerSwitches adds --checksum vsn > 11.0 
 } -body {
@@ -247,7 +251,7 @@ tcltest::test vsn10p2dash107EventlogGetsChecksum {::EventLog::_computeLoggerSwit
 } -body {
   set sw [::EventLog::_computeLoggerSwitches 10.2-107]
   string match "* --checksum*" $sw 
-} -result 0 
+} -returnCodes 1 -result $incompatibleChecksumMsg 
 
 tcltest::test vsn11EventlogGetsChecksum {::EventLog::_computeLoggerSwitches adds --checksum vsn > 11.0
 } -body {
@@ -260,6 +264,18 @@ tcltest::test vsn11p0EventlogGetsChecksum {::EventLog::_computeLoggerSwitches ad
   set sw [::EventLog::_computeLoggerSwitches 11.0]
   string match "* --checksum*" $sw 
 } -result 1 
+
+tcltest::test vsn11p0EventlogGetsChecksum-0 {::EventLog::_computeLoggerSwitches doesn't add --checksum if DAQParameters::getUseChecksumFlag is set to 0
+} -setup {
+  set oldval [::Configuration::get EventLogUseChecksumFlag]
+  ::Configuration::Set EventLogUseChecksumFlag 0
+} -cleanup {
+  ::Configuration::Set EventLogUseChecksumFlag $oldval
+} -body {
+  set sw [::EventLog::_computeLoggerSwitches 11.0]
+  string match "* --checksum*" $sw 
+} -result 0 
+
 
 #------------------------------------------------------------------------------
 #  Report test results.

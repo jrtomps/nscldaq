@@ -264,17 +264,26 @@ proc ::EventLog::_computeLoggerSwitches {{loggerVersion 1.0}} {
       set ring [::Experiment::spectrodaqURL localhost]
     }
   
-    # Check that the logger in use returns a version that is greater
-    # than or equal to 11.0. This is equivalent to 11.0 <= loggerVersion
-    # as is actually computed
-    set minVersion 11.0-rc6 
-    set parsedVersion [::versionUtils::parseVersion $loggerVersion]
-    set parsedMinVersion [::versionUtils::parseVersion $minVersion]
-    set switches "--source=$ring --oneshot"; # invariant switches.
-    if {[::versionUtils::lessThan $parsedMinVersion $parsedVersion]} {
-	append switches " --checksum"
-    }
+    # These are the default switches to use
+    set switches "--source=$ring --oneshot"
 
+    if {[::DAQParameters::getUseChecksumFlag]} {
+      # Check that the logger in use returns a version that is greater
+      # than or equal to 11.0. This is equivalent to 11.0 <= loggerVersion
+      # as is actually computed
+      set minVersion 11.0-rc6 
+      set parsedVersion [::versionUtils::parseVersion $loggerVersion]
+      set parsedMinVersion [::versionUtils::parseVersion $minVersion]
+      if {[::versionUtils::lessThan $parsedMinVersion $parsedVersion]} {
+        append switches " --checksum"
+      } else {
+        return -code 1 \
+               "The selected version of eventlog\
+                does not support the --checksum option! Go to\
+                the Settings > Event Recording and deselect\
+                the \"Compute checksum\" option"
+      }
+    }
     
     # If requested, use the --number-of-sources switch:
     
@@ -295,7 +304,7 @@ proc ::EventLog::_computeLoggerSwitches {{loggerVersion 1.0}} {
         set run [::ReadoutGUIPanel::getRun]
         append switches " --run=$run"
     }
-    puts $switches
+    
     return $switches
 }
 ##
@@ -819,6 +828,7 @@ snit::widgetadaptor EventLog::RingBrowser {
 #                    managed by the data source manager.
 #      -forcerun  - Boolean... force the run number from GUI rather than using the
 #                   one in the begin event (used if no sources provide begin events.)
+#      -usechecksum - Boolean... start eventlogger with --checksum switch
 #
 
 snit::widgetadaptor EventLog::ParameterPrompter {
@@ -830,6 +840,7 @@ snit::widgetadaptor EventLog::ParameterPrompter {
     option -additionalsources -configuremethod _setAdditionalSources \
                               -cgetmethod      _getAdditionalSources
     option -forcerun
+    option -usechecksum       
     
     
     ##
@@ -854,6 +865,7 @@ snit::widgetadaptor EventLog::ParameterPrompter {
         set options(-usensrcs)          [::DAQParameters::getUseNsrcsFlag]
         set options(-additionalsources) [DAQParameters::getAdditionalSourceCount]
         set options(-forcerun)          [DAQParameters::getRunNumberOverrideFlag]
+        set options(-usechecksum)       [DAQParameters::getUseChecksumFlag]
         
         
 
@@ -899,6 +911,9 @@ NSCLDAQ-11.0 eventlog program or later. "
         ttk::checkbutton $win.forcerun -text {Use GUI Run number} \
             -variable [myvar options(-forcerun)] -onvalue 1 -offvalue 0
         
+        ttk::checkbutton $win.usechecksum -text {Compute checksum} \
+            -variable [myvar options(-usechecksum)] -onvalue 1 -offvalue 0
+
         grid $win.loglabel $win.logger $win.browselogger -sticky w
         grid $win.datasourcelabel $win.datasource $win.knownrings -sticky w
         grid $win.help -columnspan 3 -sticky ew
@@ -908,6 +923,7 @@ NSCLDAQ-11.0 eventlog program or later. "
         grid $f.additionalsources -row 0 -column 2 -sticky e 
         grid $f -columnspan 3     -sticky nsew
         
+        grid $win.usechecksum     -sticky w
         grid $win.forcerun
         
         $self configurelist $args
@@ -1106,6 +1122,7 @@ proc EventLog::promptParameters {} {
         Configuration::Set EventLogUseNsrcsFlag      [$ctl.f cget -usensrcs]
         Configuration::Set EventLogAdditionalSources [$ctl.f cget -additionalsources]
         Configuration::Set EventLogUseGUIRunNumber   [$ctl.f cget -forcerun]
+        Configuration::Set EventLogUseChecksumFlag   [$ctl.f cget -usechecksum]
         
         # If we're usin gthe nsrcs flag and it would currently be negative warn:
         
