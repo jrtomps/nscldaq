@@ -270,11 +270,11 @@ proc ::EventLog::_computeLoggerSwitches {{loggerVersion 1.0}} {
     set minVersion 11.0-rc6 
     set parsedVersion [::versionUtils::parseVersion $loggerVersion]
     set parsedMinVersion [::versionUtils::parseVersion $minVersion]
+    set switches "--source=$ring --oneshot"; # invariant switches.
     if {[::versionUtils::lessThan $parsedMinVersion $parsedVersion]} {
-      set switches "--source=$ring --checksum --oneshot"
-    } else {
-      set switches "--source=$ring --oneshot"
-    } 
+	append switches " --checksum"
+    }
+
     
     # If requested, use the --number-of-sources switch:
     
@@ -295,7 +295,7 @@ proc ::EventLog::_computeLoggerSwitches {{loggerVersion 1.0}} {
         set run [::ReadoutGUIPanel::getRun]
         append switches " --run=$run"
     }
-    
+    puts $switches
     return $switches
 }
 ##
