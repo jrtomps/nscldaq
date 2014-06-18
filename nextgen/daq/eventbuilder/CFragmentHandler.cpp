@@ -36,7 +36,8 @@ CFragmentHandler* CFragmentHandler::m_pInstance(0);
 
 static const time_t DefaultBuildWindow(20); // default seconds to accumulate data before ordering.
 static const uint32_t IdlePollInterval(2);  // Seconds between idle polls.
-
+static const time_t DefaultStartupTimeout(2); // default seconds to accumulate data before ordering.
+static time_t timeOfFirstSubmission(UINT64_MAX); // 
 /*---------------------------------------------------------------------
  * Debugging
  */
@@ -81,6 +82,7 @@ CFragmentHandler::CFragmentHandler()
 
 {
     m_nBuildWindow = DefaultBuildWindow;
+    m_nStartupTimeout = DefaultStartupTimeout;
     m_pInstance = this;
     resetTimestamps();
 
@@ -146,7 +148,9 @@ CFragmentHandler::addFragments(size_t nSize, EVB::pFlatFragment pFragments)
       m_nMostRecentlyEmptied = m_nNow;
     }
 
-
+    if (first) {
+      timeOfFirstSubmission = m_nNow;
+    }
 
     while (nSize) {
       EVB::pFragmentHeader pHeader = &(pFragments->s_header);
@@ -174,8 +178,11 @@ CFragmentHandler::addFragments(size_t nSize, EVB::pFlatFragment pFragments)
       nSize -= fragmentSize;
     }
     findOldest();		// Probably not needed but pretty quick.
-    flushQueues();		// flush events with received time stamps older than m_nNow - m_nBuildWindow
-
+    if (m_nNow-timeOfFirstSubmission > m_nStartupTimeout) {
+      // Don't flush until we have allowed time for all data sources to 
+      // establish themselves
+      flushQueues();		// flush events with received time stamps older than m_nNow - m_nBuildWindow
+    }
 
 }
 /**
@@ -202,6 +209,33 @@ time_t
 CFragmentHandler::getBuildWindow() const
 {
   return m_nBuildWindow;
+}
+
+/**
+ * setStartupTimeout
+ * 
+ * Set the startup timeout duration.  The startup timeout duration determines the amount
+ * of time after the first fragment is received when calls to flushQueues is not allowed. This is
+ * to ensure that all queues have been created before flushing.
+ * 
+ * @param duration - the number of seconds to use as the startup timeout
+ */
+void
+CFragmentHandler::setStartupTimeout(time_t duration)
+{
+    m_nStartupTimeout = duration;
+}
+/**
+ * getStartupTimeout
+ *
+ * Return the value of the current startup timeout duration
+ *
+ * @return time_t - duration of the startup timeout 
+ */
+time_t
+CFragmentHandler::getStartupTimeout() const
+{
+  return m_nStartupTimeout;
 }
 
 /**
@@ -588,7 +622,11 @@ CFragmentHandler::flushQueues(bool completely)
  loop: 			// avoid recursion with a good old fashioned goto.
   m_nNow = time(NULL);
 
-
+#ifdef DEBUG
+  if (completely) {
+    std::cerr << "flush COMPLETELY!\n";
+  }
+#endif
   // Ensure there's at least one fragment available:
 
 
@@ -627,6 +665,8 @@ CFragmentHandler::flushQueues(bool completely)
       std::cerr << "Empty queues\n";
     } else {
       std::cerr << "Not empty\n";
+      std::cerr << "Time_now - oldestReceived_time = " << m_nNow-m_nOldestReceived;
+      std::cerr << "  buildWindow = " << m_nBuildWindow << "\n"; 
     }
 #endif
   }
@@ -644,12 +684,18 @@ CFragmentHandler::flushQueues(bool completely)
   // tail call to continue building:
   
   if(m_fBarrierPending) {
+#ifdef DEBUG  
+  std::cerr << "Barrier pending\n";
+#endif
     checkBarrier(completely);	// Complete forces barriers out.
   }
   // If we still have non-empty queues and were asked to completely flush
   // tail call:
   
   if (!queuesEmpty() && completely) {
+#ifdef DEBUG  
+  std::cerr << "Goto statement\n";
+#endif
     goto loop;
   }
 }
@@ -1311,7 +1357,13 @@ CFragmentHandler::IdlePoll(ClientData data)
   if (!pHandler->m_nFragmentsLastPeriod) {
     pHandler->m_nNow = time(NULL);	// Update tod.
     pHandler->findOldest();		// Update oldest fragment time.
-    pHandler->flushQueues();
+    if (pHandler->m_nNow - timeOfFirstSubmission > pHandler->m_nStartupTimeout) { 
+      // Only flush after we have given time for all sources
+      // establish their queues
+      // Also... timeOfFirstSubmission is guaranteed to exist 
+      // because nFragmentLastPeriod is not 0
+      pHandler->flushQueues();
+    }
   } else {
     pHandler->m_nFragmentsLastPeriod = 0;
   }
