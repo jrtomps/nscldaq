@@ -21,7 +21,7 @@
 # @author <fox@nscl.msu.edu>
 
 from PyQt4 import QtGui, QtCore
-from nscldaq.expconfiguration import state, project, ringspec
+from nscldaq.expconfiguration import state, project, ringspec, programspec
 
 
 
@@ -541,8 +541,349 @@ class RingDisplay(QtGui.QTreeView):
         
         self.setModel(self._model)
         self.expandAll()
-        
+
+##
+# @class ProgramDisplay
+#
+#   Provides a tree view that displays programs.  The tree may be 2 levels deep
+#   The top level are nodes, while the next level in are programs.  If the
+#   program has parameter specifications those will be another level in.
+#
+#   Headings will therefore be:
+#      Host/program id, Path, working directory, Program Arguments
+#
+class ProgramDisplay(QtGui.QTreeView):
+    ##
+    # custom signals:
+    #    newItem - Fired when a user selects New... from the context menu.
+    #    editItem- Fired when a user selects Edit... from the context menu.
+    #              parameter is the QtCore.QModelIndex of the selected item.
+    #    deleteItem - Fired when the user selects Delete... from the context menu.
+    #              parameter is the QtCore.QModelIndex of the selected item.
+    #
     
+    newItem    = QtCore.pyqtSignal()
+    editItem   = QtCore.pyqtSignal(QtCore.QModelIndex)
+    deleteItem = QtCore.pyqtSignal(QtCore.QModelIndex)
+    
+    ##
+    # __init__
+    #   Construction - create the tree view base class and:
+    #   * Enable context menu handling.
+    #   * Patch our signals to slots that handle context menu selections.
+    #
+    def __init__(self, parent):
+        super(ProgramDisplay,self).__init__(parent)
+        
+        # Context menu setup:
+        
+        self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+               
+        # Context menu signal connection:
+        
+        self.customContextMenuRequested.connect(self._contextMenu)
+        
+        self.deleteItem.connect(self._delete)
+        self.newItem.connect(self._new)
+        self.editItem.connect(self._edit)
+    
+    ##
+    # _requiredItems
+    #   Determines if the required items in a program form are all present.
+    #
+    # @param **kargs - Keyword/value pairs where:
+    #                  * path - Value is the path  to the program.
+    #                  * wd   - Value is the path to the working directory.
+    #                  * host - Value is the host.
+    #
+    # @note - all keys must be present and have non empty string values.
+    #
+    # @return Boolean   - True : Required items are present, False not so.
+    #
+    def _requiredItems(self, **kargs):
+        argsPresent = set(kargs.keys())
+        argsRequired = set(['path', 'wd', 'host'])
+        
+        missingArgs = argsRequired - argsPresent
+        if len(missingArgs) > 0:
+            return False
+        
+        for key in kargs.keys():
+            if kargs[key] == '':
+                return False
+            
+        return True
+     
+    ##
+    # _edit
+    #    Edit an existing item.  Create the program form, and fill it in
+    #    from the information about the selected item.
+    #
+    # @param index - Index of the selected item - used to get the item id
+    #                which then allows the remainder of the info about the
+    #                program to be fetched from the database.
+    #
+    def _edit(self, index):
+        row = index.row()
+        id  = int((index.sibling(row, 0)).data().toString())
+        programs = project.Programs(state.State.project)
+        hosts    = project.Hosts(state.State.project)
+        
+        programInfo = programs.find(program_id=id)[0]
+        hostList    = hosts.list()
+        hostnames   = map(lambda item: item['host_name'], hostList)
+        
+        dialog  = programspec.ProgramDialog(self)
+        f       = dialog.form()
+        f.setHosts(hostnames)
+        
+        # Now load up the rest of the dialog with the program information
+        
+        f.setPath(programInfo['path'])
+        f.setWd(programInfo['working_dir'])
+        f.setHost(programInfo['host_name'])
+        f.setArgs(programInfo['args'])
+        
+        if dialog.exec_() == QtGui.QDialog.Accepted:
+            print("accepted...")
+            path = str(f.path())
+            wd   = str(f.wd())
+            host = str(f.host())
+            
+            if not self._requiredItems(path=path, wd=wd, host=host):
+                QtGui.QMessageBox.critical(
+                    self, 'Missing params',
+                    'The path, working directory and host parameters are all required',
+                )
+            else:
+                args = f.args()
+                print(args)
+                programs.modify(
+                    id, path=path, working_dir=wd, host_name=host, args=args
+                )
+                self.populate(programs.list())
+        
+        
+        
+        
+    ##
+    # _new
+    #    Create a new item by prompting for it with the program form
+    #    if accepted and all the mandatory stuff get filled in, save the item
+    #    as a new program.  Note that duplicates are allowed.
+    #
+    def _new(self):
+        # We need the hosts to fill in the form's combolist:
+        
+        hosts     = project.Hosts(state.State.project)
+        hostList  = hosts.list()
+        hostnames = map(lambda item: item['host_name'], hostList)
+        
+        dialog = programspec.ProgramDialog(self)
+        dialog.form().setHosts(hostnames)
+        if dialog.exec_() == QtGui.QDialog.Accepted:
+            # Ensure we have non empty program paths, working directory,
+            # and host.
+            path = str(dialog.form().path())
+            wd   = str(dialog.form().wd())
+            host = str(dialog.form().host())
+            
+            if not self._requiredItems(path=path, wd=wd, host=host):
+                QtGui.QMessageBox.critical(
+                    self, 'Missing params',
+                    'The path, working directory and host parameters are all required',
+                )
+            else:
+                args = dialog.form().args()
+                print(args)
+                programs = project.Programs(state.State.project)
+                programs.add_byHostname(path, wd, host, args)
+                self.populate(programs.list())
+                      
+        
+        
+    ##
+    # _delete
+    #    Delete the indicated item from the programs.
+    #    TODO:  We need to check at some point if the program is referenced
+    #           elsewhere.  For now we just delete it in place.
+    #
+    # @param index - the index of the item to delete.
+    #
+    def _delete(self, index):
+        #
+        #  Get the info we need to
+        #  *  Delete the item (the id).
+        #  *  Specify the item to be deleted in the question dialog:
+        
+        row     = index.row()
+        idText  = (index.sibling(row, 0)).data().toString()
+        programs= project.Programs(state.State.project)
+        info    = programs.find(program_id = int(idText))
+        
+        host    = info[0]['host_name']
+        path    = info[0]['path']
+        wd      = info[0]['working_dir']
+        arglist = map(lambda item: "'" + item + "'", info[0]['args'])
+        args    = ' '.join(arglist)
+       
+        message = 'Are you sure you want to delete:  %s:%s  %s (wd: %s)'  % \
+                    (host, path, args, wd)
+        confirm = QtGui.QMessageBox.question(
+            self, 'Delete?', message, QtGui.QMessageBox.Ok, QtGui.QMessageBox.Cancel
+        )
+        if confirm == QtGui.QMessageBox.Ok:
+            programs.delete(int(idText))
+            self.populate(programs.list())
+        
+    ##
+    # _contextMenu
+    #    Called when a context menu has been requested (MB3).
+    #    Pops up one in the vicinity of the pointer containing
+    #    the entries:
+    #    *   New... - Add a new element to the tree.
+    #    *   Edit.. - Edit the selected element.
+    #    *   Delete - Delete the selected element.
+    #
+    # @param pt - Location of the pointer.
+    #
+    def _contextMenu(self, pt):
+        globalPosition = self.mapToGlobal(pt)
+        contextMenu    = QtGui.QMenu(self)
+        
+        contextMenu.addAction('New...')
+        # Other elements are only allowed if the item is a program line
+        # (parent is a node).
+        
+        index = self.selectionModel().currentIndex()
+        if index.parent() != QtCore.QModelIndex():
+            contextMenu.addAction('Edit...')
+            contextMenu.addAction('Delete...')
+            
+            # This loop ensures that if the click is in one of the args, we'll
+            # return the index of the program not the arg.
+            
+            while index.parent().parent() != QtCore.QModelIndex():
+                index = index.parent()
+            
+        # Pop up the menu and dispatch the results:
+        
+        selection = contextMenu.exec_(globalPosition)
+        if selection:
+            seltext = selection.text()         # Text on the menu.
+            if seltext == 'New...':
+                self.newItem.emit()
+            if seltext == 'Edit...':
+                self.editItem.emit(index)
+            if seltext == 'Delete...':
+                self.deleteItem.emit(index)
+            
+            
+    ##
+    #  Produce standard items that describe a program (this may include
+    #  sub items that represent the arguments)
+    #
+    # @param program - description of a program.
+    # @return list of QStandardItems, containing id, path, working directory.
+    #         if the program has argumnts, we'll provide the children too
+    #
+    def _describeProgram(self,program):
+        id    = program['program_id']
+        path  = program['path']
+        wd    = program['working_dir']
+        args  = program['args']
+        
+        # Top level stuff:
+        
+        idItem    = QtGui.QStandardItem(str(id))
+        idItem.setEditable(False)
+        
+        pathItem  = QtGui.QStandardItem(path)
+        pathItem.setEditable(False)
+        
+        wdItem    = QtGui.QStandardItem(wd)
+        wdItem.setEditable(False)
+        
+        
+        # Program arguments:
+        
+        for arg in args:
+            emptyItem1  = QtGui.QStandardItem()
+            emptyItem1.setEditable(False)
+            emptyItem2  = QtGui.QStandardItem()
+            emptyItem2.setEditable(False)
+            emptyItem3  = QtGui.QStandardItem()
+            emptyItem3.setEditable(False)
+            argItem = QtGui.QStandardItem(arg)
+            argItem.setEditable(False)
+            idItem.appendRow([emptyItem1, emptyItem2, emptyItem3, argItem])
+                
+        
+        #  Result:
+        
+        return [idItem, pathItem, wdItem]
+        
+        
+        
+    #----------------------------------------------------------------------
+    # Public methods
+    
+    ##
+    # clear
+    #    Clear the tree view...since we don't seem to use clear in isolation
+    #    for now we can pass on it.
+    
+    def clear(self):
+        pass
+    
+    ##
+    # populate
+    #   Populate the tree with the nodes, the program in each node and
+    #   the program parameters.
+    #
+    # @param programs - The outputo of Programs.list()
+    #
+    def populate(self, programs):
+        #  Create a QStandardItemModel with the appropriate columns:
+        
+        self._model = QtGui.QStandardItemModel()
+        self._model.setHorizontalHeaderLabels(['Host/program id', 'Path', 'Working Directory', 'Program Arguments'])
+        
+        
+      
+        # Get the top level (invisible) item of which the hosts are children:
+        
+        root = self._model.invisibleRootItem()
+        
+        # Reorganize the data to reflect the hierarchy we want:
+        
+        hostItems = dict()
+        for program in programs:
+            host = program['host_name']
+            
+            #  If necessary create a new host item:
+            
+            if host not in hostItems.keys():
+                h = QtGui.QStandardItem(host)
+                h.setEditable(False)
+                hostItem = [h]        # Row with only the host name.
+                root.appendRow(hostItem)
+                hostItems[host] = hostItem
+            else:
+                hostItem = hostItems[host]
+                
+            # Add this program as a child of the host.
+            
+            parent = hostItem[0]
+            parent.appendRow(self._describeProgram(program))
+            
+            
+        # Set the model and expand all nodes for now:
+        
+        self.setModel(self._model)
+        self.expandAll()
+  
+            
 ##
 # @class ProjectDisplay
 #
@@ -576,6 +917,9 @@ class ProjectDisplay(QtGui.QTabWidget):
         
         self._rings     = RingDisplay(self)
         self.addTab(self._rings, '&Rings')
+        
+        self._programs  = ProgramDisplay(self)
+        self.addTab(self._programs, '&Programs')
     
         
     
@@ -588,6 +932,7 @@ class ProjectDisplay(QtGui.QTabWidget):
     def clear(self):
         self._hostTable.clear()
         self._rings.clear()
+        self._programs.clear()
         pass
     
     ##
@@ -606,5 +951,10 @@ class ProjectDisplay(QtGui.QTabWidget):
         
         rings = project.Rings(state.State.project)
         self._rings.populate(rings.list())
+        
+        #  Populate the programs tree view:
+        
+        programs = project.Programs(state.State.project)
+        self._programs.populate(programs.list())
         
         pass               # More to come.

@@ -20,7 +20,7 @@
 # @brief  Forms and dialogs to specify various types of programs.
 # @author <fox@nscl.msu.edu>
 
-from PyQt4 import QtGui
+from PyQt4 import QtGui, QtCore
 from nscldaq.expconfiguration import formdialog
 import sys
 import os
@@ -32,12 +32,21 @@ import os
 #     *   A file system path to the program (file chooser).
 #     *   A working directory  in which the program runs (directory chooser).
 #     *   The id of the host in which the program runs (combobox with host names).
+#     *   A list of program parameters.
+#     *   A line edit for adding program parameters to the list.
+#
 #
 # LAYOUT:
 #    +-------------------------------------------------+
 #    | Program Path: [                 ] (Browse...)   |
 #    | Working dir:  [                 ] (Browse...)   |
 #    | Host:         [Host combobox    ]               |
+#    |Program Args:                                    |
+#    | +--------------------+                          |
+#    | |                    |                          |
+#    | ...                  ...                        |
+#    | +--------------------+                          |
+#    | [                  ]                            |
 #    +-------------------------------------------------+
 #
 # METHODS:
@@ -48,6 +57,9 @@ import os
 #   *   setHosts  - Set the legal hosts.
 #   *   setHost   - Set the value of the host box.
 #   *   host      - Get the host value.
+#   *   setArgs   - Set the list of program arguments.
+#   *   args      - Returns the list of program arguments.
+#
 #
 class ProgramSpec(QtGui.QFrame):
     
@@ -75,15 +87,59 @@ class ProgramSpec(QtGui.QFrame):
             self._wdBrowse = QtGui.QPushButton('Browse...')
             layout.addWidget(self._wdBrowse, 1, 2)
             
-            layout.addWidget(QtGui.QLabel('Host: ', self), 2, 0)
+            layout.addWidget(QtGui.QLabel('* Host: ', self), 2, 0)
             self._host = QtGui.QComboBox(self)
             layout.addWidget(self._host, 2,1)
+            
+            layout.addWidget(QtGui.QLabel('Program Args:'), 3, 0)
+            self._args  = QtGui.QListWidget(self)
+            layout.addWidget(self._args, 4, 0, 1, 3)
+            self._arg   = QtGui.QLineEdit(parent)
+            layout.addWidget(self._arg, 5, 0, 1, 3)
             
             #  Connect widget signals we want to react to (browse buttons).
             
             self._pathBrowse.clicked.connect(self._browseProgramPath)
             self._wdBrowse.clicked.connect(self._browseWd)
+            self._arg.editingFinished.connect(self._addItem)
+            self._args.itemDoubleClicked.connect(self._deleteItem)
             
+            self._arg.installEventFilter(self)
+        
+        
+        ##
+        #  eventFilter
+        #     This event filter allows Return/Enters in the argument line edit
+        #     to
+        #      *   Add the element to the args list.
+        #      *   Not invoke the default (OK) button.
+        #
+        # @param object - The object emitting the event.
+        # @param event  - The Event being emitted.
+        # 
+        def eventFilter(self, object, event):
+            if (event.type() == QtCore.QEvent.KeyPress):
+                if event.key() == QtCore.Qt.Key_Return or event.key() == QtCore.Qt.Key_Enter:
+                    self._arg.editingFinished.emit()
+                    self._arg.clear()
+                    return True
+            return False
+        ##
+        # _deleteItem
+        #   Connected to the list item double clicked signal, removes the item
+        #   that was double clicked.
+        #
+        # @param item - The item object that was double clicked
+        #
+        def _deleteItem(self, item):
+            self._args.takeItem(self._args.row(item))
+        
+        ##
+        #  _addItem
+        #     Add the contents of the text widget to the list:
+        #
+        def _addItem(self):
+            self._args.addItem(self._arg.text())
         ##
         # _browseProgramPath
         #   Respond to a click of the path's browse button by getting a filename
@@ -121,7 +177,7 @@ class ProgramSpec(QtGui.QFrame):
         #    Return the current path value.
         # 
         def path(self):
-            self._path.text()
+            return self._path.text()
             
         ##
         # setWd
@@ -129,24 +185,84 @@ class ProgramSpec(QtGui.QFrame):
         #
         # @param path  the new path.
         def setWd(self, path):
-            self.wd.setText(path)
-            
+            self._wd.setText(path)
+        ##
+        # wd
+        # @return the current working directory of the form.
+        #
         def wd(self):
-            pass
+            return self._wd.text()
+        ##
+        # setHosts
+        #   Provides the list of hosts in the host dropdown selector.
+        # @param hostList  list of strings.
+        #
         def setHosts(self, hostList):
-            pass
+            self._host.clear()
+            self._host.addItems(hostList)
+        ##
+        # setHost
+        #   Sets the current value of the host.
+        # @param host - the name of the host to select must be in the combobox list
+        #
         def setHost(self, host):
-            pass
+            index = self._host.findText(host)
+            if index == -1:
+                raise RuntimeError('No such host')
+            else:
+                self._host.setCurrentIndex(index)
+        ##
+        # host
+        #  @return string - current host name.
         def host(self):
-            pass
-            
+            return self._host.currentText()
+        ##
+        # setAgs
+        #   Provides the current list  of program arguments.
+        #
+        # @param args - list of strings.
+        #
+        def setArgs(self, args):
+            self._args.clear()
+            self._args.addItems(args)
+        ##
+        # args
+        #   @return list of strings that are the current set of arguments.
+        #
+        def args(self):
+             rows = self._args.count()
+             result = list()
+             for i in range(0,(rows-1)):
+                item = self._args.item(i)
+                result.append(str(item.text()))
+             return result
+ 
+##
+#  @class ProgramDialog
+#
+#   Dialog to prompt for a program.
+#
+class ProgramDialog(formdialog.FormDialog):
+    def __init__(self, parent = None):
+        form = ProgramSpec()
+        super(ProgramDialog, self).__init__(form, parent)
+
 ##
 # main is provided for testing:
 #
 
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
-    w   = ProgramSpec()
-    w.show()
     
-    sys.exit(app.exec_())
+    d = ProgramDialog()
+    d.form().setArgs(['a', 'b', 'c'])
+    if d.exec_() == QtGui.QDialog.Accepted:
+        w = d.form()
+        print('accepted')    
+        print('path: ', w.path())
+        print('wd  : ', w.wd())
+        print('host: ', w.host())
+        print('args: ', w.args())
+    else:
+        print('cancelled')
+        
