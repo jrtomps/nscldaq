@@ -24,7 +24,7 @@
 
 #include <CAENComm.h>
 #include <vector>
-#include <CVMUSB.h>
+#include <CVMUSBusb.h>
 #include <CVMUSBReadoutList.h>
 #include <usb.h>		// Probably don't need this(?)
 #include <stdio.h>
@@ -148,7 +148,7 @@ CAENComm_ErrorCode STDCALL CAENComm_OpenDevice(CAENComm_ConnectionType LinkType,
   if (!pDevice) {
     return CAENComm_DeviceNotFound;
   }
-  CVMUSB* pVMUSB = new CVMUSB(pDevice);
+  CVMUSB* pVMUSB = new CVMUSBusb(pDevice);
   Unit unitData;
   unitData.s_pDevice = pVMUSB;
   unitData.s_base    = VMEBaseAddress;
