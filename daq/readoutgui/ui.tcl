@@ -21,6 +21,7 @@ package require snit
 package require RunstateMachine
 package require StateManager
 package require DataSourceUI
+package require img::png
 
 package provide ui   1.0
 package provide ReadoutGUIPanel 1.0
@@ -1986,11 +1987,17 @@ snit::widgetadaptor TabbedOutput {
         error   [list -background white -foreground red]      \
         warning [list -foreground magenta]                     \
     ]
-    option -monitorcmd  -configuremethod _RelayOption -default [list] 
+    option -monitorcmd  -configuremethod _RelayOption -default [list]
+    option -errorclasses [list error warning]
+
     
     
     delegate option * to hull
     delegate method * to hull
+
+    # Options that don't get fanned out:
+    
+    variable localOptions [list -errorclasses]
 
     #
     # List of Output widgets managed by us...this is in index order.
@@ -2171,8 +2178,9 @@ snit::widgetadaptor TabbedOutput {
     #   lines and modify the tab text.
     #
     # @param widget - The widget to modify.
+    # @param class  - The log class used
     #
-    method _UpdateTabText widget {
+    method _UpdateTabText {widget {class output}} {
 	set windex [$hull index $widget]
 	set cindex [$hull index current]
 
@@ -2182,6 +2190,10 @@ snit::widgetadaptor TabbedOutput {
 	    set lines [dict get $tabInfo($widget) lines]
 	    set tabText [format "%s (%d)" $name $lines]
 	    $hull tab $windex -text $tabText
+            if {$class in $options(-errorclasses)} {
+                $hull tab $windex -image output_error -compound left
+            }
+
 		      
 	}
     }
@@ -2211,7 +2223,9 @@ snit::widgetadaptor TabbedOutput {
         # Propagate the settings to the new window.
         
         foreach option [array names options] {
-            $widget configure $option $options($option)
+            if {$option ni $localOptions} {
+                $widget configure $option $options($option)
+            }
         }
         if {$logFile ne ""} {
             $widget open $logFile
@@ -2231,7 +2245,8 @@ snit::widgetadaptor TabbedOutput {
     #
     method _LogToWidget {widget args} {
         $widget log {*}$args
-        $self _UpdateTabText $widget
+        set class [lindex $args 0];             #log class.
+        $self _UpdateTabText $widget $class
     }
     ##
     # _TabChanged
@@ -2244,7 +2259,7 @@ snit::widgetadaptor TabbedOutput {
         set idx [$hull index current]
         set widget [lindex $outputWindows $idx]
         set source [dict get $tabInfo($widget) name]
-        $hull tab $idx -text $source
+        $hull tab $idx -text $source -image [list]
         dict set tabInfo($widget) lines 0;    # No output is unseen.
     }
     
@@ -2255,8 +2270,14 @@ snit::widgetadaptor TabbedOutput {
 namespace eval ::Output {
     variable theInstance ""
     namespace export enter leave attach
+    variable errorFilename [file join [file dirname [info script]] error.png]
 }
 
+image create photo output_error -file $::Output::errorFilename
+
+##
+#  Load the output error icon:
+#
 
 ##
 # Output::getInstance

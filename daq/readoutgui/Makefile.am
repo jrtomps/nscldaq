@@ -40,7 +40,7 @@ TCLPACKAGES=Configuration.tcl \
 	DataSourceMonitor.tcl \
 	remoteControl.tcl \
 	ReadoutGuiClient.tcl readoutGuiProvider.tcl \
-  versionUtils.tcl
+  versionUtils.tcl error.png
 
 
 
@@ -66,7 +66,7 @@ EXTRA_DIST = $(TCLPACKAGES) $(TCLAPPS) $(TCLTESTS) $(TKTESTS)\
 	readoutgui.xml RunState.eps RunState.jpg s800fake.tcl\
 	readoutshell.jpg readoutshell.eps \
 	sshsimulator.testscript start.bash \
-	eventlogsettings.jpg eventlogsettings.eps
+	eventlogsettings.jpg eventlogsettings.eps error.png
 
 
 bin_PROGRAMS =  SecretTk
