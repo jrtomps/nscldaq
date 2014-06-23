@@ -3,240 +3,108 @@
 #include <sstream>
 #include <iomanip>
 
+using namespace std;
+
 CMockVMUSB::CMockVMUSB()
   : CVMUSB(), 
     m_opRecord(), 
-    m_registers()
+    m_registers(),
+    m_registerNames()
 {
   setUpRegisterMap();
+  setUpRegisterNameMap();
 }
 
-
-int CMockVMUSB::vmeWrite16(uint32_t address, uint8_t addrMod, uint16_t data)
+int CMockVMUSB::executeList(CVMUSBReadoutList& list, void* pReadBuffer, size_t readBufferSize, size_t* bytesRead)
 {
-    // add entry to log that we did this operation
-    recordVMEOperation("vmeWrite16", address, addrMod, data);
+  vector<uint32_t> stack = list.get();
+  uint32_t stackLength = stack.size();
 
-    m_addressData[address] = data;
+  // Simply copy the stack entirely into the operation list
+  ostringstream command;
+  m_opRecord.push_back("executeList::begin"); // bookend
 
-    return 1;
-}
-
-int CMockVMUSB::vmeWrite32(uint32_t address, uint8_t addrMod, uint32_t data)
-{
-    // add entry to log that we did this operation
-    recordVMEOperation("vmeWrite32", address, addrMod, data);
-
-    m_addressData[address] = data;
-
-    return 1;
-}
-
-int CMockVMUSB::vmeRead16(uint32_t address, uint8_t addrMod, uint16_t& data)
-{
-   
-  data = 0;
-  std::map<uint32_t, uint32_t>::iterator it = m_addressData.find(address);
-  if (it != m_addressData.end()) {
-      data = it->second; 
+  for (int stackIndex=0;  stackIndex<stackLength; ++stackIndex) {
+    command.str(""); command.clear(); // clear string and stream status bits
+    command << dec << stackIndex << ":" << hex << stack.at(stackIndex); 
+    m_opRecord.push_back(command.str());
   }
 
-  // add entry to log that we did this operation
-  recordVMEOperation("vmeRead16", address, addrMod, data);
+  m_opRecord.push_back("executeList::end"); //bookend
 
-  return 1;
+  // We don't actually read anything so tell the caller that no data will be
+  // returned. At the same time, there was no error so return a status of 0.
+  bytesRead=0;
+  return 0;
 }
 
-int CMockVMUSB::vmeRead32(uint32_t address, uint8_t addrMod, uint32_t& data)
+int CMockVMUSB::loadList(uint8_t listNumber, CVMUSBReadoutList& list, off_t listOffset)
 {
+  vector<uint32_t> stack = list.get();
+  uint32_t stackLength = stack.size();
 
-  data = 0;
-  std::map<uint32_t, uint32_t>::iterator it = m_addressData.find(address);
-  if (it != m_addressData.end()) {
-      data = it->second; 
+  m_opRecord.push_back("loadList::begin"); // bookend
+
+  ostringstream command;
+  command << "listnumber:" << listNumber;
+  command.str(""); command.clear(); // clear string and stream status bits
+  command << "offset:" << listOffset;
+  m_opRecord.push_back(command.str()); // bookend
+
+  for (int stackIndex=0;  stackIndex<stackLength; ++stackIndex) {
+    command.str(""); command.clear(); // clear string and stream status bits
+    command << dec << stackIndex << ":" << hex << stack.at(stackLength); 
+    m_opRecord.push_back(command.str());
   }
 
-  // add entry to log that we did this operation
-  recordVMEOperation("vmeRead32", address, addrMod, data);
+  m_opRecord.push_back("loadList::end"); //bookend
 
-  return 1;
+  return 0;
 }
 
-int CMockVMUSB::readFirmwareID()
+int CMockVMUSB::usbRead(void* data, size_t bufferSize, size_t* transferCount, int timeout)
 {
-  uint32_t fakeID = m_registers[0x0]; 
-  // add entry to log that we did this operation
-  recordOperation("readFirmwareID", fakeID);
+  m_opRecord.push_back("usbRead:begin"); 
 
-  return fakeID; 
+  ostringstream command;
+  command << "buffersize:" << bufferSize;
+  m_opRecord.push_back(command.str()); 
+
+  command.str(""); command.clear();
+  command << "timeout:" << timeout;
+  m_opRecord.push_back(command.str()); 
+
+  transferCount = 0;
+
+  if (bufferSize!=0) {
+    uint32_t* buffer = reinterpret_cast<uint32_t*>(data);
+    for (int i=0; i<bufferSize/sizeof(uint32_t); ++i) {
+      buffer[i] = i;
+      transferCount += 4;
+    }
+  }
+
+  m_opRecord.push_back("usbRead:end");
+  return 0;
 }
 
-void CMockVMUSB::writeActionRegister(uint16_t value)
+uint32_t CMockVMUSB::readRegister(uint32_t reg)
 {
+  uint32_t value = m_registers[reg];
   // add entry to log that we did this operation
-  recordOperation("writeActionRegister", value);
-  m_registers[0x1] = value;
-}
 
-void CMockVMUSB::writeGlobalMode(uint16_t value)
-{
-  // add entry to log that we did this operation
-  recordOperation("writeGlobalMode", value);
-  m_registers[0x4] = value;
-}
-
-int CMockVMUSB::readGlobalMode()
-{
-  int value = m_registers[0x4];
-  // add entry to log that we did this operation
-  recordOperation("readGlobalMode", value);
-  return value;
-}
-
-void CMockVMUSB::writeDAQSettings(uint32_t value)
-{
-  m_registers[0x8] = value;
-  // add entry to log that we did this operation
-  recordOperation("readDAQSettings", value);
-}
-
-int CMockVMUSB::readDAQSettings()
-{
-  uint32_t value = m_registers[0x8];
-  // add entry to log that we did this operation
-  recordOperation("readDAQSettings", value);
+  string actionString = "read" + m_registerNames[reg];
+  recordOperation(actionString, value);
 
   return value;
 }
 
-void CMockVMUSB::writeLEDSource(uint32_t value)
+void CMockVMUSB::writeRegister(uint32_t reg, uint32_t value)
 {
-  m_registers[0xc] = value;
-  // add entry to log that we did this operation
-  recordOperation("writeLEDSource", value);
-}
+  m_registers[reg] = value;  // add entry to log that we did this operation
 
-int CMockVMUSB::readLEDSource()
-{
-  uint32_t value = m_registers[0xC];
-  // add entry to log that we did this operation
-  recordOperation("readLEDSource", value);
-
-  return value;
-}
-
-void CMockVMUSB::writeDeviceSource(uint32_t value)
-{
-  m_registers[0x10] = value;
-  // add entry to log that we did this operation
-  recordOperation("writeDeviceSource", value);
-}
-
-int CMockVMUSB::readDeviceSource()
-{
-  uint32_t value = m_registers[0x10];
-  // add entry to log that we did this operation
-  recordOperation("readDeviceSource", value);
-
-  return value;
-}
-
-void CMockVMUSB::writeDGG_A(uint32_t value)
-{
-  m_registers[0x14] = value;
-  // add entry to log that we did this operation
-  recordOperation("writeDGG_A", value);
-}
-
-uint32_t CMockVMUSB::readDGG_A()
-{
-  uint32_t value = m_registers[0x14];
-  // add entry to log that we did this operation
-  recordOperation("readDGG_A", value);
-
-  return value;
-}
-
-void CMockVMUSB::writeDGG_B(uint32_t value)
-{
-  m_registers[0x18] = value;
-  // add entry to log that we did this operation
-  recordOperation("writeDGG_B", value);
-}
-
-uint32_t CMockVMUSB::readDGG_B()
-{
-  uint32_t value = m_registers[0x18];
-  // add entry to log that we did this operation
-  recordOperation("readDGG_B", value);
-
-  return value;
-}
-
-void CMockVMUSB::writeDGG_Extended(uint32_t value)
-{
-  m_registers[0x38] = value;
-  // add entry to log that we did this operation
-  recordOperation("writeDGG_Extended", value);
-}
-
-uint32_t CMockVMUSB::readDGG_Extended()
-{
-  uint32_t value = m_registers[0x48];
-  // add entry to log that we did this operation
-  recordOperation("readDGG_Extended", value);
-
-  return value;
-}
-
-uint32_t CMockVMUSB::readScalerA()
-{
-  uint32_t value = m_registers[0x1c];
-  // add entry to log that we did this operation
-  recordOperation("readScalerA", value);
-
-  return value;
-}
-
-uint32_t CMockVMUSB::readScalerB()
-{
-  uint32_t value = m_registers[0x20];
-  // add entry to log that we did this operation
-  recordOperation("readScalerB", value);
-
-  return value;
-}
-
-void CMockVMUSB::writeBulkXferSetup(uint32_t value)
-{
-  m_registers[0x3c] = value;
-  // add entry to log that we did this operation
-  recordOperation("writeBulkXferSetup", value);
-}
-
-int CMockVMUSB::readBulkXferSetup()
-{
-  uint32_t value = m_registers[0x3c];
-  // add entry to log that we did this operation
-  recordOperation("readBulkXferSetup", value);
-
-  return value;
-}
-
-void CMockVMUSB::writeEventsPerBuffer(uint32_t value)
-{
-  m_registers[0x24] = value;
-  // add entry to log that we did this operation
-  recordOperation("writeEventsPerBuffer", value);
-}
-
-uint32_t CMockVMUSB::readEventsPerBuffer()
-{
-  uint32_t value = m_registers[0x24];
-  // add entry to log that we did this operation
-  recordOperation("readEventsPerBuffer", value);
-
-  return value;
+  string actionString = "write" + m_registerNames[reg];
+  recordOperation(actionString, value);
 }
 
 void CMockVMUSB::setUpRegisterMap()
@@ -261,6 +129,27 @@ void CMockVMUSB::setUpRegisterMap()
 
 }
 
+void CMockVMUSB::setUpRegisterNameMap()
+{
+  m_registerNames[0x0] = "FirmwareID";
+  m_registerNames[0x1] = "ActionRegister"; // action register 
+  m_registerNames[0x4] = "GlobalMode"; // global mode
+  m_registerNames[0x8] = "DAQSettings"; // daq settings
+  m_registerNames[0xC] = "LEDSource"; // user led
+  m_registerNames[0x10] = "DeviceSource"; // user devices source selecor
+  m_registerNames[0x14] = "DGG_A"; // dgg_A settings
+  m_registerNames[0x18] = "DGG_B"; // dgg_B settings
+  m_registerNames[0x1C] = "ScalerA"; // scaler_A data
+  m_registerNames[0x20] = "ScalerB"; // scaler_B data
+  m_registerNames[0x24] = "EventsPerBuffer"; // events per buffer
+  m_registerNames[0x28] = "IRQ12"; // IRQ vectors 1&2
+  m_registerNames[0x2C] = "IRQ34"; // IRQ vectors 3&4
+  m_registerNames[0x30] = "IRQ56"; // IRQ vectors 5&6
+  m_registerNames[0x34] = "IRQ78"; // IRQ vectors 7&8
+  m_registerNames[0x38] = "DGG_Extended"; // extended dgg_A/B settings
+  m_registerNames[0x3C] = "BulkXferSetup"; // USB bulk transfer
+
+}
 
 template<class T>
 void CMockVMUSB::recordVMEOperation(std::string opname, uint32_t address, uint8_t addrMod, T data)

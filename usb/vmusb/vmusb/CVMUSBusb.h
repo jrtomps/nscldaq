@@ -127,16 +127,15 @@ public:
 		    size_t              readBufferSize,
 		    size_t*             bytesRead);
     
-    int loadList(uint8_t                listNumber,
-		 CVMUSBReadoutList&    list,
-		 off_t                  listOffset = 0);
+    int loadList(uint8_t listNumber, CVMUSBReadoutList& list,
+                 off_t listOffset = 0);
       
 
     // Once the interface is in DAQ auntonomous mode, the application
     // should call the following function to read acquired data.
 
     int usbRead(void* data, size_t bufferSize, size_t* transferCount,
-		int timeout = 2000);
+		            int timeout = 2000);
 
     // Other administrative functions:
 
@@ -146,19 +145,9 @@ private:
     void openVMUsb();
 
     int transaction(void* writePacket, size_t writeSize,
-		    void* readPacket,  size_t readSize);
-
-    void* addToPacket16(void* packet,   uint16_t datum);
-    void* addToPacket32(void* packet,   uint32_t datum);
-    void* getFromPacket16(void* packet, uint16_t* datum);
-    void* getFromPacket32(void* packet, uint32_t* datum);
+		                void* readPacket,  size_t readSize);
     void  writeRegister(unsigned int address, uint32_t data);
     uint32_t readRegister(unsigned int address);
-    unsigned int whichToISV(int which);
-    int   doVMEWrite(CVMUSBReadoutList& list);
-    int   doVMERead(CVMUSBReadoutList&  list, uint32_t* datum);
-    uint16_t* listToOutPacket(uint16_t ta, CVMUSBReadoutList& list, size_t* outSize,
-			      off_t offset = 0);
 };
 
 #endif

@@ -418,76 +418,6 @@ CVMUSBusb::transaction(void* writePacket, size_t writeSize,
     return status;
 }
 
-
-////////////////////////////////////////////////////////////////////////
-/*
-   Build up a packet by adding a 16 bit word to it;
-   the datum is packed low endianly into the packet.
-
-*/
-void*
-CVMUSBusb::addToPacket16(void* packet, uint16_t datum)
-{
-    uint8_t* pPacket = static_cast<uint8_t*>(packet);
-
-    *pPacket++ = (datum  & 0xff); // Low byte first...
-    *pPacket++ = (datum >> 8) & 0xff; // then high byte.
-
-    return static_cast<void*>(pPacket);
-}
-/////////////////////////////////////////////////////////////////////////
-/*
-  Build up a packet by adding a 32 bit datum to it.
-  The datum is added low-endianly to the packet.
-*/
-void*
-CVMUSBusb::addToPacket32(void* packet, uint32_t datum)
-{
-    uint8_t* pPacket = static_cast<uint8_t*>(packet);
-
-    *pPacket++    = (datum & 0xff);
-    *pPacket++    = (datum >> 8) & 0xff;
-    *pPacket++    = (datum >> 16) & 0xff;
-    *pPacket++    = (datum >> 24) & 0xff;
-
-    return static_cast<void*>(pPacket);
-}
-/////////////////////////////////////////////////////////////////////
-/* 
-    Retrieve a 16 bit value from a packet; packet is little endian
-    by usb definition. datum will be retrieved in host byte order.
-*/
-void*
-CVMUSBusb::getFromPacket16(void* packet, uint16_t* datum)
-{
-    uint8_t* pPacket = static_cast<uint8_t*>(packet);
-
-    uint16_t low = *pPacket++;
-    uint16_t high= *pPacket++;
-
-    *datum =  (low | (high << 8));
-
-    return static_cast<void*>(pPacket);
-	
-}
-/*!
-   Same as above but a 32 bit item is returned.
-*/
-void*
-CVMUSBusb::getFromPacket32(void* packet, uint32_t* datum)
-{
-    uint8_t* pPacket = static_cast<uint8_t*>(packet);
-
-    uint32_t b0  = *pPacket++;
-    uint32_t b1  = *pPacket++;
-    uint32_t b2  = *pPacket++;
-    uint32_t b3  = *pPacket++;
-
-    *datum = b0 | (b1 << 8) | (b2 << 16) | (b3 << 24);
-
-
-    return static_cast<void*>(pPacket);
-}
 /*
    Reading a register is just creating the appropriate CVMUSBReadoutList
    and executing it immediatly.
@@ -557,104 +487,6 @@ CVMUSBusb::writeRegister(unsigned int address, uint32_t data)
     
 }
 
-/*   
-
-    Convert an ISV which value to a register number...
-    or throw a string if the register selector is invalid.
-
-*/
-unsigned int
-CVMUSBusb::whichToISV(int which)
-{
-    switch (which) {
-	case 1:
-	    return ISV12;
-	case 2:
-	    return ISV34;
-	case 3:
-	    return ISV56;
-	case 4:
-	    return ISV78;
-	default:
-	{
-	    char msg[100];
-	    sprintf(msg, "CVMUSBusb::whichToISV - invalid isv register %d",
-		    which);
-	    throw string(msg);
-	}
-    }
-}
-// If the write list has already been created, this fires it off and returns
-// the appropriate status:
-//
-int
-CVMUSBusb::doVMEWrite(CVMUSBReadoutList& list)
-{
-  uint16_t reply;
-  size_t   replyBytes;
-  int status = executeList(list, &reply, sizeof(reply), &replyBytes);
-  // Bus error:
-  if ((status == 0) && (reply == 0)) {
-    status = -3;
-  }
-  return status;
-}
-
-// Common code to do a single shot vme read operation:
-int
-CVMUSBusb::doVMERead(CVMUSBReadoutList& list, uint32_t* datum)
-{
-  size_t actualRead;
-  int status = executeList(list, datum, sizeof(uint32_t), &actualRead);
-  return status;
-}
-
-//  Utility to create a stack from a transfer address word and
-//  a CVMUSBReadoutList and an optional list offset (for non VCG lists).
-//  Parameters:
-//     uint16_t ta               The transfer address word.
-//     CVMUSBReadoutList& list:  The list of operations to create a stack from.
-//     size_t* outSize:          Pointer to be filled in with the final out packet size
-//     off_t   offset:           If VCG bit is clear and VCS is set, the bottom
-//                               16 bits of this are put in as the stack load
-//                               offset. Otherwise, this is ignored and
-//                               the list lize is treated as a 32 bit value.
-//  Returns:
-//     A uint16_t* for the list. The result is dynamically allocated
-//     and must be released via delete []p e.g.
-//
-uint16_t*
-CVMUSBusb::listToOutPacket(uint16_t ta, CVMUSBReadoutList& list,
-			size_t* outSize, off_t offset)
-{
-    int listLongwords = list.size();
-    int listShorts    = listLongwords*sizeof(uint32_t)/sizeof(uint16_t);
-    int packetShorts    = (listShorts + 3);
-    uint16_t* outPacket = new uint16_t[packetShorts];
-    uint16_t* p         = outPacket;
-    
-    // Fill the outpacket:
-
-    p = static_cast<uint16_t*>(addToPacket16(p, ta)); 
-    //
-    // The next two words depend on which bits are set in the ta
-    //
-    if(ta & TAVcsIMMED) {
-      p = static_cast<uint16_t*>(addToPacket32(p, listShorts+1)); // 32 bit size.
-    }
-    else {
-      p = static_cast<uint16_t*>(addToPacket16(p, listShorts+1)); // 16 bits only.
-      p = static_cast<uint16_t*>(addToPacket16(p, offset));       // list load offset. 
-    }
-
-    vector<uint32_t> stack = list.get();
-    for (int i = 0; i < listLongwords; i++) {
-	p = static_cast<uint16_t*>(addToPacket32(p, stack[i]));
-    }
-    *outSize = packetShorts*sizeof(short);
-    return outPacket;
-}
-
 /**
  * openVMUsb
  *
@@ -690,7 +522,7 @@ CVMUSBusb::openVMUsb()
     
     m_handle  = usb_open(m_device);
     if (!m_handle) {
-	throw "CVMUSBusb::CVMUSB  - unable to open the device";
+	throw "CVMUSBusb::CVMUSBusb  - unable to open the device";
     }
     // Now claim the interface.. again this could in theory fail.. but.
 
@@ -698,11 +530,12 @@ CVMUSBusb::openVMUsb()
     int status = usb_claim_interface(m_handle, 
 				     0);
     if (status == -EBUSY) {
-	throw "CVMUSBusb::CVMUSB - some other process has already claimed";
+	throw "CVMUSBusb::CVMUSBusb - some other process has already claimed";
+
     }
 
     if (status == -ENOMEM) {
-	throw "CVMUSBusb::CMVUSB - claim failed for lack of memory";
+	throw "CVMUSBusb::CVMUSBusb - claim failed for lack of memory";
     }
     // Errors we don't know about:
 
