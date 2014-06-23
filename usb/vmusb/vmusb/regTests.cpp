@@ -71,8 +71,6 @@ void registerTests::action() {
 void registerTests::fwid()
 {
   uint32_t fw = m_pInterface->readFirmwareID();
-  cerr << endl << hex << "Firmware id: " << fw << dec << endl;
-
 }
 // Write 0's to the gobal mode register... all the 
 // bits that count should match.. then turn them all  on too.
