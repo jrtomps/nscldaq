@@ -45,8 +45,8 @@ libVMUSBRemote_la_LIBADD = @top_builddir@/usb/vmusb/vmusb/libVMUSB.la \
 
 
 TEST_MODULES = @srcdir@/TestRunner.cpp \
-              @srcdir@/regTests.cpp \
-              @srcdir@/vmeTests.cpp
+             @srcdir@/regTests.cpp \
+            @srcdir@/vmeTests.cpp 
 
 
 tests: $(TEST_MODULES)

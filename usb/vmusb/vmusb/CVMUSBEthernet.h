@@ -164,17 +164,6 @@ public:
     int vmeFifoRead(uint32_t address, uint8_t aModifier,
 		    void* data, size_t transferCount, size_t* countTransferred);
 
-    // Support for immediate counted VME variable block transfer operations:
-    // See comments prior to CVMEReadoutList::addBlockCountMask
-
-    int vmeReadBlockCount8(uint32_t address,  uint32_t mask, uint8_t amod);
-    int vmeReadBlockCount16(uint32_t address, uint32_t mask, uint8_t amod);
-    int vmeReadBlockCount32(uint32_t address, uint32_t mask, uint8_t amod);
-    int vmeVariableBlockRead(uint32_t address, uint8_t amod, 
-			     void* data, size_t maxCount, size_t* countTransferred);
-    int vmeVariableFifoRead(uint32_t address, uint8_t amod,  
-			    void* data, size_t maxCount,  size_t* countTransferred);
-    
     // List operations.
 
 public:
@@ -194,9 +183,6 @@ private:
 
     void  writeRegister(unsigned int address, uint32_t data);
     uint32_t readRegister(unsigned int address);
-    unsigned int whichToISV(int which);
-    int   doVMEWrite(CVMUSBReadoutList& list);
-    int   doVMERead(CVMUSBReadoutList&  list, uint32_t* datum);
 
     std::string marshallList(CVMUSBReadoutList& list);
     size_t      marshallOutputData(void* pOutputBuffer, const char* reply, size_t maxOutputSize);
