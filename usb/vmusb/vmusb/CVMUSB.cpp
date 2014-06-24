@@ -509,8 +509,8 @@ CVMUSB::writeVector(int which, uint32_t value)
 {
     unsigned int regno = whichToISV(which);
     writeRegister(regno, value);
-    m_regShadow.interruptVectors[regno] = value;
-
+    unsigned int regIndex = 2*((regno - ISV12)/sizeof(uint32_t))+1;
+    m_regShadow.interruptVectors[regIndex] = value;
     // Horrible kluge... 
     // set the tops of the vectors to 0xfffffff in keeping with what 8bit
     // interrupters (the only type  I know of) require).
@@ -534,8 +534,9 @@ int
 CVMUSB::readVector(int which)
 {
     unsigned int regno = whichToISV(which);
-    m_regShadow.interruptVectors[regno] = readRegister(regno);
-    return m_regShadow.interruptVectors[regno]; 
+    unsigned int regIndex = 2*((regno - ISV12)/sizeof(uint32_t))+1;
+    m_regShadow.interruptVectors[regIndex] = readRegister(regno);
+    return m_regShadow.interruptVectors[regIndex]; 
 }
 
 /*!

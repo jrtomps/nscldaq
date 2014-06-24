@@ -117,7 +117,7 @@ class CVMUSB
 
       // Provide default constructor to ensure that 
       // the vector is initialized to a length of 8
-      ShadowRegisters() : interruptVectors(8,0) {}
+      ShadowRegisters() : interruptVectors(9,0) {}
     };
 
 
