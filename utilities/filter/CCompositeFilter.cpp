@@ -135,7 +135,8 @@ CRingItem* CCompositeFilter::handleRingItem(CRingItem* item)
   // Initialize some pointers to keep track of returned objects
   CRingItem* pItem0=item;
   CRingItem* pItem1=pItem0;
-  while (it!=itend) {
+  // Loop through the filters while the newly returned object isn't null
+  while (it!=itend && pItem0!=0) {
 
     // pass the first item to the filter and get the filtered item 
     pItem1 = (*it)->handleRingItem(pItem0);
@@ -170,7 +171,7 @@ CRingItem* CCompositeFilter::handleStateChangeItem(CRingStateChangeItem* item)
   CRingItem* pItem0=item;
   CRingItem* pItem1=pItem0;
   CRingStateChangeItem* state_item = 0;
-  while (it!=itend) {
+  while (it!=itend && pItem0!=0) {
 
     state_item = static_cast<CRingStateChangeItem*>(pItem0);
 
@@ -207,7 +208,7 @@ CRingItem* CCompositeFilter::handleScalerItem(CRingScalerItem* item)
   CRingItem* pItem0=item;
   CRingItem* pItem1=pItem0;
   CRingScalerItem* state_item = 0;
-  while (it!=itend) {
+  while (it!=itend && pItem0!=0) {
 
     state_item = static_cast<CRingScalerItem*>(pItem0);
 
@@ -244,7 +245,7 @@ CRingItem* CCompositeFilter::handleTextItem(CRingTextItem* item)
   CRingItem* pItem0=item;
   CRingItem* pItem1=pItem0;
   CRingTextItem* state_item = 0;
-  while (it!=itend) {
+  while (it!=itend && pItem0!=0) {
 
     state_item = static_cast<CRingTextItem*>(pItem0);
 
@@ -281,7 +282,7 @@ CRingItem* CCompositeFilter::handlePhysicsEventItem(CPhysicsEventItem* item)
   CRingItem* pItem0=item;
   CRingItem* pItem1=pItem0;
   CPhysicsEventItem* state_item = 0;
-  while (it!=itend) {
+  while (it!=itend && pItem0!=0) {
 
     state_item = static_cast<CPhysicsEventItem*>(pItem0);
 
@@ -318,7 +319,7 @@ CRingItem* CCompositeFilter::handlePhysicsEventCountItem(CRingPhysicsEventCountI
   CRingItem* pItem0=item;
   CRingItem* pItem1=pItem0;
   CRingPhysicsEventCountItem* state_item = 0;
-  while (it!=itend) {
+  while (it!=itend && pItem0!=0) {
 
     state_item = static_cast<CRingPhysicsEventCountItem*>(pItem0);
 
@@ -355,7 +356,7 @@ CRingItem* CCompositeFilter::handleFragmentItem(CRingFragmentItem* item)
   CRingItem* pItem0=item;
   CRingItem* pItem1=pItem0;
   CRingFragmentItem* state_item = 0;
-  while (it!=itend) {
+  while (it!=itend && pItem0!=0) {
 
     state_item = static_cast<CRingFragmentItem*>(pItem0);
 

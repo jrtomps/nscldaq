@@ -39,6 +39,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2014, Al
 #define private public
 #define protected public
 #include "CFilterMain.h"
+#include "COneShotMediator.h"
 #undef private
 #undef protected
 
@@ -131,7 +132,7 @@ void CFilterMainTest::testSkipTransmitted()
                       "--skip=5"};
   // Ensure that this thing only throws a CFatalException
   CFilterMain app(argc, const_cast<char**>(argv)); 
-  CPPUNIT_ASSERT_EQUAL(5, app.m_mediator.m_nToSkip);
+  CPPUNIT_ASSERT_EQUAL(5, app.m_mediator->m_nToSkip);
 }
 
 void CFilterMainTest::testCountTransmitted()
@@ -141,7 +142,7 @@ void CFilterMainTest::testCountTransmitted()
                       "--count=5"};
   // Ensure that this thing only throws a CFatalException
   CFilterMain app(argc, const_cast<char**>(argv)); 
-  CPPUNIT_ASSERT_EQUAL(5, app.m_mediator.m_nToProcess);
+  CPPUNIT_ASSERT_EQUAL(5, app.m_mediator->m_nToProcess);
 }
 
 void CFilterMainTest::testOneShot()
@@ -151,7 +152,7 @@ void CFilterMainTest::testOneShot()
                       "--oneshot"};
   // Ensure that this thing only throws a CFatalException
   CFilterMain app(argc, const_cast<char**>(argv)); 
-  CPPUNIT_ASSERT_EQUAL(true, app.m_mediator.m_isOneShot);
+  CPPUNIT_ASSERT(0 != &(dynamic_cast<COneShotMediator*>(app.m_mediator)->m_oneShot));
 }
 
 void CFilterMainTest::testMultiProducersOnRingIsFatal()
