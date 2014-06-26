@@ -40,7 +40,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2014, Al
 #include <CDataSinkFactory.h>
 #include <CDataSourceFactory.h>
 
-#include "CFilter.h"
+#include "CTransparentFilter.h"
 
 #include <cppunit/extensions/HelperMacros.h>
 
@@ -61,6 +61,8 @@ class CMediatorTest : public CppUnit::TestFixture
   
       public:
        CTestFilter() : CFilter(), m_nProcessed(0) {}
+
+      virtual CTestFilter* clone() const {return new CTestFilter(*this);}
 
       virtual CRingItem* handleStateChangeItem(CRingStateChangeItem*) 
       { ++m_nProcessed; return new CRingStateChangeItem(BEGIN_RUN);}
@@ -358,7 +360,7 @@ void CMediatorTest::testSkipNone()
 
     m_mediator.setDataSource(m_source);
     m_mediator.setDataSink(m_sink);
-    m_mediator.setFilter(new CFilter);
+    m_mediator.setFilter(new CTransparentFilter);
 
     m_mediator.mainLoop();
 
@@ -401,7 +403,7 @@ void CMediatorTest::testSkipSome()
 
     m_mediator.setDataSource(m_source);
     m_mediator.setDataSink(m_sink);
-    m_mediator.setFilter(new CFilter);
+    m_mediator.setFilter(new CTransparentFilter);
 
     m_mediator.setSkipCount(nToSkip);
 
@@ -432,7 +434,7 @@ void CMediatorTest::setUpSkipTestFile(int nToSkip,
   URL uri(infname);
   CDataSource* source = new CFileDataSource(uri, std::vector<uint16_t>());
   CDataSink* sink = new CFileDataSink(ofname);
-  CFilter* filt = new CFilter;
+  CFilter* filt = new CTransparentFilter;
   CMediator* med = new CMediator(source,filt,sink);
 
   // Extract the number of events we want to skip
@@ -512,7 +514,7 @@ void CMediatorTest::testTransparentMainLoop()
     m_source = new CFileDataSource(uri, std::vector<uint16_t>());
     std::cout << "\nOpening data sink = " << outfname << std::endl;
     m_sink = new CFileDataSink(outfname);
-    m_filter = new CFilter;
+    m_filter = new CTransparentFilter;
 
     m_mediator.setDataSource(m_source);
     m_mediator.setDataSink(m_sink);

@@ -33,7 +33,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2014, Al
 #include <CRingPhysicsEventCountItem.h>
 #include <CRingFragmentItem.h>
 
-#include "CFilter.h"
+#include "CTransparentFilter.h"
 
 #define private public
 #define protected public
@@ -48,8 +48,12 @@ class CCompositeFilterTest : public CppUnit::TestFixture
   private:
     // Define a test filter to return some testable results
     class CTestFilter : public CFilter {
+      std::string m_history;
 
-      virtual CTestFilter* clone() const { return new CTestFilter;}
+      public:
+      std::string history() { return m_history; }
+
+      virtual CTestFilter* clone() const { return new CTestFilter(*this);}
 
       virtual CRingItem* handleStateChangeItem(CRingStateChangeItem*) 
       { return new CRingStateChangeItem(BEGIN_RUN);}
@@ -86,6 +90,10 @@ class CCompositeFilterTest : public CppUnit::TestFixture
       virtual CRingItem* handleRingItem(CRingItem*) 
       { return new CRingItem(100);}
 
+      virtual void initialize() 
+      { m_history += "initialize";}
+      virtual void finalize() 
+      { m_history += "finalize";}
     };
 
   private:
@@ -115,6 +123,8 @@ class CCompositeFilterTest : public CppUnit::TestFixture
     CPPUNIT_TEST ( testTestFragmentItem );
     CPPUNIT_TEST ( testTransparentGenericItem );
     CPPUNIT_TEST ( testTestGenericItem );
+    CPPUNIT_TEST ( testInitialize0 );
+    CPPUNIT_TEST ( testFinalize0 );
 
     CPPUNIT_TEST_SUITE_END();
 
@@ -140,6 +150,8 @@ class CCompositeFilterTest : public CppUnit::TestFixture
     void testTestFragmentItem();
     void testTransparentGenericItem();
     void testTestGenericItem();
+    void testInitialize0();
+    void testFinalize0();
 
 //    void testTransparentMainLoop();
 
@@ -196,8 +208,9 @@ void CCompositeFilterTest::testProcessTransparentFilter()
   // CReate a generic new item to pass in
   CRingItem* item = new CRingItem(100,100); 
   // Setup composite with transparent filter and handle the 
-  // ring item with it
-  CRingItem* new_item = setupAndRunFilter<CFilter>(item);
+  // ring item with it (CCompositeFilter is just a transparent filter when
+  // it has no filters registered)
+  CRingItem* new_item = setupAndRunFilter<CTransparentFilter>(item);
   // Verify that the composite didn't delete my item
   CPPUNIT_ASSERT( new_item == item );
   
@@ -232,7 +245,7 @@ void CCompositeFilterTest::testTransparentStateChangeItem()
   CRingItem* item = new CRingStateChangeItem(END_RUN); 
   // Setup composite with transparent filter and handle the 
   // ring item with it
-  CRingItem* new_item = setupAndRunFilter<CFilter>(item);
+  CRingItem* new_item = setupAndRunFilter<CTransparentFilter>(item);
   // Verify that the composite didn't delete my item
   CPPUNIT_ASSERT( new_item == item );
 
@@ -270,7 +283,7 @@ void CCompositeFilterTest::testTransparentScalerItem()
   CRingItem* item = new CRingScalerItem (300);
   // Setup composite with transparent filter and handle the 
   // ring item with it
-  CRingItem* new_item = setupAndRunFilter<CFilter>(item);
+  CRingItem* new_item = setupAndRunFilter<CTransparentFilter>(item);
   // Verify that the composite didn't delete my item
   CPPUNIT_ASSERT( new_item == item );
 
@@ -308,7 +321,7 @@ void CCompositeFilterTest::testTransparentTextItem()
   str_vec.push_back("testing 123");
   CRingTextItem* item = new CRingTextItem(MONITORED_VARIABLES,str_vec);
 
-  CRingItem* new_item = setupAndRunFilter<CFilter>(item);
+  CRingItem* new_item = setupAndRunFilter<CTransparentFilter>(item);
 
   CPPUNIT_ASSERT (new_item == item);
 
@@ -347,7 +360,7 @@ void CCompositeFilterTest::testTransparentPhysicsEventItem()
 {
   CPhysicsEventItem* item = new CPhysicsEventItem(8192);
 
-  CRingItem* new_item = setupAndRunFilter<CFilter>(item);
+  CRingItem* new_item = setupAndRunFilter<CTransparentFilter>(item);
 
   CPPUNIT_ASSERT( item == new_item );
 
@@ -384,7 +397,7 @@ void CCompositeFilterTest::testTransparentPhysicsEventCountItem()
   item =  new CRingPhysicsEventCountItem(static_cast<uint64_t>(100),
                                          static_cast<uint32_t>(100));
 
-  CRingItem* new_item = setupAndRunFilter<CFilter>(item);
+  CRingItem* new_item = setupAndRunFilter<CTransparentFilter>(item);
   CRingPhysicsEventCountItem* new_cnt 
     = dynamic_cast<CRingPhysicsEventCountItem*>(new_item);
 
@@ -428,7 +441,7 @@ void CCompositeFilterTest::testTransparentFragmentItem()
                                                         reinterpret_cast<void*>(0),
                                                         static_cast<uint32_t>(0));
 
-  CRingItem* new_item = setupAndRunFilter<CFilter>(item);
+  CRingItem* new_item = setupAndRunFilter<CTransparentFilter>(item);
 
   CPPUNIT_ASSERT( new_item == item);
 
@@ -469,7 +482,7 @@ void CCompositeFilterTest::testTestFragmentItem()
 void CCompositeFilterTest::testTransparentGenericItem()
 {
   CRingItem* item = new CRingItem(1000);    
-  CRingItem* new_item = setupAndRunFilter<CFilter>(item);
+  CRingItem* new_item = setupAndRunFilter<CTransparentFilter>(item);
   CPPUNIT_ASSERT( item == new_item );
 
   if (item != new_item) {
@@ -494,3 +507,39 @@ void CCompositeFilterTest::testTestGenericItem()
 
   delete item;
 }
+
+
+void CCompositeFilterTest::testInitialize0()
+{
+  CTestFilter f;
+  m_composite->registerFilter(&f); 
+  m_composite->registerFilter(&f); 
+
+  m_composite->initialize();
+  CCompositeFilter::iterator it = m_composite->begin();
+  CCompositeFilter::iterator itend = m_composite->end();
+  while (it!=itend) {
+    CTestFilter *tfilt = static_cast<CTestFilter*>(*it);
+    CPPUNIT_ASSERT_EQUAL(std::string("initialize"), tfilt->history());
+    ++it;
+  }
+
+}
+
+void CCompositeFilterTest::testFinalize0()
+{
+  CTestFilter f;
+  m_composite->registerFilter(&f); 
+  m_composite->registerFilter(&f); 
+
+  m_composite->finalize();
+  CCompositeFilter::iterator it = m_composite->begin();
+  CCompositeFilter::iterator itend = m_composite->end();
+  while (it!=itend) {
+    CTestFilter *tfilt = static_cast<CTestFilter*>(*it);
+    CPPUNIT_ASSERT_EQUAL(std::string("finalize"), tfilt->history());
+    ++it;
+  }
+
+}
+

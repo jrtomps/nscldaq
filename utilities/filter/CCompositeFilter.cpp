@@ -392,3 +392,30 @@ void CCompositeFilter::clearFilters()
   }
   m_filter.clear();
 }
+
+/**! Initialization hook to run before any data is processed
+*/
+void CCompositeFilter::initialize()
+{
+  iterator it    = begin();
+  iterator itend = end();
+
+  while (it!=itend) {
+    (*it)->initialize();
+    ++it;
+  }
+}
+
+/**! Finalization hook to run after all data is processed
+*/
+void CCompositeFilter::finalize()
+{
+  iterator it    = begin();
+  iterator itend = end();
+
+  while (it!=itend) {
+    (*it)->finalize();
+    ++it;
+  }
+}
+

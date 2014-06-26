@@ -17,6 +17,7 @@ include_HEADERS	=  CFilterMain.h \
                    CMediator.h \
                    CFilter.h \
                    CCompositeFilter.h  \
+                   CTransparentFilter.h \
                    CFatalException.h
 
 INCLUDES	= -I@top_srcdir@/utilities \
@@ -56,7 +57,8 @@ noinst_PROGRAMS = unittests testapp
 unittests_SOURCES	= TestRunner.cpp  \
             mediatortests.cpp \
             filtermaintests.cpp  \
-            compositefiltertests.cpp
+            compositefiltertests.cpp \
+            transparentfiltertests.cpp
 
 unittests_LDADD		= -L$(libdir) $(CPPUNIT_LDFLAGS) 		\
 			@top_builddir@/base/dataflow/libDataFlow.la 	\
