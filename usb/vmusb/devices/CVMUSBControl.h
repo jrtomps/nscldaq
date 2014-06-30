@@ -120,6 +120,7 @@ class CVMUSBReadoutList;
  *  * -spanbuffers  - Allows events to span buffer boundaries (dflt: true)
  *  * -forcescalerdump  - Scaler buffer output immediately following scaler stack execution (dflt: false)
  *  * -busreqlevel  - Bus req level for vme bus arbitration (dflt: 4) 
+ *  * -optionalheader  - Sets whether or not to output the additional buffer header (dflt: false) 
  
  */
 

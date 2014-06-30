@@ -22,6 +22,7 @@
 #include <Exception.h>
 #include <ErrnoException.h>
 #include <Globals.h>
+#include <CVMUSB.h>
 #include <TclServer.h>
 
 #include <assert.h>
@@ -45,6 +46,8 @@
 
 #include <fragment.h>
 
+#include <iostream>
+#include <iomanip>
 using namespace std;
 
 
@@ -360,6 +363,20 @@ COutputThread::endRun(DataBuffer& buffer)
 
 }
 
+/**!
+* Check whether the bit in the global mode register to output
+* a second buffer header word is set. 
+*
+* \return whether the devices is set to out an extra buffer header
+*/
+bool COutputThread::hasOptionalHeader()
+{
+  uint16_t glbl_mode = Globals::pUSBController->getShadowRegisters().globalMode;
+
+  return (glbl_mode & CVMUSB::GlobalModeRegister::doubleHeader);
+}
+
+
 /**
  * Process events in a buffer creating output buffers as required.
  *  - Figure out the used words in the buffer
@@ -382,11 +399,20 @@ COutputThread::processEvents(DataBuffer& inBuffer)
 
   bufferNumber++;
 
-
-
   pContents++;			// Point to first event.
   ssize_t    nWords    = (inBuffer.s_bufferSize)/sizeof(uint16_t) - 1; // Remaining words read.
 
+  // Check if the optional second header exists
+  if (hasOptionalHeader()) {
+    uint16_t wordsInBuffer = *pContents++;  
+    if (wordsInBuffer != nWords-1) {
+      // The words that are reported in the optional header do not count 
+      // the first buffer header word. The number is self inclusive though.
+      cerr << "VMUSB specifies " << wordsInBuffer << " in buffer, but ";
+      cerr << "the number of words read is in disagreement." ;
+    }
+    --nWords;
+  } 
 
   while (nWords > 0) {
     if (nEvents <= 0) {
@@ -641,13 +667,15 @@ COutputThread::event(void* pData)
   // Events must currently fit in the buffer...otherwise we throw an error.
 
   segmentSize += 1;		// Size is not self inclusive
+
   if ((segmentSize + m_nWordsInBuffer) >= m_nOutputBufferSize/sizeof(uint16_t)) {
     int newSize          = 2*segmentSize*sizeof(uint16_t);
-    uint8_t* pNewBuffer = reinterpret_cast<uint8_t*>(realloc(m_pBuffer, newSize));
+    uint8_t* pNewBuffer = reinterpret_cast<uint8_t*>(realloc(m_pBuffer, m_nOutputBufferSize+newSize));
     if (pNewBuffer) {
       m_pBuffer            = pNewBuffer;
       m_pCursor            = m_pBuffer + m_nWordsInBuffer * sizeof(uint16_t);
       m_nOutputBufferSize += newSize;
+
     } else {
       throw std::string("Failed to resize event buffer to fit an oversized segment");
     }

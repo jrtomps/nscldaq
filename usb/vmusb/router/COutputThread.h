@@ -167,6 +167,8 @@ private:
   void attachRing();
   void outputTriggerCount(uint32_t runOffset);
   void getTimestampExtractor();
+
+  bool hasOptionalHeader();
 };
 
 

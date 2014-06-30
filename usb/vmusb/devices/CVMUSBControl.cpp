@@ -211,6 +211,7 @@ CVMUSBControl::onAttach(CReadoutModule& configuration)
   m_pConfiguration->addBooleanParameter("-spanbuffers",false);
   m_pConfiguration->addBooleanParameter("-forcescalerdump",false);
   m_pConfiguration->addIntegerParameter("-busreqlevel",0,7,4);
+  m_pConfiguration->addBooleanParameter("-optionalheader",false);
 
   m_pConfiguration->addEnumParameter("-bufferlength", bufferLengthEnum, "13k"); 
   m_pConfiguration->addIntegerParameter("-eventsperbuffer", 1, MaxInt12, 1); 
@@ -431,6 +432,12 @@ void CVMUSBControl::configureGlobalMode(CVMUSB& controller)
   glbl_mode &= (~CVMUSB::GlobalModeRegister::bufferLenMask);
   glbl_mode |= (CVMUSB::GlobalModeRegister::bufferLenMask 
                  & (buflen << CVMUSB::GlobalModeRegister::bufferLenShift));
+
+  if (m_pConfiguration->getBoolParameter("-optionalheader")) {
+     glbl_mode |= CVMUSB::GlobalModeRegister::doubleHeader;
+  } else {
+     glbl_mode &= (~CVMUSB::GlobalModeRegister::doubleHeader);
+  }
 
   controller.writeGlobalMode(glbl_mode);
  
