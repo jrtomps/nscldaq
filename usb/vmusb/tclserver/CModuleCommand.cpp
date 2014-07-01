@@ -35,6 +35,7 @@ using namespace std;
 #include "CV812Creator.h"
 #include "CVMUSBCreator.h"
 #include "CTclModuleCreator.h"
+#include "CXLMControlsCreator.h"
 
 /*!
    Construct the command. 
@@ -63,6 +64,7 @@ CModuleCommand::CModuleCommand(CTCLInterpreter& interp,
   pFact->addCreator("v6533", new CV6533Creator);
   pFact->addCreator("ChicoTrigger", new CChicoTriggerCreator);
   pFact->addCreator("tcl", new CTclModuleCreator);
+  pFact->addCreator("xlm", new XLM::CXLMControlsCreator);
 
 }
 //! Destroy the module.. no op provided only as a chain to the base class destructor.
@@ -138,7 +140,7 @@ CModuleCommand::create(CTCLInterpreter& interp,
   CModuleFactory*   pFact = CModuleFactory::instance();
   pModule  = pFact->create(type, name);
   if (!pModule) {
-    m_Server.setResult("module create: Invalid type, must be one of jtecgdg, caenv182, caenvg895, vmusb, v6533 ChicoTrigger");
+    m_Server.setResult("module create: Invalid type, must be one of jtecgdg, caenv182, caenvg895, vmusb, v6533 ChicoTrigger, xlm");
     return TCL_ERROR;
   }
 

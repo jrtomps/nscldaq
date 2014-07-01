@@ -122,6 +122,8 @@ public:
     // List operations.
 
 public:
+    void writeActionRegister(uint16_t value);
+
     int executeList(CVMUSBReadoutList& list,
 		    void*               pReadBuffer,
 		    size_t              readBufferSize,

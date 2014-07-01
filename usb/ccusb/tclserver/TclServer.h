@@ -90,13 +90,15 @@ public:
 
   virtual void    init();
   CTCLInterpreter* getInterp() { return m_pInterpreter; }
+
+  void readConfigFile();
+  void initModules();
+
 protected:
   void operator()();
 
 private:
   void initInterpreter();
-  void readConfigFile();
-  void initModules();
   void startTcpServer();
   void EventLoop();
   static void updateVariables(void* pThis);

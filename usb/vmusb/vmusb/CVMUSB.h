@@ -101,7 +101,6 @@ class CVMUSB
     * Contains the most recent values of the VMUSB
     */ 
     struct ShadowRegisters {
-      uint16_t action;
       uint32_t firmwareID;
       uint16_t globalMode;
       uint32_t daqSettings;
@@ -166,7 +165,7 @@ public:
     /**! Acquire the shadow registers  */
     const ShadowRegisters& getShadowRegisters() const;
 
-    virtual void     writeActionRegister(uint16_t value);
+    virtual void     writeActionRegister(uint16_t value) = 0;
 //    void     writeActionRegister(int value) { // SWIG
 //      writeActionRegister((uint16_t)value);
 //    }

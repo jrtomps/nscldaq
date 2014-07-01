@@ -215,6 +215,46 @@ CVMUSBusb::reconnect()
 
 }
 
+/*!
+*  writeActionRegister
+*
+    Writing a value to the action register.  This is really the only
+    special case for this code.  The action register is the only
+    item that cannot be handled by creating a local list and
+    then executing it immediately.
+    Action register I/O requires a special list, see section 4.2, 4.3
+    of the Wiener VM-USB manual for more information
+    \param value : uint16_t
+       The register value to write.
+ */
+void CVMUSBusb::writeActionRegister(uint16_t data) 
+{
+  char outPacket[100];
+
+
+  // Build up the output packet:
+
+  char* pOut = outPacket;
+
+  pOut = static_cast<char*>(addToPacket16(pOut, 5)); // Select Register block for transfer.
+  pOut = static_cast<char*>(addToPacket16(pOut, 10)); // Select action register wthin block.
+  pOut = static_cast<char*>(addToPacket16(pOut, data));
+
+  // This operation is write only.
+
+  int outSize = pOut - outPacket;
+  int status = usb_bulk_write(m_handle, ENDPOINT_OUT, 
+      outPacket, outSize, m_timeout);
+  if (status < 0) {
+    string message = "Error in usb_bulk_write, writing action register ";
+    message == strerror(-status);
+    throw message;
+  }
+  if (status != outSize) {
+    throw "usb_bulk_write wrote different size than expected";
+  }
+
+}
 
 //////////////////////////////////////////////////////////////////////////
 /////////////////////////// List operations  ////////////////////////////
@@ -461,30 +501,29 @@ CVMUSBusb::readRegister(unsigned int address)
 void
 CVMUSBusb::writeRegister(unsigned int address, uint32_t data)
 {
-    CVMUSBReadoutList list;
-    uint32_t          rdstatus;
-    size_t            rdcount;
-    list.addRegisterWrite(address, data);
+  CVMUSBReadoutList list;
+  uint32_t          rdstatus;
+  size_t            rdcount;
+  list.addRegisterWrite(address, data);
 
-    int status = executeList(list,
-			     &rdstatus, 
-			     sizeof(rdstatus),
-			     &rdcount);
+  int status = executeList(list,
+      &rdstatus, 
+      sizeof(rdstatus),
+      &rdcount);
 
-    if (status == -1) {
-	char message[100];
-	sprintf(message, "CVMUSBusb::writeRegister USB write failed: %s",
-		strerror(errno));
-	throw string(message);
-    }
-    if (status == -2) {
-	char message[100];
-	sprintf(message, "CVMUSBusb::writeRegister USB read failed %s",
-		strerror(errno));
-	throw string(message);
+  if (status == -1) {
+    char message[100];
+    sprintf(message, "CVMUSBusb::writeRegister USB write failed: %s",
+        strerror(errno));
+    throw string(message);
+  }
+  if (status == -2) {
+    char message[100];
+    sprintf(message, "CVMUSBusb::writeRegister USB read failed %s",
+        strerror(errno));
+    throw string(message);
 
-    }
-    
+  }
 }
 
 /**

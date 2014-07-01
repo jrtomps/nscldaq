@@ -250,23 +250,6 @@ const CVMUSB::ShadowRegisters& CVMUSB::getShadowRegisters() const {
 }
 
 
-/*!
-    Writing a value to the action register.  This is really the only
-    special case for this code.  The action register is the only
-    item that cannot be handled by creating a local list and
-    then executing it immediately.
-    Action register I/O requires a special list, see section 4.2, 4.3
-    of the Wiener VM-USB manual for more information
-    \param value : uint16_t
-       The register value to write.
-*/
-void
-CVMUSB::writeActionRegister(uint16_t value)
-{
-    // Store the written value into the shadow register if we succeeded
-    writeRegister(ACTIONRegister, static_cast<uint32_t>(value));
-    m_regShadow.action = value;
-}
 
 ////////////////////////////////////////////////////////////////////////
 /*!

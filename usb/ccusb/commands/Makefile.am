@@ -3,12 +3,14 @@ libCCUSBCommands_la_SOURCES	=	CBeginRun.cpp	\
 				CEndRun.cpp	\
 				CPauseRun.cpp	\
 				CResumeRun.cpp	\
+				CInit.cpp	\
 				tclUtil.cpp	
 
 include_HEADERS		= 	CBeginRun.h	\
 				CEndRun.h	\
 				CPauseRun.h	\
 				CResumeRun.h	\
+				CInit.h	\
 				tclUtil.h
 
 INCLUDES		= 	-I@top_srcdir@/usb/ccusb/threadcomm	\
@@ -17,6 +19,7 @@ INCLUDES		= 	-I@top_srcdir@/usb/ccusb/threadcomm	\
 				-I@top_srcdir@/usb/ccusb/daqconfig	\
 				-I@top_srcdir@/usb/ccusb		\
 				-I@top_srcdir@/usb/ccusb/ccusb		\
+				-I@top_srcdir@/usb/ccusb/tclserver	\
 				@LIBTCLPLUS_CFLAGS@	\
 				-I@top_srcdir@/base/headers		\
 				-I@top_srcdir@/base/thread		\
@@ -26,6 +29,7 @@ libCCUSBCommands_la_LIBADD	= 	@top_builddir@/usb/ccusb/rdothread/libCCUSBRdoThre
 				@top_builddir@/usb/ccusb/threadcomm/libCCUSBThreadComm.la	\
 				@top_builddir@/usb/ccusb/router/libCCUSBRouter.la	\
 				@top_builddir@/usb/ccusb/daqconfig/libCCUSBConfig.la	\
+				@top_builddir@/usb/ccusb/tclserver/libCCUSBControlServer.la	\
 				@LIBTCLPLUS_LDFLAGS@	\
 				@top_builddir@/base/thread/libdaqthreads.la	\
 				$(TCL_LDFLAGS)

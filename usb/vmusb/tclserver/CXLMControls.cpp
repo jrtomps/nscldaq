@@ -9,12 +9,17 @@
 
 using namespace std;
 
+
+namespace XLM
+{
+
 ///////////////////////////////////////////////////////////////////////////////
 /////////////////////// SLOW CONTROLS FOR FIRMWARE LOADS //////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace XLM
-{
+CXLMControls::CXLMControls(string name)
+  : CControlHardware(name)
+{}
 
 void CXLMControls::onAttach(CControlModule& config)
 {
@@ -30,22 +35,21 @@ void CXLMControls::Initialize(CVMUSB& controller)
   loadFirmware(controller, base, SRAMA, path);
 }
 
-void CXLMControls::clone(const CXLMControls& controller) {}
+void CXLMControls::clone(const CControlHardware& controller) {}
 
 string CXLMControls::Update(CVMUSB& controller)
 {
-  return "OK";
+  return "ERROR - Update is not implemented for CXLMControls";
 }
 
 string CXLMControls::Set(CVMUSB& controller, string what, string val) 
 {
-  return "OK";
+  return "ERROR - Set is not implemented for CXLMControls";
 }
 
 string CXLMControls::Get(CVMUSB& controller, string what)
 {
-  return "OK";
+  return "ERROR - Get is not implemented for CXLMControls";
 }
-
 
 } // end XLM namespace

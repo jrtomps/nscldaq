@@ -1,7 +1,9 @@
 
-#ifndef __CCONTROLHARDWARE_H
+#ifndef CXLMCONTROLS_H
+#define CXLMCONTROLS_H
+
 #include "CControlHardware.h"
-#endif
+#include <string> 
 
 // Forward class definitions:
 
@@ -16,11 +18,23 @@ class CVMUSBReadoutList;
 namespace XLM
 {
 
-
-class CXLMControls : public CControlHardware
+/**! Slow control support for the XLM 
+*
+* Implementation of a CControlHardware derived class to be used through
+* the Module command. There is a corresponding CXLMControlsCreator class
+* that accompanies this.
+*
+* This only provides the ability to configure the module through the 
+* Initialize method. All other methods are no-ops and simply return an
+* error indicating that they do not have have implementation.
+*
+*/
+class CXLMControls : public ::CControlHardware
 {
   public:
-  virtual void clone( const CXLMControls& rhs);
+  CXLMControls(std::string name);
+
+  virtual void clone( const CControlHardware& rhs);
 
   virtual void onAttach (CControlModule& config);
   virtual void Initialize(CVMUSB& controller);
@@ -31,4 +45,7 @@ class CXLMControls : public CControlHardware
 };
 
 
+
 } // end XLM namespace
+
+#endif

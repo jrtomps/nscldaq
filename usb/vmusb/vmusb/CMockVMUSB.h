@@ -21,6 +21,7 @@ class CMockVMUSB : public CVMUSB
     public:
     CMockVMUSB();
 
+    virtual void writeActionRegister(uint16_t data);
     virtual int executeList(CVMUSBReadoutList& list, void* pReadBuffer, size_t readBufferSize, size_t* bytesRead);
     virtual int loadList(uint8_t listNumber, CVMUSBReadoutList& list, off_t listOffset=0);
     virtual int usbRead(void* data, size_t bufferSize, size_t* transferCount, int timeout=2000);

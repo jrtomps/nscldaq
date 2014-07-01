@@ -54,6 +54,15 @@ tests: $(TEST_MODULES)
 	$(TEST_MODULES) $(CPPUNIT_LDFLAGS) -L@prefix@/lib -lVMUSB \
 	-Wl,"-rpath=@prefix@/lib" @TCL_LDFLAGS@ @LIBTCLPLUS_LDFLAGS@
 
+
+REMOTE_TEST_MODULES = @srcdir@/TestRunner.cpp \
+             @srcdir@/remoteRegTests.cpp 
+
+remotetests: $(REMOTE_TEST_MODULES)
+	$(CXX) -g -o remotetests -I@srcdir@ -I@prefix@/include $(CPPUNIT_INCLUDES) \
+	$(REMOTE_TEST_MODULES) $(CPPUNIT_LDFLAGS) -L@prefix@/lib -lVMUSBRemote \
+	-Wl,"-rpath=@prefix@/lib" @TCL_LDFLAGS@ @LIBTCLPLUS_LDFLAGS@
+
 installcheck-local: tests
 	./tests
 
@@ -74,7 +83,7 @@ clean-local:
 #  Stuff that needs to go int the distro:
 
 
-EXTRA_DIST = $(TEST_MODULES)
+EXTRA_DIST = $(TEST_MODULES) $(REMOTE_TEST_MODULES)
 
 # Swig interface generation:
 

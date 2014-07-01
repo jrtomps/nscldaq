@@ -30,7 +30,7 @@ class cvmusbtest : public CppUnit::TestFixture {
   CPPUNIT_TEST(testConfigureGlobalMode3);
   CPPUNIT_TEST(testConfigureGlobalMode4);
   CPPUNIT_TEST(testConfigureGlobalMode5);
-//  CPPUNIT_TEST(testConfigureGlobalMode6);
+  CPPUNIT_TEST(testConfigureGlobalMode6);
   CPPUNIT_TEST(testConfigureGlobalMode7);
   CPPUNIT_TEST(testConfigureEventsPerBuffer);
   CPPUNIT_TEST_SUITE_END();
