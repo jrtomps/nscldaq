@@ -29,6 +29,7 @@
 #include <CEndRun.h>
 #include <CPauseRun.h>
 #include <CResumeRun.h>
+#include <CInit.h>
 #include <Exception.h>
 #include <tcl.h>
 #include <DataBuffer.h>
@@ -160,13 +161,17 @@ int CTheApplication::operator()(int argc, char** argv)
 
     const char* connectionString;
     CVMUSBFactory::ControllerType type;
+#ifdef HOST_ARG_DEFINED
     if (parsedArgs.host_given) {
       type             = CVMUSBFactory::remote;
       connectionString = parsedArgs.host_arg;
     } else {
+#endif
       type             = CVMUSBFactory::local;
       connectionString = parsedArgs.serialno_given ? parsedArgs.serialno_arg :  0;
+#ifdef HOST_ARG_DEFINED
     }
+#endif
 
     Globals::pUSBController  = CVMUSBFactory::createUSBController(type, connectionString);
     
@@ -338,6 +343,7 @@ CTheApplication::AppInit(Tcl_Interp* interp)
   new CEndRun(*pInterp);
   new CPauseRun(*pInterp);
   new CResumeRun(*pInterp);
+  new CInit(*pInterp);
 
 
   return TCL_OK;
