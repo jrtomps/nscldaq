@@ -61,7 +61,7 @@ CTclAccessListCheck::CTclAccessListCheck(Tcl_Interp* pInterp,
 //     Authenticate(CInteractor& rInteractor)
 //  Operation Type: 
 //     
-Bool_t CTclAccessListCheck::Authenticate(CInteractor& rInteractor)  
+bool CTclAccessListCheck::Authenticate(CInteractor& rInteractor)  
 {
   // Checks a string against a list of TCL strings, if there's a match, the
   // client is authenticated else, not.
@@ -70,7 +70,7 @@ Bool_t CTclAccessListCheck::Authenticate(CInteractor& rInteractor)
   // against that:
 
   CAccessListCheck* pAccessList   = GenerateList();
-  Bool_t result = pAccessList->Authenticate(rInteractor);
+  bool result = pAccessList->Authenticate(rInteractor);
   delete pAccessList;
 
   return result;

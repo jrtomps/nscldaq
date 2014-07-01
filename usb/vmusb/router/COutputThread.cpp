@@ -25,8 +25,6 @@
 #include <TclServer.h>
 
 #include <assert.h>
-#include <buffer.h>
-#include <buftypes.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -55,25 +53,6 @@ static const unsigned MonitorStack(7);
 
 static const unsigned BUFFERS_BETWEEN_EVENTCOUNTS(64);  // max buffers before an event count item.
 
-
-///////////////////////////////////////////////////////////////////////
-///////////////////// Local data types ////////////////////////////////
-//////////////////////////////////////////////////////////////////////
-
-typedef struct _BeginRunBuffer {
-  BHEADER         s_header;
-  struct ctlbody  s_body;
-} BeginRunBuffer, *pBeginRunBuffer;
-
-typedef struct _ScalerBuffer {
-  BHEADER         s_header;
-  struct sclbody  s_body;
-} ScalerBuffer, *pScalerBuffer;
-
-typedef struct _EventBuffer {
-  BHEADER      s_header;
-  uint16_t     s_body[1];
-} EventBuffer, *pEventBuffer;
 
 ////////////////////////////////////////////////////////////////////////
 //   mytimersub - since BSD timeval is not the same as POSIX timespec:

@@ -107,7 +107,7 @@ protected:
 
 public:
 
-  virtual   Bool_t Authenticate (CInteractor& rInteractor);
+  virtual   bool Authenticate (CInteractor& rInteractor);
 
 protected:
   CAccessListCheck* GenerateList();

@@ -117,7 +117,7 @@ protected:
 
 public:
 
- virtual   Bool_t Authenticate (CInteractor& rInteractor)    ;
+ virtual   bool Authenticate (CInteractor& rInteractor)    ;
  virtual   void AddAclEntry (const std::string& rEntry)    ;
  virtual   void DeleteAclEntry (const std::string& rEntry)    ;
 

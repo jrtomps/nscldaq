@@ -105,10 +105,10 @@ private:
 public:
        
 public:
-  virtual Bool_t Authenticate(CInteractor& rInteractor) {
+  virtual bool Authenticate(CInteractor& rInteractor) {
     return Authenticate(GetLine(rInteractor));
    } 
-  Bool_t Authenticate(const std::string& rHostname);
+  bool Authenticate(const std::string& rHostname);
 
   virtual   void AddAclEntry (const std::string& rHostname) {
     std::cerr << ">Warning, CHostListCheck::AddAclEntry called "
@@ -120,7 +120,7 @@ public:
          << " Should call DeleteIpAddress\n";
     CAccessListCheck::DeleteAclEntry(rHostname);
   }
-  Bool_t Authenticate(in_addr Address) {
+  bool Authenticate(in_addr Address) {
     CStringInteractor Host(EncodeAddress(Address));
     return CAccessListCheck::Authenticate(Host);
   }

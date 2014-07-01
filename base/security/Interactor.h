@@ -36,8 +36,6 @@
 #ifndef __INTERACTOR_H  //Required for current class
 #define __INTERACTOR_H
 
-#include <daqdatatypes.h>        //Required for include files
-                               
 class CInteractor      
 {                       
 			
@@ -75,10 +73,10 @@ public:
 
 public:
 
- virtual   int Read (UInt_t nBytes, void* pData)   = 0  ;
- virtual   int Write (UInt_t nbytes, void* pData)   = 0  ;
- virtual   int ReadWithPrompt (UInt_t nPromptSize, void* pPrompt, 
-			       UInt_t nReadSize, void* pReadData)    ;
+ virtual   int Read (unsigned int nBytes, void* pData)   = 0  ;
+ virtual   int Write (unsigned int nbytes, void* pData)   = 0  ;
+ virtual   int ReadWithPrompt (unsigned int nPromptSize, void* pPrompt, 
+			       unsigned int nReadSize, void* pReadData)    ;
 
  virtual   void Flush ();
  

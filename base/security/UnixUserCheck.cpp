@@ -57,7 +57,7 @@ static const char* pCopyrightNotice =
 //     Authenticate(CInteractor& rInteractor)
 //  Operation Type: 
 //     
-Bool_t 
+bool 
 CUnixUserCheck::Authenticate(CInteractor& rInteractor)  
 {
   // Returns true if the username and password
@@ -82,7 +82,7 @@ CUnixUserCheck::Authenticate(CInteractor& rInteractor)
 //  Operation Type: 
 //     
 void 
-CUnixUserCheck::SetPrompting(Bool_t fUserPrompt, Bool_t fPasswordPrompt)  
+CUnixUserCheck::SetPrompting(bool fUserPrompt, bool fPasswordPrompt)  
 {
   // Enable/Disable prompting.
 
@@ -134,11 +134,11 @@ CUnixUserCheck::PutPrompt(CInteractor& rInteractor, const string& rPrompt)
 // Operation Type:
 //    Utility:
 //
-Bool_t
+bool
 CUnixUserCheck::Validate(const string& sUser, const string& sPassword)
 {
   struct passwd* pEntry = getpwnam(sUser.c_str());
-  if(!pEntry) return kfFALSE;	// No such user.
+  if(!pEntry) return false;	// No such user.
   string EncryptedPassword(pEntry->pw_passwd);
   string EncryptedEntry(crypt(sPassword.c_str(), EncryptedPassword.c_str()));
 

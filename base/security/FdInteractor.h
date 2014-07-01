@@ -371,8 +371,8 @@ protected:
        
 public:
 
- virtual   int Read (UInt_t nBytes, void* pBuffer)    ;
- virtual   int Write (UInt_t nBytes, void* pData)    ;
+ virtual   int Read (unsigned int nBytes, void* pBuffer)    ;
+ virtual   int Write (unsigned int nBytes, void* pData)    ;
  virtual   void Flush ()    ;
 
 

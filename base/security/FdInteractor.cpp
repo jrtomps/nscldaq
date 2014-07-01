@@ -47,7 +47,7 @@ static const char* pCopyrightNotice =
 //     Read(int nBytes, void* pBuffer)
 //  Operation Type: 
 //     
-int CFdInteractor::Read(UInt_t nBytes, void* pBuffer)  
+int CFdInteractor::Read(unsigned int nBytes, void* pBuffer)  
 {
   // Reads data from the fd (delegates to read(2)
   return io::readData(m_nFd, pBuffer, nBytes);
@@ -58,7 +58,7 @@ int CFdInteractor::Read(UInt_t nBytes, void* pBuffer)
 //     Write(int nBytes, void* pData)
 //  Operation Type: 
 //     
-int CFdInteractor::Write(UInt_t nBytes, void* pData)  
+int CFdInteractor::Write(unsigned int nBytes, void* pData)  
 {
   // Writes data to the peer (delegates to write(2))
   io::writeData(m_nFd, pData, nBytes);

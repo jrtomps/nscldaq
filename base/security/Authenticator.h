@@ -39,10 +39,6 @@
 #include "Interactor.h"
 #endif
 
-#ifndef __HISTOTYPES_H
-#include <daqdatatypes.h>
-#endif
-
 #ifndef __STL_STRING
 #include <string>
 #define __STL_STRING
@@ -74,24 +70,24 @@ public:
 private:
   int operator== (const CAuthenticator& aCAuthenticator) const;
 public:	
- virtual   Bool_t Authenticate (CInteractor& rInteractor)   = 0  ;
+ virtual   bool Authenticate (CInteractor& rInteractor)   = 0  ;
 protected:
    std::string GetLine(CInteractor& rInteractor) {
    std::string pwd;
    char   c;
-   Bool_t done(kfFALSE);
+   bool done(false);
    while(!done) {
      int nb = rInteractor.Read(1, &c);
      if(nb == 1) {
        if(c == '\n') {
-	 done = kfTRUE;
+	 done = true;
        }
        else {
 	 pwd += c;
        }
      }
      else {
-       done = kfTRUE;
+       done = true;
      }
    }
    return pwd;

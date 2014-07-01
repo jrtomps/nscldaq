@@ -47,7 +47,7 @@ static const char* pCopyrightNotice =
 //     Read(UInt_t nBytes, void* pBuffer)
 //  Operation Type: 
 //     
-int CIOInteractor::Read(UInt_t nBytes, void* pBuffer)  
+int CIOInteractor::Read(unsigned int nBytes, void* pBuffer)  
 {
   // Reads from the m_InputInteractor.
   return m_InputInteractor->Read(nBytes, pBuffer);
@@ -58,7 +58,7 @@ int CIOInteractor::Read(UInt_t nBytes, void* pBuffer)
 //     Write(UInt_t nBytes, void* pBuffer)
 //  Operation Type: 
 //     
-int CIOInteractor::Write(UInt_t nBytes, void* pBuffer)  
+int CIOInteractor::Write(unsigned int nBytes, void* pBuffer)  
 {
   // Writes to the m_OutputInteractor
   return m_OutputInteractor->Write(nBytes, pBuffer);

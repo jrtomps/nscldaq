@@ -46,7 +46,7 @@ static const char* pCopyrightNotice =
 //     Authenticate(CInteractor& rInteractor)
 //  Operation Type: 
 //     
-Bool_t CAccessListCheck::Authenticate(CInteractor& rInteractor)  
+bool CAccessListCheck::Authenticate(CInteractor& rInteractor)  
 {
   // Fetches a key string from the authenticator.
   // If the keys string is in the m_Acl map, TRUE

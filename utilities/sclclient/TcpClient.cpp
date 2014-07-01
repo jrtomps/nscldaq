@@ -43,9 +43,6 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 #include <arpa/inet.h>
 #include <netdb.h>
 
-#include <daqdatatypes.h>
-
-
 
 using namespace std;
 

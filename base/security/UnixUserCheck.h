@@ -57,8 +57,8 @@ class CUnixUserCheck  : public CAuthenticator
 			
    std::string m_sUserPrompt;	//Username Prompt string
    std::string m_sPasswordPrompt;	//Password Prompt string.
-   Bool_t m_fPromptUser;	//If true usename is prompted for.
-   Bool_t m_fPromptPassword;	//If false, password is prompted for.        
+   bool m_fPromptUser;	//If true usename is prompted for.
+   bool m_fPromptPassword;	//If false, password is prompted for.        
 
 protected:
 
@@ -70,8 +70,8 @@ public:
     CAuthenticator(),
     m_sUserPrompt(std::string("Username: ")),   
     m_sPasswordPrompt(std::string("Password: ")),   
-    m_fPromptUser(kfTRUE),   
-    m_fPromptPassword(kfTRUE) 
+    m_fPromptUser(true),   
+    m_fPromptPassword(true) 
   { 
     
   } 
@@ -79,7 +79,7 @@ public:
      { }  
   CUnixUserCheck (const std::string& am_sUserPrompt,  
 		  const std::string& am_sPasswordPrompt,  
-		  Bool_t am_fPromptUser,  Bool_t am_fPromptPassword  ) 
+		  bool am_fPromptUser,  bool am_fPromptPassword  ) 
       : CAuthenticator()   ,
 	m_sUserPrompt(am_sUserPrompt),
 	m_sPasswordPrompt(am_sPasswordPrompt),
@@ -130,10 +130,10 @@ public:
   std::string getPasswordPrompt() const
   { return m_sPasswordPrompt;
   }
-  Bool_t getPromptUser() const
+  bool getPromptUser() const
   { return m_fPromptUser;
   }
-  Bool_t getPromptPassword() const
+  bool getPromptPassword() const
   { return m_fPromptPassword;
   }
                        
@@ -147,24 +147,24 @@ protected:
   void setPasswordPrompt (const std::string& am_sPasswordPrompt)
   { m_sPasswordPrompt = am_sPasswordPrompt;
   }
-  void setPromptUser (Bool_t am_fPromptUser)
+  void setPromptUser (bool am_fPromptUser)
   { m_fPromptUser = am_fPromptUser;
   }
-  void setPromptPassword (Bool_t am_fPromptPassword)
+  void setPromptPassword (bool am_fPromptPassword)
   { m_fPromptPassword = am_fPromptPassword;
   }
        
 public:
 
-  virtual   Bool_t Authenticate (CInteractor& rInteractor)    ;
-  void SetPrompting (Bool_t fUserPrompt=kfTRUE, 
-		     Bool_t fPasswordPrompt=kfTRUE)    ;
+  virtual   bool Authenticate (CInteractor& rInteractor)    ;
+  void SetPrompting (bool fUserPrompt=true, 
+		     bool fPasswordPrompt=true)    ;
   void SetUserPrompt (const std::string& rNewPrompt=std::string("Username: "))    ;
   void SetPasswordPrompt (const std::string& rNewPrompt=std::string("Password: "))    ;
  
 protected:
   void   PutPrompt(CInteractor& rInteractor, const std::string& rPrompt);
-  Bool_t Validate(const std::string& sUser, const std::string& sPassword);
+  bool Validate(const std::string& sUser, const std::string& sPassword);
 
 };
 

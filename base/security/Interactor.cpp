@@ -49,8 +49,8 @@ static const char* pCopyrightNotice =
 //  Operation Type: 
 //     
 int 
-CInteractor::ReadWithPrompt(UInt_t nPromptSize, void* pPrompt, 
-                            UInt_t nReadSize, void* pReadData)  
+CInteractor::ReadWithPrompt(unsigned int nPromptSize, void* pPrompt, 
+                            unsigned int nReadSize, void* pReadData)  
 {
   // Reads data after issuing a prompt.
   // Default implementation is to write,

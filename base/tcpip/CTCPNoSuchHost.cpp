@@ -384,7 +384,7 @@ CTCPNoSuchHost::ReasonText() const
 /*!
   Returns the exception specific reason code.  In this case, m_hErrno.
   */
-Int_t
+int
 CTCPNoSuchHost::ReasonCode() const
 {
   return m_hErrno;

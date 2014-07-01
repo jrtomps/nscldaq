@@ -55,7 +55,7 @@ static const char* pCopyrightNotice =
 // Operation type:
 //  overload
 //
-Bool_t
+bool
 CHostListCheck::Authenticate(const std::string& rHostname)
 {
   in_addr Address;
@@ -67,7 +67,7 @@ CHostListCheck::Authenticate(const std::string& rHostname)
   int status = gethostbyname_r(rHostname.c_str(),
 			       &entry, buffer, sizeof(buffer),
 			       &pEntry, &error);
-  if (status) return kfFALSE;
+  if (status) return false;
   Address.s_addr = ((struct in_addr*)(entry.h_addr))->s_addr;
 
   return Authenticate(Address);
