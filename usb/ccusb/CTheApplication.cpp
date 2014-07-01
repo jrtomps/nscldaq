@@ -26,6 +26,7 @@
 #include <TCLException.h>
 #include <CBeginRun.h>
 #include <CEndRun.h>
+#include <CInit.h>
 #include <CPauseRun.h>
 #include <CResumeRun.h>
 #include <Exception.h>
@@ -333,6 +334,7 @@ CTheApplication::AppInit(Tcl_Interp* interp)
   new CEndRun(*pInterp);
   new CPauseRun(*pInterp);
   new CResumeRun(*pInterp);
+  new CInit(*pInterp);
 
 
   // Look for readoutRC.tcl in the config directory.  If it exists, run it.
