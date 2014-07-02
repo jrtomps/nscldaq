@@ -223,6 +223,7 @@ private:
   time_t                       m_nNow;
   time_t                       m_nOldestReceived;
   time_t                       m_nMostRecentlyEmptied;
+  time_t                       m_nStartupTimeout;   //!< N seconds to wait before flushing (dflt=2)
 
 
   uint32_t                     m_nFragmentsLastPeriod; //!< # fragments in last flush check interval.
@@ -268,6 +269,8 @@ public:
   void setBuildWindow(time_t windowWidth);
   time_t getBuildWindow() const;
 
+  void setStartupTimeout(time_t duration);
+  time_t getStartupTimeout() const;
   // Observer management:
 
 public:

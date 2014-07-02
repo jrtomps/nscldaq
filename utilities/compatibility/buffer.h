@@ -24,8 +24,8 @@
 **
 **      This file contains type definitions used by the master processor
 **  We assume the definition of the following types:
-**	INT32	- 32 bit integer
-**      INT16	- 16 bit integer
+**	int32_t	- 32 bit integer
+**      int16_t	- 16 bit integer
 **	INT8	- eight bit integer.
 **
 **  AUTHORS:
@@ -42,66 +42,66 @@
 
 #ifndef __MTYPES_H	
 #define __MTYPES_H
-#include <daqdatatypes.h>
+#include <stdint.h>
 #define BUFFER_REVISION 5
 #define JUMBO_BUFFER_REVISION 6
 /*		Absolute time:		*/
 
 struct bftime
     {
-	INT16	month;			/* Month 1-12		*/     /* 3 */
-	INT16	day;			/* Day	 1-31		*/     /* 3 */
-	INT16	year;			/* e.g. 1987		*/
-	INT16	hours;			/* 0-23			*/     /* 3 */
-	INT16	min;			/* 0-59			*/     /* 3 */
-	INT16	sec;			/* 0-59			*/     /* 3 */
-	INT16	tenths;			/* 0-9.			*/     /* 3 */
+	int16_t	month;			/* Month 1-12		*/     /* 3 */
+	int16_t	day;			/* Day	 1-31		*/     /* 3 */
+	int16_t	year;			/* e.g. 1987		*/
+	int16_t	hours;			/* 0-23			*/     /* 3 */
+	int16_t	min;			/* 0-59			*/     /* 3 */
+	int16_t	sec;			/* 0-59			*/     /* 3 */
+	int16_t	tenths;			/* 0-9.			*/     /* 3 */
     };
 
 /*		Structures which describe the final output data buffers */
 
 struct bheader				/* Data buffer header	*/
     {
-	INT16	nwds;			/* Used part of buffer	*/
-	INT16	type;			/* buffer type		*/
-	INT16	cks;			/* checksum over used part of buffer */
-	INT16	run;			/* Run number		*/
-	INT32	seq;			/* Buffer sequence number */
-	INT16	nevt;			/* Event count in buffer    */
-	INT16	nlam;			/* Number of lam masks	    */
-	INT16	cpu;			/* Processor number	    */
-	INT16	nbit;			/* Number of bit registers */
-	INT16	buffmt;			/* Data format revision level */
-	INT16   ssignature;		/* Short byte order signature */
-	INT32   lsignature;		/* Long byte order signature  */
-	UINT16	unused[2];		/* Pad out to 16 words.	    */
+	int16_t	nwds;			/* Used part of buffer	*/
+	int16_t	type;			/* buffer type		*/
+	int16_t	cks;			/* checksum over used part of buffer */
+	int16_t	run;			/* Run number		*/
+	int32_t	seq;			/* Buffer sequence number */
+	int16_t	nevt;			/* Event count in buffer    */
+	int16_t	nlam;			/* Number of lam masks	    */
+	int16_t	cpu;			/* Processor number	    */
+	int16_t	nbit;			/* Number of bit registers */
+	int16_t	buffmt;			/* Data format revision level */
+	int16_t   ssignature;		/* Short byte order signature */
+	int32_t   lsignature;		/* Long byte order signature  */
+	uint16_t	unused[2];		/* Pad out to 16 words.	    */
     };
 
 struct ctlbody				/* Body of control buffer   */
     {					/* start/stop/pause/resume  */
 	char    title[80];		/* Run title.		    */
-	INT32	sortim;			/* Time in ticks since run start */
+	int32_t	sortim;			/* Time in ticks since run start */
 	struct  bftime tod;		/* Absolute time buffer was made    */
     };
 
 struct	usrbufbody			/* Declares user buffer body. */
 {
     struct bftime   usertime;		/* Time stamp for user buffer. */
-    INT16  userbody[1];			/* Body of user buffer.	       */
+    int16_t  userbody[1];			/* Body of user buffer.	       */
 
 };
 
 struct sclbody				/* body of scaler buffers   */
     {					/* taped and snapshot	    */
-	INT32	etime;			/* Start time since SOR in ticks */
-	UINT16	unused1[3];		/* Unused words.	    */
-	INT32	btime
+	int32_t	etime;			/* Start time since SOR in ticks */
+	uint16_t	unused1[3];		/* Unused words.	    */
+	int32_t	btime
 #ifdef __GNUC__
 	__attribute__((packed))
 #endif
 	;			/* end time since SOR in ticks	*/
-	UINT16	unused2[3];		/* Unused words.	    */
-	INT32	scalers[1]
+	uint16_t	unused2[3];		/* Unused words.	    */
+	int32_t	scalers[1]
 #ifdef __GNUC__
 	__attribute__((packed))
 #endif
@@ -111,14 +111,14 @@ struct sclbody				/* body of scaler buffers   */
 /*	    The types below define the structure of event packets put in    */
 /*	the circular buffer queue by the event acquisition processor.	    */
 
-typedef    INT32    ctlevt;		/* Control events just have time    */
+typedef    int32_t    ctlevt;		/* Control events just have time    */
 
 struct sclevt				/* Scaler event		    */
     {
-	INT32	bticks;			/* Ticks at interval start  */
-	INT32	eticks;			/* Ticks at interval end.   */
-	INT16	nscl;			/* Number of scalers	    */
-	INT32	scls[1]
+	int32_t	bticks;			/* Ticks at interval start  */
+	int32_t	eticks;			/* Ticks at interval end.   */
+	int16_t	nscl;			/* Number of scalers	    */
+	int32_t	scls[1]
 #ifdef __GNUC__
 	__attribute__((packed))
 #endif
@@ -127,13 +127,13 @@ struct sclevt				/* Scaler event		    */
 
 struct phydata							       /* 4 */
     {								       /* 4 */
-	INT16    cnt;			/* Size of event data in words */ /* 4 */
-	INT16	 data[1];		/* actual data		    */ /* 4 */
+	int16_t    cnt;			/* Size of event data in words */ /* 4 */
+	int16_t	 data[1];		/* actual data		    */ /* 4 */
     };								       /* 4 */
 
 struct	usrevt				/* User generated event.	 */
 {
-    INT16   usrevtbody[1];		/* User event body.		  */
+    int16_t   usrevtbody[1];		/* User event body.		  */
 };
 
 

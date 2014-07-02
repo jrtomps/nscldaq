@@ -2926,18 +2926,6 @@ watch monitored                   <co id='watchexample-monitorscalar' />
                 </listitem>
             </varlistentry>
             <varlistentry>
-                <term><option>--host</option></term>
-                <listitem>
-                    <para>
-                       If specified, the value is the name or IP address on
-                       which a VM-USB server is running.  The program connects
-                       to that server and runs VM-USB operations via that
-                       server.  In this case, the --serialno option is silently
-                       ignored.  
-                     </para>
-                 </listitem>
-            </varlistentry>
-            <varlistentry>
                 <term><option>--port</option></term>
                 <listitem>
                     <para>
@@ -2958,9 +2946,6 @@ watch monitored                   <co id='watchexample-monitorscalar' />
                         the Serial number string is used or, if the VM-USB serial number
                         was not selected at program startup, the string
                         <literal>FirstController</literal> is used.
-                        For remote (network served) VM-USBs the
-                        <replaceable>connection</replaceable> is value of the
-                        <option>--host</option> switch.
                     </para>
                 </listitem>
             </varlistentry>

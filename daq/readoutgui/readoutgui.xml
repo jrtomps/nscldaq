@@ -1092,6 +1092,15 @@ stagearea +
                                 to determine the name of the event files.
                             </entry>
                         </row>
+                        <row>
+                            <entry>EVENTLOGGER_USE_CHECKSUM_FLAG</entry>
+                            <entry>1</entry>
+                            <entry>If Tcl boolean true, an sha512 hash of 
+                                all logged data will be computed by 
+                                passing the <option>--checksum</option> flag
+                                to the program.
+                            </entry>
+                        </row>
                     </tbody>
                 </tgroup>
             </table>
@@ -2445,7 +2454,12 @@ package require DAQParameters
             </cmdsynopsis>
             <cmdsynopsis>
                 <command>
-::DAQParameters::geRunNumberOverrideFlag
+::DAQParameters::getRunNumberOverrideFlag
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+::DAQParameters::getUseChecksumFlag
                 </command>
             </cmdsynopsis>
 
@@ -2560,7 +2574,7 @@ package require DAQParameters
                 </listitem>
             </varlistentry>
             <varlistentry>
-                <term><function>::DAQParameters::getRunNumberOverrrideFlag</function></term>
+                <term><function>::DAQParameters::getRunNumberOverrideFlag</function></term>
                 <listitem>
                     <para>
                         When true, the event logger is started with the
@@ -2570,6 +2584,17 @@ package require DAQParameters
                         that don't contribute start of run event records, or
                         contribute start of run records with run number fields
                         that cannot be trusted.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><function>::DAQParameters::getUseChecksumFlag</function></term>
+                <listitem>
+                    <para>
+                        When true, the event logger is started with the
+                        <option>--checksum</option> flag. If the event logger is
+                        incompatible with this option (version must be greater than 11.0-rc6),
+                        the user will be presented with an error message.
                     </para>
                 </listitem>
             </varlistentry>
@@ -2626,6 +2651,14 @@ package require DAQParameters
                     <listitem>
                         <para>
                             <literal>false</literal>
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>Use <option>--checksum</option></term>
+                    <listitem>
+                        <para>
+                            <literal>true</literal>
                         </para>
                     </listitem>
                 </varlistentry>
@@ -2691,10 +2724,20 @@ package require DAQParameters
                         </para>
                     </listitem>
                 </varlistentry>
+                <varlistentry>
+                    <term><literal>EVENTLOGGER_USE_CHECKSUM_FLAG</literal></term>
+                    <listitem>
+                        <para>
+                            If true the <option>--checksum</option> option will be 
+                            used to compute an sha512 hash for the entirety of the 
+                            logged data.
+                        </para>
+                    </listitem>
+                </varlistentry>
                 
             </variablelist>
         </refsect1>
-        
+       
 
       </refentry>
       <refentry id="rdogui3_DataSourceManager">

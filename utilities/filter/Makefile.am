@@ -4,11 +4,12 @@ lib_LTLIBRARIES	=	libfilter.la
 
 libfilter_la_SOURCES = CFilterMain.cpp \
                        CMediator.cpp \
-                       COneShotMediator.cpp \
                        CInfiniteMediator.cpp \
+                       COneShotMediator.cpp \
+                       COneShotHandler.cpp \
                        CCompositeFilter.cpp \
-                       COneShotHandler.cpp \ 
                        COneShotException.cpp \
+                       CMediatorException.cpp \
                        @srcdir@/../StringsToIntegers.cpp \
                        @srcdir@/filterargs.c
                        
@@ -19,13 +20,16 @@ noinst_HEADERS = @srcdir@/../StringsToIntegers.h \
 
 include_HEADERS	=  CFilterMain.h \
                    CMediator.h \
-                   COneShotMediator.h \
                    CInfiniteMediator.h \
+                   COneShotMediator.h \
+                   COneShotHandler.h \
                    CFilter.h \
                    CCompositeFilter.h  \
-                   COneShotHandler.h \ 
-                   CFatalException.h \
-                   COneShotException.h
+                   CTransparentFilter.h \
+                   CNullFilter.h \
+                   COneShotException.h \
+                   CMediatorException.h \
+                   CFatalException.h
 
 INCLUDES	= -I@top_srcdir@/utilities \
     @LIBTCLPLUS_CFLAGS@	\
@@ -62,9 +66,10 @@ libfilter_la_DEPENDENCIES = @srcdir@/filterargs.h
 noinst_PROGRAMS = unittests testapp
 
 unittests_SOURCES	= TestRunner.cpp  \
-            mediatortests.cpp \
+            infinitemediatortests.cpp \
             filtermaintests.cpp  \
             compositefiltertests.cpp \
+            transparentfiltertests.cpp \
             oneshothandlertests.cpp
 
 unittests_LDADD		= -L$(libdir) $(CPPUNIT_LDFLAGS) 		\

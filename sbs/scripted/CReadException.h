@@ -102,7 +102,7 @@ public:
 
 public:
   virtual const char* ReasonText () const  ; //!< Really will return m_sAggregateException
-  virtual       Int_t ReasonCode () const  ; //!< Will return m_nWordsRead for now.
+  virtual       int ReasonCode () const  ; //!< Will return m_nWordsRead for now.
   
 };
 

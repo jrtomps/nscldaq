@@ -16,7 +16,7 @@
 
 
 #include <CFilterMain.h>
-#include <CFilter.h>
+#include <CTransparentFilter.h>
 
 
 
@@ -24,7 +24,7 @@ int main(int argc, char** argv)
 {
 
   // Create a transparent filter
-  CFilter* filter = new CFilter;
+  CFilter* filter = new CTransparentFilter;
 
   CFilterMain theApp(argc, argv);
   theApp.registerFilter(filter);

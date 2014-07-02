@@ -117,9 +117,9 @@ public:
   void Rewind() {
     m_nReadCursor = 0;
   }
- virtual   int Read (UInt_t nBytes, void* pBuffer)    ;
+ virtual   int Read (unsigned int nBytes, void* pBuffer)    ;
 
- virtual   int Write (UInt_t nBytes, void* pBuffer)    ;
+ virtual   int Write (unsigned int nBytes, void* pBuffer)    ;
  
 protected:
 

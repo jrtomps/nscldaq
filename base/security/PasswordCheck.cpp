@@ -49,7 +49,7 @@ static const  char* pCopyrightNotice =
 //     Authenticate(CInteractor & rInteractor)
 //  Operation Type: 
 //     
-Bool_t CPasswordCheck::Authenticate(CInteractor & rInteractor)  
+bool CPasswordCheck::Authenticate(CInteractor & rInteractor)  
 {
   // Retrieves a password from the Authenticator
   // and compares it with the internal password.

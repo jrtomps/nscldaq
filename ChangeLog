@@ -614,3 +614,7 @@ Open rc7 work.
            the experiment.
 	*  Feature #1952  - Users create an inventory of the ringbuffers
 	involved in the experiment.
+        * Tabbed output windows on ReadoutGUI to make it easier to
+	disentangle ouptput.
+	* Added error icons to tabs that have errors.
+	

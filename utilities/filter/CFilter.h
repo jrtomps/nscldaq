@@ -49,7 +49,7 @@ class CFilter
     virtual ~CFilter() {}
 
     // Virtual constructor
-    virtual CFilter* clone() const { return new CFilter(*this);}
+    virtual CFilter* clone() const=0; 
   
     // The default handlers
     virtual CRingItem* handleRingItem(CRingItem* pItem) 
@@ -88,6 +88,10 @@ class CFilter
        return static_cast<CRingItem*>(pItem);
     }
 
+    // Initialization procedures to run before any ring items are processed
+    virtual void initialize() {}
+    // Finalization procedures to run after all ring items have been processed
+    virtual void finalize() {}
 };
 
 #endif

@@ -44,20 +44,20 @@ static const  char* pCopyrightNotice =
 //////////////////////////////////////////////////////////////////////////////
 //
 //  Function:       
-//     Read(UInt_t nBytes, void* pBuffer)
+//     Read(unsigned int nBytes, void* pBuffer)
 //  Operation Type: 
 //     
-int CStringInteractor::Read(UInt_t nBytes, void* pBuffer)  
+int CStringInteractor::Read(unsigned int nBytes, void* pBuffer)  
 {
   // Reads from the string.
 
-  UInt_t nStringLength = m_sString.length();
+  unsigned int nStringLength = m_sString.length();
   if(m_nReadCursor >= nStringLength) return 0; // EOS is end file.
 
   // Figure out range of chars to return.
 
-  UInt_t nStart = m_nReadCursor;
-  UInt_t nEnd   = nStart + nBytes - 1;
+  unsigned int nStart = m_nReadCursor;
+  unsigned int nEnd   = nStart + nBytes - 1;
   if(nEnd >= nStringLength) {
     nEnd = nStringLength-1;
   }
@@ -72,10 +72,10 @@ int CStringInteractor::Read(UInt_t nBytes, void* pBuffer)
 //////////////////////////////////////////////////////////////////////////////
 //
 //  Function:       
-//     Write(UInt_t nBytes, void* pBuffer)
+//     Write(unsigned int nBytes, void* pBuffer)
 //  Operation Type: 
 //     
-int CStringInteractor::Write(UInt_t nBytes, void* pBuffer)  
+int CStringInteractor::Write(unsigned int nBytes, void* pBuffer)  
 {
   // "Writes" to the interactor - this is a no-op
   return 0;

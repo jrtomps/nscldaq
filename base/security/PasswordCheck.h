@@ -40,10 +40,6 @@
 #include "Authenticator.h"
 #endif
 
-#ifndef __HISTOTYPES_H
-#include <daqdatatypes.h>
-#endif
-
 #ifndef __STL_STRING
 #include <string>
 #define __STL_STRING
@@ -54,7 +50,7 @@ class CPasswordCheck  : public CAuthenticator
    static const std::string m_EmptyString;
    std::string m_sPassword;		//Password in clear text.
    std::string m_sPromptString;	// Promptstring.
-   Bool_t m_fWithPrompt;	//TRUE if need to prompt for password.        
+   bool m_fWithPrompt;	//TRUE if need to prompt for password.        
 
 protected:
 
@@ -64,7 +60,7 @@ public:
 
 	CPasswordCheck (const std::string& rPassword,
 	      std::string rPrompt = m_EmptyString,
-		  Bool_t WithPrompt = kfFALSE)    : 
+		  bool WithPrompt = false)    : 
     m_sPassword(rPassword),
     m_sPromptString(rPrompt),
     m_fWithPrompt(WithPrompt)
@@ -105,7 +101,7 @@ public:
   std::string getPromptString() const
   { return m_sPromptString;
   }
-  Bool_t getWithPrompt() const
+  bool getWithPrompt() const
   { return m_fWithPrompt;
   }
                        
@@ -120,20 +116,20 @@ public:
   }
 protected:
 
-  void setWithPrompt (const Bool_t am_fWithPrompt)
+  void setWithPrompt (const bool am_fWithPrompt)
   { m_fWithPrompt = am_fWithPrompt;
   }
        
 public:
 
-  virtual   Bool_t Authenticate (CInteractor & rInteractor)    ;
+  virtual   bool Authenticate (CInteractor & rInteractor)    ;
 
   void DisablePrompt () {
-    m_fWithPrompt = kfFALSE;
+    m_fWithPrompt = false;
   }
 
   void EnablePrompt () {
-    m_fWithPrompt = kfTRUE;
+    m_fWithPrompt = true;
   }
   
 protected:

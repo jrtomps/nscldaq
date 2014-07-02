@@ -447,7 +447,7 @@ bool formatStateChange (void* pBuffer)
 bool bufferToRing (void* pBuffer)
 {
   bheader* pHeader(reinterpret_cast<bheader*>(pBuffer));
-  INT16    type = pHeader->type;
+  int16_t    type = pHeader->type;
 
   switch (type) {
     case DATABF:

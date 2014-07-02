@@ -27,7 +27,7 @@ install-exec-local:
 	$(mkinstalldirs)  $(INSTDIR)
 	touch $(INSTDIR)/__init__.py 
 	for f in  $(PACKAGE_FILES); do $(INSTALL_SCRIPT) @srcdir@/$$f $(INSTDIR); done
-	for f in $(MAINS); do $(INSTALL_SCRIPT) @srcdir@/$$f @bindir@; done
+	for f in $(MAINS); do $(INSTALL_SCRIPT) @srcdir@/$$f @bindir@/`basename $$f .py`; done
 
 check-TESTS:
 	PYTHONPATH=$(INSTDIR) @PYTHON@ @srcdir@/run_all_tests.py

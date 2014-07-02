@@ -113,7 +113,14 @@ CVMUSBFactory::createRemoteController(const char* pHost)
   if (!pHost) {
     pHost = "localhost";
   }
-
+  // Warn the user that this will not work unless they have implemented the server.
+  std::cerr << "WARNING! Call to CVMUSBFactory::createRemoteController(const char*) constructs ";
+  std::cerr << "a CVMUSBEthernet object, which is the client portion of a server that ";
+  std::cerr << "is NOT provided by NSCLDAQ. The user must supply his/her own server if ";
+  std::cerr << "this feature is to work correctly or obtain a copy of the vmusbserver that is a ";
+  std::cerr << "separate project.";
+  std::cerr << std::endl;
+  
   CVMUSBEthernet* pController =  new CVMUSBEthernet("vmusb", std::string(pHost));
   pController->reconnect();                // Force server to reconnect.
   return pController;

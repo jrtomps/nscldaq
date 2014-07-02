@@ -68,7 +68,7 @@ protected:
   // Class operations:
 public:
   
-  Int_t ReasonCode () const  ;
+  int ReasonCode () const  ;
   virtual   const char* ReasonText () const  ;
 
 protected:

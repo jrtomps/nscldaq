@@ -21,6 +21,7 @@ package require snit
 package require RunstateMachine
 package require StateManager
 package require DataSourceUI
+package require img::png
 
 package provide ui   1.0
 package provide ReadoutGUIPanel 1.0
@@ -1695,8 +1696,10 @@ snit::widgetadaptor OutputWindow {
     # clear
     #    Clears the entire widget.
     #
-    method clear {}           {
+    method clear {}  {
+        $text config -state normal
         $text delete 0.0 end
+        $text config -state disabled
     }
     ##
     # log
@@ -1842,71 +1845,6 @@ snit::widgetadaptor OutputWindow {
     }
 }
 
-#
-#  Singleton and bundle to ensure state transitions get logged.
-#
-namespace eval ::Output {
-    variable theInstance ""
-    namespace export enter leave attach
-}
-
-
-##
-# Output::getInstance
-#
-#   Return the singleton instance of the OutputWindow creating it if needed.
-#
-# @param win - (Only required for the creation). Window path for the output window.
-# @param args- (Optional, only seen at creation). Configuration parameters for
-#               the output window.
-#
-proc Output::getInstance { {win {}} args} {
-    if {$::Output::theInstance eq ""} {
-        set ::Output::theInstance [OutputWindow $win {*}$args]
-        set sm [RunstateMachineSingleton %AUTO%]
-        $sm addCalloutBundle Output
-        $sm destroy
-    }
-    return $::Output::theInstance
-}
-#
-# Callout bundle methods.. These log stuff to the singleton OutputWindow.
-#
-
-##
-# ::Output::attach
-#   Outputs a debug message indicating attached and which state.
-#
-# @param state - The current state.
-#
-proc ::Output::attach {state} {
-    set w [::Output::getInstance]
-    $w log debug "Attached to state machine state is: $state"
-}
-##
-# ::Output::enter
-#   State machine finished a transition.
-#   Make a log level entry indicating we completed a state transition.
-#
-# @param from - the state we left.
-# @param to   - The state we are now in.
-#
-proc ::Output::enter  {from to} {
-    set w [::Output::getInstance]
-    $w log log "Run state changed: $from -> $to"
-}
-##
-# ::Output::leave
-#   Called when a state transition is beginning.
-#   Make a debug entry indicating this.
-#
-# @param from - State we are leaving.
-# @param to   - State we are headed for
-#
-proc ::Output::leave  {from to} {
-    set w [::Output::getInstance]
-    $w log debug "Run leaving state $from heading for state $to"
-}
 ##
 # @class OuputWindowSettings
 #
@@ -2000,6 +1938,404 @@ snit::widgetadaptor OutputWindowSettings {
         return [$win.$name get]
     }
 }
+##
+# @class TabbedOutput
+#
+#   This widget is a tabbed notebook containing output windows.  The idea is that
+#   there is a main window which shows all puts and Logs that don't have a data  source.
+#   As Logs are done with a data source, new tabs are created and the output is then segregated
+#   into those tabs.  Tab names are:
+#   Main - The window with non-sourced data.
+#   Srcname - The tab for the data source Srcname
+#  
+#  Furthermore if output is directed to a windows that is not visible the number of outputs
+#  is shown as a (n) after the tab name.  Displaying that tab eliminates the (n).
+#
+#
+# OPTIONS
+#    -foreground - The foreground color for all of the widgets.
+#    -background - The background color for all of the widgets.
+#    -width      - Width in characters of all widgets.
+#    -height     - height of all widgets in lines of text.
+#    -history    - number of lines of historical data each widget has.
+#    -logclasses - Define the set of log classes each widget accepts.
+#    -showlog    - Defines which log classes are displayed and how.
+#    -monitorcmd - Defines the monitor command for all windows.
+# METHODS
+#  puts  - Outputs something to the main window.
+#  clear - Clears display and history of all windows.
+#  log   - Logs to the main window.
+#  logFrom - logs from a specific data source.
+#  open    - Turns on logging for all windows.
+#  close   - Closes logging for all windows.
+#  get     - returns a list of pairs.  The first element of each pair is the name of a source
+#            ('main' or a data source name),  The second element of each pair is the contents of that window.
+#
+snit::widgetadaptor TabbedOutput {
+
+    # wish we could formally delegate but we are a fanout.
+
+    option -foreground  -configuremethod _RelayOption
+    option -background  -configuremethod _RelayOption
+    option -width       -configuremethod _RelayOption
+    option -height      -configuremethod _RelayOption
+    option -history     -configuremethod _RelayOption -default 1000
+    option -logclasses  -configuremethod _RelayOption -default [list output log error warning debug]
+    option -showlog     -configuremethod _RelayOption -default [list                         \
+        output  [list]                                        \
+        log     [list]                                        \
+        error   [list -background white -foreground red]      \
+        warning [list -foreground magenta]                     \
+    ]
+    option -monitorcmd  -configuremethod _RelayOption -default [list]
+    option -errorclasses [list error warning]
+
+    
+    
+    delegate option * to hull
+    delegate method * to hull
+
+    # Options that don't get fanned out:
+    
+    variable localOptions [list -errorclasses]
+
+    #
+    # List of Output widgets managed by us...this is in index order.
+    # Index 0 is the Main widget.
+
+    variable outputWindows [list]
+
+    # Array of dicts indexed by widget namee each Dict containing:
+    #      name - source name.
+    #      lines- Unseen puts of text.
+    #
+
+    variable tabInfo       -array [list]
+    
+    # Used to uniquify output windows:
+    
+    variable outIndex     0
+    
+    # log file if open [list] if not...used to bring new windows into the log:
+    
+    variable logFile [list]
+
+    ##
+    #  constructor
+    #
+    #  *   Install a ttk::notebook as the hull.
+    #  *   Create an output window $win.main as the main widget... in the notebook.
+    #  *   Add the main output window to the outputWindows list.
+    #  *   Populate -foreground, -background, -height, -width from the main window.
+    #  *   Process the configuration options.
+    #
+
+    constructor args {
+	installhull using ttk::notebook
+
+
+	lappend outputWindows [OutputWindow $win.main]
+	set tabInfo($win.main) [dict create name main lines 0]
+	$hull add $win.main -text main
+	set options(-foreground) [$win.main cget -foreground]
+	set options(-background) [$win.main cget -background]
+	set options(-width)      [$win.main cget -width]
+	set options(-height)     [$win.main cget -height]
+
+	$self configurelist $args
+        
+        # When the selected tab has changed we need to update its tab to indicate
+        # It's lines have been read.
+        
+        bind $win <<NotebookTabChanged>> [mymethod _TabChanged]
+    }
+
+    #---------------------------------------------------------------------------------
+    #
+    #  Configuration methods
+
+
+    ##
+    # _RelayOption
+    #     Called when a delegated option is modified.
+    # @param opt - Name of the option.
+    # @param val - New value.
+    #
+    method _RelayOption {opt value} {
+	set options($opt) $value
+	$self _DoAll [list configure $opt $value]
+    }
+
+    #---------------------------------------------------------------------------------
+    # Public methods.
+    #
+
+    ##
+    # puts
+    #    Output a string to the main window.  If the main window is not current it gets a (n) with the number
+    #    of outputs done since the last time it was current.
+    #
+    # @param args  -  Args see OutpuWindow puts.
+    #
+    method puts args {
+	set widget [lindex $outputWindows 0];                   # Always main.
+	$widget puts {*}$args
+
+	$self _UpdateTabText $widget
+    }
+    ##
+    # clear
+    #    Clears the text/history from all windows.
+    #    The tabs are set back to just the source names.
+    #
+    method clear {} {
+        $self _DoAll clear
+        foreach win $outputWindows {
+            $hull tab $win -text [dict get $tabInfo($win) name]
+        }
+    }
+    ##
+    # log
+    #    Logs to the main window.
+    #    This basically delegates to the main windows log method.
+    #
+    # @param args - the parameters that would be passed to the log method normally.
+    #
+    # @note - The _UpdateTabText is called to ensure the tab title is updated if
+    #         the window is not displated.
+    #
+    method log args {
+        set widget [lindex $outputWindows 0]
+        $self _LogToWidget $widget {*}$args
+    }
+    ##
+    # logFrom
+    #   Logs to a specific source window (creating it as needed).
+    #
+    # @param source - source of the log message.  If there is no output window
+    #                 for this source, one is created.
+    # @param args   - The stuff that goes into the source's window log method.
+    #
+    # @note - _UpdateTabText is invoked to ensure the tab title is updated if needed.
+    #
+    method logFrom {source args} {
+        set widget [$self _GetSourceWindow $source]
+        $self _LogToWidget $widget {*}$args
+    }
+    ##
+    # open
+    #   Open logging in all windows.  These go to a common log file.
+    #
+    # @param filename - Path of file to log to.
+    #
+    method open filename {
+        $self _DoAll [list open $filename]
+        set logFile $filename
+    }
+    ##
+    # close
+    #   Close the log file in all windows.
+    #
+    method close {} {
+        $self _DoAll close
+        set logFile [list]
+    }
+    ##
+    # get
+    #   Return the contents of all windows.
+    #
+    # @return list of pairs - each pair consists of a source name and the
+    #                         data from the window associated with that source.
+    #
+    
+    method get {} {
+        set result [list]
+        foreach widget $outputWindows {
+            set name [dict get $tabInfo($widget) name]
+            set contents [$widget get]
+            lappend result [list $name $contents]
+        }
+        return $result
+    }
+    #--------------------------------------------------------------------------------
+    #
+    # Private utility methods.
+    #
+
+    ##
+    #  _DoAll
+    #    Do the same command in all windows.
+    # cmd - List that is the command to perform.
+    #
+    method _DoAll cmd {
+	foreach win $outputWindows {
+	    $win {*}$cmd
+	}
+    }
+    ##
+    # _UpdateTabText
+    #   If the widget is not the currently displayed one, increment its number of unseen
+    #   lines and modify the tab text.
+    #
+    # @param widget - The widget to modify.
+    # @param class  - The log class used
+    #
+    method _UpdateTabText {widget {class output}} {
+	set windex [$hull index $widget]
+	set cindex [$hull index current]
+
+	if {$windex != $cindex} {
+	    dict incr tabInfo($widget) lines
+	    set name  [dict get $tabInfo($widget) name]
+	    set lines [dict get $tabInfo($widget) lines]
+	    set tabText [format "%s (%d)" $name $lines]
+	    $hull tab $windex -text $tabText
+            if {$class in $options(-errorclasses)} {
+                $hull tab $windex -image output_error -compound left
+            }
+
+		      
+	}
+    }
+    ##
+    # _GetSourceWindow
+    #    Returns the widget associated with a data source output window.
+    #    If the data source does not have an output window, one is created
+    #    and that widget is returned.
+    #
+    # @param source - Name of the source who's window we want
+    #
+    # @return window - Path to the wndow for that source.
+    #
+    method _GetSourceWindow {source} {
+        foreach widget $outputWindows {
+            if {[dict get $tabInfo($widget) name] eq $source} {
+                return $widget
+            }
+        }
+        #  Need to create a new one:
+        
+        set widget $win.source[incr outIndex]
+        lappend outputWindows $widget
+        set tabInfo($widget) [dict create name $source lines 0]
+        $hull add [OutputWindow $widget] -text $source
+        
+        # Propagate the settings to the new window.
+        
+        foreach option [array names options] {
+            if {$option ni $localOptions} {
+                $widget configure $option $options($option)
+            }
+        }
+        if {$logFile ne ""} {
+            $widget open $logFile
+        }
+        
+        # Return it as the output window:
+        
+        return $widget
+    }
+    
+    ##
+    # _LogToWidget
+    #   Given an output widget log to it.
+    #
+    # @param widget - The widget to log to.
+    # @param args   - log parameters
+    #
+    method _LogToWidget {widget args} {
+        $widget log {*}$args
+        set class [lindex $args 0];             #log class.
+        $self _UpdateTabText $widget $class
+    }
+    ##
+    # _TabChanged
+    #   Called when the tab changes.  We must figure out the current widget
+    #   and reset its tab name to just the source name (removing any
+    #   unseen entry count.
+    #
+    #
+    method _TabChanged {} {
+        set idx [$hull index current]
+        set widget [lindex $outputWindows $idx]
+        set source [dict get $tabInfo($widget) name]
+        $hull tab $idx -text $source -image [list]
+        dict set tabInfo($widget) lines 0;    # No output is unseen.
+    }
+    
+}
+#
+#  Singleton and bundle to ensure state transitions get logged.
+#
+namespace eval ::Output {
+    variable theInstance ""
+    namespace export enter leave attach
+    variable errorFilename [file join [file dirname [info script]] error.png]
+}
+
+image create photo output_error -file $::Output::errorFilename
+
+##
+#  Load the output error icon:
+#
+
+##
+# Output::getInstance
+#
+#   Return the singleton instance of the OutputWindow creating it if needed.
+#
+# @param win - (Only required for the creation). Window path for the output window.
+# @param args- (Optional, only seen at creation). Configuration parameters for
+#               the output window.
+#
+proc Output::getInstance { {win {}} args} {
+    if {$::Output::theInstance eq ""} {
+        set ::Output::theInstance [TabbedOutput $win {*}$args]
+        set sm [RunstateMachineSingleton %AUTO%]
+        $sm addCalloutBundle Output
+        $sm destroy
+    }
+    return $::Output::theInstance
+}
+#
+# Callout bundle methods.. These log stuff to the singleton OutputWindow.
+#
+
+##
+# ::Output::attach
+#   Outputs a debug message indicating attached and which state.
+#
+# @param state - The current state.
+#
+proc ::Output::attach {state} {
+    set w [::Output::getInstance]
+    $w log debug "Attached to state machine state is: $state"
+}
+##
+# ::Output::enter
+#   State machine finished a transition.
+#   Make a log level entry indicating we completed a state transition.
+#
+# @param from - the state we left.
+# @param to   - The state we are now in.
+#
+proc ::Output::enter  {from to} {
+    set w [::Output::getInstance]
+    $w log log "Run state changed: $from -> $to"
+}
+##
+# ::Output::leave
+#   Called when a state transition is beginning.
+#   Make a debug entry indicating this.
+#
+# @param from - State we are leaving.
+# @param to   - State we are headed for
+#
+proc ::Output::leave  {from to} {
+    set w [::Output::getInstance]
+    $w log debug "Run leaving state $from heading for state $to"
+}
+
 ##
 # ::Output::_isDebugging
 #
@@ -2125,7 +2461,7 @@ proc ::ReadougGUIPanel::outputText {text}  { ::ReadoutGUIPanel::outputText $text
 #
 proc ::ReadoutGUIPanel::Log {src class msg} {
     set w [::Output::getInstance]
-    $w log $class "$src: $msg"
+    $w logFrom $src $class "$src: $msg"
     
     update idletasks
     update idletasks;        # Ensure the UI is updated in case

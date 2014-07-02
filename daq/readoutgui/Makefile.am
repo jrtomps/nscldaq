@@ -39,14 +39,15 @@ TCLPACKAGES=Configuration.tcl \
 	state.tcl \
 	DataSourceMonitor.tcl \
 	remoteControl.tcl \
-	ReadoutGuiClient.tcl readoutGuiProvider.tcl
+	ReadoutGuiClient.tcl readoutGuiProvider.tcl \
+  versionUtils.tcl error.png
 
 
 
 TCLTESTS =    filesystem.test \
 	initconfig.test installroot.test system.test tests.test  ostest.test \
 	sshpipe.test s800.test  rstatemachine.test rdocallouts.test \
-	  state.test
+	  state.test versionutils.test
 
 
 TKTESTS =	readoutguitest.tk  scalerparametergui.tk \
@@ -65,7 +66,7 @@ EXTRA_DIST = $(TCLPACKAGES) $(TCLAPPS) $(TCLTESTS) $(TKTESTS)\
 	readoutgui.xml RunState.eps RunState.jpg s800fake.tcl\
 	readoutshell.jpg readoutshell.eps \
 	sshsimulator.testscript start.bash \
-	eventlogsettings.jpg eventlogsettings.eps
+	eventlogsettings.jpg eventlogsettings.eps error.png
 
 
 bin_PROGRAMS =  SecretTk

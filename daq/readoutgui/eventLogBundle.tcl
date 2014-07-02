@@ -36,6 +36,7 @@ package require ring
 
 package require portAllocator
 package require DataSourceUI
+package require versionUtils
 
 
 
@@ -208,11 +209,50 @@ proc ::EventLog::getLoggerPath {} {}
 # Utility methods
 
 ##
+# ::EventLog::_extractEventLogVersion
+#
+# Given a path containing a path name, this will extract a version
+# number
+#
+proc ::EventLog::_getLoggerVersion {evtlogpath} {
+
+  # Open a pipe to read from
+  set pipe [open "|$evtlogpath --version" r]
+  chan configure $pipe -buffering line
+
+  # enable blocking because I want to make sure that I get
+  # the value immediately and don't proceed otherwise.
+  chan configure $pipe -blocking on
+
+  set line [read $pipe]
+  if { [string equal $line ""] } {
+    error "Cannot determine eventlog version"
+  } else {
+    if {[catch {close $pipe} msg]} {
+      puts "Exceptional exit of eventlog : $msg"
+    }
+  }
+
+  # Trim off the newline and whitespace at the end
+  set line [string trim $line "\n "]
+
+
+  set splitLine [split $line { }]
+  if {[llength $splitLine] < 2 && ([lindex $splitLine 0] ne "EventLog")} {
+    error "eventlog --version returned something different from \"EventLog VSN#\" : \"$splitLine\""
+  }
+  return [lindex $splitLine 1]
+}
+
+
+##
 # ::EventLog::_computeLoggerSwitches
+#
+# @param loggerVersion the version of the eventlog program
 #
 # @return the command line options the logger should use:
 #
-proc ::EventLog::_computeLoggerSwitches {} {
+proc ::EventLog::_computeLoggerSwitches {{loggerVersion 1.0}} {
     
     # Base switches:
     
@@ -221,10 +261,29 @@ proc ::EventLog::_computeLoggerSwitches {} {
     # Compatibility with 10.x:
 
     if {[info proc ::Experiment::spectrodaqURL] ne ""} {
-	set ring [::Experiment::spectrodaqURL localhost]
+      set ring [::Experiment::spectrodaqURL localhost]
     }
+  
+    # These are the default switches to use
+    set switches "--source=$ring --oneshot"
 
-    set switches "--source=$ring --checksum --oneshot"
+    if {[::DAQParameters::getUseChecksumFlag]} {
+      # Check that the logger in use returns a version that is greater
+      # than or equal to 11.0. This is equivalent to 11.0 <= loggerVersion
+      # as is actually computed
+      set minVersion 11.0-rc6 
+      set parsedVersion [::versionUtils::parseVersion $loggerVersion]
+      set parsedMinVersion [::versionUtils::parseVersion $minVersion]
+      if {[::versionUtils::lessThan $parsedMinVersion $parsedVersion]} {
+        append switches " --checksum"
+      } else {
+        return -code 1 \
+               "The selected version of eventlog\
+                does not support the --checksum option! Go to\
+                the Settings > Event Recording and deselect\
+                the \"Compute checksum\" option"
+      }
+    }
     
     # If requested, use the --number-of-sources switch:
     
@@ -259,7 +318,8 @@ proc ::EventLog::_computeLoggerSwitches {} {
 proc ::EventLog::_startLogger {} {
     ReadoutGUIPanel::isRecording
     set logger [DAQParameters::getEventLogger] 
-    set switches [::EventLog::_computeLoggerSwitches]
+    set loggerVsn [::EventLog::_getLoggerVersion $logger]
+    set switches [::EventLog::_computeLoggerSwitches $loggerVsn]
     set ::EventLog::loggerFd \
         [open "| $logger $switches" r]
     set ::EventLog::loggerPid [pid $::EventLog::loggerFd]
@@ -768,6 +828,7 @@ snit::widgetadaptor EventLog::RingBrowser {
 #                    managed by the data source manager.
 #      -forcerun  - Boolean... force the run number from GUI rather than using the
 #                   one in the begin event (used if no sources provide begin events.)
+#      -usechecksum - Boolean... start eventlogger with --checksum switch
 #
 
 snit::widgetadaptor EventLog::ParameterPrompter {
@@ -779,6 +840,7 @@ snit::widgetadaptor EventLog::ParameterPrompter {
     option -additionalsources -configuremethod _setAdditionalSources \
                               -cgetmethod      _getAdditionalSources
     option -forcerun
+    option -usechecksum       
     
     
     ##
@@ -803,6 +865,7 @@ snit::widgetadaptor EventLog::ParameterPrompter {
         set options(-usensrcs)          [::DAQParameters::getUseNsrcsFlag]
         set options(-additionalsources) [DAQParameters::getAdditionalSourceCount]
         set options(-forcerun)          [DAQParameters::getRunNumberOverrideFlag]
+        set options(-usechecksum)       [DAQParameters::getUseChecksumFlag]
         
         
 
@@ -848,6 +911,9 @@ NSCLDAQ-11.0 eventlog program or later. "
         ttk::checkbutton $win.forcerun -text {Use GUI Run number} \
             -variable [myvar options(-forcerun)] -onvalue 1 -offvalue 0
         
+        ttk::checkbutton $win.usechecksum -text {Compute checksum} \
+            -variable [myvar options(-usechecksum)] -onvalue 1 -offvalue 0
+
         grid $win.loglabel $win.logger $win.browselogger -sticky w
         grid $win.datasourcelabel $win.datasource $win.knownrings -sticky w
         grid $win.help -columnspan 3 -sticky ew
@@ -857,6 +923,7 @@ NSCLDAQ-11.0 eventlog program or later. "
         grid $f.additionalsources -row 0 -column 2 -sticky e 
         grid $f -columnspan 3     -sticky nsew
         
+        grid $win.usechecksum     -sticky w
         grid $win.forcerun
         
         $self configurelist $args
@@ -1055,6 +1122,7 @@ proc EventLog::promptParameters {} {
         Configuration::Set EventLogUseNsrcsFlag      [$ctl.f cget -usensrcs]
         Configuration::Set EventLogAdditionalSources [$ctl.f cget -additionalsources]
         Configuration::Set EventLogUseGUIRunNumber   [$ctl.f cget -forcerun]
+        Configuration::Set EventLogUseChecksumFlag   [$ctl.f cget -usechecksum]
         
         # If we're usin gthe nsrcs flag and it would currently be negative warn:
         

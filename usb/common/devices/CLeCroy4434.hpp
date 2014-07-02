@@ -116,6 +116,12 @@ void CLeCroy4434<Controller,RdoList>::addReadAll(RdoList& list)
 //        list.addRead24(slot,0,2);
 //    }     
 
+      list.addRead16(0,0,0); // 100 ns
+      list.addRead16(0,0,0); // 100 ns
+      list.addRead16(0,0,0); // 100 ns
+      list.addRead16(0,0,0); // 100 ns
+      list.addRead16(0,0,0); // 100 ns
+      list.addRead16(0,0,0); // 100 ns
       list.addRead16(0,7,0); // 700 ns
       list.addQStop24(slot,0,2,32,false);
 }

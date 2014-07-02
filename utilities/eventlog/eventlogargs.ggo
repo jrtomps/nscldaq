@@ -1,5 +1,4 @@
 package "EventLog"
-version "1.0"
 purpose "Log event data to file"
 
 option "source" s "URL of source ring buffer" string optional

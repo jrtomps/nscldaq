@@ -57,6 +57,11 @@ class CCompositeFilter : public CFilter
     virtual CRingItem* handlePhysicsEventCountItem(CRingPhysicsEventCountItem* item);
     virtual CRingItem* handleFragmentItem(CRingFragmentItem* item);
 
+    // Startup
+    virtual void initialize();
+    // Exit 
+    virtual void finalize();
+
     // iterator interface
     iterator begin() { return m_filter.begin(); }
     const_iterator begin() const { return m_filter.begin(); }

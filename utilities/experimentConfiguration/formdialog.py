@@ -50,6 +50,10 @@ class FormDialog(QtGui.QDialog):
         self._buttons =  QtGui.QDialogButtonBox(
             QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel
         )
+        bs  = self._buttons.buttons()
+        for b in bs:
+            b.setDefault(False)
+            b.setAutoDefault(False)
         self.setWindowTitle('Specify Ring')
         
         layout = QtGui.QVBoxLayout()
@@ -67,7 +71,7 @@ class FormDialog(QtGui.QDialog):
         
     #--------------------------------------------------------------------------
     # public methods
-    
+
     ##
     # form
     #   Returns the dialog form so values can be set and fished out
