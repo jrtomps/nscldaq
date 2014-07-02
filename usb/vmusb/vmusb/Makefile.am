@@ -83,7 +83,7 @@ clean-local:
 #  Stuff that needs to go int the distro:
 
 
-EXTRA_DIST = $(TEST_MODULES) $(REMOTE_TEST_MODULES)
+EXTRA_DIST = $(TEST_MODULES)
 
 # Swig interface generation:
 
