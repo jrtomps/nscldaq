@@ -420,7 +420,7 @@ proc EVBC::initialize args {
         }
 
         # if -gui is true, start it
-        if {[$EVBC::applicationOptions cget -gui]} {
+        if {[$EVBC::applicationOptions cget -gui] && ($EVBC::guiFrame eq "")} {
             EVBC::_StartGui
         }
     
