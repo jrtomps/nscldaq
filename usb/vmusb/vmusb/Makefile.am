@@ -56,11 +56,12 @@ tests: $(TEST_MODULES)
 
 
 REMOTE_TEST_MODULES = @srcdir@/TestRunner.cpp \
-             @srcdir@/remoteRegTests.cpp 
+             @srcdir@/remoteRegTests.cpp \
+             @srcdir@/remoteVMETests.cpp 
 
 remotetests: $(REMOTE_TEST_MODULES)
 	$(CXX) -g -o remotetests -I@srcdir@ -I@prefix@/include $(CPPUNIT_INCLUDES) \
-	$(REMOTE_TEST_MODULES) $(CPPUNIT_LDFLAGS) -L@prefix@/lib -lVMUSBRemote \
+	$(REMOTE_TEST_MODULES) $(CPPUNIT_LDFLAGS) -L@prefix@/lib -lVMUSB -lVMUSBRemote \
 	-Wl,"-rpath=@prefix@/lib" @TCL_LDFLAGS@ @LIBTCLPLUS_LDFLAGS@
 
 installcheck-local: tests

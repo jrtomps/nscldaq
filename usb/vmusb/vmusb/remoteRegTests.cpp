@@ -4,10 +4,10 @@
 #include <cppunit/Asserter.h>
 #include "Asserts.h"
 #include <usb.h>
-#include <CVMUSB.h>
-#include <CVMUSBusb.h>
+#include <CVMUSBRemote.h>
 #include <vector>
 #include <stdio.h>
+#include <unistd.h>
 
 class TCLApplication;
 TCLApplication* gpTCLApplication = 0;
@@ -37,12 +37,7 @@ private:
 
 public:
   void setUp() {
-    vector<struct usb_device*> devices = CVMUSB::enumerate();
-    if (devices.size() == 0) {
-      cerr << " NO USB interfaces\n";
-      exit(0);
-    }
-    m_pInterface = new CVMUSBusb(devices[0]);
+    m_pInterface = new CVMUSBRemote("remotevmusb");
     m_pShadow = &m_pInterface->getShadowRegisters();
   }
   void tearDown() {
@@ -66,8 +61,7 @@ CPPUNIT_TEST_SUITE_REGISTRATION(registerTests);
 //write action register... can only determine that no throws happen.
 
 void registerTests::action() {
-  m_pInterface->writeActionRegister(0);	// this is really the only safe thing to write here.
-				   
+  m_pInterface->writeActionRegister(0);	
 }
 
 // Read firmware: can only output and hope no exceptions.
@@ -142,7 +136,7 @@ void registerTests::devsrc()
 {
   uint32_t usedBits =    0x77331f1f; // 7777 not 77ff since reset is momentary.
 
-//  m_pInterface->writeDeviceSource(0x7fffffff);
+  m_pInterface->writeDeviceSource(0x7fffffff);
   m_pInterface->writeDeviceSource(usedBits);
   EQMSG("wrote shadow ones", (uint32_t)usedBits, m_pShadow->deviceSources);
   uint32_t value = m_pInterface->readDeviceSource();
@@ -153,7 +147,7 @@ void registerTests::devsrc()
   EQMSG("wrote shadow zeroes", (uint32_t)0, m_pShadow->deviceSources);
   value = m_pInterface->readDeviceSource();
   EQMSG("0's", (uint32_t)0, (value & usedBits));
-  EQMSG("read shadow zeroes", (uint32_t)0, (usedBits & m_pShadow->deviceSources));
+  EQMSG("read shadow zeroes", (uint32_t)0,(usedBits & m_pShadow->deviceSources));
 }
 // Three registers for the gate and delay register use all 32 bits.
 // dgga, dggb, dggextended.
