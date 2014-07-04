@@ -129,7 +129,7 @@ CModuleCommand::create(CTCLInterpreter& interp,
 
   CModuleFactory* pFact = CModuleFactory::instance();
 
-  CControlHardware* pModule = pFact->create(name, type);
+  CControlHardware* pModule = pFact->create(type,name);
   if (pModule) {
     CControlModule*   pConfig = pModule->getConfiguration();
     pModule->onAttach(*pConfig);
