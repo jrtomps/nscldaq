@@ -831,7 +831,7 @@ proc EndRun   {} {
     puts $fd "                     Duration: $HMStime"
     puts $fd " Scaler Name        Scaler Total  Avg Rate     Std. Dev           "
     puts $fd "------------------------------------------------------------------"
-    set fmt  " %11s  %11lld  %11.2f  %11.2f"
+    set fmt  " %11s  %14.0f  %11.2f  %11.2f"
 
     # Get the alphabetized list of scaler channels and put them out.
     set channels [lsort [array names ScalerMap]]
