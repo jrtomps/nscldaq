@@ -17,27 +17,25 @@
 #            East Lansing, MI 48824-1321
 
 ##
-# @file   NotReady.py
-# @brief  Implements the NotReady state of the state manager.
+# @file   CommandTest.py
+# @brief  Connect to my localhost state manager and poke commands
+#         at it, getting replies back.
 # @author <fox@nscl.msu.edu>
 
-##
-# stub:
+from nscldaq.statemanager import Utilities
+import zmq
+import sys
 
-import time
+context = zmq.Context()
+sock    = Utilities.connectRequestPort(context)
 
-##
-# NotReady
-#   Implements the not ready state.
-#   -------------- STUB ---------------------------
-#
-# @param cargo - data passed from the state machine.
-#
-def NotReady(cargo):
-    print("NotReady entered")
-    while True:
-        time.sleep(1)
-    #
-    #   Never leave this state.
-    #
+while 1:
+    line = sys.stdin.readline()
+    if not line:
+        break
+    sock.send(line[0:-1])
+    reply = sock.recv()
+    print("Reply: %s" % (reply))
+
+
 
