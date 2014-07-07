@@ -80,15 +80,14 @@ proc ::VMUSBDriverSupport::convertVmUSBReadoutList name {
 # @note missing trailing parameters are allowed and treated as "".
 #
 proc ::VMUSBDriverSupport::checkRange {value {low ""} {high  ""}} {
+#  ::DriverSupport::checkRange value low high
+  if {($low ne "") && ($value < $low)} {
+    error "$value must be >= $low"
+  }
 
-    if {($low ne "") && ($value < $low)} {
-	error "$value must be >= $low"
-    }
-
-    if {($high ne "") && ($value > $high)} {
-	error "$value must be <= $high"
-    }    
-
+  if {($high ne "") && ($value > $high)} {
+    error "$value must be <= $high"
+  }    
 }
 
 ##
@@ -193,13 +192,13 @@ proc ::VMUSBDriverSupport::validList {value {fewest ""} {most ""} {checker ""} {
 	::VMUSBDriverSupport::checkRange $length $fewest $most
     } msg]
     if {$result} {
-	error "List length of "$value" invalid: length $msg"
+	error "List length of {$value} invalid: length $msg"
     }
 
     if {$checker ne ""} {
 	foreach element $value {
 	    if {[catch {$checker $element  {*}$args} msg]} {
-		set errorMessage "Element of $value failed type check: $msg"
+		set errorMessage "Element of {$value} failed type check: $msg"
 		error $errorMessage
 	    }
 	}
@@ -239,7 +238,7 @@ proc ::VMUSBDriverSupport::validBoolList {value {fewest ""} {most ""}} {
 
 
 
-proc ::VMUSBDriverSupport::list_to_rdolist {atcllist} { 
+proc ::VMUSBDriverSupport::convertToReadoutList {atcllist} { 
 
   set len [llength $atcllist]
   set vecptr [cvmusbreadoutlist::vecuint32_create $len ]
