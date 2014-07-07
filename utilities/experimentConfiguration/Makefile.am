@@ -32,6 +32,7 @@ install-exec-local:
 check-TESTS:
 	PYTHONPATH=$(INSTDIR) @PYTHON@ @srcdir@/run_all_tests.py
 
-EXTRA_DIST = $(PACKAGE_FILES) $(MAINS) $(TESTS)
+EXTRA_DIST = $(PACKAGE_FILES) $(MAINS) $(TESTS) expConfig.xml
+
 
 
