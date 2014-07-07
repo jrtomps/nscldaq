@@ -6,6 +6,10 @@ PYTHONDIR      = @prefix@/pythonLibs/nscldaq/boot
 install-exec-local:
 	$(mkinstalldirs) @bindir@
 	$(mkinstalldirs) $(PYTHONDIR)
-	for f in $(PYTHONPROGRAMS); do $(INSTALL_SCRIPT)  $$f @bindir@/`basename $$f .py`; done
-	$(INSTALL_SCRIPT) $(PYTHONPACKAGES) $(PYTHONDIR)
+	for f in $(PYTHONPROGRAMS); do $(INSTALL_SCRIPT)  @srcdir@/$$f @bindir@/`basename $$f .py`; done
+	for f in $(PYTHONPACKAGES); do $(INSTALL_SCRIPT)  @srcdir@/$$f $(PYTHONDIR) ; done
 	touch $(PYTHONDIR)/__init__.py
+	$(INSTALL_SCRIPT) @srcdir@/runner.bash @bindir@
+
+
+EXTRA_DIST=$(PYTHONPROGRAMS) $(PYTHONPACKAGES)

@@ -22,6 +22,9 @@
 # @author <fox@nscl.msu.edu>
 
 import subprocess
+import select
+import fcntl
+import os
 
 
 ##
@@ -56,7 +59,7 @@ class sshPrimitive:
     # @param command - The command string.
     #
     def __init__(self, host, command):
-        self._command = 'ssh %s "%s"' % (host, command)
+        self._command = 'ssh -t -t %s "%s"' % (host, command)
         self._pipe    = subprocess.Popen(
             self._command, shell=True,
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
@@ -64,6 +67,10 @@ class sshPrimitive:
         self._stdin = self._pipe.stdin
         self._stdout= self._pipe.stdout
         self._stderr= self._pipe.stderr
+        
+        #  Set stdout and stderr to nonblocking mode:
+        
+        
     #
     # Destructor
     #  Send a control-C to the remote program just in case
@@ -163,8 +170,11 @@ class shell:
         self._stdout= self._ssh.stdout()
         self._stderr= self._ssh.stderr()
         
+        # The pipes get set to non blockin gmode.
+        
 
-     #   Accessors for the file descriptors:
+
+    #   Accessors for the file descriptors:
      
     def stdin(self):
         return self._stdin
@@ -183,8 +193,9 @@ class shell:
     #
     def writeLine(self, command):
         cmd = command + "\n"
-        self._stdin.write(command)
-        print("Just wrote: '%s'" %(command))
+        self._stdin.write(cmd)
+        self._stdin.flush()
+        
     ##
     # readOutput
     #    Reads a line from stdout  This will block if there's nothing available
@@ -213,8 +224,8 @@ class shell:
     # @param value - New value for the name.
     #
     def setenv(self, name, value):
-        command1 = "%=%" % (name, value)
-        command2 = "export %n" % (name)
+        command1 = "%s=%s" % (name, value)
+        command2 = "export %s" % (name)
         self.writeLine(command1)
         self.writeLine(command2)
         

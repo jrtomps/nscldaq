@@ -618,3 +618,12 @@ Open rc7 work.
 	disentangle ouptput.
 	* Added error icons to tabs that have errors.
 	
+Open Rc10 work
+	*  Issue #1953, Issue #1954, Issue #1951, Issue #1952, 
+	Issue #1953, Issue #1955, Initial not so complete experiment
+	editor.
+	* Issue #1964 - State manager.
+	* Issue #1961, Issue #1965 - Boot manager, knows how to create
+	ringbuffers and programs and to force the state manager back to
+	the NotReady state if the programs fail to start or exit.
+	

@@ -22,7 +22,9 @@
 # @author <fox@nscl.msu.edu>
 
 import os
+import fcntl
 import zmq
+import time
 from nscldaq.expconfiguration import project
 from nscldaq.boot             import ssh, config
 
@@ -92,10 +94,10 @@ class Program:
     # @param env  - Map of envvarName -> value pairs.
     #
     def _setupEnv(self, env):
-        self._ssh.writeLine('. %s/daqsetup' % (os.getenv('DAQBIN')))
+        self._ssh.writeLine('. %s/daqsetup.bash' % (os.getenv('DAQROOT')))
         for var in env.keys():
-            self._ssh.writeLine('export %s=%s' % (var, env[var]))
-        self._ssh.writeLine('printenv')
+            self._ssh.setenv(var, env[var])
+
     
     ##
     # _setWd
@@ -113,9 +115,15 @@ class Program:
     # @param program - path to the program (argv[0]).
     # @param args    - ordered list of program arguments.
     #
+    # @note runner.bash is a script that runs the program and then exits the shell
+    #       when the command exits.  This ensures that causes endfiles on the
+    #       stdout/stderr pipes.
+    #
     def _startProgram(self, program, args):
-        command = '%s %s' % (program, ' '.join(map(lambda x: "'" + x + "'", args)))
+        command = '. $DAQBIN/runner.bash %s %s' % (program, ' '.join(map(lambda x: "'" + x + "'", args)))
         self._ssh.writeLine(command)
+        self._command = command
+        
     
     ##
     # _registerCallbacks
@@ -127,7 +135,18 @@ class Program:
         poller = self._monitor.poller
         poller.register(shell.stdout(), zmq.POLLIN, self._programOutput)
         poller.register(shell.stderr(), zmq.POLLIN, self._programOutput)
-        
+
+    #  Set a file object to on blocknigh mode.
+    
+    def _setNonblock(self, file):
+        # fd = file.fileno()
+        fl = fcntl.fcntl(file, fcntl.F_GETFL)
+        fcntl.fcntl(file, fcntl.F_SETFL, fl | os.O_NONBLOCK)
+        return fl
+    
+    def _setFlags(self, file, flags):
+        fcntl.fcntl(file, fcntl.F_SETFL, flags)
+    
     ##
     # _programOutput
     #   Called by the poller/event loop when our program's stdin/stderr
@@ -148,17 +167,25 @@ class Program:
     #         asked to end the program.
     #
     def _programOutput(self, poller, f, mask) :
-        l = f.readline()
-        print("Output %s" % (l))
+        oldflags = self._setNonblock(f)
+        l = f.read()
+        self._setFlags(f, oldflags)
         if len(l) == 0:
-            print("zero length")
+            print("Eof detected")
             poller.unregister(f)
             if not self._expectingExit:
+                print("Unexpected program exit... forcing FAIL transition")
                 self._monitor.requestTransition('FAIL')
-                try:
-                    _RunningPrograms.remove(self)
-                except:
-                    pass              # Might already be gone.
+            #
+            #  The try block is because we'll see this for stdout and
+            #  stderr closing.
+            #
+            try:
+                _RunningPrograms.remove(self)
+            except:
+                pass              # Might already be gone.
+        else:
+            print("%s: '%s'" % (self._command, l))
     
     # class.Programs - public entries.
     
@@ -168,14 +195,21 @@ class Program:
     #
     def exit(self):
         self._expectingExit = True
-        self._ssh.writeLine('exit')
+        try:
+            self._ssh.writeLine('exit')       # Exit bash if program exits.
+        except:
+            pass                              # Maybe it's already exited.
     ##
     #  intr
     #    Send an intr signal to the program (control-C)
     #
     def intr(self):
         self._expectingExit = True
-        self._ssh.writeLine('\x03')
+        try:
+            self._ssh.stdin().write('\x03')    # Don't have trailing \n.
+            self._ssh.writeLine('exit')        # ^C probably wipes out pending exit.
+        except:
+            pass                               # Maybe it's already exited...
 
 #-----------------------------------------------------------------------------
 # Public entries.
@@ -187,6 +221,9 @@ class Program:
 #    *  Registers Records the existence of the program.
 #    *  Registers stdout and stderr to be monitored via the state monitor's
 #       poller to fire a procedure when the fd is readable.
+#
+# @param monitor -- The monitor object (includes the poller).
+# @param database - The database we would process if we were driven by it.
 #
 def startPrograms(monitor, database):
 
@@ -207,3 +244,28 @@ def startPrograms(monitor, database):
         host = program['host_name']
         args = program['args']
         p    = Program(monitor, host, path, args, wd, env)
+
+##
+# stopPrograms
+#
+# Attempt to stop all running programs.  By now the caller has given state aware
+# programs a few seconds to stop and we're going to do the following:
+# *   Send an exit command to each program
+# *   Wait a bit.
+# *   Send an INTR signal to all that remain.
+#
+#  The code assumption in this module is that this is happening due to a state
+#  transition into NotReady.
+#
+# @param monitor -- The monitor object (includes the poller).
+# @param database - The database we would process if we were driven by it.
+#
+def stopPrograms(monitor, database):
+    for program in _RunningPrograms:
+        print("Sending exit to %s" % program._command)
+        program.exit()
+    time.sleep(3)                          # Give them a chance to exit.
+    for program in _RunningPrograms:
+        print("Sending intr to %s" % program._command)
+        program.intr()                     # Give them a hard kill.
+    

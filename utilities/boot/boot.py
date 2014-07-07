@@ -191,6 +191,7 @@ def shutdown(monitor, prior, current, databases):
         print("Sleeping to let state aware programs exit:")
         time.sleep(2)
         print("Actively killing processes")
+        Programs.stopPrograms(monitor, database)
         print("Killing rings")
         Rings.destroyRings(monitor, database)
 

@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.61)
-AC_INIT(nscldaq, 11.0-rc9, fox@nscl.msu.edu)
+AC_INIT(nscldaq, 11.0-rc10, fox@nscl.msu.edu)
 
 AC_CONFIG_SRCDIR([/utilities/StringsToIntegers.h])
 AC_CONFIG_HEADER([config.h])
@@ -247,8 +247,32 @@ else
 	AM_CONDITIONAL([BUILD_USB], [false])
 fi
 
+##
+#  Check for zmq presence:
+#
+
+AC_SEARCH_LIBS([zmq_init], [zmq], [result=$ac_cv_search_zmq_init], [AC_MSG_ERROR([The zeromq library was not found and is now required for nscldaq])])
+if test $result = "none required"
+then
+   ZMQ_LDFLAGS=""
+else
+   ZMQ_LDFLAGS=$result
+fi
+
+AC_SUBST(ZMQ_LDFLAGS)
+
+##
+# need the zmq c++ bindings
+#
+AC_LANG_PUSH(C++)
+AC_CHECK_HEADER([zmq.hpp],[], [AC_MSG_ERROR([The zeromq C++ header (zmq.hpp) is missing and is required for nscldaq])])
+AC_LANG_POP
 
 
+##
+# check for presence of Python zmq package
+
+AC_PYTHON_MODULE([zmq])
 
 #----------------------------------------------------------------------------
 
