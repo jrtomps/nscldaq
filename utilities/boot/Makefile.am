@@ -12,4 +12,4 @@ install-exec-local:
 	$(INSTALL_SCRIPT) @srcdir@/runner.bash @bindir@
 
 
-EXTRA_DIST=$(PYTHONPROGRAMS) $(PYTHONPACKAGES)
+EXTRA_DIST=$(PYTHONPROGRAMS) $(PYTHONPACKAGES) runner.bash
