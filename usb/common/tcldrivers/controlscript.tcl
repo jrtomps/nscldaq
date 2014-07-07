@@ -165,5 +165,6 @@ snit::type controlscript {
     } else {
       error "File path $value specified for $option, but no file exists there."
     }
-}
+  }
 
+} 

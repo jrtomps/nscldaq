@@ -144,5 +144,8 @@ snit::type readoutscript {
     } else {
       error "File path $value specified for $option, but no file exists there."
     }
+  }
+
+
 }
 
