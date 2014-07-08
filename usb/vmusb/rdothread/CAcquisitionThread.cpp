@@ -408,7 +408,7 @@ CAcquisitionThread::startDaq()
 
   CStack::resetStackOffset();
 
-  cerr << "Loading " << m_Stacks.size() << " Stacks to vm-usb\n";
+  cerr << "Loading " << m_Stacks.size() << " stacks to vm-usb\n";
   for(int i =0; i < m_Stacks.size(); i++) {
     CStack* pStack = dynamic_cast<CStack*>(m_Stacks[i]->getHardwarePointer());
 
@@ -425,7 +425,7 @@ CAcquisitionThread::startDaq()
   TclServer*          pServer = ::Globals::pTclServer;
   CVMUSBReadoutList   list    = pServer->getMonitorList();
   if (list.size() != 0) {
-    std::cerr << "Loading monitor stack of size: " << list.size() << "To " << CStack::getOffset() << std::endl;
+    std::cerr << "Loading monitor stack of size: " << list.size() << " at offset: " << CStack::getOffset() << std::endl;
     size_t currentOffset = CStack::getOffset();
     m_pVme->loadList(7, list, currentOffset); // The tcl server will periodically trigger the list.
   }
