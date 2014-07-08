@@ -645,7 +645,6 @@ class ProgramDisplay(QtGui.QTreeView):
         f.setArgs(programInfo['args'])
         
         if dialog.exec_() == QtGui.QDialog.Accepted:
-            print("accepted...")
             path = str(f.path())
             wd   = str(f.wd())
             host = str(f.host())
@@ -657,7 +656,6 @@ class ProgramDisplay(QtGui.QTreeView):
                 )
             else:
                 args = f.args()
-                print(args)
                 programs.modify(
                     id, path=path, working_dir=wd, host_name=host, args=args
                 )
@@ -695,7 +693,6 @@ class ProgramDisplay(QtGui.QTreeView):
                 )
             else:
                 args = dialog.form().args()
-                print(args)
                 programs = project.Programs(state.State.project)
                 programs.add_byHostname(path, wd, host, args)
                 self.populate(programs.list())
