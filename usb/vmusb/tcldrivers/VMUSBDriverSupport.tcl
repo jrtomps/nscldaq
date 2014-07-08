@@ -23,6 +23,8 @@
 
 package provide VMUSBDriverSupport 1.0
 package require DriverSupport 
+package require cvmusb 
+package require cvmusbreadoutlist
 
 
 # Establish the namespace in which the procs will live.

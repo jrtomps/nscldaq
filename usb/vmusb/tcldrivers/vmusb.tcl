@@ -1,6 +1,12 @@
 #===================================================================
 # class VMUSB
 #===================================================================
+
+package provide VMUSB 1.0
+package require Itcl
+package require XXUSB 
+
+
 itcl::class VMUSB {
 	inherit XXUSB
 	

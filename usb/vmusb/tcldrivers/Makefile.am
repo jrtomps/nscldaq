@@ -11,4 +11,4 @@ install-exec-local:
 #  All driver and docs files need to be added here:
 #
 
-EXTRA_DIST=sis330xdriver.tcl VMUSBDriverSupport.tcl
+EXTRA_DIST=sis330xdriver.tcl VMUSBDriverSupport.tcl vmusb.tcl 
