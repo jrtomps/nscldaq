@@ -2,18 +2,19 @@
 # class VMUSB
 #===================================================================
 
-package provide VMUSB 1.0
-package require Itcl
-package require XXUSB 
+package provide vmusb 1.0
 
+package require Itcl
+package require VMUSBDriverSupport 
+package require xxusb
 
 itcl::class VMUSB {
 	inherit XXUSB
 	
 	private variable firmware
 	
-	constructor {} {
-		XXUSB::constructor
+	constructor {avmusb} {
+		XXUSB::constructor $avmusb
 	} {}
 
 # Interactive functions
@@ -45,9 +46,9 @@ itcl::class VMUSB {
 	public method SetScalerFrequency {value}
 	public method SetForceDump {value}
 	public method SetLEDs {value}
-	public method SetLED {LED code invert latch}
+#	public method SetLED {LED code invert latch}
 	public method SetNIMs {value}
-	public method SetNIM {NIM code invert latch}
+#	public method SetNIM {NIM code invert latch}
 	public method SetGateDelay {register gate delay}
 	public method SetIRQVector {vector stackID IRQLevel IRQID}
 	public method SetBulkBuffers {buffers}
@@ -67,6 +68,8 @@ itcl::class VMUSB {
 	public method sReadSBLT32 {stack address words repeat}
 	public method sReadFBLT32 {stack address blocks repeat}
 	public method sReadNBLT32 {stack nadd address mask repeat}
+
+  public method ExecuteLongStack {stack}
 }
 
 itcl::body VMUSB::GetFirmware {} {
@@ -190,8 +193,7 @@ itcl::body VMUSB::ReadFBLT32 {address blocks repeat} {
 	lappend command [expr int($blocks>>16)]
 	lappend command [expr ($address&0xffff)]
 	lappend command [expr int($address>>16)]
-	set command [$self FinishStack $command]
-	set result [XXUSBExecuteLongStack $self $command]
+	set result [ExecuteLongStack $command]
 	return $result
 }
 ######################################################
@@ -235,99 +237,135 @@ itcl::body VMUSB::SetBufferLength {length} {
 	if {$bits > 14} {set bits 14}
 	if {$bits < 6} {set bits 5}
 	set code [expr 14-$bits]
-	set mode [ReadRegister 4]
+	set mode [$self readGlobalMode]
+	puts [format "Original global mode : %x" $mode]
+	puts [format "Setting new bits     : %x" $code]
 	set mode [expr ($mode&0xfffffff0)+$code]
-	WriteRegister 4 $mode
+	puts [format "New global mode      : %x" $mode]
+	$self writeGlobalMode $mode
 }
 
 itcl::body VMUSB::SetBufferMode {value} {
-	set mode [ReadRegister 4]
+	puts "SetBufferMode $value"
+	set mode [$self readGlobalMode]
+	puts [format "\tOriginal global mode : %x" $mode]
 	set mode [expr ($mode&0xffffffef)+($value<<4)]
-	WriteRegister 4 $mode
+	puts [format "\tNew global mode      : %x" $mode]
+	$self writeGlobalMode $mode
 }
 
 itcl::body VMUSB::SetMixedBuffer {value} {
-	set mode [ReadRegister 4]
+	puts "SetMixedBuffer $value"
+	set mode [$self readGlobalMode]
+	puts [format "\tOriginal global mode : %x" $mode]
 	set mode [expr ($mode&0xffffffdf)+($value<<5)]
-	WriteRegister 4 $mode
+	puts [format "\tNew global mode      : %x" $mode]
+	$self writeGlobalMode $mode
 }
 
 itcl::body VMUSB::SetForceDump {value} {
-	set mode [ReadRegister 4]
+	puts "SetForceDump $value"
+	set mode [$self readGlobalMode]
+	puts [format "\tOriginal global mode : %x" $mode]
 	set mode [expr ($mode&0xffffffbf)+($value<<6)]
-	WriteRegister 4 $mode
+	puts [format "\tNew global mode      : %x" $mode]
+	$self writeGlobalMode $mode
 }
 
 itcl::body VMUSB::SetAlign32 {value} {
-	set mode [ReadRegister 4]
+	puts "SetAlign32 $value"
+	set mode [$self readGlobalMode]
+	puts [format "\tOriginal global mode : %x" $mode]
 	set mode [expr ($mode&0xffffff7f)+($value<<7)]
-	WriteRegister 4 $mode
+	puts [format "\tNew global mode      : %x" $mode]
+	$self writeGlobalMode $mode
 }
 
 itcl::body VMUSB::SetHeader {value} {
-	set mode [ReadRegister 4]
+	puts "SetAlign32 $value"
+	set mode [$self readGlobalMode]
+	puts [format "\tOriginal global mode : %x" $mode]
 	set mode [expr ($mode&0xfffffeff)+($value<<8)]
-	WriteRegister 4 $mode
+	puts [format "\tNew global mode      : %x" $mode]
+	$self writeGlobalMode $mode
 }
 
 itcl::body VMUSB::SetTriggerDelay {value} {
-	set mode [ReadRegister 8]
+	puts "SetTriggerDelay $value"
+	set mode [$self readDAQSettings]
+	puts [format "\tOriginal daq settings : %x" $mode]
 	set mode [expr ($mode&0xffffff00)+$value]
-	WriteRegister 8 $mode
+	puts [format "\tNew daq settings      : %x" $mode]
+	$self writeDAQSettings $mode
 }
 
 itcl::body VMUSB::SetScalerPeriod {value} {
-	set mode [ReadRegister 8]
+	puts "SetScalerPeriod $value"
+	set mode [$self readDAQSettings]
+	puts [format "\tOriginal daq settings : %x" $mode]
 	set mode [expr ($mode&0xffff00ff)+($value<<8)]
-	WriteRegister 8 $mode
+	puts [format "\tNew daq settings      : %x" $mode]
+	$self writeDAQSettings $mode
 }
 
 itcl::body VMUSB::SetScalerFrequency {value} {
-	set mode [ReadRegister 8]
+	puts "SetScalerFrequency $value"
+	set mode [$self readDAQSettings]
+	puts [format "\tOriginal daq settings : %x" $mode]
 	set mode [expr ($mode&0x0000ffff)+($value<<16)]
-	WriteRegister 8 $mode
+	puts [format "\tNew daq settings      : %x" $mode]
+	$self writeDAQSettings $mode
 }
 
-itcl::body VMUSB::SetLED {LED code invert latch} {
-	::VMUSBSetLED $self $LED $code $invert $latch
-}
+#itcl::body VMUSB::SetLED {LED code invert latch} {
+#	::VMUSBSetLED $self $LED $code $invert $latch
+#}
 
-itcl::body VMUSB::SetNIM {NIM code invert latch} {
-	::VMUSBSetNIM $self $NIM $code $invert $latch
-}
+#itcl::body VMUSB::SetNIM {NIM code invert latch} {
+#	::VMUSBSetNIM $self $NIM $code $invert $latch
+#}
 
 itcl::body VMUSB::SetLEDs {value} {
+	puts [format "SetLEDs %x" $value]
 	set mode [expr $value&0xffffffff]
-	WriteRegister 12 $mode
+	puts [format "Value to write %x" $mode]
+	flush stdout
+	$self writeLEDSource $mode
 }
 
 itcl::body VMUSB::SetNIMs {value} {
+	puts [format "SetNIMs %x" $value]
 	set mode [expr $value&0xffffffff]
-	::VMUSBWriteRegister $self 16 $mode
+	puts [format "Value to write %x" $mode]
+	flush stdout
+	$self writeDeviceSource $mode
 #	WriteRegister 16 $mode
 }
 
 itcl::body VMUSB::SetGateDelay {register gate delay} {
-	if {[string equal $register A]} {set r 20}
-	if {[string equal $register B]} {set r 24}
-	if {![info exist r]} {
+	set mode [expr ($gate<<16)+$delay]
+	if {[string equal $register A]} {
+	  $self writeDGG_A $mode
+  } else if {[string equal $register B]} {
+	  $self writeDGG_B $mode
+  } else {
 		tk_messageBox -icon error -message "Error while setting gate & delay of $self\n\
 		unknown register: $register ; must be either A or B"
 		return
 	}
-	set mode [expr ($gate<<16)+$delay]
-	WriteRegister $r $mode
 }
 	
 itcl::body VMUSB::ReadScaler {scaler} {
-	if {[string equal $scaler A]} {set r 28}
-	if {[string equal $scaler B]} {set r 32}
-	if {![info exist r]} {
+  set data 0 
+	if {[string equal $scaler A]} {
+    set data [$self ReadScalerA]
+  } else if {[string equal $scaler B]} {
+    set data [$self ReadScalerB]
+  } else {
 		tk_messageBox -icon error -message "Error while reading scaler of $self\n\
 		unknown scaler: $scaler ; must be either A or B"
 		return
 	}
-	set data [ReadRegister $r]
 	return $data
 }
 
@@ -338,37 +376,39 @@ itcl::body VMUSB::SetIRQVector {vector stackID IRQLevel IRQID} {
 		vector must be between 1 and 8"
 		return
 	}
-	set reg [expr int(($vector-1)/2) + 0x28]
-	set code [ReadRegister $reg]
+  # register is either 1, 2, 3, or 4 b/c each register stores 2 vectors
+	set reg [expr int(($vector-1)/2)+1]
+	set code [$self readVector $reg]
 	set code1 [expr ($IRQID&0xff) + ($IRQLevel&0x7)<<8 + ($stackID&0x3)<<12]
-	if {($vector/2)*2 == $vector} {
+  # handle whether if vector id is even or odd
+	if {($vector/2)*2 == $vector} { 
+    # even registers go in the upper 16 bits
 		set code [expr ($code&0xffff) + ($code1<<16)]
 	} else {
+    # odd registers go in the lower 16 bits
 		set code [expr $code&0xffff0000 + $code1]
 	}
-	WriteRegister $reg $code
+	$self writeVector $reg $code
 # 	for now we limit the IRQID to 8 bits; implement 16 bits with expansion registers later
 }
 
 itcl::body VMUSB::SetBulkBuffers {buffers} {
-	set bulk [ReadRegister 60]
+	set bulk [$self readBulkXferSetup]
 	set bulk [expr ($bulk&0xffffff00)+$buffers]
-	WriteRegister 60 $bulk
+	$self writeBulkXferSetup $bulk
 }
 
 itcl::body VMUSB::SetBulkTimeOut {timeout} {
-	set bulk [ReadRegister 60]
+	set bulk [$self readBulkXferSetup]
 	set bulk [expr ($bulk&0xffff00ff)+($timeout<<8)]
-	WriteRegister 60 $bulk
+	$self writeBulkXferSetup $bulk
 }
 
 # Stack programming functions
 
 itcl::body VMUSB::sReadRegister {stack register} {
-	lappend command 0x1109; # SLF=1, NW=1, A32
-	lappend command 0
+	lappend command [expr 0x1109]; # SLF=1, NW=1, A32
 	lappend command [expr $register&0x3f]
-	lappend command 0
 	AddToStack $stack $command
 }
 
@@ -384,111 +424,97 @@ itcl::body VMUSB::sReadScaler {stack scaler} {
 }
 
 itcl::body VMUSB::sAddMarker {stack marker} {
-	lappend command 0x2000; # MRK=1
-	lappend command 0
+	lappend command [expr 0x2000]; # MRK=1
 	lappend command [expr $marker&0xffff]
-	lappend command 0
 	AddToStack $stack $command
 }
 
 itcl::body VMUSB::sRead16 {stack address} {
 	lappend command [expr 0x29 + 0x100]; # A16 access + NW=1
-	lappend command 0
-	lappend command [expr ($address&0xffff) + 1]; # This is what's done in libxxusb!
-	lappend command [expr int($address>>16)]
+  lappend command [expr $address]
 	AddToStack $stack $command
 }
 
 itcl::body VMUSB::sWrite16 {stack address data} {
-	lappend command 0x29; # A16 access + NW=0
-	lappend command 0
-	lappend command [expr ($address&0xffff) + 1]; # This is what's done in libxxusb!
-	lappend command [expr int($address>>16)]
+	lappend command [expr 0x29]; # A16 access + NW=0
+  lappend command [expr $address]
 	lappend command [expr $data&0xffff]
-	lappend command 0
 	AddToStack $stack $command
 }
 
 itcl::body VMUSB::sRead24 {stack address} {
 	lappend command [expr 0x39 + 0x100]; # A24 access + NW=1
-	lappend command 0
-	lappend command [expr ($address&0xffff) + 1]; # This is what's done in libxxusb!
-	lappend command [expr int($address>>16)]
+	lappend command [expr $address]; 
 	AddToStack $stack $command
 }
 
 itcl::body VMUSB::sWrite24 {stack address data} {
-	lappend command 0x39; # A24 access + NW=0
-	lappend command 0
-	lappend command [expr ($address&0xffff) + 1]; # This is what's done in libxxusb!
-	lappend command [expr int($address>>16)]
+	lappend command [expr 0x39]; # A24 access + NW=0
+	lappend command [expr $address&0xffff]; 
 	lappend command [expr $data&0xffff]
-	lappend command 0
 	AddToStack $stack $command
 }
 
 itcl::body VMUSB::sRead32 {stack address} {
 	lappend command [expr 0x9 + 0x100]; # A32 access + NW=1
-	lappend command 0
-	lappend command [expr ($address&0xffff)]
-	lappend command [expr int($address>>16)]
+	lappend command [expr $address]
 	AddToStack $stack $command
 }
 
 itcl::body VMUSB::sWrite32 {stack address data} {
-	lappend command 0x9; # A32 access + NW=0
-	lappend command 0
-	lappend command [expr ($address&0xffff)]
-	lappend command [expr int($address>>16)]
-	lappend command [expr $data&0xffff]
-	lappend command [expr int($data>>16)]
+	lappend command [expr 0x9]; # A32 access + NW=0
+	lappend command [expr $address]
+	lappend command [expr $data]
 	AddToStack $stack $command
 }
 
 itcl::body VMUSB::sWait {stack twohundrednano} {
 	if {$twohundrednano > 255 } {set twohundrednano 255}
 	lappend command [expr 0x8000 + $twohundrednano]; # DLY=1
-	lappend command 0
 	AddToStack $stack $command
 }
 
 # 32 bit VME short block mode read -- needs firmware 79000900 or later
 # This block mode is limited to 64 transfers of 32 bit words
 itcl::body VMUSB::sReadSBLT32 {stack address words repeat} {
-	lappend command [expr 0x10b + ($repeat<<10)]; # A32, MB=1, NW=1, NA=repeat
-	lappend command [expr $words<<8]; # BLT=words
-	lappend command [expr ($address&0xffff)]
-	lappend command [expr int($address>>16)]
+  # A32, MB=1, NW=1, NA=repeat, N BLT words
+	lappend command [expr 0x10b | ($repeat<<10) | ($words<<24)]; 
+  lappend command [expr $address]
 	AddToStack $stack $command
 }
 
 # 32 bit VME full block mode read -- needs firmware 79000900 or later
 # This block mode can read up to 2^23 BLT transfers, specified in the parameter blocks
 itcl::body VMUSB::sReadFBLT32 {stack address blocks repeat} {
-	lappend command [expr 0x90b + ($repeat<<10)]; # A32, MB=1, NW=1, NA=repeat
-	lappend command 0xff00; # BLT=0xff
-	lappend command [expr $blocks&0xffff]
-	lappend command [expr int($blocks>>16)]
-	lappend command [expr ($address&0xffff)]
-	lappend command [expr int($address>>16)]
+ # A32, MB=1, NW=1, NA=repeat, BLT=0xff000000
+	lappend command [expr 0x90b + ($repeat<<10) | (0xff000000)];
+	lappend command [expr $blocks]
+	lappend command [expr $address]
 	AddToStack $stack $command
 }
 
 # 32 bit VME Number Data  block mode read -- needs firmware 79000900 or later
 # the number of words to be read are specified at address nadd
 itcl::body VMUSB::sReadNBLT32 {stack nadd address mask repeat} {
-	lappend command 0x109
-	lappend command 4; # ND=1
-#	lappend command 0xfffc; # Number Extract Mask low
-#	lappend command 0xff; # Number Extract Mask high (24 contiguous bits max)
-	lappend command [expr $mask&0xffff]; # Number Extract Mask low
-	lappend command [expr $mask>>16]; # Number Extract Mask high (24 contiguous bits max)
-	lappend command [expr ($nadd&0xffff)]
-	lappend command [expr int($nadd>>16)]
+  # A32, AM=0x09, ND=1
+	lappend command [expr 0x109 | (1<<18)]
+	lappend command [expr $mask]; # Number Extract Mask low
+	lappend command [expr $nadd]
 	lappend command [expr 0x10b + ($repeat<<10)]; # A32, NW=1, NA=repeat
-	lappend command 0; # number of words specified at address nadd
-	lappend command [expr ($address&0xffff)]
-	lappend command [expr int($address>>16)]
+	lappend command [expr $address]
 	AddToStack $stack $command
 }
 
+itcl::body VMUSB::ExecuteLongStack {stack} {
+  # The stack is structured as the xxusb_long_stack_execute
+  # function from libxxusb.so demands. That is :
+  # Size
+  # list of operations
+  global ::VMUSBDriverSupport::convertToReadoutList 
+  
+#  set trimlist [lrange $stack 2 [llength $stack]]
+#  set rdolist [::list_to_rdolist $trimlist]
+  set rdolist [::VMUSBDriverSupport::convertToReadoutList $stack]
+
+  $self executeList $rdolist [expr 4<<20] 
+}

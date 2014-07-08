@@ -1,6 +1,13 @@
 #===================================================================
 # class AXLM72
 #===================================================================
+
+package provide xlm72 1.0
+
+package require Itcl
+package require vmusb 
+
+
 itcl::class AXLM72 {
 	protected variable device
 	private variable self
@@ -29,12 +36,12 @@ itcl::class AXLM72 {
 # interactive functions
 	public method GetVariable {v} {set $v}
 	public method Read {dev address} {return [$device Read32 [expr [set $dev]+$address]]}
-	public method Write {dev address data} {$device Write32 [expr [set $dev]+$address] $data}
+	public method Write {dev address data} { $device Write32 [expr [set $dev]+$address] $data}
 	public method ReadSBLT {dev address words} {return [$device ReadSBLT32 [expr [set $dev]+$address] $words 0]}
 	public method ReadFBLT {dev address blocks} {return [$device ReadFBLT32 [expr [set $dev]+$address] $blocks 0]}
 	public method ReadNBLT {ndev nadd mask dev address} {return [$device ReadNBLT32 [expr [set $ndev]+$nadd] [expr [set $dev]+$address] $mask 0]}
-	public method AccessBus {code} {Write vme 0 $code; Write vme 0xc 1}
-	public method ReleaseBus {} {Write vme 0 0; Write vme 0xc 0}
+	public method AccessBus {code} { Write vme 0 $code; Write vme [expr 0xc] 1}
+	public method ReleaseBus {} {Write vme 0 0; Write vme [expr 0xc] 0}
 	public method BootFPGA {}
 	public method SetFPGABoot {source} {Write vme 8 $source}
 	public method Configure {filename}
@@ -66,16 +73,18 @@ itcl::body AXLM72::Configure {filename} {
 # Detect first 0xff in file
 	set index 0
 	while {[lindex $bytes $index] != -1} {incr index}
+
 # Determine number of 256 bytes blocks
 	set nblocks [expr int(($size-$index+1)/64)+1]
+
 # Stack is made of 16 bits words
 	set stacksize [expr $nblocks*128+8]
 # Write stack header
-	lappend stack [expr ($stacksize-1)&0xffff]
-	lappend stack [expr ($stacksize-1)>>16]
-	lappend stack 0x80b; lappend stack 0x4000; # multi-block BLT write
-	lappend stack $nblocks; lappend stack 0
-	lappend stack [expr $srama&0xffff]; lappend stack [expr $srama>>16];
+#	lappend stack [expr ($stacksize-1)]
+#  lappend stack 0
+	lappend stack [expr ((0x4000<<16) | 0x80b) ]; # multi-block BLT write
+	lappend stack $nblocks; 
+	lappend stack [expr $srama ];
 # Translate and write configuration in SRAMA
 	for {set i $index} {$i < $size} {incr i} {
 		set byte [lindex $bytes $i]
@@ -83,16 +92,17 @@ itcl::body AXLM72::Configure {filename} {
 		set bhigh [expr ($byte&0xf0)>>4]
 		set llow [expr (($blow&0x7)<<2) + (($blow&0x8)<<7)]
 		set lhigh [expr (($bhigh&0x7)<<2) + (($bhigh&0x8)<<7)]
-		lappend stack $llow
-		lappend stack $lhigh
+		lappend stack [expr (($lhigh<<16) | $llow) ]
 	}
 # Execute long stack
-	AccessBus 0x1
-	XXUSBExecuteLongStack $device $stack
+	AccessBus [expr 0x1]
+  flush stdout
+#	XXUSBExecuteLongStack $device $stack
+  $device ExecuteLongStack $stack
 	after 100
 	ReleaseBus
 # Now boot the FPGA from SRAMA
-	SetFPGABoot 0x10000
+	SetFPGABoot [expr 0x10000]
 	BootFPGA
 }
 

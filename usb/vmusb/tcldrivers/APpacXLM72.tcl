@@ -1,6 +1,13 @@
 #===================================================================
 # class APpacXLM72
 #===================================================================
+
+package provide ppacxlm72 1.0
+package require xlm72 
+package require vmusb
+package require Itcl 
+
+
 itcl::class APpacXLM72 {
 	inherit AXLM72
 
