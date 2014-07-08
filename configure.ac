@@ -155,17 +155,26 @@ then
 	LIBTCLPLUS_LDFLAGS="-ltclPlus ${LIBEXCEPTION_LDFLAGS}"
 	AC_MSG_RESULT([Found in  system libraries])
 else
-	AC_MSG_RESULT([Need to build local tagged copy])
-	AC_CHECK_FILE([${srcdir}/libtcl/configure], [havelibtcldir="yes"], [havelibtcldir="no"])
-	if test $havelibtcldir = "yes"
-	then
-		(cd ${srcdir}/libtcl; ./configure --prefix=${prefix}; make clean install)
-		LIBTCLPLUS_CFLAGS="-I${prefix}/include"
-		LIBEXCEPTION_LDFLAGS="-L${prefix}/lib -lException -Wl,\"-rpath=${prefis}/lib\""
-		LIBTCLPLUS_LDFLAGS="-L${prefix}/lib -ltclPlus ${LIBEXCEPTION_LDFLAGS}"
-	else
-		AC_MSG_ERROR([I seem to be missing libtcl, please use tcl++incorp.sh to fill it with a tagged release of libtclplus])
-	fi
+  AC_CHECK_FILE([${prefix}/lib/libException.so],[libtclinstalled="yes"],[libtclinstalled="no"])
+  AC_CHECK_FILE([${prefix}/lib/libtclPlus.so],[libexceptioninstalled="yes"],[libexceptioninstalled="no"])
+  AC_CHECK_FILE([${prefix}/include/TCLInterpreterObject.h],[tclinterpobjinstalled="yes"],[tclinterpobjinstalled="no"])
+  if [ [ $libtclinstalled = "no" ] || [ $libexceptioninstalled = "no" ] || [ $tclinterpobjinstalled = "no" ] ]
+  then
+    AC_CHECK_FILE([${srcdir}/libtcl], [havelibtcldir="yes"], [havelibtcldir="no"])
+	  if test $havelibtcldir = "yes"
+  	then
+      AC_MSG_RESULT([Need to build local tagged copy])
+      AC_CHECK_FILE([${srcdir}/libtcl/configure], [havelibtcldir="yes"], [havelibtcldir="no"])
+		  (cd ${srcdir}/libtcl; ./configure --prefix=${prefix}; make clean install)
+	  else
+		  AC_MSG_ERROR([I seem to be missing libtcl, please use tcl++incorp.sh to fill it with a tagged release of libtclplus])
+	  fi
+  else
+    AC_MSG_RESULT([Previously built version found in ${prefix}])
+  fi
+  LIBTCLPLUS_CFLAGS="-I${prefix}/include"
+  LIBEXCEPTION_LDFLAGS="-L${prefix}/lib -lException -Wl,\"-rpath=${prefis}/lib\""
+	LIBTCLPLUS_LDFLAGS="-L${prefix}/lib -ltclPlus ${LIBEXCEPTION_LDFLAGS}"
 
 fi
 AC_SUBST(LIBTCLPLUS_CFLAGS)
@@ -406,6 +415,8 @@ AC_CONFIG_FILES([Makefile
 		 usb/ccusb/driverkit/CCUSBDriverIncludes
                  usb/ccusb/controlpanels/Makefile
 		 usb/caenfwloader/Makefile
+		 usb/common/Makefile
+		 usb/common/tcldrivers/Makefile
 		 docbuild/Makefile
 		 docconfig/Makefile])
 
