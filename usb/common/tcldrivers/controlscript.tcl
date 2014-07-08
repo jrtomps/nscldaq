@@ -116,7 +116,7 @@ snit::type controlscript {
     set ::Globals::aReadoutList [${_deviceNamespace}::convert${_deviceType}ReadoutList $aList]
 
     # Create a local variable for use by the script
-    lappend ::Globals::aTclEventList 100
+    set ::Globals::aTclEventList [list]
     if {[string length $options(-monitorscript)]>0} {
       uplevel #0 source $options(-monitorscript)
     }
@@ -132,8 +132,11 @@ snit::type controlscript {
   # Handle the data returned from monitor list
   #
   # \param data a tcl list of data bytes remaining to be processed 
+  # \return number of bytes processed
   method processMonitorList {data}  {
-#    puts "controlscript::processMonitorList not implemented yet"
+
+    # we have not processed any data so return 0
+    return 0
   }
   ##
   # _setControllerType
@@ -160,6 +163,7 @@ snit::type controlscript {
     }
   
     set options($option) $value
+
   }
 
   ##
