@@ -61,7 +61,7 @@ class HostTable(QtGui.QTableWidget):
     #
     def _okToDelete(self, id):
         rings = project.Rings(state.State.project)
-        references = rings._query((id), '', 'WHERE ring_id=?')
+        references = rings._query((id,), '', 'WHERE ring_id=?')
         
         if len(references):
             QtGui.QMessageBox.critical(
