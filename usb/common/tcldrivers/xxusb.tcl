@@ -1,6 +1,12 @@
 #===================================================================
 # class XXUSB
 #===================================================================
+
+package provide XXUSB 1.0
+package require Itcl
+package require Tk 
+
+
 itcl::class XXUSB {
 	protected variable event
 	protected variable scaler
