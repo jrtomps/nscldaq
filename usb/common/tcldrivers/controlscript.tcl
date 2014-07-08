@@ -45,6 +45,8 @@ snit::type controlscript {
   #
   # \return OK always. 
   method Initialize driverPtr { 
+    puts stdout "controlscript::Initialize"
+    flush stdout
     global ::Globals
     variable _deviceNamespace
     variable _deviceType
@@ -66,7 +68,9 @@ snit::type controlscript {
   #
   # \return OK always. 
   method Update driverPtr {
-    global ::Globals
+    puts "controlscript::Update"
+    flush stdout
+    global ::Globals::aController
     variable _deviceNamespace
     variable _deviceType
 
@@ -108,6 +112,7 @@ snit::type controlscript {
   #
   # \param aList list to a USB controller (either CCUSB or VMUSB)
   method addMonitorList {aList}  {
+    puts "controlscript::addMonitorList"
     variable _deviceNamespace
     variable _deviceType
     global ::Globals::aTclEventList
@@ -122,17 +127,27 @@ snit::type controlscript {
     }
 
     # append the new stuff onto the existing readout list
-    set newops [::convertToReadoutList $::Controls::aTclEventList]
+    set newops [${_deviceNamespace}::convertToReadoutList $::Globals::aTclEventList]
     $::Globals::aReadoutList append $newops
   }
 
+  ## 
+  # processMonitorList
+  #
+  # Handle the data returned from monitor list
+  #
+  # \param data a tcl list of data bytes remaining to be processed 
+  method processMonitorList {data}  {
+    puts "controlscript::processMonitorList not implemented yet"
+  }
   ##
   # _setControllerType
   #
-  # This is called anytime the configure method is called for the -controllertype option.
-  # By setting the -controllertype option, this checks whether or not the value is understood
-  # as vmusb or ccusb. If it is one of these, then the _deviceNamespace and _deviceType are
-  # set. These are then used when calling support methods.
+  # This is called anytime the configure method is called for the -controllertype 
+  # option. By setting the -controllertype option, this checks whether or not the 
+  # value is understood as vmusb or ccusb. If it is one of these, then the 
+  # _deviceNamespace and _deviceType are set. These are then used when calling 
+  # support methods.
   #
   # \param option the name of the option parameter (-controllertype)
   # \param value the value to set the option to. Supported values are "vmusb" and "ccusb"
@@ -145,10 +160,11 @@ snit::type controlscript {
     } elseif { $value eq "ccusb" } {
       set _deviceNamespace "::CCUSBDriverSupport"
       set _deviceType "CCUSB"
-    } else {$value eq ""} {
+    } else {
       error {Type of controller not specified! User must set -controllertype to either "vmusb" or "ccusb"}
     }
-
+  
+    set options($option) $value
   }
 
   ##
@@ -161,7 +177,7 @@ snit::type controlscript {
   # \param value the value to set the option to. Supported values are "vmusb" and "ccusb"
   method _setScript {option value} {
     if {[file exists $value]} {
-      set $options($option) $value
+      set options($option) $value
     } else {
       error "File path $value specified for $option, but no file exists there."
     }

@@ -101,7 +101,7 @@ snit::type readoutscript {
     }
 
     # append the new stuff onto the existing readout list
-    set newops [::convertToReadoutList $::Controls::aTclEventList]
+    set newops [::convertToReadoutList $::Globals::aTclEventList]
     $::Globals::aReadoutList append $newops
   }
 
@@ -124,10 +124,10 @@ snit::type readoutscript {
     } elseif { $value eq "ccusb" } {
       set _deviceNamespace "::CCUSBDriverSupport"
       set _deviceType "CCUSB"
-    } else {$value eq ""} {
+    } else {
       error {Type of controller not specified! User must set -controllertype to either "vmusb" or "ccusb"}
     }
-
+    set options($option) $value
   }
 
   ##
@@ -140,7 +140,7 @@ snit::type readoutscript {
   # \param value the value to set the option to. Supported values are "vmusb" and "ccusb"
   method _setScript {option value} {
     if {[file exists $value]} {
-      set $options($option) $value
+      set options($option) $value
     } else {
       error "File path $value specified for $option, but no file exists there."
     }
