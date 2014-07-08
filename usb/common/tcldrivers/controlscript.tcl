@@ -45,8 +45,6 @@ snit::type controlscript {
   #
   # \return OK always. 
   method Initialize driverPtr { 
-    puts stdout "controlscript::Initialize"
-    flush stdout
     global ::Globals
     variable _deviceNamespace
     variable _deviceType
@@ -68,8 +66,6 @@ snit::type controlscript {
   #
   # \return OK always. 
   method Update driverPtr {
-    puts "controlscript::Update"
-    flush stdout
     global ::Globals::aController
     variable _deviceNamespace
     variable _deviceType
@@ -112,7 +108,6 @@ snit::type controlscript {
   #
   # \param aList list to a USB controller (either CCUSB or VMUSB)
   method addMonitorList {aList}  {
-    puts "controlscript::addMonitorList"
     variable _deviceNamespace
     variable _deviceType
     global ::Globals::aTclEventList
@@ -138,7 +133,7 @@ snit::type controlscript {
   #
   # \param data a tcl list of data bytes remaining to be processed 
   method processMonitorList {data}  {
-    puts "controlscript::processMonitorList not implemented yet"
+#    puts "controlscript::processMonitorList not implemented yet"
   }
   ##
   # _setControllerType

@@ -15,7 +15,7 @@ package require Globals
 #
 snit::type readoutscript {
 
-  option -controllerrtype -default {} -configuremethod _setControllerType
+  option -controllertype -default {} -configuremethod _setControllerType
   option -initscript      -default {} -configuremethod _setScript
   option -rdolistscript   -default {} -configuremethod _setScript
   option -onendscript     -default {} -configuremethod _setScript
@@ -86,7 +86,7 @@ snit::type readoutscript {
   # list passed as an argument.
   #
   # \param aList list to a USB controller (either CCUSB or VMUSB)
-  method addMonitorList {aList}  {
+  method addReadoutList {aList}  {
     variable _deviceNamespace
     variable _deviceType
     global ::Globals::aTclEventList
@@ -95,13 +95,13 @@ snit::type readoutscript {
     set ::Globals::aReadoutList [${_deviceNamespace}::convert${_deviceType}ReadoutList $aList]
 
     # Create a local variable for use by the script
-    lappend ::Globals::aTclEventList 100
-    if {[string length $options(-monitorscript)]>0} {
-      uplevel #0 source $options(-monitorscript)
+    set ::Globals::aTclEventList [list]
+    if {[string length $options(-rdolistscript)]>0} {
+      uplevel #0 source $options(-rdolistscript)
     }
 
     # append the new stuff onto the existing readout list
-    set newops [::convertToReadoutList $::Globals::aTclEventList]
+    set newops [${_deviceNamespace}::convertToReadoutList $::Globals::aTclEventList]
     $::Globals::aReadoutList append $newops
   }
 
