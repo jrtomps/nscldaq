@@ -14258,32 +14258,32 @@ package require cvmusb
         </cmdsynopsis>
         <cmdsynopsis>
             <command>
-::cvmusb::CVMUSB_getuint16 <replaceable>uint16</replaceable>
+::cvmusb::getuint16 <replaceable>uint16</replaceable>
             </command>
         </cmdsynopsis>
         <cmdsynopsis>
             <command>
-::cvmusb::CVMUSB_string_to_char <replaceable>std_string</replaceable>
+::cvmusb::string_to_char <replaceable>std_string</replaceable>
             </command>
         </cmdsynopsis>
         <cmdsynopsis>
             <command>
-::cvmusb::CVMUSB_uint32_vector_get <replaceable>std_uint32_vector i</replaceable>
+::cvmusb::uint32_vector_get <replaceable>std_uint32_vector i</replaceable>
             </command>
         </cmdsynopsis>
         <cmdsynopsis>
             <command>
-::cvmusb::CVMUSB_uint32_vector_size <replaceable>std_uint32_vector</replaceable>
+::cvmusb::uint32_vector_size <replaceable>std_uint32_vector</replaceable>
             </command>
         </cmdsynopsis>
         <cmdsynopsis>
             <command>
-::cvmusb::CVMUSB_uint8_vector_get <replaceable>std_uint8_vector i</replaceable>
+::cvmusb::uint8_vector_get <replaceable>std_uint8_vector i</replaceable>
             </command>
         </cmdsynopsis>
         <cmdsynopsis>
             <command>
-::cvmusb::CVMUSB_uint8_vector_size <replaceable>std_uint8_vector</replaceable>
+::cvmusb::uint8_vector_size <replaceable>std_uint8_vector</replaceable>
             </command>
         </cmdsynopsis>
         
@@ -15259,7 +15259,7 @@ $controller <replaceable>some method</replaceable>
                     <term>
         <cmdsynopsis>
             <command>
-::cvmusb::CVMUSB_getuint16 <replaceable>uint16</replaceable>
+::cvmusb::getuint16 <replaceable>uint16</replaceable>
             </command>
         </cmdsynopsis>
         </term>
@@ -15277,7 +15277,7 @@ $controller <replaceable>some method</replaceable>
                     <term>
         <cmdsynopsis>
             <command>
-::cvmusb::CVMUSB_string_to_char <replaceable>std_string</replaceable>
+::cvmusb::string_to_char <replaceable>std_string</replaceable>
             </command>
         </cmdsynopsis>
         </term>
@@ -15292,7 +15292,7 @@ $controller <replaceable>some method</replaceable>
                     <term>
         <cmdsynopsis>
             <command>
-::cvmusb::CVMUSB_uint32_vector_get <replaceable>std_uint32_vector i</replaceable>
+::cvmusb::uint32_vector_get <replaceable>std_uint32_vector i</replaceable>
             </command>
         </cmdsynopsis>
         </term>
@@ -15308,7 +15308,7 @@ $controller <replaceable>some method</replaceable>
                     <term>
         <cmdsynopsis>
             <command>
-::cvmusb::CVMUSB_uint32_vector_size <replaceable>std_uint32_vector</replaceable>
+::cvmusb::uint32_vector_size <replaceable>std_uint32_vector</replaceable>
             </command>
         </cmdsynopsis>
         </term>
@@ -15325,14 +15325,14 @@ $controller <replaceable>some method</replaceable>
                     <term>
         <cmdsynopsis>
             <command>
-::cvmusb::CVMUSB_uint8_vector_get <replaceable>std_uint8_vector i</replaceable>
+::cvmusb::uint8_vector_get <replaceable>std_uint8_vector i</replaceable>
             </command>
         </cmdsynopsis>
         </term>
         <listitem>
             <para>
                 Same as
-                <methodname>::cvmusb::CVMUSB_uint32_vector_get</methodname> but
+                <methodname>::cvmusb::uint32_vector_get</methodname> but
                 <parameter>std_uint8_vector</parameter> is a
                 <type>std::vector&lt;uint8_t&gt;</type>.
                 </para>
@@ -15342,13 +15342,13 @@ $controller <replaceable>some method</replaceable>
                     <term>
         <cmdsynopsis>
             <command>
-::cvmusb::CVMUSB_uint8_vector_size <replaceable>std_uint8_vector</replaceable>
+::cvmusb::uint8_vector_size <replaceable>std_uint8_vector</replaceable>
             </command>
         </cmdsynopsis>
         </term>
         <listitem>
             <para>
-                Same as <methodname>::cvmusb::CVMUSB_uint32_vector_size</methodname>
+                Same as <methodname>::cvmusb::uint32_vector_size</methodname>
                 but <parameter>std_uint8_vector</parameter>
                 is a <type>std::vector&lt;uint8_t&gt;</type>
                 </para>
