@@ -10,7 +10,8 @@ TCLPACKAGES=DriverSupport.tcl \
             readoutscript.tcl \
             controlscript.tcl \
             Globals.tcl \
-            xxusb.tcl
+            xxusb.tcl \
+            tclTests.tcl
 
 
 TCLTESTS = driversupport.test
