@@ -14,7 +14,7 @@ TCLPACKAGES=DriverSupport.tcl \
             tclTests.tcl
 
 
-TCLTESTS = driversupport.test controlscript.test
+TCLTESTS = driversupport.test controlscript.test readoutscript.test
 
 
 check-TESTS:
