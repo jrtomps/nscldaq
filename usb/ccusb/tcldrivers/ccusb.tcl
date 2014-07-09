@@ -1,13 +1,18 @@
 #===================================================================
 # class CCUSB
 #===================================================================
+
+package provide ccusb 1.0
+package require Itcl
+package require xxusb
+
 itcl::class CCUSB {
 	inherit XXUSB
 	
 	private variable firmware
 	
-	constructor {} {
-		XXUSB::constructor
+	constructor {device} {
+		XXUSB::constructor $device
 	} {}
 
 	public method GetFirmware {}
@@ -37,31 +42,9 @@ itcl::class CCUSB {
 }
 
 itcl::body CCUSB::GetFirmware {} {
-	set error [catch {set f [ReadRegister 0]} message]
-	if {$error == 1} {set f [ReadRegister 0]}
-	set firmware [format 0x%8x $f]
-#	set firmware "Firmware: Year= [expr ($f&0x1f000000)>>24] Month= [expr ($f&0xe0000000)>>29] \
-	Version= [expr ($f&0xf00)>>8].[expr $f&0xf]"
+  set firmware [$self readFirmware]
+  
 	return $firmware
-}
-
-itcl::body CCUSB::ReadRegister {reg} {
-	set r [::CCUSBReadRegister $self $reg]
-	return $r
-}
-
-itcl::body CCUSB::WriteRegister {reg data} {
-	::CCUSBWriteRegister $self $reg $data
-	set check [ReadRegister $reg]
-	if {![expr $check == $data]} {
-		tk_messageBox -icon error -message "Error while writing register $reg to $self\n\
-		Data: $data, ReadBack: $check"
-		return
-	}
-}
-
-itcl::body CCUSB::SetRegister {reg data} {
-	::CCUSBWriteRegister $self $reg $data
 }
 
 itcl::body CCUSB::SetBufferLength {length} {
@@ -71,31 +54,36 @@ itcl::body CCUSB::SetBufferLength {length} {
 	set code [expr 12-$bits]
 	set mode [ReadRegister 1]
 	set mode [expr ($mode&0xfff8)+$code]
-	WriteRegister 1 $mode
+#	WriteRegister 1 $mode
+  $self	writeGlobalMode $mode
 }
 
 itcl::body CCUSB::SetMixedBuffer {value} {
-	set mode [ReadRegister 1]
+	set mode [$self readGlobalMode]
 	set mode [expr ($mode&0xffdf)+($value<<5)]
-	WriteRegister 1 $mode
+#	WriteRegister 1 $mode
+	$self writeGlobalMode $mode
 }
 
 itcl::body CCUSB::SetForceDump {value} {
-	set mode [ReadRegister 1]
+	set mode [$self readGlobalMode]
 	set mode [expr ($mode&0xffbf)+($value<<6)]
-	WriteRegister 1 $mode
+#	WriteRegister 1 $mode
+	$self writeGlobalMode $mode
 }
 
 itcl::body CCUSB::SetLatchEvent {value} {
-	set mode [ReadRegister 1]
+	set mode [$self readGlobalMode]
 	set mode [expr ($mode&0xffef)+($value<<4)]
-	WriteRegister 1 $mode
+#	WriteRegister 1 $mode
+	$self writeGlobalMode $mode
 }
 
 itcl::body CCUSB::SetHeader {value} {
-	set mode [ReadRegister 1]
+	set mode [$self readGlobalMode]
 	set mode [expr ($mode&0xfeff)+($value<<8)]
-	WriteRegister 1 $mode
+#	WriteRegister 1 $mode
+  $self writeGlobalMode $mode
 }
 
 #itcl::body CCUSB::SetRepeatDelay {value} {
@@ -106,27 +94,30 @@ itcl::body CCUSB::SetHeader {value} {
 #}
 
 itcl::body CCUSB::SetTriggerDelay {value} {
-	set delays [ReadRegister 2]
+	set delays [$self readDelays]
 	set delays [expr ($delays&0xff00)+$value]
-	WriteRegister 2 $delays
+#	WriteRegister 2 $delays
+  $self writeDelays $delays
 }
 
 itcl::body CCUSB::SetLAMTimeout {value} {
-	set delays [ReadRegister 2]
+	set delays [$self readDelays]
 	set delays [expr ($delays&0xff)+($value<<8)]
-	WriteRegister 2 $delays
+#	WriteRegister 2 $delays
+  $self writeDelays $delays
 }
 
 itcl::body CCUSB::SetScalerPeriod {value} {
-	set scaler [ReadRegister 3]
+	set scaler [$self readScalerControl]
 	set scaler [expr ($scaler&0xff0000)+$value]
-	WriteRegister 3 $scaler
+#	WriteRegister 3 $scaler
+	$self writeScalerControl $scaler
 }
 
 itcl::body CCUSB::SetScalerFrequency {value} {
-	set scaler [ReadRegister 3]
+	set scaler [$self readScalerControl]
 	set scaler [expr ($scaler&0xffff)+($value<<16)]
-	WriteRegister 3 $scaler
+	$self writeScalerControl $scaler
 }
 
 itcl::body CCUSB::SetLED {LED code invert latch} {
@@ -149,42 +140,46 @@ itcl::body CCUSB::SetGateDelay {register input output gate delay invert latch} {
 }
 
 itcl::body CCUSB::SetLAMMask {mask} {
-	WriteRegister 9 $mask
+#	WriteRegister 9 $mask
+	$self writeLAMMask $mask
 }
 
 itcl::body CCUSB::ReadScaler {scaler} {
-	if {[string equal $scaler A]} {set r 11}
-	if {[string equal $scaler B]} {set r 12}
-	if {![info exist r]} {
+  set data 0
+	if {[string equal $scaler A]} {
+    set data [$self readScalerA]    
+  } elseif {[string equal $scaler B]} {
+    set data [$self readScalerA]    
+	} else {
 		tk_messageBox -icon error -message "Error while reading scaler of $self\n\
 		unknown scaler: $scaler ; must be either A or B"
 		return
 	}
-	set data [ReadRegister $r]
 	return $data
 }
 
-itcl::body CCUSB::WriteScaler {scaler data} {
-	if {[string equal $scaler A]} {set r 11}
-	if {[string equal $scaler B]} {set r 12}
-	if {![info exist r]} {
-		tk_messageBox -icon error -message "Error while reading scaler of $self\n\
-		unknown scaler: $scaler ; must be either A or B"
-		return
-	}
-	WriteRegister $r $data
-}
+#itcl::body CCUSB::WriteScaler {scaler data} {
+#	if {[string equal $scaler A]} {set r 11}
+#	if {[string equal $scaler B]} {set r 12}
+#	if {![info exist r]} {
+#		tk_messageBox -icon error -message "Error while reading scaler of $self\n\
+#		unknown scaler: $scaler ; must be either A or B"
+#		return
+#	}
+#	WriteRegister $r $data
+#}
 
 itcl::body CCUSB::SetBulkBuffers {buffers} {
-	set bulk [ReadRegister 14]
+	set bulk [$self readUSBBulkTransferSetup]
 	set bulk [expr ($bulk&0xf00)+$buffers]
-	WriteRegister 14 $bulk
+#	WriteRegister 14 $bulk
+	$self writeUSBBulkTransferSetup $bulk
 }
 
 itcl::body CCUSB::SetBulkTimeOut {timeout} {
-	set bulk [ReadRegister 14]
+	set bulk [$self readUSBBulkTransferSetup]
 	set bulk [expr ($bulk&0xff)+($timeout<<8)]
-	WriteRegister 14 $bulk
+	$self writeUSBBulkTransferSetup $bulk
 }
 
 itcl::body CCUSB::sReadScaler {stack scaler} {
