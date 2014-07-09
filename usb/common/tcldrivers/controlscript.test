@@ -16,7 +16,10 @@ while {[file exists $missingfname]} {
 
 ## Define a proc that we know exists 
 set testproc ::aDummyProcForTests
-proc $testproc {} {}
+proc $testproc args { 
+  set procname [dict get [info frame [info frame]] proc]
+  return "$procname executed"
+}
 
 ## find a proc that doesn't exist
 set missingproc "a"
@@ -254,6 +257,14 @@ tcltest::test processmonitorlist-0 {Test failure if -controllertype has not been
   myscript processMonitorList actlr
 } -result "Type of controller not specified! User must set -controllertype to either \"vmusb\" or \"ccusb\"" -returnCodes 1
 
-
+tcltest::test processmonitorlist-0 {Test failure if -controllertype has not been specified
+} -setup {
+  controlscript myscript -controllertype vmusb -monitorproc $testproc
+} -cleanup {
+  myscript destroy
+} -body {
+  set data [list 0 1 2 3 4]
+  myscript processMonitorList $data
+} -result "$testproc executed"
 
 tcltest::cleanupTests
