@@ -1,6 +1,8 @@
 
 package require tcltest
 package require controlscript
+package require Globals 
+package require snit 
 
 set testfname "____test____"
 set testcontent $testfname
@@ -21,8 +23,6 @@ set missingproc "a"
 while {[llength [info proc $missingproc]]!=0} {
   append missingproc "a"
 }
-
-
 
 
 # we don't enforce -controllertype at construction, only at use
@@ -209,5 +209,51 @@ tcltest::test get-0 {Test that Get fails
 } -body {
   myscript Get ctlr param val
 } -returnCodes 1 -result "Get is not supported"
+
+################### test for Initialize
+
+tcltest::test initialize-0 {Test failure if -controllertype has not been specified
+} -setup {
+  controlscript myscript
+} -cleanup {
+  myscript destroy
+} -body {
+  myscript Initialize actlr
+} -result "Type of controller not specified! User must set -controllertype to either \"vmusb\" or \"ccusb\"" -returnCodes 1
+
+################### test for Update 
+
+tcltest::test update-0 {Test failure if -controllertype has not been specified
+} -setup {
+  controlscript myscript
+} -cleanup {
+  myscript destroy
+} -body {
+  myscript Update actlr
+} -result "Type of controller not specified! User must set -controllertype to either \"vmusb\" or \"ccusb\"" -returnCodes 1
+
+################### test for addMonitorList 
+
+tcltest::test addmonitorlist-0 {Test failure if -controllertype has not been specified
+} -setup {
+  controlscript myscript
+} -cleanup {
+  myscript destroy
+} -body {
+  myscript addMonitorList actlr
+} -result "Type of controller not specified! User must set -controllertype to either \"vmusb\" or \"ccusb\"" -returnCodes 1
+
+################### test for addMonitorList 
+
+tcltest::test processmonitorlist-0 {Test failure if -controllertype has not been specified
+} -setup {
+  controlscript myscript
+} -cleanup {
+  myscript destroy
+} -body {
+  myscript processMonitorList actlr
+} -result "Type of controller not specified! User must set -controllertype to either \"vmusb\" or \"ccusb\"" -returnCodes 1
+
+
 
 tcltest::cleanupTests

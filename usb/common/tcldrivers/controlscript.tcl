@@ -19,6 +19,7 @@ snit::type controlscript {
   option -initscript     -default {} -configuremethod _setScript
   option -updatescript   -default {} -configuremethod _setScript
   option -monitorscript  -default {} -configuremethod _setScript
+  option -monitorproc    -default {} -configuremethod _setProc
 
   
   ##
@@ -48,6 +49,8 @@ snit::type controlscript {
     global ::Globals
     variable _deviceNamespace
     variable _deviceType
+  
+    $self _validateControllerType $options(-controllertype)
 
     set ::Globals::aController [${_deviceNamespace}::convert${_deviceType} $driverPtr]
     if {[string length $options(-initscript)]>0} {
@@ -70,6 +73,8 @@ snit::type controlscript {
     variable _deviceNamespace
     variable _deviceType
 
+    $self _validateControllerType $options(-controllertype)
+
     set ::Globals::aController [${_deviceNamespace}::convert${_deviceType} $driverPtr]
     if {[string length $options(-updatescript)]>0} {
       uplevel #0 source $options(-updatescript)
@@ -83,7 +88,7 @@ snit::type controlscript {
   # This method is not used in this driver
   # 
   # \return error always
-  method Set {vmusb parameter value}  {
+  method Set {ctlr parameter value}  {
     error "Set is not supported" 
   }
 
@@ -94,7 +99,7 @@ snit::type controlscript {
   # This method is not used in this driver
   # 
   # \return error always
-  method Get {vmusb parameter value}  {
+  method Get {ctlr parameter value}  {
     error "Get is not supported" 
   }
 
@@ -112,6 +117,8 @@ snit::type controlscript {
     variable _deviceType
     global ::Globals::aTclEventList
     global ::Globals::aReadoutList
+
+    $self _validateControllerType $options(-controllertype)
 
     set ::Globals::aReadoutList [${_deviceNamespace}::convert${_deviceType}ReadoutList $aList]
 
@@ -135,8 +142,14 @@ snit::type controlscript {
   # \return number of bytes processed
   method processMonitorList {data}  {
 
-    # we have not processed any data so return 0
-    return 0
+    $self _validateControllerType $options(-controllertype)
+
+    set nbytes 0
+    if {[string length $options(-monitorproc)]>0} {
+      set nbytes [uplevel #0 $options(-monitorproc) $data]
+    }
+    
+    return $nbytes 
   }
   ##
   # _setControllerType
@@ -152,15 +165,18 @@ snit::type controlscript {
   method _setControllerType {option value} {
     variable _deviceNamespace
     variable _deviceType
+
+    $self _validateControllerType $value
+
+    # if we are here, there are only two values possible for value 
+    # deal with them
     if { $value eq "vmusb" } {
       set _deviceNamespace "::VMUSBDriverSupport"
       set _deviceType "VmUSB"
     } elseif { $value eq "ccusb" } {
       set _deviceNamespace "::CCUSBDriverSupport"
       set _deviceType "CCUSB"
-    } else {
-      error {Type of controller not specified! User must set -controllertype to either "vmusb" or "ccusb"}
-    }
+    } 
   
     set options($option) $value
 
@@ -182,4 +198,41 @@ snit::type controlscript {
     }
   }
 
+  ##
+  # _setProc
+  #
+  # This is called anytime the configure method is called for the -monitorproc option. It
+  # it checks whether or not a proc exists at the path provided. 
+  #
+  # \param option the name of the option parameter (-controllertype)
+  # \param value the value to set the option to. Supported values are "vmusb" and "ccusb"
+  method _setProc {option value} {
+    set procs [info proc $value]
+    if {[llength $procs]!=0} {
+      set options($option) $value
+    } else {
+      error "Proc ($value) specified for $option doesn't exist"
+    }
+  }
+
+  ##
+  # _validateControllerType
+  #
+  # This checks whether or not the the value passed to it is either "vmusb" or "ccusb". An exceptional 
+  # return occurs if the value is neither.
+  #
+  # \param value a string 
+  #
+  # \return "" if value is vmusb or ccusb. Otherwise an error msg is returned.
+  method _validateControllerType {value} {
+    if { $value ne "vmusb" && $value ne "ccusb"} {
+      error {Type of controller not specified! User must set -controllertype to either "vmusb" or "ccusb"}
+    }
+
+  }
+
+
 } 
+
+
+
