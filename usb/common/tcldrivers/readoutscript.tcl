@@ -49,6 +49,8 @@ snit::type readoutscript {
     variable _deviceNamespace
     variable _deviceType
 
+    $self _validateControllerType $options(-controllertype)
+
     set ::Globals::aController [${_deviceNamespace}::convert${_deviceType} $driverPtr]
     if {[string length $options(-initscript)]>0} {
       uplevel #0 source $options(-initscript)
@@ -69,6 +71,8 @@ snit::type readoutscript {
     global ::Globals
     variable _deviceNamespace
     variable _deviceType
+
+    $self _validateControllerType $options(-controllertype)
 
     set ::Globals::aController [${_deviceNamespace}::convert${_deviceType} $driverPtr]
     if {[string length $options(-onendscript)]>0} {
@@ -91,6 +95,8 @@ snit::type readoutscript {
     variable _deviceType
     global ::Globals::aTclEventList
     global ::Globals::aReadoutList
+
+    $self _validateControllerType $options(-controllertype)
 
     set ::Globals::aReadoutList [${_deviceNamespace}::convert${_deviceType}ReadoutList $aList]
 
@@ -118,15 +124,17 @@ snit::type readoutscript {
   method _setControllerType {option value} {
     variable _deviceNamespace
     variable _deviceType
+  
+    $self _validateControllerType $value 
+
     if { $value eq "vmusb" } {
       set _deviceNamespace "::VMUSBDriverSupport"
       set _deviceType "VmUSB"
     } elseif { $value eq "ccusb" } {
       set _deviceNamespace "::CCUSBDriverSupport"
       set _deviceType "CCUSB"
-    } else {
-      error {Type of controller not specified! User must set -controllertype to either "vmusb" or "ccusb"}
     }
+
     set options($option) $value
   }
 
@@ -144,6 +152,22 @@ snit::type readoutscript {
     } else {
       error "File path $value specified for $option, but no file exists there."
     }
+  }
+
+  ##
+  # _validateControllerType
+  #
+  # This checks whether or not the the value passed to it is either "vmusb" or "ccusb". An exceptional 
+  # return occurs if the value is neither.
+  #
+  # \param value a string 
+  #
+  # \return "" if value is vmusb or ccusb. Otherwise an error msg is returned.
+  method _validateControllerType {value} {
+    if { $value ne "vmusb" && $value ne "ccusb"} {
+      error {Type of controller not specified! User must set -controllertype to either "vmusb" or "ccusb"}
+    }
+
   }
 
 
