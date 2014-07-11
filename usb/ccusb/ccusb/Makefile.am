@@ -36,6 +36,14 @@ install-data-local:
 	echo "package ifneeded cccusbreadoutlist 1.0 [list load [file join \$$dir libCCCUSBReadoutList.so]]" >> @libdir@/pkgIndex.tcl
 
 
+TEST_MODULES = @srcdir@/TestRunner.cpp \
+             @srcdir@/regTests.cpp
+
+
+tests: $(TEST_MODULES)
+	$(CXX) -g -o tests -I@srcdir@ -I@prefix@/include $(CPPUNIT_INCLUDES) \
+	$(TEST_MODULES) $(CPPUNIT_LDFLAGS) -L@prefix@/lib -lCCUSB \
+	-Wl,"-rpath=@prefix@/lib" @TCL_LDFLAGS@ @LIBTCLPLUS_LDFLAGS@
 
 clean-local:
 	$(RM) -f $(BUILT_SOURCES)

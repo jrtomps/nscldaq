@@ -91,15 +91,36 @@ without helper functions.
 */
 class CCCUSB 
 {
+  public:
+    /**! Register shadow
+    * Contains the most recent values of the CCUSB
+    */ 
+    struct ShadowRegisters {
+      uint32_t firmwareID;
+      uint16_t globalMode;
+      uint16_t delays; 
+      uint32_t scalerReadoutControl;
+      uint32_t ledSources;
+      uint32_t nimOutputSources; 
+      uint32_t userDeviceSources; 
+      uint32_t dggA; 
+      uint32_t dggB; 
+      uint32_t lamMask;
+      uint32_t dggExtended; 
+      uint32_t bulkTransferSetup;
+      uint32_t broadcastMap;
 
+      // Provide default constructor to ensure that 
+      // the vector is initialized to a length of 8
+      ShadowRegisters() {}
+    };
     // Class member data.
 private:
     struct usb_dev_handle*  m_handle;	// Handle open on the device.
     struct usb_device*      m_device;   // Device we are open on.
     int                     m_timeout; // Timeout used when user doesn't give one.
     std::string             m_serial;  // Connected device serial number.
-
-    // Static functions.
+    
 public:
     static std::vector<struct usb_device*> enumerate();
     static std::string serialNo(struct usb_device* dev);
@@ -126,6 +147,7 @@ public:
 
     CCCUSBReadoutList* createReadoutList() const { return new CCCUSBReadoutList; }
 
+    /**! Acquire the shadow registers  */
 
     // Register I/O operations.
 public:
@@ -656,7 +678,7 @@ inline size_t usb_device_vector_size(std::vector<struct usb_device*> devices) {
   return devices.size();
 }
 
-inline usb_device* usb_device_vector_get(std::vector<struct usb_device*> devices, int index) {
+inline struct usb_device* usb_device_vector_get(std::vector<struct usb_device*> devices, int index) {
   return devices[index];
 }
 inline const char* string_to_char(std::string s) {
