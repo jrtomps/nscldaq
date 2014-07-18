@@ -1,5 +1,5 @@
 #    This software is Copyright by the Board of Trustees of Michigan
-#    State University (c) Copyright 2013.
+#    State University (c) Copyright 2014.
 #
 #    You may use this software under the terms of the GNU public license
 #    (GPL).  The terms of this license are described at:
@@ -13,12 +13,10 @@
 #	     East Lansing, MI 48824-1321
 
 ##
-# @file sshProvider.tcl
-# @brief Provide a data source on the end of an ssh pipeline.
-# @author Ron Fox
-# @note There can be only one instance at this time.  Since we may  need to modify
-#       that later we're going to encapsulate state access in helper procs that
-#       are parameterized with the source id.
+# @file delayProvider.tcl
+# @brief A mechanism for inserting a delay between begins received by 
+#        data providers. 
+# @author Jeromy Tompkins 
 #
 
 package provide Delay_Provider 1.0
@@ -86,8 +84,6 @@ proc ::Delay::begin {id run title} {
   variable delayTime
   after $delayTime
 }
-##
-# @note S800 does not support pause and resume operations.
 
 ##
 # end
