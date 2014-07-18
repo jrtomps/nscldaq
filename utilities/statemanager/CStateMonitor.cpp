@@ -386,7 +386,7 @@ CStateMonitorBase::run()
  * getters:
  */
 
-CZMQEventLoop
+CZMQEventLoop&
 CStateMonitorBase::getEventLoop() {return m_eventLoop;}
 
 zmq::context_t*

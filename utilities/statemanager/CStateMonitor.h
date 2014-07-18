@@ -137,14 +137,16 @@ public:
 public:
     std::string requestTransition(std::string transitionName);
     void run();
-    CZMQEventLoop   getEventLoop();   // Allows outsiders to add event loop callbacks.
+    CZMQEventLoop&   getEventLoop();   // Allows outsiders to add event loop callbacks.
     zmq::context_t* getContext();     // Allows outsiders to make more sockets.
     std::string     getState();       // Get current state (hide rep from derived classes).
+
     
     // Protected overrides
 protected:
     virtual void initialState(std::string state);
     virtual void transition(std::string transition);
+
     
     // Private utilities
 private:

@@ -117,6 +117,10 @@ protected:
  *
  * Unregisters the scrip associated with a state entry.
  *
+ * statemonitor transition new-state
+ *
+ * Request the state manager to transition to new-state.
+ *
  *
  */
 class CTCLStateMonitorCommand : public CTCLObjectProcessor
@@ -152,6 +156,7 @@ protected:
     virtual void start(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
     virtual void Register(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
     virtual void unregister(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    virtual void requestTransition(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
 
     /* Private methods involved in hoisting the thread callback to a
        script invocation

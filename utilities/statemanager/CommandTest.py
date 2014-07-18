@@ -22,19 +22,26 @@
 #         at it, getting replies back.
 # @author <fox@nscl.msu.edu>
 
+from nscldaq.statemanager import StateMonitor
 from nscldaq.statemanager import Utilities
-import zmq
 import sys
+import getpass
 
-context = zmq.Context()
-sock    = Utilities.connectRequestPort(context)
+username        = getpass.getuser()
+requestPort     = Utilities.getPort('localhost', 'StateRequest', username)
+transitionPort  = Utilities.getPort('localhost', 'StatePublish', username)
+
+requestUri    = 'tcp://localhost:%d' % (requestPort)
+transitionUri = 'tcp://localhost:%d' %(transitionPort)
+
+mon = StateMonitor.StateMonitor(requestUri, transitionUri)
 
 while 1:
     line = sys.stdin.readline()
     if not line:
         break
-    sock.send(line[0:-1])
-    reply = sock.recv()
+    
+    reply = mon.requestTransition(line[0:-1])
     print("Reply: %s" % (reply))
 
 

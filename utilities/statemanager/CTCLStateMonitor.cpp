@@ -174,6 +174,8 @@ CTCLStateMonitorCommand::operator()(CTCLInterpreter& interp, std::vector<CTCLObj
             Register(interp, objv);
         } else if (subCommand == "unregister") {
             unregister(interp, objv);
+	} else if (subCommand == "transition") {
+	    requestTransition(interp, objv);
         } else {
             throw std::string("Invalid subcommand");
         }
@@ -281,6 +283,27 @@ CTCLStateMonitorCommand::unregister(
         m_allocationMap.erase(p);                   // Kill off the map entry.
     }
 }
+/**
+ * requestTransition
+ *
+ *   Mechanism for a Tcl program to request a state transition from the 
+ *   state manager.
+ *
+ *     
+ *  @param interp - the interpreter running the command.
+ *  @param objv   - The encapsulated objects that make up the command words.
+ */
+void
+CTCLStateMonitorCommand::requestTransition(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
+{
+  requireExactly(objv, 3, "Incorrect number of command line parameters");
+  std::string newState = objv[2];
+  std::string reply = m_pStateMonitor->requestTransition(newState);
+  interp.setResult(reply);
+}
+					   
 
 /**
  *  Utility methods

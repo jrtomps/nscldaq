@@ -128,6 +128,7 @@ class StateMonitorBase(object):
     def requestTransition(self, transition):
         self._requestSocket.send(transition)
         reply = self._requestSocket.recv()
+        return reply
     
     ##
     # initialState

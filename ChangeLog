@@ -626,4 +626,4 @@ Open Rc10 work
 	* Issue #1961, Issue #1965 - Boot manager, knows how to create
 	ringbuffers and programs and to force the state manager back to
 	the NotReady state if the programs fail to start or exit.
-	
+	* Document the experiment editor program.

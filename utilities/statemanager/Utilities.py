@@ -63,6 +63,13 @@ def _getPort(host, service, user):
     return port
 
 ##
+# getPort
+#   make _getPort public.
+# 
+def getPort(host, service, user):
+    return _getPort(host, service, user)
+
+##
 # createPublishPort
 #   Create the zmq state publisher port.
 #
@@ -327,7 +334,7 @@ class ZmqFileEventLoop:
     #
     def pollForever(self, timeout, idler=None):
         while True:
-            self.poll(timeout*1000*1000)    # Timeout is microseconds.
+            self.poll(timeout*1000)    # Timeout is microseconds.
             if idler != None:
                 if not idler(self):
                     return
