@@ -1,0 +1,65 @@
+
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2013.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Author:
+#      NSCL Data Acquisition Group 
+#	     NSCL
+#	     Michigan State University
+#	     East Lansing, MI 48824-1321
+
+##
+# @file delay.test 
+# @brief Tests for the delayProvider 
+# @author JeromyTompkins
+#
+
+package require tcltest
+package require Delay_Provider
+
+
+
+tcltest::test parameters-0 {Test that parameter method returns proper dict
+} -body {
+  ::Delay::parameters
+} -result {delay {{milliseconds to delay}}} -returnCodes 0
+
+tcltest::test start-0 {Test that start sets the delayTime variable to the 
+                       expected value
+} -body {
+  set params [dict create delay 1000]
+  ::Delay::start $params 
+  set ::Delay::delayTime
+} -result 1000 -returnCodes 0
+
+
+tcltest::test check-0 {Test that this always returns 1
+} -body {
+  ::Delay::check 0
+} -result 1 -returnCodes 0
+
+
+tcltest::test begin-0 {Test that the delay lasts at least as long as we expect
+} -body {
+  set ::Delay::delayTime 3000
+  
+  set start [clock milliseconds]
+  ::Delay::begin asdf asdf asdf
+  set stop [clock milliseconds]
+
+  set elapsed [expr $stop-$start]
+  expr {$elapsed>3000} 
+} -result 1 -returnCodes 0
+
+
+tcltest::test end-0 {Just call it for kicks to make sure it isn't broken
+} -body {
+  ::Delay::end 0
+} -returnCodes 0
+
+
