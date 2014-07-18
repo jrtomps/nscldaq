@@ -367,11 +367,14 @@
                                     Prompting for a data source is a two step operation.
                                     First you will be prompted for the Data source Provider
                                     (data source type) you want to use.  The built
-                                    in provider are <literal>SSHPipe</literal> (suitable
+                                    in providers are <literal>SSHPipe</literal> (suitable
                                     for Readout programs that operate on the
-                                    end of an ssh pipeline), and
-                                    <literal>S800</literal> which nkows how to
-                                    control the S800 data acquisition system.
+                                    end of an ssh pipeline),
+                                    <literal>S800</literal> which knows how to
+                                    control the S800 data acquisition system, <literal>Delay</literal>
+                                    (used for inserting delay between providers), and 
+                                    <literal>RemoteGUI</literal> (for remote controlling a 
+                                    ReadoutGUI).
                                 </para>
                                 <para>
                                     Data sources are parameterized instances
@@ -7456,6 +7459,51 @@ $DAQROOT/bin/s800toring <replaceable>host port ring</replaceable>
         </refsect1>
       </refentry>
                 
+      <refentry id="provider3_delay">
+        <refmeta>
+           <refentrytitle id='provider3_delay_title'>Delay</refentrytitle>
+           <manvolnum>3provider</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>delay</refname>
+           <refpurpose>Inserts a delay between data provider begins</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+package require Delay_Provider
+          </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            This data source provider does nothing more than wait for a specified
+            amount of time when it is told to begin. It is intended to serve as
+            an adjustable delay between the time the begin commands are sent to the
+            neighboring data providers.
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              PARAMETERIZATION
+           </title>
+           <variablelist>
+                <varlistentry>
+                    <term><literal>delay</literal></term>
+                    <listitem>
+                        <para>
+                            The number of milliseconds to wait at begin.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                
+                
+           </variablelist>
+        </refsect1>
+      </refentry>
 
 <!-- /manpage -->
 <!-- manpage 1daq -->
