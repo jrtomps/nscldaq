@@ -627,3 +627,6 @@ Open Rc10 work
 	ringbuffers and programs and to force the state manager back to
 	the NotReady state if the programs fail to start or exit.
 	* Document the experiment editor program.
+	* Bug #2131 - ReadoutGui.tcl - don't let the ProvderListDialog
+	constructor invoke modal as that is the cause of the bug above..
+	

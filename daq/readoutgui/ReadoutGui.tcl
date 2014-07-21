@@ -200,7 +200,7 @@ snit::widgetadaptor ProviderListDialog {
         
         $self configurelist $args
         
-        $self modal
+
     }
 
 }
@@ -575,6 +575,7 @@ snit::type ReadoutGuiApp {
     method _listDataProviders {} {
         set sources [$dataSources sources]
         ProviderListDialog .providers -sources $sources
+	.providers modal
         grid rowconfigure . 0 -weight 1
         catch {destroy .providers};   # In case they used X not Ok.
     }
