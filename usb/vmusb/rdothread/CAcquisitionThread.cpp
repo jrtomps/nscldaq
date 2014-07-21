@@ -409,10 +409,14 @@ CAcquisitionThread::startDaq()
   CStack::resetStackOffset();
 
   cerr << "Loading " << m_Stacks.size() << " Stacks to vm-usb\n";
+  m_haveScalerStack = false;
   for(int i =0; i < m_Stacks.size(); i++) {
     CStack* pStack = dynamic_cast<CStack*>(m_Stacks[i]->getHardwarePointer());
-    
+   
     assert(pStack);
+    if (pStack->getTriggerType()  == CStack::Scaler) {
+      m_haveScalerStack = true;
+    }
     pStack->Initialize(*m_pVme);    // INitialize daq hardware associated with the stack.
     pStack->loadStack(*m_pVme);	    // Load into VM-USB
     pStack->enableStack(*m_pVme);   // Enable the trigger logic for the stack.
@@ -446,7 +450,9 @@ CAcquisitionThread::startDaq()
 void
 CAcquisitionThread::stopDaq()
 {
-  m_pVme->writeActionRegister(CVMUSB::ActionRegister::scalerDump);
+  if (m_haveScalerStack) {
+    m_pVme->writeActionRegister(CVMUSB::ActionRegister::scalerDump);
+  }
   m_pVme->writeActionRegister(0);
   drainUsb();
 
