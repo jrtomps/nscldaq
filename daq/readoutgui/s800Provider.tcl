@@ -30,10 +30,11 @@ package require ReadoutGUIPanel
 #
 
 namespace eval ::S800 {
-    variable host     ""
-    variable port     ""
-    variable sourceid ""
-    variable rctlObject ""
+    variable sourceParams [dict create]
+#    variable host     ""
+#    variable port     ""
+#    variable sourceid ""
+#    variable rctlObject ""
     
     #
     #  This variable contains the state of the connection and run:
@@ -41,7 +42,7 @@ namespace eval ::S800 {
     #  idle   - The s800 readout is connected but not taking data
     #  active - The S800 readout is connected and taking data.
     #
-    variable state  halted;
+    #variable state  halted;
     
 }
 
@@ -77,12 +78,18 @@ proc ::S800::start params {
     set port    [dict get $params port]
     
     # >> This needs to be changed if this becomes multi server capable.
-    
-    if {$::S800::state ne "halted"} {
+     
+    ## Check if the source id exists already. If not, make a new entry.
+    if {![dict exists $::S800::sourceParams $sid]} { 
+        set newParams [dict create sourceid $sid host $host port $port state "halted" \
+                                                connectionObj [list] ]
+        dict append ::S800::sourceParams $sid $newParams
+    }
+
+    # Ensure that the source is halted. 
+    if {[::S800::_getState $sid] ne "halted"} {
         error \
-            "There is already an S800 data source connected and only one is supported."
-    } else {
-        set ::S800::sourceid $sid
+            "The remote data source at source id $sid must be in the halted state!"
     }
     #  Save
     
@@ -229,11 +236,11 @@ proc S800::capabilities {} {
 # _checkId
 #    Error if the id does not match the one we're using
 #
-# @param id - The id to checke
+# @param id - The id to check
 # @throw if this does not match ::S800::sourceid
 #
 proc ::S800::_checkId id {
-    if {$id != $::S800::sourceid} {
+    if {![dict exists $::S800::sourceParams $id]} {
         error "$id is not the id of a source managed by the S800 provider."
     }
 }
@@ -249,7 +256,7 @@ proc ::S800::_checkId id {
 proc ::S800::_setHost {id host} {
     ::S800::_checkId $id
     
-    set ::S800::host $host
+    dict set ::S800::sourceParams $id host $host
 }
 ##
 # _setPort
@@ -262,7 +269,7 @@ proc ::S800::_setHost {id host} {
 #
 proc ::S800::_setPort {id port} {
     ::S800::_checkId $id
-    set ::S800::port $port
+    dict set ::S800::sourceParams $id port $port
 }
 ##
 # _setConnectionObject
@@ -277,7 +284,7 @@ proc ::S800::_setPort {id port} {
 #
 proc ::S800::_setConnectionObject {id objname} {
     ::S800::_checkId $id
-    set ::S800::rctlObject  $objname
+    dict set ::S800::sourceParams $id connectionObj $objname
 }
 ##
 # _setState
@@ -290,7 +297,7 @@ proc ::S800::_setConnectionObject {id objname} {
 #
 proc ::S800::_setState {id state} {
     ::S800::_checkId $id
-    set ::S800::state $state
+    dict set ::S800::sourceParams $id state $state
 }
 ##
 # _getState
@@ -302,7 +309,31 @@ proc ::S800::_setState {id state} {
 #
 proc ::S800::_getState id {
     ::S800::_checkId $id
-    return $::S800::state
+    return [dict get $::S800::sourceParams $id state] 
+}
+##
+# _getPort
+#
+#   Return the port of the source
+#
+# @param id - source id.
+# @return the port of the source id
+#
+proc ::S800::_getPort id {
+    ::S800::_checkId $id
+    return [dict get $::S800::sourceParams $id port]
+}
+##
+# _getHost
+#
+#   Return the host of the source
+#
+# @param id - source id.
+# @return the host of the source id
+#
+proc ::S800::_getHost id {
+    ::S800::_checkId $id
+    return [dict get $::S800::sourceParams $id host]
 }
 ##
 # _getConnectionObject
@@ -316,7 +347,7 @@ proc ::S800::_getState id {
 #
 proc ::S800::_getConnectionObject {id} {
     ::S800::_checkId $id
-    return $::S800::rctlObject
+    return [dict get $::S800::sourceParams $id connectionObj] 
 }
 ##
 # _failed
@@ -329,9 +360,10 @@ proc ::S800::_getConnectionObject {id} {
 proc ::S800::_failed id {
     ::S800::_checkId $id
     
-    $::S800::rctlObject destroy
-    set ::S800::rctlObject [list]
-    set ::S800::state halted
+    set connection [::S800::_getConnectionObject $id]
+    $connection destroy
+    ::S800::_setConnectionObject $id [list]
+    ::S800::_setState $id halted
 }
 ##
 # _errorIfDead
