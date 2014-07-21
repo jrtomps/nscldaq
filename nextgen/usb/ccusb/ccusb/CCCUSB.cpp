@@ -506,9 +506,9 @@ CCCUSB::writeGlobalMode(uint16_t data)
 
 */
 int
-CCCUSB::readDelays(uint16_t& value)
+CCCUSB::readDelays(uint32_t& value)
 {
-  return read16(25,2,0, value);
+  return read32(25,2,0, value);
 }
 /********************************************************************************/
 /*!

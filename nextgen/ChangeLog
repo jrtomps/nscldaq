@@ -498,3 +498,6 @@ Feb 1, 2012 - Feb 24, 2012
 	CFragmentHanlder.cpp in trunk/nextgen/daq/eventbuilder
         * Issue #2035 - use a larger low water mark for time based
 	flushing to smooth out the data 
+
+10.2-109
+	* Fix for Issue #2115 - Use read32 for CCCUSB::readDelays
