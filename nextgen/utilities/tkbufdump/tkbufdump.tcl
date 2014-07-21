@@ -27,7 +27,7 @@ source [file join $here physicsformatter.tcl]
 
 # Assume we are installed in nscldaq and want it's data sources.
 
-set daqbin $here
+set daqbin [file normalize [file join $here .. bin]]
 
 #set daqbin /usr/opt/daq/10.0/bin
 

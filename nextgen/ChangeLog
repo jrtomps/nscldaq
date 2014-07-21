@@ -503,3 +503,6 @@ Feb 1, 2012 - Feb 24, 2012
 	* Fix for Issue #2115 - Use read32 for CCCUSB::readDelays
 	* Fix for Issue #2114 - Only force scaler dump if there is a
 	scaler stack.
+	* Fix for Issue #2096 - Correctly compute the location of the
+	nscldaq bin directory so that ringselector can be properly found.
+	
