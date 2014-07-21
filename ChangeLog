@@ -634,3 +634,5 @@ Open Rc10 work
 	* Fix Bug #2115 - CCCUSB::readDelays has to be done as a read32.
 	* Fix Bug #2114 - XXUSBReadout - should not force a scaler dump
 	unless there is a stack established with  a scaler trigger.
+	* Fix Bug #2096 - tkbufudmp had hardcoded daqbin directory.
+	
