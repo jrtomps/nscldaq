@@ -91,6 +91,7 @@ private:
   // Data types:
 
   typedef std::list<CReadoutHardware*>  StackElements;
+public:
   typedef enum _TriggerType {
     Nim1,
     Scaler,
@@ -131,13 +132,14 @@ public:
 
   void loadStack(CVMUSB& controller);
   void enableStack(CVMUSB& controller);
+  TriggerType     getTriggerType();
+
 
   // Utility member functions:
 
 private:
 
   unsigned int    getIntegerParameter(std::string name);
-  TriggerType     getTriggerType();
   StackElements   getStackElements();
   uint8_t         getListNumber();
 

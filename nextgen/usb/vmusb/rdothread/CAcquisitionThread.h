@@ -66,6 +66,8 @@ private:
 
   static std::vector<CReadoutModule*>  m_Stacks;       //!< the stacks to run.
 
+  bool                          m_haveScalerStack;
+
   //Singleton pattern stuff:
 
 

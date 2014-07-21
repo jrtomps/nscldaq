@@ -84,6 +84,7 @@ private:
   // Data types:
 
   typedef std::list<CReadoutHardware*>  StackElements;
+public:
   typedef enum _TriggerType {
     Event,
     Scaler,
@@ -120,13 +121,13 @@ public:
 
   void loadStack(CCCUSB& controller);
   void enableStack(CCCUSB& controller);
+  TriggerType     getTriggerType();
 
   // Utility member functions:
 
 private:
 
   unsigned int    getIntegerParameter(std::string name);
-  TriggerType     getTriggerType();
   StackElements   getStackElements();
   int getListNumber();
 

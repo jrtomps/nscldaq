@@ -61,6 +61,8 @@ private:
   static bool                   m_Running;	//!< thread is running.
   static CCCUSB*                m_pCamac;		//!< VME interface.
 
+  bool                          m_haveScalerStack;
+
 
   //Singleton pattern stuff:
 

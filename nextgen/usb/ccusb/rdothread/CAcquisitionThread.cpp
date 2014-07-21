@@ -365,9 +365,11 @@ CAcquisitionThread::startDaq()
   // it still should work.
 
   cerr << "Loading " << Stacks.size() << " Stacks to cc-usb\n";
+  m_haveScalerStack = false;
   for(int i =0; i < Stacks.size(); i++) {
     CStack* pStack = dynamic_cast<CStack*>(Stacks[i]->getHardwarePointer());
     assert(pStack);
+    if (pStack->getTriggerType() == CStack::Scaler) m_haveScalerStack = true;
     pStack->Initialize(*m_pCamac);    // INitialize daq hardware associated with the stack.
     pStack->loadStack(*m_pCamac);     // Load into CC-USB .. The stack knows if it is event or scaler
     pStack->enableStack(*m_pCamac);   // Enable the trigger logic for the stack.
@@ -385,7 +387,9 @@ CAcquisitionThread::startDaq()
 void
 CAcquisitionThread::stopDaq()
 {
-  m_pCamac->writeActionRegister(CCCUSB::ActionRegister::scalerDump);
+  int actionReg = 0;
+  if (m_haveScalerStack) actionReg |= CCCUSB::ActionRegister::scalerDump;
+  m_pCamac->writeActionRegister(actionReg);
 
 
   drainUsb();
