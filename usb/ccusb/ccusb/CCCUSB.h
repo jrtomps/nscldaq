@@ -213,10 +213,10 @@ public:
     }
 
 
-    int readDelays(uint16_t& value);
+    int readDelays(uint32_t& value);
     int writeDelays(uint16_t value);
     unsigned  readDelays() {		/* swig */
-      uint16_t d;
+      uint32_t d;
       readDelays(d);
       return d;
     }

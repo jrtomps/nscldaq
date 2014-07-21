@@ -629,4 +629,7 @@ Open Rc10 work
 	* Document the experiment editor program.
 	* Bug #2131 - ReadoutGui.tcl - don't let the ProvderListDialog
 	constructor invoke modal as that is the cause of the bug above..
+
+11.0-rc11
+	* Fix Bug #2115 - CCCUSB::readDelays has to be done as a read32.
 	
