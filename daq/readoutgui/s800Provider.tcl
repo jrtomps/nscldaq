@@ -1,5 +1,5 @@
 #    This software is Copyright by the Board of Trustees of Michigan
-#    State University (c) Copyright 2013.
+#    State University (c) Copyright 2014.
 #
 #    You may use this software under the terms of the GNU public license
 #    (GPL).  The terms of this license are described at:
@@ -7,18 +7,16 @@
 #     http://www.gnu.org/licenses/gpl.txt
 #
 #    Author:
-#             Ron Fox
+#      NSCL DAQ Development Group 
 #	     NSCL
 #	     Michigan State University
 #	     East Lansing, MI 48824-1321
 
 ##
-# @file sshProvider.tcl
-# @brief Provide a data source on the end of an ssh pipeline.
+# @file s800Provider.tcl
+# @brief Provide a data source that controls the S800Daq.
 # @author Ron Fox
-# @note There can be only one instance at this time.  Since we may  need to modify
-#       that later we're going to encapsulate state access in helper procs that
-#       are parameterized with the source id.
+# @author Jeromy Tompkins
 #
 
 package provide S800_Provider 1.0
@@ -30,20 +28,14 @@ package require ReadoutGUIPanel
 #
 
 namespace eval ::S800 {
+    # This holds data for each source id and is parameterized by source id.
+    # The following keys will exist for a valid source id:
+    #   sourceid
+    #   host
+    #   port
+    #   state
+    #   connectionObj
     variable sourceParams [dict create]
-#    variable host     ""
-#    variable port     ""
-#    variable sourceid ""
-#    variable rctlObject ""
-    
-    #
-    #  This variable contains the state of the connection and run:
-    #  halted - there is no connection to an s800 readout.
-    #  idle   - The s800 readout is connected but not taking data
-    #  active - The S800 readout is connected and taking data.
-    #
-    #variable state  halted;
-    
 }
 
 #------------------------------------------------------------------------------
