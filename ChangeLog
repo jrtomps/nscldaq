@@ -635,4 +635,8 @@ Open Rc10 work
 	* Fix Bug #2114 - XXUSBReadout - should not force a scaler dump
 	unless there is a stack established with  a scaler trigger.
 	* Fix Bug #2096 - tkbufudmp had hardcoded daqbin directory.
+	* Fix Bug #2083 - Improve error messages for CAENcard whengoe
+	addressing is not requested
+	* Allow CAENcard to be programmed with a GEO address that is not a
+	valid VME slot number if geo addressing is not being used.
 	
