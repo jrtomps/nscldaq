@@ -7,6 +7,8 @@
 #include <CCCUSB.h>
 #include <vector>
 #include <stdio.h>
+#include <iostream>
+#include <iomanip>
 
 class TCLApplication;
 TCLApplication* gpTCLApplication = 0;
@@ -20,11 +22,13 @@ class registerTests : public CppUnit::TestFixture {
   CPPUNIT_TEST(action);
   CPPUNIT_TEST(fwid);
   CPPUNIT_TEST(globmode);
-//  CPPUNIT_TEST(delays); //< This hangs the CCUSB up and make it unhappy
-//  CPPUNIT_TEST(ledsrc);
-//  CPPUNIT_TEST(devsrc);
-//  CPPUNIT_TEST(dgg);
-//  CPPUNIT_TEST(bulksetup);
+  CPPUNIT_TEST(delays); //< This hangs the CCUSB up and make it unhappy
+  CPPUNIT_TEST(ledsrc);
+  CPPUNIT_TEST(output);
+  CPPUNIT_TEST(devsrc);
+  CPPUNIT_TEST(dgg);
+  CPPUNIT_TEST(lammask);
+  CPPUNIT_TEST(bulksetup);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -52,10 +56,13 @@ protected:
   void fwid();
   void globmode();
   void delays();
-//  void ledsrc();
-//  void devsrc();
-//  void dgg();
-//  void bulksetup();
+  void scalercontrol();
+  void ledsrc();
+  void output();
+  void devsrc();
+  void dgg();
+  void lammask();
+  void bulksetup();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(registerTests);
@@ -72,6 +79,7 @@ void registerTests::action() {
 void registerTests::fwid()
 {
   uint32_t fw = m_pInterface->readFirmware();
+  cout << hex << setw(8) << setprecision(0) << fw << dec << endl;
 }
 // Write 0's to the gobal mode register... all the 
 // bits that count should match.. then turn them all  on too.
@@ -120,110 +128,175 @@ void registerTests::delays()
   EQMSG("zero", (uint16_t)0, settings);
 //  EQMSG("read shadow zeroes", (uint16_t)0, m_pShadow->delays);
 }
+
+// Test the scaler control 
+void registerTests::scalercontrol() 
+{
+  m_pInterface->writeScalerControl(0xff);
+//  EQMSG("wrote shadow ones", (uint16_t)0xffff, m_pShadow->delays);
+  uint16_t settings = m_pInterface->readScalerControl();
+  EQMSG("lower 16", (uint16_t)0xff, settings);
+//  EQMSG("read shadow ones", (uint16_t)0xffff, m_pShadow->delays);
+ 
+  m_pInterface->writeScalerControl(0xff00);
+//  EQMSG("wrote shadow zeroes", (uint16_t)0, m_pShadow->delays);
+  settings = m_pInterface->readScalerControl();
+  EQMSG("upper 16", (uint16_t)0xff00, settings);
+//  EQMSG("read shadow zeroes", (uint16_t)0, m_pShadow->delays);
+
+  m_pInterface->writeScalerControl(0);
+//  EQMSG("wrote shadow zeroes", (uint16_t)0, m_pShadow->delays);
+  settings = m_pInterface->readScalerControl();
+  EQMSG("zero", (uint16_t)0, settings);
+//  EQMSG("read shadow zeroes", (uint16_t)0, m_pShadow->delays);
+}
 // LEDSrc has somed dead bits.
 
-//void registerTests::ledsrc()
-//{
-//  uint32_t usedBits = 0x1f1f1f1f;
-//
-//  m_pInterface->writeLEDSource(0xffffffff);
-//  EQMSG("wrote shadow ones", (uint32_t)0xffffffff, m_pShadow->ledSources);
-//  uint32_t value = m_pInterface->readLEDSource();
-//  EQMSG("ones", usedBits, (value & usedBits));
-//  EQMSG("read shadow ones", usedBits, m_pShadow->ledSources);
-//
-//  m_pInterface->writeLEDSource(0);
-//  EQMSG("wrote shadow zeroes", (uint32_t)0, m_pShadow->ledSources);
-//  value = m_pInterface->readLEDSource();
-//
-//  EQMSG("0's", (uint32_t)0, (value & usedBits));
-//  EQMSG("read shadow zeroes", (uint32_t)0, m_pShadow->ledSources);
-//
-//}
-//// Dev src register also has some dead bits.
-//
-//void registerTests::devsrc()
-//{
-//  uint32_t usedBits =    0x77331f1f; // 7777 not 77ff since reset is momentary.
-//
-////  m_pInterface->writeDeviceSource(0x7fffffff);
-//  m_pInterface->writeDeviceSource(usedBits);
+void registerTests::ledsrc()
+{
+  uint32_t usedBits = 0x373737;
+
+  m_pInterface->writeLedSelector(0xffffffff);
+  uint32_t value = m_pInterface->readLedSelector();
+  EQMSG("ones", usedBits, (value & usedBits));
+
+  m_pInterface->writeLedSelector(0);
+  value = m_pInterface->readLedSelector();
+
+  EQMSG("0's", (uint32_t)0, (value & usedBits));
+
+}
+
+void registerTests::output()
+{
+  uint32_t usedBits = 0x373737;
+
+  m_pInterface->writeOutputSelector(0xffffffff);
+  uint32_t value = m_pInterface->readOutputSelector();
+  EQMSG("ones", usedBits, (value & usedBits));
+
+  m_pInterface->writeOutputSelector(0);
+  value = m_pInterface->readOutputSelector();
+
+  EQMSG("0's", (uint32_t)0, (value & usedBits));
+
+}
+// Dev src register also has some dead bits.
+
+void registerTests::devsrc()
+{
+  uint32_t usedBits =  0x007071717; // 7777 not 77ff since reset is momentary.
+  uint32_t clearBits = 0x00004040;
+  uint32_t testBits  = 0x00000707;
+
+  // disable scalers this must be done in a separate operation
+  // from writing to selector bits
+  m_pInterface->writeDeviceSourceSelectors(clearBits);
+  m_pInterface->writeDeviceSourceSelectors(testBits);
 //  EQMSG("wrote shadow ones", (uint32_t)usedBits, m_pShadow->deviceSources);
-//  uint32_t value = m_pInterface->readDeviceSource();
-//  EQMSG("ones", usedBits, (value & usedBits));
+  uint32_t value = m_pInterface->readDeviceSourceSelectors();
+  EQMSG("ones", testBits, (value & usedBits));
 //  EQMSG("read shadow ones", (uint32_t)usedBits, (usedBits & m_pShadow->deviceSources));
-//
-//  m_pInterface->writeDeviceSource(0);
+
+  // Writing to the scalers and the dgg apparently need to be
+  // done separately.
+  testBits = 0x007070000;
+  m_pInterface->writeDeviceSourceSelectors(testBits);
+//  EQMSG("wrote shadow ones", (uint32_t)usedBits, m_pShadow->deviceSources);
+  value = m_pInterface->readDeviceSourceSelectors();
+  EQMSG("ones", testBits, (value & usedBits));
+//  EQMSG("read shadow ones", (uint32_t)usedBits, (usedBits & m_pShadow->deviceSources));
+
+
+  m_pInterface->writeDeviceSourceSelectors(0);
 //  EQMSG("wrote shadow zeroes", (uint32_t)0, m_pShadow->deviceSources);
-//  value = m_pInterface->readDeviceSource();
-//  EQMSG("0's", (uint32_t)0, (value & usedBits));
+  value = m_pInterface->readDeviceSourceSelectors();
+  EQMSG("0's", (uint32_t)0, (value & usedBits));
 //  EQMSG("read shadow zeroes", (uint32_t)0, (usedBits & m_pShadow->deviceSources));
-//}
-//// Three registers for the gate and delay register use all 32 bits.
-//// dgga, dggb, dggextended.
-//
-//void registerTests::dgg()
-//{
-//
-//  // DGG A control register.
-//
-//  m_pInterface->writeDGG_A(0xffffffff);
+}
+// Three registers for the gate and delay register use all 32 bits.
+// dgga, dggb, dggextended.
+
+void registerTests::dgg()
+{
+
+  // DGG A control register.
+
+  m_pInterface->writeDGGA(0xffffffff);
 //  EQMSG("wrote shadow ones", (uint32_t)0xffffffff, m_pShadow->dggA);
-//  uint32_t value = m_pInterface->readDGG_A();
-//  EQMSG("DGGA 1's", (uint32_t)0xffffffff, value);
+  uint32_t value = m_pInterface->readDGGA();
+  EQMSG("DGGA 1's", (uint32_t)0xffffffff, value);
 //  EQMSG("read shadow ones", (uint32_t)0xffffffff, m_pShadow->dggA);
-//
-//  m_pInterface->writeDGG_A(0);
+
+  m_pInterface->writeDGGA(0);
 //  EQMSG("wrote shadow zeroes", (uint32_t)0, m_pShadow->dggA);
-//  value = m_pInterface->readDGG_A();
-//  EQMSG("DGGA 0's", (uint32_t)0, value);
+  value = m_pInterface->readDGGA();
+  EQMSG("DGGA 0's", (uint32_t)0, value);
 //  EQMSG("read shadow zeroes", (uint32_t)0, m_pShadow->dggA);
-//
-//  // DGG B control register.
-//
-//  m_pInterface->writeDGG_B(0xffffffff);
+
+  // DGG B control register.
+
+  m_pInterface->writeDGGB(0xffffffff);
 //  EQMSG("wrote shadow ones", (uint32_t)0xffffffff, m_pShadow->dggB);
-//  value = m_pInterface->readDGG_B();
-//  EQMSG("DGGB 1's", (uint32_t)0xffffffff, value);
+  value = m_pInterface->readDGGB();
+  EQMSG("DGGB 1's", (uint32_t)0xffffffff, value);
 //  EQMSG("read shadow ones", (uint32_t)0xffffffff, m_pShadow->dggB);
-//
-//  m_pInterface->writeDGG_B(0);
+
+  m_pInterface->writeDGGB(0);
 //  EQMSG("wrote shadow zeroes", (uint32_t)0, m_pShadow->dggB);
-//  value = m_pInterface->readDGG_B();
-//  EQMSG("DGGB 0's", (uint32_t)0, value);
+  value = m_pInterface->readDGGB();
+  EQMSG("DGGB 0's", (uint32_t)0, value);
 //  EQMSG("read shadow zeroes", (uint32_t)0, m_pShadow->dggB);
-//
-//  // DGG Extended control register.
-//
-//  m_pInterface->writeDGG_Extended(0xffffffff);
+
+  // DGG Extended control register.
+
+  m_pInterface->writeDGGExt(0xffffffff);
 //  EQMSG("wrote shadow ones", (uint32_t)0xffffffff, m_pShadow->dggExtended);
-//  value = m_pInterface->readDGG_Extended();
-//  EQMSG("Extended 1's", (uint32_t)0xffffffff, value);
+  value = m_pInterface->readDGGExt();
+  EQMSG("Extended 1's", (uint32_t)0xffffffff, value);
 //  EQMSG("read shadow ones", (uint32_t)0xffffffff, m_pShadow->dggExtended);
-//
-//  m_pInterface->writeDGG_Extended(0);
+
+  m_pInterface->writeDGGExt(0);
 //  EQMSG("wrote shadow zeroes", (uint32_t)0, m_pShadow->dggExtended);
-//  value = m_pInterface->readDGG_Extended();
-//  EQMSG("Extended 0's", (uint32_t)0, value);
+  value = m_pInterface->readDGGExt();
+  EQMSG("Extended 0's", (uint32_t)0, value);
 //  EQMSG("read shadow zeroes", (uint32_t)0, m_pShadow->dggExtended);
-//  
-//}
-//
+  
+}
+
 //
 // only some bits of the bulk transfer setup register are used.
 
-//void registerTests::bulksetup()
-//{
-//  uint32_t usedBits = 0xfff;
-//  m_pInterface->writeBulkXferSetup(0xffffffff);
+void registerTests::lammask()
+{
+  uint32_t usedBits = 0xfff;
+  m_pInterface->writeLamTriggers(0xffffffff);
 //  EQMSG("wrote shadow onees", (uint32_t)0xffffffff, m_pShadow->bulkTransferSetup);
-//  uint32_t value = m_pInterface->readBulkXferSetup();
-//  EQMSG("1's", usedBits, (value & usedBits));
+  uint32_t value = m_pInterface->readLamTriggers();
+  EQMSG("1's", usedBits, (value & usedBits));
 //  EQMSG("read shadow ones", usedBits, (usedBits & m_pShadow->bulkTransferSetup));
-//
-//  m_pInterface->writeBulkXferSetup(0);
+
+  m_pInterface->writeLamTriggers(0);
 //  EQMSG("wrote shadow zeroes", (uint32_t)0, m_pShadow->bulkTransferSetup);
-//  value = m_pInterface->readBulkXferSetup();
-//  EQMSG("0's", (uint32_t)0, (value & usedBits));
+  value = m_pInterface->readLamTriggers();
+  EQMSG("0's", (uint32_t)0, (value & usedBits));
 //  EQMSG("read shadow zeroes", (uint32_t)0, (usedBits & m_pShadow->bulkTransferSetup));
-//}
+}
+//
+// only some bits of the bulk transfer setup register are used.
+
+void registerTests::bulksetup()
+{
+  uint32_t usedBits = 0xfff;
+  m_pInterface->writeUSBBulkTransferSetup(0xffffffff);
+//  EQMSG("wrote shadow onees", (uint32_t)0xffffffff, m_pShadow->bulkTransferSetup);
+  uint32_t value = m_pInterface->readUSBBulkTransferSetup();
+  EQMSG("1's", usedBits, (value & usedBits));
+//  EQMSG("read shadow ones", usedBits, (usedBits & m_pShadow->bulkTransferSetup));
+
+  m_pInterface->writeUSBBulkTransferSetup(0);
+//  EQMSG("wrote shadow zeroes", (uint32_t)0, m_pShadow->bulkTransferSetup);
+  value = m_pInterface->readUSBBulkTransferSetup();
+  EQMSG("0's", (uint32_t)0, (value & usedBits));
+//  EQMSG("read shadow zeroes", (uint32_t)0, (usedBits & m_pShadow->bulkTransferSetup));
+}
