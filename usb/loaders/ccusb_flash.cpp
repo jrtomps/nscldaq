@@ -57,7 +57,7 @@ int main(int argc, char** argv)
 
 
 	printf("\n*************************************************************************\n\n");
-	printf("                   WIENER VM_USB Firmware upgrade\n");
+	printf("                   WIENER CC_USB Firmware upgrade\n");
         printf("\n*************************************************************************\n");
   
 
