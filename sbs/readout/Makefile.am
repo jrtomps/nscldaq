@@ -111,7 +111,7 @@ install-exec-local:
 	$(INSTALL_SCRIPT) UserMakefile @prefix@/skeletons/sbs/Makefile
 	$(INSTALL_SCRIPT) SBSRdoMakeIncludes @prefix@/etc
 	$(INSTALL_SCRIPT) @srcdir@/*.h @prefix@/include/sbsreadout
-	for f in $(TCLPACKAGES); do $(INSTALL_SCRIPT) $$f $(TCLPKGDIR); done
+	for f in $(TCLPACKAGES); do $(INSTALL_SCRIPT) @srcdir@/$$f $(TCLPKGDIR); done
 	echo "package ifneeded ReadoutStateHook 1.0 [list source [file join \$$dir readoutStateHook.tcl]]" > $(TCLPKGDIR)/pkgIndex.tcl
 
 
