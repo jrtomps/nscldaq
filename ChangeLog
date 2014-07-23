@@ -639,4 +639,13 @@ Open Rc10 work
 	addressing is not requested
 	* Allow CAENcard to be programmed with a GEO address that is not a
 	valid VME slot number if geo addressing is not being used.
+	* Sprint for experiment configuration Begin/End completed:
+	* Issue #1962 - Control panel for state manager.
+	* Issue #1966, Issue $1967 Users can use the control panel to
+	start and stop runs.
+	* Issue #2117 - State aware readouts report state transition
+	failures as well as failures in the active state to the
+	statemanager as FAIL transition requests.
+	* Issue #2122 - Documentation of the elements created/changed in
+	the experiment configuration Begin/End sprint.
 	

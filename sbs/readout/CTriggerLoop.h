@@ -47,6 +47,7 @@ private:
   volatile bool      m_running;
   volatile bool      m_stopping;  // Shared between threads.
   volatile bool      m_pausing;   // Shared between threads.
+  volatile bool      m_failed;    // Shared between thread... trigger loop failed.
 
 public:
   CTriggerLoop(CExperiment& experiment);

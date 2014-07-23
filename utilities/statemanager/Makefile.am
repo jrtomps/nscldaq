@@ -16,6 +16,7 @@ FIGURES=statediagram.jpg
 
 install-exec-local:
 	$(mkinstalldirs)  $(INSTDIR)
+	$(mkinstalldirs)  @datarootdir@/html
 	touch $(INSTDIR)/__init__.py 
 	for f in $(MAINS); do $(INSTALL_SCRIPT) @srcdir@/$$f @bindir@/`basename $$f .py`; done
 	for f in  $(PACKAGE_FILES); do $(INSTALL_SCRIPT) @srcdir@/$$f $(INSTDIR); done

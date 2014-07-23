@@ -69,11 +69,13 @@ CTriggerLoop::start()
   if (!m_running) {
     m_running = false;
     m_stopping = false;
+    m_failed   = false;
     Thread::start();
 
     // Now wait here until we know the thread is running
     
-    while (!m_running) {
+    
+    while (!m_running && !m_failed) {
       Os::usleep(500);
     }
   }
@@ -93,8 +95,15 @@ void
 CTriggerLoop::stop(bool pausing)
 {
   if (runningThread() != getId()) {
-    m_stopping = true;
-    m_pausing  = pausing;
+    if (!m_failed) {
+        m_stopping = true;
+        m_pausing  = pausing;
+    } else {
+        // Trigger loop failed...
+        
+        m_pausing = pausing;
+        m_pExperiment->syncEndRun(pausing);
+    }
   }
   else {
     char mypid[1000];
@@ -119,7 +128,46 @@ CTriggerLoop::run()
   m_running  = true;
   m_stopping = false;
   
-  mainLoop();
+  // On exceptions notify the experiment:
+  
+  try {
+    mainLoop();
+  }
+  catch (const char* msg) {
+    m_pExperiment->triggerFail(msg);
+    m_running  = false;
+    m_stopping = false;
+    m_failed   = true;
+    throw;
+
+  }
+  catch (std::string msg) {
+    m_pExperiment->triggerFail(msg);
+    m_running  = false;
+    m_stopping = false;
+    m_failed   = true;
+    throw;
+
+  }
+  catch (CException& e) {
+    std::string msg = e.ReasonText();
+    msg += " ";
+    msg +=  e.WasDoing();
+    m_pExperiment->triggerFail(msg);
+    m_running  = false;
+    m_stopping = false;
+    m_failed   = true;
+    throw;
+
+  }
+  catch (...) {
+    m_pExperiment->triggerFail("Unexpected exception caught");
+    m_running  = false;
+    m_stopping = false;
+    m_failed = true;
+    throw;
+
+  }
 
   m_running  = false;
   m_stopping = false;

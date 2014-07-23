@@ -369,6 +369,7 @@ AC_CONFIG_FILES([Makefile
 		 utilities/experimentConfiguration/Makefile
 		 utilities/statemanager/Makefile
 		 utilities/boot/Makefile
+		 utilities/cpanel/Makefile
                  epics/chanlog/Makefile
                  epics/controlpush/Makefile
                  epics/epicsdisplay/Makefile
