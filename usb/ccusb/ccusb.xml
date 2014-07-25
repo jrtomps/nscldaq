@@ -5018,6 +5018,17 @@ Module cget <replaceable>name</replaceable>
                         </para>
                     </listitem>
                 </varlistentry>
+                <varlistentry>
+                    <term>ccusb</term>
+                    <listitem>
+                        <para>
+                            Allows a remote client to execute stacks on
+                            the CC-USB controlled by this CCUSBReadout program.
+                            (The CCCUSBRemote class serves as the
+                            remote client.)
+                        </para>
+                    </listitem>
+                </varlistentry>
             </variablelist>
            </para>
            <para>
