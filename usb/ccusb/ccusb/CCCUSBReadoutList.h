@@ -76,6 +76,7 @@
 
  public:
    CCCUSBReadoutList() {}
+   CCCUSBReadoutList(const std::vector<uint16_t>& list) : m_list(list) {}
    CCCUSBReadoutList(const CCCUSBReadoutList& rhs);
    CCCUSBReadoutList& operator=(const CCCUSBReadoutList& rhs);
 

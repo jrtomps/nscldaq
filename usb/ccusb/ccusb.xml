@@ -1397,7 +1397,7 @@ stack config events -modules [list itclmarker snitmarker testing tdc] -type even
         </para>
         <informalexample>
             <programlisting>
-Module create ph7106  led
+Module create led ph7106
 Module config led -slot 3
             </programlisting>
         </informalexample>
@@ -2543,7 +2543,7 @@ Sampledriver_Init(Tcl_Interp* pInterp)       <co id='ccusb-slowdriver-init-name'
                             <para>
                                 This line instantiates a creator for the sample
                                 driver and registers it with the module factory.
-                                This registration allows the <command>Module crate</command>
+                                This registration allows the <command>Module create</command>
                                 command to create instances of our driver.
                             </para>
                         </callout>
@@ -4977,7 +4977,7 @@ stack config events -delay 10 -lamtimeout 8                 <co id ="timing" />
         <refsynopsisdiv>
           <cmdsynopsis>
          <command>
-Module create <replaceable>type name</replaceable>
+Module create <replaceable>name type</replaceable>
           </command>
           </cmdsynopsis>
           <cmdsynopsis>
@@ -4998,7 +4998,8 @@ Module cget <replaceable>name</replaceable>
             control devices.  It must appear in the control configuration script
             rather than the daq configuration script.  The <command>create</command>
             subcommand creates an object with the specified <parameter>type</parameter>
-            and <parameter>name</parameter>.  Currently the following device types
+            and <parameter>name</parameter>. The ORDERING OF TYPE AND NAME ARE OPPOSITE
+            THAT OF VMUSBREADOUT!!! Currently the following device types
             are supported:
             <variablelist>
                 <varlistentry>
@@ -9867,6 +9868,13 @@ uint32_t revision = (d &amp; CCCUSB::FirmwareRegister::revisionMask)
            <constructorsynopsis>
             <methodname> CCCUSBReadoutList</methodname>
             <methodparam>
+                <modifier>const</modifier> <type>std::vector&lt;uint16_t&gt;&amp;</type>
+                <parameter>list</parameter>
+            </methodparam>
+           </constructorsynopsis>
+           <constructorsynopsis>
+            <methodname> CCCUSBReadoutList</methodname>
+            <methodparam>
                 <modifier>const</modifier> <type>CCCUSBReadoutList&amp;</type>
                 <parameter>rhs</parameter>
             </methodparam>
@@ -10063,6 +10071,25 @@ uint32_t revision = (d &amp; CCCUSB::FirmwareRegister::revisionMask)
                     <listitem>
                         <para>
                             Constructs a new readout list.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <constructorsynopsis>
+                       <methodname>CCCUSBReadoutList</methodname>
+                       <methodparam>
+                          <modifier>const</modifier> <type>std::vector&lt;uint16_t&gt;&amp;</type>
+                          <parameter>list</parameter>
+                        </methodparam> 
+                        </constructorsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Constructs a new readout list from a raw list of stack commands. 
+                            The contents of the list passed into the constructor will be copied into
+                            the list managed by this object. All subsequent commands will be appended
+                            to the new list.
                         </para>
                     </listitem>
                 </varlistentry>
