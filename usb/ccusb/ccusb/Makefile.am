@@ -35,15 +35,46 @@ install-data-local:
 	echo "package ifneeded cccusb 1.0 [list load [file join \$$dir libCCCUSB.so]]" >> @libdir@/pkgIndex.tcl
 	echo "package ifneeded cccusbreadoutlist 1.0 [list load [file join \$$dir libCCCUSBReadoutList.so]]" >> @libdir@/pkgIndex.tcl
 
+noinst_PROGRAMS = unittests tests
 
-TEST_MODULES = @srcdir@/TestRunner.cpp \
-             @srcdir@/regTests.cpp
+## These are tests run only by hand
+tests_SOURCES = TestRunner.cpp \
+             regTests.cpp
+tests_LDADD = $(CPPUNIT_LDFLAGS) \
+              -L@libdir@ -lCCUSB \
+	            @TCL_LDFLAGS@ \
+              @LIBTCLPLUS_LDFLAGS@
+tests_CXXFLAGS = $(AM_CXXFLAGS)
+tests_LDFLAGS = -Wl,"-rpath=@libdir@" 
+
+#tests: $(TEST_MODULES)
+#	$(CXX) -g -o tests -I@srcdir@ -I@prefix@/include $(CPPUNIT_INCLUDES) \
+#	$(TEST_MODULES) $(CPPUNIT_LDFLAGS) -L@prefix@/lib -lCCUSB \
+#	-Wl,"-rpath=@prefix@/lib" @TCL_LDFLAGS@ @LIBTCLPLUS_LDFLAGS@
+#
+
+## These are tests that run automatically at check-TESTS
+unittests_SOURCES  = TestRunner.cpp rdolistTests.cpp
+unittests_LDADD    = $(CPPUNIT_LDFLAGS) \
+                     -L@libdir@ -lCCUSB \
+	                   @TCL_LDFLAGS@ \
+                     @LIBTCLPLUS_LDFLAGS@
+unittests_CXXFLAGS = $(AM_CXXFLAGS)
+unittests_LDFLAGS  = -Wl,"-rpath=@libdir@" 
 
 
-tests: $(TEST_MODULES)
-	$(CXX) -g -o tests -I@srcdir@ -I@prefix@/include $(CPPUNIT_INCLUDES) \
-	$(TEST_MODULES) $(CPPUNIT_LDFLAGS) -L@prefix@/lib -lCCUSB \
-	-Wl,"-rpath=@prefix@/lib" @TCL_LDFLAGS@ @LIBTCLPLUS_LDFLAGS@
+TESTS = ./unittests
+
+
+#unittests: $(UNITTESTS_MODULES)
+#	$(CXX) -g -o unittests -I@srcdir@ -I@prefix@/include $(CPPUNIT_INCLUDES) \
+#	$(UNITTESTS_MODULES) $(CPPUNIT_LDFLAGS) -L@prefix@/lib -lCCUSB \
+#	-Wl,"-rpath=@prefix@/lib" @TCL_LDFLAGS@ @LIBTCLPLUS_LDFLAGS@
+#
+#check-TESTS:
+#	./unittests 
+
+#EXTRA_DIST=TestRunner.cpp $(TESTS) $(UNITTESTS)
 
 clean-local:
 	$(RM) -f $(BUILT_SOURCES)

@@ -10,8 +10,6 @@
 #include <iostream>
 #include <iomanip>
 
-class TCLApplication;
-TCLApplication* gpTCLApplication = 0;
 
 using namespace std;
 

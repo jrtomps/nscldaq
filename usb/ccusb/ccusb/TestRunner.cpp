@@ -4,6 +4,12 @@
 #include <iostream>
 using namespace std;
 
+#ifndef TCLAPP
+#define TCLAPP 1 
+class TCLApplication;
+TCLApplication* gpTCLApplication = 0;
+#endif
+
 int main(int argc, char** argv)
 {
   CppUnit::TextUi::TestRunner   
