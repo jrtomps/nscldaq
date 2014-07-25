@@ -17,7 +17,9 @@ libCCUSBControlServer_la_SOURCES	= 	CControlHardware.cpp	\
 					CCAEN894Creator.cpp     \
 					CPH7106Creator.cpp	\
 					CTclControlModule.cpp	\
-					CTclModuleCreator.cpp
+					CTclModuleCreator.cpp \
+					CCCUSBModule.cpp	\
+					CCCUSBModuleCreator.cpp	
 
 noinst_HEADERS			=	CSetCommand.h		\
 					server.h		\
@@ -37,7 +39,9 @@ noinst_HEADERS			=	CSetCommand.h		\
 					CCAEN894Creator.h	\
 					CPH7106Creator.h	\
 					CTclControlModule.h	\
-					CTclModuleCreator.h
+					CTclModuleCreator.h \
+					CCCUSBModule.h \
+          CCCUSBModuleCreator.h 
 
 
 INCLUDES			= 	-I@top_srcdir@/usb/ccusb		\
