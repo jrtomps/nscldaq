@@ -84,8 +84,8 @@ noinst_PROGRAMS=unittests
 unittests_SOURCES=TestRunner.cpp cccusbmoduletests.cpp
 unittests_LDADD    = $(CPPUNIT_LDFLAGS) \
                      -L@libdir@ -lCCUSBControlServer \
-                     -L@top_builddir@/usb/ccusb/ccusb/libCCUSB.la \
-                     -L@top_builddir@/usb/ccusb/daqconfig/libCCUSBConfig.la \
+                     @top_builddir@/usb/ccusb/ccusb/libCCUSB.la \
+                     @top_builddir@/usb/ccusb/daqconfig/libCCUSBConfig.la \
 	                   @TCL_LDFLAGS@ \
                      @LIBTCLPLUS_LDFLAGS@
 unittests_CXXFLAGS = $(AM_CXXFLAGS) -I@top_srcdir@/usb/ccusb
