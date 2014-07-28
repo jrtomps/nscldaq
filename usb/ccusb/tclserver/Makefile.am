@@ -83,8 +83,8 @@ noinst_PROGRAMS=unittests
 
 unittests_SOURCES=TestRunner.cpp cccusbmoduletests.cpp
 unittests_LDADD    = $(CPPUNIT_LDFLAGS) \
-                     -L@libdir@ -lCCUSB -lCCUSBControlServer \
-                                -lCCUSBConfig
+                     -L@libdir@ -lCCUSBControlServer \
+                     -L@prefix@/lib -lCCUSB -lCCUSBConfig
 	                   @TCL_LDFLAGS@ \
                      @LIBTCLPLUS_LDFLAGS@
 unittests_CXXFLAGS = $(AM_CXXFLAGS) -I@top_srcdir@/usb/ccusb
