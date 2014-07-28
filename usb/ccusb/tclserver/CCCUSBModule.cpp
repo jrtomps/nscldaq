@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <vector>
 #include <errno.h>
+#include <iostream>
 
 using namespace std;
 
@@ -220,10 +221,10 @@ CCCUSBModule::decodeInputSize(std::string& list)
 /**
  * Decode the second element of the value list...that represents the CC-USB list
  * @param list   - reference to the data list.
- * @return vector<uint32_t>
+ * @return vector<uint16_t>
  * @return the CC-USB list desired.
  * @throw string - if the second element is not a list and the second element's list elements are not
- *                 all uint32_t's.
+ *                 all uint16_t's.
  */
 vector<uint16_t>
 CCCUSBModule::decodeList(string& list)
@@ -238,17 +239,17 @@ CCCUSBModule::decodeList(string& list)
   CTCLList        vmusbList(&interp, outerListArray[1]);
   StringArray     innerList;
   vmusbList.Split(innerList);
-
+  int innerListSize = innerList.size();
   // Now we can start to build the output list:
 
   vector<uint16_t> result;
-  for (int i = 0; i < innerList.size(); i++) {
+  for (int i = 0; i < innerListSize; i++) {
     uint16_t    item;
     const char* pItem = innerList[i].c_str();
     char*      pEnd;
-    item  = strtoul(pItem, &pEnd, 0);
+    item  = (0xffff & strtoul(pItem, &pEnd, 0));
     if (pEnd == pItem) {
-      throw "List of VM-USB stack values must all be uint32_t and is not";
+      throw "List of CC-USB stack value must all be of type uint16_t and are not";
     }
     result.push_back(item);
   }

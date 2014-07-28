@@ -77,3 +77,20 @@ install-data-local:
 	$(INSTALL_DATA)  @builddir@/driver_Makefile @prefix@/ccusbdriver/example/Makefile
 
 EXTRA_DIST=driver_Makefile.in sampleDriver.cpp
+
+noinst_PROGRAMS=unittests
+
+
+unittests_SOURCES=TestRunner.cpp cccusbmoduletests.cpp
+unittests_LDADD    = $(CPPUNIT_LDFLAGS) \
+                     -L@libdir@ -lCCUSB -lCCUSBControlServer \
+                                -lCCUSBConfig
+	                   @TCL_LDFLAGS@ \
+                     @LIBTCLPLUS_LDFLAGS@
+unittests_CXXFLAGS = $(AM_CXXFLAGS) -I@top_srcdir@/usb/ccusb
+unittests_LDFLAGS  = -Wl,"-rpath=@libdir@" 
+
+
+TESTS = ./unittests
+
+

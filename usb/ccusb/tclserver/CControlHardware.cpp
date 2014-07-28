@@ -39,7 +39,6 @@ CControlHardware::CControlHardware(const CControlHardware& rhs)
 }
 CControlHardware::~CControlHardware()
 {
-  delete m_pConfig;
 }
 
 CControlHardware&
