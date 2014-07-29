@@ -72,11 +72,26 @@ def parseArgs():
         '-v', '--version', help='Print program version and exit',
         action='store_const', const=1
     )
-    parser.add_argument(
+    urigroup = parser.add_argument_group(
+        'URI', 'Specify State manager via URIs'
+    )
+    urigroup.add_argument(
         '-s', '--state-uri', help='State publication URI'
     )
-    parser.add_argument(
+    urigroup.add_argument(
         '-t', '--transition-uri', help='Transition request URI'
+    )
+    servicegroup = parser.add_argument_group(
+        'Service', 'Specify State manager via host/service-names'
+    )
+    servicegroup.add_argument(
+        '-n', '--host', help='Host on which the state manager runs'
+    )
+    servicegroup.add_argument(
+        '-S', '--state-service', help='Service name for state publication'
+    )
+    servicegroup.add_argument(
+        '-T', '--transition-service', help='Service name for transition requests'
     )
 
     return parser.parse_args()
@@ -98,6 +113,21 @@ def connectStateManager(args):
     if (args.state_uri != None) and (args.transition_uri != None):
         stateUri = args.state_uri
         transUri = args.trans_uri
+    
+    # Try the service names:
+    
+    if (stateUri == None) and(args.host != None) and \
+       (args.state_service != None) and (args.transition_service != None):
+        stateUri = 'tcp://%s:%s' % (
+            args.host, Utilities.getPort(
+                args.host, args.state_service, getpass.getuser()
+            )
+        )
+        transUri = 'tcp://%s:%s' % (
+            args.host, Utilities.getPort(
+                args.host, args.transition_service, getpass.getuser()
+            )
+        )
     
     # If we don't have an answer yet, try the environment variables
     # again we need both of them (TRANSITION_REQUEST_URI', 'TRANSITION_SUBSCRIPTION_URI')
@@ -183,6 +213,7 @@ def onButtonPress(transition):
 #     State manager's event loop so both can be satisfied.
 
 args = parseArgs()
+print(args)
 
 # --version means print version and exit:
 

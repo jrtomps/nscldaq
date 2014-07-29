@@ -37,6 +37,15 @@
         </listitem>
         <listitem>
             <para>
+                If the above conditions are not satisified,
+                and the <option>--host</option>, <option>--state-service</option>
+                and <option>--transition-service</option> options are all
+                defined, the port manager is used to obtain the ports so that
+                the appropriate URI's can be constructed.
+            </para>
+        </listitem>
+        <listitem>
+            <para>
                 If the previous condition is not satisfied, cpanel will attempt
                 to obtain the values of the environment variables:
                 <literal>TRANSITION_SUBSCRIPTION_URI</literal> and
@@ -185,6 +194,16 @@ $DAQBIN/cpanel <optional>options...</optional>
                 </listitem>
                 <listitem>
                     <para>
+                        If the above conditions are not satisified,
+                        and the <option>--host</option>, <option>--state-service</option>
+                        and <option>--transition-service</option> options are all
+                        defined, the port manager is used to obtain the ports so that
+                        the appropriate URI's can be constructed.
+                    </para>
+                </listitem>
+
+                <listitem>
+                    <para>
                         If the previous condition is not satisfied, cpanel will attempt
                         to obtain the values of the environment variables:
                         <literal>TRANSITION_SUBSCRIPTION_URI</literal> and
@@ -269,7 +288,57 @@ $DAQBIN/cpanel <optional>options...</optional>
                     </para>
                 </listitem>
             </varlistentry>
-            
+            <varlistentry>
+                <term><option>--host</option>, <option>-n</option></term>
+                <listitem>
+                    <para>
+                        The value of this option is the host in which the
+                        state manager is running.
+                        The value of this option is used along with the
+                        <option>--state-service</option> and
+                        <option>--transition-service</option> options to
+                        interact with the port manager to determine the
+                        URIs to use to connect to the state manager.  These
+                        are only used if <option>--state-uri</option>
+                        and <option>--transition-uri</option> are
+                        not present on the command line.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>--state-service</option>, <option>-S</option></term>
+                <listitem>
+                    <para>
+                        This value supplies the name of the service the
+                        state manager advertises for state/transition publication.
+                        Used along with <option>--host</option> and
+                        <option>--transition-service</option> options to
+                        interact with the port manager to determine the
+                        URIs to use to connect to the state manager.  These
+                        are only used if <option>--state-uri</option>
+                        and <option>--transition-uri</option> are
+                        not present on the command line.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>--transitino-service</option>, <option>-T</option></term>
+                <listitem>
+                    <para>
+                        The value of this option supplies the name
+                        of the sevice the state manager is advertising on
+                        which state transition requests will be accepted.
+                        Used along with the <option>--host</option>
+                        and <option>--state-service</option> options to
+                        interact with the port manager to determine the
+                        URIs to use to connect to the state manager.  These
+                        are only used if <option>--state-uri</option>
+                        and <option>--transition-uri</option> are
+                        not present on the command line.
+                    </para>
+                </listitem>
+            </varlistentry>
+                        
            </variablelist>
         </refsect1>
 
