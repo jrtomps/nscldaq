@@ -658,3 +658,6 @@ Work on 11.0-rc11 begins
           the program runs an event loop for command input rather than just the
           plain old Tcl interpreter loop (this last ensures that Tcl_ThreadQueueEvent
           events are eventually actually executed in the target interpreter/thread).
+        * Add Feature #2138 - Support running the VMUSBReadout from within the
+          state/boot manager see above for the changes done.
+          

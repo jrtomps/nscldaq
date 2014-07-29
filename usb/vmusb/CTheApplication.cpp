@@ -18,6 +18,7 @@
 #include <config.h>
 #include "CTheApplication.h"
 #include "Globals.h"
+#include "event.h"
 
 #include <COutputThread.h>
 #include <TclServer.h>
@@ -25,11 +26,13 @@
 #include <CVMUSBFactory.h>
 
 #include <TCLInterpreter.h>
+#include <TCLLiveEventLoop.h>
 #include <CBeginRun.h>
 #include <CEndRun.h>
 #include <CPauseRun.h>
 #include <CResumeRun.h>
 #include <Exception.h>
+#include <ErrnoException.h>
 #include <tcl.h>
 #include <DataBuffer.h>
 #include <CRingBuffer.h>
@@ -77,6 +80,7 @@ static       int      tclServerPort(27000);		    // Default value.
 // Static member variables and initialization.
 
 bool CTheApplication::m_Exists(false);
+std::string CTheApplication::m_initScript;
 
 /*!
    Construct ourselves.. Note that if m_Exists is true,
@@ -151,7 +155,9 @@ int CTheApplication::operator()(int argc, char** argv)
     enumerateVMUSB();
     Tcl_Exit(EXIT_SUCCESS);
   }
-
+  if (parsedArgs.init_script_given) {
+    m_initScript = parsedArgs.init_script_arg;
+  }
   try {				// Last chance exception catching...
     
     // How the USB controller is created depends on the parameters.
@@ -342,7 +348,25 @@ CTheApplication::AppInit(Tcl_Interp* interp)
   new CEndRun(*pInterp);
   new CPauseRun(*pInterp);
   new CResumeRun(*pInterp);
-
+  
+  // If there's an initialization script then run it now:
+  
+  if (m_initScript != "") {
+    if (access(m_initScript.c_str(), R_OK) == 0) {
+            pInterp->EvalFile(m_initScript.c_str());
+    } else {
+            throw CErrnoException("Checking accessibility of --init-script");
+    }
+  }
+  // Save the main thread id and interpreter:
+  
+  Globals::mainThreadId     = Tcl_GetCurrentThread();
+  Globals::pMainInterpreter = pInterp;
+  
+    // Instantiate the live event loop and run it.
+    
+    CTCLLiveEventLoop* pEventLoop = CTCLLiveEventLoop::getInstance();
+    pEventLoop->start(pInterp);
 
   return TCL_OK;
 }
@@ -429,6 +453,68 @@ CTheApplication::ExitHandler(ClientData pData)
   if (pReadout->isRunning()) {
     pReadout->stopDaq();	// Flushes buffers etc. too.
   }
+}
+
+/**
+ * AcquisitionErrorHandler
+ *    The event handler for errors from the readout thread
+ *    * construct and invoke the onTriggerFail command
+ *    * If that fails, construct and invoke the bgerror command.
+ *
+ * @param pEvent - pointer to the event.
+ * @param flags  - event flags.
+ *
+ * @return int - 1 -indicating the event storage can be Tcl_Free'd.
+ */
+int
+CTheApplication::AcquisitionErrorHandler(Tcl_Event* pEvent, int flags)
+{
+    // Get the message text:
+    
+    struct event {
+        Tcl_Event     event;
+        StringPayload message;
+    };
+    event* pFullEvent = reinterpret_cast<event*>(pEvent);
+    std::string msg = pFullEvent->message.pMessage;
+    Tcl_Free(pFullEvent->message.pMessage);
+    
+    // Try the onTriggerFail command:
+    
+    CTCLInterpreter* pInterp = Globals::pMainInterpreter;
+    try {
+        pInterp->GlobalEval(
+            std::string(makeCommand(pInterp, "onTriggerFail", msg))
+        );
+    }
+    catch (...) {
+        // If that failed try bgerror:
+        
+        try {
+            pInterp->GlobalEval(
+                std::string(makeCommand(pInterp, "bgerror", msg))
+            );
+        }
+        catch(...) {}
+    }
+
+    return 1;    
+}
+/**
+ * makeCommand
+ *    Create a command as a CTCLObject
+*/
+CTCLObject
+CTheApplication::makeCommand(
+    CTCLInterpreter* pInterp, const char* verb, std::string param
+)
+{
+    CTCLObject result;
+    result.Bind(pInterp);
+    result += verb;
+    result += param;
+    
+    return result;
 }
 
 /*-------------------------------------------------------------------------------------------*/

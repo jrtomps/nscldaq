@@ -16,12 +16,14 @@
 
 #include <config.h>
 #include "CAcquisitionThread.h"
+#include "CTheApplication.h"
 #include <CReadoutModule.h>
 #include <CStack.h>
 #include <CVMUSB.h>
 #include <CVMUSBReadoutList.h>
 #include <DataBuffer.h>
 #include <CControlQueues.h>
+#include <event.h>
 #include "../router/CRunState.h" // else pick up the daq one by mistake.
 #include <CConfiguration.h>
 #include <Globals.h>		 // Need to maintain the running global. 
@@ -31,6 +33,7 @@
 #include <Exception.h>
 #include <TclServer.h>
 #include <os.h>
+#include <tcl.h>
 
 #include <iostream>
 
@@ -157,17 +160,38 @@ CAcquisitionThread::operator()()
 
 
     beginRun();			// Emit begin run buffer.
+    std::string errorMessage;
     try {
       
       mainLoop();			// Enter the main processing loop.
     }
-    catch (...) {			// exceptions are used to exit the main loop.?
+    catch (std::string msg) {
+        stopDaq();                       // Ensure we're not in ACQ moe.
+        errorMessage = msg;
+    }
+    catch (const char* msg) {
+        stopDaq();                       // Ensure we're not in ACQ moe.
+        errorMessage = msg;
+    }
+    catch (CException err) {
+        stopDaq();                       // Ensure we're not in ACQ moe.
+        errorMessage = err.ReasonText();
+    }
+    catch (...) {
+        //  This is a normal exit...
     }
     Globals::running = false;
     endRun();			// Emit end run buffer.
     pState->setState(CRunState::Idle);
     
     m_Running = false;		// Exiting.
+    
+    // If there's an error message report the error to the main thread:
+    
+    if (errorMessage != "") {
+        
+        reportErrorToMainThread(errorMessage);
+    }
     return      0;		// Successful exit I suppose.
   }
   catch (string msg) {
@@ -284,7 +308,7 @@ CAcquisitionThread::processCommand(CControlQueues::opCode command)
   else if (command == CControlQueues::END) {
     stopDaq();
     queues->Acknowledge();
-    throw "Run ending";
+    throw 0;
   }
   else if (command == CControlQueues::PAUSE) {
     pauseDaq();
@@ -497,7 +521,7 @@ CAcquisitionThread::pauseDaq()
     }
     else if (req == CControlQueues::END) {
       queues->Acknowledge();
-      throw "Run Ending";
+      throw 0;
     }
     else if (req == CControlQueues::RESUME) {
       startDaq();
@@ -611,4 +635,31 @@ CAcquisitionThread::bootToTheHead()
 				     &bytesRead, DRAINTIMEOUTS*1000);
 	cerr << "Final desparate attempt to flush usb fifo got status: " 
 	     << status << endl;
+}
+/**
+ * report an error during acquisition to the main thread by scheduling
+ * an event.
+ *
+ * @param msg - the error message to report.
+ */
+void
+CAcquisitionThread::reportErrorToMainThread(std::string msg)
+{
+    struct event {
+        Tcl_Event     event;
+        StringPayload payload;
+    } ;
+    
+    // Allocate and fill in the event:
+    
+    event* pEvent = reinterpret_cast<event*>(Tcl_Alloc(sizeof(event)));
+    pEvent->event.proc = CTheApplication::AcquisitionErrorHandler;
+    pEvent->payload.pMessage = Tcl_Alloc(msg.size() +1);
+    strcpy(pEvent->payload.pMessage, msg.c_str());
+    Tcl_ThreadQueueEvent(
+        Globals::mainThreadId, reinterpret_cast<Tcl_Event*>(pEvent),
+        TCL_QUEUE_TAIL
+    );
+    
+    
 }

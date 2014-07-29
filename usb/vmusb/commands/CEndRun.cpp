@@ -74,14 +74,15 @@ CEndRun::operator()(CTCLInterpreter& interp,
 		   objv, usage);
     return TCL_ERROR;
   }
-  // Now stop the run.
+  // Now stop the run...that is if the acquisition thread is still running
 
-  CControlQueues* pRequest = CControlQueues::getInstance();
-  pRequest->EndRun();
-
-
-  CAcquisitionThread::waitExit();
-
+  if(CAcquisitionThread::getInstance()->isRunning()) {
+    CControlQueues* pRequest = CControlQueues::getInstance();
+    pRequest->EndRun();
+  
+  
+    CAcquisitionThread::waitExit();
+  }
 
   pState->setState(CRunState::Idle);
 

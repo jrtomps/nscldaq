@@ -26,9 +26,13 @@
 #endif
 #endif
 
+#ifndef __TCLOBJECT_H
+#include <TCLObject.h>
+#endif
 
 class CTCLInterpreter;
 struct Tcl_Interp;
+struct Tcl_Event;
 
 
 /*!
@@ -56,6 +60,7 @@ class CTheApplication
 {
 private:
   static bool          m_Exists; //!< Enforce singletons via exceptions.
+  static std::string   m_initScript;
   int                  m_Argc;
   char**               m_Argv;
   CTCLInterpreter*     m_pInterpreter;
@@ -74,6 +79,7 @@ public:
   // entry point:
 
   virtual int operator()(int argc, char** argv);
+  static int  AcquisitionErrorHandler(Tcl_Event* pEvent, int flags);
 
   // Segments of operation.
 
@@ -93,6 +99,10 @@ private:
   static std::string destinationRing(const char* pRingName);
 
   static void ExitHandler(void* pData);
+  static CTCLObject makeCommand(
+    CTCLInterpreter* pInterp, const char* verb, std::string argument
+  );
+  
 
 };
 #endif

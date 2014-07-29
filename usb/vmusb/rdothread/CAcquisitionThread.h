@@ -103,7 +103,7 @@ private:
   void beginRun();
   void endRun();
   void bootToTheHead();
-
+  void reportErrorToMainThread(std::string msg);
 };
 
 #endif

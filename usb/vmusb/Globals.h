@@ -24,10 +24,19 @@
 #endif
 #endif
 
+#ifndef _TCL_H
+#include <tcl.h>
+#ifndef _TCL_H
+#define _TCL_H
+#endif
+#endif
+
 
 class CConfiguration;
 class CVMUSB;
 class TclServer;
+class CTCLInterpreter;
+
 
 /*!
   This namespace defines global variables.  We've tried to keep this to minimum.
@@ -51,6 +60,8 @@ namespace Globals {
   extern size_t          usbBufferSize;
   extern unsigned        sourceId;
   extern char*           pTimestampExtractor;
+  extern Tcl_ThreadId           mainThreadId;
+  extern CTCLInterpreter*       pMainInterpreter;
 };
 
 #endif

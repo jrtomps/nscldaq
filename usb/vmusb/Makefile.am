@@ -23,7 +23,7 @@ VMUSBReadout_DEPENDENCIES = cmdline.o
 
 BUILT_SOURCES = cmdline.h
 
-noinst_HEADERS = CTheApplication.h Globals.h
+noinst_HEADERS = CTheApplication.h Globals.h event.h
 
 INCLUDES = -I@top_srcdir@/usb/vmusb/vmusb -I@top_srcdir@/usb/vmusb/devices \
 	-I@top_srcdir@/usb/vmusb/threadcomm -I@top_srcdir@/usb/vmusb/router -I@top_srcdir@/usb/vmusb/rdothreaed \
@@ -35,7 +35,7 @@ INCLUDES = -I@top_srcdir@/usb/vmusb/vmusb -I@top_srcdir@/usb/vmusb/devices \
 	-I@top_srcdir@/base/dataflow   \
         -I@top_srcdir@/servers/portmanager \
 	-I@top_srcdir@/base/os		\
-	$(TCL_FLAGS) $(USBSWITCHES) 
+	@TCL_CPPFLAGS@ $(USBSWITCHES) 
 
 VMUSBReadout_LDADD	= cmdline.o @top_builddir@/usb/vmusb/devices/libVMUSBDevices.la	\
 		@top_builddir@/usb/vmusb/threadcomm/libVMUSBThreadComm.la	\
