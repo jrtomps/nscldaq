@@ -9,9 +9,9 @@
 
      Author:
              Ron Fox
-	     NSCL
-	     Michigan State University
-	     East Lansing, MI 48824-1321
+       NSCL
+       Michigan State University
+       East Lansing, MI 48824-1321
 */
 
 // Implementation of the CCCUSB class.
@@ -25,6 +25,8 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <os.h>
+#include <iostream>
+#include <iomanip>
 
 
 
@@ -54,7 +56,7 @@ static const uint16_t TAVcsIMMED(TAVcsCNAF);
 
 // Timeouts:
 
-static const int DEFAULT_TIMEOUT(2000);	// ms.
+static const int DEFAULT_TIMEOUT(2000); // ms.
 
 
 //   The following flag determines if enumerate needs to init the libusb:
@@ -76,19 +78,19 @@ const uint16_t CCCUSB::X(2);
   It is perfectly ok for thesre to be no VM-USB device on the USB 
   subsystem.  In that case an empty vector is returned.
 */
-vector<struct usb_device*>
+  vector<struct usb_device*>
 CCCUSB::enumerate()
 {
   if(!usbInitialized) {
     usb_init();
     usbInitialized = true;
   }
-  usb_find_busses();		// re-enumerate the busses
-  usb_find_devices();		// re-enumerate the devices.
-  
+  usb_find_busses();    // re-enumerate the busses
+  usb_find_devices();   // re-enumerate the devices.
+
   // Now we are ready to start the search:
-  
-  vector<struct usb_device*> devices;	// Result vector.
+
+  vector<struct usb_device*> devices; // Result vector.
   struct usb_bus* pBus = usb_get_busses();
 
   while(pBus) {
@@ -96,16 +98,16 @@ CCCUSB::enumerate()
     while(pDevice) {
       usb_device_descriptor* pDesc = &(pDevice->descriptor);
       if ((pDesc->idVendor  == USB_WIENER_VENDOR_ID)    &&
-	  (pDesc->idProduct == USB_CCUSB_PRODUCT_ID)) {
-	devices.push_back(pDevice);
+          (pDesc->idProduct == USB_CCUSB_PRODUCT_ID)) {
+        devices.push_back(pDevice);
       }
-      
+
       pDevice = pDevice->next;
     }
-    
+
     pBus = pBus->next;
   }
-  
+
   return devices;
 }
 /**
@@ -130,9 +132,9 @@ CCCUSB::serialNo(struct usb_device* dev)
   usb_dev_handle* pDevice = usb_open(dev);
 
   if (pDevice) {
-    char szSerialNo[256];	// actual string is only 6chars + null.
+    char szSerialNo[256]; // actual string is only 6chars + null.
     int nBytes = usb_get_string_simple(pDevice, dev->descriptor.iSerialNumber,
-				       szSerialNo, sizeof(szSerialNo));
+               szSerialNo, sizeof(szSerialNo));
     usb_close(pDevice);
 
     if (nBytes > 0) {
@@ -140,7 +142,7 @@ CCCUSB::serialNo(struct usb_device* dev)
     } else {
       throw std::string("usb_get_string_simple failed in CCCUSB::serialNo");
     }
-				       
+               
   } else {
     throw std::string("usb_open failed in CCCUSB::serialNo");
   }
@@ -148,29 +150,7 @@ CCCUSB::serialNo(struct usb_device* dev)
 }
 
 ////////////////////////////////////////////////////////////////////
-/*!
-  Construct the CCCUSB object.  This involves storing the
-  device descriptor we are given, opening the device and
-  claiming it.  Any errors are signalled via const char* exceptions.
-  \param vmUsbDevice   : usb_device*
-      Pointer to a USB device descriptor that we want to open.
 
-  \bug
-      At this point we take the caller's word that this is a VM-USB.
-      Future implementations should verify the vendor and product
-      id in the device structure, throwing an appropriate exception
-      if there is aproblem.
-
-*/
-CCCUSB::CCCUSB(struct usb_device* device) :
-    m_handle(0),
-    m_device(device),
-    m_timeout(DEFAULT_TIMEOUT)
-{
-  m_serial = serialNo(m_device);
-  openUsb();
-
-}
 ////////////////////////////////////////////////////////////////
 /*!
     Destruction of the interface involves releasing the claimed
@@ -178,71 +158,15 @@ CCCUSB::CCCUSB(struct usb_device* device) :
 */
 CCCUSB::~CCCUSB()
 {
-    usb_release_interface(m_handle, 0);
-    usb_close(m_handle);
-    Os::usleep(5000);
 }
 
-
-/**
- * reconnect
- *   
- * Drop connection with the CC-USB and re-open.
- * this can be called when you suspect the CC-USB might
- * have been power cycled.
-I*
-*/
-void
-CCCUSB::reconnect()
-{
-  usb_release_interface(m_handle, 0);
-  usb_close(m_handle);
-  Os::usleep(1000);
-
-  openUsb();
-}
 
 ////////////////////////////////////////////////////////////////////
 //////////////////////// Register operations ///////////////////////
 ////////////////////////////////////////////////////////////////////
-/*!
-    Writing a value to the action register.  This is really the only
-    special case for this code.  The action register is the only
-    item that cannot be handled by creating a local list and
-    then executing it immediately.
-    Action register I/O requires a special list, see section 4.2, 4.3
-    of the Wiener VM-USB manual for more information
-    \param value : uint16_t
-       The register value to write.
-*/
-void
-CCCUSB::writeActionRegister(uint16_t value)
-{
-    char outPacket[100];
 
 
-    // Build up the output packet:
 
-    char* pOut = outPacket;
-    
-    pOut = static_cast<char*>(addToPacket16(pOut, 5)); // Select Register block for transfer.
-    pOut = static_cast<char*>(addToPacket16(pOut, 1)); // Select action register wthin block.
-    pOut = static_cast<char*>(addToPacket16(pOut, value));
-
-    // This operation is write only.
-
-    int outSize = pOut - outPacket;
-    int status = usb_bulk_write(m_handle, ENDPOINT_OUT, 
-				outPacket, outSize, m_timeout);
-    if (status < 0) {
-	string message = "Error in usb_bulk_write, writing action register ";
-	message == strerror(-status);
-	throw message;
-    }
-    if (status != outSize) {
-	throw "usb_bulk_write wrote different size than expected";
-    }
-}
 /********************************************************************************/
 /*!
   Do a simple 16 bit write to CAMAC.   This is really done
@@ -330,7 +254,7 @@ int
 CCCUSB::simpleRead16(int n, int a, int f, uint16_t& data, uint16_t& qx)
 {
   CCCUSBReadoutList l;
-  uint32_t          buffer;	// For the return data.
+  uint32_t          buffer; // For the return data.
 
   // Use read32 to do the actual read.  Then put the bottom 16 bits in data
   // and the q/x bits in qx.
@@ -405,7 +329,7 @@ CCCUSB::simpleControl(int n, int a, int f, uint16_t& qx)
   
  
 
-  l.addControl(n,a,f);		// validates n/a/f.
+  l.addControl(n,a,f);    // validates n/a/f.
 
   int status = executeList(l, &qx, sizeof(qx), &nRead);
 
@@ -497,9 +421,9 @@ CCCUSB::writeGlobalMode(uint16_t data)
 
 */
 int
-CCCUSB::readDelays(uint16_t& value)
+CCCUSB::readDelays(uint32_t& value)
 {
-  return read16(25,2,0, value);
+  return read32(25,2,0, value);
 }
 /********************************************************************************/
 /*!
@@ -923,7 +847,7 @@ CCCUSB::writeUSBBulkTransferSetup(uint32_t value)
   uint16_t qx;
   return write32(25,14,16, value, qx);
 }
-				
+        
 /*************************************************************************/
 /*!
   Perform a crate C cycle.  In the 'laws of CAMAC', it's completely up to
@@ -1023,33 +947,6 @@ CCCUSB::uninhibit()
     In case of failure, the reason for failure is stored in the
     errno global variable.
 */
-int
-CCCUSB::executeList(CCCUSBReadoutList&     list,
-		   void*                  pReadoutBuffer,
-		   size_t                 readBufferSize,
-		   size_t*                bytesRead)
-{
-  size_t outSize;
-  uint16_t* outPacket = listToOutPacket(TAVcsIMMED,
-					list, &outSize);
-    
-    // Now we can execute the transaction:
-    
-  int status = transaction(outPacket, outSize,
-			   pReadoutBuffer, readBufferSize);
-  
-  
-  
-  delete []outPacket;
-  if(status >= 0) {
-    *bytesRead = status;
-  } 
-  else {
-    *bytesRead = 0;
-  }
-  return (status >= 0) ? 0 : status;
-  
-}
 /**
  * This is a swig friendly version of execute list:
  * 
@@ -1068,7 +965,7 @@ CCCUSB::executeList(CCCUSBReadoutList& list, int maxReadWords)
   size_t   actualBytes(0);
 
   executeList(list, pReadBuffer, maxReadWords*sizeof(uint16_t),
-	      &actualBytes);
+        &actualBytes);
 
   std::vector<uint16_t> result;
   for (int i =0; i < actualBytes/sizeof(uint16_t); i++) {
@@ -1082,209 +979,10 @@ CCCUSB::executeList(CCCUSBReadoutList& list, int maxReadWords)
 }
 
 
-
-/*!
-   Load a list into the CC-USB for later execution.
-   It is the callers responsibility to:
-   -  keep track of the lists and their  storage requirements, so that 
-      they are not loaded on top of or overlapping
-      each other, or so that the available list memory is not exceeded.
-   - Ensure the list number is valid and map it to a TAV.
-   - The listOffset is valid and that there is room in the list memory
-     following it for the entire list being loaded.
-   This code just load the list, it does not attach it to any specific trigger.
-   that is done via register operations performed after all the required lists
-   are in place.
-    
-   \param listNumber : uint8_t  
-      Number of the list to load. 
-      - 0 - Data list
-      - 1 - Scaler list.
-   \param list       : CCCUSBReadoutList
-      The constructed list.
-
-
-\return int
-\retval 0  - AOK.
-\retval -4 - List number is illegal
-\retval other - error from transaction.
-
-*/
-int
-CCCUSB::loadList(uint8_t  listNumber, CCCUSBReadoutList& list)
-{
-  // Need to construct the TA field, straightforward except for the list number
-  // which is splattered all over creation.
-  
-  uint16_t ta =  TAVcsWrite;
-  if (listNumber == 0) {
-    ta |= TAVcsDATA;
-  }
-  else if (listNumber == 1) {
-    ta |= TAVcsSCALER;
-  }
-  else {
-    return -4; 
-  }
-
-  size_t   packetSize;
-  uint16_t* outPacket = listToOutPacket(ta, list, &packetSize);
-
-
-  int status = usb_bulk_write(m_handle, ENDPOINT_OUT,
-			      reinterpret_cast<char*>(outPacket),
-			      packetSize, m_timeout);
-  if (status < 0) {
-    errno = -status;
-    status= -1;
-  }
-
-  delete []outPacket;
-  return (status >= 0) ? 0 : status;
-
-
-  
-}
-/*!
-  Execute a bulk read for the user.  The user will need to do this
-  when the VMUSB is in autonomous data taking mode to read buffers of data
-  it has available.
-  \param data : void*
-     Pointer to user data buffer for the read.
-  \param buffersSize : size_t
-     size of 'data' in bytes.
-  \param transferCount : size_t*
-     Number of bytes actually transferred on success.
-  \param timeout : int [2000]
-     Timeout for the read in ms.
- 
-  \return int
-  \retval 0   Success, transferCount has number of bytes transferred.
-  \retval -1  Read failed, errno has the reason. transferCount will be 0.
-
-*/
-int 
-CCCUSB::usbRead(void* data, size_t bufferSize, size_t* transferCount, int timeout)
-{
-  int status = usb_bulk_read(m_handle, ENDPOINT_IN,
-			     static_cast<char*>(data), bufferSize,
-			     timeout);
-  if (status >= 0) {
-    *transferCount = status;
-    status = 0;
-  } 
-  else {
-    errno = -status;
-    status= -1;
-    *transferCount = 0;
-  }
-  return status;
-}
-
-/*! 
-   Set a new transaction timeout.  The transaction timeout is used for
-   all usb transactions but usbRead where the user has full control.
-   \param ms : int
-      New timeout in milliseconds.
-*/
-void
-CCCUSB::setDefaultTimeout(int ms)
-{
-  m_timeout = ms;
-}
-
-
 ////////////////////////////////////////////////////////////////////////
 /////////////////////////////// Utility methods ////////////////////////
 ////////////////////////////////////////////////////////////////////////
 
-// Debug methods:
-
-// #define TRACE			// Comment out if not tracing
-
-
-void dumpWords(void* pWords, size_t readSize)
-{
-  readSize = readSize / sizeof(uint16_t);
-  uint16_t* s = reinterpret_cast<uint16_t*>(pWords);
-
- 
-  for (int i =0; i < readSize; i++) {
-    fprintf(stderr, "%04x ", *s++);
-    if (((i % 8) == 0) && (i != 0)) {
-      fprintf(stderr, "\n");
-    }
-  }
-  fprintf(stderr, "\n");
-}
-
-static void dumpRequest(void* pWrite, size_t writeSize, size_t readSize)
-{
-#ifdef TRACE
-  fprintf(stderr, "%d write, %d read\n", writeSize, readSize);
-  dumpWords(pWrite, writeSize);
-#endif
-}
-
-static void dumpResponse(void* pData, size_t readSize)
-{
-#ifdef TRACE
-  fprintf(stderr, "%d bytes in response\n", readSize);
-  dumpWords(pData, readSize);
-#endif
-}
-
-
-/*
-   Utility function to perform a 'symmetric' transaction.
-   Most operations on the VM-USB are 'symmetric' USB operations.
-   This means that a usb_bulk_write will be done followed by a
-   usb_bulk_read to return the results/status of the operation requested
-   by the write.
-   Parametrers:
-   void*   writePacket   - Pointer to the packet to write.
-   size_t  writeSize     - Number of bytes to write from writePacket.
-   
-   void*   readPacket    - Pointer to storage for the read.
-   size_t  readSize      - Number of bytes to attempt to read.
-
-
-   Returns:
-     > 0 the actual number of bytes read into the readPacket...
-         and all should be considered to have gone well.
-     -1  The write failed with the reason in errno.
-     -2  The read failed with the reason in errno.
-
-   NOTE:  The m_timeout is used for both write and read timeouts.
-
-*/
-int
-CCCUSB::transaction(void* writePacket, size_t writeSize,
-		    void* readPacket,  size_t readSize)
-{
-    int status = usb_bulk_write(m_handle, ENDPOINT_OUT,
-				static_cast<char*>(writePacket), writeSize, 
-				m_timeout);
-    dumpRequest(writePacket, writeSize, readSize);
-    if (status < 0) {
-	errno = -status;
-	return -1;		// Write failed!!
-    }
-    status    = usb_bulk_read(m_handle, ENDPOINT_IN,
-				static_cast<char*>(readPacket), readSize, m_timeout);
-    if (status < 0) {
-	errno = -status;
-	return -2;
-    }
-#ifdef TRACE
-    if (status == 0) {
-      fprintf(stderr, "usb_bulk_read returned 0\n");
-    } else {
-      dumpResponse(readPacket, status);
-    }
-#endif
-    return status;
-}
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -1336,7 +1034,7 @@ CCCUSB::getFromPacket16(void* packet, uint16_t* datum)
     *datum =  (low | (high << 8));
 
     return static_cast<void*>(pPacket);
-	
+  
 }
 /*!
    Same as above but a 32 bit item is returned.
@@ -1369,7 +1067,7 @@ CCCUSB::getFromPacket32(void* packet, uint32_t* datum)
 //
 uint16_t*
 CCCUSB::listToOutPacket(uint16_t ta, CCCUSBReadoutList& list,
-			size_t* outSize)
+      size_t* outSize)
 {
     int listShorts      = list.size();
     int packetShorts    = (listShorts+2);
@@ -1384,7 +1082,7 @@ CCCUSB::listToOutPacket(uint16_t ta, CCCUSBReadoutList& list,
 
     vector<uint16_t> stack = list.get();
     for (int i = 0; i < listShorts; i++) {
-	p = static_cast<uint16_t*>(addToPacket16(p, stack[i]));
+  p = static_cast<uint16_t*>(addToPacket16(p, stack[i]));
     }
     *outSize = packetShorts*sizeof(short);
     return outPacket;
@@ -1407,9 +1105,9 @@ CCCUSB::read32(int n, int a, int f, uint32_t& data)
  
   l.addRead24(n,a,f);
   int status = executeList(l, 
-			   &data,
-			   sizeof(data),
-			   &nRead);
+         &data,
+         sizeof(data),
+         &nRead);
 
   return status;
 }
@@ -1425,9 +1123,9 @@ CCCUSB::read16(int n, int a, int f, uint16_t& data)
 
   l.addRead16(n,a,f);
   return  executeList(l,
-		      &data,
-		      sizeof(data),
-		      &nRead);
+          &data,
+          sizeof(data),
+          &nRead);
 }
 //
 // Utility to do a 32 bit write.  For CAMAC targets,
@@ -1442,9 +1140,9 @@ CCCUSB::write32(int n, int a, int f, uint32_t data, uint16_t& qx)
 
   l.addWrite24(n,a,f, data);
   int status  = executeList(l,
-			    &qx,
-			    sizeof(qx),
-			    &nRead);
+          &qx,
+          sizeof(qx),
+          &nRead);
 
   return status;
 }
@@ -1462,63 +1160,10 @@ CCCUSB::write16(int n, int a, int f, uint16_t data, uint16_t& qx)
 
   l.addWrite16(n,a,f, data);
   return executeList(l,
-		     &qx,
-		     sizeof(qx),
-		     &nRead);
+         &qx,
+         sizeof(qx),
+         &nRead);
 
 }
 
 
-/**
- * openUsb
- *
- *  Does the common stuff required to open a connection
- *  to a CCUSB given that the device has been filled in.
- *
- *  Since the point of this is that it can happen after a power cycle
- *  on the CAMAC crate, we are only going to rely on m_serial being
- *  right and re-enumerate.
- *
- *  @throw std::string - on errors.
- */
-void
-CCCUSB::openUsb()
-{
-  // Re-enumerate and get the right value in m_device or throw
-  // if our serial number is no longer there:
-
-  std::vector<struct usb_device*> devices = enumerate();
-  m_device = 0;
-  for (int i = 0; i < devices.size(); i++) {
-    if (serialNo(devices[i]) == m_serial) {
-      m_device = devices[i];
-      break;
-    }
-  }
-  if (!m_device) {
-    std::string msg = "CC-USB with serial number ";
-    msg += m_serial;
-    msg += " cannot be located";
-    throw msg;
-  }
-
-    m_handle  = usb_open(m_device);
-    if (!m_handle) {
-	throw "CCCUSB::CCCUSB  - unable to open the device";
-    }
-    // Now claim the interface.. again this could in theory fail.. but.
-
-    usb_set_configuration(m_handle, 1);
-    int status = usb_claim_interface(m_handle, 0);
-    if (status == -EBUSY) {
-	throw "CCCUSB::CCCUSB - some other process has already claimed";
-    }
-
-    if (status == -ENOMEM) {
-	throw "CCCUSB::CMVUSB - claim failed for lack of memory";
-    }
-    usb_clear_halt(m_handle, ENDPOINT_IN);
-    usb_clear_halt(m_handle, ENDPOINT_OUT);
-   
-    Os::usleep(100);
-}

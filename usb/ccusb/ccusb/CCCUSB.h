@@ -64,15 +64,6 @@
 #endif
 #endif
 
-//  The structures below are defined in <usb.h> which is included
-//  by the implementation and can be treated as opaque by any of our
-//  clients (they are in fact opaque in usb.h if memory servers.
-
-struct usb_device;
-struct usb_dev_handle;
-
-
-// Forward Class definitions:
 
 /*!
   This class is the low level support for the Wiener/JTEC CCUSB module.
@@ -115,11 +106,6 @@ class CCCUSB
       ShadowRegisters() {}
     };
     // Class member data.
-private:
-    struct usb_dev_handle*  m_handle;	// Handle open on the device.
-    struct usb_device*      m_device;   // Device we are open on.
-    int                     m_timeout; // Timeout used when user doesn't give one.
-    std::string             m_serial;  // Connected device serial number.
     
 public:
     static std::vector<struct usb_device*> enumerate();
@@ -133,25 +119,24 @@ public:
     // and destruction implies a usb_release_interface(),
     // equality comparison has no useful meaning either:
 
-    CCCUSB(struct usb_device* vmUsbDevice);
     virtual ~CCCUSB();		// Although this is probably a final class.
 
     // Disallowed functions as described above.
 private:
-    CCCUSB(const CCCUSB& rhs);
     CCCUSB& operator=(const CCCUSB& rhs);
     int operator==(const CCCUSB& rhs) const;
     int operator!=(const CCCUSB& rhs) const;
 public:
-    void reconnect();
+
+
+    virtual void reconnect() = 0;
 
     CCCUSBReadoutList* createReadoutList() const { return new CCCUSBReadoutList; }
 
-    /**! Acquire the shadow registers  */
 
     // Register I/O operations.
 public:
-    void     writeActionRegister(uint16_t value);
+    virtual void     writeActionRegister(uint16_t value) = 0;
     void     writeActionRegister(int value) { /* Swig */
       writeActionRegister((uint16_t)value);
     }
@@ -161,11 +146,11 @@ public:
     // note that the CC-USB defines all registers but the action register to live in
     // CAMAC space.
 
-    int simpleWrite16(int n, int a, int f, uint16_t data, uint16_t& qx);
-    int simpleWrite24(int n, int a, int f, uint32_t data, uint16_t& qx);
-    int simpleRead16( int n, int a, int f, uint16_t& data, uint16_t& qx);
-    int simpleRead24( int n, int a, int f, uint32_t& data, uint16_t& qx);
-    int simpleControl(int n, int a, int f, uint16_t& qx);
+    virtual int simpleWrite16(int n, int a, int f, uint16_t data, uint16_t& qx);
+    virtual int simpleWrite24(int n, int a, int f, uint32_t data, uint16_t& qx);
+    virtual int simpleRead16( int n, int a, int f, uint16_t& data, uint16_t& qx);
+    virtual int simpleRead24( int n, int a, int f, uint32_t& data, uint16_t& qx);
+    virtual int simpleControl(int n, int a, int f, uint16_t& qx);
 
     // SWIG wrappers for simple I/O.
 
@@ -216,15 +201,15 @@ public:
     // followed by a swig wrapper:
 
 
-    int readFirmware(uint32_t& value);
+    virtual int readFirmware(uint32_t& value);
     unsigned  readFirmware() {
       uint32_t fw;
       readFirmware(fw);
       return fw;
     }
 
-    int readGlobalMode(uint16_t& value);
-    int writeGlobalMode(uint16_t value);
+    virtual int readGlobalMode(uint16_t& value);
+    virtual int writeGlobalMode(uint16_t value);
     unsigned readGlobalMode() {	/* swig */
       uint16_t mode;
       readGlobalMode(mode);
@@ -235,10 +220,10 @@ public:
     }
 
 
-    int readDelays(uint16_t& value);
-    int writeDelays(uint16_t value);
+    virtual int readDelays(uint32_t& value);
+    virtual int writeDelays(uint16_t value);
     unsigned  readDelays() {		/* swig */
-      uint16_t d;
+      uint32_t d;
       readDelays(d);
       return d;
     }
@@ -246,8 +231,8 @@ public:
       return writeDelays((uint16_t)value);
     }
 
-    int readScalerControl(uint32_t& value);
-    int writeScalerControl(uint32_t value);
+    virtual int readScalerControl(uint32_t& value);
+    virtual int writeScalerControl(uint32_t value);
     unsigned  readScalerControl() {	/* swig */
       uint32_t value;
       readScalerControl(value);
@@ -258,8 +243,8 @@ public:
     }
 
 
-    int readLedSelector(uint32_t& value);
-    int writeLedSelector(uint32_t value);
+    virtual int readLedSelector(uint32_t& value);
+    virtual int writeLedSelector(uint32_t value);
     unsigned  readLedSelector() { /* swig */
       uint32_t v;
       readLedSelector(v);
@@ -269,8 +254,8 @@ public:
       return writeLedSelector((uint32_t)value);
     }
       
-    int readOutputSelector(uint32_t& value);
-    int writeOutputSelector(uint32_t value);
+    virtual int readOutputSelector(uint32_t& value);
+    virtual int writeOutputSelector(uint32_t value);
     unsigned readOutputSelector() {	/* swig */
       uint32_t v;
       readOutputSelector(v);
@@ -279,8 +264,8 @@ public:
     int writeOutputSelector(int value) { /* swig */
       return writeOutputSelector((uint32_t)value);
     }
-    int readDeviceSourceSelectors(uint32_t& value);
-    int writeDeviceSourceSelectors(uint32_t value);
+    virtual int readDeviceSourceSelectors(uint32_t& value);
+    virtual int writeDeviceSourceSelectors(uint32_t value);
     unsigned readDeviceSourceSelectors() { /* swig */
       uint32_t s;
       readDeviceSourceSelectors(s);
@@ -290,9 +275,9 @@ public:
       return writeDeviceSourceSelectors((uint32_t)v);
     }
 
-    int readDGGA(uint32_t& value);
-    int readDGGB(uint32_t& value);
-    int readDGGExt(uint32_t& value);
+    virtual int readDGGA(uint32_t& value);
+    virtual int readDGGB(uint32_t& value);
+    virtual int readDGGExt(uint32_t& value);
     unsigned readDGGA() {		/* swig */
       uint32_t v;
       readDGGA(v);
@@ -309,9 +294,9 @@ public:
       return v;
     }
 
-    int writeDGGA(uint32_t value);
-    int writeDGGB(uint32_t value);
-    int writeDGGExt(uint32_t value);
+    virtual int writeDGGA(uint32_t value);
+    virtual int writeDGGB(uint32_t value);
+    virtual int writeDGGExt(uint32_t value);
     int writeDGGA(int value) {	/* swig */
       return writeDGGA((uint32_t)value);
     }
@@ -323,8 +308,8 @@ public:
     }
     
 
-    int readScalerA(uint32_t& value);
-    int readScalerB(uint32_t& value);
+    virtual int readScalerA(uint32_t& value);
+    virtual int readScalerB(uint32_t& value);
     unsigned  readScalerA() {	/* swig */
       uint32_t v;
       readScalerA(v);
@@ -337,8 +322,8 @@ public:
     }
 
 
-    int readLamTriggers(uint32_t& value);
-    int writeLamTriggers(uint32_t value);
+    virtual int readLamTriggers(uint32_t& value);
+    virtual int writeLamTriggers(uint32_t value);
     unsigned readLamTriggers() {	/* swig */
       uint32_t v;
       readLamTriggers(v);
@@ -350,8 +335,8 @@ public:
 				    
 
 
-    int readUSBBulkTransferSetup(uint32_t& value);
-    int writeUSBBulkTransferSetup(uint32_t value);
+    virtual int readUSBBulkTransferSetup(uint32_t& value);
+    virtual int writeUSBBulkTransferSetup(uint32_t value);
     unsigned readUSBBulkTransferSetup(){ /* swig */
       uint32_t v;
       readUSBBulkTransferSetup(v);
@@ -361,31 +346,34 @@ public:
       return writeUSBBulkTransferSetup((uint32_t)value);
     }
 
-
-    
-    int c();
-    int z();
-    int inhibit();
-    int uninhibit();
+    virtual int c();
+    virtual int z();
+    virtual int inhibit();
+    virtual int uninhibit();
     
 
     // List operations.
 
 public:
-    int executeList(CCCUSBReadoutList& list,
-		    void*               pReadBuffer,
-		    size_t              readBufferSize,
-		    size_t*             bytesRead);
+//    int executeList(CCCUSBReadoutList& list,
+//		    void*               pReadBuffer,
+//		    size_t              readBufferSize,
+//		    size_t*             bytesRead);
+    virtual int executeList(CCCUSBReadoutList& list,
+                            void* pReadBuffer,
+                            size_t readBufferSize,
+                            size_t* bytesRead) = 0;
 
     std::vector<uint16_t> executeList(CCCUSBReadoutList& list,
 				      int maxReadWords); /* swig */
 
 
-    int loadList(uint8_t                listNumber,
-		 CCCUSBReadoutList&    list);
-    int loadList(int listNumber,
-		 CCCUSBReadoutList& list) {
-      loadList((uint8_t)listNumber, list);
+    virtual int loadList(uint8_t listNumber,
+                         CCCUSBReadoutList& list) = 0;
+
+
+    int loadList(int listNumber, CCCUSBReadoutList& list) {
+       loadList((uint8_t)listNumber, list);
     }
 
 
@@ -393,20 +381,13 @@ public:
     // Once the interface is in DAQ auntonomous mode, the application
     // should call the following function to read acquired data.
 
-    int usbRead(void* data, size_t bufferSize, size_t* transferCount,
-		int timeout = 2000);
-
-    // Other administrative functions:
-
-    void setDefaultTimeout(int ms); // Can alter internally used timeouts.
+    virtual int usbRead(void* data, size_t bufferSize, size_t* transferCount,
+                        int timeout = 2000) = 0;
 
     // Register bit definintions.
 
     // Local functions:
-private:
-    int transaction(void* writePacket, size_t writeSize,
-		    void* readPacket,  size_t readSize);
-
+protected:
     void* addToPacket16(void* packet,   uint16_t datum);
     void* addToPacket32(void* packet,   uint32_t datum);
     void* getFromPacket16(void* packet, uint16_t* datum);
@@ -415,13 +396,11 @@ private:
     uint16_t* listToOutPacket(uint16_t ta, CCCUSBReadoutList& list, size_t* outSize);
 
 
-    int read32(int n, int a, int f, uint32_t& data);
-    int read16(int n, int a, int f, uint16_t& data); /* Really just for register reads */
+    virtual int read32(int n, int a, int f, uint32_t& data);
+    virtual int read16(int n, int a, int f, uint16_t& data); /* Really just for register reads */
 
-    int write32(int n, int a, int f, uint32_t data, uint16_t& qx);
-    int write16(int n, int a, int f, uint16_t data, uint16_t& qx); /*  just for register writes */
-
-    void openUsb();
+    virtual int write32(int n, int a, int f, uint32_t data, uint16_t& qx);
+    virtual int write16(int n, int a, int f, uint16_t data, uint16_t& qx); /*  just for register writes */
 
 
   // The following are classes that define bits/fields in the registers of the CC-USB.

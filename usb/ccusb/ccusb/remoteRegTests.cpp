@@ -4,7 +4,7 @@
 #include <cppunit/Asserter.h>
 #include "Asserts.h"
 #include <usb.h>
-#include <CCCUSBusb.h>
+#include <CCCUSBRemote.h>
 #include <vector>
 #include <stdio.h>
 #include <iostream>
@@ -15,9 +15,9 @@ using namespace std;
 
 static Warning msg(string("regTests requires at least one CC-USB interface"));
 
-class registerTests : public CppUnit::TestFixture {
-  CPPUNIT_TEST_SUITE(registerTests);
-  CPPUNIT_TEST(action);
+class RemoteRegisterTests : public CppUnit::TestFixture {
+  CPPUNIT_TEST_SUITE(RemoteRegisterTests);
+//  CPPUNIT_TEST(action);
   CPPUNIT_TEST(fwid);
   CPPUNIT_TEST(globmode);
   CPPUNIT_TEST(delays); //< This hangs the CCUSB up and make it unhappy
@@ -41,12 +41,7 @@ private:
 
 public:
   void setUp() {
-    vector<struct usb_device*> devices = CCCUSBusb::enumerate();
-    if (devices.size() == 0) {
-      cerr << " NO USB interfaces\n";
-      exit(0);
-    }
-    m_pInterface = new CCCUSBusb(devices[0]);
+    m_pInterface = new CCCUSBRemote("test","localhost",27000);
 //    m_pShadow = &m_pInterface->getShadowRegisters();
   }
   void tearDown() {
@@ -72,18 +67,18 @@ protected:
   void uninhibit();
 };
 
-CPPUNIT_TEST_SUITE_REGISTRATION(registerTests);
+CPPUNIT_TEST_SUITE_REGISTRATION(RemoteRegisterTests);
 
 //write action register... can only determine that no throws happen.
 
-void registerTests::action() {
-  m_pInterface->writeActionRegister(0);	// this is really the only safe thing to write here.
+//void RemoteRegisterTests::action() {
+//  m_pInterface->writeActionRegister(0);	// this is really the only safe thing to write here.
 				   
-}
+//}
 
 // Read firmware: can only output and hope no exceptions.
 
-void registerTests::fwid()
+void RemoteRegisterTests::fwid()
 {
   uint32_t fw = m_pInterface->readFirmware();
   cout << hex << setw(8) << setprecision(0) << fw << dec << endl;
@@ -91,7 +86,7 @@ void registerTests::fwid()
 // Write 0's to the gobal mode register... all the 
 // bits that count should match.. then turn them all  on too.
 //
-void registerTests::globmode()
+void RemoteRegisterTests::globmode()
 {
   uint16_t validmask = 0x17f;	// Bits that matter in the register.
   m_pInterface->writeGlobalMode(0);
@@ -115,7 +110,7 @@ void registerTests::globmode()
 
 
 // Test the delays 
-void registerTests::delays() 
+void RemoteRegisterTests::delays() 
 {
   m_pInterface->writeDelays(0xff);
 //  EQMSG("wrote shadow ones", (uint16_t)0xffff, m_pShadow->delays);
@@ -137,7 +132,7 @@ void registerTests::delays()
 }
 
 // Test the scaler control 
-void registerTests::scalercontrol() 
+void RemoteRegisterTests::scalercontrol() 
 {
   m_pInterface->writeScalerControl(0xff);
 //  EQMSG("wrote shadow ones", (uint16_t)0xffff, m_pShadow->delays);
@@ -159,7 +154,7 @@ void registerTests::scalercontrol()
 }
 // LEDSrc has somed dead bits.
 
-void registerTests::ledsrc()
+void RemoteRegisterTests::ledsrc()
 {
   uint32_t usedBits = 0x373737;
 
@@ -174,7 +169,7 @@ void registerTests::ledsrc()
 
 }
 
-void registerTests::output()
+void RemoteRegisterTests::output()
 {
   uint32_t usedBits = 0x373737;
 
@@ -190,7 +185,7 @@ void registerTests::output()
 }
 // Dev src register also has some dead bits.
 
-void registerTests::devsrc()
+void RemoteRegisterTests::devsrc()
 {
   uint32_t usedBits =  0x007071717; // 7777 not 77ff since reset is momentary.
   uint32_t clearBits = 0x00004040;
@@ -224,7 +219,7 @@ void registerTests::devsrc()
 // Three registers for the gate and delay register use all 32 bits.
 // dgga, dggb, dggextended.
 
-void registerTests::dgg()
+void RemoteRegisterTests::dgg()
 {
 
   // DGG A control register.
@@ -274,7 +269,7 @@ void registerTests::dgg()
 //
 // only some bits of the bulk transfer setup register are used.
 
-void registerTests::lammask()
+void RemoteRegisterTests::lammask()
 {
   uint32_t usedBits = 0xfff;
   m_pInterface->writeLamTriggers(0xffffffff);
@@ -292,7 +287,7 @@ void registerTests::lammask()
 //
 // only some bits of the bulk transfer setup register are used.
 
-void registerTests::bulksetup()
+void RemoteRegisterTests::bulksetup()
 {
   uint32_t usedBits = 0xfff;
   m_pInterface->writeUSBBulkTransferSetup(0xffffffff);
@@ -310,26 +305,26 @@ void registerTests::bulksetup()
 
 // There really isn't much to test here but we can at least call the function and see 
 // that it succeeds
-void registerTests::c()
+void RemoteRegisterTests::c()
 {
   EQMSG("c() good return status", 0, m_pInterface->c());
 }
 
 // There really isn't much to test here but we can at least call the function and see 
 // that it succeeds
-void registerTests::z()
+void RemoteRegisterTests::z()
 {
   EQMSG("z() good return status", 0, m_pInterface->z());
 }
 
 // that it succeeds
-void registerTests::inhibit()
+void RemoteRegisterTests::inhibit()
 {
   EQMSG("inhibit() good return status", 0, m_pInterface->inhibit());
 }
 
 // that it succeeds
-void registerTests::uninhibit()
+void RemoteRegisterTests::uninhibit()
 {
   EQMSG("uninhibit() good return status", 0, m_pInterface->uninhibit());
 }
