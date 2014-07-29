@@ -9,13 +9,13 @@
 
      Author:
        NSCL DAQ Development Group 
-	     NSCL
-	     Michigan State University
-	     East Lansing, MI 48824-1321
+       NSCL
+       Michigan State University
+       East Lansing, MI 48824-1321
 */
 
-#ifndef __CCCUSBMODULE_H
-#define __CCCUSBMODULE_H
+#ifndef __CCCUSBCONTROL_H
+#define __CCCUSBCONTROL_H
 
 
 #ifndef __CCONTROLHARDWARE_H
@@ -49,7 +49,7 @@ class CControlModule;
 class CCCUSB;
 
 /**
- * CCCUSBModule allows arbitrary CAMAC access by a client.  The idea is that a set command
+ * CCCUSBControl allows arbitrary CAMAC access by a client.  The idea is that a set command
  * will provide basically a remote procedure call for the CCCUSB::executeList method.
  * The syntax is
  *   Set vmusb [list hexadecimalized-vmusbreadoutlist read-buffer-requirements]
@@ -69,16 +69,19 @@ class CCCUSB;
  * lists with one element... however if the run is active each list execution will pause/resume
  * the run so be aware and use with caution.
  */
-class CCCUSBModule : public CControlHardware
+class CCCUSBControl : public CControlHardware
 {
+private:
+  CControlModule* m_pConfiguration;
+
   // Canonical operations:
 public:
-  CCCUSBModule(std::string name);
-  CCCUSBModule(const CCCUSBModule& rhs);
-  virtual ~CCCUSBModule();
-  CCCUSBModule& operator=(const CCCUSBModule& rhs);
-  int operator==(const CCCUSBModule& rhs)const;
-  int operator!=(const CCCUSBModule& rhs)const;
+  CCCUSBControl(std::string name);
+  CCCUSBControl(const CCCUSBControl& rhs);
+  virtual ~CCCUSBControl();
+  CCCUSBControl& operator=(const CCCUSBControl& rhs);
+  int operator==(const CCCUSBControl& rhs)const;
+  int operator!=(const CCCUSBControl& rhs)const;
 
   // Virtual overrides:
   
@@ -91,7 +94,7 @@ public:
                           std::string value);            //!< Set parameter value
   virtual std::string Get(CCCUSB& ctlr, 
                           std::string parameter);        //!< Get parameter value.
-  virtual void  clone(const CControlHardware& rhs);	     //!< Virtual copy constr.
+  virtual void clone(const CControlHardware& rhs);       //!< Virtual copy constr.
 
   // Utilities if any required.
 

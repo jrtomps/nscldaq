@@ -3,21 +3,21 @@
 #include <cppunit/extensions/HelperMacros.h>
 #include <cppunit/Asserter.h>
 #include <Asserts.h>
-#include <CCCUSBModuleCreator.h>
+#include <CCCUSBControlCreator.h>
 #include <string> 
 #include <iostream> 
 #include <iomanip> 
 
 #define private public
 #define protected public
-#include <CCCUSBModule.h>
+#include <CCCUSBControl.h>
 #undef protected
 #undef private
 
 using namespace std;
 
-class CCCUSBModuleTests : public CppUnit::TestFixture {
-  CPPUNIT_TEST_SUITE(CCCUSBModuleTests);
+class CCCUSBControlTests : public CppUnit::TestFixture {
+  CPPUNIT_TEST_SUITE(CCCUSBControlTests);
 //  CPPUNIT_TEST(update);
   CPPUNIT_TEST(decodeInputSize0);
   CPPUNIT_TEST(decodeList0);
@@ -25,7 +25,7 @@ class CCCUSBModuleTests : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE_END();
 
   private:
-    CCCUSBModule* m_pMod;
+    CCCUSBControl* m_pMod;
     CCCUSB* m_pUSB;
 
   public:
@@ -39,19 +39,19 @@ class CCCUSBModuleTests : public CppUnit::TestFixture {
 
 };
 
-CPPUNIT_TEST_SUITE_REGISTRATION(CCCUSBModuleTests);
+CPPUNIT_TEST_SUITE_REGISTRATION(CCCUSBControlTests);
 
 
-void CCCUSBModuleTests::setUp() {
-  m_pMod = new CCCUSBModule("ccusb");
+void CCCUSBControlTests::setUp() {
+  m_pMod = new CCCUSBControl("ccusb");
   
 }
 
-void CCCUSBModuleTests::tearDown() {
+void CCCUSBControlTests::tearDown() {
   delete m_pMod;
 }
 
-//void CCCUSBModuleTests::update() {
+//void CCCUSBControlTests::update() {
 //  EQMSG("update returns OK", string("OK"), m_pMod->Update(*m_pUSB));
 //}
 
@@ -85,7 +85,7 @@ void printDiff(Iter lbegin, Iter lend, Iter rbegin, Iter rend) {
 }
 
 
-void CCCUSBModuleTests::decodeInputSize0()
+void CCCUSBControlTests::decodeInputSize0()
 {
   string list("{512} {5 0 1 2 3 4}");
   size_t size = m_pMod->decodeInputSize(list);
@@ -93,7 +93,7 @@ void CCCUSBModuleTests::decodeInputSize0()
         static_cast<size_t>(512), size);
 }
 
-void CCCUSBModuleTests::decodeList0() {
+void CCCUSBControlTests::decodeList0() {
   string strList("{512} {5 0 1 2 3 4}");
   std::vector<uint16_t> list = m_pMod->decodeList(strList);
   std::vector<uint16_t> modelList(6);
@@ -113,7 +113,7 @@ void CCCUSBModuleTests::decodeList0() {
 
 
 
-void CCCUSBModuleTests::marshallOutput0()
+void CCCUSBControlTests::marshallOutput0()
 {
   uint8_t buffer[8];
   for (int i=0; i<8; i++) buffer[i] = i;

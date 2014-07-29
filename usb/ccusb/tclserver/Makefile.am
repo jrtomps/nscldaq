@@ -18,8 +18,8 @@ libCCUSBControlServer_la_SOURCES	= 	CControlHardware.cpp	\
 					CPH7106Creator.cpp	\
 					CTclControlModule.cpp	\
 					CTclModuleCreator.cpp \
-					CCCUSBModule.cpp	\
-					CCCUSBModuleCreator.cpp	
+					CCCUSBControl.cpp	\
+					CCCUSBControlCreator.cpp	
 
 noinst_HEADERS			=	CSetCommand.h		\
 					server.h		\
@@ -40,8 +40,8 @@ noinst_HEADERS			=	CSetCommand.h		\
 					CPH7106Creator.h	\
 					CTclControlModule.h	\
 					CTclModuleCreator.h \
-					CCCUSBModule.h \
-          CCCUSBModuleCreator.h 
+					CCCUSBControl.h \
+          CCCUSBControlCreator.h 
 
 
 INCLUDES			= 	-I@top_srcdir@/usb/ccusb		\
@@ -81,7 +81,7 @@ EXTRA_DIST=driver_Makefile.in sampleDriver.cpp
 noinst_PROGRAMS=unittests
 
 
-unittests_SOURCES=TestRunner.cpp cccusbmoduletests.cpp
+unittests_SOURCES=TestRunner.cpp cccusbcontroltests.cpp
 unittests_LDADD    = $(CPPUNIT_LDFLAGS) \
                      -L@libdir@ -lCCUSBControlServer \
                      @top_builddir@/usb/ccusb/ccusb/libCCUSB.la \

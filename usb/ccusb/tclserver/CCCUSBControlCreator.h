@@ -14,13 +14,13 @@
 	     East Lansing, MI 48824-1321
 */
 
-#ifndef __CCCUSBMODULECREATOR_H
-#define __CCCUSBMODULECREATOR_H
+#ifndef __CCCUSBCONTROLCREATOR_H
+#define __CCCUSBCONTROLCREATOR_H
 
 
 /**
- * @file CCCUSBModuleCreator.h
- * @brief Creates CTclControlModule objects...wrappers for Tcl driver instances.
+ * @file CCCUSBControlCreator.h
+ * @brief Creates CCCUSBControl objects...wrappers for Tcl driver instances.
  * @author Ron Fox <fox@nscl.msu.edu>
  */
 
@@ -33,7 +33,7 @@
 /**
  * Concrete CModuleCreator that created Tcl driver wrapper objects.
  */
-class CCCUSBModuleCreator : public CModuleCreator
+class CCCUSBControlCreator : public CModuleCreator
 {
 public:
   virtual CControlHardware* operator()(std::string name);

@@ -28,7 +28,7 @@ using namespace std;
 #include "CCAEN894Creator.h"
 #include "CPH7106Creator.h"
 #include "CTclModuleCreator.h"
-#include "CCCUSBModuleCreator.h"
+#include "CCCUSBControlCreator.h"
 
 #include "C894.h"
 #include "CPH7106.h"
@@ -55,7 +55,7 @@ CModuleCommand::CModuleCommand(CTCLInterpreter& interp,
   pFact->addCreator("caen894", new CCAEN894Creator);
   pFact->addCreator("ph7106", new CPH7106Creator);
   pFact->addCreator("tcl",    new CTclModuleCreator);
-  pFact->addCreator("ccusb",  new CCCUSBModuleCreator);
+  pFact->addCreator("ccusb",  new CCCUSBControlCreator);
 }
 //! Destroy the module.. no op provided only as a chain to the base class destructor.
 CModuleCommand::~CModuleCommand()

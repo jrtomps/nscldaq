@@ -15,13 +15,13 @@
 */
 
 /**
- * @file CCCUSBModuleCreator.cpp
- * @brief Implementation of the module creator for CCCUSBModule objects.
+ * @file CCCUSBControlCreator.cpp
+ * @brief Implementation of the module creator for CCCUSBControl objects.
  * @author Jeromy Tompkins <tompkins@nscl.msu.edu>
  */
 
-#include "CCCUSBModuleCreator.h"
-#include "CCCUSBModule.h"
+#include "CCCUSBControlCreator.h"
+#include "CCCUSBControl.h"
 
 /**
  * operator()
@@ -31,7 +31,7 @@
  * @return CControlHardware* Pointer to the newly created module.
  */
 CControlHardware*
-CCCUSBModuleCreator::operator()(std::string name)
+CCCUSBControlCreator::operator()(std::string name)
 {
-  return new CCCUSBModule(name);
+  return new CCCUSBControl(name);
 }

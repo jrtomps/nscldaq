@@ -9,16 +9,16 @@
 
      Author:
              Ron Fox
-	     NSCL
-	     Michigan State University
-	     East Lansing, MI 48824-1321
+       NSCL
+       Michigan State University
+       East Lansing, MI 48824-1321
 */
 
 #include <config.h>
-#include "CCCUSBModule.h"
+#include "CCCUSBControl.h"
 #include "CControlModule.h"
 #include "CCCUSB.h"
-#include "CCCUSBReadoutList.h"	// for the AM codes.
+#include "CCCUSBReadoutList.h"  // for the AM codes.
 
 #include <TCLInterpreter.h>
 #include <TCLList.h>
@@ -28,7 +28,6 @@
 #include <stdlib.h>
 #include <vector>
 #include <errno.h>
-#include <iostream>
 
 using namespace std;
 
@@ -40,13 +39,13 @@ using namespace std;
  * need the configuration.
  * @param name - Name of the module supplied in the script.
  */
-CCCUSBModule::CCCUSBModule(string name) :
+CCCUSBControl::CCCUSBControl(string name) :
   CControlHardware(name)
 {}
 /**
  * Copy construction
  */
-CCCUSBModule::CCCUSBModule(const CCCUSBModule& rhs) :
+CCCUSBControl::CCCUSBControl(const CCCUSBControl& rhs) :
   CControlHardware(rhs)
   
 {
@@ -55,17 +54,17 @@ CCCUSBModule::CCCUSBModule(const CCCUSBModule& rhs) :
 /**
  * Destruction is literally a no-op.
  */
-CCCUSBModule::~CCCUSBModule()
+CCCUSBControl::~CCCUSBControl()
 {
 }
 /**
  * Assignment is a clone operation:
  * @param rhs - The source of the assignment (this is the target).
- * @return CCCUSBModule&
+ * @return CCCUSBControl&
  * @retval *this
  */
-CCCUSBModule&
-CCCUSBModule::operator=(const CCCUSBModule& rhs)
+CCCUSBControl&
+CCCUSBControl::operator=(const CCCUSBControl& rhs)
 {
   if (this != &rhs) {
     clone(rhs);
@@ -77,7 +76,7 @@ CCCUSBModule::operator=(const CCCUSBModule& rhs)
  *  a configuration.
 */
 int
-CCCUSBModule::operator==(const CCCUSBModule& rhs) const
+CCCUSBControl::operator==(const CCCUSBControl& rhs) const
 {
   return 1;
 }
@@ -85,7 +84,7 @@ CCCUSBModule::operator==(const CCCUSBModule& rhs) const
  * So therefore none are ever unequal.
  */
 int
-CCCUSBModule::operator!=(const CCCUSBModule& rhs) const
+CCCUSBControl::operator!=(const CCCUSBControl& rhs) const
 {
   return 0;
 } 
@@ -94,17 +93,18 @@ CCCUSBModule::operator!=(const CCCUSBModule& rhs) const
  * Since there's not really a configuration, this is a no-op.
  */
 void
-CCCUSBModule::onAttach(CControlModule& configuration)
+CCCUSBControl::onAttach(CControlModule& configuration)
 {
+  m_pConfig = &configuration;
 }
 
 // Init and update do nothing as well:
 
 void
-CCCUSBModule::Initialize(CCCUSB& vme)
+CCCUSBControl::Initialize(CCCUSB& vme)
 {}
 string
-CCCUSBModule::Update(CCCUSB& vme)
+CCCUSBControl::Update(CCCUSB& vme)
 {
   return string("OK");
 }
@@ -122,7 +122,7 @@ CCCUSBModule::Update(CCCUSB& vme)
  *   ERROR - reason   not successful.
  */
 string
-CCCUSBModule::Set(CCCUSB& vme, string parameter, string value)
+CCCUSBControl::Set(CCCUSB& vme, string parameter, string value)
 {
   if (parameter != "list") {
     return string ("ERROR - Invalid parameter name, must be 'list'");
@@ -140,9 +140,9 @@ CCCUSBModule::Set(CCCUSB& vme, string parameter, string value)
     readdata                      = new uint8_t[maxBuffer];
     vector<uint16_t> listContents = decodeList(value);
     CCCUSBReadoutList theList(listContents);
-    int status                    = vme.executeList(theList,
-						    readdata,
-						    maxBuffer, &bytesread);
+    int status = vme.executeList( theList,
+                                  readdata,
+                                  maxBuffer, &bytesread);
     if (status == 0) {
       string result =  marshallOutput(readdata, bytesread);
       delete []readdata;
@@ -162,7 +162,7 @@ CCCUSBModule::Set(CCCUSB& vme, string parameter, string value)
     throw msg;
     
   }
-  catch (string msg) {		// Deep calls throw a string error message:
+  catch (string msg) {    // Deep calls throw a string error message:
     string error  = "ERROR - ";
     error        += msg;
     throw error;
@@ -173,7 +173,7 @@ CCCUSBModule::Set(CCCUSB& vme, string parameter, string value)
  * Get is always an error.
  */
 string
-CCCUSBModule::Get(CCCUSB& vme, string parameter) 
+CCCUSBControl::Get(CCCUSB& vme, string parameter) 
 {
   return "ERROR - Get not supported by VMUSBModule driver";
 }
@@ -181,7 +181,7 @@ CCCUSBModule::Get(CCCUSB& vme, string parameter)
  * Clone is a noop.
  */
 void
-CCCUSBModule::clone(const CControlHardware& rhs)
+CCCUSBControl::clone(const CControlHardware& rhs)
 {
 }
 
@@ -198,7 +198,7 @@ CCCUSBModule::clone(const CControlHardware& rhs)
  *        first element doesn't decode as a valid size_t (uint32_t for now).
  */
 size_t 
-CCCUSBModule::decodeInputSize(std::string& list)
+CCCUSBControl::decodeInputSize(std::string& list)
 {
   CTCLInterpreter interp;
   CTCLList        tclList(&interp, list);
@@ -227,7 +227,7 @@ CCCUSBModule::decodeInputSize(std::string& list)
  *                 all uint16_t's.
  */
 vector<uint16_t>
-CCCUSBModule::decodeList(string& list)
+CCCUSBControl::decodeList(string& list)
 {
   CTCLInterpreter interp;
   CTCLList        outerList(&interp, list);
@@ -265,7 +265,7 @@ CCCUSBModule::decodeList(string& list)
  * @retval - value to return to the ultimate caller of the Set command.
  */
 string
-CCCUSBModule::marshallOutput(uint8_t* buffer, size_t numBytes)
+CCCUSBControl::marshallOutput(uint8_t* buffer, size_t numBytes)
 {
   string result = "OK  - {";
   for (int i =0; i < numBytes; i++) {
