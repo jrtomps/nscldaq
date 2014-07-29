@@ -97,7 +97,8 @@ private:
   void drainUsb();
   void beginRun();
   void endRun();
-
+  void reportErrorToMainThread(std::string msg);
+  
 };
 
 #endif

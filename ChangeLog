@@ -648,4 +648,13 @@ Open Rc10 work
 	statemanager as FAIL transition requests.
 	* Issue #2122 - Documentation of the elements created/changed in
 	the experiment configuration Begin/End sprint.
+
+Work on 11.0-rc11 begins
 	
+        * Fix Bug #2135 - --version switch didn't really work for python programs
+          implemented in the rc11 sprint.
+        * Add Feature #2139 - Support running the CCUSBReadout from within the
+          state/boot manager by adding an --init-script option and ensuring that
+          the program runs an event loop for command input rather than just the
+          plain old Tcl interpreter loop (this last ensures that Tcl_ThreadQueueEvent
+          events are eventually actually executed in the target interpreter/thread).

@@ -14,6 +14,7 @@ INCLUDES		=  -I@top_srcdir@/usb/ccusb \
 			-I@top_srcdir@/usb/ccusb/devices			\
 			-I@top_srcdir@/usb/ccusb/ccusb				\
 			-I@top_srcdir@/usb/ccusb/daqconfig			\
+			@TCL_CPPFLAGS@						\
 			@LIBTCLPLUS_CFLAGS@					\
 			-I@top_srcdir@/base/thread				\
 			-I@top_srcdir@/base/os					\

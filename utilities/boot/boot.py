@@ -105,7 +105,7 @@ def parsargs():
     parser = argparse.ArgumentParser(
         description='Boot/shutdown experiment based on state manager'
     )
-    parser.add_argument('database', help='Experiment database', nargs='+')
+    parser.add_argument('database', help='Experiment database', nargs='*')
     parser.add_argument(
         '-v', '--version', help='Print program version and exit',
         action='store_const', const=1
@@ -123,7 +123,16 @@ def parsargs():
         '-t', '--transition-service', help='State transition request service name',
         default='StateRequest'
     )
-    return parser.parse_args()
+    args  = parser.parse_args()
+    
+    #  If --version is not specified we need at least one database:
+    
+    if (args.version == None) and (len(args.database)== 0) :
+        print("error: too few arguments:")
+        parser.print_help()
+        exit(1)
+    
+    return args
 
 ##
 # constructUri
@@ -201,13 +210,20 @@ def shutdown(monitor, prior, current, databases):
 if __name__ == '__main__':
     args = parsargs()
     
+    # --version means print version and exit:
+    
+    if args.version != None:
+        print("NSCL Boot manager version %s" % (args.version))
+        exit(0)
+    
     # Save the database name list:
     
     databases = args.database
-    
+        
     # Ensure all databases are readable files....at this time we don't require
     # they all be project databases...that requirement is made at startup
     # and shutdown.
+    
     
     for database in databases:
         if notReadable(database):

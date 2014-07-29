@@ -183,6 +183,13 @@ def onButtonPress(transition):
 #     State manager's event loop so both can be satisfied.
 
 args = parseArgs()
+
+# --version means print version and exit:
+
+if args.version != None:
+    print("NSCLDAQ Cpanel version %s" % (args.version))
+    exit(0)
+    
 smApi= connectStateManager(args)
 
 app,ui   = createUi()

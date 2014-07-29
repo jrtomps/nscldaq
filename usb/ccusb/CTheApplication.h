@@ -26,8 +26,13 @@
 #endif
 
 
+#ifndef __TCLOBJECT_H
+#include <TCLObject.h>
+#endif
+
 class CTCLInterpreter;
 struct Tcl_Interp;
+struct Tcl_Event;
 
 
 /*!
@@ -48,7 +53,8 @@ struct Tcl_Interp;
 class CTheApplication
 {
 private:
-  static bool          m_Exists; //!< Enforce singletons via exceptions.
+  static bool          m_Exists;     //!< Enforce singletons via exceptions.
+  static std::string   m_InitScript; //!< --init-script or NULL if not specified
   int                  m_Argc;
   char**               m_Argv;
   CTCLInterpreter*     m_pInterpreter;
@@ -67,6 +73,7 @@ public:
   // entry point:
 
   virtual int operator()(int argc, char** argv);
+  static int  HandleAcqThreadError(Tcl_Event* evPtr, int flags);
 
   // Segments of operation.
 
@@ -86,6 +93,9 @@ private:
   static std::string makeConfigFile(std::string baseName);
 
   static void ExitHandler(void* pData);
+  static CTCLObject makeCommand(
+    CTCLInterpreter* pInterp, const char* verb, std::string argument
+  );
 
 };
 #endif

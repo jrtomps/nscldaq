@@ -23,7 +23,9 @@
 #include <CCCUSB.h>
 
 #include <TCLInterpreter.h>
+#include <TCLObject.h>
 #include <TCLException.h>
+#include <TCLLiveEventLoop.h>
 #include <CBeginRun.h>
 #include <CEndRun.h>
 #include <CPauseRun.h>
@@ -36,6 +38,7 @@
 #include <CAcquisitionThread.h>
 
 #include <CPortManager.h>
+#include <Events.h>
 
 #include <vector>
 
@@ -70,6 +73,7 @@ static const uint32_t bufferCount(32); // Number of buffers that can be inflight
 // Static member variables and initialization.
 
 bool CTheApplication::m_Exists(false);
+std::string CTheApplication::m_InitScript("");
 
 /*!
    Construct ourselves.. Note that if m_Exists is true,
@@ -145,6 +149,12 @@ int CTheApplication::operator()(int argc, char** argv)
     enumerate();
     exit(EXIT_SUCCESS);
   }
+
+    // Set up the --init-script if it's been supplied:
+    
+    if (arg_struct.init_script_given) {
+        m_InitScript = arg_struct.init_script_arg;
+    }
 
   try {				// Last chance exception catching...
     
@@ -328,7 +338,9 @@ int
 CTheApplication::AppInit(Tcl_Interp* interp)
 {
   Tcl_Init(interp);
-  CTCLInterpreter* pInterp = new CTCLInterpreter(interp);
+  CTCLInterpreter* pInterp  = new CTCLInterpreter(interp);
+  Globals::pMainInterpreter = pInterp;
+  Globals::mainThread       = Tcl_GetCurrentThread();
   new CBeginRun(*pInterp);
   new CEndRun(*pInterp);
   new CPauseRun(*pInterp);
@@ -342,11 +354,27 @@ CTheApplication::AppInit(Tcl_Interp* interp)
     if (access(initScript.c_str(), R_OK) == 0) {
       pInterp->EvalFile(initScript.c_str());
     }
+    // If --init-script was specified, run it too:
+    
+    if (m_InitScript != "") {
+        if (access(m_InitScript.c_str(), R_OK) == 0) {
+            pInterp->EvalFile(m_InitScript.c_str());
+        } else {
+            throw CErrnoException("Checkiung accessibility of --init-script");
+        }
+    }
   }
   catch (CTCLException except) {
     cerr << "Failed to run initialization file.\n";
     cerr << except.ReasonText() << endl;
   }
+
+
+  // Rather than returning, we're going to start the event loop here
+  // so that we can be live to events posted from other threads:
+
+  CTCLLiveEventLoop* pEventLoop = CTCLLiveEventLoop::getInstance();
+  pEventLoop->start(pInterp);
 
   return TCL_OK;
 }
@@ -451,6 +479,78 @@ CTheApplication::ExitHandler(ClientData pData)
   }
 }
 
+/**
+ * HandleAcqThreadError
+*    Event handler that is queued when an acquisition thread error causes thread
+*    exit.  We invoke onTriggerFail.  If that returns an error we invoke
+*    bgerror.  In both cases the error messages is passed to the command.
+*
+*    @param Tcl_Event* pEvent - Pointer to the event... this has appended to it
+*                               a AcquisitionFailedEvent
+*    @param flgs              - Event flags.
+*
+*    @return int - 1 to allow the event to be deallocated.
+ */
+int
+CTheApplication::HandleAcqThreadError(Tcl_Event* pEvent, int flags)
+{
+    // Pull out the message and release its storage so that the event
+    // can be deleted without hanging storage around:
+    
+    typedef struct _AcqFailEvent {
+        Tcl_Event              event;
+        AcquisitionFailedEvent moreData;
+        
+    } *pAcqFailEvent;
+    pAcqFailEvent pE = reinterpret_cast<pAcqFailEvent>(pEvent);
+    std::string message = pE->moreData.pMessage;
+    Tcl_Free(pE->moreData.pMessage);
+    
+    // First try to execute the onTriggerFail command:
+    
+    CTCLObject cmd = makeCommand(Globals::pMainInterpreter, "onTriggerFail", message);
+    
+    try {
+        Globals::pMainInterpreter->GlobalEval(cmd);
+    } catch(...) {
+        // Failed so run the bgerror with a try /catch ignore...
+        
+        cmd = makeCommand(Globals::pMainInterpreter, "bgerror", message);
+        try {
+            Globals::pMainInterpreter->GlobalEval(cmd);
+        }
+        catch (...) {
+            
+        }
+    }
+    
+    return 1;                        // Can deallocate the event.
+}
+/**
+ * makeCommand
+ *    Create a command that consists of a verb and a single parameter.
+ *    Do it in such a way that quoting is done properly (e.g. a command is
+ *    a list)
+ *
+ *   @param pInterp - Pointer to the CTCLInterpreter that will be used to
+ *                    help in the list assembly.
+ *   @param verb    - The verb of the command.
+ *   @param param   - The command's parameter.
+ *   @return CTCLObject - Containing the command as a list, bound to pInterp.
+ */
+CTCLObject
+CTheApplication::makeCommand(
+    CTCLInterpreter* pInterp, const char* verb, std::string param
+)
+{
+    CTCLObject result;
+    result.Bind(pInterp);
+    
+    result = verb;
+    result += param;
+    
+    return result;
+}
 /**
  * Create the application object and transfer control to it.
  *

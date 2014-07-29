@@ -16,6 +16,7 @@
 
 #include <config.h>
 #include "CAcquisitionThread.h"
+#include <CTheApplication.h>
 #include <CReadoutModule.h>
 #include <CStack.h>
 #include <CCCUSB.h>
@@ -30,6 +31,8 @@
 #include <Globals.h>
 #include <CConfiguration.h>
 #include <os.h>
+#include <Events.h>
+#include <tcl.h>
 
 #include <iostream>
 
@@ -137,6 +140,7 @@ CAcquisitionThread::waitExit()
 void
 CAcquisitionThread::init()
 {
+  std::string errorMessage;
   try {
     beginRun();			// Emit begin run buffer.
     startDaq();  		// Setup and start data taking.
@@ -144,18 +148,30 @@ CAcquisitionThread::init()
   }
   catch (string msg) {
     cerr << "CAcquisition thread caught a string exception: " << msg << endl;
+    errorMessage = msg;
   }
   catch (char* msg) {
     cerr << "CAcquisition thread caught a char* exception: " << msg << endl;
+    errorMessage = msg;
   }
   catch (CException& err) {
     cerr << "CAcquisition thread caught a daq exception: "
 	 << err.ReasonText() << " while " << err.WasDoing() << endl;
+    errorMessage = err.ReasonText();
   }
   catch (...) {
-    cerr << "CAcquisition thread caught some other exception type.\n";
+    errorMessage = "CAcquisition thread caught some other exception type.";
+    cerr << errorMessage << std::endl;
   }
 
+    // At this point if the errorMessage string is non-empty the
+    // thread is exiting due to an error and we want to queue an event
+    // to the main interpreter so that it can execute the
+    // onTriggerFail/bgerror procs.
+    //
+    if (errorMessage != "") {
+        reportErrorToMainThread(errorMessage);
+    }
 }
 
 /*!
@@ -164,15 +180,32 @@ CAcquisitionThread::init()
 void
 CAcquisitionThread::operator()()
 {
+  std::string errorMessage;
   try {
     
     mainLoop();			// Enter the main processing loop.
+  }
+  catch (string msg) {
+    cerr << "CAcquisition thread caught a string exception: " << msg << endl;
+    errorMessage = msg;
+  }
+  catch (char* msg) {
+    cerr << "CAcquisition thread caught a char* exception: " << msg << endl;
+    errorMessage = msg;
+  }
+  catch (CException& err) {
+    cerr << "CAcquisition thread caught a daq exception: "
+	 << err.ReasonText() << " while " << err.WasDoing() << endl;
+    errorMessage = err.ReasonText();
   }
   catch (...) {			// exceptions are used to exit the main loop.?
   }
   
   endRun();			// Emit end run buffer.
   m_Running = false;		// Exiting.
+  if (errorMessage != "") {
+    reportErrorToMainThread(errorMessage);
+  }
 
 }
 
@@ -539,5 +572,40 @@ CAcquisitionThread::endRun()
   pBuffer->s_bufferSize = pBuffer->s_storageSize;
   pBuffer->s_bufferType = TYPE_STOP;
   processBuffer(pBuffer);
-} 
+}
+/**
+ * reportErrorToMainThread
+ *
+ *   Reports an error that caused the event readout thread to exit to the main
+ *   interpreter thread.  This is done via a Tcl_ThreadQueueEvent call.
+ *
+ *  @param message - The error message that indicates why the thread exited.
+ */
+void
+CAcquisitionThread::reportErrorToMainThread(std::string message)
+{
+    // Build the Event which looks like the struct below:
+    
+    typedef struct {
+        Tcl_Event              m_event;
+        AcquisitionFailedEvent m_EventData;
+    } AcqEvent;
+    
+    // The event and its storage must be gotten with Tcl_Alloc:
+    
+    AcqEvent* pEvent = reinterpret_cast<AcqEvent*>(Tcl_Alloc(sizeof(AcqEvent)));
+    pEvent->m_EventData.pMessage = reinterpret_cast<char*>(Tcl_Alloc(message.size() + 1));
+
+    // Fill in the event:
+
+    pEvent->m_event.proc = CTheApplication::HandleAcqThreadError;
+    strcpy(pEvent->m_EventData.pMessage, message.c_str());
+    
+    
+    // Figure out the interpreter thread and queue the event at the queue
+    // tail.
+    
+    Tcl_ThreadId tid = Globals::mainThread;
+    Tcl_ThreadQueueEvent(tid, reinterpret_cast<Tcl_Event*>(pEvent), TCL_QUEUE_TAIL);
+}
 

@@ -74,13 +74,17 @@ CEndRun::operator()(CTCLInterpreter& interp,
 		   objv, usage);
     return TCL_ERROR;
   }
-  // Now stop the run.
 
-  CControlQueues* pRequest = CControlQueues::getInstance();
-  pRequest->EndRun();
+  // Now stop the run... if the thread has not already exited:
 
+  if(CAcquisitionThread::getInstance()->isRunning()) {
+    
+    CControlQueues* pRequest = CControlQueues::getInstance();
+    pRequest->EndRun();
+ 
 
-  CAcquisitionThread::waitExit();
+    CAcquisitionThread::waitExit();
+  }
   //  delete Globals::pConfig;	// Delete the old configuration database.
 
   pState->setState(CRunState::Idle);

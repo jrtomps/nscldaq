@@ -24,10 +24,21 @@
 #endif
 #endif
 
+#ifndef __TCL_H
+#include <tcl.h>
+#ifndef __TCL_H
+#define __TCL_H
+#endif
+#endif
+
 
 class CConfiguration;
 class CCCUSB;
 class TclServer;
+class CTCLInterpreter;
+
+
+
 
 #include <stdint.h>
 
@@ -52,7 +63,8 @@ namespace Globals {
   extern unsigned        sourceId;
   extern char*           pTimestampExtractor;
   extern TclServer*      pTclServer;
-  
+  extern CTCLInterpreter* pMainInterpreter;
+  extern Tcl_ThreadId           mainThread;   
 };
 
 #endif

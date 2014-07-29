@@ -14,7 +14,7 @@ bin_PROGRAMS = CCUSBReadout
 
 CCUSBReadout_SOURCES = CTheApplication.cpp Globals.cpp @srcdir@/cmdline.c
 
-noinst_HEADERS = CTheApplication.h Globals.h
+noinst_HEADERS = CTheApplication.h Globals.h Events.h
 
 INCLUDES = -I@top_srcdir@/usb/ccusb/ccusb -I@top_srcdir@/usb/ccusb/devices \
 	-I@top_srcdir@/usb/ccusb/threadcomm -I@top_srcdir@/usb/ccusb/router \

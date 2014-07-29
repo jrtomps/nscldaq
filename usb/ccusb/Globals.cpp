@@ -15,6 +15,9 @@
 */
 #include <string>
 #include <stdint.h>
+#include <TCLInterpreter.h>
+#include <tcl.h>
+
 
 using std::string;
 
@@ -31,5 +34,7 @@ namespace Globals {
   unsigned           scalerPeriod;
   unsigned           sourceId;
   char*              pTimestampExtractor;
-  TclServer*      pTclServer;
+  TclServer*         pTclServer;
+  CTCLInterpreter*   pMainInterpreter(0);
+  Tcl_ThreadId           mainThread;
 };
