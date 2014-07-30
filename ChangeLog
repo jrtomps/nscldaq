@@ -663,4 +663,4 @@ Work on 11.0-rc11 begins
         * Partial fix for Bug #2132 : Schedule Tclserver exit from overriden exit
           command and join with that thread prior to calling Tcl_Exit to ensure
           the event loop mutexes all run down properly.
-          
+        * Did similar partial fix for #2132 for CCUSBReadout
