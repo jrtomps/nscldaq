@@ -31,6 +31,7 @@
 #include <CEndRun.h>
 #include <CPauseRun.h>
 #include <CResumeRun.h>
+#include <CExit.h>
 #include <Exception.h>
 #include <ErrnoException.h>
 #include <tcl.h>
@@ -348,6 +349,7 @@ CTheApplication::AppInit(Tcl_Interp* interp)
   new CEndRun(*pInterp);
   new CPauseRun(*pInterp);
   new CResumeRun(*pInterp);
+  new CExit(*pInterp);
   
   // If there's an initialization script then run it now:
   

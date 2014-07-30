@@ -94,6 +94,8 @@ private:
   uint16_t*                    m_pMonitorData;
   size_t                       m_nMonitorDataSize;
   bool                         m_dumpAllVariables;
+  bool                         m_exitNow;
+  Tcl_ThreadId                 m_tclThreadId;    // In case Tcl encapsulates.
 
 
   // Public data structures:
@@ -129,10 +131,14 @@ public:
 
   CVMUSBReadoutList getMonitorList(); /* Allow rdothread to get a copy. */
   CTCLInterpreter* getInterp() {return m_pInterpreter;} /* For Tcl drivers. */
+  Tcl_ThreadId     getTclThreadId()  {return m_tclThreadId; }
 
   // Adaptor to spectrodaq threading.
 
   virtual void run();
+  void scheduleExit();
+  
+public:
 
 protected:
   int operator()();
@@ -150,6 +156,7 @@ private:
 
   static void updateVariables(ClientData pData);
 
+  static int Exit(Tcl_Event* pEvent, int flags);
 
 };
  

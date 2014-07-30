@@ -3,12 +3,14 @@ libVMUSBCommands_la_SOURCES	=	CBeginRun.cpp	\
 				CEndRun.cpp	\
 				CPauseRun.cpp	\
 				CResumeRun.cpp	\
+				CExit.cpp	\
 				tclUtil.cpp	
 
 noinst_HEADERS		= 	CBeginRun.h	\
 				CEndRun.h	\
 				CPauseRun.h	\
 				CResumeRun.h	\
+				CExit.h		\
 				tclUtil.h
 
 libVMUSBCommands_la_CXXFLAGS=@THREADCXX_FLAGS@
@@ -20,7 +22,8 @@ INCLUDES		= 	-I@top_srcdir@/usb/vmusb/threadcomm	\
 				-I@top_srcdir@/usb/vmusb/daqconfig	\
 				-I@top_srcdir@/usb/vmusb		\
 				-I@top_srcdir@/usb/vmusb/vmusb		\
-				@LIBTCLPLUS_CFLAGS@	\
+				-I@top_srcdir@/usb/vmusb/tclserver	\
+				@LIBTCLPLUS_CFLAGS@	                \
 				-I@top_srcdir@/base/headers		\
 				-I@top_srcdir@/base/thread		\
 				$(TCL_FLAGS) 

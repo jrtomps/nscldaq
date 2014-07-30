@@ -660,4 +660,7 @@ Work on 11.0-rc11 begins
           events are eventually actually executed in the target interpreter/thread).
         * Add Feature #2138 - Support running the VMUSBReadout from within the
           state/boot manager see above for the changes done.
+        * Partial fix for Bug #2132 : Schedule Tclserver exit from overriden exit
+          command and join with that thread prior to calling Tcl_Exit to ensure
+          the event loop mutexes all run down properly.
           
