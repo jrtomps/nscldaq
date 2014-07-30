@@ -20,7 +20,7 @@
 #include "Globals.h"
 
 #include <COutputThread.h>
-#include <CCCUSB.h>
+#include <CCCUSBusb.h>
 
 #include <TCLInterpreter.h>
 #include <TCLException.h>
@@ -278,7 +278,7 @@ CTheApplication::createUsbController(const char* pSerialNo)
     throw msg;
   }
 
-  Globals::pUSBController = new CCCUSB(pMyController);
+  Globals::pUSBController = new CCCUSBusb(pMyController);
 
 }
 
