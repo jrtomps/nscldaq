@@ -56,6 +56,10 @@ CDataSink* CDataSinkFactory::makeSink(std::string uri)
 
     sink = makeRingSink(url.getPath());
 
+  } else if (url.getProto()=="tcp") {
+
+    sink = makeRingSink(url.getPath());
+
   } 
 
   return sink;

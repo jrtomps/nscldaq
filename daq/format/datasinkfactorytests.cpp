@@ -44,6 +44,7 @@ class CDataSinkFactoryTest : public CppUnit::TestFixture
     CPPUNIT_TEST ( testStdoutDash );
 //    CPPUNIT_TEST ( testFailOnStdin );
     CPPUNIT_TEST ( testRingSink );
+    CPPUNIT_TEST ( testTCPRingSink );
     CPPUNIT_TEST ( testFailRingSink );
     CPPUNIT_TEST_SUITE_END();
 
@@ -55,6 +56,7 @@ class CDataSinkFactoryTest : public CppUnit::TestFixture
     void testStdoutDash();
 //    void testFailOnStdin();
     void testRingSink();
+    void testTCPRingSink();
     void testFailRingSink();
 
 };
@@ -176,3 +178,21 @@ void CDataSinkFactoryTest::testFailRingSink()
 //    CRingBuffer::remove(rname);
   }
 }
+
+void CDataSinkFactoryTest::testTCPRingSink()
+{
+  CDataSinkFactory factory;
+  CDataSink* sink;
+  try {
+    sink = factory.makeSink("tcp://localhost/myring");
+  } catch (int err) {
+    std::stringstream errmsg; errmsg << "errno = " << err << std::endl;
+    CPPUNIT_FAIL( errmsg.str().c_str() );
+  } catch (CURIFormatException& exc) {
+    CPPUNIT_FAIL( exc.ReasonText() );
+  }
+
+
+  if (sink!=0) { delete sink; }
+}
+
