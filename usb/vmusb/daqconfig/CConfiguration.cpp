@@ -50,6 +50,7 @@
 #include "CCBD8210ReadoutList.h"
 #include "CUserCommand.h"
 //#include "C3820TstampCommand.h"
+#include "CXLMTimestamp.h"
 
 #include <CReadoutModule.h>
 #include <TCLInterpreter.h>
@@ -114,6 +115,8 @@ CConfiguration::CConfiguration() :
 
   m_Commands.push_back(new CUserCommand(*m_pInterp, *this, "CBDCamacBranch", 
                                         new CCBDCamacBranch) );
+  m_Commands.push_back(new CUserCommand(*m_pInterp, *this, "XLMTimestamp", 
+                                        new CXLMTimestamp) );
 
   // Add hybrid drivers
   typedef CCBD8210CrateController Ctlr;
