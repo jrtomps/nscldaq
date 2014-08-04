@@ -63,13 +63,18 @@ class StateMonitorBase(object):
         self._stateSocket = self.zmqContext.socket(zmq.SUB)
         self._stateSocket.setsockopt(zmq.SUBSCRIBE, 'STATE:')
         self._stateSocket.setsockopt(zmq.SUBSCRIBE, 'TRANSITION:')
-        self._stateSocket.connect(statePublisher)
+        self._stateSocket.setsockopt(zmq.SUBSCRIBE, 'RUN:')
+        self._stateSocket.setsockopt(zmq.SUBSCRIBE, 'TITLE:')
         
+        self._stateSocket.connect(statePublisher)
+
         #  Make a poller and add our subscription to it.
         #
         self.poller = Utilities.ZmqFileEventLoop()
         self.poller.register(self._stateSocket, zmq.POLLIN, self._StateMessage)
         self._state = None                 # we don't know the state yet.
+        self._runNumber = None              # Don't know the run number.
+        self._title     = None              # Nor the title
         
         #  Now we can call the client's initializer callback:
         
@@ -93,7 +98,7 @@ class StateMonitorBase(object):
     #
     def _StateMessage(self, poller, object, mask):
         msg          = object.recv()
-        messageParts = msg.split(':')
+        messageParts = msg.split(':', 1)
         msgType      = messageParts[0]
         msgBody      = messageParts[1]
         
@@ -109,6 +114,10 @@ class StateMonitorBase(object):
             self.initialState(msgBody)
         elif msgType == 'TRANSITION':
             self.transition(msgBody)
+        elif msgType == 'RUN':
+            self.runNumberMsg(msgBody)
+        elif msgType == 'TITLE':
+            self.titleMsg(msgBody)
         else:
             raise RuntimeError('Invalid message type %s' % (msgType))
     
@@ -126,10 +135,33 @@ class StateMonitorBase(object):
     # @return string - the status of the request from the server.
     #
     def requestTransition(self, transition):
-        self._requestSocket.send(transition)
+        message = 'TRANSITION:%s' % (transition)
+        self._requestSocket.send(message)
         reply = self._requestSocket.recv()
         return reply
-    
+    ##
+    # setRun
+    #   Set a new run number:
+    #
+    # @param run - new run number.
+    # @return reply message from server.
+    #
+    def setRun(self, run):
+        message='RUN:%s' % (run)
+        self._requestSocket.send(message)
+        return self._requestSocket.recv()
+    ##
+    # setTitle
+    #  set a new title:
+    #
+    # @param title - new run title.
+    #
+    def setTitle(self, title):
+        message='TITLE:%s' % (title)
+        self._requestSocket.send(message)
+        return self._requestSocket.recv()
+        
+        
     ##
     # initialState
     #   Called to set the initial state of the system.  This is normally
@@ -157,6 +189,37 @@ class StateMonitorBase(object):
             self.initialState(state)
         else:
             self._state  = state
+    
+    ##
+    # runNumberMsg
+    #  Callback when a run number is published.
+    #
+    # @param body - stringified run number.
+    #
+    def runNumberMsg(self, body):
+        self._runNumber = int(body)
+    ##
+    # titleMsg
+    #   Callaback invoked when a title is published:
+    #
+    # @param body -new title.
+    #
+    def titleMsg(self, body):
+        self._title = body
+        
+    ##
+    # getRunNumber
+    #   @return The last run number received or None if we haven't gotten
+    #           a run number yet.
+    #
+    def getRunNumber(self):
+        return self._runNumber
+    ##
+    # getTitle
+    #  @return the last title or None if we haven't gotten one yet.
+    #
+    def getTitle(self):
+        return self._title
     
     ##
     # run
@@ -189,6 +252,8 @@ class StateMonitor(StateMonitorBase):
             transitionRequest, statePublisher, initializer
         )
         self._dispatch = dict()
+        self._runNoHandler  = None
+        self._titleHandler  = None
         
     #--------------------------------------------------------------------------
     # Public methods.
@@ -218,6 +283,27 @@ class StateMonitor(StateMonitorBase):
     #
     def unregister(self, state):
         del self._dispatch[state.upper()]
+    ##
+    # setRunNumberHandler
+    #
+    #   Defines a callable that will be invoked when the run number changes or
+    #   first becomes known.
+    #
+    # @param callable - The callable to invoke with the new run number or
+    #                   None to disable the existing callback.
+    #
+    def setRunNumberHandler(self, callable):
+        self._runNoHandler = callable
+        
+    ##
+    # setTitleHandler
+    #   Defines the callable that will be invoked when the title string changes.
+    #
+    # @param callable - The callable to invoke or None to disable all callbacks.
+    #
+    def setTitleHandler(self, callable):
+        self._titleHandler = callable
+        
     ##
     # initialState
     #   Override of base class initial stae.
@@ -254,4 +340,29 @@ class StateMonitor(StateMonitorBase):
             param    = self._dispatch[state][1]
             callable(self, priorState, state, param)
             
-        
+    ##
+    # runNumberMsg
+    #   Called on a run message.
+    #   If the run number changes, and there's a handler invoke it.
+    #
+    # @param body  - the body of the msg.
+    #
+    def runNumberMsg(self, body):
+       oldNo = self.getRunNumber()
+       super(StateMonitor, self).runNumberMsg(body)
+       current = self.getRunNumber()
+       if (oldNo != current) and (self._runNoHandler != None):
+           self._runNoHandler(current)
+    ##
+    # titleMsg
+    #   Called on a title message.  Action is similar to the
+    #   runNumberMsg override.
+    #
+    # @param body - the message body.
+    #
+    def titleMsg(self, body):
+        oldTitle = self.getTitle()
+        super(StateMonitor, self).titleMsg(body)
+        currentTitle = self.getTitle()
+        if (oldTitle != currentTitle) and (self._titleHandler != None):
+            self._titleHandler(currentTitle)

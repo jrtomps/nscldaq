@@ -126,6 +126,8 @@ private:
     zmq::socket_t*      m_pStateSocket;
     CZMQEventLoop       m_eventLoop;
     std::string         m_currentState;
+    int                 m_runNumber;
+    std::string         m_title;
 public:
     
     CStateMonitorBase(
@@ -140,12 +142,16 @@ public:
     CZMQEventLoop&   getEventLoop();   // Allows outsiders to add event loop callbacks.
     zmq::context_t* getContext();     // Allows outsiders to make more sockets.
     std::string     getState();       // Get current state (hide rep from derived classes).
-
+    int             getRunNumber() const;
+    std::string     getTitle()     const;
     
     // Protected overrides
 protected:
     virtual void initialState(std::string state);
     virtual void transition(std::string transition);
+    virtual void runNumMsg(std::string body);
+    virtual void titleMsg(std::string body);
+    
 
     
     // Private utilities

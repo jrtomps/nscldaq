@@ -41,7 +41,16 @@ while 1:
     if not line:
         break
     
-    reply = mon.requestTransition(line[0:-1])
+    line = line[0:-1]                # Trim the \n
+    info = line.split(' ', 1)        #Command/param.
+    reply =''
+    if info[0] == 'T':    
+        reply = mon.requestTransition(info[1])
+    if info[0] == 'R':
+        reply = mon.setRun(info[1])
+    if info[0] == 'D':
+        reply = mon.setTitle(info[1])
+        
     print("Reply: %s" % (reply))
 
 

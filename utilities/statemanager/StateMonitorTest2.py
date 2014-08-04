@@ -42,9 +42,15 @@ def NotReadyHandler(monitor, fromState, toState, cbarg):
 def ReadyHandler(monitor, fromState, toState, cbarg):
     print('Ready state entered: %r -> %r  (%s)' %(fromState, toState, cbarg))
 
+def newRun(run):
+    print("Run no changed to: %d" % (run))
+def newTitle(title):
+    print("Title changed to '%s'" % (title))
 
 mon = StateMonitor.StateMonitor(requestUri, pubUri)
 mon.register('NotReady', NotReadyHandler, 'poof')
 mon.register('Ready', ReadyHandler, 'poof poof')
+mon.setRunNumberHandler(newRun)
+mon.setTitleHandler(newTitle)
 
 mon.run()

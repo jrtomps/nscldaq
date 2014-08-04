@@ -27,6 +27,8 @@ import subprocess
 from nscldaq.portmanager import PortManager
 
 stateMachine = None
+title        = None
+run          = None
 
 ##
 # _user
@@ -149,6 +151,8 @@ def subscribe(context, wantTransitions, wantState, host='localhost', service='St
     
     if wantTransitions:
         socket.setsockopt(zmq.SUBSCRIBE, 'TRANSITION:')
+        socket.setsockopt(zmq.SUBSCRIBE, 'RUN:')
+        socket.setsockopt(zmq.SUBSCRIBE, 'TITLE:')
     if wantState:
         socket.setsockopt(zmq.SUBSCRIBE, 'STATE:')
         
@@ -198,6 +202,13 @@ def checkRequest(socket, pollTimeout, maxPolls, callback, cbArg):
 #                    STATE:current-state
 #
 def publishState(socket):
+    
+    # Make sure the title/run are known:
+    
+    if title != None:
+        publishTitle(socket, title)
+    if run != None:
+        publishRun(socket, run)
     message = 'STATE:%s' % (stateMachine.getState())
     socket.send(message)
 
@@ -213,7 +224,59 @@ def publishState(socket):
 def publishTransition(socket, newState):
     message = 'TRANSITION:%s' % (newState)
     socket.send(message)
+##
+# publishRun
+#   Publish a new run number.  This is a message of the form:
+#   RUN:number
+#
+# @param socket - Socket on which to publish
+# @param run    - Run  number.
+#
+def publishRun(socket, run):
+    message = 'RUN:%d' % (run)
+    socket.send(message)
 
+##
+# publishTitle
+#   Publish a new title.  This is a messag of the form:
+#   TITLE:title string.
+#
+# @param socket - publication socket.
+# @param title  - new title.
+#
+def publishTitle(socket, title):
+    message = 'TITLE:%s' % (title)
+    socket.send(message)
+
+
+##
+# getRequest
+#   Returns the next request from the socket.
+#   Requests are of the form: KEYWORD:parameter
+#   where allowed keyword/parameters are:
+#   * TRANSITION - Request a state transition, the parameter is the transition
+#                  requested.
+#   * RUN        - Set a new run number, the parameter is the new run number.
+#   * TITLE      - Set a new title, the parameter is the new title.
+#
+# @param socket The request socket.
+#    
+# @return mixed-type
+# @retval Pair of request, and argument if the request type is legal.  In that
+#          case the caller must reply to the request.
+# @retval None - If the request type is illegal.  In that case we send a FAIL
+#          to the socket to save the caller the trouble.
+#
+def getRequest(socket):
+    validRequests = ['TRANSITION', 'RUN', 'TITLE']
+    line = socket.recv()
+    list = line.split(':', 1)           # This allows : in the argument.
+    if list[0] in validRequests:
+        return list
+    else:
+        socket.send('FAIL - Invalid request must be one of %s' % (', '.join(validRequests)))
+        return None
+                    
 
 ##
 # remote

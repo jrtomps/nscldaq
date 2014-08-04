@@ -4076,7 +4076,11 @@ sis3820 cget <replaceable>name</replaceable>
             <para>
                The scaler readout will result in an array of 32 channels
                of scaler data placed in the buffer.  The first longword of this
-               data is channel 0, the last, channel 1.
+               data is channel 0, the last, channel 1, unless the scaler in in
+               <option>-timestamp</option> mode in which case the data are three
+               longwords that consist of channel 0, channel 16 and the high bits
+               register that has the top 16 bits of each of those channels as
+               a 48 bit scaler.
             </para>
             <para>
                The <command>config</command> sub-command configures the options
@@ -4112,6 +4116,15 @@ sis3820 cget <replaceable>name</replaceable>
       		</para>
       	    </listitem>
       	 </varlistentry>
+         <varlistentry>
+            <term><option>--timestamp</option> <parameter>on | off</parameter></term>
+            <listitem>
+                <para>
+                    If this option is true, the scaler is read in timestamp mode as
+                    2 48 bit scalers.  If false (the default), 32 bits are read for
+                    each channel.
+                </para>
+            </listitem>
            </variablelist>
          </refsect1>
          <refsect1>

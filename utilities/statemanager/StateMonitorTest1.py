@@ -42,6 +42,12 @@ class Mymonitor(StateMonitor.StateMonitorBase):
     def transition(self, state):
         print('Transition to %s ' % (state))
         super(Mymonitor, self).transition(state)
+    def runNumberMsg(self, msg):
+        super(Mymonitor, self).runNumberMsg(msg)
+        print("Run number: %d" % (self.getRunNumber()))
+    def titleMsg(self, msg):
+        super(Mymonitor, self).titleMsg(msg)
+        print("Title: %s" % (self.getTitle()))
         
 
 

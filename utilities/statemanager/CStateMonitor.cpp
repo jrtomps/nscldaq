@@ -21,6 +21,7 @@
 */
 
 #include "CStateMonitor.h"
+#include <stdlib.h>
 #include <sstream>
 #include <algorithm>
 #include <cctype>
@@ -37,9 +38,10 @@
 
 /**
 * constrructor
-*   Null at present.
+*   
 */
-CZMQEventLoop::CZMQEventLoop() {}
+CZMQEventLoop::CZMQEventLoop() 
+{}
 
 
 /**
@@ -298,7 +300,7 @@ CZMQEventLoop::dispatch(zmq::pollitem_t* pItems, size_t count)
  */
 CStateMonitorBase::CStateMonitorBase(
     std::string transitionReqURI, std::string statePublisherURI, CStateMonitorBase::InitCallback cb
-) : m_pContext(0), m_pRequestSocket(0), m_pStateSocket(0)
+) : m_pContext(0), m_pRequestSocket(0), m_pStateSocket(0), m_runNumber(-1)
 {
     // Actually the event loop constructs itself
     
@@ -316,6 +318,8 @@ CStateMonitorBase::CStateMonitorBase(
     
     m_pStateSocket->setsockopt(ZMQ_SUBSCRIBE, "STATE:", 6);
     m_pStateSocket->setsockopt(ZMQ_SUBSCRIBE, "TRANSITION:", 10);
+    m_pStateSocket->setsockopt(ZMQ_SUBSCRIBE, "RUN:", 4);
+    m_pStateSocket->setsockopt(ZMQ_SUBSCRIBE, "TITLE:", 6);
     
     //  Register the state socket readability with the event loop:
     
@@ -364,7 +368,10 @@ CStateMonitorBase::~CStateMonitorBase()
 std::string
 CStateMonitorBase::requestTransition(std::string transitionName)
 {
-    zmq::message_t trMessage(const_cast<char*>(transitionName.c_str()), transitionName.size(), 0);
+    std::string msg = "TRANSITION:";
+    msg            += transitionName;
+    
+    zmq::message_t trMessage(const_cast<char*>(msg.c_str()), msg.size(), 0);
     m_pRequestSocket->send(trMessage);
     
     return getMessage(*m_pRequestSocket);
@@ -394,6 +401,11 @@ CStateMonitorBase::getContext()   {return m_pContext;}
 
 std::string
 CStateMonitorBase::getState()     {return m_currentState;}
+
+int
+CStateMonitorBase::getRunNumber() const {return m_runNumber;}
+std::string
+CStateMonitorBase::getTitle() const {return m_title;}
 
 /*
  * Protected methods (virtual ones get overriden but these base class
@@ -438,6 +450,28 @@ CStateMonitorBase::transition(std::string transition)
     } else {
         m_currentState = transition;
     }
+}
+/**
+ * runNumMsg
+ *    Called when a run number message has been received
+ *
+ *   @param body - the body of the message.
+ */
+void
+CStateMonitorBase::runNumMsg(std::string body)
+{
+    m_runNumber = atoi(body.c_str());
+}
+/**
+ * titleMsg
+ *   Called when a title message has been received.
+ *
+ *   @param body - the body of the message.
+ */
+void
+CStateMonitorBase::titleMsg(std::string body)
+{
+    m_title = body;
 }
 /**
  * Private utilities;
@@ -494,6 +528,10 @@ CStateMonitorBase::StateMessage(zmq::pollitem_t* item)
         initialState(state);
     } else if (type == "TRANSITION") {
         transition(state);
+    } else if (type == "RUN") {
+        runNumMsg(state);
+    } else if (type == "TITLE") {
+        titleMsg(state);
     } else {
         std::string failure("Invalid message type received: ");
         failure += type;

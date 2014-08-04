@@ -1521,4 +1521,16 @@ CCCUSB::openUsb()
     usb_clear_halt(m_handle, ENDPOINT_OUT);
    
     Os::usleep(100);
+    
+    // Turn off data taking and flush any data in the buffer:
+    
+    writeActionRegister(0);
+    
+    uint8_t buffer[8192*2];  // Biggest possible CC-USB buffer.
+    size_t  bytesRead;
+    while(usbRead(buffer, sizeof(buffer), &bytesRead) == 0) {
+         fprintf(stderr, "Flushing CCUSB Buffer\n");
+    }
+    
+
 }

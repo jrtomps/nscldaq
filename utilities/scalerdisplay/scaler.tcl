@@ -235,28 +235,31 @@ proc SourceElapsedTime t {
 proc processIncrement {array index op} {
     #
     # No action to take if the scaler is not incremental:
+    if {[array names ::incremental $index] ne ""} {
+    
+	if {!$::incremental($index)} {
+	    if {[array names ::priorIncrement $index] eq ""} {
+		set ::priorIncrement($index) 0
+		set ::nonIncrementalTotal($index) 0
+	    }
+	    set nextTotal $::Scaler_Increments($index)
 
-    if {!$::Incremental} {
-        if {[array names ::priorIncrement $index] eq ""} {
-            set ::priorIncrement($index) 0
-            set ::nonIncrementalTotal($index) 0
-        }
-	set nextTotal $::Scaler_Increments($index)
+	    # Compute the increment...if it's negative assume a single roll-over.
+	    # Update the nonIncrementalTotal as well.
 
-	# Compute the increment...if it's negative assume a single roll-over.
-	# Update the nonIncrementalTotal as well.
-
-	set ::Scaler_Increments($index) [expr {$nextTotal - $::priorIncrement($index)}]
-        if {[array names ::bitsWide $index] eq ""} {
-            set ::bitsWide($index) 32
-        }
-	if {$::Scaler_Increments($index) < 0} {
-	    set ::Scaler_Increments($index) [expr {$::Scaler_Increments($index) + (1 << $::bitsWide($index))}]
+	    set ::Scaler_Increments($index) [expr {$nextTotal - $::priorIncrement($index)}]
+	    if {[array names ::bitsWide $index] eq ""} {
+		set ::bitsWide($index) 32
+	    }
+	    if {$::Scaler_Increments($index) < 0} {
+		set ::Scaler_Increments($index) [expr {$::Scaler_Increments($index) + (1 << $::bitsWide($index))}]
+	    }
+	    set ::nonIncrementalTotal($index) \
+		[expr {$::nonIncrementalTotal($index) + $::Scaler_Increments($index)}]
+	    
+	    set ::priorIncrement($index) $nextTotal; # New value is now the prior value.
+	    set ::Scaler_Totals($index) $::nonIncrementalTotal($index)
 	}
-	set ::nonIncrementalTotal($index) \
-	    [expr {$::nonIncrementalTotal($index) + $::Scaler_Increments($index)}]
-	
-	set ::priorIncrement($index) $nextTotal; # New value is now the prior value.
     }
 }
 
@@ -707,12 +710,21 @@ proc Update {} {
     # (and has happened) that the scaler readout rate could be 0.5 seconds e.g.
     # since that's the granularity of the VM-USB.
     #
+    if {[string tolower $::ScalerDeltaTime] eq "-nan"} {
+	    set ScalerDeltaTime 0
+    }
     if {($::ScalerDeltaTime == 0) && [info exists DefaultScalerDT]} {
 	set ::ScalerDeltaTime $::DefaultScalerDT
 	set ::fakeElapsedTime [expr $::fakeElapsedTime + $::ScalerDeltaTime]
 	set ::ElapsedRunTime $::fakeElapsedTime
     }
-
+    # non incremental scalers will have the wrong total:
+    
+    foreach index [array names ::incremental] {
+        if {$::incremental($index) eq "no"} {
+            set ::Scaler_Totals($index) $::nonIncrementalTotal($index)
+        }
+    }
 
     UpdateStatistics
     if {$stripchartWidget != ""} {
@@ -966,7 +978,7 @@ proc alarmColor {mask} {
     # The normal color will be the background color of
     # the notebook widget.
 
-    set normalColor [$Notebook cget -background]
+    set normalColor white
 
     if {$mask == 0} {
         return $normalColor
@@ -1475,7 +1487,6 @@ proc channel {args} {
 	    return
 	}
     }
-    
 
 }
 

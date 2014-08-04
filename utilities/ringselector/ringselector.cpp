@@ -19,10 +19,15 @@
 #include <iostream>
 #include <string>
 #include <stdlib.h>
+#include <signal.h>
+#include <os.h>
+#include <stdio.h>
 
 int main(int argc, char** argv) 
 {
-
+  if (Os::blockSignal(SIGPIPE)) {
+    perror("failed to block SIGPIPE");
+  }
   try {
     RingSelectorMain app;
     return app(argc, argv);

@@ -9,6 +9,9 @@
 #include <errno.h>
 #include <string.h>
 #include <io.h>
+#include <signal.h>
+#include <stdio.h>
+#include <os.h>
 
 using namespace std;
 
@@ -183,6 +186,12 @@ mainLoop(string ring, int timeout, size_t mindata)
 
 int main(int argc, char** argv)
 {
+  // Disable pipe signals:
+
+  if (Os::blockSignal(SIGPIPE)) {
+    perror("Failed to block sigpipe");
+  }
+
   struct gengetopt_args_info parsed;
 
   int status = cmdline_parser(argc, argv, &parsed);

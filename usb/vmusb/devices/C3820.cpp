@@ -41,10 +41,16 @@ static const uint32_t ModuleID   = 0x00000004;     // Firmware and ident.
 
 static const uint32_t AcqMode    = 0x00000100; // Acquisition mode register.
 
+// bits 32-47 of channel 1/17 48 bit channels:
+
+static const uint32_t HighBits   = 0x00000210;
+
+
 static const uint32_t KeyReset   = 0x00000400;     // Writing here resets.
 static const uint32_t KeyLNE     = 0x00000410;
 static const uint32_t KeyArm     = 0x00000414;
 static const uint32_t KeyEnable  = 0x00000418;
+
 
 static const uint32_t ShadowCounters = 0x00000800;
 
@@ -126,6 +132,8 @@ C3820::onAttach(CReadoutModule& configuration)
   m_pConfiguration->addParameter("-base",
 				 CConfigurableObject::isInteger, 
 				 NULL, "0");
+  m_pConfiguration->addParameter("-timestamp",
+                                CConfigurableObject::isBool, NULL, "off");
 }
 /*!
    Called to setup the module for data taking. We'll make a small setup list
@@ -197,8 +205,21 @@ C3820::addReadoutList(CVMUSBReadoutList& list)
 {
   uint32_t base = getBase();
   list.addWrite32(base+KeyLNE, CVMUSBReadoutList::a32UserData, (uint32_t)0);
-  list.addBlockRead32(base+ShadowCounters, CVMUSBReadoutList::a32UserBlock,
+  bool tsMode = m_pConfiguration->getBoolParameter("-timestamp");
+  if (tsMode) {
+    // Timestamped mode, only read channel 1, 17 and the highbits register.
+    // Note the SIS 3820 manual numbers channels from 1 hence the 0/16 below.
+    
+    list.addRead32(base+ShadowCounters+0*sizeof(uint32_t), CVMUSBReadoutList::a32UserData);
+    list.addRead32(base+ShadowCounters+16*sizeof(uint32_t), CVMUSBReadoutList::a32UserData);
+    list.addRead32(base+HighBits, CVMUSBReadoutList::a32UserData);
+  } else {
+    // Non timestamp mode, read all scalers.
+      list.addBlockRead32(base+ShadowCounters, CVMUSBReadoutList::a32UserBlock,
 		      (uint32_t)32);
+  }
+
+
 }
 
 /*!

@@ -56,17 +56,44 @@ def State(cargo):
             pass
         # There's a request:
         
-        request = requestSock.recv()
-        if request in transitions.keys():
-            # Legal transition:
-            nextState = transitions[request]
-            requestSock.send('OK')
-            Utilities.publishTransition(publishSock, nextState)
-            return nextState.upper(), cargo
-        else:
-            # Invalid state transition:
+        info    = Utilities.getRequest(requestSock)
+        if info != None:
+            action = info[0]
+            param  = info[1]
             
-            validTransitions = ', '.join(transitions.keys())
-            requestSock.send(
-                'FAIL - Valid transitions requests are %s' % (validTransitions)
-            )
+            # Dispatch based on the action:
+            
+            if action == 'TRANSITION':    # State transition request
+                if param in transitions.keys():
+                    # Legal transition:
+                    nextState = transitions[param]
+                    requestSock.send('OK')
+                    Utilities.publishTransition(publishSock, nextState)
+                    return nextState.upper(), cargo     # Exit state.
+                else:
+                    # Invalid state transition:
+                    
+                    validTransitions = ', '.join(transitions.keys())
+                    requestSock.send(
+                        'FAIL - Valid transitions requests are %s' % (validTransitions)
+                    )                
+                    
+            elif action == 'RUN':     # New run number must be +-ive integer
+                try:
+                    param = int(param)
+                    isInteger = True
+                except:
+                    isInteger = False
+                if isInteger and (param >= 0):
+                    Utilities.run = param
+                    Utilities.publishRun(publishSock, param)
+                    requestSock.send('OK')
+                else:
+                    requestSock.send('FAIL Run number must be a positive integer')
+            elif action == 'TITLE':     # New title.
+                Utilities.title = param
+                Utilities.publishTitle(publishSock, param)
+                requestSock.send('OK')
+            
+            
+            

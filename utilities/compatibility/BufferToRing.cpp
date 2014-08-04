@@ -326,7 +326,9 @@ bool formatScaler (void* pBuffer)
   }
 
 
-  // For 11.x only make the timestamped item.
+  // For 11.x only make the timestamped item. -- nope...that makes a body
+  // header with a sourceid of 0 which wreaks havoc.
+#ifdef UNDEFINED
 
   pScalerItem pTSItem = formatNonIncrTSScalerItem(nScalers, timestamp,
 								pBody->btime, pBody->etime,
@@ -334,6 +336,10 @@ bool formatScaler (void* pBuffer)
 								pBody->scalers,
 								scalerTimeDivisor(pBody)							     
 								);
+#endif
+  pScalerItem pTSItem = formatScalerItem(
+      nScalers, timestamp, pBody->btime, pBody->etime, pBody->scalers
+  );
   int status = writeData(pTSItem, pTSItem->s_header.s_size);
   free(pTSItem);
 

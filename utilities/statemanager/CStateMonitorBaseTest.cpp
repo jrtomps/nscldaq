@@ -46,7 +46,8 @@ protected:
         std::cout << "Transition from " << getState() << " to " << transition << std::endl;
         CStateMonitorBase::transition(transition);
         std::cout << "base class transition returned\n";
-    }  
+    }
+    
 };
 
 int main(int argc, char** argv) {

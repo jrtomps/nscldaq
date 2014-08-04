@@ -45,6 +45,7 @@ public:
   static std::string whoami();		//< Logged in userm
   static bool authenticateUser(std::string sUser, std::string sPassword);
   static int  usleep(useconds_t usec);
+  static int  blockSignal(int sigNum);
 };
 
 #endif

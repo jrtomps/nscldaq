@@ -1373,6 +1373,16 @@ CVMUSBusb::openVMUsb()
 
     Os::usleep(100);
     
+    // Turn off DAQ mode and flush any data that might be trapped in the VMUSB
+    // FIFOS.
+    
+    writeActionRegister(0);     // Turn off data taking.
+    uint8_t buffer[1024*13*2];  // Biggest possible VM-USB buffer.
+    size_t  bytesRead;
+    while(usbRead(buffer, sizeof(buffer), &bytesRead) == 0) {
+         fprintf(stderr, "Flushing VMUSB Buffer\n");
+    }
+    
     // Now set the irq mask so that all bits are set..that:
     // - is the only way to ensure the m_irqMask value matches the register.
     // - ensures m_irqMask actually gets set:

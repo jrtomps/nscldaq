@@ -20,6 +20,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <time.h>
+#include <signal.h>
 
 static const unsigned NSEC_PER_SEC(1000000000); // nanoseconds/second.
 
@@ -111,4 +112,32 @@ Os::usleep(useconds_t usec)
   return nanosleep(&delay, &remaining);
 
  
+}
+/**
+ * Os::blockSignal
+ *   Blocks the specified signal.
+ *
+ * @param sigNum - Number of the signal to block.
+ *
+ * @return value from sigaction
+ */
+int
+Os::blockSignal(int sigNum)
+{
+
+  // Build the sigaction struct:
+
+  struct sigaction action;
+  action.sa_handler = 0;		// No signal handler.
+  sigemptyset(&action.sa_mask);
+  sigaddset(&action.sa_mask, sigNum);
+  action.sa_flags = 0 ;
+
+  struct sigaction oldAction;
+
+  return sigaction(sigNum, &action, &oldAction);
+
+
+
+  
 }

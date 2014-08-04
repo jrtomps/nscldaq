@@ -664,3 +664,19 @@ Work on 11.0-rc11 begins
           command and join with that thread prior to calling Tcl_Exit to ensure
           the event loop mutexes all run down properly.
         * Did similar partial fix for #2132 for CCUSBReadout
+	* Fix a couple of issues in scaler display:
+	  - S800 dt comes across as -NaN rather than 0 catch that.
+	  - Notebook no longer can give me -background just set
+	    normalcolor to white
+	* Change BufferToRing so that scaler buffers have not body header.
+        * Add -timestamp to VMUSB SIS3820 module.
+        * In port the CSIS3820 from nextgen to support the 48 bit scalers that
+          were added in that release.
+	* Fix errors in scaler display related to non-incremental scalers.
+	* Remove popup from s800toring on exit.  Put the policy decision
+	about what to do when it exits on the user (e.g. ReadoutShell)
+	rather than on the script itself.
+	* Add Os::blockSignal to allow code to block the delivery of
+	specifci signals.
+	* Block SIGPIPE in ringtostdin, stdintoring and ringselector to
+	fix edge case where the pipe breaks before the write starts.

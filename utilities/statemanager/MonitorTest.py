@@ -31,14 +31,19 @@ state  = None
 
 while True:
     msg = socket.recv()
-    info = msg.split(':')
+    info = msg.split(':', 1)
     
     if info[0] == 'STATE':
         if state != info[1]:
             print("State is now: %s" % (info[1]))
-        state = info[1]
+            state = info[1]
     if info[0] == 'TRANSITION':
         print("Transition: %s " % (info[1]))
+        state = info[1]
+    if info[0] == 'RUN':
+        print('Run number: %s' % (info[1]))
+    if info[0] == 'TITLE':
+        print('Title is: %s' % (info[1]))
 
 
 

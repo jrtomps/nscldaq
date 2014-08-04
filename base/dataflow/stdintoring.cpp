@@ -11,6 +11,10 @@
 #include <string.h>
 #include <sys/select.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <signal.h>
+#include <os.h>
+
 
 using namespace std;
 
@@ -338,6 +342,11 @@ mainLoop(string ring, int timeout, int mindata)
 
 int main(int argc, char** argv)
 {
+  // Turn off pipe signal:
+
+  if (Os::blockSignal(SIGPIPE)) {
+    perror("Failed to block pipe signals");
+  }
   struct gengetopt_args_info parsed;
 
   int status = cmdline_parser(argc, argv, &parsed);
