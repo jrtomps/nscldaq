@@ -37,7 +37,7 @@ install-exec-local:
 	for f in $(FIGURES); do $(INSTALL_DATA) @srcdir@/$$f @datarootdir@/html; done
 
 check-TESTS:
-	PYTHONPATH=$(INSTDIR) @PYTHON@ @srcdir@/run_all_tests.py
+	(cd @srcdir@; PYTHONPATH=$(INSTDIR) @PYTHON@ run_all_tests.py)
 
 EXTRA_DIST = $(PACKAGE_FILES) $(MAINS) $(TESTS) $(FIGURES) expConfig.xml
 

@@ -89,6 +89,16 @@ class Project:
             )
             '''
             )
+        self.connection.execute(
+            '''
+            CREATE TABLE recorded_rings (
+                id             INTEGER PRIMARY KEY,
+                ring_id        INTEGER NOT NULL,
+                directory_path VARCHAR(256) NOT NULL,
+                FOREIGN KEY (ring_id) REFERENCES rings(id)
+            )
+            '''
+        )
 
         
         
@@ -925,4 +935,76 @@ class Programs:
                 DELETE FROM programs WHERE id = ?
                          ''', (id,)
             )
-
+##
+# @class EventLoggers
+#
+#   Manipulate the set of event loggers known to the system.
+#   an event logger is a ring (data source) and a directory (data sink).
+#
+class EventLoggers:
+    ##
+    # construction
+    #  @param project - the project containing the evetn loggers we care about:
+    #
+    def __init__(self, project):
+        self._project = project
+        self._rings   = Rings(project)
+        
+    #-------------------------------------------------------------------------
+    # utilities:
+    
+    ##
+    # _exists
+    #   True if a specific logger is already defined.
+    #
+    def _exists(self, ringid, path):
+        cursor = self._project.connection.cursor()
+        cursor.execute(
+            '''
+            SELECT COUNT(*) FROM recorded_rings
+                WHERE ring_id=? AND directory_path = ?
+            ''', (ringid, path)
+        )
+        row = cursor.fetchone()
+        return row[0] == 1
+        
+    #--------------------------------------------------------------------------
+    #  Crud members:
+    
+    ##
+    # add
+    #   adds a new ring given the ring id and a directory path:
+    #
+    # @param ringId - id of the ring.
+    # @param path   - Recording path.
+    #
+    def add(self, ringId, path):
+        
+        if self._exists(ringId, path):
+            raise RuntimeError('Logger already exists for this ringl')
+        
+        connection = self._project.connection
+        connection.execute(
+            '''
+            INSERT INTO recorded_rings (ring_id, directory_path)
+                VALUES (?,?)
+            ''', (ringId, path)
+        )
+    ##
+    # add_byringname
+    #    Adds a new event logger given the name/host of the ring
+    #
+    # @param hostName - Name of the host the ring is on.
+    # @param ringName - Name of the ring.
+    # @param path     - Directory patht the event files.
+    #
+    def add_byringname(self, hostName, ringName, path):
+        rings = self._rings.find(ringName, hostName)
+        
+        if len(rings) == 0:
+            raise RuntimeError('No such ring as specified')
+        
+        ringId= rings[0]['ring_id']
+        self.add(ringId, path)
+        
+        

@@ -72,6 +72,10 @@ class TestProject(unittest.TestCase):
     def test_create_program_args(self):
         self.check_table('program_args')
         
+    ##
+    #  test_create_recorded_rings
+    def test_create_recorded_rings(self):
+        self.check_table('recorded_rings')
         
 if __name__ == '__main__':
     unittest.main()
