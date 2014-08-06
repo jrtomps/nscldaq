@@ -66,7 +66,7 @@ class PortManagerTests(unittest.TestCase):
         except socket.gaierror as e:
             threw = True
             rightThrow = True
-            if e.errno == -5:
+            if e.errno in (-2, -5):
                 rightErrno = True
             else:
                 print("Errno gotten was ", e.errno)
