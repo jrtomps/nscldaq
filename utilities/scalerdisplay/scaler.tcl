@@ -58,7 +58,6 @@ lappend auto_path $libDir
 package require blt::tabset
 package require rbc
 
-puts [info commands ::blt::*]
 
 namespace import ::blt::tabset
 namespace import ::rbc::vector
@@ -233,6 +232,11 @@ proc SourceElapsedTime t {
 #         Scaler_Increments without worrying about what might happen.
 #
 proc processIncrement {array index op} {
+
+    if {[array names ::bitsWide $index] eq ""} {
+        set ::bitsWide($index) 32
+    }
+
     #
     # No action to take if the scaler is not incremental:
     if {[array names ::incremental $index] ne ""} {
@@ -248,9 +252,6 @@ proc processIncrement {array index op} {
 	    # Update the nonIncrementalTotal as well.
 
 	    set ::Scaler_Increments($index) [expr {$nextTotal - $::priorIncrement($index)}]
-	    if {[array names ::bitsWide $index] eq ""} {
-		set ::bitsWide($index) 32
-	    }
 	    if {$::Scaler_Increments($index) < 0} {
 		set ::Scaler_Increments($index) [expr {$::Scaler_Increments($index) + (1 << $::bitsWide($index))}]
 	    }
@@ -259,8 +260,23 @@ proc processIncrement {array index op} {
 	    
 	    set ::priorIncrement($index) $nextTotal; # New value is now the prior value.
 	    set ::Scaler_Totals($index) $::nonIncrementalTotal($index)
+            return
 	}
     }
+    # remove the bits off the top.
+    
+    set mask [expr (1 << $::bitsWide($index)) - 1]
+    set ::Scaler_Increments($index) [expr $::Scaler_Increments($index) & $mask]
+    
+    # if the width is not 32 we need to compute the totals from the masked values:
+    
+    if {$::bitsWide($index) < 32} {
+        if {[array names ::nonIncrementalTotal $index] eq ""} {
+            set ::nonIncrementalTotal($index) 0
+        }
+    }
+    incr ::nonIncrementalTotal($index) $::Scaler_Increments($index)
+    
 }
 
 # Compute a scaler rate.
@@ -608,7 +624,7 @@ proc UpdateStatistics {} {
     # For non-incremental scalers, copy their actual totals from
     # nonIncrementalTotal(i) -> Scaler_Totals(i)
 
-    foreach element [array names ::nonIncrementalTotals] {
+    foreach element [array names ::nonIncrementalTotal] {
 	set Scaler_Totals($element) $::nonIncrementalTotal($element)
     }
 
@@ -1405,7 +1421,7 @@ proc processChannelSwitch {name option value}  {
 	    set ::bitsWide($::ScalerMap($name)) $value
 	}
         default {
-            error "Illegal option value: $option must be either -lowalarm or -hialarm"
+            error "Illegal option value: $option must be either -lowalarm, -hialarm, -incremental or -width"
         }
     }
 }
@@ -1478,8 +1494,6 @@ proc channel {args} {
     set ::priorIncrement($id)  0;	#  prior scaler value.
     set ::nonIncrementalTotal($id) 0;	#  Total if not incremental.
     
-    set ::Scaler_Totals($id) 0
-    set ::Scaler_Increments($id) 0
 
     foreach {option value} $switches {
 	if {[catch {processChannelSwitch $name $option $value} msg]} {
@@ -1487,6 +1501,8 @@ proc channel {args} {
 	    return
 	}
     }
+    set ::Scaler_Totals($id) 0
+    set ::Scaler_Increments($id) 0
 
 }
 

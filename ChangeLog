@@ -680,3 +680,5 @@ Work on 11.0-rc11 begins
 	specifci signals.
 	* Block SIGPIPE in ringtostdin, stdintoring and ringselector to
 	fix edge case where the pipe breaks before the write starts.
+	* Fix errors with scaler display handling of -width switch.
+	
