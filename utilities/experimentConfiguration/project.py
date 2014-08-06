@@ -969,7 +969,9 @@ class EventLoggers:
         return row[0] == 1
         
     #--------------------------------------------------------------------------
-    #  Crud members:
+    #  CRUD members:
+    
+    # C is for CREATE
     
     ##
     # add
@@ -1007,4 +1009,15 @@ class EventLoggers:
         ringId= rings[0]['ring_id']
         self.add(ringId, path)
         
-        
+    # R is for retrieve
+    
+    ##
+    # list
+    #   Lists the rings as a (possibly empty) array of dicts where each dict
+    #   has the following key/values:
+    #   * id       - Id of the entry (primary key).
+    #   * ring     - dict containing everthing about the ring (see e.g. Ring.find)
+    #   * path     - The path to the recording directory.
+    #
+    def list(self):
+        pass
