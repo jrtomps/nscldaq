@@ -71,46 +71,6 @@ class TestProject(unittest.TestCase):
     #
     def test_create_program_args(self):
         self.check_table('program_args')
-    ##
-    # test_create_data_sources
-    #   This is a join table that defines which programs are data sources
-    #   for which rings -- the ring itself is now holding the data sourceid.
-    #
-    def test_create_data_sources(self):
-        self.check_table('data_sources')
-    ##
-    # test_create_consumers
-    #   Join table that defines which programs consume from which rings.
-    
-    def test_create_consumers(self):
-        self.check_table('consumers')
-    ##
-    # test_create_eventbuilder_sources
-    #  Join table between data source programs and a program
-    #  that feeds data into the eventbuilder.
-    #
-    def test_create_eventbuilder_sources(self):
-        self.check_table('evb_datasources')
-    ##
-    # test_create_loggers
-    #   Loggers are event log programs.
-    #
-    def test_create_loggers(self):
-        self.check_table('loggers')
-    ##
-    # test_create_eventbuilder
-    #
-    #  The event builder is a singleton program that's bound to a host
-    #  with an output ring (a special data aource basically).
-    #
-    def test_create_eventbuilder(self):
-        self.check_table('eventbuilder')
-    ##
-    # test_create_statemanager
-    #   There is also a singleton statemanager (0MQ publisher of state).
-    #
-    def test_create_statemanager(self):
-        self.check_table('statemanager')
         
         
 if __name__ == '__main__':
