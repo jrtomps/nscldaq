@@ -7,12 +7,10 @@ MAINS = experimentConfiguration.py
 
 TESTS = projectConsumerTest.py \
 projectHostsTest.py \
-projectLoggerTest.py \
 projectOpenTest.py \
 projectProgramTest.py \
 project.py \
 projectRingTest.py \
-projectSourceTest.py \
 run_all_tests.py \
 schemaTest.py	
 
