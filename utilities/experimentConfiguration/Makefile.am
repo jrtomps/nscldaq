@@ -5,8 +5,7 @@ PACKAGE_FILES = project.py state.py filemenu.py projectdisplay.py \
 
 MAINS = experimentConfiguration.py
 
-TESTS = projectConsumerTest.py \
-projectHostsTest.py \
+TESTS = projectHostsTest.py \
 projectOpenTest.py \
 projectProgramTest.py \
 project.py \
