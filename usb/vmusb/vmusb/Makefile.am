@@ -34,7 +34,8 @@ INCLUDES		= $(USBSWITCHES) -I@top_srcdir@/base/headers @LIBTCLPLUS_CFLAGS@  \
 			-I@top_srcdir@/base/os \
 			  @TCL_FLAGS@
 
-libVMUSB_la_LIBADD       = @top_builddir@/base/tcpip/libTcp.la $(USB_LIBS)  
+libVMUSB_la_LIBADD       = @top_builddir@/base/tcpip/libTcp.la $(USB_LIBS) \
+                           @LIBTCLPLUS_LDFLAGS@
 
 libVMUSBRemote_la_LIBADD = @top_builddir@/usb/vmusb/vmusb/libVMUSB.la \
 	@TCL_LDFLAGS@ \
