@@ -109,7 +109,7 @@ itcl::class AXLM72 {
   # @param data    the integer value to write 
   # 
 	public method Write {ctlr dev address data} { 
-      $ctlr vmeWrite32 [expr [set $dev]+$address] 0x09 $data
+      $ctlr vmeWrite32 [expr [set $dev]+$address] 0x09 [expr $data]
   }
 
   ##
@@ -355,7 +355,7 @@ itcl::body AXLM72::ReadSBLT {ctlr dev address words} {
   set maxcount [expr (4<<20)/8]
 
   set pkg cvmusbreadoutlist
-  cvmusbreadoutlist::CVMUSBReadoutList stack
+  cvmusbreadoutlist::CVMUSBReadoutList stack 
 
   set addr [expr [set $dev]+$address]
   set amod [expr 0x0b]
@@ -363,6 +363,7 @@ itcl::body AXLM72::ReadSBLT {ctlr dev address words} {
 #  sReadSBLT stack $dev $address $words
   
   set data [$ctlr executeList stack $maxcount]
+  puts "Data size = [::cvmusb::uint8_vector_size $data]"
 
   return $data
  }
@@ -456,7 +457,7 @@ itcl::body AXLM72::ExecuteLongStack {ctlr stack} {
 
   set data [$ctlr executeList $rdolist [expr 4<<20]]
 
-  set convertedData [::VMUSBDriverSupport::convertBytesListToTclList $data] 
+  set convertedData [::VMUSBDriverSupport::convertBytesListToTclList data] 
   return $convertedData
 }
 

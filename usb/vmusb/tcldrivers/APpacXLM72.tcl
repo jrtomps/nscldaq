@@ -11,40 +11,40 @@ package require Itcl
 itcl::class APpacXLM72 {
 	inherit AXLM72
 
-	constructor {de sl} {
-		AXLM72::constructor $de $sl
+	constructor {sl} {
+		AXLM72::constructor $sl
 	} {}
 
-	public method WriteSamples {sa} {Write fpga 4 $sa}
-	public method WritePeriod {pe} {Write fpga 12 $pe}
-	public method WriteDelay {de} {Write fpga 16 $de}
-	public method WriteWidth {wi} {Write fpga 20 $wi}
-	public method WriteShift {sh} {Write fpga 24 $sh}
-	public method WriteThresholds {th}
-	public method Clear {} {Write srama 0 0}
-	public method Init {filename array}
+	public method WriteSamples {ctlr sa} {Write $ctlr fpga 4 $sa}
+	public method WritePeriod {ctlr pe} {Write $ctlr fpga 12 $pe}
+	public method WriteDelay {ctlr de} {Write $ctlr fpga 16 $de}
+	public method WriteWidth {ctlr wi} {Write $ctlr fpga 20 $wi}
+	public method WriteShift {ctlr sh} {Write $ctlr fpga 24 $sh}
+	public method WriteThresholds {ctlr th}
+	public method Clear {ctlr } {Write $ctlr srama 0 0}
+	public method Init {ctlr filename array}
 	public method sReadAll {stack}
 }
 
-itcl::body APpacXLM72::WriteThresholds {th} {
+itcl::body APpacXLM72::WriteThresholds {ctlr th} {
 # if the th list contains less than 256 values, pad it with 1023 (10 bit max)
 	if {[llength $th] < 256} {
 		for {set i 0} {$i < 256-[llength $th]} {incr i} {lappend th 1023}
 	}
 # now write thresholds to RAM block of FPGA
 	for {set i 0} {$i < 64} {incr i} {
-		Write fpga 40 $i; # set RAM address
-		Write fpga 44 [lindex $th $i]; # set connector 0 threshold register
-		Write fpga 48 [lindex $th [expr $i+64]]; # set connector 1 threshold register
-		Write fpga 52 [lindex $th [expr $i+128]]; # set connector 2 threshold register
-		Write fpga 56 [lindex $th [expr $i+192]]; # set connector 3 threshold register
-		Write fpga 60 1; # toggle WE of RAM (write RAM)
-		Write fpga 60 0; # toggle back
-		Write fpga 64 1; # enable RAM address for read
-		Write fpga 72 0; # read RAM into registers
-		Write fpga 64 0; # disable RAM address for read
+		Write $ctlr fpga 40 $i; # set RAM address
+		Write $ctlr fpga 44 [lindex $th $i]; # set connector 0 threshold register
+		Write $ctlr fpga 48 [lindex $th [expr $i+64]]; # set connector 1 threshold register
+		Write $ctlr fpga 52 [lindex $th [expr $i+128]]; # set connector 2 threshold register
+		Write $ctlr fpga 56 [lindex $th [expr $i+192]]; # set connector 3 threshold register
+		Write $ctlr fpga 60 1; # toggle WE of RAM (write RAM)
+		Write $ctlr fpga 60 0; # toggle back
+		Write $ctlr fpga 64 1; # enable RAM address for read
+		Write $ctlr fpga 72 0; # read RAM into registers
+		Write $ctlr fpga 64 0; # disable RAM address for read
 		for {set c 0} {$c < 4} {incr c} {
-			set check [Read fpga [expr 44+$c*4]]
+			set check [Read $ctlr fpga [expr 44+$c*4]]
 			if {$check != [lindex $th [expr $i+$c*64]]} {
 				tk_messageBox -icon error -message "Failed to set threshold in XLM72V of [$this GetVariable self]: $check vs [lindex $th [expr $i+$c*64]]"
 			}
@@ -54,20 +54,20 @@ itcl::body APpacXLM72::WriteThresholds {th} {
 
 # This method assumes filename points to an "old" type Tcl file defining parameters
 # in an array called "aname"
-itcl::body APpacXLM72::Init {filename aname} {
+itcl::body APpacXLM72::Init {ctlr filename aname} {
 	source $filename
-	AccessBus 0x10001
+	AccessBus $ctlr 0x10001
 #	WriteSamples [lindex [array get $aname samples] 1]
-	WritePeriod [lindex [array get $aname period] 1]
-	WriteDelay [lindex [array get $aname delay] 1]
-	WriteWidth [lindex [array get $aname width] 1]
-	WriteShift [lindex [array get $aname shift] 1]
+	WritePeriod $ctlr [lindex [array get $aname period] 1]
+	WriteDelay $ctlr [lindex [array get $aname delay] 1]
+	WriteWidth $ctlr [lindex [array get $aname width] 1]
+	WriteShift $ctlr [lindex [array get $aname shift] 1]
 	for {set i 0} {$i < 256} {incr i} {
 		lappend th [lindex [array get $aname [format thresholds%.3d $i]] 1]
 	}
-	WriteThresholds $th
-	Clear
-	ReleaseBus
+	WriteThresholds $ctlr $th
+	Clear $ctlr
+	ReleaseBus $ctlr
 }
 
 itcl::body APpacXLM72::sReadAll {stack} {

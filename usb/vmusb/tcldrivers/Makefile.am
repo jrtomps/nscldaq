@@ -1,7 +1,8 @@
 DRIVERDest=@prefix@/TclLibs/vmusbdrivers
 
 TCLDRIVERS=sis330xdriver.tcl VMUSBDriverSupport.tcl vmusb.tcl \
-           AXLM72.tcl APpacXLM72.tcl 
+           AXLM72.tcl APpacXLM72.tcl ACrdcXLM72.tcl AXLM72Scaler.tcl \
+            CBD8210DriverSupport.tcl
 
 install-exec-local:
 	$(mkinstalldirs) @prefix@/TclLibs
@@ -15,5 +16,10 @@ install-exec-local:
 #
 #  All driver and docs files need to be added here:
 #
+TCLTESTS = xlm72scaler.test vmusbdriversupport.test
 
-EXTRA_DIST=$(TCLDRIVERS)
+
+check-TESTS:
+	TCLLIBPATH=@prefix@/TclLibs HERE=@srcdir@ tcl=@TCLSH_CMD@ @TCLSH_CMD@ @srcdir@/tclTests.tcl
+
+EXTRA_DIST=$(TCLDRIVERS) $(TCLTESTS)

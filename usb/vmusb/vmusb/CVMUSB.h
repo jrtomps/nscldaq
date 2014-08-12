@@ -243,13 +243,13 @@ public:
 
     virtual int vmeWrite32(uint32_t address, uint8_t aModifier, uint32_t data);
     virtual int vmeRead32(uint32_t address, uint8_t aModifier, uint32_t* data);
-    int vmeWrite32(int address, int amodifier, int data) { // SWIG
-      return vmeWrite32((uint32_t)address, (uint8_t)amodifier, (uint32_t)data);
-    }
-    int vmeRead32(int address, int amodifier) { // SWIG
+//    int vmeWrite32(int address, int amodifier, int data) { // SWIG
+//      return vmeWrite32((uint32_t)address, (uint8_t)amodifier, (uint32_t)data);
+//    }
+    uint32_t vmeRead32(int address, int amodifier) { // SWIG
       uint32_t d32 =0;
       vmeRead32((uint32_t)address, (uint8_t)amodifier, &d32);
-      return (int)d32;
+      return d32;
     }
 
 
@@ -642,7 +642,11 @@ private:
   return value;
 }
 
- inline size_t uint8_vector_size(std::vector<uint8_t> vec)  {
+inline std::vector<uint8_t> uint8_vector_create() {
+  return std::vector<uint8_t>(10,0);
+}
+
+inline size_t uint8_vector_size(std::vector<uint8_t> vec)  {
   return vec.size();
 }
  inline int uint8_vector_get(std::vector<uint8_t> vec, int i) {

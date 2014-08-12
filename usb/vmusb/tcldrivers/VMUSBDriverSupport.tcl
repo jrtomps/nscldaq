@@ -218,3 +218,46 @@ proc ::VMUSBDriverSupport::convertToReadoutList {atcllist} {
 }
 
 
+
+##
+# Convert a std::vector<uint8_t> to a TCL list of 32-bit integers
+#
+# This makes use of the cvmusb::uint8_vector_get and cvmusb::uint8_vector_size
+# procs to form the command. The proc will only succeed if the number of elements
+# in the std::vector<uint8_t> is divisible by 4 (i.e. it converts cleanly to 
+# a uint32_t). 
+#
+# 
+#
+proc ::VMUSBDriverSupport::convertBytesListToTclList {data_} { 
+
+  upvar $data_ data
+
+  set f [open "driversupport.txt" w+]
+  set pkg cvmusb
+  
+  puts $f [info commands cvmusb::*]
+  puts $f "convertBytesListToTclList" 
+  set nbytes [${pkg}::uint8_vector_size $data]
+  if {($nbytes%4) != 0} {
+    error "VMUSBDriverSupport::convertBytesListToTclList size of bytes list must be divisible by 4"
+  }
+  
+  puts $f $nbytes  
+  set intList [list] 
+  for {set byte 0} {$byte < $nbytes} {incr byte 4} {
+      set byte0 [${pkg}::uint8_vector_get $data $byte]
+      set byte1 [${pkg}::uint8_vector_get $data [expr $byte+1]]
+      set byte2 [${pkg}::uint8_vector_get $data [expr $byte+2]]
+      set byte3 [${pkg}::uint8_vector_get $data [expr $byte+3]]
+      set int [expr ($byte3<<24)|($byte2<<16)|($byte1<<8)|$byte0]
+    
+#      puts $f $int  
+      lappend intList $int
+  }
+
+  flush $f
+  close $f
+  return $intList
+}
+
