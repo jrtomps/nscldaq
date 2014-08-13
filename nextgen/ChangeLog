@@ -505,4 +505,9 @@ Feb 1, 2012 - Feb 24, 2012
 	scaler stack.
 	* Fix for Issue #2096 - Correctly compute the location of the
 	nscldaq bin directory so that ringselector can be properly found.
+
+10.2-110
+	* Fix for Bug #2197 - Improve error messages that are emitted when
+	attempting to record a run for which there are already run
+	segments or which was recorded but not correctly finalized.
 	

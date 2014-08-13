@@ -336,6 +336,48 @@ proc Experiment::finalizeEventData run {
     file attributes $complete  -permissions 0550;   # and the complete directory too.
 }
 
+##
+# ::Experiment::_duplicateRun
+#
+#  @return string -   
+#  @retval non empty  if the run we are about to write already exists.
+#          we're going to define 'exists' as having a run directory in the
+#          experiment view. 
+# @retval empty if there is no sign that this run had already been recorded.
+#
+proc ::Experiment::_duplicateRun {} {
+    set run [::ReadoutControl::GetRun]
+    
+    # Two possibilities;  If the run was properly ended, there will be a
+    # run directory in the experimnent view
+    
+    set runDirPath [::ExpFileSystem::WhereisRun $run]
+    
+    # If the run was improperly ended, there could be event segments in the
+    # current directory.  We'll look for them with glob.
+    #
+    
+    set checkDir [::ExpFileSystem::WhereisCurrentData]
+    set checkGlob [file join $checkDir [::ExpFileSystem::GenRunFileBase $run]*.evt ]
+    puts "Checking $checkGlob"
+
+
+    
+    set eventSegments [llength [glob -nocomplain $checkGlob]]
+
+    #  Figure out the return value:
+
+    if {[file exists $runDirPath]} {
+	set message "The final run directory '$runDirPath' already exists indicating this run may already have been recorded"
+    } elseif {($eventSegments > 0)} {
+	set message "$checkDir has event segments in it for this run ($run) indicating this run may already have been recorded but not finalized"
+    } else {
+	set message ""
+    }
+    return $message
+
+}
+
 #------------ The procs below should be considered public -------------
 
 # Experiment::RunBeginning
@@ -354,6 +396,14 @@ proc Experiment::RunBeginning {} {
 
 
     set ::Diagnostics::isTk 1;   #Ugly but works... forces tk dialogs from warning
+
+    # Check for evidence this run was already recorded:
+    
+    set errorMessage [::Experiment::_duplicateRun]
+    if {$errorMessage ne ""} {
+	error $errorMessage
+    }
+
     set      nrun [ReadoutControl::GetRun]
     if {[ReadoutControl::isTapeOn]} {
 	set Logrecorder [DAQParameters::getEventLogger]
