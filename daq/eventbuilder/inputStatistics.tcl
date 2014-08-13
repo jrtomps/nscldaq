@@ -88,11 +88,11 @@ namespace eval EVB {
 snit::widget ::EVB::inputStatistics::summaryDisplay {
     component innerHull
     
-    option -fragments  -default 0
-    option -oldest     -default 0
-    option -newest     -default 0
-    option -deepestid  -default ""
-    option -deepestdepth -default ""
+    option -fragments  -default 0 -configuremethod _unsignedOption
+    option -oldest     -default 0 -configuremethod _unsignedOption
+    option -newest     -default 0 -configuremethod _unsignedOption
+    option -deepestid  -default "" 
+    option -deepestdepth -default "" -configuremethod _unsignedOption
     
     
     delegate option * to innerHull
@@ -144,6 +144,21 @@ snit::widget ::EVB::inputStatistics::summaryDisplay {
           
         $self configurelist $args
     }
+
+    ##
+    # _unsignedOption
+    #    configuremethod for an option that must be rendered as unsigned:
+    #
+    # @param optname - name of the option
+    # @param value   - new value:
+    #
+    method _unsignedOption {optname value} {
+	if {[string is integer -strict $value]} {
+	    set options($optname) [format %u $value]
+	} else {
+	    set options($optname) $value
+	}
+    }
 }
 
 
@@ -175,10 +190,10 @@ snit::widget ::EVB::inputStatistics::summaryDisplay {
 snit::widget ::EVB::inputStatistics::queueDisplay {
 
     
-    option -id       -default -1
-    option -depth    -default  0
-    option -oldest   -default  0
-    option -outcount -default  0
+    option -id       -default -1 
+    option -depth    -default  0 -configuremethod _unsignedOption
+    option -oldest   -default  0 -configuremethod _unsignedOption
+    option -outcount -default  0 -configuremethod _unsignedOption
     
     delegate option * to innerHull
     delegate method * to innerHull
@@ -217,6 +232,20 @@ snit::widget ::EVB::inputStatistics::queueDisplay {
         grid $innerHull.outcountlbl $innerHull.outcount
         
         grid $innerHull -sticky nsew
+    }
+    ##
+    # _unsignedOption
+    #    configuremethod for an option that must be rendered as unsigned:
+    #
+    # @param optname - name of the option
+    # @param value   - new value:
+    #
+    method _unsignedOption {optname value} {
+	if {[string is integer -strict $value]} {
+	    set options($optname) [format %u $value]
+	} else {
+	    set options($optname) $value
+	}
     }
 }
 

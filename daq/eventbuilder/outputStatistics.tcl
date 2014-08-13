@@ -72,11 +72,11 @@ namespace eval EVB {
 # \endverbatim
 #
 snit::widgetadaptor ::EVB::outputSummary {
-    option -fragments    -default 0
+    option -fragments    -default 0  -configuremethod _unsignedOption
     option -hottestid    -default ""
-    option -hottestcount -default ""
+    option -hottestcount -default "" -configuremethod _unsignedOption
     option -coldestid    -default ""
-    option -coldestcount -default ""
+    option -coldestcount -default "" -configuremethod _unsignedOption
     
     delegate option -text to hull
     
@@ -108,6 +108,21 @@ snit::widgetadaptor ::EVB::outputSummary {
         # Process the initial configuration.
         
         $self configurelist $args
+    }
+    ##
+    # _unsignedOption
+    #    configuremethod for an option that must be rendered as unsigned:
+    #
+    # @param optname - name of the option
+    # @param value   - new value:
+    #
+    method _unsignedOption {optname value} {
+	if {[string is integer -strict $value]} {
+	    set options($optname) [format %u $value]
+	} else {
+	    set options($optname) $value
+	}
+  
     }
 }
 
@@ -144,7 +159,7 @@ snit::widget ::EVB::outputStatistics {
     component innerhull
     component sourcestats
     
-    option -totalfragments -default 0 -configuremethod configTotals
+    option -totalfragments -default 0 -configuremethod _unsignedOption
     
     delegate method addSource to sourcestats as setItem
     delegate method clear     to sourcestats
@@ -188,8 +203,20 @@ snit::widget ::EVB::outputStatistics {
 	
 	$self configurelist $args
     }
-
-
+   ##
+    # _unsignedOption
+    #    configuremethod for an option that must be rendered as unsigned:
+    #
+    # @param optname - name of the option
+    # @param value   - new value:
+    #
+    method _unsignedOption {optname value} {
+	if {[string is integer -strict $value]} {
+	    set options($optname) [format %u $value]
+	} else {
+	    set options($optname) $value
+	}
+    }
 }
 
 #----------------------------------------------------------------------------
