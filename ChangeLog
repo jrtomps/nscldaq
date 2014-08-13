@@ -681,4 +681,7 @@ Work on 11.0-rc11 begins
 	* Block SIGPIPE in ringtostdin, stdintoring and ringselector to
 	fix edge case where the pipe breaks before the write starts.
 	* Fix errors with scaler display handling of -width switch.
+	* Fix Issue #2197 - note that .started and its relatives just get
+	  silently deleted, but the first and last issue in this report
+	have been fixed by improved error messages in eventLogBundle.tcl
 	

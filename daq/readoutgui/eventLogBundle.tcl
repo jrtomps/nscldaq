@@ -500,9 +500,11 @@ proc ::EventLog::_setStatusLine repeatInterval {
 ##
 # ::EventLog::_duplicateRun
 #
-#  @return boolean true if the run we are about to write already exists.
+#  @return string -   
+#  @retval non empty  if the run we are about to write already exists.
 #          we're going to define 'exists' as having a run directory in the
-#          experiment view.
+#          experiment view. 
+# @retval empty if there is no sign that this run had already been recorded.
 #
 proc ::EventLog::_duplicateRun {} {
     
@@ -512,17 +514,27 @@ proc ::EventLog::_duplicateRun {} {
     # run directory in the experimnent view
     
     set runDirPath [::ExpFileSystem::getRunDir $run]
-   
-   # If the run was improperly ended, there could be event segments in the
-   # current directory.  We'll look for them with glob.
-   #
-   
-   set checkGlob [::ExpFileSystem::getCurrentRunDir]
-   set checkGlob [file join $checkGlob [::ExpFileSystem::genEventfileBasename $run]*.evt ]
-   
-   set eventSegments [llength [glob -nocomplain $checkGlob]]
-   
-    return [expr {[file exists $runDirPath] || ($eventSegments > 0)}]
+    
+    # If the run was improperly ended, there could be event segments in the
+    # current directory.  We'll look for them with glob.
+    #
+    
+    set checkGlob [::ExpFileSystem::getCurrentRunDir]
+    set checkGlob [file join $checkGlob [::ExpFileSystem::genEventfileBasename $run]*.evt ]
+    
+    set eventSegments [llength [glob -nocomplain $checkGlob]]
+
+    #  Figure out the return value:
+
+    if {[file exists $runDirPath]} {
+	set message "The final run directory '$runDirPath' already exists indicating this run may already have been recorded"
+    } elseif {($eventSegments > 0)} {
+	set message "[::ExpFileSystem::getCurrentRunDir] has event segments in it for this run ($run) indicating this run may already have been recorded but not finalized"
+    } else {
+	set message ""
+    }
+    return $message
+
 }
 
 #------------------------------------------------------------------------------
@@ -550,13 +562,16 @@ proc ::EventLog::runStarting {} {
     # Now if desired start the new run.
     
     if {[::ReadoutGUIPanel::recordData]} {
-        if {[::EventLog::_duplicateRun]} {
-            error "Run already has event data or segments"
+	set errorMessage [::EventLog::_duplicateRun]
+        if {$errorMessage ne ""} {
+
+            error $errorMessage
         }
  
         # Ensure there are no stale synch files:
         set startFile [file join [::ExpFileSystem::getCurrentRunDir] .started]
         set exitFile [file join [::ExpFileSystem::getCurrentRunDir] .exited]
+
         file delete -force $startFile 
         file delete -force $exitFile 
         
