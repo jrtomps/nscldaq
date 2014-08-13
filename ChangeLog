@@ -691,4 +691,7 @@ Work on 11.0-rc11 begins
 	notification so the restart works correctly.
 	* Fix? Bug #2188 - Ensure that all interesting numbers in the
 	event orderer gui are rendered as unsigned ints.
+	* Fix Bug #2182 as follows: Add key bindings for enter and tab
+	that update the --dt value.  So you do need to use one of those to
+	commit the value. 
 	

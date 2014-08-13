@@ -650,6 +650,13 @@ proc EVBC::_StartGui {} {
     
     spinbox $glom.dt -from 0 -to 1000000 -increment 1 \
         -command [list EVBC::_GlomDtChanged $glom.dt] -width 8
+
+    # We need to bind the enter key to invoke _GlomChanged as well
+    # since no keystrokes fire the -command.
+
+    bind $glom.dt <Key-Return> [list EVBC::_GlomDtChanged %W]
+    bind $glom.dt <Key-Tab>    [list EVBC::_GlomDtChanged %W]
+
     $glom.dt delete 0 end
     $glom.dt insert 0 [$EVBC::applicationOptions cget -glomdt]
  
