@@ -27,6 +27,7 @@ package require ring
 namespace eval ::EVBC {
     set initialized 0
     set pipefd    "";            # Holds the fd to the pipe inot the evbpipeline
+    set evbpids   [list];        # Holds list of PIDS that are the event builder.
     
     # Figure out where we are and hence the root of the daq system:
     # We assume we are in one directory below TclLibs in computing this:
@@ -213,6 +214,8 @@ proc EVBC::start args {
     
     
     set EVBC::pipefd [open "| $pipecommand" w+]
+    set EVBC::evbpids [pid $::EVBC::pipefd];      # Capture the PIDS.
+
     fconfigure $EVBC::pipefd -buffering line -blocking 0
     fileevent $EVBC::pipefd readable EVBC::_PipeInputReady
     
@@ -279,6 +282,8 @@ proc EVBC::stop {} {
     # Tell the interpreter to exit.
     # note that the pipefd close will trigger _PipeInputReady which will
     # in turn close the pipefd after reaping any errors.
+
+    set EVBC::evbpids [list];              # Expecting the exit so empty the pidlist.
     
     puts $EVBC::pipefd exit
     
@@ -537,6 +542,16 @@ proc EVBC::_PipeInputReady {} {
         catch {close $EVBC::pipefd} msg
         EVBC::_Output "Event builder pipeline exited $msg"
         set EVBC::pipefd ""
+	#
+	# Ensure the entire pipeline is dead too, and bitch if this is unexpected:
+	#
+	if {[llength $::EVBC::evbpids] != 0} {
+	    tk_messageBox -icon error -title {EVB pipe exit}  -type ok \
+		-message {An element of the event builder pipeline exited.  Killing the entire pipe}
+	    foreach pid $::EVBC::evbpids {
+		catch {exec kill -9 $pid}
+	    }
+	}
     } else {
         EVBC::_Output [gets $EVBC::pipefd]
     }
