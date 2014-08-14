@@ -1104,4 +1104,4 @@ class EventLoggers:
             ''', (id,)
         )
         if cursor.rowcount == 0:
-            raise RuntimeError('delete - no such row')=======
+            raise RuntimeError('delete - no such row')
