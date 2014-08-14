@@ -280,10 +280,10 @@ snit::widgetadaptor slowControlsPrompter {
             -command [list $form.list yview]
         
         ttk::label $form.hostl  -text Hostname:
-        ttk::entry $form.host -textvariable ${selfns}::options(-host) \
+        ttk::entry $form.host   -textvariable ${selfns}::options(-host) \
             -width 10
         ttk::label $form.portl  -text Port:
-        ttk::entry $form.port     -textvariable ${selfns}::options(-port) \
+        ttk::entry $form.port   -textvariable ${selfns}::options(-port) \
             -width 10
         
         # Layout the form.
@@ -291,11 +291,14 @@ snit::widgetadaptor slowControlsPrompter {
         grid $form.list -row 0 -column 0 -columnspan 3 -sticky nsew
         grid $form.scroll -row 0 -column 3 -sticky nsw
         
-        grid $form.hostl -row 1 -column 0
-        grid $form.portl -row 1 -column 1
+        grid $form.hostl -row 1 -column 0 -sticky ew
+        grid $form.portl -row 1 -column 1 -sticky ew
         
-        grid $form.host -row 2 -column 0
-        grid $form.port -row 2 -column 1
+        grid $form.host -row 2 -column 0 -sticky ew
+        grid $form.port -row 2 -column 1 -sticky ew
+        
+        grid rowconfigure    $form {0 1 2}   -weight 1
+        grid columnconfigure $form {0 1 2 3} -weight 1
         
         # The command widget has 4 colums one with each button as shown
         # in the layout figure:
@@ -309,13 +312,16 @@ snit::widgetadaptor slowControlsPrompter {
         button $command.cancel  -text Cancel -command [mymethod _Dispatch -cancelcmd]
         
         
-        grid $command.ok $command.update $command.default $command.cancel
+        grid $command.ok $command.update $command.default $command.cancel -sticky ew
+        grid rowconfigure    $command {0}       -weight 1
+        grid columnconfigure $command {0 1 2 3} -weight 1
         
         # Layout the entire widget
         
         grid $form      -sticky ew
         grid $command   -sticky ew
-        
+        grid columnconfigure $win 0 -weight 1
+        grid rowconfigure    $win {0 1} -weight 1
         
         # Add a double-1 binding to the listbox to _SelectServer.
         # which loads -port and -host with the characteristics
