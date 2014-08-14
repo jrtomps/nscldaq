@@ -1,8 +1,25 @@
 
 package provide ScalerClient 1.0
 package require InstallRoot 
-
-proc startScalerClient {{host localhost} {port 30999} {ringhost localhost} {ringname $::env(USER)}} {
+##
+# Start up a scaler client in the background
+#
+# This provides a convenient callable for running the sclclient 
+# program in the background. This is useful for prgorams that want
+# to monitor the data stream through a scaler client.
+#
+# @param host the hostname where the tclserver is running
+# @param port the port on which the tclserver is listening
+# @param ringhost the name of the host where the ring to attach to lives
+# @param ringname the name of the ring to attach to
+#
+# @return int
+# @retval pid of the sclclient program started up  
+#
+proc startScalerClient {{host localhost} 
+                        {port 30999} 
+                        {ringhost localhost} 
+                        {ringname $::env(USER)}} {
 # set up the name of binary and arguments
   set root [InstallRoot::Where]
   set sclClientBin [list [file join $root bin sclclient]]
