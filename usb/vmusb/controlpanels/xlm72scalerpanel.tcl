@@ -7,6 +7,41 @@ package require Itcl
 package require snit 
 package require Tk 
 package require usbcontrolclient 
+package require TclServer
+package require portAllocator 
+package require InstallRoot
+package require ScalerClient
+
+set RunState Invalid
+
+proc _OnTclServerConnect {fd ip port } {
+  puts "Connection on $ip : $port"
+  gets $fd user
+  puts $user
+  return true
+}
+
+proc _OnTclServerError {chan command msg } {
+  puts "Error when executing \"$command\" : $msg"
+  return true
+}
+proc startServer {} {
+  ::portAllocator create allocator 
+  set port [allocator allocatePort XLM72ScalerGUI]
+  puts "Allocated port : $port"
+  set ::server [TclServer %AUTO% -port $port -onconnect _OnTclServerConnect]
+  $::server configure -onerror _OnTclServerError
+  $::server start
+  
+  puts "TclServer started"
+  return $port
+}
+
+
+
+set port [startServer ]
+puts "TclServer started on port = $port"
+#ScalerClient client -port $port
 
 itcl::class XLM72ScalerGUI {
   
@@ -48,7 +83,7 @@ itcl::class XLM72ScalerGUI {
 		}
 
 		# look for module and update from it
-    set mediator [::XLM72SclrGUIRelay %AUTO% -host $host -port $port -name $modulename]
+    set mediator [::XLM72SclrGUICtlr %AUTO% -host $host -port $port -name $modulename]
     $this BuildGUI $parentWidget
     $mediator configure -widget $this 
 
@@ -146,7 +181,7 @@ itcl::body XLM72ScalerGUI::BuildPanel {parent name offset} {
   grid $w.chanLbl $w.nameLbl $w.totalLbl $w.rateLbl $w.enableLbl -stick nsew
   for {set i $begin} {$i < $end} {incr i} {
     grid $w.ch$i $w.name$i $w.scaler$i $w.rate$i $w.trigger$i -sticky news
-    grid rowconfigure $w [expr $i+1] -weight 1
+    grid rowconfigure $w [expr ($i-$begin)+1] -weight 1
   }
   grid columnconfigure $w {1 2 3} -weight 1 
 
@@ -177,17 +212,30 @@ itcl::body XLM72ScalerGUI::SaveSettings {} {
 # Get commands
 #
 itcl::body  XLM72ScalerGUI::UpdatePanel {once} {
+  global RunState
 #	set top ".aXLM72Scaler_[string trimleft $this :]"
-  puts "XLM72ScalerGUI::UpdatePanel $once"
-  set state [$mediator GetRunState]
 
-  if {($state ne "idle") && ($state ne "paused")} {
+  set active [expr {$::RunState eq "Active"}]
+  if {$active} {
     SetChildrenState disable
-    after cancel $cancel
   } else {
-    SetChildrenState normal 
+    # if the period between refreshes is shorter than it takes
+    # for data to be observed by the sclclient and set RunState 
+    # us, then we end up getting through to the slow controls server
+    # when the run is active. This then pauses the run and it is 
+    # annoying. So we can at least prevent it from happening more than once
+    # by asking for the state.
+    set state [$mediator GetRunState]
+    if { ($state ne "idle") && ($state ne "paused")} {
+      # Oops we are running and weren't alerted yet. 
+      # Update properly and then set the RunState manually
+      SetChildrenState disable
+      set ::RunState Active
+    } else {
 
-    UpdateValues ;# Update the values
+      SetChildrenState normal 
+      UpdateValues ;# Update the values
+    }
   }
 
   # If needed reschedule the next update
@@ -252,6 +300,7 @@ itcl::body XLM72ScalerGUI::OnReset {} {
 	for {set i 0} {$i < 32} {incr i} {
 		set wrap($i) 0
 		set scaler($i) 0
+		set rate($i) 0
 	}
 }
 
@@ -277,19 +326,29 @@ itcl::body XLM72ScalerGUI::OnTriggerToggle {ch} {
 ##
 # Handles all of the backend transactions with the VMUSBReadout
 #
-snit::type XLM72SclrGUIRelay {
+snit::type XLM72SclrGUICtlr {
 
   option -host       localhost
   option -port       27000
   option -connection ""
   option -name       ""
   option -widget     ""
-
+  
+  variable sclclientPID
 
   constructor args {
+    variable sclclientPID
+
     $self configurelist $args
     
     $self Reconnect $options(-host) $options(-port)
+    set sclclientPID [startScalerClient localhost $::port \
+                                        localhost $::env(USER)]
+  }
+  
+  destructor {
+    variable sclclientPID
+    catch {close $sclclientPID}
   }
 
   method SetEnable {enable} {
@@ -297,7 +356,6 @@ snit::type XLM72SclrGUIRelay {
   }
 
   method SetTrigger {ch val} {
-    puts "SetTrigger $ch $val"
     $self Set [list [format "trigger%d" $ch ] $val]
   }
 
@@ -345,7 +403,6 @@ snit::type XLM72SclrGUIRelay {
   }
 
   method Set {args}  {
-    puts "Set $args"
     set name $options(-name)
     set conn $options(-connection)
     set args [lindex $args 0] 
@@ -381,10 +438,18 @@ snit::type XLM72SclrGUIRelay {
       }
     }
 
-    puts $msg
   	return $msg
 
   }
 
 
 }
+
+
+proc Update {} {}
+proc BeginRun {} {puts "BEGIN RUN"}
+proc EndRun {} { puts "END RUN"}
+proc PauseRun {} {}
+proc ResumeRun {} {}
+proc RunInProgress {} {puts "RUN IN PROGRESS"}
+proc UpdateRunTime {src time} {}
