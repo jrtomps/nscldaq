@@ -50,6 +50,8 @@ while 1:
         reply = mon.setRun(info[1])
     if info[0] == 'D':
         reply = mon.setTitle(info[1])
+    if info[0] == 'r':
+        reply = mon.setRecording(info[1].upper() in ['ON', 'TRUE', 'ENABLED'])
         
     print("Reply: %s" % (reply))
 

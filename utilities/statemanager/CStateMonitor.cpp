@@ -300,7 +300,7 @@ CZMQEventLoop::dispatch(zmq::pollitem_t* pItems, size_t count)
  */
 CStateMonitorBase::CStateMonitorBase(
     std::string transitionReqURI, std::string statePublisherURI, CStateMonitorBase::InitCallback cb
-) : m_pContext(0), m_pRequestSocket(0), m_pStateSocket(0), m_runNumber(-1)
+) : m_pContext(0), m_pRequestSocket(0), m_pStateSocket(0), m_runNumber(-1), m_recording(false)
 {
     // Actually the event loop constructs itself
     
@@ -320,6 +320,7 @@ CStateMonitorBase::CStateMonitorBase(
     m_pStateSocket->setsockopt(ZMQ_SUBSCRIBE, "TRANSITION:", 10);
     m_pStateSocket->setsockopt(ZMQ_SUBSCRIBE, "RUN:", 4);
     m_pStateSocket->setsockopt(ZMQ_SUBSCRIBE, "TITLE:", 6);
+    m_pStateSocket->setsockopt(ZMQ_SUBSCRIBE, "RECORD:", 7);
     
     //  Register the state socket readability with the event loop:
     
@@ -332,6 +333,7 @@ CStateMonitorBase::CStateMonitorBase(
     if (cb) {
         (*cb)(this);
     }
+    
     
 }
 /**
@@ -370,7 +372,18 @@ CStateMonitorBase::requestTransition(std::string transitionName)
 {
     std::string msg = "TRANSITION:";
     msg            += transitionName;
-    
+    return sendRequestMessage(msg);
+}
+/**
+ * sendRequestMessage
+ *    Sends a message to the request port.
+ *
+ *  @param msg - the message to send.
+ *  @return std::string the response message.
+ */
+std::string
+CStateMonitorBase::sendRequestMessage(std::string msg)
+{
     zmq::message_t trMessage(const_cast<char*>(msg.c_str()), msg.size(), 0);
     m_pRequestSocket->send(trMessage);
     
@@ -406,6 +419,9 @@ int
 CStateMonitorBase::getRunNumber() const {return m_runNumber;}
 std::string
 CStateMonitorBase::getTitle() const {return m_title;}
+
+bool
+CStateMonitorBase::getRecording() const {return m_recording;}
 
 /*
  * Protected methods (virtual ones get overriden but these base class
@@ -474,6 +490,19 @@ CStateMonitorBase::titleMsg(std::string body)
     m_title = body;
 }
 /**
+ * recordMsg
+ * Called whena new recording message is received.
+ * The body of the message is either "True" or "False" depending
+ * on the recording state.
+ *
+ * @param body - message body.
+ */
+void
+CStateMonitorBase::recordMsg(std::string body)
+{
+    m_recording = (body == "True");
+}
+/**
  * Private utilities;
  */
 
@@ -532,6 +561,8 @@ CStateMonitorBase::StateMessage(zmq::pollitem_t* item)
         runNumMsg(state);
     } else if (type == "TITLE") {
         titleMsg(state);
+    } else if (type == "RECORD") {
+        recordMsg(state);
     } else {
         std::string failure("Invalid message type received: ");
         failure += type;
@@ -600,7 +631,13 @@ CStateMonitorBase::getMessage(void* socket)
 CStateMonitor::CStateMonitor(
     std::string transitionReqURI, std::string statePublisherURI,
     CStateMonitorBase::InitCallback cb
-) : CStateMonitorBase(transitionReqURI, statePublisherURI, cb)
+) : CStateMonitorBase(transitionReqURI, statePublisherURI, cb),
+    m_titleCallback(0),
+    m_runNumberCallback(0),
+    m_titleCBData(0),
+    m_runNumberCBData(0),
+    m_recordCBData(0),
+    m_recordingCallbackCalled(false)
 {}
 /**
  * Destructor is also handled by the base class.
@@ -637,7 +674,49 @@ CStateMonitor::unregister(std::string state)
         m_dispatch.erase(p);
     }
 }
-/*----------------------------------------------------------------------------
+/**
+ * setTitleCallback
+ *    Set a callback that is invoked when the title changes.
+ *  @param cb - Pointer to the callback function. This should be null to
+ *              disable callbacks.
+ *  @param cd - data passed without interpretation to the callbackk.
+ */
+ void
+ CStateMonitor::setTitleCallback(CStateMonitor::TitleCallback cb, void* cd)
+ {
+    m_titleCallback = cb;
+    m_titleCBData   = cd;
+ }
+ /**
+  * setRunNumberCallback
+  *    Set the callback that is invoked when the run number changes
+  *   
+  *  @param cb - Pointer to the callback function. This should be null to
+  *              disable callbacks.
+  *  @param cd - data passed without interpretation to the callback.
+ */
+void
+CStateMonitor::setRunNumberCallback(CStateMonitor::RunNumberCallback cb, void* cd)
+{
+    m_runNumberCallback = cb;
+    m_runNumberCBData   = cd;
+}
+/**
+ * setRecordingCallback
+ *    Set the callback and data that are invoked when the state of the
+ *    recording flag.
+ *
+ *    @param cb - The callback
+ *    @param cd - Data passed without interpretation to the callback.
+ */
+void
+CStateMonitor::setRecordingCallback(RecordingCallback cb, void* cd)
+{
+    m_recordingCallback = cb;
+    m_recordCBData   = cd;
+}
+  
+ /*-------------------------------------------------------------------
  * protected method overrides.
  */
 /**
@@ -674,6 +753,66 @@ CStateMonitor::transition(std::string newState)
     
     if (oldState != "") {
         dispatch(oldState, newState);
+    }
+}
+/**
+ * runNumMsg
+ *   Called when a message for a run number changes has occured,
+ *   *   Invoke the base class method.
+ *   *   If there's a callback, invoke it - note the callback is a oneshot.
+ *
+ *  @param body - stringified new run number
+ */
+void
+CStateMonitor::runNumMsg(std::string body)
+{
+    int oldRun = getRunNumber();
+    CStateMonitorBase::runNumMsg(body);
+    int newRun = getRunNumber();
+    if (m_runNumberCallback && (oldRun != newRun)) {
+        (*m_runNumberCallback)(this, newRun, m_runNumberCBData);
+    }
+}
+/**
+ * titleMsg
+ *   Called when a new title message is received:
+ *   *  Call the base class method
+ *   *  If there's a callback, invoke it - note the callback is a oneshot
+ *
+ *  @param body - body of the message - the  new title.
+ */
+void
+CStateMonitor::titleMsg(std::string body)
+{
+    std::string oldTitle = getTitle();
+    CStateMonitorBase::titleMsg(body);
+    std::string newTitle = getTitle();
+    if (m_titleCallback && (oldTitle != newTitle)) {
+        (*m_titleCallback)(this, newTitle, m_titleCBData);
+    }
+}
+/**
+ * recordMsg
+ *    Called when a new recording message is received.
+ *    *  Call the base class method.
+ *    *  If the recording state changed, or if we've never called the callback,
+ *       invoke it (if it exists).  This first time logic is needed because
+ *       there's no 'evil' state for the valoue that we can use to distinguish
+ *       the first notification.
+ *  @param body - body of the message
+ */
+void
+CStateMonitor::recordMsg(std::string body)
+{
+    bool priorState = getRecording();
+    CStateMonitorBase::recordMsg(body);
+    bool currentState = getRecording();
+    
+    if (m_recordingCallback &&
+        ((currentState != priorState) || !m_recordingCallbackCalled)
+    ) {
+        (*m_recordingCallback)(this, currentState, m_recordCBData);
+        m_recordingCallbackCalled = true;
     }
 }
 

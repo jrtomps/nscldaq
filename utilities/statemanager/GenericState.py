@@ -94,6 +94,10 @@ def State(cargo):
                 Utilities.title = param
                 Utilities.publishTitle(publishSock, param)
                 requestSock.send('OK')
+            elif action == 'RECORD':
+                Utilities.recording = param.upper() in ['ON', 'TRUE', 'ENABLED']
+                Utilities.publishRecording(publishSock, Utilities.recording)
+                requestSock.send('OK')
             
             
             

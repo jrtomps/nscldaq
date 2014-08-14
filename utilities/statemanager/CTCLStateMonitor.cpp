@@ -28,6 +28,8 @@
 #include <exception>
 #include <string.h>
 
+#include <iostream>
+
 /*-----------------------------------------------------------------------------
    Implementation of CTCLStateMonitor - this should probably actually be
    called CThreadsafeStateMonitor because it's not actually Tcl specific.
@@ -131,7 +133,9 @@ CTCLStateMonitor::transition(std::string newState)
 CTCLStateMonitorCommand::CTCLStateMonitorCommand(
     CTCLInterpreter& interp, std::string name
 ) : CTCLObjectProcessor(interp, name, true),
-    m_monitorThread(0), m_myThread(Tcl_GetCurrentThread()), m_pStateMonitor(0)
+    m_monitorThread(0), m_myThread(Tcl_GetCurrentThread()), m_pStateMonitor(0),
+    m_runNumber(-1),
+    m_recording(false)
 {
 }
 /**
@@ -176,6 +180,18 @@ CTCLStateMonitorCommand::operator()(CTCLInterpreter& interp, std::vector<CTCLObj
             unregister(interp, objv);
 	} else if (subCommand == "transition") {
 	    requestTransition(interp, objv);
+        } else if (subCommand == "gettitle") {
+            getTitle(interp, objv);
+        } else if (subCommand == "getrun") {
+            getRun(interp, objv);
+        } else if (subCommand == "titlecallback") {
+            setTitleCallback(interp, objv);
+        } else if (subCommand == "runnumcallback") {
+            setRunNumCallback(interp, objv);
+        } else if (subCommand == "getrecording") {
+            getRecording(interp, objv);
+        } else if (subCommand == "recordingcallback") {
+            setRecordingCallback(interp, objv);
         } else {
             throw std::string("Invalid subcommand");
         }
@@ -205,7 +221,16 @@ CTCLStateMonitorCommand::start(CTCLInterpreter& interp, std::vector<CTCLObject>&
     std::string reqUri   = objv[2];
     std::string stateUri = objv[3];
     try {
+        // Create our event loop and register the title/run number callbacks
+        
         m_pStateMonitor = new CTCLStateMonitor(reqUri, stateUri);
+        m_pStateMonitor->setTitleCallback(queueTitleEvent, this);
+        m_pStateMonitor->setRunNumberCallback(queueRunNumberEvent, this);
+        m_pStateMonitor->setRecordingCallback(queueRecordingEvent, this);
+        
+        
+        // Start the event loop in its own thread.
+        
         int stat            = Tcl_CreateThread(
             &m_monitorThread, eventLoopThread, this, TCL_THREAD_STACK_DEFAULT,
             TCL_THREAD_NOFLAGS
@@ -303,7 +328,108 @@ CTCLStateMonitorCommand::requestTransition(
   std::string reply = m_pStateMonitor->requestTransition(newState);
   interp.setResult(reply);
 }
-					   
+/**
+ * getTitle
+ *   Fetch the current idea of the title.  If the title is not yet known
+ *   an empty string is the result.
+ *     
+ *  @param interp - the interpreter running the command.
+ *  @param objv   - The encapsulated objects that make up the command words.
+ */
+void
+CTCLStateMonitorCommand::getTitle(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
+{
+    requireExactly(objv, 2, "Incorrect number of command line parameters");
+    interp.setResult(m_Title);
+}
+/**
+ * getRun
+ *   Fetch the current idea of the run number.  If the run number is not
+ *   yet known (the value will be -1), an empty string is returned.
+ *
+ *  @param interp - the interpreter running the command.
+ *  @param objv   - The encapsulated objects that make up the command words.
+ */
+void
+CTCLStateMonitorCommand::getRun(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv 
+)
+{
+    requireExactly(objv, 2, "Incorrect number of parameters");
+    if(m_runNumber != -1) {
+        CTCLObject resultObj;
+        resultObj.Bind(interp);
+        resultObj = m_runNumber;
+        interp.setResult(resultObj);
+    }
+}
+/**
+ * setTitleCallback
+ *    Define a script to be called when the title changes.  The new title
+ *    is appended to the script.   If you want to turn off an existing callback,
+ *    provide an empty string as the script.
+ *
+ *  @param interp - the interpreter running the command.
+ *  @param objv   - The encapsulated objects that make up the command words.
+ */
+void
+CTCLStateMonitorCommand::setTitleCallback(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv     
+)
+{
+    requireExactly(objv, 3, "Incorrect number of command line parameters");
+    m_titleChangeScript = std::string(objv[2]);
+}
+/**
+ * setRunNumCallback
+ *    Define a script to be called whenthe run number changes.  The new run number
+ *    s appended to the script.   If you want to turn off an existing callback,
+ *    provide an empty string as the script.
+ *
+ *  @param interp - the interpreter running the command.
+ *  @param objv   - The encapsulated objects that make up the command words.
+ */
+void
+CTCLStateMonitorCommand::setRunNumCallback(
+     CTCLInterpreter& interp, std::vector<CTCLObject>& objv   
+)
+{
+    requireExactly(objv, 3, "Incorrect number of command line parameters");
+    m_runNumberChangeScript  = std::string(objv[2]);
+}
+/**
+ * getRecording
+ *   Set the current known state of the recording flag as the command's value
+ *
+ * @param interp - the interpreter running the command.
+ * @param objv   - vector of command words.
+ */
+void
+CTCLStateMonitorCommand::getRecording(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
+{
+    requireExactly(objv, 2, "Incorrect number of command line parameters");
+    interp.setResult(std::string(m_recording ? "true" : "false"));
+}
+/**
+ * setRecordingCallback
+ *    Define a script that will be called when the recording state changes (or
+ *    first becomes known).
+ *
+ *    @param interp - the interpreter running the command.
+ * @param objv   - vector of command words.
+ */
+void
+CTCLStateMonitorCommand::setRecordingCallback(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
+{
+    requireExactly(objv, 3, "Incorrect number of command line parameters");
+    m_recordingChangeScript = std::string(objv[2]);
+}
 
 /**
  *  Utility methods
@@ -490,6 +616,250 @@ CTCLStateMonitorCommand::toUpper(std::string in)
 {
     std::transform(in.begin(), in.end(), in.begin(), ::toupper);
     return in;                 // Which has been transformed above.
+}
+
+/**
+ * queueRunNumberEvent
+ *   This method runs in the event loop's thread.  It's purpose is to queue
+ *   an event to the interpreter's thread that indicates a change in run number.
+ *   The handler is CTCLStateMonitorCommand::runNumberEvent().
+ *
+ *   @param pMon - pointer to the state monitor.
+ *   @param run  - New run number.
+ *   @param pObj - Client data that is actually a pointer to the command object.
+ */
+void
+CTCLStateMonitorCommand::queueRunNumberEvent(CStateMonitor* pMonitor, int run, void* pObj)
+{
+    // Create and fill in the event structure:
+    
+    
+    pRunEvent pEvent    = reinterpret_cast<pRunEvent>(Tcl_Alloc(sizeof(RunEvent)));
+    pEvent->s_event.proc = runNumberEvent;
+    pEvent->s_runNumber  = run;
+    pEvent->s_this       = reinterpret_cast<CTCLStateMonitorCommand*>(pObj);
+    
+    // Queue the event:
+    
+    Tcl_ThreadQueueEvent(
+        pEvent->s_this->m_myThread, reinterpret_cast<Tcl_Event*>(pEvent),
+        TCL_QUEUE_TAIL
+    );
+    Tcl_ThreadAlert(pEvent->s_this->m_myThread);
+    
+}
+/**
+ * runNumberEvent
+ *    Called by the Tcl event loop of the Tcl interpreter.  We gain object
+ *    context, set the new run number in member data, run the user's script
+ *    and indicate the event can be freed:
+ *
+ * @param pEvent - pointer to the event, actually a pRunEvent.
+ * @param mask   - Event dispatch mask.
+ *
+ * @return int 1 - Indicates the event can be released and that we don't need
+ *                 to be rescheduled.
+ */
+int
+CTCLStateMonitorCommand::runNumberEvent(Tcl_Event* pEvent, int mask)
+{
+    // Establish object context:
+    
+    pRunEvent                p    = reinterpret_cast<pRunEvent>(pEvent);
+    CTCLStateMonitorCommand* pObj = p->s_this;
+    
+    pObj->m_runNumber = p->s_runNumber;
+    pObj->runRunNumberScript(p->s_runNumber);
+    
+    return 1;
+}
+/**
+ * runRunNumberScript
+ *    If the user has specified a run number script, append the run number
+ *    to it and invoke it at the global level.
+ *
+ *  @param run - The new run number.
+ */
+void
+CTCLStateMonitorCommand::runRunNumberScript(int run)
+{
+    if (m_runNumberChangeScript != "") {
+        CTCLObject script;
+        CTCLInterpreter* pInterp = getInterpreter();
+        script.Bind(pInterp);
+        script += m_runNumberChangeScript;
+        script += run;
+        
+        try {
+            pInterp->GlobalEval(std::string(script));
+        }
+        catch(...) {
+            // ignore errors for now...TODO: See if a bgerror call is a better choice.
+        }
+    }
+}
+/**
+ * queueTitleEvent
+ *    Called in the context of the eventloop's thread to queue an event
+ *    to the interpreter's thread indicating that the title has changed.
+ *
+ *  @param pMon  - The state monitor.
+ *  @param title - The new title string.
+ *  @param pObj  - Actually a pointer to the object that will handle the event
+ *                 (CTCLStateMonitorCommand).
+ */
+void
+CTCLStateMonitorCommand::queueTitleEvent(
+    CStateMonitor* pMon, std::string title, void* pObj
+)
+{
+    // The event is actually a TitleEvent:
+    
+    pTitleEvent pEvent = reinterpret_cast<pTitleEvent>(Tcl_Alloc(sizeof(TitleEvent)));
+    pEvent->s_event.proc = titleEvent;
+    pEvent->s_this       = reinterpret_cast<CTCLStateMonitorCommand*>(pObj);
+    pEvent->s_pNewTitle  = Tcl_Alloc(title.size() + 1);
+    strcpy(pEvent->s_pNewTitle, title.c_str());
+    
+    // Queue the event:
+    
+    Tcl_ThreadQueueEvent(
+        pEvent->s_this->m_myThread, reinterpret_cast<Tcl_Event*>(pEvent),
+        TCL_QUEUE_TAIL
+    );
+    Tcl_ThreadAlert(pEvent->s_this->m_myThread);
+}
+/**
+ * titleEvent
+ *    Receives title change events in the interpreter thread.
+ *    * Establish object context.
+ *    * Update our title, and release title storage in the event.
+ *    * Run the user script.
+ *    * Return indicating the event can be freed.
+ *
+ * @param pEvent - Pointer to the event, actually a pTitleEvent.
+ * @param mask   - Event delivery mask.
+ *
+ * @return int 1 - Indicating no need to reschedule and release the event.
+ */
+int
+CTCLStateMonitorCommand::titleEvent(Tcl_Event* pEvent, int mask)
+{
+    pTitleEvent              p    = reinterpret_cast<pTitleEvent>(pEvent);
+    CTCLStateMonitorCommand* pObj = p->s_this;
+    
+    pObj->m_Title                 = p->s_pNewTitle;
+    Tcl_Free(p->s_pNewTitle);
+    
+    pObj->runTitleScript(pObj->m_Title);
+    
+    return 1;
+}
+/**
+ * runTitleScript
+ *    If the user has a title script construct it and run it.
+ *
+ * @param title - the new title.
+ *
+ */
+void
+CTCLStateMonitorCommand::runTitleScript(std::string title)
+{
+    if (m_titleChangeScript != "") {
+        CTCLInterpreter* pInterp = getInterpreter();
+        CTCLObject        script;
+        script.Bind(pInterp);
+        
+        script += m_titleChangeScript;
+        script += title;
+        
+        try {
+            pInterp->GlobalEval(script);
+        }
+        catch(...) {
+            
+        }
+    }
+}
+/**
+ * queueRecordingEvent
+ *
+ * This is the callback established with the state monitor.    It's run in the
+ * zmq event loop's thread, and therefore simply queues an event for the
+ * interpreter's thread to call recordingEvent.  The Event type will be a
+ * CTCLStateMonitorCommand::RecordEvent which carries the new state and a
+ * 'this'. so that object context can be extablished.
+ *  @param pMon  - The state monitor.
+ *  @param state- The new recording state.
+ *  @param pObj  - Actually a pointer to the object that will handle the event
+ *                 (CTCLStateMonitorCommand).
+ */
+void
+CTCLStateMonitorCommand::queueRecordingEvent(
+    CStateMonitor* pMon, bool state, void* pObj
+)
+{
+    // Create and fill in the event:
+    
+    pRecordEvent  pEvent = reinterpret_cast<pRecordEvent>(Tcl_Alloc(sizeof(RecordEvent)));
+    pEvent->s_event.proc = recordingEvent;
+    pEvent->s_state       = state;
+    pEvent->s_this        = reinterpret_cast<CTCLStateMonitorCommand*>(pObj);
+    
+    // queue the event and notify the calling thread.
+    
+    Tcl_ThreadId tid = pEvent->s_this->m_myThread;
+    Tcl_ThreadQueueEvent(tid, reinterpret_cast<Tcl_Event*>(pEvent), TCL_QUEUE_TAIL);
+    Tcl_ThreadAlert(tid);
+}
+/**
+* recordingEvent
+*
+*   Called in response to a recording state change, now in the interpreter's thread.
+*   This is a static function, but the extended event data includes an object pointer
+*   that can be used to establish object context.
+*   *  Update the object's recording flag.
+*   *  Invoke the callback script.
+*   *  Indicate that the event can be released (there are no dynamically allocated fields).
+*
+*  @param pEvent - Pointer to the event object.
+*  @param flags  - event dispatch flags.
+*  @return int 1 - Indicates that we don't need to be rescheduled and that the
+*                  storage ponited to by pEvent can be freed.
+*/
+int
+CTCLStateMonitorCommand::recordingEvent(Tcl_Event* pEvent, int mask)
+{
+    pRecordEvent p = reinterpret_cast<pRecordEvent>(pEvent);
+    p->s_this->m_recording = p->s_state;
+    
+    p->s_this->runRecordingScript(p->s_state);
+    
+    return 1;
+}
+/**
+ * runRecordingScript
+ *    Called to run the recording changed script (if it exists).  This i
+ *    called in the context of the command object and its thread.
+ *
+ * @param state - current recording state.
+ */
+void
+CTCLStateMonitorCommand::runRecordingScript(bool state)
+{
+    if (m_recordingChangeScript != "") {
+        CTCLInterpreter* pInterp = getInterpreter();
+        CTCLObject script;
+        script.Bind(pInterp);
+        script += m_recordingChangeScript;
+        script += static_cast<int>(state);
+        try {
+            pInterp->GlobalEval(script);
+        }
+        catch(...) {
+            // TODO: Figure out what to do on error bgerror?
+        }
+    }
 }
 
 /*-----------------------------------------------------------------------------

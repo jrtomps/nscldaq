@@ -26,9 +26,20 @@ import getpass
 import subprocess
 from nscldaq.portmanager import PortManager
 
+
+##
+#  Global state machine variables (only valid in the stateManager app)
+#
+#   stateMachine - The instance of the state machine.
+#   title        - Current run title.
+#   run          - Current Run number.
+#   recording    - True if the run is being recorded.
+#
+
 stateMachine = None
 title        = None
 run          = None
+recording    = False
 
 ##
 # _user
@@ -209,9 +220,20 @@ def publishState(socket):
         publishTitle(socket, title)
     if run != None:
         publishRun(socket, run)
+    publishRecording(socket, recording)
     message = 'STATE:%s' % (stateMachine.getState())
     socket.send(message)
 
+##
+# publishRecording
+#   Publishes the state of the recording state
+# @param sock - the zmq socket to which the publication occurs.
+# @param value - Value to publish.
+#
+def publishRecording(sock, value):
+    message = 'RECORD:%s' % (value)
+    sock.send(message)
+    
 ##
 # publishTransition
 #
@@ -268,7 +290,7 @@ def publishTitle(socket, title):
 #          to the socket to save the caller the trouble.
 #
 def getRequest(socket):
-    validRequests = ['TRANSITION', 'RUN', 'TITLE']
+    validRequests = ['TRANSITION', 'RUN', 'TITLE', 'RECORD']
     line = socket.recv()
     list = line.split(':', 1)           # This allows : in the argument.
     if list[0] in validRequests:

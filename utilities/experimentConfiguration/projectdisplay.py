@@ -22,6 +22,7 @@
 
 from PyQt4 import QtGui, QtCore
 from nscldaq.expconfiguration import state, project, ringspec, programspec
+from nscldaq.expconfiguration import RecorderDialog
 
 
 
@@ -312,8 +313,23 @@ class RingDisplay(QtGui.QTreeView):
             return False
         else:
             return True
-
-
+    
+    ##
+    # _unused
+    #   Ensure a ring is not referenced as an FK in other tables.
+    #
+    # @param id  id of the ring being checked.
+    #
+    # @return boolean - True if the ring is not used.
+    #
+    def _unused(self, id):
+        
+        # Could be referenced by event loggers:
+        
+        loggers = project.EventLoggers(state.State.project)
+        
+        return len(loggers.find(ring_id=id)) == 0
+        
     ##
     # _edit
     #   Called when Edit... is selected from the context menu:
@@ -436,20 +452,28 @@ class RingDisplay(QtGui.QTreeView):
         nodeNameIndex= nodeIndex.sibling(nodeRow, 0)
         nodeName     = nodeNameIndex.data().toString()
         
-        # TODO: Check there are no ring references.
+        
         
         #  Ensure the user really wants to do this:
         
-        confirm = QtGui.QMessageBox.question(
-             self, 'Delete? ',
-             'Are you sure you want to delete the ring %s@%s' % (name, nodeName),
-             QtGui.QMessageBox.Ok, QtGui.QMessageBox.Cancel
-         )
-        if confirm == QtGui.QMessageBox.Ok:
-            rings = project.Rings(state.State.project)
-            rings.delete(int(idText))
-            self.populate(rings.list())
-
+        if self._unused(int(idText)):
+        
+            confirm = QtGui.QMessageBox.question(
+                 self, 'Delete? ',
+                 'Are you sure you want to delete the ring %s@%s' % (name, nodeName),
+                 QtGui.QMessageBox.Ok, QtGui.QMessageBox.Cancel
+             )
+            if confirm == QtGui.QMessageBox.Ok:
+                rings = project.Rings(state.State.project)
+                rings.delete(int(idText))
+                self.populate(rings.list())
+        else:
+            QtGui.QMessageBox.warning(
+                self, 'Ring in use',
+                "The ring %s@%s is still being referenced " % (name, nodeName),
+                QtGui.QMessageBox.Ok
+            )
+            
     ##
     # _contextMenu
     #    Displays the left mouse context menu and dispatches to the appropriate
@@ -879,7 +903,235 @@ class ProgramDisplay(QtGui.QTreeView):
         
         self.setModel(self._model)
         self.expandAll()
-  
+ 
+##
+# @class EventLoggerDisplay
+#    Display/edit event loggers.   This is a table with the rows:
+#    *  id      - The id of the logger (primary key)
+#    *  ringid  - The id of the ring
+#    *  ringname - The name of the ring.
+#    *  hostname - The host in which the ring lives.
+#    *  log path - The path to which data are logged.
+#
+class EventLoggerDisplay(QtGui.QTableWidget):
+    ##
+    # constructor
+    #   Construct a derivation of the table wicdget. We'll use
+    #   a context menu to delete, add or edit existing entries.
+    #   actual entry of data into the table will be disabled.
+    #
+    # @param parent - the parent of the widget.
+    #
+    def __init__(self, parent =  0):
+        super(EventLoggerDisplay, self).__init__(parent)
+        self.setSortingEnabled(True)
+        self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(self._contextMenu)
+    
+    
+    #--------------------------------------------------------------
+    # Slots:
+    #
+    
+    ##
+    # _setDialogRings
+    #    Given an eventlogger dialog, populate it with the
+    #    set of rings.  The rings are listed as ringname@hostname
+    #
+    # @param d - the dialog.
+    #
+    def _setDialogRings(self, d):
+        rings = project.Rings(state.State.project)
+        ringData = rings.list()
+        
+        ringlist = list()
+        for ring in ringData:
+            ring = '@'.join([ring['ring_name'], ring['host_name']])
+            ringlist.append(ring)
+        
+        d.form().setRings(ringlist)
+    
+    ##
+    # _add
+    #   Add a new event logger to the system.
+    #   * Create a RecorderDialog
+    #   * Populate the data source pulldown with the set of rings.
+    #   * Let the dialog run.
+    #   * If Ok was clicked get an EvntLoggers object and add the item
+    #     specified by the dialog.
+    #
+    # @note the caller will repop the table.
+    # @note We assume the ring name has no '@' symbols in it.  If it does
+    #       we'd need to:
+    #      *  take the last element of the split as the host.
+    #      *  reassemble the ringname from all but the last elemetn of the
+    #         split.
+    #
+    def _add(self):
+        dialog = RecorderDialog.RecorderDialog()
+        self._setDialogRings(dialog)
+        if dialog.exec_() == QtGui.QDialog.Accepted:
+            hostRing = str(dialog.form().ring()).split('@')
+            ring = hostRing[0]
+            host = hostRing[1]
+            path = str(dialog.form().path())
+            
+            loggerDb = project.EventLoggers(state.State.project)
+            loggerDb.add_byringname(host, ring, path)
+                   
+    ##
+    # _edit
+    #   Exactly like _add, but we first stock the dialog box with the
+    #   contents of the ring the pointer was over when the context menu
+    #   was popped up.
+    #
+    # @param row - Row of the table the pointer was over.
+    #
+    def _edit(self, row):
+        id        = int(self.item(row, 0).text())
+        ring_name = str(self.item(row, 2).text())
+        ring_host = str(self.item(row, 3).text())
+        path      = str(self.item(row, 4).text())
+        
+        dialog = RecorderDialog.RecorderDialog()
+        self._setDialogRings(dialog)
+        dialog.form().setRing('@'.join([ring_name, ring_host]))
+        dialog.form().setPath(path)
+        
+        if dialog.exec_() == QtGui.QDialog.Accepted:
+            hostRing = str(dialog.form().ring()).split('@')
+            ring = hostRing[0]
+            host = hostRing[1]
+            path = str(dialog.form().path())
+            
+            loggerDb = project.EventLoggers(state.State.project)
+            loggerDb.delete(id)
+            loggerDb.add_byringname(host, ring, path)
+    ##
+    # _delete
+    #   Delete the entry in the designated row.
+    #   *   Get the id of the event logger.
+    #   *   Get an eventlog data base handle.
+    #   *   Delete the logger.
+    #
+    # @param row - The Row of the table that is under the pointer when
+    #              the menu was popped up...that row is the one that will
+    #              be deleted.  Column 0 has the id of the logger to
+    #              delete.
+    # @note the caller will repop the table.
+    def _delete(self, row):
+        
+        #  Figure out the id of the item to delete
+        
+        item = self.item(row, 0)
+        itemText = item.text()
+        id = int(itemText)
+        
+        # Get the EventLoggers object for the current database and delete:
+        
+        loggerDb = project.EventLoggers(state.State.project)
+        loggerDb.delete(id)
+    ##
+    # _contextMenu
+    #   Post the context menu and get the value.
+    #   The context menu always has Insert and has Edit.../Delete..
+    #   if the pointer is over a row.
+    #
+    # @param point - where the mouse is.
+    #
+    def _contextMenu(self, point):
+        item = self.itemAt(point)
+        
+        # Make an populate the menu:
+        
+        menu =  QtGui.QMenu()
+        menu.addAction('New...')
+        
+        # If over an item include Edit.., Delete..
+        
+        if item :
+            menu.addAction('Edit...')
+            menu.addAction('Delete...')
+            
+        # Post it and wait for a user response:
+        
+        action = menu.exec_(self.mapToGlobal(point))
+        
+        # Dispatch action  note that None action means no selection
+        
+        if action:
+            if action.text() == 'New...':
+                self._add()
+            elif action.text() == 'Edit...':
+                self._edit(item.row())
+            elif action.text() == 'Delete...':
+                self._delete(item.row())
+            else:
+                raise RuntimeException('invalid action from context menu')
+            loggers = project.EventLoggers(state.State.project)
+            self.clear()
+            self.populate(loggers.list())
+        
+    #--------------------------------------------------------------
+    # utilities
+    
+    ##
+    #  _addField
+    #   add a field to the table widget:
+    #
+    # @param row - Row number.
+    # @param col - Column number.
+    # @param contents - What's displayed.
+    #
+    def _addField(self, row, col, contents):
+        fW = QtGui.QTableWidgetItem(str(contents))
+        fW.setFlags(fW.flags() & (~(QtCore.Qt.ItemIsEditable)))
+        self.setItem(row, col, fW)
+                    
+    #------------------------------------------------------------
+    #  Public methods
+    #
+    
+    #
+    # Note that clear() is implemented by the QTableWidget
+    #
+    
+    
+    ##
+    # populate
+    #   Clear the current table and populate the table with
+    #   current values
+    #
+    # @param loggers - The result of the list() method call on the
+    #                  event logging part of the project.
+    #
+    def populate(self, loggers):
+        self.clear()
+        self.setColumnCount(5)
+        self.setRowCount(len(loggers))   # +1 since headers count.
+        self.setHorizontalHeaderLabels(
+            ['id', 'ring id', 'Ring Name', 'Ring Host name', 'Log Directory']
+        )
+        ##
+        #  Populate the rows:
+        #
+        
+        row = 0
+        for logger in loggers:
+            col = 0
+            self._addField(row, col, logger['id'])
+            col += 1
+            
+            for field in ( 'ring_id', 'ring_name', 'host_name'):
+                self._addField(row, col, logger['ring'][field])
+                col += 1
+            
+            self._addField(row, col, logger['path'])
+            
+            row += 1
+                
+            
+            
             
 ##
 # @class ProjectDisplay
@@ -912,11 +1164,20 @@ class ProjectDisplay(QtGui.QTabWidget):
         self._hostTable = HostTable(self)
         self.addTab(self._hostTable, "&Hosts")
         
+        # Rings table
+        
         self._rings     = RingDisplay(self)
         self.addTab(self._rings, '&Rings')
         
+        # Programs editor
+        
         self._programs  = ProgramDisplay(self)
         self.addTab(self._programs, '&Programs')
+        
+        # Event logging editor:
+        
+        self._eventLoggers = EventLoggerDisplay(self)
+        self.addTab(self._eventLoggers, '&Event Logging')
     
         
     
@@ -930,6 +1191,7 @@ class ProjectDisplay(QtGui.QTabWidget):
         self._hostTable.clear()
         self._rings.clear()
         self._programs.clear()
+        self._eventLoggers.clear()
         pass
     
     ##
@@ -954,4 +1216,6 @@ class ProjectDisplay(QtGui.QTabWidget):
         programs = project.Programs(state.State.project)
         self._programs.populate(programs.list())
         
-        pass               # More to come.
+        loggers = project.EventLoggers(state.State.project)
+        self._eventLoggers.populate(loggers.list())
+        

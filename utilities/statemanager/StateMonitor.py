@@ -65,6 +65,7 @@ class StateMonitorBase(object):
         self._stateSocket.setsockopt(zmq.SUBSCRIBE, 'TRANSITION:')
         self._stateSocket.setsockopt(zmq.SUBSCRIBE, 'RUN:')
         self._stateSocket.setsockopt(zmq.SUBSCRIBE, 'TITLE:')
+        self._stateSocket.setsockopt(zmq.SUBSCRIBE, 'RECORD:')
         
         self._stateSocket.connect(statePublisher)
 
@@ -75,6 +76,7 @@ class StateMonitorBase(object):
         self._state = None                 # we don't know the state yet.
         self._runNumber = None              # Don't know the run number.
         self._title     = None              # Nor the title
+        self._recording = None              # OR recording state for that matter.
         
         #  Now we can call the client's initializer callback:
         
@@ -118,6 +120,8 @@ class StateMonitorBase(object):
             self.runNumberMsg(msgBody)
         elif msgType == 'TITLE':
             self.titleMsg(msgBody)
+        elif msgType == 'RECORD':
+            self.recordingMsg(msgBody)
         else:
             raise RuntimeError('Invalid message type %s' % (msgType))
     
@@ -160,8 +164,16 @@ class StateMonitorBase(object):
         message='TITLE:%s' % (title)
         self._requestSocket.send(message)
         return self._requestSocket.recv()
-        
-        
+    ##
+    # setRecording
+    #   Set recording on or off.
+    #
+    # @param state - boolean desired recording state
+    #
+    def setRecording(self, state):
+        message='RECORD:%s' % (bool(state))
+        self._requestSocket.send(message)
+        return self._requestSocket.recv()
     ##
     # initialState
     #   Called to set the initial state of the system.  This is normally
@@ -191,6 +203,15 @@ class StateMonitorBase(object):
             self._state  = state
     
     ##
+    #  recordingMsg
+    #    Callback when the recording state is published.
+    #preint
+    # @param newState
+    #
+    def recordingMsg(self, newState):
+        self._recording = newState.upper() in ['ON', 'TRUE', 'ENABLED', True]
+        
+    ##
     # runNumberMsg
     #  Callback when a run number is published.
     #
@@ -206,7 +227,14 @@ class StateMonitorBase(object):
     #
     def titleMsg(self, body):
         self._title = body
-        
+    
+    ##
+    # getRecording
+    #   @return bool or None - recording state, None if not yet known
+    #
+    def getRecording(self):
+        return self._recording
+    
     ##
     # getRunNumber
     #   @return The last run number received or None if we haven't gotten
@@ -254,6 +282,7 @@ class StateMonitor(StateMonitorBase):
         self._dispatch = dict()
         self._runNoHandler  = None
         self._titleHandler  = None
+        self._recordingHandler = None
         
     #--------------------------------------------------------------------------
     # Public methods.
@@ -304,6 +333,14 @@ class StateMonitor(StateMonitorBase):
     def setTitleHandler(self, callable):
         self._titleHandler = callable
         
+    ##
+    # setRecordingHandler
+    #    Defines a callback invoked when the recording state changes.
+    #
+    # @param callable - the callable to invoke. or None to disable.
+    #
+    def setRecordingHandler(self, callable):
+        self._recordingHandler = callable
     ##
     # initialState
     #   Override of base class initial stae.
@@ -366,3 +403,15 @@ class StateMonitor(StateMonitorBase):
         currentTitle = self.getTitle()
         if (oldTitle != currentTitle) and (self._titleHandler != None):
             self._titleHandler(currentTitle)
+    ##
+    # recordingMsg
+    #    Called on a recording msg
+    #
+    # @param body - the message body.
+    #
+    def recordingMsg(self, body):
+        oldState = self.getRecording()
+        super(StateMonitor, self).recordingMsg(body)
+        currentState = self.getRecording()
+        if currentState != oldState and (self._recordingHandler != None):
+            self._recordingHandler(currentState)

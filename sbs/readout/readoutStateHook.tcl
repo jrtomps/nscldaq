@@ -65,6 +65,14 @@ namespace eval ::StateAwareRdo {
 #
 proc ::StateAwareRdo::toActive {prior state} {
     if {[string toupper $prior] eq "READY"} {
+
+	# Update the title/run number from the state manager:
+	# doing it this way insulates us from the effect of the run/title
+        # changing in the midst of a run.
+
+	set ::title [::statemanager::statemonitor gettitle]
+	set ::run   [::statemanager::statemonitor getrun]
+
         #
         #  If begin fails... go to not ready
         #
@@ -146,6 +154,7 @@ statemanager::statemonitor start $transURI $stateURI
 statemanager::statemonitor register Active   ::StateAwareRdo::toActive
 statemanager::statemonitor register Ready    ::StateAwareRdo::toReady
 statemanager::statemonitor register NotReady ::StateAwareRdo::toNotReady
+
 
 
 

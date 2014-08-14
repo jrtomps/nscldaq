@@ -1020,4 +1020,88 @@ class EventLoggers:
     #   * path     - The path to the recording directory.
     #
     def list(self):
-        pass
+        return self.find()
+    
+    ##
+    # find
+    #   Finds a set of matching records from the database
+    #
+    # @param **match = Keywords match the keywords in the return dict, and
+    #                  values are requested matches e.g. ring_name='fox', host_name='ahost'
+    #
+    # @return array of dicts as per list above
+    #
+    def find(self, **match):
+        whereList = list()
+        whereValues = list()
+        
+        # Ensure the keys are all valid
+        
+        validKeys = set((
+            'ring_id', 'path', 'ring_name', 'sourceid', 'host_id', 'host_name'
+        ))
+        suppliedKeys = set(match.keys())
+        invalidKeys = suppliedKeys - validKeys
+        if len(invalidKeys) > 0:
+            raise RuntimeError('Invalid Keys: %s' % (', '.join(invalidKeys)))
+        
+        
+        for criterion in match.keys():
+            whereList.append('%s=? ' % criterion)
+            whereValues.append(match[criterion])
+        
+        # The base query...need to potentially add a WHERE clause to it:
+        
+        query = '''
+            SELECT rr.id AS id, rr.ring_id AS ring_id, rr.directory_path AS path,
+                r.name AS ring_name, r.host_id AS host_id,
+                r.sourceid AS sourceid,
+                h.host_name AS host_name
+                FROM recorded_rings rr
+                INNER JOIN rings r ON r.id = rr.ring_id
+                INNER JOIN hosts h ON h.id = r.host_id
+            '''
+        if len(whereList) > 0:
+            query = query + ' WHERE ' + 'AND '.join(whereList)
+            
+        # Query is built now execute it:
+        
+        oldRowFactory                     = self._project.connection.row_factory
+        self._project.connection.row_factory = sqlite3.Row
+        curs                                 = self._project.connection.cursor()
+        
+        curs.execute(query, whereValues)
+        
+        # Marshal the result:
+        
+        result = list()
+        for r in curs:
+            row = dict(id = r['id'], path=r['path'])
+            row['ring'] = dict (
+                ring_id=r['ring_id'], ring_name=r['ring_name'],
+                sourceid=r['sourceid'], host_id=r['host_id'],
+                host_name=r['host_name']
+            )
+            result.append(row)
+        
+        self._project.connection.row_factory = oldRowFactory
+        return result
+
+    #  D is for Delete.
+    
+    ##
+    # delete
+    #   Delete the record indicated by id.
+    #
+    # @param id - the primary key (id) of the record to delete.
+    #
+    def delete(self, id):
+        cursor = self._project.connection.cursor()
+        
+        cursor.execute(
+            '''
+            DELETE FROM recorded_rings WHERE id=?
+            ''', (id,)
+        )
+        if cursor.rowcount == 0:
+            raise RuntimeError('delete - no such row')=======

@@ -48,6 +48,9 @@ class Mymonitor(StateMonitor.StateMonitorBase):
     def titleMsg(self, msg):
         super(Mymonitor, self).titleMsg(msg)
         print("Title: %s" % (self.getTitle()))
+    def recordingMsg(self, msg):
+        super(Mymonitor, self).recordingMsg(msg)
+        print("Recording %s" % (msg))
         
 
 

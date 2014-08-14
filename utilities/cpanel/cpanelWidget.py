@@ -37,6 +37,118 @@ import sys
 #  that would take transition requests and pass them on to the state manager.
 #
 
+##
+# @class TitleWidget
+#
+#    megawidget that includes a label (Title) and a QLineEdit
+#    field for an 80 character title.
+#
+# Signals:
+#   *  titleChanged - when the title changed value.
+#
+# Properties:
+#  *  title - The current title.
+#
+#
+class TitleWidget(QtGui.QWidget):
+    titleChanged = QtCore.pyqtSignal(QtCore.QString)
+    
+    ##
+    # construtor
+    #   * Create the pair of subwidgets.
+    #   * Create and set the widget layout to QForm layout
+    #   * Add the label and the input field to the form.
+    #   * Link the title fields entry changed to the title changed
+    #     signal.
+    #
+    #   @param parent - the parent of our widget
+    #
+    def __init__(self, parent = None):
+        super(TitleWidget, self).__init__(parent)
+        self._label = QtGui.QLabel('Title: ', self)
+        self._title = QtGui.QLineEdit(self)
+        
+        self._layout = QtGui.QFormLayout(self)
+        self.setLayout(self._layout)
+        self._layout.addRow(self._label, self._title)
+        
+        self._title.editingFinished.connect(self._emitChanged)
+        
+    ##
+    # _emitChanged
+    #   Connects the editingFinished signal to the titleChanged signal
+    #
+    def _emitChanged(self):
+        self.titleChanged.emit(self._title.text())
+        
+    #--------------------------------------------------------------------------
+    # properties
+    #
+    
+    # title:
+    def setTitle(self, title):
+        self._title.setText(title)
+        
+    def getTitle(self):
+        return self._title.text()
+        
+##
+# @class RunWidget
+#  megawidget that include a label (Run Number) and a QSpinBox
+#  for the run number.  The QSpinbox runs from 0 to 10000 initially, but
+#  whenever the spinbox value gets 'close' to the upper limit, the upper limit
+#  is doubled effectively making the sping box good for all positive
+#  numbers.
+#
+# Signals:
+#    *  runChanged - the value of the spin box changed.
+#
+# Properties:
+#    * run - The current value of the run number.
+#
+class RunWidget(QtGui.QWidget):
+    runChanged = QtCore.pyqtSignal(int)
+    
+    ##
+    # constructor
+    #   *  Create the widgets.
+    #   *  Create a form layout, and set it as our layout.
+    #   *  Add the widgets to the form.
+    #   *  Connect the valuechanged signal to our runChanged signal
+    #
+    # @para parent - parent widget.
+    
+    def __init__(self, parent = None):
+        super(RunWidget, self).__init__(parent)
+        
+        self._label = QtGui.QLabel('Run Number: ', self)
+        self._run   = QtGui.QSpinBox(self)
+        self._run.setRange(0, 10000)
+        
+        self._layout = QtGui.QFormLayout(self)
+        self.setLayout(self._layout)
+        self._layout.addRow(self._label, self._run)
+        
+        self._run.valueChanged[int].connect(self._emitChanged)
+    
+    ##
+    # _emitChanged
+    #
+    # @param run - the new run number.
+    #
+    def _emitChanged(self, run):
+        self.runChanged.emit(run)
+        
+    #------------------------------------------------------------------------
+    # Properties
+    #
+    
+    #  Run number:
+    
+    def getRun(self):
+        self._run.value()
+    def setRun(self, value):
+        self._run.setValue(value)
 
 
 ##
@@ -48,13 +160,25 @@ import sys
 #   +---------------------------------------------+
 #   |  +----------------------+                   |
 #   |  | State dependent      |  Current State    |
-#   |  | Buttons              |                   |
+#   |  | UI                   |                   |
 #   |  +----------------------+                   |
 #   +---------------------------------------------+
 #
 #
 class ControlPanel(QtGui.QWidget):
     buttonPush = QtCore.pyqtSignal(QtCore.QString)
+    titleChanged = QtCore.pyqtSignal(QtCore.QString)
+    runChanged   = QtCore.pyqtSignal(int)
+    recordChanged= QtCore.pyqtSignal(bool)
+
+    
+    _titleWidget      = None
+    _runWidget        = None
+    _recordingWidget  = None
+    _titleString      = ''
+    _runNumber        = -1
+    _recording        = False
+    
     ##
     # __init__
     #   Construction initializes the base frame,
@@ -117,6 +241,9 @@ class ControlPanel(QtGui.QWidget):
             b.destroy()
             del b
         self._buttons = list()             # should delete ad this is the only ref
+        self._titleWidget     = None
+        self._runWidget       = None
+        self._recordingWidget = None
         creator = "self._create%sButtons()" % (state.upper())
         exec creator
             
@@ -132,7 +259,26 @@ class ControlPanel(QtGui.QWidget):
         transition = str(b.text())
         transition = transition.upper()
         self.buttonPush.emit(transition)
-         
+    
+    ##
+    # _runChanged
+    #   Catch/resignal the run changed.
+    #
+    # @param newRun - new run number.
+    #
+    def _runChanged(self, newRun):
+        self.runChanged.emit(newRun)
+    
+    ##
+    # _titleChanged
+    #   Caught the title change signal... get the title
+    #   and, emit our titleChanged signal.
+    #
+    # @param newTitle - the new title string,.
+    #
+    def _titleChanged(self, newTitle):
+        self.titleChanged.emit(newTitle)
+    
     #--------------------------------------------------------------------------
     #  Button creation/layout for each state
     
@@ -156,7 +302,7 @@ class ControlPanel(QtGui.QWidget):
     #   In this state, the only legal operation is to Boot the system:
     def _createNOTREADYButtons(self):
         boot = self._createActionButton('Boot')
-        self._layout.addWidget(boot, 0, 0)
+        self._layout.addWidget(boot, 0, 0, 1, 1, QtCore.Qt.AlignLeft)
         
     ##
     # _createBootingButtons
@@ -165,26 +311,53 @@ class ControlPanel(QtGui.QWidget):
     #
     def _createBOOTINGButtons(self):
         fail = self._createActionButton('Fail')
-        self._layout.addWidget(fail, 0, 0)
+        self._layout.addWidget(fail, 0, 0, 1, 1, QtCore.Qt.AlignLeft)
         
     ##
     # _createReadyButtons
     #   Creates Begin/Fail buttons Top to bottom.
+    #   Adds to this:
+    #    * Title input string (QLineEdit)
+    #    * Run number  (QSpinBox)
+    #
+    #  Title updates on editing done run number updates on valueChanged
     #
     def _createREADYButtons(self):
+        title = TitleWidget(self)
+        title.titleChanged.connect(self._titleChanged)
+        self._titleWidget = title
+        title.setTitle(self._titleString)
+        
+        run   = RunWidget(self)
+        run.runChanged.connect(self._runChanged)
+        self._runWidget   = run
+        if self._runNumber != -1:
+            run.setRun(self._runNumber)
+            
+        record = QtGui.QCheckBox("Record", self)
+        record.stateChanged.connect(self.recordChanged.emit)
+        record.setChecked(self._recording)
+        self._recordingWidget = record
+        
+        
         begin = self._createActionButton('Begin')
         fail  = self._createActionButton('Fail')
-        self._layout.addWidget(begin, 0, 0)
-        self._layout.addWidget(fail, 1, 0)
-        pass
+        self._layout.addWidget(title, 0, 0)
+        self._layout.addWidget(run,   1, 0, 1, 1, QtCore.Qt.AlignLeft)
+        self._layout.addWidget(record, 1, 1, 1, 1, QtCore.Qt.AlignLeft)
+        self._layout.addWidget(begin, 2, 0, 1, 1, QtCore.Qt.AlignLeft)
+        self._layout.addWidget(fail,  3, 0, 1, 1, QtCore.Qt.AlignLeft)
+        
+        self._buttons = [title, run, record,  begin, fail]
+        
     ##
     #  Active runs can be ended or failed if the user supsects a problem.
     # 
     def _createACTIVEButtons(self):
         end = self._createActionButton('End')
         fail= self._createActionButton('Fail')
-        self._layout.addWidget(end, 0, 0)
-        self._layout.addWidget(fail, 1, 0)
+        self._layout.addWidget(end, 0, 0, 1, 1, QtCore.Qt.AlignLeft)
+        self._layout.addWidget(fail, 1, 0, 1, 1, QtCore.Qt.AlignLeft)
                                
         pass
         
@@ -205,7 +378,37 @@ class ControlPanel(QtGui.QWidget):
         self._stateLabel.setText(state)
         self._setStateButtons(state)
         
+    ##
+    #  setTitle
+    #   Set the title both in our property and, if the widget is defined in the
+    #   title text widget.
+    # @param title -the new title.
+    #
+    def setTitle(self, title):
+        self._titleString = title;
+        if self._titleWidget != None:
+            self._titleWidget.setTitle(title)
+    ##
+    # setRun
+    #   set the run number both in our property and, if the widget is defined, in
+    #   its widget.
+    #
+    # @param run - the new run number.
+    #
+    def setRun(self, run):
+        self._runNumber = run
+        if self._runWidget != None:
+            self._runWidget.setRun(run)
     
+    ##
+    # setRecord
+    #   Set the recording state.
+    # @param state - the boolean that turns recording on or off.
+    #
+    def setRecord(self, state):
+        self._recording = state
+        if self._recordingWidget != None:
+            self._recordingWidget.setChecked(state)
     ##
     # addObserver
     #   Adds a callable which will be invoked when a button is clicked.

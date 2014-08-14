@@ -47,10 +47,14 @@ def newRun(run):
 def newTitle(title):
     print("Title changed to '%s'" % (title))
 
+def recordingChanged(state):
+    print("Recording is  now: %s" %(state))
+    
 mon = StateMonitor.StateMonitor(requestUri, pubUri)
 mon.register('NotReady', NotReadyHandler, 'poof')
 mon.register('Ready', ReadyHandler, 'poof poof')
 mon.setRunNumberHandler(newRun)
 mon.setTitleHandler(newTitle)
+mon.setRecordingHandler(recordingChanged)
 
 mon.run()

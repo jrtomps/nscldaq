@@ -47,6 +47,20 @@ protected:
         CStateMonitorBase::transition(transition);
         std::cout << "base class transition returned\n";
     }
+    virtual void runNumMsg(std::string body) {
+        std::cout << "run number: " << body << std::endl;
+    }
+    virtual void titleMsg(std::string body) {
+        std::cout << "Title: " << body << std::endl;
+    }
+    virtual void recordMsg(std::string body) {
+        CStateMonitorBase::recordMsg(body);
+        if (getRecording()) {
+            std::cout << "Recording\n";
+        } else {
+            std::cout << "Not recording\n";
+        }
+    }
     
 };
 

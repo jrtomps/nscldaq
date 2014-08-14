@@ -65,7 +65,7 @@
  * that will instantiate and run a CTCLStateMonitor.  CTCLStateMonitorCommand
  * will register handlers for states as directed by the script.  The handlers
  * will basically do a ThreadQueueEvent passing the script as a parameter.
- * The handler of that event will arrang execution of the script at global level.
+ * The handler of that event will arrange execution of the script at global level.
  */
 
 
@@ -91,6 +91,8 @@ public:
 protected:
     virtual void initialState(std::string state);
     virtual void transition(std::string newState);
+    
+    
 };
 
 /**
@@ -115,13 +117,31 @@ protected:
  *
  * statemonitor unregister state-name
  *
- * Unregisters the scrip associated with a state entry.
+ * Unregisters the script associated with a state entry.
  *
  * statemonitor transition new-state
  *
  * Request the state manager to transition to new-state.
  *
+ * statemonitor gettitle
  *
+ * Get the current title. (empty string if there isn't one).
+ *
+ * satemonitor getrun
+ *
+ * Get the current run number (empty string if there isn't one).
+ *
+ * statemonitor titlecallback script
+ *
+ * Set the title callback.  An empty string removes any callback.
+ *
+ * statemonitor runnumcallback scripty
+ *
+ * Set the run number callback.  An empty string removes and callback.
+ *
+ * The title and run number callbacks have the new title/run number appended
+ * to them when called.
+ *  
  */
 class CTCLStateMonitorCommand : public CTCLObjectProcessor
 {
@@ -134,6 +154,24 @@ private:
         char*                    s_state;
     } event;
     
+    typedef struct _RunEvent {
+        Tcl_Event                s_event;
+        int                      s_runNumber;
+        CTCLStateMonitorCommand* s_this;
+    } RunEvent, *pRunEvent;
+    
+    typedef struct _TitleEvent {
+        Tcl_Event               s_event;
+        char*                   s_pNewTitle;
+        CTCLStateMonitorCommand* s_this;
+    } TitleEvent, *pTitleEvent;
+    
+    typedef struct _RecordEvent {
+        Tcl_Event              s_event;
+        bool                   s_state;
+        CTCLStateMonitorCommand* s_this;
+    } RecordEvent, *pRecordEvent;
+    
     typedef std::string *callbackInfo;
     
 private:
@@ -141,9 +179,24 @@ private:
     Tcl_ThreadId       m_myThread;
     CTCLStateMonitor*  m_pStateMonitor;
     std::map<std::string, std::string*> m_allocationMap;
+    
+    // The data below are maintained here to avoid the need for
+    // locks to acquire the data from the monitor thread.
+    // We'll use our monitor events to maintain these.
+    std::string        m_Title;    
+    int                m_runNumber;
+    bool               m_recording;
+    
+    // Scripts for run number and title changes:
+    
+    std::string       m_titleChangeScript;
+    std::string       m_runNumberChangeScript;
+    std::string       m_recordingChangeScript;
+    
 public:
     CTCLStateMonitorCommand(CTCLInterpreter& interp, std::string name);
     virtual ~CTCLStateMonitorCommand();
+    
 private:
     CTCLStateMonitorCommand(const CTCLStateMonitorCommand& rhs);
     CTCLStateMonitorCommand& operator=(const CTCLStateMonitorCommand& rhs);
@@ -157,6 +210,12 @@ protected:
     virtual void Register(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
     virtual void unregister(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
     virtual void requestTransition(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    virtual void getTitle(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    virtual void getRun(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    virtual void setTitleCallback(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    virtual void setRunNumCallback(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    virtual void getRecording(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    virtual void setRecordingCallback(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
 
     /* Private methods involved in hoisting the thread callback to a
        script invocation
@@ -168,10 +227,25 @@ private:
         CStateMonitor* pMonitor, std::string prior, std::string state, void* cbParam
     );
     static void eventLoopThread(ClientData cd);
-    
+        
     bool canDispatch(std::string state, std::string script);
     static std::string toUpper(std::string in);
+
+    // Mechanics for passing a new run number to us:
     
+    static void queueRunNumberEvent(CStateMonitor* pMon, int run, void* pObj);
+    static int  runNumberEvent(Tcl_Event* pEvent, int mask);
+    void        runRunNumberScript(int runNumber);
+    
+    // Ditto for the new title:
+    
+    static void queueTitleEvent(CStateMonitor* pMon, std::string title, void *pObj);
+    static int  titleEvent(Tcl_Event* pEvent, int mask);
+    void        runTitleScript(std::string title);
+    
+    static void queueRecordingEvent(CStateMonitor* pMon, bool state, void* pObj);
+    static int  recordingEvent(Tcl_Event* pEvent, int mask);
+    void        runRecordingScript(bool state);
 };
 
 #endif

@@ -61,6 +61,7 @@ class CZMQEventLoop {
     
     //Private data types:
 private:
+    
     struct SocketEvent {
         zmq::socket_t*         s_socket;
         int                    s_events;
@@ -87,6 +88,7 @@ public:
     // Private data
     
 private:
+
     std::vector<SocketRegistration>   m_socketRegistrations;
     std::vector<FdRegistration>       m_fdRegistrations;
 public:
@@ -121,6 +123,7 @@ public:
     typedef void (*InitCallback)(CStateMonitorBase*);
     // object attributes.
 private:
+    
     zmq::context_t*     m_pContext;
     zmq::socket_t*      m_pRequestSocket;
     zmq::socket_t*      m_pStateSocket;
@@ -128,6 +131,7 @@ private:
     std::string         m_currentState;
     int                 m_runNumber;
     std::string         m_title;
+    bool                m_recording;
 public:
     
     CStateMonitorBase(
@@ -138,12 +142,14 @@ public:
     // Public methods:
 public:
     std::string requestTransition(std::string transitionName);
+    std::string sendRequestMessage(std::string msg);
     void run();
     CZMQEventLoop&   getEventLoop();   // Allows outsiders to add event loop callbacks.
     zmq::context_t* getContext();     // Allows outsiders to make more sockets.
     std::string     getState();       // Get current state (hide rep from derived classes).
     int             getRunNumber() const;
     std::string     getTitle()     const;
+    bool            getRecording() const;
     
     // Protected overrides
 protected:
@@ -151,6 +157,7 @@ protected:
     virtual void transition(std::string transition);
     virtual void runNumMsg(std::string body);
     virtual void titleMsg(std::string body);
+    virtual void recordMsg(std::string body);
     
 
     
@@ -183,6 +190,9 @@ class CStateMonitor : public CStateMonitorBase
 {
 public:
     typedef void (*Callback)(CStateMonitor*, std::string, std::string, void*);
+    typedef void (*TitleCallback)(CStateMonitor*, std::string, void* cd);
+    typedef void (*RunNumberCallback)(CStateMonitor*, int, void* cd);
+    typedef void (*RecordingCallback)(CStateMonitor*, bool, void* cd);
     
 private:
     struct CallbackInfo {
@@ -190,6 +200,15 @@ private:
         void*             s_parameter;
     };
     std::map<std::string, CallbackInfo>  m_dispatch;
+    TitleCallback         m_titleCallback;
+    RunNumberCallback     m_runNumberCallback;
+    RecordingCallback     m_recordingCallback;
+    
+    void*                 m_titleCBData;
+    void*                 m_runNumberCBData;
+    void*                 m_recordCBData;
+    
+    bool                  m_recordingCallbackCalled;
 public:
     CStateMonitor(
         std::string transitionRequestURI, std::string statePublisherURI,
@@ -200,10 +219,18 @@ public:
 public:
     virtual void Register(std::string state, Callback cb, void* cbarg);
     virtual void unregister(std::string state);
+    virtual void         setTitleCallback(TitleCallback cb, void* cd = 0);
+    virtual void         setRunNumberCallback(RunNumberCallback cb, void* cd = 0);
+    virtual void         setRecordingCallback(RecordingCallback cb, void* cd = 0);
     
 protected:
     virtual void initialState(std::string state);
     virtual void transition(std::string newState);
+    virtual void runNumMsg(std::string body);
+    virtual void titleMsg(std::string body);
+    virtual void recordMsg(std::string body);
+    
+
 private:
     void dispatch(std::string prior, std::string current);
     std::string toUpper(std::string in);

@@ -1,7 +1,7 @@
 
 
 PACKAGE_FILES = project.py state.py filemenu.py projectdisplay.py \
-	ringspec.py programspec.py formdialog.py
+	ringspec.py programspec.py formdialog.py RecorderDialog.py
 
 MAINS = experimentConfiguration.py
 
@@ -11,7 +11,8 @@ projectProgramTest.py \
 project.py \
 projectRingTest.py \
 run_all_tests.py \
-schemaTest.py	
+schemaTest.py	\
+eventLogTest.py	
 
 
 FIGURES=initial.jpg hosts.jpg filledinhosts.jpg emptyprogramtable.jpg emptyringtable.jpg filledinprogramdef.jpg \

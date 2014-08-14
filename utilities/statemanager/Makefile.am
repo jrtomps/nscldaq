@@ -34,15 +34,16 @@ EXTRA_DIST=$(PACKAGE_FILES) $(MAINS) $(FIGURES) \
 # Bindings for C++
 
 
-INCLUDES  = @LIBTCLPLUS_CFLAGS@ @TCL_CPPFLAGS@
+INCLUDES  = @LIBTCLPLUS_CFLAGS@ @TCL_CPPFLAGS@ -I@top_srcdir@/base/thread
 
 
 lib_LTLIBRARIES = libStateMonitor.la
 
-libStateMonitor_la_SOURCES=CStateMonitor.cpp CTCLStateMonitor.cpp
-libStateMonitor_ladir     = @includedir@
-libStateMonitor_la_HEADERS= CStateMonitor.h CTCLStateMonitor.h 
-libStateMonitor_la_LIBADD = @LIBTCLPLUS_LDFLAGS@ @TCL_LIBS@ @ZMQ_LDFLAGS@
+libStateMonitor_la_SOURCES=CStateMonitor.cpp CTCLStateMonitor.cpp CStateMonitorThread.cpp
+libStateMonitor_ladir     = @includedir@ -I@top_srcdir@/base/thread @THREADCXX_FLAGS@
+libStateMonitor_la_HEADERS= CStateMonitor.h CTCLStateMonitor.h  CStateMonitorThread.h
+libStateMonitor_la_LIBADD =  @top_builddir@/base/thread/libdaqthreads.la \
+	@LIBTCLPLUS_LDFLAGS@ @TCL_LIBS@ @ZMQ_LDFLAGS@ @THREADLD_FLAGS@
 
 noinst_PROGRAMS=Polltest StateMonitorBaseTest StateMonitorTest tclTest1
 Polltest_SOURCES=Polltest.cpp

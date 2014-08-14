@@ -158,6 +158,12 @@ def connectStateManager(args):
     for state in ['NotReady', 'Booting', 'Ready', 'Active']:
         sm.register(state, reportTransition, None)
     
+    # Register the handler for the title and run numbers:
+    
+    sm.setRunNumberHandler(runChanged)
+    sm.setTitleHandler(titleChanged)
+    sm.setRecordingHandler(recordingChanged)
+    
     return sm
 
 ##
@@ -174,7 +180,11 @@ def createUi():
     w.setWindowTitle('Run Control')
     w.show()
     w.buttonPush.connect(onButtonPress)
+    w.runChanged.connect(onNewRunNum)
+    w.titleChanged.connect(onNewTitle)
+    w.recordChanged.connect(onNewRecordingState)
     return app,w
+
 
 
 ##
@@ -192,16 +202,34 @@ def eventLoop(app, sm):
     
     app.aboutToQuit.connect(exit)
     ui.destroyed.connect(exit)
-    while True:
+    while len(app.allWidgets()) > 0:
         poller.poll(100)
         app.processEvents(QtCore.QEventLoop.AllEvents, 100)
+        app.sendPostedEvents()
 
 ## Stub
 def reportTransition(sm, prior, current, cbarg):
     ui.setState(current)
     
+def runChanged(newNum):
+    ui.setRun(newNum)
+    
+def titleChanged(newTitle):
+    ui.setTitle(newTitle)
+
+def recordingChanged(state):
+    ui.setRecord(state)
+
 def onButtonPress(transition):
     smApi.requestTransition(str(transition))
+def onNewRunNum(run):
+    smApi.setRun(run)
+
+def onNewTitle(title):
+    smApi.setTitle(str(title).encode('ascii', errors='backslashreplace'))
+
+def onNewRecordingState(state):
+    smApi.setRecording(state)
 
 #----------------------------------------------------------------------------
 #
