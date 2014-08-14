@@ -12,7 +12,9 @@ package require portAllocator
 package require InstallRoot
 package require ScalerClient
 
-set RunState Invalid
+# Set a default runstate in case the sclclient has
+# not been able to tell us anything yet. 
+set RunState "*Unknown*" 
 
 proc _OnTclServerConnect {fd ip port } {
   puts "Connection on $ip : $port"
@@ -39,9 +41,6 @@ proc startServer {} {
 
 
 
-set port [startServer ]
-puts "TclServer started on port = $port"
-#ScalerClient client -port $port
 
 itcl::class XLM72ScalerGUI {
   
@@ -326,15 +325,29 @@ itcl::body XLM72ScalerGUI::OnTriggerToggle {ch} {
 
 
 ##
-# Handles all of the backend transactions with the VMUSBReadout
+# Controller for XLM72ScalerGUI
+#
+# This is ultimately the piece that interacts with VMUSBReadout program.
+# Any time a request is made in the GUI, it causes this to send out 
+# requests to the VMUSBReadout slow controls server. Communication is performed
+# through the usb controlclient provided by the usbcontrolclient package.
+#
+# It also manages a sclclient program that it starts up in the background. When
+# the OnExit method is called, which should happens when the GUI's exit button is
+# pressed, it kills off this process. To ensure that when the "x" button on the
+# window (i.e. the window close button) this method is called, it is important
+# to set the "wm protocol win_name WM_DELETE_WINDOW { script }" to ultimately
+# call the OnExit of this. Usually this is done through the GUI's OnExit proc.
+#
 #
 snit::type XLM72SclrGUICtlr {
 
-  option -host       localhost
-  option -port       27000
-  option -connection ""
-  option -name       ""
-  option -widget     ""
+  option -host       -default localhost
+  option -port       -default 27000
+  option -connection -default ""
+  option -name       -default ""
+  option -widget     -default ""
+  option -onlost     -default ""
   
   variable sclclientPID ""
 
@@ -423,15 +436,14 @@ snit::type XLM72SclrGUICtlr {
   method transaction {script} {
 # loop until transaction works or error signalled.
 
-    puts "transaction $script"
     while {[catch {eval $script} msg] && ($msg ne "")} {
-#      if {$options(-onlost) ne ""} {# comm fail handler..
-#        eval $options(-onlost) $options(-connection)
-#        set script [lreplace $script 0 0 $options(-connection)]
-#      } else {			# no handler.
-	      error "Communication failure $msg"
-   }
-#   	}
+      if {$options(-onlost) ne ""} {# comm fail handler..
+        eval $options(-onlost) $options(-connection)
+        set script [lreplace $script 0 0 $options(-connection)]
+      } else {			# no handler.
+        error "Communication failure $msg"
+      }
+    }
 
     if {[string is list $msg]} {
       if {[lindex $msg 0] eq "ERROR"} {
@@ -447,11 +459,20 @@ snit::type XLM72SclrGUICtlr {
 
 }
 
-
+##
+# Some procs that must exist for state changes.
+#
+# These are called by sclclient and must exist somewhere. 
+# We really don't care to do anything with them so they are
+# just empty procs.
+#
 proc Update {} {}
-proc BeginRun {} {puts "BEGIN RUN"}
-proc EndRun {} { puts "END RUN"}
+proc BeginRun {} {}
+proc EndRun {} {}
 proc PauseRun {} {}
 proc ResumeRun {} {}
 proc RunInProgress {} {puts "RUN IN PROGRESS"}
 proc UpdateRunTime {src time} {}
+
+set port [startServer ]
+puts "TclServer started on port = $port"
