@@ -110,6 +110,7 @@ itcl::class XLM72ScalerGUI {
 itcl::body XLM72ScalerGUI::BuildGUI {parent} {
   set top $parent
   wm title $top "AXLM72Scaler Control Panel: $this"
+  wm resizable $top false false
 
   ## Build the left column
   if {$top eq "." } { set top "" }
@@ -286,6 +287,7 @@ itcl::body XLM72ScalerGUI::SetLive {} {
 itcl::body XLM72ScalerGUI::OnExit {} {
   after cancel $cancel
   SaveSettings
+  $mediator OnExit
   destroy [GetParent] 
 }
 
@@ -334,7 +336,7 @@ snit::type XLM72SclrGUICtlr {
   option -name       ""
   option -widget     ""
   
-  variable sclclientPID
+  variable sclclientPID ""
 
   constructor args {
     variable sclclientPID
@@ -346,11 +348,11 @@ snit::type XLM72SclrGUICtlr {
                                         localhost $::env(USER)]
   }
   
-  destructor {
+  method OnExit {} {
     variable sclclientPID
-    catch {close $sclclientPID}
+    puts $sclclientPID
+    exec kill -9 $sclclientPID
   }
-
   method SetEnable {enable} {
     $self Set [list enable $enable]
   }
