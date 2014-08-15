@@ -25,15 +25,11 @@ using namespace std;
 
 /*!
    Construct the command. 
-   - The base class is created with the command string "Module".
+   - The base class is created with the command string "runstate"
      creation is done with registration.
-   - the member data consists of a reference to the list of currently 
-     defined modules (this is held by the interpreter thread main object
-     as member data so that it will never go out of scope).
      \param interp : CTCLInterpreter&
        The interpreter on which this command will be registered.
-     \param modules :  vector<CControlModule*>&
-        Reference to the list of modules that have been defined already.
+    \param server : a reference to the TclServer for returning results to.
 */
 CRunStateCommand::CRunStateCommand(CTCLInterpreter& interp,
 			      TclServer&       server) :
@@ -48,9 +44,8 @@ CRunStateCommand::~CRunStateCommand()
 
 
 /*!
-   The command executor.  The command must have at least 2 object elements:
-   - the command name ("Module"),
-   - The subcommand .. which must be either "create", "configure" or cget.
+   The command executor.  The command must have only 1 object elements:
+   - the command name ("runstate"),
 
    \param interp : CTCLInterpreter& 
        Reference to the interpreter that is running this command.
@@ -72,6 +67,7 @@ CRunStateCommand::operator()(CTCLInterpreter& interp,
     return TCL_ERROR;
   }
 
+  // Determine what the runstate is.
   std::string strState = "unknown";
   CRunState* state = CRunState::getInstance();
   switch (state->getState()) {
@@ -94,6 +90,7 @@ CRunStateCommand::operator()(CTCLInterpreter& interp,
       strState = "unknown";
   }
   
+  // Return the state
   m_Server.setResult(strState);
   
   return TCL_OK; 

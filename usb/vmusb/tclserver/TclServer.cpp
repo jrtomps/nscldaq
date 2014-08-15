@@ -26,6 +26,7 @@ using namespace std;
 #include "CUpdateCommand.h"
 #include "CMonCommand.h"
 #include "CWatchCommand.h"
+#include "CRunStateCommand.h"
 #include <DataBuffer.h>
 #include <CBufferQueue.h>
 #include <DataFormat.h>
@@ -250,6 +251,7 @@ TclServer::initInterpreter()
 		    *m_pVme);
   new CMonCommand(*m_pInterpreter, *this);
   new CWatchCommand(*m_pInterpreter, *this);
+  new CRunStateCommand(*m_pInterpreter, *this);
   
 }
 /*

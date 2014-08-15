@@ -29,7 +29,8 @@ libVMUSBControlServer_la_SOURCES	= 	CControlHardware.cpp	\
 					CTclModuleCreator.cpp    \
 					CTclControlModule.cpp \
 					CXLMControls.cpp	\
-					CXLMControlsCreator.cpp
+					CXLMControlsCreator.cpp \
+          CRunStateCommand.cpp
 
 noinst_HEADERS			=	CGDG.h			\
 					CV812.h			\
@@ -57,7 +58,8 @@ noinst_HEADERS			=	CGDG.h			\
 					CTclModuleCreator.h	\
 					CTclControlModule.h	\
 					CXLMControls.h	\
-					CXLMControlsCreator.cpp
+					CXLMControlsCreator.h \
+          CRunStateCommand.h
 
 
 INCLUDES			= 	-I@top_srcdir@/usb/vmusb/vmusb		\

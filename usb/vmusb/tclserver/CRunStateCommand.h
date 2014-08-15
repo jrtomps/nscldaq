@@ -40,10 +40,9 @@ class CTCLInterpreter;
 class CTCLObject;
 class TclServer;
 /*!
-    Implements the module command.  This class is subclassed from 
-    CTclObjectProcessor  The module command is the command that
-    each setup script uses to define the set of contrrol modules
-    that exist.  
+    Implements the runstate command.  This class is subclassed from 
+    CTclObjectProcessor  The runstate command is the command that
+    simply returns a string specifying the run state.
 */
 class CRunStateCommand : public CTCLObjectProcessor
 {
