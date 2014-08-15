@@ -406,7 +406,7 @@ itcl::body AXLM72::BootFPGA {ctlr} {
 
 ##
 #
-# This method sets up a Tcl list and then converts it
+# This method sets up a Tcl list of raw stack commands and then converts it
 # to a valid cvmusbreadoutlist::CVMUSBReadoutList object
 # to execute.
 #
