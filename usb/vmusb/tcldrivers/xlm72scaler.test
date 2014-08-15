@@ -76,6 +76,38 @@ tcltest::test settrigger-2 {Test that we can set trigger bits
   sclr ReadTrigger $::ctlr
 } -result [expr 0x12345678] -returnCodes 0 
 
+tcltest::test settrigger-3 {Test that SetTrigger returns 0
+} -setup {
+  AXLM72Scaler sclr 5
+} -cleanup {
+  itcl::delete object sclr
+} -body {
+  # Make sure that all bits are zero
+  sclr SetTrigger $::ctlr 1 
+} -result 0 -returnCodes 0 
+
+
+tcltest::test settrigger-4 {Test that SetTriggerBit returns 0
+} -setup {
+  AXLM72Scaler sclr 5
+} -cleanup {
+  itcl::delete object sclr
+} -body {
+  # Make sure that all bits are zero
+  sclr SetTriggerBit $::ctlr 1 1 
+} -result 0 -returnCodes 0 
+
+tcltest::test settrigger-6 {Test that SetTriggerBits returns 0
+} -setup {
+  AXLM72Scaler sclr 5
+} -cleanup {
+  itcl::delete object sclr
+} -body {
+  # Make sure that all bits are zero
+  sclr SetTriggerBits $::ctlr 0x0002 
+} -result 0 -returnCodes 0 
+
+
 tcltest::test readall-0 {Test that we can read all 32-channels
 } -setup {
   AXLM72Scaler sclr 5
@@ -85,7 +117,40 @@ tcltest::test readall-0 {Test that we can read all 32-channels
   sclr Reset $::ctlr 
 
   sclr ReleaseBus $::ctlr
-  sclr ReadAll $::ctlr stdout
+  sclr ReadAll $::ctlr
 } -result "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0" -returnCodes 0 
+
+tcltest::test setenable-0 {Test that we can set the enable 
+} -setup {
+  AXLM72Scaler sclr 5
+} -cleanup {
+  itcl::delete object sclr
+} -body {
+  sclr SetEnable $::ctlr 1
+  set val [sclr ReadEnable $::ctlr]
+  expr {$val == 1}
+} -result 1 -returnCodes 0 
+
+tcltest::test setenable-1 {Test that we can set the enable 
+} -setup {
+  AXLM72Scaler sclr 5
+} -cleanup {
+  itcl::delete object sclr
+} -body {
+  sclr SetEnable $::ctlr 0
+  set val [sclr ReadEnable $::ctlr]
+  expr {$val == 0}
+} -result 1 -returnCodes 0 
+
+
+tcltest::test setenable-2 {Test that we can set the enable with 0 return status
+} -setup {
+  AXLM72Scaler sclr 5
+} -cleanup {
+  itcl::delete object sclr
+} -body {
+  sclr SetEnable $::ctlr 0
+} -result 0 -returnCodes 0 
+
 
 tcltest::cleanupTests

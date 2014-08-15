@@ -216,17 +216,20 @@ itcl::body VMUSB::ReadNBLT32 {nadd address mask repeat} {
 #	set command [$self FinishStack $command]
 #	set result [XXUSBExecuteLongStack $self $command]
 
+  set pkg cvmusbreadoutlist
   set result {}
 
+  ${pkg}::CVMUSBReadoutList stack 
+
   if {$repeat} {
-    $self vmeReadBlockCount32 $nadd $mask 0x09 
-    $self vmeVariableFifoRead $address 0x0b 
+    stack addBlockCountRead32 $nadd $mask 0x09 
+    stack addMaskedCountFifoRead32 $address 0x0b 
   } else {
     # allocate 4 Mbytes. This number is for the number of transfers
     # expected which is in units of 32-bits or 8 bytes.
     set maxcount [expr (4<<20)/8]
-    $self vmeReadBlockCount32 $nadd $mask 0x09 
-    $self vmeVariableBlockRead $address 0x0b $maxcount
+    stack addBlockCountRead32 $nadd $mask 0x09 
+    stack addMaskedCountBlockRead32 $address 0x0b 
   }
 
 	return $result

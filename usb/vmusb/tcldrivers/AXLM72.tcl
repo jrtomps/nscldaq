@@ -108,8 +108,13 @@ itcl::class AXLM72 {
   # @param address offset to add to the dev argument
   # @param data    the integer value to write 
   # 
+  # @return int
+  # @retval  0 - success
+  # @retval -1 - USB write failed
+  # @retval -2 - USB read failed
+  # @retval -3 - VME Bus error
 	public method Write {ctlr dev address data} { 
-      $ctlr vmeWrite32 [expr [set $dev]+$address] 0x09 [expr $data]
+      return [$ctlr vmeWrite32 [expr [set $dev]+$address] 0x09 [expr $data]]
   }
 
   ##
@@ -355,15 +360,14 @@ itcl::body AXLM72::ReadSBLT {ctlr dev address words} {
   set maxcount [expr (4<<20)/8]
 
   set pkg cvmusbreadoutlist
-  cvmusbreadoutlist::CVMUSBReadoutList stack 
+  cvmusbreadoutlist::CVMUSBReadoutList aStack
 
   set addr [expr [set $dev]+$address]
   set amod [expr 0x0b]
-  stack addBlockRead32 $addr $amod $words
+  aStack addBlockRead32 $addr $amod $words
 #  sReadSBLT stack $dev $address $words
   
-  set data [$ctlr executeList stack $maxcount]
-  puts "Data size = [::cvmusb::uint8_vector_size $data]"
+  set data [$ctlr executeList aStack $maxcount]
 
   return $data
  }
@@ -379,7 +383,7 @@ itcl::body AXLM72::ReadNBLT {ctlr ndev nadd mask dev address} {
 
   ## Set up a stack 
   set stack [${pkg}::CVMUSBReadoutList]
-  sReadNBLT stack $ndev $nadd $mask $dev $address
+  sReadNBLT $stack $ndev $nadd $mask $dev $address
   return [$ctlr executeList $stack $maxcount]
 }
 
@@ -463,19 +467,17 @@ itcl::body AXLM72::ExecuteLongStack {ctlr stack} {
 
 ##
 #
-itcl::body AXLM72::sReadSBLT {stack_ dev add words} {
-  upvar $stack_ stack
-  stack addBlockRead32 [expr [set $dev]+$address] 0x0b $words
+itcl::body AXLM72::sReadSBLT {stack dev add words} {
+  $stack addBlockRead32 [expr [set $dev]+$add] 0x0b $words
 }
 
 ##
 #
-itcl::body AXLM72::sReadNBLT {stack_ ndev nadd mask dev add} {
-  upvar $stack_ stack
+itcl::body AXLM72::sReadNBLT {stack ndev nadd mask dev add} {
   set naddr [expr [set $ndev]+$nadd]
   set addr  [expr [set $dev]+$add]
-  stack addBlockCountRead32 $naddr $mask 0x09 
-  stack addMaskedCountBlockRead32 $addr 0x0b 
+  $stack addBlockCountRead32 $naddr $mask 0x09 
+  $stack addMaskedCountBlockRead32 $addr 0x0b 
 }
 
 

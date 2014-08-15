@@ -233,17 +233,13 @@ proc ::VMUSBDriverSupport::convertBytesListToTclList {data_} {
 
   upvar $data_ data
 
-  set f [open "driversupport.txt" w+]
   set pkg cvmusb
   
-  puts $f [info commands cvmusb::*]
-  puts $f "convertBytesListToTclList" 
   set nbytes [${pkg}::uint8_vector_size $data]
   if {($nbytes%4) != 0} {
     error "VMUSBDriverSupport::convertBytesListToTclList size of bytes list must be divisible by 4"
   }
   
-  puts $f $nbytes  
   set intList [list] 
   for {set byte 0} {$byte < $nbytes} {incr byte 4} {
       set byte0 [${pkg}::uint8_vector_get $data $byte]
@@ -252,12 +248,9 @@ proc ::VMUSBDriverSupport::convertBytesListToTclList {data_} {
       set byte3 [${pkg}::uint8_vector_get $data [expr $byte+3]]
       set int [expr ($byte3<<24)|($byte2<<16)|($byte1<<8)|$byte0]
     
-#      puts $f $int  
       lappend intList $int
   }
 
-  flush $f
-  close $f
   return $intList
 }
 
