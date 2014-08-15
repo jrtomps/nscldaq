@@ -7,10 +7,12 @@ package require Itcl
 package require xlm72scalerpanel
 
 set parent .root
-toplevel $parent
-::XLM72ScalerGUI aPanel $parent xlm72sclrctl localhost 27000
-wm protocol $parent WM_DELETE_WINDOW { aPanel OnExit } 
+toplevel $parent -background lightblue
 
-grid rowconfigure    $parent 0 -weight 1
-grid columnconfigure $parent 0 -weight 1
+# Create the widget
+::XLM72ScalerGUI aPanel $parent xlm72sclrctl localhost 27000
+
+wm protocol $parent WM_DELETE_WINDOW { aPanel OnExit } 
+wm title $parent "AXLM72Scaler Control Panel: ::aPanel"
+wm resizable $parent false false
 

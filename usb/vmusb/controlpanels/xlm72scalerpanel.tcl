@@ -1,4 +1,20 @@
-## XLMScalerPanel
+##
+# xlm72scalerpanel.tcl
+#
+#
+# Herein contains the source code for running the XLM72ScalerGUI.
+# It is only half of the application as it requires the user to
+# to have setup a VMUSBReadout to have registered an instance of
+# the XLM72ScalerControl to the slow controls server as a tcl 
+# module. 
+# 
+# The code is broken up into two distinct classes. The XLM72ScalerGUI
+# class is an itcl megawidget that provides the UI widgets and layout.
+# It owns a reference to an XLM72SclrControl class that handles the
+# interaction of the GUI with the VMUSBReadout slow controls server. 
+# The XLM72ScalerGUI is not purely a passive view, but rather handles
+# the logic for refreshing itself when live updating is enabled.  
+# 
 #
 
 package provide xlm72scalerpanel 1.0
@@ -16,8 +32,15 @@ package require ScalerClient
 # not been able to tell us anything yet. 
 set RunState "*Unknown*" 
 
+
+#####################################################################
+####################################################################
+#
+# Some procs for the TclServer
+#
+
 proc _OnTclServerConnect {fd ip port } {
-  puts "Connection on $ip : $port"
+  puts "TclServer connection request $ip:$port"
   gets $fd user
   puts $user
   return true
@@ -30,17 +53,28 @@ proc _OnTclServerError {chan command msg } {
 proc startServer {} {
   ::portAllocator create allocator 
   set port [allocator allocatePort XLM72ScalerGUI]
-  puts "Allocated port : $port"
   set ::server [TclServer %AUTO% -port $port -onconnect _OnTclServerConnect]
   $::server configure -onerror _OnTclServerError
   $::server start
   
-  puts "TclServer started"
   return $port
 }
 
+########################################################################
+########################################################################
+########################################################################
 
-
+## XLM772ScalerGUI UI 
+#
+# Provides the main UI for the XLM72ScalerGUI. It also handles the logic
+# for performing live updates. The class sends all requests created by 
+# user actions to the mediator (an instance of XLM72SclrControl) that
+# ultimately performs the communication with the VMUSBReadout slow controls
+# server. On exit, this also stores the state of itself into a file
+# that then is reloaded when constructed again.
+#
+# 
+#
 
 itcl::class XLM72ScalerGUI {
   
@@ -69,30 +103,36 @@ itcl::class XLM72ScalerGUI {
   		set scaler($i) 0
 			set rate($i) 0
   	 	set trigger($i) 0
+  	 	set wrap($i) 0
 		}
 
-		# look for a wrap file
- 	if {[file exists "XLM72Scaler_[string trimleft $this :].tcl"]} {
-			source "XLM72Scaler_[string trimleft $this :].tcl"
-		} else {
-			for {set i 0} {$i < 32} {incr i} {
-				set wrap($i) 0
-				set name($i) ""
-			}
-		}
 
 		# look for module and update from it
     set mediator [::XLM72SclrGUICtlr %AUTO% -host $host -port $port -name $modulename]
     $this BuildGUI $parentWidget
     $mediator configure -widget $this 
 
+    # First let's see if it even makes sense to run this thing
+    if {[IsGoodFirmware 0xdaba0002]} {
+        UpdatePanel 1
+    } else {
+        tk_messageBox -icon error \
+                   -message "Failed to read good firmware id from module. Maybe the firmware needs to be loaded?"
+        exit
+    }
 
-#		if {[expr [$mediator GetFirmware] == 0xdaba0002]} {UpdatePanel 1}
+    # look for a file saved from before 
+    LoadSavedSettings 
     
   }
  
+  method IsGoodFirmware {signature}
   method BuildGUI {parent}
   method BuildPanel {parent name offset}
+  method BuildPanels {parent name}
+  method BuildSclrControlBox {parent name}
+  method BuildUpdateControlBox {parent name}
+  method SetupStyle {}
   method GetParent {} {return $parentWidget} 
   method SaveSettings {}
   method UpdatePanel {live}
@@ -104,59 +144,107 @@ itcl::class XLM72ScalerGUI {
   method OnReset {}
   method OnEnable {}
   method OnTriggerToggle {ch}
+
+  method GetTopFrame {} {return $parent.topframe}
+  method LoadSavedSettings {} 
+}
+
+itcl::body XLM72ScalerGUI::IsGoodFirmware {signature} {
+  set fw [$mediator GetFirmware]
+  if {[string is integer -strict $fw]} {
+    if {$fw==$signature} {
+      return 1 
+    }  else {
+      return 0
+    }
+  } else {
+    return 0
+  }
+}
+
+itcl::body XLM72ScalerGUI::LoadSavedSettings {} {
+  if {[file exists "XLM72Scaler_[string trimleft $this :].tcl"]} {
+    source "XLM72Scaler_[string trimleft $this :].tcl"
+  } else {
+    for {set i 0} {$i < 32} {incr i} {
+      set wrap($i) 0
+      set name($i) ""
+    }
+  }
+  # Establish consistency
+  if {$enable} {
+    $this OnEnable
+  }
+
+  if {$live} {
+    $this SetLive
+  }
 }
 
 itcl::body XLM72ScalerGUI::BuildGUI {parent} {
-  set top $parent
-  wm title $top "AXLM72Scaler Control Panel: $this"
-  wm resizable $top false false
-
+  puts "Parent : $parent"
   ## Build the left column
-  if {$top eq "." } { set top "" }
+  if {$parent eq "." } { set top "" }
+  set top $parent.topframe
+  ttk::frame $top
+  
+  SetupStyle
 
-  set leftPanel [$this BuildPanel $top s1 0]
-  set rightPanel [$this BuildPanel $top s2 16]
+  # Build the big pieces
+  set panels [BuildPanels $top panels]
+  set sclrctrls [BuildSclrControlBox $top sclrctrl]
+  set updatectrls [BuildUpdateControlBox $top updatectrl]
+
+  SetChildrenState active
 
   ## Build the button box
-  set w $top.c
-  frame $w -bg lightblue
-  checkbutton $w.enable -text Enable -variable [itcl::scope enable] \
-                        -command "$this OnEnable" -bg lightblue \
-                        -highlightthickness 0
-  checkbutton $w.live -text Live -variable [itcl::scope live] \
-                      -command "$this SetLive" -bg lightblue \
-                      -highlightthickness 0
-  spinbox $w.freq -textvariable [itcl::scope frequency] -width 3 -increment 1 \
-                  -from 1 -to 10
-  button $w.reset -text Reset -command "$this OnReset"
-  button $w.exit -text Exit -command "$this OnExit"
+  set w $top.buttons
+  ttk::frame $w 
+  ttk::button $w.exit -text Exit -command "$this OnExit"
 
-  grid $w.enable $w.live $w.freq $w.reset $w.exit -sticky news -padx 3 -pady 6
+  grid $w.exit -sticky news -padx 3 -pady 6
   grid rowconfigure $w 0 -weight 1 
-  grid columnconfigure $w {0 1 2 3 4} -weight 1 
+  grid columnconfigure $w 0 -weight 1 
 
   ## Put it all together
-#  grid $top.s1 $top.s2 -sticky news
-  grid $leftPanel $rightPanel -sticky news -padx 3
-  grid $top.c -columnspan 2 -sticky nsew
-  grid columnconfigure $top 0 -weight 1
+  grid $panels -columnspan 2 -sticky news -padx 3
+  grid $sclrctrls $updatectrls -sticky nsew -padx 3 -pady 6
+  grid $top.buttons -columnspan 2 -sticky nsew
+
+  ## Grid the frame
+  grid $top -sticky nsew  -padx 6 -pady 6
   grid columnconfigure $top 1 -weight 1
-  grid rowconfigure $top 0 -weight 1
   grid rowconfigure $top 1 -weight 0
+}
+
+itcl::body XLM72ScalerGUI::SetupStyle {} {
+  ttk::style configure TFrame -background lightblue
+  ttk::style configure TLabel -background lightblue
+  ttk::style configure TLabelframe -background lightblue
+  ttk::style configure TLabelframe.Label -background lightblue
+  ttk::style configure TCheckbutton -background lightblue
+
+  ttk::style map TFrame -background [list disabled lightblue active lightblue]
+  ttk::style map TLabel -background [list disabled lightblue active lightblue]
+#  ttk::style map TLabelframe -background [list disabled lightblue active lightblue]
+#  ttk::style map TLabelframe.Label -background [list disabled lightblue active lightblue]
+  ttk::style map TCheckbutton -background [list disabled lightblue active lightblue]
+
+
+  puts "Labelframe layout : [ttk::style layout TLabelframe]"
 }
 
 itcl::body XLM72ScalerGUI::BuildPanel {parent name offset} {
   set top $parent 
 
   set w $top.$name
-  frame $w -bg lightblue
+  ttk::frame $w 
 
-  label $w.chanLbl -text "Ch#" -bg lightblue
-  label $w.nameLbl -text "Name" -bg lightblue
-  label $w.rateLbl -text "Rate" -bg lightblue
-  label $w.totalLbl -text "Total" -bg lightblue
-  label $w.enableLbl -text "Enable" -bg lightblue
-
+  ttk::label $w.chanLbl -text "Ch#"
+  ttk::label $w.nameLbl -text "Name"
+  ttk::label $w.rateLbl -text "Rate"
+  ttk::label $w.totalLbl -text "Total"
+  ttk::label $w.enableLbl -text "Trig"
 
   set begin $offset
   set nrows 16
@@ -164,16 +252,16 @@ itcl::body XLM72ScalerGUI::BuildPanel {parent name offset} {
   for {set i $begin} {$i < $end} {incr i} {
 
     set trigger($i) 0
-    label $w.ch$i  -text [format "%02d" $i] -width 2 -bg lightblue
-    entry $w.name$i   -textvariable [itcl::scope name($i)] -width 6 \
+    ttk::label $w.ch$i -text [format "%02d" $i] -width 2
+    ttk::entry $w.name$i   -textvariable [itcl::scope name($i)] -width 8 \
                       ;#-validatecommand SaveSettings
-    label $w.scaler$i -textvariable [itcl::scope scaler($i)] -width 8 \
-                      -bg lightblue -anchor e
-    label $w.rate$i   -textvariable [itcl::scope rate($i)] -width 8 -bg lightblue\
-                      -anchor e
-    checkbutton $w.trigger$i -variable [itcl::scope trigger($i)] \
-                             -command "$this OnTriggerToggle $i" -bg lightblue \
-                             -highlightthickness 0
+    ttk::label $w.scaler$i -textvariable [itcl::scope scaler($i)]  \
+                          -padding 2 -width 10 -anchor e
+    ttk::label $w.rate$i   -textvariable [itcl::scope rate($i)] \
+                          -padding 2 -width 8 -anchor e
+    ttk::checkbutton $w.trigger$i -variable [itcl::scope trigger($i)] \
+                             -command "$this OnTriggerToggle $i" \
+                             -takefocus 0
 
   }
 
@@ -189,6 +277,60 @@ itcl::body XLM72ScalerGUI::BuildPanel {parent name offset} {
   return $w
 }
 
+itcl::body XLM72ScalerGUI::BuildPanels {parent name} {
+  set frmname $parent.$name
+
+  ttk::frame $frmname
+
+  set leftPanel [$this BuildPanel $frmname s1 0]
+  set rightPanel [$this BuildPanel $frmname s2 16]
+  ttk::separator $frmname.vs -orient vertical
+
+  grid $leftPanel $frmname.vs $rightPanel -sticky news -padx 3
+
+  return $frmname
+}
+
+itcl::body XLM72ScalerGUI::BuildSclrControlBox {parent name} {
+
+  set w $parent.$name
+
+  # Create the frame and configure it
+  ttk::labelframe $w -text "Scaler Controls"
+  set lblfrmClass [winfo class $w]
+
+  # make the widgets
+  ttk::checkbutton $w.enable -text "Enable" -variable [itcl::scope enable] \
+                        -command "$this OnEnable" 
+  ttk::button $w.reset -text "Reset Scalers" -command "$this OnReset"
+
+  grid $w.enable $w.reset -sticky nsew -padx 3 -pady 3
+  grid columnconfigure $w {0 1} -weight 1 
+
+  return $w
+}
+
+itcl::body XLM72ScalerGUI::BuildUpdateControlBox {parent name} {
+
+  set w $parent.$name
+
+  # create the frame and configure the background color
+  ttk::labelframe $w  -text "Live Update"
+
+  # create the widgets
+  ttk::checkbutton $w.live -text "Enable" -variable [itcl::scope live] \
+                      -command "$this SetLive"
+  puts "Checkbutton class : [winfo class $w.live]"
+  ttk::spinbox $w.freq -textvariable [itcl::scope frequency] -width 3 -increment 1 \
+                  -from 1 -to 10
+  ttk::label $w.freqLbl -text "Update Period (s)"
+
+  # grid it 
+  grid $w.live $w.freqLbl $w.freq -sticky nsew -padx 3 -pady 3
+  grid columnconfigure $w 0 -weight 1
+
+  return $w
+}
 
 itcl::body XLM72ScalerGUI::SaveSettings {} {
   set file [open "XLM72Scaler_[string trimleft $this :].tcl" w]
@@ -217,7 +359,7 @@ itcl::body  XLM72ScalerGUI::UpdatePanel {once} {
 
   set active [expr {$::RunState eq "Active"}]
   if {$active} {
-    SetChildrenState disable
+    SetChildrenState disabled
   } else {
     # if the period between refreshes is shorter than it takes
     # for data to be observed by the sclclient and set RunState 
@@ -229,11 +371,11 @@ itcl::body  XLM72ScalerGUI::UpdatePanel {once} {
     if { ($state ne "idle") && ($state ne "paused")} {
       # Oops we are running and weren't alerted yet. 
       # Update properly and then set the RunState manually
-      SetChildrenState disable
+      SetChildrenState disabled 
       set ::RunState Active
     } else {
 
-      SetChildrenState normal 
+      SetChildrenState "!disabled"
       UpdateValues ;# Update the values
     }
   }
@@ -246,15 +388,18 @@ itcl::body  XLM72ScalerGUI::UpdatePanel {once} {
 
 # Update state of child widgets
 itcl::body XLM72ScalerGUI::SetChildrenState {state} {
-  set top [GetParent] 
-  foreach c [winfo children $top.s1] {$c configure -state $state}
-  foreach c [winfo children $top.s2] {$c configure -state $state}
-  foreach c [winfo children $top.c]  {$c configure -state $state}
+  set top [GetParent].topframe 
+#  foreach c [winfo children $top.panels] {$c configure -state $state}
+  foreach c [winfo children $top.panels.s1] {$c state $state}
+  foreach c [winfo children $top.panels.s2] {$c state $state}
+  foreach c [winfo children $top.sclrctrl] {$c state $state}
+  foreach c [winfo children $top.updatectrl] {$c state $state}
+  update
 }
 
 itcl::body XLM72ScalerGUI::UpdateValues {} {
     $mediator Update
-    set enable   [$mediator GetEnable]
+    set enable  [$mediator GetEnable]
     set trigreg [$mediator GetAllTriggers]
     ParseTriggerRegister $trigreg
     set values   [$mediator GetAllSclrValues]
