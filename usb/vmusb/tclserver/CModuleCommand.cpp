@@ -93,7 +93,7 @@ CModuleCommand::operator()(CTCLInterpreter& interp,
   // validate the parameter count.
 
   if (objv.size() < 2) {
-    m_Server.setResult("module: Insufficient parameters need module create | config | cget");
+    m_Server.setResult("Module: Insufficient parameters need: Module create | config | cget");
     return TCL_ERROR;
   }
 
@@ -110,7 +110,7 @@ CModuleCommand::operator()(CTCLInterpreter& interp,
     return cget(interp, objv);
   }
   else {
-    m_Server.setResult("module: Invalid subcommand need module create | config |cget");
+    m_Server.setResult("Module: Invalid subcommand need: Module create | config | cget");
     return TCL_ERROR;
   }
 }
@@ -130,7 +130,7 @@ CModuleCommand::create(CTCLInterpreter& interp,
 		       vector<CTCLObject>& objv)
 {
   if (objv.size() != 4) {
-    m_Server.setResult("module create: Wrong number of params need: module create type name");
+    m_Server.setResult("Module create: Wrong number of params need: Module create type name");
     return TCL_ERROR;
   }
   string type = objv[2];
@@ -140,7 +140,7 @@ CModuleCommand::create(CTCLInterpreter& interp,
   CModuleFactory*   pFact = CModuleFactory::instance();
   pModule  = pFact->create(type, name);
   if (!pModule) {
-    m_Server.setResult("module create: Invalid type, must be one of jtecgdg, caenv182, caenvg895, vmusb, v6533 ChicoTrigger, xlm");
+    m_Server.setResult("Module create: Invalid type, must be one of jtecgdg, caenv182, caenvg895, vmusb, v6533 ChicoTrigger, xlm");
     return TCL_ERROR;
   }
 
@@ -168,14 +168,14 @@ CModuleCommand::configure(CTCLInterpreter& interp,
 
   size_t nelements = objv.size();
   if ((nelements < 3) || ((nelements % 2) == 0)) {
-    m_Server.setResult("module config : invalid number of command elements.");
+    m_Server.setResult("Module config : invalid number of command elements.");
     return TCL_ERROR;
   }
   string name = objv[2];
 
   CControlModule* pModule = m_Server.findModule(name);
   if (!pModule) {
-    string msg("module config: ");
+    string msg("Module config: ");
     msg += name;
     msg += " not found.";
     m_Server.setResult(msg);
@@ -188,7 +188,7 @@ CModuleCommand::configure(CTCLInterpreter& interp,
       pModule->configure(key, value);
     }
     catch (string failmsg) {
-      string msg("module config: Failed to configure ");
+      string msg("Module config: Failed to configure ");
       msg += name;
       msg += " with: ";
       msg += key;
@@ -220,16 +220,16 @@ int
 CModuleCommand::cget(CTCLInterpreter& interp, vector<CTCLObject>& objv)
 {
   if ((objv.size() < 3) || (objv.size() > 4)) {
-    m_Server.setResult("module cget : invalid number of parameters; need module cget name ?key?");
+    m_Server.setResult("Module cget : invalid number of parameters; need Module cget name ?key?");
     return TCL_ERROR;
   }
 
   string          name    = objv[2];
   CControlModule* pModule = m_Server.findModule(name);
   if(!pModule) {
-    string msg("module cget ");
+    string msg("Module cget ");
     msg += name;
-    msg += " module not found";
+    msg += " Module not found";
     m_Server.setResult( msg);
     return TCL_ERROR;
   }
@@ -260,7 +260,7 @@ CModuleCommand::cget(CTCLInterpreter& interp, vector<CTCLObject>& objv)
       value = pModule->cget(key);
     }
     catch (string failmsg) {
-      string msg("module cget: Failed for key: ");
+      string msg("Module cget: Failed for key: ");
       msg += key;
       msg += " because: ";
       msg += failmsg;
