@@ -28,8 +28,9 @@ package require portAllocator
 package require InstallRoot
 package require ScalerClient
 
-# Set a default runstate in case the sclclient has
-# not been able to tell us anything yet. 
+# Set a default value for RunState. The sclclient manipulates
+# this parameter when it is running but we will set a default
+# value in case it hasn't set it to anything yet 
 set RunState "*Unknown*" 
 
 
@@ -60,6 +61,10 @@ proc startServer {} {
   return $port
 }
 
+## START THE TCLSERVER!!!
+set port [startServer ]
+puts "TclServer started on port = $port"
+
 ########################################################################
 ########################################################################
 ########################################################################
@@ -74,25 +79,31 @@ proc startServer {} {
 # that then is reloaded when constructed again.
 #
 # 
-#
-
 itcl::class XLM72ScalerGUI {
   
-  private variable parentWidget
-  private variable mediator
+  private variable parentWidget ;#< the parent widget
+  private variable mediator     ;#< the XLM72SclrGUIControl that handles communication
+ 
+  private variable around       ;#< const value = 2^24
+	private variable cancel ""    ;#< script for scheduling for period updates
 
-  private variable around 
-	private variable cancel ""
+	public variable scaler        ;#< array of total scaler values
+	public variable rate          ;#< array computed rate values
+	public variable enable        ;#< stores whether scalers are enabled
+	public variable trigger       ;#< array storing whether channels contribute to trigger output
+	public variable wrap          ;#< array storing the number of times that channels have wrapped
+	public variable name          ;#< array storing name of channels
+	public variable live          ;#< bool that contains state of live updates
+	public variable frequency     ;#< int period of live update
 
-	public variable scaler
-	public variable rate
-	public variable enable
-	public variable trigger
-	public variable wrap 
-	public variable name 
-	public variable live
-	public variable frequency
-
+  ##
+  # Constructor
+  # 
+  # The arrays of the value are initialized to zero values.
+  # Builds the UI.
+  # A reference to the XLM72SclrGUICtlr is obtained for communication
+  # Determines whether the XLM72 has the proper firmware loaded
+  # If all of the previous step succeed it loads the previous state from a file.
   constructor {parent modulename host port} {
     set parentWidget $parent
 		set enable 0
@@ -126,36 +137,236 @@ itcl::class XLM72ScalerGUI {
     
   }
  
+  ## 
+  # Checks that the firmware signature matches a value
+  # 
+  # This simply reads the firmware from the device and then compares it
+  # to a value. It ensures that first the fw value is a valid integer
+  # and then if that succeeds, it does the comparison. The signature
+  # that is checked when this is called is 0xdaba0002.
+  # 
+  # @param signature the value to compare the firmware id against 
   method IsGoodFirmware {signature}
+
+  ##
+  # Build the GUI
+  # 
+  # This calls a number of constructor methods to build the varios
+  # pieces of the UI and then grids them all together. All of the 
+  # widgets are put into a ttk::frame that is not itself gridded. 
+  # To grid the complete GUI, the user should obtain the name of 
+  # the megawidget using the GetTopFrame method and then grid it.
+  # 
+  # @param parent the parent widget in which to build the UI
+  #
   method BuildGUI {parent}
+
+  ## 
+  # Build one of the two panels containing the actual scaler values.
+  # This creates 16 rows of elements with indices provided by some offset
+  # By the time this returns, all of the child widgets of the parent are
+  # gridded but the parent is not. 
+  #
+  # @param parent widget in which to build the panel
+  # @param name   name of the frame that is being built
+  # @param offset index offset used to start labeling
+  # 
+  # @return string
+  # @retval the name of the widget created ($parent.$name)
+  #
   method BuildPanel {parent name offset}
+
+  ## 
+  # Constructs the two top panels containing all ofthe scaler data
+  # 
+  # This is a convenience function that just calls the BUildPanel
+  # method for both of the top scaler panels and grids them within
+  # a frame. It also creates a ttk::separator to separate the two
+  # panels. 
+  #
+  # @param parent widget to hold the top panel section
+  # @param paren  name name of the frame that will hold the panels 
+  #
+  # @return string
+  # @retval name of the fully built widget ($parent.$name)
   method BuildPanels {parent name}
+
+  ## 
+  # Build the labelframe containing scaler controls
+  # 
+  # This constructs the little box that holds the enable checkbox
+  # and the reset button. It creates a label frame, fills it 
+  # with these widgets, and then grids them.
+  # 
+  # @param parent widget that will hold the newly built frame
+  # @param name   name of the frame that is being filled with widgets
+  #
+  # @return string
+  # @retval name of the fully built widget ($parent.$name)
   method BuildSclrControlBox {parent name}
+  
+  ##
+  # Build the labelframe containing update controls 
+  #
+  # This constructs the frame that holds the enable checkbox for the
+  # live update feature and also the spinbox that sets the value of the
+  # update period.
+  #
+  # @param parent widget that will hold the newly built frame
+  # @param name   name of the frame that is being filled with widgets
+  #
+  # @return string
+  # @retval name of the fully built widget ($parent.$name)
   method BuildUpdateControlBox {parent name}
+
+  ## 
+  # Sets the background color for the various widget using the ttk::style
+  # 
+  # Location where all of the style specifications occur
+  # 
+  # @return nothing
   method SetupStyle {}
+
+  ##
+  # Retrieves the parent widget name stored during construction
+  #
+  # @return string
+  # @retval name of parent widget
   method GetParent {} {return $parentWidget} 
+
+  ## 
+  # Save current state to a file
+  # 
+  # The scaler, wrap, enable, live, and trigger 
+  # values are written to a file named: XLM72Scaler_$this.tcl
+  # with the colons trimmed off
+  # 
+  # @return nothing
   method SaveSettings {}
-  method UpdatePanel {live}
+
+  ## 
+  # Update panel information
+  # 
+  # The mechanism for obtaining new data. Depending on the argument
+  # this will either only update the values once or it will continue
+  # to update them periodically at a user defined interval (@see frequency)
+  # 
+  # The update only results in a call to the VMUSB if the RunState 
+  # variable is not set to Active. If it is not, then the first thing
+  # that the update does is query the VMUSBReadout slow controls for the
+  # run state to ensure that the sclclient lagged in receiving its information.
+  # This is a protection against always going into and out of the data
+  # taking mode more than once. If after these levels of checks, it is 
+  # still true that the data taking is not in effect, then the values 
+  # are actually updated. However, if the run is active, then the display
+  # is disabled.
+  # 
+  # @param once whether to update once or turn on live updating
+  # 
+  # @return nothing
+  method UpdatePanel {once}
+ 
+  ##
+  # Turn on/off the live update feature
+  # 
+  # The behavior of this method relies on whether the variable "live" is 0 or 1.
+  # if the value is 0, then the live updates are turned off. On the other hand, if the
+  # value is 1, then live updates are turned on.
   method SetLive {}
+ 
+  ##
+  # Handle an exit event
+  # 
+  # On an exit, the state of the gui is saved by the SaveSettings method,
+  # the live updates are canceled and removed from the tcl event loop,
+  # the XLM72SclrGUICntlr receives an OnExit (to kill off the sclclient),
+  # and then the parent window is killed.
+  #
   method OnExit {}
+  
+  ##
+  # Disable or enable the widgets in the panels except for the exit button
+  # 
   method SetChildrenState {state}
+ 
+  ##
+  # Update the actual scaler values
+  # 
+  # This retrieves new scaler values from the XLM72 and then computes the
+  # correct values for the rate based on the most recent increment. The update 
+  # is then used to determine wehther the scaler counters have wrapped around. 
+  #
+  # @return nothing
   method UpdateValues {}
+
+  ## 
+  # Parse the trigger register 
+  #
+  # When reading the trigger register, the state of all channels is encoded in
+  # a single 32-bit integer. Because the GUI deals with the trigger states as 
+  # an array, the integer needs to be unpacked and the decoded values stored in
+  # the proper array locations.
+  # 
+  # @param value the integer containing encoded trigger states for each channel
+  #
+  # @return nothing
+  
   method ParseTriggerRegister {value}
+  
+  ## 
+  # Reset the scaler counters
+  # 
+  # This simply causes the scaler counters to be cleared.
+  # 
+  # @return nothing
   method OnReset {}
+  
+  ## 
+  # Enable/Disable all scalers to count
+  # 
+  # Depending on the state of the "enable" variable, this will either cause 
+  # the scaler values to be disabled or enabled. The value of the endable
+  # variable is tied to the checkbutton.
+  #
+  # @return nothing
   method OnEnable {}
+
+  ## 
+  # Handle when a trigger checkbutton has been toggled
+  # 
+  # Depending on state ofthe "trigger($ch)" variable, the channel is either
+  # added to the trigger OR or removed from it.
+  # 
+  # @param ch   channel to operate on 
+  #
+  # @return nothing
   method OnTriggerToggle {ch}
 
-  method GetTopFrame {} {return $parent.topframe}
+  ## 
+  # Get the name of the frame containing the entire megawidget
+  #  
+  # @return string
+  # @retval $parentWidget.topframe
+  method GetTopFrame {} {return $parentWidget.topframe}
+
+  ## 
+  # Retrieve the values of the settings from a file
+  # 
+  # If the file XLM72Scaler_$this.tcl exists, then it is
+  # executed to return the state of the gui to what it was 
+  # before shutting down.
+  # 
+  # @return nothing
   method LoadSavedSettings {} 
 }
 
 itcl::body XLM72ScalerGUI::IsGoodFirmware {signature} {
   set fw [$mediator GetFirmware]
-  if {[string is integer -strict $fw]} {
+  if {[string length $fw]>0 && [string is integer -strict $fw]} {
     if {$fw==$signature} {
       return 1 
     }  else {
-      return 0
+       return 0
     }
   } else {
     return 0
@@ -182,7 +393,6 @@ itcl::body XLM72ScalerGUI::LoadSavedSettings {} {
 }
 
 itcl::body XLM72ScalerGUI::BuildGUI {parent} {
-  puts "Parent : $parent"
   ## Build the left column
   if {$parent eq "." } { set top "" }
   set top $parent.topframe
@@ -211,10 +421,6 @@ itcl::body XLM72ScalerGUI::BuildGUI {parent} {
   grid $sclrctrls $updatectrls -sticky nsew -padx 3 -pady 6
   grid $top.buttons -columnspan 2 -sticky nsew
 
-  ## Grid the frame
-  grid $top -sticky nsew  -padx 6 -pady 6
-  grid columnconfigure $top 1 -weight 1
-  grid rowconfigure $top 1 -weight 0
 }
 
 itcl::body XLM72ScalerGUI::SetupStyle {} {
@@ -230,8 +436,6 @@ itcl::body XLM72ScalerGUI::SetupStyle {} {
 #  ttk::style map TLabelframe.Label -background [list disabled lightblue active lightblue]
   ttk::style map TCheckbutton -background [list disabled lightblue active lightblue]
 
-
-  puts "Labelframe layout : [ttk::style layout TLabelframe]"
 }
 
 itcl::body XLM72ScalerGUI::BuildPanel {parent name offset} {
@@ -320,7 +524,6 @@ itcl::body XLM72ScalerGUI::BuildUpdateControlBox {parent name} {
   # create the widgets
   ttk::checkbutton $w.live -text "Enable" -variable [itcl::scope live] \
                       -command "$this SetLive"
-  puts "Checkbutton class : [winfo class $w.live]"
   ttk::spinbox $w.freq -textvariable [itcl::scope frequency] -width 3 -increment 1 \
                   -from 1 -to 10
   ttk::label $w.freqLbl -text "Update Period (s)"
@@ -487,15 +690,24 @@ itcl::body XLM72ScalerGUI::OnTriggerToggle {ch} {
 #
 snit::type XLM72SclrGUICtlr {
 
-  option -host       -default localhost
-  option -port       -default 27000
-  option -connection -default ""
-  option -name       -default ""
-  option -widget     -default ""
-  option -onlost     -default ""
+  option -host       -default localhost ;#< host running the VMUSBReadout program
+  option -port       -default 27000     ;#< port on which the slow controls server is running
+  option -connection -default ""        ;#< usb controlClient instance for interacting \
+                                            with the VMUSBReadout slow controls server
+  option -name       -default ""        ;#< name of the module registered in the slow controls \
+                                            server
+  option -widget     -default ""        ;#< a reference to the XLM72SclrGUI
+  option -onlost     -default ""        ;#< script to run when connection is lost
   
-  variable sclclientPID ""
+  variable sclclientPID ""              ;#< PID of the sclclient process spawned by this
 
+  ##
+  # Constructor
+  # 
+  # Sets up all of the options and then connects to the slow controls server.
+  # Furthermore, it starts up a sclclient program. 
+  #
+  # @param args a list of option value pairs
   constructor args {
     variable sclclientPID
 
@@ -506,43 +718,123 @@ snit::type XLM72SclrGUICtlr {
                                         localhost $::env(USER)]
   }
   
+  ##
+  # Handle an exit event
+  # 
+  # The only task that this has is to kill the sclclient process that is 
+  # spawned by this.
+  # 
   method OnExit {} {
     variable sclclientPID
     puts $sclclientPID
     exec kill -9 $sclclientPID
   }
+
+  ##
+  # Relay an enable command to the slow controls
+  # 
+  # @param enable boolean value for whether to enable or disable scalers 
+  #
+  # @return nothing
   method SetEnable {enable} {
     $self Set [list enable $enable]
   }
 
+  ## 
+  # Relay a trigger event to slow controls
+  # 
+  # This mostly just formats the parameter name before sending it to the
+  # slow controls server. The parameter name is encoded into the name by
+  # appending it to the "trigger" string.
+  # 
+  # @param ch   channel to operate on
+  # @param val  boolean value specifying whether to enable or disable trigger
+  # 
+  # @return nothing
   method SetTrigger {ch val} {
     $self Set [list [format "trigger%d" $ch ] $val]
   }
 
+  ##
+  # Send a reset command to slow controls
+  #
+  # This always causes a scaler reset (aka. clear) .
+  #  
   method Reset {} {
     $self Set [list reset 1]
   }
 
+  ##
+  # Send a firmware id request to slow controls server
+  # 
+  # @return int
+  # @retval the firmware id
+  # 
   method GetFirmware {} {
     return [$self Get [list firmware]]
   }
 
+  ## 
+  # Ask whether or not the scalers are enabled
+  # 
+  # @return boolean
+  # @retval whether the scalers are enabled or disabled
+  #
   method GetEnable {} {
     return [$self Get [list enable]]
   }
 
+  ## 
+  # Send request for trigger register contents
+  # 
+  # Request the encoded integer that contains all of the trigger
+  # bit settings. The bits in the integer correspond to each
+  # channel's trigger settings. The trigger setting for ch.0 is 
+  # encoded in bit 0, ch. 1 in bit 1, etc.
+  # 
+  # @return int
+  # @retval bitset of all trigger setting bits
   method GetAllTriggers {} {
     return [$self Get [list alltriggers]]
   }
 
+  ## 
+  # Retrieve a fresh reading of the scaler values
+  #
+  # This causes the XLM72 scalers to be latched and then read out.
+  # The values are converted into a tcl list before returning.
+  #
+  # @return list
+  # @retval 32 scaler values 
+  #
   method GetAllSclrValues {} {
     return [$self Get [list allscalers]]
   }
 
+  ## 
+  # Request the run state 
+  # 
+  # @return returns the runstate
+  # @retval active
+  # @retval idle
+  # @retval starting
+  # @retval stopping
+  # @retval paused
+  # 
   method GetRunState {} {
     return [$self Get [list runstate]]
   }
 
+  ##
+  # Connect to the slow controls server
+  # 
+  # Repeatedly try to connect to the server until it succeeds. On failure to connectm
+  # the user is presented with an error message. On success, the created 
+  # controlClient is cached as -connection.
+  # 
+  # @param host host where the VMUSBReadout program is running
+  # @param port port on which slow controls server is listening
+  # 
   method Reconnect {host port} {
 
     while {[catch {controlClient %AUTO% -server $host -port $port} connection]} {
@@ -555,6 +847,16 @@ snit::type XLM72SclrGUICtlr {
 # perform  transactions with the device.
 #
 
+  ## 
+  # Setup the Get command
+  # 
+  # All commands that request information ultimately funnel through this command.
+  # This simply formats a proper Get request and then initiates the transaction.
+  # 
+  # @param args a tcl list containing the parameter name to retrieve
+  # 
+  # @return the result
+  # @retval depends on the request
   method Get args {
     set name $options(-name)
     set conn $options(-connection)
@@ -562,6 +864,17 @@ snit::type XLM72SclrGUICtlr {
     return $value
   }
 
+
+  ## 
+  # Initiate the Set command
+  # 
+  # Like the Get method, this formats the request to be sent for Set commands.
+  # It then initiates the transaction with the slow controls server.
+  # 
+  # @param args a tcl list containing the parameter and value to write
+  # 
+  # @return the result
+  # @retval depends on the request
   method Set {args}  {
     set name $options(-name)
     set conn $options(-connection)
@@ -570,6 +883,12 @@ snit::type XLM72SclrGUICtlr {
     return [$self transaction $command]
 
   }
+
+  ##
+  # Initiate the Update command
+  # 
+  # This doesn't actually get used but it is defined for the future
+  # 
   method Update {} {
     set name $options(-name)
     set conn $options(-connection)
@@ -578,6 +897,21 @@ snit::type XLM72SclrGUICtlr {
   }
 
 
+  ## 
+  # Manage the transactions
+  # 
+  # Executes the request and then deals with the response.
+  # If an exceptional return occurs with no result, then the
+  # -onlost connection script is called. If that is not defined then
+  # it just spits out a standard error. If the slow controls server
+  # returns back an actual response beginning with "ERROR" then 
+  # the method transforms the response into a TCL error. Otherwise,
+  # a successful transaction just returns a value.
+  #
+  # @param script a properly formatted Set, Get, or Update command
+  # 
+  # @return depends on the request 
+  # 
   method transaction {script} {
 # loop until transaction works or error signalled.
 
@@ -604,20 +938,19 @@ snit::type XLM72SclrGUICtlr {
 
 }
 
+#################################################################
+##################################################################
+##################################################################
 ##
-# Some procs that must exist for state changes.
-#
-# These are called by sclclient and must exist somewhere. 
-# We really don't care to do anything with them so they are
-# just empty procs.
-#
+## ScalerDisplay hooks that we have to define but don't use.
+
+##
 proc Update {} {}
 proc BeginRun {} {}
 proc EndRun {} {}
 proc PauseRun {} {}
 proc ResumeRun {} {}
-proc RunInProgress {} {puts "RUN IN PROGRESS"}
+proc RunInProgress {} {}
 proc UpdateRunTime {src time} {}
 
-set port [startServer ]
-puts "TclServer started on port = $port"
+

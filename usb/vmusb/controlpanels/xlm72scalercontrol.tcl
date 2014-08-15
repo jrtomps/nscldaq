@@ -12,6 +12,11 @@ toplevel $parent -background lightblue
 # Create the widget
 ::XLM72ScalerGUI aPanel $parent xlm72sclrctl localhost 27000
 
+## Grid the frame
+set top [aPanel GetTopFrame]
+grid $top -sticky nsew  -padx 6 -pady 6
+grid columnconfigure $top 1 -weight 1
+grid rowconfigure $top 1 -weight 0
 wm protocol $parent WM_DELETE_WINDOW { aPanel OnExit } 
 wm title $parent "AXLM72Scaler Control Panel: ::aPanel"
 wm resizable $parent false false
