@@ -17945,6 +17945,7 @@ XLMFERA cget <replaceable>name</replaceable>
       </para>
   </refsect1>
 </refentry>
+
 <refentry id="vmusb3-AXLM72ScalerControl">
   <refmeta>
      <refentrytitle>AXLM72ScalerControl</refentrytitle>
@@ -18085,6 +18086,121 @@ AXLM72ScalerControl <replaceable>name option value ...</replaceable>
       </para>
   </refsect1>
 </refentry>
+
+<refentry id="vmusb3-XLM72ScalerGUI">
+  <refmeta>
+     <refentrytitle>XLM72ScalerGUI</refentrytitle>
+     <manvolnum>3vmusb</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>XLM72ScalerGUI</refname>
+     <refpurpose>Diagnostics GUI for controlling an XLM72 running 32 ch scaler firmware</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+  <cmdsynopsis>
+    <command>
+      XLM72ScalerGUI <replaceable>name option value ...</replaceable>
+    </command>
+  </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+
+  <title>DESCRIPTION</title>
+  <para>
+The XLM72ScalerGUI is a graphical user interface (GUI) that provides interactive control over an XLM72 running the ech32x24.bit firmware in a crate being readout by VMUSBReadout program. This firmware was written and is supported by Daniel Bazin and the software driver that supports the readout is provided by NSCLDAQ as the AXLM72Scaler tcl driver. The XLM72ScalerGUI is a UI that displays the scaler values of the XLM72 when not in DAQ mode and gives the user some basic control over the XLM72 while the VMUSB is not in acquisition mode. It is primarily a diagnostics tools that can be used to enable or disable the scaler channels from counting, to clear the scaler counters, and also to repeatedly update the values at a selectable frequency.
+  </para>
+
+  </refsect1>
+
+  <refsect1>
+    <title>PARAMETERS</title>
+
+    <variablelist>
+
+	    <varlistentry>
+	      <term><command>--module</command> <replaceable>value</replaceable></term>
+	      <listitem>
+		    <para>
+          The name of the module registered to the VMUSBReadout slow-controls server that will handle the requests of the GUI.
+		    </para>
+	       </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>--host</command> <replaceable>value</replaceable></term>
+	      <listitem>
+		    <para>
+          The host running the VMUSBReadout slow-controls server.
+		    </para>
+	       </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>--port</command> <replaceable>value</replaceable></term>
+	      <listitem>
+		    <para>
+          The port on which the VMUSBReadout slow-controls server is listening for connections.
+		    </para>
+	       </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>--ring</command> <replaceable>value</replaceable></term>
+	      <listitem>
+		    <para>
+          The name of the ring being filled by the VMUSBReadout program
+		    </para>
+	       </listitem>
+	    </varlistentry>
+    </variablelist>
+
+  </refsect1>
+
+
+  <refsect1>
+    <title>Configuration</title>
+
+    <para>
+      The XLM72ScalerGUI is designed as a client-server architecture and thus using it requires setting up two different pieces: the client and the server. The setup of the server will be explained first. To avoid confusion, the server that will be communicated with is the VMUSBReadout slow-controls server and thus setting it up requires loading a driver with the needed functionality into it. The specific driver to be used is contained in the AXLM72ScalerControl class. It is just a standard slow-controls driver written purely in TCL that implements the Set, Get, and Update methods. Once an instance has been created of the AXLM72ScalerControl class, it needs to be registered as a TCL module using the ?Module? command. The name of the ensemble is just the name of the instance created. As with all slow-controls set up, this must be done in the ctlconfig.tcl file. The name of the AXLM72ScalerControl instance is not important so long as it does not conflict with any other tcl commands (e.g. setting the name to ?set? would lead to unexpected failures). Here is a sample of how to set it up in the ctlconfig.tcl file.
+    </para>
+
+    <example>
+    <title>Example ctlconfig.tcl entry</title>
+    <programlisting>
+package require scalerxlm72			          ;# load the plugin
+
+AXLM72ScalerControl XLM72SclrCtl -slot 5  ;# Create an instance of for an XLM72 in slot 5
+
+Module create tcl xlm72sclrctl		        ;# Create a new pure tcl module named xlm72sclrctl
+Module config xlm72sclrctl -ensemble XLM72SclrCtl ;# set the name of the ensemble to be the same as the name of the instance
+    </programlisting>
+    </example>
+
+    <para>
+The second portion of the XLM72ScalerGUI is the setup of the client. The client is much simpler and amounts to running the XLM72ScalerGUI program with the appropriate arguments. This program requires a few pieces of information to successfully communicate with the server. Those are the name of the host running the VMUSBReadout slow-controls server, the port on which that server is listening for connections, the name of the ringbuffer being filled by the VMUSBReadout program, and the name of the slow-controls module that is receiving requests from the GUI. In the above example, the name of that module would be "xlm72sclrctl".  
+    </para>
+
+    <para>
+    That is it. If you want know why the ringbuffer name is needed read on about run state awareness.
+    </para>
+
+  </refsect1>
+
+  <refsect1>
+    <title>Run State Awareness</title>
+    <para>
+  The XLM72ScalerGUI is only allowed to query the XLM72 while a run is not in progress. When a run is in progress (i.e. the VM-USB is in data acquisition mode rather than interactive mode), all of the GUI components become disabled except for the Exit button. When a run ends, the GUI components become active again. The idea is that the XLM72ScalerGUI is really a diagnostics tool rather than a tool for data acquisition. In order to respond to run state transitions, the GUI needs to have some run state awareness. Two mechanisms provide this to form some redundancy. The primary means by which it obtains run state information is through a sclclient program attached to the ringbuffer filled by the VMUSBReadout program. This is why the user must provide the name of the ringbuffer, when starting up the GUI. The sclclient communicates with a TclServer embedded into the GUI and manages a variable called RunState. Unfortunately, this approach is leaves a small chance that the GUI sends a request after the run has started but before the sclclient has alerted the TclServer of the change. In this scenario, the second redundancy kicks in because the first thing that happens before a request is a request from the slow-controls server to return the run state. If the run state is not idle, then it is assumed that a run is in progress. Otherwise, the requests proceed as usual. 
+    </para>
+
+    <para>
+      This may seem overkill but there is a good reason for doing it this way that is tied to how the slow-controls server handles requests while in acquisition mode. Should a request come in that mode, the VMUSB will exit acquisition mode, process the request, and then resume acquisition. Unfortunately, ending a run usually lasts about a second or two, which causes long wait times. To avoid repeated interruptions like this, the above scheme ensures that at most, one interruption can occur. Understand that no data is ever lost in these scenarios, the data stream is simply interrupted for a period of time. 
+    </para>
+  </refsect1>
+  
+</refentry>
+
 
    <!-- caenchain command - aggregate 785's into CBLT chains -->
 
