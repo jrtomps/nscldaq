@@ -17992,7 +17992,7 @@ AXLM72ScalerControl <replaceable>name option value ...</replaceable>
   <title>DESCRIPTION</title>
 
      <para>
-    The AXLM72ScalerControl driver is a pure-TCL driver that is used to communicate with the XLM72 when running the ech32x24.bit firmware. It implements the CControlHardware interface as is equivalent in TCL. When loaded into the slow-controls server, any remote process can send it commands that it will translate into actual communication with a specific XLM72 device. It communicates through the low-level driver for the ech32x24.bit firmware called AXLM72Scaler.
+    The AXLM72ScalerControl driver is a pure-TCL driver that is used to communicate with the XLM72 when running the ech32x24.bit firmware. It implements the CControlHardware interface as is equivalent in TCL. When loaded into the slow-controls server, any remote process can send it commands that it will translate into actual communication with a specific XLM72 device. It communicates through the low-level driver for the ech32x24.bit firmware called AXLM72Scaler. The XLM72ScalerGUI requires that an instance of this class is registered as a TCL module (see Module command), in the slow-controls server.
     </para>
 
   </refsect1>
@@ -18018,25 +18018,25 @@ AXLM72ScalerControl <replaceable>name option value ...</replaceable>
   <variablelist>
 
     <varlistentry>
-      <term><command>Set</command> <replaceable>vmusb parameter value</replaceable></term>
+      <term><replaceable>name</replaceable> <command>Set</command> <replaceable>vmusb parameter value</replaceable></term>
       <listitem>
         <para>
-          The Set command causes a write to the XLM72. There are 34 supported parameters: enable, reset, trigger0, trigger1, trigger2, ..., and trigger31.. The number appended to the trigger parameter identifies the channel number. The values provided for reset and the any trigger must be either 0 or 1, and the value of the reset command is ignored. The returned value is the status value of the return value for the write operation (0 => success, otherwise => failure).
+          The Set command causes a write to the XLM72. There are 34 supported parameters: enable, reset, trigger0, trigger1, trigger2, ..., and trigger31. The number appended to the trigger parameter identifies the channel number. The values provided for reset and the any trigger must be either 0 or 1, and the value of the reset command is ignored. The returned value is the status value of the return value for the write operation (0 => success, otherwise => failure).
         </para>
       </listitem>
     </varlistentry>
 
     <varlistentry>
-      <term><command>Get</command> <replaceable>vmusb parameter</replaceable></term>
+      <term><replaceable>name</replaceable> <command>Get</command> <replaceable>vmusb parameter</replaceable></term>
       <listitem>
         <para>
-          The Get command causes a read from the XLM72. There are 5 parameters that can be provided to this email: enable, alltriggers, firmware, runstate, and allscalers. These all return the value read from the device. The enable parameter returns a 0 or 1 indicating whether the scalers are enabled. The alltriggers parameter returns a 32-bit integer with the status of each channel's trigger status encoded in its bits. Channel 0's status is encoded in bit 0 and channel 31's status is encoded in bit 31, with all others likewise. The firmware parameter returns the firmware signature. The runstate parameter causes a return of the run state as one of the following strings: idle, starting, stopping, active, paused. Finally the allscalers parameters causes the scaler values to be latched and read out of the device. These are returned as a list of 32 integers beginning with channel 0.
+          The Get command causes a read from the XLM72. There are 5 parameters that can be provided to this method: enable, alltriggers, firmware, runstate, and allscalers. These all return the value read from the device. The enable parameter returns a 0 or 1 indicating whether the scalers are enabled. The alltriggers parameter returns a 32-bit integer with the status of each channel's trigger status encoded in its bits. Channel 0's status is encoded in bit 0 and channel 31's status is encoded in bit 31, with all others likewise. The firmware parameter returns the firmware signature. The runstate parameter causes a return of the run state as one of the following strings: idle, starting, stopping, active, paused. Finally the allscalers parameters causes the scaler values to be latched and read out of the device. These are returned as a list of 32 integers beginning with channel 0.
         </para>
       </listitem>
     </varlistentry>
 
     <varlistentry>
-      <term><command>Update</command> <replaceable>vmusb</replaceable></term>
+      <term><replaceable>name</replaceable> <command>Update</command> <replaceable>vmusb</replaceable></term>
       <listitem>
         <para>
           The Update method is defined but does nothing.
@@ -18045,7 +18045,7 @@ AXLM72ScalerControl <replaceable>name option value ...</replaceable>
     </varlistentry>
 
     <varlistentry>
-      <term><command>addMonitorList</command> <replaceable>list</replaceable></term>
+      <term><replaceable>name</replaceable> <command>addMonitorList</command> <replaceable>list</replaceable></term>
       <listitem>
         <para>
           The addMonitorList method is defined but does nothing.
@@ -18054,7 +18054,7 @@ AXLM72ScalerControl <replaceable>name option value ...</replaceable>
     </varlistentry>
 
     <varlistentry>
-      <term><command>processMonitorList</command> <replaceable>data</replaceable></term>
+      <term><replaceable>name</replaceable> <command>processMonitorList</command> <replaceable>data</replaceable></term>
       <listitem>
         <para>
           The processMonitorList method is defined but does nothing more than return 0.
@@ -18068,14 +18068,20 @@ AXLM72ScalerControl <replaceable>name option value ...</replaceable>
   <refsect1>
       <title>EXAMPLES</title>
       <example>
-         <title>Simple setup of a single timestamp module</title>
+         <title>Simple setup of the AXLM72ScalerControl</title>
          <programlisting>
-          XLMFERA create myxlm -base 0x50000000
-          XLMFERA config myxlm -firmware /user/s800/server/fpga/xferajan.bit
+          package require scalerxlm72
+
+          # Instantiation an object
+          AXLM72ScalerControl mysclr -slot 5 
+
+          # create the module for the slow-controls configure it to call the methods of the mysclr object
+          Module create tcl sclrmod
+          Module config sclrmod -ensemble mysclr
          </programlisting>
       </example>
       <para>
-        Sets up an XLM in slot 10 to run the xferajan.bit firmware.
+        Sets up an instance of the AXLM72ScalerControl to run on the slow-controls server. If the XLM72ScalerGUI is to be run with this module, it would have to be given the name of the module as "sclrmod".
       </para>
   </refsect1>
 </refentry>
