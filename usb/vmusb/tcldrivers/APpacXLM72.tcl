@@ -15,7 +15,10 @@ package require Itcl
 itcl::class APpacXLM72 {
 	inherit AXLM72              ;#< Base class
 
-  ## Constructor
+  ## @brief Constructor
+  #
+  # Sets up the addresses of the srama, sramb, fpga, vme, and base
+  # based on the slot number.
   #
   # @param sl the slot in which the XLM72V is located
 	constructor {sl} {
@@ -34,7 +37,8 @@ itcl::class APpacXLM72 {
 
   ## @brief Set the number of samples?
   #
-  # @warning Bus ownership must have already been obtained
+  # @warning Bus ownership must have already been obtained for X
+  #          bus (0x10000)
   #
   # @param ctlr a cvmusb::CVMUSB object
   # @param sa   the number of samples
@@ -43,7 +47,8 @@ itcl::class APpacXLM72 {
 
   ## @brief Set the period
   # 
-  # @warning Bus ownership must have already been obtained
+  # @warning Bus ownership must have already been obtained for X
+  #          bus (0x10000)
   #
   # @param ctlr a cvmusb::CVMUSB object
   # @param pe   the period (units?)
@@ -52,7 +57,8 @@ itcl::class APpacXLM72 {
 
   ## @brief Set the delay
   # 
-  # @warning Bus ownership must have already been obtained
+  # @warning Bus ownership must have already been obtained for X
+  #          bus (0x10000)
   #
   # @param ctlr a cvmusb::CVMUSB object
   # @param de   the delay (units?)
@@ -61,7 +67,8 @@ itcl::class APpacXLM72 {
 
   ## @brief Set the width
   #
-  # @warning Bus ownership must have already been obtained
+  # @warning Bus ownership must have already been obtained for X
+  #          bus (0x10000)
   #
   # @param ctlr a cvmusb::CVMUSB object
   # @param wi   the delay (units?)
@@ -70,7 +77,8 @@ itcl::class APpacXLM72 {
 
   ## @brief Set the shift
   # 
-  # @warning Bus ownership must have already been obtained
+  # @warning Bus ownership must have already been obtained for X
+  #          bus (0x10000)
   #
   # @param sh   the shift (units?)
   # @param ctlr a cvmusb::CVMUSB object
@@ -87,7 +95,9 @@ itcl::class APpacXLM72 {
   # each of the 4 register banks at a time. If the values
   # that are written are not read back as the same
   # then an error is thrown. 
-  # @warning Bus ownership must have already been obtained
+  #
+  # @warning Bus ownership must have already been obtained for X
+  #          bus (0x10000)
   #
   #
   # @param ctlr a cvmusb::CVMUSB object
@@ -99,7 +109,8 @@ itcl::class APpacXLM72 {
 
   ## @brief Reset the data to read in an event
   #
-  # @warning Bus ownership must have already been obtained
+  # @warning Bus ownership must have already been obtained for SRAMA
+  #          bus (0x00001)
   #
   # @param ctlr a cvmusb::CVMUSB object
   #
@@ -151,9 +162,12 @@ itcl::class APpacXLM72 {
 	public method sReadAll {aStack}
 
 
-  ## Add a clear command to the stack
+  ## @brief Add a clear command to the stack
   # 
   # This simply writes 0 to the srama[0] address.
+  #
+  # @warning Bus ownership must have already been obtained for SRAMA
+  #          bus (0x00001)
   #
   # @param aStack the stack to append functionality to
   # 
@@ -161,9 +175,8 @@ itcl::class APpacXLM72 {
 
 }
 # END OF THE APpacXLM72 Class
+
 ###############################################################################
-
-
 # ------------------ UTILITY METHOD IMPLEMENTATIONS --------------------------#
 
 
