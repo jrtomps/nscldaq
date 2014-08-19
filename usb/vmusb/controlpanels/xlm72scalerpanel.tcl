@@ -61,9 +61,16 @@ proc startServer {} {
   return $port
 }
 
+namespace eval NSXLM72ScalerGUI {
+  variable port ""
+}
+
 ## START THE TCLSERVER!!!
-set port [startServer ]
-puts "TclServer started on port = $port"
+set NSXLM72ScalerGUI::port [startServer ]
+puts "TclServer started on port = $NSXLM72ScalerGUI::port"
+
+
+
 
 ########################################################################
 ########################################################################
@@ -358,8 +365,16 @@ itcl::class XLM72ScalerGUI {
   # 
   # @return nothing
   method LoadSavedSettings {} 
+
+  ##
+  # 
+  #
+  method RunStateIsActive {} 
 }
 
+
+#
+# There is a little hole here... 
 itcl::body XLM72ScalerGUI::IsGoodFirmware {signature} {
   set fw [$mediator GetFirmware]
   if {[string length $fw]>0 && [string is integer -strict $fw]} {
@@ -560,33 +575,39 @@ itcl::body  XLM72ScalerGUI::UpdatePanel {once} {
   global RunState
 #	set top ".aXLM72Scaler_[string trimleft $this :]"
 
-  set active [expr {$::RunState eq "Active"}]
+  set active [RunStateIsActive] 
   if {$active} {
     SetChildrenState disabled
   } else {
-    # if the period between refreshes is shorter than it takes
-    # for data to be observed by the sclclient and set RunState 
-    # us, then we end up getting through to the slow controls server
-    # when the run is active. This then pauses the run and it is 
-    # annoying. So we can at least prevent it from happening more than once
-    # by asking for the state.
-    set state [$mediator GetRunState]
-    if { ($state ne "idle") && ($state ne "paused")} {
-      # Oops we are running and weren't alerted yet. 
-      # Update properly and then set the RunState manually
-      SetChildrenState disabled 
-      set ::RunState Active
-    } else {
-
-      SetChildrenState "!disabled"
-      UpdateValues ;# Update the values
-    }
+    SetChildrenState "!disabled"
+    UpdateValues ;# Update the values
   }
 
   # If needed reschedule the next update
   if {!$once} {
     set cancel [after [expr $frequency*1000] "$this UpdatePanel 0"]
   }
+}
+
+itcl::body XLM72ScalerGUI::RunStateIsActive {} {
+
+  # First check to see if the RunState knows that we are 
+  # active
+  set active [expr {$::RunState eq "Active"}]
+
+  # If we think we aren't active, then look a little closer, because
+  # if the period between refreshes is shorter than it takes
+  # for data to be observed by the sclclient and set RunState 
+  # us, then we end up getting through to the slow controls server
+  # when the run is active. This then pauses the run and it is 
+  # annoying. So we can at least prevent it from happening more than once
+  # by asking for the state.
+  if {! $active} {
+    set state [$mediator GetRunState]
+    set active [expr {($state ne "idle") && ($state ne "paused")}]
+  }
+
+  return $active
 }
 
 # Update state of child widgets
@@ -645,20 +666,26 @@ itcl::body XLM72ScalerGUI::ParseTriggerRegister {value} {
 }
 
 itcl::body XLM72ScalerGUI::OnReset {} {
-  $mediator Reset
-	for {set i 0} {$i < 32} {incr i} {
-		set wrap($i) 0
-		set scaler($i) 0
-		set rate($i) 0
-	}
+  if {![RunStateIsActive]} {
+    $mediator Reset
+    for {set i 0} {$i < 32} {incr i} {
+      set wrap($i) 0
+      set scaler($i) 0
+      set rate($i) 0
+    }
+  }
 }
 
 itcl::body XLM72ScalerGUI::OnEnable {} {
-  $mediator SetEnable $enable
+  if {![RunStateIsActive]} {
+    $mediator SetEnable $enable
+  }
 }
 
 itcl::body XLM72ScalerGUI::OnTriggerToggle {ch} {
-  $mediator SetTrigger $ch $trigger($ch)
+  if {![RunStateIsActive]} {
+    $mediator SetTrigger $ch $trigger($ch)
+  }
 }
 
 
@@ -714,7 +741,7 @@ snit::type XLM72SclrGUICtlr {
     $self configurelist $args
     
     $self Reconnect $options(-host) $options(-port)
-    set sclclientPID [startScalerClient localhost $::port \
+    set sclclientPID [startScalerClient localhost $::NSXLM72ScalerGUI::port \
                                         localhost $::env(USER)]
   }
   
