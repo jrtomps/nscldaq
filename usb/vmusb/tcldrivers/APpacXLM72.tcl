@@ -13,7 +13,7 @@ package require Itcl
 #
 
 itcl::class APpacXLM72 {
-	inherit AXLM72              ;# Base class
+	inherit AXLM72              ;#< Base class
 
   ## Constructor
   #
@@ -32,42 +32,52 @@ itcl::class APpacXLM72 {
   #-----------------------------------------------------------
 
 
-  ## Set the number of samples?
+  ## @brief Set the number of samples?
+  #
+  # @warning Bus ownership must have already been obtained
   #
   # @param ctlr a cvmusb::CVMUSB object
   # @param sa   the number of samples
   #
 	public method WriteSamples {ctlr sa} {Write $ctlr fpga 4 $sa}
 
-  ## Set the period
+  ## @brief Set the period
   # 
+  # @warning Bus ownership must have already been obtained
+  #
   # @param ctlr a cvmusb::CVMUSB object
   # @param pe   the period (units?)
   #
 	public method WritePeriod {ctlr pe} {Write $ctlr fpga 12 $pe}
 
-  ## Set the delay
+  ## @brief Set the delay
   # 
+  # @warning Bus ownership must have already been obtained
+  #
   # @param ctlr a cvmusb::CVMUSB object
   # @param de   the delay (units?)
   #
  	public method WriteDelay {ctlr de} {Write $ctlr fpga 16 $de}
 
-  ## Set the width
+  ## @brief Set the width
+  #
+  # @warning Bus ownership must have already been obtained
   #
   # @param ctlr a cvmusb::CVMUSB object
   # @param wi   the delay (units?)
   #
 	public method WriteWidth {ctlr wi} {Write $ctlr fpga 20 $wi}
 
-  ## Set the shift
+  ## @brief Set the shift
   # 
+  # @warning Bus ownership must have already been obtained
+  #
   # @param sh   the shift (units?)
   # @param ctlr a cvmusb::CVMUSB object
   #
 	public method WriteShift {ctlr sh} {Write $ctlr fpga 24 $sh}
 
-  ## Set threshold values
+  ## @brief Set threshold values
   #
   # There are 256 threshold registers to be set
   # and this expects that if not all of them are 
@@ -77,6 +87,8 @@ itcl::class APpacXLM72 {
   # each of the 4 register banks at a time. If the values
   # that are written are not read back as the same
   # then an error is thrown. 
+  # @warning Bus ownership must have already been obtained
+  #
   #
   # @param ctlr a cvmusb::CVMUSB object
   # @param th   the list of threshold values
@@ -85,7 +97,9 @@ itcl::class APpacXLM72 {
   # Return code = 1 when any of 256 errors fail to write
  	public method WriteThresholds {ctlr th}
 
-  ## Clear
+  ## @brief Reset the data to read in an event
+  #
+  # @warning Bus ownership must have already been obtained
   #
   # @param ctlr a cvmusb::CVMUSB object
   #
@@ -146,16 +160,16 @@ itcl::class APpacXLM72 {
   public method sClear {aStack}
 
 }
-## END OF THE APpacXLM72 Class
+# END OF THE APpacXLM72 Class
 ###############################################################################
 
 
-## ----------------- UTILITY METHOD IMPLEMENTATIONS --------------------------#
+# ------------------ UTILITY METHOD IMPLEMENTATIONS --------------------------#
 
 
 
 
-## Write all 256 threshold values
+# Write all 256 threshold values
 #
 itcl::body APpacXLM72::WriteThresholds {ctlr th} {
 # if the th list contains less than 256 values, pad it with 1023 (10 bit max)
@@ -190,7 +204,7 @@ itcl::body APpacXLM72::WriteThresholds {ctlr th} {
 }
 
 
-## ----------------- HIGH-LEVEL METHOD IMPLEMENTATIONS --------------------------#
+# ------------------ HIGH-LEVEL METHOD IMPLEMENTATIONS --------------------------#
 
 # This method assumes filename points to an "old" type Tcl file defining parameters
 # in an array called "aname"
@@ -264,10 +278,9 @@ itcl::body APpacXLM72::Init {ctlr filename aname} {
 
 
 
-## ----------------- STACK BUILDING METHODS IMPLEMENTATIONS --------------------------#
+# ----------------- STACK BUILDING METHODS IMPLEMENTATIONS --------------------------#
 
 
-## Define the readout cycle
 #
 itcl::body APpacXLM72::sReadAll {aStack} {
 	sAccessBus $aStack 0x1   ;# Access the SRAMA bus
@@ -283,7 +296,6 @@ itcl::body APpacXLM72::sReadAll {aStack} {
 
 
 
-## Add a clear command
 #
 # Clear first memory slot of SRAMA which contains the number of bytes to read
 itcl::body APpacXLM72::sClear {aStack} {
