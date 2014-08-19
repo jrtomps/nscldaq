@@ -30,9 +30,9 @@ package require xlm72scalerpanel
 
 
 # Build a new toplevel
-set parent .root
-#set parent .
-toplevel $parent -background lightblue
+set parent .
+#set parent .root
+#toplevel $parent -background lightblue
 
 # Create the widget
 ::XLM72ScalerGUI aPanel $parent $module $host $port 
