@@ -18207,6 +18207,764 @@ The second portion of the XLM72ScalerGUI is the setup of the client. The client 
   
 </refentry>
 
+      <refentry id="vmusb3-AXLM72">
+        <refmeta>
+           <refentrytitle>AXLM72</refentrytitle>
+           <manvolnum>3vmusb</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>AXLM72</refname>
+           <refpurpose>TCL base class for JTech XLM72 family of devices</refpurpose>
+        </refnamediv>
+    
+        <refsynopsisdiv>
+            <cmdsynopsis>
+                <command>
+package require xlm72
+                </command>
+            </cmdsynopsis>
+          
+        <cmdsynopsis>
+            <command>
+AXLM72 <replaceable>name slot</replaceable>
+            </command>
+        </cmdsynopsis>
+        
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> GetVariable <replaceable>v</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> Read <replaceable>ctlr dev address</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> Write <replaceable>ctlr dev address data</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> ReadSBLT <replaceable>ctlr dev address words</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> ReadNBLT <replaceable>ctlr ndev naddr mask dev addr</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> AccessBus <replaceable>ctlr code</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> ReleaseBus <replaceable>ctlr</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> BootFPGA <replaceable>ctlr</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> SetFPGABoot <replaceable>ctlr source</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> Configure <replaceable>ctlr filename</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> ExecuteLongStack <replaceable>ctlr stack</replaceable>
+            </command>
+        </cmdsynopsis>
+      
+        <formalpara> 
+          <title>Stack Building Methods</title>
+          <para></para>
+        </formalpara> 
+  
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> sRead <replaceable>stack dev addr</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> sWrite <replaceable>stack dev addr data</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> sReadSBLT <replaceable>stack dev addr words</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> sReadNBLT <replaceable>stack ndev naddr mask dev addr</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> sAccessBus <replaceable>stack code</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> sReleaseBus <replaceable>stack code</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        </refsynopsisdiv>
+
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+ This is the IncrTcl base class for the family of XLM72 devices. It provides
+ a large number of convenience functions that derived classes can use
+ in their drivers. The JTech XLM72 family of devices are general purpose
+ logic modules that have no real function independent of the firmware
+ loaded onto them. For this reason, derived classed typically handle
+ how to interact with devices that are running a specific firmware.
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              COMMANDS
+           </title>
+
+           <variablelist>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+AXLM72 <replaceable>name slot</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+                      Constructs an AXLM72 object for a device seated in
+                      slot <parameter>slot</parameter>
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> GetVariable <replaceable>v</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+                      Returns the value of the variable named <parameter>v</parameter>
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> Read <replaceable>ctlr dev address</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+                      Immediately performs an A32/D32 read from the address $<parameter>dev</parameter>+$<parameter>address</parameter>. The access is performed through the swig wrapped CVMUSB class provided as <parameter>ctlr</parameter>. The method returns the value of read from the device.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> Write <replaceable>ctlr dev address data</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+                      Immediately performs an A32/D32 write of <parameter>data</parameter> to the address $<parameter>dev</parameter>+$<parameter>address</parameter>. The access is performed through the swig wrapped CVMUSB class provided as <parameter>ctlr</parameter>. The returns the status of the write operation (success = 0, failure otherwise).
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> ReadSBLT <replaceable>ctlr dev address words</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+                      Immediately performs a block transfer (A32/D32) of <parameter>words</parameter> transfers beginning at address $<parameter>dev</parameter>+$<parameter>address</parameter>. The access is performed through the swig wrapped CVMUSB class provided as <parameter>ctlr</parameter>. The method returns a swig wrapped std::vector&lt;uint8_t&gt; so one must use the cvmusb::uint8_vector_get and cvmusb::uint8_vector_size procs to handle it. The VMUSBDriverSupport::convertBytesListToTclList will convert it to a tcl list of 32-bit integer values if that is desired and sensible.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> ReadNBLT <replaceable>ctlr ndev naddr mask dev addr</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+                      Immediately performs a block transfer (A32/D32) whose transfer count is determined by read data from the address $<parameter>ndev</parameter>+$<parameter>naddr</parameter> and applying the mask <parameter>mask</parameter> to the result. This read is an unprivileged A32/D32 read. A subsequent block transfer then begins at address $<parameter>dev</parameter>+$<parameter>address</parameter>. The access is performed through the swig wrapped CVMUSB class provided as <parameter>ctlr</parameter>. The method returns a swig wrapped std::vector&lt;uint8_t&gt; so one must use the cvmusb::uint8_vector_get and cvmusb::uint8_vector_size procs to handle it. The VMUSBDriverSupport::convertBytesListToTclList will convert it to a tcl list of 32-bit integer values if that is desired and sensible.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> AccessBus <replaceable>ctlr code</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+                      Convenience function for gaining access of an internal bus. This is 
+                      two single shot operations. The first requests the bus of interest
+                      and the second inhibits the FPGA and DSP from gaining mastership.
+                      The valid values for <parameter>code</parameter> are any bitwise OR of bus A (0x1), bus B (0x2), 
+                      bus X (0x1000), and bus D (0x2000). The <parameter>ctlr</parameter> is a 
+   swig cvmusb::CVMUSB object.
+
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> ReleaseBus <replaceable>ctlr</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+   Convenience function for releasing ownership of the internal busses. 
+   This is similar to the AccessBus method but writes 0 to both the bus
+   request and bus inhibit addresses. The <parameter>ctlr</parameter> is a 
+   swig cvmusb::CVMUSB object.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> BootFPGA <replaceable>ctlr</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+   Convenience function for booting the device. The operation only boots
+   the FPGA. This is accomplished by first writing 1's to the reset bits 
+   of the FPGA and DSP and then writing a 1 to the DSP and a 0 to the FPGA. 
+   This causes the FPGA to boot and the DSP remains in reset mode (i.e. its 
+   reset bit is still set). The <parameter>ctlr</parameter> is a 
+   swig cvmusb::CVMUSB object.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> SetFPGABoot <replaceable>ctlr source</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+   A convenience method for writing to the FPGA boot source register.
+   Valid values for <parameter>source</parameter> are : 0x0, 0x1, 0x2, 0x3, and 0x10000. The meanings
+   are as follows: 
+                  </para>
+  <informaltable frame="all">
+    <tgroup cols='2'>
+    <tbody>
+      <row>
+        <entry>Boot Source Value</entry>
+        <entry>Description</entry> 
+      </row>
+      <row>
+        <entry>0x0</entry>
+        <entry>Sector 0 flash</entry>
+      </row>
+      <row>
+        <entry>0x1</entry>
+        <entry>Sector 1 flash</entry>
+      </row>
+      <row>
+        <entry>0x2</entry>
+        <entry>Sector 2 flash</entry>
+      </row>
+      <row>
+        <entry>0x3</entry>
+        <entry>Sector 3 flash</entry>
+      </row>
+      <row>
+        <entry>0x10000</entry>
+        <entry>SRAM A</entry>
+      </row>
+    </tbody>
+    </tgroup>
+  </informaltable>
+                    <para>
+    The <parameter>ctlr</parameter> is a swig cvmusb::CVMUSB object.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> Configure <replaceable>ctlr filename</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+    Loads firmware into SRAMA and then boots the device from SRAMA. The firmware is
+    loaded from <parameter>filename</parameter>. The <parameter>ctlr</parameter> is a swig cvmusb::CVMUSB object.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> ExecuteLongStack <replaceable>ctlr stack</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+   Converts the <parameter>stack</parameter> tcl list of raw stack commands into a 
+   cvmusbreadoutlist::CVMUSBReadoutList object that gets 
+   subsequently executed. Before returning the value data it is 
+   parsed using the VMUSBDriverSupport::convertBytesListToTclList
+   because the executeList command returns a vector of bytes.
+   The <parameter>ctlr</parameter> is a swig cvmusb::CVMUSB object.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> sRead <replaceable>stack dev addr</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+   Adds an A32/D32 read from $<parameter>dev</parameter>+$<parameter>addr</parameter> to <parameter>stack</parameter>. <parameter>stack</parameter> is a swig cvmusbreadoutlist::CVMUSBReadoutList object.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> sWrite <replaceable>stack dev addr data</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+   Adds a A32/D32 write of <parameter>data</parameter> to $<parameter>dev</parameter>+$<parameter>addr</parameter> to <parameter>stack</parameter>. <parameter>stack</parameter> is a swig cvmusbreadoutlist::CVMUSBReadoutList object.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> sReadSBLT <replaceable>stack dev addr words</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+    Adds a standard block read of <parameter>words</parameter> transfers beginning at <parameter>dev</parameter>+<parameter>addr</parameter> to <parameter>stack</parameter>. <parameter>stack</parameter> is a swig cvmusbreadoutlist::CVMUSBReadoutList object.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> sReadNBLT <replaceable>stack ndev naddr mask dev addr words</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+                      This adds the same functionality of ReadNBLT to <parameter>stack</parameter>. See documentation for ReadNBLT for explanation of its functionality.
+                    </para>
+                </listitem>
+            </varlistentry>
+           
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> sAccessBus <replaceable>stack code</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+                      Adds a bus access command to the <parameter>stack</parameter> readoutlist. See documentation for AccessBus for the allowed values.
+                    </para>
+                </listitem>
+            </varlistentry>
+           
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> sReleaseBus <replaceable>stack</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+                      Adds a command to the <parameter>stack</parameter> readoutlist to release acquisition of any previously acquired busses.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+          </variablelist>
+        </refsect1>
+
+    </refentry>
+
+      <refentry id="vmusb3-AXLM72Scaler">
+        <refmeta>
+           <refentrytitle>AXLM72Scaler</refentrytitle>
+           <manvolnum>3vmusb</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>AXLM72Scaler</refname>
+           <refpurpose>Driver for an XLM72 running 32-channel scaler firmware</refpurpose>
+        </refnamediv>
+    
+        <refsynopsisdiv>
+            <cmdsynopsis>
+                <command>
+package require scalerxlm72
+                </command>
+            </cmdsynopsis>
+          
+        <cmdsynopsis>
+            <command>
+AXLM72Scaler <replaceable>name slot</replaceable>
+            </command>
+        </cmdsynopsis>
+        
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> GetFirmware <replaceable>ctlr</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> Reset <replaceable>ctlr</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> Latch <replaceable>ctlr</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> SetTrigger <replaceable>ctlr bit</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> SetTriggetBit <replaceable>ctlr bit value</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> SetTriggerBits <replaceable>ctlr bitset</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> ReadTrigger <replaceable>ctlr</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> SetEnable <replaceable>ctlr onoff</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> ReadEnable <replaceable>ctlr</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> ReadAll <replaceable>ctlr</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <formalpara> 
+          <title>Stack Building Methods</title>
+          <para></para>
+        </formalpara> 
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> sEnable <replaceable>stack</replaceable>
+            </command>
+        </cmdsynopsis>
+  
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> sDisable <replaceable>stack</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> sLatch <replaceable>stack</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> sReadAll <replaceable>stack</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> sReset <replaceable>stack</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        </refsynopsisdiv>
+
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+ This device is mostly just a 32-bit latching scaler but has the feature
+ that channel inputs can be redirected as a trigger output. The trigger 
+ output is the result of OR'ing all of the input signals of channels
+ whose trigger bits are set. 
+          </para>
+
+          <para>
+ The scaler can be enabled/disabled and atomically cleared (aka reset).
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              COMMANDS
+           </title>
+
+           <variablelist>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+AXLM72Scaler <replaceable>name slot</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+                      Constructs an AXLM72Scaler object for a device seated in
+                      slot <parameter>slot</parameter>
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> GetFirmware <replaceable>ctlr</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+                      Reads and returns the firmware signature. The <parameter>ctlr</parameter> is
+                      a cvmusb::CVMUSB object.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> Reset <replaceable>ctlr</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+                    Atomically resets all scaler values by writing a 1 and then a 0 to the lowest
+                    address of the FPGA address space. Returns 0 on success or a negative value for failure.
+                    The <parameter>ctlr</parameter> is a cvmusb::CVMUSB object. 
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> Latch <replaceable>ctlr</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+                      Latch the current values of the scaler counters into SRAMA for readout. 
+                      The <parameter>ctlr</parameter> is a cvmusb::CVMUSB object.
+
+                    </para>
+                    <para>
+                      The return value of this is either 0 for success or -1 for failure.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> SetTrigger <replaceable>ctlr bit</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+   As a result of history, this relies on the state of the
+   trigger array to determine what to write. This ultimately
+   calls SetTriggerBits after properly setting the requested
+   bit. The <parameter>ctlr</parameter> is a cvmusb::CVMUSB object.
+                    </para>
+                    <para>
+    The return value of this is either 0 for success or -1 for failure.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> SetTriggerBits <replaceable>ctlr bitset</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+   As opposed to the previous two methods, this replaces the
+   entire trigger register value rather than manipulating 
+   specific bits. It is therefore a lower level method but
+   it enables one to write all bits at once. The value of <parameter>bitset</parameter>
+   is written to the entire register. The <parameter>ctlr</parameter> is a 
+   cvmusb::CVMUSB object.
+                    </para>
+                    <para>
+    The return value of this is either 0 for success or -1 for failure.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> ReadTrigger <replaceable>ctlr</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+    Read the trigger register.
+    The <parameter>ctlr</parameter> parameter is a cvmusb::CVMUSB object.
+                    </para>
+                    <para>
+    The return value of this the value of the trigger register. 
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> SetEnable <replaceable>ctlr onoff</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+    Write the value of <parameter>onoff</parameter> to the enable register. Valid
+    values for <parameter>onoff</parameter> are 0 (i.e. enable on) and 1 (i.e. enable off).
+    The <parameter>ctlr</parameter> parameter is a cvmusb::CVMUSB object.
+                    </para>
+                    <para>
+    Returns either 0 for success or -1 for failure.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> ReadEnable <replaceable>ctlr</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+    Read and return the value of the enable register. 
+    The <parameter>ctlr</parameter> parameter is a cvmusb::CVMUSB object.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> ReadAll <replaceable>ctlr</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+    Read and return the value of all 32 scaler counters.
+    The <parameter>ctlr</parameter> parameter is a cvmusb::CVMUSB object.
+                    </para>
+                    <para>
+    The return value of this is a tcl list of all 32 channels of scaler values.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> sEnable <replaceable>stack</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+    Appends a write of 1 to the enable register onto <parameter>stack</parameter>.
+    The <parameter>stack</parameter> parameter is a cvmusbreadoutlist::CVMUSBReadoutList object.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> sDisable <replaceable>stack</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+    Appends a write of 0 to the enable register onto <parameter>stack</parameter>.
+    The <parameter>stack</parameter> parameter is a cvmusbreadoutlist::CVMUSBReadoutList object.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> sLatch <replaceable>stack</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+    Adds a command to <parameter>stack</parameter> to latch the current value of the scaler
+    counter into the SRAMA memory for later readout. The <parameter>stack</parameter> parameter is a cvmusbreadoutlist::CVMUSBReadoutList object.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> sReadAll <replaceable>stack</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+    Adds a readout cycle to <parameter>stack</parameter>. The values of the counters are
+    latched and then are readout using a BLT. After the BLT, the SRAMA data is reset. This handles the acquisition of the appropriate busses. The <parameter>stack</parameter> parameter is a cvmusbreadoutlist::CVMUSBReadoutList object. 
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> sReset <replaceable>stack</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+    Adds a write of 0 to SRAMA[0] to reset the data. The <parameter>stack</parameter> parameter is a cvmusbreadoutlist::CVMUSBReadoutList object.
+                    </para>
+                </listitem>
+            </varlistentry>
+          </variablelist>
+        </refsect1>
+
+    </refentry>
 
    <!-- caenchain command - aggregate 785's into CBLT chains -->
 
