@@ -14014,12 +14014,12 @@ package require cvmusb
           </cmdsynopsis>
           <cmdsynopsis>
             <command>
-::cvmusb::CVMUSB_usb_device_vector_get <replaceable>enumeration i</replaceable>
+::cvmusb::usb_device_vector_get <replaceable>enumeration i</replaceable>
             </command>
           </cmdsynopsis>
         <cmdsynopsis>
         <command>
-::cvmusb::CVMUSB_usb_device_vector_size <replaceable>enumeration</replaceable>
+::cvmusb::usb_device_vector_size <replaceable>enumeration</replaceable>
             </command>
         </cmdsynopsis>
         <cmdsynopsis>
@@ -14034,12 +14034,12 @@ package require cvmusb
         </formalpara>
         <cmdsynopsis>
         <command>
-::cvmusb::CVMUSB <replaceable>name usbdevice</replaceable>
+::cvmusb::CVMUSBusb <replaceable>name usbdevice</replaceable>
             </command>
         </cmdsynopsis>
         <cmdsynopsis>
         <command>
-::cvmusb::CVMUSB <replaceable>name</replaceable> -this <replaceable>usb-object-ptr</replaceable>
+::cvmusb::CVMUSBusb <replaceable>name</replaceable> -this <replaceable>usb-object-ptr</replaceable>
             </command>
         </cmdsynopsis>
         <formalpara>
@@ -14334,7 +14334,7 @@ package require cvmusb
                 <term>
           <cmdsynopsis>
             <command>
-::cvmusb::CVMUSB_usb_device_vector_get <replaceable>enumeration i</replaceable>
+::cvmusb::usb_device_vector_get <replaceable>enumeration i</replaceable>
         </command>
           </cmdsynopsis>
         </term>
@@ -14355,7 +14355,7 @@ package require cvmusb
             <term>
         <cmdsynopsis>
         <command>
-::cvmusb::CVMUSB_usb_device_vector_size <replaceable>enumeration</replaceable>
+::cvmusb::usb_device_vector_size <replaceable>enumeration</replaceable>
             </command>
         </cmdsynopsis>
         </term>
@@ -14379,11 +14379,11 @@ package require cvmusb
         <listitem>
             <para>
                 Given a <parameter>usbdevice</parameter> returned from
-                <command>::cvmusb::CVMUSB_usb_device_vector_get</command>
+                <command>::cvmusb::usb_device_vector_get</command>
                 Returns the serial number string.  Note that this is not
                 immediately usable but must be converted to a Tcl string
                 via a call to
-                <command>::cvmsusb::CVMUSB_string_to_char</command>
+                <command>::cvmusb::string_to_char</command>
                 described below.
                 </para>
                 </listitem>
@@ -14406,19 +14406,24 @@ package require cvmusb
             <term>
         <cmdsynopsis>
         <command>
-::cvmusb::CVMUSB <replaceable>name usbdevice</replaceable>
+::cvmusb::CVMUSBusb <replaceable>name usbdevice</replaceable>
             </command>
         </cmdsynopsis>
         </term>
         <listitem>
             <para>
-                Creates a new CVMUSB object given a <parameter>usbdevice</parameter>
+                Creates a new CVMUSBusb object given a <parameter>usbdevice</parameter>
                 gotten from
-                <command>::cvmusb::CVMUSB_usb_device_vector_get</command>.
+                <command>::cvmusb::usb_device_vector_get</command>.
                 This results in a new command <parameter>name</parameter> unless
                 <parameter>name</parameter> is the special value
                 <literal>%AUTO</literal>, in which case a unique name will be
-                assigned the object.
+                assigned the object. To construct a CVMUSB-type object to control
+                a locally connected usb, this CVMUSBusb constructor must be used rather than 
+                a CVMUSB because the C++ CVMUSB base class is abstract and cannot be instantiated.
+                SWIG therefore does not produce a cvmusb::CVMUSB constructor. With that said, 
+                the object produced by this command will inherit the functionality of the
+                cvmusb::CVMUSB type.
                 </para>
             <para>
                 Naturally if you use <literal>%AUTO</literal> as the name
@@ -14426,7 +14431,7 @@ package require cvmusb
             </para>
             <informalexample>
                 <programlisting>
-set controller [::cvmusb::CVMUSB %AUTO $device]
+set controller [::cvmusb::CVMUSBusb %AUTO $device]
 $controller <replaceable>some method</replaceable>
                 </programlisting>
             </informalexample>
@@ -15251,7 +15256,8 @@ $controller <replaceable>some method</replaceable>
                 <parameter>ms</parameter> milliseconds.  This timeout is
                 used to define how long most of the methods in this
                 section will wait for a response from the VM-USB before
-                giving up.
+                giving up. It is ONLY valid to call with a cvmusb::CVMUSBusb
+                object.
                 </para>
                 </listitem>
                 </varlistentry>
