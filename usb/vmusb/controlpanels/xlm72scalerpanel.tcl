@@ -354,7 +354,13 @@ itcl::class XLM72ScalerGUI {
   #  
   # @return string
   # @retval $parentWidget.topframe
-  method GetTopFrame {} {return $parentWidget.topframe}
+  method GetTopFrame {} { 
+    if {$parentWidget ne "."} {
+      return $parentWidget.topframe
+    } else {
+      return .topframe
+    }
+  }
 
   ## 
   # Retrieve the values of the settings from a file
@@ -408,12 +414,13 @@ itcl::body XLM72ScalerGUI::LoadSavedSettings {} {
 }
 
 itcl::body XLM72ScalerGUI::BuildGUI {parent} {
-  ## Build the left column
-  if {$parent eq "." } { set top "" }
-  set top $parent.topframe
-  ttk::frame $top
-  
   SetupStyle
+  ## Build the left column
+  if {$parent eq "." } { set parent "" }
+  set top $parent.topframe
+  puts "Top = $top"
+  ttk::frame $top -style TFrame
+  
 
   # Build the big pieces
   set panels [BuildPanels $top panels]
@@ -424,7 +431,7 @@ itcl::body XLM72ScalerGUI::BuildGUI {parent} {
 
   ## Build the button box
   set w $top.buttons
-  ttk::frame $w 
+  ttk::frame $w -style TFrame
   ttk::button $w.exit -text Exit -command "$this OnExit"
 
   grid $w.exit -sticky news -padx 3 -pady 6
@@ -612,7 +619,7 @@ itcl::body XLM72ScalerGUI::RunStateIsActive {} {
 
 # Update state of child widgets
 itcl::body XLM72ScalerGUI::SetChildrenState {state} {
-  set top [GetParent].topframe 
+  set top [GetTopFrame] 
 #  foreach c [winfo children $top.panels] {$c configure -state $state}
   foreach c [winfo children $top.panels.s1] {$c state $state}
   foreach c [winfo children $top.panels.s2] {$c state $state}
