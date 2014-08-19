@@ -7,13 +7,14 @@
 #===================================================================
 
 package provide scalerxlm72 1.0
+
 package require xlm72
 package require Itcl
 package require snit 
 package require VMUSBDriverSupport 
 
 
-## Low-level driver for interactions with the XLM72 running the ech32x24.bit
+## @brief Low-level driver for interactions with the XLM72 running the ech32x24.bit
 # firmware
 #
 # This device is mostly just a 32-bit latching scaler but has the feature
@@ -25,9 +26,6 @@ package require VMUSBDriverSupport
 #
 #
 #
-#
-
-
 itcl::class AXLM72Scaler {
 	inherit AXLM72
 	
@@ -46,16 +44,16 @@ itcl::class AXLM72Scaler {
   ##########################################################
   #
   # Interactive functions
-  ###
+  #
 
-  ## Read the firmware value
+  ## @brief Read the firmware signature 
   #
   # @param ctlr a cvmusb::CVMUSB object
   # @returns integer
   # @retval the firmware signature 
 	public method GetFirmware {ctlr}
   
-  ## Atomically clear all scalers
+  ## @brief Atomically clear all scalers
   #
   # This is achieved by writing a 1 and then a 0
   # to the lowest address in the fpga. 
@@ -68,7 +66,7 @@ itcl::class AXLM72Scaler {
   # 
 	public method Reset {ctlr}
 
-  ## Latch the scaler values into SRAMA 
+  ## @brief Latch the scaler values into SRAMA 
   # 
   # @param ctlr a cvmusb::CVMUSB object
   # 
@@ -82,7 +80,7 @@ itcl::class AXLM72Scaler {
   ###########################################################
   # Trigger register manipulators
 
-  ## Write the value of trigger($bit) to the trigger reg 
+  ## @brief Write the value of trigger($bit) to the trigger reg 
   #
   # As a result of history, this relies on the state of the
   # trigger array to determine what to write. This ultimately
@@ -97,7 +95,7 @@ itcl::class AXLM72Scaler {
   # @retval -1 - failed during write
 	public method SetTrigger {ctlr bit}
 
-  ## Set a specific value for a certain trigger bit
+  ## @brief Set a specific value for a certain trigger bit
   #
   # This first sets the value of the trigger($bit)
   # and then calls SetTrigger.
@@ -110,7 +108,7 @@ itcl::class AXLM72Scaler {
   # @retval -1 - failure during write
 	public method SetTriggerBit {ctlr bit value}
 
-  ## Write the trigger register
+  ## @brief Set a specific bit in the trigger register
   # 
   # As opposed to the previous two methods, this replaces the
   # entire trigger register value rather than manipulating 
@@ -125,7 +123,7 @@ itcl::class AXLM72Scaler {
   # @retval -1 - failure during write
   public method SetTriggerBits {ctlr bitset}
 
-  ## Read the trigger register
+  ## @brief Read the trigger register
   # 
   # @param ctlr a cvmusb::CVMUSB object
   # 
@@ -133,7 +131,7 @@ itcl::class AXLM72Scaler {
   # @retval the value of the trigger register
 	public method ReadTrigger {ctlr}
  
-  ## Enable or disable the scaler channels from counting 
+  ## @brief Enable or disable the scaler channels from counting 
   # 
   # Write the value of the enable register
   #
@@ -145,7 +143,7 @@ itcl::class AXLM72Scaler {
   # @retval -1 - failure during write
 	public method SetEnable {ctlr onoff}
 
-  ## Read whether scalers are enabled or disabled
+  ## @brief Read whether scalers are enabled or disabled
   # 
   # Read the value of the enable register
   # 
@@ -156,7 +154,7 @@ itcl::class AXLM72Scaler {
   # @retval 1 - scalers are enabled
 	public method ReadEnable {ctlr}
 
-  ## Read all of the scaler channels 
+  ## @brief Read all of the scaler channels 
   #  
   # A readout cycle produced by this method begins with
   # the latching of the scaler values into SRAMA. Then 
@@ -168,43 +166,42 @@ itcl::class AXLM72Scaler {
   # @return list of all 32 scaler values beginning with ch.0
 	public method ReadAll {ctlr}
 
-#########################################################
-########################################################
-#
-# Stack manipulation functions
-#
-# These will be a bit more terse because they do exactly the
-# same thing as their interactive forms
-###
+  #########################################################
+  #########################################################
+  # Stack manipulation functions
+  #
+  # These will be a bit more terse because they do exactly the
+  # same thing as their interactive forms
+  #--------------------------------------------------------
 
-  ## add a write to stack that sets enable register to 1 
+  ## @brief Add a write to stack that sets enable register to 1 
   #
   # @param stack a cvmusbreadoutlist::CVMUSBReadoutList object
 	public method sEnable  {stack}
   
-  ## Add a write to stack that sets enable register to 0
+  ## @brief Add a write to stack that sets enable register to 0
   #
   # @param stack a cvmusbreadoutlist::CVMUSBReadoutList object
 	public method sDisable {stack}
   
-  ## Add a write to the stack that latches the scaler values
+  ## @brief Add a write to the stack that latches the scaler values
   #
   # @param stack a cvmusbreadoutlist::CVMUSBReadoutList object
 	public method sLatch   {stack}
  
-  ## Add a read out cycle to the stack (latch, delay, blt)
+  ## @brief Add a read out cycle to the stack (latch, delay, blt)
   # 
   # This differs slightly from the interactive form ReadAll
   # because it adds a 4us execution delay into the stack.
   # @param stack a cvmusbreadoutlist::CVMUSBReadoutList object
 	public method sReadAll {stack}
   
-  ## Add a write to the stack to clear the scalers
+  ## @brief Add a write to the stack to clear the scalers
   #
   # @param stack a cvmusbreadoutlist::CVMUSBReadoutList object
 	public method sReset   {stack}
 } 
-## End of AXLM72Scaler class
+# End of AXLM72Scaler class
 
 # Interactive functions implementation
 itcl::body AXLM72Scaler::GetFirmware {ctlr} {
@@ -584,3 +581,125 @@ snit::type AXLM72ScalerControl {
 
 }
 
+###############################################################
+###############################################################
+#
+# AXLM72ScalerReadout
+#
+
+## @class AXLM72ScalerReadout
+#
+# @brief A prepackaged readout driver based on the AXLM72Scaler driver. It 
+#        provides a basic readout module for any XLM72 running the ech32x24.bit 
+#        firmware.
+#
+#
+snit::type AXLM72ScalerReadout {
+  option -slot          -default 1     -configuremethod configureInt
+  option -incremental   -default off   -configuremethod configureBool
+  option -loadfirmware  -default true  -configuremethod configureBool
+  option -firmware      -default ""    -configuremethod configurePath
+
+  variable driver       "" 
+
+  ## @brief Constructor
+  # 
+  # @param args   a list of option value pairs
+  constructor args {
+    variable driver
+
+    $self configurelist $args
+    set driver [AXLM72Scaler #auto $options(-slot)]
+  }
+
+  ## @brief Initialize the device
+  #
+  # The logic of the initialize is pretty simple. It is provided below.
+  # 
+  # \begincode
+  method Initialize {driverPtr} {
+    set ctlr [VMUSBDriverSupport::convertVmUSB $driverPtr]
+
+    if {$options(-slot) == 1} {
+        set msg "AXLM72ScalerReadout::Initialize : "
+        append msg " Slot has not been specified for device. Be sure to configure the -slot option!"
+        error $msg
+    }
+
+    # if the user wants to load the firmware, then do it
+    # otherwise kick and yell
+    if {$options(-loadfirmware)} {
+      set fwPath $options(-firmware)
+      if {[file exists $fwPath]} {
+        $driver Configure $fwPath
+      } else {
+        set msg "AXLM72ScalerReadout::Initialize : "
+        append msg " Cannot load firmware because firmware file (\"$fwPath\") does not exist!"
+        error $msg
+      }
+    }
+
+    # Enable and reset the module
+    $driver SetEnable $ctlr 1
+    $driver Reset $ctlr      
+  }
+  # \endcode
+
+
+  ## @brief Add a readout cycle to the stack
+  #
+  # Adds a latch, BLT from SRAMA, and then potentially a 
+  # reset to the stack. 
+  #
+  # @param stack  a cvmusbreadoutlist::CVMUSBReadoutList object
+  method addReadoutList {stack} {
+      set aList [VMUSBDriverSupport::convertVmUSBReadoutList $stack] 
+  
+      # add the SRAMA readout cycle
+      $driver sReadAll $aList
+
+      # clear after the read if desired
+      if {$options(-incremental)} {
+        $driver sReset $aList
+      }
+  }
+
+  ## @brief End of run procedures
+  # 
+  # @param driverPtr  a pointer to a CVMUSB object.
+  #
+  method onEndRun {driverPtr} {
+    # convert to something usable
+    set ctlr [VMUSBDriverSupport::convertVmUSB $driverPtr]
+    $driver SetEnable $ctlr 0
+  }
+
+
+  # ----------- CONFIGURATION METHODS --------------
+
+  ## @brief Validates whether the value is an integer
+  #
+  # @param option name of option
+  # @param value  value to assign to the option
+  method configureInt {option value} {
+    ::VMUSBDriverSupport::validInt $value
+    set options($option) $value
+  }
+
+  ## @brief Validates whether the value is boolean
+  #
+  # @param option name of option
+  # @param value  value to assign to the option
+  method configureBool {option value} {
+    ::VMUSBDriverSupport::validBool $value
+    set options($option) $value
+  }
+  
+  ## @brief Sets the option without question
+  #
+  # @param option name of option
+  # @param value  value to assign to the option
+  method configurePath {option value} {
+    set options($option) $value
+  }
+}
