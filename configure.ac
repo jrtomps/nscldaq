@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.61)
-AC_INIT(nscldaq, 11.0-rc12, fox@nscl.msu.edu)
+AC_INIT(nscldaq, 11.0-rc13, fox@nscl.msu.edu)
 
 AC_CONFIG_SRCDIR([/utilities/StringsToIntegers.h])
 AC_CONFIG_HEADER([config.h])
@@ -366,10 +366,7 @@ AC_CONFIG_FILES([Makefile
 		 utilities/compatibility/spectcldaq
 		 utilities/compatibility/s800toring
 		 utilities/compatibility/bufdump
-		 utilities/experimentConfiguration/Makefile
-		 utilities/statemanager/Makefile
-		 utilities/boot/Makefile
-		 utilities/cpanel/Makefile
+		 utilities/newscaler/Makefile
                  epics/chanlog/Makefile
                  epics/controlpush/Makefile
                  epics/epicsdisplay/Makefile
