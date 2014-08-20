@@ -46,7 +46,6 @@ lappend auto_path [file join [::InstallRoot::Where] TclLibs]
 package require xlm72scalerpanel
 
 
-# Build a new toplevel
 set parent .
 
 # Create the widget
