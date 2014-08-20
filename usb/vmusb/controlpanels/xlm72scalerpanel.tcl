@@ -1,5 +1,24 @@
+#
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2014.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#     Author:
+#      NSCL DAQ Development Team 
+#	     NSCL
+#	     Michigan State University
+#	     East Lansing, MI 48824-1321
+#
+# @author Jeromy Tompkins
+# @note XLM72ScalerGUI layout and basic logic based on original design
+#       by Daniel Bazin.
+
 ##
-# xlm72scalerpanel.tcl
+# @file xlm72scalerpanel.tcl
 #
 #
 # Herein contains the source code for running the XLM72ScalerGUI.
@@ -32,43 +51,6 @@ package require ScalerClient
 # this parameter when it is running but we will set a default
 # value in case it hasn't set it to anything yet 
 set RunState "*Unknown*" 
-
-
-#####################################################################
-####################################################################
-#
-# Some procs for the TclServer
-#
-
-proc _OnTclServerConnect {fd ip port } {
-  puts "TclServer connection request $ip:$port"
-  gets $fd user
-  puts $user
-  return true
-}
-
-proc _OnTclServerError {chan command msg } {
-  puts "Error when executing \"$command\" : $msg"
-  return true
-}
-proc startServer {} {
-  ::portAllocator create allocator 
-  set port [allocator allocatePort XLM72ScalerGUI]
-  set ::server [TclServer %AUTO% -port $port -onconnect _OnTclServerConnect]
-  $::server configure -onerror _OnTclServerError
-  $::server start
-  
-  return $port
-}
-
-namespace eval NSXLM72ScalerGUI {
-  variable port ""
-}
-
-## START THE TCLSERVER!!!
-set NSXLM72ScalerGUI::port [startServer ]
-puts "TclServer started on port = $NSXLM72ScalerGUI::port"
-
 
 
 
@@ -104,7 +86,7 @@ itcl::class XLM72ScalerGUI {
 	public variable frequency     ;#< int period of live update
 
   ##
-  # Constructor
+  # @brief Constructor
   # 
   # The arrays of the value are initialized to zero values.
   # Builds the UI.
@@ -127,25 +109,34 @@ itcl::class XLM72ScalerGUI {
 
 		# look for module and update from it
     set mediator [::XLM72SclrGUICtlr %AUTO% -host $host -port $port -name $modulename]
+
+    # If we are in a running state just stop...that saves a lot of headache.
+    if {[RunStateIsActive]} {
+      tk_messageBox -icon error \
+                   -message "XLM72ScalerGUI : Unable to startup when run is active. Please stop the run and try again."
+      exit
+    }
+
     $this BuildGUI $parentWidget
     $mediator configure -widget $this 
 
+
     # First let's see if it even makes sense to run this thing
     if {[IsGoodFirmware 0xdaba0002]} {
-        UpdatePanel 1
+      # look for a file saved from before 
+      LoadSavedSettings 
+      UpdatePanel 1
     } else {
-        tk_messageBox -icon error \
+      tk_messageBox -icon error \
                    -message "Failed to read good firmware id from module. Maybe the firmware needs to be loaded?"
-        exit
+      exit
     }
 
-    # look for a file saved from before 
-    LoadSavedSettings 
     
   }
  
   ## 
-  # Checks that the firmware signature matches a value
+  # @brief Checks that the firmware signature matches a value
   # 
   # This simply reads the firmware from the device and then compares it
   # to a value. It ensures that first the fw value is a valid integer
@@ -156,7 +147,7 @@ itcl::class XLM72ScalerGUI {
   method IsGoodFirmware {signature}
 
   ##
-  # Build the GUI
+  # @brief Build the GUI
   # 
   # This calls a number of constructor methods to build the varios
   # pieces of the UI and then grids them all together. All of the 
@@ -169,7 +160,7 @@ itcl::class XLM72ScalerGUI {
   method BuildGUI {parent}
 
   ## 
-  # Build one of the two panels containing the actual scaler values.
+  # @brief Build one of the two panels containing the actual scaler values.
   # This creates 16 rows of elements with indices provided by some offset
   # By the time this returns, all of the child widgets of the parent are
   # gridded but the parent is not. 
@@ -184,7 +175,7 @@ itcl::class XLM72ScalerGUI {
   method BuildPanel {parent name offset}
 
   ## 
-  # Constructs the two top panels containing all ofthe scaler data
+  # @brief Constructs the two top panels containing all ofthe scaler data
   # 
   # This is a convenience function that just calls the BUildPanel
   # method for both of the top scaler panels and grids them within
@@ -199,7 +190,7 @@ itcl::class XLM72ScalerGUI {
   method BuildPanels {parent name}
 
   ## 
-  # Build the labelframe containing scaler controls
+  # @brief Build the labelframe containing scaler controls
   # 
   # This constructs the little box that holds the enable checkbox
   # and the reset button. It creates a label frame, fills it 
@@ -213,7 +204,7 @@ itcl::class XLM72ScalerGUI {
   method BuildSclrControlBox {parent name}
   
   ##
-  # Build the labelframe containing update controls 
+  # @brief Build the labelframe containing update controls 
   #
   # This constructs the frame that holds the enable checkbox for the
   # live update feature and also the spinbox that sets the value of the
@@ -227,7 +218,7 @@ itcl::class XLM72ScalerGUI {
   method BuildUpdateControlBox {parent name}
 
   ## 
-  # Sets the background color for the various widget using the ttk::style
+  # @brief Sets the background color for the various widget using the ttk::style
   # 
   # Location where all of the style specifications occur
   # 
@@ -235,14 +226,14 @@ itcl::class XLM72ScalerGUI {
   method SetupStyle {}
 
   ##
-  # Retrieves the parent widget name stored during construction
+  # @brief Retrieves the parent widget name stored during construction
   #
   # @return string
   # @retval name of parent widget
   method GetParent {} {return $parentWidget} 
 
   ## 
-  # Save current state to a file
+  # @brief Save current state to a file
   # 
   # The scaler, wrap, enable, live, and trigger 
   # values are written to a file named: XLM72Scaler_$this.tcl
@@ -252,7 +243,7 @@ itcl::class XLM72ScalerGUI {
   method SaveSettings {}
 
   ## 
-  # Update panel information
+  # @brief Update panel information
   # 
   # The mechanism for obtaining new data. Depending on the argument
   # this will either only update the values once or it will continue
@@ -274,7 +265,7 @@ itcl::class XLM72ScalerGUI {
   method UpdatePanel {once}
  
   ##
-  # Turn on/off the live update feature
+  # @brief Turn on/off the live update feature
   # 
   # The behavior of this method relies on whether the variable "live" is 0 or 1.
   # if the value is 0, then the live updates are turned off. On the other hand, if the
@@ -282,7 +273,7 @@ itcl::class XLM72ScalerGUI {
   method SetLive {}
  
   ##
-  # Handle an exit event
+  # @brief Handle an exit event
   # 
   # On an exit, the state of the gui is saved by the SaveSettings method,
   # the live updates are canceled and removed from the tcl event loop,
@@ -292,12 +283,12 @@ itcl::class XLM72ScalerGUI {
   method OnExit {}
   
   ##
-  # Disable or enable the widgets in the panels except for the exit button
+  # @brief Disable or enable the widgets in the panels except for the exit button
   # 
   method SetChildrenState {state}
  
   ##
-  # Update the actual scaler values
+  # @brief Update the actual scaler values
   # 
   # This retrieves new scaler values from the XLM72 and then computes the
   # correct values for the rate based on the most recent increment. The update 
@@ -307,7 +298,7 @@ itcl::class XLM72ScalerGUI {
   method UpdateValues {}
 
   ## 
-  # Parse the trigger register 
+  # @brief Parse the trigger register 
   #
   # When reading the trigger register, the state of all channels is encoded in
   # a single 32-bit integer. Because the GUI deals with the trigger states as 
@@ -321,7 +312,7 @@ itcl::class XLM72ScalerGUI {
   method ParseTriggerRegister {value}
   
   ## 
-  # Reset the scaler counters
+  # @brief Reset the scaler counters
   # 
   # This simply causes the scaler counters to be cleared.
   # 
@@ -329,7 +320,7 @@ itcl::class XLM72ScalerGUI {
   method OnReset {}
   
   ## 
-  # Enable/Disable all scalers to count
+  # @brief Enable/Disable all scalers to count
   # 
   # Depending on the state of the "enable" variable, this will either cause 
   # the scaler values to be disabled or enabled. The value of the endable
@@ -339,7 +330,7 @@ itcl::class XLM72ScalerGUI {
   method OnEnable {}
 
   ## 
-  # Handle when a trigger checkbutton has been toggled
+  # @brief Handle when a trigger checkbutton has been toggled
   # 
   # Depending on state ofthe "trigger($ch)" variable, the channel is either
   # added to the trigger OR or removed from it.
@@ -350,7 +341,7 @@ itcl::class XLM72ScalerGUI {
   method OnTriggerToggle {ch}
 
   ## 
-  # Get the name of the frame containing the entire megawidget
+  # @brief Get the name of the frame containing the entire megawidget
   #  
   # @return string
   # @retval $parentWidget.topframe
@@ -363,7 +354,7 @@ itcl::class XLM72ScalerGUI {
   }
 
   ## 
-  # Retrieve the values of the settings from a file
+  # @brief Retrieve the values of the settings from a file
   # 
   # If the file XLM72Scaler_$this.tcl exists, then it is
   # executed to return the state of the gui to what it was 
@@ -372,8 +363,15 @@ itcl::class XLM72ScalerGUI {
   # @return nothing
   method LoadSavedSettings {} 
 
-  ##
+  ## @brief Check whether run is not idle
   # 
+  # First checks to see whether RunState is Active. If that
+  # is not true, then it asks the slow-controls server what 
+  # its runstate is. 
+  #
+  # @returns boolean
+  # @retval  0 - RunState != Active and runstate is not idle or paused
+  # @retval  1 - Otherwise 
   #
   method RunStateIsActive {} 
 }
@@ -707,7 +705,8 @@ itcl::body XLM72ScalerGUI::OnTriggerToggle {ch} {
 
 
 ##
-# Controller for XLM72ScalerGUI
+# @class XLM72SclrGUICtlr
+# @brief Controller for XLM72ScalerGUI
 #
 # This is ultimately the piece that interacts with VMUSBReadout program.
 # Any time a request is made in the GUI, it causes this to send out 
@@ -733,10 +732,11 @@ snit::type XLM72SclrGUICtlr {
   option -widget     -default ""        ;#< a reference to the XLM72SclrGUI
   option -onlost     -default ""        ;#< script to run when connection is lost
   
-  variable sclclientPID ""              ;#< PID of the sclclient process spawned by this
+  variable sclclientPID   -1            ;#< PID of the sclclient process spawned by this
+  variable server         -1            ;#< PID of the sclclient process spawned by this
 
   ##
-  # Constructor
+  # @brief Constructor
   # 
   # Sets up all of the options and then connects to the slow controls server.
   # Furthermore, it starts up a sclclient program. 
@@ -748,12 +748,26 @@ snit::type XLM72SclrGUICtlr {
     $self configurelist $args
     
     $self Reconnect $options(-host) $options(-port)
-    set sclclientPID [startScalerClient localhost $::NSXLM72ScalerGUI::port \
+
+    set port [$self startServer ]
+    puts "TclServer started on port = $port"
+    set sclclientPID [startScalerClient localhost $port \
                                         localhost $::env(USER)]
   }
   
+  ## @brief Destructor
+  # 
+  # Simply kill off the sclclient PID if it exists
+  #  
+  destructor {
+    variable sclclientPID
+    if {$sclclientPID != -1} {
+      $self OnExit
+    }
+  }
+
   ##
-  # Handle an exit event
+  # @brief Handle an exit event
   # 
   # The only task that this has is to kill the sclclient process that is 
   # spawned by this.
@@ -762,10 +776,11 @@ snit::type XLM72SclrGUICtlr {
     variable sclclientPID
     puts $sclclientPID
     exec kill -9 $sclclientPID
+    set sclclientPID -1
   }
 
   ##
-  # Relay an enable command to the slow controls
+  # @brief Relay an enable command to the slow controls
   # 
   # @param enable boolean value for whether to enable or disable scalers 
   #
@@ -775,7 +790,7 @@ snit::type XLM72SclrGUICtlr {
   }
 
   ## 
-  # Relay a trigger event to slow controls
+  # @brief Relay a trigger event to slow controls
   # 
   # This mostly just formats the parameter name before sending it to the
   # slow controls server. The parameter name is encoded into the name by
@@ -790,7 +805,7 @@ snit::type XLM72SclrGUICtlr {
   }
 
   ##
-  # Send a reset command to slow controls
+  # @brief Send a reset command to slow controls
   #
   # This always causes a scaler reset (aka. clear) .
   #  
@@ -799,7 +814,7 @@ snit::type XLM72SclrGUICtlr {
   }
 
   ##
-  # Send a firmware id request to slow controls server
+  # @brief Send a firmware id request to slow controls server
   # 
   # @return int
   # @retval the firmware id
@@ -809,7 +824,7 @@ snit::type XLM72SclrGUICtlr {
   }
 
   ## 
-  # Ask whether or not the scalers are enabled
+  # @brief Ask whether or not the scalers are enabled
   # 
   # @return boolean
   # @retval whether the scalers are enabled or disabled
@@ -819,7 +834,7 @@ snit::type XLM72SclrGUICtlr {
   }
 
   ## 
-  # Send request for trigger register contents
+  # @brief Send request for trigger register contents
   # 
   # Request the encoded integer that contains all of the trigger
   # bit settings. The bits in the integer correspond to each
@@ -833,7 +848,7 @@ snit::type XLM72SclrGUICtlr {
   }
 
   ## 
-  # Retrieve a fresh reading of the scaler values
+  # @brief Retrieve a fresh reading of the scaler values
   #
   # This causes the XLM72 scalers to be latched and then read out.
   # The values are converted into a tcl list before returning.
@@ -846,7 +861,7 @@ snit::type XLM72SclrGUICtlr {
   }
 
   ## 
-  # Request the run state 
+  # @brief Request the run state 
   # 
   # @return returns the runstate
   # @retval active
@@ -860,7 +875,7 @@ snit::type XLM72SclrGUICtlr {
   }
 
   ##
-  # Connect to the slow controls server
+  # @brief Connect to the slow controls server
   # 
   # Repeatedly try to connect to the server until it succeeds. On failure to connectm
   # the user is presented with an error message. On success, the created 
@@ -882,7 +897,7 @@ snit::type XLM72SclrGUICtlr {
 #
 
   ## 
-  # Setup the Get command
+  # @brief Setup the Get command
   # 
   # All commands that request information ultimately funnel through this command.
   # This simply formats a proper Get request and then initiates the transaction.
@@ -900,7 +915,7 @@ snit::type XLM72SclrGUICtlr {
 
 
   ## 
-  # Initiate the Set command
+  # @brief Initiate the Set command
   # 
   # Like the Get method, this formats the request to be sent for Set commands.
   # It then initiates the transaction with the slow controls server.
@@ -919,7 +934,7 @@ snit::type XLM72SclrGUICtlr {
   }
 
   ##
-  # Initiate the Update command
+  # @brief Initiate the Update command
   # 
   # This doesn't actually get used but it is defined for the future
   # 
@@ -932,7 +947,7 @@ snit::type XLM72SclrGUICtlr {
 
 
   ## 
-  # Manage the transactions
+  # @brief Manage the transactions
   # 
   # Executes the request and then deals with the response.
   # If an exceptional return occurs with no result, then the
@@ -967,6 +982,54 @@ snit::type XLM72SclrGUICtlr {
 
   	return $msg
 
+  }
+
+#####################################################################
+####################################################################
+#
+# Some methods for the TclServer
+#
+
+  ## @brief Method called for connections
+  #
+  # Prints message containing connection information
+  # This also always returns true and therefore will always
+  # accept a connection request.
+  #
+  # @returns boolean
+  # @retval  true
+  method _OnTclServerConnect {fd ip port } {
+    gets $fd user
+    puts "TclServer connection request $ip:$port by $user"
+    return true
+  }
+
+  ## @brief Method called when error occurs
+  #
+  # Simply prints the error message provided
+  #
+  # @return boolean
+  # @retval true
+  method _OnTclServerError {chan command msg } {
+    puts "Error when executing \"$command\" : $msg"
+    return true
+  }
+
+  ## @brief Starts up the TclServer
+  #
+  # Allocates a port and then starts the server on it.
+  # 
+  # @returns int
+  # @retval  port that TclServer listens on
+  method startServer {} {
+    variable server
+    ::portAllocator create allocator 
+    set port [allocator allocatePort XLM72ScalerGUI]
+    set server [TclServer %AUTO% -port $port -onconnect [mymethod _OnTclServerConnect]]
+    $server configure -onerror [mymethod _OnTclServerError]
+    $server start
+  
+    return $port
   }
 
 

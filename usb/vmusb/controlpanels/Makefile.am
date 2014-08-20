@@ -1,6 +1,6 @@
 SUBDIRS=cv6533
 
-PACKAGES=client.tcl configfile.tcl gdgcontrol.tcl gdgwidget.tcl 
+PACKAGES=client.tcl configfile.tcl gdgcontrol.tcl gdgwidget.tcl sclclient.tcl xlm72scalerpanel.tcl
 
 APPS=gdgpanel.tcl v812usbcontrol.tcl
 
@@ -11,6 +11,7 @@ install-exec-local:
 	echo pkg_mkIndex -verbose @prefix@/TclLibs/vmusbcontrol "*.tcl" | tclsh
 	for f in $(APPS); do $(INSTALL_SCRIPT) @srcdir@/$$f @bindir@; done
 	$(INSTALL_SCRIPT) @srcdir@/v812usbcontrol.tcl @bindir@/v895usbcontrol.tcl	
+	$(INSTALL_SCRIPT) @srcdir@/XLM72ScalerGUI.tcl @bindir@/XLM72ScalerGUI	
 
 
 

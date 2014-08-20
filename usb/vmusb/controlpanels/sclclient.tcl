@@ -1,8 +1,27 @@
+#
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2014.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#     Author:
+#      NSCL DAQ Development Team 
+#	     NSCL
+#	     Michigan State University
+#	     East Lansing, MI 48824-1321
+#
+# @author Jeromy Tompkins
+
 
 package provide ScalerClient 1.0
 package require InstallRoot 
-##
-# Start up a scaler client in the background
+
+## @func startScalerClient host port ringhist ringname
+#
+# @brief Start up a scaler client in the background
 #
 # This provides a convenient callable for running the sclclient 
 # program in the background. This is useful for prgorams that want

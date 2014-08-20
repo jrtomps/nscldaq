@@ -1,5 +1,22 @@
 #!/usr/bin/env tclsh
 
+#
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2014.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#     Author:
+#      NSCL DAQ Development Team 
+#	     NSCL
+#	     Michigan State University
+#	     East Lansing, MI 48824-1321
+#
+# @author Jeromy Tompkins
+
 package require InstallRoot
 package require cmdline
 package require Itcl 
@@ -31,11 +48,12 @@ package require xlm72scalerpanel
 
 # Build a new toplevel
 set parent .
-#set parent .root
-#toplevel $parent -background lightblue
 
 # Create the widget
 ::XLM72ScalerGUI aPanel $parent $module $host $port 
+
+# Make the background color lightblue
+. configure -background lightblue
 
 ## Grid the frame
 set top [aPanel GetTopFrame]
