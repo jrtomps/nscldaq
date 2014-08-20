@@ -3627,7 +3627,7 @@ vmusb cget name
                     </listitem>
                 </varlistentry>
                 <varlistentry>
-                    <term><option>-redscalers</option></term>
+                    <term><option>-readscalers</option></term>
                     <listitem>
                         <para>
                             If this is true the two scalers A and B will
@@ -3769,7 +3769,8 @@ vmusb cget name
                     <listitem>
                         <para>
                             Determines the bus request level that the VMUSB will use for itself
-                            when it requests ownership of the bus.
+                            when it requests ownership of the bus. The valid values are any in
+                            the range [0,7] and the default value is 4.
                         </para>
                     </listitem>
                 </varlistentry>
@@ -3779,7 +3780,30 @@ vmusb cget name
                         <para>
                             Determines whether a second optional header word will follow the first
                             buffer header word. When present, this extra header specifies the number
-                            of words in the buffer.
+                            of words in the buffer. The default value is false.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-bufferlength</option></term>
+                    <listitem>
+                        <para>
+                            Determines size of the internal buffer used by the VMUSB in units of 
+                            words. The VMUSB fills the buffer before outputting data on a 
+                            usb_bulk_read so a smaller buffer size is useful for low data rates. 
+                            The optional values are: 13k, 8k, 4k, 2k, 1k, 512, 256, 128, 64, and evtcount.  
+                            The evtcount option depends on the value of the -eventsperbuffer option.
+                            The default value is 13k.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-eventsperbuffer</option></term>
+                    <listitem>
+                        <para>
+                          If the -bufferlength option is set to evtcount, this determines how many
+                          events must occur before transferring data to the FIFO for readout. The values
+                          can be any in the range [1,4095]. The default value is 1.
                         </para>
                     </listitem>
                 </varlistentry>
