@@ -8,7 +8,7 @@
      http://www.gnu.org/licenses/gpl.txt
 
      Author:
-             Ron Fox
+       NSCL DAQ Development group 
        NSCL
        Michigan State University
        East Lansing, MI 48824-1321
@@ -86,25 +86,31 @@ CCCUSBRemote::CCCUSBRemote(string deviceName, string host, unsigned int port)
 /*! 
 * connect 
 *
-* The  
+* Attempts to connect to the host (m_host) at port
+* (m_portStr). In addition it starts up a new TCL interpreter.
 */
 void CCCUSBRemote::connect() {
-    m_pSocket = new CSocket;
-    m_pSocket->Connect(m_host, m_portStr);
-    m_pInterp = new CTCLInterpreter();
+  m_pSocket = new CSocket;
+  m_pSocket->Connect(m_host, m_portStr);
+  m_pInterp = new CTCLInterpreter();
 }
 
+/*!
+* Forces a disconnection of the socket. All operations ultimately
+* clean up the state as well. The socket is deleted and the 
+* interpreter is deleted as well.
+*/
 void CCCUSBRemote::disconnect() 
 {
-    if (m_pSocket) {
-      m_pSocket->Shutdown();
-      delete m_pSocket;
-      m_pSocket = 0;
-    }
-    if (m_pInterp) { 
-      delete m_pInterp;
-      m_pInterp = 0;
-    }
+  if (m_pSocket) {
+    m_pSocket->Shutdown();
+    delete m_pSocket;
+    m_pSocket = 0;
+  }
+  if (m_pInterp) { 
+    delete m_pInterp;
+    m_pInterp = 0;
+  }
 }
 
 
@@ -183,6 +189,8 @@ int CCCUSBRemote::usbRead(void* data, size_t bufferSize, size_t* transferCount,
   \retval -1    - The Set to the server failed.
   \retval -2    - The Receive of data from the server indicated an error.
   \retval -3    - The server returned an error, use getLastError to retrieve it.
+  \retval -4    - The socket or the interpreter owned by the CCCUSBRemote is NULL. 
+                  This happens when disconnect is called before this method.
 
   In case of failure, the reason for failure is stored in the
   errno global variable.
@@ -197,6 +205,12 @@ CCCUSBRemote::executeList( CCCUSBReadoutList& list,
 
   m_lastError = "";
 
+  // Check that the interpreter and the socket exist
+  if (m_pSocket==0 || m_pInterp==0) {
+    return -4;
+  }
+
+
   string vmeList      = marshallList(list);
   CTCLObject datalist;
   datalist.Bind(m_pInterp);
@@ -209,7 +223,7 @@ CCCUSBRemote::executeList( CCCUSBReadoutList& list,
   string request = "Set ";
   request       += m_deviceName;
   request       += " list {";
-  request += (string)datalist;
+  request       += (string)datalist;
   request       += "}\n";
   try {
     m_pSocket->Write(request.c_str(), request.size());
