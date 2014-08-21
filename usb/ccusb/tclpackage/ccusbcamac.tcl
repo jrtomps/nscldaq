@@ -7,14 +7,49 @@ package require cccusbreadoutlist
 package require CCUSBDriverSupport 
 
 
-## @namespace the namespace
+## The ccusbcamac namespace
+# 
+# This package provides a purely tcl package for executing remote commands to 
+# a CCUSB being run by the CCUSBReadout program. It is compatible with the 
+# wienercamac package in that it presents the user with the same interface.
+# There are a few differences that occur due to the nature of this being
+# a client to the CCUSBReadout slow-controls server. The main one being that
+# before any call to a cdreg is allowed, a call to cdconn needs to be 
+# made with the same branch and crate indices. The reason for this is because
+# the cdreg creates a new cccusb::CCCUSBRemote object that requires knowledge
+# of the hostname, port, and module name. The purpose of cdconn is to register
+# these values to a dictionary whose keys are uniquely formed by the b and c.
+# If these have not been created, then there is not way for cdreg to acquire
+# the information it needs to make a connection. 
 #
+# Because this is only the client side of the package, it is not enough to just
+# require this package and start using it. For it to be effective, the user must
+# add something of the following to their ctlconfig.tcl
+#
+# \code{.tcl}
+# Module create ccusb ctlr
+# \endcode
+#
+# Adding such a line to the ctlconfig.tcl file and then running the CCUSBReadout
+# program on localhost with the slow-controls server listening on port 27000, 
+# you would establish a registry for a device in slot 12 as:
+# 
+# \code
+# package require ccusbcamac
+# 
+# # Provide the connection info
+# ccusbcamac::cdconn 0 1 localhost 27000 ctlr
+#
+# # Connect 
+# set reg [ccusbcamac::cdreg 0 1 12]
+# \encode
+# 
 #
 namespace eval ccusbcamac {
   
-  variable connectionInfo ""
+  variable connectionInfo "" ;#< dict of connection info mapped to id
 
-  variable lastCCUSBRemote ""
+  variable lastReg ""        ;#< maintains last reg produced by cdreg (useful for tests)
 
   ## @brief Check whether f maps to a read function
   #
@@ -41,7 +76,15 @@ namespace eval ccusbcamac {
 
   ## @brief Compute the absolute crate index 
   #
+  # First check to make sure that these are valid
+  # values for b and c. If not, the user will be given
+  # error messages explaining what happened.
+  #
+  # @param b branch index. must be in range [0,7]
+  # @param c crate index. must be in range [1,7]
   # 
+  # @returns int
+  # @retval the absolute index of the crate
   proc _computeIndex {b c} {
   
     _checkValidBAndC $b $c
@@ -50,14 +93,37 @@ namespace eval ccusbcamac {
   }
 
 
+  ## @brief Check that value is in range [0,7]
+  # 
+  # @param b branch index
+  #
+  # @returns boolean
+  # @retval 0 - b is not in range [0,7]
+  # @retval 1 - b is in range
   proc _isValidBranchIndex b {
     return [expr {$b>=0 && $b<8}]
   }
 
+  ## @brief Check that value is in range [1,7]
+  # 
+  # @param c crate index
+  # 
+  # @returns boolean
+  # @retval 0 - c is not in range [1,7]
+  # @retval 1 - c is in range
   proc _isValidCrateIndex c {
     return [expr {$c>0 && $c<8}]
   }
 
+
+  ##  @brief Produces errors if b and/or c are invalid
+  # 
+  # @param b branch index
+  # @param c crate index
+  # 
+  # @retval  "" - b and c were in range
+  # @retval  error message if b and/or c are out of range 
+  # 
   proc _checkValidBAndC {b c} {
     # Check that the branch is in range
     set bIsGood [_isValidBranchIndex $b]
@@ -81,58 +147,141 @@ namespace eval ccusbcamac {
 
 
 }
+# -- END OF NAMESPACE --
 
+
+## @brief Register connection information for b and c
+#
+# The host, port, namd name values are stored in a dict
+# whose key is a unique number produced by b and c (@seealso _computeIndex)
+# It is required that this proc be called prior to calling
+# cdreg because without doing so, cdreg will not have all 
+# of the necessary information to connect to the slow-controls server. 
+# Connection information is stored as a list of the form {host port name}.
+# 
+#
+# @param b     branch index
+# @param c     crate index
+# @param host  name of host running CCCUSBReadout slow-controls server
+# @param port  port on which slow-controls server listens for new connections
+# @param name  name of module loaded into slow-controls server 
+#
+# @returns "" 
+#
+# Exceptions:
+# - if b and/or c are invalid values
 proc ccusbcamac::cdconn {b c host port name} {
   variable connectionInfo
   ::ccusbcamac::_checkValidBAndC $b $c
 
+  # compute the absolute crate index
   set id [::ccusbcamac::_computeIndex $b $c]
+  # register the list of information
   dict set connectionInfo $id [list $host $port $name]
 
 }
 
-
-##
+## @brief Create a registry for use in calling commands later
 #
+# @attention {ccusbcamac::cdconn must be called with desired b and c before this
+#              is ever called}
+# 
+# This actually creates a cccusb::CCCUSBRemote object using the info held
+# in the connectionInfo dictionary associated with the b and c. This could
+# promptly exit. The user can avoid this situation by calling ccusbcamac::isOnline b c
+# to safely determine whether the server is up and accepting connections. 
+# 
+# The registry produced by this will contain the name of the cccusb::CCCUSBRemote
+# object and the slot number.
+#
+# @param b  branch index
+# @param c  crate index
+# @param n  slot number 
+#
+# @return list
+# @retval {ccusbremote-name n}
+#
+# Exceptions:
+# - Slow controls server not running = FATAL ERROR!
+# - Error (code=1) when cdconn has not be called previously
 #
 proc ccusbcamac::cdreg {b c n} {
   variable connectionInfo
   variable lastReg 
   
   set id [::ccusbcamac::_computeIndex $b $c]
+
+  if {![dict exists $::ccusbcamac::connectionInfo $id]} {
+    return -code error "ccusbcamac::cdreg no connection info found. User must call \"cdconn $b $c host port name\" before calling cdreg $b $c" 
+  }
+
+  # at this point is is gauranteed that cdconn was made
   set connInfo [dict get $connectionInfo $id]
   
   set host [lindex $connInfo 0]
   set port [lindex $connInfo 1]
   set name [lindex $connInfo 2]
-
+  
+  # throw an error if we cannot connect to the server 
+  if {! [::ccusbcamac::isOnline $b $c]} {
+    return -code error "ccusbcamac::cdreg failed to connect to server"
+  }
+  
+  # connect! 
   set dev [cccusb::CCCUSBRemote %AUTO $name $host $port]
   set lastReg [list $dev $n]  
   return $lastReg 
 } 
 
 
-##
+## @brief perform a 24-bit camac operation
 #
+# This parses the value of f in order to determine whether
+# the operation is a read, control,  or write. If the
+# the operation is a write, the d parameter must be specified
+# to succeed.  
+# 
+# @param reg  a registry produced by cdreg
+# @param f    the function code
+# @param a    the subaddress
+# @param d    value to write
 #
+# @returns list
+# @retval  {read_data q x} - for a read
+# @retval  {written_data q x} - for a write
+# @retval  {0 q x} - for a control
+#
+# Exception returns:
+# - error if operation is a write and d is not provided
+# 
 proc ccusbcamac::cfsa {reg f a {d ""}} {
+
+  # given the value of the f argument, pass the
+  # responsibility to one of the helper functions
 
   if {[::ccusbcamac::_isRead $f]} {
     return [ccusbcamac::_doRead24 $reg $f $a ]
 
   } elseif {[::ccusbcamac::_isWrite $f]} {
+
     if {$d ne ""} {
       return [ccusbcamac::_doWrite24 $reg $f $a $d]
     } else {
       return -code error "ccusbcamac::cfsa not provided data to write"
     }
+
   } else {
 
     return [ccusbcamac::_doControl $reg $f $a]
   } 
 }
 
-##
+## @brief perform a 16-bit camac operation
+#
+# This is identical to the cfsa proc except that it 
+# handles 16-bit operations on the data way. For 
+# control operations, there is actually no difference.
+# See cfsa for a detailed explanation of the behavior.
 #
 #
 proc ccusbcamac::cssa {reg f a {d ""}} {
@@ -206,23 +355,40 @@ proc ccusbcamac::cblock {reg f a num} {
 # More specifically, this determines whether the server will connect
 # one more connection. It does so by trying to connect. If a conneciton
 # is established, then the connection is closed and the proc 
-# returns 1. Otherwise, it 
+# returns 1. Otherwise, it returns 0. 
 #
+# @param b branch index. must be in range [0,7]
+# @param c crate index. must be in range [1,7]
+#
+# @return boolean
+# @retval 0 - offline (i.e. unable to connect to server)
+# @retval 1 - online 
+#
+# Exceptional returns:
+# - Error called when b and/or c are out of range
+# - Error called when ccusbcamac::cdconn has not be called already 
 proc ccusbcamac::isOnline {b c} {
   ::ccusbcamac::_checkValidBAndC $b $c
   # if here then b and c are good
 
   set id [::ccusbcamac::_computeIndex $b $c]
+
+  # check whether cdconn has been called already. If it has
+  # then a $id will be a key in the connectionInfo dict
   if {[dict exist $::ccusbcamac::connectionInfo $id]} {
 
+    # get the connection info 
     set connInfo [dict get $::ccusbcamac::connectionInfo $id]
     set host [lindex $connInfo 0]
     set port [lindex $connInfo 1]
     
+    # try to connect 
     if {[catch {socket $host $port} result]} {
       # we failed to connect
+      puts "FAILURE TO CONNECT"
       return 0   
     } else {
+      puts "CONNECTION ESTABLISHED"
       catch {close $result}
       return 1
     }
@@ -235,17 +401,41 @@ proc ccusbcamac::isOnline {b c} {
 
 }
 
-proc ccusbcamac::getGl {b} {
 
+## @brief Return graded LAM register
+#
+# THIS IS NOT IMPLEMENTED b/c it doesn't make any sense for 
+# a single crate
+proc ccusbcamac::getGl {b} {
 }
 
+## @brief Calls a C command on CAMAC dataway
+#
+# This does not assume that a cdreg has been called already
+# and demands that a cdconn has been called. It creates a
+# new connection and then executes the C using the 
+# connection object.
+#
+# @param b branch index. must be in range [0,7]
+# @param c crate index. must be in range [1,7]
+#
+# @returns ""
+#
+# Exceptional retunrns:
+# - Error when b and/or c are out of range
 proc ccusbcamac::C {b c} {
 
+  # return errors if the b and c are not in range
   ::ccusbcamac::_checkValidBAndC $b $c
-  # if here then b and c are good
 
+  # if here then b and c are good
   set id [::ccusbcamac::_computeIndex $b $c]
+
+  # check to see if the $id is a key in the connectionInfo
+  # to see if cdconn has been called
   if {[dict exist $::ccusbcamac::connectionInfo $id]} {
+
+    # now it is possible to create a new connection to 
     set connInfo [dict get $::ccusbcamac::connectionInfo $id]
     set reg [ccusbcamac::cdreg $b $c 0]
     [lindex $reg 0] c 
@@ -257,6 +447,20 @@ proc ccusbcamac::C {b c} {
   
 }
 
+## @brief Calls a Z command on CAMAC dataway
+#
+# This does not assume that a cdreg has been called already
+# and demands that a cdconn has been called. It creates a
+# new connection and then executes the Z using the 
+# connection object.
+#
+# @param b branch index. must be in range [0,7]
+# @param c crate index. must be in range [1,7]
+#
+# @returns ""
+#
+# Exceptional retunrns:
+# - Error when b and/or c are out of range
 proc ccusbcamac::Z {b c} {
 
   ::ccusbcamac::_checkValidBAndC $b $c
@@ -276,14 +480,52 @@ proc ccusbcamac::Z {b c} {
 }
 
 proc ccusbcamac::isInhibited {b c} {
-
+  
 }
 
-proc ccusbcamac::Inhibit {b c onoff} {
+proc ccusbcamac::Inhibit {b c on} {
 
+  ::ccusbcamac::_checkValidBAndC $b $c
+  # if here then b and c are good
+
+  set id [::ccusbcamac::_computeIndex $b $c]
+  if {[dict exist $::ccusbcamac::connectionInfo $id]} {
+    set connInfo [dict get $::ccusbcamac::connectionInfo $id]
+    set reg [ccusbcamac::cdreg $b $c 0]
+
+    set ctlr [lindex $reg 0]
+    if {$on} {
+       $ctlr inhibit
+    } else {
+       $ctlr uninhibit
+    }
+  } else {
+    set msg "::ccusbcamac::inhibit connection info not provided. "
+    append msg "cdconn needs to be called prior to calling this." 
+    return -code error $msg
+  }
 }
 
 proc ccusbcamac::ReadLams {b c} {
+
+  ::ccusbcamac::_checkValidBAndC $b $c
+  # if here then b and c are good
+
+  set id [::ccusbcamac::_computeIndex $b $c]
+  if {[dict exist $::ccusbcamac::connectionInfo $id]} {
+
+    set connInfo [dict get $::ccusbcamac::connectionInfo $id]
+    set reg [ccusbcamac::cdreg $b $c 25]
+
+    # CAMAC LAM pseudo register N(25)A(10)F(0) contains 
+    # status of LAM lines. It is 24-bits wide.
+    return [ccusbcamac::_doRead24 $reg 0 10]
+
+  } else {
+    set msg "::ccusbcamac::ReadLams connection info not provided. "
+    append msg "cdconn needs to be called prior to calling this." 
+    return -code error $msg
+  }
 
 }
 ##
