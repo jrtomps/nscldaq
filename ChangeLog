@@ -694,5 +694,7 @@ Work on 11.0-rc11 begins
 	* Fix Bug #2182 as follows: Add key bindings for enter and tab
 	that update the --dt value.  So you do need to use one of those to
 	commit the value. 
-11.0-rc12
+	* Turn off the pop up when s800toring exits.
+11.0-rc13
 	
+       
