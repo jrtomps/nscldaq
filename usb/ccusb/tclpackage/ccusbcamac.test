@@ -2,6 +2,77 @@
 
 package require tcltest
 package require ccusbcamac
+package require snit
+
+
+## Create a namespace cccusb if it doesn't exist
+if {![namespace exists cccusb]} {
+  namespace eval cccusb { 
+  }
+}
+
+proc ::cccusb::CCCUSBRemote {name modname host port} {
+  return [CMockCCUSB %AUTO%] 
+}
+
+snit::type CMockCCUSB {
+  option -record  -default [list]
+  option -q       -default 1 
+  option -x       -default 1
+  option -data    -default 1234
+  
+  constructor {args} {
+    $self configurelist $args
+  }
+
+  method simpleWrite16 {n a f d} {
+    lappend options(-record) "simpleWrite16 $n $a $f $d"
+    return [$self encodeQX 0]
+  }
+
+  method simpleWrite24 {n a f d} {
+    lappend options(-record) "simpleWrite24 $n $a $f $d"
+    return [$self encodeQX 0]
+  }
+
+  method simpleRead16 {n a f} {
+    lappend options(-record) "simpleRead16 $n $a $f"
+    return [expr {[$self encodeQX 24]|$options(-data)}]
+  }
+
+  method simpleRead24 {n a f} {
+    lappend options(-record) "simpleRead24 $n $a $f"
+    return [expr {[$self encodeQX 24]|$options(-data)}]
+  }
+  
+  method simpleControl {n a f} {
+    lappend options(-record) "simpleControl $n $a $f"
+    return [$self encodeQX 0]
+  }
+
+  method c {} {
+    lappend options(-record) "c"
+  }
+
+  method z {} {
+    lappend options(-record) "z"
+  }
+
+  method inhibit {} {
+    lappend options(-record) "inhibit"
+  }
+
+  method uninhibit {} {
+    lappend options(-record) "uninhibit"
+  }
+
+  method encodeQX {shift} {
+    set qx [expr {($options(-q)<<1)|$options(-x)}]
+    return [expr {$qx<<$shift}]
+  }
+}
+
+
 
 tcltest::test iswrite-0 {Test that valid write f values return true 
 } -body {
@@ -182,5 +253,87 @@ tcltest::test _checkValidBAndC-3 {test that bad crate and bad branch produce bad
   ccusbcamac::_checkValidBAndC -1 -1 
 } -result $badBAndCMsg -returnCodes 1 
 
+
+
+tcltest::test cfsa-0 {test that an f=0 produces a simpleRead24
+} -body {
+  ccusbcamac::cdconn 0 1 a b c
+  set reg [ccusbcamac::cdreg 0 1 23]
+  ccusbcamac::cfsa $reg 0 0
+  [lindex $reg 0] cget -record
+} -result [list "simpleRead24 23 0 0"]
+
+tcltest::test cfsa-1 {test that an f=8 produces a simpleControl
+} -body {
+  ccusbcamac::cdconn 0 1 a b c
+  set reg [ccusbcamac::cdreg 0 1 23]
+  ccusbcamac::cfsa $reg 8 0
+  [lindex $reg 0] cget -record
+} -result [list "simpleControl 23 0 8"]
+
+tcltest::test cfsa-2 {test that an f=16 produces a simpleWrite24
+} -body {
+  ccusbcamac::cdconn 0 1 a b c
+  set reg [ccusbcamac::cdreg 0 1 23]
+  ccusbcamac::cfsa $reg 16 0 200
+  [lindex $reg 0] cget -record
+} -result [list "simpleWrite24 23 0 16 200"]
+
+tcltest::test cfsa-3 {test that an f=16 without data produces error
+} -body {
+  ccusbcamac::cdconn 0 1 a b c
+  set reg [ccusbcamac::cdreg 0 1 23]
+  ccusbcamac::cfsa $reg 16 0
+  [lindex $reg 0] cget -record
+} -result "ccusbcamac::cfsa not provided data to write"  -returnCodes 1
+
+tcltest::test cfsa-4 {test that an f=24 without data produces error
+} -body {
+  ccusbcamac::cdconn 0 1 a b c
+  set reg [ccusbcamac::cdreg 0 1 23]
+  ccusbcamac::cfsa $reg 24 0
+  [lindex $reg 0] cget -record
+} -result [list "simpleControl 23 0 24"]
+
+
+tcltest::test cssa-0 {test that an f=0 produces a simpleRead16
+} -body {
+  ccusbcamac::cdconn 0 1 a b c
+  set reg [ccusbcamac::cdreg 0 1 23]
+  ccusbcamac::cssa $reg 0 0
+  [lindex $reg 0] cget -record
+} -result [list "simpleRead16 23 0 0"]
+
+tcltest::test cfsa-1 {test that an f=8 produces a simpleControl
+} -body {
+  ccusbcamac::cdconn 0 1 a b c
+  set reg [ccusbcamac::cdreg 0 1 23]
+  ccusbcamac::cssa $reg 8 0
+  [lindex $reg 0] cget -record
+} -result [list "simpleControl 23 0 8"]
+
+tcltest::test cfsa-2 {test that an f=16 produces a simpleWrite16
+} -body {
+  ccusbcamac::cdconn 0 1 a b c
+  set reg [ccusbcamac::cdreg 0 1 23]
+  ccusbcamac::cssa $reg 16 0 200
+  [lindex $reg 0] cget -record
+} -result [list "simpleWrite16 23 0 16 200"]
+
+tcltest::test cfsa-3 {test that an f=16 without data produces error
+} -body {
+  ccusbcamac::cdconn 0 1 a b c
+  set reg [ccusbcamac::cdreg 0 1 23]
+  ccusbcamac::cssa $reg 16 0
+  [lindex $reg 0] cget -record
+} -result "ccusbcamac::cssa not provided data to write"  -returnCodes 1
+
+tcltest::test cfsa-4 {test that an f=24 produces simpleControl 
+} -body {
+  ccusbcamac::cdconn 0 1 a b c
+  set reg [ccusbcamac::cdreg 0 1 23]
+  ccusbcamac::cssa $reg 24 0
+  [lindex $reg 0] cget -record
+} -result [list "simpleControl 23 0 24"]
 
 tcltest::cleanupTests

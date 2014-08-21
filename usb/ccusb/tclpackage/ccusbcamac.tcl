@@ -135,7 +135,11 @@ proc ccusbcamac::cssa {reg f a {d ""}} {
     return [ccusbcamac::_doRead16 $reg $f $a ]
 
   } elseif {[::ccusbcamac::_isWrite $f]} {
-    return [ccusbcamac::_doWrite16 $reg $f $a $d]
+    if {$d ne ""} {
+      return [ccusbcamac::_doWrite16 $reg $f $a $d]
+    } else {
+      return -code error "ccusbcamac::cssa not provided data to write"
+    }
   } else {
 
     return [ccusbcamac::_doControl $reg $f $a]
@@ -166,6 +170,18 @@ proc ccusbcamac::getGl {b} {
 
 proc ccusbcamac::C {b c} {
 
+  ::ccusbcamac::_checkValidBAndC $b $c
+  # if here then b and c are good
+
+  set id [::ccusbcamac::_computeIndex $b $c]
+  if {[dict exist $::ccusbcamac::connectionInfo $id]} {
+    set connInfo [dict get $::ccusbcamac::connectionInfo $id]
+    set d [::ccusbcamac::_createController $connInfo] 
+    $d c 
+  } else {
+    return -code error "::ccusbcamac::C connection info not provided. cdconn needs to be run first"
+  }
+  
 }
 
 proc ccusbcamac::Z {b c} {
