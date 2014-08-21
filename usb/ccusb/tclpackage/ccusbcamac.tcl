@@ -200,18 +200,33 @@ proc ccusbcamac::cblock {reg f a num} {
 
 }
 
+
+## @brief Check to see if the server is accepting connections
+#
+# More specifically, this determines whether the server will connect
+# one more connection. It does so by trying to connect. If a conneciton
+# is established, then the connection is closed and the proc 
+# returns 1. Otherwise, it 
+#
 proc ccusbcamac::isOnline {b c} {
   ::ccusbcamac::_checkValidBAndC $b $c
   # if here then b and c are good
 
   set id [::ccusbcamac::_computeIndex $b $c]
   if {[dict exist $::ccusbcamac::connectionInfo $id]} {
+
     set connInfo [dict get $::ccusbcamac::connectionInfo $id]
-    if {[catch {[ccusbcamac::cdreg $b $c 0]} msg]} {
-      return 0
+    set host [lindex $connInfo 0]
+    set port [lindex $connInfo 1]
+    
+    if {[catch {socket $host $port} result]} {
+      # we failed to connect
+      return 0   
     } else {
+      catch {close $result}
       return 1
     }
+    
   } else {
     set msg "::ccusbcamac::isOnline has no connection information. "
     append msg "ccusbcamac::cdconn must be called prior to this with same b and c"
