@@ -3,6 +3,8 @@
 package provide ccusbcamac 1.0
 
 package require cccusb
+package require cccusbreadoutlist
+package require CCUSBDriverSupport 
 
 
 ## @namespace the namespace
@@ -11,6 +13,8 @@ package require cccusb
 namespace eval ccusbcamac {
   
   variable connectionInfo ""
+
+  variable lastCCUSBRemote ""
 
   ## @brief Check whether f maps to a read function
   #
@@ -93,6 +97,7 @@ proc ccusbcamac::cdconn {b c host port name} {
 #
 proc ccusbcamac::cdreg {b c n} {
   variable connectionInfo
+  variable lastReg 
   
   set id [::ccusbcamac::_computeIndex $b $c]
   set connInfo [dict get $connectionInfo $id]
@@ -102,7 +107,8 @@ proc ccusbcamac::cdreg {b c n} {
   set name [lindex $connInfo 2]
 
   set dev [cccusb::CCCUSBRemote %AUTO $name $host $port]
-  return [list $dev $n]  
+  set lastReg [list $dev $n]  
+  return $lastReg 
 } 
 
 
@@ -149,18 +155,68 @@ proc ccusbcamac::cssa {reg f a {d ""}} {
 
 proc ccusbcamac::qstop {reg f a {maxn ""}} {
 
+  set ctlr [lindex $reg 0]
+  set n    [lindex $reg 1]
+
+  if {$maxn eq ""} {
+    set maxn [expr 32*24] ;# assumes 32 operations per device in a full crate
+  }
+
+  cccusbreadoutlist::CCCUSBReadoutList aList
+  aList addQStop $n $a $f $maxn
+  set data [$ctlr executeList aList [expr 2*$maxn]]
+
+  return [::CCUSBDriverSupport::shortsListToTclList data 1]
 }
 
 
+# tested
 proc ccusbcamac::qscan {reg f a {maxn ""}} {
+  set ctlr [lindex $reg 0]
+  set n    [lindex $reg 1]
+  
+  if {$maxn eq ""} {
+    set maxn [expr 32*24] ;# assumes 32 operations per device in a full crate
+  }
+  
+  cccusbreadoutlist::CCCUSBReadoutList aList
+  aList addQScan $n $a $f $maxn
+  set data [$ctlr executeList aList [expr 2*$maxn]]
+
+  return [::CCUSBDriverSupport::shortsListToTclList data 1]
 
 }
 
+#tested
 proc ccusbcamac::cblock {reg f a num} {
+  set ctlr [lindex $reg 0]
+  set n    [lindex $reg 1]
+  
+  cccusbreadoutlist::CCCUSBReadoutList aList
+  aList addRepeat $n $a $f $num 
+  set data [$ctlr executeList aList [expr 2*$num]]
+
+  return [::CCUSBDriverSupport::shortsListToTclList data 1]
 
 }
 
 proc ccusbcamac::isOnline {b c} {
+  ::ccusbcamac::_checkValidBAndC $b $c
+  # if here then b and c are good
+
+  set id [::ccusbcamac::_computeIndex $b $c]
+  if {[dict exist $::ccusbcamac::connectionInfo $id]} {
+    set connInfo [dict get $::ccusbcamac::connectionInfo $id]
+    if {[catch {[ccusbcamac::cdreg $b $c 0]} msg]} {
+      return 0
+    } else {
+      return 1
+    }
+  } else {
+    set msg "::ccusbcamac::isOnline has no connection information. "
+    append msg "ccusbcamac::cdconn must be called prior to this with same b and c"
+    return -code error $msg 
+  }
 
 }
 
@@ -176,15 +232,31 @@ proc ccusbcamac::C {b c} {
   set id [::ccusbcamac::_computeIndex $b $c]
   if {[dict exist $::ccusbcamac::connectionInfo $id]} {
     set connInfo [dict get $::ccusbcamac::connectionInfo $id]
-    set d [::ccusbcamac::_createController $connInfo] 
-    $d c 
+    set reg [ccusbcamac::cdreg $b $c 0]
+    [lindex $reg 0] c 
   } else {
-    return -code error "::ccusbcamac::C connection info not provided. cdconn needs to be run first"
+    set msg "::ccusbcamac::C connection info not provided. "
+    append msg "cdconn needs to be called prior to calling this." 
+    return -code error $msg 
   }
   
 }
 
 proc ccusbcamac::Z {b c} {
+
+  ::ccusbcamac::_checkValidBAndC $b $c
+  # if here then b and c are good
+
+  set id [::ccusbcamac::_computeIndex $b $c]
+  if {[dict exist $::ccusbcamac::connectionInfo $id]} {
+    set connInfo [dict get $::ccusbcamac::connectionInfo $id]
+    set reg [ccusbcamac::cdreg $b $c 0]
+    [lindex $reg 0] z
+  } else {
+    set msg "::ccusbcamac::Z connection info not provided. "
+    append msg "cdconn needs to be called prior to calling this." 
+    return -code error $msg
+  }
 
 }
 

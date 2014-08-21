@@ -50,6 +50,10 @@ snit::type CMockCCUSB {
     return [$self encodeQX 0]
   }
 
+  method executeList {n a f maxn} {
+  
+  }
+
   method c {} {
     lappend options(-record) "c"
   }
@@ -154,6 +158,11 @@ set badBranchMsg {ccusbcamac::_checkValidBAndC : branch index out of range [0,7]
 set badCrateMsg {ccusbcamac::_checkValidBAndC : crate index out of range [1,7]}
 set badBAndCMsg {ccusbcamac::_checkValidBAndC : branch and crate indices out of range. Branch should be in range [0,7] and crate in range [1,7]}
 
+set CCdconnMissingMsg "::ccusbcamac::C connection info not provided. "
+append CCdconnMissingMsg "cdconn needs to be called prior to calling this." 
+
+set ZCdconnMissingMsg "::ccusbcamac::Z connection info not provided. "
+append ZCdconnMissingMsg "cdconn needs to be called prior to calling this." 
 
 tcltest::test computeID-0 {Test that b c produces correct index
 } -body {
@@ -335,5 +344,38 @@ tcltest::test cfsa-4 {test that an f=24 produces simpleControl
   ccusbcamac::cssa $reg 24 0
   [lindex $reg 0] cget -record
 } -result [list "simpleControl 23 0 24"]
+
+
+tcltest::test c-0 {test that valid b and c produce a c
+} -body {
+  ccusbcamac::cdconn 0 1 a b c
+  ccusbcamac::C 0 1
+  set ctlr [lindex $::ccusbcamac::lastReg 0]
+  $ctlr cget -record 
+} -result [list "c"]
+
+tcltest::test c-1 {test that not calling cdconn produces error 
+} -setup {
+  set ::ccusbcamac::connectionInfo ""
+} -body {
+  ccusbcamac::C 0 1
+} -result $CCdconnMissingMsg -returnCodes 1
+
+tcltest::test z-0 {test that valid b and c produce a z
+} -body {
+  ccusbcamac::cdconn 0 1 a b c
+  ccusbcamac::Z 0 1
+  set ctlr [lindex $::ccusbcamac::lastReg 0]
+  $ctlr cget -record 
+} -result [list "z"]
+
+tcltest::test z-1 {test that not calling cdconn produces error 
+} -setup {
+  set ::ccusbcamac::connectionInfo ""
+} -body {
+  ccusbcamac::Z 0 1
+} -result $ZCdconnMissingMsg -returnCodes 1
+
+
 
 tcltest::cleanupTests
