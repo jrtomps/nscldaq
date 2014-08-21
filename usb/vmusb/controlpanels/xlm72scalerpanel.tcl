@@ -416,7 +416,6 @@ itcl::body XLM72ScalerGUI::BuildGUI {parent} {
   ## Build the left column
   if {$parent eq "." } { set parent "" }
   set top $parent.topframe
-  puts "Top = $top"
   ttk::frame $top -style TFrame
   
 
@@ -1049,5 +1048,6 @@ proc PauseRun {} {}
 proc ResumeRun {} {}
 proc RunInProgress {} {}
 proc UpdateRunTime {src time} {}
+proc SourceElapsedTime {time} {}
 
 
