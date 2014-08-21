@@ -1,0 +1,165 @@
+
+
+package require tcltest
+package require ccusbcamac
+
+tcltest::test iswrite-0 {Test that valid write f values return true 
+} -body {
+  ccusbcamac::_isWrite 16
+} -result 1
+
+
+tcltest::test iswrite-1 {Test that valid write f values return true
+} -body {
+  ccusbcamac::_isWrite 23 
+} -result 1
+
+tcltest::test iswrite-2 {Test that bad write f values return false
+} -body {
+  ccusbcamac::_isWrite 0 
+} -result 0
+
+tcltest::test iswrite-3 {Test that bad write f values return false
+} -body {
+  ccusbcamac::_isWrite 24 
+} -result 0
+
+tcltest::test iswrite-4 {Test that bad write f values return false
+} -body {
+  ccusbcamac::_isWrite 15 
+} -result 0
+
+
+
+tcltest::test isread-0 {Test that valid read f values return true
+} -body {
+  ccusbcamac::_isRead 0 
+} -result 1
+
+tcltest::test isread-1 {Test that valid read f values return true
+} -body {
+  ccusbcamac::_isRead 7 
+} -result 1
+
+tcltest::test isread-2 {Test that bad read f values return false
+} -body {
+  ccusbcamac::_isRead 8 
+} -result 0
+
+tcltest::test isread-3 {Test that bad read f values return false
+} -body {
+  ccusbcamac::_isRead 28 
+} -result 0
+
+
+
+
+
+tcltest::test cdconn-0 {Test that the value are properly stored
+} -body {
+  ccusbcamac::cdconn 0 1 localhost 27000 ccusb
+
+  # This should produce an id of 1
+  set conn [dict get $ccusbcamac::connectionInfo 1 ]
+
+  set val0Good [expr {[lindex $conn 0] eq "localhost"}]
+  set val1Good [expr {[lindex $conn 1] == 27000}]
+  set val2Good [expr {[lindex $conn 2] eq "ccusb"}]
+  
+  expr {$val0Good && $val1Good && $val2Good}
+} -result 1
+
+
+tcltest::test cdconn-1 {Test that multiple values are properly stored
+} -body {
+  ccusbcamac::cdconn 0 1 localhost 27000 ccusb0
+  ccusbcamac::cdconn 3 3 spdaq12 27123 ccusb1
+
+  set ::ccusbcamac::connectionInfo
+} -result {1 {localhost 27000 ccusb0} 24 {spdaq12 27123 ccusb1}} 
+
+
+set badBranchMsg {ccusbcamac::_computeIndex : branch index out of range [0,7]}
+set badCrateMsg {ccusbcamac::_computeIndex : crate index out of range [1,7]}
+
+
+tcltest::test computeID-0 {Test that b c produces correct index
+} -body {
+  ccusbcamac::_computeIndex 0 1 
+} -result 1 
+
+tcltest::test computeID-1 {Test that b c produces correct index
+} -body {
+  ccusbcamac::_computeIndex 3 7 
+} -result 28 
+
+tcltest::test computeID-2 {Test that b>7 produces error
+} -body {
+  ccusbcamac::_computeIndex 8 1
+} -result $badBranchMsg -returnCodes 1
+
+
+tcltest::test computeID-3 {Test that b<0 produces error
+} -body {
+  ccusbcamac::_computeIndex -1 1
+} -result $badBranchMsg -returnCodes 1
+
+
+tcltest::test computeID-4 {Test that c<1 produces error
+} -body {
+  ccusbcamac::_computeIndex 3 0 
+} -result $badCrateMsg -returnCodes 1
+
+tcltest::test computeID-5 {Test that c>7 produces error
+} -body {
+  ccusbcamac::_computeIndex 3 8 
+} -result $badCrateMsg -returnCodes 1
+
+
+
+
+tcltest::test _isValidBranchIndex-0 {test that branch index <0 produces 0
+} -body {
+  ccusbcamac::_isValidBranchIndex -1 
+} -result 0
+
+tcltest::test _isValidBranchIndex-1 {test that branch index >7 produces 0 
+} -body {
+  ccusbcamac::_isValidBranchIndex 8 
+} -result 0 
+
+tcltest::test _isValidBranchIndex-2 {test that branch index 7 produces 1
+} -body {
+  ccusbcamac::_isValidBranchIndex 7 
+} -result 1
+
+tcltest::test _isValidBranchIndex-3 {test that branch index 1 produces 1
+} -body {
+  ccusbcamac::_isValidBranchIndex 1 
+} -result 1
+
+
+
+tcltest::test _isValidCrateIndex-0 {test that crate index <1 produces 0
+} -body {
+  ccusbcamac::_isValidCrateIndex 0
+} -result 0
+
+tcltest::test _isValidCrateIndex-1 {test that crate index >7 produces 0 
+} -body {
+  ccusbcamac::_isValidCrateIndex 8 
+} -result 0 
+
+tcltest::test _isValidCrateIndex-2 {test that crate index 7 produces 1
+} -body {
+  ccusbcamac::_isValidCrateIndex 7 
+} -result 1
+
+tcltest::test _isValidCrateIndex-3 {test that crate index 1 produces 1
+} -body {
+  ccusbcamac::_isValidCrateIndex 1 
+} -result 1
+
+
+
+tcltest::cleanupTests
