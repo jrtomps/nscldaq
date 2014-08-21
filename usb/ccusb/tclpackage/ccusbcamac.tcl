@@ -39,16 +39,8 @@ namespace eval ccusbcamac {
   #
   # 
   proc _computeIndex {b c} {
-
-    # Check that the branch is in range
-    if {! [_isValidBranchIndex $b]} {
-      return -code error {ccusbcamac::_computeIndex : branch index out of range [0,7]}
-    }
-
-    # check that the branch is out of range
-    if {! [_isValidCrateIndex $c]} {
-      return -code error {ccusbcamac::_computeIndex : crate index out of range [1,7]}
-    }
+  
+    _checkValidBAndC $b $c
 
     return [expr {$b*7+$c}]
   }
@@ -61,10 +53,34 @@ namespace eval ccusbcamac {
   proc _isValidCrateIndex c {
     return [expr {$c>0 && $c<8}]
   }
+
+  proc _checkValidBAndC {b c} {
+    # Check that the branch is in range
+    set bIsGood [_isValidBranchIndex $b]
+    set cIsGood [_isValidCrateIndex $c]
+
+    if {!$bIsGood && !$cIsGood} {
+      set msg "ccusbcamac::_checkValidBAndC : branch and crate indices out of range. "
+      append msg {Branch should be in range [0,7] and crate in range [1,7]} 
+      return -code error $msg
+    }
+
+    if {! $bIsGood} {
+      return -code error {ccusbcamac::_checkValidBAndC : branch index out of range [0,7]}
+    }
+
+    # check that the branch is out of range
+    if {! $cIsGood} {
+      return -code error {ccusbcamac::_checkValidBAndC : crate index out of range [1,7]}
+    }
+  }
+
+
 }
 
 proc ccusbcamac::cdconn {b c host port name} {
   variable connectionInfo
+  ::ccusbcamac::_checkValidBAndC $b $c
 
   set id [::ccusbcamac::_computeIndex $b $c]
   dict set connectionInfo $id [list $host $port $name]
@@ -127,6 +143,46 @@ proc ccusbcamac::cssa {reg f a {d ""}} {
 }
 
 
+proc ccusbcamac::qstop {reg f a {maxn ""}} {
+
+}
+
+
+proc ccusbcamac::qscan {reg f a {maxn ""}} {
+
+}
+
+proc ccusbcamac::cblock {reg f a num} {
+
+}
+
+proc ccusbcamac::isOnline {b c} {
+
+}
+
+proc ccusbcamac::getGl {b} {
+
+}
+
+proc ccusbcamac::C {b c} {
+
+}
+
+proc ccusbcamac::Z {b c} {
+
+}
+
+proc ccusbcamac::isInhibited {b c} {
+
+}
+
+proc ccusbcamac::Inhibit {b c onoff} {
+
+}
+
+proc ccusbcamac::ReadLams {b c} {
+
+}
 ##
 #
 #

@@ -79,8 +79,9 @@ tcltest::test cdconn-1 {Test that multiple values are properly stored
 } -result {1 {localhost 27000 ccusb0} 24 {spdaq12 27123 ccusb1}} 
 
 
-set badBranchMsg {ccusbcamac::_computeIndex : branch index out of range [0,7]}
-set badCrateMsg {ccusbcamac::_computeIndex : crate index out of range [1,7]}
+set badBranchMsg {ccusbcamac::_checkValidBAndC : branch index out of range [0,7]}
+set badCrateMsg {ccusbcamac::_checkValidBAndC : crate index out of range [1,7]}
+set badBAndCMsg {ccusbcamac::_checkValidBAndC : branch and crate indices out of range. Branch should be in range [0,7] and crate in range [1,7]}
 
 
 tcltest::test computeID-0 {Test that b c produces correct index
@@ -160,6 +161,26 @@ tcltest::test _isValidCrateIndex-3 {test that crate index 1 produces 1
   ccusbcamac::_isValidCrateIndex 1 
 } -result 1
 
+
+tcltest::test _checkValidBAndC-0 {test that good crate and branch produce nothing 
+} -body {
+  ccusbcamac::_checkValidBAndC 0 1 
+} -result ""
+
+tcltest::test _checkValidBAndC-1 {test that good crate and bad branch produce bad branch exception
+} -body {
+  ccusbcamac::_checkValidBAndC -1 1 
+} -result $badBranchMsg -returnCodes 1 
+
+tcltest::test _checkValidBAndC-2 {test that bad crate and good branch produce bad crate exception
+} -body {
+  ccusbcamac::_checkValidBAndC 0 -1 
+} -result $badCrateMsg -returnCodes 1 
+
+tcltest::test _checkValidBAndC-3 {test that bad crate and bad branch produce bad branch & crate exception
+} -body {
+  ccusbcamac::_checkValidBAndC -1 -1 
+} -result $badBAndCMsg -returnCodes 1 
 
 
 tcltest::cleanupTests
