@@ -47,6 +47,7 @@ package require CCUSBDriverSupport
 #
 namespace eval ccusbcamac {
   
+  variable connectionCount 0
   variable connectionInfo "" ;#< dict of connection info mapped to id
 
   variable lastReg ""        ;#< maintains last reg produced by cdreg (useful for tests)
@@ -206,6 +207,7 @@ proc ccusbcamac::cdconn {b c host port name} {
 # - Error (code=1) when cdconn has not be called previously
 #
 proc ccusbcamac::cdreg {b c n} {
+  variable connectionCount
   variable connectionInfo
   variable lastReg 
   
@@ -228,7 +230,9 @@ proc ccusbcamac::cdreg {b c n} {
   }
   
   # connect! 
-  set dev [cccusb::CCCUSBRemote %AUTO $name $host $port]
+  set dev [cccusb::CCCUSBRemote ccremote$connectionCount $name $host $port]
+  incr connectionCount
+  puts $dev
   set lastReg [list $dev $n]  
   return $lastReg 
 } 
@@ -301,7 +305,24 @@ proc ccusbcamac::cssa {reg f a {d ""}} {
   } 
 }
 
-
+## @brief Immediately perform a qstop
+# 
+# The qstop operation is when the controller performs the function
+# specified by f and a. It then continues repeating this f and a
+# until a Q response does not return 1. This implementation also
+# allows the controller to limit the number of repeats to a 
+# maximum number and halt execution even if the last Q response
+# was 1.
+#
+# @attention The current implementation only performs 16-bit data
+#             transfers.
+#
+# @param reg  a device registry produced by cdreg
+# @param f    the function code
+# @param a    the sub address to repeat
+# @param maxn the maximum number of repeat allowed.
+#
+# @returns list 16-bit words read from the device
 proc ccusbcamac::qstop {reg f a {maxn ""}} {
 
   set ctlr [lindex $reg 0]
@@ -315,11 +336,28 @@ proc ccusbcamac::qstop {reg f a {maxn ""}} {
   aList addQStop $n $a $f $maxn
   set data [$ctlr executeList aList [expr 2*$maxn]]
 
+  # data is type std::vector<uint16_t> and needs to be converted
+  # to something a bit more usable. It is converted to a list.
   return [::CCUSBDriverSupport::shortsListToTclList data 1]
 }
 
 
-# tested
+## @brief Perform a Q-scan operation
+#
+# The Q-Scan is when the controller initiates a read with NAF and then repeats 
+# after incrementing the A if the Q and X responses were 1. If the Q response
+# returns 0 and X is 1, the A is reset to 0 and the N incremented. If the Q=1,
+# X=1, and the next A is going to be greater than 15, the A is reset to 0 and N
+# is incremented. This continues until an X response of 0 is received or a 
+# maximum number of transfers have been completed.
+#
+# @param reg  a device registry produced by cdreg
+# @param f    the function code
+# @param a    the subaddress
+# @param maxn the maximum number of operations to complete b/4 stopping
+#
+# @returns list of 16-bit words read from the device
+#
 proc ccusbcamac::qscan {reg f a {maxn ""}} {
   set ctlr [lindex $reg 0]
   set n    [lindex $reg 1]
@@ -331,12 +369,23 @@ proc ccusbcamac::qscan {reg f a {maxn ""}} {
   cccusbreadoutlist::CCCUSBReadoutList aList
   aList addQScan $n $a $f $maxn
   set data [$ctlr executeList aList [expr 2*$maxn]]
-
+ 
+  # convert std::vector<uint16_t> to a standard tcl list
   return [::CCUSBDriverSupport::shortsListToTclList data 1]
 
 }
 
-#tested
+## @brief Repeatedly execute an NAF a specific number of times
+#
+# This is like the QStop except that it unconditionally executes
+# a specific number of times and is ignorant of the Q response.
+#
+# @param reg  a device registry
+# @param f    the function code
+# @param a    the subaddress
+# @param num  the number of repetitions
+#
+# @returns list of 16-bit words read from device
 proc ccusbcamac::cblock {reg f a num} {
   set ctlr [lindex $reg 0]
   set n    [lindex $reg 1]
@@ -345,8 +394,8 @@ proc ccusbcamac::cblock {reg f a num} {
   aList addRepeat $n $a $f $num 
   set data [$ctlr executeList aList [expr 2*$num]]
 
+  # convert std::vector<uint16_t> to tcl list of shorts
   return [::CCUSBDriverSupport::shortsListToTclList data 1]
-
 }
 
 
@@ -407,6 +456,7 @@ proc ccusbcamac::isOnline {b c} {
 # THIS IS NOT IMPLEMENTED b/c it doesn't make any sense for 
 # a single crate
 proc ccusbcamac::getGl {b} {
+  puts "ccusbcamac::getGl is not implemented"
 }
 
 ## @brief Calls a C command on CAMAC dataway
@@ -438,6 +488,7 @@ proc ccusbcamac::C {b c} {
     # now it is possible to create a new connection to 
     set connInfo [dict get $::ccusbcamac::connectionInfo $id]
     set reg [ccusbcamac::cdreg $b $c 0]
+    puts "ccusbcamac::C '$reg'"
     [lindex $reg 0] c 
   } else {
     set msg "::ccusbcamac::C connection info not provided. "
@@ -479,16 +530,45 @@ proc ccusbcamac::Z {b c} {
 
 }
 
+## @brief Check whether the crate is inhibited
+#
+# Because the CC-USB lacks any feature to determine whether 
+# the CCUSB is inhibited, this cannot be properly implemented.
+# Instead, it simply prints a message to the screen  to indicate 
+# that it is not implemented.
+#
+# @param b    branch index
+# @param c    crate index
+#
+# @returns ""
+#
 proc ccusbcamac::isInhibited {b c} {
-  
+  puts "ccusbcamac::isInhibited not implemented because no corresponding feature exists in CCUSB" 
 }
 
+
+## @brief Inhibit/Unhibit the crate
+#
+# This either inhibits or uninhibits the crate depending
+# on the value of on
+# 
+# @param b  the branch address
+# @param c  the crate address
+# @param on inhibit (on=1), uninhibit (on=0) 
+#
+# @returns ""
+#
+# Exceptional returns:
+# - Error if b and/or c are out of range
+# - Error if cdconn has not be called before this
 proc ccusbcamac::Inhibit {b c on} {
 
   ::ccusbcamac::_checkValidBAndC $b $c
   # if here then b and c are good
 
   set id [::ccusbcamac::_computeIndex $b $c]
+
+  # check if cdconn has been called before
   if {[dict exist $::ccusbcamac::connectionInfo $id]} {
     set connInfo [dict get $::ccusbcamac::connectionInfo $id]
     set reg [ccusbcamac::cdreg $b $c 0]
@@ -506,6 +586,24 @@ proc ccusbcamac::Inhibit {b c on} {
   }
 }
 
+
+## @brief Read register stating which LAM lines are set
+# 
+# Queries the state of the LAM lines. The state of each LAM line is
+# encoded in the bits of the returned integer. LAM1 is in bit0, LAM2 in bit1,
+# etc. 
+#
+# @attention A call to this must be preceeded by a call to ccusbcamac::cdconn
+#            with the same b and c parameters.
+#
+# @param b  branch index
+# @param c  crate index
+#
+# @returns integer with state of LAM lines encoded in its bits
+#
+# Exceptional returns:
+# - Error if b and/or c are out of range
+# - Error if cdconn has not be called previously
 proc ccusbcamac::ReadLams {b c} {
 
   ::ccusbcamac::_checkValidBAndC $b $c
@@ -528,8 +626,20 @@ proc ccusbcamac::ReadLams {b c} {
   }
 
 }
-##
+
+## @brief Utility method to perform a Read16 
 #
+# Extracts the ctlr and slot number from the registry object
+# and then calls a simpleRead16. It then decodes the datum,
+# Q, and X values from the returned integer. It then formats 
+# the returned result.
+#
+# @param reg  a device registry
+# @param f    function code
+# @param a    subaddress
+# 
+# @returns list
+# @retval {data q x}
 #
 proc ccusbcamac::_doRead16 {reg f a } {
   
@@ -545,8 +655,19 @@ proc ccusbcamac::_doRead16 {reg f a } {
   return [list $data $q $x]
 }
 
-##
+## @brief Utility method to perform a Read24 
 #
+# Extracts the ctlr and slot number from the registry object
+# and then calls a simpleRead24. It then decodes the datum,
+# Q, and X values from the returned integer. It then formats 
+# the returned result.
+#
+# @param reg  a device registry
+# @param f    function code
+# @param a    subaddress
+# 
+# @returns list
+# @retval {data q x}
 #
 proc ccusbcamac::_doRead24 {reg f a } {
   
@@ -563,8 +684,21 @@ proc ccusbcamac::_doRead24 {reg f a } {
   
 }
 
-##
+## @brief Utility method to perform a 16-bit write
 #
+# Extracts the ctlr and slot number from the registry object
+# and then calls a simpleWrite16. It then decodes Q and X values 
+# from the returned integer and formats 
+# the returned result. It is assumed that the user has provided 
+# a valid value for all parameters.
+#
+# @param reg  a device registry
+# @param f    function code
+# @param a    subaddress
+# @param d    data to write 
+# 
+# @returns list
+# @retval {d q x}
 #
 proc ccusbcamac::_doWrite16 {reg f a d} {
   
@@ -573,6 +707,7 @@ proc ccusbcamac::_doWrite16 {reg f a d} {
 
   set result [$ctlr simpleWrite16 $n $a $f $d]
 
+  # writes return just the q and x values
   set q [expr {($result & $::cccusb::CCCUSB_Q) == $::cccusb::CCCUSB_Q}]
   set x [expr {($result & $::cccusb::CCCUSB_X) == $::cccusb::CCCUSB_X}]
 
@@ -580,8 +715,21 @@ proc ccusbcamac::_doWrite16 {reg f a d} {
   
 }
 
-##
+## @brief Utility method to perform a 24-bit write
 #
+# Extracts the ctlr and slot number from the registry object
+# and then calls a simpleWrite24. It then decodes the Q and X values 
+# from the returned integer and formats 
+# the returned result. It is assumed that the user has provided 
+# a valid value for all parameters.
+#
+# @param reg  a device registry
+# @param f    function code
+# @param a    subaddress
+# @param d    data to write 
+# 
+# @returns list
+# @retval {d q x}
 #
 proc ccusbcamac::_doWrite24 {reg f a d} {
   
@@ -590,6 +738,7 @@ proc ccusbcamac::_doWrite24 {reg f a d} {
 
   set result [$ctlr simpleWrite24 $n $a $f $d]
 
+  # writes returns just the q and x values
   set q [expr {($result & $::cccusb::CCCUSB_Q) == $::cccusb::CCCUSB_Q}]
   set x [expr {($result & $::cccusb::CCCUSB_X) == $::cccusb::CCCUSB_X}]
 
@@ -597,8 +746,20 @@ proc ccusbcamac::_doWrite24 {reg f a d} {
   
 }
 
-##
+## @brief Utility method to perform a control operation 
 #
+# Extracts the ctlr and slot number from the registry object
+# and then calls a simpleControl. It then decodes the Q and X values 
+# from the returned integer and formats 
+# the returned result. It is assumed that the user has provided 
+# a valid value for all parameters.
+#
+# @param reg  a device registry
+# @param f    function code
+# @param a    subaddress
+# 
+# @returns list
+# @retval {0 q x}
 #
 proc ccusbcamac::_doControl {reg f a} {
   

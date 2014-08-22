@@ -76,7 +76,23 @@ snit::type CMockCCUSB {
   }
 }
 
+proc Server {chan clientaddr clientport} {
+  puts "Accepted connection from $clientaddr:$clientport" 
+  catch {close $chan}
+}
 
+set testserver [socket -server Server 0]
+
+
+proc findDeadPort {} {
+  set info [chan configure $::testserver -sockname]
+  set host [lindex $info 1]
+  set port [lindex $info 2]
+
+  puts "Test server on port $port"
+  while {! [catch {socket localhost $port} msg] } {incr port} 
+  return $port
+}
 
 tcltest::test iswrite-0 {Test that valid write f values return true 
 } -body {
@@ -263,6 +279,14 @@ tcltest::test _checkValidBAndC-3 {test that bad crate and bad branch produce bad
 } -result $badBAndCMsg -returnCodes 1 
 
 
+tcltest::test cdreg-0 {test that failure occurs when the cdconn was not called
+} -setup {
+  # clear the dict
+  set ::ccusbcamac::connectionInfo ""
+} -body {
+  ccusbcamac::cdreg 0 1 1 
+} -result {ccusbcamac::cdreg no connection info found. User must call "cdconn 0 1 host port name" before calling cdreg 0 1"} -returnCodes 1
+
 
 tcltest::test cfsa-0 {test that an f=0 produces a simpleRead24
 } -body {
@@ -375,6 +399,65 @@ tcltest::test z-1 {test that not calling cdconn produces error
 } -body {
   ccusbcamac::Z 0 1
 } -result $ZCdconnMissingMsg -returnCodes 1
+
+
+
+
+
+tcltest::test online-0 {test that ability to connect means online
+} -setup {
+  set info [chan configure $::testserver -sockname]
+  set host [lindex $info 1]
+  set port [lindex $info 2]
+} -body {
+  ccusbcamac::cdconn 0 1 $host $port dummy 
+  ccusbcamac::isOnline 0 1
+} -result 1 
+
+tcltest::test online-1 {test that inability to connect means offline
+} -setup {
+  set port [findDeadPort]
+  puts "Found no server on port $port"
+} -body {
+  ccusbcamac::cdconn 0 1 $host $port dummy 
+  ccusbcamac::isOnline 0 1
+} -result 0 
+
+
+
+
+
+tcltest::test inhibit-0 {Test that an inhibit operation succeeds
+} -body {
+  ccusbcamac::cdconn 0 1 a b c
+  ccusbcamac::Inhibit 0 1 1
+
+  set ctlr [lindex $::ccusbcamac::lastReg 0]
+  $ctlr cget -record 
+} -result [list "inhibit"]
+
+tcltest::test inhibit-1 {Test that an uninhibit operation succeeds
+} -body {
+  ccusbcamac::cdconn 0 1 a b c
+  ccusbcamac::Inhibit 0 1 0
+
+  set ctlr [lindex $::ccusbcamac::lastReg 0]
+  $ctlr cget -record 
+} -result [list "uninhibit"]
+
+
+
+
+
+
+tcltest::test readLAM-0 {Test that a ReadLams causes a simpleRead24
+} -body {
+  ccusbcamac::cdconn 0 1 a b c
+  ccusbcamac::ReadLams 0 1
+
+  set ctlr [lindex $::ccusbcamac::lastReg 0]
+  [lindex $reg 0] cget -record
+} -result [list "simpleRead24 25 10 0"]
 
 
 
