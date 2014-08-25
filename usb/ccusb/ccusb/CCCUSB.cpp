@@ -799,6 +799,30 @@ CCCUSB::writeLamTriggers(uint32_t value)
   uint16_t qx;
   return write32(25,9,16, value, qx);
 }
+/*************************************************************************/
+/*!
+    Read the CAMAC LAM register. The bits in this register mirror the state of
+the LAM lines of the CAMAC crate. The 24 slots are are encoded in the least 
+significant 24-bits (LAM1 = bit0, LAM2=bit1, ...). This is a 24-bit value:
+N=25, a=10, f=0.
+
+\param value - Reference to the uint32_t that will hold the
+               read lams.  The top 8 bits are removed
+               forcibly by us prior to return to ensure there's no
+               trash in them.
+
+\return int
+\retval 0      - Success
+\retval other  -Failure code from executeList.
+
+*/
+int
+CCCUSB::readCAMACLams(uint32_t& value)
+{
+  int status = read32(25,10,0, value);
+  value     &= 0xffffff;
+  return status;
+}
 /************************************************************************/
 /*!
   Read the USB Bulk transfer setup.  This register defines how the
@@ -918,6 +942,28 @@ CCCUSB::uninhibit()
 {
   uint16_t qx;
   return simpleControl(29, 9, 26, qx);
+}
+/***********************************************************************/
+/*!
+   Check the crate I (inhibit) line. This is a read24 operation.
+N=25, A=10, F=0 and the bit containing info I line state is bit 24. 
+
+\warning This is only meaningful for firmware 
+versions 0x8e000601 and greater and will produce undefined results
+for all earlier versions.
+
+  \return bool 
+  \retval 0  - crate is NOT inhibited
+  \retval 1  - crate is inhibited
+  
+*/
+bool
+CCCUSB::isInhibited()
+{
+  uint32_t value;
+  int status = read32(25,10,0, value);
+  bool ILine = (value>>24)&0x1;
+  return (ILine==1);
 }
 
 //////////////////////////////////////////////////////////////////////////

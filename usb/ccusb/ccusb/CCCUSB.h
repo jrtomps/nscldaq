@@ -17,11 +17,11 @@
 #ifndef _FLATTEN_NESTED_CLASSES
 #define _FLATTEN_NESTED_CLASSES
 #endif
-%module CCCUSB
-%{
+//%module CCCUSB
+//%{
 #define _FLATTEN_NESTED_CLASSES
-#include "CCCUSB.h"
-%}
+//#include "CCCUSB.h"
+//%}
 
 #endif
 
@@ -333,7 +333,12 @@ public:
       return writeLamTriggers((uint32_t)value);
     }
 				    
-
+    virtual int readCAMACLams(uint32_t& value);
+    unsigned readCAMACLams() {	/* swig */
+      uint32_t v;
+      readCAMACLams(v);
+      return v;
+    }
 
     virtual int readUSBBulkTransferSetup(uint32_t& value);
     virtual int writeUSBBulkTransferSetup(uint32_t value);
@@ -350,6 +355,7 @@ public:
     virtual int z();
     virtual int inhibit();
     virtual int uninhibit();
+    virtual bool isInhibited();
     
 
     // List operations.
