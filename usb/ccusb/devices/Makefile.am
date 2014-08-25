@@ -16,7 +16,6 @@ libCCUSBDevices_la_SOURCES	= 	CConfigurableObject.cpp	\
 					CLeCroy4434.cpp \
 					CCamacCrate.cpp \
 					CLeCroy4300B.cpp \
-					CLeCroy4448.cpp \
 					CULMTrigger.cpp
 
 

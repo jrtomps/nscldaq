@@ -197,16 +197,6 @@ CAcquisitionThread::mainLoop()
 				       &bytesRead,
 				       USBTIMEOUT*1000 );
 	if (status == 0) {
-      uint16_t* buffer = (uint16_t*) pBuffer->s_rawData;
-      printf("Buffer header= %x\n", buffer[0]);
-      int nevents = buffer[0]&0xff;
-      buffer++;
-//      for (int i=0; i<nevents; ++i) {
-//        buffer = print_event(buffer);
-      for (int i=0; i<bytesRead/sizeof(uint16_t)-1; ++i) {
-        printf("%04x --> %8d\n",buffer[i],buffer[i]);
-      }
-
 	  pBuffer->s_bufferSize = bytesRead;
 	  pBuffer->s_bufferType   = TYPE_EVENTS;
 	  processBuffer(pBuffer);	// Submitted to output thread so...
