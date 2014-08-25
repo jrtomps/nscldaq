@@ -6289,6 +6289,12 @@ Get <replaceable>name parameter</replaceable>
                 </methodparam>
             </methodsynopsis>
             <methodsynopsis>
+                <type>int</type> <methodname>readCAMACLams</methodname>
+                <methodparam>
+                    <type>uint32_t&amp;</type> <parameter>value</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
                 <type>int</type> <methodname>readUSBBulkTransferSetup</methodname>
                 <methodparam>
                     <type>uint32_t&amp;</type> <parameter>value</parameter>
@@ -6314,6 +6320,10 @@ Get <replaceable>name parameter</replaceable>
             </methodsynopsis>
             <methodsynopsis>
                 <type>int</type> <methodname>uninhibit</methodname>
+                <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>bool</type> <methodname>isInhibited</methodname>
                 <void />
             </methodsynopsis>
             <methodsynopsis>
@@ -7134,10 +7144,7 @@ Get <replaceable>name parameter</replaceable>
                       </methodsynopsis></term>
                     <listitem>
                         <para>
-                            Writes the CCUSB's action register. The class also
-                            supplies symoblic definitions for bits in the action
-                            register.  See the Action register section of 
-                            PUBLIC VARIABLES, TYPES and CONSTANTS below.
+                            THIS IS A PURELY VIRTUAL METHOD.
                         </para>
                     </listitem>
                 </varlistentry>
@@ -7665,6 +7672,23 @@ Get <replaceable>name parameter</replaceable>
                 <varlistentry>
                     <term>
                         <methodsynopsis>
+                            <type>int</type> <methodname>readCAMACLams</methodname>
+                            <methodparam>
+                                <type>uint32_t&amp;</type> <parameter>value</parameter>
+                            </methodparam>
+                        </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Reads the contents of the CAMAC LAM register. This register
+                            mirrors the state of the LAM lines of the CAMAC crate. Only
+                            the lower 24-bits are returned by this function.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <methodsynopsis>
                             <type>int</type> <methodname>readUSBBulkTransferSetup</methodname>
                             <methodparam>
                                 <type>uint32_t&amp;</type> <parameter>value</parameter>
@@ -7753,6 +7777,21 @@ Get <replaceable>name parameter</replaceable>
                 <varlistentry>
                     <term>
                         <methodsynopsis>
+                            <type>bool</type> <methodname>isInhibited</methodname>
+                            <void />
+                        </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para> 
+                            Reads the state of the dataway I line (inhibit). This is only
+                            meaningful if the firmware version is greater than 0x8e000601. Otherwise,
+                            the behavior is undefined.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <methodsynopsis>
                             <type>int</type> <methodname>executeList</methodname>
                             <methodparam>
                                 <type>CCCUSBReadoutList&amp;</type> <parameter>list</parameter>
@@ -7769,6 +7808,10 @@ Get <replaceable>name parameter</replaceable>
                         </methodsynopsis>
                     </term>
                     <listitem>
+                        <para>
+                            THIS IS A PURELY VIRTUAL METHOD. See CCUSBusb and CCCUSBRemote classes for
+                            implementation.
+                        </para>
                         <para>
                             Performs a CAMAC list operation in immediate mode.
                             In order to do this data taking mode must not
@@ -7806,6 +7849,10 @@ Get <replaceable>name parameter</replaceable>
                     </term>
                     <listitem>
                         <para>
+                            THIS IS A PURELY VIRTUAL METHOD. See CCUSBusb and CCCUSBRemote classes for
+                            implementation.
+                        </para>
+                        <para>
                             Loads a list into the CC-USB. The <parameter>listNumber</parameter>
                             must be 0 for the event list and 1 for the scaler list.
                             If it is any value other than this, the function
@@ -7837,6 +7884,10 @@ Get <replaceable>name parameter</replaceable>
                         </methodsynopsis>
                     </term>
                     <listitem>
+                        <para>
+                            THIS IS A PURELY VIRTUAL METHOD. See CCUSBusb and CCCUSBRemote classes for
+                            implementation.
+                        </para>
                         <para>
                             Pefroms a bulk read on the data transfer endpoint
                             of the CC-USB.  Normally this only needs to be called
@@ -9855,6 +9906,690 @@ uint32_t revision = (d &amp; CCCUSB::FirmwareRegister::revisionMask)
             <title>SEE ALSO</title>
             <para>
                 <xref linkend='ccusb3-CCCUSBReadoutList' />
+            </para>
+        </refsect1>
+     </refentry>
+
+	 <refentry id="ccusb3-CCCUSBusb">
+       <refmeta>
+          <refentrytitle>CCCUSBusb</refentrytitle>
+          <manvolnum>3ccusb</manvolnum>
+       </refmeta>
+       <refnamediv>
+          <refname>CCCUSBusb</refname>
+          <refpurpose>Provide access to a connected CC-USB device.</refpurpose>
+       </refnamediv>
+       
+       <refsynopsisdiv>
+        <programlisting>
+        <synopsis>
+            class <ooclass><classname>CCCUSBusb</classname></ooclass> : public <ooclass><classname>CCCUSB</classname></ooclass> {
+            
+           <constructorsynopsis>
+             <methodname>CCCUSBusb</methodname>
+              <methodparam>
+                <type>struct usb_device*</type><parameter>UsbDevice</parameter>
+              </methodparam>
+             </constructorsynopsis>
+            
+            <methodsynopsis>
+              <type>void</type>
+              <methodname>writeActionRegister</methodname>
+              <methodparam>
+                <type>uint16_t</type> <parameter>value</parameter>
+              </methodparam>
+            </methodsynopsis>
+
+            <methodsynopsis>
+                <type>int</type> <methodname>executeList</methodname>
+                <methodparam>
+                    <type>CCCUSBReadoutList&amp;</type> <parameter>list</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>void*</type><parameter>pReadBuffer</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>size_t</type><parameter>readBufferSize</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>size_t*</type><parameter>bytesRead</parameter>
+                </methodparam>
+            </methodsynopsis>
+
+            <methodsynopsis>
+                <type>int</type> <methodname>loadList</methodname>
+                <methodparam>
+                    <type>uint8_t</type><parameter>listNumber</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>CCCUSBReadoutList&amp;</type><parameter>list</parameter>
+                </methodparam>
+            </methodsynopsis>
+
+            <methodsynopsis>
+                <type>int</type> <methodname>usbRead</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>data</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>size_t</type> <parameter>bufferSize</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>size_t*</type><parameter> transferCount</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>timeout</parameter>
+                    <initializer> 2000</initializer>
+                </methodparam>
+            </methodsynopsis>
+
+            <methodsynopsis>
+                <type>void</type> <methodname>setDefaultTimeout</methodname>
+                <methodparam>
+                    <type>int</type> <parameter>ms</parameter>
+                </methodparam>
+            </methodsynopsis>
+          };
+       </synopsis>
+        </programlisting>   
+       </refsynopsisdiv>
+       <refsect1>
+          <title>DESCRIPTION</title>
+          <para>
+          This class is the low level support for the Wiener/JTEC CCUSB module.
+          the CCUSB is a USB CAMAC controller.  To use this class you must first locate
+          a module by invoking enumerate.  enumerate  returns a vector of
+          usb_device*s.   One of those can be used to instantiate the CCCUSBusb 
+          object which can the ben operated on.
+          </para>
+          <para>
+          Most all of the functionality is implemented in te base class CCCUSB. 
+          The methods defined in this class are the minimum needed to be implemented
+          in order to attach to a locally connected usb device (i.e. the usb device
+          is directly connected to the computer).
+          </para>
+       </refsect1>
+       <refsect1>
+          <title>
+         METHODS
+          </title>
+          <para>
+            In the functions listed below, any function that returns an <type>int</type>
+            returns <literal>0</literal> on success, <literal>-1</literal> if
+            the write operation to the device failed or <literal>-2</literal>
+            if the read operation failed.  Negative values result in the
+            <varname>errno</varname> variable set to the actual reason for the
+            failure.
+          </para>
+            <variablelist>
+                <varlistentry>
+                    <term><constructorsynopsis>
+                    <methodname>CCCUSBusb</methodname>
+                    <methodparam>
+                      <type>struct usb_device*</type><parameter>ccUsbDevice</parameter>
+                    </methodparam>
+                     </constructorsynopsis></term>
+                    <listitem>
+                        <para>
+                            Constructs a <classname>CCCUSB</classname> object.
+                            The resulting object can be used to communicate
+                            with the CC-USB represented by the
+                            <parameter>ccUsbDevice</parameter> object.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <methodsynopsis>
+                        <type>void</type>
+                        <methodname>writeActionRegister</methodname>
+                        <methodparam>
+                          <type>uint16_t</type> <parameter>value</parameter>
+                        </methodparam>
+                      </methodsynopsis></term>
+                    <listitem>
+                        <para>
+                            Writes the CCUSB's action register. The class also
+                            supplies symoblic definitions for bits in the action
+                            register.  See the Action register section of 
+                            PUBLIC VARIABLES, TYPES and CONSTANTS below.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <methodsynopsis>
+                            <type>int</type> <methodname>executeList</methodname>
+                            <methodparam>
+                                <type>CCCUSBReadoutList&amp;</type> <parameter>list</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>void*</type><parameter>pReadBuffer</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>size_t</type><parameter>readBufferSize</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>size_t*</type><parameter>bytesRead</parameter>
+                            </methodparam>
+                        </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Performs a CAMAC list operation in immediate mode.
+                            In order to do this data taking mode must not
+                            be on.   The <parameter>list</parameter> is built up
+                            by constructing a <classname>CCCUSBReadoutList</classname>
+                            (see <xref linkend='ccusb3-CCCUSBReadoutList' />)
+                            object and using its methods to add the appropriate
+                            set of instructions to the list.
+                        </para>
+                        <para>
+                            <parameter>pReadBuffer</parameter> is a pointer to
+                            a buffer you have prepared to receive the results
+                            of the read operations in the list.  This buffer
+                            has <parameter>readBufferSize</parameter> bytes
+                            of data.  On successful return,
+                            <parameter>bytesRead</parameter> will contain the
+                            actual number of bytes transferred into your buffer.
+                            On failure (return value other than <literal>0</literal>),
+                            the value of <parameter>bytesRead</parameter> is not
+                            well defined.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <methodsynopsis>
+                           <type>int</type> <methodname>loadList</methodname>
+                           <methodparam>
+                               <type>uint8_t</type><parameter>listNumber</parameter>
+                           </methodparam>
+                           <methodparam>
+                               <type>CCCUSBReadoutList&amp;</type><parameter>list</parameter>
+                           </methodparam>
+                       </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Loads a list into the CC-USB. The <parameter>listNumber</parameter>
+                            must be 0 for the event list and 1 for the scaler list.
+                            If it is any value other than this, the function
+                            will return <literal>-4</literal>.
+                            <parameter>list</parameter>   is the
+                            <classname>CCCUSBReadoutList</classname> to load.
+                            See <xref linkend='ccusb3-CCCUSBReadoutList' /> for
+                            information about this parameter and how to build it.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <methodsynopsis>
+                            <type>int</type> <methodname>usbRead</methodname>
+                            <methodparam>
+                                <type>void*</type> <parameter>data</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>size_t</type> <parameter>bufferSize</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>size_t*</type><parameter> transferCount</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>int</type> <parameter>timeout</parameter>
+                                <initializer>2000</initializer>
+                            </methodparam>
+                        </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Pefroms a bulk read on the data transfer endpoint
+                            of the CC-USB.  Normally this only needs to be called
+                            by the CCUSBReadout framework when in data taking mode.
+                            <parameter>data</parameter> is a buffer
+                            into which data read should be transferred.
+                            <parameter>bufferSize</parameter> is the number
+                            of bytes that can be stored in <parameter>buffer</parameter>
+                            <parameter>transferCount</parameter> points to a
+                            buffer that will contain the number of bytes actually
+                            transferred to the buffer. <parameter>timeout</parameter>
+                            is the number of milliseconds to wait for the transfer
+                            to complete before ending with a timeout condition.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <methodsynopsis>
+                            <type>void</type> <methodname>setDefaultTimeout</methodname>
+                            <methodparam>
+                                <type>int</type> <parameter>ms</parameter>
+                            </methodparam>
+                        </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Most of the immediate operations require a write to the
+                            CC-USB followed by a read to get status and/or data.
+                            This function allows you to override the default
+                            timeout for the read. <parameter>ms</parameter> is
+                            the number of milliseconds in the new timeout.
+                            Normally you will not need to call this.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>  
+       </refsect1>
+        <refsect1>
+            <title>SEE ALSO</title>
+            <para>
+                <xref linkend='ccusb3-CCCUSBReadoutList' />
+                <xref linkend='ccusb3-CCCUSB' />
+            </para>
+        </refsect1>
+     </refentry>
+	 <refentry id="ccusb3-CCCUSBRemote">
+       <refmeta>
+          <refentrytitle>CCCUSBRemote</refentrytitle>
+          <manvolnum>3ccusb</manvolnum>
+       </refmeta>
+       <refnamediv>
+          <refname>CCCUSBRemote</refname>
+          <refpurpose>Provide remote access to a CC-USB device through CCUSBReadout's slow-controls server.</refpurpose>
+       </refnamediv>
+       
+       <refsynopsisdiv>
+        <programlisting>
+        <synopsis>
+            class <ooclass><classname>CCCUSBRemote</classname></ooclass> : public <ooclass><classname>CCCUSB</classname></ooclass> {
+            
+           <constructorsynopsis>
+             <methodname>CCCUSBRemote</methodname>
+              <methodparam>
+                <type>std::string</type><parameter>moduleName</parameter>
+              </methodparam>
+              <methodparam>
+                <type>std::string</type><parameter>host</parameter>
+              </methodparam>
+              <methodparam>
+                <type>unsigned int</type><parameter>port</parameter>
+              </methodparam>
+             </constructorsynopsis>
+            
+            <methodsynopsis>
+              <type>void</type>
+              <methodname>writeActionRegister</methodname>
+              <methodparam>
+                <type>uint16_t</type> <parameter>value</parameter>
+              </methodparam>
+            </methodsynopsis>
+
+            <methodsynopsis>
+                <type>int</type> <methodname>executeList</methodname>
+                <methodparam>
+                    <type>CCCUSBReadoutList&amp;</type> <parameter>list</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>void*</type><parameter>pReadBuffer</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>size_t</type><parameter>readBufferSize</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>size_t*</type><parameter>bytesRead</parameter>
+                </methodparam>
+            </methodsynopsis>
+
+            <methodsynopsis>
+                <type>int</type> <methodname>loadList</methodname>
+                <methodparam>
+                    <type>uint8_t</type><parameter>listNumber</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>CCCUSBReadoutList&amp;</type><parameter>list</parameter>
+                </methodparam>
+            </methodsynopsis>
+
+            <methodsynopsis>
+                <type>int</type> <methodname>usbRead</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>data</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>size_t</type> <parameter>bufferSize</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>size_t*</type><parameter> transferCount</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>timeout</parameter>
+                    <initializer> 2000</initializer>
+                </methodparam>
+            </methodsynopsis>
+
+            <methodsynopsis>
+                <type>std::string</type> <methodname>getHost</methodname>
+                <void/>
+            </methodsynopsis>
+
+            <methodsynopsis>
+                <type>unsigned int</type> <methodname>getPort</methodname>
+            <void/>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>reconnect</methodname>
+                <void/>
+            </methodsynopsis>
+
+
+            <methodsynopsis>
+                <type>void</type> <methodname>connect</methodname>
+            <void/>
+            </methodsynopsis>
+
+            <methodsynopsis>
+                <type>void</type> <methodname>disconnect</methodname>
+                <void/>
+            </methodsynopsis>
+
+            <methodsynopsis>
+                <type>std::string</type> <methodname>marshallList</methodname>
+                <methodparam>
+                  <type>CCCUSBReadoutList&amp;</type> <parameter>list</parameter>
+                </methodparam>
+            </methodsynopsis>
+
+            <methodsynopsis>
+                <type>size_t</type> <methodname>marshallOutputData</methodname>
+                <methodparam>
+                  <type>void*</type> <parameter>pOutputBuffer</parameter>
+                </methodparam>
+                <methodparam>
+                  <type>const char*</type> <parameter>reply</parameter>
+                </methodparam>
+                <methodparam>
+                  <type>size_t</type> <parameter>maxOutputSize</parameter>
+                </methodparam>
+            </methodsynopsis>
+          };
+       </synopsis>
+        </programlisting>   
+       </refsynopsisdiv>
+       <refsect1>
+         <title>DESCRIPTION</title>
+         <para>
+           This class provides remote access to the CC-USB through the
+           CCUSBModule support in the tcl server.
+           An external program can link to libCCUSB, instantiate
+           this class and pretty much have its way with the CC-USB
+           as if it owned it.  
+         </para>
+         <para>Restrictions:</para>
+         <itemizedlist>
+           <listitem>
+             <para>
+               lists cannot be downloaded (only immediate lists can be run).
+             </para>
+           </listitem>
+           <listitem>
+             <para> 
+               the action register is not accessible.
+             </para>
+           </listitem>
+           <listitem>
+             <para> 
+               The IRQ Mask cannot be written as that abomination requires 
+               action register operations
+             </para>
+           </listitem>
+           <listitem>
+             <para> 
+               while internal registers can be manipulated be aware that
+               This may cause an active readout to have undefined results.
+               Registers you write may be overwritten by Readout's startup 
+               code.
+             </para>
+           </listitem>
+         </itemizedlist>
+       </refsect1>
+
+        <refsect1>
+          <title>
+         METHODS
+          </title>
+            <variablelist>
+                <varlistentry>
+                    <term><constructorsynopsis>
+                    <methodname>CCCUSBRemote</methodname>
+                    <methodparam>
+                      <type>std::string</type><parameter>moduleName</parameter>
+                    </methodparam>
+                    <methodparam>
+                      <type>std::string</type><parameter>host</parameter>
+                    </methodparam>
+                    <methodparam>
+                      <type>unsigned int</type><parameter>port</parameter>
+                    </methodparam>
+                     </constructorsynopsis></term>
+                    <listitem>
+                        <para>
+                            Constructs a <classname>CCCUSBRemote</classname> object.
+                            The resulting object can be used to communicate with
+                            a CC-USB controlled by a CCUSBReadout program if it has
+                            a ccusb module loaded into the slow-controls server named
+                            <parameter>moduleName</parameter>. A CException is thrown
+                            if the connection with the slow-controls server at <parameter>host</parameter> and 
+                            <parameter>port</parameter> is unsuccessful.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <methodsynopsis>
+                        <type>void</type>
+                        <methodname>writeActionRegister</methodname>
+                        <methodparam>
+                          <type>uint16_t</type> <parameter>value</parameter>
+                        </methodparam>
+                      </methodsynopsis></term>
+                    <listitem>
+                        <para>
+                            The writeAction register method is not fully implemented in the CCCUSBRemote.
+                            It maintains an implementation that does nothing more than print a message
+                            to the screen stating that it does nothing.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <methodsynopsis>
+                            <type>int</type> <methodname>executeList</methodname>
+                            <methodparam>
+                                <type>CCCUSBReadoutList&amp;</type> <parameter>list</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>void*</type><parameter>pReadBuffer</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>size_t</type><parameter>readBufferSize</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>size_t*</type><parameter>bytesRead</parameter>
+                            </methodparam>
+                        </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Performs a CAMAC list operation in immediate mode.
+                            In order to do this, data taking mode must not
+                            be on.   The <parameter>list</parameter> is built up
+                            by constructing a <classname>CCCUSBReadoutList</classname>
+                            (see <xref linkend='ccusb3-CCCUSBReadoutList' />)
+                            object and using its methods to add the appropriate
+                            set of instructions to the list.
+                        </para>
+                        <para>
+                            <parameter>pReadBuffer</parameter> is a pointer to
+                            a buffer you have prepared to receive the results
+                            of the read operations in the list.  This buffer
+                            has <parameter>readBufferSize</parameter> bytes
+                            of data.  On successful return,
+                            <parameter>bytesRead</parameter> will contain the
+                            actual number of bytes transferred into your buffer.
+                            On failure (return value other than <literal>0</literal>),
+                            the value of <parameter>bytesRead</parameter> is not
+                            well defined.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <methodsynopsis>
+                           <type>int</type> <methodname>loadList</methodname>
+                           <methodparam>
+                               <type>uint8_t</type><parameter>listNumber</parameter>
+                           </methodparam>
+                           <methodparam>
+                               <type>CCCUSBReadoutList&amp;</type><parameter>list</parameter>
+                           </methodparam>
+                       </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            The loadList method is not fully supported in the CCCUSBRemote 
+                            class. Instead, it is just a method that prints to the terminal
+                            that it is not supported. 
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <methodsynopsis>
+                            <type>int</type> <methodname>usbRead</methodname>
+                            <methodparam>
+                                <type>void*</type> <parameter>data</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>size_t</type> <parameter>bufferSize</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>size_t*</type><parameter> transferCount</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>int</type> <parameter>timeout</parameter>
+                                <initializer>2000</initializer>
+                            </methodparam>
+                        </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Like the loadList and writeActionRegister methods, this is not
+                            fully implemented. It only prints a message to the terminal to
+                            indicate that it is not implemented.
+                        </para>
+                    </listitem>
+                </varlistentry>
+
+
+                <varlistentry>
+                    <term>
+                      <methodsynopsis>
+                         <type>void</type> <methodname>reconnect</methodname>
+                         <void/>
+                       </methodsynopsis>
+                    </term>
+                    <listitem>
+                      <para>
+                        Forcibly disconnects from the slow controls server and connects using the
+                        host and port provided at construction. It is essentially just a call to
+                        disconnect followed by a call to connect.
+                      </para>
+                    </listitem>
+                </varlistentry>
+
+                <varlistentry>
+                    <term>
+                      <methodsynopsis>
+                         <type>void</type> <methodname>connect</methodname>
+                     <void/>
+                       </methodsynopsis>
+                    </term>
+                    <listitem>
+                      <para>
+                        Connects to the server identified by the 
+                        host and port parameters provided at construction. It also does create
+                        a new TCL interpreter instance for communicating. A CException can be
+                        thrown if the connection fails.
+                      </para>
+                    </listitem>
+                </varlistentry>
+
+                <varlistentry>
+                    <term>
+                      <methodsynopsis>
+                         <type>void</type> <methodname>disconnect</methodname>
+                         <void/>
+                       </methodsynopsis>
+                    </term>
+                    <listitem>
+                      <para>
+                        Forcibly disconnects from the server. The current TCL interpreter owned by
+                        by the class instance is also deleted.
+                      </para>
+                    </listitem>
+                </varlistentry>
+
+                <varlistentry>
+                    <term>
+                      <methodsynopsis>
+                         <type>std::string</type> <methodname>marshallList</methodname>
+                         <methodparam>
+                            <type>CCCUSBReadoutList&amp;</type> <parameter>list</parameter>
+                         </methodparam>
+                       </methodsynopsis>
+                    </term>
+                    <listitem>
+                      <para>
+                        This converts a CCCUSBReadoutList into a string format equivalent to a list. The format
+                        produced is actually a list of lists. The first list element contains the max size of 
+                        the read buffer and the second element is the list of commands.                     
+                      </para>
+                    </listitem>
+                </varlistentry>
+
+                <varlistentry>
+                    <term>
+                      <methodsynopsis>
+                         <type>size_t</type> <methodname>marshallOutputData</methodname>
+                         <methodparam>
+                            <type>void*</type> <parameter>pBuffer</parameter>
+                         </methodparam>
+                         <methodparam>
+                            <type>const char*</type> <parameter>reply</parameter>
+                         </methodparam>
+                       <methodparam>
+                         <type>size_t</type> <parameter>maxOutputSize</parameter>
+                       </methodparam>
+                     </methodsynopsis>
+                    </term>
+                    <listitem>
+                      <para>
+                        This transfers the <parameter>reply</parameter> from the server
+                        into the user's buffer, i.e. <parameter>pBuffer</parameter>. The 
+                        maximum size of the user's buffer is provided by <parameter>maxOutputSize</parameter>.
+                        The value returned from the method is the number of bytes that were actually
+                        transferred into the user's buffer.                        
+                      </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>  
+       </refsect1>
+        <refsect1>
+            <title>SEE ALSO</title>
+            <para>
+                <xref linkend='ccusb3-CCCUSBReadoutList' />
+                <xref linkend='ccusb3-CCCUSB' />
             </para>
         </refsect1>
      </refentry>

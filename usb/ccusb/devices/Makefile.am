@@ -1,4 +1,4 @@
-lib_LTLIBRARIES 		= libCCUSBDevices.la
+lib_LTLIBRARIES 		= libCCUSBDevices.la #libCCUSBSwigDevices.la
 libCCUSBDevices_la_SOURCES	= 	CConfigurableObject.cpp	\
 					CReadoutModule.cpp	\
 					CReadoutHardware.cpp	\
@@ -16,6 +16,7 @@ libCCUSBDevices_la_SOURCES	= 	CConfigurableObject.cpp	\
 					CLeCroy4434.cpp \
 					CCamacCrate.cpp \
 					CLeCroy4300B.cpp \
+					CLeCroy4448.cpp \
 					CULMTrigger.cpp
 
 
@@ -52,3 +53,18 @@ install-data-local:
 	$(mkinstalldirs) @prefix@/ccusbdriver
 	$(mkinstalldirs) @prefix@/ccusbdriver/includes
 	$(INSTALL_DATA)  @srcdir@/*.h @prefix@/ccusbdriver/includes
+
+# Swig interface generation:
+
+#libCCUSBSwigDevices_la_SOURCES = @srcdir@/CCUSBSwigDevices_wrap.cxx
+#libCCUSBSwigDevices_la_LIBADD  = libCCUSBDevices.la \
+#                                 @THREADLD_FLAGS@
+#
+#
+#BUILT_SOURCES=@srcdir@/CCUSBSwigDevices_wrap.cxx 
+#
+#SWIGINCLUDES = -I@top_srcdir@/usb/common/devices -I@top_srcdir@/usb/ccusb/ccusb
+#
+#@srcdir@/CCUSBSwigDevices_wrap.cxx:	@top_srcdir@/usb/common/devices/CLeCroy4448.h
+#	@SWIG@ -c++ -outdir @srcdir@ $(SWIGINCLUDES) -debug-classes -tcl -namespace -pkgversion 1.0 @srcdir@/CCUSBSwigDevices.i
+#

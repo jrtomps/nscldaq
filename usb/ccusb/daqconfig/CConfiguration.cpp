@@ -40,6 +40,7 @@
 #include <CCCUSBReadoutList.h>
 #include <CCamacCompat.hpp>
 #include <CLeCroy4300B.h>
+#include <CLeCroy4448.h>
 #include <CLeCroy4434.h>
 #include <CLeCroy2551.h>
 #include <CCamacCrate.h>
@@ -99,6 +100,9 @@ CConfiguration::CConfiguration() :
 
   m_Commands.push_back(new CUserCommand(*m_pInterp, *this, "LeCroy2551", 
                             compat_clone(CLeCroy2551<Ctlr,RdoList>())) );
+
+  m_Commands.push_back(new CUserCommand(*m_pInterp, *this, "LeCroy4448", 
+                            compat_clone(CLeCroy4448<Ctlr,RdoList>())) );
 }
 /*!
    Destruction must:

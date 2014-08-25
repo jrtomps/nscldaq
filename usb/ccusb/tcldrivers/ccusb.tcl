@@ -16,9 +16,9 @@ itcl::class CCUSB {
 	} {}
 
 	public method GetFirmware {}
-	public method ReadRegister {reg}
-	public method WriteRegister {reg data}
-	public method SetRegister {reg data}
+#	public method ReadRegister {reg}
+#	public method WriteRegister {reg data}
+#	public method SetRegister {reg data}
 	public method SetBufferLength {length}
 	public method SetMixedBuffer {value}
 	public method SetForceDump {value}
@@ -39,49 +39,164 @@ itcl::class CCUSB {
 	public method SetBulkTimeOut {timeout}
 	public method sReadScaler {stack scaler}
 	public method sAddMarker {stack marker}
+
+
+  public method ComputeBufferLengthBits {length}
+  public method SetBits {originalVal settableBits valueToWrite}
 }
 
+##
+# CCUSB::GetFirmware
+#
+# Read the firmware ID register (reg file addr 0x0) and return the value to the 
+# caller.
+#
+# \return the valude of the firmware id register
 itcl::body CCUSB::GetFirmware {} {
   set firmware [$self readFirmware]
   
 	return $firmware
 }
 
+##
+# CCUSB::SetBufferLength
+#
+# Set the bits of the global mode register that deal with the buffer length to 
+# the appropriate value. 
+#  
+# \param length the buffer size. Valid values: 4096, 2048, 1024, 512, 256, 128, 64, single
+#
+# \throws error when user provided an invalid value
 itcl::body CCUSB::SetBufferLength {length} {
-	set bits [expr int(log($length)/log(2)+.5)]
-	if {$bits > 12} {set bits 12}
-	if {$bits < 6} {set bits 5}
-	set code [expr 12-$bits]
-	set mode [ReadRegister 1]
-	set mode [expr ($mode&0xfff8)+$code]
+  set code [ComputeBufferLengthBits $length]
+	set mode [$self readGlobalMode]
+
+	set mode [SetBits $mode 0x07 $code]
+
 #	WriteRegister 1 $mode
   $self	writeGlobalMode $mode
 }
 
+##
+# CCUSB::ComputeBufferLengthBits
+#
+# Set the bits of the global mode register that deal with the buffer length to 
+# the appropriate value. 
+#  
+# \param length the buffer size. Valid values: 4096, 2048, 1024, 512, 256, 128, 64, single
+#
+# \throws error when user provided an invalid value
+itcl::body CCUSB::ComputeBufferLengthBits {length} {
+  set code 0
+  switch $length {
+    4096 {set code 0}
+    2048 {set code 1}
+    1024 {set code 2}
+    512  {set code 3}
+    256  {set code 4}
+    128  {set code 5}
+    64   {set code 6}
+    single {set code 7}
+    default {error "CCUSB::ComputeBufferLengthBits argument invalid. User specified $length"}
+  }
+  return [expr $code&0x07]
+}
+
+
+## CCUSB::SetBits
+#
+# Given a mask that identify bits to overwrite, combine the original bit set and 
+# the new bit set as though it were a bitwise-OR of the two with the protected 
+# bits left alone
+#
+# \param originalVal     the original bit set
+# \param replacementBitMask a bit set for which any bit set to 1 are overwritten
+# \param newValue        a bit set that is intended to replace those bits unprotected 
+#                        by the settableBitMask
+#
+# \return the new bit set
+itcl::body CCUSB::SetBits {originalVal replacementBitMask newValue} {
+  set protectedBitMask [expr ~$replacementBitMask]
+  set maskedValToWrite [expr ($replacementBitMask)&$newValue]
+  set protectedBits    [expr $originalVal&$protectedBitMask]
+
+  # combine the protected bits and the new bits
+  return [expr $protectedBits | $maskedValToWrite]
+}
+
+
+##
+# CCUSB::SetMixedBuffer 
+#
+# Sets the bit for specifying mix buffer mode in the global mode regster
+#
+# \param value a boolean value
+#
+# \throws if the argument is not boolean
 itcl::body CCUSB::SetMixedBuffer {value} {
+  if {![string is boolean $value]} {
+    error "CCUSB::SetMixedBuffer invalid argument. $value is not a boolean value."
+  }
 	set mode [$self readGlobalMode]
-	set mode [expr ($mode&0xffdf)+($value<<5)]
-#	WriteRegister 1 $mode
+	set code [expr $value<<5]
+	set mode [SetBits $mode 0x20 $code] 
 	$self writeGlobalMode $mode
 }
 
+##
+# CCUSB::SetForceDump 
+#
+# Sets the bit for specifying force buffer mode in the global mode regster
+#
+# \param value a boolean value
+#
+# \throws if the argument is not boolean
 itcl::body CCUSB::SetForceDump {value} {
+  if {![string is boolean $value]} {
+    error "CCUSB::SetForceDump invalid argument. $value is not a boolean value."
+  }
 	set mode [$self readGlobalMode]
-	set mode [expr ($mode&0xffbf)+($value<<6)]
-#	WriteRegister 1 $mode
+	set code [expr $value<<6]
+
+	set mode [SetBits $mode 0x40 $code]
+
 	$self writeGlobalMode $mode
 }
 
+##
+# CCUSB::SetLatchEvent 
+#
+# Sets the bit for specifying latch event mode in the global mode regster
+#
+# \param value a boolean value
+#
+# \throws if the argument is not boolean
 itcl::body CCUSB::SetLatchEvent {value} {
+  if {![string is boolean $value]} {
+    error "CCUSB::SetLatchEvent invalid argument. $value is not a boolean value."
+  }
 	set mode [$self readGlobalMode]
-	set mode [expr ($mode&0xffef)+($value<<4)]
-#	WriteRegister 1 $mode
+	set code [expr $value<<4]
+	set mode [SetBits $mode 0x10 $code]
+
 	$self writeGlobalMode $mode
 }
 
+##
+# CCUSB::SetHeader 
+#
+# Sets the bit for specifying optional header in the global mode regster
+#
+# \param value a boolean value
+#
+# \throws if the argument is not boolean
 itcl::body CCUSB::SetHeader {value} {
+  if {![string is boolean $value]} {
+    error "CCUSB::SetHeader invalid argument. $value is not a boolean value."
+  }
 	set mode [$self readGlobalMode]
-	set mode [expr ($mode&0xfeff)+($value<<8)]
+	set code [expr $value<<8]
+	set mode [SetBits $mode 0x0100 $code]
 #	WriteRegister 1 $mode
   $self writeGlobalMode $mode
 }
@@ -94,6 +209,9 @@ itcl::body CCUSB::SetHeader {value} {
 #}
 
 itcl::body CCUSB::SetTriggerDelay {value} {
+  if {![string is integer $value] || ($value<0) || ($value>=256)} {
+    error "CCUSB::SetTriggerDelay invalid argument. $value is not an integer in the range \[0,256)."
+  }
 	set delays [$self readDelays]
 	set delays [expr ($delays&0xff00)+$value]
 #	WriteRegister 2 $delays

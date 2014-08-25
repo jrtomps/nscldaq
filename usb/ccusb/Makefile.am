@@ -3,11 +3,12 @@ SUBDIRS = 	ccusb 		\
 		threadcomm	\
 		router		\
 		rdothread	\
-		daqconfig	\
 		tclserver		\
+		daqconfig	\
 		commands	\
 		driverkit   \
-                controlpanels
+    tcldrivers \
+    controlpanels 
 
 
 bin_PROGRAMS = CCUSBReadout

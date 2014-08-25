@@ -28,6 +28,7 @@ INCLUDES		= -I@top_srcdir@/base/os @LIBTCLPLUS_CFLAGS@ \
 ## Normal C++ library containing CVMUSB*
 libCCUSB_la_LIBADD	= @top_builddir@/base/os/libdaqshm.la \
 										@TCL_LDFLAGS@ \
+                    @LIBTCLPLUS_LDFLAGS@ \
 										@top_builddir@/base/tcpip/libTcp.la \
 										@LIBEXCEPTION_LDFLAGS@  @THREADLD_FLAGS@ \
 	  								@USB_LIBS@  

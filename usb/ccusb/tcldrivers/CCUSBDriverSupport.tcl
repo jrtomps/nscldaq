@@ -84,3 +84,30 @@ proc ::CCUSBDriverSupport::convertToReadoutList {atcllist} {
 }
 
 
+proc ::CCUSBDriverSupport::shortsListToTclList {data_ {grouping 2}} {
+  upvar $data_ data
+
+  set pkg cccusb
+  
+  set nshorts [${pkg}::uint16_vector_size $data]
+  if {($nshorts%$grouping) != 0} {
+    error "CCUSBDriverSupport::shortsListToTclList size of shorts list must be divisible by 2"
+  }
+  
+  set shift 16
+  set intList [list] 
+  for {set short 0} {$short < $nshorts} {incr short $grouping} {
+    set int 0
+    for {set unit 0} {$unit < $grouping} {incr unit} {
+      set name short$unit
+      set short$unit [${pkg}::uint16_vector_get $data [expr $short+$unit]]
+      set int [expr ($int | ($$name<<($shift*$unit)))]
+    }
+    
+    lappend intList $int
+  }
+
+  return $intList
+
+}
+

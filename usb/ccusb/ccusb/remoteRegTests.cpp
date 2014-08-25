@@ -4,12 +4,16 @@
 #include <cppunit/Asserter.h>
 #include "Asserts.h"
 #include <usb.h>
-#include <CCCUSBRemote.h>
 #include <vector>
 #include <stdio.h>
 #include <iostream>
 #include <iomanip>
 
+#define protected public
+#define private public
+#include <CCCUSBRemote.h>
+#undef protected 
+#undef private
 
 using namespace std;
 
@@ -31,6 +35,7 @@ class RemoteRegisterTests : public CppUnit::TestFixture {
   CPPUNIT_TEST(z);
   CPPUNIT_TEST(inhibit);
   CPPUNIT_TEST(uninhibit);
+  CPPUNIT_TEST(executeList0);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -65,6 +70,7 @@ protected:
   void z();
   void inhibit();
   void uninhibit();
+  void executeList0();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(RemoteRegisterTests);
@@ -327,4 +333,20 @@ void RemoteRegisterTests::inhibit()
 void RemoteRegisterTests::uninhibit()
 {
   EQMSG("uninhibit() good return status", 0, m_pInterface->uninhibit());
+}
+
+// After a disconnection has occurred, make sure that the executeList doesn't 
+// seg fault. 
+void RemoteRegisterTests::executeList0()
+{
+  // force a disconnection
+  static_cast<CCCUSBRemote*>(m_pInterface)->disconnect();
+
+  CCCUSBReadoutList list;
+  list.addMarker(0x0000);
+  char buffer[128];
+  size_t nbytes;
+  int ret = m_pInterface->executeList(list,buffer, sizeof(buffer), &nbytes);
+
+  EQMSG("executing list when disconnected", -4, ret);
 }

@@ -26,9 +26,9 @@ package require CCUSBDriverSupport
 # require this package and start using it. For it to be effective, the user must
 # add something of the following to their ctlconfig.tcl
 #
-# \code{.tcl}
+# @verbatim
 # Module create ccusb ctlr
-# \endcode
+# @endverbatim
 #
 # Adding such a line to the ctlconfig.tcl file and then running the CCUSBReadout
 # program on localhost with the slow-controls server listening on port 27000, 
@@ -42,7 +42,7 @@ package require CCUSBDriverSupport
 #
 # # Connect 
 # set reg [ccusbcamac::cdreg 0 1 12]
-# \encode
+# \endcode
 # 
 #
 namespace eval ccusbcamac {
