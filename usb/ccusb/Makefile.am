@@ -8,7 +8,8 @@ SUBDIRS = 	ccusb 		\
 		commands	\
 		driverkit   \
     tcldrivers \
-    controlpanels 
+    controlpanels \
+    tclpackage
 
 
 bin_PROGRAMS = CCUSBReadout
