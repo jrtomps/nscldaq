@@ -44,6 +44,7 @@
 #include <CLeCroy4434.h>
 #include <CLeCroy2551.h>
 #include <CCamacCrate.h>
+#include <CMarkerCommand.h>
 #include <tcl.h>
 #include <algorithm>
 
@@ -82,6 +83,7 @@ CConfiguration::CConfiguration() :
   m_Commands.push_back(new CCCUSBCommand(*m_pInterp, *this));
   m_Commands.push_back(new CPH7132Command(*m_pInterp, *this));
   m_Commands.push_back(new CAddTclDriver(*m_pInterp, *this));
+  m_Commands.push_back(new CMarkerCommand(*m_pInterp, *this));
   
   typedef CCCUSB Ctlr;
   typedef CCCUSBReadoutList RdoList;
