@@ -409,6 +409,7 @@ AC_CONFIG_FILES([Makefile
 		 usb/ccusb/threadcomm/Makefile usb/ccusb/router/Makefile
 		 usb/ccusb/rdothread/Makefile usb/ccusb/tclserver/Makefile 
 		 usb/ccusb/tclserver/driver_Makefile
+		 usb/ccusb/tclpackage/Makefile
 		 usb/ccusb/daqconfig/Makefile  usb/ccusb/commands/Makefile
 		 usb/ccusb/driverkit/Makefile
 		 usb/ccusb/driverkit/Makefile-template
