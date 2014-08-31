@@ -697,4 +697,5 @@ Work on 11.0-rc11 begins
 	* Turn off the pop up when s800toring exits.
 11.0-rc13
 	
-       
+	* Fix Defect #2253 - Too long title in the Readout GUI makes run
+	start fail.

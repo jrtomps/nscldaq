@@ -276,7 +276,7 @@ snit::widgetadaptor RunIdentification {
         
         if {$havetitle} {
             lappend widgets [ttk::label $win.tlabel -text Title: ]
-            lappend widgets [ttk::entry $win.title -width 60 ]
+            lappend widgets [ttk::entry $win.title -width 60 -validate key -validatecommand [mymethod _LimitTitle %P]]
             $win.title insert end $options(-title)
         }
         if {$haverun} {
@@ -296,6 +296,25 @@ snit::widgetadaptor RunIdentification {
         grid rowconfigure $win 0 -weight 0
         
     }
+    ##
+    # _LimitTitle
+    #
+    #  Called when something interesting has happend with the title.  We ensure the title
+    #  is no more than 75 characters long (that's actually giving a bit of slop as I think)
+    #  the title length limit is 79.
+    #
+    # @param proposedString The new title sdtring if accepted.
+    # @return boolean true  if the resulting string is an acceptable length.
+    #
+    method _LimitTitle proposedString {
+        if {[string length $proposedString] <= 75} {
+            return 1
+        } else {
+            bell
+            return 0
+        }
+    }
+    
     ##
     #  _setState
     #
