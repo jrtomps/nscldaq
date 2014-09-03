@@ -20,6 +20,7 @@ class EvlogTest : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(EvlogTest);
   CPPUNIT_TEST(autorun);
   CPPUNIT_TEST(overriderun);
+  CPPUNIT_TEST(prefix0);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -39,6 +40,7 @@ private:
 protected:
   void autorun();
   void overriderun();
+  void prefix0();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(EvlogTest);
@@ -132,6 +134,41 @@ EvlogTest::overriderun()
   // Check for the event file.
 
   const char* pFilename = "run-0005-00.evt";
+  status = access(pFilename, F_OK);
+  EQ(0, status);
+
+  unlink(pFilename);
+    
+}
+
+/**
+ * test --prefix switch
+ */
+void
+EvlogTest::prefix0()
+{
+  std::string uri="tcp://localhost/";
+  uri += uniqueName("evlog");
+  std::string switches = ("--prefix=test --oneshot --run=5 --source=");
+  switches += uri;
+  pid_t evlogPid = startEventLog(switches);
+
+  // Create the run.
+
+  CRingStateChangeItem begin(BEGIN_RUN, 123, 0, time(NULL), "This is a title");
+  CRingStateChangeItem end(END_RUN, 123, 1, time(NULL), "This is a title");
+
+  begin.commitToRing(*pRing);
+  end.commitToRing(*pRing);
+
+  // wait for eventlog to finish.
+
+  int status;
+  waitpid(evlogPid, &status, 0);
+
+  // Check for the event file.
+
+  const char* pFilename = "test-0005-00.evt";
   status = access(pFilename, F_OK);
   EQ(0, status);
 

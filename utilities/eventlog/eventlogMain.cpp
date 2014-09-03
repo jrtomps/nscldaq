@@ -80,7 +80,8 @@ class noData :  public CRingBuffer::CRingBufferPredicate
    m_fRunNumberOverride(false),
    m_pChecksumContext(0),
    m_nBeginsSeen(0),
-   m_fChangeRunOk(false)
+   m_fChangeRunOk(false),
+   m_prefix("run")
  {
  }
 
@@ -135,7 +136,7 @@ class noData :  public CRingBuffer::CRingBufferPredicate
    string fullPath  = m_eventDirectory;
 
    char nameString[1000];
-   sprintf(nameString, "/run-%04d-%02d.evt", runNumber, segment);
+   sprintf(nameString, "/%s-%04d-%02d.evt", m_prefix.c_str(), runNumber, segment);
    fullPath += nameString;
 
    int fd = open(fullPath.c_str(), O_WRONLY | O_CREAT | O_EXCL, 
@@ -441,6 +442,10 @@ class noData :  public CRingBuffer::CRingBufferPredicate
      exit(EXIT_FAILURE);
    }
 
+   if (parsed.prefix_given) {
+    m_prefix = parsed.prefix_arg;
+   }
+
    // And the ring must open:
 
    try {
@@ -636,7 +641,7 @@ EventLogMain::shaFile(int run) const
   sprintf(runNumber, "%04d", run);
 
   std::string fileName = m_eventDirectory;
-  fileName+= "/run-";
+  fileName+= ("/" + m_prefix + "-");
   fileName+= runNumber;
   fileName += ".sha512";
 

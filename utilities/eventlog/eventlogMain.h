@@ -63,6 +63,7 @@ class EventLogMain
   void*             m_pChecksumContext;  
   uint32_t          m_nBeginsSeen;
   bool              m_fChangeRunOk;
+  std::string       m_prefix;
 
   // Constructors and canonicals:
 
