@@ -280,6 +280,18 @@ CRingScalerItem::computeEndTime() const
     float divisor = pScalers->s_intervalDivisor;
     return end/divisor;   
 }
+/**
+ * getTimestampDivisor
+ *   Get the divisor that must be applied to get a real time offset.
+ *
+ * @return uint32_t
+ */
+uint32_t
+CRingScalerItem::getTimeDivisor() const
+{
+    pScalerItemBody pScalers = reinterpret_cast<pScalerItemBody>(getBodyPointer());
+    return pScalers->s_intervalDivisor;
+}
 
 /**
  * isIncremental
@@ -407,7 +419,7 @@ CRingScalerItem::init(size_t n)
 std::string
 CRingScalerItem::typeName() const
 {
-  return std::string(" Scaler: ");
+  return std::string("Scaler");
 }
 /**
  * toString

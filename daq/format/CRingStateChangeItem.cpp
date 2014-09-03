@@ -340,13 +340,13 @@ CRingStateChangeItem::typeName() const
 {
   switch (type()) {
   case BEGIN_RUN:
-    return " Begin Run ";
+    return "Begin Run";
   case END_RUN:
-    return " End Run ";
+    return "End Run";
   case PAUSE_RUN:
-    return " Pause Run ";
+    return "Pause Run";
   case RESUME_RUN:
-    return " Resume Run ";
+    return "Resume Run";
   }
 }
 /**

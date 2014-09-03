@@ -7,7 +7,6 @@
 
      http://www.gnu.org/licenses/gpl.txt
 */
-
 /**
  * @file CDataFormatItem.h
  * @brief Implement the CDataFormatItem a class for producing data format
@@ -130,7 +129,7 @@ CDataFormatItem::operator!=(const CDataFormatItem& rhs) const
  * @return uint16_t
  */
 uint16_t
-CDataFormatItem::major() const
+CDataFormatItem::getMajor() const
 {
     CDataFormatItem* This = const_cast<CDataFormatItem*>(this);
     
@@ -145,7 +144,7 @@ CDataFormatItem::major() const
  * @return uint16_t
  */
 uint16_t
-CDataFormatItem::minor() const
+CDataFormatItem::getMinor() const
 {
     CDataFormatItem* This = const_cast<CDataFormatItem*>(this);
     

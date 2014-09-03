@@ -1,0 +1,365 @@
+#!/bin/sh
+# -*- tcl -*-
+# The next line is executed by /bin/sh, but not tcl \
+exec tclsh "$0" ${1+"$@"}
+
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2014.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Authors:
+#             Ron Fox
+#             Jeromy Tompkins 
+#	     NSCL
+#	     Michigan State University
+#	     East Lansing, MI 48824-1321
+
+
+set here [file dirname [info script]]
+
+
+##
+# @file channel.test
+# @brief tests of the channel class.
+# @author Ron Fox <fox@nscl.msu.edu>
+#
+
+package require tcltest
+source [file join $here channel.tcl]
+package require channel
+
+# Tests of construction - options.
+
+tcltest::test construct-incremental {Test construction with -incremental option specified} \
+-cleanup {
+   achannel destroy
+   bchannel destroy
+   dchannel destroy
+   unset result
+} \
+-body {
+    Channel achannel -incremental 0
+    Channel bchannel -incremental 1
+    Channel dchannel;                # Default is incremental.
+    
+    lappend result [achannel cget -incremental]
+    lappend result [bchannel cget -incremental]
+    lappend result [dchannel cget -incremental]
+} -result [list 0 1 1]
+
+tcltest::test construct-width {Test construction with the -width option specified} \
+-cleanup {
+    achannel destroy
+    bchannel destroy
+    dchannel destroy
+    unset result
+} \
+-body {
+    Channel achannel -width 24
+    Channel bchannel -width 32
+    Channel dchannel
+    
+    lappend result [achannel cget -width]
+    lappend result [bchannel cget -width]
+    lappend result [dchannel cget -width]
+    
+    
+} -result [list 24 32 32]
+
+# test total method.
+
+tcltest::test total-init0 {Totals are initialized to zero} \
+-setup {
+    Channel achannel
+} \
+-cleanup {
+    achannel destroy
+} \
+-body {
+    achannel total
+} -result 0
+
+
+# test rate method
+
+tcltest::test rate-init0 {Rates are also intialized to zero} \
+-setup {
+    Channel achannel
+} \
+-cleanup {
+    achannel destroy
+} \
+-body {
+    achannel rate
+} -result 0
+
+
+# Test update
+
+tcltest::test udpate-incremental {Update 32 bit scaler with increment} \
+-setup {
+    Channel achannel
+} \
+-cleanup {
+    achannel destroy
+    unset result
+} \
+-body {
+    achannel update 1234 2
+    lappend result [achannel rate]
+    lappend result [achannel total]
+    
+    achannel update 4321 2
+    lappend result [achannel rate]
+    lappend result [achannel total]
+    
+} -result [list [expr {1234.0/2.0}] 1234 [expr {4321.0/2}] [expr {4321+1234}]]
+           
+tcltest::test update-nonincremental {Upate 32 bit non-incremental scaler} \
+-setup {
+    Channel achannel -incremental 0
+} \
+-cleanup {
+    achannel destroy
+    unset result
+} \
+-body {
+    achannel update 1234 2
+    lappend result [achannel rate];     # 1234/2
+    lappend result [achannel total];    # 1234
+    
+    achannel update 4321 2
+    lappend result [achannel rate];    # 4321-1234/2
+    lappend result [achannel total];   # 4321
+} -result [list [expr {double(1234)/2}] 1234 [expr {double(4321-1234)/2}] 4321]
+
+
+tcltest::test update-incremental24 {Incremental update of a 24 bit scaler } \
+-setup {
+    Channel achannel -incremental 1 -width 24
+} \
+-cleanup {
+    achannel destroy
+    unset result
+} \
+-body {
+    achannel update 0xff001234 2
+    lappend result [achannel rate]
+    lappend result [achannel total]
+    
+    achannel update 0xfe004321 2
+    lappend result [achannel rate]
+    lappend result [achannel total]
+    
+} -result [list [expr {0x1234/2.0}] [expr {0x1234}] [expr {0x4321/2.0}] [expr {0x4321+0x1234}]]
+    
+    
+#  Test the clear method:
+
+tcltest::test clear {Clear zeroes both rates and totals} \
+-setup {
+    Channel achannel -incremental 1 -width 24
+} \
+-cleanup {
+    achannel destroy
+    unset result
+} \
+-body {
+    achannel update 0xff001234 2
+    achannel update 0xfe004321 2
+    
+    achannel clear
+    
+    lappend result [achannel rate]
+    lappend result [achannel total]
+} -result [list 0 0]
+
+# Alarm tests
+
+tcltest::test alarm-set {set/get low/hi level alarms} \
+-cleanup {
+    achannel destroy
+    unset result
+} \
+-body {
+    Channel achannel -lowlim 100 -hilim 1000
+    lappend result [achannel cget -lowlim]
+    lappend result [achannel cget -hilim]
+} -result [list 100 1000]
+
+tcltest::test alarm-nolimok {Channels without alarms are ok.} \
+-cleanup {
+    achannel destroy
+} \
+-body {
+    Channel achannel
+    achannel update 10000000 1;                #very high rate.
+    achannel alarming
+} -result ok
+
+tcltest::test alarm-hirate {Alarm if the rate is high} \
+-setup {
+    Channel achannel -hilim 1000
+} \
+-cleanup {
+    achannel destroy
+} \
+-body {
+    achannel update 2000 1;     # higher rate than allowed.
+    achannel alarming
+} -result high
+
+
+tcltest::test alarm-lorate {Alarm if the rate is low.} \
+-setup {
+    Channel achannel -lowlim 100
+} \
+-cleanup {
+    achannel destroy
+} \
+-body {
+    achannel update 5 1
+    achannel alarming
+    
+} -result low
+
+
+tcltest::test alarm-okrate {There are limits but the rate is ok} \
+-setup {
+    Channel achannel -lowlim 100 -hilim 102
+} \
+-cleanup {
+    achannel destroy
+} \
+-body {
+    achannel update 101 1
+    achannel alarming
+    
+} -result ok
+
+##
+#  Tests for averageing.
+
+tcltest::test average-initial {Initial average is always 0} \
+-setup {
+    Channel achannel
+} \
+-cleanup {
+    achannel destroy
+    
+} \
+-body {
+    achannel mean
+} -result 0.0
+
+tcltest::test average-1 {Average of one update is the update itself/dt.} \
+-setup {
+    Channel achannel
+} \
+-cleanup {
+    achannel destroy
+    
+} \
+-body {
+    achannel update 10 2
+    achannel mean
+} -result 5.0
+
+tcltest::test average-n {Average of several updates is correct} \
+-setup {
+    Channel achannel
+} \
+-cleanup {
+    achannel destroy
+    
+} \
+-body {
+    achannel update 10 2
+    achannel update 20 2
+    achannel update 6  2; # Ave = (36/6 = 6.0)
+    
+    achannel mean
+} -result 6.0
+    
+tcltest::test average-clears {Average clears with clear} \
+-setup {
+    Channel achannel
+} \
+-cleanup {
+    achannel destroy
+    
+} \
+-body {
+    achannel update 10 2
+    achannel update 20 2
+    achannel update 6  2; # Ave = (36/6 = 6.0)
+    
+    achannel clear;             # Average cleared now!
+    achannel update 20 2;  # Ave = 10.0
+    achannel mean
+} -result 10.0
+
+#  tests for std-dev.
+
+
+tcltest::test stddev-0 {Stddev with no data is 0} \
+-setup {
+    Channel achannel
+} \
+-cleanup {
+    achannel destroy
+    
+} \
+-body {
+    achannel stddev
+} -result 0.0
+
+tcltest::cleanupTests
+
+
+tcltest::test stdev-1 {stddev with one data point is also 0.0} \
+-setup {
+    Channel achannel
+} \
+-cleanup {
+    achannel destroy
+    
+} \
+-body {
+    achannel update 10 2
+    achannel stddev
+} -result 0.0
+tcltest::test stdev-2 {stddev with 2 data points could be non0} \
+-setup {
+    Channel achannel
+} \
+-cleanup {
+    achannel destroy
+    
+} \
+-body {
+    achannel update 10 2
+    achannel update 20 2
+    
+    achannel stddev
+} -result [expr {sqrt(25 + 100 - 56.25)}]
+
+tcltest::test stdev-3 {stddev with 3 data points} \
+-setup {
+    Channel achannel
+} \
+-cleanup {
+    achannel destroy
+    
+} \
+-body {
+    achannel update 10 1
+    achannel update 6  1
+    achannel update 20  1
+    
+    achannel stddev
+}  -result [expr {sqrt((100 + 36 + 400)/2.0 - 144)}]

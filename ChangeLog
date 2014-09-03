@@ -694,5 +694,15 @@ Work on 11.0-rc11 begins
 	* Fix Bug #2182 as follows: Add key bindings for enter and tab
 	that update the --dt value.  So you do need to use one of those to
 	commit the value. 
-11.0-rc12
+11.0-rc13
 	
+	* Complete first iteration of new scaler program:
+	* Feature #2204 - Users can specify scaler channels
+	* Feature #2209 - Users can specify alarms on channels.
+	* Feature #2206 - Users can specify display pages.
+	* Feature #2207 - Users can specify display_single lines.
+	* Feature #2208 - Users can specify display_ratio lines
+	* Feature #2210 - Alarmed scalers are highlighted in color.
+	* Feature #2205 - The scaler program can be attached to a ring.
+	* Feature #2211, Feature #2212 - Scalers update properly.
+	* Feature #2213 - Users get end of run reports.

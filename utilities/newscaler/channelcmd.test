@@ -1,0 +1,143 @@
+#!/bin/sh
+# -*- tcl -*-
+# The next line is executed by /bin/sh, but not tcl \
+exec tclsh "$0" ${1+"$@"}
+
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2014.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Authors:
+#             Ron Fox
+#             Jeromy Tompkins 
+#	     NSCL
+#	     Michigan State University
+#	     East Lansing, MI 48824-1321
+
+
+
+##
+# @file channelcmd.test
+# @brief Test the scaler program's 'channel' configuration file command.
+# @author Ron Fox <fox@nscl.msu.edu>
+#
+
+set here [file dirname [info script]]
+package require tcltest
+package provide pagedisplay 1.0;    # needed by page but we don't want to pull in tk.
+source [file join $here channel.tcl]
+source [file join $here nameMap.tcl]
+source [file join $here singleModel.tcl]
+source [file join $here ratioModel.tcl]
+source [file join $here scalerconfig.tcl]
+
+
+
+
+tcltest::test vanilla-add {Add a channel using the original style} \
+-cleanup {
+    
+    unset result
+    
+    # Need this to get a fresh channel map.
+    
+    ::scalerconfig::channelMap destroy
+    nameMap ::scalerconfig::channelMap
+    
+    # And to destroy the channel we made:
+    
+    ::channel_0 destroy
+} \
+-body {
+    channel a 0
+    
+    set object [::scalerconfig::channelMap get a]
+    lappend result $object;                      # Should be channel_0
+    lappend result [$object cget -incremental];  # SB 1.
+    lappend result [$object cget -width];        # SB 32.
+} -result [list ::channel_0 1 32]
+
+tcltest::test dup_name {Adding a channel with a duplicate name gives a nice error} \
+-cleanup {
+    # Need this to get a fresh channel map.
+    
+    ::scalerconfig::channelMap destroy
+    nameMap ::scalerconfig::channelMap
+    ::channel_0 destroy
+} \
+-body {
+    channel a 0
+    set status [catch {channel a 1} msg]
+    
+    list $status $msg
+} -result [list 1 "Channel a is already defined as 0"]
+
+
+tcltest::test dup_channelId {Adding a channel with a duplicate channel id gives errors too} \
+-cleanup {
+    # Need this to get a fresh channel map.
+    
+    ::scalerconfig::channelMap destroy
+    nameMap ::scalerconfig::channelMap
+    ::channel_0 destroy    
+} \
+-body {
+    channel a 0
+    set status [catch {channel b 0} msg]
+    list $status $msg
+    
+} -result [list 1 "A channel with index 0 already has a name"]
+
+tcltest::test channel_with_width {Use the -width option with channels.} \
+-cleanup {
+    
+    # Need this to get a fresh channel map.
+    
+    ::scalerconfig::channelMap destroy
+    nameMap ::scalerconfig::channelMap
+    ::channel_0 destroy    
+} \
+-body {
+    channel -width 24 a 0
+    
+    channel_0 cget -width
+} -result 24
+
+tcltest::test channel_with_bothopts {use -width and -incremental} \
+-cleanup {
+    unset result
+    
+    # Need this to get a fresh channel map.
+    
+    ::scalerconfig::channelMap destroy
+    nameMap ::scalerconfig::channelMap
+    ::channel_0 destroy    
+} \
+-body {
+    channel -width 24 -incremental 0 a 0
+    
+    lappend result [channel_0 cget -width]
+    lappend result [channel_0 cget -incremental]
+} -result [list 24 0]
+
+tcltest::test channel_with_limits {use -lowlim and -hilim} \
+-cleanup {
+    unset result
+
+    # Need this to get a fresh channel map.
+    
+    ::scalerconfig::channelMap destroy
+    nameMap ::scalerconfig::channelMap
+    ::channel_0 destroy 
+} \
+-body {
+    channel -lowlim 100 -hilim 200 {Some name} 0
+    lappend result [channel_0 cget -lowlim]
+    lappend result [channel_0 cget -hilim]
+} -result [list 100 200]
+
+tcltest::cleanupTests

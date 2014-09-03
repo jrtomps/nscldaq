@@ -83,12 +83,12 @@ CPhysicsEventItem::operator!=(const CPhysicsEventItem& rhs) const
  * typeName
  *    Returns the type name associated with the item.
  * 
- * @return std::string  - "Event ".
+ * @return std::string  - "Event".
  */
 std::string
 CPhysicsEventItem::typeName() const
 {
-  return "Event ";
+  return "Event";
 }
 
 /**

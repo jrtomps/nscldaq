@@ -41,8 +41,8 @@ DataFormatTest::test()
     
     // Check the major/minor and typename:
     
-    EQ(FORMAT_MAJOR, item.major());
-    EQ(FORMAT_MINOR, item.minor());
+    EQ(FORMAT_MAJOR, item.getMajor());
+    EQ(FORMAT_MINOR, item.getMinor());
     EQ(std::string("Ring Item format version"), item.typeName());
     
     // Check a few base class bits of info:
