@@ -1,0 +1,205 @@
+
+package require tcltest
+package require snit
+
+tcltest::test pkgrequire-0 {Test that we can require the package 
+} -body {
+  package require OfflineEVBEVBPipelineUI
+} -result 11.0 -returnCodes 0
+
+
+## Redefine the gui building to be nothing. Instead we will just
+#  inquire of the state of the view
+#
+snit::method EVBPipeConfigUIView buildGUI {} {}
+
+
+
+
+tcltest::test ctor-0 {Test that no -widgetname equates to error
+} -body {
+  EVBPipeConfigUIPresenter meh
+} -returnCodes 1 -result "Error in constructor: EVBPipeConfigUIPresenter -widgetname option is mandatory but was not provided!"
+
+
+
+
+
+
+tcltest::test setmodel-0 {Test that I can set the -destring
+} -setup {
+  set prsntr [EVBPipeConfigUIPresenter %AUTO% -widgetname .test]
+  set params [EVBC::AppOptions %AUTO% -destring asdf -glomdt 12300 ]
+} -cleanup {
+  $prsntr destroy
+  $params destroy
+  destroy .test
+  
+}  -body {
+  $prsntr setModel $params
+
+  [$prsntr getModel] cget -destring
+} -result asdf
+
+tcltest::test setmodel-1 {Test that I can set the -glomdt 
+} -setup {
+  set prsntr [EVBPipeConfigUIPresenter %AUTO% -widgetname .test]
+  set params [EVBC::AppOptions %AUTO% -destring asdf -glomdt 12300 ]
+} -cleanup {
+  $prsntr destroy
+  $params destroy
+  destroy .test
+}  -body {
+  $prsntr setModel $params
+
+  [$prsntr getModel] cget -glomdt
+} -result 12300
+
+
+
+
+
+tcltest::test updateViewData-0 {Test that the view data updates -destring
+} -setup {
+  set prsntr [EVBPipeConfigUIPresenter %AUTO% -widgetname .test]
+  set params [EVBC::AppOptions %AUTO% -destring asdf -glomdt 12300 ]
+} -cleanup {
+  $prsntr destroy
+  $params destroy
+  destroy .test
+} -body {
+  $prsntr updateViewData [EVBC::AppOptions %AUTO% -destring mute -glomdt 3]
+
+  set view [$prsntr getViewObj]
+
+  $view cget -destring
+} -result mute
+
+tcltest::test updateViewData-1 {Test that the view data updates -glomid
+} -setup {
+  set prsntr [EVBPipeConfigUIPresenter %AUTO% -widgetname .test]
+  set params [EVBC::AppOptions %AUTO% -destring asdf -glomid 12300]
+} -cleanup {
+  $prsntr destroy
+  $params destroy
+  destroy .test
+} -body {
+  $prsntr updateViewData [EVBC::AppOptions %AUTO% -destring testring -glomid 33]
+
+  set view [$prsntr getViewObj]
+
+  $view cget -glomid
+} -result 33 
+
+tcltest::test updateViewData-2 {Test that the view data updates -glomdt
+} -setup {
+  set prsntr [EVBPipeConfigUIPresenter %AUTO% -widgetname .test]
+  set params [EVBC::AppOptions %AUTO% -destring asdf -glomdt 12300]
+} -cleanup {
+  $prsntr destroy
+  $params destroy
+  destroy .test
+} -body {
+  $prsntr updateViewData [EVBC::AppOptions %AUTO% -destring testring -glomdt 33]
+
+  set view [$prsntr getViewObj]
+
+  $view cget -glomdt
+} -result 33 
+
+tcltest::test updateViewData-3 {Test that the view data updates -glombuild
+} -setup {
+  set prsntr [EVBPipeConfigUIPresenter %AUTO% -widgetname .test]
+  set params [EVBC::AppOptions %AUTO% -destring asdf -glombuild false]
+  $prsntr setModel $params
+} -cleanup {
+  $prsntr destroy
+  $params destroy
+  destroy .test
+} -body {
+  $prsntr updateViewData [EVBC::AppOptions %AUTO% -destring testring -glombuild true] 
+
+  set view [$prsntr getViewObj]
+
+  $view cget -glombuild
+} -result true
+
+
+
+
+
+
+tcltest::test commitViewDataToModel-0 {Test that the view data -destring translates to the model
+} -setup {
+  set prsntr [EVBPipeConfigUIPresenter %AUTO% -widgetname .test]
+} -cleanup {
+  $prsntr destroy
+  destroy .test
+} -body {
+  set view [$prsntr getViewObj]
+  $view configure -destring foobar 
+  $prsntr commitViewDataToModel
+
+  [$prsntr getModel] cget -destring
+} -result foobar
+
+
+tcltest::test commitViewDataToModel-1 {Test that the view data -glomid translates to the model
+} -setup {
+  set prsntr [EVBPipeConfigUIPresenter %AUTO% -widgetname .test]
+} -cleanup {
+  $prsntr destroy
+  destroy .test
+} -body {
+  set view [$prsntr getViewObj]
+  $view configure -glomid 23456
+  $prsntr commitViewDataToModel
+
+  [$prsntr getModel] cget -glomid
+} -result 23456
+
+
+tcltest::test commitViewDataToModel-2 {Test that the view data -glomdt translates to the model
+} -setup {
+  set prsntr [EVBPipeConfigUIPresenter %AUTO% -widgetname .test]
+} -cleanup {
+  $prsntr destroy
+  destroy .test
+} -body {
+  set view [$prsntr getViewObj]
+  $view configure -glomdt 88888 
+  $prsntr commitViewDataToModel
+
+  [$prsntr getModel] cget -glomdt
+} -result 88888
+
+set value true
+tcltest::test commitViewDataToModel-3 {Test that the view data -glombuild translates to the model
+} -setup {
+  set prsntr [EVBPipeConfigUIPresenter %AUTO% -widgetname .test]
+} -cleanup {
+  $prsntr destroy
+  destroy .test
+} -body {
+  set mod [$prsntr getModel]
+
+  if {[$mod cget -glombuild] eq "true"} {
+    puts "Value was true"
+    set ::value false
+  } else {
+    puts "Value was false"
+  }
+
+  set view [$prsntr getViewObj]
+  $view configure -glombuild $::value 
+  $prsntr commitViewDataToModel
+
+  set res [[$prsntr getModel] cget -glombuild]
+  puts "Now it is $res"
+  set res
+} -result $::value 
+
+
+
+
+tcltest::cleanupTests
