@@ -1,0 +1,85 @@
+
+package require tcltest
+
+
+tcltest::test pkgrequire-0 {Test that we can package require 
+} -body {
+  package require OfflineOrderer
+} -returnCodes 0 -result 11.0
+
+package require evbcallouts
+
+proc pickle {snitobj} {
+  set opts [$snitobj info options]
+
+  set state [dict create]
+  foreach opt $opts {
+    set value [$snitobj cget $opt]
+    dict set state $opt $value 
+  }
+  return $state
+}
+
+tcltest::test initalizeEVB-0 {Test that I can pass the destring successfully 
+} -setup {
+  set mock [OfflineOrdererProcessor %AUTO%]
+} -cleanup {
+  $mock destroy
+  set EVBC::initialized false
+} -body {
+  $mock configure -evbparams [EVBC::AppOptions %AUTO% -destring rout ]
+  $mock initializeEVB 
+  
+  set options $::EVBC::applicationOptions
+  $options cget -destring
+} -result rout -returnCodes 0 
+
+tcltest::test initalizeEVB-1 {Test that I can pass the -glombuild param 
+} -setup {
+  set mock [OfflineOrdererProcessor %AUTO%]
+} -cleanup {
+  $mock destroy
+  set EVBC::initialized false
+} -body {
+  $mock configure -evbparams [EVBC::AppOptions %AUTO% -glombuild true ]
+  $mock initializeEVB
+  
+  set options $::EVBC::applicationOptions
+  $options cget -glombuild
+} -result true -returnCodes 0 
+
+tcltest::test initalizeEVB-2 {Test that I can pass the -glomdt param 
+} -setup {
+  set mock [OfflineOrdererProcessor %AUTO%]
+} -cleanup {
+  $mock destroy
+  set EVBC::initialized false
+} -body {
+  $mock configure -evbparams [EVBC::AppOptions %AUTO% -glomdt 127 ]
+  $mock initializeEVB 
+  
+  set options $::EVBC::applicationOptions
+  $options cget -glomdt
+} -result 127 -returnCodes 0 
+
+
+tcltest::test initalizeEVB-3 {Test that restart defaults to false
+} -setup {
+  set mock [OfflineOrdererProcessor %AUTO%]
+} -cleanup {
+  $mock destroy
+  set EVBC::initialized false
+} -body {
+  $mock configure -evbparams [EVBC::AppOptions %AUTO%]
+  $mock initializeEVB
+  
+  set options $::EVBC::applicationOptions
+  $options cget -restart
+} -result false -returnCodes 0 
+
+
+
+
+tcltest::cleanupTests
+
+
