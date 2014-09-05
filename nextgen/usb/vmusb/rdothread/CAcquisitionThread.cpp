@@ -213,7 +213,7 @@ CAcquisitionThread::mainLoop()
       size_t bytesRead;
       int status = m_pVme->usbRead(pBuffer->s_rawData, pBuffer->s_storageSize,
 				   &bytesRead,
-				  USBTIMEOUT*1000 );
+				  USBTIMEOUT*2000);
       if (status == 0) {
 	consecutiveTimeouts = 0;
 	pBuffer->s_bufferSize = bytesRead;
@@ -427,7 +427,7 @@ CAcquisitionThread::startDaq()
   //
   m_pVme->writeGlobalMode((4 << CVMUSB::GlobalModeRegister::busReqLevelShift) | 
 			  //			  CVMUSB::GlobalModeRegister::flushScalers            |
-			  CVMUSB::GlobalModeRegister::mixedBuffers            |
+		//	  CVMUSB::GlobalModeRegister::mixedBuffers            |
 		//	  CVMUSB::GlobalModeRegister::spanBuffers             |
 			  (CVMUSB::GlobalModeRegister::bufferLen13K << 
 			   CVMUSB::GlobalModeRegister::bufferLenShift));

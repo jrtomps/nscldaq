@@ -18,8 +18,11 @@
 
 #ifndef _BTDEF_H
 #define _BTDEF_H
-
 #include        <stddef.h>
+#ifndef __KERNEL__
+#include        <stdlib.h>
+#endif
+
 
 typedef int bt_cookie_t;	/* == 0 if not used from IRQ level */
 
@@ -403,6 +406,7 @@ typedef struct {
 /*
 **  Defines and types for specifing access widths
 */
+
 typedef size_t bt_width_t;
 
 #define BT_WIDTH_D8     sizeof(bt_data8_t)

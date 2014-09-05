@@ -22,8 +22,9 @@ extern "C" {
 
 
 #ifndef __SBS_BTAPI_H
-#include <btapi.h>
 #define __SBS_BTNGPCI_H
+#include <btapi.h>
+#define __SBS_BTAPI_H
 #endif
 
 }

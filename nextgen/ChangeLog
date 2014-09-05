@@ -510,4 +510,6 @@ Feb 1, 2012 - Feb 24, 2012
 	* Fix for Bug #2197 - Improve error messages that are emitted when
 	attempting to record a run for which there are already run
 	segments or which was recorded but not correctly finalized.
+	* Feature #2340  - Force out data using monitor list periodically
+	so slow event rates don't require special event builder windows.
 	

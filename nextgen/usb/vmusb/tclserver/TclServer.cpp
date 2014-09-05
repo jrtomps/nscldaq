@@ -349,6 +349,7 @@ void
 TclServer::createMonitorList()
 {
   m_pMonitorList = new CVMUSBReadoutList;
+  m_pMonitorList->addMarker(0xffff);
   for (int i =0; i < m_Modules.size(); i++) {
     m_Modules[i]->addMonitorList(*m_pMonitorList);
   }
@@ -465,6 +466,7 @@ TclServer::processMonitorList(void* pData, size_t nBytes)
   // by treating the data as uint8_t*
 
   uint8_t* p = reinterpret_cast<uint8_t*>(pData);
+  p+= 2;                    // Skip the mandatory marker.
   for (int i =0; i < m_Modules.size(); i++) {
     uint8_t* pNewPosition;
     pNewPosition = reinterpret_cast<uint8_t*>(m_Modules[i]->processMonitorList(p, nBytes));
