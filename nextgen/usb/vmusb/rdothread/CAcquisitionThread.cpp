@@ -331,6 +331,7 @@ CAcquisitionThread::processBuffer(DataBuffer* pBuffer)
 
   if (((pBuffer->s_rawData[1] >> 13) & 0x7) == 7) {
     ::Globals::pTclServer->QueueBuffer(pBuffer);
+    gFreeBuffers.queue(pBuffer);
   } 
   else {
     gFilledBuffers.queue(pBuffer);	// Send it on to be routed to spectrodaq in another thread.
