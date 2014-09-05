@@ -145,6 +145,7 @@ CBeginRun::operator()(CTCLInterpreter& interp,
 
   // Reconnect the VM-USB:
 
+    pState->setState(CRunState::Starting);    // Avoid transient manual monitor list failures.
   Globals::pUSBController->reconnect();
 
   CAcquisitionThread* pReadout = CAcquisitionThread::getInstance();
