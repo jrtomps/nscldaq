@@ -42,7 +42,8 @@ using namespace std;
 #include <CRunState.h>
 #include <stdlib.h>
 #include <Globals.h>
-
+#include <errno.h>
+#include <string.h>
 
 
 #include <vector>
@@ -366,6 +367,7 @@ void
 TclServer::createMonitorList()
 {
   m_pMonitorList = new CVMUSBReadoutList;
+  m_pMonitorList->addMarker(0xffff);
   for (int i =0; i < m_Modules.size(); i++) {
     m_Modules[i]->addMonitorList(*m_pMonitorList);
   }
@@ -456,7 +458,7 @@ TclServer::MonitorDevices(void* pData)
     if (pList->size() > 0) {
       int                status = pController->executeList(*pList, readData, sizeof(readData), &dataRead);
       if (status != 0) {
-	cerr << "Warning: Monitor list read failed\n";
+	cerr << "Warning: Monitor list read failed " << status << " \n" << strerror(errno) << std::endl;
 	
       }
       else {
@@ -482,6 +484,7 @@ TclServer::processMonitorList(void* pData, size_t nBytes)
   // by treating the data as uint8_t*
 
   uint8_t* p = reinterpret_cast<uint8_t*>(pData);
+  p+=2;                // Skip the uint16_t marker.
   for (int i =0; i < m_Modules.size(); i++) {
     uint8_t* pNewPosition;
     pNewPosition = reinterpret_cast<uint8_t*>(m_Modules[i]->processMonitorList(p, nBytes));

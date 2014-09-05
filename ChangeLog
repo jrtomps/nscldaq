@@ -699,3 +699,7 @@ Work on 11.0-rc11 begins
 	
 	* Fix Defect #2253 - Too long title in the Readout GUI makes run
 	start fail.
+	* Feature #2340 - Use monitor stack to periodically flush partial
+	  event buffer.
+	* Fix a few threading errors and edge cases with the monitor stack
+	

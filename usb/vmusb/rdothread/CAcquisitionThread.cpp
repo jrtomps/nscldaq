@@ -155,8 +155,6 @@ CAcquisitionThread::operator()()
     
     
     startDaq();  		        // Setup and start data taking.
-    CRunState* pState = CRunState::getInstance();
-    pState->setState(CRunState::Active);
 
 
     beginRun();			// Emit begin run buffer.
@@ -181,8 +179,10 @@ CAcquisitionThread::operator()()
         //  This is a normal exit...
     }
     Globals::running = false;
-    endRun();			// Emit end run buffer.
+
     pState->setState(CRunState::Idle);
+    endRun();			// Emit end run buffer.
+    
     
     m_Running = false;		// Exiting.
     
@@ -354,8 +354,9 @@ CAcquisitionThread::processBuffer(DataBuffer* pBuffer)
   // The output thread get all other stack data and will ensure that
   // stack 1 completions are scalers and all others are events.
 
-  if (((pBuffer->s_rawData[1] >> 13) & 0x7) == 7) {
+  if ((pBuffer->s_bufferType == TYPE_EVENTS) &&((pBuffer->s_rawData[1] >> 13) & 0x7) == 7) {
     ::Globals::pTclServer->QueueBuffer(pBuffer);
+    gFreeBuffers.queue(pBuffer);
   } 
   else {
     gFilledBuffers.queue(pBuffer);	// Send it on to be routed to spectrodaq in another thread.
@@ -412,7 +413,7 @@ CAcquisitionThread::startDaq()
   //
   m_pVme->writeGlobalMode((4 << CVMUSB::GlobalModeRegister::busReqLevelShift) | 
 			  //			  CVMUSB::GlobalModeRegister::flushScalers            |
-			  CVMUSB::GlobalModeRegister::mixedBuffers            |
+			  // CVMUSB::GlobalModeRegister::mixedBuffers            |
 			  // CVMUSB::GlobalModeRegister::spanBuffers             |
 			  (CVMUSB::GlobalModeRegister::bufferLen13K << 
 			   CVMUSB::GlobalModeRegister::bufferLenShift));
@@ -542,7 +543,10 @@ CAcquisitionThread::pauseDaq()
 void
 CAcquisitionThread::VMusbToAutonomous()
 {
-  m_pVme->writeActionRegister(CVMUSB::ActionRegister::startDAQ);
+    CRunState* pState = CRunState::getInstance();
+    pState->setState(CRunState::Active);
+
+    m_pVme->writeActionRegister(CVMUSB::ActionRegister::startDAQ);
 }
 /*!
   Drain usb - We read buffers from the DAQ (with an extended timeout)
@@ -610,6 +614,7 @@ CAcquisitionThread::beginRun()
 void
 CAcquisitionThread::endRun()
 {
+
   DataBuffer* pBuffer   = gFreeBuffers.get();
   pBuffer->s_bufferSize = pBuffer->s_storageSize;
   pBuffer->s_bufferType = TYPE_STOP;
@@ -623,7 +628,7 @@ void
 CAcquisitionThread::bootToTheHead()
 {
 	uint32_t junk;
-	cerr << "Desperate measures being employed to attempt final drain\n";
+	cerr << "Attempting final drain\n";
 	m_pVme->writeActionRegister(CVMUSB::ActionRegister::sysReset);
 	m_pVme->writeActionRegister(0);
 	Os::usleep(100);
