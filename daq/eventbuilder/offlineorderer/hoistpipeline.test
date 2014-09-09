@@ -41,7 +41,8 @@ tcltest::test validateSourceRing-0 {Test that a non existent source ring append 
   $params configure -sourcering $::absentRing
 
   set errors [list]
-  $params validateSourceRing $errors
+  $params validateSourceRing errors
+  set errors
 } -result [list "Ring $::absentRing does not exist on localhost."]
 
 
@@ -55,7 +56,8 @@ tcltest::test validateTstamp-0 {Test that a non existent file appends a message
   $params configure -tstamplib $::absentFile
 
   set errors [list]
-  $params validateTstampLib $errors
+  $params validateTstampLib errors
+  set errors
 } -result [list "Timestamp extractor library \"$::absentFile\" does not exist."]
 
 tcltest::test validateTstamp-1 {Test that a null entry for tstamplib appends a message
@@ -67,7 +69,8 @@ tcltest::test validateTstamp-1 {Test that a null entry for tstamplib appends a m
   $params configure -tstamplib ""
 
   set errors [list]
-  $params validateTstampLib $errors
+  $params validateTstampLib errors
+  set errors
 } -result [list "Timestamp extractor library has not been specified and is mandatory."]
 
 tcltest::test validateTstamp-2 {Test that an existing file appends no message
@@ -79,7 +82,8 @@ tcltest::test validateTstamp-2 {Test that an existing file appends no message
   $params configure -tstamplib [info script]
 
   set errors [list]
-  $params validateTstampLib $errors
+  $params validateTstampLib errors
+  set errors
 } -result  ""
 
 
@@ -94,7 +98,8 @@ tcltest::test validateId-0 {Test that a negative id appends a message
   $params configure -id -1 
 
   set errors [list]
-  $params validateId $errors
+  $params validateId errors
+  set errors
 } -result [list "Source id for ringFragmentSource must be greater than or equal to 0. User specified -1."]
 
 tcltest::test validateId-1 {Test that a 0 id appends a message 
@@ -106,7 +111,8 @@ tcltest::test validateId-1 {Test that a 0 id appends a message
   $params configure -id 0 
 
   set errors [list]
-  $params validateId $errors
+  $params validateId errors
+  set errors
 } -result "" 
 
 
@@ -120,8 +126,9 @@ tcltest::test validateInfo-0 {Test that a null info string appends a message
   $params configure -info "" 
 
   set errors [list]
-  $params validateInfo $errors
+  $params validateInfo errors
+  set errors
 } -result [list "Source info for ringFragmentSource has not been defined."] 
 
 
-
+tcltest::cleanupTests
