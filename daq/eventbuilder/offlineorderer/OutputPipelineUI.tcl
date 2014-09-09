@@ -3,14 +3,15 @@
 #
 # INPUT PIPELINE CONFIGURATION DIALOGUE
 
-package provide OfflineEVBEVBPipelineUI 11.0
+package provide OfflineEVBOutputPipelineUI 11.0
 
 package require evbcallouts
+package require Configuration
 package require snit
 package require Tk
 
 
-## Overview of the OfflineEVBInputPipelineUI package
+## Overview of the OfflineEVBOutputPipelineUI package
 #
 # The package implements a configuration utility that configures two parameters
 # in a fully testable way. The implementation of is based on the Model-View-Presenter
@@ -47,15 +48,11 @@ package require Tk
 # should be creating an InputPipeConfigUIPresenter object which would
 # then create the view.
 #
-snit::widget EVBPipeConfigUIView {
-
-  option -destring     -default "OfflineEVBOut"
-  option -glomdt       -default 1
-  option -glomid       -default 0
-  option -glombuild    -default false
+snit::widget OutputPipeConfigUIView {
 
   component m_presenter
 
+  variable m_form
 
   ## @brief Construct the megawidget
   #
@@ -68,7 +65,7 @@ snit::widget EVBPipeConfigUIView {
 
     set m_presenter $presenter
 
-    $self configurelist $args 
+#    $self configurelist $args 
 
     # build the gui
     $self buildGUI    
@@ -88,25 +85,10 @@ snit::widget EVBPipeConfigUIView {
   # simply some labels on text entries.
   #
   method buildGUI {} {
+    variable m_form
 
-    set top $win.params
-    ttk::frame $top 
-
-    ttk::label $top.ringLabel -text "Output ring"
-    ttk::entry $top.ringEntry -textvariable [myvar options(-destring)]
-    ttk::label $top.dtLabel   -text "Correlation range (ticks)"
-    ttk::entry $top.dtEntry -textvariable [myvar options(-glomdt)]
-    ttk::label $top.idLabel   -text "Glom source ID"
-    ttk::entry $top.idEntry -textvariable [myvar options(-glomid)]
-
-    ttk::checkbutton $top.buildCheck -variable [myvar options(-glombuild)] \
-                                     -text "Enable building" -onvalue true \
-                                     -offvalue false]
-
-    grid $top.ringLabel $top.ringEntry -padx 9 -pady 9 -sticky ew
-    grid $top.dtLabel   $top.dtEntry   -padx 9 -pady 9 -sticky ew
-    grid $top.idLabel   $top.idEntry   -padx 9 -pady 9 -sticky ew
-    grid $top.buildCheck  -            -padx 9 -pady 9 -sticky ew
+    set m_form $win.params
+    EventLog::ParameterPrompter $m_form
 
     set spaceFrame $win.space
     ttk::frame $spaceFrame
@@ -120,7 +102,7 @@ snit::widget EVBPipeConfigUIView {
     grid columnconfigure $buttonFrame {0 1 2} -weight 1
 
 
-    grid $win.params  -padx 9 -pady 9 -sticky new
+    grid $m_form  -padx 9 -pady 9 -sticky new
     grid $spaceFrame  -padx 9 -pady 9 -sticky nsew
     grid $win.buttons -padx 9 -pady 9 -sticky ew
     grid rowconfigure $win 1 -weight 1
@@ -148,6 +130,12 @@ snit::widget EVBPipeConfigUIView {
   method onCancel {} {
     $m_presenter cancel 
   }
+
+
+  method getFormObj {} { 
+    variable m_form
+    return $m_form
+  }
 }
 
 # End of InputPipeConfigUIView code
@@ -165,11 +153,11 @@ snit::widget EVBPipeConfigUIView {
 # @important This does not own the model! Rather it just has a reference to the model
 #            and the power to manipulate it.
 #
-snit::type EVBPipeConfigUIPresenter {
+snit::type OutputPipeConfigUIPresenter {
 
   option -widgetname -default ""
 
-  component m_model     ;#< The model : OfflineEVBInputPipeParams
+  component m_model     ;#< The model : OfflineEVBOutputPipeParams
   component m_view      ;#< The view, owned by this
 
   ## Construct the model, view, and synchronize view
@@ -188,16 +176,16 @@ snit::type EVBPipeConfigUIPresenter {
     $self configurelist $args
    
     if {$options(-widgetname) eq ""} {
-      set msg    "EVBPipeConfigUIPresenter -widgetname option is mandatory "
+      set msg    "OutputPipeConfigUIPresenter -widgetname option is mandatory "
       append msg "but was not provided!"
       return -code error $msg 
     }
     
     # Create the default model
-    set m_model [EVBC::AppOptions %AUTO%]
+    set m_model [OfflineEVBOutputPipeParams %AUTO%]
 
     # Create the view and pass it the values of the model
-    set m_view   [EVBPipeConfigUIView $options(-widgetname) $self] 
+    set m_view   [OutputPipeConfigUIView $options(-widgetname) $self] 
     $m_view setPresenter $self
     $self updateViewData $m_model
 
@@ -215,7 +203,7 @@ snit::type EVBPipeConfigUIPresenter {
   ## @brief Set the model to some user's model and synchronize
   #
   #
-  # @param model  an OfflineEVBInputPipeParams object
+  # @param model  an OfflineEVBOutputPipeParams object
   #
   method setModel {model} {
     set m_model $model
@@ -225,29 +213,36 @@ snit::type EVBPipeConfigUIPresenter {
   ## @brief Retrieve the model
   #
   # @returns string
-  # @retval the name of the OfflineEVBInputPipeParams object this controls
+  # @retval the name of the OfflineEVBOutputPipeParams object this controls
   method getModel {} {
     return $m_model
   }
   
   ## @brief Synchronize the data displayed by the view with the model
   #
-  # @param model  an OfflineEVBInputPipeParams object
+  # @param model  an OfflineEVBOutputPipeParams object
   #
   method updateViewData {model} {
-    $m_view configure -destring  [$model cget -destring]
-    $m_view configure -glomdt    [$model cget -glomdt]
-    $m_view configure -glomid    [$model cget -glomid]
-    $m_view configure -glombuild [$model cget -glombuild]
+    set form [$m_view getFormObj]
+    $form configure -logger             [Configuration::get EventLogger] 
+    $form configure -ring               [$model cget -ringname]
+    $form configure -usensrcs           1
+    $form configure -additionalsources  [expr [$model cget -nsources]-1] 
+    $form configure -forcerun           0
+    $form configure -usechecksum        1
   }
 
   ## @brief Set the values of the model to what are displayed
   #
   method commitViewDataToModel {} {
-    $m_model configure -destring  [$m_view cget -destring]
-    $m_model configure -glomdt    [$m_view cget -glomdt]
-    $m_model configure -glomid    [$m_view cget -glomid]
-    $m_model configure -glombuild [$m_view cget -glombuild]
+    set form [$m_view getFormObj]
+    $m_model configure -logger             [$form cget -logger]
+    $m_model configure -ringname           [$form cget -ring]
+    $m_model configure -usensrcs           [$form cget -usensrcs]
+    
+    $m_model configure -nsources           [expr {[$form cget -additionalsources]+1}]
+    $m_model configure -forcerun           [$form cget -forcerun]
+    $m_model configure -usechecksum        [$form cget -usechecksum] 
   }  
 
   ## @brief Synchronize the model to the view data

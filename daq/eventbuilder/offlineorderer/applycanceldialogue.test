@@ -1,0 +1,134 @@
+
+
+package require tcltest
+
+tcltest::test pkgrequire-0 {Test that I can require the package
+} -body {
+  package require ApplyCancelWidget
+} -result 11.0 -returnCodes 0
+
+tcltest::test constructor-0 {Test for error when missing -widgetname
+} -body {
+  
+  set prsntr [ApplyCancelWidgetPresenter %AUTO%]
+} -returnCodes 1 \
+  -result "Error in constructor: ApplyCancelWidgetPresenter::constructor requires -widgetname option but none provided."
+
+
+
+#tcltest::test selectionChange-0 {Test that a new selection causes a new selection
+#} -setup {
+#  set prsntr [ApplyCancelWidgetPresenter %AUTO% -widgetname .test]
+#} -cleanup {
+#  $prsntr destroy
+#  $prsntr0 destroy
+#  destroy .test
+#} -body {
+#  $prsntr setPresenterMap [dict create fake0 fake1]
+#  $prsntr selectionChange fake0
+#}
+
+
+
+## Define this so that thigns don't break when setting the presenter map
+#
+snit::method ApplyCancelWidgetPresenter changeSelection name { }
+
+######################################################
+#
+# Define a small snit::type that will record the number
+# of times that apply is called
+#
+
+
+snit::type ApplyRecorder {
+  variable m_appliedCount
+
+  constructor {args} {
+    set m_appliedCount 0
+  }
+  
+  destructor {
+  }
+
+  method apply {} {
+    incr m_appliedCount
+  }
+
+  method getCount {} {
+    return $m_appliedCount
+  }
+}
+
+
+  set prsntr0 [ApplyRecorder %AUTO%]
+tcltest::test setPresenterMap-0 {Test that I can add presenters
+} -setup {
+  set prsntr [ApplyCancelWidgetPresenter %AUTO% -widgetname .test]
+} -cleanup {
+  $prsntr destroy
+  destroy .test
+} -body {
+  
+  set mymap [dict create widget0 $::prsntr0 widget1 $::prsntr0]
+  $prsntr setPresenterMap $mymap
+
+  $prsntr getPresenterMap
+} -result "widget0 $::prsntr0 widget1 $::prsntr0" 
+
+
+
+tcltest::test apply-0 {Test that the first presenter gets an apply
+} -setup {
+  set prsntr [ApplyCancelWidgetPresenter %AUTO% -widgetname .test]
+} -cleanup {
+  $prsntr destroy
+  destroy .test
+  $prsntr0 destroy
+  $prsntr1 destroy
+} -body {
+  set prsntr0 [ApplyRecorder %AUTO%]
+  set prsntr1 [ApplyRecorder %AUTO%]
+
+  $prsntr setPresenterMap [dict create w0 $prsntr0 w1 $prsntr1]
+  $prsntr apply
+
+  $prsntr0 getCount
+} -result 1
+
+tcltest::test apply-1 {Test that the second presenter gets an apply
+} -setup {
+  set prsntr [ApplyCancelWidgetPresenter %AUTO% -widgetname .test]
+} -cleanup {
+  $prsntr destroy
+  $prsntr0 destroy
+  $prsntr1 destroy
+  destroy .test
+} -body {
+  set prsntr0 [ApplyRecorder %AUTO%]
+  set prsntr1 [ApplyRecorder %AUTO%]
+
+  $prsntr setPresenterMap [dict create w0 $prsntr0 w1 $prsntr1]
+  $prsntr apply
+
+  $prsntr1 getCount
+} -result 1
+
+tcltest::test apply-2 {Test that the same presenter registered twice gets an apply twice
+} -setup {
+  set prsntr [ApplyCancelWidgetPresenter %AUTO% -widgetname .test]
+} -cleanup {
+  $prsntr destroy
+  $prsntr0 destroy
+  destroy .test
+} -body {
+  set prsntr0 [ApplyRecorder %AUTO%]
+
+  $prsntr setPresenterMap [dict create w0 $prsntr0 w1 $prsntr0]
+  $prsntr apply
+
+  $prsntr0 getCount
+} -result 2
+
+
+tcltest::cleanupTests

@@ -6,14 +6,19 @@ package provide OfflineOrdererUI 11.0
 package require Tk
 package require snit
 package require FileListWidget
-package require eventLogBundle
-package require evbcallouts 
-package require OfflineOrderer
+
 package require OfflineEVBInputPipelineUI
+package require OfflineEVBHoistPipelineUI
+package require OfflineEVBEVBPipelineUI
+package require OfflineEVBOutputPipelineUI
+package require ApplyCancelWidget 
+
 package require OfflineEVBInputPipeline
 package require OfflineEVBHoistPipeline
 package require evbcallouts 
 package require OfflineEVBOutputPipeline 
+
+package require OfflineEVBRunProcessor
 
 proc TabbedOutput {win args} {
 }
@@ -57,21 +62,23 @@ snit::widget OfflineOrdererView {
     grid $win.listFrame  -padx 9 -pady 9 -sticky ew
     grid $win.buttons    -padx 9 -pady 9 -sticky ew
 
-    grid columnconfigure $win 0 -minsize 200 -weight 1
+    grid columnconfigure $win 0 -minsize 400 -weight 1
     grid rowconfigure $win {0 1} -weight 1
 
   }
   
 
   method onRun {} {
-    variable listWidget 
-
-    set fileList [$listWidget cget -filelist]
-    $presenter run $fileList
+    $presenter run
   }
 
   method getPresenter {} {
     return $presenter
+  }
+
+  method getTreeWidget {} {
+    variable listWidget 
+    return $listWidget 
   }
 
 }
@@ -87,65 +94,6 @@ snit::widget OfflineOrdererView {
 
 
 
-
-#}
-
-#########################################################################################
-
-
-snit::widget EVBConfigDialogueView {
-
-  option -ringname     -default "OfflineEVBOut"
-  option -glomdt       -default 1
-  option -glomid       -default 0
-  option -glombuild    -default false
-
-  constructor args {
-
-    $self buildGUI 
-
-  }
-
-  method buildGUI {} {
-
-    set top $win.params
-    ttk::frame $top 
-
-    ttk::label $top.ringLabel -text "Output ring"
-    ttk::entry $top.ringEntry -textvariable [myvar options(-ringname)]
-    ttk::label $top.dtLabel   -text "Correlation range (ticks)"
-    ttk::entry $top.dtEntry -textvariable [myvar options(-glomdt)]
-    ttk::label $top.idLabel   -text "Glom source ID"
-    ttk::entry $top.idEntry -textvariable [myvar options(-glomid)]
-
-    ttk::checkbutton $top.buildCheck -textvariable [myvar options(-glombuild)] \
-                                  -text "Enable building" -onvalue true \
-                                  -offvalue false]
-
-    grid $top.ringLabel $top.ringEntry -padx 9 -pady 9 -sticky ew
-    grid $top.dtLabel   $top.dtEntry   -padx 9 -pady 9 -sticky ew
-    grid $top.idLabel   $top.idEntry   -padx 9 -pady 9 -sticky ew
-    grid $top.buildCheck  -            -padx 9 -pady 9 -sticky ew
-
-    set buttonFrame $win.buttons
-    ttk::frame $buttonFrame 
-    ttk::button $buttonFrame.cancel  -text "Cancel" -command [mymethod onCancel]
-    ttk::button $buttonFrame.apply   -text "Apply"  -command [mymethod onApply]
-    grid $buttonFrame.cancel $buttonFrame.apply -sticky ew -padx 9 -pady 9
-    grid columnconfigure $buttonFrame {0 1 2} -weight 1
-
-
-    grid $win.params  -padx 9 -pady 9 -sticky nsew
-    grid $win.buttons -padx 9 -pady 9 -sticky ew
-  }
-
-  method onCancel {} {
-  }
-
-  method onApply {} {
-  }
-
-}
 
 # -----------------------------------------------------------------
 
@@ -182,16 +130,38 @@ snit::type OfflineOrderer {
     set view $theview
   }
 
-  method run {fileList} { 
-    set processor [OfflineOrdererProcessor %AUTO%]
-    $processor configure -files $fileList
-    $processor configure -inputparams  $options(-inputparams)
-    $processor configure -hoistparams  $options(-hoistparams)
-    $processor configure -evbparams    $options(-evbparams)
-    $processor configure -outputparams $options(-outputparams)
 
+  ## Handles when the run has been constructed
+  #
+  method run {} { 
+
+    set listWidget [$view getTreeWidget] 
+    set jobFiles [$listWidget getJobs]
+    
+    set masterJobList [$self buildJobList $jobFiles]
+
+    set processor [RunProcessor %AUTO% -jobs $masterJobList]
+    puts $masterJobList
     $processor run
   } 
+
+  ##
+  #
+  # @param jobs a dict of key to file list
+  #
+  method buildJobList jobFiles {
+    set masterJobList [dict create]
+
+    foreach job [dict keys $jobFiles] {
+      set files [dict get $jobFiles $job]
+      $options(-inputparams) configure -file $files
+      dict append masterJobList $job [dict create  -inputparams [list $options(-inputparams)] \
+                                      -hoistparams [list $options(-hoistparams)] \
+                                      -evbparams   [list $options(-evbparams)]   \
+                                      -outputparams [list $options(-outputparams)]]
+    }
+    return $masterJobList
+  }
 
   method createDefaultInputParams {} {
     return [OfflineEVBInputPipeParams %AUTO%]
@@ -214,12 +184,14 @@ snit::type OfflineOrderer {
 # ----------------------------------------------------------------------
 
 option add *tearOff 0
+
 menu .menu
 . configure -menu .menu
 
 set m .menu
 menu $m.config
 $m add command -label "Configure..." -command {launchConfigDialogue} 
+
 #$m add cascade -menu $m.config -label "Configure"
 #$m.config add command -label "Input Pipeline..."  -command {launchInputConfigDialogue}
 #$m.config add command -label "Event Builder..."   -command {launchEVBDialogue}
@@ -230,14 +202,29 @@ $m add command -label "Configure..." -command {launchConfigDialogue}
 ## 
 #
 proc launchConfigDialogue {} {
-  toplevel .inconfig
-  global .view 
+  toplevel .config
+#  wm geometry .config 600x400-5+40
+  global .view
   set presenter [.view getPresenter]
-  set dialogue [InputPipelineConfigDialogue .inconfig.dialogue]
-  set diaPresenter [$dialogue getPresenter]
-  $diaPresenter configure -master $presenter
-  $diaPresenter setParameters [$presenter cget -inputparams]
-  grid .inconfig.dialogue -sticky nsew
+  set dialogue [ApplyCancelWidgetPresenter %AUTO% -widgetname .config.dia]
+  
+  set inputPresenter [InputPipeConfigUIPresenter %AUTO% -widgetname .config.dia.in]
+  $inputPresenter setModel [$presenter cget -inputparams]
+  set hoistPresenter [HoistPipeConfigUIPresenter %AUTO% -widgetname .config.dia.hoist]
+  $hoistPresenter setModel [$presenter cget -hoistparams]
+  set evbPresenter [EVBPipeConfigUIPresenter %AUTO% -widgetname .config.dia.evb]
+  $evbPresenter setModel [$presenter cget -evbparams]
+  set outPresenter [OutputPipeConfigUIPresenter %AUTO% -widgetname .config.dia.out]
+  $outPresenter setModel [$presenter cget -outputparams]
+
+  set presenters [dict create "Input Pipeline"  $inputPresenter\
+                          "Hoist Pipeline" $hoistPresenter \
+                          "EVB Pipeline" $evbPresenter \
+                          "Output Pipeline" $outPresenter ]
+  $dialogue setPresenterMap $presenters
+  grid .config.dia -sticky nsew
+  grid rowconfigure .config 0 -weight 1
+  grid columnconfigure .config 0 -weight 1
 
 }
 

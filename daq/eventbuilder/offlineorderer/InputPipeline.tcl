@@ -103,10 +103,13 @@ snit::type OfflineEVBInputPipeline {
 
     set unglomid  [$params cget -unglomid]
     set inputring [$params cget -inputring]
-    set fname     [$params cget -file]
+    set fnames     [$params cget -file]
 
     set daqbin [file join [InstallRoot::Where] bin]
-    set pipeline     "| cat $fname "
+    set pipeline     "| cat "
+    foreach file $fnames {
+      append pipeline "$fnames "
+    }
     append pipeline  "| $daqbin/unglom --id $unglomid "
     append pipeline  "| $daqbin/frag2ring --strip "
     append pipeline  "| $daqbin/stdintoring $inputring "

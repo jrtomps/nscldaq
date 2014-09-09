@@ -6,6 +6,7 @@
 package provide OfflineEVBInputPipelineUI 11.0
 
 package require OfflineEVBInputPipeline
+#package require EventLog 
 package require snit
 package require Tk
 
@@ -87,32 +88,41 @@ snit::widget InputPipeConfigUIView {
     #
     method buildGUI {} {
 
-      ttk::label $win.ringLabel -text "Input ring"
-      ttk::entry $win.ringEntry -textvariable [myvar options(-inputring)]
+      set configFrame $win.config
+      ttk::frame $configFrame
+      ttk::label $configFrame.ringLabel -text "Input ring"
+      ttk::entry $configFrame.ringEntry -textvariable [myvar options(-inputring)]
+#      EventLog::RingBrowser
 
-      ttk::label $win.unglomIDLabel -text "Unglom source ID"
-      ttk::entry $win.unglomIDEntry -textvariable [myvar options(-unglomid)] \
+      ttk::label $configFrame.unglomIDLabel -text "Unglom source ID"
+      ttk::entry $configFrame.unglomIDEntry -textvariable [myvar options(-unglomid)] \
                                     -validate key \
-                                    -validatecommand [mymethod validateUnglomID]
+                                    -validatecommand [mymethod validateUnglomID %P]
+      grid $configFrame.ringLabel     $configFrame.ringEntry     -sticky ew -padx 9 -pady 9
+      grid $configFrame.unglomIDLabel $configFrame.unglomIDEntry -sticky ew -padx 9 -pady 9
 
+      ttk::frame $win.space
 
       set buttonFrame $win.buttons
       ttk::frame $buttonFrame 
       ttk::button $buttonFrame.cancel  -text "Cancel" -command [mymethod onCancel]
       ttk::button $buttonFrame.apply   -text "Apply"  -command [mymethod onApply]
+#      grid $buttonFrame.apply -sticky ew -padx 9 -pady 9
       grid x $buttonFrame.cancel $buttonFrame.apply -sticky ew -padx 9 -pady 9
-      grid columnconfigure $buttonFrame {0 1 2} -weight 1
+#      grid columnconfigure $buttonFrame {0 1 2} -weight 1
 
-      grid $win.ringLabel     $win.ringEntry     -sticky ew -padx 9 -pady 9
-      grid $win.unglomIDLabel $win.unglomIDEntry -sticky ew -padx 9 -pady 9
-      grid $buttonFrame        -                 -sticky ew -padx 9 -pady 9
+      grid $configFrame  -sticky new -padx 9 -pady 9
+      grid $win.space   -sticky nsew -padx 9 -pady 9 
+      grid $buttonFrame -sticky sew -padx 9 -pady 9
 
+      grid rowconfigure $win 1 -weight 1
     }
 
     ## @brief Ensure that the unglom id is actually an integer
     #
-    method validateUnglomID {} {
-      return [expr {![string is integer $options(-unglomid)]}]
+    method validateUnglomID {val} {
+      puts "Validate Unglom ID : $val"
+      return [string is integer $val]
     }
 
     ## @brief Pass this a different presenter object 
@@ -127,6 +137,15 @@ snit::widget InputPipeConfigUIView {
     ## @brief Return the value of $win for gridding the view
     #
     method getWindowName {} {return $win}
+
+    method onApply {} {
+      $m_presenter apply
+    }
+
+
+    method onCancel {} {
+      $m_presenter cancel
+    }
 }
 
 # End of InputPipeConfigUIView code
@@ -232,6 +251,13 @@ snit::type InputPipeConfigUIPresenter {
   #
   method apply {} {
     $self commitViewDataToModel
+  }
+
+  ## @brief Kill the toplevel widget that holds this 
+  #
+  method cancel {} {
+    set top [winfo toplevel [$m_view getWindowName]]
+    destroy $top
   }
 
   ## @brief Retrieve the view
