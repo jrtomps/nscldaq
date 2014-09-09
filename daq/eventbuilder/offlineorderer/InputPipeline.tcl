@@ -15,6 +15,54 @@ snit::type OfflineEVBInputPipeParams {
   constructor {args} {
     $self configurelist $args
   }
+
+
+  method validate {} {
+    
+    set errors [list]
+
+    $self validateFiles errors
+    $self validateiUnglomId errors
+    $self validateInputRing errors
+
+    return $errors
+  }
+
+
+  method validateFiles {errors_} {
+    upvar $errors_ errors
+
+    if {[llength $options(-file)] == 0 } {
+      lappend errors "No input file(s) provided."
+    }
+
+    foreach file $options(-file) {
+      if {![file exists $file]} {
+        lappend errors "$file does not exist."
+      }
+    }
+
+  }
+
+
+  method validateUnglomId {errors_} {
+    upvar $errors_ errors
+
+    if {$options(-unglomid) < 0} {
+      lappend errors "unglom source id option must be greater than or equal to zero. User has provided $options(-unglomid)"
+    }
+
+  }
+
+  method validateInputRing {errors_} {
+    upvar $errors_ errors
+
+    if {! [file exists [file join /dev shm $options(-inputring)]]} {
+      lappend errors "Ring does not exist on localhost. User has provided $options(-inputring)"
+    }
+
+  }
+
 }
 
 

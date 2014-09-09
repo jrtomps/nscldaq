@@ -19,12 +19,23 @@ tcltest::test pkgrequire-0 {Test that I can package require it
 proc findNonExistentRing {} {
   set name a
   set status [catch {ringbuffer usage $name} msg]
-  while {$status!=0} {
+  while {$status==0} {
     append name a
     set status [catch {ringbuffer usage $name} msg]
   }
   return $name
 }
+
+proc findMissingFile {} {
+  set name a
+  while {[file exists $name]} {
+    append name a
+  }
+  return $name
+}
+
+set absentRing [findNonExistentRing]
+set absentFile [findMissingFile]
 
 
 
@@ -152,6 +163,62 @@ tcltest::test validateParameters-4 {Test file doesn't exist param causes failure
     [OfflineEVBInputPipeParams %AUTO% -file /file-does-not-exist -unglomid 0 -inputring "thering"] Context
 } -result "Context : input file \"/file-does-not-exist\" specified for input pipeline but does not exist" -returnCodes 1
 
+
+
+
+tcltest::test validateUnglomID-0 {Test that a negative unglom id appends a message
+} -setup {
+  set params [OfflineEVBInputPipeParams %AUTO%]
+} -cleanup {
+  $params destroy
+} -body {
+  $params configure -unglomid -1
+
+  set errors [list]
+  $params validateUnglomId errors
+
+  set errors
+} -result [list "unglom source id option must be greater than or equal to zero. User has provided -1"]
+
+tcltest::test validateUnglomID-1 {Test that a zero unglom id appends NO message
+} -setup {
+  set params [OfflineEVBInputPipeParams %AUTO%]
+} -cleanup {
+  $params destroy
+} -body {
+  $params configure -unglomid 0
+
+  set errors [list]
+  $params validateUnglomId errors
+  set errors
+} -result "" 
+
+
+tcltest::test validateFiles-0 {Test that an empty list of files appends a message
+} -setup {
+  set params [OfflineEVBInputPipeParams %AUTO%]
+} -cleanup {
+  $params destroy
+} -body {
+  $params configure -file [list] 
+
+  set errors [list]
+  $params validateFiles errors
+  set errors
+} -result [list "No input file(s) provided."] 
+
+tcltest::test validateFiles-1 {Test that a nonexisting file in list appends a message
+} -setup {
+  set params [OfflineEVBInputPipeParams %AUTO%]
+} -cleanup {
+  $params destroy
+} -body {
+  $params configure -file [list $::absentFile] 
+
+  set errors [list]
+  $params validateFiles errors
+  set errors
+} -result [list "$::absentFile does not exist."] 
 
 
 
