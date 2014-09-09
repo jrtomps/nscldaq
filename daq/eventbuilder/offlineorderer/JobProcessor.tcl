@@ -28,6 +28,8 @@ snit::type JobProcessor {
   option -evbparams    -default ""
   option -outputparams -default ""
 
+  option -runprocessor -default ""
+
   variable sourceManager ""
   variable stateMachine  ""
 
@@ -166,6 +168,8 @@ snit::type JobProcessor {
     $stateMachine transition NotReady
 
     $self tearDown 
+
+    $options(-runprocessor) runNext
   }
 
   ## @brief Transition the system into a clean state
