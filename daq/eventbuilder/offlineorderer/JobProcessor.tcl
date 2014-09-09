@@ -3,13 +3,16 @@ package provide OfflineEVBJobProcessor 11.0
 
 package require snit
 package require eventLogBundle
-package require OfflineEVBInputPipeline
-package require evbcallouts
-package require OfflineEVBOutputPipeline
+
 package require DataSourceManager
 package require DataSourceMonitor
+package require EventLogMonitor
+
 package require ExpFileSystem
 package require rdoCalloutsBundle
+package require OfflineEVBOutputPipeline
+package require OfflineEVBInputPipeline
+package require evbcallouts
 
 namespace eval HoistConfig {
   variable tstamplib
@@ -40,18 +43,34 @@ snit::type JobProcessor {
 
   }
 
+  ## @brief Register all of the bundles that we need
+  # and no more
+  #
   method setupStateMachine {} {
+    # rdoCalloutsBundle has already been registered
     ::EVBManager::register
     ::EventLog::register
     ::DataSourceMgr::register
     ::DataSourceMonitor::register
 
+    set ::EventLogMonitor::fdvar  ::EventLog::loggerPid
+    set ::EventLogMonitor::script [list [mymethod stopProcessing]]
+    ::EventLogMonitor::register
   }
 
+  ## @brief return the data source manager known to this
+  #
   method getDataSourceManager {} {
     variable sourceManager
     return $sourceManager
 
+  }
+
+  ## @brief return the state machine known to this
+  #
+  method getRunStateMachine {} {
+    variable stateMachine 
+    return $stateMachine
   }
 
   ## @brief Entry point for the actual processing
@@ -89,40 +108,113 @@ snit::type JobProcessor {
   }
 
   ## @brief Launch pipelines that live for the duration of a file
+  #
+  # This is actually very simple because it merely transitions the
+  # state machine into an Active state and tells the EventLog that 
+  # it is okay for it to exit without an error.
+  #
   method startProcessing {} {
     variable stateMachine
 
-    # Transition the state machine 
-    puts "NotReady -> Starting"
+    # Transition the state machine to Starting (note this schedules
+    # a transition to Active on its own)
     $stateMachine transition Starting
-#    puts "Starting -> Halted"
+
+    # We need to wait for the scheduled transition to succeed
+    # before transitioning to Active because otherwise it will fail
     $self waitForHalted
-#    $stateMachine transition Halted 
-    puts "Halted -> Active"
+
     $stateMachine transition Active 
 
+    # Tell the eventlog that it is okay for it to exit, because that is 
+    # what we expect.
+#    set EventLog::expectingExit 1
+
+    EventLog::runEnding
   }
 
+  ## @brief Iteratively check to see if the state machine has become Halted.
+  #
+  # This polls every 100 ms.
+  #
+  # During each iteration, the window should remain live because of
+  # the update calls.
+  #
   method waitForHalted {} {
     variable stateMachine
 
     set state [$stateMachine getState]
-    puts $state
     while {$state ne "Halted"} {
       after 100 
       update
       set state [$stateMachine getState]
-      puts $state
     }
   }
  
-  ##
+  ## @brief Transition the state machine into a NotReady state
   #
   method stopProcessing {} {
+    puts "stopProcessing"
     variable stateMachine
-    $stateMachine transition Halted
+
+    if {[$stateMachine getState] eq "Active"} {
+      puts "Active -> Halted"
+      $stateMachine transition Halted
+    }
+
+    puts "Halted -> NotReady"
     $stateMachine transition NotReady
+
+    $self tearDown 
   }
+
+  ## @brief Transition the system into a clean state
+  #
+  method tearDown {} {
+
+    puts "clearDataSources"
+    $self clearDataSources
+    
+    puts "tearDownStateMachine"
+    $self tearDownStateMachine
+  }
+
+
+  ## @brief Remove all of the data providers 
+  #
+  # There really should only be one data provider in the
+  # DataSourceManager: Offline. However, we will treat the
+  # scenario that there are lots in case someone down the 
+  # road decides we need more.
+  #
+  method clearDataSources {} {
+    variable sourceManager
+
+    # unload the Offline provider... catch it because it can fail 
+    catch {$sourceManager unload Offline}
+
+    # Remove all of the data sources
+    set sources [$sourceManager sources]
+    foreach source $sources {
+      set id [dict get $source sourceid]
+      $sourceManager removeSource $id
+    }
+
+
+  }
+
+  ## @brief Remove all callout bundles from the state machine
+  #
+  method tearDownStateMachine {} {
+    variable stateMachine
+
+    set bundles [$stateMachine listCalloutBundles]
+    foreach bundle $bundles {
+      $stateMachine removeCalloutBundle $bundle
+    }
+
+  }
+
 
   ## Use the hoist parameters to construct the startEVBSources method
   #
@@ -204,19 +296,6 @@ snit::type JobProcessor {
                                                 ring [$options(-inputparams) cget -inputring] \
                                                 file [$options(-inputparams) cget -file]]
   }
-
-#  ## @brief Create the ringFragmentSource
-#  #
-#  method launchHoistPipeline {} {
-#    
-#    set ringurl   "tcp://localhost/[$options(-hoistparams) cget -sourcering]"
-#    set tstamplib [$options(-hoistparams) cget -tstamplib]
-#    set id        [$options(-hoistparams) cget -id]
-#    set info      [$options(-hoistparams) cget -info]
-#
-#    ::EVBC::startRingSource $ringurl $tstamplib $id $info
-#  }
-
 
 }
 

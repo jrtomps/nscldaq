@@ -73,10 +73,12 @@ namespace eval EVBManager {
   proc enter {from to} {
     if {($from in [list Active Paused]) && ($to eq "Halted")} {
       EVBC::onEnd
+      EVBC::stop
     } 
 
     if {($from in [list Active Paused]) && ($to eq "NotReady")} {
       EVBC::onEnd
+      EVBC::stop
     } 
 
   }

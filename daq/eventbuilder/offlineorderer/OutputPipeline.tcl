@@ -5,6 +5,7 @@ package require snit
 package require InstallRoot 
 package require ring
 package require Configuration
+package require eventLogBundle
 
 snit::type OfflineEVBOutputPipeParams {
   option -ringname     -default "OfflineEVBOut"
@@ -22,6 +23,8 @@ snit::type OfflineEVBOutputPipeParams {
 
 }
 
+# --------------------------------------------------------------
+# Redefine some of the ReadoutGUIPanel information
 
 namespace eval ReadoutGUIPanel {
   variable run
@@ -40,6 +43,11 @@ namespace eval ReadoutGUIPanel {
     return $run 
   }
 
+  proc incrRun {} {
+  }
+
+  proc normalColors {} {}
+
   proc isRecording {} {}
 
   proc getTitle {} {return "Offline run"}
@@ -50,6 +58,11 @@ namespace eval ReadoutGUIPanel {
 
   proc outputText {msg} {puts $msg}
 }
+
+
+# ---------------------------------------------------------------
+
+
 
 # ---------------------------------------------------------------
 

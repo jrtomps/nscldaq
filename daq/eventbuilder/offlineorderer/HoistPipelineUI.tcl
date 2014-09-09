@@ -95,15 +95,17 @@ snit::widget HoistPipeConfigUIView {
     ttk::entry $top.ringEntry -textvariable [myvar options(-sourcering)]
     ttk::label $top.tstampLabel   -text "Timestamp extraction library"
     ttk::entry $top.tstampEntry -textvariable [myvar options(-tstamplib)]
+    ttk::button $top.tstampBrowse -text "Browse..." -command [mymethod _browseTstamp]
     ttk::label $top.idLabel   -text "Source ID"
     ttk::entry $top.idEntry -textvariable [myvar options(-id)]
     ttk::label $top.infoLabel   -text "Source Info"
     ttk::entry $top.infoEntry -textvariable [myvar options(-info)]
 
-    grid $top.ringLabel   $top.ringEntry    -padx 9 -pady 9 -sticky ew
-    grid $top.tstampLabel $top.tstampEntry  -padx 9 -pady 9 -sticky ew
-    grid $top.idLabel     $top.idEntry      -padx 9 -pady 9 -sticky ew
-    grid $top.infoLabel   $top.infoEntry    -padx 9 -pady 9 -sticky ew
+    grid $top.ringLabel   $top.ringEntry   x  -padx 9 -pady 9 -sticky ew
+    grid $top.tstampLabel $top.tstampEntry $top.tstampBrowse \
+                                              -padx 9 -pady 9 -sticky ew
+    grid $top.idLabel     $top.idEntry     x  -padx 9 -pady 9 -sticky ew
+    grid $top.infoLabel   $top.infoEntry   x  -padx 9 -pady 9 -sticky ew
 
     set spaceFrame $win.space
     ttk::frame $spaceFrame
@@ -144,6 +146,19 @@ snit::widget HoistPipeConfigUIView {
 
   method onCancel {} {
     $m_presenter cancel 
+  }
+
+  method _browseTstamp {} {
+    set types {
+      {{Shared libraries} {.so}}
+      {{All files}        {*}}
+    }
+    
+    set file [tk_getOpenFile  -filetypes $types \
+                              -title "Select a timestamp extraction library" \
+                              -initialdir $::env(HOME)]
+
+    $self configure -tstamplib $file
   }
 }
 
