@@ -13,12 +13,20 @@ package require RunstateMachine
 snit::type RunProcessor {
 
   option -jobs 
+  
+  component processor
 
   ## @brief Pass the options
   #
   constructor {args} {
     $self configurelist $args
 
+    set processor [JobProcessor %AUTO% -runprocessor $self]
+
+  }
+
+  destructor {
+    $processor destroy
   }
 
 
@@ -26,22 +34,42 @@ snit::type RunProcessor {
   # 
   # Sets up all the pipelines and then processes all of the files provided
   #
-  method run { } {
+  method run {} {
 
-     foreach job [dict keys $options(-jobs)] {
-        set processor [JobProcessor %AUTO%]
-        set iparams [dict get $options(-jobs) $job -inputparams]
-        if {[catch {set run [$self guessRunNumber [$iparams cget -file]]} msg]} {
-          return -code error "RunProcessor::run failed to identify the run number"
-        }
-        ReadoutGUIPanel::setRun $run 
-        $processor configure -inputparams $iparams 
-        $processor configure -hoistparams [dict get $options(-jobs) $job -hoistparams]
-        $processor configure -evbparams   [dict get $options(-jobs) $job -evbparams]
-        $processor configure -outputparams [dict get $options(-jobs) $job -outputparams]
+    $self runNext
 
-        $processor run
-     }
+  }
+
+  method runNext {} {
+
+    # get the list of jobs
+    set jobs [dict keys $options(-jobs)]
+
+    # if we have a job still, then configure it and fire it off
+    if {[llength $jobs]>0} {
+
+      # get the first job name
+      set job [lindex $jobs 0]
+
+
+      # copy the job 
+      set iparams [dict get $options(-jobs) $job -inputparams]
+      if {[catch {set run [$self guessRunNumber [$iparams cget -file]]} msg]} {
+        return -code error "RunProcessor::run failed to identify the run number"
+      }
+      ReadoutGUIPanel::setRun $run 
+      puts "$job , run $run"
+      $processor configure -inputparams $iparams 
+      $processor configure -hoistparams [dict get $options(-jobs) $job -hoistparams]
+      $processor configure -evbparams   [dict get $options(-jobs) $job -evbparams]
+      $processor configure -outputparams [dict get $options(-jobs) $job -outputparams]
+
+      # launch this thing
+      $processor run
+
+      # remove the current processing job
+      set options(-jobs) [dict remove $options(-jobs) $job]
+    }
   }
 
   method guessRunNumber {files} {
@@ -56,6 +84,7 @@ snit::type RunProcessor {
       return -code error "RunProcessor::guessRunNumber unable to parse run number from file list"
     }
   }
+
 }
 
 
