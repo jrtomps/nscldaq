@@ -18,12 +18,24 @@ set daqbin [file join [InstallRoot::Where] bin]
 proc findNonExistentRing {} {
   set name a
   set status [catch {ringbuffer usage $name} msg]
-  while {$status!=0} {
+  while {$status==0} {
     append name a
     set status [catch {ringbuffer usage $name} msg]
   }
   return $name
 }
+
+proc findMissingFile {} {
+  set name a
+  while {[file exists $name]} {
+    append name a
+  }
+  return $name
+}
+
+set absentRing [findNonExistentRing]
+set absentFile [findMissingFile]
+
 
 
 
@@ -107,6 +119,77 @@ tcltest::test getsetRunning-0 {Test that pipeline running parameter can be set a
 #  $pipeline launch $params
 #  expr {[string length [ringbuffer usage $ringname]] > 0}
 #} -result {}
+
+
+
+
+tcltest::test  validateRing-0 {Test that a nonexistent ring appends a message
+} -setup {
+  set params [OfflineEVBOutputPipeParams %AUTO%]
+} -cleanup {
+  $params destroy
+} -body {
+  $params configure -ringname $::absentRing
+
+  set errors [list]
+  $params validateRing errors
+  set errors
+} -result [list "Ring \"$::absentRing\" does not exist on localhost."]
+
+
+tcltest::test  validatePrefix-0 {Test that the prefix "" appends a message
+} -setup {
+  set params [OfflineEVBOutputPipeParams %AUTO%]
+} -cleanup {
+  $params destroy
+} -body {
+  $params configure -prefix ""
+
+  set errors [list]
+  $params validatePrefix errors
+  set errors
+} -result [list "Run file prefix must be a string of nonzero length."]
+
+
+tcltest::test  validateStagearea-0 {Test that a nonexist stagearea appends a message
+} -setup {
+  set params [OfflineEVBOutputPipeParams %AUTO%]
+} -cleanup {
+  $params destroy
+} -body {
+  $params configure -stagearea $::absentFile
+
+  set errors [list]
+  $params validateStagearea errors
+  set errors
+} -result [list "Stagearea must be a directory that exists."]
+
+
+tcltest::test  validateNSources-0 {Test that negative nsources appends a message
+} -setup {
+  set params [OfflineEVBOutputPipeParams %AUTO%]
+} -cleanup {
+  $params destroy
+} -body {
+  $params configure -nsources -1
+
+  set errors [list]
+  $params validateNSources errors
+  set errors
+} -result [list "Number of sources for eventlog must be greater than or equal zero."]
+
+tcltest::test  validateLogger-0 {Test that bad eventlog path appends a message
+} -setup {
+  set params [OfflineEVBOutputPipeParams %AUTO%]
+} -cleanup {
+  $params destroy
+} -body {
+  $params configure -logger $::absentFile
+
+  set errors [list]
+  $params validateLogger errors
+  set errors
+} -result [list "No eventlog program exists at \"$::absentFile\""]
 
 
 

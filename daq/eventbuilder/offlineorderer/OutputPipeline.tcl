@@ -21,6 +21,53 @@ snit::type OfflineEVBOutputPipeParams {
     $self configurelist $args   
   }
 
+
+  method validate {} {
+    set errors [list]
+    $self validateRing errors
+    $self validatePrefix errors
+    $self validateStagearea errors
+    $self validateNSources errors
+    $self validateLogger errors
+
+    return $errors 
+  }
+
+  method validateRing {errors_} {
+    upvar $errors_ errors
+    if {![file exists [file join /dev shm $options(-ringname)]]} {
+      lappend errors "Ring \"$options(-ringname)\" does not exist on localhost." 
+    }
+  }
+
+  method validatePrefix {errors_} {
+    upvar $errors_ errors
+      if {$options(-prefix) eq ""} {
+      lappend errors "Run file prefix must be a string of nonzero length."
+    }
+  }
+
+  method validateStagearea {errors_} {
+    upvar $errors_ errors
+    if {![file exists $options(-stagearea)]} {
+      lappend errors "Stagearea must be a directory that exists."
+    }
+  }
+
+  method validateNSources {errors_} {
+    upvar $errors_ errors
+    if {$options(-nsources) < 0} {
+      lappend errors "Number of sources for eventlog must be greater than or equal zero."
+    }
+  }
+
+  method validateLogger {errors_} {
+    upvar $errors_ errors
+    if {![file exists $options(-logger)]} {
+      lappend errors "No eventlog program exists at \"$options(-logger)\""
+    }
+  }
+
 }
 
 # --------------------------------------------------------------
