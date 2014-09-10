@@ -35,8 +35,23 @@ snit::type OfflineEVBOutputPipeParams {
 
   method validateRing {errors_} {
     upvar $errors_ errors
-    if {![file exists [file join /dev shm $options(-ringname)]]} {
-      lappend errors "Ring \"$options(-ringname)\" does not exist on localhost." 
+    set pattern {^(\w+://)([/]*[\w\.]+)(/[\w\.]+)*$}
+    if {[regexp $pattern $options(-ringname) match proto host ring]} {
+      puts "match    = $match"
+      puts "protocol = $proto"
+      puts "host     = $host"
+      puts "ring     = $ring"
+
+      if {![info exists ring]} {
+        lappend errors "Ring name not specified as a valid proto://host/ring"
+      }
+
+      set ring [string trimleft $ring "/"]
+      if {![file exists [file join /dev shm $ring]]} {
+        lappend errors "Ring \"$ring\" does not exist on localhost." 
+      }
+    } else {
+      lappend errors "Ring name \"$options(-ringname)\" is not formed as proto://host/ring"
     }
   }
 

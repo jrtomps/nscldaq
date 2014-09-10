@@ -129,13 +129,25 @@ tcltest::test  validateRing-0 {Test that a nonexistent ring appends a message
 } -cleanup {
   $params destroy
 } -body {
-  $params configure -ringname $::absentRing
+  $params configure -ringname "tcp://localhost/$::absentRing"
 
   set errors [list]
   $params validateRing errors
   set errors
 } -result [list "Ring \"$::absentRing\" does not exist on localhost."]
 
+tcltest::test  validateRing-1 {Test that a bad ring specifier appends a message
+} -setup {
+  set params [OfflineEVBOutputPipeParams %AUTO%]
+} -cleanup {
+  $params destroy
+} -body {
+  $params configure -ringname "tcp:://localhost/$::absentRing"
+
+  set errors [list]
+  $params validateRing errors
+  set errors
+} -result [list "Ring name \"tcp:://localhost/$::absentRing\" is not formed as proto://host/ring"]
 
 tcltest::test  validatePrefix-0 {Test that the prefix "" appends a message
 } -setup {
