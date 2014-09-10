@@ -22,7 +22,7 @@ snit::type OfflineEVBInputPipeParams {
     set errors [list]
 
     $self validateFiles errors
-    $self validateiUnglomId errors
+    $self validateUnglomId errors
     $self validateInputRing errors
 
     return $errors
