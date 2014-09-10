@@ -78,6 +78,7 @@ snit::type EVBC::StartOptions {
     option -teering
     option -glombuild false
     option -glomdt 1
+    option -glomid 0
     option -glomtspolicy -configuremethod checkTsPolicy -default earliest
     option -destring $::tcl_platform(user)
     
