@@ -28,6 +28,7 @@
 #include <errno.h>
 
 #include <io.h>
+#include <iostream>
 
 #include <string>
 
@@ -64,8 +65,11 @@ CFragReader::operator()()
 
   size_t fragmentSize = sizeof(header) + header.s_size;
   uint8_t* pResult = reinterpret_cast<uint8_t*>(malloc(fragmentSize));
+  if (pResult==0) {
+    throw std::string("CFragReader:::operator()() Failed to allocate requested memory");
+  }
   memcpy(pResult, &header, sizeof(header));
-  uint8_t* pBody = pResult + header.s_size;
+  uint8_t* pBody = pResult + sizeof(header);
 
   // Read the body and return the result:
 
@@ -87,8 +91,12 @@ CFragReader::operator()()
 void
 CFragReader::Read(size_t nBytes, void* pBuffer)
 {
+  int bytes=0;
   try {
-    io::readData(m_fd, pBuffer, nBytes);
+    bytes = io::readData(m_fd, pBuffer, nBytes);
+    if (bytes==0) {
+      throw 0;
+    }
   }
   catch (int e) {
     if (e == 0) {

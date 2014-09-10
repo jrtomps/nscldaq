@@ -38,6 +38,25 @@
 
 #include <string>
 #include <iostream>
+#include <iomanip>
+
+
+
+/**
+  * Print the usage information to the screen.
+  */
+void printUsage() {
+
+  std::cout << "This is the frag2ring conversion utility for converting " << std::endl;
+  std::cout << "EVB::fragment structures into NSCLDAQ ring items.               \n" << std::endl;  
+  std::cout << "frag2ring [options]                                               " << std::endl;  
+  std::cout << "                                                                  " << std::endl;  
+  std::cout << "Options:                                                          " << std::endl;  
+  std::cout << "   -s,--strip  Strip fragment headers rather than converting" << std::endl;
+  std::cout << "               them into EVB_FRAGMENT items, which is the default." << std::endl;
+  std::cout << "   -h,--help   Print this message" << std::endl;
+}
+
 /**
  * main
  *
@@ -48,14 +67,30 @@
  *  std::string messages signify abnormal completion with the string put out on
  *  stderr prior to exit with failure status.
  *
- * @parm argc - ignored
- * @param argv - ignored.
+ * @parm argc - number of command line args 
+ * @param argv - parsed for either --help,-h or --strip,-s  
  */
-
 int main(int argc, const char** argv)
 {
+  bool stripHeaders = false;
+
+  // Parse the cmdline args
+  if (argc != 1) {
+    for (int index=1; index<argc; ++index) {
+      std::string param(argv[index]);
+      
+      if ((param == "--strip") || (param == "-s")) {
+         stripHeaders = true; 
+      } else if ((param == "--help") || (param == "-h" )) {
+        printUsage();
+        exit(0);
+      }
+      // otherwise just ignore the params
+    }
+  }
+
   CFragReader reader(STDIN_FILENO);
-  CFragWriter writer(STDOUT_FILENO);
+  CFragWriter writer(STDOUT_FILENO, stripHeaders);
 
   try {
     while(1) {
