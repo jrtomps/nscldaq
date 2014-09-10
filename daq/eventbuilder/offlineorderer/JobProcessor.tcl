@@ -169,7 +169,7 @@ snit::type JobProcessor {
 
     $self tearDown 
 
-    $options(-runprocessor) runNext
+    after 1000 [list $options(-runprocessor) runNext]
   }
 
   ## @brief Transition the system into a clean state
