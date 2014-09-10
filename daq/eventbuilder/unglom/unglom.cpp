@@ -230,11 +230,30 @@ static void writeNonPhysicsItem(CRingItem* pItem)
 
   pRingItem pRItem = pItem->getItemPointer();
 
+  // Provide initial values
   EVB::FragmentHeader hdr;
   hdr.s_timestamp = NULL_TIMESTAMP;
   hdr.s_sourceId  = sourceId;
   hdr.s_size      = pRItem->s_header.s_size;
-  hdr.s_barrier   = pRItem->s_header.s_type;
+  uint32_t type=pRItem->s_header.s_type;
+
+  // at the moment we assume that only state change items are barriers
+  if (    type == BEGIN_RUN || type == END_RUN 
+          || type == PAUSE_RUN || type==RESUME_RUN ) { 
+    hdr.s_barrier   = pRItem->s_header.s_type;
+  } else {
+    // all non-state change items are not barriers
+    hdr.s_barrier   = 0;
+  }
+
+  // if the ring item has a body header, override the 
+  // values in the fragment header with the values 
+  // in the body header 
+  if (pItem->hasBodyHeader()) {
+    hdr.s_timestamp = pItem->getEventTimestamp();
+    hdr.s_sourceId  = pItem->getSourceId();
+    hdr.s_barrier   = pItem->getBarrierType();
+  }
 
   EVB::pFragment p = allocateFragment(&hdr);
   memcpy(p->s_pBody, pRItem, pRItem->s_header.s_size);
