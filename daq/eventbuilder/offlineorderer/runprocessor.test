@@ -1,0 +1,30 @@
+
+package require tcltest
+
+
+tcltest::test pkgrequire-0 {Test that we can require the OfflineEVBRunProcessor 
+} -body {
+  package require OfflineEVBRunProcessor 
+} -result 11.0
+
+tcltest::test guessRunNumber-0 {Test that a run file name can be parsed for the 
+run number
+} -setup {
+  set processor [RunProcessor %AUTO%]
+} -cleanup {
+  $processor destroy
+} -body {
+  $processor guessRunNumber [list run-0047-00.evt run-0047-01.evt]
+} -result 47
+
+tcltest::test guessRunNumber-1 {Test that a run file name can be parsed for the 
+run number even if it is the absolute path
+} -setup {
+  set processor [RunProcessor %AUTO%]
+} -cleanup {
+  $processor destroy
+} -body {
+  $processor guessRunNumber [list /path/to/my/file/run-0047-00.evt]
+} -result 47
+
+tcltest::cleanupTests
