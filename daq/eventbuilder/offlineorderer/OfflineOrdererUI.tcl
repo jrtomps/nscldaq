@@ -12,6 +12,7 @@ package require OfflineEVBHoistPipelineUI
 package require OfflineEVBEVBPipelineUI
 package require OfflineEVBOutputPipelineUI
 package require ApplyCancelWidget 
+package require ConfigErrorUI 
 
 package require OfflineEVBInputPipeline
 package require OfflineEVBHoistPipeline
@@ -108,6 +109,7 @@ snit::type OfflineOrderer {
   variable currentFile    ""
   
   component view
+  component runProcessor 
 
   constructor {args} {
     # set up the defaults
@@ -118,12 +120,16 @@ snit::type OfflineOrderer {
                                                         -destring OfflineEVBOut]   ;# This is an EVBC::AppOptions
     $self configure -outputparams [$self createDefaultOutputParams]
 
+    # create the run processor
+    set runProcessor [RunProcessor %AUTO%]
+
     # allow the user to override the defaults
     $self configurelist $args
   }
 
   destructor {
     destroy $view
+    $runProcessor $view
   }
 
   method setView {theview} {
@@ -140,14 +146,14 @@ snit::type OfflineOrderer {
     
     set masterJobList [$self buildJobList $jobFiles]
 
-
-    set processor [RunProcessor %AUTO% -jobs $masterJobList]
     set errors [$self validateJobOptions $masterJobList]
     if {[dict size $errors]==0} {
-      $processor run
+      $runProcessor configure -jobs $masterJobList
+      $runProcessor run
     } else {
-      tk_messageBox -icon error -message "$errors"
+      $self displayErrorGUI $errors
     }
+
   } 
 
   ##
@@ -168,6 +174,22 @@ snit::type OfflineOrderer {
     }
 
     return $masterJobList
+  }
+
+  method displayErrorGUI {errors} {
+    toplevel .configerr
+    set msg "Some improper configuration parameters we detected!\n"
+    append msg "Please fix the errors categorized below in the tree."
+    ttk::label .configerr.msg -text $msg
+
+    set pres [ConfigErrorPresenter %AUTO% -widgetname .configerr.form]
+    $pres setModel $errors 
+
+    grid .configerr.msg -sticky nsew -padx 9 -pady 9
+    grid .configerr.form -sticky nsew -padx 9 -pady 9
+    grid rowconfigure .configerr 0 -weight 1
+    grid columnconfigure .configerr 0 -weight 1
+    wm title .configerr "Configuration Errors"
   }
 
   method createDefaultInputParams {} {
