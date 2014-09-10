@@ -55,7 +55,7 @@ snit::widget ApplyCancelWidgetView {
     
 
 
-    grid $selFrame $m_configFrame -padx 9 -pady 9
+    grid $selFrame $m_configFrame -padx 9 -pady 9 -sticky nsew
 #    grid     x       $win.buttons    -padx 9 -pady 9
 
 
