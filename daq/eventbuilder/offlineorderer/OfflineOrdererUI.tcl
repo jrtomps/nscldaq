@@ -140,9 +140,14 @@ snit::type OfflineOrderer {
     
     set masterJobList [$self buildJobList $jobFiles]
 
+
     set processor [RunProcessor %AUTO% -jobs $masterJobList]
-    puts $masterJobList
-    $processor run
+    set errors [$self validateJobOptions $masterJobList]
+    if {[dict size $errors]==0} {
+      $processor run
+    } else {
+      tk_messageBox -icon error -message "$errors"
+    }
   } 
 
   ##
@@ -159,7 +164,9 @@ snit::type OfflineOrderer {
                                       -hoistparams [list $options(-hoistparams)] \
                                       -evbparams   [list $options(-evbparams)]   \
                                       -outputparams [list $options(-outputparams)]]
+
     }
+
     return $masterJobList
   }
 
@@ -178,6 +185,40 @@ snit::type OfflineOrderer {
   method createDefaultOutputParams {} {
     return [OfflineEVBOutputPipeParams %AUTO%]
   }
+
+
+  method validateJobOptions joblist {
+
+    set errDict [dict create]
+
+    dict for {job config} $joblist {
+      set jobErrDict   [dict create]
+      set inputErrors  [[dict get $config -inputparams] validate]
+      set hoistErrors  [[dict get $config -hoistparams] validate]
+#      set evbErrors    [[dict get $config -evbparams] validate]
+      set outputErrors [[dict get $config -outputparams] validate]
+
+      if {[llength $inputErrors]!=0} {
+         dict set jobErrDict -inputparams $inputErrors
+      }
+      if {[llength $hoistErrors]!=0} {
+         dict set jobErrDict -hoistparams $hoistErrors
+      }
+#      if {[llength $evbErrors]!=0} {
+#         dict set jobErrDict -evbparams $evbErrors
+#      }
+      if {[llength $outputErrors]!=0} {
+         dict set jobErrDict -outputparams $outputErrors
+      }
+      if {[dict size $jobErrDict]>0} {
+        dict set errDict $job $jobErrDict
+      }
+    }
+
+    return $errDict
+
+  }
+
 
 } ;# end of OfflineOrderer
 
