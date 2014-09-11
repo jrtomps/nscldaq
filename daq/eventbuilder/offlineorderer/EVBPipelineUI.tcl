@@ -54,6 +54,8 @@ snit::widget EVBPipeConfigUIView {
   option -glomid       -default 0
   option -glombuild    -default false
 
+  option -showbuttons  -default 1
+
   component m_presenter
 
 
@@ -122,7 +124,9 @@ snit::widget EVBPipeConfigUIView {
 
     grid $win.params  -padx 9 -pady 9 -sticky new
     grid $spaceFrame  -padx 9 -pady 9 -sticky nsew
-    grid $win.buttons -padx 9 -pady 9 -sticky ew
+    if {$options(-showbuttons)} {
+      grid $win.buttons -padx 9 -pady 9 -sticky sew
+    }
     grid rowconfigure $win 1 -weight 1
   }
 
@@ -168,6 +172,7 @@ snit::widget EVBPipeConfigUIView {
 snit::type EVBPipeConfigUIPresenter {
 
   option -widgetname -default ""
+  option -ismaster     -default 1
 
   component m_model     ;#< The model : OfflineEVBInputPipeParams
   component m_view      ;#< The view, owned by this
@@ -197,7 +202,11 @@ snit::type EVBPipeConfigUIPresenter {
     set m_model [EVBC::AppOptions %AUTO%]
 
     # Create the view and pass it the values of the model
-    set m_view   [EVBPipeConfigUIView $options(-widgetname) $self] 
+    if {$options(-ismaster)} {
+      set m_view   [EVBPipeConfigUIView $options(-widgetname) $self -showbuttons 1] 
+    } else {
+      set m_view   [EVBPipeConfigUIView $options(-widgetname) $self -showbuttons 0] 
+    }
     $m_view setPresenter $self
     $self updateViewData $m_model
 
@@ -262,9 +271,11 @@ snit::type EVBPipeConfigUIPresenter {
   ## @brief Kill off the top level widget 
   #
   method cancel {} {
-    set widget [$m_view getWindowName]
-    set top [winfo toplevel $widget]
-    destroy $top
+    if {$options(-ismaster)} {
+      set widget [$m_view getWindowName]
+      set top [winfo toplevel $widget]
+      destroy $top
+    }
   }
 
   ## @brief Retrieve the view

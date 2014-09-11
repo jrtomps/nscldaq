@@ -49,10 +49,12 @@ package require Tk
 #
 snit::widget HoistPipeConfigUIView {
 
-  option -sourcering     -default "OfflineEVBIn"
-  option -tstamplib      -default "" 
-  option -id             -default 0
-  option -info           -default "Data from OfflineEVBIn" 
+  option -sourcering      -default "OfflineEVBIn"
+  option -tstamplib       -default "" 
+  option -id              -default 0
+  option -info            -default "Data from OfflineEVBIn" 
+
+  option -showbuttons     -default 1
 
   component m_presenter
 
@@ -115,14 +117,17 @@ snit::widget HoistPipeConfigUIView {
     ttk::button $buttonFrame.cancel  -text "Cancel" -command [mymethod onCancel]
     ttk::button $buttonFrame.apply   -text "Apply"  -command [mymethod onApply]
     grid $buttonFrame.cancel $buttonFrame.apply -sticky ew -padx 9 -pady 9
-#    grid $buttonFrame.apply -sticky ew -padx 9 -pady 9
     grid columnconfigure $buttonFrame {0 1 2} -weight 1
 
 
     grid $win.params  -padx 9 -pady 9 -sticky new
     grid $spaceFrame  -padx 9 -pady 9 -sticky nsew
-    grid $win.buttons -padx 9 -pady 9 -sticky ew
-    grid rowconfigure $win 1 -weight 1
+
+    if {$options(-showbuttons)} {
+      grid $win.buttons -padx 9 -pady 9 -sticky sew
+    }
+    grid rowconfigure    $win 1 -weight 1
+    grid columnconfigure $win 0 -weight 1
   }
 
 
@@ -180,6 +185,7 @@ snit::widget HoistPipeConfigUIView {
 snit::type HoistPipeConfigUIPresenter {
 
   option -widgetname -default ""
+  option -ismaster   -default 0
 
   component m_model     ;#< The model : OfflineEVBHoistPipeParams
   component m_view      ;#< The view, owned by this
@@ -209,7 +215,11 @@ snit::type HoistPipeConfigUIPresenter {
     set m_model [OfflineEVBHoistPipeParams %AUTO%]
 
     # Create the view and pass it the values of the model
-    set m_view   [HoistPipeConfigUIView $options(-widgetname) $self] 
+    if {$options(-ismaster) eq ""} {
+      set m_view   [HoistPipeConfigUIView $options(-widgetname) $self -showbuttons 1] 
+    } else {
+      set m_view   [HoistPipeConfigUIView $options(-widgetname) $self -showbuttons 0] 
+    }
     $m_view setPresenter $self
     $self updateViewData $m_model
 
@@ -268,15 +278,20 @@ snit::type HoistPipeConfigUIPresenter {
   # values and is ready to apply the changes.
   #
   method apply {} {
+
     $self commitViewDataToModel
   }
 
   ## @brief Kill off the top level widget 
   #
   method cancel {} {
-    set widget [$m_view getWindowName]
-    set top [winfo toplevel $widget]
-    destroy $top
+
+    if {$options(-ismaster)} {
+      set widget [$m_view getWindowName]
+      set top [winfo toplevel $widget]
+      destroy $top
+
+    }
   }
 
   ## @brief Retrieve the view

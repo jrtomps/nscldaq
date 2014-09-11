@@ -9,6 +9,7 @@ package require Tk
 snit::widget ApplyCancelWidgetView {
 
   option -confignames -default [list] 
+  option -showbuttons -default 1
 
   component m_presenter
   component m_combo
@@ -28,21 +29,23 @@ snit::widget ApplyCancelWidgetView {
   destructor {
   }
 
+  ## @brief Assemble the megawidget 
+  #
   method buildGUI {} {
     variable m_current
 
-#    set top $win.buttons
-#    ttk::frame $top
-#    set m_apply $top.apply
-#    set m_cancel $top.cancel
-#    ttk::button $m_apply -text Apply -command [mymethod onApply] 
-#    ttk::button $m_cancel -text Cancel -command [mymethod onCancel] 
-#    grid $m_cancel -padx 9 -pady 9 -sticky ew
-#    grid $m_cancel $m_apply -padx 9 -pady 9 -sticky ew
-#    grid columnconfigure $top {0 1} -weight 1
+    # build the button box
+    set top $win.buttons
+    ttk::frame $top
+    set m_apply $top.apply
+    set m_cancel $top.cancel
+    ttk::button $m_apply -text Apply -command [mymethod onApply] 
+    ttk::button $m_cancel -text Cancel -command [mymethod onCancel] 
+    grid $m_cancel $m_apply -padx 9 -pady 9 -sticky e
+    grid columnconfigure $top {0 1} -weight 1
 
     set m_configFrame $win.m_configFrame
-    ttk::frame $m_configFrame
+    ttk::frame $m_configFrame -borderwidth 1
 
     set selFrame $win.select
     ttk::frame $selFrame
@@ -54,14 +57,13 @@ snit::widget ApplyCancelWidgetView {
     grid rowconfigure $selFrame 0 -weight 1
     
 
-
     grid $selFrame $m_configFrame -padx 9 -pady 9 -sticky nsew
-#    grid     x       $win.buttons    -padx 9 -pady 9
-
+    if {$options(-showbuttons)} {
+      grid     x       $win.buttons    -padx 9 -pady 9
+    }
 
     grid rowconfigure $win 0 -weight 1
     grid columnconfigure $win {1} -weight 1
-
   }
 
 
@@ -91,14 +93,11 @@ snit::widget ApplyCancelWidgetView {
   }
 
   method setNameList {newList} {
-#    $self configure -confignames $newList
-#    $m_combo configure -values $options(-confignames) 
     $m_combo delete [$m_combo children {}]
     foreach name $newList {
       $m_combo insert {} end -id "$name" -text $name 
     }
 
-    puts [lindex $newList 0]
     $m_combo selection set [list [lindex $newList 0]]
   }
 
@@ -111,6 +110,7 @@ snit::widget ApplyCancelWidgetView {
 snit::type ApplyCancelWidgetPresenter {
 
   option -widgetname -default "" 
+  option -ismaster   -default 0
 
   component m_view
   component m_presenterMap
@@ -127,7 +127,14 @@ snit::type ApplyCancelWidgetPresenter {
       return -code error $msg
     }
 
-    set m_view [ApplyCancelWidgetView $options(-widgetname) $self]
+    # if this is the not the master presenter, then we defer the control of what to
+    # do to the widgets themselves 
+    if {$options(-ismaster) == 1} {
+      set m_view [ApplyCancelWidgetView $options(-widgetname) $self -showbuttons 1]
+    } else {
+      set m_view [ApplyCancelWidgetView $options(-widgetname) $self -showbuttons 0]
+    }
+
   }
 
   destructor {
@@ -135,12 +142,18 @@ snit::type ApplyCancelWidgetPresenter {
   }
 
   method apply {} {
-    dict for {key value} $m_presenterMap {
-      $value apply
+    if {$options(-ismaster)} {
+      dict for {key value} $m_presenterMap {
+        $value apply
+      }
     }
   }
 
   method cancel {} {
+    if {$options(-ismaster)} {
+      set top [winfo toplevel [$m_view getWindowName]]
+      destroy $top
+    }
   }
 
 

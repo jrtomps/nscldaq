@@ -53,6 +53,8 @@ snit::widget InputPipeConfigUIView {
     option -inputring   -default "OfflineEVBIn"
     option -unglomid    -default 0 
 
+    option -showbuttons -default 1
+
     component m_presenter
     
     
@@ -107,13 +109,15 @@ snit::widget InputPipeConfigUIView {
       ttk::frame $buttonFrame 
       ttk::button $buttonFrame.cancel  -text "Cancel" -command [mymethod onCancel]
       ttk::button $buttonFrame.apply   -text "Apply"  -command [mymethod onApply]
-#      grid $buttonFrame.apply -sticky ew -padx 9 -pady 9
       grid x $buttonFrame.cancel $buttonFrame.apply -sticky ew -padx 9 -pady 9
 #      grid columnconfigure $buttonFrame {0 1 2} -weight 1
 
       grid $configFrame  -sticky new -padx 9 -pady 9
-      grid $win.space   -sticky nsew -padx 9 -pady 9 
-      grid $buttonFrame -sticky sew -padx 9 -pady 9
+      grid $win.space    -sticky nsew -padx 9 -pady 9 
+
+      if {$options(-showbuttons)} {
+        grid $buttonFrame -sticky sew -padx 9 -pady 9
+      }
 
       grid rowconfigure $win 1 -weight 1
     }
@@ -166,6 +170,7 @@ snit::widget InputPipeConfigUIView {
 snit::type InputPipeConfigUIPresenter {
 
   option -widgetname -default ""
+  option -ismaster   -default 1
 
   component m_model     ;#< The model : OfflineEVBInputPipeParams
   component m_view      ;#< The view, owned by this
@@ -195,7 +200,11 @@ snit::type InputPipeConfigUIPresenter {
     set m_model [OfflineEVBInputPipeParams %AUTO%]
 
     # Create the view and pass it the values of the model
-    set m_view   [InputPipeConfigUIView $options(-widgetname) $self] 
+    if {$options(-ismaster)} {
+      set m_view   [InputPipeConfigUIView $options(-widgetname) $self -showbuttons 1] 
+    } else {
+      set m_view   [InputPipeConfigUIView $options(-widgetname) $self -showbuttons 0] 
+    }
     $m_view setPresenter $self
     $self updateViewData $m_model
 
@@ -256,8 +265,10 @@ snit::type InputPipeConfigUIPresenter {
   ## @brief Kill the toplevel widget that holds this 
   #
   method cancel {} {
-    set top [winfo toplevel [$m_view getWindowName]]
-    destroy $top
+    if {$options(-ismaster)} {
+      set top [winfo toplevel [$m_view getWindowName]]
+      destroy $top
+    }
   }
 
   ## @brief Retrieve the view

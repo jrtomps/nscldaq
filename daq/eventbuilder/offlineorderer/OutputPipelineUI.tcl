@@ -50,6 +50,8 @@ package require Tk
 #
 snit::widget OutputPipeConfigUIView {
 
+  option -showbuttons 1
+
   component m_presenter
 
   variable m_form
@@ -65,7 +67,7 @@ snit::widget OutputPipeConfigUIView {
 
     set m_presenter $presenter
 
-#    $self configurelist $args 
+    $self configurelist $args 
 
     # build the gui
     $self buildGUI    
@@ -104,7 +106,10 @@ snit::widget OutputPipeConfigUIView {
 
     grid $m_form  -padx 9 -pady 9 -sticky new
     grid $spaceFrame  -padx 9 -pady 9 -sticky nsew
-    grid $win.buttons -padx 9 -pady 9 -sticky ew
+
+    if {$options(-showbuttons)} {
+      grid $win.buttons -padx 9 -pady 9 -sticky sew
+    }
     grid rowconfigure $win 1 -weight 1
   }
 
@@ -156,6 +161,7 @@ snit::widget OutputPipeConfigUIView {
 snit::type OutputPipeConfigUIPresenter {
 
   option -widgetname -default ""
+  option -ismaster   -default 1
 
   component m_model     ;#< The model : OfflineEVBOutputPipeParams
   component m_view      ;#< The view, owned by this
@@ -185,7 +191,11 @@ snit::type OutputPipeConfigUIPresenter {
     set m_model [OfflineEVBOutputPipeParams %AUTO%]
 
     # Create the view and pass it the values of the model
-    set m_view   [OutputPipeConfigUIView $options(-widgetname) $self] 
+    if {$options(-ismaster)} {
+      set m_view   [OutputPipeConfigUIView $options(-widgetname) $self -showbuttons 1] 
+    } else {
+      set m_view   [OutputPipeConfigUIView $options(-widgetname) $self -showbuttons 0] 
+    }
     $m_view setPresenter $self
     $self updateViewData $m_model
 
@@ -257,9 +267,11 @@ snit::type OutputPipeConfigUIPresenter {
   ## @brief Kill off the top level widget 
   #
   method cancel {} {
-    set widget [$m_view getWindowName]
-    set top [winfo toplevel $widget]
-    destroy $top
+    if {$options(-ismaster)} {
+      set widget [$m_view getWindowName]
+      set top [winfo toplevel $widget]
+      destroy $top
+    } 
   }
 
   ## @brief Retrieve the view
