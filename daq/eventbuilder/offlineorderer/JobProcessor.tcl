@@ -7,6 +7,7 @@ package require eventLogBundle
 package require DataSourceManager
 package require DataSourceMonitor
 package require EventLogMonitor
+package require EVBStateCallouts
 
 package require ExpFileSystem
 package require rdoCalloutsBundle
@@ -50,14 +51,14 @@ snit::type JobProcessor {
   #
   method setupStateMachine {} {
     # rdoCalloutsBundle has already been registered
-    ::EVBManager::register
+    ::EVBStateCallouts::register
     ::EventLog::register
     ::DataSourceMgr::register
     ::DataSourceMonitor::register
 
-    set ::EventLogMonitor::fdvar  ::EventLog::loggerPid
-    set ::EventLogMonitor::script [list [mymethod stopProcessing]]
-    ::EventLogMonitor::register
+#    set ::EventLogMonitor::fdvar  ::EventLog::loggerPid
+#    set ::EventLogMonitor::script [list [mymethod stopProcessing]]
+#    ::EventLogMonitor::register
   }
 
   ## @brief return the data source manager known to this
@@ -86,6 +87,12 @@ snit::type JobProcessor {
 
     puts "startProcessing"
     $self startProcessing 
+
+    # Tell the eventlog that it is okay for it to exit, because that is 
+    # what we expect.
+    EventLog::runEnding    ;# wait until run is ended and finalize
+
+    $self stopProcessing   ;# stop the processing pipelines
   }
 
   ## @brief Hook for one-time startup procedures 
@@ -128,11 +135,6 @@ snit::type JobProcessor {
 
     $stateMachine transition Active 
 
-    # Tell the eventlog that it is okay for it to exit, because that is 
-    # what we expect.
-#    set EventLog::expectingExit 1
-
-    EventLog::runEnding
   }
 
   ## @brief Iteratively check to see if the state machine has become Halted.
@@ -273,7 +275,7 @@ snit::type JobProcessor {
 
     # set up the parameters
     Configuration::Set EventLogRunFilePrefix     [$options(-outputparams) cget -prefix]
-    Configuration::Set EventLoggerRing [$options(-outputparams) cget -ringname]
+    Configuration::Set EventLoggerRing           [$options(-outputparams) cget -ringname]
     Configuration::Set EventLogUseNsrcsFlag      1 
 
     # when starting the eventlog the builder will compute how many data sources are 
