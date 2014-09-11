@@ -14,13 +14,16 @@ snit::widget FileList {
   variable m_nJobs 0
   variable m_nAlreadyAdded 0
 
+  ##
+  #
   constructor {args} {
     $self configurelist $args
     $self buildGUI 
 
   }  
 
-
+  ##
+  #
   method buildGUI {} {
       ttk::treeview $win.list -show tree 
       $win.list column #0 -stretch on -minwidth 10
@@ -37,8 +40,11 @@ snit::widget FileList {
       grid columnconfigure $win {0 1} -weight 1 -minsize 100
   }
 
+
+  ##
+  #
   method onAddFiles {} {
-    variable m_nAlreadyAdded
+    variable m_nJobs
     set types {
                 {{Evt Files} {.evt}}
                 {{All Files} *     }
@@ -46,21 +52,11 @@ snit::widget FileList {
 
     # Request the names of files
     set selection [tk_getOpenFile -multiple true -filetypes $types ]
-    # Add the selections
-    if {$selection ne ""} {
-      $win.list insert {} end -id job$m_nJobs -text "Job $m_nJobs"
-    }
-
-    foreach f $selection {
-      $win.list insert job$m_nJobs end -id file$m_nAlreadyAdded \
-                              -text $f
-      incr m_nAlreadyAdded 
-    }
-
-    incr m_nJobs
+    $self appendNewJob "Job $m_nJobs" $selection
   }
 
-
+  ##
+  #
   method onRemove {} {
     set entries [$win.list selection]
     if {[llength $entries] == 0 } {
@@ -70,6 +66,44 @@ snit::widget FileList {
   }
 
 
+  ##
+  #
+  method appendNewJob {name selection} {
+    variable m_nJobs
+    variable m_nAlreadyAdded
+
+    # Add the selections
+    if {$selection ne ""} {
+      $win.list insert {} end -id $name -text $name 
+
+      foreach f $selection {
+        $win.list insert $name end -id file$m_nAlreadyAdded \
+        -text [file tail $f] -value $f
+        incr m_nAlreadyAdded 
+      }
+
+      incr m_nJobs
+    }
+  }
+
+
+  # Ensure that this can work
+  method clearTree {} {
+    set nodes [$win.list children {}]
+    $win.list delete $nodes
+  }
+
+  ##
+  # Populate the tree data using the a dict of job lists
+  method populateTree {jobDict} {
+    dict for {key value} $jobDict {
+      $self appendNewJob $key $value
+    }
+  }
+
+
+  ## Package the job list into a dict
+  #
   method getJobs {} {
 
     set jobs [dict create]
@@ -80,7 +114,7 @@ snit::widget FileList {
 
       set jobchildren [$win.list children $child]
       foreach jobchild $jobchildren {
-        set fname [$win.list item $jobchild -text]
+        set fname [$win.list item $jobchild -value]
         lappend files $fname
       }
 
@@ -89,4 +123,6 @@ snit::widget FileList {
 
     return $jobs
   }
+
+
 }

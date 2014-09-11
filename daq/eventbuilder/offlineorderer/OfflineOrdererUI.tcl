@@ -5,242 +5,230 @@ package provide OfflineOrdererUI 11.0
 
 package require Tk
 package require snit
-package require FileListWidget
 
 package require OfflineEVBInputPipelineUI
 package require OfflineEVBHoistPipelineUI
 package require OfflineEVBEVBPipelineUI
 package require OfflineEVBOutputPipelineUI
-package require ApplyCancelWidget 
-package require ConfigErrorUI 
 
-package require OfflineEVBInputPipeline
-package require OfflineEVBHoistPipeline
-package require evbcallouts 
-package require OfflineEVBOutputPipeline 
+package require ApplyCancelWidget 
 
 package require OfflineEVBRunProcessor
+package require OfflineEVBJobBuilder
+package require OfflineEVBRunStatusUI
 
 proc TabbedOutput {win args} {
 }
-
-
-snit::widget OfflineOrdererView {
-  
-  component presenter 
-
-  variable listWidget ""
-
-  constructor {args} {
-
-    set presenter [OfflineOrderer %AUTO%]
-    $presenter setView $self
-    $self buildGUI
-  }
-
-  destructor {
-
-  }
-
-  method buildGUI {} {
-    variable listWidget
-
-    # build the 
-    set top [ttk::frame $win.listFrame]
-    ttk::label $top.flistLbl -text "Files to Order"
-    set listWidget [FileList $top.flistFrame]
-    grid $top.flistLbl   -sticky ew 
-    grid $top.flistFrame -sticky nsew
-    grid rowconfigure    $top {0}   -weight 1
-    grid columnconfigure $top {0} -weight 1
-
-    # build the buttons for adding 
-    set top [ttk::frame $win.buttons]
-    ttk::button $top.run -text "Run" -command [mymethod onRun] 
-    grid $top.run -sticky e
-    grid columnconfigure $top 0 -weight 1
-
-    grid $win.listFrame  -padx 9 -pady 9 -sticky ew
-    grid $win.buttons    -padx 9 -pady 9 -sticky ew
-
-    grid columnconfigure $win 0 -minsize 400 -weight 1
-    grid rowconfigure $win {0 1} -weight 1
-
-  }
-  
-
-  method onRun {} {
-    $presenter run
-  }
-
-  method getPresenter {} {
-    return $presenter
-  }
-
-  method getTreeWidget {} {
-    variable listWidget 
-    return $listWidget 
-  }
-
-}
-
 
 
 
 
 #########################################################################################
 
+snit::widget OfflineOrdererUIView {
+  
+  option -mode     -default "config" -configuremethod setMode
 
-#snit::widget ConfigurationDialogue {
+  component presenter 
 
+  variable m_viewMap
+  variable m_runabortButton
+
+  constructor {args} {
+
+    $self configurelist $args
+
+    set m_viewMap [dict create config "" run ""]
+
+    # assemble the megawidget
+    $self buildGUI
+
+  }
+
+  destructor {
+  }
+
+  method buildGUI {} {
+
+    ttk::frame $win.frame
+
+    set buttons $win.buttons
+    set m_runabortButton $buttons.runabort
+    ttk::frame $buttons 
+    ttk::button $m_runabortButton -text "Process Jobs" -command [mymethod onPress]
+    grid $m_runabortButton -sticky se -padx 9 -pady 9
+    grid columnconfigure $win.buttons 0 -weight 1
+
+    # grid these things
+    grid $win.frame  -padx 9 -pady 9 -sticky nsew
+    grid $buttons    -padx 9 -pady 9 -sticky sew
+
+    grid columnconfigure $win 0 -minsize 400 -weight 1
+    grid rowconfigure $win 0 -minsize 200 -weight 1
+
+  }
+  
+  method onPress {} {
+    $presenter transition 
+  }
+
+  method getPresenter {} {
+    return $presenter
+  }
+
+  method setPresenter {newPresenter} {
+    variable presenter
+    set presenter $newPresenter
+  }
+
+  method getCurrentWidget {} {
+    return [grid slaves $win.frame] 
+  }
+
+  method setViewWidgets {widgetDict} {
+    variable m_viewMap
+    set m_viewMap $widgetDict
+  }
+
+  method setMode {option mode} {
+    puts "setMode $option $mode"
+    variable m_runabortButton
+    variable m_viewMap
+
+    set children [grid slaves $win.frame]
+    foreach child $children { grid forget $child }
+
+    if {$mode eq "config"} {
+
+      $m_runabortButton configure -text "Process Jobs" 
+      set widget [dict get $m_viewMap config]
+      puts "found \"$widget\""
+      if {$widget ne ""} {
+        grid $widget -sticky nsew
+        puts "gridded"
+        puts [grid slaves $win.frame] 
+      }
+
+      set options(-mode) $mode
+    } elseif {$mode eq "run"} {
+      $m_runabortButton configure -text "Abort" 
+
+      set widget [dict get $m_viewMap run]
+      puts "found \"$widget\""
+      if {$widget ne ""} {
+        grid $widget -sticky nsew
+        puts "gridded"
+        puts [grid slaves $win.frame] 
+      }
+
+      set options(-mode) $mode
+    } else {
+      set msg    "OfflineOrdererUIView::setMode passed \"$mode\" as "
+      append msg "argument instead of \"config\" or \"run\"."
+      return -code error $msg 
+    }
+  }
+
+
+  method getFrameWidget {} {
+    return $win.frame
+  }
+
+  method getWindowName {} {
+    return $win
+  }
+}
 
 
 
 # -----------------------------------------------------------------
 
-snit::type OfflineOrderer {
+snit::type OfflineOrdererUIPresenter {
+  option -widgetname     -default ""
   
-  option -inputparams    -default ""
-  option -hoistparams    -default ""
-  option -evbparams      -default "" 
-  option -outputparams   -default ""
+  component m_view
 
-  variable evbInitialized 0
-  variable currentFile    ""
-  
-  component view
+  component runProgressPresenter
+  component jobBuilderPresenter
+
   component runProcessor 
 
   constructor {args} {
-    # set up the defaults
-    $self configure -inputparams [$self createDefaultInputParams]
-    $self configure -hoistparams [$self createDefaultHoistParams]
-    $self configure -evbparams [EVBC::AppOptions %AUTO% -restart false \
-                                                        -gui false \
-                                                        -destring OfflineEVBOut]   ;# This is an EVBC::AppOptions
-    $self configure -outputparams [$self createDefaultOutputParams]
+
+    # allow the user to override the defaults
+    $self configurelist $args
+
+    if {$options(-widgetname) eq ""} {
+      set msg    "OfflineOrdererUI -widgetname option is mandatory "
+      append msg "but was not provided!"
+      return -code error $msg 
+    }
+
+    # setup the view
+    set m_view [OfflineOrdererUIView $options(-widgetname)]
+    $m_view setPresenter $self
+
+    # setup the stuff the running and configuration frames
+    set fr [$m_view getFrameWidget]
+    set runProgressPresenter [RunStatusUIPresenter %AUTO% -widgetname $fr.runUI]
+    set jobBuilderPresenter [JobBuilderUIPresenter %AUTO% -widgetname $fr.configUI]
+    $m_view setViewWidgets [dict create run $fr.runUI \
+                                        config $fr.configUI ]
 
     # create the run processor
     set runProcessor [RunProcessor %AUTO%]
 
-    # allow the user to override the defaults
-    $self configurelist $args
+
+    # set the display mode
+    $m_view configure -mode config
+
   }
 
   destructor {
-    destroy $view
-    $runProcessor $view
+    catch {$m_view destroy}
+    catch {$runProcessor destroy}
+  }
+
+
+  method getJobBuilderPresenter {} {
+    variable jobBuilderPresenter
+    return $jobBuilderPresenter
   }
 
   method setView {theview} {
-    set view $theview
+    set m_view $theview
   }
 
+
+  method transition {} {
+    set state [$m_view cget -mode]
+
+    if {$state eq "config"} {
+      $self run
+      $m_view configure -mode run 
+    } else {
+      $m_view configure -mode config
+    }
+  }
 
   ## Handles when the run has been constructed
   #
   method run {} { 
+    variable jobBuilderPresenter
+    variable runProcessor 
 
-    set listWidget [$view getTreeWidget] 
-    set jobFiles [$listWidget getJobs]
+    $jobBuilderPresenter constructJobList
+    set masterJobList [$jobBuilderPresenter getJobList]
     
-    set masterJobList [$self buildJobList $jobFiles]
-
-    set errors [$self validateJobOptions $masterJobList]
-    if {[dict size $errors]==0} {
+    if {[dict size $masterJobList]>0} {
       $runProcessor configure -jobs $masterJobList
-      $runProcessor run
-    } else {
-      $self displayErrorGUI $errors
-    }
+      set status [$runProcessor run]
+
+      # display the running progress view
+      $m_view configure -mode run
+    } 
 
   } 
-
-  ##
-  #
-  # @param jobs a dict of key to file list
-  #
-  method buildJobList jobFiles {
-    set masterJobList [dict create]
-
-    foreach job [dict keys $jobFiles] {
-      set files [dict get $jobFiles $job]
-      $options(-inputparams) configure -file $files
-      dict append masterJobList $job [dict create  -inputparams [list $options(-inputparams)] \
-                                      -hoistparams [list $options(-hoistparams)] \
-                                      -evbparams   [list $options(-evbparams)]   \
-                                      -outputparams [list $options(-outputparams)]]
-
-    }
-
-    return $masterJobList
-  }
-
-  method displayErrorGUI {errors} {
-    toplevel .configerr
-    set msg "Some improper configuration parameters we detected!\n"
-    append msg "Please fix the errors categorized below in the tree."
-    ttk::label .configerr.msg -text $msg
-
-    set pres [ConfigErrorPresenter %AUTO% -widgetname .configerr.form]
-    $pres setModel $errors 
-
-    grid .configerr.msg -sticky nsew -padx 9 -pady 9
-    grid .configerr.form -sticky nsew -padx 9 -pady 9
-    grid rowconfigure .configerr 0 -weight 1
-    grid columnconfigure .configerr 0 -weight 1
-    wm title .configerr "Configuration Errors"
-  }
-
-  method createDefaultInputParams {} {
-    return [OfflineEVBInputPipeParams %AUTO%]
-  }
-
-  method createDefaultHoistParams {} {
-    return [OfflineEVBHoistPipeParams %AUTO%]
-  }
-
-  method createDefaultEVBParams {} {
-    return [EVBC::AppOptions %AUTO%]
-  }
-
-  method createDefaultOutputParams {} {
-    return [OfflineEVBOutputPipeParams %AUTO%]
-  }
-
-
-  method validateJobOptions joblist {
-
-    set errDict [dict create]
-
-    dict for {job config} $joblist {
-      set jobErrDict   [dict create]
-      set inputErrors  [[dict get $config -inputparams] validate]
-      set hoistErrors  [[dict get $config -hoistparams] validate]
-#      set evbErrors    [[dict get $config -evbparams] validate]
-      set outputErrors [[dict get $config -outputparams] validate]
-
-      if {[llength $inputErrors]!=0} {
-         dict set jobErrDict -inputparams $inputErrors
-      }
-      if {[llength $hoistErrors]!=0} {
-         dict set jobErrDict -hoistparams $hoistErrors
-      }
-#      if {[llength $evbErrors]!=0} {
-#         dict set jobErrDict -evbparams $evbErrors
-#      }
-      if {[llength $outputErrors]!=0} {
-         dict set jobErrDict -outputparams $outputErrors
-      }
-      if {[dict size $jobErrDict]>0} {
-        dict set errDict $job $jobErrDict
-      }
-    }
-
-    return $errDict
-
-  }
-
 
 } ;# end of OfflineOrderer
 
@@ -268,16 +256,16 @@ proc launchConfigDialogue {} {
   toplevel .config
 #  wm geometry .config 600x400-5+40
   global .view
-  set presenter [.view getPresenter]
-  set dialogue [ApplyCancelWidgetPresenter %AUTO% -widgetname .config.dia]
+  set presenter [$::orderer getJobBuilderPresenter] 
+  set dialogue [ApplyCancelWidgetPresenter %AUTO% -widgetname .config.dia -ismaster 1]
   
-  set inputPresenter [InputPipeConfigUIPresenter %AUTO% -widgetname .config.dia.in]
+  set inputPresenter [InputPipeConfigUIPresenter %AUTO% -widgetname .config.dia.in -ismaster 0]
   $inputPresenter setModel [$presenter cget -inputparams]
-  set hoistPresenter [HoistPipeConfigUIPresenter %AUTO% -widgetname .config.dia.hoist]
+  set hoistPresenter [HoistPipeConfigUIPresenter %AUTO% -widgetname .config.dia.hoist -ismaster 0]
   $hoistPresenter setModel [$presenter cget -hoistparams]
-  set evbPresenter [EVBPipeConfigUIPresenter %AUTO% -widgetname .config.dia.evb]
+  set evbPresenter [EVBPipeConfigUIPresenter %AUTO% -widgetname .config.dia.evb -ismaster 0]
   $evbPresenter setModel [$presenter cget -evbparams]
-  set outPresenter [OutputPipeConfigUIPresenter %AUTO% -widgetname .config.dia.out]
+  set outPresenter [OutputPipeConfigUIPresenter %AUTO% -widgetname .config.dia.out -ismaster 0]
   $outPresenter setModel [$presenter cget -outputparams]
 
   set presenters [dict create "Input Pipeline"  $inputPresenter\
@@ -291,7 +279,7 @@ proc launchConfigDialogue {} {
 
 }
 
-OfflineOrdererView .view 
+set orderer [OfflineOrdererUIPresenter %AUTO% -widgetname .view]
 grid .view -sticky nsew
 grid rowconfigure . 0 -weight 1
 grid columnconfigure . 0 -weight 1
