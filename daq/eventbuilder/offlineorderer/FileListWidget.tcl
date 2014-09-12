@@ -30,8 +30,8 @@ snit::widget FileList {
       ttk::scrollbar $win.xscroll -orient horizontal -command "$win.list xview"
       $win.list configure -xscrollcommand "$win.xscroll set"
 
-      ttk::button   $win.addrun      -text "Add Files"    -command [mymethod onAddFiles]
-      ttk::button   $win.rem      -text "Remove" -command [mymethod onRemove]
+      ttk::button   $win.addrun      -text "Add Job"    -command [mymethod onAddFiles]
+      ttk::button   $win.rem      -text "Remove Selected" -command [mymethod onRemove]
 
       grid $win.list              -  -sticky nsew
       grid $win.xscroll           -  -sticky ew
