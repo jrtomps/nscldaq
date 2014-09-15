@@ -56,6 +56,10 @@ TestSource::beginRun(CRingBuffer& ring, int run, std::string title)
   begin.setRunNumber(run);
   m_elapsedTime = 0;
 
+  if ( m_useBodyHeaders ) {
+    begin.setBodyHeader(m_timestamp,0,BEGIN_RUN);
+  }
+
   begin.commitToRing(ring);
 }
 
@@ -67,6 +71,9 @@ TestSource::endRun(CRingBuffer& ring, int run, std::string title)
   end.setRunNumber(run);
   end.setElapsedTime(m_elapsedTime);
 
+  if ( m_useBodyHeaders ) {
+    end.setBodyHeader(m_timestamp,0,END_RUN);
+  }
   end.commitToRing(ring);
 }
 
@@ -80,6 +87,10 @@ TestSource::Scaler(CRingBuffer& ring, int nscalers, int nsec)
 
   for (int i = 0; i < nscalers; i++) {
     item.setScaler(i, i*10);
+  }
+
+  if ( m_useBodyHeaders ) {
+    item.setBodyHeader(m_timestamp,0,0);
   }
   item.commitToRing(ring);
 
@@ -104,6 +115,11 @@ TestSource::someEventData(CRingBuffer& ring, int events)
       *p++ = i;
     }
     event.setBodyCursor(p);
+
+    if ( m_useBodyHeaders ) {
+      event.setBodyHeader(m_timestamp,0,0);
+    }
+
     event.commitToRing(ring);
     if (m_delay) {
       Os::usleep(m_delay);

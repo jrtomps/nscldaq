@@ -21,4 +21,5 @@ option "ring" r "Ring buffer name" string required
 option "size" s "Size of events"   int    optional default="32" 
 option "increment" i "Timestamp increment" int optional default="1"
 option "delay"     d "Delay between events (microseconds)" int optional default="0"
+option "bodyheaders" b "Generate body headers on ring items" flag off  
 

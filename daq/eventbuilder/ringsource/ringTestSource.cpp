@@ -57,12 +57,13 @@ int main(int argc, char** argv)
   std::string ringName  = args.ring_arg;
   int         eventSize = args.size_arg;
 
+  bool    genBufferHeaders = args.bodyheaders_flag;
 
 
   cmdline_parser(argc, argv, &args);
 
   try {
-    TestSource source(ringName, eventSize);
+    TestSource source(ringName, eventSize,genBufferHeaders);
     source.setTimestampIncrement(args.increment_arg);
     source.setDelay(args.delay_arg);
     source();
