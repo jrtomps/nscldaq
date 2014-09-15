@@ -667,6 +667,7 @@ proc ::Plotchart::DrawLogXaxis { w xmin xmax xdelt args } {
 #    Text drawn in canvas
 #
 proc ::Plotchart::DrawXtext { w args } {
+
     variable scaling
     variable config
 
@@ -674,8 +675,9 @@ proc ::Plotchart::DrawXtext { w args } {
     set textfont   $config($w,bottomaxis,font)
 
     set xt [expr {($scaling($w,pxmin)+$scaling($w,pxmax))/2}]
-    set yt [expr {$scaling($w,pymax)+$config($w,font,char_height)+4}]
-
+    # set yt [expr {$scaling($w,pymax)+$config($w,font,char_height)+4}]
+    set yt [expr {$scaling($w,pymax)+$config($w,font,char_height) - 3}]
+    
     $w delete "xtext && $w"
     if {$config($w,bottomaxis,render) eq "simple"} {
         $w create text $xt $yt -text [lindex $args 0] -fill $textcolor -anchor n -font $textfont -tags [list xtext $w]

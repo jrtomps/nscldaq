@@ -1,0 +1,357 @@
+#******************************************************************************
+#
+# CAEN SpA - Software Division
+# Via Vetraia, 11 - 55049 - Viareggio ITALY
+# +390594388398 - www.caen.it
+#
+#***************************************************************************//**
+# 
+
+# @file   series.test
+# @brief  Unit tests for series.tcl
+#
+
+lappend auto_path ../plotchart
+lappend auto_path ../snit
+
+source series.tcl
+package require tcltest
+
+
+#--------------------------------------------------------------------------
+#
+#  Configuration tests.
+#
+tcltest::test options-xdata {-xdata option stores the data} \
+    -setup {
+        set series [Plotchart::series %AUTO% -xdata [list 1 2 3 4]]
+    } \
+    -cleanup {
+        $series destroy 
+    } \
+    -body {
+        $series cget -xdata
+    } \
+    -result [list 1 2 3 4] 
+
+tcltest::test options-ydata {-ydata option stores the data } \
+    -setup {
+        set series [Plotchart::series %AUTO% -ydata [list 1 2 3 4]]
+    } \
+    -cleanup {
+        $series destroy 
+    } \
+    -body {
+        $series cget -ydata
+    } \
+    -result [list 1 2 3 4]
+ 
+#-----------------------------------------------------------------------------
+#
+#   Configuration of -xdata/-ydata triggers substituted callbacks:
+#
+tcltest::test options-command-xdata {-command is called when -xdata modified} \
+    -setup {
+        set series [Plotchart::series %AUTO% -xdata [list 1 2 3 4]]
+    } \
+    -cleanup {
+        $series destroy
+    } \
+    -body {
+        set a 0
+        $series configure -command [list incr a]
+        $series configure -xdata [list 1 2 3 3]
+        set a
+    } -result 1
+    
+tcltest::test option-command-ydata {-command is called when -ydata modified} \
+    -setup {
+        set series [Plotchart::series %AUTO% -ydata [list 1 2 3 4]]
+    } \
+    -cleanup {
+        $series destroy
+    } \
+    -body {
+        set a 0
+        $series configure -command [list incr a]
+        $series configure -ydata [list 1 2 3 3]
+        set a
+    } -result 1
+    
+tcltest::test option-command-xsubst {-command substs for %X} \
+    -setup {
+        set series [Plotchart::series %AUtO% -command [list set a %X]]
+    } \
+    -cleanup {
+        $series destroy
+    } \
+    -body {
+        set a 0
+        $series configure -xdata [list 1 2 3]
+        set a
+    } -result [list 1 2 3]
+    
+tcltest::test option-command-ysubst {-command substs %Y} \
+    -setup {
+        set series [Plotchart::series %AUTO% -command [list set a %Y]]
+    } \
+    -cleanup {
+        $series destroy
+    } \
+    -body {
+        set a 0
+        $series configure -ydata [list 1 2 3 3]
+        set a
+    } -result [list 1 2 3 3]
+    
+tcltest::test option-command-osubst {-command substs %O} \
+    -setup {
+        set series [Plotchart::series %AUtO% -command [list set a %O]]
+    } \
+    -cleanup {
+        $series destroy
+    } \
+    -body {
+        set a 0
+        $series configure -xdata [list 1 2 3]
+        expr {$a == $series}
+    } -result 1
+    
+    
+#---------------------------------------------------------------------------
+#
+#  test append method.
+
+tcltest::test append-appends {append must append to data lists} \
+    -setup {
+        set series [Plotchart::series %AUTO% -xdata 1 -ydata 2]     
+    } \
+    -cleanup {
+        $series destroy
+    }   \
+    -body {
+        $series append 2 3
+        set a [$series cget -xdata]
+        set b [$series cget -ydata]
+        
+        list $a $b
+    } -result [list [list 1 2] [list 2 3]]
+
+tcltest::test append-triggers-command {append must trigger the command script} \
+    -setup {
+       set series [Plotchart::series %AUTO% -xdata 1 -ydata 2]     
+    } \
+    -cleanup {
+        $series destroy
+    }   \
+    -body {
+        set a [list]
+        $series configure -command [list set a [list %X %Y]]
+        $series append 2 3
+        set a
+    } -result [list [list 1 2] [list 2 3]]
+    
+#---------------------------------------------------------------------------
+#
+#  clipx method tests.
+#
+tcltest::test clipx-simple {clipx with same number of x/y points} \
+    -setup {
+        set series [Plotchart::series %AUTO% \
+            -xdata [list 1 10 20 100] -ydata [list 1 2 3 4] 
+        ]
+    } \
+    -cleanup {
+        $series destroy
+    } \
+    -body {
+        $series clipx 5 50    
+    } -result [list [list 10 20] [list 2 3]]
+    
+tcltest::test clipx-toomany-y {clipx with too many y coordinates} \
+    -setup {
+        set series [Plotchart::series %AUTO% \
+            -xdata [list 1 10 20 30] -ydata [list 1 2 3 4 5]  \
+        ]
+    } \
+    -cleanup {
+        $series destroy
+    } \
+    -body {
+        $series clipx 5 30
+    } -result [list [list 10 20 30] [list 2 3 4]]
+  
+tcltest::test clipx-toomany-x {clipx with too many x coordinates}  \
+    -setup {
+        set series [Plotchart::series %AUTO% \
+            -xdata [list 10 20 30 40 ] -ydata [list 2 3 4] \
+        ]
+    } \
+    -cleanup {
+        $series destroy
+    } \
+    -body {
+        $series clipx 5 41
+    } -result [list [list 10 20 30] [list 2 3 4]]
+
+tcltest::test clipx-inclusive-limits {clipx is inclusive in limits.} \
+    -setup {
+        set series [Plotchart::series %AUTO% \
+            -xdata [list 10 20] -ydata [list 1 2]
+        ]
+    } \
+    -cleanup {
+        $series destroy
+    } \
+    -body {
+        $series clipx 10 20
+    } -result [list [list 10 20] [list 1 2]]
+
+#----------------------------------------------------------------------------
+#
+#  clipy method tests.
+
+tcltest::test clipy-simple {clipy with same number of x/y points} \
+    -setup {
+        set series [Plotchart::series %AUTO% \
+            -ydata [list 1 10 20 100] -xdata [list 1 2 3 4] 
+        ]
+    } \
+    -cleanup {
+        $series destroy
+    } \
+    -body {
+        $series clipy 5 50    
+    } -result [list [list 2 3] [list 10 20]]
+    
+tcltest::test clipy-toomany-x {clipy with too many x coordinates} \
+    -setup {
+        set series [Plotchart::series %AUTO% \
+            -ydata [list 1 10 20 30] -xdata [list 1 2 3 4 5]  \
+        ]
+    } \
+    -cleanup {
+        $series destroy
+    } \
+    -body {
+        $series clipy 5 30
+    } -result [list [list 2 3 4] [list 10 20 30] ]
+  
+tcltest::test clipxy-toomany-y {clipy with too many y coordinates}  \
+    -setup {
+        set series [Plotchart::series %AUTO% \
+            -ydata [list 10 20 30 40 ] -xdata [list 2 3 4] \
+        ]
+    } \
+    -cleanup {
+        $series destroy
+    } \
+    -body {
+        $series clipy 5 41
+    } -result [list [list 2 3 4] [list 10 20 30] ]
+
+tcltest::test clipy-inclusive-limits {clipy is inclusive in limits.} \
+    -setup {
+        set series [Plotchart::series %AUTO% \
+            -ydata [list 10 20] -xdata [list 1 2]
+        ]
+    } \
+    -cleanup {
+        $series destroy
+    } \
+    -body {
+        $series clipy 10 20
+    } -result [list [list 1 2] [list 10 20]]
+
+#----------------------------------------------------------------------------
+#
+# clip method tests
+#
+#  Very basic just to be sure the stuff is returned in the right order sincd
+#  whitebox knowledge says that if clipx/clipy test properly the
+#  clip method will work.
+#
+
+tcltest::test clip {Test clip to 2d window} \
+    -setup {
+        set series [Plotchart::series %AUTO% \
+            -xdata [list 1 2 10 20 30 40 100 200] \
+            -ydata [list 1 1 100 1 2 -6 1 1]      \
+        ]
+    } \
+    -cleanup {
+        $series destroy
+    } \
+    -body {
+        $series clip 10 40 0 5
+    } -result [list [list 20 30] [list 1 2]]
+
+#----------------------------------------------------------------------------
+#
+#  tests of the limit method.
+
+tcltest::test limits {Test Limits method} \
+    -setup {
+        set series [Plotchart::series %AUTO% \
+            -xdata [list 1 2 3 4 5] -ydata [list 10 20 30 40 50] \
+        ]
+    } \
+    -cleanup {
+        $series destroy
+    } \
+    -body {
+        $series limits
+    } -result [list 1 5 10 50]
+
+tcltest::test limits-empty {Test limits with empty coordinates} \
+    -setup {
+        set series [Plotchart::series %AUTO% ]
+    } \
+    -cleanup {
+        $series destroy
+    } \
+    -body {
+        $series limits
+    } -result [list "" "" "" ""]
+
+#---------------------------------------------------------------------------
+#
+# clear method:
+
+tcltest::test clear-data {clear must empty data} \
+    -setup {
+        set series [Plotchart::series %AUTO% \
+            -xdata [list 1 2 3 4] -ydata [list 1 2 3 4]
+        ]
+    } \
+    -cleanup {
+        $series destroy
+    } \
+    -body {
+        
+        $series clear
+        set x [$series cget -xdata]
+        set y [$series cget -ydata]
+        list $x $y
+    } -result [list [list] [list]]
+
+tcltest::test clear-comand {clear method fires -command exactly once.} \
+    -setup {
+        set series [Plotchart::series %AUTO% \
+            -xdata [list 1 2 3 4] -ydata [list 1 2 3 4] -command [list incr a]
+        ]    
+    } \
+    -cleanup {
+        $series destroy
+    } \
+    -body {
+        set a 0
+        $series clear
+        set a
+    } -result 1
+
+#----------------------------------------------------------------------------
+
+
+
+tcltest::cleanupTests

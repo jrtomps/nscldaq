@@ -93,6 +93,7 @@ namespace eval ::Plotchart {
    set methodProc(xyplot,plotarea)          GetPlotArea
    set methodProc(xyplot,canvas)            GetCanvas
    set methodProc(xyplot,deletedata)        DeleteData
+   set methodProc(xyplot,limits)            GetAxisLimits
    set methodProc(xlogyplot,title)          DrawTitle
    set methodProc(xlogyplot,xtext)          DrawXtext
    set methodProc(xlogyplot,ytext)          DrawYtext
@@ -321,8 +322,10 @@ namespace eval ::Plotchart {
    set methodProc(stripchart,plaintextconfig)  ConfigPlainText
    set methodProc(stripchart,drawobject)       DrawObject
    set methodProc(stripchart,object)           DrawObject
-   set methodProc(stripchart,deletedata)       DeleteData
    set methodProc(stripchart,canvas)           GetCanvas
+   set methodProc(stripchart,deletedata)       DeleteData
+   set methodProc(stripchart,plotlist)         DrawDataList
+   set methodProc(stripchart,limits)           GetAxisLimits
    set methodProc(isometric,title)             DrawTitle
    set methodProc(isometric,xtext)             DrawXtext
    set methodProc(isometric,ytext)             DrawYtext
@@ -580,7 +583,6 @@ if {0} {
       return -code error "Inconsistent bounds for viewport - increase canvas size or decrease margins"
    }
 }
-
    set scaling($w,pxmin)    $pxmin
    set scaling($w,pymin)    $pymin
    set scaling($w,pxmax)    $pxmax
@@ -603,7 +605,6 @@ if {0} {
 #
 proc ::Plotchart::worldCoordinates { w xmin ymin xmax ymax } {
    variable scaling
-
    if { $xmin == $xmax || $ymin == $ymax } {
       return -code error "Minimum and maximum must differ for world coordinates"
    }
@@ -780,7 +781,6 @@ proc ::Plotchart::coords3DToPixel { w xcrd ycrd zcrd } {
 #
 proc ::Plotchart::pixelToCoords { w xpix ypix } {
    variable scaling
-
    if { $scaling($w,new) == 1 } {
       set scaling($w,new)     0
       set width               [expr {$scaling($w,pxmax)-$scaling($w,pxmin)}]
@@ -791,7 +791,6 @@ proc ::Plotchart::pixelToCoords { w xpix ypix } {
       set scaling($w,xfactor) [expr {$width/$dx}]
       set scaling($w,yfactor) [expr {$height/$dy}]
    }
-
    set xcrd [expr {$scaling($w,xmin)+($xpix-$scaling($w,pxmin))/$scaling($w,xfactor)}]
    set ycrd [expr {$scaling($w,ymax)-($ypix-$scaling($w,pymin))/$scaling($w,yfactor)}]
    return [list $xcrd $ycrd]
@@ -2629,6 +2628,7 @@ source [file join [file dirname [info script]] "plotspecial.tcl"]
 source [file join [file dirname [info script]] "plotobject.tcl"]
 source [file join [file dirname [info script]] "plottable.tcl"]
 
-# Announce our presence
+# Announce our presence - 3.0.0 is the special CAEN/NSCL changes that may
+# not have made it into the stuff that is part of the distro tklib.
 #
-package provide Plotchart 2.0.1
+package provide Plotchart 3.0.0     

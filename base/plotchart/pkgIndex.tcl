@@ -9,5 +9,5 @@
 # full path name of this file's directory.
 
 package ifneeded plotanim 0.2 [list source [file join $dir plotanim.tcl]]
-package ifneeded Plotchart 2.0.1 [list source [file join $dir plotchart.tcl]]
+package ifneeded Plotchart 3.0 [list source [file join $dir plotchart.tcl]]
 package ifneeded xyplot    1.0.1 [list source [file join $dir xyplot.tcl]]
