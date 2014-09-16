@@ -260,24 +260,6 @@ CRingSource::getEvents()
         frag.s_barrierType = p->getBarrierType();
     } else {
 
-        // Check if body headers are demanded.
-        if (m_pArgs->expectbodyheaders_flag) {
-          // this is okay if we have a tstamplib and ids from the user. Just tell them
-          // that they were mistaken about there being body headers on every ring item.
-          if (m_pArgs->timestampextractor_given && m_pArgs->ids_given) {
-            std::string msg = "ringFragmentSource::getEvents() : --expectbodyheaders ";
-            msg += "flag passed but observed a ring item without a BodyHeader.";
-            log << msg << "\n";
-          } else {
-            // Oh No. This is fatal. We have no way of determining the info to stick into
-            // the FragmentHeader. 
-            std::string msg = "ringFragmentSource passed --expectbodyheaders flag but observed ";
-            msg += "a ring item without a BodyHeader. This is fatal because the fragment header ";
-            msg += "cannot be defined without timestamp extractor.";
-            throw msg;
-          }  
-        }
-
         // if we are here, then all is well in the world.
         switch (pRingItem->s_header.s_type) {
         case BEGIN_RUN:
@@ -288,21 +270,13 @@ CRingSource::getEvents()
         case PERIODIC_SCALERS:	// not a barrier but no timestamp either.
           break;
         case PHYSICS_EVENT:
-          // kludge for now - filter out null events:
-          if (pRingItem->s_header.s_size > (sizeof(RingItemHeader) + sizeof(uint32_t))) {
-              frag.s_timestamp = (*m_timestamp)(reinterpret_cast<pPhysicsEventItem>(pRingItem));
-              if (((frag.s_timestamp - lastTimestamp) > 0x100000000ll)  &&
-                  (lastTimestamp != NULL_TIMESTAMP)) {
-                CRingItem* pSpecificItem = CRingItemFactory::createRingItem(*p);
-                log << "Timestamp skip from "  << lastTimestamp << " to " << frag.s_timestamp << std::endl;
-                log << "Ring item: " << pSpecificItem->toString() << std::endl;
-                delete pSpecificItem;
-              }
-              lastTimestamp = frag.s_timestamp;
-              break;
-            }
+          if (formatPhysicsEvent(pRingItem, p, frag)) {
+            lastTimestamp = frag.s_timestamp;
+            break;
+          }
         default:
           // default is to leave things alone
+          // this includes the DataFormat item
     
           break;
         }
@@ -486,3 +460,58 @@ CRingSource::copyLib(std::string original)
   close(dest);
   return destName;
 }
+/** Handle the case of a physics event without a body header.
+  * 
+  * This should throw if there is not tstamp extractor provided.
+  * Otherwise, if there are no bodyheaders and the tstamp
+  *
+  * \param item ring item C structure being accessed
+  * \param p    ring item object that manages the item param
+  * \param frag fragment header being filled in.
+  *
+  * \returns boolean whether or not the ring item was non-null
+  * 
+  * \throws when no tstamplib is provided and --expectbodyheaders is specified 
+  *
+  */
+bool
+CRingSource::formatPhysicsEvent (pRingItem item, CRingItem* p, ClientEventFragment& frag) 
+{
+  bool retval = false;
+
+  // Check if body headers are demanded.
+  if (m_pArgs->expectbodyheaders_flag) {
+    // this is okay if we have a tstamplib and ids from the user. Just tell them
+    // that they were mistaken about there being body headers on every ring item.
+    if (m_pArgs->timestampextractor_given && m_pArgs->ids_given) {
+      std::string msg = "ringFragmentSource::getEvents() : --expectbodyheaders ";
+      msg += "flag passed but observed a ring item without a BodyHeader.";
+      log << msg << "\n";
+    } else {
+      // Oh No. This is fatal. We have no way of determining the info to stick into
+      // the FragmentHeader. 
+      std::string msg = "ringFragmentSource passed --expectbodyheaders flag but observed ";
+      msg += "a ring item without a BodyHeader. This is fatal because the fragment header ";
+      msg += "cannot be defined without timestamp extractor.";
+      throw msg;
+    }  
+  }
+
+  // kludge for now - filter out null events:
+  if (item->s_header.s_size > (sizeof(RingItemHeader) + sizeof(uint32_t))) {
+    frag.s_timestamp = (*m_timestamp)(reinterpret_cast<pPhysicsEventItem>(item));
+    if (((frag.s_timestamp - lastTimestamp) > 0x100000000ll)  &&
+        (lastTimestamp != NULL_TIMESTAMP)) {
+      CRingItem* pSpecificItem = CRingItemFactory::createRingItem(*p);
+      log << "Timestamp skip from "  << lastTimestamp << " to " << frag.s_timestamp << std::endl;
+      log << "Ring item: " << pSpecificItem->toString() << std::endl;
+      delete pSpecificItem;
+    }
+    
+    retval = true; 
+  }
+
+  return retval;
+}
+
+
