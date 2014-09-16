@@ -1028,7 +1028,7 @@ main(char** argv, int argc)
             The <filename>ringFragmentSource</filename> program provides a mostly pre-packaged
             program that efficiently gets data from a ring buffer and efficiently
             submits it to an event builder.  Since event data in a ring buffer
-            may have arbitrary format, the user must supply software to extract
+            may have arbitrary format, the user can supply software to extract
             the timestamp from each event. This software is supplied in the form
             of a shared object library.
         </para>
@@ -1039,7 +1039,7 @@ main(char** argv, int argc)
         </para>
         <para>
             In addition to the standard ring client framework command options,
-            the following switches are are required.
+            the following switch is required in all circumstances.
         </para>
         <variablelist>
             <varlistentry>
@@ -1052,19 +1052,52 @@ main(char** argv, int argc)
                     </para>
                 </listitem>
             </varlistentry>
+         </variablelist>
+         <para>
+           The data that is submitted to the event builder by this client are the original ring items with
+           fragment headers appended to them. The ringFragmentSource provides the user the ability
+           to specify the values to insert into the fragment header by means of the command line
+           switches. However, the ringFragmentSource honors the values in a ring item's BodyHeader if one is present.
+           It will simply append a FragmentHeader to the item using the BodyHeader information. In
+           this process and the command line options provided by the user will be ignored. For this reason,
+           there is a command line switch called --expectbodyheaders that will allow the user to forego
+           the creation of a timestamp extractor library. It is still possible for the user to specify
+           one of these libraries however. When the user does this it allows the program to continue
+           even in the presence of data without body headers. The semantics of the
+           --timestampextractor and --expectbodyheaders switches are described below.
+         </para>
+         <variablelist>
             <varlistentry>
                 <term><option>--timestampextactor</option>=<replaceable>file-path</replaceable></term>
                 <listitem>
                     <para>
                         Specifies the path to the shared library you have built
-                        that extracts timestamps from ring events.
+                        that extracts timestamps from ring events. This is mandatory
+                        if the --expectbodyheaders switch is not present.
                         For the s800 pre-built extractor this should be
                         <filename>$DAQHOST/lib/libS800TimeExtractor.so</filename>
                     </para>
                 </listitem>
             </varlistentry>
-        </variablelist>
-        <section id='sec_tsextractors'>
+
+            <varlistentry>
+              <term><option>--expectbodyheaders</option></term>
+              <listitem>
+                <para>
+                  This is a boolean flag that indicates whether the ringFragmentSource
+                  is to expect BodyHeaders on all physics events. If the user has provided
+                  the --timestampextractor and --ids options as well and physics event data is 
+                  observed that has no body header, then a warning is logged to the 
+                  log file. However, if the same occurrence happens when the --timestampextractor
+                  library has not been specified, the program will exit with an error. This 
+                  occurs because there is no way for the program to assign a legitimate
+                  timestamp value to the fragment header. Note that the --ids option is 
+                  mandatory so that it will always be defined.
+                </para>
+              </listitem>
+            </varlistentry>
+          </variablelist>
+          <section id='sec_tsextractors'>
             <title id='sec_tsextractors_title'>Writing and building timestamp extractors.</title>
             <para>
                 This section describes how to write timestamp extractors.
