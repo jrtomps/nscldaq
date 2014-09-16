@@ -13,16 +13,21 @@ package require RunstateMachine
 snit::type RunProcessor {
 
   option -jobs 
+
+  variable m_runObservers
   
   component processor
 
   ## @brief Pass the options
   #
   constructor {args} {
+    variable m_runObservers
+
     $self configurelist $args
 
     set processor [JobProcessor %AUTO% -runprocessor $self]
 
+    set m_runObservers [list]
   }
 
   destructor {
@@ -35,6 +40,8 @@ snit::type RunProcessor {
   # Sets up all the pipelines and then processes all of the files provided
   #
   method run {} {
+
+    $self observeNewRun 
 
     $self runNext
 
@@ -51,6 +58,7 @@ snit::type RunProcessor {
       # get the first job name
       set job [lindex $jobs 0]
 
+      $self observeNewJob $job
 
       # copy the job 
       set iparams [dict get $options(-jobs) $job -inputparams]
@@ -84,6 +92,30 @@ snit::type RunProcessor {
       return -code error "RunProcessor::guessRunNumber unable to parse run number from file list"
     }
   }
+  
+  method addRunStatusObserver {observer} {
+    variable m_runObservers
+    lappend m_runObservers $observer
+  }
 
+  method observeNewRun {} {
+    variable m_runObservers
+
+    set newdict [dict create queued     [dict keys $options(-jobs)] \
+                             processing "" \
+                             completed  [list]]
+
+    foreach observer $m_runObservers {
+      $observer setModel $newdict
+    }
+  }
+
+  method observeNewJob {jobName} {
+    variable m_runObservers
+
+    foreach observer $m_runObservers {
+      $observer transitionToNextJob $jobName
+    }
+  }
 }
 

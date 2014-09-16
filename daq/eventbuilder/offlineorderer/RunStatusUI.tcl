@@ -51,12 +51,14 @@ snit::widget RunStatusUIView {
     ## Destroy this thing 
     #
     destructor {
-      destroy $win
+      if {[catch {destroy $win} msg]} {
+        puts $msg
+      }
     }
 
     method appendNewJobDisplay {jobDisplay} {
       grid $jobDisplay -sticky new
-      grid columnconfigure $win 0 -weight 1
+      grid columnconfigure $win [expr {[lindex [grid size $win] 1]-1}] -weight 1
     }
 
     ## @brief Assemble the megawidget
@@ -138,6 +140,7 @@ snit::type RunStatusUIPresenter {
     $m_view setPresenter $self
     $self updateViewData $m_model
 
+    set m_jobDisplayNames [list]
   }
 
   ## @brief Destroy the view 
@@ -145,7 +148,9 @@ snit::type RunStatusUIPresenter {
   # Do not destroy the model because it is just a reference
   #
   destructor {
-    catch {$m_view destroy}
+    if {[catch {destroy $m_view} msg]} {
+      puts $msg
+    }
   }
 
 
@@ -159,16 +164,18 @@ snit::type RunStatusUIPresenter {
     $self updateViewData $m_model
   }
 
+  ##
+  #
   method transitionToNextJob {jobName} {
     # mark the current job as completed
-    set current [dict get $m_model current]
+    set current [dict get $m_model processing]
     dict lappend m_model completed $current
     
     # find the new job in the list of queued  and make it current
     set queuedJobs [dict get $m_model queued]
     set newJobIndex [lsearch $queuedJobs $jobName]
     if {$newJobIndex>=0} {
-      dict set m_model current [lindex $queuedJobs $newJobIndex]
+      dict set m_model processing [lindex $queuedJobs $newJobIndex]
 
       # remove the current job from queued list
       set queuedJobs [lreplace $queuedJobs $newJobIndex $newJobIndex]
@@ -176,7 +183,7 @@ snit::type RunStatusUIPresenter {
     }
 
     # synchronize the view with the model
-    $self updateViewData
+    $self updateViewData $m_model
   }
 
   ## @brief Retrieve the model
@@ -201,6 +208,8 @@ snit::type RunStatusUIPresenter {
 
   }
 
+  ##
+  #
   method updateDisplayDataForStatusType {status} {
     variable m_jobDisplayNames
 
@@ -212,8 +221,10 @@ snit::type RunStatusUIPresenter {
         # the job doesn't exist as a display object
         # make a new one and then pass it the view to display
         set widgetName [$self findUniqueName]
+#        puts "New widget: $widgetName, Existing widgets: $m_jobDisplayNames"
         set newJob [JobStatusDisplay $widgetName -status $status -jobname $job]
-        lappend m_jobDisplayName $newJob
+#        puts "New job name : $newJob"
+        lappend m_jobDisplayNames $newJob
 
         $m_view appendNewJobDisplay $widgetName
       }
@@ -221,20 +232,37 @@ snit::type RunStatusUIPresenter {
 
   }
 
-  method findUniqueName {} {
+  ##
+  #
+  method getDisplayedJobs {} {
+    return $m_jobDisplayNames
+  }
+
+  ##
+  # (Primarily for testing)
+  #
+  method setDisplayedJobs {jobs} {
+    set m_jobDisplayNames $jobs
+  }
+
+  ##
+  #
+  method isDisplayedJob {jobDisplay} {
     variable m_jobDisplayNames
 
-    # generate a list of the name
-    set names [list]
-    foreach job $m_jobDisplayNames {
-      lappend names [$m_jobDisplayNames cget -jobname]
-    }
+    return [expr {$jobDisplay in $m_jobDisplayNames}]
+  }
+
+  ##
+  #
+  method findUniqueName {} {
+    variable m_jobDisplayNames
 
     # scan until find a name that doesn't exist in the list 
     set w "$options(-widgetname).jobDisplay"
     set index 0
-    set name 
-    while {[lsearch $names $name]>=0} {
+    set name [format "%s%d" $w $index]
+    while {[lsearch $m_jobDisplayNames $name]>=0} {
       incr index
       set name [format "%s%d" $w $index]
     }
