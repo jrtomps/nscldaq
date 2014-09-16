@@ -30,13 +30,13 @@ snit::widget FileList {
       ttk::scrollbar $win.xscroll -orient horizontal -command "$win.list xview"
       $win.list configure -xscrollcommand "$win.xscroll set"
 
-      ttk::button   $win.addrun      -text "Add Job"    -command [mymethod onAddFiles]
+      ttk::button   $win.addrun      -text "Add File"    -command [mymethod onAddFiles]
       ttk::button   $win.rem      -text "Remove Selected" -command [mymethod onRemove]
 
       grid $win.list              -  -sticky nsew
-      grid $win.xscroll           -  -sticky ew
+#      grid $win.xscroll           -  -sticky ew
       grid $win.addrun $win.rem    -sticky ew
-      grid rowconfigure $win    {0 2} -weight 1
+      grid rowconfigure $win    {0 1} -weight 1
       grid columnconfigure $win {0 1} -weight 1 -minsize 100
   }
 
@@ -44,7 +44,6 @@ snit::widget FileList {
   ##
   #
   method onAddFiles {} {
-    variable m_nJobs
     set types {
                 {{Evt Files} {.evt}}
                 {{All Files} *     }
@@ -52,7 +51,17 @@ snit::widget FileList {
 
     # Request the names of files
     set selection [tk_getOpenFile -multiple true -filetypes $types ]
-    $self appendNewJob "Job $m_nJobs" $selection
+    $self appendFiles $selection
+  }
+
+  ##
+  #
+  method appendFiles {selection} {
+    foreach f $selection {
+      $win.list insert {} end -id file$m_nAlreadyAdded \
+                              -text [file tail $f] -value $f
+      incr m_nAlreadyAdded 
+    }
   }
 
   ##
@@ -65,28 +74,6 @@ snit::widget FileList {
     $win.list delete $entries
   }
 
-
-  ##
-  #
-  method appendNewJob {name selection} {
-    variable m_nJobs
-    variable m_nAlreadyAdded
-
-    # Add the selections
-    if {$selection ne ""} {
-      $win.list insert {} end -id $name -text $name 
-
-      foreach f $selection {
-        $win.list insert $name end -id file$m_nAlreadyAdded \
-        -text [file tail $f] -value $f
-        incr m_nAlreadyAdded 
-      }
-
-      incr m_nJobs
-    }
-  }
-
-
   # Ensure that this can work
   method clearTree {} {
     set nodes [$win.list children {}]
@@ -95,33 +82,27 @@ snit::widget FileList {
 
   ##
   # Populate the tree data using the a dict of job lists
-  method populateTree {jobDict} {
-    dict for {key value} $jobDict {
-      $self appendNewJob $key $value
+  method populateTree {filelist} {
+    foreach file $fileList {
+      $self insertFile $file 
     }
   }
 
 
   ## Package the job list into a dict
   #
-  method getJobs {} {
+  method getFiles {} {
 
-    set jobs [dict create]
+    set files [list]
 
     set children [$win.list children {}]
     foreach child $children {
-      set files [list]
 
-      set jobchildren [$win.list children $child]
-      foreach jobchild $jobchildren {
-        set fname [$win.list item $jobchild -value]
-        lappend files $fname
-      }
-
-      dict append jobs $child $files
+      set fname [$win.list item $child -value]
+      lappend files $fname
     }
 
-    return $jobs
+    return $files
   }
 
 
