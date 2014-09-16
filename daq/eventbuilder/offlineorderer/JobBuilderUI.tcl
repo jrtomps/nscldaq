@@ -111,8 +111,8 @@ snit::widget JobBuilderUIView {
 
   ##
   #
-  method appendEntry {name value} {
-    [$self getTreeWidget] insert {} end -text $name -values $value
+  method appendEntry {name} {
+    [$self getTreeWidget] insert {} end -text $name
   }
 
 }
@@ -131,6 +131,8 @@ snit::type JobBuilderUIPresenter {
   variable m_useParamsToCreate 
   variable m_nJobs
 
+  ## Constructor
+  #
   constructor {args} {
 
     # allow the user to override the defaults
@@ -151,55 +153,70 @@ snit::type JobBuilderUIPresenter {
     set m_nJobs 0
   }
 
-  ##
+  ## Destructor
   #
   destructor {
     catch { destroy $m_view}
   }
 
-  ##
+  ## Set the model
   #
   method setModel {newModel} {
     set m_model $newModel
     $self updateViewDataFromModel
   }
 
-  ##
+  ## Set the view that this controls
   #
   method setView {theview} {
     set m_view $theview
     $self updateViewDataFromModel
   }
 
-  ##
+  ## Retrieive the list of jobs
   #
   method getJobsList {} {
     
     return $m_masterJobList
   }
 
-  ##
+  ## Launches a configuration dialogue for the job 
   #
   method addJob {} {
 
     set m_useParamsToCreate 0
 
+    # Create the toplevel dialogue 
     toplevel .jobconf
     set config [JobConfigUIPresenter %AUTO% -widgetname .jobconf.ui \
                                             -ismaster 1]
     $config setButtonText "Create"
 
+    # Create some default parameters 
     set iparams [OfflineEVBInputPipeParams %AUTO%] 
     set hparams [OfflineEVBHoistPipeParams %AUTO%]
     set eparams [EVBC::AppOptions %AUTO%]
     set oparams [OfflineEVBOutputPipeParams %AUTO%]
+
+    # Create the job parameters  to pass to the configuration
+    # dialogue. It becomes the model that the dialogue's presenter
+    # manipulates.
     set model [dict create -jobname "Job" \
                            -inputparams $iparams  \
                            -hoistparams $hparams \
                            -evbparams   $eparams \
                            -outputparams $oparams ]
+    $self configureDefaults $model
     $config setModel $model
+
+    # The dialogue is its own master and maintains a list of 
+    # observers to be alerted when the "create" button is pressed.
+    # To know whether the job is to be actually created or not
+    # we need to observe whether the user presses "Create" before
+    # cancelling or if the he/she presses cancel.
     $config setObserver $self
+
+    # Grid the dialogue
     grid .jobconf.ui -sticky nsew -padx 9 -pady 9
     grid rowconfigure .jobconf.ui 0 -weight 1
     grid columnconfigure .jobconf.ui 0 -weight 1
@@ -212,12 +229,17 @@ snit::type JobBuilderUIPresenter {
       destroy .jobconf
     }
 
+    # wait until it is done
     tkwait window .jobconf
 
+    # if the user pressed "Create" then the dialogue
+    # called acceptCreation before reaching hear. This 
+    # set the m_useParamsToCreate variable
     if {$m_useParamsToCreate} {
 
       puts "Appending new Job!"
-      $self appendNewJob "job$m_nJobs" $model
+      set newName [$self constructNewJobName $model]
+      $self appendNewJob $newName $model
       puts "$m_nJobs  :\n$model"
 
       incr m_nJobs
@@ -231,7 +253,18 @@ snit::type JobBuilderUIPresenter {
     }
   }
 
+  ## @brief Simple method for creating a new unique job name
+  #
+  # Currently this is implemented trivially. However, the model could
+  # be used to generate a job name in the future.
+  #
+  # @param model  the actual job parameterization 
+  method constructNewJobName {model} {
+    return "job$m_nJobs"
+  }
 
+  ## @brief Remove the selected job
+  #
   method removeJob {} {
     set tree [$m_view getTreeWidget]
 
@@ -244,19 +277,23 @@ snit::type JobBuilderUIPresenter {
   }
 
 
-  ##
+  ## @brief Launch a dialogue to edit the selected job
   #
   method editJob {} {
     set m_useParamsToCreate 0
 
+    # Create a new toplevel dialogue
     toplevel .jobconf
     set config [JobConfigUIPresenter %AUTO% -widgetname .jobconf.ui \
                                             -ismaster 1]
+    # becuase the user desires to edit an already created job, the
+    # button should say "accept"
     $config setButtonText "Accept"
 
+    # Figure out which job the user wants to configure
     set tree [$m_view getTreeWidget]
     set selection [$tree selection]
-    $config setModel [$tree item [lindex $selection 0] -values]
+    $config setModel [dict get $m_masterJobList [lindex $selection 0] ]
     $config setObserver $self
     grid .jobconf.ui -sticky nsew -padx 9 -pady 9
     grid rowconfigure    .jobconf.ui 0 -weight 1
@@ -270,18 +307,12 @@ snit::type JobBuilderUIPresenter {
       destroy .jobconf
     }
 
+    # wait until the window is closed
     tkwait window .jobconf
 
-    if {$m_useParamsToCreate} {
-      puts "Job edit accepted!"
-    } else {
-      dict for {key val} $model { 
-        if {$key ne "-jobname"} {
-          $val destroy 
-        }
-      }
-    }
-
+    # There is nothing to do once the dialogue is closed 
+    # because the dialogue's presenter was manipulating the 
+    # job parameterization directly.
   }
 
   ##
@@ -293,7 +324,7 @@ snit::type JobBuilderUIPresenter {
   ##
   #
   method appendNewJob {name jobinfo} {
-    $m_view appendEntry $name $jobinfo 
+    $m_view appendEntry $name 
     dict set m_masterJobList $name $jobinfo
   }
 
@@ -317,5 +348,13 @@ snit::type JobBuilderUIPresenter {
     }
   }
 
+
+
+  method configureDefaults {jobParams} {
+    [dict get $jobParams -inputparams] configure -inputring  OfflineEVBIn
+    [dict get $jobParams -hoistparams] configure -sourcering OfflineEVBIn
+    [dict get $jobParams -evbparams]   configure -destring  OfflineEVBOut
+    [dict get $jobParams -outputparams] configure -ringname  tcp://localhost/OfflineEVBOut
+  }
 } ;# end of OfflineOrderer
 
