@@ -4,6 +4,22 @@ package require tcltest
 package require InstallRoot
 package require ring 
 
+##
+#
+proc pickle {snitobj} {
+  set opts [$snitobj info options]
+
+  set state [dict create]
+  foreach opt $opts {
+    set value [$snitobj cget $opt]
+    dict set state $opt $value 
+  }
+  return $state
+}
+
+
+
+
 tcltest::test pkgrequire-0 {Test that the package can be required 
 } -body {
   package require OfflineEVBOutputPipeline 
@@ -202,6 +218,23 @@ tcltest::test  validateLogger-0 {Test that bad eventlog path appends a message
   $params validateLogger errors
   set errors
 } -result [list "No eventlog program exists at \"$::absentFile\""]
+
+
+tcltest::test clone-0 {Test that state can be cloned 
+} -setup {
+  set params [OfflineEVBOutputPipeParams %AUTO%]
+} -cleanup {
+  $params destroy
+  $newparams destroy
+} -body {
+  
+  $params configure -ringname "foo" -prefix "none" -stagearea "here" -nsources 20 -logger "/path/to/logger" \
+                    -usensrcs 1 -forcerun 0 -usechecksum 1
+
+  set newparams [$params clone]
+  pickle $newparams
+} -result "-ringname foo -prefix none -stagearea here -nsources 20 -logger /path/to/logger -usensrcs 1 -forcerun 0 -usechecksum 1"
+
 
 
 

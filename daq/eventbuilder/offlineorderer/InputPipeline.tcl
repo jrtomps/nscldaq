@@ -63,6 +63,21 @@ snit::type OfflineEVBInputPipeParams {
 
   }
 
+
+  method clone {} {
+    
+    # get all of the options and their values and make a dict of them
+    set state [dict create]
+    foreach opt [$self info options] {
+      set value [$self cget $opt]
+      dict set state $opt $value 
+    }
+
+    # return a new snit object with the same params
+    return [OfflineEVBInputPipeParams %AUTO% {*}$state]
+     
+  }
+
 }
 
 

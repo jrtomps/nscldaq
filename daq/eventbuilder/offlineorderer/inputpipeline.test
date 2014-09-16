@@ -7,6 +7,19 @@ package require ring
 set daqroot [InstallRoot::Where]
 set daqbin  [file join $daqroot bin]
 
+##
+#
+proc pickle {snitobj} {
+  set opts [$snitobj info options]
+
+  set state [dict create]
+  foreach opt $opts {
+    set value [$snitobj cget $opt]
+    dict set state $opt $value 
+  }
+  return $state
+}
+
 tcltest::test pkgrequire-0 {Test that I can package require it
 } -body {
   package require OfflineEVBInputPipeline
@@ -219,6 +232,22 @@ tcltest::test validateFiles-1 {Test that a nonexisting file in list appends a me
   $params validateFiles errors
   set errors
 } -result [list "$::absentFile does not exist."] 
+
+
+
+tcltest::test clone-0 {Test that state can be cloned 
+} -setup {
+  set params [OfflineEVBInputPipeParams %AUTO%]
+} -cleanup {
+  $params destroy
+  $newparams destroy
+} -body {
+  
+  $params configure -file "asdf asdf fdsa" -unglomid 1234 -inputring "Fake ring"
+
+  set newparams [$params clone]
+  pickle $newparams
+} -result "-file {asdf asdf fdsa} -unglomid 1234 -inputring {Fake ring}"
 
 
 

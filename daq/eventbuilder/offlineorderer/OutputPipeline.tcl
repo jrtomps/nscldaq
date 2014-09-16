@@ -4,21 +4,23 @@ package provide OfflineEVBOutputPipeline 11.0
 package require snit
 package require InstallRoot 
 package require ring
-package require Configuration
+package require DAQParameters 
 package require eventLogBundle
 
 snit::type OfflineEVBOutputPipeParams {
-  option -ringname     -default "OfflineEVBOut"
+  option -ringname     -default "tcp://localhost/OfflineEVBOut"
   option -prefix       -default "reordered"
   option -stagearea    -default [file join $::env(HOME) offlinestagearea]
   option -nsources     -default "2"
-  option -logger       -default {[Configuration::get EventLogger]}
+  option -logger       -default ""
   option -usensrcs     -default 1
   option -forcerun     -default 0
   option -usechecksum  -default 1 
 
   constructor {args} {
+    set options(-logger) [DAQParameters::getEventLogger]
     $self configurelist $args   
+
   }
 
 
@@ -82,6 +84,22 @@ snit::type OfflineEVBOutputPipeParams {
       lappend errors "No eventlog program exists at \"$options(-logger)\""
     }
   }
+
+
+  method clone {} {
+    
+    # get all of the options and their values and make a dict of them
+    set state [dict create]
+    foreach opt [$self info options] {
+      set value [$self cget $opt]
+      dict set state $opt $value 
+    }
+
+    # return a new snit object with the same params
+    return [[$self info type] %AUTO% {*}$state]
+     
+  }
+
 
 }
 
@@ -193,7 +211,7 @@ snit::type OfflineEVBOutputPipeline {
     set nsources  [$params cget -nsources]
 
     set daqbin [file join [InstallRoot::Where] bin]
-    set command    "| $daqbin/eventlog --source=tcp://localhost/$ringname "
+    set command    "| $daqbin/eventlog --source=$ringname "
     append command "--prefix=$prefix "
     append command "--path=$dir "
     append command "--oneshot --number-of-sources=$nsources "
