@@ -20,6 +20,7 @@ namespace eval HoistConfig {
   variable info
   variable ring
   variable id
+  variable expectbh 
 }
 
 snit::type JobProcessor {
@@ -226,13 +227,14 @@ snit::type JobProcessor {
   #
   # THIS IS DIRTY AND COULD POTENTIALLY BE REPLACED WITH A hoist pipeline callout bundle
   method generateStartEVBSources {} {
-    set ::HoistConfig::tstamplib [$options(-hoistparams) cget -tstamplib]
-    set ::HoistConfig::info  [$options(-hoistparams) cget -info]
-    set ::HoistConfig::ring  [$options(-hoistparams) cget -sourcering]
-    set ::HoistConfig::id    [$options(-hoistparams) cget -id]
+    set ::HoistConfig::tstamplib  [$options(-hoistparams) cget -tstamplib]
+    set ::HoistConfig::info       [$options(-hoistparams) cget -info]
+    set ::HoistConfig::ring       [$options(-hoistparams) cget -sourcering]
+    set ::HoistConfig::id         [$options(-hoistparams) cget -id]
+    set ::HoistConfig::expectbh   [$options(-hoistparams) cget -expectbheaders]
 
     # define a startEVBSources proc or overwrite it if it already exists
-    eval { proc ::startEVBSources {} { EVBC::startRingSource tcp://localhost/$::HoistConfig::ring $::HoistConfig::tstamplib $::HoistConfig::id $::HoistConfig::info }}
+    eval { proc ::startEVBSources {} { EVBC::startRingSource tcp://localhost/$::HoistConfig::ring $::HoistConfig::tstamplib $::HoistConfig::id $::HoistConfig::info $::HoistConfig::expectbh}}
   }
 
   ## Pass the configuration information to the ::EVBC:: parameters
