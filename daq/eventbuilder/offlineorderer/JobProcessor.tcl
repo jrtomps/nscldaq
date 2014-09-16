@@ -47,6 +47,15 @@ snit::type JobProcessor {
 
   }
 
+  destructor {
+    if {$sourceManager ne ""} {
+      $sourceManager destroy
+    }
+    if {$stateMachine ne ""} {
+      $stateMachine destroy
+    }
+  }
+
   ## @brief Register all of the bundles that we need
   # and no more
   #
@@ -227,6 +236,11 @@ snit::type JobProcessor {
   #
   # THIS IS DIRTY AND COULD POTENTIALLY BE REPLACED WITH A hoist pipeline callout bundle
   method generateStartEVBSources {} {
+    if {$options(-hoistparams) eq ""} {
+      set msg "JobProcessor::generateStartEVBSources cannot proceed because "
+      append msg  "-hoistparams are nonexistent."
+      return -code error $msg
+    }
     set ::HoistConfig::tstamplib  [$options(-hoistparams) cget -tstamplib]
     set ::HoistConfig::info       [$options(-hoistparams) cget -info]
     set ::HoistConfig::ring       [$options(-hoistparams) cget -sourcering]
