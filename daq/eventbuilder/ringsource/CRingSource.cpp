@@ -267,13 +267,13 @@ CRingSource::getEvents()
           if (m_pArgs->timestampextractor_given && m_pArgs->ids_given) {
             std::string msg = "ringFragmentSource::getEvents() : --expectbodyheaders ";
             msg += "flag passed but observed a ring item without a BodyHeader.";
-            log << msg;
+            log << msg << "\n";
           } else {
             // Oh No. This is fatal. We have no way of determining the info to stick into
             // the FragmentHeader. 
             std::string msg = "ringFragmentSource passed --expectbodyheaders flag but observed ";
             msg += "a ring item without a BodyHeader. This is fatal because the fragment header ";
-            msg += "cannot be defined.";
+            msg += "cannot be defined without timestamp extractor.";
             throw msg;
           }  
         }
