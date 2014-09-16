@@ -140,7 +140,7 @@ snit::type RunStatusUIPresenter {
     $m_view setPresenter $self
     $self updateViewData $m_model
 
-    set m_jobDisplayNames [list]
+    set m_jobDisplayNames [dict create]
   }
 
   ## @brief Destroy the view 
@@ -211,12 +211,11 @@ snit::type RunStatusUIPresenter {
   ##
   #
   method updateDisplayDataForStatusType {status} {
-    variable m_jobDisplayNames
 
     set jobList [dict get $m_model $status]
     foreach job $jobList {
       if {[$self isDisplayedJob $job]} {
-        $job configure -status queued
+        [dict get $m_jobDisplayNames $job] configure -status queued
       } else {
         # the job doesn't exist as a display object
         # make a new one and then pass it the view to display
@@ -224,7 +223,7 @@ snit::type RunStatusUIPresenter {
 #        puts "New widget: $widgetName, Existing widgets: $m_jobDisplayNames"
         set newJob [JobStatusDisplay $widgetName -status $status -jobname $job]
 #        puts "New job name : $newJob"
-        lappend m_jobDisplayNames $newJob
+        dict set m_jobDisplayNames $job $newJob
 
         $m_view appendNewJobDisplay $widgetName
       }
@@ -247,10 +246,8 @@ snit::type RunStatusUIPresenter {
 
   ##
   #
-  method isDisplayedJob {jobDisplay} {
-    variable m_jobDisplayNames
-
-    return [expr {$jobDisplay in $m_jobDisplayNames}]
+  method isDisplayedJob {job} {
+    return [dict exists $m_jobDisplayNames $job]
   }
 
   ##
@@ -262,7 +259,8 @@ snit::type RunStatusUIPresenter {
     set w "$options(-widgetname).jobDisplay"
     set index 0
     set name [format "%s%d" $w $index]
-    while {[lsearch $m_jobDisplayNames $name]>=0} {
+    set existingNames [dict values $m_jobDisplayNames]
+    while {[lsearch $existingNames $name]>=0} {
       incr index
       set name [format "%s%d" $w $index]
     }
