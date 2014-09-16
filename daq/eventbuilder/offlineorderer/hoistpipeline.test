@@ -3,6 +3,21 @@
 package require tcltest
 package require ring
 
+##
+#
+proc pickle {snitobj} {
+  set opts [$snitobj info options]
+
+  set state [dict create]
+  foreach opt $opts {
+    set value [$snitobj cget $opt]
+    dict set state $opt $value 
+  }
+  return $state
+}
+
+
+
 tcltest::test pkgrequire-0 {Test that OfflineEVBHoistPipeline can be required
 } -body {
   package require OfflineEVBHoistPipeline
@@ -53,7 +68,7 @@ tcltest::test validateTstamp-0 {Test that a non existent file appends a message
 } -cleanup {
   $params destroy
 } -body {
-  $params configure -tstamplib $::absentFile
+  $params configure -tstamplib $::absentFile -expectbheaders 0
 
   set errors [list]
   $params validateTstampLib errors
@@ -66,7 +81,7 @@ tcltest::test validateTstamp-1 {Test that a null entry for tstamplib appends a m
 } -cleanup {
   $params destroy
 } -body {
-  $params configure -tstamplib ""
+  $params configure -tstamplib "" -expectbheaders 0
 
   set errors [list]
   $params validateTstampLib errors
@@ -79,13 +94,26 @@ tcltest::test validateTstamp-2 {Test that an existing file appends no message
 } -cleanup {
   $params destroy
 } -body {
-  $params configure -tstamplib [info script]
+  $params configure -tstamplib [info script] -expectbheaders 0
 
   set errors [list]
   $params validateTstampLib errors
   set errors
 } -result  ""
 
+
+tcltest::test validateTstamp-3 {Test that a null tstamplib is ignored if expect body header 
+} -setup {
+  set params [OfflineEVBHoistPipeParams %AUTO%]
+} -cleanup {
+  $params destroy
+} -body {
+  $params configure -expectbheaders 1
+
+  set errors [list]
+  $params validateTstampLib errors
+  set errors
+} -result  ""
 
 
 
@@ -130,5 +158,22 @@ tcltest::test validateInfo-0 {Test that a null info string appends a message
   set errors
 } -result [list "Source info for ringFragmentSource has not been defined."] 
 
+
+
+
+tcltest::test clone-0 {Test that state can be cloned 
+} -setup {
+  set params [OfflineEVBHoistPipeParams %AUTO%]
+} -cleanup {
+  $params destroy
+  $newparams destroy
+} -body {
+  
+  $params configure -sourcering "Falsehoods" -tstamplib "another_farse" -id "12345" -info "Data from Falsehoods" \
+                    -expectbheaders 0
+
+  set newparams [$params clone]
+  pickle $newparams
+} -result "-sourcering Falsehoods -tstamplib another_farse -id 12345 -info {Data from Falsehoods} -expectbheaders 0"
 
 tcltest::cleanupTests

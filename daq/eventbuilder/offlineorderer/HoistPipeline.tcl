@@ -11,6 +11,7 @@ snit::type OfflineEVBHoistPipeParams {
   option -tstamplib   -default ""
   option -id          -default 0
   option -info        -default "Data from OfflineEVBIn"
+  option -expectbheaders -default 1
 
   constructor {args} {
     $self configurelist $args
@@ -37,8 +38,12 @@ snit::type OfflineEVBHoistPipeParams {
 
   method validateTstampLib {errors_} {
     upvar $errors_ errors
+    # check for missing tstamplib
     if {$options(-tstamplib) eq "" } {
-       lappend errors "Timestamp extractor library has not been specified and is mandatory."
+      # this is only bad if the -exectbheaders option is specified
+      if { ! $options(-expectbheaders) } {
+        lappend errors "Timestamp extractor library has not been specified and is mandatory."
+      }
     } elseif {! [file exists $options(-tstamplib)] } {
        lappend errors "Timestamp extractor library \"$options(-tstamplib)\" does not exist."
     }
@@ -58,4 +63,21 @@ snit::type OfflineEVBHoistPipeParams {
       lappend errors "Source info for ringFragmentSource has not been defined."
     }
   }
+
+  method clone {} {
+    
+    # get all of the options and their values and make a dict of them
+    set state [dict create]
+    foreach opt [$self info options] {
+      set value [$self cget $opt]
+      dict set state $opt $value 
+    }
+
+    # return a new snit object with the same params
+    return [[$self info type] %AUTO% {*}$state]
+     
+  }
+
+
+  
 }
