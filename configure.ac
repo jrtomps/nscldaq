@@ -342,6 +342,7 @@ AC_CONFIG_FILES([Makefile
                  base/uri/Makefile
 		 base/dataflow/Makefile
                  base/plotchart/Makefile
+		 base/plotcontainer/Makefile
 		 base/tcpip/Makefile
 		 caenfw-common/Makefile
 		 servers/Makefile

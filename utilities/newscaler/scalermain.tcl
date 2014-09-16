@@ -47,6 +47,8 @@ package require Tk
 package require scalerconfig
 package require header
 package require scalerReport
+package require Plotchart::xyplotContainer
+
 
 ## Ensure the SCALER_RING env variable is defined
 
@@ -70,6 +72,11 @@ set notebook "";                  # Widget containing the tabbed notebook.
 set header   "";                  # Header widget.
 
 set startTime 0;                  # when the run started:
+set duration  0;                  # Number of seconds in the run.
+set stripcharts "";               # xyplotContainer with the stripchart.
+set alarmcontrol 1;               # start with alarms on.
+
+
 
 ##
 # Create the thread that will read data from the ring and post it back to us:
@@ -107,6 +114,9 @@ proc startAcqThread {} {
     
     return $acqThread
 }
+#------------------------------------------------------------------------------------------------
+#  Scaler display table:
+
 ##
 #  updatePages
 #    Updates all pages on the display.
@@ -120,6 +130,77 @@ proc updatePages {} {
     }
     
 }
+
+#----------------------------------------------------------------------------
+#  Strip charts
+
+
+##
+# clearStripcharts
+#    Clear all the data from the stripcharts and prepare the plot for
+#    new data with auto-y scale.
+#
+#
+proc clearStripcharts {} {
+    # Clear the plot:
+    
+    set seriesNames [$::stripcharts getSeries]
+    foreach series $seriesNames {
+        $::stripcharts clearSeries $series
+    }
+    # Ensure the next time is a new one:
+    
+    foreach item [_getStripItems] {
+        $item clear
+    }
+    #  Reset the ymax to 1 so autoscale will start up again.:
+    
+    $::stripcharts configure -ymax 1
+    
+}
+##
+# Writes the stripchart plot to a postscript file:
+#
+# @param filename - name of the output file.
+#
+proc saveStripcharts   {filename} {
+    set plot [$::stripcharts cget -plotid]
+    $plot saveplot $filename 
+}
+##
+# updateStripcharts
+#   For each series, that has a new time a new point is drawn for that series.
+#   If the y value of that point is larger than the current -ymax, -ymax is
+#   changed to be 10% larger than the requested y value.
+#
+proc updateStripcharts {} {
+    set ymax -1
+    foreach item [_getStripItems] {
+        if {[$item hasUpdated]} {
+            set name [$item name]
+            set y [$item rate]
+            set t [$item time]
+            set ymax [expr {max($ymax, $y)}]
+            
+            $::stripcharts addSeriesPoint $name $t $y
+        }
+    }
+    
+    # If needed update the -ymax to autoscale that axis.
+    #  The game with limits is needed in case the x axis has scrolled.
+    #  in which case it won't be what -xmin/-xmax say it will be.
+    
+    if {$ymax > [$::stripcharts cget -ymax]} {
+        set ymax [expr {$ymax * 1.1}]
+        set limits [$::stripcharts getPlotLimits]
+        $::stripcharts configure \
+            -ymax $ymax -xmin [lindex $limits 0] -xmax [lindex $limits 1]
+    }
+}
+
+#--------------------------------------------------------------------------
+# Data handling
+
 ##
 # scaler
 #   Called when a scaler item comes in.
@@ -163,10 +244,28 @@ proc scaler item {
     
     updatePages
     
+    updateStripcharts
+    
     # The state is now known to be active (if it was not known before):
     
     set h [getHeader]
     $h configure -state Active
+    
+    # If the end time is longer than duration, use it:
+    
+    set elapsed [expr {$end/[dict get $item divisor]}]
+    if {$elapsed > $::duration} {
+        set duration $elapsed
+        $h configure -elapsed $elapsed
+    }
+    # Set the dt in seconds for the source, if there is no  body
+    # header to supply  an sid, just make a blank source id:
+    
+    set sid ""
+    if {[dict exists $item bodyheader]} {
+        set sid [dict get $item bodyheader source]
+    }
+    $h update $sid $dt
     
 }
 ##
@@ -182,6 +281,7 @@ proc scaler item {
 proc beginRun {item} {
     
     set ::startTime [dict get $item realtime]
+    set ::duration  0
     
     foreach counter [::scalerconfig::channelMap list] {
         [::scalerconfig::channelMap get $counter] clear
@@ -192,6 +292,9 @@ proc beginRun {item} {
     set h [getHeader]
     $h configure -title [dict get $item title] -run [dict get $item run] \
         -state Active
+    $h clear;                   # Clear the dt's for each data source.
+    
+    clearStripcharts;           # If there are stripcharts clear them.
 }
 ##
 # endRun
@@ -219,6 +322,11 @@ proc endRun   {item} {
         set fd [open $filename w]
         computerReport $fd $::startTime $item ::scalerconfig::channelMap
         close $fd
+        
+        #  Stripchart postscript.
+        
+        set filename [format run%04d-stripchart.ps $run]
+        saveStripcharts $filename
     }
 }
 
@@ -269,15 +377,109 @@ proc getHeader {} {
 }
 
 ##
+#  enableDisableAlarms
+#    Called when the toggle button that controls the alarm enables changes
+#
+# @param widget - Path to the widget that enables/disables the controls.
+#
+proc enableDisableAlarms widget {
+    set state $::alarmcontrol
+    set tabNames [::scalerconfig::pages list]
+    foreach tab $tabNames {
+        set wid [::scalerconfig::pages get $tab]
+        $wid alarms $state
+    }
+}
+
+##
+# ResizeStripchart
+#   Resize the stripchart canvas and the stripchart widget to the new width
+#   of the window.  This is done by:
+#   *  Getting the geometry  of . and decoding it.
+#   *  Whacking a few pixels off the width.
+#   *  resizing the stripchart (which resizes the canvas) to the current
+#      canvas height and computed width.
+#
+# @param charts - the stripchart container object.
+#
+proc ResizeStripchart charts {
+    #
+    #  The geometry is of the form widthxheight+xoffset+yoffset ..
+    #
+    set geometry [wm geometry .]
+    set wh       [split [lindex [split $geometry +] 0] x]
+    set width    [lindex $wh 0]
+    
+    set canvasWidth [expr {$width - 10}]
+    set canvasHeight [[$charts cget -canvas] cget -height]
+    
+    $charts resize $canvasWidth $canvasHeight
+}
+
+##
 # setupGui
 #   Set up the top level gui stuff.
 #
 proc setupGui {} {
-    set ::header [header .header -title ????? -run ????]
+    set ::header [header .header -title ????? -run ???? -elapsed 0]
     pack .header -fill x -expand 1
     set ::notebook [ttk::notebook .notebook]
-    pack .notebook -fill both -expand 1    
+    pack .notebook -fill both -expand 1
+    ttk::frame .alarmcontrol
+    ttk::checkbutton .alarmcontrol.enable -text {Enable Alarms} -variable alarmcontrol \
+        -command [list enableDisableAlarms .alarmcontrol.enable]
+    grid .alarmcontrol.enable -sticky w
+    pack .alarmcontrol -fill x -expand 1
 }
+
+
+
+##
+# setupStripchart
+#
+#  Create a canvas at the bottom of the display and put a stripchart widget
+#  into it.  Create a series for each item in the list.
+#
+# @param charts - List of strip charts to create
+#
+proc setupStripchart charts {
+    canvas .stripcharts
+    pack .stripcharts -fill x -expand 1
+    
+    # Ensure the canvas size has been computed by the packer:
+    
+    update idletasks
+    update idletasks
+    
+    # The ranges given should ensure that the y will auto-scale once points
+    # start arriving.
+    
+    set ::stripcharts [Plotchart::xyplotContainer %AUTO% \
+        -xmin 0 -xmax 3600 -ymin 0 -ymax 1 -plottype ::Plotchart::createStripchart \
+        -canvas .stripcharts                                                    \
+    ]
+    # Create empty series.
+    #
+    foreach series $charts color {black red green blue goldenrod purple cyan yellow orange brown} {
+        if {$series eq ""} {
+            break
+        }
+        $::stripcharts series [$series name] [list] [list] $color
+        $series clear;                          # Invalidate the time.
+    }
+
+    
+    #  Resize to the size of the canvas:
+    
+    $::stripcharts resize [.stripcharts cget -width] [.stripcharts cget -height]
+    
+    ## TODO: Add resize handler here.
+    
+    bind .stripcharts <Configure> [list ResizeStripchart $::stripcharts]
+    
+    
+}
+
 #-----------------------------------------------------------------------------
 # Main script entry point.
 
@@ -298,4 +500,15 @@ setupGui
 set configFile [lindex $argv 0]
 
 source $configFile
+
+# If there's at least one stripchart, add the plot to the display.
+
+set stripItems [_getStripItems]
+if {[llength $stripItems] > 0} {
+    setupStripchart $stripItems
+}
+
+# Set page alarm enables:
+
+enableDisableAlarms .alarmcontrol.enable
 

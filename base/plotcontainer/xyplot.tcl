@@ -62,6 +62,7 @@ package require Plotchart::marker
 #   getSeriesMinMax - Get information about min/max and where values for series
 #                     within an X/Y range.
 #   addSeriesPoint  - Append a point to a series.
+#   clearSeries     - Kill off points in a series and schedule a replot.
 #   marker          - Adds or modifies the position of a marker to the plot.
 #   deleteMarker    - Removes a marker from the plot.
 #   markers         - Returns the set of markers
@@ -400,7 +401,26 @@ snit::type Plotchart::xyplotContainer {
         set seriesDict $plotSeries($name)
         set series [dict get $seriesDict data]
         $series append $x $y
-        $options(-plotid) plot $name $x $y
+        if {$options(-plotid) eq ""} {
+            $self _ScheduleRedraw
+        } else {
+            $options(-plotid) plot $name $x $y
+        }
+    }
+    ##
+    #  clearSeries
+    #
+    # Clear a series and schedule a replot:
+    #
+    # @param name - Name of the series.
+    #
+    method clearSeries {name} {
+        if {[array names plotSeries $name] eq ""} {
+            error "Series $name does not exist"
+        }
+        set series [dict get $plotSeries($name) data]
+        $series clear
+        $self _ScheduleRedraw
     }
     
     ##
@@ -546,7 +566,6 @@ snit::type Plotchart::xyplotContainer {
     method _ScheduleRecreate {optionName value} {
         # Update the option value:
         
-        puts "rec $optionName $value"
         set options($optionName) $value
         
         #  If necessary schedule the update:
@@ -795,13 +814,17 @@ snit::type Plotchart::xyplotContainer {
         
         #  Figure out the axis specs and create the plot:
         
-        set xTickInterval [expr {max(1,int(($options(-xmax) - $options(-xmin))/5.0))}]
-        set yTickInterval [expr {max(1, int(($options(-ymax) - $options(-ymin))/5.0))}]
-#        set xSpecs [Plotchart::determineScale $options(-xmin) $options(-xmax) 0]
-#        set ySpecs [Plotchart::determineScale $options(-ymin) $options(-ymax) 0]
+        set xSpecs [Plotchart::determineScale $options(-xmin) $options(-xmax) 0]
+        set ySpecs [Plotchart::determineScale $options(-ymin) $options(-ymax) 0]
         
-        set xSpecs [list $options(-xmin) $options(-xmax) $xTickInterval]
-        set ySpecs [list $options(-ymin) $options(-ymax) ""];   #  
+        # TODO:  Make this code vs the code above for choosing axis ticks and position
+        #        labels an option with a bit more choice about what can be shown in the
+        #        commented code.
+
+#        set xTickInterval [expr {max(1,int(($options(-xmax) - $options(-xmin))/5.0))}]
+#        set yTickInterval [expr {max(1, int(($options(-ymax) - $options(-ymin))/5.0))}]       
+#        set xSpecs [list $options(-xmin) $options(-xmax) $xTickInterval]
+#        set ySpecs [list $options(-ymin) $options(-ymax) ];   #  
         
         # Note that in general the X/Y specs will have different -xmin -xmax
         # -ymin -ymax then requested so we update those values so that cget is accurate:
@@ -812,9 +835,9 @@ snit::type Plotchart::xyplotContainer {
         set options(-ymax) [lindex $ySpecs 1]
         
         
-        set plotId [$options(-plottype) $options(-canvas) $xSpecs $ySpecs -ylabels [list " " " " " " " " " "]]
+        set plotId [$options(-plottype) $options(-canvas) $xSpecs $ySpecs ]
         set options(-plotid) $plotId
-        puts $plotId
+
         
         # redraw the series, titles, and conditionally the legend.
         
@@ -892,7 +915,8 @@ snit::type Plotchart::xyplotContainer {
         # plot the series and set its color:
         # If there are no points give up:
         
-        if {[llength [lindex $coords 0]] == 0} return
+        if {[llength [lindex $coords 0]] < 2} return
+        
         
         $options(-plotid) dataconfig $name -color $color -type line
         $options(-plotid) plotlist $name [lindex $coords 0] [lindex $coords 1]

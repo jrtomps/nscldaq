@@ -31,13 +31,17 @@ package require channel
 package require pagedisplay
 package require singleModel
 package require ratioModel
+package require stripparam
+package require stripratio
 
 namespace eval ::scalerconfig {
     variable pageNumber 0
+    variable stripItems [list]
 }
 
 nameMap ::scalerconfig::channelMap;   # Mapping channel names -> Channel objs
 nameMap ::scalerconfig::pages;        # Page tab names -> widgets.
+
 
 #------------------------------------------------------------------------------
 # private procs
@@ -77,6 +81,16 @@ proc _getChannel {channel} {
     }
     return $chan    
 }
+
+##
+# _getStripItems
+#  Return the list of stripchart items:
+#
+# @return list
+#
+proc _getStripItems {} {
+    return $::scalerconfig::stripItems
+}
 #------------------------------------------------------------------------------
 # Procs that implement the config file commands.
 #
@@ -101,6 +115,9 @@ proc _getChannel {channel} {
 #  *  A channelMap entry that maps the channel name to the channel command.
 #
 proc channel args {
+    if {[llength $args] < 2} {
+        error "Need at least a channel name and identifier"
+    }
     set name       [lindex $args end-1]
     set descriptor [lindex $args end];     # index?.source
     set options    [lrange $args 0 end-2]
@@ -191,4 +208,29 @@ proc display_ratio {tab numerator denominator} {
     $page add [ratioModel %AUTO% \
         -numerator $num -denominator $den -numeratorname $numerator \
         -denominatorname $denominator]
+}
+##
+# stripparam
+#    Define a strip-charted parameter.
+#
+# @param channel - the name of the channel to chart.
+#
+proc stripparam channel {
+    set chan [_getChannel $channel];          # get channel object.
+    lappend ::scalerconfig::stripItems [stripParam %AUTO% -channel $chan]
+}
+
+##
+# stripratio
+#   Define a strip-charted ratio.
+#
+# @param num -- The numerator
+# @param den -- The demominator.
+#
+proc stripratio {num den} {
+    set numerator   [_getChannel $num]
+    set denominator [_getChannel $den]
+    
+    lappend ::scalerconfig::stripItems \
+        [stripRatio %AUTO% -numerator $numerator -denominator $denominator]
 }

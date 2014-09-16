@@ -696,7 +696,7 @@ Work on 11.0-rc11 begins
 	commit the value. 
 11.0-rc13
 	
-	* Complete first iteration of new scaler program:
+	* Complete first sprint of new scaler program:
 	* Feature #2204 - Users can specify scaler channels
 	* Feature #2209 - Users can specify alarms on channels.
 	* Feature #2206 - Users can specify display pages.
@@ -706,3 +706,21 @@ Work on 11.0-rc11 begins
 	* Feature #2205 - The scaler program can be attached to a ring.
 	* Feature #2211, Feature #2212 - Scalers update properly.
 	* Feature #2213 - Users get end of run reports.
+	* Complete second sprint of new scaler program:
+	* Feature #2256 - Users want to see the run duration (show max
+	over all sources).
+	* Feature #2257 - Show most recent update intervals from all
+	sources.
+	* Feature #2259 - Users can disable alarms (Checkbutton).
+	* Feature #2260 - Users can define a strip chart single parameter.
+	* Feature #2263 - Users can define a stripcharted ratio of
+	parameters.
+	* Feature #2266 - If there is a strip parameter or strip ratio, a
+	strip chart will be created.
+	* Feature #2268 Scaler events update the strip chart.
+	* Feature #2271 End of run produces a postscript of the strip
+	chart.
+	* Added the 'special' updated version of plotchart to the build.
+	* Added features to the plotchart stripchart to allow one to fetch
+	current plot limits.
+	* Added CAEN xyplotcontainer and related modules to the build.

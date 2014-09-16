@@ -1,9 +1,10 @@
 # The pure TCl parts of this.
 
 PACKAGE_FILES=nameMap.tcl channel.tcl scalerconfig.tcl page.tcl \
-	singleModel.tcl ratioModel.tcl scalermain.tcl header.tcl reports.tcl
+	singleModel.tcl ratioModel.tcl scalermain.tcl header.tcl reports.tcl\
+	scalerUtil.tcl stripparam.tcl stripratio.tcl
 TEST_FILES=nameMap.test channel.test channelcmd.test singleModel.test \
-	ratioModel.test
+	ratioModel.test stripparam.test stripratio.text
 INTERACTIVE_TESTS=pagetest.tcl 
 
 

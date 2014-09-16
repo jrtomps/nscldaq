@@ -161,5 +161,12 @@ snit::type Channel {
         }
         return 0.0
     }
-    
+    ##
+    #  elapsed
+    #    Return the elapsed time
+    #  @return float - the elapsed time.
+    #
+    method elapsed {} {
+        return $elapsed
+    }
 }

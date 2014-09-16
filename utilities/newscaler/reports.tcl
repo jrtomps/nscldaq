@@ -22,6 +22,7 @@ package provide scalerReport 1.0
 package require report
 package require struct::matrix
 package require csv
+package require scalerUtil
 
 ##
 # @file reports.tcl
@@ -56,18 +57,7 @@ package require csv
 # @return string - The formatted elapsed time.
 #
 proc _formatElapsedTime secs {
-    
-    set seconds [expr {$secs %60}]
-    
-    set mins [expr {int($secs/60)}]
-    set minutes [expr {$mins %60}]
-    
-    set hours [expr {int($mins/60)}]
-    set hrs   [expr {$hours % 24}]
-    
-    set days [expr {int($hours/24)}]
-    
-    return [format "%d %02d:%02d:%02d" $days $hrs $minutes $seconds]
+    return [formatElapsedTime $secs]
 }
 
 ##

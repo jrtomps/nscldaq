@@ -44,6 +44,7 @@ package require snit
 # METHODS
 #   add     - adds a new model object.
 #   update  - updates all lines on the page.
+#   alarms  - Enable/disable alarms.
 #
 snit::widgetadaptor pageDisplay {
     option -title
@@ -117,7 +118,25 @@ snit::widgetadaptor pageDisplay {
             $table item $id -values $values -tags $tag
         }
     }
-    
+    ##
+    # alarms
+    #   Enable or disable the alarms
+    #
+    # @param state - boolean that is true if the alarms should be enabled.
+    #
+    method alarms state {
+        
+        if {$state} {
+            set colors {white red green}
+        } else {
+            set colors {white white white}
+        }
+        # Add the highlighting tags.
+        
+        foreach tag {ok high low} color $colors {
+            $table tag configure $tag -background $color
+        }        
+    }
     #------------------------------------------------------------------------
     # _createContentsFrame
     #    Creates the contents part of the page. This is a frame that contains
@@ -141,7 +160,7 @@ snit::widgetadaptor pageDisplay {
         set table [ttk::treeview $win.contents.table            \
             -columns {Numerator Denominator Rate Totals Ratio}  \
             -displaycolumns #all                                \
-            -height 25 -show headings -selectmode none          \
+            -height 16 -show headings -selectmode none          \
             -yscrollcommand [list $win.contents.yscroll set]    \
             -xscrollcommand [list $win.contents.xscroll set]    \
         ]
@@ -150,6 +169,14 @@ snit::widgetadaptor pageDisplay {
         $table heading 2 -text Rate(s)
         $table heading 3 -text Total(s)
         $table heading 4 -text {Ratio [rates totals]}
+        
+        # 1/2 the sizer of the rates and totals columns:
+        
+        #  This code assumes their current sizes are the same.
+        
+        set wid [$table column 2 -width]
+        $table column 2 -width [expr {$wid/2}]
+        $table column 3 -width [expr {$wid/2}]
         
         ttk::scrollbar $win.contents.yscroll -orient vertical \
             -command [list $table yview]
@@ -172,11 +199,7 @@ snit::widgetadaptor pageDisplay {
         grid rowconfigure    $win 1 -weight 1
         grid columnconfigure $win 0 -weight 1
         
-        # Add the highlighting tags.
-        
-        foreach tag {ok high low} color {white red green} {
-            $table tag configure $tag -background $color
-        }
+
     }
     ##
     # _addLine
