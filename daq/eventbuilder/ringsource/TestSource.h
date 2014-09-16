@@ -82,6 +82,7 @@ public:
     
   // private utilities:
 
+  void dataFormat(CRingBuffer& ring);
   void beginRun(CRingBuffer& ring, int run, std::string title);
   void someEventData(CRingBuffer& rings, int events);
   void endRun(CRingBuffer& ring, int run, std::string title);
