@@ -112,7 +112,7 @@ snit::widget JobBuilderUIView {
   ##
   #
   method appendEntry {name} {
-    [$self getTreeWidget] insert {} end -text $name
+    [$self getTreeWidget] insert {} end -id $name -text $name
   }
 
 }
@@ -237,10 +237,8 @@ snit::type JobBuilderUIPresenter {
     # set the m_useParamsToCreate variable
     if {$m_useParamsToCreate} {
 
-      puts "Appending new Job!"
       set newName [$self constructNewJobName $model]
       $self appendNewJob $newName $model
-      puts "$m_nJobs  :\n$model"
 
       incr m_nJobs
 
@@ -272,8 +270,16 @@ snit::type JobBuilderUIPresenter {
     if {[llength $entries] == 0 } {
       tk_messageBox -icon error -message "User must select files to remove from list"
     } else {
+      # remove from the job list
+
+      set m_masterJobList [dict remove $m_masterJobList $entries]
+
+      # remove from the display
       $tree delete $entries
-    }
+
+    } ;# end removal 
+
+
   }
 
 
@@ -281,6 +287,16 @@ snit::type JobBuilderUIPresenter {
   #
   method editJob {} {
     set m_useParamsToCreate 0
+
+    # get the selection
+    set tree [$m_view getTreeWidget]
+    set selection [$tree selection]
+
+    # check to see if the user selected anything.
+    if {[llength $selection]==0} {
+      tk_messageBox -icon warning -message "The user must select a job to edit."
+      return 
+    }
 
     # Create a new toplevel dialogue
     toplevel .jobconf
@@ -291,8 +307,6 @@ snit::type JobBuilderUIPresenter {
     $config setButtonText "Accept"
 
     # Figure out which job the user wants to configure
-    set tree [$m_view getTreeWidget]
-    set selection [$tree selection]
     $config setModel [dict get $m_masterJobList [lindex $selection 0] ]
     $config setObserver $self
     grid .jobconf.ui -sticky nsew -padx 9 -pady 9
@@ -347,8 +361,6 @@ snit::type JobBuilderUIPresenter {
       $self appendNewJob $key $value
     }
   }
-
-
 
   method configureDefaults {jobParams} {
     [dict get $jobParams -inputparams] configure -inputring  OfflineEVBIn
