@@ -10,7 +10,6 @@ package require OfflineEVBInputPipelineUI
 package require OfflineEVBHoistPipelineUI
 package require OfflineEVBEVBPipelineUI
 package require OfflineEVBOutputPipelineUI
-package require OfflineEVBRingConfigUI
 package require OfflineEVBMissingSourceUI
 
 package require ApplyCancelWidget 
@@ -112,7 +111,7 @@ snit::widget OfflineOrdererUIView {
 
       set options(-mode) $mode
     } elseif {$mode eq "run"} {
-      $m_runabortButton configure -text "Abort" 
+      $m_runabortButton configure -text "Back" 
 
       set widget [dict get $m_viewMap run]
       if {$widget ne ""} {
