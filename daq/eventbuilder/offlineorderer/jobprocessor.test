@@ -106,8 +106,31 @@ tcltest::test clearDataSources-0 {Test that the data source manager is empty whe
 
 
 
+tcltest::test startProcessing-0 {Test that if an error occurs, then the system will transition back to NotReady
+} -setup {
+  
+  # store the original leave proc
+  rename ::EventLog::leave ::EventLog::__leave__
+ 
+  # redefine it to something that always fails
+  proc ::EventLog::leave {from to} {
+    if {($from eq "Halted") && ($to eq "Active")} {
+      return -code error "FAIL"
+    }
+  }
+  
+  set jp [JobProcessor %AUTO%]
+} -cleanup {
+  proc ::EventLog::leave {from to} [info body ::EventLog::__leave__]
+  $jp destroy
+} -body {
+  $jp setupStateMachine
 
+  catch {$jp startProcessing} msg
 
+  [$jp getRunStateMachine] getState
+} -returnCodes 0 -result "NotReady"
+ 
 tcltest::cleanupTests
 
 
