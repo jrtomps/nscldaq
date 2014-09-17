@@ -57,6 +57,7 @@ snit::widget RunStatusUIView {
     }
 
     method appendNewJobDisplay {jobDisplay} {
+      puts "appendNewJobDisplay \"$jobDisplay\""
       grid $jobDisplay -sticky new
       grid columnconfigure $win [expr {[lindex [grid size $win] 1]-1}] -weight 1
     }
@@ -109,6 +110,7 @@ snit::type RunStatusUIPresenter {
   component m_model     ;#< The model : OfflineEVBInputPipeParams
   component m_view      ;#< The view, owned by this
 
+  variable m_parent 
   variable m_jobDisplayNames
 
   ## Construct the model, view, and synchronize view
@@ -168,8 +170,7 @@ snit::type RunStatusUIPresenter {
   #
   method transitionToNextJob {jobName} {
     # mark the current job as completed
-    set current [dict get $m_model processing]
-    dict lappend m_model completed $current
+    $self transitionCurrent
     
     # find the new job in the list of queued  and make it current
     set queuedJobs [dict get $m_model queued]
@@ -186,6 +187,18 @@ snit::type RunStatusUIPresenter {
     $self updateViewData $m_model
   }
 
+  method transitionCurrent {} {
+
+    set current [dict get $m_model processing]
+    puts "Current : $current"
+    if {$current ne ""} {
+      dict lappend m_model completed $current
+      dict set m_model processing ""
+
+      puts [dict get $m_model completed]
+    }
+  }
+
   ## @brief Retrieve the model
   #
   # @returns string
@@ -194,6 +207,15 @@ snit::type RunStatusUIPresenter {
     return $m_model
   }
   
+  method setParent {parent} {
+    set m_parent $parent
+  }
+
+  method finish {} {
+    $self transitionCurrent
+    $self updateViewData $m_model 
+  }
+
   ## @brief Synchronize the data displayed by the view with the model
   #
   # @param model  an OfflineEVBInputPipeParams object
@@ -212,10 +234,13 @@ snit::type RunStatusUIPresenter {
   #
   method updateDisplayDataForStatusType {status} {
 
+    # get the list of jobs for the given status
     set jobList [dict get $m_model $status]
+
+    # handle each of the statuses
     foreach job $jobList {
       if {[$self isDisplayedJob $job]} {
-        [dict get $m_jobDisplayNames $job] configure -status queued
+        [dict get $m_jobDisplayNames $job] configure -status $status 
       } else {
         # the job doesn't exist as a display object
         # make a new one and then pass it the view to display
@@ -253,7 +278,6 @@ snit::type RunStatusUIPresenter {
   ##
   #
   method findUniqueName {} {
-    variable m_jobDisplayNames
 
     # scan until find a name that doesn't exist in the list 
     set w "$options(-widgetname).jobDisplay"
