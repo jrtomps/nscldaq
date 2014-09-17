@@ -27,4 +27,191 @@ run number even if it is the absolute path
   $processor guessRunNumber [list /path/to/my/file/run-0047-00.evt]
 } -result 47
 
+
+
+
+tcltest::test addRunStatusObserver-0 {Test that I can add observers
+} -setup {
+  set processor [RunProcessor %AUTO%]
+} -cleanup {
+  $processor destroy
+} -body {
+  $processor addRunStatusObserver asdf
+  $processor listRunStatusObservers
+} -result asdf
+
+
+snit::type MockObserver {
+  variable m_history
+
+  constructor {} {
+    $self reset
+  }
+
+  method setModel {dict} {
+    lappend m_history "setModel $dict"
+  }
+
+  method transitionToNextJob job {
+    lappend m_history "transitionToNextJob $job"
+  }
+
+  method finish {} {
+    lappend m_history finish
+  }
+
+  method abort {} {
+    lappend m_history abort
+  }
+
+  method reset {} {
+    set m_history [list]
+  }
+
+  method getHistory {} {
+    return $m_history
+  }
+}
+
+
+tcltest::test observeNewRun-0 {Test that observer sees the transition
+} -setup {
+  set processor [RunProcessor %AUTO%]
+  set obs [MockObserver %AUTO%]
+} -cleanup {
+  $processor destroy
+  $obs destroy
+} -body {
+  $processor addRunStatusObserver $obs
+  $processor observeNewRun 
+  $obs getHistory
+} -result "{setModel queued {} processing {} completed {}}"
+
+
+tcltest::test observeNewJob-0 {Test that observer sees the transition
+} -setup {
+  set processor [RunProcessor %AUTO%]
+  set obs [MockObserver %AUTO%]
+} -cleanup {
+  $processor destroy
+  $obs destroy
+} -body {
+  $processor addRunStatusObserver $obs
+  $processor observeNewJob NextJob
+  $obs getHistory
+} -result "{transitionToNextJob NextJob}"
+
+
+tcltest::test observeCompleted-0 {Test that observer sees the transition
+} -setup {
+  set processor [RunProcessor %AUTO%]
+  set obs [MockObserver %AUTO%]
+} -cleanup {
+  $processor destroy
+  $obs destroy
+} -body {
+  $processor addRunStatusObserver $obs
+  $processor observeCompleted
+  $obs getHistory
+} -result "finish"
+
+
+tcltest::test observeAbort-0 {Test that observer sees the transition
+} -setup {
+  set processor [RunProcessor %AUTO%]
+  set obs [MockObserver %AUTO%]
+} -cleanup {
+  $processor destroy
+  $obs destroy
+} -body {
+  $processor addRunStatusObserver $obs
+  $processor observeAbort
+  $obs getHistory
+} -result "abort"
+
+
+tcltest::test configureJobProcessor-0 {Ensure job processor gets configured properly with inputparams
+} -setup {
+  set processor [RunProcessor %AUTO%]
+} -cleanup {
+  $processor destroy
+} -body {
+  set params [dict create -inputparams a -hoistparams b -evbparams c -outputparams d]
+  $processor configureJobProcessor $params
+
+  [$processor getJobProcessor] cget -inputparams
+} -result a
+
+tcltest::test configureJobProcessor-1 {Ensure job processor gets configured properly with hoistparams
+} -setup {
+  set processor [RunProcessor %AUTO%]
+} -cleanup {
+  $processor destroy
+} -body {
+  set params [dict create -inputparams a -hoistparams b -evbparams c -outputparams d]
+  $processor configureJobProcessor $params
+
+  [$processor getJobProcessor] cget -hoistparams
+} -result b
+
+tcltest::test configureJobProcessor-2 {Ensure job processor gets configured properly with evbparams
+} -setup {
+  set processor [RunProcessor %AUTO%]
+} -cleanup {
+  $processor destroy
+} -body {
+  set params [dict create -inputparams a -hoistparams b -evbparams c -outputparams d]
+  $processor configureJobProcessor $params
+
+  [$processor getJobProcessor] cget -evbparams
+} -result c
+
+tcltest::test configureJobProcessor-3 {Ensure job processor gets configured properly with outputparams
+} -setup {
+  set processor [RunProcessor %AUTO%]
+} -cleanup {
+  $processor destroy
+} -body {
+  set params [dict create -inputparams a -hoistparams b -evbparams c -outputparams d]
+  $processor configureJobProcessor $params
+
+  [$processor getJobProcessor] cget -outputparams
+} -result d
+
+
+
+tcltest::test runNext-0 {Test that an empty job list causes completion
+} -setup {
+  set processor [RunProcessor %AUTO%]
+  set obs [MockObserver %AUTO%]
+} -cleanup {
+  $processor destroy
+  $obs destroy
+} -body {
+  $processor configure -jobs [dict create]
+  $processor addRunStatusObserver $obs
+
+  $processor runNext
+  $obs getHistory
+} -result "finish"
+
+tcltest::test runNext-1 {Test that a bad input param file name causes an abort 
+} -setup {
+  set processor [RunProcessor %AUTO%]
+  set obs [MockObserver %AUTO%]
+  set iparams [OfflineEVBInputPipeParams %AUTO% -file asdf]
+} -cleanup {
+  $processor destroy
+  $obs destroy
+  $iparams destroy
+} -body {
+
+  # we should only need to have the input params to fail 
+  $processor configure -jobs [dict create job0 [dict create -inputparams $iparams]]
+  $processor addRunStatusObserver $obs
+
+  $processor runNext
+  $obs getHistory
+} -result [list "transitionToNextJob job0" "abort"]
+
 tcltest::cleanupTests

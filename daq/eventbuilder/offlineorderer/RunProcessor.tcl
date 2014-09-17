@@ -106,11 +106,9 @@ snit::type RunProcessor {
         return
       }
       ReadoutGUIPanel::setRun $run 
+
       puts "$job , run $run"
-      $processor configure -inputparams $iparams 
-      $processor configure -hoistparams [dict get $options(-jobs) $job -hoistparams]
-      $processor configure -evbparams   [dict get $options(-jobs) $job -evbparams]
-      $processor configure -outputparams [dict get $options(-jobs) $job -outputparams]
+      $self configureJobProcessor [dict get $options(-jobs) $job]
 
       # launch this thing but stop if it was aborted.
       if {[catch {$processor run} msg]} {
@@ -126,7 +124,24 @@ snit::type RunProcessor {
     }
   }
 
+  ## @brief Access the job processor that this owns
+  # 
+  # @returns the job processor
+  method getJobProcessor {} {
+    return $processor
+  }
 
+  ## @brief Configure the job processor with the job parameters
+  #
+  # @param dict with standard job parameter keys
+  #
+  method configureJobProcessor {params} {
+    $processor configure -inputparams [dict get $params -inputparams] 
+    $processor configure -hoistparams [dict get $params -hoistparams]
+    $processor configure -evbparams   [dict get $params -evbparams]
+    $processor configure -outputparams [dict get $params -outputparams]
+  }
+ 
   ## @brief Try to guess what the run number is from the run 
   # 
   # This expects that the run is called prefix-xxxx-yy.evt
@@ -165,11 +180,17 @@ snit::type RunProcessor {
   #
   # @param observer   the observer to receive callbacks from 
   method addRunStatusObserver {observer} {
-    variable m_runObservers
 
     lappend m_runObservers $observer
   }
 
+
+  ## @brief Access the list of observers
+  # 
+  # @return list of observers
+  method listRunStatusObservers {} {
+    return $m_runObservers
+  }
 
   ## @brief Observe a new order of jobs
   #
