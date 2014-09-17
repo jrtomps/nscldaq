@@ -106,7 +106,9 @@ namespace eval ::EventLog {
     variable loggerfd     [list]
     variable expectingExit 0
     
-    
+    ## 
+    # @var failed         - Indicates whether or not the system has failed or succeeded
+    variable failed 0 
     
     # Export the bundle interface methods
     
@@ -305,6 +307,9 @@ proc ::EventLog::_computeLoggerSwitches {{loggerVersion 1.0}} {
         append switches " --run=$run"
     }
     
+    # Set the --prefix flag  
+#    append switches " --prefix=[::DAQParameters::getRunFilePrefix]"
+
     return $switches
 }
 ##
@@ -320,6 +325,7 @@ proc ::EventLog::_startLogger {} {
     set logger [DAQParameters::getEventLogger] 
     set loggerVsn [::EventLog::_getLoggerVersion $logger]
     set switches [::EventLog::_computeLoggerSwitches $loggerVsn]
+    puts $switches
     set ::EventLog::loggerFd \
         [open "| $logger $switches" r]
     set ::EventLog::loggerPid [pid $::EventLog::loggerFd]
@@ -418,7 +424,7 @@ proc ::EventLog::_finalizeRun {} {
     set cksumFile [file join $srcdir "${fileBaseName}.sha512"]
     set destFile [file join $destDir [file tail $cksumFile]]
     if {[file readable $cksumFile]} {
-	file rename -force $cksumFile $destFile
+      file rename -force $cksumFile $destFile
     }
 
     #  If 
@@ -440,11 +446,12 @@ proc ::EventLog::_finalizeRun {} {
     #   - A chmod -R is done to set the contents to 0x550 as well.
     
     if {$::EventLog::protectFiles} {
-        set files [glob -directory $destDir -types {f d} *]
-        puts $files
-        exec sh << "chmod -R 0550 $files"
-        file attributes $destDir -permissions 0550 
-        file attributes [file join $destDir ..] -permissions 0550 
+        set files [glob -nocomplain -directory $destDir -types {f d} *]
+        if {[llength $files]>0} {
+          exec sh << "chmod -R 0550 $files"
+          file attributes $destDir -permissions 0550 
+          file attributes [file join $destDir ..] -permissions 0550 
+        }
     }
     
 }
@@ -537,6 +544,79 @@ proc ::EventLog::_duplicateRun {} {
 
 }
 
+##
+#   Check whether or not the .started file lives in the 
+#   experiment/current directory
+#
+proc ::EventLog::_dotStartedExists {} {
+  set currentPath [::ExpFileSystem::getCurrentRunDir]
+  return [file exists [file join $currentPath .started]]
+}
+
+##
+#   Check whether or not the .exited file lives in the 
+#   experiment/current directory
+#
+proc ::EventLog::_dotExitedExists {} {
+  set currentPath [::ExpFileSystem::getCurrentRunDir]
+  return [file exists [file join $currentPath .exited]]
+}
+
+##
+#   Check whether or not .evt files exist in the 
+#   experiment/current directory
+#
+#   @returns boolean indicating whether there are any files ending in .evt
+#
+proc ::EventLog::_runFilesExistInCurrent {} {
+  set currentPath [::ExpFileSystem::getCurrentRunDir]
+  set evtFiles [glob -directory $currentPath -nocomplain *.evt]
+  return [expr {[llength $evtFiles] > 0} ]
+}
+
+##
+# ::EventLog::listIdentifiableProblems
+#
+# Checks for a few things:
+# 1. experiment/run# directory already exists
+# 2. experiment/current/.started exists
+# 3. experiment/current/.exited exists
+# 4. experiment/current/*.evt files exist
+#
+# @returns a list of error messages
+proc ::EventLog::listIdentifiableProblems {} {
+
+  set errors [list]
+
+  # check if run directory exist!
+  set msg [EventLog::_duplicateRun]
+  if {$msg ne ""} {
+    lappend errors $msg
+  } 
+  # check if experiment/current/.started exists
+  if {[::EventLog::_dotStartedExists]} {
+    set msg "EventLog error: the experiment/current directory contains .started"
+    lappend errors $msg
+
+  } 
+  
+  # check if experiment/current/.exited exists
+  if {[::EventLog::_dotExitedExists]} {
+    set msg "EventLog error: the experiment/current directory contains .exited"
+    lappend errors $msg
+  } 
+  
+  # check if experiment/current/*.evt files exist
+  if {[::EventLog::_runFilesExistInCurrent]} {
+    set msg    "EventLog error: the experiment/current directory contains run "
+    append msg "segments and needs to be cleaned."
+    lappend errors $msg
+  }
+
+  return $errors
+}
+
+
 #------------------------------------------------------------------------------
 # Actions:
 
@@ -552,35 +632,34 @@ proc ::EventLog::runStarting {} {
 
     #  If there's already an event logger just force it to exit.
 
-    if {$::EventLog::loggerPid ne -1} {
-	foreach pid $::EventLog::loggerPid {
-	    catch {exec kill -9 $pid};            # Catch because the pipeline could run down.
-	    set ::EventLog::loggerPid -1
-	}
+  if {$::EventLog::loggerPid ne -1} {
+    foreach pid $::EventLog::loggerPid {
+      catch {exec kill -9 $pid};            # Catch because the pipeline could run down.
+      set ::EventLog::loggerPid -1
+    }
+  }
+
+  # Now if desired start the new run.
+
+  if {[::ReadoutGUIPanel::recordData]} {
+    set errorMessages [::EventLog::listIdentifiableProblems]
+    if {[llength $errorMessages]>0} {
+      return -code error $errorMessages
     }
 
-    # Now if desired start the new run.
-    
-    if {[::ReadoutGUIPanel::recordData]} {
-	set errorMessage [::EventLog::_duplicateRun]
-        if {$errorMessage ne ""} {
+    # Ensure there are no stale synch files:
+    set startFile [file join [::ExpFileSystem::getCurrentRunDir] .started]
+    set exitFile [file join [::ExpFileSystem::getCurrentRunDir] .exited]
 
-            error $errorMessage
-        }
- 
-        # Ensure there are no stale synch files:
-        set startFile [file join [::ExpFileSystem::getCurrentRunDir] .started]
-        set exitFile [file join [::ExpFileSystem::getCurrentRunDir] .exited]
+    file delete -force $startFile 
+    file delete -force $exitFile 
 
-        file delete -force $startFile 
-        file delete -force $exitFile 
-        
-        ::EventLog::_startLogger
-        ::EventLog::_waitForFile $startFile $::EventLog::startupTimeout \
-                $::EventLog::filePollInterval
-        set ::EventLog::expectingExit 0
-        ::EventLog::_setStatusLine 2000
-    }
+    ::EventLog::_startLogger
+    ::EventLog::_waitForFile $startFile $::EventLog::startupTimeout \
+    $::EventLog::filePollInterval
+    set ::EventLog::expectingExit 0
+    ::EventLog::_setStatusLine 2000
+  }
 }
 ##
 # Called when the run is ending.  We're only going to do something if the
@@ -603,9 +682,9 @@ proc ::EventLog::runEnding {} {
         set ::EventLog::expectingExit 1
         ::EventLog::_waitForFile $exitFile $::EventLog::shutdownTimeout \
             $::EventLog::filePollInterval
-	foreach pid $::EventLog::loggerPid {
-	    catch {exec kill -9 $pid}; # in case waitforfile timed out.
-	}
+        foreach pid $::EventLog::loggerPid {
+          catch {exec kill -9 $pid}; # in case waitforfile timed out.
+        }
         set ::EventLog::loggerPid -1
         ::EventLog::_finalizeRun
         file delete -force $startFile;   # So it's not there next time!!
@@ -649,10 +728,17 @@ proc ::EventLog::attach {state} {
 #
 proc ::EventLog::enter {from to} {
     if {($from in [list Active Paused]) && ($to eq "Halted")} {
+      # if the start was aborted then we should not try to cleanup
+      if {! $::EventLog::failed} {
         ::EventLog::runEnding
+      }
     }
     if {($from in [list Active Paused]) && ($to eq "NotReady")} {
-	::EventLog::runEnding
+      # if the start was aborted then we should not try to cleanup
+      if {! $::EventLog::failed} {
+      	::EventLog::runEnding
+      } 
+
     }
 }
 ##
@@ -665,9 +751,21 @@ proc ::EventLog::enter {from to} {
 # @param to   - State we will enter.
 #
 proc ::EventLog::leave {from to} {
-    if {($from eq "Halted") && ($to eq "Active")} {
-        ::EventLog::runStarting
+  if {($from eq "Halted") && ($to eq "Active")} {
+    set errors [::EventLog::listIdentifiableProblems]
+
+    # if the error list has error messages in it, then abort
+    if {[llength $errors]>0} {
+      set ::EventLog::failed 1
+      set errstr [join $errors "\n"]
+      return -code error "EventLog aborted transition because of the following impending problems:\n$errstr"
+    } else {
+      # no problems were identified, so start up the run
+      ::EventLog::runStarting
+      # reset the failure state
+      set ::EventLog::failed 0
     }
+  }
 }
 
 #-------------------------------------------------------------------------------
@@ -856,7 +954,8 @@ snit::widgetadaptor EventLog::ParameterPrompter {
                               -cgetmethod      _getAdditionalSources
     option -forcerun
     option -usechecksum       
-    
+    option -stagearea
+    option -prefix
     
     ##
     # constructor
@@ -881,6 +980,8 @@ snit::widgetadaptor EventLog::ParameterPrompter {
         set options(-additionalsources) [DAQParameters::getAdditionalSourceCount]
         set options(-forcerun)          [DAQParameters::getRunNumberOverrideFlag]
         set options(-usechecksum)       [DAQParameters::getUseChecksumFlag]
+        set options(-stagearea)         [ExpFileSystem::getStageArea]
+        set options(-prefix)            [::DAQParameters::getRunFilePrefix] 
         
         
 
@@ -929,8 +1030,19 @@ NSCLDAQ-11.0 eventlog program or later. "
         ttk::checkbutton $win.usechecksum -text {Compute checksum} \
             -variable [myvar options(-usechecksum)] -onvalue 1 -offvalue 0
 
+        ttk::label $win.stageareaLbl -text {Stagearea path} 
+        ttk::entry $win.stageareaEntry -textvariable [myvar options(-stagearea)] \
+                      -width 40
+        ttk::button $win.stageareaBrowse -text "Browse..." -command [mymethod _browseStagearea]
+
+        ttk::label $win.prefixLbl -text {Run file prefix} 
+        ttk::entry $win.prefixEntry -textvariable [myvar options(-prefix)] \
+                      -width 40
+
         grid $win.loglabel $win.logger $win.browselogger -sticky w
         grid $win.datasourcelabel $win.datasource $win.knownrings -sticky w
+        grid $win.stageareaLbl $win.stageareaEntry $win.stageareaBrowse -sticky w
+        grid $win.prefixLbl $win.prefixEntry -sticky e
         grid $win.help -columnspan 3 -sticky ew
         
         grid $f.usensrcs          -row 0 -column 0 -sticky w
@@ -1028,6 +1140,23 @@ NSCLDAQ-11.0 eventlog program or later. "
         }
     }
     
+    ##
+    # _browseStagearea
+    #
+    # Browse for a directory to use as the directory to use as the 
+    # stagearea. Note that this demands that the directory already
+    # exists.
+    #
+    method _browseStagearea {} {
+        set path [tk_chooseDirectory  \
+            -initialdir [file join $::env(HOME) bin]  \
+            -parent $win -title "Choose stagearea" \
+            ]
+        if {$path ne ""} {
+            set options(-stagearea) $path
+        }
+    }
+
     ##
     # _browseRing
     #  Pops up a dialog that provides a list of the ring buffers

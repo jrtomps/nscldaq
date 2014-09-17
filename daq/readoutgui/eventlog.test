@@ -48,6 +48,8 @@ StatusBar fakeStatusBar
 proc ::Diagnostics::Error  msg {}
 proc ::ReadoutGUIPanel::Log {src sev msg} {}
 proc ::ReadoutGUIPanel::isRecording {} { return true }
+proc ::ReadoutGUIPanel::recordData {} { return true }
+proc ::ReadoutGUIPanel::getRun {} { return 0 }
 proc ::StatusBar::getInstance {} {return fakeStatusBar}
 
 #------------------------------------------------------------------------------
@@ -275,6 +277,46 @@ tcltest::test vsn11p0EventlogGetsChecksum-0 {::EventLog::_computeLoggerSwitches 
   set sw [::EventLog::_computeLoggerSwitches 11.0]
   string match "* --checksum*" $sw 
 } -result 0 
+
+
+tcltest::test eventlogRunFilePrefix-0 {::EventLog::_computeLoggerSwitches adds --prefix 
+} -setup {
+  set oldval [::Configuration::get EventLogUseChecksumFlag]
+  ::Configuration::Set EventLogRunFilePrefix testprefix
+} -cleanup {
+  ::Configuration::Set EventLogRunFilePrefix $oldval
+} -body {
+  set sw [::EventLog::_computeLoggerSwitches 11.0]
+  string match "* --prefix=testprefix*" $sw 
+} -result 0 
+
+
+
+tcltest::test leave-0 {::EventLog::leave Halted to Active with identified errors aborts transition
+} -setup {
+  set stagearea [tcltest::makeDirectory dumbystagearea]
+  tcltest::makeDirectory dumbystagearea/experiment
+  tcltest::makeDirectory dumbystagearea/experiment/current
+  tcltest::makeFile {} file.evt dumbystagearea/experiment/current
+
+  Configuration::Set StageArea $stagearea
+  set rm [RunstateMachineSingleton %AUTO%]
+  EventLog::register
+} -cleanup {
+  EventLog::unregister
+  $rm destroy
+  tcltest::removeFile file.evt dumbystagearea/experiment/current
+  tcltest::removeDirectory dumbystagearea/experiment/current
+  tcltest::removeDirectory dumbystagearea/experiment
+  tcltest::removeDirectory dumbystagearea
+} -body {
+  $rm transition Starting
+  $rm transition Halted 
+  $rm transition Active
+} -returnCodes 1 -result "EventLog aborted transition because of the following impending problems:
+EventLog error: the experiment/current directory contains run segments and needs to be cleaned."
+
+
 
 
 #------------------------------------------------------------------------------
