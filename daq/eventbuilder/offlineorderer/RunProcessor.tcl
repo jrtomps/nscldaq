@@ -206,7 +206,7 @@ snit::type RunProcessor {
 
     # Pass the list to all of the observers.
     foreach observer $m_runObservers {
-      $observer setModel $newdict
+      $observer set $newdict
     }
   }
 

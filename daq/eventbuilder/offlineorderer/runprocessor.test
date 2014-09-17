@@ -48,8 +48,8 @@ snit::type MockObserver {
     $self reset
   }
 
-  method setModel {dict} {
-    lappend m_history "setModel $dict"
+  method set {dict} {
+    lappend m_history "set $dict"
   }
 
   method transitionToNextJob job {
@@ -85,7 +85,7 @@ tcltest::test observeNewRun-0 {Test that observer sees the transition
   $processor addRunStatusObserver $obs
   $processor observeNewRun 
   $obs getHistory
-} -result "{setModel queued {} processing {} completed {}}"
+} -result "{set queued {} processing {} completed {}}"
 
 
 tcltest::test observeNewJob-0 {Test that observer sees the transition
