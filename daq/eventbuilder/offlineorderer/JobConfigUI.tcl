@@ -420,6 +420,23 @@ snit::type JobConfigUIPresenter {
     grid rowconfigure .configerr 0 -weight 1
     grid columnconfigure .configerr 0 -weight 1
     wm title .configerr "Configuration Errors"
+
+    set currgrab [grab current]
+
+    grab .configerr
+    wm transient .configerr
+
+    if {$currgrab ne ""} {
+
+      # prevent the user from closing out from underneath us
+#      wm protocol $currgrab WM_DELETE_WINDOW { }
+
+      wm protocol .configerr WM_DELETE_WINDOW "
+      grab release .configerr ;
+      grab $currgrab ;
+      destroy .configerr ;
+     " 
+    }
   }
 
   ## The user wants to make this into a real job, try and do that.
