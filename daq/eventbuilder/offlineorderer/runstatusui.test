@@ -1,0 +1,37 @@
+
+
+package require tcltest
+package require OfflineEVBRunStatusUI
+
+tcltest::test transitionToNextJob-0 {Test the logic works
+} -setup {
+  set pr [RunStatusUIPresenter %AUTO% -widgetname .meh]
+} -cleanup {
+  $pr destroy
+} -body {
+  set jobs [dict create processing jc queued [list jd je jf] completed [list ja jb]]
+  $pr setModel $jobs
+
+  $pr transitionToNextJob je
+
+  $pr getModel
+} -result [dict create processing je queued [list jd jf] completed [list ja jb jc]]
+
+
+
+tcltest::test findUniqueName-0 {Test that we find the next appropriate unique name
+} -setup {
+  set pr [RunStatusUIPresenter %AUTO% -widgetname .meh]
+} -cleanup {
+  $pr destroy
+} -body {
+  set jobs [ JobStatusDisplay .meh.jobDisplay0  ]
+  $pr setDisplayedJobs [dict create job0 $jobs]
+
+  $pr findUniqueName
+   
+} -result  ".meh.jobDisplay1"
+
+
+
+tcltest::cleanupTests

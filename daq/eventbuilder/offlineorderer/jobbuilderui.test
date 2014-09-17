@@ -1,0 +1,23 @@
+
+
+package require tcltest
+
+
+
+tcltest::test pkgrequire-0 {
+} -body {
+  package require OfflineEVBJobBuilder
+} -result 11.0
+
+
+tcltest::test constructNewName-0 {Test that new names are unique
+} -setup {
+  set jb [JobBuilderUIPresenter %AUTO% -widgetname .t]
+} -cleanup {
+  $jb destroy
+} -body {
+  $jb constructNewJobName asdf
+} -result "job0"
+
+
+tcltest::cleanupTests
