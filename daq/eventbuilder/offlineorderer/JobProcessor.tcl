@@ -15,6 +15,12 @@ package require OfflineEVBOutputPipeline
 package require OfflineEVBInputPipeline
 package require evbcallouts
 
+
+## @namespace HoistConfig
+#
+# @brief A location to put data for building the startEVBSources
+#        proc that is easy to find and reference.
+#
 namespace eval HoistConfig {
   variable tstamplib
   variable info
@@ -23,6 +29,30 @@ namespace eval HoistConfig {
   variable expectbh 
 }
 
+
+## @brief Coordinates the configuration and launching of the different pipelines
+#
+# This works with the RunstateMachine and its various callout bundles to 
+# process a job. A job is defined as a set of the following objects:
+# 
+# OfflineEVBInputPipeParams
+# OfflineEVBHoistPipeParams
+# EVBC::AppOptions
+# OfflineEVBOutputPipeParams
+#
+# These each are just structures containing the configuration parameters needed
+# to properly set up the variable pipelines. The parameters that they control 
+# are not exhaustive but do provide a large set of optional configuration parameters.
+#
+# The JobProcessor is passed these parameters sets through its options via a
+# configure command. It expects that the RunstateMachine and DataSourceManager
+# are both clean when it begins. It then fills them with the necessary callout
+# bundles and an Offline data providers and registers them to the state machine.
+# Beginning a run just amounts to transitioning the state machine to an Active mode.
+# Because the user may choose to set up the system to work with multiple jobs, it 
+# always cleans up after it is done.
+#         
+#
 snit::type JobProcessor {
 
   option -inputparams  -default ""
@@ -47,12 +77,16 @@ snit::type JobProcessor {
 
   }
 
+  ## Cleanup the data source manager and state machine if they exist
+  #
   destructor {
     if {$sourceManager ne ""} {
       $sourceManager destroy
+      set sourceManager ""
     }
     if {$stateMachine ne ""} {
       $stateMachine destroy
+      set stateMachine ""
     }
   }
 
@@ -65,10 +99,6 @@ snit::type JobProcessor {
     ::EventLog::register
     ::DataSourceMgr::register
     ::DataSourceMonitor::register
-
-#    set ::EventLogMonitor::fdvar  ::EventLog::loggerPid
-#    set ::EventLogMonitor::script [list [mymethod stopProcessing]]
-#    ::EventLogMonitor::register
   }
 
   ## @brief return the data source manager known to this
@@ -105,7 +135,7 @@ snit::type JobProcessor {
     $self stopProcessing   ;# stop the processing pipelines
   }
 
-  ## @brief Hook for one-time startup procedures 
+  ## @brief Load and configure the callout bundles 
   #
   #
   method setup {} {
@@ -130,7 +160,11 @@ snit::type JobProcessor {
   #
   # This is actually very simple because it merely transitions the
   # state machine into an Active state and tells the EventLog that 
-  # it is okay for it to exit without an error.
+  #
+  # Failed transitions are detected and then repropagated back up to 
+  # the caller to handle.
+  #
+  # @thows error on a failed transition.
   #
   method startProcessing {} {
     variable stateMachine
