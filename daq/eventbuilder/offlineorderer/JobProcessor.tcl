@@ -137,13 +137,21 @@ snit::type JobProcessor {
 
     # Transition the state machine to Starting (note this schedules
     # a transition to Active on its own)
-    $stateMachine transition Starting
+    if {[catch {$stateMachine transition Starting} msg]} {
+      $stateMachine transition NotReady
+      $self tearDown
+      return -code error "JobProcessor::startProcessing failed to transition to Starting : $msg"
+    }
 
     # We need to wait for the scheduled transition to succeed
     # before transitioning to Active because otherwise it will fail
     $self waitForHalted
 
-    $stateMachine transition Active 
+    if {[catch {$stateMachine transition Active} msg]} {
+      $stateMachine transition NotReady
+      $self tearDown
+      return -code error "JobProcessor::startProcessing failed to transition to Active : $msg"
+    }
 
   }
 
