@@ -34,4 +34,30 @@ tcltest::test findUniqueName-0 {Test that we find the next appropriate unique na
 
 
 
+tcltest::test transitionCurrent-0 {Test that transitioning current puts it into completed
+} -setup {
+  set pr [RunStatusUIPresenter %AUTO% -widgetname .meh]
+} -cleanup {
+  $pr destroy
+} -body {
+  $pr setModel [dict create processing "asdf" completed [list] queued [list]]
+
+  $pr transitionCurrent completed
+  $pr getModel
+} -result [dict create processing "" completed [list asdf] queued [list]]
+
+tcltest::test transitionCurrent-1 {Test that transitioning current puts it where we ask 
+} -setup {
+  set pr [RunStatusUIPresenter %AUTO% -widgetname .meh]
+} -cleanup {
+  $pr destroy
+} -body {
+  $pr setModel [dict create processing "asdf" completed [list] queued [list]]
+
+  $pr transitionCurrent queued 
+  $pr getModel
+} -result [dict create processing "" completed [list] queued [list asdf]]
+
+
+
 tcltest::cleanupTests

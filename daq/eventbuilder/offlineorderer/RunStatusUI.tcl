@@ -161,16 +161,32 @@ snit::type RunStatusUIPresenter {
   #
   # @param model  an OfflineEVBInputPipeParams object
   #
-  method setModel {model} {
-    set m_model $model
+  method set {model} {
+    $self setModel $model
     $self updateViewData $m_model
   }
+
+  ## @brief Set the model without synchronizing
+  #
+  # @param model  a dict with keys {completed processing queued}
+  method setModel {model} {
+    set m_model $model
+  }
+
+  ## @brief Retrieve the model
+  #
+  # @returns string
+  # @retval the name of the OfflineEVBInputPipeParams object this controls
+  method getModel {} {
+    return $m_model
+  }
+  
 
   ##
   #
   method transitionToNextJob {jobName} {
     # mark the current job as completed
-    $self transitionCurrent
+    $self transitionCurrent completed
     
     # find the new job in the list of queued  and make it current
     set queuedJobs [dict get $m_model queued]
@@ -187,32 +203,29 @@ snit::type RunStatusUIPresenter {
     $self updateViewData $m_model
   }
 
-  method transitionCurrent {} {
+  ## @brief Transition the current to a new key
+  # 
+  #
+  method transitionCurrent {key} {
 
     set current [dict get $m_model processing]
-    puts "Current : $current"
     if {$current ne ""} {
-      dict lappend m_model completed $current
+      dict lappend m_model $key $current
       dict set m_model processing ""
-
-      puts [dict get $m_model completed]
     }
   }
 
-  ## @brief Retrieve the model
-  #
-  # @returns string
-  # @retval the name of the OfflineEVBInputPipeParams object this controls
-  method getModel {} {
-    return $m_model
-  }
-  
   method setParent {parent} {
     set m_parent $parent
   }
 
   method finish {} {
     $self transitionCurrent
+    $self updateViewData $m_model 
+  }
+ 
+  #
+  method abort {} {
     $self updateViewData $m_model 
   }
 
