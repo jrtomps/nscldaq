@@ -5,6 +5,7 @@
 
 package provide OfflineEVBHoistPipelineUI 11.0
 
+package require OfflineEVBHoistPipeline
 package require evbcallouts
 package require snit
 package require Tk
@@ -215,7 +216,7 @@ snit::type HoistPipeConfigUIPresenter {
     set m_model [OfflineEVBHoistPipeParams %AUTO%]
 
     # Create the view and pass it the values of the model
-    if {$options(-ismaster) eq ""} {
+    if {$options(-ismaster)} {
       set m_view   [HoistPipeConfigUIView $options(-widgetname) $self -showbuttons 1] 
     } else {
       set m_view   [HoistPipeConfigUIView $options(-widgetname) $self -showbuttons 0] 
