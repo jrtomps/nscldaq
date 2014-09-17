@@ -72,11 +72,17 @@ snit::type RunProcessor {
       $processor configure -evbparams   [dict get $options(-jobs) $job -evbparams]
       $processor configure -outputparams [dict get $options(-jobs) $job -outputparams]
 
-      # launch this thing
-      $processor run
+      # launch this thing but stop if it was aborted.
+      if {[catch {$processor run} msg]} {
+        tk_messageBox -icon error -message $msg
+        $self observeAbort
+        return
+      }
 
       # remove the current processing job
       set options(-jobs) [dict remove $options(-jobs) $job]
+    } else {
+      $self observeCompleted
     }
   }
 
@@ -99,7 +105,6 @@ snit::type RunProcessor {
   }
 
   method observeNewRun {} {
-    variable m_runObservers
 
     set newdict [dict create queued     [dict keys $options(-jobs)] \
                              processing "" \
@@ -111,11 +116,25 @@ snit::type RunProcessor {
   }
 
   method observeNewJob {jobName} {
-    variable m_runObservers
-
+    puts "observeNewJob"
     foreach observer $m_runObservers {
       $observer transitionToNextJob $jobName
     }
+  }
+
+  method observeCompleted {} {
+    puts "observeCompleted"
+    foreach observer $m_runObservers {
+      $observer finish 
+    }
+  }
+
+  method observeAbort {} {
+    puts "observeAbort"
+    foreach observer $m_runObservers {
+      $observer finish 
+    }
+
   }
 }
 
