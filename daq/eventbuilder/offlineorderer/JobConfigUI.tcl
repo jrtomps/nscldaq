@@ -537,6 +537,18 @@ snit::widget BuildEventsWidget {
                                 -offvalue 0 -onvalue 1
     trace add variable [myvar options(-build)] write [mymethod onBuildChange]
 
+    set top $win.descr
+    ttk::frame $top
+#    font create DescriptionFont -family Helvetica -size 10 -slant italic
+    tk::text $top.descrLbl -bg lightgray  -relief flat -wrap word -font DescriptionFont \
+                           -height 3 -width 60
+    $top.descrLbl insert end  "Check this to build events containing correlated fragments. By default, fragments are not correlated." 
+    $top.descrLbl configure -state disabled
+
+    grid $top.descrLbl -sticky nsew
+    grid rowconfigure $top 0 -weight 1
+    grid columnconfigure $top 0 -weight 1
+
     set top $win.correlate
     ttk::frame $top
     ttk::label $top.correlateLbl -text "Correlation window (ticks)"
@@ -549,22 +561,27 @@ snit::widget BuildEventsWidget {
     
     if {[string is true $options(-build)]} {
       grid $win.correlate -row 1 -sticky new
-      grid columnconfigure $win 0 -weight 1
     } else {
-      grid forget $win.correlate
+      grid $win.descr -row 1 -sticky new
     }
+
+    grid columnconfigure $win 0 -weight 1
   }
 
 
   method onBuildChange {name1 name2 op} {
     if {$options(-build)} {
+      grid remove $win.descr
+
       grid $win.correlate -row 1 -sticky new
-      grid columnconfigure $win 0 -weight 1
       set options(-build) 1
     } else {
-      grid forget $win.correlate
+      grid remove $win.correlate
+
+      grid $win.descr -row 1 -sticky new
       set options(-build) 0
     }
+    grid columnconfigure $win 0 -weight 1
   }
 
  
