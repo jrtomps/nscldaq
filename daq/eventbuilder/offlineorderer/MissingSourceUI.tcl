@@ -102,6 +102,7 @@ snit::widget MissingSourceConfigUIView {
     tk::text $top.descrLbl -bg lightgray  -relief flat -wrap word -font DescriptionFont \
                            -height 3 -width 60
     $top.descrLbl insert end  "Check this if some ring items lack body headers in the data, because additional information is required to send these items through the event builder."
+    $top.descrLbl configure -state disabled
 
     grid $top.descrLbl -sticky nsew
     grid rowconfigure $top 0 -weight 1
