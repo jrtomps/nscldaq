@@ -41,7 +41,8 @@ TCLPACKAGES=Configuration.tcl \
 	remoteControl.tcl \
 	ReadoutGuiClient.tcl readoutGuiProvider.tcl \
   versionUtils.tcl error.png \
-  delayProvider.tcl
+  delayProvider.tcl \
+  offlineProvider.tcl
 
 
 
