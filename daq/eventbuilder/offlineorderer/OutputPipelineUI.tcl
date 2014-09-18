@@ -5,7 +5,7 @@
 
 package provide OfflineEVBOutputPipelineUI 11.0
 
-package require evbcallouts
+package require OfflineEVBOutputPipeline
 package require Configuration
 package require snit
 package require Tk
