@@ -6,14 +6,6 @@ package provide OfflineOrdererUI 11.0
 package require Tk
 package require snit
 
-package require OfflineEVBInputPipelineUI
-package require OfflineEVBHoistPipelineUI
-package require OfflineEVBEVBPipelineUI
-package require OfflineEVBOutputPipelineUI
-package require OfflineEVBMissingSourceUI
-
-package require ApplyCancelWidget 
-
 package require OfflineEVBRunProcessor
 package require OfflineEVBJobBuilder
 package require OfflineEVBRunStatusUI
@@ -26,6 +18,20 @@ proc TabbedOutput {win args} {
 
 #########################################################################################
 
+## @brief View for the OfflineOrderer widget
+#
+# This is really a very simple widget. It merely maintains a content window
+# and a button that causes a transition between two states. The two states 
+# are the configuration state and the processing state. The configuration state 
+# is where the JobBuilderUI is displayed and the user can configure his/her 
+# job parameters. During the run, the RunStatusUI is displayed so that the 
+# user can see that something is happening. The RunStatusUI is not perfect
+# because all of this is sequential at the moment besides the various pieces that
+# are launched as pipelines. 
+#
+# The implementation of this is intended to be fairly empty and void of logic.
+# It merely knows the widgets and how to display them. All events are directed
+# to the presenter.
 snit::widget OfflineOrdererUIView {
   
   option -mode     -default "config" -configuremethod setMode
@@ -39,6 +45,7 @@ snit::widget OfflineOrdererUIView {
 
     $self configurelist $args
 
+    # There are two views that can be shown in the content window
     set m_viewMap [dict create config "" run ""]
 
     # assemble the megawidget
@@ -46,9 +53,13 @@ snit::widget OfflineOrdererUIView {
 
   }
 
+  # we don't own the presenter and the widgets will be destoyed 
+  # automatically when this frame is destroyed.
   destructor {
   }
 
+  ## @brief Build the gui
+  #
   method buildGUI {} {
 
     ttk::frame $win.frame
@@ -69,30 +80,57 @@ snit::widget OfflineOrdererUIView {
 
   }
   
+  ## @brief The button was pressed.
+  #
   method onPress {} {
     $presenter transition 
   }
 
+  ## @brief Get the presenter that this responds to
+  #
+  # @returns the presenter
   method getPresenter {} {
     return $presenter
   }
 
+  ## @brief Pass the view a new presenter
+  #
+  # @param newPresenter   a OfflineOrdererUIPresenter object
+  #
   method setPresenter {newPresenter} {
-    variable presenter
     set presenter $newPresenter
   }
 
+  ## @brief Retrieve which widget is currently gridded
+  #
+  # @returns name of gridded widget
+  #
   method getCurrentWidget {} {
     return [grid slaves $win.frame] 
   }
 
+  ## @brief  Set the dict of the view widgets
+  # 
+  # Currently there are only two different modes that are 
+  # supported. The idea is that each mode has a corresponding
+  # GUI to display. The dict has keys that are the mode names
+  # and the associated widgets are the values.
+  #
+  # @param widgetDict   a dict of of {mode0 widget0 mode1 widget1}
   method setViewWidgets {widgetDict} {
-    variable m_viewMap
     set m_viewMap $widgetDict
   }
 
+  ## @brief Callback for configure -mode
+  #
+  # This is the configuremethod for the -mode option. The
+  # main idea of this is to synchronize the displayed
+  # widget with the mode.
+  # 
+  # @param option name of the option (in this case -mode)
+  # @param mode   the new mode to set
+  #
   method setMode {option mode} {
-    puts "setMode $option $mode"
     variable m_runabortButton
     variable m_viewMap
 
@@ -127,10 +165,16 @@ snit::widget OfflineOrdererUIView {
   }
 
 
+  ## @brief Getter for the content frame widget name
+  #
+  # @returns name of content frame
   method getFrameWidget {} {
     return $win.frame
   }
 
+  ## @brief Retrieve the name of this megawidget
+  #
+  # @returns name of megawidget
   method getWindowName {} {
     return $win
   }
