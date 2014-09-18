@@ -42,8 +42,6 @@ snit::widget RunStatusUIView {
       
       set m_presenter $presenter
 
-#     $self configurelist $args 
-
       # build the gui
       $self buildGUI    
     }
@@ -51,13 +49,14 @@ snit::widget RunStatusUIView {
     ## Destroy this thing 
     #
     destructor {
-      if {[catch {destroy $win} msg]} {
-        puts $msg
-      }
+      catch {destroy $win}
     }
 
+    ## @brief Add the argument to the list of gridded job displays
+    #
+    # @param jobDisplay   the widget name to display
+    #
     method appendNewJobDisplay {jobDisplay} {
-      puts "appendNewJobDisplay \"$jobDisplay\""
       grid $jobDisplay -sticky new
       grid columnconfigure $win [expr {[lindex [grid size $win] 1]-1}] -weight 1
     }
@@ -110,7 +109,6 @@ snit::type RunStatusUIPresenter {
   component m_model     ;#< The model : OfflineEVBInputPipeParams
   component m_view      ;#< The view, owned by this
 
-  variable m_parent 
   variable m_jobDisplayNames
 
   ## Construct the model, view, and synchronize view
@@ -182,7 +180,16 @@ snit::type RunStatusUIPresenter {
   }
   
 
-  ##
+  ## @brief Transition the current to completed, and pop a queued event into 
+  #         processing
+  #
+  # This handles the logic for when a job successfully completes. What happens
+  # is that the name of the job that was processing is appended to the 
+  # completed list and then the next queued job is transitioned to the current 
+  # processing.
+  #
+  # @param jobName  name of the job to make current
+  #
   #
   method transitionToNextJob {jobName} {
     # mark the current job as completed
@@ -204,7 +211,8 @@ snit::type RunStatusUIPresenter {
   }
 
   ## @brief Transition the current to a new key
-  # 
+  #
+  # @param key  the name of key to transition current job to 
   #
   method transitionCurrent {key} {
 
@@ -215,15 +223,19 @@ snit::type RunStatusUIPresenter {
     }
   }
 
-  method setParent {parent} {
-    set m_parent $parent
-  }
-
+  ## @brief Handles the logic for completing a list of jobs
+  #
+  # Really all this needs to do is transition the the currently
+  # processing job to completed and update what the user sees.
+  #
   method finish {} {
-    $self transitionCurrent
+    $self transitionCurrent completed
     $self updateViewData $m_model 
   }
  
+  ## @brief Handles the logic for updating the display caused by an abort
+  #
+  # At the moment, this merely updates the view data and nothing else
   #
   method abort {} {
     $self updateViewData $m_model 
@@ -243,7 +255,13 @@ snit::type RunStatusUIPresenter {
 
   }
 
-  ##
+  ## @brief Logic for synching the displayed data for a set jobs in a similar 
+  #         state
+  #
+  # If the job exists, this finds the displayed object and updates its state.
+  # However, it is also possible that a new job has never been added to the 
+  # view. In this case, append a job status display to the view for the 
+  # state.
   #
   method updateDisplayDataForStatusType {status} {
 
@@ -257,19 +275,29 @@ snit::type RunStatusUIPresenter {
       } else {
         # the job doesn't exist as a display object
         # make a new one and then pass it the view to display
-        set widgetName [$self findUniqueName]
-#        puts "New widget: $widgetName, Existing widgets: $m_jobDisplayNames"
-        set newJob [JobStatusDisplay $widgetName -status $status -jobname $job]
-#        puts "New job name : $newJob"
-        dict set m_jobDisplayNames $job $newJob
+        set widgetName [$self createNewJobDisplay $status $job]
 
         $m_view appendNewJobDisplay $widgetName
+        dict set m_jobDisplayNames $job $widgetName 
       }
     }
 
   }
 
-  ##
+  ## @brief Creates a new JobStatusDisplay with unique name
+  #
+  # @param status   the status to give to the new display
+  # @param job      the name to give to the new display
+  #
+  # @returns name of the widget created for displaying
+  #
+  method createNewJobDisplay {status job} {
+    set widgetName [$self findUniqueName]
+    JobStatusDisplay $widgetName -status $status -jobname $job
+    return $widgetName
+  }
+
+  ## @brief Retrieve the list of controlled display jobs
   #
   method getDisplayedJobs {} {
     return $m_jobDisplayNames
@@ -282,13 +310,30 @@ snit::type RunStatusUIPresenter {
     set m_jobDisplayNames $jobs
   }
 
-  ##
+  ## @brief Checks whether the job name has a controlled display
+  #
+  # @brief job  the name of the job
+  #
+  # @returns boolean
+  # @retval 0 - job is not found
+  # @retval 1 - job is found
   #
   method isDisplayedJob {job} {
     return [dict exists $m_jobDisplayNames $job]
   }
 
-  ##
+  ## @brief Generate a unique widget that will not fail
+  #
+  # The name of each jobDisplay are simply (view).jobDisplay<num>, where
+  # (view) is the widget name of the view managed by this presenter.
+  # This produces a new display that is unique by increment <num> until
+  # a name is find that doesn't match a key in m_jobDisplayNames.
+  #
+  # @important It is noteworthy that this doesn't check to see if the name is 
+  # already associated with a widget known to the window manager but is not 
+  # known to this object instance.
+  #
+  # @returns the unique name
   #
   method findUniqueName {} {
 
@@ -296,12 +341,18 @@ snit::type RunStatusUIPresenter {
     set w "$options(-widgetname).jobDisplay"
     set index 0
     set name [format "%s%d" $w $index]
+
+    # get the current list of names
     set existingNames [dict values $m_jobDisplayNames]
+
+    # keep incrementing the index used to form the name
+    # until the name produced is not found in the existingNames
     while {[lsearch $existingNames $name]>=0} {
       incr index
       set name [format "%s%d" $w $index]
     }
 
+    # a unique name was found, so return it.
     return $name
   }
 
@@ -327,16 +378,35 @@ snit::type RunStatusUIPresenter {
 }
 
 
+################################################################################
+################################################################################
+
+## @class JobStatusDisplay
+#
+# @brief a Megawidget that provides visual feedback for the processing status 
+#        of a job
+#
+# This knows about 3 three states: queued, processing, and completed. 
+# The queued and completed states merely show the job name and the text indicating
+# they are either queued or completed. However, the processing status show a 
+# progress bar with indeterminate progress. It simply moves back and forth while
+# active.
+#
+#
 snit::widget JobStatusDisplay {
 
   option -jobname
   option -status -configuremethod setStatus
 
+  ## @brief Construct a new widget
+  # 
   constructor {args} {
     $self buildGUI
     $self configurelist $args
   }
 
+  ## @brief Build the widgets that form the whole
+  #
   method buildGUI {} {
     ttk::label $win.jobLbl  -textvariable [myvar options(-jobname)]
     ttk::label $win.jobStatusLbl -textvariable [myvar options(-status)]
@@ -347,6 +417,14 @@ snit::widget JobStatusDisplay {
     grid columnconfigure $win {0 1 2} -weight 1 -minsize 81
   }
 
+  ## @brief Transition the visible components for the new state 
+  #
+  # If the new state value is not completed, processing, or queued this will
+  # do nothing.
+  #
+  # @param option the option being set (always -status in this context)
+  # @param value  the new status value
+  #
   method setStatus {option value} {
     if {$value eq "processing"} {
       grid $win.jobProgress -column 2 -row 0 -sticky ew
