@@ -6,15 +6,16 @@ package require eventLogBundle
 
 package require DataSourceManager
 package require DataSourceMonitor
-package require EventLogMonitor
 package require EVBStateCallouts
 
 package require ExpFileSystem
 package require rdoCalloutsBundle
 package require OfflineEVBOutputPipeline
 package require OfflineEVBInputPipeline
+package require OfflineEVBHoistPipeline
 package require evbcallouts
 
+package require Thread
 
 ## @namespace HoistConfig
 #
@@ -223,7 +224,12 @@ snit::type JobProcessor {
 
     $self tearDown 
 
-    after 1000 [list $options(-runprocessor) runNext]
+#    after 1000 [list $options(-runprocessor) runNext]
+#    puts "Child thinks parent is : $::_parentThread"
+#    after 1000 "thread::send $::_parentThread [list $options(-runprocessor) runNext] ; set ::done 1"
+#    vwait ::done
+#    thread::send -async $::_parentThread [list $options(-runprocessor) runNext]
+#    puts "Child thread completed run"
   }
 
   ## @brief Transition the system into a clean state

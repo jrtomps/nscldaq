@@ -9,6 +9,7 @@ package require OfflineEVBOutputPipeline
 package require evbcallouts
 package require RunstateMachine 
 
+package require Thread
 
 ## @class RunProcessor
 #
@@ -36,6 +37,12 @@ package require RunstateMachine
 # to tell the RunProcessor whether the job was completed. It then tells the RunProcessor
 # to transition to the next job.
 # 
+# The JobProcessor actually runs on a separate thread of execution owned by this
+# this. The management of that JobProcessor is made by sending it commands
+# to the job processor via the thread::send command. There is no shared data
+# between the main thread that the run processor lives in and the worker thread
+# in which the JobProcessor runs.
+#
 snit::type RunProcessor {
 
   option -jobs  ;#< List of jobs that are to be processes. (it is really a 
@@ -46,6 +53,8 @@ snit::type RunProcessor {
   
   component processor ;#< The JobProcessor that will do the work
 
+  variable m_workerThread;
+
   ## @brief Construct the data members and configure options
   #
   constructor {args} {
@@ -53,7 +62,16 @@ snit::type RunProcessor {
 
     $self configurelist $args
 
-    set processor [JobProcessor %AUTO% -runprocessor $self]
+#    set processor [JobProcessor %AUTO% -runprocessor $self]
+    set m_workerThread [thread::create -joinable]
+    thread::send $m_workerThread "lappend auto_path $::auto_path"
+    thread::send $m_workerThread {package require OfflineEVBJobProcessor}
+    thread::send $m_workerThread {wm forget .}
+    set processor [thread::send $m_workerThread {set processor [JobProcessor %AUTO%]}]
+    thread::send $m_workerThread "set _parentThread [thread::id]"
+    thread::send $m_workerThread [list $processor configure -runprocessor $self]
+
+    puts "Parent thinks it is: [thread::id]"
 
     set m_runObservers [list]
   }
@@ -61,7 +79,7 @@ snit::type RunProcessor {
   ## Destructor
   #
   destructor {
-    catch {$processor destroy}
+    thread::join $m_workerThread
   }
 
 
@@ -101,24 +119,31 @@ snit::type RunProcessor {
       # copy the job 
       set iparams [dict get $options(-jobs) $job -inputparams]
       if {[catch {set run [$self guessRunNumber [$iparams cget -file]]} msg]} {
-        tk_messageBox -icon error -message "RunProcessor::run failed to identify the run number"
+        set resp [tk_messageBox -icon error -message "RunProcessor::run failed to identify the run number"]
+        vwait resp 
         $self observeAbort
         return
       }
-      ReadoutGUIPanel::setRun $run 
+      thread::send $m_workerThread [list ReadoutGUIPanel::setRun $run ]
+
 
       puts "$job , run $run"
       $self configureJobProcessor [dict get $options(-jobs) $job]
 
-      # launch this thing but stop if it was aborted.
-      if {[catch {$processor run} msg]} {
-        tk_messageBox -icon error -message $msg
-        $self observeAbort
-        return
-      }
+#      # launch this thing but stop if it was aborted.
+#      if {[catch {$processor run} msg]} {
+#        tk_messageBox -icon error -message $msg
+#        $self observeAbort
+#        return
+#      }
+      thread::send -async $m_workerThread [list $processor run ] status
+      vwait status
 
       # remove the current processing job
       set options(-jobs) [dict remove $options(-jobs) $job]
+
+      # call the next run
+      $self runNext
     } else {
       $self observeCompleted
     }
@@ -131,15 +156,51 @@ snit::type RunProcessor {
     return $processor
   }
 
+
+  method pickle {snitobj} {
+    set opts [$snitobj info options]
+
+    set state [dict create]
+    foreach opt $opts {
+      set value [$snitobj cget $opt]
+      dict set state $opt $value 
+    }
+    return $state
+  }
+
   ## @brief Configure the job processor with the job parameters
   #
   # @param dict with standard job parameter keys
   #
   method configureJobProcessor {params} {
-    $processor configure -inputparams [dict get $params -inputparams] 
-    $processor configure -hoistparams [dict get $params -hoistparams]
-    $processor configure -evbparams   [dict get $params -evbparams]
-    $processor configure -outputparams [dict get $params -outputparams]
+    set iparams [dict get $params -inputparams]
+    set opts [$self pickle $iparams]
+    puts $opts
+    set iparams [thread::send $m_workerThread [list OfflineEVBInputPipeParams %AUTO% {*}$opts]]
+    thread::send $m_workerThread [list $processor configure -inputparams $iparams]
+
+    set hparams [dict get $params -hoistparams]
+    set opts [$self pickle $hparams]
+    puts $opts
+    set iparams [thread::send $m_workerThread [list OfflineEVBHoistPipeParams %AUTO% {*}$opts]]
+    thread::send $m_workerThread [list $processor configure -hoistparams $iparams]
+
+    set eparams [dict get $params -evbparams]
+    set opts [$self pickle $eparams]
+    puts $opts
+    set iparams [thread::send $m_workerThread [list EVBC::AppOptions %AUTO% {*}$opts]]
+    thread::send $m_workerThread [list $processor configure -evbparams $iparams]
+
+    set oparams [dict get $params -outputparams]
+    set opts [$self pickle $oparams]
+    puts $opts
+    set iparams [thread::send $m_workerThread [list OfflineEVBOutputPipeParams %AUTO% {*}$opts]]
+    thread::send $m_workerThread [list $processor configure -outputparams $iparams]
+
+#    $processor configure -inputparams [dict get $params -inputparams] 
+#    $processor configure -hoistparams [dict get $params -hoistparams]
+#    $processor configure -evbparams   [dict get $params -evbparams]
+#    $processor configure -outputparams [dict get $params -outputparams]
   }
  
   ## @brief Try to guess what the run number is from the run 
