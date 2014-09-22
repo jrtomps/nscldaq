@@ -66,8 +66,22 @@ snit::type OfflineEVBOutputPipeParams {
 
   method validateStagearea {errors_} {
     upvar $errors_ errors
-    if {![file exists $options(-stagearea)]} {
+    set dir $options(-stagearea)
+    if {![file exists $dir]} {
       lappend errors "Stagearea must be a directory that exists."
+    } else {
+      set subdir [file join $dir experiment]
+      if { (![file exists $subdir]) || (![file owned $subdir]) } {
+        lappend errors "Stagearea must contain writable experiment directory"
+      } 
+      set subdir [file join $dir experiment current]
+      if { (![file exists $subdir]) || (![file writable $subdir]) } {
+        lappend errors "Stagearea must contain writable experiment/current directory"
+      } 
+      set subdir [file join $dir complete]
+      if { (![file exists $subdir]) || (![file owned $subdir]) } {
+        lappend errors "Stagearea must contain writable complete directory"
+      }
     }
   }
 
