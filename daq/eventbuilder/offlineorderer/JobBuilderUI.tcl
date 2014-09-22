@@ -178,8 +178,16 @@ snit::type JobBuilderUIPresenter {
   ## Retrieive the list of jobs
   #
   method getJobsList {} {
-    
     return $m_masterJobList
+  }
+
+  ## Retrieive the list of jobs
+  #
+  method setJobsList {list} {
+    dict for {key val} $m_masterJobList {
+      Job::destroy $val
+    }
+    set m_masterJobList $list
   }
 
   ## Launches a configuration dialogue for the job 
