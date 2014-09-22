@@ -66,7 +66,7 @@ snit::type RunProcessor {
     set m_workerThread [thread::create -joinable]
     thread::send $m_workerThread "lappend auto_path $::auto_path"
     thread::send $m_workerThread {package require OfflineEVBJobProcessor}
-    thread::send $m_workerThread {wm forget .}
+    thread::send $m_workerThread {wm withdraw .}
     set processor [thread::send $m_workerThread {set processor [JobProcessor %AUTO%]}]
     thread::send $m_workerThread "set _parentThread [thread::id]"
     thread::send $m_workerThread [list $processor configure -runprocessor $self]
