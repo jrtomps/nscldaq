@@ -58,7 +58,10 @@ snit::widget RunStatusUIView {
     #
     method appendNewJobDisplay {jobDisplay} {
       grid $jobDisplay -sticky new
-      grid columnconfigure $win [expr {[lindex [grid size $win] 1]-1}] -weight 1
+      set geometry [grid size $win]
+      set row [expr {[lindex [grid size $win] 1]-1}]
+      grid rowconfigure $win $row -weight 0
+      grid columnconfigure $win 0 -weight 1
     }
 
     ## @brief Assemble the megawidget
@@ -68,8 +71,25 @@ snit::widget RunStatusUIView {
     # simply some labels on text entries.
     #
     method buildGUI {} {
-      grid rowconfigure $win 0 -weight 1
-      grid columnconfigure $win 0 -weight 1
+
+      set top $win.hdrFrame
+      ttk::frame $top
+
+      ttk::label $top.title -text "Run Progress" -style "H1.TLabel"
+      ttk::label $top.nameLbl -text "Job Name" 
+      ttk::label $top.statusLbl -text "Job Status" 
+      ttk::separator $top.sep -orient horizontal 
+
+      grid $top.title          -       -sticky new
+      grid $top.nameLbl $top.statusLbl -sticky sew -padx 9
+      grid $top.sep            -       -sticky sew
+      grid rowconfigure $top 0 -weight 1
+      grid columnconfigure $top {0 1} -weight 1
+
+      grid $win.hdrFrame -sticky new
+
+      grid rowconfigure $win 0 -minsize 50
+      grid columnconfigure $win 0 -weight 1 
     }
 
     ## @brief Pass this a different presenter object 
@@ -412,9 +432,11 @@ snit::widget JobStatusDisplay {
     ttk::label $win.jobStatusLbl -textvariable [myvar options(-status)]
     ttk::progressbar $win.jobProgress -orient horizontal -mode indeterminate
 
-    grid $win.jobLbl $win.jobStatusLbl $win.jobProgress -sticky ew -padx 9 -pady 9
+#    grid $win.jobLbl $win.jobStatusLbl $win.jobProgress -sticky ew -padx 9 -pady 9
+    grid $win.jobLbl $win.jobStatusLbl -sticky ew -padx 9 -pady 9
 
-    grid columnconfigure $win {0 1 2} -weight 1 -minsize 81
+#    grid columnconfigure $win {0 1 2} -weight 1 -minsize 81
+    grid columnconfigure $win {0 1} -weight 1 -minsize 81
   }
 
   ## @brief Transition the visible components for the new state 
@@ -427,12 +449,12 @@ snit::widget JobStatusDisplay {
   #
   method setStatus {option value} {
     if {$value eq "processing"} {
-      grid $win.jobProgress -column 2 -row 0 -sticky ew
-      $win.jobProgress start 20
+#      grid $win.jobProgress -column 2 -row 0 -sticky ew
+#      $win.jobProgress start 20
       set options(-status) $value
     } elseif {$value in [list "completed" "queued"]} {
-      $win.jobProgress stop
-      grid forget $win.jobProgress
+#      $win.jobProgress stop
+#      grid forget $win.jobProgress
       grid configure $win.jobStatusLbl -columnspan 2
       set options(-status) $value
     }
