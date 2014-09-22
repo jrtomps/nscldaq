@@ -12,6 +12,8 @@ package require OfflineEVBInputPipeline
 package require OfflineEVBHoistPipeline
 package require evbcallouts 
 package require OfflineEVBOutputPipeline 
+package require OfflineEVBGlobalConfigUI
+package require OfflineEVBJob
 
 
 snit::widget JobBuilderUIView {
@@ -186,51 +188,22 @@ snit::type JobBuilderUIPresenter {
 
     set m_useParamsToCreate 0
 
-    # Create the toplevel dialogue 
-    toplevel .jobconf
-    set config [JobConfigUIPresenter %AUTO% -widgetname .jobconf.ui \
-                                            -ismaster 1]
-    $config setButtonText "Create"
+    set size [dict size $m_masterJobList]
 
-    # Create some default parameters 
-    set iparams [OfflineEVBInputPipeParams %AUTO%] 
-    set hparams [OfflineEVBHoistPipeParams %AUTO%]
-    set eparams [EVBC::AppOptions %AUTO%]
-    set oparams [OfflineEVBOutputPipeParams %AUTO%]
+    set model [dict create]
 
-    # Create the job parameters  to pass to the configuration
-    # dialogue. It becomes the model that the dialogue's presenter
-    # manipulates.
-    set model [dict create -jobname "Job" \
-                           -inputparams $iparams  \
-                           -hoistparams $hparams \
-                           -evbparams   $eparams \
-                           -outputparams $oparams ]
-    $self configureDefaults $model
-    $config setModel $model
+    if {$size!=0} {
+      set job [lindex [dict keys $m_masterJobList] end]
 
-    # The dialogue is its own master and maintains a list of 
-    # observers to be alerted when the "create" button is pressed.
-    # To know whether the job is to be actually created or not
-    # we need to observe whether the user presses "Create" before
-    # cancelling or if the he/she presses cancel.
-    $config setObserver $self
+      set model [Job::clone [dict get $m_masterJobList $job]]
+      [dict get $model -inputparams] configure -file ""
 
-    # Grid the dialogue
-    grid .jobconf.ui -sticky nsew -padx 9 -pady 9
-    grid rowconfigure .jobconf.ui 0 -weight 1
-    grid columnconfigure .jobconf.ui 0 -weight 1
-   
-    # grab this so that it is a modal dialogue
-    grab .jobconf
-    wm transient .jobconf
-    wm protocol .jobconf WM_DELETE_WINDOW {
-      grab release .jobconf;
-      destroy .jobconf
+    } else {
+      set globals [GlobalConfig::getInstance]
+      set model [Job::clone [$globals getModel]]
     }
 
-    # wait until it is done
-    tkwait window .jobconf
+    $self promptEdit $model "Create"
 
     # if the user pressed "Create" then the dialogue
     # called acceptCreation before reaching hear. This 
@@ -249,7 +222,33 @@ snit::type JobBuilderUIPresenter {
         }
       }
     }
+
+
   }
+
+  ##
+  #
+  #
+  method createNewParameters {} {
+
+    set iparams [OfflineEVBInputPipeParams %AUTO%]
+    set hparams [OfflineEVBHoistPipeParams %AUTO%]
+    set eparams [EVBC::AppOptions %AUTO%]
+    set oparams [OfflineEVBOutputPipeParams %AUTO%]
+
+    # Create the job parameters  to pass to the configuration
+    # dialogue. It becomes the model that the dialogue's presenter
+    # manipulates.
+    set model [dict create  -jobname "Job" \
+                            -inputparams $iparams  \
+                            -hoistparams $hparams \
+                            -evbparams   $eparams \
+                            -outputparams $oparams ]
+    $self configureDefaults $model
+
+    return $model
+  }
+
 
   ## @brief Simple method for creating a new unique job name
   #
@@ -298,16 +297,27 @@ snit::type JobBuilderUIPresenter {
       return 
     }
 
+    $self promptEdit [dict get $m_masterJobList [lindex $selection 0]] "Accept"
+  }
+
+
+
+  ##
+  #
+  method promptEdit {job {buttontext "Accept"}} {
     # Create a new toplevel dialogue
     toplevel .jobconf
+    wm title .jobconf "Configure Job"
+    wm resizable .jobconf false false
+
     set config [JobConfigUIPresenter %AUTO% -widgetname .jobconf.ui \
                                             -ismaster 1]
     # becuase the user desires to edit an already created job, the
     # button should say "accept"
-    $config setButtonText "Accept"
+    $config setButtonText $buttontext
 
     # Figure out which job the user wants to configure
-    $config setModel [dict get $m_masterJobList [lindex $selection 0] ]
+    $config setModel $job 
     $config setObserver $self
     grid .jobconf.ui -sticky nsew -padx 9 -pady 9
     grid rowconfigure    .jobconf.ui 0 -weight 1
@@ -327,8 +337,8 @@ snit::type JobBuilderUIPresenter {
     # There is nothing to do once the dialogue is closed 
     # because the dialogue's presenter was manipulating the 
     # job parameterization directly.
-  }
 
+  }
   ##
   #
   method acceptCreation {value} {
@@ -369,4 +379,23 @@ snit::type JobBuilderUIPresenter {
     [dict get $jobParams -outputparams] configure -ringname  tcp://localhost/OfflineEVBOut
   }
 } ;# end of OfflineOrderer
+
+namespace eval JobBuilder {
+
+  variable widgetName  ".builder"
+  variable theInstance ""
+
+  proc getInstance {} {
+    variable widgetName 
+    variable theInstance
+
+    if {$theInstance eq ""} {
+      set theInstance [JobBuilderUIPresenter %AUTO% -widgetname $widgetName]
+    }
+    return $theInstance
+  }
+  
+
+}
+
 

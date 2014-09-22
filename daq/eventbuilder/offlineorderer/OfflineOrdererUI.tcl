@@ -9,6 +9,8 @@ package require snit
 package require OfflineEVBRunProcessor
 package require OfflineEVBJobBuilder
 package require OfflineEVBRunStatusUI
+package require OfflineEVBGlobalConfigUI
+package require FrameSequencer
 
 proc TabbedOutput {win args} {
 }
@@ -191,6 +193,7 @@ snit::type OfflineOrdererUIPresenter {
 
   component runProgressPresenter
   component jobBuilderPresenter
+  component globalConfigPresenter
 
   component runProcessor 
 
@@ -212,7 +215,11 @@ snit::type OfflineOrdererUIPresenter {
     # setup the stuff the running and configuration frames
     set fr [$m_view getFrameWidget]
     set runProgressPresenter [RunStatusUIPresenter %AUTO% -widgetname $fr.runUI]
-    set jobBuilderPresenter [JobBuilderUIPresenter %AUTO% -widgetname $fr.configUI]
+
+    # this uses the singleton adapater for the JobBuilder
+    set JobBuilder::widgetName $fr.configUI
+    set jobBuilderPresenter [JobBuilder::getInstance] 
+
     $m_view setViewWidgets [dict create run $fr.runUI \
                                         config $fr.configUI ]
 
@@ -280,7 +287,27 @@ snit::type OfflineOrdererUIPresenter {
 
 option add *tearOff 0
 
+menu .m 
+#.m add command -label "Config" -command { .seq select config ; .m delete 0 }
+. configure -menu .m
+
+wm title . "NSCLDAQ Offline Event Builder"
+wm resizable . false false
+
+
+FrameSequencer .seq
+
+set GlobalConfig::win .glblConfig
+set GlobalConfig::theInstance [GlobalConfigUIPresenter %AUTO% -widgetname .globalConfig]
+
 set orderer [OfflineOrdererUIPresenter %AUTO% -widgetname .view]
-grid .view -sticky nsew
+
+.seq add main   .view { .m add command -label "Config" -command { .seq select config ; .m delete 0} }
+.seq add config .globalConfig
+.seq select main
+
+grid .seq -sticky nsew
 grid rowconfigure . 0 -weight 1
 grid columnconfigure . 0 -weight 1
+
+
