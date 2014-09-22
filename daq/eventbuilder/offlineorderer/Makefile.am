@@ -18,7 +18,9 @@ TCLPACKAGES=InputPipeline.tcl HoistPipeline.tcl \
             JobProcessor.tcl RunProcessor.tcl \
             RunStatusUI.tcl  \
             FileListWidget.tcl \
-            OfflineOrdererUI.tcl
+            OfflineOrdererUI.tcl \
+            GlobalConfigUI.tcl \
+            Job.tcl
 
 check-TESTS:
 	TCLLIBPATH=@prefix@/TclLibs HERE=@srcdir@ tcl=@TCLSH_CMD@ @TCLSH_CMD@ @srcdir@/tclTests.tcl
