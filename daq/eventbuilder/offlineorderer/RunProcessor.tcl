@@ -71,8 +71,6 @@ snit::type RunProcessor {
     thread::send $m_workerThread "set _parentThread [thread::id]"
     thread::send $m_workerThread [list $processor configure -runprocessor $self]
 
-    puts "Parent thinks it is: [thread::id]"
-
     set m_runObservers [list]
   }
 
@@ -120,7 +118,7 @@ snit::type RunProcessor {
       set iparams [dict get $options(-jobs) $job -inputparams]
       if {[catch {set run [$self guessRunNumber [$iparams cget -file]]} msg]} {
         set resp [tk_messageBox -icon error -message "RunProcessor::run failed to identify the run number"]
-        vwait resp 
+        puts $resp
         $self observeAbort
         return
       }
@@ -156,6 +154,9 @@ snit::type RunProcessor {
     return $processor
   }
 
+  method getWorkerThread {} {
+    return $m_workerThread
+  }
 
   method pickle {snitobj} {
     set opts [$snitobj info options]
