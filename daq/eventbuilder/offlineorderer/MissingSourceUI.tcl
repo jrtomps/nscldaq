@@ -98,7 +98,9 @@ snit::widget MissingSourceConfigUIView {
     trace add variable [myvar options(-missing)] write [mymethod onMissingChange]
     set top $win.descr
     ttk::frame $top
-    font create DescriptionFont -family Helvetica -size 10 -slant italic
+    if {"DescriptionFont" ni [font names]} {
+      font create DescriptionFont -family Helvetica -size 10 -slant italic
+    }
     tk::text $top.descrLbl -bg lightgray  -relief flat -wrap word -font DescriptionFont \
                            -height 3 -width 60
     $top.descrLbl insert end  "Check this if some ring items lack body headers in the data, because additional information is required to send these items through the event builder."
