@@ -254,9 +254,23 @@ snit::type OfflineOrdererUIPresenter {
     set state [$m_view cget -mode]
 
     if {$state eq "config"} {
+      # button pressed to enter run mode
+
+      # remove the menu
+      $Globals::menu delete 0 1
+
+      # change to the run status display
       $m_view configure -mode run 
+
+      # run
       $self run
     } else {
+      set cmd0 [list $::Globals::sequencer select config ]
+      set cmd1 [list $::Globals::menu delete 0 1 ]
+      set cmd  [list $cmd0 $cmd1]
+      puts "Cmd = \"[join $cmd "; "]\""
+      $::Globals::menu add command -label "Config" -command [join $cmd "; "] 
+
       $m_view configure -mode config
     }
   }
@@ -272,12 +286,7 @@ snit::type OfflineOrdererUIPresenter {
       puts $masterJobList
       $runProcessor configure -jobs $masterJobList
       set status [$runProcessor run]
-
-      # display the running progress view
-      $m_view configure -mode run
-    } else {
-      $m_view configure -mode config 
-    }
+    };
 
   } 
 
@@ -285,29 +294,10 @@ snit::type OfflineOrdererUIPresenter {
 
 # ----------------------------------------------------------------------
 
-option add *tearOff 0
-
-menu .m 
-#.m add command -label "Config" -command { .seq select config ; .m delete 0 }
-. configure -menu .m
-
-wm title . "NSCLDAQ Offline Event Builder"
-wm resizable . false false
 
 
-FrameSequencer .seq
-
-set GlobalConfig::win .glblConfig
-set GlobalConfig::theInstance [GlobalConfigUIPresenter %AUTO% -widgetname .globalConfig]
-
-set orderer [OfflineOrdererUIPresenter %AUTO% -widgetname .view]
-
-.seq add main   .view { .m add command -label "Config" -command { .seq select config ; .m delete 0} }
-.seq add config .globalConfig
-.seq select main
-
-grid .seq -sticky nsew
-grid rowconfigure . 0 -weight 1
-grid columnconfigure . 0 -weight 1
-
+namespace eval Globals {
+  variable menu ".m"
+  variable sequencer ".seq"
+}
 
