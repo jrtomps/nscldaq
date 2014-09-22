@@ -22,4 +22,24 @@ namespace eval Job {
   }
 
 
+  proc destroy {source} {
+    dict for {key val} $source {
+      if {$key ne "-jobname"} {
+        $val destroy
+      }
+    }
+  }
+
+
+  proc pickle {snitobj} {
+    set vallist [dict create]
+    set opts [$snitobj info options]
+
+    foreach opt $opts {
+      dict set vallist $opt [$snitobj cget $opt]
+    }
+
+    return $vallist
+  }
+
 }

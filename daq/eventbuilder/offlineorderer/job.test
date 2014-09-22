@@ -1,0 +1,61 @@
+
+
+package require tcltest
+package require snit
+
+tcltest::test pkgrequire-0 {Test that this can be required
+} -body {
+  package require OfflineEVBJob
+} -result 11.0
+
+
+snit::type Mock {
+
+  option -a -default "a"
+  option -b -default "b"
+  option -c -default "c"
+  option -d -default "d"
+
+  typevariable ndestroys
+
+  constructor {args} {
+    $self configurelist $args
+  }
+
+  destructor {
+    incr Mock::ndestroys
+
+  }
+}
+
+
+
+tcltest::test destroy-0 { Test that all pieces get destroyed
+} -body {
+  set Mock::ndestroys 0
+
+  set m0 [Mock %AUTO%]
+  set m1 [Mock %AUTO%]
+  set m2 [Mock %AUTO%]
+  set m3 [Mock %AUTO%]
+
+  set model [dict create -jobname "asdf" \
+                         -inputparams $m0 \
+                         -hoistparams $m1 \
+                         -evbparams $m2 \
+                         -outputparams $m3 ]
+
+  Job::destroy $model
+  set Mock::ndestroys
+} -result 4
+
+
+tcltest::test pickle-0 {Test that I can produce a dict with appropriate values
+} -body {
+  Mock mock
+
+  Job::pickle mock
+} -result "-a a -b b -c c -d d"
+
+
+tcltest::cleanupTests
