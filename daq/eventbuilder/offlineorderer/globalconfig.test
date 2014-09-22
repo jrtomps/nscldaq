@@ -1,0 +1,95 @@
+
+
+package require tcltest
+
+package require ring
+package require OfflineEVBJob
+package require OfflineEVBInputPipeline
+package require OfflineEVBHoistPipeline
+package require evbcallouts 
+package require OfflineEVBOutputPipeline
+
+tcltest::test pkgrequire-0 {Ensure this can package required
+} -body {
+  package require OfflineEVBGlobalConfigUI
+} -result 11.0
+
+
+######################################################
+# Common procs
+
+
+proc setup {} {
+  set ::conf [GlobalConfigUIPresenter %AUTO% -widgetname ".c"]
+  set ::model [dict create -jobname "asdf" \
+                           -inputparams [OfflineEVBInputPipeParams %AUTO%] \
+                           -hoistparams [OfflineEVBHoistPipeParams %AUTO%] \
+                           -evbparams   [EVBC::AppOptions %AUTO%] \
+                           -outputparams [OfflineEVBOutputPipeParams %AUTO%]]
+
+}
+
+proc tearDown {} {
+   Job::destroy $::model 
+}
+
+
+
+proc getValidRing {name} {
+  # try to access the ring
+  if {[catch {ringbuffer usage $name} msg]} {
+    # failed to locate ring... create it
+    ringbuffer create $name
+  }
+}
+
+######################################################
+
+
+
+tcltest::test clone-0 {Test that apply will configure all exists jobs 
+} -setup {
+  setup
+
+  set dir [tcltest::makeDirectory dummy]
+  tcltest::makeDirectory [file join dummy experiment]
+  tcltest::makeDirectory [file join dummy experiment current]
+  tcltest::makeDirectory [file join dummy current]
+  tcltest::makeDirectory [file join dummy complete]
+  Configuration::Set Stagearea $dir
+} -cleanup {
+  tearDown
+  tcltest::removeDirectory $dir
+} -body {
+
+  set jobList [dict create j0 [Job::clone $::model] j1 [Job::clone $::model]]
+
+  set jb [JobBuilder::getInstance]
+  $jb setJobsList $jobList
+
+  set rname [getValidRing __test__]
+  $::conf setInputRing  "__test__"
+  $::conf setOutputRing "__test__"
+  $::conf setStagearea  $dir
+   
+  $::conf apply
+
+  set newJobList [$jb getJobsList]
+  
+  lappend res [[dict get $newJobList j0 -inputparams] cget -inputring]
+  lappend res [[dict get $newJobList j0 -hoistparams] cget -sourcering]
+  lappend res [[dict get $newJobList j0 -evbparams] cget -destring]
+  lappend res [[dict get $newJobList j0 -outputparams] cget -ringname]
+  lappend res [[dict get $newJobList j0 -outputparams] cget -stagearea]
+
+  lappend res [[dict get $newJobList j1 -inputparams] cget -inputring]
+  lappend res [[dict get $newJobList j1 -hoistparams] cget -sourcering]
+  lappend res [[dict get $newJobList j1 -evbparams] cget -destring]
+  lappend res [[dict get $newJobList j1 -outputparams] cget -ringname]
+  lappend res [[dict get $newJobList j1 -outputparams] cget -stagearea]
+  
+  set res
+} -result "__test__ __test__ __test__ tcp://localhost/__test__ [file join [pwd] dummy] __test__ __test__ __test__ tcp://localhost/__test__ [file join [pwd] dummy]"
+
+
+tcltest::cleanupTests
