@@ -221,7 +221,20 @@ snit::type GlobalConfigUIPresenter {
     catch {$m_view destroy}
   }
 
+  method setInputRing {ring} {
+    [dict get $m_model -inputparams] configure -inputring $ring
+    $self updateViewData  $m_model
+  }
 
+  method setOutputRing {ring} {
+    [dict get $m_model -evbparams] configure -destring $ring
+    $self updateViewData  $m_model
+  }
+
+  method setStagearea {path} {
+    [dict get $m_model -outputparams] configure -stagearea $path
+    $self updateViewData  $m_model
+  }
   ## @brief Set the model to some user's model and synchronize
   #
   #
