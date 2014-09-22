@@ -39,11 +39,6 @@ snit::type OfflineEVBOutputPipeParams {
     upvar $errors_ errors
     set pattern {^(\w+://)([/]*[\w\.]+)(/[\w\.]+)*$}
     if {[regexp $pattern $options(-ringname) match proto host ring]} {
-      puts "match    = $match"
-      puts "protocol = $proto"
-      puts "host     = $host"
-      puts "ring     = $ring"
-
       if {![info exists ring]} {
         lappend errors "Ring name not specified as a valid proto://host/ring"
       }
