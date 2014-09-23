@@ -14,7 +14,7 @@ package require evbcallouts
 package require OfflineEVBOutputPipeline
 package require OfflineEVBJobBuilder
 package require OfflineEVBJob
-
+package require ring
 
 ## Overview of the OfflineEVBInputPipelineUI package
 #
@@ -315,6 +315,9 @@ snit::type GlobalConfigUIPresenter {
     # update our model from view
     $self commitViewDataToModel
 
+    # make the rings if they don't exist
+    $self ensureRingsExist
+
     # check to see if there are problems with it
     set errors [$self validateModel]
     
@@ -340,6 +343,30 @@ snit::type GlobalConfigUIPresenter {
     }
   }
 
+
+  ## Check to see whether the ring buffers in the model exist
+  # and create them if necessary
+  #
+  method ensureRingsExist {} {
+    # input ring
+    set ring [[dict get $m_model -inputparams] cget -inputring]
+    $self ensureRingExists $ring
+
+    # output ring
+    set ring [[dict get $m_model -evbparams] cget -destring]
+    $self ensureRingExists $ring
+
+  }
+
+  ## Check whether the ring buffer exists and create it if it doesn't
+  #
+  # @param name   name of the ring buffer to check on
+  #
+  method ensureRingExists {name} {
+    if {[catch {ringbuffer usage $name} msg]} {
+      ringbuffer create $name
+    }
+  }
   ## @brief Retrieve the view
   #
   # @returns string
