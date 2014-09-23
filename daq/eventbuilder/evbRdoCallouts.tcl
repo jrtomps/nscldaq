@@ -138,6 +138,23 @@ snit::type EVBC::AppOptions {
         
         $self configurelist $args
     }
+
+
+    ## Return a new EVBC::AppOptions that has the same state 
+    #
+    method clone {} {
+
+      # get all of the options and their values and make a dict of them
+      set state [dict create]
+      foreach opt [$self info options] {
+        set value [$self cget $opt]
+        dict set state $opt $value 
+      }
+
+      # return a new snit object with the same params
+      return [[$self info type] %AUTO% {*}$state]
+
+    }
 }
 
 ##############################################################################
@@ -331,7 +348,7 @@ proc EVBC::flush {} {
 # @note Event sourcese are subprocesses of us but not subprocesses of the
 #       the event building pipeline.
 #
-proc EVBC::startRingSource {sourceRingUrl timestampExtractorLib id info} {
+proc EVBC::startRingSource {sourceRingUrl timestampExtractorLib id info {expectHeaders 0}} {
     #
     #  Figure out what port the event builder is running on... or if it's running
     #
@@ -356,11 +373,15 @@ proc EVBC::startRingSource {sourceRingUrl timestampExtractorLib id info} {
     #  Construct the command we're going to run
     
     set ringSource [file join $EVBC::daqtop bin ringFragmentSource]
-    append ringSource " --evbhost=localhost --evbport=$port"
-    append ringSource " --info=$info --ids=$id --ring=$sourceRingUrl"
-    append ringSource " --timestampextractor=[file normalize $timestampExtractorLib]"
+
+    set switches [::EVBC::_computeRingSourceSwitches $port $sourceRingUrl \
+                                                     $timestampExtractorLib \
+                                                     $id \
+                                                     $info \
+                                                     $expectHeaders]
     
-    
+    append ringSource $switches
+
     # Run the command in a pipeline that gets stderr/stdout and
     # set a fileevent on it so that we get output and errors and eof.
     # The trick with cat below ensures that we get both stderr and stdout.
@@ -371,6 +392,37 @@ proc EVBC::startRingSource {sourceRingUrl timestampExtractorLib id info} {
 
     puts [format "EVBC::startRingSource completed @ %d" [clock microseconds]]
 }
+
+
+##
+# @fn EVBC::_computeRingSourceSwitches
+#
+# @param port             the port of the orderer server
+# @param url              url of the ring 
+# @param tstampExtractor  path to tstamp extractor lib
+# @param id               source id associated with source
+# @param info             description of the source
+# @param expectHeaders    boolean to specify --expectbodyheaders flag
+# 
+# @returns string containing command line arguments to use
+#
+proc EVBC::_computeRingSourceSwitches {port url tstampExtractor id info expectHeaders} {
+
+    set switches ""
+    append switches " --evbhost=localhost --evbport=$port"
+    append switches " --info=$info --ids=$id --ring=$url"
+
+    if {$tstampExtractor ne ""} {
+      append switches " --timestampextractor=[file normalize $tstampExtractor]"
+    }
+
+    if {[string is true $expectHeaders]} {
+      append switches " --expectbodyheaders"
+    }
+
+    return $switches
+}
+
 ##
 # @fn EVBC::startS800Source
 #
