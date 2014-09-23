@@ -15,6 +15,8 @@ package require OfflineEVBOutputPipeline
 package require OfflineEVBJobBuilder
 package require OfflineEVBJob
 package require ring
+package require ExpFileSystem 
+package require Configuration
 
 ## Overview of the OfflineEVBInputPipelineUI package
 #
@@ -218,7 +220,7 @@ snit::type GlobalConfigUIPresenter {
   # Do not destroy the model because it is just a reference
   #
   destructor {
-    catch {$m_view destroy}
+    catch {destroy $m_view}
   }
 
   method setInputRing {ring} {
@@ -318,6 +320,8 @@ snit::type GlobalConfigUIPresenter {
     # make the rings if they don't exist
     $self ensureRingsExist
 
+    $self createStagearea
+
     # check to see if there are problems with it
     set errors [$self validateModel]
     
@@ -367,6 +371,15 @@ snit::type GlobalConfigUIPresenter {
       ringbuffer create $name
     }
   }
+
+
+  ## Try to create stagearea if it doesn't exist 
+  #
+  method createStagearea {} {
+    Configuration::Set StageArea [[dict get $m_model -outputparams] cget -stagearea]
+    ExpFileSystem::CreateHierarchy
+  }
+
   ## @brief Retrieve the view
   #
   # @returns string

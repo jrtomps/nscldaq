@@ -31,6 +31,7 @@ proc setup {} {
 
 proc tearDown {} {
    Job::destroy $::model 
+   $::conf destroy
 }
 
 
@@ -90,6 +91,34 @@ tcltest::test clone-0 {Test that apply will configure all exists jobs
   
   set res
 } -result "__test__ __test__ __test__ tcp://localhost/__test__ [file join [pwd] dummy] __test__ __test__ __test__ tcp://localhost/__test__ [file join [pwd] dummy]"
+
+
+
+
+
+
+tcltest::test createStagearea-0 {Ensure that a nonexisting stagearea gets created
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+  file delete -force [file join [pwd] dummy]
+} -body {
+  $::conf setStagearea [file join [pwd] dummy]
+  $::conf createStagearea
+
+  set path [file join [pwd] dummy]
+  set results [list]
+  if {[file exists $path]} {
+    lappend results [file exists [file join $path current]]
+    lappend results [file exists [file join $path experiment]]
+    lappend results [file exists [file join $path complete]]
+    lappend results [file exists [file join $path experiment current]]
+  }
+
+  set results
+} -result "1 1 1 1"
+
 
 
 tcltest::cleanupTests
