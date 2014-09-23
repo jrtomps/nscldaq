@@ -229,6 +229,10 @@ tcltest::test runNext-1 {Test that a bad input param file name causes an abort
   $::processor configure -jobs [dict create job0 [dict create -inputparams $iparams]]
   $::processor addRunStatusObserver $::obs
 
+  after 1000 {
+    set win [focus]
+    event generate $win <KeyPress-Return>
+  }
   $::processor runNext
   $::obs getHistory
 } -result [list "transitionToNextJob job0" "abort"]
