@@ -9,6 +9,7 @@ package require Tk
 snit::widget FileList {
 
   option -filelist  -default ""
+  option -sort      -default 1
   
 
   variable m_nJobs 0
@@ -34,7 +35,6 @@ snit::widget FileList {
       ttk::button   $win.rem      -text "Remove Selected" -command [mymethod onRemove]
 
       grid $win.list              -  -sticky nsew
-#      grid $win.xscroll           -  -sticky ew
       grid $win.addrun $win.rem    -sticky ew
       grid rowconfigure $win    {0 1} -weight 1
       grid columnconfigure $win {0 1} -weight 1 -minsize 100
@@ -51,16 +51,51 @@ snit::widget FileList {
 
     # Request the names of files
     set selection [tk_getOpenFile -multiple true -filetypes $types ]
+
+    if {$options(-sort)} {
+      # Make sure that these are in increasing order
+      set selection [lsort -increasing $selection]
+    }
+
     $self appendFiles $selection
+
+    $self sortList
   }
 
   ##
   #
   method appendFiles {selection} {
+    # insert the new files from the selection
     foreach f $selection {
       $win.list insert {} end -id file$m_nAlreadyAdded \
                               -text [file tail $f] -value $f
       incr m_nAlreadyAdded 
+    }
+  }
+
+  ##
+  #
+  method sortList {} {
+    # order them
+    # get the current list of children
+    set children [$win.list children {}]
+
+    # remove them from view but don't delete them
+    $win.list detach $children
+
+    # create a dict of (file name:id) pairs
+    set map [dict create]
+    foreach child $children {
+      dict set map [$win.list item $child -text] $child
+    }
+
+    # sort the keys in ascending order
+    set fnames [lsort -increasing [dict keys $map]]
+
+    # put the sorted values back into the list in the 
+    # new ordering
+    foreach fname $fnames {
+      $win.list move [dict get $map $fname] {} end
     }
   }
 

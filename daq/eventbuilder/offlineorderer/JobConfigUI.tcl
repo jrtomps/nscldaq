@@ -111,7 +111,7 @@ snit::widget JobConfigUIView {
 
     ttk::frame $top
     ttk::label $top.addFilesLbl -text "Add run files"
-    FileList $m_fileTree
+    FileList $m_fileTree -sort 1
     grid $top.addFilesLbl -sticky new
     grid $top.files -sticky nsew
     grid rowconfigure    $top 0 -weight 1
