@@ -49,6 +49,7 @@ proc DAQParameters::setDefaults {} {
     Configuration::Set EventLogAdditionalSources 0
     Configuration::Set EventLogUseGUIRunNumber   0
     Configuration::Set EventLogUseChecksumFlag   1
+    Configuration::Set EventLogRunFilePrefix     "run"
 }
 # DAQParameters::environmentOverrides
 #   Overrides the defaults with information from the environment
@@ -65,6 +66,7 @@ proc DAQParameters::environmentOverrides {} {
     Configuration::readEnvironment EventLogAdditionalSources EVENTLOGGER_UNCONTROLLED_SOURCE_COUNT
     Configuration::readEnvironment EventLogUseGUIRunNumber   EVENTLOGGER_USE_GUI_RUNNUM
     Configuration::readEnvironment EventLogUseChecksumFlag   EVENTLOGGER_USE_CHECKSUM_FLAG
+    Configuration::readEnvironment EventLogRunFilePrefix     EVENTLOGGER_RUN_FILE_PREFIX
     
 }
 
@@ -132,6 +134,17 @@ proc  DAQParameters::getRunNumberOverrideFlag {} {
 proc  DAQParameters::getUseChecksumFlag {} {
     return [Configuration::get EventLogUseChecksumFlag]
 }
+
+##
+# DAQParameters::getRunFilePrefix
+#
+# @return string - the prefix that will be used in the file name: prefix-xxxx-yy.evt
+#                  in run files. By default, this should be set to "run", but 
+#                  alternatively, there should be some way to set the 
+#
+proc  DAQParameters::getRunFilePrefix {} {
+    return [Configuration::get EventLogRunFilePrefix]
+}
 #  Initialize on load:
 
 DAQParameters::setDefaults
@@ -147,6 +160,7 @@ $DAQParameters::stateManager addStateVariable EventLogUseNsrcsFlag  Configuratio
 $DAQParameters::stateManager addStateVariable EventLogAdditionalSources  Configuration::get Configuration::Set
 $DAQParameters::stateManager addStateVariable EventLogUseGUIRunNumber  Configuration::get Configuration::Set
 $DAQParameters::stateManager addStateVariable EventLogUseChecksumFlag  Configuration::get Configuration::Set
+$DAQParameters::stateManager addStateVariable EventLogRunFilePrefix  Configuration::get Configuration::Set
 
 
 
