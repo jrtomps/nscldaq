@@ -1,4 +1,4 @@
-#!/usr/bin/env tclsh
+
 
 package provide FileListWidget 1.0
 
@@ -6,16 +6,22 @@ package require snit
 package require Tk
 
 
+## @brief A simple widget that allows the user to select files and populate a 
+#   list
+#
+# It is implemented as a simple widget without the MVP paradigm. This was
+# a choice mainly to just keep this as a simple widget that is embodied 
+# in a single class.
+#
 snit::widget FileList {
 
-  option -filelist  -default ""
-  option -sort      -default 1
+  option -filelist  -default "" ; #< the list of files being managed
+  option -sort      -default 1  ; #< whether or not to keep the list sorted
   
 
-  variable m_nJobs 0
-  variable m_nAlreadyAdded 0
+  variable m_nAlreadyAdded 0    ; #< a simple counter to ensure unique ids
 
-  ##
+  ## @brief Build the GUI
   #
   constructor {args} {
     $self configurelist $args
@@ -23,7 +29,7 @@ snit::widget FileList {
 
   }  
 
-  ##
+  ## @brief Assembles the widgets into a megawidget
   #
   method buildGUI {} {
       ttk::treeview $win.list -show tree 
@@ -41,9 +47,14 @@ snit::widget FileList {
   }
 
 
-  ##
+  ## @brief Handle presses of the "Add Files" button
   #
+  # This launches a file selector dialogue and then adds the 
+  # selection to the list of files. Optionally it will sort the 
+  # list of files if options(-sort) is 1.
   method onAddFiles {} {
+
+    # choose to view evt files by default but allow to view others
     set types {
                 {{Evt Files} {.evt}}
                 {{All Files} *     }
@@ -52,17 +63,27 @@ snit::widget FileList {
     # Request the names of files
     set selection [tk_getOpenFile -multiple true -filetypes $types ]
 
+    # optionally sort the selected entries
     if {$options(-sort)} {
       # Make sure that these are in increasing order
       set selection [lsort -increasing $selection]
     }
 
+    # add the new files to the end of the list 
     $self appendFiles $selection
 
-    $self sortList
+    # sort the entire list of entries
+    if {$options(-sort)} {
+      $self sortList
+    }
   }
 
-  ##
+  ## @brief Inserts a list of files into the treeview widget 
+  #
+  # This will insert the files as new items to the end of the
+  # the root node in the treeview. Each entry in the list will
+  # receive a unique id. Only the tail will be displayed while the
+  # value associated with it will be the absolute path.
   #
   method appendFiles {selection} {
     # insert the new files from the selection
@@ -73,7 +94,7 @@ snit::widget FileList {
     }
   }
 
-  ##
+  ## @brief Reorder the displayed items in ascending order
   #
   method sortList {} {
     # order them
@@ -89,7 +110,7 @@ snit::widget FileList {
       dict set map [$win.list item $child -text] $child
     }
 
-    # sort the keys in ascending order
+    # sort the keys of that dict in ascending order
     set fnames [lsort -increasing [dict keys $map]]
 
     # put the sorted values back into the list in the 
@@ -99,9 +120,15 @@ snit::widget FileList {
     }
   }
 
-  ##
+  ## @brief Remove the selected entries from the treeview
+  # 
+  # Note that removing files will not change the order
+  # of the residual items. If they were ordered prior
+  # to the deletion, then they will remain ordered after
+  # it.
   #
   method onRemove {} {
+
     set entries [$win.list selection]
     if {[llength $entries] == 0 } {
       tk_messageBox -icon error -message "User must select files to remove from list"
@@ -109,22 +136,24 @@ snit::widget FileList {
     $win.list delete $entries
   }
 
-  # Ensure that this can work
+  ## Delete all of the children of the root node
+  # 
+  #
   method clearTree {} {
     set nodes [$win.list children {}]
     $win.list delete $nodes
   }
 
-  ##
-  # Populate the tree data using the a dict of job lists
-  method populateTree {filelist} {
-    foreach file $fileList {
-      $self insertFile $file 
-    }
-  }
-
-
-  ## Package the job list into a dict
+  ## @brief Get the list of absolute paths in the treeview
+  # 
+  # This simply builds a list of the absolute paths held
+  # by the treeview object. Note that the displayed values
+  # are actually just the tail of the file name and that 
+  # the -value option of the treeview items contains the 
+  # absolute path. The order of the treeview widget will be
+  # maintained.
+  #
+  # @returns a list of the absolute paths 
   #
   method getFiles {} {
 

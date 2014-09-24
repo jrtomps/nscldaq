@@ -1,0 +1,26 @@
+
+
+package require tcltest
+
+tcltest::test pkgrequire-0 {Test that we can require the package
+} -body {
+  package require FileListWidget
+} -result 1.0
+
+
+tcltest::test getFiles-0 {Test that the ordering of the jobs remains good
+} -setup {
+  FileList .w -sort 1
+} -cleanup {
+  destroy .w
+} -body {
+  .w appendFiles [list run-0001-01.evt run-0001-00.evt]
+  .w sortList
+
+  .w getFiles
+} -result "run-0001-00.evt run-0001-01.evt"
+
+
+
+
+tcltest::cleanupTests
