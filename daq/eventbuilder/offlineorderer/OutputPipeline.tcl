@@ -6,6 +6,7 @@ package require InstallRoot
 package require ring
 package require DAQParameters 
 package require eventLogBundle
+package require ui
 
 snit::type OfflineEVBOutputPipeParams {
   option -ringname     -default "tcp://localhost/OfflineEVBOut"
@@ -148,6 +149,21 @@ namespace eval ReadoutGUIPanel {
   proc outputText {msg} {puts $msg}
 }
 
+
+# --------------------------------------------------------------
+# Make sure that the StatusBar instance exists because if it doesn't
+# all will break!
+#
+#set msg ""
+#set ret [catch {::StatusBar::getInstance .statBar} msg]
+#puts "$ret : $msg"
+
+namespace eval ::StatusBar {
+  variable theInstance
+}
+
+StatusArea .statBar
+set ::StatusBar::theInstance .statBar
 
 # ---------------------------------------------------------------
 
