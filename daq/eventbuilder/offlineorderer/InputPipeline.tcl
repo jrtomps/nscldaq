@@ -208,11 +208,12 @@ snit::type OfflineEVBInputPipeline {
        set msg "$context : no input file specified for input pipeline"
        return -code error $msg
      } else {
-       set path [$params cget -file]
-       if {![file exists $path]} {
-         set msg    "$context : input file \"$path\" specified for input "
-         append msg "pipeline but does not exist"
-         return -code error $msg
+       foreach path [$params cget -file] {
+         if {![file exists $path]} {
+           set msg    "$context : input file \"$path\" specified for input "
+           append msg "pipeline but does not exist"
+           return -code error $msg
+         }
        }
      }
 
@@ -279,7 +280,7 @@ snit::type OfflineEVBInputPipeline {
     set daqbin [file join [InstallRoot::Where] bin]
     set pipeline     "| cat "
     foreach file $fnames {
-      append pipeline "$fnames "
+      append pipeline "$file "
     }
     append pipeline  "| $daqbin/unglom --id $unglomid "
     append pipeline  "| $daqbin/frag2ring --strip "

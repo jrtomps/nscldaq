@@ -77,6 +77,15 @@ tcltest::test createPipelineCommand-0 {Test that the pipeline is generated
 } -result "| cat test.evt | $daqbin/unglom --id 1 | $daqbin/frag2ring --strip | $daqbin/stdintoring OfflineEvbIn |& cat" -returnCodes 0
 
 
+tcltest::test createPipelineCommand-1 {Test that the pipeline is generated with multiple files
+} -setup {
+  set params [OfflineEVBInputPipeParams %AUTO% -unglomid 1 -inputring OfflineEvbIn -file [list test0.evt test1.evt]]
+  set pipeline [OfflineEVBInputPipeline %AUTO%]
+} -cleanup {
+  $pipeline destroy
+} -body {
+  $pipeline _createPipelineCommand $params 
+} -result "| cat test0.evt test1.evt | $daqbin/unglom --id 1 | $daqbin/frag2ring --strip | $daqbin/stdintoring OfflineEvbIn |& cat" -returnCodes 0
 
 
 tcltest::test launch-1 {Test that a pipeline launch sets running to true 
@@ -126,6 +135,16 @@ tcltest::test launch-4 {Test that a nonexistent ring is created prior to attachi
   expr {[string length [ringbuffer usage $ringname]] > 0}
 } -result 1 
 
+
+tcltest::test launch-5 {Test that a multiple input files will be treated well
+} -setup {
+  set params [OfflineEVBInputPipeParams %AUTO% -unglomid 1 -inputring OfflineEvbIn -file [list [info script] [info script]]]
+  set pipeline [OfflineEVBInputPipeline %AUTO%]
+} -cleanup {
+  $pipeline destroy
+} -body {
+  $pipeline launch $params 
+} -returnCodes 0
 
 
 
