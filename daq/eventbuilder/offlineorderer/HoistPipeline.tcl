@@ -4,19 +4,38 @@
 package provide OfflineEVBHoistPipeline 11.0
 package require snit
 
-
+## @brief A snit type encapsulating the info for launching a ringFragmentSource
+#
+# The OfflineEVBHoistPipeParams is a very primitive snit::type that consists
+# mostly of some state held in options. It has ability to produce a clone of 
+# itself and also to validate its values. 
+#
 snit::type OfflineEVBHoistPipeParams {
 
-  option -sourcering  -default "OfflineEVBIn"
-  option -tstamplib   -default ""
-  option -id          -default 0
-  option -info        -default "Data from OfflineEVBIn"
-  option -expectbheaders -default 1
+  option -sourcering  -default "OfflineEVBIn"   ;#< ring to attach to 
+  option -tstamplib   -default ""               ;#< tstamp lib
+  option -id          -default 0                ;#< source id 
+  option -info        -default "Data from OfflineEVBIn" ;#< Info message to display 
+  option -expectbheaders -default 1             ;#< Whether to use 
+                                                ;#  --expectbodyheaders flag
 
+
+
+  ## @brief Basic constructor to parse options
+  #
   constructor {args} {
     $self configurelist $args
   }
 
+  ## @brief Inspect the values of the options for 
+  #
+  # Passes a list around to the various validation 
+  # methods for each option. Each of these methods will then append
+  # any new error messages to the the list. This way, it is
+  # possible to harvest all of the issues that could be wrong in one
+  # shot and report them all to the user.
+  #
+  # @returns the list of errors
   method validate {} {
      set errors [list]
 
@@ -29,6 +48,13 @@ snit::type OfflineEVBHoistPipeParams {
 
   }
 
+  ## @brief Validate the ring buffer name
+  #
+  # This checks to see whether the ring specified as the option -sourcering
+  # exists on localhost. If it doesn't, it appends a message.
+  # 
+  # @param errors_  the variable name of the list
+  #
   method validateSourceRing {errors_} {
     upvar $errors_ errors
     if {! [file exists [file join /dev shm $options(-sourcering)]]} {
@@ -36,6 +62,14 @@ snit::type OfflineEVBHoistPipeParams {
     }
   }
 
+  ## @brief Validate the tstamp library
+  #
+  # Ensure that the tstamp library has been specified if the -expectbheaders
+  # option is false, and also ensure that it actually exists if it was 
+  # specified.
+  #
+  # @param errors_  the variable name of the list
+  #
   method validateTstampLib {errors_} {
     upvar $errors_ errors
     # check for missing tstamplib
@@ -50,6 +84,12 @@ snit::type OfflineEVBHoistPipeParams {
   }
 
 
+  ## @brief Validate the source id provided
+  # 
+  # We onlyrequire that this is a non-negative integer. 
+  #
+  # @param errors_  the variable name of the list
+  #
   method validateId {errors_} {
     upvar $errors_ errors
     if {$options(-id) < 0} {
@@ -57,6 +97,12 @@ snit::type OfflineEVBHoistPipeParams {
     }
   }
 
+  ## @brief Valideate the info
+  #
+  # Simply make sure that it is not an empty string
+  #
+  # @param errors_  the variable name of the list
+  #
   method validateInfo {errors_} {
     upvar $errors_ errors
     if {$options(-info) eq ""} {
@@ -64,6 +110,9 @@ snit::type OfflineEVBHoistPipeParams {
     }
   }
 
+  ## @brief Create new object that has all of the same option values 
+  #
+  # @returns a clone of this
   method clone {} {
     
     # get all of the options and their values and make a dict of them
@@ -78,6 +127,4 @@ snit::type OfflineEVBHoistPipeParams {
      
   }
 
-
-  
 }
