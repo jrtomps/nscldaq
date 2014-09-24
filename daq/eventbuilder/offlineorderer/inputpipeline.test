@@ -79,55 +79,55 @@ tcltest::test createPipelineCommand-0 {Test that the pipeline is generated
 
 
 
-#tcltest::test launch-1 {Test that a pipeline launch sets running to true 
-#} -setup {
-#  set params [OfflineEVBInputPipeParams %AUTO% -unglomid 1 -inputring OfflineEvbIn -file [info script]]
-#  set pipeline [OfflineEVBInputPipeline %AUTO%]
-#} -cleanup {
-#  $pipeline destroy
-#} -body {
-#  $pipeline launch $params 
-#  $pipeline getRunning
-#} -result true -returnCodes 0
-#  
-#
-#tcltest::test launch-2 {Test that a pipeline launch fails if no -file parameter
-#} -setup {
-#  set params [OfflineEVBInputPipeParams %AUTO% -unglomid 1 -inputring OfflineEvbIn]
-#  set pipeline [OfflineEVBInputPipeline %AUTO%]
-#} -cleanup {
-#  $pipeline destroy
-#} -body {
-#  $pipeline launch $params 
-#} -result "OfflineEVBInputPipeline::launch : no input file specified for input pipeline" -returnCodes 1
-#
-#tcltest::test launch-3 {Test that a pipeline launch fails if -file parameter doesn't exist
-#} -setup {
-#  set params [OfflineEVBInputPipeParams %AUTO% -unglomid 1 -inputring OfflineEvbIn -file "/file-not-here"]
-#  set pipeline [OfflineEVBInputPipeline %AUTO%]
-#} -cleanup {
-#  $pipeline destroy
-#} -body {
-#  $pipeline launch $params 
-#} -result "OfflineEVBInputPipeline::launch : input file \"/file-not-here\" specified for input pipeline but does not exist" -returnCodes 1
-#
-#
-#tcltest::test launch-4 {Test that a nonexistent ring is created prior to attaching 
-#} -setup {
-#  set ringname [findNonExistentRing]
-#  set params [OfflineEVBInputPipeParams %AUTO% -unglomid 1 -inputring OfflineEvbIn -file "/file-not-here"]
-#  set pipeline [OfflineEVBInputPipeline %AUTO%]
-#  $params configure -inputring $ringname
-#} -cleanup {
-#  $pipeline destroy
-#  ringbuffer delete $ringname
-#} -body {
-#  $pipeline launch $params 
-#  expr {[string length [ringbuffer usage $ringname]] > 0}
-#} -result 1 
-#
-#
-#
+tcltest::test launch-1 {Test that a pipeline launch sets running to true 
+} -setup {
+  set params [OfflineEVBInputPipeParams %AUTO% -unglomid 1 -inputring OfflineEvbIn -file [info script]]
+  set pipeline [OfflineEVBInputPipeline %AUTO%]
+} -cleanup {
+  $pipeline destroy
+} -body {
+  $pipeline launch $params 
+  $pipeline getRunning
+} -result true -returnCodes 0
+  
+
+tcltest::test launch-2 {Test that a pipeline launch fails if no -file parameter
+} -setup {
+  set params [OfflineEVBInputPipeParams %AUTO% -unglomid 1 -inputring OfflineEvbIn]
+  set pipeline [OfflineEVBInputPipeline %AUTO%]
+} -cleanup {
+  $pipeline destroy
+} -body {
+  $pipeline launch $params 
+} -result "OfflineEVBInputPipeline::launch : no input file specified for input pipeline" -returnCodes 1
+
+tcltest::test launch-3 {Test that a pipeline launch fails if -file parameter doesn't exist
+} -setup {
+  set params [OfflineEVBInputPipeParams %AUTO% -unglomid 1 -inputring OfflineEvbIn -file "/file-not-here"]
+  set pipeline [OfflineEVBInputPipeline %AUTO%]
+} -cleanup {
+  $pipeline destroy
+} -body {
+  $pipeline launch $params 
+} -result "OfflineEVBInputPipeline::launch : input file \"/file-not-here\" specified for input pipeline but does not exist" -returnCodes 1
+
+
+tcltest::test launch-4 {Test that a nonexistent ring is created prior to attaching 
+} -setup {
+  set ringname [findNonExistentRing]
+  set params [OfflineEVBInputPipeParams %AUTO% -unglomid 1 -inputring OfflineEvbIn -file [info script]]
+  set pipeline [OfflineEVBInputPipeline %AUTO%]
+  $params configure -inputring $ringname
+} -cleanup {
+  $pipeline destroy
+  ringbuffer remove $ringname
+} -body {
+  $pipeline launch $params 
+  expr {[string length [ringbuffer usage $ringname]] > 0}
+} -result 1 
+
+
+
 
 tcltest::test setgetFD-0 {test setPipeFD and getPipeFD
 } -setup {
