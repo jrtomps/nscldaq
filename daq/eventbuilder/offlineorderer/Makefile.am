@@ -7,6 +7,7 @@ install-exec-local:
 	$(mkinstalldirs) $(DESTDIR)
 	$(mkinstalldirs) @prefix@/share/html
 	for f in  $(TCLPACKAGES); do install @srcdir@/$$f $(DESTDIR); done
+	install @srcdir@/offlineorderer.tcl $(prefix)/bin/offlineorderer
 	echo "pkg_mkIndex -verbose $(DESTDIR) *.tcl" | $(TCLSH_CMD)
 
 
