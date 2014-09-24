@@ -44,6 +44,19 @@ proc getValidRing {name} {
   }
 }
 
+
+proc buildStageArea {root} {
+  set dir [tcltest::makeDirectory $root]
+  tcltest::makeDirectory [file join $root stage]
+  tcltest::makeDirectory [file join $root stage experiment]
+  tcltest::makeDirectory [file join $root stage experiment current]
+  tcltest::makeDirectory [file join $root stage current]
+  tcltest::makeDirectory [file join $root stage complete]
+
+  return $dir
+}
+
+
 ######################################################
 
 
@@ -52,11 +65,7 @@ tcltest::test clone-0 {Test that apply will configure all exists jobs
 } -setup {
   setup
 
-  set dir [tcltest::makeDirectory dummy]
-  tcltest::makeDirectory [file join dummy experiment]
-  tcltest::makeDirectory [file join dummy experiment current]
-  tcltest::makeDirectory [file join dummy current]
-  tcltest::makeDirectory [file join dummy complete]
+  set dir [buildStageArea [file join dummy stage]]
   Configuration::Set Stagearea $dir
 } -cleanup {
   tearDown
@@ -90,7 +99,7 @@ tcltest::test clone-0 {Test that apply will configure all exists jobs
   lappend res [[dict get $newJobList j1 -outputparams] cget -stagearea]
   
   set res
-} -result "__test__ __test__ __test__ tcp://localhost/__test__ [file join [pwd] dummy] __test__ __test__ __test__ tcp://localhost/__test__ [file join [pwd] dummy]"
+} -result "__test__ __test__ __test__ tcp://localhost/__test__ [file join [pwd] dummy stage] __test__ __test__ __test__ tcp://localhost/__test__ [file join [pwd] dummy stage]"
 
 
 
@@ -104,20 +113,22 @@ tcltest::test createStagearea-0 {Ensure that a nonexisting stagearea gets create
   tearDown
   file delete -force [file join [pwd] dummy]
 } -body {
-  $::conf setStagearea [file join [pwd] dummy]
+  $::conf setStagearea [file join [pwd] dummy stage]
   $::conf createStagearea
 
   set path [file join [pwd] dummy]
   set results [list]
   if {[file exists $path]} {
-    lappend results [file exists [file join $path current]]
+    lappend results [file exists [file join $path stage current]]
+    lappend results [file exists [file join $path stage experiment]]
+    lappend results [file exists [file join $path stage complete]]
+    lappend results [file exists [file join $path stage experiment current]]
     lappend results [file exists [file join $path experiment]]
-    lappend results [file exists [file join $path complete]]
-    lappend results [file exists [file join $path experiment current]]
+  
   }
 
   set results
-} -result "1 1 1 1"
+} -result "1 1 1 1 1"
 
 
 

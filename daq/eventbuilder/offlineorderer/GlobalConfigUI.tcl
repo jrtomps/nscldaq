@@ -404,7 +404,10 @@ snit::type GlobalConfigUIPresenter {
   ## Try to create stagearea if it doesn't exist 
   #
   method createStagearea {} {
-    Configuration::Set StageArea [[dict get $m_model -outputparams] cget -stagearea]
+    set stagearea [[dict get $m_model -outputparams] cget -stagearea]
+    Configuration::Set StageArea $stagearea
+    set expdir [file join $stagearea .. experiment] 
+    Configuration::Set Experiment $expdir
     ExpFileSystem::CreateHierarchy
   }
 
