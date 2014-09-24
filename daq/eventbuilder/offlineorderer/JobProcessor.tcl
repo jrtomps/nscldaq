@@ -9,7 +9,7 @@ package require DataSourceMonitor
 package require EVBStateCallouts
 
 package require ExpFileSystem
-package require rdoCalloutsBundle
+package require rdoCalloutsBundle ;# self registers
 package require OfflineEVBOutputPipeline
 package require OfflineEVBInputPipeline
 package require OfflineEVBHoistPipeline

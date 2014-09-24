@@ -5,61 +5,53 @@
 
 package provide OfflineEVBGlobalConfigUI 11.0
 
-#package require EventLog 
 package require snit
 package require Tk
+
 package require OfflineEVBInputPipeline
 package require OfflineEVBHoistPipeline
 package require evbcallouts
 package require OfflineEVBOutputPipeline
+
 package require OfflineEVBJobBuilder
 package require OfflineEVBJob
 package require ring
 package require ExpFileSystem 
 package require Configuration
 
-## Overview of the OfflineEVBInputPipelineUI package
+## @brief A configuraiton dialogue that enables control over ring buffers and
+#         stagearea
 #
-# The package implements a configuration utility that configures two parameters
-# in a fully testable way. The implementation of is based on the Model-View-Presenter
-# paradigm in which there is a single presenter object that handles the interaction
-# between the view (i.e. the UI), and the model (the parameters). In this implementation,
-# the view is extremely simple and basically maintains the display state of the parameters
-# and responds to events by routing them to the presenter object. The 
-# presenter is in charge of all the logic for responding to events. In fact, the presenter
-# owns the view that it is bound to. 
 #
-# When the presenter is told to apply the display values, it retrieves the display state of the object
-# and then sets the model it holds accordingly. The presenter can be provided a model 
-# by an outside entity such that it can specifically configure a specific set of parameters.
+# This package is implemented in the Model-View-Presenter pattern such that the
+# model is a set of job parameters, the view is the GlobalConfigUIView, and the
+# presetner is the GlobalConfigUIPresenter. Normal usage of this package would
+# be to instantiate an instance of the GlobalConfigUIPresenter class, which in
+# turn will instantiate its view. The reason for this is that the presenter is
+# really intended to be in control and the point of interaction for any other
+# software. THe user interacts with the view and the view passes all of the
+# events to the presenter to handle. 
 #
-# One of the design considerations here is that there is no apply or cancel button
-# that belong to this widget. Instead, it is expected that the apply command will be
-# called by something external to this. Imagine a separate widget that owns this and two
-# buttons: apply and cancel. On apply, it will simply call the presenter's apply command.
+# This package centralizes the control over the input ring name and the output
+# ring as well as the stagearea. It will set the input ring consistenty for the
+# input pipeline parameters and the hoist pipeline parameters and the output
+# ring for the evb pipeline and the output pipeline. 
+#
+# Once the user accepts the new parameters, the entire list of jobs are
+# reconfigured to contain the same parameters. In this way, it truly is global.
 
 
-
-
-## @brief The view for the input pipeline configuration dialogue
+## @brief The visible widget for global configuration
 #
-# This is the actual gui component. It maintains two parameters that are correlated
-# to the model in the presenter that owns it. 
-#
-# There are three real responsibility associated with this:
-# 1. Maintain the display state of the model
-# 2. Respond to the events by redirecting them to the presenter
-# 3. Assemble the widget
-#
-# It is not likely that the user will create the view. Instead, the user
-# should be creating an InputPipeConfigUIPresenter object which would
-# then create the view.
+# The view maintains the visible state presented to the user, which may
+# or may not be consistent with the model managed by the presenter. It is 
+# up to the presenter to synchronize the view data.
 #
 snit::widget GlobalConfigUIView {
 
-    option -inputring   -default "OfflineEVBIn"
-    option -outputring  -default "OfflineEVBOut" 
-    option -stagearea 
+    option -inputring   -default "OfflineEVBIn"     ;#< The input ring
+    option -outputring  -default "OfflineEVBOut"    ;#< The output ring
+    option -stagearea                               ;#< The stagearea directory
 
     component m_presenter
     
@@ -92,9 +84,9 @@ snit::widget GlobalConfigUIView {
      
     ## @brief Assemble the megawidget
     #
-    # Because this is a snit::widget object, the hull is actually just a ttk::frame.
-    # This fills that frame ($win) with a bunch of configuration widgets. These are 
-    # simply some labels on text entries.
+    # Because this is a snit::widget object, the hull is actually just a
+    # ttk::frame.  This fills that frame ($win) with a bunch of configuration
+    # widgets. These are simply some labels on text entries.
     #
     method buildGUI {} {
 
@@ -149,6 +141,9 @@ snit::widget GlobalConfigUIView {
     #
     method getWindowName {} {return $win}
 
+
+    ## @brief Pass logic for clicking the "Apply" button to the presenter
+    #
     method onApply {} {
       $m_presenter apply
     }
@@ -161,29 +156,35 @@ snit::widget GlobalConfigUIView {
 
 ## @brief Defines the logic for the GlobalConfigUIView
 #
-# This is actually quite simple in that it responds to events from the view
-# and manages the model. It is allowed to edit the model and is thus responsible
-# for synchronizing the state of the model with the displayed values when an 
-# apply command is given it.
+# This is actually quite simple in that it responds to events from the view and
+# manages the model. It is allowed to edit the model and is thus responsible for
+# synchronizing the state of the model with the displayed values when an apply
+# command is given it.
 #
-# @important This does not own the model! Rather it just has a reference to the model
-#            and the power to manipulate it.
+# The model owned by this is actually an entire job. The Job is a dictionary
+# whose keys are : -jobname, -inputparams, -hoistparams, -evbparams, and
+# -outputparams. 
+#
+# @important This does not necessarily own the model! Rather it just has a
+#            reference to the model and the power to manipulate it.
 #
 snit::type GlobalConfigUIPresenter {
 
-  option -widgetname -default ""
-  option -ismaster   -default 1
-  option -ownsmodel  -default 1
+  option -widgetname -default ""  ;#< Maintain name of the widget
+  option -ismaster   -default 1   ;#< Whether or not to pass events to a parent
+                                  ;# preseneter
 
-  component m_model     ;#< The model : OfflineEVBGlobalParams
+  option -ownsmodel  -default 1   ;#< Specify whether this owns the model
+
+  component m_model     ;#< The model : a job
   component m_view      ;#< The view, owned by this
 
   ## Construct the model, view, and synchronize view
   #
   # It is necessary that the user provides the name of the widget. If that is
   # not provided this cries, "Uncle!" The presenter is tightly bound to the view
-  # and actually owns it. It passes the view itself on construction so that there is never
-  # any confusion about who is in charge of it.
+  # and actually owns it. It passes the view itself on construction so that
+  # there is never any confusion about who is in charge of it.
   #
   # @returns the name of this object
   # 
@@ -206,6 +207,7 @@ snit::type GlobalConfigUIPresenter {
                              -evbparams   [EVBC::AppOptions %AUTO% -destring OfflineEVBOut] \
                              -outputparams [OfflineEVBOutputPipeParams %AUTO%]]
 
+    # because we just created the model, we certainly own it
     set options(-ownsmodel) 1
 
     # Create the view and pass it the values of the model
@@ -217,47 +219,58 @@ snit::type GlobalConfigUIPresenter {
 
   ## @brief Destroy the view 
   # 
-  # Do not destroy the model because it is just a reference
+  # if we own the model, the destroy it!
   #
   destructor {
+    if {$options(-ownsmodel)} {
+      Job::destroy $m_model
+    }
     catch {destroy $m_view}
   }
 
+  ## @brief Specifically set the input ring value
+  #
+  # This will be immediately reflects in the view
+  #
   method setInputRing {ring} {
     [dict get $m_model -inputparams] configure -inputring $ring
     $self updateViewData  $m_model
   }
 
+  ## @brief Specifically set the output ring value
+  #
+  # This will be immediately reflects in the view
+  #
   method setOutputRing {ring} {
     [dict get $m_model -evbparams] configure -destring $ring
     $self updateViewData  $m_model
   }
 
+  ## @brief Specifically set the stagearea value
+  #
+  # This will be immediately reflects in the view
+  #
   method setStagearea {path} {
     [dict get $m_model -outputparams] configure -stagearea $path
     $self updateViewData  $m_model
   }
+
   ## @brief Set the model to some user's model and synchronize
   #
+  # Setting the model causes the view to immediately be updated.
   #
   # @param model  an OfflineEVBInputPipeParams object
+  # @param own    boolean to indicate if instance has been passed ownership 
   #
   method setModel {model {own 0}} {
     if {$options(-ownsmodel)} {
-      $self destroyModel $m_model
+      Job::destroy $m_model
     }
     set m_model $model
     set options(-ownsmodel) $own
     $self updateViewData $m_model
   }
 
-  method destroyModel {model} {
-    dict for {key val} $model {
-      if {$key ne "-jobname"} {
-        $val destroy
-      }
-    }
-  }
   ## @brief Retrieve the model
   #
   # @returns string
@@ -291,6 +304,15 @@ snit::type GlobalConfigUIPresenter {
     [dict get $m_model -outputparams] configure -stagearea  [$m_view cget -stagearea]
   }
 
+  ## @brief Provided a job, only update the parameters that this really
+  #         manipulates
+  #
+  # This will copy the controlled parameters owned by this to the job passed
+  # in. It is the mechanism by which the entire list of existing jobs will be
+  # passed the new configuration parameters.
+  # 
+  # @param model    a complete job as understood by the offline orderer
+  #
   method copySelectParametersToJob {model} {
     # input ring
     [dict get $model -inputparams] configure -inputring  [[dict get $m_model -inputparams] cget -inputring] 
@@ -307,7 +329,11 @@ snit::type GlobalConfigUIPresenter {
   ## @brief Synchronize the model to the view data
   #
   # This is what is intended to be called when the user is done configuring 
-  # values and is ready to apply the changes.
+  # values and is ready to apply the changes. The method will do a bunch of things:
+  # # First it will synchronize the view data with the model
+  # # Next it creates the parameters
+  # # It validates the new model parameters against environment
+  # # If good, it will update all of the existing jobs
   #
   method apply {} {
 
@@ -322,14 +348,16 @@ snit::type GlobalConfigUIPresenter {
 
     $self createStagearea
 
-    # check to see if there are problems with it
+    # check to see if there are problems with it (if for example it was not
+    # possible to create the stagearea)
     set errors [$self validateModel]
     
     if {[llength $errors]==0} {
       # there were no problems...keep the params and 
       # destroy the temporary clone
-      $self destroyModel $tmpModel
+      Job::destroy $tmpModel
 
+      # Apply the changes to the entire list of known jobs
       set jobList [[JobBuilder::getInstance] getJobsList]
       dict for {key val} $jobList {
         $self copySelectParametersToJob $val
@@ -342,7 +370,7 @@ snit::type GlobalConfigUIPresenter {
 
       # this was bad view data... revert our model to 
       # its former state before synchronizing
-      $self destroyModel $m_model
+      Job::destroy $m_model
       set m_model $tmpModel
     }
   }
