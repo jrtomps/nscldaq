@@ -36,6 +36,10 @@ package require snit
 # OPTIONS:
 #   -incremental - True if the channel updates are increments.
 #   -width       - Num of bits used to mask off update values.
+#   -lowlim      - Low alarm limit.
+#   -hilim       - High alarm limit.
+#   -name        - Name of the channel.
+
 #
 # METHODS:
 #    total    - Return the total counts.
@@ -49,6 +53,7 @@ snit::type Channel {
     option -width       32
     option -lowlim      ""
     option -hilim       ""
+    option -name        ""
     
     variable total 0
     variable rate  0
@@ -128,7 +133,7 @@ snit::type Channel {
         } elseif {($options(-lowlim) ne "") && ($rate < $options(-lowlim))} {
             return low
         } else {
-            return "ok";              # Stub.
+            return "ok"
         }
     }
     ##

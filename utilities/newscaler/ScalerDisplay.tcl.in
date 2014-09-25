@@ -1,0 +1,29 @@
+#!/bin/sh
+#  Start the tclsh shell:   \
+exec  @TCLSH_CMD@ ${0} ${@}
+
+package require Tk
+
+#
+#  Figure out where the TclLibs dir is hiding...that's in 
+#  ../TclLibs relative to use (We are in bin).
+#
+set here [file dirname [info script]]
+set libdir [file normalize [file join $here .. TclLibs]]
+lappend auto_path $libdir
+
+
+# Figure out where the images are: 
+# and load the red, green and amber images:
+
+
+set ScalerImages [file normalize [file join $here .. share scalerdisplay]]
+
+
+
+image create photo GreenBrick -file [file join $ScalerImages green.gif]
+image create photo RedBrick   -file [file join $ScalerImages red.gif]
+image create photo AmberBrick -file [file join $ScalerImages amber.gif]
+
+
+package require scalermain

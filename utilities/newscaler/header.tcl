@@ -104,7 +104,7 @@ snit::widgetadaptor runTime {
         ttk::separator $win.labelsep -orient vertical
         ttk::separator $win.headersep -orient horizontal
         
-        ttk::label $win.lsource  -text "Source ID  "
+        ttk::label $win.lsource  -text "  Source ID  "
         ttk::label $win.ldt      -text "Update Interval"
         
         
@@ -132,7 +132,7 @@ snit::widgetadaptor runTime {
     #
     method clear {} {
         foreach source [array names sources] {
-            $soures($source) configure -text 0
+            $sources($source) configure -text 0
         }
     }
 
@@ -169,7 +169,7 @@ snit::widgetadaptor runTime {
     # @param value - New value.
     #
     method _formatElapsed {opt value} {
-        set formattedElapsed [formatElapsedTime $value]
+        set formattedElapsed "[formatElapsedTime $value]  "
         set options($opt) $value
     }
 }

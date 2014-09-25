@@ -49,7 +49,9 @@ snit::type stripRatio {
     #   Produce a name for the strip chart.
     #
     method name {} {
-        return "$options(-numerator)_over_$options(-denominator)"
+	set num  [$options(-numerator) cget -name]
+	set den  [$options(-denominator) cget -name]
+        return "${num}_over_$den"
     }
     ##
     # rate

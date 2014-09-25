@@ -54,6 +54,7 @@ snit::type Plotchart::series {
     option -xdata -default [list] -configuremethod _OnXyConfig
     option -ydata -default [list] -configuremethod _OnXyConfig
     option -command [list]
+    option -ptlimit 2000000; # Points we keep before decimating the first 1/4  0 means never throw.
     
     #------------------------------------------------------------------------
     # Public methods:
@@ -72,7 +73,12 @@ snit::type Plotchart::series {
     method append {x y} {
         lappend options(-xdata) $x
         lappend options(-ydata) $y
-        
+
+        set ptLimit $options(-ptlimit)
+	if {($ptLimit > 0) && ([llength $options(-xdata)] > $ptLimit)} {
+	    $self _ReducePts
+	} 
+
         $self _OnChanged
     }
     
@@ -244,5 +250,19 @@ snit::type Plotchart::series {
         }
         
         return [list $c $d]
+    }
+    ##
+    # _ReducePts
+    #   Reduce the number of data points in the lists.  This is done by 
+    #   removing every other point in the first 1/4 of the points.
+    #
+    method _ReducePts {} {
+	set pts [expr $options(-ptlimit)/4]
+	
+	for {set i 0} {$i < $pts} {incr i} {
+	    set options(-xdata) [lreplace $options(-xdata) $i $i]
+	    set options(-ydata) [lreplace $options(-ydata) $i $i]
+	}
+	
     }
 }

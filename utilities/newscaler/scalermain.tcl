@@ -50,13 +50,6 @@ package require scalerReport
 package require Plotchart::xyplotContainer
 
 
-## Ensure the SCALER_RING env variable is defined
-
-if {[array names  ::env SCALER_RING] eq ""} {
-    tk_messageBox -icon error -type ok -title "No ring" \
-    -message "Define the SCALER_RING environment variable to be the URI of the ringbuffer"
-    exit -1
-}
 
 ## Ensure the user supplied a configuration file:
 
@@ -81,9 +74,8 @@ set alarmcontrol 1;               # start with alarms on.
 ##
 # Create the thread that will read data from the ring and post it back to us:
 #
-proc startAcqThread {} {
+proc startAcqThread {ringUrl} {
     set acqThread [thread::create -joinable]
-    puts $::libdir
     if {[thread::send $acqThread [list lappend auto_path $::libdir] result]} {
         puts "Could not extend thread's auto-path"
         exit -1
@@ -93,7 +85,7 @@ proc startAcqThread {} {
         exit -1
     }
     
-    if {[thread::send $acqThread [list ring attach $::env(SCALER_RING)] result]} {
+    if {[thread::send $acqThread [list ring attach $ringUrl] result]} {
         puts "Could not attach to scaler ring buffer in acqthread $result"
         exit -1
     }
@@ -107,7 +99,7 @@ proc startAcqThread {} {
             thread::send \$tid \[list handleData \$ringItem]     
         }                                                     
     }                                                         
-    getItems $myThread $::env(SCALER_RING)                    
+    getItems $myThread $ringUrl
     "
     thread::send -async $acqThread $getItems
 
@@ -126,8 +118,24 @@ proc updatePages {} {
     set tabNames [::scalerconfig::pages list]
     foreach tab $tabNames {
         set widget [::scalerconfig::pages get $tab]
-        $widget update
+        set bkg [$widget update]
+	
+	# Set the tab background accordingly.
+
+	set tabidx [.notebook index $widget]
+
+	if {$bkg eq "ok"} {
+	    .notebook tab $tabidx -compound text
+	} elseif {$bkg eq "low"} {
+	    .notebook tab $tabidx -image GreenBrick -compound center
+	} elseif {$bkg eq "high"} {
+	    .notebook tab $tabidx -image RedBrick -compound center
+	} else {
+	    .notebook tab $tabidx -image AmberBrick -compound center
+	}
     }
+
+    update idletasks
     
 }
 
@@ -455,8 +463,9 @@ proc setupStripchart charts {
     # start arriving.
     
     set ::stripcharts [Plotchart::xyplotContainer %AUTO% \
-        -xmin 0 -xmax 3600 -ymin 0 -ymax 1 -plottype ::Plotchart::createStripchart \
-        -canvas .stripcharts                                                    \
+        -xmin 0 -xmax  $::scalerconfig::stripChartOptions(-timeaxis) \
+        -ymin 0 -ymax 1 -plottype ::Plotchart::createStripchart \
+        -canvas .stripcharts  -xtitle {Run time (seconds)} -ytitle Rate            \
     ]
     # Create empty series.
     #
@@ -486,7 +495,18 @@ proc setupStripchart charts {
 # Start the acquisition thread it will post an event for handleData when items
 # of interest are seen in the ring.
 
-set acqThread [startAcqThread]
+
+if {[array names env SCALER_RING] eq "SCALER_RING"} {
+    set uri $env(SCALER_RING)
+} else {
+    set uri tcp://localhost/$tcl_platform(user)
+}
+#
+#  We support lists of rings in SCALER_RING:
+#
+foreach ring $uri {
+    set acqThread [startAcqThread $ring]
+}
 
 # Set up the base graphical user interface:
 

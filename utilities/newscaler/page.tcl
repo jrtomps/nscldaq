@@ -46,6 +46,11 @@ package require snit
 #   update  - updates all lines on the page.
 #   alarms  - Enable/disable alarms.
 #
+# ASSUMPTIONS:
+#   The images: GreenBrick RedBrick and AmberBrick are defined and
+#   are images that are the tab background images for tabs with low, high and both
+#   alarm types respectively.
+#
 snit::widgetadaptor pageDisplay {
     option -title
     option -tab
@@ -59,6 +64,7 @@ snit::widgetadaptor pageDisplay {
     #
     variable models -array [list]
     variable lineIndex -1
+    variable alarmState 1
     
     #  The variable below contains the treeview widget name:
     
@@ -94,8 +100,14 @@ snit::widgetadaptor pageDisplay {
     ##
     # update
     #    Updates the display lines from the models.  
+    # @return - directive about what to do with the page tab:
+    #          * ok - No background.
+    #          * low - GreenBrick background.
+    #          * high - RedBrick background.
+    #          * both - AmberBrick background.
     #
     method update {} {
+	array set pageTags [list]
         foreach line [lsort -increasing -integer [array names models]] {
             set id    [dict get $models($line) -id]
             set model [dict get $models($line) -model]
@@ -112,11 +124,28 @@ snit::widgetadaptor pageDisplay {
             
             
             set tag [$model alarmState]
+	    set pageTags($tag) 1
             
             # Configure the item:
             
             $table item $id -values $values -tags $tag
         }
+	# Figure out how/if to color the tab:
+	
+	if {$alarmState} {
+	    array unset pageTags ok
+	    if {[llength [array names pageTags *]] == 2} {
+		return both
+	    } elseif {[array names pageTags high] eq "high"} {
+		return high
+	    } elseif {[array names pageTags low] eq "low"} {
+		return low
+	    }
+	    return ok
+		
+	} else {
+	    return ok
+	}
     }
     ##
     # alarms
@@ -135,7 +164,8 @@ snit::widgetadaptor pageDisplay {
         
         foreach tag {ok high low} color $colors {
             $table tag configure $tag -background $color
-        }        
+        }  
+	set alarmState $state
     }
     #------------------------------------------------------------------------
     # _createContentsFrame

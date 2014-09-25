@@ -43,7 +43,7 @@ snit::type stripParam {
     #   Produce a name for the strip chart.
     #
     method name {} {
-        return $options(-channel)
+        return [$options(-channel) cget -name]
     }
     
     ##

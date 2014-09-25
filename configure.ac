@@ -327,6 +327,9 @@ AC_CONFIG_LINKS([utilities/filter/run-0000-00.evt:utilities/filter/run-0000-00.e
 # *.am -> *.in.
 #
 
+# Note removed utilities/scalerdisplay in favor of utilities/newscaler
+# Sept 25, 2014
+
 AC_CONFIG_FILES([Makefile
 		nscldaq
 		daqsetup.bash
@@ -351,7 +354,6 @@ AC_CONFIG_FILES([Makefile
 		 utilities/Makefile
                  utilities/daqstart/Makefile
                  utilities/dvdburn/Makefile
-                 utilities/scalerdisplay/Makefile 
 		 utilities/scalerdisplay/ScalerDisplay
                  utilities/sequencer/Makefile
 		 utilities/ringselector/Makefile
@@ -368,6 +370,7 @@ AC_CONFIG_FILES([Makefile
 		 utilities/compatibility/s800toring
 		 utilities/compatibility/bufdump
 		 utilities/newscaler/Makefile
+		 utilities/newscaler/ScalerDisplay.tcl
                  epics/chanlog/Makefile
                  epics/controlpush/Makefile
                  epics/epicsdisplay/Makefile

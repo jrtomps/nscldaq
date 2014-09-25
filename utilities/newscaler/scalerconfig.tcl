@@ -31,6 +31,7 @@ package require channel
 package require pagedisplay
 package require singleModel
 package require ratioModel
+package require emptyModel
 package require stripparam
 package require stripratio
 
@@ -41,6 +42,13 @@ namespace eval ::scalerconfig {
 
 nameMap ::scalerconfig::channelMap;   # Mapping channel names -> Channel objs
 nameMap ::scalerconfig::pages;        # Page tab names -> widgets.
+
+# Strip chart configuration - makes it extensible:
+
+set ::scalerconfig::stripChartOptionNames [list -timeaxis]
+array set ::scalerconfig::stripChartOptions [list \
+    -timeaxis 3600                                  \
+]
 
 
 #------------------------------------------------------------------------------
@@ -126,7 +134,7 @@ proc channel args {
         error "A channel with index $descriptor already has a name"
     }
     
-    if {[catch {::scalerconfig::channelMap add $name [Channel channel_$descriptor {*}$options]} msg opts]} {
+    if {[catch {::scalerconfig::channelMap add $name [Channel channel_$descriptor {*}$options -name $name]} msg opts]} {
         catch {channel_$descriptor destroy};            # In case the channel got made.
         if {[dict get $opts -errorcode] eq "DUPKEY"} {
             set command [::scalerconfig::channelMap get $name]
@@ -210,6 +218,14 @@ proc display_ratio {tab numerator denominator} {
         -denominatorname $denominator]
 }
 ##
+# blank
+#   Ads a blank line to the page:
+#
+proc blank tab {
+    set page [_getPage $tab]
+    $page add [emptyModel %AUTO%]
+}
+##
 # stripparam
 #    Define a strip-charted parameter.
 #
@@ -233,4 +249,32 @@ proc stripratio {num den} {
     
     lappend ::scalerconfig::stripItems \
         [stripRatio %AUTO% -numerator $numerator -denominator $denominator]
+}
+##
+# stripconfig
+#    Configures the strip chart (if it gets instantiated). Options are ignored
+#    if there is no strip chart;
+#
+# @param args - consists of option name/value pairs.  Currently here are the
+#               names that are defined and their default values:
+#
+#               * -timeaxis 3600  (note that the actual axis length is chosen by
+#                 plotchart so that the ticks have nice labels).
+#
+proc stripconfig args {
+    # Validate all option names before making any changes:
+    
+    if {[llength $args] % 2} {
+        error "There must be an even number of stripconfig parameters."
+    }
+    foreach [list optname optvalue] $args {
+        if {$optname ni $::scalerconfig::stripChartOptionNames} {
+            error "$optname is invalid for stripconfig valid are [join $::scalerconfig::stripChartOptionNames {, }]"
+        }
+    }
+    #  Update the array:
+    
+    foreach [list optname optvalue] $args {
+        set ::scalerconfig::stripChartOptions($optname) $optvalue
+    }
 }
