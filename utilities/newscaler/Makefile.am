@@ -25,7 +25,7 @@ install-exec-hook:
 	echo pkg_mkIndex -verbose $(INSTDIR) "*.tcl" | @TCLSH_CMD@
 	echo "package ifneeded TclRingBuffer 1.0 [list load [file join \$$dir libTclRingBuffer.so]]" >> $(INSTDIR)/pkgIndex.tcl
 	install @builddir@/ScalerDisplay.tcl @bindir@/ScalerDisplay
-	install $(IMAGES) $(GRAPHDIR)
+	(cd @srcdir; install $(IMAGES) $(GRAPHDIR))
 
 
 check-TESTS: check_PROGRAMS
