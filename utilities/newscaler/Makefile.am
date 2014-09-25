@@ -64,4 +64,4 @@ ringTests_LDADD    =  @CPPUNIT_LDFLAGS@ libTclRingBuffer.la \
 
 TESTS=ringTests
 check_PROGRAMS:  
-	ringTests
+	@builddir@/ringTests
