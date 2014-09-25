@@ -588,23 +588,58 @@ snit::type JobConfigUIPresenter {
 
 }
 
-# -----------------------------------------------------------------------
-# -----------------------------------------------------------------------
-# -----------------------------------------------------------------------
+#------------------------------------------------------------------------------
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+#------------------------------------------------------------------------------
 
+## @brief A package for managing the build events widget in the JobConfigUI
+#
+# @defgroup buildeventsui Build Events Widget
+#
+# This is implemented with the Model-View-Presenter paradigm and this there are
+# two separate parts to it: the view and the presenter. The view is defined in
+# the BuildEventsWidget and the presenter is defined in the
+# BuildEventsPreseneter. Together these manipulate some select features of the 
+# event builder pipeline and the hoist pipeline.
+#
+#
 
+## @brief the View for the Build Events Widget
+# 
+# @ingroup buildeventsui
+#
+# This provides a widgets that attempts to hide some complexity from the user.
+# The user will always see a checkbutton that determines whether or not to
+# enable correlation of data into built events. If the checkbutton is not
+# selected an info text is displayed that describes what the checkbutton is
+# aimed at. If the checkbutton is selected, then a text entry is provided that
+# allows the user to select the correlation window in glom.
+#
 snit::widget BuildEventsWidget {
  
-  option -build  -default 0
-  option -window -default 1
+  option -build  -default 0         ;#< whether to build data or not
+  option -window -default 1         ;#< default glomdt
 
 
+  ## @brief Constructor
+  #
+  # @param args   option-value pairs
+  #
   constructor {args} {
     $self configurelist $args
 
     $self buildGui
   }
 
+  ## @brief Build the megawidget
+  #
+  # This merely assembles and grid the components that make up the megawidget
+  #
+  #
   method buildGui {} {
 
     ttk::checkbutton $win.build -text "Enable event building" \
@@ -619,7 +654,9 @@ snit::widget BuildEventsWidget {
     }
     tk::text $top.descrLbl -bg lightgray  -relief flat -wrap word -font DescriptionFont \
                            -height 3 -width 60
-    $top.descrLbl insert end  "Check this to build events containing correlated fragments. By default, fragments are not correlated." 
+    set descrText "Check this to build events containing correlated fragments. "
+    append descrText "By default, fragments are not correlated." 
+    $top.descrLbl insert end $descrText
     $top.descrLbl configure -state disabled
 
     grid $top.descrLbl -sticky nsew
@@ -646,6 +683,11 @@ snit::widget BuildEventsWidget {
   }
 
 
+  ## @brief Callback for when the checkbutton selection changes
+  #
+  # If the checkbutton is selected, then this will show the extra text
+  # entry widget. If it is unselected, the description text is displayed.
+  #
   method onBuildChange {name1 name2 op} {
     if {$options(-build)} {
       grid remove $win.descr
@@ -664,35 +706,52 @@ snit::widget BuildEventsWidget {
  
 }
 
+
+
+## @brief The presenter for the BuildEventsWidget
+#
+# @ingroup buildeventsui
+#
+# This is the presenter that manages the model and the view for the build events
+# widget. It is responsible for synchronizing the view with the model and vice
+# versa. 
+#
 snit::type BuildEventsPresenter {
  
-  option -widgetname -default ""
-  option -ismaster   -default 0
-  option -ownmodel   -default 1
+  option -widgetname -default "" ;#< name of the view widget
+  option -ismaster   -default 0  ;#< whether this answers to a higher entity
+  option -ownmodel   -default 1  ;#< can it destroy its model?
 
-  component m_model     ;#< The model : OfflineEVBJobParams
+  component m_model     ;#< The model: EVBC::AppOptions
   component m_view      ;#< The view, owned by this
 
+
+  ## @brief Constructor 
+  #
+  # It is demanded that the user provide the name of the view via the
+  # -widgetname option. This will create the view and also a default
+  # EVBC::AppOptions object to use as the model. It therefore owns the model
+  # initially. The view is brought into sync with the model by the end of this.
+  # 
+  # @params args  option-value pairs
+  #
   constructor {args} {
     $self configurelist $args
 
-    puts "Checking widgetname" 
     if {$options(-widgetname) eq ""} {
       set msg    "BuildEventsPresenter -widgetname option is mandatory "
       append msg "but was not provided!"
       return -code error $msg 
     }
 
-    puts "BuildEventsWidget ctor is next"
     set m_view [BuildEventsWidget $options(-widgetname)]
 
     set options(-ownmodel) 1
-    puts "BuildEventsWidget ctor done"
     set m_model [EVBC::AppOptions %AUTO%]
     $self updateViewData $m_model
   }
 
-  ##
+  ## @brief Destroy the model and view if possible
   #
   destructor {
     if {$options(-ownmodel)} {
@@ -701,8 +760,13 @@ snit::type BuildEventsPresenter {
     catch { destroy $m_view }
   }
 
-  ##
+  ## @brief Replace the model with a new one and sync
   #
+  # The previous model is destroyed if this object owns it. Otherwise,
+  # it is simply forgotten. The new model is then used to update the view data.
+  #
+  # @param model  a EVBC::AppOptions object
+  # @param own    boolean for whether this can destroy the model
   method setModel {model {own 0}} {
     if {$options(-ownmodel)} {
       $m_model destroy
@@ -714,12 +778,18 @@ snit::type BuildEventsPresenter {
   }
 
 
+  ## @brief Synchronize the view data to the model
+  #
+  # @param model  the model to sync data to
+  #
   method updateViewData model {
 
     $m_view configure -build  [$model cget -glombuild]
     $m_view configure -window [$model cget -glomdt]
   }
 
+  ## @brief Sync the model to the view data
+  #
   method commitViewDataToModel {} {
     variable m_model
     variable m_view
@@ -738,8 +808,12 @@ snit::type BuildEventsPresenter {
     $self commitViewDataToModel
   }
 
-  ## @brief Kill off the top level widget 
+  ## @brief Kill off the top level widget if possible
   #
+  #  If the presenter is set as the master of itself, then it can close the
+  # toplevel window that holds it. This is useful if the view will live in a
+  # dialogue all by itself. Otherwise, can is just a dummy button. 
+  # 
   method cancel {} {
 
     if {$options(-ismaster)} {
