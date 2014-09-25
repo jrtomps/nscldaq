@@ -48,4 +48,57 @@ tcltest::test setView-0 {Test that setting the view returns the old view
   $::jb setView .test2
 } -result .test
 
+
+
+tcltest::test clear-0 { Test that I can clear the view and it has nothing left
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  set tree [[$::jb getView] getTreeWidget]
+  $tree insert {} end -id i0 -text asdf
+  $tree insert {} end -id i1 -text fdsa 
+  lappend result [$tree children {}]
+
+  [$::jb getView] clear
+
+  lappend result [$tree children {}]
+} -result "{i0 i1} {}"
+
+
+
+
+tcltest::test setModel-0 {Test that setting the model will display the correct stuff
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  set nJobs [$::jb info vars m_nJobs]
+  
+  $::jb appendNewJob dummy0 dummy0
+  incr $nJobs
+  $::jb appendNewJob dummy1 dummy1
+  incr $nJobs
+	
+  set result [list]
+  lappend result [set $nJobs]
+  lappend result [[[$::jb getView] getTreeWidget] children {}]
+
+  #  we don't really need an entire job to test this...just the jobname
+  set newModel [dict create j0 [dict create -jobname j0] \
+                            j1 [dict create -jobname j1] \
+                            j2 [dict create -jobname j2]]
+
+  $::jb setModel $newModel
+
+  lappend result [set $nJobs]
+  lappend result [[[$::jb getView] getTreeWidget] children {}]
+  
+  # we expect that trivial names will be assigned as job#
+} -result "2 {dummy0 dummy1} 3 {job0 job1 job2}"
+
+
+
 tcltest::cleanupTests

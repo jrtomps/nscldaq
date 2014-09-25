@@ -266,7 +266,7 @@ snit::type JobBuilderUIPresenter {
   # Replace the current model with a new model. This owns the list of jobs
   # and is allowed to destroy them all.
   method setModel {newModel} {
-    set m_model $newModel
+    set m_masterJobList $newModel
     $self updateViewDataFromModel
   }
 
@@ -284,6 +284,9 @@ snit::type JobBuilderUIPresenter {
     return $prevView
   }
 
+  method getView {} {
+    return $m_view
+  }
 
   ## @brief Update the displayed data with the model
   #
