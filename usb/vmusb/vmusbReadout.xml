@@ -4125,6 +4125,7 @@ sis3820 cget <replaceable>name</replaceable>
                     each channel.
                 </para>
             </listitem>
+	 </varlistentry>
            </variablelist>
          </refsect1>
          <refsect1>

@@ -230,8 +230,9 @@ tcltest::test runNext-1 {Test that a bad input param file name causes an abort
   $::processor addRunStatusObserver $::obs
 
   after 1000 {
-    set win [focus]
-    event generate $win <KeyPress-Return>
+    .__tk__messagebox.ok invoke
+   # set win [focus]
+   # event generate $win <KeyPress-Return>
   }
   $::processor runNext
   $::obs getHistory

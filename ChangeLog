@@ -695,11 +695,61 @@ Work on 11.0-rc11 begins
 	that update the --dt value.  So you do need to use one of those to
 	commit the value. 
 	* Turn off the pop up when s800toring exits.
-11.0-rc13
-	
 	* Fix Defect #2253 - Too long title in the Readout GUI makes run
 	start fail.
 	* Feature #2340 - Use monitor stack to periodically flush partial
 	  event buffer.
 	* Fix a few threading errors and edge cases with the monitor stack
-	
+	* Complete first sprint of new scaler program:
+	* Feature #2204 - Users can specify scaler channels
+	* Feature #2209 - Users can specify alarms on channels.
+	* Feature #2206 - Users can specify display pages.
+	* Feature #2207 - Users can specify display_single lines.
+	* Feature #2208 - Users can specify display_ratio lines
+	* Feature #2210 - Alarmed scalers are highlighted in color.
+	* Feature #2205 - The scaler program can be attached to a ring.
+	* Feature #2211, Feature #2212 - Scalers update properly.
+	* Feature #2213 - Users get end of run reports.
+	* Complete second sprint of new scaler program:
+	* Feature #2256 - Users want to see the run duration (show max
+	over all sources).
+	* Feature #2257 - Show most recent update intervals from all
+	sources.
+	* Feature #2259 - Users can disable alarms (Checkbutton).
+	* Feature #2260 - Users can define a strip chart single parameter.
+	* Feature #2263 - Users can define a stripcharted ratio of
+	parameters.
+	* Feature #2266 - If there is a strip parameter or strip ratio, a
+	strip chart will be created.
+	* Feature #2268 Scaler events update the strip chart.
+	* Feature #2271 End of run produces a postscript of the strip
+	chart.
+	* Added the 'special' updated version of plotchart to the build.
+	* Added features to the plotchart stripchart to allow one to fetch
+	current plot limits.
+	* Added CAEN xyplotcontainer and related modules to the build.
+	* Feature #2457 - added padding in the elapsed time header of the
+	new scaler program
+	* Feature #2385 - Labeled axes for scaler program strip chart.
+	* Feature #2043 - Tested newscaler with multiple data source
+	(event builder 	output).
+	* Feature #2502 - Added 'blank' command to newscaler config file.
+	* Feature #2505 - Implement newscaler config file stripconfig
+	command. For now this only supports the -timeaxis option.
+	* Feature #2397 - Newscaler - default ring to
+	tcp://localhost/$tcl_platform(user) 
+	* Feature #2388 - new scaler  decimate old data so that we don't
+	ever blow away the virtual memory limit.
+	* Feature #2400 - Support SCALER_RING containing a list of ring
+	URIs.
+	* Feature #2391 - newscaler - add a startup script.
+	* Feature #2382 - newscaler strip chart trace names relate back to
+	the names of the scalers they chart.
+	* Feature #2394 - newscaler tabs have a background image that is a
+	color that reflects their alarm state - note this shows very bad
+	performance when remotely displayed over WAN
+	(e.g. comcast)... need to check that this is not bad inside the
+	NSCL or look for a better way to do thins).
+	* Feature #2406 - Test newscaler integration with a mix of
+	incremental and non-incremental scalers.
+	* Feature *2409 - Documented newscaler and TclRingBuffer package

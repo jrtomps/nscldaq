@@ -19,10 +19,11 @@ proc ::Plotchart::WidthCanvas {w {useref 1}} {
 
     set ref $scaling($w,reference)
 
-    if { [string match {[0-9]*} $w] } {
-        set w [string range $w 2 end]
-    }
+#    if { [string match {[0-9]*} $w] } {
+#        set w [string range $w 2 end]
+#    }
 
+    set w [_GetCanvas $w]
     if { [info exists scaling($ref,refwidth)] && $useref } {
         set width $scaling($ref,refwidth)
     } else {
@@ -50,10 +51,11 @@ proc ::Plotchart::HeightCanvas {w {useref 1}} {
 
     set ref $scaling($w,reference)
 
-    if { [string match {[0-9]*} $w] } {
-        set w [string range $w 2 end]
-    }
-
+#    if { [string match {[0-9]*} $w] } {
+#        set w [string range $w 2 end]
+#    }
+    set w [_GetCanvas $w]
+    
     if { [info exists scaling($ref,refheight)] && $useref } {
         set height $scaling($ref,refheight)
     } else {
@@ -216,11 +218,14 @@ proc ::Plotchart::MarginsRectangle { w argv {notext 2.0} {text_width 8}} {
     variable config
     variable scaling
 
-    if { [string match {[0-9]*} $w] } {
-        set c [string range $w 2 end]
-    } else {
-        set c $w
-    }
+#    if { [string match {[0-9]*} $w] } {
+#        
+#        set c [string range $w  [string first . $w] end]
+#    } else {
+#        set c $w
+#    }
+    set c [_GetCanvas $w]
+
     set char_width  $config(font,char_width)
     set char_height $config(font,char_height)
     set config($w,font,char_width)  $char_width
@@ -562,6 +567,7 @@ proc ::Plotchart::GetPlotArea { w } {
 proc ::Plotchart::CopyScalingData { w c } {
    variable scaling
 
+   
    if { [string match "00*" $w] } {
        foreach var {new xmin xmax ymin ymax pxmin pxmax pymin pymax coordSystem xfactor yfactor} {
            set scaling($c,$var) $scaling($w,$var)
@@ -735,12 +741,13 @@ proc ::Plotchart::DrawMask { w } {
         return
     }
 
-    if { [string match {[0-9]*} $w] } {
-        set c [string range $w 2 end]
-    } else {
-        set c $w
-    }
+#    if { [string match {[0-9]*} $w] } {
+#        set c [string range $w 2 end]
+#    } else {
+#        set c $w
+#    }
 
+    set c [_GetCanvas $w]
     set ref $scaling($w,reference)
 
     if { [info exists scaling($ref,boxxmin)] } {
@@ -3714,7 +3721,6 @@ proc ::Plotchart::DrawFunction { w series xargs function args } {
 proc ::Plotchart::ClearPlot {w} {
     variable data_series
     variable scaling
-
     foreach s [array names data_series "$w,*"] {
         unset data_series($s)
     }
@@ -3743,6 +3749,12 @@ proc ::Plotchart::NewPlotInCanvas {c} {
     }
 
     return [format "%02d%s" $scaling($c,plots) $c]
+}
+
+proc ::Plotchart::GetAxisLimits {w} {
+    variable scaling
+    return [list \
+        $scaling($w,xmin) $scaling($w,xmax) $scaling($w,ymin) $scaling($w,ymax)]
 }
 
 # DrawDataList --
@@ -4043,4 +4055,23 @@ proc ::Plotchart::DeleteData {w} {
     }
 
     $w delete data
+}
+#
+# _GetCanvas
+#   Returns the canvas from a plot id.
+#
+# Arguments:
+#    w  - The plot id.
+#
+# Result:
+#   The canvas part of the plot id.
+#
+proc ::Plotchart::_GetCanvas {w} {
+    if { [string match {[0-9]*} $w] } {
+        
+        set c [string range $w  [string first . $w] end]
+    } else {
+        set c $w
+    }
+    return $c    
 }

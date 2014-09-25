@@ -43,6 +43,7 @@ CRingTextItem::CRingTextItem(uint16_t type, vector<string> theStrings) :
     pTextItemBody pItem = reinterpret_cast<pTextItemBody>(getBodyPointer());      
     pItem->s_timeOffset = 0;
     pItem->s_timestamp = static_cast<uint32_t>(time(NULL));
+    pItem->s_offsetDivisor = 1;
 }
 /*!
   Construct a ring buffer, but this time provide actual values for the
@@ -65,6 +66,7 @@ CRingTextItem::CRingTextItem(uint16_t       type,
   pTextItemBody pItem = reinterpret_cast<pTextItemBody>(getBodyPointer()); 
   pItem->s_timeOffset = offsetTime;
   pItem->s_timestamp  = timestamp;
+  pItem->s_offsetDivisor = 1;
   
 }
 /**
@@ -243,6 +245,15 @@ CRingTextItem::computeElapsedTime() const
     
     return time/divisor;
 }
+/**
+ * @return the time offset divisor offset/divisor in float gives seconds.
+ */
+uint32_t
+CRingTextItem::getTimeDivisor() const
+{
+  pTextItemBody pItem = reinterpret_cast<pTextItemBody>(getBodyPointer());
+  return pItem->s_offsetDivisor;
+}
 /*!
    Set a new value for the timestamp of the item.
 */
@@ -279,9 +290,9 @@ std::string
 CRingTextItem::typeName() const
 {
   if(type() == PACKET_TYPES) {
-    return std::string(" Packet types: ");
+    return std::string("Packet types");
   } else if (type() == MONITORED_VARIABLES) {
-    return std::string(" Monitored Variables: ");
+    return std::string("Monitored Variables");
   } else {
     throw std::string("CRingTextItem::typeName - Invalid type!");
   }

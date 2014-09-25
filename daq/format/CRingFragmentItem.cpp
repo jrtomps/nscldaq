@@ -215,7 +215,7 @@ CRingFragmentItem::barrierType() const
 std::string
 CRingFragmentItem::typeName() const
 {
-  return "Event fragment ";
+  return "Event fragment";
 }
 /**
  * toString

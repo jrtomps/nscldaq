@@ -1,0 +1,92 @@
+#!/bin/sh
+# -*- tcl -*-
+# The next line is executed by /bin/sh, but not tcl \
+exec tclsh "$0" ${1+"$@"}
+
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2014.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Authors:
+#             Ron Fox
+#             Jeromy Tompkins 
+#	     NSCL
+#	     Michigan State University
+#	     East Lansing, MI 48824-1321
+
+
+
+##
+# @file nameMap.test
+# @brief unittests for nameMap.tcl
+# @author Ron Fox <fox@nscl.msu.edu>
+#
+package require tcltest
+
+set here [file dirname [info script]]
+
+source [file join $here nameMap.tcl]
+package require namemap
+
+
+# insertion  tests:
+
+tcltest::test insert-ok {Insertion with no duplication works} \
+-setup {
+    nameMap testMap
+} \
+-cleanup {
+    testMap destroy
+} \
+-body {
+    testMap add key value
+    
+} -result [list key value]
+
+
+tcltest::test insert-dup {Insertion with duplicate throws DUPKEY} \
+-setup {
+    nameMap testMap
+} \
+-cleanup {
+    testMap destroy
+} \
+-body {
+    testMap add key value
+    catch {testMap add key value} msg options
+    dict get $options -errorcode
+} -result DUPKEY
+
+# Retrieval:
+
+tcltest::test get-ok {Can retrieve items correctly} \
+-setup {
+    nameMap testMap
+} \
+-cleanup {
+    testMap destroy
+} \
+-body {
+    testMap add key value
+    testMap get key
+} -result value
+
+tcltest::test get-nokey {No such key errors} \
+-setup {
+    nameMap testMap
+} \
+-cleanup {
+    testMap destroy
+} \
+-body {
+    catch {testMap get key} msg options
+    dict get $options -errorcode
+    
+    
+} -result NOSUCHKEY
+
+tcltest::cleanupTests
