@@ -4,6 +4,7 @@ package require tcltest
 
 
 
+
 tcltest::test pkgrequire-0 {
 } -body {
   package require OfflineEVBJobBuilder
@@ -50,21 +51,34 @@ tcltest::test setView-0 {Test that setting the view returns the old view
 
 
 
-tcltest::test clear-0 { Test that I can clear the view and it has nothing left
+tcltest::test clear-0 { Test that I can clear everything 
 } -setup {
   setup
 } -cleanup {
   tearDown
 } -body {
+  set result [list ]
+
   set tree [[$::jb getView] getTreeWidget]
-  $tree insert {} end -id i0 -text asdf
-  $tree insert {} end -id i1 -text fdsa 
-  lappend result [$tree children {}]
+  $tree insert {} end -id i0 -text "item0"
+  $tree insert {} end -id i1 -text "item1"
+  lappend result [$tree children {}] 
+   
+  set nJobs [$::jb info vars m_nJobs]
+  $::jb appendNewJob dummy0 [Job::create]
+  incr $nJobs
+  $::jb appendNewJob dummy1 [Job::create]
+  incr $nJobs
 
-  [$::jb getView] clear
+  set mJobList [set [$::jb info vars m_masterJobList]]
+  lappend result [dict keys $mJobList]
+
+  $::jb clear
 
   lappend result [$tree children {}]
-} -result "{i0 i1} {}"
+  set mJobList [set [$::jb info vars m_masterJobList]]
+  lappend result $mJobList
+} -result "{i0 i1} {dummy0 dummy1} {} {}"
 
 
 
@@ -77,9 +91,9 @@ tcltest::test setModel-0 {Test that setting the model will display the correct s
 } -body {
   set nJobs [$::jb info vars m_nJobs]
   
-  $::jb appendNewJob dummy0 dummy0
+  $::jb appendNewJob dummy0 [Job::create]
   incr $nJobs
-  $::jb appendNewJob dummy1 dummy1
+  $::jb appendNewJob dummy1 [Job::create]
   incr $nJobs
 	
   set result [list]
@@ -98,7 +112,6 @@ tcltest::test setModel-0 {Test that setting the model will display the correct s
   
   # we expect that trivial names will be assigned as job#
 } -result "2 {dummy0 dummy1} 3 {job0 job1 job2}"
-
 
 
 tcltest::cleanupTests

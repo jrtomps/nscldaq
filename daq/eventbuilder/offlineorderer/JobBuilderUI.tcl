@@ -264,8 +264,18 @@ snit::type JobBuilderUIPresenter {
   ## @brief Set the model
   #
   # Replace the current model with a new model. This owns the list of jobs
-  # and is allowed to destroy them all.
+  # and is allowed to destroy them all. I blindly accept that the user passed
+  # a valid model to replace the masterJobList. The valid format is 
+  # a dict with keys associated to jobs. the keys are the internal names of jobs.
+  # Once the new model is in place, the view is updated.
+  #
+  # @param newModel a dict whose values are Jobs
   method setModel {newModel} {
+
+    dict for {name job} $m_masterJobList {
+      Job::destroy $job
+    }
+
     set m_masterJobList $newModel
     $self updateViewDataFromModel
   }
@@ -284,11 +294,16 @@ snit::type JobBuilderUIPresenter {
     return $prevView
   }
 
+  ## @brief Retrieve the name of the view widget
+  #
+  # @returns name of the view
   method getView {} {
     return $m_view
   }
 
   ## @brief Update the displayed data with the model
+  #
+  # This resets the treeview widget in the view and repopulates it.
   #
   method updateViewDataFromModel {} {
       
@@ -307,13 +322,14 @@ snit::type JobBuilderUIPresenter {
      
   }
 
-  ## Retrieve the list of jobs
+  ## @brief Retrieve the list of jobs
   #
   method getJobsList {} {
     return $m_masterJobList
   }
 
-  ## Retrieive the list of jobs
+  ## @brief This is effectively the same thing as updating the model except that
+  #   it doesn't not update the view as well
   #
   method setJobsList {list} {
     dict for {key val} $m_masterJobList {
@@ -322,69 +338,64 @@ snit::type JobBuilderUIPresenter {
     set m_masterJobList $list
   }
 
-  ## Launches a configuration dialogue for the job 
+  ## Launches a configuration dialogue for the editing a new job 
+  #
+  # If there are already jobs in the master jobs list, then the most recently
+  # added job is used as a template. The aim of this is to reduce the time it 
+  # takes to configure jobs. Most of the time it is expected that the user will
+  # want the same settings for each job they add.
   #
   method addJob {} {
 
     set m_useParamsToCreate 0
 
-    set size [dict size $m_masterJobList]
 
+    # Create a new job
     set model [dict create]
 
+    # Act accordingly for whether there are already jobs in the masterJobsList
+    set size [dict size $m_masterJobList]
     if {$size!=0} {
-      set job [lindex [dict keys $m_masterJobList] end]
 
+      # Copy a job if it exists
+      set job [lindex [dict keys $m_masterJobList] end]
       set model [Job::clone [dict get $m_masterJobList $job]]
+
+      # Clear the list of files though... we don't want multiple jobs acting
+      # on the same files
       [dict get $model -inputparams] configure -file ""
 
     } else {
+
+      # This is the first job... retrieve the model that the GlobalConfigUI
+      # is managing because that will have the correct configuration to start
+      # from
       set globals [GlobalConfig::getInstance]
       set model [Job::clone [$globals getModel]]
     }
 
+    # Launch the dialogue and label the button for accepting the job as "Create"
     $self promptEdit $model "Create"
 
     # if the user pressed "Create" then the dialogue
-    # called acceptCreation before reaching hear. This 
-    # set the m_useParamsToCreate variable
+    # called this object's acceptCreation method before exiting. This 
+    # set the m_useParamsToCreate variable to 1
     if {$m_useParamsToCreate} {
 
+      # the user wants to keep the configuration
       set newName [$self constructNewJobName $model]
       $self appendNewJob $newName $model
 
       incr m_nJobs
 
     } else {
+
+      # the user wants to discard the new job
       Job::destroy $model
     }
 
 
   }
-
-  ##
-  #
-  #
-  method createNewParameters {} {
-
-    set iparams [OfflineEVBInputPipeParams %AUTO%]
-    set hparams [OfflineEVBHoistPipeParams %AUTO%]
-    set eparams [EVBC::AppOptions %AUTO%]
-    set oparams [OfflineEVBOutputPipeParams %AUTO%]
-
-    # Create the job parameters  to pass to the configuration
-    # dialogue. It becomes the model that the dialogue's presenter
-    # manipulates.
-    set model [dict create  -jobname "Job" \
-                            -inputparams $iparams  \
-                            -hoistparams $hparams \
-                            -evbparams   $eparams \
-                            -outputparams $oparams ]
-    $self configureDefaults $model
-
-    return $model
-  }
-
 
   ## @brief Simple method for creating a new unique job name
   #
@@ -396,7 +407,7 @@ snit::type JobBuilderUIPresenter {
     return "job$m_nJobs"
   }
 
-  ## @brief Remove the selected job
+  ## @brief Remove the selected job from the masterJobList and the view
   #
   method removeJob {} {
     set tree [$m_view getTreeWidget]
@@ -409,8 +420,8 @@ snit::type JobBuilderUIPresenter {
 
       set m_masterJobList [dict remove $m_masterJobList $entries]
 
-      # remove from the display
-      $tree delete $entries
+      # synchronize
+      $self updateViewFromModel
 
     } ;# end removal 
 
@@ -420,6 +431,7 @@ snit::type JobBuilderUIPresenter {
 
   ## @brief Launch a dialogue to edit the selected job
   #
+  # @throws error if the user has not selected any items in the tree
   method editJob {} {
     set m_useParamsToCreate 0
 
@@ -438,7 +450,12 @@ snit::type JobBuilderUIPresenter {
 
 
 
-  ##
+  ## @brief The actual dialogue people interact with
+  # 
+  # This creates a modal dialogue that will allow the user to configure a 
+  # job. There dialogue is a JobConfigUI and it provides the user with a 
+  # limited number of parameters to set while handling the way those get passed
+  # to the actual parameter sets in the job it controls.
   #
   method promptEdit {job {buttontext "Accept"}} {
     # Create a new toplevel dialogue
@@ -454,6 +471,9 @@ snit::type JobBuilderUIPresenter {
 
     # Figure out which job the user wants to configure
     $config setModel $job 
+
+    # Register this to the configuration dialogue so that when the 
+    # user has pressed the create/accept
     $config setObserver $self
     grid .jobconf.ui -sticky nsew -padx 9 -pady 9
     grid rowconfigure    .jobconf.ui 0 -weight 1
@@ -476,13 +496,23 @@ snit::type JobBuilderUIPresenter {
 
   }
 
-  ##
+  ## @brief Callback for JobConfigUI dialogue to indicate whether to accept 
+  #         changes
+  #
+  #  If the user is creating a new job, this is used to determine whether this
+  # should add the new job to the masterJobList or to discard it. If the 
+  # user is simply editing the job, the this is not really used because the
+  # JobConfigUI will either synchronize the display data with the model or 
+  # not depending on whether the "cancel" or "accept" button is pressed.
+  #
+  # @param value  boolean indicating whether to accept changes
   #
   method acceptCreation {value} {
     set m_useParamsToCreate $value
   }
 
-  ##
+  ## @brief Add job to view and also to masterJobList
+  #
   #
   method appendNewJob {name jobinfo} {
     $m_view appendEntry $name 
@@ -491,14 +521,18 @@ snit::type JobBuilderUIPresenter {
 
 
   # Ensure that this can work
-  method clearTree {} {
-    $m_view clearTree
+  method clear {} {
 
-    set m_jobDict [dict create]
+    # remove all entries in the treeview
+    $m_view clear
 
-    set tree [$m_view getTreeWidget]
-    set nodes [$tree children {}]
-    $tree delete $nodes
+    # Kill off the old jobs list
+    dict for {name job} $m_masterJobList {
+      Job::destroy $job
+    }
+
+    # reset the list
+    set m_masterJobList [dict create]
   }
 
   ##
