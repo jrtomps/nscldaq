@@ -13,58 +13,55 @@ package require Tk
 
 ## Overview of the OfflineEVBMissingSourcelineUI package
 #
-# The package implements a configuration utility that configures two parameters
-# in a fully testable way. The implementation of is based on the Model-View-Presenter
-# paradigm in which there is a single presenter object that handles the interaction
-# between the view (i.e. the UI), and the model (the parameters). In this implementation,
-# the view is extremely simple and basically maintains the display state of the parameters
-# and responds to events by routing them to the presenter object. The 
-# presenter is in charge of all the logic for responding to events. In fact, the presenter
-# owns the view that it is bound to. 
+# @defgroup missingsourceui The MissingSourceUI Widget
 #
-# When the presenter is told to apply the display values, it retrieves the display state of the object
-# and then sets the model it holds accordingly. The presenter can be provided a model 
-# by an outside entity such that it can specifically configure a specific set of parameters.
+# This is a widget that is designed with the Model-View-Presenter paradigm in
+# mind.  There are two pieces to it: the MissingSourceConfigUIView and
+# MissingSourceUIPresenter. The presenter object is responsible for both
+# managing the view and the model. The view simply passes information to the
+# presenter and the presenter determines what to do with it. The view is
+# therefore just a simple widget that manages the actual widgets and also passes
+# events to the presenter.
 #
-# One of the design considerations here is that there is no apply or cancel button
-# that belong to this widget. Instead, it is expected that the apply command will be
-# called by something external to this. Imagine a separate widget that owns this and two
-# buttons: apply and cancel. On apply, it will simply call the presenter's apply command.
+# The goal of this package is to provide a centralized place that a user can
+# configure the parameters for the hoist pipeline. If the user knows that the
+# data file being sent through the ringFragmentSource all have body headers,
+# then it is possible for the user to opt out of providing the tstamp lib and
+# id. 
 
 
 
 
-## @brief The view for the input pipeline configuration dialogue
+## @brief The view for the MissingSourceConfigUI
+# 
+# Displays a simple widget that will hide configuration options if the user is
+# not actually needing them. If the user knows that the tstamplib and id are not
+# necessary, they simply are presented with a checkbutton and an explanation of
+# that text button. However, if they know that the tstamp lib and id are needed,
+# they can select the checkbutton and the data entry widgets to gather the
+# needed information are made visible. This is for the purpose of presenting a
+# very simple view to the user if they are treating a simple case.
 #
-# This is the actual gui component. It maintains two parameters that are correlated
-# to the model in the presenter that owns it. 
+# The user really should not instantiate this object directly unless they know
+# what they are doing. This object has limited functionality unless it is
+# attached to a presenter object. In fact, pressing buttons with no presenter
+# will cause massive failures!
 #
-# There are three real responsibility associated with this:
-# 1. Maintain the display state of the model
-# 2. Respond to the events by redirecting them to the presenter
-# 3. Assemble the widget
-#
-# It is not likely that the user will create the view. Instead, the user
-# should be creating an InputPipeConfigUIPresenter object which would
-# then create the view.
-#
+# 
 snit::widget MissingSourceConfigUIView {
 
-  option -sourcering      -default "OfflineEVBIn"
-  option -tstamplib       -default "" 
-  option -id              -default 0
-  option -info            -default "Data from OfflineEVBIn" 
+  option -tstamplib       -default ""  ;#< tstamp extraction library path
+  option -id              -default 0   ;#< source id
 
-  option -missing         -default 0  -configuremethod setMissingMode
-  option -showbuttons     -default 1
+  option -missing         -default 0  \
+                          -configuremethod setMissingMode ;#< checkbutton state
+  option -showbuttons     -default 1    ;#< Whether to show some buttons or not
 
-  component m_presenter
+  component m_presenter     ;#< the presenter to forward events to
 
   ## @brief Construct the megawidget
   #
-  # The user really should not
-  #
-  # @param presenter an InputPipeConfigUIPresenter object
+  # @param presenter an Presenter object
   # @param args      a list of option-value pairs for setting the options
   #
   constructor {presenter args} {
@@ -80,7 +77,7 @@ snit::widget MissingSourceConfigUIView {
   ## Destroy this thing 
   #
   destructor {
-    destroy $win
+    catch {destroy $win}
   }
 
 
@@ -103,7 +100,10 @@ snit::widget MissingSourceConfigUIView {
     }
     tk::text $top.descrLbl -bg lightgray  -relief flat -wrap word -font DescriptionFont \
                            -height 3 -width 60
-    $top.descrLbl insert end  "Check this if some ring items lack body headers in the data, because additional information is required to send these items through the event builder."
+    set descText "Check this if some ring items lack body headers in the data, " 
+    append descText "because additional information is required to send these "
+    append descText "items through the event builder." 
+    $top.descrLbl insert end $descText
     $top.descrLbl configure -state disabled
 
     grid $top.descrLbl -sticky nsew
@@ -163,15 +163,24 @@ snit::widget MissingSourceConfigUIView {
   #
   method getWindowName {} {return $win}
 
-
+  ## @brief Forward the event to the presenter
+  #
   method onApply {} {
     $m_presenter apply
   }
 
+  ## @brief Forward the event to the presenter
+  #
   method onCancel {} {
     $m_presenter cancel 
   }
 
+  ## @brief Launch a file browser to find the user's .so
+  #
+  # By default, this will look for files that have extension .so but 
+  # it is also possible for viewing all files. That way the user can make a 
+  # file with a wacked out name and it will still work.  
+  #
   method _browseTstamp {} {
     set types {
       {{Shared libraries} {.so}}
@@ -185,6 +194,17 @@ snit::widget MissingSourceConfigUIView {
     $self configure -tstamplib $file
   }
 
+  ## @brief The method that gets called when configure -missing is set.
+  #
+  # This method is responsible for changing what the user sees. If the 
+  # the -missing option is 1, then the tstamplib and id entries are shownm but
+  # if the -missing option is 0, the description text is displayed. Also, being
+  # the configureMethod for the -missing option, this is responsible for
+  # actually setting the new value.
+  #
+  # @param option   the name of the option being set (always -missing)
+  # @param value    the value to set the option to
+  #
   method setMissingMode {option value} {
 
     if {[string is true $value]} {
@@ -198,6 +218,16 @@ snit::widget MissingSourceConfigUIView {
     }
   }
 
+  ## @brief Handle a checkbutton press
+  #
+  # This method is registered to the value controlled by the checkbutton. If the
+  # checkbutton is pressed, then this is called and it merely tries to configure
+  # the -missing option. By doing so, the setMissingMode method is called.
+  # 
+  # @param name1  first name of the variable being set (option(-missing))
+  # @param name2  second name (useful for arrays) but is unused
+  # @param op     name of operation being performed...unused
+  #
   method onMissingChange {name1 name2 op} {
     if {$options(-missing) == 1} {
       $self configure -missing 1
@@ -207,41 +237,60 @@ snit::widget MissingSourceConfigUIView {
   }
 }
 
-# End of InputPipeConfigUIView code
+# End of MissingSourceConfigUIView code
 
-# ------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+################################################################################
+################################################################################
+################################################################################
+################################################################################
+################################################################################
+#-------------------------------------------------------------------------------
 
-## @brief Defines the logic for the InputPipeConfigUIView
+## @brief The presenter for the MissingSourceConfigUI package
+# 
+# @ingroup missingsourceui
 #
-# This is actually quite simple in that it responds to events from the view
-# and manages the model. It is allowed to edit the model and is thus responsible
-# for synchronizing the state of the model with the displayed values when an 
-# apply command is given it.
+# This is the presenter portion of the package. It is responsible for
+# manipulating the data in the model that it controls and responding to events
+# from the view. Therefore, the view is just a slave of this and is actually
+# created and owned by the presenter. It is intended that other software deals
+# directly with the MissingSourceConfigUIPresenter rather than with its view.
+# Being in charge of both the view and the model, this object is responsible for
+# the logic behind synchronizing the two. There is never a partial
+# synchronization that is accomplished because all sync operations affect all
+# controlled aspects of the model. The synchronization can go both directions,
+# either updating the view from the model or the model from the view.
 #
-# @important This does not own the model! Rather it just has a reference to the model
-#            and the power to manipulate it.
+# The model that is controlled by this is different from a job. Instead, it
+# maintains on the parameters of a job that are associated with the input and
+# hoist pipelines.  The model is actual a dict whose keys refer to those objects
+# and the names of the keys are the same as those in a Job. The key-value pairs
+# are as follows:
+#
+# key           value-type
+# -inputparams  OfflineEVBInputPipeParams
+# -hoistparams  OfflineEVBHoistPipeParams
 #
 snit::type MissingSourceConfigUIPresenter {
 
-  option -widgetname -default ""
-  option -ismaster   -default 0
-  option -ownmodel   -default 1
+  option -widgetname -default "" ;#< name of the view
+  option -ismaster   -default 0  ;#< whether this can destroy itself
+  option -ownmodel   -default 1  ;#< whether this cna destroy the model
 
-  component m_model     ;#< The model : OfflineEVBMissingSourceParams
+  component m_model     ;#< The model : dict of -inputparams and -hoistparams
   component m_view      ;#< The view, owned by this
 
   ## Construct the model, view, and synchronize view
   #
   # It is necessary that the user provides the name of the widget. If that is
   # not provided this cries, "Uncle!" The presenter is tightly bound to the view
-  # and actually owns it. It passes the view itself on construction so that there is never
-  # any confusion about who is in charge of it.
+  # and actually owns it. It passes the view itself on construction so that
+  # there is never any confusion about who is in charge of it.
   #
   # @returns the name of this object
   # 
-  # Exceptional returns
-  # - Error if -widgetname is not provided.
+  # @throws error when -widgetname is not provided.
   #
   constructor {args} {
     $self configurelist $args
@@ -282,8 +331,12 @@ snit::type MissingSourceConfigUIPresenter {
 
   ## @brief Set the model to some user's model and synchronize
   #
+  # If the previous model is owned by this, then this will destroy it.
+  # Otherwise, it is forgotten and its destruction is left to be some other
+  # object's responsiblity. 
   #
-  # @param model  an OfflineEVBMissingSourceParams object
+  # @param model  aParams object
+  # @param own    whether this is able to destroy the new model
   #
   method setModel {model {own 0}} {
 
@@ -335,7 +388,14 @@ snit::type MissingSourceConfigUIPresenter {
     $self synchronizeParams $tstamplib $id
   }  
 
-
+  ## @brief Set params in model to the arguments
+  #
+  # This is just the portion of the synchronization that sets the value of the
+  # model. 
+  #
+  # @param tstamplib  path to timestamp extraction library
+  # @param id         source id
+  #
   method synchronizeParams {tstamplib id} {
 
     [dict get $m_model -inputparams] configure -unglomid   $id
