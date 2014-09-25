@@ -4,7 +4,7 @@ PACKAGE_FILES=nameMap.tcl channel.tcl scalerconfig.tcl page.tcl \
 	singleModel.tcl ratioModel.tcl scalermain.tcl header.tcl reports.tcl\
 	scalerUtil.tcl stripparam.tcl stripratio.tcl emptyModel.tcl
 TEST_FILES=nameMap.test channel.test channelcmd.test singleModel.test \
-	ratioModel.test stripparam.test stripratio.text emptyModel.test
+	ratioModel.test stripparam.test stripratio.test emptyModel.test
 APP_FILES=ScalerDisplay.tcl
 IMAGES=red.gif green.gif amber.gif
 DOCS=tclringcommand.xml scalerdisplay.xml
