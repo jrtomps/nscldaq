@@ -10,14 +10,42 @@ tcltest::test pkgrequire-0 {
 } -result 11.0
 
 
+###############################################################################
+# Common utility functions.
+
+proc setup {} {
+  set ::jb [JobBuilderUIPresenter %AUTO% -widgetname .test]
+}
+
+
+proc tearDown {} {
+  $::jb destroy
+}
+
+
+###############################################################################
+
 tcltest::test constructNewName-0 {Test that new names are unique
 } -setup {
-  set jb [JobBuilderUIPresenter %AUTO% -widgetname .t]
+  setup
 } -cleanup {
-  $jb destroy
+  tearDown
 } -body {
-  $jb constructNewJobName asdf
+  $::jb constructNewJobName asdf
 } -result "job0"
 
+
+
+tcltest::test setView-0 {Test that setting the view returns the old view
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+  # ::jb should destroy .test2 and we are left to destroy .test
+  catch {destroy .test}
+} -body {
+  JobBuilderUIView .test2
+  $::jb setView .test2
+} -result .test
 
 tcltest::cleanupTests
