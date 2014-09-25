@@ -5,7 +5,7 @@ PACKAGE_FILES=nameMap.tcl channel.tcl scalerconfig.tcl page.tcl \
 	scalerUtil.tcl stripparam.tcl stripratio.tcl emptyModel.tcl
 TEST_FILES=nameMap.test channel.test channelcmd.test singleModel.test \
 	ratioModel.test stripparam.test stripratio.test emptyModel.test
-APP_FILES=ScalerDisplay.tcl
+APP_FILES=ScalerDisplay.tcl.in
 IMAGES=red.gif green.gif amber.gif
 DOCS=tclringcommand.xml scalerdisplay.xml
 
@@ -24,7 +24,7 @@ install-exec-hook:
 	(cd @srcdir@; $(INSTALL_SCRIPT) $(PACKAGE_FILES) $(INSTDIR))
 	echo pkg_mkIndex -verbose $(INSTDIR) "*.tcl" | @TCLSH_CMD@
 	echo "package ifneeded TclRingBuffer 1.0 [list load [file join \$$dir libTclRingBuffer.so]]" >> $(INSTDIR)/pkgIndex.tcl
-	install @srcdir@/ScalerDisplay.tcl @bindir@/ScalerDisplay
+	install @builddir@/ScalerDisplay.tcl @bindir@/ScalerDisplay
 	install $(IMAGES) $(GRAPHDIR)
 
 
