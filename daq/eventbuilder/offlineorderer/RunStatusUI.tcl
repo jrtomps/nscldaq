@@ -1,35 +1,19 @@
 
-#########################################################################################################
-#
-# INPUT PIPELINE CONFIGURATION DIALOGUE
-
 package provide OfflineEVBRunStatusUI 11.0
 
 package require snit
 package require Tk
 
 
-## Overview of the OfflineEVBInputPipelineUI package
-
-
-## @brief The view for the input pipeline configuration dialogue
+## @brief The view for the RunStatusUI package
 #
-# This is the actual gui component. It maintains two parameters that are correlated
-# to the model in the presenter that owns it. 
-#
-# There are three real responsibility associated with this:
-# 1. Maintain the display state of the model
-# 2. Respond to the events by redirecting them to the presenter
-# 3. Assemble the widget
-#
-# It is not likely that the user will create the view. Instead, the user
-# should be creating an RunStatusUIPresenter object which would
-# then create the view.
+# This mainly just mmaintains a frame that displays a bunch of
+# JobStatusDisplays. That is all that it does.
 #
 snit::widget RunStatusUIView {
 
-    component m_jobDisplays
-    component m_presenter
+    component m_jobDisplays   ;#< List of JobStatusDisplays
+    component m_presenter     ;#< Presenter to pass events to
     
     ## @brief Construct the megawidget
     #
@@ -46,7 +30,7 @@ snit::widget RunStatusUIView {
       $self buildGUI    
     }
 
-    ## Destroy this thing 
+    ## @brief Destroy this thing 
     #
     destructor {
       catch {destroy $win}
@@ -66,8 +50,9 @@ snit::widget RunStatusUIView {
 
     ## @brief Assemble the megawidget
     #
-    # Because this is a snit::widget object, the hull is actually just a ttk::frame.
-    # This fills that frame ($win) with a bunch of configuration widgets. These are 
+    # Because this is a snit::widget object, the hull is actually just a
+    # ttk::frame.  This fills that frame ($win) with a bunch of configuration
+    # widgets. These are 
     # simply some labels on text entries.
     #
     method buildGUI {} {
@@ -109,8 +94,13 @@ snit::widget RunStatusUIView {
 
 # End of RunStatusUIView code
 
-# ------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+################################################################################
+################################################################################
+################################################################################
+################################################################################
+################################################################################
+#-------------------------------------------------------------------------------
 
 ## @brief Defines the logic for the RunStatusUIView
 #
@@ -119,8 +109,8 @@ snit::widget RunStatusUIView {
 # for synchronizing the state of the model with the displayed values when an 
 # apply command is given it.
 #
-# @important This does not own the model! Rather it just has a reference to the model
-#            and the power to manipulate it.
+# @important This does not own the model! Rather it just has a reference to the
+#            model and the power to manipulate it.
 #
 snit::type RunStatusUIPresenter {
 
@@ -135,8 +125,8 @@ snit::type RunStatusUIPresenter {
   #
   # It is necessary that the user provides the name of the widget. If that is
   # not provided this cries, "Uncle!" The presenter is tightly bound to the view
-  # and actually owns it. It passes the view itself on construction so that there is never
-  # any confusion about who is in charge of it.
+  # and actually owns it. It passes the view itself on construction so that
+  # there is never any confusion about who is in charge of it.
   #
   # @returns the name of this object
   # 
@@ -204,8 +194,8 @@ snit::type RunStatusUIPresenter {
   #         processing
   #
   # This handles the logic for when a job successfully completes. What happens
-  # is that the name of the job that was processing is appended to the 
-  # completed list and then the next queued job is transitioned to the current 
+  # is that the name of the job that was processing is appended to the completed
+  # list and then the next queued job is transitioned to the current 
   # processing.
   #
   # @param jobName  name of the job to make current
