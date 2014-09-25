@@ -1,7 +1,31 @@
 
 package provide OfflineEVBJob 11.0
 
+package require OfflineEVBInputPipeline
+package require OfflineEVBHoistPipeline
+package require OfflineEVBOutputPipeline
+package require evbcallouts
+
 namespace eval Job {
+
+
+  proc create {} {
+    set iparams [OfflineEVBInputPipeParams %AUTO%]
+    set hparams [OfflineEVBHoistPipeParams %AUTO%]
+    set eparams [EVBC::AppOptions %AUTO%]
+    set oparams [OfflineEVBOutputPipeParams %AUTO%]
+
+    # Create the job parameters  to pass to the configuration
+    # dialogue. It becomes the model that the dialogue's presenter
+    # manipulates.
+    set model [dict create  -jobname "Job" \
+                            -inputparams $iparams  \
+                            -hoistparams $hparams \
+                            -evbparams   $eparams \
+                            -outputparams $oparams ]
+    return $model
+  }
+
 
   ##
   #
