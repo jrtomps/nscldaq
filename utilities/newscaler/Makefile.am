@@ -29,7 +29,7 @@ install-exec-hook:
 
 
 check-TESTS: check_PROGRAMS
-	for f in  @srcdir@/*.test; do echo Testing $$f  ; @TCLSH_CMD@ @srcdir@/$$f; done
+	for f in  @srcdir@/*.test; do echo Testing $$f  ; @TCLSH_CMD@ $$f; done
 
 
 EXTRA_DIST=$(PACKAGE_FILES) $(TEST_FILES) $(INTERACTIVE_TESTS) $(APP_FILES) $(IMAGES) \
