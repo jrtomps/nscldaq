@@ -520,7 +520,9 @@ snit::type JobBuilderUIPresenter {
   }
 
 
-  # Ensure that this can work
+  ## @brief Clear the view and jobs list
+  #
+  #
   method clear {} {
 
     # remove all entries in the treeview
@@ -543,19 +545,49 @@ snit::type JobBuilderUIPresenter {
     }
   }
 
+  ## @brief Sets the default ring names
+  #
   method configureDefaults {jobParams} {
     [dict get $jobParams -inputparams] configure -inputring  OfflineEVBIn
     [dict get $jobParams -hoistparams] configure -sourcering OfflineEVBIn
     [dict get $jobParams -evbparams]   configure -destring  OfflineEVBOut
-    [dict get $jobParams -outputparams] configure -ringname  tcp://localhost/OfflineEVBOut
+    [dict get $jobParams -outputparams] configure -ringname tcp://localhost/OfflineEVBOut
   }
-} ;# end of OfflineOrderer
+} ;# end of JobBuilderUIPresenter
 
+
+
+
+
+###############################################################################
+###############################################################################
+###############################################################################
+
+
+
+
+
+
+## @brief A simple namespace for interacting with only 1 instance of the
+#         JobBuilder
+#
+# It is expected that the user will set the widget name explicitly with a call
+# to : 
+#   set ::JobBuilder::widgetName .name.of.widget
+#
+# before calling ::JobBuilder::getInstance.
+#
 namespace eval JobBuilder {
 
   variable widgetName  ".builder"
   variable theInstance ""
 
+
+  ## @brief Retrieve the sole instance of the widget 
+  #
+  # If the instance has not been created yet, then create it.
+  #
+  # @returns a JobBuilderUIPresenter object
   proc getInstance {} {
     variable widgetName 
     variable theInstance
