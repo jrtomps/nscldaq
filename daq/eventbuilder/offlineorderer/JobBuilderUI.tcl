@@ -421,7 +421,7 @@ snit::type JobBuilderUIPresenter {
       set m_masterJobList [dict remove $m_masterJobList $entries]
 
       # synchronize
-      $self updateViewFromModel
+      $self updateViewDataFromModel
 
     } ;# end removal 
 
