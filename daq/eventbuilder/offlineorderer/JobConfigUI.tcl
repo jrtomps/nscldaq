@@ -1,7 +1,6 @@
 
 #########################################################################################################
 #
-# INPUT PIPELINE CONFIGURATION DIALOGUE
 
 package provide OfflineEVBJobConfigUI 11.0
 
@@ -17,57 +16,77 @@ package require snit
 package require Tk
 
 
-## Overview of the OfflineEVBJoblineUI package
+
+## @defgroup jobconfigui  The OfflineEVBJobConfigUI Package
 #
-# The package implements a configuration utility that configures two parameters
-# in a fully testable way. The implementation of is based on the Model-View-Presenter
-# paradigm in which there is a single presenter object that handles the interaction
-# between the view (i.e. the UI), and the model (the parameters). In this implementation,
-# the view is extremely simple and basically maintains the display state of the parameters
-# and responds to events by routing them to the presenter object. The 
-# presenter is in charge of all the logic for responding to events. In fact, the presenter
-# owns the view that it is bound to. 
+# This package follows the Model-View-Presenter pattern for implementing a
+# dialogue users can edit existing or new Jobs with. The JobConfigUI is intended
+# to provide a simplified configuration utility that abstracts the details of
+# all the various independent parameters in the pipeline. Instead, the user is
+# presented with just the necessary parameters that they expect to control. Many
+# of the parameters controlled in the JobConfigUI have meaning in the different
+# pipelines. This dialogue actually binds together the pipeline in such a way
+# that prevents the user from screwing up the instantiation of the 4 pipelines.
+# That isn't to say that the user can't select poor parameter values that
+# cause the processing to fail. 
 #
-# When the presenter is told to apply the display values, it retrieves the display state of the object
-# and then sets the model it holds accordingly. The presenter can be provided a model 
-# by an outside entity such that it can specifically configure a specific set of parameters.
+# The JobConfigUI package operates on the idea of a Job. A Job is a dict
+# with the following structure:
 #
-# One of the design considerations here is that there is no apply or cancel button
-# that belong to this widget. Instead, it is expected that the apply command will be
-# called by something external to this. Imagine a separate widget that owns this and two
-# buttons: apply and cancel. On apply, it will simply call the presenter's apply command.
+# key               value type
+# -jobname          string
+# -inputparams      OfflineEVBInputPipeParams
+# -hoistparams      OfflineEVBHoistPipeParams
+# -evbparams        EVBC::AppOptions
+# -outputparams     OfflineEVBOutputPipeParams
+#
+# There two pieces to the package: the view and the presenter. The view is made
+# up of the JobConfigUIView type. It is once again a humble view that merely
+# presents information and forwards events to its presenter to handle. The
+# presenter portion of the package is the JobConfigUIPresenter. this is in
+# charge of providing the logic for the package. It alone can manipulate the
+# model (ie. the job it is configuring) and dictates what the view displays
+# to the user via synchronization. Any software that uses this package should
+# instantiate a presenter and interact wit that alone rather than interacting
+# with the view directly. 
+#
 
 
 
-
-## @brief The view for the input pipeline configuration dialogue
+## @brief The view in the JobConfigUI package
 #
-# This is the actual gui component. It maintains two parameters that are correlated
-# to the model in the presenter that owns it. 
+# @ingroup jobconfigui
 #
-# There are three real responsibility associated with this:
-# 1. Maintain the display state of the model
-# 2. Respond to the events by redirecting them to the presenter
-# 3. Assemble the widget
+# This is the megawidget that the user will ultimately interact with. It is a
+# megawidget whose hull is a ttk::frame. Other software should not directly
+# instantiate one of these unless it knows what it is doing because these are
+# only useful when attached to a JobConfigUIPresenter.
 #
-# It is not likely that the user will create the view. Instead, the user
-# should be creating an InputPipeConfigUIPresenter object which would
-# then create the view.
+# There are a few useful options that can provided to configure the way that
+# this appears to the user:
+# 
+# -missingwidget    a MissingSourceUIView object
+# -buildwidget      a BuildEventsWidget object
+# -showbuttons      boolean value indicating whether to show buttons or not
+#                   (basically this determines whether this is its own master)
+# -buttontext       the text to put on the "Accept" button
 #
+# Otherwise, the other options contain the display state of view. These are the
+# value of the data that could be written into the model if the presenter
+# decides to synchronize to the view state.
 snit::widget JobConfigUIView {
 
-  option -showbuttons     -default 1
   
-  option -nsources        -default 2
-  option -jobname         -default "Job"
+  option -nsources        -default 2        ;#< number of end runs to expect
+  option -jobname         -default "Job"    ;#< name of job (not used)
+  option -missingwidget   -default ""       ;#< name of missing source widget
+  option -buildwidget     -default ""       ;#< name of buildevents widget
 
-  option -missingwidget   -default ""
-  option -buildwidget     -default ""
-  option -showbuttons     -default 1
-  option -buttontext      -default "Create"
+  option -showbuttons     -default 1        ;#< show buttons or not? 
+  option -buttontext      -default "Create" ;#< Label to put on button
 
-  component m_presenter
-  variable m_fileTree
+  component m_presenter                     ;#< The presenter
+  variable m_fileTree                       ;#< FileList widget name
 
   ## @brief Construct the megawidget
   #
@@ -87,10 +106,10 @@ snit::widget JobConfigUIView {
     $self buildGUI    
   }
 
-  ## Destroy this thing 
+  ## @brief Destroy this thing 
   #
   destructor {
-    destroy $win
+    catch {destroy $win}
   }
 
 
@@ -149,20 +168,32 @@ snit::widget JobConfigUIView {
 
   }
 
+  ## @brief Grid the missing sources widget
+  # @param name name of the widget
   method gridMissingWidget {name} {
     variable m_paramFrame
-      grid $name - -row 1 -sticky new -pady 9 -in $m_paramFrame
+    grid $name - -row 1 -sticky new -pady 9 -in $m_paramFrame
   }
 
+  ## @brief Grid the build event widget
+  # @param name of the widget
   method gridBuildWidget {name} {
     variable m_paramFrame
-      grid $name -  -row 2 -sticky new -in $m_paramFrame
+    grid $name -  -row 2 -sticky new -in $m_paramFrame
   }
 
+  ## @brief Forward button press event to presenter
+  #
+  # This does not check whether the presenter exists. It is assumed that the
+  # user has already set this up.
   method onCancel {} {
     $m_presenter cancel
   }
 
+  ## @brief Forward button press event to presenter
+  #
+  # This does not check whether the presenter exists. It is assumed that the
+  # user has already set this up.
   method onCreate {} {
     $m_presenter create
   }
@@ -175,14 +206,19 @@ snit::widget JobConfigUIView {
     set m_presenter $presenter
   }
 
-
   ## @brief Return the value of $win for gridding the view
   #
+  # @return the name of the hull
   method getWindowName {} {return $win}
 
 
-  ##
+  ## @brief Return the name of the file list 
+  # 
+  # The FileList is not currently implemented as an MVP paradigm and so this 
+  # is really just returning the name of the megawidget itself. This could
+  # change in the future though...
   #
+  # @returns name of the object in control of the filelist widget
   method getFileListPresenter {} {
     return $m_fileTree
   }
@@ -191,18 +227,36 @@ snit::widget JobConfigUIView {
 # End of JobConfigUIView code
 
 # ------------------------------------------------------------------------------
+################################################################################
+################################################################################
+################################################################################
+################################################################################
+################################################################################
 # ------------------------------------------------------------------------------
 
+## @brief The presenter component of the JobConfigUI package.
+#
+# @ingroup jobconfigui
+#
+# This object controls the model the is ultimately being configured by this
+# package. It also owns a view that is associated with it. So the presenter is
+# the sole object that can manipulate the model and it is therefore responsible
+# for synchronizing the state of the view with state of the model and vice
+# versa. It is not necessarily the owner of the model that it controls and
+# typically operates on models that have been leased to it. The idea is that
+# this is simply a manipulator of something given to it. 
+#
+#
 snit::type JobConfigUIPresenter {
 
-  option -widgetname -default ""
-  option -ismaster   -default 0
-  option -ownmodel   -default 1
+  option -widgetname -default ""      ;#< name of view
+  option -ismaster   -default 0       ;#< forward events to a parent?
+  option -ownmodel   -default 1       ;#< whether to delete model
 
-  variable m_model     ;#< The model : OfflineEVBJobParams
+  variable m_model     ;#< The model  a job 
   variable m_view      ;#< The view, owned by this
-  variable m_missing   ;#< The view, owned by this
-  variable m_build     ;#< The view, owned by this
+  variable m_missing   ;#< The missing source presenter 
+  variable m_build     ;#< The build event widgetpresenter 
 
   variable m_filelist ;#< the view's file list widget
 
@@ -213,7 +267,7 @@ snit::type JobConfigUIPresenter {
   # It is necessary that the user provides the name of the widget. If that is
   # not provided this cries, "Uncle!" The presenter is tightly bound to the view
   # and actually owns it. It passes the view itself on construction so that there is never
-  # any confusion about who is in charge of it.
+  # any confusion about who the view should deal with.
   #
   # @returns the name of this object
   # 
@@ -290,11 +344,7 @@ snit::type JobConfigUIPresenter {
   #
   destructor {
     if {$options(-ownmodel)} {
-      dict for {key val} $m_model { 
-        if {$key ne "-jobname"} {
-          $val destroy
-        }
-      }
+      Job::destroy $m_model
     }
 
     catch {$m_view destroy}
@@ -303,33 +353,37 @@ snit::type JobConfigUIPresenter {
 
   ## @brief Set the model to some user's model and synchronize
   #
+  # There a bunch of things that happen when a new model is provided.
+  # 1. Destroy the model if we own it
+  # 2. Store the new model and record whether we own it
+  # 3. Pass the new model to the MissingSourceUI presenter
+  # 4. Pass the new model to the BuildEventsUI presenter
   #
-  # @param model  an OfflineEVBJobParams object
+  # @param model  a job
   #
   method setModel {model {own 0}} {
     # if we own the model, the destroy it so it doesn't hang around
     if {$options(-ownmodel)} {
-      dict for {key val} $m_model {
-        if {$key ne "-jobname"} {
-          $val destroy
-        }
-      }
+      Job::destroy $m_model
     }
 
     # Cache the new model and remember whether we own it
     set m_model $model
-
-    $m_missing setModel $m_model $own
-    $m_build   setModel [dict get $m_model -evbparams] $own
     set options(-ownmodel) $own
 
+    # update the missing source and build event presenter's models too
+    $m_missing setModel $m_model $own
+    $m_build   setModel [dict get $m_model -evbparams] $own
+
+    # sync the view to the model
     $self updateViewData $m_model
   }
 
-  ##
+  ## @brief Add an object to receive info when events happen
   #
+  # This is useful for indicating whether or not to accept changes 
+  # to the model or to discard them.
   method setObserver {name} {
-    variable m_observer 
     set m_observer $name
   }
 
@@ -350,6 +404,7 @@ snit::type JobConfigUIPresenter {
     $m_missing updateViewData $model
     $m_build   updateViewData [dict get $model -evbparams]
 
+    # build the display info from scratch for simplicity 
     $m_filelist clearTree
     $m_filelist appendFiles [[dict get $model -inputparams] cget -file]
     
@@ -359,11 +414,9 @@ snit::type JobConfigUIPresenter {
 
   ## @brief Set the values of the model to what are displayed
   #
+  # Synchronize the model to the view. This is the only way that we manipulate 
+  # the model.
   method commitViewDataToModel {} {
-    variable m_view
-    variable m_model
-    variable m_missing
-    variable m_build
 
     # update the values for the missing sources and evb 
     $m_missing commitViewDataToModel
@@ -376,10 +429,17 @@ snit::type JobConfigUIPresenter {
     [dict get $m_model -outputparams] configure -nsources [$m_view cget -nsources]
   }  
 
-  ## Validate the data that the user provided
+  ## @brief Validate the data that the user provided
   #
+  # Ensure that the parts of the job that are actually controlled by this are
+  # being set to valid values. If they are not, then this will list all of the
+  # reasons why it thinks they are bad. 
+  #
+  # @result dict of error messages indexed by type of parameter set
   method validateJobOptions jobinfo {
 
+
+    # Create a dictionary to fill with error messages
     set errDict [dict create]
 
     set inputErrors  [[dict get $m_model -inputparams] validate]
@@ -387,6 +447,7 @@ snit::type JobConfigUIPresenter {
     #      set evbErrors    [[dict get $m_model -evbparams] validate]
     set outputErrors [[dict get $m_model -outputparams] validate]
 
+    # Only create a key for the parameter set if there are errors to report
     if {[llength $inputErrors]!=0} {
       dict set errDict -inputparams $inputErrors
     }
@@ -404,9 +465,16 @@ snit::type JobConfigUIPresenter {
 
   }
 
-  ## Show the error dialogue
+  ## @brief Show the error dialogue
+  #
+  # This is a modal dialogue that steals the focus from the JobConfigUI.
+  # However, when this dialogue is destroyed, the JobConfigUI will gain the 
+  # focus again as a model dialogue. The idea of this dialogue is to 
+  # lay out the error messages to the user is a very easy to understand fashion.
   #
   method displayErrorGUI {errors} {
+
+    # create the top level window
     toplevel .configerr
     set msg "Some improper configuration parameters we detected!\n"
     append msg "Please fix the errors categorized below in the tree."
@@ -423,14 +491,13 @@ snit::type JobConfigUIPresenter {
 
     set currgrab [grab current]
 
+    # steal the grab 
     grab .configerr
     wm transient .configerr
 
     if {$currgrab ne ""} {
 
-      # prevent the user from closing out from underneath us
-#      wm protocol $currgrab WM_DELETE_WINDOW { }
-
+      # schedule the JobConfigUI to receive grab when this is destroyed
       wm protocol .configerr WM_DELETE_WINDOW "
       grab release .configerr ;
       grab $currgrab ;
@@ -439,7 +506,13 @@ snit::type JobConfigUIPresenter {
     }
   }
 
-  ## The user wants to make this into a real job, try and do that.
+  ## @brief The user wants to make this into a real job, try and do that.
+  #
+  # Synchronizes the view data with the widget and then checks to see if it is 
+  # a reasonalbe set of parameters by validating it. If the validation discovers
+  # errors, then the error dialogue is launched. Otherwise, this informs the
+  # observer that this should be created and tries to destroy the window if it
+  # is owned by this.
   #
   method create {} {
 
@@ -473,6 +546,8 @@ snit::type JobConfigUIPresenter {
 
   ## @brief Kill off the top level widget 
   #
+  # Signal to the oberver that this is not worth keeping and then
+  # destroy the view if there is not master that controls this.
   method cancel {} {
     variable m_observer
     if {$m_observer ne ""} {
@@ -506,7 +581,7 @@ snit::type JobConfigUIPresenter {
     return [$m_view getWindowName]
   }
 
-
+  ## @brief Changes the displyed text on the "accept" button
   method setButtonText {text} {
     $m_view configure -buttontext $text
   }
