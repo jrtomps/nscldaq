@@ -16,11 +16,30 @@ proc TabbedOutput {win args} {
 }
 
 
-
+## @brief Top-level widget for OfflineOrdererUI
+#
+# @defgroup offlineordererui The OfflineOrdererUI Package
+#
+# The OfflineOrdererUI package manages a good deal of the content for all of
+# the root window in the OfflineOrderer GUI. It maintains the button at the
+# bottom right of the screen and also a content frame that is filled with
+# either the JobBuilderUI or the RunStatusUI. One might be led to think that it
+# is actually also responsible for the GlobalConfigUI, but that is not quite
+# correct. There is a FrameSequencer that manages all of the content in the root
+# window which actually manages an instance of this. But the OfflineOrdererUI is
+# probably best thought of as the real application. 
+#
+# When the user presses the button that this provides, it will transition
+# between the JobBuilderUI and the RunStatusUI. When the user transitions into a
+# processing mode, the OfflineOrderer launches the RunProcessor to enable the
+# actually running of jobs.
+#
 
 #########################################################################################
 
 ## @brief View for the OfflineOrderer widget
+#
+# @ingroup offlineordererui
 #
 # This is really a very simple widget. It merely maintains a content window
 # and a button that causes a transition between two states. The two states 
@@ -184,19 +203,45 @@ snit::widget OfflineOrdererUIView {
 
 
 
-# -----------------------------------------------------------------
+#-------------------------------------------------------------------------------
+################################################################################
+################################################################################
+################################################################################
+################################################################################
+################################################################################
+#-------------------------------------------------------------------------------
 
+## @brief The presenter object for the OfflineOrdererUI
+# 
+# @ingroup  offlineordererui
+#
+# This is manages the view but doesn't actually have much of a model to manage.
+# When the view button is presenter, this passes the view the correct widget to
+# display to the user and will possibly launch the offline orderer for
+# processing.
+#
 snit::type OfflineOrdererUIPresenter {
-  option -widgetname     -default ""
+  option -widgetname     -default "" ;#< name of view widget
   
-  component m_view
+  component m_view                   ;#< view object
 
-  component runProgressPresenter
-  component jobBuilderPresenter
-  component globalConfigPresenter
+  component runProgressPresenter     ;#< RunStatusUI presenter
+  component jobBuilderPresenter      ;#< JobBuilderUI presenter
+  component globalConfigPresenter    ;#< GlobalConfigUI
 
-  component runProcessor 
+  component runProcessor             ;#< The RunProcessor
 
+  ## @brief Constructor
+  #
+  # It is demanded that the user provide the name of the view widget through the
+  # -widgetname option and an error is thrown if it is not provided. This
+  # constructs all of the various presenters it owns (not the GlobalConfigUI).
+  #
+  # @params args  option-value pairs
+  #
+  # @returns name of this object
+  # 
+  # @throws an error if the -widgetname was missing
   constructor {args} {
 
     # allow the user to override the defaults
@@ -212,7 +257,7 @@ snit::type OfflineOrdererUIPresenter {
     set m_view [OfflineOrdererUIView $options(-widgetname)]
     $m_view setPresenter $self
 
-    # setup the stuff the running and configuration frames
+    # setup the running and configuration frames
     set fr [$m_view getFrameWidget]
     set runProgressPresenter [RunStatusUIPresenter %AUTO% -widgetname $fr.runUI]
 
@@ -220,36 +265,55 @@ snit::type OfflineOrdererUIPresenter {
     set JobBuilder::widgetName $fr.configUI
     set jobBuilderPresenter [JobBuilder::getInstance] 
 
+    # pass the names of the frames to view so that it knows what to show in
+    # various modes.
     $m_view setViewWidgets [dict create run $fr.runUI \
                                         config $fr.configUI ]
-
     # create the run processor
     set runProcessor [RunProcessor %AUTO%]
 
+    # connect the RunStatusUI to the RunProcessor as an observer. 
     $runProcessor addRunStatusObserver $runProgressPresenter
-
 
     # set the display mode
     $m_view configure -mode config
 
   }
 
+  ## @brief Destroy the view and also the run processor
+  #
   destructor {
-    catch {$m_view destroy}
+    catch {destroy $m_view}
     catch {$runProcessor destroy}
   }
 
-
+  ## @brief Access the JobBuilderUIPresenter that this knows about
+  #
+  # @returns  the JobBuilderUIPresenter object
   method getJobBuilderPresenter {} {
-    variable jobBuilderPresenter
     return $jobBuilderPresenter
   }
 
+  ## @brief Set the view for this object
+  #
+  # The new view merely displaces the ownership of the previous view. It is
+  # assumed that some other object might want to take over the view.
+  #
+  # @param theview  the new OfflineOrdererUIView object
+  #
+  # @return the name of the previous view object
   method setView {theview} {
+    set prevView $m_view
     set m_view $theview
+    return $prevView
   }
 
 
+  ## @brief Respond to a press of the button
+  #
+  # This attempts to transition from one display to the other.  If moving to a
+  # running mode, then the run method is invoked to start the pipelines.
+  #
   method transition {} {
     set state [$m_view cget -mode]
 
@@ -275,7 +339,10 @@ snit::type OfflineOrdererUIPresenter {
     }
   }
 
-  ## Handles when the run has been constructed
+  ## @brief Pass the list of jobs from the JobBuilderUI to the RunProcessor
+  #
+  # It is not necessary to check the quality of the jobs at this point because
+  # they have already been vetted by the JobBuilderUI.
   #
   method run {} { 
     variable jobBuilderPresenter
@@ -292,12 +359,21 @@ snit::type OfflineOrdererUIPresenter {
 
 } ;# end of OfflineOrderer
 
-# ----------------------------------------------------------------------
+#------------------------------------------------------------------------------
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+#------------------------------------------------------------------------------
 
-
-
+## @brief A Global namespace that makes it fairly easy to find the global menu item and
+#   also the name of the FrameSequencer
+#
+#
 namespace eval Globals {
-  variable menu ".m"
-  variable sequencer ".seq"
+  variable menu ".m"        ;#< Name of the menu in the root window
+  variable sequencer ".seq" ;#< Name of the FrameSequencer controlling the root
+                            ;#  window
 }
 
