@@ -1,13 +1,15 @@
 
 
-DESTDIR = $(prefix)/TclLibs/OfflineEVB
+DESTDIR = @prefix@/TclLibs/OfflineEVB
 
 install-exec-local:
-	$(mkinstalldirs) $(prefix)/bin
+	$(mkinstalldirs) @prefix@/bin
 	$(mkinstalldirs) $(DESTDIR)
 	$(mkinstalldirs) @prefix@/share/html
 	for f in  $(TCLPACKAGES); do install @srcdir@/$$f $(DESTDIR); done
-	install @srcdir@/offlineorderer.tcl $(prefix)/bin/offlineorderer
+	install @srcdir@/offlineorderer.tcl @prefix@/bin/offlineorderer
+	$(mkinstalldirs) @prefix@/share/html/figures
+	$(INSTALL_DATA) @srcdir@/figures/*.png @prefix@/share/html/figures
 	echo "pkg_mkIndex -verbose $(DESTDIR) *.tcl" | $(TCLSH_CMD)
 
 
