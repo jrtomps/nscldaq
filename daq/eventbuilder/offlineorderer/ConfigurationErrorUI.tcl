@@ -4,12 +4,66 @@ package provide ConfigErrorUI 11.0
 package require Tk
 package require snit
 
+
+## @brief A Package to display a set of error messages to the user
+#
+# @defgroup configerrorui The ConfigErrorUI Package
+#
+# The package provided here allows the user to display a clean overview of 
+# a set of errors to the user that are organized into context areas. This
+# expects a dict whose keys point to dicts whose keys reference lists of error
+# messages. You can think of this as a tree. In the OfflineEVB, the dict
+# provided has the following form:
+# 
+# @verbatim
+#   job0
+#   |-- inputparams
+#   |   |-- list of errors
+#   |-- hoistparams
+#   |   |-- list of errors
+#   |-- evbparams
+#   |   |-- list of errors
+#   |-- outputparams
+#   |   |-- list of errors
+#   job1
+#   |-- inputparams
+#   |   |-- list of errors
+#    and so on...
+# @endverbatim
+# 
+# The dict is transformed into a ttk::treeview object for easy navigation of the
+# errors.
+#
+# This like many other UI components in the offline orderer is designed with the
+# Model-View-Presenter paradigm. It is composed of two separate classes:
+# ConfigErrorView and ConfigErrorPresenter. SOftware that interacts with this
+# package should deal with the ConfigErrorPresenter as it is the piece that will
+# generate a ConfigErrorView. 
+
+## @brief The view for the ConfigErrorUI package
+#
+# @ingroup configerrorui
+#
+# This provides a megawidget that consists of a simple label and treeview
+# widget. It doesn't provide any input widget for the user to provide
+# information and instead exists for displaying information. Other software
+# should not instantiate one of these without an associated
+# ConfigErrorPresenter. In fact, the ConfigErrorPresenter will create one of
+# these in its constructor.
+#
 snit::widget ConfigErrorView {
-  option -errors
+  option -errors  ;#< A dict as described above in the package overview
 
-  component m_presenter
-  component m_errorTree
+  component m_presenter   ;#< name of the presenter that owns this
+  component m_errorTree   ;#< name of the treeview widget
 
+
+  ## @brief Constructor
+  #
+  # @param presenter  the name of the presenter that will control this
+  # @param args       option-value pairs
+  #
+  # @returns the name of the new instance create by this
   constructor {presenter args} {
 
     set m_presenter $presenter
@@ -19,6 +73,8 @@ snit::widget ConfigErrorView {
   }
 
 
+  ## @brief Assemble the megawidget
+  #
   method buildGUI {} {
 
     # install the treeview
@@ -37,10 +93,20 @@ snit::widget ConfigErrorView {
 
   }
 
+  ## @brief Forward the press of "okay" button to presenter
+  #
   method onOkay {} {
     $m_presenter okay
   }
 
+  ## @brief Insert a job entry into the treeview
+  #
+  # The -error option should provide a dict whose keys are job. This will handle
+  # the mapping of the details of a job. 
+  #
+  # @param name       name of job (a key of -errors option)
+  # @param errorDict  dictionary of errors (value associated with name key)
+  #
   method addJobEntry {name errorDict} {
     $m_errorTree insert {} end -id $name -text $name 
     dict for {key errors} $errorDict {
@@ -67,15 +133,39 @@ snit::widget ConfigErrorView {
   method getWindowName {} {return $win}
 }
 
+#------------------------------------------------------------------------------
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+#------------------------------------------------------------------------------
 
 
+## @brief The presenter for the ConfigErrorUI package
+#
+# @ingroup configerrorui
+#
+# The ConfigErrorPresenter is in charge of handling the logic for the
+# ConfigError package. It doesn't handle much logic and really just determines
+# how to manage an click of the "Okay" button. The model that this controls is
+# the dictionary of job errors as described in the overview of the package at
+# the top of the page.
+#
 snit::type ConfigErrorPresenter {
 
-  option -widgetname -default ""
+  option -widgetname -default ""  ;#< name of the view widget
 
-  component m_model
-  component m_view
+  component m_model   ;#<  dictionary of error messages
+  component m_view    ;#<  the view widget
 
+  ## @brief Constructor
+  #
+  # Create the view and synchronize.
+  #
+  # @param args   option-value pairs (-widgetname is the only supported)
+  #
+  # @throws error if the -widgetname is not passed.
   constructor {args} {
     $self configurelist $args
    
@@ -104,12 +194,10 @@ snit::type ConfigErrorPresenter {
     catch {$m_view destroy}
   }
 
-
-  
   ## @brief Set the model to some user's model and synchronize
   #
   #
-  # @param model  an OfflineEVBInputPipeParams object
+  # @param model  a dict of error messages
   #
   method setModel {model} {
     set m_model $model
@@ -119,14 +207,14 @@ snit::type ConfigErrorPresenter {
   ## @brief Retrieve the model
   #
   # @returns string
-  # @retval the name of the OfflineEVBInputPipeParams object this controls
+  # @retval the dictionary of error messages  
   method getModel {} {
     return $m_model
   }
   
   ## @brief Synchronize the data displayed by the view with the model
   #
-  # @param model  an OfflineEVBInputPipeParams object
+  # @param model  a dict of error messages 
   #
   method updateViewData {model} {
     dict for {job errDict} $model {
@@ -137,12 +225,12 @@ snit::type ConfigErrorPresenter {
   ## @brief Set the values of the model to what are displayed
   #
   method commitViewDataToModel {} {
+    # the user cannot alter the model through the view so this is a noop
   }
 
-  ## @brief Synchronize the model to the view data
+  ## @brief  Respond to a press of the view's "okay" button
   #
-  # This is what is intended to be called when the user is done configuring 
-  # values and is ready to apply the changes.
+  # This just closes the window.
   #
   method okay {} {
     set top [winfo toplevel [$m_view getWindowName]]
@@ -152,7 +240,7 @@ snit::type ConfigErrorPresenter {
   ## @brief Retrieve the view
   #
   # @returns string
-  # @retval the name of an InputPipeConfigUIView object 
+  # @retval the name of the ConfigErrorView object controlled by this 
   method getViewObj {} {
     return $m_view
   }
