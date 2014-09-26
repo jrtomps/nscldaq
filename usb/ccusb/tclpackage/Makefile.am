@@ -1,4 +1,4 @@
-EXTRA_DIST  = 	ccusbcamac.tcl	
+EXTRA_DIST  = 	ccusbcamac.tcl ccusbcamac.xml
 
 
 TCLPACKAGES = ccusbcamac.tcl 
