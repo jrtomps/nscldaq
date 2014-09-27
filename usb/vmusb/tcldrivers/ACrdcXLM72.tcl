@@ -1,22 +1,56 @@
 #===================================================================
-# class ACrdcXLM72
-#===================================================================
+##
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2014.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#     Author:
+#      NSCL DAQ Development Group 
+#	     NSCL
+#	     Michigan State University
+#	     East Lansing, MI 48824-1321
+#
+# @file   ACrdcXLM72.tcl
+# @author Daniel Bazin and Jeromy Tompkins
+# @note   This is a modified version of the original ACrdcXLM72 class
+#         that was written by Daniel Bazin. It has been updated to use
+#         the cvmusb::CVMUSB and cvmusbreadoutlist::CVMUSBReadout methods
+#         and to have a format that is more in line with other NSCLDAQ 
+#         code.
+
+
 
 package provide crdcxlm72 1.0
+
 package require xlm72
 package require Itcl
 
 
-
-
-
+## @class ACrdcXLM72
+#
+# A class to support a JTech XLM72V device running firmware to readout
+# the CRDC like the S800. It is a low-level driver that handles the basic
+# communication with the device and does not implement the CReadoutHardware
+# or CControlHardware interfaces. It is, however, usable to construct
+# such drivers.
+#
 itcl::class ACrdcXLM72 {
 	inherit AXLM72
 
+  ## Constructor
+  #
+  # @param sl the slot in which the AXLM72V resides
+  #
 	constructor {sl} {
 		AXLM72::constructor $sl
 	} {}
 
+  ## Write samples
+  #
 	public method WriteSamples {ctlr sa} {Write $ctlr fpga 4 $sa}
 	public method WritePeriod {ctlr pe} {Write $ctlr fpga 12 $pe}
 	public method WriteDelay {ctlr de} {Write $ctlr fpga 16 $de}

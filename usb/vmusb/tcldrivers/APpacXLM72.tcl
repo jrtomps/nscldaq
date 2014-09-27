@@ -176,8 +176,8 @@ itcl::class APpacXLM72 {
 }
 # END OF THE APpacXLM72 Class
 
-###############################################################################
-# ------------------ UTILITY METHOD IMPLEMENTATIONS --------------------------#
+################################################################################
+# ------------------ UTILITY METHOD IMPLEMENTATIONS ---------------------------#
 
 
 
@@ -193,9 +193,9 @@ itcl::body APpacXLM72::WriteThresholds {ctlr th} {
 	for {set i 0} {$i < 64} {incr i} {
 		Write $ctlr fpga 40 $i; # set RAM address
 		Write $ctlr fpga 44 [lindex $th $i]; # set connector 0 threshold register
-		Write $ctlr fpga 48 [lindex $th [expr $i+64]]; # set connector 1 threshold register
-		Write $ctlr fpga 52 [lindex $th [expr $i+128]]; # set connector 2 threshold register
-		Write $ctlr fpga 56 [lindex $th [expr $i+192]]; # set connector 3 threshold register
+		Write $ctlr fpga 48 [lindex $th [expr $i+64]];  # set connector 1 thresh reg
+		Write $ctlr fpga 52 [lindex $th [expr $i+128]]; # set connector 2 thresh reg
+		Write $ctlr fpga 56 [lindex $th [expr $i+192]]; # set connector 3 thresh reg
 		Write $ctlr fpga 60 1; # toggle WE of RAM (write RAM)
 		Write $ctlr fpga 60 0; # toggle back
 		Write $ctlr fpga 64 1; # enable RAM address for read
