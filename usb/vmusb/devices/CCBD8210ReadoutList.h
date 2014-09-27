@@ -41,7 +41,6 @@ class CCBD8210ReadoutList : public CCamacReadoutList
     // careful here because this remembers the last rdolist
     // if you return a func 
     CVMUSBReadoutList* getReadoutList() const { return m_rdoList;}
-    CVMUSBReadoutList* getFinalReadoutList(); 
 
     // This does not own the readout list. It merely references it. 
     void setReadoutList(CVMUSBReadoutList& rdoList);
