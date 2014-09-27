@@ -43,7 +43,7 @@ class CDataSinkFactoryTest : public CppUnit::TestFixture
     CPPUNIT_TEST ( testStdoutDash );
 //    CPPUNIT_TEST ( testFailOnStdin );
     CPPUNIT_TEST ( testRingSink );
-    CPPUNIT_TEST ( testTcpSink );
+    CPPUNIT_TEST ( testTCPRingSink );
     CPPUNIT_TEST ( testFailRingSink );
     CPPUNIT_TEST_SUITE_END();
 
@@ -54,8 +54,8 @@ class CDataSinkFactoryTest : public CppUnit::TestFixture
     void testStdout();
     void testStdoutDash();
 //    void testFailOnStdin();
-    void testTcpSink();
     void testRingSink();
+    void testTCPRingSink();
     void testFailRingSink();
 
 };
@@ -121,20 +121,6 @@ void CDataSinkFactoryTest::testRingSink()
   if (sink!=0) { delete sink; }
 }
 
-void CDataSinkFactoryTest::testTcpSink()
-{
-  CDataSinkFactory factory;
-  CDataSink* sink;
-
-  // Assert that this succeeds without an exception
-  CPPUNIT_ASSERT_NO_THROW( sink = factory.makeSink("tcp://localhost/myring") );
-
-  // Make sure we actually acquired something
-  CPPUNIT_ASSERT( 0 != sink );
-
-  if (sink!=0) { delete sink; }
-}
-
 // Note that this will not fail b/c the single producer requirement is a 
 // process-level requirement.
 void CDataSinkFactoryTest::testFailRingSink()
@@ -179,3 +165,21 @@ void CDataSinkFactoryTest::testFailRingSink()
 //    CRingBuffer::remove(rname);
   }
 }
+
+void CDataSinkFactoryTest::testTCPRingSink()
+{
+  CDataSinkFactory factory;
+  CDataSink* sink;
+  try {
+    sink = factory.makeSink("tcp://localhost/myring");
+  } catch (int err) {
+    std::stringstream errmsg; errmsg << "errno = " << err << std::endl;
+    CPPUNIT_FAIL( errmsg.str().c_str() );
+  } catch (CURIFormatException& exc) {
+    CPPUNIT_FAIL( exc.ReasonText() );
+  }
+
+
+  if (sink!=0) { delete sink; }
+}
+

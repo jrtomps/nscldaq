@@ -1,5 +1,7 @@
 noinst_PROGRAMS = unittests
 
+INCLUDES=@TCL_CPPFLAGS@
+
 unittests_SOURCES = TestRunner.cpp cvmusbtest.cpp
 
 unittests_DEPENDENCIES = @top_builddir@/usb/vmusb/devices/libVMUSBDevices.la \

@@ -276,7 +276,7 @@ snit::widgetadaptor RunIdentification {
         
         if {$havetitle} {
             lappend widgets [ttk::label $win.tlabel -text Title: ]
-            lappend widgets [ttk::entry $win.title -width 60 ]
+            lappend widgets [ttk::entry $win.title -width 60 -validate key -validatecommand [mymethod _LimitTitle %P]]
             $win.title insert end $options(-title)
         }
         if {$haverun} {
@@ -296,6 +296,25 @@ snit::widgetadaptor RunIdentification {
         grid rowconfigure $win 0 -weight 0
         
     }
+    ##
+    # _LimitTitle
+    #
+    #  Called when something interesting has happend with the title.  We ensure the title
+    #  is no more than 75 characters long (that's actually giving a bit of slop as I think)
+    #  the title length limit is 79.
+    #
+    # @param proposedString The new title sdtring if accepted.
+    # @return boolean true  if the resulting string is an acceptable length.
+    #
+    method _LimitTitle proposedString {
+        if {[string length $proposedString] <= 75} {
+            return 1
+        } else {
+            bell
+            return 0
+        }
+    }
+    
     ##
     #  _setState
     #
@@ -1654,6 +1673,8 @@ snit::widgetadaptor OutputWindow {
         
         grid $text $win.ysb -sticky nsew
         grid $win.xsb       -sticky new
+        grid rowconfigure $win 0 -weight 1
+        grid columnconfigure $win 0 -weight 1
         
         
         $self configurelist $args
@@ -2031,22 +2052,26 @@ snit::widgetadaptor TabbedOutput {
     #
 
     constructor args {
-	installhull using ttk::notebook
+      installhull using ttk::notebook
 
 
-	lappend outputWindows [OutputWindow $win.main]
-	set tabInfo($win.main) [dict create name main lines 0]
-	$hull add $win.main -text main
-	set options(-foreground) [$win.main cget -foreground]
-	set options(-background) [$win.main cget -background]
-	set options(-width)      [$win.main cget -width]
-	set options(-height)     [$win.main cget -height]
+        lappend outputWindows [OutputWindow $win.main]
+        set tabInfo($win.main) [dict create name main lines 0]
+        $hull add $win.main -text main
+        $hull tab $win.main -sticky nsew
+        set options(-foreground) [$win.main cget -foreground]
+        set options(-background) [$win.main cget -background]
+        set options(-width)      [$win.main cget -width]
+        set options(-height)     [$win.main cget -height]
 
-	$self configurelist $args
-        
-        # When the selected tab has changed we need to update its tab to indicate
-        # It's lines have been read.
-        
+        $self configurelist $args
+
+        grid rowconfigure $win 0 -weight 1
+        grid columnconfigure $win 0 -weight 1
+
+# When the selected tab has changed we need to update its tab to indicate
+# It's lines have been read.
+
         bind $win <<NotebookTabChanged>> [mymethod _TabChanged]
     }
 
@@ -2294,6 +2319,10 @@ proc Output::getInstance { {win {}} args} {
         set sm [RunstateMachineSingleton %AUTO%]
         $sm addCalloutBundle Output
         $sm destroy
+      
+        grid $::Output::theInstance -sticky nsew
+        grid rowconfigure $win 0 -weight 1
+        grid columnconfigure $win 0 -weight 1
     }
     return $::Output::theInstance
 }

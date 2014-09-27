@@ -1,6 +1,11 @@
 #
 #   Build the C++ library:
 #
+
+
+PYTHON_PACKAGES=PortManager.py
+PYTHON_PKGINSTDIR=@prefix@/pythonLibs/nscldaq/portmanager
+
 lib_LTLIBRARIES=libPortManager.la
 libPortManager_la_SOURCES = CPortManagerException.cpp \
 			    CPortManager.cpp
@@ -32,6 +37,8 @@ TCLAPPS=DaqPortManager.tcl
 
 TCLTESTS=connectionmanager.test portallocator.test portmanager.test log.test
 
+PYTHON_TESTS=PortManagerTests.py
+
 
 #
 #   Install the TCL Packages:
@@ -40,15 +47,18 @@ TCLTESTS=connectionmanager.test portallocator.test portmanager.test log.test
 install-exec-local:
 	$(mkinstalldirs) @prefix@/bin
 	$(mkinstalldirs) @prefix@/TclLibs/PortManager
+	$(mkinstalldirs) $(PYTHON_PKGINSTDIR)
+	touch $(PYTHON_PKGINSTDIR)/__init__.py
 	for f in  $(TCLPACKAGES); do @INSTALL_SCRIPT@ @srcdir@/$$f @prefix@/TclLibs/PortManager; done
 	for f in  $(TCLAPPS); do @INSTALL_SCRIPT@ @srcdir@/$$f     @prefix@/bin/DaqPortManager; done
+	for f in $(PYTHON_PACKAGES);  do $(INSTALL_SCRIPT) @srcdir@/$$f $(PYTHON_PKGINSTDIR); done
 	echo "pkg_mkIndex @prefix@/TclLibs/PortManager *.tcl" | @TCLSH_CMD@
 
 
 #
 #  The distribution should contain the tcl files as well as their unit tests:
 #
-EXTRA_DIST =$(TCLPACKAGES) $(TCLAPPS) $(TCLTESTS)  portmanager.xml
+EXTRA_DIST =$(TCLPACKAGES) $(TCLAPPS) $(TCLTESTS) $(PYTHON_PACKAGES) $(PYTHON_TESTS) portmanager.xml
 
 #
 #  The tests are all TCL tests and can be unconditionally run.
@@ -60,6 +70,10 @@ noinst_PROGRAMS = cpptest
 cpptest_SOURCES = cpptest.cpp
 cpptest_LDADD= -L. -lPortManager @LIBEXCEPTION_LDFLAGS@
 
+
+
 check-TESTS: cpptest
 	for f in @srcdir@/*.test;do @TCLSH_CMD@ $$f; done
 	@builddir@/cpptest
+	for f in $(PYTHON_TESTS); do PYTHONPATH=@prefix@/pythonLibs @PYTHON@ $$f; done
+

@@ -9,6 +9,7 @@ noinst_HEADERS		=	COutputThread.h		\
 
 INCLUDES		= -I@top_srcdir@/usb/ccusb/threadcomm  \
 			-I@top_srcdir@/usb/ccusb		\
+			@TCL_CPPFLAGS@				\
 			@LIBTCLPLUS_CFLAGS@		\
 			-I@top_srcdir@/base/headers		\
 			-I@top_srcdir@/base/dataflow		\

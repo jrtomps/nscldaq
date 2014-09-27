@@ -14,12 +14,18 @@
 	     East Lansing, MI 48824-1321
 */
 #include <string>
+#include <tcl.h>
+
+
 
 using std::string;
 
 class CConfiguration;
 class CVMUSB;
 class TclServer;
+class CTCLInterpreter;
+
+
 namespace Globals {
   CConfiguration*    pConfig;
   string             configurationFilename;
@@ -31,4 +37,6 @@ namespace Globals {
   size_t             usbBufferSize;
   unsigned           sourceId = 0;
   char*              pTimestampExtractor = 0;
+  Tcl_ThreadId           mainThreadId = 0;
+  CTCLInterpreter*       pMainInterpreter = 0;
 };

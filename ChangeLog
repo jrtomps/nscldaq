@@ -618,3 +618,138 @@ Open rc7 work.
 	disentangle ouptput.
 	* Added error icons to tabs that have errors.
 	
+Open Rc10 work
+	*  Issue #1953, Issue #1954, Issue #1951, Issue #1952, 
+	Issue #1953, Issue #1955, Initial not so complete experiment
+	editor.
+	* Issue #1964 - State manager.
+	* Issue #1961, Issue #1965 - Boot manager, knows how to create
+	ringbuffers and programs and to force the state manager back to
+	the NotReady state if the programs fail to start or exit.
+	* Document the experiment editor program.
+	* Bug #2131 - ReadoutGui.tcl - don't let the ProvderListDialog
+	constructor invoke modal as that is the cause of the bug above..
+
+11.0-rc11
+	* Fix Bug #2115 - CCCUSB::readDelays has to be done as a read32.
+	* Fix Bug #2114 - XXUSBReadout - should not force a scaler dump
+	unless there is a stack established with  a scaler trigger.
+	* Fix Bug #2096 - tkbufudmp had hardcoded daqbin directory.
+	* Fix Bug #2083 - Improve error messages for CAENcard whengoe
+	addressing is not requested
+	* Allow CAENcard to be programmed with a GEO address that is not a
+	valid VME slot number if geo addressing is not being used.
+	* Sprint for experiment configuration Begin/End completed:
+	* Issue #1962 - Control panel for state manager.
+	* Issue #1966, Issue $1967 Users can use the control panel to
+	start and stop runs.
+	* Issue #2117 - State aware readouts report state transition
+	failures as well as failures in the active state to the
+	statemanager as FAIL transition requests.
+	* Issue #2122 - Documentation of the elements created/changed in
+	the experiment configuration Begin/End sprint.
+
+Work on 11.0-rc11 begins
+	
+        * Fix Bug #2135 - --version switch didn't really work for python programs
+          implemented in the rc11 sprint.
+        * Add Feature #2139 - Support running the CCUSBReadout from within the
+          state/boot manager by adding an --init-script option and ensuring that
+          the program runs an event loop for command input rather than just the
+          plain old Tcl interpreter loop (this last ensures that Tcl_ThreadQueueEvent
+          events are eventually actually executed in the target interpreter/thread).
+        * Add Feature #2138 - Support running the VMUSBReadout from within the
+          state/boot manager see above for the changes done.
+        * Partial fix for Bug #2132 : Schedule Tclserver exit from overriden exit
+          command and join with that thread prior to calling Tcl_Exit to ensure
+          the event loop mutexes all run down properly.
+        * Did similar partial fix for #2132 for CCUSBReadout
+	* Fix a couple of issues in scaler display:
+	  - S800 dt comes across as -NaN rather than 0 catch that.
+	  - Notebook no longer can give me -background just set
+	    normalcolor to white
+	* Change BufferToRing so that scaler buffers have not body header.
+        * Add -timestamp to VMUSB SIS3820 module.
+        * In port the CSIS3820 from nextgen to support the 48 bit scalers that
+          were added in that release.
+	* Fix errors in scaler display related to non-incremental scalers.
+	* Remove popup from s800toring on exit.  Put the policy decision
+	about what to do when it exits on the user (e.g. ReadoutShell)
+	rather than on the script itself.
+	* Add Os::blockSignal to allow code to block the delivery of
+	specifci signals.
+	* Block SIGPIPE in ringtostdin, stdintoring and ringselector to
+	fix edge case where the pipe breaks before the write starts.
+	* Fix errors with scaler display handling of -width switch.
+	
+11.0-Rc12
+	* Fix Issue #2197 - note that .started and its relatives just get
+	  silently deleted, but the first and last issue in this report
+	have been fixed by improved error messages in eventLogBundle.tcl
+	* Fix Bug #2191  - When a part of the EVB Pipeline downstream of
+	the event builder exits, then kill the entire pipeline with
+	notification so the restart works correctly.
+	* Fix? Bug #2188 - Ensure that all interesting numbers in the
+	event orderer gui are rendered as unsigned ints.
+	* Fix Bug #2182 as follows: Add key bindings for enter and tab
+	that update the --dt value.  So you do need to use one of those to
+	commit the value. 
+	* Turn off the pop up when s800toring exits.
+	* Fix Defect #2253 - Too long title in the Readout GUI makes run
+	start fail.
+	* Feature #2340 - Use monitor stack to periodically flush partial
+	  event buffer.
+	* Fix a few threading errors and edge cases with the monitor stack
+	* Complete first sprint of new scaler program:
+	* Feature #2204 - Users can specify scaler channels
+	* Feature #2209 - Users can specify alarms on channels.
+	* Feature #2206 - Users can specify display pages.
+	* Feature #2207 - Users can specify display_single lines.
+	* Feature #2208 - Users can specify display_ratio lines
+	* Feature #2210 - Alarmed scalers are highlighted in color.
+	* Feature #2205 - The scaler program can be attached to a ring.
+	* Feature #2211, Feature #2212 - Scalers update properly.
+	* Feature #2213 - Users get end of run reports.
+	* Complete second sprint of new scaler program:
+	* Feature #2256 - Users want to see the run duration (show max
+	over all sources).
+	* Feature #2257 - Show most recent update intervals from all
+	sources.
+	* Feature #2259 - Users can disable alarms (Checkbutton).
+	* Feature #2260 - Users can define a strip chart single parameter.
+	* Feature #2263 - Users can define a stripcharted ratio of
+	parameters.
+	* Feature #2266 - If there is a strip parameter or strip ratio, a
+	strip chart will be created.
+	* Feature #2268 Scaler events update the strip chart.
+	* Feature #2271 End of run produces a postscript of the strip
+	chart.
+	* Added the 'special' updated version of plotchart to the build.
+	* Added features to the plotchart stripchart to allow one to fetch
+	current plot limits.
+	* Added CAEN xyplotcontainer and related modules to the build.
+	* Feature #2457 - added padding in the elapsed time header of the
+	new scaler program
+	* Feature #2385 - Labeled axes for scaler program strip chart.
+	* Feature #2043 - Tested newscaler with multiple data source
+	(event builder 	output).
+	* Feature #2502 - Added 'blank' command to newscaler config file.
+	* Feature #2505 - Implement newscaler config file stripconfig
+	command. For now this only supports the -timeaxis option.
+	* Feature #2397 - Newscaler - default ring to
+	tcp://localhost/$tcl_platform(user) 
+	* Feature #2388 - new scaler  decimate old data so that we don't
+	ever blow away the virtual memory limit.
+	* Feature #2400 - Support SCALER_RING containing a list of ring
+	URIs.
+	* Feature #2391 - newscaler - add a startup script.
+	* Feature #2382 - newscaler strip chart trace names relate back to
+	the names of the scalers they chart.
+	* Feature #2394 - newscaler tabs have a background image that is a
+	color that reflects their alarm state - note this shows very bad
+	performance when remotely displayed over WAN
+	(e.g. comcast)... need to check that this is not bad inside the
+	NSCL or look for a better way to do thins).
+	* Feature #2406 - Test newscaler integration with a mix of
+	incremental and non-incremental scalers.
+	* Feature *2409 - Documented newscaler and TclRingBuffer package

@@ -1,6 +1,9 @@
 lib_LTLIBRARIES	=	libSBSProductionReadout.la
 
 
+TCLPACKAGES = readoutStateHook.tcl
+TCLPKGDIR   = @prefix@/TclLibs/readoutStateHook
+
 BUILT_SOURCES=options.c options.h
 
 libSBSProductionReadout_la_SOURCES	=				\
@@ -80,7 +83,8 @@ libSBSProductionReadout_la_LIBADD	=	@top_builddir@/sbs/vmemodules/libSBSDeviceSu
 libSBSProductionReadout_la_LDFLAGS	=	-version-info	1:0:0	\
 						@LIBTCLPLUS_LDFLAGS@ $(TCL_LDFLAGS) $(THREADLD_FLAGS)
 
-EXTRA_DIST	=	options.ggo Skeleton.cpp UserMakefile.in SBSRdoMakeIncludes.in SBSReadout.xml
+EXTRA_DIST	=	options.ggo Skeleton.cpp UserMakefile.in SBSRdoMakeIncludes.in SBSReadout.xml \
+			$(TCLPACKAGES)
 
 
 noinst_PROGRAMS	= Readout tests
@@ -101,11 +105,14 @@ install-exec-local:
 	$(mkinstalldirs) @prefix@/skeletons/sbs
 	$(mkinstalldirs) @prefix@/etc
 	$(mkinstalldirs) @prefix@/include/sbsreadout
+	$(mkinstalldirs) $(TCLPKGDIR)
 	$(INSTALL_SCRIPT) @srcdir@/Skeleton.cpp @prefix@/skeletons/sbs
 	$(INSTALL_SCRIPT) @srcdir@/Skeleton.h @prefix@/skeletons/sbs
 	$(INSTALL_SCRIPT) UserMakefile @prefix@/skeletons/sbs/Makefile
 	$(INSTALL_SCRIPT) SBSRdoMakeIncludes @prefix@/etc
 	$(INSTALL_SCRIPT) @srcdir@/*.h @prefix@/include/sbsreadout
+	for f in $(TCLPACKAGES); do $(INSTALL_SCRIPT) @srcdir@/$$f $(TCLPKGDIR); done
+	echo "package ifneeded ReadoutStateHook 1.0 [list source [file join \$$dir readoutStateHook.tcl]]" > $(TCLPKGDIR)/pkgIndex.tcl
 
 
 options.c:	options.ggo

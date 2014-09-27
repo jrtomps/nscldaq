@@ -44,6 +44,12 @@
 #endif
 #endif
 
+class CTCLInterpreter;
+
+#ifndef _TCLOBJECT_H
+#include <TCLObject.h>
+#endif
+
 // Forwared definitions:
 
 class RunState;			
@@ -55,6 +61,7 @@ class CTriggerLoop;
 class CRingBuffer;
 class CEventSegment;
 class CScaler;
+
 
 struct gengetopt_args_info;
 
@@ -95,6 +102,7 @@ private:
   uint32_t                m_nSourceId;
   bool                    m_needHeader;
   uint16_t                m_nDefaultSourceId;
+
 
   // Canonicals:
 
@@ -140,11 +148,16 @@ public:
   }
   void setTimestamp(uint64_t stamp);
   void setSourceId(uint32_t id);
+  void triggerFail(std::string msg);
+  void syncEndRun(bool pause);
 
 private:
   void readScalers();
-  void syncEndRun(bool pause);
+  
   static int HandleEndRunEvent(Tcl_Event* evPtr, int flags);
+  static int HandleTriggerLoopError(Tcl_Event* evPtr, int flags);
+  static CTCLObject createCommand(
+    CTCLInterpreter* pInterp, const char* verb, std::string parameter);
   static uint64_t getTimeMs();
 
 };

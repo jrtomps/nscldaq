@@ -47,12 +47,27 @@
 #endif
 #endif
 
+#ifndef __EVBFRAMEWORK_H
+#include <EVBFramework.h>
+#ifndef __EVBFRAMEWORK_H
+#define __EVBFRAMEWORK_H
+#endif
+#endif
+
+#ifndef __DATAFORMAT_H
+#include <DataFormat.h>
+#ifndef __DATAFORMAT_H
+#define __DATAFORMAT_H
+#endif
+#endif
 
 // Forward definitions:
 
 class CRingBuffer;
+class CRingItem;
 struct _PhysicsEventItem;
 typedef _PhysicsEventItem *pPhysicsEventItem;
+
 struct gengetopt_args_info;
 struct timespec;
 
@@ -111,6 +126,8 @@ public:
 private:
   uint64_t timedifMs(struct timespec& tlater, struct timespec& tearlier); 
   std::string copyLib(std::string original);
+
+  bool formatPhysicsEvent(pRingItem item, CRingItem* p, ClientEventFragment& frag);
 };
 
 #endif

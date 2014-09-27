@@ -142,6 +142,7 @@ CBeginRun::operator()(CTCLInterpreter& interp,
     return TCL_ERROR;
 		       
   }
+  pState->setState(CRunState::Starting);     // Prevent monitor thread for accessing.
 
   // Reconnect the VM-USB:
 

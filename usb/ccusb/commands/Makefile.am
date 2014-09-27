@@ -4,6 +4,7 @@ libCCUSBCommands_la_SOURCES	=	CBeginRun.cpp	\
 				CPauseRun.cpp	\
 				CResumeRun.cpp	\
 				CInit.cpp	\
+				CExit.cpp	\
 				tclUtil.cpp	
 
 include_HEADERS		= 	CBeginRun.h	\
@@ -11,6 +12,7 @@ include_HEADERS		= 	CBeginRun.h	\
 				CPauseRun.h	\
 				CResumeRun.h	\
 				CInit.h	\
+				CExit.h		\
 				tclUtil.h
 
 INCLUDES		= 	-I@top_srcdir@/usb/ccusb/threadcomm	\

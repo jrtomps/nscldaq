@@ -84,13 +84,21 @@ class FileMenu:
         #  Cancel will give a size zero string:
         
         if fname.size() > 0:
+            fname = str(fname)                   # QString -> String
+            #
+            # If the file does not have a type we append .experiment to it.
+
+            fileInfo = os.path.splitext(fname)
+            if (fileInfo[1] == "") :
+                fname = fname + '.experiment'
+                
+
             # If the file already exists, we need to get rid of it, the user
             # has already approved an overwrite.
             # This is needed becayuse the sqlite schema creation will fail if
             # the file is either not an sqlite database file or is an existing
             # project:
             
-            fname = str(fname)                   # QString -> String
             if os.path.isfile(fname):
                 os.remove(fname)
             myProject  = project.Project(fname)

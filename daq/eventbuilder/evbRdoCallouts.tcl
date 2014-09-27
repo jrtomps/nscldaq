@@ -27,6 +27,7 @@ package require ring
 namespace eval ::EVBC {
     set initialized 0
     set pipefd    "";            # Holds the fd to the pipe inot the evbpipeline
+    set evbpids   [list];        # Holds list of PIDS that are the event builder.
     
     # Figure out where we are and hence the root of the daq system:
     # We assume we are in one directory below TclLibs in computing this:
@@ -77,6 +78,7 @@ snit::type EVBC::StartOptions {
     option -teering
     option -glombuild false
     option -glomdt 1
+    option -glomid 0
     option -glomtspolicy -configuremethod checkTsPolicy -default earliest
     option -destring $::tcl_platform(user)
     
@@ -135,6 +137,23 @@ snit::type EVBC::AppOptions {
         set startOptions [EVBC::StartOptions %AUTO%]
         
         $self configurelist $args
+    }
+
+
+    ## Return a new EVBC::AppOptions that has the same state 
+    #
+    method clone {} {
+
+      # get all of the options and their values and make a dict of them
+      set state [dict create]
+      foreach opt [$self info options] {
+        set value [$self cget $opt]
+        dict set state $opt $value 
+      }
+
+      # return a new snit object with the same params
+      return [[$self info type] %AUTO% {*}$state]
+
     }
 }
 
@@ -213,6 +232,8 @@ proc EVBC::start args {
     
     
     set EVBC::pipefd [open "| $pipecommand" w+]
+    set EVBC::evbpids [pid $::EVBC::pipefd];      # Capture the PIDS.
+
     fconfigure $EVBC::pipefd -buffering line -blocking 0
     fileevent $EVBC::pipefd readable EVBC::_PipeInputReady
     
@@ -279,6 +300,8 @@ proc EVBC::stop {} {
     # Tell the interpreter to exit.
     # note that the pipefd close will trigger _PipeInputReady which will
     # in turn close the pipefd after reaping any errors.
+
+    set EVBC::evbpids [list];              # Expecting the exit so empty the pidlist.
     
     puts $EVBC::pipefd exit
     
@@ -325,7 +348,7 @@ proc EVBC::flush {} {
 # @note Event sourcese are subprocesses of us but not subprocesses of the
 #       the event building pipeline.
 #
-proc EVBC::startRingSource {sourceRingUrl timestampExtractorLib id info} {
+proc EVBC::startRingSource {sourceRingUrl timestampExtractorLib id info {expectHeaders 0}} {
     #
     #  Figure out what port the event builder is running on... or if it's running
     #
@@ -350,11 +373,15 @@ proc EVBC::startRingSource {sourceRingUrl timestampExtractorLib id info} {
     #  Construct the command we're going to run
     
     set ringSource [file join $EVBC::daqtop bin ringFragmentSource]
-    append ringSource " --evbhost=localhost --evbport=$port"
-    append ringSource " --info=$info --ids=$id --ring=$sourceRingUrl"
-    append ringSource " --timestampextractor=[file normalize $timestampExtractorLib]"
+
+    set switches [::EVBC::_computeRingSourceSwitches $port $sourceRingUrl \
+                                                     $timestampExtractorLib \
+                                                     $id \
+                                                     $info \
+                                                     $expectHeaders]
     
-    
+    append ringSource $switches
+
     # Run the command in a pipeline that gets stderr/stdout and
     # set a fileevent on it so that we get output and errors and eof.
     # The trick with cat below ensures that we get both stderr and stdout.
@@ -365,6 +392,37 @@ proc EVBC::startRingSource {sourceRingUrl timestampExtractorLib id info} {
 
     puts [format "EVBC::startRingSource completed @ %d" [clock microseconds]]
 }
+
+
+##
+# @fn EVBC::_computeRingSourceSwitches
+#
+# @param port             the port of the orderer server
+# @param url              url of the ring 
+# @param tstampExtractor  path to tstamp extractor lib
+# @param id               source id associated with source
+# @param info             description of the source
+# @param expectHeaders    boolean to specify --expectbodyheaders flag
+# 
+# @returns string containing command line arguments to use
+#
+proc EVBC::_computeRingSourceSwitches {port url tstampExtractor id info expectHeaders} {
+
+    set switches ""
+    append switches " --evbhost=localhost --evbport=$port"
+    append switches " --info=$info --ids=$id --ring=$url"
+
+    if {$tstampExtractor ne ""} {
+      append switches " --timestampextractor=[file normalize $tstampExtractor]"
+    }
+
+    if {[string is true $expectHeaders]} {
+      append switches " --expectbodyheaders"
+    }
+
+    return $switches
+}
+
 ##
 # @fn EVBC::startS800Source
 #
@@ -420,7 +478,7 @@ proc EVBC::initialize args {
         }
 
         # if -gui is true, start it
-        if {[$EVBC::applicationOptions cget -gui]} {
+        if {[$EVBC::applicationOptions cget -gui] && ($EVBC::guiFrame eq "")} {
             EVBC::_StartGui
         }
     
@@ -537,6 +595,16 @@ proc EVBC::_PipeInputReady {} {
         catch {close $EVBC::pipefd} msg
         EVBC::_Output "Event builder pipeline exited $msg"
         set EVBC::pipefd ""
+	#
+	# Ensure the entire pipeline is dead too, and bitch if this is unexpected:
+	#
+	if {[llength $::EVBC::evbpids] != 0} {
+	    tk_messageBox -icon error -title {EVB pipe exit}  -type ok \
+		-message {An element of the event builder pipeline exited.  Killing the entire pipe}
+	    foreach pid $::EVBC::evbpids {
+		catch {exec kill -9 $pid}
+	    }
+	}
     } else {
         EVBC::_Output [gets $EVBC::pipefd]
     }
@@ -635,6 +703,13 @@ proc EVBC::_StartGui {} {
     
     spinbox $glom.dt -from 0 -to 1000000 -increment 1 \
         -command [list EVBC::_GlomDtChanged $glom.dt] -width 8
+
+    # We need to bind the enter key to invoke _GlomChanged as well
+    # since no keystrokes fire the -command.
+
+    bind $glom.dt <Key-Return> [list EVBC::_GlomDtChanged %W]
+    bind $glom.dt <Key-Tab>    [list EVBC::_GlomDtChanged %W]
+
     $glom.dt delete 0 end
     $glom.dt insert 0 [$EVBC::applicationOptions cget -glomdt]
  

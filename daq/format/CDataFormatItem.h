@@ -59,8 +59,8 @@ public:
 public:
     // Getters (these are useful when the item was created from a RingItem)
     
-    uint16_t major() const;
-    uint16_t minor() const;
+    uint16_t getMajor() const;
+    uint16_t getMinor() const;
     
     // object methods:
 

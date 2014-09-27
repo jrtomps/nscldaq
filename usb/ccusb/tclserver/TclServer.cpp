@@ -49,7 +49,8 @@ TclServer::TclServer() :
   m_configFilename(string("")),
   m_pVme(0),
   m_pInterpreter(0),
-  m_dumpAllVariables(true)
+  m_dumpAllVariables(true),
+  m_exitNow(false)
 {}
 /*!
   These threads are built to live 'forever' so the destructor is also 
@@ -144,6 +145,22 @@ TclServer::init()
     initModules();              // Initialize the fully configured modules.
     startTcpServer();		// Set up the Tcp/Ip listener event.
 }
+/**
+ * scheduleExit
+ *   This is called to set an exit event into my event queue.
+ *   Normally this is called from a different thread.
+ *
+ */
+void
+TclServer::scheduleExit()
+{
+    Tcl_Event* pEvent = reinterpret_cast<Tcl_Event*>(Tcl_Alloc(sizeof(Tcl_Event)));
+    pEvent->proc = TclServer::Exit;
+    
+    Tcl_ThreadQueueEvent(m_tclThreadId, pEvent, TCL_QUEUE_HEAD);   // exit is urgent.
+}
+
+
 /*!
    Entry point for the thread.  This will be called when the thread is first
    scheduled after start was called.  We just need to call our
@@ -154,6 +171,7 @@ TclServer::init()
 void
 TclServer::operator()()
 {
+  m_tclThreadId = Tcl_GetCurrentThread();
   try {
     EventLoop();			// Run the Tcl event loop forever.
   }
@@ -283,12 +301,10 @@ TclServer::EventLoop()
     
     // The actual event loop:
     
-  while(1) {
-    Tcl_WaitForEvent(NULL);
-    Tcl_SetServiceMode(TCL_SERVICE_ALL);
-    Tcl_ServiceAll();
+  while(!m_exitNow) {
+    Tcl_DoOneEvent(TCL_ALL_EVENTS);
   }
- std::cerr << "The Tcl Server event loop has exited. No Tcp ops can be done\n"; 
+ std::cerr << "The Tcl Server event loop has exited.\n"; 
 }
 
 
@@ -415,4 +431,19 @@ TclServer::sendWatchedVariables()
   } else {
     m_dumpAllVariables = true;	// When the run starts next dump everything!
   }
+}
+/**
+ * Exit
+ *   Scheduled from the event loop when the main thread is about to exit.
+ *
+ * @param pEvent - pointer to the event (not used).
+ * @param flags   - Event schedule flags.
+ *
+ * @return int  - 1, the event can be freed.
+ */
+int
+TclServer::Exit(Tcl_Event* pEvent, int flags)
+{
+    ::Globals::pTclServer->m_exitNow = true;
+    return 1;
 }

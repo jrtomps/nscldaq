@@ -17,6 +17,7 @@ class StateMachine:
       self.handlers = {}
       self.startState = None
       self.endStates = []
+      self.currentState = ''
 
   ##
   # add_state - add a new state to the system.
@@ -55,10 +56,20 @@ class StateMachine:
       
       if not self.endStates:
          raise  "InitializationError", "at least one state must be an end_state"
-      
+        
+      self.state = self.startState      
       while 1:
+
          (newState, cargo) = handler(cargo)
          if upper(newState) in self.endStates:
             break
          else:
+            self.state = newState
             handler = self.handlers[upper(newState)]
+            
+  ##
+  # getState
+  #   Return the name of the current state:
+  #
+  def getState(self):
+    return self.state

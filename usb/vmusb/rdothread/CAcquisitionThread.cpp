@@ -16,12 +16,14 @@ East Lansing, MI 48824-1321
 
 #include <config.h>
 #include "CAcquisitionThread.h"
+#include "CTheApplication.h"
 #include <CReadoutModule.h>
 #include <CStack.h>
 #include <CVMUSB.h>
 #include <CVMUSBReadoutList.h>
 #include <DataBuffer.h>
 #include <CControlQueues.h>
+#include <event.h>
 #include "../router/CRunState.h" // else pick up the daq one by mistake.
 #include <CConfiguration.h>
 #include <Globals.h>     // Need to maintain the running global. 
@@ -31,6 +33,7 @@ East Lansing, MI 48824-1321
 #include <Exception.h>
 #include <TclServer.h>
 #include <os.h>
+#include <tcl.h>
 
 #include <iostream>
 
@@ -152,23 +155,44 @@ CAcquisitionThread::operator()()
 
 
     startDaq();             // Setup and start data taking.
-    CRunState* pState = CRunState::getInstance();
-    pState->setState(CRunState::Active);
 
 
     beginRun();     // Emit begin run buffer.
+    std::string errorMessage;
     try {
 
       mainLoop();     // Enter the main processing loop.
     }
-    catch (...) {     // exceptions are used to exit the main loop.?
+    catch (std::string msg) {
+        stopDaq();                       // Ensure we're not in ACQ moe.
+        errorMessage = msg;
+    }
+    catch (const char* msg) {
+        stopDaq();                       // Ensure we're not in ACQ moe.
+        errorMessage = msg;
+    }
+    catch (CException err) {
+        stopDaq();                       // Ensure we're not in ACQ moe.
+        errorMessage = err.ReasonText();
+    }
+    catch (...) {
+        //  This is a normal exit...
     }
     Globals::running = false;
-    endRun();     // Emit end run buffer.
-    pState->setState(CRunState::Idle);
 
-    m_Running = false;    // Exiting.
-    return      0;    // Successful exit I suppose.
+    pState->setState(CRunState::Idle);
+    endRun();			// Emit end run buffer.
+    
+    
+    m_Running = false;		// Exiting.
+    
+    // If there's an error message report the error to the main thread:
+    
+    if (errorMessage != "") {
+        
+        reportErrorToMainThread(errorMessage);
+    }
+    return      0;		// Successful exit I suppose.
   }
   catch (string msg) {
     Globals::running = false;
@@ -284,7 +308,7 @@ CAcquisitionThread::processCommand(CControlQueues::opCode command)
   else if (command == CControlQueues::END) {
     stopDaq();
     queues->Acknowledge();
-    throw "Run ending";
+    throw 0;
   }
   else if (command == CControlQueues::PAUSE) {
     pauseDaq();
@@ -330,8 +354,9 @@ CAcquisitionThread::processBuffer(DataBuffer* pBuffer)
   // The output thread get all other stack data and will ensure that
   // stack 1 completions are scalers and all others are events.
 
-  if (((pBuffer->s_rawData[1] >> 13) & 0x7) == 7) {
+  if ((pBuffer->s_bufferType == TYPE_EVENTS) &&((pBuffer->s_rawData[1] >> 13) & 0x7) == 7) {
     ::Globals::pTclServer->QueueBuffer(pBuffer);
+    gFreeBuffers.queue(pBuffer);
   } 
   else {
     gFilledBuffers.queue(pBuffer);  // Send it on to be routed to spectrodaq in another thread.
@@ -387,11 +412,11 @@ CAcquisitionThread::startDaq()
   //   Flush scalers on a single event.
   //
   m_pVme->writeGlobalMode((4 << CVMUSB::GlobalModeRegister::busReqLevelShift) | 
-      //        CVMUSB::GlobalModeRegister::flushScalers            |
-      CVMUSB::GlobalModeRegister::mixedBuffers            |
-      // CVMUSB::GlobalModeRegister::spanBuffers             |
-      (CVMUSB::GlobalModeRegister::bufferLen13K << 
-       CVMUSB::GlobalModeRegister::bufferLenShift));
+                            //        CVMUSB::GlobalModeRegister::flushScalers |
+                            // CVMUSB::GlobalModeRegister::mixedBuffers        |
+                            // CVMUSB::GlobalModeRegister::spanBuffers         |
+                            (CVMUSB::GlobalModeRegister::bufferLen13K << 
+                                  CVMUSB::GlobalModeRegister::bufferLenShift));
 
 
 
@@ -409,10 +434,14 @@ CAcquisitionThread::startDaq()
   CStack::resetStackOffset();
 
   cerr << "Loading " << m_Stacks.size() << " stacks to vm-usb\n";
+  m_haveScalerStack = false;
   for(int i =0; i < m_Stacks.size(); i++) {
     CStack* pStack = dynamic_cast<CStack*>(m_Stacks[i]->getHardwarePointer());
-
+   
     assert(pStack);
+    if (pStack->getTriggerType()  == CStack::Scaler) {
+      m_haveScalerStack = true;
+    }
     pStack->Initialize(*m_pVme);    // INitialize daq hardware associated with the stack.
     pStack->loadStack(*m_pVme);     // Load into VM-USB
     pStack->enableStack(*m_pVme);   // Enable the trigger logic for the stack.
@@ -446,7 +475,9 @@ CAcquisitionThread::startDaq()
   void
 CAcquisitionThread::stopDaq()
 {
-  m_pVme->writeActionRegister(CVMUSB::ActionRegister::scalerDump);
+  if (m_haveScalerStack) {
+    m_pVme->writeActionRegister(CVMUSB::ActionRegister::scalerDump);
+  }
   m_pVme->writeActionRegister(0);
   drainUsb();
 
@@ -491,7 +522,7 @@ CAcquisitionThread::pauseDaq()
     }
     else if (req == CControlQueues::END) {
       queues->Acknowledge();
-      throw "Run Ending";
+      throw 0;
     }
     else if (req == CControlQueues::RESUME) {
       startDaq();
@@ -512,7 +543,10 @@ CAcquisitionThread::pauseDaq()
   void
 CAcquisitionThread::VMusbToAutonomous()
 {
-  m_pVme->writeActionRegister(CVMUSB::ActionRegister::startDAQ);
+    CRunState* pState = CRunState::getInstance();
+    pState->setState(CRunState::Active);
+
+    m_pVme->writeActionRegister(CVMUSB::ActionRegister::startDAQ);
 }
 /*!
   Drain usb - We read buffers from the DAQ (with an extended timeout)
@@ -580,6 +614,7 @@ CAcquisitionThread::beginRun()
   void
 CAcquisitionThread::endRun()
 {
+
   DataBuffer* pBuffer   = gFreeBuffers.get();
   pBuffer->s_bufferSize = pBuffer->s_storageSize;
   pBuffer->s_bufferType = TYPE_STOP;
@@ -605,4 +640,31 @@ CAcquisitionThread::bootToTheHead()
       &bytesRead, DRAINTIMEOUTS*1000);
   cerr << "Final desparate attempt to flush usb fifo got status: " 
     << status << endl;
+}
+/**
+ * report an error during acquisition to the main thread by scheduling
+ * an event.
+ *
+ * @param msg - the error message to report.
+ */
+void
+CAcquisitionThread::reportErrorToMainThread(std::string msg)
+{
+    struct event {
+        Tcl_Event     event;
+        StringPayload payload;
+    } ;
+    
+    // Allocate and fill in the event:
+    
+    event* pEvent = reinterpret_cast<event*>(Tcl_Alloc(sizeof(event)));
+    pEvent->event.proc = CTheApplication::AcquisitionErrorHandler;
+    pEvent->payload.pMessage = Tcl_Alloc(msg.size() +1);
+    strcpy(pEvent->payload.pMessage, msg.c_str());
+    Tcl_ThreadQueueEvent(
+        Globals::mainThreadId, reinterpret_cast<Tcl_Event*>(pEvent),
+        TCL_QUEUE_TAIL
+    );
+    
+    
 }

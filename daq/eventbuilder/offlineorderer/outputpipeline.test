@@ -1,0 +1,261 @@
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Authors:
+#      NSCLDAQ Development Group
+#
+#	     NSCL
+#	     Michigan State University
+#	     East Lansing, MI 48824-1321
+
+# This software is Copyright by the Board of Trustees of Michigan
+# State University (c) Copyright 2297884. 
+
+# @file  outputpipeline.test 
+# @author Jeromy Tompkins 
+
+
+package require tcltest
+package require InstallRoot
+package require ring 
+
+##
+#
+proc pickle {snitobj} {
+  set opts [$snitobj info options]
+
+  set state [dict create]
+  foreach opt $opts {
+    set value [$snitobj cget $opt]
+    dict set state $opt $value 
+  }
+  return $state
+}
+
+
+
+
+tcltest::test pkgrequire-0 {Test that the package can be required 
+} -body {
+  package require OfflineEVBOutputPipeline 
+} -result 11.0
+
+
+set daqbin [file join [InstallRoot::Where] bin]
+
+
+## Keep adding a's together until we ring name that doesn't exist
+#
+proc findNonExistentRing {} {
+  set name a
+  set status [catch {ringbuffer usage $name} msg]
+  while {$status==0} {
+    append name a
+    set status [catch {ringbuffer usage $name} msg]
+  }
+  return $name
+}
+
+proc findMissingFile {} {
+  set name a
+  while {[file exists $name]} {
+    append name a
+  }
+  return $name
+}
+
+set absentRing [findNonExistentRing]
+set absentFile [findMissingFile]
+
+
+
+
+tcltest::test createPipelineCommand-0 { Test that default values are 
+} -setup {
+  set pipeline [OfflineEVBOutputPipeline %AUTO%]
+  set params  [OfflineEVBOutputPipeParams %AUTO%]
+} -cleanup {
+  $params destroy
+  $pipeline destroy
+} -body {
+  $pipeline createPipelineCommand $params
+} -result "| $daqbin/eventlog --source=tcp://localhost/OfflineEVBOut --prefix=reordered --path=[file join $::env(HOME) offlinestagearea] --oneshot --number-of-sources=2 |& cat"
+
+
+
+
+
+tcltest::test getsetPipeFD-0 {Test that pipeline fd can be set and read
+} -setup {
+  set pipeline [OfflineEVBOutputPipeline %AUTO%]
+} -cleanup {
+  $pipeline destroy
+} -body {
+  $pipeline setPipeFD 23
+  $pipeline getPipeFD
+} -result 23
+
+
+
+
+
+tcltest::test getsetRunning-0 {Test that pipeline running parameter can be set and read
+} -setup {
+  set pipeline [OfflineEVBOutputPipeline %AUTO%]
+} -cleanup {
+  $pipeline destroy
+} -body {
+  $pipeline setRunning on 
+  $pipeline getRunning
+} -result on 
+
+
+
+
+
+#tcltest::test launch-0 {Test that pipeline can be launched 
+#} -setup {
+#  set pipeline [OfflineEVBOutputPipeline %AUTO%]
+#  set params [OfflineEVBOutputPipeParams %AUTO%]
+#} -cleanup {
+#  $params destroy
+#  $pipeline destroy
+#} -body {
+#  $pipeline launch $params 
+#} -returnCodes 0 
+#
+#
+#tcltest::test launch-1 {Test that pipeline can be launched and that running becomes true
+#} -setup {
+#  set pipeline [OfflineEVBOutputPipeline %AUTO%]
+#  set params [OfflineEVBOutputPipeParams %AUTO%]
+#} -cleanup {
+#  $params destroy
+#  $pipeline destroy
+#} -body {
+#  $pipeline launch $params 
+#  $pipeline getRunning
+#} -result true -returnCodes 0 
+#
+#
+#tcltest::test launch-2 {Test a nonexistent ring simply gets created
+#} -setup {
+#  set ringname [findNonExistentRing]
+#  puts "Ring name $ringname doesn't exist"
+#  set pipeline [OfflineEVBOutputPipeline %AUTO%]
+#  set params [OfflineEVBOutputPipeParams %AUTO% -inputring $ringname]
+#} -cleanup {
+#  ringbuffer delete $ringname
+#} -body {
+#  $pipeline launch $params
+#  expr {[string length [ringbuffer usage $ringname]] > 0}
+#} -result {}
+
+
+
+
+tcltest::test  validateRing-0 {Test that a nonexistent ring appends a message
+} -setup {
+  set params [OfflineEVBOutputPipeParams %AUTO%]
+} -cleanup {
+  $params destroy
+} -body {
+  $params configure -ringname "tcp://localhost/$::absentRing"
+
+  set errors [list]
+  $params validateRing errors
+  set errors
+} -result [list "Ring \"$::absentRing\" does not exist on localhost."]
+
+tcltest::test  validateRing-1 {Test that a bad ring specifier appends a message
+} -setup {
+  set params [OfflineEVBOutputPipeParams %AUTO%]
+} -cleanup {
+  $params destroy
+} -body {
+  $params configure -ringname "tcp:://localhost/$::absentRing"
+
+  set errors [list]
+  $params validateRing errors
+  set errors
+} -result [list "Ring name \"tcp:://localhost/$::absentRing\" is not formed as proto://host/ring"]
+
+tcltest::test  validatePrefix-0 {Test that the prefix "" appends a message
+} -setup {
+  set params [OfflineEVBOutputPipeParams %AUTO%]
+} -cleanup {
+  $params destroy
+} -body {
+  $params configure -prefix ""
+
+  set errors [list]
+  $params validatePrefix errors
+  set errors
+} -result [list "Run file prefix must be a string of nonzero length."]
+
+
+tcltest::test  validateStagearea-0 {Test that a nonexist stagearea appends a message
+} -setup {
+  set params [OfflineEVBOutputPipeParams %AUTO%]
+} -cleanup {
+  $params destroy
+} -body {
+  $params configure -stagearea $::absentFile
+
+  set errors [list]
+  $params validateStagearea errors
+  set errors
+} -result [list "Stagearea must be a directory that exists."]
+
+
+tcltest::test  validateNSources-0 {Test that negative nsources appends a message
+} -setup {
+  set params [OfflineEVBOutputPipeParams %AUTO%]
+} -cleanup {
+  $params destroy
+} -body {
+  $params configure -nsources -1
+
+  set errors [list]
+  $params validateNSources errors
+  set errors
+} -result [list "Number of sources for eventlog must be greater than or equal zero."]
+
+tcltest::test  validateLogger-0 {Test that bad eventlog path appends a message
+} -setup {
+  set params [OfflineEVBOutputPipeParams %AUTO%]
+} -cleanup {
+  $params destroy
+} -body {
+  $params configure -logger $::absentFile
+
+  set errors [list]
+  $params validateLogger errors
+  set errors
+} -result [list "No eventlog program exists at \"$::absentFile\""]
+
+
+tcltest::test clone-0 {Test that state can be cloned 
+} -setup {
+  set params [OfflineEVBOutputPipeParams %AUTO%]
+} -cleanup {
+  $params destroy
+  $newparams destroy
+} -body {
+  
+  $params configure -ringname "foo" -prefix "none" -stagearea "here" -nsources 20 -logger "/path/to/logger" \
+                    -usensrcs 1 -forcerun 0 -usechecksum 1
+
+  set newparams [$params clone]
+  pickle $newparams
+} -result "-ringname foo -prefix none -stagearea here -nsources 20 -logger /path/to/logger -usensrcs 1 -forcerun 0 -usechecksum 1"
+
+
+
+
+tcltest::cleanupTests
+
+

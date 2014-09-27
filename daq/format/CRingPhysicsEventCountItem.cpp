@@ -222,6 +222,19 @@ CRingPhysicsEventCountItem::computeElapsedTime() const
     
     return timeOffset/divisor;
 }
+/**
+ * getTimeDivisor
+ *   Return the divisor used to compute the offset.
+ *
+ * @return uint32_t
+ */
+uint32_t
+CRingPhysicsEventCountItem::getTimeDivisor() const
+{
+  pPhysicsEventCountItemBody pItem =
+    reinterpret_cast<pPhysicsEventCountItemBody>(getBodyPointer());
+  return pItem->s_offsetDivisor;
+}
 /*!
    set the time offset.
    \param offset - new value of time offset.
@@ -297,7 +310,7 @@ CRingPhysicsEventCountItem::setEventCount(uint64_t count)
 std::string
 CRingPhysicsEventCountItem::typeName() const
 {
-  return std::string(" Trigger count: ");
+  return std::string("Trigger count");
 }
 /**
  * toString

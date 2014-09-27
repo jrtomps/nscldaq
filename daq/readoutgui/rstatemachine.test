@@ -403,6 +403,41 @@ tcltest::test introspect-getstate {Check that we can know the current state} \
 } -result [list Active Halted NotReady Paused Starting]
 
 
+
+tcltest::test failedTransition-0 {Test that a failed callout bundle will cause subsequent
+  transitions to be aborted and a transition back to NotReady.
+} -setup {
+# A simple bundle to load into the 
+#
+  namespace eval FailBundle {
+    variable count 0
+
+      proc attach {state} {
+        variable count 0
+
+      }
+
+    proc enter {from to} {
+      return -code error "Failed enter $from to $to"
+    }
+
+    proc leave {from to} {
+      return -code error "Failed leave $from to $to"
+    }
+
+    namespace export attach enter leave
+  }
+
+  RunstateMachine rm
+  rm addCalloutBundle FailBundle
+
+} -cleanup {
+  namespace forget FailBundle
+  rm destroy
+} -body {
+  rm transition Starting
+} -result "Failed leave NotReady to Starting" -returnCodes 1
+
 #-----------------------------------------------------------------------------
 #
 # Singleton tests

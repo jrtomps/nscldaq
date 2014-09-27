@@ -79,6 +79,7 @@ stdintoring_DEPENDENCIES = libDataFlow.la @srcdir@/stdintoringsw.h
 
 
 stdintoring_LDADD	=  libDataFlow.la	\
+			@top_builddir@/base/os/libdaqshm.la	\
 			@LIBEXCEPTION_LDFLAGS@ \
 			$(THREADLD_FLAGS) -lrt
 

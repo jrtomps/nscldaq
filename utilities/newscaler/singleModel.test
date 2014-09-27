@@ -1,0 +1,181 @@
+#!/bin/sh
+# -*- tcl -*-
+# The next line is executed by /bin/sh, but not tcl \
+exec tclsh "$0" ${1+"$@"}
+
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2014.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Authors:
+#             Ron Fox
+#             Jeromy Tompkins 
+#	     NSCL
+#	     Michigan State University
+#	     East Lansing, MI 48824-1321
+
+
+
+##
+# @file singleModel.test
+# @brief Tests for the singleModel class.
+# @author Ron Fox <fox@nscl.msu.edu>
+#
+
+set here [file dirname [info script]]
+
+package require tcltest
+source [file join $here channel.tcl];   # we stuff channels in this.
+source [file join $here singleModel.tcl]
+
+tcltest::test numerator-name {After creation getNumeratorName gives correct answer} \
+-cleanup {
+    m destroy
+} \
+-body {
+    singleModel m -name {A test}
+    m getNumeratorName
+} -result "A test"
+
+tcltest::test denominator-name {After creation getDenominatorName is an empty string} \
+-cleanup {
+    m destroy
+} \
+-body {
+    singleModel m -name {A test}
+    m getDenominatorName
+} -result ""
+
+tcltest::test numerator-rate {Should be able to faithfully report numerator rates} \
+-cleanup {
+    c destroy
+    m destroy
+} \
+-body {
+    Channel c
+    singleModel m -name {A test} -channel c
+    c update 1000 1
+    
+    m getNumeratorRate
+} -result [expr {double(1000)}]
+
+tcltest::test denominator-rate {Denominator rate is ""} \
+-cleanup {
+    c destroy
+    m destroy
+} \
+-body {
+    Channel c
+    singleModel m -name {A test} -channel c
+    c update 1000 1
+    
+    m getDenominatorRate
+} -result ""
+
+tcltest::test numerator-total {Correct report of scaler total} \
+-cleanup {
+    c destroy
+    m destroy
+} \
+-body {
+    Channel c
+    singleModel m -name {A test} -channel c
+    c update 1000 2
+    c update 1000 2
+    
+    m getNumeratorTotal
+} -result 2000
+
+
+tcltest::test denominator-total {Empty denominator total} \
+-cleanup {
+    c destroy
+    m destroy
+} \
+-body {
+    Channel c
+    singleModel m -name {A test} -channel c
+    c update 1000 2
+    c update 1000 2
+    
+    m getDenominatorTotal
+} -result ""
+
+tcltest::test ratio-rate {Empty ratio rate} \
+-cleanup {
+    c destroy
+    m destroy
+} \
+-body {
+    Channel c
+    singleModel m -name {A test} -channel c
+    c update 1000 2
+    c update 1000 2
+    
+    m getRateRatio
+} -result ""
+
+tcltest::test ratio-total {Empty ratio of totals} \
+-cleanup {
+    c destroy
+    m destroy
+} \
+-body {
+    Channel c
+    singleModel m -name {A test} -channel c
+    c update 1000 2
+    c update 1000 2
+    
+    m getTotalRatio
+} -result ""
+
+
+##
+#  Check alarm reporting:
+
+tcltest::test alarm-ok {No alarm present} \
+-cleanup {
+    c destroy
+    m destroy
+} \
+-body {
+    Channel c
+    singleModel m -name {A test} -channel c
+    c update 1000 2
+    c update 1000 2
+    
+    m alarmState
+} -result ok
+
+tcltest::test alarm-high {High rate alarm reported} \
+-cleanup {
+    c destroy
+    m destroy
+} \
+-body {
+    Channel c -hilim 100
+    singleModel m -name {A test} -channel c
+    c update 1000 2
+    
+    m alarmState
+} -result high
+
+tcltest::test alarm-low {Low rate alarm reported} \
+-cleanup {
+    c destroy
+    m destroy
+} \
+-body {
+    Channel c -lowlim 100
+    singleModel m -name {A test} -channel c
+    c update 99 1
+    
+    m alarmState
+} -result low
+
+
+tcltest::cleanupTests

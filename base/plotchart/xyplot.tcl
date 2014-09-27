@@ -5,7 +5,7 @@
 package require Tcl 8.5
 package require Tk 8.5
 
-package require Plotchart 2.0
+package require Plotchart 3.0.0
 package require cmdline
 package provide xyplot 1.0.1
 

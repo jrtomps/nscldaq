@@ -996,3 +996,219 @@ foreach allocation $usage {
     </refsect1>
 </refentry>
 <!-- /manpage -->
+
+<!-- manpage 3python -->
+      <refentry id="python3_PortManager">
+        <refmeta>
+           <refentrytitle>PortManager</refentrytitle>
+           <manvolnum>3python</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>PortManager</refname>
+           <refpurpose>Python bindings to port manager</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+            <command>
+from nscldaq.PortManager import PortManager
+          </command>
+          </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+pm = PortManager(host, port=30000)
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+port = pm.getPort(servicename)
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+portinfo = pm.listPorts()
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+portinfo = pm.find(key=value,...)
+            </command>
+        </cmdsynopsis>
+
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Provides a python interface to the port allocator.  The port allocator
+            is a service that runs on NSCLDAQ that allows servicers to obtain a
+            listen port from a pool of dynamically allocated ports.  The service
+            is then advertised by the port manager so that clients can locate and
+            connect to the service.
+           </para>
+        </refsect1>
+        <refsect1>
+            <title>METHODS</title>
+            <variablelist>
+            
+                <varlistentry>
+                    <term>
+                        <funcsynopsis>
+                            <funcprototype>
+                                <funcdef><function>PortManager</function></funcdef>
+                                    <paramdef>string <parameter>host</parameter></paramdef>
+                                    <paramdef>int    <parameter>port</parameter></paramdef>
+                            </funcprototype>
+                        </funcsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Constructs a <classname>PortManager</classname>
+                            object
+                            and returns a reference to it.  <classname>PortManager</classname>
+                            objects represent connections to port manager
+                            servers.  <parameter>host</parameter> is the host
+                            on which the port manager server is running
+                            and <parameter>port</parameter> is the port
+                            on which the port manager is listening for
+                            connections.  By default (and if this parameter
+                            is not supplied), the <parameter>port</parameter>
+                            is <literal>30000</literal>, which is, by default
+                            where the NSCL port manager listens.
+                        </para>
+                        <para>
+                            The <parameter>host</parameter> parameter is a
+                            string that can either be the DNS name of the
+                            host or the IP address (dotted form) of that
+                            host.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <methodsynopsis>
+                            <type>int</type> <methodname>getPort</methodname>
+                            <methodparam>
+                                <type>string</type> <parameter>servicename</parameter>
+                            </methodparam>
+                        </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            This method of a port manager object interacts
+                            with a local port manager (the host specified
+                            whenthe object was created must be
+                            <literal>localhost</literal>) to allocate a port
+                            and associated it with a service specification.
+                        </para>
+                        <para>
+                            Service specification consist of two parts, a
+                            service name, specified by the
+                            <parameter>servicname</parameter> parameter
+                            and the name of the user running the server,
+                            specified automatically by the <methodname>getPort</methodname>
+                            method.
+                        </para>
+                        <para>
+                            On success, the method returns the integer
+                            allocated port number.  On failure, an exception
+                            raised.  The exception can be a
+                            <classname>RuntimeError</classname>, if the
+                            server reported an error condition, or any
+                            other error the socket calls might return.
+                        </para>
+                        <para>
+                            In the event of a <classname>RuntimeError</classname>
+                            exception, the text of the exception is the
+                            error message string returned by the server.
+                            Regardless, once an error exception has been
+                            raised, the caller should assume that all
+                            previously allocated services have been released
+                            and that the connection to the port manager
+                            object has been terminated.  The calling program
+                            should allow the port manager object to be
+                            garbage collected, and should not attempt to make
+                            use of the object again.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <methodsynopsis>
+                            <type>list of dicts</type><methodname>listPorts</methodname>
+                            <void />
+                        </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Obtains a list of the ports the server has allocated.
+                            This is most often done to determine which port to
+                            perform a <literal>socket.connect</literal> call
+                            on to connect to a specific service.
+                            See, however the <methodname>find</methodname>
+                            which performs some filtering of the full port
+                            list obtained via <methodname>listPorts</methodname>
+                        </para>
+                        <para>
+                            The result is a list of dicts.  The
+                            <literal>service</literal> key of each dict contains
+                            the name of the service, while the <literal>user</literal>
+                            key the user that is running the server.  The
+                            <literal>port</literal> key contains the port itself.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <methodsynopsis>
+                            <type>list of dicts</type><methodname>find</methodname>
+                            <methodparam>
+                                <type>keyword/value list</type><parameter>**criteria</parameter>
+                            </methodparam>
+                        </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            First performs a <methodname>listPorts</methodname>
+                            call and then filters the data returned by that
+                            call using the keyword value pairs in the
+                            <parameter>**criteria</parameter>.
+                        </para>
+                        <para>
+                            Keywords are applied cumulatively and in
+                            the following order:
+                        </para>
+                        <para>
+                            <literal>service</literal> the value of this
+                            keyword is a service name that must be
+                            exactly matched to allow a port definition
+                            to survive the filter.
+                        </para>
+                        <para>
+                            <literal>beginswith</literal>
+                            is a prefix to the service name.  Only services
+                            whose names begin with this value survive
+                            the filtering.  The motivation for this criterion
+                            is that if a user starts up more than one service
+                            with the same name, the port manager silently appends
+                            <literal>_n</literal> to the name, where n is a
+                            unique integer (e.g. <literal>myService</literal>,
+                            <literal>myService_1</literal>).  The
+                            <literal>prefix</literal> criterion allows
+                            you to list all instances of a single service
+                            run on a node by a user.
+                        </para>
+                        <para>
+                            <literal>user</literal> Filters the data to
+                            match only those services run by a specific
+                            user.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                    
+            </variablelist>
+        </refsect1>
+
+      </refentry>
+
+<!-- /manpage -->

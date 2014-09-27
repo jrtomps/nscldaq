@@ -48,7 +48,7 @@ set debug 1
 # and finding all that end in _Provider. The _Provider suffix is stripped
 # from these and the remaining part of each package name is used to 
 # form the following list. Note that it is also an ordered list.
-set sources [list RemoteGUI S800 SSHPipe]
+set sources [list Delay Offline RemoteGUI S800 SSHPipe]
 
 tcltest::test enumerate-1 {Test ability for mgr to enumerate sources} \
 -body {

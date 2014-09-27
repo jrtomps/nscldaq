@@ -1,0 +1,249 @@
+#!/bin/sh
+# -*- tcl -*-
+# The next line is executed by /bin/sh, but not tcl \
+exec tclsh "$0" ${1+"$@"}
+
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2014.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Authors:
+#             Ron Fox
+#             Jeromy Tompkins 
+#	     NSCL
+#	     Michigan State University
+#	     East Lansing, MI 48824-1321
+
+
+
+##
+# @file ratioModel.test
+# @brief Tests for the ratio model.
+# @author Ron Fox <fox@nscl.msu.edu>
+#
+package require tcltest
+set here [file dirname [info script]]
+source [file join $here ratioModel.tcl]
+source [file join $here channel.tcl]
+
+##
+# setup and cleanup are common across all tests:
+
+proc setup {} {
+    Channel c1
+    Channel c2
+    ratioModel m \
+        -numerator c1 -denominator c2 -numeratorname scaler1 -denominatorname scaler2
+    
+}
+proc cleanup {} {
+
+    # Kill the scalers and the model:
+    
+    c1 destroy
+    c2 destroy
+    m  destroy
+    
+}
+
+tcltest::test ratio-numname {Test getNumeratorName} \
+-cleanup {
+    cleanup
+} \
+-setup {
+    setup
+} \
+-body {
+    
+    m getNumeratorName
+    
+}  -result scaler1
+
+tcltest::test ratio-denomname {Test getDenominotorName} \
+-cleanup {
+    cleanup
+} \
+-setup {
+    setup
+} \
+-body {
+    
+    m getDenominatorName
+    
+}  -result scaler2
+
+tcltest::test ratio-numrates {Test getNumeratorRates} \
+-setup { setup } -cleanup {cleanup} \
+-body {
+    c1 update 1234 1
+    
+    m getNumeratorRate
+    
+} -result 1234.0
+
+tcltest::test ratio-numrates {Test getDenominatorRates} \
+-setup { setup } -cleanup {cleanup} \
+-body {
+    c2 update 1234 1
+    
+    m getDenominatorRate
+    
+} -result 1234.0
+
+tcltest::test ratio-numtotals {test GetNumeratorTotal} \
+-setup { setup } -cleanup {cleanup} \
+-body {
+    c1 update 1234 1
+    c1 update 555 1
+    
+    m getNumeratorTotal
+    
+} -result [expr {1234+555}]
+
+
+tcltest::test ratio-dentotals {test GetDenominatorTotal} \
+-setup { setup } -cleanup {cleanup} \
+-body {
+    c2 update 1234 1
+    c2 update 555 1
+    
+    m getDenominatorTotal
+    
+} -result [expr {1234+555}]
+
+
+tcltest::test ratio-rateratio {test getRateRatio} \
+-setup { setup } -cleanup {cleanup} \
+-body {
+    c1 update 1234 1
+    c2 update 617  1
+    
+    m getRateRatio
+} -result 2.0
+
+tcltest::test ratio-ratratioundef {when the rate in the denominator of the rate is 0:} \
+-setup { setup } -cleanup {cleanup} \
+-body {
+    c1 update 1234 1
+    c2 update 0    1
+    
+    m getRateRatio
+} -result *
+
+tcltest::test ratio-totratio {test getTotalRatio} \
+-setup { setup } -cleanup {cleanup} \
+-body {
+    c1 update 1234 1
+    c2 update 617  1
+    
+    m getTotalRatio
+} -result 2.0
+
+tcltest::test ratio-totundef {when the total denominator os 0: } \
+-setup { setup } -cleanup {cleanup} \
+-body {
+    c1 update 1234 1
+    c2 update 0    1
+    
+    m getTotalRatio
+} -result *
+
+#
+#  Tests for the alarm state.
+#
+tcltest::test ratio-noalarm {test no alarms} \
+-setup { setup } -cleanup {cleanup} \
+-body {
+    c1 update 1234 1
+    c2 update 617  1
+    
+    m alarmState
+} -result ok
+
+tcltest::test ratio-low {test all cases we should get a low alarm} \
+-setup { setup } -cleanup {
+    cleanup
+    unset result
+} \
+-body {
+    c1 configure -lowlim 100
+    c2 configure -lowlim 100
+    
+    # low.ok
+    
+    c1 update 50 1;             
+    c2 update 101 1; 
+    
+    lappend result [m alarmState]
+    
+    # ok.low
+    
+    c1 update 101 1
+    c2 update 40  1
+    
+    lappend result [m alarmState]
+    
+    # low.low
+    
+    c1 update 99 1
+    c2 update 99 1
+    
+    lappend result [m alarmState]
+} -result [list low low low]
+    
+tcltest::test ratio-high1 {test cases that return a high alarm where c1 is high} \
+-setup { setup } -cleanup {
+    cleanup
+    unset result
+} \
+-body {
+    c1 configure -hilim 1000
+    c2 configure -lowlim 100 -hilim 1000
+    
+    # high.ok
+    
+    c1 update 1001 1
+    c2 update 150  1
+    
+    lappend result [m alarmState]
+    
+    # high.low
+    
+    c2 update 99 1
+    lappend result [m alarmState]
+    
+    # high.high
+    
+    c2 update 1002 1
+    lappend result [m alarmState]
+} -result [list high high high]
+
+tcltest::test ratio-high2 {test cases that return high where c2 is high} \
+-setup { setup } -cleanup {
+    cleanup
+    unset result
+} \
+-body {
+    c1 configure -lowlim 100 -hilim 1000
+    c2 configure -lowlim 100 -hilim 1000
+    
+    
+    # ok.high:
+    
+    c1 update 150 1
+    c2 update 1001 1
+    lappend result [m alarmState]
+    
+    # low.high
+    
+    c1 update 99 1
+    lappend result [m alarmState]
+    
+    # high.high was done in ratio-high1.
+} -result [list high high]
+
+tcltest::cleanupTests

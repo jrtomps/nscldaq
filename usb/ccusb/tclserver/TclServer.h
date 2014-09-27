@@ -33,6 +33,13 @@ using namespace std;
 #endif
 #endif
 
+#ifndef _TCL_H
+#include <tcl.h>
+#ifndef _TCL_H
+#define _TCL_H
+#endif
+#endif
+
 #include <CSynchronizedThread.h>
 
 class CCCUSB;
@@ -70,6 +77,8 @@ private:
   std::vector<CControlModule*> m_Modules;       // Hardware we can access.
   CTCLInterpreter*             m_pInterpreter;
   bool                         m_dumpAllVariables;
+  bool                         m_exitNow;
+  Tcl_ThreadId                 m_tclThreadId;
 
 
 public:
@@ -94,6 +103,7 @@ public:
   void readConfigFile();
   void initModules();
 
+  void  scheduleExit();
 protected:
   void operator()();
 
@@ -103,6 +113,7 @@ private:
   void EventLoop();
   static void updateVariables(void* pThis);
   void sendWatchedVariables();
+  static int Exit(Tcl_Event* pEvent, int flags);
 };
  
 

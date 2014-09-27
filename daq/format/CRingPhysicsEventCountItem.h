@@ -90,6 +90,7 @@ public:
   uint32_t getTimeOffset() const;
   void     setTimeOffset(uint32_t offset);
   float    computeElapsedTime() const;
+  uint32_t getTimeDivisor() const;
 
   time_t   getTimestamp() const;
   void     setTimestamp(time_t stamp);

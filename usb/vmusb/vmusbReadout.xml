@@ -30,7 +30,6 @@
                 A potential data source for the NSCL event builder.
                 </para>
         </listitem>
-        
     </itemizedlist>
     <para>
         This chapter provides:
@@ -78,6 +77,12 @@
         <listitem>
             <para>
                 Variable monitoring.
+            </para>
+        </listitem>
+        <listitem>
+            <para>
+                Information on how to run VMUSBReadout under the state/boot
+                managers that were introduced with NSCLDAQ-11.0
             </para>
         </listitem>
     </itemizedlist>
@@ -3013,6 +3018,56 @@ VM-USB scriptable readout version V5.0
             </varlistentry>
         </variablelist>
     </section>
+    <section>
+        <title>Using VMUSBReadout with the state/boot managers</title>
+        <para>
+            For background on the state and boot managers as well as
+            the experiment configuration editor, see:
+            <link linkend='chap.boot' endterm='chap.boot.title' />,
+            <link linkend='chap.statemgr' endterm='chap.statemgr.title' /> and
+            <link linkend='chap.expconfig' endterm='chap.expconfig.title' />.
+        </para>
+        <para>
+            To make the VMUSBReadout run under the state/boot managers you must:
+        </para>
+        <itemizedlist>
+            <listitem>
+                <para>
+                    Write a small script to incorporate the
+                    <literal>ReadoutStateHook</literal> package into the
+                    VMUSBReadout's main interpreter.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    Configure the VMUSBReadout to use the
+                    <option>--init-script</option> option to specify this
+                    script.
+                </para>
+            </listitem>
+        </itemizedlist>
+        <para>
+            Here's a sample of the script you need to write:
+        </para>
+        <example>
+            <title>Script to incoprorate <literal>ReaodutStateHook</literal> into
+            VMUSBReadout</title>
+            <programlisting>
+set pkgDirs [file join $env(DAQROOT) TclLibs]
+lappend auto_path $pkgDirs
+
+package require ReadoutStateHook                   
+            </programlisting>
+        </example>
+        <para>
+            Note that the <literal>DAQROOT</literal> environment variable gets
+            defined by the boot manager for all of the programs it manages.
+            Other environment variables get defined as well that describe to
+            the <literal>ReadoutStateHook</literal> how to connect to the
+            state manager.
+        </para>
+        
+    </section>
 </chapter>
 
 <!-- /chapter -->
@@ -4150,7 +4205,11 @@ sis3820 cget <replaceable>name</replaceable>
             <para>
                The scaler readout will result in an array of 32 channels
                of scaler data placed in the buffer.  The first longword of this
-               data is channel 0, the last, channel 1.
+               data is channel 0, the last, channel 1, unless the scaler in in
+               <option>-timestamp</option> mode in which case the data are three
+               longwords that consist of channel 0, channel 16 and the high bits
+               register that has the top 16 bits of each of those channels as
+               a 48 bit scaler.
             </para>
             <para>
                The <command>config</command> sub-command configures the options
@@ -4186,6 +4245,16 @@ sis3820 cget <replaceable>name</replaceable>
       		</para>
       	    </listitem>
       	 </varlistentry>
+         <varlistentry>
+            <term><option>--timestamp</option> <parameter>on | off</parameter></term>
+            <listitem>
+                <para>
+                    If this option is true, the scaler is read in timestamp mode as
+                    2 48 bit scalers.  If false (the default), 32 bits are read for
+                    each channel.
+                </para>
+            </listitem>
+	 </varlistentry>
            </variablelist>
          </refsect1>
          <refsect1>

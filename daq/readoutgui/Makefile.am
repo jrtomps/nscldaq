@@ -40,14 +40,16 @@ TCLPACKAGES=Configuration.tcl \
 	DataSourceMonitor.tcl \
 	remoteControl.tcl \
 	ReadoutGuiClient.tcl readoutGuiProvider.tcl \
-  versionUtils.tcl error.png
+  versionUtils.tcl error.png \
+  delayProvider.tcl \
+  offlineProvider.tcl
 
 
 
 TCLTESTS =    filesystem.test \
 	initconfig.test installroot.test system.test tests.test  ostest.test \
 	sshpipe.test s800.test  rstatemachine.test rdocallouts.test \
-	  state.test versionutils.test
+	  state.test versionutils.test delayprovider.test
 
 
 TKTESTS =	readoutguitest.tk  scalerparametergui.tk \

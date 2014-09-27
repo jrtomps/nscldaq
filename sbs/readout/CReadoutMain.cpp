@@ -141,10 +141,22 @@ CReadoutMain::operator()()
     // commands from stdin:
     
     if (parsedArgs.port_given) {
-    startTclServer(string(parsedArgs.port_arg));
+        startTclServer(string(parsedArgs.port_arg));
 
     }
-
+    // If an initialization script was specified run it here:
+    
+    if (parsedArgs.init_script_given) {
+        // We need to be able to read the script:
+        
+        if(access(parsedArgs.init_script_arg, R_OK)) {
+            std::string msg = "Initialization script: '";
+            msg            += parsedArgs.init_script_arg;
+            msg            += "' could not be read";
+            throw msg;
+        }
+        getInterpreter()->EvalFile(parsedArgs.init_script_arg);
+    }
 
     
     // Setup our eventloop.

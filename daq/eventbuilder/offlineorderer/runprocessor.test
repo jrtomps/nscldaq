@@ -1,0 +1,259 @@
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Authors:
+#      NSCLDAQ Development Group
+#
+#	     NSCL
+#	     Michigan State University
+#	     East Lansing, MI 48824-1321
+
+# This software is Copyright by the Board of Trustees of Michigan
+# State University (c) Copyright 2297884. 
+
+# @file  runprocessor.test 
+# @author Jeromy Tompkins 
+
+package require tcltest
+
+package require Thread
+
+tcltest::test pkgrequire-0 {Test that we can require the OfflineEVBRunProcessor 
+} -body {
+  package require OfflineEVBRunProcessor 
+} -result 11.0
+
+
+
+snit::type MockObserver {
+  variable m_history
+
+  constructor {} {
+    $self reset
+  }
+
+  method set {dict} {
+    lappend m_history "set $dict"
+  }
+
+  method transitionToNextJob job {
+    lappend m_history "transitionToNextJob $job"
+  }
+
+  method finish {} {
+    lappend m_history finish
+  }
+
+  method abort {} {
+    lappend m_history abort
+  }
+
+  method reset {} {
+    set m_history [list]
+  }
+
+  method getHistory {} {
+    return $m_history
+  }
+}
+
+
+proc setup {} {
+
+  set ::processor [RunProcessor %AUTO%]
+  set ::tid [$::processor getWorkerThread]
+  set ::obs [MockObserver %AUTO%]
+}
+
+
+proc teardown {} {
+  thread::release $::tid
+  $::processor destroy
+  $::obs destroy
+}
+
+
+
+
+
+
+
+tcltest::test guessRunNumber-0 {Test that a run file name can be parsed for the 
+run number
+} -setup {
+  setup
+} -cleanup {
+  teardown
+} -body {
+  $::processor guessRunNumber [list run-0047-00.evt run-0047-01.evt]
+} -result 47
+
+tcltest::test guessRunNumber-1 {Test that a run file name can be parsed for the 
+run number even if it is the absolute path
+} -setup {
+  setup
+} -cleanup {
+  teardown
+} -body {
+  $::processor guessRunNumber [list /path/to/my/file/run-0047-00.evt]
+} -result 47
+
+
+
+
+tcltest::test addRunStatusObserver-0 {Test that I can add observers
+} -setup {
+  setup
+} -cleanup {
+  teardown
+} -body {
+  $::processor addRunStatusObserver asdf
+  $::processor listRunStatusObservers
+} -result asdf
+
+
+tcltest::test observeNewRun-0 {Test that observer sees the transition
+} -setup {
+  setup
+} -cleanup {
+  teardown
+} -body {
+  $::processor addRunStatusObserver $::obs
+  $::processor observeNewRun 
+  $::obs getHistory
+} -result "{set queued {} processing {} completed {}}"
+
+
+tcltest::test observeNewJob-0 {Test that observer sees the transition
+} -setup {
+  setup
+} -cleanup {
+  teardown
+} -body {
+  $::processor addRunStatusObserver $::obs
+  $::processor observeNewJob NextJob
+  $::obs getHistory
+} -result "{transitionToNextJob NextJob}"
+
+
+tcltest::test observeCompleted-0 {Test that observer sees the transition
+} -setup {
+  setup
+} -cleanup {
+  teardown
+} -body {
+  $::processor addRunStatusObserver $::obs
+  $::processor observeCompleted
+  $::obs getHistory
+} -result "finish"
+
+
+tcltest::test observeAbort-0 {Test that observer sees the transition
+} -setup {
+  setup
+} -cleanup {
+  teardown
+} -body {
+  $::processor addRunStatusObserver $::obs
+  $::processor observeAbort
+  $::obs getHistory
+} -result "abort"
+
+#
+#tcltest::test configureJobProcessor-0 {Ensure job processor gets configured properly with inputparams
+#} -setup {
+#  set processor [RunProcessor %AUTO%]
+#  set tid [$processor getWorkerThread]
+#} -cleanup {
+#  thread::release $tid
+#  $processor destroy
+#} -body {
+#  set params [dict create -inputparams a -hoistparams b -evbparams c -outputparams d]
+#  $processor configureJobProcessor $params
+#
+#  [$processor getJobProcessor] cget -inputparams
+#} -result a
+#
+#tcltest::test configureJobProcessor-1 {Ensure job processor gets configured properly with hoistparams
+#} -setup {
+#  set processor [RunProcessor %AUTO%]
+#  set tid [$processor getWorkerThread]
+#} -cleanup {
+#  thread::release $tid
+#  $processor destroy
+#} -body {
+#  set params [dict create -inputparams a -hoistparams b -evbparams c -outputparams d]
+#  $processor configureJobProcessor $params
+#
+#  [$processor getJobProcessor] cget -hoistparams
+#} -result b
+#
+#tcltest::test configureJobProcessor-2 {Ensure job processor gets configured properly with evbparams
+#} -setup {
+#  set processor [RunProcessor %AUTO%]
+#  set tid [$processor getWorkerThread]
+#} -cleanup {
+#  thread::release $tid
+#  $processor destroy
+#} -body {
+#  set params [dict create -inputparams a -hoistparams b -evbparams c -outputparams d]
+#  $processor configureJobProcessor $params
+#
+#  [$processor getJobProcessor] cget -evbparams
+#} -result c
+#
+#tcltest::test configureJobProcessor-3 {Ensure job processor gets configured properly with outputparams
+#} -setup {
+#  set processor [RunProcessor %AUTO%]
+#  set tid [$processor getWorkerThread]
+#} -cleanup {
+#  thread::release $tid
+#  $processor destroy
+#} -body {
+#  set params [dict create -inputparams a -hoistparams b -evbparams c -outputparams d]
+#  $processor configureJobProcessor $params
+#
+#  [$processor getJobProcessor] cget -outputparams
+#} -result d
+#
+
+
+tcltest::test runNext-0 {Test that an empty job list causes completion
+} -setup {
+  setup
+} -cleanup {
+  teardown
+} -body {
+  $::processor configure -jobs [dict create]
+  $::processor addRunStatusObserver $::obs
+
+  $::processor runNext
+  $::obs getHistory
+} -result "finish"
+
+tcltest::test runNext-1 {Test that a bad input param file name causes an abort 
+} -setup {
+  setup
+  set iparams [OfflineEVBInputPipeParams %AUTO% -file asdf]
+} -cleanup {
+  teardown
+  $iparams destroy
+} -body {
+
+  # we should only need to have the input params to fail 
+  $::processor configure -jobs [dict create job0 [dict create -inputparams $iparams]]
+  $::processor addRunStatusObserver $::obs
+
+  after 1000 {
+    .__tk__messagebox.ok invoke
+   # set win [focus]
+   # event generate $win <KeyPress-Return>
+  }
+  $::processor runNext
+  $::obs getHistory
+} -result [list "transitionToNextJob job0" "abort"]
+
+tcltest::cleanupTests

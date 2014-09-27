@@ -1,0 +1,291 @@
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Authors:
+#      NSCLDAQ Development Group
+#
+#	     NSCL
+#	     Michigan State University
+#	     East Lansing, MI 48824-1321
+
+# This software is Copyright by the Board of Trustees of Michigan
+# State University (c) Copyright 2297884. 
+
+# @file  inputpipeline.test 
+# @author Jeromy Tompkins 
+
+
+package require tcltest
+package require InstallRoot
+package require ring 
+
+set daqroot [InstallRoot::Where]
+set daqbin  [file join $daqroot bin]
+
+##
+#
+proc pickle {snitobj} {
+  set opts [$snitobj info options]
+
+  set state [dict create]
+  foreach opt $opts {
+    set value [$snitobj cget $opt]
+    dict set state $opt $value 
+  }
+  return $state
+}
+
+tcltest::test pkgrequire-0 {Test that I can package require it
+} -body {
+  package require OfflineEVBInputPipeline
+} -result 11.0 -returnCodes 0
+
+
+
+## Keep adding a's together until we ring name that doesn't exist
+#
+proc findNonExistentRing {} {
+  set name a
+  set status [catch {ringbuffer usage $name} msg]
+  while {$status==0} {
+    append name a
+    set status [catch {ringbuffer usage $name} msg]
+  }
+  return $name
+}
+
+proc findMissingFile {} {
+  set name a
+  while {[file exists $name]} {
+    append name a
+  }
+  return $name
+}
+
+set absentRing [findNonExistentRing]
+set absentFile [findMissingFile]
+
+
+
+
+
+tcltest::test daqroot-0 {Test that I can set the daqroot
+} -setup {
+  set pipeline [OfflineEVBInputPipeline %AUTO% -daqroot $::daqroot]
+} -cleanup {
+  $pipeline destroy
+} -body {
+  $pipeline cget -daqroot
+} -result $::daqroot 
+
+
+
+
+tcltest::test createPipelineCommand-0 {Test that the pipeline is generated 
+} -setup {
+  set params [OfflineEVBInputPipeParams %AUTO% -unglomid 1 -inputring OfflineEvbIn -file test.evt]
+  set pipeline [OfflineEVBInputPipeline %AUTO%]
+} -cleanup {
+  $pipeline destroy
+} -body {
+  $pipeline _createPipelineCommand $params 
+} -result "| cat test.evt | $daqbin/unglom --id 1 | $daqbin/frag2ring --strip | $daqbin/stdintoring OfflineEvbIn |& cat" -returnCodes 0
+
+
+tcltest::test createPipelineCommand-1 {Test that the pipeline is generated with multiple files
+} -setup {
+  set params [OfflineEVBInputPipeParams %AUTO% -unglomid 1 -inputring OfflineEvbIn -file [list test0.evt test1.evt]]
+  set pipeline [OfflineEVBInputPipeline %AUTO%]
+} -cleanup {
+  $pipeline destroy
+} -body {
+  $pipeline _createPipelineCommand $params 
+} -result "| cat test0.evt test1.evt | $daqbin/unglom --id 1 | $daqbin/frag2ring --strip | $daqbin/stdintoring OfflineEvbIn |& cat" -returnCodes 0
+
+
+tcltest::test launch-1 {Test that a pipeline launch sets running to true 
+} -setup {
+  set params [OfflineEVBInputPipeParams %AUTO% -unglomid 1 -inputring OfflineEvbIn -file [info script]]
+  set pipeline [OfflineEVBInputPipeline %AUTO%]
+} -cleanup {
+  $pipeline destroy
+} -body {
+  $pipeline launch $params 
+  $pipeline getRunning
+} -result true -returnCodes 0
+  
+
+tcltest::test launch-2 {Test that a pipeline launch fails if no -file parameter
+} -setup {
+  set params [OfflineEVBInputPipeParams %AUTO% -unglomid 1 -inputring OfflineEvbIn]
+  set pipeline [OfflineEVBInputPipeline %AUTO%]
+} -cleanup {
+  $pipeline destroy
+} -body {
+  $pipeline launch $params 
+} -result "OfflineEVBInputPipeline::launch : no input file specified for input pipeline" -returnCodes 1
+
+tcltest::test launch-3 {Test that a pipeline launch fails if -file parameter doesn't exist
+} -setup {
+  set params [OfflineEVBInputPipeParams %AUTO% -unglomid 1 -inputring OfflineEvbIn -file "/file-not-here"]
+  set pipeline [OfflineEVBInputPipeline %AUTO%]
+} -cleanup {
+  $pipeline destroy
+} -body {
+  $pipeline launch $params 
+} -result "OfflineEVBInputPipeline::launch : input file \"/file-not-here\" specified for input pipeline but does not exist" -returnCodes 1
+
+
+tcltest::test launch-4 {Test that a nonexistent ring is created prior to attaching 
+} -setup {
+  set ringname [findNonExistentRing]
+  set params [OfflineEVBInputPipeParams %AUTO% -unglomid 1 -inputring OfflineEvbIn -file [info script]]
+  set pipeline [OfflineEVBInputPipeline %AUTO%]
+  $params configure -inputring $ringname
+} -cleanup {
+  $pipeline destroy
+  ringbuffer remove $ringname
+} -body {
+  $pipeline launch $params 
+  expr {[string length [ringbuffer usage $ringname]] > 0}
+} -result 1 
+
+
+tcltest::test launch-5 {Test that a multiple input files will be treated well
+} -setup {
+  set params [OfflineEVBInputPipeParams %AUTO% -unglomid 1 -inputring OfflineEvbIn -file [list [info script] [info script]]]
+  set pipeline [OfflineEVBInputPipeline %AUTO%]
+} -cleanup {
+  $pipeline destroy
+} -body {
+  $pipeline launch $params 
+} -returnCodes 0
+
+
+
+tcltest::test setgetFD-0 {test setPipeFD and getPipeFD
+} -setup {
+  set pipeline [OfflineEVBInputPipeline %AUTO%]
+} -cleanup {
+  $pipeline setPipeFD -1
+  $pipeline destroy 
+} -body {
+  $pipeline setPipeFD 12
+  $pipeline getPipeFD
+} -result 12
+
+
+
+
+
+tcltest::test setgetRunning-0 {test setRunning and getRunning
+} -setup {
+  set pipeline [OfflineEVBInputPipeline %AUTO%]
+} -cleanup {
+  $pipeline destroy 
+} -body {
+  $pipeline setRunning true
+  $pipeline getRunning 
+} -result true 
+
+
+
+tcltest::test validateParameters-0 {Test all config params exist causes return code 0
+} -body {
+  set existingFile [info script]
+  OfflineEVBInputPipeline validateParameters \
+    [OfflineEVBInputPipeParams %AUTO% -file $existingFile -unglomid 0 -inputring "thering"]  Context
+} -returnCodes 0
+
+tcltest::test validateParameters-3 {Test empty -file param causes failure with message
+} -body {
+  OfflineEVBInputPipeline validateParameters \
+    [OfflineEVBInputPipeParams %AUTO% -unglomid 0 -inputring "thering"] Context
+} -result "Context : no input file specified for input pipeline" -returnCodes 1
+
+
+tcltest::test validateParameters-4 {Test file doesn't exist param causes failure with message
+} -body {
+  OfflineEVBInputPipeline validateParameters \
+    [OfflineEVBInputPipeParams %AUTO% -file /file-does-not-exist -unglomid 0 -inputring "thering"] Context
+} -result "Context : input file \"/file-does-not-exist\" specified for input pipeline but does not exist" -returnCodes 1
+
+
+
+
+tcltest::test validateUnglomID-0 {Test that a negative unglom id appends a message
+} -setup {
+  set params [OfflineEVBInputPipeParams %AUTO%]
+} -cleanup {
+  $params destroy
+} -body {
+  $params configure -unglomid -1
+
+  set errors [list]
+  $params validateUnglomId errors
+
+  set errors
+} -result [list "unglom source id option must be greater than or equal to zero. User has provided -1"]
+
+tcltest::test validateUnglomID-1 {Test that a zero unglom id appends NO message
+} -setup {
+  set params [OfflineEVBInputPipeParams %AUTO%]
+} -cleanup {
+  $params destroy
+} -body {
+  $params configure -unglomid 0
+
+  set errors [list]
+  $params validateUnglomId errors
+  set errors
+} -result "" 
+
+
+tcltest::test validateFiles-0 {Test that an empty list of files appends a message
+} -setup {
+  set params [OfflineEVBInputPipeParams %AUTO%]
+} -cleanup {
+  $params destroy
+} -body {
+  $params configure -file [list] 
+
+  set errors [list]
+  $params validateFiles errors
+  set errors
+} -result [list "No input file(s) provided."] 
+
+tcltest::test validateFiles-1 {Test that a nonexisting file in list appends a message
+} -setup {
+  set params [OfflineEVBInputPipeParams %AUTO%]
+} -cleanup {
+  $params destroy
+} -body {
+  $params configure -file [list $::absentFile] 
+
+  set errors [list]
+  $params validateFiles errors
+  set errors
+} -result [list "$::absentFile does not exist."] 
+
+
+
+tcltest::test clone-0 {Test that state can be cloned 
+} -setup {
+  set params [OfflineEVBInputPipeParams %AUTO%]
+} -cleanup {
+  $params destroy
+  $newparams destroy
+} -body {
+  
+  $params configure -file "asdf asdf fdsa" -unglomid 1234 -inputring "Fake ring"
+
+  set newparams [$params clone]
+  pickle $newparams
+} -result "-file {asdf asdf fdsa} -unglomid 1234 -inputring {Fake ring}"
+
+
+
+tcltest::cleanupTests

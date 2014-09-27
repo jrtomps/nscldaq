@@ -37,6 +37,8 @@
 #include <CVariableBuffers.h>
 
 #include <TCLApplication.h>
+#include <TCLInterpreter.h>
+#include <TCLObject.h>
 #include <CBusy.h>
 #include <vector>
 #include <string>
@@ -60,6 +62,11 @@ typedef struct _EndRunEvent {
   CConditionVariable* pCondVar;      // Condition variable.
 
 } EndRunEvent, *pEndRunEvent;
+
+typedef struct _TriggerFailEvent {
+    Tcl_Event    tcl_Event;
+    char*        message;
+} TriggerFailEvent, *pTriggerFailEvent;
 
 extern CTCLApplication* gpTCLApplication; // We need this to get the tcl interp.
 
@@ -730,4 +737,98 @@ CExperiment::setSourceId(uint32_t id)
 {
     m_nSourceId  = id;
     m_needHeader = true;
+}
+/**
+ * triggerFail
+ *   Called by the trigger thread if it caught an exceptino that caused the
+ *   trigger loop to exit.  In that case we schedule an event for the main thread
+ *   (HandleTriggerLoopError).  The event will attempt to invoke the
+ *   command ::onTriggerFail passing the message we got from the trigger loop.
+ *   That command can do whatever it wants (I recommend at least ending the run).
+ *
+ *   @param msg - A text message from the trigger loop that describes the
+ *                error.
+ */
+void
+CExperiment::triggerFail(std::string msg)
+{
+    // Create and fill in  the event struct:
+ 
+    pTriggerFailEvent pEvent =
+        reinterpret_cast<pTriggerFailEvent>(Tcl_Alloc(sizeof(TriggerFailEvent)));
+    
+    pEvent->tcl_Event.proc = HandleTriggerLoopError;
+    pEvent->message = Tcl_Alloc(msg.size() + 1);
+    strcpy(pEvent->message, msg.c_str());
+    
+    //  figure out which thread is our target and schedule the event.
+    
+    Tcl_ThreadId threadId = gpTCLApplication->getThread();
+    Tcl_ThreadQueueEvent(threadId, reinterpret_cast<Tcl_Event*>(pEvent), TCL_QUEUE_TAIL);
+    
+    
+}
+/**
+ * HandleTriggerLoopError
+ *   Runs in the main thread.  Receives events that report errors in the trigger
+ *   thread.  Here's what we try to do:
+ *   *  First try to call ::onTriggerFail passing it the message.
+ *   *  If that fails invoke bgerror again, passing it the message.
+ *   *  Finally release storage associated with the message and return 1
+ *      indicating the event dispatcher can release the event.
+ *   @param pEvent - actually a pointer to a TriggerFailEvent struct.
+ *   @param flags  - event flags.
+ *   @return int - (1) - indicates the event storage can be disposed of.
+ *   
+ */
+int
+CExperiment::HandleTriggerLoopError(Tcl_Event* pEvent, int flags)
+{
+    // Obtain the message and delete it's storage so we won't forget:
+    
+    pTriggerFailEvent pTfEvent = reinterpret_cast<pTriggerFailEvent>(pEvent);
+    std::string msg(pTfEvent->message);
+    Tcl_Free(pTfEvent->message);
+    pTfEvent->message = 0;                    // Ensure it's never referenced.
+    
+    // Give ::onTriggerFail a try:
+    
+    CTCLInterpreter* pInterp = gpTCLApplication->getInterpreter();
+    CTCLObject       command = createCommand(pInterp, "::onTriggerFail", msg);
+    int              stat    = Tcl_GlobalEvalObj(
+        pInterp->getInterpreter(), command.getObject()
+    );
+    
+    // If that failed fall back on bgerror:
+    
+    if (stat != TCL_OK) {
+        command = createCommand(pInterp, "bgerror", msg);
+        Tcl_GlobalEvalObj(
+            pInterp->getInterpreter(), command.getObject()
+        );
+    }
+    // Return such that the event can be released:
+    
+    return 1;
+    
+}
+/**
+ * createCommand
+ *  Create a CTCLObject that is a verb an a parameter.
+ *
+ *  @param pInterp - pointer to the Tcl encapsulated interpreter.
+ *  @param verb    - command verb.
+ *  @param parameter - Command parameter.
+ */
+CTCLObject
+CExperiment::createCommand(
+    CTCLInterpreter* pInterp, const char* verb, std::string parameter
+)
+{
+    CTCLObject command;
+    command.Bind(pInterp);
+    command += verb;
+    command += parameter;
+    
+    return command;
 }

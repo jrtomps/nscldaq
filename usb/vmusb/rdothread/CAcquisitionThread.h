@@ -63,8 +63,11 @@ private:
   static bool                   m_Running;	//!< thread is running.
   static unsigned long          m_tid;          //!< ID of thread when running.
   static CVMUSB*                m_pVme;		//!< VME interface.
-
+  
   static std::vector<CReadoutModule*>  m_Stacks;       //!< the stacks to run.
+
+private:
+  bool                         m_haveScalerStack;
 
   //Singleton pattern stuff:
 
@@ -100,7 +103,7 @@ private:
   void beginRun();
   void endRun();
   void bootToTheHead();
-
+  void reportErrorToMainThread(std::string msg);
 };
 
 #endif

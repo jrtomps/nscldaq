@@ -44,11 +44,13 @@ class CFragWriter
   // private data:
 private:
   int m_fd;			// output file descriptor.
+  bool m_stripHeaders;  //!< selects whether to strip frag headers or convert
+                        //   them to EVB_FRAGMENT items
 
   // Canonicals we need:
 
 public:
-  CFragWriter(int fd);
+  CFragWriter(int fd, bool strip=false);
 
   // public operations:
 
@@ -59,6 +61,8 @@ public:
 
 private:
   void Write(size_t nBytes, void* pBuffer);
+  void convertAndWrite(void* pFragment);
+  void stripAndWrite(void* pFragment);
 
 };
 

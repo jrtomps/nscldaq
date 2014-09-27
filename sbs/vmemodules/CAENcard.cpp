@@ -967,7 +967,7 @@ void CAENcard::MapCard()
 
    m_nCrate = m_nCrate & 0xff;  //not important enough to give an error for, just discard the extra
 
-   if(m_nSlot > VME_CRATE_SIZE)
+   if((m_nSlot > VME_CRATE_SIZE) && m_fGeo)
    {
       throw string("Invalid slot number specified to MapCard(). ");
    }
@@ -1054,9 +1054,16 @@ void CAENcard::MapCard()
      
      CVMEInterface::Close(fd);
 
+     // Make the error message dependon the addressing type:
+
      char buffer[128];
-     sprintf(buffer, "Card in crate %d, slot %d is incompatible or missing %ld\n",
-	     m_nCrate, m_nSlot, m_nCardType);
+     if (m_fGeo) {
+       sprintf(buffer, "Card in crate %d, slot %d is incompatible or missing type= %ld\n",
+	       m_nCrate, m_nSlot, m_nCardType);
+     } else {
+       sprintf(buffer, "Card in crate %d, base address 0x%08x is incompatible or missing, type = %ld\n",
+	       m_nCrate, m_nBase, m_nCardType);
+     }
      throw string(buffer);
        
        string("Card is incompatable type or not inserted");

@@ -9,3 +9,4 @@ option "number-of-sources" n "Number of data sources being built" int  optional 
 option "run"     r  "Run number : Overrides run state information ring items" int optional
 option "checksum" c "If present, in addition to run files, checksum files are produced" flag off
 option "combine-runs" C "If present, changes in run number in one-shot mode don't cause exit" flag off
+option "prefix" f "Specifies the prefix to use for the output file name" string optional

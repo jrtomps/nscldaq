@@ -22,11 +22,7 @@ proc stopServer {} {
 ##
 #  Reinit the s800 provider state white box
 proc clearS800ProviderState {} {
-    set ::S800::host ""
-    set ::S800::port ""
-    set ::S800::sourceid ""
-    set ::S800::rctlObject ""
-    set ::S800::state halted
+    set ::S800::sourceParams [dict create] 
 }
 
 
@@ -60,8 +56,13 @@ tcltest::test S800-start-1 {Starting when not started is ok} \
     ::S800::start [dict create sourceid 0 host localhost port $::s800test::port]
     
     
-    
-    list $::S800::host $::S800::port $::S800::sourceid $::S800::state [expr {$::S800::rctlObject ne ""}]
+    set host [dict get $::S800::sourceParams 0 host] 
+    set port [dict get $::S800::sourceParams 0 port] 
+    set sourceid [dict get $::S800::sourceParams 0 sourceid] 
+    set state [dict get $::S800::sourceParams 0 state] 
+    set rctlObject [dict get $::S800::sourceParams 0 connectionObj] 
+
+    list $host $port $sourceid $state [expr {$rctlObject ne ""}]
 } -result [list localhost $::s800test::port 0 idle 1]
 
 tcltest::test s800-start-2 {Starting when already started is an error} \
@@ -77,7 +78,7 @@ tcltest::test s800-start-2 {Starting when already started is an error} \
     set status [catch {::S800::start  \
         [dict create sourceid 0 host localhost port $::s800test::port]} msg]
     list $status $msg
-} -result [list 1 {There is already an S800 data source connected and only one is supported.}]
+} -result [list 1 {The remote data source at source id 0 must be in the halted state!}]
 
 ## Test check
 
@@ -117,7 +118,7 @@ tcltest::test s800-check-3 {Checking a source that has been forced to die:} \
 ##
 # stop tests:
 
-tcltest::test s800-stop-1 {Stop the provider when it is runnig} \
+tcltest::test s800-stop-1 {Stop the provider when it is running} \
 -setup {
     startServer
     ::S800::start [dict create sourceid 0 host localhost port $::s800test::port]
@@ -128,7 +129,9 @@ tcltest::test s800-stop-1 {Stop the provider when it is runnig} \
 } \
 -body {
     ::S800::stop 0
-    list $::S800::rctlObject $::S800::state
+    set rctlObject [dict get $::S800::sourceParams 0 connectionObj]
+    set state [dict get $::S800::sourceParams 0 state]
+    list $rctlObject $state
 } -result [list {} halted]
 
 tcltest::test s800-stop-2 {Stop wrong provider fails} \
@@ -157,7 +160,7 @@ tcltest::test s800-stop-3 {Stop already stopped provider} \
 } \
 -body {
     ::S800::stop 0;           # should work double stop is ok.
-    set ::S800::state
+    dict get $::S800::sourceParams 0 state
 } -result halted
 
 ##

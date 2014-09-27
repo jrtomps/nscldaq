@@ -20,6 +20,7 @@
 #include "TestSource.h"
 #include <CRingBuffer.h>
 #include <CRingItem.h>
+#include <CDataFormatItem.h>
 #include <CRingStateChangeItem.h>
 #include <CRingScalerItem.h>
 #include <os.h>
@@ -36,6 +37,7 @@ void
 TestSource::operator()() 
 {
   CRingBuffer ring(m_ringName, CRingBuffer::producer); // Connect to the ring.
+  dataFormat(ring);
   beginRun(ring, 1234, "This is the begin run");
   for (int i = 0; i < 1000; i++) {
     someEventData(ring, 500);
@@ -49,12 +51,23 @@ TestSource::operator()()
 */
 
 void
+TestSource::dataFormat(CRingBuffer& ring)
+{
+  CDataFormatItem format;
+  format.commitToRing(ring);
+}
+
+void
 TestSource::beginRun(CRingBuffer& ring, int run, std::string title)
 {
   CRingStateChangeItem begin(BEGIN_RUN);
   begin.setTitle(title);
   begin.setRunNumber(run);
   m_elapsedTime = 0;
+
+  if ( m_useBodyHeaders ) {
+    begin.setBodyHeader(m_timestamp,0,BEGIN_RUN);
+  }
 
   begin.commitToRing(ring);
 }
@@ -67,6 +80,9 @@ TestSource::endRun(CRingBuffer& ring, int run, std::string title)
   end.setRunNumber(run);
   end.setElapsedTime(m_elapsedTime);
 
+  if ( m_useBodyHeaders ) {
+    end.setBodyHeader(m_timestamp,0,END_RUN);
+  }
   end.commitToRing(ring);
 }
 
@@ -80,6 +96,10 @@ TestSource::Scaler(CRingBuffer& ring, int nscalers, int nsec)
 
   for (int i = 0; i < nscalers; i++) {
     item.setScaler(i, i*10);
+  }
+
+  if ( m_useBodyHeaders ) {
+    item.setBodyHeader(m_timestamp,0,0);
   }
   item.commitToRing(ring);
 
@@ -104,6 +124,11 @@ TestSource::someEventData(CRingBuffer& ring, int events)
       *p++ = i;
     }
     event.setBodyCursor(p);
+
+    if ( m_useBodyHeaders ) {
+      event.setBodyHeader(m_timestamp,0,0);
+    }
+
     event.commitToRing(ring);
     if (m_delay) {
       Os::usleep(m_delay);

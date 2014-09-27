@@ -19,7 +19,7 @@ tcltest::test rdo10-0 {test evbcallouts10 call Experiment::spectrodaqURL} -setup
       set EVBC::destRing hehehe
 } -body {
    # this calls the switches
-   set switches [::EventLog::_computeLoggerSwitches]
+   set switches [::EventLog::_computeLoggerSwitches 11.0-rc12]
    set usesRINGNAME [expr {"--source=tcp://localhost/$EVBC::destRing" in $switches}]
    return [expr $usesRINGNAME >= 0]
 } -result {1}

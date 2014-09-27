@@ -93,6 +93,8 @@ public:
   uint32_t getEndTime() const;
   float    computeEndTime() const;
 
+  uint32_t getTimeDivisor() const;
+
   void     setTimestamp(time_t stamp);
   time_t   getTimestamp() const;
   

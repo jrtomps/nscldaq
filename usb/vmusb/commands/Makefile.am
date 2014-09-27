@@ -4,6 +4,7 @@ libVMUSBCommands_la_SOURCES	=	CBeginRun.cpp	\
 				CPauseRun.cpp	\
 				CResumeRun.cpp	\
 				CInit.cpp	\
+				CExit.cpp	\
 				tclUtil.cpp	
 
 noinst_HEADERS		= 	CBeginRun.h	\
@@ -11,6 +12,7 @@ noinst_HEADERS		= 	CBeginRun.h	\
 				CPauseRun.h	\
 				CResumeRun.h	\
 				CInit.h	\
+				CExit.h		\
 				tclUtil.h
 
 libVMUSBCommands_la_CXXFLAGS=@THREADCXX_FLAGS@

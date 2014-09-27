@@ -43,7 +43,8 @@ using namespace std;
 #include <CRunState.h>
 #include <stdlib.h>
 #include <Globals.h>
-
+#include <errno.h>
+#include <string.h>
 
 
 #include <vector>
@@ -70,7 +71,8 @@ TclServer::TclServer() :
   m_waitingMonitor(false),
   m_pMonitorData(0),
   m_nMonitorDataSize(0),
-  m_dumpAllVariables(true)
+  m_dumpAllVariables(true),
+  m_exitNow(false)
 
 {
   m_pInstance = this;		// static->object context.
@@ -126,8 +128,24 @@ void
 TclServer::run()
 {
   m_tid = getId();		// Incase we have references internally.
+  m_tclThreadId = Tcl_GetCurrentThread();
   operator()();
 }
+/**
+ * scheduleExit
+ *   This is called to set an exit event into my event queue.
+ *   Normally this is called from a different thread.
+ *
+ */
+void
+TclServer::scheduleExit()
+{
+    Tcl_Event* pEvent = reinterpret_cast<Tcl_Event*>(Tcl_Alloc(sizeof(Tcl_Event)));
+    pEvent->proc = TclServer::Exit;
+    
+    Tcl_ThreadQueueEvent(m_tclThreadId, pEvent, TCL_QUEUE_HEAD);   // exit is urgent.
+}
+
 
 /*!
   Locate a module by name.  
@@ -323,10 +341,10 @@ TclServer::EventLoop()
 
   // Start the event loop:
 
-  while(1) {
+  while(!m_exitNow) {
     Tcl_DoOneEvent(TCL_ALL_EVENTS);
   }
- std::cerr << "The Tcl Server event loop has exited. No Tcp ops can be done\n"; 
+ std::cerr << "The Tcl Server event loop has exited.\n"; 
 }
 
 
@@ -351,6 +369,7 @@ void
 TclServer::createMonitorList()
 {
   m_pMonitorList = new CVMUSBReadoutList;
+  m_pMonitorList->addMarker(0xffff);
   for (int i =0; i < m_Modules.size(); i++) {
     m_Modules[i]->addMonitorList(*m_pMonitorList);
   }
@@ -441,7 +460,7 @@ TclServer::MonitorDevices(void* pData)
     if (pList->size() > 0) {
       int                status = pController->executeList(*pList, readData, sizeof(readData), &dataRead);
       if (status != 0) {
-	cerr << "Warning: Monitor list read failed\n";
+	cerr << "Warning: Monitor list read failed " << status << " \n" << strerror(errno) << std::endl;
 	
       }
       else {
@@ -467,6 +486,7 @@ TclServer::processMonitorList(void* pData, size_t nBytes)
   // by treating the data as uint8_t*
 
   uint8_t* p = reinterpret_cast<uint8_t*>(pData);
+  p+=2;                // Skip the uint16_t marker.
   for (int i =0; i < m_Modules.size(); i++) {
     uint8_t* pNewPosition;
     pNewPosition = reinterpret_cast<uint8_t*>(m_Modules[i]->processMonitorList(p, nBytes));
@@ -642,4 +662,19 @@ TclServer::sendWatchedVariables()
   } else {
     m_dumpAllVariables = true;	// When the run starts next dump everything!
   }
+}
+/**
+ * Exit
+ *   Scheduled from the event loop when the main thread is about to exit.
+ *
+ * @param pEvent - pointer to the event (not used).
+ * @param flags   - Event schedule flags.
+ *
+ * @return int  - 1, the event can be freed.
+ */
+int
+TclServer::Exit(Tcl_Event* pEvent, int flags)
+{
+    ::Globals::pTclServer->m_exitNow = true;
+    return 1;
 }

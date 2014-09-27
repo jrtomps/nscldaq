@@ -25,7 +25,6 @@ import unittest
 import project
 
 class projectHostsTest(unittest.TestCase):
-    pass
     
     def setUp(self):
         self._project = project.Project(':memory:')

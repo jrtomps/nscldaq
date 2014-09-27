@@ -1,0 +1,2364 @@
+<!-- chapter utilities -->
+
+<chapter id='chap.statemgr'>
+    <title id='chap.statemgr.title'>The state manager</title>
+    <para>
+        The state manager is a program that manages and enforces the experiment
+        state diagram.  It also provides a mechanism for external programs to:
+        <itemizedlist>
+            <listitem><para>
+                Request state transitions
+                </para></listitem>
+            <listitem><para>
+                Become aware of the current state
+                </para></listitem>
+            <listitem><para>
+                Be notified of state transitions.
+                </para></listitem>
+        </itemizedlist>
+    </para>
+    <para>
+        The state diagram that is enforced by the state manager is shown below:
+    </para>
+    <figure id='statemgr_statediagram'>
+        <title id='statemgr_statediagram_title'>Experiment (State manager) State Diagram</title>
+        <mediaobject>
+           <imageobject>
+                <imagedata fileref='statediagram.jpg' format='JPEG' />
+            </imageobject>
+        </mediaobject>
+    </figure>
+    <para>
+        Here's a description of the states and the possible transitions out
+        of each state.
+    </para>
+    <variablelist>
+        <varlistentry>
+            <term><literal>NotReady</literal></term>
+            <listitem>
+                <para>
+                    This state means that the experiment has been defined
+                    but that one or more pieces have not yet been started.
+                    The <literal>BOOT</literal> transition implies an intent
+                    to start all of the pieces that make up the experiment.
+                    The <literal>BOOT</literal> transition places the experiment
+                    in the <literal>Booting</literal> state.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>Booting</literal></term>
+            <listitem>
+                <para>
+                    This state implies the pieces that make up the experiment
+                    are being started.
+                    The Boot manager described in
+                    <link linkend='chap.boot' endterm='chap.boot.title' />
+                    responds to entering this state by
+                    creating rings and starting programs defined by a list of
+                    experiment created by the experiment configuration editor
+                    described in
+                    <link linkend='chap.expconfig' endterm='chap.expconfig.title' />.
+                </para>
+                <para>
+                    The <literal>READY</literal> transition indicates a successful
+                    start of all of the components.  the <literal>FAIL</literal>
+                    transition indicates that at least one component could not
+                    be created.  If the boot manager is used it will initiate
+                    a <literal>FAIL</literal> transition if it detects an error
+                    while creating the experiment components.
+                    It will also initiate a <literal>READY</literal> transition
+                    if all of the components started correctly.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>Ready</literal></term>
+            <listitem>
+                <para>
+                    Indicates that the experiment is ready to take data but
+                    is not yet taking data.  If the boot manager is being used,
+                    it monitors the programs it started and if any of them exit
+                    (normally or abnormally), it intiates a <literal>FAIL</literal>
+                    transition and shuts down all of the programs it is managing.
+                </para>
+                <para>
+                    The <literal>BEGIN</literal> transition indicates a desire
+                    to start taking data.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>Active</literal></term>
+            <listitem>
+                <para>
+                    Means that the experiment is acquiring data.  If any component
+                    fails or if any component was not able to start taking data
+                    due to an unrecoverable error, it can initiate a
+                    <literal>FAIL</literal> transition taking the program back
+                    to the <literal>NotReady</literal> state.
+                </para>
+                <para>
+                    The <literal>END</literal> transition indicates a desire
+                    to stop taking data and makes the transition to the
+                    <literal>Ready</literal> state.
+                </para>
+            </listitem>
+        </varlistentry>
+        
+    </variablelist>
+    <para>
+        The state diagram enforces this diagram.  For example, it will refuse
+        to respond to a <literal>BOOT</literal> request while in the
+        <literal>Ready</literal> state, returning an error condition if that
+        request is made.
+    </para>
+    <para>
+        To run the state manager, you must first define some environment variables.
+        This is done sourcing the <filename>dasetup.bash</filename> script
+            from the root of the installation directory for your DAQ distribution.
+        </para>
+        <para>
+            If, for example, NSCLDAQ is installed in /usr/opt/daq/11.0:
+        </para>
+        <informalexample>
+            <programlisting>
+. /usr/opt/daq/11.0/daqsetup.bash
+            </programlisting>
+        </informalexample>
+        <para>
+            makes the necessary environment variable definitions.
+        </para>
+        <para>
+            Once the <filename>daqsetup.bash</filename> script has been run,
+            you can start up the experiment configuration tool via the command:
+        </para>
+        <informalexample>
+            <programlisting>
+$DAQBIN/statemanager
+            </programlisting>
+        </informalexample>
+        <para>
+            The state manager obtains and registers two ports named
+            <literal>StatePublish</literal> and <literal>StateRequest</literal>
+            from the NSCLDAQ port manager.
+        </para>
+    <section>
+        <title>Application Programming Interfaces to the state manager</title>
+        <para>
+            By itself, the state manager does nothing.  Its value is in its
+            interactions with other programs.
+            <itemizedlist>
+                <listitem><para>
+                    The state manager provides a <firstterm>Transition request port</firstterm>.
+                    Clients can connect to that port and request one or more
+                    transitions.
+                    </para></listitem>
+                <listitem><para>
+                    The state manager also provides a <firstterm>Transition subscription port</firstterm>.
+                    Clients can use that port to monitor the current state as well
+                    as state transitions.
+                    </para>
+                    <para>
+                        The state manager periodically broadcasts the current
+                        state to clients on the transition subscription port.
+                        This allows a new client to become aware of the state
+                        within a second or so of connecting.
+                    </para>
+                    <para>
+                        Whenever the state manager successfully makes a state
+                        transition a state message is sent to the
+                        subscription port.
+                    </para>
+                </listitem>
+            </itemizedlist>
+            
+            Application programming interfaces make it easy for programs
+            written in Tcl/Tk, C++ or Python to interact with the state
+            manager.  The remainder of this section will show some
+            simple examples for each supported language.
+            
+        </para>
+        <section>
+            <title>Tcl/Tk state manager API</title>
+            <para>
+                Below is an annotated example of a Tcl state manager client.
+            </para>
+            <example>
+                <title>Tcl client of the state manager</title>
+                <programlisting>
+##
+# @file tcltest1.tcl
+# @brief Test the state monitor tcl callbacks.
+# @author Ron Fox &lt;fox@nscl.msu.edu&gt;
+
+lappend auto_path [file join $env(DAROOT) TclLibs]  <co id='tclsmclient_pkg' />
+package require statemanager
+
+set reqURI [lindex $argv 0]                     <co id='tclsmclient_uris' />
+set subURI [lindex $argv 1]
+
+statemanager::statemonitor start $reqURI $subURI <co id='tclsmclient_start' />
+
+
+
+
+
+statemanager::statemonitor register NotReady test
+statemanager::statemonitor register Ready    test  <co id='tclsmclient_register' />
+statemanager::statemonitor register Booting  test
+
+proc test {from to} {                              <co id='tclsmclient_handler' />
+    puts "Transition $from -> $to"            
+    if {$to eq "Ready"} {
+        statemanager::transition BEGIN             <co id='tclsmclient_transition' />
+    }
+}
+
+vwait forever                                     <co id='tclsmclient_evloop' />
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs='tclsmclient_pkg'>
+                    <para>
+                        Under the assumption the <literal>daqstart.bash</literal>
+                        script has been sourced, the environment variable
+                        <literal>DAQROOT</literal> is the path to the top level
+                        directory of the NSCLDAQ installation.  This line and the
+                        next add the Tcl library directory tree to the <literal>auto_path</literal>
+                        variable and then incorporate the state manager API into the
+                        program.
+                    </para>
+                </callout>
+                <callout arearefs='tclsmclient_uris'>
+                    <para>
+                        The state manager identifies connection endpoints using
+                        <firstterm>Uniform Resource Identifiers</firstterm>.
+                        The program assumes the URI for the state manager's
+                        state transiton request port and state transition
+                        subscription port are supplied on the command line.
+                        These two lines extract those URI's from he command line
+                        parameters.
+                    </para>
+                    <para>
+                        The URI's for the state manager are of the form>
+                        <literal>tcp://</literal><replaceable>hostname</replaceable><literal>:</literal><replaceable>portnum</replaceable>
+                        where <replaceable>hostname</replaceable> is the name
+                        of the host running the state manager and
+                        <parameter>portnum</parameter> is the number of the
+                        TCP/IP port on which the state manager is listening for
+                        connection for that specific service.
+                    </para>
+                </callout>
+                <callout arearefs='tclsmclient_start'>
+                    <para>
+                        Starts the state manager notifier. The notifier is a
+                        a component of the state manager that pumps transition and
+                        state notification received from the subscription port
+                        into the Tcl event loop.
+                    </para>
+                    <para>
+                        The parameters are the request and subscription URIs that
+                        tell the state manager API how to connect with the
+                        state manager server.
+                    </para>
+                </callout>
+                <callout arearefs='tclsmclient_register'>
+                    <para>
+                        These lines subscribe to specific states.  In this
+                        trivial program the test command/proc is invoked when
+                        the indicated state is entered.
+                    </para>
+                    <para>
+                        This can happen either because the program receives its
+                        first state broadcast before it ever sees a transition,
+                        or it sees a transition broadcast.
+                    </para>
+                </callout>
+                <callout arearefs='tclsmclient_handler'>
+                    <para>
+                        This is the handler for state changes.  The
+                        state manager API appends the prior state as well as
+                        the new current state to the command.  These become
+                        the <parameter>from</parameter> and <parameter>to</parameter>
+                        parameters of the <command>proc</command>.  The first time
+                        the state becomes known (either via a state broadcast or if
+                        a transition is received prior to a state broadcast), the
+                        prior state is unknown and the from parameter is set to the
+                        empty string.
+                    </para>
+                </callout>
+                <callout arearefs='tclsmclient_transition'>
+                    <para>
+                        This line shows how to request a transition from the state
+                        manager.  In this case as soon as the state becomes ready,
+                        we request the state transition to
+                        <literal>Active</literal> via the
+                        <literal>BEGIN</literal>
+                        transition.
+                    </para>
+                    <para>
+                        Note this is just a toy application and this code is
+                        nonesensical as it means that whenever the
+                        run stops it will start again.
+                    </para>
+                </callout>
+                <callout arearefs='tclsmclient_evloop'>
+                    <para>
+                        <command>vwait</command> command enters the event loop
+                        until the <varname>forever</varname> variable is modified
+                        (it never is).  This allows the program to respond to
+                        state transitions that are posted as events.  A Tcl/Tk
+                        application automatically gets an event loop and does not
+                        need this statement.
+                    </para>
+                </callout>
+            </calloutlist>
+        </section>
+        <section>
+            <title>C++ State manager API</title>
+            <para>
+                The C++ state manager api lives in the <filename>$DAQLIB/libStateMonitor.so</filename>
+                shared library.  The header <filename>&lt;CStateMonitor.h&gt;</filename>.
+                The <literal>DAQLIB</literal> environment variable is defined
+                by the <filename>daqsetup.bash</filename> script in the top
+                level directory of NSCLDAQ 11.0 or later.
+            </para>
+            <para>
+                Let's look at an annotated C++ program that is a client to the
+                state manager:
+            </para>
+            <example>
+                <title>C++ client for the state manager.</title>
+                <programlisting>
+#include "CStateMonitor.h"                    <co id='csmclient_include' />
+#include &lt;iostream&gt;
+
+void
+NotReady(CStateMonitor* pMonitor, std::string from, std::string to, void* arg) <co id='csmclient_handler' />
+{
+    const char* p =  reinterpret_cast&lt;const char*&gt;(arg);                 <co id='csmclient_clientdata' />
+    
+    std::cout &lt;&lt; "NotReady transition " &lt;&lt; from &lt;&lt; "-&gt;" &lt;&lt; to &lt;&lt; " (" &lt;&lt; p &lt;&lt; ")\n";
+}
+
+void
+Ready(CStateMonitor* pMonitor, std::string from, std::string to, void* arg)
+{
+    const char* p =  reinterpret_cast&lt;const char*&gt;(arg);
+    
+    std::cout &lt;&lt; "Ready transition " &lt;&lt; from &lt;&lt; "-&gt;" &lt;&lt; to &lt;&lt; " (" &lt;&lt; p &lt;&lt; ")\n";
+}
+
+int main(int argc, char**argv)
+{
+    std::string reqURI   = argv[1];                                      <co id='csmclient_uris' />
+    std::string stateURI = argv[2];
+    
+    CStateMonitor mon(reqURI, stateURI);                                 <co id='csmclient_construct' />
+
+    mon.Register("NotReady", NotReady, const_cast&lt;char*&gt;("Some text")); <co id='csmclient_register' />
+    mon.Register("Ready", Ready, const_cast&lt;char*&gt;("Different text"));
+    
+    mon.run();                                                         <co id='csmclient_eventloop' />
+}
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs='csmclient_include' >
+                    <para>
+                        This line includes the header that defines the classes
+                        that make up the C++ API to the state manager.
+                    </para>
+                </callout>
+                <callout arearefs='csmclient_handler'>
+                    <para>
+                        <function>NotReady</function> will be  a state handler.
+                        State handlers are registered to be called when one or
+                        more of a set of states has been entered.  State handlers
+                        are passed a pointer to the state monitor, the state names
+                        involved in the transition (<parameter>from</parameter> is the
+                        empty string if the prior state is not known), and an
+                        application specific parameters.
+                    </para>
+                </callout>
+                <callout arearefs='csmclient_clientdata'>
+                    <para>
+                        As we will see, the client data used in this simple program
+                        is a character string.  This line makes the
+                        client data (<parameter>arg</parameter>), usable as a
+                        <type>char*</type> again.
+                    </para>
+                </callout>
+                <callout arearefs='csmclient_uris'>
+                    <para>
+                        The state manager's ports are specified as
+                        <firstterm>Universal Resource Identifiers</firstterm>
+                        (URIs).   Inthe as of this program, the URIs of the
+                        state transition request port and the state publication port
+                        are passeed in as command line parameters.
+                        This naive code (no error checking) pulls in those URI's
+                        from the command line.
+                    </para>
+                </callout>
+                <callout arearefs='csmclient_construct' >
+                    <para>
+                        The <classname>CStateMonitor</classname> is a class that
+                        encapsulates the API to the state manager.  This line
+                        creates an instanc eof that class, providing it the
+                        URI's it needs to connect to the state manager ports.
+                    </para>
+                    <para>
+                        Note that while this program does not demonstrate that
+                        fact, the class has a method <methodname>requestTransition</methodname>
+                        tht can request state transition from the
+                        state manager.
+                    </para>
+                </callout>
+                <callout arearefs='csmclient_register' >
+                    <para>
+                        State monitoring works by registering states our
+                        out application is interested.  When the interesting
+                        state is entered, a callback is invoked.  The callback
+                        is passed the state manager object, the  prior state, the
+                        new state and an application specific parameter that is
+                        not interpreted by the <classname>CStateMonitor</classname>
+                        object.
+                    </para>
+                    <para>
+                        These lines register intereste in the <literal>NotReady</literal>
+                        and <literal>Ready</literal> states.
+                    </para>
+                </callout>
+                <callout arearefs='csmclient_eventloop'>
+                    <para>
+                        Invoking the <methodname>run</methodname> method on a
+                        <classname>CStateMonitor</classname> object enters its
+                        event loop.  The monitor processes data from the
+                        state manager and invokes callbacks for registered
+                        states as they are entered.  This method won't exit,
+                        however there are classes that do allow you to
+                        interleave a state manager event loop with other
+                        processing.  See the reference material for more information.
+                    </para>
+                </callout>
+            </calloutlist>
+        </section>
+        <section>
+            <title>Python state manager API</title>
+            <para>
+                This section shows two sample Python programs that interface
+                with the state manager.  The first program monitors state
+                transitions.  The second program simply takes lines from stdin
+                and pushes them as state transition requests to the statemanager,
+                outputing the status of the request to stdout.
+            </para>
+            <para>
+                Both of the examples assume that the environment variables
+                defined by <filename>$DAQROOT/daqsetup.bash</filename> have
+                been incorporated into you shell environment.   This is necessary
+                as the <literal>PYTHONPATH</literal> variable is modified to
+                allow NSCLDAQ specific packages to be imported.
+            </para>
+            <example>
+                <title>Monitoring the state manager in Python</title>
+                <programlisting>
+from nscldaq.statemanager import StateMonitor    <co id='pyclient_import' />
+import sys
+
+## usage:
+#  python StateMonitorTest1 statemanager-req-uri state-manager-pub-uri
+#
+
+requestUri = sys.argv[1]                        <co id ='pyclient_uris' />
+pubUri     = sys.argv[2]
+
+
+# We'll just use unbound methods for our callbacks:
+
+def NotReadyHandler(monitor, fromState, toState, cbarg):  <co id='pyclient_handlers' />
+    print('Not Ready state entered: %r -> %r  (%s)' %(fromState, toState, cbarg))
+
+
+def ReadyHandler(monitor, fromState, toState, cbarg):
+    print('Ready state entered: %r -> %r  (%s)' %(fromState, toState, cbarg))
+
+
+mon = StateMonitor.StateMonitor(requestUri, pubUri)    <co id='pyclient_instantiate' />
+mon.register('NotReady', NotReadyHandler, 'poof')      <co id='pyclient_register' />
+mon.register('Ready', ReadyHandler, 'poof poof')
+
+mon.run()                                              <co id='pyclient_run'/>
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs='pyclient_import'>
+                    <para>
+                        This line imports the Statemonitor class from the
+                        <literal>nscldaq.statemanager</literal> package.
+                        The <literal>StateMonitor</literal> class encapsulates
+                        the highest level API to the state manager server.
+                        Lower level interfaces exist and may be necessary for
+                        more complex examples.  See the reference material for
+                        more information.
+                    </para>
+                    <para> All
+                        nscldaq related packages for Python are sub packages
+                        in the <literal>nscldaq</literal> package tree to ensure
+                        their names don't collide with other packages you might
+                        use within your scripts.
+                    </para>
+                </callout>
+                <callout arearefs='pyclient_uris' >
+                    <para>
+                        Connection endpoints for the state manager are expressed
+                        as <firstterm>Uniform Resource Identifiers</firstterm> (URIs).
+                        These URIs are of the form
+                        <literal>tcp://</literal><replaceable>hostname</replaceable><literal>:</literal><replaceable>port</replaceable>.
+                        Where <replaceable>hostname</replaceable> is the
+                        host in which the server is running and
+                        <replaceable>port</replaceable> is the TCP/IP port on which
+                        the monitor is  waiting for connections.
+                    </para>
+                    <para>
+                        This program accepts those URI's on the command line
+                        The first URI is the URI that corresponds to the state
+                        transition request port, the second corresponds to the
+                        state/transition publication port.
+                    </para>
+                    <para>
+                        As we will see in the second example, if you know which
+                        host the state manager is running under, it is possible
+                        to ask the nscl port manager for the ports it use and,
+                        from them,
+                        construct the approprate URIs
+                    </para>
+                </callout>
+                <callout arearefs='pyclient_handlers'>
+                    <para>
+                        This <command>def</command> and the next are state
+                        handlers that will be registered with the
+                        state manager. A state manager is a python method
+                        that (in addition to <literal>self</literal> if it is
+                        an object method), has the following parameters passed in:
+                        <variablelist>
+                            <varlistentry>
+                                <term><parameter>monitor</parameter></term>
+                                <listitem>
+                                    <para>
+                                        The state monitor API object.
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+                            <varlistentry>
+                                <term><parameter>fromState</parameter></term>
+                                <listitem>
+                                    <para>
+                                        The prior state.  This is
+                                        <literal>None</literal> if the previous
+                                        state is not known.  It is the string
+                                        state name of the previous state otherwise.
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+                            <varlistentry>
+                                <term><parameter>toState</parameter></term>
+                                <listitem>
+                                    <para>
+                                        String containing the state that has
+                                        just been entered.
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+                            <varlistentry>
+                                <term><parameter>cbarg</parameter></term>
+                                <listitem>
+                                    <para>
+                                        A parameter that is provided by the application
+                                        when the state handler is registered and is
+                                        not interpreted/modified in any way by the
+                                        API.
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+                        </variablelist>
+                    </para>
+                </callout>
+                <callout arearefs='pyclient_instantiate' >
+                    <para>
+                        The <classname>StateMonitor</classname> class represents
+                        the API that accesses the state manager server. This
+                        line creates an instance of that class providing
+                        it with the URI's that describe how to connect to both
+                        the transition request and state/transition publication
+                        ports.
+                    </para>
+                </callout>
+                <callout arearefs='pyclient_register'>
+                    <para>
+                        The state monitoring part of the state manager API works
+                        by registering callback handlers for states of interest.
+                        When the system enters a state for which you have declared
+                        interest, the callback associated with that state
+                        is invoked.
+                    </para>
+                    <para>
+                        This line of code and the next line register interest, and
+                        callback handlers, for the <literal>NotReady</literal>
+                        and <literal>Ready</literal> states.
+                    </para>
+                </callout>
+                <callout arearefs='pyclient_run'>
+                    <para>
+                        Enters the event handling loop of the <classname>StateMonitor</classname>.
+                        This loop processes state and transition publications from
+                        the state manager server dispatching interesting ones
+                        to registered callback handlers.
+                    </para>
+                </callout>
+                            
+            </calloutlist>
+            <example>
+                <title>Command line state changer</title>
+                <programlisting>
+from nscldaq.statemanager import StateMonitor       <co id='pytransition_imports' />
+from nscldaq.statemanager import Utilities
+import sys
+import getpass
+
+username        = getpass.getuser()                 <co id='pytransition_uriconstruction' />
+requestPort     = Utilities.getPort('localhost', 'StateRequest', username)
+transitionPort  = Utilities.getPort('localhost', 'StatePublish', username)
+
+requestUri    = 'tcp://localhost:%d' % (requestPort)
+transitionUri = 'tcp://localhost:%d' %(transitionPort)
+
+mon = StateMonitor.StateMonitor(requestUri, transitionUri)  <co id='pytransition_instantiate' />
+
+while 1:
+    line = sys.stdin.readline()                   <co id='pytransition_getline' />
+    if not line:
+        break
+    
+    reply = mon.requestTransition(line[0:-1])     <co id='pytransition_request' />
+    print("Reply: %s" % (reply))                  <co id='pytransition_reply' />
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs='pytransition_imports'>
+                    <para>
+                        Imports the packages required for the application.  The
+                        first two lines are the ones that are interesting to us.
+                        All NSCLDAQ python packages are provided inside the
+                        toplevel <literal>nsclddaq</literal> package and
+                        the state manager related packages are themselves
+                        inside of <literal>nscldaq.statemanager</literal>
+                    </para>
+                    <para>
+                        The <literal>StateMonitor</literal> package provides a high
+                        level API to the state manager.  The <literal>Utiltities</literal>
+                        package provides several utilities useful both to the state
+                        manager and its clients.
+                    </para>
+                    <para>
+                        The <literal>sys</literal> and <literal>getpass</literal>
+                        packages are standard Python packages that are also used
+                        by this application.
+                    </para>
+                </callout>
+                <callout arearefs='pytransition_uriconstruction'>
+                    <para>
+                        This section of code constructs URIs that describe
+                        the state transition request and state/transition publication
+                        ports.  In this case, the state manager is assumed to
+                        be running on the same host as the program.
+                    </para>
+                    <para>
+                        The first three linse of this section of code use the
+                        utility functions to get the ports the state manager
+                        has requested from the port manager.  The
+                        <literal>StateRequest</literal> service handles requests
+                        for transitions while the <literal>StatePublish</literal>
+                        service publishes states and transitions. The statemanager
+                        is also assumed to be run by the same user as the one
+                        running this program.   The <function>getPort</function>
+                        function will throw a <classname>RuntimeException</classname>
+                        if it is not able to locate the requested services.
+                    </para>
+                    <para>
+                        The next two lines encode the port into URIs so that
+                        they can be passed to the constructor for the
+                        <classname>StateMonitor</classname> class.
+                    </para>
+                </callout>
+                <callout arearefs='pytransition_instantiate'>
+                    <para>
+                        Creates an instance of the <classname>StateMonitor</classname>
+                        class.  This object provides a method
+                        <methodname>requestTransition</methodname> that will be
+                        used to request state transitions.
+                    </para>
+                </callout>
+                <callout arearefs='pytransition_getline'>
+                    <para>
+                        The main loop of the program gets lines from stdin.
+                        <methodname>sys.stdin.readline()</methodname> returns an
+                        empty string when the end of file is reached on <literal>stdin</literal>.
+                        When that happens we exit.  Note that <methodname>realine</methodname>
+                        includes the newline line terminator in the data it returns.
+                    </para>
+                </callout>
+                <callout arearefs='pytransition_request'>
+                    <para>
+                        This line makes the transition request. The line is sliced
+                        so that the newline is not passsed as part of the
+                        transition request.
+                    </para>
+                </callout>
+                <callout arearefs='pytransition_reply' >
+                    <para>
+                        This prints the reply to the state transition request
+                        from the state manager.  On success, the return value is
+                        <literal>OK</literal>.  On failure the return value is
+                        <literal>FAIL </literal> followed by an error message.
+                    </para>
+                </callout>
+            </calloutlist>
+        </section>
+    </section>
+</chapter>
+
+<!-- /chapter -->
+
+<!--  manpages -->
+
+<!-- manpage 3python -->
+<!-- python bindings -->
+
+<refentry id="python3_statemanager_utilities">
+  <refmeta>
+     <refentrytitle id='python3_statemanager_utilities_title'>State manager utilities</refentrytitle>
+     <manvolnum>3python</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>nscldaq.statemanager.Utilities.getPort</refname>
+     <refname>nscldaq.statemanager.Utilities.connectRequestPort</refname>
+     <refname>nscldaq.statemanager.Utilities.subscribe</refname>
+     <refname>nscldaq.statemanager.Utilities.checkRequest</refname>
+     <refname>nscldaq.statemanager.Utilities.ZmqFileEventLoop</refname>
+     <refpurpose>State Manager utilities</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <cmdsynopsis>
+    <command>
+from nscldaq.statemanager import Utilities
+    </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+ipPort = Utilities.getPort(host, service, user)
+        </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+zmqSocket = Utilities.connectRequestPort(
+    zmqContext, host='localhost', service='StateRequest', user=None)
+        </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+zmqSocket = Utilities.subscribe(
+    zmqContext, wantTransitions, wantState, host='localhost', service='StatePublish', user=None)           
+        </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+gotSomething = Utilities.checkRequest(zmqSocket, pollTimeout, maxPolls, callback, cbArg)
+        </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+eventLoop = Utilities.zmqEventLoop()
+        </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+eventLoop.register(ioItem, events, handler)
+        </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+eventLoop.unregister(ioItem)
+        </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+eventLoop.poll(timeout)
+        </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+eventLoop.pollForever(timeout, idler=None)
+        </command>
+    </cmdsynopsis>
+    
+    
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        The Utilities package provides several convenience functions and an event
+        loop class for the state manager.  These can be considered mostly
+        low level functions, and the event loop too is a pretty low level
+        item.
+     </para>
+     <para>
+        The state manager and its clients use the
+        <ulink url='http://zeromq.org'>zeromq</ulink> communications software.
+        This means that some parameters are actually zeromq objects.
+        Where appropriate, this is pointed out.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+        FUNCTIONS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <funcsynopsis>
+                    <funcprototype><funcdef>ipPort =
+                    <function>Utilities.getPort</function></funcdef>
+                    <paramdef>
+                        <parameter>host</parameter>
+                        <parameter>service</parameter>
+                        <parameter>user</parameter>
+                    </paramdef>
+                    </funcprototype>
+                </funcsynopsis>
+                    
+            </term>
+            <listitem>
+                <para>
+                    Looks up a service using the NSCL DAQ port manager.
+                    <parameter>host</parameter> is the host on which the
+                    service is believed to be advertised.
+                    <parameter>service</parameter> is the name of the service
+                    the server is advertising.  <parameter>user</parameter> is the
+                    username qualifying the service.
+                </para>
+                <para>
+                    In order to support multiple acquisition runs in a single
+                    computer, services can be run by a specific user.  The
+                    user that runs the service is part of the information
+                    provided about services by the port manager query
+                    subsystem.
+                </para>
+                <para>
+                    The function returns the port on which the server is
+                    listening for connections for that service.  If there is
+                    no match or if the port manager on <parameter>host</parameter>
+                    cannot be contacted, the function will raise a
+                    <classname>RuntimeError</classname>
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <funcsynopsis>
+                    <funcprototype><funcdef>
+                        <function>Utilities.connectRequestPort</function></funcdef>
+                        <paramdef>
+                            <parameter>zmqContext</parameter>
+                            <parameter>host='localhost'</parameter>
+                            <parameter>service='StateRequest'</parameter>
+                            <parameter>user=None</parameter>
+                        </paramdef>
+                    </funcprototype>
+                </funcsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Connects to the request port of the state manager.
+                    <parameter>zmqContext</parameter> is the zeromq context
+                    object that must have been created by the caller as part
+                    of the initialization of zeromq.
+                    <parameter>host</parameter>, which defaults to the localhost
+                    indicates which system the state manager is running in.
+                    <parameter>service</parameter> which defaults to
+                    <literal>StateRequest</literal>, the service normally
+                    used by the state manager, is the service name on which the
+                    state manager is allowing state transition request
+                    connections.
+                    <parameter>user</parameter>, which defaults to <literal>None</literal>,
+                    indicating the running user should be  used, is the username
+                    that is running the state manager.
+                </para>
+                <para>
+                    On successful completion a <classname>zmq::socket</classname>
+                    object is returned.  Note that <classname>zmq::socket</classname>
+                    is not interchangeable with the sockets produced by
+                    the python <classname>socket</classname> constructor.
+                </para>
+            </listitem>
+        </varlistentry>
+        
+     </variablelist>
+  </refsect1>
+  <refsect1>
+    <title>
+        <classname>zmqEventLoop</classname>
+    </title>
+    <para>
+        <classname>zmqEventLoop</classname> (ZeroMQ Event loop) provides the ability to run
+        an event loop based on a <classname>zmq.poller</classname> object.  The event
+        loop is built to allow clients to register interest in either <classname>zmq.socket</classname>
+        events or events on any Python object that has a <methodname>fileno</methodname> method.
+        When events of interest occur, callbacks associated with those events are invoked.
+        The event loop can be entered for some designated time period or it can be
+        entered "forever" with a user callback determining if/when the loop exits.
+    </para>
+    <variablelist>
+        <varlistentry>
+            <term><methodname>zmqEventLoop</methodname>()</term>
+            <listitem>
+                <para>
+                    Constructs and returns an instance of a <classname>zmqEventLoop</classname>.
+                    No parameters are required or accepted.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><methodname>register</methodname>(
+                <parameter>ioItem</parameter>,
+                <parameter>events</parameter>,
+                <parameter>handler</parameter>)
+            </term>
+            <listitem>
+                <para>
+                    Registers a callback.  <parameter>ioItem</parameter> is either a
+                    <classname>zmq.socket</classname> or any Python object with a
+                    <methodname>fileno</methodname> method that returns a file descriptor.
+                    <parameter>events</parameter> is a set of flags bitwised OR'd together
+                    to specify the events of interest.  The legal flags are
+                    <literal>zmq.POLLIN</literal> or <literal>zmq.POLLOUT</literal>.
+                    <parameter>handler</parameter> is a callable that will be invoked when
+                    the <parameter>ioItem</parameter> has an event of interest.
+                </para>
+                <para>
+                    <parameter>handler</parameter> is invoked with the following parameters
+                    in order:  The event loop object that invoked the handler,  the
+                    <parameter>ioItem</parameter> that has the desired event and
+                    a <parameter>mask</parameter> of events that were fired by the
+                    object.
+                </para>
+                <para>
+                    Note that if an I/O item already has a callback register it is silently
+                    replaced by the new one. 
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><methodname>unregister</methodname>(<parameter>ioItem</parameter>)</term>
+            <listitem>
+                <para>
+                    Unregisters any callback registered for the <parameter>ioItem</parameter>.
+                    If the <parameter>ioItem</parameter> is not registered, the underlying
+                    <classname>zmq.Poller</classname> object will raise a
+                    <literal>KeyError</literal> exception.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><methodname>poll</methodname>(<parameter>timeout</parameter>)</term>
+            <listitem>
+                <para>
+                    Runs the event loop until the next events are declared or for
+                    <parameter>timeout</parameter> microseconds, whichever is first.
+                    Any event that occured will be dispatched prior to return. This
+                    method provides for a main program loop that follows the model:
+                </para>
+                <informalexample>
+                    <programlisting>
+e = Utilities.zmqEventLoop()
+...
+while True:
+   e.poll(maxLatencyInMicroseconds)
+   doOtherStuff()
+                    </programlisting>
+                </informalexample>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><methodname>pollForever</methodname>(<parameter>timeout</parameter>, <parameter>idler=None</parameter>)</term>
+            <listitem>
+                <para>
+                    Repeatedly invokes the <methodname>poll</methodname> method.
+                    In this case, the <parameter>timeout</parameter> specifies the
+                    maximum time the <methodname>poll</methodname> call can block
+                     in milliseconds (not microseconds).
+                </para>
+                <para>
+                     After each call to
+                     <methodname>poll</methodname> the <parameter>idler</parameter>
+                     callable, if supplied is called with the event loop object
+                     as a parameter.   The <parameter>idler</parameter> method is assumed
+                     to return a boolean <literal>True</literal> if the event loop
+                     should make another pass or <literal>False</literal> fi
+                     <methodname>pollForever</methodname> should return.
+                     The <methodname>poll</methodname> method will always be called
+                     at least once.
+                </para>
+            </listitem>
+        </varlistentry>
+        
+    </variablelist>
+  </refsect1>
+</refentry>
+      <refentry id="python3_statemonitor">
+        <refmeta>
+           <refentrytitle id="python3_statemonitor_title">StateMonitor</refentrytitle>
+           <manvolnum>3python</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>StateMonitorBase</refname>
+           <refname>StateMonitor</refname>
+           <refpurpose>State transition dispatching</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+            <command>
+from nscldaq.statemanager import StateMonitor
+            </command>
+          </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+smb = StateMonitor.StateMonitorBase(transitionRequestUri, statePublisherUri, initializer=None)
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+smb.requestTransition(requestString)
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+smb.initialState(state)
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+smb.transition(state)
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+smb.run()
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+sm = StateMonitor(transitionRequestUri, statePublisherUri, initializer=None)                    
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+sm.register(state, callable, argument)
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+sm.unregister(state)
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+sm.initialState(state)
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+sm.transition(state)
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+sm.run()
+                </command>
+            </cmdsynopsis>
+            
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            The <filename>StateMonitor</filename> package provides a pair
+            of classes that interact with the state manager in a way that
+            makes state-aware progams easy to write.  The classes are
+            ZeroMQ aware and provide sufficient hooks for you to interact
+            with facilities other than the state manager.
+           </para>
+           <para>
+            The <classname>StateMonitorBase</classname> class provides
+            a base class on which all state monitoring programs can be
+            implemented.  It provides combines with a internal
+            <classname>zmqEventLoop</classname> object and
+            <classname>zmq.Context</classname> object to intercept data on
+            <classname>zmq.socket</classname> objects connected tothe state
+            manager.  A callback is invoked for transition broadcasts as
+            well as when the state of the system is initially learned.
+           </para>
+           <para>
+            <classname>StateMonitor</classname> derives from
+            <classname>StateMonitorBase</classname> allowing clients to
+            register callbacks that are invoked when the system enters
+            specific states.  When using these classes, if the flow of
+            control the provide seems confining, remember that you can
+            derive from these classes overiding methods such as
+            <methodname>run</methodname> to get different event loop
+            behavior and the low level handlers for state and transition
+            handlers if needed.
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              StateMonitorBase
+           </title>
+           <para>
+            Provides a <classname>zmqEventLoop</classname> and connections to the
+            state manager in a way that specific operations can be performed
+            when state transitions occur and when the state of the system
+            is initially discovered.
+           </para>
+           <para>
+            Recall that the state manager is not only publishing state transitions.
+            It also periodically publishes the current state.  The state is
+            discovered when the current state publication is seen or if a state
+            transition is seen prior to the receipt of a state publication.
+           </para>
+           <para>
+            The <classname>StateMonitorBase</classname> class defines the following
+            attributes that are considered public:
+           </para>
+           <variablelist>
+            <varlistentry>
+                <term><varname>zmqContext</varname></term>
+                <listitem>
+                    <para>
+                        During initialization the object creates a
+                        <classname>zmq.Context</classname> object which it uses
+                        to generate the <classname>zmq.Socket</classname> objects
+                        that talk to the state manager.
+                    </para>
+                </listitem>
+            </varlistentry>
+            
+           </variablelist>
+           <para>
+            The <classname>StateMonitorBase</classname> class has the following methods:
+           </para>
+           <variablelist>
+            <varlistentry>
+                <term><methodname>StateMonitor.StateMonitorBase</methodname>
+                    (<parameter>transitionRequestUri</parameter>, <parameter>statePublisherUri</parameter>,
+                    <parameter>initializer=None</parameter>)</term>
+                <listitem>
+                    <para>
+                        Constructs a <classname>StateMonitorBase</classname> object.
+                        The <parameter>transitionRequestUri</parameter> is
+                        a URI that describes the endpoint on which the state manager
+                        listens for state transition requests.  This is of the form
+                        <literal>tcp://hostname:portnum</literal> the port manager
+                        can be used to determine the port number if you know the
+                        host.
+                    </para>
+                    <para>
+                        The <parameter>statePublisherUri</parameter> parameter
+                        similarly describes the endpoint on which the state manager
+                        publishes both state information and state transitions.
+                    </para>
+                    <para>
+                        Finally the <parameter>initializer</parameter> parameter
+                        provides a callable that is invoked after initialization
+                        of the object is complete. The <classname>StateMonitorBase</classname>
+                        object is passed as a parameter.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>requestTransition</methodname>(<parameter>requestString</parameter>)</term>
+                <listitem>
+                    <para>
+                        Asks the state manager to perform the transition indicated
+                        by <parameter>requestString</parameter>.  The return value
+                        from this method is the response string from the state
+                        manager.  If the state transition could be taken, the
+                        string is simply <literal>OK</literal>.  If the state transtion
+                        is could not be taken, the string is <literal>FAIL</literal>
+                        followed by a human readable error message.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>initialState</methodname>(<parameter>state</parameter>)</term>
+                <listitem>
+                    <para>
+                        This method is intended to be overriden in real applications that
+                        make use of this class as a base class.  It is called when the
+                        state of the state manager is initially learned.  This happens
+                        either when a <literal>STATE</literal> message is received
+                        from the state manager or when a <literal>TRANSITION</literal>
+                        message is received prior to the first <literal>STATE</literal>
+                        message.  In either case, there is no known prior state.
+                    </para>
+                    <para>
+                        The <parameter>state</parameter> parameter is the current system
+                        state.  The base class method should be called by any override. It
+                        <orderedlist>
+                            <listitem><para>Saves the prior state.</para></listitem>
+                            <listitem><para>Unsubscribes from <literal>STATE</literal> messages
+                            since the only way the state can now change is due to a
+                            <literal>TRANSITION</literal> message.
+                            </para>
+                            </listitem>
+                        </orderedlist>
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>transition</methodname>(<parameter>state</parameter>)</term>
+                <listitem>
+                    <para>
+                        Called when a state transition occurs.  <parameter>state</parameter>
+                        is the new state.   This method is intended to be overridden by derived
+                        classes.  The base class method:
+                        <itemizedlist>
+                            <listitem><para>If the prior state is not known invokes
+                            <methodname>initialState</methodname></para></listitem>
+                            <listitem><para>If the prior state is known, saves the current
+                            state as the prior state for the next transition.
+                            </para></listitem>
+                        </itemizedlist>
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>run()</methodname></term>
+                <listitem>
+                    <para>
+                        Invokes the <varname>poller</varname>'s
+                        <methodname>pollForever</methodname> method.
+                    </para>
+                </listitem>
+            </varlistentry>
+            
+           </variablelist>
+           
+        </refsect1>
+        <refsect1>
+            <title>StateMonitor</title>
+            <para>
+                This class is derived from <classname>StateManagerBase</classname>.
+                It adds to that class the ability to register callbacks
+                when specific states are entered.  The <classname>StateMonitor</classname>
+                class has the following addtional methods:
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><methodname>register</methodname>(
+                        <parameter>state</parameter>, <parameter>callable</parameter>,
+                        <parameter>argument</parameter>)</term>
+                    <listitem>
+                        <para>
+                            Registers interest in entry into <parameter>state</parameter>.
+                            When <parameter>state</parameter> is either
+                            discovered to be the initial state,
+                            or when there is a state transition into <parameter>state</parameter>
+                        </para>
+                        <para>
+                            When either of those conditions is met, the <parameter>callable</parameter>
+                            is invoked. It gets passed in order, the <classname>StateMonitor</classname> object,
+                            the prior state (<literal>None</literal> if this is an initial state discovery),
+                            the state being entered and the <parameter>argument</parameter> passed in at
+                            registration time.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><methodname>unregister</methodname>(<parameter>state</parameter>)</term>
+                    <listitem>
+                        <para>
+                            Unregisters any callback associated with <parameter>state</parameter>.
+                            A <literal>KeyError</literal> is raised if you try to <methodname>unregister</methodname>
+                            a <parameter>state</parameter> that has no callback registered.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                
+            </variablelist>
+
+
+        </refsect1>
+      </refentry>
+
+
+
+
+<!-- /manpage -->
+
+<!-- manpage 3daq -->
+<!-- C++ bindings -->
+
+	 <refentry id="daq3_czmqeventloop">
+       <refmeta>
+          <refentrytitle id="daq3_czmqeventloop_title">CZMQEventLoop</refentrytitle>
+          <manvolnum>3daq</manvolnum>
+       </refmeta>
+       <refnamediv>
+          <refname>CZMQEventLoop</refname>
+          <refpurpose>Event loop for fd's and zmq sockets</refpurpose>
+       </refnamediv>
+       
+       <refsynopsisdiv>
+        <synopsis>
+#include &lt;CStateMonitor.h&gt;
+            <ooclass><classname>CZMQEventLoop</classname></ooclass>
+           <constructorsynopsis>
+          <methodname>CZMQEventLoop</methodname>
+          <void />
+          <exceptionname></exceptionname>
+           </constructorsynopsis>
+           <methodsynopsis>
+          <type>void</type>
+             <methodname>Register</methodname>
+             <methodparam>
+                <type>zmq::socket_t&amp;</type> <parameter> sock</parameter>
+             </methodparam>
+             <methodparam>
+                <type>int</type> <parameter>mask</parameter>
+             </methodparam>
+             <methodparam>
+                <type>Callback</type> <parameter>cb</parameter>
+             </methodparam>
+             <methodparam>
+                <type>void* </type> <parameter>param = 0</parameter>
+             </methodparam>
+             <exceptionname></exceptionname>
+             <modifier></modifier>
+           </methodsynopsis>
+           <methodsynopsis>
+               <modifier></modifier>
+               <type>void</type>
+               <methodname>Register</methodname>
+               <methodparam>
+                <type>int</type> <parameter>fd</parameter>
+               </methodparam>
+               <methodparam>
+                <type>int</type> <parameter> mask</parameter>
+               </methodparam>
+               <exceptionname></exceptionname>
+               <modifier></modifier>
+           </methodsynopsis>
+           <methodsynopsis>
+               <modifier></modifier>
+               <type>void</type>
+               <methodname>unregister</methodname>
+               <methodparam>
+                <type>zmq::socket_t&amp;</type> <parameter>sock</parameter>
+               </methodparam>
+               <exceptionname></exceptionname>
+               <modifier></modifier>
+           </methodsynopsis>
+           <methodsynopsis>
+               <modifier></modifier>
+               <type>void</type>
+               <methodname>unregister</methodname>
+               <methodparam>
+                <type>int</type> <parameter>fd</parameter>
+               </methodparam>
+               <exceptionname></exceptionname>
+               <modifier></modifier>
+           </methodsynopsis>
+           <methodsynopsis>
+               <modifier></modifier>
+               <type>void</type>
+               <methodname>poll</methodname>
+               <methodparam>
+                <type>int</type> <parameter>timeout</parameter>
+               </methodparam>
+               <exceptionname></exceptionname>
+               <modifier></modifier>
+           </methodsynopsis>
+           <methodsynopsis>
+               <modifier></modifier>
+               <type>void</type>
+               <methodname>pollForever</methodname>
+               <methodparam>
+                <type>int</type> <parameter>timeout</parameter>
+               </methodparam>
+               <methodparam>
+                <type>IdleCallback</type> <parameter>callback=0</parameter>
+               </methodparam>
+               <exceptionname></exceptionname>
+               <modifier></modifier>
+           </methodsynopsis>  
+        </synopsis>
+       </refsynopsisdiv>
+       <refsect1>
+          <title>DESCRIPTION</title>
+          <para>
+            This class provides an event loop that is capable of reacting
+            to events on both
+            <ulink url='http://zeromq.org'>ZeroMQ</ulink> sockets and
+            file descriptors.  An event, in this context, is an object becoming
+            readable or writable.  Events get callbacks associated with them,
+            and those callbacks are invoked from the event loop whenever
+            the associated object has an event of interest.
+          </para>
+          <para>
+            The event loop can be interleaved with other work either by
+            using the <methodname>poll</methodname> method, which waits for
+            events until either one occurs or a timeout occurs, or by providing
+            a callback to the <methodname>pollForever</methodname> method.
+            Event interest is declared using the <methodname>Register</methodname>
+            method and interest is removed via the <methodname>unregister</methodname>
+            methods.
+          </para>
+       </refsect1>
+       <refsect1>
+          <title>
+         METHODS
+          </title>
+          <variablelist>
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                   <type>void</type>
+                      <methodname>Register</methodname>
+                      <methodparam>
+                         <type>zmq::socket_t&amp;</type> <parameter> sock</parameter>
+                      </methodparam>
+                      <methodparam>
+                         <type>int</type> <parameter>mask</parameter>
+                      </methodparam>
+                      <methodparam>
+                         <type>Callback</type> <parameter>cb</parameter>
+                      </methodparam>
+                      <methodparam>
+                         <type>void* </type> <parameter>param = 0</parameter>
+                      </methodparam>
+                      <exceptionname></exceptionname>
+                      <modifier></modifier>
+                    </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Registers interest in one or more events on a
+                        ZeroMQ socket; <parameter>sock</parameter>.
+                        <parameter>mask</parameter> defines which events
+                        are of interest and is a bitwise or of the masks:
+                        <literal>ZMQ_POLLIN</literal> and <literal>ZMQ_POLLOUT</literal>.
+                    </para>
+                    <para>
+                        When one of the events of interest occurs while the event
+                        loop is running, the callback <parameter>cb</parameter> is
+                        invoked.   See <literal>TYPES</literal> below for more
+                        information about the <type>Callback</type> function...
+                    </para>
+                    <para>
+                        The <parameter>cb</parameter> parameter, among others
+                        is passed to the <parameter>cb</parameter> function
+                        without any interpretation.
+                    </para>
+                    <para>
+                        Note that a socket can only have a single callback
+                        registered.  If you register a callback on a socket
+                        that already has one defined, the new definition
+                        replaces the previous definition.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier></modifier>
+                        <type>void</type>
+                        <methodname>Register</methodname>
+                        <methodparam>
+                         <type>int</type> <parameter>fd</parameter>
+                        </methodparam>
+                        <methodparam>
+                         <type>int</type> <parameter> mask</parameter>
+                        </methodparam>
+                        <exceptionname></exceptionname>
+                        <modifier></modifier>
+                    </methodsynopsis>
+
+                </term>
+                <listitem>
+                    <para>
+                        This method is identical to the previous
+                        <methodname>Register</methodname> method, however
+                        the socket is replaced by a <parameter>fd</parameter>
+                        which is a file descriptor for which we'd like to
+                        receive events.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier></modifier>
+                        <type>void</type>
+                        <methodname>unregister</methodname>
+                        <methodparam>
+                         <type>zmq::socket_t&amp;</type> <parameter>sock</parameter>
+                        </methodparam>
+                        <exceptionname></exceptionname>
+                        <modifier></modifier>
+                    </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Unregisters interest in events from the
+                        <parameter>sock</parameter> ZeroMQ Socket.
+                        Once this is called, any callback establisedh on
+                        events from this socket are no longer delivered.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier></modifier>
+                        <type>void</type>
+                        <methodname>unregister</methodname>
+                        <methodparam>
+                         <type>int</type> <parameter>fd</parameter>
+                        </methodparam>
+                        <exceptionname></exceptionname>
+                        <modifier></modifier>
+                    </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Unregisters events on the file descriptor
+                        <parameter>fd</parameter>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                    <term>
+                        <methodsynopsis>
+                        <modifier></modifier>
+                        <type>void</type>
+                        <methodname>poll</methodname>
+                        <methodparam>
+                         <type>int</type> <parameter>timeout</parameter>
+                        </methodparam>
+                        <exceptionname></exceptionname>
+                        <modifier></modifier>
+                    </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Blocks until either an event occurs or the
+                            <parameter>timeout</parameter> number of microseconds
+                            have passed.  If an event occurs for which a
+                            callback has been established, that callback will
+                            be invoked prior to returning.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <methodsynopsis>
+                        <modifier></modifier>
+                        <type>void</type>
+                        <methodname>pollForever</methodname>
+                        <methodparam>
+                         <type>int</type> <parameter>timeout</parameter>
+                        </methodparam>
+                        <methodparam>
+                         <type>IdleCallback</type> <parameter>callback=0</parameter>
+                        </methodparam>
+                        <exceptionname></exceptionname>
+                        <modifier></modifier>
+                    </methodsynopsis>  
+                    </term>
+                    <listitem>
+                        <para>
+                            Invokes <methodname>poll</methodname> witht he
+                            <parameter>timeout</parameter> parameter supplied.
+                            On return, the <parameter>callback</parameter> is
+                            invoked, if non null.  If the <parameter>callback</parameter>
+                            returns <literal>false</literal>, <methodname>pollForever</methodname>
+                            returns, otherwise it loops to the <methodname>poll</methodname>
+                            call.
+                        </para>
+                        <para>
+                            If <parameter>callback</parameter> is null, the
+                            <methodname>poll</methodname> loop does not exit
+                            until the program exits.  It is this behavior
+                            that inpsires the methodname.  For more information
+                            about the <type>IdlCallback</type> type,
+                            see TYPES below.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                    
+                    
+          </variablelist>
+       </refsect1>
+        <refsect1>
+           <title>TYPES</title>
+           <refsect2>
+            <title>Callback</title>
+            <para>
+                This type is a pointer to a function that is suitable
+                for use as the <parameter>cb</parameter> parameter to
+                the <methodname>Register</methodname> functions.
+                It's form is as follows:
+                <funcsynopsis>
+                    <funcprototype>
+                        <funcdef>typedef void <function>(*Callback)</function></funcdef>
+                        <paramdef>
+                            CZMQEventLoop* <parameter>pEventLoop</parameter>
+                        </paramdef>
+                        <paramdef>
+                            zmq::pollitem_t* <parameter>object</parameter>
+                        </paramdef>
+                        <paramdef>
+                            void* <parameter>param</parameter>
+                        </paramdef>
+                    </funcprototype>
+                </funcsynopsis>
+            </para>
+            <para>
+                The <parameter>pEventLoop</parameter> parameter is a pointer
+                to the event loop that is invoking this callback.
+                The <parameter>object</parameter> describes the object
+                that cause the callback to be invoked.  See the ZeroMQ
+                documentation for more information about its structure.
+                <parameter>param</parameter> is the additional parameter
+                passed in during the <methodname>Register</methodname> call
+                that established this callback.
+            </para>
+           </refsect2>
+           <refsect2>
+            <title>IdleCallback</title>
+            <para>
+                This is a pointer to a function that is appropriate to use
+                as a the <parameter>idler</parameter> callback parameter
+                in a call to the <methodname>pollForevr</methodname> method.
+            </para>
+            <para>
+                The form of this function is:
+                <funcsynopsis>
+                    <funcprototype>
+                        <funcdef>typedef bool <function>(*IdleCallback)</function></funcdef>
+                        <paramdef>
+                            CZMQEventLoop* <parameter>pEventLoop</parameter>
+                        </paramdef>
+                    </funcprototype>
+                </funcsynopsis>
+            </para>
+            <para>
+                Where <parameter>pEventLoop</parameter> is a pointer to the
+                event loop object that is running.
+            </para>
+           </refsect2>
+        </refsect1>
+     </refentry>     
+<refentry id="daq3_cstatemonitorbase">
+  <refmeta>
+     <refentrytitle id="daq3_cstatemonitorbase_title">classname</refentrytitle>
+     <manvolnum>3daq</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>CStateMonitorBase</refname>
+     <refpurpose>Base class for state monitor classess</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+        
+#include &lt;CStateMonitor.h&gt;
+    
+       <ooclass><classname>CStateMonitorBase</classname></ooclass>
+      <constructorsynopsis>
+     <methodname>CStateMonitorBase</methodname>
+     <methodparam>
+        <type>std::string</type> <parameter>transitionRequestUri</parameter>
+     </methodparam>
+     <methodparam>
+        <type>std::string</type> <parameter>statePublisherUri</parameter>
+     </methodparam>
+     <methodparam>
+        <type>CStateMonitorBase::InitCallback</type> <parameter>cb</parameter>
+     </methodparam>
+     <exceptionname></exceptionname>
+      </constructorsynopsis>
+      <methodsynopsis>
+     <type>std::string</type>
+        <methodname>requestTransition</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>transitionName</parameter>
+        </methodparam>
+        <exceptionname></exceptionname>
+        <modifier></modifier>
+      </methodsynopsis>
+      <methodsynopsis>
+          <modifier></modifier>
+          <type>void</type>
+          <methodname>run</methodname>
+          <void />
+          <exceptionname></exceptionname>
+          <modifier></modifier>
+      </methodsynopsis>
+      <methodsynopsis>
+          <modifier></modifier>
+          <type>CZMQEventLoop&amp;</type>
+          <methodname>getEventLoop</methodname>
+          <void />
+          <exceptionname></exceptionname>
+          <modifier></modifier>
+      </methodsynopsis>
+      <methodsynopsis>
+          <modifier></modifier>
+          <type>zmq::context_t*</type>
+          <methodname>getContext</methodname>
+          <void />
+          <exceptionname></exceptionname>
+          <modifier></modifier>
+      </methodsynopsis>
+      <methodsynopsis>
+          <modifier></modifier>
+          <type>std::string</type>
+          <methodname>getState</methodname>
+          <void />
+          <exceptionname></exceptionname>
+          <modifier></modifier>
+      </methodsynopsis>
+protected:
+      <methodsynopsis>
+          <modifier>virtual</modifier>
+          <type>void</type>
+          <methodname>initialState</methodname>
+          <methodparam>
+            <type>std::string</type> <parameter>state</parameter>
+          </methodparam>
+          <exceptionname></exceptionname>
+          <modifier></modifier>
+      </methodsynopsis>
+      <methodsynopsis>
+          <modifier>virtual</modifier>
+          <type>void</type>
+          <methodname>transition</methodname>
+          <methodparam>
+            <type>std::string</type> <parameter>newState</parameter>
+          </methodparam>
+          <exceptionname></exceptionname>
+          <modifier></modifier>
+      </methodsynopsis>  
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        This class is intended to be used as a base class for programs
+        that must monitor the state of the state manager program.  The
+        methods <methodname>initialState</methodname> and
+        <methodname>transition</methodname> are intended to be
+        overidden by the actual application, as these methods are the
+        ones that are called when state are entered. See also
+        <classname>CStateMonitor</classname> which is a good concrete
+        example of a derived class.
+     </para>
+     <para>
+        This object contains a <classname>CZMQEventLoop</classname> which
+        can also be obtained by the application software.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <constructorsynopsis>
+               <methodname>CStateMonitorBase</methodname>
+               <methodparam>
+                  <type>std::string</type> <parameter>transitionRequestUri</parameter>
+               </methodparam>
+               <methodparam>
+                  <type>std::string</type> <parameter>statePublisherUri</parameter>
+               </methodparam>
+               <methodparam>
+                  <type>CStateMonitorBase::InitCallback</type> <parameter>cb</parameter>
+               </methodparam>
+               <exceptionname></exceptionname>
+                </constructorsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Constructs the object.  The <parameter>transitionRequestUri</parameter>
+                    is the URI that specifies the end point on which the state
+                    manager is listening for transition requests.  This is normally
+                    constructed by looking up the <literal>StateRequest</literal> service
+                    in the system that is running the state manager to get the port
+                    number.  The form of the URI is
+                    <literal>tcp://</literal><replaceable>hostname</replaceable><literal>:</literal><replaceable>portnum</replaceable>
+                </para>
+                <para>
+                    Similarly, <parameter>statePublisherUri</parameter> is the
+                    URI of the endpoint on which the state manager periodically
+                    publishes it state and publishes state transitions.  It
+                    can usually be found by using the port manager to look
+                    up the <literal>StatePublish</literal> service in the
+                    host that is running the state manager.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+               <type>std::string</type>
+                  <methodname>requestTransition</methodname>
+                  <methodparam>
+                      <type>std::string</type> <parameter>transitionName</parameter>
+                  </methodparam>
+                  <exceptionname></exceptionname>
+                  <modifier></modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Requests that the state transition perform the state
+                    transition indicated by <parameter>transitionName</parameter>
+                    the function retuns the reply from the state manager.
+                    This is a string that is either <literal>OK</literal> if the
+                    transition could be performed or <literal>FAIL</literal> followed
+                    by human readable text that indicates why the state
+                    transition could not be performed.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void</type>
+                    <methodname>run</methodname>
+                    <void />
+                    <exceptionname></exceptionname>
+                    <modifier></modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Runs the event loop.  The event loop runs until the program
+                    exits.  If you need more complex behavior you can invoke
+                    <methodname>getEventLoop</methodname> to obtain the event
+                    loop and use either its <methodname>poll</methodname> or
+                    <methodname>pollForever</methodname> with a callback to
+                    achieve that.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>CZMQEventLoop&amp;</type>
+                    <methodname>getEventLoop</methodname>
+                    <void />
+                    <exceptionname></exceptionname>
+                    <modifier></modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Returns a reference to the event loop that will be used
+                    to monitor the state manager.  This event loop
+                    is the one that is used by the <methodname>run</methodname>
+                    method above.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>zmq::context_t*</type>
+                    <methodname>getContext</methodname>
+                    <void />
+                    <exceptionname></exceptionname>
+                    <modifier></modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Returns a pointer to the ZeroMQ context object that is
+                    used by the <classname>CStateMonitor</classname> to
+                    create <classname>zmq::socket_t</classname> objects.
+                    If you will create your own sockets, it is best to use
+                    this context rather than creating a new one.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>std::string</type>
+                    <methodname>getState</methodname>
+                    <void />
+                    <exceptionname></exceptionname>
+                    <modifier></modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Returns the current state of the state manager.
+                    If that is not yet known, the function returns an empty string.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>virtual</modifier>
+                    <type>void</type>
+                    <methodname>initialState</methodname>
+                    <methodparam>
+                      <type>std::string</type> <parameter>state</parameter>
+                    </methodparam>
+                    <exceptionname></exceptionname>
+                    <modifier></modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    This method is called when the event loop either gets a state
+                    broadcast or when the state manager makes a state transition when
+                    the state is not yet known.  Derived classes that override this
+                    should invoke this base class method at some meaningful point
+                    in their initial state processing.
+                </para>
+                <para>
+                    In the base class implementation:
+                    The current state is set to <parameter>state</parameter>, and
+                    the subscription for state broacasts is removed.  From this
+                    point on, only state transitions will activate us.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>virtual</modifier>
+                    <type>void</type>
+                    <methodname>transition</methodname>
+                    <methodparam>
+                      <type>std::string</type> <parameter>newState</parameter>
+                    </methodparam>
+                    <exceptionname></exceptionname>
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    This method is called when the evetn loop gets a state transition
+                    message from the state manager.  If you override this method in
+                    a derived class you should invoke this method at some point
+                    during your processing of state transitions.
+                </para>
+                <para>
+                    If the prior state is not known, <methodname>initialState</methodname>
+                    is invoked.  Otherwise, the new state (<parameter>newState</parameter>)
+                    is memorized by the function, so that <methodname>getState</methodname>
+                    will return it.
+                </para>
+            </listitem>
+        </varlistentry>
+        
+                
+                
+        
+     </variablelist>
+  </refsect1>
+   <refsect1>
+      <title>TYPES</title>
+      <refsect2>
+        <title>InitCallback</title>
+        <para>
+            This is a pointer to a function that takes as a single parameter
+            a pointer to the <classname>CStateMonitorBase</classname> that is
+            being constructed.
+        </para>
+        <para>
+            When called, any of the <classname>CStateMonitorBase</classname>
+            methods can be safely called.  The intent is that this
+            callback might need to obtain the event loop and register
+            callbacks for other objects besides the sockets registered
+            with the state and transition publications.
+        </para>
+        <para>
+            The callback might also obtain the ZeroMQ context and use it
+            to create additional ZeroMQ sockets.
+        </para>
+      </refsect2>
+   </refsect1>
+</refentry>
+<refentry id="daq3_cstatemonitor">
+  <refmeta>
+     <refentrytitle id="daq3_cstatemonitor_title">CStateMonitor</refentrytitle>
+     <manvolnum>3daq</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>CStateMonitor</refname>
+     <refpurpose>State monitor with callbacks.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+#include &lt;CStateMonitor.h&gt;
+       <ooclass><classname>CStateMonitor : public CStateManagerBase</classname></ooclass>
+      <constructorsynopsis>
+     <methodname>CStateMonitor(</methodname>
+     <methodparam>
+        <type>std::string</type> <parameter>transitionRequestUri</parameter>
+     </methodparam>
+     <methodparam>
+        <type>std::string</type> <parameter>statePublisherUri</parameter>
+     </methodparam>
+     <methodparam>
+        <type>CStaeMonitorBase::InitCallback</type> <parameter>cb = 0</parameter>
+     </methodparam>
+     <exceptionname></exceptionname>
+      </constructorsynopsis>
+      <methodsynopsis>
+          <modifier>virtual</modifier>
+          <type>void</type>
+          <methodname>Register</methodname>
+          <methodparam>
+            <type>std::string</type> <parameter>state</parameter>
+          </methodparam>
+          <methodparam>
+            <type>Callback</type> <parameter>cb</parameter>
+          </methodparam>
+          <methodparam>
+            <type>void*</type> <parameter>cbarg</parameter>
+          </methodparam>
+          <exceptionname></exceptionname>
+          <modifier></modifier>
+      </methodsynopsis>  
+      <methodsynopsis>
+          <modifier>virtual</modifier>
+          <type>void</type>
+          <methodname>unregister</methodname>
+          <methodparam>
+            <type>std::string</type> <parameter>state</parameter>
+          </methodparam>
+          <exceptionname></exceptionname>
+          <modifier></modifier>
+      </methodsynopsis>  
+     
+     
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        Derived from <classname>CStateMonitorBase</classname> the
+        <classname>CStateMonitor</classname> provides a fully functional
+        state monitor class that allows its clients to regiser callbacks
+        to be exeuted when states are entered.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <constructorsynopsis>
+               <methodname>CStateMonitor(</methodname>
+               <methodparam>
+                  <type>std::string</type> <parameter>transitionRequestUri</parameter>
+               </methodparam>
+               <methodparam>
+                  <type>std::string</type> <parameter>statePublisherUri</parameter>
+               </methodparam>
+               <methodparam>
+                  <type>CStaeMonitorBase::InitCallback</type> <parameter>cb = 0</parameter>
+               </methodparam>
+               <exceptionname></exceptionname>
+                </constructorsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Constructs the <classname>CStateMonitor</classname>
+                    See <link linkend='daq3_cstatemonitorbase' endterm='daq3_cstatemonitorbase_title' />
+                    for information about the constructor's parameters as they are the same as for
+                    that classs.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>virtual</modifier>
+                    <type>void</type>
+                    <methodname>Register</methodname>
+                    <methodparam>
+                      <type>std::string</type> <parameter>state</parameter>
+                    </methodparam>
+                    <methodparam>
+                      <type>Callback</type> <parameter>cb</parameter>
+                    </methodparam>
+                    <methodparam>
+                      <type>void*</type> <parameter>cbarg</parameter>
+                    </methodparam>
+                    <exceptionname></exceptionname>
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Registers interest in a <parameter>state</parameter>
+                    the <parameter>cb</parameter> callback is invoked if the
+                    <parameter>state</parameter> is either entered by transition
+                    from a known state or if the state is the one the system
+                    is discovered to be in at startup time.
+                </para>
+                <para>
+                    See <literal>TYPES</literal> for information about the
+                    <type>Callack</type> type.  When the <parameter>cb</parameter>
+                    is called, one of the paramters it is passed is the
+                    <parameter>cbarg</parameter> passed in at registration time.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>virtual</modifier>
+                    <type>void</type>
+                    <methodname>unregister</methodname>
+                    <methodparam>
+                      <type>std::string</type> <parameter>state</parameter>
+                    </methodparam>
+                    <exceptionname></exceptionname>
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    This unregisters any callback established for
+                    <parameter>state</parameter>
+                </para>
+            </listitem>
+        </varlistentry>
+        
+                
+                
+                
+        
+     </variablelist>
+  </refsect1>
+   <refsect1>
+      <title> TYPES </title>
+      <refsect2>
+        <title>Callback</title>
+        <para>
+            This type is a function pointer to functinos that are
+            suitable as callback functions.  The type has the following
+            definition:
+            <funcsynopsis>
+                <funcprototype><funcdef> <function>typdef void (*Callback) </function></funcdef>
+                <paramdef>
+                    <parameter>
+                        <type>CStateMonitor*</type> pMonitor
+                    </parameter>
+                   <parameter>
+                    <type>std::string  </type> prior
+                   </parameter>
+                <parameter>
+                    <type>std::string </type> current
+                </parameter>
+                </paramdef>
+               </funcprototype>
+            </funcsynopsis>
+        </para>
+        <para>
+            <parameter>pMonitor</parameter> points to the <classname>CStateMonitor</classname>
+            that called the callback.  <parameter>prior</parameter> is
+            the prior state and is an empty string if it is not known.
+            <parameter>current</parameter> is the state the system is
+            now transitioned to.
+        </para>
+      </refsect2>
+        
+   </refsect1>
+</refentry>     
+<!-- /manpage -->
+
+<!-- manpage 3tcl -->
+<!-- Tcl bindings -->
+      <refentry id="tcl3_statemanager">
+        <refmeta>
+           <refentrytitle id="tcl3_statemanager_title">statemanager</refentrytitle>
+           <manvolnum>3tcl</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>statemanager</refname>
+           <refpurpose>Tcl interface to state manager</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+package require statemanager
+          </command>
+          </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+::statemanager::statemonitor start <replaceable>requestURI publishURI</replaceable>
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+::statemanager::statemonitor register <replaceable>state scriptHead</replaceable>
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+::statemanager::statemonitor unregister <replaceable>state</replaceable>
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+::statemanager::statemonitor transition <replaceable>transition-name</replaceable>
+            </command>
+        </cmdsynopsis>
+        
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            The <literal>statemanager</literal> package provides an API
+            for the State manager server to Tcl scripts.
+            The API is provided as a command ensemble with the command
+            head <command>::statemanager::statemonitor</command>.
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              SUBCOMMANDS
+           </title>
+           <variablelist>
+            <varlistentry>
+                <term>
+        <cmdsynopsis>
+            <command>
+::statemanager::statemonitor start <replaceable>requestURI publishURI</replaceable>
+            </command>
+        </cmdsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Starts the state monitor thread.  In order to interface
+                        with the Tcl event loop, the state monitor runs a thread
+                        that accepts messages from the state manager and turns
+                        them into events in the interpreter's thread.
+                    </para>
+                    <para>
+                        <parameter>requestURI</parameter> is the
+                        URI of the endpoint on which the state manager is
+                        listening for state change requests while the
+                        <parameter>publishURI</parameter> is the URI for the
+                        endpointo n which the state manager publishes
+                        state and state transitions.
+                    </para>
+                    <para>
+                        The form of a URI is
+                        <literal>tcp://</literal><replaceable>hostname</replaceable><literal>:</literal><replaceable>port</replaceable>
+                        The port for each of the URI's can be determined using the port manager
+                        API to look up the services <literal>StateRequest</literal> and
+                        <literal>StatePublish</literal> respectively.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+        <cmdsynopsis>
+            <command>
+::statemanager::statemonitor register <replaceable>state scriptHead</replaceable>
+            </command>
+        </cmdsynopsis>
+
+                </term>
+                <listitem>
+                    <para>
+                        Registers interest in a state mnager <parameter>state</parameter>.
+                        When the <parameter>state</parameter> is entered, or
+                        when the initial state is discovered to be <parameter>state</parameter>
+                        <parameter>scriptHead</parameter> has the prior and current
+                        state appended to it and is executed.  If the prior state
+                        is not known, and empty string is passed for it instead.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+        <cmdsynopsis>
+            <command>
+::statemanager::statemonitor unregister <replaceable>state</replaceable>
+            </command>
+        </cmdsynopsis>
+
+                </term>
+                <listitem>
+                    <para>
+                        Unregisters interest in <parameter>state</parameter>.
+                        Any callback registered for that state will no longer
+                        be invoked when that state is reached.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+        <cmdsynopsis>
+            <command>
+::statemanager::statemonitor transition <replaceable>transition-name</replaceable>
+            </command>
+        </cmdsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Requests the <parameter>transition-name</parameter>
+                        state transition.  For legal transition names see
+                        <link linkend='statemgr_statediagram' endterm='statemgr_statediagram_title' />.
+                        The transition names are on the arcs between the bubbles
+                        (which are the states).
+                    </para>
+                    <para>
+                        This command returns the text of the state manager's
+                        reply.  This can be <literal>OK</literal> or
+                        <literal>FAIL</literal> followed by a human readable
+                        error message.
+                    </para> 
+                </listitem>
+            </varlistentry>
+            
+           </variablelist>
+        </refsect1>
+
+      </refentry>
+
+<!-- /manpage -->

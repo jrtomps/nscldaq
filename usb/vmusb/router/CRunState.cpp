@@ -16,6 +16,7 @@
 
 #include <config.h>
 #include "CRunState.h"
+#include <iostream>
 
 using namespace std;
 

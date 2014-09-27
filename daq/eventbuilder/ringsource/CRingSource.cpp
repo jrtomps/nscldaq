@@ -64,7 +64,8 @@ static size_t max_event(1024*128); // initial Max bytes of events in a getData
 CRingSource::CRingSource(int argc, char** argv) :
   m_pArgs(0),
   m_pBuffer(0),
-  m_timestamp(0)
+  m_timestamp(0),
+  m_sourceId(0)
 {
   GetOpt parsed(argc, argv);
   m_pArgs = new gengetopt_args_info;
@@ -106,14 +107,59 @@ CRingSource::initialize()
   std::string url = m_pArgs->ring_arg;
   
   // Require only one source id:
+  if (m_pArgs->ids_given==0 && !m_pArgs->expectbodyheaders_given) {
+    throw std::string("The source id (--ids) is required for this source!");
+  } 
 
   if (m_pArgs->ids_given > 1) {
-    throw std::string("This source only supports a sinlgle event id");
+    throw std::string("This source only supports a single event id");
+  } else if (m_pArgs->ids_given == 1) {
+    m_sourceId = static_cast<uint32_t>(m_pArgs->ids_arg[0]);
+  } // otherwise m_sourceId is initialized to 0 in the ctor
+
+
+  if (m_pArgs->timestampextractor_given) {
+    std::string dlName = m_pArgs->timestampextractor_arg;
+    // note that in order to allow the .so to be rebuilt while we're running without
+    // us potentially dying, the .so will be copied to a temporary file.
+    // Once the image is mapped it is unlinked so that it vanishes once the source exits.
+
+    dlName = copyLib(dlName);
+
+    // Load the DLL and look up the timestamp function (putting i in m_timestamp;
+    // we never do a dlclose so the DLL remains loaded in all OS's.
+
+    void* pDLL = dlopen(dlName.c_str(), RTLD_NOW);
+    if (!pDLL) {
+      int e = errno;
+      std::string msg = "Failed to load shared lib ";
+      msg += dlName;
+      msg += " ";
+      msg += strerror(e);
+      throw msg;
+    }
+    m_timestamp = reinterpret_cast<tsExtractor>(dlsym(pDLL, "timestamp"));
+    if (!m_timestamp) {
+      int e errno;
+      std::string msg = "Failed to locate timestamp function in ";
+      msg += dlName;
+      msg += " ";
+      msg += strerror(e);
+      throw msg;
+    }
+    unlink(dlName.c_str());	// Marks this for destruction.
+  } else {
+    // the tstamplib is not provided. Has the expectbodyheaders flag
+    // been provided? If not, this is not allowed and the program
+    // be stopped (or the issue addressed somehow).
+    if (!m_pArgs->expectbodyheaders_given) {
+      std::string msg = "This source may have ring items with insufficient data to ";
+      msg += "create fragments. Either specify --expectbodyheaders or set the ";
+      msg += "--timestampextractor and -ids options.";
+      throw msg;
+    }
+
   }
-  m_sourceId = static_cast<uint32_t>(m_pArgs->ids_arg[0]);
-
-
-  std::string dlName = m_pArgs->timestampextractor_arg;
 
   char logName[1000];
   sprintf(logName, "source%d.txt", m_sourceId);
@@ -124,34 +170,6 @@ CRingSource::initialize()
 
   m_pBuffer = CRingAccess::daqConsumeFrom(url);
 
-  // note that in order to allow the .so to be rebuilt while we're running without
-  // us potentially dying, the .so will be copied to a temporary file.
-  // Once the image is mapped it is unlinked so that it vanishes once the source exits.
-
-  dlName = copyLib(dlName);
-
-  // Load the DLL and look up the timestamp function (putting i in m_timestamp;
-  // we never do a dlclose so the DLL remains loaded in all OS's.
-
-  void* pDLL = dlopen(dlName.c_str(), RTLD_NOW);
-  if (!pDLL) {
-    int e = errno;
-    std::string msg = "Failed to load shared lib ";
-    msg += dlName;
-    msg += " ";
-    msg += strerror(e);
-    throw msg;
-  }
-  m_timestamp = reinterpret_cast<tsExtractor>(dlsym(pDLL, "timestamp"));
-  if (!m_timestamp) {
-    int e errno;
-    std::string msg = "Failed to locate timestamp function in ";
-    msg += dlName;
-    msg += " ";
-    msg += strerror(e);
-    throw msg;
-  }
-  unlink(dlName.c_str());	// Marks this for destruction.
   
 }
 /**
@@ -241,7 +259,8 @@ CRingSource::getEvents()
         frag.s_sourceId  = p->getSourceId();
         frag.s_barrierType = p->getBarrierType();
     } else {
-    
+
+        // if we are here, then all is well in the world.
         switch (pRingItem->s_header.s_type) {
         case BEGIN_RUN:
         case END_RUN:
@@ -251,21 +270,13 @@ CRingSource::getEvents()
         case PERIODIC_SCALERS:	// not a barrier but no timestamp either.
           break;
         case PHYSICS_EVENT:
-          // kludge for now - filter out null events:
-          if (pRingItem->s_header.s_size > (sizeof(RingItemHeader) + sizeof(uint32_t))) {
-              frag.s_timestamp = (*m_timestamp)(reinterpret_cast<pPhysicsEventItem>(pRingItem));
-              if (((frag.s_timestamp - lastTimestamp) > 0x100000000ll)  &&
-                  (lastTimestamp != NULL_TIMESTAMP)) {
-                CRingItem* pSpecificItem = CRingItemFactory::createRingItem(*p);
-                log << "Timestamp skip from "  << lastTimestamp << " to " << frag.s_timestamp << std::endl;
-                log << "Ring item: " << pSpecificItem->toString() << std::endl;
-                delete pSpecificItem;
-              }
-              lastTimestamp = frag.s_timestamp;
-              break;
-            }
+          if (formatPhysicsEvent(pRingItem, p, frag)) {
+            lastTimestamp = frag.s_timestamp;
+            break;
+          }
         default:
           // default is to leave things alone
+          // this includes the DataFormat item
     
           break;
         }
@@ -449,3 +460,58 @@ CRingSource::copyLib(std::string original)
   close(dest);
   return destName;
 }
+/** Handle the case of a physics event without a body header.
+  * 
+  * This should throw if there is not tstamp extractor provided.
+  * Otherwise, if there are no bodyheaders and the tstamp
+  *
+  * \param item ring item C structure being accessed
+  * \param p    ring item object that manages the item param
+  * \param frag fragment header being filled in.
+  *
+  * \returns boolean whether or not the ring item was non-null
+  * 
+  * \throws when no tstamplib is provided and --expectbodyheaders is specified 
+  *
+  */
+bool
+CRingSource::formatPhysicsEvent (pRingItem item, CRingItem* p, ClientEventFragment& frag) 
+{
+  bool retval = false;
+
+  // Check if body headers are demanded.
+  if (m_pArgs->expectbodyheaders_flag) {
+    // this is okay if we have a tstamplib and ids from the user. Just tell them
+    // that they were mistaken about there being body headers on every ring item.
+    if (m_pArgs->timestampextractor_given && m_pArgs->ids_given) {
+      std::string msg = "ringFragmentSource::getEvents() : --expectbodyheaders ";
+      msg += "flag passed but observed a ring item without a BodyHeader.";
+      log << msg << "\n";
+    } else {
+      // Oh No. This is fatal. We have no way of determining the info to stick into
+      // the FragmentHeader. 
+      std::string msg = "ringFragmentSource passed --expectbodyheaders flag but observed ";
+      msg += "a ring item without a BodyHeader. This is fatal because the fragment header ";
+      msg += "cannot be defined without timestamp extractor.";
+      throw msg;
+    }  
+  }
+
+  // kludge for now - filter out null events:
+  if (item->s_header.s_size > (sizeof(RingItemHeader) + sizeof(uint32_t))) {
+    frag.s_timestamp = (*m_timestamp)(reinterpret_cast<pPhysicsEventItem>(item));
+    if (((frag.s_timestamp - lastTimestamp) > 0x100000000ll)  &&
+        (lastTimestamp != NULL_TIMESTAMP)) {
+      CRingItem* pSpecificItem = CRingItemFactory::createRingItem(*p);
+      log << "Timestamp skip from "  << lastTimestamp << " to " << frag.s_timestamp << std::endl;
+      log << "Ring item: " << pSpecificItem->toString() << std::endl;
+      delete pSpecificItem;
+    }
+    
+    retval = true; 
+  }
+
+  return retval;
+}
+
+

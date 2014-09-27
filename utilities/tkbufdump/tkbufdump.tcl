@@ -24,7 +24,8 @@ source [file join $here scalerformatter.tcl]
 source [file join $here stringlistformatter.tcl]
 source [file join $here physicsformatter.tcl]
 
-set daqbin /usr/opt/daq/10.0/bin
+
+set daqbin [file normalize [file join $here .. bin]]
 
 #  mainwindow
 #

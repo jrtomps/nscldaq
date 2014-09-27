@@ -1,20 +1,24 @@
 
 
 PACKAGE_FILES = project.py state.py filemenu.py projectdisplay.py \
-	ringspec.py programspec.py formdialog.py
+	ringspec.py programspec.py formdialog.py RecorderDialog.py
 
 MAINS = experimentConfiguration.py
 
-TESTS = projectConsumerTest.py \
-projectHostsTest.py \
-projectLoggerTest.py \
+TESTS = projectHostsTest.py \
 projectOpenTest.py \
 projectProgramTest.py \
 project.py \
 projectRingTest.py \
-projectSourceTest.py \
 run_all_tests.py \
-schemaTest.py	
+schemaTest.py	\
+eventLogTest.py	
+
+
+FIGURES=initial.jpg hosts.jpg filledinhosts.jpg emptyprogramtable.jpg emptyringtable.jpg filledinprogramdef.jpg \
+	filledinrings.jpg programdefdialog.jpg programlisting.jpg
+
+
 
 
 INSTDIR = @prefix@/pythonLibs/nscldaq/expconfiguration
@@ -28,9 +32,12 @@ install-exec-local:
 	touch $(INSTDIR)/__init__.py 
 	for f in  $(PACKAGE_FILES); do $(INSTALL_SCRIPT) @srcdir@/$$f $(INSTDIR); done
 	for f in $(MAINS); do $(INSTALL_SCRIPT) @srcdir@/$$f @bindir@/`basename $$f .py`; done
+	for f in $(FIGURES); do $(INSTALL_DATA) @srcdir@/$$f @datarootdir@/html; done
 
 check-TESTS:
-	PYTHONPATH=$(INSTDIR) @PYTHON@ @srcdir@/run_all_tests.py
+	(cd @srcdir@; PYTHONPATH=$(INSTDIR) @PYTHON@ run_all_tests.py)
 
-EXTRA_DIST = $(PACKAGE_FILES) $(MAINS) $(TESTS)
+EXTRA_DIST = $(PACKAGE_FILES) $(MAINS) $(TESTS) $(FIGURES) expConfig.xml
+
+
 

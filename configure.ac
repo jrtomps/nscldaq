@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.61)
-AC_INIT(nscldaq, 11.0-rc8, fox@nscl.msu.edu)
+AC_INIT(nscldaq, 11.0-rc13, fox@nscl.msu.edu)
 
 AC_CONFIG_SRCDIR([/utilities/StringsToIntegers.h])
 AC_CONFIG_HEADER([config.h])
@@ -182,7 +182,6 @@ AC_SUBST(LIBTCLPLUS_LDFLAGS)
 AC_SUBST(LIBEXCEPTION_LDFLAGS)
 
 
-
 # Epics
 #
 #  This is only probed for and build if --enable-epics-tools=yes is provided
@@ -256,8 +255,32 @@ else
 	AM_CONDITIONAL([BUILD_USB], [false])
 fi
 
+##
+#  Check for zmq presence:
+#
+
+AC_SEARCH_LIBS([zmq_init], [zmq], [result=$ac_cv_search_zmq_init], [AC_MSG_ERROR([The zeromq library was not found and is now required for nscldaq])])
+if test $result = "none required"
+then
+   ZMQ_LDFLAGS=""
+else
+   ZMQ_LDFLAGS=$result
+fi
+
+AC_SUBST(ZMQ_LDFLAGS)
+
+##
+# need the zmq c++ bindings
+#
+AC_LANG_PUSH(C++)
+AC_CHECK_HEADER([zmq.hpp],[], [AC_MSG_ERROR([The zeromq C++ header (zmq.hpp) is missing and is required for nscldaq])])
+AC_LANG_POP
 
 
+##
+# check for presence of Python zmq package
+
+AC_PYTHON_MODULE([zmq])
 
 #----------------------------------------------------------------------------
 
@@ -312,6 +335,9 @@ AC_CONFIG_LINKS([utilities/filter/run-0000-00.evt:utilities/filter/run-0000-00.e
 # *.am -> *.in.
 #
 
+# Note removed utilities/scalerdisplay in favor of utilities/newscaler
+# Sept 25, 2014
+
 AC_CONFIG_FILES([Makefile
 		nscldaq
 		daqsetup.bash
@@ -327,6 +353,7 @@ AC_CONFIG_FILES([Makefile
                  base/uri/Makefile
 		 base/dataflow/Makefile
                  base/plotchart/Makefile
+		 base/plotcontainer/Makefile
 		 base/tcpip/Makefile
 		 caenfw-common/Makefile
 		 servers/Makefile
@@ -335,7 +362,6 @@ AC_CONFIG_FILES([Makefile
 		 utilities/Makefile
                  utilities/daqstart/Makefile
                  utilities/dvdburn/Makefile
-                 utilities/scalerdisplay/Makefile 
 		 utilities/scalerdisplay/ScalerDisplay
                  utilities/sequencer/Makefile
 		 utilities/ringselector/Makefile
@@ -351,8 +377,8 @@ AC_CONFIG_FILES([Makefile
 		 utilities/compatibility/spectcldaq
 		 utilities/compatibility/s800toring
 		 utilities/compatibility/bufdump
-		 utilities/experimentConfiguration/Makefile
-		 utilities/statemanager/Makefile
+		 utilities/newscaler/Makefile
+		 utilities/newscaler/ScalerDisplay.tcl
                  epics/chanlog/Makefile
                  epics/controlpush/Makefile
                  epics/epicsdisplay/Makefile
@@ -371,6 +397,7 @@ AC_CONFIG_FILES([Makefile
 		 daq/eventbuilder/unglom/Makefile
 		 daq/eventbuilder/startOrderer
 		 daq/actions/Makefile
+		 daq/eventbuilder/offlineorderer/Makefile
 		 sbs/Makefile
 		 sbs/driver/Makefile
 		 sbs/driver/src/Makefile

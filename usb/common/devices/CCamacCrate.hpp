@@ -1,7 +1,9 @@
 
 #include "CCamacCrate.h"
 #include "CConfiguration.h"
+#ifndef __GLOBALS_H
 #include <Globals.h>
+#endif
 #include <tcl.h>
 #include <iostream>
 #include <string>

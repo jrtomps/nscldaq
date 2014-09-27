@@ -58,7 +58,6 @@ lappend auto_path $libDir
 package require blt::tabset
 package require rbc
 
-puts [info commands ::blt::*]
 
 namespace import ::blt::tabset
 namespace import ::rbc::vector
@@ -233,31 +232,51 @@ proc SourceElapsedTime t {
 #         Scaler_Increments without worrying about what might happen.
 #
 proc processIncrement {array index op} {
+
+    if {[array names ::bitsWide $index] eq ""} {
+        set ::bitsWide($index) 32
+    }
+
     #
     # No action to take if the scaler is not incremental:
+    if {[array names ::incremental $index] ne ""} {
+    
+	if {!$::incremental($index)} {
+	    if {[array names ::priorIncrement $index] eq ""} {
+		set ::priorIncrement($index) 0
+		set ::nonIncrementalTotal($index) 0
+	    }
+	    set nextTotal $::Scaler_Increments($index)
 
-    if {!$::Incremental} {
-        if {[array names ::priorIncrement $index] eq ""} {
-            set ::priorIncrement($index) 0
+	    # Compute the increment...if it's negative assume a single roll-over.
+	    # Update the nonIncrementalTotal as well.
+
+	    set ::Scaler_Increments($index) [expr {$nextTotal - $::priorIncrement($index)}]
+	    if {$::Scaler_Increments($index) < 0} {
+		set ::Scaler_Increments($index) [expr {$::Scaler_Increments($index) + (1 << $::bitsWide($index))}]
+	    }
+	    set ::nonIncrementalTotal($index) \
+		[expr {$::nonIncrementalTotal($index) + $::Scaler_Increments($index)}]
+	    
+	    set ::priorIncrement($index) $nextTotal; # New value is now the prior value.
+	    set ::Scaler_Totals($index) $::nonIncrementalTotal($index)
+            return
+	}
+    }
+    # remove the bits off the top.
+    
+    set mask [expr (1 << $::bitsWide($index)) - 1]
+    set ::Scaler_Increments($index) [expr $::Scaler_Increments($index) & $mask]
+    
+    # if the width is not 32 we need to compute the totals from the masked values:
+    
+    if {$::bitsWide($index) < 32} {
+        if {[array names ::nonIncrementalTotal $index] eq ""} {
             set ::nonIncrementalTotal($index) 0
         }
-	set nextTotal $::Scaler_Increments($index)
-
-	# Compute the increment...if it's negative assume a single roll-over.
-	# Update the nonIncrementalTotal as well.
-
-	set ::Scaler_Increments($index) [expr {$nextTotal - $::priorIncrement($index)}]
-        if {[array names ::bitsWide $index] eq ""} {
-            set ::bitsWide($index) 32
-        }
-	if {$::Scaler_Increments($index) < 0} {
-	    set ::Scaler_Increments($index) [expr {$::Scaler_Increments($index) + (1 << $::bitsWide($index))}]
-	}
-	set ::nonIncrementalTotal($index) \
-	    [expr {$::nonIncrementalTotal($index) + $::Scaler_Increments($index)}]
-	
-	set ::priorIncrement($index) $nextTotal; # New value is now the prior value.
     }
+    incr ::nonIncrementalTotal($index) $::Scaler_Increments($index)
+    
 }
 
 # Compute a scaler rate.
@@ -605,7 +624,7 @@ proc UpdateStatistics {} {
     # For non-incremental scalers, copy their actual totals from
     # nonIncrementalTotal(i) -> Scaler_Totals(i)
 
-    foreach element [array names ::nonIncrementalTotals] {
+    foreach element [array names ::nonIncrementalTotal] {
 	set Scaler_Totals($element) $::nonIncrementalTotal($element)
     }
 
@@ -707,12 +726,21 @@ proc Update {} {
     # (and has happened) that the scaler readout rate could be 0.5 seconds e.g.
     # since that's the granularity of the VM-USB.
     #
+    if {[string tolower $::ScalerDeltaTime] eq "-nan"} {
+	    set ScalerDeltaTime 0
+    }
     if {($::ScalerDeltaTime == 0) && [info exists DefaultScalerDT]} {
 	set ::ScalerDeltaTime $::DefaultScalerDT
 	set ::fakeElapsedTime [expr $::fakeElapsedTime + $::ScalerDeltaTime]
 	set ::ElapsedRunTime $::fakeElapsedTime
     }
-
+    # non incremental scalers will have the wrong total:
+    
+    foreach index [array names ::incremental] {
+        if {$::incremental($index) eq "no"} {
+            set ::Scaler_Totals($index) $::nonIncrementalTotal($index)
+        }
+    }
 
     UpdateStatistics
     if {$stripchartWidget != ""} {
@@ -831,7 +859,7 @@ proc EndRun   {} {
     puts $fd "                     Duration: $HMStime"
     puts $fd " Scaler Name        Scaler Total  Avg Rate     Std. Dev           "
     puts $fd "------------------------------------------------------------------"
-    set fmt  " %11s  %11lld  %11.2f  %11.2f"
+    set fmt  " %11s  %14.0f  %11.2f  %11.2f"
 
     # Get the alphabetized list of scaler channels and put them out.
     set channels [lsort [array names ScalerMap]]
@@ -966,7 +994,7 @@ proc alarmColor {mask} {
     # The normal color will be the background color of
     # the notebook widget.
 
-    set normalColor [$Notebook cget -background]
+    set normalColor white
 
     if {$mask == 0} {
         return $normalColor
@@ -1393,7 +1421,7 @@ proc processChannelSwitch {name option value}  {
 	    set ::bitsWide($::ScalerMap($name)) $value
 	}
         default {
-            error "Illegal option value: $option must be either -lowalarm or -hialarm"
+            error "Illegal option value: $option must be either -lowalarm, -hialarm, -incremental or -width"
         }
     }
 }
@@ -1466,8 +1494,6 @@ proc channel {args} {
     set ::priorIncrement($id)  0;	#  prior scaler value.
     set ::nonIncrementalTotal($id) 0;	#  Total if not incremental.
     
-    set ::Scaler_Totals($id) 0
-    set ::Scaler_Increments($id) 0
 
     foreach {option value} $switches {
 	if {[catch {processChannelSwitch $name $option $value} msg]} {
@@ -1475,7 +1501,8 @@ proc channel {args} {
 	    return
 	}
     }
-    
+    set ::Scaler_Totals($id) 0
+    set ::Scaler_Increments($id) 0
 
 }
 

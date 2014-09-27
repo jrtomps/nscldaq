@@ -62,22 +62,27 @@ class TestSource
   int         m_tsIncrement;
   uint64_t    m_timestamp;
   useconds_t  m_delay;
+  bool        m_useBodyHeaders;
+
 public:
-  TestSource(std::string ringName, int eventSize) : 
+  TestSource(std::string ringName, int eventSize, bool useBodyHeaders=false) : 
     m_ringName(ringName), m_size(eventSize), m_elapsedTime(0), 
-    m_tsIncrement(2), m_timestamp(0), m_delay(0)
+    m_tsIncrement(2), m_timestamp(0), m_delay(0), 
+    m_useBodyHeaders(useBodyHeaders)
   {}
 
 public:
   void setTimestampIncrement(int newIncr) {m_tsIncrement = newIncr;}
-    void setDelay(uint64_t newDelay) {m_delay = newDelay; }
+  void setDelay(uint64_t newDelay) {m_delay = newDelay; }
 
+  void setGenerateBodyHeaders (bool onoff);
 
 public:
   void operator()();
     
   // private utilities:
 
+  void dataFormat(CRingBuffer& ring);
   void beginRun(CRingBuffer& ring, int run, std::string title);
   void someEventData(CRingBuffer& rings, int events);
   void endRun(CRingBuffer& ring, int run, std::string title);

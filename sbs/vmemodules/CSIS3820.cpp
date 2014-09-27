@@ -62,6 +62,10 @@ static const unsigned int InputModeMask(0x0070000);
 static const unsigned int LatchModeMask(0x00000070);
 static const unsigned int NONCLEARINGMODE(1);
 
+// bits 32-47 of channel 1/17 48 bit channels:
+
+static const unsigned int HIGHBITS(0x210);
+
 				//  Reset key register.
 
 static const unsigned int RESET(0x400);
@@ -633,6 +637,19 @@ CSIS3820::ReadAllChannels(uint32_t* buffer) const
     *buffer++ = ReadChannel(i);
   }
 }
+/**
+ * ReadHighBits
+ *
+ *   Reads the register that contains the high 16 bits of channels
+ *   1 and 17 which are  48 channel scalers.
+ *
+ * @return uint32_t
+ */
+uint32_t
+CSIS3820::ReadHighBits()
+{
+  return peek(HIGHBITS);
+}
 /*!
    Latch the current counters into the shadow registers.
    Once this has been done, the channels can be read via
@@ -680,7 +697,7 @@ CSIS3820:: ReadLatchedChannel(unsigned int num) const
 
 */
 void
-CSIS3820:: ReadAllLatchedChannels(unsigned long* buffer) const
+CSIS3820:: ReadAllLatchedChannels(uint32_t* buffer) const
 {
   for(int i =0; i < ChannelCount; i++) {
     *buffer++ = ReadLatchedChannel(i);
@@ -694,7 +711,7 @@ CSIS3820:: ReadAllLatchedChannels(unsigned long* buffer) const
      Pointer to user buffer to hold the scalers.
 */
 void
-CSIS3820:: LatchAndRead(unsigned long* buffer) const
+CSIS3820::LatchAndRead(uint32_t* buffer) const
 {
   Latch();
   ReadAllLatchedChannels(buffer);
@@ -754,5 +771,5 @@ uint32_t
 CSIS3820:: ChannelOffset(uint32_t base, 
 			 uint32_t  chan)
 {
-  return base + chan*sizeof(unsigned long);
+  return base + chan*sizeof(uint32_t);
 }

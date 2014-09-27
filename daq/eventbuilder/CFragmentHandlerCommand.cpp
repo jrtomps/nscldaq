@@ -94,7 +94,7 @@ CFragmentHandlerCommand::operator()(CTCLInterpreter& interp, std::vector<CTCLObj
     uint32_t msgLength;
     int n = Tcl_Read(pChannel, reinterpret_cast<char*>(&msgLength), sizeof(msgLength));
     if (n != sizeof(msgLength))  {
-      interp.setResult("Messge Lnegth read failed");
+      interp.setResult("Message Length read failed");
       return TCL_ERROR;
     }
 

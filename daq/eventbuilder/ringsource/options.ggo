@@ -25,4 +25,5 @@ section "Application specific options"
 #
 
 option "ring" r "URL of ring from which fragments come" string required
-option "timestampextractor" t "Shared library with timestamp extraction code" string required
+option "timestampextractor" t "Shared library with timestamp extraction code" string optional
+option "expectbodyheaders" e "Body headers are expected on every ring item." flag off
