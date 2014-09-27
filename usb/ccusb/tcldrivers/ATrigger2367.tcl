@@ -1,15 +1,58 @@
 
+#
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2014.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#     Author:
+#       NSCL DAQ Development Group 
+#       NSCL
+#       Michigan State University
+#       East Lansing, MI 48824-1321
+# @author Jeromy Tompkins and Daniel Bazin
+#
+# @note The original version of this code was written by Daniel Bazin
+#       and it has been modified extensively to work with the 
+#       NSCLDAQ libraries. 
 
 
+# Define the package
+package provide ATrigger2367 1.0
 
+package require Itcl
 
-#===================================================================
-# class ATrigger2367
-#===================================================================
+## @class ATrigger2367
+#
+# This is the low-level driver to support the usbtrig.bit firmware loaded
+# into a LeCroy Universal Logic Module 2367. The firmware is written and 
+# maintained by Daniel Bazin at the National Superconducting Cyclotron 
+# Laboratory. The firmware that this supports provides trigger logic for
+# handling multiple different raw triggers and choosing what will constitute
+# the formation of a live trigger. The user can sample raw triggers as well
+# as delay them. A GUI for controlling the configuration of the firmware
+# is provided as a client to the CCUSBReadout slow controls server. It is 
+# possible for the user to manipulate the device in tcl scripts through
+# the readoutscript or controlscript packages or through an interpreter.
+#
+# Because this device is used for both building stacks and executing 
+# commands in interactive mode, it is not required that the user provide
+# a valid reference to a controller at construction. One reason for this
+# is if a version is created specifically for building stacks. In that
+# scenario, there is no interaction with a controller ever and there may
+# not be a live cccusb::CCCUSB object to use. So to get around this, all
+# methods that will use a controller check to see that the user has provided 
+# a valid instance. It is the user's responsibility to ensure that this
+# is up to date because the stored reference will persist after the 
+# cccusb::CCCUSB object has been destroyed.
+#
 itcl::class ATrigger2367 {
-	private variable device
-	private variable node
-	private variable self
+	private variable device     ;#< a reference to the cccusb::CCCUSB object
+	private variable node       ;#< the slot of the ULM
+	private variable self       ;#< the name of the instance
 
 	
 
@@ -91,7 +134,8 @@ itcl::class ATrigger2367 {
   # bit 0 : accepts an external timestamp clock
   # bit 1 : accepts an external timestamp latch
   #
-  # To use an external clock, the code should be 1 and to use an internal clock, the code should be 0.
+  # To use an external clock, the code should be 1 and to use an internal 
+  # clock, the code should be 0.
   #
   # @param code  the code to write. must be in range [0,3]
   #
