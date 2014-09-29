@@ -48,7 +48,6 @@ btp_ioctl.c \
 btp_kernel.c \
 btp_lowio.c \
 btp_mmap.c \
-btp.mod.c \
 btp_open.c \
 btp_rdwr.c \
 btp_version.c \
