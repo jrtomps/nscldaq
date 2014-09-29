@@ -11,7 +11,7 @@
 #      Driver implemented on the cccusb::CCCUSB package
 #===================================================================
 
-package provide caenc808
+package provide caenc808 1.0
 
 ## @brief Low-level driver for the CAEN C808 CFD
 #
@@ -41,41 +41,41 @@ package provide caenc808
 #
 # @endverbatim
 itcl::class ACAENC808 {
-    private variable device ;#< a CAMAC controller like in cccusb
-    private variable node   ;#< the slot in which the module resides
+  private variable device ;#< a CAMAC controller like in cccusb
+  private variable node   ;#< the slot in which the module resides
 
-    ## @brief Constructor 
-    # 
-    # Store the names of the cc-usb device and the slot
-    # 
-    # @param de   a cccusb::CCCUSB object
-    # @param no   the slot in which the device resides
-    constructor {de no} {
-    	set device $de
-	    set node $no
-    }
+  ## @brief Constructor 
+  # 
+  # Store the names of the cc-usb device and the slot
+  # 
+  # @param de   a cccusb::CCCUSB object
+  # @param no   the slot in which the device resides
+  constructor {de no} {
+  set device $de
+  set node $no
+  }
 
-    ## @brief Destructor... no-op
-    destructor {}
+  ## @brief Destructor... no-op
+  destructor {}
 
 
-    # @brief Pass a controller into the device externally 
-    public method SetController {ctlr}
+  # @brief Pass a controller into the device externally 
+  public method SetController {ctlr}
 
-    # @brief Retrieve the current controller 
-    public method GetController {}
+  # @brief Retrieve the current controller 
+  public method GetController {}
 
-# interactive functions
-    public method GetVariable {v} {set $v}
-    public method EnableOnlyChannels {chans}
-    public method EnableAllChannels {}
-    public method DisableAllChannels {}
-    public method SetThreshold {chan thresh}
-    public method SetThresholds {thresh}
-    public method SetWidth {group width}
-    public method SetDeadTime {group deadt}
-    public method SetMajority {maj}
-    public method Init {}
+  # interactive functions
+  public method GetVariable {v} {set $v}
+  public method EnableOnlyChannels {chans}
+  public method EnableAllChannels {}
+  public method DisableAllChannels {}
+  public method SetThreshold {chan thresh}
+  public method SetThresholds {thresh}
+  public method SetWidth {group width}
+  public method SetDeadTime {group deadt}
+  public method SetMajority {maj}
+  public method Init {}
 }
 
 
@@ -115,7 +115,8 @@ itcl::body ACAENC808::EnableOnlyChannels {chans} {
 # Enable channels from a list
 
   if {[llength $chans] > 16} {
-    tk_messageBox -icon error -message "Too many channels (>16) in $this enable list"
+    tk_messageBox -icon error \
+      -message "Too many channels (>16) in $this enable list"
     return
   }
 
@@ -139,7 +140,7 @@ itcl::body ACAENC808::EnableOnlyChannels {chans} {
 #
 # \returns the QX response generated when the value is written
 itcl::body ACAENC808::EnableAllChannels {} {
-  # Enable all channels in module
+# Enable all channels in module
 
   return [$device simpleWrite24 $node 0 17 0xffff]
 }
@@ -151,7 +152,7 @@ itcl::body ACAENC808::EnableAllChannels {} {
 #
 # \returns the QX response generated when the value was written
 itcl::body ACAENC808::DisableAllChannels {} {
-  # Disable all channels in module
+# Disable all channels in module
 
   return [$device simpleWrite24 $node 0 17 0]
 }
@@ -170,7 +171,7 @@ itcl::body ACAENC808::DisableAllChannels {} {
 #
 # \returns the QX response generated when the value was written
 itcl::body ACAENC808::SetThreshold {chan thresh} {
-    # Set arming threshold for cfd channel
+# Set arming threshold for cfd channel
 
   return [$device simpleWrite24 $node $chan 16 $thresh]
 }
@@ -182,7 +183,7 @@ itcl::body ACAENC808::SetThreshold {chan thresh} {
 # \param thresh the threshold value
 #
 itcl::body ACAENC808::SetThresholds {thresh} {
-  # Set a common threshold
+# Set a common threshold
 
   for {set i 0} {$i < 16} {incr i} {
     SetThreshold $i $thresh
@@ -205,15 +206,17 @@ itcl::body ACAENC808::SetThresholds {thresh} {
 # \returns the QX response generating when executing the write
 #
 itcl::body ACAENC808::SetWidth {group width} {
-  # Set output width for channel group 0 (chans 0-7) or group 1 (chans 8-16)
+# Set output width for channel group 0 (chans 0-7) or group 1 (chans 8-16)
 
   if {$width > 255} {
-    tk_messageBox -icon error -message "Width > 255 not allowed for group $group of $this"
+    tk_messageBox -icon error \
+      -message "Width > 255 not allowed for group $group of $this"
     return
   }
 
   if {$group > 1} {
-    tk_messageBox -icon error -message "There are only two width groups for $this, 0 and 1"
+    tk_messageBox -icon error \
+      -message "There are only two width groups for $this, 0 and 1"
     return
   }
 
@@ -239,18 +242,20 @@ itcl::body ACAENC808::SetWidth {group width} {
 # \returns the QX response generating when executing the write
 #
 itcl::body ACAENC808::SetDeadTime {group deadt} {
-  # Set dead time for channel group 0 (chans 0-7) or group 1 (chans 8-16)
+# Set dead time for channel group 0 (chans 0-7) or group 1 (chans 8-16)
 
   if {$deadt > 255} {
-    tk_messageBox -icon error -message "Dead time > 255 not allowed for group $group of $this"
-	  return
+    tk_messageBox -icon error \
+      -message "Dead time > 255 not allowed for group $group of $this"
+    return
   }
 
   if {$group > 1} {
-	  tk_messageBox -icon error -message "There are only two width groups for $this, 0 and 1"
-	  return
+    tk_messageBox -icon error \
+      -message "There are only two width groups for $this, 0 and 1"
+    return
   }
-    
+
   return [$device simpleWrite24 $node $group 19 $deadt]
 }
 
@@ -267,13 +272,13 @@ itcl::body ACAENC808::SetDeadTime {group deadt} {
 # \returns the QX response generating when executing the write
 #
 itcl::body ACAENC808::SetMajority {maj} {
-    # Set majority level
-    # need to convert level using formula majthr = nint((majlev*50)-25)/4)
+# Set majority level
+# need to convert level using formula majthr = nint((majlev*50)-25)/4)
 
-    set majthrf [expr (((maj*50)-25)/4)]
-    set majthr round($majthrf)
-    
-    return [$device simpleWrite24 $node 0 20 $majthr]
+  set majthrf [expr (((maj*50)-25)/4)]
+  set majthr round($majthrf)
+
+  return [$device simpleWrite24 $node 0 20 $majthr]
 }
 
 ##
@@ -282,5 +287,5 @@ itcl::body ACAENC808::SetMajority {maj} {
 # This does not do anything
 #
 itcl::body ACAENC808::Init {} {
-    # Initialization
+# Initialization
 }

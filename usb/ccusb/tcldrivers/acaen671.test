@@ -1,0 +1,22 @@
+
+package require tcltest
+package require Itcl
+
+tcltest::test pkgrequire-0 {Ensure we can package require 
+} -body {
+  package require caenc671
+} -result 11.0 
+
+
+tcltest::test setCtlr-0 {Test that we can set the controller
+} -setup {
+  ACAENC671 dev {} 3
+} -cleanup {
+  itcl::delete object dev
+} -body {
+  dev SetController myctlr
+  dev GetController 
+} -result "myctlr"
+
+
+tcltest::cleanupTests

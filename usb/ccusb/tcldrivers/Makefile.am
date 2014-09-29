@@ -1,6 +1,8 @@
 DRIVERDest=@prefix@/TclLibs/ccusbdrivers
 
-TCLDRIVERS=ccusb.tcl CCUSBDriverSupport.tcl
+TCLDRIVERS=ccusb.tcl CCUSBDriverSupport.tcl \
+					 ACAENC671.tcl ACAENC808.tcl \
+					 ALeCroy4448.tcl ATrigger2367.tcl
            
 
 install-exec-local:

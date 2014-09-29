@@ -30,6 +30,7 @@ itcl::class ACAENC671 {
 	
 	destructor {}
 	
+  # Access and Set the controller
   public method SetController {ctlr}
   public method GetController {}
 
