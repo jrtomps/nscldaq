@@ -3,7 +3,7 @@
 #===================================================================
 
 
-package provide caenc671 1.0
+package provide caenc671 11.0
 
 ##
 # Device driver for the CAENC671 CAMAC CFD
@@ -12,8 +12,8 @@ package provide caenc671 1.0
 # does not provide the support for the actual readout control 
 #
 itcl::class ACAENC671 {
-	protected variable device ;#< a USB device from cccusb package
-	private variable node     ;#< the slot occupied by the card
+  protected variable device ;#< a USB device from cccusb package
+  private variable node     ;#< the slot occupied by the card
 
   ##
   # Constructor
@@ -23,13 +23,13 @@ itcl::class ACAENC671 {
   # @param de   a CAMAC controller
   # @param no   the slot in which the device resides
   #
-	constructor {de no} {
-		set device $de
-		set node $no
-	}
-	
-	destructor {}
-	
+  constructor {de no} {
+    set device $de
+    set node $no
+  }
+
+  destructor {}
+
   # Access and Set the controller
   public method SetController {ctlr}
   public method GetController {}
@@ -37,11 +37,16 @@ itcl::class ACAENC671 {
   ##
   # Manipulation functions
   #
-	public method GetVariable {v} 
-	public method Enable {bank pat} 
-	public method Width {code wid} 
-	public method Delay {ch del} 
-	public method Threshold {ch th} 
+  public method GetVariable {v} 
+  public method Enable {bank pat} 
+  public method Width {code wid} 
+  public method Delay {ch del} 
+  public method Threshold {ch th} 
+
+  public method DeadTime {bank dt} 
+  public method PromptWidth {code wid} 
+
+  private method isInRange {low high val}
 }
 
 
@@ -80,7 +85,67 @@ itcl::body ACAENC671::GetController {} {
 #
 #  \returns bit pattern of QX
 itcl::body ACAENC671::Enable {bank pat} {
-  return [$device simpleWrite24 $node $bank 18 $pat]
+  if {![isInRange 0 1 $bank]} {
+    return -code error \
+      "ACAENC671::Enable bank $bank is invalid. Must be either 0 or 1."
+  }
+
+  if {[string is boolean $pat]} {
+    set offon [string is true $pat]
+    return [$device simpleWrite24 $node $bank 18 $offon]
+  } else {
+    return -code error "ACAENC671::Enable user provided non-boolean value."
+  }
+}
+
+##
+# @brief Set the threshold for a given channel
+#
+# The range is settable "in a range from -1 and -256mV (5mV minimum 
+# required)" in steps of 1mV. 
+#
+# \param ch the channel to target
+# \param th threshold value as an integer between 0 and 255.
+#
+# \return bit pattern of QX
+itcl::body ACAENC671::Threshold {ch th} {
+  if {![isInRange 0 15 $ch]} {
+    return -code error \
+      "ACAENC671::Threshold ch $ch is invalid. Must be in range \[0,15\]."
+  }
+
+  if {![isInRange 0 255 $th]} {
+    set msg "ACAENC671::Threshold $th is an invalid threshold setting. "
+    append msg {Must be in range [0,255].}
+    return -code error $msg
+  } 
+
+  return [$device simpleWrite24 $node $ch 16 $th]
+}
+
+
+##
+# @brief Set the delay value of a given channel
+#
+# The delay for a channel can be a value between 35ns and
+# 535ns, with a granularity of 1.96ns. 
+#
+# \param ch the channel to target
+# \param del the amount of delay as an integer between 0 and 255
+#
+# \return bit pattern of QX
+itcl::body ACAENC671::Delay {ch del} {
+  if {![isInRange 0 15 $ch]} {
+    return -code error \
+      "ACAENC671::Delay ch $ch is invalid. Must be in range \[0,15\]."
+  }
+
+  if {![isInRange 0 255 $del]} {
+    set msg "ACAENC671::Delay $del is an invalid delay setting. "
+    append msg {Must be in range [0,255].}
+    return -code error $msg
+  } 
+  return [$device simpleWrite24 $node $ch 17 $del]
 }
 
 ##
@@ -94,34 +159,80 @@ itcl::body ACAENC671::Enable {bank pat} {
 #
 #  \returns bit pattern of QX
 itcl::body ACAENC671::Width {bank wid} {
-  return [$device simpleWrite24 $node $bank 20 $wid]
+  if {![isInRange 0 1 $bank]} {
+    return -code error \
+      "ACAENC671::Width bank $bank is invalid. Must be either 0 or 1."
+  }
+
+  if {![isInRange 0 255 $wid]} {
+    set msg "ACAENC671::Width $wid is an invalid width setting. "
+    append msg {Must be in range [0,255].}
+    return -code error $msg
+  } 
+
+  set A [expr {$bank + 0}]
+  return [$device simpleWrite24 $node $A 20 $wid]
 }
 
-##
-# @brief Set the delay value of a given channel
+## brief Set the dead time for this module
 #
-# The delay for a channel can be a value between 35ns and
-# 535ns, with a granularity of 1.96ns. 
-#
-# \param ch the channel to target
-# \param del the amount of delay as an integer between 0 and 255
-#
-# \return bit pattern of QX
-itcl::body ACAENC671::Delay {ch del} {
-  return [$device simpleWrite24 $node $ch 17 $del]
+# Set the amount of time following an input signal to disable input signals.
+# This can be set from 160 ns to 2 us using an 8-bit range. 
+# (0 --> 160 ns and 255 --> 2 us)
+# 
+# @param bank integer specifying bank 0 or 1
+# @param dt  value to set delay to [0,255]
+# 
+itcl::body ACAENC671::DeadTime {bank dt} {
+  if {![isInRange 0 1 $bank]} {
+    return -code error \
+      "ACAENC671::DeadTime bank $bank is invalid. Must be either 0 or 1."
+  }
+
+  if {![isInRange 0 255 $dt]} {
+    set msg "ACAENC671::DeadTime $dt is an invalid dead time setting. "
+    append msg {Must be in range [0,255].}
+    return -code error $msg
+  } 
+
+  # if we made it here then we can execute the command!
+  set A [expr {$bank+4}]
+
+  return [$device simpleWrite24 $node $A 20 $dt]
 }
 
 
 ##
-# @brief Set the threshold for a given channel
+#  @brief Set prompt output width for a bank
 #
-# The range is settable "in a range from -1 and -256mV (5mV minimum 
-# required)" in steps of 1mV. 
+#  Set the width of the prompt output signal for a single channels.
+#  Minimum pulse width = 10ns and Maximum pulse width = 250ns.
 #
-# \param ch the channel to target
-# \param th threshold value as an integer between 1 and 255.
+#  \param bank integer specifying bank 0 or 1
+#  \param pat  integer specifying width of signal (min=0, max=255)
 #
-# \return bit pattern of QX
-itcl::body ACAENC671::Threshold {ch th} {
-  return [$device simpleWrite24 $node $ch 16 $th]
+#  \returns bit pattern of QX
+itcl::body ACAENC671::PromptWidth {bank wid} {
+  if {![isInRange 0 1 $bank]} {
+    return -code error \
+      "ACAENC671::PromptWidth bank $bank is invalid. Must be either 0 or 1."
+  }
+
+  if {![isInRange 0 255 $wid]} {
+    set msg "ACAENC671::PromptWidth $wid is an invalid output width setting. "
+    append msg {Must be in range [0,255].}
+    return -code error $msg
+
+  } 
+
+  set A [expr {$bank+6}]
+  return [$device simpleWrite24 $node $A 20 $wid]
+}
+
+
+# -----------------------------------------------------------------------------
+# Utility methods
+
+itcl::body ACAENC671::isInRange {low high val} {
+  return [expr {($val>=$low) && ($val<=$high)}]
 }
