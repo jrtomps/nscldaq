@@ -1,26 +1,69 @@
+#
+#
+#
+#
 #===================================================================
 # class ACAENC808
 # 
 # v0.1 S.J.Williams Dec 27th 2012
 #      Supports CAEN C808 CAMAC CFD
+# v0.2 Jeromy Tompkins 9/29/2014
+#      Driver implemented on the cccusb::CCCUSB package
 #===================================================================
 
 package provide caenc808
 
-##
-
-
+## @brief Low-level driver for the CAEN C808 CFD
+#
+# This package provides the basic functionality of the 16-ch CAMAC CFD. It
+# maintains two banks of inputs that can be treated independently in terms of
+# configuration parameters. 
+#
+# The device driver is intended for use with the CCUSBReadout program and will
+# therefore issue commands to a cccusb::CCCUSB object that is either passed in
+# at construction or through the SetController method. The preferred mechanism
+# is for the SetController method to be used in the context of the CCUSBReadout
+# program becuase anytime this will be called will be in the context of an
+# Initialize, addReadoutList, or onEnd hook. These all technically shouldh have
+# the same controller object but it is possible that the controller changes
+# between runs and it is important that the controller created during the
+# Initialize operation is the one that is used. For example, it is preferred
+# that the user write:
+#
+# @verbatim
+# package require caenc808;
+#
+# # pass in no controller at construction
+# ACAENC808 cfd {} 12
+#
+# cfd SetController $Globals::aController
+# cfd EnableAllChannels
+#
+# @endverbatim
 itcl::class ACAENC808 {
     private variable device ;#< a CAMAC controller like in cccusb
     private variable node   ;#< the slot in which the module resides
 
-    ## Constructor
+    ## @brief Constructor 
+    # 
+    # Store the names of the cc-usb device and the slot
+    # 
+    # @param de   a cccusb::CCCUSB object
+    # @param no   the slot in which the device resides
     constructor {de no} {
     	set device $de
 	    set node $no
     }
 
+    ## @brief Destructor... no-op
     destructor {}
+
+
+    # @brief Pass a controller into the device externally 
+    public method SetController {ctlr}
+
+    # @brief Retrieve the current controller 
+    public method GetController {}
 
 # interactive functions
     public method GetVariable {v} {set $v}
@@ -35,8 +78,29 @@ itcl::class ACAENC808 {
     public method Init {}
 }
 
+
+## @brief Pass a controller object into the class for use
+#
+# This is particularly useful for the case when the driver is used in an
+# initialization script where the controller is technically only known at the
+# point of the script. In this case, it is useful for the user to be able to
+# configure the device to use the current controller object.
+# 
+# @param ctlr   a cccusb::CCCUSB object  
+itcl::body ACAENC808::SetController {ctlr} {
+  set device $ctlr
+}
+
+## @brief Retrieve the name of the current controller object
+#
+# @returns the name of the current controller object
+#
+itcl::body ACAENC808::GetController {} {
+  return $device
+}
+
 ##
-# Enable a list of channels 
+# @brief Enable a list of channels 
 #
 # A high level function for specifying the channels 
 # to set. The function encodes the list of channels
