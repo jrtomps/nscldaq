@@ -1,4 +1,8 @@
 
+install-exec-local:
+	$(mkinstalldirs) @prefix@/share/html/figures
+	$(INSTALL_DATA) @srcdir@/figures/*.png @prefix@/share/html/figures
+
 DOCFIGURES=OfflineEVB-GlobalConfig-1.png \
 					 OfflineEVB-GlobalConfig-2.png \
 					 OfflineEVB-GlobalConfigOutput-1.png \
