@@ -1,4 +1,6 @@
 
+# don't forget the figures for the documentation
+DIST_SUBDIRS = figures
 
 DESTDIR = @prefix@/TclLibs/OfflineEVB
 
@@ -29,7 +31,6 @@ TCLAPPS=offlineorderer.tcl
 
 check-TESTS:
 	TCLLIBPATH=@prefix@/TclLibs HERE=@srcdir@ tcl=@TCLSH_CMD@ @TCLSH_CMD@ @srcdir@/tclTests.tcl
-
 
 EXTRA_DIST = $(TCLPACKAGES) $(TCLAPPS)
 
