@@ -30,22 +30,126 @@ itcl::class ACAENC671 {
 
   destructor {}
 
-  # Access and Set the controller
+  ## @brief Pass a controller object into the class for use
+  #
+  # This is particularly useful for the case when the driver is used in an
+  # initialization script where the controller is technically only known at the
+  # point of the script. In this case, it is useful for the user to be able to
+  # configure the device to use the current controller object.
+  # 
+  # @param ctlr   a cccusb::CCCUSB object  
   public method SetController {ctlr}
+
+
+  ## @brief Retrieve the name of the current controller object
+  #
+  # @returns the name of the current controller object
+  #
   public method GetController {}
 
   ##
-  # Manipulation functions
+  #  @brief Enable channels within bank
   #
-  public method GetVariable {v} 
+  #  Channels are broken into two banks: 0-7 in bank 0
+  #  and 8-15 in bank 1. User can provide the proper
+  #  pattern to write for enabling channels. For example, if bit 0=1
+  #  then the corresponding channel is enabled.
+  #
+  #  \param bank integer specifying bank 0 or 1
+  #  \param pat  bitset specifying which channels to enable
+  #
+  #  \returns bit pattern of QX
   public method Enable {bank pat} 
-  public method Width {code wid} 
-  public method Delay {ch del} 
+
+  ##
+  # @brief Set the threshold for a given channel
+  #
+  # The range is settable "in a range from -1 and -256mV (5mV minimum 
+  # required)" in steps of 1mV. 
+  #
+  # \param ch the channel to target
+  # \param th threshold value as an integer between 0 and 255.
+  #
+  # \return bit pattern of QX
   public method Threshold {ch th} 
 
+  ##
+  # @brief Set the delay value of a given channel
+  #
+  # The delay for a channel can be a value between 35ns and
+  # 535ns, with a granularity of 1.96ns. 
+  #
+  # \param ch the channel to target
+  # \param del the amount of delay as an integer between 0 and 255
+  #
+  # \return bit pattern of QX
+  public method Delay {ch del} 
+
+  ##
+  #  @brief Set delayed output width for a bank
+  #
+  #  Set the width of the delayed output signal for a bank of channels.
+  #  Minimum pulse width = 10ns and Maximum pulse width = 250ns.
+  #
+  #  \param bank integer specifying bank 0 or 1
+  #  \param pat  integer specifying width of signal (min=0, max=255)
+  #
+  #  \returns bit pattern of QX
+  public method Width {code wid} 
+
+  ## @brief Set the dead time for this module
+  #
+  # Set the amount of time following an input signal to disable input signals.
+  # This can be set from 160 ns to 2 us using an 8-bit range. 
+  # (0 --> 160 ns and 255 --> 2 us)
+  # 
+  # @param bank integer specifying bank 0 or 1
+  # @param dt  value to set delay to [0,255]
+  # 
   public method DeadTime {bank dt} 
+
+  ##
+  #  @brief Set prompt output width for a bank
+  #
+  #  Set the width of the prompt output signal for a single channels.
+  #  Minimum pulse width = 10ns and Maximum pulse width = 250ns.
+  #
+  #  \param bank integer specifying bank 0 or 1
+  #  \param pat  integer specifying width of signal (min=0, max=255)
+  #
+  #  \returns bit pattern of QX
   public method PromptWidth {code wid} 
+
+
+  ## @brief Set the internal majority level
+  #
+  # The module supports outputting a signal when the number of channels above
+  # threshold exceeds a certain value. This majority threshold operates purely
+  # on the channels within this module.
+  #
+  # @param numChannels  the majority threshold (values must be in range [1,16])
+  #
+  # @returns bit pattern of QX
+  #
+  # @throws error if argument is out of valid range
   public method InternalMajority {numChannels}
+
+  ## @brief Set the external majority level
+  #
+  # The module supports outputting a signal when the number of channels above
+  # threshold exceeds a certain value. This is similar to the internal majority
+  # except for that fact that it operates on channels from other modules.
+  # Because there are multiple modules that can contribute their above-threshold
+  # channel sum, the majority threshold can be up to 43. Furthermore, the user
+  # can specify whether this module will contribute to the sum or not.
+  #
+  # @param numChannels  the majority threshold (values must be in range [1,43])
+  # @param enable       boolean to indicate whether the module contributes to
+  #                     external channel sum 
+  #
+  # @returns bit pattern of QX
+  #
+  # @throws error if argument is out of valid range
   public method ExternalMajority {numChannels enable}
   public method SetMultiplexPrompt {chn}
   public method SetMultiplexDelay {chn}
@@ -57,40 +161,28 @@ itcl::class ACAENC671 {
 }
 
 
-## @brief Pass a controller object into the class for use
 #
-# This is particularly useful for the case when the driver is used in an
-# initialization script where the controller is technically only known at the
-# point of the script. In this case, it is useful for the user to be able to
-# configure the device to use the current controller object.
-# 
-# @param ctlr   a cccusb::CCCUSB object  
+#
+#
+#
+#
 itcl::body ACAENC671::SetController {ctlr} {
   set device $ctlr
 }
 
-## @brief Retrieve the name of the current controller object
 #
-# @returns the name of the current controller object
+#
+#
+#
 #
 itcl::body ACAENC671::GetController {} {
   return $device
 }
 
 
-
-##
-#  @brief Enable channels within bank
 #
-#  Channels are broken into two banks: 0-7 in bank 0
-#  and 8-15 in bank 1. User can provide the proper
-#  pattern to write for enabling channels. For example, if bit 0=1
-#  then the corresponding channel is enabled.
 #
-#  \param bank integer specifying bank 0 or 1
-#  \param pat  bitset specifying which channels to enable
 #
-#  \returns bit pattern of QX
 itcl::body ACAENC671::Enable {bank pat} {
   if {![isInRange 0 1 $bank]} {
     return -code error \
@@ -105,16 +197,9 @@ itcl::body ACAENC671::Enable {bank pat} {
   }
 }
 
-##
-# @brief Set the threshold for a given channel
 #
-# The range is settable "in a range from -1 and -256mV (5mV minimum 
-# required)" in steps of 1mV. 
 #
-# \param ch the channel to target
-# \param th threshold value as an integer between 0 and 255.
 #
-# \return bit pattern of QX
 itcl::body ACAENC671::Threshold {ch th} {
   if {![isInRange 0 15 $ch]} {
     return -code error \
@@ -130,17 +215,10 @@ itcl::body ACAENC671::Threshold {ch th} {
   return [$device simpleWrite24 $node $ch 16 $th]
 }
 
-
-##
-# @brief Set the delay value of a given channel
 #
-# The delay for a channel can be a value between 35ns and
-# 535ns, with a granularity of 1.96ns. 
 #
-# \param ch the channel to target
-# \param del the amount of delay as an integer between 0 and 255
 #
-# \return bit pattern of QX
+#
 itcl::body ACAENC671::Delay {ch del} {
   if {![isInRange 0 15 $ch]} {
     return -code error \
@@ -155,16 +233,11 @@ itcl::body ACAENC671::Delay {ch del} {
   return [$device simpleWrite24 $node $ch 17 $del]
 }
 
-##
-#  @brief Set delayed output width for a bank
 #
-#  Set the width of the delayed output signal for a bank of channels.
-#  Minimum pulse width = 10ns and Maximum pulse width = 250ns.
 #
-#  \param bank integer specifying bank 0 or 1
-#  \param pat  integer specifying width of signal (min=0, max=255)
 #
-#  \returns bit pattern of QX
+#
+#
 itcl::body ACAENC671::Width {bank wid} {
   if {![isInRange 0 1 $bank]} {
     return -code error \
@@ -181,15 +254,11 @@ itcl::body ACAENC671::Width {bank wid} {
   return [$device simpleWrite24 $node $A 20 $wid]
 }
 
-## brief Set the dead time for this module
 #
-# Set the amount of time following an input signal to disable input signals.
-# This can be set from 160 ns to 2 us using an 8-bit range. 
-# (0 --> 160 ns and 255 --> 2 us)
-# 
-# @param bank integer specifying bank 0 or 1
-# @param dt  value to set delay to [0,255]
-# 
+#
+#
+#
+#
 itcl::body ACAENC671::DeadTime {bank dt} {
   if {![isInRange 0 1 $bank]} {
     return -code error \
@@ -208,17 +277,11 @@ itcl::body ACAENC671::DeadTime {bank dt} {
   return [$device simpleWrite24 $node $A 20 $dt]
 }
 
-
-##
-#  @brief Set prompt output width for a bank
 #
-#  Set the width of the prompt output signal for a single channels.
-#  Minimum pulse width = 10ns and Maximum pulse width = 250ns.
 #
-#  \param bank integer specifying bank 0 or 1
-#  \param pat  integer specifying width of signal (min=0, max=255)
 #
-#  \returns bit pattern of QX
+#
+#
 itcl::body ACAENC671::PromptWidth {bank wid} {
   if {![isInRange 0 1 $bank]} {
     return -code error \
@@ -237,7 +300,11 @@ itcl::body ACAENC671::PromptWidth {bank wid} {
 }
 
 
-
+#
+#
+#
+#
+#
 itcl::body ACAENC671::InternalMajority {numChans} {
   if {![isInRange 1 16 $numChans]} {
     set msg "ACAENC671::InternalMajority $numChans is an invalid internal "
@@ -248,6 +315,11 @@ itcl::body ACAENC671::InternalMajority {numChans} {
   return [$device simpleWrite24 $node 3 20 $code]
 }
 
+#
+#
+#
+#
+#
 itcl::body ACAENC671::ExternalMajority {numChans enable} {
   if {![isInRange 1 43 $numChans]} {
     set msg "ACAENC671::ExternalMajority $numChans is an invalid external "
@@ -264,6 +336,11 @@ itcl::body ACAENC671::ExternalMajority {numChans enable} {
 }
 
 
+#
+#
+#
+#
+#
 itcl::body ACAENC671::SetMultiplexPrompt {chn} {
   if {![isInRange 0 15 $chn]} {
     set msg "ACAENC671::SetMultiplexPrompt $chn is an invalid channel. "
@@ -276,7 +353,11 @@ itcl::body ACAENC671::SetMultiplexPrompt {chn} {
 
 }
 
-
+#
+#
+#
+#
+#
 itcl::body ACAENC671::SetMultiplexDelay {chn} {
   if {![isInRange 0 15 $chn]} {
     set msg "ACAENC671::SetMultiplexDelay $chn is an invalid channel. "
@@ -290,6 +371,11 @@ itcl::body ACAENC671::SetMultiplexDelay {chn} {
 }
 
 
+#
+#
+#
+#
+#
 itcl::body ACAENC671::SetMultiplexInputLevel {chn} {
   if {![isInRange 0 15 $chn]} {
     set msg "ACAENC671::SetMultiplexInputLevel $chn is an invalid channel. "
@@ -301,7 +387,10 @@ itcl::body ACAENC671::SetMultiplexInputLevel {chn} {
   return [$device simpleWrite24 $node $chn 22 $code]
 
 }
-# -----------------------------------------------------------------------------
+
+
+
+# ------------------------------------------------------------------------------
 # Utility methods
 
 itcl::body ACAENC671::isInRange {low high val} {
