@@ -753,3 +753,6 @@ Work on 11.0-rc11 begins
 	* Feature #2406 - Test newscaler integration with a mix of
 	incremental and non-incremental scalers.
 	* Feature *2409 - Documented newscaler and TclRingBuffer package
+	* Fix errors in new scaler display script that happen when there
+	is no stripchart.
+	
