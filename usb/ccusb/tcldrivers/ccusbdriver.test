@@ -1,0 +1,21 @@
+
+package require tcltest
+
+
+tcltest::test pkgrequire-0 {Test that we can require the package
+} { package require CCUSBDriverSupport } 1.0
+
+
+
+tcltest::test isvalidSlot-0 { Test that slot < 1 is bad
+} { CCUSBDriverSupport::isValidSlot 0 } 0
+
+tcltest::test isValidSlot-1 { Test that slot > 25 is bad
+} { CCUSBDriverSupport::isValidSlot 26 } 0
+
+tcltest::test isValidSlot-2 { Test slot in range [0,25] is good
+} { CCUSBDriverSupport::isValidSlot 25 } 1
+
+
+
+tcltest::cleanupTests
