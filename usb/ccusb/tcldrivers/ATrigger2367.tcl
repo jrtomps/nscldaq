@@ -190,61 +190,104 @@ itcl::class ATrigger2367 {
   # 
   public method IsConfigured {}
 
-#
-#  ## @brief Set S800 GDG delay
-#  #
-#  public method SetS800GDGDelay {val}   
-#  public method GetS800GDGDelay {}   
-#
-#  ## @brief Set S800 GDG width 
-#  #
-#  public method SetS800GDGWidth {val}   
-#  public method GetS800GDGWidth {}   
-#
-#
-#  ## @brief Set S800 GDG delay
-#  #
-#  public method SetSecondaryGDGDelay {val}   
-#  public method GetSecondaryGDGDelay {}   
-#
-#  ## @brief Set S800 GDG width 
-#  #
-#  public method SetSecondaryGDGWidth {val}   
-#  public method GetSecondaryGDGWidth {}   
-#
-#  ## @brief Set S800 delay 
-#  #
-#  public method SetS800Delay {val}   
-#  public method GetS800Delay {}   
-#
-#  ## @brief Set S800 delay 
-#  #
-#  public method SetS800Delay {val}   
-#  public method GetS800Delay {}   
-# 
-#  ## @brief Set Coincidence gate width
-#  #
-#  public method SetCoincidenceWidth {val}
-#  public method GetCoincidenceWidth {}
-#
-#  ## @brief Set Secondary trigger delay
-#  #
-#  public method SetSecondaryDelay {val}
-#  public method GetSecondaryDelay {}
-#
-#  ## @brief Set bypasses
-#  #
-#  public method SetBypasses {val} 
-#  public method GetBypasses {} 
-#
-#  ## @brief Set S800 Downscaler
-#  public method SetS800DownscaleFactor {factor}
-#  public method GetS800DownscaleFactor {factor}
-#
-#  ## @brief Set S800 Downscaler
-#  public method SetTriggerBox {bitpattern}
-#  public method GetTriggerBox {}
-#
+
+  ## @brief Set S800 GDG delay
+  #
+  public method SetS800GDGDelay {val} {
+    Execute [list sSetS800GDGDelay $val]
+  } 
+  public method GetS800GDGDelay {} {
+    return [Execute [list sGetS800GDGDelay]]
+  }
+
+  ## @brief Set S800 GDG width 
+  #
+  public method SetS800GDGWidth {val} {
+    Execute [list sSetS800GDGWidth $val]
+  } 
+  public method GetS800GDGWidth {} {
+    return [Execute [list sGetS800GDGWidth]]
+  }
+
+
+  ## @brief Set S800 GDG delay
+  #
+  public method SetSecondaryGDGDelay {val} {   
+    Execute [list sSetSecondaryGDGDelay $val]
+  } 
+  public method GetSecondaryGDGDelay {} {
+    return [Execute [list sGetSecondaryGDGDelay]]
+  }
+
+  ## @brief Set S800 GDG width 
+  #
+  public method SetSecondaryGDGWidth {val} {
+    Execute [list sSetSecondaryGDGWidth $val]
+  } 
+  public method GetSecondaryGDGWidth {} {
+    return [Execute [list sGetSecondaryGDGWidth]]
+  }
+
+  ## @brief Set S800 delay 
+  #
+  public method SetS800Delay {val} {
+    Execute [list sSetS800Delay $val]
+  } 
+  public method GetS800Delay {} {
+    return [Execute [list sGetS800Delay]]
+  }
+
+  ## @brief Set Coincidence gate width
+  #
+  public method SetCoincidenceWidth {val} {
+    Execute [list sSetCoincidenceWidth $val]
+  } 
+  public method GetCoincidenceWidth {} {
+    return [Execute [list sGetCoincidenceWidth]]
+  }
+
+  ## @brief Set Secondary trigger delay
+  #
+  public method SetSecondaryDelay {val} {
+    Execute [list sSetSecondaryDelay $val]
+  } 
+  public method GetSecondaryDelay {} {
+    return [Execute [list sGetSecondaryDelay]]
+  }
+  
+  ## @brief Set bypasses
+  #
+  public method SetBypasses {val} { 
+    Execute [list sSetBypasses $val]
+  } 
+  public method GetBypasses {} {
+    return [Execute [list sGetBypasses]]
+  }
+
+  ## @brief Set S800 Downscaler
+  public method SetS800DownscaleFactor {factor} {
+    Execute [list sSetS800DownscaleFactor $factor]
+  } 
+  public method GetS800DownscaleFactor {} { 
+    return [Execute [list sGetS800DownscaleFactor]]
+  }
+
+  ## @brief Set Secondary Downscaler
+  public method SetSecondaryDownscaleFactor {factor} {
+    Execute [list sSetSecondaryDownscaleFactor $factor]
+  } 
+  public method GetSecondaryDownscaleFactor {} { 
+    return [Execute [list sGetSecondaryDownscaleFactor]]
+  }
+
+  ## @brief Set S800 Downscaler
+  public method SetTriggerBox {bitpattern} {
+    Execute [list sSetTriggerBox $bitpattern]
+  } 
+  public method GetTriggerBox {} {
+    return [Execute [list sGetTriggerBox]]
+  }
+
 #  ## @brief Set Inspect 1 
 #  public method SetInspect1 {wire}
 #  public method GetInspect1 {}
@@ -258,22 +301,43 @@ itcl::class ATrigger2367 {
 #  public method SetInspect4 {wire}
 #  public method GetInspect4 {}
 #
-#
-#  ## @brief Set ADC Gate width
-#  #
-#  public method SetADCGateWidth {wid}
-#  public method GetADCGateWidth {}
-#
-#  ## @brief Set QDC Gate width
-#  #
-#  public method SetQDCGateWidth {wid}
-#  public method GetQDCGateWidth {}
-#
-#  ## @brief Set QDC Gate width
-#  #
-#  public method SetTDCGateWidth {wid}
-#  public method GetTDCGateWidth {}
-#
+
+  ## @brief Set ADC Gate width
+  #
+  public method SetADCGateWidth {wid} {
+    Execute [list sSetADCGateWidth $wid]
+  } 
+  public method GetADCGateWidth {} { 
+    return [Execute [list sGetADCGateWidth]]
+  }
+
+  ## @brief Set QDC Gate width
+  #
+  public method SetQDCGateWidth {wid} {
+    Execute [list sSetQDCGateWidth $wid]
+  } 
+  public method GetQDCGateWidth {} {
+    return [Execute [list sGetQDCGateWidth]]
+  }
+
+  ## @brief Set TDC Gate width
+  #
+  public method SetTDCGateWidth {wid} {
+    Execute [list sSetTDCGateWidth $wid]
+  } 
+  public method GetTDCGateWidth {} {
+    return [Execute [list sGetTDCGateWidth]]
+  }
+
+
+  ## @brief Set CoincReg Gate width
+  #
+  public method SetCoincRegGateWidth {wid} {
+    Execute [list sSetCoincRegGateWidth $wid]
+  } 
+  public method GetCoincRegGateWidth {} {
+    return [Execute [list sGetCoincRegGateWidth]]
+  }
 
 
   ##################################################################
@@ -312,10 +376,86 @@ itcl::class ATrigger2367 {
   # @return ""
 	public method sStamp {stack}
 
+  
+
+  ## @brief Set S800 GDG delay
+  #
+  public method sSetS800GDGDelay {stack val}   
+  public method sGetS800GDGDelay {stack }   
+
+  ## @brief Set S800 GDG width 
+  #
+  public method sSetS800GDGWidth {stack val}   
+  public method sGetS800GDGWidth {stack }   
+
+
+  ## @brief Set S800 GDG delay
+  #
+  public method sSetSecondaryGDGDelay {stack val}   
+  public method sGetSecondaryGDGDelay {stack }   
+
+  ## @brief Set S800 GDG width 
+  #
+  public method sSetSecondaryGDGWidth {stack val}   
+  public method sGetSecondaryGDGWidth {stack }   
+
+  ## @brief Set S800 delay 
+  #
+  public method sSetS800Delay {stack val}   
+  public method sGetS800Delay {stack }   
+
+  ## @brief Set Coincidence gate width
+  #
+  public method sSetCoincidenceWidth {stack val}
+  public method sGetCoincidenceWidth {stack }
+
+  ## @brief Set Secondary trigger delay
+  #
+  public method sSetSecondaryDelay {stack val}
+  public method sGetSecondaryDelay {stack }
+
+  ## @brief Set bypasses
+  #
+  public method sSetBypasses {stack val} 
+  public method sGetBypasses {stack } 
+
+  ## @brief Set S800 Downscaler
+  public method sSetS800DownscaleFactor {stack factor}
+  public method sGetS800DownscaleFactor {stack}
+
+  ## @brief Set Secondary Downscaler
+  public method sSetSecondaryDownscaleFactor {stack factor}
+  public method sGetSecondaryDownscaleFactor {stack}
+
+  ## @brief Set S800 Downscaler
+  public method sSetTriggerBox {stack bitpattern}
+  public method sGetTriggerBox {stack}
+
+  ## @brief Set ADC Gate width
+  #
+  public method sSetADCGateWidth {stack wid}
+  public method sGetADCGateWidth {stack }
+
+  ## @brief Set QDC Gate width
+  #
+  public method sSetQDCGateWidth {stack wid}
+  public method sGetQDCGateWidth {stack }
+
+  ## @brief Set QDC Gate width
+  #
+  public method sSetTDCGateWidth {stack wid}
+  public method sGetTDCGateWidth {stack }
+
+  ## @brief Set Coinc Register Gate width
+  #
+  public method sSetCoincRegGateWidth {stack wid}
+  public method sGetCoincRegGateWidth {stack }
+
 
   # --------------- Utility method -------------------------------
 
 	public method GetVariable {v} {set $v}
+	public method Execute {stack} 
 }
 
 # --- END OF INTERFACE ---
@@ -338,37 +478,6 @@ itcl::body ATrigger2367::SetController {ctlr} {
 #
 itcl::body ATrigger2367::GetController {} {
   return $device
-}
-
-#
-#
-#
-itcl::body ATrigger2367::sClear {stack} {
-  $stack addControl $node 0 9
-}
-
-#
-#
-#
-itcl::body ATrigger2367::sClearRegister {stack} {
-  $stack addControl $node 0 10
-}
-
-#
-#
-#
-itcl::body ATrigger2367::sRead {stack} {
-  $stack addRead24 $node 0 3
-}
-
-#
-#
-#
-itcl::body ATrigger2367::sStamp {stack} {
-  $stack addRead24 $node 1 3   ;# bits 0-15
-  $stack addRead24 $node 2 3   ;# bits 16-31
-  $stack addRead24 $node 3 3   ;# bits 32-47
-  $stack addRead24 $node 4 3   ;# bits 48-63
 }
 
 #
@@ -528,4 +637,267 @@ itcl::body ATrigger2367::IsConfigured {} {
   set type    [expr [ReadSignature2] & 0xffffff]
   set version [expr [ReadSignature1] & 0xffffff]
   return [expr ($type!=2367) || ($version!=5800)]
+}
+
+
+#
+#
+#
+itcl::body ATrigger2367::sClear {stack} {
+  $stack addControl $node 0 9
+}
+
+#
+#
+#
+itcl::body ATrigger2367::sClearRegister {stack} {
+  $stack addControl $node 0 10
+}
+
+#
+#
+#
+itcl::body ATrigger2367::sRead {stack} {
+  $stack addRead24 $node 0 3
+}
+
+#
+#
+#
+itcl::body ATrigger2367::sStamp {stack} {
+  $stack addRead24 $node 1 3   ;# bits 0-15
+  $stack addRead24 $node 2 3   ;# bits 16-31
+  $stack addRead24 $node 3 3   ;# bits 32-47
+  $stack addRead24 $node 4 3   ;# bits 48-63
+}
+
+
+#
+#
+#
+itcl::body ATrigger2367::sSetS800GDGDelay {stack val} {
+  $stack addWrite24 $node 0 16 $val
+}
+
+#
+#
+#
+itcl::body ATrigger2367::sGetS800GDGDelay {stack} {
+  $stack addRead24 $node 0 0   
+}
+
+#
+#
+#
+itcl::body ATrigger2367::sSetS800GDGWidth {stack val} {
+  $stack addWrite24 $node 1 16 $val
+}
+
+#
+#
+#
+itcl::body ATrigger2367::sGetS800GDGWidth {stack} {
+  $stack addRead24 $node 1 0   
+}
+
+#
+#
+#
+itcl::body ATrigger2367::sSetSecondaryGDGDelay {stack val} {
+  $stack addWrite24 $node 2 16 $val
+}
+
+#
+#
+#
+itcl::body ATrigger2367::sGetSecondaryGDGDelay {stack} {
+  $stack addRead24 $node 2 0   
+}
+
+#
+#
+#
+itcl::body ATrigger2367::sSetSecondaryGDGWidth {stack val} {
+  $stack addWrite24 $node 3 16 $val
+}
+
+#
+#
+#
+itcl::body ATrigger2367::sGetSecondaryGDGWidth {stack} {
+  $stack addRead24 $node 3 0   
+}
+
+#
+#
+#
+itcl::body ATrigger2367::sSetS800Delay {stack val} {
+  $stack addWrite24 $node 4 16 $val
+}
+
+#
+#
+#
+itcl::body ATrigger2367::sGetS800Delay {stack} {
+  $stack addRead24 $node 4 0   
+}
+
+#
+#
+#
+itcl::body ATrigger2367::sSetCoincidenceWidth {stack val} {
+  $stack addWrite24 $node 5 16 $val
+}
+
+#
+#
+#
+itcl::body ATrigger2367::sGetCoincidenceWidth {stack} {
+  $stack addRead24 $node 5 0   
+}
+
+#
+#
+#
+itcl::body ATrigger2367::sSetSecondaryDelay {stack val} {
+  $stack addWrite24 $node 6 16 $val
+}
+
+#
+#
+#
+itcl::body ATrigger2367::sGetSecondaryDelay {stack} {
+  $stack addRead24 $node 6 0   
+}
+
+#
+#
+#
+itcl::body ATrigger2367::sSetBypasses {stack val} {
+  $stack addWrite24 $node 7 16 $val
+}
+
+#
+#
+#
+itcl::body ATrigger2367::sGetBypasses {stack} {
+  $stack addRead24 $node 7 0   
+}
+
+#
+#
+#
+itcl::body ATrigger2367::sSetS800DownscaleFactor {stack factor} {
+  $stack addWrite24 $node 8 16 $factor
+}
+
+#
+#
+#
+itcl::body ATrigger2367::sGetS800DownscaleFactor {stack} {
+  $stack addRead24 $node 8 0   
+}
+
+#
+#
+#
+itcl::body ATrigger2367::sSetSecondaryDownscaleFactor {stack factor} {
+  $stack addWrite24 $node 9 16 $factor
+}
+
+#
+#
+#
+itcl::body ATrigger2367::sGetSecondaryDownscaleFactor {stack} {
+  $stack addRead24 $node 9 0   
+}
+
+#
+#
+#
+itcl::body ATrigger2367::sSetTriggerBox {stack bitpattern} {
+  $stack addWrite24 $node 10 16 $bitpattern
+}
+
+#
+#
+#
+itcl::body ATrigger2367::sGetTriggerBox {stack} {
+  $stack addRead24 $node 10 0   
+}
+
+#
+#
+#
+itcl::body ATrigger2367::sSetADCGateWidth {stack wid} {
+  $stack addWrite24 $node 0 18 $wid
+}
+
+#
+#
+#
+itcl::body ATrigger2367::sGetADCGateWidth {stack} {
+  $stack addRead24 $node 0 2  
+}
+
+#
+#
+#
+itcl::body ATrigger2367::sSetQDCGateWidth {stack wid} {
+  $stack addWrite24 $node 1 18 $wid
+}
+
+#
+#
+#
+itcl::body ATrigger2367::sGetQDCGateWidth {stack} {
+  $stack addRead24 $node 1 2  
+}
+
+#
+#
+#
+itcl::body ATrigger2367::sSetTDCGateWidth {stack wid} {
+  $stack addWrite24 $node 2 18 $wid
+}
+
+#
+#
+#
+itcl::body ATrigger2367::sGetTDCGateWidth {stack} {
+  $stack addRead24 $node 2 2  
+}
+
+#
+#
+#
+itcl::body ATrigger2367::sSetCoincRegGateWidth {stack wid} {
+  $stack addWrite24 $node 3 18 $wid
+}
+
+#
+#
+#
+itcl::body ATrigger2367::sGetCoincRegGateWidth {stack} {
+  $stack addRead24 $node 3 2  
+}
+
+
+
+#
+#
+#
+itcl::body ATrigger2367::Execute {script} {
+  if {$device ne ""} {
+    set rdoList [cccusbreadoutlist::CCCUSBReadoutList %AUTO%]
+    set cmd [lindex $script 0]
+    if {[llength $script]>1} {
+      $cmd $rdoList {*}[lreplace $script 0 0]
+    } else {
+      $cmd $rdoList
+    }
+    set data [$device executeList $rdoList [expr 4<<20]]
+  } else {
+    return -code error "ATrigget2367::Execute user must set the controller first with SetController" 
+  }
 }

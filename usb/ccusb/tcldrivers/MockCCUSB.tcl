@@ -26,6 +26,13 @@ namespace eval MockCCUSB {
       lappend m_history "simpleControl $n $a $f"
     }
 
+    method executeList {stack max} {
+      set stackHistory [$stack getHistory]
+      foreach cmd $stackHistory {
+        lappend m_history $cmd
+      }
+    }
+
     method getHistory {} {
       return $m_history
     }
@@ -47,6 +54,18 @@ namespace eval MockCCUSB {
 
     method addRead16 {n a f} {
       lappend m_history "read16 $n $a $f"
+    }
+
+    method addRead24 {n a f} {
+      lappend m_history "read24 $n $a $f"
+    }
+
+    method addWrite16 {n a f data} {
+      lappend m_history "write16 $n $a $f $data"
+    }
+
+    method addWrite24 {n a f data} {
+      lappend m_history "write24 $n $a $f $data"
     }
 
     method getHistory {} {
