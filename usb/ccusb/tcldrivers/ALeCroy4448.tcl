@@ -81,6 +81,10 @@ itcl::class ALeCroy4448 {
   # \return the value of the variable named in the argument
   public method GetVariable {v} {set $v}
 
+  #############################################################################
+  #############################################################################
+  # Single-shot operations
+
   ##
   # Clear
   #
@@ -90,32 +94,27 @@ itcl::class ALeCroy4448 {
   public method Clear {} {return [$device simpleControl $node 0 11]}
 
 
-  ##
+  ## @brief Read a single register
   #
-  public method ReadRegister regName {
-
-    if {[catch {set reg [MapRegisterName $regName]} msg]} {
-      return -code error [lreplace $msg 0 0 ALeCroy4448::ReadRegister]
-    }
-    $device simpleRead24 $node $reg 0 
-  }
-
-  ##
+  # @param regName  name of register to read (@see MapRegisterName)
   #
-  public method ReadAndClearRegister regName {
+  public method ReadRegister regName
 
-    if {[catch {set reg [MapRegisterName $regName]} msg]} {
-      return -code error [lreplace $msg 0 0 ALeCroy4448::ReadAndClearRegister]
-    }
-    $device simpleRead24 $node $reg 2 
-  }
+  ## @brief Perform a read and clear operation for a specific register
+  #
+  # @param regName  name of register (@see MapRegisterName)
+  #
+  public method ReadAndClearRegister regName
 
-  public method ClearRegister regName {
-    if {[catch {set reg [MapRegisterName $regName]} msg]} {
-      return -code error [lreplace $msg 0 0 ALeCroy4448::ClearRegister]
-    }
-    $device simpleControl $node $reg 9 
-  }
+  ## @brief Clear a specific register 
+  #
+  # @param regName  name of register (@see MapRegisterName)
+  #
+  public method ClearRegister regName
+
+  #############################################################################
+  #############################################################################
+  # Stack building methods
 
   ##
   # sClear
@@ -131,7 +130,7 @@ itcl::class ALeCroy4448 {
   # Add procedures to read a register to the stack specified.
   #
   # \param stack    a cccusbreadoutlist::CCCUSBReadoutList object
-  # \param register
+  # \param register a register name (@see MapRegisterName for valid values)
   public method sRead {stack register}
 
   ## 
@@ -140,7 +139,7 @@ itcl::class ALeCroy4448 {
   # Add procedures to read and clear register to the stack specified.
   #
   # \param stack    a cccusbreadoutlist::CCCUSBReadoutList object
-  # \param register
+  # \param register a register name (@see MapRegisterName for valid values)
   public method sReadAndClear {stack register}
 
   ## 
@@ -149,11 +148,14 @@ itcl::class ALeCroy4448 {
   # Add procedures to clear a specific register to the stack specified.
   #
   # \param stack    a cccusbreadoutlist::CCCUSBReadoutList object
-  # \param register
+  # \param register a register name (@see MapRegisterName for valid values)
   public method sClearRegister {stack register}
 
 
 
+  #############################################################################
+  #############################################################################
+  # Utility Methods
 
   ## @brief Transform a register name into 0, 1, or 2
   #
@@ -187,10 +189,52 @@ itcl::class ALeCroy4448 {
     }
     return $reg
   }
+
+} ;# Done with class definition
+
+#------------------------------------------------------------------------------
+# Single shot commands 
+
+
+# Read register F(0)A
+#
+itcl::body ALeCroy4448::ReadRegister regName {
+# get the register index
+  if {[catch {set reg [MapRegisterName $regName]} msg]} {
+    return -code error [lreplace $msg 0 0 ALeCroy4448::ReadRegister]
+  }
+
+  $device simpleRead24 $node $reg 0 
 }
 
 
-##
+# Read and clear register F(2)A
+# 
+itcl::body ALeCroy4448::ReadAndClearRegister regName {
+
+# convert regName to an index
+  if {[catch {set reg [MapRegisterName $regName]} msg]} {
+    return -code error [lreplace $msg 0 0 ALeCroy4448::ReadAndClearRegister]
+  }
+  $device simpleRead24 $node $reg 2 
+}
+
+
+# Clear register F(9)A
+# 
+itcl::body ALeCroy4448::ClearRegister regName {
+# convert regName to index
+  if {[catch {set reg [MapRegisterName $regName]} msg]} {
+    return -code error [lreplace $msg 0 0 ALeCroy4448::ClearRegister]
+  }
+  $device simpleControl $node $reg 9 
+}
+
+
+
+###############################################################################
+# Stack building commands
+
 # sClear 
 #
 # Adds a clear, A(0)F(11), of the module to a cccusbreadoutlist
@@ -202,14 +246,6 @@ itcl::body ALeCroy4448::sClear {stack} {
 }
 
 
-##
-# sRead
-#
-# Add a register readout
-#
-# \param stack a cccusbreadoutlist::CCCUSBReadoutList object
-# \param register an identifier of which register to read. valid
-#                 values are A, B, or C
 itcl::body ALeCroy4448::sRead {stack register} {
   set reg [MapRegisterName $register]
   set A $reg
