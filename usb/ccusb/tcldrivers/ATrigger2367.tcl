@@ -21,7 +21,7 @@
 
 
 # Define the package
-package provide ATrigger2367 1.0
+package provide trigger2367 11.0
 
 package require Itcl
 
@@ -87,6 +87,10 @@ itcl::class ATrigger2367 {
   # @return ""
   public method SetController {ctlr}
 
+  ## @brief Retrieve the current controller
+  # 
+  # @return the name of the controller this communicates through
+  public method GetController {}
   
   ## @brief Load firmware into the ULM
   #
@@ -100,6 +104,10 @@ itcl::class ATrigger2367 {
   # - Error if user has not previously set a valid ctlr
   # - Error if the signature values fail to be validated after the load 
 	public method Configure {firmware}
+
+
+  public method ReadSignature1 {}
+  public method ReadSignature2 {}
 
   ## @brief Clear the module
   # 
@@ -127,6 +135,16 @@ itcl::class ATrigger2367 {
   # 
 	public method Go {bit} 
 
+  ## @brief Read status of the Go bit
+  #
+  # @returns integer encoded with Q and X response 
+  #
+  # Exceptional returns:
+  # - Error if user has not set the controller 
+  # 
+	public method ReadGo {} 
+
+
   ## @brief Select timestamp mode
   # 
   # Sets whether the ULM will accept an external timestamp clock and external timestamp latch.
@@ -146,6 +164,13 @@ itcl::class ATrigger2367 {
   # - Error if argument is out of range.
   public method Select {bit} 
 
+  ## @brief Read timestamp timestamp mode
+  #
+  # @returns integer encoded with tstamp mode and Q and X response 
+  #
+  # Exceptional returns:
+  # - Error is user has not set the controller.
+  public method ReadSelect {} 
 
   ## @brief Enable ... 
   #
@@ -164,6 +189,91 @@ itcl::class ATrigger2367 {
   # @return boolean
   # 
   public method IsConfigured {}
+
+#
+#  ## @brief Set S800 GDG delay
+#  #
+#  public method SetS800GDGDelay {val}   
+#  public method GetS800GDGDelay {}   
+#
+#  ## @brief Set S800 GDG width 
+#  #
+#  public method SetS800GDGWidth {val}   
+#  public method GetS800GDGWidth {}   
+#
+#
+#  ## @brief Set S800 GDG delay
+#  #
+#  public method SetSecondaryGDGDelay {val}   
+#  public method GetSecondaryGDGDelay {}   
+#
+#  ## @brief Set S800 GDG width 
+#  #
+#  public method SetSecondaryGDGWidth {val}   
+#  public method GetSecondaryGDGWidth {}   
+#
+#  ## @brief Set S800 delay 
+#  #
+#  public method SetS800Delay {val}   
+#  public method GetS800Delay {}   
+#
+#  ## @brief Set S800 delay 
+#  #
+#  public method SetS800Delay {val}   
+#  public method GetS800Delay {}   
+# 
+#  ## @brief Set Coincidence gate width
+#  #
+#  public method SetCoincidenceWidth {val}
+#  public method GetCoincidenceWidth {}
+#
+#  ## @brief Set Secondary trigger delay
+#  #
+#  public method SetSecondaryDelay {val}
+#  public method GetSecondaryDelay {}
+#
+#  ## @brief Set bypasses
+#  #
+#  public method SetBypasses {val} 
+#  public method GetBypasses {} 
+#
+#  ## @brief Set S800 Downscaler
+#  public method SetS800DownscaleFactor {factor}
+#  public method GetS800DownscaleFactor {factor}
+#
+#  ## @brief Set S800 Downscaler
+#  public method SetTriggerBox {bitpattern}
+#  public method GetTriggerBox {}
+#
+#  ## @brief Set Inspect 1 
+#  public method SetInspect1 {wire}
+#  public method GetInspect1 {}
+#  ## @brief Set Inspect 2 
+#  public method SetInspect2 {wire}
+#  public method GetInspect2 {}
+#  ## @brief Set Inspect 3 
+#  public method SetInspect3 {wire}
+#  public method GetInspect3 {}
+#  ## @brief Set Inspect 4 
+#  public method SetInspect4 {wire}
+#  public method GetInspect4 {}
+#
+#
+#  ## @brief Set ADC Gate width
+#  #
+#  public method SetADCGateWidth {wid}
+#  public method GetADCGateWidth {}
+#
+#  ## @brief Set QDC Gate width
+#  #
+#  public method SetQDCGateWidth {wid}
+#  public method GetQDCGateWidth {}
+#
+#  ## @brief Set QDC Gate width
+#  #
+#  public method SetTDCGateWidth {wid}
+#  public method GetTDCGateWidth {}
+#
 
 
   ##################################################################
@@ -219,6 +329,20 @@ itcl::class ATrigger2367 {
 #
 #
 #
+itcl::body ATrigger2367::SetController {ctlr} {
+  set device $ctlr 
+}
+
+#
+#
+#
+itcl::body ATrigger2367::GetController {} {
+  return $device
+}
+
+#
+#
+#
 itcl::body ATrigger2367::sClear {stack} {
   $stack addControl $node 0 9
 }
@@ -250,16 +374,9 @@ itcl::body ATrigger2367::sStamp {stack} {
 #
 #
 #
-itcl::body ATrigger2367::SetController {ctlr} {
-  set device $ctlr 
-}
-
-#
-#
-#
 itcl::body ATrigger2367::Clear {} {
   if {$device ne ""} {
-    returns [$device simpleControl $node 0 9]
+    return [$device simpleControl $node 0 9]
   } else {
     return -code error "ATrigget2367::Clear user must set the controller first with SetController" 
   }
@@ -285,6 +402,17 @@ itcl::body ATrigger2367::Go {bit} {
 #
 #
 #
+itcl::body ATrigger2367::ReadGo {} {
+  if {$device ne ""} {
+    return [$device simpleRead24 $node 11 0]
+  } else {
+    return -code error "ATrigget2367::ReadGo user must set the controller first with SetController" 
+  }
+}
+
+#
+#
+#
 itcl::body ATrigger2367::Select {code} {
   if {$code<0 || $code>3} {
     return -code error "ATrigger2367::Select passed a value of range."
@@ -296,6 +424,16 @@ itcl::body ATrigger2367::Select {code} {
   }
 }
 
+#
+#
+#
+itcl::body ATrigger2367::ReadSelect {} {
+  if {$device ne ""} {
+    return [$device simpleRead24 $node 12 0]
+  } else {
+    return -code error "ATrigget2367::ReadSelect user must set the controller first with SetController" 
+  }
+}
 #
 #
 #
@@ -313,7 +451,7 @@ itcl::body ATrigger2367::Enable {bits} {
 #
 itcl::body ATrigger2367::ReadSignature1 {} {
   if {$device ne ""} {
-    return [$device simpleRead24 $node 14 0 $bits]
+    return [$device simpleRead24 $node 14 0]
   } else {
     return -code error "ATrigget2367::ReadSignature1 user must set the controller first with SetController" 
   }
@@ -324,7 +462,7 @@ itcl::body ATrigger2367::ReadSignature1 {} {
 #
 itcl::body ATrigger2367::ReadSignature2 {} {
   if {$device ne ""} {
-    return [$device simpleRead24 $node 15 0 $bits]
+    return [$device simpleRead24 $node 15 0]
   } else {
     return -code error "ATrigget2367::ReadSignature2 user must set the controller first with SetController" 
   }

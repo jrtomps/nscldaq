@@ -1,0 +1,152 @@
+
+
+package require tcltest
+package require MockCCUSB
+package require Itcl
+
+
+tcltest::test pkgrequire-0 {Test that we can require the package
+} { package require trigger2367 } 11.0
+
+
+
+
+proc setup {} {
+  MockCCUSB::Controller ::ctlr
+  MockCCUSB::ReadoutList ::stack
+
+  ATrigger2367 ::dev ::ctlr 23
+}
+
+proc tearDown {} {
+  ::ctlr destroy
+  ::stack destroy
+
+  itcl::delete object ::dev
+}
+
+
+
+tcltest::test setgetController-0 {Test that we can manipulate the controller
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev SetController dummy
+  ::dev GetController
+} -result dummy
+
+
+
+
+
+
+
+tcltest::test ReadSignature1-0 {Ensure ReadSignature1 adds the correct NAF 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev ReadSignature1
+  ::ctlr getHistory
+} -result "{simpleRead24 23 14 0}"
+
+
+tcltest::test ReadSignature2-0 {Ensure ReadSignature2 adds the correct NAF 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev ReadSignature2
+  ::ctlr getHistory
+} -result "{simpleRead24 23 15 0}"
+
+
+
+
+
+tcltest::test clear-0 {Ensure Clear adds NA(0)F(9)
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev Clear 
+  ::ctlr getHistory
+} -result "{simpleControl 23 0 9}"
+
+
+
+
+
+
+tcltest::test go-0 {Ensure Go adds NA(11)F(16)
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev Go on 
+  ::ctlr getHistory
+} -result "{simpleWrite24 23 11 16 1}"
+
+
+tcltest::test readgo-0 {Ensure ReadGo adds NA(11)F(0)
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev ReadGo
+  ::ctlr getHistory
+} -result "{simpleRead24 23 11 0}"
+
+
+
+
+
+
+tcltest::test select-0 {Test that Select adds an NA(12)F(16)
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev Select 3 
+  ::ctlr getHistory
+} -result "{simpleWrite24 23 12 16 3}"
+
+
+tcltest::test readselect-0 {Test that ReadSelect adds an NA(12)F(0)
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev ReadSelect
+  ::ctlr getHistory
+} -result "{simpleRead24 23 12 0}"
+
+
+
+
+
+
+tcltest::test enable-0 {Test that Enable adds an NA(13)F(16)
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev Enable 2
+  ::ctlr getHistory
+} -result "{simpleWrite24 23 13 16 2}"
+
+
+
+
+
+tcltest::cleanupTests
