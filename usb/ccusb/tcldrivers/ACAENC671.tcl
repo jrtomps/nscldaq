@@ -45,8 +45,15 @@ itcl::class ACAENC671 {
 
   public method DeadTime {bank dt} 
   public method PromptWidth {code wid} 
+  public method InternalMajority {numChannels}
+  public method ExternalMajority {numChannels enable}
+  public method SetMultiplexPrompt {chn}
+  public method SetMultiplexDelay {chn}
+  public method SetMultiplexInputLevel {chn}
 
   private method isInRange {low high val}
+
+  private method computeMajorityCode {numChannels}
 }
 
 
@@ -230,9 +237,78 @@ itcl::body ACAENC671::PromptWidth {bank wid} {
 }
 
 
+
+itcl::body ACAENC671::InternalMajority {numChans} {
+  if {![isInRange 1 16 $numChans]} {
+    set msg "ACAENC671::InternalMajority $numChans is an invalid internal "
+    append msg {majority setting. Must be in range [1,16].}
+    return -code error $msg
+  }
+  set code [computeMajorityCode $numChans]
+  return [$device simpleWrite24 $node 3 20 $code]
+}
+
+itcl::body ACAENC671::ExternalMajority {numChans enable} {
+  if {![isInRange 1 43 $numChans]} {
+    set msg "ACAENC671::ExternalMajority $numChans is an invalid external "
+    append msg {majority setting. Must be in range [1,43].}
+    return -code error $msg
+  }
+  
+  set code [computeMajorityCode $numChans]
+  set en [string is true $enable]
+  set enable [expr {$en<<8}]
+
+  set code [expr {$enable|$code}]
+  return [$device simpleWrite24 $node 2 20 $code]
+}
+
+
+itcl::body ACAENC671::SetMultiplexPrompt {chn} {
+  if {![isInRange 0 15 $chn]} {
+    set msg "ACAENC671::SetMultiplexPrompt $chn is an invalid channel. "
+    append msg {Must be in range [0,15].}
+    return -code error $msg
+  }
+  
+  set code [expr {1<<8}]
+  return [$device simpleWrite24 $node $chn 19 $code]
+
+}
+
+
+itcl::body ACAENC671::SetMultiplexDelay {chn} {
+  if {![isInRange 0 15 $chn]} {
+    set msg "ACAENC671::SetMultiplexDelay $chn is an invalid channel. "
+    append msg {Must be in range [0,15].}
+    return -code error $msg
+  }
+  
+  set code [expr {1<<8}]
+  return [$device simpleWrite24 $node $chn 21 $code]
+
+}
+
+
+itcl::body ACAENC671::SetMultiplexInputLevel {chn} {
+  if {![isInRange 0 15 $chn]} {
+    set msg "ACAENC671::SetMultiplexInputLevel $chn is an invalid channel. "
+    append msg {Must be in range [0,15].}
+    return -code error $msg
+  }
+  
+  set code [expr {1<<8}]
+  return [$device simpleWrite24 $node $chn 22 $code]
+
+}
 # -----------------------------------------------------------------------------
 # Utility methods
 
 itcl::body ACAENC671::isInRange {low high val} {
   return [expr {($val>=$low) && ($val<=$high)}]
+}
+
+
+itcl::body ACAENC671::computeMajorityCode {numChannels} {
+  return [expr {6*($numChannels-1)}]
 }
