@@ -10,7 +10,7 @@ tcltest::test pkgrequire-0 {Ensure we can package require
 
 
 proc setup {} {
-  MockCCUSB ::ctlr
+  MockCCUSB::Controller ::ctlr
   ACAENC671 ::dev ctlr 3
 }
 
