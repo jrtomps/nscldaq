@@ -1,0 +1,226 @@
+
+package require tcltest
+
+package require MockCCUSB
+
+tcltest::test pkgrequire-0 {Test that we can require the package 
+} -body {
+  package require lecroy4448
+} -result 11.0
+
+proc setup {} {
+  MockCCUSB::Controller ::ctlr
+  MockCCUSB::ReadoutList ::stack
+  ALeCroy4448 ::dev ::ctlr 3
+  
+}
+
+proc tearDown {} {
+  ::ctlr destroy
+  ::stack destroy
+  itcl::delete object ::dev
+}
+
+
+
+
+
+
+tcltest::test setGetCtlr-0 {Test that we cna set and and get controller
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev SetController test
+  ::dev GetController  
+} -result "test"
+
+
+
+tcltest::test mapRegName-0 {Test that A, B, C, 0, 1, and 2 map appropriately
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  set res [list]
+  lappend res [::dev MapRegisterName A]
+  lappend res [::dev MapRegisterName B]
+  lappend res [::dev MapRegisterName C]
+  lappend res [::dev MapRegisterName 0]
+  lappend res [::dev MapRegisterName 1]
+  lappend res [::dev MapRegisterName 2]
+  set res
+} -result "0 1 2 0 1 2" 
+
+tcltest::test mapRegName-1 {Test that bad reg name fails 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev MapRegisterName foo
+} -result "ALeCroy4448::MapRegisterName foo is an invalid register name. Must be either A, B, C, 0, 1, or 2." -returnCodes 1
+
+
+
+
+tcltest::test readReg-0 { Test that we can read a valid register
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev ReadRegister 1
+  ::ctlr getHistory
+} -result "{simpleRead24 3 1 0}"
+
+tcltest::test readReg-1 { Test that reg < 0 is bad 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev ReadRegister -1
+  ::ctlr getHistory
+} -result {ALeCroy4448::ReadRegister -1 is an invalid register name. Must be either A, B, C, 0, 1, or 2.} -returnCodes 1
+
+tcltest::test readReg-2 { Test that reg > 2 is bad 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev ReadRegister 3 
+  ::ctlr getHistory
+} -result {ALeCroy4448::ReadRegister 3 is an invalid register name. Must be either A, B, C, 0, 1, or 2.} -returnCodes 1
+
+
+
+
+
+tcltest::test readAndClearReg-0 { Test that we can read a valid register
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev ReadAndClearRegister 0
+  ::dev ReadAndClearRegister 1
+  ::dev ReadAndClearRegister 2
+  ::ctlr getHistory
+} -result "{simpleRead24 3 0 2} {simpleRead24 3 1 2} {simpleRead24 3 2 2}"
+
+tcltest::test readAndClearReg-1 { Test that we can read a valid register
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev ReadAndClearRegister 3
+  ::ctlr getHistory
+} -result "ALeCroy4448::ReadAndClearRegister 3 is an invalid register name. Must be either A, B, C, 0, 1, or 2." -returnCodes 1
+
+
+
+
+tcltest::test clearReg-0 { Test that we can read a valid register
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev ClearRegister A
+  ::dev ClearRegister B
+  ::dev ClearRegister C
+  ::ctlr getHistory
+} -result "{simpleControl 3 0 9} {simpleControl 3 1 9} {simpleControl 3 2 9}"
+
+tcltest::test clearReg-1 { Test that we can read a valid register
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev ClearRegister 3
+  ::ctlr getHistory
+} -result "ALeCroy4448::ClearRegister 3 is an invalid register name. Must be either A, B, C, 0, 1, or 2." -returnCodes 1
+
+
+
+tcltest::test clear-0 {Test that clear does what it should 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev Clear
+  ::ctlr getHistory
+} -result "{simpleControl 3 0 11}"
+
+
+
+
+####### STACK COMMANDS
+
+tcltest::test sRead-0 {Test that a read does what we expect
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  set stack ::stack
+  ::dev sRead stack A
+  ::dev sRead stack 1
+  ::dev sRead stack C
+  ::stack getHistory
+} -result "{read16 3 0 0} {read16 3 1 0} {read16 3 2 0}"
+
+
+tcltest::test sReadAndClear-0 {Test that sReadAndClear does what we expect
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  set stack ::stack
+  ::dev sReadAndClear stack 0
+  ::dev sReadAndClear stack B
+  ::dev sReadAndClear stack 2
+  ::stack getHistory
+} -result "{read16 3 0 2} {read16 3 1 2} {read16 3 2 2}"
+
+
+tcltest::test sClearRegister-0 {Test that sClearRegister does what we expect
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  set stack ::stack
+  ::dev sClearRegister stack 0
+  ::dev sClearRegister stack B
+  ::dev sClearRegister stack 2
+  ::stack getHistory
+} -result "{control 3 0 9} {control 3 1 9} {control 3 2 9}"
+
+
+tcltest::test sClear-0 {Test that a sClear does what we expect
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  set stack ::stack
+  ::dev sClear stack
+  ::stack getHistory
+} -result "{control 3 0 11}"
+
+
+
+
+
+
+
+tcltest::cleanupTests

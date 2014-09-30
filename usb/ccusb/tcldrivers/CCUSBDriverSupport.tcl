@@ -111,3 +111,10 @@ proc ::CCUSBDriverSupport::shortsListToTclList {data_ {grouping 2}} {
 
 }
 
+
+
+proc ::CCUSBDriverSupport::isValidSlot slot {
+  return [expr {$slot>0 && $slot<26}]
+}
+
+

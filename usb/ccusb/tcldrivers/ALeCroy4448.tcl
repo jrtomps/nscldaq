@@ -2,8 +2,9 @@
 # class ALeCroy4448
 #===============================================================================
 
-package provide lecroy4448 1.0 
+package provide lecroy4448 11.0 
 
+package require Itcl
 package require cccusb
 package require cccusbreadoutlist
 package require CCUSBDriverSupport
@@ -35,8 +36,10 @@ itcl::class ALeCroy4448 {
   # \return the name of the object
   constructor {de no} {
     set device $de
-    if {![::validSlotNumber $no]} {
+    if {[CCUSBDriverSupport::isValidSlot $no]} {
       set node $no
+    } else {
+      return -code error "ALeCroy4448::constructor passed invalid slot index."
     }
     set self [string trimleft $this :]
   }
@@ -46,6 +49,27 @@ itcl::class ALeCroy4448 {
   #
   # This does nothing.
   destructor {}
+
+
+  ## @brief Pass a controller object into the class for use
+  #
+  # This is particularly useful for the case when the driver is used in an
+  # initialization script where the controller is technically only known at the
+  # point of the script. In this case, it is useful for the user to be able to
+  # configure the device to use the current controller object.
+  # 
+  # @param ctlr   a cccusb::CCCUSB object  
+  public method SetController {ctlr} {
+    set device $ctlr
+  }
+
+  ## @brief Retrieve the name of the current controller object
+  #
+  # @returns the name of the current controller object
+  #
+  public method GetController {} {
+    return $device
+  }
 
   ##
   # GetVariable
@@ -65,6 +89,34 @@ itcl::class ALeCroy4448 {
   # \return the QX code returned from the control operation 
   public method Clear {} {return [$device simpleControl $node 0 11]}
 
+
+  ##
+  #
+  public method ReadRegister regName {
+
+    if {[catch {set reg [MapRegisterName $regName]} msg]} {
+      return -code error [lreplace $msg 0 0 ALeCroy4448::ReadRegister]
+    }
+    $device simpleRead24 $node $reg 0 
+  }
+
+  ##
+  #
+  public method ReadAndClearRegister regName {
+
+    if {[catch {set reg [MapRegisterName $regName]} msg]} {
+      return -code error [lreplace $msg 0 0 ALeCroy4448::ReadAndClearRegister]
+    }
+    $device simpleRead24 $node $reg 2 
+  }
+
+  public method ClearRegister regName {
+    if {[catch {set reg [MapRegisterName $regName]} msg]} {
+      return -code error [lreplace $msg 0 0 ALeCroy4448::ClearRegister]
+    }
+    $device simpleControl $node $reg 9 
+  }
+
   ##
   # sClear
   #
@@ -80,8 +132,61 @@ itcl::class ALeCroy4448 {
   #
   # \param stack    a cccusbreadoutlist::CCCUSBReadoutList object
   # \param register
-
   public method sRead {stack register}
+
+  ## 
+  # sReadAndClear
+  #
+  # Add procedures to read and clear register to the stack specified.
+  #
+  # \param stack    a cccusbreadoutlist::CCCUSBReadoutList object
+  # \param register
+  public method sReadAndClear {stack register}
+
+  ## 
+  # sClearRegister
+  #
+  # Add procedures to clear a specific register to the stack specified.
+  #
+  # \param stack    a cccusbreadoutlist::CCCUSBReadoutList object
+  # \param register
+  public method sClearRegister {stack register}
+
+
+
+
+  ## @brief Transform a register name into 0, 1, or 2
+  #
+  # For convenience sake, it is possible to refer to the register values as
+  # either 0, 1, 2, A, B, or C. This simply takes one of those names and maps
+  # it appropriately to the values 0, 1, or 2. Here is the mapping:
+  #
+  # 0 -> 0
+  # 1 -> 1
+  # 2 -> 2
+  # A -> 0
+  # B -> 1
+  # C -> 2 
+  #
+  # @param regName name of a register
+  #
+  # @returns register index corresponding to mapping specified
+  #
+  # @throws error if user provided invalid register name.
+  public method MapRegisterName {regName} {
+    if {[string equal $regName A] || $regName==0} {
+      set reg 0
+    } elseif {[string equal $regName B] || $regName==1} {
+      set reg 1
+    } elseif {[string equal $regName C] || $regName==2} {
+      set reg 2
+    } else {
+      set msg "ALeCroy4448::MapRegisterName $regName is an invalid register "
+      append msg "name. Must be either A, B, C, 0, 1, or 2."
+      return -code error $msg 
+    }
+    return $reg
+  }
 }
 
 
@@ -106,17 +211,23 @@ itcl::body ALeCroy4448::sClear {stack} {
 # \param register an identifier of which register to read. valid
 #                 values are A, B, or C
 itcl::body ALeCroy4448::sRead {stack register} {
-  if {[string equal $register A]} {
-    set reg 0
-  } elseif {[string equal $register B]} {
-    set reg 1
-  } elseif {[string equal $register C]} {
-    set reg 2
-  } else {
-    error "ALeCroy4448::sRead invalid argument. Register argument must be " \
-          "either A, B, or C and user provided $register"
-  }
+  set reg [MapRegisterName $register]
   set A $reg
   set F 0
   $stack addRead16 $node $A $F 
 }
+
+itcl::body ALeCroy4448::sReadAndClear {stack register} {
+  if {[catch {set reg [MapRegisterName $register]} msg]} {
+    return -code error [lreplace $msg 0 0 ALeCroy4448::sReadAndClear]
+  }
+  $stack addRead16 $node $reg 2 
+}
+
+itcl::body ALeCroy4448::sClearRegister {stack register} {
+  if {[catch {set reg [MapRegisterName $register]} msg]} {
+    return -code error [lreplace $msg 0 0 ALeCroy4448::sClearRegister]
+  }
+  $stack addControl $node $reg 9 
+}
+
