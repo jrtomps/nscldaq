@@ -34,7 +34,7 @@ static const uint16_t MODE_QSCAN      =  0x0020;
 static const uint16_t MODE_COUNT      =  0x0040;
 static const uint16_t MODE_LAMWAIT    =  0x0080;
 static const uint16_t MODE_FASTCAMAC  =  0x0100;
-static const uint16_t MODE_MLUTICAST  =  0x0200;
+static const uint16_t MODE_ADDRPTN    =  0x0200;
 static const uint16_t MODE_NTMASK     =  0x3000; // Mask of the NT bits.
 static const uint16_t MODE_NTSHIFT    =      12; // Shift count to/from the NT bits.
 static const uint16_t CONTINUATION    =  0x8000; // More follows in the stack.
@@ -399,6 +399,34 @@ CCCUSBReadoutList::addRepeat(int n, int a, int f, uint16_t count, bool lamWait)
   m_list.push_back(count);
 
 }
+
+
+void
+CCCUSBReadoutList::addAddressPatternRead16(int n, int a, int f, bool lamWait)
+{
+  uint16_t naf = NAF(n,a,f) | CONTINUATION;
+  uint16_t mode = MODE_ADDRPTN;
+  if (lamWait) {
+    mode |= MODE_LAMWAIT;
+  }
+
+  m_list.push_back(naf);
+  m_list.push_back(mode);
+}
+
+void
+CCCUSBReadoutList::addAddressPatternRead24(int n, int a, int f, bool lamWait)
+{
+  uint16_t naf = NAF(n,a,f,1) | CONTINUATION;
+  uint16_t mode = MODE_ADDRPTN;
+  if (lamWait) {
+    mode |= MODE_LAMWAIT;
+  }
+
+  m_list.push_back(naf);
+  m_list.push_back(mode);
+}
+
 /**********************************************************************
 /*!
     Add a put marker to the stack.  This is just the same as doing

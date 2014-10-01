@@ -137,6 +137,9 @@
      addMarker((uint16_t)value);
    }
 
+   void addAddressPatternRead16(int n, int a, int f, bool lamWait=false);
+   void addAddressPatternRead24(int n, int a, int f, bool lamWait=false);
+
   // 
 private:
   static std::string messageWithValue(const char* format, int value);
