@@ -16,14 +16,9 @@ package require CCUSBDriverSupport
 # packages. 
 #
 itcl::class ALeCroy4448 {
-## a CCUSB controller
-  private variable device 
-
-  ## the slot in the crate
-  private variable node
-
-  ## a reference to the name of the instance
-  private variable self
+  private variable device ;#< reference to a cccusb::CCCUSB 
+  private variable node   ;#< the slot in the crate
+  private variable self   ;#< name of the instance
 
   ##
   # Constructor
