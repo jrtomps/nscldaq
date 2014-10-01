@@ -11,8 +11,6 @@ package require cccusbreadoutlist
 itcl::class APhillips71xx {
 	private variable device   ;#< reference to USB controller
 	private variable node     ;#< slot number (i.e. N)
-	private variable channel  
-	private variable hits
 	
   ## @brief Constructor
   #
@@ -22,8 +20,6 @@ itcl::class APhillips71xx {
 	constructor {de no} {
 		set device $de
 		set node $no
-		for {set i 0} {$i < 16} {incr i} {set channel($i) 0}
-		set hits 0
 	}
 	
 	destructor {}
@@ -114,6 +110,21 @@ itcl::class APhillips71xx {
     return [Execute [list sReadChannelLAM]]
   }
 
+  ## @brief Immediately reads only the channels with "interesting" data 
+  #
+  # The channels with pedestal-corrected values above the lower and below the
+  # upper threshold are read out and returned. These are the channels that
+  # satisfy the characteristics defined by the user as worth being read out. 
+  #
+  # The data words returned have the channel encoded into bits 12-15 and the
+  # 12-bit value in bits 0-11.
+  #
+  # @returns a list of the channel data
+  #
+	public method ReadSparse {}
+
+
+
   #----------------------------------------------------------------------------#
   # Complex commands composed of other simple commands 
   #
@@ -167,22 +178,104 @@ itcl::class APhillips71xx {
   # Stack building methods
   #
 
+  ## @brief Add command to stack to clear hit mask, LAM, and data memory
+  # @param stack  a cccusbreadoutlist::CCCUSBReadoutList object
 	public method sClear {stack}
+
+  ## @brief Add command to stack to enable the LAM
+  # @param stack  a cccusbreadoutlist::CCCUSBReadoutList object
   public method sEnableLAM {stack}
+
+  ## @brief Add command to stack to disable the LAM
+  # @param 
   public method sDisableLAM {stack}
+
+  ## @brief Add command to stack to write value to the control register
+  # 
+  #  For the meaning of bits in the control register @see SetControlRegister
+  #
+  #  @param stack  a cccusbreadoutlist::CCCUSBReadoutList object 
   public method sSetControlRegister {stack reg}
+
+  ## @brief Add command to stack to rewrite in the control register
+  # 
+  #  For the meaning of bits in the control register @see SetControlRegister
+  #
+  #  @param stack  a cccusbreadoutlist::CCCUSBReadoutList object 
   public method sResetControlRegister {stack reg}
+
+  ## @brief Add command to stack to read the control register
+  # 
+  #  @param stack  a cccusbreadoutlist::CCCUSBReadoutList object 
   public method sReadControlRegister {stack}
+
+  ## @brief Add command to stack to read the hit register
+  #
+  #  @param stack  a cccusbreadoutlist::CCCUSBReadoutList object 
   public method sReadHitRegister {stack}
+
+  ## @brief Add command to stack to read channel data immediately 
+  #
+  #  @param stack  a cccusbreadoutlist::CCCUSBReadoutList object 
 	public method sReadChannel {stack channel}
+
+  ## @brief Add command to stack to read channel data after LAM is present 
+  #
+  #  @param stack  a cccusbreadoutlist::CCCUSBReadoutList object 
 	public method sReadChannelLAM {stack channel}
-	public method ReadSparse {}
+
+
+
+  ## @brief Add commands to stack to read all data with meaningful values
+  #
+  # This uses the value returned from the hit register to determine which
+  # channels have data between the lower and upper thresholds following
+  # pedestal substraction. These channels are then read out from the module.
+  #
+  #  @param stack  a cccusbreadoutlist::CCCUSBReadoutList object 
 	public method sReadSparse {stack}
+
+  ## @brief Add commands to stack to read all data with significant values
+  #
+  # This is the very same thing as the sReadSparse method except that it waits
+  # for the LAM to be present.
+  #
+  #  @param stack  a cccusbreadoutlist::CCCUSBReadoutList object 
 	public method sReadSparseLAM {stack}
 
 
+
+
+  # --------------------------------------------------------------------------#
+  #
+  # Utility methods
+
+
+
+  ## @brief Process stack consisting of commands created by a method 
+  #
+  # Given a list whose first element is a proc name and subsequent elements are
+  # arguments (i.e. procname arg0 arg1 arg2 ...) , this creates a stack
+  #
+  #  procname stack arg0 arg1 arg2 ...
+  #  
+  #  This is useful for converting the various stack building scripts into
+  #  single-shot operations. For example the user can read the control register
+  #  by calling
+  #
+  #  $obj Execute [list sReadControlRegister]
+  #
+  #  note that this is exactly how the single-shot operations are implemented.
+  #
+  #  @param script  list of form {procname arg0 arg1 arg2 ...}
+  #
+  #  @returns resulting data from the stack execution
+  #
   private method Execute {script}
-}
+
+} ;# End of the APhillips71xx
+
+
 
 
 itcl::body APhillips71xx::ReadChannel {channel} {
@@ -196,6 +289,15 @@ itcl::body APhillips71xx::ReadChannelLAM {channel} {
 }
 
 
+
+#-----------------------------------------------------------------------------#
+#
+# Composite methods
+
+
+#
+# Write the pedestals and ensure they get set
+# 
 itcl::body APhillips71xx::WritePedestals {peds} {
 	if {[llength $peds] < 16} {
     set msg "Insufficient number of pedestals in \n WritePedestals of $this"
@@ -229,6 +331,10 @@ itcl::body APhillips71xx::WritePedestals {peds} {
 	}
 }
 
+#
+#
+# Write the lower thresholds and ensure they get set
+# 
 itcl::body APhillips71xx::WriteLowerThresholds {llt} {
   if {[llength $llt] < 16} {
     set msg "Unsufficient number of thresholds in \n WriteLowerThresholds of "
@@ -259,6 +365,9 @@ itcl::body APhillips71xx::WriteLowerThresholds {llt} {
   }
 }
 
+#
+# Write the upper thresholds and ensure they get set
+# 
 itcl::body APhillips71xx::WriteUpperThresholds {ult} {
   if {[llength $ult] < 16} {
     set msg "Unsufficient number of thresholds in \n WriteUpperThresholds "
@@ -290,67 +399,54 @@ itcl::body APhillips71xx::WriteUpperThresholds {ult} {
 }
 
 
+#-----------------------------------------------------------------------------#
+#
+# Stack building methods
 
-
+#
+#
+#
 itcl::body APhillips71xx::sClear {stack} {
-	set A 3
-	set F 11
-  $stack addControl $node $A $F
+  $stack addControl $node 3 11 
 }
 
 
 itcl::body APhillips71xx::sEnableLAM {stack} {
-	set A 0
-	set F 26 
-  $stack addControl $node $A $F
+  $stack addControl $node 0 26 
 }
 
 
 itcl::body APhillips71xx::sDisableLAM {stack} {
-	set A 0
-	set F 24 
-  $stack addControl $node $A $F
+  $stack addControl $node 0 24
 }
 
 
 itcl::body APhillips71xx::sSetControlRegister {stack reg} {
-	set A 0
-	set F 19 
-  $stack addWrite24 $node $A $F $reg
+  $stack addWrite24 $node 0 19 $reg
 }
 
 
 itcl::body APhillips71xx::sResetControlRegister {stack reg} {
-	set A 0
-	set F 23 
-  $stack addWrite24 $node $A $F $reg
+  $stack addWrite24 $node 0 23 $reg
 }
 
 
 itcl::body APhillips71xx::sReadControlRegister {stack} {
-	set A 0
-	set F 6 
-  $stack addRead24 $node $A $F
+  $stack addRead24 $node 0 6 
 }
 
 
 itcl::body APhillips71xx::sReadHitRegister {stack} {
-	set A 1
-	set F 6 
-  $stack addRead24 $node $A $F
+  $stack addRead24 $node 1 6 
 }
 
 
 itcl::body APhillips71xx::sReadChannel {stack channel} {
-	set A $channel
-	set F 0
-	$stack addRead24 $node $A $F 
+	$stack addRead24 $node $channel 0
 }
 
 itcl::body APhillips71xx::sReadChannelLAM {stack channel} {
-	set A $channel
-	set F 0
-	$stack addRead24 $node $A $F 1
+	$stack addRead24 $node $channel 0 1
 }
 
 itcl::body APhillips71xx::ReadSparse {} {
@@ -359,12 +455,13 @@ itcl::body APhillips71xx::ReadSparse {} {
 
 itcl::body APhillips71xx::sReadSparse {stack} {
   $stack addAddressPatternRead16 $node 1 6 
-  $stack addRead24 $node 0 0
+  sReadChannel $stack 0 
 }
 
 itcl::body APhillips71xx::sReadSparseLAM {stack} {
-  $stack addAddressPatternRead16 $node 1 6 1
-  $stack addRead24 $node 0 0
+  set lamWait 1
+  $stack addAddressPatternRead16 $node 1 6 $lamWait
+  sReadChannel $stack 0
 }
 
 
