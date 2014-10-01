@@ -884,20 +884,40 @@ itcl::body ATrigger2367::sGetCoincRegGateWidth {stack} {
 
 
 
+# A utility to facility single-shot operation evaluation
 #
+# Given a list whose first element is a proc name and subsequent elements are
+# arguments (i.e. procname arg0 arg1 arg2 ...) , this creates a stack
 #
+#  procname stack arg0 arg1 arg2 ...
+#  
 #
 itcl::body ATrigger2367::Execute {script} {
+
+#ensure there is a device to execute the readout list
   if {$device ne ""} {
+
+    # create a new readout list
     set rdoList [cccusbreadoutlist::CCCUSBReadoutList %AUTO%]
+
+    # extract the proc we want to use to manipulate the stack
     set cmd [lindex $script 0]
-    if {[llength $script]>1} {
-      $cmd $rdoList {*}[lreplace $script 0 0]
+
+    # if there are arguments provided, use them. otherwise, dont.
+    if {[llength $script]>1} { 
+      $cmd $rdoList {*}[lreplace $script 0 0] 
     } else {
-      $cmd $rdoList
+      $cmd $rdoList 
     }
-    set data [$device executeList $rdoList [expr 4<<20]]
-  } else {
-    return -code error "ATrigget2367::Execute user must set the controller first with SetController" 
-  }
+
+    # At this point the list will contain some commands added by the cmd
+    # command
+
+    # execute the list
+    set data [$device executeList $rdoList [expr 4<<20]] 
+  } else { 
+    set msg "ATrigget2367::Execute user must set the controller first with "
+    append msg "SetController"
+    return -code error $msg
+  } 
 }
