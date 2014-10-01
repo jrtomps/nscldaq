@@ -58,14 +58,18 @@ itcl::class APhillips71xx {
   #
   #   @param reg  value to write to register (should only use bits 0-2).
   #
-	public method SetControlRegister {reg} { Execute [list sSetControlRegister $reg]}
+	public method SetControlRegister {reg} { 
+    Execute [list sSetControlRegister $reg]
+  }
 
   ## @brief Reset the control register bits to a value
   #
   # @see SetControlRegister for the meaning of bits in the control register
   #
   # @param reg  value to write to register (should only use bits 0-2).
-	public method ResetControlRegister {reg} { Execute [list sResetControlRegister $reg]}
+	public method ResetControlRegister {reg} { 
+    Execute [list sResetControlRegister $reg]
+  }
 
   ## @brief Read the control register value
   #
@@ -74,7 +78,9 @@ itcl::class APhillips71xx {
   #
   #  @returns register value with QX encoded in bits 24 and 24.
   #
-	public method ReadControlRegister {} {return [Execute [list sReadControlRegister]]}
+	public method ReadControlRegister {} {
+    return [Execute [list sReadControlRegister]]
+  }
 
   ## @brief Read the hit register data
   #
@@ -85,8 +91,25 @@ itcl::class APhillips71xx {
   #
 	public method ReadHitRegister {} {return [Execute [list sReadHitRegister]]}
 
+  ## @brief Read the data associated with a channel
+  #
+  # Reads the available data for a channel. 
+  #
+  # @param channel  the channel whose data is being requested
+  #
+  # @returns the value read back and the QX bits encoded in bits 24 and 25 
+  #
 	public method ReadChannel {channel} { return [Execute [list sReadChannel]]}
 
+  ## @brief Waits for LAM and then reads the data associated with a channel 
+  #
+  # Reads the available data for a channel once a LAM is made available from
+  # the module.
+  #
+  # @param channel  the channel whose data is being requested
+  #
+  # @returns the value read back and the QX bits encoded in bits 24 and 25 
+  #
 	public method ReadChannelLAM {channel} { 
     return [Execute [list sReadChannelLAM]]
   }
@@ -94,8 +117,49 @@ itcl::class APhillips71xx {
   #----------------------------------------------------------------------------#
   # Complex commands composed of other simple commands 
   #
-	public method WritePedestals {peds}
+  #
+  #
+  
+  ## @brief Write the list of pedestals to the module
+  #
+  # This writes a list of pedestals to the module and ensures that they are set
+  # properly by reading back the values written. Pedestal values are interpreted
+  # as signed values.
+  #
+  # @param peds   a list of 16 pedestal values (must be 16 elements long)
+  #
+  # @throws error under following conditions
+  #   - User a list with fewer than 16 pedestal values
+  #   - Read-back of value failed to agree with the value written
+  #
+  public method WritePedestals {peds}
+
+  ## @brief Write the list of lower threshold values to the module
+  #
+  # This writes a list of lower thresholds to the module and ensures that they
+  # are set properly by reading back the values written. Lower threshold values
+  # are interpreted as signed values. The first 16 threshold values in the list
+  # are used and any remaining are ignored.
+  #
+  # @param llt  a list of at least 16 threshold values 
+  #
+  # @throws error under following conditions - User a list with fewer than 16
+  # threshold values - Read-back of value failed to agree with the value written
+  #
 	public method WriteLowerThresholds {llt}
+
+  ## @brief Write the list of upper threshold values to the module
+  #
+  # This writes a list of upper thresholds to the module and ensures that they
+  # are set properly by reading back the values written. Upper threshold values
+  # are interpreted as signed values. The first 16 threshold values in the list
+  # are used and any remaining are ignored.
+  #
+  # @param ult  a list of at least 16 threshold values 
+  #
+  # @throws error under following conditions - User a list with fewer than 16
+  # threshold values - Read-back of value failed to agree with the value written
+  #
 	public method WriteUpperThresholds {ult}
 
 
@@ -138,14 +202,24 @@ itcl::body APhillips71xx::WritePedestals {peds} {
  		tk_messageBox -icon error -message $msg
 		return
 	}
+
+  # set the device into pedestal setting mode
 	$device simpleWrite24 $node 0 17 0
 	for {set i 0} {$i < 16} {incr i} {
+
+    # ensure that this is valid to begin with
+    if {([lindex $ped $i]>4095) || ([lindex $ped $i]< -4095)} {
+      set msg "APhillips71xx::WritePedestals pedestal at index $i out of range."
+      append msg { Must be in range [-4095,4095].}
+      return -code error $msg
+    }
+
+    # write pedestal for the ith channel
 		$device simpleWrite24 $node $i 20 [lindex $peds $i]
-		if {[lindex $peds $i] > 0x8000} {
-			set check [$device simpleRead24 $node $i 1]
-		} else {
-			set check [expr [$device simpleRead24 $node $i 1]&0xfff]
-		}
+
+    # read back the value and verify that it is correct
+    set check [$device simpleRead24 $node $i 1]
+
 		if {![expr $check == [lindex $peds $i]]} {
       set msg "Error while writing pedestal $i to $this\n($check should be "
       append msg "[lindex $peds $i])"
@@ -156,41 +230,65 @@ itcl::body APhillips71xx::WritePedestals {peds} {
 }
 
 itcl::body APhillips71xx::WriteLowerThresholds {llt} {
-	if {[llength $llt] < 16} {
-    set msg "Unsufficient number of thresholds in \n WriteLowerThresholds of $this"
-		tk_messageBox -icon error -message $msg
-		return
-	}
-	$device simpleWrite24 $node 1 17 0
-	for {set i 0} {$i < 16} {incr i} {
-		$device simpleWrite24 $node $i 20 [lindex $llt $i]
-		set check [expr [$device simpleRead24 $node $i 1]&0xfff]
-		if {![expr $check == [lindex $llt $i]]} {
+  if {[llength $llt] < 16} {
+    set msg "Unsufficient number of thresholds in \n WriteLowerThresholds of "
+    append msg "$this"
+    tk_messageBox -icon error -message $msg
+    return
+  }
+
+  #ensure device is in lower threshold setting mode
+  $device simpleWrite24 $node 1 17 0
+
+  for {set i 0} {$i < 16} {incr i} {
+
+    # ensure that the threshold is valid to begin with
+    if {([lindex $llt $i]>4095) || ([lindex $llt $i]<0)} {
+      set msg "APhillips71xx::WriteLowerThresholds threshold at index $i "
+      append msg { is out of range. Must be in range [0,4095].}
+      return -code error $msg
+    }
+
+    $device simpleWrite24 $node $i 20 [lindex $llt $i]
+    set check [expr [$device simpleRead24 $node $i 1]&0xfff]
+    if {![expr $check == [lindex $llt $i]]} {
       set msg "Error while writing lower threshold $i to $this"
-			tk_messageBox -icon error -message $msg
-			return
-		}
-	}
+      tk_messageBox -icon error -message $msg
+      return
+    }
+  }
 }
 
 itcl::body APhillips71xx::WriteUpperThresholds {ult} {
-	if {[llength $ult] < 16} {
+  if {[llength $ult] < 16} {
     set msg "Unsufficient number of thresholds in \n WriteUpperThresholds "
     append msg "of $this"
-		tk_messageBox -icon error -message $msg
-		return
-	}
-	$device simpleWrite24 $node 2 17 0
-	for {set i 0} {$i < 16} {incr i} {
-		$device simpleWrite24 $node $i 20 [lindex $ult $i]
-		set check [expr [$device simpleRead24 $node $i 1]&0xfff]
-		if {![expr $check == [lindex $ult $i]]} {
+    tk_messageBox -icon error -message $msg
+    return
+  }
+
+  # put device into upper threshold setting mode
+  $device simpleWrite24 $node 2 17 0
+
+  for {set i 0} {$i < 16} {incr i} {
+
+    # ensure that the threshold is valid to begin with
+    if {([lindex $ult $i]>4095) || ([lindex $ult $i]<0)} {
+      set msg "APhillips71xx::WriteUpperThresholds threshold at index $i "
+      append msg { is out of range. Must be in range [0,4095].}
+      return -code error $msg
+    }
+
+    $device simpleWrite24 $node $i 20 [lindex $ult $i]
+    set check [expr [$device simpleRead24 $node $i 1]&0xfff]
+    if {![expr $check == [lindex $ult $i]]} {
       set msg "Error while writing upper threshold $i to $this"
-			tk_messageBox -icon error -message $msg
-			return
-		}
-	}
+      tk_messageBox -icon error -message $msg
+      return
+    }
+  }
 }
+
 
 
 
@@ -256,42 +354,17 @@ itcl::body APhillips71xx::sReadChannelLAM {stack channel} {
 }
 
 itcl::body APhillips71xx::ReadSparse {} {
-# First read hit register
-	set A 1
-	set F 6
-# Use the Address Pattern feature of the CC-USB
-	lappend command [expr 0x8000+($node<<9)+($A<<5)+$F]
-	lappend command [expr (1<<9)]; # Address Pattern bit
-	set A 0
-	set F 0
-	lappend command [expr ($node<<9)+($A<<5)+$F]
-	return [XXUSBExecuteStack $device $command]
+  return [Execute [list sReadSparse]]
 }
 
 itcl::body APhillips71xx::sReadSparse {stack} {
-# First read hit register
-	set A 1
-	set F 6
-# Use the Address Pattern feature of the CC-USB
-	lappend command [expr 0x8000+($node<<9)+($A<<5)+$F]
-	lappend command [expr (1<<9)]; # Address Pattern bit
-	set A 0
-	set F 0
-	lappend command [expr ($node<<9)+($A<<5)+$F]
-	$device AddToStack $stack $command
+  $stack addAddressPatternRead16 $node 1 6 
+  $stack addRead24 $node 0 0
 }
 
 itcl::body APhillips71xx::sReadSparseLAM {stack} {
-# First read hit register
-	set A 1
-	set F 6
-# Use the Address Pattern feature of the CC-USB
-	lappend command [expr 0x8000+($node<<9)+($A<<5)+$F]
-	lappend command [expr (1<<9)+(1<<7)]; # Address Pattern bit + LAM
-	set A 0
-	set F 0
-	lappend command [expr ($node<<9)+($A<<5)+$F]
-	$device AddToStack $stack $command
+  $stack addAddressPatternRead16 $node 1 6 1
+  $stack addRead24 $node 0 0
 }
 
 

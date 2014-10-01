@@ -43,7 +43,6 @@ tcltest::test clear-0 {clear adds proper NA(3)F(11)
 
 
 
-
 tcltest::test enableLAM-0 {Test that NA(0)F(26) is set
 } -setup { 
   setup 
@@ -106,7 +105,7 @@ tcltest::test ReadControlRegister-0 {Test that NA(0)F(6) is called
 } -body {
   ::dev ReadControlRegister
   ::ctlr getHistory
-} -result "{read24 10 0 6}"
+} -result "{read24 10 0 6 0}"
 
 
 
@@ -120,7 +119,7 @@ tcltest::test ReadHitRegister-0 {Test that NA(1)F(6) is called
 } -body {
   ::dev ReadHitRegister
   ::ctlr getHistory
-} -result "{read24 10 1 6}"
+} -result "{read24 10 1 6 0}"
 
 
 
@@ -135,22 +134,22 @@ tcltest::test ReadChannel-0 {Test that NA(x)F(0) is called
     ::dev ReadChannel $ch
   }
   ::ctlr getHistory
-} -result [list {read24 10 0 0} \
-                {read24 10 1 0} \
-                {read24 10 2 0} \
-                {read24 10 3 0} \
-                {read24 10 4 0} \
-                {read24 10 5 0} \
-                {read24 10 6 0} \
-                {read24 10 7 0} \
-                {read24 10 8 0} \
-                {read24 10 9 0} \
-                {read24 10 10 0} \
-                {read24 10 11 0} \
-                {read24 10 12 0} \
-                {read24 10 13 0} \
-                {read24 10 14 0} \
-                {read24 10 15 0}]
+} -result [list {read24 10 0 0 0} \
+                {read24 10 1 0 0} \
+                {read24 10 2 0 0} \
+                {read24 10 3 0 0} \
+                {read24 10 4 0 0} \
+                {read24 10 5 0 0} \
+                {read24 10 6 0 0} \
+                {read24 10 7 0 0} \
+                {read24 10 8 0 0} \
+                {read24 10 9 0 0} \
+                {read24 10 10 0 0} \
+                {read24 10 11 0 0} \
+                {read24 10 12 0 0} \
+                {read24 10 13 0 0} \
+                {read24 10 14 0 0} \
+                {read24 10 15 0 0}]
 
 
 
@@ -181,6 +180,18 @@ tcltest::test ReadChannel-0 {Test that NA(x)F(0) is called
                 {read24 10 14 0 1} \
                 {read24 10 15 0 1}]
 
+
+
+
+tcltest::test ReadSparse-0 {Test that sparse readout is properly formatted
+} -setup { 
+  setup 
+} -cleanup { 
+  tearDown
+} -body {
+  ::dev ReadSparse
+  ::ctlr getHistory
+} -result "{addressPatternRead16 10 1 6 0} {read24 10 0 0 0}"
 
 
 

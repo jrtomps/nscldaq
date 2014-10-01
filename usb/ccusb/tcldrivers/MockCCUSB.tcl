@@ -83,19 +83,11 @@ namespace eval MockCCUSB {
     }
 
     method addRead16 {n a f {lamWait 0}} {
-      if {$lamWait} {
-        lappend m_history "read16 $n $a $f 1"
-      } else {
-        lappend m_history "read16 $n $a $f"
-      }
+      lappend m_history "read16 $n $a $f $lamWait"
     }
 
     method addRead24 {n a f {lamWait 0}} {
-      if {$lamWait} {
-        lappend m_history "read24 $n $a $f 1"
-      } else {
-        lappend m_history "read24 $n $a $f"
-      }
+      lappend m_history "read24 $n $a $f $lamWait"
     }
 
     method addWrite16 {n a f data} {
@@ -104,6 +96,11 @@ namespace eval MockCCUSB {
 
     method addWrite24 {n a f data} {
       lappend m_history "write24 $n $a $f $data"
+    }
+
+
+    method addAddressPatternRead16 {n a f {lamWait 0}} {
+      lappend m_history "addressPatternRead16 $n $a $f $lamWait"
     }
 
     ## @brief Retrieves the history

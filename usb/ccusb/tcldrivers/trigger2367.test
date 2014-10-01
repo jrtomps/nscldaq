@@ -165,7 +165,7 @@ tcltest::test sS800GDGDelay-0 {Test that we add the proper NAF
   ::dev sSetS800GDGDelay stack 4 
   ::dev sGetS800GDGDelay stack
   ::stack getHistory
-}  -result "{write24 23 0 16 4} {read24 23 0 0}"
+}  -result "{write24 23 0 16 4} {read24 23 0 0 0}"
 
 
 tcltest::test S800GDGDelay-0 {Test that we add the proper NAF
@@ -178,7 +178,7 @@ tcltest::test S800GDGDelay-0 {Test that we add the proper NAF
   ::dev SetS800GDGDelay 4 
   ::dev GetS800GDGDelay
   ::ctlr getHistory
-}  -result "{write24 23 0 16 4} {read24 23 0 0}"
+}  -result "{write24 23 0 16 4} {read24 23 0 0 0}"
 
 
 
@@ -195,7 +195,7 @@ tcltest::test sS800GDGWidth-0 {Test that we add the proper NAF
   ::dev sSetS800GDGWidth stack 4 
   ::dev sGetS800GDGWidth stack
   ::stack getHistory
-}  -result "{write24 23 1 16 4} {read24 23 1 0}"
+}  -result "{write24 23 1 16 4} {read24 23 1 0 0}"
 
 
 tcltest::test S800GDGWidth-0 {Test that we add the proper NAF
@@ -208,7 +208,7 @@ tcltest::test S800GDGWidth-0 {Test that we add the proper NAF
   ::dev SetS800GDGWidth 4 
   ::dev GetS800GDGWidth
   ::ctlr getHistory
-}  -result "{write24 23 1 16 4} {read24 23 1 0}"
+}  -result "{write24 23 1 16 4} {read24 23 1 0 0}"
 
 
 
@@ -226,7 +226,7 @@ tcltest::test sSecondaryGDGDelay-0 {Test that we add the proper NAF
   ::dev sSetSecondaryGDGDelay stack 4 
   ::dev sGetSecondaryGDGDelay stack
   ::stack getHistory
-}  -result "{write24 23 2 16 4} {read24 23 2 0}"
+}  -result "{write24 23 2 16 4} {read24 23 2 0 0}"
 
 tcltest::test SecondaryGDGDelay-0 {Test that we add the proper NAF
 } -setup {
@@ -238,7 +238,7 @@ tcltest::test SecondaryGDGDelay-0 {Test that we add the proper NAF
   ::dev SetSecondaryGDGDelay 4
   ::dev GetSecondaryGDGDelay
   ::ctlr getHistory
-}  -result "{write24 23 2 16 4} {read24 23 2 0}"
+}  -result "{write24 23 2 16 4} {read24 23 2 0 0}"
 
 
 
@@ -253,7 +253,7 @@ tcltest::test sSecondaryGDGWidth-0 {Test that we add the proper NAF
   ::dev sSetSecondaryGDGWidth stack 4 
   ::dev sGetSecondaryGDGWidth stack
   ::stack getHistory
-}  -result "{write24 23 3 16 4} {read24 23 3 0}"
+}  -result "{write24 23 3 16 4} {read24 23 3 0 0}"
 
 tcltest::test SecondaryGDGWidth-0 {Test that we add the proper NAF
 } -setup {
@@ -265,7 +265,7 @@ tcltest::test SecondaryGDGWidth-0 {Test that we add the proper NAF
   ::dev SetSecondaryGDGWidth 4
   ::dev GetSecondaryGDGWidth
   ::ctlr getHistory
-}  -result "{write24 23 3 16 4} {read24 23 3 0}"
+}  -result "{write24 23 3 16 4} {read24 23 3 0 0}"
 
 
 
@@ -281,7 +281,7 @@ tcltest::test sS800Delay-0 {Test that we add the proper NAF
   ::dev sSetS800Delay stack 4 
   ::dev sGetS800Delay stack
   ::stack getHistory
-}  -result "{write24 23 4 16 4} {read24 23 4 0}"
+}  -result "{write24 23 4 16 4} {read24 23 4 0 0}"
 
 tcltest::test S800Delay-0 {Test that we add the proper NAF
 } -setup {
@@ -293,7 +293,7 @@ tcltest::test S800Delay-0 {Test that we add the proper NAF
   ::dev SetS800Delay 4
   ::dev GetS800Delay
   ::ctlr getHistory
-}  -result "{write24 23 4 16 4} {read24 23 4 0}"
+}  -result "{write24 23 4 16 4} {read24 23 4 0 0}"
 
 
 
@@ -309,7 +309,7 @@ tcltest::test sCoincidenceWidth-0 {Test that we add the proper NAF
   ::dev sSetCoincidenceWidth stack 4 
   ::dev sGetCoincidenceWidth stack
   ::stack getHistory
-}  -result "{write24 23 5 16 4} {read24 23 5 0}"
+}  -result "{write24 23 5 16 4} {read24 23 5 0 0}"
 
 tcltest::test CoincidenceWidth-0 {Test that we add the proper NAF
 } -setup {
@@ -321,7 +321,7 @@ tcltest::test CoincidenceWidth-0 {Test that we add the proper NAF
   ::dev SetCoincidenceWidth 4
   ::dev GetCoincidenceWidth
   ::ctlr getHistory
-}  -result "{write24 23 5 16 4} {read24 23 5 0}"
+}  -result "{write24 23 5 16 4} {read24 23 5 0 0}"
 
 
 
@@ -338,7 +338,7 @@ tcltest::test sSecondaryDelay-0 {Test that we add the proper NAF
   ::dev sSetSecondaryDelay stack 4 
   ::dev sGetSecondaryDelay stack
   ::stack getHistory
-}  -result "{write24 23 6 16 4} {read24 23 6 0}"
+}  -result "{write24 23 6 16 4} {read24 23 6 0 0}"
 
 tcltest::test SecondaryDelay-0 {Test that we add the proper NAF
 } -setup {
@@ -350,7 +350,7 @@ tcltest::test SecondaryDelay-0 {Test that we add the proper NAF
   ::dev SetSecondaryDelay 4
   ::dev GetSecondaryDelay
   ::ctlr getHistory
-}  -result "{write24 23 6 16 4} {read24 23 6 0}"
+}  -result "{write24 23 6 16 4} {read24 23 6 0 0}"
 
 
 
@@ -366,7 +366,7 @@ tcltest::test sBypasses-0 {Test that we add the proper NAF
   ::dev sSetBypasses stack 4 
   ::dev sGetBypasses stack
   ::stack getHistory
-}  -result "{write24 23 7 16 4} {read24 23 7 0}"
+}  -result "{write24 23 7 16 4} {read24 23 7 0 0}"
 
 tcltest::test Bypasses-0 {Test that we add the proper NAF
 } -setup {
@@ -378,7 +378,7 @@ tcltest::test Bypasses-0 {Test that we add the proper NAF
   ::dev SetBypasses 4
   ::dev GetBypasses
   ::ctlr getHistory
-}  -result "{write24 23 7 16 4} {read24 23 7 0}"
+}  -result "{write24 23 7 16 4} {read24 23 7 0 0}"
 
 
 
@@ -394,7 +394,7 @@ tcltest::test sS800DownscaleFactor-0 {Test that we add the proper NAF
   ::dev sSetS800DownscaleFactor stack 4 
   ::dev sGetS800DownscaleFactor stack
   ::stack getHistory
-}  -result "{write24 23 8 16 4} {read24 23 8 0}"
+}  -result "{write24 23 8 16 4} {read24 23 8 0 0}"
 
 tcltest::test S800DownscaleFactor-0 {Test that we add the proper NAF
 } -setup {
@@ -406,7 +406,7 @@ tcltest::test S800DownscaleFactor-0 {Test that we add the proper NAF
   ::dev SetS800DownscaleFactor 4
   ::dev GetS800DownscaleFactor
   ::ctlr getHistory
-}  -result "{write24 23 8 16 4} {read24 23 8 0}"
+}  -result "{write24 23 8 16 4} {read24 23 8 0 0}"
 
 
 
@@ -423,7 +423,7 @@ tcltest::test sSecondaryDownscaleFactor-0 {Test that we add the proper NAF
   ::dev sSetSecondaryDownscaleFactor stack 4 
   ::dev sGetSecondaryDownscaleFactor stack
   ::stack getHistory
-}  -result "{write24 23 9 16 4} {read24 23 9 0}"
+}  -result "{write24 23 9 16 4} {read24 23 9 0 0}"
 
 tcltest::test SecondaryDownscaleFactor-0 {Test that we add the proper NAF
 } -setup {
@@ -435,7 +435,7 @@ tcltest::test SecondaryDownscaleFactor-0 {Test that we add the proper NAF
   ::dev SetSecondaryDownscaleFactor 4
   ::dev GetSecondaryDownscaleFactor
   ::ctlr getHistory
-}  -result "{write24 23 9 16 4} {read24 23 9 0}"
+}  -result "{write24 23 9 16 4} {read24 23 9 0 0}"
 
 
 
@@ -451,7 +451,7 @@ tcltest::test sTriggerBox-0 {Test that we add the proper NAF
   ::dev sSetTriggerBox stack 4 
   ::dev sGetTriggerBox stack
   ::stack getHistory
-}  -result "{write24 23 10 16 4} {read24 23 10 0}"
+}  -result "{write24 23 10 16 4} {read24 23 10 0 0}"
 
 tcltest::test TriggerBox-0 {Test that we add the proper NAF
 } -setup {
@@ -463,7 +463,7 @@ tcltest::test TriggerBox-0 {Test that we add the proper NAF
   ::dev SetTriggerBox 4
   ::dev GetTriggerBox
   ::ctlr getHistory
-}  -result "{write24 23 10 16 4} {read24 23 10 0}"
+}  -result "{write24 23 10 16 4} {read24 23 10 0 0}"
 
 
 
@@ -479,7 +479,7 @@ tcltest::test sADCGateWidth-0 {Test that we add the proper NAF
   ::dev sSetADCGateWidth stack 4 
   ::dev sGetADCGateWidth stack
   ::stack getHistory
-}  -result "{write24 23 0 18 4} {read24 23 0 2}"
+}  -result "{write24 23 0 18 4} {read24 23 0 2 0}"
 
 tcltest::test ADCGateWidth-0 {Test that we add the proper NAF
 } -setup {
@@ -491,7 +491,7 @@ tcltest::test ADCGateWidth-0 {Test that we add the proper NAF
   ::dev SetADCGateWidth 4
   ::dev GetADCGateWidth
   ::ctlr getHistory
-}  -result "{write24 23 0 18 4} {read24 23 0 2}"
+}  -result "{write24 23 0 18 4} {read24 23 0 2 0}"
 
 
 
@@ -508,7 +508,7 @@ tcltest::test sQDCGateWidth-0 {Test that we add the proper NAF
   ::dev sSetQDCGateWidth stack 4 
   ::dev sGetQDCGateWidth stack
   ::stack getHistory
-}  -result "{write24 23 1 18 4} {read24 23 1 2}"
+}  -result "{write24 23 1 18 4} {read24 23 1 2 0}"
 
 tcltest::test QDCGateWidth-0 {Test that we add the proper NAF
 } -setup {
@@ -520,7 +520,7 @@ tcltest::test QDCGateWidth-0 {Test that we add the proper NAF
   ::dev SetQDCGateWidth 4
   ::dev GetQDCGateWidth
   ::ctlr getHistory
-}  -result "{write24 23 1 18 4} {read24 23 1 2}"
+}  -result "{write24 23 1 18 4} {read24 23 1 2 0}"
 
 
 
@@ -537,7 +537,7 @@ tcltest::test sTDCGateWidth-0 {Test that we add the proper NAF
   ::dev sSetTDCGateWidth stack 4 
   ::dev sGetTDCGateWidth stack
   ::stack getHistory
-}  -result "{write24 23 2 18 4} {read24 23 2 2}"
+}  -result "{write24 23 2 18 4} {read24 23 2 2 0}"
 
 tcltest::test TDCGateWidth-0 {Test that we add the proper NAF
 } -setup {
@@ -549,7 +549,7 @@ tcltest::test TDCGateWidth-0 {Test that we add the proper NAF
   ::dev SetTDCGateWidth 4
   ::dev GetTDCGateWidth
   ::ctlr getHistory
-}  -result "{write24 23 2 18 4} {read24 23 2 2}"
+}  -result "{write24 23 2 18 4} {read24 23 2 2 0}"
 
 
 
@@ -566,7 +566,7 @@ tcltest::test sCoincRegGateWidth-0 {Test that we add the proper NAF
   ::dev sSetCoincRegGateWidth stack 4 
   ::dev sGetCoincRegGateWidth stack
   ::stack getHistory
-}  -result "{write24 23 3 18 4} {read24 23 3 2}"
+}  -result "{write24 23 3 18 4} {read24 23 3 2 0}"
 
 tcltest::test CoincRegGateWidth-0 {Test that we add the proper NAF
 } -setup {
@@ -578,7 +578,7 @@ tcltest::test CoincRegGateWidth-0 {Test that we add the proper NAF
   ::dev SetCoincRegGateWidth 4
   ::dev GetCoincRegGateWidth
   ::ctlr getHistory
-}  -result "{write24 23 3 18 4} {read24 23 3 2}"
+}  -result "{write24 23 3 18 4} {read24 23 3 2 0}"
 
 
 

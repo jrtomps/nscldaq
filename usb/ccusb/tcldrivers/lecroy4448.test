@@ -175,7 +175,7 @@ tcltest::test sRead-0 {Test that a read does what we expect
   ::dev sRead stack 1
   ::dev sRead stack C
   ::stack getHistory
-} -result "{read16 3 0 0} {read16 3 1 0} {read16 3 2 0}"
+} -result "{read16 3 0 0 0} {read16 3 1 0 0} {read16 3 2 0 0}"
 
 
 tcltest::test sReadAndClear-0 {Test that sReadAndClear does what we expect
@@ -189,7 +189,7 @@ tcltest::test sReadAndClear-0 {Test that sReadAndClear does what we expect
   ::dev sReadAndClear stack B
   ::dev sReadAndClear stack 2
   ::stack getHistory
-} -result "{read16 3 0 2} {read16 3 1 2} {read16 3 2 2}"
+} -result "{read16 3 0 2 0} {read16 3 1 2 0} {read16 3 2 2 0}"
 
 
 tcltest::test sClearRegister-0 {Test that sClearRegister does what we expect
