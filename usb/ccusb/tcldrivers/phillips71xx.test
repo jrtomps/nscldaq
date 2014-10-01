@@ -1,0 +1,190 @@
+
+
+package require tcltest
+
+package require MockCCUSB
+
+tcltest::test pkgRequire-0 {Test that we can require the package
+} {package require phillips71xx } 11.0
+
+
+proc setup {} {
+  MockCCUSB::Controller ::ctlr
+  APhillips71xx ::dev ::ctlr 10
+
+  MockCCUSB::ReadoutList ::stack
+
+  rename cccusbreadoutlist::CCCUSBReadoutList _old
+  rename MockCCUSB::ReadoutList cccusbreadoutlist::CCCUSBReadoutList
+
+}
+
+
+proc tearDown {} {
+  ::ctlr destroy
+  ::stack destroy
+  itcl::delete object ::dev
+
+  rename cccusbreadoutlist::CCCUSBReadoutList MockCCUSB::ReadoutList 
+  rename _old cccusbreadoutlist::CCCUSBReadoutList
+}
+
+
+tcltest::test clear-0 {clear adds proper NA(3)F(11) 
+} -setup { 
+  setup 
+} -cleanup { 
+  tearDown
+} -body {
+  ::dev Clear
+  ::ctlr getHistory
+} -result "{control 10 3 11}"
+
+
+
+
+
+tcltest::test enableLAM-0 {Test that NA(0)F(26) is set
+} -setup { 
+  setup 
+} -cleanup { 
+  tearDown
+} -body {
+  ::dev EnableLAM
+  ::ctlr getHistory
+} -result "{control 10 0 26}"
+
+
+
+
+
+tcltest::test disableLAM-0 {Test that NA(0)F(24) is set
+} -setup { 
+  setup 
+} -cleanup { 
+  tearDown
+} -body {
+  ::dev DisableLAM
+  ::ctlr getHistory
+} -result "{control 10 0 24}"
+
+
+
+
+
+tcltest::test setControlRegister-0 {Test that NA(0)F(19) is set
+} -setup { 
+  setup 
+} -cleanup { 
+  tearDown
+} -body {
+  ::dev SetControlRegister 0xffff
+  ::ctlr getHistory
+} -result "{write24 10 0 19 0xffff}"
+
+
+
+tcltest::test resetControlRegister-0 {Test that NA(0)F(23) is called 
+} -setup { 
+  setup 
+} -cleanup { 
+  tearDown
+} -body {
+  ::dev ResetControlRegister 0xffff
+  ::ctlr getHistory
+} -result "{write24 10 0 23 0xffff}"
+
+
+
+
+
+tcltest::test ReadControlRegister-0 {Test that NA(0)F(6) is called 
+} -setup { 
+  setup 
+} -cleanup { 
+  tearDown
+} -body {
+  ::dev ReadControlRegister
+  ::ctlr getHistory
+} -result "{read24 10 0 6}"
+
+
+
+
+
+tcltest::test ReadHitRegister-0 {Test that NA(1)F(6) is called 
+} -setup { 
+  setup 
+} -cleanup { 
+  tearDown
+} -body {
+  ::dev ReadHitRegister
+  ::ctlr getHistory
+} -result "{read24 10 1 6}"
+
+
+
+
+tcltest::test ReadChannel-0 {Test that NA(x)F(0) is called 
+} -setup { 
+  setup 
+} -cleanup { 
+  tearDown
+} -body {
+  for {set ch 0} {$ch < 16} {incr ch} { 
+    ::dev ReadChannel $ch
+  }
+  ::ctlr getHistory
+} -result [list {read24 10 0 0} \
+                {read24 10 1 0} \
+                {read24 10 2 0} \
+                {read24 10 3 0} \
+                {read24 10 4 0} \
+                {read24 10 5 0} \
+                {read24 10 6 0} \
+                {read24 10 7 0} \
+                {read24 10 8 0} \
+                {read24 10 9 0} \
+                {read24 10 10 0} \
+                {read24 10 11 0} \
+                {read24 10 12 0} \
+                {read24 10 13 0} \
+                {read24 10 14 0} \
+                {read24 10 15 0}]
+
+
+
+tcltest::test ReadChannel-0 {Test that NA(x)F(0) is called 
+} -setup { 
+  setup 
+} -cleanup { 
+  tearDown
+} -body {
+  for {set ch 0} {$ch < 16} {incr ch} { 
+    ::dev ReadChannelLAM $ch
+  }
+  ::ctlr getHistory
+} -result [list {read24 10 0 0 1} \
+                {read24 10 1 0 1} \
+                {read24 10 2 0 1} \
+                {read24 10 3 0 1} \
+                {read24 10 4 0 1} \
+                {read24 10 5 0 1} \
+                {read24 10 6 0 1} \
+                {read24 10 7 0 1} \
+                {read24 10 8 0 1} \
+                {read24 10 9 0 1} \
+                {read24 10 10 0 1} \
+                {read24 10 11 0 1} \
+                {read24 10 12 0 1} \
+                {read24 10 13 0 1} \
+                {read24 10 14 0 1} \
+                {read24 10 15 0 1}]
+
+
+
+
+
+
+
+tcltest::cleanupTests

@@ -11,7 +11,7 @@
 #      Driver implemented on the cccusb::CCCUSB package
 #===================================================================
 
-package provide caenc808 1.0
+package provide caenc808 11.0
 
 ## @brief Low-level driver for the CAEN C808 CFD
 #
