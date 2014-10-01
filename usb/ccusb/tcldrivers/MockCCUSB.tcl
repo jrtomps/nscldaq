@@ -82,12 +82,20 @@ namespace eval MockCCUSB {
       lappend m_history "control $n $a $f"
     }
 
-    method addRead16 {n a f} {
-      lappend m_history "read16 $n $a $f"
+    method addRead16 {n a f {lamWait 0}} {
+      if {$lamWait} {
+        lappend m_history "read16 $n $a $f 1"
+      } else {
+        lappend m_history "read16 $n $a $f"
+      }
     }
 
-    method addRead24 {n a f} {
-      lappend m_history "read24 $n $a $f"
+    method addRead24 {n a f {lamWait 0}} {
+      if {$lamWait} {
+        lappend m_history "read24 $n $a $f 1"
+      } else {
+        lappend m_history "read24 $n $a $f"
+      }
     }
 
     method addWrite16 {n a f data} {
