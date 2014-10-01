@@ -7,6 +7,7 @@ package provide phillips71xx 11.0
 
 package require Itcl
 package require cccusbreadoutlist
+package require CCUSBDriverSupport
 
 itcl::class APhillips71xx {
 	private variable device   ;#< reference to USB controller
@@ -269,7 +270,7 @@ itcl::class APhillips71xx {
   #
   #  @param script  list of form {procname arg0 arg1 arg2 ...}
   #
-  #  @returns resulting data from the stack execution
+  #  @returns resulting data as a tcl list of 32-bit words  
   #
   private method Execute {script}
 
@@ -277,15 +278,25 @@ itcl::class APhillips71xx {
 
 
 
-
+#
+# This only returns the first 12 bits rather than the entire 16 bits of 
+# available data and the QX response.
+#
 itcl::body APhillips71xx::ReadChannel {channel} {
 	set data [Execute [list sReadChannel $channel]]
 	return [expr {$data & 0xfff}]
 }
 
+#
+# Reads and returns entire amount of data that is retrieved.
+#
 itcl::body APhillips71xx::ReadChannelLAM {channel} {
   set data [Execute [list sReadChannelLAM $channel]]
 	return $data
+}
+
+itcl::body APhillips71xx::ReadSparse {} {
+  return [Execute [list sReadSparse]]
 }
 
 
@@ -402,9 +413,12 @@ itcl::body APhillips71xx::WriteUpperThresholds {ult} {
 #-----------------------------------------------------------------------------#
 #
 # Stack building methods
+#
+# These are so simple that they don't really need any explaining. We just
+# add 1 or 2 commands to the stack. Done.
+#
 
-#
-#
+
 #
 itcl::body APhillips71xx::sClear {stack} {
   $stack addControl $node 3 11 
@@ -447,10 +461,6 @@ itcl::body APhillips71xx::sReadChannel {stack channel} {
 
 itcl::body APhillips71xx::sReadChannelLAM {stack channel} {
 	$stack addRead24 $node $channel 0 1
-}
-
-itcl::body APhillips71xx::ReadSparse {} {
-  return [Execute [list sReadSparse]]
 }
 
 itcl::body APhillips71xx::sReadSparse {stack} {
@@ -496,6 +506,11 @@ itcl::body APhillips71xx::Execute {script} {
 
     # execute the list
     set data [$device executeList $rdoList [expr 4<<20]] 
+
+    # the returned data is actually a std::vector<uin16_t> wrapped by swig. 
+    # Convert this into a list of 32-bit integers and return it as a tcl list
+    return [::CCUSBDriverSupport::shortsListToTclList data 2]
+    
   } else { 
     set msg "APhillips71xx::Execute user must set the controller first with "
     append msg "SetController"

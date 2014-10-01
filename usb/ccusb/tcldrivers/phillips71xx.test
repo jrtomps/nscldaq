@@ -7,6 +7,14 @@ package require MockCCUSB
 tcltest::test pkgRequire-0 {Test that we can require the package
 } {package require phillips71xx } 11.0
 
+# we don't want to deal with swig vector<uint16_t> so fool the system
+# by redefining our conversion function
+namespace eval CCUSBDriverSupport {
+  proc shortsListToTclList {stackvar {grouping 2}} {
+    upvar $stackvar stack
+    return $stack
+  }
+}
 
 proc setup {} {
   MockCCUSB::Controller ::ctlr

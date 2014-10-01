@@ -24,30 +24,34 @@
 package provide trigger2367 11.0
 
 package require Itcl
+package require cccusbreadoutlist
+package require CCUSBDriverSupport
 
 ## @class ATrigger2367
 #
-# This is the low-level driver to support the usbtrig.bit firmware loaded
-# into a LeCroy Universal Logic Module 2367. The firmware is written and 
-# maintained by Daniel Bazin at the National Superconducting Cyclotron 
-# Laboratory. The firmware that this supports provides trigger logic for
-# handling multiple different raw triggers and choosing what will constitute
-# the formation of a live trigger. The user can sample raw triggers as well
-# as delay them. A GUI for controlling the configuration of the firmware
-# is provided as a client to the CCUSBReadout slow controls server. It is 
-# possible for the user to manipulate the device in tcl scripts through
-# the readoutscript or controlscript packages or through an interpreter.
+# This is the low-level driver to support the usbtrig.bit firmware loaded into
+# a LeCroy Universal Logic Module 2367. The firmware is written and maintained
+# by Daniel Bazin at the National Superconducting Cyclotron Laboratory and
+# corresponds to the usbtrig.bit file. The firmware that this supports provides
+# trigger logic for handling multiple different raw triggers and choosing what
+# will constitute the formation of a live trigger. The user can sample raw
+# triggers as well as delay them. A GUI for controlling the configuration of
+# the firmware is provided as a client to the CCUSBReadout slow controls
+# server. It is possible for the user to manipulate the device in tcl scripts
+# through the readoutscript or controlscript packages or through an
+# interpreter.
 #
-# Because this device is used for both building stacks and executing 
-# commands in interactive mode, it is not required that the user provide
-# a valid reference to a controller at construction. One reason for this
-# is if a version is created specifically for building stacks. In that
-# scenario, there is no interaction with a controller ever and there may
-# not be a live cccusb::CCCUSB object to use. So to get around this, all
-# methods that will use a controller check to see that the user has provided 
-# a valid instance. It is the user's responsibility to ensure that this
-# is up to date because the stored reference will persist after the 
-# cccusb::CCCUSB object has been destroyed.
+# Because this device is used for both building stacks and executing commands
+# in interactive mode, it is not required that the user provide a valid
+# reference to a controller at construction. One reason for this is if a
+# version is created specifically for building stacks. In that scenario, there
+# is no interaction with a controller ever and there may not be a live
+# cccusb::CCCUSB object to use. So to get around this, all methods that will
+# use a controller check to see that the user has provided a valid instance. It
+# is the user's responsibility to ensure that this is up to date because the
+# stored reference will persist after the cccusb::CCCUSB object has been
+# destroyed.
+#
 #
 itcl::class ATrigger2367 {
 	private variable device     ;#< a reference to the cccusb::CCCUSB object
@@ -474,7 +478,7 @@ itcl::class ATrigger2367 {
   #
   #  @param script  list of form {procname arg0 arg1 arg2 ...}
   #
-  #  @returns resulting data from the stack execution
+  #  @returns resulting data from the stack execution as a tcl list of 32-bit words
   #
   public method Execute {script} 
 }
@@ -936,6 +940,10 @@ itcl::body ATrigger2367::Execute {script} {
 
     # execute the list
     set data [$device executeList $rdoList [expr 4<<20]] 
+
+    # the returned data is actually a std::vector<uin16_t> wrapped by swig. 
+    # Convert this into a list of 32-bit integers and return it as a tcl list
+    return [::CCUSBDriverSupport::shortsListToTclList data 2]
   } else { 
     set msg "ATrigget2367::Execute user must set the controller first with "
     append msg "SetController"
