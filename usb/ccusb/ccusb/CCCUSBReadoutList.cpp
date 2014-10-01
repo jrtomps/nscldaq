@@ -401,6 +401,25 @@ CCCUSBReadoutList::addRepeat(int n, int a, int f, uint16_t count, bool lamWait)
 }
 
 
+/*****************************************************************************/
+/*!
+ * Adds an address pattern read to the stack. The data read by the NAF provided
+ * as an argument to this method is interpreted as a list of A values to use
+ * when calling the NAF of the subsequent command in the stack. For each nonzero
+ * bit in the data returned, the subsequent command's N and F values are used to
+ * form and NAF command. This is a setup command for the next NAF operation that
+ * is added to the stack. 
+ *
+ * \param n   - Slot to which the operation is directed
+ * \param a   - Subaddress for the read
+ * \param f   - Function code for the read
+ * \param lamWait - If true, wait for lam
+ *
+ * \throws string in the event that any of the following are true:
+ *  - n is not a valid slot (controller pseudo slots are valid slots).
+ *  - a is not a valid subaddress.
+ *  - f is not a valid control function code.
+ */
 void
 CCCUSBReadoutList::addAddressPatternRead16(int n, int a, int f, bool lamWait)
 {
@@ -413,19 +432,33 @@ CCCUSBReadoutList::addAddressPatternRead16(int n, int a, int f, bool lamWait)
   m_list.push_back(naf);
   m_list.push_back(mode);
 }
-
-void
-CCCUSBReadoutList::addAddressPatternRead24(int n, int a, int f, bool lamWait)
-{
-  uint16_t naf = NAF(n,a,f,1) | CONTINUATION;
-  uint16_t mode = MODE_ADDRPTN;
-  if (lamWait) {
-    mode |= MODE_LAMWAIT;
-  }
-
-  m_list.push_back(naf);
-  m_list.push_back(mode);
-}
+//
+///*****************************************************************************/
+///*!
+// * This is the same function as the former except that it uses a 
+// *
+// * \param n   - Slot to which the operation is directed
+// * \param a   - Subaddress for the read
+// * \param f   - Function code for the read
+// * \param lamWait - If true, wait for lam
+// *
+// * \throws string in the event that any of the following are true:
+// *  - n is not a valid slot (controller pseudo slots are valid slots).
+// *  - a is not a valid subaddress.
+// *  - f is not a valid control function code.
+// */
+//void
+//CCCUSBReadoutList::addAddressPatternRead24(int n, int a, int f, bool lamWait)
+//{
+//  uint16_t naf = NAF(n,a,f,1) | CONTINUATION;
+//  uint16_t mode = MODE_ADDRPTN;
+//  if (lamWait) {
+//    mode |= MODE_LAMWAIT;
+//  }
+//
+//  m_list.push_back(naf);
+//  m_list.push_back(mode);
+//}
 
 /**********************************************************************
 /*!

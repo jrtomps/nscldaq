@@ -138,7 +138,7 @@
    }
 
    void addAddressPatternRead16(int n, int a, int f, bool lamWait=false);
-   void addAddressPatternRead24(int n, int a, int f, bool lamWait=false);
+//   void addAddressPatternRead24(int n, int a, int f, bool lamWait=false);
 
   // 
 private:
