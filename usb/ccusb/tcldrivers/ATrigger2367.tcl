@@ -452,10 +452,31 @@ itcl::class ATrigger2367 {
   public method sGetCoincRegGateWidth {stack }
 
 
-  # --------------- Utility method -------------------------------
+  # --------------- Utility method --------------------------------------------
 
+  
 	public method GetVariable {v} {set $v}
-	public method Execute {stack} 
+
+  ## @brief Process stack consisting of commands created by a method 
+  #
+  # Given a list whose first element is a proc name and subsequent elements are
+  # arguments (i.e. procname arg0 arg1 arg2 ...) , this creates a stack
+  #
+  #  procname stack arg0 arg1 arg2 ...
+  #  
+  #  This is useful for converting the various stack building scripts into
+  #  single-shot operations. For example the user can set the QDC gate width to
+  #  200 by calling 
+  #
+  #  Execute [list sSetQDCGateWidth 200]
+  #
+  #  note that this is exactly how the single-shot operations are implemented.
+  #
+  #  @param script  list of form {procname arg0 arg1 arg2 ...}
+  #
+  #  @returns resulting data from the stack execution
+  #
+  public method Execute {script} 
 }
 
 # --- END OF INTERFACE ---
