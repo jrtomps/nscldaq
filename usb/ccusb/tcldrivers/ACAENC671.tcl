@@ -151,12 +151,50 @@ itcl::class ACAENC671 {
   #
   # @throws error if argument is out of valid range
   public method ExternalMajority {numChannels enable}
+
+  ## @brief Choose the signal to be outputted on the prompt multiplex 
+  #
+  # The multiplexed output for the prompt signals can be configured to output
+  # any one of the 16 channels. This allows the user to select between them.
+  #
+  # @param chn  the channel index to output (must be in range [0,15]) 
+  #
+  # returns bit pattern of QX
   public method SetMultiplexPrompt {chn}
+
+  ## @brief Choose the channel to be outputted on the delay multiplex
+  #
+  # Enables the user to select which channel's delay output will be emitted on
+  # the multiplexed delay output.
+  #
+  # @param chn  the channel index to output (must be in range [0,15])
+  #
+  # returns bit pattern of QX
   public method SetMultiplexDelay {chn}
+
+  ## @brief Choose the channel to be outputted on the input/level multiplex
+  #
+  # Enables the user to select which channel's input and level will emitted on
+  # the multiplexed input/level output.
+  #
+  # @param chn  the channel index to output (must be in range [0,15])
+  #
+  # @returns bit pattern of QX
   public method SetMultiplexInputLevel {chn}
 
+  #----------------------------------------------------------------------------
+  # Utilities methods
+
+  ## @brief Checks whether a value is in the specified range
+  #
+  # Effectively check to see if  low <= val <= high
+  #
+  # @returns boolean indicating if value is in range
   private method isInRange {low high val}
 
+  ## @brief Convert user majority code to be understood by device
+  #
+  # @returns 6*(numChannels-1)
   private method computeMajorityCode {numChannels}
 }
 
