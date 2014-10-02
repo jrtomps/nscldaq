@@ -58,6 +58,11 @@ proc decodeData {value} {
 
 
 tcltest::test configure-0 { Test that we can configure the module
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
   ::dev Configure $::fwpath
 } -result ""
 
