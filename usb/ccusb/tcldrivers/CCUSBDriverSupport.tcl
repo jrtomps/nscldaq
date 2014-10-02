@@ -47,6 +47,7 @@ namespace eval ::CCUSBDriverSupport {
 #
 proc ::CCUSBDriverSupport::convertCCUSB name {
     cccusb::CCCUSB -this $name
+
     return $name
 }
 
@@ -71,14 +72,14 @@ proc ::CCUSBDriverSupport::convertCCUSBReadoutList name {
 proc ::CCUSBDriverSupport::convertToReadoutList {atcllist} { 
 
   set len [llength $atcllist]
-  set vecptr [cccusbreadoutlist::vecuint32_create $len ]
+  set vecptr [cccusbreadoutlist::vecuint16_create $len ]
 
   for {set i 0} {$i < $len} {incr i} {
-    cccusbreadoutlist::vecuint32_set $vecptr $i [lindex $atcllist $i] 
+    cccusbreadoutlist::vecuint16_set $vecptr $i [lindex $atcllist $i] 
   }
   
   set rdolist [cccusbreadoutlist::CCCUSBReadoutList rdolist \
-                [cccusbreadoutlist::vecuint32_ptr2ref $vecptr]]
+                [cccusbreadoutlist::vecuint16_ptr2ref $vecptr]]
   return $rdolist
 
 }
