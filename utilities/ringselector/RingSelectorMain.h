@@ -24,6 +24,10 @@
 #endif
 
 
+#ifndef __RINGBUFFERQUEUE_H
+#include "RingBufferQueue.h"
+#endif
+
 #ifndef __CRT_UNISTD_H
 #include <unistd.h>
 #ifndef __CRT_UNISTD_H
@@ -47,6 +51,8 @@ private:
   CRingSelectionPredicate*  m_pPredicate;     // Predicate used to select data.
   bool                      m_formatted;      // Format output.
   bool                      m_exitOnEnd;      // If true exit when end run seen.
+  bool                      m_nonBlocking;    // IF true use non-blocking mode.
+  Queues                    m_queues;         // inter-thread communication.
   // Constructors..
 public:
   RingSelectorMain();

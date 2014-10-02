@@ -59,7 +59,6 @@ noinst_HEADERS			=	CGDG.h			\
 INCLUDES			= 	-I@top_srcdir@/usb/vmusb/vmusb		\
 					-I@top_srcdir@/daq/format                 \
 					-I@top_srcdir@/usb/vmusb/devices	\
-					-I@top_srcdir@/usb/vmusb/threadcomm	\
 					-I@top_srcdir@/usb/vmusb/rdothread	\
 					-I@top_srcdir@/usb/vmusb/router	\
 					-I@top_srcdir@/usb/vmusb	\
@@ -71,7 +70,6 @@ INCLUDES			= 	-I@top_srcdir@/usb/vmusb/vmusb		\
 
 libVMUSBControlServer_la_LIBADD	= 	@top_builddir@/usb/vmusb/vmusb/libVMUSB.la          \
 					@top_builddir@/usb/vmusb/devices/libVMUSBDevices.la \
-					@top_builddir@/usb/vmusb/threadcomm/libVMUSBThreadComm.la \
 					@top_builddir@/usb/vmusb/rdothread/libVMUSBRdoThread.la \
 					@top_builddir@/usb/vmusb/router/libVMUSBRouter.la	\
 					@LIBTCLPLUS_LDFLAGS@	\

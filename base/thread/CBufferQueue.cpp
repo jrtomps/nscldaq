@@ -87,19 +87,38 @@ CBufferQueue<T>::queue(T object)
 template<class T> T
 CBufferQueue<T>::get()
 {
-  Enter();
-  while (m_queue.empty()) {
-    Leave();
-    wait();
-    Enter();
-  }
-  // At this point we own the queue and we know it is not empty.
 
-  T item = m_queue.front();
-  m_queue.pop_front();
-  Leave();
-  return item;
+  T element;
+  while (!getnow(element)) {
+    wait();
+  }
+  return element;
+
 }
+/**
+ * Get an element from the front of the queue without waiting.
+ * If no element is available, return immediately anyway.
+ *
+ * @param element - the object that is gotten from the queue
+ *                  valid only if there is an element.
+ * @return bool   - true if an element was gotten, false otherwise.
+ */
+template<class T> bool
+CBufferQueue<T>::getnow(T& element)
+{
+  bool result;
+  Enter();
+  if (m_queue.empty()) {
+    result = false;
+  } else {
+    element = m_queue.front();
+    m_queue.pop_front();
+    result = true;
+  }
+  Leave();
+  return result;
+}
+
 
 /*!
     Return a std::list that consists of all elements in the queue.

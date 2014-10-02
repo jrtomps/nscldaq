@@ -7,8 +7,7 @@ noinst_HEADERS		=	COutputThread.h		\
 				CRunState.h  		\
 				DataBuffer.h
 
-INCLUDES		= -I@top_srcdir@/usb/ccusb/threadcomm  \
-			-I@top_srcdir@/usb/ccusb		\
+INCLUDES		= -I@top_srcdir@/usb/ccusb		\
 			@TCL_CPPFLAGS@				\
 			@LIBTCLPLUS_CFLAGS@		\
 			-I@top_srcdir@/base/headers		\
@@ -19,8 +18,7 @@ INCLUDES		= -I@top_srcdir@/usb/ccusb/threadcomm  \
 
 
 
-libCCUSBRouter_la_LIBADD	= @top_builddir@/usb/ccusb/threadcomm/libCCUSBThreadComm.la \
-			@LIBTCLPLUS_LDFLAGS@				\
+libCCUSBRouter_la_LIBADD	= @LIBTCLPLUS_LDFLAGS@				\
 			@top_builddir@/base/dataflow/libRingBuffer.la \
 			@top_builddir@/daq/format/libdataformat.la		\
 			@top_builddir@/base/thread/libdaqthreads.la @THREADLD_FLAGS@

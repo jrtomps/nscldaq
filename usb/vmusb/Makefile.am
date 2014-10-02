@@ -1,6 +1,5 @@
 SUBDIRS = 	vmusb 		\
 		devices		\
-		threadcomm	\
 		router		\
 		rdothread	\
 		tclserver	\
@@ -26,7 +25,7 @@ BUILT_SOURCES = cmdline.h
 noinst_HEADERS = CTheApplication.h Globals.h event.h
 
 INCLUDES = -I@top_srcdir@/usb/vmusb/vmusb -I@top_srcdir@/usb/vmusb/devices \
-	-I@top_srcdir@/usb/vmusb/threadcomm -I@top_srcdir@/usb/vmusb/router -I@top_srcdir@/usb/vmusb/rdothreaed \
+	-I@top_srcdir@/usb/vmusb/router -I@top_srcdir@/usb/vmusb/rdothreaed \
 	-I@top_srcdir@/usb/vmusb/tclserver -I@top_srcdir@/usb/vmusb/daqconfig -I@top_srcdir@/usb/vmusb/commands  \
 	-I@top_srcdir@/usb/vmusb/rdothread	\
 	@LIBTCLPLUS_CFLAGS@ \
@@ -38,7 +37,6 @@ INCLUDES = -I@top_srcdir@/usb/vmusb/vmusb -I@top_srcdir@/usb/vmusb/devices \
 	@TCL_CPPFLAGS@ $(USBSWITCHES) 
 
 VMUSBReadout_LDADD	= cmdline.o @top_builddir@/usb/vmusb/devices/libVMUSBDevices.la	\
-		@top_builddir@/usb/vmusb/threadcomm/libVMUSBThreadComm.la	\
 		@top_builddir@/usb/vmusb/router/libVMUSBRouter.la	\
 		@top_builddir@/usb/vmusb/rdothread/libVMUSBRdoThread.la	\
 		@top_builddir@/usb/vmusb/tclserver/libVMUSBControlServer.la	\

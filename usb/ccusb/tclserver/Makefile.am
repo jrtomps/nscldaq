@@ -44,7 +44,6 @@ INCLUDES			= 	-I@top_srcdir@/usb/ccusb		\
 					-I@top_srcdir@/daq/format		\
 					-I@top_srcdir@/usb/ccusb/ccusb		\
 					-I@top_srcdir@/usb/ccusb/devices	\
-					-I@top_srcdir@/usb/ccusb/threadcomm	\
 					-I@top_srcdir@/usb/ccusb/rdothread	\
 					-I@top_srcdir@/usb/ccusb/router	\
 					@LIBTCLPLUS_CFLAGS@	\
@@ -55,7 +54,6 @@ INCLUDES			= 	-I@top_srcdir@/usb/ccusb		\
 
 libCCUSBControlServer_la_LIBADD	= 	@top_builddir@/usb/ccusb/ccusb/libCCUSB.la          \
 					@top_builddir@/usb/ccusb/devices/libCCUSBDevices.la \
-					@top_builddir@/usb/ccusb/threadcomm/libCCUSBThreadComm.la \
 					@top_builddir@/usb/ccusb/rdothread/libCCUSBRdoThread.la \
 					@top_builddir@/usb/ccusb/router/libCCUSBRouter.la	\
 					@TCL_LDFLAGS@				\

@@ -76,6 +76,18 @@
                     </para>
                 </listitem>
             </varlistentry>
+	    <varlistentry>
+	      <term><option>--non-blocking</option></term>
+	      <listitem>
+		<para>
+		  If present data are read in non-blocking mode.  This means that if the
+		  process reading the <application>RingSelector</application> output
+		  is not keeping up, even unsampled data can be lost.   This also
+		  prevents hang-ups when the process reading our stdout is not
+		  reading data.
+		</para>
+	      </listitem>
+	    </varlistentry>
         </variablelist>
     </para>
     <para>
@@ -252,6 +264,18 @@ ringselector <replaceable>options</replaceable>
                     </para>
                 </listitem>
             </varlistentry>
+	    <varlistentry>
+	      <term><option>--non-blocking</option></term>
+	      <listitem>
+		<para>
+		  If present data are read in non-blocking mode.  This means that if the
+		  process reading the <application>RingSelector</application> output
+		  is not keeping up, even unsampled data can be lost.   This also
+		  prevents hang-ups when the process reading our stdout is not
+		  reading data.
+		</para>
+	      </listitem>
+	    </varlistentry>
             <varlistentry>
                 <term><option>--exclude</option>=<replaceable>typeList</replaceable></term>
                 <listitem>
