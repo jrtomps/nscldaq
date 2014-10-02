@@ -110,7 +110,25 @@ itcl::class ATrigger2367 {
 	public method Configure {firmware}
 
 
+  ## @brief Read firmware signature
+  #
+  # If the firmware has loaded properly, this should return the number
+  # 5800. 
+  #
+  # @returns firmware signature
+  #
+  # Exceptional returns:
+  # - Error if the user has not set the controller.
   public method ReadSignature1 {}
+
+  ## @brief Read hardware model
+  #
+  # If the firmware is loaded properly, this should return the number 2367.
+  #
+  # @returns the hardware model
+  #
+  # Exceptional returns:
+  # - Error if the user has not set the controller.
   public method ReadSignature2 {}
 
   ## @brief Clear the module
@@ -198,98 +216,98 @@ itcl::class ATrigger2367 {
   ## @brief Set S800 GDG delay
   #
   public method SetS800GDGDelay {val} {
-    Execute [list sSetS800GDGDelay $val]
+    Execute 1 [list sSetS800GDGDelay $val]
   } 
   public method GetS800GDGDelay {} {
-    return [Execute [list sGetS800GDGDelay]]
+    return [Execute 2 [list sGetS800GDGDelay]]
   }
 
   ## @brief Set S800 GDG width 
   #
   public method SetS800GDGWidth {val} {
-    Execute [list sSetS800GDGWidth $val]
+    Execute 1 [list sSetS800GDGWidth $val]
   } 
   public method GetS800GDGWidth {} {
-    return [Execute [list sGetS800GDGWidth]]
+    return [Execute 2 [list sGetS800GDGWidth]]
   }
 
 
   ## @brief Set S800 GDG delay
   #
   public method SetSecondaryGDGDelay {val} {   
-    Execute [list sSetSecondaryGDGDelay $val]
+    Execute 1 [list sSetSecondaryGDGDelay $val]
   } 
   public method GetSecondaryGDGDelay {} {
-    return [Execute [list sGetSecondaryGDGDelay]]
+    return [Execute 2 [list sGetSecondaryGDGDelay]]
   }
 
   ## @brief Set S800 GDG width 
   #
   public method SetSecondaryGDGWidth {val} {
-    Execute [list sSetSecondaryGDGWidth $val]
+    Execute 1 [list sSetSecondaryGDGWidth $val]
   } 
   public method GetSecondaryGDGWidth {} {
-    return [Execute [list sGetSecondaryGDGWidth]]
+    return [Execute 2 [list sGetSecondaryGDGWidth]]
   }
 
   ## @brief Set S800 delay 
   #
   public method SetS800Delay {val} {
-    Execute [list sSetS800Delay $val]
+    Execute 1 [list sSetS800Delay $val]
   } 
   public method GetS800Delay {} {
-    return [Execute [list sGetS800Delay]]
+    return [Execute 2 [list sGetS800Delay]]
   }
 
   ## @brief Set Coincidence gate width
   #
   public method SetCoincidenceWidth {val} {
-    Execute [list sSetCoincidenceWidth $val]
+    Execute 1 [list sSetCoincidenceWidth $val]
   } 
   public method GetCoincidenceWidth {} {
-    return [Execute [list sGetCoincidenceWidth]]
+    return [Execute 2 [list sGetCoincidenceWidth]]
   }
 
   ## @brief Set Secondary trigger delay
   #
   public method SetSecondaryDelay {val} {
-    Execute [list sSetSecondaryDelay $val]
+    Execute 1 [list sSetSecondaryDelay $val]
   } 
   public method GetSecondaryDelay {} {
-    return [Execute [list sGetSecondaryDelay]]
+    return [Execute 2 [list sGetSecondaryDelay]]
   }
   
   ## @brief Set bypasses
   #
   public method SetBypasses {val} { 
-    Execute [list sSetBypasses $val]
+    Execute 1 [list sSetBypasses $val]
   } 
   public method GetBypasses {} {
-    return [Execute [list sGetBypasses]]
+    return [Execute 2 [list sGetBypasses]]
   }
 
   ## @brief Set S800 Downscaler
   public method SetS800DownscaleFactor {factor} {
-    Execute [list sSetS800DownscaleFactor $factor]
+    Execute 1 [list sSetS800DownscaleFactor $factor]
   } 
   public method GetS800DownscaleFactor {} { 
-    return [Execute [list sGetS800DownscaleFactor]]
+    return [Execute 2 [list sGetS800DownscaleFactor]]
   }
 
   ## @brief Set Secondary Downscaler
   public method SetSecondaryDownscaleFactor {factor} {
-    Execute [list sSetSecondaryDownscaleFactor $factor]
+    Execute 1 [list sSetSecondaryDownscaleFactor $factor]
   } 
   public method GetSecondaryDownscaleFactor {} { 
-    return [Execute [list sGetSecondaryDownscaleFactor]]
+    return [Execute 2 [list sGetSecondaryDownscaleFactor]]
   }
 
   ## @brief Set S800 Downscaler
   public method SetTriggerBox {bitpattern} {
-    Execute [list sSetTriggerBox $bitpattern]
+    Execute 1 [list sSetTriggerBox $bitpattern]
   } 
   public method GetTriggerBox {} {
-    return [Execute [list sGetTriggerBox]]
+    return [Execute 2 [list sGetTriggerBox]]
   }
 
 #  ## @brief Set Inspect 1 
@@ -309,38 +327,38 @@ itcl::class ATrigger2367 {
   ## @brief Set ADC Gate width
   #
   public method SetADCGateWidth {wid} {
-    Execute [list sSetADCGateWidth $wid]
+    Execute 1 [list sSetADCGateWidth $wid]
   } 
   public method GetADCGateWidth {} { 
-    return [Execute [list sGetADCGateWidth]]
+    return [Execute 2 [list sGetADCGateWidth]]
   }
 
   ## @brief Set QDC Gate width
   #
   public method SetQDCGateWidth {wid} {
-    Execute [list sSetQDCGateWidth $wid]
+    Execute 1 [list sSetQDCGateWidth $wid]
   } 
   public method GetQDCGateWidth {} {
-    return [Execute [list sGetQDCGateWidth]]
+    return [Execute 2 [list sGetQDCGateWidth]]
   }
 
   ## @brief Set TDC Gate width
   #
   public method SetTDCGateWidth {wid} {
-    Execute [list sSetTDCGateWidth $wid]
+    Execute 1 [list sSetTDCGateWidth $wid]
   } 
   public method GetTDCGateWidth {} {
-    return [Execute [list sGetTDCGateWidth]]
+    return [Execute 2 [list sGetTDCGateWidth]]
   }
 
 
   ## @brief Set CoincReg Gate width
   #
   public method SetCoincRegGateWidth {wid} {
-    Execute [list sSetCoincRegGateWidth $wid]
+    Execute 1 [list sSetCoincRegGateWidth $wid]
   } 
   public method GetCoincRegGateWidth {} {
-    return [Execute [list sGetCoincRegGateWidth]]
+    return [Execute 2 [list sGetCoincRegGateWidth]]
   }
 
 
@@ -476,11 +494,23 @@ itcl::class ATrigger2367 {
   #
   #  note that this is exactly how the single-shot operations are implemented.
   #
-  #  @param script  list of form {procname arg0 arg1 arg2 ...}
+  #  Ultimately, this calls cccusb::CCCUSB::executeList, which returns a swig-
+  #  wrapped vector<uint16_t>. This is converted into a standard tcl list but 
+  #  the user needs to provide some info to help the conversion. A write command
+  #  will cause there to only be 16-bits of data returned such that a list of
+  #  32-bit integers cannot be formed by combining an even number of uint16_ts.
+  #  However, any read24 command will return 32-bit numbers so that every other
+  #  uint16_t should be combined into a single uint32_t integer. For this, the
+  #  user must provide the grouping parameter. This specifies how many uint16_t
+  #  should be combined to form an element in the resulting Tcl list. This
+  #  should typically be 1 (writes) or 2 (reads).
+  #
+  #  @param grouping  how to group uint16_ts to form resulting tcl list 
+  #  @param script    list of form {procname arg0 arg1 arg2 ...}
   #
   #  @returns resulting data from the stack execution as a tcl list of 32-bit words
   #
-  public method Execute {script} 
+  public method Execute {grouping script} 
 }
 
 # --- END OF INTERFACE ---
@@ -512,7 +542,9 @@ itcl::body ATrigger2367::Clear {} {
   if {$device ne ""} {
     return [$device simpleControl $node 0 9]
   } else {
-    return -code error "ATrigget2367::Clear user must set the controller first with SetController" 
+    set msg "ATrigget2367::Clear user must set the controller first with "
+    append msg "SetController" 
+    return -code error $msg
   }
 }
 
@@ -529,7 +561,9 @@ itcl::body ATrigger2367::Go {bit} {
   if {$device ne ""} {
     return [$device simpleWrite24 $node 11 16 $value]
   } else {
-    return -code error "ATrigget2367::Go user must set the controller first with SetController" 
+    set msg "ATrigget2367::Go user must set the controller first with "
+    append msg "SetController" 
+    return -code error $msg
   }
 }
 
@@ -540,7 +574,9 @@ itcl::body ATrigger2367::ReadGo {} {
   if {$device ne ""} {
     return [$device simpleRead24 $node 11 0]
   } else {
-    return -code error "ATrigget2367::ReadGo user must set the controller first with SetController" 
+    set msg "ATrigget2367::ReadGo user must set the controller first with "
+    append msg "SetController" 
+    return -code error $msg
   }
 }
 
@@ -554,7 +590,9 @@ itcl::body ATrigger2367::Select {code} {
   if {$device ne ""} {
     return [$device simpleWrite24 $node 12 16 $code]
   } else {
-    return -code error "ATrigget2367::Select user must set the controller first with SetController" 
+    set msg "ATrigget2367::Select user must set the controller first with "
+    append msg "SetController" 
+    return -code error $msg
   }
 }
 
@@ -565,7 +603,10 @@ itcl::body ATrigger2367::ReadSelect {} {
   if {$device ne ""} {
     return [$device simpleRead24 $node 12 0]
   } else {
-    return -code error "ATrigget2367::ReadSelect user must set the controller first with SetController" 
+    set msg "ATrigget2367::ReadSelect user must set the controller "
+    append msg "first with SetController" 
+    return -code error $msg 
+    
   }
 }
 #
@@ -575,7 +616,9 @@ itcl::body ATrigger2367::Enable {bits} {
   if {$device ne ""} {
     return [$device simpleWrite24 $node 13 16 $bits]
   } else {
-    return -code error "ATrigget2367::Select user must set the controller first with SetController" 
+    set msg "ATrigget2367::Select user must set the controller first with "
+    append msg "SetController" 
+    return -code error $msg
   }
 }
 
@@ -587,7 +630,9 @@ itcl::body ATrigger2367::ReadSignature1 {} {
   if {$device ne ""} {
     return [$device simpleRead24 $node 14 0]
   } else {
-    return -code error "ATrigget2367::ReadSignature1 user must set the controller first with SetController" 
+    set msg "ATrigget2367::ReadSignature1 user must set the controller first "
+    append msg "with SetController" 
+    return -code error $msg
   }
 }
 
@@ -598,7 +643,9 @@ itcl::body ATrigger2367::ReadSignature2 {} {
   if {$device ne ""} {
     return [$device simpleRead24 $node 15 0]
   } else {
-    return -code error "ATrigget2367::ReadSignature2 user must set the controller first with SetController" 
+    set msg "ATrigget2367::ReadSignature2 user must set the controller first "
+    append msg "with SetController" 
+    return -code error $msg
   }
 }
 
@@ -608,18 +655,24 @@ itcl::body ATrigger2367::ReadSignature2 {} {
 itcl::body ATrigger2367::Configure {firmware} {
 # Read firmware bit file
   if {![file exists $firmware]} {
-    return -code error -message "ATrigger2367::Configure firmware file $firmware for $self doesn't exist!"
+    set msg "ATrigger2367::Configure firmware file $firmware for $self doesn't "
+    append msg "exist!"
+    return -code error -message $msg
   }
 
   # at this point, the file exists so let's open it
 	if {[catch {set file [open $firmware r]} message]} {
     # oops we couldn't open it. 
-		return -code error "ATrigger2367::Configure Cannot open firmware file $firmware for $self"
+    set msg "ATrigger2367::Configure Cannot open firmware file $firmware for "
+    append msg "$self"
+		return -code error $msg
 	}
 
   # check to make sure that we have a controller to talk to
   if {$device eq ""} {
-    return -code error "ATrigger2367::Configure user must set the controller first with SetController"
+    set msg "ATrigger2367::Configure user must set the controller first with "
+    append msg "SetController"
+    return -code error $msg
   }
 
 	fconfigure $file -translation binary
@@ -661,7 +714,8 @@ itcl::body ATrigger2367::Configure {firmware} {
 itcl::body ATrigger2367::IsConfigured {} {
   set type    [expr [ReadSignature2] & 0xffffff]
   set version [expr [ReadSignature1] & 0xffffff]
-  return [expr ($type!=2367) || ($version!=5800)]
+  
+  return [expr {($type==2367) && ($version==5800)}]
 }
 
 
@@ -917,8 +971,7 @@ itcl::body ATrigger2367::sGetCoincRegGateWidth {stack} {
 #  procname stack arg0 arg1 arg2 ...
 #  
 #
-itcl::body ATrigger2367::Execute {script} {
-
+itcl::body ATrigger2367::Execute {grouping script} {
 #ensure there is a device to execute the readout list
   if {$device ne ""} {
 
@@ -943,7 +996,7 @@ itcl::body ATrigger2367::Execute {script} {
 
     # the returned data is actually a std::vector<uin16_t> wrapped by swig. 
     # Convert this into a list of 32-bit integers and return it as a tcl list
-    return [::CCUSBDriverSupport::shortsListToTclList data 2]
+    return [::CCUSBDriverSupport::shortsListToTclList data $grouping]
   } else { 
     set msg "ATrigget2367::Execute user must set the controller first with "
     append msg "SetController"

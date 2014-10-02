@@ -605,7 +605,7 @@ tcltest::test Execute-0 {Test that we can pass a stack to ProcessStack
 
   rename ::addctrl ""
 } -body {
-  ::dev Execute [list ::addctrl]
+  ::dev Execute 1 [list ::addctrl]
   ::ctlr getHistory
 }  -result "{control 4 0 9}"
 
