@@ -46,6 +46,11 @@ itcl::class APhillips71xx {
   #
 	public method EnableLAM {} { Execute 1 sEnableLAM }
 
+  ## @brief Test LAM
+  #
+  # @returns QX code, (Q=1 if LAM enabled and present)
+  #
+	public method TestLAM {} { Execute 1 sTestLAM } 
   ## @brief Disables LAM
   #
   # LAM is disabled on the S2 strobe.
@@ -219,6 +224,10 @@ itcl::class APhillips71xx {
   # @param stack  a cccusbreadoutlist::CCCUSBReadoutList object
   public method sEnableLAM {stack}
 
+  ## @brief Add command to stack to enable the LAM
+  # @param stack  a cccusbreadoutlist::CCCUSBReadoutList object
+  public method sTestLAM {stack}
+
   ## @brief Add command to stack to disable the LAM
   # @param 
   public method sDisableLAM {stack}
@@ -343,9 +352,9 @@ itcl::body APhillips71xx::ReadChannelLAM {channel} {
 	return $data
 }
 
-itcl::body APhillips71xx::ReadSparse {} {
-  return [Execute 2 [list sReadSparse]]
-}
+#itcl::body APhillips71xx::ReadSparse {} {
+#  return [Execute 2 [list sReadSparse]]
+#}
 
 
 
@@ -445,6 +454,9 @@ itcl::body APhillips71xx::sEnableLAM {stack} {
   $stack addControl $node 0 26 
 }
 
+itcl::body APhillips71xx::sTestLAM {stack} {
+  $stack addControl $node 0 8 
+}
 
 itcl::body APhillips71xx::sDisableLAM {stack} {
   $stack addControl $node 0 24
