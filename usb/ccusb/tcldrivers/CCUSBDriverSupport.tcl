@@ -90,8 +90,14 @@ proc ::CCUSBDriverSupport::shortsListToTclList {data_ {grouping 2}} {
   set pkg cccusb
   
   set nshorts [${pkg}::uint16_vector_size $data]
+#  puts "Nshorts = $nshorts"
+#  for {set i 0} {$i<$nshorts} {incr i} {
+#    puts [format "%2d %x" $i [${pkg}::uint16_vector_get $data $i]]
+#  }
   if {($nshorts%$grouping) != 0} {
-    error "CCUSBDriverSupport::shortsListToTclList size of shorts list must be divisible by 2"
+    set msg "CCUSBDriverSupport::shortsListToTclList size of shorts list must "
+    append msg "be divisible by 2"
+    return -code error $msg
   }
   
   set shift 16
