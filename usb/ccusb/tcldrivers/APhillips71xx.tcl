@@ -25,6 +25,14 @@ itcl::class APhillips71xx {
 	
 	destructor {}
 	
+
+  public method SetController {ctlr} {
+    set device $ctlr
+  }
+
+  public method GetController {} {
+    return $device
+  }
   # ---------------------------------------------------------------------------
   # Single-shot commands
 

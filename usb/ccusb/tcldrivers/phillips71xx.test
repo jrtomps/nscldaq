@@ -38,6 +38,17 @@ proc tearDown {} {
 }
 
 
+tcltest::test setctlr-0 {Test that we set and get properly
+} -setup { 
+  setup 
+} -cleanup { 
+  tearDown
+} -body {
+  ::dev SetController name
+  ::dev GetController 
+} -result "name"
+
+
 tcltest::test clear-0 {clear adds proper NA(3)F(11) 
 } -setup { 
   setup 
