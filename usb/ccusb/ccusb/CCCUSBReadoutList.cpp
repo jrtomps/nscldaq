@@ -121,6 +121,14 @@ CCCUSBReadoutList::clear()
   m_list.clear();
 }
 
+
+void 
+CCCUSBReadoutList::append(const CCCUSBReadoutList& list)
+{
+  const std::vector<uint16_t>& other = list.get();
+  m_list.insert(m_list.end(), other.begin(), other.end());
+}
+
 /******************************************************************************/
 /*!
    Add a 16 bit write to the list.

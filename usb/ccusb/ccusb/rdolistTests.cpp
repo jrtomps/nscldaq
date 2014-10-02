@@ -21,7 +21,7 @@ class CCCUSBReadoutListTests : public CppUnit::TestFixture {
   CPPUNIT_TEST(listConstruct0);
   CPPUNIT_TEST(addAddressPatternRead16_0);
   CPPUNIT_TEST(addAddressPatternRead16_1);
-//  CPPUNIT_TEST(addAddressPatternRead24_0);
+  CPPUNIT_TEST(append_0);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -34,7 +34,7 @@ public:
   void listConstruct0();
   void addAddressPatternRead16_0(); 
   void addAddressPatternRead16_1(); 
- // void addAddressPatternRead24_0(); 
+  void append_0();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(CCCUSBReadoutListTests);
@@ -87,17 +87,25 @@ void CCCUSBReadoutListTests::addAddressPatternRead16_1 ()
 
   CPPUNIT_ASSERT( expected == rdolist.get());
 }
-//
-//void CCCUSBReadoutListTests::addAddressPatternRead24_0 ()
-//{
-//  CCCUSBReadoutList rdolist;
-//  rdolist.addAddressPatternRead24( 4, 1, 6, 1);
-//  
-//  std::vector<uint16_t> expected(2);
-//  // Should specify the complex command, 24-bit transfer, and NAF
-//  expected[0] = ((1<<15) | (1<<14) | (4<<9) | (1<<5) | 6);
-//  // specifies AP data (bit9) and lamwait (bit7)
-//  expected[1] = ((1<<9) | (1<<7));
-//
-//  CPPUNIT_ASSERT( expected == rdolist.get());
-//}
+
+
+
+void CCCUSBReadoutListTests::append_0 () 
+{
+
+  CCCUSBReadoutList rdoList0;
+  rdoList0.addWrite16(10, 0, 16, static_cast<uint16_t>(100));
+
+  CCCUSBReadoutList rdoList1;
+  rdoList1.addWrite16(11, 1, 17, static_cast<uint16_t>(101));
+
+  rdoList0.append(rdoList1);
+
+  std::vector<uint16_t> expected(4);
+  expected[0] = ((10<<9) | (0<<5) | 16);
+  expected[1] = 100;
+  expected[2] = ((11<<9) | (1<<5) | 17);
+  expected[3] = 101;
+
+  CPPUNIT_ASSERT( expected == rdoList0.get() );
+}

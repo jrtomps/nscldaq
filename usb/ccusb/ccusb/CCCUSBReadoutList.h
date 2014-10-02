@@ -86,6 +86,7 @@
    std::vector<uint16_t> get()     const;
    size_t                size()    const;
    void                  clear();
+   void                  append(const CCCUSBReadoutList& rdolist);
 
    // Adding elements to the list:
 
@@ -154,5 +155,30 @@ private:
 
   
 };
+
+inline std::vector<uint16_t>* vecuint16_create(int size)
+{
+  return new std::vector<uint16_t>(size);
+}
+
+inline void vecuint16_pushback(std::vector<uint16_t>* vec, uint16_t val)
+{
+  vec->push_back(val); 
+}
+
+inline void vecuint16_set(std::vector<uint16_t>* vec, int index, uint16_t val)
+{
+  if (index >= vec->size()) {
+    vec->resize(index+1);
+  }
+
+  (*vec)[index] = val;
+}
+
+inline std::vector<uint16_t>& vecuint16_ptr2ref(std::vector<uint16_t>* vec)
+{
+  return *vec;
+}
+
 
 #endif
