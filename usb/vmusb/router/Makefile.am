@@ -7,7 +7,7 @@ noinst_HEADERS		=	COutputThread.h		\
 				CRunState.h  		\
 				DataBuffer.h
 
-INCLUDES		= -I@top_srcdir@/usb/vmusb/threadcomm -DLAST_CHANCE \
+INCLUDES		=  -DLAST_CHANCE \
 			-I@top_srcdir@/usb/vmusb/tclserver $(TCL_FLAGS) \
 			-I@top_srcdir@/usb/vmusb/vmusb -I@top_srcdir@/base/thread \
 			@LIBTCLPLUS_CFLAGS@		\
@@ -20,7 +20,6 @@ INCLUDES		= -I@top_srcdir@/usb/vmusb/threadcomm -DLAST_CHANCE \
 libVMUSBRouter_la_CXXFLAGS=@THREADCXX_FLAGS@
 
 libVMUSBRouter_la_LIBADD	= @LIBTCLPLUS_LDFLAGS@	\
-	@top_builddir@/usb/vmusb/threadcomm/libVMUSBThreadComm.la \
 	@top_builddir@/base/thread/libdaqthreads.la \
 	@top_builddir@/base/dataflow/libRingBuffer.la \
 	@top_builddir@/daq/format/libdataformat.la @THREADLD_FLAGS@

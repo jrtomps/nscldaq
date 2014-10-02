@@ -1,6 +1,6 @@
 <!-- chapter utilities -->
 
-<chapter>
+<chapter id="chapter.scalerdisplay">
     <title>The Scaler Display Program.</title>
     <para>
         With NSCLDAQ-11.0 and the ability to merge data from multiple data
@@ -451,7 +451,8 @@ stripconfig -timeaxis 1200                   <co id='scalerdef_stripconfig' />
 
 <refentry id='daq1_scalerdisplay11'>
     <refmeta>
-        <refentrytitle id='daq1_scalerdisplay11_title'>Scaler Display program</refentrytitle>
+        <refentrytitle id='daq1_scalerdisplay11_title'>Scaler Display program
+	<anchor id="manpage.scalerdisplay" /></refentrytitle>
         <manvolnum>1daq</manvolnum>
     </refmeta>
     <refnamediv>

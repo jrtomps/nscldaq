@@ -75,6 +75,7 @@ private:
 public:
   void queue(T object);		//!< Add object to queue.
   T    get();			//!< dequeue object, blocking if needed.
+  bool getnow(T& element);      //!< Get without wait (nowait = now).
   std::list<T> getAll();		//!< Emtpy the queue..
   void setWakeThreshold(size_t level);
   void wait();	     		//!< Wait for buffers.

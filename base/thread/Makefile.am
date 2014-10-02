@@ -3,11 +3,13 @@ libdaqthreads_la_SOURCES = dshwrappthreads.cpp  SyncGuard.cpp  Synchronizable.cp
 				Thread.cpp	\
 				CMutex.cpp	\
 				CCondition.cpp	\
-				CSynchronizedThread.cpp
+				CSynchronizedThread.cpp \
+				CGaurdedObject.cpp CBufferQueue.cpp
 include_HEADERS = dshwrappthreads.h  dshwrapthreads.h  Runnable.h  SyncGuard.h  \
 		Synchronizable.h  Thread.h \
 		CMutex.h		\
-		CCondition.h CSynchronizedThread.h 
+		CCondition.h CSynchronizedThread.h \
+		CGaurdedObject.h CBufferQueue.h CBufferQueue.cpp 
 
 INCLUDES = -I@top_srcdir@/base/headers -DUSE_PTHREADS @LIBTCLPLUS_CFLAGS@
 

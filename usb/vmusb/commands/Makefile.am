@@ -16,8 +16,7 @@ noinst_HEADERS		= 	CBeginRun.h	\
 libVMUSBCommands_la_CXXFLAGS=@THREADCXX_FLAGS@
 
 
-INCLUDES		= 	-I@top_srcdir@/usb/vmusb/threadcomm	\
-			  	-I@top_srcdir@/usb/vmusb/rdothread	\
+INCLUDES		= 	-I@top_srcdir@/usb/vmusb/rdothread	\
 				-I@top_srcdir@/usb/vmusb/router		\
 				-I@top_srcdir@/usb/vmusb/daqconfig	\
 				-I@top_srcdir@/usb/vmusb		\
@@ -30,7 +29,6 @@ INCLUDES		= 	-I@top_srcdir@/usb/vmusb/threadcomm	\
 
 
 libVMUSBCommands_la_LIBADD	= 	@top_builddir@/usb/vmusb/rdothread/libVMUSBRdoThread.la	\
-				@top_builddir@/usb/vmusb/threadcomm/libVMUSBThreadComm.la	\
 				@top_builddir@/usb/vmusb/router/libVMUSBRouter.la	\
 				@top_builddir@/usb/vmusb/daqconfig/libVMUSBConfig.la	\
 				@LIBTCLPLUS_LDFLAGS@		\

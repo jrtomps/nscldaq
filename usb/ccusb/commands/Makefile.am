@@ -13,8 +13,7 @@ include_HEADERS		= 	CBeginRun.h	\
 				CExit.h		\
 				tclUtil.h
 
-INCLUDES		= 	-I@top_srcdir@/usb/ccusb/threadcomm	\
-			  	-I@top_srcdir@/usb/ccusb/rdothread	\
+INCLUDES		= 	-I@top_srcdir@/usb/ccusb/rdothread	\
 				-I@top_srcdir@/usb/ccusb/router		\
 				-I@top_srcdir@/usb/ccusb/daqconfig	\
 				-I@top_srcdir@/usb/ccusb		\
@@ -26,7 +25,6 @@ INCLUDES		= 	-I@top_srcdir@/usb/ccusb/threadcomm	\
 				$(TCL_FLAGS) @THREADCXX_FLAGS@
 
 libCCUSBCommands_la_LIBADD	= 	@top_builddir@/usb/ccusb/rdothread/libCCUSBRdoThread.la	\
-				@top_builddir@/usb/ccusb/threadcomm/libCCUSBThreadComm.la	\
 				@top_builddir@/usb/ccusb/router/libCCUSBRouter.la	\
 				@top_builddir@/usb/ccusb/daqconfig/libCCUSBConfig.la	\
 				@LIBTCLPLUS_LDFLAGS@	\
