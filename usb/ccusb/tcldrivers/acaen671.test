@@ -67,16 +67,16 @@ tcltest::test enable-2 {Test that bank = -1 causes error
 } -result "ACAENC671::Enable bank -1 is invalid. Must be either 0 or 1."  \
 -returnCodes 1
 
-tcltest::test enable-3 {Test that non-boolean fails 
-} -setup {
-  setup
-} -cleanup {
-  tearDown
-} -body {
-  ::dev Enable 0 asdf 
-  ::ctlr getHistory
-} -result "ACAENC671::Enable user provided non-boolean value."  \
--returnCodes 1
+#tcltest::test enable-3 {Test that non-boolean fails 
+#} -setup {
+#  setup
+#} -cleanup {
+#  tearDown
+#} -body {
+#  ::dev Enable 0 asdf 
+#  ::ctlr getHistory
+#} -result "ACAENC671::Enable user provided non-boolean value."  \
+#-returnCodes 1
 
 
 

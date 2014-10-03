@@ -227,12 +227,7 @@ itcl::body ACAENC671::Enable {bank pat} {
       "ACAENC671::Enable bank $bank is invalid. Must be either 0 or 1."
   }
 
-  if {[string is boolean $pat]} {
-    set offon [string is true $pat]
-    return [$device simpleWrite24 $node $bank 18 $offon]
-  } else {
-    return -code error "ACAENC671::Enable user provided non-boolean value."
-  }
+  return [$device simpleWrite24 $node $bank 18 $pat]
 }
 
 #
