@@ -18,7 +18,7 @@
 #include "CTclModule.h"
 #include <TCLInterpreter.h>
 #include <arpa/inet.h>
-#include <iostream>
+
 /**
  * Construction simply saves the nam of the command ensemble:
  *
@@ -77,7 +77,6 @@ CTclModule::Initialize(CCCUSB& controller)
   command            += " Initialize ";
   command            += pointer;
 
-  std::cout << command << std::endl;
   m_pInterp->GlobalEval(command.c_str());
 }
 /**
