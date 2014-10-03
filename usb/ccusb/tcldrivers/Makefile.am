@@ -3,7 +3,8 @@ DRIVERDest=@prefix@/TclLibs/ccusbdrivers
 TCLDRIVERS=ccusb.tcl CCUSBDriverSupport.tcl \
 					 ACAENC671.tcl ACAENC808.tcl \
 					 ALeCroy4448.tcl ATrigger2367.tcl \
-					 APhillips71xx.tcl
+					 APhillips71xx.tcl ALeCroy4300B.tcl
+					 
            
 
 install-exec-local:
@@ -18,8 +19,8 @@ install-exec-local:
 #CCUSBTCLTESTS = tclCCUSB.test ccusbTests.tcl
 
 
-#ccusbtest:
-#	TCLLIBPATH="@prefix@/TclLibs @libdir@" HERE=@srcdir@ tcl=@TCLSH_CMD@ @TCLSH_CMD@ @srcdir@/ccusbTests.tcl
+check-TESTS:
+	TCLLIBPATH="@prefix@/TclLibs @libdir@ @srcdir@" HERE=@srcdir@ tcl=@TCLSH_CMD@ @TCLSH_CMD@ @srcdir@/tclTests.tcl
 
 EXTRA_DIST=$(TCLDRIVERS) 
 #$(CCUSBTCLTESTS)
