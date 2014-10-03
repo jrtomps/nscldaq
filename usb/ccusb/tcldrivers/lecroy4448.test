@@ -1,17 +1,31 @@
 
 package require tcltest
-
+package require Itcl
 package require MockCCUSB
+package require cccusbreadoutlist
 
 tcltest::test pkgrequire-0 {Test that we can require the package 
 } -body {
   package require lecroy4448
 } -result 11.0
 
+# we don't want to deal with swig vector<uint16_t> so fool the system
+# by redefining our conversion function
+namespace eval CCUSBDriverSupport {
+  proc shortsListToTclList {stackvar {grouping 2}} {
+    upvar $stackvar stack
+    return $stack
+  }
+}
+
 proc setup {} {
   MockCCUSB::Controller ::ctlr
   MockCCUSB::ReadoutList ::stack
   ALeCroy4448 ::dev ::ctlr 3
+
+  rename cccusbreadoutlist::CCCUSBReadoutList _old
+  rename MockCCUSB::ReadoutList cccusbreadoutlist::CCCUSBReadoutList
+
   
 }
 
@@ -19,8 +33,11 @@ proc tearDown {} {
   ::ctlr destroy
   ::stack destroy
   itcl::delete object ::dev
-}
 
+  rename cccusbreadoutlist::CCCUSBReadoutList MockCCUSB::ReadoutList 
+  rename _old cccusbreadoutlist::CCCUSBReadoutList
+
+}
 
 
 
@@ -74,7 +91,7 @@ tcltest::test readReg-0 { Test that we can read a valid register
 } -body {
   ::dev ReadRegister 1
   ::ctlr getHistory
-} -result "{simpleRead24 3 1 0}"
+} -result "{read24 3 1 0 0}"
 
 tcltest::test readReg-1 { Test that reg < 0 is bad 
 } -setup {
@@ -110,7 +127,7 @@ tcltest::test readAndClearReg-0 { Test that we can read a valid register
   ::dev ReadAndClearRegister 1
   ::dev ReadAndClearRegister 2
   ::ctlr getHistory
-} -result "{simpleRead24 3 0 2} {simpleRead24 3 1 2} {simpleRead24 3 2 2}"
+} -result "{read24 3 0 2 0} {read24 3 1 2 0} {read24 3 2 2 0}"
 
 tcltest::test readAndClearReg-1 { Test that we can read a valid register
 } -setup {
@@ -135,7 +152,7 @@ tcltest::test clearReg-0 { Test that we can read a valid register
   ::dev ClearRegister B
   ::dev ClearRegister C
   ::ctlr getHistory
-} -result "{simpleControl 3 0 9} {simpleControl 3 1 9} {simpleControl 3 2 9}"
+} -result "{control 3 0 9} {control 3 1 9} {control 3 2 9}"
 
 tcltest::test clearReg-1 { Test that we can read a valid register
 } -setup {
@@ -157,7 +174,7 @@ tcltest::test clear-0 {Test that clear does what it should
 } -body {
   ::dev Clear
   ::ctlr getHistory
-} -result "{simpleControl 3 0 11}"
+} -result "{control 3 0 11}"
 
 
 
@@ -175,7 +192,7 @@ tcltest::test sRead-0 {Test that a read does what we expect
   ::dev sRead stack 1
   ::dev sRead stack C
   ::stack getHistory
-} -result "{read16 3 0 0 0} {read16 3 1 0 0} {read16 3 2 0 0}"
+} -result "{read24 3 0 0 0} {read24 3 1 0 0} {read24 3 2 0 0}"
 
 
 tcltest::test sReadAndClear-0 {Test that sReadAndClear does what we expect
@@ -189,7 +206,7 @@ tcltest::test sReadAndClear-0 {Test that sReadAndClear does what we expect
   ::dev sReadAndClear stack B
   ::dev sReadAndClear stack 2
   ::stack getHistory
-} -result "{read16 3 0 2 0} {read16 3 1 2 0} {read16 3 2 2 0}"
+} -result "{read24 3 0 2 0} {read24 3 1 2 0} {read24 3 2 2 0}"
 
 
 tcltest::test sClearRegister-0 {Test that sClearRegister does what we expect

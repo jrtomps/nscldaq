@@ -86,7 +86,7 @@ itcl::class ALeCroy4448 {
   # Interactively clear the module
   #
   # \return the QX code returned from the control operation 
-  public method Clear {} {return [$device simpleControl $node 0 11]}
+  public method Clear {} 
 
 
   ## @brief Read a single register
@@ -185,44 +185,51 @@ itcl::class ALeCroy4448 {
     return $reg
   }
 
+
+  public method Execute {grouping script} 
 } ;# Done with class definition
 
 #------------------------------------------------------------------------------
 # Single shot commands 
 
+itcl::body ALeCroy4448::Clear {} {
+  if {[catch {set val [Execute 1 [list sClear]]} msg]} {
+    # map the error context to this method 
+    return -code error [lreplace $msg 0 0 ALeCroy4448::Clear]
+  }
+  return $val
+}
 
 # Read register F(0)A
 #
 itcl::body ALeCroy4448::ReadRegister regName {
-# get the register index
-  if {[catch {set reg [MapRegisterName $regName]} msg]} {
+  if {[catch {set val [Execute 2 [list sRead $regName]]} msg]} {
+    # map the error context to this method 
     return -code error [lreplace $msg 0 0 ALeCroy4448::ReadRegister]
   }
-
-  $device simpleRead24 $node $reg 0 
+  return $val
 }
 
 
 # Read and clear register F(2)A
 # 
 itcl::body ALeCroy4448::ReadAndClearRegister regName {
-
-# convert regName to an index
-  if {[catch {set reg [MapRegisterName $regName]} msg]} {
+  if {[catch {set val [Execute 2 [list sReadAndClear $regName]]} msg]} {
+    # map the error context to this method 
     return -code error [lreplace $msg 0 0 ALeCroy4448::ReadAndClearRegister]
   }
-  $device simpleRead24 $node $reg 2 
+  return $val
 }
 
 
 # Clear register F(9)A
 # 
 itcl::body ALeCroy4448::ClearRegister regName {
-# convert regName to index
-  if {[catch {set reg [MapRegisterName $regName]} msg]} {
+  if {[catch {set val [Execute 1 [list sClearRegister $regName]]} msg]} {
+    # map the error context to this method 
     return -code error [lreplace $msg 0 0 ALeCroy4448::ClearRegister]
   }
-  $device simpleControl $node $reg 9 
+  return $val
 }
 
 
@@ -245,14 +252,14 @@ itcl::body ALeCroy4448::sRead {stack register} {
   set reg [MapRegisterName $register]
   set A $reg
   set F 0
-  $stack addRead16 $node $A $F 
+  $stack addRead24 $node $A $F 
 }
 
 itcl::body ALeCroy4448::sReadAndClear {stack register} {
   if {[catch {set reg [MapRegisterName $register]} msg]} {
     return -code error [lreplace $msg 0 0 ALeCroy4448::sReadAndClear]
   }
-  $stack addRead16 $node $reg 2 
+  $stack addRead24 $node $reg 2 
 }
 
 itcl::body ALeCroy4448::sClearRegister {stack register} {
@@ -262,3 +269,46 @@ itcl::body ALeCroy4448::sClearRegister {stack register} {
   $stack addControl $node $reg 9 
 }
 
+
+
+
+# A utility to facility single-shot operation evaluation
+#
+# Given a list whose first element is a proc name and subsequent elements are
+# arguments (i.e. procname arg0 arg1 arg2 ...) , this creates a stack
+#
+#  procname stack arg0 arg1 arg2 ...
+#  
+#
+itcl::body ALeCroy4448::Execute {grouping script} {
+#ensure there is a device to execute the readout list
+  if {$device ne ""} {
+
+    # create a new readout list
+    set rdoList [cccusbreadoutlist::CCCUSBReadoutList %AUTO%]
+
+    # extract the proc we want to use to manipulate the stack
+    set cmd [lindex $script 0]
+
+    # if there are arguments provided, use them. otherwise, dont.
+    if {[llength $script]>1} { 
+      $cmd $rdoList {*}[lreplace $script 0 0] 
+    } else {
+      $cmd $rdoList 
+    }
+
+    # At this point the list will contain some commands added by the cmd
+    # command
+
+    # execute the list
+    set data [$device executeList $rdoList [expr 4<<20]] 
+
+    # the returned data is actually a std::vector<uin16_t> wrapped by swig. 
+    # Convert this into a list of 32-bit integers and return it as a tcl list
+    return [::CCUSBDriverSupport::shortsListToTclList data $grouping]
+  } else { 
+    set msg "ATrigget2367::Execute user must set the controller first with "
+    append msg "SetController"
+    return -code error $msg
+  } 
+}
