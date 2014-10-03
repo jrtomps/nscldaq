@@ -142,23 +142,83 @@ itcl::class APhillips71xx {
 
 
 
-
+  ## @brief Sets the module's programming mode
+  #
+  # This is useful for writing or reading the pedestal, lower thresh, and upper
+  # thresh values. To write any of those values, you actually can bypass this
+  # function and just call either SetPedestals, SetLowerThresholds, or
+  # SetUpperThresholds b/c they implicitly call this function. However, if you
+  # want to read back the values, you would use this method to choose what type
+  # of data to access and then read the data using a subsequent call to
+  # GetLastProgrammedData. The mapping for the mode are as follows:
+  #
+  # mode: 
+  #   0 - pedestal
+  #   1 - lower thresholds
+  #   2 - upper thresholds
+  #   4 - test mode
+  #
+  # @param mode   value indicating which type of data to access
+  #
   public method SetProgrammingMode {mode} {
     return [Execute 1 [list sSetProgrammingMode $mode]]
   }
 
+  ## @brief Write the pedestals to memory
+  #
+  # This implicitly calls the SetProgrammingMode with an argument of 0 and then 
+  # writes the entire list of pedestal values. Provided a list of n pedestal
+  # values, the method will write pedestals to the first n channels of the
+  # device. If more than 16 pedestal values are provided, the excess values will
+  # be ignored. The pedestals values must be provided in the range [-4095,4095].
+  #
+  #  @param peds  a list of pedestal values
+  #
+  #  @throws error if any one pedestal value is out of range
   public method SetPedestals {peds} {
     Execute 1 [list sSetPedestals $peds]
   }
 
+  ## @brief Write the lower thresholds to memory
+  #
+  # This implicitly calls the SetProgrammingMode with an argument of 1 and then 
+  # writes the entire list of threshold values. Provided a list of n threshold
+  # values, the method will write to the first n channels of the
+  # device. If more than 16 threshold values are provided, the excess values will
+  # be ignored. The threshold values must be provided in the range [0,4095].
+  #
+  #  @param peds  a list of threshold values
+  #
+  #  @throws error if any one threshold value is out of range
   public method SetLowerThresholds {lth} {
     Execute 1 [list sSetLowerThresholds $lth]
   }
 
+  ## @brief Write the upper thresholds to memory
+  #
+  # This implicitly calls the SetProgrammingMode with an argument of 2 and then 
+  # writes the entire list of threshold values. Provided a list of n threshold
+  # values, the method will write to the first n channels of the
+  # device. If more than 16 threshold values are provided, the excess values will
+  # be ignored. The threshold values must be provided in the range [0,4095].
+  #
+  #  @param peds  a list of threshold values
+  #
+  #  @throws error if any one threshold value is out of range
   public method SetUpperThresholds {uth} {
     Execute 1 [list sSetUpperThresholds $uth]
   }
 
+  ## @brief Read 16 channels of data corresponding to last set programming mode
+  #
+  # this is to be used in conjunction with the SetProgrammingMode method. The
+  # data returned from this method corresponds to the mode set previously by
+  # SetProgrammingMode. For example, if the user call SetProgrammingMode with an
+  # argument of 1 (i.e. lower thresholds), the 16 channels of lower threshold
+  # values will be returned from this.
+  #
+  # @returns  list of 16 values corresponding to last set programming mode
+  #
   public method GetLastProgrammedData {} {
     return [Execute 2 sGetLastProgrammedData]
   }
@@ -267,14 +327,45 @@ itcl::class APhillips71xx {
 	public method sReadChannelLAM {stack channel}
 
 
+  ## @brief Add commands to stack to write pedestal values 
+  #
+  # @see SetPedestals for more information
+  #
+  #  @param stack a cccusbreadoutlist::CCCUSBReadoutList object 
+  #  @param peds  list of pedestal values   
 	public method sSetPedestals {stack peds}
 
+  ## @brief Add commands to stack to write lower threshold values 
+  #
+  # @see SetLowerThresholds for more information
+  #
+  #  @param stack a cccusbreadoutlist::CCCUSBReadoutList object 
+  #  @param peds  list of threshold values   
 	public method sSetLowerThresholds {stack lth}
 
+  ## @brief Add commands to stack to write upper threshold values 
+  #
+  # @see SetUpperThresholds for more information
+  #
+  #  @param stack a cccusbreadoutlist::CCCUSBReadoutList object 
+  #  @param peds  list of threshold values   
 	public method sSetUpperThresholds {stack uth}
 
+
+  ## @brief Add commands to stack to read data for a programming mode 
+  #
+  # @see GetLastProgrammedData for more details.
+  #
+  # @param stack a cccusbreadoutlist::CCCUSBReadoutList object
 	public method sGetLastProgrammedData {stack}
 
+  ## @brief Add commands to stack to read data for a programming mode 
+  #
+  # @see SetProgrammingMode for more details.
+  #
+  # @param stack  a cccusbreadoutlist::CCCUSBReadoutList object
+  # @param mode   index to select programming mode 
+  #               (0-ped, 1-lowthresh, 2-upperthresh, 4-test)
   public method sSetProgrammingMode {stack mode}
 
   ## @brief Add commands to stack to read all data with meaningful values
@@ -325,9 +416,34 @@ itcl::class APhillips71xx {
   private method Execute {grouping script}
 
 
+  ## @brief Check that all of the elements in a list fall within a range
+  #
+  # This iterates through the list and checks each element for the following
+  # condition: low <= element <= high. The algorithm begins at the beginning of
+  # the list and keeps checking until either an element is identified that does
+  # not satisfy the condition or the end of the list is reached.
+  #
+  # @param low  lower bound
+  # @param high upper bound
+  # @param list list of values
+  #
+  # @returns boolean 
+  # @retval 0 - at least one element in list is outside of range
+  # @retval 1 - all elements fall within range
   public method ListElementsInRange {low high list}
 
-
+  ## @brief Compare data read from the device with an expected set of values
+  #
+  # This handles the fact that data read from the device have an XQ value
+  # encoded in bits 24 and 25. This method traverses both lists and compares the
+  # lower 24 bits of each element for equality. 
+  #
+  # @param  expected  list of values to compare against
+  # @param  readback  list of values to compare with possible XQ encoding
+  #
+  # @returns boolean
+  # @retval 0 - at least one element differs
+  # @retval 1 - lower 24-bits of each element in both list are identical
   public method ReadDataIsAsExpected {expected readback}
 
 
@@ -519,6 +635,7 @@ itcl::body APhillips71xx::sSetPedestals {stack peds} {
   # the values were sensible so 
   sSetProgrammingMode $stack 0
   set nPeds [llength $peds]
+  if {$nPeds>16} {set nPeds 16}
 
   for {set ch 0} {$ch<$nPeds} {incr ch} {
     set ped [lindex $peds $ch]
@@ -538,6 +655,7 @@ itcl::body APhillips71xx::sSetLowerThresholds {stack lth} {
   # set into lower threshold programming mode
   sSetProgrammingMode $stack 1
   set nThresh [llength $lth]
+  if {$nThresh>16} {set nThresh 16}
 
   for {set ch 0} {$ch<$nThresh} {incr ch} {
     set thresh [lindex $lth $ch]
@@ -558,6 +676,7 @@ itcl::body APhillips71xx::sSetUpperThresholds {stack lth} {
   # set into lower threshold programming mode
   sSetProgrammingMode $stack 2
   set nThresh [llength $lth]
+  if {$nThresh>16} {set nThresh 16}
 
   for {set ch 0} {$ch<$nThresh} {incr ch} {
     set thresh [lindex $lth $ch]
