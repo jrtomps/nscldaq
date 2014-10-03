@@ -63,7 +63,7 @@ COutputter::run()
     size_t     nBytes= pData->s_header.s_size;
     uint32_t   type  = pItem->type();
 
-    io::writeData(STDOUT_FILENO, pData, nBytes);
+    io::writeData(STDOUT_FILENO, pData, nBytes);  // Failures throw exiting.
 
     m_RingQueues.Free(pItem);		// Free's the item adds to free queue.
 
