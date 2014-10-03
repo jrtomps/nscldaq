@@ -2,7 +2,7 @@ bin_PROGRAMS=unglom
 
 unglom_SOURCES=unglom.cpp @srcdir@/cmdline.c
 
-INCLUDES=-I@top_srcdir@/daq/eventbuilder \
+unglom_CPPFLAGS=-I@top_srcdir@/daq/eventbuilder \
 	-I@top_srcdir@/daq/format       \
 	@LIBTCLPLUS_CFLAGS@	\
 	-I@top_srcdir@/base/os		\

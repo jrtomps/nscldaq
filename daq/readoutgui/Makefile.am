@@ -72,14 +72,20 @@ EXTRA_DIST = $(TCLPACKAGES) $(TCLAPPS) $(TCLTESTS) $(TKTESTS)\
 
 
 bin_PROGRAMS =  SecretTk
+COMPILATION_FLAGS =	-I@top_srcdir@/base/headers	\
+		@LIBTCLPLUS_CFLAGS@ \
+		-I@top_srcdir@/base/CopyrightTools \
+		$(TCL_FLAGS) -DHOME=\"$(prefix)\"
 
 SecretTk_SOURCES = SecretTk.c
+SecretTk_CPPFLAGS=$(COMPILATION_FLAGS)
 
 SecretTk_LDFLAGS= $(TCL_LDFLAGS) $(X11LIBS)
 
 
 lib_LTLIBRARIES = libWait.la
 libWait_la_SOURCES = WaitPackage.cpp
+libWait_la_CPPFLAGS=$(COMPILATION_FLAGS)
 
 libWait_la_LDFLAGS =	@LIBTCLPLUS_LDFLAGS@	\
 			@top_builddir@/base/CopyrightTools/libLicense.la	 \
@@ -89,7 +95,3 @@ libWait_la_LIBADD =  @LIBTCLPLUS_LDFLAGS@ \
 	$(TCL_LDFLAGS)	$(X11LIBS)  -lLicense  \
 	-lm -lstdc++ -lgcc -lc
 
-INCLUDES =	-I@top_srcdir@/base/headers	\
-		@LIBTCLPLUS_CFLAGS@ \
-		-I@top_srcdir@/base/CopyrightTools \
-		$(TCL_FLAGS) -DHOME=\"$(prefix)\"

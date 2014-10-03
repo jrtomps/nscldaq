@@ -61,7 +61,7 @@ include_HEADERS =	CADC2530.h	\
 			CCAMACModule.h
 
 
-INCLUDES	=	-I@top_srcdir@/base/headers 	\
+libSBSDeviceSupport_la_CPPFLAGS	=	-I@top_srcdir@/base/headers 	\
 			@LIBTCLPLUS_CFLAGS@	\
 			-I@top_srcdir@/sbs/nsclapi	\
 			-I@top_srcdir@/sbs/driver/include \

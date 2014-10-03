@@ -15,7 +15,7 @@ CCUSBReadout_SOURCES = CTheApplication.cpp Globals.cpp @srcdir@/cmdline.c
 
 noinst_HEADERS = CTheApplication.h Globals.h Events.h
 
-INCLUDES = -I@top_srcdir@/usb/ccusb/ccusb -I@top_srcdir@/usb/ccusb/devices \
+CCUSBReadout_CPPFLAGS = -I@top_srcdir@/usb/ccusb/ccusb -I@top_srcdir@/usb/ccusb/devices \
 	-I@top_srcdir@/usb/ccusb/router \
 	-I@top_srcdir@/usb/ccusb/rdothread \
 	 -I@top_srcdir@/usb/ccusb/daqconfig -I@top_srcdir@/usb/ccusb/commands \

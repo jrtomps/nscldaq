@@ -1,5 +1,16 @@
 bin_PROGRAMS= frag2ring
 
+COMPILATION_FLAGS =  \
+	-I@top_srcdir@/daq/format \
+	-I@top_srcdir@/base/tcpip \
+	@LIBTCLPLUS_CFLAGS@	\
+	-I@top_srcdir@/base/headers	\
+	-I@top_srcdir@/base/tcpip        \
+	-I@top_srcdir@/servers/portmanager \
+	-I@top_srcdir@/base/os \
+	@LIBTCLPLUS_CFLAGS@ \
+	@THREADCXX_FLAGS@ @TCL_FLAGS@
+
 
 lib_LTLIBRARIES=libEventBuilder.la  libEventBuilderClient.la 
 
@@ -15,12 +26,17 @@ libEventBuilder_la_SOURCES = OrdererPackage.cpp CFragmentHandlerCommand.cpp CFra
 	CSourceCommand.cpp CDeadSourceCommand.cpp CReviveSocketCommand.cpp \
 	CFlushCommand.cpp CResetCommand.cpp CConfigure.cpp
 
+libEventBuilder_la_CPPFLAGS=$(COMPILATION_FLAGS)
 
 libEventBuilderClient_la_SOURCES=CEventOrderClient.cpp fragment.c \
 	CEVBClientApp.cpp  CEVBFrameworkApp.cpp \
 	EVBFramework.cpp GetOpt.cpp fragio.cpp
 
+libEventBuilderClient_la_CPPFLAGS=$(COMPILATION_FLAGS)
+
 frag2ring_SOURCES=frag2ring.cpp CFragReader.cpp CFragWriter.cpp
+
+frag2ring_CPPFLAGS=$(COMPILATION_FLAGS)
 
 frag2ring_LDADD = @top_builddir@/daq/format/libdataformat.la \
                     @top_builddir@/base/os/libdaqshm.la $(THREADLD_FLAGS)
@@ -43,16 +59,6 @@ noinst_HEADERS = CFragmentHandlerCommand.h CFragmentHandler.h cmdline.h \
 	CConfigure.h fragio.h
 
 
-INCLUDES =  \
-	-I@top_srcdir@/daq/format \
-	-I@top_srcdir@/base/tcpip \
-	@LIBTCLPLUS_CFLAGS@	\
-	-I@top_srcdir@/base/headers	\
-	-I@top_srcdir@/base/tcpip        \
-	-I@top_srcdir@/servers/portmanager \
-	-I@top_srcdir@/base/os \
-	@LIBTCLPLUS_CFLAGS@ \
-	@THREADCXX_FLAGS@ @TCL_FLAGS@
 
 
 libEventBuilderClient_la_LIBADD = @top_builddir@/base/tcpip/libTcp.la \
@@ -117,6 +123,7 @@ unittests_LDADD = libEventBuilderClient.la \
 	@top_builddir@/base/tcpip/libTcp.la 	\
 	@CPPUNIT_LDFLAGS@ @THREADLD_FLAGS@
 
+unittests_CPPFLAGS=$(COMPILATION_FLAGS)
 
 unittests_DEPENDENCIES = cmdline.o cmdline.h
 

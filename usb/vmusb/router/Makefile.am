@@ -7,7 +7,7 @@ noinst_HEADERS		=	COutputThread.h		\
 				CRunState.h  		\
 				DataBuffer.h
 
-INCLUDES		=  -DLAST_CHANCE \
+libVMUSBRouter_la_CPPFLAGS		=  -DLAST_CHANCE \
 			-I@top_srcdir@/usb/vmusb/tclserver $(TCL_FLAGS) \
 			-I@top_srcdir@/usb/vmusb/vmusb -I@top_srcdir@/base/thread \
 			@LIBTCLPLUS_CFLAGS@		\

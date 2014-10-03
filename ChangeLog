@@ -795,3 +795,8 @@ Work on 11.0-rc11 begins
 	ported to the base/thread libdaqthreads library.
 	
 
+11.0-rc15:
+	Bug #1946 - INCLUDES symbol in Makefile.am is obsolete.  This has
+	been changed to target_CPPFLAGS pretty much everywhere or
+	integrated with an existing target_CXXFLAGS definition when that's
+	simpler. 

@@ -52,7 +52,7 @@ noinst_HEADERS		=	CADCCommand.h  		\
 
 
 
-INCLUDES		= 	-I@top_srcdir@/usb/vmusb/devices	\
+libVMUSBConfig_la_CPPFLAGS		= 	-I@top_srcdir@/usb/vmusb/devices	\
 				-I@top_srcdir@/usb/vmusb		\
 				-I@top_srcdir@/usb/vmusb/vmusb		\
 				-I@top_srcdir@/usb/common/devices		\

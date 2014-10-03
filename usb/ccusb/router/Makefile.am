@@ -7,7 +7,7 @@ noinst_HEADERS		=	COutputThread.h		\
 				CRunState.h  		\
 				DataBuffer.h
 
-INCLUDES		= -I@top_srcdir@/usb/ccusb		\
+libCCUSBRouter_la_CPPFLAGS		= -I@top_srcdir@/usb/ccusb		\
 			@TCL_CPPFLAGS@				\
 			@LIBTCLPLUS_CFLAGS@		\
 			-I@top_srcdir@/base/headers		\

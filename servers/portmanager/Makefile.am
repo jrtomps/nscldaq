@@ -7,6 +7,11 @@ PYTHON_PACKAGES=PortManager.py
 PYTHON_PKGINSTDIR=@prefix@/pythonLibs/nscldaq/portmanager
 
 lib_LTLIBRARIES=libPortManager.la
+
+COMPILATION_FLAGS = -I@top_srcdir@/base/headers @LIBTCLPLUS_CFLAGS@ \
+	-I@top_srcdir@/base/os		\
+		-DHOME=\"@prefix@\"
+
 libPortManager_la_SOURCES = CPortManagerException.cpp \
 			    CPortManager.cpp
 
@@ -22,11 +27,9 @@ libPortManager_la_LDFLAGS = @LIBEXCEPTION_LDFLAGS@	\
 
 libPortManager_la_CXXFLAGS = $(THREADCXX_FLAGS) 	\
 				$(TCL_FLAGS)		\
-				$(AM_CXXFLAGS)
+				$(AM_CXXFLAGS) $(COMPILATION_FLAGS)
 
-INCLUDES = -I@top_srcdir@/base/headers @LIBTCLPLUS_CFLAGS@ \
-	-I@top_srcdir@/base/os		\
-		-DHOME=\"@prefix@\"
+
 
 TCLPACKAGES=ConnectionManager.tcl \
 	Log.tcl \
@@ -69,7 +72,7 @@ noinst_PROGRAMS = cpptest
 
 cpptest_SOURCES = cpptest.cpp
 cpptest_LDADD= -L. -lPortManager @LIBEXCEPTION_LDFLAGS@
-
+cpptest_CPPFLAGS = $(COMPILATION_FLAGS)
 
 
 check-TESTS: cpptest

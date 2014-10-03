@@ -10,7 +10,7 @@ noinst_HEADERS		=	 ../StringsToIntegers.h RingSelectorMain.h \
 
 BUILT_SOURCES	= parser.h
 
-INCLUDES		= 	@LIBTCLPLUS_CFLAGS@	\
+ringselector_CPPFLAGS		= 	@LIBTCLPLUS_CFLAGS@	\
 				-I@top_srcdir@/base/headers	\
 				-I@top_srcdir@/daq/format	\
 			        -I@top_srcdir@/base/dataflow \

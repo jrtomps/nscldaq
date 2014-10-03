@@ -19,7 +19,7 @@ libCCUSBDevices_la_SOURCES	= 	CConfigurableObject.cpp	\
 					CULMTrigger.cpp
 
 
-INCLUDES	= 	-I@top_srcdir@/usb/ccusb/ccusb \
+libCCUSBDevices_la_CPPFLAGS	= 	-I@top_srcdir@/usb/ccusb/ccusb \
 			-I@top_srcdir@/usb/ccusb/daqconfig \
 			-I@top_srcdir@/usb/ccusb		\
 			-I@top_srcdir@/usb/common/devices		\

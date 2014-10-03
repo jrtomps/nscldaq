@@ -40,7 +40,7 @@ libVMUSBDevices_la_SOURCES	= 	CConfigurableObject.cpp	\
 					CLeCroy2551.cpp \
 					@top_srcdir@/usb/common/devices/CCamacBranchException.cpp 
 
-INCLUDES	= 	-I@top_srcdir@/usb/vmusb/vmusb 	\
+libVMUSBDevices_la_CPPFLAGS	= 	-I@top_srcdir@/usb/vmusb/vmusb 	\
 			-I@top_srcdir@/usb/vmusb/daqconfig 	\
 			-I@top_srcdir@/usb/vmusb		\
 			-I@top_srcdir@/usb/common/devices		\

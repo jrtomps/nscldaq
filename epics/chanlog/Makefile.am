@@ -9,11 +9,10 @@ chanlog_SOURCES = chanlog.cpp getinfo.cpp
 noinst_HEADERS = getinfo.h
 chanlog_LDADD   = @top_builddir@/base/os/libdaqshm.la \
 	$(EPICS_LDFLAGS) $(THREADLD_FLAGS)
-chanlog_CXXFLAGS= $(THREADCXX_FLAGS) $(AM_CXXFLAGS)
-
-
-INCLUDES        = $(EPICS_BIN) $(EPICS_INCLUDES) -I@top_srcdir@/Headers \
+chanlog_CXXFLAGS= $(THREADCXX_FLAGS) $(AM_CXXFLAGS) $(EPICS_BIN) $(EPICS_INCLUDES) -I@top_srcdir@/Headers \
 	-I@top_srcdir@/base/os
+
+
 
 EXTRA_DIST = chanlog.xml
 

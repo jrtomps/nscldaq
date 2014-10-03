@@ -1,6 +1,6 @@
 noinst_PROGRAMS = unittests
 
-INCLUDES=@TCL_CPPFLAGS@
+unittests_CPPFLAGS=@TCL_CPPFLAGS@
 
 unittests_SOURCES = TestRunner.cpp cvmusbtest.cpp
 
@@ -14,7 +14,7 @@ unittests_LDADD = @top_builddir@/usb/vmusb/devices/libVMUSBDevices.la \
 									@top_builddir@/usb/vmusb/daqconfig/libVMUSBConfig.la \
 									$(NSCLDAQ_LIB) @CPPUNIT_LDFLAGS@ @THREADLD_FLAGS@
 
-unittests_CXXFLAGS = $(CPPUNIT_INCLUDES) $(THREADCXX_FLAGS) $(AM_CXXFLAGS) \
+unittests_CXXFLAGS = @TCL_CPPFLAGS@ $(CPPUNIT_INCLUDES) $(THREADCXX_FLAGS) $(AM_CXXFLAGS) \
 											-I@srcdir@/../. -I@srcdir@/../devices/. \
 											-I@srcdir@/../vmusb/.
 
