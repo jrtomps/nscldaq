@@ -139,6 +139,11 @@ namespace eval MockCCUSB {
     method addAddressPatternRead16 {n a f {lamWait 0}} {
       lappend m_history "addressPatternRead16 $n $a $f $lamWait"
     }
+    
+
+    method addQScan {n a f max {lamWait 0}} {
+      lappend m_history "qscan $n $a $f $max $lamWait"
+    }
 
     ## @brief Retrieves the history
     #
