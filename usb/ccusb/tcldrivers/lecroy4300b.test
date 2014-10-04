@@ -64,7 +64,7 @@ tcltest::test setPedestals-0 {Test that setting the pedestals does the right thi
   set peds [list 10 10 10 10 10 10 10 10 \
                  10 10 10 10 10 10 10 10]
   ::dev SetPedestals $peds
-  ::dev getHistory
+  ::ctlr getHistory
 } -result [list {write24 23 0 17 10} \
                 {write24 23 1 17 10} \
                 {write24 23 2 17 10} \
@@ -82,3 +82,95 @@ tcltest::test setPedestals-0 {Test that setting the pedestals does the right thi
                 {write24 23 14 17 10} \
                 {write24 23 15 17 10} ]
   
+tcltest::test setPedestals-1 {Test that providing fewer than 16 pedestals is an error 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  set peds [list 10 10 10 10 10 10 10 10 \
+                 10 10 10 10 10 10 10]
+  ::dev SetPedestals $peds
+} -result "ALeCroy4300B::SetPedestals Fewer than 16 pedestal values provided." \
+-returnCodes 1
+  
+
+
+
+tcltest::test clear-0 {Test that clearing the module does what we expect
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev Clear
+  ::ctlr getHistory
+} -result [list {control 23 0 9}]
+
+
+
+
+
+tcltest::test setcontrolregister-0 { Test that we can set the control register
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev SetControlRegister 0xa0a0
+  ::ctlr getHistory
+} -result [list {write24 23 0 16 0xa0a0}]
+
+
+
+
+
+tcltest::test init-0 {Test that init configures the control register
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev Init
+  ::ctlr getHistory
+} -result [list {write24 23 0 16 0x7800}]
+
+
+
+tcltest::test readHeader-0 {Test that sReadHeader adds the right stuff to the stack
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev sReadHeader ::stack 
+  ::stack getHistory
+} -result [list {read24 23 0 2 0}]
+
+
+
+
+
+tcltest::test readChannel-0 {Test that sReadChannel adds the right stuff to the stack
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev sReadChannel ::stack 12
+  ::stack getHistory
+} -result [list {read24 23 12 2 0}]
+
+
+tcltest::test readSparse-0 {Test that we can setup a sparse read
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev sReadSparse ::stack 
+  ::stack getHistory
+} -result [list {qscan 23 0 2 17 1}]
+
+
+tcltest::cleanupTests
