@@ -31,11 +31,49 @@ itcl::class ALeCroy4300B {
   ## @brief Destructor - a no-op
 	destructor {}
 	
+  ## @brief Set the controller
+  #
+  # @param ctlr   a cccusb::CCCUSB object
   public method SetController {ctlr}
+
+  ## @brief Retrieve the name of the current controller 
+  #
+  # @returns a cccusb::CCCUSB object
   public method GetController {}
 
+  ## @brief Write a list of pedestals to the device
+  #
+  # This writes a list of pedestal values to the device. The first element of
+  # the list will be passed for channel 0, the second for channel 1, and so on.
+  # The user must provide a value for all 16 channels.
+  #
+  # @param peds a list of 16 pedestal values
+  #
+  # @throws error if the user provides fewer than 16 pedestal values
 	public method SetPedestals {peds}
-	public method WritePedestals {}
+
+  ## @brief Write a pedestal for a specific channel to the device
+  #
+  # @param  ch  the target channel
+  # @param  ped value to write 
+  #
+	public method SetPedestal {ch ped}
+
+  ## @brief Write an array of threshold values
+  #
+  # Provided the name of an array containing the pedestal values, write the
+  # pedestals to the device. This is ultimately a front-end to the SetPedestals
+  # method that converts an array to a list and then passes the created list to
+  # the SetPedestals method. The array provided must contain indices with the
+  # following form ped%.2d (i.e. ped.00, ped.01, ...).
+  #
+  # @param  arrname name of array 
+  #
+  # @throws error if any of the following are true
+  #   - array name provided does not exist
+  #   - array does not contain 16 elements named ped%.2d
+  #
+	public method WritePedestals {{arrname SCINT_ENERGY}}
 	public method SetControlRegister {control}
 	public method Clear {}
 
@@ -61,6 +99,7 @@ itcl::class ALeCroy4300B {
 	public method sReadSparse {stack}
 
   public method sSetPedestals {stack peds}
+  public method sSetPedestal {stack ch ped}
   public method sSetControlRegister {stack regval}
 
   ## @brief Process stack consisting of commands created by a method 
@@ -117,17 +156,36 @@ itcl::body ALeCroy4300B::SetPedestals {peds} {
   return $msg
 }
 
+itcl::body ALeCroy4300B::SetPedestal {ch peds} {
+  set res [catch {Execute 1 [list sSetPedestal $ch $peds]} msg]
+  if {$res} {
+    return -code error [lreplace $msg 0 0 ALeCroy4300B::SetPedestal]
+  }
+  return $msg
+}
+
 itcl::body ALeCroy4300B::Clear {} {
   return [Execute 1 [list sClear]]
 }
 
-itcl::body ALeCroy4300B::WritePedestals {} {
-	global SCINT_ENERGY
-	if {![info exists SCINT_ENERGY]} {
-		tk_messageBox -icon error -message "Cannot find array SCINT_ENERGY for $self"
-		return
+itcl::body ALeCroy4300B::WritePedestals {{arrname SCINT_ENERGY}} {
+	global $arrname 
+	if {![info exists $arrname]} {
+    set msg "ALeCroy4300B::WritePedestals Cannot find array $arrname for $self"
+		return -code error $msg
 	}
-	for {set i 0} {$i < 16} {incr i} {lappend peds $SCINT_ENERGY([format "ped%.2d" $i])}
+
+  set names [array names $arrname]
+  if {[llength $names]<16} {
+    set msg "ALeCroy4300B::WritePedestals Array contains fewer than 16 "
+    append msg "elements."
+    return -code error $msg
+  }
+
+	for {set i 0} {$i < 16} {incr i} {
+    set elpair [array get $arrname [format "ped%.2d" $i]]
+    lappend peds [lindex $elpair 1] 
+  }
 	SetPedestals $peds
 }
 
@@ -148,13 +206,7 @@ itcl::body ALeCroy4300B::sReadChannel {stack channel} {
 }
 
 itcl::body ALeCroy4300B::sReadSparse {stack} {
-#	set A 0
-#	set F 2
-#	lappend command [expr 0x8000+($node<<9)+($A<<5)+$F]
-#	lappend command [expr 0x8000+(1<<7)+(1<<4)]; # Wait for LAM; Q-stop mode;
-#	lappend command 17; # No more than 17 times (header + 16 data words)
   $stack addQScan $node 0 2 17 1
-#	$device AddToStack $stack $command
 }
 
 itcl::body ALeCroy4300B::sSetPedestals {stack peds} {
@@ -164,10 +216,13 @@ itcl::body ALeCroy4300B::sSetPedestals {stack peds} {
 	}
 
 	for {set i 0} {$i < 16} {incr i} {
-		$stack addWrite24 $node $i 17 [lindex $peds $i]
+    sSetPedestal $stack $i [lindex $peds $i]
 	}
 }
 
+itcl::body ALeCroy4300B::sSetPedestal {stack ch ped} {
+  $stack addWrite24 $node $ch 17 $ped 
+}
 
 itcl::body ALeCroy4300B::sSetControlRegister {stack regval} {
   $stack addWrite24 $node 0 16 $regval

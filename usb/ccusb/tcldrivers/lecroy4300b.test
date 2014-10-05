@@ -95,6 +95,17 @@ tcltest::test setPedestals-1 {Test that providing fewer than 16 pedestals is an 
 -returnCodes 1
   
 
+tcltest::test setPedestal-0 {Test that we can write a single pedestal value
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev SetPedestal 3 120 
+  ::ctlr getHistory
+} -result [list {write24 23 3 17 120}] 
+
+
 
 
 tcltest::test clear-0 {Test that clearing the module does what we expect
@@ -172,5 +183,102 @@ tcltest::test readSparse-0 {Test that we can setup a sparse read
   ::stack getHistory
 } -result [list {qscan 23 0 2 17 1}]
 
+
+
+tcltest::test WritePedestals-0 {Test that we can setup a sparse read
+} -setup {
+  setup
+  set SCINT_ENERGY(ped00) 1
+  set SCINT_ENERGY(ped01) 1
+  set SCINT_ENERGY(ped02) 1
+  set SCINT_ENERGY(ped03) 1
+  set SCINT_ENERGY(ped04) 1
+  set SCINT_ENERGY(ped05) 1
+  set SCINT_ENERGY(ped06) 1
+  set SCINT_ENERGY(ped07) 1
+  set SCINT_ENERGY(ped08) 1
+  set SCINT_ENERGY(ped09) 1
+  set SCINT_ENERGY(ped10) 1
+  set SCINT_ENERGY(ped11) 1
+  set SCINT_ENERGY(ped12) 1
+  set SCINT_ENERGY(ped13) 1
+  set SCINT_ENERGY(ped14) 1
+  set SCINT_ENERGY(ped15) 1
+} -cleanup {
+  tearDown
+} -body {
+  ::dev WritePedestals
+  ::ctlr getHistory
+} -result [list {write24 23 0 17 1} \
+                {write24 23 1 17 1} \
+                {write24 23 2 17 1} \
+                {write24 23 3 17 1} \
+                {write24 23 4 17 1} \
+                {write24 23 5 17 1} \
+                {write24 23 6 17 1} \
+                {write24 23 7 17 1} \
+                {write24 23 8 17 1} \
+                {write24 23 9 17 1} \
+                {write24 23 10 17 1} \
+                {write24 23 11 17 1} \
+                {write24 23 12 17 1} \
+                {write24 23 13 17 1} \
+                {write24 23 14 17 1} \
+                {write24 23 15 17 1} ]
+
+
+tcltest::test WritePedestals-1 {Test that we can setup a sparse read
+} -setup {
+  setup
+  set FOO(ped00) 1
+  set FOO(ped01) 1
+  set FOO(ped02) 1
+  set FOO(ped03) 1
+  set FOO(ped04) 1
+  set FOO(ped05) 1
+  set FOO(ped06) 1
+  set FOO(ped07) 1
+  set FOO(ped08) 1
+  set FOO(ped09) 1
+  set FOO(ped10) 1
+  set FOO(ped11) 1
+  set FOO(ped12) 1
+  set FOO(ped13) 1
+  set FOO(ped14) 1
+  set FOO(ped15) 1
+} -cleanup {
+  tearDown
+} -body {
+  ::dev WritePedestals FOO
+  ::ctlr getHistory
+} -result [list {write24 23 0 17 1} \
+                {write24 23 1 17 1} \
+                {write24 23 2 17 1} \
+                {write24 23 3 17 1} \
+                {write24 23 4 17 1} \
+                {write24 23 5 17 1} \
+                {write24 23 6 17 1} \
+                {write24 23 7 17 1} \
+                {write24 23 8 17 1} \
+                {write24 23 9 17 1} \
+                {write24 23 10 17 1} \
+                {write24 23 11 17 1} \
+                {write24 23 12 17 1} \
+                {write24 23 13 17 1} \
+                {write24 23 14 17 1} \
+                {write24 23 15 17 1} ]
+
+
+tcltest::test WritePedestals-1 {Test that we can setup a sparse read
+} -setup {
+  setup
+  set BAR(ped00) 1
+} -cleanup {
+  tearDown
+} -body {
+  ::dev WritePedestals BAR
+  ::ctlr getHistory
+} -result "ALeCroy4300B::WritePedestals Array contains fewer than 16 elements." \
+-returnCodes 1
 
 tcltest::cleanupTests
