@@ -143,6 +143,17 @@ tcltest::test setcontrolregister-0 { Test that we can set the control register
 
 
 
+tcltest::test getcontrolregister-0 { Test that we can add the right cmd to read cntrl reg 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev GetControlRegister
+  ::ctlr getHistory
+} -result [list {read24 23 0 0 0}]
+
+
 
 
 tcltest::test init-0 {Test that init configures the control register

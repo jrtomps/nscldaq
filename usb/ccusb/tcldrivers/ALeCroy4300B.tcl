@@ -7,6 +7,7 @@ package provide lecroy4300b 11.0
 
 package require Itcl
 package require Utils
+package require CCUSBDriverSupport
 
 
 
@@ -92,6 +93,10 @@ itcl::class ALeCroy4300B {
   # @returns the xq response
 	public method SetControlRegister {control}
 
+  ## @brief Read the control register 
+  #
+  # @returns the control rogister with xq encoded in bits 24 and 25
+	public method GetControlRegister {}
   #---------------------------------------------------------------------------#
   # Compound methods
   
@@ -170,6 +175,12 @@ itcl::class ALeCroy4300B {
   # @param regval the value to write to the register
   #
   public method sSetControlRegister {stack regval}
+
+  ## @brief Add command to stack to read the control register
+  #
+  # @param stack  a cccusbreadoutList::CCCUSBReadoutList
+  #
+  public method sGetControlRegister {stack}
 
   ## @brief Process stack consisting of commands created by a method 
   #
@@ -298,6 +309,12 @@ itcl::body ALeCroy4300B::SetControlRegister {regval} {
 }
 
 
+#
+#
+#
+itcl::body ALeCroy4300B::GetControlRegister {} {
+  return [Execute 1 [list sGetControlRegister]]
+}
 
 
 #-----------------------------------------------------------------------------#
@@ -365,6 +382,14 @@ itcl::body ALeCroy4300B::sSetPedestal {stack ch ped} {
 #
 itcl::body ALeCroy4300B::sSetControlRegister {stack regval} {
   $stack addWrite24 $node 0 16 $regval
+}
+
+#
+#
+#
+itcl::body ALeCroy4300B::sGetControlRegister {stack} {
+  # read NA(0)F(0) and don't wait for LAM
+  $stack addRead24 $node 0 0 0 
 }
 
 # A utility to facility single-shot operation evaluation
