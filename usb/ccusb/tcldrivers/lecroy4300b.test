@@ -349,4 +349,29 @@ tcltest::test WritePedestals-1 {Test that we can setup a sparse read
 } -result "ALeCroy4300B::WritePedestals Array contains fewer than 16 elements." \
 -returnCodes 1
 
+
+
+tcltest::test readLAM-0 {Test that reading the lam adds an F(8)A(0)
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev ReadLAM
+  ::ctlr getHistory
+} -result "{control 23 0 8}"
+
+
+
+tcltest::test readAndClearLAM-0 {Test that read/clear the lam adds an F(10)A(0)
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev ReadAndClearLAM
+  ::ctlr getHistory
+} -result "{control 23 0 10}"
+
+
 tcltest::cleanupTests

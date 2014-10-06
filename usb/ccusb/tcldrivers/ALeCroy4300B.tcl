@@ -100,6 +100,13 @@ itcl::class ALeCroy4300B {
   #
   # @returns the control rogister with xq encoded in bits 24 and 25
 	public method GetControlRegister {}
+
+
+
+  public method ReadLAM {} 
+  public method ReadAndClearLAM {} 
+
+
   #---------------------------------------------------------------------------#
   # Compound methods
   
@@ -186,6 +193,12 @@ itcl::class ALeCroy4300B {
   # @param stack  a cccusbreadoutList::CCCUSBReadoutList
   #
   public method sGetControlRegister {stack}
+
+
+  public method sReadLAM {stack}
+  public method sReadAndClearLAM {stack}
+
+
 
   ## @brief Process stack consisting of commands created by a method 
   #
@@ -278,7 +291,7 @@ itcl::body ALeCroy4300B::SetPedestal {ch peds} {
 #
 #
 itcl::body ALeCroy4300B::GetPedestal {ch} {
-  set res [catch {Execute 1 [list sGetPedestal $ch]} msg]
+  set res [catch {Execute 2 [list sGetPedestal $ch]} msg]
   if {$res} {
     set msg [lreplace $msg 0 0 ALeCroy4300B::GetPedestal]
     # we have to join this to avoid the [0,255] becomming "quoted" as a single
@@ -342,6 +355,14 @@ itcl::body ALeCroy4300B::GetControlRegister {} {
   return [Execute 2 [list sGetControlRegister]]
 }
 
+
+itcl::body ALeCroy4300B::ReadLAM {} {
+  return [Execute 1 [list sReadLAM]]
+}
+
+itcl::body ALeCroy4300B::ReadAndClearLAM {} {
+  return [Execute 1 [list sReadAndClearLAM]]
+}
 
 #-----------------------------------------------------------------------------#
 # Stack building method implementations
@@ -439,6 +460,23 @@ itcl::body ALeCroy4300B::sGetControlRegister {stack} {
   # read NA(0)F(0) and don't wait for LAM
   $stack addRead24 $node 0 0 0 
 }
+
+
+#
+#
+#
+itcl::body ALeCroy4300B::sReadLAM {stack} {
+  $stack addControl $node 0 8
+}
+
+#
+#
+#
+itcl::body ALeCroy4300B::sReadAndClearLAM {stack} {
+  $stack addControl $node 0 10
+}
+
+
 
 # A utility to facility single-shot operation evaluation
 #
