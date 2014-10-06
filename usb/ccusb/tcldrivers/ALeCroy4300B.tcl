@@ -6,6 +6,7 @@
 package provide lecroy4300b 11.0
 
 package require Itcl
+package require Utils
 
 
 
@@ -41,6 +42,22 @@ itcl::class ALeCroy4300B {
   # @returns a cccusb::CCCUSB object
   public method GetController {}
 
+
+
+  ## @brief Clear the module to allow new gates 
+  #
+  # @returns xq response
+	public method Clear {}
+
+  ## @brief Write a pedestal for a specific channel to the device
+  #
+  # Pedestals must be values in the range [0,255].
+  #
+  # @param  ch  the target channel
+  # @param  ped value to write 
+  #
+	public method SetPedestal {ch ped}
+
   ## @brief Write a list of pedestals to the device
   #
   # This writes a list of pedestal values to the device. The first element of
@@ -51,13 +68,6 @@ itcl::class ALeCroy4300B {
   #
   # @throws error if the user provides fewer than 16 pedestal values
 	public method SetPedestals {peds}
-
-  ## @brief Write a pedestal for a specific channel to the device
-  #
-  # @param  ch  the target channel
-  # @param  ped value to write 
-  #
-	public method SetPedestal {ch ped}
 
   ## @brief Write an array of threshold values
   #
@@ -74,8 +84,13 @@ itcl::class ALeCroy4300B {
   #   - array does not contain 16 elements named ped%.2d
   #
 	public method WritePedestals {{arrname SCINT_ENERGY}}
+
+  ## @brief Write a value to the control register 
+  #
+  # @param  control value to write 
+  #
+  # @returns the xq response
 	public method SetControlRegister {control}
-	public method Clear {}
 
   #---------------------------------------------------------------------------#
   # Compound methods
@@ -85,21 +100,75 @@ itcl::class ALeCroy4300B {
   # The following modes are set:
   # CAMAC LAM enabled; 
   # CAMAC sequential read; 
-  # Pedestal subtraction enabled
+  # CAMAC Compression enable
+  # CAMAC Pedestal subtraction enabled
   # 
 	public method Init {} {
-    SetControlRegister 0x7800
+    set CPS [expr 1<<11] ;#< ped subtraction
+    set CCE [expr 1<<12] ;#< compression enable 
+    set CSR [expr 1<<13] ;#< sequential readout
+    set CLE [expr 1<<14] ;#< LAM enable
+
+    set mode [expr {$CLE | $CSR | $CCE | $CPS}]
+    SetControlRegister $mode
   }
 
-# Stack methods
+  #---------------------------------------------------------------------------#
+  # Stack methods
   
+  ## @brief Add command to stack to clear the module for accepting new gates
+  #
+  # @param stack  a cccusbreadoutlist::CCCUSBReadoutList
 	public method sClear {stack}
+
+  ## @brief Add command to stack to read a value from the stack 
+  #
+  # This is only meaningful if the module is configured for data compression.
+  # Simply adds a read24 of NA(0)F(2)
+  #
+  # @param stack  a cccusbreadoutlist::CCCUSBReadoutList
 	public method sReadHeader {stack}
+
+  ## @brief Add command to stack to read a specific channel from the device
+  #
+  # Simply adds a read24 of NA(channel)F(2)
+  #
+  # @param stack  a cccusbreadoutlist::CCCUSBReadoutList
 	public method sReadChannel {stack channel}
+
+  ## @brief Add command to stack to perform a qscan of maximum length 17
+  #
+  # @todo CHECK THAT THIS CAN ACTUALLY READ ALL 16 CHANNELS + header
+  #
+  # @param stack  a cccusbreadoutlist::CCCUSBReadoutList
 	public method sReadSparse {stack}
 
+  ## @brief Adds commands to the stack to write 16 pedestal values 
+  #
+  # Pedestals provided are assigned to channels with the corresponding index.
+  # For example, element 0 is written to channel 0, element 1 is written to
+  # channel 1, ...
+  #
+  # @param stack  a cccusbreadoutlist::CCCUSBReadoutList
+  # @param peds   a list of 16 pedestal values
+  #
+  # @throws error if 
+  #  - there are fewer than 16 pedestal values provided
+  #  - any of the pedestal values provided are outside of range [0,255]
   public method sSetPedestals {stack peds}
+
+  ## @brief Adds commands to the stack to write a single pedestal value 
+  #
+  # @param stack  a cccusbreadoutlist::CCCUSBReadoutList
+  # @param peds   a list of 16 pedestal values
   public method sSetPedestal {stack ch ped}
+
+
+  ## @brief Add command to stack to write a value to the control register
+  #
+  # @param stack  a cccusbreadoutList::CCCUSBReadoutList
+  # @param regval the value to write to the register
+  #
   public method sSetControlRegister {stack regval}
 
   ## @brief Process stack consisting of commands created by a method 
@@ -134,20 +203,32 @@ itcl::class ALeCroy4300B {
   #  @returns resulting data from the stack execution as a tcl list of 32-bit words
   #
   public method Execute {grouping script} 
-}
+
+
+} ;# End of itcl::class
+
 
 #--------------------------------------------------------------------
-#
+# Single shot method implementation
 #
 
+#
+#
+#
 itcl::body ALeCroy4300B::SetController {ctlr} {
   set device $ctlr
 }
 
+#
+#
+#
 itcl::body ALeCroy4300B::GetController {} {
   return $device
 }
 
+#
+#
+#
 itcl::body ALeCroy4300B::SetPedestals {peds} {
   set res [catch {Execute 1 [list sSetPedestals $peds]} msg]
   if {$res} {
@@ -156,25 +237,42 @@ itcl::body ALeCroy4300B::SetPedestals {peds} {
   return $msg
 }
 
+#
+#
+#
 itcl::body ALeCroy4300B::SetPedestal {ch peds} {
   set res [catch {Execute 1 [list sSetPedestal $ch $peds]} msg]
   if {$res} {
-    return -code error [lreplace $msg 0 0 ALeCroy4300B::SetPedestal]
+    set msg [lreplace $msg 0 0 ALeCroy4300B::SetPedestal]
+    # we have to join this to avoid the [0,255] becomming "quoted" as a single
+    # independent string 
+    return -code error [join $msg " "]
   }
   return $msg
 }
 
+#
+#
+#
 itcl::body ALeCroy4300B::Clear {} {
   return [Execute 1 [list sClear]]
 }
 
+
+
+#
+#
+#
 itcl::body ALeCroy4300B::WritePedestals {{arrname SCINT_ENERGY}} {
 	global $arrname 
+
+  # check that the array exists
 	if {![info exists $arrname]} {
     set msg "ALeCroy4300B::WritePedestals Cannot find array $arrname for $self"
 		return -code error $msg
 	}
 
+  # ensure that the array has at least 16 elements
   set names [array names $arrname]
   if {[llength $names]<16} {
     set msg "ALeCroy4300B::WritePedestals Array contains fewer than 16 "
@@ -182,36 +280,65 @@ itcl::body ALeCroy4300B::WritePedestals {{arrname SCINT_ENERGY}} {
     return -code error $msg
   }
 
+  # convert array into an equivalent list
 	for {set i 0} {$i < 16} {incr i} {
     set elpair [array get $arrname [format "ped%.2d" $i]]
     lappend peds [lindex $elpair 1] 
   }
+
+  # set the pedestals
 	SetPedestals $peds
 }
 
+#
+#
+#
 itcl::body ALeCroy4300B::SetControlRegister {regval} {
   return [Execute 1 [list sSetControlRegister $regval]]
 }
 
+
+
+
+#-----------------------------------------------------------------------------#
+# Stack building method implementations
+#
+
+#
+#
+#
 itcl::body ALeCroy4300B::sClear {stack} {
   $stack addControl $node 0 9	
 }
 
+#
+#
+#
 itcl::body ALeCroy4300B::sReadHeader {stack} {
   $stack addRead24 $node 0 2
 }
 
+#
+#
+#
 itcl::body ALeCroy4300B::sReadChannel {stack channel} {
   $stack addRead24 $node $channel 2
 }
 
+#
+#
+#
 itcl::body ALeCroy4300B::sReadSparse {stack} {
   $stack addQScan $node 0 2 17 1
 }
 
+#
+#
+#
 itcl::body ALeCroy4300B::sSetPedestals {stack peds} {
 	if {[llength $peds] < 16} {
-    set msg "ALeCroy4300B::sSetPedestals Fewer than 16 pedestal values provided."
+    set msg "ALeCroy4300B::sSetPedestals Fewer than 16 pedestal values "
+    append msg  "provided."
 		return -code error $msg
 	}
 
@@ -220,21 +347,27 @@ itcl::body ALeCroy4300B::sSetPedestals {stack peds} {
 	}
 }
 
+#
+#
+#
 itcl::body ALeCroy4300B::sSetPedestal {stack ch ped} {
+  if {![Utils::isInRange 0 255 $ped]} {
+    set msg "ALeCroy4300B::sSetPedestal Pedestal value provided is out of "
+    append msg {range. Must be in range [0,255].}
+    return -code error $msg
+  }
+
   $stack addWrite24 $node $ch 17 $ped 
 }
 
+#
+#
+#
 itcl::body ALeCroy4300B::sSetControlRegister {stack regval} {
   $stack addWrite24 $node 0 16 $regval
 }
 
 # A utility to facility single-shot operation evaluation
-#
-# Given a list whose first element is a proc name and subsequent elements are
-# arguments (i.e. procname arg0 arg1 arg2 ...) , this creates a stack
-#
-#  procname stack arg0 arg1 arg2 ...
-#  
 #
 itcl::body ALeCroy4300B::Execute {grouping script} {
 #ensure there is a device to execute the readout list

@@ -105,6 +105,15 @@ tcltest::test setPedestal-0 {Test that we can write a single pedestal value
   ::ctlr getHistory
 } -result [list {write24 23 3 17 120}] 
 
+tcltest::test setPedestal-1 {Test that a ped out of bounds will fail
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev SetPedestal 3 256 
+} -result {ALeCroy4300B::SetPedestal Pedestal value provided is out of range. Must be in range [0,255].} -returnCodes 1
+
 
 
 
@@ -144,7 +153,7 @@ tcltest::test init-0 {Test that init configures the control register
 } -body {
   ::dev Init
   ::ctlr getHistory
-} -result [list {write24 23 0 16 0x7800}]
+} -result [list [list write24 23 0 16 [expr 0x7800]] ]
 
 
 
