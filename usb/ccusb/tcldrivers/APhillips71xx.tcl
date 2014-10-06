@@ -8,7 +8,12 @@ package provide phillips71xx 11.0
 package require Itcl
 package require cccusbreadoutlist
 package require CCUSBDriverSupport
+package require Utils 
 
+
+## @brief Low-level driver from Phillips 71xx series digitizers
+#
+#
 itcl::class APhillips71xx {
 	private variable device   ;#< reference to USB controller
 	private variable node     ;#< slot number (i.e. N)
@@ -416,22 +421,6 @@ itcl::class APhillips71xx {
   private method Execute {grouping script}
 
 
-  ## @brief Check that all of the elements in a list fall within a range
-  #
-  # This iterates through the list and checks each element for the following
-  # condition: low <= element <= high. The algorithm begins at the beginning of
-  # the list and keeps checking until either an element is identified that does
-  # not satisfy the condition or the end of the list is reached.
-  #
-  # @param low  lower bound
-  # @param high upper bound
-  # @param list list of values
-  #
-  # @returns boolean 
-  # @retval 0 - at least one element in list is outside of range
-  # @retval 1 - all elements fall within range
-  public method ListElementsInRange {low high list}
-
   ## @brief Compare data read from the device with an expected set of values
   #
   # This handles the fact that data read from the device have an XQ value
@@ -626,7 +615,7 @@ itcl::body APhillips71xx::sSetProgrammingMode {stack mode} {
 itcl::body APhillips71xx::sSetPedestals {stack peds} {
 
   # check to see if the pedestal values are sensible
-  if {![ListElementsInRange -4095 4095 $peds]} {
+  if {![Utils::listElementsInRange -4095 4095 $peds]} {
     set msg "APhillips71xx::sSetPedestals at least one pedestal value is out "
     append msg {of range. Must be in range [-4095,4095].}
     return -code error $msg
@@ -646,7 +635,7 @@ itcl::body APhillips71xx::sSetPedestals {stack peds} {
 itcl::body APhillips71xx::sSetLowerThresholds {stack lth} {
 
   # check to see if the pedestal values are sensible
-  if {![ListElementsInRange 0 4095 $lth]} {
+  if {![Utils::listElementsInRange 0 4095 $lth]} {
     set msg "APhillips71xx::sSetLowerThresholds at least one threshold value "
     append msg {is out of range. Must be in range [0,4095].}
     return -code error $msg
@@ -667,7 +656,7 @@ itcl::body APhillips71xx::sSetLowerThresholds {stack lth} {
 itcl::body APhillips71xx::sSetUpperThresholds {stack lth} {
 
   # check to see if the pedestal values are sensible
-  if {![ListElementsInRange 0 4095 $lth]} {
+  if {![Utils::listElementsInRange 0 4095 $lth]} {
     set msg "APhillips71xx::sSetUpperThresholds at least one threshold value "
     append msg {is out of range. Must be in range [0,4095].}
     return -code error $msg
@@ -732,25 +721,6 @@ itcl::body APhillips71xx::Execute {grouping script} {
     append msg "SetController"
     return -code error $msg
   } 
-}
-
-
-
-
-itcl::body APhillips71xx::ListElementsInRange {low high list} {
-
-  # this is innocent until proven guilty
-  set result 1 
-
-  # if an element is out of range, flag it and stop looking.
-  foreach element $list {
-    if {($element<$low) || ($element>$high)} {
-      set result 0
-      break
-    }
-  }
-
-  return $result
 }
 
 

@@ -5,6 +5,9 @@
 
 package provide caenc671 11.0
 
+package require Utils
+
+
 ##
 # Device driver for the CAENC671 CAMAC CFD
 #
@@ -185,13 +188,6 @@ itcl::class ACAENC671 {
   #----------------------------------------------------------------------------
   # Utilities methods
 
-  ## @brief Checks whether a value is in the specified range
-  #
-  # Effectively check to see if  low <= val <= high
-  #
-  # @returns boolean indicating if value is in range
-  private method isInRange {low high val}
-
   ## @brief Convert user majority code to be understood by device
   #
   # @returns 6*(numChannels-1)
@@ -222,7 +218,7 @@ itcl::body ACAENC671::GetController {} {
 #
 #
 itcl::body ACAENC671::Enable {bank pat} {
-  if {![isInRange 0 1 $bank]} {
+  if {![Utils::isInRange 0 1 $bank]} {
     return -code error \
       "ACAENC671::Enable bank $bank is invalid. Must be either 0 or 1."
   }
@@ -234,12 +230,12 @@ itcl::body ACAENC671::Enable {bank pat} {
 #
 #
 itcl::body ACAENC671::Threshold {ch th} {
-  if {![isInRange 0 15 $ch]} {
+  if {![Utils::isInRange 0 15 $ch]} {
     return -code error \
       "ACAENC671::Threshold ch $ch is invalid. Must be in range \[0,15\]."
   }
 
-  if {![isInRange 0 255 $th]} {
+  if {![Utils::isInRange 0 255 $th]} {
     set msg "ACAENC671::Threshold $th is an invalid threshold setting. "
     append msg {Must be in range [0,255].}
     return -code error $msg
@@ -253,12 +249,12 @@ itcl::body ACAENC671::Threshold {ch th} {
 #
 #
 itcl::body ACAENC671::Delay {ch del} {
-  if {![isInRange 0 15 $ch]} {
+  if {![Utils::isInRange 0 15 $ch]} {
     return -code error \
       "ACAENC671::Delay ch $ch is invalid. Must be in range \[0,15\]."
   }
 
-  if {![isInRange 0 255 $del]} {
+  if {![Utils::isInRange 0 255 $del]} {
     set msg "ACAENC671::Delay $del is an invalid delay setting. "
     append msg {Must be in range [0,255].}
     return -code error $msg
@@ -272,12 +268,12 @@ itcl::body ACAENC671::Delay {ch del} {
 #
 #
 itcl::body ACAENC671::Width {bank wid} {
-  if {![isInRange 0 1 $bank]} {
+  if {![Utils::isInRange 0 1 $bank]} {
     return -code error \
       "ACAENC671::Width bank $bank is invalid. Must be either 0 or 1."
   }
 
-  if {![isInRange 0 255 $wid]} {
+  if {![Utils::isInRange 0 255 $wid]} {
     set msg "ACAENC671::Width $wid is an invalid width setting. "
     append msg {Must be in range [0,255].}
     return -code error $msg
@@ -293,12 +289,12 @@ itcl::body ACAENC671::Width {bank wid} {
 #
 #
 itcl::body ACAENC671::DeadTime {bank dt} {
-  if {![isInRange 0 1 $bank]} {
+  if {![Utils::isInRange 0 1 $bank]} {
     return -code error \
       "ACAENC671::DeadTime bank $bank is invalid. Must be either 0 or 1."
   }
 
-  if {![isInRange 0 255 $dt]} {
+  if {![Utils::isInRange 0 255 $dt]} {
     set msg "ACAENC671::DeadTime $dt is an invalid dead time setting. "
     append msg {Must be in range [0,255].}
     return -code error $msg
@@ -316,12 +312,12 @@ itcl::body ACAENC671::DeadTime {bank dt} {
 #
 #
 itcl::body ACAENC671::PromptWidth {bank wid} {
-  if {![isInRange 0 1 $bank]} {
+  if {![Utils::isInRange 0 1 $bank]} {
     return -code error \
       "ACAENC671::PromptWidth bank $bank is invalid. Must be either 0 or 1."
   }
 
-  if {![isInRange 0 255 $wid]} {
+  if {![Utils::isInRange 0 255 $wid]} {
     set msg "ACAENC671::PromptWidth $wid is an invalid output width setting. "
     append msg {Must be in range [0,255].}
     return -code error $msg
@@ -339,7 +335,7 @@ itcl::body ACAENC671::PromptWidth {bank wid} {
 #
 #
 itcl::body ACAENC671::InternalMajority {numChans} {
-  if {![isInRange 1 16 $numChans]} {
+  if {![Utils::isInRange 1 16 $numChans]} {
     set msg "ACAENC671::InternalMajority $numChans is an invalid internal "
     append msg {majority setting. Must be in range [1,16].}
     return -code error $msg
@@ -354,7 +350,7 @@ itcl::body ACAENC671::InternalMajority {numChans} {
 #
 #
 itcl::body ACAENC671::ExternalMajority {numChans enable} {
-  if {![isInRange 1 43 $numChans]} {
+  if {![Utils::isInRange 1 43 $numChans]} {
     set msg "ACAENC671::ExternalMajority $numChans is an invalid external "
     append msg {majority setting. Must be in range [1,43].}
     return -code error $msg
@@ -375,7 +371,7 @@ itcl::body ACAENC671::ExternalMajority {numChans enable} {
 #
 #
 itcl::body ACAENC671::SetMultiplexPrompt {chn} {
-  if {![isInRange 0 15 $chn]} {
+  if {![Utils::isInRange 0 15 $chn]} {
     set msg "ACAENC671::SetMultiplexPrompt $chn is an invalid channel. "
     append msg {Must be in range [0,15].}
     return -code error $msg
@@ -392,7 +388,7 @@ itcl::body ACAENC671::SetMultiplexPrompt {chn} {
 #
 #
 itcl::body ACAENC671::SetMultiplexDelay {chn} {
-  if {![isInRange 0 15 $chn]} {
+  if {![Utils::isInRange 0 15 $chn]} {
     set msg "ACAENC671::SetMultiplexDelay $chn is an invalid channel. "
     append msg {Must be in range [0,15].}
     return -code error $msg
@@ -410,7 +406,7 @@ itcl::body ACAENC671::SetMultiplexDelay {chn} {
 #
 #
 itcl::body ACAENC671::SetMultiplexInputLevel {chn} {
-  if {![isInRange 0 15 $chn]} {
+  if {![Utils::isInRange 0 15 $chn]} {
     set msg "ACAENC671::SetMultiplexInputLevel $chn is an invalid channel. "
     append msg {Must be in range [0,15].}
     return -code error $msg
@@ -425,11 +421,6 @@ itcl::body ACAENC671::SetMultiplexInputLevel {chn} {
 
 # ------------------------------------------------------------------------------
 # Utility methods
-
-itcl::body ACAENC671::isInRange {low high val} {
-  return [expr {($val>=$low) && ($val<=$high)}]
-}
-
 
 itcl::body ACAENC671::computeMajorityCode {numChannels} {
   return [expr {6*($numChannels-1)}]

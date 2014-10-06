@@ -561,26 +561,6 @@ tcltest::test GetLastProgrammedData-0 {Test that we can read the last set of pro
                 {read24 10 15 1 0}] 
 
 
-tcltest::test ListElementsInRange-0 {test that all in range returns 1
-} -setup { 
-  setup
-} -cleanup {
-  tearDown
-} -body {
-  ::dev ListElementsInRange 0 15 [list 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15]
-} -result 1
-
-
-tcltest::test ListElementsInRange-1 {test that an element out of range returns 0
-} -setup { 
-  setup
-} -cleanup {
-  tearDown
-} -body {
-  ::dev ListElementsInRange 0 15 [list 0 1 2 3 4 5 6 7 8 49 10 11 12 13 14 15]
-} -result 0
-
-
 
 tcltest::test ReadDataIsAsExpected-0 {Test for data that is the same except for QX 
 } -setup { 
