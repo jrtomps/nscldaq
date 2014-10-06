@@ -25,4 +25,18 @@ tcltest::test isInRange-2 {value just above range returns 0 } {
 
 
 
+tcltest::test listElementsInRange-0 {test that all in range returns 1} {
+  Utils::listElementsInRange 0 15 [list 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15]
+} 1
+
+
+tcltest::test listElementsInRange-1 {test that an just below lower limit returns 0 } {
+  Utils::listElementsInRange 0 15 [list -1]
+} 0 
+
+tcltest::test listElementsInRange-1 {test that an just above upper limit returns 0 } {
+  Utils::listElementsInRange 0 15 [list 16]
+} 0 
+
+
 tcltest::cleanupTests
