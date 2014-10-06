@@ -800,3 +800,9 @@ Work on 11.0-rc11 begins
 	been changed to target_CPPFLAGS pretty much everywhere or
 	integrated with an existing target_CXXFLAGS definition when that's
 	simpler. 
+        Feature # 2186 - Tcl ringbuffer package:  Allow ringbuffer usage
+        without a ringname so that all ring usages are given.  Provide
+        a ringbuffer list subcommand.  This also satisfies Feature #2535
+        since users can check for the ringbuffer in the list of names
+        returned by ringbuffer list.
+        

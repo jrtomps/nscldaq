@@ -198,8 +198,14 @@ g++ -o myapp myapp.cpp -L$DAQROOT/lib -lDataFlow -Wl,"-rpath=$DAQROOT/lib"
 
     <refentry id="manpage.cringmaster">
       <refmeta>
-         <refentrytitle>CRingMaster</refentrytitle>
+         <refentrytitle>
+            CRingMaster
+            <author><firstname>Ron</firstname> <surname>Fox</surname></author>
+            <productname>NSCLDAQ</productname>
+            <productnumber></productnumber>
+         </refentrytitle>
          <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
       </refmeta>
       <refnamediv>
          <refname>CRingMaster</refname>
@@ -210,8 +216,8 @@ g++ -o myapp myapp.cpp -L$DAQROOT/lib -lDataFlow -Wl,"-rpath=$DAQROOT/lib"
          <programlisting>
 #include &lt;CRingMaster.h&gt;
          </programlisting>
-         <classsynopsis>
-            <ooclass><classname>CRingMaster</classname></ooclass>
+         <synopsis>
+         class <ooclass><classname>CRingMaster</classname></ooclass> {
             <constructorsynopsis>
                 <methodname>CRingMaster</methodname>
                 <methodparam>
@@ -277,7 +283,15 @@ g++ -o myapp myapp.cpp -L$DAQROOT/lib -lDataFlow -Wl,"-rpath=$DAQROOT/lib"
                     <type>std::string</type> <parameter>ringname</parameter>
                 </methodparam>
             </methodsynopsis>
-         </classsynopsis>
+            <methodsynopsis>
+                <modifier></modifier>
+                <type>std::string</type>
+                <methodname>requestUsage</methodname>
+                <void />
+                <modifier></modifier>
+            </methodsynopsis>    
+         }
+         </synopsis>
       </refsynopsisdiv>
       <refsect1>
          <title>Description</title>
@@ -453,15 +467,86 @@ g++ -o myapp myapp.cpp -L$DAQROOT/lib -lDataFlow -Wl,"-rpath=$DAQROOT/lib"
                 result in error, it is best to destroy this object once
                 this method returns successfully.
             </para>
-      </refsect1>
-      <refsect1>
-         <title>
-            KNOWN DEFECTS AND ISSUES
-         </title>
-	 <para>
-            The interface is not complete as it provides no way to list the
-            remote rings nor to get the ring usage from a ring master.
-	 </para>
+            <methodsynopsis>
+                <modifier></modifier>
+                <type>std::string</type>
+                <methodname>requestUsage</methodname>
+                <void />
+                <modifier></modifier>
+            </methodsynopsis>
+            <para>
+                Requests usage information from the RingMaster.  This is returned
+                as a, possibly empty, proper Tcl list with one element per ring.
+                Each list itself is a sublist which contains in order:
+                <variablelist>
+                    <varlistentry>
+                        <term>name</term>
+                        <listitem>
+                            <para>
+                                The name of the ring.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>size</term>
+                        <listitem>
+                            <para>
+                                Size of the ring buffer part of the ring shared memory
+                                region in bytes.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>Free space</term>
+                        <listitem>
+                            <para>
+                                Number of bytes of free space in the ring.  This is the size of
+                                the largest possible put into the ring at this instant in time.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>Producer</term>
+                        <listitem>
+                            <para>
+                                The process id of the producer or <literal>-1</literal>
+                                if there is no producer for this ringbuffer.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>Maximum available.</term>
+                        <listitem>
+                            
+                            <para>
+                                The size of the backlog in bytes for the consumer that is
+                                least caught up.  
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>Minimum Available</term>
+                        <listitem>
+                            <para>
+                                The size of the backlog in bytes for the consumer that is
+                                most caught up.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>Consumer information</term>
+                        <listitem>
+                            <para>
+                                This is a list containing one element per currently attached
+                                consumer.  The elements themselves are two element lists containing
+                                in order the PID of the consumer and the size of that consumer's
+                                backlog in bytes.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    
+                </variablelist>
+            </para>
       </refsect1>
    </refentry>
 
@@ -469,10 +554,14 @@ g++ -o myapp myapp.cpp -L$DAQROOT/lib -lDataFlow -Wl,"-rpath=$DAQROOT/lib"
       <refmeta>
          <refentrytitle>CRingAccess</refentrytitle>
          <manvolnum>3 daq</manvolnum>
+         <author><firstname>Ron</firstname> <surname>Fox</surname></author>
+         <productname>NSCLDAQ</productname>
+        <productnumber></productnumber>
       </refmeta>
       <refnamediv>
          <refname>CRingAccess</refname>
 	 <refpurpose>Remote Ring Access</refpurpose>
+         <refmiscinfo class='empty'></refmiscinfo>
       </refnamediv>
       
       <refsynopsisdiv>
