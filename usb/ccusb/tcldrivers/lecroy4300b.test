@@ -116,6 +116,54 @@ tcltest::test setPedestal-1 {Test that a ped out of bounds will fail
 
 
 
+tcltest::test getPedestals-0 {Test that getting the pedestals does the right thing 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev GetPedestals
+  ::ctlr getHistory
+} -result [list {read24 23 0 1 0} \
+                {read24 23 1 1 0} \
+                {read24 23 2 1 0} \
+                {read24 23 3 1 0} \
+                {read24 23 4 1 0} \
+                {read24 23 5 1 0} \
+                {read24 23 6 1 0} \
+                {read24 23 7 1 0} \
+                {read24 23 8 1 0} \
+                {read24 23 9 1 0} \
+                {read24 23 10 1 0} \
+                {read24 23 11 1 0} \
+                {read24 23 12 1 0} \
+                {read24 23 13 1 0} \
+                {read24 23 14 1 0} \
+                {read24 23 15 1 0} ]
+
+
+tcltest::test getPedestal-0 {Test that getting a single pedestal does the right thing 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev GetPedestal 13
+  ::ctlr getHistory
+} -result [list {read24 23 13 1 0}]
+
+tcltest::test getPedestal-1 {Test that getting ped for an out-of-range channel fails 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev GetPedestal 16
+} -result {ALeCroy4300B::GetPedestal Channel index provided is out of range. Must be in range [0,15].}  \
+-returnCodes 1
+
+
+
 
 tcltest::test clear-0 {Test that clearing the module does what we expect
 } -setup {

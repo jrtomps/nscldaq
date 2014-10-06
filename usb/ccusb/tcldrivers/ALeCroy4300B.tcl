@@ -70,6 +70,9 @@ itcl::class ALeCroy4300B {
   # @throws error if the user provides fewer than 16 pedestal values
 	public method SetPedestals {peds}
 
+  public method GetPedestal {ch}
+  public method GetPedestals {}
+
   ## @brief Write an array of threshold values
   #
   # Provided the name of an array containing the pedestal values, write the
@@ -161,12 +164,14 @@ itcl::class ALeCroy4300B {
   #  - there are fewer than 16 pedestal values provided
   #  - any of the pedestal values provided are outside of range [0,255]
   public method sSetPedestals {stack peds}
+  public method sGetPedestals {stack}
 
   ## @brief Adds commands to the stack to write a single pedestal value 
   #
   # @param stack  a cccusbreadoutlist::CCCUSBReadoutList
   # @param peds   a list of 16 pedestal values
   public method sSetPedestal {stack ch ped}
+  public method sGetPedestal {stack ch}
 
 
   ## @brief Add command to stack to write a value to the control register
@@ -251,10 +256,31 @@ itcl::body ALeCroy4300B::SetPedestals {peds} {
 #
 #
 #
+itcl::body ALeCroy4300B::GetPedestals {} {
+  return [Execute 2 [list sGetPedestals]]
+}
+
+#
+#
+#
 itcl::body ALeCroy4300B::SetPedestal {ch peds} {
   set res [catch {Execute 1 [list sSetPedestal $ch $peds]} msg]
   if {$res} {
     set msg [lreplace $msg 0 0 ALeCroy4300B::SetPedestal]
+    # we have to join this to avoid the [0,255] becomming "quoted" as a single
+    # independent string 
+    return -code error [join $msg " "]
+  }
+  return $msg
+}
+
+#
+#
+#
+itcl::body ALeCroy4300B::GetPedestal {ch} {
+  set res [catch {Execute 1 [list sGetPedestal $ch]} msg]
+  if {$res} {
+    set msg [lreplace $msg 0 0 ALeCroy4300B::GetPedestal]
     # we have to join this to avoid the [0,255] becomming "quoted" as a single
     # independent string 
     return -code error [join $msg " "]
@@ -313,7 +339,7 @@ itcl::body ALeCroy4300B::SetControlRegister {regval} {
 #
 #
 itcl::body ALeCroy4300B::GetControlRegister {} {
-  return [Execute 1 [list sGetControlRegister]]
+  return [Execute 2 [list sGetControlRegister]]
 }
 
 
@@ -367,6 +393,14 @@ itcl::body ALeCroy4300B::sSetPedestals {stack peds} {
 #
 #
 #
+itcl::body ALeCroy4300B::sGetPedestals {stack} {
+	for {set i 0} {$i < 16} {incr i} {
+    sGetPedestal $stack $i
+	}
+}
+#
+#
+#
 itcl::body ALeCroy4300B::sSetPedestal {stack ch ped} {
   if {![Utils::isInRange 0 255 $ped]} {
     set msg "ALeCroy4300B::sSetPedestal Pedestal value provided is out of "
@@ -375,6 +409,20 @@ itcl::body ALeCroy4300B::sSetPedestal {stack ch ped} {
   }
 
   $stack addWrite24 $node $ch 17 $ped 
+}
+
+#
+#
+#
+itcl::body ALeCroy4300B::sGetPedestal {stack ch} {
+  if {![Utils::isInRange 0 15 $ch]} {
+    set msg "ALeCroy4300B::sGetPedestal Channel index provided is out of range. " 
+    append msg {Must be in range [0,15].}
+    return -code error $msg
+  }
+
+  # read the pedestal and don't wait for a LAM
+  $stack addRead24 $node $ch 1 0 
 }
 
 #
