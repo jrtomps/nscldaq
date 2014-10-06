@@ -1,0 +1,28 @@
+
+
+package require tcltest
+
+tcltest::test pkgrequire-0 {Test that we can require the package
+} {package require Utils} 1.0
+
+
+
+
+
+
+
+tcltest::test isInRange-0 {value in range returns 1 } {
+  Utils::isInRange 0 1 0
+} 1
+
+tcltest::test isInRange-1 {value just below range returns 0 } {
+  Utils::isInRange 0 1 -1 
+} 0
+
+tcltest::test isInRange-2 {value just above range returns 0 } {
+  Utils::isInRange 0 1 2 
+} 0
+
+
+
+tcltest::cleanupTests
