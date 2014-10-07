@@ -551,17 +551,20 @@ g++ -o myapp myapp.cpp -L$DAQROOT/lib -lDataFlow -Wl,"-rpath=$DAQROOT/lib"
    </refentry>
 
     <refentry id="manpage.cringaccess">
+        <refentryinfo>
+            <author><firstname>Ron</firstname> <surname>Fox</surname></author>
+            <productname>NSCLDAQ</productname>
+            <productnumber></productnumber>           
+        </refentryinfo>
       <refmeta>
          <refentrytitle>CRingAccess</refentrytitle>
          <manvolnum>3 daq</manvolnum>
-         <author><firstname>Ron</firstname> <surname>Fox</surname></author>
-         <productname>NSCLDAQ</productname>
-        <productnumber></productnumber>
+        <refmiscinfo class='empty'></refmiscinfo>
       </refmeta>
       <refnamediv>
          <refname>CRingAccess</refname>
 	 <refpurpose>Remote Ring Access</refpurpose>
-         <refmiscinfo class='empty'></refmiscinfo>
+         
       </refnamediv>
       
       <refsynopsisdiv>

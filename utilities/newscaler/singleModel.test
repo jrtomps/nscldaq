@@ -61,7 +61,7 @@ tcltest::test numerator-rate {Should be able to faithfully report numerator rate
     c update 1000 1
     
     m getNumeratorRate
-} -result [expr {double(1000)}]
+} -result [format %6.2f 1000]
 
 tcltest::test denominator-rate {Denominator rate is ""} \
 -cleanup {
@@ -88,7 +88,7 @@ tcltest::test numerator-total {Correct report of scaler total} \
     c update 1000 2
     
     m getNumeratorTotal
-} -result 2000
+} -result [format %6d 2000]
 
 
 tcltest::test denominator-total {Empty denominator total} \

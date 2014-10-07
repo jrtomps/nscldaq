@@ -71,7 +71,7 @@ snit::type ratioModel {
     #
     method getNumeratorRate {} {
         set channel $options(-numerator)
-        return [$channel rate]
+        return [format "%6.2f " [$channel rate]]
     }
     ##
     # getDenominatorRate
@@ -80,7 +80,7 @@ snit::type ratioModel {
     #
     method getDenominatorRate {} {
         set channel $options(-denominator)
-        return [$channel rate]
+        return [format %6.2f [$channel rate]]
     }
     ##
     # getNumeratorTotal
@@ -90,7 +90,7 @@ snit::type ratioModel {
     method getNumeratorTotal {} {
         set channel $options(-numerator)
         
-        return [$channel total]
+        return [format "%6d " [$channel total]]
     }
     ##
     # getDenominatorTotal
@@ -99,7 +99,7 @@ snit::type ratioModel {
     #
     method getDenominatorTotal {} {
         set channel $options(-denominator)
-        return [$channel total]
+        return [format %6d [$channel total]]
     }
     ##
     # getRateRatio
@@ -154,7 +154,7 @@ snit::type ratioModel {
     
     proc _ratio {num den} {
         if {$den != 0} {
-            return [expr {double($num)/$den}]
+            return [format %6.2f [expr {double($num)/$den}]]
         } else {
             return *
         }
