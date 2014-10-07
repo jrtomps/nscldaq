@@ -808,6 +808,8 @@ Work on 11.0-rc11 begins
         Bug #2343 Document the VMUSBReadout marker command (daqconfig).
         Fix other issues with documentation pages as we try to reduce the warnings.
         Bug #2240 Better formatting for  new scaler display numbers.
+        Bug #2242 CDataFormatItem was mis-documented as CRingFormatItem.
+        
         
         
         
