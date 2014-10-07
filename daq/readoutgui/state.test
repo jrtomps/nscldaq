@@ -113,6 +113,11 @@ proc complexsetter {bravo varname value} {
     set ::restored::$varname $value
 }
 
+
+proc envgetter {varname} {
+    return {$::env(A)}
+}
+
 tcltest::test save-1 {Save without -file set is an error} \
 -setup {
     StateManager a
@@ -310,6 +315,7 @@ tcltest::test restore-5 {Restore with complex setter should work fine} \
     set fullpath [file join [tcltest::temporaryDirectory] settings.test]
     StateManager a -file $fullpath
     a addStateVariable aa getter [list complexsetter 1234]
+
     a save
     
     namespace eval ::restored:: {}
@@ -323,6 +329,29 @@ tcltest::test restore-5 {Restore with complex setter should work fine} \
     list [info var ::restored::*] [set ::restored::aa]
     
 } -result [list ::restored::aa $aa]
+
+tcltest::test restore-6 {Restore script with env variable} \
+-setup {
+    set fullpath [file join [tcltest::temporaryDirectory] settings.test]
+    set fd [open $fullpath w]
+    puts $fd {set a $::env(A)}
+    close $fd
+    
+ 
+    
+    
+    StateManager a -file $fullpath
+    a addStateVariable a envgetter setter
+    namespace eval ::restored:: {}
+} \
+-cleanup {
+    a destroy
+        namespace delete ::restored
+} \
+-body {
+    a restore
+    set ::restored::a
+} -result 1234
 
 
 

@@ -56,8 +56,11 @@ TKTESTS =	readoutguitest.tk  scalerparametergui.tk \
 	selectreadoutest.tk  tclTests.tcl \
 	testrunner.tk
 
+#
+#  Note that A=1234 below is for the state.test restore-6
+
 check-TESTS:
-	TCLLIBPATH=@prefix@/TclLibs HERE=@srcdir@ tcl=@TCLSH_CMD@ @TCLSH_CMD@ @srcdir@/tclTests.tcl
+	A=1234 TCLLIBPATH=@prefix@/TclLibs HERE=@srcdir@ tcl=@TCLSH_CMD@ @TCLSH_CMD@ @srcdir@/tclTests.tcl
 	@@ echo "readoutcontrol.test and tests.test load packages that produce output on stderr"
 	@@ echo "This is the source of the "Test files exiting with errors"  message."
 

@@ -136,9 +136,17 @@ snit::type StateManager {
             error "The restore file '$options(-file)' does not exist or is not readable"
         }
         interp create -safe StateManagerInterp
+
+        # Propagate the environment into the interp:
+        
+
+        foreach varname [array names ::env] {
+            StateManagerInterp eval set ::env($varname) "{$::env($varname)}"
+        }
+
         StateManagerInterp expose source
         StateManagerInterp eval source $options(-file)
-        
+                
         foreach variable $registeredVariables {
             set varname [lindex $variable 0]
             set setter  [lindex $variable 2]
