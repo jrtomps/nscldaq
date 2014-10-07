@@ -337,7 +337,7 @@ itcl::body ALeCroy4300B::WritePedestals {{arrname SCINT_ENERGY}} {
   }
 
   # set the pedestals
-	SetPedestals $peds
+	return [SetPedestals $peds]
 }
 
 #
@@ -393,7 +393,7 @@ itcl::body ALeCroy4300B::sReadChannel {stack channel} {
 #
 #
 itcl::body ALeCroy4300B::sReadSparse {stack} {
-  $stack addQScan $node 0 2 17 1
+  $stack addQStop $node 0 2 17 1
 }
 
 #
