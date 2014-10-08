@@ -1,8 +1,10 @@
- for f in `find . -name Makefile -exec grep -l check-TESTS {}  \;`
+
+set -e ;# make sure that the script exits with an error if _any_ error occurs
+
+for f in `find . -name Makefile -exec grep -l check-TESTS {}  \;`
 do 
   if test $f != ./Makefile
   then
-    echo testing with $f
     (cd `dirname $f`; make check-TESTS)
   fi
 done	
