@@ -27,9 +27,13 @@ TCLPACKAGES=InputPipeline.tcl HoistPipeline.tcl \
 
 TCLAPPS=offlineorderer.tcl
 
+TCLTESTS=tclTests.tcl filelistwidget.test hoistpipeline.test inputpipeline.test \
+				 jobbuilderui.test jobprocessor.test job.test outputpipeline.test \
+				 runprocessor.test runstatusui.test globalconfig.test
+
 check-TESTS:
 	TCLLIBPATH=@prefix@/TclLibs HERE=@srcdir@ tcl=@TCLSH_CMD@ @TCLSH_CMD@ @srcdir@/tclTests.tcl
 
-EXTRA_DIST = $(TCLPACKAGES) $(TCLAPPS)
+EXTRA_DIST = $(TCLPACKAGES) $(TCLAPPS) $(TCLTESTS)
 
 
