@@ -8,7 +8,7 @@ install-exec-local:
 
 TCLPACKAGES=actions.tcl defaultActions.tcl
 
-TCLTESTS =    actions.test
+TCLTESTS =    actions.test tclTests.tcl
 
 CXXPACKAGES = Actions.h
 
