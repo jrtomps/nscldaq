@@ -1,7 +1,8 @@
 DRIVERDest=@prefix@/TclLibs/vmusbdrivers
 
 TCLDRIVERS=sis330xdriver.tcl VMUSBDriverSupport.tcl vmusb.tcl \
-           AXLM72.tcl APpacXLM72.tcl ACrdcXLM72.tcl AXLM72Scaler.tcl
+           AXLM72.tcl APpacXLM72.tcl ACrdcXLM72.tcl AXLM72Scaler.tcl \
+					 ACAENV288.tcl ACAENN568B.tcl
 
 install-exec-local:
 	$(mkinstalldirs) @prefix@/TclLibs
@@ -14,10 +15,10 @@ install-exec-local:
 #
 #  All driver and docs files need to be added here:
 #
-TCLTESTS = xlm72scaler.test vmusbdriversupport.test
+TCLTESTS = tclTests.tcl vmusbdriversupport.test manXLM72Scaler.tcl
 
 
 check-TESTS:
-	TCLLIBPATH=@prefix@/TclLibs HERE=@srcdir@ tcl=@TCLSH_CMD@ @TCLSH_CMD@ @srcdir@/tclTests.tcl
+	TCLLIBPATH="@prefix@/TclLibs @prefix@/lib" HERE=@srcdir@ tcl=@TCLSH_CMD@ @TCLSH_CMD@ @srcdir@/tclTests.tcl
 
 EXTRA_DIST=$(TCLDRIVERS) $(TCLTESTS)
