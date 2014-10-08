@@ -1,5 +1,5 @@
 PKGFILES=@srcdir@/marker.tcl @srcdir@/pkgIndex.tcl @srcdir@/series.tcl \
-	@srcdir@/xyplot.tcl
+	@srcdir@/xyplot.tcl @srcdir@/series.test
 DESTDIR = @prefix@/TclLibs/plotcontainer
 
 install-exec-local:
