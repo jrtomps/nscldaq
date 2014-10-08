@@ -401,8 +401,6 @@ void CVMUSBControl::configureGlobalMode(CVMUSB& controller)
   using namespace std;
 
   uint16_t glbl_mode = controller.readGlobalMode();
-  cout << "Old mode register = 0x" << hex << setfill('0') << setw(4) << glbl_mode;
-  cout << dec << setfill(' ') << endl;
   
   if (m_pConfiguration->getBoolParameter("-spanbuffers")) {
      glbl_mode |= CVMUSB::GlobalModeRegister::spanBuffers;
@@ -437,16 +435,14 @@ void CVMUSBControl::configureGlobalMode(CVMUSB& controller)
   // Read back our value and check to see that it is what we set.
   uint16_t new_glbl_mode = controller.readGlobalMode();
 
-  if (glbl_mode == new_glbl_mode) {
-    cout << "New mode register = 0x" << hex << setfill('0') << setw(4) << new_glbl_mode;
-    cout << dec << setfill(' ') << endl;
-  } else {
+  if (glbl_mode != new_glbl_mode) {
     stringstream msg;
-    msg << "FAILURE when setting global mode register to 0x" << hex << setfill('0') << setw(4) << glbl_mode;
-    msg << " , 0x" << hex << setfill('0') << setw(4) << new_glbl_mode << " was set instead";
-    cout << dec << setfill(' ') << endl;
+    msg << "FAILURE when setting global mode register to 0x" 
+        << hex << setfill('0') << setw(4) << glbl_mode;
+    msg << " , 0x" << hex << setfill('0') << setw(4) << new_glbl_mode 
+        << " was set instead";
 
-    throw CErrnoException(msg.str());
+    throw msg.str();
   }
 
 }
@@ -464,9 +460,8 @@ void CVMUSBControl::configureEventsPerBuffer(CVMUSB& controller)
     stringstream msg;
     msg << "FAILURE when setting events per buffer to 0x" << hex << setfill('0') << setw(4) << evtperbuf; 
     msg << " , 0x" << hex << setfill('0') << setw(4) << newval << " was set instead";
-    cout << dec << setfill(' ') << endl;
 
-    throw CErrnoException(msg.str());
+    throw msg.str();
   }
 }
 
