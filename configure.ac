@@ -449,6 +449,8 @@ AC_CONFIG_FILES([Makefile
 		 usb/common/Makefile
 		 usb/common/tcldrivers/Makefile
 		 docbuild/Makefile
+		 docbuild/images/Makefile
+		 docbuild/images/callouts/Makefile
 		 docconfig/Makefile])
 
 AC_OUTPUT
