@@ -12,6 +12,7 @@ libCCUSBConfig_la_SOURCES	= 	CConfiguration.cpp	\
 				CPH7132Command.cpp	\
 				CUserCommand.cpp	\
 				CAddTclDriver.cpp 	\
+				CMarkerCommand.cpp	\
 				@top_srcdir@/usb/common/devices/CCamacBranchException.cpp	
 
 
@@ -29,7 +30,8 @@ noinst_HEADERS		=	CConfiguration.h 	\
 				CCCUSBCommand.h		\
 				CPH7132Command.h	\
 				CUserCommand.h		\
-				CAddTclDriver.h
+				CAddTclDriver.h		\
+				CMarkerCommand.h
 
 #				CScalerCommand.h
 

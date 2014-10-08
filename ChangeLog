@@ -810,6 +810,7 @@ Work on 11.0-rc11 begins
         Bug #2240 Better formatting for  new scaler display numbers.
         Bug #2242 CDataFormatItem was mis-documented as CRingFormatItem.
         Bug #2238 env is not available for daq/readoutgui/state.tcl fixed.
+        Feature #2074 - Add marker command to CCUSBReadout
         
         
         

@@ -16,7 +16,8 @@ libCCUSBDevices_la_SOURCES	= 	CConfigurableObject.cpp	\
 					CLeCroy4434.cpp \
 					CCamacCrate.cpp \
 					CLeCroy4300B.cpp \
-					CULMTrigger.cpp
+					CULMTrigger.cpp \
+					CMarker.cpp
 
 
 libCCUSBDevices_la_CPPFLAGS	= 	-I@top_srcdir@/usb/ccusb/ccusb \
@@ -45,7 +46,8 @@ noinst_HEADERS			= 	CConfigurableObject.h	\
 					CC1205.h		\
 					CCCUSBModule.h		\
 					CPH7132.h		\
-					CTclModule.h
+					CTclModule.h		\
+					CMarker.h
 
 
 install-data-local:

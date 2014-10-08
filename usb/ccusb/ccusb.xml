@@ -4462,6 +4462,77 @@ lrs2551 create counters -slot 4
 	      </example>
 	   </refsect1> 
 </refentry>
+<refentry id="ccusb3-marker">
+  <refentryinfo>
+    <author>
+            <personname>
+                    <firstname>Ron</firstname>
+                    <surname>Fox</surname>
+            </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='ccusb3-marker-title'>marker</refentrytitle>
+     <manvolnum>ccusb3</manvolnum>
+     <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>marker</refname>
+     <refpurpose>Create/manipulate marker instances</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <cmdsynopsis>
+        <command>
+marker create <replaceable>name ?options?</replaceable>
+   </command>
+    </cmdsynopsis>
+     <cmdsynopsis>
+         <command>
+marker config <replaceable>name options...</replaceable>
+         </command>
+     </cmdsynopsis>
+     <cmdsynopsis>
+         <command>
+marker cget <replaceable>name</replaceable>
+         </command>
+     </cmdsynopsis>
+     
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+         Markers are CCUSB stack objects that insert a constant
+         16 bit value into the data. The <command>marker</command>
+         command allows you to create and configure marker objects.
+         As with all <filename>daqconfig.tcl</filename> objects
+         the marker must be put in a stack (event or scaler) to
+         contribute data to the output stream.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+        OPTIONS
+     </title>
+     <variablelist>
+         <varlistentry>
+             <term><option>-value</option> <replaceable>uint16</replaceable></term>
+             <listitem>
+                 <para>
+                     Defines the unsigned integer 16 value that will be
+                     inserted into the buffer when the
+                     marker is in a triggered stack.
+                 </para>
+             </listitem>
+         </varlistentry>
+         
+     </variablelist>
+  </refsect1>
+
+</refentry>
+
          <refentry id="ccusb3-ph7xxx">
            <refmeta>
               <refentrytitle>ph7xxx</refentrytitle>
