@@ -1,11 +1,65 @@
 
 package require tcltest
-
+package require portAllocator 
 
 
 tcltest::test pkgrequire-0 {ensure we can require this beast 
 } {package require s800} 1.0
 
+proc ReadLine {sock} {
+  flush stdout
+  if {[eof $sock]} {
+    catch {close $sock}
+  } else {
+    if {[catch {gets $sock line} len]} {
+      puts "$line"
+    }
+  }
+}
 
+set ::servsock ""
+proc ClientConnect {sock host port} {
+  if {$::servsock eq ""} {
+    puts "Accepting connection from $host:$port"
+    chan configure $sock -blocking 1 -buffering line
+    chan event $sock readable [list ReadLine $sock]
+    set ::servsock $sock
+  } else {
+    puts "Rejecting incoming connection from $host:$port"
+    catch {close $sock}
+  }
+}
+
+proc setup {} {
+  set here [file dirname [file normalize [info script]]]
+
+  set pmanager [portAllocator %AUTO%] 
+  set port [$pmanager allocatePort TEST]
+  $pmanager destroy
+  set ::serv [socket -server ClientConnect $port]
+  set ::pid [exec [file join $here fakeControlServer.tcl] $port &]
+  vwait ::servsock
+}
+
+proc tearDown {} {
+  exec kill $::pid
+  catch {close $::sockserv}
+  catch {close $::serv}
+  set ::servsock ""
+}
+
+tcltest::test receiveEnd-0 {Test that sending an end succeeds
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  puts $::servsock "end"
+  gets $::servsock line
+
+  # make sure that we process all of the events
+  update
+  set line
+} -result "OK"
 
 tcltest::cleanupTests

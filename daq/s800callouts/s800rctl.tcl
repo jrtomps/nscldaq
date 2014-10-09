@@ -212,6 +212,7 @@ snit::type s800rctl {
   method Connect {} {
     set socket [socket $options(-host) $options(-port)]
     fconfigure $socket -buffering line -blocking 1
+    chan event $socket readable [mymethod _onReadable $socket]
   }
 
   ##
@@ -386,5 +387,56 @@ snit::type s800rctl {
   }
 
 
+  method _onReadable {fd} {
+    flush stdout
+    if {[eof $fd]} {
+      catch {close $fd}
+    } else {
+      flush stdout
+      if {[catch {gets $fd line} len]} {
+        puts $fd "FAIL unable to read data from peer"
+      } else {
+        if {[ $self _isValidCommand $line]} {
+          set result [$self _handleCommand $line]
+          $self _sendResponse $result
+        } else {
+          $self _sendResponse "FAIL invalid command"
+        }
+      }
+    }
+  }
 
+  method _isValidCommand {verb} {
+    flush stdout
+    set acceptedVerbs [list end]
+    return [expr {$verb in $acceptedVerbs}]
+  }
+
+  method _handleCommand {script} {
+    flush stdout
+    set res [catch {uplevel #0 eval $script} msg]
+    if {$res} { 
+      return "FAIL $msg"
+    } else {
+      if {$msg ne ""} {
+        return "OK $msg"
+      } else {
+        return "OK"
+      }
+    }
+  }
+
+  ## @brief A unidirectional message
+  #
+  #
+  method _sendResponse {response} {
+    if {$socket eq ""} {
+      # just in case the socket blew away after reading the message
+      set msg "ReadoutGUIRemoteControl::_sendResponse Cannot send response "
+      append msg "to peer because it does not exist."
+      return -code error $msg 
+    } else {
+      puts $socket $response
+    }
+  }
 }
