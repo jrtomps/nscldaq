@@ -4,7 +4,7 @@ package require tcltest
 
 
 tcltest::test pkgrequire-0 {ensure we can require this beast 
-} {package require s800rctl} 1.0
+} {package require s800} 1.0
 
 
 
