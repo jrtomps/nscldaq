@@ -1,0 +1,69 @@
+
+package require tcltest
+package require ReadoutGuiClient
+package require Thread
+package require ui
+
+tcltest::test pkgrequire-0 {Test that we can require the package 
+} {package require ReadoutGuiRemoteControl} 1.0  
+
+proc ReadLine {sock} {
+  if {[catch {gets $sock line} len] || [eof $sock]} {
+    puts "Closing client"
+    catch {close $sock}
+  } else {
+    puts $sock "OK - $line"
+  }
+}
+
+set ::StatusBar::theInstance [StatusArea .bar]
+
+proc setup {} {
+  puts "Setup start"
+  ReadoutGuiRemoteControl ::rctl
+  set ::serv [thread::create -joinable {
+    package require ReadoutGuiClient
+    set ::port [readoutGUIControlPort localhost]
+    set ::client [socket localhost $::port]
+    chan configure $::client -blocking 0 -buffering line
+    
+    proc ReadLine {sock} {
+      if {[catch {gets $sock line} len] || [eof $sock]} {
+        puts "Closing client"
+        catch {close $sock}
+      } else {
+        puts $sock "OK - $line"
+      }
+    }
+    chan event $::client readable [list ReadLine $::client]
+
+    # enter event loop
+    thread::wait
+  }]
+  puts "Setup complete"
+}
+
+
+proc tearDown {} {
+  puts "teardown start"
+  thread::release $::serv 
+
+  if {0} {
+    catch {::rctl destroy}
+  }
+  puts "teardown complete"
+}
+
+
+tcltest::test send-0 {Test that we can send messages 
+} -setup {
+  setup
+  update
+} -cleanup {
+  tearDown
+} -body {
+  set res [::rctl send [list puts {hello world}]]
+} -result "OK - puts {hello world}"
+
+
+tcltest::cleanupTests
