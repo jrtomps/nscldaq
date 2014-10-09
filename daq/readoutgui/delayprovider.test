@@ -53,7 +53,7 @@ tcltest::test begin-0 {Test that the delay lasts at least as long as we expect
   set stop [clock milliseconds]
 
   set elapsed [expr $stop-$start]
-  expr {$elapsed>3000} 
+  expr {$elapsed>=3000} 
 } -result 1 -returnCodes 0
 
 
