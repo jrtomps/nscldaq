@@ -19,10 +19,15 @@ proc ReadLine {sock} {
 set ::StatusBar::theInstance [StatusArea .bar]
 
 proc setup {} {
+  set ::connected 0
   puts "Setup start"
   ReadoutGuiRemoteControl ::rctl
+  set fd [::rctl info vars clientfd]
   set ::serv [thread::create -joinable {
+
     package require ReadoutGuiClient
+    package require Thread 
+
     set ::port [readoutGUIControlPort localhost]
     set ::client [socket localhost $::port]
     chan configure $::client -blocking 0 -buffering line
@@ -40,6 +45,9 @@ proc setup {} {
     # enter event loop
     thread::wait
   }]
+
+  vwait $fd
+  # send the main thread id to the server thread
   puts "Setup complete"
 }
 
@@ -47,10 +55,8 @@ proc setup {} {
 proc tearDown {} {
   puts "teardown start"
   thread::release $::serv 
+  set ::connected 0
 
-  if {0} {
-    catch {::rctl destroy}
-  }
   puts "teardown complete"
 }
 
@@ -58,7 +64,6 @@ proc tearDown {} {
 tcltest::test send-0 {Test that we can send messages 
 } -setup {
   setup
-  update
 } -cleanup {
   tearDown
 } -body {
