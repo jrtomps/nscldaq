@@ -84,6 +84,24 @@ snit::type ReadoutGuiRemoteControl {
     }
   }
 
+  ## @brief Send a message to the peer
+  #
+  # This is intended to be a symmetric communication such that a response is expected.
+  #
+  # @param script - the message to send to the peer
+  #
+  method send {script} {
+    if {$clientfd != -1} {
+      # send the command
+      puts $clientfd $script
+
+      # wait for response
+      gets $clientfd response
+      return $response
+    } else {
+      return -code error "ReadoutGUIRemoteControl::send Connection does not exist."
+    }
+  }
 
   #-----------------------------------------------------------------------------
   # Private methods
