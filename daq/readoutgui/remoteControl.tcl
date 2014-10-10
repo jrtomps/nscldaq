@@ -30,10 +30,28 @@ package require Configuration
 ##
 # @class ReadoutGuiRemoteControl
 #
-#   This snit::type layers a remote control server on top of the 
-#   ReadoutGUI.  The server is largely compatible with the 
-#   S800 server, however the port is allocated/registerd by the
-#   port allocator making it possible to do service location.
+# This snit::type layers a remote control server on top of the ReadoutGUI.  The
+# server is largely compatible with the S800 server, however the port is
+# allocated/registerd by the port allocator making it possible to do service
+# location.
+#
+# The companion to this is the s800rctl class which serves as the backbone for
+# the master readoutgui side of the remote control package. The s800Provider and
+# RemoteGUI provider both are wrappers around that class. This forms the side of
+# the remote control package utilized on the enslaved readout gui. 
+#
+# It listens for connections on a server socket and when a connection arrives,
+# it accepts the first connection and then also tries to create a second
+# connection. the first connection is for receiving requests from the master and
+# the second connection is for send requests to the master. The communication
+# between the two is implemented with symmetric transactions, meaning that any
+# request made will expect the recipient to send a reply. These are 1-to-1
+# connections. Also, the sockets maintained by this class are configured to be
+# non-blocking. One might consider, however, that this implements a form of soft
+# blocking. After a request is made, the execution will halt until the complete
+# reply has been received. It is "soft" blocking rather than a true blocking
+# scheme because all the while it is waiting for the response, the tcl event
+# loop is active and processing events. In this way, we avoid locking up.
 #
 # @note as with the S800 remote control interface, only one 
 #       connection is allowed at a time.
@@ -41,11 +59,12 @@ package require Configuration
 snit::type ReadoutGuiRemoteControl {
 
   variable listenfd
-  variable replyfd -1;                  # -1 is disconnected.
-  variable requestfd -1;                 # -1 is disconnected.
-  variable requestReplyReceived ;
-  variable manager  -1;                  # Port manager client instance.
+  variable replyfd -1;             #< receives cmd from master, sends reply 
+  variable requestfd -1;           #< sends comds to master, waits for reply
+  variable requestReplyReceived 0; #< flags when full reply has been received
+  variable manager  -1;            #< Port manager client instance.
 
+  # verbs that we will process happily
   variable legalVerbs [list set begin end get]
 
   # For my status area:
@@ -68,18 +87,20 @@ snit::type ReadoutGuiRemoteControl {
     set port    [$manager allocatePort ReadoutGUIRemoteControl]
 
     # set up the listener:
-
     set listenfd [socket -server [mymethod _onConnection] $port]
 
   }
+
   ##
   # destructor
   #   - close the listen socket.
-  #   - If we have a client ensure we're back to master mode.
-  #   - close any active client.
+  #   - If we have a client (replyfd) ensure we're back to master mode.
+  #   - close any active client (replyfd).
+  #   - close the request socket 
   #
   destructor {
     close $listenfd
+
     if {$replyfd != -1}  {
       $self _setMaster;       # return control to the GUI.
       close $replyfd
@@ -92,10 +113,15 @@ snit::type ReadoutGuiRemoteControl {
 
   ## @brief Send a message to the peer
   #
-  # This is intended to be a symmetric communication such that a response is expected.
+  # This is intended to be a symmetric communication such that a response is
+  # expected.  However, we wait in a soft blocking mode until we have received
+  # all of the reply from the peer. While waiting, other events will process.
   #
   # @param script - the message to send to the peer
   #
+  # @returns reply from the peer
+  #
+  # @throws error if no request connection exists over which to communicate
   method send {script} {
     if {$requestfd != -1} {
 
@@ -109,12 +135,22 @@ snit::type ReadoutGuiRemoteControl {
       
       return $requestReply
     } else {
-      return -code error "ReadoutGUIRemoteControl::send Connection does not exist."
+      # there was no connection... therefore I cannot send!
+      set msg "ReadoutGUIRemoteControl::send Request connection does not exist."
+      return -code error $msg 
     }
   }
 
+  ## @brief Test for connections
+  #
+  # Checks whether there is a valid connection at the moment.
+  #
+  # @returns list of boolean values, ie. {replyIsConnected requestIsConnected}
+  #
   method isConnected {} {
-    return [expr {$replyfd != -1}]
+    set reply   [expr {$replyfd != -1}]
+    set request [expr {$requestfd != -1}]
+    return [list $reply $request] 
   }
 
   #-----------------------------------------------------------------------------
@@ -148,7 +184,13 @@ snit::type ReadoutGuiRemoteControl {
   #   -  Set buffering to line.
   #   -  Set a fileevent to fire when the socket is readable.
   #   -  Save the socket in the replyfd attribute.
+  #   - Try to make a second connection for making requests. We expect to find
+  #   it via a service named "s800rctl". If unable to locate, this will print a
+  #   message to the screen but that is it. 
   # 
+  # @note This can only handle one s800rctl running on a single host. If more
+  #       than one are running on a single host, then this will have problems.
+  #
   # @param client     - socket fd open on client.
   # @param clientaddr - IP address of client.
   # @param clientport - Remote Port address.
@@ -157,11 +199,14 @@ snit::type ReadoutGuiRemoteControl {
     if {$replyfd != -1} {
       close $client
     } else {
+
       # setup the request socket so that we could send messages to the master
       set allocator [portAllocator %AUTO% -hostname $clientaddr]
+
+      # try to find the s800rctl service
       set port [$allocator findServer s800rctl]
-      $allocator destroy
       if {$port ne ""} {
+        # found the service
         set requestfd [socket $clientaddr $port]
         chan configure $requestfd -blocking 0 -buffering line
         chan event $requestfd readable [mymethod _onRequestReadable]
@@ -173,7 +218,10 @@ snit::type ReadoutGuiRemoteControl {
         append msg "s800rctl service on $clientaddr"
         puts stderr $msg
       }
+      $allocator destroy
 
+      # now setup the reply socket for receiving requests from the master 
+      # This is actual connection that triggered the _onConnection callback
       chan configure $client -buffering line -blocking 0
       set replyfd $client
       chan event $replyfd readable [mymethod _onReplyReadable]
@@ -273,9 +321,29 @@ snit::type ReadoutGuiRemoteControl {
     }
   }
 
+
+  ## @brief Handle a generic read from a socket
+  #
+  # This is the core read method for both the request and reply sockets. It
+  # simply tries to read however much it can from both sockets.
+  #
+  # If no end of file existed and a failure occurred while reading from the
+  # socket, a message is printed to stderr. 
+  #
+  # Other methods typically call this... (@see _onReplyReadable , @see
+  # _onRequestReadable).
+  #
+  # @param fd   the channel file descriptor to read from
+  #
+  # @returns mixed 
+  # @reval successful read = list of two elements
+  #     - first element is boolean indicating if this is the end of the message
+  #     - second element is the actual string read from the channel
+  # @retval failure to read = ""
+  #
   method _onReadable {fd} {
+
     # allow the specific handlers to handle how to deal with end of file
-    #
     if {![eof $fd]} {
       # read what we can at the moment and return it
       if {[catch {gets $fd line} len]} {
@@ -290,26 +358,50 @@ snit::type ReadoutGuiRemoteControl {
   }
 
   ##
-  # _onReadable
-  #    Called when the client file descriptor is readable.
+  # @brief Receive requests from the master and then replies
+  #
+  # The actual reading of the socket is outsourced to the _onReadable method and
+  # this mainly handles the response appropriately. 
+  #
+  # The logic is as follows:
   #    - If EOF call _onClientExit
   #    - If not EOF call _onCommand
   #
+  # @returns ""
   method _onReplyReadable {} {
+
+    # read whatever we can from the channel
     set readInfo [$self _onReadable $replyfd]
 
+    # check to see if the channel eof is reached
     if {[eof $replyfd]} {
       $self _onClientExit
     } else {
       
+      # not at end of file so we should have data 
+      # index 1 has the data read from the channel
+      #
+      # in any case, append whatever we read to the previous reads that had been
+      # read.
       append replyReply [lindex $readInfo 1]
-
+    
+      # index 0 contains the response of [chan blocked] 
+      # if 0, then we got all that there was to receive from the channel.
+      # the blocked indicator is useful because the peer is waiting for a
+      # response and not sending new requests during this time.
       if {![lindex $readInfo 0]} {
         $self _onCommand $replyReply
       }
     }
   }
 
+
+  ## @brief Reads replies from the master in response to requests
+  #
+  # Outsources the reading of the channel to _onReadable. Once all of the
+  # message has been received, we flag that the reply has been received.
+  #
+  # @returns ""
   method _onRequestReadable {} {
     set readInfo [$self _onReadable $requestfd]
 
