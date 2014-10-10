@@ -147,7 +147,7 @@ snit::type ReadoutGuiRemoteControl {
   #
   # @returns list of boolean values, ie. {replyIsConnected requestIsConnected}
   #
-  method isConnected {} {
+  method getConnectionStatus {} {
     set reply   [expr {$replyfd != -1}]
     set request [expr {$requestfd != -1}]
     return [list $reply $request] 
@@ -723,3 +723,76 @@ snit::type OutputMonitor {
     }
   }
 }
+
+
+
+## @brief Utility namespace to simplify the setup of the remote control 
+#
+# The basic functionality is to call  
+#
+# @code 
+#  RemoteControlClient::initialize
+# @endcode
+#
+# This will instantiate the ReadoutGUIRemoteControl and OUtputMonitor objects
+# and then will redefine what it means to end a run to forward if possible. To
+# end a run locally, the original end command has been renamed local_end. If the
+# user wants to end a run locally without being forwarded, they can change their
+# filter to call a tcl command to send "local_end" rather than "end".
+#
+# Because for any ReadoutGUI, there is only going to be one master, it is
+# possible to just provide a very simple interface for setting this up that
+# manages the names of the single control and output. 
+#
+namespace eval RemoteControlClient {
+
+  variable control "" ;#< ReadoutGUIRemoteControl instance
+  variable output ""  ;#< OutputMonitor instance
+  variable initialized 0; #< ensure that we are initialized
+
+  proc initialize {} {
+    variable control
+    variable output
+    variable initialized
+
+    if {$initialized} {
+      set msg "RemoteControlClient::initialize can be called only once!"
+      return -code error $msg
+    } else {
+      set initialized 1
+    }
+    
+    set control [ReadoutGuiRemoteControl %AUTO%]
+    set output  [OutputMonitor %AUTO%]
+
+    # move the default version of end to a new name called "local_end"
+    # if the end has not been defined yet, then that means our new definition
+    # of end will simply be overridden by the real end! This is bad and results
+    # in an error.
+    if {[catch {rename ::end ::local_end} msg]} {
+      set msg "Unable to override the \"end\" command. Forwarding of and "
+      append msg "\"end\" command will fail!"
+      return -code error $msg
+    }
+
+    puts "redefining end!"
+
+    # define a new proc called end that will handle whether to forward or not
+    proc ::end {} {
+
+    # get the connection status
+      set connectionStatus [$::RemoteControlClient::control getConnectionStatus]
+
+      if {[lindex $connectionStatus 1]} {
+      # connection to send requests on is good... go ahead and forward
+        $::RemoteControlClient::control send "end"
+      } else {
+      # not connected so don't try to forward... just end as normal
+        local_end
+      }
+
+    } ;# end end
+
+  }  ;# end setup
+
+} ;# end namespace
