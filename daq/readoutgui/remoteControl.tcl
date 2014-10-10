@@ -360,13 +360,12 @@ snit::type ReadoutGuiRemoteControl {
           $self _reply ERROR "State must be halted to perform set operations"
           return
         }
+        # if not a slave, set it...
         if {!$current} {
           $rctlPanel slave
-          $self _reply OK
-        } else {
-          $self _reply ERROR "Setting slave while already in slave mode"
-          return
-        }
+        }  
+        # if we are already a slave, then that is not an error.
+        $self _reply OK
       } else {
         if {$current} {
           $rctlPanel master
