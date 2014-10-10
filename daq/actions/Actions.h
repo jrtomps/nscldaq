@@ -49,7 +49,7 @@ namespace Actions
         TCLCommand ( "resume" );
     }
 
-    void EndRun () {
+    void EndRun (bool propagate=true) {
 //        std::string tclcmd;
 //        tclcmd =  "set sm [RunstateMachineSingleton %AUTO]; ";
 //        tclcmd += "set state [$sm getState]; ";
@@ -58,7 +58,11 @@ namespace Actions
 //        tclcmd += "} else { ";
 //        tclcmd += "  ERROR: end run clicked when state is $state";
 //        tclcmd += "}; $sm destroy";
-        TCLCommand ( "end" );
+        if (propagate) {
+          TCLCommand ( "end" );
+        } else {
+          TCLCommand ( "local_end" );
+        }
     }
 }
 
