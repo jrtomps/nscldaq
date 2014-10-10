@@ -98,7 +98,6 @@ snit::type ReadoutGuiRemoteControl {
   #
   method send {script} {
     if {$requestfd != -1} {
-      puts "send $script [clock microseconds]"
 
       set requestReply ""
 
@@ -106,10 +105,8 @@ snit::type ReadoutGuiRemoteControl {
       puts $requestfd $script
 
       # wait for the response
-      puts "waiting for response"
       vwait [myvar requestReplyReceived]
       
-      puts "received : \"$requestReply\" @ [clock microseconds]"
       return $requestReply
     } else {
       return -code error "ReadoutGUIRemoteControl::send Connection does not exist."
@@ -277,14 +274,16 @@ snit::type ReadoutGuiRemoteControl {
   }
 
   method _onReadable {fd} {
-    puts "remctrl .. _onReadable [clock format [clock microseconds]]"
-    if {[eof $fd]} {
-      puts "remctrl .. eof detected"
-#      catch {close $fd}
-    } else {
+    # allow the specific handlers to handle how to deal with end of file
+    #
+    if {![eof $fd]} {
+      # read what we can at the moment and return it
       if {[catch {gets $fd line} len]} {
-        puts $fd "FAIL unable to read data from peer"
+        set msg "ReadoutGUIRemoteControl::_onReadable unable to read data from "
+        append msg "peer"
+        puts stderr $msg
       } else {
+        # return a list consisting of whether it blocked and the data read
         return [list [chan blocked $fd] $line]
       }
     }
@@ -463,7 +462,6 @@ snit::type ReadoutGuiRemoteControl {
   #     everything else.
   #
   method _end {} {
-    puts "remoteControl::_end"
     flush stdout
     if {![$self _slaveMode]} {
       $self _reply ERROR "Not in slave mode"
@@ -489,11 +487,9 @@ snit::type ReadoutGuiRemoteControl {
   #
   method _get what {
     if {$what eq "state"} {
-      puts "_get $what"
       flush stdout
       set sm [::RunstateMachineSingleton %AUTO%]
       set currentState [$sm getState]
-      puts "current state = $currentState"
       #
       #  TODO:  This is probably not a sufficient listing of state
       #         but it's all the S800readoutcallouts supports at this time.
