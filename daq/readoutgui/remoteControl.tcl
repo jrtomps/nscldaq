@@ -41,7 +41,9 @@ package require Configuration
 snit::type ReadoutGuiRemoteControl {
 
   variable listenfd
-  variable clientfd -1;                  # -1 is disconnected.
+  variable replyfd -1;                  # -1 is disconnected.
+  variable requestfd -1;                 # -1 is disconnected.
+  variable requestReplyReceived ;
   variable manager  -1;                  # Port manager client instance.
 
   variable legalVerbs [list set begin end get]
@@ -78,9 +80,13 @@ snit::type ReadoutGuiRemoteControl {
   #
   destructor {
     close $listenfd
-    if {$clientfd != -1}  {
+    if {$replyfd != -1}  {
       $self _setMaster;       # return control to the GUI.
-      close $clientfd
+      close $replyfd
+    }
+
+    if {$requestfd != -1} {
+      close $requestFd
     }
   }
 
@@ -91,16 +97,27 @@ snit::type ReadoutGuiRemoteControl {
   # @param script - the message to send to the peer
   #
   method send {script} {
-    if {$clientfd != -1} {
-      # send the command
-      puts $clientfd $script
+    if {$requestfd != -1} {
+      puts "send $script [clock microseconds]"
 
-      # wait for response
-      gets $clientfd response
-      return $response
+      set requestReply ""
+
+      # send the command
+      puts $requestfd $script
+
+      # wait for the response
+      puts "waiting for response"
+      vwait [myvar requestReplyReceived]
+      
+      puts "received : \"$requestReply\" @ [clock microseconds]"
+      return $requestReply
     } else {
       return -code error "ReadoutGUIRemoteControl::send Connection does not exist."
     }
+  }
+
+  method isConnected {} {
+    return [expr {$replyfd != -1}]
   }
 
   #-----------------------------------------------------------------------------
@@ -133,19 +150,36 @@ snit::type ReadoutGuiRemoteControl {
   #      a time is allowed.
   #   -  Set buffering to line.
   #   -  Set a fileevent to fire when the socket is readable.
-  #   -  Save the socket in the clientfd attribute.
+  #   -  Save the socket in the replyfd attribute.
   # 
   # @param client     - socket fd open on client.
   # @param clientaddr - IP address of client.
   # @param clientport - Remote Port address.
   #
   method _onConnection {client clientaddr clientport} {
-    if {$clientfd != -1} {
+    if {$replyfd != -1} {
       close $client
     } else {
-      fconfigure $client -buffering line
-      set clientfd $client
-      fileevent  $clientfd readable [mymethod _onReadable]
+      # setup the request socket so that we could send messages to the master
+      set allocator [portAllocator %AUTO% -hostname $clientaddr]
+      set port [$allocator findServer s800rctl]
+      $allocator destroy
+      if {$port ne ""} {
+        set requestfd [socket $clientaddr $port]
+        chan configure $requestfd -blocking 0 -buffering line
+        chan event $requestfd readable [mymethod _onRequestReadable]
+        
+      } else {
+        # not finding the service is not an error to fail on but the user needs
+        # to be informed
+        set msg "ReadoutGUIRemoteControl::_onConnection Unable to locate "
+        append msg "s800rctl service on $clientaddr"
+        puts stderr $msg
+      }
+
+      chan configure $client -buffering line -blocking 0
+      set replyfd $client
+      chan event $replyfd readable [mymethod _onReplyReadable]
       if {$statusmanager eq ""} {
         set statusmanager [::StatusBar::getInstance]
         set statusbar     [$statusmanager addMessage] 
@@ -171,7 +205,7 @@ snit::type ReadoutGuiRemoteControl {
     if {$tail ne ""} {
       lappend message $tail
     }
-    if {[catch {puts $clientfd $message}]} {
+    if {[catch {puts $replyfd $message}]} {
       $self _onClientExit
     }
   }
@@ -210,11 +244,11 @@ snit::type ReadoutGuiRemoteControl {
   # _onClientExit
   #    Called when an end file is seen on a client.
   #    -  Close the socket
-  #    -  set the clientfd attribute to -1 so new clients canconnect
+  #    -  set the replyfd attribute to -1 so new clients canconnect
   #
   method _onClientExit {} {
-    close $clientfd
-    set clientfd -1
+    close $replyfd
+    set replyfd -1
     $self _setMaster
     $statusmanager setMessage $statusbar "Remote controlled by: nobody"
   }
@@ -227,8 +261,8 @@ snit::type ReadoutGuiRemoteControl {
   #    - check the line for legality
   #    - Execute legal commands.
   #
-  method _onCommand {} {
-    set line [gets $clientfd]
+  method _onCommand {line} {
+    #set line [gets $replyfd]
 
     #  empty lines can be read just before a channel goes EOF:
 
@@ -242,19 +276,55 @@ snit::type ReadoutGuiRemoteControl {
     }
   }
 
+  method _onReadable {fd} {
+    puts "remctrl .. _onReadable [clock format [clock microseconds]]"
+    if {[eof $fd]} {
+      puts "remctrl .. eof detected"
+#      catch {close $fd}
+    } else {
+      if {[catch {gets $fd line} len]} {
+        puts $fd "FAIL unable to read data from peer"
+      } else {
+        return [list [chan blocked $fd] $line]
+      }
+    }
+  }
+
   ##
   # _onReadable
   #    Called when the client file descriptor is readable.
   #    - If EOF call _onClientExit
   #    - If not EOF call _onCommand
   #
-  method _onReadable {} {
-    if {[eof $clientfd]} {
+  method _onReplyReadable {} {
+    set readInfo [$self _onReadable $replyfd]
+
+    if {[eof $replyfd]} {
       $self _onClientExit
     } else {
-      $self _onCommand
+      
+      append replyReply [lindex $readInfo 1]
+
+      if {![lindex $readInfo 0]} {
+        $self _onCommand $replyReply
+      }
     }
   }
+
+  method _onRequestReadable {} {
+    set readInfo [$self _onReadable $requestfd]
+
+    if {[eof $requestfd]} {
+      catch {close $requestfd}
+    } else {
+      append requestReply [lindex $readInfo 1]
+
+      if {![lindex $readInfo 0]} {
+        set requestReplyReceived 1
+      }
+    }
+  }
+
   #-------------------------------------------------------------------------
   # Methods that execute specific command verbs.
   #
@@ -393,6 +463,8 @@ snit::type ReadoutGuiRemoteControl {
   #     everything else.
   #
   method _end {} {
+    puts "remoteControl::_end"
+    flush stdout
     if {![$self _slaveMode]} {
       $self _reply ERROR "Not in slave mode"
       return
@@ -417,8 +489,11 @@ snit::type ReadoutGuiRemoteControl {
   #
   method _get what {
     if {$what eq "state"} {
+      puts "_get $what"
+      flush stdout
       set sm [::RunstateMachineSingleton %AUTO%]
       set currentState [$sm getState]
+      puts "current state = $currentState"
       #
       #  TODO:  This is probably not a sufficient listing of state
       #         but it's all the S800readoutcallouts supports at this time.
@@ -537,7 +612,6 @@ snit::type OutputMonitor {
   method _onGuiOutput output {
     foreach fd $clientfds {
       puts $fd $output
-      flush $fd
     }
   }
   ##

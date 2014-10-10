@@ -116,6 +116,8 @@ proc ::S800::check id {
     
     set bad [catch {$rctl getState} value]
     if {$bad} {
+        puts "Failed to get state with msg : $value"
+        flush stdout
         ::S800::_failed $id
         return 0
     }  else {
