@@ -35,7 +35,19 @@ snit::type Actions {
     if { [eof $fd] } {
       # unregister itself
       chan event $fd readable ""
-      catch {close $fd} msg
+
+      # we have reached an end of file
+      #
+      # convert to blocking to retrieve the exit status
+       if {0} {
+      chan configure $fd -blocking 1
+
+      if {[catch {close $fd} msg]} {
+        if {[lindex $::errorCode 0] eq "CHILDSTATUS"} {
+          puts stderr "Child process exited abnormally with status: $::errorCode"
+        }
+      }
+       }
     } else {
       $self handleReadable $fd 
     }
