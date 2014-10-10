@@ -17,29 +17,38 @@ package require  snit
 package require  portAllocator
 
 
-###
-#   s800rctl:
-#     This package provides an interface to the S800 run control
-#     it is implemented as a Snit type that maintains
-#     the connection state and connection information in the 
-#     object options and member variables.
+##
+# @brief The master readoutgui logic for handling a remote Readout GUI
 #
+# Originally this was implemented to remotely control the S800DAQ's RunControl
+# program via a defined interface. This same interface is the backbone of
+# this class. More recently, the ReadoutGUI has been enhanced to support remote
+# control through the ReadoutGUIRemoteControl using the same interface. More
+# often than not, in the future this will provide a controlling connection to a
+# ReadoutGUIRemoteControl. It is therefore the code that runs in the master
+# ReadoutGUI and commands a remote slave.
 #
-
-
-
+# With that said, it also can receive requests from the slave. There are two
+# connections that this maintains much like the way the ReadoutGUIRemoteControl
+# class does. One of these is explicitly for send requests (requestfd) to the
+# slave and the other is intended for the receipt of requests from the slave
+# (replyfd). Both of these connections communicate via symmetric transactions in
+# which any request made expects a reply. While waiting for the reply, the class
+# implements a soft-blocking scheme in that it processes events but does not
+# continue. Only one request socket is allowed.
+#
 snit::type s800rctl {
   option -host "localhost";	# Host on which the s800 usb rdo runs.
   option -port 8000;		# Port on which the s800 usb rdo listens.
   option -timeout 10000;	# ms to wait for the s800 to reply
 
-  variable socket "";		# Socket connected to the s800 rctl server.
-  variable requestReplyReceived 0;
-  variable requestReply "";
+  variable socket "";	 	# Socket connected to the s800 rctl server.
+  variable requestReplyReceived 0; # flags when complete reply has been received
+  variable requestReply "";   # reply received from the slave after request
 
-  variable listenSocket "";		# Socket that can respond to requests from the slave
+  variable listenSocket "";		# Listens for connections from the slave 
   variable replySocket "";		# Socket that can respond to requests from the slave
-  variable replyReply ""; 
+  variable replyReply "";     # Incoming message from slave
 
   variable ACK "OK"
   variable NAK "FAIL"
@@ -52,8 +61,12 @@ snit::type s800rctl {
   ##
   #  The constructor forms the connection to the -host, -port configured
   #  into the system.
-  # -host is pretty much mandatory as it's not likely the 
-  #  the rdo is running on localhost.
+  #   -host is pretty much mandatory as it's not likely the rdo is running on 
+  #         localhost.
+  #
+  #  Sets a listening socket on which to listen for connections from the slave
+  #  to use for making requests. The listening socket will be associated with
+  #  the service locatable as "s800rctl"
   #
   # on Connection failure, a error is generated.
   #
@@ -86,7 +99,7 @@ snit::type s800rctl {
       } 
 
       # close the server
-      catch {close $listenSocket}
+      close $listenSocket
 
       # close any connection to the server that may have been made
       if {$replySocket ne ""} {
@@ -273,16 +286,24 @@ snit::type s800rctl {
     }
 
     # wait until the reply has been fully received before proceeding
+    # meanwhile process events
     vwait [myvar requestReplyReceived]
 
-   set requestReplyReceived 0
 
-   # Analyze the result:
-   return [$self AnalyzeResponse $requestReply]
+    set requestReplyReceived 0
+
+    # Analyze the result:
+    return [$self AnalyzeResponse $requestReply]
 
   }
+
+
+  
   ## 
   # Read from the socket with a timeout.
+  #
+  # NO LONGER USED ... but is a very clever idea so I am keeping it around.
+  #
   # This is done by 
   # - Establishing a filevent for readability on the socket
   #   which just increments readDoneFlag
@@ -400,10 +421,29 @@ snit::type s800rctl {
     return $string
   }
 
+
+  ## @brief Handle generic readable events from a channel
+  #
+  # If the eof condition exists, close the channel. Otherwise, read what can be
+  # read and return it. Because the sockets are non-blocking, it is possible
+  # that the call to gets did not retrieve the entire message. The return value
+  # therefore included the result of whether the full message was received or
+  # not.
+  #
+  # @param fd   the channel handle to read from
+  #
+  # @retval  Two element list : 
+  #             - element 1 indicates if gets was complete, 
+  #             - element 2 the data read
+  # @retval "" - eof of file condition
+  #
   method _onReadable {fd} {
+
     if {[eof $fd]} {
+      # close the channel
       catch {close $fd}
     } else {
+      # read what we can from the channel
       if {[catch {gets $fd line} len]} {
         set msg "s800rctl::_onReadable unable to read data from peer"
         puts stderr $msg
@@ -413,12 +453,27 @@ snit::type s800rctl {
     }
   }
 
+  ## @brief Read request from the peer
+  #
+  # Outsources the reading to the _onReadable method and then handles the
+  # result. If the input operation in _onReadable did not return early because
+  # of block, then the reply is complete and handled. Otherwise, the data read
+  # is simply appended to the replyReply and waiting resumes.
+  # 
+  # @returns ""
+  #
   method _onReplyReadable {} {
+
+    # read what can be read from the channel
     set readInfo [$self _onReadable $replySocket]
     
+    # append what was read to what was previously read
     append replyReply [lindex $readInfo 1]
+
+    # if the read was complete, handle the received message
     if {![lindex $readInfo 0]} {
 
+      # only evaluate the command if it was valid
       if {[ $self _isValidCommand $replyReply]} {
       # if we had a valid command, then send the response immediately.
       # Executing the command the peer sent may require further
@@ -435,25 +490,54 @@ snit::type s800rctl {
     }
   }
 
+  ## @brief Read replies from the slave 
+  #
+  # Outsources the read to the _onReadable method. Once a full message has been
+  # received, then set the flag. 
+  # 
+  #
   method _onRequestReadable {} {
+
+    # read what can be read 
     set readInfo [$self _onReadable $socket]
     
+    # append the new data to what has previously been read
     append requestReply [lindex $readInfo 1]
+
     if {![lindex $readInfo 0]} {
+      # the read did not block so we must have received the hole message! Flag
+      # it complete.
       set requestReplyReceived 1
     }
   }
 
+  ## @brief Check to see if a verb is something that this will happily act on
+  #
+  # At the moment, only the end operation is supported.
+  #
+  # @returns boolean
+  # @retval 0 - not valid
+  # @retval 1 - valid
   method _isValidCommand {verb} {
     set acceptedVerbs [list end]
     return [expr {$verb in $acceptedVerbs}]
   }
 
+  ## @brief Execute a command
+  #
+  # @param script   the command to execute
+  #
+  # @returns string containing status and command result
   method _handleCommand {script} {
+
+    # evaluate the script
     set res [catch {uplevel #0 eval $script} msg]
+
+    # check for return status other than 0
     if {$res} { 
       return "FAIL $msg"
     } else {
+      # status was 0, formulate a response
       if {$msg ne ""} {
         return "OK $msg"
       } else {
@@ -464,7 +548,10 @@ snit::type s800rctl {
 
   ## @brief A unidirectional message
   #
+  # @param fd       the channel handle to send response on
+  # @param response message to send 
   #
+  # @throws error if no channel provided
   method _sendResponse {fd response} {
     if {$fd eq ""} {
     # just in case the socket blew away after reading the message
@@ -497,4 +584,4 @@ snit::type s800rctl {
       chan event $replySocket readable [mymethod _onReplyReadable]
     }
   }
-  }
+}
