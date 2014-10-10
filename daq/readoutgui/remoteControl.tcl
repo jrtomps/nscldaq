@@ -370,21 +370,21 @@ snit::type ReadoutGuiRemoteControl {
   # @returns ""
   method _onReplyReadable {} {
 
-    # read whatever we can from the channel
-    set readInfo [$self _onReadable $replyfd]
-
-    # check to see if the channel eof is reached
+  # check to see if the channel eof is reached
     if {[eof $replyfd]} {
       $self _onClientExit
     } else {
-      
+    # read whatever we can from the channel
+      set readInfo [$self _onReadable $replyfd]
+
+
       # not at end of file so we should have data 
       # index 1 has the data read from the channel
       #
       # in any case, append whatever we read to the previous reads that had been
       # read.
       append replyReply [lindex $readInfo 1]
-    
+
       # index 0 contains the response of [chan blocked] 
       # if 0, then we got all that there was to receive from the channel.
       # the blocked indicator is useful because the peer is waiting for a
@@ -403,11 +403,11 @@ snit::type ReadoutGuiRemoteControl {
   #
   # @returns ""
   method _onRequestReadable {} {
-    set readInfo [$self _onReadable $requestfd]
-
     if {[eof $requestfd]} {
       catch {close $requestfd}
     } else {
+      set readInfo [$self _onReadable $requestfd]
+
       append requestReply [lindex $readInfo 1]
 
       if {![lindex $readInfo 0]} {
