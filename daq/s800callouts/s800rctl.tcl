@@ -265,9 +265,7 @@ snit::type s800rctl {
     # 3. If a successful reconnect, re-try the message:
     #
     set requestReply ""
-    puts "transaction $command [clock microseconds]"
     if {[catch {puts $socket  "$command"} msg]} {
-      puts "failed to send command to socket"
       set socket "";	# In case we live through a connect fail.
       $self Connect
       $self setSlave
@@ -276,7 +274,6 @@ snit::type s800rctl {
 
     # wait until the reply has been fully received before proceeding
     vwait [myvar requestReplyReceived]
-    puts "done waiting for reply"
 
    set requestReplyReceived 0
 
@@ -404,13 +401,12 @@ snit::type s800rctl {
   }
 
   method _onReadable {fd} {
-    puts "s800rctl .. _onReadable [clock format [clock microseconds]]"
     if {[eof $fd]} {
-      puts "s800rctl .. eof detected"
       catch {close $fd}
     } else {
       if {[catch {gets $fd line} len]} {
-        puts $fd "FAIL unable to read data from peer"
+        set msg "s800rctl::_onReadable unable to read data from peer"
+        puts stderr $msg
       } else {
         return [list [chan blocked $fd] $line]
       }
@@ -418,14 +414,10 @@ snit::type s800rctl {
   }
 
   method _onReplyReadable {} {
-    puts "_onReplyReadable"
     set readInfo [$self _onReadable $replySocket]
     
-    puts "blocked? [lindex $readInfo 0], data=\"[lindex $readInfo 1]\""
-
     append replyReply [lindex $readInfo 1]
     if {![lindex $readInfo 0]} {
-      puts "all data present"
 
       if {[ $self _isValidCommand $replyReply]} {
       # if we had a valid command, then send the response immediately.
@@ -444,9 +436,7 @@ snit::type s800rctl {
   }
 
   method _onRequestReadable {} {
-    puts "_onRequestReadable"
     set readInfo [$self _onReadable $socket]
-    puts "blocked? [lindex $readInfo 0], data=\"[lindex $readInfo 1]\""
     
     append requestReply [lindex $readInfo 1]
     if {![lindex $readInfo 0]} {
@@ -502,7 +492,6 @@ snit::type s800rctl {
     if {$replySocket != ""} {
       close $client
     } else {
-      puts "S800rctl::_onConnection request socket made connection $clientaddr:$clientport"
       chan configure $client -buffering line
       set replySocket $client
       chan event $replySocket readable [mymethod _onReplyReadable]
