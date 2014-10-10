@@ -14,6 +14,7 @@
 
 package provide  s800 1.0
 package require  snit
+package require  portAllocator
 
 
 ###
@@ -33,6 +34,13 @@ snit::type s800rctl {
   option -timeout 10000;	# ms to wait for the s800 to reply
 
   variable socket "";		# Socket connected to the s800 rctl server.
+  variable requestReplyReceived 0;
+  variable requestReply "";
+
+  variable listenSocket "";		# Socket that can respond to requests from the slave
+  variable replySocket "";		# Socket that can respond to requests from the slave
+  variable replyReply ""; 
+
   variable ACK "OK"
   variable NAK "FAIL"
 
@@ -52,6 +60,12 @@ snit::type s800rctl {
   constructor args {
     $self configurelist $args
 
+    # allocate a port
+    set allocator [portAllocator %AUTO%]
+    set port [$allocator allocatePort s800rctl]
+    set listenSocket [socket -server [mymethod _onConnection] $port]
+    $allocator destroy
+
     $self Connect
 
   }
@@ -69,6 +83,15 @@ snit::type s800rctl {
       if {$socket ne ""} {
         $self setMaster
         close $socket
+      } 
+
+      # close the server
+      catch {close $listenSocket}
+
+      # close any connection to the server that may have been made
+      if {$replySocket ne ""} {
+        close $replySocket
+        set replySocket ""
       }
     }
   }
@@ -211,8 +234,8 @@ snit::type s800rctl {
   #
   method Connect {} {
     set socket [socket $options(-host) $options(-port)]
-    fconfigure $socket -buffering line -blocking 1
-    chan event $socket readable [mymethod _onReadable $socket]
+    chan configure $socket -buffering line -blocking 0
+    chan event $socket readable [mymethod _onRequestReadable]
   }
 
   ##
@@ -230,7 +253,7 @@ snit::type s800rctl {
   #   is thrown.
   method Transaction {command} {
 
-    #  If the socket is disconnected (empty $socket) try to reconnect:
+  #  If the socket is disconnected (empty $socket) try to reconnect:
 
     if {$socket eq ""} {
       $self Connect;		# Throws error on failure.
@@ -241,30 +264,24 @@ snit::type s800rctl {
     # 2. try once to reconnect (throws an error if necesary).
     # 3. If a successful reconnect, re-try the message:
     #
-
+    set requestReply ""
+    puts "transaction $command [clock microseconds]"
     if {[catch {puts $socket  "$command"} msg]} {
+      puts "failed to send command to socket"
       set socket "";	# In case we live through a connect fail.
       $self Connect
       $self setSlave
       puts $socket "$command";	# Allow the retry to throw an error.
     }
 
-    # At this point socket must be nonempty...but we might
-    # have an EOF condition on the receive socket if we try
-    # to read (e.g. empty input response and eof on socket).
-    # in case of read failure, empty response + eof state
-    # null out socket and throw an error.
+    # wait until the reply has been fully received before proceeding
+    vwait [myvar requestReplyReceived]
+    puts "done waiting for reply"
 
+   set requestReplyReceived 0
 
-
-    set response [$self ReadWithTimeout $options(-timeout)]
-    if {($response eq "") || [eof $socket]} {
-      error "No response from the s800 or EOF [eof $socket]"
-    }
-
-    # Analyze the result:
-
-    return [$self AnalyzeResponse $response]
+   # Analyze the result:
+   return [$self AnalyzeResponse $requestReply]
 
   }
   ## 
@@ -386,34 +403,63 @@ snit::type s800rctl {
     return $string
   }
 
-
   method _onReadable {fd} {
-    flush stdout
+    puts "s800rctl .. _onReadable [clock format [clock microseconds]]"
     if {[eof $fd]} {
+      puts "s800rctl .. eof detected"
       catch {close $fd}
     } else {
-      flush stdout
       if {[catch {gets $fd line} len]} {
         puts $fd "FAIL unable to read data from peer"
       } else {
-        if {[ $self _isValidCommand $line]} {
-          set result [$self _handleCommand $line]
-          $self _sendResponse $result
-        } else {
-          $self _sendResponse "FAIL invalid command"
-        }
+        return [list [chan blocked $fd] $line]
       }
     }
   }
 
+  method _onReplyReadable {} {
+    puts "_onReplyReadable"
+    set readInfo [$self _onReadable $replySocket]
+    
+    puts "blocked? [lindex $readInfo 0], data=\"[lindex $readInfo 1]\""
+
+    append replyReply [lindex $readInfo 1]
+    if {![lindex $readInfo 0]} {
+      puts "all data present"
+
+      if {[ $self _isValidCommand $replyReply]} {
+      # if we had a valid command, then send the response immediately.
+      # Executing the command the peer sent may require further
+      # communication and at the moment the peer is waiting for a response
+      # in blocking mode. Don't let it continue to block! 
+        $self _sendResponse $replySocket "OK"
+        set result [$self _handleCommand $replyReply]
+      } else {
+        $self _sendResponse $replySocket "FAIL invalid command"
+      }
+
+      # reset  the string
+      set replyReply ""
+    }
+  }
+
+  method _onRequestReadable {} {
+    puts "_onRequestReadable"
+    set readInfo [$self _onReadable $socket]
+    puts "blocked? [lindex $readInfo 0], data=\"[lindex $readInfo 1]\""
+    
+    append requestReply [lindex $readInfo 1]
+    if {![lindex $readInfo 0]} {
+      set requestReplyReceived 1
+    }
+  }
+
   method _isValidCommand {verb} {
-    flush stdout
     set acceptedVerbs [list end]
     return [expr {$verb in $acceptedVerbs}]
   }
 
   method _handleCommand {script} {
-    flush stdout
     set res [catch {uplevel #0 eval $script} msg]
     if {$res} { 
       return "FAIL $msg"
@@ -429,14 +475,37 @@ snit::type s800rctl {
   ## @brief A unidirectional message
   #
   #
-  method _sendResponse {response} {
-    if {$socket eq ""} {
-      # just in case the socket blew away after reading the message
+  method _sendResponse {fd response} {
+    if {$fd eq ""} {
+    # just in case the socket blew away after reading the message
       set msg "ReadoutGUIRemoteControl::_sendResponse Cannot send response "
       append msg "to peer because it does not exist."
       return -code error $msg 
     } else {
-      puts $socket $response
+      puts $fd $response
     }
   }
-}
+
+  # _onConnection
+  #   Called when a server connection comes in:
+  #   -  Close the connection if we already have a client..only one customer at
+  #      a time is allowed.
+  #   -  Set buffering to line.
+  #   -  Set a fileevent to fire when the socket is readable.
+  #   -  Save the socket in the clientfd attribute.
+  # 
+  # @param client     - socket fd open on client.
+  # @param clientaddr - IP address of client.
+  # @param clientport - Remote Port address.
+  #
+  method _onConnection {client clientaddr clientport} {
+    if {$replySocket != ""} {
+      close $client
+    } else {
+      puts "S800rctl::_onConnection request socket made connection $clientaddr:$clientport"
+      chan configure $client -buffering line
+      set replySocket $client
+      chan event $replySocket readable [mymethod _onReplyReadable]
+    }
+  }
+  }
