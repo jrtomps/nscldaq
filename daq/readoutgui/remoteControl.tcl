@@ -405,6 +405,7 @@ snit::type ReadoutGuiRemoteControl {
   method _onRequestReadable {} {
     if {[eof $requestfd]} {
       catch {close $requestfd}
+      set requestfd -1 
     } else {
       set readInfo [$self _onReadable $requestfd]
 
