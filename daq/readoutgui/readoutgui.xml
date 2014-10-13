@@ -1743,84 +1743,81 @@ ReadoutGuiApp  r                                  <co id='custom_readoutgui_inst
         </section>
     </section>
     <section>
-        <title>Remote control package</title>
-        <para>
-            When doing event building, it can be useful to have a ReadoutGUI for
-            each data source and then another ReadoutGUI that controls them all.
-            Doing this allows data sources to be worked on independently when
-            it is not necessary to run all of them together to build events.
-            The remote control packages for the ReadoutGUI support this
-            mode of operation.
-        </para>
-        <para>
-            If you choose to use this approach you must enable the ReadoutGUIs
-            that will be slaved to the master control panel to:
-            <itemizedlist>
-                <listitem><para>
-                    Run a remote control server component that allows the master
-                    GUI to tell it what to  do.
-                    </para></listitem>
-                <listitem><para>
-                    Run a remote console monitor component that allows the master
-                    GUI to relay output that goes to the slave output window to
-                    the master's output window.
-                    </para></listitem>
-            </itemizedlist>
-        </para>
-        <para>
-            This is done by adding the following two lines to the slave
-            GUI's <filename>ReadoutCallouts.tcl</filename> file:
-        </para>
-        <informalexample>
-            <programlisting>
-package require ReadoutGuiRemoteControl   <co id='remote_control_package' />
+      <title>Remote control package</title>
+      <para>
+        When doing event building, it can be useful to have a ReadoutGUI for
+        each data source and then another ReadoutGUI that controls them all.
+        Doing this allows data sources to be worked on independently when
+        it is not necessary to run all of them together to build events.
+        The remote control packages for the ReadoutGUI support this
+        mode of operation.
+      </para>
+      <para>
+        If you choose to use this approach you must enable the ReadoutGUIs
+        that will be slaved to the master control panel to:
+        <itemizedlist>
+          <listitem><para>
+              Run a remote control server component that allows the master
+              GUI to tell it what to do.
+          </para></listitem>
+          <listitem><para>
+              Run a remote console monitor component that allows the master
+              GUI to relay output that goes to the slave output window to
+              the master's output window.
+          </para></listitem>
+        </itemizedlist>
+      </para>
+      <para>
+        This is done by adding the following two lines to the slave
+        GUI's <filename>ReadoutCallouts.tcl</filename> file:
+      </para>
+      <informalexample>
+        <programlisting>
+          package require ReadoutGuiRemoteControl   <co id='remote_control_package' />
 
-ReadoutGuiRemoteControl %AUTO%           <co id='remote_control_controlserver' />
-OutputMonitor           %AUTO%           <co id='remote_control_outputmonitor' />
-            </programlisting>
-        </informalexample>
-        <calloutlist>
-            <callout arearefs='remote_control_package'>
-                <para>
-                    The remote control software is an optional component.
-                    This line incorporates that component into the ReadoutGUI
-                </para>
-            </callout>
-            <callout arearefs='remote_control_controlserver'>
-                <para>
-                    This line starts the remote control server.  The remote
-                    control server advertises itself with the port manager
-                    so that remote processes can determine where it is listening
-                    for TCP/IP connections.
-                </para>
-            </callout>
-            <callout arearefs='remote_control_outputmonitor'>
-                <para>
-                    This line starts the output window relay server.  It also
-                    advertises itself with the port manager.  Clients that connect
-                    to this server will receive a copy of all output destined
-                    for the slave's output window.
-                </para>
-            </callout>
-        </calloutlist>
-        <para>
-            To use a slave UI, you must run a readout shell and add data sources
-            with the RemoteGUI data source provder for each slave you want your master
-            to control.  You will need to know which system is running the slave GUI
-            and under which user name it is running.
-        </para>
-        <para>
-            At this time you can only have a single master control panel control
-            any single slave control panel.  This restriction might be lifted in the
-            future.
-        </para>
+          RemoteControlClient::initalize <co id='remote_control_initialize' />
+        </programlisting>
+      </informalexample>
+      <calloutlist>
+        <callout arearefs='remote_control_package'>
+          <para>
+            The remote control software is an optional component.
+            This line incorporates that component into the ReadoutGUI
+          </para>
+        </callout>
+        <callout arearefs='remote_control_initialize'>
+          <para>
+            An instance of the ReadoutGUIRemoteControl class and OutputClient
+            are instantiated, this providing the required capabilities for run
+            control and output forwarding.  Furthermore, the
+            <command>end</command> proc is renamed to
+            <command>local_end</command> and a new <command>end</command> proc
+            is created that will propagate an end run request to the master
+            ReadoutGUI. This forwarding of the end run may be important if the
+            enslaved GUI runs a filter in conjunction with the Actions package.
+          </para>
+        </callout>
+      </calloutlist>
+      <para>
+        To use a slave UI, you must run a readout shell and add data sources
+        with the RemoteGUI data source provider for each slave you want your master
+        to control.  You will need to know which system is running the slave GUI
+        and under which user name it is running. Furthermore, the system to be
+        enslaved must have already been started (i.e. state = HALTED) in order
+        for the master ReadoutGUI to enslave it.  
+      </para>
+      <para>
+        At this time you can only have a single master control panel control
+        any single slave control panel.  This restriction might be lifted in the
+        future.
+      </para>
     </section>
-    
-</chapter>
+
+  </chapter>
 <!-- /chapter -->
 <!-- manpage 3rdogui -->
-	 <refentry id='rdogui_man'>
-       <refmeta>
+   <refentry id='rdogui_man'>
+     <refmeta>
           <refentrytitle id='rdogui_man_title'>Introduction</refentrytitle>
           <manvolnum>3rdogui</manvolnum>
        </refmeta>
