@@ -1788,7 +1788,7 @@ ReadoutGuiApp  r                                  <co id='custom_readoutgui_inst
         <callout arearefs='remote_control_initialize'>
           <para>
             An instance of the ReadoutGUIRemoteControl class and OutputClient
-            are instantiated, this providing the required capabilities for run
+            are instantiated, thus providing the required capabilities for run
             control and output forwarding.  Furthermore, the
             <command>end</command> proc is renamed to
             <command>local_end</command> and a new <command>end</command> proc
