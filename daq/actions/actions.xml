@@ -1,4 +1,4 @@
-<!-- chapter toolkit -->
+<!-- chapter frameworks -->
 
 <chapter>
   <title>The actions library</title>
@@ -22,7 +22,7 @@
       output of the filter program being treated as just a stream of text.
       With actually less effort in the ReadoutCallouts.tcl script, the user can
       enable their filter program's output to be formatted or even initiate TCL
-      command executions in the interpreter of the ReadoutGUI. Why would you this
+      command executions in the interpreter of the ReadoutGUI. Why would you want this
       feature? Consider, for example, wanting a filter program to output warning
       messages that would be highlighted so as to stand out to the user. In
       more advanced cases, one might want to execute commands in the tcl
@@ -39,7 +39,7 @@
       namespace. Then when the user writes the code in the ReadoutCallouts.tcl
       script to launch the filter, they will do so by launching it as a pipeline.
       In addition, they will register the actions::onReadable handler for when the
-      pipeline is readable. That's it! The result will be a much richer
+      pipeline is readable. That's it! The result will be extended
       capabilities of their filter program when run in the environment of the
       ReadoutGUI. 
     </para>
@@ -151,7 +151,7 @@
         </methodparam>
       </methodsynopsis>
     </listitem>
-  </itemizedl>
+  </itemizedlist>
   
   <para>
     It is worthwhile to mention that using these C++ functions in a filter
@@ -166,7 +166,7 @@
     </title>
   <para>
     One might be surprised at how simple this actually is. The C++ functions
-    that live in the Actions namespace simply append a directive to the message
+    that live in the Actions namespace simply prepends a directive and size to the message
     the user seeks to output and then writes the output to stderr. The tcl
     package that reads the output from the pipeline then reads the message and
     handles the message in a manner dictated by the directive. 
@@ -193,8 +193,21 @@
       There is no difference in the behavior of the actions library for this
       scenario except that run control operations to end the run are forwarded
       to the master ReadoutGUI. In this way, there will not be scenarios when
-      a single subsystem of the DAQ has shutdown.
+      a single subsystem of the DAQ has shutdown. If the user chooses to
+      propagate the end run to the master ReadoutGUI (via the EndRun function's
+      argument), then they will be able to seamlessly run their DAQ while
+      enslaved and not enslaved. However, if the user chooses not to forward to
+      the master, they will need to add the following code to their
+      ReadoutCallouts.tcl script to ensure that the local_end proc is defined.
     </para>
+
+    <programlisting>
+      if {[llength [info proc local_end]]==0} {
+        proc local_end {} {
+          end
+        }
+      }
+    </programlisting>
   </section>
 
   <section>
@@ -210,16 +223,16 @@
       accomplish this task.
     </para>
 
-    <codelisting>
-  #include <Actions.h>
-  #include <CFilter.h>
-  #include <iostream>
-  #include <sstream>
+    <programlisting>
+  #include &lt;Actions.h>
+  #include &lt;ilter.h>
+  #include &lt;iostream>
+  #include &lt;sstream>
 
   class OneThousandDelimiter : public CFilter {
     private:
-      bool m_stopEmitted;     //!< flag for outputting new events
-      int m_count;            //!< number of events
+      bool m_stopEmitted;     // flag for outputting new events
+      int m_count;            // number of events
 
     public:
 
@@ -235,7 +248,7 @@
         // display a log message every 100 events in the ReadoutGUI OutputWindow
         if ((m_count%(100))==0) {
           std::stringstream msg;
-          msg << "Processed " << m_count << " of " << 1000;
+          msg &lt;&lt; "Processed " &lt;&lt; m_count &lt;&lt; " of " &lt;&lt; 1000;
           Actions::Log ( msg.str() ); 
         }
   
@@ -261,7 +274,7 @@
         m_stopEmitted=false;
       }
   };
-    </codelisting>
+    </programlisting>
     <para>
       What this does is to count the number of PHYSICS_EVENT ring items
       processed by the filter, all the while printing log messages to the
@@ -271,10 +284,8 @@
       time that passes between when the filter program emits the end run
       command and when the ReadoutGUI's run control actually transitions the
       state machine to Halted, there is a flag that is set called
-      m_stopEmitted. When this is set, the filter throws away all PHYSIC_EVENTS
-      that come its way. In the real scenario, you would also have to consider
-      the effect that this has on the scaler data, but that is left as an
-      exercise to whoever wants to run their experiment this way.
+      m_stopEmitted. When this is set, the filter throws away all PHYSICS_EVENT items
+      that come its way. 
     </para>
 
     <para>
@@ -283,7 +294,7 @@
       launched as follows: 
     </para>
 
-    <codelisting>
+    <programlisting>
   # load the packages we need
   package require Actions         ;# the actions tcl package
   package require DefaultActions  ;# the default response for the action package
@@ -299,7 +310,7 @@
 
   # register the actions parser to the pipeline
   chan event $pipe readable [list $parser onReadable $pipe]
-    </codelisting>
+    </programlisting>
 
     <para>
       As you can see, the TCL portion of this has been reduced to instantiating

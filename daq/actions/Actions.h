@@ -5,6 +5,7 @@
 #include <iostream>
 #include <string>
 
+/**! The C++ functions for the actions package */
 namespace Actions 
 {
     void Error (std::string message ) {
@@ -50,14 +51,6 @@ namespace Actions
     }
 
     void EndRun (bool propagate=true) {
-//        std::string tclcmd;
-//        tclcmd =  "set sm [RunstateMachineSingleton %AUTO]; ";
-//        tclcmd += "set state [$sm getState]; ";
-//        tclcmd += "if {$state in [list Paused Active]} {";
-//        tclcmd += "  $sm transition Halted ";
-//        tclcmd += "} else { ";
-//        tclcmd += "  ERROR: end run clicked when state is $state";
-//        tclcmd += "}; $sm destroy";
         if (propagate) {
           TCLCommand ( "end" );
         } else {
