@@ -62,6 +62,7 @@ snit::type ReadoutGuiRemoteControl {
   variable replyfd -1;             #< receives cmd from master, sends reply 
   variable requestfd -1;           #< sends comds to master, waits for reply
   variable requestReplyReceived 0; #< flags when full reply has been received
+  variable requestReply "";        #< flags when full reply has been received
   variable manager  -1;            #< Port manager client instance.
 
   # verbs that we will process happily
