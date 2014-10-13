@@ -1,7 +1,9 @@
 
 
 package require tcltest
-package require VMUSBDriverSupport
+
+tcltest::test pkgrequire-0 {make sure we can require the package
+} {package require VMUSBDriverSupport} 1.0
 
 
 ####################### check range

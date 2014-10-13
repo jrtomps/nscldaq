@@ -44,6 +44,7 @@ itcl::class APpacXLM72 {
   # @param sa   the number of samples
   #
 	public method WriteSamples {ctlr sa} {Write $ctlr fpga 4 $sa}
+	public method ReadSamples {ctlr} { return [Read $ctlr fpga 4]}
 
   ## @brief Set the period
   # 
@@ -54,6 +55,7 @@ itcl::class APpacXLM72 {
   # @param pe   the period (units?)
   #
 	public method WritePeriod {ctlr pe} {Write $ctlr fpga 12 $pe}
+	public method ReadPeriod {ctlr} { return [Read $ctlr fpga 12]}
 
   ## @brief Set the delay
   # 
@@ -64,6 +66,7 @@ itcl::class APpacXLM72 {
   # @param de   the delay (units?)
   #
  	public method WriteDelay {ctlr de} {Write $ctlr fpga 16 $de}
+	public method ReadDelay {ctlr} { return [Read $ctlr fpga 16]}
 
   ## @brief Set the width
   #
@@ -74,6 +77,7 @@ itcl::class APpacXLM72 {
   # @param wi   the delay (units?)
   #
 	public method WriteWidth {ctlr wi} {Write $ctlr fpga 20 $wi}
+	public method ReadWidth {ctlr} { return [Read $ctlr fpga 20]}
 
   ## @brief Set the shift
   # 
@@ -84,6 +88,7 @@ itcl::class APpacXLM72 {
   # @param ctlr a cvmusb::CVMUSB object
   #
 	public method WriteShift {ctlr sh} {Write $ctlr fpga 24 $sh}
+	public method ReadShift {ctlr} { return [Read $ctlr fpga 24]}
 
   ## @brief Set threshold values
   #
@@ -115,7 +120,6 @@ itcl::class APpacXLM72 {
   # @param ctlr a cvmusb::CVMUSB object
   #
  	public method Clear {ctlr } {Write $ctlr srama 0 0}
-
 
   ############################################################
   ############################################################
@@ -249,12 +253,14 @@ itcl::body APpacXLM72::Init {ctlr filename aname} {
   if {"period" in $names} {
     WritePeriod $ctlr [lindex [array get $aname period] 1]
   } else {
+    ReleaseBus $ctlr
     error "APpacXLM72::Init : $aname does not contain element \"period\""
   }
 
   if {"delay" in $names} {
     WriteDelay $ctlr [lindex [array get $aname delay] 1]
   } else {
+    ReleaseBus $ctlr
     error "APpacXLM72::Init : $aname does not contain element \"delay\""
   }
 
@@ -262,6 +268,7 @@ itcl::body APpacXLM72::Init {ctlr filename aname} {
   if {"width" in $names} {
     WriteWidth $ctlr [lindex [array get $aname width] 1]
   } else {
+    ReleaseBus $ctlr
     error "APpacXLM72::Init : $aname does not contain element \"width\""
   }
 
@@ -269,6 +276,7 @@ itcl::body APpacXLM72::Init {ctlr filename aname} {
   if {"shift" in $names} {
     WriteShift $ctlr [lindex [array get $aname shift] 1]
   } else {
+    ReleaseBus $ctlr
     error "APpacXLM72::Init : $aname does not contain element \"shift\""
   }
 
@@ -278,9 +286,10 @@ itcl::body APpacXLM72::Init {ctlr filename aname} {
     set threshName [format thresholds%.3d $i]
 
     if {$threshName in $names} {
-		  lappend th [lindex [array get $aname ] 1]
+		  lappend th [lindex [array get $aname $threshName] 1]
     } else {
-      error "APpacXLM72::Init : $aname does not contain element \"shift\""
+      ReleaseBus $ctlr
+      error "APpacXLM72::Init : $aname does not contain element \"$threshName\""
     }
 	}
 	WriteThresholds $ctlr $th
