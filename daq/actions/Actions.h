@@ -45,7 +45,7 @@ namespace Actions
         TCLCommand ( "pause" );
     }
 
-    void ResumRun () {
+    void ResumeRun () {
         TCLCommand ( "resume" );
     }
 

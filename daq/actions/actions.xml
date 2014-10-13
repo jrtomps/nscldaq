@@ -40,9 +40,106 @@
   <para>
     Here is the list of things that can be accomplished:
   </para>
-  <para>
-    include here the list of Actions functions...
-  </para>
+  <itemizedlist>
+
+    <listitem>
+      <methodsynopsis>
+        <type>void</type>
+        <methodname>Error</methodname>
+        <methodparam>
+          <type>std::string</type>
+          <parameter>message</parameter>
+        </methodparam>
+      </methodsynopsis>
+    </listitem>
+
+    <listitem>
+      <methodsynopsis>
+        <type>void</type>
+        <methodname>Log</methodname>
+        <methodparam>
+          <type>std::string</type>
+          <parameter>message</parameter>
+        </methodparam>
+      </methodsynopsis>
+    </listitem>
+
+    <listitem>
+      <methodsynopsis>
+        <type>void</type>
+        <methodname>Warning</methodname>
+        <methodparam>
+          <type>std::string</type>
+          <parameter>message</parameter>
+        </methodparam>
+      </methodsynopsis>
+    </listitem>
+
+    <listitem>
+      <methodsynopsis>
+        <type>void</type>
+        <methodname>Output</methodname>
+        <methodparam>
+          <type>std::string</type>
+          <parameter>message</parameter>
+        </methodparam>
+      </methodsynopsis>
+    </listitem>
+
+    <listitem>
+      <methodsynopsis>
+        <type>void</type>
+        <methodname>Debug</methodname>
+        <methodparam>
+          <type>std::string</type>
+          <parameter>message</parameter>
+        </methodparam>
+      </methodsynopsis>
+    </listitem>
+
+    <listitem>
+      <methodsynopsis>
+        <type>void</type>
+        <methodname>TCLCommand</methodname>
+        <methodparam>
+          <type>std::string</type>
+          <parameter>message</parameter>
+        </methodparam>
+      </methodsynopsis>
+    </listitem>
+
+    <listitem>
+      <methodsynopsis>
+        <type>void</type>
+        <methodname>BeginRun</methodname>
+        <void/>
+      </methodsynopsis>
+    </listitem>
+
+    <listitem>
+      <methodsynopsis>
+        <type>void</type>
+        <methodname>PauseRun</methodname>
+        <void/>
+      </methodsynopsis>
+    </listitem>
+
+    <listitem>
+      <methodsynopsis>
+        <type>void</type>
+        <methodname>ResumeRun</methodname>
+        <void/>
+      </methodsynopsis>
+    </listitem>
+
+    <listitem>
+      <methodsynopsis>
+        <type>void</type>
+        <methodname>EndRun</methodname>
+        <void/>
+      </methodsynopsis>
+    </listitem>
+  </itemizedlist>
 
   <section>
     <title>
