@@ -81,6 +81,7 @@ snit::type s800rctl {
 
     $self Connect
 
+
   }
 
   ##
@@ -95,6 +96,7 @@ snit::type s800rctl {
     catch {
       if {$socket ne ""} {
         $self setMaster
+        chan event $socket readable {}
         close $socket
       } 
 
@@ -103,6 +105,7 @@ snit::type s800rctl {
 
       # close any connection to the server that may have been made
       if {$replySocket ne ""} {
+        chan event $replySocket readable {}
         close $replySocket
         set replySocket ""
       }

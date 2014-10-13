@@ -36,7 +36,6 @@ tcltest::test S800-parameters-1 {Check contents of the s800 parameter dict: } \
 } -result [dict create host [list {Host name}] port [list {Run control server port}]]
 
 
-
 tcltest::test S800-capabilities-1 {Check contents of s800 capabilities dict} \
 -body {
     ::S800::capabilities
@@ -112,8 +111,11 @@ tcltest::test s800-check-3 {Checking a source that has been forced to die:} \
 } \
 -body {
     stopServer;   # Server exits now so:
-    ::S800::check 0;   # Should be zero.
+    update
+    set res [::S800::check 0];   # Should be zero.
     
+    update
+    set res
 } -result 0
 ##
 # stop tests:
@@ -128,6 +130,7 @@ tcltest::test s800-stop-1 {Stop the provider when it is running} \
     clearS800ProviderState
 } \
 -body {
+    update
     ::S800::stop 0
     set rctlObject [dict get $::S800::sourceParams 0 connectionObj]
     set state [dict get $::S800::sourceParams 0 state]
@@ -194,27 +197,6 @@ tcltest::test s800-begin-2 {Start a run when the run is already active} \
 -setup {
     startServer
     ::S800::start [dict create sourceid 0 host localhost port $::s800test::port]
-    ::S800::begin 0 1 {This is the first title};   # Run is already active.
-} \
--cleanup {
-    clearS800ProviderState
-} \
--body {
-    S800::begin 0 123 {This is a title}
-    set rctl [::S800::_getConnectionObject 0]
-    
-    set runState [$rctl getState]
-    
-    set title [lindex [$rctl Transaction {get title}] 1]
-    set run   [lindex [$rctl Transaction {get run}] 1]
-    list $run $title $runState
-    
-} -result [list 123 {This is a title}  active]
-
-tcltest::test s800-begin-3 {Error to start a run in the wrong sourc id} \
--setup {
-    startServer
-    ::S800::start [dict create sourceid 0 host localhost port $::s800test::port]
    
 } \
 -cleanup {
@@ -276,5 +258,4 @@ tcltest::test end-3 {End run with wrong source id fails} \
 } -result [list 1 {1 is not the id of a source managed by the S800 provider.}]
 
 ## Report test results.
-
 tcltest::cleanupTests
