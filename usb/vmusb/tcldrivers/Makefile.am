@@ -7,6 +7,8 @@ TCLDRIVERS=sis330xdriver.tcl VMUSBDriverSupport.tcl vmusb.tcl \
 install-exec-local:
 	$(mkinstalldirs) @prefix@/TclLibs
 	$(mkinstalldirs) $(DRIVERDest)
+	$(INSTALL_SCRIPT) @srcdir@/*driver.tcl $(DRIVERDest)
+	$(INSTALL_SCRIPT) @srcdir@/vmusb.tcl $(DRIVERDest)
 	for f in $(TCLDRIVERS); do $(INSTALL_SCRIPT) @srcdir@/$$f  $(DRIVERDest) ; done
 	echo "pkg_mkIndex -verbose $(DRIVERDest) *.tcl" | $(TCLSH_CMD)
 

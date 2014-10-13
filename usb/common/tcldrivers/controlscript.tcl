@@ -226,15 +226,7 @@ snit::type controlscript {
   # \return "" if value is vmusb or ccusb. Otherwise an error msg is returned.
   method _validateControllerType {value} {
     if { $value ne "vmusb" && $value ne "ccusb"} {
-      set msg {Type of controller not specified! User must set }
-      append msg {-controllertype to either "vmusb" or "ccusb"}
-      return -code error $msg
-    }
-
-    if {$value eq "vmusb"} {
-      package require VMUSBDriverSupport
-    } elseif {$value eq "ccusb"} {
-      package require CCUSBDriverSupport
+      error {Type of controller not specified! User must set -controllertype to either "vmusb" or "ccusb"}
     }
 
   }

@@ -31,12 +31,6 @@ snit::type readoutscript {
   # 
   constructor args {
     $self configurelist $args
-
-    if {$options(-controllertype) eq "vmusb"} {
-      package require VMUSBDriverSupport
-    } elseif {$options(-controllertype) eq "ccusb"} {
-      package require CCUSBDriverSupport
-    }
   }
 
   ## 
@@ -61,7 +55,6 @@ snit::type readoutscript {
     if {[string length $options(-initscript)]>0} {
       uplevel #0 source $options(-initscript)
     }
-
     return "OK"
   }
 

@@ -246,9 +246,9 @@ public:
 //    int vmeWrite32(int address, int amodifier, int data) { // SWIG
 //      return vmeWrite32((uint32_t)address, (uint8_t)amodifier, (uint32_t)data);
 //    }
-    uint32_t vmeRead32(uint32_t address, uint8_t amodifier) { // SWIG
+    uint32_t vmeRead32(int address, int amodifier) { // SWIG
       uint32_t d32 =0;
-      vmeRead32(address, amodifier, &d32);
+      vmeRead32((uint32_t)address, (uint8_t)amodifier, &d32);
       return d32;
     }
 
@@ -258,9 +258,9 @@ public:
 //    int vmeWrite16(int address, int amodifier, int data) { // SWIG
 //      return vmeWrite16((uint32_t)address, (uint8_t)amodifier, (uint16_t)data);
 //    }
-    uint16_t vmeRead16(uint32_t address,uint8_t amodifier) { // SWIG
+    int vmeRead16(int address,int amodifier) { // SWIG
       uint16_t d16 = 0;
-      vmeRead16(address, amodifier, &d16);
+      vmeRead16((uint32_t)address, (uint8_t)amodifier, &d16);
       return d16;
     }
 
@@ -269,9 +269,9 @@ public:
 //    int vmeWrite8(int address, int  amodifier, int data) { // SWIG
 //      return vmeWrite8((uint32_t)address, (uint8_t)amodifier, (uint8_t)data);
 //    }
-    uint8_t vmeRead8(uint32_t address, uint8_t amodifier) { // SWIG
+    int vmeRead8(int address, int amodifier) { // SWIG
       uint8_t d8;
-      vmeRead8(address, amodifier, &d8);
+      vmeRead8((uint32_t)address, (uint8_t)amodifier, &d8);
       return d8;
     }
     virtual int vmeBlockRead(uint32_t baseAddress, uint8_t aModifier,

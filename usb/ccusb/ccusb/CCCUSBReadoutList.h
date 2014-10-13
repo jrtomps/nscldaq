@@ -96,12 +96,12 @@
    void addWrite16(int n, int a, int f, uint16_t data);
    void addWrite24(int n, int a, int f, uint32_t data);
 
-//   void addWrite16(int n, int a, int f, int data) { /* swig */
-//     addWrite16(n,a,f, (uint16_t)data);
-//   }
-//   void addWrite24(int n, int a, int f, int data) { /* swig */
-//     addWrite24(n,a,f, (uint32_t)data);
-//   }
+   void addWrite16(int n, int a, int f, int data) { /* swig */
+     addWrite16(n,a,f, (uint16_t)data);
+   }
+   void addWrite24(int n, int a, int f, int data) { /* swig */
+     addWrite24(n,a,f, (uint32_t)data);
+   }
 
    void addRead16(int n, int a, int f, bool lamWait=false);
    void addRead24(int n, int a, int f, bool lamWait=false);

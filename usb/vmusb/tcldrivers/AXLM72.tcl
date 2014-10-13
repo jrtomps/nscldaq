@@ -95,11 +95,7 @@ itcl::class AXLM72 {
   # 
   # @returns the value read from the module 
 	public method Read {ctlr dev address} {
-    set addr [expr [set $dev]+$address]
-    set am   [expr 0x09]
-    puts "addr = \"$addr\""
-    puts "am   = \"$am\""
-    return [$ctlr vmeRead32 $addr $am]
+      return [$ctlr vmeRead32 [expr [set $dev]+$address] 0x09]
   }
 
   ##
