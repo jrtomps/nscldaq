@@ -28,6 +28,7 @@ package provide crdcxlm72 1.0
 
 package require xlm72
 package require Itcl
+package require Utils
 
 
 ## @class ACrdcXLM72
@@ -65,9 +66,10 @@ itcl::class ACrdcXLM72 {
   #          bus (0x10000)
   #
   # @param ctlr a cvmusb::CVMUSB object
-  # @param sa   the number of samples
+  # @param sa   the number of samples (must be in range [0,511])
   #
-	public method WriteSamples {ctlr sa} {Write $ctlr fpga 4 $sa}
+  # @throws error if argument is out of range
+	public method WriteSamples {ctlr sa}
 	public method ReadSamples {ctlr} { return [Read $ctlr fpga 4]}
 
   ## @brief Set the period
@@ -76,9 +78,10 @@ itcl::class ACrdcXLM72 {
   #          bus (0x10000)
   #
   # @param ctlr a cvmusb::CVMUSB object
-  # @param pe   the period (units?)
+  # @param pe   the period (units?) (must be in range [0,3])
   #
-	public method WritePeriod {ctlr pe} {Write $ctlr fpga 12 $pe}
+  # @throws error if argument is out of range
+	public method WritePeriod {ctlr pe}
 	public method ReadPeriod {ctlr} { return [Read $ctlr fpga 12]}
 
   ## @brief Set the delay
@@ -87,9 +90,10 @@ itcl::class ACrdcXLM72 {
   #          bus (0x10000)
   #
   # @param ctlr a cvmusb::CVMUSB object
-  # @param de   the delay (units?)
+  # @param de   the delay (units?) (must be in range [0,15])
   #
-	public method WriteDelay {ctlr de} {Write $ctlr fpga 16 $de}
+  # @throws error if argument is out of range
+	public method WriteDelay {ctlr de}
 	public method ReadDelay {ctlr} { return [Read $ctlr fpga 16]}
 
 
@@ -99,9 +103,10 @@ itcl::class ACrdcXLM72 {
   #          bus (0x10000)
   #
   # @param ctlr a cvmusb::CVMUSB object
-  # @param wi   the delay (units?)
+  # @param wi   the delay (units?) (must be in range [0,63])
   #
-	public method WriteWidth {ctlr wi} {Write $ctlr fpga 20 $wi}
+  # @throws error if argument is out of range
+	public method WriteWidth {ctlr wi}
 	public method ReadWidth {ctlr} { return [Read $ctlr fpga 20]}
 
   ## @brief Set the shift
@@ -109,10 +114,11 @@ itcl::class ACrdcXLM72 {
   # @warning Bus ownership must have already been obtained for X
   #          bus (0x10000)
   #
-  # @param sh   the shift (units?)
   # @param ctlr a cvmusb::CVMUSB object
+  # @param sh   the shift (units?) (must be in range [0,255])
   #
-	public method WriteShift {ctlr sh} {Write $ctlr fpga 24 $sh}
+  # @throws error if argument is out of range
+	public method WriteShift {ctlr sh}
 	public method ReadShift {ctlr} { return [Read $ctlr fpga 24]}
 
   ## @brief Set threshold values
@@ -196,6 +202,70 @@ itcl::class ACrdcXLM72 {
 ###############################################################################
 #
 # Implementations
+
+
+itcl::body ACrdcXLM72::WriteSamples {ctlr sa} {
+  if {![Utils::isInRange 0 511 $sa]} {
+    set msg "ACrdcXLM72::WriteSamples Argument out of range. "
+    append msg {Must be in range [0,511].}
+    return -code error $msg
+  }
+  set res [Write $ctlr fpga 4 $sa]
+  after 5
+  return $res
+}
+
+itcl::body ACrdcXLM72::WritePeriod {ctlr pe} {
+  if {![Utils::isInRange 0 3 $pe]} {
+    set msg "ACrdcXLM72::WritePeriod Argument out of range. "
+    append msg {Must be in range [0,3].}
+    return -code error $msg
+  }
+
+  set res [Write $ctlr fpga 12 $pe]
+  after 5
+  return $res
+}
+
+itcl::body ACrdcXLM72::WriteDelay {ctlr de} {
+
+  if {![Utils::isInRange 0 15 $de]} {
+    set msg "ACrdcXLM72::WriteDelay Argument out of range. "
+    append msg {Must be in range [0,15].}
+    return -code error $msg
+  }
+
+  set res [Write $ctlr fpga 16 $de]
+  after 5
+  return $res
+}
+
+itcl::body ACrdcXLM72::WriteWidth {ctlr wi} {
+  
+  if {![Utils::isInRange 0 63 $wi]} {
+    set msg "ACrdcXLM72::WriteWidth Argument out of range. "
+    append msg {Must be in range [0,63].}
+    return -code error $msg
+  }
+
+  set res [Write $ctlr fpga 20 $wi]
+  after 5
+  return $res
+}
+
+
+itcl::body ACrdcXLM72::WriteShift {ctlr sh} {
+
+  if {![Utils::isInRange 0 255 $sh]} {
+    set msg "ACrdcXLM72::WriteShift Argument out of range. "
+    append msg {Must be in range [0,255].}
+    return -code error $msg
+  }
+
+  set res [Write $ctlr fpga 24 $sh]
+  after 5
+  return $res
+}
 
 
 
