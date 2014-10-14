@@ -24,7 +24,8 @@ TCLTESTS = acaen671.test \
 					 mockccusb.test \
 					 phillips71xx.test \
 					 trigger2367.test \
-					 tclTests.tcl 
+					 tclTests.tcl  \
+					 MockCCUSB.tcl
 
 
 check-TESTS:
