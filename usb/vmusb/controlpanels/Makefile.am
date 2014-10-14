@@ -15,4 +15,4 @@ install-exec-local:
 
 
 
-EXTRA_DIST= $(APPS) $(PACKAGES)
+EXTRA_DIST= $(APPS) $(PACKAGES) XLM72ScalerGUI.tcl
