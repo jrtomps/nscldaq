@@ -108,3 +108,4 @@ install-data-local:
 	$(INSTALL_DATA)  @srcdir@/*.h @prefix@/vmusbdriver/includes
 
 
+EXTRA_DIST = CCamacCompat.hpp
