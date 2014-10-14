@@ -1,1 +1,1 @@
-SUBDIRS=tcldrivers
+SUBDIRS=tcldrivers devices
