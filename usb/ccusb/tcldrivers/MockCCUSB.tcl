@@ -145,6 +145,10 @@ namespace eval MockCCUSB {
       lappend m_history "qscan $n $a $f $max $lamWait"
     }
 
+    method addQStop {n a f max {lamWait 0}} {
+      lappend m_history "qstop $n $a $f $max $lamWait"
+    }
+
     ## @brief Retrieves the history
     #
     # @returns a list of the commands called

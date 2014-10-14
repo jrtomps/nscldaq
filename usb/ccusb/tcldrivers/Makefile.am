@@ -16,12 +16,20 @@ install-exec-local:
 #
 #  All driver and docs files need to be added here:
 #
-#CCUSBTCLTESTS = tclCCUSB.test ccusbTests.tcl
+TCLTESTS = acaen671.test \
+					 acaen808.test \
+					 ccusbdriver.test \
+					 lecroy4300b.test \
+					 lecroy4448.test \
+					 mockccusb.test \
+					 phillips71xx.test \
+					 trigger2367.test \
+					 tclTests.tcl 
 
 
 check-TESTS:
 	TCLLIBPATH="@prefix@/TclLibs @libdir@ @srcdir@" HERE=@srcdir@ tcl=@TCLSH_CMD@ @TCLSH_CMD@ @srcdir@/tclTests.tcl
 
-EXTRA_DIST=$(TCLDRIVERS)  tclTests.tcl
+EXTRA_DIST=$(TCLDRIVERS) $(TCLTESTS)
 #$(CCUSBTCLTESTS) 
 
