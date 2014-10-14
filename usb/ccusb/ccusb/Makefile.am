@@ -102,3 +102,4 @@ clean-local:
 	$(RM) -f $(BUILT_SOURCES)
 
 
+EXTRA_DIST=CCCUSB.i CCCUSBReadoutList.i
