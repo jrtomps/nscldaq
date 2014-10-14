@@ -13,7 +13,7 @@ install-exec-local:
 #
 #  All driver and docs files need to be added here:
 #
-TCLTESTS = tclTests.tcl vmusbdriversupport.test manXLM72Scaler.tcl
+TCLTESTS=tclTests.tcl vmusbdriversupport.test manXLM72Scaler.tcl ppacxlm72.test crdcxlm72.test
 
 
 check-TESTS:
