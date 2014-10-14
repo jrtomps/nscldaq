@@ -1,5 +1,7 @@
 SUBDIRS=vmusb ccusb loaders caenfwloader common
 
+DIST_SUBDIRS = vmusb ccusb loaders caenfwloader common
+
 #
 #  Index the swig wrapper for the XX_USB packages:
 #  This must be done manually as pkg_mkIndex failes if there are no controllers online:
