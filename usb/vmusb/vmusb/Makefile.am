@@ -82,10 +82,8 @@ install-data-local:
 clean-local:
 	rm -f $(BUILT_SOURCES)
 
-#  Stuff that needs to go int the distro:
 
 
-EXTRA_DIST = $(TEST_MODULES)
 
 # Swig interface generation:
 
@@ -104,3 +102,6 @@ libCVMUSBReadoutList_la_LIBADD = libVMUSB.la @THREADLD_FLAGS@
 @srcdir@/CVMUSBReadoutList_wrap.cxx: @srcdir@/CVMUSBReadoutList.h
 	@SWIG@ -c++ -outdir @srcdir@ -debug-classes -tcl -namespace -pkgversion 1.0 \
 	 @srcdir@/CVMUSBReadoutList.i 
+
+#  Stuff that needs to go int the distro:
+EXTRA_DIST = $(TEST_MODULES) @srcdir@/CVMUSB.i @srcdir@/CVMUSBReadoutList.i
