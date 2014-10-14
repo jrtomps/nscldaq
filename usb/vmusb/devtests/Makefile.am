@@ -24,4 +24,4 @@ unittests_LDFLAGS = @LIBTCLPLUS_LDFLAGS@  $(TCL_LDFLAGS) \
 check-TESTS:
 	./unittests 
 
-EXTRA_DIST=TestRunner.cpp $(TESTS)
+EXTRA_DIST=TestRunner.cpp $(TESTS) Asserts.h
