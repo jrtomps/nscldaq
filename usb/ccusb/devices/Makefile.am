@@ -70,3 +70,5 @@ install-data-local:
 #@srcdir@/CCUSBSwigDevices_wrap.cxx:	@top_srcdir@/usb/common/devices/CLeCroy4448.h
 #	@SWIG@ -c++ -outdir @srcdir@ $(SWIGINCLUDES) -debug-classes -tcl -namespace -pkgversion 1.0 @srcdir@/CCUSBSwigDevices.i
 #
+
+EXTRA_DIST = CCamacCompat.hpp

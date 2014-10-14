@@ -6,6 +6,7 @@
 
 #include <vector>
 #include <CReadoutHardware.h>
+#include "CCamacCompat.hpp" // This must be included before CCamacCrate.h
 #include "CCamacCrate.h"
 #include <CReadoutModule.h>
 

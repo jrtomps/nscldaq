@@ -1,5 +1,6 @@
 
 #include "CCamacCrate.h"
+#include <CCamacCompat.hpp>
 #include "CConfiguration.h"
 #ifndef __GLOBALS_H
 #include <Globals.h>
@@ -7,7 +8,6 @@
 #include <tcl.h>
 #include <iostream>
 #include <string>
-#include "CCamacCompat.hpp"
 #include <typeinfo>
 // this the template source code CCamacCrate.hpp
 
