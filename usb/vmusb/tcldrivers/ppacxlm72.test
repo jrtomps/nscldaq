@@ -1,0 +1,77 @@
+
+package require tcltest
+package require cvmusb
+package require Itcl
+
+tcltest::test pkgrequire-0 {Ensure we can require the package 
+} {package require ppacxlm72} 1.0
+
+
+proc setup {} {
+  cvmusb::CMockVMUSB ::ctlr
+  APpacXLM72 ::dev 2 
+}
+
+
+proc tearDown {} {
+  ::ctlr -delete
+  itcl::delete object ::dev
+}
+
+if {0} {
+tcltest::test sample-0 {Test that just out range fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev WriteSamples ::ctlr 512
+} -result {APpacXLM72::WriteSamples Argument out of range. Must be in range [0,511].} \
+-returnCodes 1
+}
+
+
+tcltest::test period-0 {Test that just out of range fails 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev WritePeriod ::ctlr 4 
+} -result {APpacXLM72::WritePeriod Argument out of range. Must be in range [0,3].} \
+-returnCodes 1
+
+
+tcltest::test delay-0 {Test that just out of range fails 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev WriteDelay ::ctlr 16 
+} -result {APpacXLM72::WriteDelay Argument out of range. Must be in range [0,15].} \
+-returnCodes 1
+
+
+tcltest::test width-0 {Test that just out of range fails 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev WriteWidth ::ctlr 64 
+} -result {APpacXLM72::WriteWidth Argument out of range. Must be in range [0,63].} \
+-returnCodes 1
+
+
+tcltest::test shift-0 {Test that just out of range fails 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev WriteShift ::ctlr 256 
+} -result {APpacXLM72::WriteShift Argument out of range. Must be in range [0,255].} \
+-returnCodes 1
+
+tcltest::cleanupTests
