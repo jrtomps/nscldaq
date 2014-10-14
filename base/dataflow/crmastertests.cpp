@@ -67,119 +67,127 @@ void rmasterTests::creation() {
 void rmasterTests::registration() 
 {
   // local host can register:
-
-  CRingMaster localMaster;
-  
-  bool thrown = false;
   try {
-    localMaster.notifyCreate(uniqueRing("dummyring"));
-  }
-  catch(...) {
-    thrown = true;
-  }
-  if (thrown) {
-  ASSERT(!thrown);
-  } else {
-    localMaster.notifyDestroy(uniqueRing("dummyring"));
-  }
+    CRingMaster localMaster;
 
-  // non local can't and throws an ENOTSUPP errno exception.
+    bool thrown = false;
+    try {
+      localMaster.notifyCreate(uniqueRing("dummyring"));
+    }
+    catch(...) {
+      thrown = true;
+    }
+    if (thrown) {
+      ASSERT(!thrown);
+    } else {
+      localMaster.notifyDestroy(uniqueRing("dummyring"));
+    }
 
-  thrown  = false;
-  bool wrongException(false);
+    // non local can't and throws an ENOTSUPP errno exception.
 
-  char hostname[1000];
-  gethostname(hostname, sizeof(hostname));
-  string host(hostname);
-  CRingMaster remoteMaster(host); // Anything but localhost is remote.
+    thrown  = false;
+    bool wrongException(false);
 
-  int errcode;
-  try {
-    remoteMaster.notifyCreate(uniqueRing("anewring"));
+    char hostname[1000];
+    gethostname(hostname, sizeof(hostname));
+    string host(hostname);
+    CRingMaster remoteMaster(host); // Anything but localhost is remote.
+
+    int errcode;
+    try {
+      remoteMaster.notifyCreate(uniqueRing("anewring"));
+    }
+    catch (CErrnoException &error) {
+      errcode = error.ReasonCode();
+      thrown = true;
+    }
+    catch (...) {
+      thrown         = true;
+      wrongException = true;
+    }
+    ASSERT(thrown);
+    ASSERT(!wrongException);
+    EQ(ENOTSUP, errcode);
+  } catch (CException& exc) {
+    std::cout << "registration exception CException " << exc.WasDoing() << std::endl;
+    ASSERT(0);
   }
-  catch (CErrnoException &error) {
-    errcode = error.ReasonCode();
-    thrown = true;
-  }
-  catch (...) {
-    thrown         = true;
-    wrongException = true;
-  }
-  ASSERT(thrown);
-  ASSERT(!wrongException);
-  EQ(ENOTSUP, errcode);
 }
 // Ensure we can remove rings.
 // 1. Removing a ring that exists should work as localhost
 // 2. Removing a ring that exists should fail as remote host.
 // 3. Removing a ring that does not exist should fail as localhost.
 //
-void
-rmasterTests::unregister()
+void rmasterTests::unregister()
 {
-  char host[1000];
-  gethostname(host, sizeof(host));
-  CRingMaster localMaster;
-
-
-  string hostString(host);
-  CRingMaster remoteMaster(hostString);
-
-
-  // Add a test ring...
-
-  localMaster.notifyCreate(uniqueRing("testRing"));
-  
-  // Should not be able to remove from the remote:
-
-  bool thrown(false);
-  bool wrongException(false);
-  int  code;
   try {
-    remoteMaster.notifyDestroy(uniqueRing("testRing"));
-  }
-  catch (CErrnoException& error) {
-    thrown = true;
-    code   = error.ReasonCode();
-  }
-  catch (...) {
-    thrown = true;
+    char host[1000];
+    gethostname(host, sizeof(host));
+    CRingMaster localMaster;
+
+
+    string hostString(host);
+    CRingMaster remoteMaster(hostString);
+
+
+    // Add a test ring...
+
+    localMaster.notifyCreate(uniqueRing("testRing"));
+
+    // Should not be able to remove from the remote:
+
+    bool thrown(false);
+    bool wrongException(false);
+    int  code;
+    try {
+      remoteMaster.notifyDestroy(uniqueRing("testRing"));
+    }
+    catch (CErrnoException& error) {
+      thrown = true;
+      code   = error.ReasonCode();
+    }
+    catch (...) {
+      thrown = true;
+      wrongException = false;
+    }
+    ASSERT(thrown);
+    ASSERT(!wrongException);
+    EQ(ENOTSUP, code);
+
+
+    // Should be able to remove as local:
+
+    thrown = false;
+    try {
+      localMaster.notifyDestroy(uniqueRing("testRing"));
+    }
+    catch (...) {
+      thrown = true;
+    }
+    ASSERT(!thrown);
+
+    // Removing testRing again should fail, string exception.
+
+    thrown         = false;
     wrongException = false;
+
+    try {
+      localMaster.notifyDestroy(uniqueRing("testRing"));
+    }
+    catch(string msg) {
+      thrown = true;
+    }
+    catch (...) {
+      thrown = true;
+      wrongException = true;
+    }
+    ASSERT(thrown);
+    ASSERT(!wrongException);
+
+  } catch (CException& exc) {
+    std::cout << "registration exception CException " << exc.WasDoing() << std::endl;
+    ASSERT(0);
   }
-  ASSERT(thrown);
-  ASSERT(!wrongException);
-  EQ(ENOTSUP, code);
-
-
-  // Should be able to remove as local:
-
-  thrown = false;
-  try {
-    localMaster.notifyDestroy(uniqueRing("testRing"));
-  }
-  catch (...) {
-    thrown = true;
-  }
-  ASSERT(!thrown);
-
-  // Removing testRing again should fail, string exception.
-
-  thrown         = false;
-  wrongException = false;
-
-  try {
-    localMaster.notifyDestroy(uniqueRing("testRing"));
-  }
-  catch(string msg) {
-    thrown = true;
-  }
-  catch (...) {
-    thrown = true;
-    wrongException = true;
-  }
-  ASSERT(thrown);
-  ASSERT(!wrongException);
-
 }
 // It is an error to register a duplicate ring.
 
