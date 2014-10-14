@@ -249,7 +249,7 @@ tcltest::test readSparse-0 {Test that we can setup a sparse read
 } -body {
   ::dev sReadSparse ::stack 
   ::stack getHistory
-} -result [list {qscan 23 0 2 17 1}]
+} -result [list {qstop 23 0 2 17 1}]
 
 
 
