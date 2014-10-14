@@ -22,6 +22,6 @@ install-exec-local:
 check-TESTS:
 	TCLLIBPATH="@prefix@/TclLibs @libdir@ @srcdir@" HERE=@srcdir@ tcl=@TCLSH_CMD@ @TCLSH_CMD@ @srcdir@/tclTests.tcl
 
-EXTRA_DIST=$(TCLDRIVERS) 
-#$(CCUSBTCLTESTS)
+EXTRA_DIST=$(TCLDRIVERS)  tclTests.tcl
+#$(CCUSBTCLTESTS) 
 
