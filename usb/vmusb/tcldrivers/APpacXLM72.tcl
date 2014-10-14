@@ -44,6 +44,7 @@ itcl::class APpacXLM72 {
   # @param ctlr a cvmusb::CVMUSB object
   # @param sa   the number of samples
   #
+  # @returns error if argument is out of range
 	public method WriteSamples {ctlr sa} {Write $ctlr fpga 4 $sa; after 5}
 	public method ReadSamples {ctlr} { return [Read $ctlr fpga 4]}
 
@@ -53,8 +54,9 @@ itcl::class APpacXLM72 {
   #          bus (0x10000)
   #
   # @param ctlr a cvmusb::CVMUSB object
-  # @param pe   the period (units?)
+  # @param pe   the period (units?) (must be in range [0,3])
   #
+  # @returns error if argument is out of range
 	public method WritePeriod {ctlr pe}
 	public method ReadPeriod {ctlr} { return [Read $ctlr fpga 12]}
 
@@ -64,8 +66,9 @@ itcl::class APpacXLM72 {
   #          bus (0x10000)
   #
   # @param ctlr a cvmusb::CVMUSB object
-  # @param de   the delay (units?)
+  # @param de   the delay (units?) (must be in range [0,15])
   #
+  # @returns error if argument is out of range
  	public method WriteDelay {ctlr de}
 	public method ReadDelay {ctlr} { return [Read $ctlr fpga 16]}
 
@@ -75,8 +78,9 @@ itcl::class APpacXLM72 {
   #          bus (0x10000)
   #
   # @param ctlr a cvmusb::CVMUSB object
-  # @param wi   the delay (units?)
+  # @param wi   the delay (units?) (must be in range [0,63])
   #
+  # @returns error if argument is out of range
 	public method WriteWidth {ctlr wi}
 	public method ReadWidth {ctlr} { return [Read $ctlr fpga 20]}
 
@@ -85,10 +89,11 @@ itcl::class APpacXLM72 {
   # @warning Bus ownership must have already been obtained for X
   #          bus (0x10000)
   #
-  # @param sh   the shift (units?)
   # @param ctlr a cvmusb::CVMUSB object
+  # @param sh   the shift (units?) (must be in range [0,255])
   #
-	public method WriteShift {ctlr sh} {Write $ctlr fpga 24 $sh; after 5}
+  # @returns error if argument is out of range
+	public method WriteShift {ctlr sh}
 	public method ReadShift {ctlr} { return [Read $ctlr fpga 24]}
 
   ## @brief Set threshold values
