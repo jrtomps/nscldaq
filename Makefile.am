@@ -34,4 +34,5 @@ install-data-local:
 
 EXTRA_DIST=dotests introduction.xml libtcl
 
-TESTS=./dotests
+check-TESTS:
+	@top_srcdir@/dotests $(SUBDIRS)
