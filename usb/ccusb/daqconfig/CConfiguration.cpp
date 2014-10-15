@@ -16,7 +16,6 @@
 
 #include <config.h>
 #include "CConfiguration.h"
-#include "CScalerCommand.h"
 #include "CStackCommand.h"
 
 #include <CReadoutModule.h>
