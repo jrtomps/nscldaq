@@ -513,7 +513,10 @@ Feb 1, 2012 - Feb 24, 2012
 	* Feature #2340  - Force out data using monitor list periodically
 	so slow event rates don't require special event builder windows.
 	* Fix errors in monitor list handling/threading.
+
+10.2-111
+	Only run tests in directory trees that are enabled for the build.
         * Fix error handling in shared memory attachemnt.  These can cause
 	  RingMaster to die if there are shared memory regions in /dev/shm
 	  when nscldaq is started.
-	
+
