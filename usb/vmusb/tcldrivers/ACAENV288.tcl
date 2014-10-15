@@ -172,7 +172,6 @@ itcl::class ACAENV288 {
 #
 #
 itcl::body ACAENV288::Reset {} {
-#  $device Write24D16 $reset 1; after 5
   $device vmeWrite16 $reset 0x39 1; 
   # wait for 5 ms to ensure that no further commands are executed before the
   # module is ready
@@ -188,7 +187,6 @@ itcl::body ACAENV288::Reset {} {
 #
 #
 itcl::body ACAENV288::GetStatus {} {
-#  return [expr [$device Read24D16 $status]&0x1]
   set retval [$device vmeRead16 $status 0x39]
   set retval [expr $retval&0x1]
   return $retval
@@ -199,7 +197,6 @@ itcl::body ACAENV288::GetStatus {} {
 #
 #
 itcl::body ACAENV288::TransmitData {} {
-#	$device Write24D16 $transmit 1
   $device vmeWrite16 $transmit 0x39 1 
 	if {[GetStatus]!=0} {
     set msg "ACAENV288::TransmitData error starting data packet transmission"
@@ -213,7 +210,6 @@ itcl::body ACAENV288::TransmitData {} {
 #
 #
 itcl::body ACAENV288::WriteTransmitBuffer {word} {
-#	$device Write24D16 $base $word
 	$device vmeWrite16 $base 0x39 $word
   if {[GetStatus]!=0} {
     set msg "ACAENV288::WriteTransmitBuffer Error writing data into transmit "
@@ -253,11 +249,9 @@ itcl::body ACAENV288::Receive {} {
 
   # Read the slave's response
 	for {set i 0} {$i < 255} {incr i} {
-#		set rdb [$device Read24D16 $base]
 		set rdb [$device vmeRead16 $base 0x39]
 		if {[GetStatus]==0} {
       puts "data : $rdb"
-    #		set rdb [$device Read24D16 $base]
 			lappend buffer $rdb
 			incr nwords
 		} else {break}
@@ -293,9 +287,7 @@ itcl::body ACAENV288::ReceiveError {} {
 
 	}
 	if {$timeout == 0} {
-#		tk_messageBox -message "CAEN V288: timeout while receiving data" -icon error
     return -code error "ACAENV288::ReceiveError Timeout while receiving data"
-#		return 1
 	}
 }
 
@@ -308,13 +300,9 @@ itcl::body ACAENV288::Send {slave code value} {
 #		tk_messageBox -message "CAEN V288: slave address code out of range" -icon error
     return -code error "ACAENV288::Send Slave address code out of range"
 	}
-  #puts "write 1"
 	WriteTransmitBuffer 1
-  #puts "write slave"
 	WriteTransmitBuffer $slave
-  #puts "write code"
 	WriteTransmitBuffer $code
-  #puts "write value"
 	WriteTransmitBuffer $value
 	TransmitData
 	return [ReceiveError]
@@ -327,10 +315,8 @@ itcl::body ACAENV288::Send {slave code value} {
 #
 itcl::body ACAENV288::SendCode {slave code} {
 	if {$slave < 0 || $slave > 99} {
-#		tk_messageBox -message "CAEN V288: slave address code out of range" -icon error
     set msg "ACAENV288::SendCode slave address code out of range"
 	  return -code error $msg	
-#		return 1
 	}
 	WriteTransmitBuffer 1
 	WriteTransmitBuffer $slave
@@ -349,13 +335,10 @@ itcl::body ACAENV288::SendAll {slave code values nval} {
 		tk_messageBox -message "CAEN V288: slave address code out of range" -icon error
     set msg "ACAENV288::SendAll Slave address code out of range"
     return -code error $msg
-#		return 1
 	}
 	if {$nval < 0 || $nval > 253} {
-#		tk_messageBox -message "CAEN V288: number of set values out of range" -icon error
     set msg "ACAENV288::SendAll Number of set values out of range"
     return -code error $msg
-#		return 1
 	}
 	WriteTransmitBuffer 1
 	WriteTransmitBuffer $slave
