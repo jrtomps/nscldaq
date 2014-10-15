@@ -23,6 +23,7 @@
 %{
   #include <CVMUSB.h> 
   #include <CVMUSBusb.h> 
+  #include <CMockVMUSB.h> 
 
   class CTCLApplication;
   CTCLApplication *gpTCLApplication = 0;
@@ -30,4 +31,5 @@
 
 %include "CVMUSB.h"
 %include "CVMUSBusb.h"
+%include "CMockVMUSB.h"
 
