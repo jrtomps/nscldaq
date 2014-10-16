@@ -124,4 +124,16 @@ proc ::CCUSBDriverSupport::isValidSlot slot {
   return [expr {$slot>0 && $slot<26}]
 }
 
+proc ::CCUSBDriverSupport::extractX24Bit {value} {
+  return [expr {int($value)>>25}]
+}
+
+proc ::CCUSBDriverSupport::extractQ24Bit {value} {
+  return [expr {(int($value)>>24)&0x1}]
+}
+
+proc ::CCUSBDriverSupport::lower24Bits {value} {
+  return [expr {int($value)&0xffffff}]
+}
+
 

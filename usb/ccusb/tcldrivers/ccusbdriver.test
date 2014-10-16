@@ -16,6 +16,13 @@ tcltest::test isValidSlot-1 { Test that slot > 25 is bad
 tcltest::test isValidSlot-2 { Test slot in range [0,25] is good
 } { CCUSBDriverSupport::isValidSlot 25 } 1
 
+tcltest::test extractQ-0 {Able to extract Q from a 24 bit encoded value
+} {CCUSBDriverSupport::extractQ24Bit 0x1000000} 1
 
+tcltest::test extractX-0 {Able to extract X from a 24 bit encoded value
+} {CCUSBDriverSupport::extractX24Bit 0x2000000} 1
+
+tcltest::test extracValue-0 {Able to extract value from a 24 bit value encoded with qx
+} {CCUSBDriverSupport::lower24Bits 0x3ffffff} 16777215
 
 tcltest::cleanupTests
