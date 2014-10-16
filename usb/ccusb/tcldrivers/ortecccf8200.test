@@ -285,5 +285,16 @@ tcltest::test writeWidths-0 {Ensure that we can write both registers
 } -result [list {write24 10 0 17 255} {write24 10 1 17 253}]
 
 
+tcltest::test writeWidths-1 {List containing different than 2 values is an error
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev WriteWidths {255}
+} -result "AOrtecCCF8200::WriteWidths List provided contains more or less than 2 values." \
+-returnCodes 1
+
+
 
 tcltest::cleanupTests
