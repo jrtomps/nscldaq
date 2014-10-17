@@ -224,48 +224,43 @@ itcl::body ACAENV288::WriteTransmitBuffer {word} {
 #
 itcl::body ACAENV288::Receive {} {
 
+  set buffer [list]
   set nwords 0
 
-  # poll for 100 iterations
+  # poll for 1000 iterations
 	set timeout 1000
-  set rdb [$device vmeRead16 $base 0x39]
-	while {$timeout > 0} {
-
+  set iter 0
+  for {set iter 0} {$iter < $timeout} {incr iter} { 
+    set rdb [$device vmeRead16 $base 0x39]
     if {[GetStatus]==0} {
-      puts "error code : $rdb"
-      set rdb [$device vmeRead16 $base 0x39]
-      lappend buffer $rdb
-      incr nwords
-      break
-    } 
-    incr timeout -1
-	}
+      break;
+    }
+    after 1
+  }
 
   # throw error on timeout
-	if {$timeout == 0} {
+	if {$iter == $timeout} {
     set msg "ACAENV288::Receive Timeout while receiving data"
 		return -code error $msg
 	}
 
+  # if we didnt timeout, then store the most recently read word
+  lappend buffer $rdb
+  incr nwords 
+
   # Read the slave's response
-	for {set i 0} {$i < 255} {incr i} {
-		set rdb [$device vmeRead16 $base 0x39]
-		if {[GetStatus]==0} {
+  while {1} {
+    set rdb [$device vmeRead16 $base 0x39]
+    if {[GetStatus]==0} {
       puts "data : $rdb"
-			lappend buffer $rdb
-			incr nwords
-		} else {break}
+      lappend buffer $rdb
+      incr nwords
+    } else {break}
 	}
 
-  # return the result
-	if {[info exists buffer]} {
-    # prepend the list with the number of words to follow
-		set buffer [linsert $buffer 0 $nwords]
-		return $buffer
-	} else {
-    # no data was read.
-		return 0
-	}
+  # prepend the list with the number of words to follow
+  set buffer [linsert $buffer 0 $nwords]
+  return $buffer
 }
 
 #
@@ -275,20 +270,22 @@ itcl::body ACAENV288::Receive {} {
 itcl::body ACAENV288::ReceiveError {} {
 
   # Poll the device until data is received or a timeout occurs
-	set timeout 1000
-  set rdb [$device vmeRead16 $base 0x39]
-	while {$timeout>0} {
+	set timeout 500
+  set rdb 0
+	while {$timeout>0 && [GetStatus]!=0} {
 #		set rdb [$device Read24D16 $base]
-    if {[GetStatus]==0} {
-      set rdb [$device vmeRead16 $base 0x39]
-      return $rdb
-    }
+    set rdb [$device vmeRead16 $base 0x39]
 		incr timeout -1
-
+    after 1
 	}
 	if {$timeout == 0} {
-    return -code error "ACAENV288::ReceiveError Timeout while receiving data"
-	}
+    set msg "ACAENV288::ReceiveError Timeout while receiving data"
+    append msg [format "Error code = 0x%x" $rdb]
+    return -code error $msg
+	} else {
+    return $rdb
+  }
+
 }
 
 #
@@ -300,12 +297,14 @@ itcl::body ACAENV288::Send {slave code value} {
 #		tk_messageBox -message "CAEN V288: slave address code out of range" -icon error
     return -code error "ACAENV288::Send Slave address code out of range"
 	}
+  GetStatus
 	WriteTransmitBuffer 1
 	WriteTransmitBuffer $slave
 	WriteTransmitBuffer $code
 	WriteTransmitBuffer $value
 	TransmitData
-	return [ReceiveError]
+  set error [ReceiveError]
+	return $error
 }
 
 #
@@ -318,11 +317,13 @@ itcl::body ACAENV288::SendCode {slave code} {
     set msg "ACAENV288::SendCode slave address code out of range"
 	  return -code error $msg	
 	}
+  GetStatus
 	WriteTransmitBuffer 1
 	WriteTransmitBuffer $slave
 	WriteTransmitBuffer $code
 	TransmitData
-	return [ReceiveError]
+  set error [ReceiveError]
+	return $error
 }
 
 #
@@ -340,6 +341,7 @@ itcl::body ACAENV288::SendAll {slave code values nval} {
     set msg "ACAENV288::SendAll Number of set values out of range"
     return -code error $msg
 	}
+  GetStatus
 	WriteTransmitBuffer 1
 	WriteTransmitBuffer $slave
 	WriteTransmitBuffer $code
@@ -347,5 +349,6 @@ itcl::body ACAENV288::SendAll {slave code values nval} {
 		WriteTransmitBuffer [lindex $values $i]
 	}
 	TransmitData
-	return [ReceiveError]
+  set error [ReceiveError]
+	return $error 
 }
