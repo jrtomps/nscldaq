@@ -26,7 +26,7 @@ class CMockVMUSB : public CVMUSB
     virtual int loadList(uint8_t listNumber, CVMUSBReadoutList& list, off_t listOffset=0);
     virtual int usbRead(void* data, size_t bufferSize, size_t* transferCount, int timeout=2000);
 
-    const std::vector<std::string>& getOperationRecord() const { return m_opRecord;}
+    std::vector<std::string> getOperationRecord() const { return m_opRecord;}
 
     private:
      void setUpRegisterMap(); 
@@ -40,5 +40,18 @@ class CMockVMUSB : public CVMUSB
     template<class T>
      void recordOperation(std::string opname, T data);
 };
+
+
+std::string vecstring_at(std::vector<std::string> list, unsigned int index) {
+  return list.at(index);
+}
+
+void vecstring_pushback(std::vector<std::string> list, std::string message) {
+  return list.push_back(message);
+}
+
+unsigned int vecstring_size(std::vector<std::string> list) {
+  return list.size();
+}
 
 #endif

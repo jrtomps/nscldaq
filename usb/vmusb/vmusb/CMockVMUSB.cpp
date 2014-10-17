@@ -31,7 +31,10 @@ int CMockVMUSB::executeList(CVMUSBReadoutList& list, void* pReadBuffer, size_t r
 
   for (int stackIndex=0;  stackIndex<stackLength; ++stackIndex) {
     command.str(""); command.clear(); // clear string and stream status bits
-    command << dec << stackIndex << ":" << hex << stack.at(stackIndex); 
+    command << dec << stackIndex << ":" 
+            << setfill('0') << hex 
+            << setw(8) << stack.at(stackIndex)
+            << dec << setfill(' ');
     m_opRecord.push_back(command.str());
   }
 

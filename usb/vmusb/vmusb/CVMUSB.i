@@ -16,6 +16,7 @@
 
 %module CVMUSB
 %include <stdint.i>
+%include <std_string.i>
 
 %ignore CVMUSB::executeList(CVMUSBReadoutList& list, void* pReadBuffer, size_t readBufferSize, size_t* bytesRead);
 %ignore CVMUSBusb::executeList(CVMUSBReadoutList& list, void* pReadBuffer, size_t readBufferSize, size_t* bytesRead);
