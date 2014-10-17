@@ -26,8 +26,6 @@ itcl::class APpacXLM72 {
 		AXLM72::constructor $de $sl
 	} {}
 
-  public method SetController {ctlr} {set device $ctlr}
-  public method GetController {} {return $device}
   ############################################################
   ############################################################
   # Convenience Utility functions 
@@ -36,19 +34,6 @@ itcl::class APpacXLM72 {
   # and should be surrounded by AccessBus and ReleaseBus 
   # when they are called.
   #-----------------------------------------------------------
-
-
-  ## @brief Set the number of samples?
-  #
-  # @warning Bus ownership must have already been obtained for X
-  #          bus (0x10000)
-  #
-  # @param ctlr a cvmusb::CVMUSB object
-  # @param sa   the number of samples
-  #
-  # @returns error if argument is out of range
-	public method WriteSamples {sa} {Write fpga 4 $sa; after 5}
-	public method ReadSamples {} { return [Read fpga 4]}
 
   ## @brief Set the period
   # 
