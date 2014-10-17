@@ -9,7 +9,7 @@ tcltest::test pkgrequire-0 {Ensure we can require the package
 
 proc setup {} {
   cvmusb::CMockVMUSB ::ctlr
-  ACrdcXLM72 ::dev 2 
+  ACrdcXLM72 ::dev ::ctlr 2 
 }
 
 
@@ -18,15 +18,35 @@ proc tearDown {} {
   itcl::delete object ::dev
 }
 
+
+proc decodeList {list} {
+  set record [list]
+  set nEntries [::cvmusb::vecstring_size $list]
+  for {set entry 0} {$entry < $nEntries} {incr entry} {
+    lappend record [::cvmusb::vecstring_at $list $entry]
+  }
+  return $record
+}
+
 tcltest::test sample-0 {Test that just out range fails
 } -setup {
   setup
 } -cleanup {
   tearDown
 } -body {
-  ::dev WriteSamples ::ctlr 512
+  ::dev WriteSamples 512
 } -result {ACrdcXLM72::WriteSamples Argument out of range. Must be in range [0,511].} \
 -returnCodes 1
+
+tcltest::test sample-1 {Test that just out range fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev WriteSamples 511
+  decodeList [::ctlr getOperationRecord]
+} -result {}
 
 
 tcltest::test period-0 {Test that just out of range fails 
@@ -35,7 +55,7 @@ tcltest::test period-0 {Test that just out of range fails
 } -cleanup {
   tearDown
 } -body {
-  ::dev WritePeriod ::ctlr 4 
+  ::dev WritePeriod 4 
 } -result {ACrdcXLM72::WritePeriod Argument out of range. Must be in range [0,3].} \
 -returnCodes 1
 
@@ -46,7 +66,7 @@ tcltest::test delay-0 {Test that just out of range fails
 } -cleanup {
   tearDown
 } -body {
-  ::dev WriteDelay ::ctlr 16 
+  ::dev WriteDelay 16 
 } -result {ACrdcXLM72::WriteDelay Argument out of range. Must be in range [0,15].} \
 -returnCodes 1
 
@@ -57,7 +77,7 @@ tcltest::test width-0 {Test that just out of range fails
 } -cleanup {
   tearDown
 } -body {
-  ::dev WriteWidth ::ctlr 64 
+  ::dev WriteWidth 64 
 } -result {ACrdcXLM72::WriteWidth Argument out of range. Must be in range [0,63].} \
 -returnCodes 1
 
@@ -68,8 +88,12 @@ tcltest::test shift-0 {Test that just out of range fails
 } -cleanup {
   tearDown
 } -body {
-  ::dev WriteShift ::ctlr 256 
+  ::dev WriteShift 256 
 } -result {ACrdcXLM72::WriteShift Argument out of range. Must be in range [0,255].} \
 -returnCodes 1
+
+
+
+
 
 tcltest::cleanupTests

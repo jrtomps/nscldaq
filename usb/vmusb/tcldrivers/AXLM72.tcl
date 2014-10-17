@@ -1,4 +1,4 @@
-##
+#
 #    This software is Copyright by the Board of Trustees of Michigan
 #    State University (c) Copyright 2014.
 #
@@ -44,6 +44,7 @@ package require VMUSBDriverSupport
 #
 itcl::class AXLM72 {
 	private variable self
+	protected variable device 
 
 	private variable slot   ;#< slot of the device
 	private variable base   ;#< base address 
@@ -63,7 +64,8 @@ itcl::class AXLM72 {
   # 
   # @param sl slot in which the XLM resides.
   #
-	constructor {sl} {
+	constructor {de sl} {
+    set device $de
 		set self [string trimleft $this :]
 		set slot  $sl
 		set base  [expr $sl<<27]
@@ -83,19 +85,20 @@ itcl::class AXLM72 {
   # @returns the associated value
 	public method GetVariable {v} {set $v}
 
+  public method SetController {ctlr} {set device $ctlr}
+  public method GetController {} {return $device}
 
   ## 
   # Read
   #
   # Performs a 32-bit read using the A32 unpriviledged access address modifier (0x09).
   #
-  # @param ctlr    a cvmusb::CVMUSB object 
   # @param dev     base address of the XLM72
   # @param address offset to add to the dev argument
   # 
   # @returns the value read from the module 
-	public method Read {ctlr dev address} {
-      return [$ctlr vmeRead32 [expr [set $dev]+$address] 0x09]
+	public method Read {dev address} {
+      return [$device vmeRead32 [expr [set $dev]+$address] 0x09]
   }
 
   ##
@@ -103,7 +106,6 @@ itcl::class AXLM72 {
   #
   # Performs a 32-bit write using the A32 unpriviledged access address modifier (0x09)
   #
-  # @param ctlr    a cvmusb::CVMUSB object 
   # @param dev     base address of the XLM72
   # @param address offset to add to the dev argument
   # @param data    the integer value to write 
@@ -113,8 +115,8 @@ itcl::class AXLM72 {
   # @retval -1 - USB write failed
   # @retval -2 - USB read failed
   # @retval -3 - VME Bus error
-	public method Write {ctlr dev address data} { 
-      return [$ctlr vmeWrite32 [expr [set $dev]+$address] 0x09 [expr $data]]
+	public method Write {dev address data} { 
+      return [$device vmeWrite32 [expr [set $dev]+$address] 0x09 [expr $data]]
   }
 
   ##
@@ -124,16 +126,15 @@ itcl::class AXLM72 {
   # modifier (0x0b) as a single shot operation. The BLT will begin at the 
   # address formed by adding together the dev and address arguments.
   # 
-  # @param ctlr     a cvmusb::CVMUSB object 
   # @param dev      base address of the XLM72
   # @param address  address offset begin BLT read from
   # @param words    number of transfers to include in the BLT
   #
-	public method ReadSBLT {ctlr dev address words}
+	public method ReadSBLT {dev address words}
 
   #we are going to see if we can get away with not implementing this.
-#	public method ReadFBLT {ctlr dev address blocks} {i
-#      return [$ctlr ReadFBLT32 [expr [set $dev]+$address] $blocks 0]
+#	public method ReadFBLT {dev address blocks} {i
+#      return [$device ReadFBLT32 [expr [set $dev]+$address] $blocks 0]
 #  }
 
   ## 
@@ -147,7 +148,6 @@ itcl::class AXLM72 {
   # BLT. The address of each operation is provided as a base address and
   # an offset (i.e. address to read transfer count = ndev + nadd )
   #
-  # @param ctlr     a cvmusb::CVMUSB object
   # @param ndev     base address of the module where the transfer count will be read from
   # @param nadd     offset address for transfer count
   # @param dev      base address of the module targeted by the BLT
@@ -156,7 +156,7 @@ itcl::class AXLM72 {
   # @return a Tcl List
   # @retval the data returned from the entire operation parsed into 32-bit words
   # 
-	public method ReadNBLT {ctlr ndev nadd mask dev address} 
+	public method ReadNBLT {ndev nadd mask dev address} 
 
   ##
   # AccessBus
@@ -167,12 +167,46 @@ itcl::class AXLM72 {
   # The valid values for the code are any bitwise of bus A (0x1), bus B (0x2), 
   # bus X (0x1000), and bus D (0x2000).
   # 
-  # @param ctlr   a cvmusb::CVMUSB  object
   # @param code   the code for the internal address 
   # 
-	public method AccessBus {ctlr code} {
-      Write $ctlr vme 0 $code; 
-      Write $ctlr vme [expr 0xc] 1
+	public method AccessBus {code} {
+      Write vme [expr 0xc] 1
+      Write vme 0 $code; 
+      set aBusOwner [Read vme [expr 0x10000]]
+      set bBusOwner [Read vme [expr 0x10004]]
+      set xBusOwner [Read vme [expr 0x10008]]
+
+      if {$code & 0x00001} {
+        set timeout 1000
+        while {($aBusOwner!=1) && $timeout>0} {
+          set aBusOwner [Read vme [expr 0x10000]]
+          incr timeout -1
+        }
+        if {$timeout==0} {
+          return -code error "AXLM72::AccessBus timed out waiting for bus A"
+        }
+      }
+
+      if {$code & 0x00002} {
+        set timeout 1000
+        while {($bBusOwner!=1) && $timeout>0} {
+          set bBusOwner [Read vme [expr 0x10004]]
+        }
+        if {$timeout==0} {
+          return -code error "AXLM72::AccessBus timed out waiting for bus B"
+        }
+      }
+
+      if {$code & 0x10000} {
+        set timeout 1000
+        while {($xBusOwner!=1) && $timeout>0} {
+          set xBusOwner [Read vme [expr 0x10008]]
+        }
+        if {$timeout==0} {
+          return -code error "AXLM72::AccessBus timed out waiting for bus X"
+        }
+      }
+#      after 100
   }
 
   ##
@@ -182,11 +216,10 @@ itcl::class AXLM72 {
   # This is similar to the AccessBus method but writes 0 to both the bus
   # request and bus inhibit addresses.
   # 
-  # \param ctlr    a cvmusb::CVMUSB object
   # 
-	public method ReleaseBus {ctlr } {
-      Write $ctlr vme 0 0; 
-      Write $ctlr vme [expr 0xc] 0
+	public method ReleaseBus {} {
+      Write vme 0 0; 
+      Write vme [expr 0xc] 0
   }
 
   ##
@@ -200,9 +233,8 @@ itcl::class AXLM72 {
   #
   # @warning Bus ownership should have already been obtained
   #
-  # @param ctlr     a cvmusb::CVMUSB object
   #
-	public method BootFPGA {ctlr}
+	public method BootFPGA {}
 
   ## 
   # SetFPGABoot
@@ -218,11 +250,12 @@ itcl::class AXLM72 {
   # 
   # @warning Bus ownership should have already been obtained
   #
-  # @param ctlr    a cvmusb::CVMUSB object
   # @param source  the integer code for the boot source
   #
-	public method SetFPGABoot {ctlr source} {
-       Write $ctlr vme 8 $source
+	public method SetFPGABoot {source} {
+    AccessBus 0x00001
+    Write vme 8 $source
+    ReleaseBus
   }
   
   ## 
@@ -230,10 +263,9 @@ itcl::class AXLM72 {
   # 
   # Loads firmware into sramA and then boots the device from sramA
   #
-  # @param ctlr      a cvmusb::CVMUSB object
   # @param filename  name of firmware file (.bit) to load
   #
-	public method Configure {ctlr filename}
+	public method Configure {filename}
 
 
   ##
@@ -245,12 +277,11 @@ itcl::class AXLM72 {
   # parsed using the VMUSBDriverSupport::convertBytesListToTclList
   # because the executeList command returns a vector of bytes.
   # 
-  # @param ctlr    a cvmusb::CVMUSB object
   # @param stack   a Tcl list contain raw stack commands
   #
   # @return a Tcl list
   # @retval the data from the stack execution converted to 32-bit integers 
-  public method ExecuteLongStack {ctlr stack}
+  public method ExecuteLongStack {stack}
 
 # stack functions
 
@@ -298,7 +329,7 @@ itcl::class AXLM72 {
 
   # We are going to see if we can get away without this.
 #	public method sReadFBLT {stack dev add blocks} {
-#   $ctlr sReadFBLT32 $stack [expr [set $dev]+$add] $blocks 0
+#   $device sReadFBLT32 $stack [expr [set $dev]+$add] $blocks 0
 # }
 
 
@@ -355,7 +386,7 @@ itcl::class AXLM72 {
 #
 #
 #
-itcl::body AXLM72::ReadSBLT {ctlr dev address words} {
+itcl::body AXLM72::ReadSBLT {dev address words} {
 
   set maxcount [expr (4<<20)/8]
 
@@ -367,7 +398,7 @@ itcl::body AXLM72::ReadSBLT {ctlr dev address words} {
   aStack addBlockRead32 $addr $amod $words
 #  sReadSBLT stack $dev $address $words
   
-  set data [$ctlr executeList aStack $maxcount]
+  set data [$device executeList aStack $maxcount]
 
   return $data
  }
@@ -376,7 +407,7 @@ itcl::body AXLM72::ReadSBLT {ctlr dev address words} {
 
 ##
 #
-itcl::body AXLM72::ReadNBLT {ctlr ndev nadd mask dev address} {
+itcl::body AXLM72::ReadNBLT {ndev nadd mask dev address} {
   set maxcount [expr (4<<20)/8]
 
   set pkg cvmusbreadoutlist
@@ -384,22 +415,25 @@ itcl::body AXLM72::ReadNBLT {ctlr ndev nadd mask dev address} {
   ## Set up a stack 
   set stack [${pkg}::CVMUSBReadoutList]
   sReadNBLT $stack $ndev $nadd $mask $dev $address
-  return [$ctlr executeList $stack $maxcount]
+  return [$device executeList $stack $maxcount]
 }
 
 
 ##
 #
-itcl::body AXLM72::BootFPGA {ctlr} {
+itcl::body AXLM72::BootFPGA {} {
   set RESETFPGA 1
   set RESETDSP  2
   set resetAll    [expr $RESETFPGA|$RESETDSP]
   set releaseFPGA [expr $RESETDSP]
 
+	AccessBus [expr 0x00001]
   # do the writes
-	Write $ctlr vme 4 $resetAll     ;# Set resets for both FPGA & DSP
-	Write $ctlr vme 4 $releaseFPGA  ;# Keep DSP in reset, Release FPGA
+	Write vme 4 $resetAll     ;# Set resets for both FPGA & DSP
+	Write vme 4 $releaseFPGA  ;# Keep DSP in reset, Release FPGA
 # Leave some time to boot FPGA
+#
+	ReleaseBus
 	after 100
 }
 
@@ -410,7 +444,7 @@ itcl::body AXLM72::BootFPGA {ctlr} {
 # to a valid cvmusbreadoutlist::CVMUSBReadoutList object
 # to execute.
 #
-itcl::body AXLM72::Configure {ctlr filename} {
+itcl::body AXLM72::Configure {filename} {
 	set file [open $filename r]
 	fconfigure $file -translation binary
 	set config [read $file]
@@ -442,24 +476,26 @@ itcl::body AXLM72::Configure {ctlr filename} {
 		lappend stack [expr (($lhigh<<16) | $llow) ]
 	}
 # Execute long stack
-	AccessBus $ctlr [expr 0x1]
+	AccessBus [expr 0x1]
   flush stdout
-  ExecuteLongStack $ctlr $stack
+  ExecuteLongStack $stack
 	after 100
-	ReleaseBus $ctlr
 # Now boot the FPGA from SRAMA
-	SetFPGABoot $ctlr [expr 0x10000]
-	BootFPGA $ctlr
+	SetFPGABoot [expr 0x10000]
+	BootFPGA
+
+  # give the FPGA some time to boot
+  after 500
 }
 
 ##
 #
-itcl::body AXLM72::ExecuteLongStack {ctlr stack} {
+itcl::body AXLM72::ExecuteLongStack {stack} {
   global ::VMUSBDriverSupport::convertToReadoutList 
   
   set rdolist [::VMUSBDriverSupport::convertToReadoutList $stack]
 
-  set data [$ctlr executeList $rdolist [expr 4<<20]]
+  set data [$device executeList $rdolist [expr 4<<20]]
 
   set convertedData [::VMUSBDriverSupport::convertBytesListToTclList data] 
   return $convertedData

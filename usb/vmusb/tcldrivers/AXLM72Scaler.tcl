@@ -31,8 +31,8 @@ itcl::class AXLM72Scaler {
 	
   private variable trigger
 
-	constructor {sl} {
-		AXLM72::constructor $sl
+	constructor {de sl} {
+		AXLM72::constructor $de $sl
 	} {
 		# This is for a SpartanXL version of the module (24 bits scalers)
 		for {set i 0} {$i < 32} {incr i} {
@@ -51,7 +51,7 @@ itcl::class AXLM72Scaler {
   # @param ctlr a cvmusb::CVMUSB object
   # @returns integer
   # @retval the firmware signature 
-	public method GetFirmware {ctlr}
+	public method GetFirmware {}
   
   ## @brief Atomically clear all scalers
   #
@@ -64,7 +64,7 @@ itcl::class AXLM72Scaler {
   # @retval  0 - success
   # @retval -1 - failure during either of the two writes
   # 
-	public method Reset {ctlr}
+	public method Reset {}
 
   ## @brief Latch the scaler values into SRAMA 
   # 
@@ -74,7 +74,7 @@ itcl::class AXLM72Scaler {
   # @retval  0 - success
   # @retval -1 - failure during either of the two writes
   # 
-	public method Latch {ctlr}
+	public method Latch {}
 
   ###########################################################
   ###########################################################
@@ -93,7 +93,7 @@ itcl::class AXLM72Scaler {
   # @return int
   # @retval  0 - success
   # @retval -1 - failed during write
-	public method SetTrigger {ctlr bit}
+	public method SetTrigger {bit}
 
   ## @brief Set a specific value for a certain trigger bit
   #
@@ -106,7 +106,7 @@ itcl::class AXLM72Scaler {
   # @return int
   # @retval  0 - success
   # @retval -1 - failure during write
-	public method SetTriggerBit {ctlr bit value}
+	public method SetTriggerBit {bit value}
 
   ## @brief Set a specific bit in the trigger register
   # 
@@ -121,7 +121,7 @@ itcl::class AXLM72Scaler {
   # @return int
   # @retval  0 - success
   # @retval -1 - failure during write
-  public method SetTriggerBits {ctlr bitset}
+  public method SetTriggerBits {bitset}
 
   ## @brief Read the trigger register
   # 
@@ -129,7 +129,7 @@ itcl::class AXLM72Scaler {
   # 
   # @return int
   # @retval the value of the trigger register
-	public method ReadTrigger {ctlr}
+	public method ReadTrigger {}
  
   ## @brief Enable or disable the scaler channels from counting 
   # 
@@ -141,7 +141,7 @@ itcl::class AXLM72Scaler {
   # @return int
   # @retval  0 - success
   # @retval -1 - failure during write
-	public method SetEnable {ctlr onoff}
+	public method SetEnable {onoff}
 
   ## @brief Read whether scalers are enabled or disabled
   # 
@@ -152,7 +152,7 @@ itcl::class AXLM72Scaler {
   # @return int
   # @retval 0 - scalers are disabled
   # @retval 1 - scalers are enabled
-	public method ReadEnable {ctlr}
+	public method ReadEnable {}
 
   ## @brief Read all of the scaler channels 
   #  
@@ -164,7 +164,7 @@ itcl::class AXLM72Scaler {
   # @param ctlr a cvmusb::CVMUSB object
   # 
   # @return list of all 32 scaler values beginning with ch.0
-	public method ReadAll {ctlr}
+	public method ReadAll {}
 
   #########################################################
   #########################################################
@@ -204,10 +204,10 @@ itcl::class AXLM72Scaler {
 # End of AXLM72Scaler class
 
 # Interactive functions implementation
-itcl::body AXLM72Scaler::GetFirmware {ctlr} {
-	AccessBus $ctlr 0x10000
-	set value [Read $ctlr fpga 0]
-	ReleaseBus $ctlr
+itcl::body AXLM72Scaler::GetFirmware {} {
+	AccessBus 0x10000
+	set value [Read fpga 0]
+	ReleaseBus
   set fw [format 0x%8x $value]
 	return $fw 
 }
@@ -216,11 +216,11 @@ itcl::body AXLM72Scaler::GetFirmware {ctlr} {
 # Reset 
 # 
 # Clears the scalers by toggling a bit
-itcl::body AXLM72Scaler::Reset {ctlr} {
-	AccessBus $ctlr 0x10000
-	set st0 [Write $ctlr fpga 0 1] 
-  set st1 [Write $ctlr fpga 0 0]
-	ReleaseBus $ctlr
+itcl::body AXLM72Scaler::Reset {} {
+	AccessBus 0x10000
+	set st0 [Write fpga 0 1] 
+  set st1 [Write fpga 0 0]
+	ReleaseBus
 
   set status [expr $st0==0 && $st1==0]
   if {$status == 0 } {
@@ -236,11 +236,11 @@ itcl::body AXLM72Scaler::Reset {ctlr} {
 # Causes the current scaler values to be written 
 # into SRAMA for the next readout cycle.
 #
-itcl::body AXLM72Scaler::Latch {ctlr} {
-	AccessBus $ctlr 0x10000
-	set st0 [Write $ctlr fpga 4 1]; # set latch bit
-	set st1 [Write $ctlr fpga 4 0]; # reset it
-	ReleaseBus $ctlr; # once bus is released, FPGA takes over and writes scalers to SRAMA
+itcl::body AXLM72Scaler::Latch {} {
+	AccessBus 0x10000
+	set st0 [Write fpga 4 1]; # set latch bit
+	set st1 [Write fpga 4 0]; # reset it
+	ReleaseBus; # once bus is released, FPGA takes over and writes scalers to SRAMA
 
   set status [expr $st0==0 && $st1==0]
   if {$status == 0 } {
@@ -256,9 +256,9 @@ itcl::body AXLM72Scaler::Latch {ctlr} {
 # Updates the shadow state of the trigger register
 # and then writes the value to the module.
 #
-itcl::body AXLM72Scaler::SetTriggerBit {ctlr bit value} {
+itcl::body AXLM72Scaler::SetTriggerBit {bit value} {
 	set trigger($bit) $value
-	return [SetTrigger $ctlr $bit]
+	return [SetTrigger $bit]
 }
 
 ##
@@ -266,38 +266,38 @@ itcl::body AXLM72Scaler::SetTriggerBit {ctlr bit value} {
 # which is contained in the trigger array, the bit
 # specified is either turned on or off.
 #
-itcl::body AXLM72Scaler::SetTrigger {ctlr bit} {
-	AccessBus $ctlr 0x10000
+itcl::body AXLM72Scaler::SetTrigger {bit} {
+	AccessBus 0x10000
 
   # read the trigger register and then manipulate the
   # desired bit
-	set value [Read $ctlr fpga 0xc]
+	set value [Read fpga 0xc]
 	if {$trigger($bit)} {
 		set value [expr $value|(1<<$bit)]
 	} else {
 		set value [expr $value&(~(1<<$bit))]
 	}
-	ReleaseBus $ctlr
+	ReleaseBus
 
   # write the new value back to the register
-  return [SetTriggerBits $ctlr $value]
+  return [SetTriggerBits $value]
 }
 
 ##
 # Quick way to write value to the entire trigger register 
 #
-itcl::body AXLM72Scaler::SetTriggerBits {ctlr bitset} {
-	AccessBus $ctlr 0x10000
-	set status [Write $ctlr fpga 0x0c $bitset]
-	ReleaseBus $ctlr
+itcl::body AXLM72Scaler::SetTriggerBits {bitset} {
+	AccessBus 0x10000
+	set status [Write fpga 0x0c $bitset]
+	ReleaseBus
   return $status
 }
 
 # 
-itcl::body AXLM72Scaler::ReadTrigger {ctlr} {
-	AccessBus $ctlr 0x10000
-	set value [Read $ctlr fpga 0xc]
-	ReleaseBus $ctlr
+itcl::body AXLM72Scaler::ReadTrigger {} {
+	AccessBus 0x10000
+	set value [Read fpga 0xc]
+	ReleaseBus
 	return $value 
 }
 
@@ -305,10 +305,10 @@ itcl::body AXLM72Scaler::ReadTrigger {ctlr} {
 # Set enable register
 #
 #
-itcl::body AXLM72Scaler::SetEnable {ctlr onoff} {
-	AccessBus $ctlr 0x10000
-	set status [Write $ctlr fpga 8 $onoff]
-	ReleaseBus $ctlr
+itcl::body AXLM72Scaler::SetEnable {onoff} {
+	AccessBus 0x10000
+	set status [Write fpga 8 $onoff]
+	ReleaseBus
   return $status
 }
 
@@ -317,11 +317,11 @@ itcl::body AXLM72Scaler::SetEnable {ctlr onoff} {
 #
 # Not entirely sure what the purpose of this is.
 #
-itcl::body AXLM72Scaler::ReadEnable {ctlr} {
-	AccessBus $ctlr 0x10000
-  set reg [Read $ctlr fpga 8]
+itcl::body AXLM72Scaler::ReadEnable {} {
+	AccessBus 0x10000
+  set reg [Read fpga 8]
 	set enable [expr $reg&1]
-	ReleaseBus $ctlr
+	ReleaseBus
   return $enable
 }
 
@@ -333,12 +333,12 @@ itcl::body AXLM72Scaler::ReadEnable {ctlr} {
 # address. There are 32 transfers for the 32
 # channels.
 #
-itcl::body AXLM72Scaler::ReadAll {ctlr} {
+itcl::body AXLM72Scaler::ReadAll {} {
 
-	Latch $ctlr
-	AccessBus $ctlr 1
-	set data [ReadSBLT $ctlr srama 0 32]
-	ReleaseBus $ctlr
+	Latch
+	AccessBus 1
+	set data [ReadSBLT srama 0 32]
+	ReleaseBus
   
   return [::VMUSBDriverSupport::convertBytesListToTclList data]
 }
@@ -460,7 +460,8 @@ snit::type AXLM72ScalerControl {
   method Set {ctlr parameter value} {
     # convert the ctlr to something usable
     set ctlr [::VMUSBDriverSupport::convertVmUSB $ctlr]
-
+  
+    $driver SetController $ctlr
     # if the value is a list, take the first argument
     set key $parameter
     if {[scan $parameter {trigger%d} subkey] == 1} {
@@ -470,9 +471,9 @@ snit::type AXLM72ScalerControl {
 
     # switch yard for relaying the different responses to appropriate handlers
     switch $key {
-      enable  {return [$self SetEnable $ctlr $value]}
-      reset   {return [$self SetReset $ctlr]} 
-      trigger {return [$self SetTrigger $ctlr $subkey $value]}
+      enable  {return [$self SetEnable $value]}
+      reset   {return [$self SetReset]} 
+      trigger {return [$self SetTrigger $subkey $value]}
       default {error "AXLM72ScalerControl::Set does not support '$key' as a valid parameter"}
     }
 
@@ -481,16 +482,16 @@ snit::type AXLM72ScalerControl {
   ######################
   ## Set Handlers
 
-  method SetEnable {ctlr value} {
-    return [$driver SetEnable $ctlr $value]
+  method SetEnable {value} {
+    return [$driver SetEnable $value]
   }
 
-  method SetReset {ctlr} {
-    return [$driver Reset $ctlr]
+  method SetReset {} {
+    return [$driver Reset]
   }
 
-  method SetTrigger {ctlr ch value} {
-    return [$driver SetTriggerBit $ctlr $ch $value]
+  method SetTrigger {ch value} {
+    return [$driver SetTriggerBit $ch $value]
     
   }
 
@@ -510,17 +511,18 @@ snit::type AXLM72ScalerControl {
   # @param parameter  name of parameter requested
   #
   # @return result of request
-  method Get {ctlr parameter} {
+  method Get {parameter} {
     # convert swig pointer into something useful
     set ctlr [::VMUSBDriverSupport::convertVmUSB $ctlr]
     
+    $driver SetController $ctlr
     # relay parameters to appropriate handlers
     switch $parameter {
-      enable {return [$self GetEnable $ctlr]}
-      alltriggers {return [$self GetAllTriggers $ctlr]}
-      firmware {return [$self GetFirmware $ctlr]}
-      runstate {return [$self GetRunState $ctlr]}
-      allscalers {return [$self GetAllScalers $ctlr]}
+      enable {return [$self GetEnable]}
+      alltriggers {return [$self GetAllTriggers]}
+      firmware {return [$self GetFirmware]}
+      runstate {return [$self GetRunState]}
+      allscalers {return [$self GetAllScalers]}
       default {error "$parameter is not supported in XLMScalerControl::Get"}
     }
 
@@ -529,27 +531,27 @@ snit::type AXLM72ScalerControl {
   #######################
   ## Get Handlers 
 
-  method GetEnable {ctlr} {
-    return [$driver ReadEnable $ctlr] 
+  method GetEnable {} {
+    return [$driver ReadEnable] 
   }
 
-  method GetAllTriggers {ctlr} {
-    set data [$driver ReadTrigger $ctlr] 
+  method GetAllTriggers {} {
+    set data [$driver ReadTrigger] 
     return $data
   }
 
-  method GetFirmware {ctlr} {
-    set fw [$driver GetFirmware $ctlr]
+  method GetFirmware {} {
+    set fw [$driver GetFirmware]
     return $fw 
   }
 
-  method GetRunState {ctlr} {
+  method GetRunState {} {
     set state [runstate]
     return $state 
   }
 
-  method GetAllScalers {ctlr} {
-    set data [$driver ReadAll $ctlr] 
+  method GetAllScalers {} {
+    set data [$driver ReadAll] 
 
     return $data
   }
@@ -620,6 +622,8 @@ snit::type AXLM72ScalerReadout {
   method Initialize {driverPtr} {
     set ctlr [VMUSBDriverSupport::convertVmUSB $driverPtr]
 
+    $driver SetController $ctlr
+
     if {$options(-slot) == 1} {
         set msg "AXLM72ScalerReadout::Initialize : "
         append msg " Slot has not been specified for device. Be sure to configure the -slot option!"
@@ -640,8 +644,8 @@ snit::type AXLM72ScalerReadout {
     }
 
     # Enable and reset the module
-    $driver SetEnable $ctlr 1
-    $driver Reset $ctlr      
+    $driver SetEnable 1
+    $driver Reset
   }
   # \endcode
 
@@ -671,7 +675,7 @@ snit::type AXLM72ScalerReadout {
   method onEndRun {driverPtr} {
     # convert to something usable
     set ctlr [VMUSBDriverSupport::convertVmUSB $driverPtr]
-    $driver SetEnable $ctlr 0
+    $driver SetEnable 0
   }
 
 
