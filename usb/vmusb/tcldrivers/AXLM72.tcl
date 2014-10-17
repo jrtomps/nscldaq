@@ -253,9 +253,7 @@ itcl::class AXLM72 {
   # @param source  the integer code for the boot source
   #
 	public method SetFPGABoot {source} {
-    AccessBus 0x00001
     Write vme 8 $source
-    ReleaseBus
   }
   
   ## 
@@ -427,14 +425,12 @@ itcl::body AXLM72::BootFPGA {} {
   set resetAll    [expr $RESETFPGA|$RESETDSP]
   set releaseFPGA [expr $RESETDSP]
 
-	AccessBus [expr 0x00001]
   # do the writes
 	Write vme 4 $resetAll     ;# Set resets for both FPGA & DSP
 	Write vme 4 $releaseFPGA  ;# Keep DSP in reset, Release FPGA
-# Leave some time to boot FPGA
-#
-	ReleaseBus
-	after 100
+
+  # Leave some time to boot FPGA
+	after 500
 }
 
 
@@ -479,13 +475,15 @@ itcl::body AXLM72::Configure {filename} {
 	AccessBus [expr 0x1]
   flush stdout
   ExecuteLongStack $stack
+
+  # let it rest for a 100 ms before computing. This should allow it to 
+  # complete anything it needs to do
 	after 100
+
 # Now boot the FPGA from SRAMA
 	SetFPGABoot [expr 0x10000]
 	BootFPGA
 
-  # give the FPGA some time to boot
-  after 500
 }
 
 ##
