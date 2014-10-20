@@ -252,14 +252,15 @@ itcl::body ACAENV288::Receive {} {
   while {1} {
     set rdb [$device vmeRead16 $base 0x39]
     if {[GetStatus]==0} {
-      puts "data : $rdb"
+#      puts "data : $rdb"
       lappend buffer $rdb
       incr nwords
-    } else {break}
+    } else {
+      break
+    }
 	}
 
   # prepend the list with the number of words to follow
-  set buffer [linsert $buffer 0 $nwords]
   return $buffer
 }
 
