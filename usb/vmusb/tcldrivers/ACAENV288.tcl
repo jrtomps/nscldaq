@@ -1,11 +1,23 @@
 #===================================================================
-# class ACAENV288
-#===================================================================
+##
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2014.
 #
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
 #
-# Some changes:
-# Receive
-#   - timeout causes exceptional return with code 1 instead of simply returning following a message box
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#     Author:
+#      NSCL DAQ Development Group 
+#	     NSCL
+#	     Michigan State University
+#	     East Lansing, MI 48824-1321
+#
+# @file   manCAENN568BTests.tcl
+# @author Jeromy Tompkins & Daniel Bazin
+# @note   A heavily modified version of the original ACAENV288 caennet driver
+#         originally written by Daniel Bazin.
 
 package provide caenv288 11.0
 
@@ -14,8 +26,8 @@ package require cvmusb
 
 ## @brief VM-USB driver for the CAEN V288 H.S. Caennet Controller
 #
-#
 itcl::class ACAENV288 {
+
 	protected variable device ;#< a cvmusb::CVMUSB object
 	private variable base     ;#< base address
 
