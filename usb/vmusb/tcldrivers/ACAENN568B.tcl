@@ -1,7 +1,25 @@
 #===================================================================
-# class ACAENN568B
-#===================================================================
+##
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2014.
 #
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#     Author:
+#      NSCL DAQ Development Group 
+#	     NSCL
+#	     Michigan State University
+#	     East Lansing, MI 48824-1321
+#
+# @file   ACAENN568B.tcl
+# @author Jeromy Tompkins and Daniel Bazin
+# @note   This is basically a rewrite of the original ACAENN568B.tcl class.
+#         It has been gutted to work with the NSCLDAQ USB drivers and 
+#         also fully fleshed out to support all possible operations.
+
 package provide caenn568b 11.0
 
 package require Itcl
@@ -41,14 +59,33 @@ itcl::class ACAENN568B {
   destructor {}
 
 
-  ## @brief Read module identifier
+  ## @brief Read module identifier from device
+  #
+  # @returns "N568 Version major.minor"
+  #
+  # @throws error if transmission fails with nonzero error code
+  # @throws error if n568b returns nonzero response code
   #
   public method ReadModuleIdentifier {} 
 
   ## @brief Read parameters for all channels + offset 
   #
-  # Reads all info from the device besides mux status. This then allows the user
-  # to run the 
+  # The list returned by this has the following form:
+  #
+  # fgain.ch0 pzero.ch0 polar.ch0 out.ch0 shape.ch0 cgain.ch0
+  # fgain.ch1 pzero.ch1 polar.ch1 out.ch1 shape.ch1 cgain.ch1
+  # fgain.ch0 pzero.ch2 polar.ch2 out.ch2 shape.ch2 cgain.ch2
+  # ...
+  # fgain.ch15 pzero.ch15 polar.ch15 out.ch15 shape.ch15 cgain.ch15
+  # offset
+  # 
+  # All in all, there are a total of 97 params returned.
+  #
+  # @returns list of all params except for mux status
+  #
+  # @throws error if transmission fails with nonzero error code
+  # @throws error if n568b returns nonzero response code
+  #
   public method ReadAllParameters {}
 
   ## @brief Read offset from device 
@@ -62,10 +99,14 @@ itcl::class ACAENN568B {
   #
   # @returns list of the following form
   #
-  # @throws error if an nonzero error code is returned from V288 or N568B
-  # 
+  # @throws error if a nonzero error code is returned from V288 or N568B
   public method ReadChannelParameters {channel}
 
+  ## @brief Reads status of MUX and also last accessed channel
+  #
+  # @returns 2 element list [list mux_status last_channel]
+  #
+  # @throws error if a nonzero error code is returned from V288 or N568B
   public method ReadMUXStatusAndLastChAccess {}
 
   ## @brief Set a parameter for a specific channel
@@ -73,44 +114,108 @@ itcl::class ACAENN568B {
   # Possible parameter values: fgain, cgain, pzero, shape, out, polar
   # There understood parameters and their ranges are specified below:
   #  Description  Name       Range
-  #  Fine gain    fgain     [0,255]
-  #  Course gain  cgain     [0,7] 
-  #  Pole zero    pzero     [0,255]
-  #  Shaping      shape     [0,3]
-  #  Output conf. out       0 or 1 
-  #  Polarity     polar     0 or 1 
+  #  Fine gain    fgain     [0,255] 
+  #  Course gain  cgain     [0,7]   (0=1, 1=2, 2=4, 3=8, ... , 7=128)
+  #  Pole zero    pzero     [0,255] (0=50us ... 255=500us)
+  #  Shaping      shape     [0,3]   (0=0.2us, 1=1us, 2=3us, 3=6us)
+  #  Output conf. out       0 or 1  (0=direct, 1=inverted) 
+  #  Polarity     polar     0 or 1  (0=positive, 1=negative)
   #
   # @param channel    channel to target in device
   # @param parameter  parameter name (see table above)
   # @param value      parameter value to write
   #
-  # @returns the error code response from slave 
+  # @returns "" 
+  #
+  # @throws error if channel is not in range [0,15]
+  # @throws error if parameter name is not understood
+  # @throws error if parameter value in not in allowed range. 
+  # @throws error is a nonzero error code is returned from V288 or N568B
   public method SetParameter {channel parameter value}
 
   ## @brief Sets the DC offset of the signal (shifts baseline of output)
   #
   # @param value  offset value in range [0,255]
+  #
+  # @returns ""
+  #
+  # @throws error if value is not in range [0,255]
+  # @throws error if a nonzero error code is returned from V288 or N568B
   public method SetOffset {value}
 
   ## @brief Disable the multiplexed outputs
   #
   # @returns response from the slave
+  #
+  # @throws error if a nonzero error code is returned from V288 or N568B
   public method DisableMUX {}
 
   ## @brief Enable multiplexed outputs
   #
   # @returns response from the slave 
+  #
+  # @throws error if a nonzero error code is returned from V288 or N568B
   public method EnableMUX {}
 
 
-  #############################################################################
-  # Parsed method... interprets the data read by one of the reads and then 
-  # returns the desired value
+  ############################################################################
+  # Convenience methods...
+  # Interprets the data read by one of the reads and then returns the desired 
+  # value.
+  #
+  
+  ## @brief Retrieve the fine gain
+  # 
+  # Just a wrapper around the ReadChannelParameters
+  #
+  # @return value of fine gain for channel
+  #
+  # @throws @see ReadChannelParameters
   public method ReadFineGain {channel}
+  
+  ## @brief Retrieve the coarse gain
+  # 
+  # Just a wrapper around the ReadChannelParameters
+  #
+  # @return value of coarse gain for channel
+  #
+  # @throws @see ReadChannelParameters
   public method ReadCoarseGain {channel}
+
+  ## @brief Retrieve the pole zero
+  # 
+  # Just a wrapper around the ReadChannelParameters
+  #
+  # @return value of pole zero for channel
+  #
+  # @throws @see ReadChannelParameters
   public method ReadPoleZero {channel}
+
+  ## @brief Retrieve the shaping time 
+  # 
+  # Just a wrapper around the ReadChannelParameters
+  #
+  # @return raw shaping time setting for channel
+  #
+  # @throws @see ReadChannelParameters
   public method ReadShape {channel}
+
+  ## @brief Retrieve the output configuration
+  # 
+  # Just a wrapper around the ReadChannelParameters
+  #
+  # @return output configuration for channel
+  #
+  # @throws @see ReadChannelParameters
   public method ReadOutputConfiguration {channel}
+
+  ## @brief Retrieve the output polarity
+  # 
+  # Just a wrapper around the ReadChannelParameters
+  #
+  # @return output polarity for channel
+  #
+  # @throws @see ReadChannelParameters
   public method ReadPolarity {channel}
 
   ## @brief Test that we can read from the module
@@ -121,7 +226,21 @@ itcl::class ACAENN568B {
   public method TestCommunication {}
 
 
-  public method ParseChannelParams {dataList}
+  ## @brief Parse the status register for a specific channel
+  #
+  # The status register encodes the data for the coarse gain,
+  # shaping parameter, output config, and output polarity. This 
+  # unpacks the encoded value into a list of the form:
+  #
+  # index   value
+  # 0       output polarity
+  # 1       output configuration 
+  # 2       shaping parameter 
+  # 3       coarse gain 
+  #
+  # @return list of decoded values
+  #
+  public method ParseStatusRegister {dataList}
 
 
   ## @brief Standard initialization routine
@@ -207,7 +326,37 @@ itcl::body ACAENN568B::ReadAllParameters {} {
     append msg "Error code: $status"
     return -code error -errorinfo ACAENN568B::ReadAllParameters $msg
   } else {
-    return [$caennet Receive]
+
+    # read slave's response
+    set data [$caennet Receive]
+
+    # check for a bad response code
+    set status [lindex $data 0]
+    if {$status!=0} {
+      set msg "$this: bad response for n568b at node $number. "
+      append msg [format "Error code=0x%x." $status]
+      return -code error -errorinfo ACAENN568B::ReadAllParameters $msg
+    }
+
+    set data [lreplace $data 0 0] ;# strip the error code for simple processing
+
+    # the response was good...parse the status reg for each of the channels 
+    set result [list]
+    for {set ch 0} {$ch < 16} {incr ch} {
+
+      set fgain     [lindex $data [expr $ch*3+0]]
+      set pzero     [lindex $data [expr $ch*3+1]]
+      set statusReg [lindex $data [expr $ch*3+2]] 
+
+      # split encoded values into a list (1 element per decoded value)
+      set parsedStatReg [ParseStatusRegister $statusReg]
+
+      # append the current channel list with the previous list
+      set result [concat $result [list $fgain $pzero] $parsedStatReg]
+    }
+
+    lappend result [lindex $data end]
+    return $result
   }
 }
 
@@ -279,7 +428,8 @@ itcl::body ACAENN568B::ReadChannelParameters {channel} {
   }
 
   # unpack the encoded data retrieved from the device
-  return [ParseChannelParams [lreplace $data 0 0]]
+  set parsedStatus [ParseStatusRegister [lindex $data 3]]
+  set result [concat [lrange $data 1 2] $parsedStatus]
 }
 
 #
@@ -512,21 +662,13 @@ itcl::body ACAENN568B::TestCommunication {} {
   }
 }
 
-itcl::body ACAENN568B::ParseChannelParams {dataList} {
-  if {[llength $dataList]!=3} {
-    set msg "Argument list does not contain 3 elements."
-    return -code error -errorinfo ACAENN568B::ParseChannelParams $msg
-  }
+itcl::body ACAENN568B::ParseStatusRegister {register} {
   
   set result [list]
-  lappend result [lindex $dataList 0]  ;# fine gain
-  lappend result [lindex $dataList 1]  ;# pole zero
-
-  set status [lindex $dataList 2]
-  lappend result [expr ($status&0x40)>>6]; # output polarity
-  lappend result [expr ($status&0x20)>>5]; # output configuration
-  lappend result [expr ($status&0x18)>>3]; # shape
-  lappend result [expr ($status&0x7)];     # coarse gain
+  lappend result [expr ($register&0x40)>>6]; # output polarity
+  lappend result [expr ($register&0x20)>>5]; # output configuration
+  lappend result [expr ($register&0x18)>>3]; # shape
+  lappend result [expr ($register&0x7)];     # coarse gain
 
   return $result
 }
