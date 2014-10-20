@@ -163,23 +163,40 @@ itcl::class ACAENN568B {
 #
 
 #
-#
+# Module id code = 0x0
 #
 itcl::body ACAENN568B::ReadModuleIdentifier {} {
+
+  # wait to prevent thrashing of the module by sending too many commands too 
+  # fast
+  after 75
+
   set status [$caennet SendCode $number 0]
+
+  # check for bad transmit code
   if {$status} {
-    set msg "$this: error reading channel parameters. Module number: $number. "
-    append msg "Error code: $status"
+    set msg "$this: error reading module id. Module number: $number. "
+    append msg [format "Error code: 0x%x." $status]
     return -code error -errorinfo ACAENN568B::ReadModuleIdentifier $msg
   } else {
     set data [$caennet Receive]
-    set trimmedData [lreplace $data 0 0] 
+
+    # check for bad response code from n568b
+    set status [lindex $data 0]
+    if {$status !=0 } {
+      set msg "$this: bad response code from n568b at node=$number. "
+      append msg [format "Error code=0x%x." $status]
+      return -code error -errorinfo ACAENN568B::ReadModuleIdentifier $msg
+    }
+
+    # good data... convert the binary data to a normal character string.
+    set trimmedData [lreplace $data 0 0] ;# remove the error code 
     return [binary format c* $trimmedData]
   }
 }
 
 #
-#
+# read all params code = 0x1
 #
 itcl::body ACAENN568B::ReadAllParameters {} {
   after 75
@@ -195,9 +212,12 @@ itcl::body ACAENN568B::ReadAllParameters {} {
 }
 
 #
-#
+# read offset code = 0x2
 #
 itcl::body ACAENN568B::ReadOffset {} {
+
+  # ensure that we don't send commands to the n568b at too rapid a pace.
+  # this ensures at least 75 ms between commands.
   after 75
   set status [$caennet SendCode $number 0x2]
   if {$status} {
@@ -205,20 +225,37 @@ itcl::body ACAENN568B::ReadOffset {} {
     append msg "Error code: $status"
     return -code error -errorinfo ACAENN568B::ReadOffset $msg
   }
-  return [$caennet Receive]
+
+  # get the response from the slave
+  set data [$caennet Receive]
+
+  # check for bad error code from slave
+  set status [lindex $data 0]
+  if {$status!=0} {
+    set msg "$this: bad response from n568b at node $number. "
+    append msg [format "Error code=0x%x." $status]
+    return -code error -errorinfo ACAENN568B::ReadOffset $msg
+  }
+
+  # strip the error code before sending out..
+  return [lreplace $data 0 0]
 }
 
 #
-#
+# read all chan parameters + offset 
+#   code = 0xn03
+# where n is the channel number
 #
 itcl::body ACAENN568B::ReadChannelParameters {channel} {
-  after 75
   if {![Utils::isInRange 0 15 $channel]} {
     set msg "$this: Channel $channel is out of range. "
     append msg {Must be in range [0,15].} 
     return -code error -errorinfo ACAENN568B::ReadChannelParameters $msg
   }
 
+  # wait for at least 75 ms prior to sending command to make sure we don't
+  # thrash the n568b.. this is important
+  after 75
 
   # the manual is wrong. To read parameters for a single channel, the code is:
   # 0xn03, where n is the slot number. This differs from the manual's value 0x0n3.
@@ -229,13 +266,19 @@ itcl::body ACAENN568B::ReadChannelParameters {channel} {
     append msg "Error code: $status"
     return -code error -errorinfo ACAENN568B::ReadChannelParameters $msg
   } 
+
+  # wait for response from n568b
   set data [$caennet Receive]
+
+  # check for bad response code
   set status [lindex $data 0]
   if {$status!=0} {
     set msg "$this: Bad response from N568B. Module number: $number."
     append msg [format "Error code=0x%x." $status]
     return -code error -errorinfo ACAENN568B::ReadChannelParameters $msg
   }
+
+  # unpack the encoded data retrieved from the device
   return [ParseChannelParams [lreplace $data 0 0]]
 }
 
@@ -252,7 +295,24 @@ itcl::body ACAENN568B::ReadMUXStatusAndLastChAccess {} {
     append msg "number: $number. Error code: $status"
     return -code error -errorinfo ACAENN568B::ReadMUXStatusAndLastChAccess $msg 
   } 
-  return [$caennet Receive]
+  set data [$caennet Receive]
+
+  set status [lindex $data 0]
+  if {$status!=0} {
+    set msg "$this: bad response from n568b at node $number. "
+    append msg [format "Error code=0x%x." $status]
+    return -code error -errorinfo ACAENN568B::ReadMUXStatusAndLastChAccess $msg
+  }
+
+  # remove the error code
+  set datum [lindex $data 1] 
+
+  # parse value
+  set result [list]
+  lappend result [expr $datum>>7]  ;# mux status
+  lappend result [expr $datum&0xf] ;# last channel accessed
+
+  return $result
 }
 
 # 
@@ -270,7 +330,7 @@ itcl::body ACAENN568B::ReadMUXStatusAndLastChAccess {} {
 # 5   output configuration
 #
 itcl::body ACAENN568B::SetParameter {channel parameter value} {
-  after 75
+
   # allowed parameters and their value upper bounds
   set plist {fgain cgain pzero shape polar out}
   set llist {255 7 255 3 1 1}
@@ -284,15 +344,22 @@ itcl::body ACAENN568B::SetParameter {channel parameter value} {
 
   # if here, the parameter name was valid...is the value provided in range?
   if {![Utils::isInRange 0 [lindex $llist $index] $value]} {
-    set msg "$this: $parameter out of range ($value)"
+    set msg "$this: $parameter value out of range. "
+    append msg "Must be in range \[0,[lindex $llist $index]\]."
     return -code error -errorinfo ACAENN568B::SetParameter $msg
   }
 
   # is the channel valid? 
-  if {![Utils::isInRange 0 $channels $channel]} {
-    set msg "$this: channel number out of range ($channel)"
+  if {![Utils::isInRange 0 15 $channel]} {
+    set msg "$this: channel number out of bounds. "
+    append msg {Must be in range [0,15].}
     return -code error -errorinfo ACAENN568B::SetParameter $msg
   }
+
+
+  # For some reason the n568b cannot handle back-to-back operations
+  # and needs a healthy amount of time to be ready for the next operation
+  after 75
 
   # all arguments checked out...send the command for the channel
   set code [expr ($channel<<8) | 0x10 | $index]
@@ -301,24 +368,55 @@ itcl::body ACAENN568B::SetParameter {channel parameter value} {
   # handle the response
   if {$status} {
     set msg "$this: error setting $parameter. Module number: $number. "
-    append msg "Error code: $status"
+    append msg [format "Error code=0x%x." $status]
     return -code error -errorinfo ACAENN568B::SetParameter $msg
+
   } else {
-    return [$caennet Receive] 
+
+    # receive error code from slave
+    set data [$caennet Receive] 
+
+    # scream if it is a nonzero code 
+    set status [lindex $data 0]
+    if {$status!=0} {
+      set msg "$this: bad response from device at node $number. "
+      append msg [format "Error code=0x%x." $status]
+      return -code error -errorinfo ACAENN568B::SetParameters $msg
+    }
+
   }
+
+  # we don't really return anything on successful transmission
+  return ""
 }
 
 #
 # set offset code = 0x16
 #
 itcl::body ACAENN568B::SetOffset {value} {
+
+  if {![Utils::isInRange 0 255 $value]} {
+    set msg "Offset value out of bounds. Must be in range \[0,255\]."
+    return -code error -errorinfo ACAENN568B::SetOffset $msg
+  }
+
   after 75
   set status [$caennet Send $number 0x16 $value]
   if {$status} {
-    set msg "$this: error enabling MUX. Module number: $number. Error code: $status"
+    set msg "$this: error enabling MUX. Module number: $number. "
+    append msg [format "Error code:0x%x." $status]
     return -code error -errorinfo ACAENN568B::SetOffset $msg
   } 
-  return [$caennet Receive]
+  set data [$caennet Receive]
+  set status [lindex $data 0]
+  if {$status!=0} {
+    set msg "$this: bad response from device at node $number. "
+    append msg [format "Error code=0x%x." $status]
+    return -code error -errorinfo ACAENN568B::SetOffset $msg
+  }
+
+  # strip off the error code before sending out
+  return [lreplace $data 0 0]
 }
 
 #
