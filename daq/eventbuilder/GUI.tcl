@@ -34,11 +34,17 @@ package require EVB::outputStatistics
 package require EVB::barriers
 package require EVB::connectionList
 package require EVB::Late
+package require EVB::LatePopup
+package require EVB::DuplicateTimestamp
 
 # Establish the EVB namespace into which we're going to squeeze:
 
 namespace eval ::EVB {
+    array set lastLateStats [list]
+    variable  lateDialog ""
     
+    set lastDupStats [list 0 {}]
+    variable  dupDialog ""
 }
 
 #-----------------------------------------------------------------------------
@@ -498,6 +504,7 @@ proc EVB::createGui widget {
 
     package require EventBuilder
     EVB::statusNotebook $widget
+    set EVB::lateDialog [EVB::LatePopup %AUTO%]
 
     return $widget
 }
@@ -533,6 +540,9 @@ proc EVB::maintainGUI {widget {ms 2000}} {
     set completeBarriers    [lindex $barrierStats 0]
     set incompleteBarriers  [lindex $barrierStats 1]
     set lateStats    [EVB::dlatestats]
+    set dupStats     [EVB::dupstat get]
+    
+    EVB::updateDupStatsDialog $dupStats
 
 
 
@@ -637,7 +647,9 @@ proc EVB::maintainGUI {widget {ms 2000}} {
 	dict append sourceStatistics($src) incompletebarriers $queue
     }
     # Late:
-    foreach item [lindex $lateStats 2] {
+    
+    set lateDetails [lindex $lateStats 2]
+    foreach item $lateDetails {
 	set src [lindex $item 0]
 	set count [lindex $item 1]
 	set worst [lindex $item 2]
@@ -646,10 +658,11 @@ proc EVB::maintainGUI {widget {ms 2000}} {
 	    set sourceStatistics($src) [dict create]
 	}
 	dict append sourceStatistics($src) late $item
+        
 	
     }
-    
-    
+    EVB::updateLatePopup $lateDetails
+        
     
     # Fill in the summary page statistics: 
 
@@ -719,4 +732,44 @@ proc EVB::maintainGUI {widget {ms 2000}} {
 
 
     after $ms [list EVB::maintainGUI $widget $ms]
+}
+
+##
+# EVB::updateLatePopup $lateStats
+#   Update the popup that shows the late statistics.
+#  
+# @param lateStats late statistics list of source, count,worst for each source with
+#                                    data late.
+#
+# @note EVB::lastLateStats is an array indexed by source id of the late statistics
+#                           from last time around. Nothing is done if nothing changed.
+# @note EVB::lateDialog is the object that displays the late stats as a popup.
+#
+proc EVB::updateLatePopup lateStats {
+    puts stderr $lateStats
+    
+    foreach stat $lateStats {
+        set source [lindex $stat 0]
+        if {([array names EVB::lastLateStats $source] eq "") || ($EVB::lastLateStats($source) ne $stat)} {
+            set EVB::lastLateStats($source) $stat
+            $EVB::lateDialog source $source [lindex $stat 1] [lindex $stat 2]
+        }
+    }
+}
+##
+# EVB::updateDupStatsDialog
+#
+#   Update the popup that shows the duplicate timstamp statistics.
+#
+# @param dupStats the statistics from the EVB::dupstats get command.
+#
+proc EVB::updateDupStatsDialog dupStats {
+    if {$dupStats ne $EVB::lastDupStats} {
+        set EVB::lastDupStats $dupStats
+        if {$EVB::dupDialog eq ""} {
+            set EVB::dupDialog [EVB::DuplicatePopup %AUTO%]
+           
+        }
+        $EVB::dupDialog update $dupStats
+    }
 }

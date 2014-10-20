@@ -24,7 +24,7 @@ libEventBuilder_la_SOURCES = OrdererPackage.cpp CFragmentHandlerCommand.cpp CFra
 	CBarrierStatsCommand.cpp CBarrierStats.cpp CIncompleteBarrierStats.cpp \
 	CCompleteBarrierCallback.cpp CBarrierTraceCommand.cpp CPartialBarrierCallback.cpp \
 	CSourceCommand.cpp CDeadSourceCommand.cpp CReviveSocketCommand.cpp \
-	CFlushCommand.cpp CResetCommand.cpp CConfigure.cpp
+	CFlushCommand.cpp CResetCommand.cpp CConfigure.cpp CDuplicateTimeStatCommand.cpp
 
 libEventBuilder_la_CPPFLAGS=$(COMPILATION_FLAGS)
 
@@ -56,7 +56,7 @@ noinst_HEADERS = CFragmentHandlerCommand.h CFragmentHandler.h cmdline.h \
 	CBarrierStatsCommand.h CBarrierStats.h CIncompleteBarrierStats.h CCompleteBarrierCallback.h \
 	CBarrierTraceCommand.h CPartialBarrierCallback.h CSourceCommand.h CDeadSourceCommand.h \
 	CReviveSocketCommand.h CFragReader.h CFragWriter.h CFlushCommand.h CResetCommand.h \
-	CConfigure.h fragio.h
+	CConfigure.h fragio.h CDuplicateTimeStatCommand.h
 
 
 
@@ -75,7 +75,9 @@ libEventBuilder_la_LDFLAGS=@LIBTCLPLUS_LDFLAGS@
 
 TCL_PACKAGE_FILES=ConnectionManager.tcl callbackManager.tcl eventOrderer.tcl \
 	connectionList.tcl observer.tcl barriers.tcl GUI.tcl inputStatistics.tcl \
-	late.tcl outputStatistics.tcl utility.tcl 
+	late.tcl outputStatistics.tcl utility.tcl latePopup.tcl \
+	DuplicateTimestamp.tcl
+
 
 TCL_EVB_PACKAGE_FILES=evbRdoCallouts.tcl evbRdoCallouts10.tcl EVBStateCallouts.tcl
 
@@ -112,7 +114,8 @@ install-exec-hook:
 #
 # Tests:
 
-noinst_PROGRAMS = unittests
+noinst_PROGRAMS = unittests ordertests
+
 unittests_SOURCES = TestRunner.cpp lookupTest.cpp  \
 	connectTest.cpp  cmdline.c
 
@@ -127,8 +130,17 @@ unittests_CPPFLAGS=$(COMPILATION_FLAGS)
 
 unittests_DEPENDENCIES = cmdline.o cmdline.h
 
+
+ordertests_SOURCES = TestRunner.cpp orderTests.cpp duptscmdtest.cpp \
+	CFragmentHandler.cpp fragment.c CDuplicateTimeStatCommand.cpp
+
+ordertests_LDADD = 	@CPPUNIT_LDFLAGS@ @THREADLD_FLAGS@ @LIBTCLPLUS_LDFLAGS@ @TCL_LDFLAGS@
+
+ordertests_CXXFLAGS=$(COMPILATION_FLAGS) @TCL_CPPFLAGS@ @LIBTCLPLUS_CFLAGS@
+
 check-TESTS:
 	TCLLIBPATH=@prefix@/TclLibs HERE=@srcdir@ tcl=@TCLSH_CMD@ @TCLSH_CMD@ @srcdir@/tclTests.tcl
+	./ordertests
 #	./unittests 
 
 

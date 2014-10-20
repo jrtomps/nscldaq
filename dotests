@@ -1,8 +1,14 @@
- for f in `find . -name Makefile -exec grep -l check-TESTS {}  \;`
-do 
-  if test $f != ./Makefile
-  then
-    echo testing with $f
-    (cd `dirname $f`; make check-TESTS)
-  fi
-done	
+#!/bin/bash
+
+for d in $*
+do
+
+    for f in `find $d -name Makefile -exec grep -l check-TESTS {}  \;`
+    do 
+	if test $f != ./Makefile
+	then
+	    echo testing with $f
+	    (cd `dirname $f`; make check-TESTS)
+	fi
+    done	
+done

@@ -93,7 +93,15 @@ CFragmentHandler::CFragmentHandler()
 
     // Start the idle poll off:
 
-    Tcl_CreateTimerHandler(1000*IdlePollInterval, &CFragmentHandler::IdlePoll, this);
+    m_timer = Tcl_CreateTimerHandler(1000*IdlePollInterval, &CFragmentHandler::IdlePoll, this);
+}
+/**
+ * Destructor - for now just kill off the timer -- don't worry about
+ *              memory leaks as the destructor can only be used in tests.
+ */
+CFragmentHandler::~CFragmentHandler()
+{
+    Tcl_DeleteTimerHandler(m_timer);
 }
 
 /**
@@ -381,6 +389,60 @@ CFragmentHandler::removePartialBarrierObserver(CFragmentHandler::PartialBarrierO
     m_partialBarrierObservers.erase(p);
   }
 }
+/**
+ **   Methods for the duplicate timestamp observer.
+ */
+
+/**
+ * addDuplicateTimestampObserver
+ *    Add an observer for duplicate timestamps.
+ *
+ *  @param pObserver - the observer to add.
+ */
+void
+CFragmentHandler::addDuplicateTimestampObserver(DuplicateTimestampObserver* pObserver)
+{
+    m_duplicateTimestampObservers.push_back(pObserver);
+}
+/**
+ * removeDuplicateTimestampObserver
+ *
+ *    Removes an existing duplicate timestamp observer.
+ *
+ *  @param pObserver - The observer to remove.
+ */
+void
+CFragmentHandler::removeDuplicateTimestampObserver(DuplicateTimestampObserver* pObserver)
+{
+    std::list<DuplicateTimestampObserver*>::iterator p = std::find(
+        m_duplicateTimestampObservers.begin(), m_duplicateTimestampObservers.end(),
+        pObserver
+    );
+    if (p != m_duplicateTimestampObservers.end()) {
+        m_duplicateTimestampObservers.erase(p);
+    }
+}
+
+/**
+ * observeDuplicateTimestamp
+ *    Called when a queue is outputing a non barrier fragment with the same timestamp
+ *    as the last one.  All observers in the m_duplicateTimestampObservers list are invoked.
+ *
+ *  @param sourceId - Id of the source that is flagging this event.
+ *  @param timestamp - The value of the duplicate timestamp.
+ */
+void
+CFragmentHandler::observeDuplicateTimestamp(uint32_t sourceId, uint64_t timestamp)
+{
+    std::list<DuplicateTimestampObserver*>::iterator p =
+        m_duplicateTimestampObservers.begin();
+    while(p != m_duplicateTimestampObservers.end()) {
+        DuplicateTimestampObserver* pObserver = *p;
+        (*pObserver)(sourceId, timestamp);
+        
+        p++;
+    }
+}
 
 /**
  * flush
@@ -562,9 +624,11 @@ CFragmentHandler::resetTimestamps()
   m_nMostRecentlyPopped = (0);
   m_nFragmentsLastPeriod = (0);
   m_fBarrierPending = (false);
+  m_nMostRecentlyPopped = 0;
 
   for (Sources::iterator p = m_FragmentQueues.begin(); p != m_FragmentQueues.end(); p++) {
     p->second.s_newestTimestamp = 0;
+    p->second.s_lastPoppedTimestamp = UINT64_MAX;
   }
 }
       
@@ -635,6 +699,11 @@ CFragmentHandler::flushQueues(bool completely)
     if (queuesEmpty()) break;	// Done if there are no more frags.
     std::pair<time_t, ::EVB::pFragment>* p = popOldest();
     if (p) {
+      if (p->second->s_header.s_timestamp < m_nMostRecentlyPopped) {
+        dataLate(*(p->second));        
+      } else {
+	m_nMostRecentlyPopped = p->second->s_header.s_timestamp;
+      }
       sortedFragments.push_back(p->second);
       delete p;
     } else {
@@ -649,10 +718,15 @@ CFragmentHandler::flushQueues(bool completely)
   // the build interval time.
 
   time_t firstOldest = m_nOldestReceived;
-  if ((m_nNow - m_nOldestReceived) > m_nBuildWindow) {
-    while (!queuesEmpty() && ((m_nNow - m_nOldestReceived) > m_nBuildWindow) ) {
+  if ((m_nNow - m_nOldestReceived) >= m_nBuildWindow) {
+    while (!queuesEmpty() && ((m_nNow - m_nOldestReceived) >= m_nBuildWindow) ) {
       std::pair<time_t, ::EVB::pFragment>* p = popOldest();
       if (p) {
+        if (p->second->s_header.s_timestamp < m_nMostRecentlyPopped) {
+          dataLate(*(p->second));        
+        } else {
+          m_nMostRecentlyPopped = p->second->s_header.s_timestamp;
+        }
         sortedFragments.push_back(p->second);
         delete p;
       } else {
@@ -745,6 +819,13 @@ CFragmentHandler::popOldest()
 
     if (nextOldest != UINT64_MAX) { // Found one in pOldestQ.
       std::pair<time_t, ::EVB::pFragment> oldestFrag = pOldestQ->second.s_queue.front();
+      uint64_t fragmentTimestamp  = oldestFrag.second->s_header.s_timestamp;
+      if (fragmentTimestamp == pOldestQ->second.s_lastPoppedTimestamp) {
+        // Duplicate timestamp:
+        
+        observeDuplicateTimestamp(pOldestQ->first, fragmentTimestamp);
+      }
+      pOldestQ->second.s_lastPoppedTimestamp = fragmentTimestamp;
       pOldestQ->second.s_queue.pop();
 
       // If this queue has been emptied mark that time:
@@ -854,7 +935,7 @@ CFragmentHandler::addFragment(EVB::pFlatFragment pFragment)
     if ((timestamp == NULL_TIMESTAMP)) {
       assigned = true;
       timestamp = destQueue.s_newestTimestamp;
-      pFrag->s_header.s_timestamp = timestamp;
+      pFrag->s_header.s_timestamp = timestamp+1;             // Avoid duplicate.
       assigned = true;
 #ifdef DEBUG
       std::cerr << "Assigned timestamp " << std::hex << timestamp << std::dec << std::endl;
@@ -881,12 +962,10 @@ CFragmentHandler::addFragment(EVB::pFlatFragment pFragment)
     // If the timing of receiving this fragment would result in an
     // out of order fragment, it's late:
     //
-    if(timestamp < m_nMostRecentlyPopped) {
-      dataLate(*pFrag);
-    }
+
     
     if ((timestamp < m_nOldest)) {
-	if ((m_nOldest - timestamp) > 0x100000000ll) {
+	if ((m_nOldest - timestamp) > 0x100000000ll && (m_nOldest != 0xffffffffffffffff)) {
 	  std::cerr << "addFragment... timestamp taking a big step back from : " << std::hex
 		    << m_nOldest << " to " << timestamp << std::dec << std::endl;
 	}
@@ -1064,6 +1143,7 @@ CFragmentHandler::generateBarrier(std::vector<EVB::pFragment>& outputList)
   for (Sources::iterator p = m_FragmentQueues.begin(); p!= m_FragmentQueues.end(); p++) {
     if (!p->second.s_queue.empty()) {
       ::EVB::pFragment pFront = p->second.s_queue.front().second;
+      p->second.s_lastPoppedTimestamp = pFront->s_header.s_timestamp;
       if (pFront->s_header.s_barrier) {
 	outputList.push_back(pFront);
 	p->second.s_queue.pop();
@@ -1245,6 +1325,7 @@ CFragmentHandler::getSourceQueue(uint32_t id)
   if (p  == m_FragmentQueues.end()) {	       // Need to create.
     SourceQueue& queue = m_FragmentQueues[id]; // Does most of the creation.
     queue.s_newestTimestamp = m_nNewest;	       // Probably the best initial value.
+    queue.s_lastPoppedTimestamp = UINT64_MAX;
     return queue;
   }  else {			              // already exists.
     return p->second;
@@ -1365,5 +1446,5 @@ CFragmentHandler::IdlePoll(ClientData data)
 
   // reschedule
 
-  Tcl_CreateTimerHandler(1000*IdlePollInterval,  &CFragmentHandler::IdlePoll, pHandler);
+  pHandler->m_timer = Tcl_CreateTimerHandler(1000*IdlePollInterval,  &CFragmentHandler::IdlePoll, pHandler);
 }

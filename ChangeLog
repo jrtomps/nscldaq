@@ -811,6 +811,7 @@ Work on 11.0-rc11 begins
         Bug #2242 CDataFormatItem was mis-documented as CRingFormatItem.
         Bug #2238 env is not available for daq/readoutgui/state.tcl fixed.
         Feature #2074 - Add marker command to CCUSBReadout
-        
-        
-        
+        Bug #2201 Late fragment statistics did not increment.
+        Feature #2628  Added duplicate timestamp (per queue) detection in
+	event orderer.  Note that this changes the method of assigning
+	timestamps for those items with NULL_TIMESTAMP

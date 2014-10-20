@@ -194,6 +194,7 @@ snit::widgetadaptor EVB::lateFragments {
         grid $container -sticky sew
          
         grid columnconfigure $win 0 -weight 1
+        grid rowconfigure    $win 1 -weight 1
 
         $self configurelist $args
     }

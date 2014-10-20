@@ -36,6 +36,7 @@
 #include "CFlushCommand.h"
 #include "CResetCommand.h"
 #include "CBarrierStatsCommand.h"
+#include "CDuplicateTimeStatCommand.h"
 #include "CConfigure.h"
 
 static const char* version = "1.0"; // package version string.
@@ -68,6 +69,7 @@ int Eventbuilder_Init(Tcl_Interp* pInterp)
   new CResetCommand(*pInterpObject, "EVB::reset");
   new CBarrierStatsCommand(*pInterpObject, "EVB::barrierstats"); 
   new CConfigure(*pInterpObject, "EVB::config");
+  new CDuplicateTimeStatCommand(*pInterpObject, "EVB::dupstat");
 
   // Setup the output stage:
 
