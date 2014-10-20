@@ -19,11 +19,10 @@ package require Utils
 #
 #
 itcl::class ACAENN568B {
-	private variable caennet  ;#< a CAENV288 object
-	private variable number   ;#< node index
-	private variable channels ;#< number of channels
-	private variable wait     ;#< number of ms to wait after sending a command
-	
+  private variable caennet  ;#< a CAENV288 object
+  private variable number   ;#< node index
+  private variable channels ;#< number of channels
+
   ## @brief Constructor
   #
   # Store necessary variables.
@@ -32,16 +31,15 @@ itcl::class ACAENN568B {
   # @param num    the node number of the CAENN568B to target
   #
   # @returns name of the newly constructed object
-	constructor {caen num} {
-		set caennet $caen
-		set number $num
-		set channels 16
-		set wait 20
-	}
-	
+  constructor {caen num} {
+    set caennet $caen
+    set number $num
+    set channels 16
+  }
+
   ## @brief Destructor - noop
-	destructor {}
-	
+  destructor {}
+
 
   ## @brief Read module identifier
   #
@@ -51,13 +49,22 @@ itcl::class ACAENN568B {
   #
   # Reads all info from the device besides mux status. This then allows the user
   # to run the 
-	public method ReadAllParameters {}
+  public method ReadAllParameters {}
 
-  ## @brief Read offset
+  ## @brief Read offset from device 
   #
-	public method ReadOffset {}
+  # @returns offset value 
+  #
+  # @throws error if an nonzero error code is returned from V288 or N568B
+  public method ReadOffset {}
 
-	public method ReadChannelParameters {channel}
+  ## @brief Read all parameters for a channel + offset 
+  #
+  # @returns list of the following form
+  #
+  # @throws error if an nonzero error code is returned from V288 or N568B
+  # 
+  public method ReadChannelParameters {channel}
 
   public method ReadMUXStatusAndLastChAccess {}
 
@@ -77,23 +84,23 @@ itcl::class ACAENN568B {
   # @param parameter  parameter name (see table above)
   # @param value      parameter value to write
   #
-  # @returns the response from the slave
-	public method SetParameter {channel parameter value}
+  # @returns the error code response from slave 
+  public method SetParameter {channel parameter value}
 
   ## @brief Sets the DC offset of the signal (shifts baseline of output)
   #
   # @param value  offset value in range [0,255]
-	public method SetOffset {value}
+  public method SetOffset {value}
 
   ## @brief Disable the multiplexed outputs
   #
   # @returns response from the slave
-	public method DisableMUX {}
+  public method DisableMUX {}
 
   ## @brief Enable multiplexed outputs
   #
   # @returns response from the slave 
-	public method EnableMUX {}
+  public method EnableMUX {}
 
 
   #############################################################################
@@ -111,7 +118,11 @@ itcl::class ACAENN568B {
   # This actually performs a read of the offset value
   #
   # @returns slave response for the offset
-	public method TestCommunication {}
+  public method TestCommunication {}
+
+
+  public method ParseChannelParams {dataList}
+
 
   ## @brief Standard initialization routine
   #
@@ -136,12 +147,12 @@ itcl::class ACAENN568B {
   # @returns ""
   #
   # @throws error if unable to communicate with device (@see TestCommunication)
-	public method Init {filename aname}
+  public method Init {filename aname}
 
 
   ## @brief Return the value of a nested variable name 
   #
-	public method GetVariable {v} {set $v}
+  public method GetVariable {v} {set $v}
 
 
 } ;# end of class definition
@@ -161,8 +172,7 @@ itcl::body ACAENN568B::ReadModuleIdentifier {} {
     append msg "Error code: $status"
     return -code error -errorinfo ACAENN568B::ReadModuleIdentifier $msg
   } else {
-		after $wait
-		set data [$caennet Receive]
+    set data [$caennet Receive]
     set trimmedData [lreplace $data 0 0] 
     return [binary format c* $trimmedData]
   }
@@ -173,15 +183,14 @@ itcl::body ACAENN568B::ReadModuleIdentifier {} {
 #
 itcl::body ACAENN568B::ReadAllParameters {} {
   after 75
-  
+
   set status [$caennet SendCode $number 1]
   if {$status} {
     set msg "$this: error reading channel parameters. Module number: $number. "
     append msg "Error code: $status"
     return -code error -errorinfo ACAENN568B::ReadAllParameters $msg
   } else {
-		after $wait
-		return [$caennet Receive]
+    return [$caennet Receive]
   }
 }
 
@@ -195,9 +204,7 @@ itcl::body ACAENN568B::ReadOffset {} {
     set msg "$this: error reading global parameters. Module number: $number. "
     append msg "Error code: $status"
     return -code error -errorinfo ACAENN568B::ReadOffset $msg
-  } else {
   }
-  after $wait
   return [$caennet Receive]
 }
 
@@ -211,8 +218,8 @@ itcl::body ACAENN568B::ReadChannelParameters {channel} {
     append msg {Must be in range [0,15].} 
     return -code error -errorinfo ACAENN568B::ReadChannelParameters $msg
   }
-  
- 
+
+
   # the manual is wrong. To read parameters for a single channel, the code is:
   # 0xn03, where n is the slot number. This differs from the manual's value 0x0n3.
   set code [expr ($channel<<8)| 0x3]
@@ -220,11 +227,16 @@ itcl::body ACAENN568B::ReadChannelParameters {channel} {
   if {$status} {
     set msg "$this: error reading channel parameters. Module number: $number. "
     append msg "Error code: $status"
-		return -code error -errorinfo ACAENN568B::ReadChannelParameters $msg
-  } else {
-		after $wait
-		return [$caennet Receive]
+    return -code error -errorinfo ACAENN568B::ReadChannelParameters $msg
+  } 
+  set data [$caennet Receive]
+  set status [lindex $data 0]
+  if {$status!=0} {
+    set msg "$this: Bad response from N568B. Module number: $number."
+    append msg [format "Error code=0x%x." $status]
+    return -code error -errorinfo ACAENN568B::ReadChannelParameters $msg
   }
+  return [ParseChannelParams [lreplace $data 0 0]]
 }
 
 #
@@ -234,13 +246,12 @@ itcl::body ACAENN568B::ReadChannelParameters {channel} {
 #
 itcl::body ACAENN568B::ReadMUXStatusAndLastChAccess {} {
   after 75
-	set status [$caennet SendCode $number 0x004]
-	if {$status} {
+  set status [$caennet SendCode $number 0x004]
+  if {$status} {
     set msg "$this: error reading MUX status and last channel access. Module "
     append msg "number: $number. Error code: $status"
-		return -code error -errorinfo ACAENN568B::ReadMUXStatusAndLastChAccess $msg 
-	} 
-  after $wait
+    return -code error -errorinfo ACAENN568B::ReadMUXStatusAndLastChAccess $msg 
+  } 
   return [$caennet Receive]
 }
 
@@ -291,12 +302,11 @@ itcl::body ACAENN568B::SetParameter {channel parameter value} {
 #
 itcl::body ACAENN568B::SetOffset {value} {
   after 75
-	set status [$caennet Send $number 0x16 $value]
-	if {$status} {
+  set status [$caennet Send $number 0x16 $value]
+  if {$status} {
     set msg "$this: error enabling MUX. Module number: $number. Error code: $status"
     return -code error -errorinfo ACAENN568B::SetOffset $msg
-	} 
-  after $wait
+  } 
   return [$caennet Receive]
 }
 
@@ -305,12 +315,12 @@ itcl::body ACAENN568B::SetOffset {value} {
 #
 itcl::body ACAENN568B::DisableMUX {} {
   after 75
-	set status [$caennet SendCode $number 0x20]
-	if {$status} {
+  set status [$caennet SendCode $number 0x20]
+  if {$status} {
     set msg "$this: error disabling MUX. Module number: $number. "
     append msg "Error code: $status"
     return -code error -errorinfo ACAENN568B::DisableMUX $msg
-	} 
+  } 
   return $status 
 }
 
@@ -321,12 +331,12 @@ itcl::body ACAENN568B::DisableMUX {} {
 #
 itcl::body ACAENN568B::EnableMUX {} {
   after 75
-	set status [$caennet SendCode $number 0x21]
-	if {$status} {
+  set status [$caennet SendCode $number 0x21]
+  if {$status} {
     set msg "$this: error enabling MUX. Module number: $number. "
     append msg "Error code: $status"
     return -code error -errorinfo ACAENN568B::EnableMUX $msg
-	}
+  }
   return $status 
 }
 
@@ -334,110 +344,40 @@ itcl::body ACAENN568B::EnableMUX {} {
 # Value extracted from return value of ReadChannelParameters
 #
 itcl::body ACAENN568B::ReadFineGain {channel} {
-  after 75
-  if {![Utils::isInRange 0 15 $channel]} {
-    set msg "ACAENN568B::ReadFineGain Channel $channel is out of range. "
-    append msg {Must be in range [0,15].} 
-    return -code error -errorinfo ACAENN568B::ReadFineGain $msg
-  }
-
   set data [ReadChannelParameters $channel]
-
-  set status [lindex $data 0]
-  if {$status!=0} {
-    set msg "$this: N568B device returned bad response code"
-    puts stderr $msg
-    return $status 
-  }
-
-  return [lindex $data 1]
+  return [lindex $data 0]
 }
 
 #
 # Value extracted from return value of ReadChannelParameters
 #
 itcl::body ACAENN568B::ReadCoarseGain {channel} {
- after 75
-  if {![Utils::isInRange 0 15 $channel]} {
-    set msg "ACAENN568B::ReadCoarseGain Channel $channel is out of range. "
-    append msg {Must be in range [0,15].} 
-    return -code error -errorinfo ACAENN568B::ReadCoarseGain $msg
-  }
-
   set data [ReadChannelParameters $channel]
-
-  set status [lindex $data 0]
-  if {$status!=0} {
-    set msg "$this: N568B device returned bad response code"
-    return -code error -errorinfo ACAENN568B::ReadCoarseGain $msg
-  }
-
-  return [expr [lindex $data 3]&0x7]
+  return [lindex $data 5]
 }
 
 #
 # Value extracted from return value of ReadChannelParameters
 #
 itcl::body ACAENN568B::ReadPoleZero {channel} {
- after 75
-  if {![Utils::isInRange 0 15 $channel]} {
-    set msg "ACAENN568B::ReadPoleZero Channel $channel is out of range. "
-    append msg {Must be in range [0,15].} 
-    return -code error -errorinfo ReadPoleZero $msg
-  }
-
   set data [ReadChannelParameters $channel]
-
-  set status [lindex $data 0]
-  if {$status!=0} {
-    set msg "$this: N568B device returned bad response code"
-    return -code error -errorinfo ACAENN568B::ReadPoleZero $msg
-  }
-
-  return [lindex $data 2]
+  return [lindex $data 1]
 }
 
 #
 # Value extracted from return value of ReadChannelParameters
 #
 itcl::body ACAENN568B::ReadShape {channel} {
- after 75
-  if {![Utils::isInRange 0 15 $channel]} {
-    set msg "ACAENN568B::ReadShape Channel $channel is out of range. "
-    append msg {Must be in range [0,15].} 
-    return -code error $msg
-  }
-
   set data [ReadChannelParameters $channel]
-
-  set status [lindex $data 0]
-  if {$status!=0} {
-    puts stderr "$this: N568B device returned bad response code"
-    return -code error -errorinfo ACAENN568B::ReadShape $msg
-  }
-  return [expr ([lindex $data 3]&0x18)>>3]
+  return [lindex $data 4]
 }
 
 #
 # Value extracted from return value of ReadChannelParameters
 #
 itcl::body ACAENN568B::ReadOutputConfiguration {channel} {
- after 75
-  if {![Utils::isInRange 0 15 $channel]} {
-    set msg "ACAENN568B::ReadOutputConfiguration Channel $channel is out of "
-    append msg {range. Must be in range [0,15].} 
-    return -code error $msg
-  }
-
   set data [ReadChannelParameters $channel]
-
-  set status [lindex $data 0]
-  if {$status!=0} {
-    set msg "$this: N568B device returned bad response code (code=$status)."
-    return -code error -errorinfo ACAENN568B::ReadOutputConfiguration $msg
-  }
-
-  return [expr ([lindex $data 3]&0x20)>>5]
+  return [lindex $data 3] 
 }
 
 
@@ -445,22 +385,8 @@ itcl::body ACAENN568B::ReadOutputConfiguration {channel} {
 # Value extracted from return value of ReadChannelParameters
 #
 itcl::body ACAENN568B::ReadPolarity {channel} {
- after 75
-  if {![Utils::isInRange 0 15 $channel]} {
-    set msg "ACAENN568B::ReadPolarity Channel $channel is out of range. "
-    append msg {Must be in range [0,15].} 
-    return -code error $msg
-  }
-
   set data [ReadChannelParameters $channel]
-
-  set status [lindex $data 0]
-  if {$status!=0} {
-    set msg "$this: N568B device returned bad response code (code=$status)."
-    return -code error -errorinfo ACAENN568B::ReadPolarity $msg
-  }
-
-  return [expr ([lindex $data 3]&0x40)>>6]
+  return [lindex $data 2] 
 }
 
 
@@ -468,41 +394,56 @@ itcl::body ACAENN568B::ReadPolarity {channel} {
 #
 #
 itcl::body ACAENN568B::TestCommunication {} {
-	set status [ReadOffset]
-	if {$status != 0} {
-		return $status
-	} else {
-		after $wait
-		$caennet Receive
-		return 0
-	}
+  set status [ReadOffset]
+  if {$status != 0} {
+    return $status
+  } else {
+    $caennet Receive
+    return 0
+  }
+}
+
+itcl::body ACAENN568B::ParseChannelParams {dataList} {
+  if {[llength $dataList]!=3} {
+    set msg "Argument list does not contain 3 elements."
+    return -code error -errorinfo ACAENN568B::ParseChannelParams $msg
+  }
+  
+  set result [list]
+  lappend result [lindex $dataList 0]  ;# fine gain
+  lappend result [lindex $dataList 1]  ;# pole zero
+
+  set status [lindex $dataList 2]
+  lappend result [expr ($status&0x40)>>6]; # output polarity
+  lappend result [expr ($status&0x20)>>5]; # output configuration
+  lappend result [expr ($status&0x18)>>3]; # shape
+  lappend result [expr ($status&0x7)];     # coarse gain
+
+  return $result
 }
 
 #
 #
 #
-#
-#
 itcl::body ACAENN568B::Init {filename aname} {
-	source $filename
-	set status [TestCommunication]
-	if {$status != 0} {
-		set msg "$this: shaper not responding. Module number: $number. "
+  source $filename
+  set status [TestCommunication]
+  if {$status != 0} {
+    set msg "$this: shaper not responding. Module number: $number. "
     append msg "Error code: $status"
     puts stderr $msg
-		return $status
-	}
-	foreach name [array names $aname] {
-		set value [lindex [array get $aname $name] 1]
-		if {![string is alpha $name]} {
-			scan $name {%[a-z]%d} parameter channel
-			SetParameter $channel $parameter $value
-#			puts "Call to SetParameter on $this at channel $channel, parameter $parameter, value $value"
-		}
-		if {[string match $name offset]} {
-			SetOffset $value
-		}
-	}
-	DisableMUX
+    return $status
+  }
+  foreach name [array names $aname] {
+    set value [lindex [array get $aname $name] 1]
+    if {![string is alpha $name]} {
+      scan $name {%[a-z]%d} parameter channel
+      SetParameter $channel $parameter $value
+    }
+    if {[string match $name offset]} {
+      SetOffset $value
+    }
+  }
+  DisableMUX
 }
 
