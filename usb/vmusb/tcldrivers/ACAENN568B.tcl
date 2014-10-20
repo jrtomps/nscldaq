@@ -241,7 +241,7 @@ itcl::body ACAENN568B::ReadChannelParameters {channel} {
 
 #
 #
-# offset code = 0x004 
+# mux status + last channel access code = 0x004 
 #
 #
 itcl::body ACAENN568B::ReadMUXStatusAndLastChAccess {} {
@@ -256,8 +256,19 @@ itcl::body ACAENN568B::ReadMUXStatusAndLastChAccess {} {
 }
 
 # 
-#
 # In this method the parameter to be set is coded in index
+#
+# Command codes for writes are of the form: 0xn1m
+# where n is the channel number and m is the parameter index.
+#
+# Parameter indices are as follows:
+# 0   fine gain
+# 1   coarse gain
+# 2   pole zero
+# 3   shape
+# 4   output polarity
+# 5   output configuration
+#
 itcl::body ACAENN568B::SetParameter {channel parameter value} {
   after 75
   # allowed parameters and their value upper bounds
