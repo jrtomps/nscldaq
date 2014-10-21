@@ -35,10 +35,14 @@
 
 CFragmentHandler* CFragmentHandler::m_pInstance(0);
 
+static const size_t Mega(1024*1024);
+
 static const time_t DefaultBuildWindow(20); // default seconds to accumulate data before ordering.
 static const uint32_t IdlePollInterval(2);  // Seconds between idle polls.
 static const time_t DefaultStartupTimeout(2); // default seconds to accumulate data before ordering.
-static time_t timeOfFirstSubmission(UINT64_MAX); // 
+static time_t timeOfFirstSubmission(UINT64_MAX); //
+static const  size_t defaultXonLimit(80*Mega);     // Default total fragment storage at which we can xon
+static const  size_t defaultXoffLimit(100*Mega);    // Default total fragment storage at which we xoff.
 
 /*---------------------------------------------------------------------
  * Debugging
@@ -94,6 +98,13 @@ CFragmentHandler::CFragmentHandler()
     // Start the idle poll off:
 
     m_timer = Tcl_CreateTimerHandler(1000*IdlePollInterval, &CFragmentHandler::IdlePoll, this);
+    
+    // Set the Xoff values:
+    
+    m_nXonLimit  = defaultXonLimit;
+    m_nXoffLimit = defaultXoffLimit;
+    m_fXoffed    = false;
+    m_nTotalFragmentSize = 0;
 }
 /**
  * Destructor - for now just kill off the timer -- don't worry about
@@ -247,6 +258,29 @@ time_t
 CFragmentHandler::getStartupTimeout() const
 {
   return m_nStartupTimeout;
+}
+/**
+ * setXonThreshold
+ *   Sets the low watermark for flow control in bytes of fragment body.
+ *   If the number of queued bytes drops below this while the system
+ *   is in the XOffed state, the Xon observers will be fired.
+ *
+ * @param nBytes - new watermark.
+ */
+void
+CFragmentHandler::setXonThreshold(size_t nBytes) {
+    m_nXonLimit = nBytes;
+}
+/**
+ * setXoffThreshold
+ *    Sets the high watermark for flow control in bytes of fragment body.
+ *    If the number of queued bytes rises above this value while the system
+ *    is not Xoffed, the Xoff observers will be fired.
+ * @param size_t nBytes new level.
+ */
+void
+CFragmentHandler::setXoffThreshold(size_t nBytes) {
+    m_nXoffLimit = nBytes;
 }
 
 /**
@@ -423,6 +457,7 @@ CFragmentHandler::removeDuplicateTimestampObserver(DuplicateTimestampObserver* p
     }
 }
 
+
 /**
  * observeDuplicateTimestamp
  *    Called when a queue is outputing a non barrier fragment with the same timestamp
@@ -443,6 +478,74 @@ CFragmentHandler::observeDuplicateTimestamp(uint32_t sourceId, uint64_t timestam
         p++;
     }
 }
+
+
+/**
+ * addFlowControlObserver
+ *   Adds an observer of flow control.  These observers have Xon and Xoff methods
+ *   that get called on flow control transitions.
+ *
+ *  @param pObserver - pointer to the observer to add.
+ */
+void
+CFragmentHandler::addFlowControlObserver(FlowControlObserver* pObserver)
+{
+    m_flowControlObservers.push_back(pObserver);
+}
+/**
+ * removeFlowControlObserver
+ *   Remove an existing flow control observer from the current list of observers.
+ *
+ *   @param pObserver - The observer to remove.
+ */
+void
+CFragmentHandler::removeFlowControlObserver(FlowControlObserver* pObserver)
+{
+    std::list<FlowControlObserver*>::iterator p =
+        std::find(m_flowControlObservers.begin(), m_flowControlObservers.end(),
+                  pObserver);
+        
+    if (p != m_flowControlObservers.end()) {
+        m_flowControlObservers.erase(p);
+    }
+}
+
+/**
+ * Xon
+ *   Initiate a flow on event.  This means invoking the Xon method
+ *   of each flow control observer registered with us.
+ */
+void
+CFragmentHandler::Xon()
+{
+    std::list<FlowControlObserver*>::iterator p =
+        m_flowControlObservers.begin();
+    while (p != m_flowControlObservers.end()) {
+        FlowControlObserver* pObserver = *p;
+        pObserver->Xon();
+        p++;
+    }
+    m_fXoffed = false;
+}
+
+/**
+ * Xoff
+ *   Initiates a flow off event.  This means invoking the Xoff method
+ *   on each flow control observer registered with us:
+ */
+void
+CFragmentHandler::Xoff()
+{
+    std::list<FlowControlObserver*>::iterator p =
+        m_flowControlObservers.begin();;
+        while (p != m_flowControlObservers.end()) {
+            FlowControlObserver* pObserver = *p;
+            pObserver->Xoff();           
+            p++;
+        }
+        m_fXoffed = true;
+}
+
 
 /**
  * flush
@@ -704,6 +807,7 @@ CFragmentHandler::flushQueues(bool completely)
       } else {
 	m_nMostRecentlyPopped = p->second->s_header.s_timestamp;
       }
+      m_nTotalFragmentSize -= p->second->s_header.s_size;
       sortedFragments.push_back(p->second);
       delete p;
     } else {
@@ -727,6 +831,7 @@ CFragmentHandler::flushQueues(bool completely)
         } else {
           m_nMostRecentlyPopped = p->second->s_header.s_timestamp;
         }
+        m_nTotalFragmentSize -= p->second->s_header.s_size;
         sortedFragments.push_back(p->second);
         delete p;
       } else {
@@ -747,6 +852,13 @@ CFragmentHandler::flushQueues(bool completely)
   
   observe(sortedFragments);
   findOldest();			// Ensure we know which the oldest is.
+  
+  
+  // If XOFed and below the low water mark, XON:
+  
+  if ((m_nTotalFragmentSize < m_nXonLimit) && m_fXoffed) {
+    Xon();
+  }
   
   // If a barrier is pending check it and, if the flush was complete,
   // tail call to continue building:
@@ -935,7 +1047,7 @@ CFragmentHandler::addFragment(EVB::pFlatFragment pFragment)
     if ((timestamp == NULL_TIMESTAMP)) {
       assigned = true;
       timestamp = destQueue.s_newestTimestamp;
-      pFrag->s_header.s_timestamp = timestamp+1;             // Avoid duplicate.
+      pFrag->s_header.s_timestamp = timestamp;             // Avoid duplicate.
       assigned = true;
 #ifdef DEBUG
       std::cerr << "Assigned timestamp " << std::hex << timestamp << std::dec << std::endl;
@@ -994,7 +1106,13 @@ CFragmentHandler::addFragment(EVB::pFlatFragment pFragment)
       dumpFragment(pFrag);
       
     }
-#endif      
+#endif
+    // Tally the fragment size and Xoff if the high water mark was hit:
+    
+    m_nTotalFragmentSize += pHeader->s_size;
+    if (m_nTotalFragmentSize > m_nXoffLimit && (!m_fXoffed)) {
+        Xoff();
+    }
 
 }
 /**
@@ -1150,6 +1268,10 @@ CFragmentHandler::generateBarrier(std::vector<EVB::pFragment>& outputList)
 	result.s_typesPresent.push_back(
             std::pair<uint32_t, uint32_t>(p->first, pFront->s_header.s_barrier)
         );
+        m_nTotalFragmentSize -= pFront->s_header.s_size;
+        if ((m_nTotalFragmentSize < m_nXonLimit)  && m_fXoffed) {
+            Xon();
+        }
       } else {
 
 	result.s_missingSources.push_back(p->first);

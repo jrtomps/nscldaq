@@ -74,10 +74,14 @@ namespace eval ::EVB {
 #   +----------------------------+-------------------------+
 #   |     Connection list/status                           |
 #   +------------------------------------------------------+
+#   | Flow control  xxxxxxxxxxxxx                          |
+#   +------------------------------------------------------+
 #
 # @note the connection list/statis widget is fully autonomous.
 # 
 # OPTIONS
+#
+#   - -flowcontrol    - True if Xoffed False if Xoned.
 #
 #   Delegated to the input summary:
 #
@@ -107,6 +111,8 @@ snit::widgetadaptor ::EVB::summary {
     component outputSummary
     component barrierSummary
     component connectionList
+    
+    option -flowcontrol -default 0 -configuremethod _SetFlowControl;              # Initially data can flow.
     
     # Delegate the input summary options:
     
@@ -154,12 +160,17 @@ snit::widgetadaptor ::EVB::summary {
         install connectionList     using ::EVB::connectionList \
             $win.connections -text {Connections}
         
+        
+        label $win.flowlabel -text "Flow Control: "
+        label $win.flow      -text "Accepting Data"
+        
         # layout the widgets:
        
         grid $inputSummary   -row 0 -column 0 -rowspan 2 -sticky nsew -padx 5 -pady 5
         grid $outputSummary  -row 0 -column 1 -sticky nsew -padx 5 -pady 5
         grid $barrierSummary -row 1 -column 1 -sticky nsew -padx 5 -pady 5
         grid $connectionList -row 2 -column 0 -columnspan 2 -sticky nsew -padx 5 -pady 5
+        grid $win.flowlabel $win.flow 
        
         grid columnconfigure $win 0 -weight 1 
         grid columnconfigure $win 1 -weight 1 
@@ -168,7 +179,21 @@ snit::widgetadaptor ::EVB::summary {
         grid columnconfigure $inputSummary 0 -weight 1
         grid rowconfigure $inputSummary 0 -weight 1
         
+        
+        
         $self configurelist $args
+    }
+    ##
+    # _SetFlowControl
+    #    Handles changes to the -flowcontrol option value.
+    #
+    method _SetFlowControl {optname optval} {
+        if {$optval} {
+            $win.flow config -text {Flow control active}
+        } else {
+            $win.flow config -text {Accepting Data}
+        }
+        set options($optname) $optval
     }
 }
 ##
@@ -505,6 +530,9 @@ proc EVB::createGui widget {
     package require EventBuilder
     EVB::statusNotebook $widget
     set EVB::lateDialog [EVB::LatePopup %AUTO%]
+    
+    set summary [$widget getSummaryStats]
+    EVB::onflow add [list $summary configure -flowcontrol 0] [list $summary configure -flowcontrol 1]
 
     return $widget
 }
@@ -746,7 +774,6 @@ proc EVB::maintainGUI {widget {ms 2000}} {
 # @note EVB::lateDialog is the object that displays the late stats as a popup.
 #
 proc EVB::updateLatePopup lateStats {
-    puts stderr $lateStats
     
     foreach stat $lateStats {
         set source [lindex $stat 0]

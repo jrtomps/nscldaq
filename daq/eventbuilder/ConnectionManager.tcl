@@ -73,6 +73,8 @@ snit::type EVB::Connection {
 
     variable callbacks
     variable expecting
+    variable stateMethods -array [list FORMING _Connect ACTIVE _Fragments]
+
 
 
 
@@ -105,6 +107,21 @@ snit::type EVB::Connection {
 	    $expecting $options(-socket)
 	    $callbacks register -fragmentcommand $options(-fragmentcommand); #  Restore.
 	}
+    }
+    ##
+    # flowOff
+    #   Called to disable reception of data.
+    #
+    method flowOff {} {
+        fileevent $options(-socket) readable [list]
+    }
+    ##
+    # flowOn
+    #   Called to enable reception of data.
+    #
+    method flowOn {} {
+        set method $stateMethods($options(-state))
+        fileevent $options(-socket) readable [mymethod $method $options(-socket)] 
     }
 
     #----------------------------------------------------------------------------
@@ -431,6 +448,7 @@ snit::type EVB::ConnectionManager {
     variable lastFragment;		   # When the last fragment arrived.
     variable callbacks;		           # Callback manager.
     variable timedoutSources [list];	   # list of connections that are timed out.
+    variable accepting  1;                 # when zero we are flowed off.
    
 
     delegate method addObserver    to TimeoutObservers as addTimeoutObserver
@@ -462,6 +480,7 @@ snit::type EVB::ConnectionManager {
             puts stderr "$msg\n $::errorInfo"
             exit
         }
+        EVB::onflow add [mymethod _FlowOn] [mymethod _FlowOff]
     }
     destructor {
 	foreach object [array names connections] {
@@ -503,6 +522,27 @@ snit::type EVB::ConnectionManager {
     }
     #-----------------------------------------------------------------
     #  Private methods.
+    
+    ##
+    # _FlowOn
+    #   Enable the acceptance of data from source.
+    #
+    method _FlowOn {} {
+        set accepting 1
+        foreach connection [array names connections] {
+            $connection flowOn
+        }
+    }
+    ##
+    # _FlowOff
+    #   Disable the acceptance of data from sources.
+    #
+    method _FlowOff {} {
+        set accepting 0
+        foreach connection [array names connections] {
+            $connection flowOff
+        }
+    }
 
     ##
     # Client disconnect is just removing it from the list of connections
@@ -555,6 +595,9 @@ snit::type EVB::ConnectionManager {
 	$connection configure -disconnectcommand [mymethod _DisconnectClient $connection]
 	$connection configure -fragmentcommand   [mymethod _RecordFragment $connection]
 	$callbacks invoke -connectcommand [list %H %O] [list $client $connection]
+        if {!$accepting} {
+            $connection flowOff;            # Event builder can't take more data.
+        }
     }
     ## 
     # We very carefully ensured the callbacks registered with the callback manager

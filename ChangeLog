@@ -813,5 +813,15 @@ Work on 11.0-rc11 begins
         Feature #2074 - Add marker command to CCUSBReadout
         Bug #2201 Late fragment statistics did not increment.
         Feature #2628  Added duplicate timestamp (per queue) detection in
-	event orderer.  Note that this changes the method of assigning
-	timestamps for those items with NULL_TIMESTAMP
+	event orderer.
+        Bug #2061 Added global flow control to event orderer.
+         * Flow control is indicated on the GUI.
+         * Flow control is enforced by the connection manager.
+         * Flow control is all or nothing.  No data can be received if the
+           high water mark is exceeded.
+         * High/low water marks ensure that flow control does not oscillate
+           too severely.
+         * High/low water marks are in terms of bytes of fragment payload and.
+           There are commands to set these they default to a  high water mark
+           of 100Mbytes and low water mark of 80Mbytes.
+        
