@@ -38,6 +38,7 @@ tcltest::test sample-0 {Test that just out range fails
 } -result {ACrdcXLM72::WriteSamples Argument out of range. Must be in range [0,511].} \
 -returnCodes 1
 
+if {0} {
 tcltest::test sample-1 {Test that just out range fails
 } -setup {
   setup
@@ -47,7 +48,7 @@ tcltest::test sample-1 {Test that just out range fails
   ::dev WriteSamples 511
   decodeList [::ctlr getOperationRecord]
 } -result {}
-
+}
 
 tcltest::test period-0 {Test that just out of range fails 
 } -setup {
