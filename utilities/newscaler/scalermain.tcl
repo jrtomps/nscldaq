@@ -152,19 +152,20 @@ proc updatePages {} {
 proc clearStripcharts {} {
     # Clear the plot:
     
-    set seriesNames [$::stripcharts getSeries]
-    foreach series $seriesNames {
-        $::stripcharts clearSeries $series
+    if {$::stripcharts ne ""} {
+	set seriesNames [$::stripcharts getSeries]
+	foreach series $seriesNames {
+	    $::stripcharts clearSeries $series
+	}
+	# Ensure the next time is a new one:
+	
+	foreach item [_getStripItems] {
+	    $item clear
+	}
+	#  Reset the ymax to 1 so autoscale will start up again.:
+	
+	$::stripcharts configure -ymax 1
     }
-    # Ensure the next time is a new one:
-    
-    foreach item [_getStripItems] {
-        $item clear
-    }
-    #  Reset the ymax to 1 so autoscale will start up again.:
-    
-    $::stripcharts configure -ymax 1
-    
 }
 ##
 # Writes the stripchart plot to a postscript file:
@@ -172,8 +173,10 @@ proc clearStripcharts {} {
 # @param filename - name of the output file.
 #
 proc saveStripcharts   {filename} {
-    set plot [$::stripcharts cget -plotid]
-    $plot saveplot $filename 
+    if {$::stripcharts ne ""} {
+	set plot [$::stripcharts cget -plotid]
+	$plot saveplot $filename 
+    }
 }
 ##
 # updateStripcharts
@@ -182,27 +185,32 @@ proc saveStripcharts   {filename} {
 #   changed to be 10% larger than the requested y value.
 #
 proc updateStripcharts {} {
-    set ymax -1
-    foreach item [_getStripItems] {
-        if {[$item hasUpdated]} {
-            set name [$item name]
-            set y [$item rate]
-            set t [$item time]
-            set ymax [expr {max($ymax, $y)}]
-            
-            $::stripcharts addSeriesPoint $name $t $y
-        }
-    }
-    
-    # If needed update the -ymax to autoscale that axis.
-    #  The game with limits is needed in case the x axis has scrolled.
-    #  in which case it won't be what -xmin/-xmax say it will be.
-    
-    if {$ymax > [$::stripcharts cget -ymax]} {
-        set ymax [expr {$ymax * 1.1}]
-        set limits [$::stripcharts getPlotLimits]
-        $::stripcharts configure \
+    if {$::stripcharts ne ""} {
+	
+	set ymax -1
+	foreach item [_getStripItems] {
+	    if {[$item hasUpdated]} {
+		set name [$item name]
+		set y [$item rate]
+		set t [$item time]
+		set ymax [expr {max($ymax, $y)}]
+		
+		$::stripcharts addSeriesPoint $name $t $y
+	    }
+	}
+	
+	# If needed update the -ymax to autoscale that axis.
+	#  The game with limits is needed in case the x axis has scrolled.
+	#  in which case it won't be what -xmin/-xmax say it will be.
+	
+	
+	
+	if {$ymax > [$::stripcharts cget -ymax]} {
+	    set ymax [expr {$ymax * 1.1}]
+	    set limits [$::stripcharts getPlotLimits]
+	    $::stripcharts configure \
             -ymax $ymax -xmin [lindex $limits 0] -xmax [lindex $limits 1]
+	}
     }
 }
 

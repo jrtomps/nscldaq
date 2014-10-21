@@ -346,6 +346,266 @@ g++ -o mythreadedapp -I$DAQROOT/include mythreadedapp.cpp -L$DAQROOT/lib -lthrea
         </example>
     </section>
     <section>
+      <title>Using CGaurdedObject to implement synchronized methods</title>
+      <para>
+	The <classname>CGaurdedObject</classname> class provides a base class that can be 
+	used for classes that must require some or all of their methods only be run by
+	one thread at a time.  The class incorporates a mutex as private class data.  It also 
+	provides <methodname>Enter</methodname> and <methodname>Leave</methodname> methods
+        that take and release the mutex respectively.
+      </para>
+      <para>
+	Below is a typical use pattern for this class:
+      </para>
+      <example>
+	<title>Using <classname>CGaurdedObject</classname></title>
+	<programlisting>
+#include &lt;GaurdedObject.h&gt;              <co id='gaurded_include' />
+...
+
+class MyClass : public CGaurdedObject    <co id='gaurded_inherit' />
+{
+   void someProtecedMethod();            <co id='guarded_inherit' />
+...
+}
+
+...
+void
+MyClass::someProtectedMethod()
+{
+   Enter();                             <co id='gaurded_enter' />
+    ...
+   Leave();                             <co id='gaurded_leave' />
+}
+	</programlisting>
+      </example>
+      <calloutlist>
+	<callout arearefs='gaurded_include'>
+	  <para>
+	    The header <filename>CGaurdedObject.h</filename> defines the
+	    <classname>CGaurdedObject</classname> class and must be included
+	    by classes that derive from that class.
+	  </para>
+	</callout>
+	<callout arearefs='gaurded_inherit'>
+	  <para>
+	    The <classname>CGaurdedObject</classname> must be derived from
+	    to be useful.  Here we define the <classname>MyClass</classname>
+	    as a derivation of <classname>CGaurdedObject</classname>.
+	    What this normally means is that <classname>MyClass</classname>
+	    has one or more methods that must be synchronized between threads.
+	    The concept of a method that can only run in one thread of execution
+	    was developed/discovered by Per Brinch-Hansen, and C.A. Hoare in 1972.
+	  </para>
+	</callout>
+	<callout arearefs='gaurded_enter'>
+	  <para>
+	    Invoking the <methodname>Enter</methodname> method of the base class
+	    enters the monitor.  You can think of this call as your execution flow
+	    entering a gate that only admits one execution thread at a time.  If a 
+	    thread is already executing code following an <methodname>Enter</methodname>
+	    call any other thread will block until the corresponding <methodname>Leave</methodname>
+	    call is executed.  Note that the underying mutex is a recursive mutex so that if a thread
+	    already in a monitor needs to call another protected method in the same class it
+	    will not block.
+	  </para>
+	</callout>
+	<callout arearefs='gaurded_leave'>
+	  <para>
+	    The <methodname>Leave</methodname> indicates the end of execution of a monitor.
+	    If there are threads waiting at an <methodname>Enter</methodname> for the same
+	    object one of them is scheduled for execution, and therefore enteres the monitor.
+	  </para>
+	</callout>
+      </calloutlist>
+      <para>
+	Note that the monitors implemented by <classname>CGaurdedObject</classname> are
+	object global, that is only one thread can execute in an <methodname>Enter</methodname>,
+	<methodname>Leave</methodname> over the entire object. 
+      </para>
+    </section>
+    <section>
+      <title>Thread safe queues (<classname>CBufferQueue</classname>). </title>
+      <para>
+	Often threads implement a pipeline in which data is passed from a producer thread
+	to a consumer thread.  Examples of this pattern are seen in the 
+	<application>CCUSBReadout</application> and <application>CVMUSBReadout</application>
+	applications in which an acquisition thread passes buffers of XXUSB data to an output thread
+	which decodes these buffers transforming them into a stream of ring items that are
+	inserted in to a ring buffer.
+      </para>
+      <para>
+	The <classname>CBufferQueue</classname> class is a templated class that allows you to
+	build queues that are intended to communicate data from a producer thread to a consumer
+	thread in a thread safe manner.  The important methods of the queue are:
+      </para>
+      <variablelist>
+	<varlistentry>
+	  <term><methodname>queue</methodname></term>
+	  <listitem><para>
+	    Normally called by a producer to queue an element of data for the consumer.
+	    If the consumer is blocked waiting for data it is woken.
+	  </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><methodname>get</methodname></term>
+	  <listitem><para>
+	    Gets an object from the queue.  If there are no objects in the queue,
+	    the calling thread is blocked until there are.
+	  </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><methodname>getnow</methodname></term>
+	  <listitem><para>
+	    Attempts to get an object from the queue. This method never blocks,
+	    instead it indicates there were no objects to get if the queue is
+	    empty.
+	  </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+      <para>
+	Here are a few usage patterns that build on single buffer queues:
+      </para>
+      <variablelist>
+	<varlistentry>
+	  <term>Limited size queue</term>
+	  <listitem>
+	    <para>
+	      This is useful to implement back-pressure flow control on a data source
+	      that has unbounded length.  Implement a queue that contains a limited number
+	      of 'free elements', and a second queue that transmits elements from the source
+	      to the consumer.  The source gets a queue element  from the  the
+	      free queue fills it in and queues it to the sender queue.  
+	      When the sink has finished processing an element from the sender queue it 
+	      returns it to the free queue.
+	    </para>
+	    <para>
+	      If the consumer can't keep up with the source, the source will eventually
+	      block on getting an element from the free queue.
+	    </para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Work queue (processing farm)</term>
+	  <listitem><para>
+	    Multiple consumers can get/put items to a queue.  A work queue provides
+	    a method for distributing work to multiple threads.  As work becomes available
+	    to be spun off to the processing farm, it is queued to the work queue.  Several
+	    threads
+	    (the processing farm) get element get elements from the queue. Normally sufficient
+	    information is provided in the queue element to parameterize the computation of the
+	    worker thread.
+	  </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Collecting results (farmer for a procesing farm)</term>
+	  <listitem><para>
+	    Once work has been done by a worker in the previous pattern the results of the work
+	    must often be collected by a single thread.  A farming queue can have results objects
+	    queued to it by many threads (the workers).  The collection thread (farmer) would 
+	    get elements from the collection queue and do whatever is needed with them.
+	  </para></listitem>
+	</varlistentry>
+      </variablelist>
+      <para>
+	The example below is a simplified version of the VMUSB Reaodut thead's main loop. It
+	shows the sender side of a limited entry queue.  Each entry is a VMUSB readout buffer
+	with a header.  The code fragment gets a free buffer reads data into it and
+	puts it on a queue for the output thread.
+      </para>
+      <example>
+	<title>Sending data to a CBufferQueue</title>
+	<programlisting>
+struct DataBuffer {
+  uint32_t   s_bufferSize;	// Bytes used in the buffer.
+  uint32_t   s_storageSize;     // bytes in s_rawData[].
+  uint32_t   s_bufferType;	// Type of buffer.              <co id='bufferqueue_databuffer' />
+  timespec   s_timeStamp;	// When the buffer was received.
+  uint16_t   s_rawData[1];	// Really larger than that
+
+};
+...
+extern CBufferQueue&lt;DataBuffer*&gt;  gFilledBuffers;                  <co id='bufferqueue_queues' />
+extern CBufferQueue&lt;DataBuffer*&gt;  gFreeBuffers;        
+
+...
+while(1) {
+   DataBuffer* pBuffer = gFreeBuffers.get();                      <co id='bufferqueue_get' />
+   ReadFromVMUSB(pBuffer);
+   gFilledBugffers.queue(pBuffer);                                <co id='bufferqueue_put' />
+}
+...
+	</programlisting>
+      </example>
+      <calloutlist>
+	<callout arearefs='bufferqueue_databuffer'>
+	  <para>
+	    This struct is what will be pushed around in the buffer queues.  The
+	    <varname>s_rawData</varname> element is really much larger, the
+	    [1] size is used to allow us to treat the item as an array. Normally
+	    it will hold 13Kwords of data.
+	  </para>
+	</callout>
+	<callout arearefs='bufferqueue_queues'>
+	  <para>
+	    These are the queues.  By passing pointers around in the queue
+            bulk data movement is avoided.  In fact, the queues can carry
+            any object that supports copy construction. The <varname>gFilledBuffers</varname>
+            carry buffers with data from the reaoudout thread to the output thread.
+            The <varname>gFreeBuffers</varname> are buffers that are available for
+            new data.
+          </para>
+        </callout>
+        <callout arearefs='bufferqueue_get'>
+            <para>
+                This line gets a free data buffer.  If there are no elements
+                in <varname>gFreeBuffers</varname>, the thread blocks until
+                the output thread returns some buffers to that queue.
+            </para>
+        </callout>
+        <callout arearefs='bufferqueue_put'>
+            <para>
+                This line takes the buffer that was filled in the previous
+                line and queues it for the output thread.  Calls to
+                <methodname>queue</methodname> will only block (and then only
+                for a short time) if the call happens while the consumer is actively
+                pulling an object from the queue.
+            </para>
+        </callout>
+      </calloutlist>
+      <para>
+        The next example shows a simplified version of the VMUSBReadout output thread
+        so that you can see what a consumer of data from a buffer queue might look like.
+        The same data structure definitions and queue definitions are used and therefore
+        not shown.
+      </para>
+      <example>
+        <title>Consumer of data from a CBufferQueue</title>
+        <programlisting>
+...
+while(1) {
+  DataBuffer* pBuffer = gFilledBuffers.get();    <co id='bufferqueue_outputget' />
+  processBuffer(pBuffer);
+  gFreeBuffers.queue(pBuffer);                   <co id='bufferqueue_outputput' />
+}
+      </programlisting>
+      </example>
+      <calloutlist>
+        <callout arearefs='bufferqueue_outputget'>
+            <para>
+                The output thread gets a filled buffer from the queue and processes it.
+            </para>
+        </callout>
+        <callout arearefs='bufferqueue_outputput'>
+            <para>
+                Once the buffer is processed, it is put back in the free queue where the
+                readout thread can put new data into it.
+            </para>
+        </callout>
+      </calloutlist>
+    </section>
+    <section>
         <title>Pointers to the reference material</title>
         <para>
             This section provides pointers to the reference sections.
@@ -380,8 +640,18 @@ g++ -o mythreadedapp -I$DAQROOT/include mythreadedapp.cpp -L$DAQROOT/lib -lthrea
                 condition to be signalled by another thread.
                 </para>
             </listitem> 
+	    <listitem><para>
+	      <link linkend='manpage.gaurdedobject' endterm='manpage.gaurdedobject-title'/>
+	      documents the <classname>CGaurdedObject</classname> base class.
+	    </para></listitem>
+	    <listitem><para>
+	      <link linkend='manpage.bufferqueue' endterm='manpage.bufferqueue-title' /> described
+              the <classname>CBufferQueue</classname> inter thread communications
+              class.
+              </para></listitem>
         </itemizedlist>
     </section>
+
 </chapter>
 
 <!-- /chapter -->
@@ -1815,6 +2085,395 @@ Macros:
                 
            </variablelist>
         </refsect1>
-     </refentry>     
+     </refentry>
+<refentry id="manpage.gaurdedobject">
+  <refmeta>
+     <refentrytitle id='manpage.gaurdedobject-title'>CGaurdedObject</refentrytitle>
+     <manvolnum>3daq</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>CGaurdedObject</refname>
+     <refpurpose>Provide entry/exit guards for object critical regions.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+    #include &lt;CGaurdedObject.h&gt;
+       <ooclass><classname> CGaurdedObject</classname></ooclass>
+      <constructorsynopsis>
+     <methodname>CGaurdedObject</methodname>
+     <void />
+     <exceptionname></exceptionname>
+      </constructorsynopsis>
+     <methodsynopsis>
+        <type>void</type>
+        <methodname>Enter</methodname>
+        <void />
+     </methodsynopsis>
+     <methodsynopsis>
+        <type>void</type> <methodname>Leave</methodname>
+        <void />
+     </methodsynopsis>
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        This is a base class intended for objects that require
+        entry and exit synchronization gaurds for object wide
+        critical regions.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <constructorsynopsis>
+                <methodname>CGaurdedObject</methodname>
+                <void />
+                <exceptionname></exceptionname>
+                 </constructorsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Default constructor of the base class.
+                    This creates and initializes the mutex
+                    that will be used to synchronize across threads.
+                </para>
+                <para>
+                    Note that there is no public copy constructor
+                    for this class and therefore objects which extend this
+                    base class cannot, in practice be copy constructed.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                   <type>void</type>
+                   <methodname>Enter</methodname>
+                   <void />
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Called to enter a critical region.  Only
+                    one thread at a time can be executing in the
+                    object past a call to <methodname>Enter</methodname>.
+                    This makes critical regions object wide.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                   <type>void</type> <methodname>Leave</methodname>
+                   <void />
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Called to leave a critical region.  If there are
+                    threads blocked in a call to
+                    <methodname>Enter</methodname> (on any
+                    method in this object), one is selected to
+                    resume execution (at the mercy of the scheduler).
+                </para>
+            </listitem>
+        </varlistentry>
+        
+     </variablelist>
+  </refsect1>
+</refentry>     
+<refentry id="manpage.bufferqueue">
+  <refmeta>
+     <refentrytitle id='manpage.bufferqueue-title'>CBufferQueue</refentrytitle>
+     <manvolnum>3daq</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>CBufferQueue</refname>
+     <refpurpose>Templated class for safe inter-thread messaging.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+    #include &lt;CBufferQueue.h&gt;
+    template&lt;class T&gt;
 
+
+       <ooclass><classname>
+        class CBufferQueue : public CGaurdedObject        
+       </classname></ooclass>
+      <constructorsynopsis>
+     <methodname>CBufferQueue</methodname>
+     <methodparam>
+        <type>size_t</type> <parameter>wakeLevel=0</parameter>
+    </methodparam>
+     <exceptionname></exceptionname>
+      </constructorsynopsis>
+      <methodsynopsis>
+        <type>void</type> <methodname>queue</methodname>
+        <methodparam>
+            <type>T</type> <parameter>object</parameter>
+        </methodparam>
+      </methodsynopsis>
+      <methodsynopsis>
+          <modifier></modifier>
+          <type>T</type>
+          <methodname>get</methodname>
+          <void />
+          <exceptionname></exceptionname>
+          <modifier></modifier>
+      </methodsynopsis>
+      <methodsynopsis>
+          <modifier></modifier>
+          <type>bool</type>
+          <methodname>getnow</methodname>
+          <methodparam>
+            <type>T&amp;</type> <parameter>object</parameter>
+          </methodparam>
+          <exceptionname></exceptionname>
+          <modifier></modifier>
+      </methodsynopsis>
+      <methodsynopsis>
+          <modifier></modifier>
+          <type>std::list&lt;T&gt;</type>
+          <methodname>getall</methodname>
+          <void />
+          <exceptionname></exceptionname>
+          <modifier></modifier>
+      </methodsynopsis>
+      <methodsynopsis>
+          <modifier></modifier>
+          <type>void</type>
+          <methodname>setWakeThreshold</methodname>
+          <methodparam>
+            <type>size_t</type><parameter>level</parameter>
+          </methodparam>
+          <exceptionname></exceptionname>
+          <modifier></modifier>
+      </methodsynopsis>
+      <methodsynopsis>
+          <modifier></modifier>
+          <type>void</type>
+          <methodname>wait</methodname>
+          <void />
+          <exceptionname></exceptionname>
+          <modifier></modifier>
+      </methodsynopsis>
+      <methodsynopsis>
+          <modifier></modifier>
+          <type>void</type>
+          <methodname>wake</methodname>
+          <void />
+          <exceptionname></exceptionname>
+          <modifier></modifier>
+      </methodsynopsis>  
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        <classname>CBufferQueue</classname> is a templated class
+        that provides a thread safe queue.  Thread-safeness
+        allows any number of threads to be producers and any number
+        of threads to be consumers. 
+     </para>
+     <para>
+        Thread-safeness is accomplished by deriving this class
+        from the <classname>CGuardedObject</classname> and sprinkling
+        an appropriate set of <methodname>Enter</methodname> and
+        <methodname>Leave</methodname> calls.
+        Blocking and waking is accomplished by means of a condition
+        variable.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <constructorsynopsis>
+                  <methodname>CBufferQueue</methodname>
+                  <methodparam>
+                     <type>size_t</type> <parameter>wakeLevel=0</parameter>
+                 </methodparam>
+                  <exceptionname></exceptionname>
+                </constructorsynopsis>
+                </term>
+            
+            <listitem>
+                <para>
+                    Constructs the buffer queue.  The <parameter>wakeLevel</parameter>
+                    parameter determines the depth of the queue above which threads
+                    waiting on a <methodname>get</methodname> will be woken. A
+                    <parameter>wakeLevel</parameter> of <literal>0</literal>,
+                    the default, will wake for every queue insertion.  The default
+                    is normally correct unless you have some specialized application.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                  <type>void</type> <methodname>queue</methodname>
+                  <methodparam>
+                      <type>T</type> <parameter>object</parameter>
+                  </methodparam>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Adds an <parameter>object</parameter>
+                    to the queue.  The type <literal>T</literal>
+                    is the templated type of the class.
+                    For example if the <classname>CBufferQueue</classname>
+                    was declared as <literal>CBufferQueue&lt;int&gt; q</literal>
+                    the <parameter>object</parameter> must be an
+                    <type>int</type>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>T</type>
+                    <methodname>get</methodname>
+                    <void />
+                    <exceptionname></exceptionname>
+                    <modifier></modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Returns the least recently queued item.  If the queue
+                    is emtpy the thread will block until there are more than
+                    the queue's wakelevel items in the queue (see the
+                    constructor documentation) at which time the oldest
+                    element will be returned.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>bool</type>
+                    <methodname>getnow</methodname>
+                    <methodparam>
+                      <type>T&amp;</type> <parameter>object</parameter>
+                    </methodparam>
+                    <exceptionname></exceptionname>
+                    <modifier></modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Attempts to get the oldest element from the queue.
+                    If there are elements in the queue, the function returns
+                    <literal>true</literal> and the <parameter>object</parameter>
+                    parameter is set to contain that element.   If there are
+                    no elements in the queue, the function returns <literal>false</literal>
+                    and the value of <parameter>object</parameter> is not
+                    defined.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>std::list&lt;T&gt;</type>
+                    <methodname>getall</methodname>
+                    <void />
+                    <exceptionname></exceptionname>
+                    <modifier></modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Returns a list that contains all of the
+                    elements that are now in the queue.  This method
+                    never blocks.  If the queue is empty, the
+                    returned value will be an empty list.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void</type>
+                    <methodname>setWakeThreshold</methodname>
+                    <methodparam>
+                      <type>size_t</type><parameter>level</parameter>
+                    </methodparam>
+                    <exceptionname></exceptionname>
+                    <modifier></modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Changes the queeu wake <parameter>level</parameter>.
+                    For a discussion  of the meaning of the queue
+                    wake level see the description of the constructor
+                    above.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void</type>
+                    <methodname>wait</methodname>
+                    <void />
+                    <exceptionname></exceptionname>
+                    <modifier></modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Waits for the next wake-up on the queue.  While this
+                    is a public interface, normal applications don't need
+                    to explicitly call this entry as the
+                    <methodname>get</methodname> method
+                    automatically calls it.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void</type>
+                    <methodname>wake</methodname>
+                    <void />
+                    <exceptionname></exceptionname>
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Wakes queue waiters.  The only reason
+                    for a normal application to invoke this is
+                    if the wake level is relatively large and
+                    the application knows that there will not
+                    be any elements queued for some long time
+                    (e.g. when the application is almost finished),
+                    then <methodname>wake</methodname> can force queue
+                    waiters to wake up and process the elements that
+                    are present in the queue.
+                </para>
+            </listitem>
+        </varlistentry>
+     </variablelist>
+  </refsect1>
+</refentry>     
 <!-- /manpage -->

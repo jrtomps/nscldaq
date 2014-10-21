@@ -1,10 +1,12 @@
 bin_PROGRAMS =  ringselector
 
-ringselector_SOURCES 	= 	ringselector.cpp RingSelectorMain.cpp ../StringsToIntegers.cpp
+ringselector_SOURCES 	= 	ringselector.cpp RingSelectorMain.cpp ../StringsToIntegers.cpp \
+				RingBufferQueue.cpp COutputter.cpp
 
 ringselector_DEPENDENCIES =	parser.o
 
-noinst_HEADERS		=	 ../StringsToIntegers.h RingSelectorMain.h
+noinst_HEADERS		=	 ../StringsToIntegers.h RingSelectorMain.h \
+				RingBufferQueue.h COutputter.h
 
 BUILT_SOURCES	= parser.h
 
@@ -12,12 +14,14 @@ INCLUDES		= 	@LIBTCLPLUS_CFLAGS@	\
 				-I@top_srcdir@/base/headers	\
 				-I@top_srcdir@/daq/format	\
 			        -I@top_srcdir@/base/dataflow \
-				-I@top_srcdir@/base/os
+				-I@top_srcdir@/base/os	\
+				-I@top_srcdir@/base/thread
 
 ringselector_LDADD	=  	parser.o 					\
 				@top_builddir@/daq/format/libdataformat.la	\
 				@top_builddir@/base/dataflow/libDataFlow.la	\
 				@top_builddir@/base/os/libdaqshm.la		\
+				@top_builddir@/base/thread/libdaqthreads.la     \
 				@LIBEXCEPTION_LDFLAGS@				\
 				$(THREADLD_FLAGS) 
 

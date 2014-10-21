@@ -28,6 +28,7 @@ install-exec-hook:
 	(cd @srcdir@; install $(IMAGES) $(GRAPHDIR))
 
 
+
 check-TESTS: check_PROGRAMS
 	for f in  @srcdir@/*.test; do echo Testing $$f  ; @TCLSH_CMD@ $$f; done
 

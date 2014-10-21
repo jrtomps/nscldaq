@@ -753,3 +753,45 @@ Work on 11.0-rc11 begins
 	* Feature #2406 - Test newscaler integration with a mix of
 	incremental and non-incremental scalers.
 	* Feature *2409 - Documented newscaler and TclRingBuffer package
+	* Fix errors in new scaler display script that happen when there
+	is no stripchart.
+
+
+11.0-rc14
+	Note you might think that the simplest way to get a non blocking
+	ring selector is to just do non blocking writes and drop ring
+	items on the floor once a non blocking write fails.  This is
+	vulnerable/complicated because entire ring items must be written
+	to stdout and theres no gaurantee the block won't happen in the
+	middle of a ring item leaving you wondering if you should be
+	continuing to try the write or get data from the ring. The
+	architecture chosen instead is to thread the ringselector so that
+	there's an output thread that can be blocking and to use a
+	CBufferQueue to transmit ring items between the ring reading
+	thread and the output thread.  Ring items get dropped when there
+	are no free items available for the ring reading thread to put in
+	to the transmit queue.  This results in very straightforward logic
+	for both the ring reading thread and the output thread:
+	
+	* Feature #2556  Hoist CBufferQueue from the USB readouts into
+	base/thread
+	* Feature #559 In the USB readouts, use the CBufferQueue from
+	base/thread getting rid of the local versions. (DRY-ness).
+	* Feature #2562 add nonblocking get to CBufferQueue
+	* feature #2565 add --non-blocking flag to ringselector and
+	document it.
+	* Feature #2568 have the ringselector create a free and in transit
+	buffer queue of CRingItem*
+	* Feature 2571 Ensure RingSelectorMain sends data to a buffer
+	queue rather than directly outputting it.  If --non-blocking is
+	true and a non blocking get from the free list shows there's no
+	free items, drop the ring item on the floor.  With --non-blocking
+	false, the get of free items is blocking.
+	* Feature 2574 Write an output thread that takes the ring items
+	from the in transit queue and writes them to stdout.  Start it in
+	the ringselector main thread.
+
+	Document the CBufferQueue and CGuardedObject classes that were
+	ported to the base/thread libdaqthreads library.
+	
+

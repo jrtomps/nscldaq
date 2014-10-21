@@ -37,6 +37,7 @@
 #include <stdint.h>
 
 #include "parser.h"
+#include "COutputter.h"
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -45,7 +46,8 @@
 
 RingSelectorMain::RingSelectorMain() :
   m_pRing(0),
-  m_pPredicate(0)
+  m_pPredicate(0),
+  m_queues(1000)		// # of ring items that can be in transit.
 {}
 
 RingSelectorMain::~RingSelectorMain()
@@ -76,6 +78,8 @@ RingSelectorMain::operator()(int argc, char** argv)
 
   m_formatted  = parsedArgs.formatted_given;
   m_exitOnEnd  = parsedArgs.exitonend_given;
+  m_nonBlocking= parsedArgs.non_blocking_given;
+
   m_pPredicate = createPredicate(&parsedArgs);
 
   m_pRing      = selectRing(&parsedArgs);
@@ -205,22 +209,26 @@ RingSelectorMain::selectRing(struct gengetopt_args_info* parse)
 void
 RingSelectorMain::processData()
 {
+  COutputter outputThread(m_queues, m_exitOnEnd);
+  outputThread.start();
   while(1) {
     CRingItem* pItem = CRingItem::getFromRing(*m_pRing, *m_pPredicate);
     RingItem*  pData = pItem->getItemPointer();
     size_t     size  = pData->s_header.s_size;
-    writeBlock(STDOUT_FILENO, pData, size);
-
-    // If exit on end is requested we'll need to know the type before
-    // deleting it.
-
-    uint32_t itemType= pItem->type();
-
-    delete pItem;
-
-    if (m_exitOnEnd && (itemType == END_RUN)) {
-      exit(EXIT_SUCCESS);
+    if (m_nonBlocking) {
+      CRingItem* pQueueElement = m_queues.getFree();
+      if(pQueueElement) {
+	pQueueElement = pItem;
+	m_queues.send(pQueueElement);
+      } else {
+	delete pItem;		// no free elements and non-blocking
+      }
+    } else {
+      CRingItem* pQueueElement = m_queues.getFreeW();
+      pQueueElement = pItem;
+      m_queues.send(pQueueElement);
     }
+
   }
 }
 

@@ -1,6 +1,5 @@
 SUBDIRS = 	ccusb 		\
 		devices		\
-		threadcomm	\
 		router		\
 		rdothread	\
 		tclserver		\
@@ -19,7 +18,7 @@ CCUSBReadout_SOURCES = CTheApplication.cpp Globals.cpp @srcdir@/cmdline.c
 noinst_HEADERS = CTheApplication.h Globals.h Events.h
 
 INCLUDES = -I@top_srcdir@/usb/ccusb/ccusb -I@top_srcdir@/usb/ccusb/devices \
-	-I@top_srcdir@/usb/ccusb/threadcomm -I@top_srcdir@/usb/ccusb/router \
+	-I@top_srcdir@/usb/ccusb/router \
 	-I@top_srcdir@/usb/ccusb/rdothread \
 	 -I@top_srcdir@/usb/ccusb/daqconfig -I@top_srcdir@/usb/ccusb/commands \
 	-I@top_srcdir@/usb/ccusb/tclserver  \
@@ -36,7 +35,6 @@ CCUSBReadout_LDADD	=  @top_builddir@/usb/ccusb/devices/libCCUSBDevices.la	\
 	@top_builddir@/usb/ccusb/rdothread/libCCUSBRdoThread.la	\
 	@top_builddir@/usb/ccusb/commands/libCCUSBCommands.la		\
 	@top_builddir@/usb/ccusb/router/libCCUSBRouter.la		\
-	@top_builddir@/usb/ccusb/threadcomm/libCCUSBThreadComm.la	\
 	@top_builddir@/usb/ccusb/ccusb/libCCUSB.la		\
 	@top_builddir@/usb/ccusb/tclserver/libCCUSBControlServer.la \
         @top_builddir@/servers/portmanager/libPortManager.la \
