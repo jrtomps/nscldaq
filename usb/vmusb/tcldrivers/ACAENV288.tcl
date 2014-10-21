@@ -54,7 +54,10 @@ itcl::class ACAENV288 {
     # a reset, we will ensure that it does not fail the first time around. It
     # is possible that the user is creating this after the first power cycle
     # and this it will immediately fail if we don't call GetStatus
-    GetStatus
+    if {$de ne ""} {
+      # it is possible not to have been provided a vmusb
+      GetStatus
+    }
   }
 	
   ## @brief Destructor - noop
@@ -62,6 +65,8 @@ itcl::class ACAENV288 {
   #
 	destructor {}
 	
+  public method SetController {ctlr} { set device $ctlr}
+  public method GetController {} { return $device}
 
   ## @brief Send command with one parameter value
   #
