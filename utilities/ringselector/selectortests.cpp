@@ -87,12 +87,14 @@ static int spawn(const char* command)
 
     // Set the write pipe as our stdout/stderr:
 
-    close(STDOUT_FILENO);
     dup2(writePipe, STDOUT_FILENO);
+    close(writePipe);
 
     int status = system(command);
     assert(status != -1);
     
+    close(STDOUT_FILENO);
+
     exit(0);
 
   }
@@ -331,7 +333,6 @@ CPPUNIT_TEST_SUITE_REGISTRATION(rseltests);
 // The preprocessor symobl BINDIR isthe directory in which
 // the ringselector was installed.
 //
-
 void rseltests::all() 
 {
   
@@ -380,7 +381,6 @@ void rseltests::all()
   close(fd);
 
 }
-
 // build use the --exclude switch to not accept BEGIN_RUN items.
 
 void rseltests::exclude()
@@ -440,3 +440,4 @@ void rseltests::only()
   wait(&s);
 }
 // don't know how to test for sampling.
+
