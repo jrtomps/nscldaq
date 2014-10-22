@@ -80,7 +80,7 @@ static int spawn(const char* command)
   }
   else {
     // child...
-
+    setsid();
 
     close(readPipe);
 
@@ -364,7 +364,7 @@ void rseltests::all()
 
   }    
   catch (...) {
-    kill(childpid, SIGTERM);
+    kill(childpid*-1, SIGTERM);
     
     int status;
     wait(&status);
@@ -374,7 +374,7 @@ void rseltests::all()
   
   // Cleanup by killing the child.
   
-  kill(childpid, SIGTERM);
+  kill(childpid*-1, SIGTERM);
   
   int status;
   wait(&status);
@@ -399,15 +399,16 @@ void rseltests::exclude()
     endRun(prod,fd);		// Should be the first one back from the program.
   }
   catch (...) {
-    kill (childpid, SIGTERM);
+    kill (childpid*-1, SIGTERM);
     int s;
     wait(&s);
     throw;
   }
 
-  kill (childpid, SIGTERM);
+  kill (childpid*-1, SIGTERM);
   int s;
   wait(&s);
+  close(fd);
 }
 
 // Build using the --accept switch...
@@ -429,15 +430,16 @@ void rseltests::only()
 
   }
   catch (...) {
-    kill (childpid, SIGTERM);
+    kill (childpid*-1, SIGTERM);
     int s;
     wait(&s);
     throw;
   }
 
-  kill (childpid, SIGTERM);
+  kill (childpid*-1, SIGTERM);
   int s;
   wait(&s);
+  close(fd);
 }
 // don't know how to test for sampling.
 
