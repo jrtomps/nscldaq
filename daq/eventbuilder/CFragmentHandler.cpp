@@ -39,7 +39,7 @@ static const size_t Mega(1024*1024);
 
 static const time_t DefaultBuildWindow(20); // default seconds to accumulate data before ordering.
 static const uint32_t IdlePollInterval(2);  // Seconds between idle polls.
-static const time_t DefaultStartupTimeout(2); // default seconds to accumulate data before ordering.
+static const time_t DefaultStartupTimeout(4); // default seconds to accumulate data before ordering.
 static time_t timeOfFirstSubmission(UINT64_MAX); //
 static const  size_t defaultXonLimit(80*Mega);     // Default total fragment storage at which we can xon
 static const  size_t defaultXoffLimit(100*Mega);    // Default total fragment storage at which we xoff.
