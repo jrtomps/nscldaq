@@ -8,7 +8,7 @@ eventlog_DEPENDENCIES	=	eventlogargs.o
 
 BUILT_SOURCES		= 	eventlogargs.h
 
-INCLUDES 		=	-I@top_srcdir@/base/headers		\
+eventlog_CPPFLAGS       =	-I@top_srcdir@/base/headers		\
 				@LIBTCLPLUS_CFLAGS@			\
 				-I@top_srcdir@/daq/format		\
 			        -I@top_srcdir@/base/dataflow	\
@@ -39,7 +39,7 @@ eventlogargs.o: eventlogargs.ggo
 
 # Extra files to distribute.
 
-EXTRA_DIST		=	eventlogargs.ggo eventlog.xml
+EXTRA_DIST		=	eventlogargs.ggo eventlog.xml Asserts.h
 
 #  Need to clean the products of processing eventlogargs.ggo:
 
@@ -59,9 +59,21 @@ fakeruns_LDADD		=	@top_builddir@/daq/format/libdataformat.la	\
 				@top_builddir@/base/dataflow/libDataFlow.la	\
 				@top_builddir@/base/os/libdaqshm.la              \
 				@LIBEXCEPTION_LDFLAGS@
+fakeruns_CPPFLAGS=-I@top_srcdir@/base/headers		\
+				@LIBTCLPLUS_CFLAGS@			\
+				-I@top_srcdir@/daq/format		\
+			        -I@top_srcdir@/base/dataflow	\
+				-I@top_srcdir@/base/os		\
+				@OPENSSL_INCLUDES@
 
 eventlogTests_SOURCES = TestRunner.cpp eventlogTests.cpp
-eventlogTests_CPPFLAGS=@CPPUNIT_CFLAGS@
+eventlogTests_CPPFLAGS=@CPPUNIT_CFLAGS@ -I@top_srcdir@/base/headers		\
+				@LIBTCLPLUS_CFLAGS@			\
+				-I@top_srcdir@/daq/format		\
+			        -I@top_srcdir@/base/dataflow	\
+				-I@top_srcdir@/base/os		\
+				@OPENSSL_INCLUDES@
+
 eventlogTests_LDADD   = @CPPUNIT_LDFLAGS@ \
 				@top_builddir@/daq/format/libdataformat.la	\
 				@top_builddir@/base/dataflow/libDataFlow.la	\

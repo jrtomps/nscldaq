@@ -24,7 +24,7 @@
 using namespace std;
 #endif
 
-static const char* version = "1.0";
+static const char* version = "1.1";
 
 /* Provide the ring package that provides Tcl access to ring buffers. */
 

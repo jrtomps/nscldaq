@@ -5,7 +5,7 @@ glom_SOURCES= @srcdir@/glom.c glomMain.cpp
 
 BUILT_SOURCES = @srcdir@/glom.c
 
-INCLUDES = -I@top_srcdir@/daq/eventbuilder \
+glom_CPPFLAGS = -I@top_srcdir@/daq/eventbuilder \
 	-I@top_srcdir@/daq/format          \
 	-I@top_srcdir@/base/os
 

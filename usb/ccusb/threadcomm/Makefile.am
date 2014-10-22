@@ -1,3 +1,7 @@
+##
+#  This makefile is obsolete and is no longer used.  At some point this directory
+#  and its contents should be removed from the source tree.
+
 lib_LTLIBRARIES		= libCCUSBThreadComm.la
 libCCUSBThreadComm_la_SOURCES = CGaurdedObject.cpp CBufferQueue.cpp
 noinst_HEADERS		= CGaurdedObject.h CBufferQueue.h

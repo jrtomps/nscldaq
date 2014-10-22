@@ -1,23 +1,31 @@
 lib_LTLIBRARIES		= libCCUSB.la libCCCUSB.la libCCCUSBReadoutList.la
+COMPILATION_FLAGS		= -I@top_srcdir@/base/os \
+		@TCL_FLAGS@ @USBSWITCHES@ @THREADCXX_FLAGS@
+
+
 libCCUSB_la_SOURCES	= CCCUSB.cpp CCCUSBReadoutList.cpp
+libCCUSB_la_CPPFLAGS    = $(COMPILATION_FLAGS)
 include_HEADERS         = CCCUSB.h   CCCUSBReadoutList.h
 
+
 libCCCUSB_la_SOURCES    = @srcdir@/CCCUSB_wrap.cxx
+libCCCUSB_la_CPPFLAGS=$(COMPILATION_FLAGS)
+
 libCCCUSBReadoutList_la_SOURCES = @srcdir@/CCCUSBReadoutList_wrap.cxx
+libCCCUSBReadoutList_la_CPPFLAGS= $(COMPILATION_FLAGS)
 
- BUILT_SOURCES=@srcdir@/CCCUSB_wrap.cxx @srcdir@/CCCUSBReadoutList_wrap.cxx
+BUILT_SOURCES=@srcdir@/CCCUSB_wrap.cxx @srcdir@/CCCUSBReadoutList_wrap.cxx
 
- @srcdir@/CCCUSB_wrap.cxx:	 @srcdir@/CCCUSB.h
+@srcdir@/CCCUSB_wrap.cxx:	 @srcdir@/CCCUSB.h
 	 @SWIG@ -c++ -debug-classes  -tcl  -namespace  -pkgversion 1.0  -outdir @srcdir@ \
 		@srcdir@/CCCUSB.h
 
-  @srcdir@/CCCUSBReadoutList_wrap.cxx:  @srcdir@/CCCUSBReadoutList.h
+@srcdir@/CCCUSBReadoutList_wrap.cxx:  @srcdir@/CCCUSBReadoutList.h
 	 @SWIG@ -c++ -debug-classes  -tcl  -namespace  -pkgversion 1.0  -outdir @srcdir@ \
 		@srcdir@/CCCUSBReadoutList.h
 
 
- INCLUDES		= -I@top_srcdir@/base/os \
-		@TCL_FLAGS@ @USBSWITCHES@ @THREADCXX_FLAGS@
+
 
  libCCUSB_la_LIBADD	= @top_builddir@/base/os/libdaqshm.la \
 	 @USB_LIBS@   @THREADLD_FLAGS@

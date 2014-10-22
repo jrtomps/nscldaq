@@ -1,5 +1,17 @@
 lib_LTLIBRARIES	=	libSBSProductionReadout.la
 
+COMPILATION_FLAGS	=	-I@top_srcdir@/sbs/vmemodules	\
+			-I@top_srcdir@/sbs/nsclapi	\
+			@LIBTCLPLUS_CFLAGS@	\
+			-I@top_srcdir@/base/headers	\
+			-I@top_srcdir@/servers/portmanager	\
+			-I@top_srcdir@/base/dataflow		\
+			-I@top_srcdir@/daq/format		\
+			-I@top_srcdir@/base/thread 		\
+                        -I@top_srcdir@/daq/eventbuilder         \
+			-I@top_srcdir@/base/os			\
+			$(TCL_FLAGS) $(THREADCXX_FLAGS)	\
+			-DHAVE_VME_MAPPING -DHAVE_SBSVME_INTERFACE
 
 TCLPACKAGES = readoutStateHook.tcl
 TCLPKGDIR   = @prefix@/TclLibs/readoutStateHook
@@ -42,6 +54,9 @@ libSBSProductionReadout_la_SOURCES	=				\
 						CV977Busy.cpp
 
 
+libSBSProductionReadout_la_CPPFLAGS=$(COMPILATION_FLAGS)
+
+
 noinst_HEADERS	=	CReadoutMain.h Skeleton.h CTCLAuthorizer.h	\
 			CAuthorizedTclServer.h	CExperiment.h Asserts.h	\
 			RunState.h CObject.h CComposite.h CScaler.h	\
@@ -57,18 +72,6 @@ noinst_HEADERS	=	CReadoutMain.h Skeleton.h CTCLAuthorizer.h	\
 
 
 
-INCLUDES	=	-I@top_srcdir@/sbs/vmemodules	\
-			-I@top_srcdir@/sbs/nsclapi	\
-			@LIBTCLPLUS_CFLAGS@	\
-			-I@top_srcdir@/base/headers	\
-			-I@top_srcdir@/servers/portmanager	\
-			-I@top_srcdir@/base/dataflow		\
-			-I@top_srcdir@/daq/format		\
-			-I@top_srcdir@/base/thread 		\
-                        -I@top_srcdir@/daq/eventbuilder         \
-			-I@top_srcdir@/base/os			\
-			$(TCL_FLAGS) $(THREADCXX_FLAGS)	\
-			-DHAVE_VME_MAPPING -DHAVE_SBSVME_INTERFACE
 
 libSBSProductionReadout_la_LIBADD	=	@top_builddir@/sbs/vmemodules/libSBSDeviceSupport.la	\
 						@top_builddir@/sbs/nsclapi/libSBSVmeAPI.la		\
@@ -98,6 +101,7 @@ Readout_LDADD	= libSBSProductionReadout.la	\
 		  $(THREADLD_FLAGS)
 
 Readout_LDFLAGS = @LIBTCLPLUS_LDFLAGS@
+Readout_CPPFLAGS=$(COMPILATION_FLAGS)
 
 CLEANFILES = options.c options.h
 
@@ -138,25 +142,28 @@ tests_SOURCES=TestRunner.cpp experimentTests.cpp \
 		varlisttest.cpp docvartests.cpp	\
 		testVariableBuffers.cpp	
 
+tests_DEPENDENCIES=libSBSProductionReadout.la
 
-tests_LDADD = 	CExperiment.lo	\
-		CComposite.lo	\
-		CScaler.lo CScalerBank.lo	\
-		CEventSegment.lo CCompoundEventSegment.lo \
-		RunState.lo	\
-		CEventTrigger.lo CTimedTrigger.lo	\
-		CNullTrigger.lo	CRunControlPackage.lo		\
-		CBeginCommand.lo				\
-		CPauseCommand.lo				\
-		CResumeCommand.lo				\
-		CEndCommand.lo					\
-		CTriggerLoop.lo					\
-		CDocumentedPacket.lo CDocumentedPacketManager.lo \
-		CReadoutException.lo CInvalidPacketStateException.lo \
-		CEventPacket.lo					\
-		CDocumentedVars.lo				\
-		CVarList.lo					\
-		CVariableBuffers.lo				\
+tests_CPPFLAGS=$(COMPILATION_FLAGS)
+
+tests_LDADD = 	libSBSProductionReadout_la-CExperiment.lo	\
+		libSBSProductionReadout_la-CComposite.lo	\
+		libSBSProductionReadout_la-CScaler.lo libSBSProductionReadout_la-CScalerBank.lo	\
+		libSBSProductionReadout_la-CEventSegment.lo libSBSProductionReadout_la-CCompoundEventSegment.lo \
+		libSBSProductionReadout_la-RunState.lo	\
+		libSBSProductionReadout_la-CEventTrigger.lo libSBSProductionReadout_la-CTimedTrigger.lo	\
+		libSBSProductionReadout_la-CNullTrigger.lo	libSBSProductionReadout_la-CRunControlPackage.lo		\
+		libSBSProductionReadout_la-CBeginCommand.lo				\
+		libSBSProductionReadout_la-CPauseCommand.lo				\
+		libSBSProductionReadout_la-CResumeCommand.lo				\
+		libSBSProductionReadout_la-CEndCommand.lo					\
+		libSBSProductionReadout_la-CTriggerLoop.lo					\
+		libSBSProductionReadout_la-CDocumentedPacket.lo libSBSProductionReadout_la-CDocumentedPacketManager.lo \
+		libSBSProductionReadout_la-CReadoutException.lo libSBSProductionReadout_la-CInvalidPacketStateException.lo \
+		libSBSProductionReadout_la-CEventPacket.lo					\
+		libSBSProductionReadout_la-CDocumentedVars.lo				\
+		libSBSProductionReadout_la-CVarList.lo					\
+		libSBSProductionReadout_la-CVariableBuffers.lo				\
 		@top_builddir@/daq/format/libdataformat.la	\
 		@top_builddir@/base/dataflow/libDataFlow.la	\
 		@top_builddir@/sbs/nsclapi/libSBSVmeAPI.la	\

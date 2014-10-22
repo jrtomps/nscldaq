@@ -42,14 +42,14 @@ controlpush_LDADD   =   @top_builddir@/base/tcpip/libTcp.la	\
 			$(EPICS_LDFLAGS)  $(THREADLD_FLAGS)
 controlpush_LDFLAGS= -Wl,"-rpath=$(libdir)"
 
-INCLUDES            =	@LIBTCLPLUS_CFLAGS@		\
+COMPILATION_FLAGS            =	@LIBTCLPLUS_CFLAGS@		\
 			-I@top_srcdir@/base/CopyrightTools	\
 			-I@top_srcdir@/base/headers		\
 			-I@top_srcdir@/base/tcpip	\
 			-I@top_srcdir@/base/os	\
 			$(EPICS_BIN) $(EPICS_INCLUDES) 
 
-controlpush_CXXFLAGS = $(THREADCXX_FLAGS) $(AM_CXXFLAGS)
+controlpush_CXXFLAGS = $(THREADCXX_FLAGS) $(AM_CXXFLAGS) $(COMPILATION_FLAGS)
 
 
 cmdline.c: options.ggo
@@ -66,6 +66,12 @@ unittests_SOURCES = TestRunner.cpp ChannelListTests.cpp  \
 		$(APPITEMS)
 
 unittests_LDADD = $(CPPUNIT_LDFLAGS) $(controlpush_LDADD)
+unittests_CPPFLAGS=$(COMPILATION_FLAGS)
+
+
+#
+#  Not really a good testable thing unless we put up our own 
+#  ioc with known channels/properties.
 
 # TESTS=./unittests
 

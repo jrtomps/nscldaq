@@ -1,8 +1,8 @@
 lib_LTLIBRARIES = libLicense.la
 libLicense_la_SOURCES = CopyrightNotice.cpp
 
-INCLUDES =  -I@top_srcdir@/base/headers
-
+COMPILATION_FLAGS =  -I@top_srcdir@/base/headers
+libLicense_la_CPPFLAGS = $(COMPILATION_FLAGS)
 
 
 include_HEADERS = CopyrightNotice.h
@@ -18,6 +18,8 @@ noinst_PROGRAMS = test
 test_SOURCES       = test.cpp
 
 test_LDADD = CopyrightNotice.o
+
+test_CPPFLAGS=$(COMPILATION_FLAGS)
 
 
 EXTRA_DIST = copyrightnotice.xml

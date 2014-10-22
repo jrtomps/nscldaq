@@ -11,7 +11,7 @@ BUILT_SOURCES=@srcdir@/tcmdline.c
 	$(GENGETOPT) --input=@srcdir@/options.ggo \
 		--output-dir=@srcdir@ -F tcmdline
 
-INCLUDES = -I@top_srcdir@/daq/eventbuilder  \
+teering_CPPFLAGS = -I@top_srcdir@/daq/eventbuilder  \
 	-I@top_srcdir@/daq/format \
 	-I@top_srcdir@/base/dataflow \
 	-I@top_srcdir@/base/os

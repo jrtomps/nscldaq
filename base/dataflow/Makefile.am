@@ -8,7 +8,7 @@ include_HEADERS        = CRingBuffer.h CRingMaster.h CRemoteAccess.h
 
 noinst_HEADERS         = ringbufint.h Asserts.h testcommon.h CRingCommand.h
 
-INCLUDES =  -I@top_srcdir@/base/headers 	\
+COMPILATION_FLAGS =  -I@top_srcdir@/base/headers 	\
 	   -I@top_srcdir@/servers/portmanager \
 		@LIBTCLPLUS_CFLAGS@	\
 	   -I@top_srcdir@/base/uri	\
@@ -25,7 +25,8 @@ libDataFlow_la_LIBADD  = @top_builddir@/servers/portmanager/libPortManager.la \
 			@top_builddir@/base/os/libdaqshm.la	\
 			$(THREADLD_FLAGS)
 
-libDataFlow_la_CXXFLAGS = $(THREADCXX_FLAGS) $(AM_CXXFLAGS)
+
+libDataFlow_la_CXXFLAGS = $(THREADCXX_FLAGS) $(AM_CXXFLAGS) $(COMPILATION_FLAGS)
 
 libRingBuffer_la_SOURCES = ringPackage.cpp CRingCommand.cpp
 libRingBuffer_la_DEPENDENCIES = libDataFlow.la
@@ -38,7 +39,7 @@ libRingBuffer_la_LDFLAGS = 	@LIBTCLPLUS_LDFLAGS@ $(TCL_LDFLAGS) \
 				$(THREADLD_FLAGS) -lrt
 
 libRingBuffer_la_CXXFLAGS	=	$(THREADCXX_FLAGS) \
-					$(AM_CXXFLAGS)
+					$(AM_CXXFLAGS) $(COMPILATION_FLAGS)
 
 
 
@@ -48,6 +49,8 @@ libRingBuffer_la_CXXFLAGS	=	$(THREADCXX_FLAGS) \
 bin_PROGRAMS 	= ringtostdout stdintoring
 
 ringtostdout_SOURCES = ringtostdout.cpp  @srcdir@/ringtostdoutsw.c
+
+ringtostdout_CPPFLAGS=$(COMPILATION_FLAGS)
 
 ringtostdout_DEPENDENCIES =  libDataFlow.la @srcdir@/ringtostdoutsw.h
 
@@ -83,7 +86,7 @@ stdintoring_LDADD	=  libDataFlow.la	\
 			@LIBEXCEPTION_LDFLAGS@ \
 			$(THREADLD_FLAGS) -lrt
 
-stdintoring_CXXFLAGS =	$(THREADCXX_FLAGS) $(AM_CXXFLAGS)
+stdintoring_CXXFLAGS =	$(THREADCXX_FLAGS) $(AM_CXXFLAGS) $(COMPILATION_FLAGS)
 
 CLEANFILES=stdintoringsw.c stdintoringsw.h ringtostdoutsw.c ringtostdoutsw.h
 
@@ -102,6 +105,7 @@ unittests_LDADD   = -L@prefix@/lib $(CPPUNIT_LDFLAGS) \
 
 unittests_LDFLAGS = -Wl,"-rpath-link=$(libdir)"
 
+unittests_CPPFLAGS=$(COMPILATION_FLAGS)
 
 producer_SOURCES	=	producer.cpp
 
@@ -109,11 +113,15 @@ producer_LDADD    = -L@prefix@/lib -lDataFlow @LIBEXCEPTION_LDFLAGS@ -lrt
 
 producer_LDFLAGS  = -Wl,"-rpath-link=$(libdir)"
 
+producer_CPPFLAGS=$(COMPILATION_FLAGS)
+
 consumer_SOURCES	=	consumer.cpp
 
 consumer_LDADD    = -L@prefix@/lib -lDataFlow @LIBEXCEPTION_LDFLAGS@ -lrt
 
 consumer_LDFLAGS  = -Wl,"-rpath-link=$(libdir)"
+
+consuerm_CPPFLAGS=$(COMPILATION_FLAGS)
 
 TESTS=./unittests
 

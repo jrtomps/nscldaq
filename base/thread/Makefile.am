@@ -11,14 +11,13 @@ include_HEADERS = dshwrappthreads.h  dshwrapthreads.h  Runnable.h  SyncGuard.h  
 		CCondition.h CSynchronizedThread.h \
 		CGaurdedObject.h CBufferQueue.h CBufferQueue.cpp 
 
-INCLUDES = -I@top_srcdir@/base/headers -DUSE_PTHREADS @LIBTCLPLUS_CFLAGS@
+COMPILATION_FLAGS = -I@top_srcdir@/base/headers -DUSE_PTHREADS @LIBTCLPLUS_CFLAGS@
 
 libdaqthreads_la_LDFLAGS = -version-info $(SOVERSION) \
 		-Wl,"-rpath-link=$(libdir)"	\
 		@LIBTCLPLUS_LDFLAGS@		\
 		$(THREADLD_FLAGS)
-libdaqthreads_la_CXXFLAGS=$(THREADCXX_FLAGS)
-
+libdaqthreads_la_CXXFLAGS=$(THREADCXX_FLAGS) $(COMPILATION_FLAGS)
 
 
 EXTRA_DIST=thread.xml

@@ -122,7 +122,8 @@ private:
   // Private data types:
 
   typedef struct _SourceQueue {
-    uint64_t                                         s_newestTimestamp;
+    uint64_t                                        s_newestTimestamp;
+    uint64_t                                        s_lastPoppedTimestamp;
     std::queue<std::pair<time_t,  EVB::pFragment> > s_queue;
 
   } SourceQueue, *pSourceQueue;
@@ -194,6 +195,20 @@ public:
     virtual void operator()(const std::vector<std::pair<uint32_t, uint32_t> >& barrierTypes, 
 			    const std::vector<uint32_t>& missingSources) = 0;
   };
+  
+  class DuplicateTimestampObserver {
+    public:
+        DuplicateTimestampObserver() {}
+        virtual ~DuplicateTimestampObserver() {}
+    public:
+        virtual void operator()(uint32_t sourceId, uint64_t timestamp) = 0;
+  };
+  
+  class FlowControlObserver {
+    public:
+        virtual void Xon() = 0;
+        virtual void Xoff() = 0;
+  };
 
 
   // Queue statistics accumulator:
@@ -232,13 +247,21 @@ private:
   std::list<DataLateObserver*> m_DataLateObservers;
   std::list<BarrierObserver*>  m_goodBarrierObservers;
   std::list<PartialBarrierObserver*> m_partialBarrierObservers;
+  std::list<DuplicateTimestampObserver*>  m_duplicateTimestampObservers;
+  std::list<FlowControlObserver*>        m_flowControlObservers;
 
   Sources                      m_FragmentQueues;
   bool                         m_fBarrierPending;      //< True if at least one queue has a barrier event.
   std::set<uint32_t>           m_liveSources;	       //< sources that are live.
   std::map<std::string, std::list<uint32_t> > m_socketSources; //< Each socket name has a list of source ids.
   std::map<std::string, std::list<uint32_t> > m_deadSockets;   //< same as above but for dead sockets.
-
+  
+  Tcl_TimerToken               m_timer;
+  
+  size_t                       m_nXonLimit;
+  size_t                       m_nXoffLimit;
+  bool                         m_fXoffed;
+  size_t                       m_nTotalFragmentSize;
 
 
 
@@ -271,7 +294,13 @@ public:
 
   void setStartupTimeout(time_t duration);
   time_t getStartupTimeout() const;
+  
+  void setXoffThreshold(size_t nBytes);
+  void setXonThreshold(size_t nBytes);
+  
+  
   // Observer management:
+  
 
 public:
 
@@ -287,6 +316,13 @@ public:
   void addPartialBarrierObserver(PartialBarrierObserver* pObserver);
   void removePartialBarrierObserver(PartialBarrierObserver* pObserver);
 
+  
+  void addDuplicateTimestampObserver(DuplicateTimestampObserver* pObserver);
+  void removeDuplicateTimestampObserver(DuplicateTimestampObserver* pObserver);
+  
+  
+  void addFlowControlObserver(FlowControlObserver* pObserver);
+  void removeFlowControlObserver(FlowControlObserver* pObserver);
   // queue management.
 
   void flush();
@@ -315,12 +351,16 @@ private:
 
   BarrierSummary generateBarrier(std::vector<EVB::pFragment>& outputList);
   void generateMalformedBarrier(std::vector<EVB::pFragment>& outputList);
-  //   void generateCompleteBarrier(std::vector<EVB::pFragment>& ouptputList); 
+  //   void generateCompleteBarrier(std::vector<EVB::pFragment>& ouptputList); 156
   
   void goodBarrier(std::vector<EVB::pFragment>& outputList);
   void partialBarrier(std::vector<std::pair<uint32_t, uint32_t> >& types, 
 		 std::vector<uint32_t>& missingSources);
   void observeGoodBarrier(std::vector<std::pair<uint32_t, uint32_t> >& types);
+  void observeDuplicateTimestamp(uint32_t sourceId, uint64_t timestamp);
+  void Xoff();
+  void Xon();
+  
   void findOldest();
   size_t countPresentBarriers() const;
 

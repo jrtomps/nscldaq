@@ -13,23 +13,29 @@ EXTRA_DIST=compatibilitybuffer.ggo loggeroptions.ggo eventlog-compat.in \
 
 compatibilitybuffer_LDADD = \
 	@top_builddir@/daq/format/libdataformat.la
-
-INCLUDES = -I@top_srcdir@/daq/format -I@top_srcdir@/base/headers \
+compatibilitybuffer_CPPFLAGS = -I@top_srcdir@/daq/format -I@top_srcdir@/base/headers \
 	-I@top_srcdir@/base/os
 
 compatibilitylogger_SOURCES = compatibilitylogger.cpp CLogRun.cpp \
 	@srcdir@/loggeroptions.c
+compatibilitylogger_CPPFLAGS=-I@top_srcdir@/daq/format -I@top_srcdir@/base/headers \
+	-I@top_srcdir@/base/os
 
 
 
 BufferToRing_SOURCES = BufferToRing.cpp
 BufferToRing_LDADD   = @top_builddir@/daq/format/libdataformat.la \
 	@top_builddir@/base/os/libdaqshm.la
+BufferToRing_CPPFLAGS=-I@top_srcdir@/daq/format -I@top_srcdir@/base/headers \
+	-I@top_srcdir@/base/os
+
 
 convert10to11_SOURCES = Convert10to11.cpp
 
 convert10to11_LDADD = @top_builddir@/daq/format/libdataformat.la \
     @top_builddir@/base/os/libdaqshm.la
+convert10to11_CPPFLAGS=-I@top_srcdir@/daq/format -I@top_srcdir@/base/headers \
+	-I@top_srcdir@/base/os
 
 
 #  Anything that is generated from a .in file is in builddir anything

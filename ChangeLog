@@ -795,3 +795,33 @@ Work on 11.0-rc11 begins
 	ported to the base/thread libdaqthreads library.
 	
 
+11.0-rc15:
+	Bug #1946 - INCLUDES symbol in Makefile.am is obsolete.  This has
+	been changed to target_CPPFLAGS pretty much everywhere or
+	integrated with an existing target_CXXFLAGS definition when that's
+	simpler. 
+        Feature # 2186 - Tcl ringbuffer package:  Allow ringbuffer usage
+        without a ringname so that all ring usages are given.  Provide
+        a ringbuffer list subcommand.  This also satisfies Feature #2535
+        since users can check for the ringbuffer in the list of names
+        returned by ringbuffer list.
+        Bug #2343 Document the VMUSBReadout marker command (daqconfig).
+        Fix other issues with documentation pages as we try to reduce the warnings.
+        Bug #2240 Better formatting for  new scaler display numbers.
+        Bug #2242 CDataFormatItem was mis-documented as CRingFormatItem.
+        Bug #2238 env is not available for daq/readoutgui/state.tcl fixed.
+        Feature #2074 - Add marker command to CCUSBReadout
+        Bug #2201 Late fragment statistics did not increment.
+        Feature #2628  Added duplicate timestamp (per queue) detection in
+	event orderer.
+        Bug #2061 Added global flow control to event orderer.
+         * Flow control is indicated on the GUI.
+         * Flow control is enforced by the connection manager.
+         * Flow control is all or nothing.  No data can be received if the
+           high water mark is exceeded.
+         * High/low water marks ensure that flow control does not oscillate
+           too severely.
+         * High/low water marks are in terms of bytes of fragment payload and.
+           There are commands to set these they default to a  high water mark
+           of 100Mbytes and low water mark of 80Mbytes.
+        

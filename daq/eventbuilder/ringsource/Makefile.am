@@ -3,15 +3,21 @@ noinst_PROGRAMS = ringTestSource
 lib_LTLIBRARIES= libTimeExtractorTest.la libS800TimeExtractor.la libGretinaTimeExtractor.la
 
 libTimeExtractorTest_la_SOURCES = testTimeExtractor.c	
+libTimeExtractorTest_la_CPPFLAGS=-I@top_srcdir@/daq/format
 
 libS800TimeExtractor_la_SOURCES = s800timestamp.c
+libS800TimeExtractor_la_CPPFLAGS=-I@top_srcdir@/daq/format
 
 libGretinaTimeExtractor_la_SOURCES = gretinaTimestamp.c
+libGretinaTimeExtractor_la_CPPFLAGS=-I@top_srcdir@/daq/format
 
 
 ringFragmentSource_SOURCES=@srcdir@/rfcmdline.c CRingSource.cpp Main.cpp GetOpt.cpp
 
 ringTestSource_SOURCES= ringTestSource.cpp ringtestoptions.c TestSource.cpp
+
+ringTestSource_CPPFLAGS=@LIBTCLPLUS_CFLAGS@ -I@top_srcdir@/base/dataflow \
+	-I@top_srcdir@/daq/format -I@top_srcdir@/base/os
 
 noinst_HEADERS=CRingSource.h s800.h TestSource.h
 
@@ -58,7 +64,7 @@ ringTestSource_LDADD = \
 clean-local:
 	-rm -rf $(BUILT_SOURCES) @srcdir@/$(BUILT_SOURCES)
 
-INCLUDES=-I@top_srcdir@/daq/eventbuilder -I@top_srcdir@/base/dataflow \
+ringFragmentSource_CPPFLAGS=-I@top_srcdir@/daq/eventbuilder -I@top_srcdir@/base/dataflow \
 	-I@top_srcdir@/daq/format \
 	@LIBTCLPLUS_CFLAGS@	 \
 	 -I@top_srcdir@/base/headers \

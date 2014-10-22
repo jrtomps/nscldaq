@@ -290,6 +290,42 @@ CRingMaster::requestData(string ringname)
   }
  
 }
+/**
+ * requestUsage
+ *    Return the usage string.  This is the output of the LIST command to the
+ *    RingMaster.
+ *
+ * @return std::string - A Tcl list which contains the usage information string
+ *                       from the RingMaster process.   This is a single line containing
+ *                       A list of lists.  The first element of each list is the name of a
+ *                       ringbufferwhiel the second element is a list containing:
+ *                       *  Size of the ring in bytes.
+ *                       *  Free space of the ring in bytes.
+ *                       *  Maximum number of consumers.
+ *                       *  PID of the producer or -1 if there is no current producer.
+ *                       *  Maximum number of bytes in a consumer 'queue'.
+ *                       *  Minimum number of bytes in a consumer 'queue'.
+ *                       *  List of client information.  For each client this is a
+ *                          sublist of the client PID, the maximum number of bytes it could
+ *                          'get' without blocking.
+ * @throws std::string - errorm essage on problems.
+ */
+std::string
+CRingMaster::requestUsage()
+{
+    transactionOk();                         // Throw if we can't do a transaction.
+    std::string message = "LIST\n";          // Send the request.
+    sendLine(message);
+    
+    std::string ok = getLine();             // SB OK\r\n
+    if(ok != "OK\r\n") {
+        std::string msg = "LIST command did not return OK but: ";
+        msg += ok;
+        throw msg;
+    }
+    std::string reply = getLine();                   // Usage list.
+    return reply;
+}
 /****************************************************************************************/
 /* Locate the ring Master's port.                                                       */
 /****************************************************************************************/

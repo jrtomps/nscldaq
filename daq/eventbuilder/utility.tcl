@@ -123,6 +123,7 @@ snit::widgetadaptor EVB::utility::sortedWidget {
         grid $win.container -columnspan 2 -sticky nsew -padx 5 -pady 5
 
         grid columnconfigure $win {0 1} -weight 1
+        grid rowconfigure    $win 1     -weight 1
 
         $self configurelist $args
     }

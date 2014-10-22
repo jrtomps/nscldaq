@@ -15,6 +15,7 @@
 */
 #include <config.h>
 #include "CRingCommand.h"
+#include "CRingMaster.h"
 #include <CRingBuffer.h>
 #include <Exception.h>
 #include <ErrnoException.h>
@@ -105,8 +106,9 @@ CRingCommand::operator()(CTCLInterpreter&    interp,
   }
   else if (subCommand == string("remove")) {
     return remove(interp,objv);
-  }
-  else {
+  } else if (subCommand == string("list")) {
+    return list(interp, objv);
+  } else {
     string result;
     result += "Invalid subCommand keyword: ";
     result += subCommand;
@@ -118,6 +120,7 @@ CRingCommand::operator()(CTCLInterpreter&    interp,
 
 
 }
+
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //  Sub command processors.
 
@@ -477,23 +480,59 @@ CRingCommand::usage(CTCLInterpreter&    interp,
 {
   // Need the name of the ring buffer:
 
-  if (objv.size() != 3) {
-    string result;
-    result += "Incorrect number of command parameters for ringbuffer usage command\n";
-    result += CommandUsage();
-    interp.setResult(result);
-    return TCL_ERROR;
-  }
-  string name = objv[2];
-
-  // Now we attach to the ring buffer and get the usage from it.
-  // Exceptions caused (e.g. by the ring buffer not existing) are reported as errors:
-
-  CRingBuffer::Usage usageInfo;
+  bindAll(interp, objv);
+  std::string name = "<all rings>";
   try {
-    CRingBuffer ring(name, CRingBuffer::manager); // managers don't affect usage.
-
-    usageInfo = ring.getUsage();
+    requireAtMost(objv, 3, "Too many command line parameters for ringbuffer usage command");
+    
+    // If there's a ring name, objv[2] is it:
+    
+    
+    if(objv.size() == 3) {
+        name = std::string(objv[2]);
+      
+        // Now we attach to the ring buffer and get the usage from it.
+        // Exceptions caused (e.g. by the ring buffer not existing) are reported as errors:
+      
+        CRingBuffer::Usage usageInfo;
+       
+          CRingBuffer ring(name, CRingBuffer::manager); // managers don't affect usage.
+      
+          usageInfo = ring.getUsage();
+            // Build the result first the scalar elements:
+          
+            CTCLObject Result;
+            CTCLObject consumerList;
+            Result.Bind(interp);
+            consumerList.Bind(interp);
+          
+            Result += (int)usageInfo.s_bufferSpace;
+            Result += (int)usageInfo.s_putSpace;
+            Result += (int)usageInfo.s_maxConsumers;
+            Result += (int)usageInfo.s_producer;
+            Result += (int)usageInfo.s_maxGetSpace;
+            Result += (int)usageInfo.s_minGetSpace;
+          
+            for (int i = 0; i < usageInfo.s_consumers.size(); i++) {
+              CTCLObject consumerEntry;
+              consumerEntry.Bind(interp);
+          
+              consumerEntry += (int)usageInfo.s_consumers[i].first;
+              consumerEntry += (int)usageInfo.s_consumers[i].second;
+          
+              consumerList += consumerEntry;
+            }
+            Result += consumerList;
+          
+            interp.setResult(Result);
+    } else {
+        // Want the data from all rings:
+        
+        CRingMaster master;
+        std::string usage = master.requestUsage();
+        interp.setResult(usage);
+        
+    }
   }
   catch (CException& reason) {
     string result;
@@ -533,34 +572,88 @@ CRingCommand::usage(CTCLInterpreter&    interp,
     interp.setResult(result);
     return TCL_ERROR;
   }
-  // Build the result first the scaler elements:
 
-  CTCLObject Result;
-  CTCLObject consumerList;
-  Result.Bind(interp);
-  consumerList.Bind(interp);
-
-  Result += (int)usageInfo.s_bufferSpace;
-  Result += (int)usageInfo.s_putSpace;
-  Result += (int)usageInfo.s_maxConsumers;
-  Result += (int)usageInfo.s_producer;
-  Result += (int)usageInfo.s_maxGetSpace;
-  Result += (int)usageInfo.s_minGetSpace;
-
-  for (int i = 0; i < usageInfo.s_consumers.size(); i++) {
-    CTCLObject consumerEntry;
-    consumerEntry.Bind(interp);
-
-    consumerEntry += (int)usageInfo.s_consumers[i].first;
-    consumerEntry += (int)usageInfo.s_consumers[i].second;
-
-    consumerList += consumerEntry;
-  }
-  Result += consumerList;
-
-  interp.setResult(Result);
   return TCL_OK;
 
+}
+/**
+ * list
+ *   Process the list command.  The list command simply produces a list of rings
+ *   as the interpreter result.
+ *
+ * @param interp - Reference to the interpreter object running the command.
+ * @param objv   -  Vector of Tcl_obj's that make up the command words.
+ * @return int
+ * @retval TCL_OK - Everthing worked.  The result is the list of rings.
+ * @retval TCL_ERROR - Failure of some sort.  The result is an error message.
+ */
+int
+CRingCommand::list(CTCLInterpreter& interp, std::vector<CTCLObject>& objv)
+{
+    bindAll(interp, objv);
+    try {
+        requireExactly(objv, 2, "ringbuffer list has no additional parameters");
+        
+        CRingMaster master;
+        std::string stringResult = master.requestUsage();
+        
+        CTCLObject objResult;
+        objResult.Bind(interp);
+        objResult = stringResult;
+        
+        // Now we can analyze the usage list.  The first element of each
+        // sublist is the ring name:
+        
+        CTCLObject interpResult;
+        interpResult.Bind(interp);
+        
+        for (int i = 0; i < objResult.llength(); i++) {
+            CTCLObject ringUsage = objResult.lindex(i);
+            ringUsage.Bind(interp);
+            
+            CTCLObject ringName;
+            ringName.Bind(interp);
+            ringName = ringUsage.lindex(0);
+            
+            interpResult += ringName;
+            
+        }
+        
+        interp.setResult(interpResult);
+    }
+  catch (CException& reason) {
+    string result;
+    result += "Failed to get ring list: ";
+    result += string(reason.ReasonText());
+    interp.setResult(result);
+    return TCL_ERROR;
+  }
+  catch (string msg) {
+    string result;
+    result += "Failed to get ring list: ";
+    result += msg;
+    result += '\n';
+    interp.setResult(result);
+    return TCL_ERROR;
+  }
+  catch (const char* pmsg) {
+    string result;
+    result += "Failed to get ring list: ";
+    result += pmsg;
+    result += '\n';
+    interp.setResult(result);
+    return TCL_ERROR;
+  }
+  catch (...) {
+    std::string result;
+    result += "Failed to get ring list: Unexpected exception type caught\n";
+ 
+    interp.setResult(result);
+    return TCL_ERROR;
+  }
+
+  return TCL_OK;
+    
 }
 /**************************************************************************/
 /*  Remove a ring buffer.  The usual stuff. we need a ring name           */
@@ -647,13 +740,15 @@ CRingCommand::CommandUsage()
   usage += "  ringbuffer format name ?maxconsumers?\n";
   usage += "  ringbuffer disconnect producer name\n";
   usage += "  ringbuffer disconnect consumer name index\n";
-  usage += "  ringbuffer usage name\n";
+  usage += "  ringbuffer usage ?name?\n";
+  usage += "  ringbuffer list\n";
   usage += "  ringbuffer remove name\n";
   usage += "Where\n";
   usage += "  name         - Is the name of a ring buffer\n";
   usage += "  size         - Is the number of data bytes a ring buffer can have\n";
   usage += "  maxconsumers - Is the maximum number of conumser clients that can connect\n";
   usage += "  index        - Is the consumer index for a connected consumer\n";
+  usage += "And anything bracketed with ?'s is an optional parameter.\n";
 
 
   return usage;

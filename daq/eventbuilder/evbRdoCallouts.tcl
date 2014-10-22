@@ -201,7 +201,7 @@ proc EVBC::start args {
     #
     set bindir [file join $EVBC::daqtop bin]
     set orderer [file join $bindir startOrderer]
-    set pipecommand "tclsh 2>/dev/null";        # TODO - this should be @TCLSH_CMD@
+    set pipecommand "tclsh 2>evb.err";        # TODO - this should be @TCLSH_CMD@
     
     #  If -teering is not null hook teering into the pipeline:
     

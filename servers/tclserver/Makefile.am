@@ -15,7 +15,7 @@ tclserver_CXXFLAGS	=	$(THREADCXX_FLAGS) $(AM_CXXFLAGS)
 
 tclserver_LDFLAGS=-Wl,"-rpath=$(libdir)"
 
-INCLUDES = -I@top_srcdir@/base/headers -I@top_srcdir@/base/exception \
+tclserver_CPPFLAGS  = -I@top_srcdir@/base/headers -I@top_srcdir@/base/exception \
 	-I@top_srcdir@/servers/portmanager -I@top_srcdir@/base/os \
 	@LIBTCLPLUS_CFLAGS@ -I@top_srcdir@/base/CopyrightTools $(TCL_FLAGS)
 

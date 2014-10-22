@@ -1,6 +1,14 @@
 bin_PROGRAMS = ScriptedReadout
 lib_LTLIBRARIES=libScriptedRdo.la
 
+COMPILATION_FLAGS =  $(VMEBUILDEADERS) \
+	-I@top_srcdir@/base/headers 	\
+	@LIBTCLPLUS_CFLAGS@	\
+	-I@top_srcdir@/sbs/nsclapi 	\
+	-I@top_srcdir@/sbs/vmemodules\
+	-I@top_srcdir@/sbs/readout   \
+	-DVME $(TCL_FLAGS) \
+	-DINSTDIR=\"@prefix@\" -g -pthread
 
 
 ScriptedReadout_SOURCES = Skeleton.cpp
@@ -41,12 +49,14 @@ libScriptedRdo_la_SOURCES = 	CScriptedSegment.cpp		\
 	CScriptedScalers.cpp	\
 	ScriptedBundle.cpp
 
+libScriptedRdo_la_CPPFLAGS=$(COMPILATION_FLAGS)
+
 
 
 libScriptedRdo_la_LDFLAGS = -version-info $(SOVERSION)
 
 ScriptedReadout_LDFLAGS = -Wl,"-rpath=@prefix@/lib"
-
+ScriptedReadout_CPPFLAGS=$(COMPILATION_FLAGS)
 
 noinst_HEADERS= CScriptedSegment.h	\
 	CBoolConfigParam.h \
@@ -87,14 +97,6 @@ noinst_HEADERS= CScriptedSegment.h	\
 
 
 
-INCLUDES=  $(VMEBUILDEADERS) \
-	-I@top_srcdir@/base/headers 	\
-	@LIBTCLPLUS_CFLAGS@	\
-	-I@top_srcdir@/sbs/nsclapi 	\
-	-I@top_srcdir@/sbs/vmemodules\
-	-I@top_srcdir@/sbs/readout   \
-	-DVME $(TCL_FLAGS) \
-	-DINSTDIR=\"@prefix@\" -g -pthread
 
 
 

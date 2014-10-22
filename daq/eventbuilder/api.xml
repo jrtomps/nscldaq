@@ -5251,9 +5251,21 @@ EVB::dlatestats
             </cmdsynopsis>
             <cmdsynopsis>
                 <command>
+EVB::dupstat                    
+                </command>
+            </cmdsynopsis>
+            
+            <cmdsynopsis>
+                <command>
 EVB::onDataLate <replaceable>?newScript?</replaceable>
                 </command>
             </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+EVB::onflow
+                </command>
+            </cmdsynopsis>
+            
             <cmdsynopsis>
                 <command>
 EVB::barrierTrace <replaceable>sub-command ?script?</replaceable> 
@@ -5470,6 +5482,30 @@ EVB::config get <replaceable>name</replaceable>
                             </para>
                         </listitem>
                     </itemizedlist>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><command>
+                EVB::dupstat
+            </command>
+                </term>
+                <listitem>
+                    <para>
+                        Returns information about the duplicate timestamps that
+                        were seen from data sources. Note that if data sources
+                        emit data that don't have timestamps (for example scaler data may
+                        or may not be timestamped), there will be duplicates due to
+                        the way in which those items are assigned a timestamp.
+                    </para>
+                    <para>
+                        The data returned are a Tcl list consisting of two elements.
+                        The first element is the total number of duplicate timestamps
+                        received over all queues.  The second element is itself a list
+                        of three element lists, one element for each source in which
+                        duplicates have been detected.  The three elements are, in order,
+                        the id of the source, the number of duplicates and the timestamp
+                        of the most recently detected duplicate.
+                    </para>
                 </listitem>
             </varlistentry>
             <varlistentry>
@@ -5756,10 +5792,42 @@ EVB::config get <replaceable>name</replaceable>
                         and <parameter>value</parameter> provides the new value.
                     </para>
                     <para>
-                        Currently the only supported configuration name is
-                        <literal>window</literal> which sets the time window
-                        in which fragments are accumulated before builds can
-                        occur.
+                        The supported configuration parameters are:
+                        <variablelist>
+                            <varlistentry>
+                                <term><literal>window</literal></term>
+                                <listitem>
+                                    <para>
+                                        Which sets the time window
+                                        in which fragments are accumulated
+                                        before builds can
+                                        occur.
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+                            <varlistentry>
+                                <term><literal>XoffThreshold</literal></term>
+                                <listitem>
+                                    <para>
+                                        Sets the number of bytes of payload data
+                                        that can be queued before flow control stop
+                                        actions are initiated.
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+                            <varlistentry>
+                                <term><literal>XonThreshold</literal></term>
+                                <listitem>
+                                    <para>
+                                        Sets the flow control low water mark.  When
+                                        the number of queued payload bytes drops below
+                                        this value, flow control resume actions are
+                                        initiated.
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+                            
+                        </variablelist>
                     </para>
                 </listitem>
             </varlistentry>

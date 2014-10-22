@@ -3,7 +3,7 @@
 
 AC_PREREQ(2.61)
 
-AC_INIT(nscldaq, 11.0-rc14, fox@nscl.msu.edu)
+AC_INIT(nscldaq, 11.0-rc15, fox@nscl.msu.edu)
 
 
 AC_CONFIG_SRCDIR([/utilities/StringsToIntegers.h])

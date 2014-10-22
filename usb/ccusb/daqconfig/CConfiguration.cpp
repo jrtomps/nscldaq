@@ -35,6 +35,7 @@
 #include <CAddTclDriver.h>
 #include <CULMTrigger.h>
 #include <CUserCommand.h>
+#include <CMarkerCommand.h>
 #include <iostream>
 #include <CCCUSB.h>
 #include <CCCUSBReadoutList.h>
@@ -81,6 +82,7 @@ CConfiguration::CConfiguration() :
   m_Commands.push_back(new CCCUSBCommand(*m_pInterp, *this));
   m_Commands.push_back(new CPH7132Command(*m_pInterp, *this));
   m_Commands.push_back(new CAddTclDriver(*m_pInterp, *this));
+  m_Commands.push_back(new CMarkerCommand(*m_pInterp, *this));
   
   typedef CCCUSB Ctlr;
   typedef CCCUSBReadoutList RdoList;

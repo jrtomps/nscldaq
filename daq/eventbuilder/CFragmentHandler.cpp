@@ -35,10 +35,14 @@
 
 CFragmentHandler* CFragmentHandler::m_pInstance(0);
 
+static const size_t Mega(1024*1024);
+
 static const time_t DefaultBuildWindow(20); // default seconds to accumulate data before ordering.
 static const uint32_t IdlePollInterval(2);  // Seconds between idle polls.
-static const time_t DefaultStartupTimeout(2); // default seconds to accumulate data before ordering.
-static time_t timeOfFirstSubmission(UINT64_MAX); // 
+static const time_t DefaultStartupTimeout(4); // default seconds to accumulate data before ordering.
+static time_t timeOfFirstSubmission(UINT64_MAX); //
+static const  size_t defaultXonLimit(80*Mega);     // Default total fragment storage at which we can xon
+static const  size_t defaultXoffLimit(100*Mega);    // Default total fragment storage at which we xoff.
 
 /*---------------------------------------------------------------------
  * Debugging
@@ -93,7 +97,22 @@ CFragmentHandler::CFragmentHandler()
 
     // Start the idle poll off:
 
-    Tcl_CreateTimerHandler(1000*IdlePollInterval, &CFragmentHandler::IdlePoll, this);
+    m_timer = Tcl_CreateTimerHandler(1000*IdlePollInterval, &CFragmentHandler::IdlePoll, this);
+    
+    // Set the Xoff values:
+    
+    m_nXonLimit  = defaultXonLimit;
+    m_nXoffLimit = defaultXoffLimit;
+    m_fXoffed    = false;
+    m_nTotalFragmentSize = 0;
+}
+/**
+ * Destructor - for now just kill off the timer -- don't worry about
+ *              memory leaks as the destructor can only be used in tests.
+ */
+CFragmentHandler::~CFragmentHandler()
+{
+    Tcl_DeleteTimerHandler(m_timer);
 }
 
 /**
@@ -240,6 +259,29 @@ CFragmentHandler::getStartupTimeout() const
 {
   return m_nStartupTimeout;
 }
+/**
+ * setXonThreshold
+ *   Sets the low watermark for flow control in bytes of fragment body.
+ *   If the number of queued bytes drops below this while the system
+ *   is in the XOffed state, the Xon observers will be fired.
+ *
+ * @param nBytes - new watermark.
+ */
+void
+CFragmentHandler::setXonThreshold(size_t nBytes) {
+    m_nXonLimit = nBytes;
+}
+/**
+ * setXoffThreshold
+ *    Sets the high watermark for flow control in bytes of fragment body.
+ *    If the number of queued bytes rises above this value while the system
+ *    is not Xoffed, the Xoff observers will be fired.
+ * @param size_t nBytes new level.
+ */
+void
+CFragmentHandler::setXoffThreshold(size_t nBytes) {
+    m_nXoffLimit = nBytes;
+}
 
 /**
  * addObserver
@@ -381,6 +423,129 @@ CFragmentHandler::removePartialBarrierObserver(CFragmentHandler::PartialBarrierO
     m_partialBarrierObservers.erase(p);
   }
 }
+/**
+ **   Methods for the duplicate timestamp observer.
+ */
+
+/**
+ * addDuplicateTimestampObserver
+ *    Add an observer for duplicate timestamps.
+ *
+ *  @param pObserver - the observer to add.
+ */
+void
+CFragmentHandler::addDuplicateTimestampObserver(DuplicateTimestampObserver* pObserver)
+{
+    m_duplicateTimestampObservers.push_back(pObserver);
+}
+/**
+ * removeDuplicateTimestampObserver
+ *
+ *    Removes an existing duplicate timestamp observer.
+ *
+ *  @param pObserver - The observer to remove.
+ */
+void
+CFragmentHandler::removeDuplicateTimestampObserver(DuplicateTimestampObserver* pObserver)
+{
+    std::list<DuplicateTimestampObserver*>::iterator p = std::find(
+        m_duplicateTimestampObservers.begin(), m_duplicateTimestampObservers.end(),
+        pObserver
+    );
+    if (p != m_duplicateTimestampObservers.end()) {
+        m_duplicateTimestampObservers.erase(p);
+    }
+}
+
+
+/**
+ * observeDuplicateTimestamp
+ *    Called when a queue is outputing a non barrier fragment with the same timestamp
+ *    as the last one.  All observers in the m_duplicateTimestampObservers list are invoked.
+ *
+ *  @param sourceId - Id of the source that is flagging this event.
+ *  @param timestamp - The value of the duplicate timestamp.
+ */
+void
+CFragmentHandler::observeDuplicateTimestamp(uint32_t sourceId, uint64_t timestamp)
+{
+    std::list<DuplicateTimestampObserver*>::iterator p =
+        m_duplicateTimestampObservers.begin();
+    while(p != m_duplicateTimestampObservers.end()) {
+        DuplicateTimestampObserver* pObserver = *p;
+        (*pObserver)(sourceId, timestamp);
+        
+        p++;
+    }
+}
+
+
+/**
+ * addFlowControlObserver
+ *   Adds an observer of flow control.  These observers have Xon and Xoff methods
+ *   that get called on flow control transitions.
+ *
+ *  @param pObserver - pointer to the observer to add.
+ */
+void
+CFragmentHandler::addFlowControlObserver(FlowControlObserver* pObserver)
+{
+    m_flowControlObservers.push_back(pObserver);
+}
+/**
+ * removeFlowControlObserver
+ *   Remove an existing flow control observer from the current list of observers.
+ *
+ *   @param pObserver - The observer to remove.
+ */
+void
+CFragmentHandler::removeFlowControlObserver(FlowControlObserver* pObserver)
+{
+    std::list<FlowControlObserver*>::iterator p =
+        std::find(m_flowControlObservers.begin(), m_flowControlObservers.end(),
+                  pObserver);
+        
+    if (p != m_flowControlObservers.end()) {
+        m_flowControlObservers.erase(p);
+    }
+}
+
+/**
+ * Xon
+ *   Initiate a flow on event.  This means invoking the Xon method
+ *   of each flow control observer registered with us.
+ */
+void
+CFragmentHandler::Xon()
+{
+    std::list<FlowControlObserver*>::iterator p =
+        m_flowControlObservers.begin();
+    while (p != m_flowControlObservers.end()) {
+        FlowControlObserver* pObserver = *p;
+        pObserver->Xon();
+        p++;
+    }
+    m_fXoffed = false;
+}
+
+/**
+ * Xoff
+ *   Initiates a flow off event.  This means invoking the Xoff method
+ *   on each flow control observer registered with us:
+ */
+void
+CFragmentHandler::Xoff()
+{
+    std::list<FlowControlObserver*>::iterator p =
+        m_flowControlObservers.begin();;
+        while (p != m_flowControlObservers.end()) {
+            FlowControlObserver* pObserver = *p;
+            pObserver->Xoff();           
+            p++;
+        }
+        m_fXoffed = true;
+}
+
 
 /**
  * flush
@@ -562,9 +727,11 @@ CFragmentHandler::resetTimestamps()
   m_nMostRecentlyPopped = (0);
   m_nFragmentsLastPeriod = (0);
   m_fBarrierPending = (false);
+  m_nMostRecentlyPopped = 0;
 
   for (Sources::iterator p = m_FragmentQueues.begin(); p != m_FragmentQueues.end(); p++) {
     p->second.s_newestTimestamp = 0;
+    p->second.s_lastPoppedTimestamp = UINT64_MAX;
   }
 }
       
@@ -635,6 +802,12 @@ CFragmentHandler::flushQueues(bool completely)
     if (queuesEmpty()) break;	// Done if there are no more frags.
     std::pair<time_t, ::EVB::pFragment>* p = popOldest();
     if (p) {
+      if (p->second->s_header.s_timestamp < m_nMostRecentlyPopped) {
+        dataLate(*(p->second));        
+      } else {
+	m_nMostRecentlyPopped = p->second->s_header.s_timestamp;
+      }
+      m_nTotalFragmentSize -= p->second->s_header.s_size;
       sortedFragments.push_back(p->second);
       delete p;
     } else {
@@ -649,10 +822,16 @@ CFragmentHandler::flushQueues(bool completely)
   // the build interval time.
 
   time_t firstOldest = m_nOldestReceived;
-  if ((m_nNow - m_nOldestReceived) > m_nBuildWindow) {
-    while (!queuesEmpty() && ((m_nNow - m_nOldestReceived) > m_nBuildWindow) ) {
+  if ((m_nNow - m_nOldestReceived) >= m_nBuildWindow) {
+    while (!queuesEmpty() && ((m_nNow - m_nOldestReceived) >= m_nBuildWindow) ) {
       std::pair<time_t, ::EVB::pFragment>* p = popOldest();
       if (p) {
+        if (p->second->s_header.s_timestamp < m_nMostRecentlyPopped) {
+          dataLate(*(p->second));        
+        } else {
+          m_nMostRecentlyPopped = p->second->s_header.s_timestamp;
+        }
+        m_nTotalFragmentSize -= p->second->s_header.s_size;
         sortedFragments.push_back(p->second);
         delete p;
       } else {
@@ -673,6 +852,13 @@ CFragmentHandler::flushQueues(bool completely)
   
   observe(sortedFragments);
   findOldest();			// Ensure we know which the oldest is.
+  
+  
+  // If XOFed and below the low water mark, XON:
+  
+  if ((m_nTotalFragmentSize < m_nXonLimit) && m_fXoffed) {
+    Xon();
+  }
   
   // If a barrier is pending check it and, if the flush was complete,
   // tail call to continue building:
@@ -745,6 +931,13 @@ CFragmentHandler::popOldest()
 
     if (nextOldest != UINT64_MAX) { // Found one in pOldestQ.
       std::pair<time_t, ::EVB::pFragment> oldestFrag = pOldestQ->second.s_queue.front();
+      uint64_t fragmentTimestamp  = oldestFrag.second->s_header.s_timestamp;
+      if (fragmentTimestamp == pOldestQ->second.s_lastPoppedTimestamp) {
+        // Duplicate timestamp:
+        
+        observeDuplicateTimestamp(pOldestQ->first, fragmentTimestamp);
+      }
+      pOldestQ->second.s_lastPoppedTimestamp = fragmentTimestamp;
       pOldestQ->second.s_queue.pop();
 
       // If this queue has been emptied mark that time:
@@ -854,7 +1047,7 @@ CFragmentHandler::addFragment(EVB::pFlatFragment pFragment)
     if ((timestamp == NULL_TIMESTAMP)) {
       assigned = true;
       timestamp = destQueue.s_newestTimestamp;
-      pFrag->s_header.s_timestamp = timestamp;
+      pFrag->s_header.s_timestamp = timestamp;             // Avoid duplicate.
       assigned = true;
 #ifdef DEBUG
       std::cerr << "Assigned timestamp " << std::hex << timestamp << std::dec << std::endl;
@@ -881,12 +1074,10 @@ CFragmentHandler::addFragment(EVB::pFlatFragment pFragment)
     // If the timing of receiving this fragment would result in an
     // out of order fragment, it's late:
     //
-    if(timestamp < m_nMostRecentlyPopped) {
-      dataLate(*pFrag);
-    }
+
     
     if ((timestamp < m_nOldest)) {
-	if ((m_nOldest - timestamp) > 0x100000000ll) {
+	if ((m_nOldest - timestamp) > 0x100000000ll && (m_nOldest != 0xffffffffffffffff)) {
 	  std::cerr << "addFragment... timestamp taking a big step back from : " << std::hex
 		    << m_nOldest << " to " << timestamp << std::dec << std::endl;
 	}
@@ -915,7 +1106,13 @@ CFragmentHandler::addFragment(EVB::pFlatFragment pFragment)
       dumpFragment(pFrag);
       
     }
-#endif      
+#endif
+    // Tally the fragment size and Xoff if the high water mark was hit:
+    
+    m_nTotalFragmentSize += pHeader->s_size;
+    if (m_nTotalFragmentSize > m_nXoffLimit && (!m_fXoffed)) {
+        Xoff();
+    }
 
 }
 /**
@@ -1064,12 +1261,17 @@ CFragmentHandler::generateBarrier(std::vector<EVB::pFragment>& outputList)
   for (Sources::iterator p = m_FragmentQueues.begin(); p!= m_FragmentQueues.end(); p++) {
     if (!p->second.s_queue.empty()) {
       ::EVB::pFragment pFront = p->second.s_queue.front().second;
+      p->second.s_lastPoppedTimestamp = pFront->s_header.s_timestamp;
       if (pFront->s_header.s_barrier) {
 	outputList.push_back(pFront);
 	p->second.s_queue.pop();
 	result.s_typesPresent.push_back(
             std::pair<uint32_t, uint32_t>(p->first, pFront->s_header.s_barrier)
         );
+        m_nTotalFragmentSize -= pFront->s_header.s_size;
+        if ((m_nTotalFragmentSize < m_nXonLimit)  && m_fXoffed) {
+            Xon();
+        }
       } else {
 
 	result.s_missingSources.push_back(p->first);
@@ -1245,6 +1447,7 @@ CFragmentHandler::getSourceQueue(uint32_t id)
   if (p  == m_FragmentQueues.end()) {	       // Need to create.
     SourceQueue& queue = m_FragmentQueues[id]; // Does most of the creation.
     queue.s_newestTimestamp = m_nNewest;	       // Probably the best initial value.
+    queue.s_lastPoppedTimestamp = UINT64_MAX;
     return queue;
   }  else {			              // already exists.
     return p->second;
@@ -1365,5 +1568,5 @@ CFragmentHandler::IdlePoll(ClientData data)
 
   // reschedule
 
-  Tcl_CreateTimerHandler(1000*IdlePollInterval,  &CFragmentHandler::IdlePoll, pHandler);
+  pHandler->m_timer = Tcl_CreateTimerHandler(1000*IdlePollInterval,  &CFragmentHandler::IdlePoll, pHandler);
 }

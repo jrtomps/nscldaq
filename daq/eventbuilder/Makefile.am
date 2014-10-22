@@ -1,5 +1,16 @@
 bin_PROGRAMS= frag2ring
 
+COMPILATION_FLAGS =  \
+	-I@top_srcdir@/daq/format \
+	-I@top_srcdir@/base/tcpip \
+	@LIBTCLPLUS_CFLAGS@	\
+	-I@top_srcdir@/base/headers	\
+	-I@top_srcdir@/base/tcpip        \
+	-I@top_srcdir@/servers/portmanager \
+	-I@top_srcdir@/base/os \
+	@LIBTCLPLUS_CFLAGS@ \
+	@THREADCXX_FLAGS@ @TCL_FLAGS@
+
 
 lib_LTLIBRARIES=libEventBuilder.la  libEventBuilderClient.la 
 
@@ -13,14 +24,20 @@ libEventBuilder_la_SOURCES = OrdererPackage.cpp CFragmentHandlerCommand.cpp CFra
 	CBarrierStatsCommand.cpp CBarrierStats.cpp CIncompleteBarrierStats.cpp \
 	CCompleteBarrierCallback.cpp CBarrierTraceCommand.cpp CPartialBarrierCallback.cpp \
 	CSourceCommand.cpp CDeadSourceCommand.cpp CReviveSocketCommand.cpp \
-	CFlushCommand.cpp CResetCommand.cpp CConfigure.cpp
+	CFlushCommand.cpp CResetCommand.cpp CConfigure.cpp CDuplicateTimeStatCommand.cpp \
+	CXonXOffCallbackCommand.cpp
 
+libEventBuilder_la_CPPFLAGS=$(COMPILATION_FLAGS)
 
 libEventBuilderClient_la_SOURCES=CEventOrderClient.cpp fragment.c \
 	CEVBClientApp.cpp  CEVBFrameworkApp.cpp \
 	EVBFramework.cpp GetOpt.cpp fragio.cpp
 
+libEventBuilderClient_la_CPPFLAGS=$(COMPILATION_FLAGS)
+
 frag2ring_SOURCES=frag2ring.cpp CFragReader.cpp CFragWriter.cpp
+
+frag2ring_CPPFLAGS=$(COMPILATION_FLAGS)
 
 frag2ring_LDADD = @top_builddir@/daq/format/libdataformat.la \
                     @top_builddir@/base/os/libdaqshm.la $(THREADLD_FLAGS)
@@ -40,19 +57,9 @@ noinst_HEADERS = CFragmentHandlerCommand.h CFragmentHandler.h cmdline.h \
 	CBarrierStatsCommand.h CBarrierStats.h CIncompleteBarrierStats.h CCompleteBarrierCallback.h \
 	CBarrierTraceCommand.h CPartialBarrierCallback.h CSourceCommand.h CDeadSourceCommand.h \
 	CReviveSocketCommand.h CFragReader.h CFragWriter.h CFlushCommand.h CResetCommand.h \
-	CConfigure.h fragio.h
+	CConfigure.h fragio.h CDuplicateTimeStatCommand.h CXonXOffCallbackCommand.h
 
 
-INCLUDES =  \
-	-I@top_srcdir@/daq/format \
-	-I@top_srcdir@/base/tcpip \
-	@LIBTCLPLUS_CFLAGS@	\
-	-I@top_srcdir@/base/headers	\
-	-I@top_srcdir@/base/tcpip        \
-	-I@top_srcdir@/servers/portmanager \
-	-I@top_srcdir@/base/os \
-	@LIBTCLPLUS_CFLAGS@ \
-	@THREADCXX_FLAGS@ @TCL_FLAGS@
 
 
 libEventBuilderClient_la_LIBADD = @top_builddir@/base/tcpip/libTcp.la \
@@ -69,7 +76,9 @@ libEventBuilder_la_LDFLAGS=@LIBTCLPLUS_LDFLAGS@
 
 TCL_PACKAGE_FILES=ConnectionManager.tcl callbackManager.tcl eventOrderer.tcl \
 	connectionList.tcl observer.tcl barriers.tcl GUI.tcl inputStatistics.tcl \
-	late.tcl outputStatistics.tcl utility.tcl 
+	late.tcl outputStatistics.tcl utility.tcl latePopup.tcl \
+	DuplicateTimestamp.tcl
+
 
 TCL_EVB_PACKAGE_FILES=evbRdoCallouts.tcl evbRdoCallouts10.tcl EVBStateCallouts.tcl
 
@@ -106,7 +115,8 @@ install-exec-hook:
 #
 # Tests:
 
-noinst_PROGRAMS = unittests
+noinst_PROGRAMS = unittests ordertests
+
 unittests_SOURCES = TestRunner.cpp lookupTest.cpp  \
 	connectTest.cpp  cmdline.c
 
@@ -117,11 +127,23 @@ unittests_LDADD = libEventBuilderClient.la \
 	@top_builddir@/base/tcpip/libTcp.la 	\
 	@CPPUNIT_LDFLAGS@ @THREADLD_FLAGS@
 
+unittests_CPPFLAGS=$(COMPILATION_FLAGS)
 
 unittests_DEPENDENCIES = cmdline.o cmdline.h
 
+
+ordertests_SOURCES = TestRunner.cpp orderTests.cpp duptscmdtest.cpp \
+	configcmdtests.cpp tclflowtest.cpp \
+	CFragmentHandler.cpp fragment.c CDuplicateTimeStatCommand.cpp \
+	CConfigure.cpp CXonXOffCallbackCommand.cpp
+
+ordertests_LDADD = 	@CPPUNIT_LDFLAGS@ @THREADLD_FLAGS@ @LIBTCLPLUS_LDFLAGS@ @TCL_LDFLAGS@
+
+ordertests_CXXFLAGS=$(COMPILATION_FLAGS) @TCL_CPPFLAGS@ @LIBTCLPLUS_CFLAGS@
+
 check-TESTS:
 	TCLLIBPATH=@prefix@/TclLibs HERE=@srcdir@ tcl=@TCLSH_CMD@ @TCLSH_CMD@ @srcdir@/tclTests.tcl
+	./ordertests
 #	./unittests 
 
 

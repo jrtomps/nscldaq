@@ -42,8 +42,16 @@ package require ring
 <!-- manpage 1tcl -->
 <refentry id="manpage.tclring">
   <refmeta>
-     <refentrytitle>TCL Ring package.</refentrytitle>
+     <refentrytitle>
+        TCL Ring package.
+        <author>
+            <firstname>Ron</firstname> <surname>Fox</surname>
+        </author>
+        <productname>NSCLDAQ</productname>
+        <productnumber></productnumber>
+     </refentrytitle>
      <manvolnum>1tcl</manvolnum>
+     <refmiscinfo class='empty'></refmiscinfo>
   </refmeta>
   <refnamediv>
      <refname>ringbuffer</refname>
@@ -78,12 +86,18 @@ ringbuffer disconnect <replaceable>consumer name index</replaceable>
 </cmdsynopsis>
 <cmdsynopsis>
     <command>
-ringbuffer usage<replaceable> name</replaceable>
+ringbuffer usage<replaceable> ?name?</replaceable>
     </command>
 </cmdsynopsis>
 <cmdsynopsis>
     <command>
-<command>ringbuffer delete <replaceable>ringname</replaceable></command>
+ringbuffer list
+    </command>
+</cmdsynopsis>
+
+<cmdsynopsis>
+    <command>
+<command>ringbuffer remove <replaceable>ringname</replaceable></command>
     </command>
 </cmdsynopsis>
 
@@ -171,13 +185,16 @@ ringbuffer usage<replaceable> name</replaceable>
             </listitem>
         </varlistentry>
         <varlistentry>
-            <term><command>ringbuffer usage <replaceable>name</replaceable></command></term>
+            <term><command>ringbuffer usage <replaceable>?name?</replaceable></command></term>
             <listitem>
                 <para>
                     Returns (as the command result), the ring buffer usage
-                    information.
-                    This is returned as a Tcl list that has the following
-                    elements:
+                    information for that ring if the <parameter>name</parameter> is
+                    present or the usage information for all rings if not present.
+                </para>
+                <para>
+                    If the <parameter>name</parameter> is given, the command result
+                    is a list containing:
                 </para>
                 <variablelist>
                     <varlistentry>
@@ -251,10 +268,94 @@ ringbuffer usage<replaceable> name</replaceable>
                         </listitem>
                     </varlistentry>
                 </variablelist>
+                <para>
+                    If the <parameter>name</parameter> is not provided, the
+                    result is a list that describes the characteristics and usage
+                    of all rings.  Each element of the list is a sublist containing:
+                </para>
+                <variablelist>
+                    <varlistentry>
+                        <term>name</term>
+                        <listitem>
+                            <para>
+                                The name of the ring.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>size</term>
+                        <listitem>
+                            <para>
+                                Size of the ring buffer part of the ring shared memory
+                                region in bytes.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>Free space</term>
+                        <listitem>
+                            <para>
+                                Number of bytes of free space in the ring.  This is the size of
+                                the largest possible put into the ring at this instant in time.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>Producer</term>
+                        <listitem>
+                            <para>
+                                The process id of the producer or <literal>-1</literal>
+                                if there is no producer for this ringbuffer.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>Maximum available.</term>
+                        <listitem>
+                            
+                            <para>
+                                The size of the backlog in bytes for the consumer that is
+                                least caught up.  
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>Minimum Available</term>
+                        <listitem>
+                            <para>
+                                The size of the backlog in bytes for the consumer that is
+                                most caught up.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>Consumer information</term>
+                        <listitem>
+                            <para>
+                                This is a list containing one element per currently attached
+                                consumer.  The elements themselves are two element lists containing
+                                in order the PID of the consumer and the size of that consumer's
+                                backlog in bytes.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    
+                </variablelist>
+
             </listitem>
         </varlistentry>
         <varlistentry>
-            <term><command>ringbuffer delete <replaceable>ring</replaceable></command></term>
+            <term><command>list</command></term>
+            <listitem>
+                <para>
+                    Provides a Tcl formatted list containing the names of the
+                    existing rings.
+                </para>
+            </listitem>
+        </varlistentry>
+        
+        <varlistentry>
+            <term><command>ringbuffer remove<replaceable>ring</replaceable></command></term>
             <listitem>
                 <para>
                     Deletes the shared memory region associated with the ring buffer

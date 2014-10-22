@@ -72,6 +72,7 @@ public:
   void notifyCreate(std::string ringname);
   void notifyDestroy(std::string ringname);
   int  requestData(std::string ringname);
+  std::string requestUsage();
   
   // Utilities:
 

@@ -1,3 +1,9 @@
+##
+#   This file is obsolete as is the entire directory...
+#   At some point clean it up by killing it off.
+#
+
+
 lib_LTLIBRARIES		= libVMUSBThreadComm.la
 libVMUSBThreadComm_la_SOURCES = CGaurdedObject.cpp CBufferQueue.cpp
 noinst_HEADERS		= CGaurdedObject.h CBufferQueue.h
