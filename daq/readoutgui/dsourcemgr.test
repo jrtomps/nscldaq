@@ -57,6 +57,7 @@ proc setupTestProvider {} {
     proc end {id} { variable sourceInfo; dict set sourceInfo $id state inactive} 
     proc pause {id} { variable sourceInfo; dict set sourceInfo $id state paused} 
     proc resume {id} { variable sourceInfo; dict set sourceInfo $id state active} 
+    proc init {id} {variable sourceInfo; dict set sourceInfo $id state init}
     proc capabilities {} { return [dict create canPause true] } 
   }
 
@@ -517,11 +518,12 @@ if {$debug} {
 tcltest::test stop-1 {Stopping a data source that does not exist is an error} \
 -setup {
     set manager [DataSourceManager %AUTO%]
-    set sm      [RunstateMachineSingleton %AUTO%]
+    set sm [RunstateMachineSingleton %AUTO%]
     $sm _setState Halted
 } \
 -cleanup {
     $manager destroy
+    $sm destroy
 } \
 -body {
     set status [catch {$manager stop 0} msg]
@@ -535,17 +537,19 @@ if {$debug} {
 
 tcltest::test stop-2 {Removing a data source stops it and removes it from the data source set} \
 -setup {
+    set sm [RunstateMachineSingleton %AUTO%]
+    $sm _setState Halted
+
     setupTestProvider
     set manager [DataSourceManager %AUTO%]
     $manager load Test 
     set sourceId [$manager addSource Test [dict create]] 
 
     $manager startAll
-    set sm      [RunstateMachineSingleton %AUTO%]
-    $sm _setState Halted
 } \
 -cleanup {
     $manager destroy
+    $sm destroy
     forgetTestProvider
 } \
 -body {
@@ -933,22 +937,129 @@ if {$debug} {
 #
 #
 #
-tcltest::test initall-0 {Init cannot be started when inactive
+tcltest::test initall-0 {Init cannot be started when not in Halted state 
 } -setup {
   setupTestProvider
   set manager [DataSourceManager %AUTO%]
   $manager load Test
   set sid [$manager addSource Test [dict create]]
 
+  set sm [RunstateMachineSingleton %AUTO%]
+  $sm _setState NotReady
+
 } -cleanup {
   $manager destroy
-  $sm destroy
   forgetTestProvider
+  $sm destroy
+
+} -body {
+  $manager initall
+
+} -result "DataSourceManager::initall Cannot initialize data providers unless in Halted state." \
+-returnCodes 1
+
+#
+#
+#
+tcltest::test initall-1 {Init will fail without any registered sources 
+} -setup {
+  setupTestProvider
+  set manager [DataSourceManager %AUTO%]
+
+  # make sure we are halted so we don't immediately fail
+  set sm [RunstateMachineSingleton %AUTO%]
+  $sm _setState Halted
+} -cleanup {
+  $manager destroy
+  forgetTestProvider
+  $sm destroy
 } -body {
 
   $manager initall
-} -result "DataSourceManager::initall Cannot initialize data providers while not in Halted state." \
+} -result "DataSourceManager::initall No data sources exist." \
 -returnCodes 1
+
+#
+#
+#
+tcltest::test initall-2 {Init from active state fails 
+} -setup {
+  setupTestProvider
+  set manager [DataSourceManager %AUTO%]
+  $manager load Test
+  $manager addSource Test [dict create]
+  $manager startAll
+  $manager begin 123 "test run"
+
+  # make sure we are halted so we don't immediately fail
+  set sm [RunstateMachineSingleton %AUTO%]
+  $sm _setState Halted
+
+} -cleanup {
+  $manager destroy
+  forgetTestProvider
+
+  $sm destroy
+} -body {
+
+  $manager initall
+} -result "DataSourceManager::initall Cannot initialize while in active state." \
+-returnCodes 1
+
+#
+#
+#
+tcltest::test initall-3 {Init from paused state fails 
+} -setup {
+  setupTestProvider
+  set manager [DataSourceManager %AUTO%]
+  $manager load Test
+  $manager addSource Test [dict create]
+  $manager startAll
+  $manager begin 123 "test run"
+  $manager pause
+
+  # make sure we are halted so we don't immediately fail
+  set sm [RunstateMachineSingleton %AUTO%]
+  $sm _setState Halted
+} -cleanup {
+  $manager destroy
+  forgetTestProvider
+  $sm destroy
+} -body {
+
+  $manager initall
+} -result "DataSourceManager::initall Cannot initialize from paused state." \
+-returnCodes 1
+
+#
+#
+#
+tcltest::test initall-4 {Init from inactive state succeeds for all sources
+} -setup {
+  setupTestProvider
+  set manager [DataSourceManager %AUTO%]
+  $manager load Test
+  $manager addSource Test [dict create]
+  $manager addSource Test [dict create]
+  $manager startAll
+
+  # make sure we are halted so we don't immediately fail
+  set sm [RunstateMachineSingleton %AUTO%]
+  $sm _setState Halted
+} -cleanup {
+  $manager destroy
+  forgetTestProvider
+
+  $sm destroy 
+} -body {
+
+  $manager initall
+} -result ""
+
+#-----------------------------------------------------------------------------#
+#
+# Test for init of single source
 
 #
 #
@@ -958,15 +1069,120 @@ tcltest::test init-0 {Init can only be accomplished in halted state
   setupTestProvider
   set manager [DataSourceManager %AUTO%]
   $manager load Test
+
+  $manager addSource Test [dict create]
+
 } -cleanup {
   $manager destroy
-  $sm destroy
   forgetTestProvider
+  $sm destroy
+} -body {
+
+  set sm [RunstateMachineSingleton %AUTO%]
+  $sm _setState NotReady
+
+  $manager init 0
+} -result "DataSourceManager::init Cannot initialize data providers unless in Halted state." \
+-returnCodes 1
+
+#
+#
+#
+tcltest::test init-1 {Init will fail if source does not exist
+} -setup {
+  setupTestProvider
+  set manager [DataSourceManager %AUTO%]
+
+  # make sure we are halted so we don't immediately fail
+  set sm [RunstateMachineSingleton %AUTO%]
+  $sm _setState Halted
+} -cleanup {
+  $manager destroy
+  forgetTestProvider
+  $sm destroy
 } -body {
 
   $manager init 0
-} -result "DataSourceManager::init Cannot initialize data providers while not in Halted state." \
+} -result "DataSourceManager::init Source 0 does not exist to initialize." \
 -returnCodes 1
+
+#
+#
+#
+tcltest::test init-2 {Init from active state fails 
+} -setup {
+  setupTestProvider
+  set manager [DataSourceManager %AUTO%]
+  $manager load Test
+  $manager addSource Test [dict create]
+  $manager startAll
+  $manager begin 123 "test run"
+
+  # make sure we are halted so we don't immediately fail
+  set sm [RunstateMachineSingleton %AUTO%]
+  $sm _setState Halted
+} -cleanup {
+  $manager destroy
+  forgetTestProvider
+
+  $sm destroy
+} -body {
+
+  $manager init 0
+} -result "DataSourceManager::init Cannot initialize while in active state." \
+-returnCodes 1
+
+#
+#
+#
+tcltest::test init-3 {Init from paused state fails 
+} -setup {
+  setupTestProvider
+  set manager [DataSourceManager %AUTO%]
+  $manager load Test
+  $manager addSource Test [dict create]
+  $manager startAll
+  $manager begin 123 "test run"
+  $manager pause
+
+  # make sure we are halted so we don't immediately fail
+  set sm [RunstateMachineSingleton %AUTO%]
+  $sm _setState Halted
+} -cleanup {
+  $manager destroy
+  forgetTestProvider
+  $sm destroy
+
+} -body {
+
+  $manager init 0
+} -result "DataSourceManager::init Cannot initialize from paused state." \
+-returnCodes 1
+
+#
+#
+#
+tcltest::test init-4 {Init succeeds in inactive state if source exists 
+} -setup {
+  setupTestProvider
+  set manager [DataSourceManager %AUTO%]
+  $manager load Test
+  $manager addSource Test [dict create]
+  $manager startAll
+
+  # make sure we are halted so we don't immediately fail
+  set sm [RunstateMachineSingleton %AUTO%]
+  $sm _setState Halted
+} -cleanup {
+  $manager destroy
+  forgetTestProvider
+  $sm destroy
+
+} -body {
+
+  $manager init 0
+} -result ""
+
 
 ##
 #  Report test results.

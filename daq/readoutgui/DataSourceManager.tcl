@@ -322,7 +322,7 @@ snit::type DataSourceManager {
                 dict set paramDict sourceid $id
                 if {[catch {::${providerType}::start $paramDict} msg]} {
                     incr failures
-                    lappend errors $msg
+                    lappend errors [join $msg " "]
                 }
             }
         }
@@ -501,6 +501,84 @@ snit::type DataSourceManager {
             error $messages
         }      
     }
+
+
+    method init {id} {
+      set sm [RunstateMachineSingleton %AUTO%]
+      set runstate [$sm getState]
+      $sm destroy
+      if {$runstate ne "Halted"} {
+        set msg "DataSourceManager::init Cannot initialize data providers "
+        append msg "unless in Halted state."
+        error $msg 
+      }
+
+      if {$state eq "active"} {
+        set msg "DataSourceManager::init Cannot initialize while in active "
+        append msg "state."
+        error $msg 
+      }
+
+      if {$state eq "paused"} {
+        set msg "DataSourceManager::init Cannot initialize from paused "
+        append msg "state."
+        error $msg 
+      }
+
+      set ids [array names dataSources]
+      if {$id ni $ids} {
+        error "DataSourceManager::init Source $id does not exist to initialize."
+      }
+
+      set provider [dict get $dataSources($id) provider]
+      if {[catch {::${provider}::init $id} msg]} {
+        error [list [list $provider $id] $msg]
+      }
+
+    }
+
+    method initall {} {
+      set sm [RunstateMachineSingleton %AUTO%]
+      set runstate [$sm getState]
+      $sm destroy
+      if {$runstate ne "Halted"} {
+        set msg "DataSourceManager::initall Cannot initialize data providers "
+        append msg "unless in Halted state."
+        error $msg 
+      }
+
+      set sources [$self _listOrderedSources \
+        "DataSourceManager::initall No data sources exist."]
+
+      if {$state eq "active"} {
+        set msg "DataSourceManager::initall Cannot initialize while in active "
+        append msg "state."
+        error $msg 
+      }
+
+      if {$state eq "paused"} {
+        set msg "DataSourceManager::initall Cannot initialize from paused "
+        append msg "state."
+        error $msg 
+      }
+
+      # Initialize all the data sources but accumulate error information
+      # along the way into messages.
+
+      set messages [list]
+      foreach id $sources {
+        set provider [dict get $dataSources($id) provider]
+        if {[catch {::${provider}::init $id} msg]} {
+          lappend messages [list [list $provider $id] $msg]
+        }
+      }
+
+      if {[llength $messages] > 0} {
+        error $messages
+      }
+
+    }
+
     #--------------------------------------------------------------------------
     # Private utilities.
     
