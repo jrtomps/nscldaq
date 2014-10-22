@@ -7,6 +7,7 @@
 #include <CReadoutModule.h>
 #include <CMockVMUSB.h>
 #include <string>
+#include <iostream>
 
 #define private public
 #define protected public
@@ -123,48 +124,61 @@ void cvmusbtest::testConfigureGlobalMode1()
 void cvmusbtest::testConfigureGlobalMode2()
 {
   CMockVMUSB ctlr;
-  const std::vector<std::string>& ops = ctlr.getOperationRecord();
 
   m_pConfig->configure("-busreqlevel", "0");
   m_pConfig->configure("-bufferlength", "13k");
   m_pModule->configureGlobalMode(ctlr);
 
+  std::vector<std::string> ops = ctlr.getOperationRecord();
+  std::cout << "globalmode2" << std::endl;
+  for (unsigned int entry=0; entry<ops.size(); ++entry) {
+    std::cout << entry << " : " << ops[entry] << std::endl;
+  }
   CPPUNIT_ASSERT_EQUAL(std::string("writeGlobalMode(0x00000000)"), ops.at(1));
 
   m_pConfig->configure("-bufferlength", "8k");
   m_pModule->configureGlobalMode(ctlr);
+  ops = ctlr.getOperationRecord();
   CPPUNIT_ASSERT_EQUAL(std::string("writeGlobalMode(0x00000001)"), ops.at(4));
 
   m_pConfig->configure("-bufferlength", "4k");
   m_pModule->configureGlobalMode(ctlr);
+  ops = ctlr.getOperationRecord();
   CPPUNIT_ASSERT_EQUAL(std::string("writeGlobalMode(0x00000002)"), ops.at(7));
 
   m_pConfig->configure("-bufferlength", "2k");
   m_pModule->configureGlobalMode(ctlr);
+  ops = ctlr.getOperationRecord();
   CPPUNIT_ASSERT_EQUAL(std::string("writeGlobalMode(0x00000003)"), ops.at(10));
 
   m_pConfig->configure("-bufferlength", "1k");
   m_pModule->configureGlobalMode(ctlr);
+  ops = ctlr.getOperationRecord();
   CPPUNIT_ASSERT_EQUAL(std::string("writeGlobalMode(0x00000004)"), ops.at(13));
 
   m_pConfig->configure("-bufferlength", "512");
   m_pModule->configureGlobalMode(ctlr);
+  ops = ctlr.getOperationRecord();
   CPPUNIT_ASSERT_EQUAL(std::string("writeGlobalMode(0x00000005)"), ops.at(16));
 
   m_pConfig->configure("-bufferlength", "256");
   m_pModule->configureGlobalMode(ctlr);
+  ops = ctlr.getOperationRecord();
   CPPUNIT_ASSERT_EQUAL(std::string("writeGlobalMode(0x00000006)"), ops.at(19));
 
   m_pConfig->configure("-bufferlength", "128");
   m_pModule->configureGlobalMode(ctlr);
+  ops = ctlr.getOperationRecord();
   CPPUNIT_ASSERT_EQUAL(std::string("writeGlobalMode(0x00000007)"), ops.at(22));
 
   m_pConfig->configure("-bufferlength", "64");
   m_pModule->configureGlobalMode(ctlr);
+  ops = ctlr.getOperationRecord();
   CPPUNIT_ASSERT_EQUAL(std::string("writeGlobalMode(0x00000008)"), ops.at(25));
 
   m_pConfig->configure("-bufferlength", "evtcount");
   m_pModule->configureGlobalMode(ctlr);
+  ops = ctlr.getOperationRecord();
   CPPUNIT_ASSERT_EQUAL(std::string("writeGlobalMode(0x00000009)"), ops.at(28));
 }
 
@@ -172,12 +186,12 @@ void cvmusbtest::testConfigureGlobalMode2()
 void cvmusbtest::testConfigureGlobalMode3()
 {
   CMockVMUSB ctlr;
-  const std::vector<std::string>& ops = ctlr.getOperationRecord();
 
   m_pConfig->configure("-busreqlevel", "0");
   m_pConfig->configure("-spanbuffers", "on");
   m_pModule->configureGlobalMode(ctlr);
 
+  std::vector<std::string> ops = ctlr.getOperationRecord();
   CPPUNIT_ASSERT_EQUAL(std::string("writeGlobalMode(0x00000010)"), ops.at(1));
 
 }
@@ -186,11 +200,11 @@ void cvmusbtest::testConfigureGlobalMode3()
 void cvmusbtest::testConfigureGlobalMode4()
 {
   CMockVMUSB ctlr;
-  const std::vector<std::string>& ops = ctlr.getOperationRecord();
 
   m_pConfig->configure("-mixedbuffers", "on");
   m_pModule->configureGlobalMode(ctlr);
 
+  std::vector<std::string> ops = ctlr.getOperationRecord();
   CPPUNIT_ASSERT_EQUAL(std::string("writeGlobalMode(0x00004020)"), ops.at(1));
 
 }
@@ -199,11 +213,11 @@ void cvmusbtest::testConfigureGlobalMode4()
 void cvmusbtest::testConfigureGlobalMode5()
 {
   CMockVMUSB ctlr;
-  const std::vector<std::string>& ops = ctlr.getOperationRecord();
 
   m_pConfig->configure("-forcescalerdump", "on");
   m_pModule->configureGlobalMode(ctlr);
 
+  std::vector<std::string> ops = ctlr.getOperationRecord();
   CPPUNIT_ASSERT_EQUAL(std::string("writeGlobalMode(0x00004040)"), ops.at(1));
 
 }
@@ -212,11 +226,11 @@ void cvmusbtest::testConfigureGlobalMode5()
 void cvmusbtest::testConfigureGlobalMode6()
 {
   CMockVMUSB ctlr;
-  const std::vector<std::string>& ops = ctlr.getOperationRecord();
 
   m_pConfig->configure("-optionalheader", "on");
   m_pModule->configureGlobalMode(ctlr);
 
+  std::vector<std::string> ops = ctlr.getOperationRecord();
   CPPUNIT_ASSERT_EQUAL(std::string("writeGlobalMode(0x00004100)"), ops.at(1));
 }
 
@@ -224,29 +238,33 @@ void cvmusbtest::testConfigureGlobalMode6()
 void cvmusbtest::testConfigureGlobalMode7()
 {
   CMockVMUSB ctlr;
-  const std::vector<std::string>& ops = ctlr.getOperationRecord();
 
   m_pConfig->configure("-busreqlevel", "0");
   m_pModule->configureGlobalMode(ctlr);
 
+  std::vector<std::string> ops = ctlr.getOperationRecord();
   CPPUNIT_ASSERT_EQUAL(std::string("writeGlobalMode(0x00000000)"), ops.at(1));
 
   m_pConfig->configure("-busreqlevel", "1");
   m_pModule->configureGlobalMode(ctlr);
+  ops = ctlr.getOperationRecord();
   CPPUNIT_ASSERT_EQUAL(std::string("writeGlobalMode(0x00001000)"), ops.at(4));
 
   m_pConfig->configure("-busreqlevel", "2");
   m_pModule->configureGlobalMode(ctlr);
+  ops = ctlr.getOperationRecord();
   CPPUNIT_ASSERT_EQUAL(std::string("writeGlobalMode(0x00002000)"), ops.at(7));
 
   m_pConfig->configure("-busreqlevel", "3");
   m_pModule->configureGlobalMode(ctlr);
+  ops = ctlr.getOperationRecord();
   CPPUNIT_ASSERT_EQUAL(std::string("writeGlobalMode(0x00003000)"), ops.at(10));
 
   // .... they 4 - 6 are the same
 
   m_pConfig->configure("-busreqlevel", "7");
   m_pModule->configureGlobalMode(ctlr);
+  ops = ctlr.getOperationRecord();
   CPPUNIT_ASSERT_EQUAL(std::string("writeGlobalMode(0x00007000)"), ops.at(13));
 
   CPPUNIT_ASSERT_THROW( m_pConfig->configure("-busreqlevel", "9"), std::string);
