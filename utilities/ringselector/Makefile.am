@@ -41,7 +41,7 @@ parser.o: parser.ggo
 
 #----------------------- extra files to distribute.
 
-EXTRA_DIST	=	ringselector.xml parser.ggo
+EXTRA_DIST	=	ringselector.xml parser.ggo Asserts.h
 
 #----------------------- Tests:
 #  Since this is the first guy written to use it, the tests for
