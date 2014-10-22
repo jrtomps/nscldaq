@@ -41,7 +41,7 @@ parser.o: parser.ggo
 
 #----------------------- extra files to distribute.
 
-EXTRA_DIST	=	ringselector.xml parser.ggo
+EXTRA_DIST	=	ringselector.xml parser.ggo Asserts.h
 
 #----------------------- Tests:
 #  Since this is the first guy written to use it, the tests for
@@ -50,12 +50,11 @@ EXTRA_DIST	=	ringselector.xml parser.ggo
 
 check_PROGRAMS	=	stringstointtests selectortests
 
-stringstointtests_SOURCES	=	TestRunner.cpp str2int.cpp
+stringstointtests_SOURCES	=	TestRunner.cpp str2int.cpp ../StringsToIntegers.cpp
 
+stringstointtests_CPPFLAGS	= @LIBTCLPLUS_CFLAGS@
 
-
-stringstointtests_LDADD		= ../StringsToIntegers.lo	\
-				-L$(libdir)			\
+stringstointtests_LDADD		= -L$(libdir)			\
 				$(CPPUNIT_LDFLAGS)		\
 				@LIBEXCEPTION_LDFLAGS@
 
@@ -71,7 +70,7 @@ selectortests_LDADD	=	$(CPPUNIT_LDFLAGS)	\
 
 selectortests_LDFLAGS	=	-Wl,"-rpath=link=$(libdir)"
 
-selectortests_CXXFLAGS	=	-DBINDIR="\"$(bindir)\""
+selectortests_CPPFLAGS	=	$(ringselector_CPPFLAGS) -DBINDIR="\"$(bindir)\""
 
 
 TESTS=./stringstointtests ./selectortests
