@@ -15,11 +15,13 @@ libVMUSBRouter_la_CPPFLAGS		=  -DLAST_CHANCE \
 			-I@top_srcdir@/usb/vmusb	\
 			-I@top_srcdir@/base/dataflow	\
 			-I@top_srcdir@/daq/format   \
-                        -I@top_srcdir@/daq/eventbuilder
+                        -I@top_srcdir@/daq/eventbuilder \
+			-I@top_srcdir@/usb/vmusb/devices
 
 libVMUSBRouter_la_CXXFLAGS=@THREADCXX_FLAGS@
 
-libVMUSBRouter_la_LIBADD	= @LIBTCLPLUS_LDFLAGS@	\
+libVMUSBRouter_la_LIBADD	= @top_builddir@/usb/vmusb/devices/libVMUSBDevices.la  \
+	@LIBTCLPLUS_LDFLAGS@	\
 	@top_builddir@/base/thread/libdaqthreads.la \
 	@top_builddir@/base/dataflow/libRingBuffer.la \
 	@top_builddir@/daq/format/libdataformat.la @THREADLD_FLAGS@

@@ -39,6 +39,7 @@
 #include <CDataFormatItem.h>
 #include <CRingTextItem.h>
 #include <dlfcn.h>
+#include <CStack.h>
 
 #include <fragment.h>
 
@@ -424,7 +425,8 @@ COutputThread::scaler(void* pData)
                                  m_elapsedSeconds, 
                                  endTime, 
                                  timestamp, 
-                                 counterData);
+                                 counterData,
+				 1, CStack::isIncremental());
   } else {
     pEvent = new CRingScalerItem(NULL_TIMESTAMP, 
                                  Globals::sourceId, 
@@ -432,7 +434,8 @@ COutputThread::scaler(void* pData)
                                  m_elapsedSeconds, 
                                  endTime, 
                                  timestamp, 
-                                 counterData);
+                                 counterData,
+				 1, CStack::isIncremental());
   }
 
   pEvent->commitToRing(*m_pRing);

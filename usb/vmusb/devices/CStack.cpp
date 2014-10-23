@@ -37,6 +37,7 @@ using namespace std;
 // assumption when using loadStack is that loadStack is used to handle all stacks.
 
 size_t CStack::m_listOffset(0);	// See however restStackOffset.
+bool   CStack::m_incrementalScaler(true);
 
 
 /// The stuff below is data the validators need:
@@ -146,6 +147,10 @@ Option           value type               Value meaning
 					  interrupt.
 -modules          stringlist              List of ADC, Scaler, Chain modules that will be read by
                                           this stack.
+-incremental     boolean                 Only allowed for scaler triggered stacks.  If false,
+                                          scaler ring items produced by this stack are marked
+                                          non-incremental. If true (the default) scaler ring items
+                                          are marked as incremental.
 \endverbatim
 
   \param configuration : CReadoutModule&
@@ -183,6 +188,7 @@ CStack::onAttach(CReadoutModule& configuration)
 				 CConfigurableObject::isInteger, &iplRange, "6");
   m_pConfiguration->addParameter("-modules",
 				CStack::moduleChecker, NULL, "");
+  m_pConfiguration->addBooleanParameter("-incremental", "true");
   
 }
 /*!
@@ -201,6 +207,11 @@ CStack::Initialize(CVMUSB& controller)
     pModule->Initialize(controller); 
 
     p++;
+  }
+  // If this module is stack triggered, set the m_incrementalScalers varaible.
+
+  if(m_pConfiguration->cget("-trigger") == std::string("scaler")) {
+    m_incrementalScaler = m_pConfiguration->getBoolParameter("-incremental");
   }
 }
 

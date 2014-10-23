@@ -826,5 +826,11 @@ Work on 11.0-rc11 begins
            of 100Mbytes and low water mark of 80Mbytes.
         
 11.0-rc16:
-	Bug $2073 Properly interpret bit 12 of VMUSB buffer header as part of the
+	Bug #2073 Properly interpret bit 12 of VMUSB buffer header as part of the
 	number of events in the buffer.
+	Bug #2057 A - add -incremental option to VMUSBReadout stack module
+	driver so that the scalers ring items can be marked as
+	incremental.
+	Bug #2057 B - add -incremental option to CCUSBReadout stack module
+	driver as well.
+	

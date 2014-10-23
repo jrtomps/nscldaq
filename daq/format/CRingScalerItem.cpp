@@ -448,6 +448,7 @@ CRingScalerItem::toString() const
   out << time << " : Scalers:\n";
   out << "Interval start time: " << start << " end: " << end << " seconds in to the run\n\n";
   out << bodyHeaderToString();
+  out << (isIncremental() ? "Scalers are incremental" : "Scalers are not incremental") << std::endl;
 
   out << "Index         Counts                 Rate\n";
   for (int i=0; i < scalers.size(); i++) {
