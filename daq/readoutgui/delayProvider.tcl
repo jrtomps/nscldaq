@@ -93,6 +93,13 @@ proc ::Delay::begin {id run title} {
 #
 proc ::Delay::end id {
 }
+
+##
+# init
+#   Do nothing
+#
+proc ::Delay::init id {}
+
 ##
 # capabilities
 #   Returns a dict describing the capabilities of the source:

@@ -20,7 +20,10 @@
 #
 
 package require tcltest
-package require Delay_Provider
+
+
+tcltest::test pkgrequire-0 {make sure that we can require the package
+} {package require Delay_Provider} 1.0
 
 
 
@@ -63,3 +66,9 @@ tcltest::test end-0 {Just call it for kicks to make sure it isn't broken
 } -returnCodes 0
 
 
+tcltest::test init-0 {Just call it for kicks to make sure it isn't broken
+} -body {
+  ::Delay::init 0
+} -returnCodes 0
+
+tcltest::cleanupTests
