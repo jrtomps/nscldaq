@@ -356,8 +356,7 @@ COutputThread::processEvents(DataBuffer& inBuffer)
 {
   uint16_t* pContents = inBuffer.s_rawData;
   int16_t  nEvents   = (*pContents) & VMUSBNEventMask;
-  bool     continuous = ((*pContents) & VMUSBContinuous) != 0;
-  bool     multibuffer = ((*pContents) & VMUSBMultiBuffer) != 0;
+
 
   bufferNumber++;
 
@@ -512,9 +511,6 @@ COutputThread::scaler(void* pData)
 
   // See Issue #424 - for now throw an error  if there's a continuation segment:
 
-  if (header & VMUSBContinuation) {
-    throw std::string("Scaler continuation segments are not supported yet.");
-  }
 
   // Figure out how many wods/scalers there are:
 

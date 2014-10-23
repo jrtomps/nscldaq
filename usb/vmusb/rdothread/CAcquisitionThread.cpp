@@ -639,8 +639,7 @@ CAcquisitionThread::bootToTheHead()
 	int status = m_pVme->usbRead(buffer,
 		 		     sizeof(buffer),
 				     &bytesRead, DRAINTIMEOUTS*1000);
-	cerr << "Final desparate attempt to flush usb fifo got status: " 
-	     << status << endl;
+
 }
 /**
  * report an error during acquisition to the main thread by scheduling
