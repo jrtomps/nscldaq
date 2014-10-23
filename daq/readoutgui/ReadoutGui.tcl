@@ -247,6 +247,97 @@ snit::widgetadaptor ProviderSelectDialog {
 }
 
 
+#-----------------------------------------------------------------------------#
+#
+# Init button
+
+#
+# The megawidget that handles the calling of initialization routines for 
+# specific data source providers.
+#
+snit::widget InitProvider {
+  option -targets -default [list all] -configuremethod setTargets
+
+  variable selection ;#< the target
+
+  constructor {args} {
+    $self initThemes
+    $self buildGui
+
+    $self configurelist $args
+
+    set selection [lindex $options(-targets) 0]
+
+  }
+
+  method buildGui {} {
+    ttk::label $win.title -text "Initialize" -anchor s \
+                          -style "H1.TLabel"
+    ttk::label $win.selectLabel -text "Target" -padding {8 0 8 0} \
+                                -anchor e
+    ttk::combobox $win.combo -height 1 -values $options(-targets) \
+                             -width 12 -textvariable [myvar selection]
+#    ttk::button $win.initButton -text "Init" -command [mymethod onInit]
+
+    grid $win.title - -sticky nsew 
+    grid $win.selectLabel $win.combo -sticky nsew -pady {4 4} -padx {4 4}
+#    grid $win.initButton - -sticky nsew -pady {4 4} -padx {4 4}
+
+    grid rowconfigure    $win 0 -weight 0 -minsize 20
+    grid rowconfigure    $win 1 -weight 0 -minsize 20
+    grid columnconfigure $win {0} -weight 0 -minsize 65
+    grid columnconfigure $win {1} -weight 1 -minsize 65
+  }
+  
+  method initThemes {} {
+    ttk::style configure H1.TLabel -font {Helvetica 14}
+  }
+
+  method setTargets {opt vallist} {
+    $win.combo configure -values $vallist
+    $win.combo configure -height [llength $vallist]
+    set options($opt) $vallist
+  }
+
+  method getSelection {} {
+    return $selection
+  }
+
+  if {0}  {
+  method onInit {} {
+    puts "init $selection"
+  }
+  }
+} 
+
+snit::widgetadaptor InitProviderDialog {
+
+  component dialog
+  component form 
+
+  delegate option -targets to form 
+  delegate method getSelection to form
+  delegate method * to dialog
+
+  constructor {args} {
+    installhull using toplevel
+
+    install dialog using DialogWrapper $win.dialog -showcancel 1
+    set container [$dialog controlarea]
+
+    install form using InitProvider $container.f
+    $dialog configure -form $form
+
+    grid $dialog -sticky nsew
+    grid rowconfigure $win 0 -weight 1
+    grid columnconfigure $win 0 -weight 1
+
+    $self configurelist $args
+
+  }
+}
+
+
 ##
 # @class ReadoutGuiApp
 #
@@ -504,6 +595,8 @@ snit::type ReadoutGuiApp {
         $dataSourceMenu add command -label "Delete..." -command [mymethod _deleteProvider]
         $dataSourceMenu add separator
         $dataSourceMenu add command -label "List" -command [mymethod _listDataProviders]
+        $dataSourceMenu add separator 
+        $dataSourceMenu add command -label "Init" -command [mymethod _initProviders]
         
     }
     ##
@@ -608,6 +701,47 @@ snit::type ReadoutGuiApp {
 
     }
     
+    method _initProviders {} {
+      if {[$stateMachine getState] ne "Halted"} {
+        Diagnostics::Error "You can only init providers when in the Halted state."
+        return
+      }
+
+      set dm [DataSourcemanagerSingleton %AUTO%]
+      set srcs [$dm sources]
+      set names [list all] 
+      foreach src $srcs {
+        set name [dict get $src provider]
+        set id   [dict get $src sourceid]
+        lappend names "$name:$id"
+      }
+
+      InitProviderDialog .providers -targets $names
+      set action [.providers modal]
+      if {$action eq "Ok"} {
+        set sel [.providers getSelection] 
+        if {$sel eq "all"} {
+          $dm initall
+        } else {
+
+          puts $sel
+          set match [regexp -inline {^(\w+):(\d+)$} $sel]
+          puts $match 
+
+          if {[llength $match]==3} {
+            $dm init [lindex $match 2]
+          } else {
+            Diagnostics::Error "Unable to parse source id to initialize from selection ($sel)."
+            return
+          }
+        }
+      }
+
+      $dm destroy
+      catch {destroy  .providers}
+
+    }
+
     ##
     # _checkFilesystem
     #    *  Ensure there's a stagearea.
