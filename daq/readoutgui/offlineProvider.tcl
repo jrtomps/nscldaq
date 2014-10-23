@@ -117,10 +117,16 @@ proc ::Offline::begin {id run title} {
 #   End the run
 # @param id - the source id
 #
-proc ::Offline::end id {
-  
+proc ::Offline::end id {}
 
-}
+##
+# init 
+#  Initialize - no-op 
+# @param id - the source id
+#
+proc ::Offline::init id {}
+
+
 ##
 # capbilities - the s800 capabilities:
 #
