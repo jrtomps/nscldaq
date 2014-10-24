@@ -1464,6 +1464,16 @@ stagearea +
                 <literal>::</literal><replaceable>providername</replaceable><literal>::resume</literal>
                 must also be supplied.
             </para>
+
+            <para>
+              The data source manager is capable of sending on-demand
+              initialization to its registered data sources. It is thus required
+              that each provider implements a proc named:
+              <literal>::</literal><replaceable>providername</replaceable><literal>::init</literal>
+              to handle on-demand initialization procedures. It is particularly
+              useful for doing things like loading firmware.
+
+            </para>
         </section>
         <section>
             <title>Using the ReadoutGUI in your own container script</title>
@@ -2845,6 +2855,16 @@ set <replaceable>source-descriptions</replaceable> [<replaceable>$singleton</rep
 <replaceable>$singleton</replaceable> resume
                 </command>
             </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>$singleton</replaceable> init 
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>$singleton</replaceable> initall
+                </command>
+            </cmdsynopsis>
 
 
         </refsynopsisdiv>
@@ -3141,6 +3161,22 @@ set <replaceable>source-descriptions</replaceable> [<replaceable>$singleton</rep
                         <para>
                             Iterates over all data sources resuming the paused
                             run.   
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                  <term><methodname>init</methodname></term>
+                    <listitem>
+                        <para>
+                          Calls the init proc for the provider whose index is <replaceable>id</replaceable>.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                  <term><methodname>initall</methodname></term>
+                    <listitem>
+                        <para>
+                          Iterates through all of the data sources and calls their respective init procs.
                         </para>
                     </listitem>
                 </varlistentry>
@@ -6575,6 +6611,11 @@ proc ::<replaceable>providerName</replaceable>::end sourceId {...}
             </cmdsynopsis>
             <cmdsynopsis>
                 <command>
+proc ::<replaceable>providerName</replaceable>::init sourceId {...}
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
 proc ::<replaceable>providerName</replaceable>::capabilities {} {...}
                 </command>
             </cmdsynopsis>
@@ -6772,6 +6813,17 @@ proc ::MyDataSource::parameters {} {
                             <link linkend='provider3_end'
                                   endterm='provider3_end_title' />
                             ends a run in a data source.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>init</command> <replaceable>sourceId</replaceable></term>
+                    <listitem>
+                        <para>
+                            The
+                            <link linkend='provider3_init'
+                                  endterm='provider3_init_title' />
+                            causes an initialize procedure in the data source.
                         </para>
                     </listitem>
                 </varlistentry>
@@ -7034,64 +7086,99 @@ proc ::<replaceable>providerName</replaceable>::pause <replaceable>sourceId</rep
         </refsect1>
 
       </refentry>
+     
       <refentry id="provider3_resume">
         <refmeta>
-           <refentrytitle id='provider3_resume_title'>resume</refentrytitle>
-           <manvolnum>3provider</manvolnum>
+          <refentrytitle id='provider3_resume_title'>resume</refentrytitle>
+          <manvolnum>3provider</manvolnum>
         </refmeta>
         <refnamediv>
-           <refname>resume</refname>
-           <refpurpose>Resume a Paused Run</refpurpose>
+          <refname>resume</refname>
+          <refpurpose>Resume a Paused Run</refpurpose>
         </refnamediv>
-        
+
         <refsynopsisdiv>
           <cmdsynopsis>
-              <command>
+            <command>
 proc ::<replaceable>providerName</replaceable>::resume <replaceable>sourceId</replaceable> {
 ...
 }
           </command>
-          </cmdsynopsis>
+        </cmdsynopsis>
 
-        </refsynopsisdiv>
-        <refsect1>
-           <title>DESCRIPTION</title>
-           <para>
-            Resumes a run that is paused in the data source identified by
-            <parameter>sourceId</parameter>.
-            This proc is optional.  Specifically, if the data source provider's
-            <link linkend='provider3_capabilities'
-                  endterm='provider3_capabilities_title' /> specifies  the
-            provider is unable to pause runs, the provider need not implement
-            either this proc or the
-            <link linkend='provider3_pause' endterm='provider3_pause_title' />
-            proc.  Similarly, the data source manager should not invoke the
-            <command>pause</command> or <command>resume</command> commands on
-            data sources that cannot support it.
-           </para>
-           <para>
-            The ReadoutGUI data source manager and GUI will prevent an invocation
-            of the <command>pause</command> and <command>resume</command>
-            operations on any data of the data sources
-            unless all data sources specified able to perform these
-            operations.
-           </para>
-        </refsect1>
-      </refentry>
-      <refentry id="provider3_end">
+      </refsynopsisdiv>
+      <refsect1>
+        <title>DESCRIPTION</title>
+        <para>
+          Resumes a run that is paused in the data source identified by
+          <parameter>sourceId</parameter>.
+          This proc is optional.  Specifically, if the data source provider's
+          <link linkend='provider3_capabilities'
+            endterm='provider3_capabilities_title' /> specifies  the
+          provider is unable to pause runs, the provider need not implement
+          either this proc or the
+          <link linkend='provider3_pause' endterm='provider3_pause_title' />
+          proc.  Similarly, the data source manager should not invoke the
+          <command>pause</command> or <command>resume</command> commands on
+          data sources that cannot support it.
+        </para>
+        <para>
+          The ReadoutGUI data source manager and GUI will prevent an invocation
+          of the <command>pause</command> and <command>resume</command>
+          operations on any data of the data sources
+          unless all data sources specified able to perform these
+          operations.
+        </para>
+      </refsect1>
+    </refentry>
+
+        <refentry id="provider3_end">
+          <refmeta>
+            <refentrytitle id='provider3_end_title'>end</refentrytitle>
+            <manvolnum>3provider</manvolnum>
+          </refmeta>
+          <refnamediv>
+            <refname>end</refname>
+            <refpurpose>End a Data Taking Run</refpurpose>
+          </refnamediv>
+
+          <refsynopsisdiv>
+            <cmdsynopsis>
+              <command>
+                proc ::<replaceable>providerName</replaceable>::end <replaceable>sourceId</replaceable> {
+                ...
+                }
+              </command>
+            </cmdsynopsis>
+
+          </refsynopsisdiv>
+          <refsect1>
+            <title>DESCRIPTION</title>
+            <para>
+              Ends a data taking run in the data source <parameter>sourceId</parameter>.
+              The <parameter>sourceId</parameter> is the value of the
+              <literal>sourceid</literal> key in the dict passed to the
+              provider's
+              <link linkend='provider3_start' endterm='provider3_start_title' />
+              proc was called to start the data source.
+            </para>
+          </refsect1>
+        </refentry>
+    
+      <refentry id="provider3_init">
         <refmeta>
-           <refentrytitle id='provider3_end_title'>end</refentrytitle>
+           <refentrytitle id='provider3_init_title'>init</refentrytitle>
            <manvolnum>3provider</manvolnum>
         </refmeta>
         <refnamediv>
-           <refname>end</refname>
-           <refpurpose>End a Data Taking Run</refpurpose>
+           <refname>init</refname>
+           <refpurpose>On-demand initialize procedure</refpurpose>
         </refnamediv>
         
         <refsynopsisdiv>
           <cmdsynopsis>
               <command>
-proc ::<replaceable>providerName</replaceable>::end <replaceable>sourceId</replaceable> {
+proc ::<replaceable>providerName</replaceable>::init <replaceable>sourceId</replaceable> {
 ...
 }
           </command>
@@ -7101,16 +7188,17 @@ proc ::<replaceable>providerName</replaceable>::end <replaceable>sourceId</repla
         <refsect1>
            <title>DESCRIPTION</title>
            <para>
-            Ends a data taking run in the data source <parameter>sourceId</parameter>.
-            The <parameter>sourceId</parameter> is the value of the
-            <literal>sourceid</literal> key in the dict passed to the
-            provider's
-            <link linkend='provider3_start' endterm='provider3_start_title' />
-            <command>start</command> proc was called to start the data source.
+             Initiates an on-demand initialization procedure for data source <parameter>sourceId</parameter>.
+             The <parameter>sourceId</parameter> is the value of the
+             <literal>sourceid</literal> key in the dict passed to the
+             provider's
+             <link linkend='provider3_start' endterm='provider3_start_title' />
+             proc was called to start the data source.
+             The initialization is only possible when in the Halted state.
            </para>
-        </refsect1>
+         </refsect1>
+       </refentry>
 
-      </refentry>
       <refentry id="provider3_capabilities">
         <refmeta>
            <refentrytitle id='provider3_capabilities_title'>capabilities</refentrytitle>
@@ -7329,6 +7417,9 @@ package require SSHPipe_Provider
                     </para></listitem>
                 <listitem><para>The <command>resume</command> command must resume
                      paused run.
+                     </para></listitem>
+                     <listitem><para>The <command>init</command> command must cause
+                         an on-demand initialization procedure, e.g. loading firmware.
                      </para></listitem>
             </orderedlist>
         </refsect1>
