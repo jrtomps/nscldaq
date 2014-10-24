@@ -3,6 +3,7 @@ package provide ReadoutGUIPanel 1.0
 package require tcltest
 package require S800_Provider
 
+tcltest::configure -verbose tebp
 namespace eval ::s800test {
     variable fd
     variable port 1234
@@ -256,6 +257,71 @@ tcltest::test end-3 {End run with wrong source id fails} \
     set status [catch {::S800::end 1} msg]
     list $status $msg
 } -result [list 1 {1 is not the id of a source managed by the S800 provider.}]
+
+
+#-----------------------------------------------------------------------------#
+#
+#
+
+#
+#
+#
+tcltest::test init-0 {Init with no source id fails
+} -setup {
+#    startServer
+#    ::S800::start [dict create sourceid 0 host localhost port $::s800test::port]
+} -cleanup {
+#    clearS800ProviderState
+} -body {
+    set status [catch {::S800::init 0} msg]
+    list $status $msg
+} -result [list 1 {0 is not the id of a source managed by the S800 provider.}]
+
+#
+#
+#
+tcltest::test init-1 {Init with wrong source id fails 
+} -setup {
+    startServer
+    ::S800::start [dict create sourceid 0 host localhost port $::s800test::port]
+} -cleanup {
+    clearS800ProviderState
+} -body {
+    set status [catch {::S800::init 1} msg]
+    list $status $msg
+} -result [list 1 {1 is not the id of a source managed by the S800 provider.}]
+
+if {0} {
+#
+#
+#
+tcltest::test init-2 {Init succeeds when conditions are right 
+} -setup {
+    startServer
+    ::S800::start [dict create sourceid 0 host localhost port $::s800test::port]
+} -cleanup {
+    clearS800ProviderState
+} -body {
+    set status [catch {::S800::init 0} msg]
+    list $status $msg
+} -result [list 0 {}]
+}
+
+#
+#
+#
+tcltest::test init-3 {Init fails when source is not idle
+} -setup {
+    startServer
+    ::S800::start [dict create sourceid 0 host localhost port $::s800test::port]
+    ::S800::begin 0 1 {title}
+} -cleanup {
+    clearS800ProviderState
+} -body {
+    set status [catch {::S800::init 0} msg]
+    list $status $msg
+} -result [list 1 {Cannot initialize source 0 when not idle.}]
+
 
 ## Report test results.
 tcltest::cleanupTests

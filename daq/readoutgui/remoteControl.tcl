@@ -66,7 +66,7 @@ snit::type ReadoutGuiRemoteControl {
   variable manager  -1;            #< Port manager client instance.
 
   # verbs that we will process happily
-  variable legalVerbs [list set begin end get]
+  variable legalVerbs [list set begin end get init]
 
   # For my status area:
 
@@ -572,6 +572,36 @@ snit::type ReadoutGuiRemoteControl {
     $sm destroy
 
   }
+
+  ##
+  # _init
+  #   * Run must be Halted. 
+  #   * Let the data source manager singleton do the rest of the work
+  #
+  method _init {} {
+    if {![$self _slaveMode]} {
+      $self _reply ERROR "Not in slave mode"
+      return
+    }
+    set sm [::RunstateMachineSingleton %AUTO%]
+    set currentState [$sm getState]
+
+    # if we are halted we can init
+    if {$currentState eq "Halted"} {
+
+      # send initall via the single data source manager
+      # and reply ok
+      set dataManager [DataSourcemanagerSingleton %AUTO%]
+      $dataManager initall
+      $dataManager destroy
+      $self _reply OK
+    } else {
+      # otherwise, report failure
+      $self _reply ERROR "init can only be called from Halted state."
+    }
+    $sm destroy
+  }
+
   ##
   # _get
   #   Returns the value of one of the following:

@@ -98,4 +98,14 @@ tcltest::test send-0 {Test that we can send messages
 } -result "OK - end"
 
 
+if {0} {
+tcltest::test init-0 {Test that we can call init
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+}
+}
+
 tcltest::cleanupTests

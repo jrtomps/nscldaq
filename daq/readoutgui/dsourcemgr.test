@@ -27,18 +27,6 @@ namespace eval  ::s800test {
     variable fd
 }
 
-proc startServer {} {
-    set tcl $::env(tcl)
-    set here [file dirname [info script]]
-    set server [file join $here s800fake.tcl]
-    set ::s800test::fd [open "|$tcl $server $::s800test::port" w]
-    after 500
-}
-proc stopServer {} {
-    close $::s800test::fd
-
-}
-
 proc setupTestProvider {} {
   package provide Test_Provider 1.0
 

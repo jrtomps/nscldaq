@@ -119,6 +119,15 @@ proc ::RemoteGUI::begin {id run title} {
 proc ::RemoteGUI::end id {
     ::S800::end $id
 }
+
+##
+# init 
+#   Initialize data sources 
+# @param id - the source id
+#
+proc ::RemoteGUI::init id {
+    ::S800::init $id
+}
 ##
 # capbilities - the s800 capabilities:
 #

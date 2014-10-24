@@ -155,6 +155,16 @@ snit::type s800rctl {
     set result [$self Transaction end]
     $self ThrowIfNak $result
   }
+
+  ##
+  # Request an init operation.
+  #
+  # NAKs result in error throws:
+  #
+  method init {} {
+    set result [$self Transaction init]
+    $self ThrowIfNak $result
+  }
   ##
   # Set the run number to the appropriate value
   #
@@ -274,6 +284,7 @@ snit::type s800rctl {
     if {$socket eq ""} {
       $self Connect;		# Throws error on failure.
     }
+
 
     # Try to send the message.  If there's a failure
     # 1. set the socket to null
