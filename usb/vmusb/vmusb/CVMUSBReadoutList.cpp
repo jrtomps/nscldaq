@@ -419,7 +419,7 @@ CVMUSBReadoutList::addBlockRead32(uint32_t baseAddress, uint8_t amod,
   Add a 32 block >write< to the list.
   - The base address must be longword aligned.
   - The address modifier must be one of the block transfer mode.
-  - At most 256 bytes can be transferred (256 bytes - 1 long).
+  - There must be at least 2 transfers specified. Using this to transfer 1 word will fail.
   @param baseAddress - Base of the target block.
   @param amod        - address modifier.
   @param data        - Data to transfer.

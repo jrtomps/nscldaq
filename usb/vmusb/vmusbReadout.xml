@@ -10324,9 +10324,10 @@ class <ooclass><classname>CVMUSBReadoutList</classname></ooclass>
                     worth of 32 bit data to transfer.  If a block transfer
                     <parameter>amod</parameter> is used, the controller will
                     only perform address cycles atthe start of the transfer
-                    and as the address crosses 256byte boundaries as provided
-                    for in the VME bus block transfer specification.
-                </para>
+                    and as the address crosses 256-byte boundaries as provided
+                    for in the VME bus block transfer specification. There must
+                    be at least 2 transfers for this to succeed. 
+                  </para>
             </listitem>
         </varlistentry>
         <varlistentry>
