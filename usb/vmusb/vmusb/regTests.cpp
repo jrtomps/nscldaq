@@ -9,9 +9,6 @@
 #include <vector>
 #include <stdio.h>
 
-class TCLApplication;
-TCLApplication* gpTCLApplication = 0;
-
 using namespace std;
 
 static Warning msg(string("regTests requires at least one VM-USB interface"));

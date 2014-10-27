@@ -5,8 +5,10 @@
 #include <CVMUSBusb.h>
 #include <CVMUSBReadoutList.h>
 #include <iostream>
+#include <algorithm>
 #include <vector>
 #include <iomanip>
+#include <iterator>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,18 +18,14 @@
 
 using namespace std;
 
-
-//class TCLApplication;
-//TCLApplication* gpTCLApplication = 0;
-
 // If your memory is in a different place.. change the three lines
 // below:
 
 static Warning msg("vmeTests requires an XLM72V in slot 3");
-static const uint32_t vmebase = 0x18000000;
+static const uint32_t vmebase = 0x80000000;
 static const uint8_t  amod    = CVMUSBReadoutList::a32UserData;
 
-static const uint32_t blockBase = 0x18000000;
+static const uint32_t blockBase = 0x80000000;
 static const uint8_t a32amod  = CVMUSBReadoutList::a32UserData;
 static const uint8_t blkamod  = CVMUSBReadoutList::a32UserBlock;
 
@@ -41,6 +39,7 @@ class vmeTests : public CppUnit::TestFixture {
   CPPUNIT_TEST(iterativeBlockRead);
   CPPUNIT_TEST(fifoTest);
   CPPUNIT_TEST(iterativeVariableBlockRead);
+  CPPUNIT_TEST(iterativeBlockWrite);
   CPPUNIT_TEST_SUITE_END();
 
 private:
@@ -72,6 +71,8 @@ protected:
   void iterativeBlockRead();
   void iterativeVariableBlockRead();
   void fifoTest();
+  void iterativeBlockWrite();
+  void blockWrite(uint32_t base_addr, vector<uint32_t>& data);
 
 
   void blockReadTest(uint32_t startAddr, size_t ntransfers, 
@@ -202,6 +203,30 @@ void vmeTests::fifoTest()
   }
 }
 
+
+// To test the variable block read, we will do a similar test
+// to iterate through every possible scenario. This is slightly different
+// because we will write the number of transfers to use into memory
+// and then use it to setup the transfer.
+void vmeTests::iterativeBlockWrite()
+{
+
+  size_t maxTransfers=4096;
+
+  for (size_t transfers=2; transfers<maxTransfers; transfers++) {
+
+//    cout << "Testing BLT write : " << transfers << endl;
+    // create a vec and fill it with a sequence of values
+    vector<uint32_t> pattern (transfers);
+    iota(pattern.begin(), pattern.end(), 1);
+//    copy(pattern.begin(), pattern.end(), ostream_iterator<uint32_t>(cout,"\n"));
+
+    if ((transfers%128)!=0) {
+      blockWrite(blockBase,pattern);
+      blockReadTest(blockBase, transfers, pattern);
+    }      
+  }
+}
 //! blockReadTest 
 //
 //  The common code for a single block read test.  We demand the following:
@@ -230,6 +255,33 @@ void vmeTests::blockReadTest(uint32_t startAddr, size_t ntransfers,
 
 }
 
+//! blockWriteTest 
+//
+void vmeTests::blockWrite(uint32_t base_addr, std::vector<uint32_t>& data)
+{
+
+  size_t data_size = data.size();
+  CVMUSBReadoutList rdolist;
+  rdolist.addBlockWrite32(base_addr,0x0b,data.data(),data_size);
+
+  auto stack = rdolist.get();
+/*
+  cout.flags(ios::hex);
+  cout.fill('0');
+  copy(stack.begin(), stack.end(), ostream_iterator<uint32_t>(cout,"\n"));
+  cout.fill(' ');
+  cout.flags(ios::dec);
+
+  cout << "---" << endl;
+*/
+
+  uint32_t rdblock[data_size];
+  size_t   transferred;
+  int status = m_pInterface->executeList(rdolist,rdblock,data_size,
+                                          &transferred);
+  EQMSG("return status", 0, status);
+
+}
 //! variableBlockReadTest 
 //
 //  The common code for a single variable block read test.  We demand the following:

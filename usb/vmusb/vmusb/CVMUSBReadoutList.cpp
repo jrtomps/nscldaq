@@ -429,18 +429,18 @@ void
 CVMUSBReadoutList::addBlockWrite32(uint32_t baseAddress, uint8_t amod,
 				   void* data, size_t transfers)
 {
-  uint32_t mode   = (static_cast<uint32_t>(amod) << modeAMShift) & modeAMMask;
-  mode           |= (transfers) << modeBLTShift;
+
+  // full universal MBLT -- doesn't seem to work
+  uint32_t mode = (static_cast<uint32_t>(amod) << modeAMShift) & modeAMMask;
+  mode         |= (0xff<<24);
+
   m_list.push_back(mode);
+  m_list.push_back(transfers);
   m_list.push_back(baseAddress);
   
   // Put the data in the list too:
-  
   uint32_t* src = reinterpret_cast<uint32_t*>(data);
-  while (transfers) {
-    m_list.push_back(*src++);
-    transfers--;
-  }
+  m_list.insert(m_list.end(), src, src+transfers);
   
 }
 

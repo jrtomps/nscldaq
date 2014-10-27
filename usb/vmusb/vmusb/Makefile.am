@@ -50,16 +50,22 @@ libVMUSBRemote_la_LIBADD = @top_builddir@/usb/vmusb/vmusb/libVMUSB.la \
 
 #IVP tests:
 
+bin_PROGRAMS = tests
 
-TEST_MODULES = @srcdir@/TestRunner.cpp \
-             @srcdir@/regTests.cpp \
-            @srcdir@/vmeTests.cpp 
+tests_SOURCES = @srcdir@/TestRunner.cpp \
+								@srcdir@/regTests.cpp \
+								@srcdir@/vmeTests.cpp 
+tests_CPPFLAGS = -std=c++11 -g -I@prefix@/include \
+								 $(CPPUNIT_INCLUDES)
+tests_LDADD = $(CPPUNIT_LDFLAGS) \
+							 -L@prefix@/usb -lVMUSB \
+							 @TCL_LDFLAGS@ \
+							 @LIBTCLPLUS_LDFLAGS@
 
-
-tests: $(TEST_MODULES)
-	$(CXX) -g -o tests -I@srcdir@ -I@prefix@/include $(CPPUNIT_INCLUDES) \
-	$(TEST_MODULES) $(CPPUNIT_LDFLAGS) -L@prefix@/lib -lVMUSB \
-	-Wl,"-rpath=@prefix@/lib" @TCL_LDFLAGS@ @LIBTCLPLUS_LDFLAGS@
+#tests: $(TEST_MODULES)
+#	$(CXX) -g -o tests -I@srcdir@ -I@prefix@/include $(CPPUNIT_INCLUDES) \
+#	$(TEST_MODULES) $(CPPUNIT_LDFLAGS) -L@prefix@/lib -lVMUSB \
+#	-Wl,"-rpath=@prefix@/lib" @TCL_LDFLAGS@ @LIBTCLPLUS_LDFLAGS@
 
 
 REMOTE_TEST_MODULES = @srcdir@/TestRunner.cpp \
