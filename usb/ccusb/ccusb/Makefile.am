@@ -109,4 +109,4 @@ clean-local:
 	$(RM) -f $(BUILT_SOURCES)
 
 
-EXTRA_DIST=CCCUSB.i CCCUSBReadoutList.i
+EXTRA_DIST=CCCUSB.i CCCUSBReadoutList.i Asserts.h
