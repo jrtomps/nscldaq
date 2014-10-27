@@ -11,7 +11,7 @@ noinst_HEADERS	=	BufdumpMain.h		\
 BUILT_SOURCES	=	@srcdir@/dumperargs.c
 
 
-INCLUDES 		=	-I@srcdir@/.. 				\
+dumper_CPPFLAGS =	-I@srcdir@/.. 				\
 				-I.. 					\
 				-I@top_srcdir@/base/headers		\
 				-I@top_srcdir@/base/uri			\

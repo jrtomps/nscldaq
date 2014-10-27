@@ -1,12 +1,24 @@
 lib_LTLIBRARIES		= libCCUSB.la libCCCUSB.la libCCCUSBReadoutList.la
+COMPILATION_FLAGS		= -I@top_srcdir@/base/os \
+												@LIBTCLPLUS_CFLAGS@ \
+												@TCL_FLAGS@ \
+												@USBSWITCHES@ \
+												@THREADCXX_FLAGS@ \
+												-I@top_srcdir@/base/tcpip 
+
+
 libCCUSB_la_SOURCES	= CCCUSB.cpp CCCUSBusb.cpp CCCUSBRemote.cpp CCCUSBReadoutList.cpp
+libCCUSB_la_CPPFLAGS    = $(COMPILATION_FLAGS)
 include_HEADERS         = CCCUSB.h CCCUSBusb.h CCCUSBRemote.h  CCCUSBReadoutList.h
 
 
 ## SWIG wrapper generation
 
 libCCCUSB_la_SOURCES    = @srcdir@/CCCUSB_wrap.cxx
+libCCCUSB_la_CPPFLAGS=$(COMPILATION_FLAGS)
+
 libCCCUSBReadoutList_la_SOURCES = @srcdir@/CCCUSBReadoutList_wrap.cxx
+libCCCUSBReadoutList_la_CPPFLAGS= $(COMPILATION_FLAGS)
 
 BUILT_SOURCES=@srcdir@/CCCUSB_wrap.cxx @srcdir@/CCCUSBReadoutList_wrap.cxx
 
@@ -19,11 +31,6 @@ BUILT_SOURCES=@srcdir@/CCCUSB_wrap.cxx @srcdir@/CCCUSBReadoutList_wrap.cxx
 						@srcdir@/CCCUSBReadoutList.i
 
 
-
-INCLUDES		= -I@top_srcdir@/base/os @LIBTCLPLUS_CFLAGS@ \
-							@TCL_FLAGS@ @USBSWITCHES@ @THREADCXX_FLAGS@ \
-              -I@top_srcdir@/base/tcpip \
-              -I@top_srcdir@/base/os
 
 ## Normal C++ library containing CVMUSB*
 libCCUSB_la_LIBADD	= @top_builddir@/base/os/libdaqshm.la \

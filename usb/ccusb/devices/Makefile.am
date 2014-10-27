@@ -17,10 +17,10 @@ libCCUSBDevices_la_SOURCES	= 	CConfigurableObject.cpp	\
 					CCamacCrate.cpp \
 					CLeCroy4300B.cpp \
 					CULMTrigger.cpp \
-          CMarker.cpp
+					CMarker.cpp
 
 
-INCLUDES	= 	-I@top_srcdir@/usb/ccusb/ccusb \
+libCCUSBDevices_la_CPPFLAGS	= 	-I@top_srcdir@/usb/ccusb/ccusb \
 			-I@top_srcdir@/usb/ccusb/daqconfig \
 			-I@top_srcdir@/usb/ccusb		\
 			-I@top_srcdir@/usb/common/devices		\
@@ -46,8 +46,8 @@ noinst_HEADERS			= 	CConfigurableObject.h	\
 					CC1205.h		\
 					CCCUSBModule.h		\
 					CPH7132.h		\
-					CTclModule.h \
-          CMarker.h
+					CTclModule.h		\
+					CMarker.h
 
 
 

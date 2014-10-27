@@ -28,7 +28,7 @@ bt_tas.c
 
 
 libbtp_la_LDFLAGS = -version-info 1:0:0  $(THREADLD_FLAGS)
-INCLUDES = -I. -I@srcdir@/../include \
+libbtp_la_CPPFLAGS = -I. -I@srcdir@/../include \
 	-DBT1003 -DNDEBUG -DBT_INLINE \
 	-D_POSIX_C_SOURCE -D_POSIX_THREAD_SEMANTICS \
 	-D_XOPEN_SOURCE	\

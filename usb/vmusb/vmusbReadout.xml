@@ -17934,6 +17934,73 @@ XLMTimestamp cget <replaceable>name</replaceable>
       </para>
   </refsect1>
 </refentry>
+      <refentry id="vmusb3-marker">
+        <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle id='vmusb3-marker-title'>marker</refentrytitle>
+           <manvolnum>3vmusb</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>marker</refname>
+           <refpurpose>Insert a constant into the VMUSB data stream</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+marker create <replaceable>name</replaceable>
+          </command>
+          </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+marker config <replaceable>name -value uint16</replaceable>                    
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+marker cget <replaceable>name</replaceable>
+                </command>
+            </cmdsynopsis>
+            
+            
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            When added to a stack, a marker inserts a constant 16 bit unsigned
+            value in the outupt data produced by the VM-USB in response to that
+            stack's trigger.
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              OPTIONS
+           </title>
+           <variablelist>
+            <varlistentry>
+                <term><option>-value</option> <replaceable>uint16</replaceable></term>
+                <listitem>
+                    <para>
+                        The <replaceable>uint16</replaceable> unsigned 16 it
+                        bit integer will be inserted into the output stream.
+                    </para>
+                </listitem>
+            </varlistentry>
+            
+           </variablelist>
+        </refsect1>
+
+      </refentry>
 
 <refentry id="vmusb3-XLMFERA">
   <refmeta>

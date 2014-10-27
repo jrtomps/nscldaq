@@ -44,7 +44,7 @@ noinst_HEADERS			=	CSetCommand.h		\
           CCCUSBControlCreator.h 
 
 
-INCLUDES			= 	-I@top_srcdir@/usb/ccusb		\
+libCCUSBControlServer_la_CPPFLAGS			= 	-I@top_srcdir@/usb/ccusb		\
 					-I@top_srcdir@/daq/format		\
 					-I@top_srcdir@/usb/ccusb/ccusb		\
 					-I@top_srcdir@/usb/ccusb/devices	\

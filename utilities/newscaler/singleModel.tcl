@@ -77,7 +77,7 @@ snit::type singleModel {
     #
     method getNumeratorRate {} {
         set channel $options(-channel)
-        return [$channel rate]
+        return [format %6.2f [$channel rate]]
     }
     ##
     # getDenominatorRate
@@ -95,7 +95,7 @@ snit::type singleModel {
     method getNumeratorTotal {} {
         set channel $options(-channel)
         
-        return [$channel total]
+        return [format %6d [$channel total]]
     }
     ##
     # getDenominatorTotal

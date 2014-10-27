@@ -83,6 +83,8 @@ protected:
 	    std::vector<CTCLObject>& objv);
   int remove(CTCLInterpreter& interp,
 	     std::vector<CTCLObject>& objv);
+  int list(CTCLInterpreter& interp,
+	   std::vector<CTCLObject>& objv);
 
   // private utilities:
 private:

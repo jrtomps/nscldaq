@@ -4802,10 +4802,10 @@ item.commitToRing(aring);
        
        <refsynopsisdiv>
         <programlisting>
-#include &lt;CRingFormatItem.h&gt;
+#include &lt;CDataFormatItem.h&gt;
         </programlisting>
         <classsynopsis>
-            <ooclass><classname>CRingFormatItem : public CRingItem</classname></ooclass>
+            <ooclass><classname>CDataFormatItem : public CRingItem</classname></ooclass>
 	</classsynopsis>
        <synopsis>
             <constructorsynopsis>

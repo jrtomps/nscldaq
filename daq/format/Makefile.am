@@ -1,6 +1,11 @@
 #-------------- The library libdataformat
 
 lib_LTLIBRARIES	=	libdataformat.la
+COMPILATION_FLAGS	= -I@top_srcdir@/base/dataflow	\
+		@LIBTCLPLUS_CFLAGS@	\
+		-I@top_srcdir@/base/headers	\
+		-I@top_srcdir@/base/uri		\
+		-I@top_srcdir@/base/os
 
 libdataformat_la_SOURCES = CRingSelectionPredicate.cpp	\
 			   CDesiredTypesPredicate.cpp	\
@@ -23,7 +28,7 @@ libdataformat_la_SOURCES = CRingSelectionPredicate.cpp	\
       CFileDataSink.cpp CDataSinkFactory.cpp \
       CRingDataSink.cpp \
       CDataSinkException.cpp
-
+libdataformat_la_CPPFLAGS=$(COMPILATION_FLAGS)
 
 include_HEADERS	= CRingSelectionPredicate.h	\
 			  CDesiredTypesPredicate.h	\
@@ -48,11 +53,7 @@ include_HEADERS	= CRingSelectionPredicate.h	\
       CDataSinkException.h
 
 
-INCLUDES	= -I@top_srcdir@/base/dataflow	\
-		@LIBTCLPLUS_CFLAGS@	\
-		-I@top_srcdir@/base/headers	\
-		-I@top_srcdir@/base/uri		\
-		-I@top_srcdir@/base/os
+
 
 libdataformat_la_LDFLAGS	= -version-info $(SOVERSION)	\
 				-Wl,"-rpath-link=$(libdir)" -lrt \
@@ -85,7 +86,7 @@ unittests_LDADD		= -L$(libdir) $(CPPUNIT_LDFLAGS) 		\
 			@top_builddir@/daq/format/libdataformat.la	\
 			@LIBEXCEPTION_LDFLAGS@
 
-
+unittests_CPPFLAGS=$(COMPILATION_FLAGS)
 
 unittests_LDFLAGS	= -Wl,"-rpath-link=$(libdir)"
 

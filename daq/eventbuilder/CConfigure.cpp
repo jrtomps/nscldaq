@@ -73,7 +73,7 @@ CConfigure::operator()(CTCLInterpreter& interp, std::vector<CTCLObject>& objv)
   // We need at leats three parameters...command, subcommand, and parameter name.
 
   try {
-    requireAtLeast(objv, 3, " Ivali request length");
+    requireAtLeast(objv, 3, " Ivalid request length");
     bindAll(interp, objv);
 
     std::string subcommand = objv[1];
@@ -150,7 +150,17 @@ CConfigure::Set(CTCLInterpreter& interp, std::string name, CTCLObject& value)
     }
     pHandler->setBuildWindow(static_cast<time_t>(window));
     
-
+  } else if (name == "XoffThreshold") {
+    
+    int size = value;
+    pHandler->setXoffThreshold(size);
+    
+  } else if (name == "XonThreshold") {
+    
+    int size = value;
+    pHandler->setXonThreshold(size);
+    
+  
   } else {
     std::string errorMsg = "Illegal configuration parametr name: ";
     errorMsg  += name;

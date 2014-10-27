@@ -1,17 +1,23 @@
 lib_LTLIBRARIES		= libVMUSB.la libVMUSBRemote.la libCVMUSB.la \
 	libCVMUSBReadoutList.la
 
+COMPILATION_FLAGS	= $(USBSWITCHES) -I@top_srcdir@/base/headers @LIBTCLPLUS_CFLAGS@  \
+			-I@top_srcdir@/base/tcpip \
+			-I@top_srcdir@/base/os	\
+			  @TCL_FLAGS@ @THREADCXX_FLAGS@
+
 libVMUSB_la_SOURCES 	=  CVMUSBusb.cpp CVMUSBReadoutList.cpp CVMUSBEthernet.cpp \
 	CVMUSBFactory.cpp \
 	CVMUSB.cpp \
 	CMockVMUSB.cpp
 
+libVMUSB_la_CPPFLAGS=$(COMPILATION_FLAGS)
 
 libVMUSBRemote_la_SOURCES = CVMUSBReadoutList.cpp \
 	CVMUSBRemote.cpp \
 	CVMUSBEthernet.cpp
 
-
+libVMUSBRemote_la_CPPFLAGS=$(COMPILATION_FLAGS)
 
 
 noinst_HEADERS		= CVMUSB.h   \
@@ -90,6 +96,8 @@ clean-local:
 libCVMUSB_la_SOURCES = @srcdir@/CVMUSB_wrap.cxx
 libCVMUSB_la_LIBADD  = libVMUSB.la @THREADLD_FLAGS@
 
+libCVMUSB_la_CPPFLAGS=$(COMPILATION_FLAGS)
+
 BUILT_SOURCES=@srcdir@/CVMUSB_wrap.cxx @srcdir@/CVMUSBReadoutList_wrap.cxx
 
 @srcdir@/CVMUSB_wrap.cxx:	@srcdir@/CVMUSB.h
@@ -97,6 +105,8 @@ BUILT_SOURCES=@srcdir@/CVMUSB_wrap.cxx @srcdir@/CVMUSBReadoutList_wrap.cxx
 
 libCVMUSBReadoutList_la_SOURCES = @srcdir@/CVMUSBReadoutList_wrap.cxx
 libCVMUSBReadoutList_la_LIBADD = libVMUSB.la @THREADLD_FLAGS@
+
+libCVMUSBReadoutList_la_CPPFLAGS=$(COMPILATION_FLAGS)
 
 
 @srcdir@/CVMUSBReadoutList_wrap.cxx: @srcdir@/CVMUSBReadoutList.h

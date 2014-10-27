@@ -34,6 +34,7 @@
 #include <CAddTclDriver.h>
 #include <CULMTrigger.h>
 #include <CUserCommand.h>
+#include <CMarkerCommand.h>
 #include <iostream>
 #include <CCCUSB.h>
 #include <CCCUSBReadoutList.h>

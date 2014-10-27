@@ -83,7 +83,7 @@ tcltest::test ratio-numrates {Test getNumeratorRates} \
     
     m getNumeratorRate
     
-} -result 1234.0
+} -result [format "%6.2f " 1234.0]
 
 tcltest::test ratio-numrates {Test getDenominatorRates} \
 -setup { setup } -cleanup {cleanup} \
@@ -92,7 +92,7 @@ tcltest::test ratio-numrates {Test getDenominatorRates} \
     
     m getDenominatorRate
     
-} -result 1234.0
+} -result [format %6.2f 1234.0]
 
 tcltest::test ratio-numtotals {test GetNumeratorTotal} \
 -setup { setup } -cleanup {cleanup} \
@@ -102,7 +102,7 @@ tcltest::test ratio-numtotals {test GetNumeratorTotal} \
     
     m getNumeratorTotal
     
-} -result [expr {1234+555}]
+} -result [format "%6d " [expr {1234+555}]]
 
 
 tcltest::test ratio-dentotals {test GetDenominatorTotal} \
@@ -113,7 +113,7 @@ tcltest::test ratio-dentotals {test GetDenominatorTotal} \
     
     m getDenominatorTotal
     
-} -result [expr {1234+555}]
+} -result [format %6d [expr {1234+555}]]
 
 
 tcltest::test ratio-rateratio {test getRateRatio} \
@@ -123,7 +123,7 @@ tcltest::test ratio-rateratio {test getRateRatio} \
     c2 update 617  1
     
     m getRateRatio
-} -result 2.0
+} -result [format "%6.2f" 2.0]
 
 tcltest::test ratio-ratratioundef {when the rate in the denominator of the rate is 0:} \
 -setup { setup } -cleanup {cleanup} \
@@ -141,7 +141,7 @@ tcltest::test ratio-totratio {test getTotalRatio} \
     c2 update 617  1
     
     m getTotalRatio
-} -result 2.0
+} -result [format %6.2f 2.0]
 
 tcltest::test ratio-totundef {when the total denominator os 0: } \
 -setup { setup } -cleanup {cleanup} \

@@ -31,7 +31,7 @@ include_HEADERS	=  CFilterMain.h \
                    CMediatorException.h \
                    CFatalException.h
 
-INCLUDES	= -I@top_srcdir@/utilities \
+libfilter_la_CPPFLAGS	= -I@top_srcdir@/utilities \
     @LIBTCLPLUS_CFLAGS@	\
 		-I@top_srcdir@/base/uri		\
     -I@top_srcdir@/daq/format \
@@ -79,13 +79,22 @@ unittests_LDADD		= -L$(libdir) $(CPPUNIT_LDFLAGS) 		\
 			@top_builddir@/utilities/filter/libfilter.la	\
 			@LIBEXCEPTION_LDFLAGS@
 
-
+unittests_CPPFLAGS=  -I@top_srcdir@/utilities \
+    @LIBTCLPLUS_CFLAGS@	\
+		-I@top_srcdir@/base/uri		\
+    -I@top_srcdir@/daq/format \
+    -I@top_srcdir@/base/dataflow
 unittests_CXXFLAGS = $(AM_CXXFLAGS)
 
 unittests_LDFLAGS	= -Wl,"-rpath-link=$(libdir)"
 
 
 testapp_SOURCES = TestApp.cpp
+testapp_CPPFLAGS= -I@top_srcdir@/utilities \
+    @LIBTCLPLUS_CFLAGS@	\
+		-I@top_srcdir@/base/uri		\
+    -I@top_srcdir@/daq/format \
+    -I@top_srcdir@/base/dataflow
 testapp_LDADD = -L$(libdir) $(CPPUNIT_LDFLAGS) 		\
 			@top_builddir@/base/dataflow/libDataFlow.la 	\
 			@top_builddir@/base/uri/liburl.la 	\

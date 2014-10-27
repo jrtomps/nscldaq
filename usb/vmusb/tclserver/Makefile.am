@@ -1,7 +1,19 @@
 lib_LTLIBRARIES			= libVMUSBControlServer.la libUserDriver.la
 
 
-libVMUSBControlServer_la_CXXFLAGS	= @THREADCXX_FLAGS@
+COMPILATION_FLAGS=@THREADCXX_FLAGS@ -I@top_srcdir@/usb/vmusb/vmusb		\
+					-I@top_srcdir@/daq/format                 \
+					-I@top_srcdir@/usb/vmusb/devices	\
+					-I@top_srcdir@/usb/vmusb/rdothread	\
+					-I@top_srcdir@/usb/vmusb/router	\
+					-I@top_srcdir@/usb/vmusb	\
+					@LIBTCLPLUS_CFLAGS@	\
+					-I@top_srcdir@/base/headers \
+					-I@top_srcdir@/base/thread	\
+					-I@top_srcdir@/base/os		\
+					@TCL_FLAGS@
+
+libVMUSBControlServer_la_CXXFLAGS	= $(COMPILATION_FLAGS)
 
 libVMUSBControlServer_la_SOURCES	= 	CControlHardware.cpp	\
 					CModuleCommand.cpp	\
@@ -62,17 +74,6 @@ noinst_HEADERS			=	CGDG.h			\
           CRunStateCommand.h
 
 
-INCLUDES			= 	-I@top_srcdir@/usb/vmusb/vmusb		\
-					-I@top_srcdir@/daq/format                 \
-					-I@top_srcdir@/usb/vmusb/devices	\
-					-I@top_srcdir@/usb/vmusb/rdothread	\
-					-I@top_srcdir@/usb/vmusb/router	\
-					-I@top_srcdir@/usb/vmusb	\
-					@LIBTCLPLUS_CFLAGS@	\
-					-I@top_srcdir@/base/headers \
-					-I@top_srcdir@/base/thread	\
-					-I@top_srcdir@/base/os		\
-					@TCL_FLAGS@
 
 libVMUSBControlServer_la_LIBADD	= 	@top_builddir@/usb/vmusb/vmusb/libVMUSB.la \
 					@top_builddir@/usb/vmusb/devices/libVMUSBDevices.la \
@@ -84,6 +85,8 @@ libVMUSBControlServer_la_LIBADD	= 	@top_builddir@/usb/vmusb/vmusb/libVMUSB.la \
 					@TCL_LDFLAGS@ @THREADLD_FLAGS@
 
 libUserDriver_la_SOURCES  = CUserDriverSample.cpp
+
+libUserDriver_la_CPPFLAGS = $(COMPILATION_FLAGS)
 
 install-data-local:
 	$(mkinstalldirs) @prefix@/vmusbdriver

@@ -1,3 +1,4 @@
+#!/bin/bash
 
 set -e ;# make sure that the script exits with an error if _any_ error occurs
 

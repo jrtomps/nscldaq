@@ -15,10 +15,7 @@ noinst_HEADERS		= 	CBeginRun.h	\
 				CExit.h		\
 				tclUtil.h
 
-libVMUSBCommands_la_CXXFLAGS=@THREADCXX_FLAGS@
-
-
-INCLUDES		= 	-I@top_srcdir@/usb/vmusb/rdothread	\
+libVMUSBCommands_la_CXXFLAGS=@THREADCXX_FLAGS@ -I@top_srcdir@/usb/vmusb/rdothread	\
 				-I@top_srcdir@/usb/vmusb/router		\
 				-I@top_srcdir@/usb/vmusb/daqconfig	\
 				-I@top_srcdir@/usb/vmusb		\
@@ -28,6 +25,7 @@ INCLUDES		= 	-I@top_srcdir@/usb/vmusb/rdothread	\
 				-I@top_srcdir@/base/headers		\
 				-I@top_srcdir@/base/thread		\
 				$(TCL_FLAGS) 
+
 
 
 libVMUSBCommands_la_LIBADD	= 	@top_builddir@/usb/vmusb/rdothread/libVMUSBRdoThread.la	\

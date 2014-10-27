@@ -13,18 +13,7 @@ SUBDIRS = 	vmusb 		\
 
 bin_PROGRAMS = VMUSBReadout
 
-VMUSBReadout_CXXFLAGS=@THREADCXX_FLAGS@
-VMUSBReadout_CCFLAGS=@THREADC_FLAGS@
-
-VMUSBReadout_SOURCES = CTheApplication.cpp Globals.cpp 
-
-VMUSBReadout_DEPENDENCIES = cmdline.o
-
-BUILT_SOURCES = cmdline.h
-
-noinst_HEADERS = CTheApplication.h Globals.h event.h
-
-INCLUDES = -I@top_srcdir@/usb/vmusb/vmusb -I@top_srcdir@/usb/vmusb/devices \
+VMUSBReadout_CXXFLAGS=@THREADCXX_FLAGS@ -I@top_srcdir@/usb/vmusb/vmusb -I@top_srcdir@/usb/vmusb/devices \
 	-I@top_srcdir@/usb/vmusb/router -I@top_srcdir@/usb/vmusb/rdothreaed \
 	-I@top_srcdir@/usb/vmusb/tclserver -I@top_srcdir@/usb/vmusb/daqconfig -I@top_srcdir@/usb/vmusb/commands  \
 	-I@top_srcdir@/usb/vmusb/rdothread	\
@@ -35,6 +24,18 @@ INCLUDES = -I@top_srcdir@/usb/vmusb/vmusb -I@top_srcdir@/usb/vmusb/devices \
         -I@top_srcdir@/servers/portmanager \
 	-I@top_srcdir@/base/os		\
 	@TCL_CPPFLAGS@ $(USBSWITCHES) 
+
+VMUSBReadout_CCFLAGS=@THREADC_FLAGS@
+
+VMUSBReadout_SOURCES = CTheApplication.cpp Globals.cpp 
+
+VMUSBReadout_DEPENDENCIES = cmdline.o
+
+BUILT_SOURCES = cmdline.h
+
+noinst_HEADERS = CTheApplication.h Globals.h event.h
+
+
 
 VMUSBReadout_LDADD	= cmdline.o @top_builddir@/usb/vmusb/devices/libVMUSBDevices.la	\
 		@top_builddir@/usb/vmusb/router/libVMUSBRouter.la	\

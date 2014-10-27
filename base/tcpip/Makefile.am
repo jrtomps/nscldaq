@@ -15,7 +15,7 @@ include_HEADERS = CSocket.h \
 	CTCPNoSuchService.h
 
 
-INCLUDES = @LIBTCLPLUS_CFLAGS@	\
+libTcp_la_CPPFLAGS = @LIBTCLPLUS_CFLAGS@	\
 	-I@top_srcdir@/base/headers -I@top_srcdir@/base/os
 
 libTcp_la_LIBADD = @LIBEXCEPTION_LDFLAGS@	\
