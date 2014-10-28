@@ -117,6 +117,23 @@ Name             Type        Default         Meaning
 
 -bufferlength     integer     4096          Specifies the size of buffers used by the CCUSB.
                                             One of : 4096, 2048, 1024, 512, 256, 128, 64, singleevent
+
+-forcescalerdump  bool        false         When true, the CC-USB immediately flushes buffer after
+                                            execution of a scaler stack
+
+-mixedbuffer      bool        false         When true, the CC-USB allows data from scaler stack
+                                            and event stack executions to reside in the same 
+                                            output buffer.
+
+-optionalheader   bool        false         Is defined but does not affect the global mode register.
+
+-triggerlatch     bool        false         The execution of a scaler stack causes the event stack
+                                            to be executed immediately after completion of the 
+                                            scaler stack.
+-printconfig      bool        false         When true, the values of all registers in the CC-USB
+                                            are read and printed after all initialization operations
+                                            have completed. This will provide insight to the 
+                                            register values when running.
 \endverbatim
 
 */

@@ -261,7 +261,8 @@ CCCUSBModule::onAttach(CReadoutModule& configuration)
   // flush scaler buffer immediately after execution
   configuration.addBooleanParameter("-forcescalerdump",false);
 
-  // allow camac bus arbitration
+  // allow camac bus arbitration... totally broken.
+  //  i tried setting this and it make my CC-USB slow down incredibly and then fail.
   configuration.addBooleanParameter("-arbitratebus",false);
                                   
   // in case we want it later... at the moment we don't use it

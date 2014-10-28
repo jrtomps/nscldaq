@@ -4343,6 +4343,48 @@ ccusb cget name
                     </para>
                 </listitem>
             </varlistentry>
+            <varlistentry>
+                <term><option>-forcescalerdump</option></term>
+                <listitem>
+                    <para>
+                      When true, this causes the CC-USB to flush its buffers
+                      after every scaler stack execution. It is very useful
+                      when there is either a very low data rate or only
+                      a scaler stack defined. The default value is false.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-mixedbuffer</option></term>
+                <listitem>
+                    <para>
+                      When true, this allows the CC-USB to put scaler-type data
+                      and event-type data in the same buffer. This defaults to
+                      false.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-triggerlatch</option></term>
+                <listitem>
+                    <para>
+                      When true, the execution of a scaler stack causes the
+                      the event stack to execute immediately at completion.
+                      The default value is false.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-printconfig</option></term>
+                <listitem>
+                    <para>
+                      When true, all register values for the CC-USB are read and
+                      printed at the completion of the initialization stage.
+                      This is useful for inspecting the exact register contents
+                      used for an ongoing run. The default value is false.
+                    </para>
+                </listitem>
+            </varlistentry>
             
            </variablelist>
         </refsect1>
