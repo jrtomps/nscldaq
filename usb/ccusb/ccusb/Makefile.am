@@ -7,9 +7,9 @@ COMPILATION_FLAGS		= -I@top_srcdir@/base/os \
 												-I@top_srcdir@/base/tcpip 
 
 
-libCCUSB_la_SOURCES	= CCCUSB.cpp CCCUSBusb.cpp CCCUSBRemote.cpp CCCUSBReadoutList.cpp
+libCCUSB_la_SOURCES	= CCCUSB.cpp CCCUSBusb.cpp CCCUSBRemote.cpp CMockCCUSB.cpp CCCUSBReadoutList.cpp
 libCCUSB_la_CPPFLAGS    = $(COMPILATION_FLAGS)
-include_HEADERS         = CCCUSB.h CCCUSBusb.h CCCUSBRemote.h  CCCUSBReadoutList.h
+include_HEADERS         = CCCUSB.h CCCUSBusb.h CCCUSBRemote.h CMockCCUSB.h CCCUSBReadoutList.h
 
 
 ## SWIG wrapper generation
