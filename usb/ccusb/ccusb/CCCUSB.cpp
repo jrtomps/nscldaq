@@ -1213,3 +1213,64 @@ CCCUSB::write16(int n, int a, int f, uint16_t data, uint16_t& qx)
 }
 
 
+
+void 
+CCCUSB::dumpConfiguration(std::ostream& stream)
+{
+  uint32_t dummy32;
+  uint16_t dummy16;
+
+  int width = 28;
+
+  stream << hex;
+  stream << "CC-USB Register settings";
+  stream << "\n";
+
+  readFirmware(dummy32);
+  stream << setw(width) << "Firmware id (hex)" << ": " << setw(8) << dummy32;
+  stream << "\n";
+  
+  readGlobalMode(dummy16);
+  stream << setw(width) << "Global mode (hex)" << ": " << setw(8) << dummy16;
+  stream << "\n";
+
+  readDelays(dummy32);
+  stream << setw(width) << "Delays (hex)" << ": " << setw(8) << dummy32;
+  stream << "\n";
+
+  readScalerControl(dummy32);
+  stream << setw(width) << "Scaler control (hex)" << ": " << setw(8) << dummy32;
+  stream << "\n";
+
+  readLedSelector(dummy32);
+  stream << setw(width) << "LED selector (hex)" << ": " << setw(8) << dummy32;
+  stream << "\n";
+
+  readOutputSelector(dummy32);
+  stream << setw(width) << "Output selector (hex)" << ": " << setw(8) << dummy32;
+  stream << "\n";
+
+  readDeviceSourceSelectors(dummy32);
+  stream << setw(width) << "Device Src selector (hex)" << ": " << setw(8) << dummy32;
+  stream << "\n";
+
+  readDGGA(dummy32);
+  stream << setw(width) << "DGG A (hex)" << ": " << setw(8) << dummy32;
+  stream << "\n";
+  
+  readDGGB(dummy32);
+  stream << setw(width) << "DGG B (hex)" << ": " << setw(8) << dummy32;
+  stream << "\n";
+
+  readDGGExt(dummy32);
+  stream << setw(width) << "DGG extension (hex)" << ": " << setw(8) << dummy32;
+  stream << "\n";
+
+  readLamTriggers(dummy32);
+  stream << setw(width) << "LAM trigger mask (hex)" << ": " << setw(8) << dummy32;
+  stream << "\n";
+
+  stream << dec;
+  stream << flush;
+}
+

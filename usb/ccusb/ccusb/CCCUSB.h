@@ -57,6 +57,13 @@
 #endif
 #endif
 
+#ifndef __STL_STRING
+#include <iosfwd>
+#ifndef __STL_STRING
+#define __STL_STRING
+#endif
+#endif
+
 #ifndef __CCCUSBREADOUTLIST_H
 #include <CCCUSBReadoutList.h>
 #ifndef __CCCUSBREADOUTLIST_H
@@ -358,6 +365,7 @@ public:
     virtual bool isInhibited();
     
 
+    void dumpConfiguration(std::ostream& stream);
     // List operations.
 
 public:
