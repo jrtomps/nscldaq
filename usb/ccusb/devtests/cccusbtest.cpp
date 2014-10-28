@@ -98,7 +98,7 @@ void cccusbtest::setForceScalerDumpBits_0()
 
 void cccusbtest::setForceScalerDumpBits_1()
 {
-  uint16_t newreg = m_pModule->setForceScalerDumpBits(0);
+  uint16_t newreg = m_pModule->setForceScalerDumpBits((1<<6));
 
   uint16_t expected = 0;
   CPPUNIT_ASSERT_EQUAL(expected, newreg);
@@ -117,7 +117,7 @@ void cccusbtest::setArbitrateBusBits_0()
 
 void cccusbtest::setArbitrateBusBits_1()
 {
-  uint16_t newreg = m_pModule->setArbitrateBusBits(0);
+  uint16_t newreg = m_pModule->setArbitrateBusBits((1<<12));
 
   uint16_t expected = 0;
   CPPUNIT_ASSERT_EQUAL(expected, newreg);
@@ -138,7 +138,7 @@ void cccusbtest::setOptionalHeaderBits_0()
 
 void cccusbtest::setOptionalHeaderBits_1()
 {
-  uint16_t newreg = m_pModule->setOptionalHeaderBits(0);
+  uint16_t newreg = m_pModule->setOptionalHeaderBits((1<<8));
 
   uint16_t expected = 0;
   CPPUNIT_ASSERT_EQUAL(expected, newreg);
@@ -156,7 +156,7 @@ void cccusbtest::setTriggerLatchBits_0()
 
 void cccusbtest::setTriggerLatchBits_1()
 {
-  uint16_t newreg = m_pModule->setTriggerLatchBits(0);
+  uint16_t newreg = m_pModule->setTriggerLatchBits((1<<4));
 
   uint16_t expected = 0;
   CPPUNIT_ASSERT_EQUAL(expected, newreg);

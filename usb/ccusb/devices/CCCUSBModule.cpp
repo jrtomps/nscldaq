@@ -769,8 +769,11 @@ uint16_t CCCUSBModule::setOptionalHeaderBits(uint16_t reg_content)
     std::cerr << "Optional header bit is not supported!" << std::endl;
   } else {
     // unset it 
-    //    reg_content &= (~(0x100));
+    //  reg_content &= (~(0x100));
   }
+
+  // make sure it is always unset 
+  reg_content &= (~(0x100));
 
   return reg_content;
 
@@ -783,7 +786,7 @@ uint16_t CCCUSBModule::setTriggerLatchBits(uint16_t reg_content)
     reg_content |= (0x10);
   } else {
     // unset it 
-    reg_content &= (~(0x100));
+    reg_content &= (~(0x10));
   }
 
   return reg_content;
