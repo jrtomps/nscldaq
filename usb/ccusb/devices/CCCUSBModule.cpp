@@ -268,6 +268,8 @@ CCCUSBModule::onAttach(CReadoutModule& configuration)
   configuration.addBooleanParameter("-optionalheader",false);
                                   
   configuration.addBooleanParameter("-triggerlatch",false);
+
+  configuration.addBooleanParameter("-printconfig",false);
 }
 /*!
 
@@ -293,6 +295,9 @@ CCCUSBModule::Initialize(CCCUSB& controller)
   configureBufferLength(controller);
   configureGlobalMode(controller);
 
+  if (m_pConfiguration->getBoolParameter("-printconfig")) {
+    controller.dumpConfiguration(cout);
+  }
 }
  
 /*!
@@ -711,8 +716,9 @@ void CCCUSBModule::configureGlobalMode(CCCUSB& controller)
   // update the bits for each option
   newValue = setMixedBufferBits(newValue);
   newValue = setForceScalerDumpBits(newValue);
-  newValue = setArbitrateBusBits(newValue);
+//  newValue = setArbitrateBusBits(newValue);
 //  newValue = setOptionalHeaderBits(newValue);
+  newValue = setTriggerLatchBits(newValue);
   
   // Write the new bits
   controller.writeGlobalMode(newValue);
