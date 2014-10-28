@@ -160,6 +160,15 @@ private:
   void configureLED(CCCUSB& controller);
   void configureBulkTransfer(CCCUSB& controller);
   void configureBufferLength(CCCUSB& controller);
+  void configureGlobalMode(CCCUSB& controller);
+
+
+  // operations to target specific bit settings
+  uint16_t setMixedBufferBits(uint16_t reg_content);
+  uint16_t setForceScalerDumpBits(uint16_t reg_content);
+  uint16_t setArbitrateBusBits(uint16_t reg_content);
+  uint16_t setOptionalHeaderBits(uint16_t reg_content);
+  uint16_t setTriggerLatchBits(uint16_t reg_content);
 };
 
 #endif
