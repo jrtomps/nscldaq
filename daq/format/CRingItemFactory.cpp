@@ -27,6 +27,7 @@
 #include "CDataFormatItem.h"
 #include "CUnknownFragment.h"
 #include "CGlomParameters.h"
+#include "CAbnormalEndItem.h"
 #include "DataFormat.h"
 
 #include <vector>
@@ -117,6 +118,10 @@ CRingItemFactory::createRingItem(const CRingItem& item)
   case EVB_GLOM_INFO:
     return new CGlomParameters(item);
     break;
+
+  case ABNORMAL_ENDRUN:
+    return new CAbnormalEndItem(item);
+    break;
     
    // Nothing we know about:
 
@@ -190,6 +195,8 @@ CRingItemFactory::isKnownItemType(const void* pItem)
     knownItemTypes.insert(EVB_FRAGMENT);
     knownItemTypes.insert(EVB_UNKNOWN_PAYLOAD);
     knownItemTypes.insert(EVB_GLOM_INFO);
+    
+    knownItemTypes.insert(ABNORMAL_ENDRUN);
   }
 
   return knownItemTypes.count(itemType(p)) > 0;

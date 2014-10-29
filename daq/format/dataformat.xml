@@ -5474,7 +5474,312 @@ item.commitToRing(aring);
             </varlistentry>
           </variablelist>
        </refsect1>
-     </refentry>     
+     </refentry>
+    <refentry id="manpage.cabnormalenditem">
+      <refentryinfo>
+        <author>
+            <personname>
+                <firstname>Ron</firstname>
+                <surname>Fox</surname>
+            </personname>
+        </author>
+        <productname>NSCLDAQ</productname>
+        <productnumber></productnumber>
+      </refentryinfo>
+      <refmeta>
+         <refentrytitle>CAbnormaEndItem</refentrytitle>
+         <manvolnum>3daq</manvolnum>
+             <refmiscinfo class='empty'></refmiscinfo>
+      </refmeta>
+      <refnamediv>
+         <refname>CAbnormalEndItem</refname>
+         <refpurpose>Abnormal end of run.</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+       <synopsis>
+           <ooclass><classname>CAbnormalEnditem</classname></ooclass>
+          <constructorsynopsis>
+         <methodname>CAbnormalEndItem</methodname>
+         <void />
+         <exceptionname></exceptionname>
+          </constructorsynopsis>
+          <constructorsynopsis>
+            <methodname>CAbnormalEndItem</methodname>
+            <methodparam>
+                <modifier>const</modifier> <type>CAbnormalEndItem&amp;</type>
+                <parameter>rhs</parameter>
+            </methodparam>
+          </constructorsynopsis>
+          <constructorsynopsis>
+            <methodname>CAbnormalEndItem</methodname>
+            <methodparam>
+                <modifier>const</modifier> <type>CRingItem&amp;</type>
+                <parameter>rhs</parameter>
+            </methodparam>
+          </constructorsynopsis>
+          <methodsynopsis>
+         <type>CAbnormalEndItem&amp;</type>
+            <methodname>operator=</methodname>
+            <methodparam>
+                <modifier>const</modifier> <type>CAbnormalEndItem&amp;</type>
+                <parameter>rhs</parameter>
+            </methodparam>
+          </methodsynopsis>
+          <methodsynopsis>
+              <modifier></modifier>
+              <type>int</type>
+              <methodname>operator==</methodname>
+              <methodparam>
+                <modifier>const</modifier><type>CAbnormalEndItem&amp;</type>
+                <parameter>rhs</parameter>
+              </methodparam>
+              <modifier>const</modifier>
+          </methodsynopsis>
+          <methodsynopsis>
+              <modifier></modifier>
+              <type>int</type>
+              <methodname>operator==</methodname>
+              <methodparam>
+                <modifier>const</modifier> <type>CRingitem&amp;</type>
+                <parameter>rhs</parameter>
+              </methodparam>
+              <modifier>const</modifier>
+          </methodsynopsis>
+          <methodsynopsis>
+              <modifier></modifier>
+              <type>int</type>
+              <methodname>operator!=</methodname>
+              <methodparam>
+                <modifier>const</modifier> <type>CAbnormalEndItem&amp;</type>
+                <parameter>rhs</parameter>
+              </methodparam>
+              <modifier>const</modifier>
+          </methodsynopsis>
+          <methodsynopsis>
+              <modifier></modifier>
+              <type>int</type>
+              <methodname>operator!=</methodname>
+              <methodparam>
+                <modifier>const</modifier><type>CRingItem&amp;</type>
+                <parameter>rhs</parameter>
+              </methodparam>
+              <modifier>const</modifier>
+          </methodsynopsis>
+          <methodsynopsis>
+              <modifier>virtual </modifier>
+              <type>std::string </type>
+              <methodname>typeName</methodname>
+              <void />
+              <modifier>const</modifier>
+          </methodsynopsis>
+          <methodsynopsis>
+              <modifier>virtual </modifier>
+              <type>std::string </type>
+              <methodname>toString() </methodname>
+              <modifier>const</modifier>
+          </methodsynopsis>  
+};
+       </synopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>DESCRIPTION</title>
+         <para>
+            Provides a class for objects that represent abnormal end of run
+            ring items.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>
+        METHODS
+         </title>
+         <variablelist>
+            <varlistentry>
+                <term>
+                    <constructorsynopsis>
+                   <methodname>CAbnormalEndItem</methodname>
+                   <void />
+                   <exceptionname></exceptionname>
+                    </constructorsynopsis>
+                    
+                </term>
+                <listitem>
+                    <para>
+                        Default constructor for abnormal end items.
+                        In most applications, this is the only
+                        constructor you ever need.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <constructorsynopsis>
+                      <methodname>CAbnormalEndItem</methodname>
+                      <methodparam>
+                          <modifier>const</modifier> <type>CAbnormalEndItem&amp;</type>
+                          <parameter>rhs</parameter>
+                      </methodparam>
+                    </constructorsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Creates a ring item that is a duplicate of the <parameter>rhs</parameter>
+                        argrument.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <constructorsynopsis>
+                       <methodname>CAbnormalEndItem</methodname>
+                       <methodparam>
+                           <modifier>const</modifier> <type>CRingItem&amp;</type>
+                           <parameter>rhs</parameter>
+                       </methodparam>
+                     </constructorsynopsis>           
+                </term>
+                <listitem>
+                    <para>
+                        Constructs an abnormal end item from an arbitrary
+                        ring item reference.  The only requirement to avoid an
+                        exception is that <parameter>rhs</parameter> has the type
+                        <literal>ABNORMAL_ENDRUN</literal>.  If this is not the case
+                        a <classname>std::bad_cast</classname> exception is thrown.
+                    </para>
+                </listitem>
+            </varlistentry>
+           <varlistentry>
+               <term>
+                <methodsynopsis>
+                  <type>CAbnormalEndItem&amp;</type>
+                  <methodname>operator=</methodname>
+                  <methodparam>
+                      <modifier>const</modifier> <type>CAbnormalEndItem&amp;</type>
+                      <parameter>rhs</parameter>
+                  </methodparam>
+                </methodsynopsis>
+               </term>
+               <listitem>
+                   <para>
+                    Assigns this to the contents of <parameter>rhs</parameter>.
+                   </para>
+               </listitem>
+           </varlistentry>
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier></modifier>
+                        <type>int</type>
+                        <methodname>operator==</methodname>
+                        <methodparam>
+                          <modifier>const</modifier><type>CAbnormalEndItem&amp;</type>
+                          <parameter>rhs</parameter>
+                        </methodparam>
+                        <modifier>const</modifier>
+                    </methodsynopsis>
+
+                </term>
+                <listitem>
+                    <para>
+                        Returns <literal>1</literal> because there is no payload
+                        in abnormal end run item to differentiate one from another.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier></modifier>
+                        <type>int</type>
+                        <methodname>operator==</methodname>
+                        <methodparam>
+                          <modifier>const</modifier> <type>CRingitem&amp;</type>
+                          <parameter>rhs</parameter>
+                        </methodparam>
+                        <modifier>const</modifier>
+                    </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Returns <literal>1</literal> if <parameter>rhs</parameter>
+                        is an abnormal end ring item.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier></modifier>
+                        <type>int</type>
+                        <methodname>operator!=</methodname>
+                        <methodparam>
+                          <modifier>const</modifier> <type>CAbnormalEndItem&amp;</type>
+                          <parameter>rhs</parameter>
+                        </methodparam>
+                        <modifier>const</modifier>
+                    </methodsynopsis>
+                    <methodsynopsis>
+                        <modifier></modifier>
+                        <type>int</type>
+                        <methodname>operator!=</methodname>
+                        <methodparam>
+                          <modifier>const</modifier><type>CRingItem&amp;</type>
+                          <parameter>rhs</parameter>
+                        </methodparam>
+                        <modifier>const</modifier>
+                    </methodsynopsis>
+
+                </term>
+                <listitem>
+                    <para>
+                        Returns the logical negation of the corresponding
+                        <methodname>operator==</methodname>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier>virtual </modifier>
+                        <type>std::string </type>
+                        <methodname>typeName</methodname>
+                        <void />
+                        <modifier>const</modifier>
+                    </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Returns a string that describes the type of the
+                        ring item.  In this case the string is
+                        <literal>Abnormal End</literal>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier>virtual </modifier>
+                        <type>std::string </type>
+                        <methodname>toString() </methodname>
+                        <modifier>const</modifier>
+                    </methodsynopsis>  
+
+                </term>
+                <listitem>
+                    <para>
+                        Returns a string that represents the contents
+                        of the ring item.  In this case, with no
+                        payload, the result of
+                        <methodname>typeName</methodname> is returned.
+                    </para>
+                </listitem>
+            </varlistentry>
+            
+
+
+         </variablelist>
+      </refsect1>
+    </refentry>     
     <refentry id="manpage.cringselectionpredicate">
       <refmeta>
          <refentrytitle>CRingSelectionPredicate</refentrytitle>
@@ -6527,6 +6832,14 @@ typedef struct _GlomParameters  {
     
 } GlomParameters, *pGlomParameters;
 
+typedef strucst _AbnormalEndItem {
+    RingItemHeader s_header;
+    uint32_t      s_mbz;                   // Empty body header.
+
+} AbnormalEndItem, *pAbnormalEndItem;
+
+
+
   pPhysicsEventItem  formatEventItem(size_t nWords, void* pPayload);
   pPhysicsEventCountItem formatTriggerCountItem(uint32_t runTime, time_t stamp, uint64_t triggerCount);
   pScalerItem         formatScalerItem(unsigned scalerCount, time_t timestamp, 
@@ -6576,6 +6889,10 @@ typedef struct _GlomParameters  {
     time_t stamp, uint32_t offset, uint32_t runNumber, uint32_t offsetDivisor,
     const char* pTitle, int type
   );
+  
+ pAbnormalEndItem formatAbnormalEndItem();
+  
+  
   void* bodyPointer(pRingItem pItem);
 
 </programlisting>
@@ -7170,6 +7487,20 @@ typedef struct _GlomParameters  {
                     be chosen.  This is one of <literal>GLOM_TIMESTAMP_FIRST</literal>,
                     <literal>GLOM_TIMESTAMP_LAST</literal> or <literal>GLOM_TIMESTAMP_AVERAGE</literal>.
                 </para>
+                <programlisting>
+
+typedef strucst _AbnormalEndItem {
+    RingItemHeader s_header;
+    uint32_t      s_mbz;                   // Empty body header.
+
+} AbnormalEndItem, *pAbnormalEndItem;
+
+                </programlisting>
+                <para>
+                     This can be emitted to let downstream software know that
+                     a run was ended prematurely.  When emitted no more data
+                     shouild be emitted for the current run.
+                </para>
               </refsect2>
               
               
@@ -7277,6 +7608,22 @@ typedef struct _GlomParameters  {
                             The <varname>s_type</varname> value in the
                             <type>RingItemHeader</type> of a state change item
                             that documents a resume from a paused run.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier>
+                            <type>uint32_t</type> <varname>ABNORMAL_ENDRUN</varname>
+                            <initializer>5</initializer>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Ring items of this type indcate a run ended abnormally.
+                            This should be treated, in  most respects, like the end
+                            of run marker.
                         </para>
                     </listitem>
                 </varlistentry>
@@ -7902,6 +8249,14 @@ typedef struct _GlomParameters  {
                     <paramdef>
                         <parameter><type>pRingItem</type> pItem</parameter>
                     </paramdef>
+                </funcprototype>
+            </funcsynopsis>
+            <funcsynopsis>
+                <funcprototype>
+                    <funcdef>
+                        <type>pAbnormalEndItem</type> <function>formatAbnormalEndItem</function>
+                    </funcdef>
+                    <void />
                 </funcprototype>
             </funcsynopsis>
 
@@ -8669,6 +9024,26 @@ typedef struct _GlomParameters  {
                                 points to the null terminated title string.
                             </para>
                             
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>
+                            <funcsynopsis>
+                                <funcprototype>
+                                    <funcdef>
+                                        <type>pAbnormalEndItem</type> <function>formatAbnormalEndItem</function>
+                                    </funcdef>
+                                    <void />
+                                </funcprototype>
+                            </funcsynopsis>
+                        </term>
+                        <listitem>
+                            <para>
+                                Formats an abnormal end item and returns a pointer to the dynamically allocated
+                                item. You must at some point call
+                                <function>free(3)</function> to
+                                release the storage allocated to this ring item.
+                            </para>
                         </listitem>
                     </varlistentry>
                     <varlistentry>

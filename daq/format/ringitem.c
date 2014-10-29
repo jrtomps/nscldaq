@@ -875,6 +875,22 @@ formatGlomParameters(uint64_t interval, int isBuilding, int timestampPolicy)
     return pResult;
 }
 /**
+ * formatAbnormalEndItem
+ *    Creates an abnormal end item.
+ *
+ * @return pAbnormalEndItem  dynamically allocated.
+ */
+pAbnormalEndItem
+formatAbnormalEndItem()
+{
+    pAbnormalEndItem p = (pAbnormalEndItem)(malloc(sizeof(AbnormalEndItem)));
+    p->s_mbz = 0;
+    p->s_header.s_size = sizeof(AbnormalEndItem);
+    p->s_header.s_type = ABNORMAL_ENDRUN;
+    
+    return p;
+}
+/**
  * itemSize
  *    Return the size of an item regardless of the byte swapping.
  *

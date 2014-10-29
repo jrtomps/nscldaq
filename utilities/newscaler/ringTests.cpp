@@ -25,7 +25,7 @@
 #include <CRingFragmentItem.h>
 #include <CRingPhysicsEventCountItem.h>
 #include <CGlomParameters.h>
-
+#include <CAbnormalEndItem.h>
 #include <CRingScalerItem.h>
 
 
@@ -69,6 +69,10 @@ class RingTests : public CppUnit::TestFixture {
   CPPUNIT_TEST(getPhysicsEventCountBodyHeader);
   CPPUNIT_TEST(getGlomInfo);
   CPPUNIT_TEST(getWithPredicate);
+  
+  // Test for Abnormal End.
+  
+  CPPUNIT_TEST(getAbnormalEnd);
 
   
   CPPUNIT_TEST_SUITE_END();
@@ -121,6 +125,8 @@ protected:
   void getPhysicsEventCountBodyHeader();
   void getGlomInfo();
   void getWithPredicate();
+  
+  void getAbnormalEnd();
 
 private:
     int tryCommand(const char* command);
@@ -1086,4 +1092,19 @@ void RingTests::getWithPredicate()
     EQ(std::string("End Run"), item);
     
     
+}
+void RingTests::getAbnormalEnd()
+{
+    int stat = tryCommand("ring attach tcp://localhost/tcltestring");
+    CRingBuffer ring("tcltestring", CRingBuffer::producer);
+    CAbnormalEndItem item;
+    item.commitToRing(ring);
+    
+    stat = tryCommand("ring get tcp://localhost/tcltestring");
+    EQ(TCL_OK, stat);
+    Tcl_Obj* received = Tcl_GetObjResult(m_pinterp->getInterpreter());
+    
+    std::string item;
+    getDictItem(redeived, "type", item);
+    EQ(std::string("Abnormal End"), item);
 }
