@@ -80,19 +80,21 @@ static int spawn(const char* command)
   }
   else {
     // child...
-
+    setsid();
 
     close(readPipe);
 
 
     // Set the write pipe as our stdout/stderr:
 
-    close(STDOUT_FILENO);
     dup2(writePipe, STDOUT_FILENO);
+    close(writePipe);
 
     int status = system(command);
     assert(status != -1);
     
+    close(STDOUT_FILENO);
+
     exit(0);
 
   }
@@ -331,7 +333,6 @@ CPPUNIT_TEST_SUITE_REGISTRATION(rseltests);
 // The preprocessor symobl BINDIR isthe directory in which
 // the ringselector was installed.
 //
-
 void rseltests::all() 
 {
   
@@ -363,7 +364,7 @@ void rseltests::all()
 
   }    
   catch (...) {
-    kill(childpid, SIGTERM);
+    kill(childpid*-1, SIGTERM);
     
     int status;
     wait(&status);
@@ -373,14 +374,13 @@ void rseltests::all()
   
   // Cleanup by killing the child.
   
-  kill(childpid, SIGTERM);
+  kill(childpid*-1, SIGTERM);
   
   int status;
   wait(&status);
   close(fd);
 
 }
-
 // build use the --exclude switch to not accept BEGIN_RUN items.
 
 void rseltests::exclude()
@@ -399,15 +399,16 @@ void rseltests::exclude()
     endRun(prod,fd);		// Should be the first one back from the program.
   }
   catch (...) {
-    kill (childpid, SIGTERM);
+    kill (childpid*-1, SIGTERM);
     int s;
     wait(&s);
     throw;
   }
 
-  kill (childpid, SIGTERM);
+  kill (childpid*-1, SIGTERM);
   int s;
   wait(&s);
+  close(fd);
 }
 
 // Build using the --accept switch...
@@ -429,14 +430,16 @@ void rseltests::only()
 
   }
   catch (...) {
-    kill (childpid, SIGTERM);
+    kill (childpid*-1, SIGTERM);
     int s;
     wait(&s);
     throw;
   }
 
-  kill (childpid, SIGTERM);
+  kill (childpid*-1, SIGTERM);
   int s;
   wait(&s);
+  close(fd);
 }
 // don't know how to test for sampling.
+
