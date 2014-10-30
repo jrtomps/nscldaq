@@ -3,6 +3,8 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 
 #include <config.h>
 
+#include <string>
+#include <string.h>
 #include "CVMEInterface.h"
 #include "SBSBit3API.h"		// Device specific api.
 
@@ -13,8 +15,6 @@ extern "C" {
 #include <btapi.h>
 #include <bt_trace.h>
 }
-#include <string>
-#include <string.h>
 #include <limits.h>
 #include <assert.h>
 #include <unistd.h>
@@ -38,12 +38,12 @@ typedef struct _DeviceEntry {
 } DeviceEntry, *pDeviceEntry;
 
 static const DeviceEntry kaDeviceTable[] = {
-  {CVMEInterface::A16,  BT_DEV_IO,  UINT_MAX,       UINT_MAX    },
-  {CVMEInterface::A24,  BT_DEV_A24, UINT_MAX,       UINT_MAX   },
-  {CVMEInterface::A32,  BT_DEV_A32, UINT_MAX,       UINT_MAX   },
-  {CVMEInterface::GEO,  BT_DEV_A24, 0x2f,           UINT_MAX   }, // In general probably does not support DMA.
-  {CVMEInterface::MCST, BT_DEV_A32, BT_AMOD_A32_ND, UINT_MAX},
-  {CVMEInterface::CBLT, BT_DEV_A32, UINT_MAX,       BT_AMOD_A32_NB}
+  {CVMEInterface::A16,  BT_DEV_IO,  INT_MAX,       INT_MAX    },
+  {CVMEInterface::A24,  BT_DEV_A24, INT_MAX,       INT_MAX   },
+  {CVMEInterface::A32,  BT_DEV_A32, INT_MAX,       INT_MAX   },
+  {CVMEInterface::GEO,  BT_DEV_A24, 0x2f,           INT_MAX   }, // In general probably does not support DMA.
+  {CVMEInterface::MCST, BT_DEV_A32, BT_AMOD_A32_ND, INT_MAX},
+  {CVMEInterface::CBLT, BT_DEV_A32, INT_MAX,       BT_AMOD_A32_NB}
 };
 
 /*
