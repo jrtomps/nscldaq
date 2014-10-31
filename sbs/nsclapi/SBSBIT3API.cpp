@@ -38,12 +38,12 @@ typedef struct _DeviceEntry {
 } DeviceEntry, *pDeviceEntry;
 
 static const DeviceEntry kaDeviceTable[] = {
-  {CVMEInterface::A16,  BT_DEV_IO,  INT_MAX,       INT_MAX    },
-  {CVMEInterface::A24,  BT_DEV_A24, INT_MAX,       INT_MAX   },
-  {CVMEInterface::A32,  BT_DEV_A32, INT_MAX,       INT_MAX   },
-  {CVMEInterface::GEO,  BT_DEV_A24, 0x2f,           INT_MAX   }, // In general probably does not support DMA.
-  {CVMEInterface::MCST, BT_DEV_A32, BT_AMOD_A32_ND, INT_MAX},
-  {CVMEInterface::CBLT, BT_DEV_A32, INT_MAX,       BT_AMOD_A32_NB}
+  {CVMEInterface::A16,  BT_DEV_IO,  -1,       -1    },
+  {CVMEInterface::A24,  BT_DEV_A24, -1,       -1   },
+  {CVMEInterface::A32,  BT_DEV_A32, -1,       -1   },
+  {CVMEInterface::GEO,  BT_DEV_A24, 0x2f,           -1   }, // In general probably does not support DMA.
+  {CVMEInterface::MCST, BT_DEV_A32, BT_AMOD_A32_ND, -1},
+  {CVMEInterface::CBLT, BT_DEV_A32, -1,       BT_AMOD_A32_NB}
 };
 
 /*
