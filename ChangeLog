@@ -836,5 +836,6 @@ Work on 11.0-rc11 begins
         Feature #2355 Add support for ABNORMAL_END ring items to the system.
         Feature #2346 Enable BufferToRing to produce body headers if
         desired or specified by user.
-        
+        Feature #1826 - Tell user when xxUSBReadout config file exceeds
+	the available stack space.
 	

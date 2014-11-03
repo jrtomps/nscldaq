@@ -27,6 +27,11 @@
 #include <CRunState.h>
 #include <CConfiguration.h>
 #include <CCCUSB.h>
+#include <CCCUSBReadoutList.h>
+#include <CReadoutModule.h>
+
+
+static const size_t MAX_STACK_STORAGE(1024);
 
 using std::vector;
 using std::string;
@@ -146,6 +151,23 @@ CBeginRun::operator()(CTCLInterpreter& interp,
     return TCL_ERROR;
 		       
   }
+  // Figure out how big the stacks are...the two stack + any headers must
+  // fit into the 1Kx16 stack memory the CUSB has:
+  
+  std::vector<CReadoutModule*> stackModules = pConfig->getStacks();
+  size_t totalSize = 0;
+  CCCUSBReadoutList stacks;
+  
+  // Just build one gimungous stack from one or both stacks:
+  
+  for (int i = 0; i < stackModules.size(); i++) {
+    stackModules[i]->addReadoutList(stacks);
+  }
+  if (stacks.size() > MAX_STACK_STORAGE) {
+    tclUtil::setResult(interp, "**** Your configuration file exceeds the maximum stack storage space ****");
+    return TCL_ERROR;
+  }
+  
   // It did so we can kill it off and start the run.
   // we kill it off because supporting Tcl drivers requires the configuration be processed a bit specially
   // so that the interpreter is still around and the Tcl thread model isn't violated.
