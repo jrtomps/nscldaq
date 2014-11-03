@@ -595,10 +595,10 @@ CExperiment::DocumentPackets()
     time_t           now     = time(&now);
     uint64_t         msTime  = getTimeMs();
     uint32_t         offset = (msTime - m_nRunStartStamp - m_nPausedmSeconds)/1000;
-    CRingTextItem item(NULL_TIMESTAMP, m_nSourceId, BARRIER_NOTBARRIER,
-                       PACKET_TYPES, packetDefs,
-		       offset,
-		       static_cast<uint32_t>(now));
+    CRingTextItem item(PACKET_TYPES, NULL_TIMESTAMP, m_nSourceId, BARRIER_NOTBARRIER,
+                       packetDefs,
+                       offset,
+                       static_cast<uint32_t>(now));
     item.commitToRing(*m_pRing);
   }
 }
