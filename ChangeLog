@@ -834,5 +834,7 @@ Work on 11.0-rc11 begins
 	Bug #2057 B - add -incremental option to CCUSBReadout stack module
 	driver as well.
         Feature #2355 Add support for ABNORMAL_END ring items to the system.
+        Feature #2346 Enable BufferToRing to produce body headers if
+        desired or specified by user.
         
 	
