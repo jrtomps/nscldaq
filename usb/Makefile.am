@@ -1,4 +1,4 @@
-SUBDIRS=vmusb ccusb loaders caenfwloader common
+SUBDIRS=vmusb ccusb loaders caenfwloader common mesytec
 
 DIST_SUBDIRS = vmusb ccusb loaders caenfwloader common
 
