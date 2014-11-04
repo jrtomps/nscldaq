@@ -218,4 +218,248 @@ tcltest::test threshold-2 {Bad threshold value fails
 } -result {Invalid threshold argument. Must be in range [0,255].} \
 -returnCodes 1
 
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
+# Width value
+
+tcltest::test width-0 {Setting the width with valid values writes the correct stuff
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # there is a translation table to convert input values to actual time in the
+  # manual. 
+  ::dev SetWidth 3 16 ;# minimum input
+  ::dev SetWidth 7 222 ;# maximum input
+
+  # the future I might store the lookup table such that the user could do 
+  # ::dev SetWidth 3 [nsToWidth 17] 
+  # but this is not supported at the moment
+
+  ::tcltest::viewFile $::serialFile
+} -result {SW 3 16
+SW 7 222}
+
+
+tcltest::test width-1 {Bad channel pair fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # there is a translation table to convert input values to actual time in the
+  # manual. 
+  ::dev SetWidth 9 16 ;# minimum input
+} -result {Invalid channel pair provided. Must be in range [0,8].} \
+-returnCodes 1
+
+
+tcltest::test width-2 {Bad element index fails 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  set returnVals [list]
+
+  set res [catch {::dev SetWidth 7 15} msg] ;# just below valid input range 
+  lappend returnVals [list $res $msg]
+
+  set res [catch {::dev SetWidth 7 223} msg] ;# just above valid input range 
+  lappend returnVals [list $res $msg]
+
+  set returnVals
+} -result [list {1 {Invalid width argument provided. Must be in range [16,222].}} \
+                {1 {Invalid width argument provided. Must be in range [16,222].}} ]
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
+# Deadtime tests
+
+tcltest::test deadtime-0 {Given good parameter, ensure the correct things are written
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev SetDeadtime 1 27 ; # minimum dead time
+  ::dev SetDeadtime 8 222 ; # maximum dead time
+
+  tcltest::viewFile $::serialFile
+} -result {SD 1 27
+SD 8 222}
+
+
+tcltest::test deadtime-1 {Fails on bad channel parameter value
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev SetDeadtime 9 27 ; # just outside of valid channel param range
+
+} -result {Invalid channel pair provided. Must be in range [0,8].} \
+-returnCodes 1
+
+tcltest::test deadtime-2 {Fails on value of out range 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  set returnVals [list]
+
+  set res [catch {::dev SetDeadtime 7 26} msg] ;# just below valid input range 
+  lappend returnVals [list $res $msg]
+
+  set res [catch {::dev SetDeadtime 7 223} msg] ;# just above valid input range 
+  lappend returnVals [list $res $msg]
+
+  set returnVals
+} -result [list {1 {Invalid deadtime argument provided. Must be in range [27,222].}} \
+                {1 {Invalid deadtime argument provided. Must be in range [27,222].}} ]
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
+# Delay line tests
+
+tcltest::test delay-0 {Given good parameter, ensure the correct things are written
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev SetDelay 0 1 ; # minimum dead time and chan pair
+  ::dev SetDelay 8 5 ; # maximum dead time and chan pair
+
+  tcltest::viewFile $::serialFile
+} -result {SY 0 1
+SY 8 5}
+
+
+tcltest::test delay-1 {Bad channel pair value will fail as always.
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # channel pairs should be in range of 0 to 8. -1 is bad
+  ::dev SetDelay -1 3 ; 
+} -result {Invalid channel pair provided. Must be in range [0,8].} \
+-returnCodes 1
+
+
+tcltest::test delay-2 {Fails on value of out range 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  set returnVals [list]
+
+  set res [catch {::dev SetDelay 0 -1} msg] ;# just below valid input range 
+  lappend returnVals [list $res $msg]
+
+  set res [catch {::dev SetDelay 7 6} msg] ;# just above valid input range 
+  lappend returnVals [list $res $msg]
+
+  set returnVals
+} -result [list {1 {Invalid delay argument provided. Must be in range [1,5].}} \
+                {1 {Invalid delay argument provided. Must be in range [1,5].}} ]
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
+# Fraction tests
+
+tcltest::test fraction-0 {Given good parameter, ensure the correct things are written
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # only two values are allowed 20 and 40
+  ::dev SetFraction 0 20 ; 
+  ::dev SetFraction 8 40 ;
+
+  tcltest::viewFile $::serialFile
+} -result {SF 0 20
+SF 8 40}
+
+tcltest::test fraction-1 {Bad channel pair value fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # only values in range 0 to 8 are allowd for channel pairs
+  ::dev SetFraction -1 20 
+
+} -result {Invalid channel pair provided. Must be in range [0,8].} \
+-returnCodes 1
+
+tcltest::test fraction-2 {Failure if param is not 20 or 40
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  set returnVals [list]
+
+  set res [catch {::dev SetFraction 0 0} msg] ;# just below valid input range 
+  lappend returnVals [list $res $msg]
+  
+  set returnVals
+} -result [list {1 {Invalid fraction argument provided. Must be either 20 or 40.}}]
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
+# Channel mask tests
+
+tcltest::test chanmask-0 {If the parameters are good, make sure the proper string is written
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  dev SetChannelMask 0 255 ; # enable all channels in set bank 0 (channels 0-7)
+  dev SetChannelMask 1 255 ; # enable all channels in bank 1 (channel 8-15)
+
+  tcltest::viewFile $::serialFile
+} -result {SK 0 255
+SK 1 255}
+
+tcltest::test chanmask-1 {Bank parameter other than 0 or 1 causes failure
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # bank must be 0 or 1, 2 will cause it to fail
+  dev SetChannelMask 2 0
+
+  tcltest::viewFile $::serialFile
+} -result {Invalid bank parameter provided. Must be either 0 or 1.} \
+-returnCodes 1
+
+tcltest::test chanmask-2 {Mask parameter outside of range [0,255] fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # bank must be 0 or 1, 2 will cause it to fail
+  set returnVals [list]
+
+  set res [catch {dev SetChannelMask 0 -1} msg]
+  lappend returnVals [list $res $msg]
+
+  set res [catch {dev SetChannelMask 0 256} msg]
+  lappend returnVals [list $res $msg]
+
+  set returnVals
+} -result [list {1 {Invalid mask argument provided. Must be in range [0,255].}} \
+                {1 {Invalid mask argument provided. Must be in range [0,255].}} ]
+
+
 tcltest::cleanupTests
+
