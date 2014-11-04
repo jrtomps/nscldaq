@@ -433,7 +433,8 @@ AC_CONFIG_FILES([Makefile
 		 usb/vmusb/driverkit/Makefile usb/vmusb/driverkit/Makefile-template
 		 usb/vmusb/tcldrivers/Makefile
 		 usb/vmusb/driverkit/VMUSBDriverIncludes
-                 usb/vmusb/controlpanels/Makefile usb/vmusb/controlpanels/cv6533/Makefile
+		 usb/vmusb/controlpanels/Makefile usb/vmusb/controlpanels/cv6533/Makefile
+		 usb/vmusb/tcldevices/Makefile
 		 usb/vmusb/devtests/Makefile
 		 usb/ccusb/Makefile
 		 usb/ccusb/ccusb/Makefile usb/ccusb/devices/Makefile 
@@ -452,6 +453,8 @@ AC_CONFIG_FILES([Makefile
 		 usb/common/Makefile
 		 usb/common/tcldrivers/Makefile
 		 usb/common/devices/Makefile
+		 usb/mesytec/Makefile
+		 usb/mesytec/MCFD16/Makefile
 		 docbuild/Makefile
 		 docbuild/images/Makefile
 		 docbuild/images/callouts/Makefile
