@@ -20,6 +20,8 @@ proc tearDown {} {
   ::dev destroy
 }
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
+# Polarity tests
 
 tcltest::test polarity-0 {Setting polarity for channel pairs is simple
 } -setup {
@@ -57,6 +59,8 @@ tcltest::test polarity-2 {Bad channel pair value will fail
 }  -result {Invalid channel pair provided. Must be in range [0,8].} \
 -returnCodes 1
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
+# Gain tests
 
 tcltest::test gain-0 {Make sure we can set gain properly
 } -setup {
@@ -92,5 +96,126 @@ tcltest::test gain-2 {Bad channel pair fails
 } -result {Invalid channel pair provided. Must be in range [0,8].} \
 -returnCodes 1
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
+# Bandwidth limit tests 
+
+tcltest::test bandwidthlimit-0 {Check that we can enable bandwidth limit
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # the argument can be any boolean type
+  ::dev EnableBandwidthLimit on
+
+  ::tcltest::viewFile $::serialFile
+} -result "BWL 1"
+
+
+tcltest::test bandwidthLimit-1 { Non-boolean value fails 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # arguments that are not boolean will fail
+  ::dev EnableBandwidthLimit 123
+
+} -result "Invalid argument provided. Must be a boolean type." \
+-returnCodes 1
+
+if {0} {
+tcltest::test bandwidthLimit-2 {If not in RC mode, this will fail 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # attempt to set into CFD mode
+  ::dev EnableBandwidthLimit false
+} -result "Bandwidth limit cannot be overridden when in non-RC mode." 
+-returnCodes 1
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
+# CFD state
+
+tcltest::test cfd-0 {Enabling the CFD writes the correct string
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # dictate whether to use led mode
+  ::dev SetDiscriminatorMode led
+
+  ::tcltest::viewFile $::serialFile
+} -result "CFD 0"
+
+
+tcltest::test cfd-1 {Enabling the CFD writes the correct string
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # dictate whether to use led mode
+  ::dev SetDiscriminatorMode bad_mode
+} -result "Invalid argument provided. Must be either \"led\" or \"cfd\"." \
+-returnCodes 1
+
+if {0} {
+tcltest::test cfd-2 {If not in RC mode, this will fail 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # attempt to set into CFD mode
+  ::dev SetDiscriminatorMode cfd
+} -result "Discriminator mode cannot be overridden when in non-RC mode." 
+-returnCodes 1
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
+# Threshold value
+
+tcltest::test threshold-0 {Ensure we can set the threshold properly
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # ensure we can set all thresholds to 0 in common mode
+  ::dev SetThreshold 16 0
+  # write threshold for channel 0 to be 255
+  ::dev SetThreshold 0 255
+
+  ::tcltest::viewFile $::serialFile
+} -result {ST 16 0
+ST 0 255}
+
+tcltest::test threshold-1 {Bad channel value fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # ensure we can set all thresholds to 0 in common mode
+  ::dev SetThreshold 17 0
+} -result {Invalid channel argument. Must be in range [0,16].} \
+-returnCodes 1
+
+
+tcltest::test threshold-2 {Bad threshold value fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # ensure we can set all thresholds to 0 in common mode
+  ::dev SetThreshold 8 256
+} -result {Invalid threshold argument. Must be in range [0,255].} \
+-returnCodes 1
 
 tcltest::cleanupTests
