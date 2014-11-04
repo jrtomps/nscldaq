@@ -6,4 +6,91 @@ tcltest::test pkgrequire-0 { ensure we can require the package
 } { package require mcfd16usb } {1.0}
 
 
+# set up some fake directories to write
+set testdir [tcltest::makeDirectory test]
+set serialFile [file join $::testdir fake] 
+
+# create a new driver object
+proc setup {} {
+  MCFD16USB ::dev $::serialFile
+}
+
+# destroy our object
+proc tearDown {} {
+  ::dev destroy
+}
+
+
+tcltest::test polarity-0 {Setting polarity for channel pairs is simple
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # set channel pairs 0 to positive polarity
+  ::dev SetPolarity 0 positive 
+
+  # check to see what we wrote to the file
+  tcltest::viewFile $::serialFile
+} -result "SP 0 0"
+
+
+tcltest::test polarity-1 {Make sure that bad argument fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # set channel pairs 0 to bad value
+  ::dev SetPolarity 0 this_will_fail 
+}  -result {Invalid value provided. Must be "positive" or "negative".} \
+-returnCodes 1
+
+tcltest::test polarity-2 {Bad channel pair value will fail
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # set channel pairs 0 to bad value
+  ::dev SetPolarity 9 negative
+}  -result {Invalid channel pair provided. Must be in range [0,8].} \
+-returnCodes 1
+
+
+tcltest::test gain-0 {Make sure we can set gain properly
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # set channel pairs 0 to bad value
+  ::dev SetGain 0 1
+  tcltest::viewFile $::serialFile
+} -result "SG 0 1"
+
+tcltest::test gain-1 {Bad gain value fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # gain can only be 1, 3, or 10
+  ::dev SetGain 0 2
+} -result "Invalid gain value. Must be either 1, 3, or 10." \
+-returnCodes 1
+
+
+tcltest::test gain-2 {Bad channel pair fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # gain can only be 1, 3, or 10
+  ::dev SetGain 123 3
+} -result {Invalid channel pair provided. Must be in range [0,8].} \
+-returnCodes 1
+
+
 tcltest::cleanupTests
