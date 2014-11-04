@@ -461,5 +461,91 @@ tcltest::test chanmask-2 {Mask parameter outside of range [0,255] fails
                 {1 {Invalid mask argument provided. Must be in range [0,255].}} ]
 
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
+# pulser tests
+
+tcltest::test pulser-0 {Proper parameters produce a valid write to set pulser
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # index must be either 1 or 2
+  dev EnablePulser 1
+  dev EnablePulser 2
+
+  tcltest::viewFile $::serialFile
+} -result {P1
+P2}
+
+tcltest::test pulser-1 {A pulser index other than 1 or 2 causes failure
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+
+  # P0 is actually intended to disable the pulser. Not a valid enable arg
+  dev EnablePulser 0
+
+} -result {Invalid pulser index provided. Must be either 1 or 2.} \
+-returnCodes 1
+
+
+tcltest::test pulser-2 {Disabling pulser
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  dev DisablePulser
+
+  # disabling the pulser is accomplished by writing P0 to the device
+  tcltest::viewFile $::serialFile
+} -result {P0}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
+# Retrieve firmware
+
+tcltest::test firmware-0 {Retrieving the firmware accomplished with proper protocol 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  dev ReadFirmware
+
+  # disabling the pulser is accomplished by writing P0 to the device
+  tcltest::viewFile $::serialFile
+} -result {V}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
+# RC bus control
+
+tcltest::test rc-0 {enable/disable rc done by ON/OFF commands
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  dev EnableRC 0
+  dev EnableRC 1 
+
+  # disabling the pulser is accomplished by writing P0 to the device
+  tcltest::viewFile $::serialFile
+} -result {OFF
+ON}
+
+tcltest::test rc-1 {Non-boolean argument causes failure
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  dev EnableRC not_a_boolean
+
+} -result "Invalid argument provided. Must be a boolean value." \
+-returnCodes 1
+
 tcltest::cleanupTests
 

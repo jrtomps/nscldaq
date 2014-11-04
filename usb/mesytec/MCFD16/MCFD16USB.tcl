@@ -154,6 +154,36 @@ snit::type MCFD16USB {
     $self Write "SK $bank $mask"
   }
 
+  method EnablePulser {index} {
+    if {$index ni [list 1 2]} {
+      set msg {Invalid pulser index provided. Must be either 1 or 2.}
+      return -code error -errorinfo MSCF16::EnablePulser $msg
+    }
+
+    $self Write "P$index"
+  }
+
+  method DisablePulser {} {
+    $self Write "P0"
+  }
+
+  method ReadFirmware {} {
+    $self Write "V"
+  }
+
+  method EnableRC {on} {
+    if {![string is boolean $on]} {
+      set msg "Invalid argument provided. Must be a boolean value."
+      return -code error -errorinfo MCFD16USB::EnableRC $msg
+    }
+
+    if {[string is true $on]} {
+      $self Write "ON"
+    } else {
+      $self Write "OFF"
+    }
+  }
+
   #---------------------------------------------------------------------------#
   # Utility methods
   #
