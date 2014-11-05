@@ -10,6 +10,8 @@ tcltest::test pkgrequire-0 { ensure we can require the package
 set testdir [tcltest::makeDirectory test]
 set serialFile [file join $::testdir fake] 
 
+# -------------- HELPER PROCS ------------------------------------------------#
+
 # create a new driver object
 proc setup {} {
   MCFD16USB ::dev $::serialFile
@@ -31,6 +33,23 @@ snit::method MCFD16USB Update {} {
   set m_moduleState $::parsedDSDict
 }
 
+proc setNeedsUpdate {objname state} {
+
+  set varname [lindex [$objname info vars m_needsUpdate] 0]
+  set $varname $state
+}
+
+# sets up for a read test... basically just does the usual setup but sets
+# the stored state of the driver
+proc setupForRead {} {
+  setup
+  ::dev CacheModuleState $::parsedDSDict
+  setNeedsUpdate ::dev 0
+}
+
+#-----------------------------------------------------------------------------#
+# Common data
+  
 # the response from DS (display settings that we need to parse)
 set dsResponse {DS
 
@@ -71,11 +90,9 @@ set parsedDSDict [dict create Threshold {0 20 20 40 20 20 20 20 20 20 20 20 20 2
                        {Test pulser} On]
           
 
-proc setNeedsUpdate {objname state} {
-
-  set varname [lindex [$objname info vars m_needsUpdate] 0]
-  set $varname $state
-}
+###############################################################################
+# BEGIN TESTS
+#
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
 # Polarity tests
@@ -119,9 +136,7 @@ tcltest::test polarity-2 {Bad channel pair value will fail
 
 tcltest::test polarity-3 {Read polarity returns the cached value if up-to-date
 } -setup {
-  setup
-  ::dev CacheModuleState $::parsedDSDict
-  setNeedsUpdate ::dev 0
+  setupForRead
 } -cleanup {
   tearDown
 } -body {
@@ -130,9 +145,7 @@ tcltest::test polarity-3 {Read polarity returns the cached value if up-to-date
 
 tcltest::test polarity-4 {Read polarity fails if bad channel pair
 } -setup {
-  setup
-  ::dev CacheModuleState $::parsedDSDict
-  setNeedsUpdate ::dev 0
+  setupForRead
 } -cleanup {
   tearDown
 } -body {
@@ -180,9 +193,7 @@ tcltest::test gain-2 {Bad channel pair fails
 
 tcltest::test gain-3 {Read gain returns the cached value if up-to-date
 } -setup {
-  setup
-  ::dev CacheModuleState $::parsedDSDict
-  setNeedsUpdate ::dev 0
+  setupForRead
 } -cleanup {
   tearDown
 } -body {
@@ -191,9 +202,7 @@ tcltest::test gain-3 {Read gain returns the cached value if up-to-date
 
 tcltest::test gain-4 {Read gain fails if bad channel pair
 } -setup {
-  setup
-  ::dev CacheModuleState $::parsedDSDict
-  setNeedsUpdate ::dev 0
+  setupForRead
 } -cleanup {
   tearDown
 } -body {
@@ -244,9 +253,7 @@ tcltest::test bandwidthLimit-2 {If not in RC mode, this will fail
 
 tcltest::test bandwidthLimit-3 {Retreiving BWL when state up-to-date just returns cached value
 } -setup {
-  setup
-  ::dev CacheModuleState $::parsedDSDict
-  setNeedsUpdate ::dev 0
+  setupForRead
 } -cleanup {
   tearDown
 } -body {
@@ -297,9 +304,7 @@ tcltest::test cfd-2 {If not in RC mode, this will fail
 
 tcltest::test cfd-3 {Retreiving CFD mode when state up-to-date just returns cached value
 } -setup {
-  setup
-  ::dev CacheModuleState $::parsedDSDict
-  setNeedsUpdate ::dev 0
+  setupForRead
 } -cleanup {
   tearDown
 } -body {
@@ -350,9 +355,7 @@ tcltest::test threshold-2 {Bad threshold value fails
 
 tcltest::test threshold-3 {Read threshold returns the cached value if up-to-date
 } -setup {
-  setup
-  ::dev CacheModuleState $::parsedDSDict
-  setNeedsUpdate ::dev 0
+  setupForRead
 } -cleanup {
   tearDown
 } -body {
@@ -365,9 +368,7 @@ tcltest::test threshold-3 {Read threshold returns the cached value if up-to-date
 
 tcltest::test threshold-4 {Failure when the requested channel is out of range
 } -setup {
-  setup
-  ::dev CacheModuleState $::parsedDSDict
-  setNeedsUpdate ::dev 0
+  setupForRead
 } -cleanup {
   tearDown
 } -body {
@@ -433,9 +434,7 @@ tcltest::test width-2 {Bad element index fails
 
 tcltest::test width-3 {Read width returns the cached value if up-to-date
 } -setup {
-  setup
-  ::dev CacheModuleState $::parsedDSDict
-  setNeedsUpdate ::dev 0
+  setupForRead
 } -cleanup {
   tearDown
 } -body {
@@ -448,9 +447,7 @@ tcltest::test width-3 {Read width returns the cached value if up-to-date
 
 tcltest::test width-4 {Failure when the requested channel is out of range
 } -setup {
-  setup
-  ::dev CacheModuleState $::parsedDSDict
-  setNeedsUpdate ::dev 0
+  setupForRead
 } -cleanup {
   tearDown
 } -body {
@@ -511,9 +508,7 @@ tcltest::test deadtime-2 {Fails on value of out range
 
 tcltest::test deadtime-3 {Read deadtime returns the cached value if up-to-date
 } -setup {
-  setup
-  ::dev CacheModuleState $::parsedDSDict
-  setNeedsUpdate ::dev 0
+  setupForRead
 } -cleanup {
   tearDown
 } -body {
@@ -526,9 +521,7 @@ tcltest::test deadtime-3 {Read deadtime returns the cached value if up-to-date
 
 tcltest::test deadtime-4 {Failure for bad channel pair
 } -setup {
-  setup
-  ::dev CacheModuleState $::parsedDSDict
-  setNeedsUpdate ::dev 0
+  setupForRead
 } -cleanup {
   tearDown
 } -body {
@@ -586,9 +579,7 @@ tcltest::test delay-2 {Fails on value of out range
 
 tcltest::test delay-3 {Read delay returns the cached value if up-to-date
 } -setup {
-  setup
-  ::dev CacheModuleState $::parsedDSDict
-  setNeedsUpdate ::dev 0
+  setupForRead
 } -cleanup {
   tearDown
 } -body {
@@ -601,9 +592,7 @@ tcltest::test delay-3 {Read delay returns the cached value if up-to-date
 
 tcltest::test delay-4 {Failure for bad channel pair
 } -setup {
-  setup
-  ::dev CacheModuleState $::parsedDSDict
-  setNeedsUpdate ::dev 0
+  setupForRead
 } -cleanup {
   tearDown
 } -body {
@@ -658,9 +647,7 @@ tcltest::test fraction-2 {Failure if param is not 20 or 40
 
 tcltest::test fraction-3 {Read fraction returns the cached value if up-to-date
 } -setup {
-  setup
-  ::dev CacheModuleState $::parsedDSDict
-  setNeedsUpdate ::dev 0
+  setupForRead
 } -cleanup {
   tearDown
 } -body {
@@ -673,9 +660,7 @@ tcltest::test fraction-3 {Read fraction returns the cached value if up-to-date
 
 tcltest::test fraction-4 {Failure for bad channel pair
 } -setup {
-  setup
-  ::dev CacheModuleState $::parsedDSDict
-  setNeedsUpdate ::dev 0
+  setupForRead
 } -cleanup {
   tearDown
 } -body {
@@ -791,9 +776,7 @@ tcltest::test pulser-2 {Disabling pulser
 
 tcltest::test pulser-3 {Checking for whether the pulser is enable returns the cached state
 } -setup {
-  setup
-  ::dev CacheModuleState $::parsedDSDict
-  setNeedsUpdate ::dev 0
+  setupForRead
 } -cleanup {
   tearDown
 } -body {
@@ -845,9 +828,7 @@ tcltest::test rc-1 {Non-boolean argument causes failure
 
 tcltest::test rc-2 {Reading the rc mode should return cached value if not out of date
 } -setup {
-  setup
-  ::dev CacheModuleState $::parsedDSDict
-  setNeedsUpdate ::dev 0
+  setupForRead
 } -cleanup {
   tearDown
 } -body {

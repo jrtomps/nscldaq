@@ -6,11 +6,15 @@ package provide mcfd16usb 1.0
 package require snit
 package require Utils
 
+
+
+
 snit::type MCFD16USB {
 
-  variable m_serialFile
-  variable m_needsUpdate
+  variable m_serialFile ;# the communication channel to the device 
+  variable m_needsUpdate ;# determines whether device state has changed since last update
   variable m_moduleState ;# the dict storing the state
+
 
   constructor {serialFile args} {
     set m_serialFile [open $serialFile "w+"]
@@ -45,14 +49,9 @@ snit::type MCFD16USB {
   }
 
   method GetPolarity {chanPair} {
-    $self ThrowOnBadChannelPair $chanPair
-
-    if {$m_needsUpdate} {
-      $self Update
-    }
-
-    return [lindex [dict get $m_moduleState Polarity] $chanPair]
+    return [$self GetChannelPairParam Polarity $chanPair]
   }
+
 
   method SetGain {chanPair val} {
     if {$val ni [list 1 3 10]} {
@@ -67,13 +66,7 @@ snit::type MCFD16USB {
   }
 
   method GetGain {chanPair} {
-    $self ThrowOnBadChannelPair $chanPair
-
-    if {$m_needsUpdate} {
-      $self Update
-    }
-
-    return [lindex [dict get $m_moduleState Gain] $chanPair]
+    return [$self GetChannelPairParam Gain $chanPair]
   }
 
   method EnableBandwidthLimit {on} {
@@ -88,21 +81,7 @@ snit::type MCFD16USB {
   }
 
   method GetBandwidthLimit {} {
-    if {$m_needsUpdate} {
-      $self Update
-    }
-
-    set state [dict get $m_moduleState {Bandwidth limit}]
-    if {$state eq "Off"} {
-      set state 0
-    } elseif {$state eq "On"} {
-      set state 1
-    } else {
-      set msg "Cannot understand bandwidth limit state ($state)."
-      return -code error -errorinfo MCFD16USB::GetBandwidthLimit $msg
-    }
-
-    return $state
+    return [$self GetBooleanParam {Bandwidth limit} {Off 0 On 1}]
   }
 
   method SetDiscriminatorMode {mode} {
@@ -117,19 +96,8 @@ snit::type MCFD16USB {
   }
 
   method GetDiscriminatorMode {} {
-    if {$m_needsUpdate} {
-      $self Update
-    }
-
-    set state [dict get $m_moduleState Discrimination]
-    if {$state eq "Constant fraction"} {
-      return "cfd"
-    } elseif {$state eq "Leading Edge"} {
-      return "led"
-    } else {
-      set msg "Discriminator state ($state) is not understood by this driver."
-      return -code error -errorinfo MCFD16USB::GetDiscriminatorMode $msg
-    }
+    set convTable {{Constant fraction} cfd {Leading edge} led}
+    return [$self GetBooleanParam Discrimination $convTable]
   }
 
   method SetThreshold {ch thresh} {
@@ -175,13 +143,7 @@ snit::type MCFD16USB {
   }
 
   method GetWidth {chanPair} {
-    $self ThrowOnBadChannelPair $chanPair
-
-    if {$m_needsUpdate} {
-      $self Update
-    }
-
-    return [lindex [dict get $m_moduleState {Width}] $chanPair]
+    return [$self GetChannelPairParam Width $chanPair]
   }
 
 
@@ -198,13 +160,7 @@ snit::type MCFD16USB {
   }
 
   method GetDeadtime {chanPair} {
-    $self ThrowOnBadChannelPair $chanPair
-
-    if {$m_needsUpdate} {
-      $self Update
-    }
-
-    return [lindex [dict get $m_moduleState {Deadtime}] $chanPair]
+    return [$self GetChannelPairParam Deadtime $chanPair]
   }
 
 
@@ -221,13 +177,7 @@ snit::type MCFD16USB {
   }
 
   method GetDelay {chanPair} {
-    $self ThrowOnBadChannelPair $chanPair
-
-    if {$m_needsUpdate} {
-      $self Update
-    }
-
-    return [lindex [dict get $m_moduleState {Delay}] $chanPair]
+    return [$self GetChannelPairParam Delay $chanPair]
   }
 
   method SetFraction {chanPair value} {
@@ -243,15 +193,8 @@ snit::type MCFD16USB {
   }
 
   method GetFraction {chanPair} {
-    $self ThrowOnBadChannelPair $chanPair
-
-    if {$m_needsUpdate} {
-      $self Update
-    }
-
-    return [lindex [dict get $m_moduleState {Fraction}] $chanPair]
+    return [$self GetChannelPairParam Fraction $chanPair]
   }
-
 
   method SetChannelMask {bank mask} {
 
@@ -285,20 +228,7 @@ snit::type MCFD16USB {
   }
 
   method PulserEnabled {} { 
-    if {$m_needsUpdate} {
-      $self Update
-    }
-
-    set state [dict get $m_moduleState {Test pulser}]
-    if {$state eq "On"} {
-      set state 1
-    } elseif {$state eq "Off"} {
-      set state 0
-    } else {
-      set msg "State of the test pulser ($state) is not understood by this driver."
-      return -code error -errorinfo MCFD16USB::PulserEnabled $msg
-    }
-    return $state
+    return [$self GetBooleanParam {Test pulser} {Off 0 On 1}]
   }
 
   method ReadFirmware {} {
@@ -319,22 +249,9 @@ snit::type MCFD16USB {
   }
 
   method RCEnabled {} {
-    if {$m_needsUpdate} {
-      $self Update
-    }
-
-    set state [dict get $m_moduleState {Remote Control}]
-    if {$state eq "On"} {
-      set state 1
-    } elseif {$state eq "Off"} {
-      set state 0
-    } else {
-      set msg "State of the remote control ($state) is not understood by this driver."
-      return -code error -errorinfo MCFD16USB::RCEnabled $msg
-    }
-    return $state
-
+    return [$self GetBooleanParam {Remote Control} {Off 0 On 1}]
   }
+
   #---------------------------------------------------------------------------#
   # Utility methods
   #
@@ -560,4 +477,31 @@ snit::type MCFD16USB {
     set m_moduleState [$self ParseDSResponse $response]
     set m_needsUpdate 0
   }
+
+
+  method GetChannelPairParam {key chpair} {
+    $self ThrowOnBadChannelPair $chpair
+
+    if {$m_needsUpdate} {
+      $self Update
+    }
+
+    return [lindex [dict get $m_moduleState $key] $chpair]
+  }
+
+  method GetBooleanParam {key convTable} {
+    if {$m_needsUpdate} {
+      $self Update
+    }
+
+    set state [dict get $m_moduleState $key]
+
+    if {$state ni [dict keys $convTable]} {
+      set msg "Device state ($state) for $key is not understood by this driver."
+      return -code error $msg
+    } else {
+      return [dict get $convTable $state]
+    }
+  }
+
 }
