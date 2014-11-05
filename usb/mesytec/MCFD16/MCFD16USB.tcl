@@ -1,7 +1,6 @@
 
 
 
-
 package provide mcfd16usb 1.0
 
 package require snit
@@ -28,8 +27,8 @@ snit::type MCFD16USB {
 
     # this is the operational code and the check for the value
     switch $val {
-      positive {$self Write "SP $chanPair 0"} 
-      negative {$self Write "SP $chanPair 1"} 
+      positive {$self Transaction "SP $chanPair 0"} 
+      negative {$self Transaction "SP $chanPair 1"} 
       default  {
         set msg "Invalid value provided. Must be \"positive\" or \"negative\"."
         return -code error -errorinfo MCFD16USB::SetPolarity $msg
@@ -47,7 +46,7 @@ snit::type MCFD16USB {
     $self ThrowOnBadChannelPair $chanPair
 
     # all is well with the arguments
-    $self Write "SG $chanPair $val"
+    $self Transaction "SG $chanPair $val"
   }
 
 
@@ -58,14 +57,14 @@ snit::type MCFD16USB {
     }
 
     # all is well with the arguments
-    $self Write "BWL [string is true $on]"
+    $self Transaction "BWL [string is true $on]"
 
   }
 
   method SetDiscriminatorMode {mode} {
     switch $mode {
-      led {$self Write "CFD 0"}
-      cfd {$self Write "CFD 1"}
+      led {$self Transaction "CFD 0"}
+      cfd {$self Transaction "CFD 1"}
       default {
         set msg {Invalid argument provided. Must be either "led" or "cfd".}
         return -code error -errorinfo MCFD16USB::SetDiscriminatorMode $msg
@@ -87,7 +86,7 @@ snit::type MCFD16USB {
     }
 
     # all is well with the arguments
-    $self Write "ST $ch $thresh"
+    $self Transaction "ST $ch $thresh"
   }
 
   method SetWidth {chanPair value} {
@@ -98,7 +97,7 @@ snit::type MCFD16USB {
       return -code error -errorinfo MCFD16USB::SetWidth $msg
     }
 
-    $self Write "SW $chanPair $value"
+    $self Transaction "SW $chanPair $value"
   }
 
 
@@ -111,7 +110,7 @@ snit::type MCFD16USB {
     }
 
 
-    $self Write "SD $chanPair $value"
+    $self Transaction "SD $chanPair $value"
   }
 
   method SetDelay {chanPair value} {
@@ -123,7 +122,7 @@ snit::type MCFD16USB {
       return -code error -errorinfo MCFD16USB::SetDelay $msg
     }
 
-    $self Write "SY $chanPair $value"
+    $self Transaction "SY $chanPair $value"
   }
 
   method SetFraction {chanPair value} {
@@ -135,7 +134,7 @@ snit::type MCFD16USB {
       return -code error -errorinfo MCFD16USB::SetFraction $msg
     }
 
-    $self Write "SF $chanPair $value"
+    $self Transaction "SF $chanPair $value"
   }
 
 
@@ -151,7 +150,7 @@ snit::type MCFD16USB {
       return -code error -errorinfo MCFD16USB::SetChannelMask $msg
     }
 
-    $self Write "SK $bank $mask"
+    $self Transaction "SK $bank $mask"
   }
 
   method EnablePulser {index} {
@@ -160,15 +159,15 @@ snit::type MCFD16USB {
       return -code error -errorinfo MSCF16::EnablePulser $msg
     }
 
-    $self Write "P$index"
+    $self Transaction "P$index"
   }
 
   method DisablePulser {} {
-    $self Write "P0"
+    $self Transaction "P0"
   }
 
   method ReadFirmware {} {
-    $self Write "V"
+    $self Transaction "V"
   }
 
   method EnableRC {on} {
@@ -178,9 +177,9 @@ snit::type MCFD16USB {
     }
 
     if {[string is true $on]} {
-      $self Write "ON"
+      $self Transaction "ON"
     } else {
-      $self Write "OFF"
+      $self Transaction "OFF"
     }
   }
 
@@ -195,8 +194,24 @@ snit::type MCFD16USB {
   }
 
   method Read {} {
+    set totalResponse ""
+#    set response [chan read -nonewline $m_serialFile]
     set response [chan read $m_serialFile]
-    return $response
+    append totalResponse $response
+
+    while {![string match "*mcfd-16>*" $response]} {
+      after 100
+#      set response [chan read -nonewline $m_serialFile]
+      set response [chan read $m_serialFile]
+      append totalResponse $response
+    }
+    return $totalResponse
+  }
+
+  method Transaction {script} {
+    $self Write $script
+
+    return [$self Read]
   }
 
   method ThrowOnBadChannelPair {chanPair} {
@@ -207,6 +222,173 @@ snit::type MCFD16USB {
   }
 
 
+  method ParseDSResponse {response } {
+    set lines [split $response "\n"]
+    puts "number lines = [llength $lines]"
+
+    set parsedResponse [list]
+
+    # first line should be DS
+    if {[lindex $lines 0] ne "DS"} {
+      set msg "Response being processed does not correspond to DS parameter"
+      return -code error -errorinfo MCFD16USB::ParseDSResponse $msg
+    }
+
+    # line 1 is a space
+
+    # parse threhsolds
+    lappend parsedResponse [$self ParseThresholds [lrange $lines 2 3]] 
+
+    # parse the gain
+    lappend parsedResponse [$self ParseChanPairLine [lindex $lines 4]]
+    # parse the width
+    lappend parsedResponse [$self ParseChanPairLine [lindex $lines 5] 1]
+    # parse the deadtime
+    lappend parsedResponse [$self ParseChanPairLine [lindex $lines 6] 1]
+    # parse the delay
+    lappend parsedResponse [$self ParseChanPairLine [lindex $lines 7] 1]
+    # parse the fraction
+    lappend parsedResponse [$self ParseChanPairLine [lindex $lines 8] 1]
+    # parse the polarity
+    lappend parsedResponse [$self ParseChanPairLine [lindex $lines 9]]
+
+    # line 10 is a space
+    
+    # parse the mask
+    lappend parsedResponse [$self ParseMaskReg [lindex $lines 11]]
+    # parse the discrim mode
+    lappend parsedResponse [$self ParseSimpleLine [lindex $lines 12]]
+
+    # we don't really care about the gate/delay gen state
+    # lappend parsedResponse [$self ParseSimpleLine [lindex $lines 13]]
+    # we don't really care about the coinc time
+    # lappend parsedResponse [$self ParseSimpleLine [lindex $lines 14]]
+    
+    # operating mode
+    lappend parsedResponse [$self ParseSimpleLine [lindex $lines 15]]
+    # bandwidth
+    lappend parsedResponse [$self ParseSimpleLine [lindex $lines 16]]
+    # rc mode
+    lappend parsedResponse [$self ParseSimpleLine [lindex $lines 17]]
+
+    # # frequency monitor
+    # lappend parsedResponse [$self ParseSimpleLine [lindex $lines 18]]
+
+    # pulser
+    lappend parsedResponse [$self ParseSimpleLine [lindex $lines 19]]
+
+    ## hardware settings
+    #    lappend parsedResponse [$self ParseSimpleLine [lindex $lines 20]]
+    
+    return [$self TransformToDict $parsedResponse]
+    
+  }
 
 
+  method SplitAndTrim {line del} {
+
+    # split at the colon
+    set split [split $line $del]
+
+    # trim each part
+    set name [string trim [lindex $split 0]]
+    set valStr [string trim [lindex $split 1]]
+
+    return [list $name $valStr]
+  }
+
+  method RemoveDash {line} {
+
+    # basically we just split at all of the dashes and then replace it with a space
+    return [join [$self SplitAndTrim $line "-"] " "]
+  }
+
+  method ParseSimpleLine {line {stripUnit 0}} {
+    set split [$self SplitAndTrim $line ":"]
+
+    set name [lindex $split 0]
+    if {$stripUnit} {
+      set name [$self StripUnit $name]
+    }
+
+    return [dict create name $name values [lindex $split 1]]
+  } 
+
+  method StripUnit str {
+    return [lindex [split $str " "] 0]
+  }
+
+  method ParseChanPairLine {line {stripUnit 0}} {
+
+    set splitLine [$self SplitAndTrim $line ":"]
+
+    set name [lindex $splitLine 0]
+    if {$stripUnit} {
+      set name [$self StripUnit $name]
+    }
+
+    set valStr [lindex $splitLine 1]
+
+    set valStr [$self RemoveDash $valStr]
+
+    # locate the dash and remove it with its trailing space
+    # convert to a list
+    set vals [split $valStr " "]
+
+    # form the response
+    return [dict create name $name values $vals]
+  }
+
+
+  method ParseThresholds {lines} {
+    
+    set line0 [lindex $lines 0]
+    set splitLine [$self SplitAndTrim $line0 ":"]
+
+    set name [lindex $splitLine 0]
+    set valStr0 [lindex $splitLine 1]
+
+    set line1 [string trim [lindex $lines 1]]
+    set valStr1 [$self RemoveDash $line1]
+
+    set vals [concat [split $valStr0 " "] [split $valStr1 " "]]
+
+    return [dict create name $name values $vals]
+  }
+
+
+  method ParseMaskReg {line} {
+    puts "ParseMaskReg: $line"
+    set splitLine [split $line ":"]
+    if {[llength $splitLine]!=3} {
+      set msg "Failed to understand parse : \"$line\""
+      return -code error -errorinfo MCFD16USB::ParseMaskReg $msg
+    }
+
+    # name is the first eleement of list
+    set name [string trim [lindex $splitLine 0]]
+
+    # we still have some work to do to get the value of the mask
+    # it should be something like " 00000000 (0)" at this point. 
+    # Trim it and split it at all spaces. The value is in the first element
+    set valStr [string trim [lindex $splitLine 2]]
+    set valStr [lindex [$self SplitAndTrim $valStr " "] 0]
+
+    set valStr [string reverse $valStr]
+    binary scan [binary format b32 $valStr] i val
+    puts $val
+    return [dict create name $name values $val]
+  }
+
+  method TransformToDict {list} {
+
+    # assume that we have a bunch of dicts with two keys each: name and values
+
+    set flatDict [dict create]
+    foreach d $list {
+      dict set flatDict [dict get $d name] [dict get $d values]
+    }
+
+    return $flatDict
+  }
 }

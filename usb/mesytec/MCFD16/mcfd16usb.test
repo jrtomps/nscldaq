@@ -20,6 +20,38 @@ proc tearDown {} {
   ::dev destroy
 }
 
+# because the real read operation will fail in a test environment,
+# we fake it to just add a mcfd-16> to the end of the file.
+
+snit::method MCFD16USB Read {} {
+  return "mcfd-16>" 
+}
+
+# the response from DS (display settings that we need to parse)
+set dsResponse {DS
+
+Threshold:     0 20 20 40 20 20 20 20
+               20 20 20 20 20 20 20 20 - 20
+Gain:          1 1 1 1 1 1 1 1 - 1
+Width [ns]:    50 50 50 50 50 50 50 50 - 50
+Deadtime [ns]: 50 50 50 50 50 50 50 50 - 50
+Delay (Tap):   3 3 3 3 3 3 3 3 - 3
+Fraction [%]:  40 40 40 40 40 40 40 40 - 40
+Polarity:      neg neg neg pos neg neg neg neg - neg
+
+Mask register: chan pairs 15/14...1/0: 00000000 (0)
+Discrimination: Constant fraction
+Gate: leading: 10, trailing: 100
+Global coincidence time: 20 (= 12 ns)
+Operating mode: Common
+Bandwidth limit: Off
+Remote Control: Off
+Frequency monitor channel: 0
+Test pulser: On
+Switch settings: BWL: Off, Discr.: Constant fraction
+mcfd-16>
+}
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
 # Polarity tests
 
@@ -546,6 +578,109 @@ tcltest::test rc-1 {Non-boolean argument causes failure
 
 } -result "Invalid argument provided. Must be a boolean value." \
 -returnCodes 1
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
+# Parse the DS response 
+
+tcltest::test parseDS-0 {Given a DS response, parse it into a dict
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  dev ParseDSResponse $::dsResponse
+} -result [dict create Threshold {0 20 20 40 20 20 20 20 20 20 20 20 20 20 20 20 20} \
+                       Gain {1 1 1 1 1 1 1 1 1} \
+                       Width {50 50 50 50 50 50 50 50 50} \
+                       Deadtime {50 50 50 50 50 50 50 50 50} \
+                       Delay {3 3 3 3 3 3 3 3 3} \
+                       Fraction {40 40 40 40 40 40 40 40 40} \
+                       Polarity {neg neg neg pos neg neg neg neg neg} \
+                       {Mask register} 0 \
+                       Discrimination {Constant fraction} \
+                       {Operating mode} Common \
+                       {Bandwidth limit} Off \
+                       {Remote Control} Off \
+                       {Test pulser} On]
+                        
+
+tcltest::test parseChanPairLine-0 {Parser for a line consisting of chan pair
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  dev ParseChanPairLine "Delay (Tap):   3 3 3 3 3 3 3 3 - 3" 1
+} -result [dict create name "Delay"\
+                       values [list 3 3 3 3 3 3 3 3 3]]
+
+tcltest::test parseThresholds-0 {Parser thresholds
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  dev ParseThresholds \
+{{Threshold:     0 21 20 40 20 20 20 20} {               20 20 23 20 20 20 20 20 - 29}}
+} -result [dict create name Threshold \
+                       values [list 0 21 20 40 20 20 20 20 \
+                                   20 20 23 20 20 20 20 20 29]]
+
+tcltest::test parseMaskReg-0 {Make sure we can parse the mask register
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+ dev ParseMaskReg "Mask register: chan pairs 15/14...1/0: 10101110 (0)"
+} -result [dict create name "Mask register" values [expr 0xae]]
+
+tcltest::test removeDash-0 {make sure we can remove the dash properly
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  dev RemoveDash "3 3 3 3 3 3 3 3 - 3"
+} -result "3 3 3 3 3 3 3 3 3"
+
+tcltest::test splitAndTrim-0 {Ensure that we can split the string at the dash
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  dev SplitAndTrim "threshold: 3 4134 4 - " ":"
+} -result [list "threshold" "3 4134 4 -"]
+
+tcltest::test ParseSimpleLine-0 {Split and trim a string at colon
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  dev ParseSimpleLine "threshold: 3 4134 4 - " 
+} -result {name threshold values {3 4134 4 -}}
+
+
+tcltest::test TransformToDict-0 {Convert a list of dicts to a single dict
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  dev  TransformToDict [list [dict create name n0 values v0] [dict create name n1 values v1]]
+} -result [dict create n0 v0 n1 v1]
+
+tcltest::test StripUnit-0 {Get rid of a possible unit
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  dev StripUnit {Width [ns]}
+} -result "Width"
 
 tcltest::cleanupTests
 
