@@ -1,4 +1,16 @@
-
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2014.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Author:
+#    Jeromy Tompkins
+#	   NSCL
+#	   Michigan State University
+#	   East Lansing, MI 48824-1321
 
 
 package provide mcfd16usb 1.0
@@ -7,8 +19,9 @@ package require snit
 package require Utils
 
 
-
-
+## @brief USB Communications Package for the Mesystec MCFD16
+#
+#
 snit::type MCFD16USB {
 
   variable m_serialFile ;# the communication channel to the device 
@@ -16,7 +29,9 @@ snit::type MCFD16USB {
   variable m_moduleState ;# the dict storing the state
 
 
-  constructor {serialFile args} {
+  ## @brief Constructor
+  #
+  constructor {serialFile} {
     set m_serialFile [open $serialFile "w+"]
 
     chan configure $m_serialFile -blocking 0
@@ -96,7 +111,7 @@ snit::type MCFD16USB {
   }
 
   method GetDiscriminatorMode {} {
-    set convTable {{Constant fraction} cfd {Leading edge} led}
+    set convTable {{Constant fraction} cfd {Leading Edge} led}
     return [$self GetBooleanParam Discrimination $convTable]
   }
 
