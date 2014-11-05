@@ -1292,7 +1292,6 @@ CVMUSBEthernet::marshallOutputData(void* pOutputBuffer, const char* reply, size_
 }
 
 
-// void* gpTCLApplication(0);
 /**
  * openServer
  *    Given that the host and port members are set,

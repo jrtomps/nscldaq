@@ -1102,9 +1102,9 @@ void RingTests::getAbnormalEnd()
     
     stat = tryCommand("ring get tcp://localhost/tcltestring");
     EQ(TCL_OK, stat);
-    Tcl_Obj* received = Tcl_GetObjResult(m_pinterp->getInterpreter());
+    Tcl_Obj* received = Tcl_GetObjResult(m_pInterp->getInterpreter());
     
-    std::string item;
-    getDictItem(redeived, "type", item);
-    EQ(std::string("Abnormal End"), item);
+    std::string itemValue;
+    getDictItem(received, "type", itemValue);
+    EQ(std::string("Abnormal End"), itemValue);
 }

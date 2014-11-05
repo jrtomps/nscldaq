@@ -1,6 +1,5 @@
 package "BufferToRing"
 version "1.0"
-ts
 
 option "create-body-header" h "Create body headers if so"  values="yes", "no" default="yes" enum optional
 option "sourceid" i "Source Id (required if --create-body-header is present)" int

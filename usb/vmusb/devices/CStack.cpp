@@ -335,6 +335,9 @@ CStack::loadStack(CVMUSB& controller)
     controller.loadList(listNumber,
 			readoutList,
 			m_listOffset);
+    // The + 4 below is the size of the header each stack has according to Jan.
+    // That is 2 longwords.
+    
     m_listOffset += readoutList.size() * sizeof(uint32_t)/sizeof(uint16_t)+4 ; // Stack locs are words.
   }
 }

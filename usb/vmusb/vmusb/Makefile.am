@@ -30,6 +30,7 @@ noinst_HEADERS		= CVMUSB.h   \
 
 
 libVMUSB_la_LIBADD       = @top_builddir@/base/tcpip/libTcp.la \
+			@LIBTCLPLUS_LDFLAGS@			\
 			@top_builddir@/base/os/libdaqshm.la	\
 				$(USB_LIBS)  
 
