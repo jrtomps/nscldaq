@@ -92,7 +92,17 @@ snit::type MCFD16USB {
       $self Update
     }
 
-    return [dict get $m_moduleState {Bandwidth limit}]
+    set state [dict get $m_moduleState {Bandwidth limit}]
+    if {$state eq "Off"} {
+      set state 0
+    } elseif {$state eq "On"} {
+      set state 1
+    } else {
+      set msg "Cannot understand bandwidth limit state ($state)."
+      return -code error -errorinfo MCFD16USB::GetBandwidthLimit $msg
+    }
+
+    return $state
   }
 
   method SetDiscriminatorMode {mode} {
@@ -114,7 +124,7 @@ snit::type MCFD16USB {
     set state [dict get $m_moduleState Discrimination]
     if {$state eq "Constant fraction"} {
       return "cfd"
-    } elseif {$state eq "Leading edge"} {
+    } elseif {$state eq "Leading Edge"} {
       return "led"
     } else {
       set msg "Discriminator state ($state) is not understood by this driver."
@@ -308,6 +318,23 @@ snit::type MCFD16USB {
     }
   }
 
+  method RCEnabled {} {
+    if {$m_needsUpdate} {
+      $self Update
+    }
+
+    set state [dict get $m_moduleState {Remote Control}]
+    if {$state eq "On"} {
+      set state 1
+    } elseif {$state eq "Off"} {
+      set state 0
+    } else {
+      set msg "State of the remote control ($state) is not understood by this driver."
+      return -code error -errorinfo MCFD16USB::RCEnabled $msg
+    }
+    return $state
+
+  }
   #---------------------------------------------------------------------------#
   # Utility methods
   #
@@ -332,8 +359,8 @@ snit::type MCFD16USB {
     set response [chan read $m_serialFile]
     append totalResponse $response
 
-    while {![string match "*mcfd-16>*" $response]} {
-      after 100
+    while {![string match "mcfd-16>" [string range $totalResponse end-7 end]]} {
+      after 25 
 #      set response [chan read -nonewline $m_serialFile]
       set response [chan read $m_serialFile]
       append totalResponse $response
@@ -362,7 +389,6 @@ snit::type MCFD16USB {
 
   method ParseDSResponse {response } {
     set lines [split $response "\n"]
-    puts "number lines = [llength $lines]"
 
     set parsedResponse [list]
 
@@ -496,7 +522,6 @@ snit::type MCFD16USB {
 
 
   method ParseMaskReg {line} {
-    puts "ParseMaskReg: $line"
     set splitLine [split $line ":"]
     if {[llength $splitLine]!=3} {
       set msg "Failed to understand parse : \"$line\""
@@ -514,7 +539,6 @@ snit::type MCFD16USB {
 
     set valStr [string reverse $valStr]
     binary scan [binary format b32 $valStr] i val
-    puts $val
     return [dict create name $name values $val]
   }
 

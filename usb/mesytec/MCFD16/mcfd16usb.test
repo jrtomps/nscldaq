@@ -251,7 +251,7 @@ tcltest::test bandwidthLimit-3 {Retreiving BWL when state up-to-date just return
   tearDown
 } -body {
   ::dev GetBandwidthLimit
-}  -result {Off}
+}  -result {0}
 
 
 
@@ -843,6 +843,17 @@ tcltest::test rc-1 {Non-boolean argument causes failure
 } -result "Invalid argument provided. Must be a boolean value." \
 -returnCodes 1
 
+tcltest::test rc-2 {Reading the rc mode should return cached value if not out of date
+} -setup {
+  setup
+  ::dev CacheModuleState $::parsedDSDict
+  setNeedsUpdate ::dev 0
+} -cleanup {
+  tearDown
+} -body {
+  # this should be disabled via the cached dict (see parsedDSDict)
+  dev RCEnabled
+} -result 0
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
 # Parse the DS response 
