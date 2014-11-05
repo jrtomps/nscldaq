@@ -27,19 +27,23 @@ snit::method MCFD16USB Read {} {
   return "mcfd-16>" 
 }
 
+snit::method MCFD16USB Update {} {
+  set m_moduleState $::parsedDSDict
+}
+
 # the response from DS (display settings that we need to parse)
 set dsResponse {DS
 
 Threshold:     0 20 20 40 20 20 20 20
                20 20 20 20 20 20 20 20 - 20
-Gain:          1 1 1 1 1 1 1 1 - 1
-Width [ns]:    50 50 50 50 50 50 50 50 - 50
-Deadtime [ns]: 50 50 50 50 50 50 50 50 - 50
-Delay (Tap):   3 3 3 3 3 3 3 3 - 3
-Fraction [%]:  40 40 40 40 40 40 40 40 - 40
+Gain:          1 1 1 1 4 1 1 1 - 1
+Width [ns]:    100 50 40 50 50 50 50 50 - 50
+Deadtime [ns]: 50 50 50 50 200 50 50 50 - 15
+Delay (Tap):   3 3 3 3 1 3 3 3 - 2
+Fraction [%]:  20 40 40 40 40 40 40 40 - 40
 Polarity:      neg neg neg pos neg neg neg neg - neg
 
-Mask register: chan pairs 15/14...1/0: 00000000 (0)
+Mask register: chan pairs 15/14...1/0: 00110000 (0)
 Discrimination: Constant fraction
 Gate: leading: 10, trailing: 100
 Global coincidence time: 20 (= 12 ns)
@@ -52,6 +56,27 @@ Switch settings: BWL: Off, Discr.: Constant fraction
 mcfd-16>
 }
 
+set parsedDSDict [dict create Threshold {0 20 20 40 20 20 20 20 20 20 20 20 20 20 20 20 20} \
+                       Gain {1 1 1 1 4 1 1 1 1} \
+                       Width {100 50 40 50 50 50 50 50 50} \
+                       Deadtime {50 50 50 50 200 50 50 50 15} \
+                       Delay {3 3 3 3 1 3 3 3 2} \
+                       Fraction {20 40 40 40 40 40 40 40 40} \
+                       Polarity {neg neg neg pos neg neg neg neg neg} \
+                       {Mask register} 48 \
+                       Discrimination {Constant fraction} \
+                       {Operating mode} Common \
+                       {Bandwidth limit} Off \
+                       {Remote Control} Off \
+                       {Test pulser} On]
+          
+
+proc setNeedsUpdate {objname state} {
+
+  set varname [lindex [$objname info vars m_needsUpdate] 0]
+  set $varname $state
+}
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
 # Polarity tests
 
@@ -62,7 +87,7 @@ tcltest::test polarity-0 {Setting polarity for channel pairs is simple
   tearDown
 } -body {
   # set channel pairs 0 to positive polarity
-  ::dev SetPolarity 0 positive 
+  ::dev SetPolarity 0 pos
 
   # check to see what we wrote to the file
   tcltest::viewFile $::serialFile
@@ -77,7 +102,7 @@ tcltest::test polarity-1 {Make sure that bad argument fails
 } -body {
   # set channel pairs 0 to bad value
   ::dev SetPolarity 0 this_will_fail 
-}  -result {Invalid value provided. Must be "positive" or "negative".} \
+}  -result {Invalid value provided. Must be "pos" or "neg".} \
 -returnCodes 1
 
 tcltest::test polarity-2 {Bad channel pair value will fail
@@ -87,7 +112,31 @@ tcltest::test polarity-2 {Bad channel pair value will fail
   tearDown
 } -body {
   # set channel pairs 0 to bad value
-  ::dev SetPolarity 9 negative
+  ::dev SetPolarity 9 neg
+}  -result {Invalid channel pair provided. Must be in range [0,8].} \
+-returnCodes 1
+
+
+tcltest::test polarity-3 {Read polarity returns the cached value if up-to-date
+} -setup {
+  setup
+  ::dev CacheModuleState $::parsedDSDict
+  setNeedsUpdate ::dev 0
+} -cleanup {
+  tearDown
+} -body {
+  ::dev GetPolarity 3
+}  -result {pos}
+
+tcltest::test polarity-4 {Read polarity fails if bad channel pair
+} -setup {
+  setup
+  ::dev CacheModuleState $::parsedDSDict
+  setNeedsUpdate ::dev 0
+} -cleanup {
+  tearDown
+} -body {
+  ::dev GetPolarity 9
 }  -result {Invalid channel pair provided. Must be in range [0,8].} \
 -returnCodes 1
 
@@ -126,6 +175,30 @@ tcltest::test gain-2 {Bad channel pair fails
   # gain can only be 1, 3, or 10
   ::dev SetGain 123 3
 } -result {Invalid channel pair provided. Must be in range [0,8].} \
+-returnCodes 1
+
+
+tcltest::test gain-3 {Read gain returns the cached value if up-to-date
+} -setup {
+  setup
+  ::dev CacheModuleState $::parsedDSDict
+  setNeedsUpdate ::dev 0
+} -cleanup {
+  tearDown
+} -body {
+  ::dev GetGain 4
+}  -result {4}
+
+tcltest::test gain-4 {Read gain fails if bad channel pair
+} -setup {
+  setup
+  ::dev CacheModuleState $::parsedDSDict
+  setNeedsUpdate ::dev 0
+} -cleanup {
+  tearDown
+} -body {
+  ::dev GetGain 9
+}  -result {Invalid channel pair provided. Must be in range [0,8].} \
 -returnCodes 1
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
@@ -169,6 +242,19 @@ tcltest::test bandwidthLimit-2 {If not in RC mode, this will fail
 -returnCodes 1
 }
 
+tcltest::test bandwidthLimit-3 {Retreiving BWL when state up-to-date just returns cached value
+} -setup {
+  setup
+  ::dev CacheModuleState $::parsedDSDict
+  setNeedsUpdate ::dev 0
+} -cleanup {
+  tearDown
+} -body {
+  ::dev GetBandwidthLimit
+}  -result {Off}
+
+
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
 # CFD state
 
@@ -209,6 +295,17 @@ tcltest::test cfd-2 {If not in RC mode, this will fail
 -returnCodes 1
 }
 
+tcltest::test cfd-3 {Retreiving CFD mode when state up-to-date just returns cached value
+} -setup {
+  setup
+  ::dev CacheModuleState $::parsedDSDict
+  setNeedsUpdate ::dev 0
+} -cleanup {
+  tearDown
+} -body {
+  ::dev GetDiscriminatorMode
+}  -result {cfd}
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
 # Threshold value
 
@@ -248,6 +345,34 @@ tcltest::test threshold-2 {Bad threshold value fails
   # ensure we can set all thresholds to 0 in common mode
   ::dev SetThreshold 8 256
 } -result {Invalid threshold argument. Must be in range [0,255].} \
+-returnCodes 1
+
+
+tcltest::test threshold-3 {Read threshold returns the cached value if up-to-date
+} -setup {
+  setup
+  ::dev CacheModuleState $::parsedDSDict
+  setNeedsUpdate ::dev 0
+} -cleanup {
+  tearDown
+} -body {
+  set resList [list]
+  lappend resList [::dev GetThreshold 0]
+  lappend resList [::dev GetThreshold 3]
+
+  set resList
+}  -result {0 40}
+
+tcltest::test threshold-4 {Failure when the requested channel is out of range
+} -setup {
+  setup
+  ::dev CacheModuleState $::parsedDSDict
+  setNeedsUpdate ::dev 0
+} -cleanup {
+  tearDown
+} -body {
+  ::dev GetThreshold 17
+}  -result {Invalid channel argument. Must be in range [0,16].} \
 -returnCodes 1
 
 
@@ -306,6 +431,36 @@ tcltest::test width-2 {Bad element index fails
                 {1 {Invalid width argument provided. Must be in range [16,222].}} ]
 
 
+tcltest::test width-3 {Read width returns the cached value if up-to-date
+} -setup {
+  setup
+  ::dev CacheModuleState $::parsedDSDict
+  setNeedsUpdate ::dev 0
+} -cleanup {
+  tearDown
+} -body {
+  set resList [list]
+  lappend resList [::dev GetWidth 0]
+  lappend resList [::dev GetWidth 2]
+
+  set resList
+}  -result {100 40}
+
+tcltest::test width-4 {Failure when the requested channel is out of range
+} -setup {
+  setup
+  ::dev CacheModuleState $::parsedDSDict
+  setNeedsUpdate ::dev 0
+} -cleanup {
+  tearDown
+} -body {
+  ::dev GetWidth 9 
+}  -result {Invalid channel pair provided. Must be in range [0,8].} \
+-returnCodes 1
+
+
+
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
 # Deadtime tests
 
@@ -351,6 +506,36 @@ tcltest::test deadtime-2 {Fails on value of out range
   set returnVals
 } -result [list {1 {Invalid deadtime argument provided. Must be in range [27,222].}} \
                 {1 {Invalid deadtime argument provided. Must be in range [27,222].}} ]
+
+
+
+tcltest::test deadtime-3 {Read deadtime returns the cached value if up-to-date
+} -setup {
+  setup
+  ::dev CacheModuleState $::parsedDSDict
+  setNeedsUpdate ::dev 0
+} -cleanup {
+  tearDown
+} -body {
+  set resList [list]
+  lappend resList [::dev GetDeadtime 4]
+  lappend resList [::dev GetDeadtime 8]
+
+  set resList
+}  -result {200 15}
+
+tcltest::test deadtime-4 {Failure for bad channel pair
+} -setup {
+  setup
+  ::dev CacheModuleState $::parsedDSDict
+  setNeedsUpdate ::dev 0
+} -cleanup {
+  tearDown
+} -body {
+  ::dev GetDeadtime 9 
+}  -result {Invalid channel pair provided. Must be in range [0,8].} \
+-returnCodes 1
+
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
 # Delay line tests
@@ -399,6 +584,33 @@ tcltest::test delay-2 {Fails on value of out range
 } -result [list {1 {Invalid delay argument provided. Must be in range [1,5].}} \
                 {1 {Invalid delay argument provided. Must be in range [1,5].}} ]
 
+tcltest::test delay-3 {Read delay returns the cached value if up-to-date
+} -setup {
+  setup
+  ::dev CacheModuleState $::parsedDSDict
+  setNeedsUpdate ::dev 0
+} -cleanup {
+  tearDown
+} -body {
+  set resList [list]
+  lappend resList [::dev GetDelay 4]
+  lappend resList [::dev GetDelay 8]
+
+  set resList
+}  -result {1 2}
+
+tcltest::test delay-4 {Failure for bad channel pair
+} -setup {
+  setup
+  ::dev CacheModuleState $::parsedDSDict
+  setNeedsUpdate ::dev 0
+} -cleanup {
+  tearDown
+} -body {
+  ::dev GetDelay 9 
+}  -result {Invalid channel pair provided. Must be in range [0,8].} \
+-returnCodes 1
+
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
 # Fraction tests
@@ -442,6 +654,35 @@ tcltest::test fraction-2 {Failure if param is not 20 or 40
   
   set returnVals
 } -result [list {1 {Invalid fraction argument provided. Must be either 20 or 40.}}]
+
+
+tcltest::test fraction-3 {Read fraction returns the cached value if up-to-date
+} -setup {
+  setup
+  ::dev CacheModuleState $::parsedDSDict
+  setNeedsUpdate ::dev 0
+} -cleanup {
+  tearDown
+} -body {
+  set resList [list]
+  lappend resList [::dev GetFraction 0]
+  lappend resList [::dev GetFraction 8]
+
+  set resList
+}  -result {20 40}
+
+tcltest::test fraction-4 {Failure for bad channel pair
+} -setup {
+  setup
+  ::dev CacheModuleState $::parsedDSDict
+  setNeedsUpdate ::dev 0
+} -cleanup {
+  tearDown
+} -body {
+  ::dev GetFraction 9
+}  -result {Invalid channel pair provided. Must be in range [0,8].} \
+-returnCodes 1
+
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
@@ -492,6 +733,18 @@ tcltest::test chanmask-2 {Mask parameter outside of range [0,255] fails
 } -result [list {1 {Invalid mask argument provided. Must be in range [0,255].}} \
                 {1 {Invalid mask argument provided. Must be in range [0,255].}} ]
 
+if {0} {
+tcltest::test chanmask-3 {Read channel mask returns cached value
+} -setup {
+  setup
+  ::dev CacheModuleState $::parsedDSDict
+  setNeedsUpdate ::dev 0
+} -cleanup {
+  tearDown
+} -body {
+  ::dev GetChannelMask 0
+}  -result {}
+}
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
 # pulser tests
@@ -535,6 +788,17 @@ tcltest::test pulser-2 {Disabling pulser
   # disabling the pulser is accomplished by writing P0 to the device
   tcltest::viewFile $::serialFile
 } -result {P0}
+
+tcltest::test pulser-3 {Checking for whether the pulser is enable returns the cached state
+} -setup {
+  setup
+  ::dev CacheModuleState $::parsedDSDict
+  setNeedsUpdate ::dev 0
+} -cleanup {
+  tearDown
+} -body {
+  ::dev PulserEnabled 
+} -result 1
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
 # Retrieve firmware
@@ -583,6 +847,7 @@ tcltest::test rc-1 {Non-boolean argument causes failure
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
 # Parse the DS response 
 
+
 tcltest::test parseDS-0 {Given a DS response, parse it into a dict
 } -setup {
   setup
@@ -590,21 +855,9 @@ tcltest::test parseDS-0 {Given a DS response, parse it into a dict
   tearDown
 } -body {
   dev ParseDSResponse $::dsResponse
-} -result [dict create Threshold {0 20 20 40 20 20 20 20 20 20 20 20 20 20 20 20 20} \
-                       Gain {1 1 1 1 1 1 1 1 1} \
-                       Width {50 50 50 50 50 50 50 50 50} \
-                       Deadtime {50 50 50 50 50 50 50 50 50} \
-                       Delay {3 3 3 3 3 3 3 3 3} \
-                       Fraction {40 40 40 40 40 40 40 40 40} \
-                       Polarity {neg neg neg pos neg neg neg neg neg} \
-                       {Mask register} 0 \
-                       Discrimination {Constant fraction} \
-                       {Operating mode} Common \
-                       {Bandwidth limit} Off \
-                       {Remote Control} Off \
-                       {Test pulser} On]
-                        
+} -result $::parsedDSDict              
 
+# helper parsing utilities
 tcltest::test parseChanPairLine-0 {Parser for a line consisting of chan pair
 } -setup {
   setup
@@ -615,7 +868,9 @@ tcltest::test parseChanPairLine-0 {Parser for a line consisting of chan pair
 } -result [dict create name "Delay"\
                        values [list 3 3 3 3 3 3 3 3 3]]
 
-tcltest::test parseThresholds-0 {Parser thresholds
+
+# custom parser for the thresholds
+tcltest::test parseThresholds-0 {Make sure we can properly parse the thresholds line
 } -setup {
   setup
 } -cleanup {
@@ -627,6 +882,7 @@ tcltest::test parseThresholds-0 {Parser thresholds
                        values [list 0 21 20 40 20 20 20 20 \
                                    20 20 23 20 20 20 20 20 29]]
 
+# custom parser for the mask register line
 tcltest::test parseMaskReg-0 {Make sure we can parse the mask register
 } -setup {
   setup
@@ -636,6 +892,7 @@ tcltest::test parseMaskReg-0 {Make sure we can parse the mask register
  dev ParseMaskReg "Mask register: chan pairs 15/14...1/0: 10101110 (0)"
 } -result [dict create name "Mask register" values [expr 0xae]]
 
+# helper proc to turn get rid of the dash that is in lines for a channel pair type config
 tcltest::test removeDash-0 {make sure we can remove the dash properly
 } -setup {
   setup
@@ -645,6 +902,7 @@ tcltest::test removeDash-0 {make sure we can remove the dash properly
   dev RemoveDash "3 3 3 3 3 3 3 3 - 3"
 } -result "3 3 3 3 3 3 3 3 3"
 
+# simple helper for splitting the line and then also trimming the results
 tcltest::test splitAndTrim-0 {Ensure that we can split the string at the dash
 } -setup {
   setup
@@ -654,6 +912,7 @@ tcltest::test splitAndTrim-0 {Ensure that we can split the string at the dash
   dev SplitAndTrim "threshold: 3 4134 4 - " ":"
 } -result [list "threshold" "3 4134 4 -"]
 
+# for parsing a simple line that has two parts separated by a colon.
 tcltest::test ParseSimpleLine-0 {Split and trim a string at colon
 } -setup {
   setup
@@ -662,7 +921,6 @@ tcltest::test ParseSimpleLine-0 {Split and trim a string at colon
 } -body {
   dev ParseSimpleLine "threshold: 3 4134 4 - " 
 } -result {name threshold values {3 4134 4 -}}
-
 
 tcltest::test TransformToDict-0 {Convert a list of dicts to a single dict
 } -setup {
@@ -673,6 +931,7 @@ tcltest::test TransformToDict-0 {Convert a list of dicts to a single dict
   dev  TransformToDict [list [dict create name n0 values v0] [dict create name n1 values v1]]
 } -result [dict create n0 v0 n1 v1]
 
+# for names that have a unit, this can be used to drop the unit
 tcltest::test StripUnit-0 {Get rid of a possible unit
 } -setup {
   setup
@@ -681,6 +940,46 @@ tcltest::test StripUnit-0 {Get rid of a possible unit
 } -body {
   dev StripUnit {Width [ns]}
 } -result "Width"
+
+
+# ----------------------------------------------------------------------------#
+# Device state synchronization tests
+
+tcltest::test modified-0 {When a write changes the config, flag cache as out of data
+} -setup {
+  setup
+  set varname [lindex [dev info vars m_needsUpdate] 0]
+  set $varname 0 ;# tell it that its value are up to date
+} -cleanup {
+  tearDown
+} -body {
+  dev Write "SG 0 1" ;# example command that would change the MCFD16's state
+                      # and thereby require us to read a new state
+  set [lindex [dev info vars m_needsUpdate] 0]
+} -result 1
+
+tcltest::test modified-1 {For any writes that should merely retrieve the MCFD16's state, we don't schedule a new update
+} -setup {
+  setup
+  set varname [lindex [dev info vars m_needsUpdate] 0]
+  set $varname 0 ;# tell it that its value are up to date
+} -cleanup {
+  tearDown
+} -body {
+  # the following commands should not effect the need to update the cache
+  dev Write "DS"
+  dev Write "DP"
+  dev Write "DT"
+  dev Write "V"
+  dev Write "?"
+  dev Write "H"
+  set [lindex [dev info vars m_needsUpdate] 0]
+} -result 0
+
+
+#-----------------------------------------------------------------------------#
+# Retrieve state
+
 
 tcltest::cleanupTests
 

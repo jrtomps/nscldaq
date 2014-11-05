@@ -9,11 +9,18 @@ package require Utils
 snit::type MCFD16USB {
 
   variable m_serialFile
+  variable m_needsUpdate
+  variable m_moduleState ;# the dict storing the state
 
   constructor {serialFile args} {
     set m_serialFile [open $serialFile "w+"]
 
     chan configure $m_serialFile -blocking 0
+
+    # we don't know anything about the state of the module
+    # so we are certainly in need of an update
+    set m_needsUpdate 1
+
 #    $self configurelist $args
   }
 
@@ -27,15 +34,24 @@ snit::type MCFD16USB {
 
     # this is the operational code and the check for the value
     switch $val {
-      positive {$self Transaction "SP $chanPair 0"} 
-      negative {$self Transaction "SP $chanPair 1"} 
+      pos {$self Transaction "SP $chanPair 0"} 
+      neg {$self Transaction "SP $chanPair 1"} 
       default  {
-        set msg "Invalid value provided. Must be \"positive\" or \"negative\"."
+        set msg {Invalid value provided. Must be "pos" or "neg".}
         return -code error -errorinfo MCFD16USB::SetPolarity $msg
       } 
     }
   }
 
+  method GetPolarity {chanPair} {
+    $self ThrowOnBadChannelPair $chanPair
+
+    if {$m_needsUpdate} {
+      $self Update
+    }
+
+    return [lindex [dict get $m_moduleState Polarity] $chanPair]
+  }
 
   method SetGain {chanPair val} {
     if {$val ni [list 1 3 10]} {
@@ -49,6 +65,15 @@ snit::type MCFD16USB {
     $self Transaction "SG $chanPair $val"
   }
 
+  method GetGain {chanPair} {
+    $self ThrowOnBadChannelPair $chanPair
+
+    if {$m_needsUpdate} {
+      $self Update
+    }
+
+    return [lindex [dict get $m_moduleState Gain] $chanPair]
+  }
 
   method EnableBandwidthLimit {on} {
     if {![string is boolean $on]} {
@@ -61,6 +86,14 @@ snit::type MCFD16USB {
 
   }
 
+  method GetBandwidthLimit {} {
+    if {$m_needsUpdate} {
+      $self Update
+    }
+
+    return [dict get $m_moduleState {Bandwidth limit}]
+  }
+
   method SetDiscriminatorMode {mode} {
     switch $mode {
       led {$self Transaction "CFD 0"}
@@ -69,6 +102,22 @@ snit::type MCFD16USB {
         set msg {Invalid argument provided. Must be either "led" or "cfd".}
         return -code error -errorinfo MCFD16USB::SetDiscriminatorMode $msg
       }
+    }
+  }
+
+  method GetDiscriminatorMode {} {
+    if {$m_needsUpdate} {
+      $self Update
+    }
+
+    set state [dict get $m_moduleState Discrimination]
+    if {$state eq "Constant fraction"} {
+      return "cfd"
+    } elseif {$state eq "Leading edge"} {
+      return "led"
+    } else {
+      set msg "Discriminator state ($state) is not understood by this driver."
+      return -code error -errorinfo MCFD16USB::GetDiscriminatorMode $msg
     }
   }
 
@@ -89,6 +138,20 @@ snit::type MCFD16USB {
     $self Transaction "ST $ch $thresh"
   }
 
+  method GetThreshold {ch} {
+    # check for valid channel
+    if {![Utils::isInRange 0 16 $ch]} {
+      set msg {Invalid channel argument. Must be in range [0,16].}
+      return -code error -errorinfo MCFD16USB::GetThreshold $msg
+    }
+
+    if {$m_needsUpdate} {
+      $self Update
+    }
+
+    return [lindex [dict get $m_moduleState {Threshold}] $ch]
+  }
+
   method SetWidth {chanPair value} {
     $self ThrowOnBadChannelPair $chanPair
 
@@ -98,6 +161,16 @@ snit::type MCFD16USB {
     }
 
     $self Transaction "SW $chanPair $value"
+  }
+
+  method GetWidth {chanPair} {
+    $self ThrowOnBadChannelPair $chanPair
+
+    if {$m_needsUpdate} {
+      $self Update
+    }
+
+    return [lindex [dict get $m_moduleState {Width}] $chanPair]
   }
 
 
@@ -113,6 +186,17 @@ snit::type MCFD16USB {
     $self Transaction "SD $chanPair $value"
   }
 
+  method GetDeadtime {chanPair} {
+    $self ThrowOnBadChannelPair $chanPair
+
+    if {$m_needsUpdate} {
+      $self Update
+    }
+
+    return [lindex [dict get $m_moduleState {Deadtime}] $chanPair]
+  }
+
+
   method SetDelay {chanPair value} {
 
     $self ThrowOnBadChannelPair $chanPair
@@ -125,6 +209,16 @@ snit::type MCFD16USB {
     $self Transaction "SY $chanPair $value"
   }
 
+  method GetDelay {chanPair} {
+    $self ThrowOnBadChannelPair $chanPair
+
+    if {$m_needsUpdate} {
+      $self Update
+    }
+
+    return [lindex [dict get $m_moduleState {Delay}] $chanPair]
+  }
+
   method SetFraction {chanPair value} {
 
     $self ThrowOnBadChannelPair $chanPair
@@ -135,6 +229,16 @@ snit::type MCFD16USB {
     }
 
     $self Transaction "SF $chanPair $value"
+  }
+
+  method GetFraction {chanPair} {
+    $self ThrowOnBadChannelPair $chanPair
+
+    if {$m_needsUpdate} {
+      $self Update
+    }
+
+    return [lindex [dict get $m_moduleState {Fraction}] $chanPair]
   }
 
 
@@ -153,6 +257,9 @@ snit::type MCFD16USB {
     $self Transaction "SK $bank $mask"
   }
 
+  # not sure how to handle this b/c I don't understand the response from the module
+  method GetChannelMask {bank} {}
+
   method EnablePulser {index} {
     if {$index ni [list 1 2]} {
       set msg {Invalid pulser index provided. Must be either 1 or 2.}
@@ -164,6 +271,23 @@ snit::type MCFD16USB {
 
   method DisablePulser {} {
     $self Transaction "P0"
+  }
+
+  method PulserEnabled {} { 
+    if {$m_needsUpdate} {
+      $self Update
+    }
+
+    set state [dict get $m_moduleState {Test pulser}]
+    if {$state eq "On"} {
+      set state 1
+    } elseif {$state eq "Off"} {
+      set state 0
+    } else {
+      set msg "State of the test pulser ($state) is not understood by this driver."
+      return -code error -errorinfo MCFD16USB::PulserEnabled $msg
+    }
+    return $state
   }
 
   method ReadFirmware {} {
@@ -188,6 +312,14 @@ snit::type MCFD16USB {
   #
 
   method Write {script} {
+
+    # check that the command name (the first element of the script list) is
+    # going to modify the state of the module
+    if {[lindex $script 0] ni [list DP DT DS V ? H]} { 
+      # we will need to update our state the next time the user queries a value
+      set m_needsUpdate 1
+    }
+
     puts $m_serialFile $script
     chan flush $m_serialFile
 
@@ -221,6 +353,11 @@ snit::type MCFD16USB {
     }
   }
 
+  method CacheModuleState {stateDict} {
+    set m_moduleState $stateDict
+  }
+
+  # ------ PARSING UTILITIES ---------------------------------------------#
 
   method ParseDSResponse {response } {
     set lines [split $response "\n"]
@@ -390,5 +527,11 @@ snit::type MCFD16USB {
     }
 
     return $flatDict
+  }
+
+  method Update {} {
+#    set response [$self Transaction "DS"]
+
+#    set m_moduleState [$self ParseDSResponse $response]
   }
 }
