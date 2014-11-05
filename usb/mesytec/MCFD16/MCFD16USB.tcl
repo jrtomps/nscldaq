@@ -20,6 +20,7 @@ snit::type MCFD16USB {
     # we don't know anything about the state of the module
     # so we are certainly in need of an update
     set m_needsUpdate 1
+    set m_moduleState [dict create]
 
 #    $self configurelist $args
   }
@@ -530,8 +531,9 @@ snit::type MCFD16USB {
   }
 
   method Update {} {
-#    set response [$self Transaction "DS"]
+    set response [$self Transaction "DS"]
 
-#    set m_moduleState [$self ParseDSResponse $response]
+    set m_moduleState [$self ParseDSResponse $response]
+    set m_needsUpdate 0
   }
 }
