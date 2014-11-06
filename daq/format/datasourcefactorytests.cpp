@@ -25,6 +25,8 @@ static const char* Copyright = "(C) Copyright Michigan State University 2014, Al
 #include <errno.h>
 #include <unistd.h>
 
+#include <CRingBuffer.h>
+
 #define private public
 #define protected public
 
@@ -116,6 +118,11 @@ void CDataSourceFactoryTest::testBadFileSource()
 
 void CDataSourceFactoryTest::testRingSource()
 {
+  // Ensure the ring exists:
+  try {
+    CRingBuffer::create("myring");
+  } catch(...) {}
+  //
   CDataSourceFactory factory;
   CDataSource* sink;
   try {

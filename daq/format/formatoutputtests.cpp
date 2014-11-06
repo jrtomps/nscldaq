@@ -989,5 +989,5 @@ void
 MiscFormat::abnormalendstring()
 {
     CAbnormalEndItem item;
-    EQ(std::string("Abnormal End"), item.toString());
+    EQ(std::string("Abnormal End\n"), item.toString());
 }

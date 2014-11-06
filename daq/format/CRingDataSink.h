@@ -31,10 +31,10 @@ class CRingDataSink : public CDataSink
 {
   private:
     CRingBuffer*  m_pRing;
-    std::string   m_url; 
+    std::string   m_ringName; 
  
   public:
-    CRingDataSink(std::string url);
+    CRingDataSink(std::string ringName);
     virtual ~CRingDataSink();
 
   private:
@@ -43,8 +43,10 @@ class CRingDataSink : public CDataSink
     int operator==(const CRingDataSink& rhs) const;
     int operator!=(const CRingDataSink& rhs) const;
 
+    // The interface functions required by the ABC:
   public:
     void putItem(const CRingItem& item);
+    void put(const void* pData, size_t nBytes);
 
   private:
     void openRing();

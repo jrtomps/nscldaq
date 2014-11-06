@@ -843,5 +843,5 @@ Work on 11.0-rc11 begins
                         ordered list of registered callout bundles.
         Bug #2130 - Don't allow a new run to start until the event builder
                     has flushed all its data out the output ring.
-                    
+        Feature #2099  - Add put(char* data, int nbytes) method to CDataSink interface
 	
