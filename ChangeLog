@@ -844,4 +844,11 @@ Work on 11.0-rc11 begins
         Bug #2130 - Don't allow a new run to start until the event builder
                     has flushed all its data out the output ring.
         Feature #2099  - Add put(char* data, int nbytes) method to CDataSink interface
+        Bug #2034 - ringFragmentSources register to wrong event builder when
+        starting duplicate event builder.  Note this may  not really fix the
+        issue of a hanging event building pipeline since the next thing you're
+        likely to run into is that glom is still alive and is the ring producer
+        so the new pipeline won't start up right uniless the destination ring
+        is modified.
+        
 	

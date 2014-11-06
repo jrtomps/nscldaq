@@ -63,6 +63,11 @@ namespace eval ::EVBC {
     set monitorTid            "";            # Thread id
     set monitorMutex          "";            # Mutex handle for condition variable
     set monitorCondVar        "";            # Condition variable signalled at end of run.
+    
+    #  Suffix for the application:
+    
+    
+    set appNameSuffix       ""
 }
 
 
@@ -208,6 +213,7 @@ proc EVBC::start args {
     # reads on the pipe.
     #
     set bindir [file join $EVBC::daqtop bin]
+    set ::EVBC::appNameSuffix [clock seconds]
     set orderer [file join $bindir startOrderer]
     set pipecommand "tclsh 2>evb.err";        # TODO - this should be @TCLSH_CMD@
     
@@ -254,6 +260,9 @@ proc EVBC::start args {
         puts $EVBC::pipefd $line
     }
     ::flush $EVBC::pipefd
+    puts $EVBC::pipefd "start $::EVBC::appNameSuffix"
+    ::flush $EVBC::pipefd
+    
     close $infd
         
 
@@ -267,10 +276,12 @@ proc EVBC::start args {
     pack     .waiting.for
     set ports [::portAllocator create %AUTO]
     set me    $::tcl_platform(user)
-    set hunting "ORDERER:$me"
+    set hunting "ORDERER:$me:$::EVBC::appNameSuffix"
+    puts "Application name: $hunting"
     set found 0
     for {set i 0} {$i < 100} {incr i} {
 	set allocations [$ports listPorts]
+        puts $allocations
 	foreach allocation $allocations {
 	    set name [lindex $allocation 1]
 	    set owner [lindex $allocation 2]
@@ -285,11 +296,14 @@ proc EVBC::start args {
 	    set i 100
 	}
     }
+    puts "Started up"
     $ports destroy
+    puts "Destroying .waiting"
     destroy .waiting
     if {!$found} {
 	error "Event builder failed to start within timeout"
     }
+    puts "Done."
 
 }
 
@@ -341,6 +355,37 @@ proc EVBC::flush {} {
     
     #puts $EVBC::pipefd EVB::flushqueues
 }
+
+##
+# getOrdererPort
+#   Returns the event orderer port number
+#
+proc EVBC::getOrdererPort {} {
+   #
+    #  Figure out what port the event builder is running on... or if it's running
+    #
+    set portManager [::portAllocator create %AUTO%]
+    set allocations [$portManager listPorts]
+    set user $::tcl_platform(user)
+    set appName "ORDERER:$user:$::EVBC::appNameSuffix"
+    puts "Appname: $appName"
+    set port ""
+    foreach allocation $allocations {
+        set name  [lindex $allocation 1]
+        set owner [lindex $allocation 2]
+        if {($name eq $appName) && ($owner eq $user)} {
+            set port [lindex $allocation 0]
+            break
+        }
+    }
+    $portManager destroy
+    
+    if {$port eq ""} {
+        error "EVBC::startRingSource Unable to locate the event builder service"
+    }
+    return $port    
+}
+
 #------------------------------------------------------------------------------
 ##
 # @fn EVBC::startRingSource
@@ -357,27 +402,10 @@ proc EVBC::flush {} {
 #       the event building pipeline.
 #
 proc EVBC::startRingSource {sourceRingUrl timestampExtractorLib id info {expectHeaders 0}} {
-    #
-    #  Figure out what port the event builder is running on... or if it's running
-    #
-    set portManager [::portAllocator create %AUTO%]
-    set allocations [$portManager listPorts]
-    set user $::tcl_platform(user)
-    set appName "ORDERER:$user"
-    set port ""
-    foreach allocation $allocations {
-        set name  [lindex $allocation 1]
-        set owner [lindex $allocation 2]
-        if {($name eq $appName) && ($owner eq $user)} {
-            set port [lindex $allocation 0]
-            break
-        }
-    }
-    $portManager destroy
+
+
     
-    if {$port eq ""} {
-        error "EVBC::startRingSource Unable to locate the event builder service"
-    }
+    set port [::EVBC::getOrdererPort]
     #  Construct the command we're going to run
     
     set ringSource [file join $EVBC::daqtop bin ringFragmentSource]
@@ -540,6 +568,7 @@ proc EVBC::onBegin {} {
             -glomdt    [$EVBC::applicationOptions cget -glomdt]    \
             -glomtspolicy [$EVBC::applicationOptions cget -glomtspolicy] \
             -destring  $destring
+        
         
         if {$EVBC::guiFrame ne ""} {
             EVBC::_DisableGUI 
@@ -1055,7 +1084,7 @@ proc EVBC::_waitForEventBuilder {} {
 
     set ports [::portAllocator create %AUTO%]
     set me $::tcl_platform(user)
-    set name ORDERER:$me
+    set name ORDERER:$me:$::EVBC::appNameSuffix
     set port -1
     set allocations [$ports listPorts]
     foreach allocation $allocations {
