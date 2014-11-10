@@ -22,8 +22,8 @@ package require Tk
 package require usbcontrolclient
 package require gdgcontrol
 package require gdgwidget
-package require configfile
-package require BLT
+package require gdgconfigfile
+
 
 
 set panelIndex 0
@@ -68,6 +68,8 @@ proc addPanel {notebook module connection} {
     global controllers
 
     set name [lindex $module 1]
+    set type [lindex $module 0]
+    if {$type ne "jtecgdg"} return;                    # only gdg's.
 
     set w [gdgwidget $notebook.g$panelIndex -title $name]
     set c [gdgcontrol %AUTO% -widget $w -connection $connection \
@@ -76,8 +78,7 @@ proc addPanel {notebook module connection} {
 
     $c UpdateValues
 
-    $notebook insert 0 $name
-    $notebook tab configure $name -window $w -fill both 
+    $notebook add $w -text $name
        
     incr panelIndex
 }
@@ -246,7 +247,7 @@ wm deiconify .
 #
 Reconnect
 
-blt::tabset .panel
+ttk::notebook .panel
 
 set modules [processConfig ~/config/controlconfig.tcl]
 foreach module $modules {

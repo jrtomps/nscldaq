@@ -850,5 +850,9 @@ Work on 11.0-rc11 begins
         likely to run into is that glom is still alive and is the ring producer
         so the new pipeline won't start up right uniless the destination ring
         is modified.
+        Feature #868 - Remove NSCLDAQ's dependency on BLT as that is not being
+        sufficiently supported for me to have confidence that it won't break (again)
+        when we go to Tcl 8.6
+        
         
 	
