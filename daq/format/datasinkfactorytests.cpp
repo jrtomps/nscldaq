@@ -20,6 +20,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2014, Al
 #include <cppunit/extensions/HelperMacros.h>
 
 #include <URIFormatException.h>
+#include <Asserts.h>
 #include <string>
 #include <fcntl.h>
 #include <errno.h>
@@ -46,6 +47,7 @@ class CDataSinkFactoryTest : public CppUnit::TestFixture
     CPPUNIT_TEST ( testRingSink );
     CPPUNIT_TEST ( testTCPRingSink );
     CPPUNIT_TEST ( testFailRingSink );
+    CPPUNIT_TEST (testRemoteFail);
     CPPUNIT_TEST_SUITE_END();
 
     public:
@@ -58,6 +60,7 @@ class CDataSinkFactoryTest : public CppUnit::TestFixture
     void testRingSink();
     void testTCPRingSink();
     void testFailRingSink();
+    void testRemoteFail();
 
 };
 
@@ -196,3 +199,32 @@ void CDataSinkFactoryTest::testTCPRingSink()
   if (sink!=0) { delete sink; }
 }
 
+// Using any node other than empty or localhost shoudl fail
+
+void CDataSinkFactoryTest::testRemoteFail()
+{
+    CDataSinkFactory factory;
+    CDataSink*       sink;
+    bool threw = false;
+
+    try {
+        sink = factory.makeSink("ring://www.google.com/somering");     // must fail.    
+    }
+    catch(CErrnoException& e) {
+        threw = true;
+        EQ(EREMOTE, e.ReasonCode());
+    }
+    ASSERT(threw);
+    
+    threw = false;
+    try {
+        sink = factory.makeSink("tcp://www.google.com/somering");     // Must fail.    
+    }
+    catch(CErrnoException& e) {
+        threw = true;
+        EQ(EREMOTE, e.ReasonCode());
+    }
+    ASSERT(threw);
+    
+    
+}

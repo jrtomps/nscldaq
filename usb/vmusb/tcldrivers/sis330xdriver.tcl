@@ -115,7 +115,7 @@ snit::type sis330xDriver {
     #
     #  We use two address modifiers:
     #  setupamod - A32D32 - supervisory data access.
-    #  blockread - A32D32 BLT supervisorydata  mode.
+    #  blockread - A32D32 Block transfer supervisory data  mode.
 
     variable setupAmod 0x09
     variable blockXfer 0x0b

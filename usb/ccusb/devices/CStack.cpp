@@ -47,6 +47,8 @@ static CConfigurableObject::limit lamtoLow(0);
 static CConfigurableObject::limit lamtoHigh(0xff);
 static CConfigurableObject::Limits lamtoRange(lamtoLow, lamtoHigh);
 
+bool CStack::m_incrementalScalers(true);
+
 ////////////////////////////////////////////////////////////////////////////////
 /////////////////////////// Canonicals /////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -146,6 +148,8 @@ CStack::onAttach(CReadoutModule& configuration)
   m_pConfiguration->addParameter("-period",
 				 CConfigurableObject::isInteger, NULL, "2");
 
+  m_pConfiguration->addBooleanParameter("-incremental", "true");
+
 
   
 }
@@ -165,6 +169,9 @@ CStack::Initialize(CCCUSB& controller)
     pModule->Initialize(controller); 
 
     p++;
+  }
+  if (m_pConfiguration->cget("-type") == std::string("scaler")) {
+    m_incrementalScalers = m_pConfiguration->getBoolParameter("-incremental");
   }
 }
 
@@ -205,6 +212,7 @@ CStack::onEndRun(CCCUSB& controller)
 
     p++;
   }
+
 }
 /*!
   Clone virtualizes copy construction.

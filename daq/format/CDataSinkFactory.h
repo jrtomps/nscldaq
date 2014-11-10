@@ -39,14 +39,14 @@ class CDataSink;
 */
 class CDataSinkFactory
 {
-  public:
+public:
     /**! 
 
       Parse the argument and return the proper type of sink
     */
-    CDataSink* makeSink(std::string uri);
+    virtual CDataSink* makeSink(std::string uri);
 
-  private:
+private:
     /**!
        Create a file data sink for the specified file    
     */

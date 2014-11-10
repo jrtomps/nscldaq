@@ -1160,6 +1160,36 @@ g++ -o myApplication src1.o src2.o ... -L$DAQROOT/lib \
         </section>
     </section>
     <section>
+        <title>Generic ring data sinks</title>
+        <para>
+            Data sinks are places to store data.  A program that stores data
+            will also generally want to work regardless of whether or not it is
+            storing data in a file or a ring buffer (of course ring buffer data
+            sinks must be local to the host that is running the program).
+        </para>
+        <para>
+            The data format library provides a hierarchy of classes to support
+            this that are derived from the abstract base class
+            <classname>CDataSink</classname>:
+            <classname>CFileDataSink</classname> allows you to put ring items
+            and arbitraty data into a file.  <classname>CRingDataSink</classname>
+            similarly alows you to put data in a ringbuffer.
+        </para>
+        <para>
+            The <classname>CDataSinkFactory</classname> class allows you to produce
+            ring or file data sinks depening on the form of the URI that is passed
+            to the factory creation method. 
+        </para>
+        <para>
+            For reference information on the data sink classes see:
+            <link linkend='daq3_cdatasink' endterm='daq3_cdatasink_title' />,
+            <link linkend='daq3_cringdatasink' endterm='daq3_cringdatasink_title' />,
+            <link linkend='daq3_cfiledatasink' endterm='daq3_cfiledatasink_title' />.
+            For reference information on the factory class see:
+            <link linkend='daq3_cdatasinkfactory' endterm='daq3_cdatasinkfactory_title' />
+        </para>
+    </section>
+    <section>
         <title>Creating ring items</title>
         <para>
             There are some cases where the librarires provided to create
@@ -5474,7 +5504,312 @@ item.commitToRing(aring);
             </varlistentry>
           </variablelist>
        </refsect1>
-     </refentry>     
+     </refentry>
+    <refentry id="manpage.cabnormalenditem">
+      <refentryinfo>
+        <author>
+            <personname>
+                <firstname>Ron</firstname>
+                <surname>Fox</surname>
+            </personname>
+        </author>
+        <productname>NSCLDAQ</productname>
+        <productnumber></productnumber>
+      </refentryinfo>
+      <refmeta>
+         <refentrytitle>CAbnormaEndItem</refentrytitle>
+         <manvolnum>3daq</manvolnum>
+             <refmiscinfo class='empty'></refmiscinfo>
+      </refmeta>
+      <refnamediv>
+         <refname>CAbnormalEndItem</refname>
+         <refpurpose>Abnormal end of run.</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+       <synopsis>
+           <ooclass><classname>CAbnormalEnditem</classname></ooclass>
+          <constructorsynopsis>
+         <methodname>CAbnormalEndItem</methodname>
+         <void />
+         <exceptionname></exceptionname>
+          </constructorsynopsis>
+          <constructorsynopsis>
+            <methodname>CAbnormalEndItem</methodname>
+            <methodparam>
+                <modifier>const</modifier> <type>CAbnormalEndItem&amp;</type>
+                <parameter>rhs</parameter>
+            </methodparam>
+          </constructorsynopsis>
+          <constructorsynopsis>
+            <methodname>CAbnormalEndItem</methodname>
+            <methodparam>
+                <modifier>const</modifier> <type>CRingItem&amp;</type>
+                <parameter>rhs</parameter>
+            </methodparam>
+          </constructorsynopsis>
+          <methodsynopsis>
+         <type>CAbnormalEndItem&amp;</type>
+            <methodname>operator=</methodname>
+            <methodparam>
+                <modifier>const</modifier> <type>CAbnormalEndItem&amp;</type>
+                <parameter>rhs</parameter>
+            </methodparam>
+          </methodsynopsis>
+          <methodsynopsis>
+              <modifier></modifier>
+              <type>int</type>
+              <methodname>operator==</methodname>
+              <methodparam>
+                <modifier>const</modifier><type>CAbnormalEndItem&amp;</type>
+                <parameter>rhs</parameter>
+              </methodparam>
+              <modifier>const</modifier>
+          </methodsynopsis>
+          <methodsynopsis>
+              <modifier></modifier>
+              <type>int</type>
+              <methodname>operator==</methodname>
+              <methodparam>
+                <modifier>const</modifier> <type>CRingitem&amp;</type>
+                <parameter>rhs</parameter>
+              </methodparam>
+              <modifier>const</modifier>
+          </methodsynopsis>
+          <methodsynopsis>
+              <modifier></modifier>
+              <type>int</type>
+              <methodname>operator!=</methodname>
+              <methodparam>
+                <modifier>const</modifier> <type>CAbnormalEndItem&amp;</type>
+                <parameter>rhs</parameter>
+              </methodparam>
+              <modifier>const</modifier>
+          </methodsynopsis>
+          <methodsynopsis>
+              <modifier></modifier>
+              <type>int</type>
+              <methodname>operator!=</methodname>
+              <methodparam>
+                <modifier>const</modifier><type>CRingItem&amp;</type>
+                <parameter>rhs</parameter>
+              </methodparam>
+              <modifier>const</modifier>
+          </methodsynopsis>
+          <methodsynopsis>
+              <modifier>virtual </modifier>
+              <type>std::string </type>
+              <methodname>typeName</methodname>
+              <void />
+              <modifier>const</modifier>
+          </methodsynopsis>
+          <methodsynopsis>
+              <modifier>virtual </modifier>
+              <type>std::string </type>
+              <methodname>toString() </methodname>
+              <modifier>const</modifier>
+          </methodsynopsis>  
+};
+       </synopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>DESCRIPTION</title>
+         <para>
+            Provides a class for objects that represent abnormal end of run
+            ring items.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>
+        METHODS
+         </title>
+         <variablelist>
+            <varlistentry>
+                <term>
+                    <constructorsynopsis>
+                   <methodname>CAbnormalEndItem</methodname>
+                   <void />
+                   <exceptionname></exceptionname>
+                    </constructorsynopsis>
+                    
+                </term>
+                <listitem>
+                    <para>
+                        Default constructor for abnormal end items.
+                        In most applications, this is the only
+                        constructor you ever need.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <constructorsynopsis>
+                      <methodname>CAbnormalEndItem</methodname>
+                      <methodparam>
+                          <modifier>const</modifier> <type>CAbnormalEndItem&amp;</type>
+                          <parameter>rhs</parameter>
+                      </methodparam>
+                    </constructorsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Creates a ring item that is a duplicate of the <parameter>rhs</parameter>
+                        argrument.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <constructorsynopsis>
+                       <methodname>CAbnormalEndItem</methodname>
+                       <methodparam>
+                           <modifier>const</modifier> <type>CRingItem&amp;</type>
+                           <parameter>rhs</parameter>
+                       </methodparam>
+                     </constructorsynopsis>           
+                </term>
+                <listitem>
+                    <para>
+                        Constructs an abnormal end item from an arbitrary
+                        ring item reference.  The only requirement to avoid an
+                        exception is that <parameter>rhs</parameter> has the type
+                        <literal>ABNORMAL_ENDRUN</literal>.  If this is not the case
+                        a <classname>std::bad_cast</classname> exception is thrown.
+                    </para>
+                </listitem>
+            </varlistentry>
+           <varlistentry>
+               <term>
+                <methodsynopsis>
+                  <type>CAbnormalEndItem&amp;</type>
+                  <methodname>operator=</methodname>
+                  <methodparam>
+                      <modifier>const</modifier> <type>CAbnormalEndItem&amp;</type>
+                      <parameter>rhs</parameter>
+                  </methodparam>
+                </methodsynopsis>
+               </term>
+               <listitem>
+                   <para>
+                    Assigns this to the contents of <parameter>rhs</parameter>.
+                   </para>
+               </listitem>
+           </varlistentry>
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier></modifier>
+                        <type>int</type>
+                        <methodname>operator==</methodname>
+                        <methodparam>
+                          <modifier>const</modifier><type>CAbnormalEndItem&amp;</type>
+                          <parameter>rhs</parameter>
+                        </methodparam>
+                        <modifier>const</modifier>
+                    </methodsynopsis>
+
+                </term>
+                <listitem>
+                    <para>
+                        Returns <literal>1</literal> because there is no payload
+                        in abnormal end run item to differentiate one from another.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier></modifier>
+                        <type>int</type>
+                        <methodname>operator==</methodname>
+                        <methodparam>
+                          <modifier>const</modifier> <type>CRingitem&amp;</type>
+                          <parameter>rhs</parameter>
+                        </methodparam>
+                        <modifier>const</modifier>
+                    </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Returns <literal>1</literal> if <parameter>rhs</parameter>
+                        is an abnormal end ring item.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier></modifier>
+                        <type>int</type>
+                        <methodname>operator!=</methodname>
+                        <methodparam>
+                          <modifier>const</modifier> <type>CAbnormalEndItem&amp;</type>
+                          <parameter>rhs</parameter>
+                        </methodparam>
+                        <modifier>const</modifier>
+                    </methodsynopsis>
+                    <methodsynopsis>
+                        <modifier></modifier>
+                        <type>int</type>
+                        <methodname>operator!=</methodname>
+                        <methodparam>
+                          <modifier>const</modifier><type>CRingItem&amp;</type>
+                          <parameter>rhs</parameter>
+                        </methodparam>
+                        <modifier>const</modifier>
+                    </methodsynopsis>
+
+                </term>
+                <listitem>
+                    <para>
+                        Returns the logical negation of the corresponding
+                        <methodname>operator==</methodname>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier>virtual </modifier>
+                        <type>std::string </type>
+                        <methodname>typeName</methodname>
+                        <void />
+                        <modifier>const</modifier>
+                    </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Returns a string that describes the type of the
+                        ring item.  In this case the string is
+                        <literal>Abnormal End</literal>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier>virtual </modifier>
+                        <type>std::string </type>
+                        <methodname>toString() </methodname>
+                        <modifier>const</modifier>
+                    </methodsynopsis>  
+
+                </term>
+                <listitem>
+                    <para>
+                        Returns a string that represents the contents
+                        of the ring item.  In this case, with no
+                        payload, the result of
+                        <methodname>typeName</methodname> is returned.
+                    </para>
+                </listitem>
+            </varlistentry>
+            
+
+
+         </variablelist>
+      </refsect1>
+    </refentry>     
     <refentry id="manpage.cringselectionpredicate">
       <refmeta>
          <refentrytitle>CRingSelectionPredicate</refentrytitle>
@@ -6527,6 +6862,14 @@ typedef struct _GlomParameters  {
     
 } GlomParameters, *pGlomParameters;
 
+typedef strucst _AbnormalEndItem {
+    RingItemHeader s_header;
+    uint32_t      s_mbz;                   // Empty body header.
+
+} AbnormalEndItem, *pAbnormalEndItem;
+
+
+
   pPhysicsEventItem  formatEventItem(size_t nWords, void* pPayload);
   pPhysicsEventCountItem formatTriggerCountItem(uint32_t runTime, time_t stamp, uint64_t triggerCount);
   pScalerItem         formatScalerItem(unsigned scalerCount, time_t timestamp, 
@@ -6576,6 +6919,10 @@ typedef struct _GlomParameters  {
     time_t stamp, uint32_t offset, uint32_t runNumber, uint32_t offsetDivisor,
     const char* pTitle, int type
   );
+  
+ pAbnormalEndItem formatAbnormalEndItem();
+  
+  
   void* bodyPointer(pRingItem pItem);
 
 </programlisting>
@@ -7170,6 +7517,20 @@ typedef struct _GlomParameters  {
                     be chosen.  This is one of <literal>GLOM_TIMESTAMP_FIRST</literal>,
                     <literal>GLOM_TIMESTAMP_LAST</literal> or <literal>GLOM_TIMESTAMP_AVERAGE</literal>.
                 </para>
+                <programlisting>
+
+typedef strucst _AbnormalEndItem {
+    RingItemHeader s_header;
+    uint32_t      s_mbz;                   // Empty body header.
+
+} AbnormalEndItem, *pAbnormalEndItem;
+
+                </programlisting>
+                <para>
+                     This can be emitted to let downstream software know that
+                     a run was ended prematurely.  When emitted no more data
+                     shouild be emitted for the current run.
+                </para>
               </refsect2>
               
               
@@ -7277,6 +7638,22 @@ typedef struct _GlomParameters  {
                             The <varname>s_type</varname> value in the
                             <type>RingItemHeader</type> of a state change item
                             that documents a resume from a paused run.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier>
+                            <type>uint32_t</type> <varname>ABNORMAL_ENDRUN</varname>
+                            <initializer>5</initializer>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Ring items of this type indcate a run ended abnormally.
+                            This should be treated, in  most respects, like the end
+                            of run marker.
                         </para>
                     </listitem>
                 </varlistentry>
@@ -7902,6 +8279,14 @@ typedef struct _GlomParameters  {
                     <paramdef>
                         <parameter><type>pRingItem</type> pItem</parameter>
                     </paramdef>
+                </funcprototype>
+            </funcsynopsis>
+            <funcsynopsis>
+                <funcprototype>
+                    <funcdef>
+                        <type>pAbnormalEndItem</type> <function>formatAbnormalEndItem</function>
+                    </funcdef>
+                    <void />
                 </funcprototype>
             </funcsynopsis>
 
@@ -8673,6 +9058,26 @@ typedef struct _GlomParameters  {
                     </varlistentry>
                     <varlistentry>
                         <term>
+                            <funcsynopsis>
+                                <funcprototype>
+                                    <funcdef>
+                                        <type>pAbnormalEndItem</type> <function>formatAbnormalEndItem</function>
+                                    </funcdef>
+                                    <void />
+                                </funcprototype>
+                            </funcsynopsis>
+                        </term>
+                        <listitem>
+                            <para>
+                                Formats an abnormal end item and returns a pointer to the dynamically allocated
+                                item. You must at some point call
+                                <function>free(3)</function> to
+                                release the storage allocated to this ring item.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>
                         <funcsynopsis>
                             <funcprototype>
                                 <funcdef>
@@ -9245,5 +9650,589 @@ typedef struct _GlomParameters  {
        </refsect1>
 
      </refentry>        
+<refentry id="daq3_cdatasink">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='daq3_cdatasink_title'>CDataSink</refentrytitle>
+     <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>CDataSink</refname>
+     <refpurpose>Abstract base class for data sinks.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+    #include &lt;CDataSink.h&gt;
+       <ooclass><classname>CDataSink</classname></ooclass> {
+      <methodsynopsis>
+        <modifier>virtual</modifier><type>void</type>
+        <methodname>putItem</methodname>
+        <methodparam>
+            <modifier>const</modifier><type>CRingItem&amp;</type>
+            <parameter>item</parameter>
+        </methodparam>
+        <modifier>=0</modifier>
+      </methodsynopsis>
+      <methodsynopsis>
+          <modifier>virtual</modifier>
+          <type>void</type>
+          <methodname>put</methodname>
+          <methodparam>
+            <modifier>const</modifier><type>void*</type>
+            <parameter>pData</parameter>
+          </methodparam>
+          <methodparam>
+            <type>size_t</type> <parameter>nBytes</parameter>
+          </methodparam>
+          <modifier>=0</modifier>
+      </methodsynopsis>  
+};    
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        Abstract base class for data sinks.  Data sinks are objects to which
+        data (usually ring items) can be sent.
+     </para>
+     <para>
+        By deriving concrete data types
+        from <classname>CDataSink</classname>, and using the
+        <link linkend='daq3_cdatasinkfactory' endterm='daq3_cdatasinkfactory_title' />
+        to create sinks based on a URI description of the sink, a program
+        can be written that produces data for a sink without having any
+        knoweldge of the details of the sink.  This allows those programs to function
+        equally well regardless of the sink for which they are producing data.
+     </para>
+     <para>
+         The base class is abstract.  See <literal>METHODS</literal> below
+         for a desription of the methods a data sink must provide and
+         the expectations for each method.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                  <modifier>virtual</modifier><type>void</type>
+                  <methodname>putItem</methodname>
+                  <methodparam>
+                      <modifier>const</modifier><type>CRingItem&amp;</type>
+                      <parameter>item</parameter>
+                  </methodparam>
+                  <modifier>=0</modifier>
+                </methodsynopsis>
+                
+            </term>
+            <listitem>
+                <para>
+                    Concrete implementations are supposed to provide strategy
+                    code that writes an entire ring item to the sink.
+                    <parameter>item</parameter> is a reference to the item
+                    to write.  All errors should be reported by throwing a
+                    <classname>CErrnoException</classname> with the
+                    <varname>errno</varname> global set to a value that describes
+                    the error.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>virtual</modifier>
+                    <type>void</type>
+                    <methodname>put</methodname>
+                    <methodparam>
+                      <modifier>const</modifier><type>void*</type>
+                      <parameter>pData</parameter>
+                    </methodparam>
+                    <methodparam>
+                      <type>size_t</type> <parameter>nBytes</parameter>
+                    </methodparam>
+                    <modifier>=0</modifier>
+                </methodsynopsis>  
 
+            </term>
+            <listitem>
+                <para>
+                    Concrete implementations are supposed to provide
+                    stratey code that writes an arbitrary chunk of data to the sink.
+                    <parameter>pData</parameter> points at the data to write
+                    and <parameter>nBytes</parameter> is the number of bytes
+                    to write starting at <parameter>pData</parameter>
+                </para>
+                <para>
+                    Errors should be reported by throwing a
+                    <classname>CErrnoException</classname> with
+                    the global
+                    <varname>errno</varname> set to a value that describes
+                    the error.
+                </para>
+            </listitem>
+        </varlistentry>
+        
+          
+        
+     </variablelist>
+  </refsect1>
+</refentry>
+<refentry id="daq3_cfiledatasink">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='daq3_cfiledatasink_title'>CFileDataSink</refentrytitle>
+     <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>CFileDataSink</refname>
+     <refpurpose>Data sink to a disk file.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+#include &lt;CFileDataSink&gt;
+       <ooclass><classname>CFileDataSink : public CDataSink</classname></ooclass> {
+      <constructorsynopsis>
+        <methodname>CFileDataSink</methodname>
+        <methodparam>
+           <type>int</type> <parameter>fd</parameter>
+        </methodparam>
+     </constructorsynopsis>
+    <constructorsynopsis>
+           <methodname>CFileDataSink</methodname>
+           <methodparam>
+               <type>std::string</type> <parameter>path</parameter>
+           </methodparam>
+      </constructorsynopsis>
+      <methodsynopsis>
+          <modifier>virtual </modifier>
+          <type>void </type>
+          <methodname>putItem</methodname>
+          <methodparam>
+            <modifier>const </modifier><type>CRingItem&amp; </type>
+            <parameter>item</parameter>
+          </methodparam>
+      </methodsynopsis>  
+      <methodsynopsis>
+          <modifier>virtual </modifier>
+          <type>void </type>
+          <methodname>put</methodname>
+          <methodparam>
+            <modifier>const</modifier><type> void*</type>
+            <parameter>pData</parameter>
+          </methodparam>
+          <methodparam>
+            <type> size_t</type><parameter>nBytes</parameter> 
+          </methodparam>
+          <modifier></modifier>
+      </methodsynopsis>  
+      <methodsynopsis>
+          <modifier></modifier>
+          <type>void </type>
+          <methodname>flush</methodname>
+          <void />
+          <modifier></modifier>
+      </methodsynopsis>  
+
+
+};
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        A <classname>CDataSink</classname> that writes data to a disk file.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <constructorsynopsis>
+                  <methodname>CFileDataSink</methodname>
+                  <methodparam>
+                     <type>int</type> <parameter>fd</parameter>
+                  </methodparam>
+                </constructorsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Constructs a file data sink using a file descriptor
+                    <parameter>fd</parameter>.  The
+                    file descriptor is something that must have come from
+                    functions like <function>open</function>,
+                    <function>dup</function>, <function>socket</function> etc.
+                    Note that this implies that <classname>CFileDataSink</classname>
+                    can actually send data to anything that can be
+                    represented by a file descriptor.
+                </para>
+                <para>
+                    If <parameter>fd</parameter> is not writable (e.g. was opened
+                    as <literal>O_RDONLY</literal>) an
+                    <classname>std::string</classname> exception is thrown
+                    with text indicating this fact
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <constructorsynopsis>
+                     <methodname>CFileDataSink</methodname>
+                     <methodparam>
+                         <type>std::string</type> <parameter>path</parameter>
+                     </methodparam>
+                </constructorsynopsis>
+
+            </term>
+            <listitem>
+                <para>
+                    Creates a file data sink that sinks to the
+                    <parameter>path</parameter> in the filesystem.
+                    <parameter>path</parameter> must be able to be created
+                    and written to once created.  If <parameter>path</parameter>
+                    already exists, all data are overwritten.
+                </para>
+                <para>
+                    If the file could not be opened for write, an
+                    <classname>std::string</classname> exceptionis
+                    thrown indicating this fact.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>virtual </modifier>
+                    <type>void </type>
+                    <methodname>putItem</methodname>
+                    <methodparam>
+                      <modifier>const </modifier><type>CRingItem&amp; </type>
+                      <parameter>item</parameter>
+                    </methodparam>
+                </methodsynopsis>  
+
+            </term>
+            <listitem>
+                <para>
+                    Puts a ring item (<parameter>item</parameter>), to file.
+                    Any failure is signalled by a <classname>CErrnoException</classname>
+                    whose <methodname>ReasonCode</methodname> reflects the
+                    <varname>errno</varname> at the time of the failing function
+                    call.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>virtual </modifier>
+                    <type>void </type>
+                    <methodname>put</methodname>
+                    <methodparam>
+                      <modifier>const</modifier><type> void*</type>
+                      <parameter>pData</parameter>
+                    </methodparam>
+                    <methodparam>
+                      <type> size_t</type><parameter>nBytes</parameter> 
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>                  
+            </term>
+            <listitem>
+                <para>
+                    Writes <parameter>nBytes</parameter> of arbitraty data
+                    pointed to by <parameter>pData</parameter> to the file.
+                    Errors are signalled via <classname>CErrnoException</classname>
+                    exceptions.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>flush</methodname>
+                    <void />
+                    <modifier></modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Ensures that any data buffered by the operating system
+                    is actually written to the objet identified by the
+                    sink file descriptor.
+                    <methodname>flush</methodname> will block until this has
+                    happened.
+                </para>
+            </listitem>
+        </varlistentry>
+     </variablelist>
+  </refsect1>
+</refentry>     
+<refentry id="daq3_cringdatasink">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id="daq3_cringdatasink_title">CRingDataSink</refentrytitle>
+     <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>CRingDataSink</refname>
+     <refpurpose>Data sink that writes to a <classname>CRingBuffer</classname>
+     </refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+#include &lt;CRingDataSink.h&gt;    
+       <ooclass><classname>CRingDataSink : public CDataSink</classname></ooclass> {
+      <constructorsynopsis>
+     <methodname>CRingDataSink</methodname>
+     <methodparam>
+        <type>std::string</type> <parameter>ringName</parameter>
+     </methodparam>
+    </constructorsynopsis>
+    <methodsynopsis>
+        <modifier>virtual</modifier>
+        <type>void</type>
+           <methodname>putItem</methodname>
+           <methodparam>
+            <modifier>const</modifier> <type>CRingItem&amp;</type>
+            <parameter>item</parameter>
+           </methodparam>
+           <modifier></modifier>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier>virtual</modifier>
+        <type>void</type>
+        <methodname>put</methodname>
+        <methodparam>
+            <modifier>const</modifier><type>void*</type>
+            <parameter>pData</parameter>
+        </methodparam>
+        <methodparam>
+            <type>size_t</type><parameter>nBytes</parameter>
+        </methodparam>
+        <modifier></modifier>
+    </methodsynopsis>  
+};
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        Provides a <classname>CDataSink</classname> that puts data into a
+        <classname>CRingBuffer</classname> as with all ring buffer producers,
+        the ring buffer must be local to the system on which the program runs.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                 <constructorsynopsis>
+               <methodname>CRingDataSink</methodname>
+               <methodparam>
+                  <type>std::string</type> <parameter>ringName</parameter>
+               </methodparam>
+              </constructorsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Creates a ring data sink object using the
+                    <parameter>ringName</parameter> as the destination for data.
+                    If <parameter>ringName</parameter> does not yet exist it is
+                    created.  If the ring exists and already has a producer,
+                    an <classname>CErrnoException</classname> is thrown with the
+                    <literal>EACCES</literal> errno value.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                  <modifier>virtual</modifier>
+                  <type>void</type>
+                     <methodname>putItem</methodname>
+                     <methodparam>
+                      <modifier>const</modifier> <type>CRingItem&amp;</type>
+                      <parameter>item</parameter>
+                     </methodparam>
+                     <modifier></modifier>
+              </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Inserts the ring item <parameter>item</parameter> into the
+                    underlying ring buffer.  If necessary, this method will
+                    block until sufficient free put space is available in the ring
+                    buffer.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                  <modifier>virtual</modifier>
+                  <type>void</type>
+                  <methodname>put</methodname>
+                  <methodparam>
+                      <modifier>const</modifier><type>void*</type>
+                      <parameter>pData</parameter>
+                  </methodparam>
+                  <methodparam>
+                      <type>size_t</type><parameter>nBytes</parameter>
+                  </methodparam>
+                  <modifier></modifier>
+              </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Inserts <parameter>nBytes</parameter> of arbitraty data
+                    to the underlying ring.  The data inserted are pointed to
+                    by <parameter>pData</parameter>.  If necessary this method
+                    blocks untile sufficient free put space is available.
+                </para>
+            </listitem>
+        </varlistentry>
+     </variablelist>
+  </refsect1>
+</refentry>
+<refentry id="daq3_cdatasinkfactory">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id="daq3_cdatasinkfactory_title">CDataSinkFactory</refentrytitle>
+     <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>CDataSinkFactory</refname>
+     <refpurpose>Create an appropriate CDataSink object</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+       <ooclass><classname>CDataSinkFactory</classname></ooclass> {
+      <methodsynopsis>
+        <modifier>virtual</modifier><type>CDataSink(</type>
+        <methodname>makeSink</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>uri</parameter>
+        </methodparam>
+
+        <modifier></modifier>
+      </methodsynopsis>
+};
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        Factory for data sinks.  Note that if you define your own type of data
+        sink you can extend this factory by deriving and overriding
+        <methodname>makeSink</methodname>.  Just be sure to pass any
+        unrecognized uri protocols to the base class
+        <methodname>makeSink</methodname>.
+     </para>
+     <para>
+        
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <para>
+        The factory only has a single public method: <methodname>makeSink</methodname>.
+        This method takes a single <type>std::string</type> parameter; a URI
+        that describes the sink to create.  On success, this factory method
+        returns
+        a pointer to a dynamically allocated <classname>CDataSink</classname>.
+        It is the caller's responsibility to <function>delete</function>
+        this object.
+     </para>
+     <para>
+        To understand how this function works, we need to first look at the
+        structure of a URI (Uniform Resource Identifier).  The generic
+        form of a URI is:
+     </para>
+     <informalexample>
+        <cmdsynopsis>
+            <command>
+<replaceable>protocol:</replaceable>//<replaceable>host</replaceable><optional>:port</optional>/<replaceable>path</replaceable>
+            </command>
+        </cmdsynopsis>
+     </informalexample>
+     <para>
+        The protocol part of the URI identifies the type of sink to create.
+     </para>
+     <para>
+        <literal>file</literal> protocols create <classname>CFileDataSink</classname>
+        objects.  For those the <replaceable>host</replaceable> and <replaceable>port</replaceable>
+        are ignored and the <replaceable>path</replaceable> identifies the file
+        system path at which the sink file is created.
+    </para>
+     <para>
+        <literal>ring</literal> or <literal>tcp</literal> protocols will create
+         a ring data source.  The <replaceable>path</replaceable> is the ring name.
+         <replaceable>host</replaceable> must either be empty or be
+          <literal>localhost</literal> or an error is thrown.
+     </para>
+     <para>
+        The special value of <literal>-</literal> for the URI will create
+        a <classname>CFileDataSink</classname> open on the program's
+        standard output.  This facilitates opening sinks for programs used
+        in filter pipelines.
+     </para>
+  </refsect1>
+</refentry>     
 <!-- /manpage  -->

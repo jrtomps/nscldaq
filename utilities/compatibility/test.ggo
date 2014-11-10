@@ -1,0 +1,8 @@
+package "testdatasource"
+version  "1.0"
+purpose "Provide a source of nscldaq8.x buffers on stdout."
+
+option "run" n "Run number for the data" default="1234" int optional default="1234"
+option "title" t "Title put in state change buffers" string optional default="This is a title"
+option "buffers" b "Number of buffers to create"  int optional default="1000"
+option "events-per-scaler" e "Number of events between scaler buffers" int optional default="1000"

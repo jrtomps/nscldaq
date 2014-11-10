@@ -34,12 +34,16 @@
 #include <set>
 #include <map>
 #include <io.h>
+#include <iostream>
 
 #include <buffer.h>
 #include <buftypes.h>
 #include <DataFormat.h>
+#include "btoroptions.h"
+#include <dlfcn.h>
+#include <fragment.h>
 
-
+typedef uint64_t (*TimestampExtractor)(void*);
 
 static size_t       BUFFERSIZE(8192); // (in bytes).
 static uint64_t     eventsInRun(0);   // For PhysicsEventcountItems.
@@ -52,8 +56,123 @@ static std::map<uint16_t, uint32_t>  stateTypeMap; // Same as above but for stat
 
 static uint64_t triggers;
 
+// Pulled out command line parameters.
 
+static bool         createBodyHeaders(false);
+static bool         incrementalScalers(false);
+static unsigned     sourceId(0);
+static std::string  timeStampLibrary;
+static TimestampExtractor eventExtractor(0);   // getEventTimestamp
+static TimestampExtractor scalerExtractor(0);  // getScalerTimestamp
 
+bool missingEventExtractorWarned(false);
+bool missingScalerExtractorWarned(false);
+
+/**
+ * findSymbol
+ *    Finds a dll symbol for a timestamp extractor and saves it
+ *    somewhere:
+ *
+ *  @param ppFunction - Pointer to where to store the final function
+ *  @param dll        - DLL handle.
+ *  @param name       - Name of the function.
+ *
+ *  @note This function does no error reportage.  That's up to the caller.
+ *        ppFunction will have a 0 stored into it if the lookup failed.
+ *        dlerror can then be used to fetch the error.
+ */
+static void
+findSymbol(TimestampExtractor* ppFunction, void* dll, const char* name)
+{
+    void* pFunction = dlsym(dll, name);
+    *ppFunction = reinterpret_cast<TimestampExtractor>(pFunction);
+}
+
+/**
+ * loadTimestampLibrary
+ *
+ *   Load the timestamp library and locate extractor references.
+ *   Note that since there are cases where data sources may be totally
+ *   made up of scalers or totally events, we're only going to require
+ *   that we have at least one of those.
+ *
+ * @note timeStampLibrary has the name of the shared object.
+ * @note Errors are not recoverable and the programwill exit with an error.
+ */
+static void
+loadTimestampLibrary()
+{
+    // Open the shared lib:
+    
+    void* pDllHandle = dlopen(timeStampLibrary.c_str(), RTLD_NOW | RTLD_NODELETE);
+    if (!pDllHandle) {
+        std::cerr << "Failed to load the timestamp extraction library: "
+            << timeStampLibrary << dlerror() << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    findSymbol(&eventExtractor, pDllHandle, "getEventTimestamp");
+    findSymbol(&scalerExtractor, pDllHandle, "getScalerTimestamp");
+
+    if ((!eventExtractor) && (!scalerExtractor)) {
+        std::cerr << "The library must have at least one of 'getEventTimestamp "
+            << "or getScalerTimestamp defined but does not\n";
+        exit(EXIT_FAILURE);
+    }
+}
+
+/**
+ * setOptions
+ *    Process the command line options.
+ *    If there are errors, the program fails.
+ *  @param argc  - Number of command line parameters.
+ *  @param argv  - The commandl ine parameters themselves.
+ *
+ * @note the file global variables above are pulled out.
+ */
+static void
+setOptions(int argc, char** argv)
+{
+    // Parse the options:
+    
+    struct gengetopt_args_info args;
+    if(cmdline_parser(argc, argv, &args)) {
+        std::cerr << "Failed to process the command line\n";
+        exit(EXIT_FAILURE);
+    }
+    
+    /*
+     * incremental scalers are independent of all the bod header crap:
+     * Default is true if --incremental-scalers not given otherwise the
+     * flag value rules:
+     */
+    
+    incrementalScalers =
+        args.incremental_scalers_given ?
+            (args.incremental_scalers_arg == incremental_scalers_arg_yes) :
+            true;
+    /*
+     *  If --create-body-header is given and is true we need to have all the
+     *  related switches too.
+     */
+    if(args.create_body_header_given &&
+       (args.create_body_header_arg == create_body_header_arg_yes))
+    {
+        if (!args.sourceid_given || !args.ts_extract_given) {
+            std::cerr <<
+                "If --create-body-header is true then " <<
+                "--sourceid and --tsextract are required flags\n";
+            exit(EXIT_FAILURE);
+        }
+        
+        sourceId          = args.sourceid_arg;
+        timeStampLibrary = args.ts_extract_arg;
+        loadTimestampLibrary();
+        createBodyHeaders = true;
+    }
+    
+    
+    BUFFERSIZE = args.buffersize_arg;
+}
 
 /**
  * Get a buffer of data from stdin (STDIN_FILENO).
@@ -202,7 +321,25 @@ bool formatEvents (void* pBuffer)
 
   for (int i = 0; i < nEvents; i++) {
     uint16_t eventSize = *pBody++;
-    pPhysicsEventItem pItem = formatEventItem(eventSize - 1, pBody);
+    pPhysicsEventItem pItem;
+    if (createBodyHeaders) {
+        if (eventExtractor) {
+            uint64_t timestamp = (*eventExtractor)(pBody-1);
+            pItem = formatTimestampedEventItem(
+                timestamp, sourceId, 0, eventSize - 1, pBody
+            );
+        } else {
+            if (!missingEventExtractorWarned) {
+                std::cerr << "Warning your timstamp extractor does not produce event "
+                    << "timestamps.  Physics events will not have a body header\n";
+                missingEventExtractorWarned = true;
+            }
+            pItem = formatEventItem(eventSize - 1, pBody);
+        }
+    } else {
+        pItem = formatEventItem(eventSize - 1, pBody);    
+    }
+    
     bool status = writeData(pItem, pItem->s_header.s_size);
     free(pItem);
 
@@ -229,6 +366,7 @@ bool formatEvents (void* pBuffer)
   }
 
   triggers += nEvents;		// Update trigger count seen so far.
+  buffers++;
   return true;
 }
 
@@ -242,7 +380,15 @@ bool formatEvents (void* pBuffer)
  */
 bool formatTriggerCount(uint32_t runTime, time_t stamp)
 {
-  pPhysicsEventCountItem pItem = formatTriggerCountItem(runTime, stamp, triggers);
+  pPhysicsEventCountItem pItem;
+  if(createBodyHeaders) {
+    pItem = formatTimestampedTriggerCountItem(
+        NULL_TIMESTAMP, sourceId, 0, runTime, 1, stamp, triggers
+    );
+  } else {
+    pItem = formatTriggerCountItem(runTime, stamp, triggers);
+  }
+  
   bool status = writeData(pItem, pItem->s_header.s_size);
   free(pItem);
   return status;
@@ -262,6 +408,17 @@ scalerTimestamp(sclbody* pBody)
 {
   uint64_t timestamp;
 
+  if (scalerExtractor) {
+    return (*scalerExtractor)(pBody);
+  } else {
+    if (createBodyHeaders && !missingScalerExtractorWarned) {
+        std::cerr << "The timestamp extractor does not have a scaler timestmap "
+            << "extraction function.\n  The S800 scaler timestamp extraction"
+            << " algorithm will be used\n";
+        missingScalerExtractorWarned = true;
+    }
+    // Fall through to the s800 code.
+  }
 
   timestamp = (uint16_t)pBody->unused2[0]; // Highest order.
 
@@ -326,20 +483,21 @@ bool formatScaler (void* pBuffer)
   }
 
 
-  // For 11.x only make the timestamped item. -- nope...that makes a body
-  // header with a sourceid of 0 which wreaks havoc.
-#ifdef UNDEFINED
-
-  pScalerItem pTSItem = formatNonIncrTSScalerItem(nScalers, timestamp,
-								pBody->btime, pBody->etime,
-								scalerTimestamp(pBody),
-								pBody->scalers,
-								scalerTimeDivisor(pBody)							     
-								);
-#endif
-  pScalerItem pTSItem = formatScalerItem(
-      nScalers, timestamp, pBody->btime, pBody->etime, pBody->scalers
-  );
+  
+  pScalerItem pTSItem;
+  
+  if (createBodyHeaders) {
+    pTSItem = formatTimestampedScalerItem(
+        scalerTimestamp(pBody), sourceId, 0, incrementalScalers,
+        scalerTimeDivisor(pBody), timestamp, pBody->btime, pBody->etime,
+        nScalers, pBody->scalers
+    );
+  } else  {
+    pTSItem = formatScalerItem(
+        nScalers, timestamp, pBody->btime, pBody->etime, pBody->scalers
+    );    
+  }
+   
   int status = writeData(pTSItem, pTSItem->s_header.s_size);
   free(pTSItem);
 
@@ -390,12 +548,44 @@ bool formatStrings (void* pBuffer)
     pBody += length;		    // next string.
     
   }
-  pTextItem pItem = formatTextItem(nStrings, stamp, 0, pStrings, mapTextBufferType(pHeader->type));
+  pTextItem pItem;
+  if (createBodyHeaders) {
+    pItem = formatTimestampedTextItem(
+        NULL_TIMESTAMP, sourceId, 0,
+        nStrings, stamp, 0, pStrings, mapTextBufferType(pHeader->type), 1
+    );
+  } else {
+    pItem = formatTextItem(
+        nStrings, stamp, 0, pStrings, mapTextBufferType(pHeader->type)
+    );  
+  }
+  
   bool status = writeData(pItem, pItem->s_header.s_size);
   free(pItem);
   delete [] pStrings;
   return status;
 
+}
+/**
+ * barrierType
+ *
+ * @param bufferType - the buffer type of a state transition buffr.
+ * @return uint32-t  - Type of barrier implied by this buffer type.
+ */
+static uint32_t
+barrierType(uint16_t bufferType)
+{
+    switch (bufferType) {
+        case BEGRUNBF:
+            return 1;
+        case ENDRUNBF:
+            return 2;
+        case PAUSEBF:
+            return 3;
+        case RESUMEBF:
+            return 4;
+    }
+    return 1;
 }
 /**
  * Write a state change data buffer. Buffer Type mappings:
@@ -432,9 +622,20 @@ bool formatStateChange (void* pBuffer)
   strptime(textualTime, 
 	   "%Y-%m-%d %T", &bTime);
   time_t stamp = mktime(&bTime);
-
-  pStateChangeItem pItem = formatStateChange(stamp, pBody->sortim, pHeader->run,
-					     pBody->title, mapStateChangeType(pHeader->type));
+  pStateChangeItem pItem;
+  if (createBodyHeaders) {
+    pItem = formatTimestampedStateChange(
+        NULL_TIMESTAMP, sourceId, 1,
+        stamp, pBody->sortim, pHeader->run, barrierType(pHeader->type), pBody->title,
+        mapStateChangeType(pHeader->type)
+    );
+  } else {
+    pItem = formatStateChange(
+        stamp, pBody->sortim, pHeader->run, pBody->title,
+        mapStateChangeType(pHeader->type)
+    );    
+}
+  
   bool status = writeData(pItem, pItem->s_header.s_size);
   free(pItem);
   return status;
@@ -487,22 +688,8 @@ bool bufferToRing (void* pBuffer)
 
 int main (int argc, char *argv[])
 {
-
-  // If there's an argument it must be a buffersize:
-
-  argc--; argv++;
-  if (argc) {
-    int newSize = atoi(*argv);
-    if (newSize < BUFFERSIZE) {
-      fprintf(stderr, "Buffer size specification %s must be an integer >= %d\n",
-	      *argv, BUFFERSIZE);
-      exit(EXIT_FAILURE);
-    }
-    BUFFERSIZE = newSize;
-  }
-
+  setOptions(argc, argv);
   uint16_t    dataBuffer[BUFFERSIZE/sizeof(uint16_t)];
-
 
 
   // Process the data:

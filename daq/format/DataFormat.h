@@ -120,6 +120,10 @@ static const uint32_t END_RUN    = 2;
 static const uint32_t PAUSE_RUN  = 3;
 static const uint32_t RESUME_RUN = 4;
 
+// Not quite a state change since we don't know anything about what happened.
+
+static const uint32_t ABNORMAL_ENDRUN = 5;
+
 /*  Documentation item type codes: */
 
 static const uint32_t PACKET_TYPES        = 10;
@@ -211,6 +215,8 @@ typedef PSTRUCT _RingItem {
 } RingItem, *pRingItem;
 
 
+
+
 /*!
   Run state changes are documented by inserting state change items that have the
   structure shown below.  After 11.0, they may or mey  not have abody header
@@ -239,6 +245,15 @@ typedef PSTRUCT _StateChangeItem  {
     } s_body;
     
 } StateChangeItem, *pStateChangeItem;
+
+/*
+  ABNORMAL_END items are just empty ring items with the right type:
+*/
+typedef PSTRUCT _AbnormalEndItem {
+    RingItemHeader s_header;
+    uint32_t      s_mbz;                   // Empty body header.
+    
+} AbnormalEndItem, *pAbnormalEndItem;
 
 /*!
    Scaler items contain run time counters.  As of 11.0 they may or may  not have
@@ -437,6 +452,8 @@ extern "C" {
     time_t stamp, uint32_t offset, uint32_t runNumber, uint32_t offsetDivisor,
     const char* pTitle, int type
   );
+  pAbnormalEndItem formatAbnormalEndItem();
+  
   void* bodyPointer(pRingItem pItem);
   uint32_t itemSize(const RingItem* pItem);
   uint16_t itemType(const RingItem* pItem);

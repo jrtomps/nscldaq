@@ -131,7 +131,7 @@ private:
 
   // Manipulations on the ring buffer:
 public:
-  size_t put(void* pBuffer, size_t nBytes, unsigned long timeout=ULONG_MAX);
+  size_t put(const void* pBuffer, size_t nBytes, unsigned long timeout=ULONG_MAX);
   size_t get(void* pBuffer, size_t maxBytes, size_t minBytes = 1, 
 	     unsigned long timeout=ULONG_MAX);
   size_t peek(void* pBuffer, size_t maxbytes);

@@ -514,7 +514,7 @@ CRingBuffer::~CRingBuffer()
 */
 
 size_t
-CRingBuffer::put(void* pBuffer, size_t nBytes, unsigned long timeout)
+CRingBuffer::put(const void* pBuffer, size_t nBytes, unsigned long timeout)
 {
   // Require that we are the producer:
 
@@ -568,7 +568,7 @@ CRingBuffer::put(void* pBuffer, size_t nBytes, unsigned long timeout)
 
     memcpy(pPut, pBuffer, firstSize);                     // Move the first chunk.
 
-    char* pSecond = reinterpret_cast<char*>(pBuffer) + firstSize;
+    const char* pSecond = reinterpret_cast<const char*>(pBuffer) + firstSize;
     memcpy(pDataBase, pSecond, secondSize);              // Move the second chunk. 
 
   }

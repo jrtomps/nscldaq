@@ -299,7 +299,7 @@ snit::type ReadoutGuiApp {
         $self _createSettingsMenu
         $self _checkFilesystem
 
-        ::DataSourceMgr::register
+        
         ::EventLog::register
         ::DataSourceMonitor::register
         
@@ -337,7 +337,8 @@ snit::type ReadoutGuiApp {
         set ow [Output::getInstance]
         $ow configure -width 90
         grid columnconfigure $ow 0 -weight 1 
-        grid rowconfigure $ow 0 -weight 1 
+        grid rowconfigure $ow 0 -weight 1
+        ::DataSourceMgr::register
     }
     ##
     # slave

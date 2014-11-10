@@ -37,6 +37,7 @@
 #include <CAllButPredicate.h>
 #include <CDesiredTypesPredicate.h>
 #include <CRingItemFactory.h>
+#include <CAbnormalEndItem.h>
 #include <tcl.h>
 
 
@@ -259,6 +260,8 @@ CTclRingCommand::get(CTCLInterpreter& interp, std::vector<CTCLObject>& objv)
         case EVB_GLOM_INFO:
             formatGlomParams(interp,  pSpecificItem);
             break;
+        case ABNORMAL_ENDRUN:
+            formatAbnormalEnd(interp, pSpecificItem);
         default:
             break;;
             // TO DO:
@@ -689,7 +692,20 @@ void CTclRingCommand::formatGlomParams(CTCLInterpreter& interp, CRingItem* pSpec
     interp.setResult(result);
     
 }
+/**
+ * formatAbnormalEnd
+ *   We only provide  the type (Abnormal End).
+ */
+void
+CTclRingCommand::formatAbnormalEnd(CTCLInterpreter& interp, CRingItem* pSpecificItem)
+{
 
+    CTCLObject result;
+    result.Bind(interp);
+    result += "type";
+    result += pSpecificItem->typeName();
+    interp.setResult(result);
+}
 /*-------------------------------------------------------------------------------
  * Package initialization:
  */

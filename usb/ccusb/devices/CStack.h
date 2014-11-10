@@ -73,6 +73,7 @@ options only valid only for event stacks:
 options only valid for scaler stacks:
 
 -period           int  2        Seconds between scaler readouts.
+-incremental      bool true     determines if scaler ring items are marked incremental.
 
 
 \endverbatim
@@ -92,6 +93,7 @@ public:
 
 private:
   CReadoutModule*    m_pConfiguration;
+  static bool        m_incrementalScalers;
 
 
 public:
@@ -123,6 +125,7 @@ public:
   void loadStack(CCCUSB& controller);
   void enableStack(CCCUSB& controller);
   TriggerType     getTriggerType();
+  static bool     isIncremental() {return m_incrementalScalers; }
 
 
   // Utility member functions:

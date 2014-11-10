@@ -16,6 +16,7 @@ include_HEADERS		= 	CBeginRun.h	\
 libCCUSBCommands_la_CPPFLAGS		= 	-I@top_srcdir@/usb/ccusb/rdothread	\
 				-I@top_srcdir@/usb/ccusb/router		\
 				-I@top_srcdir@/usb/ccusb/daqconfig	\
+				-I@top_srcdir@/usb/ccusb/devices	\
 				-I@top_srcdir@/usb/ccusb		\
 				-I@top_srcdir@/usb/ccusb/ccusb		\
 				-I@top_srcdir@/usb/ccusb/tclserver	\

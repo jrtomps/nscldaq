@@ -26,6 +26,7 @@
 #include <DataFormat.h>
 #include <CRingItemFactory.h>
 #include <exception>
+#include <CAbnormalEndItem.h>
 
 // File scoped  variables:
 
@@ -40,6 +41,7 @@ static uint8_t*        pAccumulatedEvent(0);
 static size_t          totalEventSize(0);
 static bool            nobuild(false);
 static enum enum_timestamp_policy timestampPolicy;
+static unsigned        stateChangeNesting(0);
 
 /**
  * outputGlomParameters
@@ -140,6 +142,10 @@ outputBarrier(EVB::pFragment p)
     pRingItemHeader pH = 
       reinterpret_cast<pRingItemHeader>(p->s_pBody);
     io::writeData(STDOUT_FILENO, pH, pH->s_size);
+    
+    if (pH->s_type == BEGIN_RUN) stateChangeNesting++;
+    if (pH->s_type == END_RUN)   stateChangeNesting--;
+    if (pH->s_type == ABNORMAL_ENDRUN) stateChangeNesting = 0;
 
   } else {
     RingItemHeader unknownHdr;
@@ -156,6 +162,18 @@ outputBarrier(EVB::pFragment p)
     io::writeData(STDOUT_FILENO, p->s_pBody, p->s_header.s_size);
   }
 }
+/**
+ * emitAbnormalEnd
+ *    Emits an abnormal end run item.
+ */
+void emitAbnormalEnd()
+{
+    CAbnormalEndItem end;
+    pRingItem pItem= end.getItemPointer();
+    EVB::Fragment frag = {{NULL_TIMESTAMP, 0xffffffff, pItem->s_header.s_size, 0}, pItem};
+    outputBarrier(&frag);
+}
+
 /**
  * acumulateEvent
  * 
@@ -290,6 +308,9 @@ main(int argc, char**  argv)
       if (!p) {
 	flushEvent();
 	std::cerr << "glom: EOF on input\n";
+        if(stateChangeNesting) {
+            emitAbnormalEnd();
+        }
 	break;
       }
       // We have a fragment:

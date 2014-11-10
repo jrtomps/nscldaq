@@ -101,7 +101,7 @@ public:
 private:
   CReadoutModule*    m_pConfiguration;
   static size_t      m_listOffset; // Offsets for list loading
-
+  static bool        m_incrementalScaler;
 public:
   // Canonicals:
 
@@ -134,6 +134,8 @@ public:
   void loadStack(CVMUSB& controller);
   void enableStack(CVMUSB& controller);
   TriggerType     getTriggerType();
+
+  static bool scalerIsIncremental()  {return m_incrementalScaler; }
 
   // Utility member functions:
 

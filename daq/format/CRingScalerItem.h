@@ -67,7 +67,9 @@ public:
   CRingScalerItem(uint32_t startTime,
 		  uint32_t stopTime,
 		  time_t   timestamp,
-		  std::vector<uint32_t> scalers);
+		  std::vector<uint32_t> scalers,
+                  bool                  isIncremental = true,
+                  uint32_t              timeOffsetDivisor = 1);
   CRingScalerItem(uint64_t eventTimestamp, uint32_t source, uint32_t barrier,
                   uint32_t startTime,
 		  uint32_t stopTime,

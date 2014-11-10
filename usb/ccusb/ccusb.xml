@@ -4978,6 +4978,15 @@ stack cget <replaceable>name</replaceable>
                         </para>
          	     </listitem>
                   </varlistentry>
+		  <varlistentry>
+		    <term><option>-incremental</option> <replaceable>bool</replaceable></term>
+		    <listitem>
+		      <para>
+			If <literal>true</literal> (the default), scaler ring items are marked as
+			incremental.  If not they are marked as non-incremental.
+		      </para>
+		    </listitem>
+		  </varlistentry>
                   <varlistentry>
                      <term><option>-modules</option> <replaceable>module-list</replaceable></term>
                      <listitem>

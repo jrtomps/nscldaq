@@ -1213,6 +1213,14 @@ Event body:
                 
             </variablelist>
         </refsect2>
+        <refsect2>
+            <title>Abnormal End run items</title>
+            <para>
+                These are minimal items that are emitted when an abnormal end of run
+                has been deteted.  The only dict key is <literal>type</literal> which
+                will have the value <literal>Abnormal End</literal>.
+            </para>
+        </refsect2>
     </refsect1>
 </refentry>
 

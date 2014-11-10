@@ -4700,7 +4700,7 @@ set <replaceable>sm</replaceable> [RunstateMachineSingleton %AUTO%]
                 </listitem>
             </varlistentry>
             <varlistentry>
-                <term><methodname>addCalloutBundle</methodname> <parameter>bundle-name</parameter></term>
+                <term><methodname>addCalloutBundle</methodname> <parameter>bundle-name ?before-bundle?</parameter></term>
                 <listitem>
                     <para>
                         Registers a new callout bundle with the state machine.
@@ -4716,6 +4716,14 @@ set <replaceable>sm</replaceable> [RunstateMachineSingleton %AUTO%]
                         the required callback bundle procs as described in
                         CALLOUT BUNDLES.  An error is thrown if the namespace
                         is determined to not be a valid callout bundle.
+                    </para>
+                    <para>
+                        If <parameter>before-bundle</parameter> is provided it must
+                        be the name of an existing bundle (one that would
+                        be returned from <command>listCalloutBundles</command>).
+                        The bundle will be registerd just before <parameter>before-bundle</parameter>
+                        in the ordered list of bundles.  This allows action depenencies
+                        between bundles to be properly scheduled.
                     </para>
                 </listitem>
             </varlistentry>

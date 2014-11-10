@@ -579,9 +579,7 @@ proc ::EventLog::_runFilesExistInCurrent {} {
 #
 # Checks for a few things:
 # 1. experiment/run# directory already exists
-# 2. experiment/current/.started exists
-# 3. experiment/current/.exited exists
-# 4. experiment/current/*.evt files exist
+# 2. experiment/current/*.evt files exist
 #
 # @returns a list of error messages
 proc ::EventLog::listIdentifiableProblems {} {
@@ -591,18 +589,6 @@ proc ::EventLog::listIdentifiableProblems {} {
   # check if run directory exist!
   set msg [EventLog::_duplicateRun]
   if {$msg ne ""} {
-    lappend errors $msg
-  } 
-  # check if experiment/current/.started exists
-  if {[::EventLog::_dotStartedExists]} {
-    set msg "EventLog error: the experiment/current directory contains .started"
-    lappend errors $msg
-
-  } 
-  
-  # check if experiment/current/.exited exists
-  if {[::EventLog::_dotExitedExists]} {
-    set msg "EventLog error: the experiment/current directory contains .exited"
     lappend errors $msg
   } 
   
@@ -615,8 +601,48 @@ proc ::EventLog::listIdentifiableProblems {} {
 
   return $errors
 }
+##
+# correctFixableProblems
+#
+#  Some startup issues can be corrected:
+# 1. experiment/current/.started exists
+# 2. experiment/current/.exited exists
+#
+#  In this case these files are just deleted.
+#
+proc ::EventLog::correctFixableProblems {} {
+  # check if experiment/current/.started exists
+  if {[::EventLog::_dotStartedExists]} {
+    ::EventLog::deleteStartFile
 
+  } 
+  
+  # check if experiment/current/.exited exists
+  if {[::EventLog::_dotExitedExists]} {
+    ::EventLog::deleteExitFile
+  } 
+    
+}
 
+##
+# deleteStartFile
+#   Kill off the .started file.
+#
+proc ::EventLog::deleteStartFile {} {
+    set startFile [file join [::ExpFileSystem::getCurrentRunDir] .started]
+    file delete -force $startFile 
+    
+}
+##
+# deleteExitFile
+#   Delete the .exited file
+#
+proc ::EventLog::deleteExitFile {} {
+    
+    set exitFile [file join [::ExpFileSystem::getCurrentRunDir] .exited]
+    file delete -force $exitFile 
+    
+}
 #------------------------------------------------------------------------------
 # Actions:
 
@@ -642,21 +668,18 @@ proc ::EventLog::runStarting {} {
   # Now if desired start the new run.
 
   if {[::ReadoutGUIPanel::recordData]} {
+    ::EventLog::correctFixableProblems;         # Some things can be fixed :-)
     set errorMessages [::EventLog::listIdentifiableProblems]
     if {[llength $errorMessages]>0} {
       return -code error $errorMessages
     }
-
-    # Ensure there are no stale synch files:
+    
     set startFile [file join [::ExpFileSystem::getCurrentRunDir] .started]
-    set exitFile [file join [::ExpFileSystem::getCurrentRunDir] .exited]
-
-    file delete -force $startFile 
-    file delete -force $exitFile 
 
     ::EventLog::_startLogger
     ::EventLog::_waitForFile $startFile $::EventLog::startupTimeout \
     $::EventLog::filePollInterval
+    ::EventLog::deleteStartFile
     set ::EventLog::expectingExit 0
     ::EventLog::_setStatusLine 2000
   }
@@ -685,6 +708,7 @@ proc ::EventLog::runEnding {} {
         foreach pid $::EventLog::loggerPid {
           catch {exec kill -9 $pid}; # in case waitforfile timed out.
         }
+        ::EventLog::deleteExitFile
         set ::EventLog::loggerPid -1
         ::EventLog::_finalizeRun
         file delete -force $startFile;   # So it's not there next time!!

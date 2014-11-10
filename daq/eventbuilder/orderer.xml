@@ -3,7 +3,7 @@
     <title>Event builder Readout Callouts</title>
     <para>
         Event builder readout callouts allow you to integrate the event builder
-        with the Readout GUI.   There are two layers of callouts;
+        with the Readout GUI.   There are three layers of callouts;
         <itemizedlist>
             <listitem>
                 <para>
@@ -16,13 +16,23 @@
             <listitem>
                 <para>
                     An EZBuilder layer provides a set of simple calls you can
-                    make that handle the most common use cases for the event builder.
+                    make from your ReadoutGUI <filename>ReadoutCallous.tcl</filename>
+                    script.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    A ReadoutGUI state machine callout bundle that allows you
+                    to register and configure the event builder and to let the
+                    state machine callbacks take care of everything for you.
+                    This is the preferred way to integrate the event builder
+                    into your experiment
                 </para>
             </listitem>
         </itemizedlist>
     </para>
     <para>
-        Both the API and EZBuilder procs are part of the Tcl package
+        All of these layres are part of the Tcl package
         <literal>evbcallouts</literal>
     </para>
     <section>
@@ -49,11 +59,94 @@
             The EZBuilder procs provide directly usable functionality for
             initializing the package, starting a run and ending a run.
             Use of the EZBuilder API is significantly simpler that direct use of
-            the API layer, and is recommended.
+            the API layer.
         </para>
         <para>
             See the 3evb manpage section for EZBuilder information as well.
         </para>
+    </section>
+    <section>
+        <title>EVBC state manager callback bundle.</title>
+        <para>
+            This provides the simplest way to incorporate the event builder into
+            your experiment.  While the 3evb manpage provides reference information,
+            a short example is provided below for using this mechanism with an
+            event builder for which building is enabled, with a time tolerance of
+            10 clock ticks, and output ring named <literal>fox</literal> and
+            Two ring data sources from rings <literal>fox1</literal> and
+            <literal>fox2</literal>.
+        </para>
+        <example>
+            <title>Using the EVBC state manager callback bundle</title>
+            <programlisting>
+package require evbcallouts                   <co id='evbbundle.require' />
+
+
+proc OnStart {} {                            <co id='evbbundle.onstart' />
+
+    EVBC::useEventBuilder                    <co id='evbbundle.register' />
+
+    EVBC::configure -gui 1 -destring foxy -glombuild 1 -glomdt 10 <co id='evbbundle.configure'/>
+}
+proc startEVBSources {} {                    <co id='evbbundle.startsources' />
+    EVBC::startRingSource tcp://localhost/fox1 stampextractor.so 1 {Source 1} <co id='evbbundle.startringsource' />
+    EVBC::startRingSource tcp://localhost/fox2 stampextractor.so 2 {Source 2}
+}
+            </programlisting>
+        </example>
+        <calloutlist>
+            <callout arearefs='evbbundle.require'>
+                <para>
+                    Incorporates the package code into your script.  This makes
+                    all three APIs visible and accessible from your script.
+                </para>
+            </callout>
+            <callout arearefs='evbbundle.onstart'>
+                <para>
+                    The <function>OnStart</function> is called from the
+                    ReadoutGUI when it makes a transition to the
+                    <literal>Halted</literal> state from
+                    <literal>NotReady</literal>.  The registration and configuration
+                    code are done at that time to ensure that the ReadoutGUI's
+                    GUI has been fully built before building the event builder's
+                    GUI so that it can be properly placed at the bottom of the
+                    user interface.
+                </para>
+            </callout>
+            <callout arearefs='evbbundle.register'>
+                <para>
+                    Informs the state manager that you will be using the
+                    event builder.  This call registers the event builder with
+                    the state manager which calls the event builder bundle's
+                    initializatiuon entry.
+                </para>
+            </callout>
+            <callout arearefs='evbbundle.configure'>
+                <para>
+                    Configures the event builder to enable its user interface,
+                    place the output of the last stage of the building pipeline
+                    in the local ring named <literal>foxy</literal>,
+                    enable event building by the glom stage of the pipeline with
+                    a time tolerance of <literal>10</literal> clock ticks.
+                </para>
+            </callout>
+            <callout arearefs='evbbundle.startsources'>
+                <para>
+                    When the event builder is started, if you define a proc named
+                    <function>startEVBSources</function>, the bundle will call that
+                    proc when the event builder has been started.  The purpose of
+                    that proc is to set up event sources to transmit data to the
+                    event builder.
+                </para>
+            </callout>
+            <callout arearefs='evbbundle.startringsource'>
+                <para>
+                    This line and the next set up a pair of event sources using
+                    the convenience function <function>EVBC::startRingSource</function>
+                    to start a ring data source.
+                </para>
+            </callout>
+        </calloutlist>
     </section>
 
 </chapter>
@@ -62,7 +155,7 @@
 <preface>
     <title>Preface</title>
     <para>
-        The pages below consist of the API layer.
+        The pages below describe the API layer.
     </para>
 </preface>
 <!--  Event builder API layer. -->
@@ -594,6 +687,87 @@ EVBC::onBegin
 
       </refentry>
 
+ <preface>
+    <title>Event builder callback bundle</title>
+    <para>
+        The manpage below describes the event builder callback bundle.
+        This interface provides the simplest and recommended way to
+        incorporate the event builder into your experiment.
+    </para>
+</preface>   
+      <refentry id="evb3_callbackbundle">
+        <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle id='evb3_callbackbundle_title'>Eventbuilder callback bundle</refentrytitle>
+           <manvolnum>3evb</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>Event builder callback bundle</refname>
+           <refpurpose>Event builder callback bundle.</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+            <command>
+package require evbrdocallouts
+            </command>
+          </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+EVBC::useEventBuilder
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+EVBC::configure <replaceable>option value ...</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+ proc startEVBSources {} {
+ ....
+ }
+                </command>
+            </cmdsynopsis>
+            
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            State machine callback bundles are a mechanism to hook actions to
+            specific state transitions in the ReadoutGUI.  The Event builder
+            implements a callback bundle that, when registered will automatically
+            do what is needed to manage the event builder without any further
+            programmatic intervention from your <filename>ReadoutCallouts.tcl</filename>
+            code.
+           </para>
+           <para>
+            The <function>useEventBuilder</function> command exported by the
+            <literal>evbrdocallouts</literal> package registers this callback
+            bundle with the Readout GUI's state machine.
+            <function>EVBC::configure</function> allows you to configure
+            the event builder options. All of the options described in the
+            <link linkend='evb3_initialize' endterm='evb3_initiailze_title' />
+            manpage are supported.
+           </para>
+           <para>
+            The <function>startEVBSources</function> proc is one that you should
+            write to start the event sources.  It will be called as needed
+            by the callback bundle.
+           </para>
+        </refsect1>
+
+      </refentry>
 
 
 <!-- /manpage     -->
@@ -692,6 +866,8 @@ EVBC::onBegin
         </refsect1>
 
       </refentry>
+
+
 
 <!-- /manpage -->
 <!-- manpage 1evb -->

@@ -93,6 +93,7 @@ private:
     void formatFragment(CTCLInterpreter& interp, CRingItem* pSpecificItem);
     void formatTriggerCount(CTCLInterpreter& interp, CRingItem* pSpecificItem);
     void formatGlomParams(CTCLInterpreter& interp, CRingItem* pSpecificItem);
+    void formatAbnormalEnd(CTCLInterpreter& interp, CRingItem* pSpecificItem);
 };
 
 #endif
