@@ -61,7 +61,7 @@ install-exec-local:
 
 
 BUILT_SOURCES = @srcdir@/parser.c @srcdir@/loggeroptions.c \
-	@srcdir@/btoroptions.c @srcdir@/btoroptions.h
+	@srcdir@/btoroptions.c @srcdir@/btoroptions.h @srcdir@/test.c @srcdir@/test.h
 
 @srcdir@/parser.c: @srcdir@/parser.h
 
@@ -90,9 +90,10 @@ BUILT_SOURCES = @srcdir@/parser.c @srcdir@/loggeroptions.c \
 
 noinst_PROGRAMS = testDataSource
 
-testDataSource_SOURCES = testDataSource.cpp test.c
+testDataSource_SOURCES = testDataSource.cpp @srcdir@/test.c
 
 testDataSource_CPPFLAGS = -I@top_srcdir@/base/os
+
 
 testDataSource_LDADD    = @top_builddir@/base/os/libdaqshm.la
 
