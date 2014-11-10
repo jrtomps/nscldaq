@@ -10,7 +10,7 @@ compatibilitybuffer_SOURCES = compatibilitybuffer.cpp CBufferConverter.cpp \
 
 EXTRA_DIST=compatibilitybuffer.ggo loggeroptions.ggo eventlog-compat.in \
 	spectcldaq.in spectcldaq.server.tcl compatibility.xml s800toring.in \
-	netcat.tcl buffertoring.ggo
+	netcat.tcl buffertoring.ggo test.ggo
 
 
 compatibilitybuffer_LDADD = \
