@@ -8,24 +8,26 @@ tcltest::test pkgrequire-0 { ensure we can require the package
 
 # set up some fake directories to write
 set testdir [tcltest::makeDirectory test]
-set serialFile [file join $::testdir fake] 
+#set serialFile [file join $::testdir fake] 
 
 # -------------- HELPER PROCS ------------------------------------------------#
 
 # create a new driver object
 proc setup {} {
+  set ::serialFile [tcltest::makeFile " " fake $::testdir]
   MCFD16USB ::dev $::serialFile
 }
 
 # destroy our object
 proc tearDown {} {
   ::dev destroy
+  file delete $::serialFile
 }
 
 # because the real read operation will fail in a test environment,
 # we fake it to just add a mcfd-16> to the end of the file.
 
-snit::method MCFD16USB Read {} {
+snit::method MCFD16USB _Read {} {
   return "mcfd-16>" 
 }
 
@@ -43,7 +45,7 @@ proc setNeedsUpdate {objname state} {
 # the stored state of the driver
 proc setupForRead {} {
   setup
-  ::dev CacheModuleState $::parsedDSDict
+  ::dev _CacheModuleState $::parsedDSDict
   setNeedsUpdate ::dev 0
 }
 
@@ -722,7 +724,7 @@ if {0} {
 tcltest::test chanmask-3 {Read channel mask returns cached value
 } -setup {
   setup
-  ::dev CacheModuleState $::parsedDSDict
+  ::dev _CacheModuleState $::parsedDSDict
   setNeedsUpdate ::dev 0
 } -cleanup {
   tearDown
@@ -846,7 +848,7 @@ tcltest::test parseDS-0 {Given a DS response, parse it into a dict
 } -cleanup {
   tearDown
 } -body {
-  dev ParseDSResponse $::dsResponse
+  dev _ParseDSResponse $::dsResponse
 } -result $::parsedDSDict              
 
 # helper parsing utilities
@@ -856,7 +858,7 @@ tcltest::test parseChanPairLine-0 {Parser for a line consisting of chan pair
 } -cleanup {
   tearDown
 } -body {
-  dev ParseChanPairLine "Delay (Tap):   3 3 3 3 3 3 3 3 - 3" 1
+  dev _ParseChanPairLine "Delay (Tap):   3 3 3 3 3 3 3 3 - 3" 1
 } -result [dict create name "Delay"\
                        values [list 3 3 3 3 3 3 3 3 3]]
 
@@ -868,7 +870,7 @@ tcltest::test parseThresholds-0 {Make sure we can properly parse the thresholds 
 } -cleanup {
   tearDown
 } -body {
-  dev ParseThresholds \
+  dev _ParseThresholds \
 {{Threshold:     0 21 20 40 20 20 20 20} {               20 20 23 20 20 20 20 20 - 29}}
 } -result [dict create name Threshold \
                        values [list 0 21 20 40 20 20 20 20 \
@@ -881,7 +883,7 @@ tcltest::test parseMaskReg-0 {Make sure we can parse the mask register
 } -cleanup {
   tearDown
 } -body {
- dev ParseMaskReg "Mask register: chan pairs 15/14...1/0: 10101110 (0)"
+ dev _ParseMaskReg "Mask register: chan pairs 15/14...1/0: 10101110 (0)"
 } -result [dict create name "Mask register" values [expr 0xae]]
 
 # helper proc to turn get rid of the dash that is in lines for a channel pair type config
@@ -891,7 +893,7 @@ tcltest::test removeDash-0 {make sure we can remove the dash properly
 } -cleanup {
   tearDown
 } -body {
-  dev RemoveDash "3 3 3 3 3 3 3 3 - 3"
+  dev _RemoveDash "3 3 3 3 3 3 3 3 - 3"
 } -result "3 3 3 3 3 3 3 3 3"
 
 # simple helper for splitting the line and then also trimming the results
@@ -901,36 +903,36 @@ tcltest::test splitAndTrim-0 {Ensure that we can split the string at the dash
 } -cleanup {
   tearDown
 } -body {
-  dev SplitAndTrim "threshold: 3 4134 4 - " ":"
+  dev _SplitAndTrim "threshold: 3 4134 4 - " ":"
 } -result [list "threshold" "3 4134 4 -"]
 
 # for parsing a simple line that has two parts separated by a colon.
-tcltest::test ParseSimpleLine-0 {Split and trim a string at colon
+tcltest::test _ParseSimpleLine-0 {Split and trim a string at colon
 } -setup {
   setup
 } -cleanup {
   tearDown
 } -body {
-  dev ParseSimpleLine "threshold: 3 4134 4 - " 
+  dev _ParseSimpleLine "threshold: 3 4134 4 - " 
 } -result {name threshold values {3 4134 4 -}}
 
-tcltest::test TransformToDict-0 {Convert a list of dicts to a single dict
+tcltest::test _TransformToDict-0 {Convert a list of dicts to a single dict
 } -setup {
   setup
 } -cleanup {
   tearDown
 } -body {
-  dev  TransformToDict [list [dict create name n0 values v0] [dict create name n1 values v1]]
+  dev  _TransformToDict [list [dict create name n0 values v0] [dict create name n1 values v1]]
 } -result [dict create n0 v0 n1 v1]
 
 # for names that have a unit, this can be used to drop the unit
-tcltest::test StripUnit-0 {Get rid of a possible unit
+tcltest::test _StripUnit-0 {Get rid of a possible unit
 } -setup {
   setup
 } -cleanup {
   tearDown
 } -body {
-  dev StripUnit {Width [ns]}
+  dev _StripUnit {Width [ns]}
 } -result "Width"
 
 
@@ -945,7 +947,7 @@ tcltest::test modified-0 {When a write changes the config, flag cache as out of 
 } -cleanup {
   tearDown
 } -body {
-  dev Write "SG 0 1" ;# example command that would change the MCFD16's state
+  dev _Write "SG 0 1" ;# example command that would change the MCFD16's state
                       # and thereby require us to read a new state
   set [lindex [dev info vars m_needsUpdate] 0]
 } -result 1
@@ -959,12 +961,12 @@ tcltest::test modified-1 {For any writes that should merely retrieve the MCFD16'
   tearDown
 } -body {
   # the following commands should not effect the need to update the cache
-  dev Write "DS"
-  dev Write "DP"
-  dev Write "DT"
-  dev Write "V"
-  dev Write "?"
-  dev Write "H"
+  dev _Write "DS"
+  dev _Write "DP"
+  dev _Write "DT"
+  dev _Write "V"
+  dev _Write "?"
+  dev _Write "H"
   set [lindex [dev info vars m_needsUpdate] 0]
 } -result 0
 
