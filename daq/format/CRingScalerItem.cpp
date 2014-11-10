@@ -55,13 +55,17 @@ CRingScalerItem::CRingScalerItem(size_t numScalers) :
   \param endTime   - incremental scaler interval end time
   \param timestamp - Absolute system time at which the item was created.
   \param scalers   - Vector of scaler values.
+  \param isIncremental - value of the incremental flag (defaults to true).
+  \param timestampDivisor - Value of the timestamp divisor - defaults to 1.
 
 
 */
 CRingScalerItem::CRingScalerItem(uint32_t startTime,
 				 uint32_t stopTime,
 				 time_t   timestamp,
-				 std::vector<uint32_t> scalers) :
+				 std::vector<uint32_t> scalers,
+                                 bool isIncremental,
+                                 uint32_t timeOffsetDivisor) :
   CRingItem(PERIODIC_SCALERS, bodySize(scalers.size()))
 {
   init(scalers.size());
@@ -72,8 +76,8 @@ CRingScalerItem::CRingScalerItem(uint32_t startTime,
   pScalers->s_intervalEndOffset   = stopTime;
   pScalers->s_timestamp           = timestamp;
   pScalers->s_scalerCount         = scalers.size();
-  pScalers->s_isIncremental = 1;
-  pScalers->s_intervalDivisor = 1;
+  pScalers->s_isIncremental = isIncremental ? 1: 0;
+  pScalers->s_intervalDivisor = timeOffsetDivisor;
 
   for (int i = 0; i  < scalers.size(); i++) {
     pScalers->s_scalers[i] = scalers[i];

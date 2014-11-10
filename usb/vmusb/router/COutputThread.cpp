@@ -548,14 +548,11 @@ COutputThread::scaler(void* pData)
                                  counterData,
 				 1, CStack::scalerIsIncremental());
   } else {
-    pEvent = new CRingScalerItem(NULL_TIMESTAMP, 
-                                 Globals::sourceId, 
-                                 BARRIER_NOTBARRIER,
-                                 m_elapsedSeconds, 
+    pEvent = new CRingScalerItem(m_elapsedSeconds, 
                                  endTime, 
                                  timestamp, 
                                  counterData,
-				 1, CStack::scalerIsIncremental());
+				 CStack::scalerIsIncremental());
   }
 
   pEvent->commitToRing(*m_pRing);
