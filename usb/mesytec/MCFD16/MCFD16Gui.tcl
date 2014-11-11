@@ -23,10 +23,9 @@ snit::widget MCFD16View {
 
   method BuildGUI {} {
 
-    set w $win
-    ttk::checkbutton $w.remote -text Remote -variable [myvar mcfd(remote)] \
-      -onvalue on -offvalue off \
-      -command [mymethod RemoteLocal] 
+#    ttk::checkbutton $win.remote -text Remote -variable [myvar mcfd(remote)] \
+#      -onvalue on -offvalue off \
+#      -command [mymethod RemoteLocal] 
 
     set w $win.table
     ttk::frame $w
@@ -47,8 +46,11 @@ snit::widget MCFD16View {
 
     for {set ch 0} {$ch < 16} {incr ch} { 
       set row [expr $ch+1]
-      set style Even
-      set cc lightgreen
+      if {$ch%2} {
+        set style Even
+      } else {
+        set style Odd
+      }
 
       ttk::entry $w.na$ch -width 8 -textvariable [myvar _mcfd(na$ch)] \
         -style "$style.TEntry" 
@@ -127,15 +129,15 @@ snit::widget MCFD16View {
   }
 
   method ConfigureStyle {} {
-    if {0} {
     ttk::style configure Header.TLabel -background pink
 
     ttk::style configure Even.TEntry -background lightgreen
     ttk::style configure Even.TRadiobutton -background lightgreen
+    ttk::style configure Even.TSpinbox -background lightgreen
 
     ttk::style configure Odd.TEntry -background lightyellow
     ttk::style configure Odd.TRadiobutton -background lightyellow
-    }
+    ttk::style configure Odd.TSpinbox -background lightyellow
   }
 
   method InitArray {} { 
