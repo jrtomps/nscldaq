@@ -28,23 +28,21 @@ snit::widget MCFD16View {
       -onvalue on -offvalue off \
       -command [mymethod RemoteLocal] 
 
-    ttk::button $w.exit -text Exit -command Exit 
-
     set w $win.table
     ttk::frame $w
 
-    ttk::label $w.na -text Name -style "Header.TLabel" -padding "3 0 3 0"
-    ttk::label $w.ch -text Channel  -style "Header.TLabel" -padding "3 0 3 0"
-    ttk::label $w.po -text Polarity  -style "Header.TLabel" -padding "3 0 3 0"
-    ttk::label $w.ga -text Gain  -style "Header.TLabel" -padding "3 0 3 0"
-    ttk::label $w.th -text Threshold  -style "Header.TLabel" -padding "3 0 3 0"
-    ttk::label $w.wi -text Width -style "Header.TLabel" -padding "3 0 3 0"
-    ttk::label $w.dt -text Deadtime  -style "Header.TLabel" -padding "3 0 3 0"
-    ttk::label $w.dl -text Delayline -style "Header.TLabel" -padding "3 0 3 0"
-    ttk::label $w.fr -text Fraction -style "Header.TLabel" -padding "3 0 3 0"
-    ttk::label $w.mo -text Monitor -style "Header.TLabel" -padding "3 0 3 0"
+    ttk::label $w.na -text Name -style "Header.TLabel" -padding "3 3 3 0"
+    ttk::label $w.ch -text Channel  -style "Header.TLabel" -padding "3 3 3 0"
+    ttk::label $w.po -text Polarity  -style "Header.TLabel" -padding "3 3 3 0"
+    ttk::label $w.ga -text Gain  -style "Header.TLabel" -padding "3 3 3 0"
+    ttk::label $w.th -text Threshold  -style "Header.TLabel" -padding "3 3 3 0"
+    ttk::label $w.wi -text Width -style "Header.TLabel" -padding "3 3 3 0"
+    ttk::label $w.dt -text Deadtime  -style "Header.TLabel" -padding "3 3 3 0"
+    ttk::label $w.dl -text Delayline -style "Header.TLabel" -padding "3 3 3 0"
+    ttk::label $w.fr -text Fraction -style "Header.TLabel" -padding "3 3 3 0"
+    ttk::label $w.mo -text Monitor -style "Header.TLabel" -padding "3 3 3 0"
 
-    grid $w.na $w.th $w.po $w.ga $w.wi $w.dt $w.dl $w.fr $w.mo \
+    grid $w.na $w.th $w.po $w.ga $w.wi $w.dt $w.dl $w.fr \
       -sticky news -pady {4 2}
 
     for {set ch 0} {$ch < 16} {incr ch} { 
@@ -87,11 +85,11 @@ snit::widget MCFD16View {
           -values {20 40} -state readonly
 
         grid $w.na$ch $w.th$ch $w.po$pair $w.ga$pair $w.wi$pair \
-          $w.dt$pair $w.dl$pair $w.fr$pair $w.mo$ch \
-          -sticky news -padx 2 -pady {4 2}
+          $w.dt$pair $w.dl$pair $w.fr$pair \
+          -sticky news -padx 2 -pady {6 2}
       } else {
-        grid $w.na$ch $w.th$ch x x x x x x $w.mo$ch -sticky news \
-          -padx 2 -pady {2 4}
+        grid $w.na$ch $w.th$ch x x x x x x -sticky news \
+          -padx 2 -pady {2 6}
         ttk::separator $w.sep$ch -orient horizontal
         grid $w.sep$ch -columnspan 9 -sticky nsew
       }
@@ -104,20 +102,23 @@ snit::widget MCFD16View {
       -offvalue on \
       -command CommonMode;
 
-    ttk::spinbox $w.poc -textvariable [myvar _mcfd(poc)] -width 4
-    ttk::spinbox $w.gac -textvariable [myvar _mcfd(gac)] -width 4
-    ttk::spinbox $w.wic -textvariable [myvar _mcfd(wic)] -width 4
-    ttk::spinbox $w.dtc -textvariable [myvar _mcfd(dtc)] -width 4
-    ttk::spinbox $w.dlc -textvariable [myvar _mcfd(dlc)] -width 4
-    ttk::spinbox $w.frc -textvariable [myvar _mcfd(frc)] -width 4
-    ttk::spinbox $w.thc -textvariable [myvar _mcfd(thc)] -width 4
+    ttk::spinbox $w.po8 -textvariable [myvar _mcfd(po8)] -width 4
+    ttk::spinbox $w.ga8 -textvariable [myvar _mcfd(ga8)] -width 4
+    ttk::spinbox $w.wi8 -textvariable [myvar _mcfd(wi8)] -width 4
+    ttk::spinbox $w.dt8 -textvariable [myvar _mcfd(dt8)] -width 4
+    ttk::spinbox $w.dl8 -textvariable [myvar _mcfd(dl8)] -width 4
+    ttk::spinbox $w.fr8 -textvariable [myvar _mcfd(fr8)] -width 4
+    ttk::spinbox $w.th16 -textvariable [myvar _mcfd(th16)] -width 4
 
-    grid $w.mode $w.poc $w.gac $w.wic $w.dtc $w.dlc $w.frc $w.thc x -sticky news -padx 2 -pady 2
+    ttk::button $w.commit -text "Commit" -command [mymethod Commit]
+    grid $w.mode $w.po8 $w.ga8 $w.wi8 $w.dt8 $w.dl8 $w.fr8 $w.th16 -sticky news -padx 2 -pady 2
 
     grid $w -sticky nsew
     # allow the columns to resize
     grid columnconfigure $w {0 1 2 3 4 5 6 7 8} -weight 1
     grid rowconfigure $w {1 2 4 5 7 8 10 11 13 14 16 17 19 20 22 22} -weight 1
+
+    grid $w.commit -sticky sew -columnspan 8
 
     grid $win -sticky nsew
     # allow the columns to resize
@@ -156,6 +157,15 @@ snit::widget MCFD16View {
         set _mcfd(fr$pair) 20
       }
     }
+
+    # set the common channels
+    set _mcfd(po8) neg
+    set _mcfd(ga8) 1
+    set _mcfd(wi8) 50
+    set _mcfd(dt8) 50
+    set _mcfd(dl8) 1
+    set _mcfd(fr8) 20
+    set _mcfd(th8) 127
   }
 
 
@@ -230,7 +240,19 @@ snit::widget MCFD16View {
   method SetFraction {ch frac} {
     set _mcfd(fr$ch) $frac
   }
+
+
+  method Commit {} {
+    $_presenter Commit
+  }
 }; # end of the View
+
+
+
+###############################################################################
+###############################################################################
+###############################################################################
+
 
 
 snit::type MCFD16Presenter {
@@ -260,16 +282,42 @@ snit::type MCFD16Presenter {
     # not sure if the names is something we need to record
     #    $self updateViewNames
     $self UpdateViewThresholds 
+    update
     #    $self UpdateViewMonitor
     $self UpdateViewPolarities
+    update
     $self UpdateViewGains
+    update
     $self UpdateViewWidths
+    update
     $self UpdateViewDeadtimes
+    update
     $self UpdateViewDelays
+    update
     $self UpdateViewFractions
+    update
+  }
+
+  method Commit {} {
+    $self UpdateModelFromView
+    update
+    $self UpdateViewFromModel
   }
 
   method UpdateModelFromView {} {
+    $self CommitViewThresholds 
+    update
+    $self CommitViewPolarities
+    update
+    $self CommitViewGains
+    update
+    $self CommitViewWidths
+    update
+    $self CommitViewDeadtimes
+    update
+    $self CommitViewDelays
+    update
+    $self CommitViewFractions
   }
 
 
@@ -281,7 +329,7 @@ snit::type MCFD16Presenter {
   }
 
   method UpdateViewThresholds {} {
-    for {set ch 0} {$ch<16} {incr ch} {
+    for {set ch 0} {$ch<=16} {incr ch} {
       set thresh [$m_handle GetThreshold $ch]
       $m_view SetThreshold $ch $thresh
     }
@@ -297,47 +345,96 @@ snit::type MCFD16Presenter {
   }
 
   method UpdateViewPolarities {} {
-    for {set ch 0} {$ch<8} {incr ch} {
+    for {set ch 0} {$ch<=8} {incr ch} {
       set pol [$m_handle GetPolarity $ch]
       $m_view SetPolarity $ch $pol
     }
   }
 
   method UpdateViewGains {} {
-    for {set ch 0} {$ch<8} {incr ch} {
+    for {set ch 0} {$ch<=8} {incr ch} {
       set gain [$m_handle GetGain $ch]
       $m_view SetGain $ch $gain
     }
   }
 
   method UpdateViewWidths {} {
-    for {set ch 0} {$ch<8} {incr ch} {
+    for {set ch 0} {$ch<=8} {incr ch} {
       set val [$m_handle GetWidth $ch]
       $m_view SetWidth $ch $val
     }
   }
 
   method UpdateViewDeadtimes {} {
-    for {set ch 0} {$ch<8} {incr ch} {
+    for {set ch 0} {$ch<=8} {incr ch} {
       set val [$m_handle GetDeadtime $ch]
       $m_view SetDeadtime $ch $val
     }
   }
 
   method UpdateViewDelays {} {
-    for {set ch 0} {$ch<8} {incr ch} {
+    for {set ch 0} {$ch<=8} {incr ch} {
       set val [$m_handle GetDelay $ch]
       $m_view SetDelay $ch $val
     }
   }
 
   method UpdateViewFractions {} {
-    for {set ch 0} {$ch<8} {incr ch} {
+    for {set ch 0} {$ch<=8} {incr ch} {
       set fr [$m_handle GetFraction $ch]
       $m_view SetFraction $ch $fr
     }
   }
 
+
+  method CommitViewThresholds {} {
+    for {set ch 0} {$ch<16} {incr ch} {
+      set thresh [$m_view GetThreshold $ch]
+      $m_handle SetThreshold $ch $thresh
+    }
+  }
+
+  method CommitViewPolarities {} {
+    for {set pair 0} {$pair<8} {incr pair} {
+      set pol [$m_view GetPolarity $pair]
+      $m_handle SetPolarity $pair $pol
+    }
+  }
+
+  method CommitViewGains {} {
+    for {set pair 0} {$pair<8} {incr pair} {
+      set val [$m_view GetGain $pair]
+      $m_handle SetGain $pair $val
+    }
+  }
+
+  method CommitViewWidths {} {
+    for {set pair 0} {$pair<8} {incr pair} {
+      set val [$m_view GetWidth $pair]
+      $m_handle SetWidth $pair $val
+    }
+  }
+
+  method CommitViewDeadtimes {} {
+    for {set pair 0} {$pair<8} {incr pair} {
+      set val [$m_view GetDeadtime $pair]
+      $m_handle SetDeadtime $pair $val
+    }
+  }
+
+  method CommitViewDelays {} {
+    for {set pair 0} {$pair<8} {incr pair} {
+      set val [$m_view GetDelay $pair]
+      $m_handle SetDelay $pair $val
+    }
+  }
+  
+  method CommitViewFractions {} {
+    for {set pair 0} {$pair<8} {incr pair} {
+      set val [$m_view GetFraction $pair]
+      $m_handle SetFraction $pair $val
+    }
+  }
 }
 
 
