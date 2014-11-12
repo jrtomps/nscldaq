@@ -1,0 +1,141 @@
+package require tcltest
+package require snit
+package require mcfd16usb
+
+
+tcltest::test pkgrequire-0 {Ensure that we can require the package
+} {package require mcfd16gui} 1.0
+
+snit::method MCFD16View BuildGUI {} {}
+
+snit::method MCFD16USB GetPolarity {ch} {return neg}
+snit::method MCFD16USB GetGain {ch} { return 1}
+snit::method MCFD16USB GetBandwidthLimit {} {return 1 }
+snit::method MCFD16USB GetDiscriminatorMode {} {return cfd }
+snit::method MCFD16USB GetThreshold {ch} {return 24 }
+snit::method MCFD16USB GetWidth {ch} {return 25 }
+snit::method MCFD16USB GetDeadtime {ch} {return 27 }
+snit::method MCFD16USB GetDelay {ch} {return 2 }
+snit::method MCFD16USB GetFraction {ch} {return 20 }
+snit::method MCFD16USB GetMode {} {return common }
+
+proc arrayToList {objname param len} {
+  set varname [$objname info vars _mcfd]
+  set res [list]
+
+  for {set i 0} {$i<$len} {incr i} {
+    lappend res [lindex [array get $varname $param$i] 1]
+  }
+
+  return $res
+}
+
+proc sequence {start n {inc 1}} {
+  set res [list]
+  for {set i 0} {$i<$n} {incr i} {
+    lappend res [expr $start+$i*$inc]
+  }
+  return $res
+}
+
+proc intSeries {val size} {
+  return [sequence $val $size 0]
+}
+
+proc wordSeries {word size} {
+  set res [list]
+  for {set i 0} {$i<$size} {incr i} {
+    lappend res $word 
+  }
+  return $res
+}
+
+proc setup {} {
+  MCFD16Presenter ::pres -widgetname .mock
+}
+
+proc tearDown {} {
+  ::pres destroy
+}
+
+
+tcltest::test updateViewThresholds-0 { Check that we properly set values
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::pres UpdateViewThresholds
+  
+  arrayToList .mock th 17
+} -result [intSeries 24 17]
+
+tcltest::test updateViewPolarities-0 {Check that polarities are set in view
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::pres UpdateViewPolarities
+  
+  arrayToList .mock po 9
+} -result [wordSeries neg 9]
+
+tcltest::test updateViewGains-0 {Check that gains are set in view
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::pres UpdateViewGains
+  
+  arrayToList .mock ga 9
+} -result [intSeries 1 9]
+
+tcltest::test updateViewWidths-0 {Check that widths are set in view
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::pres UpdateViewWidths
+  
+  arrayToList .mock wi 9
+} -result [intSeries 25 9]
+
+tcltest::test updateViewDeadtimes-0 {Check that deadtimes are set in view
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::pres UpdateViewDeadtimes
+  
+  arrayToList .mock dt 9
+} -result [intSeries 27 9]
+
+
+tcltest::test updateViewDelays-0 {Check that delays are set in view
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::pres UpdateViewDelays
+  
+  arrayToList .mock dl 9
+} -result [intSeries 2 9]
+
+tcltest::test updateViewFractions-0 {Check that fractions are set in view
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::pres UpdateViewFractions
+  
+  arrayToList .mock fr 9
+} -result [intSeries 20 9]
+
+
+tcltest::cleanupTests

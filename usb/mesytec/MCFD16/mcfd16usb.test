@@ -838,6 +838,30 @@ tcltest::test rc-2 {Reading the rc mode should return cached value if not out of
   dev RCEnabled
 } -result 0
 
+
+
+tcltest::test mode-0 {setting into individual or common mode works appropriately 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  dev SetMode individual
+  dev SetMode common 
+
+  tcltest::viewFile $::serialFile
+} -result {MI
+MC}
+
+tcltest::test mode-1 {ensure that we can read the mode
+} -setup {
+  setupForRead
+} -cleanup {
+  tearDown
+} -body {
+  dev GetMode
+} -result {common}
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
 # Parse the DS response 
 

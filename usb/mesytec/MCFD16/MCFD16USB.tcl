@@ -40,7 +40,7 @@ package require Utils
 snit::type MCFD16USB {
 
   variable m_serialFile ;# the communication channel to the device 
-  variable m_needsUpdate ;# determines whether device state has changed since last update
+  variable m_needsUpdate ;# has device state changed since last update?
   variable m_moduleState ;# the dict storing the state
 
 
@@ -485,6 +485,31 @@ snit::type MCFD16USB {
       return [$self _Transaction "OFF"]
     }
   }
+
+  ## @brief Set into or remove from remote control
+  #
+  # @param on   boolean to enable or disable rc mode
+  #
+  # @returns response from the device
+  method SetMode {mode} {
+    if {$mode ni [list individual common]} {
+      set msg {Invalid argument provided. Must be either "individual" or }
+      append msg {"common".}
+      return -code error -errorinfo MCFD16USB::SetMode $msg
+    }
+
+    if {$mode eq "individual"} {
+      return [$self _Transaction "MI"]
+    } else {
+      return [$self _Transaction "MC"]
+    }
+  }
+
+  method GetMode {} {
+    return [$self _GetBooleanParam {Operating mode} \
+                {Individual individual Common common}]
+  }
+
 
   ## @brief Check whether in remote control mode
   #

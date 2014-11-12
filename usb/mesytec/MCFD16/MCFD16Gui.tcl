@@ -1,6 +1,6 @@
 
 
-package provide mcfd16_view 1.0
+package provide mcfd16gui 1.0
 
 package require mcfd16usb
 package require snit
@@ -23,11 +23,27 @@ snit::widget MCFD16View {
 
   method BuildGUI {} {
 
-#    ttk::checkbutton $win.remote -text Remote -variable [myvar mcfd(remote)] \
-#      -onvalue on -offvalue off \
-#      -command [mymethod RemoteLocal] 
+    $self BuildHeader $win.header
+    $self BuildTable $win.table
+    $self BuildCommonControls $win.common
 
-    set w $win.table
+
+    ttk::button $win.commit -text "Commit" -command [mymethod Commit]
+
+
+    grid $win.header -sticky nsew -padx 2 -pady 2
+    grid $win.table -sticky nsew -padx 2 -pady 2
+    grid $win.common -sticky nsew -padx 2 -pady 2
+    grid $win.commit -sticky sew -columnspan 8
+
+    # allow the columns to resize
+    grid columnconfigure $win {0} -weight 1
+    grid rowconfigure $win {0} -weight 1
+  }
+
+  method BuildHeader {name} {
+
+    set w $name
     ttk::frame $w
 
     ttk::label $w.na -text Name -style "Header.TLabel" -padding "3 3 3 0"
@@ -43,89 +59,113 @@ snit::widget MCFD16View {
 
     grid $w.na $w.th $w.po $w.ga $w.wi $w.dt $w.dl $w.fr \
       -sticky news -pady {4 2}
+    grid columnconfigure $w {0 1 2 3 4 5 6 7 8} -weight 1
+    grid rowconfigure $w {0} -weight 1
+  }
 
-    for {set ch 0} {$ch < 16} {incr ch} { 
-      set row [expr $ch+1]
-      if {$ch%2} {
+  method BuildTable {name } {
+    set w $name
+    ttk::frame $w
+
+    set rows [list]
+    for {set ch 0} {$ch < 16} {incr ch 2} { 
+      if {(($ch/2)%2)==0} {
         set style Even
       } else {
         set style Odd
       }
 
-      ttk::entry $w.na$ch -width 8 -textvariable [myvar _mcfd(na$ch)] \
-        -style "$style.TEntry" 
-      ttk::spinbox $w.th$ch -textvariable [myvar _mcfd(th$ch)] -width 4 \
-        -style "$style.TSpinbox" -from 0 -to 255 \
-        -state readonly
-      ttk::radiobutton $w.mo$ch -variable [myvar _mcfd(monitor)] -value $ch \
-        -command Monitor -style "$style.TRadiobutton"
-
-      if {($ch%2)==0} {
-        set pair [expr $ch/2]
-        ttk::spinbox $w.po$pair -textvariable [myvar _mcfd(po$pair)] \
-          -style "$style.TSpinbox" -width 4 \
-          -values {neg pos} -state readonly
-
-        ttk::spinbox $w.ga$pair -textvariable [myvar _mcfd(ga$pair)] \
-          -style "$style.TSpinbox" -width 4 \
-          -values {1 3 10} -state readonly
-        
-        ttk::spinbox $w.wi$pair -textvariable [myvar _mcfd(wi$pair)] \
-          -style "$style.TSpinbox" -width 4 \
-          -from 16 -to 222 -state readonly
-
-        ttk::spinbox $w.dt$pair -textvariable [myvar _mcfd(dt$pair)] \
-          -style "$style.TSpinbox" -width 4 \
-          -from 27 -to 222 -state readonly
-
-        ttk::spinbox $w.dl$pair -textvariable [myvar _mcfd(dl$pair)] \
-          -style "$style.TSpinbox" -width 4 \
-          -from 1 -to 5 -state readonly
-
-        ttk::spinbox $w.fr$pair -textvariable [myvar _mcfd(fr$pair)] \
-          -style "$style.TSpinbox" -width 4 \
-          -values {20 40} -state readonly
-
-        grid $w.na$ch $w.th$ch $w.po$pair $w.ga$pair $w.wi$pair \
-          $w.dt$pair $w.dl$pair $w.fr$pair \
-          -sticky news -padx 2 -pady {6 2}
-      } else {
-        grid $w.na$ch $w.th$ch x x x x x x -sticky news \
-          -padx 2 -pady {2 6}
-        ttk::separator $w.sep$ch -orient horizontal
-        grid $w.sep$ch -columnspan 9 -sticky nsew
-      }
+      set name "$w.rows[expr $ch/2]"
+      $self BuildGroupedRows $name $ch $style
+      lappend rows $name
     }
-    for {set pair 0} {$pair<8} {incr pair 1} {
-      grid configure $w.po$pair $w.ga$pair $w.wi$pair $w.dt$pair $w.dl$pair $w.fr$pair -rowspan 2
+
+    foreach row $rows {
+      grid $row -sticky nsew -padx 2 -pady 2
     }
+    grid columnconfigure $w {0} -weight 1
+    grid rowconfigure $w {0 1 2 3 } -weight 1
+  }
+
+  method BuildCommonControls {name} {
+    set w $name
+
+    ttk::frame $w
 
     ttk::checkbutton $w.mode -text Common -variable _mcfd(mode) -onvalue off \
-      -offvalue on \
-      -command CommonMode;
+      -offvalue on
 
-    ttk::spinbox $w.po8 -textvariable [myvar _mcfd(po8)] -width 4
-    ttk::spinbox $w.ga8 -textvariable [myvar _mcfd(ga8)] -width 4
-    ttk::spinbox $w.wi8 -textvariable [myvar _mcfd(wi8)] -width 4
-    ttk::spinbox $w.dt8 -textvariable [myvar _mcfd(dt8)] -width 4
-    ttk::spinbox $w.dl8 -textvariable [myvar _mcfd(dl8)] -width 4
-    ttk::spinbox $w.fr8 -textvariable [myvar _mcfd(fr8)] -width 4
-    ttk::spinbox $w.th16 -textvariable [myvar _mcfd(th16)] -width 4
+    ttk::spinbox $w.po8 -textvariable [myvar _mcfd(po8)] -width 4 -values {neg pos}
+    ttk::spinbox $w.ga8 -textvariable [myvar _mcfd(ga8)] -width 4 -values {1 3 10}
+    ttk::spinbox $w.wi8 -textvariable [myvar _mcfd(wi8)] -width 4 -from 16 -to 222
+    ttk::spinbox $w.dt8 -textvariable [myvar _mcfd(dt8)] -width 4 -from 27 -to 222
+    ttk::spinbox $w.dl8 -textvariable [myvar _mcfd(dl8)] -width 4 -from 1 -to 5
+    ttk::spinbox $w.fr8 -textvariable [myvar _mcfd(fr8)] -width 4 -values {20 40}
+    ttk::spinbox $w.th16 -textvariable [myvar _mcfd(th16)] -width 4 -from 0 -to 255
 
-    ttk::button $w.commit -text "Commit" -command [mymethod Commit]
     grid $w.mode $w.po8 $w.ga8 $w.wi8 $w.dt8 $w.dl8 $w.fr8 $w.th16 -sticky news -padx 2 -pady 2
+    grid columnconfigure $w {0 1 2 3 4 5 6 7 8 9} -weight 1
+  }
 
-    grid $w -sticky nsew
+
+  method BuildGroupedRows {name ch style} {
+    set w $name
+    ttk::frame $w -style $style.TFrame
+
+    # construct first row
+    ttk::entry $w.na$ch -width 8 -textvariable [myvar _mcfd(na$ch)] \
+                        -style "$style.TEntry" 
+    ttk::spinbox $w.th$ch -textvariable [myvar _mcfd(th$ch)] -width 4 \
+                        -style "$style.TSpinbox" -from 0 -to 255 \
+                        -state readonly
+    ttk::radiobutton $w.mo$ch -variable [myvar _mcfd(monitor)] -value $ch \
+                        -command Monitor -style "$style.TRadiobutton"
+
+    set pair [expr $ch/2]
+    ttk::spinbox $w.po$pair -textvariable [myvar _mcfd(po$pair)] \
+      -style "$style.TSpinbox" -width 4 \
+      -values {neg pos} -state readonly
+
+    ttk::spinbox $w.ga$pair -textvariable [myvar _mcfd(ga$pair)] \
+      -style "$style.TSpinbox" -width 4 \
+      -values {1 3 10} -state readonly
+
+    ttk::spinbox $w.wi$pair -textvariable [myvar _mcfd(wi$pair)] \
+      -style "$style.TSpinbox" -width 4 \
+      -from 16 -to 222 -state readonly
+
+    ttk::spinbox $w.dt$pair -textvariable [myvar _mcfd(dt$pair)] \
+      -style "$style.TSpinbox" -width 4 \
+      -from 27 -to 222 -state readonly
+
+    ttk::spinbox $w.dl$pair -textvariable [myvar _mcfd(dl$pair)] \
+      -style "$style.TSpinbox" -width 4 \
+      -from 1 -to 5 -state readonly
+
+    ttk::spinbox $w.fr$pair -textvariable [myvar _mcfd(fr$pair)] \
+      -style "$style.TSpinbox" -width 4 \
+      -values {20 40} -state readonly
+
+    grid $w.na$ch $w.th$ch $w.po$pair $w.ga$pair $w.wi$pair \
+      $w.dt$pair $w.dl$pair $w.fr$pair \
+      -sticky news -padx 2 -pady {6 2}
+    grid configure $w.po$pair $w.ga$pair $w.wi$pair $w.dt$pair \
+                    $w.dl$pair $w.fr$pair -rowspan 2
+
+    # construct second row 
+    incr ch
+    ttk::entry $w.na$ch -width 8 -textvariable [myvar _mcfd(na$ch)] \
+      -style "$style.TEntry" 
+    ttk::spinbox $w.th$ch -textvariable [myvar _mcfd(th$ch)] -width 4 \
+      -style "$style.TSpinbox" -from 0 -to 255 \
+      -state readonly
+    ttk::radiobutton $w.mo$ch -variable [myvar _mcfd(monitor)] -value $ch \
+      -command Monitor -style "$style.TRadiobutton"
+    grid $w.na$ch $w.th$ch x x x x x x -sticky news -padx 2 -pady {2 6}
+
     # allow the columns to resize
     grid columnconfigure $w {0 1 2 3 4 5 6 7 8} -weight 1
-    grid rowconfigure $w {1 2 4 5 7 8 10 11 13 14 16 17 19 20 22 22} -weight 1
-
-    grid $w.commit -sticky sew -columnspan 8
-
-    grid $win -sticky nsew
-    # allow the columns to resize
-    grid columnconfigure $win {0} -weight 1
-    grid rowconfigure $win {0} -weight 1
+    grid rowconfigure $w {0 1} -weight 1
   }
 
   method ConfigureStyle {} {
@@ -134,10 +174,12 @@ snit::widget MCFD16View {
     ttk::style configure Even.TEntry -background lightgreen
     ttk::style configure Even.TRadiobutton -background lightgreen
     ttk::style configure Even.TSpinbox -background lightgreen
+    ttk::style configure Even.TFrame -background lightgreen
 
     ttk::style configure Odd.TEntry -background lightyellow
     ttk::style configure Odd.TRadiobutton -background lightyellow
     ttk::style configure Odd.TSpinbox -background lightyellow
+    ttk::style configure Odd.TFrame -background lightyellow
   }
 
   method InitArray {} { 
@@ -167,7 +209,7 @@ snit::widget MCFD16View {
     set _mcfd(dt8) 50
     set _mcfd(dl8) 1
     set _mcfd(fr8) 20
-    set _mcfd(th8) 127
+    set _mcfd(th16) 127
   }
 
 
@@ -243,10 +285,31 @@ snit::widget MCFD16View {
     set _mcfd(fr$ch) $frac
   }
 
+  method GetMode {} {
+    set mode ""
+    if {$_mcfd(mode) eq "on"} {
+      set mode "common"
+    } else {
+      set mode "individual"
+    }
+    return $mode
+  }
+
+  method SetMode {mode} {
+    if {$mode eq "common"} {
+      set _mcfd(mode) on
+    } elseif {$mode eq "individual"} {
+      set _mcfd(mode) on
+    } else {
+      set msg {Invalid mode. Must be either common or individual.}
+      return -code error MCFD16View::SetMode $msg
+    }
+  }
 
   method Commit {} {
     $_presenter Commit
   }
+
 }; # end of the View
 
 
@@ -279,7 +342,18 @@ snit::type MCFD16Presenter {
     $self UpdateViewFromModel
   }
 
+  destructor {
+
+    destroy $m_view
+  }
+
+  method GetComHandle {} {
+    return $m_handle
+  }
+
   method UpdateViewFromModel {} {
+
+    $m_view SetMode [$m_handle GetMode]
 
     # not sure if the names is something we need to record
     #    $self updateViewNames
@@ -307,6 +381,11 @@ snit::type MCFD16Presenter {
   }
 
   method UpdateModelFromView {} {
+    # make sure the mode is set first
+    # becuase subsequent writes may depend on it
+    set mode [$m_view GetMode]
+    $m_handle SetMode $mode
+
     $self CommitViewThresholds 
     update
     $self CommitViewPolarities
