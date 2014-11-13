@@ -6,7 +6,7 @@ package require mcfd16usb
 tcltest::test pkgrequire-0 {Ensure that we can require the package
 } {package require mcfd16gui} 1.0
 
-snit::method MCFD16View BuildGUI {} {}
+snit::method MCFD16IndividualView BuildGUI {} {}
 
 snit::method MCFD16USB GetPolarity {ch} {return neg}
 snit::method MCFD16USB GetGain {ch} { return 1}
@@ -20,7 +20,7 @@ snit::method MCFD16USB GetFraction {ch} {return 20 }
 snit::method MCFD16USB GetMode {} {return common }
 
 proc arrayToList {objname param len} {
-  set varname [$objname info vars _mcfd]
+  set varname [$objname mcfd]
   set res [list]
 
   for {set i 0} {$i<$len} {incr i} {
@@ -28,6 +28,19 @@ proc arrayToList {objname param len} {
   }
 
   return $res
+}
+
+proc listToArray {objname list param} {
+  set varname [$objname mcfd]
+  set res [list]
+
+  set i 0
+  set params [dict create]
+  foreach val $list {
+    dict set params $param$i $val
+  }
+
+  array set $varname $params
 }
 
 proc sequence {start n {inc 1}} {
@@ -50,6 +63,7 @@ proc wordSeries {word size} {
   return $res
 }
 
+
 proc setup {} {
   MCFD16Presenter ::pres -widgetname .mock
 }
@@ -67,8 +81,8 @@ tcltest::test updateViewThresholds-0 { Check that we properly set values
 } -body {
   ::pres UpdateViewThresholds
   
-  arrayToList .mock th 17
-} -result [intSeries 24 17]
+  arrayToList .mock th 16
+} -result [intSeries 24 16]
 
 tcltest::test updateViewPolarities-0 {Check that polarities are set in view
 } -setup {
@@ -78,8 +92,8 @@ tcltest::test updateViewPolarities-0 {Check that polarities are set in view
 } -body {
   ::pres UpdateViewPolarities
   
-  arrayToList .mock po 9
-} -result [wordSeries neg 9]
+  arrayToList .mock po 8
+} -result [wordSeries neg 8]
 
 tcltest::test updateViewGains-0 {Check that gains are set in view
 } -setup {
@@ -89,8 +103,8 @@ tcltest::test updateViewGains-0 {Check that gains are set in view
 } -body {
   ::pres UpdateViewGains
   
-  arrayToList .mock ga 9
-} -result [intSeries 1 9]
+  arrayToList .mock ga 8
+} -result [intSeries 1 8]
 
 tcltest::test updateViewWidths-0 {Check that widths are set in view
 } -setup {
@@ -100,8 +114,8 @@ tcltest::test updateViewWidths-0 {Check that widths are set in view
 } -body {
   ::pres UpdateViewWidths
   
-  arrayToList .mock wi 9
-} -result [intSeries 25 9]
+  arrayToList .mock wi 8
+} -result [intSeries 25 8]
 
 tcltest::test updateViewDeadtimes-0 {Check that deadtimes are set in view
 } -setup {
@@ -111,8 +125,8 @@ tcltest::test updateViewDeadtimes-0 {Check that deadtimes are set in view
 } -body {
   ::pres UpdateViewDeadtimes
   
-  arrayToList .mock dt 9
-} -result [intSeries 27 9]
+  arrayToList .mock dt 8
+} -result [intSeries 27 8]
 
 
 tcltest::test updateViewDelays-0 {Check that delays are set in view
@@ -123,8 +137,8 @@ tcltest::test updateViewDelays-0 {Check that delays are set in view
 } -body {
   ::pres UpdateViewDelays
   
-  arrayToList .mock dl 9
-} -result [intSeries 2 9]
+  arrayToList .mock dl 8
+} -result [intSeries 2 8]
 
 tcltest::test updateViewFractions-0 {Check that fractions are set in view
 } -setup {
@@ -134,8 +148,18 @@ tcltest::test updateViewFractions-0 {Check that fractions are set in view
 } -body {
   ::pres UpdateViewFractions
   
-  arrayToList .mock fr 9
-} -result [intSeries 20 9]
+  arrayToList .mock fr 8
+} -result [intSeries 20 8]
+
+
+
+tcltest::test commitViewThresholds-0 {Makes sure that view data gets written
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+} -result ""
 
 
 tcltest::cleanupTests
