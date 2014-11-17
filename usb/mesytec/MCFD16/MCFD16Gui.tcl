@@ -343,16 +343,16 @@ snit::widget MCFD16CommonView {
       -offvalue on
 
 #    ttk::spinbox $w.po8 -textvariable [$self mcfd(po8)] -width 4 -values {neg pos}
-    ttk::radiobutton $w.poneg8 -text "neg" -variable [$self mcfd](po8)] -value neg
-    ttk::radiobutton $w.popos8 -text "pos" -variable [$self mcfd(po8)] -value pos 
-    ttk::spinbox $w.ga8 -textvariable [$self mcfd(ga8)] -width 4 -values {1 3 10}
-    ttk::spinbox $w.wi8 -textvariable [$self mcfd(wi8)] -width 4 -from 16 -to 222
-    ttk::spinbox $w.dt8 -textvariable [$self mcfd(dt8)] -width 4 -from 27 -to 222
-    ttk::spinbox $w.dl8 -textvariable [$self mcfd(dl8)] -width 4 -from 1 -to 5
-#    ttk::spinbox $w.fr8 -textvariable [$self mcfd(fr8)] -width 4 -values {20 40}
-    ttk::radiobutton $w.fr820 -text "20%" -variable [$self mcfd(fr8)] -value 20
-    ttk::radiobutton $w.fr840 -text "40%" -variable [$self mcfd(fr8)] -value 40 
-    ttk::spinbox $w.th16 -textvariable [$self mcfd(th16)] -width 4 -from 0 -to 255
+    ttk::radiobutton $w.poneg8 -text "neg" -variable [$self mcfd](po8) -value neg
+    ttk::radiobutton $w.popos8 -text "pos" -variable [$self mcfd](po8) -value pos 
+    ttk::spinbox $w.ga8 -textvariable [$self mcfd](ga8) -width 4 -values {1 3 10}
+    ttk::spinbox $w.wi8 -textvariable [$self mcfd](wi8) -width 4 -from 16 -to 222
+    ttk::spinbox $w.dt8 -textvariable [$self mcfd](dt8) -width 4 -from 27 -to 222
+    ttk::spinbox $w.dl8 -textvariable [$self mcfd](dl8) -width 4 -from 1 -to 5
+#    ttk::spinbox $w.fr8 -textvariable [$self mcfd](fr8) -width 4 -values {20 40}
+    ttk::radiobutton $w.fr820 -text "20%" -variable [$self mcfd](fr8) -value 20
+    ttk::radiobutton $w.fr840 -text "40%" -variable [$self mcfd](fr8) -value 40 
+    ttk::spinbox $w.th16 -textvariable [$self mcfd](th16) -width 4 -from 0 -to 255
 
     grid $w.mode $w.th16 $w.poneg8 $w.ga8 $w.wi8 $w.dt8 $w.dl8 $w.fr820 -sticky news -padx 4 -pady 4
     grid ^       ^       $w.popos8 ^      ^      ^      ^      $w.fr840 -sticky news -padx 4 -pady 4
@@ -366,42 +366,205 @@ snit::widget MCFD16CommonView {
 ###############################################################################
 ###############################################################################
 
-
-
 snit::type MCFD16Presenter {
 
   option -widgetname -default ""
+  option -handle -default "" 
+  
+  option -view -default "" 
 
-  variable m_handle
+  constructor {args} {
+    $self configurelist $args
+
+    if {0} {
+    if {$options(-widgetname) eq ""} {
+      set msg "MCFD16Presenter::constructor -widgetname must be provided."
+      return -code error $msg 
+    }
+    }
+  }
+
+  destructor {
+
+    catch {destroy $options(-view)}
+  }
+
+
+
+  method CommitViewToParam {param index} {
+    [$self cget -handle] Set$param $index [[$self cget -view] Get$param $index]
+  }
+
+  method LoopCommitView {param begin end} {
+    for {set ch $begin} {$ch<$end} {incr ch} {
+      $self CommitViewToParam $param $ch
+    }
+  }
+
+  method UpdateParamFromView {param index} {
+    [$self cget -view] Set$param $index [[$self cget -handle] Get$param $index]
+  }
+
+  method LoopUpdateView {param begin end} {
+    for {set ch $begin} {$ch<$end} {incr ch} {
+      $self UpdateParamFromView $param $ch
+    }
+  }
+
+}
+
+
+snit::type MCFD16IndividualPresenter {
+
+  component m_base
+
+  delegate method * to m_base
+  delegate option * to m_base
+
+  constructor {args} {
+    install m_base using MCFD16Presenter %AUTO% 
+
+    $self configurelist $args
+
+    $self configure -view [MCFD16IndividualView [$self cget -widgetname] -presenter $self]
+
+    $self UpdateViewFromModel
+  }
+
+  destructor {
+    $m_base destroy
+  }
+
+  if {0} {
+  method UpdateViewNames {} {
+    # need to implement
+  }
+  }
+
+  method UpdateViewFromModel {} {
+
+    [$self cget -view] SetMode [[$self cget -handle] GetMode]
+
+    # not sure if the names is something we need to record
+    #    $self updateViewNames
+    $self UpdateViewThresholds 
+    update
+    #    $self UpdateViewMonitor
+    $self UpdateViewPolarities
+    update
+    $self UpdateViewGains
+    update
+    $self UpdateViewWidths
+    update
+    $self UpdateViewDeadtimes
+    update
+    $self UpdateViewDelays
+    update
+    $self UpdateViewFractions
+    update
+  }
+
+  method Commit {} {
+    $self UpdateModelFromView
+    update
+    $self UpdateViewFromModel
+  }
+
+  method UpdateModelFromView {} {
+    # make sure the mode is set first
+    # becuase subsequent writes may depend on it
+    set mode [[$self cget -view] GetMode]
+    [$self cget -handle] SetMode $mode
+
+    $self CommitViewThresholds 
+    update
+    $self CommitViewPolarities
+    update
+    $self CommitViewGains
+    update
+    $self CommitViewWidths
+    update
+    $self CommitViewDeadtimes
+    update
+    $self CommitViewDelays
+    update
+    $self CommitViewFractions
+  }
+
+
+  method UpdateViewThresholds {} { $self LoopUpdateView Threshold 0 16 }
+  method UpdateViewPolarities {} { $self LoopUpdateView Polarity 0 8 }
+  method UpdateViewGains {} { $self LoopUpdateView Gain 0 8 }
+  method UpdateViewWidths {} { $self LoopUpdateView Width 0 8 }
+  method UpdateViewDeadtimes {} { $self LoopUpdateView Deadtime 0 8 }
+  method UpdateViewDelays {} { $self LoopUpdateView Delay 0 8 }
+  method UpdateViewFractions {} { $self LoopUpdateView Fraction 0 8 }
+
+  if {0} {
+  method UpdateViewMonitor {} {
+    for {set ch 0} {$ch<16} {incr ch} {
+      set mon [$options(-handle) MonitorEnabled $ch]
+      $m_view SetMonitor $ch $thresh
+    }
+  }
+  }
+
+  ## Commit data to module
+  method CommitViewThresholds {} {
+    $self LoopCommitView Threshold 0 16
+  }
+
+  method CommitViewPolarities {} {
+    $self LoopCommitView Polarity 0 8
+  }
+
+  method CommitViewGains {} {
+    $self LoopCommitView Gain 0 8
+  }
+
+  method CommitViewWidths {} {
+    $self LoopCommitView Width 0 8
+  }
+
+  method CommitViewDeadtimes {} {
+    $self LoopCommitView Deadtime 0 8
+  }
+
+  method CommitViewDelays {} {
+    $self LoopCommitView Delay 0 8
+  }
+  
+  method CommitViewFractions {} {
+    $self LoopCommitView Fraction 0 8
+  }
+}
+
+
+snit::type MCFD16CommonPresenter {
+
   variable m_view
 
   constructor {args} {
     $self configurelist $args
     
-    set m_handle [MCFD16USB %AUTO% /dev/ttyUSB0]
-
     if {$options(-widgetname) eq ""} {
       set msg "MCFD16Presenter::constructor -widgetname must be provided."
       return -code error $msg 
     }
 
-    set m_view [MCFD16IndividualView $options(-widgetname) -presenter $self]
+    set m_view [MCFD16CommonView $options(-widgetname) -presenter $self]
 
     $self UpdateViewFromModel
   }
 
   destructor {
 
-    destroy $m_view
-  }
-
-  method GetComHandle {} {
-    return $m_handle
+    catch {destroy $m_view}
   }
 
   method UpdateViewFromModel {} {
 
-    $m_view SetMode [$m_handle GetMode]
+    $m_view SetMode [$options(-handle) GetMode]
 
     # not sure if the names is something we need to record
     #    $self updateViewNames
@@ -432,7 +595,7 @@ snit::type MCFD16Presenter {
     # make sure the mode is set first
     # becuase subsequent writes may depend on it
     set mode [$m_view GetMode]
-    $m_handle SetMode $mode
+    $options(-handle) SetMode $mode
 
     $self CommitViewThresholds 
     update
@@ -458,112 +621,71 @@ snit::type MCFD16Presenter {
   }
 
   method UpdateViewThresholds {} {
-    for {set ch 0} {$ch<16} {incr ch} {
-      set thresh [$m_handle GetThreshold $ch]
-      $m_view SetThreshold $ch $thresh
-    }
+    set thresh [$options(-handle) GetThreshold 16]
+    $m_view SetThreshold 16 $thresh
   }
 
   if {0} {
   method UpdateViewMonitor {} {
     for {set ch 0} {$ch<16} {incr ch} {
-      set mon [$m_handle MonitorEnabled $ch]
+      set mon [$options(-handle) MonitorEnabled $ch]
       $m_view SetMonitor $ch $thresh
     }
   }
   }
 
   method UpdateViewPolarities {} {
-    for {set ch 0} {$ch<8} {incr ch} {
-      set pol [$m_handle GetPolarity $ch]
-      $m_view SetPolarity $ch $pol
-    }
+    $m_view SetPolarity 8 [$options(-handle) GetPolarity 8]
   }
 
   method UpdateViewGains {} {
-    for {set ch 0} {$ch<8} {incr ch} {
-      set gain [$m_handle GetGain $ch]
-      $m_view SetGain $ch $gain
-    }
+    $m_view SetGain 8 [$options(-handle) GetGain 8]
   }
 
   method UpdateViewWidths {} {
-    for {set ch 0} {$ch<8} {incr ch} {
-      set val [$m_handle GetWidth $ch]
-      $m_view SetWidth $ch $val
-    }
+    $m_view SetWidth 8 [$options(-handle) GetWidth 8]
   }
 
   method UpdateViewDeadtimes {} {
-    for {set ch 0} {$ch<8} {incr ch} {
-      set val [$m_handle GetDeadtime $ch]
-      $m_view SetDeadtime $ch $val
-    }
+    $m_view SetDeadtime 8 [$options(-handle) GetDeadtime 8]
   }
 
   method UpdateViewDelays {} {
-    for {set ch 0} {$ch<8} {incr ch} {
-      set val [$m_handle GetDelay $ch]
-      $m_view SetDelay $ch $val
-    }
+    $m_view SetDelay 8 [$options(-handle) GetDelay 8]
   }
 
   method UpdateViewFractions {} {
-    for {set ch 0} {$ch<8} {incr ch} {
-      set fr [$m_handle GetFraction $ch]
-      $m_view SetFraction $ch $fr
-    }
+    $m_view SetFraction 8 [$options(-handle) GetFraction 8]
   }
 
 
   ## Commit data to module
   method CommitViewThresholds {} {
-    for {set ch 0} {$ch<16} {incr ch} {
-      set thresh [$m_view GetThreshold $ch]
-      $m_handle SetThreshold $ch $thresh
-    }
+    $options(-handle) SetThreshold 16 [$m_view GetThreshold 16]
   }
 
   method CommitViewPolarities {} {
-    for {set pair 0} {$pair<8} {incr pair} {
-      set pol [$m_view GetPolarity $pair]
-      $m_handle SetPolarity $pair $pol
-    }
+    $options(-handle) SetPolarity 8 [$m_view GetPolarity 8]
   }
 
   method CommitViewGains {} {
-    for {set pair 0} {$pair<8} {incr pair} {
-      set val [$m_view GetGain $pair]
-      $m_handle SetGain $pair $val
-    }
+    $options(-handle) SetGain 8 [$m_view GetGain 8] 
   }
 
   method CommitViewWidths {} {
-    for {set pair 0} {$pair<8} {incr pair} {
-      set val [$m_view GetWidth $pair]
-      $m_handle SetWidth $pair $val
-    }
+    $options(-handle) SetWidth 8 [$m_view GetWidth 8]
   }
 
   method CommitViewDeadtimes {} {
-    for {set pair 0} {$pair<8} {incr pair} {
-      set val [$m_view GetDeadtime $pair]
-      $m_handle SetDeadtime $pair $val
-    }
+    $options(-handle) SetDeadtime 8 [$m_view GetDeadtime 8]
   }
 
   method CommitViewDelays {} {
-    for {set pair 0} {$pair<8} {incr pair} {
-      set val [$m_view GetDelay $pair]
-      $m_handle SetDelay $pair $val
-    }
+    $options(-handle) SetDelay 8 [$m_view GetDelay 8]
   }
   
   method CommitViewFractions {} {
-    for {set pair 0} {$pair<8} {incr pair} {
-      set val [$m_view GetFraction $pair]
-      $m_handle SetFraction $pair $val
-    }
+    $options(-handle) SetFraction 8 [$m_view GetFraction 8]
   }
 }
 
@@ -601,9 +723,11 @@ grid .info.swVsnLbl x             -sticky nsew
 grid columnconfigure .info {0 1} -weight 1
 grid rowconfigure .info {0 1} -weight 1
 
-set pres [MCFD16Presenter %AUTO% -widgetname .view]
-#set view [MCFD16IndividualView .view]
-#set view [MCFD16CommonView .view]
+
+MCFD16USB dev /dev/ttyUSB0
+
+set indpres [MCFD16IndividualPresenter %AUTO% -widgetname .indctl -handle ::dev]
+#set compres [MCFD16CommonPresenter %AUTO% -widgetname .comctl -handle ::dev]
 proc print {dir} {
   puts "$dir"
 }
@@ -614,7 +738,7 @@ set m 123
 
 grid .title -sticky nsew -padx 8 -pady 8
 grid .info -sticky nsew -padx 8 -pady 8
-grid .view -sticky nsew -padx 8 -pady 8
+grid .indctl -sticky nsew -padx 8 -pady 8
 
 grid rowconfigure . {0 1 2} -weight 1
 grid columnconfigure . 0 -weight 1

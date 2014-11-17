@@ -19,6 +19,18 @@ snit::method MCFD16USB GetDelay {ch} {return 2 }
 snit::method MCFD16USB GetFraction {ch} {return 20 }
 snit::method MCFD16USB GetMode {} {return common }
 
+
+snit::method MCFD16USB SetPolarity {ch val} {dict set ::mockMemory polarity $ch $val}
+snit::method MCFD16USB SetGain {ch val} {dict set ::mockMemory gain $ch $val}
+snit::method MCFD16USB SetBandwidthLimit {val} {dict set ::mockMemory bwl $val}
+snit::method MCFD16USB SetDiscriminatorMode {val} {dict set ::mockMemory discriminator $val}
+snit::method MCFD16USB SetThreshold {ch val} {dict set ::mockMemory threshold $ch $val}
+snit::method MCFD16USB SetWidth {ch val} {dict set ::mockMemory width $ch $val}
+snit::method MCFD16USB SetDeadtime {ch val} {dict set ::mockMemory deadtime $ch $val}
+snit::method MCFD16USB SetDelay {ch val} {dict set ::mockMemory delay $ch $val}
+snit::method MCFD16USB SetFraction {ch val} {dict set ::mockMemory fraction $ch $val}
+snit::method MCFD16USB SetMode {val} {dict set ::mockMemory mode $val}
+
 proc arrayToList {objname param len} {
   set varname [$objname mcfd]
   set res [list]
@@ -63,9 +75,29 @@ proc wordSeries {word size} {
   return $res
 }
 
+proc dictKeyToList {dict key} {
+  set subdict [dict get [set $dict] $key]
+
+  set values [list]
+  foreach key [dict keys $subdict] {
+    lappend values [dict get $subdict $key]
+  }
+
+  return $values
+}
 
 proc setup {} {
-  MCFD16Presenter ::pres -widgetname .mock
+  MCFD16IndividualPresenter ::pres -widgetname .mock -handle [MCFD16USB %AUTO% /dev/ttyUSB0]
+
+  set ::mockMemory [dict create]
+  dict set ::mockMemory polarity [dict create]
+  dict set ::mockMemory gain [dict create]
+  dict set ::mockMemory threshold [dict create]
+  dict set ::mockMemory width [dict create]
+  dict set ::mockMemory deadtime [dict create]
+  dict set ::mockMemory delay [dict create]
+  dict set ::mockMemory fraction [dict create]
+
 }
 
 proc tearDown {} {
@@ -159,7 +191,79 @@ tcltest::test commitViewThresholds-0 {Makes sure that view data gets written
 } -cleanup {
   tearDown
 } -body {
-} -result ""
+  ::pres CommitViewThresholds
 
+  dictKeyToList ::mockMemory threshold
+} -result [intSeries 24 16] 
+
+tcltest::test commitViewPolarity-0 {Ensure that the pol  data ends up in view
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::pres CommitViewPolarities 
+
+  dictKeyToList ::mockMemory polarity
+} -result [wordSeries neg 8]
+
+tcltest::test commitViewGains-0 {Ensure that the gain data ends up in view
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::pres CommitViewGains
+
+  dictKeyToList ::mockMemory gain
+} -result [intSeries 1 8]
+
+tcltest::test commitViewWidths-0 {Ensure that the width data ends up in view
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::pres CommitViewWidths
+
+  dictKeyToList ::mockMemory width
+} -result [intSeries 25 8]
+
+
+tcltest::test commitViewDeadtimes-0 {Ensure that the deadtime data ends up in view
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::pres CommitViewDeadtimes
+
+  dictKeyToList ::mockMemory deadtime
+} -result [intSeries 27 8]
+
+
+tcltest::test commitViewDelays-0 {Ensure that the delay data ends up in view
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::pres CommitViewDelays
+
+  dictKeyToList ::mockMemory delay
+} -result [intSeries 2 8]
+
+tcltest::test commitViewFractions-0 {Ensure that the fraction data ends up in view
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::pres CommitViewFractions
+
+  dictKeyToList ::mockMemory fraction
+} -result [intSeries 20 8]
 
 tcltest::cleanupTests
+
+
