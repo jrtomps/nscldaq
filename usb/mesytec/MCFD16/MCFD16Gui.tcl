@@ -7,6 +7,8 @@ package require snit
 package require Tk
 
 
+####### Base class MCFD16View ################
+
 snit::type MCFD16View {
 
   option -presenter -default {}
@@ -118,7 +120,13 @@ snit::type MCFD16View {
 }; # end of the View
 
 
-
+###############################################################################
+#
+# MCFD16IndividualView 
+#
+#  A widget for controlling the MCFD16 channels individually.
+#
+#
 snit::widget MCFD16IndividualView {
 
   component m_base
@@ -275,7 +283,12 @@ snit::widget MCFD16IndividualView {
   }
 }
 
-
+###############################################################################
+#
+# MCFD16CommonView
+#
+#  A widget for controlling common channel values in MCFD16
+#
 snit::widget MCFD16CommonView {
 
   component m_base
@@ -366,6 +379,8 @@ snit::widget MCFD16CommonView {
 ###############################################################################
 ###############################################################################
 
+# PRESENTERS For the views
+
 snit::type MCFD16Presenter {
 
   option -widgetname -default ""
@@ -375,17 +390,9 @@ snit::type MCFD16Presenter {
 
   constructor {args} {
     $self configurelist $args
-
-    if {0} {
-    if {$options(-widgetname) eq ""} {
-      set msg "MCFD16Presenter::constructor -widgetname must be provided."
-      return -code error $msg 
-    }
-    }
   }
 
   destructor {
-
     catch {destroy $options(-view)}
   }
 
@@ -542,29 +549,28 @@ snit::type MCFD16IndividualPresenter {
 
 snit::type MCFD16CommonPresenter {
 
-  variable m_view
+  component m_base
+
+  delegate option * to m_base
+  delegate method * to m_base
 
   constructor {args} {
-    $self configurelist $args
-    
-    if {$options(-widgetname) eq ""} {
-      set msg "MCFD16Presenter::constructor -widgetname must be provided."
-      return -code error $msg 
-    }
+    install m_base using MCFD16Presenter %AUTO% 
 
-    set m_view [MCFD16CommonView $options(-widgetname) -presenter $self]
+    $self configurelist $args
+
+    $self configure -view [MCFD16CommonView [$self cget -widgetname] -presenter $self]
 
     $self UpdateViewFromModel
   }
 
   destructor {
-
-    catch {destroy $m_view}
+    $m_base destroy
   }
 
   method UpdateViewFromModel {} {
 
-    $m_view SetMode [$options(-handle) GetMode]
+    [$self cget -view] SetMode [[$self cget -handle] GetMode]
 
     # not sure if the names is something we need to record
     #    $self updateViewNames
@@ -594,8 +600,8 @@ snit::type MCFD16CommonPresenter {
   method UpdateModelFromView {} {
     # make sure the mode is set first
     # becuase subsequent writes may depend on it
-    set mode [$m_view GetMode]
-    $options(-handle) SetMode $mode
+    set mode [[$self cget -view] GetMode]
+    [$self cget -handle] SetMode $mode
 
     $self CommitViewThresholds 
     update
@@ -612,8 +618,6 @@ snit::type MCFD16CommonPresenter {
     $self CommitViewFractions
   }
 
-
-
   if {0} {
   method UpdateViewNames {} {
     # need to implement
@@ -621,8 +625,7 @@ snit::type MCFD16CommonPresenter {
   }
 
   method UpdateViewThresholds {} {
-    set thresh [$options(-handle) GetThreshold 16]
-    $m_view SetThreshold 16 $thresh
+    $self UpdateParamFromView Threshold 16
   }
 
   if {0} {
@@ -635,57 +638,57 @@ snit::type MCFD16CommonPresenter {
   }
 
   method UpdateViewPolarities {} {
-    $m_view SetPolarity 8 [$options(-handle) GetPolarity 8]
+    $self UpdateParamFromView Polarity 8
   }
 
   method UpdateViewGains {} {
-    $m_view SetGain 8 [$options(-handle) GetGain 8]
+    $self UpdateParamFromView Gain 8
   }
 
   method UpdateViewWidths {} {
-    $m_view SetWidth 8 [$options(-handle) GetWidth 8]
+    $self UpdateParamFromView Width 8
   }
 
   method UpdateViewDeadtimes {} {
-    $m_view SetDeadtime 8 [$options(-handle) GetDeadtime 8]
+    $self UpdateParamFromView Deadtime 8
   }
 
   method UpdateViewDelays {} {
-    $m_view SetDelay 8 [$options(-handle) GetDelay 8]
+    $self UpdateParamFromView Delay 8
   }
 
   method UpdateViewFractions {} {
-    $m_view SetFraction 8 [$options(-handle) GetFraction 8]
+    $self UpdateParamFromView Fraction 8
   }
 
 
   ## Commit data to module
   method CommitViewThresholds {} {
-    $options(-handle) SetThreshold 16 [$m_view GetThreshold 16]
+    $self CommitViewToParam Threshold 16
   }
 
   method CommitViewPolarities {} {
-    $options(-handle) SetPolarity 8 [$m_view GetPolarity 8]
+    $self CommitViewToParam Polarity 8
   }
 
   method CommitViewGains {} {
-    $options(-handle) SetGain 8 [$m_view GetGain 8] 
+    $self CommitViewToParam Gain 8
   }
 
   method CommitViewWidths {} {
-    $options(-handle) SetWidth 8 [$m_view GetWidth 8]
+    $self CommitViewToParam Width 8
   }
 
   method CommitViewDeadtimes {} {
-    $options(-handle) SetDeadtime 8 [$m_view GetDeadtime 8]
+    $self CommitViewToParam Deadtime 8
   }
 
   method CommitViewDelays {} {
-    $options(-handle) SetDelay 8 [$m_view GetDelay 8]
+    $self CommitViewToParam Delay 8
   }
   
   method CommitViewFractions {} {
-    $options(-handle) SetFraction 8 [$m_view GetFraction 8]
+    $self CommitViewToParam Fraction 8
   }
 }
 

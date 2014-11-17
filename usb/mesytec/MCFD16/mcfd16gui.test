@@ -86,17 +86,22 @@ proc dictKeyToList {dict key} {
   return $values
 }
 
-proc setup {} {
-  MCFD16IndividualPresenter ::pres -widgetname .mock -handle [MCFD16USB %AUTO% /dev/ttyUSB0]
+proc initDict {name} {
+  set $name [dict create]
+  dict set $name polarity [dict create]
+  dict set $name gain [dict create]
+  dict set $name threshold [dict create]
+  dict set $name width [dict create]
+  dict set $name deadtime [dict create]
+  dict set $name delay [dict create]
+  dict set $name fraction [dict create]
+}
 
-  set ::mockMemory [dict create]
-  dict set ::mockMemory polarity [dict create]
-  dict set ::mockMemory gain [dict create]
-  dict set ::mockMemory threshold [dict create]
-  dict set ::mockMemory width [dict create]
-  dict set ::mockMemory deadtime [dict create]
-  dict set ::mockMemory delay [dict create]
-  dict set ::mockMemory fraction [dict create]
+proc setup {} {
+  MCFD16IndividualPresenter ::pres -widgetname .mock \
+                                   -handle [MCFD16USB %AUTO% /dev/ttyUSB0]
+
+  initDict ::mockMemory
 
 }
 
@@ -183,8 +188,6 @@ tcltest::test updateViewFractions-0 {Check that fractions are set in view
   arrayToList .mock fr 8
 } -result [intSeries 20 8]
 
-
-
 tcltest::test commitViewThresholds-0 {Makes sure that view data gets written
 } -setup {
   setup
@@ -263,6 +266,167 @@ tcltest::test commitViewFractions-0 {Ensure that the fraction data ends up in vi
 
   dictKeyToList ::mockMemory fraction
 } -result [intSeries 20 8]
+
+
+
+# --------------------------------------------------------------------------- #
+
+
+proc setupCom {} {
+
+  MCFD16CommonPresenter ::pres -widgetname .mock \
+                               -handle [MCFD16USB %AUTO% /dev/ttyUSB0]
+
+  initDict ::mockMemory
+}
+
+tcltest::test updateViewThresholds-0 { Check that we properly set values
+} -setup {
+  setupCom
+} -cleanup {
+  tearDown
+} -body {
+  ::pres UpdateViewThresholds
+  
+} -result 24
+
+
+tcltest::test updateViewPolarities-0 {Check that polarities are set in view
+} -setup {
+  setupCom
+} -cleanup {
+  tearDown
+} -body {
+  ::pres UpdateViewPolarities
+  
+} -result neg
+
+tcltest::test updateViewGains-0 {Check that gains are set in view
+} -setup {
+  setupCom
+} -cleanup {
+  tearDown
+} -body {
+  ::pres UpdateViewGains
+  
+} -result 1
+
+tcltest::test updateViewWidths-0 {Check that widths are set in view
+} -setup {
+  setupCom
+} -cleanup {
+  tearDown
+} -body {
+  ::pres UpdateViewWidths
+} -result 25
+
+tcltest::test updateViewDeadtimes-0 {Check that deadtimes are set in view
+} -setup {
+  setupCom
+} -cleanup {
+  tearDown
+} -body {
+  ::pres UpdateViewDeadtimes
+  
+} -result 27
+
+
+tcltest::test updateViewDelays-0 {Check that delays are set in view
+} -setup {
+  setupCom
+} -cleanup {
+  tearDown
+} -body {
+  ::pres UpdateViewDelays
+} -result 2
+
+tcltest::test updateViewFractions-0 {Check that fractions are set in view
+} -setup {
+  setupCom
+} -cleanup {
+  tearDown
+} -body {
+  ::pres UpdateViewFractions
+} -result 20
+
+tcltest::test commitViewThresholds-0 {Makes sure that view data gets written
+} -setup {
+  setupCom
+} -cleanup {
+  tearDown
+} -body {
+  ::pres CommitViewThresholds
+
+  dictKeyToList ::mockMemory threshold
+} -result 24
+
+tcltest::test commitViewPolarity-0 {Ensure that the pol  data ends up in view
+} -setup {
+  setupCom
+} -cleanup {
+  tearDown
+} -body {
+  ::pres CommitViewPolarities 
+
+  dictKeyToList ::mockMemory polarity
+} -result neg
+
+tcltest::test commitViewGains-0 {Ensure that the gain data ends up in view
+} -setup {
+  setupCom
+} -cleanup {
+  tearDown
+} -body {
+  ::pres CommitViewGains
+
+  dictKeyToList ::mockMemory gain
+} -result 1
+
+tcltest::test commitViewWidths-0 {Ensure that the width data ends up in view
+} -setup {
+  setupCom
+} -cleanup {
+  tearDown
+} -body {
+  ::pres CommitViewWidths
+
+  dictKeyToList ::mockMemory width
+} -result 25
+
+
+tcltest::test commitViewDeadtimes-0 {Ensure that the deadtime data ends up in view
+} -setup {
+  setupCom
+} -cleanup {
+  tearDown
+} -body {
+  ::pres CommitViewDeadtimes
+
+  dictKeyToList ::mockMemory deadtime
+} -result 27
+
+
+tcltest::test commitViewDelays-0 {Ensure that the delay data ends up in view
+} -setup {
+  setupCom
+} -cleanup {
+  tearDown
+} -body {
+  ::pres CommitViewDelays
+
+  dictKeyToList ::mockMemory delay
+} -result 2
+
+tcltest::test commitViewFractions-0 {Ensure that the fraction data ends up in view
+} -setup {
+  setupCom
+} -cleanup {
+  tearDown
+} -body {
+  ::pres CommitViewFractions
+
+  dictKeyToList ::mockMemory fraction
+} -result 20 
 
 tcltest::cleanupTests
 
