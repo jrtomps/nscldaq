@@ -5,6 +5,7 @@ package provide mcfd16gui 1.0
 package require mcfd16usb
 package require snit
 package require Tk
+package require FrameSwitcher
 
 
 ####### Base class MCFD16View ################
@@ -148,12 +149,8 @@ snit::widget MCFD16IndividualView {
     $self BuildHeader $win.header
     $self BuildTable $win.table
 
-    ttk::button $win.commit -text "Commit" -command [mymethod Commit] -style "Commit.TButton"
-
-
     grid $win.header -sticky nsew -padx 2 -pady 2
     grid $win.table -sticky nsew -padx 2 -pady 2
-    grid $win.commit -sticky sew -columnspan 8
 
     # allow the columns to resize
     grid columnconfigure $win {0} -weight 1
@@ -266,12 +263,12 @@ snit::widget MCFD16IndividualView {
       -style "$style.TSpinbox" -from 0 -to 255 \
       -state readonly
 
-    ttk::radiobutton $w.popos$pair -variable "[$self mcfd](po$ch)" \
+    ttk::radiobutton $w.popos$pair -variable "[$self mcfd](po$pair)" \
                                    -value pos -text pos \
                                    -style "$style.TRadiobutton"
-    ttk::radiobutton $w.fr${pair}40 -text "40%" -variable "[$self mcfd](fr$ch)" \
+    ttk::radiobutton $w.fr${pair}40 -text "40%" -variable "[$self mcfd](fr$pair)" \
                                     -value 40  -style "$style.TRadiobutton"
-    ttk::radiobutton $w.mo$ch -variable "[$self mcfd](mo$ch)" \
+    ttk::radiobutton $w.mo$ch -variable "[$self mcfd](mo$pair)" \
       -value $ch \
       -command Monitor -style "$style.TRadiobutton"
     grid $w.na$ch $w.th$ch $w.popos$pair x x x x $w.fr${pair}40 -sticky news -padx 4 -pady 4
@@ -309,12 +306,9 @@ snit::widget MCFD16CommonView {
     $self BuildHeader $win.header
     $self BuildCommonControls $win.common
 
-    ttk::button $win.commit -text "Commit" -command [mymethod Commit] -style "Commit.TButton"
-
 
     grid $win.header -sticky nsew -padx 2 -pady 2
     grid $win.common -sticky nsew -padx 2 -pady 2
-    grid $win.commit -sticky sew -columnspan 8
 
     # allow the columns to resize
     grid columnconfigure $win {0} -weight 1
@@ -350,24 +344,30 @@ snit::widget MCFD16CommonView {
   method BuildCommonControls {name} {
     set w $name
 
-    ttk::frame $w
+    ttk::frame $w -style "Even.TFrame"
 
-    ttk::checkbutton $w.mode -text Common -variable [$self mcfd](mode) -onvalue off \
-      -offvalue on
+    ttk::label $w.name -text Common  -style "Even.TLabel"
 
-#    ttk::spinbox $w.po8 -textvariable [$self mcfd(po8)] -width 4 -values {neg pos}
-    ttk::radiobutton $w.poneg8 -text "neg" -variable [$self mcfd](po8) -value neg
-    ttk::radiobutton $w.popos8 -text "pos" -variable [$self mcfd](po8) -value pos 
-    ttk::spinbox $w.ga8 -textvariable [$self mcfd](ga8) -width 4 -values {1 3 10}
-    ttk::spinbox $w.wi8 -textvariable [$self mcfd](wi8) -width 4 -from 16 -to 222
-    ttk::spinbox $w.dt8 -textvariable [$self mcfd](dt8) -width 4 -from 27 -to 222
-    ttk::spinbox $w.dl8 -textvariable [$self mcfd](dl8) -width 4 -from 1 -to 5
-#    ttk::spinbox $w.fr8 -textvariable [$self mcfd](fr8) -width 4 -values {20 40}
-    ttk::radiobutton $w.fr820 -text "20%" -variable [$self mcfd](fr8) -value 20
-    ttk::radiobutton $w.fr840 -text "40%" -variable [$self mcfd](fr8) -value 40 
-    ttk::spinbox $w.th16 -textvariable [$self mcfd](th16) -width 4 -from 0 -to 255
+    ttk::radiobutton $w.poneg8 -text "neg" -variable [$self mcfd](po8) \
+                               -value neg -style "Even.TRadiobutton"
+    ttk::radiobutton $w.popos8 -text "pos" -variable [$self mcfd](po8) \
+                               -value pos -style "Even.TRadiobutton"
+    ttk::spinbox $w.ga8 -textvariable [$self mcfd](ga8) -width 4 \
+                               -values {1 3 10} -style "Even.TSpinbox" \
+                               -state readonly
+    ttk::spinbox $w.wi8 -textvariable [$self mcfd](wi8) -width 4 \
+                               -from 16 -to 222 -style "Even.TSpinbox" \
+                               -state readonly
+    ttk::spinbox $w.dt8 -textvariable [$self mcfd](dt8) -width 4 -from 27 \
+                               -to 222 -style "Even.TSpinbox" -state readonly
+    ttk::spinbox $w.dl8 -textvariable [$self mcfd](dl8) -width 4 -from 1 \
+                               -to 5 -style "Even.TSpinbox" -state readonly
+    ttk::radiobutton $w.fr820 -text "20%" -variable [$self mcfd](fr8) \
+                              -value 20 -style "Even.TRadiobutton"
+    ttk::radiobutton $w.fr840 -text "40%" -variable [$self mcfd](fr8) -value 40 -style "Even.TRadiobutton"
+    ttk::spinbox $w.th16 -textvariable [$self mcfd](th16) -width 4 -from 0 -to 255 -style "Even.TSpinbox" -state readonly
 
-    grid $w.mode $w.th16 $w.poneg8 $w.ga8 $w.wi8 $w.dt8 $w.dl8 $w.fr820 -sticky news -padx 4 -pady 4
+    grid $w.name $w.th16 $w.poneg8 $w.ga8 $w.wi8 $w.dt8 $w.dl8 $w.fr820 -sticky news -padx 4 -pady 4
     grid ^       ^       $w.popos8 ^      ^      ^      ^      $w.fr840 -sticky news -padx 4 -pady 4
     grid columnconfigure $w {1 2 3 4 5 6 7} -weight 1 -uniform a
     grid columnconfigure $w {0} -weight 2 -uniform a
@@ -450,8 +450,6 @@ snit::type MCFD16IndividualPresenter {
 
   method UpdateViewFromModel {} {
 
-    [$self cget -view] SetMode [[$self cget -handle] GetMode]
-
     # not sure if the names is something we need to record
     #    $self updateViewNames
     $self UpdateViewThresholds 
@@ -473,15 +471,10 @@ snit::type MCFD16IndividualPresenter {
 
   method Commit {} {
     $self UpdateModelFromView
-    update
     $self UpdateViewFromModel
   }
 
   method UpdateModelFromView {} {
-    # make sure the mode is set first
-    # becuase subsequent writes may depend on it
-    set mode [[$self cget -view] GetMode]
-    [$self cget -handle] SetMode $mode
 
     $self CommitViewThresholds 
     update
@@ -517,33 +510,13 @@ snit::type MCFD16IndividualPresenter {
   }
 
   ## Commit data to module
-  method CommitViewThresholds {} {
-    $self LoopCommitView Threshold 0 16
-  }
-
-  method CommitViewPolarities {} {
-    $self LoopCommitView Polarity 0 8
-  }
-
-  method CommitViewGains {} {
-    $self LoopCommitView Gain 0 8
-  }
-
-  method CommitViewWidths {} {
-    $self LoopCommitView Width 0 8
-  }
-
-  method CommitViewDeadtimes {} {
-    $self LoopCommitView Deadtime 0 8
-  }
-
-  method CommitViewDelays {} {
-    $self LoopCommitView Delay 0 8
-  }
-  
-  method CommitViewFractions {} {
-    $self LoopCommitView Fraction 0 8
-  }
+  method CommitViewThresholds {} { $self LoopCommitView Threshold 0 16 }
+  method CommitViewPolarities {} { $self LoopCommitView Polarity 0 8 }
+  method CommitViewGains {} { $self LoopCommitView Gain 0 8 }
+  method CommitViewWidths {} { $self LoopCommitView Width 0 8 }
+  method CommitViewDeadtimes {} { $self LoopCommitView Deadtime 0 8 }
+  method CommitViewDelays {} { $self LoopCommitView Delay 0 8 }
+  method CommitViewFractions {} { $self LoopCommitView Fraction 0 8 }
 }
 
 
@@ -569,8 +542,6 @@ snit::type MCFD16CommonPresenter {
   }
 
   method UpdateViewFromModel {} {
-
-    [$self cget -view] SetMode [[$self cget -handle] GetMode]
 
     # not sure if the names is something we need to record
     #    $self updateViewNames
@@ -600,8 +571,6 @@ snit::type MCFD16CommonPresenter {
   method UpdateModelFromView {} {
     # make sure the mode is set first
     # becuase subsequent writes may depend on it
-    set mode [[$self cget -view] GetMode]
-    [$self cget -handle] SetMode $mode
 
     $self CommitViewThresholds 
     update
@@ -624,9 +593,7 @@ snit::type MCFD16CommonPresenter {
   }
   }
 
-  method UpdateViewThresholds {} {
-    $self UpdateParamFromView Threshold 16
-  }
+  method UpdateViewThresholds {} { $self UpdateParamFromView Threshold 16 }
 
   if {0} {
   method UpdateViewMonitor {} {
@@ -637,64 +604,119 @@ snit::type MCFD16CommonPresenter {
   }
   }
 
-  method UpdateViewPolarities {} {
-    $self UpdateParamFromView Polarity 8
-  }
-
-  method UpdateViewGains {} {
-    $self UpdateParamFromView Gain 8
-  }
-
-  method UpdateViewWidths {} {
-    $self UpdateParamFromView Width 8
-  }
-
-  method UpdateViewDeadtimes {} {
-    $self UpdateParamFromView Deadtime 8
-  }
-
-  method UpdateViewDelays {} {
-    $self UpdateParamFromView Delay 8
-  }
-
-  method UpdateViewFractions {} {
-    $self UpdateParamFromView Fraction 8
-  }
+  method UpdateViewPolarities {} { $self UpdateParamFromView Polarity 8 }
+  method UpdateViewGains {} { $self UpdateParamFromView Gain 8 }
+  method UpdateViewWidths {} { $self UpdateParamFromView Width 8 }
+  method UpdateViewDeadtimes {} { $self UpdateParamFromView Deadtime 8 }
+  method UpdateViewDelays {} { $self UpdateParamFromView Delay 8 }
+  method UpdateViewFractions {} { $self UpdateParamFromView Fraction 8 }
 
 
   ## Commit data to module
-  method CommitViewThresholds {} {
-    $self CommitViewToParam Threshold 16
-  }
-
-  method CommitViewPolarities {} {
-    $self CommitViewToParam Polarity 8
-  }
-
-  method CommitViewGains {} {
-    $self CommitViewToParam Gain 8
-  }
-
-  method CommitViewWidths {} {
-    $self CommitViewToParam Width 8
-  }
-
-  method CommitViewDeadtimes {} {
-    $self CommitViewToParam Deadtime 8
-  }
-
-  method CommitViewDelays {} {
-    $self CommitViewToParam Delay 8
-  }
-  
-  method CommitViewFractions {} {
-    $self CommitViewToParam Fraction 8
-  }
+  method CommitViewThresholds {} { $self CommitViewToParam Threshold 16 }
+  method CommitViewPolarities {} { $self CommitViewToParam Polarity 8 }
+  method CommitViewGains {} { $self CommitViewToParam Gain 8 }
+  method CommitViewWidths {} { $self CommitViewToParam Width 8 }
+  method CommitViewDeadtimes {} { $self CommitViewToParam Deadtime 8 }
+  method CommitViewDelays {} { $self CommitViewToParam Delay 8 }
+  method CommitViewFractions {} { $self CommitViewToParam Fraction 8 }
 }
 
 
+########## Unified Controls ####################
+snit::widget MCFD16ControlPanel {
+
+  component m_frames
+  component m_comPrsntr
+  component m_indPrsntr
+
+  option -handle -default {}
+  variable m_mode 
+  variable m_current
+
+  constructor {args} {
+    $self configurelist $args
+
+    if {[$self cget -handle] eq ""} {
+      return -code error "MCFD16ControlPanel must be provided -handle option."
+    }
+
+    install m_frames using FrameSwitcher $win.frames
+    install m_comPrsntr using \
+      MCFD16CommonPresenter %AUTO% -widgetname $win.com \
+                                   -handle [$self cget -handle]
+
+    install m_indPrsntr using \
+      MCFD16IndividualPresenter %AUTO% -widgetname $win.ind \
+                                   -handle [$self cget -handle]
+
+    puts [$self cget -handle]
+    set m_mode [[$self cget -handle] GetMode]
+    puts $m_mode
+    trace add variable [myvar m_mode] write [mymethod OnModeChange]
+
+    $self BuildGUI
+
+    # sets the m_current and updates the frame switcher
+    $self OnModeChange {} {} {}
+
+  }
+
+  method BuildGUI {} {
+    # add the frames
+    $m_frames add common $win.com
+    $m_frames add individual $win.ind
+
+    ttk::label $win.modeLbl -text "Configuration Mode"
+    ttk::radiobutton $win.modeCom -text "common" -variable [myvar m_mode] \
+                                  -value common
+    ttk::radiobutton $win.modeInd -text "individual" -variable [myvar m_mode] \
+                                  -value individual
+
+    ttk::button $win.commit -text "Commit" -command [mymethod Commit] \
+                                  -style "Commit.TButton"
+
+    grid $win.modeLbl $win.modeCom $win.modeInd -sticky new
+    grid $m_frames - -  -sticky nsew
+
+    grid $win.commit - -  -sticky ew
+
+    grid rowconfigure $win 1 -weight 1
+    grid columnconfigure $win {0 1 2} -weight 1
+  }
+
+
+  method OnModeChange {name0 name1 op} {
+    if {$m_mode eq "common"} {
+      $m_frames select common
+      set m_current $m_comPrsntr
+    } else {
+      $m_frames select individual 
+      set m_current $m_indPrsntr
+    } 
+  }
+
+  method Commit {} {
+    [$self cget -handle] SetMode $m_mode
+    $m_current Commit
+  }
+
+  method GetCurrent {} { return $m_current }
+}
+
+#######
+#
+
+snit::widget ProtocolSelector {
+  
+}
+
+################## GLOBAL STUFF #############################################
+#
+
 proc ConfigureStyle {} {
-  ttk::style configure "Title.TLabel" -foreground "firebrick" -font "helvetica 28 bold"
+  ttk::style configure "Title.TLabel" -foreground "firebrick" \
+                                      -font "helvetica 28 bold"
 
   ttk::style configure Header.TLabel -background {orange red} 
   ttk::style configure Header.TFrame -background {orange red}
@@ -703,11 +725,13 @@ proc ConfigureStyle {} {
   ttk::style configure Even.TRadiobutton -background snow3
   ttk::style configure Even.TSpinbox -background snow3
   ttk::style configure Even.TFrame -background snow3
+  ttk::style configure Even.TLabel -background snow3
 
   ttk::style configure Odd.TEntry -background snow3
   ttk::style configure Odd.TRadiobutton -background snow3
   ttk::style configure Odd.TSpinbox -background snow3
   ttk::style configure Odd.TFrame -background snow3
+  ttk::style configure Odd.TLabel -background snow3
 
   ttk::style configure Commit.TButton -background orange
 }
@@ -720,29 +744,21 @@ ttk::label .info.fwVsnLbl -text "Firmware version:"
 ttk::label .info.swVsnLbl -text "Software version:"
 ttk::label .info.protoLbl -text "Protocol:"
 
-
 grid .info.fwVsnLbl .info.protoLbl -sticky nsew
 grid .info.swVsnLbl x             -sticky nsew
 grid columnconfigure .info {0 1} -weight 1
-grid rowconfigure .info {0 1} -weight 1
+#grid rowconfigure .info {2} -weight 1
+
 
 
 MCFD16USB dev /dev/ttyUSB0
 
-set indpres [MCFD16IndividualPresenter %AUTO% -widgetname .indctl -handle ::dev]
-#set compres [MCFD16CommonPresenter %AUTO% -widgetname .comctl -handle ::dev]
-proc print {dir} {
-  puts "$dir"
-}
-
-set m 123
-#Arrows .view -background pink -textvariable ::m -upcommand [list print up]
-
+set control [MCFD16ControlPanel .ctl -handle ::dev]
 
 grid .title -sticky nsew -padx 8 -pady 8
 grid .info -sticky nsew -padx 8 -pady 8
-grid .indctl -sticky nsew -padx 8 -pady 8
+grid .ctl -sticky nsew -padx 8 -pady 8
 
-grid rowconfigure . {0 1 2} -weight 1
+grid rowconfigure . {2} -weight 1
 grid columnconfigure . 0 -weight 1
 

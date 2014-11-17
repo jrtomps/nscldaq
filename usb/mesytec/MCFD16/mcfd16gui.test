@@ -428,6 +428,67 @@ tcltest::test commitViewFractions-0 {Ensure that the fraction data ends up in vi
   dictKeyToList ::mockMemory fraction
 } -result 20 
 
+
+
+###################################################################################
+
+proc setup {} { 
+  MCFD16ControlPanel .pres -handle [MCFD16USB %AUTO% /dev/ttyUSB0]
+}
+
+proc tearDown {} {
+  destroy .pres
+}
+
+tcltest::test modeChange-0 {Check that mode change changes the displayed view
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+
+  # obtain access to the variable being traced
+  set modeVarName [lindex [.pres info vars m_mode] 0]
+  set mode [set $modeVarName]
+
+  # figure out what the current presenter is
+  set current [.pres GetCurrent]
+
+  # switch modes... this should force it to change current
+  if {$mode eq "common"} {
+    set $modeVarName individual
+  } else {
+    set $modeVarName common
+  }
+
+  # make sure current changes
+  expr {$current ne [.pres GetCurrent]}
+} -result 1
+
+tcltest::test commit-0 {Check that a commit will commit for the current obj
+} -setup {
+
+  setup
+
+  # obtain access to the variable being traced
+  set modeVarName [lindex [.pres info vars m_mode] 0]
+  set oldBody [.pres info body Commit]
+  snit::method MCFD16CommonPresenter Commit {} {
+    return -code error "MCFD16CommonPresenter::Commit"
+  }
+  set $modeVarName common
+  
+} -cleanup {
+  snit::method MCFD16CommonPresenter Commit {} $oldBody
+  tearDown
+
+} -body {
+  set res [catch {.pres Commit} msg]
+
+  list $res $msg
+} -result {1 MCFD16CommonPresenter::Commit}
+
+
 tcltest::cleanupTests
 
 
