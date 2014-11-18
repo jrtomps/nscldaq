@@ -277,7 +277,7 @@ snit::type MCFD16USB {
   #
   # @throws error if chanPair is out of range
   method GetWidth {chanPair} {
-    return [$self _GetChannelPairParam Width $chanPair]
+    return [$self _GetChannelPairParam WidthRaw $chanPair]
   }
 
 
@@ -317,7 +317,7 @@ snit::type MCFD16USB {
   #
   # @returns the dead time value in nanoseconds
   method GetDeadtime {chanPair} {
-    return [$self _GetChannelPairParam Deadtime $chanPair]
+    return [$self _GetChannelPairParam DeadtimeRaw $chanPair]
   }
 
   ## @brief Set the delay line for a channel pair
@@ -696,8 +696,17 @@ snit::type MCFD16USB {
     ## hardware settings
     #    lappend parsedResponse [$self _ParseSimpleLine [lindex $lines 20]]
 
-    return [$self _TransformToDict $parsedResponse]
+    set stateDict [$self _TransformToDict $parsedResponse]
+    
+    set widths [dict get $stateDict Width]
+    set list [$self _ConvertTimeWidthsToRawWidths $widths]
+    dict set stateDict WidthRaw $list
 
+    set deadtimes [dict get $stateDict Deadtime]
+    set list [$self _ConvertDeadtimesToRaw $deadtimes]
+    dict set stateDict DeadtimeRaw $list
+
+    return $stateDict
   }
 
   ## @brief Split a line into tokens that are trimmed
@@ -943,4 +952,109 @@ snit::type MCFD16USB {
     }
   }
 
+
+  method _ConvertTimeWidthsToRawWidths {elements} {
+    set res [list]
+    foreach el $elements {
+      lappend res [$type {ConvertWidthToArg} $el]
+    }
+    return $res
+  }
+
+  method _ConvertDeadtimesToRaw {elements} {
+    set res [list]
+    foreach el $elements {
+      lappend res [$type {ConvertDeadtimeToArg} $el]
+    }
+    return $res
+  }
+
+  # Some typevariables and utilities for setting them up.
+  # These are for the purpose of converting between values read back from
+  # the module that have been converted to some other form. Width and 
+  # deadtime are subject to this.
+  typevariable reverseWidthTable 
+  typevariable reverseDeadtimeTable 
+
+  typeconstructor {
+    $type _ConstructWidthTable 
+    $type _ConstructDeadtimeTable 
+  }
+
+  typemethod _ConstructWidthTable {} {
+    set reverseWidthTable [dict create]
+
+    set values [list]
+    for {set val 19} {$val <= 222} {incr val} {
+      lappend values $val
+    }
+
+    set t [list \
+       6    9  10  12  13  15  17  18  20  21  23  25  26 \
+       28  30  31  33  35  36  38  40  41  43  45  46  48  50  52  53 \
+       55  57  59  61  62  64  66  68  70  71  73  75  77  79  81  83 \
+       85  87  88  90  92  94  96  98 100 102 104 106 108 110 112 114 \
+      116 118 121 123 125 127 129 131 133 135 138 140 142 144 146 149 \
+      151 153 156 158 160 162 165 167 170 172 174 177 179 182 184 186 \
+      189 191 194 197 199 202 204 207 209 212 215 217 220 223 226 228 \
+      231 234 237 239 242 245 248 251 254 257 260 263 266 269 272 275 \
+      278 281 285 288 291 294 298 301 304 308 311 314 318 321 325 328 \
+      332 336 339 343 347 350 354 358 362 366 370 374 378 382 386 390 \
+      394 399 403 407 412 416 421 425 430 434 439 444 449 454 459 464 \
+      469 474 479 484 490 495 501 506 512 518 524 530 536 542 548 554 \
+      561 567 574 581 587 594 602 609 616 624 632 639 647 656 664]
+
+    set index 0
+    foreach key $t {
+      dict set reverseWidthTable $key [lindex $values $index]
+      incr index
+    }
+  }
+
+  typemethod _ConstructDeadtimeTable {} {
+    
+    set reverseDeadtimeTable [dict create]
+
+    # create a list of all the raw parameter values
+    set values [list]
+    for {set val 27} {$val <= 222} {incr val} {
+      lappend values $val
+    }
+
+    # create list of all the dead time values (in nanoseconds) that are 
+    # mapped to by raw values
+    set dt [list \
+      20  21  23  25  26\
+      28  30  31  33  35  36  38  40  41  43  45  46  48  50  52  53 \
+      55  57  59  61  62  64  66  68  70  71  73  75  77  79  81  83 \
+      85  87  88  90  92  94  96  98 100 102 104 106 108 110 112 114 \
+     116 118 121 123 125 127 129 131 133 135 138 140 142 144 146 149 \
+     151 153 156 158 160 162 165 167 170 172 174 177 179 182 184 186 \
+     189 191 194 197 199 202 204 207 209 212 215 217 220 223 226 228 \
+     231 234 237 239 242 245 248 251 254 257 260 263 266 269 272 275 \
+     278 281 285 288 291 294 298 301 304 308 311 314 318 321 325 328 \
+     332 336 339 343 347 350 354 358 362 366 370 374 378 382 386 390 \
+     394 399 403 407 412 416 421 425 430 434 439 444 449 454 459 464 \
+     469 474 479 484 490 495 501 506 512 518 524 530 536 542 548 554 \
+     561 567 574 581 587 594 602 609 616 624 632 639 647 656 664 ]
+
+   # build the table zippering the two lists together.
+    set index 0
+    foreach key $dt {
+      dict set reverseDeadtimeTable $key [lindex $values $index]
+      incr index
+    }
+
+  }
+
+  typemethod ConvertWidthToArg {val} {
+    return [dict get $reverseWidthTable $val]
+  }
+
+  typemethod ConvertDeadtimeToArg {val} {
+    return [dict get $reverseDeadtimeTable $val]
+  }
+
+
 }
+

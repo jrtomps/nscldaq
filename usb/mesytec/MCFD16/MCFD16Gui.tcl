@@ -650,9 +650,7 @@ snit::widget MCFD16ControlPanel {
       MCFD16IndividualPresenter %AUTO% -widgetname $win.ind \
                                    -handle [$self cget -handle]
 
-    puts [$self cget -handle]
     set m_mode [[$self cget -handle] GetMode]
-    puts $m_mode
     trace add variable [myvar m_mode] write [mymethod OnModeChange]
 
     $self BuildGUI
