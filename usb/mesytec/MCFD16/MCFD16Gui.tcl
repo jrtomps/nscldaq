@@ -397,7 +397,6 @@ snit::type MCFD16Presenter {
   }
 
 
-
   method CommitViewToParam {param index} {
     [$self cget -handle] Set$param $index [[$self cget -view] Get$param $index]
   }
@@ -705,9 +704,160 @@ snit::widget MCFD16ControlPanel {
 #######
 #
 
-snit::widget ProtocolSelector {
-  
+
+
+#########
+#
+snit::widget PulserView {
+  option -pulserid   -default 1
+  option -enabled    -default 0
+  option -buttontext -default {Enable} 
+  option -radiobuttonstate -default 0 -configuremethod RadiobuttonStateChange
+
+  option -presenter -default {}
+
+  constructor {args} {
+    $self configurelist $args
+
+    $self BuildGUI
+  }
+
+  method BuildGUI {} {
+    ttk::label $win.lbl -text "Test Pulser" -style "Pulser.TLabel"
+
+    ttk::radiobutton $win.mHzPulser -text "2.5 MHz" \
+                                    -variable [myvar options(-pulserid)] \
+                                    -value 1 -style "Pulser.TRadiobutton"
+    ttk::radiobutton $win.kHzPulser -text "1.22 kHz" \
+                                    -variable [myvar options(-pulserid)] \
+                                    -value 2 -style "Pulser.TRadiobutton"
+
+    ttk::button $win.onoff -textvariable [myvar options(-buttontext)]\
+                           -command [mymethod OnPress] \
+                                          -style "Pulser.TButton"
+
+    grid $win.lbl $win.kHzPulser $win.mHzPulser $win.onoff -sticky sew
+    grid columnconfigure $win {0 1 2 3} -weight 1
+  }
+
+  method OnPress {} {
+    set presenter [$self cget -presenter] 
+    if {$presenter ne {}} {
+      $presenter OnPress
+    }
+    # it is not an error if there is no presenter... it is instead a noop
+  }
+
+  method RadiobuttonStateChange {option val} {
+    if {$val == 0} {
+      $win.mHzPulser state disabled
+      $win.kHzPulser state disabled
+    } else {
+      $win.mHzPulser state !disabled
+      $win.kHzPulser state !disabled
+    }
+    set options($option) $val
+  }
 }
+
+
+snit::type PulserPresenter {
+
+  variable _handle
+  variable _view
+  
+  constructor {view handle} {
+    set _view $view
+    set _handle $handle
+
+    # tell the view that this is its presenter
+    $_view configure -presenter $self
+
+    # we don't know which pulser state exists, so we will disable by default
+    $_handle DisablePulser 
+
+    $self UpdateViewFromModel
+
+  }
+
+  method OnPress {} {
+    $self CommitViewToModel
+  }
+
+  method UpdateViewFromModel {} {
+    # get state of the device
+    set state [$_handle PulserEnabled]
+    if {$state == 0} {
+      set state inactive
+    } else {
+      set state active
+    }
+
+    # update the view given the state of device
+    $self UpdateButtonText $state
+    $self UpdateRadiobuttonState $state
+  }
+
+  method CommitViewToModel {} {
+    # get state of the view (determined by button text)
+    set trans [$self GetTransitionType]
+
+    # commit the state to the device
+    $self TransitionPulser $trans
+
+    # update the view state to reflect the next state
+    $self UpdateViewFromModel
+  }
+
+  method GetViewEnabled {} {
+    set text [$_view cget -buttontext]
+    if {$text eq "Enable"} {
+      return 0 ; # the pulser is disabled
+    } else {
+      return 1 ; # pulser is enabled
+    }
+  }
+
+  method TransitionPulser {transType} {
+    if {$transType == "enable"} {
+      # user wants to enable...
+      $_handle EnablePulser [$_view cget -pulserid]
+    } else {
+      $_handle DisablePulser
+    }
+    
+  }
+
+  method GetTransitionType {} {
+    set buttontext [$_view cget -buttontext]
+    if {$buttontext eq "Enable"} {
+      return enable
+    } else {
+      return disable
+    }
+  }
+  method UpdateButtonText {state} {
+    if {$state eq "active"} {
+      # user has set it into enabled
+      $_view configure -buttontext "Disable"
+    } else {
+      $_view configure -buttontext "Enable"
+    }
+  }
+
+  method UpdateRadiobuttonState {state} {
+    if {$state eq "active"} {
+      $_view configure -radiobuttonstate 0
+    } else {
+      $_view configure -radiobuttonstate 1
+    }
+  }
+
+
+}
+
+
+
 
 ################## GLOBAL STUFF #############################################
 #
@@ -749,13 +899,15 @@ grid columnconfigure .info {0 1} -weight 1
 
 
 
-MCFD16USB dev /dev/ttyUSB0
+MCFD16USB dev2 /dev/ttyUSB0
 
-set control [MCFD16ControlPanel .ctl -handle ::dev]
+set control [MCFD16ControlPanel .ctl -handle ::dev2]
+PulserPresenter pulserCtlr [PulserView .pulser] dev2
 
 grid .title -sticky nsew -padx 8 -pady 8
 grid .info -sticky nsew -padx 8 -pady 8
 grid .ctl -sticky nsew -padx 8 -pady 8
+grid .pulser -sticky nsew -padx 8 -pady 8
 
 grid rowconfigure . {2} -weight 1
 grid columnconfigure . 0 -weight 1

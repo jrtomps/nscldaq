@@ -30,6 +30,9 @@ snit::method MCFD16USB SetDeadtime {ch val} {dict set ::mockMemory deadtime $ch 
 snit::method MCFD16USB SetDelay {ch val} {dict set ::mockMemory delay $ch $val}
 snit::method MCFD16USB SetFraction {ch val} {dict set ::mockMemory fraction $ch $val}
 snit::method MCFD16USB SetMode {val} {dict set ::mockMemory mode $val}
+snit::method MCFD16USB EnablePulser {val} {dict set ::mockMemory pulser $val}
+snit::method MCFD16USB DisablePulser {} {dict set ::mockMemory pulser 0}
+snit::method MCFD16USB PulserEnabled {} {return [dict get $::mockMemory pulser] }
 
 proc arrayToList {objname param len} {
   set varname [$objname mcfd]
@@ -98,8 +101,10 @@ proc initDict {name} {
 }
 
 proc setup {} {
+  if {0} {  catch {::dev destroy}}
+  MCFD16USB ::dev /dev/ttyUSB0
   MCFD16IndividualPresenter ::pres -widgetname .mock \
-                                   -handle [MCFD16USB %AUTO% /dev/ttyUSB0]
+                                   -handle ::dev
 
   initDict ::mockMemory
 
@@ -107,6 +112,7 @@ proc setup {} {
 
 proc tearDown {} {
   ::pres destroy
+  ::dev destroy
 }
 
 
@@ -274,8 +280,9 @@ tcltest::test commitViewFractions-0 {Ensure that the fraction data ends up in vi
 
 proc setupCom {} {
 
+  MCFD16USB ::dev /dev/ttyUSB0
   MCFD16CommonPresenter ::pres -widgetname .mock \
-                               -handle [MCFD16USB %AUTO% /dev/ttyUSB0]
+                               -handle ::dev
 
   initDict ::mockMemory
 }
@@ -489,6 +496,83 @@ tcltest::test commit-0 {Check that a commit will commit for the current obj
 } -result {1 MCFD16CommonPresenter::Commit}
 
 
-tcltest::cleanupTests
 
+#################### PulserPresenter tests ####################################
+
+
+proc setupPulser {} {
+  snit::type FakePulserView {
+    option -presenter -default {}
+    option -pulserid -default 1
+    option -buttontext -default "Enable"
+    option -radiobuttonstate -default 1
+    constructor {args} {
+      $self configurelist $args
+    }
+  }
+
+  initDict ::mockMemory
+  MCFD16USB ::dev /dev/ttyUSB0
+}
+
+proc tearDownPulser {} {
+  # the nuclear option... kill all instances and all namespace/type existence
+  ::FakePulserView destroy
+  ::dev destroy
+}
+
+tcltest::test onpress-0 {Test that we can properly handle an on press event to enable
+} -setup {
+  setupPulser 
+
+} -cleanup {
+  tearDownPulser
+
+} -body {
+  FakePulserView fake
+  PulserPresenter pulser fake ::dev
+
+  # force the state of the device to be enabled and update view to reflect that
+  dict set ::mockMemory pulser 0
+  pulser UpdateViewFromModel
+
+  # this is what gets called when the button is pressed on the view
+  pulser OnPress
+
+  set res [list]
+  lappend res [fake cget -buttontext]
+  lappend res [fake cget -radiobuttonstate]
+  lappend res [dict get $::mockMemory pulser]
+
+  pulser destroy
+  set res
+} -result {Disable 0 1}
+
+tcltest::test onpress-1 {Test that we can properly handle an button press to enable
+} -setup {
+  setupPulser 
+
+} -cleanup {
+  tearDownPulser
+
+} -body {
+  FakePulserView fake
+  PulserPresenter pulser fake ::dev
+
+  # force the state of the device to be disabled and update view to reflect that
+  dict set ::mockMemory pulser 1
+  pulser UpdateViewFromModel
+
+  pulser OnPress
+
+  set res [list]
+  lappend res [fake cget -buttontext]
+  lappend res [fake cget -radiobuttonstate]
+  lappend res [dict get $::mockMemory pulser]
+
+  pulser destroy
+  set res
+} -result {Enable 1 0}
+
+tcltest::cleanupTests
 
