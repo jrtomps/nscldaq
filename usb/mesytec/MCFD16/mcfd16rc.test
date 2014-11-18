@@ -1,0 +1,291 @@
+
+
+package require tcltest
+
+tcltest::test pkgrequire-0 {Ensures that the package can be required
+} {package require mcfd16rc} 1.0
+
+package require snit
+
+## a simple class to act as an actual communication channel that 
+# only records operations
+snit::type FakeRCProxy {
+
+  variable _record 
+
+  constructor {} { set _record [list] }
+
+  method Write {adr val} { lappend _record "Write $adr $val" }
+  method Read {adr} { lappend _record "Read $adr" }
+  method Transaction {adr val} {
+    lappend _record "Transaction $adr $val"
+  }
+  method getRecord {} { return $_record }
+}
+
+proc setup {} {
+  FakeRCProxy ::comObj
+  MCFD16RC ::dev comObj
+}
+
+proc tearDown {} {
+  ::dev destroy
+  ::comObj destroy
+}
+
+set badChannelPairError {Invalid channel provided. Must be in range [0,8].}
+
+#----------
+
+tcltest::test threshold-0 {Writing threshold for good param does correct thing
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body { 
+  ::dev SetThreshold 0 20
+  ::dev SetThreshold 3 40 
+  ::dev SetThreshold 16 255 
+
+  ::comObj getRecord
+} -result {{Transaction 0 20} {Transaction 3 40} {Transaction 64 255}}
+
+tcltest::test threshold-1 {Writing threshold with bad channel fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body { 
+  ::dev SetThreshold 17 20 ; # channels can only be in range [0,8]
+} -result {Invalid channel provided. Must be in range [0,16].}  -returnCodes 1
+
+tcltest::test threshold-2 {Writing threshold with bad value fails 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body { 
+  ::dev SetThreshold 3 -1  ; # only values in range [0,255]
+} -result {MCFD16RC::SetThreshold Invalid value provided. Must be in range [0,255].} -returnCodes 1
+
+#-------------
+
+tcltest::test polarity-0 {Write polarity does the correct thing
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body { 
+  ::dev SetPolarity 0 pos
+  ::dev SetPolarity 4 neg
+  ::dev SetPolarity 8 neg
+
+  ::comObj getRecord
+} -result {{Transaction 56 0} {Transaction 60 1} {Transaction 70 1}}
+
+tcltest::test polarity-1 {Write polarity val for bad channel pair --> fail
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body { 
+  ::dev SetPolarity 16 neg
+} -result $badChannelPairError -returnCodes 1
+
+tcltest::test polarity-2 {Write polarity for bad val --> fail
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body { 
+  ::dev SetPolarity 2 foo
+} -result {Invalid value provided. Must be "pos" or "neg".} -returnCodes 1
+
+#-------
+
+tcltest::test gain-0 {Writing gain val for good param does correct thing
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body { 
+  ::dev SetGain 0 0
+  ::dev SetGain 4 1 
+  ::dev SetGain 8 2
+
+  ::comObj getRecord
+} -result {{Transaction 16 0} {Transaction 20 1} {Transaction 65 2}}
+
+tcltest::test gain-1 {Writing gain with bad channel fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body { 
+  ::dev SetGain 9 0
+} -result $badChannelPairError -returnCodes 1
+
+tcltest::test gain-2 {Writing gain with value out of range fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body { 
+  ::dev SetGain 0 3 ; # only integer values between 0 and 2 are good
+} -result {MCFD16RC::SetGain Invalid value provided. Must be in range [0,2].} -returnCodes 1
+
+
+#-------
+
+tcltest::test width-0 {Writing width for good param does correct thing
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body { 
+  ::dev SetWidth 0 13
+  ::dev SetWidth 3 255 
+  ::dev SetWidth 8 120
+
+  ::comObj getRecord
+} -result {{Transaction 24 13} {Transaction 27 255} {Transaction 66 120}}
+
+tcltest::test width-1 {Writing width with bad channel fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body { 
+  ::dev SetWidth 9 5 ; # channels can only be in range [0,8]
+} -result $badChannelPairError -returnCodes 1
+
+tcltest::test width-2 {Writing width with value out of range fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body { 
+  ::dev SetWidth 0 3 ; # only integer values between 5 and 255 are good
+} -result {MCFD16RC::SetWidth Invalid value provided. Must be in range [5,255].} -returnCodes 1
+
+#-------
+
+
+tcltest::test deadtime-0 {Writing deadtime for good param does correct thing
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body { 
+  ::dev SetDeadtime 0 13
+  ::dev SetDeadtime 3 255 
+  ::dev SetDeadtime 8 120
+
+  ::comObj getRecord
+} -result {{Transaction 32 13} {Transaction 35 255} {Transaction 67 120}}
+
+tcltest::test deadtime-1 {Writing deadtime with bad channel fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body { 
+  ::dev SetDeadtime 9 5 ; # channels can only be in range [0,8]
+} -result $badChannelPairError -returnCodes 1
+
+tcltest::test deadtime-2 {Writing deadtime with value out of range fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body { 
+  ::dev SetDeadtime 0 3 ; # only integer values between 5 and 255 are good
+} -result {MCFD16RC::SetDeadtime Invalid value provided. Must be in range [5,255].} -returnCodes 1
+
+
+#----------
+
+tcltest::test delay-0 {Writing delay for good param does correct thing
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body { 
+  ::dev SetDelay 0 1
+  ::dev SetDelay 3 2 
+  ::dev SetDelay 8 4
+
+  ::comObj getRecord
+} -result {{Transaction 40 1} {Transaction 43 2} {Transaction 68 4}}
+
+tcltest::test delay-1 {Writing delay with bad channel fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body { 
+  ::dev SetDelay 9 0 ; # channels can only be in range [0,8]
+} -result $badChannelPairError -returnCodes 1
+
+tcltest::test delay-2 {Writing delay with value out of range fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body { 
+  ::dev SetDelay 3 -1  ; # only integer values between 0 and 4 are allowed
+} -result {MCFD16RC::SetDelay Invalid value provided. Must be in range [0,4].} -returnCodes 1
+
+#----------
+
+tcltest::test fraction-0 {Writing fraction for good param does correct thing
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body { 
+  ::dev SetFraction 0 20
+  ::dev SetFraction 3 40 
+  ::dev SetFraction 8 20
+
+  ::comObj getRecord
+} -result {{Transaction 48 0} {Transaction 51 1} {Transaction 69 0}}
+
+tcltest::test fraction-1 {Writing fraction with bad channel fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body { 
+  ::dev SetFraction 9 20 ; # channels can only be in range [0,8]
+} -result $badChannelPairError -returnCodes 1
+
+tcltest::test fraction-2 {Writing fraction with bad value fails 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body { 
+  ::dev SetFraction 3 -1  ; # only values of 20 or 40 are accepted
+} -result {MCFD16RC::SetFraction Invalid value provided. Must be either 20 or 40.} -returnCodes 1
+
+#---------
+
+tcltest::test computeAddress-0 {Given a parameter and ch, return proper addr
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body { 
+  set res [list]
+  lappend res [::MCFD16RC ComputeAddress threshold 2]
+  lappend res [::MCFD16RC ComputeAddress threshold 16]
+  lappend res [::MCFD16RC ComputeAddress fraction 8]
+  lappend res [::MCFD16RC ComputeAddress fraction 4]
+} -result {2 64 69 52}
+
+
+
+
+
+tcltest::cleanupTests
