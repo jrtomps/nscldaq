@@ -271,6 +271,31 @@ tcltest::test fraction-2 {Writing fraction with bad value fails
 
 #---------
 
+tcltest::test mode-0 {Setting mode does what we expect
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body { 
+  ::dev SetMode common  
+  ::dev SetMode individual 
+  
+  ::comObj getRecord
+} -result  {{Transaction 72 0} {Transaction 72 1}}
+
+tcltest::test mode-1 {Setting mode with invalid argument fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body { 
+  ::dev SetMode foobar
+} -result {MCFD16RC::SetMode Invalid value provided. Must be either "common" or "individual".} \
+-returnCodes 1
+
+
+#---------
+
 tcltest::test computeAddress-0 {Given a parameter and ch, return proper addr
 } -setup {
   setup

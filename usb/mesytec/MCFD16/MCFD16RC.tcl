@@ -23,6 +23,7 @@ snit::type MCFD16RC {
     set adr [$type ComputeAddress threshold $ch]
     return [$_proxy Transaction $adr $val]
   }
+
   method SetPolarity {ch negpos} {
     set val 0
     switch $negpos {
@@ -101,6 +102,22 @@ snit::type MCFD16RC {
   }
 
 
+  method SetMode {mode} {
+    set val 0
+    switch $mode {
+      common { set val 0 }
+      individual { set val 1 }
+      default {
+        set msg "MCFD16RC::SetMode Invalid value provided. Must be either "
+        append msg {"common" or "individual".}
+        return -code error $msg
+      }
+    }
+
+    set adr [dict get $offsetsMap mode]
+    return [$_proxy Transaction $adr $val]
+  }
+
   typevariable offsetsMap
   typevariable paramRangeMap
   typeconstructor {
@@ -111,7 +128,8 @@ snit::type MCFD16RC {
                                 deadtime  {indiv 32 common 67} \
                                 delay     {indiv 40 common 68} \
                                 fraction  {indiv 48 common 69} \
-                                polarity  {indiv 56 common 70}]
+                                polarity  {indiv 56 common 70} \
+                                mode      72]
 
     set paramRangeMap [dict create threshold {low 0 high 16} \
                                    gain      {low 0 high  8}\
