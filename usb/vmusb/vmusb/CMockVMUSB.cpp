@@ -20,7 +20,8 @@ void CMockVMUSB::writeActionRegister(uint16_t data)
   writeRegister(0x1,data);
 }
 
-int CMockVMUSB::executeList(CVMUSBReadoutList& list, void* pReadBuffer, size_t readBufferSize, size_t* bytesRead)
+int CMockVMUSB::executeList(CVMUSBReadoutList& list, void* pReadBuffer, 
+                            size_t readBufferSize, size_t* bytesRead)
 {
   vector<uint32_t> stack = list.get();
   uint32_t stackLength = stack.size();
