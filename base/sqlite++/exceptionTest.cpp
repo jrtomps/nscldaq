@@ -26,6 +26,7 @@
 
 #include <sqlite3.h>
 #include "CSqliteException.h"
+#include <string>
 
 
 class ExceptionTest : public CppUnit::TestFixture {
@@ -62,7 +63,7 @@ CPPUNIT_TEST_SUITE_REGISTRATION(ExceptionTest);
 
 void ExceptionTest::msg() {
     CSqliteException e(SQLITE_ABORT);
-    EQ((const char*)("Callback routine requested an abort"), e.what());
+    EQ(std::string("Callback routine requested an abort"), std::string(e.what()));
 }
 
 void ExceptionTest::badmsg()
@@ -70,7 +71,7 @@ void ExceptionTest::badmsg()
     // This is an invalid error code (it's a result code)
     
     CSqliteException e(SQLITE_DONE);
-    EQ((const char*)("Invalid error code"), e.what());
+    EQ(std::string("Invalid error code"), std::string(e.what()));
 }
 
 // Copy Construction test
@@ -80,7 +81,7 @@ void ExceptionTest::copyconst()
     CSqliteException e(SQLITE_ABORT);
     CSqliteException ecopy(e);
     
-    EQ(((const char*)("Callback routine requested an abort")), ecopy.what());
+    EQ(std::string("Callback routine requested an abort"), std::string(ecopy.what()));
 }
 
 // Assignment test:
@@ -91,5 +92,5 @@ void ExceptionTest::assign()
     CSqliteException ecopy(SQLITE_OK);
     ecopy = e;
     
-    EQ(((const char*)("Callback routine requested an abort")), ecopy.what());
+    EQ(std::string("Callback routine requested an abort"), std::string(ecopy.what()));
 }
