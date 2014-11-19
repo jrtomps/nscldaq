@@ -136,6 +136,37 @@ snit::type MCFD16RC {
     return [$_proxy Transaction $adr 0]
   }
 
+
+  method SetChannelMask {bank mask} {
+
+    set maskName masklow
+
+    switch $bank {
+      0 { set maskName masklow}
+      1 { set maskName maskhigh}
+      default {
+        set msg "MCFD16RC::SetChannelMask Invalid bank value. "
+        append msg "Must be either 0 or 1."
+        return -code error $msg
+      }
+        
+    }
+    set adr [dict get $offsetsMap $maskName]
+    return [$_proxy Transaction $adr $mask]
+  }
+
+  method EnableRC {on} {
+    if {![string is boolean $on]} {
+      set msg {MCFD16RC::EnableRC Invalid value provided. Must be a boolean.}
+      return -code error $msg
+    }
+
+    set on [string is true $on]
+    set adr [dict get $offsetsMap rc]
+    return [$_proxy Transaction $adr $on]
+  }
+
+
   typevariable offsetsMap
   typevariable paramRangeMap
   typeconstructor {
@@ -148,6 +179,8 @@ snit::type MCFD16RC {
                                 fraction  {indiv 48 common 69} \
                                 polarity  {indiv 56 common 70} \
                                 mode      72 \
+                                rc        73 \
+                                masklow   83 \
                                 pulser    118 ]
 
     set paramRangeMap [dict create threshold {low 0 high 16} \

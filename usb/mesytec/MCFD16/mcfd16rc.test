@@ -331,6 +331,56 @@ tcltest::test pulser-2 {Disabling the pulser creates the appropriate command
 
 #---------
 
+tcltest::test channelmask-0 {Setting channel mask
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev SetChannelMask 0 255 ; #  disable channels 0-7
+
+# at the moment this is not clear
+#  ::dev SetChannelMask 1 255 ; #  disable channels 8-15
+
+  ::comObj getRecord
+} -result {{Transaction 83 255}}
+
+tcltest::test channelmask-1 {Setting channel mask with bad bank value fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev SetChannelMask 2 255 ; #  disable channels 0-7
+} -result {MCFD16RC::SetChannelMask Invalid bank value. Must be either 0 or 1.} \
+-returnCodes 1
+
+#---------
+
+tcltest::test enablerc-0 {Make sure that we can enable rc
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev EnableRC on ;# rc mode takes any boolean type as arg
+  ::dev EnableRC false
+  ::comObj getRecord
+} -result {{Transaction 73 1} {Transaction 73 0}}
+
+tcltest::test enablerc-1 {Make sure that non-boolean arg fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev EnableRC notabool 
+} -result {MCFD16RC::EnableRC Invalid value provided. Must be a boolean.} \
+-returnCodes 1
+
+
+#---------
+
 tcltest::test computeAddress-0 {Given a parameter and ch, return proper addr
 } -setup {
   setup
