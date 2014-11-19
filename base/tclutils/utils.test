@@ -39,4 +39,14 @@ tcltest::test listElementsInRange-1 {test that an just above upper limit returns
 } 0 
 
 
+
+tcltest::test sequence-0 {Generating a sequence with defined increment
+} { Utils::sequence 0 4 3 } {0 3 6 9}
+
+tcltest::test sequence-1 {Generating a sequence with implicit increment
+} { Utils::sequence 0 4 } {0 1 2 3}
+
+tcltest::test sequence-2 {Generating a sequence with negative increment
+} { Utils::sequence 0 4 -2} {0 -2 -4 -6}
+
 tcltest::cleanupTests

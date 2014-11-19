@@ -48,5 +48,14 @@ namespace eval Utils {
     return $result
   }
 
-
+  ##
+  #
+  #
+  proc sequence {start n {inc 1}} {
+    set res [list]
+    for {set i 0} {$i<$n} {incr i} {
+      lappend res [expr $start+$i*$inc]
+    }
+    return $res
+  }
 }
