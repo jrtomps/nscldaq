@@ -386,34 +386,24 @@ snit::type MCFD16USB {
 
   ## @brief Enable/Disable channels
   #
-  # @warning THIS CURRENTLY DOESN"T WORK AS EXPECTED!
-  #
   # The channel mask is used to disable channels. Each bit corresponds to a
-  # channel. If the bit is set to 1, the corresponding channel is disabled. The
-  # channels are split into 2 banks. Bank 0 corresponds to chs 0-7 and bank 1 to
-  # chs 8-15. Bit 0 corresponds to either chan 0 or 8 and bit 7 to either chan 7
-  # or 15. 
+  # pair of channels. If the bit is set to 1, the corresponding channels are
+  # disabled. For example, bit 0 corresponds to chns 0 and 1 and bit 7 to either
+  # chns 14 and 15. 
   #
-  # @param  bank  channel bank (must be either 0 or 1)
   # @param  mask  bit mask  (must be in range [0,255])
   #
   # @returns response from device
   #
-  # @throws error if bank is neither 0 or 1
   # @throws error if mask is out of range
-  method SetChannelMask {bank mask} {
-
-    if {$bank ni [list 0 1]} {
-      set msg "Invalid bank parameter provided. Must be either 0 or 1."
-      return -code error -errorinfo MCFD16USB::SetChannelMask $msg
-    }
+  method SetChannelMask {mask} {
 
     if {![Utils::isInRange 0 255 $mask]} {
       set msg {Invalid mask argument provided. Must be in range [0,255].}
       return -code error -errorinfo MCFD16USB::SetChannelMask $msg
     }
 
-    return [$self _Transaction "SK $bank $mask"]
+    return [$self _Transaction "SK $mask"]
   }
 
   ## @brief Retrieve the channel mask for a bank of channels

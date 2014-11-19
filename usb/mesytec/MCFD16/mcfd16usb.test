@@ -701,27 +701,12 @@ tcltest::test chanmask-0 {If the parameters are good, make sure the proper strin
 } -cleanup {
   tearDown
 } -body {
-  dev SetChannelMask 0 255 ; # enable all channels in set bank 0 (channels 0-7)
-  dev SetChannelMask 1 255 ; # enable all channels in bank 1 (channel 8-15)
+  dev SetChannelMask 255 ; # enable all channels in set bank 0 (channels 0-7)
 
   tcltest::viewFile $::serialFile
-} -result {SK 0 255
-SK 1 255}
+} -result {SK 255}
 
-tcltest::test chanmask-1 {Bank parameter other than 0 or 1 causes failure
-} -setup {
-  setup
-} -cleanup {
-  tearDown
-} -body {
-  # bank must be 0 or 1, 2 will cause it to fail
-  dev SetChannelMask 2 0
-
-  tcltest::viewFile $::serialFile
-} -result {Invalid bank parameter provided. Must be either 0 or 1.} \
--returnCodes 1
-
-tcltest::test chanmask-2 {Mask parameter outside of range [0,255] fails
+tcltest::test chanmask-1 {Mask parameter outside of range [0,255] fails
 } -setup {
   setup
 } -cleanup {
@@ -730,10 +715,10 @@ tcltest::test chanmask-2 {Mask parameter outside of range [0,255] fails
   # bank must be 0 or 1, 2 will cause it to fail
   set returnVals [list]
 
-  set res [catch {dev SetChannelMask 0 -1} msg]
+  set res [catch {dev SetChannelMask -1} msg]
   lappend returnVals [list $res $msg]
 
-  set res [catch {dev SetChannelMask 0 256} msg]
+  set res [catch {dev SetChannelMask 256} msg]
   lappend returnVals [list $res $msg]
 
   set returnVals
