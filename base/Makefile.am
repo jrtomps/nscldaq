@@ -1,3 +1,3 @@
-SUBDIRS = 	os  CopyrightTools cvt uri thread headers tclwidgets \
+SUBDIRS = 	os  CopyrightTools sqlite++ cvt uri thread headers tclwidgets \
 		security  tcpip plotchart bltsubst plotcontainer
 

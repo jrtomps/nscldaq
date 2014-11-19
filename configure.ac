@@ -3,7 +3,7 @@
 
 AC_PREREQ(2.61)
 
-AC_INIT(nscldaq, 11.0-rc16, fox@nscl.msu.edu,[], [http://www.sourceforge.net/projects/nscldaq])
+AC_INIT(nscldaq, 11.0-exp-varmgr, fox@nscl.msu.edu,[], [http://www.sourceforge.net/projects/nscldaq])
 
 
 AC_CONFIG_SRCDIR([/utilities/StringsToIntegers.h])
@@ -95,6 +95,10 @@ SOVERSION="11:0:0"
 #
 #  Local tests:
 #
+
+#  Check for sqlit3 - used by variable manager.
+
+AX_LIB_SQLITE3
 
 # Ensure Python is 2.7 or greater, and the packages/dependencies we need
 
@@ -348,6 +352,7 @@ AC_CONFIG_FILES([Makefile
 		base/os/Makefile
                  base/CopyrightTools/Makefile
                  base/bltsubst/Makefile
+		 base/sqlite++/Makefile
                  base/cvt/Makefile
 		 base/thread/Makefile
                  base/headers/Makefile
