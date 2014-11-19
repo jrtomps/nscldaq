@@ -293,6 +293,41 @@ tcltest::test mode-1 {Setting mode with invalid argument fails
 } -result {MCFD16RC::SetMode Invalid value provided. Must be either "common" or "individual".} \
 -returnCodes 1
 
+#---------
+
+tcltest::test pulser-0 {Enabling pulser creates appropriate command
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev EnablePulser 1 ; # enable 2.5 MHz pulser
+  ::dev EnablePulser 2 ; # enable 1.22 kHz pulser
+
+  ::comObj getRecord
+} -result {{Transaction 118 1} {Transaction 118 2}}
+
+
+tcltest::test pulser-1 {Enabling the pulser with an invalid arg fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev EnablePulser 0 ; # pulser arg can only be 1 or 2
+} -result {MCFD16RC::EnablePulser Invalid value provided. Must be either 1 or 2.} \
+-returnCodes 1
+
+
+tcltest::test pulser-2 {Disabling the pulser creates the appropriate command
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev DisablePulser ; # pulser arg can only be 1 or 2
+  ::comObj getRecord
+} -result {{Transaction 118 0}}
 
 #---------
 

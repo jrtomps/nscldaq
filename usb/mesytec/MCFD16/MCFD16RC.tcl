@@ -4,7 +4,8 @@ package provide mcfd16rc 1.0
 package require snit
 package require Utils
 
-
+## A class that formulates RC commands for the MCFD-16 and initializes a
+#  transaction
 snit::type MCFD16RC {
 
   variable _proxy
@@ -118,6 +119,23 @@ snit::type MCFD16RC {
     return [$_proxy Transaction $adr $val]
   }
 
+
+  method EnablePulser {pulser} {
+    if {$pulser ni [list 1 2]} {
+      set msg {MCFD16RC::EnablePulser Invalid value provided. Must be either}
+      append msg { 1 or 2.}
+      return -code error $msg
+    }
+
+    set adr [dict get $offsetsMap pulser]
+    return [$_proxy Transaction $adr $pulser]
+  }
+
+  method DisablePulser {} {
+    set adr [dict get $offsetsMap pulser]
+    return [$_proxy Transaction $adr 0]
+  }
+
   typevariable offsetsMap
   typevariable paramRangeMap
   typeconstructor {
@@ -129,7 +147,8 @@ snit::type MCFD16RC {
                                 delay     {indiv 40 common 68} \
                                 fraction  {indiv 48 common 69} \
                                 polarity  {indiv 56 common 70} \
-                                mode      72]
+                                mode      72 \
+                                pulser    118 ]
 
     set paramRangeMap [dict create threshold {low 0 high 16} \
                                    gain      {low 0 high  8}\
