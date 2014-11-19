@@ -78,8 +78,16 @@ remotetests: $(REMOTE_TEST_MODULES)
 	$(REMOTE_TEST_MODULES) $(CPPUNIT_LDFLAGS) -L@prefix@/lib -lVMUSB -lVMUSBRemote \
 	-Wl,"-rpath=@prefix@/lib" @TCL_LDFLAGS@ @LIBTCLPLUS_LDFLAGS@
 
-installcheck-local: tests
-	./tests
+UNITTEST_MODULES = @srcdir@/TestRunner.cpp \
+									@srcdir@/vmusbrdolisttests.cpp
+
+unittests: $(UNITTEST_MODULES)
+	$(CXX) -g -o unittests -I@srcdir@ -I@prefix@/include $(CPPUNIT_INCLUDES) \
+		$(UNITTEST_MODULES) $(CPPUNIT_LDFLAGS) -L@prefix@/lib -lVMUSB \
+		-Wl,"-rpath=@prefix@/lib" @TCL_LDFLAGS@ @LIBTCLPLUS_LDFLAGS@
+
+installcheck-local: unittests
+	./unittests
 
 
 
@@ -96,7 +104,8 @@ clean-local:
 	rm -f $(BUILT_SOURCES)
 
 
-
+check-TESTS :  unittests
+	./unittests
 
 # Swig interface generation:
 
@@ -121,4 +130,4 @@ libCVMUSBReadoutList_la_CPPFLAGS=$(COMPILATION_FLAGS)
 	 @srcdir@/CVMUSBReadoutList.i 
 
 #  Stuff that needs to go int the distro:
-EXTRA_DIST = $(TEST_MODULES) @srcdir@/CVMUSB.i @srcdir@/CVMUSBReadoutList.i
+EXTRA_DIST = $(TEST_MODULES) $(UNITTEST_MODULES) @srcdir@/CVMUSB.i @srcdir@/CVMUSBReadoutList.i
