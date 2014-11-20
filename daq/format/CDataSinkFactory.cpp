@@ -44,22 +44,19 @@ CDataSink* CDataSinkFactory::makeSink(std::string uri)
     sink = makeFileSink(uri);
   } else {
 
-  // parse the uri
-  URL url(uri);
-  std::string host = url.getHostName();
-  if ((host != "localhost") && (host != "")) {
-    errno = EREMOTE;
-    throw CErrnoException("CDataSinkFactory::makeSink");
-  }
-  
-  // 
-  if (url.getProto()=="file") {
+    // parse the uri
+    URL url(uri);
+    std::string host = url.getHostName();
+    if ((host != "localhost") && (host != "")) {
+      errno = EREMOTE;
+      throw CErrnoException("CDataSinkFactory::makeSink");
+    }
 
     // 
     if (url.getProto()=="file") {
 
       sink = makeFileSink(url.getPath());
-    
+
     } else if (url.getProto()=="ring" || url.getProto()=="tcp") {
 
       sink = makeRingSink(url.getPath());
