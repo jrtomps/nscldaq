@@ -1,5 +1,5 @@
 SCRIPT_FILES=@srcdir@/mwutil.tcl @srcdir@/notebook.tcl @srcdir@/tablelist.tcl @srcdir@/tablelistSortByColumn.tcl \
-	@srcdir@/tablelistWidget.tcl  @srcdir@/tabnbook.tcl @srcdir@/FrameSequencer.tcl
+	@srcdir@/tablelistWidget.tcl  @srcdir@/tabnbook.tcl @srcdir@/FrameSequencer.tcl @srcdir@/FrameSwitcher.tcl
 
 install-exec-local:
 	$(mkinstalldirs) @prefix@/TclLibs/widgets
