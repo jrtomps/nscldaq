@@ -48,6 +48,7 @@ class COneShotHandlerTest : public CppUnit::TestFixture
     CPPUNIT_TEST ( testBecomesComplete );
     CPPUNIT_TEST ( testTooManyBegins );
     CPPUNIT_TEST ( testWaitForBegin_1 );
+    CPPUNIT_TEST ( testUpdateNull );
     CPPUNIT_TEST_SUITE_END();
 
   public:
@@ -64,6 +65,7 @@ class COneShotHandlerTest : public CppUnit::TestFixture
     void testBecomesComplete();
     void testTooManyBegins();
     void testWaitForBegin_1();
+    void testUpdateNull();
 };
 
 
