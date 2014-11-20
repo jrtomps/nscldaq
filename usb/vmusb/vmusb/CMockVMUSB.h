@@ -25,6 +25,14 @@ class CMockVMUSB : public CVMUSB
     virtual CLoggingReadoutList* createReadoutList() const; 
 
     virtual void writeActionRegister(uint16_t data);
+
+    /** \brief Execute a list
+     * 
+     *  This actually just dispatches to a private helper method. If the list 
+     *  passed is truly a CVMUSBReadoutList, then executVMUSBRdoList is called.
+     *  Otherwise, if an upcast to a CLoggingReadoutList succeeds, the 
+     *  executeLoggingRdoList method is called.
+     */
     virtual int executeList(CVMUSBReadoutList& list, void* pReadBuffer, 
                             size_t readBufferSize, size_t* bytesRead);
     virtual int loadList(uint8_t listNumber, CVMUSBReadoutList& list, 

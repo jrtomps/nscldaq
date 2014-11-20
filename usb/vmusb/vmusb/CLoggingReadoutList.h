@@ -10,13 +10,13 @@
 class CLoggingReadoutList : public CVMUSBReadoutList 
 {
   private:
-    std::vector<std::string> m_record;
+    std::vector<std::string> m_log;
 
   public:
 
-    std::vector<std::string> getLog() const { return m_record;}
-    void clearLog() { m_record.clear();}
-    size_t logSize() const { return m_record.size();}
+    std::vector<std::string> getLog() const { return m_log;}
+    void clearLog() { m_log.clear();}
+    size_t logSize() const { return m_log.size();}
 
     void clear();
     void append(const CLoggingReadoutList& list);

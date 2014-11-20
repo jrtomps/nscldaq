@@ -17,6 +17,9 @@ CMockVMUSB::CMockVMUSB()
   setUpRegisterNameMap();
 }
 
+// Generate a logging rdolist for the purposes of this class.
+// Using the CLoggingReadoutList in the executeList method will
+// produce human readable records that are testable.
 CLoggingReadoutList* CMockVMUSB::createReadoutList() const 
 { 
   return new CLoggingReadoutList;
@@ -30,7 +33,11 @@ void CMockVMUSB::writeActionRegister(uint16_t data)
 int CMockVMUSB::executeList(CVMUSBReadoutList& list, void* pReadBuffer, 
                             size_t readBufferSize, size_t* bytesRead)
 {
+  // Try to upcast to a CLoggingReadoutList.
+  // Dispatch to the proper handler given the success or failure of this upcast.
+
   int retval = 0;
+
   try {
     // try to upcast 
     CLoggingReadoutList& logList = dynamic_cast<CLoggingReadoutList&>(list);
@@ -43,6 +50,7 @@ int CMockVMUSB::executeList(CVMUSBReadoutList& list, void* pReadBuffer,
     // upcasting failed... that means we have a tradition CVMUSBReadoutList.  
     retval = executeVMUSBRdoList(list, pReadBuffer, readBufferSize, bytesRead);
   }
+
   return retval;
 }
 

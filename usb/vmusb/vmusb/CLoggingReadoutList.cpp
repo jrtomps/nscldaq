@@ -7,13 +7,13 @@ using namespace std;
 
 void CLoggingReadoutList::clear() { 
   CVMUSBReadoutList::clear();
-  m_record.push_back("clear");
+  m_log.push_back("clear");
 }
 
 void CLoggingReadoutList::append(const CLoggingReadoutList& list) {
   CVMUSBReadoutList::append(list);
   vector<std::string> record = list.getLog(); 
-  m_record.insert(m_record.end(), record.begin(), record.end());
+  m_log.insert(m_log.end(), record.begin(), record.end());
 }  
 
 
@@ -25,7 +25,7 @@ void CLoggingReadoutList::addRegisterRead(unsigned int address)
   ss.flags(ios::hex);
   ss.fill('0');
   ss << "addRegisterRead " << setw(8) << address;
-  m_record.push_back(ss.str());
+  m_log.push_back(ss.str());
 }
 
 
@@ -39,7 +39,7 @@ void CLoggingReadoutList::addWrite32(uint32_t address, uint8_t amod, uint32_t da
   ss << "addWrite32 " << setw(8) << address 
      << " " << setw(2) << static_cast<uint16_t>(amod) 
      << " " << setw(8) << datum;
-  m_record.push_back(ss.str());
+  m_log.push_back(ss.str());
 }
 
 void CLoggingReadoutList::addWrite16(uint32_t address, uint8_t amod, uint16_t datum)
@@ -53,7 +53,7 @@ void CLoggingReadoutList::addWrite16(uint32_t address, uint8_t amod, uint16_t da
      << " " << setw(8) << address 
      << " " << setw(2) << static_cast<uint16_t>(amod) 
      << " " << setw(8) << datum;
-  m_record.push_back(ss.str());
+  m_log.push_back(ss.str());
 }
 
 void CLoggingReadoutList::addWrite8(uint32_t address, uint8_t amod, uint8_t datum)
@@ -67,7 +67,7 @@ void CLoggingReadoutList::addWrite8(uint32_t address, uint8_t amod, uint8_t datu
      << " " << setw(8) << address 
      << " " << setw(2) << static_cast<uint16_t>(amod) 
      << " " << setw(8) << static_cast<uint16_t>(datum);
-  m_record.push_back(ss.str());
+  m_log.push_back(ss.str());
 }
 
 void CLoggingReadoutList::addRead32(uint32_t address, uint8_t amod)
@@ -80,7 +80,7 @@ void CLoggingReadoutList::addRead32(uint32_t address, uint8_t amod)
   ss << "addRead32" 
      << " " << setw(8) << address 
      << " " << setw(2) << static_cast<uint16_t>(amod);
-  m_record.push_back(ss.str());
+  m_log.push_back(ss.str());
 }
 void CLoggingReadoutList::addRead16(uint32_t address, uint8_t amod)
 {
@@ -92,7 +92,7 @@ void CLoggingReadoutList::addRead16(uint32_t address, uint8_t amod)
   ss << "addRead16" 
      << " " << setw(8) << address 
      << " " << setw(2) << static_cast<uint16_t>(amod);
-  m_record.push_back(ss.str());
+  m_log.push_back(ss.str());
 }
 
 void CLoggingReadoutList::addRead8(uint32_t address, uint8_t amod)
@@ -105,7 +105,7 @@ void CLoggingReadoutList::addRead8(uint32_t address, uint8_t amod)
   ss << "addRead8" 
      << " " << setw(8) << address 
      << " " << setw(2) << static_cast<uint16_t>(amod);
-  m_record.push_back(ss.str());
+  m_log.push_back(ss.str());
 }
 
 void CLoggingReadoutList::addBlockRead32(uint32_t address, uint8_t amod, size_t transfers)
@@ -120,7 +120,7 @@ void CLoggingReadoutList::addBlockRead32(uint32_t address, uint8_t amod, size_t 
      << " " << setw(2) << static_cast<uint16_t>(amod)
      << dec
      << " " << transfers;
-  m_record.push_back(ss.str());
+  m_log.push_back(ss.str());
 }
 
 void CLoggingReadoutList::addFifoRead32(uint32_t address, uint8_t amod, size_t transfers)
@@ -135,7 +135,7 @@ void CLoggingReadoutList::addFifoRead32(uint32_t address, uint8_t amod, size_t t
      << " " << setw(2) << static_cast<uint16_t>(amod)
      << dec
      << " " << transfers;
-  m_record.push_back(ss.str());
+  m_log.push_back(ss.str());
 }
 
 void CLoggingReadoutList::addFifoRead16(uint32_t address, uint8_t amod, size_t transfers)
@@ -150,7 +150,7 @@ void CLoggingReadoutList::addFifoRead16(uint32_t address, uint8_t amod, size_t t
      << " " << setw(2) << static_cast<uint16_t>(amod)
      << dec
      << " " << transfers;
-  m_record.push_back(ss.str());
+  m_log.push_back(ss.str());
 }
 
 void CLoggingReadoutList::addBlockWrite32(uint32_t address, uint8_t amod, 
@@ -165,15 +165,15 @@ void CLoggingReadoutList::addBlockWrite32(uint32_t address, uint8_t amod,
      << " " << setw(2) << static_cast<uint32_t>(amod)
      << dec 
      << " " << transfers;
-  m_record.push_back(ss.str());
+  m_log.push_back(ss.str());
 
-  m_record.reserve(m_record.size() + transfers);
+  m_log.reserve(m_log.size() + transfers);
   uint32_t* pData = reinterpret_cast<uint32_t*>(data);
   for (size_t it=0; it<transfers; ++it) {
     ss.str(""); ss.clear();
     ss << dec << setfill(' ') << setw(4) << it << " : " 
        << hex << setfill('0') << setw(8) << *(pData+it);
-    m_record.push_back(ss.str());
+    m_log.push_back(ss.str());
   }
 }
 
@@ -187,7 +187,7 @@ CLoggingReadoutList::addBlockCountRead8(uint32_t address, uint32_t mask,
   // The side effect of this is that an extra entry for addRead8 will be
   // appended into the log. We first must pop it off.
   //
-  m_record.pop_back();
+  m_log.pop_back();
 
   stringstream ss;
   ss.flags(ios::hex);
@@ -196,7 +196,7 @@ CLoggingReadoutList::addBlockCountRead8(uint32_t address, uint32_t mask,
     << " " << setw(8) << address
     << " " << setw(8) << mask
     << " " << setw(2) << static_cast<uint16_t>(amod);
-  m_record.push_back(ss.str()); 
+  m_log.push_back(ss.str()); 
 }
 
 void 
@@ -209,7 +209,7 @@ CLoggingReadoutList::addBlockCountRead16(uint32_t address, uint32_t mask,
   // The side effect of this is that an extra entry for addRead16 will be
   // appended into the log. We first must pop it off.
   //
-  m_record.pop_back();
+  m_log.pop_back();
 
   stringstream ss;
   ss.flags(ios::hex);
@@ -218,7 +218,7 @@ CLoggingReadoutList::addBlockCountRead16(uint32_t address, uint32_t mask,
     << " " << setw(8) << address
     << " " << setw(8) << mask
     << " " << setw(2) << static_cast<uint16_t>(amod);
-  m_record.push_back(ss.str()); 
+  m_log.push_back(ss.str()); 
 }
 
 void 
@@ -231,7 +231,7 @@ CLoggingReadoutList::addBlockCountRead32(uint32_t address, uint32_t mask,
   // The side effect of this is that an extra entry for addRead32 will be
   // appended into the log. We first must pop it off.
   //
-  m_record.pop_back();
+  m_log.pop_back();
 
   stringstream ss;
   ss.flags(ios::hex);
@@ -240,7 +240,7 @@ CLoggingReadoutList::addBlockCountRead32(uint32_t address, uint32_t mask,
     << " " << setw(8) << address
     << " " << setw(8) << mask
     << " " << setw(2) << static_cast<uint16_t>(amod);
-  m_record.push_back(ss.str()); 
+  m_log.push_back(ss.str()); 
 }
 
 void 
@@ -251,7 +251,7 @@ CLoggingReadoutList::addMaskedCountBlockRead32(uint32_t address, uint8_t amod)
   // this is just a wrapper around the addBlockRead32 method so the above
   // line has the side effect of adding an entry to the log. We must
   // pop it off the back to keep this clean.
-  m_record.pop_back();
+  m_log.pop_back();
 
   stringstream ss;
   ss.flags(ios::hex);
@@ -259,7 +259,7 @@ CLoggingReadoutList::addMaskedCountBlockRead32(uint32_t address, uint8_t amod)
   ss << "addMaskedCountBlockRead32"
     << " " << setw(8) << address
     << " " << setw(2) << static_cast<uint16_t>(amod);
-  m_record.push_back(ss.str()); 
+  m_log.push_back(ss.str()); 
 
 }
 
@@ -271,7 +271,7 @@ CLoggingReadoutList::addMaskedCountFifoRead32(uint32_t address, uint8_t amod)
   // this is just a wrapper around the addFifoRead32 method so the above
   // line has the side effect of adding an entry to the log. We must
   // pop it off the back to keep this clean.
-  m_record.pop_back();
+  m_log.pop_back();
 
   stringstream ss;
   ss.flags(ios::hex);
@@ -279,7 +279,7 @@ CLoggingReadoutList::addMaskedCountFifoRead32(uint32_t address, uint8_t amod)
   ss << "addMaskedCountFifoRead32"
     << " " << setw(8) << address
     << " " << setw(2) << static_cast<uint16_t>(amod);
-  m_record.push_back(ss.str()); 
+  m_log.push_back(ss.str()); 
 
 }
 
@@ -289,7 +289,7 @@ void CLoggingReadoutList::addDelay(uint8_t clocks)
 
   stringstream ss;
   ss << "addDelay " << static_cast<uint16_t>(clocks);
-  m_record.push_back(ss.str()); 
+  m_log.push_back(ss.str()); 
 }
 
 void CLoggingReadoutList::addMarker(uint16_t value) 
@@ -300,6 +300,6 @@ void CLoggingReadoutList::addMarker(uint16_t value)
   ss.flags(ios::hex);
   ss.fill('0');
   ss << "addMarker " << setw(4) << value;
-  m_record.push_back(ss.str()); 
+  m_log.push_back(ss.str()); 
 }
 
