@@ -52,7 +52,7 @@ package require Tk
 package require iSegVhs
 package require VhsWidgets
 package require PollManager
-package require blt::tabset
+
 package require snit
 
 #===========================Startup Initialization===========================
@@ -654,7 +654,7 @@ proc displayStatus {device channel poll} {
 #   name         - The tab name/label
 #
 proc addTab {notebook widget name} {
-    $notebook insert end $name -window $widget -fill both
+    $notebook add  $widget -text $name 
 }
 #-----------------------------------------------------------------------------
 #
@@ -682,7 +682,7 @@ proc setupGui {module poll} {
     
     . configure -menu .menubar
     
-    blt::tabset .notebook -tiers 2
+    ttk::notebook .notebook 
     
     # Create and add the environment page.
     
@@ -723,7 +723,12 @@ proc setupGui {module poll} {
 #   notebook   - The notebook whose tabs we color
 #   module     - The module we monitor.
 #
+#  ttk::notebook can't do that...
+#  TODO:  Set icons behind the text that are pure colors like on newscaler
+#         tabs.
+#
 proc colorTabs {notebook module} {
+    return
     set channels [$module channelCount]
  
     for {set i 0} {$i < $channels} {incr i} {

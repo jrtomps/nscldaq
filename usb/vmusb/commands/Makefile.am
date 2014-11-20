@@ -18,6 +18,7 @@ noinst_HEADERS		= 	CBeginRun.h	\
 libVMUSBCommands_la_CXXFLAGS=@THREADCXX_FLAGS@ -I@top_srcdir@/usb/vmusb/rdothread	\
 				-I@top_srcdir@/usb/vmusb/router		\
 				-I@top_srcdir@/usb/vmusb/daqconfig	\
+				-I@top_srcdir@/usb/vmusb/devices	\
 				-I@top_srcdir@/usb/vmusb		\
 				-I@top_srcdir@/usb/vmusb/vmusb		\
 				-I@top_srcdir@/usb/vmusb/tclserver		\

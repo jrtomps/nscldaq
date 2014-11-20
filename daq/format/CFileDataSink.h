@@ -1,6 +1,6 @@
 
-#ifndef COFILEDATASINK_H
-#define CFILEDATASINK_H
+#ifndef _CFILEDATASINK_H
+#define _CFILEDATASINK_H
 
 #include "CDataSink.h"
 #include <unistd.h>
@@ -17,10 +17,10 @@
 */
 class CFileDataSink : public CDataSink
 {
-    private: 
+private: 
     int m_fd;  ///!< The file descriptor
 
-    public:
+public:
     /**! Constructors
     */
     CFileDataSink (int fd);    
@@ -30,18 +30,20 @@ class CFileDataSink : public CDataSink
     */
     virtual ~CFileDataSink ();    
 
-    private:
+private:
     // Copy and assignment are not sensible b/c ownership
     // of the file becomes ambiguous
     CFileDataSink(const CFileDataSink&);
     CFileDataSink& operator=(const CFileDataSink&);
 
 
-    public:
+public:
 
-    /**! Mandatory putItem method
+    /*
+     *  Implementation of the required interface methods
     */
     virtual void putItem(const CRingItem& item);
+    virtual void put(const void* pData, size_t nBytes);
 
     /**! Flush file to syncronize
     */
@@ -54,7 +56,7 @@ class CFileDataSink : public CDataSink
     }
 
     // Private utilities
-    private:
+private:
     bool isWritable();
 
 };

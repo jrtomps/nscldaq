@@ -15,20 +15,23 @@ package require EVB::GUI
 # Any command line parameter is a port name suffix used to register with the
 # port manager.
 
-if {$argc > 0} {
-    EVB::Start [lindex $argv 0]
-} else {
-    EVB::Start
+proc start args {
+
+    if {[llength $args] > 0} {
+        EVB::Start [lindex $args 0]
+    } else {
+        EVB::Start
+    }
+    
+    
+    EVB::createGui .evbGui
+    pack .evbGui
+    
+    button .reset -text Reset -command [list EVB::reset]
+    pack .reset -side bottom
+    
+    EVB::maintainGUI .evbGui
+    
+    fconfigure stdout -translation binary
+
 }
-
-
-EVB::createGui .evbGui
-pack .evbGui
-
-button .reset -text Reset -command [list EVB::reset]
-pack .reset -side bottom
-
-EVB::maintainGUI .evbGui
-
-fconfigure stdout -translation binary
-

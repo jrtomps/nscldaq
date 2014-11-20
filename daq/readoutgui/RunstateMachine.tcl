@@ -159,12 +159,14 @@ snit::type RunstateMachine {
     #
     # @param name - Name of the bundle to add.  This is assumed to be relative to
     #               the global namespace e.g. junk -> ::junk
+    # @param where - If supplied, the bundle is added prior to the specified existing
+    #                bundle, if not it's appended.
     #
     # @note When successful (postconditions):
     #   *  The bundle name is added to the callouts variable.
     #   *  A namespace ensemble is generated for that bundle.
     #
-    method addCalloutBundle name {
+    method addCalloutBundle {name {where ""}} {
         if {![namespace exists ::$name]} {
             error "No such bundle $name"
         }
@@ -182,7 +184,15 @@ snit::type RunstateMachine {
             namespace ensemble create
         }
         
-        lappend callouts $name
+        if {$where eq "" } {
+            lappend callouts $name
+        } else {
+            set idx [lsearch -exact $callouts $where]
+            if {$idx == -1} {
+                error "Attempt to register callout bundle $name before $where which does not exist"
+            }
+            set callouts [linsert $callouts $idx $name]
+        }
         
         # Finally invoke the attach method:
         

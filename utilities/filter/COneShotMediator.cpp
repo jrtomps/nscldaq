@@ -136,6 +136,12 @@ void COneShotMediator::mainLoop()
           delete new_item;
         } 
 
+      } else {
+        // there is a RING_FORMAT item that should precede the  
+        // BEGIN_RUN. Just let it through when it arrives.
+        if (item->type()==RING_FORMAT) {
+          sink.putItem(*item);
+        }
       }
     
       // Increment the number processed

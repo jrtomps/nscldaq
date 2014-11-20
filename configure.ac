@@ -3,7 +3,7 @@
 
 AC_PREREQ(2.61)
 
-AC_INIT(nscldaq, 11.0-rc15, fox@nscl.msu.edu)
+AC_INIT(nscldaq, 11.0-rc16, fox@nscl.msu.edu,[], [http://www.sourceforge.net/projects/nscldaq])
 
 
 AC_CONFIG_SRCDIR([/utilities/StringsToIntegers.h])
@@ -17,6 +17,7 @@ AC_PROG_CPP
 AC_PROG_INSTALL
 AC_PROG_LIBTOOL
 
+AX_CXX_COMPILE_STDCXX_11([noext])
 
 AC_CHECK_PROG(HAVE_DOCBOOK2PDF, [docbook2pdf], true, false)
 AC_CHECK_PROG(HAVE_XMLTO, [xmlto], true, false)
@@ -435,6 +436,7 @@ AC_CONFIG_FILES([Makefile
 		 usb/vmusb/driverkit/VMUSBDriverIncludes
 		 usb/vmusb/controlpanels/Makefile usb/vmusb/controlpanels/cv6533/Makefile
 		 usb/vmusb/devtests/Makefile
+		 usb/vmusb/vmusbPackage/Makefile
 		 usb/ccusb/Makefile
 		 usb/ccusb/ccusb/Makefile usb/ccusb/devices/Makefile 
 		 usb/ccusb/router/Makefile

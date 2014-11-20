@@ -13,7 +13,7 @@
 #	     Michigan State University
 #	     East Lansing, MI 48824-1321
 #
-package provide configfile 1.0
+package provide gdgconfigfile 1.0
 
 
 set moduleList [list]

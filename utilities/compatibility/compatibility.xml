@@ -833,6 +833,109 @@ $DAQROOT/bin/BufferToRing <optional>buffer-size</optional>
             files created by versions of nscldaq prior to 10..0.
            </para>
         </refsect1>
+        <refsect1>
+            <title>OPTIONS</title>
+        
+            <variablelist>
+                <varlistentry>
+                    <term><option>--buffersize</option></term>
+                    <listitem>
+                        <para>
+                            The parameter to this option is the buffer size
+                            of the input stream in bytes.  This defaults
+                            to 8192, the default buffersize of NSCLDAQ
+                            8.x.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                
+                <varlistentry>
+                    <term><option>--incremental-scalers</option></term>
+                    <listitem>
+                        <para>
+                            This option can have the value <literal>yes</literal>
+                            or <literal>no</literal>.  If <literal>yes</literal>
+                            scaler ring items are formatted as incremental scalers.
+                            If <literal>no</literal> they are formatted as non-incremental
+                            scaler items.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>--create-body-header</option></term>
+                    <listitem>
+                        <para>
+                            This option can take the values
+                            <literal>yes</literal> or <literal>no</literal>.
+                            If <literal>yes</literal>, body headers are created
+                            when ring items are formatted.  If
+                            <literal>no</literal> then body headerrs are not created.
+                            When body headers are being created, values must be
+                            specified for the following options:
+                        </para>
+                        <variablelist>
+                            <varlistentry>
+                                <term><option>--sourceid</option></term>
+                                <listitem>
+                                    <para>
+                                        Must be an integer that will be used as the
+                                        source id field of the body header for ring
+                                        items produced by this program.
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+                            <varlistentry>
+                                <term><option>--ts-extract</option></term>
+                                <listitem>
+                                    <para>
+                                        The value of this option must point to a
+                                        shared library file.  The shared library
+                                        must have at least one of the following
+                                        entry points:
+                                    </para>
+                                    <formalpara>
+                                        <title>uint64_t getEventTimestamp(void*)</title>
+                                        <para>
+                                            This function, if provided, is intended to
+                                            take as a parameter a pointer to an event
+                                            and return the timestamp for this event.
+                                        </para>
+                                    </formalpara>
+                                    <para>
+                                        If this function is not provided and
+                                        a physics event is encountered on
+                                        the input stream, a warning will be
+                                        output once to the program's
+                                        <filename>stderr</filename>, and from
+                                        then on, physics events will be created
+                                        without a body header.
+                                    </para>
+                                    
+                                    <formalpara>
+                                        <title>uint64_t getScalerTimestamp(void*)</title>
+                                        <para>
+                                            If provided, this function takes as a parameter
+                                            a pointer to the body of a scaler buffer and is
+                                            intended to return the event building timestamp
+                                            for the body header of that scaler event item.
+                                            If not provided, the first scaler buffer will
+                                            emit a warning on stderr and from then on, if
+                                            body headers are enabled, the timestamp will
+                                            be picked out of buffer header fields that
+                                            the S800 uses for that purpose.  Note that these
+                                            fields are <literal>0</literal> in NSCLDAQ-8.x
+                                            for data that does not come from the S800.
+                                        </para>
+                                    </formalpara>
+                                </listitem>
+                            </varlistentry>
+                            
+                        </variablelist>
+                    </listitem>
+                </varlistentry>
+                
+            </variablelist>
+        </refsect1>
 
       </refentry>
       <refentry id="compatibility1-bufdump">

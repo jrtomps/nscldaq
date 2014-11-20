@@ -35,13 +35,17 @@ CFileDataSink::CFileDataSink(int fd)
 *
 * \throw int on failure opening file
 * \throw std::string if file is not writable
+*
+* TODO:  Open failures might be best signalled with CErrnoException or,
+*        if not, the string should at least have strerror in it for the
+*        errno so the user can know why the file could not be opened.
 */
 CFileDataSink::CFileDataSink(std::string fname)
     : m_fd(-1)
 {
 
   // Open or create if the file doesn't exist
-  m_fd = open(fname.c_str(),O_RDWR | O_CREAT, S_IRUSR | S_IWUSR );
+  m_fd = open(fname.c_str(),O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR );
   // check to see if failed
   if (m_fd==-1) {
     std::string errmsg("CFileDataSink::CFileDataSink(std::string)");
@@ -93,16 +97,31 @@ void CFileDataSink::putItem(const CRingItem& item)
 
     // Set up variable for writing it to stream
     size_t nbytes = pItem->s_header.s_size;
-    const char* pBuffer = reinterpret_cast<const char*>(pItem);
+    put(pItem, nbytes);
 
+}
+
+/**
+ * put
+ *    Puts an arbitrary chunk of data to the sink (file)
+ *
+ *   @param pData - pointer to the buffer containing the data.
+ *   @param nBytes - Number of bytes of data to put.
+ *
+ * @note the underlying implemenation is just io::writeData.  It's int exception
+ *        is converted to an errno exception
+ * @throw CErrnoException
+ * 
+ */
+void CFileDataSink::put(const void* pData, size_t nBytes)
+{
     try {
-        // This next function can throw an int
-        io::writeData(m_fd,pBuffer,nbytes);
-
-    } catch (int errno) {
+        io::writeData(m_fd, pData, nBytes);
+    } catch (int err) {
+      errno = err;                    // CErrnoException captures the global errno.
       std::string errmsg("CFileDataSink::putItem(const CRingItem&)"); 
-      errmsg += " : IO failure! ";
-      errmsg += strerror(errno);
+      errmsg += " : writeData failed ";
+ 
       throw CErrnoException(errmsg);
     }
 }

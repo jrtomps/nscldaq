@@ -15,6 +15,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <URL.h>
+#include <unistd.h>
 
 #define private public
 
@@ -37,6 +38,7 @@ class CFileDataSinkTest : public CppUnit::TestFixture
     CPPUNIT_TEST ( testConstructor3 );
     CPPUNIT_TEST ( testConstructor4 );
     CPPUNIT_TEST ( testPutItem );
+    CPPUNIT_TEST ( testPut);
     CPPUNIT_TEST_SUITE_END();
 
     public:
@@ -49,6 +51,7 @@ class CFileDataSinkTest : public CppUnit::TestFixture
     void testConstructor4();
 
     void testPutItem();
+    void testPut();
 
 };
 
@@ -75,8 +78,15 @@ void CFileDataSinkTest::setUp()
     m_item.updateSize();
 }
 
+// Kill the temp files:
+
 void CFileDataSinkTest::tearDown()
 {
+    
+    // Ignore errors because different tests make different test file
+    
+    unlink("./dummy");
+    unlink("./testOutFile0.bin");
 }
 
 
@@ -169,4 +179,24 @@ void CFileDataSinkTest::testPutItem()
     CPPUNIT_ASSERT( *m_item.getItemPointer() == *new_item->getItemPointer() );
 }
 
-
+void CFileDataSinkTest::testPut()
+{
+    std::string fname="./testOutFile0.bin";
+    const char* pData = "This is a test";
+    {
+        CFileDataSink sink(fname);
+        
+        sink.put(pData, strlen(pData)+1);    /// string w null terminator.
+    }
+    int fd = open(fname.c_str(), O_RDONLY );
+    CPPUNIT_ASSERT(fd != -1);                // File must be made:
+    
+    char buffer[1000];
+    size_t nBytes = read(fd, buffer, strlen(pData) +1);
+    CPPUNIT_ASSERT_EQUAL(strlen(pData)+1, nBytes);
+    CPPUNIT_ASSERT_EQUAL(0, strcmp(pData, buffer));
+    
+    close(fd);
+    
+    
+}

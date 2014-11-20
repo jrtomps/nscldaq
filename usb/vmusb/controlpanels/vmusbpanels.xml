@@ -1340,4 +1340,109 @@ vm895usbcontrol <replaceable>configfile</replaceable>
   </refsect1>
 
 <!-- /manpage -->
+<!-- manpage 1tcl -->
+    <refentry id="tcl1_gdgpanel">
+      <refentryinfo>
+        <author>
+                <personname>
+                        <firstname>Ron</firstname>
+                        <surname>Fox</surname>
+                </personname>
+        </author>
+        <productname>NSCLDAQ</productname>
+        <productnumber></productnumber>
+      </refentryinfo>
+      <refmeta>
+         <refentrytitle>!ModuleName!</refentrytitle>
+         <manvolnum>1tcl</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+      </refmeta>
+      <refnamediv>
+         <refname id='tcl1_gdgpanel_title'>gdgpanel</refname>
+         <refpurpose>Tabbed notebook for multiple GDG-8 controllers.</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+        <cmdsynopsis>
+          <command>
+gdgpanel
+        </command>
+        </cmdsynopsis>
 
+      </refsynopsisdiv>
+      <refsect1>
+         <title>DESCRIPTION</title>
+         <para>
+          This Tk script processes a control configuration file enumerating the
+          WIENER/JTECT gdg8 modules that it defines.  For each module created in that
+          file, a tab in a tabbed notebook is created that contains a control panel
+          for that module.   
+         </para>
+         <para>
+          See <literal>ENVIRONMENT VARIABLES</literal> below for information
+          about how to control the operation of this script.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            ENVIRONMENT VARIABLES
+         </title>
+         <para>
+          Several environment variables (which have reasonable default values
+          if not defined) control the operation of this script:
+         </para>
+         <variablelist>
+          <varlistentry>
+              <term><literal>CONTROLHOST</literal></term>
+              <listitem>
+                  <para>
+                      Defines the host on which the VMUSBReadout program is running.
+                      If not defined, this defaults to
+                      <literal>localhost</literal>, that is the same system
+                      on which the control panel is running.
+                  </para>
+              </listitem>
+          </varlistentry>
+          <varlistentry>
+              <term><literal>CONTROLPORT</literal></term>
+              <listitem>
+                  <para>
+                      Specifies the server port on which the VMUSBReadout
+                      control server is listening for connections. This defaults
+                      to <literal>27000</literal> which is also the default
+                      used by VMUSBReadout unless <option>--port</option>
+                      is used when invoking that program to override the
+                      default.
+                  </para>
+              </listitem>
+          </varlistentry>
+          <varlistentry>
+              <term><literal>CONFIGDIR</literal></term>
+              <listitem>
+                  <para>
+                      The directory in which the control configuration
+                      file lives.  This defaults to
+                      <filename>~/config</filename>
+                  </para>
+              </listitem>
+          </varlistentry>
+          <varlistentry>
+              <term><literal>CONFIGFILE</literal></term>
+              <listitem>
+                  <para>
+                      When joined with <literal>CONFIGDIR</literal>, determines
+                      the full path to the control configuration file.
+                      This defaults to <filename>controlconfig.tcl</filename>.
+                      This is the default unless overriden by the
+                       <option>--ctlconfig</option> option on the
+                       VMUSBReadout command line.
+                  </para>
+              </listitem>
+          </varlistentry>
+          
+         </variablelist>
+      </refsect1>
+
+    </refentry>
+
+<!-- /manpage -->

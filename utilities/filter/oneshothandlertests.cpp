@@ -24,6 +24,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2014, Al
 #include <stdint.h>
 #include <limits>
 #include <CRingStateChangeItem.h>
+#include <CDataFormatItem.h>
 
 #define private public
 #define protected public
@@ -46,6 +47,7 @@ class COneShotHandlerTest : public CppUnit::TestFixture
     CPPUNIT_TEST ( testThrowOnRunNoChange );
     CPPUNIT_TEST ( testBecomesComplete );
     CPPUNIT_TEST ( testTooManyBegins );
+    CPPUNIT_TEST ( testWaitForBegin_1 );
     CPPUNIT_TEST_SUITE_END();
 
   public:
@@ -61,6 +63,7 @@ class COneShotHandlerTest : public CppUnit::TestFixture
     void testThrowOnRunNoChange();
     void testBecomesComplete();
     void testTooManyBegins();
+    void testWaitForBegin_1();
 };
 
 
@@ -219,4 +222,39 @@ void COneShotHandlerTest::testTooManyBegins()
   CRingStateChangeItem begin(BEGIN_RUN);
   
   CPPUNIT_ASSERT_THROW(handler.update(&begin),COneShotException);
+}
+
+void COneShotHandlerTest::testUpdateNull()
+{
+  COneShotHandler handler(1);
+
+  CPPUNIT_ASSERT_THROW(handler.update(0),COneShotException);
+}
+
+void COneShotHandlerTest::testWaitForBegin_1()
+{
+  std::cout << "BEGIN COneShotHandlerTest:: wait for begin " << std::endl;
+  uint32_t nsources= 2;
+  COneShotHandler handler(nsources);
+  
+  CDataFormatItem format;
+  CRingStateChangeItem begin0(BEGIN_RUN);
+  begin0.setRunNumber(40);
+  
+  // We should be waiting
+  CPPUNIT_ASSERT_EQUAL(true, handler.waitingForBegin());
+  
+  // Handle an event
+  handler.update(&format);
+
+  // we should still be waiting 
+  CPPUNIT_ASSERT_EQUAL(true, handler.waitingForBegin());
+
+  handler.update(&begin0);
+
+  // we should not longer be waiting
+  CPPUNIT_ASSERT_EQUAL(false, handler.waitingForBegin());
+  
+  std::cout << "DONE COneShotHandlerTest:: wait for begin " << std::endl;
+
 }

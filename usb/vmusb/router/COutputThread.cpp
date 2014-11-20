@@ -38,6 +38,7 @@
 #include <CRingScalerItem.h>
 #include <CRingTextItem.h>
 #include <CDataFormatItem.h>
+#include <CStack.h>
 
 #include <sys/time.h>
 #include <dlfcn.h>
@@ -373,8 +374,7 @@ COutputThread::processEvents(DataBuffer& inBuffer)
 {
   uint16_t* pContents = inBuffer.s_rawData;
   int16_t  nEvents   = (*pContents) & VMUSBNEventMask;
-  bool     continuous = ((*pContents) & VMUSBContinuous) != 0;
-  bool     multibuffer = ((*pContents) & VMUSBMultiBuffer) != 0;
+
 
   bufferNumber++;
 
@@ -538,9 +538,6 @@ COutputThread::scaler(void* pData)
 
   // See Issue #424 - for now throw an error  if there's a continuation segment:
 
-  if (header & VMUSBContinuation) {
-    throw std::string("Scaler continuation segments are not supported yet.");
-  }
 
   // Figure out how many wods/scalers there are:
 
@@ -574,15 +571,14 @@ COutputThread::scaler(void* pData)
                                  m_elapsedSeconds, 
                                  endTime, 
                                  timestamp, 
-                                 counterData);
+                                 counterData,
+				 1, CStack::scalerIsIncremental());
   } else {
-    pEvent = new CRingScalerItem(NULL_TIMESTAMP, 
-                                 Globals::sourceId, 
-                                 BARRIER_NOTBARRIER,
-                                 m_elapsedSeconds, 
+    pEvent = new CRingScalerItem(m_elapsedSeconds, 
                                  endTime, 
                                  timestamp, 
-                                 counterData);
+                                 counterData,
+				 CStack::scalerIsIncremental());
   }
 
   pEvent->commitToRing(*m_pRing);

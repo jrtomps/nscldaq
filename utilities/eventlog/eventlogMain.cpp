@@ -326,6 +326,10 @@ class noData :  public CRingBuffer::CRingBufferPredicate
 	 break;
        }
      }
+     if (itemType == ABNORMAL_ENDRUN) {
+        endsRemaining = 0;             // In case we're not --one-shot
+        break;                         // unconditionally ends the run.
+     }
 
      // If we've seen an end of run, need to support timing out
      // if we dont see them all.

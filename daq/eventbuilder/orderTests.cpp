@@ -23,6 +23,7 @@ class ObserverTests : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(ObserverTests);
   CPPUNIT_TEST(dlate);
   CPPUNIT_TEST(observedup);
+  CPPUNIT_TEST(generateBarrier_0);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -41,6 +42,7 @@ public:                                    // for the timer handler.
 protected:
   void dlate();
   void observedup();
+  void generateBarrier_0();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(ObserverTests);
@@ -144,5 +146,66 @@ void ObserverTests::observedup()
     EQ(frag.s_header.s_timestamp, observer.m_timestamp);
     EQ(frag.s_header.s_sourceId,  observer.m_sourceId);
     
+}
+
+
+// Define a simple good-barrier observer that stores the last good barrier
+class TestObserverHandler : public CFragmentHandler::BarrierObserver {
+  private:
+    std::vector<std::pair<uint32_t,uint32_t>> m_record;
+
+public:
+    TestObserverHandler() : m_record() {}
+    void operator()(const std::vector<std::pair<uint32_t,uint32_t>>& barrierTypes) {
+      m_record = barrierTypes;
+    }
+
+    std::vector<std::pair<uint32_t,uint32_t>> getLastBarrier() { return m_record;};
+};
+
+
+
+
+void ObserverTests::generateBarrier_0()
+{
+  // create our new test observer
+  TestObserverHandler myObs;
+
+  // register the new observer
+  m_pFragHandler->addBarrierObserver(&myObs);
+
+  // Insert 1 barrier fragment each into 2 separate source queues 
+  EVB::FlatFragment frag0, frag1;
+  frag0.s_header.s_timestamp = 101;
+  frag0.s_header.s_sourceId  = 1;
+  frag0.s_header.s_size      = 0;
+  frag0.s_header.s_barrier   = 1;
+  m_pFragHandler->addFragments(sizeof(frag0), &frag0);
+
+  frag1.s_header.s_timestamp = 102;
+  frag1.s_header.s_sourceId  = 2;
+  frag1.s_header.s_size      = 0;
+  frag1.s_header.s_barrier   = 2;
+  m_pFragHandler->addFragments(sizeof(frag1), &frag1);
+
+  // Flush the queues. this should generate a good barrier.
+  m_pFragHandler->flushQueues();
+
+  // Insert a fragment with a duplicate timestamp ensure we observed it..correctly
+  auto lastBarrier = myObs.getLastBarrier();
+
+  // there should be two barriers in this
+  size_t nbarriers=2;
+  EQ(nbarriers,lastBarrier.size());
+  
+  // test that we have what we need in the list of returned barrier
+  // the orderer is ambivalent to whether the barrier is homogenous or heterogenous.
+
+  // source queue 1
+  ASSERT(1==lastBarrier[0].first); // sourceid
+  ASSERT(1==lastBarrier[0].second); // barrier
+  // source queue 2
+  ASSERT(2==lastBarrier[1].first); // sourceid
+  ASSERT(2==lastBarrier[1].second); // barrier
 }
 

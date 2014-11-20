@@ -23,6 +23,8 @@ package require portAllocator
 package require ReadoutGUIPanel
 package require Experiment 2.0
 package require ring
+package require StateManager
+package require Thread
 
 namespace eval ::EVBC {
     set initialized 0
@@ -55,6 +57,17 @@ namespace eval ::EVBC {
     set setsEvtlogSource    false
     
     set glomTsPolicy        earliest
+    
+    # Communicating with the output ring monitoring thread:
+    
+    set monitorTid            "";            # Thread id
+    set monitorMutex          "";            # Mutex handle for condition variable
+    set monitorCondVar        "";            # Condition variable signalled at end of run.
+    
+    #  Suffix for the application:
+    
+    
+    set appNameSuffix       ""
 }
 
 
@@ -200,6 +213,7 @@ proc EVBC::start args {
     # reads on the pipe.
     #
     set bindir [file join $EVBC::daqtop bin]
+    set ::EVBC::appNameSuffix [clock seconds]
     set orderer [file join $bindir startOrderer]
     set pipecommand "tclsh 2>evb.err";        # TODO - this should be @TCLSH_CMD@
     
@@ -246,6 +260,9 @@ proc EVBC::start args {
         puts $EVBC::pipefd $line
     }
     ::flush $EVBC::pipefd
+    puts $EVBC::pipefd "start $::EVBC::appNameSuffix"
+    ::flush $EVBC::pipefd
+    
     close $infd
         
 
@@ -259,10 +276,12 @@ proc EVBC::start args {
     pack     .waiting.for
     set ports [::portAllocator create %AUTO]
     set me    $::tcl_platform(user)
-    set hunting "ORDERER:$me"
+    set hunting "ORDERER:$me:$::EVBC::appNameSuffix"
+    puts "Application name: $hunting"
     set found 0
     for {set i 0} {$i < 100} {incr i} {
 	set allocations [$ports listPorts]
+        puts $allocations
 	foreach allocation $allocations {
 	    set name [lindex $allocation 1]
 	    set owner [lindex $allocation 2]
@@ -277,11 +296,14 @@ proc EVBC::start args {
 	    set i 100
 	}
     }
+    puts "Started up"
     $ports destroy
+    puts "Destroying .waiting"
     destroy .waiting
     if {!$found} {
 	error "Event builder failed to start within timeout"
     }
+    puts "Done."
 
 }
 
@@ -333,6 +355,37 @@ proc EVBC::flush {} {
     
     #puts $EVBC::pipefd EVB::flushqueues
 }
+
+##
+# getOrdererPort
+#   Returns the event orderer port number
+#
+proc EVBC::getOrdererPort {} {
+   #
+    #  Figure out what port the event builder is running on... or if it's running
+    #
+    set portManager [::portAllocator create %AUTO%]
+    set allocations [$portManager listPorts]
+    set user $::tcl_platform(user)
+    set appName "ORDERER:$user:$::EVBC::appNameSuffix"
+    puts "Appname: $appName"
+    set port ""
+    foreach allocation $allocations {
+        set name  [lindex $allocation 1]
+        set owner [lindex $allocation 2]
+        if {($name eq $appName) && ($owner eq $user)} {
+            set port [lindex $allocation 0]
+            break
+        }
+    }
+    $portManager destroy
+    
+    if {$port eq ""} {
+        error "EVBC::startRingSource Unable to locate the event builder service"
+    }
+    return $port    
+}
+
 #------------------------------------------------------------------------------
 ##
 # @fn EVBC::startRingSource
@@ -349,27 +402,10 @@ proc EVBC::flush {} {
 #       the event building pipeline.
 #
 proc EVBC::startRingSource {sourceRingUrl timestampExtractorLib id info {expectHeaders 0}} {
-    #
-    #  Figure out what port the event builder is running on... or if it's running
-    #
-    set portManager [::portAllocator create %AUTO%]
-    set allocations [$portManager listPorts]
-    set user $::tcl_platform(user)
-    set appName "ORDERER:$user"
-    set port ""
-    foreach allocation $allocations {
-        set name  [lindex $allocation 1]
-        set owner [lindex $allocation 2]
-        if {($name eq $appName) && ($owner eq $user)} {
-            set port [lindex $allocation 0]
-            break
-        }
-    }
-    $portManager destroy
+
+
     
-    if {$port eq ""} {
-        error "EVBC::startRingSource Unable to locate the event builder service"
-    }
+    set port [::EVBC::getOrdererPort]
     #  Construct the command we're going to run
     
     set ringSource [file join $EVBC::daqtop bin ringFragmentSource]
@@ -390,7 +426,6 @@ proc EVBC::startRingSource {sourceRingUrl timestampExtractorLib id info {expectH
     fconfigure $fd -buffering line -blocking 0
     fileevent $fd readable [list EVBC::_HandleDataSourceInput $fd $info $id]
 
-    puts [format "EVBC::startRingSource completed @ %d" [clock microseconds]]
 }
 
 
@@ -481,7 +516,7 @@ proc EVBC::initialize args {
         if {[$EVBC::applicationOptions cget -gui] && ($EVBC::guiFrame eq "")} {
             EVBC::_StartGui
         }
-    
+        EVBC::_StartMonitorThread;                      # Start thread for event monitoring.
          
     }
     #
@@ -511,7 +546,7 @@ proc EVBC::onBegin {} {
         vwait EVBC::pipefd;      # Will become empty on exit.
     }
     catch [list ringbuffer create $EVBC::destRing] msg;  #ensure ring exists first.
-    puts "Ringmsg $EVBC::destRing: $msg"
+    
     
     # IF needed, create the destination and the intermediate ring:
 
@@ -534,6 +569,7 @@ proc EVBC::onBegin {} {
             -glomtspolicy [$EVBC::applicationOptions cget -glomtspolicy] \
             -destring  $destring
         
+        
         if {$EVBC::guiFrame ne ""} {
             EVBC::_DisableGUI 
         }
@@ -545,6 +581,12 @@ proc EVBC::onBegin {} {
     } else {
 	EVBC::reset
     }
+    #  Start the monitor thread looking at the output ring:
+    
+    thread::send -async $EVBC::monitorTid  \
+        [list monitorRing tcp://localhost/$destring \
+            $::EVBC::monitorMutex $::EVBC::monitorCondVar]
+    after 1500;                         # Give things a chance to start up.
 }
 #------------------------------------------------------------------------------
 ##
@@ -553,9 +595,13 @@ proc EVBC::onBegin {} {
 #  Call this from the user's OnEnd method.
 #   - Flushes the event builder.
 #   - reenables the gui if it exists.
-#
 proc EVBC::onEnd {} {
     catch {EVBC::flush} ;  # Catch in case the evb exited badly.
+    
+    # Wait for the monitor thread to signal the end runs balanced the begin runs:
+    
+    
+    thread::cond wait $::EVBC::monitorCondVar $::EVBC::monitorMutex;     # Releases/re-locks the mutex.
     
     if {$EVBC::guiFrame ne ""} {
             EVBC::_EnableGUI
@@ -566,6 +612,59 @@ proc EVBC::onEnd {} {
 # Private procs.
 #
 ###############################################################################
+
+#------------------------------------------------------------------------------
+# @fn [private] EVBC::_StartMonitorThread
+#
+#    * Create a mutex and condition variable to handle end run signalling.
+#    * Acquire the mutex.
+#    * Start a thread that will count begin/ends and signal the cond var
+#      whenever they balance.
+#
+proc ::EVBC::_StartMonitorThread {} {
+    set EVBC::monitorMutex [thread::mutex create]
+    set EVBC::monitorCondVar [thread::cond create]
+    
+    thread::mutex lock $EVBC::monitorMutex
+    
+    set EVBC::monitorTid [thread::create]
+    thread::send $EVBC::monitorTid [list set auto_path $::auto_path]
+    thread::send $EVBC::monitorTid    {
+    
+        package require TclRingBuffer
+        package require Thread
+
+        ##
+        # monitorRing
+        #   takes begin/end data from a ring.
+        #   when the nesting level goes to zero, signal the cond var.
+        #
+        # @param ringurl - Url for the ring to monitor
+        # @param mutex   - mutex handle that guards the condvar.
+        # @param condvar - condition variable handle to signal.
+        #
+        proc ::monitorRing {ringurl mutex condvar} {
+            ring attach $ringurl
+            set nesting 0
+            while {1} {
+                set item [ring get $ringurl [list 1 2]];  # Begin/end only.
+                if {[dict get $item type] eq "Begin Run"} {
+                    incr nesting
+                }
+                if {[dict get $item type] eq "End Run"} {
+                    incr nesting -1
+                    if {$nesting == 0} {
+                        thread::mutex lock $mutex
+                        thread::cond  notify $condvar
+                        thread::mutex unlock $mutex
+                        break
+                    }
+                }
+            }
+            ring detach $ringurl
+        }
+    }
+}
 
 #------------------------------------------------------------------------------
 ##
@@ -695,7 +794,6 @@ proc EVBC::_StartGui {} {
     
     set glom [ttk::labelframe  $window.glom -text {Event Building parameters (vsn 11)} \
                       -padding 6]
-    set EVBC::buildEvents [$EVBC::applicationOptions cget -glombuild]
     
     ttk::checkbutton $glom.build -text {Build} -onvalue true -offvalue false \
         -command [list EVBC::_GlomEnableDisable $glom.build $glom.dt] \
@@ -709,15 +807,9 @@ proc EVBC::_StartGui {} {
 
     bind $glom.dt <Key-Return> [list EVBC::_GlomDtChanged %W]
     bind $glom.dt <Key-Tab>    [list EVBC::_GlomDtChanged %W]
-
-    $glom.dt delete 0 end
-    $glom.dt insert 0 [$EVBC::applicationOptions cget -glomdt]
  
     ttk::label $glom.dtlabel -text "Coincidence interval"
-    
-    
-    
-    _GlomEnableDisable $glom.build $glom.dt;     # Set initial enable/disable of spinbox.
+
     
     grid $glom.build $glom.dt $glom.dtlabel
     
@@ -750,17 +842,9 @@ proc EVBC::_StartGui {} {
         -textvariable EVBC::intermediateRingName
     ttk::label  $intermediate.ringlbl -text "Ring Name"
     
-    set teering [$EVBC::applicationOptions cget -teering]
-    set EVBC::intermediateRingName $teering
-
-    if {$teering eq ""} {
-        set EVBC::intermediateRing false
-    } else {
-        set EVBC::intermediateRing true
-    }
-    
 
     trace add variable EVBC::intermediateRingName write EVBC::_IntermediateRingChanged
+    set EVBC::intermediateRing false
     
     EVBC::_IntermediateEnableDisable $intermediate.enable $intermediate.ringname
     
@@ -773,7 +857,6 @@ proc EVBC::_StartGui {} {
                         -padding 6]
     ttk::label $destringWin.ringlbl -text {Name}
     ttk::entry $destringWin.ringname -textvariable EVBC::destRing -width 15
-    set EVBC::destRing [$EVBC::applicationOptions cget -destring]
     trace add variable  EVBC::destRing  write \
         [list EVBC::_ChangeDestRing]
     ttk::checkbutton $destringWin.change -variable EVBC::setsEvtlogSource \
@@ -791,12 +874,50 @@ proc EVBC::_StartGui {} {
     set dimensions [grid size .]
     set rows       [lindex $dimensions 1]
     set cols       [lindex $dimensions 0]
-    puts "$rows $cols"
     incr rows
     grid $window  -row $rows -column 0 
     
     set EVBC::guiFrame $window
     
+    ::EVBC::updateGuiFromOptions
+    
+}
+##
+# updateGuiFromOptions
+#
+#   Sets the value of the event builder GUI from its current option values
+#   It is up to the caller to ensure that the GUI and its fields exist.
+#
+proc ::EVBC::updateGuiFromOptions {} {
+    
+    if {[$EVBC::applicationOptions cget -glombuild]} {
+        set ::EVBC::buildEvents true
+    } else {
+        set ::EVBC::buildEvents false
+    }
+
+
+    $::EVBC::guiFrame.glom.dt config -state normal
+    $::EVBC::guiFrame.glom.dt delete 0 end
+    $::EVBC::guiFrame.glom.dt  insert 0 [$EVBC::applicationOptions cget -glomdt]
+    
+    
+    ::EVBC::_GlomEnableDisable \
+        $::EVBC::guiFrame.glom.build \
+        $::EVBC::guiFrame.glom.dt;     # Set initial enable/disable of spinbox.    
+
+    
+    set teering [$EVBC::applicationOptions cget -teering]
+    set EVBC::intermediateRingName $teering
+
+    if {$teering eq ""} {
+        set EVBC::intermediateRing false
+    } else {
+        set EVBC::intermediateRing true
+    }
+    
+    set EVBC::destRing [$EVBC::applicationOptions cget -destring]
+
 }
 #-----------------------------------------------------------------------------
 ##
@@ -927,7 +1048,7 @@ proc EVBC::_ChangeSetsEvtlogSource {name index op} {
     set oldring [::Configuration::get EventLoggerRing]
     $EVBC::applicationOptions configure -setdestringasevtlogsource $EVBC::setsEvtlogSource 
     if { [ $EVBC::applicationOptions cget -setdestringasevtlogsource ] } {
-        puts "Changing ..."
+
         ::Configuration::Set EventLoggerRing "tcp://localhost/$EVBC::destRing"
     }
     set newring [::Configuration::get EventLoggerRing]
@@ -963,7 +1084,7 @@ proc EVBC::_waitForEventBuilder {} {
 
     set ports [::portAllocator create %AUTO%]
     set me $::tcl_platform(user)
-    set name ORDERER:$me
+    set name ORDERER:$me:$::EVBC::appNameSuffix
     set port -1
     set allocations [$ports listPorts]
     foreach allocation $allocations {
@@ -981,3 +1102,108 @@ proc EVBC::_waitForEventBuilder {} {
     }
     close $fd
 }
+
+#-------------------------------------------------------------------------------
+#
+#  The code below provides a state machine bundle that is now the preferred
+#  way to register this code.  Note that the user is still going to have
+#  to provide callbaks to start the event sources.
+#  TODO:  Maybe each data source provider can include a call that will
+#         know how to start an associated evb data source for each instance
+#         it manages?
+#
+
+
+##
+#  EVBC::attach
+#    Called when the bundle is attached to the state manager
+#    Initialize the event builder. 
+#
+# @param state - the current state.
+#
+# @note you can use EVBC::configure to set the configuration of the
+#       manager.  This includes enabling the GUI and so on.
+#
+proc ::EVBC::attach state {
+    ::EVBC::initialize
+
+}
+##
+# EVBC::enter
+#   Called when a new state is entered.
+#   * Halted -> Active   invoke onBegin - we do this inleave to get the jump
+#     on when the data sources start spewing data.
+# @param from - state that we left.
+# @param to   - State that we are entring.
+#
+proc ::EVBC::enter {from to} {
+    if {($from eq "Active") && ($to eq "Halted")} {
+        ::EVBC::onEnd
+    }
+
+}
+##
+# EVBC::leave
+#   Called when a state is being left.
+#   * Active -> Halted  invoke onEnd
+
+#
+# @param from - State we are leaving.
+# @param to   - State we are about to enter.
+#
+proc ::EVBC::leave {from to} {
+    if {($from eq "Halted") && ($to eq "Active")} {
+        ::EVBC::onBegin
+    }
+}
+
+
+##
+#  useEventBuilder
+#     Register the event builder with the state manager
+#
+#
+proc EVBC::useEventBuilder {} {
+    set stateMachine [RunstateMachineSingleton %AUTO%]
+    set callouts [$stateMachine listCalloutBundles]
+    $stateMachine addCalloutBundle EVBC [lindex $callouts 0]
+}
+
+##
+#  configure
+#     Configure the event builder options.
+#
+# @param args - configuration parameters.  This is a list
+#               of alternating option and option values.
+#
+# @note The event builder must have already been registered via EVBC::useEventBuilder
+# @note If necessary the GUI is added/removed.
+#
+proc ::EVBC::configure args {
+    
+    # First configure
+    
+    $::EVBC::applicationOptions  configure {*}$args
+    
+    # Now see what we need to do with the GUI (start/stop leave alone).
+    
+    set gui [$::EVBC::applicationOptions cget -gui]
+    if {$gui && ($::EVBC::guiFrame eq "")} {
+        ::EVBC::_StartGui
+    }
+    
+    if {(!$gui) && ($::EVBC::guiFrame ne "")} {
+        destroy $::EVBC::guiFrame
+        set ::EVBC::guiFrame ""
+    }
+    # If the GUI is active we must update its elements
+    
+    if {$::EVBC::guiFrame ne ""} {
+        ::EVBC::updateGuiFromOptions
+    }
+}
+
+namespace eval ::EVBC {
+    namespace export attach enter leave
+}
+

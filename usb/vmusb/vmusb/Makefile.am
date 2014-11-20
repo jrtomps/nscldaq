@@ -31,10 +31,6 @@ noinst_HEADERS		= CVMUSB.h   \
 	CLoggingReadoutList.h
 
 
-
-
-
-
 libVMUSB_CXXFLAGS=@THREADCXX_FLAGS@
 
 INCLUDES		= $(USBSWITCHES) -I@top_srcdir@/base/headers @LIBTCLPLUS_CFLAGS@  \

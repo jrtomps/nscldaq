@@ -472,7 +472,7 @@ int main(int argc, char** argv)
       <methodsynopsis>
         <type>size_t</type>  <methodname>put</methodname>
         <methodparam>
-            <type>void*</type> <parameter>pBuffer</parameter>
+            <modifier>const</modifier><type>void*</type> <parameter>pBuffer</parameter>
         </methodparam>
         <methodparam>
             <type>size_t</type>
@@ -914,7 +914,7 @@ int main(int argc, char** argv)
       <methodsynopsis>
         <type>size_t</type>  <methodname>put</methodname>
         <methodparam>
-            <type>void*</type> <parameter>pBuffer</parameter>
+            <modifier>const</modifier><type>void*</type> <parameter>pBuffer</parameter>
         </methodparam>
         <methodparam>
             <type>size_t</type>

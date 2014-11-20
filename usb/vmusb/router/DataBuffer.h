@@ -80,11 +80,11 @@ extern void        destroyDataBuffer(DataBuffer* pBuffer); //!< Free data buffer
 static const int VMUSBLastBuffer(0x8000);
 static const int VMUSBisScaler(0x4000);
 static const int VMUSBContinuous(0x2000);
-static const int VMUSBMultiBuffer(0x1000);
-static const int VMUSBNEventMask(0x0fff);
+// static const int VMUSBMultiBuffer(0x1000); /* This bit does not exist. */
+static const int VMUSBNEventMask(0x1fff);
 
-static const int VMUSBContinuation(0x1000);
-static const int VMUSBEventLengthMask(0xfff);
+static const int VMUSBContinuation(0x1000);   /* This bit is in event headers */
+static const int VMUSBEventLengthMask(0x0fff);
 static const int VMUSBStackIdMask(0xe000);
 static const int VMUSBStackIdShift(13);
 

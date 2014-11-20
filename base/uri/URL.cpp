@@ -324,6 +324,7 @@ void URL::parseString(string rStr) {
   // If the protocol is file.. then the 
   // path is the host + path and host does not exist nor does it
   // require validation:
+  // TODO: This is patently false...but I'm not sure what depends on it :-(
 
   if (protocol == string("file")) {
     my_port = 0;

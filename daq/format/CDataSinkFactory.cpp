@@ -23,7 +23,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2014, Al
 #include <URL.h>
 #include <string>
 #include <iostream>
-
+#include <errno.h>
 
 
 /**! Factory method
@@ -44,14 +44,22 @@ CDataSink* CDataSinkFactory::makeSink(std::string uri)
     sink = makeFileSink(uri);
   } else {
 
-    // parse the uri
-    URL url(uri);
+  // parse the uri
+  URL url(uri);
+  std::string host = url.getHostName();
+  if ((host != "localhost") && (host != "")) {
+    errno = EREMOTE;
+    throw CErrnoException("CDataSinkFactory::makeSink");
+  }
+  
+  // 
+  if (url.getProto()=="file") {
 
     // 
     if (url.getProto()=="file") {
 
       sink = makeFileSink(url.getPath());
-
+    
     } else if (url.getProto()=="ring" || url.getProto()=="tcp") {
 
       sink = makeRingSink(url.getPath());

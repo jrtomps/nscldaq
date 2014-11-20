@@ -214,7 +214,7 @@ adc config myadc -geo 15
             <title>Configuring an event stack</title>
             <programlisting>
 stack create events
-stack config event -trigger nim1 -modules [myadc]
+stack config event -trigger nim1 -modules [list myadc]
             </programlisting>
         </example>
         <para>
@@ -4394,6 +4394,16 @@ v830 cget <replaceable>name</replaceable>
                   </para>
                </listitem>
             </varlistentry>
+	    <varlistentry>
+	      <term><option>-incremental</option> <replaceable>bool</replaceable></term>
+	      <listitem>
+		<para>
+		  If <literal>true</literal> (the default) scaler ring items are labeled
+		  as incremental.  If <literal>false</literal> scaler ring items are labeled
+		  as not being incremental.
+		</para>
+	      </listitem>
+	    </varlistentry>
             <varlistentry>
                <term><option>-trigger</option> <replaceable>random | periodic | vme</replaceable></term>
                <listitem>

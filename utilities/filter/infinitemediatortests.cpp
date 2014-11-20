@@ -26,6 +26,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2014, Al
 #include <string>
 #include <vector>
 #include <unistd.h>
+#include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -375,6 +376,8 @@ void CInfiniteMediatorTest::testSkipNone()
 
   CPPUNIT_ASSERT( filesEqual(infname,outfname) );
 
+  remove(outfname.c_str());
+
 }
 
 void CInfiniteMediatorTest::testSkipSome()
@@ -421,6 +424,9 @@ void CInfiniteMediatorTest::testSkipSome()
 
   CPPUNIT_ASSERT( filesEqual(modeloutfname,outfname) );
 
+  // cleanup 
+  remove(outfname.c_str());
+  remove(modeloutfname.c_str());
 }
 
 void CInfiniteMediatorTest::setUpSkipTestFile(int nToSkip, 
@@ -489,6 +495,7 @@ void CInfiniteMediatorTest::testProcessSome()
     CPPUNIT_FAIL(errmsg.c_str()); 
   }
 
+  remove(outfname.c_str());
 
 }
 
@@ -535,6 +542,8 @@ void CInfiniteMediatorTest::testTransparentMainLoop()
   }
 
   CPPUNIT_ASSERT( filesEqual(infname,outfname) );
+
+  remove(outfname.c_str());
 }
 
 void CInfiniteMediatorTest::testFilterReturnsNULL() 
@@ -582,6 +591,8 @@ void CInfiniteMediatorTest::testFilterReturnsNULL()
   struct stat st;
   stat(outfname.c_str(), &st);
   CPPUNIT_ASSERT_EQUAL( 0, int(st.st_size) );
+
+  remove(outfname.c_str());
 }
 
 

@@ -9,7 +9,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
-
+#include "CAbnormalEndItem.h"
 #include <iostream>
 
 static uint32_t swal(uint32_t l)
@@ -808,6 +808,10 @@ class MiscFormat :  public CppUnit::TestFixture {
     CPPUNIT_TEST(evbFragment);
     CPPUNIT_TEST(unknownPayload);
     CPPUNIT_TEST(glomParameters);
+    CPPUNIT_TEST(abnormalend);
+    CPPUNIT_TEST(abnormalendclass);
+    CPPUNIT_TEST(abnormalendtypename);
+    CPPUNIT_TEST(abnormalendstring);
     CPPUNIT_TEST_SUITE_END();
 protected:
     
@@ -815,6 +819,10 @@ protected:
     void evbFragment();
     void unknownPayload();
     void glomParameters();
+    void abnormalend();
+    void abnormalendclass();
+    void abnormalendtypename();
+    void abnormalendstring();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(MiscFormat);
@@ -949,4 +957,37 @@ MiscFormat::glomParameters()
     EQ(static_cast<uint16_t>(GLOM_TIMESTAMP_AVERAGE), pItem->s_timestampPolicy);
     
     free(pItem);
+}
+
+void
+MiscFormat::abnormalend()
+{
+    pAbnormalEndItem pItem = formatAbnormalEndItem();
+    EQ(static_cast<uint32_t>(sizeof(AbnormalEndItem)), pItem ->s_header.s_size);
+    EQ(ABNORMAL_ENDRUN, pItem->s_header.s_type);
+    EQ(uint32_t(0), pItem->s_mbz);
+    free(pItem);
+}
+
+void
+MiscFormat::abnormalendclass()
+{
+    CAbnormalEndItem item;
+    pRingItem pItem = item.getItemPointer();
+    EQ(static_cast<uint32_t>(sizeof(AbnormalEndItem)), pItem->s_header.s_size);
+    EQ(ABNORMAL_ENDRUN, pItem->s_header.s_type);
+    EQ(uint32_t(0), pItem->s_body.u_noBodyHeader.s_mbz);
+    
+}
+void
+MiscFormat::abnormalendtypename()
+{
+    CAbnormalEndItem item;
+    EQ(std::string("Abnormal End"), item.typeName());
+}
+void
+MiscFormat::abnormalendstring()
+{
+    CAbnormalEndItem item;
+    EQ(std::string("Abnormal End\n"), item.toString());
 }
