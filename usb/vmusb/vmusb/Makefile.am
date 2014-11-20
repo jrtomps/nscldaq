@@ -9,7 +9,8 @@ COMPILATION_FLAGS	= $(USBSWITCHES) -I@top_srcdir@/base/headers @LIBTCLPLUS_CFLAG
 libVMUSB_la_SOURCES 	=  CVMUSBusb.cpp CVMUSBReadoutList.cpp CVMUSBEthernet.cpp \
 	CVMUSBFactory.cpp \
 	CVMUSB.cpp \
-	CMockVMUSB.cpp
+	CMockVMUSB.cpp \
+	CLoggingReadoutList.cpp
 
 libVMUSB_la_CPPFLAGS=$(COMPILATION_FLAGS)
 
@@ -27,7 +28,8 @@ noinst_HEADERS		= CVMUSB.h   \
 	CVMUSBRemote.h       \
 	CVMUSBFactory.h \
 	CMockVMUSB.h \
-	CVMEReadoutList.h
+	CVMEReadoutList.h \
+	CLoggingReadoutList.h
 
 
 
@@ -79,7 +81,8 @@ remotetests: $(REMOTE_TEST_MODULES)
 	-Wl,"-rpath=@prefix@/lib" @TCL_LDFLAGS@ @LIBTCLPLUS_LDFLAGS@
 
 UNITTEST_MODULES = @srcdir@/TestRunner.cpp \
-									@srcdir@/vmusbrdolisttests.cpp
+									@srcdir@/vmusbrdolisttests.cpp \
+									@srcdir@/loggingrdolisttests.cpp
 
 unittests: $(UNITTEST_MODULES)
 	$(CXX) -g -o unittests -I@srcdir@ -I@prefix@/include $(CPPUNIT_INCLUDES) \
