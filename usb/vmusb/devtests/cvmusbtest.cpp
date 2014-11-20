@@ -130,10 +130,6 @@ void cvmusbtest::testConfigureGlobalMode2()
   m_pModule->configureGlobalMode(ctlr);
 
   std::vector<std::string> ops = ctlr.getOperationRecord();
-  std::cout << "globalmode2" << std::endl;
-  for (unsigned int entry=0; entry<ops.size(); ++entry) {
-    std::cout << entry << " : " << ops[entry] << std::endl;
-  }
   CPPUNIT_ASSERT_EQUAL(std::string("writeGlobalMode(0x00000000)"), ops.at(1));
 
   m_pConfig->configure("-bufferlength", "8k");
