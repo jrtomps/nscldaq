@@ -28,7 +28,6 @@ noinst_HEADERS		= CVMUSB.h   \
 	CVMUSBRemote.h       \
 	CVMUSBFactory.h \
 	CMockVMUSB.h \
-	CVMEReadoutList.h \
 	CLoggingReadoutList.h
 
 
