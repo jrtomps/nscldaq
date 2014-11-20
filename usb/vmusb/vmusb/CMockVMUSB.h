@@ -25,9 +25,12 @@ class CMockVMUSB : public CVMUSB
     virtual CLoggingReadoutList* createReadoutList() const; 
 
     virtual void writeActionRegister(uint16_t data);
-    virtual int executeList(CVMUSBReadoutList& list, void* pReadBuffer, size_t readBufferSize, size_t* bytesRead);
-    virtual int loadList(uint8_t listNumber, CVMUSBReadoutList& list, off_t listOffset=0);
-    virtual int usbRead(void* data, size_t bufferSize, size_t* transferCount, int timeout=2000);
+    virtual int executeList(CVMUSBReadoutList& list, void* pReadBuffer, 
+                            size_t readBufferSize, size_t* bytesRead);
+    virtual int loadList(uint8_t listNumber, CVMUSBReadoutList& list, 
+                         off_t listOffset=0);
+    virtual int usbRead(void* data, size_t bufferSize, size_t* transferCount, 
+                        int timeout=2000);
 
     std::vector<std::string> getOperationRecord() const { return m_opRecord;}
 
@@ -39,13 +42,16 @@ class CMockVMUSB : public CVMUSB
      virtual uint32_t readRegister(uint32_t regAddr);
 
     template<class T>
-     void recordVMEOperation(std::string opname, uint32_t address, uint8_t addrMod, T data);
+     void recordVMEOperation(std::string opname, uint32_t address, 
+                             uint8_t addrMod, T data);
     template<class T>
      void recordOperation(std::string opname, T data);
 
     
-    int executeLoggingRdoList(CLoggingReadoutList& list, void* pReadBuffer, size_t readBufferSize, size_t* bytesRead);
-    int executeVMUSBRdoList(CVMUSBReadoutList& list, void* pReadBuffer, size_t readBufferSize, size_t* bytesRead);
+    int executeLoggingRdoList(CLoggingReadoutList& list, void* pReadBuffer, 
+                              size_t readBufferSize, size_t* bytesRead);
+    int executeVMUSBRdoList(CVMUSBReadoutList& list, void* pReadBuffer, 
+                            size_t readBufferSize, size_t* bytesRead);
 };
 
 

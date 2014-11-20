@@ -82,7 +82,8 @@ remotetests: $(REMOTE_TEST_MODULES)
 
 UNITTEST_MODULES = @srcdir@/TestRunner.cpp \
 									@srcdir@/vmusbrdolisttests.cpp \
-									@srcdir@/loggingrdolisttests.cpp
+									@srcdir@/loggingrdolisttests.cpp \
+									@srcdir@/mockvmusbtests.cpp
 
 unittests: $(UNITTEST_MODULES)
 	$(CXX) -g -o unittests -I@srcdir@ -I@prefix@/include $(CPPUNIT_INCLUDES) \
