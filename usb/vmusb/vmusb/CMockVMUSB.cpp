@@ -2,6 +2,8 @@
 #include "CMockVMUSB.h"
 #include <sstream>
 #include <iomanip>
+#include <typeinfo>
+#include "CLoggingReadoutList.h"
 
 using namespace std;
 
@@ -15,6 +17,11 @@ CMockVMUSB::CMockVMUSB()
   setUpRegisterNameMap();
 }
 
+CLoggingReadoutList* CMockVMUSB::createReadoutList() const 
+{ 
+  return new CLoggingReadoutList;
+}
+
 void CMockVMUSB::writeActionRegister(uint16_t data)
 {
   writeRegister(0x1,data);
@@ -23,6 +30,26 @@ void CMockVMUSB::writeActionRegister(uint16_t data)
 int CMockVMUSB::executeList(CVMUSBReadoutList& list, void* pReadBuffer, 
                             size_t readBufferSize, size_t* bytesRead)
 {
+  int retval = 0;
+  try {
+    // try to upcast 
+    CLoggingReadoutList& logList = dynamic_cast<CLoggingReadoutList&>(list);
+
+    // if dynamic_cast didn't throw, then the user passed in a 
+    // CLoggingReadoutList. Send it to the overridden form.
+    retval = executeLoggingRdoList(logList, pReadBuffer, readBufferSize, 
+                                   bytesRead);
+  } catch (bad_cast& exc) {
+    // upcasting failed... that means we have a tradition CVMUSBReadoutList.  
+    retval = executeVMUSBRdoList(list, pReadBuffer, readBufferSize, bytesRead);
+  }
+  return retval;
+}
+
+int CMockVMUSB::executeVMUSBRdoList(CVMUSBReadoutList& list, void* pReadBuffer, 
+                                    size_t readBufferSize, size_t* bytesRead)
+{
+
   vector<uint32_t> stack = list.get();
   uint32_t stackLength = stack.size();
 
@@ -45,6 +72,25 @@ int CMockVMUSB::executeList(CVMUSBReadoutList& list, void* pReadBuffer,
   // returned. At the same time, there was no error so return a status of 0.
   bytesRead=0;
   return 0;
+}
+
+int CMockVMUSB::executeLoggingRdoList(CLoggingReadoutList& list, 
+                                      void* pReadBuffer,
+                                      size_t readBufferSize, size_t* bytesRead)
+{
+  vector<std::string> stack = list.getLog();
+  size_t stackLength = stack.size();
+
+  // Simply copy the stack entirely into the operation list
+  m_opRecord.push_back("executeList::begin"); // bookend
+  m_opRecord.insert(m_opRecord.end(), stack.begin(), stack.end());
+  m_opRecord.push_back("executeList::end"); //bookend
+
+  // We don't actually read anything so tell the caller that no data will be
+  // returned. At the same time, there was no error so return a status of 0.
+  bytesRead=0;
+  return 0;
+  
 }
 
 int CMockVMUSB::loadList(uint8_t listNumber, CVMUSBReadoutList& list, off_t listOffset)

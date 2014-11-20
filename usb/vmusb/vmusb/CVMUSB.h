@@ -154,7 +154,7 @@ private:
     int operator!=(const CVMUSB& rhs) const;
 public:
 
-    CVMUSBReadoutList* createReadoutList() const { return new CVMUSBReadoutList(); }
+    virtual CVMUSBReadoutList* createReadoutList() const { return new CVMUSBReadoutList(); }
 
 
     virtual void     reconnect(); /* Drop USB/open USb. */

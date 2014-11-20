@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include "CVMUSB.h"
 #include "CVMUSBReadoutList.h"
+#include "CLoggingReadoutList.h"
 
 class CMockVMUSB : public CVMUSB
 {
@@ -20,6 +21,8 @@ class CMockVMUSB : public CVMUSB
 
     public:
     CMockVMUSB();
+
+    virtual CLoggingReadoutList* createReadoutList() const; 
 
     virtual void writeActionRegister(uint16_t data);
     virtual int executeList(CVMUSBReadoutList& list, void* pReadBuffer, size_t readBufferSize, size_t* bytesRead);
@@ -39,6 +42,10 @@ class CMockVMUSB : public CVMUSB
      void recordVMEOperation(std::string opname, uint32_t address, uint8_t addrMod, T data);
     template<class T>
      void recordOperation(std::string opname, T data);
+
+    
+    int executeLoggingRdoList(CLoggingReadoutList& list, void* pReadBuffer, size_t readBufferSize, size_t* bytesRead);
+    int executeVMUSBRdoList(CVMUSBReadoutList& list, void* pReadBuffer, size_t readBufferSize, size_t* bytesRead);
 };
 
 
