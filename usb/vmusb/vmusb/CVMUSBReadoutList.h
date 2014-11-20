@@ -90,19 +90,19 @@ public:
   
   // Operations on the list as a whole:
   
-  void                  clear();
-  size_t                size() const;
+  virtual void                  clear();
+  virtual size_t                size() const;
   std::vector<uint32_t> get()  const;
   
 
   // Append readout list
-  void append(const CVMUSBReadoutList& list);
+  virtual void append(const CVMUSBReadoutList& list);
 
   // Register operations 
   
 public:
-  void addRegisterRead(unsigned int address);
-  void addRegisterWrite(unsigned int address, uint32_t data);
+  virtual void addRegisterRead(unsigned int address);
+  virtual void addRegisterWrite(unsigned int address, uint32_t data);
 //  void addRegisterWrite(unsigned int address, int data) { // SWIG
 //    addRegisterWrite(address, (uint32_t)data);
 //  }
@@ -114,9 +114,9 @@ public:
 public:
   // Writes:
 
-  void addWrite32(uint32_t address, uint8_t amod, uint32_t datum);
-  void addWrite16(uint32_t address, uint8_t amod, uint16_t datum);
-  void addWrite8(uint32_t address,  uint8_t amod, uint8_t datum);
+  virtual void addWrite32(uint32_t address, uint8_t amod, uint32_t datum);
+  virtual void addWrite16(uint32_t address, uint8_t amod, uint16_t datum);
+  virtual void addWrite8(uint32_t address,  uint8_t amod, uint8_t datum);
 //  void addWrite32(int address, int amod, int data) { // SWIG
 //    addWrite32((uint32_t)address, (uint8_t)amod, (uint32_t)data);
 //  }
@@ -131,9 +131,9 @@ public:
 
   // Reads:
 
-  void addRead32(uint32_t address, uint8_t amod);
-  void addRead16(uint32_t address, uint8_t amod);
-  void addRead8(uint32_t address, uint8_t amod);
+  virtual void addRead32(uint32_t address, uint8_t amod);
+  virtual void addRead16(uint32_t address, uint8_t amod);
+  virtual void addRead8(uint32_t address, uint8_t amod);
 //  void addRead32(int address, int amod) { // SWIG
 //    addRead32((uint32_t)address, (uint8_t)amod);
 //  }
@@ -148,10 +148,10 @@ public:
   // Block transfer operations. 
   // These must meet the restrictions of the VMUSB on block transfers.
   //
-  void addBlockRead32(uint32_t baseAddress, uint8_t amod, size_t transfers);
-  void addFifoRead32(uint32_t  baseAddress, uint8_t amod, size_t transfers);
-  void addFifoRead16(uint32_t baseAddress, uint8_t amod, size_t transfers);
-  void addBlockWrite32(uint32_t baseAddresss, uint8_t amod, void* data, 
+  virtual void addBlockRead32(uint32_t baseAddress, uint8_t amod, size_t transfers);
+  virtual void addFifoRead32(uint32_t  baseAddress, uint8_t amod, size_t transfers);
+  virtual void addFifoRead16(uint32_t baseAddress, uint8_t amod, size_t transfers);
+  virtual void addBlockWrite32(uint32_t baseAddresss, uint8_t amod, void* data, 
 		       size_t transfers);
 //  void addBlockRead32(int base, int amod, int transfers) { // SWIG
 //    addBlockRead32((uint32_t)base, (uint8_t)amod, (size_t)transfers);
@@ -175,11 +175,11 @@ public:
   // as with all block reads, only 32 bit transfers are supported.
   //
 
-  void addBlockCountRead8(uint32_t  address, uint32_t mask, uint8_t amod);
-  void addBlockCountRead16(uint32_t address, uint32_t mask, uint8_t amod);
-  void addBlockCountRead32(uint32_t address, uint32_t mask, uint8_t amod);
-  void addMaskedCountBlockRead32(uint32_t address, uint8_t amod);
-  void addMaskedCountFifoRead32(uint32_t address, uint8_t amod);
+  virtual void addBlockCountRead8(uint32_t  address, uint32_t mask, uint8_t amod);
+  virtual void addBlockCountRead16(uint32_t address, uint32_t mask, uint8_t amod);
+  virtual void addBlockCountRead32(uint32_t address, uint32_t mask, uint8_t amod);
+  virtual void addMaskedCountBlockRead32(uint32_t address, uint8_t amod);
+  virtual void addMaskedCountFifoRead32(uint32_t address, uint8_t amod);
 //  void addBlockCountRead8(int a, int m, int am) { // SWIG
 //    addBlockCountRead8((uint32_t)a, uint32_t(m), (uint8_t)am);
 //  }
@@ -200,13 +200,13 @@ public:
 
   // Miscellaneous:
 
-  void addDelay(uint8_t clocks);
+  virtual void addDelay(uint8_t clocks);
 //  void addDelay(int clocks) {	// SWIG
 //    addDelay((uint8_t)clocks);
 //  }
 
 
-  void addMarker(uint16_t value);
+  virtual void addMarker(uint16_t value);
 //  void addMarker(int value) {	// SWIG
 //    addMarker((uint16_t) value);
 //  }

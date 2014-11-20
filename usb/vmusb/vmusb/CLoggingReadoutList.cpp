@@ -183,6 +183,12 @@ CLoggingReadoutList::addBlockCountRead8(uint32_t address, uint32_t mask,
 {
   CVMUSBReadoutList::addBlockCountRead8(address,mask,amod);
 
+  // addBlockCountRead8 is a two step operation that first calls addRead8.
+  // The side effect of this is that an extra entry for addRead8 will be
+  // appended into the log. We first must pop it off.
+  //
+  m_record.pop_back();
+
   stringstream ss;
   ss.flags(ios::hex);
   ss.fill('0');
@@ -198,6 +204,12 @@ CLoggingReadoutList::addBlockCountRead16(uint32_t address, uint32_t mask,
                                      uint8_t amod)
 {
   CVMUSBReadoutList::addBlockCountRead16(address,mask,amod);
+
+  // addBlockCountRead16 is a two step operation that first calls addRead16.
+  // The side effect of this is that an extra entry for addRead16 will be
+  // appended into the log. We first must pop it off.
+  //
+  m_record.pop_back();
 
   stringstream ss;
   ss.flags(ios::hex);
@@ -215,6 +227,12 @@ CLoggingReadoutList::addBlockCountRead32(uint32_t address, uint32_t mask,
 {
   CVMUSBReadoutList::addBlockCountRead32(address,mask,amod);
 
+  // addBlockCountRead32 is a two step operation that first calls addRead32.
+  // The side effect of this is that an extra entry for addRead32 will be
+  // appended into the log. We first must pop it off.
+  //
+  m_record.pop_back();
+
   stringstream ss;
   ss.flags(ios::hex);
   ss.fill('0');
@@ -230,6 +248,11 @@ CLoggingReadoutList::addMaskedCountBlockRead32(uint32_t address, uint8_t amod)
 {
   CVMUSBReadoutList::addMaskedCountBlockRead32(address,amod);
 
+  // this is just a wrapper around the addBlockRead32 method so the above
+  // line has the side effect of adding an entry to the log. We must
+  // pop it off the back to keep this clean.
+  m_record.pop_back();
+
   stringstream ss;
   ss.flags(ios::hex);
   ss.fill('0');
@@ -244,6 +267,11 @@ void
 CLoggingReadoutList::addMaskedCountFifoRead32(uint32_t address, uint8_t amod)
 {
   CVMUSBReadoutList::addMaskedCountFifoRead32(address,amod);
+
+  // this is just a wrapper around the addFifoRead32 method so the above
+  // line has the side effect of adding an entry to the log. We must
+  // pop it off the back to keep this clean.
+  m_record.pop_back();
 
   stringstream ss;
   ss.flags(ios::hex);
