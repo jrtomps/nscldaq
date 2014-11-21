@@ -40,12 +40,11 @@ CControlModule::CControlModule(string name, CControlHardware& hardware) :
   //  m_pHardware->onAttach(*this);
 }
 /*!
-   Destroy a module.  The hardware riding along with us is assumed to have
-   been dynamically created.
+   Destroy a module. 
 */
 CControlModule::~CControlModule()
 {
-  delete m_pHardware;
+  // the CControlModule is owned by the hardware... 
 }
 
 /*! 
