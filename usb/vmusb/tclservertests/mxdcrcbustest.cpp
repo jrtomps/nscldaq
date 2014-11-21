@@ -49,7 +49,7 @@ void CMxDCRCBusTests::activate_0() {
 
   std::vector<std::string> record = m_pCtlr->getOperationRecord();
   std::vector<std::string> expected(1);
-  expected[0] = 
+//  expected[0] = 
 }
 
 
