@@ -2,6 +2,7 @@ lib_LTLIBRARIES			= libVMUSBControlServer.la libUserDriver.la
 
 
 COMPILATION_FLAGS=@THREADCXX_FLAGS@ -I@top_srcdir@/usb/vmusb/vmusb		\
+					-I@top_srcdir@/usb/common/configurableobject \
 					-I@top_srcdir@/daq/format                 \
 					-I@top_srcdir@/usb/vmusb/devices	\
 					-I@top_srcdir@/usb/vmusb/rdothread	\
@@ -78,6 +79,7 @@ noinst_HEADERS			=	CGDG.h			\
 
 
 libVMUSBControlServer_la_LIBADD	= 	@top_builddir@/usb/vmusb/vmusb/libVMUSB.la \
+					@top_builddir@/usb/common/configurableobject/libConfigurableObject.la \
 					@top_builddir@/usb/vmusb/devices/libVMUSBDevices.la \
 					@top_builddir@/usb/vmusb/rdothread/libVMUSBRdoThread.la \
 					@top_builddir@/usb/vmusb/router/libVMUSBRouter.la	\
@@ -97,22 +99,3 @@ install-data-local:
 	$(INSTALL_DATA)  @srcdir@/*.h @prefix@/vmusbdriver/includes
 	$(INSTALL_DATA)  @srcdir@/CUserDriverSample.cpp @prefix@/vmusbdriver/example
 
-#
-#UNITTEST_MODULES =	@srcdir@/TestRunner.cpp \
-#										@srcdir@/mxdcrcbustest.cpp 
-#
-#noinst_PROGRAMS = unittests
-#
-#unittests_SOURCES = @srcdir@/TestRunner.cpp \
-#										@srcdir@/mxdcrcbustest.cpp 
-#unittests_LDADD = @top_builddir@/usb/vmusb/vmusb/libVMUSB.la \
-#										@top_builddir@/usb/vmusb/tclserver/libVMUSBControlServer.la \
-#										@LIBTCLPLUS_LDFLAGS@ \
-#										@top_builddir@/usb/vmusb/daqconfig/libVMUSBConfig.la \
-#										$(CPPUNIT_LDFLAGS)
-#unittests_CPPFLAGS = -I@top_srcdir@/usb/vmusb/vmusb  \
-#										 $(CPPUNIT_FLAGS)
-#
-#
-#check-TESTS : $(UNITTEST_MODULES)
-#		./unittests

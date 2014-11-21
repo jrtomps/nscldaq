@@ -455,6 +455,7 @@ AC_CONFIG_FILES([Makefile
 		 usb/common/Makefile
 		 usb/common/tcldrivers/Makefile
 		 usb/common/devices/Makefile
+		 usb/common/configurableobject/Makefile
 		 usb/mesytec/Makefile
 		 usb/mesytec/MCFD16/Makefile
 		 docbuild/Makefile

@@ -53,6 +53,7 @@ noinst_HEADERS		=	CADCCommand.h  		\
 
 
 libVMUSBConfig_la_CPPFLAGS		= 	-I@top_srcdir@/usb/vmusb/devices	\
+		    -I@top_srcdir@/usb/common/configurableobject \
 				-I@top_srcdir@/usb/vmusb		\
 				-I@top_srcdir@/usb/vmusb/vmusb		\
 				-I@top_srcdir@/usb/common/devices		\
@@ -62,6 +63,7 @@ libVMUSBConfig_la_CPPFLAGS		= 	-I@top_srcdir@/usb/vmusb/devices	\
 
 
 libVMUSBConfig_la_LIBADD	= @top_builddir@/usb/vmusb/devices/libVMUSBDevices.la \
+				@top_builddir@/usb/common/configurableobject/libConfigurableObject.la \
 				@LIBTCLPLUS_LDFLAGS@	\
 				$(TCL_LDFLAGS) @THREADLD_FLAGS@
 

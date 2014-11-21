@@ -1,3 +1,3 @@
-SUBDIRS=tcldrivers devices
+SUBDIRS=tcldrivers devices configurableobject
 
-DIST_SUBDIRS=tcldrivers devices
+DIST_SUBDIRS=tcldrivers devices configurableobject

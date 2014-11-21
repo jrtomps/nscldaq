@@ -1,6 +1,5 @@
 lib_LTLIBRARIES 		= libVMUSBDevices.la
-libVMUSBDevices_la_SOURCES	= 	CConfigurableObject.cpp	\
-					CReadoutModule.cpp 	\
+libVMUSBDevices_la_SOURCES	= CReadoutModule.cpp 	\
 					C3820.cpp		\
 					C785.cpp		\
 					CCAENChain.cpp		\
@@ -41,6 +40,7 @@ libVMUSBDevices_la_SOURCES	= 	CConfigurableObject.cpp	\
 					@top_srcdir@/usb/common/devices/CCamacBranchException.cpp 
 
 libVMUSBDevices_la_CPPFLAGS	= 	-I@top_srcdir@/usb/vmusb/vmusb 	\
+			-I@top_srcdir@/usb/common/configurableobject \
 			-I@top_srcdir@/usb/vmusb/daqconfig 	\
 			-I@top_srcdir@/usb/vmusb		\
 			-I@top_srcdir@/usb/common/devices	\
@@ -56,10 +56,10 @@ libVMUSBDevices_la_LIBADD	= $(top_builddir)/usb/vmusb/vmusb/libVMUSB.la \
 				@top_builddir@/base/os/libdaqshm.la	\
 					@LIBTCLPLUS_LDFLAGS@	\
 					@TCL_LDFLAGS@ \
+					@top_builddir@/usb/common/configurableobject/libConfigurableObject.la \
 				-lm @THREADLD_FLAGS@
 
-noinst_HEADERS			= 	CConfigurableObject.h	\
-					CReadoutModule.h 	\
+noinst_HEADERS			= CReadoutModule.h 	\
 					CReadoutHardware.h 	\
 					C3820.h			\
 					C785.h			\
