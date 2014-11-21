@@ -38,7 +38,7 @@ void CLoggingReadoutList::addWrite32(uint32_t address, uint8_t amod, uint32_t da
   ss.fill('0');
   ss << "addWrite32 " << setw(8) << address 
      << " " << setw(2) << static_cast<uint16_t>(amod) 
-     << " " << setw(8) << datum;
+     << " " << dec << datum;
   m_log.push_back(ss.str());
 }
 
@@ -52,7 +52,7 @@ void CLoggingReadoutList::addWrite16(uint32_t address, uint8_t amod, uint16_t da
   ss << "addWrite16" 
      << " " << setw(8) << address 
      << " " << setw(2) << static_cast<uint16_t>(amod) 
-     << " " << setw(8) << datum;
+     << " " << dec << datum;
   m_log.push_back(ss.str());
 }
 
@@ -66,7 +66,7 @@ void CLoggingReadoutList::addWrite8(uint32_t address, uint8_t amod, uint8_t datu
   ss << "addWrite8" 
      << " " << setw(8) << address 
      << " " << setw(2) << static_cast<uint16_t>(amod) 
-     << " " << setw(8) << static_cast<uint16_t>(datum);
+     << " " << dec << static_cast<uint16_t>(datum);
   m_log.push_back(ss.str());
 }
 

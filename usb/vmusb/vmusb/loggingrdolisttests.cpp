@@ -135,7 +135,7 @@ void CLoggingReadoutListTests::addWrite32_0()
   m_pList->addWrite32(0xabcdef, 0x09, 255);
 
   vector<string> expected(1);
-  expected[0] = "addWrite32 00abcdef 09 000000ff";
+  expected[0] = "addWrite32 00abcdef 09 255";
 
   CPPUNIT_ASSERT(expected == m_pList->getLog());
 }
@@ -146,7 +146,7 @@ void CLoggingReadoutListTests::addWrite16_0()
   m_pList->addWrite16(0xabcdef, 0x09, 255);
 
   vector<string> expected(1);
-  expected[0] = "addWrite16 00abcdef 09 000000ff";
+  expected[0] = "addWrite16 00abcdef 09 255";
 
   CPPUNIT_ASSERT(expected == m_pList->getLog());
 }
@@ -157,7 +157,7 @@ void CLoggingReadoutListTests::addWrite8_0()
   m_pList->addWrite8(0xabcdef, 0x09, 255);
 
   vector<string> expected(1);
-  expected[0] = "addWrite8 00abcdef 09 000000ff";
+  expected[0] = "addWrite8 00abcdef 09 255";
 
   CPPUNIT_ASSERT(expected == m_pList->getLog());
 }
