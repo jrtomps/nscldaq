@@ -6,6 +6,7 @@
 #include <string>
 #include <memory>
 #include <CMockVMUSB.h>
+#include <CControlModule.h>
 
 #define private public
 #define protected public
@@ -31,6 +32,8 @@ class CMxDCRCBusTests : public CppUnit::TestFixture {
 public:
   void setUp() {
     m_pProxy = std::unique_ptr<CMxDCRCBus>(new CMxDCRCBus("test"));
+    m_pProxy->getConfiguration()->configure("-base","0xff000000");
+
     m_pCtlr = std::unique_ptr<CMockVMUSB>(new CMockVMUSB);
   }
   void tearDown() {
@@ -48,8 +51,12 @@ void CMxDCRCBusTests::activate_0() {
   m_pProxy->activate(*m_pCtlr);
 
   std::vector<std::string> record = m_pCtlr->getOperationRecord();
-  std::vector<std::string> expected(1);
-//  expected[0] = 
+  std::vector<std::string> expected(3);
+  expected[0] = "executelist::begin";
+  expected[1] = "addWrite16 ff006082 3";
+  expected[2] = "executelist::end";
+
+  CPPUNIT_ASSERT(expected == record);
 }
 
 

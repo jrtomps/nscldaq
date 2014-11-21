@@ -12,8 +12,12 @@ unittests_LDADD = @top_builddir@/usb/vmusb/vmusb/libVMUSB.la \
 										$(CPPUNIT_LDFLAGS)
 unittests_CPPFLAGS = -I@top_srcdir@/usb/vmusb/vmusb  \
 										 $(CPPUNIT_FLAGS) \
-										 -I@top_srcdir@/usb/vmusb/tclserver
+										 -I@top_srcdir@/usb/vmusb/tclserver \
+										 -I@top_srcdir@/usb/vmusb/devices
 
 
 check-TESTS : $(UNITTEST_MODULES)
 		./unittests
+
+
+EXTRA_DIST = FakeGlobals.h
