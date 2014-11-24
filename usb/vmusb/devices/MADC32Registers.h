@@ -21,6 +21,7 @@
 #define Const(name) static const int name =
 #endif
 
+#include <CVMUSBReadoutList.h>
 
 Const(MADCDELAY)  1;
 
@@ -89,6 +90,25 @@ Const(TimestampReset)       EventCounterReset; // As of firmware 5.
 
 Const(TestPulser)           0x6070; // In order to ensure it's off !
 
+// RC-bus registers
+Const(RCBusNo)              0x6080;
+Const(RCModNum)             0x6082;
+Const(RCOpCode)             0x6084;
+Const(RCAddr)               0x6086;
+Const(RCData)               0x6088;
+Const(RCStatus)             0x608a;
+
+// RC-bus op code bits
+Const(RCOP_ON)              0x03;
+Const(RCOP_OFF)             0x04;
+Const(RCOP_READID)          0x06;
+Const(RCOP_WRITEDATA)       0x10;
+Const(RCOP_READDATA)        0x12;
+
+// RC-bus status bits
+Const(RCSTAT_ACTIVE)        0x00;
+Const(RCSTAT_ADDRCOLLISION) 0x01;
+Const(RCSTAT_NORESPONSE)    0x02;
 
 // Mcast/CBLT control register bits:
 
