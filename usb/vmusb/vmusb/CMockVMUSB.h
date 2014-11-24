@@ -18,6 +18,7 @@ class CMockVMUSB : public CVMUSB
     std::map<uint32_t, uint32_t> m_registers;
     std::map<uint32_t, std::string> m_registerNames;
     std::map<uint32_t, uint32_t> m_addressData;
+    std::vector<uint16_t> m_returnData;
 
     public:
     CMockVMUSB();
@@ -42,6 +43,12 @@ class CMockVMUSB : public CVMUSB
 
     std::vector<std::string> getOperationRecord() const { return m_opRecord;}
 
+    template<class T> void setReturnData(T begin, T end)
+    {
+      m_returnData.clear();
+      m_returnData.insert(m_returnData.end(), begin, end);
+    }
+
     private:
      void setUpRegisterMap(); 
      void setUpRegisterNameMap(); 
@@ -60,6 +67,7 @@ class CMockVMUSB : public CVMUSB
                               size_t readBufferSize, size_t* bytesRead);
     int executeVMUSBRdoList(CVMUSBReadoutList& list, void* pReadBuffer, 
                             size_t readBufferSize, size_t* bytesRead);
+    void fillReturnData(void* pReadBuffer, size_t bufSize, size_t* nBytesRead);
 };
 
 

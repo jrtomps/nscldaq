@@ -3,6 +3,8 @@
 #include <sstream>
 #include <iomanip>
 #include <typeinfo>
+#include <algorithm>
+#include <vector>
 #include "CLoggingReadoutList.h"
 
 using namespace std;
@@ -11,7 +13,8 @@ CMockVMUSB::CMockVMUSB()
   : CVMUSB(), 
     m_opRecord(), 
     m_registers(),
-    m_registerNames()
+    m_registerNames(),
+    m_returnData(8192)
 {
   setUpRegisterMap();
   setUpRegisterNameMap();
@@ -51,9 +54,17 @@ int CMockVMUSB::executeList(CVMUSBReadoutList& list, void* pReadBuffer,
     retval = executeVMUSBRdoList(list, pReadBuffer, readBufferSize, bytesRead);
   }
 
+  fillReturnData(pReadBuffer, readBufferSize, bytesRead);
+
   return retval;
 }
 
+
+
+
+/**
+ *
+ */
 int CMockVMUSB::executeVMUSBRdoList(CVMUSBReadoutList& list, void* pReadBuffer, 
                                     size_t readBufferSize, size_t* bytesRead)
 {
@@ -82,6 +93,9 @@ int CMockVMUSB::executeVMUSBRdoList(CVMUSBReadoutList& list, void* pReadBuffer,
   return 0;
 }
 
+/**
+ *
+ */
 int CMockVMUSB::executeLoggingRdoList(CLoggingReadoutList& list, 
                                       void* pReadBuffer,
                                       size_t readBufferSize, size_t* bytesRead)
@@ -101,6 +115,9 @@ int CMockVMUSB::executeLoggingRdoList(CLoggingReadoutList& list,
   
 }
 
+/**
+ *
+ */
 int CMockVMUSB::loadList(uint8_t listNumber, CVMUSBReadoutList& list, off_t listOffset)
 {
   vector<uint32_t> stack = list.get();
@@ -125,6 +142,9 @@ int CMockVMUSB::loadList(uint8_t listNumber, CVMUSBReadoutList& list, off_t list
   return 0;
 }
 
+/**
+ *
+ */
 int CMockVMUSB::usbRead(void* data, size_t bufferSize, size_t* transferCount, int timeout)
 {
   m_opRecord.push_back("usbRead:begin"); 
@@ -169,6 +189,7 @@ void CMockVMUSB::writeRegister(uint32_t reg, uint32_t value)
   string actionString = "write" + m_registerNames[reg];
   recordOperation(actionString, value);
 }
+
 
 void CMockVMUSB::setUpRegisterMap()
 {
@@ -239,4 +260,26 @@ void CMockVMUSB::recordOperation(std::string opname, T data)
              << data << ")";
 
     m_opRecord.push_back(logentry.str());
+}
+
+
+void CMockVMUSB::fillReturnData(void* pBuffer, size_t bufSize, size_t* nbytes) 
+{
+  //  figure out how many uint16_ts to copy into buffer
+  //  - we copy the maximum number possible
+  size_t bufferSize = bufSize/sizeof(uint16_t);
+  size_t nToReturn = std::min(bufferSize, m_returnData.size());
+  (*nbytes) = nToReturn*sizeof(uint16_t);
+
+  // copy
+  uint16_t* buffer = reinterpret_cast<uint16_t*>(pBuffer);
+  
+  for (size_t index=0; index<nToReturn; ++index) {
+    *(buffer+index) = m_returnData[index];
+  }
+
+  auto begin = m_returnData.begin();
+  auto end = begin + nToReturn;
+
+  m_returnData.erase(begin, end);
 }

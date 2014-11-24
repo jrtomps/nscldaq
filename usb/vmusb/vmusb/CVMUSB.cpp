@@ -24,6 +24,7 @@
 #include <string>
 #include <unistd.h>
 #include <stdio.h>
+#include <memory>
 
 using namespace std;
 
@@ -708,7 +709,8 @@ CVMUSB::vmeRead32(uint32_t address, uint8_t aModifier, uint32_t* data)
 int
 CVMUSB::vmeRead16(uint32_t address, uint8_t aModifier, uint16_t* data)
 {
-  CVMUSBReadoutList list;
+  unique_ptr<CVMUSBReadoutList> pList(createReadoutList());
+  CVMUSBReadoutList& list = *pList;
   list.addRead16(address, aModifier);
   uint32_t lData;
   int      status = doVMERead(list, &lData);

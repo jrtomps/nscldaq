@@ -80,10 +80,14 @@ UNITTEST_MODULES = @srcdir@/TestRunner.cpp \
 									@srcdir@/loggingrdolisttests.cpp \
 									@srcdir@/mockvmusbtests.cpp
 
-unittests: $(UNITTEST_MODULES)
-	$(CXX) -g -o unittests -I@srcdir@ -I@prefix@/include $(CPPUNIT_INCLUDES) \
-		$(UNITTEST_MODULES) $(CPPUNIT_LDFLAGS) -L@prefix@/lib -lVMUSB \
-		-Wl,"-rpath=@prefix@/lib" @TCL_LDFLAGS@ @LIBTCLPLUS_LDFLAGS@
+noinst_PROGRAMS = unittests
+unittests_SOURCES = $(UNITTEST_MODULES)
+
+unittests_CPPFLAGS = -I@srcdir@ -I@prefix@/include $(CPPUNIT_INCLUDES)
+unittests_LDADD = $(CPPUNIT_LDFLAGS) \
+								 	@top_builddir@/usb/vmusb/vmusb/libVMUSB.la  \
+									@TCL_LDFLAGS@ @LIBTCLPLUS_LDFLAGS@
+unittests_LDFLAGS = -Wl,"-rpath=@prefix@/lib"
 
 installcheck-local: unittests
 	./unittests

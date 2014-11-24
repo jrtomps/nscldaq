@@ -27,6 +27,7 @@ class CMockVMUSBTests : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(CMockVMUSBTests);
   CPPUNIT_TEST (executeList_0); 
   CPPUNIT_TEST (executeList_1); 
+  CPPUNIT_TEST (executeList_2); 
   CPPUNIT_TEST (globalMode_0); 
   CPPUNIT_TEST (eventsPerBuffer_0); 
   CPPUNIT_TEST_SUITE_END();
@@ -44,6 +45,7 @@ class CMockVMUSBTests : public CppUnit::TestFixture {
   private:
   void executeList_0(); 
   void executeList_1(); 
+  void executeList_2(); 
   void globalMode_0(); 
   void eventsPerBuffer_0();
 
@@ -108,6 +110,26 @@ void CMockVMUSBTests::executeList_1() {
   CPPUNIT_ASSERT( expected == m_pCtlr->getOperationRecord());
 }
 
+/** Ensure that we can set what gets read back
+ *
+ */
+void CMockVMUSBTests::executeList_2() 
+{
+  vector<uint16_t> data = {0, 1, 2, 3};
+  m_pCtlr->setReturnData(data.begin(), data.end());
+
+  CVMUSBReadoutList list; // a dummy list
+  uint16_t buffer[32];
+  size_t nBytesRead;
+
+  m_pCtlr->executeList(list, buffer, sizeof(buffer), &nBytesRead);
+  CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(8), nBytesRead);
+  for (size_t element=0; element<4; ++element) {
+    CPPUNIT_ASSERT_EQUAL(data[element],buffer[element]);
+  }
+}
+
+
 /** Test that writing to global mode can be read back appropriately
  * and that the operations get recorded properly.
  */
@@ -142,3 +164,5 @@ void CMockVMUSBTests::eventsPerBuffer_0() {
   CPPUNIT_ASSERT( expected == m_pCtlr->getOperationRecord());
   CPPUNIT_ASSERT_EQUAL(writeValue, readValue);
 }
+
+
