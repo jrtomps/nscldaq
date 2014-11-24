@@ -1,0 +1,2570 @@
+<!-- chapter libraries -->
+<chapter id='ch.sqlitepp'>
+    <title>libsqlite3++</title>
+    <para>
+        The libsqlite3++ library provides a thin object oriented encapsulation
+        of the Sqlite database library.  Sqlite is a zero-management SQL database
+        system. See the <ulink url='https://www.sqlite.org/'>Sqlite documentation</ulink>
+        for more information about Sqlite itself.
+    </para>
+    <para>
+        This chapter describes:
+        <itemizedlist>
+            <listitem><para>How to access the library</para></listitem>
+            <listitem><para>The major classes the library provides and how to use them.</para></listitem>
+        </itemizedlist>
+    </para>
+    <para>
+        For reference material see the sqlite++ <link linkend='sqlite3_introduction'>
+            Introduction manual page
+        </link> and the manpages in the 3sqlite section.
+    </para>
+    <section>
+        <title>Incorporating libsqlite++ into your programs.</title>
+        <para>
+            libsqlite++ consists of several header files as well as a shared
+            object.  The headers are located in the <filename>include</filename>
+            directory of your NSCLDAQ installation (e.g. <literal>$DAQINC</literal>
+            once you've source the <filename>daqsetup.bash</filename> file into
+            your shell.
+        </para>
+        <para>
+            At compile time you will need to specify a <literal>-I</literal>
+            switch so that libsqlite++ headers can be found (e.g.
+            <literal>-I$DAQINC</literal>). At link time you need to specify
+            the library directory, the library and a rpath directive to ensure
+            that the library can be found and loaded at run-time.
+        </para>
+        <para>
+            The example below shows how to separately compile and link a program
+            that uses libsqlite++.  Modify the first line of the example to match
+            your NSCLDAQ installation directory.
+        </para>
+        <example>
+            <title>Compiling and linking a libsqlite++ program:</title>
+            <programlisting>
+. /path/to/nscldaq/installation/daqsetup.bash
+g++ -c -I$DAQINC myprogram.cpp
+g++ -o myprogram myprogram.o -L$DAQLIB -lsqlite3pp -Wl,"-rpath=$DAQLIB"
+            </programlisting>
+        </example>
+    </section>
+    <section>
+        <title>Major libsqlite++ clases and their use.</title>
+        <para>
+            This section will describe the following libsqlite++
+            classes:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term><classname>CSqlite</classname></term>
+                <listitem>
+                    <para>
+                        Which represents a connection to an Sqlite3 database.
+                        connections can be to file or in memory data bases.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><classname>CSqliteStatement</classname></term>
+                <listitem>
+                    <para>
+                        Which represents either an immediately executed statement
+                        or a prepared statement.  <classname>CSqliteStatement</classname>
+                        provides an interator-like pattern that allows you to
+                        fetch data from the result set of a retrieval statement
+                        (e.g. <literal>SELECT</literal>).
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><classname>CSqliteTransaction</classname></term>
+                <listitem>
+                    <para>
+                        Provides a transaction which can be used to atomically
+                        execute or rollback several statements.  By default
+                        <classname>CSqliteTransaction</classname> begins a transaction
+                        when it is constructed and commits when destroyed.
+                        For example:
+                    </para>
+                    <programlisting>
+CSqlite db(":memory:");                // in memory database
+...
+{
+   CSqliteTransaction t(db);           // BEGIN TRANSACTION on db here.
+   ...
+}                                      // END TRANSACTION on db here.
+                    </programlisting>
+                </listitem>
+            </varlistentry>
+            
+        </variablelist>
+        <section>
+            <title>The Sqlite class</title>
+            <para>
+                <classname>CSqlite</classname> represents a database connection.
+                In sqlite a database can be a file on disk or an in-memory
+                data base.  In memory databases are destroyed when a
+                database connection is destroyed.  For more information
+                on how databases can be specified, see the documentation on the
+                <function>sqlite3_openv2</function> function.
+            </para>
+            <para>
+                Constructing a <classname>CSqlite</classname> object creates a
+                database connection while destroying it closes the connection.
+                The class also provides a method to fetch the raw
+                sqlite3 database handle associated with its connection so that
+                you can perform operations that are not supported by the
+                library directly.
+                <classname>CSqlite</classname> throws <classname>CSqliteException</classname>
+                objects if errors are detected.
+            </para>
+            <para>
+                Below is an example that shows how to open an in-memory database,
+                and get its database handle.
+            </para>
+            <example>
+                <title>
+                    Opening an in memory database and getting its handle.
+                </title>
+                <programlisting>
+#include &lt;CSqlite.h&gt;             <co id='csqlite_header' />
+#include &lt;sqlite3.h&gt;
+#include &lt;iostream&gt;
+    
+int main(int argc, char** argv)
+{
+    CSqlite db(":memory");               <co id='csqlite_construct' />
+    sqlite3* handle = db.connection();   <co id='csqlite_connection' />
+    
+    std::cerr &lt;&lt; std::hex &lt;&lt; "Handle to sqlite3 database: " &lt;&lt; handle &lt;&lt; std::endl;
+    
+}
+    
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs='csqlite_header'>
+                    <para>
+                        Includes the <filename>CSqlite.h</filename> header which
+                        defines the <classname>CSqlite</classname> object to the
+                        C++ compiler.
+                    </para>
+                </callout>
+                <callout arearefs='csqlite_construct'>
+                    <para>
+                        Constructs a database connection.  The special filename
+                        <literal>:memory:</literal> indicates to sqlite that an
+                        in-memory database is being created.  By default
+                        <literal>:memory:</literal> databases are created when
+                        the <classname>CSqlite</classname> object is constructed
+                        and destroyed when the object is destroyed.  Furthermore,
+                        by default each construction of a <literal>:memory:</literal>
+                        database results in a new in-memory database.
+                    </para>
+                    <para>
+                        The sqlite documentation of the <function>sqlite3_openv2</function>
+                        function describes how to open more than one connection on
+                        the same in-memory database.
+                    </para>
+                </callout>
+                <callout arearefs='csqlite_connection'>
+                    <para>
+                        The <methodname>connection</methodname> method returns
+                        the underlying Sqlite connection object.  This is an
+                        opaque  <classname>sqlite3*</classname> pointer.
+                    </para>
+                    <para>
+                        The <classname>sqlite3*</classname> is passed into a number
+                        of low level Sqlite C API calls.  Providing this method
+                        makes the entire database API available.
+                    </para>
+                </callout>
+            </calloutlist>
+        </section>
+        <section>
+            <title>The CSqliteStatement class</title>
+            <para>
+                <classname>CSqliteStatement</classname> provides facilities
+                for immediately executing SQL statement on a database connection
+                object as well as the ability to
+                <itemizedlist>
+                    <listitem><para>
+                        Create prepared statements.
+                    </para></listitem>
+                    <listitem><para>
+                        Bind actual values to prepared statements.
+                    </para></listitem>
+                    <listitem><para>
+                        Execute bound prepared statements
+                    </para></listitem>
+                    <listitem><para>
+                        Iterate through the result set of a query that returns
+                        data (e.g. <literal>SELECT</literal>).
+                    </para></listitem>
+                </itemizedlist>
+                
+            </para>
+            <section>
+                <title>Immediate statement execution</title>
+                <para>
+                    Immediate statement execution is provided by the
+                    <methodname>execute</methodname> static class method.
+                    To use this method the SQL statement you are trying to use must
+                    not have bound parameters and either must not return a result
+                    set, or you must not be interested in the contents of the result
+                    set.
+                </para>
+                <para>
+                    The function below uses <methodname>execute</methodname>
+                    to create a database schema:
+                </para>
+                <example id='ex_sqlitestmt_execute'>
+                    <title id='ex_sqlitestmt_execute_title'>CSqliteStatement::execute example:</title>
+                    <programlisting>
+#include &lt;CSqlite&gt;
+#include &lt;CSqliteStatement&gt;          <co id='csqlitestmt_include' />
+#include &lt;CSqliteException&gt;          <co id='sqliteexception_include' />
+#include &lt;iostream&gt;
+...
+void createSchema(CSqlite&amp; db)         <co id='sqlitestmt_function_example' />
+{
+    try {
+        CSqliteStatement::execute(
+           db,
+           "CREATE table directory (                      \
+              id         INTEGER PRIMARY KEY NOT NULL,    \ <co id='sqlitestmt_createtbl' />
+              name       VARCHAR(128) NOT NULL,           \
+              parent_id  INTEGER DEFAULT NULL             \
+           )"
+        );
+        CSqliteStatement::execute(
+           db,
+           "INSERT INTO directory (id, name) VALUES (1, '')"       <co id='sqlitestmt_insertroot' />
+        );
+    }
+    catch (CSqliteException&amp; e) {
+        std::cerr &lt;&lt; "createSchema failed: " &lt;&lt; e.what() &lt;&lt; std::endl;
+    
+    }
+}
+                    </programlisting>
+                </example>
+                <calloutlist>
+                    <callout arearefs='csqlitestmt_include'>
+                        <para>
+                            <filename>CSqliteStatement.h</filename> defines the
+                            <classname>CSqliteStatement</classname> class
+                            to the C++ compiler.
+                        </para>
+                    </callout>
+                    <callout arearefs='sqliteexception_include'>
+                        <para>
+                            <filename>CSqliteException.h</filename> defines the
+                            <classname>CSqliteException</classname> class.
+                            This is derived from <classname>std::exception</classname>
+                            and is thrown by both <classname>CSqlite</classname>
+                            and <classname>CSqliteStatement</classname> if errors
+                            are reported by the sqlite3 base API.
+                        </para>
+                    </callout>
+                    <callout arearefs='sqlitestmt_function_example'>
+                        <para>
+                            The example function <function>createSchema</function>
+                            takes as a parameter a database connection
+                            represented by a <classname>CSqlite</classname> object
+                            reference.  The function itself  is going to use
+                            <methodname>CSqliteStatement::execute</methodname>
+                            to create a table and to insert a record. 
+                        </para>
+                    </callout>
+                    <callout arearefs='sqlitestmt_createtbl'>
+                        <para>
+                            This invocation of
+                            <methodname>CSqliteStatement::execute</methodname>
+                            performs a <literal>CREATE TABLE</literal> SQL operation
+                            that creates a new database table.  Table creation
+                            is one of the intended use cases
+                            for the <methodname>CSqliteStatement::execute</methodname>
+                            method.
+                        </para>
+                    </callout>
+                    <callout arearefs='sqlitestmt_insertroot'>
+                        <para>
+                            This use of <methodname>CSqliteStatement::execute</methodname>
+                            inserts a record into the table. The record has an
+                             <literal>id</literal> of one, a
+                            <literal>NULL</literal> parent field, and an empty
+                            (not null but empty string) <literal>name</literal> field.
+                        </para>
+                        <para>
+                            If you think of this schema as describing a directory
+                            tree, this insertion could be the insertion of a
+                            root (top level) directory.
+                        </para>
+                    </callout>
+                </calloutlist>
+            </section>
+            <section>
+                <title>
+                    Executing statements with bound parameters and result sets.
+                </title>
+                <para>
+                    An SQL statement can be parameterized.  A parameter is
+                    a placeholder for an actual value in a statement such as
+                    <literal>SELECT</literal> or a <literal>INSERT</literal>
+                    statement.  Sqlite supports both named and numbered parameters.
+                    See the Sqlite documentation for the syntax of expressions
+                    for more information about how to specify parameters.
+                </para>
+                <para>
+                    A parameter is associated with an actual value via a process
+                    called binding.  Once parameters are bound, a statement can
+                    be executed and the result set, if any retrieved.
+                </para>
+                <para>
+                    libsqlite++ uses an overloaded <methodname>bind</methodname>
+                    method to bind parameters.  It uses an iterator model for
+                    fetching records in a result set and provides getters
+                    for various column types.
+                </para>
+                <para>
+                    All of this is probably best illustrated using an example.
+                    The example below uses the same schema described and produced
+                    in
+                    <link linkend='ex_sqlitestmt_execute' endterm='ex_sqlitestmt_execute_title' />.
+                    The schema produced in that example is assumed to be that of
+                    a directory tree.  The example finds the primary key (id) of
+                    the directory at a specific path.
+                </para>
+                <para>
+                    For the sake of simplicity, the example will assume that the
+                    directory path is valid, however the notes will show
+                    how to determine and describe what you might do if the path
+                    does not exist at some level.
+                </para>
+                <example>
+                    <title>Using prepared statements and result sets.</title>
+                    <programlisting>
+#include &lt;CSqlite.h&gt;
+#include &lt;CSqliteStatment.h&gt;
+#include &lt;string&gt;                 <co id='csqlite_prepstmt_includes' />
+#include &lt;vector&gt;
+
+int cd(CSqlite&amp; db, std::vector&lt;std::string&gt;&amp; path) <co id='csqlite_prepstmt_function' />
+{
+    int result;
+    int parent =1;                      <co id='csqlite_prepstmt_parentinit' />
+    CSQliteStatement s(                 <co id='csqlite_prepstmt_stmt' />
+        db,
+        "SELECT id FROM directory WHERE name = :name AND parent_id = :parent"
+    );
+    
+    for (int i =0; i &lt; path.size(); i++) {
+        s.bind(1, path[i].c_str());     <co id='csqlite_prepstmt_bindname' />
+        s.bind(2 parent);               <co id='csqlite_prepstmt_bindparent' />
+        ++s;                            <co id='csqlite_prepstmt_iterate' />
+        parent = s.getInt(0);           <co id='csqlite_prepstmt_fetchid' />
+        s.reset();                      <co id='csqlite_prepstmt_resetiteration' />
+        
+    }
+    return parent;                      <co id='csqlite_prepstmt_return' />
+}
+                    </programlisting>
+                </example>
+                <para>
+                    Before going over this example step my step, it's worth
+                    describing how the function works in general terms.
+                    Each record of the directory table has a
+                    <literal>parent_id</literal> column.  That column contains
+                    the primary key (value of the <literal>id</literal> column)
+                    of its parent directory.
+                </para>
+                <para>
+                    This means that as we follow the directory path downward,
+                    at each stage we need to find the id of the record whose
+                    <literal>name</literal> column matches
+                    that element of the path and has the parent id of the previous
+                    element.  This is slightly complicated by the fact that the
+                    first time we query, the parent id must be hard coded to 1.
+                </para>
+                <calloutlist>
+                    <callout arearefs='csqlite_prepstmt_includes'>
+                        <para>
+                            The <literal>string</literal> and <literal>vector</literal>
+                            headers will be used to define
+                            <classname>std::string</classname> and <classname>std::vector</classname>.
+                            This is because we don't want to bother parsing a path
+                            with path separators in this function, the path elements
+                            are going to be assumed to have been pre-parsed into
+                            a vector of strings.
+                        </para>
+                    </callout>
+                    <callout arearefs='csqlite_prepstmt_function'>
+                        <para>
+                            The <function>cd</function> example function
+                            is going to figure out the <literal>id</literal>
+                            field of the record that represents the directory
+                            at the end of a specific path.  For simplicity
+                            the function will assume that this directory does
+                            exist.
+                        </para>
+                        <para>
+                            To do this the function takes as input two parameters.
+                            The <parameter>db</parameter> parameter is a reference
+                            to the <classname>CSqlite</classname> object that represents
+                            a connection to the database.  The
+                            <parameter>path</parameter> parameter is the path to
+                            the directory we are looking for broken down one path
+                            element per vector element.
+                        </para>
+                    </callout>
+                    <callout arearefs='csqlite_prepstmt_parentinit'>
+                        <para>
+                            At any given time, the <varname>parent</varname>
+                            variable will have the value of the id of the
+                            parent of the path element we are searching for.
+                            The first path element is always a child of the
+                            root directory which has the <literal>id</literal>
+                            of <literal>1</literal>.
+                        </para>
+                        <para>
+                            Recall that the search strategy is to be iteratively
+                            searching for directories in the database whose parents
+                            match the id of the previous path element.
+                        </para>
+                    </callout>
+                    <callout arearefs='csqlite_prepstmt_stmt'>
+                        <para>
+                            This statement creates a prepared statement
+                            <varname>s</varname>. The statement is an
+                            SQL <literal>SELECT</literal> statement that
+                            specifies a query that must match a specific
+                            directory <literal>name</literal> and a
+                            specific <literal>parent_id</literal>.
+                        </para>
+                        <para>
+                            In Sqlite, named parameters are strings that
+                            start with <literal>:</literal>, thus 
+                            <literal>:name</literal> and <literal>:parent</literal>
+                            are named parameters that must be bound to actual
+                            values for the query to be meaningfully executed.
+                        </para>
+                        <para>
+                            In Sqlite bindings are by parameter number.  If all
+                            parameters are named, they are numbered left to right
+                            beginning with 1.  It is also possibel to use the
+                            <methodname>bindIndex</methodname> to determine the
+                            number of a parameter given its name.
+                        </para>
+                        <para>
+                            Refer to the Sqlite documentation for more about the
+                            forms parameters may take in statements and how they
+                            are numbered.
+                        </para>
+                    </callout>
+                    <callout arearefs='csqlite_prepstmt_bindname'>
+                        <para>
+                            This line binds the current path element to the
+                            first parameter (<literal>:name</literal>).
+                            It would also be correct to determine the variable
+                            number using <methodname>bindIndex</methodname>
+                            to bind as follows:
+                        </para>
+                        <programlisting>
+s.bind(s.bindIndex(":name"), path[i].c_str());                            
+                        </programlisting>
+                    </callout>
+                    <callout arearefs='csqlite_prepstmt_bindparent'>
+                        <para>
+                            This binds the <parameter>:parentt</parameter>'
+                            variable to the <varname>parent</varname> variable.
+                        </para>
+                    </callout>
+                    <callout arearefs='csqlite_prepstmt_iterate'>
+                        <para>
+                            Once all bindings have been made, the result
+                            set of a query can be iterated.  Iteration is
+                            performed via the pre-increment operator.
+                            Note that the postincrement operator is not defined
+                            for <classname>CSqliteStatement</classname>
+                        </para>
+                        <para>
+                            The <methodname>atEnd</methodname> method
+                            of <classname>CSqliteStatement</classname> indicates
+                            that there are no more rows in the result set.
+                            If we wanted to do better error checking, we should
+                            call <methodname>atEnd</methodname> after iteration
+                            in order to ensure that there actually is a record
+                            that matches.  This could be done like this:
+                        </para>
+                        <programlisting>
+if (++s.atEnd()) throw std::string("No such directory path");
+                        </programlisting>
+                        <para>
+                            If the query returns multiple rows, each
+                            pre-increment will return the next row until
+                            <methodname>atEnd()</methodname> is true.
+                            The result sets for a querys like this can be
+                            accumulated using e.g.:
+                        </para>
+                        <programlisting>
+while (!(++s.atEnd())) {
+  // pull out the fields and do what needs to be done.
+  ...
+}
+                        </programlisting>
+                    </callout>
+                    <callout arearefs='csqlite_prepstmt_fetchid'>
+                        <para>
+                            If an iteration has data, the
+                            <classname>CSqliteStatement</classname> class has
+                            a family of get methods that can return result fields.
+                            Result fields are numbered left to right and from zero
+                            (unlike bind parameters).  Thus this line
+                            fetches the <literal>id</literal> of the matching
+                            record into the <varname>parent</varname> variable
+                            setting up to bind it for the next pass through the loop.
+                        </para>
+                        <para>
+                            If you invoke a column get fundtion when
+                            <methodname>atEnd</methodname> is <literal>true</literal>
+                            the underlying Sqlite functions don't have a mechanism to
+                            report an error so your result will not be well defined.
+                        </para>
+                    </callout>
+                    <callout arearefs='csqlite_prepstmt_resetiteration'>
+                        <para>
+                            Prepared statements can executed several times
+                            with different bindings.  This is one advantage of preparing
+                            a statement, over using an immediate statement.  Once
+                            you begin iterating a prepared statement, however, it must
+                            be <methodname>reset</methodname> before it can be executed
+                            again with different (or even the same) bindings.
+                        </para>
+                    </callout>
+                    <callout arearefs='csqlite_prepstmt_return'>
+                        <para>
+                            Once we have itereated through all the path elements,
+                            the <varname>parent</varname> variable contains
+                            the <literal>id</literal> of the last path element
+                            which we return to the caller.
+                        </para>
+                    </callout>
+                </calloutlist>
+            </section>
+        </section>
+        <section>
+            <title>The CSqliteTransaction class</title>
+            <para>
+                In databases a transaction is a set of statements that either all succeed
+                or all fail.  Suppose you have several insertions you need to perform.
+                Suppose further that if you don't get them all done correctly,
+                the database will be inconsistent in some way.  Performing those
+                insertions inside a transaction is one way to ensure consistency.
+            </para>
+            <para>
+                In SQL databases transactions can be completed in two ways.
+                A transaction can be <firstterm>Committed</firstterm>, in which case
+                all of the statements performed in the body of the transaction
+                affect the database.  A transaction can also be <firstterm>Rolled back</firstterm>
+                in which case none of statements performed in the transaction have any effect.
+            </para>
+            <para>
+                Note that for the database connection that is performing the transaction,
+                any modifications will be reflected during the transaction.  That is
+                records inserted can be queried during the transaction, even if the
+                transaction is later rolled back.
+            </para>
+            <para>
+                Transactions are represented by the <classname>CSqliteTransaction</classname>
+                class.  This objects of this class begin a transaction when they are
+                created and end the transaction when they are destroyed.  By default
+                a transaction is committed when a <classname>CSqliteTransactino</classname> is
+                destroyed, however it is also possible to either rollback a transaction immediately
+                or schedule a transaction for rollback when the object is destroyed.
+            </para>
+            <para>
+                Our example is going to continue the directory database system we used in
+                the previous section. We are going to write a function that will create
+                a new directory path relative to a starting point.  For simplicity that
+                directory path will be relative to the starting point and only contain
+                directory names (e.g. <literal>something/../../../somethingelse</literal>
+                is not going to be used).
+            </para>
+            <para>
+                The example is a bit contrived.  As we add path elements, we check that
+                there is no existing path element at that point in the tree and rollback
+                if there is.  This example is contrived because it's really only possible
+                for that to happen with the first path element.
+            </para>
+            <example>
+                <title>libsqlite++ Transactions</title>
+                <programlisting>
+#include &lt;CSqlite.h&gt;
+#include &lt;CSqliteStatement.h&gt;
+#include &lt;CSqliteTransaction.h&gt;
+#include &lt;vector&gt;
+#include &lt;string&gt;
+
+void mkdir(CSqlite&amp; db, int parent, std::vector&lt;std::string&gt;&amp; path)
+{
+    CSqliteTransaction t(db);                              <co id='ctransction_create' />
+    CSqliteStatement   haveDup(db,                         <co id='ctransaction_dupfinder' />
+        "SELECT id FROM directory WHERE name = :name AND parent_id = :parent"
+    );
+    CSqliteStatement   inserter(db,                        <co id='ctransaction_inserter' />
+        "INSERT INTO directory (name, parent) VALUES (:name, :parent)"
+    );
+    
+    try {                                                  <co id='ctransaction_errortryblock' />
+        for (int i =0; i &lt; path.size(); i++) {
+            haveDup.bind(1, parent);
+            haveDup.bind(2, path[i]);
+            if (!(++s.atEnd())) {
+               throw std::string("Duplicate path");        <co id='ctransaction_throwfordup' />
+            }
+            haveDup.reset();
+            
+            inserter.bind(1, path[i]);
+            inserter.bind(2, parent);
+            ++inserter;                                    <co id='ctransaction_errorscanthrow' />
+            
+            parent = inserter.lastInsertId();              <co id='ctransaction_lastinsertid' />
+        }
+    }
+    catch(...) {
+        t.rollback();                                     <co id='ctransaction_rollback' />
+    }
+}                                                         <co id='ctransaction_destruction' />
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs='ctransction_create'>
+                    <para>
+                        This statement starts a transaction.  All SQL statements
+                        that are executed inside this transaction will either succeed
+                        as a group or fail as a group.
+                    </para>
+                </callout>
+                <callout arearefs='ctransaction_dupfinder'>
+                    <para>
+                        This prepared statement will be used to deteremine if a
+                        path element already exists.  A path element is uniquely
+                        defined by its name and its parent (where it lives in the
+                        directory tree).
+                    </para>
+                    <para>
+                        We really don't care about the details of the record if one
+                        is found.  We only care if there is a match.
+                    </para>
+                </callout>
+                <callout arearefs='ctransaction_inserter' >
+                    <para>
+                        This prepared statement will be used to insert new elements
+                        into the <literal>directory</literal> table.  Note that the
+                        primary key is not specified.  If a table has an integer primary
+                        key, and that key is not specified on an insert, SQLite will
+                        choose a unique primary key value for the inserted record.
+                    </para>
+                    <para>
+                        Allowing SQLite to make that choice for us ensures that our
+                        primary keys are unique (uniqueness is a requirement for
+                        primary keys).
+                    </para>
+                </callout>
+                <callout arearefs='ctransaction_errortryblock'>
+                    <para>
+                        We are going to report errors with exceptions.  It is not so
+                        evident from the code that there are actually two potential
+                        sources of exceptions.  The first is the explicit <literal>throw</literal>
+                        statement we'll discuss next.  The second are Sqlite statement
+                        execution failures which are reported via
+                        <classname>CSqliteException</classname> throws by the
+                        libsqlite++ library.
+                    </para>
+                </callout>
+                <callout arearefs='ctransaction_throwfordup'>
+                    <para>
+                        If iteration of the result for <varname>haveDup</varname>
+                        indicated that the result set is not empty, this
+                        <literal>throw</literal> is used to indicate that we should not
+                        perform the insertion.
+                    </para>
+                </callout>
+                <callout arearefs='ctransaction_errorscanthrow'>
+                    <para>
+                        This insert adds the next path element.  Note that if this
+                        statement fails, the library will throw an exception.
+                    </para>
+                </callout>
+                <callout arearefs='ctransaction_lastinsertid'>
+                    <para>
+                        When an insertion adds one or more records to a database
+                        table,  the <methodname>lastInsertId</methodname> returns
+                        the last primary key inserted.  Note that this is correct
+                        whether Sqlite assigned the primary keys or if the
+                        statement explicitly specified them.
+                    </para>
+                </callout>
+                <callout arearefs='ctransaction_rollback'>
+                    <para>
+                        If an exception was thrown (recall this can happen either
+                        if a duplicate path was detected of if the <literal>INSERT</literal>
+                        resulted in an error), control passes here.
+                        The <methodname>rollback</methodname> method performs a
+                        transaction rollback immediately.
+                    </para>
+                    <para>
+                        In some cases it may be that you want to rollback the transaction
+                        but not right away (suppose you have a function that performs part
+                        of the transaction and the caller performs another part of the transaction
+                        after your function returns).  The method <methodname>scheduleRollback</methodname>
+                        marks the transaction to be rolled back when destruction occurs rather than
+                        immediately.
+                    </para>
+                </callout>
+                <callout arearefs='ctransaction_destruction' >
+                    <para>
+                        At this point <varname>t</varname>, the transaction is destroyed.
+                        The destructor will do one of two things.
+                    </para>
+                    <itemizedlist>
+                        <listitem>
+                            <para>
+                                If an exception was thrown in the loop causing
+                                <methodname>rollback</methodname> to be called,
+                                the transaction is complete and no action will be taken
+                                by the destructor.
+                            </para>
+                        </listitem>
+                        <listitem>
+                            <para>
+                                If the loop completed normally, the transaction is
+                                still under way and, since <methodname>scheduleRollback</methodname>
+                                was not called, the transaction gets committed and all
+                                inserts make it into the database.
+                            </para>
+                            <para>
+                                Note that if there had been a path of control that called
+                                <methodname>scheduleRollback</methodname>, at this point
+                                the transaction would be rolled back and none of the inserts
+                                would make it into the database.
+                            </para>
+                        </listitem>
+                    </itemizedlist>
+                </callout>
+            </calloutlist>
+        </section>
+    </section>
+</chapter>
+<!-- /chapter -->
+
+<!-- manpage 3sqlite++ -->
+
+<refentry id='sqlite3_introduction'>
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id="sqlite3_introduction_title">Introduction</refentrytitle>
+     <manvolnum>3sqlite++</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>libsqlite3++</refname>
+     <refpurpose>C++ Sqlite wrappers.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+    <classname>CSqlite</classname>
+    <classname>CSqliteStatement</classname>
+    <classname>CSqliteTransaction</classname>
+    <classname>CSqliteException</classname>
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        The <filename>libsqlite3pp</filename> library
+        provides an object oriented encapsulation of the Sqlite3 database
+        library for C++ programmers.  The library provides three major
+        classes.
+     </para>
+     <formalpara>
+        <title><classname>CSqlite</classname></title>
+        <para>
+            Encapsulates a database connection.  It is normally  used
+            in constructing the other two classes.
+            See
+            <link linkend='sqlite3_csqlite' endterm='sqlite3_csqlite_title' />
+            for refrence information.
+        </para>
+     </formalpara>
+     <formalpara>
+        <title><classname>CSqliteStatement</classname></title>
+        <para>
+            Provides a static method fo immediately executing statements.
+            <classname>CSqliteStatement</classname> can also instantiate
+            prepared statements, bind parameters, and iterate over the result set.
+            See <link linkend='sqlite3_csqlitestatement' endterm='sqlite3_csqlitestatement_title' />
+        </para>
+     </formalpara>
+     <formalpara>
+        <title><classname>CSqliteTransaction</classname></title>
+        <para>
+            Provides support for auto-completed transaction.  Construction begins
+            a transaction and by default destruction commits.  It is also possible
+            to rollback, schedule a rollback for destruction time and to do an
+            immediate commit (prior to destruction).
+            For reference information see:
+            <link linkend="sqlite3_csqlitetransaction"
+                  endterm="sqlite3_csqlitetransaction_title" />
+        </para>
+     </formalpara>
+     <formalpara>
+        <title><classname>CSqliteException</classname></title>
+        <para>
+            Error conditions reported by the underlying sqlite3 library
+            are converted to <classname>CSqliteException</classname> objects
+            that are thrown as exceptions.  See
+            <link linkend='sqlite3_csqliteexception'
+                  endterm='sqlite3_csqliteexception_title' />
+            for reference information.
+        </para>
+     </formalpara>
+  </refsect1>
+</refentry>     
+<refentry id="sqlite3_csqlite">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='sqlite3_csqlite_title'> CSqlite</refentrytitle>
+     <manvolnum>3sqlite++</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>CSqlite</refname>
+     <refpurpose>Encapslated sqlite connecstion</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+#include &lt;CSqlite.h&gt;
+      <ooclass><classname>CSqlite</classname></ooclass> {
+      <constructorsynopsis>
+     <methodname>CSqlite</methodname>
+     <methodparam>
+        <modifier>const</modifier><type>char*</type><parameter>database</parameter>
+     </methodparam>
+     <exceptionname>CSqliteException</exceptionname>
+      </constructorsynopsis>
+     <constructorsynopsis>
+        <methodname>CSqlite</methodname>
+        <methodparam>
+           <modifier>const</modifier><type>char*</type><parameter>database</parameter>
+        </methodparam>
+        <methodparam>
+            <type>int</type><parameter>flags</parameter>
+        </methodparam>
+     </constructorsynopsis>
+     <methodsynopsis>
+         <modifier></modifier>
+         <type>sqlite3*</type>
+         <methodname>connection</methodname>
+         <void />
+     </methodsynopsis>  
+     <methodsynopsis>
+         <modifier>static const</modifier>
+         <type>char*</type>
+         <methodname>vesion</methodname>
+         <void />
+     </methodsynopsis>  
+     <methodsynopsis>
+         <modifier>static</modifier>
+         <type>int</type>
+         <methodname>versionNumber</methodname>
+     </methodsynopsis>
+     <methodsynopsis>
+        <modifier>static</modifier>
+        <type>void</type>
+        <methodname>checkStatus</methodname>
+        <methodparam>
+            <type>int</type><parameter>status</parameter>
+        </methodparam>
+        <exceptionname>CSqliteException</exceptionname>
+     </methodsynopsis>
+    static const int <varname>nomutex</varname>;
+    static const int <varname>fullmutex</varname>;
+    static const int <varname>sharedcache</varname>;
+    static const int <varname>privatecache</varname>;
+    static const int <varname>uri</varname>;
+    static const int <varname>readonly</varname>;
+    static const int <varname>readwrite</varname>;
+    static const int <varname>create</varname>;
+};     
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        Instances of this class represent Sqlite database connections.
+        Construction opens the connection via
+        <function>sqlite3_open_v2()</function>.
+        Destruction closes the connection via <function>sqlite3_close()</function>.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <constructorsynopsis>
+                  <methodname>CSqlite</methodname>
+                  <methodparam>
+                     <modifier>const</modifier><type>char*</type><parameter>database</parameter>
+                  </methodparam>
+                <exceptionname>CSqliteException</exceptionname>
+                </constructorsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Constructs an object by opening the database described
+                     by <parameter>database</parameter>.  For this form of
+                     construction <function>sqlite3_open()</function> is used
+                     which provides a defrault set of open flags.  For more
+                     control over how the database is opened see the next
+                     constructor below.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <constructorsynopsis>
+                  <methodname>CSqlite</methodname>
+                  <methodparam>
+                     <modifier>const</modifier><type>char*</type><parameter>database</parameter>
+                  </methodparam>
+                  <methodparam>
+                      <type>int</type><parameter>flags</parameter>
+                  </methodparam>
+               </constructorsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Constructs an object by opening the database described
+                    by <parameter>database</parameter>.  The
+                    <parameter>flags</parameter> parameter is
+                    the bitwise OR of any of the <literal>SQLITE_OPEN</literal>
+                    flags.  Note that for convenience, static membe variables
+                    provide synonyms for these flags. See
+                    <literal>PUBLIC VARIABLES, TYPES and CONSTANTS</literal>
+                    below for more information about these flags.
+                </para>
+                <para>
+                    <function>sqlite3_open_v2</function> is used to perform
+                    the actual open.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                   <modifier></modifier>
+                   <type>sqlite3*</type>
+                   <methodname>connection</methodname>
+                   <void />
+               </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns the underlying sqlite handle for the connection.
+                    this is provided to allow software to use features of the
+                    Sqlite API that are not supported by libsqlite++.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                   <modifier>static const</modifier>
+                   <type>char*</type>
+                   <methodname>vesion</methodname>
+                   <void />
+               </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns a pointer to a string that describes the
+                    version of sqlite that the library is wrapping.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                   <modifier>static</modifier>
+                   <type>int</type>
+                   <methodname>versionNumber</methodname>
+               </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Returns an integer value that represents the
+                    version of sqlite that the library is bound to.
+                    This wraps a call to <function>sqlite3_libversion_number()</function>
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                  <modifier>static</modifier>
+                  <type>void</type>
+                  <methodname>checkStatus</methodname>
+                  <methodparam>
+                      <type>int</type><parameter>status</parameter>
+                  </methodparam>
+                  <exceptionname>CSqliteException</exceptionname>
+               </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Takes a <parameter>status</parameter> returned as a
+                    status value from an sqlite api. If the <parameter>stats</parameter>
+                    is not normal, the function will throw an
+                    <classname>CSqliteException</classname>.
+                    For more information about this exception type see:
+                    <link linkend='sqlite3_csqliteexception'
+                          endterm='sqlite3_csqliteexception_title' />.
+                </para>
+            </listitem>
+        </varlistentry>
+
+     </variablelist>
+  </refsect1>
+   <refsect1>
+      <title>PUBLIC VARIABLES, TYPES and CONSTANTS</title>
+      <para>
+        The following are static member variables that are synonyms for the
+        <literal>SQLITE_OPEN_xxxx</literal> flags:
+      </para>
+      <variablelist>
+        <varlistentry>
+            <term>
+                static const int <varname>nomutex</varname>
+            </term>
+            <listitem>
+                <para>
+                    This is a synonym for
+                    <literal>SQLITE_OPEN_NOMUTEX</literal>
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                static const int <varname>fullmutex</varname>
+            </term>
+            <listitem>
+                <para>
+                    A synonym for
+                    <literal>SQLITE_OPEN_FULLMUTEX</literal>
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>static const int <varname>sharedcache</varname></term>
+            <listitem>
+                <para>
+                    A synonym for
+                    <literal>SQLITE_OPEN_SHAREDCACHE</literal>
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>static const int <varname>privatecache</varname>;</term>
+            <listitem>
+                <para>
+                    A synonym for
+                    <literal>SQLITE_OPEN_PRIVATECACHE</literal>
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>static const int <varname>uri</varname></term>
+            <listitem>
+                <para>
+                    A synonym for
+                    <literal>SQLITE_OPEN_URI</literal>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>static const int <varname>readonly</varname>;</term>
+            <listitem>
+                <para>
+                    A synonym for
+                    <literal>SQLITE_OPEN_READONLY</literal>
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>static const int <varname>readwrite</varname>;</term>
+            <listitem>
+                <para>
+                    A synonym for
+                    <literal>SQLITE_OPEN_READWRITE</literal>
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>static const int <varname>create</varname>;        </term>
+            <listitem>
+                <para>
+                    A synonym for
+                    <literal>SQLITE_OPEN_CREATE</literal>
+                </para>
+            </listitem>
+        </varlistentry>
+      </variablelist>
+   </refsect1>
+</refentry>
+<refentry id="sqlite3_csqlitestatement">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='sqlite3_csqlitestatement_title'>CSqliteStatement</refentrytitle>
+     <manvolnum>3sqlite</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>CSqliteStatement</refname>
+     <refpurpose>Immediate and prepared sqlite statements</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+#include &lt;CSqliteStatement.h&gt;
+        <ooclass><classname>CSqliteStatement</classname></ooclass> {
+        <constructorsynopsis>
+           <methodname>CSqliteStatement</methodname>
+           <methodparam>
+            <type>CSqlite&amp;</type><parameter>db</parameter>
+           </methodparam>
+           <methodparam>
+            <modifier>const</modifier><type>char*</type> <parameter>statement</parameter>
+           </methodparam>
+           <exceptionname></exceptionname>
+        </constructorsynopsis>
+        <methodsynopsis>
+            <modifier></modifier>
+            <type>CSqlite&amp;</type>
+            <methodname>database</methodname>
+            <void />
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier></modifier>
+            <type>sqlite3_stmt*</type>
+            <methodname>statement</methodname>
+            <void />
+        </methodsynopsis>  
+        <methodsynopsis>
+            <modifier>static</modifier>
+            <type>void</type>
+            <methodname>execute</methodname>
+            <methodparam>
+                <type>CSqlite&amp;</type> <parameter>connection</parameter>
+            </methodparam>
+            <methodparam>
+                <modifier>const </modifier><type>char*</type><parameter>statement</parameter>
+            </methodparam>
+            <exceptionname>CSqliteException</exceptionname>
+        </methodsynopsis>      
+        <methodsynopsis>
+            <modifier></modifier>
+            <type>int </type>
+            <methodname> bindIndex</methodname>
+            <methodparam>
+                <modifier>const</modifier><type>char*</type><parameter>name</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier></modifier>
+            <type>void</type>
+            <methodname>bind</methodname>
+            <methodparam>
+                <type>int</type><parameter> paramNo</parameter>
+            </methodparam>
+            <methodparam>
+                <modifier>const </modifier><type>void* </type><parameter>pBlob</parameter>
+            </methodparam>
+            <methodparam>
+                <type>int </type><parameter>nBytes</parameter>
+            </methodparam>
+            <methodparam>
+                <type>CSqliteStatement::ObjectDestructor </type><parameter>destructor</parameter>
+            </methodparam>
+            <exceptionname>CSqliteException</exceptionname>
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier></modifier>
+            <type>void </type>
+            <methodname>bind</methodname>
+            <methodparam>
+                <type>int </type><parameter>paramNo</parameter>
+            </methodparam>
+            <methodparam>
+                <modifier> const </modifier><type>void* </type><parameter>pBlob</parameter>
+            </methodparam>
+            <methodparam>
+                <type> uint64_t</type><parameter> nBytes</parameter>
+            </methodparam>
+            <methodparam>
+                <type>ObjectDestructor </type><parameter>destructor</parameter>
+            </methodparam>
+            <exceptionname>CSqliteException</exceptionname>
+            <modifier></modifier>
+        </methodsynopsis>  
+        <methodsynopsis>
+            <modifier></modifier>
+            <type>void </type>
+            <methodname>bind</methodname>
+            <methodparam>
+                <type>int </type><parameter>paramNo</parameter>
+            </methodparam>
+            <methodparam>
+                <type>double </type><parameter>value</parameter>
+            </methodparam>
+            <exceptionname>CSqliteException</exceptionname>
+            <modifier></modifier>
+        </methodsynopsis>  
+        <methodsynopsis>
+            <modifier></modifier>
+            <type>void </type>
+            <methodname>bind</methodname>
+            <methodparam>
+                <type>int </type><parameter>paramNo</parameter>
+            </methodparam>
+            <methodparam>
+                <type>int </type><parameter>value</parameter>
+            </methodparam>
+            <exceptionname>CSqliteException</exceptionname>
+            <modifier></modifier>
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier></modifier>
+            <type>void </type>
+            <methodname>bind</methodname>
+            <methodparam>
+                <type>int </type><parameter>paramNo</parameter>
+            </methodparam>
+            <methodparam>
+                <type>int64_t </type><parameter>value</parameter>
+            </methodparam>
+            <exceptionname>CSqliteException</exceptionname>
+            <modifier></modifier>
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier></modifier>
+            <type>void </type>
+            <methodname>bind</methodname>
+            <methodparam>
+                <type>int </type><parameter>paramNo</parameter>
+            </methodparam>
+            <exceptionname>CSqliteException</exceptionname>
+            <modifier></modifier>
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier></modifier>
+            <type>void </type>
+            <methodname>bind</methodname>
+            <methodparam>
+                <type>int </type><parameter>paramNo</parameter>
+            </methodparam>
+            <methodparam>
+                <modifier>const</modifier><type>char*</type>
+                <parameter> pValue</parameter>
+            </methodparam>
+            <methodparam>
+                 <type>int</type><parameter>nBytes</parameter>
+            </methodparam>
+            <methodparam>
+                <type>ObjectDestructor</type> <parameter>destructor</parameter>
+            </methodparam>
+            <exceptionname>CSqliteException</exceptionname>
+            <modifier></modifier>
+        </methodsynopsis>  
+        <methodsynopsis>
+            <modifier></modifier>
+            <type>void </type>
+            <methodname>bind</methodname>
+            <methodparam>
+                <type>int</type> <parameter>Paramno</parameter> 
+            </methodparam>
+            <methodparam>
+                <type>uint64_t</type> <parameter>nBytes</parameter>
+            </methodparam>
+            <exceptionname>CSqliteException</exceptionname>
+            <modifier></modifier>
+        </methodsynopsis>  
+        <methodsynopsis>
+            <modifier></modifier>
+            <type>void </type>
+            <methodname>clearBindings</methodname>
+            <void />
+        </methodsynopsis>  
+        <methodsynopsis>
+            <modifier></modifier>
+            <type>CSqliteStatement&amp; </type>
+            <methodname>operator++</methodname>
+            <void />
+            <exceptionname>CSqliteException</exceptionname>
+            <modifier></modifier>
+        </methodsynopsis>  
+        <methodsynopsis>
+            <modifier></modifier>
+            <type>void </type>
+            <methodname>reset</methodname>
+            <void />
+            <exceptionname>CSqliteException</exceptionname>
+            <modifier></modifier>
+        </methodsynopsis>  
+        <methodsynopsis>
+            <modifier></modifier>
+            <type>bool </type>
+            <methodname>atEnd</methodname>
+            <void />
+            <modifier></modifier>
+        </methodsynopsis>  
+        <methodsynopsis>
+            <modifier></modifier>
+            <type>int </type>
+            <methodname>bytes</methodname>
+            <methodparam>
+                <type>int </type><parameter>col</parameter>
+            </methodparam>
+            <modifier></modifier>
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier></modifier>
+            <type>int </type>
+            <methodname>bytes16</methodname>
+            <methodparam>
+                <type>int </type><parameter>col</parameter>
+            </methodparam>
+
+            <modifier></modifier>
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier>const </modifier>
+            <type>void* </type>
+            <methodname>getBlob</methodname>
+            <methodparam>
+                <type>int </type><parameter>col</parameter>
+            </methodparam>
+            <modifier></modifier>
+        </methodsynopsis>  
+        <methodsynopsis>
+            <modifier></modifier>
+            <type>double</type>
+            <methodname>getDouble</methodname>
+            <methodparam>
+                <type>int </type><parameter>col</parameter>
+            </methodparam>
+        
+            <modifier></modifier>
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier></modifier>
+            <type>int </type>
+            <methodname>getInt</methodname>
+            <methodparam>
+                <type>int </type><parameter>col</parameter>
+            </methodparam>
+            <modifier></modifier>
+        </methodsynopsis>  
+        <methodsynopsis>
+            <modifier></modifier>
+            <type>int64_t</type>
+            <methodname>getInt64</methodname>
+            <methodparam>
+                <type>int </type><parameter>col</parameter>
+            </methodparam>
+            
+            <modifier></modifier>
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier>const </modifier>
+            <type>unsigned char* </type>
+            <methodname>getText</methodname>
+            <methodparam>
+                <type>int </type><parameter>col</parameter>
+            </methodparam>
+            <modifier></modifier>
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier></modifier>
+            <type>int         </type>
+            <methodname>columnType</methodname>
+            <methodparam>
+                <type>int </type><parameter>col</parameter>
+            </methodparam>
+            <modifier></modifier>
+        </methodsynopsis>  
+        <methodsynopsis>
+            <modifier>const </modifier>
+            <type>char* </type>
+            <methodname>sql</methodname>
+            <void />
+            
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier></modifier>
+            <type>int   </type>
+            <methodname>lastInsertId</methodname>
+            <void />
+            <modifier></modifier>
+        </methodsynopsis>  
+
+    static const int <varname>integer;</varname>
+    static const int <varname>floating;</varname>
+    static const int <varname>text;</varname>
+    static const int <varname>blob;</varname>
+    static const int <varname>null;</varname>
+
+};
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        <classname>CSqliteStatement</classname> provides
+         a mechanism for executing SQL statements on an
+         open datbase connection.  Immediate execution
+         is supported via the <methodname>executino</methodname>
+         method.
+        Prepared statements are supported by instantiating a
+        <classname>CSqliteStatement</classname> object, binding
+        parameters as needed and iterating through the statement's
+        result set.
+     </para>
+     <para>
+        Most errors detected by the underying library get mapped
+        to <classname>CSqliteException</classname> objects thrown.
+        See
+        <link linkend='sqlite3_csqliteexception'
+              endterm='sqlite3_csqliteexception_title' />
+        for more informatino about this exception class..
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <constructorsynopsis>
+                    <methodname>CSqliteStatement</methodname>
+                    <methodparam>
+                     <type>CSqlite&amp;</type><parameter>db</parameter>
+                    </methodparam>
+                    <methodparam>
+                     <modifier>const</modifier><type>char*</type> <parameter>statement</parameter>
+                    </methodparam>
+                    <exceptionname></exceptionname>
+                 </constructorsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Contructs a prepared statement.  <parameter>db</parameter>
+                    must be a database connection object and will be the database
+                    on which the statement will execute.  <parameter>statement</parameter>
+                    is the SQL statement to execute.  
+                </para>
+                <para>
+                    The statement an have parameter placeholders.  See the SQLite documentation
+                    for the syntax of parameter placeholders.  Once created the statement
+                    won't execute until the result set is iterated the first time.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                     <modifier></modifier>
+                     <type>CSqlite&amp;</type>
+                     <methodname>database</methodname>
+                     <void />
+                 </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Returns a reference to the database connection object on which
+                    the statement was constructed.  
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                     <modifier></modifier>
+                     <type>sqlite3_stmt*</type>
+                     <methodname>statement</methodname>
+                     <void />
+                 </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns the statement handle object that SQLite creted when
+                    the statement was prepared.   This can be used to operate on
+                    the statement in ways that are not directly supported by the
+                    mapping library.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                     <modifier>static</modifier>
+                     <type>void</type>
+                     <methodname>execute</methodname>
+                     <methodparam>
+                         <type>CSqlite&amp;</type> <parameter>connection</parameter>
+                     </methodparam>
+                     <methodparam>
+                         <modifier>const </modifier><type>char*</type><parameter>statement</parameter>
+                     </methodparam>
+                     <exceptionname>CSqliteException</exceptionname>
+                 </methodsynopsis>   
+            </term>
+            <listitem>
+                <para>
+                    This static method is used to immediately execute the SQL <parameter>statement</parameter>
+                    on the specified database <parameter>connetion</parameter>.
+                </para>
+                <para>
+                    In order to use this method:
+                </para>
+                <itemizedlist>
+                    <listitem><para>
+                        The statement must not be parameterized.
+                    </para></listitem>
+                    <listitem><para>
+                        The statement either must not produce a result set or you must not
+                        care about the contents of the result set.
+                    </para></listitem>
+                </itemizedlist>
+                <para>
+                    All errors are thrown via <classname>CSqliteException</classname>
+                    objects.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                     <modifier></modifier>
+                     <type>int </type>
+                     <methodname> bindIndex</methodname>
+                     <methodparam>
+                         <modifier>const</modifier><type>char*</type><parameter>name</parameter>
+                     </methodparam>
+                 </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Determines the bind index of a named parameter placeholder.  Named parameter
+                    placeholders are of the form <literal>:parmetername</literal>.  When asking for
+                    the index the <literal>:</literal> must be included in the parameter
+                    <parameter>name</parameter>.
+                </para>
+                <para>
+                    If there is no matching parameter, <literal>0</literal> is used.  Non zero return
+                    values can be used for the <parameter>paramNo</parameter> parameter of the
+                    overloaded <methodname>bind</methodname> methods below, to bind that named parameter
+                    to a value.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                     <modifier></modifier>
+                     <type>void</type>
+                     <methodname>bind</methodname>
+                     <methodparam>
+                         <type>int</type><parameter> paramNo</parameter>
+                     </methodparam>
+                     <methodparam>
+                         <modifier>const </modifier><type>void* </type><parameter>pBlob</parameter>
+                     </methodparam>
+                     <methodparam>
+                         <type>int </type><parameter>nBytes</parameter>
+                     </methodparam>
+                     <methodparam>
+                         <type>CSqliteStatement::ObjectDestructor </type><parameter>destructor</parameter>
+                     </methodparam>
+                     <exceptionname>CSqliteException</exceptionname>
+                 </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Binds a <literal>blob</literal> to the parmeter placeholder indexed
+                    by <parameter>paramNo</parameter>.  <parameter>pBlob</parameter>
+                    points to the data in the blob (a blob is SQLspeak for uninterpreted
+                    binary data). The first <parameter>nBytes</parameter> of the data
+                    pointed to by <parameter>pBlob</parameter> are bound.
+                </para>
+                <para>
+                    The <parameter>destructor</parameter> parameter is a pointer to
+                    a function that knows how to release the data pointed to by
+                    <parameter>pBlob</parameter> when SQLite no longer needs it.
+                    The special values:
+                </para>
+                <variablelist>
+                    <varlistentry>
+                        <term><literal>SQLITE_STATIC</literal></term>
+                        <listitem>
+                            <para>
+                                Indicates that the blob data does not require any
+                                action when SQLITE is done it it.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><literal>SQLITE_TRANSIENT</literal></term>
+                        <listitem>
+                            <para>
+                                Indicates that the data may go out of scope
+                                or be modified before
+                                the statement executes, causing SQLite to make
+                                an internal copy of the data and to bind that copy
+                                rather than the original dta
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    
+                </variablelist>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                     <modifier></modifier>
+                     <type>void </type>
+                     <methodname>bind</methodname>
+                     <methodparam>
+                         <type>int </type><parameter>paramNo</parameter>
+                     </methodparam>
+                     <methodparam>
+                         <modifier> const </modifier><type>void* </type><parameter>pBlob</parameter>
+                     </methodparam>
+                     <methodparam>
+                         <type> uint64_t</type><parameter> nBytes</parameter>
+                     </methodparam>
+                     <methodparam>
+                         <type>ObjectDestructor </type><parameter>destructor</parameter>
+                     </methodparam>
+                     <exceptionname>CSqliteException</exceptionname>
+                     <modifier></modifier>
+                 </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Same as the previous method, however the <parameter>nBytes</parameter>,
+                    blob size is 64 bits wide permitting it to be used with blobs that
+                    are more than 4Gbytes in size.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                     <modifier></modifier>
+                     <type>void </type>
+                     <methodname>bind</methodname>
+                     <methodparam>
+                         <type>int </type><parameter>paramNo</parameter>
+                     </methodparam>
+                     <methodparam>
+                         <type>double </type><parameter>value</parameter>
+                     </methodparam>
+                     <exceptionname>CSqliteException</exceptionname>
+                     <modifier></modifier>
+                 </methodsynopsis> 
+            </term>
+            <listitem>
+                <para>
+                    Binds a double precision floating point
+                    <parameter>value</parameter> to the statement
+                    parameter at index <parameter>parNo</parameter>
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                     <modifier></modifier>
+                     <type>void </type>
+                     <methodname>bind</methodname>
+                     <methodparam>
+                         <type>int </type><parameter>paramNo</parameter>
+                     </methodparam>
+                     <methodparam>
+                         <type>int </type><parameter>value</parameter>
+                     </methodparam>
+                     <exceptionname>CSqliteException</exceptionname>
+                     <modifier></modifier>
+                 </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Binds an integer <parameter>value</parameter> to the
+                    parameter at index <parameter>paramNo</parameter>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                     <modifier></modifier>
+                     <type>void </type>
+                     <methodname>bind</methodname>
+                     <methodparam>
+                         <type>int </type><parameter>paramNo</parameter>
+                     </methodparam>
+                     <methodparam>
+                         <type>int64_t </type><parameter>value</parameter>
+                     </methodparam>
+                     <exceptionname>CSqliteException</exceptionname>
+                     <modifier></modifier>
+                 </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Binds a 64 bit integer <parameter>value</parameter>
+                    to the statement parameter indexed by
+                    <parameter>paramNo</parameter>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                     <modifier></modifier>
+                     <type>void </type>
+                     <methodname>bind</methodname>
+                     <methodparam>
+                         <type>int </type><parameter>paramNo</parameter>
+                     </methodparam>
+                     <exceptionname>CSqliteException</exceptionname>
+                     <modifier></modifier>
+                 </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Binds a <literal>NULL</literal> to the parameter at the index
+                    specified by <parameter>paramNo</parameter>.  Note that
+                    in SQLite, unbound parameters are also bound to
+                    <literal>NULL</literal> by default.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                     <modifier></modifier>
+                     <type>void </type>
+                     <methodname>bind</methodname>
+                     <methodparam>
+                         <type>int </type><parameter>paramNo</parameter>
+                     </methodparam>
+                     <methodparam>
+                         <modifier>const</modifier><type>char*</type>
+                         <parameter> pValue</parameter>
+                     </methodparam>
+                     <methodparam>
+                          <type>int</type><parameter>nBytes</parameter>
+                     </methodparam>
+                     <methodparam>
+                         <type>ObjectDestructor</type> <parameter>destructor</parameter>
+                     </methodparam>
+                     <exceptionname>CSqliteException</exceptionname>
+                     <modifier></modifier>
+                 </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Binds a character string (UTF-8 encoding) to the parameter
+                    indexed at <parameter>paramNo</parameter>.
+                    The string is pointed to by <parameter>pValue</parameter>.
+                    If <parameter>nBytes</parameter> is a positive integer it
+                    specifies the number of bytes that will be bound.  If negative,
+                    the entire string (up to the terminating null) is bound.
+                </para>
+                <para>
+                    As for blob bindings, <parameter>destructor</parameter>
+                    is a function or a special value that is called to  dispose
+                    of the storage pointed to by <parameter>pValue</parameter> when SQLite no
+                    longer needs it.  The special values are the same as for the blob
+                    binding destructor parameter.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                     <modifier></modifier>
+                     <type>void </type>
+                     <methodname>bind</methodname>
+                     <methodparam>
+                         <type>int</type> <parameter>paramNo</parameter> 
+                     </methodparam>
+                     <methodparam>
+                         <type>uint64_t</type> <parameter>nBytes</parameter>
+                     </methodparam>
+                     <exceptionname>CSqliteException</exceptionname>
+                     <modifier></modifier>
+                 </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Binds a blob consisting of <parameter>nBytes</parameter> of
+                    binary zeroes to the parameter specified by
+                    <parameter>paramNo</parameter>
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term></term>
+            <listitem>
+                <para>
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                     <modifier></modifier>
+                     <type>void </type>
+                     <methodname>clearBindings</methodname>
+                     <void />
+                 </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Removes all statement bindings, setting them back to
+                    <literal>NULL</literal>
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                     <modifier></modifier>
+                     <type>CSqliteStatement&amp; </type>
+                     <methodname>operator++</methodname>
+                     <void />
+                     <exceptionname>CSqliteException</exceptionname>
+                     <modifier></modifier>
+                 </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Iterates the result set.  The first iteration is what actually
+                    executes the statement.  Therefore even statements that don't
+                    produce a result set must be iterated at least once.
+                </para>
+                <para>
+                    If the iteration does not produce any data (end of the result set),
+                    after iteration, the <methodname>atEnd</methodname> method will
+                    return true.  Iteration can be re-started using the
+                    <methodname>reset</methodname> method.
+                    <methodname>reset</methodname> must also be called in order
+                    to execute the statement with new bindings for  its parameters.
+                </para>
+                <para>
+                    After each iteration the <methodname>get*</methodname> methods
+                    can be called to obtain data from each field of that recor in the
+                    result set...
+                </para>
+                <para>
+                    Note that this operator is a pre-increment operator not a post-increment
+                    operator.  Since it returns  reference to the object itself, one can
+                    do things like:
+                </para>
+                <programlisting>
+                    
+CSqliteStatement s(db, sql);                    
+...
+while(!++s.atEnd()) {
+   // process a record of the result set.
+}
+                </programlisting>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                     <modifier></modifier>
+                     <type>void </type>
+                     <methodname>reset</methodname>
+                     <void />
+                     <exceptionname>CSqliteException</exceptionname>
+                     <modifier></modifier>
+                 </methodsynopsis> 
+            </term>
+            <listitem>
+                <para>
+                    Resets the iteration of the statement.  The next
+                    iteration will return the first record in the result
+                    set again.  
+                </para>
+                <para>
+                    If you intend to bind new parameter values to a prepared
+                    statement <methodname>reset</methodname> must also be called
+                    prior to the first iteration of the result set.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                     <modifier></modifier>
+                     <type>bool </type>
+                     <methodname>atEnd</methodname>
+                     <void />
+                     <modifier></modifier>
+                 </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns <literal>true</literal> if the most recent
+                    iteration of the result set has no data. This will
+                    happen after the first iteration of a statement that
+                    either does not have a result set or produces an emtpy
+                    result set (e.g. Data definition language statements or
+                    queries like <literal>SELECT * FROM table WHERE 1=2</literal>).
+                </para>
+                <para>
+                    <methodname>atEnd</methodname> will also return
+                    <literal>true</literal> when iterating
+                    <emphasis>after</emphasis> iterating
+                    into the last record of the result set.  When
+                    <methodname>atEnd</methodname> is returning
+                    <literal>true</literal>, you should not call
+                    any of the column getters as their return values
+                    are at best meaningless.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                     <modifier></modifier>
+                     <type>int </type>
+                     <methodname>bytes</methodname>
+                     <methodparam>
+                         <type>int </type><parameter>col</parameter>
+                     </methodparam>
+                     <modifier></modifier>
+                 </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Returns the number of bytes that are needed to hold
+                    the data in column number <parameter>col</parameter>
+                    of the current record of the result set.  This is a
+                    wrapping of <function>sqlite3_column_bytes</function>.
+                    See the SQLite documentation of this function for more
+                    information about how it computes its result.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                 <methodsynopsis>
+                     <modifier></modifier>
+                     <type>int </type>
+                     <methodname>bytes16</methodname>
+                     <methodparam>
+                         <type>int </type><parameter>col</parameter>
+                     </methodparam>
+         
+                     <modifier></modifier>
+                 </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Same as <methodname>bytes</methodname> above, however
+                    the method can return the correct number of bytes
+                    required when the data is a UTF-16 string.  If the
+                    data stored in the <parameter>col</parameter>
+                    field is UTF-8, it si converted to UTF-16 for sizing.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                     <modifier>const </modifier>
+                     <type>void* </type>
+                     <methodname>getBlob</methodname>
+                     <methodparam>
+                         <type>int </type><parameter>col</parameter>
+                     </methodparam>
+                     <modifier></modifier>
+                 </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns a pointer to the blob stored in column
+                    <parameter>col</parameter> of the current element
+                    of the result set. The pointer is valid until
+                    either the next iteration is performed on the result
+                    set or <methodname>reset</methodname> resets the
+                    iteration.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                     <modifier></modifier>
+                     <type>double</type>
+                     <methodname>getDouble</methodname>
+                     <methodparam>
+                         <type>int </type><parameter>col</parameter>
+                     </methodparam>
+                 
+                     <modifier></modifier>
+                 </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Returns the double precision floating point
+                    value that is stored in column <parameter>col</parameter>.
+                    Note that SQLite's data types are loose.  Thus this will
+                    return something reasonable if the column contains an integer
+                    or even a VARCHAR that decodes as a float/double.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                     <modifier></modifier>
+                     <type>int </type>
+                     <methodname>getInt</methodname>
+                     <methodparam>
+                         <type>int </type><parameter>col</parameter>
+                     </methodparam>
+                     <modifier></modifier>
+                 </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns the integer
+                    representation of the value that is stored in column
+                    <parameter>col</parameter>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                     <modifier></modifier>
+                     <type>int64_t</type>
+                     <methodname>getInt64</methodname>
+                     <methodparam>
+                         <type>int </type><parameter>col</parameter>
+                     </methodparam>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Returns the 64 bit integer representation of the
+                    value that is stored in column
+                    <parameter>col</parameter>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                     <modifier>const </modifier>
+                     <type>unsigned char* </type>
+                     <methodname>getText</methodname>
+                     <methodparam>
+                         <type>int </type><parameter>col</parameter>
+                     </methodparam>
+                     <modifier></modifier>
+                 </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Returns a pointer to the text representation of
+                    the contents of column <parameter>col</parameter>
+                    in the current iteration of the result set.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                     <modifier></modifier>
+                     <type>int         </type>
+                     <methodname>columnType</methodname>
+                     <methodparam>
+                         <type>int </type><parameter>col</parameter>
+                     </methodparam>
+                     <modifier></modifier>
+                 </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns a value that indicates the 
+                    column type affinity for column <parameter>col</parameter>.
+                    See <literal>PUBLIC VARIABLES, TYPES AND CONSTANTS</literal>
+                    below for possible return values.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                     <modifier>const </modifier>
+                     <type>char* </type>
+                     <methodname>sql</methodname>
+                     <void />
+                     
+                 </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Returns a pointer to a string that is the SQL
+                    of the query.  If the query had parameter
+                    placeholders these won't be substituted
+                    even if they've been bound.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                     <modifier></modifier>
+                     <type>int   </type>
+                     <methodname>lastInsertId</methodname>
+                     <void />
+                     <modifier></modifier>
+                 </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns the value of the primary key
+                    (ROWID) of the most recently inserted item.  Note that if
+                    the primary key was explicitly given in the insert, that
+                    value is returned.  If the primary key was auto-generated,
+                    the autogenerated value is returned.
+                </para>
+            </listitem>
+        </varlistentry>
+     </variablelist>
+  </refsect1>
+   <refsect1>
+      <title>PUBLIC VARIABLES, TYPES and CONSTANTS</title>
+      <para>
+        The <methodname>columnType</methodname> returns the column type
+        affinity of the specified column of a query result set.  Note that
+        given the values inserted in a column and SQLites loose typing model
+        it is possible for the type affinity of a column to change from
+        iteration to interation of the result set.
+      </para>
+      <variablelist>
+        <varlistentry>
+            <term><varname>CSqliteStatement::integer</varname></term>
+            <listitem>
+                <para>
+                    The column's type affinity is an integer.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><varname>CSqliteStatement::floating</varname></term>
+            <listitem>
+                <para>
+                    The column's type affinity is a floating point value.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><varname>CSqliteStatement::text</varname></term>
+            <listitem>
+                <para>
+                    The column's type affinity is textual.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><varname>CSqliteStatement::blob</varname></term>
+            <listitem>
+                <para>
+                    The columns type affinity is that of a binary
+                    large object (BLOB).
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><varname>CSqliteStatement::null</varname></term>
+            <listitem>
+                <para>
+                    The column's value affinity is that of a null.
+                </para>
+            </listitem>
+        </varlistentry>
+         
+      </variablelist>
+   </refsect1>
+</refentry>
+<refentry id="sqlite3_csqlitetransaction">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='sqlite3_csqlitetransaction_title'>CSqliteTransaction</refentrytitle>
+     <manvolnum>3sqlite</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>CSqliteTransaction</refname>
+     <refpurpose>Transaction encapsulation</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+#include &lt;CSqliteTransaction.h&gt;
+       <ooclass><classname>CSqliteTransaction</classname></ooclass> {
+        <constructorsynopsis>
+           <methodname>CSqliteTransaction</methodname>
+           <methodparam>
+            <type>CSqlite&amp;</type> <parameter>db</parameter>
+           </methodparam>
+           <exceptionname>CSqliteException</exceptionname>
+        </constructorsynopsis>
+        <methodsynopsis>
+            <modifier></modifier>
+            <type>Void</type>
+            <methodname>rollback</methodname>
+            <void />
+            <exceptionname>CSqliteException</exceptionname>
+            <exceptionname>CSqliteTransaction::CException</exceptionname>
+            <modifier></modifier>
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier></modifier>
+            <type>void</type>
+            <methodname>scheduleRollback</methodname>
+            <void />
+            <exceptionname>CSqliteTransaction::CException</exceptionname>
+            <modifier></modifier>
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier></modifier>
+            <type>void</type>
+            <methodname>commit</methodname>
+            <void />
+            <exceptionname>CSqliteException</exceptionname>
+            <exceptionname>CSqliteTransaction::CException</exceptionname>
+            <modifier></modifier>
+        </methodsynopsis>  
+};
+      
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        In SQL databases a transaction is a sequence of one or more statements
+        that are atomic.  That is all the requested effects of a statement will
+        succeed or none will.  The <classname>CSqliteTransactino</classname> class
+        allows you to easily bracket a set of SQL operations within a transaction.
+     </para>
+     <para>
+        Instantiating a <classname>CSqliteTransaction</classname> begins a transaction.
+        from that point on, all of the statements within the transaction will either
+        succeed fully or all will fail.
+        By default, when destroyed, an <classname>CSqliteTransaction</classname>
+        object will commit the transaction.
+     </para>
+     <para>
+        Methods are also available to commit prior to destruction, rollback
+        prior to destruction or schedule a rollback at destruction time.
+        Note that in the presence of exceptions, some care must be taken
+        about he scope of the transaction since if a transaction is declared
+        within a  block there is danger that transaction
+        will be committed if an exception is thrown within that block.
+     </para>
+     <para>
+        This implies that a normal pattern of use for a transaction (assuming
+        that an exception should prompt a rollback is):
+     </para>
+     <informalexample>
+        <programlisting>
+...
+
+{
+    CSqliteTransaction t(db);                  // BEGIN
+    try {
+        // datababase operations go here
+    }
+    catch (...) {       // Or finer grained exception handling
+        t.rollback();   // or t.scheduleRollback();
+    }
+}                                            // END if no exceptions.
+        </programlisting>
+     </informalexample>
+     <para>
+        If the transaction were declared within the <literal>try</literal>
+        block above, there is a danger that if an exception were thrown, the
+        automatic destruction of the transaction might commit a partially
+        completed set of statements leaving the database in an inconsistent
+        state.
+     </para>
+     <para>
+        See <literal>METHODS</literal> below for more information about
+        the what you can do to influence what happens when an
+        <classname>CSqliteTransaction</classname> object is destroyed.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <constructorsynopsis>
+                   <methodname>CSqliteTransaction</methodname>
+                   <methodparam>
+                    <type>CSqlite&amp;</type> <parameter>db</parameter>
+                   </methodparam>
+                   <exceptionname>CSqliteException</exceptionname>
+                </constructorsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Constructs an <classname>CSqliteTransaction</classname>
+                    object on the database specified by <varname>db</varname>.
+                    A transaction is begun via the SQL statement
+                    <literal>BEGIN TRANSACTION</literal>.  Note that in SQLite,
+                    transaction may not be nested.
+                </para>
+                <para>
+                    The constructor can throw a <classname>CSqliteException</classname>
+                    object if executing the <literal>BEGIN TRANSACTION</literal>
+                    statement failed.
+                </para>
+                <para>
+                    Note that by default, the constructed object will
+                    commit the transaction on destruction via the statement
+                    <literal>END TRANSACTION</literal>.  This behavior can
+                    be modified by invoking the methods described below.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>Void</type>
+                    <methodname>rollback</methodname>
+                    <void />
+                    <exceptionname>CSqliteException </exceptionname>
+                    <exceptionname>CSqliteTransaction::CException</exceptionname>
+                    <modifier></modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Perfoms an immediate <literal>ROLLBACK</literal> on the
+                    transaction.  All statements executed so far within the
+                    scope of the transaction get rolled back and the database
+                    behaves as if those statements had never been executed.
+                </para>
+                <para>
+                    As this operation closes the transaction, the state of the
+                    <classname>CSqliteTransaction</classname> is modified so that
+                    destruction is a no-op.
+                </para>
+                <para>
+                    If the transaction has already been rolled back or committed,
+                    a <classname>CSqliteTransaction::CException</classname> is thrown.
+                    If a rollback is pending due to a prior call to
+                    <methodname>scheduleRollback</methodname> below the transaction
+                    is still rolled back immediately and again the object state is set so
+                    that destruction is a no-op.
+                </para>
+                <para>
+                    A <classname>CSqliteExceptino</classname> is thrown if the
+                    <literal>ROLLBACK</literal> fails to execute.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void</type>
+                    <methodname>scheduleRollback</methodname>
+                    <void />
+                    <exceptionname>CSqliteTransaction::CException</exceptionname>
+                    
+                    <modifier></modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Sets the internal state of the transaction so that instead
+                    of performing a <literal>COMMIT TRANSACTION</literal> on
+                    destruction, the object will perform a
+                    <literal>ROLLBACK</literal> when destroyed.
+                </para>
+                <para>
+                    If the transaction has already been completed via an
+                    explicit call to <methodname>commit</methodname>, or
+                    <methodname>rollback</methodname>, a
+                    <classname>CSqliteTransaction::CException</classname>
+                    is thrown.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void</type>
+                    <methodname>commit</methodname>
+                    <void />
+                    <exceptionname>CSqliteException</exceptionname>
+                    <exceptionname>CSqliteTransaction::CException</exceptionname>
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Performs an explicit <literal>COMMIT TRANSACTINO</literal>.
+                    The internal state of the transaction object is set so that
+                    destruction is a no-op.  
+                </para>
+                <para>
+                    If the <literal>COMMIT TRANSACTION</literal>  statement fails,
+                    a <classname>SqliteException</classname> object is thrown.
+                    If the transaction is laredy closed via a prior
+                    <methodname>commit</methodname> or <methodname>rollback</methodname>
+                    call, or if the transaction has been scheduled for rollback
+                    (via a prior <methodname>scheduleRollback</methodname> call)
+                    a <classname>CSqliteTransaction::CException</classname> is
+                    thrown.
+                </para>
+            </listitem>
+        </varlistentry>
+     </variablelist>
+  </refsect1>
+  <refsect1>
+    <title>NESTED CLASSES</title>
+    <para>
+        The nested class <classname>CException</classname> represents exceptions
+        that can be explicitly thrown by the <classname>CSqliteTransaction</classname>
+        (rather than exceptions thrown by statements performed by objects).
+        <classname>CException</classname> is derived from <classname>std::exception</classname>,
+        providing a <methodname>what</methodname> method that produces a human
+        readable error message string.
+    </para>
+  </refsect1>
+</refentry>     
+<refentry id="sqlite3_csqliteexception">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='sqlite3_csqliteexception_title'>CSqliteException</refentrytitle>
+     <manvolnum>3</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>CSqliteException</refname>
+     <refpurpose>Exceptions for SQLite errors.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+#include &lt;CSqliteException&gt;
+       <ooclass><classname>CSqliteException : public std::exception</classname></ooclass> {
+      <constructorsynopsis>
+        <methodname>CSqliteException</methodname>
+        <methodparam>
+           <type>int</type> <parameter>sqliteError</parameter>
+        </methodparam>
+      </constructorsynopsis>
+      <methodsynopsis>
+          <modifier></modifier>
+          <type>const char*</type>
+          <methodname>what</methodname>
+          <void />
+      </methodsynopsis>  
+};
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        Represents an error return code from an <literal>sqlite3</literal>
+        low level API call.  The constructor parameter is the error code
+        the function returned and the <methodname>what</methodname>
+        method provides a textual error message representing that code.
+     </para>
+  </refsect1>
+</refentry>     
+
+<!-- /manpage -->

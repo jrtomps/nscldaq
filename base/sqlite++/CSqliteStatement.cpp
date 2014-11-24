@@ -395,6 +395,17 @@ CSqliteStatement::sql()
 {
     return sqlite3_sql(m_statement);
 }
+
+/**
+ * lastInsertId
+ *     Returns the rowid of the most recent insert.
+ * @return int
+ */
+int
+CSqliteStatement::lastInsertId()
+{
+    return sqlite3_last_insert_rowid(m_connection.connection());
+}
 /**
  * execute
  *   Static method to execute an SQL statement that does not require

@@ -78,7 +78,7 @@ public:
     
     // Sqlite statements that don't need result sets or binding (e.g. ddl):
     
-    static void execute(CSqlite& CONNECTION, const char* statement);
+    static void execute(CSqlite& connection, const char* statement);
     
     // Binding parameters in prepared statements:
     // binding sqlite3_value's are defrerred for now
@@ -126,6 +126,7 @@ public:
     // Miscelaneous:
     
     const char* sql();                        // SQL of the statement.
+    int   lastInsertId();                     // Row Id of last insert.
     
     
     // private utilities.

@@ -80,6 +80,7 @@ class StatementTest : public CppUnit::TestFixture {
   // Statement properties:
   
   CPPUNIT_TEST(getsql);
+  CPPUNIT_TEST(lastid);
   
   // End of all tests.
   
@@ -125,6 +126,7 @@ protected:
   void colbytes16();
   
   void getsql();
+  void lastid();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(StatementTest);
@@ -883,4 +885,26 @@ void StatementTest::getsql()
     
     EQ(std::string(statement), std::string(s.sql()));
     
+}
+void StatementTest::lastid()
+{
+    CSqlite db(":memory:");
+    CSqliteStatement::execute(
+        db,
+        "CREATE TABLE g (                 \
+            id    INTEGER PRIMARY KEY,    \
+            data  VARCHAR(128)       \
+        )"
+    );
+    
+    // Insert a record:
+    
+    CSqliteStatement s(
+        db, "INSERT INTO g (id, data) VALUES (1, :data)"
+    );
+    const char* pData = "This is a test record";
+    s.bind(1, pData, -1, SQLITE_TRANSIENT);
+    ++s;
+    
+    EQ(1, s.lastInsertId());
 }
