@@ -25,7 +25,7 @@
  * @return CControlHardware* - Pointer to the created CVMUSBModule.
  */
 CControlHardware*
-CVMUSBCreator::operator()(std::string name)
+CVMUSBCreator::operator()()
 {
-  return new CVMUSBModule(name);
+  return new CVMUSBModule();
 }

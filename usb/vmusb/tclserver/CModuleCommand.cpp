@@ -130,22 +130,37 @@ CModuleCommand::create(CTCLInterpreter& interp,
 		       vector<CTCLObject>& objv)
 {
   if (objv.size() != 4) {
-    m_Server.setResult("Module create: Wrong number of params need: Module create type name");
+    string msg("Module create: Wrong number of params need: ");
+    msg += "Module create type name";
+    m_Server.setResult(msg);
     return TCL_ERROR;
   }
+
   string type = objv[2];
   string name = objv[3];
 
-  CControlHardware* pModule;
+  CControlModule* pConfig = m_Server.findModule(name);
+  if (pConfig!=nullptr) {
+    string msg = "Module create: Cannot create duplicate module of name \"";
+    msg += name;
+    msg += "\"";
+    m_Server.setResult(msg);
+
+    return TCL_ERROR;
+  }
+
+  // If we made it here, the module doesn't already exist. We can not safely 
+  // create it.
   CModuleFactory*   pFact = CModuleFactory::instance();
-  pModule  = pFact->create(type, name);
-  if (!pModule) {
+  CControlHardware* pHdwr = pFact->create(type);
+  if (!pHdwr) {
     m_Server.setResult("Module create: Invalid type, must be one of jtecgdg, caenv182, caenvg895, vmusb, v6533 ChicoTrigger, xlm");
     return TCL_ERROR;
   }
 
-  CControlModule*   pConfig = pModule->getConfiguration();
-  pModule->onAttach(*pConfig);
+  // Hardware was successfully created, wrap it into a CControlModule and
+  // register it with the TclServer
+  pConfig = new CControlModule(name,pHdwr);
   m_Server.addModule(pConfig);
   m_Server.setResult(name);
   

@@ -17,7 +17,7 @@ class CXLMControlsCreator : public ::CModuleCreator
 {
   public:
    /**! The factory method */
-   virtual CXLMControls* operator()(std::string name); 
+   virtual CXLMControls* operator()(); 
 };
 
 

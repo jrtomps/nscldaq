@@ -33,11 +33,11 @@ using namespace std;
    \param hardware : CControlHardware&
        The hardware that is configured by  us.
 */
-CControlModule::CControlModule(string name, CControlHardware& hardware) :
+CControlModule::CControlModule(string name, CControlHardware* pHardware) :
   CConfigurableObject(name),
-  m_pHardware(&hardware)
+  m_pHardware(pHardware)
 {
-  //  m_pHardware->onAttach(*this);
+   m_pHardware->onAttach(*this);
 }
 /*!
    Destroy a module. 
@@ -45,6 +45,7 @@ CControlModule::CControlModule(string name, CControlHardware& hardware) :
 CControlModule::~CControlModule()
 {
   // the CControlModule is owned by the hardware... 
+  delete m_pHardware;
 }
 
 /*! 
@@ -74,13 +75,6 @@ CControlModule::operator=(const CControlModule& rhs)
   }
   return *this;
 }
-
-CControlModule*
-CControlHardware::getConfiguration()
-{
-  return m_pConfig;
-}
-
 
 /*!
   Do post configuration initialiation.

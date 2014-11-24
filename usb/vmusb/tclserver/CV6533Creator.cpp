@@ -23,7 +23,7 @@
  */
 
 CControlHardware*
-CV6533Creator::operator()(std::string name)
+CV6533Creator::operator()()
 {
-  return new CV6533(name);
+  return new CV6533();
 }

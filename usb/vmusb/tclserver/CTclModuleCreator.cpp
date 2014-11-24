@@ -31,7 +31,7 @@
  * @return CControlHardware* Pointer to the newly created module.
  */
 CControlHardware*
-CTclModuleCreator::operator()(std::string name)
+CTclModuleCreator::operator()()
 {
-  return new CTclControlModule(name);
+  return new CTclControlModule();
 }

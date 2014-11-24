@@ -73,7 +73,7 @@ class CVMUSBModule : public CControlHardware
 {
   // Canonical operations:
 public:
-  CVMUSBModule(std::string name);
+  CVMUSBModule();
   CVMUSBModule(const CVMUSBModule& rhs);
   virtual ~CVMUSBModule();
   CVMUSBModule& operator=(const CVMUSBModule& rhs);

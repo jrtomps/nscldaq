@@ -46,8 +46,8 @@ Const(Control)    0x101c;
  * Construction pretty much does nothing
  * we are stateless.
  */
-ChicoTrigger::ChicoTrigger(string name) :
-  CControlHardware(name),
+ChicoTrigger::ChicoTrigger() :
+  CControlHardware(),
   m_pConfiguration(0)
 {
 }

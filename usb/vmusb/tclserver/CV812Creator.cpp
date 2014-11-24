@@ -25,7 +25,7 @@
  * @return CControlHardware* - pointer to a CV812
  */
 CControlHardware*
-CV812Creator::operator()(std::string name)
+CV812Creator::operator()()
 {
-  return new CV812(name);
+  return new CV812();
 }

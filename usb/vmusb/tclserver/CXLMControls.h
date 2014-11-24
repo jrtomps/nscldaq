@@ -32,7 +32,7 @@ namespace XLM
 class CXLMControls : public ::CControlHardware
 {
   public:
-  CXLMControls(std::string name);
+  CXLMControls();
 
   virtual void clone( const CControlHardware& rhs);
 

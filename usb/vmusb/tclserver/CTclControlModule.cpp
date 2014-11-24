@@ -28,8 +28,8 @@
  *
  * @param name - name of the module we are creating.
  */
-CTclControlModule::CTclControlModule(std::string name) :
-  CControlHardware(name)
+CTclControlModule::CTclControlModule() :
+  CControlHardware()
 {
 }
 /**

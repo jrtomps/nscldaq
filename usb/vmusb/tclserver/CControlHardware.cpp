@@ -1,6 +1,6 @@
 /*
     This software is Copyright by the Board of Trustees of Michigan
-    State University (c) Copyright 2005.
+    State University (c) Copyright 2014.
 
     You may use this software under the terms of the GNU public license
     (GPL).  The terms of this license are described at:
@@ -8,7 +8,7 @@
      http://www.gnu.org/licenses/gpl.txt
 
      Author:
-             Ron Fox
+       Ron Fox
 	     NSCL
 	     Michigan State University
 	     East Lansing, MI 48824-1321
@@ -28,26 +28,27 @@ using std::string;
 // is equivalent to any other..let the derived classes sort out subtle differences.
 //
 
-CControlHardware::CControlHardware(string name)
+CControlHardware::CControlHardware()
+  : m_pConfig(nullptr)
 {
-    m_pConfig = new CControlModule(name, *this);
 }
+
+//
 CControlHardware::CControlHardware(const CControlHardware& rhs)
+  : m_pConfig(rhs.m_pConfig)
 {
-  CControlModule* pModule = rhs.m_pConfig;
-  m_pConfig = new CControlModule(pModule->getName(), *this);
 }
+
 CControlHardware::~CControlHardware()
 {
-  delete m_pConfig;
+  // m_pConfig is not owned by this.
 }
 
 CControlHardware&
 CControlHardware::operator=(const CControlHardware& rhs)
 {
   if(this != &rhs) {
-    delete m_pConfig;
-    m_pConfig = new CControlModule(rhs.m_pConfig->getName(), *this);
+    m_pConfig = rhs.m_pConfig;
   }
   return *this;
 }
@@ -56,7 +57,7 @@ CControlHardware::operator=(const CControlHardware& rhs)
 int
 CControlHardware::operator==(const CControlHardware& rhs) const
 {
-  return TRUE;
+  return (m_pConfig == rhs.m_pConfig);
 }
 
 int 

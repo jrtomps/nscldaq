@@ -65,7 +65,7 @@ public:
 
 public:
   void addCreator(std::string type, CModuleCreator* pCreator);
-  CControlHardware* create(std::string type, std::string name);
+  CControlHardware* create(std::string type);
 
 
 };

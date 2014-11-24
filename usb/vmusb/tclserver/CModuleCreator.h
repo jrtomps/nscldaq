@@ -40,7 +40,7 @@ class CControlHardware;
 class CModuleCreator
 {
 public:
-  virtual CControlHardware* operator()(std::string name) = 0; // Concrete classes must implement.
+  virtual CControlHardware* operator()() = 0; // Concrete classes must implement.
 };
 
 

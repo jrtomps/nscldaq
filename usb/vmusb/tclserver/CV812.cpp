@@ -66,8 +66,8 @@ Const(FixedCodeValue) 0xfaf5;
 /*!
    construct the beast.. The shadow registers will all get set to zero
 */
-CV812::CV812(string name) :
-  CControlHardware(name),
+CV812::CV812() :
+  CControlHardware(),
   m_pConfiguration(0),
   m_is812(true)
 {

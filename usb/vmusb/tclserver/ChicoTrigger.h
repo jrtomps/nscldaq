@@ -58,7 +58,7 @@ private:
 public:
   // Cannonical operations:
 
-  ChicoTrigger(std::string name);
+  ChicoTrigger();
   ChicoTrigger(const ChicoTrigger& rhs);
   virtual ~ChicoTrigger();
   ChicoTrigger& operator=(const ChicoTrigger& rhs);

@@ -49,22 +49,36 @@ class CControlModule;
 class CControlHardware
 {
 protected:
-  CControlModule* m_pConfig;
+  CControlModule* m_pConfig; //!< not owned by this.
 public:
   // Canonicals:
 
-  CControlHardware(std::string name);
+  CControlHardware();
   CControlHardware(const CControlHardware& rhs);
   virtual ~CControlHardware();
+
   CControlHardware& operator=(const CControlHardware& rhs);
   int operator==(const CControlHardware& rhs) const;
   int operator!=(const CControlHardware& rhs) const;
 public:
-  CControlModule* getConfiguration();
+
+  /**! Retrieve the configuration
+   *
+   * If this has not been attached yet, then it returns nullptr.
+   * Otherwise, it returns the CControlModule that contains its 
+   * configuration.
+   */
+  CControlModule* getConfiguration() { return m_pConfig;}
 
   // Pure virtuals the concrete class must override.
 
 public:
+  /**! Create the configuration for the hardware. 
+   *
+   * A CControlModule initially has no configuration parameters. It is 
+   * the hardware that tells it what configuration parameters are required.
+   * That happens in this method.
+   */
   virtual void onAttach(CControlModule& configuration) = 0;  //!< Create config.
   virtual void Initialize(CVMUSB& vme);	                     //!< Optional initialization.
   virtual std::string Update(CVMUSB& vme) = 0;               //!< Update module.

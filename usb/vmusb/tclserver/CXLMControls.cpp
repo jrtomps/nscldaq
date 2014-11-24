@@ -17,8 +17,8 @@ namespace XLM
 /////////////////////// SLOW CONTROLS FOR FIRMWARE LOADS //////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-CXLMControls::CXLMControls(string name)
-  : CControlHardware(name)
+CXLMControls::CXLMControls()
+  : CControlHardware()
 {}
 
 void CXLMControls::onAttach(CControlModule& config)

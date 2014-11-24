@@ -60,7 +60,7 @@ private:
 public:
   // Cannonical operations:
 
-  CGDG(std::string name);
+  CGDG();
   CGDG(const CGDG& rhs);
   virtual ~CGDG();
   CGDG& operator=(const CGDG& rhs);

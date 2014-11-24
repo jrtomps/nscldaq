@@ -62,7 +62,7 @@ public:
 
   // Canonicals
 
-  CControlModule(std::string name, CControlHardware& hardware);
+  CControlModule(std::string name, CControlHardware* hardware);
   virtual ~CControlModule();
   CControlModule(const CControlModule& rhs);
   CControlModule& operator=(const CControlModule& rhs);
@@ -85,6 +85,8 @@ public:
   void addMonitorList(CVMUSBReadoutList& vmeList);
   void* processMonitorList(void* pData, size_t remaining);
   std::string getMonitoredData();
+
+  CControlHardware* getHardware() { return m_pHardware; }
 
 };
 

@@ -11,7 +11,7 @@ class CControlModule;
 class CMxDCRCBus : public ::CControlHardware
 {
   public:
-    CMxDCRCBus(std::string name);
+    CMxDCRCBus();
 
     virtual void clone(const CControlHardware& rhs);
 

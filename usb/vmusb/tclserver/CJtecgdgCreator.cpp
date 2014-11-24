@@ -26,7 +26,7 @@
  * @return CControlHardware* - Pointer to a CGDG.
  */
 CControlHardware*
-CJtecgdgCreator::operator()(std::string name)
+CJtecgdgCreator::operator()()
 {
-  return new CGDG(name);
+  return new CGDG();
 }

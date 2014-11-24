@@ -123,7 +123,7 @@ public:
   void            start(int port, const char* configFile, CVMUSB& vme);
   CControlModule* findModule(std::string name);
   void            addModule(CControlModule* pNewModule);
-  void            setResult(std::string resultText);
+  virtual void            setResult(std::string resultText); // virtual for testing purposes only
   void            processMonitorList(void* pData, size_t nBytes);
   void QueueBuffer(void* pBuffer);
 

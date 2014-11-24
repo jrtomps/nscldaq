@@ -10,9 +10,9 @@ namespace XLM
 /////////////////////// CXLMControlsCreator ///////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-CXLMControls* CXLMControlsCreator::operator()(std::string name)
+CXLMControls* CXLMControlsCreator::operator()()
 {
-  return new CXLMControls(name);
+  return new CXLMControls();
 }
 
 

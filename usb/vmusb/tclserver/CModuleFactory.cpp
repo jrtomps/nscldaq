@@ -86,11 +86,11 @@ CModuleFactory::addCreator(std::string type, CModuleCreator* pCreator)
  * @retval NULL - no such type.
  */
 CControlHardware*
-CModuleFactory::create(std::string type, std::string name)
+CModuleFactory::create(std::string type)
 {
   std::map<std::string, CModuleCreator*>::iterator p = m_Creators.find(type);
   if (p != m_Creators.end()) {
-    return (*(p->second))(name);
+    return (*(p->second))();
   } else {
     return 0;
   }

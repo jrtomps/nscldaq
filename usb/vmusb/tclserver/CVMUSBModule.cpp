@@ -39,8 +39,8 @@ using namespace std;
  * need the configuration.
  * @param name - Name of the module supplied in the script.
  */
-CVMUSBModule::CVMUSBModule(string name) :
-  CControlHardware(name)
+CVMUSBModule::CVMUSBModule() :
+  CControlHardware()
 {}
 /**
  * Copy construction

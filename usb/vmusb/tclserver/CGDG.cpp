@@ -126,8 +126,8 @@ CONST(SEL_4)        24;
   Construction is pretty much a no-op as the configuration is 
   handled at attach time.
 */
-CGDG::CGDG(string name) :
-  CControlHardware(name),
+CGDG::CGDG() :
+  CControlHardware(),
   m_pConfiguration(0)
 {
   for (int i=0; i < 8; i++) {

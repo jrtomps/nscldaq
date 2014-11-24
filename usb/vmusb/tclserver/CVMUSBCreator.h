@@ -32,7 +32,7 @@
 class CVMUSBCreator : public CModuleCreator
 {
 public:
-  virtual CControlHardware* operator()(std::string name);
+  virtual CControlHardware* operator()();
 };
 
 #endif

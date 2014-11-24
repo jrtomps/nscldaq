@@ -25,7 +25,7 @@
  * @return CControlHardware*
  */
 CControlHardware*
-CChicoTriggerCreator::operator()(std::string name)
+CChicoTriggerCreator::operator()()
 {
-  return new ChicoTrigger(name);
+  return new ChicoTrigger();
 }

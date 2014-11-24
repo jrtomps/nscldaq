@@ -73,7 +73,7 @@ private:
 
   // Canonical methods:
 public:
-  CV6533(std::string name);
+  CV6533();
   CV6533(const CV6533& rhs);
   virtual ~CV6533();
 

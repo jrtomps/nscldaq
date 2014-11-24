@@ -119,8 +119,8 @@ static const uint8_t amod = CVMUSBReadoutList::a32PrivData;
  * with the monitored registers.  We will just let those
  * populate as the update/monitor list runs.
  */
-CV6533::CV6533(string name) :
-  CControlHardware(name),
+CV6533::CV6533() :
+  CControlHardware(),
   m_pConfiguration(0)
 {
 }

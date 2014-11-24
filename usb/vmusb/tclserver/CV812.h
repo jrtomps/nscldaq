@@ -86,7 +86,7 @@ private:
 public:
   // canonicals:
 
-  CV812(std::string name);
+  CV812();
   CV812(const CV812& rhs);
   virtual ~CV812();
 

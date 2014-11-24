@@ -57,7 +57,7 @@ class CTCLInterpreter;
 class CTclControlModule :  public CControlHardware
 {
 public:
-  CTclControlModule(std::string name);
+  CTclControlModule();
   
 public:
   virtual void onAttach(CControlModule& configuration);
