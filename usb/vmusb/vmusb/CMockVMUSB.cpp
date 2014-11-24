@@ -14,7 +14,7 @@ CMockVMUSB::CMockVMUSB()
     m_opRecord(), 
     m_registers(),
     m_registerNames(),
-    m_returnData(8192)
+    m_returnData()
 {
   setUpRegisterMap();
   setUpRegisterNameMap();
