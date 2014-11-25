@@ -3,6 +3,7 @@ package provide mcfd16rc 1.0
 
 package require snit
 package require Utils
+package require usbcontrolclient
 
 ## A class that formulates RC commands for the MCFD-16 and initializes a
 #  transaction
@@ -222,10 +223,42 @@ snit::type MCFD16RC {
 
 snit::type MXDCRCProxy {
 
-  variable _comObject
+  option -module 
+  option -devno 
 
-  constructor {comObject} {
+  component _comObject
+  delegate option * to _comObject
+
+  constructor {args} {
+    install _comObject using controlClient %AUTO% 
+    $self configurelist $args
   }
 
+  destructor {
+  }
+
+  method Transaction {args} {
+    set paramAddr [lindex $args 0]
+    set param [$self _formatParameter [$self cget -devno] $paramAddr]
+
+    set result ""
+    if {[llength $args]==2} {
+      set result [$_comObject Set [$self cget -module] $param [lindex $args 1]]
+    } elseif {[llength $args]==1} {
+      set result [$_comObject Get [$self cget -module] $param]
+    } else {
+      set msg "MXDCRCProxy::Transaction Incorrect number of arguments "
+      append msg "provided. Only 1 or 2 arguments allowed."
+      return -code error $msg
+    }
+
+    return $result
+  }
+
+  method getComObject {} { return $_comObject}
+
+  method _formatParameter {devNo paramAddr} {
+    return "d${devNo}a${paramAddr}"
+  }
 
 }

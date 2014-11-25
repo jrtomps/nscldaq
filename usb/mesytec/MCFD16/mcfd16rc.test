@@ -395,7 +395,83 @@ tcltest::test computeAddress-0 {Given a parameter and ch, return proper addr
 } -result {2 64 69 52}
 
 
+#------------
+
+###############################################################################
+###############################################################################
+###############################################################################
+
+# 
+
+snit::type controlClient {
+  option -host
+  option -port
+  option -returnval -default "OK"
+  
+  variable _log
+  
+  constructor {args} {
+    $self configurelist $args
+
+    set _log [list]
+  }
+
+  method Set {dev param val} { 
+    lappend _log [list Set $dev $param $val];
+    return [$self cget -returnval]
+  }
+  method Get {dev param} { 
+    lappend _log [list Get $dev $param]  
+    return [$self cget -returnval]
+  }
+
+  method getLog {} {return $_log}
+}
 
 
+tcltest::test mxdcrc_transaction-0 { Test for a Set command
+} -setup {
+  MXDCRCProxy ::dev -module rcbus -devno 8 
+} -cleanup {
+  ::dev destroy
+} -body {
+  ::dev Transaction 14 0 ; # address and value provided implies Set
+
+  [::dev getComObject] getLog
+} -result {{Set rcbus d8a14 0}}
+
+tcltest::test mxdcrc_transaction-1 { Test for a Get command
+} -setup {
+  MXDCRCProxy ::dev -module rcbus -devno 8 
+} -cleanup {
+  ::dev destroy
+} -body {
+  ::dev Transaction 20  ; # only an address provided implies Get
+
+  [::dev getComObject] getLog
+} -result {{Get rcbus d8a20}}
+
+tcltest::test mxdcrc_transaction-2 { Failure for improper argument list
+} -setup {
+  MXDCRCProxy ::dev -module rcbus -devno 8 
+} -cleanup {
+  ::dev destroy
+} -body {
+  ::dev Transaction ; # no arguments is an error
+
+} -result "MXDCRCProxy::Transaction Incorrect number of arguments provided. Only 1 or 2 arguments allowed." \
+-returnCodes 1
+
+
+
+
+tcltest::test mxdcrc_formparam-0 { Format parameter from devno and param addr
+} -setup {
+  MXDCRCProxy ::dev -module rcbus -devno 8 
+} -cleanup {
+  ::dev destroy
+} -body {
+  ::dev _formatParameter 8 27
+} -result d8a27
 
 tcltest::cleanupTests
