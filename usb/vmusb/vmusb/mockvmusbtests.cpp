@@ -28,6 +28,7 @@ class CMockVMUSBTests : public CppUnit::TestFixture {
   CPPUNIT_TEST (executeList_0); 
   CPPUNIT_TEST (executeList_1); 
   CPPUNIT_TEST (executeList_2); 
+  CPPUNIT_TEST (executeList_3); 
   CPPUNIT_TEST (globalMode_0); 
   CPPUNIT_TEST (eventsPerBuffer_0); 
   CPPUNIT_TEST_SUITE_END();
@@ -46,6 +47,7 @@ class CMockVMUSBTests : public CppUnit::TestFixture {
   void executeList_0(); 
   void executeList_1(); 
   void executeList_2(); 
+  void executeList_3(); 
   void globalMode_0(); 
   void eventsPerBuffer_0();
 
@@ -116,7 +118,8 @@ void CMockVMUSBTests::executeList_1() {
 void CMockVMUSBTests::executeList_2() 
 {
   vector<uint16_t> data = {0, 1, 2, 3};
-  m_pCtlr->setReturnData(data.begin(), data.end());
+  std::vector<uint16_t>& buffer0 = m_pCtlr->createReturnDataStructure();
+  buffer0.insert(buffer0.end(), data.begin(), data.end());
 
   CVMUSBReadoutList list; // a dummy list
   uint16_t buffer[32];
@@ -127,6 +130,42 @@ void CMockVMUSBTests::executeList_2()
   for (size_t element=0; element<4; ++element) {
     CPPUNIT_ASSERT_EQUAL(data[element],buffer[element]);
   }
+}
+
+/**  Set up for multiple reads and provide the data to be read back on each.
+ *  These are independent sets of data to return for subsequent executeList.
+ *
+ */
+void CMockVMUSBTests::executeList_3() 
+{
+  vector<uint16_t> data0 = {0, 1, 2, 3};
+  std::vector<uint16_t>& buffer0= m_pCtlr->createReturnDataStructure();
+  buffer0.insert(buffer0.end(), data0.begin(), data0.end());
+
+  // create a new buffer to store data in
+  std::vector<uint16_t>& buffer1 = m_pCtlr->createReturnDataStructure();
+  std::vector<uint16_t> data1 = {4, 5};
+  // add the data to the new buffer
+  buffer1.insert(buffer1.end(), data1.begin(), data1.end());
+
+  CVMUSBReadoutList list; // a dummy list
+  uint16_t buffer[32];
+  size_t nBytesRead;
+
+  // Read the first bit of data.
+  m_pCtlr->executeList(list, buffer, sizeof(buffer), &nBytesRead);
+  CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(8), nBytesRead);
+  for (size_t element=0; element<4; ++element) {
+    CPPUNIT_ASSERT_EQUAL(data0[element],buffer[element]);
+  }
+
+  // Read the second bit of data.
+  m_pCtlr->executeList(list, buffer, sizeof(buffer), &nBytesRead);
+  CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(4), nBytesRead);
+  for (size_t element=0; element<2; ++element) {
+    CPPUNIT_ASSERT_EQUAL(data1[element],buffer[element]);
+  }
+
 }
 
 
