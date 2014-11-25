@@ -31,6 +31,8 @@ class CMockVMUSBTests : public CppUnit::TestFixture {
   CPPUNIT_TEST (executeList_3); 
   CPPUNIT_TEST (globalMode_0); 
   CPPUNIT_TEST (eventsPerBuffer_0); 
+  CPPUNIT_TEST (addReturnDatum_0);
+  CPPUNIT_TEST (addReturnData_0);
   CPPUNIT_TEST_SUITE_END();
 
   private:
@@ -50,6 +52,9 @@ class CMockVMUSBTests : public CppUnit::TestFixture {
   void executeList_3(); 
   void globalMode_0(); 
   void eventsPerBuffer_0();
+
+  void addReturnDatum_0();
+  void addReturnData_0();
 
 };
 
@@ -204,4 +209,31 @@ void CMockVMUSBTests::eventsPerBuffer_0() {
   CPPUNIT_ASSERT_EQUAL(writeValue, readValue);
 }
 
+
+void CMockVMUSBTests::addReturnDatum_0() {
+  vector<vector<uint16_t> >& retData = m_pCtlr->getReturnData();
+
+  CPPUNIT_ASSERT(0 == retData.size());
+
+  m_pCtlr->addReturnDatum(25);
+
+  CPPUNIT_ASSERT(1 == retData.size());
+  CPPUNIT_ASSERT(1 == retData.front().size());
+  CPPUNIT_ASSERT(25 == retData.front().at(0));
+}
+
+void CMockVMUSBTests::addReturnData_0() {
+  vector<vector<uint16_t> >& retData = m_pCtlr->getReturnData();
+
+  CPPUNIT_ASSERT(0 == retData.size());
+
+  std::vector<uint16_t> data = {0,1,2};
+  m_pCtlr->addReturnData(data);
+
+  CPPUNIT_ASSERT(1 == retData.size());
+  CPPUNIT_ASSERT(3 == retData.front().size());
+  CPPUNIT_ASSERT(0 == retData.front().at(0));
+  CPPUNIT_ASSERT(1 == retData.front().at(1));
+  CPPUNIT_ASSERT(2 == retData.front().at(2));
+}
 

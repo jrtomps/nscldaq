@@ -102,17 +102,9 @@ void CMxDCRCBusTests::activate_0() {
 void CMxDCRCBusTests::set_0() 
 {
   // fill the return data
-  vector<uint16_t> returnData0 = {1};
-  vector<uint16_t>& buffer0 = m_pCtlr->createReturnDataStructure();
-  buffer0.insert(buffer0.end(), returnData0.begin(), returnData0.end());
-
-  vector<uint16_t> returnData1= {48};
-  vector<uint16_t>& buffer1 = m_pCtlr->createReturnDataStructure();
-  buffer1.insert(buffer1.end(), returnData1.begin(), returnData1.end());
-
-  vector<uint16_t> returnData2= {48};
-  vector<uint16_t>& buffer2 = m_pCtlr->createReturnDataStructure();
-  buffer2.insert(buffer2.end(), returnData2.begin(), returnData2.end());
+  m_pCtlr->addReturnDatum(1);
+  m_pCtlr->addReturnDatum(48);
+  m_pCtlr->addReturnDatum(48);
 
   // provide dev number, address
   CMxDCRCBus* hdwr = static_cast<CMxDCRCBus*>(m_pModule->getHardware());
@@ -143,9 +135,7 @@ void CMxDCRCBusTests::set_0()
 void CMxDCRCBusTests::get_0() 
 {
   // setup what we expect the VM-USB to return to us
-  vector<uint16_t> returnData = {0,23};
-  vector<uint16_t>& buffer0 = m_pCtlr->createReturnDataStructure();
-  buffer0.insert(buffer0.end(), returnData.begin(), returnData.end());
+  m_pCtlr->addReturnData({0,23});
 
   // execute the Get command
   CMxDCRCBus* hdwr = static_cast<CMxDCRCBus*>(m_pModule->getHardware());
@@ -308,3 +298,4 @@ void CMxDCRCBusTests::initialize_0 ()
   CPPUNIT_ASSERT(expected == record);
 
 }
+

@@ -296,3 +296,16 @@ void CMockVMUSB::fillReturnData(void* pBuffer, size_t bufSize, size_t* nbytes)
     returnData.erase(begin, end);
   }
 }
+
+void CMockVMUSB::addReturnDatum(uint16_t datum) 
+{
+  vector<uint16_t> returnData = {datum};
+  vector<uint16_t>& buffer = createReturnDataStructure();
+  buffer.insert(buffer.end(), returnData.begin(), returnData.end());
+}
+void CMockVMUSB::addReturnData(std::vector<uint16_t> data) 
+{
+  vector<uint16_t>& buffer = createReturnDataStructure();
+  buffer.insert(buffer.end(), data.begin(), data.end());
+}
+

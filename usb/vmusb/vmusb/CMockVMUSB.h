@@ -54,6 +54,9 @@ class CMockVMUSB : public CVMUSB
       return m_returnData;
     };
 
+    void addReturnDatum(uint16_t datum);
+    void addReturnData(std::vector<uint16_t> datum);
+
     private:
      void setUpRegisterMap(); 
      void setUpRegisterNameMap(); 
