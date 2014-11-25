@@ -23,12 +23,12 @@ snit::type MCFD16RC {
     }
 
     set adr [$type ComputeAddress threshold $ch]
-    return [$_proxy Transaction [list $adr $val]]
+    return [$_proxy Write $adr $val]
   }
 
   method GetThreshold {ch} {
     set adr [$type ComputeAddress threshold $ch]
-    return [$_proxy Transaction $adr]
+    return [$_proxy Read $adr]
   }
 
   method SetPolarity {ch negpos} {
@@ -43,12 +43,18 @@ snit::type MCFD16RC {
     }
 
     set adr [$type ComputeAddress polarity $ch]
-    return [$_proxy Transaction [list $adr $val]]
+    return [$_proxy Write $adr $val]
   }
 
   method GetPolarity {ch} {
     set adr [$type ComputeAddress polarity $ch]
-    return [$_proxy Transaction $adr]
+    set val [$_proxy Read $adr]
+    if {[catch {dict get {0 pos 1 neg} $val} res]} {
+      set msg "MCFD16RC::GetPolarity Value returned by module not understood. "
+      append msg "Expected 0 or 1 but received $val."
+      return -code error $msg
+    }
+    return $res
   }
 
   method SetGain {chpair val} {
@@ -59,12 +65,12 @@ snit::type MCFD16RC {
     }
 
     set adr [$type ComputeAddress gain $chpair]
-    return [$_proxy Transaction [list $adr $val]]
+    return [$_proxy Write $adr $val]
   }
 
   method GetGain {chpair} {
     set adr [$type ComputeAddress gain $chpair]
-    return [$_proxy Transaction $adr]
+    return [$_proxy Read $adr]
   }
 
   method SetWidth {chpair val} {
@@ -75,12 +81,12 @@ snit::type MCFD16RC {
     }
 
     set adr [$type ComputeAddress width $chpair]
-    return [$_proxy Transaction [list $adr $val]]
+    return [$_proxy Write $adr $val]
   }
 
   method GetWidth {chpair} {
     set adr [$type ComputeAddress width $chpair]
-    return [$_proxy Transaction $adr]
+    return [$_proxy Read $adr]
   }
 
   method SetDeadtime {chpair val} {
@@ -91,12 +97,12 @@ snit::type MCFD16RC {
     }
 
     set adr [$type ComputeAddress deadtime $chpair]
-    return [$_proxy Transaction [list $adr $val]]
+    return [$_proxy Write $adr $val]
   }
 
   method GetDeadtime {chpair} {
     set adr [$type ComputeAddress deadtime $chpair]
-    return [$_proxy Transaction $adr]
+    return [$_proxy Read $adr]
   }
 
   method SetDelay {chpair val} {
@@ -107,12 +113,12 @@ snit::type MCFD16RC {
     }
 
     set adr [$type ComputeAddress delay $chpair]
-    return [$_proxy Transaction [list $adr $val]]
+    return [$_proxy Write $adr $val]
   }
 
   method GetDelay {chpair} {
     set adr [$type ComputeAddress delay $chpair]
-    return [$_proxy Transaction $adr]
+    return [$_proxy Read $adr]
   }
   method SetFraction {chpair val} {
 
@@ -127,13 +133,20 @@ snit::type MCFD16RC {
     }
 
     set adr [$type ComputeAddress fraction $chpair]
-    return [$_proxy Transaction [list $adr $val]]
+    return [$_proxy Write $adr $val]
 
   }
 
   method GetFraction {chpair} {
     set adr [$type ComputeAddress fraction $chpair]
-    return [$_proxy Transaction $adr]
+    set val [$_proxy Read $adr]
+
+    if {[catch {dict get {0 20 1 40} $val} res]} {
+      set msg "MCFD16RC::GetFraction Value returned by module not understood. "
+      append msg "Expected 0 or 1 but received $val."
+      return -code error $msg
+    }
+    return $res
   }
 
   method SetMode {mode} {
@@ -149,12 +162,12 @@ snit::type MCFD16RC {
     }
 
     set adr [dict get $offsetsMap mode]
-    return [$_proxy Transaction [list $adr $val]]
+    return [$_proxy Write $adr $val]
   }
 
   method GetMode {} {
     set adr [dict get $offsetsMap mode]
-    return [$_proxy Transaction $adr]
+    return [$_proxy Read $adr]
   }
 
   method EnablePulser {pulser} {
@@ -165,17 +178,17 @@ snit::type MCFD16RC {
     }
 
     set adr [dict get $offsetsMap pulser]
-    return [$_proxy Transaction [list $adr $pulser]]
+    return [$_proxy Write $adr $pulser]
   }
 
   method DisablePulser {} {
     set adr [dict get $offsetsMap pulser]
-    return [$_proxy Transaction [list $adr 0]]
+    return [$_proxy Write $adr 0]
   }
 
   method PulserEnabled {} {
     set adr [dict get $offsetsMap pulser]
-    return [$_proxy Transaction [list $adr]]
+    return [$_proxy Read $adr]
   }
 
   method SetChannelMask {mask} {
@@ -185,12 +198,12 @@ snit::type MCFD16RC {
       return -code error $msg
     }
     set adr [dict get $offsetsMap mask]
-    return [$_proxy Transaction [list $adr $mask]]
+    return [$_proxy Write $adr $mask]
   }
 
   method GetChannelMask {} {
     set adr [dict get $offsetsMap mask]
-    return [$_proxy Transaction [list $adr]]
+    return [$_proxy Read $adr]
   }
 
   method EnableRC {on} {
@@ -201,12 +214,12 @@ snit::type MCFD16RC {
 
     set on [string is true $on]
     set adr [dict get $offsetsMap rc]
-    return [$_proxy Transaction [list $adr $on]]
+    return [$_proxy Write $adr $on]
   }
 
   method RCEnabled {} {
     set adr [dict get $offsetsMap rc]
-    return [$_proxy Transaction [list $adr]]
+    return [$_proxy Read $adr]
   }
 
 
@@ -279,22 +292,31 @@ snit::type MXDCRCProxy {
   destructor {
   }
 
-  method Transaction {args} {
-    set paramAddr [lindex $args 0]
-    set param [$self _formatParameter [$self cget -devno] $paramAddr]
+  method Transaction {paramAddr {val {}}} {
 
     set result ""
-    if {[llength $args]==2} {
-      set result [$_comObject Set [$self cget -module] $param [lindex $args 1]]
-    } elseif {[llength $args]==1} {
-      set result [$_comObject Get [$self cget -module] $param]
+    if {$val eq {}} {
+#      puts "Get $paramAddr $val"
+      set result [$self Read $paramAddr] 
     } else {
-      set msg "MXDCRCProxy::Transaction Incorrect number of arguments "
-      append msg "provided. Only 1 or 2 arguments allowed."
-      return -code error $msg
-    }
+#      puts "Set $paramAddr $val"
+      set result [$self Write $paramAddr $val]
+    
+    } 
 
     return $result
+  }
+
+  method Write {paramAddr val} {
+    after 40
+    set param [$self _formatParameter [$self cget -devno] $paramAddr]
+    set result [$_comObject Set [$self cget -module] $param $val] 
+  }
+
+  method Read {paramAddr} {
+    after 40 
+    set param [$self _formatParameter [$self cget -devno] $paramAddr]
+    return [$_comObject Get [$self cget -module] $param]
   }
 
   method getComObject {} { return $_comObject}

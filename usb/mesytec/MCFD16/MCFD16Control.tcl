@@ -4,6 +4,7 @@ lappend auto_path $here
 
 package require mcfd16usb
 package require mcfd16gui
+package require mcfd16rc
 
 ################## GLOBAL STUFF #############################################
 #
@@ -44,7 +45,9 @@ grid columnconfigure .info {0 1} -weight 1
 #grid rowconfigure .info {2} -weight 1
 
 
-MCFD16USB dev2 /dev/ttyUSB0
+#MCFD16USB dev2 /dev/ttyUSB0
+MXDCRCProxy proxy -server localhost -port 27000 -module rcbus -devno 0
+MCFD16RC dev2 proxy
 
 set control [MCFD16ControlPanel .ctl -handle ::dev2]
 PulserPresenter pulserCtlr [PulserView .pulser] dev2

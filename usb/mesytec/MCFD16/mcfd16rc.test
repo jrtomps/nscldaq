@@ -12,17 +12,18 @@ package require snit
 snit::type FakeRCProxy {
 
   variable _record 
+  option -returnval 0
 
   constructor {} { set _record [list] }
 
   method Write {adr val} { lappend _record "Write $adr $val" }
-  method Read {adr} { lappend _record "Read $adr" }
-  method Transaction arglist {
-    set script "Transaction"
-    foreach arg $arglist {
-      append script " $arg"
+  method Read {adr} { lappend _record "Read $adr" ; return [$self cget -returnval]}
+  method Transaction {paramAddr {val ""}} {
+    set message "Transaction $paramAddr"
+    if {$val ne ""} {
+      append message " $val" 
     }
-    lappend _record $script
+    lappend _record $message
   }
   method getRecord {} { return $_record }
 }
@@ -52,7 +53,7 @@ tcltest::test threshold-0 {Writing threshold for good param does correct thing
   ::dev SetThreshold 16 255 
 
   ::comObj getRecord
-} -result {{Transaction 0 20} {Transaction 3 40} {Transaction 64 255}}
+} -result {{Write 0 20} {Write 3 40} {Write 64 255}}
 
 tcltest::test threshold-1 {Writing threshold with bad channel fails
 } -setup {
@@ -81,7 +82,7 @@ tcltest::test threshold-3 {Reading threshold does the proper thing w/ valid ch
   ::dev GetThreshold 3 
   ::dev GetThreshold 16
   ::comObj getRecord
-} -result {{Transaction 3} {Transaction 64}}
+} -result {{Read 3} {Read 64}}
 
 tcltest::test threshold-4 {Reading threshold from bad channel fails
 } -setup {
@@ -106,7 +107,7 @@ tcltest::test polarity-0 {Write polarity does the correct thing
   ::dev SetPolarity 8 neg
 
   ::comObj getRecord
-} -result {{Transaction 56 0} {Transaction 60 1} {Transaction 70 1}}
+} -result {{Write 56 0} {Write 60 1} {Write 70 1}}
 
 tcltest::test polarity-1 {Write polarity val for bad channel pair --> fail
 } -setup {
@@ -136,7 +137,7 @@ tcltest::test polarity-3 {Read polarity does the correct thing
   ::dev GetPolarity 8
 
   ::comObj getRecord
-} -result {{Transaction 56} {Transaction 70}}
+} -result {{Read 56} {Read 70}}
 
 tcltest::test polarity-4 {Read polarity val for bad channel pair --> fail
 } -setup {
@@ -160,7 +161,7 @@ tcltest::test gain-0 {Writing gain val for good param does correct thing
   ::dev SetGain 8 2
 
   ::comObj getRecord
-} -result {{Transaction 16 0} {Transaction 20 1} {Transaction 65 2}}
+} -result {{Write 16 0} {Write 20 1} {Write 65 2}}
 
 tcltest::test gain-1 {Writing gain with bad channel fails
 } -setup {
@@ -191,7 +192,7 @@ tcltest::test gain-3 {Reading gain val for good chan does correct thing
   ::dev GetGain 8
 
   ::comObj getRecord
-} -result {{Transaction 16} {Transaction 20} {Transaction 65}}
+} -result {{Read 16} {Read 20} {Read 65}}
 
 tcltest::test gain-4 {Reading gain with bad channel fails
 } -setup {
@@ -215,7 +216,7 @@ tcltest::test width-0 {Writing width for good param does correct thing
   ::dev SetWidth 8 120
 
   ::comObj getRecord
-} -result {{Transaction 24 13} {Transaction 27 255} {Transaction 66 120}}
+} -result {{Write 24 13} {Write 27 255} {Write 66 120}}
 
 tcltest::test width-1 {Writing width with bad channel fails
 } -setup {
@@ -246,7 +247,7 @@ tcltest::test width-3 {Reading width val for good chan does correct thing
   ::dev GetWidth 8
 
   ::comObj getRecord
-} -result {{Transaction 24} {Transaction 28} {Transaction 66}}
+} -result {{Read 24} {Read 28} {Read 66}}
 
 tcltest::test width-4 {Reading width with bad channel fails
 } -setup {
@@ -271,7 +272,7 @@ tcltest::test deadtime-0 {Writing deadtime for good param does correct thing
   ::dev SetDeadtime 8 120
 
   ::comObj getRecord
-} -result {{Transaction 32 13} {Transaction 35 255} {Transaction 67 120}}
+} -result {{Write 32 13} {Write 35 255} {Write 67 120}}
 
 tcltest::test deadtime-1 {Writing deadtime with bad channel fails
 } -setup {
@@ -302,7 +303,7 @@ tcltest::test deadtime-3 {Reading deadtime val for good chan does correct thing
   ::dev GetDeadtime 8
 
   ::comObj getRecord
-} -result {{Transaction 32} {Transaction 36} {Transaction 67}}
+} -result {{Read 32} {Read 36} {Read 67}}
 
 tcltest::test deadtime-4 {Reading deadtime with bad channel fails
 } -setup {
@@ -326,7 +327,7 @@ tcltest::test delay-0 {Writing delay for good param does correct thing
   ::dev SetDelay 8 4
 
   ::comObj getRecord
-} -result {{Transaction 40 1} {Transaction 43 2} {Transaction 68 4}}
+} -result {{Write 40 1} {Write 43 2} {Write 68 4}}
 
 tcltest::test delay-1 {Writing delay with bad channel fails
 } -setup {
@@ -357,7 +358,7 @@ tcltest::test delay-3 {Reading delay val for good chan does correct thing
   ::dev GetDelay 8
 
   ::comObj getRecord
-} -result {{Transaction 40} {Transaction 44} {Transaction 68}}
+} -result {{Read 40} {Read 44} {Read 68}}
 
 tcltest::test delay-4 {Reading delay with bad channel fails
 } -setup {
@@ -381,7 +382,7 @@ tcltest::test fraction-0 {Writing fraction for good param does correct thing
   ::dev SetFraction 8 20
 
   ::comObj getRecord
-} -result {{Transaction 48 0} {Transaction 51 1} {Transaction 69 0}}
+} -result {{Write 48 0} {Write 51 1} {Write 69 0}}
 
 tcltest::test fraction-1 {Writing fraction with bad channel fails
 } -setup {
@@ -412,7 +413,7 @@ tcltest::test fraction-3 {Reading fraction for good channel does correct thing
   ::dev GetFraction 8
 
   ::comObj getRecord
-} -result {{Transaction 48} {Transaction 51} {Transaction 69}}
+} -result {{Read 48} {Read 51} {Read 69}}
 
 tcltest::test fraction-4 {Writing fraction with bad channel fails
 } -setup {
@@ -435,7 +436,7 @@ tcltest::test mode-0 {Setting mode does what we expect
   ::dev SetMode individual 
   
   ::comObj getRecord
-} -result  {{Transaction 72 0} {Transaction 72 1}}
+} -result  {{Write 72 0} {Write 72 1}}
 
 tcltest::test mode-1 {Setting mode with invalid argument fails
 } -setup {
@@ -456,7 +457,7 @@ tcltest::test mode-2 {Reading mode does what we expect
   ::dev GetMode
   
   ::comObj getRecord
-} -result  {{Transaction 72}}
+} -result  {{Read 72}}
 
 #---------
 
@@ -470,7 +471,7 @@ tcltest::test pulser-0 {Enabling pulser creates appropriate command
   ::dev EnablePulser 2 ; # enable 1.22 kHz pulser
 
   ::comObj getRecord
-} -result {{Transaction 118 1} {Transaction 118 2}}
+} -result {{Write 118 1} {Write 118 2}}
 
 
 tcltest::test pulser-1 {Enabling the pulser with an invalid arg fails
@@ -492,7 +493,7 @@ tcltest::test pulser-2 {Disabling the pulser creates the appropriate command
 } -body {
   ::dev DisablePulser ; # pulser arg can only be 1 or 2
   ::comObj getRecord
-} -result {{Transaction 118 0}}
+} -result {{Write 118 0}}
 
 tcltest::test pulser-3 {Reading pulser pulser creates the appropriate command
 } -setup {
@@ -502,7 +503,7 @@ tcltest::test pulser-3 {Reading pulser pulser creates the appropriate command
 } -body {
   ::dev PulserEnabled 
   ::comObj getRecord
-} -result {{Transaction 118}}
+} -result {{Read 118}}
 #---------
 
 tcltest::test channelmask-0 {Setting channel mask
@@ -514,7 +515,7 @@ tcltest::test channelmask-0 {Setting channel mask
   ::dev SetChannelMask 255 ; #  disable channels 0-15
 
   ::comObj getRecord
-} -result {{Transaction 83 255}}
+} -result {{Write 83 255}}
 
 tcltest::test channelmask-1 {Writing invalid value to  channel mask fails
 } -setup {
@@ -537,7 +538,7 @@ tcltest::test channelmask-2 {Reading channel mask with bad bank value fails
   ::dev GetChannelMask ; 
 
   ::comObj getRecord
-} -result {{Transaction 83}}
+} -result {{Read 83}}
 
 #---------
 
@@ -550,7 +551,7 @@ tcltest::test enablerc-0 {Make sure that we can enable rc
   ::dev EnableRC on ;# rc mode takes any boolean type as arg
   ::dev EnableRC false
   ::comObj getRecord
-} -result {{Transaction 73 1} {Transaction 73 0}}
+} -result {{Write 73 1} {Write 73 0}}
 
 tcltest::test enablerc-1 {Make sure that non-boolean arg fails
 } -setup {
@@ -570,7 +571,7 @@ tcltest::test rcenabled-0 {Reading state of rc forms the correct cmd
 } -body {
   ::dev RCEnabled
   ::comObj getRecord
-} -result {{Transaction 73}}
+} -result {{Read 73}}
 
 
 #---------
@@ -629,7 +630,7 @@ tcltest::test mxdcrc_transaction-0 { Test for a Set command
 } -cleanup {
   ::dev destroy
 } -body {
-  ::dev Transaction 14 0 ; # address and value provided implies Set
+  ::dev Transaction 14 0; # address and value provided implies Set
 
   [::dev getComObject] getLog
 } -result {{Set rcbus d8a14 0}}
@@ -644,18 +645,6 @@ tcltest::test mxdcrc_transaction-1 { Test for a Get command
 
   [::dev getComObject] getLog
 } -result {{Get rcbus d8a20}}
-
-tcltest::test mxdcrc_transaction-2 { Failure for improper argument list
-} -setup {
-  MXDCRCProxy ::dev -module rcbus -devno 8 
-} -cleanup {
-  ::dev destroy
-} -body {
-  ::dev Transaction ; # no arguments is an error
-
-} -result "MXDCRCProxy::Transaction Incorrect number of arguments provided. Only 1 or 2 arguments allowed." \
--returnCodes 1
-
 
 
 
