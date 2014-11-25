@@ -44,7 +44,8 @@ libVMUSBControlServer_la_SOURCES	= 	CControlHardware.cpp	\
 					CXLMControls.cpp	\
 					CXLMControlsCreator.cpp \
           CRunStateCommand.cpp \
-					CMxDCRCBus.cpp
+					CMxDCRCBus.cpp \
+					CMxDCRCBusCreator.cpp
 
 noinst_HEADERS			=	CGDG.h			\
 					CV812.h			\
@@ -74,7 +75,8 @@ noinst_HEADERS			=	CGDG.h			\
 					CXLMControls.h	\
 					CXLMControlsCreator.h \
           CRunStateCommand.h \
-					CMxDCRCBus.h
+					CMxDCRCBus.h \
+					CMxDCRCBusCreator.h
 
 
 

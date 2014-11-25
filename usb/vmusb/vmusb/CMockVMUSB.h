@@ -71,14 +71,17 @@ class CMockVMUSB : public CVMUSB
 };
 
 
+inline
 std::string vecstring_at(std::vector<std::string> list, unsigned int index) {
   return list.at(index);
 }
 
+inline
 void vecstring_pushback(std::vector<std::string> list, std::string message) {
   return list.push_back(message);
 }
 
+inline
 unsigned int vecstring_size(std::vector<std::string> list) {
   return list.size();
 }

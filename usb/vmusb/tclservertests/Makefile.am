@@ -2,8 +2,8 @@ noinst_PROGRAMS = unittests
 
 unittests_SOURCES = @srcdir@/TestRunner.cpp \
 										@srcdir@/mxdcrcbustest.cpp   \
-										@srcdir@/modulecommandtest.cpp
-#										@srcdir@/v812test.cpp
+										@srcdir@/modulecommandtest.cpp 
+#										@srcdir@/modulefactorytest.cpp
 unittests_LDADD = @top_builddir@/usb/vmusb/vmusb/libVMUSB.la \
 									@top_builddir@/usb/common/configurableobject/libConfigurableObject.la \
 										@top_builddir@/usb/vmusb/tclserver/libVMUSBControlServer.la \
