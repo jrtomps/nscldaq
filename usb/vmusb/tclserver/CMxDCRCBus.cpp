@@ -37,7 +37,10 @@ void CMxDCRCBus::onAttach(CControlModule& config)
 /**!
  *
  */
-void CMxDCRCBus::Initialize(CVMUSB& ctlr) {}
+void CMxDCRCBus::Initialize(CVMUSB& ctlr) 
+{
+  activate(ctlr);
+}
 
 /**!
  *

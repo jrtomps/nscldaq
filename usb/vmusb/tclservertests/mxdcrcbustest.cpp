@@ -39,6 +39,7 @@ class CMxDCRCBusTests : public CppUnit::TestFixture {
     CPPUNIT_TEST(convertResponseToErrorString_1);
     CPPUNIT_TEST(convertResponseToErrorString_2);
     CPPUNIT_TEST(get_0);
+    CPPUNIT_TEST(initialize_0);
     CPPUNIT_TEST_SUITE_END();
 
 
@@ -67,6 +68,7 @@ protected:
   void convertResponseToErrorString_0();
   void convertResponseToErrorString_1();
   void convertResponseToErrorString_2();
+  void initialize_0();
 
 };
 
@@ -115,7 +117,6 @@ void CMxDCRCBusTests::set_0()
   // provide dev number, address
   CMxDCRCBus* hdwr = static_cast<CMxDCRCBus*>(m_pModule->getHardware());
   string result = hdwr->Set(*m_pCtlr, "d7a24", "48");
-  cout << "set_0 result=" << result << endl;
 
   auto record = m_pCtlr->getOperationRecord();
 
@@ -149,7 +150,6 @@ void CMxDCRCBusTests::get_0()
   // execute the Get command
   CMxDCRCBus* hdwr = static_cast<CMxDCRCBus*>(m_pModule->getHardware());
   std::string retStr = hdwr->Get(*m_pCtlr, "d7a24");
-  cout << "retStr = " << retStr << endl;
 
   auto record = m_pCtlr->getOperationRecord();
 
@@ -171,7 +171,6 @@ void CMxDCRCBusTests::get_0()
   expected[10] = "addRead16 ff006088 09";
   expected[11] = "executeList::end";
 
-  print_vectors(expected,record);
   
   CPPUNIT_ASSERT(expected == record);
 }
@@ -292,4 +291,20 @@ void CMxDCRCBusTests::convertResponseToErrorString_2 ()
   // I will test a condition that should be independent. For safety, I
   // will test what happens when an unknown bit is set.
   CPPUNIT_ASSERT_EQUAL(expected, hdwr->convertResponseToErrorString(4));
+}
+
+
+void CMxDCRCBusTests::initialize_0 ()
+{
+  CMxDCRCBus* hdwr = static_cast<CMxDCRCBus*>(m_pModule->getHardware());
+  hdwr->Initialize(*m_pCtlr);
+
+  vector<string> record = m_pCtlr->getOperationRecord();
+  vector<string> expected(3);
+  expected[0] = "executeList::begin";
+  expected[1] = "addWrite16 ff00606e 09 3";
+  expected[2] = "executeList::end";
+
+  CPPUNIT_ASSERT(expected == record);
+
 }
