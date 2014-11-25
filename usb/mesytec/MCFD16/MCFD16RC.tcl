@@ -23,7 +23,12 @@ snit::type MCFD16RC {
     }
 
     set adr [$type ComputeAddress threshold $ch]
-    return [$_proxy Transaction $adr $val]
+    return [$_proxy Transaction [list $adr $val]]
+  }
+
+  method GetThreshold {ch} {
+    set adr [$type ComputeAddress threshold $ch]
+    return [$_proxy Transaction $adr]
   }
 
   method SetPolarity {ch negpos} {
@@ -38,7 +43,12 @@ snit::type MCFD16RC {
     }
 
     set adr [$type ComputeAddress polarity $ch]
-    return [$_proxy Transaction $adr $val]
+    return [$_proxy Transaction [list $adr $val]]
+  }
+
+  method GetPolarity {ch} {
+    set adr [$type ComputeAddress polarity $ch]
+    return [$_proxy Transaction $adr]
   }
 
   method SetGain {chpair val} {
@@ -49,7 +59,12 @@ snit::type MCFD16RC {
     }
 
     set adr [$type ComputeAddress gain $chpair]
-    return [$_proxy Transaction $adr $val]
+    return [$_proxy Transaction [list $adr $val]]
+  }
+
+  method GetGain {chpair} {
+    set adr [$type ComputeAddress gain $chpair]
+    return [$_proxy Transaction $adr]
   }
 
   method SetWidth {chpair val} {
@@ -60,9 +75,13 @@ snit::type MCFD16RC {
     }
 
     set adr [$type ComputeAddress width $chpair]
-    return [$_proxy Transaction $adr $val]
+    return [$_proxy Transaction [list $adr $val]]
   }
 
+  method GetWidth {chpair} {
+    set adr [$type ComputeAddress width $chpair]
+    return [$_proxy Transaction $adr]
+  }
 
   method SetDeadtime {chpair val} {
     if {![Utils::isInRange 5 255 $val]} {
@@ -72,7 +91,12 @@ snit::type MCFD16RC {
     }
 
     set adr [$type ComputeAddress deadtime $chpair]
-    return [$_proxy Transaction $adr $val]
+    return [$_proxy Transaction [list $adr $val]]
+  }
+
+  method GetDeadtime {chpair} {
+    set adr [$type ComputeAddress deadtime $chpair]
+    return [$_proxy Transaction $adr]
   }
 
   method SetDelay {chpair val} {
@@ -83,9 +107,13 @@ snit::type MCFD16RC {
     }
 
     set adr [$type ComputeAddress delay $chpair]
-    return [$_proxy Transaction $adr $val]
+    return [$_proxy Transaction [list $adr $val]]
   }
 
+  method GetDelay {chpair} {
+    set adr [$type ComputeAddress delay $chpair]
+    return [$_proxy Transaction $adr]
+  }
   method SetFraction {chpair val} {
 
     switch $val {
@@ -99,10 +127,14 @@ snit::type MCFD16RC {
     }
 
     set adr [$type ComputeAddress fraction $chpair]
-    return [$_proxy Transaction $adr $val]
+    return [$_proxy Transaction [list $adr $val]]
 
   }
 
+  method GetFraction {chpair} {
+    set adr [$type ComputeAddress fraction $chpair]
+    return [$_proxy Transaction $adr]
+  }
 
   method SetMode {mode} {
     set val 0
@@ -117,9 +149,13 @@ snit::type MCFD16RC {
     }
 
     set adr [dict get $offsetsMap mode]
-    return [$_proxy Transaction $adr $val]
+    return [$_proxy Transaction [list $adr $val]]
   }
 
+  method GetMode {} {
+    set adr [dict get $offsetsMap mode]
+    return [$_proxy Transaction $adr]
+  }
 
   method EnablePulser {pulser} {
     if {$pulser ni [list 1 2]} {
@@ -129,31 +165,32 @@ snit::type MCFD16RC {
     }
 
     set adr [dict get $offsetsMap pulser]
-    return [$_proxy Transaction $adr $pulser]
+    return [$_proxy Transaction [list $adr $pulser]]
   }
 
   method DisablePulser {} {
     set adr [dict get $offsetsMap pulser]
-    return [$_proxy Transaction $adr 0]
+    return [$_proxy Transaction [list $adr 0]]
   }
 
+  method PulserEnabled {} {
+    set adr [dict get $offsetsMap pulser]
+    return [$_proxy Transaction [list $adr]]
+  }
 
-  method SetChannelMask {bank mask} {
-
-    set maskName masklow
-
-    switch $bank {
-      0 { set maskName masklow}
-      1 { set maskName maskhigh}
-      default {
-        set msg "MCFD16RC::SetChannelMask Invalid bank value. "
-        append msg "Must be either 0 or 1."
-        return -code error $msg
-      }
-        
+  method SetChannelMask {mask} {
+    if {![Utils::isInRange 0 255 $mask]} {
+      set msg {MCFD16RC::SetChannelMask Invalid mask value. Must be in range }
+      append msg {[0,255].}
+      return -code error $msg
     }
-    set adr [dict get $offsetsMap $maskName]
-    return [$_proxy Transaction $adr $mask]
+    set adr [dict get $offsetsMap mask]
+    return [$_proxy Transaction [list $adr $mask]]
+  }
+
+  method GetChannelMask {} {
+    set adr [dict get $offsetsMap mask]
+    return [$_proxy Transaction [list $adr]]
   }
 
   method EnableRC {on} {
@@ -164,7 +201,12 @@ snit::type MCFD16RC {
 
     set on [string is true $on]
     set adr [dict get $offsetsMap rc]
-    return [$_proxy Transaction $adr $on]
+    return [$_proxy Transaction [list $adr $on]]
+  }
+
+  method RCEnabled {} {
+    set adr [dict get $offsetsMap rc]
+    return [$_proxy Transaction [list $adr]]
   }
 
 
@@ -181,7 +223,7 @@ snit::type MCFD16RC {
                                 polarity  {indiv 56 common 70} \
                                 mode      72 \
                                 rc        73 \
-                                masklow   83 \
+                                mask      83 \
                                 pulser    118 ]
 
     set paramRangeMap [dict create threshold {low 0 high 16} \

@@ -17,8 +17,12 @@ snit::type FakeRCProxy {
 
   method Write {adr val} { lappend _record "Write $adr $val" }
   method Read {adr} { lappend _record "Read $adr" }
-  method Transaction {adr val} {
-    lappend _record "Transaction $adr $val"
+  method Transaction arglist {
+    set script "Transaction"
+    foreach arg $arglist {
+      append script " $arg"
+    }
+    lappend _record $script
   }
   method getRecord {} { return $_record }
 }
@@ -68,6 +72,27 @@ tcltest::test threshold-2 {Writing threshold with bad value fails
   ::dev SetThreshold 3 -1  ; # only values in range [0,255]
 } -result {MCFD16RC::SetThreshold Invalid value provided. Must be in range [0,255].} -returnCodes 1
 
+tcltest::test threshold-3 {Reading threshold does the proper thing w/ valid ch
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body { 
+  ::dev GetThreshold 3 
+  ::dev GetThreshold 16
+  ::comObj getRecord
+} -result {{Transaction 3} {Transaction 64}}
+
+tcltest::test threshold-4 {Reading threshold from bad channel fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body { 
+  ::dev GetThreshold 17
+  ::comObj getRecord
+} -result {Invalid channel provided. Must be in range [0,16].} -returnCodes 1
+
 #-------------
 
 tcltest::test polarity-0 {Write polarity does the correct thing
@@ -100,6 +125,27 @@ tcltest::test polarity-2 {Write polarity for bad val --> fail
 } -body { 
   ::dev SetPolarity 2 foo
 } -result {Invalid value provided. Must be "pos" or "neg".} -returnCodes 1
+
+tcltest::test polarity-3 {Read polarity does the correct thing
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body { 
+  ::dev GetPolarity 0
+  ::dev GetPolarity 8
+
+  ::comObj getRecord
+} -result {{Transaction 56} {Transaction 70}}
+
+tcltest::test polarity-4 {Read polarity val for bad channel pair --> fail
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body { 
+  ::dev GetPolarity 16 
+} -result $badChannelPairError -returnCodes 1
 
 #-------
 
@@ -134,6 +180,27 @@ tcltest::test gain-2 {Writing gain with value out of range fails
   ::dev SetGain 0 3 ; # only integer values between 0 and 2 are good
 } -result {MCFD16RC::SetGain Invalid value provided. Must be in range [0,2].} -returnCodes 1
 
+tcltest::test gain-3 {Reading gain val for good chan does correct thing
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body { 
+  ::dev GetGain 0
+  ::dev GetGain 4
+  ::dev GetGain 8
+
+  ::comObj getRecord
+} -result {{Transaction 16} {Transaction 20} {Transaction 65}}
+
+tcltest::test gain-4 {Reading gain with bad channel fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body { 
+  ::dev GetGain 9
+} -result $badChannelPairError -returnCodes 1
 
 #-------
 
@@ -167,6 +234,28 @@ tcltest::test width-2 {Writing width with value out of range fails
 } -body { 
   ::dev SetWidth 0 3 ; # only integer values between 5 and 255 are good
 } -result {MCFD16RC::SetWidth Invalid value provided. Must be in range [5,255].} -returnCodes 1
+
+tcltest::test width-3 {Reading width val for good chan does correct thing
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body { 
+  ::dev GetWidth 0
+  ::dev GetWidth 4
+  ::dev GetWidth 8
+
+  ::comObj getRecord
+} -result {{Transaction 24} {Transaction 28} {Transaction 66}}
+
+tcltest::test width-4 {Reading width with bad channel fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body { 
+  ::dev GetWidth 9
+} -result $badChannelPairError -returnCodes 1
 
 #-------
 
@@ -202,6 +291,27 @@ tcltest::test deadtime-2 {Writing deadtime with value out of range fails
   ::dev SetDeadtime 0 3 ; # only integer values between 5 and 255 are good
 } -result {MCFD16RC::SetDeadtime Invalid value provided. Must be in range [5,255].} -returnCodes 1
 
+tcltest::test deadtime-3 {Reading deadtime val for good chan does correct thing
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body { 
+  ::dev GetDeadtime 0
+  ::dev GetDeadtime 4
+  ::dev GetDeadtime 8
+
+  ::comObj getRecord
+} -result {{Transaction 32} {Transaction 36} {Transaction 67}}
+
+tcltest::test deadtime-4 {Reading deadtime with bad channel fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body { 
+  ::dev GetDeadtime 9
+} -result $badChannelPairError -returnCodes 1
 
 #----------
 
@@ -236,6 +346,28 @@ tcltest::test delay-2 {Writing delay with value out of range fails
   ::dev SetDelay 3 -1  ; # only integer values between 0 and 4 are allowed
 } -result {MCFD16RC::SetDelay Invalid value provided. Must be in range [0,4].} -returnCodes 1
 
+tcltest::test delay-3 {Reading delay val for good chan does correct thing
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body { 
+  ::dev GetDelay 0
+  ::dev GetDelay 4
+  ::dev GetDelay 8
+
+  ::comObj getRecord
+} -result {{Transaction 40} {Transaction 44} {Transaction 68}}
+
+tcltest::test delay-4 {Reading delay with bad channel fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body { 
+  ::dev GetDelay 9
+} -result $badChannelPairError -returnCodes 1
+
 #----------
 
 tcltest::test fraction-0 {Writing fraction for good param does correct thing
@@ -269,6 +401,28 @@ tcltest::test fraction-2 {Writing fraction with bad value fails
   ::dev SetFraction 3 -1  ; # only values of 20 or 40 are accepted
 } -result {MCFD16RC::SetFraction Invalid value provided. Must be either 20 or 40.} -returnCodes 1
 
+tcltest::test fraction-3 {Reading fraction for good channel does correct thing
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body { 
+  ::dev GetFraction 0
+  ::dev GetFraction 3
+  ::dev GetFraction 8
+
+  ::comObj getRecord
+} -result {{Transaction 48} {Transaction 51} {Transaction 69}}
+
+tcltest::test fraction-4 {Writing fraction with bad channel fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body { 
+  ::dev GetFraction 9 ; # channels can only be in range [0,8]
+} -result $badChannelPairError -returnCodes 1
+
 #---------
 
 tcltest::test mode-0 {Setting mode does what we expect
@@ -292,6 +446,17 @@ tcltest::test mode-1 {Setting mode with invalid argument fails
   ::dev SetMode foobar
 } -result {MCFD16RC::SetMode Invalid value provided. Must be either "common" or "individual".} \
 -returnCodes 1
+
+tcltest::test mode-2 {Reading mode does what we expect
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body { 
+  ::dev GetMode
+  
+  ::comObj getRecord
+} -result  {{Transaction 72}}
 
 #---------
 
@@ -329,6 +494,15 @@ tcltest::test pulser-2 {Disabling the pulser creates the appropriate command
   ::comObj getRecord
 } -result {{Transaction 118 0}}
 
+tcltest::test pulser-3 {Reading pulser pulser creates the appropriate command
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev PulserEnabled 
+  ::comObj getRecord
+} -result {{Transaction 118}}
 #---------
 
 tcltest::test channelmask-0 {Setting channel mask
@@ -337,23 +511,33 @@ tcltest::test channelmask-0 {Setting channel mask
 } -cleanup {
   tearDown
 } -body {
-  ::dev SetChannelMask 0 255 ; #  disable channels 0-7
-
-# at the moment this is not clear
-#  ::dev SetChannelMask 1 255 ; #  disable channels 8-15
+  ::dev SetChannelMask 255 ; #  disable channels 0-15
 
   ::comObj getRecord
 } -result {{Transaction 83 255}}
 
-tcltest::test channelmask-1 {Setting channel mask with bad bank value fails
+tcltest::test channelmask-1 {Writing invalid value to  channel mask fails
 } -setup {
   setup
 } -cleanup {
   tearDown
 } -body {
-  ::dev SetChannelMask 2 255 ; #  disable channels 0-7
-} -result {MCFD16RC::SetChannelMask Invalid bank value. Must be either 0 or 1.} \
+  ::dev SetChannelMask 256 ; # only values in range [0,255] are allowed
+
+  ::comObj getRecord
+} -result {MCFD16RC::SetChannelMask Invalid mask value. Must be in range [0,255].} \
 -returnCodes 1
+
+tcltest::test channelmask-2 {Reading channel mask with bad bank value fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev GetChannelMask ; 
+
+  ::comObj getRecord
+} -result {{Transaction 83}}
 
 #---------
 
@@ -377,6 +561,16 @@ tcltest::test enablerc-1 {Make sure that non-boolean arg fails
   ::dev EnableRC notabool 
 } -result {MCFD16RC::EnableRC Invalid value provided. Must be a boolean.} \
 -returnCodes 1
+
+tcltest::test rcenabled-0 {Reading state of rc forms the correct cmd
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev RCEnabled
+  ::comObj getRecord
+} -result {{Transaction 73}}
 
 
 #---------
