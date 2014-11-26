@@ -17,6 +17,7 @@ unittests_CPPFLAGS = -I@top_srcdir@/usb/vmusb/vmusb  \
 										 $(CPPUNIT_FLAGS) \
 										 -I@top_srcdir@/usb/vmusb/tclserver \
 										 -I@top_srcdir@/usb/vmusb/devices \
+										 -I@top_srcdir@/base/thread \
 										 @LIBTCLPLUS_CFLAGS@ \
 										 @TCL_FLAGS@
 
