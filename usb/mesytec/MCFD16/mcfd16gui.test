@@ -100,9 +100,13 @@ proc initDict {name} {
   dict set $name fraction [dict create]
 }
 
+set testdir [tcltest::makeDirectory test]
+#set serialFile [file join $::testdir fake] 
+
 proc setup {} {
   if {0} {  catch {::dev destroy}}
-  MCFD16USB ::dev /dev/ttyUSB0
+  set ::serialFile [tcltest::makeFile " " fake $::testdir]
+  MCFD16USB ::dev $::serialFile
   MCFD16IndividualPresenter ::pres -widgetname .mock \
                                    -handle ::dev
 
@@ -113,6 +117,8 @@ proc setup {} {
 proc tearDown {} {
   ::pres destroy
   ::dev destroy
+
+   file delete $::serialFile
 }
 
 
@@ -280,7 +286,8 @@ tcltest::test commitViewFractions-0 {Ensure that the fraction data ends up in vi
 
 proc setupCom {} {
 
-  MCFD16USB ::dev /dev/ttyUSB0
+  set ::serialFile [tcltest::makeFile " " fake $::testdir]
+  MCFD16USB ::dev $::serialFile
   MCFD16CommonPresenter ::pres -widgetname .mock \
                                -handle ::dev
 
@@ -440,11 +447,13 @@ tcltest::test commitViewFractions-0 {Ensure that the fraction data ends up in vi
 ###################################################################################
 
 proc setup {} { 
-  MCFD16ControlPanel .pres -handle [MCFD16USB %AUTO% /dev/ttyUSB0]
+  set ::serialFile [tcltest::makeFile " " fake $::testdir]
+  MCFD16ControlPanel .pres -handle [MCFD16USB %AUTO% $::serialFile]
 }
 
 proc tearDown {} {
   destroy .pres
+  file delete $::serialFile
 }
 
 tcltest::test modeChange-0 {Check that mode change changes the displayed view
@@ -512,13 +521,15 @@ proc setupPulser {} {
   }
 
   initDict ::mockMemory
-  MCFD16USB ::dev /dev/ttyUSB0
+  set ::serialFile [tcltest::makeFile " " fake $::testdir]
+  MCFD16USB ::dev $::serialFile
 }
 
 proc tearDownPulser {} {
   # the nuclear option... kill all instances and all namespace/type existence
   ::FakePulserView destroy
   ::dev destroy
+  file delete $::serialFile
 }
 
 tcltest::test onpress-0 {Test that we can properly handle an on press event to enable
