@@ -11,21 +11,35 @@
 #include <limits>
 #include <cstdio>
 #include <iostream>
+#include <unistd.h>
 
 using namespace std;
 
 
-/**!
+/**
  *
  */
-CMxDCRCBus::CMxDCRCBus () : CControlHardware() {}
+CMxDCRCBus::CMxDCRCBus () :
+  CControlHardware(),
+  m_maxPollAttempts(1000)
+{}
 
-/**!
+/**
  *
  */
-void CMxDCRCBus::clone (const CControlHardware& rhs) {}
+void CMxDCRCBus::clone (const CControlHardware& rhs) 
+{
+  // if a non CMxDCRCBus was passed into this, then the whole cloning
+  // operation doesn't make any sense. Allow dynamic_cast to throw
+  // to enforce this.
+  const CMxDCRCBus& other = dynamic_cast<const CMxDCRCBus&>(rhs);
+  m_maxPollAttempts = other.getPollTimeout();
 
-/**!
+  // now we can modify the base
+  CControlHardware::clone(other);
+}
+
+/**
  *
  */
 void CMxDCRCBus::onAttach(CControlModule& config) 
@@ -34,7 +48,7 @@ void CMxDCRCBus::onAttach(CControlModule& config)
   config.addIntegerParameter("-base");
 }
 
-/**!
+/**
  *
  */
 void CMxDCRCBus::Initialize(CVMUSB& ctlr) 
@@ -42,56 +56,44 @@ void CMxDCRCBus::Initialize(CVMUSB& ctlr)
   activate(ctlr);
 }
 
-/**!
+/**
  *
  */
-std::string CMxDCRCBus::Update(CVMUSB& ctlr) {}
+std::string CMxDCRCBus::Update(CVMUSB& ctlr) {
+  return std::string("OK");
+}
 
-/**!
+/**
  *
  */
 std::string CMxDCRCBus::Set(CVMUSB& ctlr, std::string what, std::string value) 
 {
-  uint32_t base = m_pConfig->getUnsignedParameter("-base");
-
-
-  // extract the device address and parameter address encoded in "what" argument
-  pair<uint16_t,uint16_t> busAddress = parseAddress(what);
 
   uint16_t dataToWrite = atoi(value.c_str());
 
-  // Create a list and append the ensemble of commands for a parameter write 
-  // to it.
-  unique_ptr<CVMUSBReadoutList> list(ctlr.createReadoutList());
-  addParameterWrite(*list, busAddress, dataToWrite);
+  // Try to write until either the operation succeeds or we have exhausted
+  // the allowed number of attempts
+  int maxAttempts = 4, nAttempts=0;
+  uint16_t response=0;
+  for (; nAttempts<maxAttempts; ++nAttempts) {
 
-  size_t nBytesRead = 0;
-  uint32_t data[128];
-  int status = ctlr.executeList(*list, data, sizeof(data), &nBytesRead);
-  if (status<0) {
-    stringstream errmsg;
-    errmsg << "ERROR - ";
-    errmsg << "CMxDCRCBus::Set - executeList returned status = ";
-    errmsg << status;
+    initiateWrite(ctlr, what, dataToWrite);
+    response = pollForResponse(ctlr);
 
-    return errmsg.str();
-  }
+    // if we succeeded with no errors, then stop trying
+    if (! responseIndicatesError(response)) {
+      break;
+    }
 
-  // Read the response
-  uint16_t response = readResponse(ctlr);
-  if (responseIndicatesError(response)) {
+  } // end for loop
+  
+  // if we tried the maximum number of times without success then stop trying
+  if (nAttempts==maxAttempts) {
     return convertResponseToErrorString(response);
-  } 
-
-  uint16_t dataRead;
-  status = ctlr.vmeRead16(base+RCData, VMEAMod::a32UserData, &dataRead); 
-  if (status<0) {
-    stringstream errmsg;
-    errmsg << "ERROR - ";
-    errmsg << "CMxDCRCBus::Set - failure reading back written value. ";
-    errmsg << "Status = " << status;
-    return errmsg.str();
   }
+
+  // get the value read back from the device
+  uint16_t dataRead = readResult(ctlr);
 
   if (dataRead != dataToWrite) {
     string errmsg("ERROR - CMxDCRCBus::Set - ");
@@ -102,56 +104,45 @@ std::string CMxDCRCBus::Set(CVMUSB& ctlr, std::string what, std::string value)
   return string("OK");
 }
 
-
-
-/**!
+/**
  *
  */
 std::string CMxDCRCBus::Get(CVMUSB& ctlr, std::string what) 
 {
   
-  uint32_t base = m_pConfig->getUnsignedParameter("-base");
-  
-  // extract the device address and parameter address encoded in "what" argument
-  pair<uint16_t,uint16_t> busAddress = parseAddress(what);
+  // Try up to 4 times to successfully complete a read transaction on RCbus
+  uint16_t response=0;
+  int maxAttempts=4, nAttempts=0;
+  for (;nAttempts<maxAttempts; ++nAttempts) {
 
-  unique_ptr<CVMUSBReadoutList> list(ctlr.createReadoutList());
-  addParameterRead(*list, busAddress);
+    initiateRead(ctlr, what);
+    response = pollForResponse(ctlr);
 
-  size_t nBytesRead = 0;
-  uint16_t data[1];
-  int status = ctlr.executeList(*list, data, sizeof(data), &nBytesRead);
-  if (status<0) {
-    stringstream errmsg;
-    errmsg << "ERROR - ";
-    errmsg << "CMxDCRCBus::Get - executeList returned status = ";
-    errmsg << status;
+    // if we succeeded with no errors, then stop trying
+    if (! responseIndicatesError(response)) {
+      break;
+    }
 
-    return errmsg.str();
-  }
+  } // end for loop
 
-  // Read the response
-  uint16_t response = readResponse(ctlr);
-  if (responseIndicatesError(response)) {
+  // If we failed 4 times, return ERROR and the reason why
+  if (nAttempts==maxAttempts) {
     return convertResponseToErrorString(response);
   } 
 
-  uint16_t dataRead;
-  status = ctlr.vmeRead16(base+RCData, VMEAMod::a32UserData, &dataRead); 
-  if (status<0) {
-    stringstream errmsg;
-    errmsg << "ERROR - ";
-    errmsg << "CMxDCRCBus::Get - failure reading back written value. ";
-    errmsg << "Status = " << status;
-    return errmsg.str();
-  }
+  uint16_t dataRead = readResult(ctlr);
 
-  std::stringstream retstr;
-  retstr << "OK - " << dataRead;
+
+  // the sluggishness of initiating stringstream is acceptable for the moment.
+  stringstream retstr;
+  retstr << dataRead;
   return retstr.str();
 
 }
 
+/**
+ *
+ */
 void CMxDCRCBus::activate(CVMUSB& ctlr) {
 
   uint32_t base = m_pConfig->getUnsignedParameter("-base");
@@ -174,20 +165,68 @@ void CMxDCRCBus::activate(CVMUSB& ctlr) {
 }
 
 
-uint16_t CMxDCRCBus::readResponse(CVMUSB& ctlr)
+/**
+ *
+ */
+uint16_t CMxDCRCBus::pollForResponse(CVMUSB& ctlr)
 {
     
   uint32_t base = m_pConfig->getUnsignedParameter("-base");
   
-  // To ensure that we at least do one iteration through this
+  // Poll until the device tells us to stop.
+  size_t nAttempts=0;
   uint16_t data = 0;
+  int status = 0;
   do {
-    data = ctlr.vmeRead16(base+RCStatus, VMEAMod::a32UserData, &data);
-  } while (data!=0);
+    // if we timeout, throw
+    if (nAttempts >= m_maxPollAttempts) {
+      std::string msg("CMxDCRCBus::pollForResponse "); 
+      msg += "Timed out while awaiting response";
+      throw msg;
+    }
+
+    status = ctlr.vmeRead16(base+RCStatus, VMEAMod::a32UserData, &data);
+
+    if (status<0) {
+      stringstream errmsg;
+      errmsg << "CMxDCRCBus::pollForResponse() - executeList returned status = ";
+      errmsg << status;
+
+      throw errmsg.str(); // failure while communicating with VM-USB is worthy 
+                          // of a thrown exception
+    }
+      
+    ++nAttempts;
+  } while ( (data & RCSTAT_MASK) != RCSTAT_ACTIVE );
 
   return data;
 }
 
+
+/**
+ *
+ */
+uint16_t CMxDCRCBus::readResult(CVMUSB& ctlr) 
+{
+  uint32_t base     = m_pConfig->getUnsignedParameter("-base");
+  uint16_t dataRead = 0;
+
+  int status = ctlr.vmeRead16(base+RCData, VMEAMod::a32UserData, &dataRead); 
+  if (status<0) {
+    stringstream errmsg;
+    errmsg << "ERROR - ";
+    errmsg << "CMxDCRCBus::readResult - failure executing list with ";
+    errmsg << "status = " << status;
+    throw errmsg.str(); // failure while communicating with VM-USB is worthy 
+                        // of a thrown exception
+  }
+
+  return dataRead;
+}
+
+/**
+ *
+ */
 std::pair<uint16_t,uint16_t> CMxDCRCBus::parseAddress(std::string what)
 {
   uint16_t devNo=0;
@@ -201,7 +240,7 @@ std::pair<uint16_t,uint16_t> CMxDCRCBus::parseAddress(std::string what)
 }
 
 
-/**!
+/**
  *
  */
 bool CMxDCRCBus::responseIndicatesError(uint16_t datum)
@@ -209,7 +248,7 @@ bool CMxDCRCBus::responseIndicatesError(uint16_t datum)
   return (((datum & RCSTAT_ADDRCOLLISION) | (datum & RCSTAT_NORESPONSE))!=0);
 }
 
-/**!
+/**
  *
  */
 std::string CMxDCRCBus::convertResponseToErrorString(uint16_t datum) 
@@ -236,6 +275,7 @@ std::string CMxDCRCBus::convertResponseToErrorString(uint16_t datum)
 }
 
 
+ 
 void CMxDCRCBus::addParameterWrite(CVMUSBReadoutList& list,
                                    std::pair<uint16_t,uint16_t> addresses,
                                    uint16_t value)
@@ -247,6 +287,9 @@ void CMxDCRCBus::addParameterWrite(CVMUSBReadoutList& list,
   list.addWrite16(base+RCData,   VMEAMod::a32UserData, value);
 }
 
+/**
+ *
+ */
 void CMxDCRCBus::addParameterRead(CVMUSBReadoutList& list,
                                    std::pair<uint16_t,uint16_t> addresses)
 {
@@ -255,4 +298,55 @@ void CMxDCRCBus::addParameterRead(CVMUSBReadoutList& list,
   list.addWrite16(base+RCOpCode, VMEAMod::a32UserData, RCOP_READDATA);
   list.addWrite16(base+RCAddr,   VMEAMod::a32UserData, addresses.second);
   list.addWrite16(base+RCData,   VMEAMod::a32UserData, 0);
+}
+
+
+void CMxDCRCBus::initiateWrite(CVMUSB& ctlr, 
+                               std::string what,
+                               uint16_t value)
+{
+  // extract the device address and parameter address encoded in "what" argument
+  pair<uint16_t,uint16_t> busAddress = parseAddress(what);
+
+
+  // Create a list and append the ensemble of commands for a parameter write 
+  // to it.
+  unique_ptr<CVMUSBReadoutList> list(ctlr.createReadoutList());
+  addParameterWrite(*list, busAddress, value);
+
+  size_t nBytesRead = 0;
+  uint32_t data[128];
+  int status = ctlr.executeList(*list, data, sizeof(data), &nBytesRead);
+  if (status<0) {
+    stringstream errmsg;
+    errmsg << "ERROR - ";
+    errmsg << "CMxDCRCBus::Set - executeList returned status = ";
+    errmsg << status;
+
+    throw errmsg.str();
+  }
+}
+
+void CMxDCRCBus::initiateRead(CVMUSB& ctlr, 
+                               std::string what)
+{
+  // extract the device address and parameter address encoded in "what" argument
+  pair<uint16_t,uint16_t> busAddress = parseAddress(what);
+
+  // Create a list and append the ensemble of commands for a parameter write 
+  // to it.
+  unique_ptr<CVMUSBReadoutList> list(ctlr.createReadoutList());
+  addParameterRead(*list, busAddress);
+
+  size_t nBytesRead = 0;
+  uint32_t data[128];
+  int status = ctlr.executeList(*list, data, sizeof(data), &nBytesRead);
+  if (status<0) {
+    stringstream errmsg;
+    errmsg << "ERROR - ";
+    errmsg << "CMxDCRCBus::Get - executeList returned status = ";
+    errmsg << status;
+
+    throw errmsg.str();
+  }
 }

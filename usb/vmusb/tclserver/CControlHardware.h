@@ -68,7 +68,7 @@ public:
    * Otherwise, it returns the CControlModule that contains its 
    * configuration.
    */
-  CControlModule* getConfiguration() { return m_pConfig;}
+  CControlModule* getConfiguration() const { return m_pConfig;}
 
   // Pure virtuals the concrete class must override.
 

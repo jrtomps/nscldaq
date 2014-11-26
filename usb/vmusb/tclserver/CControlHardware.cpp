@@ -53,6 +53,15 @@ CControlHardware::operator=(const CControlHardware& rhs)
   return *this;
 }
 
+// cloning means copy a reference to the CControlModule that owns
+// this. This is safe as long as the user doesn't turn around and
+// start adding parameters or removing them.
+void
+CControlHardware::clone(const CControlHardware& rhs)
+{
+  m_pConfig = rhs.getConfiguration();
+}
+
 
 int
 CControlHardware::operator==(const CControlHardware& rhs) const
