@@ -106,9 +106,10 @@ Const(RCOP_WRITEDATA)       0x10;
 Const(RCOP_READDATA)        0x12;
 
 // RC-bus status bits
+Const(RCSTAT_MASK)          0x01;
 Const(RCSTAT_ACTIVE)        0x00;
-Const(RCSTAT_ADDRCOLLISION) 0x01;
-Const(RCSTAT_NORESPONSE)    0x02;
+Const(RCSTAT_ADDRCOLLISION) 0x02;
+Const(RCSTAT_NORESPONSE)    0x04;
 
 // Mcast/CBLT control register bits:
 
