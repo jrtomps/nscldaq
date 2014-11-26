@@ -630,7 +630,7 @@ tcltest::test mxdcrc_transaction-0 { Test for a Set command
 } -cleanup {
   ::dev destroy
 } -body {
-  ::dev Transaction 14 0; # address and value provided implies Set
+  ::dev Write 14 0;
 
   [::dev getComObject] getLog
 } -result {{Set rcbus d8a14 0}}
@@ -641,11 +641,38 @@ tcltest::test mxdcrc_transaction-1 { Test for a Get command
 } -cleanup {
   ::dev destroy
 } -body {
-  ::dev Transaction 20  ; # only an address provided implies Get
+  ::dev Read 20  ;
 
   [::dev getComObject] getLog
 } -result {{Get rcbus d8a20}}
 
+tcltest::test mxdcrc_transaction-2 { Test that write returning "ERROR - ..."
+ converts into a tcl error
+} -setup {
+  MXDCRCProxy ::dev -module rcbus -devno 8 
+  [::dev getComObject] configure -returnval "ERROR - etcetera etcetera"
+} -cleanup {
+  ::dev destroy
+} -body {
+  
+  set res [catch {::dev Write 20 4} msg] 
+
+  list $res $msg
+} -result {1 {Set d8a20 4 failed with message : "etcetera etcetera"}}
+
+tcltest::test mxdcrc_transaction-3 { Test that read returning "ERROR - ..."
+ converts into a tcl error
+} -setup {
+  MXDCRCProxy ::dev -module rcbus -devno 8 
+  [::dev getComObject] configure -returnval "ERROR - etcetera etcetera"
+} -cleanup {
+  ::dev destroy
+} -body {
+  
+  set res [catch {::dev Read 20} msg] 
+
+  list $res $msg
+} -result {1 {Get d8a20 failed with message : "etcetera etcetera"}}
 
 
 tcltest::test mxdcrc_formparam-0 { Format parameter from devno and param addr
@@ -656,5 +683,30 @@ tcltest::test mxdcrc_formparam-0 { Format parameter from devno and param addr
 } -body {
   ::dev _formatParameter 8 27
 } -result d8a27
+
+tcltest::test mxdcrc_transactFailed-0 { Check for ERROR in transaction response
+} -setup {
+  MXDCRCProxy ::dev -module rcbus -devno 8 
+} -cleanup {
+  ::dev destroy
+} -body {
+  
+  set reslist [list]
+  
+  # ERROR response --> failure
+  lappend reslist [::dev _transactionFailed "ERROR - etcetera etcetera"]
+
+  # string response --> NOT a failure
+  lappend reslist [::dev _transactionFailed "etcetera etcetera"]
+
+  # numeral response --> NOT a failure
+  lappend reslist [::dev _transactionFailed 1]
+
+  # empty response --> NOT a failure
+  lappend reslist [::dev _transactionFailed {}]
+
+  set reslist
+} -result {1 0 0 0}
+
 
 tcltest::cleanupTests

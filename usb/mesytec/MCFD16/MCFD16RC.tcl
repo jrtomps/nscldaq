@@ -167,7 +167,14 @@ snit::type MCFD16RC {
 
   method GetMode {} {
     set adr [dict get $offsetsMap mode]
-    return [$_proxy Read $adr]
+    set val [$_proxy Read $adr]
+
+    if {[catch {dict get {0 common 1 individual} $val} res]} {
+      set msg "MCFD16RC::GetMode Value returned by module not understood. "
+      append msg "Expected 0 or 1 but received $val."
+      return -code error $msg
+    }
+    return $res
   }
 
   method EnablePulser {pulser} {
@@ -308,21 +315,60 @@ snit::type MXDCRCProxy {
   }
 
   method Write {paramAddr val} {
-    after 40
+#    after 40
     set param [$self _formatParameter [$self cget -devno] $paramAddr]
     set result [$_comObject Set [$self cget -module] $param $val] 
+
+    if {[$self _transactionFailed $result]} {
+      set errmsg [$self _transformToFailureMessage [list Set $param \
+                                                             $val \
+                                                             $result]]
+      return -code error $errmsg
+    }
+
+    return $result
   }
 
   method Read {paramAddr} {
-    after 40 
+#    after 40 
     set param [$self _formatParameter [$self cget -devno] $paramAddr]
-    return [$_comObject Get [$self cget -module] $param]
+    set result [$_comObject Get [$self cget -module] $param]
+
+    if {[$self _transactionFailed $result]} {
+      set errmsg [$self _transformToFailureMessage [list Get $param \
+                                                             $result]]
+      return -code error $errmsg
+    }
+
+    return $result
   }
 
-  method getComObject {} { return $_comObject}
+  method getComObject {} { return $_comObject }
 
   method _formatParameter {devNo paramAddr} {
     return "d${devNo}a${paramAddr}"
   }
 
+  method _transactionFailed {response} {
+    set result 0
+    if {$response ne {}} {
+      set result [string equal [lindex $response 0] "ERROR"]
+    }
+    return $result
+  }
+
+  method _transformToFailureMessage {arglist} {
+    set errMessage [lindex $arglist end]
+    set tokens [split $errMessage " "]  ;# split into tokens
+    set tokens [lreplace $tokens 0 1] ;# remove ERROR and - 
+    
+    # start forming the message to return
+    set message [lrange $arglist 0 [expr [llength $arglist]-2]] ; # use cmd descriptors
+    append message " failed with message : \"" ; # insert some text
+    append message [join $tokens " "] ;# add back in the orig message without
+                                       # "ERROR - "
+    append message "\"" ; # add a nice closing parenthese (sp?)
+
+    return $message
+  }
 }
