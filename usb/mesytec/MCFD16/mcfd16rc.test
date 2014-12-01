@@ -225,12 +225,13 @@ tcltest::test width-0 {Writing width for good param does correct thing
 } -cleanup {
   tearDown
 } -body { 
-  ::dev SetWidth 0 13
-  ::dev SetWidth 3 255 
+  # good width values are in range [16,222]
+  ::dev SetWidth 0 16 
+  ::dev SetWidth 3 222 
   ::dev SetWidth 8 120
 
   ::comObj getRecord
-} -result {{Write 24 13} {Write 27 255} {Write 66 120}}
+} -result {{Write 24 16} {Write 27 222} {Write 66 120}}
 
 tcltest::test width-1 {Writing width with bad channel fails
 } -setup {
@@ -238,7 +239,7 @@ tcltest::test width-1 {Writing width with bad channel fails
 } -cleanup {
   tearDown
 } -body { 
-  ::dev SetWidth 9 5 ; # channels can only be in range [0,8]
+  ::dev SetWidth 9 16 ; # channels can only be in range [0,8]
 } -result $badChannelPairError -returnCodes 1
 
 tcltest::test width-2 {Writing width with value out of range fails
@@ -247,8 +248,8 @@ tcltest::test width-2 {Writing width with value out of range fails
 } -cleanup {
   tearDown
 } -body { 
-  ::dev SetWidth 0 3 ; # only integer values between 5 and 255 are good
-} -result {MCFD16RC::SetWidth Invalid value provided. Must be in range [5,255].} -returnCodes 1
+  ::dev SetWidth 0 15 ; # only integer values between 16 and 222 are good
+} -result {MCFD16RC::SetWidth Invalid value provided. Must be in range [16,222].} -returnCodes 1
 
 tcltest::test width-3 {Reading width val for good chan does correct thing
 } -setup {
@@ -281,12 +282,13 @@ tcltest::test deadtime-0 {Writing deadtime for good param does correct thing
 } -cleanup {
   tearDown
 } -body { 
-  ::dev SetDeadtime 0 13
-  ::dev SetDeadtime 3 255 
+  # good values for dead time are in range [27,222]
+  ::dev SetDeadtime 0 27 
+  ::dev SetDeadtime 3 222 
   ::dev SetDeadtime 8 120
 
   ::comObj getRecord
-} -result {{Write 32 13} {Write 35 255} {Write 67 120}}
+} -result {{Write 32 27} {Write 35 222} {Write 67 120}}
 
 tcltest::test deadtime-1 {Writing deadtime with bad channel fails
 } -setup {
@@ -294,7 +296,7 @@ tcltest::test deadtime-1 {Writing deadtime with bad channel fails
 } -cleanup {
   tearDown
 } -body { 
-  ::dev SetDeadtime 9 5 ; # channels can only be in range [0,8]
+  ::dev SetDeadtime 9 27 ; # channels can only be in range [0,8]
 } -result $badChannelPairError -returnCodes 1
 
 tcltest::test deadtime-2 {Writing deadtime with value out of range fails
@@ -303,8 +305,8 @@ tcltest::test deadtime-2 {Writing deadtime with value out of range fails
 } -cleanup {
   tearDown
 } -body { 
-  ::dev SetDeadtime 0 3 ; # only integer values between 5 and 255 are good
-} -result {MCFD16RC::SetDeadtime Invalid value provided. Must be in range [5,255].} -returnCodes 1
+  ::dev SetDeadtime 0 26 ; # only integer values between 27 and 222 are good
+} -result {MCFD16RC::SetDeadtime Invalid value provided. Must be in range [27,222].} -returnCodes 1
 
 tcltest::test deadtime-3 {Reading deadtime val for good chan does correct thing
 } -setup {

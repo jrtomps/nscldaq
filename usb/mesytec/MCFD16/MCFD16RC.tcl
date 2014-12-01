@@ -177,9 +177,9 @@ snit::type MCFD16RC {
   # @throws error if chpair is not in range [0,8]
   # @throws error if communication failed
   method SetWidth {chpair val} {
-    if {![Utils::isInRange 5 255 $val]} {
+    if {![Utils::isInRange 16 222 $val]} {
       set msg "MCFD16RC::SetWidth Invalid value provided. Must be in range"
-      append msg " \[5,255\]."
+      append msg " \[16,222\]."
       return -code error $msg
     }
 
@@ -216,9 +216,9 @@ snit::type MCFD16RC {
   # @throws error if chpair is not in range [0,8]
   # @throws error if communication failed
   method SetDeadtime {chpair val} {
-    if {![Utils::isInRange 5 255 $val]} {
+    if {![Utils::isInRange 27 222 $val]} {
       set msg "MCFD16RC::SetDeadtime Invalid value provided. Must be in range"
-      append msg " \[5,255\]."
+      append msg " \[27,222\]."
       return -code error $msg
     }
 

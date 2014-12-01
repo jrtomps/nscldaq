@@ -65,6 +65,53 @@ snit::type MCFD16USB {
     catch {close $m_serialFile}
   }
 
+  ## @brief Set threshold for a specific channel
+  #
+  # @param ch     target channel (must be in range [0,16])
+  # @param thresh threshold value (must be in range [0,255])
+  #
+  # @returns response message from the device
+  #
+  # @throws error if ch out of range
+  # @throws error if thresh out of range
+  method SetThreshold {ch thresh} {
+  # check for valid channel
+    if {![Utils::isInRange 0 16 $ch]} {
+      set msg {Invalid channel argument. Must be in range [0,16].}
+      return -code error -errorinfo MCFD16USB::SetThreshold $msg
+    }
+
+    # check for valid threshold 
+    if {![Utils::isInRange 0 255 $thresh]} {
+      set msg {Invalid threshold argument. Must be in range [0,255].}
+      return -code error -errorinfo MCFD16USB::SetThreshold $msg
+    }
+
+    # all is well with the arguments
+    return [$self _Transaction "ST $ch $thresh"]
+  }
+
+  ## @brief Retrieve threshold value for specific channel
+  #
+  # @param ch   the channel (must be in range [0,16])
+  #
+  # @returns  value associated with the channel
+  #
+  # @throws error if the channel is out of range
+  method GetThreshold {ch} {
+  # check for valid channel
+    if {![Utils::isInRange 0 16 $ch]} {
+      set msg {Invalid channel argument. Must be in range [0,16].}
+      return -code error -errorinfo MCFD16USB::GetThreshold $msg
+    }
+
+    if {$m_needsUpdate} {
+      $self Update
+    }
+
+    return [lindex [dict get $m_moduleState {Threshold}] $ch]
+  }
+
   ## @brief Configure polarity for a specific channel pair
   #
   # @param chanPair the channel pair (must be in range [0,8]).
@@ -110,8 +157,8 @@ snit::type MCFD16USB {
   # @throws error if chanPair is out of range
   # @throws error if val is not 1, 3, or 10
   method SetGain {chanPair val} {
-    if {$val ni [list 1 3 10]} {
-      set msg "Invalid gain value. Must be either 1, 3, or 10."
+    if {$val ni [list 0 1 2]} {
+      set msg "Invalid gain value. Must be either 0, 1, or 2."
       return -code error -errorinfo MCFD16USB::SetGain $msg
     }
 
@@ -190,53 +237,6 @@ snit::type MCFD16USB {
   method GetDiscriminatorMode {} {
     set convTable {{Constant fraction} cfd {Leading Edge} led}
     return [$self _GetBooleanParam Discrimination $convTable]
-  }
-
-  ## @brief Set threshold for a specific channel
-  #
-  # @param ch     target channel (must be in range [0,16])
-  # @param thresh threshold value (must be in range [0,255])
-  #
-  # @returns response message from the device
-  #
-  # @throws error if ch out of range
-  # @throws error if thresh out of range
-  method SetThreshold {ch thresh} {
-  # check for valid channel
-    if {![Utils::isInRange 0 16 $ch]} {
-      set msg {Invalid channel argument. Must be in range [0,16].}
-      return -code error -errorinfo MCFD16USB::SetThreshold $msg
-    }
-
-    # check for valid threshold 
-    if {![Utils::isInRange 0 255 $thresh]} {
-      set msg {Invalid threshold argument. Must be in range [0,255].}
-      return -code error -errorinfo MCFD16USB::SetThreshold $msg
-    }
-
-    # all is well with the arguments
-    return [$self _Transaction "ST $ch $thresh"]
-  }
-
-  ## @brief Retrieve threshold value for specific channel
-  #
-  # @param ch   the channel (must be in range [0,16])
-  #
-  # @returns  value associated with the channel
-  #
-  # @throws error if the channel is out of range
-  method GetThreshold {ch} {
-  # check for valid channel
-    if {![Utils::isInRange 0 16 $ch]} {
-      set msg {Invalid channel argument. Must be in range [0,16].}
-      return -code error -errorinfo MCFD16USB::GetThreshold $msg
-    }
-
-    if {$m_needsUpdate} {
-      $self Update
-    }
-
-    return [lindex [dict get $m_moduleState {Threshold}] $ch]
   }
 
   ## @brief Establish the width of output for a channel pair
@@ -333,8 +333,8 @@ snit::type MCFD16USB {
 
     $self _ThrowOnBadChannelPair $chanPair
 
-    if {![Utils::isInRange 1 5 $value]} {
-      set msg {Invalid delay argument provided. Must be in range [1,5].}
+    if {![Utils::isInRange 0 4 $value]} {
+      set msg {Invalid delay argument provided. Must be in range [0,4].}
       return -code error -errorinfo MCFD16USB::SetDelay $msg
     }
 
