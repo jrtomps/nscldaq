@@ -2,11 +2,14 @@
 DRIVERDest = @prefix@/TclLibs/mesytec
 
 TCLDRIVERS = MCFD16USB.tcl MCFD16RC.tcl MCFD16Gui.tcl
+TCLAPPS = MCFD16Control.tcl
 
 install-exec-local:
 	$(mkinstalldirs) @prefix@/TclLibs
 	$(mkinstalldirs) $(DRIVERDest)
 	for f in $(TCLDRIVERS); do $(INSTALL_SCRIPT) @srcdir@/$$f  $(DRIVERDest) ; done
+	$(INSTALL_SCRIPT) @srcdir@/MCFD16Control.tcl @prefix@/bin/MCFD16Control  && \
+		chmod a+x @prefix@/bin/MCFD16Control
 	echo "pkg_mkIndex -verbose $(DRIVERDest) *.tcl" | $(TCLSH_CMD)
 
 #
