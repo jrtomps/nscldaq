@@ -1,13 +1,30 @@
 #!/usr/bin/env wish
 
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2014.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Author:
+#    Jeromy Tompkins
+#	   NSCL
+#	   Michigan State University
+#	   East Lansing, MI 48824-1321
+
 set here [file dirname [file normalize [info script]]]
 lappend auto_path $here
 
+
+# require the needed packages
 package require mcfd16usb
 package require mcfd16gui
 package require mcfd16rc
-package require cmdline
+package require cmdline ;# for the command line option parsing
 
+# Handle the options
 set options {
   {-protocol.arg   ""    "type of communication protocol (either \"usb\" or \"mxdcrcbus\")"}
   {-serialfile.arg ""     "name of serial file (e.g. /dev/ttyUSB0) \[MANDATORY for USB\]"}
@@ -17,9 +34,7 @@ set options {
   {-devno.arg      0       "address of targeted device on rcbus"}
 }
 
-set usage " --protocol value ?option value? :"
-array set params [::cmdline::getoptions argv $options]
-
+# Enforce the required options for the usb and mxdcrcbus protocols
 proc assertProtocolDependencies {arrname} {
   upvar $arrname params
 
@@ -70,6 +85,8 @@ proc ConfigureStyle {} {
   ttk::style configure Commit.TButton -background orange
 }
 
+## Fill the information frame at top of the gui with protocol dependent info
+#
 proc constructInfoFrame {arrname} {
   upvar $arrname params
   set protoLbl ""
@@ -106,11 +123,16 @@ proc constructInfoFrame {arrname} {
   return .info
 }
 
-assertProtocolDependencies params
-ConfigureStyle
+########### START THE ACTUAL EXECUTIONAL PORTION OF THE SCRIPT ###############
 
-# Create the proxy
-#
+set usage " --protocol value ?option value? :"
+array set params [::cmdline::getoptions argv $options]
+
+assertProtocolDependencies params ;# exits on for bad cmdline options
+
+ConfigureStyle ;# make elements pretty with colorful styles
+
+# Create the driver that serves as the backend of the gui
 if {$params(-protocol) eq "usb"} {
   set serialFile $params(-serialfile)
   if {![file exists $serialFile]} {
@@ -127,6 +149,7 @@ if {$params(-protocol) eq "usb"} {
   MCFD16RC dev ::proxy
 }
 
+########################### CONSTRUCT THE GUI #########################
 
 ttk::label .title -text "MCFD-16 Controls" -style "Title.TLabel"
 set infoFrame [constructInfoFrame params]
