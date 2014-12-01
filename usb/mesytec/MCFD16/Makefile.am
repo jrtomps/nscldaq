@@ -8,8 +8,8 @@ install-exec-local:
 	$(mkinstalldirs) @prefix@/TclLibs
 	$(mkinstalldirs) $(DRIVERDest)
 	for f in $(TCLDRIVERS); do $(INSTALL_SCRIPT) @srcdir@/$$f  $(DRIVERDest) ; done
-	$(INSTALL_SCRIPT) @srcdir@/MCFD16Control.tcl @prefix@/bin/MCFD16Control  && \
-		chmod a+x @prefix@/bin/MCFD16Control
+	for f in $(TCLAPPS); do $(INSTALL_SCRIPT) @srcdir@/$$f @prefix@/bin/`basename $$f .tcl`  && \
+		chmod a+x @prefix@/bin/`basename $$f .tcl` ; done
 	echo "pkg_mkIndex -verbose $(DRIVERDest) *.tcl" | $(TCLSH_CMD)
 
 #
@@ -21,4 +21,4 @@ TCLTESTS=tclTests.tcl mcfd16usb.test mcfd16gui.test mcfd16rc.test
 check-TESTS:
 	TCLLIBPATH="@prefix@/TclLibs" HERE=@srcdir@ tcl=@TCLSH_CMD@ @TCLSH_CMD@ @srcdir@/tclTests.tcl
 
-EXTRA_DIST=$(TCLDRIVERS) $(TCLTESTS)
+EXTRA_DIST=$(TCLDRIVERS) $(TCLTESTS) $(TCLAPPS)
