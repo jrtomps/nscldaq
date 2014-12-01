@@ -164,6 +164,11 @@ snit::type MCFD16USB {
 
     $self _ThrowOnBadChannelPair $chanPair
 
+    # the USB takes an input of 1, 3, or 10 so there will be a mapping
+    # of the user's argument to what can be written.
+    # 0 -> 1 , 1 -> 3, 2 -> 10
+    set val [lindex {1 3 10} $val]
+
     # all is well with the arguments
     return [$self _Transaction "SG $chanPair $val"]
   }
@@ -179,7 +184,19 @@ snit::type MCFD16USB {
   #
   # @throws error if chanPair is out of range
   method GetGain {chanPair} {
-    return [$self _GetChannelPairParam Gain $chanPair]
+
+    set val [$self _GetChannelPairParam Gain $chanPair]
+
+    # for consistency with RCbus, the value needs to be mapped back to 
+    # the range [0,2].
+    if {[catch {dict get {1 0 3 1 10 2} $val} mappedVal]} {
+      set msg "MCFD16USB::GetGain Value read from the device ($val) is not "
+      append msg "understood by the driver."
+      return -code error $msg
+    }
+
+    # mapping succeeded, so return the new mapping
+    return $mappedVal
   }
 
   ## @brief Enable optional bandwidth filter for fast rise time signal
@@ -337,6 +354,11 @@ snit::type MCFD16USB {
       set msg {Invalid delay argument provided. Must be in range [0,4].}
       return -code error -errorinfo MCFD16USB::SetDelay $msg
     }
+   
+    # the arg input has a range between 0 and 4 for consistency with rcbus.
+    # However, usb protocol natively takes a range between 1 and 5. We 
+    # will map the users value by adding 1 to it.
+    incr value 1
 
     return [$self _Transaction "SY $chanPair $value"]
   }
@@ -349,7 +371,13 @@ snit::type MCFD16USB {
   #
   # @throws error if chanPair is out of range
   method GetDelay {chanPair} {
-    return [$self _GetChannelPairParam Delay $chanPair]
+    set val [$self _GetChannelPairParam Delay $chanPair]
+
+    # to account for the mapping on Set, we will map to the range [0,4] from
+    # the native range of [1,5] returned from the device
+    incr val -1
+
+    return $val
   }
 
   ## @brief Set the constant fraction for a channel pair

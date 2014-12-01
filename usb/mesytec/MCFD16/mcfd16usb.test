@@ -71,7 +71,7 @@ set dsResponse {DS
 
 Threshold:     0 20 20 40 20 20 20 20
                20 20 20 20 20 20 20 20 - 20
-Gain:          1 1 1 1 4 1 1 1 - 1
+Gain:          1 1 1 1 3 1 1 1 - 1
 Width [ns]:    100 50 40 50 50 50 50 50 - 50
 Deadtime [ns]: 50 50 50 50 202 50 50 50 - 20 
 Delay (Tap):   3 3 3 3 1 3 3 3 - 2
@@ -92,7 +92,7 @@ mcfd-16>
 }
 
 set parsedDSDict [dict create Threshold {0 20 20 40 20 20 20 20 20 20 20 20 20 20 20 20 20} \
-                       Gain {1 1 1 1 4 1 1 1 1} \
+                       Gain {1 1 1 1 3 1 1 1 1} \
                        Width {100 50 40 50 50 50 50 50 50} \
                        Deadtime {50 50 50 50 202 50 50 50 20} \
                        Delay {3 3 3 3 1 3 3 3 2} \
@@ -183,7 +183,7 @@ tcltest::test gain-0 {Make sure we can set gain properly
   # set channel pairs 0 to a good value (i.e. in range [0,2])
   ::dev SetGain 0 1
   tcltest::viewFile $::serialFile
-} -result "SG 0 1"
+} -result "SG 0 3"
 
 tcltest::test gain-1 {Bad gain value fails
 } -setup {
@@ -216,7 +216,7 @@ tcltest::test gain-3 {Read gain returns the cached value if up-to-date
   tearDown
 } -body {
   ::dev GetGain 4
-}  -result {4}
+}  -result {1}
 
 tcltest::test gain-4 {Read gain fails if bad channel pair
 } -setup {
@@ -580,8 +580,9 @@ tcltest::test delay-0 {Given good parameter, ensure the correct things are writt
   ::dev SetDelay 8 4 ; # maximum dead time and chan pair
 
   tcltest::viewFile $::serialFile
-} -result {SY 0 0
-SY 8 4}
+  # for consistency with RCbus, there is a direct mapping of [0,4] --> [1,5]
+} -result {SY 0 1
+SY 8 5}
 
 
 tcltest::test delay-1 {Bad channel pair value will fail as always.
@@ -625,7 +626,7 @@ tcltest::test delay-3 {Read delay returns the cached value if up-to-date
   lappend resList [::dev GetDelay 8]
 
   set resList
-}  -result {1 2}
+}  -result {0 1}
 
 tcltest::test delay-4 {Failure for bad channel pair
 } -setup {

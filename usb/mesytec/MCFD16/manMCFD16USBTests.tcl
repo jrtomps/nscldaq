@@ -31,7 +31,7 @@ tcltest::test polarity-0 { Writing polarity should be effective
 tcltest::test gain-0 { Writing gain should work
 } {
   for {set ch 0} {$ch<9} {incr ch} {
-    set gain [lindex {1 3 10} [expr $ch%3]]
+    set gain [lindex {0 1 2} [expr $ch%3]]
     ::dev SetGain $ch $gain
   }
 
@@ -40,7 +40,7 @@ tcltest::test gain-0 { Writing gain should work
     lappend state [::dev GetGain $ch]
   }
   set state
-} {1 3 10 1 3 10 1 3 10}
+} {0 1 2 0 1 2 0 1 2}
 
 
 tcltest::test bwl-0 { Set bandwidth should be responsive
@@ -103,13 +103,13 @@ tcltest::test width-0 { We should be able to write widths
     lappend state [::dev GetWidth $ch]
   }
   set state
-} {160 162 165 167 170 172 174 177 179}
+} {100 101 102 103 104 105 106 107 108}
 
 tcltest::test delay-0 { make sure we can set the delay and read it back
 } {
   set res [catch {
   for {set ch 0} {$ch<9} {incr ch} {
-    set delay [lindex {1 2 3 4 5} [expr $ch%5]]
+    set delay [lindex {0 1 2 3 4} [expr $ch%5]]
     ::dev SetDelay $ch $delay
   }
 
@@ -122,7 +122,7 @@ tcltest::test delay-0 { make sure we can set the delay and read it back
     puts $msg
   }
   set state
-} {1 2 3 4 5 1 2 3 4}
+} {0 1 2 3 4 0 1 2 3}
 
 tcltest::test fraction-0 { make sure we can set the delay and read it back
 } {
