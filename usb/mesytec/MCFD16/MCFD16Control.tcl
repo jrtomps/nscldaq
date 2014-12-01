@@ -1,4 +1,4 @@
-#!/usr/bin/env wish
+#!/usr/bin/env tclsh
 
 #    This software is Copyright by the Board of Trustees of Michigan
 #    State University (c) Copyright 2014.
@@ -17,46 +17,69 @@
 set here [file dirname [file normalize [info script]]]
 lappend auto_path $here
 
+# Tk package parses argv when it is required... It will cause a crash 
+# when it encounters unknown commands, so we have to hide the real arguments
+# from it.
+set argv_tmp $argv
+set argv [list]
+package require Tk
+#set argv $argv_tmp
 
 # require the needed packages
 package require mcfd16usb
 package require mcfd16gui
 package require mcfd16rc
+
+
 package require cmdline ;# for the command line option parsing
 
 # Handle the options
 set options {
-  {-protocol.arg   ""    "type of communication protocol (either \"usb\" or \"mxdcrcbus\")"}
-  {-serialfile.arg ""     "name of serial file (e.g. /dev/ttyUSB0) \[MANDATORY for USB\]"}
-  {-module.arg     ""         "name of module registered to slow-controls server \[MANDATORY for MxDC RCbus\]"}
-  {-host.arg       "localhost"  "host running VMUSBReadout slow-controls server" }
+  {-protocol.arg   ""          "type of communication protocol (either \"usb\" or \"mxdcrcbus\")"}
+  {-serialfile.arg ""          "name of serial file (e.g. /dev/ttyUSB0) \[MANDATORY for USB\]"}
+  {-module.arg     ""          "name of module registered to slow-controls server \[MANDATORY for MxDC RCbus\]"}
+  {-host.arg       "localhost" "host running VMUSBReadout slow-controls server" }
   {-port.arg       27000       "port the slow-controls server is listening on" }
-  {-devno.arg      0       "address of targeted device on rcbus"}
+  {-devno.arg      0           "address of targeted device on rcbus"}
 }
+set usage " --protocol value ?option value? :"
+
+if {("-help" in $argv_tmp) || ("-?" in $argv_tmp)} {
+  puts [cmdline::usage $options $usage]
+  exit
+}
+
 
 # Enforce the required options for the usb and mxdcrcbus protocols
 proc assertProtocolDependencies {arrname} {
-  upvar $arrname params
+  global params
+#  puts $arrname
+#  upvar 1 $arrname params
 
-  if {[lindex [array get params -protocol] 1] eq ""} {
-    puts [::cmdline::usage $options $usage]
+  set fatal 0
+  if {$params(-protocol) eq ""} {
     puts "User must pass either \"usb\" or \"rcbus\" for the --protocol option"
-    exit
+    set fatal 1
   }
   if {$params(-protocol) eq "usb"} {
     if {$params(-serialfile) eq ""} {
       puts "The --serialfile argument is mandatory for usb protocol but none was provided."
-      exit
+      set fatal 1
     }
   } elseif {$params(-protocol) eq "mxdcrcbus"} {
     if {$params(-module) eq ""} {
       puts "The --module argument is mandatory for mxdcrcbus protocol but none was provided."
-      exit
+      set fatal 1
     }
   } else {
     set msg "User provided a argument to the --protocol argument that is not "
     append msg "supported. Only \"usb\" and \"rcbus\" are allowed."
     puts $msg
+    set fatal 1
+  }
+
+  if {$fatal == 1} {
+    flush stdout
     exit
   }
 }
@@ -125,10 +148,23 @@ proc constructInfoFrame {arrname} {
 
 ########### START THE ACTUAL EXECUTIONAL PORTION OF THE SCRIPT ###############
 
-set usage " --protocol value ?option value? :"
-array set params [::cmdline::getoptions argv $options]
 
-assertProtocolDependencies params ;# exits on for bad cmdline options
+# try to parse... do so in a catch block because -help will cause a thrown 
+# exception
+if {[llength $argv_tmp]==0} {
+  puts [::cmdline::usage $::options $::usage]
+  exit
+}
+
+set res [catch {
+  array set ::params [::cmdline::getoptions argv_tmp $::options]
+} msg]
+if {$res == 1} {
+  puts $msg
+  exit
+}
+
+assertProtocolDependencies ::params ;# exits on for bad cmdline options
 
 ConfigureStyle ;# make elements pretty with colorful styles
 
