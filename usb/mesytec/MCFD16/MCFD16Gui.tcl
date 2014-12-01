@@ -230,7 +230,7 @@ snit::widget MCFD16IndividualView {
 
     ttk::spinbox $w.ga$pair -textvariable "[$self mcfd](ga$pair)" \
       -style "$style.TSpinbox" -width 4 \
-      -values {1 3 10} -state readonly
+      -values {0 1 2} -state readonly
 
     ttk::spinbox $w.wi$pair -textvariable "[$self mcfd](wi$pair)" \
       -style "$style.TSpinbox" -width 4 \
@@ -240,9 +240,9 @@ snit::widget MCFD16IndividualView {
       -style "$style.TSpinbox" -width 4 \
       -from 27 -to 222 -state readonly
 
-    ttk::spinbox $w.dl$pair -textvariable "[$self mcfd](fr$pair)" \
+    ttk::spinbox $w.dl$pair -textvariable "[$self mcfd](dl$pair)" \
       -style "$style.TSpinbox" -width 4 \
-      -from 1 -to 5 -state readonly
+      -from 0 -to 4 -state readonly
 
     ttk::radiobutton $w.fr${pair}20 -text "20%" -variable "[$self mcfd](fr$pair)" \
                                     -value 20  -style "$style.TRadiobutton"
@@ -353,15 +353,15 @@ snit::widget MCFD16CommonView {
     ttk::radiobutton $w.popos8 -text "pos" -variable [$self mcfd](po8) \
                                -value pos -style "Even.TRadiobutton"
     ttk::spinbox $w.ga8 -textvariable [$self mcfd](ga8) -width 4 \
-                               -values {1 3 10} -style "Even.TSpinbox" \
+                               -values {0 1 2} -style "Even.TSpinbox" \
                                -state readonly
     ttk::spinbox $w.wi8 -textvariable [$self mcfd](wi8) -width 4 \
                                -from 16 -to 222 -style "Even.TSpinbox" \
                                -state readonly
     ttk::spinbox $w.dt8 -textvariable [$self mcfd](dt8) -width 4 -from 27 \
                                -to 222 -style "Even.TSpinbox" -state readonly
-    ttk::spinbox $w.dl8 -textvariable [$self mcfd](dl8) -width 4 -from 1 \
-                               -to 5 -style "Even.TSpinbox" -state readonly
+    ttk::spinbox $w.dl8 -textvariable [$self mcfd](dl8) -width 4 -from 0 \
+                               -to 4 -style "Even.TSpinbox" -state readonly
     ttk::radiobutton $w.fr820 -text "20%" -variable [$self mcfd](fr8) \
                               -value 20 -style "Even.TRadiobutton"
     ttk::radiobutton $w.fr840 -text "40%" -variable [$self mcfd](fr8) -value 40 -style "Even.TRadiobutton"
