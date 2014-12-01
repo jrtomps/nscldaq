@@ -1,3 +1,4 @@
+#!/usr/bin/env wish
 
 set here [file dirname [file normalize [info script]]]
 lappend auto_path $here
@@ -5,7 +6,45 @@ lappend auto_path $here
 package require mcfd16usb
 package require mcfd16gui
 package require mcfd16rc
+package require cmdline
 
+set options {
+  {-protocol.arg   ""    "type of communication protocol (either \"usb\" or \"mxdcrcbus\")"}
+  {-serialfile.arg ""     "name of serial file (e.g. /dev/ttyUSB0) \[MANDATORY for USB\]"}
+  {-module.arg     ""         "name of module registered to slow-controls server \[MANDATORY for MxDC RCbus\]"}
+  {-host.arg       "localhost"  "host running VMUSBReadout slow-controls server" }
+  {-port.arg       27000       "port the slow-controls server is listening on" }
+  {-devno.arg      0       "address of targeted device on rcbus"}
+}
+
+set usage " --protocol value ?option value? :"
+array set params [::cmdline::getoptions argv $options]
+
+proc assertProtocolDependencies {arrname} {
+  upvar $arrname params
+
+  if {[lindex [array get params -protocol] 1] eq ""} {
+    puts [::cmdline::usage $options $usage]
+    puts "User must pass either \"usb\" or \"rcbus\" for the --protocol option"
+    exit
+  }
+  if {$params(-protocol) eq "usb"} {
+    if {$params(-serialfile) eq ""} {
+      puts "The --serialfile argument is mandatory for usb protocol but none was provided."
+      exit
+    }
+  } elseif {$params(-protocol) eq "mxdcrcbus"} {
+    if {$params(-module) eq ""} {
+      puts "The --module argument is mandatory for mxdcrcbus protocol but none was provided."
+      exit
+    }
+  } else {
+    set msg "User provided a argument to the --protocol argument that is not "
+    append msg "supported. Only \"usb\" and \"rcbus\" are allowed."
+    puts $msg
+    exit
+  }
+}
 ################## GLOBAL STUFF #############################################
 #
 
@@ -31,32 +70,77 @@ proc ConfigureStyle {} {
   ttk::style configure Commit.TButton -background orange
 }
 
+proc constructInfoFrame {arrname} {
+  upvar $arrname params
+  set protoLbl ""
+  ttk::frame .info -style "Info.TFrame"
+  if {$params(-protocol) eq "usb"} {
+    set protoLbl "Protocol : USB"
+    set serialFile "Serial file : $params(-serialfile)"
+    
+    ttk::label .info.protoLbl -text $protoLbl
+    ttk::label .info.serialFile -text $serialFile
+
+    grid .info.protoLbl .info.serialFile -sticky nsew
+    grid columnconfigure .info {0 1} -weight 1
+  } else {
+    set protoLbl "Protocol : MxDC-RCbus"
+    set module "Module name : $params(-module)"
+    set host "Server host : $params(-host)"
+    set port "Server port : $params(-port)"
+    set devno "Device address : $params(-devno)"
+    
+    ttk::label .info.protoLbl -text $protoLbl
+    ttk::label .info.module -text $module
+    ttk::label .info.host -text $host
+    ttk::label .info.port -text $port
+    ttk::label .info.devno -text $devno
+
+    grid .info.protoLbl .info.host -sticky nsew
+    grid .info.module .info.port -sticky nsew
+    grid .info.devno x -sticky nsew
+    grid columnconfigure .info {0 1} -weight 1
+  }
+
+
+  return .info
+}
+
+assertProtocolDependencies params
 ConfigureStyle
 
+# Create the proxy
+#
+if {$params(-protocol) eq "usb"} {
+  set serialFile $params(-serialfile)
+  if {![file exists $serialFile]} {
+    puts "Serial file \"$serialFile\" provided but does not exist."
+  }
+
+  MCFD16USB ::dev $params(-serialfile)
+} else {
+  # at this point the only other option is mxdcrcbus because 
+  # assertProtocolDependencies would have exited otherwise.
+  MXDCRCProxy ::proxy -server $params(-host) -port $params(-port) \
+                      -module $params(-module) -devno $params(-devno)
+  # use the proxy created to construct an MCFD16RC
+  MCFD16RC dev ::proxy
+}
+
+
 ttk::label .title -text "MCFD-16 Controls" -style "Title.TLabel"
-ttk::frame .info -style "Info.TFrame"
-ttk::label .info.fwVsnLbl -text "Firmware version:"
-ttk::label .info.swVsnLbl -text "Software version:"
-ttk::label .info.protoLbl -text "Protocol:"
-
-grid .info.fwVsnLbl .info.protoLbl -sticky nsew
-grid .info.swVsnLbl x             -sticky nsew
-grid columnconfigure .info {0 1} -weight 1
-#grid rowconfigure .info {2} -weight 1
+set infoFrame [constructInfoFrame params]
 
 
-#MCFD16USB dev2 /dev/ttyUSB0
-MXDCRCProxy proxy -server localhost -port 27000 -module rcbus -devno 0
-MCFD16RC dev2 proxy
-
-set control [MCFD16ControlPanel .ctl -handle ::dev2]
-PulserPresenter pulserCtlr [PulserView .pulser] dev2
+set control [MCFD16ControlPanel .ctl -handle ::dev]
+PulserPresenter pulserCtlr [PulserView .pulser] dev
 
 grid .title -sticky nsew -padx 8 -pady 8
-grid .info -sticky nsew -padx 8 -pady 8
+grid $infoFrame -sticky nsew -padx 8 -pady 8
 grid .ctl -sticky nsew -padx 8 -pady 8
 grid .pulser -sticky nsew -padx 8 -pady 8
 
 grid rowconfigure . {2} -weight 1
 grid columnconfigure . 0 -weight 1
 
+wm resizable . false false
