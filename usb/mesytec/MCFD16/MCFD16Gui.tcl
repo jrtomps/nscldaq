@@ -669,20 +669,27 @@ snit::widget MCFD16ControlPanel {
     $m_frames add common $win.com
     $m_frames add individual $win.ind
 
-    ttk::label $win.modeLbl -text "Configuration Mode"
-    ttk::radiobutton $win.modeCom -text "common" -variable [myvar m_mode] \
-                                  -value common
-    ttk::radiobutton $win.modeInd -text "individual" -variable [myvar m_mode] \
-                                  -value individual
+    ## construct the frame containing mode elements
+    set mode $win.mode
+    ttk::frame $mode -style Mode.TFrame
+    ttk::label $mode.modeLbl -text "Configuration Mode" -style Mode.TLabel
+    ttk::radiobutton $mode.modeCom -text "common" -variable [myvar m_mode] \
+                                  -value common -style Mode.TRadiobutton
+    ttk::radiobutton $mode.modeInd -text "individual" -variable [myvar m_mode] \
+                                  -value individual -style Mode.TRadiobutton
+    grid $mode.modeLbl $mode.modeCom $mode.modeInd -sticky new
+    grid columnconfigure $mode {0 1 2} -weight 1
 
-    ttk::button $win.commit -text "Commit" -command [mymethod Commit] \
+    ttk::button $win.commit -text "Commit to Device" -command [mymethod Commit] \
+                                  -style "Commit.TButton"
+    ttk::button $win.update -text "Update from Device" -command [mymethod Update] \
                                   -style "Commit.TButton"
 
-    grid $win.modeLbl $win.modeCom $win.modeInd -sticky new
-    grid $m_frames - -  -sticky nsew
+    grid $win.mode - -sticky new
+    grid $m_frames - -sticky nsew
 
-    grid $win.commit - -  -sticky ew
-    grid $win.plsr - - -sticky ew -pady {4 0}
+    grid $win.commit  $win.update  -sticky ew
+    grid $win.plsr - -sticky ew -pady {4 0}
 
     grid rowconfigure $win 1 -weight 1
     grid columnconfigure $win {0 1 2} -weight 1
@@ -702,6 +709,16 @@ snit::widget MCFD16ControlPanel {
   method Commit {} {
     [$self cget -handle] SetMode $m_mode
     $m_current Commit
+  }
+
+  method Update {} {
+    # first read from the device the mode 
+    set m_mode [[$self cget -handle] GetMode]
+
+    # for each of the modes, read in the modules values
+    $m_comPrsntr UpdateViewFromModel 
+    $m_indPrsntr UpdateViewFromModel 
+    $m_pulserPrsntr UpdateViewFromModel
   }
 
   method GetCurrent {} { return $m_current }
