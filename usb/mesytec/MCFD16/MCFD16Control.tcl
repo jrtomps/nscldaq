@@ -29,6 +29,8 @@ package require Tk
 package require mcfd16usb
 package require mcfd16gui
 package require mcfd16rc
+package require mcfd16commandlogger
+package require FrameSequencer
 
 
 package require cmdline ;# for the command line option parsing
@@ -108,44 +110,6 @@ proc ConfigureStyle {} {
   ttk::style configure Commit.TButton -background orange
 }
 
-## Fill the information frame at top of the gui with protocol dependent info
-#
-proc constructInfoFrame {arrname} {
-  upvar $arrname params
-  set protoLbl ""
-  ttk::frame .info -style "Info.TFrame"
-  if {$params(-protocol) eq "usb"} {
-    set protoLbl "Protocol : USB"
-    set serialFile "Serial file : $params(-serialfile)"
-    
-    ttk::label .info.protoLbl -text $protoLbl
-    ttk::label .info.serialFile -text $serialFile
-
-    grid .info.protoLbl .info.serialFile -sticky nsew
-    grid columnconfigure .info {0 1} -weight 1
-  } else {
-    set protoLbl "Protocol : MxDC-RCbus"
-    set module "Module name : $params(-module)"
-    set host "Server host : $params(-host)"
-    set port "Server port : $params(-port)"
-    set devno "Device address : $params(-devno)"
-    
-    ttk::label .info.protoLbl -text $protoLbl
-    ttk::label .info.module -text $module
-    ttk::label .info.host -text $host
-    ttk::label .info.port -text $port
-    ttk::label .info.devno -text $devno
-
-    grid .info.protoLbl .info.host -sticky nsew
-    grid .info.module .info.port -sticky nsew
-    grid .info.devno x -sticky nsew
-    grid columnconfigure .info {0 1} -weight 1
-  }
-
-
-  return .info
-}
-
 ########### START THE ACTUAL EXECUTIONAL PORTION OF THE SCRIPT ###############
 
 
@@ -168,36 +132,189 @@ assertProtocolDependencies ::params ;# exits on for bad cmdline options
 
 ConfigureStyle ;# make elements pretty with colorful styles
 
-# Create the driver that serves as the backend of the gui
-if {$params(-protocol) eq "usb"} {
-  set serialFile $params(-serialfile)
-  if {![file exists $serialFile]} {
-    puts "Serial file \"$serialFile\" provided but does not exist."
-  }
+snit::type MCFD16AppOptions {
+  option -protocol
+  option -serialfile
+  option -module
+  option -host
+  option -port 
+  option -devno
 
-  MCFD16USB ::dev $params(-serialfile)
-} else {
-  # at this point the only other option is mxdcrcbus because 
-  # assertProtocolDependencies would have exited otherwise.
-  MXDCRCProxy ::proxy -server $params(-host) -port $params(-port) \
-                      -module $params(-module) -devno $params(-devno)
-  # use the proxy created to construct an MCFD16RC
-  MCFD16RC dev ::proxy
+  constructor {args} {
+    $self configurelist $args 
+  }
 }
 
-########################### CONSTRUCT THE GUI #########################
 
-ttk::label .title -text "MCFD-16 Controls" -style "Title.TLabel"
-set infoFrame [constructInfoFrame params]
+snit::type MCFD16GuiApp {
+  option -optionarray -default ::params
+  option -widgetname -default .app
+
+  component _handle
+  component _options 
+  
+  delegate option * to _options
+
+  variable _controlPrsntr 
+  variable _configFr
+  variable _saveFr
+  variable _sequencer
+
+  constructor {args} {
+    install _options using MCFD16AppOptions %AUTO% 
+
+    $self configurelist $args
+
+    $self processCmdlineOptions
+
+    $self setUpMenu
+    $self BuildGUI
+
+  }
+
+  destructor {
+    $_handle destroy
+  }
+
+  method processCmdlineOptions {} {
+
+  # Create the driver that serves as the backend of the gui
+    set paramDict [array get [$self cget -optionarray]]
+    set protocol [dict get $paramDict -protocol]
+    if {$protocol eq "usb"} {
+      set serialFile [dict get $paramDict -serialfile]
+      if {![file exists $serialFile]} {
+        puts "Serial file \"$serialFile\" provided but does not exist."
+      }
+
+      install _handle using MCFD16USB %AUTO% [dict get $paramDict -serialfile]
+    } else {
+    # at this point the only other option is mxdcrcbus because 
+    # assertProtocolDependencies would have exited otherwise.
+      MXDCRCProxy ::proxy -server [dict get $paramDict -host] \
+                          -port [dict get $paramDict -port] \
+                          -module [dict get $paramDict -module] \
+                          -devno [dict get $paramDict -devno]
+        # use the proxy created to construct an MCFD16RC
+      install _handle using MCFD16RC %AUTO% ::proxy
+    }
+  }
+
+  method setUpMenu {} {
+    option add *tearOff 0
+
+    # get the menu for the toplevel
+    set menu [[winfo toplevel [$self cget -widgetname]] cget -menu]
+    if {$menu eq ""} {
+      set m .menu
+      menu $m
+      menu $m.file 
+      $m.file add command -command [mymethod ToSaveAs] -label "Save as..."
+      $m add cascade -menu $m.file -label "File"
+      . configure -menu $m
+    }
+  }
+
+  method BuildGUI {} {
+    set win [$self cget -widgetname]
+
+    ttk::label $win.title -text "MCFD-16 Controls" -style "Title.TLabel"
+
+    set _sequencer $win.frames
+    FrameSequencer $_sequencer
+
+    
+    set _configFr [$self BuildControlFrame $_sequencer]
+    set _saveFr [$self BuildSaveAsFrame $_sequencer]
+
+    $_sequencer add config $_configFr
+    $_sequencer select config
+
+    grid $_sequencer -sticky nsew -padx 8 -pady 8
+
+  }
+
+  method BuildControlFrame {top} {
+    set configFr $top.config
+    ttk::frame $configFr
+    set title [ttk::label $configFr.title -text "MCFD-16 Controls" -style "Title.TLabel"]
+    set infoFrame [$self constructInfoFrame $configFr]
+    set _controlPrsntr $configFr.ctl
+    set control [MCFD16ControlPanel $_controlPrsntr -handle $_handle]
+
+    grid $title -sticky nsew -padx 8 -pady 8
+    grid $infoFrame -sticky nsew -padx 8 -pady 8
+    grid $control -sticky nsew -padx 8 -pady 8
+    grid rowconfigure $configFr {2} -weight 1
+    grid columnconfigure $configFr 0 -weight 1
+
+    return $configFr
+  }
+
+  method BuildSaveAsFrame {top} {
+    set saveFr $top.save
+    SaveToFileForm $top.save $self
+
+    return $saveFr
+  }
+
+  method constructInfoFrame {top} {
+    set paramDict [array get [$self cget -optionarray]]
+    set protoLbl ""
+    ttk::frame $top.info -style "Info.TFrame"
+    if {[dict get $paramDict -protocol] eq "usb"} {
+      set protoLbl "Protocol : USB"
+      set serialFile "Serial file : [dict get $paramDict -serialfile]"
+
+      ttk::label $top.info.protoLbl -text $protoLbl
+      ttk::label $top.info.serialFile -text $serialFile
+
+      grid $top.info.protoLbl $top.info.serialFile -sticky nsew
+      grid columnconfigure $top.info {0 1} -weight 1
+    } else {
+      set protoLbl "Protocol : MxDC-RCbus"
+      set module "Module name : [dict get $paramDict -module]"
+      set host "Server host : [dict get $paramDict -host]"
+      set port "Server port : [dict get $paramDict -port]"
+      set devno "Device address : [dict get $paramDict -devno]"
+
+      ttk::label $top.info.protoLbl -text $protoLbl
+      ttk::label $top.info.module -text $module
+      ttk::label $top.info.host -text $host
+      ttk::label $top.info.port -text $port
+      ttk::label $top.info.devno -text $devno
+
+      grid $top.info.protoLbl $top.info.host -sticky nsew
+      grid $top.info.module $top.info.port -sticky nsew
+      grid $top.info.devno x -sticky nsew
+      grid columnconfigure $top.info {0 1} -weight 1
+    }
 
 
-set control [MCFD16ControlPanel .ctl -handle ::dev]
+    return $top.info
+  }
 
-grid .title -sticky nsew -padx 8 -pady 8
-grid $infoFrame -sticky nsew -padx 8 -pady 8
-grid .ctl -sticky nsew -padx 8 -pady 8
+  method ToSaveAs {} {
 
-grid rowconfigure . {2} -weight 1
+    $_sequencer add save $_saveFr
+    $_sequencer select save
+  }
+
+  method GetHandle {} {
+    return $_handle
+  }
+
+  method GetControlPresenter {} {
+    return $_controlPrsntr
+  }
+}
+
+
+ttk::frame .app
+MCFD16GuiApp app -widgetname .app
+app configure {*}[array get ::params]
+
+grid .app -sticky nsew
+grid rowconfigure . 0 -weight 1
 grid columnconfigure . 0 -weight 1
-
 wm resizable . false false

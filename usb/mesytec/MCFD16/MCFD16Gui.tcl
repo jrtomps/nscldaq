@@ -630,7 +630,7 @@ snit::widget MCFD16ControlPanel {
   component m_indPrsntr
   component m_pulserPrsntr
 
-  option -handle -default {}
+  option -handle -default {} -configuremethod {SetHandle}
   variable m_mode 
   variable m_current
 
@@ -722,11 +722,107 @@ snit::widget MCFD16ControlPanel {
   }
 
   method GetCurrent {} { return $m_current }
+
+  method SetHandle {opt val} {
+    # pass the handle around to all of the sub-presenters
+    if {$m_comPrsntr ne ""} {
+      $m_comPrsntr configure -handle $val
+    }
+
+    if {$m_indPrsntr ne ""} {
+       $m_indPrsntr configure -handle $val
+    }
+    if {$m_pulserPrsntr ne ""} {
+      $m_pulserPrsntr SetHandle $val
+    }
+
+    # set the option
+    set options($opt) $val
+  }
 }
 
 #######
 #
 
+snit::widget SaveToFileForm {
+
+  variable _theApp
+  variable _path
+  variable _displayPath
+
+  constructor {app args} {
+    set _theApp $app
+    # this sets up the path and the display path
+    $self setPath ""
+
+    $self BuildGUI
+  }
+
+  method BuildGUI {} {
+    ttk::label  $win.pathLbl -text "Output file name"
+    ttk::entry  $win.pathEntry -textvariable [myvar _displayPath] -width 24 
+    ttk::button $win.browse -text "Browse"  -command [mymethod Browse] -width 8
+    ttk::button $win.save -text "Save"  -command [mymethod Save] -width 8
+
+    grid  $win.pathLbl $win.pathEntry $win.browse -sticky ew -padx 4 -pady 4
+    grid  $win.save - - -sticky ew -padx 4 -pady 4
+    grid columnconfigure $win 1 -weight 1
+  }
+
+  method Browse {} {
+    set path [tk_getSaveFile -confirmoverwrite 1 -defaultextension ".tcl" \
+                    -title {Save as} ] 
+    if {$path ne ""} {
+      $self setPath $path  
+    }
+  }
+
+  method Save {} {
+    if {$_path eq ""} {
+      tk_messageBox -icon error -message "User must specify file name."
+      return
+    }
+
+    MCFD16CommandLogger ::logger $_path
+    set protocol [$_theApp cget -protocol]
+    if {$protocol eq "usb"} {
+      ::logger Log {package require mcfd16usb}
+      ::logger Log [list set serialFile [$_theApp cget -serialfile]]
+      ::logger Log {
+        if {![file exists $serialFile]} { 
+          puts "Serial file \"$serialFile\" provided but does not exist."}
+      }
+      ::logger Log {MCFD16USB ::dev $serialFile}
+    } else {
+    # at this point the only other option is mxdcrcbus because 
+    # assertProtocolDependencies would have exited otherwise.
+      ::logger Log {package require mcfd16rc}
+      ::logger Log [list MXDCRCProxy ::proxy -server [$_theApp cget -host] \
+                                             -port [$_theApp cget -port] \
+                                            -module [$_theApp cget -module] \
+                                            -devno [$_theApp cget -devno]]
+      ::logger Log {# use the proxy created to construct an MCFD16RC}
+      ::logger Log {MCFD16RC dev ::proxy}
+    }
+
+    set realHandle [$_theApp GetHandle]
+    set control [$_theApp GetControlPresenter]
+
+    $control configure -handle ::logger
+    $control Commit
+
+    ::logger Flush
+    ::logger destroy
+
+    $control configure -handle $realHandle
+    $control Update
+  }
+
+  method setPath path {
+    set _path $path
+    set _displayPath [file tail $path]
+  }
+}
 
 
 #########
@@ -876,7 +972,13 @@ snit::type PulserPresenter {
     }
   }
 
+  method SetHandle {handle} {
+    set _handle $handle
+  }
 
+  method GetHandle {} {
+    return $_handle
+  }
 }
 
 
