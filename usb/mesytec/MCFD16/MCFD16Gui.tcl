@@ -628,6 +628,7 @@ snit::widget MCFD16ControlPanel {
   component m_frames
   component m_comPrsntr
   component m_indPrsntr
+  component m_pulserPrsntr
 
   option -handle -default {}
   variable m_mode 
@@ -648,6 +649,10 @@ snit::widget MCFD16ControlPanel {
     install m_indPrsntr using \
       MCFD16IndividualPresenter %AUTO% -widgetname $win.ind \
                                    -handle [$self cget -handle]
+
+    install m_pulserPrsntr using \
+      PulserPresenter %AUTO% [PulserView $win.plsr] \
+                                   [$self cget -handle]
 
     set m_mode [[$self cget -handle] GetMode]
     trace add variable [myvar m_mode] write [mymethod OnModeChange]
@@ -677,6 +682,7 @@ snit::widget MCFD16ControlPanel {
     grid $m_frames - -  -sticky nsew
 
     grid $win.commit - -  -sticky ew
+    grid $win.plsr - - -sticky ew -pady {4 0}
 
     grid rowconfigure $win 1 -weight 1
     grid columnconfigure $win {0 1 2} -weight 1

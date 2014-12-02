@@ -192,12 +192,10 @@ set infoFrame [constructInfoFrame params]
 
 
 set control [MCFD16ControlPanel .ctl -handle ::dev]
-PulserPresenter pulserCtlr [PulserView .pulser] dev
 
 grid .title -sticky nsew -padx 8 -pady 8
 grid $infoFrame -sticky nsew -padx 8 -pady 8
 grid .ctl -sticky nsew -padx 8 -pady 8
-grid .pulser -sticky nsew -padx 8 -pady 8
 
 grid rowconfigure . {2} -weight 1
 grid columnconfigure . 0 -weight 1
