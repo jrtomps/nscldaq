@@ -1,8 +1,8 @@
 
 DRIVERDest=@prefix@/TclLibs/tclutils
 
-TCLDRIVERS= Utils.tcl
-           
+TCLDRIVERS= Utils.tcl BlockCompleter.tcl
+TCLTESTS= utils.test blockcompleter.test           
 
 install-exec-local:
 	$(mkinstalldirs) @prefix@/TclLibs
@@ -15,5 +15,5 @@ install-exec-local:
 check-TESTS:
 	TCLLIBPATH="@prefix@/TclLibs @libdir@ @srcdir@" HERE=@srcdir@ tcl=@TCLSH_CMD@ @TCLSH_CMD@ @srcdir@/tclTests.tcl
 
-EXTRA_DIST=$(TCLDRIVERS) tclTests.tcl
+EXTRA_DIST=$(TCLDRIVERS) tclTests.tcl $(TCLTESTS)
 
