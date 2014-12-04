@@ -1,0 +1,344 @@
+<!-- manpage 1daq -->
+      <refentry id="daq1_vardbsh">
+        <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle id='daq1_vardbsh_title'>vardbsh</refentrytitle>
+           <manvolnum>1daq</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>vardbsh</refname>
+           <refpurpose>Variable data base shell</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+         <command>
+$DAQBIN/vardbsh <replaceable>variable-database-file</replaceable>
+          </command>
+          </cmdsynopsis>
+          <cmdsynopsis>
+            <command>
+mkdir <replaceable>path</replaceable>
+            </command>
+          </cmdsynopsis>
+          <cmdsynopsis>
+            <command>
+ls <replaceable>?path?</replaceable>
+            </command>
+          </cmdsynopsis>
+          <cmdsynopsis>
+            <command>
+cd <replaceable>path</replaceable>
+            </command>
+          </cmdsynopsis>
+          <cmdsynopsis>
+            <command>
+pwd
+            </command>
+          </cmdsynopsis>
+          <cmdsynopsis>
+            <command>
+rmdir <replaceable>path</replaceable>
+            </command>
+          </cmdsynopsis>
+                 
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Implements a command line shell that provides access to variable
+            databases.  This is implemented as an extended Tcl shell.  Thus, in
+            addition to all of the commands provided by <application>vardbsh</application>
+            the full power of scripting with a Tcl interpreter is available.
+           </para>
+           <para>
+            The shell replaces the Tcl <command>cd</command> and
+            <command>pwd</command> command with commands toat do similarl things
+            within the variable database.   The original Tcl commands are first
+            renamed to <command>Pwd</command> and <command>Cd</command> respectively.
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              SHELL COMMANDS
+           </title>
+           <variablelist>
+            <varlistentry>
+                <term>
+                    <cmdsynopsis>
+                           <command>
+mkdir <replaceable>path</replaceable>
+                           </command>
+                         </cmdsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Creates a new directory at <parameter>path</parameter>.
+                        If necessary missing elements of the path are created
+                        as needed.  For example, in an empty root directory,
+                        <command>mkdir /this/path</command> creates the directory
+                        <filename>/this</filename> before creating <filename>path</filename>
+                        inside of it.
+                    </para>
+                </listitem>
+            </varlistentry>
+             <varlistentry>
+                 <term>
+                    <cmdsynopsis>
+                           <command>
+ls <replaceable>?path?</replaceable>
+                           </command>
+                         </cmdsynopsis>
+                 </term>
+                 <listitem>
+                     <para>
+                        If the <parameter>path</parameter> parameter is
+                        not provided, lists the contents of the current directory
+                        (see <command>cd</command> below).  If the parameter is
+                        provided, lists the contents of the specified directory.
+                     </para>
+                     <para>
+                        Diretories in the listing are indicated by appending
+                        the <literal>/</literal> character to their names.
+                     </para>
+                 </listitem>
+             </varlistentry>
+             <varlistentry>
+                 <term>
+                    <cmdsynopsis>
+                           <command>
+cd <replaceable>path</replaceable>
+                           </command>
+                         </cmdsynopsis>
+                 </term>
+                 <listitem>
+                     <para>
+                        Changes the shell's working directory to
+                        <parameter>path</parameter>.  The working directory
+                        determines the origin for relative path specifications.
+                        It also deterimines what the <command>ls</command>
+                        command does when not given a path to list.
+                     </para>
+                 </listitem>
+             </varlistentry>
+             <varlistentry>
+                 <term>
+                    <cmdsynopsis>
+                           <command>
+pwd
+                           </command>
+                         </cmdsynopsis>
+                 </term>
+                 <listitem>
+                     <para>
+                        Displays the current working directory path.
+                     </para>
+                 </listitem>
+             </varlistentry>
+             <varlistentry>
+                 <term>
+                    <cmdsynopsis>
+                         <command>
+             rmdir <replaceable>path</replaceable>
+                         </command>
+                       </cmdsynopsis>
+                 </term>
+                 <listitem>
+                     <para>
+                        Removes the direcoty at <parameter>path</parameter>.
+                        Only empty directories can be removed.  An attempt to
+                        remove a non-empty directory flags an error.
+                     </para>
+                 </listitem>
+             </varlistentry>
+           </variablelist>
+        </refsect1>
+        <refsect1>
+            <title>PATHS</title>
+            <para>
+                The best way to think of paths in the variable database, and how
+                they are specified for <application>vardbsh</application>
+                commands is to imagine the variable database as a filesystem whose
+                files are actually variables.
+            </para>
+            <para>
+                Paths that start with a <literal>/</literal> are absolute.
+                Paths that don't are relative to the current working directory.
+            </para>
+            <para>
+                Paths consist of elements.  Each element until possibly the rightmost
+                is a directory.  The rightmost for some commands is a variable.
+                The special <literal>..</literal> element means to go back up one level
+                relative to where you are in the path e.g.:
+                <literal>/here/we/../I/am</literal> specifies the path
+                <literal>/here/I/am</literal>.
+            </para>
+            <para>
+                It is illegal to specify a path that goes higher than the root directory.
+                e.g. <literal>/../</literal> is illegal.
+            </para>
+        </refsect1>
+      </refentry>
+      <refentry id="daq1_inittcl">
+        <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle id='daq1_inittcl_title'>inittcl</refentrytitle>
+           <manvolnum>1daq</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>inittcl</refname>
+           <refpurpose>Support for Tcl shell extensions in Tcl.</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+          <command>
+$DAQBIN/inittcl <replaceable>script ?parameter...?</replaceable>  
+          </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Essentially tclsh, however:
+           </para>
+           <itemizedlist>
+            <listitem><para>
+                The <parameter>script</parameter> parameter must be supplied and
+                is a tcl script.
+            </para></listitem>
+            <listitem><para>
+                Only the remaining command line parameters, if any, are placed as
+                a list in the <varname>argv</varname> global variable.
+            </para></listitem>
+            <listitem><para>
+                When the script would normally make tclsh exit by running off its end,
+                <application>inittcl</application> instead prompts interactively for
+                commands.
+            </para></listitem>
+           </itemizedlist>
+           <para>
+            Note that errors in the <parameter>script</parameter> will cause
+            the interpreter to exit with an error message.
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              SAMPLE USAGE
+           </title>
+           <para>
+            Typically, inittcl is used to implement extended Tcl shells where
+            the extensions, at least at the top level, are purely tcl.
+            The example script below, can be set to be executable so that
+            it will run itself in inittcl. 
+           </para>
+           <para>
+            The first parameter after the script will be the new shell prompte.
+            The script defines the newprompt command that changes the
+            prompt.
+           </para>
+           <example>
+            <title>Sample use of inittcl</title>
+            <programlisting>
+#!/bin/bash
+# \
+    exec $DAQBIN/inittcl "$0" ${1+"$@"}          <co id='inittcl_underscript' />
+
+if {[llength $argv] != 1} {
+    puts "Usage: "
+    puts "   inittclsample prompt"              <co id='inittcl_requireprompt' />
+    exit -1
+}
+
+namespace eval ::prompter:: {
+    variable prompt $::argv                     <co id='inittcl_promptstorage' />
+}
+
+proc prompt {} {
+    puts -nonewline $::prompter::prompt         <co id='inittcl_promptemitter' />
+    flush stdout
+}
+
+proc newprompt prompt {
+    set ::prompter::prompt $prompt             <co id='inittcl_newprompt' />
+}
+
+set tcl_prompt1 [list prompt]                 <co id='inittcl_connectprompter' />
+
+            </programlisting>
+           </example>
+           <calloutlist>
+            <callout arearefs='inittcl_underscript'>
+                <para>
+                    This is a common trick for Tcl scripts. The
+                    <literal>#!/bin/bash</literal> runs the script
+                    under the bash shell. The \ in the second line is ignored
+                    by bash but adds the next line to the comment in tcl.
+                    The third line of the script invokes the
+                    <application>inittcl</application> interpreter passing
+                    the file (<literal>$0</literal>) and its remaining
+                    parameters ${1+$"@"} as parameters.
+                </para>
+            </callout>
+            <callout arearefs='inittcl_requireprompt'>
+                <para>
+                    The script requires a single paramter which is the initial
+                    prompt.  This code exits if that's not provided.
+                </para>
+            </callout>
+            <callout arearefs='inittcl_promptstorage'>
+                <para>
+                    The variable <varname>prompt</varname> is defined in the
+                    <literal>::prompter::</literal> namespace to be the
+                    contents of <varname>argv</varname>.  Putting this variable
+                    in a namespace prevents it from <firstterm>polluting</firstterm>
+                    the main namespace, making it less vulnerable to accidently
+                    being overwritten.
+                </para>
+            </callout>
+            <callout arearefs='inittcl_promptemitter'>
+                <para>
+                    This proc will be used to provide the prompt.
+                </para>
+            </callout>
+            <callout arearefs='inittcl_newprompt'>
+                <para>
+                    This implements the shell extension.
+                </para>
+            </callout>
+            <callout arearefs='inittcl_connectprompter'>
+                <para>
+                    The special variable <varname>tcl_prompt1</varname> can be
+                    set in tclsh to be a script that outputs the prompt
+                    to be used for the first line of a command.  This line
+                    ensures that this script will just output our prompt variable.
+                </para>
+            </callout>
+           </calloutlist>
+        </refsect1>
+
+      </refentry>
+
+
+<!-- /manpage -->

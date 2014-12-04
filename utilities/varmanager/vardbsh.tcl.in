@@ -1,0 +1,162 @@
+#!/bin/sh
+# -*- tcl -*-
+# The next line is executed by /bin/sh, but not tcl \
+exec @prefix@/bin/inittcl "$0" ${1+"$@"}
+
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2014.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Authors:
+#             Ron Fox
+#             Jeromy Tompkins 
+#	     NSCL
+#	     Michigan State University
+#	     East Lansing, MI 48824-1321
+
+
+
+##
+# @file vardbsh.tcl
+# @brief variable data base shell.
+# @author Ron Fox <fox@nscl.msu.edu>
+#
+
+##
+# usage:
+#   vardbsh  path-to-db-file
+#   *   if path-to-db-file does not exist, user is prompted to create a new one
+#       or exit.
+#   *   if path-to-db-file is not a variable database, program exits with message.
+#   *   if path-to-db-file i a database, program silently continues.
+#   Prompts are handled as follows:
+#   * Initial command prompt is ([file tail])[pwd]
+#   * Continuation prompt is '_'
+#
+
+package require vardb
+
+namespace eval vardbsh {
+    set varDbFile ""
+    set varDbHandle ""   
+}
+
+##
+# prompt1
+#   This proc returns the command prompt for the start of a command.
+#
+proc prompt1 {} {
+    set prefix [file tail $vardbsh::varDbFile]
+    set suffix [::vardb::getwd $::vardbsh::varDbHandle]
+    
+    return "($prefix) $suffix: "
+}
+
+##
+# prompt2
+#   This proc returns the command prompt for command continuations.
+#
+proc prompt2 {} {
+    return "_ "
+}
+
+
+#----------------------------------------------------------------------------
+#  Initial entry and validation:
+
+if {[llength $argv] != 1} {
+    puts stderr "Usage:"
+    puts stderr "   vardbsh path-to-variable-database-file"
+    puts stderr " NOTE: If the path provided does not exist you'll be allowed to"
+    puts stderr "       to create it as a variable database file"
+    exit -1
+}
+
+set vardbsh::varDbFile [lindex $argv 0]
+if {![file exists $vardbsh::varDbFile]} {
+    puts -nonewline "$vardbsh::varDbFile does not exist. Create it? "
+    flush stdout
+    set reply [gets stdin]
+    if {[string range $reply 0 0] in [list Y y]} {
+        vardb::create $vardbsh::varDbFile
+    } else {
+        exit 0
+    }
+}
+
+# By now the database file should exist:
+
+if {[catch {vardb::open $vardbsh::varDbFile} ::vardbsh::varDbHandle]} {
+    puts stderr "Could not open $vardbsh::varDbFile as a variable database"
+    puts stderr $vardbsh::varDbHandle
+    exit -1
+}
+
+
+#  Set the prompts.
+
+set tcl_prompt1 {puts -nonewline [prompt1]}
+set tcl_prompt2 prompt2
+
+##
+#  Define the top level commands.  Note that pwd cd get re-defined to
+#  Cd and Pwd so tht they are still available to shell users.
+#
+
+##
+# mkdir
+#   Wraps the mkdir command:
+#
+#  @param path - path of directory to create:
+#
+proc mkdir path {
+    ::vardb::mkdir $::vardbsh::varDbHandle  $path
+}
+##
+# ls
+#   List the contents of the cwd:
+# @param path (optional) path to list contents of.
+proc ls {{path {}}} {
+    if {$path eq ""} {
+        set subdirs [::vardb::ls $::vardbsh::varDbHandle]
+    } else {
+        set subdirs [::vardb::ls $::vardbsh::varDbHandle $path]
+    }
+    foreach subdir $subdirs {
+        puts $subdir/
+    }
+
+}
+##
+# cd
+#  Change directory
+# @param path - new default working directory.
+#
+rename cd Cd
+proc cd path {
+    ::vardb::cd $::vardbsh::varDbHandle $path
+    set a ""
+}
+##
+# pwd
+#   Print the working directory
+#
+rename pwd Pwd
+proc pwd {} {
+    ::vardb::getwd $::vardbsh::varDbHandle
+}
+
+##
+# rmdir
+#   Remove a directory
+# @param path - path to remvoe.
+#
+proc rmdir {path} {
+    ::vardb::rmdir $::vardbsh::varDbHandle $path
+}
+set tcl_interactive 1
+

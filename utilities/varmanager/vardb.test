@@ -1,0 +1,526 @@
+#!/bin/sh
+# -*- tcl -*-
+# The next line is executed by /bin/sh, but not tcl \
+exec tclsh "$0" ${1+"$@"}
+
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2014.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Authors:
+#             Ron Fox
+#             Jeromy Tompkins 
+#	     NSCL
+#	     Michigan State University
+#	     East Lansing, MI 48824-1321
+
+
+
+##
+# @file vardb.test
+# @brief Tests for the vardb package.
+# @author Ron Fox <fox@nscl.msu.edu>
+#
+
+package require tcltest
+package require vardb
+package require sqlite3
+
+#
+# return 1 if a path exists in a database else 0
+#
+proc pathExists {dbcmd abspath} {
+    set parent 1
+    foreach ele [lrange [split $abspath /] 1 end] {
+        $dbcmd eval {
+            SELECT COUNT(*) AS c, id FROM directory
+               WHERE parent_id = $parent AND name = $ele
+        } r {
+            set count $r(c)
+            if {$count == 0} {
+                return 0
+            }
+            set parent $r(id)
+        }
+    }
+    # Was able to find all path elements:
+    
+    return 1
+}
+
+
+tcltest::test load-1 {Should get a namespace ::vardb} \
+-body {
+    set find [lsearch -exact [namespace children ::] ::vardb]
+    expr $find != -1
+} -result 1
+
+tcltest::test create {vardb::create should create a new db} \
+-setup {
+    # A bit dirty this part -- get a temp filename -- without making a file
+    
+    set filename [tcltest::makeFile {} testing]
+    file delete -force $filename 
+} \
+-cleanup {
+    file delete -force $filename;            # Got created in the body.
+    db close
+} \
+-body {
+    ::vardb::create $filename
+    
+    # should have a directory table:
+    
+    sqlite3  db $filename
+    db eval {SELECT COUNT(*) AS c FROM sqlite_master
+        WHERE name='directory' AND type='table'} values {
+            set result $values(c)
+    }
+    set result
+} -result 1
+
+tcltest::test open-1 {Fail open if the file was not created} \
+-setup {
+    set filename [tcltest::makeFile {} testing]
+    file delete -force $filename
+    sqlite3 db $filename -create 1
+    db close;               # Sqlite but no dir table.
+} \
+-cleanup {
+    file delete -force $filename
+} \
+-body {
+    set status [catch [list ::vardb::open $filename] msg]
+    if {$msg eq "invalid command name \"::vardb::open\""} {
+        set status 0;            # didn't find the command.
+    }
+    set status
+    
+} -result 1
+
+tcltest::test open-2 {Proper open if the file was created} \
+-setup {
+    set filename [tcltest::makeFile {} testing]
+    file delete -force $filename
+    ::vardb::create $filename;   # now its properly formatted.
+} \
+-cleanup {
+    catch {::vardb::close $handle};    # until close implemented, leaks.
+    file delete -force $filename
+} \
+-body {
+    set handle [::vardb::open $filename]
+    
+} -result vardb_0
+
+
+tcltest::test close-1 {Fail close if the handle is bad} \
+-body {
+    set status [catch [list ::vardb close bad_handle] msg]
+    if {$msg eq "invalid command name \"::vardb::close\""} {
+        set status 0
+    }
+    set status
+} -result 1
+
+
+# close-2 successful close of open handle.
+
+tcltest::test close-2 {Closing an open handle works} \
+-setup {
+    set filename [tcltest::makeFile {} testing]
+    file delete -force $filename
+    ::vardb::create $filename;   # now its properly formatted    
+} \
+-cleanup {
+    file delete -force $filename
+} \
+-body {
+    set db [::vardb::open $filename]
+    catch [list ::vardb::close $db]
+} -result 0
+
+# close-3 double close fails.
+
+tcltest::test close-3 {Double close fails} \
+-setup {
+    set filename [tcltest::makeFile {} testing]
+    file delete -force $filename
+    ::vardb::create $filename;   # now its properly formatted    
+} \
+-cleanup {
+    file delete -force $filename
+} \
+-body {
+    set db [::vardb::open $filename]
+    ::vardb::close $db
+    catch [list ::vardb::close $db]
+} -result 1
+
+#  mkdir  tests
+
+tcltest::test mkdir-1 {Successfully make a dir off root} \
+-setup {
+    set filename [tcltest::makeFile {} testing]
+    file delete -force $filename
+    ::vardb::create $filename;   # now its properly formatted
+    set db [::vardb::open $filename]
+} \
+-cleanup {
+    ::vardb::close $db
+    file delete -force $filename
+} \
+-body {
+    ::vardb::mkdir $db /testing
+    
+    sqlite3 dir $filename
+    dir eval {
+        SELECT COUNT(*) AS c FROM directory
+            WHERE parent_id=1
+            AND   name='testing'
+    } data {
+        set count $data(c)
+    }
+    
+    dir close
+    
+    set count
+} -result 1
+
+tcltest::test mkdir-2 {Successfullly make a path} \
+-setup {
+    set filename [tcltest::makeFile {} testing]
+    file delete -force $filename
+    ::vardb::create $filename;   # now its properly formatted
+    set db [::vardb::open $filename]
+} \
+-cleanup {
+    ::vardb::close $db
+    file delete -force $filename
+    
+} \
+-body {
+    set path /this/that/the/other
+    ::vardb::mkdir $db $path
+    
+    sqlite3 dir $filename
+   
+    pathExists dir $path
+    
+} -result 1
+
+tcltest::test mkdir-3 {Fail making a path -nopath} \
+-setup {
+    set filename [tcltest::makeFile {} testing]
+    file delete -force $filename
+    ::vardb::create $filename;   # now its properly formatted
+    set db [::vardb::open $filename]
+} \
+-cleanup {
+    ::vardb::close $db
+    file delete -force $filename
+    
+} \
+-body {
+    set path /this/that/the/other
+    catch [list ::vardb::mkdir -nopath $db $path]
+} -result 1
+
+tcltest::test mkdir-4 {Fail making a duplicate directory} \
+-setup {
+    set filename [tcltest::makeFile {} testing]
+    file delete -force $filename
+    ::vardb::create $filename;   # now its properly formatted
+    set db [::vardb::open $filename]
+} \
+-cleanup {
+    ::vardb::close $db
+    file delete -force $filename
+    
+} \
+-body {
+    set path /this/that/the/other
+    ::vardb::mkdir $db $path
+    
+    catch [list ::vardb::mkdir $db /this/that/the]
+} -result 1
+
+tcltest::test cd-1 {cd to nonexistent directory fails} \
+-setup {
+    set filename [tcltest::makeFile {} testing]
+    file delete -force $filename
+    ::vardb::create $filename;   # now its properly formatted
+    set db [::vardb::open $filename]
+} \
+-cleanup {
+    ::vardb::close $db
+    file delete -force $filename
+    
+} \
+-body {
+    set path /this/that/the/other
+    
+    set status [catch [list ::vardb::cd $db $path] msg]
+
+    if {$msg eq "invalid command name \"::vardb::cd\""} {
+        
+        set status {::vardb::cd not a defined command}
+    }
+    set status
+} -result 1
+
+
+
+tcltest::test cd-1 {cd to nonexistent directory fails} \
+-setup {
+    set filename [tcltest::makeFile {} testing]
+    file delete -force $filename
+    ::vardb::create $filename;   # now its properly formatted
+    set db [::vardb::open $filename]
+} \
+-cleanup {
+    ::vardb::close $db
+    file delete -force $filename
+    
+} \
+-body {
+    set path /this/that/the/other
+    ::vardb::mkdir $db $path
+    ::vardb::cd    $db $path
+} -result /this/that/the/other
+
+tcltest::test cd-3 {cd to exsisting dir and relative mkdir works} \
+-setup {
+    set filename [tcltest::makeFile {} testing]
+    file delete -force $filename
+    ::vardb::create $filename;   # now its properly formatted
+    set db [::vardb::open $filename]
+    
+    sqlite3 s $filename
+} \
+-cleanup {
+    ::vardb::close $db
+    file delete -force $filename
+    s close
+} \
+-body {
+    set path1 /this/that/the/other
+    set path2 ../help
+    set absp2 /this/that/the/help
+    
+    ::vardb::mkdir $db $path1
+    ::vardb::cd    $db $path1
+    ::vardb::mkdir $db $path2;   # makd absp2
+    
+    # See if abs2 exists:
+    
+    pathExists s $absp2
+} -result 1
+
+tcltest::test getwd-1 {Get working directory - root} \
+-setup {
+    set filename [tcltest::makeFile {} testing]
+    file delete -force $filename
+    ::vardb::create $filename;   # now its properly formatted
+    set db [::vardb::open $filename]
+} \
+-cleanup {
+    ::vardb::close $db
+    file delete -force $filename
+} \
+-body {
+    ::vardb::getwd $db
+} -result /
+  
+tcltest::test getwd-2 {get working directory some path} \
+-setup {
+    set filename [tcltest::makeFile {} testing]
+    file delete -force $filename
+    ::vardb::create $filename;   # now its properly formatted
+    set db [::vardb::open $filename]
+} \
+-cleanup {
+    ::vardb::close $db
+    file delete -force $filename
+} \
+-body {
+    ::vardb::mkdir $db /this/that/the/other
+    ::vardb::cd    $db /this/that
+    ::vardb::getwd $db
+} -result /this/that
+
+tcltest::test ls-1 {List of empty dir is empty list} \
+-setup {
+    set filename [tcltest::makeFile {} testing]
+    file delete -force $filename
+    ::vardb::create $filename;   # now its properly formatted
+    set db [::vardb::open $filename]
+} \
+-cleanup {
+    ::vardb::close $db
+    file delete -force $filename
+} \
+-body {
+    ::vardb::ls $db
+} -result [list]
+
+
+tcltest::test ls-2 {list of non-empty root is nonempty} \
+-setup {
+    set filename [tcltest::makeFile {} testing]
+    file delete -force $filename
+    ::vardb::create $filename;   # now its properly formatted
+    set db [::vardb::open $filename]
+} \
+-cleanup {
+    ::vardb::close $db
+    file delete -force $filename
+} \
+-body {
+    ::vardb::mkdir $db dir1
+    ::vardb::mkdir $db dir2
+    ::vardb::mkdir $db dir3
+    
+    ::vardb::ls    $db
+} -result [list dir1 dir2 dir3]
+
+tcltest::test ls-3 {list with cd other than root is correct} \
+-setup {
+    set filename [tcltest::makeFile {} testing]
+    file delete -force $filename
+    ::vardb::create $filename;   # now its properly formatted
+    set db [::vardb::open $filename]
+} \
+-cleanup {
+    ::vardb::close $db
+    file delete -force $filename
+} \
+-body {
+    ::vardb::mkdir $db subdir
+    ::vardb::mkdir $db subdir/dir1
+    ::vardb::mkdir $db subdir/dir2
+    ::vardb::cd    $db subdir
+    
+    ::vardb::ls     $db
+} -result [list dir1 dir2]
+
+tcltest::test ls-4 {list with directory path works}  \
+-setup {
+    set filename [tcltest::makeFile {} testing]
+    file delete -force $filename
+    ::vardb::create $filename;   # now its properly formatted
+    set db [::vardb::open $filename]
+} \
+-cleanup {
+    ::vardb::close $db
+    file delete -force $filename
+} \
+-body {
+    ::vardb::mkdir $db subdir
+    ::vardb::mkdir $db subdir/dir1
+    ::vardb::mkdir $db subdir/dir2
+    
+    ::vardb::ls    $db subdir
+} -result [list dir1 dir2]
+
+tcltest::test ls-5 {list with dir path doesn't change wd} \
+-setup {
+    set filename [tcltest::makeFile {} testing]
+    file delete -force $filename
+    ::vardb::create $filename;   # now its properly formatted
+    set db [::vardb::open $filename]
+} \
+-cleanup {
+    ::vardb::close $db
+    file delete -force $filename
+} \
+-body {
+    ::vardb::mkdir $db subdir
+    ::vardb::mkdir $db subdir/dir1
+    ::vardb::mkdir $db subdir/dir2
+    
+    ::vardb::ls    $db subdir
+
+    ::vardb::getwd  $db
+} -result /
+
+# rmdir tests:
+
+tcltest::test rmdir-1 {Remove existing directory does that ok} \
+-setup {
+    set filename [tcltest::makeFile {} testing]
+    file delete -force $filename
+    ::vardb::create $filename;   # now its properly formatted
+    set db [::vardb::open $filename]
+} \
+-cleanup {
+    ::vardb::close $db
+    file delete -force $filename
+} \
+-body {
+    ::vardb::mkdir $db subdir
+    ::vardb::mkdir $db remains
+    ::vardb::rmdir $db subdir
+    ::vardb::ls    $db 
+} -result [list remains]
+
+tcltest::test rmdir-2 {Remove nonexsting directory fails} \
+-setup {
+    set filename [tcltest::makeFile {} testing]
+    file delete -force $filename
+    ::vardb::create $filename;   # now its properly formatted
+    set db [::vardb::open $filename]
+} \
+-cleanup {
+    ::vardb::close $db
+    file delete -force $filename
+} \
+-body {
+    catch {::vardb::rmdir $db /no/such/path}
+} -result 1
+    
+    
+tcltest::test rmdir-3 {remove with bad handle fails} \
+-body {
+    catch {::vardb::rmdir db path}
+} -result 1
+
+
+tcltest::test rmdir-4 {remove with missing path fails} \
+-setup {
+    set filename [tcltest::makeFile {} testing]
+    file delete -force $filename
+    ::vardb::create $filename;   # now its properly formatted
+    set db [::vardb::open $filename]
+} \
+-cleanup {
+    ::vardb::close $db
+    file delete -force $filename
+} \
+-body {
+    ::vardb::mkdir $db subdir
+    catch {::vardb::rmdir $db}
+} -result 1
+
+tcltest::test rmdir-5 {remove with missing path/handle fails} \
+-setup {
+    set filename [tcltest::makeFile {} testing]
+    file delete -force $filename
+    ::vardb::create $filename;   # now its properly formatted
+    set db [::vardb::open $filename]
+} \
+-cleanup {
+    ::vardb::close $db
+    file delete -force $filename
+} \
+-body {
+    ::vardb::mkdir $db subdir
+    catch {::vardb::rmdir}
+} -result 1
+
+
+tcltest::cleanupTests

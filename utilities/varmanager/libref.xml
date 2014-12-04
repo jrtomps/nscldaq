@@ -1,0 +1,1526 @@
+<!-- manpage 3daq -->
+
+<refentry id="daq3_cvariabledb">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='daq3_cvariabledb_title'>CVariableDb</refentrytitle>
+     <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>CVariableDb</refname>
+     <refpurpose>Encapsulate connections to variable database files.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+    
+#include &lt;CVariableDb.h&gt;
+
+       <ooclass><classname>CVariableDb : public CSqlite</classname></ooclass> {
+       <ooclass><classname>CException : public std::exception;</classname></ooclass>
+       <methodsynopsis>
+           <modifier> static </modifier>
+           <type>void </type>
+           <methodname>create</methodname>
+           <methodparam>
+            <modifier>const </modifier><type>char*</type> <parameter>pFilePath</parameter>
+           </methodparam>
+           <exceptionname>CVariableDb::CException</exceptionname>
+       </methodsynopsis>  
+       <constructorsynopsis>
+          <methodname>CVariableDb</methodname>
+          <methodparam>
+            <modifier>const</modifier> <type>char*</type> <parameter>pFilePath</parameter>
+          </methodparam>
+          <exceptionname></exceptionname>
+       </constructorsynopsis>
+
+};      
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        <classname>CVariableDb</classname> represents a connection to a variable
+        database.  As variable databases are built on SQLite database files,
+        <classname>CVariableDb</classname> is derived from
+        <classname>CSqlite</classname> as a base class.
+     </para>
+     <para>
+        Errors detected from class methods are reported as exceptions that are
+        derived from <classname>std::exception</classname>.  Those that come
+        specifically from the <classname>CVariableDb</classname> are thrown
+        as <classname>CVariableDb::CException</classname> objects.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier> static </modifier>
+                    <type>void </type>
+                    <methodname>create</methodname>
+                    <methodparam>
+                     <modifier>const </modifier><type>char*</type> <parameter>pFilePath</parameter>
+                    </methodparam>
+                    <exceptionname>CVariableDb::CException</exceptionname>
+                </methodsynopsis> 
+            </term>
+            <listitem>
+                <para>
+                    This static method creates a new variable database  in the
+                    file whose name is pointed to by <parameter>pFilePaht</parameter>.
+                    A new SQLite database is created and the schema (tables)
+                    required to
+                    make it a variable database are defined.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <constructorsynopsis>
+                   <methodname>CVariableDb</methodname>
+                   <methodparam>
+                     <modifier>const</modifier> <type>char*</type> <parameter>pFilePath</parameter>
+                   </methodparam>
+                   <exceptionname></exceptionname>
+                </constructorsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Constructs a new database using the file in
+                    <parameter>pFilePath</parameter>.  If this is not
+                    an SQLite database or if the file does not have the
+                    variable data base schema in it, an exception is thrown.
+                    <classname>CSqliteException</classname> is thrown if the
+                    error was detected by the Sqlite api and
+                    <classname>CVariableDb::CException</classname> is thrown
+                    if the schema is incorrect.
+                </para>
+            </listitem>
+        </varlistentry>
+     </variablelist>
+  </refsect1>
+</refentry>     
+<refentry id="daq3_cvardirtree">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='daq3_cvardirtree_title'>CVarDirTree</refentrytitle>
+     <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>CVarDirTree</refname>
+     <refpurpose>Variable Database Directory Tree</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+#include &lt;CVarDirTree.h&gt;    
+       <ooclass><classname>CVarDirTree</classname></ooclass> {
+        <methodsynopsis>
+            <modifier>static </modifier>
+            <type>std::vector&lt;std::string&gt; </type>
+            <methodname>parsePath</methodname>
+            <methodparam>
+                <modifier>const </modifier><type>char* </type>
+                <parameter>path</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier>static </modifier>
+            <type>bool </type>
+            <methodname>isRelative</methodname>
+            <methodparam>
+                <modifier>const </modifier><type>char* </type>
+                <parameter>path</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <constructorsynopsis>
+           <methodname>CVarDirTree</methodname>
+           <methodparam>
+            <type>CVariableDb&amp; </type><parameter>db</parameter>
+           </methodparam>
+           <exceptionname>CVarDirTree::CException</exceptionname>
+        </constructorsynopsis>
+        <methodsynopsis>
+            <modifier></modifier>
+            <type>CVarDirTree::DirInfo </type>
+            <methodname>getwd </methodname>
+            <void />            
+            <modifier>const</modifier>
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier></modifier>
+            <type>int     </type>
+            <methodname>getRootid</methodname>
+            <void />
+            
+            <modifier>const </modifier>
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier></modifier>
+            <type>void </type>
+            <methodname>mkdir</methodname>
+            <methodparam>
+                <modifier>const </modifier><type>char* </type>
+                <parameter>path</parameter>
+            </methodparam>
+            <methodparam>
+                <type>bool </type><parameter>createIntermediate</parameter>
+                <initializer>true</initializer>
+            </methodparam>
+            <modifier></modifier>
+        </methodsynopsis>  
+        <methodsynopsis>
+            <modifier></modifier>
+            <type>void </type>
+            <methodname>rmdir</methodname>
+            <methodparam>
+                <modifier>const </modifier><type>char* </type>
+                <parameter>path</parameter>
+            </methodparam>
+            
+            <modifier></modifier>
+        </methodsynopsis>  
+        <methodsynopsis>
+            <modifier></modifier>
+            <type>void </type>
+            <methodname>cd</methodname>
+            <methodparam>
+                <modifier>const </modifier><type>char* </type>
+                <parameter>path</parameter>
+            </methodparam>
+            <exceptionname></exceptionname>
+            <modifier></modifier>
+        </methodsynopsis>  
+        <methodsynopsis>
+            <modifier></modifier>
+            <type>std::vector&lt;CVarDirTree::DirInfo&gt;</type>
+            <methodname>ls</methodname>
+            <void />
+            <modifier></modifier>
+        </methodsynopsis>  
+        <methodsynopsis>
+            <modifier></modifier>
+            <type>std::string</type>
+            <methodname>wdPath</methodname>
+            <void />
+            <modifier></modifier>
+        </methodsynopsis>  
+      
+        typedef struct _DirInfo {
+            std::string s_name;
+            int         s_id;
+            int         s_parentId;
+        } DirInfo, *pDirInfo;
+
+        class <classname>CException</classname> : public <classname>std::runtime_error</classname>
+        static const char m_pathSeparator = '/';
+};
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        Objects of the class <classname>CVarDirTree</classname> represent the
+        the directory hierarchy (tree) of a variable database.  These objects have
+        the concept of a default directory which serves as the origin for
+        relative paths.  
+     </para>
+     <para>
+        Methods are also provided to navigate, query and modify the directories
+        in the tree.  Static methods are provided as well to break up paths
+        into their elements and to determine if a path is relative or
+        absolute.
+     </para>
+     <para>
+        A path string defines how to get to some initial directory node to
+        some other directory node. Path strings are composed of path
+        elements that are separated by
+        <classname>CVarDirTree</classname>::<varname>m_pathSeparator</varname>.
+        If a path begins with the
+        <classname>CVarDirTree</classname>::<varname>m_pathSeparator</varname>
+        it is said to be absolute and the starting point for the traversal is
+        the top level or <firstterm>root</firstterm> directory.  The
+        <classname>CVarDirTree</classname>::<varname>m_pathSeparator</varname>
+        by itself as a path string represents this root directory.
+     </para>
+     <para>
+        Relative paths are those that do not start with
+        <classname>CVarDirTree</classname>::<varname>m_pathSeparator</varname>.
+        These paths have as their starting point the
+        object's <firstterm>current working directory</firstterm>.  The special
+        path element <literal>..</literal> selects the parent directory of
+        the current position in the path. For example, the path:
+        <filename>../george</filename> is a relative path that selects
+        the directory <filename>george</filename> in the parent directory
+        of the current working directory.
+     </para>
+     <para>
+        Errors are reported by throwing exceptions that are derived
+        from <classname>std::exception</classname>.  These encapsulate
+        a human readable error message that can be retrieved using that
+        class's <methodname>what</methodname> method.
+        If you are catching <classname>std::exception</classname>s in a
+        try/catch block, be sure to catch by reference rather than value
+        to preserve the polymorphic behavior of <methodname>what</methodname>.
+     </para>
+     <para>
+        Incorrect:
+     </para>
+     <informalexample>
+        <programlisting>
+try {
+...
+}
+catch (std::exception e) {
+    // e.what() is the fixed string returned by std::exception::what()
+}
+        </programlisting>
+     </informalexample>
+     <para>
+        Correct:
+     </para>
+     <informalexample>
+        <programlisting>
+try {
+...
+}
+catch (std::exception&amp; e) {
+   // e.what() returns the string determined by e's actual class.
+}
+        </programlisting>
+     </informalexample>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                        <modifier>static </modifier>
+                        <type>std::vector&lt;std::string&gt; </type>
+                        <methodname>parsePath</methodname>
+                        <methodparam>
+                            <modifier>const </modifier><type>char* </type>
+                            <parameter>path</parameter>
+                        </methodparam>
+                    </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Given a
+                    <parameter>path</parameter>,
+                    either absolute or relative, returns
+                    a vector of the elements of that path.  Note that the
+                    resulting vector of strings will have had all path
+                    separators removed and therefore it is no longer possible
+                    to tell just from the vector if the original path was
+                    absolute or relative.
+                </para>
+                <para>
+                    For example, if <parameter>path</parameter> is
+                    <literal>/a/b</literal> a two element vector is
+                    returned.  Element 0 contains the string
+                    <literal>a</literal> and element 1 contains the
+                    string <literal>b</literal>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                        <modifier>static </modifier>
+                        <type>bool </type>
+                        <methodname>isRelative</methodname>
+                        <methodparam>
+                            <modifier>const </modifier><type>char* </type>
+                            <parameter>path</parameter>
+                        </methodparam>
+                    </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Returns <literal>true</literal> if the
+                    <parameter>path</parameter> parameter is a relative path,
+                    <literal>false</literal> otherwise.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <constructorsynopsis>
+                       <methodname>CVarDirTree</methodname>
+                       <methodparam>
+                        <type>CVariableDb&amp; </type><parameter>db</parameter>
+                       </methodparam>
+                       <exceptionname>CVarDirTree::CException</exceptionname>
+                    </constructorsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Constructs a new <classname>CVarDirTree</classname>
+                    object using <parameter>db</parameter> as
+                    the connection to the database.
+                    The method throws an exception if it is not able
+                    to locate the root directory element in the
+                    directories table.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                        <modifier></modifier>
+                        <type>CVarDirTree::DirInfo </type>
+                        <methodname>getwd </methodname>
+                        <void />            
+                        <modifier>const</modifier>
+                    </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Returns a directory information structure
+                    that describe the current working directory.
+                    See <literal>PUBLIC VARIABLES TYPES AND CONSTANTS</literal>
+                    below for information about the contents of the
+                    <classname>CVarDirTree::DirInfo</classname> struct.
+                </para>
+                <para>
+                    See also <methodname>wdPath</methodname> for a method
+                    that gives the full absolute path to the current working
+                    directory.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                        <modifier></modifier>
+                        <type>int     </type>
+                        <methodname>getRootid</methodname>
+                        <void />
+                        
+                        <modifier>const </modifier>
+                    </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Returns the primary key of the
+                    root directory entry.  This is normally only used
+                    internally by the variable database system.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                        <modifier></modifier>
+                        <type>void </type>
+                        <methodname>mkdir</methodname>
+                        <methodparam>
+                            <modifier>const </modifier><type>char* </type>
+                            <parameter>path</parameter>
+                        </methodparam>
+                        <methodparam>
+                            <type>bool </type><parameter>createIntermediate</parameter>
+                            <initializer>true</initializer>
+                        </methodparam>
+                        <modifier></modifier>
+                    </methodsynopsis> 
+            </term>
+            <listitem>
+                <para>
+                    Creates a new directory entry.  <parameter>path</parameter>
+                    is an absolute or relative path that specifies the new
+                    directory to create.  If the path is relative it is relative
+                    to the current working directory of the object.
+                </para>
+                <para>
+                    If <parameter>createIntermediate</parameter> is
+                    <literal>true</literal> any missing intermediate
+                    directories along the path are created (like the
+                    <option>-p</option> option in the linux <command>mkdir</command>
+                    command).  If not than it is an error if any of the directories
+                    along the path to the last path element don't already exist.
+                </para>
+                <para>
+                    Errors are thrown as <classname>CVarDirTree::CException</classname>
+                    objects.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                        <modifier></modifier>
+                        <type>void </type>
+                        <methodname>rmdir</methodname>
+                        <methodparam>
+                            <modifier>const </modifier><type>char* </type>
+                            <parameter>path</parameter>
+                        </methodparam>
+                        
+                        <modifier></modifier>
+                    </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Removes the directory specified by
+                    <parameter>path</parameter>.  Note that only the
+                    last path entry is removed, not the entire path to it.
+                    The path can be absolute or relative to the current working
+                    directory.  It is an error to attempt to remove a directory
+                    that is not empty. It is also an error to attempt to remove
+                    a nonexistent directory.  It is also an error to attempt to remove
+                    the root directory.
+                </para>
+                <para>
+                    Errors are reported by throwing a
+                    <classname>CVarDirTree::CException</classname> object.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                        <modifier></modifier>
+                        <type>void </type>
+                        <methodname>cd</methodname>
+                        <methodparam>
+                            <modifier>const </modifier><type>char* </type>
+                            <parameter>path</parameter>
+                        </methodparam>
+                        <exceptionname></exceptionname>
+                        <modifier></modifier>
+                    </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Sets the current working directory of the object to the
+                    absolute or relative <parameter>path</parameter>.
+                    It is an error to try to set the working directory to
+                    a nonexistent directory.  It is also an error to specify
+                    a path that is above the root director.
+                </para>
+                <para>
+                    Errors are reported by throwing a
+                    <classname>CVarDirTree::CException</classname> object.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                        <modifier></modifier>
+                        <type>std::vector&lt;CVarDirTree::DirInfo&gt;</type>
+                        <methodname>ls</methodname>
+                        <void />
+                        <modifier></modifier>
+                    </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns a vector of <classname>CVarDirTree::DirInfo</classname>
+                    structs that describe the subdirectories that are
+                    immediately below the current working directory.
+                    This method does not recurse into the subdirectories
+                    themselves.
+                </para>
+                <para>
+                    See <literal>PUBLIC VARIABLES, TYPES and CONSTANTS</literal>
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                        <modifier></modifier>
+                        <type>std::string</type>
+                        <methodname>wdPath</methodname>
+                        <void />
+                        <modifier></modifier>
+                    </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns the absolute path string of the current working
+                    directory.
+                </para>
+            </listitem>
+        </varlistentry>
+     </variablelist>
+  </refsect1>
+   <refsect1>
+      <title>PUBLIC VARIABLES, TYPES and CONSTANTS</title>
+      <variablelist>
+        <varlistentry>
+            <term>
+                <literal>
+                    typedef struct _DirInfo {
+                        std::string s_name;
+                        int         s_id;
+                        int         s_parentId;
+                    } DirInfo, *pDirInfo;
+                </literal>
+            </term>
+            <listitem>
+                <para>
+                    This structure defines the characteristics
+                    of a directory entry.  It contains:
+                </para>
+                <variablelist>
+                    <varlistentry>
+                        <term><structfield>s_name</structfield></term>
+                        <listitem>
+                            <para>
+                                The name of the directory.  Note that this is
+                                not the full path name but the terminal element
+                                name.  For example for
+                                <literal>/this/that/the/other</literal>,
+                                <structfield>s_name</structfield> will be
+                                <literal>other</literal>.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><structfield>s_id</structfield></term>
+                        <listitem>
+                            <para>
+                                The primary key of the directory in the
+                                directories table of the database. Each
+                                directory is an entry in a database table,
+                                the primary key uniquely identifies each entry
+                                (you can almost but not quite think of it as the
+                                row number).
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><structfield>s_parentId</structfield></term>
+                        <listitem>
+                            <para>
+                                The primary key of the parent directory of
+                                this element.  The root directory parent id is
+                                <literal>null</literal>.  It is this field that
+                                creates the hierarchy of the directory, by requiring
+                                that, with the exception of the root directory,
+                                every directory has a parent.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    
+                </variablelist>
+            </listitem>
+        </varlistentry>
+            <varlistentry>
+              <term><classname>CException</classname></term>
+              <listitem>
+                  <para>
+                      Objects of this nested class are thrown whenever an
+                      error is detected by by methods of the
+                      <classname>CVarDirTree</classname> class.  This class
+                      is derived from the <classname>std::exception</classname>
+                      class.  That implies that it has a method
+                      <methodname>what</methodname> that returns a meaningful
+                      error string.
+                  </para>
+              </listitem>
+          </varlistentry>
+          <varlistentry>
+              <term><type>static const char</type><varname>m_pathSeparator</varname></term>
+              <listitem>
+                  <para>
+                      This character constant contains the character used to
+                      separate a path into its components.  In this implementation
+                      it is <literal>/</literal>
+                  </para>
+              </listitem>
+          </varlistentry>            
+
+      </variablelist>
+   </refsect1>
+</refentry>     
+
+<!-- /manpage -->
+
+<!-- manpage 3tcl -->
+
+      <refentry id="tcl3_vardb">
+        <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle id='tcl3_vardb_title'>vardb</refentrytitle>
+           <manvolnum>3tcl</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>vardb</refname>
+           <refpurpose>Tcl Bindings to Variable Database API</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+            <cmdsynopsis>
+                <command>
+lappend auto_path [$::env(DAQROOT) TclLibs]
+package require vardb
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+vardb::create <replaceable>filename</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+set <replaceable>handle</replaceable> [vardb::open <replaceable>filename</replaceable>]
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+vardb::close <replaceable>$handle</replaceable>
+                </command>
+            </cmdsynopsis>
+            
+            <cmdsynopsis>
+                <command>
+vardb::mkdir <replaceable>$handle directory-path</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+vardb::cd <replaceable>$handle directory-path</replaceable>                    
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+set wd [vardb::getwd <replaceable>$handle</replaceable>]
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+vardb::ls <replaceable>$handle ?directory-path?</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+vardb::rmdir <replaceable>$handle directory-path</replaceable>
+                </command>
+            </cmdsynopsis>
+            
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            The <literal>vardb</literal> package provides Tcl bindings to the
+            variable database API.  The bindings appear as a set of commands in the
+            <literal>::vardb::</literal> namespace (See COMMANDS below).
+           </para>
+           <para>
+            The bindings follow an object-handle manipulation
+            pattern.  <command>::vardb::open</command> opens a database file and
+            returns a database handle that must be used in other  vardb commands.
+            The <command>::vardb::close</command> command closes handles returned
+            by <command>::vardb::open</command> rendering them useless, and releasing
+            any associated resources.
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              COMMANDS
+           </title>
+           <variablelist>
+            <varlistentry>
+                <term>
+                    <cmdsynopsis>
+                            <command>
+vardb::create <replaceable>filename</replaceable>
+                            </command>
+                        </cmdsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Creates a new variable database in
+                        <parameter>filename</parameter>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <cmdsynopsis>
+                            <command>
+set <replaceable>handle</replaceable> [vardb::open <replaceable>filename</replaceable>]
+                            </command>
+                        </cmdsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Opens an existing variable database and
+                        returns a handle to it.  That handle must
+                        be used in all variable database commands that are
+                        intended to apply to that database.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <cmdsynopsis>
+                            <command>
+vardb::close <replaceable>$handle</replaceable>
+                            </command>
+                        </cmdsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Closes the database represented by the
+                        <parameter>handle</parameter> parameter.  The
+                        <parameter>handle</parameter> parameter must be a value
+                        returned from a previous successful
+                        <command>::vardb::open</command> command.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <cmdsynopsis>
+                            <command>
+vardb::mkdir <replaceable>$handle directory-path</replaceable>
+                            </command>
+                        </cmdsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Creates a directory in the variable database
+                        represented by <parameter>handle</parameter>.
+                        The <parameter>handle</parameter> parameter must have
+                        been returned from a successful prior
+                        <command>::vardb::open</command> command. The
+                        <parameter>directory-path</parameter> is an absolute
+                        or relative path that specifies which directory to create.
+                    </para>
+                    <para>
+                        The Tcl bindings create any missing path elements along
+                        the way to the terminal path element.  For example,
+                        in an emtpy database (only the root directory exists)
+                        <command>::vardb::mdkir $handle /this/directory/here</command>
+                        creates three directories:
+                        <filename>/this</filename>, <filename>/this/directory</filename>
+                        and the terminal node: <filename>/this/directory/here</filename>
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <cmdsynopsis>
+                            <command>
+vardb::cd <replaceable>$handle directory-path</replaceable>                    
+                            </command>
+                        </cmdsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Sets the current working directory to
+                        <parameter>directory-path</parameter> in the database
+                        represented by <parameter>handle</parameter>.
+                    </para>
+                    <para>
+                        Each database handle has an associated current working
+                        directory.  When first opened, the current working directory
+                        is the root directory; <literal>/</literal>.  The current
+                        working directory is the starting point for relative paths.
+                    </para>
+                    <para>
+                        Suppose, for example, that the current working directory
+                        is <filename>/here/now</filename>.  The path:
+                        <filename>../there/again</filename> refers to the
+                        absolute path <filename>/here/there/again</filename>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <cmdsynopsis>
+                            <command>
+set wd [vardb::getwd <replaceable>$handle</replaceable>]
+                            </command>
+                        </cmdsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        This command returns as its value the current working
+                        directory for the database represented by the.
+                        <parameter>handle</parameter>
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <cmdsynopsis>
+                            <command>
+vardb::ls <replaceable>$handle ?directory-path?</replaceable>
+                            </command>
+                        </cmdsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Returns a list of the directories immediately below
+                        the <parameter>directory-path</parameter> parameter
+                        if provided or the current working directory if not.
+                        The directories are in the database represented by
+                        the <parameter>handle</parameter> parameter.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <cmdsynopsis>
+                            <command>
+vardb::rmdir <replaceable>$handle directory-path</replaceable>
+                            </command>
+                        </cmdsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Removes the directory <parameter>directory-path</parameter>
+                        in the variable database represented by <parameter>handle</parameter>
+                        It is an error to remove a directory that is not empty.
+                    </para>
+                </listitem>
+            </varlistentry>
+           </variablelist>
+        </refsect1>
+
+      </refentry>
+
+
+<!-- /manpage -->
+
+<!-- manpage 3python -->
+
+<refentry id="python3_vardb">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='python3_vardb_title'>vardb</refentrytitle>
+     <manvolnum>3python</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>VarDb</refname>
+     <refpurpose>
+        Encapsulates the
+        <link linkend='daq3_cvariabledb' endterm='daq3_cvariabledb_title' /> C++ class
+     </refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <programlisting>
+
+import nscldaq.vardb.vardb
+
+<methodname>create</methodname>(<parameter>fileName</parameter>)
+
+db = VarDb(<parameter>filename</parameter>)
+
+   </programlisting>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        This module provides the ability to create and connect to variable
+        databases for scripts written in Python.  Objects of the type
+        <classname>VarDb</classname>, represent connections to variable databases.
+        These objects are normally used to construct other variable database
+        objects such as
+        <link linkend='python3_dirtree' endterm='python3_dirtree_title' />.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <methodname>create</methodname>(<parameter>fileName</parameter>)
+            </term>
+            <listitem>
+                <para>
+                    This is a module level method that creates a new empty
+                    variable database in the file <parameter>fileName</parameter>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                db = VarDb(<parameter>fileName</parameter>) 
+            </term>
+            <listitem>
+                <para>
+                    Constructs a new database connection to the variable
+                    database in <parameter>fileName</parameter>.  If
+                    <parameter>fileName</parameter>  does not exist,
+                    or is not a valid variable database, a
+                    <classname>nscldaq.vardb.vardb.error</classname>
+                    exception is raised with an error message that
+                    explains why the creation failed.
+                </para>
+                <para>
+                    The object resulting from this construction is used to construct
+                    other variable database objects such as
+                    <link linkend='python3_dirtree' endterm='python3_dirtree_title' />
+                    but does not provide any actual useful public methods of its own.
+                </para>
+            </listitem>
+        </varlistentry>
+     </variablelist>
+  </refsect1>
+</refentry>     
+<refentry id="python3_dirtree">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='python3_dirtree_title'>dirtree</refentrytitle>
+     <manvolnum>3</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>DirTree</refname>
+     <refpurpose>
+        Python encpapsulation of
+        <link linkend='daq3_cvardirtree' endterm='daq3_cvardirtree' />
+     </refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <programlisting>
+import nscldaq.vardb.dirtree
+pathList = <methodname>parsePath</methodname>(<parameter>pathString</parameter>)
+flag     = <methodname>isRelative</methodname>(<parameter>pathString</parameter>)
+    </programlisting>
+
+    <constructorsynopsis>
+       <methodname>DirTree</methodname>
+       <methodparam>
+        <type>VarDb</type> <parameter>db</parameter>
+       </methodparam>
+    </constructorsynopsis>
+    
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>integer</type>
+        <methodname>gerRootId</methodname>
+        <void />
+    </methodsynopsis>
+    
+    <methodsynopsis>
+        <modifier></modifier>
+        <type></type>
+        <methodname>mkdir</methodname>
+        <methodparam>
+            <type>string</type> <parameter>pathString</parameter>
+        </methodparam>
+    </methodsynopsis>
+    
+    <methodsynopsis>
+        <modifier></modifier>
+        <type></type>
+        <methodname>cd</methodname>
+        <methodparam>
+            <type>string</type> <parameter>pathString</parameter>
+        </methodparam>
+    </methodsynopsis>
+    
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>string</type>
+        <methodname>wdPath</methodname>
+        <void />
+    </methodsynopsis>  
+    
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>dict</type>
+        <methodname>getwd</methodname>
+        <void />
+    </methodsynopsis>
+    
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>tuple</type>
+        <methodname>ls</methodname>
+        <void />
+    </methodsynopsis>  
+    
+    <methodsynopsis>
+        <modifier></modifier>
+        <type></type>
+        <methodname>rmdir</methodname>
+        <methodparam>
+            <type>string</type> <parameter>directoryPath</parameter>
+        </methodparam>
+    </methodsynopsis>  
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        This module performs directory and path manipulations on variable
+        databasese.  Module level convenience methods provide the ability
+        to break up a path into a tuple of path elements as well as to determine
+        if the original path string is absolute or relative.
+     </para>
+     <para>
+        The <classname>DirTree</classname> class can have object constructed on
+        <classname>VarDb objects
+        (see: </classname><link linkend='python3_vardb' endterm='python3_vardb' />).
+        <classname>DirTree</classname> objects can then manipulate and traverse
+        the variable database directory tree.
+     </para>
+     <para>
+        Path strings are similar to unix directory specifications.  There is a root
+        directory. All other directories are children (direct or indirect) of that
+        root directory.  The path string describing a  directory is a set of
+        path elements separated by the <literal>/</literal> character.
+     </para>
+     <para>
+        <classname>DirTree</classname> objects have a
+        <firstterm>current working directory</firstterm> that can be set using the
+        <methodname>cd</methodname> method and queried using either
+        <methodname>wdPath</methodname> or <methodname>getwd</methodname> depending
+        on what information is required.
+        Path strings that begin with a <literal>/</literal> character are said to be
+        absolute.  They specify a path relative to the root directory.
+        Path strings that do not begin with a <literal>/</literal> are said to be
+        relative.  They specify a path relative to the object's current working
+        directory.
+     </para>
+     <para>
+        For example if the current working directory is <filename>/this/that</filename>
+        the relative path <filename>the/other</filename> specifies the absolute path
+        <filename>/this/that/the/other</filename>.  
+
+     </para>
+     <para>
+        Path elements can also be
+        <literal>..</literal> which specifies the parent of the path specified so far.
+        For example, the absolute path <filename>/this/something/../that/the/other</filename>
+        reduces to the path <filename>/this/that/the/other</filename>.  Similarly if the
+        current working directory is
+        <filename>/this/that/something</filename>, the relative path
+        <filename>../the/other</filename> also specifies
+        <filename>/this/that/the/other</filename>
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <para>
+        All methods will report errors by raising a
+        <classname>nscldaq.vardb.dirtree.error</classname> exception
+        encapsulating a
+        meaningful error message.
+     </para>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <methodname>parsePath</methodname>(<parameter>pathString</parameter>)
+            </term>
+            <listitem>
+                <para>
+                    This module level method breaks up a
+                    <parameter>pathString</parameter> into a tuple of path elements.
+                    The resulting tuple loses information about whether or not the
+                    path is relative or absolute.  To determin that you must
+                    invoke <methodname>isRelative</methodname> on the original
+                    path string.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodname>isRelative</methodname>(<parameter>pathString</parameter>)
+            </term>
+            <listitem>
+                <para>
+                    This module level method returns a boolean that is
+                    <literal>True</literal> if the <parameter>pathString</parameter>
+                    specifies a relative path, <literal>False</literal> is
+                    returned if this is not the case.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <constructorsynopsis>
+                   <methodname>DirTree</methodname>
+                   <methodparam>
+                    <type>VarDb</type> <parameter>db</parameter>
+                   </methodparam>
+                </constructorsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Contructs a <classname>DirTree</classname>
+                    object.  The <parameter>db</parameter>
+                    parameter is a
+                    <classname>VarDb</classname> object that represents
+                    a connection to the variable database whose directory tree will
+                    be manipulated by the <classname>DirTree</classname>
+                    object.
+                    See <link linkend='python3_vardb' endterm='python3_vardb_title' />
+                    for more on <classname>VarDb</classname> objects.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>integer</type>
+                    <methodname>gerRootId</methodname>
+                    <void />
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Returns the primary key of the root directory. The directory
+                    hierarchy is held in a database table in an SQLite database.
+                    The primary key of a table element is a unique identifier of
+                    a row in the table. For more about the database schema see
+                    <link linkend='daq5_vardb' endterm='daq5_vardb' />
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type></type>
+                    <methodname>mkdir</methodname>
+                    <methodparam>
+                        <type>string</type> <parameter>pathString</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Creates a new directory in the path specified by
+                    <parameter>PathString</parameter>.  This method
+                    returns <literal>None</literal>.  The
+                    <parameter>pathString</parameter> can be either an
+                    absolute or relative path.
+                </para>
+                <para>
+                    If not all elements in the
+                    path exist the missing ones will be created.  For example,
+                    suppose the root directory is empty and the
+                    <parameter>pathString</parameter> is
+                    <filename>/this/that/the/other</filename>,
+                    <methodname>mkdir</methodname> will create
+                    <filename>/this</filename>,
+                    <filename>/this/that</filename>,
+                    <filename>/this/that/the</filename> and
+                    <filename>/this/that/the/other</filename>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type></type>
+                    <methodname>cd</methodname>
+                    <methodparam>
+                        <type>string</type> <parameter>pathString</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Sets the current working directory to the absolute
+                    or relative path specified by
+                    <parameter>pathString</parameter>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>string</type>
+                    <methodname>wdPath</methodname>
+                    <void />
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns <type>string</type> that is the
+                    absolute path specification of the
+                    current working directory.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>dict</type>
+                    <methodname>getwd</methodname>
+                    <void />
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Returns a <type>dict</type> that describes
+                    the current working directory.  The dict
+                    has the following keys:
+                </para>
+                <variablelist>
+                    <varlistentry>
+                        <term><literal>name</literal> (<type>string</type></term>
+                        <listitem>
+                            <para>
+                                Contains the bottom path element of the
+                                directory.  For example for the directory
+                                <filename>/this/that/the/other</filename>
+                                this will be <literal>other</literal>.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><literal>id</literal> (<type>integer</type></term>
+                        <listitem>
+                            <para>
+                                Contains the primary key of the directory in its
+                                SQLite table.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><literal>parent</literal> (<type>integer</type></term>
+                        <listitem>
+                            <para>
+                                Contains the primary key of the parent directory.
+                                This field is how the directory hierarchy is
+                                maintained.  For the root directory, this field
+                                will be <literal>-1</literal> indicating there is
+                                no parent.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                </variablelist>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>tuple</type>
+                    <methodname>ls</methodname>
+                    <void />
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns a tuple containing the last path element of all
+                    subdirectories to the current working directory.
+                    The tuple is sorted alphabetically.
+                </para>
+                <para>
+                    For example suppose the directories
+                    <filename>/three/stooges/larry</filename>,
+                    <filename>/three/stopges/curly</filename> and 
+                    <filename>/three/stooges/moe</filename> exist
+                    (yes trivia fans I know there was once a stooge named <literal>shemp</literal>).
+                    have been created.
+                    If the current working directory is
+                    <filename>/three/stooges</filename>,
+                    <methodname>ls</methodname> will return
+                    <literal>('curly', 'larry', 'moe')</literal>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type></type>
+                    <methodname>rmdir</methodname>
+                    <methodparam>
+                        <type>string</type> <parameter>directoryPath</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Removes the directory specified by the absolute or relative
+                    <parameter>directoryPath</parameter>.
+                    <methodname>rmdir</methodname> raises an error if you attempt
+                    to remove a non-empty directory.
+                </para>
+            </listitem>
+        </varlistentry>
+     </variablelist>
+  </refsect1>
+</refentry>     
+<!-- /manpage -->
+
+<!-- manpage 5daq -->
+
+<refentry id="daq5_vardb">
+  <refentryinfo>
+    <author>
+            <personname>
+                    <firstname>Ron</firstname>
+                    <surname>Fox</surname>
+            </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='daq5_vardb_title'>Variable Database Schema</refentrytitle>
+     <manvolnum>5daq</manvolnum>
+     <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>Variable Database Schema</refname>
+     <refpurpose>Variable Database Schema</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <programlisting>
+CREATE TABLE directory (
+   id     INTEGER PRIMARY KEY NOT NULL,
+   name   VARCHAR(256) NOT NULL,
+   parent INTEGER DEFAULT NULL
+);
+INSERT INTO directory (name) VALUES("");        -- Create the root directory
+    </programlisting>
+
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        The variable database is an SQLite database.  This manpage
+        describes each table and its relationship to other tables.
+     </para>
+     <refsect2>
+        <title>The <literal>directory</literal> table</title>
+        <para>
+            The <literal>directory</literal> table contains the
+            director hierarchy.  A directory can be thought of as
+            a container.  Directories can contain other directories
+            (sub directories) and <firstterm>variables</firstterm>.
+        </para>
+        <para>
+            The fields in the directory table are:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term><literal>id     INTEGER PRIMARY KEY NOT NULL</literal></term>
+                <listitem>
+                    <para>
+                        The primary key is a unique integer that is used
+                        to refer to a directory.  With one exception
+                        that we will describe below, <structfield>id</structfield>
+                        values are assigned automatically by the
+                        SQLite database when a new row is created.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><literal>name   VARCHAR(256) NOT NULL,</literal></term>
+                <listitem>
+                    <para>
+                        The name of the directory.  Given a directory path,
+                        this will be the last element in that path.  For
+                        example for <filename>/this/that/the/other</filename>
+                        <structfield>name</structfield> will contain
+                        <literal>other</literal>
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><literal>parent INTEGER DEFAULT NULL</literal></term>
+                <listitem>
+                    <para>
+                        This is the primary key (<structfield>id</structfield>)
+                        of the directory that is the parent to this directory.
+                        All directories except the root directory have parents.
+                    </para>
+                </listitem>
+            </varlistentry>
+            
+        </variablelist>
+        <para>
+            When the <literal>directory</literal> table is created a special
+            entry called the <firstterm>root directory</firstterm> is created:
+            <literal>INSERT INTO directory (name) VALUES("")</literal>.
+            The root directory is special because not only is its name the empty
+            string but it's <structfield>parent</structfield> field is
+            <literal>null</literal>.
+        </para>
+        <para>
+            The database API and, hence its language bindings prevent the
+            destruction of the root directory.  The path specification of the
+            root directory is just <literal>/</literal>
+        </para>
+     </refsect2>
+  </refsect1>
+
+</refentry>
+
+
+<!-- /manpage -->

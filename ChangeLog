@@ -854,5 +854,8 @@ Work on 11.0-rc11 begins
         sufficiently supported for me to have confidence that it won't break (again)
         when we go to Tcl 8.6
         Bug #2915 - Don't emit body headers if there's no scaler timestamp extractor.
-        
+11.0-variablemanager
+	Feature #3047 - Support for directory hierarchies in the variable
+	database.
+	
 	

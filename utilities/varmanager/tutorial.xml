@@ -1,0 +1,746 @@
+<!-- chapter utilities -->
+<chapter>
+    <title>vardbsh</title>
+    <para><application>vardbsh</application> is an extended Tcl interpreter that provides commands to:</para>
+    <itemizedlist>
+        <listitem><para>
+            Create variable databases
+        </para></listitem>
+        <listitem><para>
+            Modify the diretory structure of variable databases
+        </para></listitem>
+        <listitem><para>
+            Navigate variable database directory trees.
+        </para></listitem>
+    </itemizedlist>
+    <para>
+        The remainder of this chapter has section that describe:
+    </para>
+    <variablelist>
+        <varlistentry>
+            <term><link linkend='ch_vardbsh_vardbs'>Variable Databases</link></term>
+            <listitem>
+                <para>
+                    What a variable database is and how variable databases are
+                    used in the NSCLDAQ system.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><link linkend='ch_vardbsh_shell'>vardbsh</link></term>
+            <listitem>
+                <para>
+                    The variable database shell, how to invoke it and a some
+                    examples of how to use it.
+                </para>
+            </listitem>
+        </varlistentry>
+    </variablelist>
+    <para>
+        In addition to the information in this chapter you may want to look at:
+    </para>
+    <variablelist>
+        <varlistentry>
+            <term><link linkend='daq1_vardbsh' endterm='daq1_vardbsh_title' /></term>
+            <listitem>
+                <para>
+                    Which provides reference information about
+                    <application>vardbsh</application>.
+                </para>
+            </listitem>
+        </varlistentry>
+        
+        <varlistentry>
+            <term><link linkend='ch_vardblib' endterm='ch_vardblib_title' /></term>
+            <listitem>
+                <para>
+                    Which provides an overview to the variable database
+                    APIs that are available.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>3daq</term>
+            <listitem>
+                <para>
+                    Which includes reference information for the C++ API for the
+                    variable database
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>3tcl</term>
+            <listitem>
+                <para>
+                    Which includes reference information for the Tcl API for the
+                    variable database
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>3python</term>
+            <listitem>
+                <para>
+                    Which includes reference information for the Python API for the
+                    variable database.
+                </para>
+            </listitem>
+        </varlistentry>
+        
+    </variablelist>
+    <para>
+        The <link linkend='ch_vardblib' endterm='ch_vardblib_title' /> provides concrete
+        links to manpage sections containing variable database reference information.
+    </para>
+    <section id='ch_vardbsh_vardbs'>
+        <title>The NSCLDAQ variable database</title>
+        <para>
+            The NSCLDAQ variable database can contain any data you want to capture
+            about the experiment.  Data are organized in a hiearchical directory structure
+            much like a filesystem but the terminal nodes of the hiearchy are
+            variable names whose contents are their current values.
+        </para>
+        <para>
+            Applications can register interest in changes in the value of individual
+            variables or variables in a subtree directories.  NSCLDAQ run control components
+            use this capability to manage run state transitions, configuration management
+            and other critical nscldaq functions.
+        </para>
+        <para>
+            While some parts of the NSCLDAQ variable database are critical to NSCLDAQ's
+            operation, you can also use it to capture arbitrary information about your
+            experiment by using the database shell to create your own directories and variables
+            and using the variable database API to manipulate your variables.  Variable
+            change notification is not restricted in any way so your applications can become
+            aware of changes in the values of variables you create as well as those that
+            are defined by standard NSCLDAQ components.
+        </para>
+    </section>
+    <section id='ch_vardbsh_shell'>
+        <title>The variable database shell; <application>vardbsh</application></title>
+        <para>
+            The variable database shell is an extended Tcl interpreter.  Extensions
+            allow you to create and manipulate and query variable databases.
+        </para>
+        <para>
+            A variable database is just a file.  Specifically it is an sqlite3 database
+            file.  When you start the vardbsh you must provide the name of that file
+            as shown below:
+        </para>
+        <informalexample>
+            <cmdsynopsis>
+<command>$DAQBIN/vardbsh</command> <arg><replaceable>database_file</replaceable></arg>
+            </cmdsynopsis>
+        </informalexample>
+        <para>
+            If the <replaceable>database-file</replaceable> does not yet exist,
+            you will be prompted to confirm creating a new database. If the
+            <replaceable>database-file</replaceable> exists and is a valid
+            variable database that database will be used for the shell's session.
+            If the <replaceable>database-file</replaceable> exists but is not
+            a valid variable database, the shell exits with an error message.
+        </para>
+        <para>
+            Once the data base is open you can create elements and navigate the
+            database hierarchy.  The following short session shows this:
+        </para>
+        <informalexample>
+            <screen>
+<command>$DAQBIN/vardbsh myvariables.db</command>
+<computeroutput>(myvariables.db) /:</computeroutput> <command>ls</command>
+<computeroutput><literal>
+experiment_log/
+extra_stuff/
+runstate/
+</literal></computeroutput>
+<computeroutput>(myvariables.db) /:</computeroutput><command>cd extra_stuff</command>
+<computeroutput>(myvariables.db) /extra_stuff:</computeroutput><command>mkdir extra_run_data</command>
+<computeroutput>(myvariables.db) /extra_stuff:</computeroutput><command>ls</command>
+<computeroutput><literal>
+extra_run_data/
+</literal></computeroutput>
+<computeroutput>
+(myvariables.db) /extra_stuff:</computeroutput>
+            </screen>
+        </informalexample>
+        <para>
+            This sample dialog uses vardbsh to manipulate the <filename>myvariables.db</filename>
+            variables database.  The <command>ls</command> command is used to list the contents
+            of the current working directory.  Items listed that end in <literal>/</literal>
+            are themselves directories.
+        </para>
+        <para>
+            The <command>cd</command> command allows you to change the current working directory.
+            Note that the command prompt displays not only the name of the database file being used,
+            but also the current working directory,
+        </para>
+        <para>
+            The <command>mkdir</command> command creates new dirctories.  The session creates a new
+            directory <filename>/extra_stuff/extra_run_data</filename>.
+        </para>
+        <para>
+            For reference information about the variable database shell see
+            <link linkend='daq1_vardbsh' endterm='daq1_vardbsh_title' />
+        </para>
+    </section>
+</chapter>
+<chapter>
+    <title>
+        inittcl - Tcl interpreter with heavy weight initialization.
+    </title>
+    <para>
+        Since Tcl <command>proc</command>s look exactly like Tcl commands, it is resonable
+        to want to use them to build simply extended Tcl interpreters.  Unfortunately
+        if you have a file like myshell.tcl that contains extension procs, and do:
+        <command>tclsh myshell.tcl</command> once myshell.tcl has been interpreted and its
+        extension procs defined, tclsh will exit.
+    </para>
+    <para>
+        You can certainly also do:
+    </para>
+    <informalexample>
+        <programlisting>
+tclsh
+% source myshell.tcl
+%
+        </programlisting>
+    </informalexample>
+    <para>
+        But it would be really nice to just be able to invoke your shell and have it
+        wind up at the interpreter prompt.  <application>initcl</application> is
+        a slightly modified Tcl interpreter that does that.
+    </para>
+    <para>
+        When <application>initcl</application> is invoked, it must have at least one
+        command line parameter, a Tcl script that is interpreted before returning
+        control to what is, essentially tclsh.  Additional command line parameters are
+        converted to the <varname>argv</varname> special tclsh variable.
+    </para>
+    <para>
+        This allows you to:
+    </para>
+    <informalexample>
+        <programlisting>
+$DAQBIN/inittcl myshell.tcl
+        </programlisting>
+    </informalexample>
+    <para>
+        And wind up at the Tcl command prompt with the procs in
+        <filename>myshell.tcl</filename>
+        defined.
+    </para>
+    <para>
+        Futhermore, if you will be sourceing the <filename>daqsetup.bash</filename>
+        script into your bash shell you can simplify this futher by adding the
+        following lines to the very top of your <filename>myshell.tc</filename> script:
+    </para>
+    <informalexample>
+        <programlisting>
+#!/bin/bash
+# \
+exec $DAQBIN/inittcl "$0" ${1+"$@"}
+
+        </programlisting>
+    </informalexample>
+    <note>
+        <title>NOTE</title>
+        <para>
+            The <literal>\</literal> character in line 2 above must be the last
+            character on that line.
+        </para>
+    </note>
+
+    <para>
+        This allows you to run your shell by simply setting your script file to be
+        executable and then, if the directory it's in is in your
+        bash <literal>PATH</literal>:
+    </para>
+    <informalexample>
+        <programlisting>
+myshell.tcl
+%
+        </programlisting>
+    </informalexample>
+    <para>
+        See <link linkend='daq1_inittcl' endterm='daq1_inittcl_title' />
+        for reference information about the <application>inittcl</application>
+        application.  Note that the <application>vardbsh</application> uses
+        this scheme to implement its commands via Tcl procs.
+    </para>
+</chapter>
+<!-- /chapter -->
+
+<!-- chapter libraries -->
+
+<chapter id='ch_vardblib'>
+    <title id='ch_vardblib_title'>Variable database API</title>
+    <para>
+        The variable database APIs provide you with the ability to write programs
+        that monitor and modify the variable database.  These programs can be
+        written in C++, Tcl or Python.  The C++ API is the base API on top of
+        which all of the other language bindings are built.  
+    </para>
+    <para>
+        The remainder of this chapter shows an example that performs the same operations
+        in C++, Tcl and Python. The example is a program fragment that creates a
+        directory element and sets the working directory to that element.
+    </para>
+    <para>
+        For all examples, we will assume that there is a top level directory
+        named <filename>example</filename>.  We will create our new directory
+        underneath this top level directory.  As we annotate examples we will
+        also point to specific reference information in the manpages
+    </para>
+    <section>
+        <title>C++ Bindings</title>
+        <para>
+            This section describes:
+            <itemizedlist>
+                <listitem><para>
+                    How to compile and link a program that uses the C++
+                    variable database API.
+                </para></listitem>
+                <listitem><para>
+                    Code fragments that show how to perform the task described
+                    at the outset of the chapter.
+                </para></listitem>
+            </itemizedlist>
+        </para>
+        <para>
+            To compile C++ programs against the variable database library you
+            must specify
+            to the compiler the directory in which the library header files live.
+            At link time you must also pull in the variable database library
+            into your program, and help the run-time loader locate those libraries.
+        </para>
+        <para>
+            Below is a sample compilation command:
+        </para>
+        <informalexample>
+            <programlisting>
+g++ -c -I$DAQROOT/include myprogram.c
+            </programlisting>
+        </informalexample>
+        <para>
+            The <literal>DAQROOT</literal> environment variable is defined by the
+            <filename>daqsetup.bash</filename> script that is assumed to have been
+            sourced into your bash shell.
+        </para>
+        <para>
+            The line below links the result of this compilation with the variable
+            database C++ library:
+        </para>
+        <informalexample>
+            <programlisting>
+g++ -std=c++11 -o myprogram myprogram.o -L$DAQLIB -lvardb -Wl,"-rpath=$DAQLIB"
+            </programlisting>
+        </informalexample>
+        <para>
+            The <literal>-L</literal> and <literal>-l</literal> options and
+            their values link in the variable database API while the
+            <literal>-Wl,"-rpath=$DAQLIB"</literal> bit tells the run time loader
+            to look in the DAQ library directory for shared objects it cannot find
+            in the normal system places.
+        </para>
+        <para>
+            The next example is going to show a function named
+            <function>MakeDirectory</function> which will create
+            the directory <filename>/example/mydir</filename>.
+        </para>
+        <para>
+            When done a directory object pointer will be returned whose
+            default working directory is <filename>/example/mydir</filename>.
+        </para>
+        <example>
+            <title>C++ example for the variable database API</title>
+            <programlisting>
+#include &lt;CVariableDb.h&gt;
+#include &lt;CVarDirTree.h&gt;
+#include &lt;string&gt;
+#include &lt;exception&gt;        <co id='vardb_cpp_includes' />
+#include &lt;iostream&gt;
+#include &lt;utility&gt;
+#include &lt;stdlib.h&gt;
+
+...
+
+static
+std::pair&lt;CVariableDb*, CVarDirTree*>
+MakeDirectory(const char* dbName, const char*  path) <co id='vardb_cpp_function' />
+{
+  try {                                              <co id='vardb_cpp_tryblock' />
+
+    CVariableDb* db = new CVariableDb(dbName);       <co id='vardb_cpp_dbobj' />
+    CVarDirTree* pDir = new CVarDirTree(*db);        <co id='vardb_cpp_dirobj' />
+    pDir-&gt;mkdir(path);                            <co id='vardb_cpp_mkdir' />
+    pDir-&gt;cd(path);                               <co id='vardb_cpp_cd' />
+
+
+    return std::pair&lt;CVariableDb*, CVarDirTree*&gt;(db, pDir); <co id='vardb_cpp_retval' />
+  }
+  catch(std::exception&amp; e) {                     <co id='vardb_cpp_exception' />
+    std::cerr &lt;&lt; "Exiting from MakeDirectory Because: \n";
+    std::cerr &lt;&lt; e.what() &lt;&lt; std::endl;
+    exit(-1);
+  }
+}
+...
+
+            </programlisting>
+        </example>
+        <calloutlist>
+            <callout arearefs='vardb_cpp_includes'>
+                <para>
+                    The key headers we need are
+                    <filename>CVariableDb.h</filename>, which defines
+                    a class that represents a connection to a variable database
+                    and <filename>CVarDirTree.h</filename> which defines
+                    an object that can manipulate directories and has state of a
+                    current working direcory.
+                </para>
+                <para>
+                    <link linkend='daq3_cvariabledb' endterm='daq3_cvariabledb_title' />
+                    provides reference material for the <classname>CVariableDb</classname>
+                    class.
+                    <link linkend='daq3_cvardirtree' endterm='daq3_cvardirtree_title' />
+                    provides reference material for the <classname>CVarDirTree</classname>
+                    class.
+                </para>
+            </callout>
+            <callout arearefs='vardb_cpp_function'>
+                <para>
+                    The function is going to take two parameters,
+                    <parameter>dbName</parameter> is a unix filesystem path
+                    to the variable database file.
+                    <parameter>path</parameter> is the full absolute path of the
+                    directory we are going to create in that database.
+                </para>
+                <para>
+                    The function will return a <classname>std::pair</classname>
+                    that will contain both a <classname>CVariableDb*</classname>
+                    and a <classname>CVarDirTree*</classname>. These objects
+                    can be used by the caller to further manipulate/query the variable
+                    database.
+                </para>
+            </callout>
+            <callout arearefs='vardb_cpp_tryblock'>
+                <para>
+                    The variable database classes report errors by throwing exceptions
+                    that are subclassed from <classname>std::exception</classname>.
+                    Therefore for our rudimentary error detection/recovery, all
+                    operations are encapsulated in this <literal>try </literal>
+                    block.
+                </para>
+            </callout>
+            <callout arearefs='vardb_cpp_dbobj'>
+                <para>
+                    A <classname>CVariableDb</classname> object represents a
+                    connection to a variable database file.  This line
+                    constructs a new object.  The constructor parameter
+                    specifies the file.
+                </para>
+                <para>
+                    The constructor will throw an exception if the database file
+                    does not exist.  It will also throw an exception if the
+                    file exists but is not a databae file and if file is a
+                    database file but has the wrong database schema to be a
+                    variable database.
+                </para>
+            </callout>
+            <callout arearefs='vardb_cpp_dirobj'>
+                <para>
+                    A <classname>CVarDirTree</classname> object encapsulates
+                    operations on the directory tree of a variable database.
+                    The object is constructed using a <classname>CVariableDb</classname>
+                    object reference and uses that reference to perform operations
+                    on the database itself.
+                </para>
+                <para>
+                    The constructor will throw an exception if there is a problem.
+                    Specifically, if the database has a good schema but the
+                    construtor is not able to locate the root directory entry
+                    an exception is thrown.
+                </para>
+            </callout>
+            <callout arearefs='vardb_cpp_mkdir'>
+                <para>
+                    The <methodname>mkdir</methodname> method of the
+                    <classname>CVarDirTree</classname> object creates a directory.
+                    Its parameter can be an absolute or relative path. Directory
+                    paths, like in unix are made up of elements that are separated
+                    by the <literal>/</literal> character. Absolute paths have
+                    a leading <literal>/</literal> while relative paths don't.
+                </para>
+                <para>
+                    In addition to directory names, paths can contain elements
+                    that are <literal>..</literal> which indicates the parent directory
+                    of that part of the path.
+                </para>
+                <para>
+                    Our function does not know or care if the path is absolute or
+                    relative. It just passes <parameter>path</parameter>
+                    directly to <methodname>mkdir</methodname> without
+                    interpretation.  <methodname>mkdir</methodname> reports
+                    errors by throwing an exception.
+                </para>
+            </callout>
+            <callout arearefs='vardb_cpp_cd'>
+                <para>
+                    The <methodname>cd</methodname> method establishes the
+                    current direoctory for a <classname>CVarDirTree</classname>
+                    object.  This directory determines the starting point for
+                    relative paths.  It also determines which directory the
+                    <methodname>ls</methodname> method lists.
+                </para>
+                <para>
+                    Note that it is possible to have instantiated several
+                    <classname>CVarDirTree</classname> objects, each object
+                    having its own, distinct working directory.
+                </para>
+            </callout>
+            <callout arearefs='vardb_cpp_retval'>
+                <para>
+                    Once the function has successfuly completed, the database
+                    and directory tree objects are returned to the caller.
+                    It is the caller's responsibility to <literal>delete</literal>
+                    these objects when it is done with them.
+                </para>
+            </callout>
+            <callout arearefs='vardb_cpp_exception'>
+                <para>
+                    As described previously, all errors are reported via exceptions.
+                    This block of code handles those errors.  It's important to
+                    catch the <classname>std::exception</classname> by reference
+                    so that it remains polymorphic to the actual exception type.
+                    Otherwise, for example, the <methodname>what</methodname>,
+                    will return the fixed string the <classname>std::exception</classname>
+                    class returnss.
+                </para>
+                <para>
+                    Our exception handling is pretty naive.  We just output a message
+                    and exits.   Production quality code should probably be
+                    executing the <literal>try</literal> block in a database
+                    transaction that is rolled back on failure.  We should
+                    also have a mechanism to allow the program to continue to run
+                    rather than brutally extingishing it.
+                </para>
+            </callout>
+        </calloutlist>
+    </section>
+    <section>
+        <title>Tcl bindings to the variable database.</title>
+        <para>
+            This section describes how to perform variable database manipulations
+            in a Tcl program.  Our sample will performthe same functions as the
+            C++ program fragment in the previous section.
+        </para>
+        <example>
+            <title>
+                Tcl example of the variable database API
+            </title>
+            <programlisting>
+                ...
+package require vardb                         <co id='vardb_tcl_package' />
+
+proc MakeDirectory {dbname path} {            <co id='vardb_tcl_proc' />
+    set handle [vardb::open $dbname]          <co id='vardb_tcl_open' />
+    ::vardb::mkdir $handle $path              <co id='vardb_tcl_mkdir' />
+
+    return $handle                            <co id='vardb_tcl_return' />
+}
+            ...
+
+            </programlisting>
+        </example>
+        <calloutlist>
+            <callout arearefs='vardb_tcl_package'>
+                <para>
+                    The Tcl bindings to the variable database API are implemented
+                    as a loadable package named <literal>vardb</literal>.  This
+                    command loads that package into the interpreter.  The package
+                    initialization creates the <literal>::vardb::</literal> namespace
+                    and several commands in that namespace.
+                </para>
+                <para>
+                    For the command to succeed, the TclLibs director of the DAQ
+                    installation must have been added to the package load path.
+                    Assuming that <filename>daqsetup.bash</filename> has been
+                    sourced into the interpreter running this script this can
+                    be easily done by  adding the command:
+                    <command>
+                        lapppend auto_path [file join $::env(DAQROOT) TclLibs]
+                    </command>
+                    to the script so that it executes prior to the
+                    <literal>package require</literal> command we are discussing.
+                </para>
+            </callout>
+            <callout arearefs='vardb_tcl_proc'>
+                <para>
+                    The proc we are creating is called <command>MakeDirectory</command>
+                    it accepts as input, in order,
+                    the filesystem path to a variable database
+                    file and a directory path to create.  
+                </para>    
+            </callout>
+            <callout arearefs='vardb_tcl_open'>
+                <para>
+                    Opens the database file passed in with the
+                    <parameter>dbname</parameter> proc parameter.
+                    If this fails, the command will produce an error and the
+                    script will terminate unless <command>MakeDirectory</command>
+                    is run in a Tcl <command>catch</command> command.
+                </para>
+                <para>
+                    On success the command result is a handle that can
+                    be used to manipulate the database with other
+                    <literal>::vardb::</literal> commands.
+                </para>
+            </callout>
+            <callout arearefs='vardb_tcl_mkdir'>
+                <para>
+                    Creates the requested directory.  Again any problem doing this
+                    will result in a command error.
+                </para>
+            </callout>
+            <callout arearefs='vardb_tcl_return'>
+                <para>
+                    The database handle is returned so the caller can perform
+                    more database operations if desired or invoke
+                    <command>::vardb::close</command> to close it.
+                </para>
+            </callout>
+ 
+        </calloutlist>
+        <para>
+            See
+            <link linkend='tcl3_vardb' endterm='tcl3_vardb_title' />
+            for reference information about the Tcl bindings to the
+            variable database.
+        </para>
+    </section>
+    <section>
+        <title>Python bindings to the variable database.</title>
+        <para>
+            This section provides a sample Python script fragment
+            that shows how to do operations on variable databases in Python.
+            Once more our example is based around a script fragment that
+            shows how to create a directory in variable database.
+        </para>
+        <para>
+            This example assumes that the <filename>daqsetup.bash</filename>
+            script has been run.  That script sets up the
+            <literal>PYTHONPATH</literal>
+            environment variable so that the appropriate modules can be located
+            and loaded.
+        </para>
+        <example>
+            <title>Python example of the variable database API.</title>
+            <programlisting>
+import nscldaq.vardb.vardb                                   <co id='vardb_py_imports' />
+import nscldaq.vardb.dirtree
+
+             ...
+         
+def MakeDirectory(dbFile, path):                            <co id='vardb_py_def' />
+    myVarDb = nscldaq.vardb.vardb.VarDb(dbFile)             <co id='vardb_py_VarDb' />
+    myDirTree = nscldaq.vardb.dirtree.DirTree(myVarDb)      <co id='vardb_py_DirTree' />
+    myDirTree.mkdir(path)                                   <co id='vardb_py_mkdir' />
+    return (myVarDb, myDirTree)                             <co id='vardb_py_return' />
+               
+               ...
+            </programlisting>
+        </example>
+        <calloutlist>
+            <callout arearefs='vardb_py_imports'>
+                <para>
+                    Imports the modules we need.  The Python bindings supply
+                    modules in the <literal>nscldaq.vardb</literal> namespace.
+                    Within that namespace there is a module and Python
+                    type/class for each class in the C++ bindings.
+                </para>
+                <para>
+                    The <literal>nscldaq.vardb.vardb</literal> module includes
+                    static methods for the <classname>CVariableDb</classname>
+                    class as well as a python wrapper for the class itself
+                    (the python <classname>VarDb</classname> class).
+                </para>
+                <para>
+                    The <literal>nscldaq.vardb.dirtree</literal> module
+                    includes static methods for the <classname>CVarDirTree</classname>
+                    class as well as a python wrapper for the class itself
+                    (the python <classname>DirTree</classname>).
+                </para>
+            </callout>
+            <callout arearefs='vardb_py_def'>
+                <para>
+                    Defines a method <methodname>MakeDirectory</methodname>
+                    that is not bound to any class.  The method accepts
+                    <parameter>dbFile</parameter>, the path to the variable
+                    database file we want to open and
+                    <parameter>path</parameter> the directory path we want
+                    to make.  The <varname>myVarDb</varname> is going to be the
+                    object created.
+                </para>
+            </callout>
+            <callout arearefs='vardb_py_VarDb'>
+                <para>
+                    Objects of the <classname>VarDb</classname> class represent
+                    connections to a variable database file.  Constructing
+                    one requires the path to that file.  
+                </para>
+                <para>
+                    If the database open, implied by constructing a
+                    <classname>VarDb</classname> object fails, an
+                    exception of type <classname>nscldaq.vardb.vardb.error</classname>
+                    is raised.
+                </para>
+            </callout>
+            <callout arearefs='vardb_py_DirTree'>
+                <para>
+                    The <classname>DirTree</classname> class encapsulates
+                    operations that can be performed on a directory tree.
+                    It is a wrapper for the C++ <classname>CVarDirTree</classname>
+                    class.  The <classname>DirTree</classname> constructor
+                    accepts a <classname>VarDb</classname> objedt and uses
+                    that object to perform its database operations.
+                </para>
+                <para>
+                    If the <classname>DirTree</classname> object cannot be
+                    constructed (e.g. the constructor parameter is not a
+                    <classname>VarDb</classname> object), a
+                    <classname>nscldaq.vardb.dirtree.error</classname>
+                    exception is raised.
+                </para>
+            </callout>
+            <callout arearefs='vardb_py_mkdir' >
+                <para>
+                    This line of code actually creates the directory by
+                    invoking the <methodname>mkdir</methodname> method of the
+                    <varname>myDirTree</varname>.  If the directory cannot be
+                    created a
+                    <classname>nscldaq.vardb.dirtree.error</classname>
+                    exception is raised.
+                </para>
+            </callout>
+            <callout arearefs='vardb_py_return'>
+                <para>
+                    The method returns a tuple containing the database and directory
+                    tree objects so that the caller can continue to manipulate the
+                    database if desired.  The variable database objects properly
+                    garbage collect so once they are no longer needed they
+                    automically close and, in the case of the <classname>VarDb</classname>
+                </para>
+            </callout>
+        </calloutlist>
+        
+        <para>
+            For reference information see:
+            <link linkend='python3_vardb' endterm='python3_vardb_title'/> for
+            information about the <classname>VarDb</classname> class and
+            <link linkend='python3_dirtree' endterm='python3_dirtree_title' />
+            for information about the <classname>DirTree</classname> class.
+        </para>
+    </section>
+</chapter>
+
+<!-- /chapter -->
