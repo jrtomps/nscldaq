@@ -2,7 +2,8 @@
 DRIVERDest = @prefix@/TclLibs/mesytec
 
 TCLDRIVERS = MCFD16USB.tcl MCFD16RC.tcl MCFD16Gui.tcl MCFD16CommandLogger.tcl \
-						 MCFD16Memorizer.tcl
+						 MCFD16Memorizer.tcl ScriptHeaderGenerator.tcl MCFD16GuiApp.tcl \
+						 MCFD16Factory.tcl
 TCLAPPS = MCFD16Control.tcl
 
 install-exec-local:
@@ -17,7 +18,7 @@ install-exec-local:
 #  All driver and docs files need to be added here:
 #
 TCLTESTS=tclTests.tcl mcfd16usb.test mcfd16gui.test mcfd16rc.test mcfd16commandlogger.test \
-				 mcfd16memorizer.test
+				 mcfd16memorizer.test scriptheadergenerator.test mcfd16factory.test
 
 
 check-TESTS:

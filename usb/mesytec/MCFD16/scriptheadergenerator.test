@@ -1,0 +1,47 @@
+
+package require tcltest
+
+tcltest::test pkgrequire-0 {Require the package 
+} {package require scriptheadergenerator} 1.0
+
+package require mcfd16guiapp
+
+tcltest::test usb-0 {Generate proper usb header 
+} -setup {
+  MCFD16AppOptions opts -protocol usb -serialfile dummy
+} -cleanup {
+  generator destroy
+  opts destroy
+} -body {
+  ScriptHeaderGenerator generator opts
+
+  generator generateHeader
+} -result [list \
+"package require mcfd16usb" \
+"set serialFile dummy"  \
+{} \
+"if \{!\[file exists \$serialFile\]\} \{" \
+{  puts "Serial file \"$serialFile\" provided but does not exist."} \
+{  exit} \
+"\}" \
+{MCFD16USB ::dev $serialFile} \
+]  
+
+tcltest::test mxdcrcbus-0 {Generate proper mxdcrcbus header 
+} -setup {
+  MCFD16AppOptions opts -protocol mxdcrcbus -module rcbus -host h \
+                        -port 1230 -devno 2
+} -cleanup {
+  generator destroy
+  opts destroy
+} -body {
+  ScriptHeaderGenerator generator opts
+
+  generator generateHeader
+} -result [list \
+{package require mcfd16rc} \
+{MXDCRCProxy ::proxy -server h -port 1230 -module rcbus -devno 2} \
+{# use the proxy created to construct an MCFD16RC} \
+{MCFD16RC dev ::proxy} ]
+
+tcltest::cleanupTests

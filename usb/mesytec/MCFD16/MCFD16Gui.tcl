@@ -6,15 +6,19 @@ package require mcfd16usb
 package require snit
 package require Tk
 package require FrameSwitcher
+package require scriptheadergenerator
+package require BlockCompleter
 
 
-####### Base class MCFD16View ################
+####### "Base" type for MCFD16View ################
 
 snit::type MCFD16View {
 
-  option -presenter -default {}
-  variable _mcfd
+  option -presenter -default {} ;# logical controller of device
 
+  variable _mcfd ;# basic array of values
+
+  ## Constructor
   constructor {args} {
     $self configurelist $args
 
@@ -22,19 +26,39 @@ snit::type MCFD16View {
   }
 
 
+  ## Retrieve the fully qualified name of the array
+  #
   method mcfd {} {
     return [$self info vars _mcfd]
   }
 
+  ## Check whether a channel name contains non-whitespace characters
+  # 
+  # This is called when a channel entry loses focus
+  #
+  # @param name   candidate string 
+  #
+  # @return boolean
+  # @retval 0 - string was empty or all whitespace
+  # @retval 1 - otherwise
   method ValidateName {name} {
+    set name [string trim $name]
     return [expr [string length $name]!=0]
   }
+
+  ## Reset channel to a simple string
+  #
+  # Typically called with ValidateName returns false
+  #
+  # @returns ""
   method ResetChannelName {widget} {
     set str [$widget cget -textvariable]
     regexp {^.*(\d+)$} $widget match ch
     set $str "Ch$ch"
   }
 
+  ## Initialize all elements of the array for each setting
+  #
   method InitArray {} { 
 
     # set the channel valus
@@ -65,7 +89,7 @@ snit::type MCFD16View {
     set _mcfd(th16) 127
   }
 
-
+  # Getters and Setters
   method GetName {ch} { return $_mcfd(na$ch)  }
   method SetName {ch str} { set _mcfd(na$ch) $val }
 
@@ -114,6 +138,8 @@ snit::type MCFD16View {
     }
   }
 
+  ##  All MCFD16View-like types simple pass events to their presenter
+  #
   method Commit {} {
     $options(-presenter) Commit
   }
@@ -125,16 +151,21 @@ snit::type MCFD16View {
 #
 # MCFD16IndividualView 
 #
-#  A widget for controlling the MCFD16 channels individually.
-#
+#  A widget for controlling the MCFD16 channels individually. This creates a 
+#  16-row table with a header. There is a row for each of the channels in the
+#  device and also they are grouped into pairs to make the configuration simpler
+#  to understand.
 #
 snit::widget MCFD16IndividualView {
 
-  component m_base
+  component m_base ;# the MCFD16View instance
 
   delegate method * to m_base
   delegate option * to m_base
 
+  ## Constructs the gui and parses options
+  #
+  # @param args   option-value pairs (see MCFD16View for supported options)
   constructor {args} {
     install m_base using MCFD16View %AUTO%
 
@@ -144,6 +175,9 @@ snit::widget MCFD16IndividualView {
 
   }
 
+  ## Put the widgets together
+  #
+  #
   method BuildGUI {} {
 
     $self BuildHeader $win.header
@@ -157,6 +191,10 @@ snit::widget MCFD16IndividualView {
     grid rowconfigure $win {0} -weight 1
   }
 
+
+  ## Construct the header row
+  #
+  # @param name   the name of the frame that will hold the row
   method BuildHeader {name} {
 
     set w $name
@@ -183,6 +221,10 @@ snit::widget MCFD16IndividualView {
     grid rowconfigure $w {0} -weight 1
   }
 
+  ## Construct the 16 rows of the table
+  #
+  # @param name   the name of the frame that will hold the row
+  #
   method BuildTable {name } {
     set w $name
     ttk::frame $w 
@@ -207,6 +249,10 @@ snit::widget MCFD16IndividualView {
     grid rowconfigure $w {0 1 2 3 } -weight 1
   }
 
+  ## Constructs a pair of rows in the table
+  #
+  # @param name   name of the frame that will be filled 
+  #
   method BuildGroupedRows {name ch style} {
     set w $name
     ttk::frame $w -style $style.TFrame
@@ -257,8 +303,8 @@ snit::widget MCFD16IndividualView {
     incr ch
     ttk::entry $w.na$ch -width 8 -textvariable "[$self mcfd](na$ch)" \
       -style "$style.TEntry" \
-                                -validate focus -validatecommand [mymethod ValidateName %P] \
-                                -invalidcommand [mymethod ResetChannelName %W]
+      -validate focus -validatecommand [mymethod ValidateName %P] \
+                      -invalidcommand [mymethod ResetChannelName %W]
     ttk::spinbox $w.th$ch -textvariable "[$self mcfd](th$ch)" -width 4 \
       -style "$style.TSpinbox" -from 0 -to 255 \
       -state readonly
@@ -284,15 +330,19 @@ snit::widget MCFD16IndividualView {
 #
 # MCFD16CommonView
 #
-#  A widget for controlling common channel values in MCFD16
+#  A widget for controlling common channel values in MCFD16. This is just one 
+#  row of controls that will set the parameters for common mode.
 #
 snit::widget MCFD16CommonView {
 
-  component m_base
+  component m_base ;# the MCFD16View
 
   delegate method * to m_base
   delegate option * to m_base
 
+  ## Construct the megawidget and process options
+  #
+  # @param args   option-value pairs (see MCFD16View for valid options)
   constructor {args} {
     install m_base using MCFD16View %AUTO%
 
@@ -301,6 +351,7 @@ snit::widget MCFD16CommonView {
     $self BuildGUI
   }
 
+  ## Construct the header and the row of controls
   method BuildGUI {} {
 
     $self BuildHeader $win.header
@@ -315,6 +366,10 @@ snit::widget MCFD16CommonView {
     grid rowconfigure $win {0} -weight 1
   }
 
+  ## Build the header
+  # 
+  # @param name    the name of container frame
+  #
   method BuildHeader {name} {
 
     set w $name
@@ -341,6 +396,10 @@ snit::widget MCFD16CommonView {
     grid rowconfigure $w {0} -weight 1
   }
 
+  ## Build the controls
+  # 
+  # @param name    the name of container frame
+  #
   method BuildCommonControls {name} {
     set w $name
 
@@ -381,36 +440,52 @@ snit::widget MCFD16CommonView {
 
 # PRESENTERS For the views
 
+
+## Common functionality for MCFD16CommonPresenter and MCFD16IndividualPresenter
+#
+#
 snit::type MCFD16Presenter {
 
-  option -widgetname -default ""
-  option -handle -default "" 
+  option -widgetname -default "" ;# name of the view
+  option -handle -default ""     ;# device handle (a low-level driver)
   
-  option -view -default "" 
+  option -view -default ""       ;# view instance (owned by this)
 
+  ## Parse options
+  #
   constructor {args} {
     $self configurelist $args
   }
 
+  ## Destroy the view
   destructor {
     catch {destroy $options(-view)}
   }
 
 
+  ## Syncronization utility method for writing view parameter to device
+  #
   method CommitViewToParam {param index} {
     [$self cget -handle] Set$param $index [[$self cget -view] Get$param $index]
   }
 
+  ## Syncronization utility for looping CommitViewToParam
+  #
   method LoopCommitView {param begin end} {
     for {set ch $begin} {$ch<$end} {incr ch} {
       $self CommitViewToParam $param $ch
     }
   }
 
+  ## Syncronization utility for setting view state based on device state
+  #
   method UpdateParamFromView {param index} {
     [$self cget -view] Set$param $index [[$self cget -handle] Get$param $index]
+#    puts "$param $index [[$self cget -handle] Get$param $index]"
   }
 
+  ## Sychronization utility for loop UpdateParamFromView
+  #
   method LoopUpdateView {param begin end} {
     for {set ch $begin} {$ch<$end} {incr ch} {
       $self UpdateParamFromView $param $ch
@@ -419,20 +494,29 @@ snit::type MCFD16Presenter {
 
 }
 
-
+#------------------------------------------------------------------------------
+#
+# Preseneter for the MCFD16IndividualView
+#
+#  Servers as the synchronization logic of the MCFD16IndividualView and the
+#  device. It considers the device (aka. -handle) the model that it intends to
+#  manage. 
+#
 snit::type MCFD16IndividualPresenter {
 
-  component m_base
+  component m_base ;#  MCFD16Presenter instance
 
   delegate method * to m_base
   delegate option * to m_base
 
+  ## Build the view and synchronize with module
   constructor {args} {
     install m_base using MCFD16Presenter %AUTO% 
 
     $self configurelist $args
 
-    $self configure -view [MCFD16IndividualView [$self cget -widgetname] -presenter $self]
+    $self configure -view [MCFD16IndividualView [$self cget -widgetname] \
+                                                  -presenter $self]
 
     $self UpdateViewFromModel
   }
@@ -447,6 +531,18 @@ snit::type MCFD16IndividualPresenter {
   }
   }
 
+  ## Method for committing state of the view to the device
+  #
+  # It write the state of the module and then reads back to make sure
+  # that the view is properly representing the state of the device.
+  #
+  method Commit {} {
+    $self UpdateModelFromView ;# write state
+    $self UpdateViewFromModel ;# read back state
+  }
+
+  ## Set the state of the view given the model
+  #
   method UpdateViewFromModel {} {
 
     # not sure if the names is something we need to record
@@ -468,29 +564,8 @@ snit::type MCFD16IndividualPresenter {
     update
   }
 
-  method Commit {} {
-    $self UpdateModelFromView
-    $self UpdateViewFromModel
-  }
 
-  method UpdateModelFromView {} {
-
-    $self CommitViewThresholds 
-    update
-    $self CommitViewPolarities
-    update
-    $self CommitViewGains
-    update
-    $self CommitViewWidths
-    update
-    $self CommitViewDeadtimes
-    update
-    $self CommitViewDelays
-    update
-    $self CommitViewFractions
-  }
-
-
+  # Various helper methods
   method UpdateViewThresholds {} { $self LoopUpdateView Threshold 0 16 }
   method UpdateViewPolarities {} { $self LoopUpdateView Polarity 0 8 }
   method UpdateViewGains {} { $self LoopUpdateView Gain 0 8 }
@@ -508,6 +583,30 @@ snit::type MCFD16IndividualPresenter {
   }
   }
 
+  ## Write the state of the view to the device
+  #
+  # This performs the synchronization for each parameter type at a time.
+  # It does so by calling various helper methods. The helper methods only
+  # iterate over non-common settings so that for threshold it writes values for
+  # channels [0,15] and for all others it write values for channels [0,7].
+  #
+  method UpdateModelFromView {} {
+
+    $self CommitViewThresholds 
+    update
+    $self CommitViewPolarities
+    update
+    $self CommitViewGains
+    update
+    $self CommitViewWidths
+    update
+    $self CommitViewDeadtimes
+    update
+    $self CommitViewDelays
+    update
+    $self CommitViewFractions
+  }
+
   ## Commit data to module
   method CommitViewThresholds {} { $self LoopCommitView Threshold 0 16 }
   method CommitViewPolarities {} { $self LoopCommitView Polarity 0 8 }
@@ -519,13 +618,23 @@ snit::type MCFD16IndividualPresenter {
 }
 
 
+# -----------------------------------------------------------------------------
+#
+# Presenter for the MCFD16CommonView
+#
+# This is essentially the same thing as the MCFD16IndividualPresenter except
+# that it only sets the common parameters. It is expected that the device is
+# already in a common mode for writing. If it isn't, it is not gauranteed that
+# the write operations will succeed.
 snit::type MCFD16CommonPresenter {
 
-  component m_base
+  component m_base ;# MCFD16Presenter instance
 
   delegate option * to m_base
   delegate method * to m_base
 
+  ## Set up the view and synchronize view to the device
+  #
   constructor {args} {
     install m_base using MCFD16Presenter %AUTO% 
 
@@ -540,6 +649,14 @@ snit::type MCFD16CommonPresenter {
     $m_base destroy
   }
 
+  method Commit {} {
+    $self UpdateModelFromView
+    update
+    $self UpdateViewFromModel
+  }
+
+  ## Write the state of the parameters in the view to the device
+  #
   method UpdateViewFromModel {} {
 
     # not sure if the names is something we need to record
@@ -561,12 +678,11 @@ snit::type MCFD16CommonPresenter {
     update
   }
 
-  method Commit {} {
-    $self UpdateModelFromView
-    update
-    $self UpdateViewFromModel
-  }
-
+  ## Write the state of the device to the view
+  #
+  # Uses a whole bunch of helper methods that perform the 
+  # synchronization for only a single parameter at a time.
+  #
   method UpdateModelFromView {} {
     # make sure the mode is set first
     # becuase subsequent writes may depend on it
@@ -603,6 +719,9 @@ snit::type MCFD16CommonPresenter {
   }
   }
 
+  # ---- Utility methods 
+
+  # for synchronizing the view state to the device state
   method UpdateViewPolarities {} { $self UpdateParamFromView Polarity 8 }
   method UpdateViewGains {} { $self UpdateParamFromView Gain 8 }
   method UpdateViewWidths {} { $self UpdateParamFromView Width 8 }
@@ -623,17 +742,37 @@ snit::type MCFD16CommonPresenter {
 
 
 ########## Unified Controls ####################
+#
+# This is the core gui component of the application. It provides a
+# megawidget that holds a MCFD16Common* and MCFD16Individual* set of controls.
+# The views for these controls are in a FrameSwitcher widget that allows for
+# simple switching back and forth between the visible frame. The main
+# responsibility of this widget is to manage what is visible and also to
+# coordinate events between the various controls it manages. There is also a
+# PulserPresenter that forms a single row of controls at the bottom of the
+# widget.
+#
+# The read may notice that the separation of view and presenter is not present
+# for this widget. It could be made to follow the paradigm but I will leave that
+# as a task for the future.
 snit::widget MCFD16ControlPanel {
 
-  component m_frames
-  component m_comPrsntr
-  component m_indPrsntr
-  component m_pulserPrsntr
+  component m_frames        ;# the frame switcher
+  component m_comPrsntr     ;# instance of MCFD16CommonPresenter
+  component m_indPrsntr     ;# instance of MCFD16IndividualPresenter
+  component m_pulserPrsntr  ;# instance of PulserPresenter
 
+  # 
   option -handle -default {} -configuremethod {SetHandle}
-  variable m_mode 
+  variable m_mode  ;# current config mode of the device (selects visible frame)
   variable m_current
 
+  ## Create all presenters and build the gui
+  #
+  # This reads from the device the configuration mode and then displays the
+  # appropriate controls for the response it receives. 
+  #
+  # @throws error if no handle is provided.
   constructor {args} {
     $self configurelist $args
 
@@ -664,6 +803,8 @@ snit::widget MCFD16ControlPanel {
 
   }
 
+  ## Create the widget and then install them into the megawidget.
+  #
   method BuildGUI {} {
     # add the frames
     $m_frames add common $win.com
@@ -688,14 +829,23 @@ snit::widget MCFD16ControlPanel {
     grid $win.mode - -sticky new
     grid $m_frames - -sticky nsew
 
-    grid $win.commit  $win.update  -sticky ew
-    grid $win.plsr - -sticky ew -pady {4 0}
+    grid $win.commit  $win.update  -sticky ew -pady 4
+    grid $win.plsr - -sticky sew -pady 4
 
     grid rowconfigure $win 1 -weight 1
     grid columnconfigure $win {0 1 2} -weight 1
   }
 
 
+  ## Display the appropriate controls for the current mode
+  #
+  # This gets called every time the m_mode variable is written to
+  # and invokes select in the FrameSwitcher to keep the displayed state correct.
+  # 
+  # @param name0  name of variable
+  # @param name1  subname of variable
+  # @param op     operation
+  #
   method OnModeChange {name0 name1 op} {
     if {$m_mode eq "common"} {
       $m_frames select common
@@ -706,11 +856,23 @@ snit::widget MCFD16ControlPanel {
     } 
   }
 
+
+  ## Command triggered when "commit to device" button is pressed
+  #
+  # Calls commit for the current presenter object. This is a more efficient
+  # way of operating than writing every parameter to the device every time.
+  # Rather, this will only set the common values if that is the desired state.
+  #
   method Commit {} {
-    [$self cget -handle] SetMode $m_mode
+    [$self cget -handle] SetMode $m_mode ;# set mode first to make sure that
+                                         ;# subsequent writes succeed.
     $m_current Commit
   }
 
+  ## Call each of the presenters' UpdateViewFromModel methods
+  #
+  # Basically, this resynchronizes the state of the view to module.
+  # It is called by the "Update from Device"
   method Update {} {
     # first read from the device the mode 
     set m_mode [[$self cget -handle] GetMode]
@@ -721,6 +883,8 @@ snit::widget MCFD16ControlPanel {
     $m_pulserPrsntr UpdateViewFromModel
   }
 
+  ## Retrieve the current controls presenter
+  #
   method GetCurrent {} { return $m_current }
 
   method SetHandle {opt val} {
@@ -750,6 +914,8 @@ snit::widget SaveToFileForm {
   variable _path
   variable _displayPath
 
+  ##
+  #
   constructor {app args} {
     set _theApp $app
     # this sets up the path and the display path
@@ -758,9 +924,11 @@ snit::widget SaveToFileForm {
     $self BuildGUI
   }
 
+  ##
+  #
   method BuildGUI {} {
     ttk::label  $win.pathLbl -text "Output file name"
-    ttk::entry  $win.pathEntry -textvariable [myvar _displayPath] -width 24 
+    ttk::entry  $win.pathEntry -textvariable [myvar _path] -width 24 
     ttk::button $win.browse -text "Browse"  -command [mymethod Browse] -width 8
     ttk::button $win.save -text "Save"  -command [mymethod Save] -width 8
 
@@ -769,6 +937,8 @@ snit::widget SaveToFileForm {
     grid columnconfigure $win 1 -weight 1
   }
 
+  ##
+  #
   method Browse {} {
     set path [tk_getSaveFile -confirmoverwrite 1 -defaultextension ".tcl" \
                     -title {Save as} ] 
@@ -777,45 +947,49 @@ snit::widget SaveToFileForm {
     }
   }
 
+
+  ##
+  #
   method Save {} {
     if {$_path eq ""} {
       tk_messageBox -icon error -message "User must specify file name."
       return
     }
 
-    MCFD16CommandLogger ::logger $_path
-    set protocol [$_theApp cget -protocol]
-    if {$protocol eq "usb"} {
-      ::logger Log {package require mcfd16usb}
-      ::logger Log [list set serialFile [$_theApp cget -serialfile]]
-      ::logger Log {
-        if {![file exists $serialFile]} { 
-          puts "Serial file \"$serialFile\" provided but does not exist."}
-      }
-      ::logger Log {MCFD16USB ::dev $serialFile}
-    } else {
-    # at this point the only other option is mxdcrcbus because 
-    # assertProtocolDependencies would have exited otherwise.
-      ::logger Log {package require mcfd16rc}
-      ::logger Log [list MXDCRCProxy ::proxy -server [$_theApp cget -host] \
-                                             -port [$_theApp cget -port] \
-                                            -module [$_theApp cget -module] \
-                                            -devno [$_theApp cget -devno]]
-      ::logger Log {# use the proxy created to construct an MCFD16RC}
-      ::logger Log {MCFD16RC dev ::proxy}
+    if {[catch {open $_path w} logFile]} {
+      tk_messageBox -icon error -message "Failed to open $_path for writing."
+      return
     }
 
+    set options [$_theApp GetOptions]
+    
+    # write the header portion that instantiates a device driver
+    ScriptHeaderGenerator gen $options
+    set lines [gen generateHeader]
+    foreach line $lines {
+      chan puts $logFile $line
+    }
+
+    # generate the lines in the file make device driver calls
+    MCFD16Factory factory $options
+    set logger [factory create cmdlogger $logFile]
     set realHandle [$_theApp GetHandle]
     set control [$_theApp GetControlPresenter]
 
-    $control configure -handle ::logger
+    # replace real driver with logging driver
+    $control configure -handle $logger
+
+    # commit (this causes all of the gui state to be written to file)
     $control Commit
+    $logger Flush ;# flush buffers to make sure it all gets into the file
 
-    ::logger Flush
-    ::logger destroy
-
+    # replace the logging driver with the real driver
     $control configure -handle $realHandle
     $control Update
+
+    # cleanup
+    $logger destroy
+    factory destroy
   }
 
   method setPath path {
@@ -825,15 +999,11 @@ snit::widget SaveToFileForm {
 }
 
 
-#########
-#
-snit::widget PulserView {
-  option -pulserid   -default 1
-  option -enabled    -default 0
-  option -buttontext -default {Enable} 
-  option -radiobuttonstate -default 0 -configuremethod RadiobuttonStateChange
+snit::widget LoadFromFileForm {
 
   option -presenter -default {}
+
+  variable _path
 
   constructor {args} {
     $self configurelist $args
@@ -842,6 +1012,212 @@ snit::widget PulserView {
   }
 
   method BuildGUI {} {
+    ttk::label  $win.pathLbl -text "Input file name"
+    ttk::entry  $win.pathEntry -textvariable [myvar _path] -width 24 
+    ttk::button $win.browse -text "Browse"  -command [mymethod Browse] -width 8
+    ttk::button $win.load -text "Load"  -command [mymethod Load] -width 8
+
+    grid $win.pathLbl $win.pathEntry $win.browse -sticky ew -padx 4 -pady 4
+    grid $win.load - - -sticky ew -padx 4 -pady 4
+    grid columnconfigure $win 1 -weight 1
+  }
+
+  method Browse {} {
+    if {[$self cget -presenter] eq {} } {
+      return
+    } else {
+      [$self cget -presenter] Browse 
+    }
+  }
+
+  method Load {} {
+    if {[$self cget -presenter] eq {} } {
+      return
+    } else {
+      [$self cget -presenter] Load $_path
+    }
+  }
+
+  method SetPath {path} {
+    set _path $path
+  }
+}
+
+snit::type LoadFromFilePresenter {
+
+  option -view -default {} -configuremethod SetView
+  variable _contentFr
+
+  constructor {contentFr args} {
+    set _contentFr $contentFr 
+
+    $self configurelist $args
+  }
+  
+  method SetView {opt val} {
+    $val configure -presenter $self
+    set options($opt) $val
+  }
+
+  method Browse {} {
+    set path [tk_getOpenFile -defaultextension ".tcl" \
+                    -title {Choose file to load} ] 
+                  
+    if {($path ne "") && ([$self cget -view] ne {})} {
+      [$self cget -view] SetPath $path  
+    }
+    
+  }
+
+  method Load {path} {
+    if {![file exists $path]} {
+      set msg "Cannot load from $path, because file does not exist."
+      tk_messageBox -icon error -message $msg
+    } elseif {! [file readable $path]} { 
+      set msg "Cannot load from $path, because file is not readable."
+      tk_messageBox -icon error -message $msg
+    }
+
+    set rawLines [$self TokenizeFile $path]
+
+    # find the lines we can safely execute
+    set executableLines [$self FilterOutNonAPICalls $rawLines]
+    puts "Executable Lines : "
+    puts "------------------"
+    foreach line $executableLines {
+      puts $line
+    }
+    puts "DoNE"
+
+    set devName [$self ExtractDeviceName [lindex $executableLines 0]]
+    set fakeHandle [MCFD16Memorizer $devName]
+
+    # load state into device
+    $self EvaluateAPILines $executableLines
+
+    # update the actual content
+    set realHandle [$self SwapInHandle $fakeHandle]
+    $_contentFr Update
+    set fakeHandle [$self SwapInHandle $realHandle]
+
+    $fakeHandle destroy
+    catch {close $loadFile}
+  }
+
+  method TokenizeFile {path} {
+    # if here, the file exists and can be updated
+    set loadFile [open $path r]
+
+    set blocks [list]
+    BlockCompleter bc -left "{" -right "}"
+ 
+    while {![chan eof $loadFile]} {
+      bc appendLine [chan gets $loadFile]
+      while {![bc isComplete] && ![chan eof $loadFile]} {
+        bc appendLine "\n[chan gets $loadFile]"
+      }
+      lappend blocks [bc getText]
+      bc Reset
+    }
+
+    bc destroy
+    return $blocks
+  }
+
+  # swap in handle
+  method SwapInHandle {newHandle} {
+    set oldHandle [$_contentFr cget -handle]
+    $_contentFr configure -handle $newHandle
+
+    return $oldHandle
+  }
+
+  # check to see if second element of
+  method FilterOutNonAPICalls lines {
+    set validLines [list]
+    foreach line $lines {
+      if {[$self IsValidAPICall $line]} {
+        lappend validLines $line
+      }
+    }
+    return $validLines
+  }
+
+  method ExtractDeviceName {line} {
+    set tokens [split $line " "]
+    set name [lindex $tokens 0]
+    if {[string first "::" $name] != 0} {
+      set name "::$name"
+    }
+    return $name
+  }
+
+  method IsValidAPICall {line} {
+    # we are only treating simple lines where the second element is the verb
+    # this is valid for all 
+    set verb [lindex $line 1]
+    return [expr {$verb in $_validAPICalls}]
+  }
+
+  method EvaluateAPILines {lines} {
+    foreach line $lines {
+      puts $line
+      uplevel #0 eval $line
+    }
+  }
+
+  typevariable _validAPICalls
+  typeconstructor {
+    set _validAPICalls [list]
+    lappend _validAPICalls "SetThreshold"
+    lappend _validAPICalls "GetThreshold"
+    lappend _validAPICalls "SetGain"
+    lappend _validAPICalls "GetGain"
+    lappend _validAPICalls "SetWidth"
+    lappend _validAPICalls "GetWidth"
+    lappend _validAPICalls "SetDeadtime"
+    lappend _validAPICalls "GetDeadtime"
+    lappend _validAPICalls "SetDelay"
+    lappend _validAPICalls "GetDelay"
+    lappend _validAPICalls "SetFraction"
+    lappend _validAPICalls "GetFraction"
+    lappend _validAPICalls "SetPolarity"
+    lappend _validAPICalls "GetPolarity"
+    lappend _validAPICalls "SetMode"
+    lappend _validAPICalls "GetMode"
+    lappend _validAPICalls "EnableRC"
+    lappend _validAPICalls "RCEnabled"
+    lappend _validAPICalls "SetChannelMask"
+    lappend _validAPICalls "GetChannelMask"
+    lappend _validAPICalls "EnablePulser"
+    lappend _validAPICalls "DisablePulser"
+    lappend _validAPICalls "PulserEnabled"
+  }
+}
+
+
+#########
+#
+snit::widget PulserView {
+  hulltype ttk::frame
+  option -pulserid   -default 1
+  option -enabled    -default 0
+  option -buttontext -default {Enable} 
+  option -radiobuttonstate -default 0 -configuremethod RadiobuttonStateChange
+
+  option -presenter -default {}
+
+  delegate option * to hull
+
+  constructor {args} {
+    $self configurelist $args
+
+    $self BuildGUI
+  }
+
+  method BuildGUI {} {
+    $self configure -style Pulser.TFrame
+
     ttk::label $win.lbl -text "Test Pulser" -style "Pulser.TLabel"
 
     ttk::radiobutton $win.mHzPulser -text "2.5 MHz" \
@@ -855,7 +1231,8 @@ snit::widget PulserView {
                            -command [mymethod OnPress] \
                                           -style "Pulser.TButton"
 
-    grid $win.lbl $win.kHzPulser $win.mHzPulser $win.onoff -sticky sew
+    grid $win.lbl $win.kHzPulser $win.mHzPulser $win.onoff -sticky sew \
+                                                -padx 4 -pady 4
     grid columnconfigure $win {0 1 2 3} -weight 1
   }
 

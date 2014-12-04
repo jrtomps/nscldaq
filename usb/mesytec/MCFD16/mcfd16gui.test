@@ -15,6 +15,7 @@
 package require tcltest
 package require snit
 package require mcfd16usb
+package require mcfd16memorizer
 
 
 tcltest::test pkgrequire-0 {Ensure that we can require the package
@@ -598,6 +599,127 @@ tcltest::test onpress-1 {Test that we can properly handle an button press to ena
   pulser destroy
   set res
 } -result {Enable 1 0}
+
+
+
+
+###############################################################################
+#
+
+proc generateTestAPICalls {} {
+  return [list \
+    "asdf SetThreshold 0 2" \
+    "asdf GetThreshold 0" \
+    "asdf SetGain 0 2" \
+    "asdf GetGain 0" \
+    "asdf SetWidth 0 2" \
+    "asdf GetWidth 0" \
+    "asdf SetDeadtime 0 2" \
+    "asdf GetDeadtime 0" \
+    "asdf SetDelay 0 3" \
+    "asdf GetDelay 0" \
+    "asdf SetFraction 0 23" \
+    "asdf GetFraction 0" \
+    "asdf SetPolarity 0 neg" \
+    "asdf GetPolarity 0" \
+    "asdf SetMode common" \
+    "asdf GetMode" \
+    "asdf EnableRC 1" \
+    "asdf RCEnabled" \
+    "asdf SetChannelMask 0" \
+    "asdf GetChannelMask" \
+    "asdf EnablePulser 2" \
+    "asdf DisablePulser" \
+    "asdf PulserEnabled"]
+}
+
+tcltest::test loader_filterOutNonAPICalls-0 { Verify all lines of valid API call are accepted
+} -setup {
+  # there are 8 lines in a usb protocol header
+  set ::lines [generateTestAPICalls]
+  LoadFromFilePresenter loader {}
+} -cleanup {
+  loader destroy
+} -body {
+  loader FilterOutNonAPICalls $lines 
+} -result [generateTestAPICalls]
+
+
+tcltest::test loader_filterOutNonAPICalls-1 { Verify non-API calls are discarded
+} -setup {
+  # there are 8 lines in a usb protocol header
+  LoadFromFilePresenter loader {}
+} -cleanup {
+  loader destroy
+} -body {
+  loader FilterOutNonAPICalls {{asdf} {nothing} asdf}
+} -result {}
+
+tcltest::test loader_extractDeviceName-0 { extract name of device from first command line
+} -setup {
+  # there are 8 lines in a usb protocol header
+  set ::lines [generateTestAPICalls]
+  LoadFromFilePresenter loader {}
+} -cleanup {
+  loader destroy
+} -body {
+  loader ExtractDeviceName [lindex $::lines 0]
+} -result ::asdf
+
+if {0} {
+tcltest::test loader_isvalidapicall-0 { valid api calls are accepted
+} -setup {
+  LoadFromFilePresenter loader {}
+} -cleanup {
+  loader destroy
+} -body {
+  loader IsValidAPICall "name SetThreshold"
+} -result 1
+}
+
+tcltest::test loader_evaluateLines-0 {establish that evaluating lines produces state
+} -setup {
+  # there are 8 lines in a usb protocol header
+  set ::lines [generateTestAPICalls]
+  LoadFromFilePresenter loader {} 
+} -cleanup {
+  loader destroy
+} -body {
+  # ::lines contains only valid API calls
+  MCFD16Memorizer ::asdf
+
+  loader EvaluateAPILines $::lines
+
+  set res [list]
+  lappend res [::asdf GetThreshold 0]
+  lappend res [::asdf GetGain 0]
+  lappend res [::asdf GetWidth 0]
+  lappend res [::asdf GetDeadtime 0]
+  lappend res [::asdf GetDelay 0]
+  lappend res [::asdf GetFraction 0]
+  lappend res [::asdf GetPolarity 0]
+  lappend res [::asdf GetMode]
+  lappend res [::asdf RCEnabled]
+  lappend res [::asdf PulserEnabled]
+  lappend res [::asdf GetChannelMask]
+  set res 
+} -result {2 2 2 2 3 23 neg common 1 0 0}
+
+tcltest::test loader_splitUpFile-0 {Check that a read tcl file can be split up without 
+} -setup {
+  tcltest::makeFile {
+if { asdf } {
+}
+} [file join [pwd] .test.tcl]
+  puts [tcltest::viewFile [file join [pwd] .test.tcl]]
+
+  LoadFromFilePresenter loader {}
+} -cleanup {
+  loader destroy
+} -body {
+  loader TokenizeFile [file join [pwd] .test.tcl]
+} -result [list {} {if { asdf } {
+}} {}]
 
 tcltest::cleanupTests
 

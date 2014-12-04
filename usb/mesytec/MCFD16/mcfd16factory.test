@@ -1,0 +1,99 @@
+
+
+package require tcltest
+
+tcltest::test pkgrequire-0 {Require the package
+} {package require mcfd16factory} 1.0
+
+package require mcfd16guiapp
+
+proc setupFakeControlClient {} {
+  rename ::controlClient ::realControlClient
+  snit::type ::controlClient {
+    option -server
+    option -port
+    constructor {args} {
+      $self configurelist $args
+    }
+  }
+}
+
+proc tearDownFakeControlClient {} {
+  rename ::controlClient {}
+  rename ::realControlClient ::controlClient
+}
+
+########################
+
+tcltest::test usb-0 {Create usb device 
+} -setup {
+  set testdir [tcltest::makeDirectory .test]
+  set testfile [tcltest::makeFile {} .test $testdir]
+  
+  MCFD16AppOptions opts -protocol usb -serialfile $testfile
+  MCFD16Factory factory opts 
+} -cleanup {
+  opts destroy
+  factory destroy
+  $inst destroy
+} -body {
+  
+  set inst [factory create usb]
+  $inst info type
+} -result "::MCFD16USB"
+
+tcltest::test mxdcrcbus-0 {Create mxdcrcbus 
+} -setup {
+  MCFD16AppOptions opts -protocol mxdcrcbus -module dummy
+  MCFD16Factory factory opts 
+  setupFakeControlClient
+} -cleanup {
+  opts destroy
+  factory destroy
+  tearDownFakeControlClient
+  $inst destroy
+} -body {
+  set inst [factory create mxdcrcbus]
+  $inst info type
+} -result {::MCFD16RC}
+
+
+tcltest::test cmdlogger-0 {Create an MCFD16CommandLogger
+} -setup {
+  # we don't need options for this...
+  MCFD16Factory factory {}
+} -cleanup {
+  factory destroy
+  $inst destroy
+} -body {
+  set inst [factory create cmdlogger {}]
+  $inst info type
+} -result {::MCFD16CommandLogger}
+
+tcltest::test memorizer-0 {Create an MCFD16Memorizer
+} -setup {
+  # we don't need options for this...
+  MCFD16Factory factory {}
+} -cleanup {
+  factory destroy
+  $inst destroy
+} -body {
+  set inst [factory create memorizer]
+  $inst info type
+} -result {::MCFD16Memorizer}
+
+
+tcltest::test unknown-0 {Failure on unknown argument
+} -setup {
+  # we don't need options for this...
+  MCFD16Factory factory {}
+} -cleanup {
+  factory destroy
+} -body {
+  factory create notsupported
+} -result {MCFD16Factory::create passed unknown type.} \
+-returnCodes 1
+
+
+
+tcltest::cleanupTests

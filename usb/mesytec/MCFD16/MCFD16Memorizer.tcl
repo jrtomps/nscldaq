@@ -63,25 +63,25 @@ snit::type MCFD16Memorizer {
 
   method _SetUpMemory {} {
     # add the dict for threshold and fill with defaults
-    $self _AddParamToMemory threshold 0 16
+    $self _AddParamToMemory threshold 0 17
 
     # add the dict for gain and fill with defaults
-    $self _AddParamToMemory gain 0 8
+    $self _AddParamToMemory gain 0 9
 
     # add the dict for width and fill with defaults
-    $self _AddParamToMemory width 0 8
+    $self _AddParamToMemory width 0 9
 
     # add the dict for deadtime and fill with defaults
-    $self _AddParamToMemory deadtime 0 8
+    $self _AddParamToMemory deadtime 0 9
 
     # add the dict for delay and fill with defaults
-    $self _AddParamToMemory delay 0 8
+    $self _AddParamToMemory delay 0 9
 
     # add the dict for fraction and fill with defaults
-    $self _AddParamToMemory fraction 0 8
+    $self _AddParamToMemory fraction 0 9
 
     # add the dict for polarity and fill with defaults
-    $self _AddParamToMemory polarity 0 8
+    $self _AddParamToMemory polarity 0 9
 
     dict set _memory mode NA
     dict set _memory rc NA

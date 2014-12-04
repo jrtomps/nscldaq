@@ -7,8 +7,10 @@ tcltest::test pkgrequire-0 {verify that the package can be required
 
 set testDir [tcltest::makeDirectory .test]
 proc setup {} {
-  set ::logFile [tcltest::makeFile {} logger.out $::testDir]
-  MCFD16CommandLogger ::logger $::logFile -name ::dev
+  # create a file that 
+  set ::logFile [file join $::testDir logger.out]
+  set channel [open $::logFile w]
+  MCFD16CommandLogger ::logger $channel -name ::dev
 }
 
 proc tearDown {} {

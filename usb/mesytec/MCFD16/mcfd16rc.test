@@ -49,7 +49,7 @@ proc setup {} {
 
 proc tearDown {} {
   ::dev destroy
-  ::comObj destroy
+#  ::comObj destroy
 }
 
 set badChannelPairError {Invalid channel provided. Must be in range [0,8].}

@@ -11,13 +11,10 @@ snit::type MCFD16CommandLogger {
 
   variable _logFile
 
-  constructor {path args} {
-    if {[catch {open $path w} res]} {
-      set msg {MCFD16CommandLogger::constructor failed to open $path for writing}
-      return -code error $msg
-    } else {
-      set _logFile $res
-    }
+  ## This takes ownership of the log file
+  #
+  constructor {channel args} {
+    set _logFile $channel
 
     $self configurelist $args
   }

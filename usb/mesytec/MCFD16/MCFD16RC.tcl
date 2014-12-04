@@ -37,6 +37,10 @@ snit::type MCFD16RC {
     set _proxy $proxy
   }
 
+  destructor {
+    catch {$_proxy destroy}
+  }
+
   ## Set a threshold for a channel
   #
   # For consistency with the USB protocol, writing to the common channel
