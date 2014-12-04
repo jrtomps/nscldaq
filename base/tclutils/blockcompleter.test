@@ -1,0 +1,57 @@
+
+package require tcltest
+
+tcltest::test pkgrequire-0 {Require the package 
+} {package require BlockCompleter} 1.0
+
+tcltest::test appendline-0 {Appending a line works
+} -setup {
+  BlockCompleter bc
+} -cleanup {
+  bc destroy
+} -body {
+  bc appendLine "if \{"
+  set res [bc getText]
+  set res
+} -result "if \{"
+
+tcltest::test updateCounts-0 {Update line counts appropriately
+} -setup {
+  BlockCompleter bc
+} -cleanup {
+  bc destroy
+} -body {
+  bc appendLine "if \{"
+  bc getDelimiterCounts
+} -result {1 0}
+
+tcltest::test complete-0 { Complete set of lines becomes complete
+} -setup {
+  BlockCompleter bc
+} -cleanup {
+  bc destroy
+} -body {
+  bc appendLine "if \{"
+  bc appendLine "\}"
+  bc isComplete
+} -result 1
+
+
+tcltest::test reset-0 {Reset causes counts to zero and text to empty
+} {
+  BlockCompleter bc
+  bc appendLine "the \{ "
+  bc appendLine "and the \}"
+
+  set res [list]
+  lappend res [bc getText]
+  lappend res [bc getDelimiterCounts]
+  
+  bc Reset
+  lappend res [bc getText]
+  lappend res [bc getDelimiterCounts]
+
+  set res
+} [list {the { and the }} {1 1} {} {0 0}]
+
+tcltest::cleanupTests
