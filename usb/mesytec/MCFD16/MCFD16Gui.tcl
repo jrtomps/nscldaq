@@ -1112,9 +1112,9 @@ snit::type LoadFromFilePresenter {
     BlockCompleter bc -left "{" -right "}"
  
     while {![chan eof $loadFile]} {
-      bc appendLine [chan gets $loadFile]
+      bc appendText [chan gets $loadFile]
       while {![bc isComplete] && ![chan eof $loadFile]} {
-        bc appendLine "\n[chan gets $loadFile]"
+        bc appendText "\n[chan gets $loadFile]"
       }
       lappend blocks [bc getText]
       bc Reset
