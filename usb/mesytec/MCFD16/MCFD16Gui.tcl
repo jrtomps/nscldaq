@@ -1082,12 +1082,6 @@ snit::type LoadFromFilePresenter {
 
     # find the lines we can safely execute
     set executableLines [$self FilterOutNonAPICalls $rawLines]
-    puts "Executable Lines : "
-    puts "------------------"
-    foreach line $executableLines {
-      puts $line
-    }
-    puts "DoNE"
 
     set devName [$self ExtractDeviceName [lindex $executableLines 0]]
     set fakeHandle [MCFD16Memorizer $devName]

@@ -111,7 +111,9 @@ snit::type MCFD16GuiApp {
     set _saveFr [$self BuildSaveAsFrame $_sequencer]
     set _loadFr [$self BuildLoadFrame $_sequencer]
 
-    $_sequencer add config $_configFr
+    $_sequencer staticAdd config $_configFr {}
+    $_sequencer staticAdd save $_saveFr config
+    $_sequencer staticAdd load $_loadFr config
     $_sequencer select config
 
     grid $_sequencer -sticky nsew -padx 8 -pady 8
@@ -188,12 +190,10 @@ snit::type MCFD16GuiApp {
   }
 
   method ToSaveAs {} {
-    $_sequencer add save $_saveFr
     $_sequencer select save
   }
 
   method ToLoad {} {
-    $_sequencer add load $_loadFr
     $_sequencer select load
   }
 
