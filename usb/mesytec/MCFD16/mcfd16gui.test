@@ -294,14 +294,14 @@ tcltest::test commitViewFractions-0 {Ensure that the fraction data ends up in vi
   dictKeyToList ::mockMemory fraction
 } -result [intSeries 20 8]
 
-
-
 # --------------------------------------------------------------------------- #
 
 
 proc setupCom {} {
 
   set ::serialFile [tcltest::makeFile " " fake $::testdir]
+# the MCFD16USB will take on values as described at the top of this script
+# I have gutted it to return on specific values
   MCFD16USB ::dev $::serialFile
   MCFD16CommonPresenter ::pres -widgetname .mock \
                                -handle ::dev
@@ -317,6 +317,7 @@ tcltest::test updateViewThresholds-0 { Check that we properly set values
 } -body {
   ::pres UpdateViewThresholds
   
+  set "[.mock mcfd](th16)"
 } -result 24
 
 
@@ -328,6 +329,7 @@ tcltest::test updateViewPolarities-0 {Check that polarities are set in view
 } -body {
   ::pres UpdateViewPolarities
   
+  set "[.mock mcfd](po8)"
 } -result neg
 
 tcltest::test updateViewGains-0 {Check that gains are set in view
@@ -338,6 +340,7 @@ tcltest::test updateViewGains-0 {Check that gains are set in view
 } -body {
   ::pres UpdateViewGains
   
+  set "[.mock mcfd](ga8)"
 } -result 1
 
 tcltest::test updateViewWidths-0 {Check that widths are set in view
@@ -347,6 +350,7 @@ tcltest::test updateViewWidths-0 {Check that widths are set in view
   tearDown
 } -body {
   ::pres UpdateViewWidths
+  set "[.mock mcfd](wi8)"
 } -result 25
 
 tcltest::test updateViewDeadtimes-0 {Check that deadtimes are set in view
@@ -357,6 +361,7 @@ tcltest::test updateViewDeadtimes-0 {Check that deadtimes are set in view
 } -body {
   ::pres UpdateViewDeadtimes
   
+  set "[.mock mcfd](dt8)"
 } -result 27
 
 
@@ -367,6 +372,7 @@ tcltest::test updateViewDelays-0 {Check that delays are set in view
   tearDown
 } -body {
   ::pres UpdateViewDelays
+  set "[.mock mcfd](dl8)"
 } -result 2
 
 tcltest::test updateViewFractions-0 {Check that fractions are set in view
@@ -376,6 +382,7 @@ tcltest::test updateViewFractions-0 {Check that fractions are set in view
   tearDown
 } -body {
   ::pres UpdateViewFractions
+  set "[.mock mcfd](fr8)"
 } -result 20
 
 tcltest::test commitViewThresholds-0 {Makes sure that view data gets written

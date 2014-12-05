@@ -234,12 +234,7 @@ snit::widget MCFD16IndividualView {
 
     set rows [list]
     for {set ch 0} {$ch < 16} {incr ch 2} { 
-      if {(($ch/2)%2)==0} {
-        set style Even
-      } else {
-        set style Odd
-      }
-
+      set style Grouped
       set name "$w.rows[expr $ch/2]"
       $self BuildGroupedRows $name $ch $style
       lappend rows $name
@@ -406,30 +401,30 @@ snit::widget MCFD16CommonView {
   method BuildCommonControls {name} {
     set w $name
 
-    ttk::frame $w -style "Even.TFrame"
+    ttk::frame $w -style "Grouped.TFrame"
 
-    ttk::label $w.name -text Common  -style "Even.TLabel"
+    ttk::label $w.name -text Common  -style "Grouped.TLabel"
 
     ttk::radiobutton $w.poneg8 -text "neg" -variable [$self mcfd](po8) \
-                               -value neg -style "Even.TRadiobutton"
+                               -value neg -style "Grouped.TRadiobutton"
     ttk::radiobutton $w.popos8 -text "pos" -variable [$self mcfd](po8) \
-                               -value pos -style "Even.TRadiobutton"
+                               -value pos -style "Grouped.TRadiobutton"
     ttk::spinbox $w.ga8 -textvariable [$self mcfd](ga8) -width 4 \
-                               -values {0 1 2} -style "Even.TSpinbox" \
+                               -values {0 1 2} -style "Grouped.TSpinbox" \
                                -state readonly
     ttk::spinbox $w.wi8 -textvariable [$self mcfd](wi8) -width 4 \
-                               -from 16 -to 222 -style "Even.TSpinbox" \
+                               -from 16 -to 222 -style "Grouped.TSpinbox" \
                                -state readonly
     ttk::spinbox $w.dt8 -textvariable [$self mcfd](dt8) -width 4 -from 27 \
-                               -to 222 -style "Even.TSpinbox" -state readonly
+                               -to 222 -style "Grouped.TSpinbox" -state readonly
     ttk::spinbox $w.dl8 -textvariable [$self mcfd](dl8) -width 4 -from 0 \
-                               -to 4 -style "Even.TSpinbox" -state readonly
+                               -to 4 -style "Grouped.TSpinbox" -state readonly
     ttk::radiobutton $w.fr820 -text "20%" -variable [$self mcfd](fr8) \
-                              -value 20 -style "Even.TRadiobutton"
+                              -value 20 -style "Grouped.TRadiobutton"
     ttk::radiobutton $w.fr840 -text "40%" -variable [$self mcfd](fr8) -value 40\
-                              -style "Even.TRadiobutton"
+                              -style "Grouped.TRadiobutton"
     ttk::spinbox $w.th16 -textvariable [$self mcfd](th16) -width 4 -from 0 \
-                              -to 255 -style "Even.TSpinbox" -state readonly
+                              -to 255 -style "Grouped.TSpinbox" -state readonly
 
     grid $w.name $w.th16 $w.poneg8 $w.ga8 $w.wi8 $w.dt8 $w.dl8 $w.fr820 -sticky news -padx 4 -pady 4
     grid ^       ^       $w.popos8 ^      ^      ^      ^      $w.fr840 -sticky news -padx 4 -pady 4
@@ -471,7 +466,12 @@ snit::type MCFD16Presenter {
   ## Syncronization utility method for writing view parameter to device
   #
   method CommitViewToParam {param index} {
-    [$self cget -handle] Set$param $index [[$self cget -view] Get$param $index]
+    set value [[$self cget -view] Get$param $index]
+    # if we loaded a file, missing information, the missing info will show
+    # up as "NA". We will catch when/if someone tries to write these values
+    if {$value ne "NA"} {
+      [$self cget -handle] Set$param $index $value
+    }
   }
 
   ## Syncronization utility for looping CommitViewToParam
@@ -485,8 +485,13 @@ snit::type MCFD16Presenter {
   ## Syncronization utility for setting view state based on device state
   #
   method UpdateParamFromView {param index} {
-    [$self cget -view] Set$param $index [[$self cget -handle] Get$param $index]
-#    puts "$param $index [[$self cget -handle] Get$param $index]"
+    set code [catch {
+      [$self cget -view] Set$param $index [[$self cget -handle] Get$param $index]
+    } result]
+    if {$code} {
+      set msg "Failed while reading $param (ch=$index) with message: $result"
+      tk_messageBox -icon error -message $msg
+    }
   }
 
   ## Sychronization utility for loop UpdateParamFromView
@@ -528,12 +533,6 @@ snit::type MCFD16IndividualPresenter {
 
   destructor {
     $m_base destroy
-  }
-
-  if {0} {
-  method UpdateViewNames {} {
-    # need to implement
-  }
   }
 
   ## Method for committing state of the view to the device
@@ -1056,6 +1055,7 @@ snit::type LoadFromFilePresenter {
   }
 
   method Browse {} {
+    puts "Handle name = [$_contentFr cget -handle]"
     set path [tk_getOpenFile -defaultextension ".tcl" \
                     -title {Choose file to load} ] 
                   
@@ -1081,7 +1081,15 @@ snit::type LoadFromFilePresenter {
 
     set devName [$self ExtractDeviceName [lindex $executableLines 0]]
     if {[llength [info commands $devName]]>0} {
-      rename $devName {}
+      if {[$_contentFr cget -handle] ne $devName} {
+        rename $devName {}
+      } else {
+        set msg "Device driver instance in load file shares same name "
+        append msg "as current driver ($devName). User must use a different "
+        append msg "instance name in the load file."
+        tk_messageBox -icon error -message $msg
+        return
+      }
     }
 
     set fakeHandle [MCFD16Memorizer $devName]
@@ -1405,11 +1413,16 @@ snit::type ChannelEnableDisablePresenter {
       return -code error $msg
     }
 
-    set mask [$handle GetChannelMask]
-    set bits [$self DecodeMaskIntoBits $mask]
+    if {[catch {$handle GetChannelMask} mask]} {
+      set msg "Failure while reading channel mask from device with message : "
+      append msg "$mask"
+      tk_messageBox -icon error -message $msg
+    } else {
+      set bits [$self DecodeMaskIntoBits $mask]
 
-    for {set bit 0} {$bit < 8} {incr bit} {
-      $view SetBit $bit [lindex $bits $bit]
+      for {set bit 0} {$bit < 8} {incr bit} {
+        $view SetBit $bit [lindex $bits $bit]
+      }
     }
   }
 
