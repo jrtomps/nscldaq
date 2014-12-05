@@ -17,6 +17,18 @@
 package provide mcfd16channelnames 1.0
 
 
+## @namespace MCFD16ChannelNames
+#
+# @brief The names of the channels that are represented as ttk::entry widgets in
+# the MCFD16 Gui Controls application. This serves as a convenient way to make
+# them available to multiple different widget that might control them while at
+# the same time providing a simpler means for accessing them. It is a
+# lighterweight alternative to providing a NameManager snit::type that manages
+# notifying all entities that care about the name values about any changes. It
+# is less safe in general as effectively a global variable, but in the interest
+# of time and the size of the application, this was chosen. It is also
+# considerably simpler.
+#
 namespace eval MCFD16ChannelNames {
 
   variable chan0 Ch0
