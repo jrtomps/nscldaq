@@ -148,6 +148,3 @@ grid .app -sticky nsew
 grid rowconfigure . 0 -weight 1
 grid columnconfigure . 0 -weight 1
 wm resizable . false false
-
-puts "Finished" 
-flush stdout
