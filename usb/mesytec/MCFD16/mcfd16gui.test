@@ -585,7 +585,7 @@ tcltest::test onpress-1 {Test that we can properly handle an button press to ena
   FakePulserView fake
   PulserPresenter pulser fake ::dev
 
-  # force the state of the device to be disabled and update view to reflect that
+  # force the state of the device to be enabled and update view to reflect that
   dict set ::mockMemory pulser 1
   pulser UpdateViewFromModel
 
@@ -599,6 +599,32 @@ tcltest::test onpress-1 {Test that we can properly handle an button press to ena
   pulser destroy
   set res
 } -result {Enable 1 0}
+
+tcltest::test commitViewWithoutTransition-1 {Test that we can synchronize model to view (w/out transitioning)
+} -setup {
+  setupPulser 
+
+} -cleanup {
+  tearDownPulser
+
+} -body {
+  FakePulserView fake
+  PulserPresenter pulser fake ::dev
+
+  # force the state of the device to be disabled and update view to reflect that
+  dict set ::mockMemory pulser 1
+  pulser UpdateViewFromModel
+
+  pulser CommitViewToModelNoTransition
+
+  set res [list]
+  lappend res [fake cget -buttontext]
+  lappend res [fake cget -radiobuttonstate]
+  lappend res [dict get $::mockMemory pulser]
+
+  pulser destroy
+  set res
+} -result {Disable 0 1}
 
 
 
@@ -637,12 +663,13 @@ tcltest::test loader_filterOutNonAPICalls-0 { Verify all lines of valid API call
 } -setup {
   # there are 8 lines in a usb protocol header
   set ::lines [generateTestAPICalls]
+  lappend ::lines "set ::MCFD16ChannelNames::chan3 thename"
   LoadFromFilePresenter loader {}
 } -cleanup {
   loader destroy
 } -body {
   loader FilterOutNonAPICalls $lines 
-} -result [generateTestAPICalls]
+} -result [concat [generateTestAPICalls] [list "set ::MCFD16ChannelNames::chan3 thename"]]
 
 
 tcltest::test loader_filterOutNonAPICalls-1 { Verify non-API calls are discarded
@@ -720,6 +747,29 @@ if { asdf } {
   loader TokenizeFile [file join [pwd] .test.tcl]
 } -result [list {} {if { asdf } {
 }} {}]
+
+
+tcltest::test loader_isname-0 {Identify if line is for a name
+} -setup {
+  LoadFromFilePresenter loader {}
+} -cleanup {
+  loader destroy
+} -body {
+  # line starts with "set" and is followed by "::MCFD16ChannelNames::"
+  # there is no problem with extra whitespace
+  loader IsNameLine {set  ::MCFD16ChannelNames::chan2 asdf1234}
+} -result 1
+
+tcltest::test loader_isname-1 {Identify if line is not a name
+} -setup {
+  LoadFromFilePresenter loader {}
+} -cleanup {
+  loader destroy
+} -body {
+  # line does not start with "set ::MCFD16ChannelNames::"
+  loader IsNameLine {::MCFD16ChannelNames::chan2 asdf1234}
+} -result 0
+
 
 ###############################################################################
 

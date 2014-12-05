@@ -30,12 +30,13 @@ snit::type MCFD16GuiApp {
   
   delegate option * to _options
 
-  variable _controlPrsntr 
-  variable _configFr
-  variable _saveFr
-  variable _loadFr
-  variable _enableFr
-  variable _sequencer
+  variable _controlPrsntr  {}
+  variable _configFr {}
+  variable _saveFr {}
+  variable _loadFr {}
+  variable _enableFr {}
+  variable _enable {}
+  variable _sequencer {}
 
   constructor {args} {
     install _options using MCFD16AppOptions %AUTO% 
@@ -230,5 +231,6 @@ snit::type MCFD16GuiApp {
   method GetOptions {} {
     return $_options
   }
+
 }
 

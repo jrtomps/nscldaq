@@ -8,6 +8,7 @@ package require Tk
 package require FrameSwitcher
 package require scriptheadergenerator
 package require BlockCompleter
+package require mcfd16channelnames
 
 
 ####### "Base" type for MCFD16View ################
@@ -43,7 +44,9 @@ snit::type MCFD16View {
   # @retval 1 - otherwise
   method ValidateName {name} {
     set name [string trim $name]
-    return [expr [string length $name]!=0]
+    set good [expr [string length $name]!=0]
+
+    return $good
   }
 
   ## Reset channel to a simple string
@@ -258,7 +261,7 @@ snit::widget MCFD16IndividualView {
     ttk::frame $w -style $style.TFrame
 
     # construct first row
-    ttk::entry $w.na$ch -width 8 -textvariable "[$self mcfd](na$ch)" \
+    ttk::entry $w.na$ch -width 8 -textvariable MCFD16ChannelNames::chan$ch \
                         -style "$style.TEntry" \
                                 -validate focus -validatecommand [mymethod ValidateName %P] \
                                 -invalidcommand [mymethod ResetChannelName %W]
@@ -301,7 +304,7 @@ snit::widget MCFD16IndividualView {
 
     # construct second row 
     incr ch
-    ttk::entry $w.na$ch -width 8 -textvariable "[$self mcfd](na$ch)" \
+    ttk::entry $w.na$ch -width 8 -textvariable MCFD16ChannelNames::chan$ch \
       -style "$style.TEntry" \
       -validate focus -validatecommand [mymethod ValidateName %P] \
                       -invalidcommand [mymethod ResetChannelName %W]
@@ -423,8 +426,10 @@ snit::widget MCFD16CommonView {
                                -to 4 -style "Even.TSpinbox" -state readonly
     ttk::radiobutton $w.fr820 -text "20%" -variable [$self mcfd](fr8) \
                               -value 20 -style "Even.TRadiobutton"
-    ttk::radiobutton $w.fr840 -text "40%" -variable [$self mcfd](fr8) -value 40 -style "Even.TRadiobutton"
-    ttk::spinbox $w.th16 -textvariable [$self mcfd](th16) -width 4 -from 0 -to 255 -style "Even.TSpinbox" -state readonly
+    ttk::radiobutton $w.fr840 -text "40%" -variable [$self mcfd](fr8) -value 40\
+                              -style "Even.TRadiobutton"
+    ttk::spinbox $w.th16 -textvariable [$self mcfd](th16) -width 4 -from 0 \
+                              -to 255 -style "Even.TSpinbox" -state readonly
 
     grid $w.name $w.th16 $w.poneg8 $w.ga8 $w.wi8 $w.dt8 $w.dl8 $w.fr820 -sticky news -padx 4 -pady 4
     grid ^       ^       $w.popos8 ^      ^      ^      ^      $w.fr840 -sticky news -padx 4 -pady 4
@@ -843,6 +848,14 @@ snit::widget MCFD16ControlPanel {
     $m_current Commit
   }
 
+  method CommitAll {} {
+    [$self cget -handle] SetMode $m_mode ;# set mode first to make sure that
+                                         ;# subsequent writes succeed.
+    $m_current Commit
+    $m_pulserPrsntr CommitViewToModelNoTransition
+
+  }
+
   ## Call each of the presenters' UpdateViewFromModel methods
   #
   # Basically, this resynchronizes the state of the view to module.
@@ -943,6 +956,7 @@ snit::widget SaveToFileForm {
     foreach line $lines {
       chan puts $logFile $line
     }
+    gen destroy
 
     # generate the lines in the file make device driver calls
     MCFD16Factory factory $options
@@ -954,16 +968,24 @@ snit::widget SaveToFileForm {
     $control configure -handle $logger
 
     # commit (this causes all of the gui state to be written to file)
-    $control Commit
+    $control CommitAll
     $logger Flush ;# flush buffers to make sure it all gets into the file
 
     # replace the logging driver with the real driver
     $control configure -handle $realHandle
     $control Update
 
+    $self WriteChannelNames $logFile MCFD16ChannelNames
+
     # cleanup
     $logger destroy
     factory destroy
+  }
+
+  method WriteChannelNames {logFile nmspaceName} {
+    for {set ch 0} {$ch<16} {incr ch} {
+      chan puts $logFile "set ${nmspaceName}::chan$ch [set ${nmspaceName}::chan$ch]"
+    }
   }
 
   method setPath path {
@@ -1058,6 +1080,10 @@ snit::type LoadFromFilePresenter {
     set executableLines [$self FilterOutNonAPICalls $rawLines]
 
     set devName [$self ExtractDeviceName [lindex $executableLines 0]]
+    if {[llength [info commands $devName]]>0} {
+      rename $devName {}
+    }
+
     set fakeHandle [MCFD16Memorizer $devName]
 
     # load state into device
@@ -1104,7 +1130,7 @@ snit::type LoadFromFilePresenter {
   method FilterOutNonAPICalls lines {
     set validLines [list]
     foreach line $lines {
-      if {[$self IsValidAPICall $line]} {
+      if {[$self IsValidAPICall $line] || [$self IsNameLine $line]} {
         lappend validLines $line
       }
     }
@@ -1132,6 +1158,28 @@ snit::type LoadFromFilePresenter {
       puts $line
       uplevel #0 eval $line
     }
+  }
+
+  method IsNameLine {line} {
+#    # trim off white space at either end
+#    set line [string trim $line " "]
+#
+#    # split it into words
+#    set tokens [split $line " "]
+#
+#    # there must be at least 3 words in the line to be valid
+#    if {[llength $tokens] <= 2]} {
+#      return 0
+#    }
+#
+#    # must start with set
+#    if {[lindex $tokens 0] ne "set"} {
+#      return 0
+#    }
+
+    set expression {^\s*set\s+(::)*MCFD16ChannelNames::chan.*$}
+    return [regexp $expression $line]
+
   }
 
   typevariable _validAPICalls
@@ -1178,7 +1226,6 @@ snit::widget ChannelEnableDisableView {
   variable _bit6
   variable _bit7
 
-  variable _names
   variable _rows
 
   constructor {args} {
@@ -1188,12 +1235,6 @@ snit::widget ChannelEnableDisableView {
     for {set ch 0} {$ch < 8} {incr ch} {
       set _bit$ch 0
     }
-
-    set elements [dict create]
-    for {set ch 0} {$ch < 17} {incr ch} {
-      dict set elements na$ch "Ch$ch"
-    }
-    array set _names $elements
 
     set _rows [list]
 
@@ -1239,7 +1280,7 @@ snit::widget ChannelEnableDisableView {
     ttk::frame $w -style $style.TFrame
 
     # construct first row
-    ttk::entry $w.na$ch -width 8 -textvariable [myvar _names(na$ch)] \
+    ttk::entry $w.na$ch -width 8 -textvariable MCFD16ChannelNames::chan$ch \
                         -style "$style.TEntry" \
                                 -validate focus -validatecommand [mymethod ValidateName %P] \
                                 -invalidcommand [mymethod ResetChannelName %W]
@@ -1254,7 +1295,7 @@ snit::widget ChannelEnableDisableView {
 
     # construct second row 
     incr ch
-    ttk::entry $w.na$ch -width 8 -textvariable [myvar _names(na$ch)] \
+    ttk::entry $w.na$ch -width 8 -textvariable MCFD16ChannelNames::chan$ch \
       -style "$style.TEntry" \
       -validate focus -validatecommand [mymethod ValidateName %P] \
                       -invalidcommand [mymethod ResetChannelName %W]
@@ -1535,7 +1576,10 @@ snit::type PulserPresenter {
   }
 
   method OnPress {} {
-    $self CommitViewToModel
+    $self TransitionAndCommitViewToModel
+
+    # update the view state to reflect the next state
+    $self UpdateViewFromModel
   }
 
   method UpdateViewFromModel {} {
@@ -1552,15 +1596,25 @@ snit::type PulserPresenter {
     $self UpdateRadiobuttonState $state
   }
 
-  method CommitViewToModel {} {
+  method TransitionAndCommitViewToModel {} {
     # get state of the view (determined by button text)
     set trans [$self GetTransitionType]
 
     # commit the state to the device
     $self TransitionPulser $trans
 
-    # update the view state to reflect the next state
-    $self UpdateViewFromModel
+  }
+
+  method CommitViewToModelNoTransition {} {
+    set buttontext [$_view cget -buttontext]
+
+    if {$buttontext eq "Enable"} {
+      # if button prompts to enable, then the actual state
+      # is disabled
+      $_handle DisablePulser
+    } else {
+      $_handle EnablePulser [$_view cget -pulserid]
+    }
   }
 
   method GetViewEnabled {} {
