@@ -90,6 +90,12 @@ proc ConfigureStyle {} {
   ttk::style configure Header.TLabel -background {orange red} 
   ttk::style configure Header.TFrame -background {orange red}
 
+  ttk::style configure Grouped.TEntry -background snow3
+  ttk::style configure Grouped.TRadiobutton -background snow3
+  ttk::style configure Grouped.TSpinbox -background snow3
+  ttk::style configure Grouped.TFrame -background snow3
+  ttk::style configure Grouped.TLabel -background snow3
+
   ttk::style configure Even.TEntry -background snow3
   ttk::style configure Even.TRadiobutton -background snow3
   ttk::style configure Even.TSpinbox -background snow3
