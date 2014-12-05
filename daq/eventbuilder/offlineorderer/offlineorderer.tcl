@@ -92,9 +92,9 @@ set orderer [OfflineOrdererUIPresenter %AUTO% -widgetname .view]
 
 # add these frames to the sequencer and then set it to the main configuration
 # window
-$seq add main   .view [list $Globals::menu add command -label "Config" \
+$seq staticAdd main .view {} [list $Globals::menu add command -label "Config" \
                         -command { $seq select config ; $::Globals::menu delete 0 1} ]
-$seq add config .globalConfig
+$seq staticAdd config .globalConfig main
 $seq select main
 
 # grid that beast
