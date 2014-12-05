@@ -436,11 +436,9 @@ snit::type MCFD16USB {
 
   ## @brief Retrieve the channel mask for a bank of channels
   #
-  # @warning THIS CURRENTLY DOESN"T WORK AS EXPECTED! NOT IMPLEMENTED
-  #
-  # @param bank   channel bank to inquire of (must be either 0 or 1)
-  method GetChannelMask {bank} {
-    puts "GetChannelMask is not implemented"
+  # @returns integer value of channel mask
+  method GetChannelMask {} {
+    return [dict get $m_moduleState {Mask register}]
   }
 
   ## @brief Enable either of the test pulsers
@@ -871,9 +869,7 @@ snit::type MCFD16USB {
 
   ## @brief Convenience parsing for the mask reg
   #
-  # We effectively convert a bitfield response to an integer. The input
-  # string is still not terribly well understood so this is not to be 
-  # trusted yet.
+  # We effectively convert a bitfield response to an integer. 
   #
   # @param line   string to be parsed
   #
@@ -974,7 +970,11 @@ snit::type MCFD16USB {
   method _ConvertTimeWidthsToRawWidths {elements} {
     set res [list]
     foreach el $elements {
-      lappend res [$type {ConvertWidthToArg} $el]
+      if {[catch {$type {ConvertWidthToArg} $el} result]} {
+        lappend res NA
+      } else {
+        lappend res $result
+      }
     }
     return $res
   }
@@ -982,7 +982,11 @@ snit::type MCFD16USB {
   method _ConvertDeadtimesToRaw {elements} {
     set res [list]
     foreach el $elements {
-      lappend res [$type {ConvertDeadtimeToArg} $el]
+      if {[catch {$type {ConvertDeadtimeToArg} $el} result]} {
+        lappend res NA
+      } else {
+        lappend res $result
+      }
     }
     return $res
   }
