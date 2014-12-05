@@ -350,16 +350,4 @@ tcltest::test pulser-2 {Getting pulser state gets written to file
   tcltest::viewFile $::logFile
 } -result {::dev PulserEnabled}
 
-tcltest::test log-0 {Log a generic string 
-} -setup {
-  setup
-} -cleanup {
-  tearDown
-} -body {
-  ::logger Log [list if {[catAtHouse]} {dont bring dog home}]
-  ::logger Flush
-
-  ::tcltest::viewFile $::logFile
-} -result {if {[catAtHouse]} {dont bring dog home}}
-
 tcltest::cleanupTests
