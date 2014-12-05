@@ -34,6 +34,7 @@ snit::type MCFD16GuiApp {
   variable _configFr
   variable _saveFr
   variable _loadFr
+  variable _enableFr
   variable _sequencer
 
   constructor {args} {
@@ -93,7 +94,13 @@ snit::type MCFD16GuiApp {
       menu $m.file 
       $m.file add command -command [mymethod ToSaveAs] -label "Save as..."
       $m.file add command -command [mymethod ToLoad] -label "Load settings..."
+
+      menu $m.config
+      $m.config add command -command [mymethod ToEnableDisable] -label "Enable/disable..."
+
       $m add cascade -menu $m.file -label "File"
+      $m add cascade -menu $m.config -label "Configure"
+
       . configure -menu $m
     }
   }
@@ -110,10 +117,12 @@ snit::type MCFD16GuiApp {
     set _configFr [$self BuildControlFrame $_sequencer]
     set _saveFr [$self BuildSaveAsFrame $_sequencer]
     set _loadFr [$self BuildLoadFrame $_sequencer]
+    set _enableFr [$self BuildEnableDisableFrame $_sequencer]
 
     $_sequencer staticAdd config $_configFr {}
     $_sequencer staticAdd save $_saveFr config
     $_sequencer staticAdd load $_loadFr config
+    $_sequencer staticAdd enable $_enableFr config
     $_sequencer select config
 
     grid $_sequencer -sticky nsew -padx 8 -pady 8
@@ -151,6 +160,15 @@ snit::type MCFD16GuiApp {
     set load [LoadFromFilePresenter %AUTO% $_controlPrsntr -view $top.load]
 
     return $loadFr
+  }
+
+  method BuildEnableDisableFrame {top} {
+    set enableFr $top.enable
+    ChannelEnableDisableView $top.enable
+    set _enable [ChannelEnableDisablePresenter %AUTO% -view $top.enable \
+                                                      -handle $_handle]
+
+    return $enableFr
   }
 
   method constructInfoFrame {top} {
@@ -195,6 +213,10 @@ snit::type MCFD16GuiApp {
 
   method ToLoad {} {
     $_sequencer select load
+  }
+
+  method ToEnableDisable {} {
+    $_sequencer select enable
   }
 
   method GetHandle {} {

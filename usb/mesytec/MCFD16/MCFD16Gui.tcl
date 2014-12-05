@@ -574,15 +574,6 @@ snit::type MCFD16IndividualPresenter {
   method UpdateViewDelays {} { $self LoopUpdateView Delay 0 8 }
   method UpdateViewFractions {} { $self LoopUpdateView Fraction 0 8 }
 
-  if {0} {
-  method UpdateViewMonitor {} {
-    for {set ch 0} {$ch<16} {incr ch} {
-      set mon [$options(-handle) MonitorEnabled $ch]
-      $m_view SetMonitor $ch $thresh
-    }
-  }
-  }
-
   ## Write the state of the view to the device
   #
   # This performs the synchronization for each parameter type at a time.
@@ -660,10 +651,8 @@ snit::type MCFD16CommonPresenter {
   method UpdateViewFromModel {} {
 
     # not sure if the names is something we need to record
-    #    $self updateViewNames
     $self UpdateViewThresholds 
     update
-    #    $self UpdateViewMonitor
     $self UpdateViewPolarities
     update
     $self UpdateViewGains
@@ -702,22 +691,7 @@ snit::type MCFD16CommonPresenter {
     $self CommitViewFractions
   }
 
-  if {0} {
-  method UpdateViewNames {} {
-    # need to implement
-  }
-  }
-
   method UpdateViewThresholds {} { $self UpdateParamFromView Threshold 16 }
-
-  if {0} {
-  method UpdateViewMonitor {} {
-    for {set ch 0} {$ch<16} {incr ch} {
-      set mon [$options(-handle) MonitorEnabled $ch]
-      $m_view SetMonitor $ch $thresh
-    }
-  }
-  }
 
   # ---- Utility methods 
 
@@ -1188,6 +1162,296 @@ snit::type LoadFromFilePresenter {
     lappend _validAPICalls "PulserEnabled"
   }
 }
+
+##
+#
+#
+snit::widget ChannelEnableDisableView {
+
+  option -presenter -default {} 
+  variable _bit0
+  variable _bit1
+  variable _bit2
+  variable _bit3
+  variable _bit4
+  variable _bit5
+  variable _bit6
+  variable _bit7
+
+  variable _names
+  variable _rows
+
+  constructor {args} {
+    puts ctor
+    $self configurelist $args
+
+    for {set ch 0} {$ch < 8} {incr ch} {
+      set _bit$ch 0
+    }
+
+    set elements [dict create]
+    for {set ch 0} {$ch < 17} {incr ch} {
+      dict set elements na$ch "Ch$ch"
+    }
+    array set _names $elements
+
+    set _rows [list]
+
+    $self BuildGUI
+  }
+
+  method BuildGUI {} {
+    $self BuildHeader $win.header
+
+    for {set ch 0} {$ch < 16} {incr ch 2} {
+      set row [expr $ch/2]
+      $self BuildGroupedRows $win.row$row $ch
+      lappend _rows $win.row$row
+    }
+
+    $self BuildButtons $win.buttons
+
+    grid $win.header -sticky nsew -padx 4 -pady 4
+    foreach row $_rows {
+      grid $row -sticky ew -padx 4 -pady 4
+    }
+    grid $win.buttons -sticky nsew -padx 4 -pady 4
+
+
+    grid rowconfigure $win [Utils::sequence 0 [expr [llength $_rows]+1] 1] -weight 1 
+    grid columnconfigure $win 0 -weight 1
+  }
+
+  method BuildHeader {name} {
+    ttk::frame $name
+    ttk::label $name.title -text "Enable / Disable channels" -style "Title.TLabel"
+
+    grid $name.title -sticky nsew -padx 4 -pady 4
+  }
+
+  #
+  method BuildGroupedRows {name ch} {
+    set style Grouped
+
+    set pair [expr $ch/2]
+
+    set w $name
+    ttk::frame $w -style $style.TFrame
+
+    # construct first row
+    ttk::entry $w.na$ch -width 8 -textvariable [myvar _names(na$ch)] \
+                        -style "$style.TEntry" \
+                                -validate focus -validatecommand [mymethod ValidateName %P] \
+                                -invalidcommand [mymethod ResetChannelName %W]
+
+    ttk::radiobutton $w.off$pair -variable [myvar _bit$pair] -value 1 \
+                        -style "$style.TRadiobutton" -text "disable"
+
+    ttk::radiobutton $w.on$pair -variable [myvar _bit$pair] -value 0 \
+                        -style "$style.TRadiobutton" -text "enable"
+
+    grid $w.na$ch $w.off$pair $w.on$pair -sticky news -padx 4 -pady 4
+
+    # construct second row 
+    incr ch
+    ttk::entry $w.na$ch -width 8 -textvariable [myvar _names(na$ch)] \
+      -style "$style.TEntry" \
+      -validate focus -validatecommand [mymethod ValidateName %P] \
+                      -invalidcommand [mymethod ResetChannelName %W]
+    grid $w.na$ch x x -sticky news -padx 4 -pady 4
+
+    # allow the columns to resize
+    grid columnconfigure $w {1 2} -weight 1 -uniform a
+    grid columnconfigure $w {0} -weight 2 -uniform a
+    grid rowconfigure $w {0 1} -weight 1 
+  }
+
+  method BuildButtons {name} {
+    ttk::frame $name 
+    ttk::button $name.commit -text "Commit" -style "Commit.TButton" \
+                            -command [mymethod Commit]
+    
+    ttk::button $name.update -text "Update" -style "Commit.TButton" \
+                            -command [mymethod Update] 
+
+    grid $name.commit $name.update -sticky nsew -padx 4 -pady 4
+    grid columnconfigure $name {0 1} -weight 1
+  }
+
+  ## Check whether a channel name contains non-whitespace characters
+  # 
+  # This is called when a channel entry loses focus
+  #
+  # @param name   candidate string 
+  #
+  # @return boolean
+  # @retval 0 - string was empty or all whitespace
+  # @retval 1 - otherwise
+  method ValidateName {name} {
+    set name [string trim $name]
+    return [expr [string length $name]!=0]
+  }
+
+  ## Reset channel to a simple string
+  #
+  # Typically called with ValidateName returns false
+  #
+  # @returns ""
+  method ResetChannelName {widget} {
+    set str [$widget cget -textvariable]
+    regexp {^.*(\d+)$} $widget match ch
+    set $str "Ch$ch"
+  }
+
+  method SetBit {index val} {
+    set _bit$index $val
+  }
+
+  method GetBit {index} {
+    return [set _bit$index]
+  }
+
+  #
+  method SetNames {names} {
+    array set _names $names
+  }
+
+  method Commit {} {
+    set presenter [$self cget -presenter]
+    if {$presenter ne {}} {
+      $presenter Commit
+    }
+  }
+
+  method Update {} {
+    set presenter [$self cget -presenter]
+    if {$presenter ne {}} {
+      $presenter Update
+    }
+  }
+}
+
+snit::type ChannelEnableDisablePresenter {
+
+  option -view -default {} -configuremethod SetView
+  option -handle -default {} -configuremethod SetHandle
+
+  constructor {args} {
+    $self configurelist $args
+  }
+
+  method Commit {} {
+    $self CommitMask
+    $self UpdateViewFromModel
+  }
+
+  method Update {} {
+    $self UpdateViewFromModel
+  }
+
+  method UpdateViewFromModel {} {
+    set handle [$self cget -handle]
+    if {$handle eq {}} {
+      set msg {ChannelEnableDisablePresenter::UpdateViewFromModel }
+      append msg {Cannot access model because it does not exist.}
+      return -code error $msg
+    }
+
+    set view [$self cget -view]
+    if {$view eq {}} {
+      set msg {ChannelEnableDisablePresenter::UpdateViewFromModel }
+      append msg {Cannot update view because it does not exist.}
+      return -code error $msg
+    }
+
+    set mask [$handle GetChannelMask]
+    set bits [$self DecodeMaskIntoBits $mask]
+
+    for {set bit 0} {$bit < 8} {incr bit} {
+      $view SetBit $bit [lindex $bits $bit]
+    }
+  }
+
+  method CommitMask {} {
+    set handle [$self cget -handle]
+    if {$handle eq {}} {
+      set msg {ChannelEnableDisablePresenter::CommitMask }
+      append msg {Cannot access model because it does not exist.}
+      return -code error $msg
+    }
+
+    set view [$self cget -view]
+    if {$view eq {}} {
+      set msg {ChannelEnableDisablePresenter::CommitMask }
+      append msg {Cannot update view because it does not exist.}
+      return -code error $msg
+    }
+
+    set bits [list]
+    for {set index 0} {$index < 8} {incr index} {
+      lappend bits [$view GetBit $index]
+    }
+
+    set mask [$self EncodeMaskIntoBits $bits]
+    $handle SetChannelMask $mask
+  }
+
+
+  method DecodeMaskIntoBits {mask} {
+    set bits [list]
+
+    # interpret mask as an actual byte
+    set byteValue [binary format s1 $mask]
+
+    # convert byte into representation of bits as a string
+    set count [binary scan $byteValue b8 binRep]
+
+    # split each character up to form a list of bits
+    return [split $binRep {}]
+  }
+
+  method EncodeMaskIntoBits {bits} {
+    set mask 0
+
+    # collapse list of bits into a single word by removing spaces
+    set binRepStr [join $bits {}]
+
+    # convert string representation of bits into an actual byte
+    set binByte [binary format b8 $binRepStr]
+
+    # interpret the byte as an 8-bit signed number
+    set count [binary scan $binByte c1 mask]
+
+    # becuase the number if signed and padded, we mask out upper bits
+    set mask [expr {$mask & 0xff}]
+
+    return $mask
+  } 
+
+  method SetView {opt val} {
+    # store the new view (opt="-view", val = new view name)
+    set options($opt) $val
+    $val configure -presenter $self
+
+    # we have a handle already, then update!
+    set handle [$self cget -handle]
+    if {$handle ne {}} {
+      $self UpdateViewFromModel
+    }
+  }
+
+  method SetHandle {opt val} {
+    # store the new handle (opt="-handle", val = new handle name)
+    set options($opt) $val
+
+    # we have a view already, then update!
+    set view [$self cget -view]
+    if {$view ne {}} {
+      $self UpdateViewFromModel
+    }
+  }
+}
+
 
 
 #########

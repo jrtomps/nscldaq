@@ -721,5 +721,98 @@ if { asdf } {
 } -result [list {} {if { asdf } {
 }} {}]
 
+###############################################################################
+
+# don't build the gui 
+snit::method ChannelEnableDisableView BuildGUI {} {}
+
+tcltest::test updateViewFromModel-0 {Calculate mask from bit settings
+} -setup {
+  set handle [MCFD16Memorizer %AUTO%]
+  $handle SetChannelMask 0 ; # if not here, update will fail bc it will try to 
+                           ; # convert "NA" to bits
+  ChannelEnableDisableView .enableview
+  set prsntr [ChannelEnableDisablePresenter %AUTO% -view .enableview \
+                                                   -handle $handle]
+} -cleanup {
+  destroy .enableview
+  $prsntr destroy
+  $handle destroy
+} -body {
+  
+  # set the mask bits so they form 0xda = 218
+  $handle SetChannelMask 218
+
+  $prsntr UpdateViewFromModel
+
+  set res [list]
+  for {set ch 0} {$ch < 8} {incr ch} {
+    lappend res [.enableview GetBit $ch]
+  }
+
+  set res
+} -result {0 1 0 1 1 0 1 1}
+
+
+tcltest::test decodeMaskBits-0 {Given a normal integer, return list of bits
+} -setup {
+  set prsntr [ChannelEnableDisablePresenter %AUTO%]
+} -cleanup {
+  $prsntr destroy
+} -body {
+  # convert 0x4b (=75) to a list of bits (assuming little-endian) and then return
+  # list in order of bit0 to bit7.
+  $prsntr DecodeMaskIntoBits 75
+} -result {1 1 0 1 0 0 1 0}
+
+tcltest::test encodeMaskBits-0 {Given a list of bits, convert to an integer
+} -setup {
+  set prsntr [ChannelEnableDisablePresenter %AUTO%]
+} -cleanup {
+  $prsntr destroy
+} -body {
+  $prsntr EncodeMaskIntoBits {1 1 0 1 0 0 1 0}
+} -result 75
+
+tcltest::test encodeMaskBits-1 {Make sure conversion works for values greater than 128
+} -setup {
+  set prsntr [ChannelEnableDisablePresenter %AUTO%]
+} -cleanup {
+  $prsntr destroy
+} -body {
+  $prsntr EncodeMaskIntoBits {1 1 0 1 0 0 1 1}
+} -result 203
+
+tcltest::test commit-0 {View state translates to model 
+} -setup {
+  set handle [MCFD16Memorizer %AUTO%]
+  $handle SetChannelMask 0 ; # if not here, update will fail bc it will try to 
+                           ; # convert "NA" to bits
+  ChannelEnableDisableView .enableview
+  set prsntr [ChannelEnableDisablePresenter %AUTO% -view .enableview \
+                                                   -handle $handle]
+} -cleanup {
+  destroy .enableview
+  $prsntr destroy
+  $handle destroy
+} -body {
+  
+  # set up view to hold a bit representation of 0xe5 (=229)
+  .enableview SetBit 0 1
+  .enableview SetBit 1 0
+  .enableview SetBit 2 1
+  .enableview SetBit 3 0
+  .enableview SetBit 4 0
+  .enableview SetBit 5 1
+  .enableview SetBit 6 1
+  .enableview SetBit 7 1
+
+  # committing should translate bits and set them in the device
+  $prsntr CommitMask
+
+  $handle GetChannelMask
+} -result 229
+
+
 tcltest::cleanupTests
 
