@@ -454,6 +454,10 @@ TclServer::MonitorDevices(void* pData)
           CVMUSB::ActionRegister::startDAQ); // StartDAQ keeps acquisition alive.
       pObject->m_waitingMonitor = true;
     } catch (...) {
+      cout << "Exception thrown and caught in TclServer::MonitorDevices(void*) ";
+      cout << " while writing to action register. Status returned from ";
+      cout << " writeActionRegister.";
+      cout << endl;
     }
   }
   else if ((state != CRunState::Starting) && (state != CRunState::Stopping)) {
