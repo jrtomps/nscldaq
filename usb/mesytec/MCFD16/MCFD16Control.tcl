@@ -23,7 +23,6 @@ lappend auto_path $here
 set argv_tmp $argv
 set argv [list]
 package require Tk
-#set argv $argv_tmp
 
 package require mcfd16guiapp
 
