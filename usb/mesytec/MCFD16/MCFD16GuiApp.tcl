@@ -20,7 +20,13 @@ package require mcfd16factory
 package require mcfd16gui
 package require FrameSequencer
 
-
+## @brief Application options for the Gui
+#
+# A class that encapsulates the application options used by the MCFD16GuiApp.
+# Some other instances are used for this. It is treated kind of like a struct,
+# and the MCFD16GuiApp delegate settings of these option to an instance of this
+# type.
+#
 snit::type MCFD16AppOptions {
   option -protocol
   option -serialfile
@@ -29,34 +35,57 @@ snit::type MCFD16AppOptions {
   option -port 
   option -devno
 
+  ## @brief Parse and set options
   constructor {args} {
     $self configurelist $args 
   }
 }
 
 
+## @brief Main snit::type that manages top level configs.
+#
+# The MCFD16GuiApp is mainly responsible for setting up the various subsystems
+# and maintaining the top level entities. It does the following:
+# 1. Keeps hold of the load and save dialog widgets and provides mechanism for
+#     switching to them.
+# 2. Sets up the menu bar
+# 3. Holds the global option object and keeps the options passed in at the cmd
+#     line
+# 4. Holds the frame sequencer and registers each of the frames the user might
+#    interact with to the sequencer in a proper order.
+# 5. It holds the main device handle for the entire GUI.
+#
 snit::type MCFD16GuiApp {
-  option -optionarray -default ::params
-  option -widgetname -default .app
+  option -optionarray -default ::params ;# name of the array of options
+  option -widgetname -default .app      ;# name of view controlled by this
 
-  component _handle
-  component _options 
+  component _handle           ;# MCFD16 type device driver
+  component _options          ;# MCFD16AppOptions
   
-  delegate option * to _options
+  delegate option * to _options ;# automatically forwards cget/configure to
+                                ;# _options if not locally defined
 
-  variable _controlPrsntr  {}
-  variable _configFr {}
-  variable _saveFr {}
-  variable _loadFr {}
-  variable _enableFr {}
-  variable _enable {}
-  variable _sequencer {}
+  variable _controlPrsntr  {} ;# the MCFD16ControlPanel instance
+  variable _configFr {}       ;# the window name of MCFD16ControlPanel
+                              ;# at the moment this is the same as
+                              ;# _controlPrsntr
+  variable _saveFr {}         ;# Widget name for the save dialog
+  variable _loadFr {}         ;# widget name for the load dialog
+  variable _enableFr {}       ;# name for the ChannelEnableDisableView
+  variable _enable {}         ;# name for the ChannelEnableDisablePresenter
+  variable _sequencer {}      ;# the FrameSequencer
 
+
+  ## @brief Initialize the MCFD16 driver and the gui
+  #
+  # @param args   the option-value pairs
+  #
   constructor {args} {
     install _options using MCFD16AppOptions %AUTO% 
 
     $self configurelist $args
 
+    # Constructs the mcfd16 driver
     $self processCmdlineOptions
 
     $self setUpMenu
@@ -64,10 +93,15 @@ snit::type MCFD16GuiApp {
 
   }
 
+  ## @brief Cleanup the device driver
   destructor {
     catch {$_handle destroy}
   }
 
+  ## @brief Constructs the MCFD16 based on the command line options
+  #
+  # If there is a failure while creating the device, the application exits and
+  # then prints the message detailing the error.
   method processCmdlineOptions {} {
 
     # Create the driver that serves as the backend of the gui
@@ -98,7 +132,14 @@ snit::type MCFD16GuiApp {
     }
   }
 
+  ## @brief Build the menu
+  # 
+  # Adds the File and Configure drop-down menus.
+  #
+  # @todo Make this capable of building a menu if the toplevel is not ".".
+  #
   method setUpMenu {} {
+
     option add *tearOff 0
 
     # get the menu for the toplevel
@@ -120,6 +161,15 @@ snit::type MCFD16GuiApp {
     }
   }
 
+  ## @brief Build up the GUI piecemeal
+  #
+  # There are 4 main widgets that needs to be constructed and added to the frame
+  # sequencer. The _configFr (the frame name of the MCFD16ControlPanel instance)
+  # is the default fallback location for the visible frame. The menu will take
+  # the user to the frame for enabling/disabling, save, and load frames. This
+  # method simply constructs them and then loads them into the frame sequencer
+  # properly.
+  #
   method BuildGUI {} {
     set win [$self cget -widgetname]
 
@@ -128,12 +178,13 @@ snit::type MCFD16GuiApp {
     set _sequencer $win.frames
     FrameSequencer $_sequencer
 
-    
+    # build the frames    
     set _configFr [$self BuildControlFrame $_sequencer]
     set _saveFr [$self BuildSaveAsFrame $_sequencer]
     set _loadFr [$self BuildLoadFrame $_sequencer]
     set _enableFr [$self BuildEnableDisableFrame $_sequencer]
 
+    # load the frames into the FrameSequencer in a proper order.
     $_sequencer staticAdd config $_configFr {}
     $_sequencer staticAdd save $_saveFr config
     $_sequencer staticAdd load $_loadFr config
@@ -144,6 +195,14 @@ snit::type MCFD16GuiApp {
 
   }
 
+  ## @brief Build the MCFD16ControlPanel
+  #
+  # This includes the MCFD16ControlPanel and the textual info at the top of the
+  # window.
+  #
+  # @param top  the parent widget
+  #
+  # @returns the name of the MCFD16ControlPanel instance
   method BuildControlFrame {top} {
     set configFr $top.config
     ttk::frame $configFr
@@ -162,6 +221,11 @@ snit::type MCFD16GuiApp {
     return $configFr
   }
 
+  ## @brief Construct the SaveToFileForm
+  #
+  # @param top  the parent widget
+  #
+  # @returns the name of the SaveToFileForm instance
   method BuildSaveAsFrame {top} {
     set saveFr $top.save
     SaveToFileForm $top.save $self
@@ -169,6 +233,11 @@ snit::type MCFD16GuiApp {
     return $saveFr
   }
 
+  ## @brief Construct the LoadFromFileForm
+  #
+  # @param top  the parent widget
+  #
+  # @returns the name of the LoadFromFileForm instance
   method BuildLoadFrame {top} {
     set loadFr $top.load
     LoadFromFileForm $top.load
@@ -177,15 +246,35 @@ snit::type MCFD16GuiApp {
     return $loadFr
   }
 
+
+  ## @brief Construct the ChannelEnableDisable controls
+  #
+  # @param top  the parent widget
+  #
+  # @returns the name of the ChannelEnableDisableView widget
   method BuildEnableDisableFrame {top} {
     set enableFr $top.enable
-    ChannelEnableDisableView $top.enable
+    ChannelEnableDisableView $top.enable ;# the view
+    
+    # construct the presenter and pass the view in to it... this is a more
+    # loosely-couopled and testable form of the MVP design.
     set _enable [ChannelEnableDisablePresenter %AUTO% -view $top.enable \
                                                       -handle $_handle]
 
     return $enableFr
   }
 
+  ## @brief Construct the contextual info for the chosen protocol
+  #
+  # Depending on whether the user is speaking over usb or mxdcrcbus, this will
+  # display the appropriate connection information.
+  #
+  # @todo If this is to become more complicated, consider factoring the logic of
+  # this method out into a separate snit::type.
+  #
+  # @param top  the parent widget
+  #
+  # @returns the name of the ttk::frame containing the info
   method constructInfoFrame {top} {
     set paramDict [array get [$self cget -optionarray]]
     set protoLbl ""
@@ -222,26 +311,42 @@ snit::type MCFD16GuiApp {
     return $top.info
   }
 
+
+  ## @brief Callback for the "Save as..." menu button
+  # 
   method ToSaveAs {} {
     $_sequencer select save
   }
 
+  ## @brief Callback for the "Load settings..." menu button
+  #
   method ToLoad {} {
     $_sequencer select load
   }
 
+  ## @brief Callback for the "Enable/disable..." menu button
+  #
   method ToEnableDisable {} {
     $_sequencer select enable
   }
 
+  ## @brief Getter for the device handle
+  #
+  # @returns the name of the MCFD16 device driver in use
   method GetHandle {} {
     return $_handle
   }
 
+  ## @brief Getter for the MCFD16ControlPanel instance
+  #
+  # @returns the name of the MCFD16ControlPanel in use
   method GetControlPresenter {} {
     return $_controlPrsntr
   }
 
+  ## @brief Getter for the MCFD16AppOptions 
+  #
+  # @returns the instance of the options that this snit::type delegates to.
   method GetOptions {} {
     return $_options
   }
