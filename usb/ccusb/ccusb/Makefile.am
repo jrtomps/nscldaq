@@ -32,7 +32,7 @@ BUILT_SOURCES=@srcdir@/CCCUSB_wrap.cxx @srcdir@/CCCUSBReadoutList_wrap.cxx
 
 
 
-## Normal C++ library containing CVMUSB*
+## Normal C++ library containing CCCUSB*
 libCCUSB_la_LIBADD	= @top_builddir@/base/os/libdaqshm.la \
 										@TCL_LDFLAGS@ \
                     @LIBTCLPLUS_LDFLAGS@ \
@@ -40,14 +40,14 @@ libCCUSB_la_LIBADD	= @top_builddir@/base/os/libdaqshm.la \
 										@LIBEXCEPTION_LDFLAGS@  @THREADLD_FLAGS@ \
 	  								@USB_LIBS@  
 
-## SWIG Wrapper containing cvmusb::CVMUSB 
+## SWIG Wrapper containing cvmusb::CCCUSB 
 libCCCUSB_la_LIBADD = libCCUSB.la @top_builddir@/base/os/libdaqshm.la \
-										@TCL_LDFLAGS@ \ 
+										@TCL_LDFLAGS@ \
                     @LIBTCLPLUS_LDFLAGS@ \
 										@top_builddir@/base/tcpip/libTcp.la \
 										@LIBEXCEPTION_LDFLAGS@ 
 
-## SWIG Wrapper containing cvmusbreadoutlist::CVMUSBReadoutList
+## SWIG Wrapper containing cvmusbreadoutlist::CCCUSBReadoutList
 libCCCUSBReadoutList_la_LIBADD = libCCUSB.la @top_builddir@/base/os/libdaqshm.la \
 			@THREADLD_FLAGS@ 
 
