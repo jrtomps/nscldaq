@@ -1,0 +1,306 @@
+
+<!-- chapter utilities -->
+<chapter>
+  <title>
+    Mesytec MCFD-16 Controls 
+  </title>
+
+  <section>
+    <title>Overview</title>
+
+    <para>
+      The Mesytec MCFD-16 is a 16-channel discriminator in the NIM form factor.
+      Configuration of the device can be performed remotely over different
+      communication protocols: usb and RC-bus. A GUI called MCFD16Control is
+      provided as a part of NSCLDAQ to support communication with the device through both these
+      protocols. A key feature is the ability to
+      generate a tcl script capable of configuring the device with the same
+      settings displayed in the GUI.
+    </para>
+
+    <para>
+      The parameters that the GUI provides control over are the threshold,
+      gain, width, dead time, delay, constant fraction, and polarity. All of
+      these parameters
+      can be set individually or commonly depending on the mode setting selected
+      in the GUI. The interface reflects whether or not the device is being
+      configured in either of these modes and prevents the setting of individual
+      settings while in common mode. Doing so may not succeed and is therefore
+      protected against. Finally, the GUI provides
+      the ability to enable and disable channel pairs and to control the
+      pulser. 
+    </para>
+
+    <para>
+      It is important to know that the two different protocols sometimes accept different value
+      ranges for the same parameter. One can see this by reading the manual
+      and comparing the different ranges accepted for the gain setting in USB
+      and RC-bus. To provide a unified user experience,
+      the RC-bus ranges were chosen over the USB so if the user wants to refer
+      to the manual, he/she should refer to the RC-bus section rather than the
+      USB section.
+    </para>
+
+    <para>
+      Finally, the control provided over the MCFD-16 through the GUI is made
+      available through low-level drivers that can be used in any tclsh. The
+      user can incorporate calls to these drivers in any script they want and
+      can build input files to load into the GUI if desired. 
+    </para>
+  </section>
+
+  <section>
+    <title>Starting the GUI for USB communication</title>
+
+    <para>
+      To properly communicate over the USB protocol, the user should follow the
+      the subsequent procedure. Before beginning, know that the device is
+      particularly slow to respond over the USB protocol and so it is common for
+      some bit of lag to exist when committing new parameters to the device.
+    </para>
+
+    <orderedlist>
+      <listitem>
+        <para>
+          Locate the name of the serial file that represents the MCFD-16 device.
+          The serial file should be located in /dev with a name that begins with
+          "ttyUSB". The number that forms the end of this file name is
+          representative of the order in which the devices were plugged into the
+          host computer. The number is therefore not unique and should be
+          checked whenever the device is plugged in anew. Furthermore, ensure
+          that this file is both readable and writable to your account. The
+          spdaqs in the NSCL are configured to enforce these permissions.
+        </para>
+      </listitem> 
+
+      <listitem>
+        <para>
+          At the command line, call 
+        </para>
+        <programlisting>
+          MCFD16Control --protocol usb --serialfile your_serial_file
+        </programlisting>
+
+        <para>
+          Doing so should bring up a window that looks like this.
+        </para>
+        <figure>
+          <title>The MCFD16Control Graphical User Interface for USB</title>
+          <mediaobject>
+            <imageobject>
+              <imagedata fileref="figures/MCFD16Control-USBHowTo-0.png" align="center" format='PNG'/>
+            </imageobject>
+          </mediaobject>
+        </figure>
+      </listitem>
+
+      <listitem>
+        <para>
+          At this point, the user can manipulate the settings on the GUI safely
+          without affecting the state of the device. Once the desired settings are
+          configured, the user can commit those to the device by pressing the
+          "Commit to Device" button. At the same time, if the user seeks to update
+          the displayed settings from their device, he/she should press the
+          "Update from Device" button. 
+        </para> 
+      </listitem>
+    </orderedlist>
+  </section>
+
+  <section>
+    <title>Starting the GUI for the RC-bus through an MxDC device</title>
+
+    <para>
+      The set up for this is a bit more involved because it operates over the
+      slow-controls server that is built into the VMUSBReadout program. 
+    </para>
+
+    <orderedlist>
+      <listitem>
+        <para>
+        The very first step is to connect the NIM busy output of the Mesytec
+        digitizer (MADC-32, MTDC-32, or MQDC-32) to the MCFD-16 and to properly
+        terminate the bus with 50 ohms.
+        </para>
+      </listitem>
+
+      <listitem>
+        <para>
+          The next step is to set up the VMUSBReadout program to receive remote
+          requests for the RC-bus. To do so, the user should add the following
+          code to their ctlconfig.tcl script.
+        </para>
+        <programlisting>
+          Module create mxdcrcbus myproxy
+          Module config myproxy -base 0xffff0000
+        </programlisting>
+
+        <para>
+          This causes a new slow controls module named "myproxy" to be loaded
+          into the server that seeks to fulfull RC-bus requests through a device
+          at base address 0xffff0000. Of course, this will only work when the
+          device at the specified base address is a Mesytec family digitizer
+          (MADC-32, MTDC-32, or MQDC-32). 
+        </para>
+      </listitem>
+
+      <listitem>
+        <para>
+          The user must next start up VMUSBReadout. This can be done by
+          executing the ReadoutShell with VMUSBReadout registered as a data
+          provider and then pressing the "Start" button. It can alternatively be
+          accomplished by starting VMUSBReadout from the commmand-line. It
+          really doesn't matter so long as VMUSBReadout is running. 
+        </para>
+        <para>
+          By default, the slow-controls server will listen for connections on
+          port 27000. This can be different if the host computer is running
+          other programs that were listening on that port first. If the user
+          suspects that the latter is the case, the port can be found by
+          executing <code>lsof -i TCP</code> in a terminal. Find the row
+          associated with your VMUSBReadout program by searching for the pid.
+          The port being listened on will be listed in the right-hand column.
+        </para>
+      </listitem>
+
+      <listitem>
+        <para>
+          With the slow-controls server up and running, the user can then go to
+          a new shell and type:
+        </para>
+
+        <programlisting>
+          MCFD16Control --protocol mxdcrcbus --module myproxy
+        </programlisting>
+
+        <para>
+          By default, this assumes that the --host is localhost, --port is
+          27000, and --devno is 0. The first two of these are probably correct
+          unless other slow-controls servers are running. In which case, the
+          user should determine the relevant information as described in the
+          prior step. The device number (--devno) is the number of the device as
+          it is identifiable by the RC-bus. For the MCFD-16, this is set via a
+          switch on the back of the device.
+        </para>
+      </listitem>
+
+      <listitem>
+        <para>
+          The user will then be presented with the following display and should
+          control the parameters through the various widgets. The state of the
+          GUI is not committed to the device until the "Commit to Device" button
+          is pressed. If the user seeks to read the state of the device, the
+          "Update from Device" button should be pressed. 
+        </para>
+
+        <figure id="mcfd16control_fig1">
+          <title>MCFD16Control Graphical User Interface for MxDC-RCbus</title>
+          <mediaobject>
+            <imageobject>
+              <imagedata fileref="figures/MCFD16Control-MXDCRCBusHowTo-0.png" align="center" format='PNG'/>
+            </imageobject>
+          </mediaobject>
+        </figure>
+      </listitem>
+    </orderedlist>
+
+  </section>
+
+  <section>
+    <title>
+      Saving and restoring state
+    </title>
+
+    <section>
+      <title>Saving the state</title>  
+      <para>
+        The state of the GUI can always be saved to a file by means of the "Save
+        as..." and restored from file via the "Load..." menu options. Saving the state of the gui
+        produces a tcl script that can be executed for configuring the device
+        exactly as the GUI would display it. Note that this is not necessarily
+        the state of the device itself, because the GUI and device are not
+        necessarily identical unless settings are either committed or the gui is
+        updated. To execute the script produced by the the GUI in a tclsh,
+        the user must ensure:
+      </para>
+
+      <orderedlist>
+        <listitem>
+          <para>
+            The driver scripts are included in the TCLLIBPATH environment
+            variable. These scripts should be usable if the user adds
+            $DAQROOT/TclLibs to their TCLLIBPATH environment variable.
+          </para>
+        </listitem>
+
+        <listitem>
+          <para>
+            The same settings for the communication protocol that were valid
+            when the script was generated are still valid. In other words, if
+            the GUI was launched with --protocol usb --serialfile /dev/ttyUSB0,
+            then it must still be possible to write to the device through the
+            /dev/ttyUSB0 file. The same idea must be true if the protocol was
+            mxdcrcbus. If these have changed, the first few lines must be
+            adjusted accordingly to instantiate the appropriate driver type.
+            MCFD16USB types are used for usb communication and the MCFD16RC and
+            MXDCRCProxy are used together for the mxdcrcbus. 
+          </para>
+
+          <programlisting>
+            # USB instantiation and use example
+            package require mcfd16usb
+            MCFD16USB ::dev /dev/ttyUSB0
+            ::dev SetThreshold 0 12
+          </programlisting>
+
+          <programlisting>
+            # MxDC RC-bus instantiation and usage
+            package require mcfd16rc
+            MXDCRCProxy ::proxy -server localhost -port 27000 -module myproxy -devno 3
+            MCFD16RC ::dev ::proxy
+            ::dev SetThreshold 0 12
+          </programlisting>
+        </listitem>
+
+        <listitem>
+          <para>
+            At this point you can simply feed the script to a tclsh program. For
+            example, executing a file called mysettings.tcl, you can do the
+            following:
+          </para>
+
+          <programlisting>
+            tclsh < mysettings.tcl
+          </programlisting>
+        </listitem>
+      </orderedlist>
+
+    </section>
+
+    <section>
+      <title>Restoring the state</title>
+
+      <para>
+        Like saving, restoring implies that a setting is loaded to the GUI
+        rather than immediately loading to the device. The user should select
+        a tclscript that was either generated by the GUI through a save as
+        operation or some other one that contains appropriate device driver
+        calls. Loading the file causes the lines that are understood to be
+        driver calls to be executed and loaded into the GUI. Furthermore, lines
+        that set channel names (set ::MCFD16ChannelNames::chan0 name) are
+        executed and read into the GUI. Other lines of code are not evaluated.
+        it is important to note that this is not fully fool proof. It is
+        important that the user refer to only one instance of a device driver
+        in the script. For all of the parameters that are not set, the GUI will
+        show "NA". It is possible to commit the state to the device when some
+        parameters show "NA" because only valid parameters will actually affect
+        the device. In other words, values that show "NA" are ignored during
+        the commit.
+      </para>
+    </section>
+
+  </section>
+
+</chapter>
+
+<!-- /chapter -->

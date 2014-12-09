@@ -1,10 +1,14 @@
 
+SUBDIRS=figures
+
 DRIVERDest = @prefix@/TclLibs/mesytec
 
 TCLDRIVERS = MCFD16USB.tcl MCFD16RC.tcl MCFD16Gui.tcl MCFD16CommandLogger.tcl \
 						 MCFD16Memorizer.tcl ScriptHeaderGenerator.tcl MCFD16GuiApp.tcl \
 						 MCFD16Factory.tcl MCFD16ChannelNames.tcl
 TCLAPPS = MCFD16Control.tcl
+
+DOCS = mcfd16control.xml
 
 install-exec-local:
 	$(mkinstalldirs) @prefix@/TclLibs
@@ -24,4 +28,4 @@ TCLTESTS=tclTests.tcl mcfd16usb.test mcfd16gui.test mcfd16rc.test mcfd16commandl
 check-TESTS:
 	TCLLIBPATH="@prefix@/TclLibs" HERE=@srcdir@ tcl=@TCLSH_CMD@ @TCLSH_CMD@ @srcdir@/tclTests.tcl
 
-EXTRA_DIST=$(TCLDRIVERS) $(TCLTESTS) $(TCLAPPS)
+EXTRA_DIST=$(TCLDRIVERS) $(TCLTESTS) $(TCLAPPS) $(DOCS)
