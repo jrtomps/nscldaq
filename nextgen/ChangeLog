@@ -519,4 +519,6 @@ Feb 1, 2012 - Feb 24, 2012
         * Fix error handling in shared memory attachemnt.  These can cause
 	  RingMaster to die if there are shared memory regions in /dev/shm
 	  when nscldaq is started.
-
+	* Add try catch block to the monitor list in vmusb readout as
+	sometimes the action register write seems to fail.
+	
