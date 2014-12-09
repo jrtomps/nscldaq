@@ -37,7 +37,9 @@ package require Utils
 # them individually. Instead, the general scheme of these methods is that a set
 # operation sets the appropriate value in the dictionary. A get operation
 # retrieves the value from the dictionary. If a parameter has not been set yet,
-# the default value returned will be "NA".
+# the default value returned will be "NA". There is never a check for the
+# validity of parameter values. This will always record an argument no matter
+# how crazy it is.
 #
 snit::type MCFD16Memorizer {
 
