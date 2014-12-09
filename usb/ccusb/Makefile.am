@@ -9,7 +9,8 @@ SUBDIRS = 	ccusb 		\
     tcldrivers \
     controlpanels \
     tclpackage \
-		devtests
+		devtests \
+		tclservertests
 
 
 bin_PROGRAMS = CCUSBReadout

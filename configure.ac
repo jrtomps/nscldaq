@@ -451,6 +451,7 @@ AC_CONFIG_FILES([Makefile
 		 usb/ccusb/driverkit/CCUSBDriverIncludes
                  usb/ccusb/controlpanels/Makefile
 		 usb/ccusb/devtests/Makefile
+		 usb/ccusb/tclservertests/Makefile
 		 usb/caenfwloader/Makefile
 		 usb/common/Makefile
 		 usb/common/tcldrivers/Makefile
