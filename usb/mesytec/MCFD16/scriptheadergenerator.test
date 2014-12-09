@@ -44,12 +44,12 @@ tcltest::test usb-0 {Generate proper usb header
 tcltest::test mxdcrcbus-0 {Generate proper mxdcrcbus header 
 } -setup {
   MCFD16AppOptions opts -protocol mxdcrcbus -module rcbus -host h \
-                        -port 1230 -devno 2
+                        -port 1230 -devno 2 
 } -cleanup {
   generator destroy
   opts destroy
 } -body {
-  ScriptHeaderGenerator generator opts
+  ScriptHeaderGenerator generator opts -name dev
 
   generator generateHeader
 } -result [list \

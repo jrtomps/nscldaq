@@ -26,15 +26,19 @@ package require snit
 #
 snit::type ScriptHeaderGenerator {
 
+  option -name -default ::dev
+
   variable _options ;# the MCFD16AppOptions to refer to
 
   ## @brief Construct and record the options
   #
-  # @param options  the MCFD16AppOptions instance name manage by MCFD16GuiApp
+  # @param appoptions  the MCFD16AppOptions instance name manage by MCFD16GuiApp
   #
   # @returns name of constructed snit::type
-  constructor {options} {
-    set _options $options 
+  constructor {appoptions args} {
+    set _options $appoptions 
+
+    $self configurelist $args
   }
 
   ## @brief Generate a header
@@ -72,7 +76,7 @@ snit::type ScriptHeaderGenerator {
     lappend header {  puts "Serial file \"$serialFile\" provided but does not exist."}
     lappend header {  exit}
     lappend header "\}"
-    lappend header {MCFD16USB ::dev $serialFile}
+    lappend header "MCFD16USB [$self cget -name] \$serialFile"
     return $header
   }
 
@@ -92,7 +96,7 @@ snit::type ScriptHeaderGenerator {
       -module [$_options cget -module] \
       -devno [$_options cget -devno]] 
     lappend header {# use the proxy created to construct an MCFD16RC} 
-    lappend header {MCFD16RC dev ::proxy} 
+    lappend header "MCFD16RC [$self cget -name] ::proxy"
 
     return $header
   }
