@@ -173,11 +173,11 @@ snit::type MCFD16RC {
   # To write the common value, use chpair=8
   #
   # @param chpair   target channel pair (must be in range [0,8])
-  # @param val      value to write (must be in range [5,255])
+  # @param val      value to write (must be in range [16,222])
   #
   # @returns value from device
   #
-  # @throws error if value is not in range [5,255]
+  # @throws error if value is not in range [16,222]
   # @throws error if chpair is not in range [0,8]
   # @throws error if communication failed
   method SetWidth {chpair val} {
@@ -212,11 +212,11 @@ snit::type MCFD16RC {
   # To write the common value, use chpair=8
   #
   # @param chpair   target channel pair (must be in range [0,8])
-  # @param val      value to write (must be in range [5,255])
+  # @param val      value to write (must be in range [27,222])
   #
   # @returns value from device
   #
-  # @throws error if value is not in range [5,255]
+  # @throws error if value is not in range [27,222]
   # @throws error if chpair is not in range [0,8]
   # @throws error if communication failed
   method SetDeadtime {chpair val} {
