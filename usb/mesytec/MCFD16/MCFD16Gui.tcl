@@ -25,15 +25,20 @@ package require BlockCompleter
 package require mcfd16channelnames
 
 
-####### "Base" type for MCFD16View ################
-
+## "Base" type for MCFD16View ################
+#
+# The MCFD16CommonView and MCFD16IndividualView both delegate some methods to
+# this snit::type. It holds the variables that their widgets target as
+# -textvariables. The only thing they do not manage is the name values. 
+#
 snit::type MCFD16View {
 
   option -presenter -default {} ;# logical controller of device
 
   variable _mcfd ;# basic array of values
 
-  ## Constructor
+  ## @brief Construct and initialize options
+  #
   constructor {args} {
     $self configurelist $args
 
@@ -41,13 +46,15 @@ snit::type MCFD16View {
   }
 
 
-  ## Retrieve the fully qualified name of the array
+  ## @brief Retrieve the fully qualified name of the array
   #
+  # @returns fully qualified name of _mcfd array for use outside of the
+  # snit::type
   method mcfd {} {
     return [$self info vars _mcfd]
   }
 
-  ## Check whether a channel name contains non-whitespace characters
+  ## @brief Check whether a channel name contains non-whitespace characters
   # 
   # This is called when a channel entry loses focus
   #
@@ -63,9 +70,10 @@ snit::type MCFD16View {
     return $good
   }
 
-  ## Reset channel to a simple string
+  ## @brief Reset channel to a simple string
   #
-  # Typically called with ValidateName returns false
+  # Typically called with ValidateName returns false. It will set the string
+  # to "Ch#".
   #
   # @returns ""
   method ResetChannelName {widget} {
@@ -74,14 +82,13 @@ snit::type MCFD16View {
     set $str "Ch$ch"
   }
 
-  ## Initialize all elements of the array for each setting
+  ## @brief Initialize all elements of the array for each setting
   #
   method InitArray {} { 
 
     # set the channel valus
     for {set i 0} {$i < 16} {incr i} {
 
-      set _mcfd(na$i) "Ch$i" 
       set _mcfd(th$i) 127
       set _mcfd(mo$i) 4 
 
@@ -106,54 +113,133 @@ snit::type MCFD16View {
     set _mcfd(th16) 127
   }
 
-  # Getters and Setters
-  method GetName {ch} { return $_mcfd(na$ch)  }
-  method SetName {ch str} { set _mcfd(na$ch) $val }
-
+  # ------ Setters and getters
+  
+  ## @brief Retrieve the threshold value for a certain channel
+  # 
+  # There is no range checking for the channel and it is the caller's
+  # responsibility to check that ch is in the range [0,16].
+  #
+  # @param ch   the channel index
+  #
+  # @returns value of threshold
   method GetThreshold {ch} {  return $_mcfd(th$ch) }
+
+  ## @brief Set the threshold value for a certain channel
+  # 
+  # There is no range checking for the channel and it is the caller's
+  # responsibility to check that ch is in the range [0,16].
+  #
+  # @param ch   the channel index
+  # @param val  value to set
   method SetThreshold {ch val} { set _mcfd(th$ch) $val }
 
-  method GetMonitor {ch} {  return $_mcfd(mo$ch) }
-  method SetMonitor {ch onoff} {  set _mcfd(mo$ch) $onoff }
-
+  ## @brief Retrieve the polarity value for a certain channel
+  # 
+  # There is no range checking for the channel and it is the caller's
+  # responsibility to check that ch is in the range [0,8], where ch=8
+  # corresponds to the common value.
+  #
+  # @param ch   the channel index
+  #
+  # @returns value of threshold
   method GetPolarity {ch} {  return $_mcfd(po$ch) }
+
+  ## @brief Set the polarity value for a certain channel
+  # 
+  # There is no range checking for the channel and it is the caller's
+  # responsibility to check that ch is in the range [0,8].
+  #
+  # @param ch   the channel index
+  # @param pol  value to set
   method SetPolarity {ch pol} {  set _mcfd(po$ch) $pol }
 
+  ## @brief Get the gain value for a certain channel
+  # 
+  # There is no range checking for the channel and it is the caller's
+  # responsibility to check that ch is in the range [0,8].
+  #
+  # @param ch   the channel index
   method GetGain {ch} {  return $_mcfd(ga$ch) }
+
+  ## @brief Set the gain value for a certain channel
+  # 
+  # There is no range checking for the channel and it is the caller's
+  # responsibility to check that ch is in the range [0,8].
+  #
+  # @param ch   the channel index
+  # @param gain  value to set
   method SetGain {ch gain} {  set _mcfd(ga$ch) $gain }
 
+  ## @brief Get the width value for a certain channel
+  # 
+  # There is no range checking for the channel and it is the caller's
+  # responsibility to check that ch is in the range [0,8].
+  #
+  # @param ch   the channel index
   method GetWidth {ch} {  return $_mcfd(wi$ch) }
+
+  ## @brief Set the width value for a certain channel
+  # 
+  # There is no range checking for the channel and it is the caller's
+  # responsibility to check that ch is in the range [0,8]. there is also no
+  # check for the value passed in as an argument.
+  #
+  # @param ch     the channel index
+  # @param width  value to set
   method SetWidth {ch width} {  set _mcfd(wi$ch) $width }
 
+  ## @brief Get the deadtime value for a certain channel
+  # 
+  # There is no range checking for the channel and it is the caller's
+  # responsibility to check that ch is in the range [0,8].
+  #
+  # @param ch   the channel index
   method GetDeadtime {ch} {  return $_mcfd(dt$ch) }
+
+  ## @brief Set the deadtime value for a certain channel
+  # 
+  # There is no range checking for the channel and it is the caller's
+  # responsibility to check that ch is in the range [0,8].
+  #
+  # @param ch   the channel index
+  # @param time value to set
   method SetDeadtime {ch time} {  set _mcfd(dt$ch) $time }
 
+  ## @brief Get the delay value for a certain channel
+  # 
+  # There is no range checking for the channel and it is the caller's
+  # responsibility to check that ch is in the range [0,8].
+  #
+  # @param ch   the channel index
   method GetDelay {ch} {  return $_mcfd(dl$ch) }
+
+  ## @brief Set the delay value for a certain channel
+  # 
+  # There is no range checking for the channel and it is the caller's
+  # responsibility to check that ch is in the range [0,8].
+  #
+  # @param ch   the channel index
+  # @param time value to set
   method SetDelay {ch time} {  set _mcfd(dl$ch) $time }
 
+  ## @brief Retrieve the fraction value for a certain channel
+  # 
+  # There is no range checking for the channel and it is the caller's
+  # responsibility to check that ch is in the range [0,8].
+  #
+  # @param ch   the channel index
   method GetFraction {ch} {  return $_mcfd(fr$ch) }
+
+  ## @brief Set the fraction value for a certain channel
+  # 
+  # There is no range checking for the channel and it is the caller's
+  # responsibility to check that ch is in the range [0,8].
+  #
+  # @param ch       the channel index
+  # @param fraction value to set
   method SetFraction {ch frac} {  set _mcfd(fr$ch) $frac }
 
-  method GetMode {} {
-    set mode ""
-    if {$_mcfd(mode) eq "on"} {
-      set mode "common"
-    } else {
-      set mode "individual"
-    }
-    return $mode
-  }
-
-  method SetMode {mode} {
-    if {$mode eq "common"} {
-      set _mcfd(mode) on
-    } elseif {$mode eq "individual"} {
-      set _mcfd(mode) on
-    } else {
-      set msg {Invalid mode. Must be either common or individual.}
-      return -code error MCFD16View::SetMode $msg
-    }
-  }
 
   ##  All MCFD16View-like types simple pass events to their presenter
   #
@@ -171,8 +257,14 @@ snit::type MCFD16View {
 #  A widget for controlling the MCFD16 channels individually. This creates a 
 #  16-row table with a header. There is a row for each of the channels in the
 #  device and also they are grouped into pairs to make the configuration simpler
-#  to understand.
+#  to understand. This provides no mechanism for committing the values and is 
+#  actually just a widget to display the various controls. It provides controls
+#  over: threshold, gain, fraction,  delay, width, polarity, and deadtime. It
+#  also displays a name column that contains user-definable labels for the
+#  individual channels.
 #
+# @important The MCFD16IndividualPresenter is the only snit::type designed to
+# work with this.
 snit::widget MCFD16IndividualView {
 
   component m_base ;# the MCFD16View instance
@@ -192,8 +284,7 @@ snit::widget MCFD16IndividualView {
 
   }
 
-  ## Put the widgets together
-  #
+  ## @brief Assemble the widgets
   #
   method BuildGUI {} {
 
@@ -229,7 +320,6 @@ snit::widget MCFD16IndividualView {
     ttk::label $w.dt -text Deadtime  -style "Header.TLabel" -padding "3 3 3 0"
     ttk::label $w.dl -text Delayline -style "Header.TLabel" -padding "3 3 3 0"
     ttk::label $w.fr -text Fraction -style "Header.TLabel" -padding "3 3 3 0"
-    ttk::label $w.mo -text Monitor -style "Header.TLabel" -padding "3 3 3 0"
 
     grid $w.na $w.th $w.po $w.ga $w.wi $w.dt $w.dl $w.fr \
       -sticky sew -padx 4 -pady 4
@@ -278,9 +368,6 @@ snit::widget MCFD16IndividualView {
     ttk::spinbox $w.th$ch -textvariable "[$self mcfd](th$ch)" -width 4 \
                         -style "$style.TSpinbox" -from 0 -to 255 \
                         -state readonly
-    ttk::radiobutton $w.mo$ch -variable "[$self mcfd](monitor)" -value $ch \
-                        -command Monitor -style "$style.TRadiobutton"
-
     set pair [expr $ch/2]
     ttk::radiobutton $w.poneg$pair -variable "[$self mcfd](po$pair)" \
                                    -value neg -text neg \
@@ -326,9 +413,6 @@ snit::widget MCFD16IndividualView {
                                    -style "$style.TRadiobutton"
     ttk::radiobutton $w.fr${pair}40 -text "40%" -variable "[$self mcfd](fr$pair)" \
                                     -value 40  -style "$style.TRadiobutton"
-    ttk::radiobutton $w.mo$ch -variable "[$self mcfd](mo$pair)" \
-      -value $ch \
-      -command Monitor -style "$style.TRadiobutton"
     grid $w.na$ch $w.th$ch $w.popos$pair x x x x $w.fr${pair}40 -sticky news -padx 4 -pady 4
 
     # allow the columns to resize
@@ -343,8 +427,16 @@ snit::widget MCFD16IndividualView {
 # MCFD16CommonView
 #
 #  A widget for controlling common channel values in MCFD16. This is just one 
-#  row of controls that will set the parameters for common mode.
+#  row of controls that will set the parameters for common mode. It provides
+#  control over the same settings as are displyed in the MCFD16IndividualView
+#  for those common settings. One stark difference between this and the
+#  individual view is that there is no way to configure the names. Instead, the
+#  name is fixed as "Common". LIke the individual view, there is no real
+#  functionality built into this snit::widget other than displaying some widgets
+#  and then providing a means for accessing their values.
 #
+# @important The MCFD16CommonPresenter is intended for use with this
+# snit::widget.
 snit::widget MCFD16CommonView {
 
   component m_base ;# the MCFD16View
@@ -399,7 +491,6 @@ snit::widget MCFD16CommonView {
     ttk::label $w.dt -text Deadtime  -style "Header.TLabel" -padding "3 3 3 0"
     ttk::label $w.dl -text Delayline -style "Header.TLabel" -padding "3 3 3 0"
     ttk::label $w.fr -text Fraction -style "Header.TLabel" -padding "3 3 3 0"
-    ttk::label $w.mo -text Monitor -style "Header.TLabel" -padding "3 3 3 0"
 
     grid $w.na $w.th $w.po $w.ga $w.wi $w.dt $w.dl $w.fr \
       -sticky sew -padx 4 -pady 4
@@ -457,6 +548,9 @@ snit::widget MCFD16CommonView {
 
 ## Common functionality for MCFD16CommonPresenter and MCFD16IndividualPresenter
 #
+# This snit::type provides some convenience methods that are mutually useful to
+# the more specialized presenters. Both of those specialized presenters delegate
+# to this snit::type.
 #
 snit::type MCFD16Presenter {
 
@@ -478,6 +572,9 @@ snit::type MCFD16Presenter {
 
 
   ## Syncronization utility method for writing view parameter to device
+  # 
+  # @param param    name of parameter
+  # @param index    index of parameter  (i.e. channel index)
   #
   method CommitViewToParam {param index} {
     set value [[$self cget -view] Get$param $index]
@@ -490,6 +587,10 @@ snit::type MCFD16Presenter {
 
   ## Syncronization utility for looping CommitViewToParam
   #
+  # @param param    name of parameter
+  # @param begin    first index to pass to CommiteViewToParam
+  # @param end      first invalid index that signifies completion
+  #
   method LoopCommitView {param begin end} {
     for {set ch $begin} {$ch<$end} {incr ch} {
       $self CommitViewToParam $param $ch
@@ -498,6 +599,8 @@ snit::type MCFD16Presenter {
 
   ## Syncronization utility for setting view state based on device state
   #
+  # @param param    name of the parameter
+  # @param index    index of parameter (i.e. channel index)
   method UpdateParamFromView {param index} {
     set code [catch {
       [$self cget -view] Set$param $index [[$self cget -handle] Get$param $index]
@@ -510,6 +613,9 @@ snit::type MCFD16Presenter {
 
   ## Sychronization utility for loop UpdateParamFromView
   #
+  # @param param  name of the parameter
+  # @param begin  first index to pass to UpdateParamFromView
+  # @param end    first invalid index that signifies completion
   method LoopUpdateView {param begin end} {
     for {set ch $begin} {$ch<$end} {incr ch} {
       $self UpdateParamFromView $param $ch
@@ -563,11 +669,8 @@ snit::type MCFD16IndividualPresenter {
   #
   method UpdateViewFromModel {} {
 
-    # not sure if the names is something we need to record
-    #    $self updateViewNames
     $self UpdateViewThresholds 
     update
-    #    $self UpdateViewMonitor
     $self UpdateViewPolarities
     update
     $self UpdateViewGains
@@ -635,6 +738,7 @@ snit::type MCFD16IndividualPresenter {
 # that it only sets the common parameters. It is expected that the device is
 # already in a common mode for writing. If it isn't, it is not gauranteed that
 # the write operations will succeed.
+#
 snit::type MCFD16CommonPresenter {
 
   component m_base ;# MCFD16Presenter instance
@@ -644,6 +748,7 @@ snit::type MCFD16CommonPresenter {
 
   ## Set up the view and synchronize view to the device
   #
+  # @param  args  the option-value pairs
   constructor {args} {
     install m_base using MCFD16Presenter %AUTO% 
 
@@ -654,17 +759,20 @@ snit::type MCFD16CommonPresenter {
     $self UpdateViewFromModel
   }
 
+  ## @brief Clean up
   destructor {
     $m_base destroy
   }
 
+  ## @brief Write the view state to the device, then read back new device state
+  #
   method Commit {} {
     $self UpdateModelFromView
     update
     $self UpdateViewFromModel
   }
 
-  ## Write the state of the parameters in the view to the device
+  ## @brief Write the state of the parameters in the view to the device
   #
   method UpdateViewFromModel {} {
 
@@ -709,11 +817,10 @@ snit::type MCFD16CommonPresenter {
     $self CommitViewFractions
   }
 
-  method UpdateViewThresholds {} { $self UpdateParamFromView Threshold 16 }
 
   # ---- Utility methods 
-
   # for synchronizing the view state to the device state
+  method UpdateViewThresholds {} { $self UpdateParamFromView Threshold 16 }
   method UpdateViewPolarities {} { $self UpdateParamFromView Polarity 8 }
   method UpdateViewGains {} { $self UpdateParamFromView Gain 8 }
   method UpdateViewWidths {} { $self UpdateParamFromView Width 8 }
@@ -735,7 +842,7 @@ snit::type MCFD16CommonPresenter {
 
 ########## Unified Controls ####################
 #
-# This is the core gui component of the application. It provides a
+# This is the core configuration widget component of the application. It provides a
 # megawidget that holds a MCFD16Common* and MCFD16Individual* set of controls.
 # The views for these controls are in a FrameSwitcher widget that allows for
 # simple switching back and forth between the visible frame. The main
@@ -747,6 +854,7 @@ snit::type MCFD16CommonPresenter {
 # The read may notice that the separation of view and presenter is not present
 # for this widget. It could be made to follow the paradigm but I will leave that
 # as a task for the future.
+#
 snit::widget MCFD16ControlPanel {
 
   component m_frames        ;# the frame switcher
@@ -754,8 +862,7 @@ snit::widget MCFD16ControlPanel {
   component m_indPrsntr     ;# instance of MCFD16IndividualPresenter
   component m_pulserPrsntr  ;# instance of PulserPresenter
 
-  # 
-  option -handle -default {} -configuremethod {SetHandle}
+  option -handle -default {} -configuremethod {SetHandle} ;# the device driver
   variable m_mode  ;# current config mode of the device (selects visible frame)
   variable m_current
 
@@ -764,6 +871,8 @@ snit::widget MCFD16ControlPanel {
   # This reads from the device the configuration mode and then displays the
   # appropriate controls for the response it receives. 
   #
+  # @param  args  option-value pairs (really should only be -handle)
+  # 
   # @throws error if no handle is provided.
   constructor {args} {
     $self configurelist $args
@@ -795,7 +904,7 @@ snit::widget MCFD16ControlPanel {
 
   }
 
-  ## Create the widget and then install them into the megawidget.
+  ## @brief Create the widget and then install them into the megawidget.
   #
   method BuildGUI {} {
     # add the frames
@@ -861,6 +970,12 @@ snit::widget MCFD16ControlPanel {
     $m_current Commit
   }
 
+  ## @brief Commit the channel settings and also the pulser state
+  #
+  # By default, the Commit method will only call Commit on the currently
+  # displayed presenter. This is because the commmon settings don't necessarily
+  # stick if the device is not in common configuration modes.
+  #
   method CommitAll {} {
     [$self cget -handle] SetMode $m_mode ;# set mode first to make sure that
                                          ;# subsequent writes succeed.
@@ -887,6 +1002,16 @@ snit::widget MCFD16ControlPanel {
   #
   method GetCurrent {} { return $m_current }
 
+  ## @brief Callback for when a new handle is passed in
+  #
+  # This is called when "$self configure -handle val" is evaluated.
+  # It makes sure that all of the presenters it manages get passed the new
+  # handle as well.  It also is responsible for actually storing the new option
+  # value.
+  #
+  # @param  opt   the option name (should only be -handle)
+  # @param  val   name of a device driver instance
+  #
   method SetHandle {opt val} {
     # pass the handle around to all of the sub-presenters
     if {$m_comPrsntr ne ""} {
@@ -908,14 +1033,35 @@ snit::widget MCFD16ControlPanel {
 #######
 #
 
+## @brief A widget for saving state
+#
+# This is the widget that the user interacts with when they try to save the
+# state  of the Gui to a file. It is not implemented using the MVP design
+# because the logic is mingled with the actual view code. However, it is a
+# pretty simple task that it must achieve, so it was chosen for simplicity.
+# 
+# Besides provides the mechanism for browsing to a file, this provides the
+# mechanism for actually writing the state to file. It delegates some
+# responsibilities to other snit::types like ScriptHeaderGenerator, but
+# otherwise swaps in an MCFD16CommandLogger to the MCFD16ControlPanel and calls
+# Commit. In this way, the same exact code executed to write the Gui state to an
+# MCFD16 device is executed for writing the file. At the end of this, the real
+# device handle is put back into place for use.
+#
+# The file produced by this is a standard tcl script that should have no problem
+# being executed as "tclsh < savedFile.tcl" as long as the proper directories
+# are included in the TCLLIBPATH.
 snit::widget SaveToFileForm {
 
-  variable _theApp
-  variable _path
+  variable _theApp ;# the MCFD16GuiApp
+  variable _path   ;# file path to write the state to.
   variable _displayPath
 
-  ##
+  ## @brief Pass in the state
   #
+  # @param app    the name of the MCFD16GuiApp instance
+  # @param args   option-value pairs for the potential future expansion (not
+  # used at the moment.
   constructor {app args} {
     set _theApp $app
     # this sets up the path and the display path
@@ -924,7 +1070,7 @@ snit::widget SaveToFileForm {
     $self BuildGUI
   }
 
-  ##
+  ## @brief Assemble the widgets into a unified megawidget
   #
   method BuildGUI {} {
     ttk::label  $win.pathLbl -text "Output file name"
@@ -937,8 +1083,9 @@ snit::widget SaveToFileForm {
     grid columnconfigure $win 1 -weight 1
   }
 
-  ##
+  ## @brief Launch a tk_getSaveFile dialogue when Browse button is pressed
   #
+  # when a non-empty path is returned from the browser, the path is updated.
   method Browse {} {
     set path [tk_getSaveFile -confirmoverwrite 1 -defaultextension ".tcl" \
                     -title {Save as} ] 
@@ -948,7 +1095,10 @@ snit::widget SaveToFileForm {
   }
 
 
-  ##
+  ## @brief The logic for saving
+  #
+  # The logic is described in the description of this snit::widget so I will
+  # just add the description inline.
   #
   method Save {} {
     if {$_path eq ""} {
@@ -984,23 +1134,35 @@ snit::widget SaveToFileForm {
     $control CommitAll
     $logger Flush ;# flush buffers to make sure it all gets into the file
 
-    # replace the logging driver with the real driver
+    # replace the logging driver with the real driver and update the view
     $control configure -handle $realHandle
     $control Update
 
+    # write the name of the channels to the logfile
     $self WriteChannelNames $logFile MCFD16ChannelNames
 
     # cleanup
     $logger destroy
     factory destroy
+
+    # close the file channel because nothing owns it.
+    close $logFile
   }
 
+  ## @param Write the name of the channels to the log file
+  #
+  # @param logFile      the file channel to write to
+  # @param nmspaceName  name of namespace describing channels
+  #
   method WriteChannelNames {logFile nmspaceName} {
     for {set ch 0} {$ch<16} {incr ch} {
       chan puts $logFile "set ${nmspaceName}::chan$ch [set ${nmspaceName}::chan$ch]"
     }
   }
 
+  ## @brief Update path
+  #
+  # @param  path    new path string
   method setPath path {
     set _path $path
     set _displayPath [file tail $path]
@@ -1008,18 +1170,33 @@ snit::widget SaveToFileForm {
 }
 
 
+## @brief The snit::widget responsible for loading state from a .tcl file
+#
+# This follows the MVP style where the logic is separated from the view. In this
+# case, the view is kept very humble by not implementing any callbacks other
+# than to forward events to the presenter.
+#
+# Unlike most other MVP designs, this will not blow up if there is no presenter
+# defined. Instead, events are dropped on the floor and not passed on in the
+# absence of the presenter. 
 snit::widget LoadFromFileForm {
 
-  option -presenter -default {}
+  option -presenter -default {} 
 
-  variable _path
+  variable _path ;# the path to the file to load
 
+  ## @brief Parse options and build GUI
+  #
+  # @param   args   the option-value pairs
+  #
   constructor {args} {
     $self configurelist $args
 
     $self BuildGUI
   }
 
+  ## @brief Assemble the widgets into a megawidget
+  #
   method BuildGUI {} {
     ttk::label  $win.pathLbl -text "Input file name"
     ttk::entry  $win.pathEntry -textvariable [myvar _path] -width 24 
@@ -1031,6 +1208,8 @@ snit::widget LoadFromFileForm {
     grid columnconfigure $win 1 -weight 1
   }
 
+  ## @brief Forward event to browse to the presenter
+  #
   method Browse {} {
     if {[$self cget -presenter] eq {} } {
       return
@@ -1039,6 +1218,8 @@ snit::widget LoadFromFileForm {
     }
   }
 
+  ## @brief forware event to load to the presenter
+  #
   method Load {} {
     if {[$self cget -presenter] eq {} } {
       return
@@ -1047,29 +1228,65 @@ snit::widget LoadFromFileForm {
     }
   }
 
+  ## @brief Setter for the path
+  #
   method SetPath {path} {
     set _path $path
   }
 }
 
+## @brief Logic for the LoadFromFileView
+#
+# The logic for this operation is more complicated than in most parts of this
+# gui in order to ensure that loading from a file is safe. The main
+# functionality of this is to respond to the events generated by the view,
+# react, and the update the view. The complexity lies in the fact that it parses
+# the file to load for only the allowed API calls. In this way, the method
+# prevents the execution of lines like: exec rm *. The logic does not go so far
+# as to totally prevent such a thing from being executed but does reduce the
+# risk. It also writes the names to the file. One could argue that some of that
+# logic should live in a separate snit::type, but for the moment it is the
+# responsibility of this.
+#
+# It is possible to construct this snit::type without an associated view to
+# control. This makes it easier to test instances.
+#
 snit::type LoadFromFilePresenter {
 
   option -view -default {} -configuremethod SetView
   variable _contentFr
 
+
+  ## @brief Construct and set up the state
+  #
+  # @param contentFr    an MCFD16ControlPanel instance
+  # @param args         option-value pairs
+  #
   constructor {contentFr args} {
     set _contentFr $contentFr 
 
     $self configurelist $args
   }
   
+  ## @brief Callback for "configure -view"
+  #
+  #  Stores the new -view but also passes $self to the view as the -presenter
+  #  option.
+  #   
+  #  @param opt   option name (must be -view)
+  #  @param val   name of LoadFromFileForm
+  #
   method SetView {opt val} {
     $val configure -presenter $self
     set options($opt) $val
   }
 
+  ## @brief Launch a file chooser dialogue
+  #
+  # Any non-empty path returned by the file chooser dialogue is used to set the
+  # path displayed by the view.
+  #
   method Browse {} {
-    puts "Handle name = [$_contentFr cget -handle]"
     set path [tk_getOpenFile -defaultextension ".tcl" \
                     -title {Choose file to load} ] 
                   
@@ -1079,6 +1296,17 @@ snit::type LoadFromFilePresenter {
     
   }
 
+  ## @brief Load a file into memory and use it to set the state of the Gui
+  #
+  # Comments are provided inline to facilitate the understanding of the logic.
+  # FOr the most part, this reads evaluable chunks of a file into a list,
+  # removes all chunks that are not relevant, recognized MCFD16 driver API calls
+  # or lines that set the name from the list, creates an MCFD16Memorizer that
+  # will be operated on by the list elements, swaps in an MCFD16Memorizer to the
+  # MCFD16ControlPanel, updates the MCFD16ControlPanel using the memorizer, and
+  # then replaces the memorizer with the real driver.
+  #
+  # @param  path    the path to a file containing state 
   method Load {path} {
     if {![file exists $path]} {
       set msg "Cannot load from $path, because file does not exist."
@@ -1088,11 +1316,13 @@ snit::type LoadFromFilePresenter {
       tk_messageBox -icon error -message $msg
     }
 
+    # split the file into complete chunks that can be passed to eval
     set rawLines [$self TokenizeFile $path]
 
     # find the lines we can safely execute
     set executableLines [$self FilterOutNonAPICalls $rawLines]
 
+    # determine the first
     set devName [$self ExtractDeviceName [lindex $executableLines 0]]
     if {[llength [info commands $devName]]>0} {
       if {[$_contentFr cget -handle] ne $devName} {
@@ -1120,6 +1350,15 @@ snit::type LoadFromFilePresenter {
     catch {close $loadFile}
   }
 
+  ## @brief Split the file into fully executable chunks
+  #
+  # This uses the BlockCompleter snit::type to find all complete blocks (i.e. at
+  # the end of a line the number of left and right curly braces are equal). The
+  # list of complete blocks are returned.
+  #
+  # @param path   the path to the file to parse
+  #
+  # @returns  the list of complete blocks 
   method TokenizeFile {path} {
     # if here, the file exists and can be updated
     set loadFile [open $path r]
@@ -1140,7 +1379,11 @@ snit::type LoadFromFilePresenter {
     return $blocks
   }
 
-  # swap in handle
+  ## @brief Replace current handle with a new handle
+  #
+  # @param  newHandle name of the instance to pass into the MCFD16ControlPanel
+  #
+  # @returns the name of the previous instance managed by the MCFD16ControlPanel
   method SwapInHandle {newHandle} {
     set oldHandle [$_contentFr cget -handle]
     $_contentFr configure -handle $newHandle
@@ -1148,7 +1391,18 @@ snit::type LoadFromFilePresenter {
     return $oldHandle
   }
 
-  # check to see if second element of
+  ## @brief Check to see if second element is an API call
+  #
+  # In a well-formed call to a device driver, the first element will be the name
+  # of the device driver instance and the second element of the line will be the
+  # actual method name. If the second element is not a string that is understood
+  # to be a valid method name, then we return false. That is only if that line
+  # is also not recognized as a command to manipulate the names.
+  # 
+  # @param  lines   the list of lines to filter
+  #
+  # @returns a list of lines that only contain  valid api calls or name
+  # manipulation code
   method FilterOutNonAPICalls lines {
     set validLines [list]
     foreach line $lines {
@@ -1159,6 +1413,15 @@ snit::type LoadFromFilePresenter {
     return $validLines
   }
 
+  ## @brief Retrieve name of the device driver from a line
+  #
+  # Given a line that is a driver call, the first element is the driver name.
+  # This first element is extracted. It is up to the caller to ensure that the
+  # line is actually an API call.
+  #
+  # @param line   the line of code to look in.
+  #
+  # @returns a device name specified as existing at the global scope
   method ExtractDeviceName {line} {
     set tokens [split $line " "]
     set name [lindex $tokens 0]
@@ -1168,6 +1431,17 @@ snit::type LoadFromFilePresenter {
     return $name
   }
 
+  ## @brief Check whether the second element of a line is a valid api call
+  #
+  # This snit::type provides a list of strings that it considers valid API
+  # calls. If the second element of the line is in this list, then it is
+  # considered an api call.
+  #
+  # @param line   line of code to check
+  #
+  # @returns boolean
+  # @retval 0 - second element is not in list of valid calls
+  # @retval 1 - otherwise
   method IsValidAPICall {line} {
     # we are only treating simple lines where the second element is the verb
     # this is valid for all 
@@ -1177,34 +1451,27 @@ snit::type LoadFromFilePresenter {
 
   method EvaluateAPILines {lines} {
     foreach line $lines {
-      puts $line
+      #puts $line
       uplevel #0 eval $line
     }
   }
 
+  ## @brief Check whether a line looks like it will set a channel name
+  #
+  # @returns boolean
+  # @retval 0 - doesn't satisfy regular expression
+  # @retval 1 - otherwise
   method IsNameLine {line} {
-#    # trim off white space at either end
-#    set line [string trim $line " "]
-#
-#    # split it into words
-#    set tokens [split $line " "]
-#
-#    # there must be at least 3 words in the line to be valid
-#    if {[llength $tokens] <= 2]} {
-#      return 0
-#    }
-#
-#    # must start with set
-#    if {[lindex $tokens 0] ne "set"} {
-#      return 0
-#    }
-
     set expression {^\s*set\s+(::)*MCFD16ChannelNames::chan.*$}
     return [regexp $expression $line]
 
   }
 
-  typevariable _validAPICalls
+  # Type data .... 
+  typevariable _validAPICalls ;# list of calls consider valid API calls
+
+  ## @brief Populate the list of valid api calls
+  #
   typeconstructor {
     set _validAPICalls [list]
     lappend _validAPICalls "SetThreshold"
@@ -1233,7 +1500,14 @@ snit::type LoadFromFilePresenter {
   }
 }
 
-##
+## @brief The widgets for enabling and disabling channels
+# 
+# This is intended for controlling the channel mask parameter. It is reached by
+# the menu bar. This particular snit::widget does not actually do anything other
+# than maintain a set a widgets and a means to access or set the values
+# controlled by them. 
+#
+# It is intended to be controlled by the ChannelEnableDisablePresenter.
 #
 #
 snit::widget ChannelEnableDisableView {
@@ -1250,8 +1524,9 @@ snit::widget ChannelEnableDisableView {
 
   variable _rows
 
+  ## @brief Build the GUI and set the state
+  #
   constructor {args} {
-    puts ctor
     $self configurelist $args
 
     for {set ch 0} {$ch < 8} {incr ch} {
@@ -1263,6 +1538,8 @@ snit::widget ChannelEnableDisableView {
     $self BuildGUI
   }
 
+  ## @brief Buil
+  #
   method BuildGUI {} {
     $self BuildHeader $win.header
 
@@ -1366,19 +1643,33 @@ snit::widget ChannelEnableDisableView {
     set $str "Ch$ch"
   }
 
+  ## @brief Set a specific bit to a value
+  #
+  # This does not check for valid parameter values and leaves it to the caller
+  # to make sure that they are reasonable.
+  #
+  # @param index  bit index (must be in range [0,7])
+  # @param val    value  (must be either 0 or 1)
   method SetBit {index val} {
     set _bit$index $val
   }
 
+  ## @brief Retrieve the index-th bit value
+  # 
+  # There is no parameter checking in this so it is up to the caller to pass in
+  # a good bit index.
+  #
+  # @param index  index of bit (must be in range [0,7])
+  #
+  # @returns value of bit
   method GetBit {index} {
     return [set _bit$index]
   }
 
+  ## @brief Forward commit event to the presenter
   #
-  method SetNames {names} {
-    array set _names $names
-  }
-
+  # If no presenter exists, then nothing is done.
+  #
   method Commit {} {
     set presenter [$self cget -presenter]
     if {$presenter ne {}} {
@@ -1386,6 +1677,10 @@ snit::widget ChannelEnableDisableView {
     }
   }
 
+  ## @brief Forward an update event to the presenter
+  #
+  # If no presenter exists, then nothing is done.
+  #
   method Update {} {
     set presenter [$self cget -presenter]
     if {$presenter ne {}} {
@@ -1394,25 +1689,44 @@ snit::widget ChannelEnableDisableView {
   }
 }
 
+
+##############################################################################
+
+## @brief The logic for the ChannelEnableDisableView
+#
 snit::type ChannelEnableDisablePresenter {
 
   option -view -default {} -configuremethod SetView
   option -handle -default {} -configuremethod SetHandle
 
+  ## @brief Parse options and construct
+  #
   constructor {args} {
     $self configurelist $args
   }
 
+  ## @brief Handler for when the view state is to be transmitted to device
+  #
+  # First commits the mask and then reads the state back from the device
+  #
   method Commit {} {
     $self CommitMask
     $self UpdateViewFromModel
   }
 
+  ## @brief Read the state from the device and synchronize to the view
+  #
   method Update {} {
     $self UpdateViewFromModel
   }
 
+  ## @brief Read the state from the device and synchronize to the view
+  #
+  # @throws error if no handle exists
+  # @throws error if no view exists
+  # @throws error if communication fails
   method UpdateViewFromModel {} {
+    # verify that first there is a device to communicate with
     set handle [$self cget -handle]
     if {$handle eq {}} {
       set msg {ChannelEnableDisablePresenter::UpdateViewFromModel }
@@ -1420,27 +1734,38 @@ snit::type ChannelEnableDisablePresenter {
       return -code error $msg
     }
 
+    # verify that first there is a view to communicate with
     set view [$self cget -view]
     if {$view eq {}} {
       set msg {ChannelEnableDisablePresenter::UpdateViewFromModel }
       append msg {Cannot update view because it does not exist.}
       return -code error $msg
-    }
+     }
 
+    # try to read the channel mask
     if {[catch {$handle GetChannelMask} mask]} {
       set msg "Failure while reading channel mask from device with message : "
       append msg "$mask"
       tk_messageBox -icon error -message $msg
     } else {
+
+      # split the mask into a list of bits
       set bits [$self DecodeMaskIntoBits $mask]
 
+      # update the view
       for {set bit 0} {$bit < 8} {incr bit} {
         $view SetBit $bit [lindex $bits $bit]
       }
     }
   }
 
+  ## @brief Write the state of the view to the device
+  #
+  # @throws error if no handle exists
+  # @throws error if no view exists
+  #
   method CommitMask {} {
+    # check for the presence of a handle
     set handle [$self cget -handle]
     if {$handle eq {}} {
       set msg {ChannelEnableDisablePresenter::CommitMask }
@@ -1448,6 +1773,7 @@ snit::type ChannelEnableDisablePresenter {
       return -code error $msg
     }
 
+    # check for the presence of a view
     set view [$self cget -view]
     if {$view eq {}} {
       set msg {ChannelEnableDisablePresenter::CommitMask }
@@ -1455,16 +1781,28 @@ snit::type ChannelEnableDisablePresenter {
       return -code error $msg
     }
 
+    # get the bits from the view and load them into the state
     set bits [list]
     for {set index 0} {$index < 8} {incr index} {
       lappend bits [$view GetBit $index]
     }
 
+    # turn list of bits into a number
     set mask [$self EncodeMaskIntoBits $bits]
+
+    # write the mask
     $handle SetChannelMask $mask
   }
 
+  # UTILITY METHODS
 
+  ## @brief Split an integer into a list of bits
+  #
+  # Given an integer, convert it to a list of 0s and 1s that represent it. Split
+  # the bits up and form a list. For example, passing 100 (0x64) into this method, the
+  # result will be {0 0 1 0 0 1 1 0}
+  #
+  # @returns list of 8 bits (least significant bit first)
   method DecodeMaskIntoBits {mask} {
     set bits [list]
 
@@ -1478,6 +1816,14 @@ snit::type ChannelEnableDisablePresenter {
     return [split $binRep {}]
   }
 
+  ## @brief Turn a list of bits into an equivalent integer
+  #
+  # This is the opposite operation of the DecodeMaskIntoBits. Given a list i
+  # {0 0 1 0 0 1 1 0}, the method will return a value of 100.
+  #
+  # @param list of bits (least significant bit first)
+  #
+  # @returns an integer
   method EncodeMaskIntoBits {bits} {
     set mask 0
 
@@ -1496,6 +1842,14 @@ snit::type ChannelEnableDisablePresenter {
     return $mask
   } 
 
+  ## @brief Callback for a "configure -view" operation
+  # 
+  # Performs the handshake required when the view is set. A new view is passed
+  # $self as the value to its -presenter option. If a handle exists, it is
+  # appropriate to update the state of the view from it.
+  #
+  # @param opt    option name (should be -view)
+  # @param val    value (name of view)
   method SetView {opt val} {
     # store the new view (opt="-view", val = new view name)
     set options($opt) $val
@@ -1508,6 +1862,14 @@ snit::type ChannelEnableDisablePresenter {
     }
   }
 
+  ## @brief Callback for a "configure -handle" operation
+  #
+  # Sets the -handle option to the new value and also updates the view from it
+  # if the -view option is set.
+  #
+  # @param opt  option name (should be -handle)
+  # @param val  value (name of handle)
+  #
   method SetHandle {opt val} {
     # store the new handle (opt="-handle", val = new handle name)
     set options($opt) $val
@@ -1522,25 +1884,36 @@ snit::type ChannelEnableDisablePresenter {
 
 
 
-#########
+################################################################################
+
+## @brief Megawidget for controlling the pulser state
+#
+# The PulserView is just a collection of widgets. It assembles them and then
+# forwards any events to the widgets to a presenter object if one exists. It is
+# intended to work with a PulserPresenter only.
+# 
 #
 snit::widget PulserView {
-  hulltype ttk::frame
-  option -pulserid   -default 1
-  option -enabled    -default 0
-  option -buttontext -default {Enable} 
+  hulltype ttk::frame ;# force the hulltype to ensure we can set the style
+  option -pulserid   -default 1 ;# value of pulser (1 or 2)
+  option -enabled    -default 0 ;# whether state of buttons are enabled
+  option -buttontext -default {Enable}  ;# 
   option -radiobuttonstate -default 0 -configuremethod RadiobuttonStateChange
 
-  option -presenter -default {}
+  option -presenter -default {} ;# option presenter name
 
   delegate option * to hull
 
+  ## @brief Construct the widget and parse the options
+  #
   constructor {args} {
     $self configurelist $args
 
     $self BuildGUI
   }
 
+  ## @brief Assemble the widgets
+  #
   method BuildGUI {} {
     $self configure -style Pulser.TFrame
 
@@ -1562,6 +1935,10 @@ snit::widget PulserView {
     grid columnconfigure $win {0 1 2 3} -weight 1
   }
 
+  ## @brief Forwards a button press event to the presenter
+  #
+  # If no presenter exists, then this is a no op.
+  #
   method OnPress {} {
     set presenter [$self cget -presenter] 
     if {$presenter ne {}} {
@@ -1570,6 +1947,14 @@ snit::widget PulserView {
     # it is not an error if there is no presenter... it is instead a noop
   }
 
+  ## @brief Callback for when the state changes
+  #
+  # This allows for a single call of (configure -radiobuttonstate ...) to set
+  # the state for both of the radiobuttons.
+  #
+  # @param option   name of option (should only be -radiobuttonstate)
+  # @param val      state to set it to (0 or 1)
+  #
   method RadiobuttonStateChange {option val} {
     if {$val == 0} {
       $win.mHzPulser state disabled
@@ -1582,12 +1967,29 @@ snit::widget PulserView {
   }
 }
 
+###############################################################################
 
+## @brief Logic behind the PulserView
+#
+# The logic for this is designed around a state transition. When the user
+# presses the Enable or Disable button, they are actually requesting a state
+# transition. For this reason, this transitions the state and then updates the
+# view to reflect that state. 
+#
 snit::type PulserPresenter {
 
-  variable _handle
-  variable _view
+  variable _handle ;# name of the handle instance
+  variable _view ;# name of the view
   
+  ## @brief Introduce the view to the presenter, setup
+  #
+  # Because we cannot know a priori the state of the pulser, there needs to be a
+  # known state. To accomplish this we disable the pulser on construction.
+  #
+  # Once set up, the view is synchronized to the state of the device.
+  # 
+  # @param view   name of the PulserView instance
+  # @param handle name of the device driver
   constructor {view handle} {
     set _view $view
     set _handle $handle
@@ -1598,10 +2000,13 @@ snit::type PulserPresenter {
     # we don't know which pulser state exists, so we will disable by default
     $_handle DisablePulser 
 
+    # synchronize
     $self UpdateViewFromModel
 
   }
 
+  ## @brief Perform appropriate transition and synchronize
+  #
   method OnPress {} {
     $self TransitionAndCommitViewToModel
 
@@ -1609,6 +2014,12 @@ snit::type PulserPresenter {
     $self UpdateViewFromModel
   }
 
+  ## @brief Synchronize the view to the state of the device
+  #
+  # In this case, the only thing that can be done is to check whether or not the
+  # pulser is enabled or disabled.
+  #
+  # Once that state is known, the view is updated to reflect it.
   method UpdateViewFromModel {} {
     # get state of the device
     set state [$_handle PulserEnabled]
@@ -1623,6 +2034,14 @@ snit::type PulserPresenter {
     $self UpdateRadiobuttonState $state
   }
 
+  ## @brief Transition the state of device
+  #
+  # If the button originally displays, "Enable", then we must transition to
+  # an active state. If displying "Disable" we transition to inactive.
+  # Transitioning to active means enabling the pulser and to inactive means
+  # disabling the pulser. This assumes that the device and the view are in sync
+  # already.
+  #
   method TransitionAndCommitViewToModel {} {
     # get state of the view (determined by button text)
     set trans [$self GetTransitionType]
@@ -1632,6 +2051,13 @@ snit::type PulserPresenter {
 
   }
 
+  ## @brief Synchronize device to the view state
+  #
+  # This is fundamentally different than transitioning. It does not assume that
+  # the device and the view are in the same state and forces the device to
+  # conform to the state of the view. Doing so does not introduce a transition
+  # of the over system, though it might change the state of the device.
+  #
   method CommitViewToModelNoTransition {} {
     set buttontext [$_view cget -buttontext]
 
@@ -1644,6 +2070,15 @@ snit::type PulserPresenter {
     }
   }
 
+  ## @brief Check whether button text is "Enable"
+  #
+  # In the logic, the button text is actually the flag used to determine the
+  # state of the view. It is a boolean value so it is perfectly suitable.
+  #
+  # @returns boolean
+  # @retval 1 - button text on view shows "Enable"
+  # @retval 0 - otherwise
+  #
   method GetViewEnabled {} {
     set text [$_view cget -buttontext]
     if {$text eq "Enable"} {
@@ -1653,6 +2088,17 @@ snit::type PulserPresenter {
     }
   }
 
+  ## @brief Write to device according to transition type
+  #
+  # The transition type determines whether the pulser will be enabled or
+  # disabled. If the transition enables the device, the -pulserid is retrieved
+  # from the view to select which pulser should be enabled.
+  #  
+  # @warning No parameter checking occurs and it is caller's responsibility to
+  # verify that either enable or disable is passed in. 
+  #
+  # @param transType  either "enable" or "disable"
+  #
   method TransitionPulser {transType} {
     if {$transType == "enable"} {
       # user wants to enable...
@@ -1663,6 +2109,11 @@ snit::type PulserPresenter {
     
   }
 
+  ## @brief Determine type of transition from the button text
+  #
+  # @returns string
+  # @retval enable - button displays "Enable"
+  # @retval disable - otherwise
   method GetTransitionType {} {
     set buttontext [$_view cget -buttontext]
     if {$buttontext eq "Enable"} {
@@ -1671,6 +2122,11 @@ snit::type PulserPresenter {
       return disable
     }
   }
+
+  ## @brief Set the button text according to the state
+  #
+  # @param state  state name (should be "active" or "inactive")
+  #
   method UpdateButtonText {state} {
     if {$state eq "active"} {
       # user has set it into enabled
@@ -1680,6 +2136,10 @@ snit::type PulserPresenter {
     }
   }
 
+  ## @brief Set the radiobutton state according to state type
+  #
+  # @param state  state name (should be active or inactive)
+  #
   method UpdateRadiobuttonState {state} {
     if {$state eq "active"} {
       $_view configure -radiobuttonstate 0
@@ -1688,10 +2148,17 @@ snit::type PulserPresenter {
     }
   }
 
+  ## @brief Pass in a new handle
+  # 
+  # @param handle   name of new MCFD16 driver instance to use
+  #
   method SetHandle {handle} {
     set _handle $handle
   }
 
+  ## @brief Retrieve name of currently used handle instance
+  #
+  # @returns name of handle
   method GetHandle {} {
     return $_handle
   }
