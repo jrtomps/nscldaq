@@ -21,6 +21,7 @@ class CMockCCUSBTests : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(CMockCCUSBTests);
   CPPUNIT_TEST(executeList_0);
   CPPUNIT_TEST(executeList_1);
+  CPPUNIT_TEST(simpleControl_0);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -32,6 +33,7 @@ public:
 
   void executeList_0();
   void executeList_1();
+  void simpleControl_0();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(CMockCCUSBTests);
@@ -99,7 +101,22 @@ void CMockCCUSBTests::executeList_1()
   expected[2] = "executeList::end";
 
   auto record = ctlr.getOperationsRecord();
-  print_vectors(expected, record);
+  //print_vectors(expected, record);
 
   CPPUNIT_ASSERT( expected == record);
+}
+
+
+void CMockCCUSBTests::simpleControl_0() 
+{
+  CMockCCUSB ctlr;
+  ctlr.simpleControl(10,0,10);
+
+  vector<string> expected={"executeList::begin",
+    "control 10 0 10",
+    "executeList::end"};
+  auto record = ctlr.getOperationsRecord();
+
+  print_vectors(expected, record);
+  CPPUNIT_ASSERT(expected == record);
 }

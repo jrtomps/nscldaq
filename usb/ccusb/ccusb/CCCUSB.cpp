@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <os.h>
 #include <iostream>
+#include <memory>
 #include <iomanip>
 
 
@@ -324,14 +325,14 @@ CCCUSB::simpleRead24(int n, int a, int f, uint32_t& data, uint16_t& qx)
 int
 CCCUSB::simpleControl(int n, int a, int f, uint16_t& qx)
 {
-  CCCUSBReadoutList l;
+  std::unique_ptr<CCCUSBReadoutList> pList(createReadoutList());
   size_t            nRead;
   
  
 
-  l.addControl(n,a,f);    // validates n/a/f.
+  pList->addControl(n,a,f);    // validates n/a/f.
 
-  int status = executeList(l, &qx, sizeof(qx), &nRead);
+  int status = executeList(*pList, &qx, sizeof(qx), &nRead);
 
   return status;
 }
@@ -1146,11 +1147,11 @@ CCCUSB::listToOutPacket(uint16_t ta, CCCUSBReadoutList& list,
 int 
 CCCUSB::read32(int n, int a, int f, uint32_t& data)
 {
-  CCCUSBReadoutList l;
+  std::unique_ptr<CCCUSBReadoutList> pList(createReadoutList());
   size_t            nRead;
  
-  l.addRead24(n,a,f);
-  int status = executeList(l, 
+  pList->addRead24(n,a,f);
+  int status = executeList(*pList, 
          &data,
          sizeof(data),
          &nRead);
@@ -1164,11 +1165,11 @@ CCCUSB::read32(int n, int a, int f, uint32_t& data)
 int 
 CCCUSB::read16(int n, int a, int f, uint16_t& data)
 {
-  CCCUSBReadoutList l;
+  std::unique_ptr<CCCUSBReadoutList> pList(createReadoutList());
   size_t            nRead;
 
-  l.addRead16(n,a,f);
-  return  executeList(l,
+  pList->addRead16(n,a,f);
+  return  executeList(*pList,
           &data,
           sizeof(data),
           &nRead);
@@ -1180,12 +1181,12 @@ CCCUSB::read16(int n, int a, int f, uint16_t& data)
 int
 CCCUSB::write32(int n, int a, int f, uint32_t data, uint16_t& qx)
 {
-  CCCUSBReadoutList l;
+  std::unique_ptr<CCCUSBReadoutList> pList(createReadoutList());
   size_t            nRead;
   
 
-  l.addWrite24(n,a,f, data);
-  int status  = executeList(l,
+  pList->addWrite24(n,a,f, data);
+  int status  = executeList(*pList,
           &qx,
           sizeof(qx),
           &nRead);
@@ -1198,17 +1199,16 @@ CCCUSB::write32(int n, int a, int f, uint32_t data, uint16_t& qx)
 int 
 CCCUSB::write16(int n, int a, int f, uint16_t data, uint16_t& qx)
 {
-  CCCUSBReadoutList l;
   size_t nRead;
 
   return write32(n, a, f, (uint32_t)data, qx);
   
 
-  l.addWrite16(n,a,f, data);
-  return executeList(l,
-         &qx,
-         sizeof(qx),
-         &nRead);
+//  l.addWrite16(n,a,f, data);
+//  return executeList(l,
+//         &qx,
+//         sizeof(qx),
+//         &nRead);
 
 }
 
