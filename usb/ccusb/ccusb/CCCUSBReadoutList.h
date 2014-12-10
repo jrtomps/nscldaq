@@ -93,8 +93,8 @@
  public:
    // Single shot operations:
 
-   void addWrite16(int n, int a, int f, uint16_t data);
-   void addWrite24(int n, int a, int f, uint32_t data);
+   virtual void addWrite16(int n, int a, int f, uint16_t data);
+   virtual void addWrite24(int n, int a, int f, uint32_t data);
 
 //   void addWrite16(int n, int a, int f, int data) { /* swig */
 //     addWrite16(n,a,f, (uint16_t)data);
@@ -103,16 +103,16 @@
 //     addWrite24(n,a,f, (uint32_t)data);
 //   }
 
-   void addRead16(int n, int a, int f, bool lamWait=false);
-   void addRead24(int n, int a, int f, bool lamWait=false);
+   virtual void addRead16(int n, int a, int f, bool lamWait=false);
+   virtual void addRead24(int n, int a, int f, bool lamWait=false);
 
-   void addControl(int n, int a, int f);
+   virtual void addControl(int n, int a, int f);
 
 
    // Block transfer operations:
 
-   void addQStop(int n, int a, int f, uint16_t max, bool lamWait = false);
-   void addQStop24(int n, int a, int f, uint16_t max, bool lamWait = false);
+   virtual void addQStop(int n, int a, int f, uint16_t max, bool lamWait = false);
+   virtual void addQStop24(int n, int a, int f, uint16_t max, bool lamWait = false);
    void addQStop(int n, int a, int f, int max, bool lamWait = false) { /* swig */
      addQStop(n,a,f, (uint16_t)max, lamWait);
    }
@@ -121,24 +121,24 @@
    }
 
 
-   void addQScan(int n, int a, int f, uint16_t max, bool lamWait = false);
+   virtual void addQScan(int n, int a, int f, uint16_t max, bool lamWait = false);
    void addQScan(int n, int a, int f, int max, bool lamWait = false) { /* swig */
      addQScan(n,a,f,(uint16_t)max, lamWait);
    }
 
-   void addRepeat(int n, int a, int f,uint16_t count, bool lamWait=false);
+   virtual void addRepeat(int n, int a, int f,uint16_t count, bool lamWait=false);
    void addRepeat(int n, int a, int f, int count, bool lamWait=false) {
      addRepeat(n,a,f, (uint16_t) count, lamWait);
    }
 
    // Other:
 
-   void addMarker(uint16_t value);    // Add literal value to event.
+   virtual void addMarker(uint16_t value);    // Add literal value to event.
    void addMarker(int value) {	     /* swig */
      addMarker((uint16_t)value);
    }
 
-   void addAddressPatternRead16(int n, int a, int f, bool lamWait=false);
+   virtual void addAddressPatternRead16(int n, int a, int f, bool lamWait=false);
 //   void addAddressPatternRead24(int n, int a, int f, bool lamWait=false);
 
   // 
