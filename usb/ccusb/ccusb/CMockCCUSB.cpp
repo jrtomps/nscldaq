@@ -7,6 +7,7 @@
 
 using namespace std;
 
+
 void CMockCCUSB::reconnect() {
   m_record.push_back("reconnect");
 }
@@ -33,6 +34,14 @@ int CMockCCUSB::executeList(CCCUSBReadoutList& list,
     status = executeLoggingRdoList(logList, pReadBuffer, readBufferSize, bytesRead);
   } catch (std::bad_cast&) {
     status = executeCCUSBRdoList(list,pReadBuffer, readBufferSize, bytesRead);
+  }
+
+  // fill the return data
+  fillReturnData(pReadBuffer, readBufferSize, bytesRead);
+
+  // pop off the front
+  if (m_returnData.size()>0) {
+    m_returnData.erase(m_returnData.begin());
   }
 
   return status; 
@@ -117,5 +126,18 @@ int CMockCCUSB::usbRead(void* data, size_t bufferSize, size_t* transferCount,
   m_formatter << dec << timeout << ")";
 
   m_record.push_back(m_formatter.str());
+}
+
+
+void CMockCCUSB::addReturnDatum(uint16_t datum) 
+{
+  vector<uint16_t> returnData = {datum};
+  vector<uint16_t>& buffer = createReturnDataStructure();
+  buffer.insert(buffer.end(), returnData.begin(), returnData.end());
+}
+void CMockCCUSB::addReturnData(std::vector<uint16_t> data) 
+{
+  vector<uint16_t>& buffer = createReturnDataStructure();
+  buffer.insert(buffer.end(), data.begin(), data.end());
 }
 

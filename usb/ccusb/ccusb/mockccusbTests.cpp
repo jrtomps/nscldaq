@@ -22,6 +22,8 @@ class CMockCCUSBTests : public CppUnit::TestFixture {
   CPPUNIT_TEST(executeList_0);
   CPPUNIT_TEST(executeList_1);
   CPPUNIT_TEST(simpleControl_0);
+  CPPUNIT_TEST(addReturnDatum_0);
+  CPPUNIT_TEST(addReturnData_0);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -34,6 +36,8 @@ public:
   void executeList_0();
   void executeList_1();
   void simpleControl_0();
+  void addReturnDatum_0();
+  void addReturnData_0();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(CMockCCUSBTests);
@@ -119,4 +123,67 @@ void CMockCCUSBTests::simpleControl_0()
 
   print_vectors(expected, record);
   CPPUNIT_ASSERT(expected == record);
+}
+
+
+void CMockCCUSB::fillReturnData(void* pBuffer, size_t bufSize, size_t* nbytes) 
+{
+  //  figure out how many uint16_ts to copy into buffer
+  //  - we copy the maximum number possible
+  size_t bufferSize = bufSize/sizeof(uint16_t);
+
+  if (m_returnData.size()==0) {
+    *nbytes = 0;
+  } else {
+
+    auto& returnData = m_returnData.front();
+    size_t nToReturn = std::min(bufferSize, returnData.size());
+    (*nbytes) = nToReturn*sizeof(uint16_t);
+
+    // copy
+    uint16_t* buffer = reinterpret_cast<uint16_t*>(pBuffer);
+
+    for (size_t index=0; index<nToReturn; ++index) {
+      *(buffer+index) = returnData[index];
+    }
+
+    auto begin = returnData.begin();
+    auto end = begin + nToReturn;
+
+    returnData.erase(begin, end);
+  }
+}
+
+void CMockCCUSBTests::addReturnDatum_0()
+{
+  CMockCCUSB ctlr;
+  ctlr.addReturnDatum(3);
+
+  CCCUSBReadoutList list; 
+  uint16_t buffer[2];
+  size_t nBytes=0;
+  int status = ctlr.executeList(list, buffer, sizeof(buffer), &nBytes);
+
+  CPPUNIT_ASSERT_EQUAL(0, status);
+  CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(2),nBytes);
+  CPPUNIT_ASSERT_EQUAL(static_cast<uint16_t>(3),buffer[0]);
+
+
+}
+void CMockCCUSBTests::addReturnData_0()
+{
+  CMockCCUSB ctlr;
+  vector<uint16_t> toReturn = {4, 3, 2, 1};
+  ctlr.addReturnData(toReturn);
+
+  CCCUSBReadoutList list; 
+  uint16_t buffer[2];
+  size_t nBytes=0;
+  int status = ctlr.executeList(list, buffer, sizeof(buffer), &nBytes);
+
+  CPPUNIT_ASSERT_EQUAL(0, status);
+  CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(4),nBytes);
+  CPPUNIT_ASSERT_EQUAL(static_cast<uint16_t>(4),buffer[0]);
+  CPPUNIT_ASSERT_EQUAL(static_cast<uint16_t>(3),buffer[1]);
+
 }

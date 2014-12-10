@@ -17,6 +17,7 @@ class CMockCCUSB : public CCCUSB {
   private:
     std::vector<std::string> m_record;
     std::ostringstream       m_formatter;
+    std::vector<std::vector<uint16_t> > m_returnData;
   
   public:
     CLoggingReadoutList* createReadoutList() const 
@@ -37,6 +38,21 @@ class CMockCCUSB : public CCCUSB {
 
     std::vector<std::string> getOperationsRecord() {return m_record;}
 
+    std::vector<uint16_t>& createReturnDataStructure() 
+    {
+      m_returnData.push_back(std::vector<uint16_t>());
+      return m_returnData.back();
+    }
+
+    std::vector<std::vector<uint16_t> >& getReturnData() 
+    {
+      return m_returnData;
+    };
+
+    void addReturnDatum(uint16_t datum);
+    void addReturnData(std::vector<uint16_t> datum);
+
+
   private:
     int executeCCUSBRdoList(CCCUSBReadoutList& list,
                     void* pReadBuffer,
@@ -46,6 +62,10 @@ class CMockCCUSB : public CCCUSB {
                     void* pReadBuffer,
                     size_t readBufferSize,
                     size_t* bytesRead);
+    void fillReturnData(void* pReadBuffer,
+                    size_t readBufferSize,
+                    size_t* bytesRead);
+                           
 };
 
 #endif 
