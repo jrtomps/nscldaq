@@ -1,7 +1,9 @@
 
 #include <CMockCCUSB.h>
 
+#include <iostream>
 #include <iomanip>
+#include <typeinfo>
 
 using namespace std;
 
@@ -24,6 +26,23 @@ int CMockCCUSB::executeList(CCCUSBReadoutList& list,
     size_t readBufferSize,
     size_t* bytesRead)
 {
+  int status = 0;
+  try {
+    // try to upcast reference. this throws if not possible.
+    CLoggingReadoutList& logList = dynamic_cast<CLoggingReadoutList&>(list);
+    status = executeLoggingRdoList(logList, pReadBuffer, readBufferSize, bytesRead);
+  } catch (std::bad_cast&) {
+    status = executeCCUSBRdoList(list,pReadBuffer, readBufferSize, bytesRead);
+  }
+
+  return status; 
+}
+
+int CMockCCUSB::executeCCUSBRdoList(CCCUSBReadoutList& list,
+    void* pReadBuffer,
+    size_t readBufferSize,
+    size_t* bytesRead)
+{
   m_formatter << hex << setfill('0');
 
   std::vector<uint16_t> ops = list.get();
@@ -31,18 +50,33 @@ int CMockCCUSB::executeList(CCCUSBReadoutList& list,
 
   // 
   m_record.reserve(m_record.size() + size + 2);
-  m_record.push_back("executelist-begin");
+  m_record.push_back("executeList::begin");
 
   // add all of the operations
   for (unsigned int index=0; index < size; ++index) {
 
     m_formatter.str(""); m_formatter.clear();
 
-    m_formatter << setw(8) << ops.at(index);
+    m_formatter << setw(4) << ops.at(index);
     m_record.push_back(m_formatter.str());
   }
 
-  m_record.push_back("executelist-end");
+  m_record.push_back("executeList::end");
+
+  return 0;
+}
+
+int CMockCCUSB::executeLoggingRdoList(CLoggingReadoutList& list,
+    void* pReadBuffer,
+    size_t readBufferSize,
+    size_t* bytesRead)
+{
+  m_record.push_back("executeList::begin");
+  auto log = list.getLog();
+  m_record.insert(m_record.end(), log.begin(), log.end());
+  m_record.push_back("executeList::end");
+
+  return 0;
 }
 
 int CMockCCUSB::loadList(uint8_t listNumber, CCCUSBReadoutList& list) 

@@ -97,7 +97,9 @@ remotetests_LDFLAGS = -Wl,"-rpath=@libdir@"
 
 
 ## These are tests that run automatically at check-TESTS
-unittests_SOURCES  = TestRunner.cpp rdolistTests.cpp loggingrdolistTests.cpp
+unittests_SOURCES  = TestRunner.cpp rdolistTests.cpp \
+										 loggingrdolistTests.cpp \
+										 mockccusbTests.cpp
 unittests_LDADD    = $(CPPUNIT_LDFLAGS) \
 											-L@libdir@ -lCCUSB \
 											@TCL_LDFLAGS@ \

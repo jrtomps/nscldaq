@@ -138,7 +138,8 @@ public:
 
     virtual void reconnect() = 0;
 
-    CCCUSBReadoutList* createReadoutList() const { return new CCCUSBReadoutList; }
+    virtual CCCUSBReadoutList* createReadoutList() const 
+    { return new CCCUSBReadoutList; }
 
 
     // Register I/O operations.

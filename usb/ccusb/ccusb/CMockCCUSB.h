@@ -8,6 +8,8 @@
 #include <vector>
 #include <sstream>
 
+#include <memory>
+#include <CLoggingReadoutList.h>
 #include <CCCUSB.h>
 
 class CMockCCUSB : public CCCUSB {
@@ -17,6 +19,9 @@ class CMockCCUSB : public CCCUSB {
     std::ostringstream       m_formatter;
   
   public:
+    CLoggingReadoutList* createReadoutList() const 
+    {return new CLoggingReadoutList;}
+
     void reconnect();
     void writeActionRegister(uint16_t val);
 
@@ -32,6 +37,15 @@ class CMockCCUSB : public CCCUSB {
 
     std::vector<std::string> getOperationsRecord() {return m_record;}
 
+  private:
+    int executeCCUSBRdoList(CCCUSBReadoutList& list,
+                    void* pReadBuffer,
+                    size_t readBufferSize,
+                    size_t* bytesRead);
+    int executeLoggingRdoList(CLoggingReadoutList& list,
+                    void* pReadBuffer,
+                    size_t readBufferSize,
+                    size_t* bytesRead);
 };
 
 #endif 
