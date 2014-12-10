@@ -7,9 +7,13 @@ COMPILATION_FLAGS		= -I@top_srcdir@/base/os \
 												-I@top_srcdir@/base/tcpip 
 
 
-libCCUSB_la_SOURCES	= CCCUSB.cpp CCCUSBusb.cpp CCCUSBRemote.cpp CMockCCUSB.cpp CCCUSBReadoutList.cpp
+libCCUSB_la_SOURCES	= CCCUSB.cpp CCCUSBusb.cpp CCCUSBRemote.cpp \
+											CMockCCUSB.cpp CCCUSBReadoutList.cpp \
+											CLoggingReadoutList.cpp
 libCCUSB_la_CPPFLAGS    = $(COMPILATION_FLAGS)
-include_HEADERS         = CCCUSB.h CCCUSBusb.h CCCUSBRemote.h CMockCCUSB.h CCCUSBReadoutList.h
+include_HEADERS         = CCCUSB.h CCCUSBusb.h CCCUSBRemote.h \
+													CMockCCUSB.h CCCUSBReadoutList.h \
+													CLoggingReadoutList.h
 
 
 ## SWIG wrapper generation
@@ -93,7 +97,7 @@ remotetests_LDFLAGS = -Wl,"-rpath=@libdir@"
 
 
 ## These are tests that run automatically at check-TESTS
-unittests_SOURCES  = TestRunner.cpp rdolistTests.cpp
+unittests_SOURCES  = TestRunner.cpp rdolistTests.cpp loggingrdolistTests.cpp
 unittests_LDADD    = $(CPPUNIT_LDFLAGS) \
 											-L@libdir@ -lCCUSB \
 											@TCL_LDFLAGS@ \
