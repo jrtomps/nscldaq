@@ -115,6 +115,35 @@ int CMockCCUSB::loadList(uint8_t listNumber, CCCUSBReadoutList& list)
   m_record.push_back("loadlist-end");
 }
 
+void CMockCCUSB::fillReturnData(void* pBuffer, size_t bufSize, size_t* nbytes) 
+{
+  //  figure out how many uint16_ts to copy into buffer
+  //  - we copy the maximum number possible
+  size_t bufferSize = bufSize/sizeof(uint16_t);
+
+  if (m_returnData.size()==0) {
+    *nbytes = 0;
+  } else {
+
+    auto& returnData = m_returnData.front();
+    size_t nToReturn = std::min(bufferSize, returnData.size());
+    (*nbytes) = nToReturn*sizeof(uint16_t);
+
+    // copy
+    uint16_t* buffer = reinterpret_cast<uint16_t*>(pBuffer);
+
+    for (size_t index=0; index<nToReturn; ++index) {
+      *(buffer+index) = returnData[index];
+    }
+
+    auto begin = returnData.begin();
+    auto end = begin + nToReturn;
+
+    returnData.erase(begin, end);
+  }
+}
+
+
 int CMockCCUSB::usbRead(void* data, size_t bufferSize, size_t* transferCount, 
     int timeout) 
 {
