@@ -503,10 +503,12 @@ void
 CAcquisitionThread::pauseDaq()
 {
   CControlQueues* queues = CControlQueues::getInstance();
-  stopDaq();
   CRunState* pState = CRunState::getInstance();
   pState->setState(CRunState::Stopping); // No monitoring for now.
+  stopDaq();
+  pState->setState(CRunState::Paused);    // Fully paused.
   queues->Acknowledge();
+  
 
   while (1) {
     CControlQueues::opCode req = queues->getRequest();
@@ -545,9 +547,10 @@ void
 CAcquisitionThread::VMusbToAutonomous()
 {
     CRunState* pState = CRunState::getInstance();
-    pState->setState(CRunState::Active);
+    
 
     m_pVme->writeActionRegister(CVMUSB::ActionRegister::startDAQ);
+    pState->setState(CRunState::Active);
 }
 /*!
   Drain usb - We read buffers from the DAQ (with an extended timeout)

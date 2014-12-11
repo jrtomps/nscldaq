@@ -68,9 +68,9 @@ CEndRun::operator()(CTCLInterpreter& interp,
     return TCL_ERROR;
   }
   CRunState* pState = CRunState::getInstance();
-  if (pState->getState() == CRunState::Idle) {
+  if ((pState->getState() != CRunState::Active) && (pState->getState() != CRunState::Paused)) {
     tclUtil::Usage(interp,
-		   "Invalid state for end run. must not already be idle",
+		   "Invalid state for end run must be active or paused (may be still initializing).",
 		   objv, usage);
     return TCL_ERROR;
   }

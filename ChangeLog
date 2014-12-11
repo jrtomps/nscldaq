@@ -860,4 +860,7 @@ Work on 11.0-rc11 begins
 11.0-rc17 (Evidently I was not keeping up with starting new release candidates above).
         Feature #3175 - ringFragmentSource stuff that used to go to source#.txt now goes
         to stderr which in turn goes to an output window tab of the UI.
+        Feature #3205 - Only end run if the state is active or paused...this prevents
+        attempting to end the run while the rdothread is busy initializing the run.
+        Bug #3208 - Set paused state when pausing run so that resume is allowed.
 	
