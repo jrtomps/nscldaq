@@ -36,6 +36,7 @@
 #endif
 #endif
 
+#include <memory>
 
 class CControlModule;
 class CCCUSB;
@@ -49,13 +50,11 @@ device driver for a slow controls devicde.
 
 class CDriverTemplate : public CControlHardware
 {
-private:
-  CControlModule*     m_pConfiguration;
 
 public:
   // canonicals:
 
-  CDriverTemplate(std::string name);
+  CDriverTemplate();
   CDriverTemplate(const CDriverTemplate& rhs);
   virtual ~CDriverTemplate();
 
@@ -75,7 +74,7 @@ public:
 			  std::string value);            //!< Set parameter value
   virtual std::string Get(CCCUSB& vme, 
 			  std::string parameter);        //!< Get parameter value.
-  virtual void clone(const CControlHardware& rhs);	     //!< Virtual
+  virtual std::unique_ptr<CControlHardware> clone();	     //!< Virtual
 
   // utilities:
 private:

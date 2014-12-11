@@ -15,6 +15,7 @@
 */
 
 #include <config.h>
+#include <memory>
 using namespace std;
 
 #include "CModuleCommand.h"
@@ -126,22 +127,30 @@ CModuleCommand::create(CTCLInterpreter& interp,
     m_Server.setResult("module create: Wrong number of params need: module create type name");
     return TCL_ERROR;
   }
-  string type = objv[2];
-  string name = objv[3];
+  string name = objv[2];
+  string type = objv[3];
 
-  CModuleFactory* pFact = CModuleFactory::instance();
 
-  CControlHardware* pModule = pFact->create(name,type);
-  if (pModule) {
-    CControlModule*   pConfig = pModule->getConfiguration();
-    pModule->onAttach(*pConfig);
-    m_Server.addModule(pConfig);
-    m_Server.setResult(name); 
-  } else {
-    m_Server.setResult("Invalid module type");
+  CControlModule* pConfig = m_Server.findModule(name);
+  if (pConfig!=nullptr) {
+    string msg = "Module create: Cannot create duplicate module of name \"";
+    msg += name;
+    msg += "\"";
+    m_Server.setResult(msg);
+
     return TCL_ERROR;
   }
-  
+
+  CModuleFactory* pFact = CModuleFactory::instance();
+  unique_ptr<CControlHardware> pHdwr = pFact->create(type);
+  if (!pHdwr) {
+    m_Server.setResult("Module create: Invalid type, must be one of caen894, ph7106, tcl, or ccusb.");
+    return TCL_ERROR;
+  }
+
+  pConfig = new CControlModule(name, std::move(pHdwr));
+  m_Server.addModule(pConfig);
+  m_Server.setResult(name);
 
   return TCL_OK;
 }

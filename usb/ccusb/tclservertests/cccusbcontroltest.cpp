@@ -32,7 +32,7 @@ class CCCUSBControlTests : public CppUnit::TestFixture {
 
 public:
   void setUp() {
-    m_cmd.reset(new CCCUSBControl("test"));
+    m_cmd.reset(new CCCUSBControl);
   }
   void tearDown() {
   }
@@ -63,9 +63,7 @@ void CCCUSBControlTests::create_0 () {
 
 void CCCUSBControlTests::set_0 () {
 
-  CControlHardware* pHdwr = m_cmd.get();
-  CControlModule module("name",*(m_cmd.release()));
-  pHdwr->onAttach(module);
+  CControlModule module("name",std::move(m_cmd));
 
   CMockCCUSB ctlr;
   ctlr.addReturnDatum(1);
@@ -80,6 +78,6 @@ void CCCUSBControlTests::set_0 () {
                               "0208",
                               "executeList::end"};
   auto record = ctlr.getOperationsRecord();
-  print_vectors(expected,record);
+  //print_vectors(expected,record);
   CPPUNIT_ASSERT(expected == record);
 }

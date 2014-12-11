@@ -50,11 +50,10 @@ class CCCUSB;
 class CPH7106 : public CControlHardware
 {
 private:
-  CControlModule* m_pConfiguration;
 
   // canoncials:
 public:
-  CPH7106(std::string name);
+  CPH7106();
   CPH7106(const CPH7106& rhs);
   virtual ~CPH7106();
 
@@ -73,7 +72,7 @@ public:
 			  std::string value);            //!< Set parameter value
   virtual std::string Get(CCCUSB& camac, 
 			  std::string parameter);        //!< Get parameter value.
-  virtual void clone(const CControlHardware& rhs);	     //!< Virtual
+  virtual std::unique_ptr<CControlHardware> clone();	     //!< Virtual
 
   // private utility functions:
 

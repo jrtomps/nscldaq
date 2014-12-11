@@ -29,6 +29,7 @@
  * @author Ron Fox <fox@nscl.msu.edu>
  */
 
+#include <memory>
 
 class CControlHardware;
 
@@ -40,7 +41,7 @@ class CControlHardware;
 class CModuleCreator
 {
 public:
-  virtual CControlHardware* operator()(std::string name) = 0; // Concrete classes must implement.
+  virtual std::unique_ptr<CControlHardware> operator()() = 0; // Concrete classes must implement.
 };
 
 

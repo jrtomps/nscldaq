@@ -33,11 +33,12 @@ using namespace std;
    \param hardware : CControlHardware&
        The hardware that is configured by  us.
 */
-CControlModule::CControlModule(string name, CControlHardware& hardware) :
+CControlModule::CControlModule(string name, 
+                               std::unique_ptr<CControlHardware> hardware) :
   CConfigurableObject(name),
-  m_pHardware(&hardware)
+  m_pHardware(std::move(hardware))
 {
-  //  m_pHardware->onAttach(*this);
+  m_pHardware->onAttach(*this);
 }
 /*!
    Destroy a module.  The hardware riding along with us is assumed to have
@@ -45,7 +46,6 @@ CControlModule::CControlModule(string name, CControlHardware& hardware) :
 */
 CControlModule::~CControlModule()
 {
-  delete m_pHardware;
 }
 
 /*! 
@@ -54,7 +54,7 @@ CControlModule::~CControlModule()
 CControlModule::CControlModule(const CControlModule& rhs) :
   CConfigurableObject(rhs)
 {
-  m_pHardware->clone(*(rhs.m_pHardware));
+  m_pHardware = rhs.m_pHardware->clone();
   m_pHardware->onAttach(*this);
 }
 /*!
@@ -65,36 +65,26 @@ CControlModule&
 CControlModule::operator=(const CControlModule& rhs)
 {
   if (this != &rhs) {
-    delete m_pHardware;
     clearConfiguration();
     CConfigurableObject::operator=(rhs);
-    rhs.m_pHardware->clone(*(rhs.m_pHardware));
-    clearConfiguration();
+    m_pHardware = rhs.m_pHardware->clone();
     m_pHardware->onAttach(*this);
-    
   }
   return *this;
 }
-
-CControlModule*
-CControlHardware::getConfiguration()
-{
-  return m_pConfig;
-}
-
 
 /*!
   Do post configuration initialiation.
 */
 void
-CControlModule::Initialize(CCCUSB& vme)
+CControlModule::Initialize(CCCUSB& ctlr)
 {
   bool mustRelease(false);
   if (CRunState::getInstance()->getState() == CRunState::Active) {
     mustRelease = true;
     CControlQueues::getInstance()->AcquireUsb();
   }
-  m_pHardware->Initialize(vme);
+  m_pHardware->Initialize(ctlr);
 
   if (mustRelease) {
     CControlQueues::getInstance()->ReleaseUsb();
@@ -105,18 +95,18 @@ CControlModule::Initialize(CCCUSB& vme)
 /*!
    Update the module.  To do this we may need to acquire the
    Vmusb Interface from readout. 
-   \param vme : CCCUSB&
-      Reference to the vme interface.
+   \param ctlr : CCCUSB&
+      Reference to the ctlr interface.
 */
 string
-CControlModule::Update(CCCUSB& vme)
+CControlModule::Update(CCCUSB& ctlr)
 {
   bool mustRelease(false);
   if (CRunState::getInstance()->getState() == CRunState::Active) {
     mustRelease = true;
     CControlQueues::getInstance()->AcquireUsb();
   }
-  string result =  m_pHardware->Update(vme);
+  string result =  m_pHardware->Update(ctlr);
 
   if (mustRelease) {
     CControlQueues::getInstance()->ReleaseUsb();
@@ -126,7 +116,7 @@ CControlModule::Update(CCCUSB& vme)
 }
 /*!
     Set a module parameter.
-    \param vme  : CCCUSB& 
+    \param ctlr  : CCCUSB& 
        Reference to the VME controller
     \param what : const char*
        Name of the parameter to change.
@@ -137,14 +127,14 @@ CControlModule::Update(CCCUSB& vme)
            begin ERROR indicate an error.
 */
 string
-CControlModule::Set(CCCUSB& vme, const char* what, const char* value)
+CControlModule::Set(CCCUSB& ctlr, const char* what, const char* value)
 {
   bool mustRelease(false);
   if (CRunState::getInstance()->getState() == CRunState::Active) {
     mustRelease = true;
     CControlQueues::getInstance()->AcquireUsb();
   }
-  string reply  = m_pHardware->Set(vme, what, value);
+  string reply  = m_pHardware->Set(ctlr, what, value);
 
   if (mustRelease) {
     CControlQueues::getInstance()->ReleaseUsb();
@@ -154,8 +144,8 @@ CControlModule::Set(CCCUSB& vme, const char* what, const char* value)
 }
 /*!
    Retrieve a value from a  module.
-   \param vme : CCCUSB& 
-      Reference to a vme usb controller through which the vme is accessedd.
+   \param ctlr : CCCUSB& 
+      Reference to a ctlr usb controller through which the ctlr is accessedd.
    \param what : const char*
       Name of the control point that is being modified.
    \return std::string
@@ -164,14 +154,14 @@ CControlModule::Set(CCCUSB& vme, const char* what, const char* value)
        of the requested point.
 */
 string
-CControlModule::Get(CCCUSB& vme, const char* what)
+CControlModule::Get(CCCUSB& ctlr, const char* what)
 {
   bool mustRelease(false);
   if (CRunState::getInstance()->getState() == CRunState::Active) {
     mustRelease = true;
     CControlQueues::getInstance()->AcquireUsb();
   }
-  string reply = m_pHardware->Get(vme, what);;
+  string reply = m_pHardware->Get(ctlr, what);;
 
   if (mustRelease) {
     CControlQueues::getInstance()->ReleaseUsb();

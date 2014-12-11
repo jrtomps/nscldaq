@@ -28,8 +28,8 @@
  *
  * @param name - the name to assign the new module object.
  */
-CControlHardware*
-CPH7106Creator::operator()(std::string name)
+  std::unique_ptr<CControlHardware>
+CPH7106Creator::operator()()
 {
-  return new CPH7106(name);
+  return std::unique_ptr<CControlHardware>(new CPH7106);
 }

@@ -33,7 +33,7 @@ class CPH7106Tests : public CppUnit::TestFixture {
 
 public:
   void setUp() {
-    m_cmd.reset(new CPH7106("test"));
+    m_cmd.reset(new CPH7106);
   }
   void tearDown() {
   }
@@ -64,9 +64,7 @@ void CPH7106Tests::create_0 () {
 
 void CPH7106Tests::onAttach_0 () {
 
-  CControlHardware* pHdwr = m_cmd.get();
-  CControlModule module("name",*(m_cmd.release()));
-  pHdwr->onAttach(module);
+  CControlModule module("name",std::move(m_cmd));
 
   CPPUNIT_ASSERT_NO_THROW(module.cget("-slot"));
 }
@@ -77,10 +75,7 @@ void CPH7106Tests::onAttach_0 () {
 // tested indirectly with the initialize_0
 void CPH7106Tests::initialize_0 () 
 {
-  CPH7106* pHdwr = m_cmd.get();
-  CControlModule module("name",*(m_cmd.release()));
-  pHdwr->onAttach(module);
-
+  CControlModule module("name",std::move(m_cmd));
   module.configure("-slot", "12");
 
   CMockCCUSB ctlr;

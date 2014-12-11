@@ -39,9 +39,8 @@ using namespace std;
 /*!
    construct the beast.. The shadow registers will all get set to zero
 */
-C894::C894(string name) :
-  CControlHardware(name),
-  m_pConfiguration(0)
+C894::C894() :
+  CControlHardware()
  {
 
   // Construct and initialize any data you need here.
@@ -68,8 +67,8 @@ C894::C894(string name) :
 C894::C894(const C894& rhs) :
   CControlHardware(rhs)
 {
-  clone(*this);
 }
+
 /*!
   While destruction could leak I seem to recall problems if I destroy
   the configuration..
@@ -85,7 +84,7 @@ C894&
 C894::operator=(const C894& rhs)
 {
   if(this != &rhs) {
-    clone(rhs);
+    CControlHardware::operator=(rhs);
   }
   return *this;
 }
@@ -121,7 +120,7 @@ C894::operator!=(const C894& rhs) const
 void
 C894::onAttach(CControlModule& configuration)
 {
-  m_pConfiguration = &configuration;
+  m_pConfig = &configuration;
   configuration.addParameter("-slot", CConfigurableObject::isInteger, NULL, string("0"));
   configuration.addParameter("-file", (typeChecker)NULL, NULL, string(""));
 
@@ -156,7 +155,7 @@ C894::Update(CCCUSB& camac)
 {
   uint32_t slotAddress = getSlot();
 
-  CCCUSBReadoutList list;
+  std::unique_ptr<CCCUSBReadoutList> pList(camac.createReadoutList());;
 
   //  Fill in the list with the operations needed to load the device
   // from any internal state we keep
@@ -164,16 +163,16 @@ C894::Update(CCCUSB& camac)
   // This executes the list and reports any errors.
 
   for (int i=0; i < 16; i ++) {
-    list.addWrite16(slotAddress, i, 16, \
+    pList->addWrite16(slotAddress, i, 16, \
 		    -m_thresholds[i]); // Thresholds in mV module wants 0-255
   }
 
   for (int i=0; i < 2; i++) {
-    list.addWrite16(slotAddress, i, 18, m_widths[i]);
+    pList->addWrite16(slotAddress, i, 18, m_widths[i]);
   }
 
-  list.addWrite16(slotAddress, 0, 17, m_inhibits);
-  list.addWrite16(slotAddress, 0, 20, majorityToRegister(m_majority));
+  pList->addWrite16(slotAddress, 0, 17, m_inhibits);
+  pList->addWrite16(slotAddress, 0, 20, majorityToRegister(m_majority));
 
   // Execute the list:
 
@@ -181,7 +180,7 @@ C894::Update(CCCUSB& camac)
   uint32_t dummy;
   size_t   dummysize;
 
-  int status = camac.executeList(list, &dummy, sizeof(dummy), &dummysize);
+  int status = camac.executeList(*pList, &dummy, sizeof(dummy), &dummysize);
 
   if (status != 0) {
     return string("ERROR - Could not execute update list in CC-USB");
@@ -283,9 +282,10 @@ C894::Get(CCCUSB& camac, string parameter)
 /*!
   At present, cloning is a no-op.
 */
-void
-C894::clone(const CControlHardware& rhs)
+std::unique_ptr<CControlHardware>
+C894::clone()
 {
+  return std::unique_ptr<CControlHardware>(new C894(*this));
 }
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -299,8 +299,8 @@ C894::clone(const CControlHardware& rhs)
 uint32_t 
 C894::getSlot()
 {
-  if (m_pConfiguration) {
-    string strSlot = m_pConfiguration->cget("-slot");
+  if (m_pConfig) {
+    string strSlot = m_pConfig->cget("-slot");
     unsigned int slot;
     sscanf(strSlot.c_str(), "%i", &slot);
     return static_cast<uint32_t>(slot);
@@ -490,8 +490,6 @@ C894::getWidth(unsigned int selector)
   return iToS(m_widths[selector]);
 }
 
-/*
-
 /*!
   Return majority logic level
 */
@@ -613,8 +611,8 @@ C894::configFileToShadow()
 string
 C894::initializationFile()
 {
-  if (m_pConfiguration) {
-    return m_pConfiguration ->cget("-file");
+  if (m_pConfig) {
+    return m_pConfig->cget("-file");
   } 
   else {
     return string("");

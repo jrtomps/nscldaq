@@ -39,6 +39,8 @@
 #include "CModuleCreator.h"
 #endif
 
+#include <memory>
+
 /**
  * @file CPH7106Creator.h
  * @brief creational class for CPH7106 discriminator objects.
@@ -57,7 +59,7 @@
 class CPH7106Creator : public CModuleCreator
 {
 public:
-  virtual CControlHardware* operator()(std::string name);
+  virtual std::unique_ptr<CControlHardware> operator()();
 };
 
 

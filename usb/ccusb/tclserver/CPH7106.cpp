@@ -38,18 +38,26 @@ using namespace std;
   Construct hte beast. 
   @param - Name of the module.
 */
-CPH7106::CPH7106(string name) :
-  CControlHardware(name), 
-  m_pConfiguration(0)
+CPH7106::CPH7106() :
+  CControlHardware()
 {}
+
+/*!
+ *
+ */
+CPH7106::CPH7106(const CPH7106& rhs) 
+ : CControlHardware(rhs)
+{
+}
+
 /*!
    Copy construction
    @param rhs - source for the copy.
 */
 CPH7106::~CPH7106()
 {
-  
 }
+
 /*!
   Assignment simply clones:
   @param rhs - the rhs of the assignment.
@@ -58,7 +66,7 @@ CPH7106&
 CPH7106::operator=(const CPH7106& rhs)
 {
   if (this != &rhs) {
-    clone(rhs);
+    CControlHardware::operator=(rhs);
   }
   return *this;
 }
@@ -95,7 +103,7 @@ CPH7106::operator!=(const CPH7106& rhs) const
 void
 CPH7106::onAttach(CControlModule& configuration)
 {
-  m_pConfiguration = &configuration;
+  m_pConfig = &configuration;
   configuration.addParameter("-slot",
 			     CConfigurableObject::isInteger, NULL,  string("0"));
 
@@ -178,10 +186,10 @@ CPH7106::Get(CCCUSB& camac, string parameter)
   dummy.
 
 */
-void 
-CPH7106::clone(const CControlHardware& rhs)
+std::unique_ptr<CControlHardware>
+CPH7106::clone()
 {
-  
+  return std::unique_ptr<CControlHardware>(new CPH7106(*this));
 }
 //////////////////////////////////////////////////////////////////////
 // Private utilities.
@@ -193,8 +201,8 @@ CPH7106::clone(const CControlHardware& rhs)
 uint32_t
 CPH7106::getSlot()
 {
-  if (m_pConfiguration) {
-    string strSlot = m_pConfiguration->cget("-slot");
+  if (m_pConfig) {
+    string strSlot = m_pConfig->cget("-slot");
     unsigned int slot;
     sscanf(strSlot.c_str(), "%i", &slot);
     return static_cast<uint32_t>(slot);

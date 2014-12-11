@@ -39,8 +39,8 @@ using namespace std;
  * need the configuration.
  * @param name - Name of the module supplied in the script.
  */
-CCCUSBControl::CCCUSBControl(string name) :
-  CControlHardware(name)
+CCCUSBControl::CCCUSBControl() :
+  CControlHardware()
 {}
 /**
  * Copy construction
@@ -49,7 +49,6 @@ CCCUSBControl::CCCUSBControl(const CCCUSBControl& rhs) :
   CControlHardware(rhs)
   
 {
-  clone(reinterpret_cast<const CControlHardware&>(rhs));
 }
 /**
  * Destruction is literally a no-op.
@@ -67,7 +66,7 @@ CCCUSBControl&
 CCCUSBControl::operator=(const CCCUSBControl& rhs)
 {
   if (this != &rhs) {
-    clone(rhs);
+    CControlHardware::operator=(rhs);
   }
   return *this;
 }
@@ -103,6 +102,7 @@ CCCUSBControl::onAttach(CControlModule& configuration)
 void
 CCCUSBControl::Initialize(CCCUSB& vme)
 {}
+
 string
 CCCUSBControl::Update(CCCUSB& vme)
 {
@@ -180,9 +180,10 @@ CCCUSBControl::Get(CCCUSB& vme, string parameter)
 /**
  * Clone is a noop.
  */
-void
-CCCUSBControl::clone(const CControlHardware& rhs)
+std::unique_ptr<CControlHardware>
+CCCUSBControl::clone()
 {
+  return std::unique_ptr<CControlHardware>(new CCCUSBControl);
 }
 
 

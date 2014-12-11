@@ -30,8 +30,8 @@
  * @param name - Name of the module.
  * @return CControlHardware* Pointer to the newly created module.
  */
-CControlHardware*
-CCCUSBControlCreator::operator()(std::string name)
+  std::unique_ptr<CControlHardware>
+CCCUSBControlCreator::operator()()
 {
-  return new CCCUSBControl(name);
+  return std::unique_ptr<CControlHardware>(new CCCUSBControl);
 }

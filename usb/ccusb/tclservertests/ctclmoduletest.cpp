@@ -32,7 +32,7 @@ class CTclControlModuleTests : public CppUnit::TestFixture {
 
 public:
   void setUp() {
-    m_cmd.reset(new CTclControlModule("test"));
+    m_cmd.reset(new CTclControlModule);
   }
   void tearDown() {
   }
@@ -62,9 +62,7 @@ void CTclControlModuleTests::create_0 () {
 
 void CTclControlModuleTests::onAttach_0 () {
 
-  CControlHardware* pHdwr = m_cmd.get();
-  CControlModule module("name",*(m_cmd.release()));
-  pHdwr->onAttach(module);
+  CControlModule module("name",std::move(m_cmd));
 
   CPPUNIT_ASSERT_NO_THROW(module.cget("-ensemble"));
 }

@@ -29,10 +29,12 @@
  *
  * @param name - name of the module we are creating.
  */
-CTclControlModule::CTclControlModule(std::string name) :
-  CControlHardware(name)
+CTclControlModule::CTclControlModule() :
+  CControlHardware()
 {
 }
+
+
 /**
  * onAttach
  *   Register the string configuration parameter -ensemble
@@ -44,6 +46,7 @@ CTclControlModule::CTclControlModule(std::string name) :
 void
 CTclControlModule::onAttach(CControlModule& configuration)
 {
+  m_pConfig = &configuration;
   configuration.addParameter("-ensemble", NULL, NULL, "");
 
 }
@@ -221,12 +224,10 @@ CTclControlModule::Get(CCCUSB& vme, std::string parameter)
  * clone
  *    We have no information of our own, let the base class do this.
  */
-void
-CTclControlModule::clone(const CControlHardware& rhs)
+std::unique_ptr<CControlHardware>
+CTclControlModule::clone()
 {
-  CControlHardware* pRhs = const_cast<CControlHardware*>(&rhs);
-  m_pConfig = new CControlModule(*(pRhs->getConfiguration()));
-
+  return std::unique_ptr<CControlHardware>(new CTclControlModule(*this));
 }
 
 /*-------------------------------------------------------------------------------

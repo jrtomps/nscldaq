@@ -71,12 +71,10 @@ class CCCUSB;
  */
 class CCCUSBControl : public CControlHardware
 {
-private:
-  CControlModule* m_pConfiguration;
 
   // Canonical operations:
 public:
-  CCCUSBControl(std::string name);
+  CCCUSBControl();
   CCCUSBControl(const CCCUSBControl& rhs);
   virtual ~CCCUSBControl();
   CCCUSBControl& operator=(const CCCUSBControl& rhs);
@@ -94,7 +92,7 @@ public:
                           std::string value);            //!< Set parameter value
   virtual std::string Get(CCCUSB& ctlr, 
                           std::string parameter);        //!< Get parameter value.
-  virtual void clone(const CControlHardware& rhs);       //!< Virtual copy constr.
+  virtual std::unique_ptr<CControlHardware> clone();       //!< Virtual copy constr.
 
   // Utilities if any required.
 

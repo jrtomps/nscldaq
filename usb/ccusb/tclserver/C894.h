@@ -46,7 +46,6 @@ class CCCUSB;
 class C894 : public CControlHardware
 {
 private:
-  CControlModule*     m_pConfiguration;
 
   uint16_t            m_thresholds[16];
   uint16_t            m_widths[2];
@@ -56,7 +55,7 @@ private:
 public:
   // canonicals:
 
-  C894(std::string name);
+  C894();
   C894(const C894& rhs);
   virtual ~C894();
 
@@ -76,7 +75,7 @@ public:
 			  std::string value);            //!< Set parameter value
   virtual std::string Get(CCCUSB& camac, 
 			  std::string parameter);        //!< Get parameter value.
-  virtual void clone(const CControlHardware& rhs);	     //!< Virtual
+  virtual std::unique_ptr<CControlHardware> clone();	     //!< Virtual
 
   // utilities:
 private:

@@ -28,8 +28,8 @@
  *
  * @param name - the name to assign the new module object.
  */
-CControlHardware*
-CCAEN894Creator::operator()(std::string name)
+  std::unique_ptr<CControlHardware>
+CCAEN894Creator::operator()()
 {
-  return new C894(name);
+  return std::unique_ptr<CControlHardware>(new C894);
 }

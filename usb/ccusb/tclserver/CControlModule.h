@@ -28,6 +28,8 @@
 #endif
 #endif
 
+#include <memory>
+
 class CControlHardware;
 class CCCUSB;
 
@@ -55,13 +57,13 @@ class CCCUSB;
 class CControlModule : public CConfigurableObject
 {
 private:
-  CControlHardware* m_pHardware;
+  std::unique_ptr<CControlHardware> m_pHardware;
 
 public:
 
   // Canonicals
 
-  CControlModule(std::string name, CControlHardware& hardware);
+  CControlModule(std::string name, std::unique_ptr<CControlHardware> hardware);
   virtual ~CControlModule();
   CControlModule(const CControlModule& rhs);
   CControlModule& operator=(const CControlModule& rhs);
@@ -77,6 +79,7 @@ public:
   std::string Set(CCCUSB& crate, const char* what, const char* value);
   std::string Get(CCCUSB& crate, const char* what);
 
+  CControlHardware* getHardware() { return m_pHardware.get(); }
 };
 
 

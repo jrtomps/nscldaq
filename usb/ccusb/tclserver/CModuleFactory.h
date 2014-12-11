@@ -37,6 +37,8 @@
 #endif
 #endif
 
+#include <memory>
+
 class CControlHardware;
 class CModuleCreator;
 
@@ -65,7 +67,7 @@ public:
 
 public:
   void addCreator(std::string type, CModuleCreator* pCreator);
-  CControlHardware* create(std::string type, std::string name);
+  std::unique_ptr<CControlHardware> create(std::string type);
 
 
 };

@@ -24,6 +24,7 @@
  * @author Ron Fox <fox@nscl.msu.edu>
  */
 
+#include <memory>
 
 #ifndef __CMODULECREATOR_H
 #include <CModuleCreator.h>
@@ -36,7 +37,7 @@
 class CCCUSBControlCreator : public CModuleCreator
 {
 public:
-  virtual CControlHardware* operator()(std::string name);
+  virtual std::unique_ptr<CControlHardware> operator()();
 };
 
 

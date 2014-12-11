@@ -35,9 +35,8 @@ using namespace std;
 /*!
    construct the beast.. The shadow registers will all get set to zero
 */
-CDriverTemplate::CDriverTemplate(string name) :
-  CControlHardware(name),
-  m_pConfiguration(0)
+CDriverTemplate::CDriverTemplate() :
+  CControlHardware()
 {
   // Construct and initialize any data you need here.
 }
@@ -49,7 +48,6 @@ CDriverTemplate::CDriverTemplate(string name) :
 CDriverTemplate::CDriverTemplate(const CDriverTemplate& rhs) :
   CControlHardware(rhs)
 {
-  clone(*this);
 }
 /*!
   While destruction could leak I seem to recall problems if I destroy
@@ -66,7 +64,8 @@ CDriverTemplate&
 CDriverTemplate::operator=(const CDriverTemplate& rhs)
 {
   if(this != &rhs) {
-    clone(rhs);
+    // honor your parents
+    CControlHardware::operator=(rhs);
   }
   return *this;
 }
@@ -100,7 +99,7 @@ CDriverTemplate::operator!=(const CDriverTemplate& rhs) const
 void
 CDriverTemplate::onAttach(CControlModule& configuration)
 {
-  m_pConfiguration = &configuration;
+  m_pConfig = &configuration;
   configuration.addParameter("-slot", CConfigurableObject::isInteger, NULL, string("0"));
 
 
@@ -133,7 +132,7 @@ CDriverTemplate::Update(CCCUSB& crate)
 {
   uint32_t slotAddress = getSlot();
 
-  CCCUSBReadoutList list;
+  std::unique_ptr<CCCUSBReadoutList> list(crate.createReadoutList());
 
   //  Fill in the list with the operations needed to load the device
   // from any internal state we keep
@@ -143,7 +142,7 @@ CDriverTemplate::Update(CCCUSB& crate)
   uint32_t dummy;
   size_t   dummysize;
 
-  int status = crate.executeList(list, &dummy, sizeof(dummy), &dummysize);
+  int status = crate.executeList(*list, &dummy, sizeof(dummy), &dummysize);
 
   if (status != 0) {
     return string("ERROR - Could not execute update list in CC-USB");
@@ -209,9 +208,10 @@ CDriverTemplate::Get(CCCUSB& crate, string parameter)
 /*!
   At present, cloning is a no-op.
 */
-void
-CDriverTemplate::clone(const CControlHardware& rhs)
+std::unique_ptr<CControlHardware>
+CDriverTemplate::clone()
 {
+  return std::unique_ptr<CControlHardware>(new CDriverTemplate(*this));
 }
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -225,8 +225,8 @@ CDriverTemplate::clone(const CControlHardware& rhs)
 uint32_t 
 CDriverTemplate::getSlot()
 {
-  if (m_pConfiguration) {
-    string strSlot = m_pConfiguration->cget("-slot");
+  if (m_pConfig) {
+    string strSlot = m_pConfig->cget("-slot");
     unsigned int slot;
     sscanf(strSlot.c_str(), "%i", &slot);
     return static_cast<uint32_t>(slot);

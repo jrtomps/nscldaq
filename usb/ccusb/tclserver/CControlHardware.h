@@ -24,7 +24,10 @@
 #endif
 #endif
 
+#include <memory>
+
 class CCCUSB;
+class CCCUSBReadoutList;
 class CControlModule;
 
 /*!
@@ -49,17 +52,19 @@ class CControlHardware
 {
 protected:
   CControlModule* m_pConfig;
+
 public:
   // Canonicals:
 
-  CControlHardware(std::string name);
+  CControlHardware();
   CControlHardware(const CControlHardware& rhs);
   virtual ~CControlHardware();
   CControlHardware& operator=(const CControlHardware& rhs);
   int operator==(const CControlHardware& rhs) const;
   int operator!=(const CControlHardware& rhs) const;
 public:
-  CControlModule* getConfiguration();
+  CControlModule* getConfiguration() const { return m_pConfig;}
+  virtual std::unique_ptr<CControlHardware> clone() = 0;	     //!< Virtual copy constr.
 
   // Pure virtuals the concrete class must override.
 
@@ -72,7 +77,12 @@ public:
 			  std::string value) = 0;            //!< Set parameter value
   virtual std::string Get(CCCUSB& vme, 
 			  std::string parameter) = 0;        //!< Get parameter value.
-  virtual void clone(const CControlHardware& rhs) = 0;	     //!< Virtual copy constr.
+
+  // Interface to support monitoring. that is not used at the moment but maybe will be someday.
+
+  virtual void addMonitorList(CCCUSBReadoutList& list);     //!< add items to the monitor list.
+  virtual void* processMonitorList(void* pData, size_t remaining);
+  virtual std::string getMonitoredData();
 
 };
 

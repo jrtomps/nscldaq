@@ -34,7 +34,7 @@ class C894Tests : public CppUnit::TestFixture {
 
 public:
   void setUp() {
-    m_cmd.reset(new C894("test"));
+    m_cmd.reset(new C894);
   }
   void tearDown() {
   }
@@ -66,9 +66,7 @@ void C894Tests::create_0 () {
 }
 
 void C894Tests::onAttach_0 () {
-  CControlHardware* pHdwr = m_cmd.get();
-  CControlModule module("test", *(m_cmd.release()));
-  pHdwr->onAttach(module);
+  CControlModule module("test", std::move(m_cmd));
 
   CPPUNIT_ASSERT_NO_THROW( module.cget("-slot") );
   CPPUNIT_ASSERT_NO_THROW( module.cget("-file") );
@@ -80,7 +78,7 @@ void C894Tests::onAttach_0 () {
  * method
  */
 void C894Tests::initialize_0 () {
-  CControlModule module("test", *(m_cmd.release()));
+  CControlModule module("test", std::move(m_cmd));
   module.configure("-slot","10");
 
   CMockCCUSB ctlr;
@@ -108,11 +106,7 @@ void C894Tests::update_0 () {
   m_cmd->m_inhibits = 10;
   m_cmd->m_majority = 1; // --> 5
 
-  C894* pCmd = m_cmd.get();
-  CControlModule module("test", *(m_cmd.release()));
-  // this next bit must go...
-  pCmd->onAttach(module);
-  //
+  CControlModule module("test", std::move(m_cmd));
   module.configure("-slot","10");
 
   CMockCCUSB ctlr;
