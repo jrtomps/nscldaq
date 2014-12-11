@@ -857,4 +857,7 @@ Work on 11.0-rc11 begins
         - Add try/catch block around the action register write that
 	triggers the vmusbreadout monitor list as this intermittently
 	fails.
+11.0-rc17 (Evidently I was not keeping up with starting new release candidates above).
+        Feature #3175 - ringFragmentSource stuff that used to go to source#.txt now goes
+        to stderr which in turn goes to an output window tab of the UI.
 	

@@ -39,9 +39,10 @@
 #include <stdio.h>
 #include <io.h>
 #include <fstream>
+#include <iostream>
 
 
-static std::ofstream log;
+static std::ostream& log(std::cerr);
 static uint64_t lastTimestamp(NULL_TIMESTAMP);
 
 
@@ -161,9 +162,7 @@ CRingSource::initialize()
 
   }
 
-  char logName[1000];
-  sprintf(logName, "source%d.txt", m_sourceId);
-  log.open(logName);
+  
   log << std::hex;
 
   // Attach the ring.
