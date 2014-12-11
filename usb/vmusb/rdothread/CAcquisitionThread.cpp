@@ -198,26 +198,25 @@ CAcquisitionThread::operator()()
   catch (string msg) {
     Globals::running = false;
     cerr << "CAcquisition thread caught a string exception: " << msg << endl;
-    throw;
   }
   catch (char* msg) {
     Globals::running = false;
     cerr << "CAcquisition thread caught a char* exception: " << msg << endl;
-    throw;
   }
   catch (CException& err) {
     Globals::running = false;
     cerr << "CAcquisition thread caught a daq exception: "
 	 << err.ReasonText() << " while " << err.WasDoing() << endl;
-    throw;
   }
   catch (...) {
     Globals::running = false;
     cerr << "CAcquisition thread caught some other exception type.\n";
-    throw;
   }
   Globals::running = false;
-  return -1;
+  pState->setState(CRunState::Idle);
+  m_Running = false;
+
+  return 0;
 }
 
 /*!

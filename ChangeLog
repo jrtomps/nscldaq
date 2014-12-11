@@ -865,4 +865,8 @@ Work on 11.0-rc11 begins
         Bug #3208 - Set paused state when pausing run so that resume is allowed.
         Feature #3164 - For event builder windows put functional titles in that also
         give a disambiguating username.
+        Bug #3155 - Don't emit EOF message in compatibilitybuffer method.
+        Feature #3202 - Don't let exceptions propagate out of the reaout thread into the
+        last chance exception handler.
+        
 	
