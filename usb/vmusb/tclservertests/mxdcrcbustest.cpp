@@ -48,8 +48,9 @@ class CMxDCRCBusTests : public CppUnit::TestFixture {
 
 public:
   void setUp() {
+//    auto hdwr = unique_ptr<CControlHardware>(new CMxDCRCBus);
     m_pModule = unique_ptr<CControlModule>(
-        new CControlModule("test", new CMxDCRCBus));
+        new CControlModule("test", new CMxDCRCBus ));
 
     m_pModule->configure("-base","0xff000000");
 
@@ -58,11 +59,13 @@ public:
   void tearDown() {
   }
 protected:
+  // public interface tests
   void clone_0();
   void set_0();
   void get_0();
   void initialize_0();
 
+  // tests for helper functions
   void activate_0();
   void pollForResponse_0();
   void pollForResponse_1();
@@ -80,6 +83,7 @@ protected:
 
 CPPUNIT_TEST_SUITE_REGISTRATION(CMxDCRCBusTests);
 
+// Utility function to print two vectors 
 template<class T>
 void print_vectors(const vector<T>& expected, const vector<T>& actual) {
   cout.flags(ios::hex);
@@ -101,9 +105,10 @@ void CMxDCRCBusTests::clone_0()
   CPPUNIT_ASSERT( nullptr != hdwr->getConfiguration() );
 
   CMxDCRCBus other;
+  CPPUNIT_ASSERT( nullptr == other.getConfiguration() );
   other.setPollTimeout(newPollTimeout);
 
-  hdwr->clone(other);
+  *hdwr = other;
 
   CPPUNIT_ASSERT_EQUAL(newPollTimeout, hdwr->getPollTimeout());
   CPPUNIT_ASSERT(nullptr == hdwr->getConfiguration());
