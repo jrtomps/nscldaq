@@ -171,12 +171,15 @@ snit::widgetadaptor EVB::DuplicateWindow {
     #   EVB::DuplicateTimestampStatistics widget.
     #
     constructor args {
-        installhull using toplevel
+        
+        installhull using toplevel  
         install container using EVB::DuplicateTimestampStatistics $win.container
         
         pack $container -expand 1 -fill both
         
         $self configurelist $args
+        set me $::tcl_platform(user)
+        wm title $win "Ts dups for $me"
     }
 }
 ##

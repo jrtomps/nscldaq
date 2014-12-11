@@ -33,5 +33,8 @@ proc start args {
     EVB::maintainGUI .evbGui
     
     fconfigure stdout -translation binary
+    
+    set me $::tcl_platform(user)
+    wm title . "Event Builder run by $me"
 
 }

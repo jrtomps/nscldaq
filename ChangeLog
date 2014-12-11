@@ -863,4 +863,6 @@ Work on 11.0-rc11 begins
         Feature #3205 - Only end run if the state is active or paused...this prevents
         attempting to end the run while the rdothread is busy initializing the run.
         Bug #3208 - Set paused state when pausing run so that resume is allowed.
+        Feature #3164 - For event builder windows put functional titles in that also
+        give a disambiguating username.
 	
