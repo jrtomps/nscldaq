@@ -225,7 +225,7 @@ CTclControlModule::Get(CCCUSB& vme, std::string parameter)
  *    We have no information of our own, let the base class do this.
  */
 std::unique_ptr<CControlHardware>
-CTclControlModule::clone()
+CTclControlModule::clone() const
 {
   return std::unique_ptr<CControlHardware>(new CTclControlModule(*this));
 }

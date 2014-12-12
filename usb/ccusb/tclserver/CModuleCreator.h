@@ -31,7 +31,7 @@
 
 #include <memory>
 
-class CControlHardware;
+#include <CControlHardware.h>
 
 /**
  * @class CModuleCreator

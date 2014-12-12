@@ -22,6 +22,7 @@ libCCUSBCommands_la_CPPFLAGS		= 	-I@top_srcdir@/usb/ccusb/rdothread	\
 				-I@top_srcdir@/usb/ccusb		\
 				-I@top_srcdir@/usb/ccusb/ccusb		\
 				-I@top_srcdir@/usb/ccusb/tclserver	\
+				-I@top_srcdir@/usb/common/slowcontrols	\
 				@LIBTCLPLUS_CFLAGS@	\
 				-I@top_srcdir@/base/headers		\
 				-I@top_srcdir@/base/thread		\

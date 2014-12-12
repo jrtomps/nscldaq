@@ -90,6 +90,7 @@ without helper functions.
 class CCCUSB 
 {
   public:
+    typedef CCCUSBReadoutList RdoList;
     /**! Register shadow
     * Contains the most recent values of the CCUSB
     */ 

@@ -283,7 +283,7 @@ C894::Get(CCCUSB& camac, string parameter)
   At present, cloning is a no-op.
 */
 std::unique_ptr<CControlHardware>
-C894::clone()
+C894::clone() const
 {
   return std::unique_ptr<CControlHardware>(new C894(*this));
 }

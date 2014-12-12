@@ -29,6 +29,8 @@
 
 #include <memory>
 
+#include <CControlModule.h>
+
 class CTCLObject;
 class CTCLInterpreter;
 class CCCUSB;
@@ -71,7 +73,7 @@ public:
 			  std::string value);
   virtual std::string Get(CCCUSB& vme, 
 			  std::string parameter);
-  virtual std::unique_ptr<CControlHardware> clone();
+  virtual std::unique_ptr<CControlHardware> clone() const;
 
  
 

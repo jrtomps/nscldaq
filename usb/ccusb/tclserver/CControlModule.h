@@ -17,70 +17,75 @@
 #ifndef __CCONTROLMODULE_H
 #define __CCONTROLMODULE_H
 
-#ifndef __CCONFIGURABLEOBJECT_H
-#include <CConfigurableObject.h>
-#endif
+#include <CControlModuleT.h>
+#include <CCCUSB.h>
+using CControlModule = CControlModuleT<CCCUSB>;
 
-#ifndef __STL_STRING
-#include <string>
-#ifndef __STL_STRING
-#define __STL_STRING
-#endif
-#endif
-
-#include <memory>
-
-class CControlHardware;
-class CCCUSB;
-
-/*!
-   A control module is a configurable object that is attached to an object
-   derived from CControlHardware. 
-   - This object maintains the configuration for the module.
-   - This object defines and delegates to the CControlHardware object
-     the following functions:
-     - Update  - Updates the internal state of the object from the hardware.
-     - Set     - Sets some controllable point in the hardware to a new value
-     - Get     - Retreives the value of some controllable point in the hardware
-                 from the most recently updated values.
-
-     Hardware objects must also implement onAttach, which is called when
-     the hardware is attached to the configuration.  The hardware is required
-     to register any configuration parameters (e.g. -base) with the 
-     configuration at that time.
-
-     In delegating these operations, CControlModule takes care to synchronize
-     with the readout thread if necessary, so that the
-     individual hardware modules can be written without any knowledge of
-     the existence of the readout thread.
-*/
-class CControlModule : public CConfigurableObject
-{
-private:
-  std::unique_ptr<CControlHardware> m_pHardware;
-
-public:
-
-  // Canonicals
-
-  CControlModule(std::string name, std::unique_ptr<CControlHardware> hardware);
-  virtual ~CControlModule();
-  CControlModule(const CControlModule& rhs);
-  CControlModule& operator=(const CControlModule& rhs);
-
-private:
-  int operator==(const CControlModule& rhs) const;
-  int operator!=(const CControlModule& rhs) const;
-public:
-  // Functions:
-
-  void        Initialize(CCCUSB& crate);
-  std::string Update(CCCUSB& crate);
-  std::string Set(CCCUSB& crate, const char* what, const char* value);
-  std::string Get(CCCUSB& crate, const char* what);
-
-  CControlHardware* getHardware() { return m_pHardware.get(); }
-};
-
-
+//
+//#ifndef __CCONFIGURABLEOBJECT_H
+//#include <CConfigurableObject.h>
+//#endif
+//
+//#ifndef __STL_STRING
+//#include <string>
+//#ifndef __STL_STRING
+//#define __STL_STRING
+//#endif
+//#endif
+//
+//#include <memory>
+//
+//class CControlHardware;
+//class CCCUSB;
+//
+///*!
+//   A control module is a configurable object that is attached to an object
+//   derived from CControlHardware. 
+//   - This object maintains the configuration for the module.
+//   - This object defines and delegates to the CControlHardware object
+//     the following functions:
+//     - Update  - Updates the internal state of the object from the hardware.
+//     - Set     - Sets some controllable point in the hardware to a new value
+//     - Get     - Retreives the value of some controllable point in the hardware
+//                 from the most recently updated values.
+//
+//     Hardware objects must also implement onAttach, which is called when
+//     the hardware is attached to the configuration.  The hardware is required
+//     to register any configuration parameters (e.g. -base) with the 
+//     configuration at that time.
+//
+//     In delegating these operations, CControlModule takes care to synchronize
+//     with the readout thread if necessary, so that the
+//     individual hardware modules can be written without any knowledge of
+//     the existence of the readout thread.
+//*/
+//class CControlModule : public CConfigurableObject
+//{
+//private:
+//  std::unique_ptr<CControlHardware> m_pHardware;
+//
+//public:
+//
+//  // Canonicals
+//
+//  CControlModule(std::string name, std::unique_ptr<CControlHardware> hardware);
+//  virtual ~CControlModule();
+//  CControlModule(const CControlModule& rhs);
+//  CControlModule& operator=(const CControlModule& rhs);
+//
+//private:
+//  int operator==(const CControlModule& rhs) const;
+//  int operator!=(const CControlModule& rhs) const;
+//public:
+//  // Functions:
+//
+//  void        Initialize(CCCUSB& crate);
+//  std::string Update(CCCUSB& crate);
+//  std::string Set(CCCUSB& crate, const char* what, const char* value);
+//  std::string Get(CCCUSB& crate, const char* what);
+//
+//  CControlHardware* getHardware() { return m_pHardware.get(); }
+//};
+//
+//
 #endif

@@ -1,8 +1,7 @@
 lib_LTLIBRARIES			= libCCUSBControlServer.la
-libCCUSBControlServer_la_SOURCES	= 	CControlHardware.cpp	\
+libCCUSBControlServer_la_SOURCES	=  \
 					CModuleCommand.cpp	\
 					TclServer.cpp		\
-					CControlModule.cpp	\
 					CSetCommand.cpp		\
 					serverinstance.cpp	\
 					CUpdateCommand.cpp	\
@@ -20,11 +19,13 @@ libCCUSBControlServer_la_SOURCES	= 	CControlHardware.cpp	\
 					CTclModuleCreator.cpp \
 					CCCUSBControl.cpp	\
 					CCCUSBControlCreator.cpp	
+#					CControlModule.cpp	
+#					CControlHardware.cpp	
 
 noinst_HEADERS			=	CSetCommand.h		\
 					server.h		\
-					CControlHardware.h	\
 					CGetCommand.h		\
+					CControlHardware.h	\
 					CUpdateCommand.h	\
 					serverinstance.h	\
 					CControlModule.h	\
@@ -50,6 +51,7 @@ libCCUSBControlServer_la_CPPFLAGS			= 	-I@top_srcdir@/usb/ccusb		\
 					-I@top_srcdir@/usb/ccusb/devices	\
 					-I@top_srcdir@/usb/ccusb/rdothread	\
 					-I@top_srcdir@/usb/ccusb/router	\
+					-I@top_srcdir@/usb/common/slowcontrols	\
 					@LIBTCLPLUS_CFLAGS@	\
 					-I@top_srcdir@/base/headers	\
 					-I@top_srcdir@/base/thread	\

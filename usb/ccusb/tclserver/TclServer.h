@@ -43,7 +43,8 @@ using namespace std;
 #include <CSynchronizedThread.h>
 
 class CCCUSB;
-class CControlModule;
+//class CControlModule;
+#include <CControlModule.h>
 class CTCLInterpreter;
 
 /*!

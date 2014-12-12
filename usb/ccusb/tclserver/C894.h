@@ -39,7 +39,7 @@ Driver for C894 - CAEN LED
 #endif
 
 
-class CControlModule;
+#include <CControlModule.h>
 class CCCUSB;
 
 
@@ -75,7 +75,7 @@ public:
 			  std::string value);            //!< Set parameter value
   virtual std::string Get(CCCUSB& camac, 
 			  std::string parameter);        //!< Get parameter value.
-  virtual std::unique_ptr<CControlHardware> clone();	     //!< Virtual
+  virtual std::unique_ptr<CControlHardware> clone() const;	     //!< Virtual
 
   // utilities:
 private:

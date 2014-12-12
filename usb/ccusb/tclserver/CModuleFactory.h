@@ -39,7 +39,8 @@
 
 #include <memory>
 
-class CControlHardware;
+//class CControlHardware;
+#include <CControlHardware.h>
 class CModuleCreator;
 
 /**
