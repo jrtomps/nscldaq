@@ -11,8 +11,6 @@ libCCUSBControlServer_la_SOURCES	=  \
 					C894.cpp		\
 					CPH7106.cpp		\
 					CWatchCommand.cpp	\
-					CModuleFactory.cpp	\
-					CModuleCreator.cpp	\
 					CCAEN894Creator.cpp     \
 					CPH7106Creator.cpp	\
 					CTclControlModule.cpp	\

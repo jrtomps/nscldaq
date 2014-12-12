@@ -200,7 +200,7 @@ CUserDriver::clone() const
 class CUserDriverCreator : public CModuleCreator
 {
 public:
-  virtual CControlHardware* operator()();
+  virtual std::unique_ptr<CControlHardware> operator()();
 };
 /**
  * operator()
@@ -208,10 +208,10 @@ public:
  *
  * @return CControlHardware*  - Pointer to the newly, dynamically created object.
  */
-CControlHardware*
+  std::unique_ptr<CControlHardware>
 CUserDriverCreator::operator()()
 {
-  return new CUserDriver();
+  return std::unique_ptr<CControlHardware>(new CUserDriver);
 }
 
 /*-----------------------------------------------------------------------------------
@@ -230,7 +230,8 @@ extern "C" {
   int Userdriver_Init(Tcl_Interp* pInterp)
   {
     CModuleFactory* pFact = CModuleFactory::instance(); // the module factory is a singleton.
-    pFact->addCreator("mydriver", new CUserDriverCreator);
+    pFact->addCreator("mydriver", 
+                      unique_ptr<CModuleCreator>(new CUserDriverCreator));
 
     return TCL_OK;
   }

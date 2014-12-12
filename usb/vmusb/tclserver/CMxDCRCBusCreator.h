@@ -4,6 +4,7 @@
 
 #include <CModuleCreator.h>
 #include <CMxDCRCBus.h>
+#include <memory>
 
 /**! The creator of CMxDCRCBus for the Module command
 *
@@ -14,7 +15,7 @@ class CMxDCRCBusCreator : public ::CModuleCreator
 {
   public:
    /**! The factory method */
-   virtual CMxDCRCBus* operator()(); 
+   virtual std::unique_ptr<CControlHardware> operator()(); 
 };
 
 

@@ -26,6 +26,8 @@
 #include <CModuleCreator.h>
 #endif
 
+#include <CControlHardware.h>
+#include <memory>
 
 
 /**
@@ -34,7 +36,7 @@
 class CJtecgdgCreator : public CModuleCreator
 {
 public:
-  virtual CControlHardware* operator()();
+  virtual std::unique_ptr<CControlHardware> operator()();
 };
 
 #endif

@@ -16,6 +16,7 @@
 #include "CJtecgdgCreator.h"
 #include "CGDG.h"
 
+#include <memory>
 
 /**
  * operator()
@@ -25,8 +26,8 @@
  *
  * @return CControlHardware* - Pointer to a CGDG.
  */
-CControlHardware*
+  std::unique_ptr<CControlHardware>
 CJtecgdgCreator::operator()()
 {
-  return new CGDG();
+  return std::unique_ptr<CControlHardware>(new CGDG);
 }

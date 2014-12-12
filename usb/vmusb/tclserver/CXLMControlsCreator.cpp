@@ -2,6 +2,7 @@
 #include <string>
 #include <CXLMControls.h>
 #include <CXLMControlsCreator.h>
+#include <memory>
 
 namespace XLM
 {
@@ -10,10 +11,11 @@ namespace XLM
 /////////////////////// CXLMControlsCreator ///////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-CXLMControls* CXLMControlsCreator::operator()()
-{
-  return new CXLMControls();
-}
+
+  std::unique_ptr<CControlHardware> CXLMControlsCreator::operator()()
+  {
+    return std::unique_ptr<CControlHardware>(new CXLMControls);
+  }
 
 
 }

@@ -4,6 +4,7 @@
 
 #include <CModuleCreator.h>
 #include <CXLMControls.h>
+#include <memory>
 
 namespace XLM
 {
@@ -17,7 +18,7 @@ class CXLMControlsCreator : public ::CModuleCreator
 {
   public:
    /**! The factory method */
-   virtual CXLMControls* operator()(); 
+   virtual std::unique_ptr<CControlHardware> operator()(); 
 };
 
 

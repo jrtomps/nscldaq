@@ -53,10 +53,10 @@ CModuleCommand::CModuleCommand(CTCLInterpreter& interp,
   m_Server(server)  
 {
   CModuleFactory* pFact = CModuleFactory::instance();
-  pFact->addCreator("caen894", new CCAEN894Creator);
-  pFact->addCreator("ph7106", new CPH7106Creator);
-  pFact->addCreator("tcl",    new CTclModuleCreator);
-  pFact->addCreator("ccusb",  new CCCUSBControlCreator);
+  pFact->addCreator("caen894", unique_ptr<CModuleCreator>(new CCAEN894Creator));
+  pFact->addCreator("ph7106", unique_ptr<CModuleCreator>(new CPH7106Creator));
+  pFact->addCreator("tcl",    unique_ptr<CModuleCreator>(new CTclModuleCreator));
+  pFact->addCreator("ccusb",  unique_ptr<CModuleCreator>(new CCCUSBControlCreator));
 }
 //! Destroy the module.. no op provided only as a chain to the base class destructor.
 CModuleCommand::~CModuleCommand()

@@ -25,6 +25,7 @@
  */
 
 #include <memory>
+#include <CControlHardware.h>
 
 #ifndef __CMODULECREATOR_H
 #include <CModuleCreator.h>

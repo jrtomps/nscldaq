@@ -26,12 +26,15 @@
 #include <CModuleCreator.h>
 #endif
 
+#include <CControlHardware.h>
+#include <memory>
+
 /**
  * Concrete CModuleCreator that creates a CChicoTrigger module.
  */
 class CChicoTriggerCreator : public CModuleCreator
 {
-  virtual CControlHardware* operator()();
+  virtual std::unique_ptr<CControlHardware> operator()();
 };
 
 #endif

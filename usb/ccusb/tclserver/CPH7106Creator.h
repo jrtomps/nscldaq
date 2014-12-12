@@ -40,6 +40,7 @@
 #endif
 
 #include <memory>
+#include <CControlHardware.h>
 
 /**
  * @file CPH7106Creator.h

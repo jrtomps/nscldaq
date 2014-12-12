@@ -25,13 +25,16 @@
 #include <CModuleCreator.h>
 #endif
 
+#include <CControlHardware.h>
+#include <memory>
+
 /**
  * Concrete CModuleCreator that creates a CV812 module.
  */
 class CV812Creator : public CModuleCreator
 {
 public:
-  virtual CControlHardware* operator()();
+  virtual std::unique_ptr<CControlHardware> operator()();
 };
 
 #endif

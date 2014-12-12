@@ -21,6 +21,8 @@
 #include "CModuleCreator.h"
 #endif
 
+#include <CControlHardware.h>
+
 #include <memory>
 
 /**

@@ -16,33 +16,9 @@
 #ifndef __CMODULECREATOR_H
 #define __CMODULECREATOR_H
 
-#ifndef __STL_STRING
-#include <string>
-#ifndef __STL_STRING
-#define __STL_STRING
-#endif
-#endif
+#include <CVMUSB.h>
+#include <CModuleCreatorT.h>
 
-/**
- * @file CModuleCreator.h
- * @brief Defines the ABC for the module creator.
- * @author Ron Fox <fox@nscl.msu.edu>
- */
-
-
-#include <CControlHardware.h>
-
-/**
- * @class CModuleCreator
- *
- *     Creates modules of a specific type.  This is an ABC
- */
-class CModuleCreator
-{
-public:
-  virtual CControlHardware* operator()() = 0; // Concrete classes must implement.
-};
-
-
+using CModuleCreator = CModuleCreatorT<CVMUSB>;
 
 #endif

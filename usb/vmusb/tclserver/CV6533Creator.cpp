@@ -16,14 +16,15 @@
 
 #include "CV6533Creator.h"
 #include "CV6533.h"
+#include <memory>
 
 /**
  * @file CV6533Creator.cpp
  * @brief Implements the creational for a CV6533 HV control module.
  */
 
-CControlHardware*
+  std::unique_ptr<CControlHardware>
 CV6533Creator::operator()()
 {
-  return new CV6533();
+  return std::unique_ptr<CControlHardware>(new CV6533);
 }

@@ -59,15 +59,24 @@ CModuleCommand::CModuleCommand(CTCLInterpreter& interp,
   // Register the standard creators:
 
   CModuleFactory* pFact = CModuleFactory::instance();
-  pFact->addCreator("jtecgdg", new CJtecgdgCreator);
-  pFact->addCreator("caenv812", new CV812Creator);
-  pFact->addCreator("caenv895", new CV812Creator); // not a typo these create the same type.
-  pFact->addCreator("vmusb", new CVMUSBCreator);
-  pFact->addCreator("v6533", new CV6533Creator);
-  pFact->addCreator("tcl", new CTclModuleCreator);
-  pFact->addCreator("xlm", new XLM::CXLMControlsCreator);
-  pFact->addCreator("mxdcrcbus", new CMxDCRCBusCreator);
-  pFact->addCreator("chicotrigger", new CChicoTriggerCreator);
+  pFact->addCreator("jtecgdg", 
+                    unique_ptr<CModuleCreator>(new CJtecgdgCreator));
+  pFact->addCreator("caenv812", 
+                    unique_ptr<CModuleCreator>(new CV812Creator));
+  pFact->addCreator("caenv895", 
+                    unique_ptr<CModuleCreator>(new CV812Creator)); // not a typo these create the same type.
+  pFact->addCreator("vmusb", 
+                    unique_ptr<CModuleCreator>(new CVMUSBCreator));
+  pFact->addCreator("v6533", 
+                    unique_ptr<CModuleCreator>(new CV6533Creator));
+  pFact->addCreator("tcl", 
+                    unique_ptr<CModuleCreator>(new CTclModuleCreator));
+  pFact->addCreator("xlm", 
+                    unique_ptr<CModuleCreator>(new XLM::CXLMControlsCreator));
+  pFact->addCreator("mxdcrcbus", 
+                    unique_ptr<CModuleCreator>(new CMxDCRCBusCreator));
+  pFact->addCreator("chicotrigger", 
+                    unique_ptr<CModuleCreator>(new CChicoTriggerCreator));
 
 }
 //! Destroy the module.. no op provided only as a chain to the base class destructor.

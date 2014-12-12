@@ -2,13 +2,14 @@
 #include <string>
 #include <CMxDCRCBus.h>
 #include <CMxDCRCBusCreator.h>
+#include <memory>
 
 ///////////////////////////////////////////////////////////////////////////////
 /////////////////////// CMxDCRCBusCreator ///////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-CMxDCRCBus* CMxDCRCBusCreator::operator()()
+std::unique_ptr<CControlHardware> CMxDCRCBusCreator::operator()()
 {
-  return new CMxDCRCBus();
+  return std::unique_ptr<CControlHardware>(new CMxDCRCBus);
 }
 

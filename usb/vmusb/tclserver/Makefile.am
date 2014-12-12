@@ -31,7 +31,6 @@ libVMUSBControlServer_la_SOURCES	= \
 					CMonCommand.cpp         \
 					Server.cpp		\
 					CWatchCommand.cpp	\
-					CModuleFactory.cpp	\
 					CModuleCreator.cpp	\
 					CJtecgdgCreator.cpp	\
 					CV812Creator.cpp	\

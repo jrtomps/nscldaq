@@ -26,13 +26,16 @@
 #include <CModuleCreator.h>
 #endif
 
+#include <CControlHardware.h>
+#include <memory>
+
 /**
  * Concrete CModuleCreator that creates a CVMUSBModule
  */
 class CVMUSBCreator : public CModuleCreator
 {
 public:
-  virtual CControlHardware* operator()();
+  virtual std::unique_ptr<CControlHardware> operator()();
 };
 
 #endif
