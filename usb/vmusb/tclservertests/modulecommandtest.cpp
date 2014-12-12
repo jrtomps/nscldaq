@@ -41,6 +41,7 @@ class CModuleCommandTests : public CppUnit::TestFixture {
     CPPUNIT_TEST(create_0);
     CPPUNIT_TEST(create_1);
     CPPUNIT_TEST(createMxDCRCBus_0);
+    CPPUNIT_TEST(createChicoTrigger_0);
     CPPUNIT_TEST_SUITE_END();
 
 
@@ -57,6 +58,7 @@ protected:
   void create_0();
   void create_1();
   void createMxDCRCBus_0();
+  void createChicoTrigger_0();
 
 };
 
@@ -111,6 +113,23 @@ void CModuleCommandTests::createMxDCRCBus_0() {
 
   CPPUNIT_ASSERT( nullptr != m_server->findModule("name"));
 }
+
+void CModuleCommandTests::createChicoTrigger_0() {
+  CTCLObject arg;
+  vector<CTCLObject> arglist(4); 
+  arglist[0] = (arg = "Module");
+  arglist[1] = (arg = "create");
+  arglist[2] = (arg = "chicotrigger");
+  arglist[3] = (arg = "name");
+
+  // create the object the first time
+  int status = m_cmd->operator()(*m_interp, arglist);
+  CPPUNIT_ASSERT_EQUAL(TCL_OK, status);
+
+  CPPUNIT_ASSERT( nullptr != m_server->findModule("name"));
+}
+
+
 
 
 

@@ -58,13 +58,12 @@ void CV6533Tests::construct_0() {
 
 void CV6533Tests::update_0() {
 
-  CV6533* hdwr = new CV6533;
-  CControlModule module("name",hdwr);
-  hdwr->onAttach(module);
+  unique_ptr<CV6533> hdwr(new CV6533);
+  CControlModule module("name",std::move(hdwr));
   module.configure("-base","0xffff0000");
 
   CMockVMUSB ctlr;
-  hdwr->Initialize(ctlr);
+  module.Initialize(ctlr);
 
   vector<string> expected;
   expected.push_back("executeList::begin");
@@ -83,7 +82,8 @@ void CV6533Tests::update_0() {
   expected.push_back("executeList::end");
 
   auto record = ctlr.getOperationRecord();
-  print_vectors(expected,record);
+//  print_vectors(expected,record);
+
   CPPUNIT_ASSERT( expected == record );
   
 }

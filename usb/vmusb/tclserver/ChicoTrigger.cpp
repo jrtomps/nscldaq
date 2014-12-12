@@ -57,7 +57,6 @@ ChicoTrigger::ChicoTrigger() :
 ChicoTrigger::ChicoTrigger(const ChicoTrigger& rhs) :
   CControlHardware(rhs)
 {
-  clone(rhs);
 }
 /**
  * Destructor
@@ -77,8 +76,7 @@ ChicoTrigger&
 ChicoTrigger::operator=(const ChicoTrigger& rhs)
 {
   if (this != &rhs) {
-    delete m_pConfiguration;
-    clone(rhs);
+    CControlHardware::operator=(rhs);
   }
   return *this;
 }
@@ -270,12 +268,10 @@ ChicoTrigger::Get(CVMUSB& vme, string parameter)
 /**
  * Create a new copy of the rhs into this.
  */
-void
-ChicoTrigger::clone(const CControlHardware& rhs)
+std::unique_ptr<CControlHardware>
+ChicoTrigger::clone() const
 {
-
-  m_pConfiguration = new CControlModule(*(reinterpret_cast<const ChicoTrigger&>(rhs).m_pConfiguration ));
-  
+  return std::unique_ptr<CControlHardware>(new ChicoTrigger(*this));
 }
 /**
  * Return the base address.

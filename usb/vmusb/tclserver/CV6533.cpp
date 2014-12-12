@@ -35,6 +35,7 @@
 #include <stdlib.h>
 
 #include <iostream>
+#include <memory>
 
 using namespace std;
 
@@ -131,6 +132,7 @@ CV6533::CV6533() :
 CV6533::CV6533(const CV6533& rhs) :
   CControlHardware(rhs)
 {
+  copy(rhs);
 }
 /**
  * Destruction is not really needed since we are not going to be
@@ -150,7 +152,8 @@ CV6533&
 CV6533::operator=(const CV6533& rhs)
 {
   if (this != &rhs) {
-    clone(rhs);
+    copy(rhs);
+    CControlHardware::operator=(rhs);
   }
   return *this;
 }
@@ -205,7 +208,8 @@ CV6533::Initialize(CVMUSB& vme)
 {
 
 
-  CVMUSBReadoutList list;	// List of configuration ops.
+  unique_ptr<CVMUSBReadoutList> pList(vme.createReadoutList());	// List of configuration ops.
+  CVMUSBReadoutList& list = *pList;
   for (unsigned int i =0; i < 6; i++) {
     turnOff(list, i);
     setRequestVoltage(list, i, 0.0);
@@ -403,17 +407,19 @@ CV6533::Get(CVMUSB& vme, string parameter)
  *
  * @param rhs - the object to clone into *this
  */
-void
-CV6533::clone(const CControlHardware& righths)
+std::unique_ptr<CControlHardware>
+CV6533::clone() const
 {
-  const CV6533& rhs(reinterpret_cast<const CV6533&>(righths));
-  m_pConfiguration = new CControlModule(*(rhs.m_pConfiguration)); // Already has has config params registered.
+  return std::unique_ptr<CControlHardware>(new CV6533(*this));
+}
+
+void CV6533::copy(const CV6533& rhs)
+{
   m_globalStatus   = rhs.m_globalStatus;
   memcpy(m_channelStatus, rhs.m_channelStatus, sizeof(m_channelStatus));
   memcpy(m_voltages,      rhs.m_voltages,      sizeof(m_voltages));
   memcpy(m_currents,      rhs.m_currents,      sizeof(m_currents));
   memcpy(m_temperatures,  rhs.m_temperatures,  sizeof(m_temperatures));
-								  
 }
 
 /*----------------------------------  Monitoring --------------------------*/

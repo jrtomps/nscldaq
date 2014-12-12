@@ -8,7 +8,9 @@ noinst_HEADERS		=	COutputThread.h		\
 				DataBuffer.h
 
 libVMUSBRouter_la_CPPFLAGS		=  -DLAST_CHANCE \
+			-I@top_srcdir@/usb/common/slowcontrols \
 			-I@top_srcdir@/usb/vmusb/tclserver $(TCL_FLAGS) \
+			-I@top_srcdir@/usb/vmusb/rdothread \
 			-I@top_srcdir@/usb/vmusb/vmusb -I@top_srcdir@/base/thread \
 			@LIBTCLPLUS_CFLAGS@		\
 			-I@top_srcdir@/base/headers  \

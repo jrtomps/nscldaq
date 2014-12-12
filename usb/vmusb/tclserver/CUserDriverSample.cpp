@@ -71,7 +71,7 @@ public:
 			  std::string value);
   virtual std::string Get(CVMUSB& vme, 
 			  std::string parameter);
-  virtual void clone(const CControlHardware& rhs);
+  virtual std::unique_ptr<CControlHardware> clone() const;
 
 };
 
@@ -179,16 +179,14 @@ CUserDriver::Get(CVMUSB& vme, std::string parameter)
 }
 /**
  * clone
- *   We have no additional state so we don't need to do anything.
+ *  Return a copy of this object.
  * 
  * @param rhs - the object we are being cloned from.
  */
-void
-CUserDriver::clone(const CControlHardware& rhs)
+std::unique_ptr<CControlHardware>
+CUserDriver::clone() const
 {
-  CControlHardware* pRhs = const_cast<CControlHardware*>(&rhs);
-  m_pConfig = pRhs->getConfiguration();
-
+  return std::unique_ptr<CControlHardware>(new CUserDriver(*this));
 }
 
 /*--------------------------------------------------------------------------------------

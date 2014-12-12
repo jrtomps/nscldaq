@@ -97,6 +97,9 @@ struct usb_dev_handle;
 class CVMUSB 
 {
   public:
+    typedef CVMUSBReadoutList RdoList;
+
+  public:
     /**! Register shadow
     * Contains the most recent values of the VMUSB
     */ 

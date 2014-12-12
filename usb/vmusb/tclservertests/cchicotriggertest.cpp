@@ -57,10 +57,8 @@ void ChicoTriggerTests::construct_0() {
 }
 
 void ChicoTriggerTests::update_0() {
-
-  ChicoTrigger* hdwr = new ChicoTrigger;
-  CControlModule module("name",hdwr);
-  hdwr->onAttach(module);
+  std::unique_ptr<CControlHardware> hdwr(new ChicoTrigger);
+  CControlModule module("name",std::move(hdwr));
   module.configure("-base","0xffff0000");
 
   CPPUNIT_ASSERT( 0xffff0000 == module.getUnsignedParameter("-base") );

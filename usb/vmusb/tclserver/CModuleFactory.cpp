@@ -85,12 +85,12 @@ CModuleFactory::addCreator(std::string type, CModuleCreator* pCreator)
  * @return CControlHardware* - Pointer to the created module.
  * @retval NULL - no such type.
  */
-CControlHardware*
+std::unique_ptr<CControlHardware>
 CModuleFactory::create(std::string type)
 {
   std::map<std::string, CModuleCreator*>::iterator p = m_Creators.find(type);
   if (p != m_Creators.end()) {
-    return (*(p->second))();
+    return std::unique_ptr<CControlHardware>((*(p->second))());
   } else {
     return 0;
   }

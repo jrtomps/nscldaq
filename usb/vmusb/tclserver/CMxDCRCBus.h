@@ -8,7 +8,7 @@
 #include <CControlHardware.h>
 
 class CVMUSB;
-class CControlModule;
+#include <CControlModule.h>
 
 class CMxDCRCBus : public ::CControlHardware
 {
@@ -18,7 +18,17 @@ class CMxDCRCBus : public ::CControlHardware
   public:
     CMxDCRCBus();
 
-    virtual void clone(const CControlHardware& rhs);
+    /**! Copy construct
+     *
+     */
+    CMxDCRCBus(const CMxDCRCBus& rhs);
+
+    CMxDCRCBus& operator=(const CMxDCRCBus& rhs);
+
+    /**! Virtual Copy Constructor
+     *
+     */
+    virtual std::unique_ptr<CControlHardware> clone() const;
 
     /**! \brief Add configuration parameters to CControlModule owning this
      *
@@ -88,6 +98,11 @@ class CMxDCRCBus : public ::CControlHardware
     ///////////////////////////////////////////////////////////////////////////
     // UTILITY methods
     //
+
+    /**! Copy the state of another instance
+     *
+     */
+    virtual void copy(const CMxDCRCBus& rhs);
 
     /**! Enlist NIM Busy output on MxDC for RC-bus operations
      *

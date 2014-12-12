@@ -3,6 +3,7 @@ lib_LTLIBRARIES			= libVMUSBControlServer.la libUserDriver.la
 
 COMPILATION_FLAGS=@THREADCXX_FLAGS@ -I@top_srcdir@/usb/vmusb/vmusb		\
 					-I@top_srcdir@/usb/common/configurableobject \
+					-I@top_srcdir@/usb/common/slowcontrols \
 					-I@top_srcdir@/daq/format                 \
 					-I@top_srcdir@/usb/vmusb/devices	\
 					-I@top_srcdir@/usb/vmusb/rdothread	\
@@ -16,10 +17,9 @@ COMPILATION_FLAGS=@THREADCXX_FLAGS@ -I@top_srcdir@/usb/vmusb/vmusb		\
 
 libVMUSBControlServer_la_CXXFLAGS	= $(COMPILATION_FLAGS)
 
-libVMUSBControlServer_la_SOURCES	= 	CControlHardware.cpp	\
+libVMUSBControlServer_la_SOURCES	= \
 					CModuleCommand.cpp	\
 					TclServer.cpp		\
-					CControlModule.cpp	\
 					CSetCommand.cpp		\
 					serverinstance.cpp	\
 					CGDG.cpp		\
@@ -30,7 +30,6 @@ libVMUSBControlServer_la_SOURCES	= 	CControlHardware.cpp	\
 					CGetCommand.cpp		\
 					CMonCommand.cpp         \
 					Server.cpp		\
-					ChicoTrigger.cpp        \
 					CWatchCommand.cpp	\
 					CModuleFactory.cpp	\
 					CModuleCreator.cpp	\
@@ -38,14 +37,15 @@ libVMUSBControlServer_la_SOURCES	= 	CControlHardware.cpp	\
 					CV812Creator.cpp	\
 					CVMUSBCreator.cpp	\
 					CV6533Creator.cpp	\
-					CChicoTriggerCreator.cpp \
 					CTclModuleCreator.cpp    \
 					CTclControlModule.cpp \
 					CXLMControls.cpp	\
 					CXLMControlsCreator.cpp \
           CRunStateCommand.cpp \
 					CMxDCRCBus.cpp \
-					CMxDCRCBusCreator.cpp
+					CMxDCRCBusCreator.cpp \
+					ChicoTrigger.cpp \
+					CChicoTriggerCreator.cpp
 
 noinst_HEADERS			=	CGDG.h			\
 					CV812.h			\
@@ -61,7 +61,6 @@ noinst_HEADERS			=	CGDG.h			\
 					CModuleCommand.h	\
 					CMonCommand.h          \
 					TclServer.h		\
-					ChicoTrigger.h		\
 					CWatchCommand.h		\
 					CModuleFactory.h	\
 					CModuleCreator.h	\
@@ -69,14 +68,15 @@ noinst_HEADERS			=	CGDG.h			\
 					CV812Creator.h		\
 					CVMUSBCreator.h		\
 					CV6533Creator.h		\
-					CChicoTriggerCreator.h	\
 					CTclModuleCreator.h	\
 					CTclControlModule.h	\
 					CXLMControls.h	\
 					CXLMControlsCreator.h \
           CRunStateCommand.h \
 					CMxDCRCBus.h \
-					CMxDCRCBusCreator.h
+					CMxDCRCBusCreator.h \
+					ChicoTrigger.h \
+					CChicoTriggerCreator.h
 
 
 

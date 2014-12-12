@@ -58,13 +58,12 @@ void CGDGTests::construct_0() {
 
 void CGDGTests::update_0() {
 
-  CGDG* hdwr = new CGDG;
-  CControlModule module("name",hdwr);
-  hdwr->onAttach(module);
+  unique_ptr<CGDG> hdwr(new CGDG);
+  CControlModule module("name",std::move(hdwr));
   module.configure("-base","0xffff0000");
 
   CMockVMUSB ctlr;
-  hdwr->Update(ctlr);
+  module.Update(ctlr);
 
   vector<string> expected;
   expected.push_back("executeList::begin");
@@ -94,7 +93,7 @@ void CGDGTests::update_0() {
   expected.push_back("executeList::end");
 
   auto record = ctlr.getOperationRecord();
-  //print_vectors(expected,record);
+//  print_vectors(expected,record);
   CPPUNIT_ASSERT( expected == record );
   
 }

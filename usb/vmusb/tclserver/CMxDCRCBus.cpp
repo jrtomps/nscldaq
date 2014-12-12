@@ -27,16 +27,33 @@ CMxDCRCBus::CMxDCRCBus () :
 /**
  *
  */
-void CMxDCRCBus::clone (const CControlHardware& rhs) 
+CMxDCRCBus::CMxDCRCBus (const CMxDCRCBus& rhs) :
+  CControlHardware(rhs)
 {
-  // if a non CMxDCRCBus was passed into this, then the whole cloning
-  // operation doesn't make any sense. Allow dynamic_cast to throw
-  // to enforce this.
-  const CMxDCRCBus& other = dynamic_cast<const CMxDCRCBus&>(rhs);
-  m_maxPollAttempts = other.getPollTimeout();
+  copy(rhs);
+}
 
-  // now we can modify the base
-  CControlHardware::clone(other);
+CMxDCRCBus& CMxDCRCBus::operator=(const CMxDCRCBus& rhs) 
+{
+  if (this != &rhs) {
+    copy(rhs);
+    CControlHardware::operator=(rhs);
+  }
+
+  return *this;
+}
+
+std::unique_ptr<CControlHardware> CMxDCRCBus::clone() const
+{
+  return std::unique_ptr<CControlHardware>(new CMxDCRCBus(*this));
+}
+
+/** Perform specific copy operations for the derived instance
+ *
+ */
+void CMxDCRCBus::copy (const CMxDCRCBus& other) 
+{
+  m_maxPollAttempts = other.getPollTimeout();
 }
 
 /**

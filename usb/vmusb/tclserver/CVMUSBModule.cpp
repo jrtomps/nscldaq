@@ -49,7 +49,6 @@ CVMUSBModule::CVMUSBModule(const CVMUSBModule& rhs) :
   CControlHardware(rhs)
   
 {
-  clone(reinterpret_cast<const CControlHardware&>(rhs));
 }
 /**
  * Destruction is literally a no-op.
@@ -67,7 +66,7 @@ CVMUSBModule&
 CVMUSBModule::operator=(const CVMUSBModule& rhs)
 {
   if (this != &rhs) {
-    clone(rhs);
+    CControlHardware::operator=(rhs);
   }
   return *this;
 }
@@ -177,11 +176,11 @@ CVMUSBModule::Get(CVMUSB& vme, string parameter)
   return "ERROR - Get not supported by VMUSBModule driver";
 }
 /**
- * Clone is a noop.
  */
-void
-CVMUSBModule::clone(const CControlHardware& rhs)
+std::unique_ptr<CControlHardware>
+CVMUSBModule::clone() const
 {
+  return std::unique_ptr<CControlHardware>(new CVMUSBModule(*this));
 }
 
 

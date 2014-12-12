@@ -35,7 +35,11 @@ void CXLMControls::Initialize(CVMUSB& controller)
   loadFirmware(controller, base, SRAMA, path);
 }
 
-void CXLMControls::clone(const CControlHardware& controller) {}
+std::unique_ptr<CControlHardware> 
+CXLMControls::clone()  const
+{
+  return std::unique_ptr<CControlHardware>(new CXLMControls(*this));
+}
 
 string CXLMControls::Update(CVMUSB& controller)
 {

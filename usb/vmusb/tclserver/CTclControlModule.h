@@ -27,6 +27,8 @@
 #include "CControlHardware.h"	/* base class. */
 #endif
 
+#include <CControlModule.h>
+
 class CTCLObject;
 class CTCLInterpreter;
 
@@ -68,7 +70,7 @@ public:
 			  std::string value);
   virtual std::string Get(CVMUSB& vme, 
 			  std::string parameter);
-  virtual void clone(const CControlHardware& rhs);
+  virtual std::unique_ptr<CControlHardware> clone() const;
 
   // Interface to support monitoring.
 

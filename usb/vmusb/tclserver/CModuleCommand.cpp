@@ -29,14 +29,15 @@ using namespace std;
 #include <CVMUSBModule.h>
 #include <ChicoTrigger.h>
 #include "CModuleFactory.h"
-#include "CChicoTriggerCreator.h"
 #include "CJtecgdgCreator.h"
 #include "CV6533Creator.h"
 #include "CV812Creator.h"
 #include "CVMUSBCreator.h"
 #include "CTclModuleCreator.h"
 #include "CXLMControlsCreator.h"
+#include "CChicoTriggerCreator.h"
 #include "CMxDCRCBusCreator.h"
+#include <memory>
 
 /*!
    Construct the command. 
@@ -63,10 +64,10 @@ CModuleCommand::CModuleCommand(CTCLInterpreter& interp,
   pFact->addCreator("caenv895", new CV812Creator); // not a typo these create the same type.
   pFact->addCreator("vmusb", new CVMUSBCreator);
   pFact->addCreator("v6533", new CV6533Creator);
-  pFact->addCreator("ChicoTrigger", new CChicoTriggerCreator);
   pFact->addCreator("tcl", new CTclModuleCreator);
   pFact->addCreator("xlm", new XLM::CXLMControlsCreator);
   pFact->addCreator("mxdcrcbus", new CMxDCRCBusCreator);
+  pFact->addCreator("chicotrigger", new CChicoTriggerCreator);
 
 }
 //! Destroy the module.. no op provided only as a chain to the base class destructor.
@@ -154,15 +155,15 @@ CModuleCommand::create(CTCLInterpreter& interp,
   // If we made it here, the module doesn't already exist. We can not safely 
   // create it.
   CModuleFactory*   pFact = CModuleFactory::instance();
-  CControlHardware* pHdwr = pFact->create(type);
+  unique_ptr<CControlHardware> pHdwr = pFact->create(type);
   if (!pHdwr) {
-    m_Server.setResult("Module create: Invalid type, must be one of jtecgdg, caenv182, caenvg895, vmusb, v6533 ChicoTrigger, xlm");
+    m_Server.setResult("Module create: Invalid type, must be one of jtecgdg, caenv182, caenvg895, vmusb, chicotrigger, v6533, xlm");
     return TCL_ERROR;
   }
 
   // Hardware was successfully created, wrap it into a CControlModule and
   // register it with the TclServer
-  pConfig = new CControlModule(name,pHdwr);
+  pConfig = new CControlModule(name,std::move(pHdwr));
   m_Server.addModule(pConfig);
   m_Server.setResult(name);
   

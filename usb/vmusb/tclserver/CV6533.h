@@ -36,7 +36,7 @@
 #endif
 
 
-class CControlModule;
+#include <CControlModule.h>
 class CVMUSB;
 class CVMUSBReadoutList;
 /**
@@ -91,7 +91,7 @@ public:
 			  std::string value) ;            //!< Set parameter value
   virtual std::string Get(CVMUSB& vme, 
 			  std::string parameter) ;        //!< Get parameter value.
-  virtual void clone(const CControlHardware& rhs) ;	     //!< Virtual copy constr.
+  virtual std::unique_ptr<CControlHardware> clone() const;	     //!< Virtual copy constr.
 
   // Interface to support monitoring.
 
@@ -103,6 +103,7 @@ public:
   // Local utilities: 
 
 private:
+  void copy(const CV6533& rhs);	   // copy logic 
   uint32_t getBase();		// Get the base address of the module from config
 
   // Functions used to set the module parameters.

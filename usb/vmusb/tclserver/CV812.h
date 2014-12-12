@@ -37,7 +37,7 @@
 #endif
 
 
-class CControlModule;
+#include <CControlModule.h>
 class CVMUSB;
 
 
@@ -106,7 +106,7 @@ public:
 			  std::string value);            //!< Set parameter value
   virtual std::string Get(CVMUSB& vme, 
 			  std::string parameter);        //!< Get parameter value.
-  virtual void clone(const CControlHardware& rhs);	     //!< Virtual
+  virtual std::unique_ptr<CControlHardware> clone() const;	     //!< Virtual
 
   // utilities:
   

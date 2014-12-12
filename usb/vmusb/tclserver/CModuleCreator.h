@@ -30,7 +30,7 @@
  */
 
 
-class CControlHardware;
+#include <CControlHardware.h>
 
 /**
  * @class CModuleCreator

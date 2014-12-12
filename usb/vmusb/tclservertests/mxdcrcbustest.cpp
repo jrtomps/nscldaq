@@ -48,9 +48,9 @@ class CMxDCRCBusTests : public CppUnit::TestFixture {
 
 public:
   void setUp() {
-//    auto hdwr = unique_ptr<CControlHardware>(new CMxDCRCBus);
+    auto hdwr = unique_ptr<CControlHardware>(new CMxDCRCBus);
     m_pModule = unique_ptr<CControlModule>(
-        new CControlModule("test", new CMxDCRCBus ));
+        new CControlModule("test", move(hdwr) ));
 
     m_pModule->configure("-base","0xff000000");
 

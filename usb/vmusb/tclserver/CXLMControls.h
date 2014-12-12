@@ -7,7 +7,7 @@
 
 // Forward class definitions:
 
-class CControlModule;
+#include <CControlModule.h>
 class CVMUSB;
 class CVMUSBReadoutList;
 
@@ -34,7 +34,7 @@ class CXLMControls : public ::CControlHardware
   public:
   CXLMControls();
 
-  virtual void clone( const CControlHardware& rhs);
+  virtual std::unique_ptr<CControlHardware> clone() const; 
 
   virtual void onAttach (CControlModule& config);
   virtual void Initialize(CVMUSB& controller);

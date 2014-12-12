@@ -51,7 +51,7 @@
 #endif
 
 class CVMUSB;
-class CControlModule;
+#include <CControlModule.h>
 class CTCLInterpreter;
 struct DataBuffer;
 
