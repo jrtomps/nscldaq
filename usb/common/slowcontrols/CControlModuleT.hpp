@@ -67,7 +67,7 @@ CControlModuleT<Ctlr>&
 CControlModuleT<Ctlr>::operator=(const CControlModuleT<Ctlr>& rhs)
 {
   if (this != &rhs) {
-    clearConfiguration();
+    this->clearConfiguration();
     CConfigurableObject::operator=(rhs);
     m_pHardware = rhs.m_pHardware->clone();
     m_pHardware->onAttach(*this);
