@@ -147,7 +147,7 @@ class CControlHardwareT
      *
      * Routine to properly initialize the hardware for proper function.
      *
-     * \brief ctlr   the controller
+     * \param ctlr   the controller
      *
      */
     virtual void Initialize(Ctlr& ctlr);
@@ -158,7 +158,7 @@ class CControlHardwareT
      * state to the device. There is no demand made on what is actually
      * being updated (i.e. caller's state or hardware's state). 
      *
-     * \brief ctlr   the controller
+     * \param ctlr   the controller
      */
     virtual std::string Update(Ctlr& ctlr) = 0;    
 

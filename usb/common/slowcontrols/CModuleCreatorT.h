@@ -1,6 +1,6 @@
 /*
     This software is Copyright by the Board of Trustees of Michigan
-    State University (c) Copyright 2013.
+    State University (c) Copyright 2014.
 
     You may use this software under the terms of the GNU public license
     (GPL).  The terms of this license are described at:
@@ -9,6 +9,7 @@
 
      Author:
              Ron Fox
+             Jeromy Tompkins
 	     NSCL
 	     Michigan State University
 	     East Lansing, MI 48824-1321
@@ -36,7 +37,12 @@ template<class Ctlr>
 class CModuleCreatorT
 {
 public:
-  // Concrete classes must implement.
+  /**! \brief Factory method
+   *
+   * Derived classes must implement this.
+   *
+   * \returns new instance of type derived from CControlHardwareT<Ctlr>
+   */
   virtual std::unique_ptr<CControlHardwareT<Ctlr>> operator()() = 0; 
 };
 

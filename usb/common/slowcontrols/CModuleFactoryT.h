@@ -1,6 +1,6 @@
 /*
     This software is Copyright by the Board of Trustees of Michigan
-    State University (c) Copyright 2013.
+    State University (c) Copyright 2014
 
     You may use this software under the terms of the GNU public license
     (GPL).  The terms of this license are described at:
@@ -9,6 +9,7 @@
 
      Author:
              Ron Fox
+            Jeromy Tompkins 
 	     NSCL
 	     Michigan State University
 	     East Lansing, MI 48824-1321
@@ -18,7 +19,7 @@
 #define __CMODULEFACTORYT_H
 
 /**
- * @file CModuleFactory.h
+ * @file CModuleFactoryT.h
  * @brief Defines a factory for control modules in the Tcl server.
  * @author Ron Fox <fox@nscl.msu.edu>
  */
@@ -49,28 +50,51 @@ template<class Ctlr> class CModuleCreatorT;
  */
 template<class Ctlr>
 class CModuleFactoryT {
-private:
-  static CModuleFactoryT* m_pInstance;
 
-  std::map<std::string, 
-           std::unique_ptr<CModuleCreatorT<Ctlr>> > m_Creators;
+  private:
 
-  // Constructor and destructor of singletons arre private:
+    static CModuleFactoryT* m_pInstance; //!< sole instance
 
-  CModuleFactoryT();
-  ~CModuleFactoryT();
+    // the mapping of module names to creators
+    std::map<std::string, 
+             std::unique_ptr<CModuleCreatorT<Ctlr>> > m_Creators;
 
-  // Mechanism to get the singleton pointer:
+    /**! \brief Private constructor */
+    CModuleFactoryT();
 
-public:
-  static CModuleFactoryT* instance();
+    /**! \brief Private desstructor */
+    ~CModuleFactoryT();
 
-  // Manipulation of the factory:
+  public:
 
-public:
-  void addCreator(std::string type, 
-                  std::unique_ptr<CModuleCreatorT<Ctlr>> pCreator);
-  std::unique_ptr<CControlHardwareT<Ctlr>> create(std::string type);
+    /**! \brief Mechanism to get the singleton pointer:
+     *
+     * If the instance does not yet exist, it is constructed.
+     * 
+     * \returns pointer to the sole instance
+     */
+    static CModuleFactoryT* instance();
+
+
+  public:
+    /**! \brief Insert a new creator type 
+     *
+     * This passes ownership of a new creator into the factory
+     * for use.
+     *
+     *  \param type       name of type 
+     *  \param pCreator   a creator instance 
+     */ 
+    void addCreator(std::string type, 
+        std::unique_ptr<CModuleCreatorT<Ctlr>> pCreator);
+
+    /**! \brief Factory method
+     *
+     * \param type  the type of control hardware desired
+     *
+     * \returns instance of hardware associated with type
+     */
+    std::unique_ptr<CControlHardwareT<Ctlr>> create(std::string type);
 
 
 };
