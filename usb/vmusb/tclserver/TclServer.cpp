@@ -46,6 +46,7 @@ using namespace std;
 #include <errno.h>
 #include <string.h>
 
+#include <iostream>
 
 #include <vector>
 
@@ -451,13 +452,11 @@ TclServer::MonitorDevices(void* pData)
   if (state  == CRunState::Active) {
     try {
       pController->writeActionRegister( CVMUSB::ActionRegister::triggerL7 | 
-          CVMUSB::ActionRegister::startDAQ); // StartDAQ keeps acquisition alive.
+					CVMUSB::ActionRegister::startDAQ); // StartDAQ keeps acquisition alive.
       pObject->m_waitingMonitor = true;
-    } catch (...) {
-      cout << "Exception thrown and caught in TclServer::MonitorDevices(void*) ";
-      cout << " while writing to action register. Status returned from ";
-      cout << " writeActionRegister.";
-      cout << endl;
+    }
+    catch (...) {
+      std::cerr << "Could not trigger monitor list.  No harm, this will be retried soon\n";
     }
   }
   else if ((state != CRunState::Starting) && (state != CRunState::Stopping)) {

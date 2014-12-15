@@ -16,6 +16,7 @@ proc tearDown {} {
   ::proxy destroy
 }
 
+if {0} {
 tcltest::test threshold-0 { Control over thresholds
 } -setup {
   setup
@@ -181,3 +182,23 @@ tcltest::test polarity-0 { Control over polarity
 
 
 tcltest::cleanupTests
+
+}
+
+
+setup
+
+# for channel 0, try and set width values 0 to 255 and read back
+
+for {set val 23} {$val < 212} {incr val} {
+#  set ch [expr $val%8]
+  set ch 0
+  dev SetThreshold $ch $val
+  set rdbk [dev GetThreshold $ch]
+
+  if {$rdbk != $val} {
+    puts "Wrote $val, Read $rdbk"
+  }
+  if {$val == 212} { puts "Completed all 255"}
+}
+

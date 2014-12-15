@@ -70,11 +70,16 @@ CBufferConverter::operator()()
   RingItem*   pHeader;	// Really this will point to the entire item.
 
   try {
+
     while(pHeader = getItem()) {
       outputItem(pHeader);
       free(pHeader);		// It's a dynamically allocated thing.
     }
     
+  }
+  catch(int i) {              // exit code.
+    
+    return i;
   }
   catch(std::string msg) {
     std::cerr << msg << std::endl;
@@ -96,7 +101,7 @@ CBufferConverter::operator()()
  *                      other read failures.
  */
 RingItem* 
-CBufferConverter::getItem() throw(std::string)
+CBufferConverter::getItem() throw(std::string, int)
 {
 
   // Read the header and figure out the size:
@@ -121,6 +126,7 @@ CBufferConverter::getItem() throw(std::string)
   readOrThrow(pPayload, payloadSize);
 
   return reinterpret_cast<RingItem*>(buffer);
+
 
 }
 /**
@@ -194,12 +200,12 @@ CBufferConverter::outputItem(RingItem* pItem) throw(std::string)
  * @param nBytes - Number of bytes to read.
  * @throw std::string - EOF prior to completing the read.
  * @throw std::string - I/O error on read completion.
- * @throw std::string - EOF -if eof encountered at start of read.
+ * @throw int - 0 if EOF encountered at start of read.
 
  */
  
 void
-CBufferConverter::readOrThrow(void* pData, size_t nBytes) throw(std::string)
+CBufferConverter::readOrThrow(void* pData, size_t nBytes) throw(std::string, int)
 {
   if (!std::cin.eof()) {
     std::cin.read(reinterpret_cast<char*>(pData), nBytes);
@@ -212,7 +218,9 @@ CBufferConverter::readOrThrow(void* pData, size_t nBytes) throw(std::string)
     }
     return;			// success
   }
-  throw std::string("EOF encountered"); // initial eof.
+  throw 0;
+  
+  
 
 }
 /**
