@@ -21,6 +21,9 @@
 */
 
 #include "CVariableDb.h"
+#include "CTypeFactory.h"
+
+
 #include <CSqlite.h>
 #include <CSqliteStatement.h>
 
@@ -118,6 +121,8 @@ CVariableDb::~CVariableDb() {}
 void
 CVariableDb::createSchema(CSqlite& db)
 {
+    // The directory table and the root directory.
+    
     CSqliteStatement::execute(
         db,
         "CREATE TABLE directory (                              \
@@ -129,6 +134,75 @@ CVariableDb::createSchema(CSqlite& db)
     
     CSqliteStatement::execute(
         db, "INSERT INTO directory (id) VALUES (1)"
+    );
+    // The variable types table and the varible types themselves:
+    
+    CTypeFactory::createSchema(db);
+    CTypeFactory factory(db);                 // Registers the types.
+    
+    // Add the constraint types table:
+    
+    CSqliteStatement::execute(
+        db,
+        "CREATE TABLE constraint_types (                        \
+            id               INTEGER PRIMARY KEY NOT NULL,      \
+            constraint_name  VARCHAR(256) NOT NULL              \
+        )"
+    );
+    CSqliteStatement::execute(
+        db,
+        "INSERT INTO constraint_types (constraint_name) VALUES  \
+        ('range') "
+    );
+    
+    // Add the constraint application table and define which constraints
+    // apply to which types:
+    
+    CSqliteStatement::execute(
+        db,
+        "CREATE TABLE constraint_allowed (              \
+            type_id           INTEGER NOT NULL,         \
+            constraint_id     INTEGER NOT NULL          \
+        )"
+    );
+    allowConstraint(db, "range", "integer");
+    allowConstraint(db, "range", "real");
+    
+    // Define the range_constraint_data table which has limits for
+    // the range constraint type:
+    
+    CSqliteStatement::execute(
+        db,
+        "CREATE TABLE range_constraint_data (                   \
+            id                INTEGER PRIMARY KEY NOT NULL,     \
+            low               REAL DEFAULT NULL,                \
+            high              REAL DEFAULT NULL                 \
+        )"
+    );
+    
+    // Define the variables table and the table that actualy contains
+    // constraints on variables:
+    
+    CSqliteStatement::execute(
+        db,
+        "CREATE TABLE variables (                               \
+            id                  INTEGER PRIMARY KEY NOT NULL,   \
+            name                VARCHAR(256) NOT NULL,          \
+            directory_id        INTEGER NOT NULL,               \
+            type_id             INTEGER NOT NULL,               \
+            value               VARCHAR(256)  NOT NULL          \
+        )"
+    );
+    // Define the table that holds variable constraints:
+    
+    CSqliteStatement::execute(
+        db,
+        "CREATE TABLE constraints (                             \
+            id                  INTEGER PRIMARY KEY NOT NULL,   \
+            variable_id         INTEGER NOT NULL,               \
+            constraint_type_id  INTEGER NOT NULL,               \
+            constraint_data_id  INTEGER                         \
+        )"
     );
 }
 
@@ -144,6 +218,25 @@ CVariableDb::checkSchema()
     if (! checkTable("directory")) {
         throw CException("Diretory table missing");
     }
+    if (! checkTable("variable_types")) {
+        throw CException("Variable types table missing");
+    }
+    if (! checkTable("constraint_types")) {
+        throw CException("Constraint types table missing");
+    }
+    if (!checkTable("constraint_allowed")) {
+        throw CException("Constraints allowed on data types join table missing");
+    }
+    if (!checkTable("range_constraint_data")) {
+        throw CException("Range constraint data table missing");
+    }
+    if(!checkTable("variables")) {
+        throw CException("Variables table missing");
+    }
+    if (!checkTable("constraints")) {
+        throw CException("Variable Constraints table missing");
+    }
+    
 }
 
 /**
@@ -162,4 +255,58 @@ CVariableDb::checkTable(const char* table)
     s.bind(1, table, -1, SQLITE_TRANSIENT);
     ++s;
     return (s.getInt(0) > 0);
+}
+/**
+ * allowConstraint
+ *    Make an entry in the constraint_allowed join table that indicates
+ *    a specified constraint type can be applied to a specific
+ *    data type:
+ * @param db             - database id reference.
+ * @param constraintType - Type of constraint
+ * @param dataType       - Data type.
+ * @throw CVariableDb::CException if error.
+ */
+void
+CVariableDb::allowConstraint(
+    CSqlite& db, const char* constraintType, const char* dataType
+)
+{
+    // Get the ids of the constraint and data types:
+    
+    CSqliteStatement cid(
+        db,
+        "SELECT id FROM constraint_types WHERE constraint_name = ?"
+    );
+    CSqliteStatement tid(
+        db,
+        "SELECT id FROM variable_types WHERE type_name = ?"
+    );
+    
+    cid.bind(1, constraintType, -1, SQLITE_TRANSIENT);
+    ++cid;
+    if (cid.atEnd()) {
+        throw CException("Constraint type does not exist in allowConstraint");
+    }
+    int constraintId = cid.getInt(0);
+    
+    tid.bind(1, dataType, -1, SQLITE_TRANSIENT);
+    ++tid;
+    if (cid.atEnd()) {
+        throw CException("Data type does not exist in allowConstraint");
+    }
+    int typeId = tid.getInt(0);
+    
+    // Insert the join table entry:
+    
+    CSqliteStatement add(
+        db,
+        "INSERT INTO constraint_allowed (type_id, constraint_id)  \
+           VALUES (?,?)"
+        
+    );
+    add.bind(1, typeId);
+    add.bind(2, constraintId);
+    ++add;
+    
+    
 }

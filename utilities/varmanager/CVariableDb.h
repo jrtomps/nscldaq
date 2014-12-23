@@ -58,7 +58,11 @@ private:
     bool checkTable(const char* tableName);
     void checkSchema();
     
+    static void allowConstraint(
+        CSqlite& db, const char* constraint, const char* varType
+    );
     static void createSchema(CSqlite& db);
+    
 };
 
 

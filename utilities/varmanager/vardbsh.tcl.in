@@ -37,6 +37,7 @@ exec @prefix@/bin/inittcl "$0" ${1+"$@"}
 #   * Initial command prompt is ([file tail])[pwd]
 #   * Continuation prompt is '_'
 #
+lappend auto_path [file join  [file dirname [info script]] .. TclLibs]
 
 package require vardb
 

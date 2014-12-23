@@ -15,13 +15,18 @@ lib_LTLIBRARIES = libvardb.la libvardbtcl.la libvardbpy.la libvardirtreepy.la
 
 #  Base C++ implementation
 
-libvardb_la_SOURCES=CVariableDb.cpp CVarDirTree.cpp
+libvardb_la_SOURCES=CVariableDb.cpp CVarDirTree.cpp CTypeFactory.cpp \
+	CVariable.cpp CIntegerType.cpp CRealType.cpp CStringType.cpp \
+	CDataTypeCreatorBase.cpp CIntegerTypeCreator.cpp CRealTypeCreator.cpp \
+	CStringTypeCreator.cpp
 
-libvardb_la_CPPFLAGS = @SQLITE3_CFLAGS@ -I@top_srcdir@/base/sqlite++
+libvardb_la_CPPFLAGS = @SQLITE3_CFLAGS@ -I@top_srcdir@/base/sqlite++ -I@top_srcdir@/base/factories
 libvardb_la_LDFLAGS  = 	@top_srcdir@/base/sqlite++/libsqlite3pp.la  @SQLITE3_LDFLAGS@ 
 
-include_HEADERS = CVariableDb.h CVarDirTree.h
-
+include_HEADERS = CVariableDb.h CVarDirTree.h CVariable.h CTypeFactory.h \
+	CDataType.h CIntegerType.h CRealType.h CStringType.h \
+	CDataTypeCreatorBase.h CIntegerTypeCreator.h CRealTypeCreator.h
+	CStringTypeCreator.h
 
 
 #  Tcl bindings
@@ -36,7 +41,7 @@ libvardbtcl_la_SOURCES=VarDbTclPackage.cpp \
 	CVarDbLsCommand.cpp     CVarDbLsCommand.h	\
 	CVarDbRmdirCommand.cpp  CVarDbRmdirCommand.h
 
-libvardbtcl_la_CPPFLAGS=@TCL_FLAGS@ @LIBTCLPLUS_CFLAGS@
+libvardbtcl_la_CPPFLAGS=@TCL_FLAGS@ @LIBTCLPLUS_CFLAGS@ 
 libvardbtcl_la_LDFLAGS= @builddir@/libvardb.la @top_srcdir@/base/sqlite++/libsqlite3pp.la  \
 			@SQLITE3_LDFLAGS@ @LIBTCLPLUS_LDFLAGS@ @TCL_LDFLAGS@\
 			-Wl,"-rpath=@libdir@"
@@ -62,7 +67,7 @@ libvardirtreepy_la_LDFLAGS=@PYTHON_LDFLAGS@  @builddir@/libvardb.la @top_srcdir@
 
 
 noinst_PROGRAMS=unittests
-unittests_SOURCES = TestRunner.cpp  dirTests.cpp $(libvardb_la_SOURCES)
+unittests_SOURCES = TestRunner.cpp  dirTests.cpp varTests.cpp typeFactoryTests.cpp $(libvardb_la_SOURCES)
 unittests_CPPFLAGS = $(libvardb_la_CPPFLAGS) @CPPUNIT_CFLAGS@
 unittests_LDFLAGS =  $(libvardb_la_LDFLAGS) @CPPUNIT_LDFLAGS@
 
