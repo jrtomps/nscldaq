@@ -39,7 +39,8 @@ libvardbtcl_la_SOURCES=VarDbTclPackage.cpp \
 	CVarDbCdCommand.cpp     CVarDbCdCommand.h	\
 	CVarDbGetwdCommand.cpp  CVarDbGetwdCommand.h	\
 	CVarDbLsCommand.cpp     CVarDbLsCommand.h	\
-	CVarDbRmdirCommand.cpp  CVarDbRmdirCommand.h
+	CVarDbRmdirCommand.cpp  CVarDbRmdirCommand.h	\
+	CVarDbVariableCommand.cpp CVarDbVariableCommand.h
 
 libvardbtcl_la_CPPFLAGS=@TCL_FLAGS@ @LIBTCLPLUS_CFLAGS@ 
 libvardbtcl_la_LDFLAGS= @builddir@/libvardb.la @top_srcdir@/base/sqlite++/libsqlite3pp.la  \

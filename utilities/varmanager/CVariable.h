@@ -62,6 +62,16 @@ class CDataType;
  */
 class CVariable
 {
+    // public structures
+public:
+    typedef struct _VarInfo {
+        int         s_id;                // Primary key in variables table.
+        std::string s_name;              // Name of the variable.
+        std::string s_type;              // Type string of the variable.
+        int         s_typeId;            // Id of the variable's type.
+        int         s_dirId;             // Id of the directory in which the var lives.
+        
+    } VarInfo, *pVarInfo;
     // Static methods:
 public:    
     static CVariable* create(
@@ -73,12 +83,16 @@ public:
         const char* initial = 0
     );                                                            // Fully tested
     
+    static void destroy(CVariableDb& db, int id);                // Fully tested.
+    static void destroy(CVariable* pVariable, bool doDelete = true); //Tested
+    static void destroy(                                         // Tested.
+        CVariableDb& db, CVarDirTree& dir, const char* path
+    );
     static void destroy(CVariableDb& db, const char* path);
-    static void destroy(CVariableDb& db, CVarDirTree& dir, const char* path);
-    static void destroy(CVariableDb& db, int id);
-    static void destroy(CVariable* pVariable, bool doDelete = true);
+
     
-    static std::vector<std::string> list(
+    
+    static std::vector<VarInfo> list(                             // Fully tested
         CVariableDb* db, CVarDirTree& dir, const char* path=0
     );
     
@@ -88,6 +102,7 @@ private:
     CVariableDb&   m_db;                 // Database connection
     
     int            m_myId;               // primary key of variable.
+    int            m_myDir;              // My directory.
     std::string    m_myName;             // Name of variable.
     CDataType*     m_pDataType;          // Data type.
     
@@ -108,9 +123,9 @@ public:
     
     // Getters:
 public:
-    int getId() const;
-    std::string getName() const;
-    std::string getDirectory();
+    int getId() const;                     // Fully tested
+    std::string getName() const;           // Fully Tesetd
+    std::string getDirectory();            // Fully Tested.
     
     // Private utilities
     

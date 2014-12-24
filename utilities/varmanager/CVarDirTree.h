@@ -87,6 +87,8 @@ public:
     
 public:
     CVarDirTree(CVariableDb& db);
+    CVarDirTree(CVariableDb& db, int id);
+    
     virtual ~CVarDirTree();
     
     // Getters:
@@ -94,7 +96,7 @@ public:
     DirInfo getwd()     const {return m_wd;} 
     int     getRootid() const {return m_rootId; }
     
-    // operations:
+    // operations: 
     
     void mkdir(const char* path, bool createIntermediate = true);
     void rmdir(const char* path);

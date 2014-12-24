@@ -30,6 +30,7 @@
 #include "CVarDbGetwdCommand.h"
 #include "CVarDbLsCommand.h"
 #include "CVarDbRmdirCommand.h"
+#include "CVarDbVariableCommand.h"
 
 static const char* version="1.0";
 
@@ -70,7 +71,7 @@ extern "C" {
         new CVarDbGetwdCommand(Interp, "::vardb::getwd");
         new CVarDbLsCommand(Interp, "::vardb::ls");
         new CVarDbRmdirCommand(Interp, "::vardb::rmdir");
-        
+        new CVarDbVariableCommand(Interp, "::vardb::var");
         
         return TCL_OK;                
                                 

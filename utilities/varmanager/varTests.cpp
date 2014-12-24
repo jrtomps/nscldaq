@@ -80,7 +80,22 @@ class VarTests : public CppUnit::TestFixture {
   
   CPPUNIT_TEST(id);
   CPPUNIT_TEST(name);
-  // CPPUNIT_TEST(dirpath);
+  CPPUNIT_TEST(dirpath);
+  
+  // Test of the listing method
+  
+  CPPUNIT_TEST(listEmpty);
+  CPPUNIT_TEST(listOne);
+  CPPUNIT_TEST(listAFew);
+  CPPUNIT_TEST(listWithPath);
+
+  //  Destroy variables:
+  
+  CPPUNIT_TEST(destroyByIdOk);
+  CPPUNIT_TEST(destroyByBadId);
+  CPPUNIT_TEST(destroyByObj);
+  CPPUNIT_TEST(destroyByRelPath);
+  CPPUNIT_TEST(destroyByAbsPath);
   
   CPPUNIT_TEST_SUITE_END();
   
@@ -110,6 +125,7 @@ public:
 protected:
     void typeSchema();
     void typeContents();
+
     
     void constraintTypesSchema();
     void constraintTypesContents();
@@ -161,6 +177,18 @@ protected:
     
     void id();
     void name();
+    void dirpath();
+    
+    void listEmpty();
+    void listOne();
+    void listAFew();
+    void listWithPath();
+    
+    void destroyByIdOk();
+    void destroyByBadId();
+    void destroyByObj();
+    void destroyByRelPath();
+    void destroyByAbsPath();
     
 private:
     bool haveTable(const char* name);
@@ -168,6 +196,7 @@ private:
     int  varid(const char* dirpath, const char* name);
     bool varExists(const char* dirpath, const char* name);
     std::string getValue(const char* dirpath, const char* name);
+    int getTypeId(const char* type);
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(VarTests);
@@ -264,6 +293,25 @@ VarTests::getValue(const char* dirpath, const char* name)
     return result;
 }
 
+
+// Return the type id associated with a typename.
+// -1 if no such type.
+
+int
+VarTests::getTypeId(const char* type)
+{
+    CSqliteStatement s(
+        *m_db,
+        "SELECT id FROM variable_types WHERE type_name = ?"
+    );
+    s.bind(1, type, -1, SQLITE_TRANSIENT);
+    ++s;
+    if (s.atEnd()) {
+        return -1;
+    } else {
+        return s.getInt(0);
+    }
+}
 /*----------------------------------------------------------------------------
  * Tests
  */
@@ -699,5 +747,214 @@ void VarTests::id()
 
 void VarTests::name()
 {
-    CPPUNIT_FAIL("Test not yet implemented");
+    CVarDirTree d(*m_db);
+    d.mkdir("/a/b/c/d");
+    CVariable* pVar = CVariable::create(*m_db, "/a/b/c/d/myvar", "string");
+    EQ(std::string("myvar"), pVar->getName());
+    
+    delete pVar;
+}
+
+// dirpath - returns the directory part of the variable:
+
+void VarTests::dirpath()
+{
+    const char* dirpath="/a/b/c/d";
+    std::string varpath = dirpath;
+    varpath += CVarDirTree::m_pathSeparator;
+    varpath += "myvar";
+    
+    CVarDirTree d(*m_db);
+    d.mkdir(dirpath);
+    CVariable* pVar = CVariable::create(*m_db, varpath.c_str(), "string");
+    
+    EQ(std::string(dirpath), pVar->getDirectory());
+    
+    delete pVar;
+}
+// listEmpty
+//    Listing the directories in an empty directory give and empty vector.
+
+void VarTests::listEmpty()
+{
+    CVarDirTree root(*m_db);
+    std::vector<CVariable::VarInfo> result = CVariable::list(m_db, root);
+    
+    EQ(static_cast<size_t>(0), result.size());
+}
+// list directory with a single variable:
+void VarTests::listOne()
+{
+    CVarDirTree root(*m_db);
+    CVariable* pVar = CVariable::create(*m_db, "/variable", "integer");
+    
+    std::vector<CVariable::VarInfo> info = CVariable::list(m_db, root);
+    
+    EQ(static_cast<size_t>(1), info.size());
+    
+    CVariable::VarInfo item = info[0];
+    
+    EQ(pVar->getId(), item.s_id);
+    EQ(pVar->getName(), item.s_name);
+    EQ(std::string("integer"), item.s_type);
+    EQ(getTypeId("integer"), item.s_typeId);
+    EQ(root.getwd().s_id, item.s_dirId);
+}
+
+// List a directory with several vars.
+
+void VarTests::listAFew()
+{
+    const char* dirPath("/a/b/c");
+    const char* varnames[] = {
+      "a", "b", "c", "d",    // Must be alpha sorted.
+      0
+    };
+    std::vector<CVariable*> vars;
+    
+    CVarDirTree adir(*m_db);
+    adir.mkdir(dirPath);
+    adir.cd(dirPath);
+    
+    const char** pName = varnames;
+    while(*pName) {
+        vars.push_back(CVariable::create(*m_db, adir, *pName, "real"));
+        pName++;
+    }
+    
+    std::vector<CVariable::VarInfo> listing = CVariable::list(m_db, adir);
+    
+    EQ(vars.size(), listing.size());
+    for(int i = 0; i < listing.size(); i++) {
+        CVariable* pVar         = vars[i];
+        CVariable::VarInfo item = listing[i];
+ 
+        EQ(pVar->getId(), item.s_id);
+        EQ(pVar->getName(), item.s_name);
+        EQ(std::string("real"), item.s_type);
+        EQ(getTypeId("real"), item.s_typeId);
+        EQ(adir.getwd().s_id, item.s_dirId);       
+    
+        delete pVar;        
+    }
+    
+    
+}
+
+// Can use a supplementary path in the list method:
+
+void VarTests::listWithPath()
+{
+    const char* dirPath("/a/b/c");
+    const char* varnames[] = {
+      "a", "b", "c", "d",    // Must be alpha sorted.
+      0
+    };
+    std::vector<CVariable*> vars;
+    
+    CVarDirTree adir(*m_db);
+    adir.mkdir(dirPath);
+    adir.cd(dirPath);
+   
+    const char** pName = varnames;
+    while(*pName) {
+        vars.push_back(CVariable::create(*m_db, adir, *pName, "real"));
+        pName++;
+    }
+    int dirId = adir.getwd().s_id;             // Save the directory of the vars:
+    
+    // Set the dir back to root:
+    
+    adir.cd("/");
+    
+    std::vector<CVariable::VarInfo> listing =
+        CVariable::list(m_db, adir, dirPath);
+    
+    EQ(vars.size(), listing.size());
+    for(int i = 0; i < listing.size(); i++) {
+        CVariable* pVar         = vars[i];
+        CVariable::VarInfo item = listing[i];
+ 
+        EQ(pVar->getId(), item.s_id);
+        EQ(pVar->getName(), item.s_name);
+        EQ(std::string("real"), item.s_type);
+        EQ(getTypeId("real"), item.s_typeId);
+        EQ(dirId, item.s_dirId);       
+    
+        delete pVar;        
+    }
+}
+// Destroy by id with valid id:
+
+void VarTests::destroyByIdOk()
+{
+    CVariable* pVar = CVariable::create(*m_db, "/myvariable", "integer");
+    CVariable::destroy(*m_db, pVar->getId());
+    delete pVar;
+    
+    CVarDirTree root(*m_db);             // Rootdir:
+    
+    std::vector<CVariable::VarInfo> listing = CVariable::list(m_db, root);
+    
+    EQ(static_cast<size_t>(0), listing.size());
+}
+// Bad id results in an exception.
+
+void VarTests::destroyByBadId()
+{
+    CPPUNIT_ASSERT_THROW(
+        CVariable::destroy(*m_db, 1234),
+        CVariable::CException
+    );
+}
+// Destroy given an object.  Note that we can't really test the
+// code paths for dodelete true/false.
+//
+void VarTests::destroyByObj()
+{
+    CVariable* pVar = CVariable::create(*m_db, "/mvariable", "integer");
+    CVariable::destroy(pVar);
+    
+    ASSERT(!varExists("/", "myvariable"));
+}
+
+// Destroy given a path relative to a dir objet:
+
+void VarTests::destroyByRelPath()
+{
+    const char* dirPath="/a/b/c";
+    
+    CVarDirTree adir(*m_db);
+    adir.mkdir(dirPath);
+    adir.cd(dirPath);
+    
+    CVariable* pVar = CVariable::create(*m_db, adir, "myvar", "integer" );
+    delete pVar;
+    
+    // Now go up a directory or two and  delete relative to there:
+    
+    adir.cd("../..");
+    CVariable::destroy(*m_db, adir, "b/c/myvar");
+    
+    ASSERT(!varExists(dirPath, "myvar"));
+}
+// Destroy given an abspath
+
+void VarTests::destroyByAbsPath()
+{
+    const char* dirPath = "/a/b/c";
+    CVarDirTree adir(*m_db);
+    adir.mkdir(dirPath);
+    adir.cd(dirPath);
+    
+    CVariable* pVar = CVariable::create(*m_db, adir, "myvar", "integer");
+    delete pVar;
+    
+    std::string fullPath = dirPath;
+    fullPath += CVarDirTree::m_pathSeparator;
+    fullPath += "myvar";
+    CVariable::destroy(*m_db, fullPath.c_str());
+    
+    ASSERT(!varExists(dirPath, "myvar"));
+    
 }

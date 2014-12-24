@@ -58,6 +58,10 @@ class DirTests : public CppUnit::TestFixture {
   CPPUNIT_TEST(rmNoSuchDir);
   CPPUNIT_TEST(rmRoot);
   
+  CPPUNIT_TEST(constructById);
+  CPPUNIT_TEST(constructByBadId);
+  CPPUNIT_TEST(constructByRootId);
+  
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -110,6 +114,9 @@ protected:
   
   void rmRoot();
   
+  void constructById();
+  void constructByBadId();
+  void constructByRootId();
 private:
     int findRoot(CVariableDb& db);
     CVarDirTree::DirInfo findDir(CVariableDb& db, const char* path);
@@ -438,6 +445,45 @@ void DirTests::rmRoot()
     CPPUNIT_ASSERT_THROW(t.rmdir("/"), CVarDirTree::CException);
 }
 
+// Construct a dirtree with the default directory set by its id:
+
+void DirTests::constructById()
+{
+    const char* dirname="/a/b/c/d";
+    CVariableDb db(m_tempFile);
+    CVarDirTree creator(db);
+    creator.mkdir(dirname);
+    creator.cd(dirname);
+    
+    
+    CVarDirTree testDir(db, creator.getwd().s_id);
+    
+    EQ(std::string(dirname), testDir.wdPath());
+    
+}
+
+//  Construction using an id for a directory that does not exist
+// should be a failure.
+
+void DirTests::constructByBadId()
+{
+    CVariableDb db(m_tempFile);
+    
+    CPPUNIT_ASSERT_THROW(
+        CVarDirTree(db, 1234),
+        CVarDirTree::CException
+    );
+}
+// Construct with root id should work just fine too:
+
+void DirTests::constructByRootId()
+{
+    CVariableDb db(m_tempFile);
+    CVarDirTree root(db, findRoot(db));
+    
+    EQ(findRoot(db), root.getwd().s_id);
+}
+
 /*--------------------------------------------------------------------------
  * Utilities:
  */
@@ -484,4 +530,5 @@ DirTests::findDir(CVariableDb& db, const char* path)
     }
     return result;
 }
+
 

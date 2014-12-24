@@ -31,6 +31,8 @@ class CTCLInterpreter;
 class CTCLObject;
 class CVariableDb;
 class CVarDirTree;
+class CVarDbOpenCommand;
+
 
 
 /**

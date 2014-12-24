@@ -30,26 +30,67 @@ package require tcltest
 package require vardb
 package require sqlite3
 
+tcltest::configure -verbose [list start]
+
 #
-# return 1 if a path exists in a database else 0
+#  Return the id of a path or -1 if it does not exist.
 #
-proc pathExists {dbcmd abspath} {
+proc pathId {dbcmd abspath} {
     set parent 1
-    foreach ele [lrange [split $abspath /] 1 end] {
+    set elements [lrange [split $abspath /] 1 end]
+    if {$abspath eq "/" } {
+        return $parent;   # Special case...the split gives {} {}
+    }
+    foreach ele $elements {
         $dbcmd eval {
             SELECT COUNT(*) AS c, id FROM directory
                WHERE parent_id = $parent AND name = $ele
         } r {
             set count $r(c)
             if {$count == 0} {
-                return 0
+                return -1;           # failed to go all the way down.
             }
             set parent $r(id)
         }
     }
+    return $parent;                   # ID of the directory found.
+    
+}
+
+#
+# return 1 if a path exists in a database else 0
+#
+proc pathExists {dbcmd abspath} {
     # Was able to find all path elements:
     
-    return 1
+    set id [pathId $dbcmd $abspath]
+    
+    return [expr {$id != -1}]
+}
+#
+#  Info about a variable:
+#  @param dbcmd  sqlite3 database command.
+#  @param path   directory path
+#  @param varname Name of the variable.
+#  @return list id, name, typename, value dirid
+#  @retval empty list if no match.
+#
+proc varInfo {dbcmd path varname} {
+    set dirid [pathId $dbcmd $path]
+    if {$dirid == -1} {
+        return [list]
+    }
+    $dbcmd eval {
+        SELECT COUNT(*) AS c, v.id AS id, v.name AS name,
+               t.type_name AS typename, v.value AS value
+            FROM variables v
+            INNER JOIN variable_types t ON t.id = v.type_id
+            WHERE name = $varname AND directory_id = $dirid
+    } r {
+        if {$r(c) == 0} {return [list]}
+        return [list $r(id) $r(name) $r(typename) $r(value) $dirid]
+    }
+    return [list]
 }
 
 
@@ -522,5 +563,286 @@ tcltest::test rmdir-5 {remove with missing path/handle fails} \
     catch {::vardb::rmdir}
 } -result 1
 
+#-------------------------------------------------------------------------
+#  var command:
+
+tcltest::test var-exists {Check that vardb::var is a command} \
+-body {
+    info commands ::vardb::var
+} -result {::vardb::var}
+
+tcltest::test var-subcommand {Require a subcommand} \
+-body {
+    catch {::vardb::var}
+} -result 1
+
+tcltest::test var-badhandle {require a good/valid handle} \
+-body {
+    catch {::vardb::var ls junk}
+} -result 1
+
+tcltest::test var-badsubcommand {Require a valid sub-comman} \
+-setup {
+    set filename [tcltest::makeFile {} testing]
+    file delete -force $filename
+    ::vardb::create $filename;   # now its properly formatted
+    set db [::vardb::open $filename]
+} \
+-cleanup {
+    ::vardb::close $db
+    file delete -force $filename
+} \
+-body {
+    catch {::vardb::var this-is-crap $db}
+} -result 1
+
+tcltest::test var-create-1 {Create needs at least path and type} \
+-setup {
+    set filename [tcltest::makeFile {} testing]
+    file delete -force $filename
+    ::vardb::create $filename;   # now its properly formatted
+    set db [::vardb::open $filename]
+} \
+-cleanup {
+    ::vardb::close $db
+    file delete -force $filename
+} \
+-body {
+    catch {::vardb::var create $db}
+} -result 1
+
+tcltest::test var-create-2 {Create without an initial value} \
+-setup {
+    set filename [tcltest::makeFile {} testing]
+    file delete -force $filename
+    ::vardb::create $filename;   # now its properly formatted
+    set db [::vardb::open $filename]
+    sqlite3 dbcmd $filename
+} \
+-cleanup {
+    ::vardb::close $db
+    dbcmd close
+    file delete -force $filename
+} \
+-body {
+    ::vardb::var create $db /testing integer
+   
+    set info [varInfo dbcmd / testing]
+
+    list [llength $info] [lindex $info 1] [lindex $info 2] [lindex $info 3] [lindex $info 4]
+    
+} -result [list 5 testing integer 0 1]
+
+tcltest::test var-create-3 {Create with an initial value} \
+-setup {
+    set filename [tcltest::makeFile {} testing]
+    file delete -force $filename
+    ::vardb::create $filename;   # now its properly formatted
+    set db [::vardb::open $filename]
+    sqlite3 dbcmd $filename
+} \
+-cleanup {
+    ::vardb::close $db
+    dbcmd close
+    file delete -force $filename
+} \
+-body {
+    ::vardb::mkdir $db "/this/is/a/directory"
+    
+    ::vardb::var create $db /this/is/a/directory/myvar real 3.1416
+    
+    set info [varInfo dbcmd /this/is/a/directory myvar]
+    
+    lindex $info 3
+} -result 3.1416
+
+tcltest::test var-destroy-1 {Need a path to do a destroy} \
+-setup {
+    set filename [tcltest::makeFile {} testing]
+    file delete -force $filename
+    ::vardb::create $filename;   # now its properly formatted
+    set db [::vardb::open $filename]
+    sqlite3 dbcmd $filename
+} \
+-cleanup {
+    ::vardb::close $db
+    dbcmd close
+    file delete -force $filename
+} \
+-body {
+    catch {::vardb::var destroy $db}
+} -result 1
+
+tcltest::test var-destroy-2 {Destroy an existing variable -- uh....destroys it} \
+-setup {
+    set filename [tcltest::makeFile {} testing]
+    file delete -force $filename
+    ::vardb::create $filename;   # now its properly formatted
+    set db [::vardb::open $filename]
+    sqlite3 dbcmd $filename
+} \
+-cleanup {
+    ::vardb::close $db
+    dbcmd close
+    file delete -force $filename
+} \
+-body {
+    ::vardb::mkdir $db /this/is/a/subdir
+    ::vardb::var create $db /this/is/a/subdir/myvar integer
+    
+    ::vardb::var destroy $db /this/is/a/subdir/myvar
+    
+    varInfo dbcmd /this/is/a/subdir myvar
+} -result [list]
+
+
+tcltest::test var-set-1 {Needs a handle, path and value} \
+-setup {
+    set filename [tcltest::makeFile {} testing]
+    file delete -force $filename
+    ::vardb::create $filename;   # now its properly formatted
+    set db [::vardb::open $filename]
+    sqlite3 dbcmd $filename
+} \
+-cleanup {
+    ::vardb::close $db
+    dbcmd close
+    file delete -force $filename
+} \
+-body {
+    catch {::vardb::var set $db /this/is/a/var}
+} -result 1
+
+tcltest::test var-set-2 {Set an existing variable to a new value} \
+-setup {
+    set filename [tcltest::makeFile {} testing]
+    file delete -force $filename
+    ::vardb::create $filename;   # now its properly formatted
+    set db [::vardb::open $filename]
+    sqlite3 dbcmd $filename
+} \
+-cleanup {
+    ::vardb::close $db
+    dbcmd close
+    file delete -force $filename
+} \
+-body {
+    ::vardb::mkdir $db /this/subdir
+    ::vardb::var create $db /this/subdir/myvar integer;   # initialized -> 0
+    
+    ::vardb::var set $db /this/subdir/myvar 42;           # change value.
+    
+    set info [varInfo dbcmd /this/subdir myvar]
+    lindex $info 3
+} -result 42
+
+tcltest::test get-1 {get needs a path} \
+-setup {
+    set filename [tcltest::makeFile {} testing]
+    file delete -force $filename
+    ::vardb::create $filename;   # now its properly formatted
+    set db [::vardb::open $filename]
+    sqlite3 dbcmd $filename
+} \
+-cleanup {
+    ::vardb::close $db
+    dbcmd close
+    file delete -force $filename
+} \
+-body {
+    catch {::vardb::var get $db}
+} -result 1
+
+tcltest::test get-2 {get the value of a variable} \
+-setup {
+    set filename [tcltest::makeFile {} testing]
+    file delete -force $filename
+    ::vardb::create $filename;   # now its properly formatted
+    set db [::vardb::open $filename]
+    sqlite3 dbcmd $filename
+} \
+-cleanup {
+    ::vardb::close $db
+    dbcmd close
+    file delete -force $filename
+} \
+-body {
+    ::vardb::mkdir $db /this/is/a/dir
+    ::vardb::cd    $db /this/is/a/dir
+    ::vardb::var create $db myvar integer 42
+    
+    ::vardb::var get $db myvar
+} -result 42
+
+tcltest::test ls-1 {List vars in wd (no path supplied)} \
+-setup {
+    set filename [tcltest::makeFile {} testing]
+    file delete -force $filename
+    ::vardb::create $filename;   # now its properly formatted
+    set db [::vardb::open $filename]
+    sqlite3 dbcmd $filename
+} \
+-cleanup {
+    ::vardb::close $db
+    dbcmd close
+    file delete -force $filename
+} \
+-body {
+    ::vardb::mkdir $db /this/is/a/dir
+    ::vardb::cd    $db /this/is/a/dir
+    
+    ::vardb::var create $db a1 integer 42
+    ::vardb::var create $db b2 real    3.1416
+    ::vardb::var create $db string string "Hello world"
+    
+    # Comes out in alpha order by variable name
+    #  Each item is id, name, type, typeid, dirid
+    #  We care about the name and type only.
+    
+    set info [::vardb::var ls $db]
+    set result [list]
+    foreach item $info {
+        set varData [list [lindex $item 1] [lindex $item 2]]
+        lappend result $varData
+    }
+    set result
+} -result [list [list a1 integer] [list b2 real] [list string string]]
+
+tcltest::test ls-2 {list vars in path relative to wd} \
+-setup {
+    set filename [tcltest::makeFile {} testing]
+    file delete -force $filename
+    ::vardb::create $filename;   # now its properly formatted
+    set db [::vardb::open $filename]
+    sqlite3 dbcmd $filename
+} \
+-cleanup {
+    ::vardb::close $db
+    dbcmd close
+    file delete -force $filename
+} \
+-body {
+    ::vardb::mkdir $db /this/is/a/dir
+    ::vardb::cd    $db /this/is
+    
+    ::vardb::var create $db a/dir/a1 integer 42
+    ::vardb::var create $db a/dir/b2 real    3.1416
+    ::vardb::var create $db a/dir/string string "Hello world"
+    
+    # Comes out in alpha order by variable name
+    #  Each item is id, name, type, typeid, dirid
+    #  We care about the name and type only.
+    
+    set info [::vardb::var ls $db a/dir]
+    set result [list]
+    foreach item $info {
+        set varData [list [lindex $item 1] [lindex $item 2]]
+        lappend result $varData
+    }
+    set result
+} -result [list [list a1 integer] [list b2 real] [list string string]]
+
+#--------------------------------------------------------------------------
+# Collect/output results.
 
 tcltest::cleanupTests

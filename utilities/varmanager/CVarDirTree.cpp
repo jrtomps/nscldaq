@@ -121,6 +121,36 @@ CVarDirTree::CVarDirTree(CVariableDb& db) :
 }
 
 /**
+ * constructor
+ *  @param db  - Database on which we will operate.
+ *  @param id  - Id of the directory that will be our initial default directory.
+ */
+CVarDirTree::CVarDirTree(CVariableDb& db, int id) :
+    m_db(db)
+{
+    m_rootId = getRootInfo().s_id;
+    
+    // Figure out the rest of our wd  -- note it's an exception if the id
+    // we were handed is bad.
+    
+    CSqliteStatement getDir(
+        m_db,
+        "SELECT name, parent_id FROM directory WHERE id = ?"
+    );
+    getDir.bind(1, id);
+    ++getDir;
+    if (getDir.atEnd()) {
+        throw CException("CVarDirTree -construct by id - no such directory");
+    }
+    const char* pDirName = reinterpret_cast<const char*>(getDir.getText(0));   
+    if (pDirName) {                       // Could be null if root.
+        m_wd.s_name     = pDirName;
+    }
+    m_wd.s_id       = id;
+    m_wd.s_parentId = getDir.getInt(1);
+}
+
+/**
  * destructor
  */
 CVarDirTree::~CVarDirTree()
