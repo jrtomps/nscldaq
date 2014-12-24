@@ -40,8 +40,10 @@ class VarTests : public CppUnit::TestFixture {
   CPPUNIT_TEST(create1InRootStringDefaultValue);
   CPPUNIT_TEST(create1InRootIntegerGoodValue);
   CPPUNIT_TEST(create1InRootIntegerBadValue);
+  CPPUNIT_TEST(create1InRootIntegerPartlyBadValue);
   CPPUNIT_TEST(create1InRootRealGoodValue);
   CPPUNIT_TEST(create1InRootRealBadValue);
+  CPPUNIT_TEST(create1InRootRealPartlyBadValue);
   CPPUNIT_TEST(create1InRootStringOk);
   CPPUNIT_TEST(create1InSubdir);
   CPPUNIT_TEST(create1InBadSubdir);
@@ -145,8 +147,10 @@ protected:
     void create1InRootStringDefaultValue();
     void create1InRootIntegerGoodValue();
     void create1InRootIntegerBadValue();
+    void create1InRootIntegerPartlyBadValue();
     void create1InRootRealGoodValue();
     void create1InRootRealBadValue();
+    void create1InRootRealPartlyBadValue();
     void create1InRootStringOk();
 
     
@@ -471,14 +475,22 @@ void VarTests::create1InRootIntegerBadValue()
         CVariable::CException
     );
 }
+void VarTests::create1InRootIntegerPartlyBadValue()
+{
+    CPPUNIT_ASSERT_THROW(
+        CVariable::create(*m_db, "/myvar", "integer", "3.1416"),
+        CVariable::CException
+    );
+}
 
 void VarTests::create1InRootRealGoodValue()
 {
-    CVariable* pVariable = CVariable::create(*m_db, "/myvar", "integer", "3.1416");
+    CVariable* pVariable = CVariable::create(*m_db, "/myvar", "real", "3.1416");
     delete pVariable;
     
     EQ(std::string("3.1416"), getValue("/", "myvar"));
 }
+
 
 void VarTests::create1InRootRealBadValue()
 {
@@ -486,6 +498,14 @@ void VarTests::create1InRootRealBadValue()
         CVariable::create(*m_db, "/myvar", "real", "not a real value"),
         CVariable::CException
     );
+}
+void VarTests::create1InRootRealPartlyBadValue()
+{
+    CPPUNIT_ASSERT_THROW(
+        CVariable::create(*m_db, "/myvar", "real", "3.1416ispi"),
+        CVariable::CException
+    );
+
 }
 
 void VarTests::create1InRootStringOk()

@@ -22,6 +22,7 @@
 
 #include "CIntegerType.h"
 #include <stdlib.h>
+#include <string.h>
 
 /**
  * constructor
@@ -40,7 +41,7 @@ CIntegerType::legal(const char* attempt) const
     char* endptr;
     
     strtol(attempt, &endptr, 0);
-    return endptr != attempt;
+    return (endptr - attempt) == strlen(attempt);   // Need the whole string!!!
 }
 std::string
 CIntegerType::defaultValue() const

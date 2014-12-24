@@ -22,6 +22,7 @@
 #include "CRealType.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 
 /**
@@ -42,7 +43,7 @@ CRealType::legal(const char* attempt) const
 {
    char* endpointer;
    strtod(attempt, &endpointer);
-   return (endpointer != attempt);
+   return (endpointer - attempt) == strlen(attempt);
 }
 /**
  * defaultValue
