@@ -99,18 +99,6 @@ static PyMethodDef DirTreeClassMethods[] = {
  * Wrapping of actual CVarDirTree objects
  */
 
-// The object's shape:
-
-typedef struct {
-    PyObject_HEAD
-    
-    // Type specific fields:
-    
-    CVarDirTree* m_dir;
-    PyObject*    m_dbPyObj;
-    
-} dirtree_DirTreeObject;
-
 
 /**
  *  Implementation of 'special' methods

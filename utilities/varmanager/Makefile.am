@@ -11,7 +11,7 @@ inittcl_LDFLAGS=@TCL_LDFLAGS@
 
 # Shared libraries:
 
-lib_LTLIBRARIES = libvardb.la libvardbtcl.la libvardbpy.la libvardirtreepy.la
+lib_LTLIBRARIES = libvardb.la libvardbtcl.la libvardbpy.la libvardirtreepy.la libvariablepy.la
 
 #  Base C++ implementation
 
@@ -50,18 +50,23 @@ libvardbtcl_la_LDFLAGS= @builddir@/libvardb.la @top_srcdir@/base/sqlite++/libsql
 
 # Python bindings
 
-libvardbpy_la_SOURCES=PyVarDb.cpp PyVarDb.h
-libvardbpy_la_CPPFLAGS=@PYTHON_CPPFLAGS@ $(libvardb_la_CPPFLAGS)
-libvardbpy_la_LDFLAGS=@PYTHON_LDFLAGS@  @builddir@/libvardb.la @top_srcdir@/base/sqlite++/libsqlite3pp.la  \
+PYBINDINGS_CPPFLAGS=@PYTHON_CPPFLAGS@ $(libvardb_la_CPPFLAGS)
+PYBINDINGS_LDFLAGS=@PYTHON_LDFLAGS@  @builddir@/libvardb.la \
+			@top_srcdir@/base/sqlite++/libsqlite3pp.la  \
 			@SQLITE3_LDFLAGS@ \
 			-Wl,"-rpath=@libdir@"
+
+libvardbpy_la_SOURCES=PyVarDb.cpp PyVarDb.h
+libvardbpy_la_CPPFLAGS=$(PYBINDINGS_CPPFLAGS)
+libvardbpy_la_LDFLAGS= $(PYBINDINGS_LDFLAGS)
 
 libvardirtreepy_la_SOURCES=PyVarDirTree.cpp
-libvardirtreepy_la_CPPFLAGS=@PYTHON_CPPFLAGS@ $(libvardb_la_CPPFLAGS)
-libvardirtreepy_la_LDFLAGS=@PYTHON_LDFLAGS@  @builddir@/libvardb.la @top_srcdir@/base/sqlite++/libsqlite3pp.la  \
-			@SQLITE3_LDFLAGS@ \
-			-Wl,"-rpath=@libdir@"
+libvardirtreepy_la_CPPFLAGS= $(PYBINDINGS_CPPFLAGS)
+libvardirtreepy_la_LDFLAGS=  $(PYBINDINGS_LDFLAGS)
 
+libvariablepy_la_SOURCES = PyVariable.cpp
+libvariablepy_la_CPPFLAGS= $(PYBINDINGS_CPPFLAGS)
+libvariablepy_la_LDFLAGS = $(PYBINDINGS_LDFLAGS)
 
 
 ## Tests for compiled base
@@ -76,19 +81,23 @@ unittests_LDFLAGS =  $(libvardb_la_LDFLAGS) @CPPUNIT_LDFLAGS@
 # Tests for Tcl bindings.
 
 
-tclTests=TCLLIBPATH=@prefix@/TclLibs @TCLSH_CMD@ vardb.test
+tclTests=TCLLIBPATH=@prefix@/TclLibs @TCLSH_CMD@ @srcdir@/vardb.test
 
 
 #  Get the tests run.
 
-vardbPyTest=PYTHONPATH=@prefix@/pythonLibs @PYTHON@ vardbtest.py
-dirtreePyTest=PYTHONPATH=@prefix@/pythonLibs @PYTHON@ dirtreetest.py
+PYTEST = PYTHONPATH=@prefix@/pythonLibs @PYTHON@
+
+vardbPyTest=$(PYTEST)    @srcdir@/vardbtest.py
+dirtreePyTest=$(PYTEST)  @srcdir@/dirtreetest.py
+variablePyTest=$(PYTEST) @srcdir@/variabletest.py
 
 check-TESTS:
 	@builddir@/unittests 
 	$(tclTests)
 	$(vardbPyTest)
 	$(dirtreePyTest)
+	$(variablePyTest)
 
 
 
@@ -97,7 +106,9 @@ noinst_HEADERS=Asserts.h
 
 DOCFILES=libref.xml progref.xml tutorial.xml
 
-EXTRA_DIST=$(tclTests) vardbtest.py dirtreetest.py vardbsh.tcl.in $(DOCFILES)
+EXTRA_DIST=$(tclTests) \
+	vardbtest.py dirtreetest.py variabletest.py \
+	vardbsh.tcl.in $(DOCFILES)
 
 # Get compiled bindings installed where the languages can find them relies on the libs being
 # already built/installed in libdir -- hence install-exec-hook is used.
@@ -109,7 +120,8 @@ install-exec-hook:
 	echo  pkg_mkIndex -verbose  @prefix@/TclLibs/vardb "*.so"| @TCLSH_CMD@
 	$(mkinstalldirs) @prefix@/pythonLibs/nscldaq/vardb
 	rm @prefix@/pythonLibs/nscldaq/vardb/*
-	$(INSTALL_PROGRAM) @libdir@/libvardbpy.so @prefix@/pythonLibs/nscldaq/vardb/vardbmodule.so
-	$(INSTALL_PROGRAM) @libdir@/libvardirtreepy.so @prefix@/pythonLibs/nscldaq/vardb/dirtree.so
+	$(INSTALL_PROGRAM) @libdir@/libvardbpy.so       @prefix@/pythonLibs/nscldaq/vardb/vardbmodule.so
+	$(INSTALL_PROGRAM) @libdir@/libvardirtreepy.so  @prefix@/pythonLibs/nscldaq/vardb/dirtree.so
+	$(INSTALL_PROGRAM) @libdir@/libvariablepy.so    @prefix@/pythonLibs/nscldaq/vardb/variable.so
 	touch @prefix@/pythonLibs/nscldaq/vardb/__init__.py
 	$(INSTALL_PROGRAM) @builddir@/vardbsh.tcl @bindir@/vardbsh

@@ -27,6 +27,8 @@
 #include <Python.h>
 
 class CVariableDb;
+class CVarDirTree;
+class CVariable;
 
 /* Storage for a vardb.VarDb object. */
 
@@ -36,3 +38,26 @@ typedef struct {
     
     CVariableDb*    m_db;
 } vardb_VarDbObject;
+
+/** Storage for a vardb.VarDirTee object: */
+
+
+
+typedef struct {
+    PyObject_HEAD
+    
+    // Type specific fields:
+    
+    CVarDirTree* m_dir;             // Directory object
+    PyObject*    m_dbPyObj;         // Database object as a python object.
+    
+} dirtree_DirTreeObject;
+
+typedef struct {
+    PyObject_HEAD;
+    
+    
+    // Type specific fields:
+    
+    CVariable*  m_var;            // Pointer to the underlying variable.
+} variable_VariableObject;
