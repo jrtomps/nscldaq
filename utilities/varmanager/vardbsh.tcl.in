@@ -122,6 +122,9 @@ proc mkdir path {
 #   List the contents of the cwd:
 # @param path (optional) path to list contents of.
 proc ls {{path {}}} {
+    
+    #  First the subdirectories:
+    
     if {$path eq ""} {
         set subdirs [::vardb::ls $::vardbsh::varDbHandle]
     } else {
@@ -130,6 +133,23 @@ proc ls {{path {}}} {
     foreach subdir $subdirs {
         puts $subdir/
     }
+    #  Now the variables:
+     
+     if {$path ne ""} {
+        set vars [::vardb::var ls $::vardbsh::varDbHandle $path]
+     } else {
+        set vars [::vardb::var ls $::vardbsh::varDbHandle]
+        set path [pwd]
+     }
+    
+    foreach var $vars {
+        set name [lindex $var 1]
+        set type [lindex $var 2]
+        set value [get [file join $path $name]]
+        
+        puts [format {%10s %10s %s} $name $type $value]
+    }
+
 
 }
 ##
@@ -160,4 +180,51 @@ proc rmdir {path} {
     ::vardb::rmdir $::vardbsh::varDbHandle $path
 }
 set tcl_interactive 1
+
+##
+# declare
+#   Declare a new variable
+#
+# @param path  - path to the variable.
+# @param type  - Type of variable.
+# @param initial- Optional initial value.
+#
+proc declare {path type args} {
+    if {[llength $args] == 0} {
+        vardb::var create $::vardbsh::varDbHandle $path $type
+    } elseif {[llength $args] == 1} {
+        vardb::var create $::vardbsh::varDbHandle $path $type $args
+    } else {
+        error "usage: declare path type ?initial-value?"
+    }
+}
+
+##
+# let
+#   Assign a variable a value
+#
+# @param path - variable path.
+# @param value - new variable value.
+#
+proc let {path value} {
+    vardb::var set $::vardbsh::varDbHandle $path $value
+}
+##
+# get
+#    Get variable value
+# @param path path name
+# @return current value.
+proc get {path} {
+    return [vardb::var get $::vardbsh::varDbHandle $path]
+}
+##
+#  del
+#    Delete a variable.
+#
+# @param path - path to dwelete.
+#
+proc del {path} {
+    vardb::var destroy $::vardbsh::varDbHandle $path
+}
+
 
