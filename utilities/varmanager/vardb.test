@@ -30,7 +30,6 @@ package require tcltest
 package require vardb
 package require sqlite3
 
-tcltest::configure -verbose [list start]
 
 #
 #  Return the id of a path or -1 if it does not exist.
@@ -829,7 +828,7 @@ tcltest::test ls-2 {list vars in path relative to wd} \
     ::vardb::var create $db a/dir/b2 real    3.1416
     ::vardb::var create $db a/dir/string string "Hello world"
     
-    # Comes out in alpha order by variable name
+    # Comes out in alpha order by variable namee
     #  Each item is id, name, type, typeid, dirid
     #  We care about the name and type only.
     
@@ -842,7 +841,18 @@ tcltest::test ls-2 {list vars in path relative to wd} \
     set result
 } -result [list [list a1 integer] [list b2 real] [list string string]]
 
+
+
 #--------------------------------------------------------------------------
 # Collect/output results.
 
+##  This bit of magic ensures that we can produce a failing error code if tests
+#   failed:
+
+proc tcltest::cleanupTestsHook {} {
+    variable numTests
+    set ::exitCode $numTests(Failed)
+}
+
 tcltest::cleanupTests
+exit $exitCode
