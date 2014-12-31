@@ -166,6 +166,16 @@
            </methodparam>
            <exceptionname>CVarDirTree::CException</exceptionname>
         </constructorsynopsis>
+        <constructorsynopsis>
+            <methodname>CVarDirTree</methodname>
+            <methodparam>
+                <type>CVariableDb&amp;</type> <parameter>db</parameter>
+            </methodparam>
+            <methodparam>
+                <type>int</type> <parameter>id</parameter>
+            </methodparam>
+            <exceptionname>CVarDirTree::CException</exceptionname>
+        </constructorsynopsis>
         <methodsynopsis>
             <modifier></modifier>
             <type>CVarDirTree::DirInfo </type>
@@ -394,6 +404,39 @@ catch (std::exception&amp; e) {
                 </para>
             </listitem>
         </varlistentry>
+        <varlistentry>
+            <term>
+                <constructorsynopsis>
+                    <methodname>CVarDirTree</methodname>
+                    <methodparam>
+                        <type>CVariableDb&amp;</type> <parameter>db</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <type>int</type> <parameter>id</parameter>
+                    </methodparam>
+                    <exceptionname>CVarDirTree::CException</exceptionname>
+                </constructorsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Constructs a directory tree object whose current working
+                    directory is initially defined by the directory whose
+                    primary key is <parameter>id</parameter>.  If there
+                    is no directory with that primary key, the constructor
+                    throws a <classname>CVarDirTree::CException</classname>
+                    object.
+                </para>
+                <para>
+                    One use case for this is to, give a
+                    <classname>CVariable</classname> object, construct
+                    a <classname>CVarDirTree</classname> object whose
+                    working directory is that of the variable.  A second
+                    use case is where you want to create a copy of an existing
+                    directory tree object.
+                </para>
+            </listitem>
+        </varlistentry>
+        
         <varlistentry>
             <term>
                 <methodsynopsis>
@@ -666,6 +709,1016 @@ catch (std::exception&amp; e) {
 
       </variablelist>
    </refsect1>
+</refentry>
+
+<refentry id="daq3_cvariable">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='daq3_cvariable_title'>CVariable</refentrytitle>
+     <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>CVariable</refname>
+     <refpurpose>Operations on variables in variable databases</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+#include &lt;CVariable&gt;
+        <ooclass><classname>CVariable</classname></ooclass> {
+        <methodsynopsis>
+            <modifier>static</modifier>
+            <type>CVariable*</type>
+            <methodname>create</methodname>
+            <methodparam>
+                <type>CVariableDb&amp;</type> <parameter>db</parameter>
+            </methodparam>
+            <methodparam>
+                <modifier>const</modifier><type>char*</type>
+                <parameter>path</parameter>
+            </methodparam>
+            <methodparam>
+                <modifier>const</modifier><type>char*</type>
+                    <parameter>type</parameter>
+            </methodparam>
+            <methodparam>
+                <modifier>const</modifier><type>char*</type>
+                    <parameter>initial</parameter>
+                    <initializer>0</initializer>
+            </methodparam>
+            <exceptionname>CVariable::CException</exceptionname>
+            <modifier></modifier>
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier>static </modifier>
+            <type>CVariable* </type>
+            <methodname>create</methodname>
+            <methodparam>
+                <type>CVariableDb&amp;</type><parameter> db</parameter>
+            </methodparam>
+            <methodparam>
+                <modifier></modifier><type> CVarDirTree&amp;</type>
+                    <parameter>dir</parameter>
+            </methodparam>
+            <methodparam>
+                <modifier>const </modifier><type>char*</type>
+                    <parameter> path</parameter>
+            </methodparam>
+            <methodparam>
+                <modifier>const </modifier><type>char* </type>
+                    <parameter>type</parameter>
+            </methodparam>
+            <methodparam>
+                <modifier>const </modifier><type>char* </type>
+                    <parameter>initial</parameter>
+                    <initializer>0</initializer>
+            </methodparam>
+            
+            <exceptionname>CVariable::CException</exceptionname>
+            <modifier></modifier>
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier>static </modifier>
+            <type>void </type>
+            <methodname>destroy</methodname>
+            <methodparam>
+                <type>CVariableDb&amp;</type><parameter>db</parameter>
+            </methodparam>
+            <methodparam>
+                <modifier></modifier><type>int </type>
+                    <parameter>id</parameter>
+            </methodparam>
+            <exceptionname>CVariable::CException</exceptionname>
+            <modifier></modifier>
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier>static </modifier>
+            <type>void </type>
+            <methodname>destroy</methodname>
+            <methodparam>
+                <type>CVariable* </type><parameter>pVariable</parameter>
+            </methodparam>
+            <methodparam>
+                <modifier></modifier><type>bool </type>
+                    <parameter>doDelete</parameter>
+                    <initializer>true</initializer>
+            </methodparam>
+            
+            <exceptionname>CVariable::CException</exceptionname>
+            <modifier></modifier>
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier>static</modifier>
+            <type> void </type>
+            <methodname>destroy</methodname>
+            <methodparam>
+                <type>CVariableDb&amp;</type><parameter> db</parameter>
+            </methodparam>
+            <methodparam>
+                <modifier></modifier><type>CVarDirTree&amp;</type>
+                    <parameter>dir</parameter>
+            </methodparam>
+            <methodparam>
+                <modifier>const </modifier><type>char*</type>
+                    <parameter> path</parameter>
+            </methodparam>
+            
+            <exceptionname>CVariable::CException</exceptionname>
+            <modifier></modifier>
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier>static </modifier>
+            <type>void </type>
+            <methodname>destroy</methodname>
+            <methodparam>
+                <type>CVariableDb&amp;</type><parameter> db</parameter>
+            </methodparam>
+            <methodparam>
+                <modifier>const </modifier><type>char* </type>
+                    <parameter>path</parameter>
+            </methodparam>
+            
+            <exceptionname>CVariable::CException</exceptionname>
+            <modifier></modifier>
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier>static </modifier>
+            <type>std::vector&lt;VarInfo&gt; </type>
+            <methodname>list</methodname>
+            <methodparam>
+                <type>CVariableDb*</type> <parameter>db</parameter>
+            </methodparam>
+            <methodparam>
+                <modifier></modifier><type>CVarDirTree&amp;</type>
+                    <parameter> dir</parameter>
+            </methodparam>
+            <methodparam>
+                <modifier>const </modifier><type>char* </type>
+                    <parameter>path</parameter>
+                    <initializer>0</initializer>
+            </methodparam>
+            
+            <exceptionname></exceptionname>
+            <modifier></modifier>
+        </methodsynopsis>  
+        <constructorsynopsis>
+           <methodname>CVariable</methodname>
+           <methodparam>
+            <modifier></modifier><type>CVariableDb&amp;</type>
+                <parameter>db</parameter>
+           </methodparam>
+           <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>path</parameter>
+           </methodparam>
+           <exceptionname>CVariable::CException</exceptionname>
+        </constructorsynopsis>
+        <constructorsynopsis>
+           <methodname>CVariable</methodname>
+           <methodparam>
+            <modifier></modifier><type>CVariableDb&amp;</type>
+                <parameter>db</parameter>
+           </methodparam>
+           <methodparam>
+            <modifier></modifier><type>CVarDirTree&amp;</type>
+                <parameter>dir</parameter>
+           </methodparam>
+           <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>path</parameter>
+           </methodparam>
+           
+           <exceptionname>CVariable::CException</exceptionname>
+        </constructorsynopsis>
+        <constructorsynopsis>
+           <methodname>CVariable</methodname>
+           <methodparam>
+            <modifier></modifier><type>CVariableDb&amp;</type>
+                <parameter>db</parameter>
+           </methodparam>
+           <methodparam>
+            <modifier></modifier><type>int </type>
+                <parameter>id</parameter>
+           </methodparam>
+           
+           <exceptionname>CVariable::CException</exceptionname>
+        </constructorsynopsis>
+        <methodsynopsis>
+            <modifier></modifier>
+            <type>void </type>
+            <methodname>set</methodname>
+            <methodparam>
+                <modifier>const </modifier><type>char* </type>
+                    <parameter>newValue</parameter>
+            </methodparam>
+            
+            <exceptionname>CVariable::CException</exceptionname>
+            <modifier></modifier>
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier></modifier>
+            <type>std::string</type>
+            <methodname>get</methodname>
+            <void />
+            <modifier></modifier>
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier></modifier>
+            <type>int</type>
+            <methodname>getId</methodname>
+            <void />
+            
+            <modifier>const</modifier>
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier></modifier>
+            <type>std::string</type>
+            <methodname>getName</methodname>
+            <void />
+            
+            <modifier>const</modifier>
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier></modifier>
+            <type>std::string</type>
+            <methodname>getDirectory</methodname>
+            <void />
+            
+            <modifier>const</modifier>
+        </methodsynopsis>  
+};
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        The purpose of the variable database is to contain variables.
+        Variables are named entities that live in a directory and
+        have  a strongly typed value.  The legal value of a variable
+        may be further constrained.
+     </para>
+     <para>
+        <classname>CVariable</classname> provides methods for
+        creating and deleting variables. <classname>CVariable</classname>
+        objects can modify the value of a variable, get the value of
+        a variables as well as obtain properties of variables.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <para>
+        The methods of the <classname>CVariable</classname>are broken into several categories.
+        Each category is described separately below.
+     </para>
+     <refsect2>
+        <title>Variable creation methods</title>
+        <para>
+            These methods are static methods that are responsible for creating
+            variables in an existing directory.  It is an error to attempt to
+            create a variable in a nonexistent directory or to create a duplicate
+            variable. Note: <filename>/this/is/bad</filename> twice is bad but does
+            not conflict with <filename>/this/is/not/bad</filename> since in the
+            second case the the variable <varname>bad</varname> is in a different
+            directory.
+        </para>
+        <para>
+            In general to create a directory you must provide a database
+            (<classname>CVarDb</classname>), a path, a data type and an optional
+            initial value.  The optional initial value must be consistent with
+            the type, if supplied.  The overloads for the method simply vary with
+            respect to how the path is supplied.
+        </para>
+        <para>
+            All creational methods return a dynamically created
+            <classname>CVariable</classname> object.  It is the caller's
+            responsibility to <command>delete</command> that object
+            when it is no longer needed.
+        </para>
+        <synopsis>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>CVariable*</type>
+                <methodname>create</methodname>
+                <methodparam>
+                    <type>CVariableDb&amp;</type> <parameter>db</parameter>
+                </methodparam>
+                <methodparam>
+                    <modifier>const</modifier><type>char*</type>
+                    <parameter>path</parameter>
+                </methodparam>
+                <methodparam>
+                    <modifier>const</modifier><type>char*</type>
+                        <parameter>type</parameter>
+                </methodparam>
+                <methodparam>
+                    <modifier>const</modifier><type>char*</type>
+                        <parameter>initial</parameter>
+                        <initializer>0</initializer>
+                </methodparam>
+                <exceptionname>CVariable::CException</exceptionname>
+                <modifier></modifier>
+            </methodsynopsis>
+        <methodsynopsis>
+            <modifier>static </modifier>
+            <type>CVariable* </type>
+            <methodname>create</methodname>
+            <methodparam>
+                <type>CVariableDb&amp;</type><parameter> db</parameter>
+            </methodparam>
+            <methodparam>
+                <modifier></modifier><type> CVarDirTree&amp;</type>
+                    <parameter>dir</parameter>
+            </methodparam>
+            <methodparam>
+                <modifier>const </modifier><type>char*</type>
+                    <parameter> path</parameter>
+            </methodparam>
+            <methodparam>
+                <modifier>const </modifier><type>char* </type>
+                    <parameter>type</parameter>
+            </methodparam>
+            <methodparam>
+                <modifier>const </modifier><type>char* </type>
+                    <parameter>initial</parameter>
+                    <initializer>0</initializer>
+            </methodparam>
+            
+            <exceptionname>CVariable::CException</exceptionname>
+            <modifier></modifier>
+        </methodsynopsis>
+        </synopsis>
+        <para>
+            In the methods described above, the parameters are as follows:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term><parameter>db</parameter></term>
+                <listitem>
+                    <para>
+                        Reference to a
+                        <classname>CVariableDb</classname> object.
+                        <parameter>db</parameter> determines which database
+                        the variable is created in.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><parameter>dir</parameter></term>
+                <listitem>
+                    <para>
+                        Reference to a <classname>CVarDirTree</classname>
+                        object.  If the <parameter>path</parameter> is
+                        specified as a relative path,
+                        <methodname>create</methodname> overloads that have a
+                        <parameter>dir</parameter> parameter use that directory's
+                        current working directory to determine the base of the
+                        relative path. 
+                    </para>
+                    <para>
+                        If a <methodname>create</methodname> method does not
+                        take a <parameter>dir</parameter> parameter,
+                        relative paths are computed from the root directory.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><parameter>initial</parameter></term>
+                <listitem>
+                    <para>
+                        If <parameter>initial</parameter> is not a null pointer,
+                        it points to an initial value string for the variable.
+                        If this string
+                        is not compatible with the specified
+                        <parameter>type</parameter>, the variable will not be
+                        created and a <classname>CVariable::CException</classname>
+                        will be thrown.
+                    </para>
+                    <para>
+                        If the <parameter>initial</parameter> pointer is null, the
+                        initial value of the variable is taken from a default value
+                        for the data type.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><parameter>path</parameter></term>
+                <listitem>
+                    <para>
+                        Specifies the <parameter>path</parameter> to the variable.
+                        The final path element is the variable name itself. For
+                        example, the path
+                        <filename>/this/is/a/dir/myvar</filename> specifies a
+                        variable named <varname>myvar</varname> in the directory
+                        <filename>/this/is/a/dir</filename>.
+                    </para>
+                    <para>
+                        If the path is relative (does not begin with a a
+                        <literal>/</literal>), the point the path is relative to
+                        depends on the specific <methodname>create</methodname>
+                        overload.  Overloads that have a <parameter>db</parameter>
+                        parameter compute the path relative to that parameter's
+                        current working directory.  Those without a
+                        <parameter>db</parameter> parameter compute it relative
+                        to the root directory.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><parameter>type</parameter></term>
+                <listitem>
+                    <para>
+                        Provides the <parameter>type</parameter> of data that
+                        can be assigned to a variable
+                        (e.g. <literal>integer</literal>).
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+     </refsect2>
+     <refsect2>
+        <title>Variable destruction</title>
+        <para>
+            The static methods in this section are responsible for destroying
+            existing variables.  It is an error to destroy a variable that does
+            not exist.
+        </para>
+        <synopsis>
+            <methodsynopsis>
+                <modifier>static </modifier>
+                <type>void </type>
+                <methodname>destroy</methodname>
+                <methodparam>
+                    <type>CVariableDb&amp;</type><parameter>db</parameter>
+                </methodparam>
+                <methodparam>
+                    <modifier></modifier><type>int </type>
+                        <parameter>id</parameter>
+                </methodparam>
+                <exceptionname>CVariable::CException</exceptionname>
+                <modifier></modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static </modifier>
+                <type>void </type>
+                <methodname>destroy</methodname>
+                <methodparam>
+                    <type>CVariable* </type><parameter>pVariable</parameter>
+                </methodparam>
+                <methodparam>
+                    <modifier></modifier><type>bool </type>
+                        <parameter>doDelete</parameter>
+                        <initializer>true</initializer>
+                </methodparam>
+                
+                <exceptionname>CVariable::CException</exceptionname>
+                <modifier></modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type> void </type>
+                <methodname>destroy</methodname>
+                <methodparam>
+                    <type>CVariableDb&amp;</type><parameter> db</parameter>
+                </methodparam>
+                <methodparam>
+                    <modifier></modifier><type>CVarDirTree&amp;</type>
+                        <parameter>dir</parameter>
+                </methodparam>
+                <methodparam>
+                    <modifier>const </modifier><type>char*</type>
+                        <parameter> path</parameter>
+                </methodparam>
+                
+                <exceptionname>CVariable::CException</exceptionname>
+                <modifier></modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static </modifier>
+                <type>void </type>
+                <methodname>destroy</methodname>
+                <methodparam>
+                    <type>CVariableDb&amp;</type><parameter> db</parameter>
+                </methodparam>
+                <methodparam>
+                    <modifier>const </modifier><type>char* </type>
+                        <parameter>path</parameter>
+                </methodparam>
+                
+                <exceptionname>CVariable::CException</exceptionname>
+                <modifier></modifier>
+            </methodsynopsis>
+                
+        </synopsis>
+        <para>
+            The parameters for these methods are as follows:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term><parameter>db</parameter></term>
+                <listitem>
+                    <para>
+                        A reference to a
+                        <classname>CVariableDb</classname> object that
+                        determines which database is operated on.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><parameter>dir</parameter></term>
+                <listitem>
+                    <para>
+                        A reference to a <classname>CVarDirTree</classname>.
+                        This parameter is present in a method that takes
+                        a <parameter>path</parameter> parameter. If
+                        present, the <parameter>dir</parameter> parameter's
+                        working directory determines the base directory from
+                        which a relative <parameter>path</parameter>
+                        is computed.
+                    </para>
+                    <para>
+                        In overloads that have a <parameter>path</parameter>
+                        parameter but no <parameter>dir</parameter> parameter,
+                        relative paths are computed from the root directory.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><parameter>doDelete</parameter></term>
+                <listitem>
+                    <para>
+                        For the over load that deletes a the variable defined
+                        by a <classname>CVariable</classname> object, if this
+                        is true, that object is deleted.
+                    </para>
+                </listitem>
+            </varlistentry>
+            
+            <varlistentry>
+                <term><parameter>id</parameter></term>
+                <listitem>
+                    <para>
+                        The primary key of the variable to delete in the
+                        variables table.  All variables have a unique
+                        <parameter>id</parameter>.  If you have an instance
+                        of a <classname>CVariable</classname> object, the
+                        <methodname>getId</methodname>  method returns this
+                        id.
+                    </para>
+                </listitem>
+            </varlistentry>
+            
+            <varlistentry>
+                <term><parameter>path</parameter></term>
+                <listitem>
+                    <para>
+                        The <parameter>path</parameter> (absolute or relative)
+                        to the variable to delete.  As with
+                        <methodname>create</methodname>, the final path element
+                        is the variable name.  
+                    </para>
+                    <para>
+                        See the <parameter>dir</parameter> parameter for informaton
+                        about how relative paths are computed.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><parameter>pVariable</parameter></term>
+                <listitem>
+                    <para>
+                        The overload that takes this parameter deletes the
+                        variable it represents.
+                    </para>
+                </listitem>
+            </varlistentry>
+            
+        </variablelist>
+            
+     </refsect2>
+     <refsect2>
+        <title>Informationals</title>
+        <synopsis>
+            <methodsynopsis>
+                <modifier>static </modifier>
+                <type>std::vector&lt;VarInfo&gt; </type>
+                <methodname>list</methodname>
+                <methodparam>
+                    <type>CVariableDb*</type> <parameter>db</parameter>
+                </methodparam>
+                <methodparam>
+                    <modifier></modifier><type>CVarDirTree&amp;</type>
+                        <parameter> dir</parameter>
+                </methodparam>
+                <methodparam>
+                    <modifier>const </modifier><type>char* </type>
+                        <parameter>path</parameter>
+                        <initializer>0</initializer>
+                </methodparam>
+                
+                <exceptionname></exceptionname>
+                <modifier></modifier>
+            </methodsynopsis>  
+            
+        </synopsis>
+        <para>
+            <methodname>list</methodname> provides information about the
+            variables that live in a directory.  The return value is a possibly
+            empty vector of <classname>CVariable::VarInfo</classname> structs.
+            See <literal>PUBLIC VARIABLES, TYPES and CONSTANTS</literal> below
+            for a description of that type.
+        </para>
+        <para>
+            The parameters of the method establish which directory is listed:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term><parameter>db</parameter></term>
+                <listitem>
+                    <para>
+                        A pointer to a <classname>CVariableDb</classname>
+                        object that determines which 
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><parameter>dir</parameter></term>
+                <listitem>
+                    <para>
+                        Directory that either is listed, provides a base
+                        from which relative <parameter>path</parameter>s are
+                        computed.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><parameter>path</parameter></term>
+                <listitem>
+                    <para>
+                        If this is null, the current working directory of
+                        <parameter>dir</parameter> is listed.
+                    </para>
+                    <para>
+                        If not null and a relative path, the path computed
+                        relative to <parameter>dir</parameter>'s current
+                        working directory is listed.
+                    </para>
+                    <para>
+                        If not null and an absolute path, the absolute path
+                        determines which directory is listed.
+                    </para>
+                </listitem>
+            </varlistentry>
+            
+        </variablelist>
+     </refsect2>
+     <refsect2>
+        <title><classname>CVariable</classname> objects</title>
+        <para>
+            <classname>CVariable</classname> objects wrap a variable in the database.
+            The constructors described in this section as well as the
+            <methodname>create</methodname> methods described above
+            create <classname>CVariable</classname> objects.
+        </para>
+        <para>
+            Once a <classname>CVariable</classname> object is instantiated,
+            it provides methods that allow you to set and get the value of the
+            underlying variable, as well as to get information about the
+            variable.
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term>
+                    <constructorsynopsis>
+                       <methodname>CVariable</methodname>
+                       <methodparam>
+                        <modifier></modifier><type>CVariableDb&amp;</type>
+                            <parameter>db</parameter>
+                       </methodparam>
+                       <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>path</parameter>
+                       </methodparam>
+                       <exceptionname>CVariable::CException</exceptionname>
+                    </constructorsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Constructs a <classname>CVariable</classname>. 
+                        <parameter>db</parameter> is the
+                        <classname>CVariableDb</classname> in which the
+                        variable lives.  <parameter>path</parameter> is
+                        an absolute path to the variable.  
+                    </para>
+                    <para>
+                        The last
+                        path element is the variable name while the remaining
+                        path elements specify the directory in which that
+                        variable lives  for example:
+                        <filename>/this/is/a/variable</filename> is a variable
+                        named <varname>variable</varname> in the directory
+                        <filename>/this/is/a</filename>.
+                    </para>
+                    <para>
+                        If the variable does not exist a
+                        <classname>CVariable::CException</classname> object
+                        is thrown.  See
+                        <literal>PUBLIC VARIABLES, TYPES and CONSTANTS</literal>
+                        for information about this class.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <constructorsynopsis>
+                       <methodname>CVariable</methodname>
+                       <methodparam>
+                        <modifier></modifier><type>CVariableDb&amp;</type>
+                            <parameter>db</parameter>
+                       </methodparam>
+                       <methodparam>
+                        <modifier></modifier><type>CVarDirTree&amp;</type>
+                            <parameter>dir</parameter>
+                       </methodparam>
+                       <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>path</parameter>
+                       </methodparam>
+                       
+                       <exceptionname>CVariable::CException</exceptionname>
+                    </constructorsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Same as the constructor above, however if
+                        <parameter>path</parameter> is a relative path,
+                        the current working directory of <parameter>dir</parameter>
+                        determines the actual path.  For example:
+                    </para>
+                    <informalexample>
+                        <programlisting>
+                            ...
+CVariableDb&amp; db("somedb");
+CVarDirTree      dir(db);
+dir.cd("/this/is");
+CVariable        var(db, dir, "a/variable");
+                            ...
+                        </programlisting>
+                    </informalexample>
+                    <para>
+                        <varname>var</varname> is an object that represents
+                        the variable <filename>/this/is/a/variable</filename>.
+                    </para>
+                    <para>
+                        If the path is absolute, the <parameter>dir</parameter>
+                        parameter is ignored.
+                    </para>
+                    <para>
+                        If the variable specified does not exist, an
+                        <classname>CVariable::CException</classname> is
+                        thrown.  See
+                        <literal>PUBLIC VARIABLES, TYPES and CONSTANTS</literal>
+                        for information about this class.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <constructorsynopsis>
+                       <methodname>CVariable</methodname>
+                       <methodparam>
+                        <modifier></modifier><type>CVariableDb&amp;</type>
+                            <parameter>db</parameter>
+                       </methodparam>
+                       <methodparam>
+                        <modifier></modifier><type>int </type>
+                            <parameter>id</parameter>
+                       </methodparam>
+                       
+                       <exceptionname>CVariable::CException</exceptionname>
+                    </constructorsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Construts a variable given the primary key,
+                        <parameter>id</parameter> of the variable in the
+                        variables database table.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier></modifier>
+                        <type>void </type>
+                        <methodname>set</methodname>
+                        <methodparam>
+                            <modifier>const </modifier><type>char* </type>
+                                <parameter>newValue</parameter>
+                        </methodparam>
+                        
+                        <exceptionname>CVariable::CException</exceptionname>
+                        <modifier></modifier>
+                    </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Sets the variable to a <parameter>newValuer</parameter>.
+                        If <parameter>newValue</parameter> is not consistent
+                        with the variable type or any other value constraints
+                        that may be applied to the variable, a
+                        <classname>CVariable::CException</classname> will be
+                        thrown.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier></modifier>
+                        <type>std::string</type>
+                        <methodname>get</methodname>
+                        <void />
+                        <modifier></modifier>
+                    </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Returns the current value of the variable.  Variables
+                        in the variable database always have a well defined value.
+                        Even if an initial value is not supplied when a variable is
+                        created, the variable type defines a default initial
+                        value that will be assigned to the variable.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier></modifier>
+                        <type>int</type>
+                        <methodname>getId</methodname>
+                        <void />
+                        
+                        <modifier>const</modifier>
+                    </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Returns the id of the variable.  The variable id is
+                        a unique integer value that unambiguously identifies the
+                        variable.  It is, in fact, the primary key of the
+                        variable in the database variables table.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier></modifier>
+                        <type>std::string</type>
+                        <methodname>getName</methodname>
+                        <void />
+                        
+                        <modifier>const</modifier>
+                    </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Returns the variable name.  This name does not include
+                        the directory path.  Thus for the variable
+                        <filename>/this/is/a/variable</filename>,
+                        <literal>variable</literal> will be returned.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier></modifier>
+                        <type>std::string</type>
+                        <methodname>getDirectory</methodname>
+                        <void />
+                        
+                        <modifier>const</modifier>
+                    </methodsynopsis>  
+                </term>
+                <listitem>
+                    <para>
+                        Returns the path of the directory that contains the
+                        variable.  For example for the variable
+                        <filename>/this/is/a/variable</filename>,
+                        <literal>/this/is/a</literal> would be returned.
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+     </refsect2>
+  </refsect1>
+   <refsect1>
+      <title>PUBLIC VARIABLES, TYPES and CONSTANTS</title>
+      <para>
+        The <classname>CVariable</classname> class defines two nested
+        types.  <classname>CVariable::VarInfo</classname>, which is used
+        to provid information about a variable (see <methodname>list</methodname>),
+        and <classname>CVariable::CException</classname> which is thrown to
+        indicate error conditions detected by the API.
+      </para>
+      <refsect2>
+        <title>CVariable::VarInfo</title>
+        <para>
+            This is a struct that provides the following bits of information
+            about a variable:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term>
+                    <structfield>s_id</structfield>
+                </term>
+                <listitem>
+                    <para>
+                        An integer which is the id of the variable.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <structfield>s_name</structfield>
+                </term>
+                <listitem>
+                    <para>
+                        A <classname>std::string</classname> that is the
+                        name of the variable (without the directory).
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <structfield>s_type</structfield>
+                </term>
+                <listitem>
+                    <para>
+                        A <classname>std::string</classname> that is the
+                        name of the variable type
+                        (e.g. <literal>integer</literal>).
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><structfield>s_typeId</structfield></term>
+                <listitem>
+                    <para>
+                        The id of the type.  This is the primary key
+                        of the variable type in the variable_types table.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><structfield>s_dirid</structfield></term>
+                <listitem>
+                    <para>
+                        The id of the directory the variable is defined in.  This
+                        is the primary key of that directory in the directory
+                        table.
+                    </para>
+                </listitem>
+            </varlistentry>
+            
+        </variablelist>
+      </refsect2>
+      <refsect2>
+        <title>CVariable::CException</title>
+        <para>
+            This class is derived from <classname>std::runtime_error</classname>
+            which has as its ultimate base class
+            <classname>std::exception</classname>.
+            The key method this class offers a consumer of these exceptions is:
+        </para>
+        <synopsis>
+        <methodsynopsis>
+            <modifier>virtual</modifier>
+            <type>const char*</type>
+            <methodname>what</methodname>
+            <void />
+        </methodsynopsis>
+        </synopsis>
+        <para>
+            This method returns a pointer to an errro message that is human
+            readable.
+        </para>
+      </refsect2>
+   </refsect1>
 </refentry>     
 
 <!-- /manpage -->
@@ -741,6 +1794,12 @@ vardb::ls <replaceable>$handle ?directory-path?</replaceable>
 vardb::rmdir <replaceable>$handle directory-path</replaceable>
                 </command>
             </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+vardb::var <replaceable>subcommand $handle args...</replaceable>
+                </command>
+            </cmdsynopsis>
+            
             
         </refsynopsisdiv>
         <refsect1>
@@ -921,6 +1980,105 @@ vardb::rmdir <replaceable>$handle directory-path</replaceable>
                     </para>
                 </listitem>
             </varlistentry>
+            <varlistentry>
+                <term>
+                    <cmdsynopsis>
+                        <command>
+        vardb::var <replaceable>subcommand $handle args...</replaceable>
+                        </command>
+                    </cmdsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Performs an operation on a variable.  In the discussion
+                        below, relative paths are interpreted to be relative to
+                        the current working directory established by the
+                        most recent
+                        <command>vardb::cd</command> command.
+                    </para>
+                    <para>
+                        The operation
+                        performed depends on the subcommand and arguments
+                        that follow the <varname>handle</varname>:
+                    </para>
+                    <variablelist>
+                        <varlistentry>
+                            <term><command>create <replaceable>handle path type ?value?</replaceable></command></term>
+                            <listitem>
+                                <para>
+                                    Creates a new variable.
+                                    <parameter>path</parameter> determines
+                                    the path to the new variable.
+                                    <parameter>type</parameter>
+                                    is the type of the variable
+                                    (e.g. <literal>string</literal>).
+                                    <parameter>value</parameter> is the
+                                    optional initial value of the variable.
+                                    note that all types have a default value
+                                    the variable is initialized to if
+                                    <parameter>value</parameter>
+                                    is not supplied.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><command>destroy <replaceable>handle path</replaceable></command></term>
+                            <listitem>
+                                <para>
+                                    Destroys the variable specified by <parameter>path</parameter>
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><command>set <replaceable>handle path value</replaceable></command></term>
+                            <listitem>
+                                <para>
+                                    Sets the variable described by
+                                    <parameter>path</parameter> to a new
+                                    <parameter>value</parameter>.  
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><command>get <replaceable>handle path</replaceable></command></term>
+                            <listitem>
+                                <para>
+                                    Returns the value of the variable
+                                    specified by
+                                    <parameter>path</parameter>
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><command>ls <replaceable>handle ?path?</replaceable></command></term>
+                            <listitem>
+                                <para>
+                                    Returns a list describing the variables that
+                                    live in a directory.  If the
+                                    <parameter>path</parameter> parameter is
+                                    not provided, the current working directory
+                                    is listed.  If <parameter>path</parameter>
+                                    is provided and is a relative path, the variable's
+                                    path is computed with the current working directory
+                                    as a base. 
+                                </para>
+                                <para>
+                                    The command returns a (possibly empty) list.
+                                    Each element of the list is a 5 element sublist
+                                    containing in order the variable's id,
+                                    the variables name (excluding the directory path
+                                    part of it), the variable's type,
+                                    the id of the variable type
+                                    and the id of the
+                                    directory that contains the variable and the
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        
+                    </variablelist>
+                </listitem>
+            </varlistentry>
+            
            </variablelist>
         </refsect1>
 
@@ -1031,7 +2189,7 @@ db = VarDb(<parameter>filename</parameter>)
   </refentryinfo>
   <refmeta>
      <refentrytitle id='python3_dirtree_title'>dirtree</refentrytitle>
-     <manvolnum>3</manvolnum>
+     <manvolnum>3python</manvolnum>
          <refmiscinfo class='empty'></refmiscinfo>
   </refmeta>
   <refnamediv>
@@ -1413,6 +2571,451 @@ flag     = <methodname>isRelative</methodname>(<parameter>pathString</parameter>
         </varlistentry>
      </variablelist>
   </refsect1>
+</refentry>
+
+<refentry id="python3_variable">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='python3_variable_title'>variable</refentrytitle>
+     <manvolnum>3python</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>variable</refname>
+     <refpurpose>Encapsulate variable database variables.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+import nscldaq.vardb.vardb
+import nscldaq.vardb.dirtree
+import nscldaq.vardb.variable
+
+nscldaq.vardb.variable.create(vardb, dir_or_none, path, type[, initial])
+info = nscldaq.vardb.variable.ls(db, dir[, path])
+nscldaq.vardb.variable.destroy(db, id)
+nscldaq.vardb.variable.destroy(db, dir_or_none, path)
+
+   
+      <constructorsynopsis>
+        <methodname>nscldaq.vardb.variable.Variable</methodname>
+        <methodparam>
+            <modifier></modifier><type></type>
+                <parameter>db</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier></modifier><type></type>
+                <parameter>keywords...</parameter>
+        </methodparam>
+        
+        <exceptionname>nscldaq.vardb.variable.error</exceptionname>
+      </constructorsynopsis>
+      <methodsynopsis>
+          <modifier></modifier>
+          <type>integer</type>
+          <methodname>getId</methodname>
+          
+            <void />
+          
+          <modifier></modifier>
+      </methodsynopsis>
+      <methodsynopsis>
+          <modifier></modifier>
+          <type></type>
+          <methodname>set</methodname>
+          <methodparam>
+            <type>string</type> <parameter>value</parameter>
+          </methodparam>
+          <exceptionname>nscldaq.vardb.variable.error</exceptionname>
+          <modifier></modifier>
+      </methodsynopsis>
+      <methodsynopsis>
+          <modifier></modifier>
+          <type>string</type>
+          <methodname>get</methodname>
+          <void />
+          <modifier></modifier>
+      </methodsynopsis>
+      <methodsynopsis>
+          <modifier></modifier>
+          <type>string</type>
+          <methodname>getName</methodname>
+          <void />
+          
+          <modifier></modifier>
+      </methodsynopsis>
+      <methodsynopsis>
+          <modifier></modifier>
+          <type>string</type>
+          <methodname>getDirectory</methodname>
+          <void />
+          <modifier></modifier>
+      </methodsynopsis>
+      
+      
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        Encapsulates operations on variables themselves.  The purpose of the
+        variable database is to store variables, their properties and their
+        values.  A variable lives in a directory, has a strong type and a value.
+     </para>
+     <para>
+        The methods in this module allow you to create, delete and get information
+        about variables.  You can also wrap a variable in an object.  Once
+        wrapped you can set and get the value of that variable.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                nscldaq.vardb.variable.create(vardb, dir_or_none, path, type[, initial])
+            </term>
+            <listitem>
+                <para>
+                    Creates a new variable. <parameter>vardb</parameter>
+                    must be a <classname>nscldaq.vardb.VarDb</classname>
+                    object and specifies which database the object is created in.
+                    
+                </para>
+                <para>
+                    <parameter>dir_or_none</parameter>, together with
+                    <parameter>path</parameter> determine both the directory
+                    and name of the variable that will be created in that
+                    directory.
+                    If <parameter>path</parameter> is relative,
+                    and <parameter>dir_or_none</parameter> is a valid
+                    <classname>nscldaq.vardb.directory.VarDirTree</classname>
+                    object, it's working directory sets tha base relative
+                    to which the path is computed.
+                    If <parameter>dir_or_none</parameter> is
+                    <literal>None</literal>, or <parameter>path</parameter>
+                    is absolute, the path is computed relative to the
+                    root directory.
+                </para>
+                <para>
+                    <parameter>type</parameter> specifies the variable
+                    type e.g. <literal>'integer'</literal>.
+                </para>
+                <para>
+                    If the parameter <parameter>initial</parameter>
+                    is provided it is used to set the variables initial value.
+                    If it is not provided, the type's default value is used to
+                    initialize the variable.  Note that variables always have
+                    a well defined value.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                info = nscldaq.vardb.variable.ls(db, dir[, path])
+            </term>
+            <listitem>
+                <para>
+                    Returns a list of dicts that describe the variables
+                    in a directory.  <parameter>db</parameter> is
+                    a <classname>nscldaq.vardb.vardb.VarDb</classname>
+                    object that determines which database is interrogated.
+                </para>
+                <para>
+                    The directory path interrogated is determineed by
+                    a combination of the <parameter>dir</parameter>
+                    and, if provided the <parameter>path</parameter>
+                    arguments.  <parameter>dir</parameter> is a
+                    <classname>nscldaq.vardb.directory.VarDirTree</classname>
+                    object.  If <parameter>path</parameter> is not provided,
+                    its current working directory is listed.
+                    if <parameter>path</parameter> is provided and is
+                    relative, the path to interrogate is computed relative
+                    to <parameter>dir</parameter>'s current working directory.
+                    If <parameter>path</parameter> is absolute, the
+                    <parameter>dir</parameter> parameter is ignored.
+                </para>
+                <para>
+                    The return value is a list of dicts.  Each dict
+                    containst the following keys:
+                </para>
+                <variablelist>
+                    <varlistentry>
+                        <term><literal>id</literal></term>
+                        <listitem>
+                            <para>
+                                The id of the variable.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                   <varlistentry>
+                       <term><literal>name</literal></term>
+                       <listitem>
+                           <para>
+                                The name of the variable exclusive of its
+                                path.
+                           </para>
+                       </listitem>
+                   </varlistentry>
+                    <varlistentry>
+                        <term><literal>type</literal></term>
+                        <listitem>
+                            <para>
+                                The type string of the variable.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><literal>typeId</literal></term>
+                        <listitem>
+                            <para>
+                                The id of the type of the variable.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><literal>dirId</literal></term>
+                        <listitem>
+                            <para>
+                                The id of the directory the variable
+                                lives in.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    
+                </variablelist>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                nscldaq.vardb.variable.destroy(db, id)
+            </term>
+            <listitem>
+                <para>
+                    Destroys the variable in the database
+                    determined by <parameter>db</parameter>
+                    with the specified <parameter>id</parameter>
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>nscldaq.vardb.variable.destroy(db, dir_or_none, path)</term>
+            <listitem>
+                <para>
+                    Destroys the variable in the database
+                    <parameter>db</parameter> whos path is determined
+                    by the combination of <parameter>dir_or_none</parameter>
+                    and <parameter>path</parameter>
+                </para>
+                <para>
+                    The <methodname>create</methodname> module method
+                    describes how <parameter>dir_or_none</parameter>
+                    and <parameter>path</parameter> combine to
+                    produce a variable name path.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <constructorsynopsis>
+                   <methodname>nscldaq.vardb.variable.Variable</methodname>
+                   <methodparam>
+                       <modifier></modifier><type></type>
+                           <parameter>db</parameter>
+                   </methodparam>
+                   <methodparam>
+                       <modifier></modifier><type></type>
+                           <parameter>keywords...</parameter>
+                   </methodparam>
+                   
+                   <exceptionname>nscldaq.vardb.variable.error</exceptionname>
+                 </constructorsynopsis>
+            
+            </term>
+            <listitem>
+                <para>
+                    Returns an instance of a <classname>Variable</classname>
+                    object that wraps a variable in the variable database.
+                </para>
+                <para>
+                    <parameter>db</parameter> selects the variable database.
+                    The remaining parameters are keyword/value parameters.
+                    The following keywords are defined:
+                </para>
+                <variablelist>
+                    <varlistentry>
+                        <term><literal>dir</literal></term>
+                        <listitem>
+                            <para>
+                                Value is a <classname>VarDirTree</classname>
+                                object that, together with a
+                                <literal>path</literal> determines which variable
+                                to wrap.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><literal>path</literal></term>
+                        <listitem>
+                            <para>
+                                Along with an optional dir determines the
+                                variable to wrap.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><literal>id</literal></term>
+                        <listitem>
+                            <para>
+                                Value is the id of the variable to wrap.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    
+                </variablelist>
+                <para>
+                    There are constraints on which keywords can be provided:
+                </para>
+                <itemizedlist>
+                    <listitem><para>
+                        There must be either an <literal>id</literal> or a
+                        <literal>path</literal> parmaeter but not both.
+                    </para></listitem>
+                    <listitem><para>
+                        There cannot be both a <literal>dir</literal> and an
+                        <literal>id</literal>
+                    </para></listitem>
+                </itemizedlist>
+                <para>
+                    Given these constraints.  If <literal>id</literal> is provided
+                    that is the id of the variable to wrap.  if, a
+                    <literal>path</literal> is provided, and is absolute, that
+                    determines the variable to wrap.  If <literal>path</literal>
+                    is relative and <literal>dir</literal> is provided the
+                    absolute path of the variable to wrap is determined relative
+                    to <literal>dir</literal>'s current working directory.
+                    If <literal>path</literal> is relative and
+                    <literal>dir</literal> is not supplied the final path
+                    to wrap is computed relative to the root directory.
+                </para>
+                <para>
+                    If <literal>path</literal> is supplied, the last path element
+                    is the variable name and all prior path elements specify
+                    the directory, for example:
+                    <literal>/this/is/a/variable</literal> is a variable
+                    named <literal>variable</literal> that is in the
+                    directory <literal>/this/is/a</literal>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>integer</type>
+                    <methodname>getId</methodname>
+                   
+                      <void />
+                   
+                    <modifier></modifier>
+                </methodsynopsis>
+
+            </term>
+            <listitem>
+                <para>
+                    Returns the id of the variable wrapped by the object.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type></type>
+                    <methodname>set</methodname>
+                    <methodparam>
+                      <type>string</type> <parameter>value</parameter>
+                    </methodparam>
+                    <exceptionname>nscldaq.vardb.variable.error</exceptionname>
+                    <modifier></modifier>
+                </methodsynopsis>
+
+            </term>
+            <listitem>
+                <para>
+                    Sets a new <parameter>value</parameter> for the variable.
+                    <classname>nscldaq.vardb.variable.error</classname> is
+                    raised if <parameter>value</parameter> is not legal
+                    for the variable's type or constraints.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                      <modifier></modifier>
+                      <type>string</type>
+                      <methodname>get</methodname>
+                      <void />
+                      <modifier></modifier>
+                  </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Returns the variables current value.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>string</type>
+                    <methodname>getName</methodname>
+                    <void />
+                    
+                    <modifier></modifier>
+                </methodsynopsis>
+                
+            </term>
+            <listitem>
+                <para>
+                    Returns the name of the variable
+                    (exclusive of the directory path).
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>string</type>
+                    <methodname>getDirectory</methodname>
+                    <void />
+                    <modifier></modifier>
+                </methodsynopsis>                
+            </term>
+            <listitem>
+                <para>
+                    Returns the directory path in which the
+                    variable lives.
+                </para>
+            </listitem>
+        </varlistentry>
+        
+     </variablelist>
+  </refsect1>
 </refentry>     
 <!-- /manpage -->
 
@@ -1441,12 +3044,38 @@ flag     = <methodname>isRelative</methodname>(<parameter>pathString</parameter>
   
   <refsynopsisdiv>
     <programlisting>
+
+-- Directory tree:
+
 CREATE TABLE directory (
    id     INTEGER PRIMARY KEY NOT NULL,
    name   VARCHAR(256) NOT NULL,
    parent INTEGER DEFAULT NULL
 );
 INSERT INTO directory (name) VALUES("");        -- Create the root directory
+
+-- Primitive data types:
+
+CREATE TABLE variable_types (
+   id    INTEGER PRIMARY KEY NOT NULL,
+   type_name VARCHAR(256) NOT NULL
+);
+-- Define the standard primitive data types:
+
+INSERT INTO variable_types (typename) VALUES ('integer');
+INSERT INTO variable_types (typename) VALUES ('real');
+INSERT INTO variable_types (typename) VALUES ('string');
+
+-- Holds the variables.
+
+CREATE TABLE variables (
+    id                  INTEGER PRIMARY KEY NOT NULL,
+    name                VARCHAR(256) NOT NULL,
+    directory_id        INTEGER NOT NULL,           -- fk into directory
+    type_id             INTEGER NOT NULL,           -- fk into variable_types
+    value               VARCHAR(256)  NOT NULL      -- String representation of the data.
+);
+
     </programlisting>
 
   </refsynopsisdiv>
@@ -1517,6 +3146,105 @@ INSERT INTO directory (name) VALUES("");        -- Create the root directory
             destruction of the root directory.  The path specification of the
             root directory is just <literal>/</literal>
         </para>
+     </refsect2>
+     <refsect2>
+        <title>Primitive Data types</title>
+        <para>
+            Primitive data types are those that have a simple checker that can
+            determine if a value is valid (compared for example with an
+            <type>enum</type> which requires a list of values for each enum).
+        </para>
+        <para>
+            The known data types are defined in the table
+            <literal>variable_types</literal>, which is pre-stocked with the
+            primitive data types.  This table has the fields:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term><literal>id    INTEGER PRIMARY KEY NOT NULL</literal></term>
+                <listitem>
+                    <para>
+                        The primary key for the table entries.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><literal>type_name VARCHAR(256) NOT NULL</literal></term>
+                <listitem>
+                    <para>
+                        The name of the type.
+                    </para>
+                </listitem>
+            </varlistentry>
+            
+        </variablelist>
+        <para>
+            The currently defined primitive data types are:
+            <literal>integer</literal>, <literal>real</literal>,
+            and <literal>string</literal>, whose meaning should
+            be pretty obvious.
+        </para>
+     </refsect2>
+     <refsect2>
+        <title>Variables</title>
+        <para>
+            Variables are data containers.  All data that can be stored is
+            assumed to have a string representation.   The value of each variable
+            is therefore stored as a string.
+        </para>
+        <para>
+            Variables are stored in the <literal>variables</literal> table which
+            has the following fields:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term>
+                    <literal>id                  INTEGER PRIMARY KEY NOT NULL</literal>
+                </term>
+                <listitem>
+                    <para>
+                        The primary key, used to unambiguously identify a variable.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <literal>name                VARCHAR(256) NOT NULL</literal>
+                </term>
+                <listitem>
+                    <para>
+                        The name of the variable (this is the last path element
+                        of the path used to create the variable).
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <literal>directory_id        INTEGER NOT NULL</literal>
+                </term>
+                <listitem>
+                    <para>
+                        Foreign key into the <literal>directory</literal> table.
+                        This value is the primary key in <literal>directory</literal>
+                        of the directory in which the variable is defined.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <literal>type_id             INTEGER NOT NULL</literal>
+                </term>
+                <listitem>
+                    <para>
+                        Foreign key into the <literal>variable_types</literal>
+                        table.  This value is a primary key in the
+                        <literal>variable_types</literal> table that determines
+                        the data type of the variable.
+                    </para>
+                </listitem>
+            </varlistentry>
+            
+        </variablelist>
      </refsect2>
   </refsect1>
 

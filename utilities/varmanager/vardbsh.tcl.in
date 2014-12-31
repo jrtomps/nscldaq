@@ -179,7 +179,6 @@ proc pwd {} {
 proc rmdir {path} {
     ::vardb::rmdir $::vardbsh::varDbHandle $path
 }
-set tcl_interactive 1
 
 ##
 # declare
@@ -227,4 +226,8 @@ proc del {path} {
     vardb::var destroy $::vardbsh::varDbHandle $path
 }
 
+
+
+
+set tcl_interactive 1
 

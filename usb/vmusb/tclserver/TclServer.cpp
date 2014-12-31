@@ -447,9 +447,14 @@ TclServer::MonitorDevices(void* pData)
   CVMUSB* pController = pObject->m_pVme;
   CRunState::RunState state = CRunState::getInstance()->getState();
   if (state  == CRunState::Active) {
-    pController->writeActionRegister( CVMUSB::ActionRegister::triggerL7 | 
+    try {
+      pController->writeActionRegister( CVMUSB::ActionRegister::triggerL7 | 
 					CVMUSB::ActionRegister::startDAQ); // StartDAQ keeps acquisition alive.
-    pObject->m_waitingMonitor = true;
+      pObject->m_waitingMonitor = true;
+
+    }
+    catch (...) {
+    }
   }
   else if ((state != CRunState::Starting) && (state != CRunState::Stopping)) {
     uint16_t readData[13*1024];	// Big data pot...ought to be big enough...one event buffer worth?

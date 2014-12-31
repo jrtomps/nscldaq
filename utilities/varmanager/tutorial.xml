@@ -160,6 +160,23 @@ runstate/
 extra_run_data/
 </literal></computeroutput>
 <computeroutput>
+(myvariables.db) /extra_stuff:</computeroutput><command> declare i integer 0</command>
+<computeroutput>
+(myvariables.db) /extra_stuff:</computeroutput><command>ls</command><computeroutput><literal>
+extra_run_data/
+         i    integer 0
+</literal></computeroutput>
+<computeroutput>(myvariables.db) /extra_stuff:</computeroutput><command>let i 5</command>
+<computeroutput>(myvariables.db) /extra_stuff:</computeroutput><command>get i</command>
+<computeroutput><literal>
+5
+</literal></computeroutput>
+<computeroutput>(myvariables.db) /extra_stuff:</computeroutput><command>del i</command>
+<computeroutput>(myvariables.db) /extra_stuff:</computeroutput><command>ls</command>
+<computeroutput><literal>
+extra_run_data/
+</literal></computeroutput>
+<computeroutput>
 (myvariables.db) /extra_stuff:</computeroutput>
             </screen>
         </informalexample>
@@ -179,9 +196,43 @@ extra_run_data/
             directory <filename>/extra_stuff/extra_run_data</filename>.
         </para>
         <para>
+            The <command>declare</command> command creates new variables.  Variables are strongly typed.
+            A variable can be created with an initial value.  If one is not supplied each type has a
+            sensible default value.
+        </para>
+        <para>
+            The <command>let</command> command assigns a new value to a variable.  The new value is
+            checked against the type of the variable as well as any other constraints that may
+            apply.  Note that if a directory has variables defined in it, the <command>ls</command>
+            command will list them along with their type and current value.
+        </para>
+        <para>
+            The <command>get</command> command gets current value of a variable and displays it.
+        </para>
+        <para>
+            The <command>del</command> command destroys the named variable.
+        </para>
+        <para>
             For reference information about the variable database shell see
             <link linkend='daq1_vardbsh' endterm='daq1_vardbsh_title' />
         </para>
+        <para>
+            Note that the vardbsh is actually an extended Tcl interpreter shell. With the
+            exception of the <command>ls</command> command anything displayed is actually
+            the return value of the command.  It is therefore possible to write little
+            (and not so little) scripts doing things like:
+            
+        </para>
+        <informalexample>
+            <programlisting>
+declare i integer 0
+...
+# increment the variable database variable i
+set i [get i]
+incr i
+let i $i
+            </programlisting>
+        </informalexample>
     </section>
 </chapter>
 <chapter>

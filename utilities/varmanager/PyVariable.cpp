@@ -263,8 +263,6 @@ variable_ls(PyObject* self, PyObject* args)
  *    -  dir | None  - A base directory or None.
  *    -  path        - Path relative to dir (or / if dir is None).
  *
- *    variable.destroy(var)
- *    - var   - Variable object to destroy.
  */
 PyObject*
 variable_destroy(PyObject* self, PyObject* args)
@@ -463,7 +461,7 @@ Variable_init(variable_VariableObject* self, PyObject* args, PyObject* kwds)
         );
         return -1;
     }
-       // cant' have both id and dir:
+       // cant' have both id and path:
        
     if ((id != -1) && pPath) {
         PyErr_SetString(

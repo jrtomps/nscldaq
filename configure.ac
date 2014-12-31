@@ -370,6 +370,7 @@ AC_CONFIG_FILES([Makefile
                  base/plotchart/Makefile
 		 base/plotcontainer/Makefile
 		 base/tcpip/Makefile
+		 base/factories/Makefile
 		 caenfw-common/Makefile
 		 servers/Makefile
 		 servers/tclserver/Makefile

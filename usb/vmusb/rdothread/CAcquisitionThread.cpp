@@ -545,9 +545,10 @@ void
 CAcquisitionThread::VMusbToAutonomous()
 {
     CRunState* pState = CRunState::getInstance();
-    pState->setState(CRunState::Active);
 
     m_pVme->writeActionRegister(CVMUSB::ActionRegister::startDAQ);
+    pState->setState(CRunState::Active);
+
 }
 /*!
   Drain usb - We read buffers from the DAQ (with an extended timeout)

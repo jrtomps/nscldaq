@@ -51,7 +51,27 @@ pwd
 rmdir <replaceable>path</replaceable>
             </command>
           </cmdsynopsis>
-                 
+          <cmdsynopsis>
+            <command>
+declare <replaceable>path type ?inital-value?</replaceable>
+            </command>
+          </cmdsynopsis>
+          <cmdsynopsis>
+            <command>
+let <replaceable>path new-value</replaceable>
+            </command>
+          </cmdsynopsis>
+          <cmdsynopsis>
+            <command>
+get <replaceable>path</replaceable>
+            </command>
+          </cmdsynopsis>
+          <cmdsynopsis>
+            <command>
+del <replaceable>path</replaceable>
+            </command>
+          </cmdsynopsis>
+                
         </refsynopsisdiv>
         <refsect1>
            <title>DESCRIPTION</title>
@@ -161,6 +181,87 @@ pwd
                      </para>
                  </listitem>
              </varlistentry>
+             <varlistentry>
+                 <term>
+                    <cmdsynopsis>
+                      <command>
+          declare <replaceable>path type ?inital-value?</replaceable>
+                      </command>
+                    </cmdsynopsis>
+                              
+                 </term>
+                 <listitem>
+                     <para>
+                        Creates a new variable <parameter>path</parameter>
+                        defines the directory and name of the variable.
+                        The last element of <parameter>path</parameter> is
+                        the name of the variable, the remainder of the
+                        <parameter>path</parameter> defines the directory
+                        the variable is created in.
+                     </para>
+                     <para>
+                        The full directory part of the path must already exist.
+                        If the <parameter>path</parameter> is relative, the
+                        actual directory is cacluated relative to the current
+                        working directory.
+                     </para>
+                     <para>
+                        <parameter>type</parameter> specifies the data type of
+                        the variable (e.g. <literal>integer</literal>).
+                        If supplied, the <parameter>initial-value</parameter>
+                        provides a value used to intialize the variable.
+                        If not provided, the default value for the type is used.
+                     </para>
+                 </listitem>
+             </varlistentry>
+             <varlistentry>
+                 <term>
+                    <cmdsynopsis>
+                      <command>
+          let <replaceable>path new-value</replaceable>
+                      </command>
+                    </cmdsynopsis>
+                    
+                 </term>
+                 <listitem>
+                     <para>
+                        Assigns a new value, <parameter>new-value</parameter>
+                        to the variable indicated by
+                        <parameter>path</parameter>
+                     </para>
+                 </listitem>
+             </varlistentry>
+             <varlistentry>
+                 <term>
+                    <cmdsynopsis>
+                      <command>
+          get <replaceable>path</replaceable>
+                      </command>
+                    </cmdsynopsis>                    
+                 </term>
+                 <listitem>
+                     <para>
+                        
+                     </para>
+                 </listitem>
+             </varlistentry>
+             <varlistentry>
+                 <term>
+                    <cmdsynopsis>
+                      <command>
+          del <replaceable>path</replaceable>
+                      </command>
+                    </cmdsynopsis>
+                    
+                 </term>
+                 <listitem>
+                     <para>
+                        Deletes the variable indicated by <parameter>path</parameter>
+                     </para>
+                 </listitem>
+             </varlistentry>
+             
+
            </variablelist>
         </refsect1>
         <refsect1>

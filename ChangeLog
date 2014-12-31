@@ -857,5 +857,7 @@ Work on 11.0-rc11 begins
 11.0-variablemanager
 	Feature #3047 - Support for directory hierarchies in the variable
 	database.
+	Feature #3050 - Support to create variables with simple types in
+	the database.
 	
 	
