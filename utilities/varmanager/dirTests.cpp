@@ -72,7 +72,7 @@ private:
     int  m_fd;
 public:
   void setUp() {
-    strcpy(m_tempFile, "vardbXXXXXX");
+    strcpy(m_tempFile, "testvardbXXXXXX");
     m_fd = mkstemp(m_tempFile);
     if(m_fd == -1) {
         throw std::runtime_error(strerror(errno));

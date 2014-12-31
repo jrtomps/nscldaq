@@ -141,7 +141,7 @@ CVariableDb::createSchema(CSqlite& db)
     CTypeFactory factory(db);                 // Registers the types.
     
     // Add the constraint types table:
-    
+#if 0  
     CSqliteStatement::execute(
         db,
         "CREATE TABLE constraint_types (                        \
@@ -179,7 +179,18 @@ CVariableDb::createSchema(CSqlite& db)
             high              REAL DEFAULT NULL                 \
         )"
     );
+    // Define the table that holds variable constraints:
     
+    CSqliteStatement::execute(
+        db,
+        "CREATE TABLE constraints (                             \
+            id                  INTEGER PRIMARY KEY NOT NULL,   \
+            variable_id         INTEGER NOT NULL,               \
+            constraint_type_id  INTEGER NOT NULL,               \
+            constraint_data_id  INTEGER                         \
+        )"
+    );
+#endif
     // Define the variables table and the table that actualy contains
     // constraints on variables:
     
@@ -193,17 +204,20 @@ CVariableDb::createSchema(CSqlite& db)
             value               VARCHAR(256)  NOT NULL          \
         )"
     );
-    // Define the table that holds variable constraints:
+    
+    // Defines the enumeated values: TODO:  This should be moved
+    // into the chain of responsibility element the factory creates
+    // for enum types.
     
     CSqliteStatement::execute(
         db,
-        "CREATE TABLE constraints (                             \
-            id                  INTEGER PRIMARY KEY NOT NULL,   \
-            variable_id         INTEGER NOT NULL,               \
-            constraint_type_id  INTEGER NOT NULL,               \
-            constraint_data_id  INTEGER                         \
+        "CREATE TABLE enumerated_values (                       \
+            id                INTEGER PRIMARY KEY NOT NULL,     \
+            type_id           INTEGER NOT NULL,                 \
+            value             VARCHAR(256) NOT NULL             \
         )"
     );
+
 }
 
 
@@ -221,6 +235,7 @@ CVariableDb::checkSchema()
     if (! checkTable("variable_types")) {
         throw CException("Variable types table missing");
     }
+#if 0
     if (! checkTable("constraint_types")) {
         throw CException("Constraint types table missing");
     }
@@ -230,11 +245,12 @@ CVariableDb::checkSchema()
     if (!checkTable("range_constraint_data")) {
         throw CException("Range constraint data table missing");
     }
-    if(!checkTable("variables")) {
-        throw CException("Variables table missing");
-    }
     if (!checkTable("constraints")) {
         throw CException("Variable Constraints table missing");
+    }
+#endif
+    if(!checkTable("variables")) {
+        throw CException("Variables table missing");
     }
     
 }

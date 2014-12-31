@@ -18,14 +18,15 @@ class VarTests : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(VarTests);
   CPPUNIT_TEST(typeSchema);
   CPPUNIT_TEST(typeContents);
-  
+#if 0 
   CPPUNIT_TEST(constraintTypesSchema);
   CPPUNIT_TEST(constraintTypesContents);
   
   CPPUNIT_TEST(constraintAppSchema);
   CPPUNIT_TEST(rangeAllowed);
   CPPUNIT_TEST(rangeDataSchema);
-  
+#endif
+
   CPPUNIT_TEST(variableSchema);
   
   // Creation tests method with no cwd provided.
@@ -111,7 +112,7 @@ private:
 
 public:
   void setUp() {
-    strcpy(m_tempFile, "vardbXXXXXX");
+    strcpy(m_tempFile, "testvardbXXXXXX");
     m_fd = mkstemp(m_tempFile);
     if(m_fd == -1) {
         throw std::runtime_error(strerror(errno));
@@ -127,15 +128,14 @@ public:
 protected:
     void typeSchema();
     void typeContents();
-
-    
+  
     void constraintTypesSchema();
     void constraintTypesContents();
     
     void constraintAppSchema();
     void rangeAllowed();
     void rangeDataSchema();
-    
+
     void variableSchema();
     
     void create1InRootInteger();
@@ -398,7 +398,9 @@ void VarTests::rangeDataSchema()
 void VarTests::variableSchema()
 {
     ASSERT(haveTable("variables"));
+#if 0
     ASSERT(haveTable("constraints"));
+#endif
 }
 
 // Create a xxx in the root directory without providing a cwd object.
