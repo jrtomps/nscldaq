@@ -22,6 +22,35 @@
 #include "CEnumTypeFamilyHandler.h"
 #include "CEnumTypeCreator.h"
 
+#include "CSqlite.h"
+#include "CSqliteStatement.h"
+
+/**
+ * constructor
+ *    Creates the schema for enumerations
+ */
+CEnumTypeFamilyHandler::CEnumTypeFamilyHandler(CSqlite& db)
+{
+    // If the enumerated_values table does not exist, create it:
+    
+    CSqliteStatement exists(
+        db,
+        "SELECT COUNT(*) FROM sqlite_master \
+            WHERE type='table' AND name='enumerated_values'"
+    );
+    ++exists;
+    if(exists.getInt(0) == 0) {
+        CSqliteStatement::execute(
+            db,
+            "CREATE TABLE enumerated_values (                       \
+                id                INTEGER PRIMARY KEY NOT NULL,     \
+                type_id           INTEGER NOT NULL,                 \
+                value             VARCHAR(256) NOT NULL             \
+            )"
+        );
+    }
+}
+
 /**
  * create
  *    Presented with a typename, determines if that type is an enum

@@ -33,6 +33,8 @@
 class CEnumTypeFamilyHandler : public CUnknownTypeHandler
 {
 public:
+    CEnumTypeFamilyHandler(CSqlite& db);
+    
     CDataType* create(const char* typeName, CSqlite& db, CTypeFactory& factory);
 };
 #endif

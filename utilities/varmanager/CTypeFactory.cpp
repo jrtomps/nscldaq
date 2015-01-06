@@ -147,5 +147,5 @@ CTypeFactory::registerDefaultCreators()
 void
 CTypeFactory::registerDefaultUnknownHandlers()
 {
-    addUnknownTypeHandler(new CEnumTypeFamilyHandler);
+    addUnknownTypeHandler(new CEnumTypeFamilyHandler(m_db));
 }

@@ -843,6 +843,82 @@ tcltest::test ls-2 {list vars in path relative to wd} \
 
 
 
+## Tests for the ::vardb::enum command: ::vardb::enum database type list-of-values
+
+tcltest::test enum-exists {Ensure the enum command exists} \
+-body {
+    info commands ::vardb::enum
+} -result ::vardb::enum
+
+tcltest::test enum-params-1 {Enum needs more than 2 parameters} \
+-body {
+    catch {::vardb::enum database colors}
+} -result 1
+
+tcltest::test enum-params-2 {Enum needs fewer than 4 parameters} \
+-body {
+    catch {::vardb::enum database colors [list red white blue] extra}
+} -result 1
+
+tcltest::test enum-params-3 {First parameter must be a database} \
+-body {
+    catch {::vardb::enum database colors [list red white blue]}
+} -result 1
+
+
+tcltest::test enum-create-1 {Ok Creation of a type - should be able to make a variable} \
+-setup {
+    set filename [tcltest::makeFile {} testing]
+    file delete -force $filename
+    ::vardb::create $filename;   # now its properly formatted
+    set db [::vardb::open $filename]
+    sqlite3 dbcmd $filename
+} \
+-cleanup {
+    ::vardb::close $db
+    dbcmd close
+    file delete -force $filename
+} \
+-body {
+    ::vardb::enum $db colors [list red white blue];    #Make the type:
+    ::vardb::var create $db /myvar colors white;       # should not throw
+    ::vardb::var get $db /myvar
+} -result white
+
+tcltest::test enum-create-2 {Fail creation of duplicate type} \
+ -setup {
+    set filename [tcltest::makeFile {} testing]
+    file delete -force $filename
+    ::vardb::create $filename;   # now its properly formatted
+    set db [::vardb::open $filename]
+    sqlite3 dbcmd $filename
+} \
+-cleanup {
+    ::vardb::close $db
+    dbcmd close
+    file delete -force $filename
+} \
+-body {
+    catch {::vardb::enum $db integer [list 1 2 3]}
+} -result 1
+
+tcltest::test enum-create-3 {Fail creation with empty list of values} \
+-setup {
+    set filename [tcltest::makeFile {} testing]
+    file delete -force $filename
+    ::vardb::create $filename;   # now its properly formatted
+    set db [::vardb::open $filename]
+    sqlite3 dbcmd $filename
+} \
+-cleanup {
+    ::vardb::close $db
+    dbcmd close
+    file delete -force $filename
+} \
+-body {
+    catch {::vardb::enum $db fail [list]}
+} -result 1
+
 #--------------------------------------------------------------------------
 # Collect/output results.
 

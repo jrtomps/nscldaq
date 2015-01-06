@@ -226,6 +226,17 @@ proc del {path} {
     vardb::var destroy $::vardbsh::varDbHandle $path
 }
 
+##
+# enum
+#   Create an enumerated data type.  Once created, you can create variables of
+#   this type.
+#
+# @param typename - Name of the new type
+# @param value-list - List of values the type can have.
+#
+proc enum {typename values} {
+    vardb::enum $::vardbsh::varDbHandle $typename $values
+}
 
 
 
