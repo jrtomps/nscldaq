@@ -1,0 +1,47 @@
+/**
+
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2013.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Author:
+#            Ron Fox
+#            NSCL
+#            Michigan State University
+#            East Lansing, MI 48824-1321
+
+##
+# @file   CEnumTypeFamilyHandler.cpp
+# @brief  Impelement the enum type family handler.
+# @author <fox@nscl.msu.edu>
+*/
+#include "CEnumTypeFamilyHandler.h"
+#include "CEnumTypeCreator.h"
+
+/**
+ * create
+ *    Presented with a typename, determines if that type is an enum
+ *    If, so, registers an enum creator for that type with the factory
+ *    and returns an instance created by that creator.
+ * @param typeName - Type we are attempting to create.
+ * @param db       - Database defining types/vars.
+ * @param factory  - Factory in which we'll register the creator.
+ * @return CDataType* - Pointer to the data type created.
+ * @retval 0          - Type is not an enum.
+ */
+CDataType*
+CEnumTypeFamilyHandler::create(const char* typeName, CSqlite& db, CTypeFactory& factory)
+{
+    // A creator will throw if created on a non enum
+    try {
+        CEnumTypeCreator* pCreator = new CEnumTypeCreator(db, std::string(typeName));
+        factory.addCreator(typeName, pCreator);
+        return (*pCreator)();
+    } catch (...) {
+        return 0;
+    }
+}

@@ -10,12 +10,15 @@
 #include "CIntegerType.h"
 #include "CRealType.h"
 #include "CStringType.h"
+#include "CUnknownTypeHandler.h"
 
 
 #include "CDataTypeCreatorBase.h"
 #include "CIntegerTypeCreator.h"
 #include "CRealTypeCreator.h"
 #include "CStringTypeCreator.h"
+#include "CSqlite.h"
+
 
 #include <stdlib.h>
 #include <unistd.h>
@@ -86,6 +89,11 @@ class TypeFactoryTests : public CppUnit::TestFixture {
   CPPUNIT_TEST(stringCreatorDesc);
   CPPUNIT_TEST(stringCreatorTypeName);
   
+  // Tests for catchall handling.
+  
+  CPPUNIT_TEST(unknownTypeHandlersCalled);
+  CPPUNIT_TEST(unkonwnTypeHandlerStopsWhenDone);
+  
   // NOTE Factory creation methods are already tested by deriving
   // from the extensible factory and therefore need no testing here.
   
@@ -144,6 +152,11 @@ protected:
   void stringCreatorType();
   void stringCreatorDesc();
   void stringCreatorTypeName();
+  
+  // Unknown type handling:
+  
+  void unknownTypeHandlersCalled();
+  void unkonwnTypeHandlerStopsWhenDone();
   
   // Utilities
 private:
@@ -447,4 +460,67 @@ void TypeFactoryTests::realCreatorDesc()
     EQ(std::string("string"), type->type());
     
     delete type;    
+ }
+ 
+ /*  Unknown type handlers get called and can return a data type: */
+ 
+class CDummyDataType : public CDataType
+ {
+public:
+    CDummyDataType(int id, std::string type) :
+        CDataType(id, type) {}
+    
+    bool legal(const char* attempt) const {return true;}
+    std::string defaultValue() const {return std::string("default");}
+ };
+ CDummyDataType aType(1234, "dummy");
+ 
+class CDummyDataTypeHandler : public CUnknownTypeHandler
+{
+public:
+    CDataType* create(
+        const char* typeName, CSqlite& db, CTypeFactory& factory)
+    {
+        return &aType;
+    }
+};
+class CNomatchDataTypeHandler : public CUnknownTypeHandler
+{
+public:
+    CDataType* create(
+        const char* typeName, CSqlite& db, CTypeFactory& factory)
+    {
+        return 0;
+    }
+};
+
+CDummyDataTypeHandler successfulHandler;
+CNomatchDataTypeHandler failingHandler;
+
+
+ void TypeFactoryTests::unknownTypeHandlersCalled()
+ {
+    
+    CTypeFactory::createSchema(*m_db);
+    CTypeFactory fact(*m_db);
+    
+    fact.addUnknownTypeHandler(&successfulHandler);
+    CDataType* pType = fact.create(std::string("dummytype-instance"));
+    
+    EQ(reinterpret_cast<CDataType*>(&aType), pType);
+ }
+ 
+ // once a match is found no other handlers should be called:
+ 
+ void TypeFactoryTests::unkonwnTypeHandlerStopsWhenDone()
+ {
+    CTypeFactory::createSchema(*m_db);
+    CTypeFactory fact(*m_db);
+    
+    fact.addUnknownTypeHandler(&successfulHandler);
+    fact.addUnknownTypeHandler(&failingHandler);   // should not get called:
+    
+    CDataType* pType = fact.create(std::string("dummytype-instance"));
+    
+    EQ(reinterpret_cast<CDataType*>(&aType), pType);
  }

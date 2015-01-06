@@ -23,11 +23,13 @@
 #define _CTYPEFACTORY_H
 
 #include <CExtensibleFactory.h>
+#include <list>
 
 class CDataType;
 typedef  CCreator<CDataType> CDataTypeCreator;
 class CSqlite;
 class CVariableDb;
+class CUnknownTypeHandler;
 
 /**
  * @class CTypeFactory
@@ -38,9 +40,11 @@ class CVariableDb;
  */
 class CTypeFactory : public CExtensibleFactory<CDataType>
 {
+
     // Object data:
-    
-    CSqlite&  m_db;
+private:    
+    CSqlite&                         m_db;
+    std::list<CUnknownTypeHandler*>  m_typeUnknownHandlers;
     
     // Static methods:
 public:
@@ -50,9 +54,18 @@ public:
     
     CTypeFactory(CSqlite& db);
     
+    // Overrides of virtual methods:
+    
+    CDataType* create(std::string type);        // Override to allow catchall.
+    
+    // Object methods:
+    
+    void addUnknownTypeHandler(CUnknownTypeHandler* pHandler);
+    
     // Private utilities:
 private:
     void registerDefaultCreators();
+    void registerDefaultUnknownHandlers();
     
     
     

@@ -18,7 +18,8 @@ lib_LTLIBRARIES = libvardb.la libvardbtcl.la libvardbpy.la libvardirtreepy.la li
 libvardb_la_SOURCES=CVariableDb.cpp CVarDirTree.cpp CTypeFactory.cpp \
 	CVariable.cpp CIntegerType.cpp CRealType.cpp CStringType.cpp \
 	CDataTypeCreatorBase.cpp CIntegerTypeCreator.cpp CRealTypeCreator.cpp \
-	CStringTypeCreator.cpp CEnumType.cpp CEnumeration.cpp
+	CStringTypeCreator.cpp CEnumType.cpp CEnumeration.cpp CEnumTypeCreator.cpp \
+	CEnumTypeFamilyHandler.cpp
 
 libvardb_la_CPPFLAGS = @SQLITE3_CFLAGS@ -I@top_srcdir@/base/sqlite++ -I@top_srcdir@/base/factories
 libvardb_la_LDFLAGS  = 	@top_srcdir@/base/sqlite++/libsqlite3pp.la  @SQLITE3_LDFLAGS@ 
@@ -26,7 +27,8 @@ libvardb_la_LDFLAGS  = 	@top_srcdir@/base/sqlite++/libsqlite3pp.la  @SQLITE3_LDF
 include_HEADERS = CVariableDb.h CVarDirTree.h CVariable.h CTypeFactory.h \
 	CDataType.h CIntegerType.h CRealType.h CStringType.h \
 	CDataTypeCreatorBase.h CIntegerTypeCreator.h CRealTypeCreator.h
-	CStringTypeCreator.h CEnumType.h CEnumeration.h
+	CStringTypeCreator.h CEnumType.h CEnumeration.h CUnknownTypeHandler.h \
+	CEnumTypeCreator.h CEnumTypeFamilyHandler.h
 
 
 #  Tcl bindings

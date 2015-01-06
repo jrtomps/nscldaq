@@ -18,6 +18,8 @@
 #include <CSqliteStatement.h>
 #include "CEnumType.h"
 #include "CEnumeration.h"
+#include "CVariable.h"
+#include "CTypeFactory.h"
 
 
 class EnumTests : public CppUnit::TestFixture {
@@ -51,12 +53,21 @@ class EnumTests : public CppUnit::TestFixture {
   
   // Tests for CEnumeration  - list values
   
-  //CPPUNIT_TEST(listValues);
-  //CPPUNIT_TEST(listNoSuchEnum);
+  CPPUNIT_TEST(listValues);
+  CPPUNIT_TEST(listNoSuchEnum);
   
   // Tests for CEnumeration  - list enums.
 
-  //CPPUNIT_TEST(listEnums);
+  CPPUNIT_TEST(listEnumsNone);
+  CPPUNIT_TEST(listEnumsSome);
+  
+  // Type factory and enum types
+  
+  CPPUNIT_TEST(factoryEnumOk);
+  CPPUNIT_TEST(enumVariableCreateOk);
+  CPPUNIT_TEST(enumVariableInstanceOk);
+  CPPUNIT_TEST(enumSetOk);
+  CPPUNIT_TEST(enumGetOk);
   
   
   CPPUNIT_TEST_SUITE_END();
@@ -100,6 +111,18 @@ protected:
   void addValueOk();
   void addNoSuchEnum();
   void addValueDup();
+  
+  void listValues();
+  void listNoSuchEnum();
+  
+  void listEnumsNone();
+  void listEnumsSome();
+  
+  void factoryEnumOk();
+  void enumVariableCreateOk();
+  void enumVariableInstanceOk();
+  void enumSetOk();
+  void enumGetOk();
 private:
     int createEnum(const char* name, const char** pValues);
     std::pair<int, std::set<std::string> > getEnumInfo(const char* typeName);
@@ -390,4 +413,171 @@ void EnumTests::addValueDup()
         CEnumeration::addValue(*m_db, "myenum", "first"),
         CEnumeration::CException
     );
+}
+// Get a set with the right values for list:
+
+void EnumTests::listValues()
+{
+    const char* values[] = {"first", "second", "third", "last", 0};
+    std::set<std::string> correctSet;
+    std::vector<std::string> vValues;
+    const char** pValues = values;
+    
+    // Fill the set we expect and the vector to make the enum:
+    
+    while (*pValues) {
+        std::string sValue(*pValues);
+        vValues.push_back(sValue);
+        correctSet.insert(sValue);
+        pValues++;
+    }
+    CEnumeration::create(*m_db, "myenum", vValues);
+    std::vector<std::string> vListing = CEnumeration::listValues(*m_db, "myenum");
+    std::set<std::string>    sListing;
+    for (int i =0; i < vListing.size(); i++) {
+        sListing.insert(vListing[i]);
+    }
+    ASSERT(correctSet == sListing);
+    
+    
+}
+// No such enum for list results in an exception:
+
+void
+EnumTests::listNoSuchEnum()
+{
+    CPPUNIT_ASSERT_THROW(
+        CEnumeration::listValues(*m_db, "myenum"),
+        CEnumeration::CException
+    );
+}
+// List enums when there are none to list:
+
+void EnumTests::listEnumsNone()
+{
+    std::vector<std::string> empty;
+    std::vector<std::string> list = CEnumeration::listEnums(*m_db);
+    
+    ASSERT(empty == list);
+}
+// List enums when there are some to list:
+
+void EnumTests::listEnumsSome()
+{
+    const char* values[] = {"first","second", "third", "fourth", 0};
+    const char* names[]  = {"one", "two", "three", "Enums", 0};
+    
+    std::vector<std::string> vValues;
+    std::set<std::string>    sActualNames;
+    std::vector<std::string> vEnumNames;
+    std::set<std::string>    sEnumNames;
+    
+    // Stock the values vector
+    
+    const char** pName = values;
+    while (*pName) {
+        vValues.push_back(std::string(*pName));
+        
+        pName++;
+    }
+    // Create the enums and stock the sActualNames set:
+    
+    pName = names;
+    while (*pName) {
+
+        CEnumeration::create(*m_db, *pName, vValues);
+        sActualNames.insert(std::string(*pName));
+        
+        pName++;
+    }
+    vEnumNames = CEnumeration::listEnums(*m_db);
+    for (int i =0; i < vEnumNames.size(); i++) {
+        sEnumNames.insert(vEnumNames[i]);
+    }
+    
+    ASSERT(sActualNames == sEnumNames);
+}
+// If an enum is in the database, a factory should be able
+// to generate a type for it:
+
+void EnumTests::factoryEnumOk()
+{
+    const char* values[] = {"first","second", "third", "fourth", 0};
+    std::vector<std::string> vValues;
+    const char** pName = values;
+    while (*pName) {
+        vValues.push_back(std::string(*pName));
+        
+        pName++;
+    }
+    int id = CEnumeration::create(*m_db, "myenum", vValues);
+    
+    CTypeFactory fact(*m_db);
+    CDataType* pType = fact.create("myenum");
+    ASSERT(pType);
+    
+    EQ(id, pType->id());
+    EQ(std::string("myenum"), pType->type());
+    EQ(std::string("first"), pType->defaultValue());
+    ASSERT(pType->legal(values[2]));
+    ASSERT(! (pType->legal("notlegal")));
+    
+}
+
+// If all of the machinery in the factory now works we should be able
+// to use CVariable to create enumerated variables now:
+
+void EnumTests::enumVariableCreateOk()
+{
+    const char* values[] = {"first","second", "third", "fourth", 0};
+    std::vector<std::string> vValues;
+    const char** pName = values;
+    while (*pName) {
+        vValues.push_back(std::string(*pName));
+        
+        pName++;
+    }
+    int id = CEnumeration::create(*m_db, "myenum", vValues);
+    
+    CVariable* pVar(0);
+    CPPUNIT_ASSERT_NO_THROW(
+        pVar = CVariable::create(*m_db, "/myvar", "myenum")
+    );
+    delete pVar;
+}
+void EnumTests::enumVariableInstanceOk()
+{
+    enumVariableCreateOk();               // Createst the enum and the var.
+    CVariable* var(0);
+    CPPUNIT_ASSERT_NO_THROW(
+        var = new CVariable(*m_db, "/myvar")
+    );
+    delete var;
+}
+void EnumTests::enumSetOk()
+{
+    enumVariableCreateOk();
+    CVariable var(*m_db, "/myvar");
+    // This set does not throw:
+    
+    CPPUNIT_ASSERT_NO_THROW(
+        var.set("third");
+    );
+    // This one does:
+    
+    CPPUNIT_ASSERT_THROW(
+        var.set("not-in-enum"),
+        CVariable::CException
+    );
+}
+void EnumTests::enumGetOk()
+{
+    enumVariableCreateOk();
+    CVariable var(*m_db, "/myvar");
+    
+    // Should be default value:
+    
+    EQ(std::string("first"), var.get());
+    var.set("second");
+    EQ(std::string("second"), var.get());
 }

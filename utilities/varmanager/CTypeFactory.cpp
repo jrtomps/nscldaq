@@ -30,6 +30,10 @@
 #include "CRealTypeCreator.h"
 #include "CStringTypeCreator.h"
 
+#include "CUnknownTypeHandler.h"
+#include "CEnumTypeFamilyHandler.h"
+
+
 template<class T>
 static bool inline in(T item, std::set<T> theset) {
     return theset.count(item) > 0;
@@ -50,6 +54,7 @@ CTypeFactory::CTypeFactory(CSqlite& db) :
     // Register the default type creators:
     
     registerDefaultCreators();
+    registerDefaultUnknownHandlers();
     
 }
 
@@ -82,6 +87,42 @@ CTypeFactory::createSchema(CSqlite& db)
         );
     }    
 }
+/**
+ * addUnknownTypeHandler
+ *    Adds a handler for unknown data types. See the commands in
+ *    CUnknownTypeHandler.h for more about these.
+ *
+ * @param pHandler - pointer to the handler to add
+ */
+void
+CTypeFactory::addUnknownTypeHandler(CUnknownTypeHandler* pHandler)
+{
+    m_typeUnknownHandlers.push_back(pHandler);
+}
+/**
+ * create
+ *    The factory method
+ *    *   If the base class create produces a result we're don.
+ *    *   If not we try the set of unknown handlers until they are either
+ *        exhausted or one of them produces a result.
+ * @param type  - data type name to create (e.g. "integer" or "derivedtype")
+ * @return CDataType*
+ * @retval If can't make one the null is returned.
+ */
+CDataType*
+CTypeFactory::create(std::string type)
+{
+    CDataType* result = CExtensibleFactory<CDataType>::create(type);
+    if (result) return result;
+    
+    std::list<CUnknownTypeHandler*>::iterator p = m_typeUnknownHandlers.begin();
+    while (p != m_typeUnknownHandlers.end()) {
+        result = (*p)->create(type.c_str(), m_db, *this);
+        if(result) return result;
+        p++;
+    }
+    return 0;
+}
 
 /*--------------------------------------------------------------------------
  * private utilities
@@ -98,4 +139,13 @@ CTypeFactory::registerDefaultCreators()
     addCreator("integer", new CIntegerTypeCreator(m_db));
     addCreator("real",    new CRealTypeCreator(m_db));
     addCreator("string",  new CStringTypeCreator(m_db));
+}
+/**
+ * registerDefaultUnknownHandlers
+ *    Register the family handlers for all the normal data type families.
+ */
+void
+CTypeFactory::registerDefaultUnknownHandlers()
+{
+    addUnknownTypeHandler(new CEnumTypeFamilyHandler);
 }

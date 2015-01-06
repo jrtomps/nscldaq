@@ -41,6 +41,8 @@
  *  @param pTypeName- Name of the new enumeration type.
  *  @param values   - Values the enumerated type can take.
  *  @return int     - Id of the newly created type.
+ *
+ *  @note - we let the type factory lazy create the creator for this type.
  */
 int
 CEnumeration::create(
@@ -128,6 +130,59 @@ CEnumeration::addValue(CVariableDb& db, const char* pTypeName, const char* value
     }
     
     addValue(db, enumId, value);
+}
+/**
+ * listValues
+ *    Get the list of legal values for an enum.
+ *
+ *   @param db        - Reference to the database.
+ *   @param pTypeName - Name of the type to list
+ *
+ *   @return std::vector<std::string> - vector of legal values.
+ */
+std::vector<std::string>
+CEnumeration::listValues(CVariableDb& db, const char* pTypeName)
+{
+   std::vector<std::string> result;
+   
+   int enumid = id(db, pTypeName);             // throws if not enum.
+   std::set<std::string> valueSet = values(db, enumid);
+   
+   // Convert the set into a vector:
+   
+   std::set<std::string>::iterator p = valueSet.begin();
+   while(p != valueSet.end()) {
+    result.push_back(*p);
+    
+    p++;
+   }
+   
+   return result;
+}
+
+/**
+ * listEnums
+ *
+ *    Returns a list of the names of all enumerated types.
+ *
+ * @return std::vector<std::string>  Each element is an enumerated type name.
+ */
+std::vector<std::string>
+CEnumeration::listEnums(CVariableDb& db)
+{
+    std::vector<std::string> result;
+    
+    CSqliteStatement listEnums(
+        db,
+        "SELECT DISTINCT t.type_name FROM variable_types t             \
+            INNER JOIN enumerated_values e ON e.type_id = t.id"
+    );
+    while(!(++listEnums).atEnd()) {
+        const char * pText = reinterpret_cast<const char*>(listEnums.getText(0));
+        result.push_back(std::string(pText));
+    }
+    
+    return result;
 }
 
 /*------------------------------------------------------------------------
