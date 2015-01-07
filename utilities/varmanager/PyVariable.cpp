@@ -36,19 +36,6 @@
 
 // Utility methods:
 
-/**
- * @return bool true if obj is a database object.
-*/
-bool isDb(PyObject* obj) {
-    return (strcmp("vardb.VarDb", obj->ob_type->tp_name) == 0);    
-}
-/**
- * @return bool true if obj is a DirTree object.
- */
-bool isDirTree(PyObject* obj) {
-    return (strcmp("dirtree.DirTree",  obj->ob_type->tp_name) == 0);
-}
-
 
 
 static PyObject* exception;                         // Exception class.

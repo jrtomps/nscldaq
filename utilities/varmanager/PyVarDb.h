@@ -61,3 +61,21 @@ typedef struct {
     
     CVariable*  m_var;            // Pointer to the underlying variable.
 } variable_VariableObject;
+
+
+// Useful quicky methods:
+
+/**
+ * @return bool true if obj is a database object.
+*/
+static inline bool isDb(PyObject* obj) {
+    return (strcmp("vardb.VarDb", obj->ob_type->tp_name) == 0);    
+}
+/**
+ * @return bool true if obj is a DirTree object.
+ */
+static inline bool isDirTree(PyObject* obj) {
+    return (strcmp("dirtree.DirTree",  obj->ob_type->tp_name) == 0);
+}
+
+

@@ -22,7 +22,6 @@
 
 #include <Python.h>
 #include "PyVarDb.h"
-#include <iostream>
 #include <CVariableDb.h>
 #include <exception>
 #include <iostream>

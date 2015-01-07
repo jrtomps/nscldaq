@@ -11,7 +11,9 @@ inittcl_LDFLAGS=@TCL_LDFLAGS@
 
 # Shared libraries:
 
-lib_LTLIBRARIES = libvardb.la libvardbtcl.la libvardbpy.la libvardirtreepy.la libvariablepy.la
+lib_LTLIBRARIES = libvardb.la \
+	libvardbtcl.la \
+	libvardbpy.la libvardirtreepy.la libvariablepy.la libenumpy.la
 
 #  Base C++ implementation
 
@@ -71,6 +73,10 @@ libvariablepy_la_SOURCES = PyVariable.cpp
 libvariablepy_la_CPPFLAGS= $(PYBINDINGS_CPPFLAGS)
 libvariablepy_la_LDFLAGS = $(PYBINDINGS_LDFLAGS)
 
+libenumpy_la_SOURCES = PyEnum.cpp
+libenumpy_la_CPPFLAGS= $(PYBINDINGS_CPPFLAGS)
+libenumpy_la_LDFLAGS=  $(PYBINDINGS_LDFLAGS)
+
 
 ## Tests for compiled base
 
@@ -97,6 +103,7 @@ PYTEST = PYTHONPATH=@prefix@/pythonLibs @PYTHON@
 vardbPyTest=$(PYTEST)    @srcdir@/vardbtest.py
 dirtreePyTest=$(PYTEST)  @srcdir@/dirtreetest.py
 variablePyTest=$(PYTEST) @srcdir@/variabletest.py
+enumPyTest = $(PYTEST)   @srcdir@/enumtest.py
 
 check-TESTS:
 	@builddir@/unittests 
@@ -104,6 +111,7 @@ check-TESTS:
 	$(vardbPyTest)
 	$(dirtreePyTest)
 	$(variablePyTest)
+	$(enumPyTest)
 
 
 
@@ -129,5 +137,6 @@ install-exec-hook:
 	$(INSTALL_PROGRAM) @libdir@/libvardbpy.so       @prefix@/pythonLibs/nscldaq/vardb/vardbmodule.so
 	$(INSTALL_PROGRAM) @libdir@/libvardirtreepy.so  @prefix@/pythonLibs/nscldaq/vardb/dirtree.so
 	$(INSTALL_PROGRAM) @libdir@/libvariablepy.so    @prefix@/pythonLibs/nscldaq/vardb/variable.so
+	$(INSTALL_PROGRAM) @libdir@/libenumpy.so        @prefix@/pythonLibs/nscldaq/vardb/enum.so
 	touch @prefix@/pythonLibs/nscldaq/vardb/__init__.py
 	$(INSTALL_PROGRAM) @builddir@/vardbsh.tcl @bindir@/vardbsh
