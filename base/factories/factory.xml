@@ -1,0 +1,508 @@
+<!-- chapter libraries -->
+<chapter>
+    <title>Extensible factory template classes</title>
+    <para>
+        Extensible factories are an object pattern that is used inside the NSCL
+        data acqusition system in several places.   An extensible factory is
+        an object that is responsible for making other objects that are all
+        in some inheritance hierarchy.
+    </para>
+    <para>
+        In the NSCL instantiation of this pattern, each class has an associated
+        creator object.  The creator is responsible for knowing how to create
+        specific class instances.  Creators are registered with the factory
+        and associated with a name.  When you use the factory to create an
+        object you pass a name to the factory.  It looks up the associated
+        creator and uses it to create an instance of the proper class.
+    </para>
+    <para>
+        The header <filename>CExtensibleFactory.h</filename> provides a
+        template implementation of this pattern.  The header
+        <filename>CCreator.h</filename> provides a templated base class
+        for the creator classes.
+    </para>
+    <para>
+        Suppose, for example, you have a class hierarchy derived from
+        <classname>Stooge</classname>, and specific classes
+        <classname>Larry</classname>, <classname>Curly</classname>,
+        and <classname>Moe</classname>.
+    </para>
+    <para>
+        You might implement a creator for the <classname>Larry</classname>
+        class as simply as:
+    </para>
+    <example>
+        <title>Writing creators for the abstract factory.</title>
+        <programlisting>
+#include &lt;CCreator.h&gt;                    <co id='af_creator_header' />
+#include "Larry.h"                             <co id='af_creator_larryheader' />
+typedef CCreator&lt;Stooge&gt; StoogeCreator;  <co id='af_creator_typedef' />
+
+class LarryCreator : public StoogeCreator {    <co id='af_creator_classdef' />
+public:
+    Stooge* operator()() { return new Larry; }  <co id='af_creator_functor' />
+    std::string describe() const {
+        return "Create's Larry the stooge objects";
+    }
+};
+        </programlisting>
+    </example>
+    <para>
+        In the example above:
+    </para>
+    <calloutlist>
+        <callout arearefs='af_creator_header'>
+            <para>
+                Incorporates the definition of the <classname>CCreator</classname>
+                base class.  This is a templated class as only an instantiation
+                of the extensible factory knows what type type produced by the
+                factory and, therefore the creator.  This requires that the
+                factory and creator base class be templated.
+            </para>
+        </callout>
+        <callout arearefs='af_creator_larryheader'>
+            <para>
+                Since our creator will produce <classname>Larry</classname>
+                objects very likely we need the header that defines that class.
+            </para>
+        </callout>
+        <callout arearefs='af_creator_typedef'>
+            <para>
+                This typedef definens <classname>StoogeCreator</classname> as
+                a base class for creators that return <classname>Stooge*</classname>.
+                Note that in order for polymorphism to work amongst the objects
+                produced by the factories, pointers or references would need to
+                be returned.
+            </para>
+        </callout>
+        <callout arearefs='af_creator_classdef'>
+            <para>
+                Defines the class <classname>LarryCreator</classname> as
+                a class derived from <classname>StoogeCreator</classname>.
+                This derivation makes the class elligible to be used with the
+                factory.
+            </para>
+        </callout>
+        <callout arearefs='af_creator_functor'>
+            <para>
+                The creator classes are expected to implement a function call operator
+                that produces the desired type.
+            </para>
+        </callout>
+    </calloutlist>
+    <para>
+        Having built a family of creators, all that is necessary is to create an
+        instance of the factory and make their creators known.  It is often
+        useful for the factory to be a singleton object.  This ensures there is
+        a single set of registered creators allowing clients of the factory to
+        extend the types of objects the factory can create.
+    </para>
+    <para>
+        Here's an example that shows how to create a singleton factory
+        for creating <classname>Stooge</classname> objects:
+    </para>
+    <example>
+        <title>Creating the factory as a singleton</title>
+        <programlisting>
+#include &lt;CExtensibleFactory.h&gt;                <co id='af_header' />
+#include "LarryCreator.h"
+#include "CurlyCreatory.h"                           <co id='af_creatorheaders' />
+#include "MoeCreator.h"
+
+typedef CExtensibleFactory&lt;Stooge&gt; StoogeFactoryBase; <co id='af_typedef' />
+
+class StoogeFactory : public StoogeFactoryBase       <co id='af_singletonclass' />
+{
+private:
+    static StoogeFactory* m_pInstance;               <co id='af_singeltoninstance' />
+private:
+    StoogeFactory() {                                <co id='af_privateconstructor' />
+        addCreator("larry", new LarryCreator);
+        addCreator("curly", new CurlyCreator);       <co id='af_registercreators' />
+        addCreator("moe",   new MoeCreator);
+    }
+public:
+    static StoogeFactory* getInstance() {
+       if (!m_pInstance) {
+            m_pInstance = new StoogeFactory;         <co id='af_getinstance' />
+       }
+       return m_pInstance;
+    }
+};
+
+StoogeFactory* StoogeFactory::m_pInstance(0);        <co id='af_init_singletoninstance' />
+
+        </programlisting>
+    </example>
+    <para>
+        In the example above:
+    </para>
+    <calloutlist>
+        <callout arearefs='af_header'>
+            <para>
+                Since we are implementing an instance of a
+                <classname>CExtensibleFactory</classname>, we'll need to
+                include the header that defines that class.
+            </para>
+        </callout>
+        <callout arearefs='af_creatorheaders'>
+            <para>
+                These includes include the standard headers for the creators
+                we are going to register in the factory. It is important to note
+                that it is possible to register additional creators at any time.
+                This is what makes the factory extensible.
+            </para>
+        </callout>
+        <callout arearefs='af_typedef'>
+            <para>
+                For convenience this typedef defines <classname>CStoogeFactorBase</classname>
+                to be a base class for factories that return pointers to
+                <classname>Stooge</classname> objects.
+            </para>
+        </callout>
+        <callout arearefs='af_singletonclass'>
+            <para>
+                Our actual <classname>CStoogeFactory</classname> is a singleton
+                that is derived from the <classname>CStoogeFactoryBase</classname>
+            </para>
+        </callout>
+        <callout arearefs='af_singeltoninstance'>
+            <para>
+                This declaration is part of the mechanics of producing a singleton
+                object in C++.  <varname>m_pInstance</varname> is a static
+                pointer to the one and only <classname>CStoogeFactory</classname>
+                object we will ever allow to be created.
+            </para>
+        </callout>
+        <callout arearefs='af_init_singletoninstance' >
+            <para>
+                The <varname>m_pInstance</varname> is initially null indicating
+                that there is not yet an instance of the singleton.
+            </para>
+        </callout>
+        <callout arearefs='af_privateconstructor'>
+            <para>
+                A key feature of singletons is that the costructor is private.
+                This allows us to control the creation of
+                <classname>StoogeFactory</classname> objects within the class
+                code itself.
+            </para>
+        </callout>
+        <callout arearefs='af_registercreators'>
+            <para>
+                <methodname>addCreator</methodname> is a base class method
+                (in <classname>CExtensibleFactory</classname> that associates a
+                creator object with a string.   Once these are done, calls to the
+                factory <methodname>create</methodname> method will create the
+                correct type of object.
+            </para>
+            <para>
+                For example f->create("larry") returns a Larry object.
+            </para>
+        </callout>
+        <callout arearefs='af_getinstance'>
+            <para>
+                The <methodname>getInstance()</methodname> static method provides
+                access to the singleton.  If the singleton has not yet been
+                created, it is created and a pointer to it stored in the
+                <varname>m_pInstance</varname> static member variable
+                from which it can be returned in this and subsequent calls.
+            </para>
+        </callout>
+    </calloutlist>
+    <para>
+        Here's one example of how the factory can be used.  Suppose there's
+        code that can figure out that we need to make <classname>Moe</classname> object.  It
+        can do this without even knowing that a <classname>Moe</classname>
+        class even exists, only that a <classname>Stooge</classname> class
+        exists:
+    </para>
+    <informalexample>
+        <programlisting>
+CStooge* pStooge = CStoogeFactory::getInstance()->create("moe");
+        </programlisting>
+    </informalexample>
+    <para>
+        One use case for this is when the actual type of object you want to
+        create comes from the user (via a configuration file or interaction).
+    </para>
+    <para>
+        For reference information, see
+        <link linkend='daq3_ccreator' endterm='daq3_ccreator_title' /> and
+        <link linkend='daq3_cextensiblefactory' endterm='daq3_cextensiblefactory_title' />.
+    </para>
+</chapter>
+
+<!-- /chapter -->
+
+<!-- manpage 3daq -->
+<refentry id="daq3_ccreator">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='daq3_ccreator_title'>CCreator</refentrytitle>
+     <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>CCreator</refname>
+     <refpurpose>Template base class for extensible factory creators</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+#include &lt;CCreator&gt;    
+       <ooclass><classname>template &lt;class T&gt; CCreator </classname></ooclass>
+{
+        <methodsynopsis>
+            <modifier>virtual</modifier>
+            <type>T*</type>
+            <methodname>operator()</methodname>
+            <void />
+            
+            <modifier> = 0;</modifier>
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier>virtual</modifier>
+            <type>std::string</type>
+            <methodname>describe</methodname>
+            <void />
+            
+            <modifier>const = 0</modifier>
+        </methodsynopsis>  
+};
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        This is a template class that is the base class for object creator
+        classes in the
+        <link linkend='daq3_cextensiblefactory'
+              endterm='daq3_cextensiblefactory_title' />.
+        The template type should be the type of object whose pointer is returned by
+        the associated factory's <methodname>create</methodname> method.  In general this
+        is the ultimate base class of the actual type of the object
+        returned.
+     </para>
+     <para>
+        Once instantiated, the creator must be registered with a factory
+        class that is templated with the same type or a factory derived from
+        one templated with that type.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                        <modifier>virtual</modifier>
+                        <type>T*</type>
+                        <methodname>operator()</methodname>
+                        <void />
+                        
+                        <modifier> = 0;</modifier>
+                    </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    The actual creation operation.  Normally this
+                    method uses <command>new</command> to create an
+                    instance of type <type>T</type> and returns a pointer
+                    to it.  The caller then owns the storage in the sense
+                    that it must delete it when that object is no longer
+                    needed.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                        <modifier>virtual</modifier>
+                        <type>std::string</type>
+                        <methodname>describe</methodname>
+                        <void />
+                        
+                        <modifier>const = 0</modifier>
+                    </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns a string that describes what the creator does.
+                    Factory clients can ask the factory provide a vector of
+                    these descriptions.  These might be useful in an interactive
+                    program to provide help to the user about the sorts of
+                    objects the factory can create.
+                </para>
+            </listitem>
+        </varlistentry>
+     </variablelist>
+  </refsect1>
+</refentry>     
+<refentry id="daq3_cextensiblefactory">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='daq3_cextensiblefactory_title'>CExtensibleFactory</refentrytitle>
+     <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>CExtensibleFactory</refname>
+     <refpurpose>Templated class for building extensible factories</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+#include &lt;CExtensibleFactory.h&gt;
+
+       <ooclass><classname>template &lt;class T&gt; CExtensibleFactory</classname></ooclass>
+{
+        <methodsynopsis>
+            <modifier></modifier>
+            <type>void </type>
+            <methodname>addCreator</methodname>
+            <methodparam>
+             <modifier></modifier><type>std::string type,
+                   CCreator&lt;T&gt;* </type>
+                 <parameter>pCreator</parameter>
+            </methodparam>
+            <modifier></modifier>
+        </methodsynopsis>  
+        <methodsynopsis>
+            <modifier>virtual </modifier>
+            <type>T* </type>
+            <methodname>create</methodname>
+            <methodparam>
+                <modifier></modifier><type>std::string </type>
+                    <parameter>type</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier></modifier>
+            <type>std::vector&lt;std::string&gt; </type>
+            <methodname>getDescriptions</methodname>
+            <void />
+            <exceptionname></exceptionname>
+            <modifier></modifier>
+        </methodsynopsis>  
+};
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        This template class provides a factory that can produce objects from
+        a class hierarchy given an name.  Each type the factory can
+        create must have a creator (See
+        <link linkend='daq3_ccreator' endterm='daq3_ccreator_title' />).
+        Creators are instantiated and associated with a type string
+        via <methodname>addCreator</methodname>.
+     </para>
+     <para>
+        Once a creator has been registered in that way the type of
+        object it creates can be instantiated by providing that
+        string to the <methodname>create</methodname> method.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>addCreator</methodname>
+                    <methodparam>
+                     <modifier></modifier><type>std::string type,
+                           CCreator&lt;T&gt;* </type>
+                         <parameter>pCreator</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Associates a creator; <parameter>pCreator</parameter>
+                    with the type string <parameter>type</parameter>.
+                    The creator associated int that way will be used to
+                    create an object when the associated string is passed
+                    to <methodname>create</methodname> (see below).
+                </para>
+                <para>
+                    A creator can be registered more than once with different
+                    strings.  If a creator for a specified type string already
+                    exists, registering another one with the same type string
+                    replaces the existing creator.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>virtual </modifier>
+                    <type>T* </type>
+                    <methodname>create</methodname>
+                    <methodparam>
+                        <modifier></modifier><type>std::string </type>
+                            <parameter>type</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    If a creator has been associated with the
+                    <parameter>type</parameter> string, it is used
+                    to create an object whose pointer is then returned.
+                    If not a null  pointer is returned, indicating no matching
+                    creator exists.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>std::vector&lt;std::string&gt; </type>
+                    <methodname>getDescriptions</methodname>
+                    <void />
+                    <exceptionname></exceptionname>
+                    <modifier></modifier>
+                </methodsynopsis>      
+            </term>
+            <listitem>
+                <para>
+                    Gets a vector whose elements are the descriptions
+                    each creator provides.  Descriptions are in alphabetical
+                    order by the string that is associated with the creator.
+                </para>
+            </listitem>
+        </varlistentry>
+     </variablelist>
+  </refsect1>
+   
+</refentry>     
+
+<!-- /manpage -->

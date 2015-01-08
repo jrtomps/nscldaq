@@ -55,7 +55,7 @@ CDataTypeCreatorBase::lookupId(const char* typeName)
 
 /**
  * registerType
- *    Register a new type in the database and return the id.
+ *    Register a new type in the database and returns the id.
  * @param typeName - name of the new type.
  * @return int     - id of the new type.
  *

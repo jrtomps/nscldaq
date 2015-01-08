@@ -71,6 +71,11 @@ get <replaceable>path</replaceable>
 del <replaceable>path</replaceable>
             </command>
           </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+enum <replaceable>type-name list-of-values</replaceable>
+            </command>
+        </cmdsynopsis>
                 
         </refsynopsisdiv>
         <refsect1>
@@ -257,6 +262,24 @@ pwd
                  <listitem>
                      <para>
                         Deletes the variable indicated by <parameter>path</parameter>
+                     </para>
+                 </listitem>
+             </varlistentry>
+             <varlistentry>
+                 <term>
+                    <cmdsynopsis>
+                        <command>
+            enum <replaceable>type-name list-of-values</replaceable>
+                        </command>
+                    </cmdsynopsis>
+                    
+                 </term>
+                 <listitem>
+                     <para>
+                        Defines a new type named <parameter>type-name</parameter>
+                        that is an enumerated type. <parameter>list-of-values</parameter>
+                        is a Tcl list that contains the legal values variables of this
+                        type can have.
                      </para>
                  </listitem>
              </varlistentry>

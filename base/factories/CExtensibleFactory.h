@@ -138,7 +138,7 @@ public:
 		  CCreator<T>* pCreator) {
     m_creators[type] = pCreator;
   }
-  T* create(std::string type) {
+  virtual T* create(std::string type) {
     if(m_creators.find(type) == m_creators.end()) {
       return reinterpret_cast<T*>(NULL);
     } 

@@ -1719,7 +1719,1197 @@ CVariable        var(db, dir, "a/variable");
         </para>
       </refsect2>
    </refsect1>
+</refentry>
+<refentry id="daq3_CEnumeration">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='daq3_cenumeration_title'>CEnumeration</refentrytitle>
+     <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>CEnumeration</refname>
+     <refpurpose>Support variable database enumeration  types.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+#include &lt;CEnumeration.h&gt;
+       <ooclass><classname>CEnumeration</classname></ooclass>
+{
+        <methodsynopsis>
+            <modifier>static </modifier>
+            <type>int </type>
+            <methodname>create</methodname>
+            <methodparam>
+                <modifier>CVariableDb&amp; </modifier><type></type>
+                    <parameter>db</parameter>
+            </methodparam>
+            <methodparam>
+                <modifier>const </modifier><type>char* </type>
+                    <parameter>pTypeName</parameter>
+            </methodparam>
+            <methodparam>
+                <modifier></modifier><type>std::vector&lt;std::string&gt; </type>
+                    <parameter>values</parameter>
+            </methodparam>
+            
+            <exceptionname>CEnumeration::CException</exceptionname>
+            <modifier></modifier>
+        </methodsynopsis>
+        
+        <methodsynopsis>
+            <modifier>static </modifier>
+            <type>void </type>
+            <methodname>addValue</methodname>
+            <methodparam>
+                <modifier></modifier><type> CVariableDb&amp;</type>
+                    <parameter> db </parameter>
+            </methodparam>
+            <methodparam>
+                <modifier>const </modifier><type>char* </type>
+                    <parameter>pTypeName</parameter>
+            </methodparam>
+            <methodparam>
+                <modifier>const </modifier><type>char* </type>
+                    <parameter>value</parameter>
+            </methodparam>
+            <exceptionname>CEnumeration::CException</exceptionname>
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier>static </modifier>
+            <type>std::vector&lt;std::string&gt; </type>
+            <methodname>listValues</methodname>
+            <methodparam>
+                <modifier></modifier><type>(CVariableDb&amp; </type>
+                    <parameter>db</parameter>
+            </methodparam>
+            <methodparam>
+                <modifier>const </modifier><type>char* </type>
+                    <parameter>pTypeName</parameter>
+            </methodparam>
+            <exceptionname>CEnumeration::CException</exceptionname>
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier>static </modifier>
+            <type>std::vector&lt;std::string&gt; </type>
+            <methodname>listEnums</methodname>
+            <methodparam>
+                <modifier></modifier><type>CVariableDb&amp;</type>
+                    <parameter>db</parameter>
+            </methodparam>
+            
+            <modifier></modifier>
+        </methodsynopsis>  
+    
+};
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        This class allows you to manipulate enumeration types in the
+        variable database.  Enumerated types are a family of types.
+        Each enumerated type has a specific, finite set of allowed
+        values variables of that type can have.
+     </para>
+     <para>
+        An enumerated type is defined by a type name, and a set of
+        values variables of that type can be assigned.  Once an enumerated
+        type is created, it acts exactly like primitive data types do:
+        Variables can be created, and deleted, assigned and queried for
+        their values.  One of the set of values is the default value for
+        variables that are created without a specific value.  Modification
+        of the varaible value is not allowed if a value is provided that
+        is not in the set of legal values for that type.
+     </para>
+     <para>
+        The class provides static methods that allow you programs to create
+        new enumerated data types, add additional values to the set
+        of values an enumerated type can take, and get information
+        about the enumerated types already defined.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>static </modifier>
+                    <type>int </type>
+                    <methodname>create</methodname>
+                    <methodparam>
+                        <modifier>CVariableDb&amp; </modifier><type></type>
+                            <parameter>db</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>pTypeName</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier></modifier><type>std::vector&lt;std::string&gt; </type>
+                            <parameter>values</parameter>
+                    </methodparam>
+                    
+                    <exceptionname>CEnumeration::CException</exceptionname>
+                    <modifier></modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Creates a new data type that is an enumeration.
+                    <parameter>db</parameter> is a reference to the database
+                    object connected to the database in which the type will be
+                    created.  <parameter>pTypeName</parameter> is the name
+                     of the new type.  <parameter>values</parameter> is a
+                     vector whose elements define the values variables of
+                     this new type can have.    The first element
+                     of <parameter>values</parameter> will be the default value
+                     for the type.
+                </para>
+                <para>
+                    The return value of this method, when successful is the
+                    <firstterm>id</firstterm> of the new type.  The type's id
+                    is the primary key in the <literal>variable_types</literal>
+                    database table for this data type.  It is mostly useful
+                    for functions and methods internal to the database API as
+                    queries that require matches on primary keys are very
+                    efficient.
+                </para>
+                <para>
+                    Errors detected by this method are signalled by throwing
+                    a <classname>CEnumeration::CException</classname> exception.
+                    See <literal>PUBLIC VARIABLES, TYPES and CONSTANTS</literal>
+                    for more information about this data type.  It is an error
+                    to define a type that already exists.  It is an error to
+                    have a duplicate entry in the <parameter>values</parameter>
+                    vector.  It is an error to provide an empty
+                    <parameter>values</parameter> vector.
+                </para>
+                <para>
+                    Once the new type has been successfully created the
+                    <link linkend='daq3_cvariable' endterm='daq3_cvariable_title' />
+                    class can be used to create variables and manipulate them
+                    in the same way that class can work with variables of
+                    primitive/built-in types.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>static </modifier>
+                    <type>int </type>
+                    <methodname>id</methodname>
+                    <methodparam>
+                        <modifier></modifier><type>CVariableDb&amp;</type>
+                            <parameter>db</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>pEnumName</parameter>
+                    </methodparam>
+                    
+                    <exceptionname>CEnumeration::Exception</exceptionname>
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                     Given the <parameter>pEnumName</parameter> which is the
+                     name of an enumerated type, this method returns the
+                     id of that type.  See the discussion of
+                     <methodname>create</methodname> above for information
+                     about what this is.  
+                </para>
+                <para>
+                    If <parameter>pEnumName</parameter> is not an enumerated
+                    type, <classname>CEnumeration::CException</classname> is
+                    thrown to indicate this error. 
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>static </modifier>
+                    <type>void </type>
+                    <methodname>addValue</methodname>
+                    <methodparam>
+                        <modifier></modifier><type> CVariableDb&amp;</type>
+                            <parameter> db </parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>pTypeName</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>value</parameter>
+                    </methodparam>
+                    
+                </methodsynopsis>    
+            </term>
+            <listitem>
+                <para>
+                    Allows yout to add a new legal value to an enumerated
+                     data type.  <parameter>db</parameter> is the database
+                     in which the data type is defined.
+                     <parameter>pTypeName</parameter> is the name of the type
+                     to modify.  <parameter>value</parameter> is the new
+                     legal value.
+                </para>
+                <para>
+                    All errors are signalled by throwing a
+                    <classname>CEnumeration::CException</classname> object.
+                    It is an error for <parameter>pTypeName</parameter> to
+                    not specify an existing enumeration type.  It is an
+                    error for <parameter>value</parameter> to specify an
+                    existing data type.  If <parameter>value</parameter>
+                    does not point at a null terminated string, the operation
+                    of this method is not only not defined, but will invariably
+                    end badly.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>static </modifier>
+                    <type>std::vector&lt;std::string&gt; </type>
+                    <methodname>listValues</methodname>
+                    <methodparam>
+                        <modifier></modifier><type>(CVariableDb&amp; </type>
+                            <parameter>db</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>pTypeName</parameter>
+                    </methodparam>
+                    <exceptionname>CEnumeration::CException</exceptionname>
+                </methodsynopsis>
+                
+            </term>
+            <listitem>
+                <para>
+                    Returns a vector of strings whose elements are the legal
+                    values of a specific enumerated type.
+                    <parameter>db</parameter> specifies the database in which
+                    this type is defined. <parameter>pTypeName</parameter>
+                    specifies the datatype name.
+                </para>
+                <para>
+                    Errors are signalled by throwing a
+                    <classname>CEnumeration::CException</classname>.  It is an
+                    error to specify a <parameter>pTypeName</parameter> that is
+                    not an existing enumerated type in <parameter>db</parameter>
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>static </modifier>
+                    <type>std::vector&lt;std::string&gt; </type>
+                    <methodname>listEnums</methodname>
+                    <methodparam>
+                        <modifier></modifier><type>CVariableDb&amp;</type>
+                            <parameter>db</parameter>
+                    </methodparam>
+                    
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns a vector of strings whose elements are the names
+                    of defined enumerated types.  <parameter>db</parameter>
+                    is the database queried for this information.  Note that
+                    the vector returned may be empty.  This method does not
+                    throw any errors.
+                </para>
+            </listitem>
+        </varlistentry>
+        
+                
+     </variablelist>
+  </refsect1>
+   <refsect1>
+      <title>PUBLIC VARIABLES, TYPES and CONSTANTS</title>
+      <para>
+        The nested class <classname>CEnumeration::CException</classname> thrown
+        to signal errors detected by the methods of this class.  This exception
+        type is derived from <classname>std::exception</classname>.  What this
+        specifically means is that the class's <methodname>what</methodname>
+        method returns a human readable error message string.
+      </para>
+      <para>
+        <classname>std::exception</classname>, in turn is a base class for
+        a hiearchy of exceptions defined by the standard C++ library.
+        For more information see e.g.
+        <ulink url='http://en.cppreference.com/w/cpp/error/exception'>http://en.cppreference.com/w/cpp/error/exception</ulink>.
+        The specific inheritance chain is
+        <classname>std::exception</classname> -&lt; <classname>std::runtime_error</classname>
+        -&lt; <classname>CEnumeration::CException</classname>
+      </para>
+   </refsect1>
 </refentry>     
+<refentry id="daq3_ctypefactory">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='daq3_ctypefactory_title'>CTypeFactory</refentrytitle>
+     <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>CTypeFactory</refname>
+     <refpurpose>Generate variable database type objects</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+#include &lt;CTypeFactory.h&gt;
+
+       <ooclass><classname>CTypeFactory : public CExtensibleFactory&lt;CDataType&gt;</classname></ooclass>
+{
+        <methodsynopsis>
+            <modifier>static</modifier>
+            <type>void</type>
+            <methodname>createSchema</methodname>
+            <methodparam>
+                <modifier></modifier><type>CSqlite&amp;</type>
+                    <parameter>db</parameter>
+            </methodparam>
+        </methodsynopsis>  
+        <constructorsynopsis>
+           <methodname>CTypeFactory</methodname>
+           <methodparam>
+            <type>CSqlite&amp;</type> <parameter>db</parameter>
+           </methodparam>
+        </constructorsynopsis>
+        <methodsynopsis>
+            <modifier></modifier>
+            <type>CDataTpe*</type>
+            <methodname>create</methodname>
+            <methodparam>
+                <modifier></modifier><type>std::string</type>
+                    <parameter>typeName</parameter>
+            </methodparam>
+            <modifier></modifier>
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier></modifier>
+            <type>void</type>
+            <methodname>addCreator</methodname>
+            <methodparam>
+                <modifier></modifier><type>std::string</type>
+                    <parameter>typeName</parameter>
+            </methodparam>
+            <methodparam>
+                <modifier></modifier><type>CDataTypeCreator*</type>
+                    <parameter>pCreator</parameter>
+            </methodparam>
+            <modifier></modifier>
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier></modifier>
+            <type>void</type>
+            <methodname>addUnknonwnTypeHandler</methodname>
+            <methodparam>
+                <modifier></modifier><type>CUnknownTypeHandler*</type>
+                    <parameter>pHandler</parameter>
+            </methodparam>
+            
+            <modifier></modifier>
+        </methodsynopsis>  
+};
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        The variable data base type system defines data types in the database.
+        Code, however is currently required to define, given a data type, if
+        a proposed value is legal, and what the default value for a type is.
+     </para>
+     <para>
+        A class hierarchy rooted in
+        <link linkend='daq3_cdatatype' endterm='daq3_cdatatype_title' />
+        provides those methods.  The variable database, however needs to know
+        how to create the appropriate <classname>CDataType</classname> object
+        from the textual name of a datatype (e.g. from the
+        <literal>variable_types</literal> table).  This pattern, instantiating
+        an object given some text string is tailor made for the
+        <link linkend='daq3_cextensiblefactory'  endterm='daq3_cextensiblefactory_title' />
+        templated class.
+     </para>
+     <para>
+        A further problem presents, beyond the typical scope of an extensible
+        factory.  That is how and when to register creators for defined types
+        (like enums).  These types not only can be created at run time, but may
+        already be defined in the database when the factory is instantiated.
+     </para>
+     <para>
+        To handle this, the variable database API introduces the concept of
+        <firstterm>type families</firstterm>.  A type family is a collection
+        of data types that have the same properties but are parameterized in some
+        way.  For example, all enumerated types allow their variables to take
+        one of a discrete set of values, but the set of values varies from
+        type to type.  Thus enumerations can be considered a type family.
+     </para>
+     <para>
+        To deal with the complexities of knowing how to instantiate
+        type creators and data type objects for type families, the
+        <classname>CTypeFactory</classname> class layers on top of the
+        <classname>CExtensibleFactory</classname> the ability to provide
+        an ordered list of handlers that are called when the factory
+        is asked to <methodname>create</methodname> a type with a type
+        string that does not yet have a creator.
+     </para>
+     <para>
+        Unknown type handlers are called in registration order and can return
+        either a NULL, indicating they don't know how to deal with this type,
+        or a pointer to a <classname>CDataType</classname> if they do.
+        Once an unknown handler provides a data type object, the iteration
+        through unknown handlers terminates.  If no handler is able to return
+        non-null, then the type is truly unknown and
+        <methodname>create</methodname> returns a null pointer.
+     </para>
+     <para>
+        Typically, an unkown type handler, in addition to providing a
+        <classname>CDataType</classname> to its caller will register
+        a <classname>CDataTypeCreator</classname> for the specific
+        instance of the data type family it represents with the factory.
+        This improves the performance of future <methodname>create</methodname>
+        calls for that instance of the family.
+     </para>
+     <para>
+        Finally:  Since type families often require tables that describe
+        specific instances of their type, it is normal for
+        <classname>CUnknownTypeHandlers</classname> to create additional tables,
+        if those tables don't yet exist, when they are instantiated.
+        The <classname>CTypeFactory</classname> knows about built in
+        type families and registers they unknown type handlers when constructed.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>static</modifier>
+                    <type>void</type>
+                    <methodname>createSchema</methodname>
+                    <methodparam>
+                        <modifier></modifier><type>CSqlite&amp;</type>
+                            <parameter>db</parameter>
+                    </methodparam>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    This static method creates the tables needed by the
+                    <classname>CTypeFactory</classname>  in the database open on
+                    <parameter>db</parameter> if those tables don't exist
+                    yet.  In practice this means creating the
+                    <literal>variable_types</literal> table.
+                </para>
+                <para>
+                    If tables required already exist, they are not created.
+                    Note that this method can be fooled.  If a database
+                    has a table of the correct name but wrong schema,
+                    <classname>CTypeFactory</classname> will not detect this
+                    and will probably fail later.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <constructorsynopsis>
+                   <methodname>CTypeFactory</methodname>
+                   <methodparam>
+                    <type>CSqlite&amp;</type> <parameter>db</parameter>
+                   </methodparam>
+                </constructorsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    The constructor for the type factory installs built in
+                    primitive type creators as well as the built in
+                    data type family unknown type handlers. 
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>CDataTpe*</type>
+                    <methodname>create</methodname>
+                    <methodparam>
+                        <modifier></modifier><type>std::string</type>
+                            <parameter>typeName</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Creates and returns a pointer to the
+                    <classname>CDataType</classname> object specified
+                    by <parameter>typeName</parameter>.  If no data type object
+                    can be created for <parameter>typeName</parameter> a null
+                    pointer is returned.  See
+                    <literal>DESCRIPTION</literal> above for a much more
+                    detailed look at how this function operates.
+                </para>
+                <para>
+                    Note that this function overrides the base class
+                    <methodname>create</methodname> method, only calling
+                    it as the first step in its implementation.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void</type>
+                    <methodname>addCreator</methodname>
+                    <methodparam>
+                        <modifier></modifier><type>std::string</type>
+                            <parameter>typeName</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier></modifier><type>CDataTypeCreator*</type>
+                            <parameter>pCreator</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    This method is actually defined and implemented in the base
+                    class.  It is used to add a new data type (either a
+                    primitive type or an instance of a type family) to the API.
+                    <parameter>pCreator</parameter> must be an object that knows
+                    how to create <classname>CDataType</classname> objects
+                    associated with the <parameter>typeName</parameter>.
+                </para>
+                <para>
+                    For more on <classname>CDataTypeCreator</classname>s see
+                    <link linkend='daq3_cdatatypecreator' endterm='daq3_cdatatypecreator_title' />.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void</type>
+                    <methodname>addUnknonwnTypeHandler</methodname>
+                    <methodparam>
+                        <modifier></modifier><type>CUnknownTypeHandler*</type>
+                            <parameter>pHandler</parameter>
+                    </methodparam>
+                    
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Adds an unknown type handler for a type family to the factory.
+                    <parameter>pHandler</parameter> is a
+                    <classname>CUnknownTypeHandler</classname> that will be called on
+                    if an unknown type name is handed to
+                    <methodname>create</methodname>.
+                </para>
+                <para>
+                    See
+                    <literal>DESCRIPTION</literal> above for more on how type families
+                    are used.
+                    See
+                    <link linkend='daq3_cunknowntypehandler' endterm='daq3_cunknowntypehandler_title' />
+                    for more about the <classname>CUnknownTypeHandler</classname> base class.
+                </para>
+            </listitem>
+        </varlistentry>
+     </variablelist>
+  </refsect1>
+   <refsect1>
+      <title>SEE ALSO</title>
+      <para>
+        <link linkend='daq3_cdatatype' endterm='daq3_cdatatype_title' />,
+        <link linkend='daq3_cdatatypecreator' endterm='daq3_cdatatypecreator_title' />,
+        <link linkend='daq3_cunknowntypehandler' endterm='daq3_cunknowntypehandler_title' />,
+        <link linkend='daq3_cextensiblefactory'  endterm='daq3_cextensiblefactory_title' />
+      </para>
+   </refsect1>
+</refentry>
+<refentry id="daq3_cdatatype">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='daq3_cdatatype_title'>CDataType</refentrytitle>
+     <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>CDataType</refname>
+     <refpurpose>Base class for variable database type objects</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+#include &lt;CDataType.h&gt;    
+       <ooclass><classname>CDataType</classname></ooclass>
+{
+        <constructorsynopsis>
+           <methodname>CDataType</methodname>
+           <methodparam>
+            <modifier></modifier><type>int</type>
+                <parameter>id</parameter>
+           </methodparam>
+           <methodparam>
+            <modifier></modifier><type>std::string</type>
+                <parameter>typeName</parameter>
+           </methodparam>
+           
+        </constructorsynopsis>
+        
+        <methodsynopsis>
+            <modifier></modifier>
+            <type>int</type>
+            <methodname>id</methodname>
+            <void />
+            <modifier>const </modifier>
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier></modifier>
+            <type>std::string</type>
+            <methodname>type</methodname>
+            <void />
+            <modifier>const</modifier>
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier> virtual</modifier>
+            <type>bool</type>
+            <methodname>legal</methodname>
+            <methodparam>
+                <modifier>const </modifier><type>char* </type>
+                    <parameter>attempt</parameter>
+            </methodparam>
+            <modifier> const = 0</modifier>
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier>virtual</modifier>
+            <type>std::string </type>
+            <methodname>defaultValue</methodname>
+            <void />
+            <modifier>const = 0</modifier>
+        </methodsynopsis>  
+};
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        This abstract base class is the root type of the hierarchy of classes
+        that allow the variable database to work with data types at run time.
+        See
+        <link linkend='daq3_ctypefactory' endterm='daq3_ctypefactory_title' />
+        for more information about data types and how they are handled.
+     </para>
+     <para>
+        In order to add a data type, or data type family to the variable database
+        API, you will at least need to write a concrete subclass of
+        <classname>CDataType</classname>, a creator for it (sublcass of
+        <classname>CDataTypeCreator</classname>).  If data types are instances
+        of a family of data types you will need to also write a
+        <classname>CUnknownTypeHandler</classname> subclass.
+     </para>
+     <para>
+        If your type is a simple type, you'll need to register your
+        data type creator with the factory on each factory instantiation.
+        If your type is a member of a type family you'll need to register
+        your unknow type handler with each factory instantiation.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <constructorsynopsis>
+                   <methodname>CDataType</methodname>
+                   <methodparam>
+                    <modifier></modifier><type>int</type>
+                        <parameter>id</parameter>
+                   </methodparam>
+                   <methodparam>
+                    <modifier></modifier><type>std::string</type>
+                        <parameter>typeName</parameter>
+                   </methodparam>
+                   
+                </constructorsynopsis>
+
+            </term>
+            <listitem>
+                <para>
+                    Since the base class provides services
+                    that return the id and name of the type
+                    represented, derived class constructors
+                    must construct using this base class
+                    constructor to provide that information
+                    to the base class.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>int</type>
+                    <methodname>id</methodname>
+                    <void />
+                    <modifier>const </modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Returns the type's id.  This is the
+                    primary key for the type in the
+                    <literal>variable_types</literal>
+                    database.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>std::string</type>
+                    <methodname>type</methodname>
+                    <void />
+                    <modifier>const</modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Returns the name of the type.
+                    Typically this will be the
+                    <varname>type_name</varname>
+                    field for the type in the
+                    <literal>variable_types</literal> table
+                    of the database.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier> virtual</modifier>
+                    <type>bool</type>
+                    <methodname>legal</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>attempt</parameter>
+                    </methodparam>
+                    <modifier> const = 0</modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    This pure virtual method must be implementyed by concrete
+                    classes.  Given a proposed new value,
+                    <parameter>attempt</parameter>, for a variable
+                    of the type represented by the object, returns
+                    <literal>true</literal> if that value is
+                    legal for the type.  If <parameter>attempt</parameter>
+                    is not legal <literal>false</literal> should be
+                    returned.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>virtual</modifier>
+                    <type>std::string </type>
+                    <methodname>defaultValue</methodname>
+                    <void />
+                    <modifier>const = 0</modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    This pure virtual method must return the default value for
+                    variables of this type.  This is used to supply the initial
+                    value when a
+                    variable of this type is created but not given an initial value
+                </para>
+            </listitem>
+        </varlistentry>
+                
+     </variablelist>
+  </refsect1>
+</refentry>
+<refentry id="daq3_cdatatypecreator">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='daq3_cdatatypecreator_title'>CDataTypeCreator</refentrytitle>
+     <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>CDataTypeCreator</refname>
+     <refpurpose>Create specific CDataType objects (ABC) (variable database).</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+ #include &lt;CDataTypeCreator.h&gt;
+       <ooclass><classname>CDataTypeCreator : public CDataTypeCreator</classname></ooclass>
+{
+        <constructorsynopsis>
+           <methodname>CDataTypeCreatorBase</methodname>
+           <methodparam>
+            <modifier></modifier><type>CSqlite&amp;</type>
+                <parameter> db</parameter>
+           </methodparam>
+        </constructorsynopsis>
+        <methodsynopsis>
+            <modifier></modifier>
+            <type>int </type>
+            <methodname>lookupId</methodname>
+            <methodparam>
+                <modifier>const</modifier><type>char*</type>
+                    <parameter>typeName</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier>virtual </modifier>
+            <type>CDataType* </type>
+            <methodname>operator()</methodname>
+            <void />
+            <modifier></modifier>
+        </methodsynopsis>  
+        <methodsynopsis>
+            <modifier>virtual </modifier>
+            <type>std::string </type>
+            <methodname>describe</methodname>
+            <void />
+            <modifier>const</modifier>
+        </methodsynopsis>  
+};
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        This "abstract" base class is  the base class of the
+        helper objects used by the
+        <classname>CTypeFactory</classname> to create data type objects
+        appropriate to a type name.   Each concrete data type will have a
+        data type creator registered with the data type factory and associated
+        with that type's name.
+     </para>
+     <para>
+        When the data type factory is asked to create a data type object for
+        a type name, its first step in doing so is to attempt to find a
+        data type creator associated with that type name.  If one is found,
+        it is used to create the actual data type.
+     </para>
+     <para>
+        Note that while this class is not strictly an abstract class for purposes
+        of testability, it should be treated as if the
+        <methodname>operator()</methodname> and <methodname>describe</methodname>
+        methods were abstract.
+     </para>
+     <para>
+        Note that if you don't need the <methodname>lookupId</methodname> method,
+        you can instead derive directly from <classname>CDataTypeCreator</classname>
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <constructorsynopsis>
+                   <methodname>CDataTypeCreatorBase</methodname>
+                   <methodparam>
+                    <modifier></modifier><type>CSqlite&amp;</type>
+                        <parameter> db</parameter>
+                   </methodparam>
+                </constructorsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Since this base class provides the service
+                    <methodname>lookupId</methodname>, which requires
+                    database queries, Concrete subclasses must
+                    construct in a way that provides the base class
+                    with a reference to the database on which they
+                    are operating.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>int </type>
+                    <methodname>lookupId</methodname>
+                    <methodparam>
+                        <modifier>const</modifier><type>char*</type>
+                            <parameter>typeName</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Given the name of a type, <parameter>typeName</parameter>,
+                    return the id of that type.  Note that the caller better know
+                    what it is doing, as if the type is not yet defined in the
+                    <literal>variable_types</literal> table it is entered and
+                    the resulting id returned.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>virtual </modifier>
+                    <type>CDataType* </type>
+                    <methodname>operator()</methodname>
+                    <void />
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    This method should be treated as if it is abstract.  It
+                    must be implemented in concrete derived classes so that
+                    it return s a pointer to a data type object appropriate to the
+                    data type represented by this creator.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>virtual </modifier>
+                    <type>std::string </type>
+                    <methodname>describe</methodname>
+                    <void />
+                    <modifier>const</modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    This method should be treated as an abstract base method.
+                    It must be implemented by concreate subclasses to return
+                    a string that describes the type created by this class..
+                    For example, the <classname>CIntegerTypeCreator</classname>
+                    returns <literal>integer</literal>.
+                </para>
+            </listitem>
+        </varlistentry>
+     </variablelist>
+  </refsect1>
+</refentry>     
+<refentry id="daq3_cunknowntypehandler">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='daq3_cunknowntypehandler_title'>CUnknownTypeHandler</refentrytitle>
+     <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>CUnknownTypeHandler</refname>
+     <refpurpose>Abstract base class for unknown type handlers (variable database)</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+#include &lt;CUnknownTypeHandler.h&gt;
+       <ooclass><classname>CUnknownTypeHandler</classname></ooclass>
+{
+        <methodsynopsis>
+            <modifier>virtual </modifier>
+            <type>CDataType*</type>
+            <methodname>create(</methodname>
+            <methodparam>
+                <modifier>const </modifier><type>char* </type>
+                    <parameter>typeName</parameter>
+            </methodparam>
+            <methodparam>
+                <modifier></modifier><type>CSqlite&amp; </type>
+                    <parameter>db</parameter>
+            </methodparam>
+            <methodparam>
+                <modifier></modifier><type>CTypeFactory&amp;</type>
+                    <parameter>factory</parameter>
+            </methodparam>
+            <modifier> = 0</modifier>
+        </methodsynopsis>  
+};
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        This is the abstract base class for unknown type handlers that can be
+        registered with the type factory.  Unknown type factories are registered
+        as an ordered list of objects that are given a chance to create an object
+        for types that don't (yet) have creators.
+     </para>
+     <para>
+        Each handler's <methodname>create</methodname> method is invoked.
+        If the object knows how to create the specified type it must return
+        a pointer to that type's <classname>CDataType</classname> object.
+        If not it must return <literal>NULL</literal>.
+     </para>
+     <para>
+        Optionally, the handler can register a new creator for that data type.
+        This is normally done when the data type is a specific member of a
+        type family.  In that case, registering a creator for that type
+        can substantially reduce the overhead of subsequent type object creation.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>virtual </modifier>
+                    <type>CDataType*</type>
+                    <methodname>create(</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>typeName</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier></modifier><type>CSqlite&amp; </type>
+                            <parameter>db</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier></modifier><type>CTypeFactory&amp;</type>
+                            <parameter>factory</parameter>
+                    </methodparam>
+                    <modifier> =0 </modifier>
+        
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    This pure virtual method must be implemented by concrete
+                    unknown type handlers. <parameter>typeName</parameter> is
+                    the type the factory has been asked to create.
+                    <parameter>db</parameter> is a reference to the database the
+                    type factory is operatig in.  <parameter>factory</parameter>
+                    is a reference to the factory itself.
+                </para>
+                <para>
+                    If the type can be created, its object must be returned.
+                    Often determining this requires database actions.
+                </para>
+            </listitem>
+        </varlistentry>
+     </variablelist>
+  </refsect1>
+   <refsect1>
+      <title>EXAMPLE</title>
+      <para>
+        Enumerated types are a type family and therefore are created using
+        an enumerated type family handler. The <classname>CEnumTypeCreator</classname>
+        constructor is coded to accept a database and typename.  It will
+        either find itself in the database of throw an exception if there
+        is not an enumerated type of the givenname.
+      </para>
+      <para>
+        Here therefore is the implementation of the <methodname>create</methodname>
+        method for the enumerated data type family:
+      </para>
+      <example>
+        <title>Enumerated type handler</title>
+        <programlisting>
+CDataType*
+CEnumTypeFamilyHandler::create(const char* typeName, CSqlite&amp; db, CTypeFactory&amp; factory)
+{
+    
+    try {
+        CEnumTypeCreator* pCreator = new CEnumTypeCreator(db, std::string(typeName));
+        factory.addCreator(typeName, pCreator);
+        return (*pCreator)();
+    } catch (...) {
+        return 0;
+    }
+}
+
+        </programlisting>
+      </example>
+   </refsect1>
+</refentry>     
+
 
 <!-- /manpage -->
 
@@ -1799,6 +2989,12 @@ vardb::rmdir <replaceable>$handle directory-path</replaceable>
 vardb::var <replaceable>subcommand $handle args...</replaceable>
                 </command>
             </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+vardb::enum <replaceable>$handle type-name list-of-values</replaceable>
+                </command>
+            </cmdsynopsis>
+            
             
             
         </refsynopsisdiv>
@@ -2078,6 +3274,45 @@ vardb::rmdir <replaceable>$handle directory-path</replaceable>
                     </variablelist>
                 </listitem>
             </varlistentry>
+            <varlistentry>
+                <term>
+                    <cmdsynopsis>
+                        <command>
+        vardb::enum <replaceable>$handle type-name list-of-values</replaceable>
+                        </command>
+                    </cmdsynopsis>
+
+                </term>
+                <listitem>
+                    <para>
+                        Creates a new data type <parameter>type-name</parameter>
+                        that is an enumerated data type.
+                        <parameter>list-of-values</parameter> is a Tcl list that
+                        defines the set of legal values for variables created of
+                        this new type.
+                    </para>
+                    <para>
+                        Once <parameter>type-name</parameter> has been created
+                        you can create variables of that type just like you
+                        would
+                        any other variable.   The first value of the
+                        <parameter>list-of-values</parameter> will be the default
+                        value for variables of thsi type.
+                    </para>
+                    <para>
+                        For example:
+                    </para>
+                    <informalexample>
+                        <programlisting>
+vardb::enum $handle colors [list red white blue]
+vardb::var create $handle /mycolor;            # /mycolor is red (default).
+vardb::var create $handle /anothercolor blue;  # /anothercolor is blue.
+vardb::var set $handle /mycolor grey;          # fails, grey is not a valid color.
+vardb::var set $handle /mycolor white;         # /mycolor is now white.
+                        </programlisting>
+                    </informalexample>
+                </listitem>
+            </varlistentry>
             
            </variablelist>
         </refsect1>
@@ -2196,7 +3431,7 @@ db = VarDb(<parameter>filename</parameter>)
      <refname>DirTree</refname>
      <refpurpose>
         Python encpapsulation of
-        <link linkend='daq3_cvardirtree' endterm='daq3_cvardirtree' />
+        <link linkend='daq3_cvardirtree' endterm='daq3_cvardirtree_title' />
      </refpurpose>
   </refnamediv>
   
@@ -3016,9 +4251,141 @@ nscldaq.vardb.variable.destroy(db, dir_or_none, path)
         
      </variablelist>
   </refsect1>
-</refentry>     
-<!-- /manpage -->
+</refentry>
 
+<!-- /manpage -->
+<refentry id="python3_enum">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='python3_enum_title'>enum</refentrytitle>
+     <manvolnum>3python</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>enum</refname>
+     <refpurpose>Python bindings to enum types (variable database)</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+import nscldaq.vardb.vardb
+import nscldaq.vardb.enum
+
+nscldaq.vardb.enum.create(db, typeName, values)
+id = nscldaq.vardb.enum.id(db, typeName)
+valueSet = nscldaq.vardb.enum.listValues(db, typeName)
+typeSet  = nscldaq.vardb.enum.listEnums(db)
+
+try:
+    # nscldaq.vardb.enum operations here
+except nscldaq.vardb.enum.error as error:
+    # Process errors from enum.
+
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        This module contains module level methods for enumerated data types.
+        An enumerated data type is a data type that can only have one of a
+        discrete set of values.  Enumerated data types constitute a family of
+        datatypes.  This module allows you to create and query the attributes
+        of instances of that family.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                nscldaq.vardb.enum.create(db, typeName, values)
+            </term>
+            <listitem>
+                <para>
+                    Creates a new variable data type.  <parameter>db</parameter>
+                    is a variable database instance that was opened on the database
+                    in which the type will be created. <parameter>typeName</parameter>
+                    is the name of the type being created.  <parameter>values</parameter>
+                    is a tuple that contains the legal values for the type.
+                </para>
+                <para>
+                    Once the type has been successfully created, you can create
+                    variables of that type just like any other data type.
+                    Errors are signalled by raising an
+                    <classname>nscldaq.vardb.enum.error</classname> exception.
+                </para>
+                <para>
+                    It is an error for <parameter>typeName</parameter> to name
+                    a data type that already exists. It is an error
+                    for <parameter>values</parameter> to be an empty tuple
+                    or to contain duplicate elements.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                id = nscldaq.vardb.enum.id(db, typeName)
+            </term>
+            <listitem>
+                <para>
+                    Returns the id of the enumerated type
+                    <parameter>typeName</parameter>.  <parameter>db</parameter>
+                    is the database object that determines which database file
+                    we are querying.
+                </para>
+                <para>
+                    The id returned is the primary key of the data type
+                    <parameter>typeName</parameter> in the
+                    <literal>variable_types</literal> table.
+                </para>
+                <para>
+                    Errors are signalled by raising a
+                    <classname>nscldaq.vardb.enum.error</classname> exception.
+                    It is an error for the <parameter>typeName</parameter>
+                    to either not exist or to exist but not be an enum type.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>valueSet = nscldaq.vardb.enum.listValues(db, typeName)</term>
+            <listitem>
+                <para>
+                    Returns a set that contains the values an enumerated type can
+                    take.  <parameter>db</parameter> is the database being queried.
+                    <parameter>typeName</parameter> is the name of the type.
+                </para>
+                <para>
+                    Errors are signalled by raising a
+                    <classname>nscldaq.vardb.enum.error</classname> exception.
+                    It is an error for <parameter>typeName</parameter> to either
+                    not exist or to not be an enumerated type.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>typeSet  = nscldaq.vardb.enum.listEnums(db)       </term>
+            <listitem>
+                <para>
+                    Returns a set that contains the names of all enumerated data
+                    types.  The <parameter>db</parameter> parameter is the
+                    database queried.
+                </para>
+            </listitem>
+        </varlistentry>
+     </variablelist>
+  </refsect1>
+</refentry>     
 <!-- manpage 5daq -->
 
 <refentry id="daq5_vardb">
@@ -3076,6 +4443,13 @@ CREATE TABLE variables (
     value               VARCHAR(256)  NOT NULL      -- String representation of the data.
 );
 
+-- Values of enumerated types:
+
+CREATE TABLE enumerated_values (                       
+    id                INTEGER PRIMARY KEY NOT NULL,     
+    type_id           INTEGER NOT NULL,            -- fk into variable_types      
+    value             VARCHAR(256) NOT NULL        -- legal enum type.
+);
     </programlisting>
 
   </refsynopsisdiv>
@@ -3245,6 +4619,94 @@ CREATE TABLE variables (
             </varlistentry>
             
         </variablelist>
+     </refsect2>
+     <refsect2>
+        <title>enumerated_values</title>
+        <para>
+            This table is used to supported the enumeration data type family.
+            Enumerated data types are defined types that can take only one of
+            a discrete set of values.  The default value of an instance of
+            an enumerated type is the one with the smallest primary key in the
+            <literal>enumerated_values</literal> table.
+        </para>
+        <para>
+            The <literal>enumerated_values</literal> table has the folowing
+            fields:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term>
+                    <literal>id                INTEGER PRIMARY KEY NOT NULL</literal>
+                </term>
+                <listitem>
+                    <para>
+                        The primary key of the record.  This is unique and normally
+                        assigned by SQLite.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <literal>type_id           INTEGER NOT NULL</literal>
+                </term>
+                <listitem>
+                    <para>
+                        This is a foreign key into the <literal>variable_types</literal>
+                        table.  The entry in <literal>variable_types</literal>
+                        that has this as its primary key is the data type for
+                        which this record is a legal value.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <literal>value             VARCHAR(256) NOT NULL</literal>
+                </term>
+                <listitem>
+                    <para>
+                        An allowed value for the enumerated type.
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+        <para>
+            Here are some illustrative queries:
+        </para>
+        <informalexample>
+            <programlisting>
+-- A type is an enum if the result is nonzero:
+
+SELECT COUNT(*) FROM variable_types t
+   INNER JOIN enumerated_values e ON e.type_id = t.id;
+   
+-- Get the list of legal values for a type known to be an enumeration:
+
+SELECT e.value FROM enumerated_values e
+   INNER JOIN variable_types t ON t.id = e.type_id
+   WHERE t.type_name='colors';
+   
+-- 1 if a specified value is legal for an enum:
+
+SELECT COUNT(*) FROM enumerated_values e
+  INNER JOIN variable_types t on t.id = e.type_id
+  WHERE t.type_name = 'colors'
+  AND   e.value = 'red';
+  
+-- Find the default value for a type known to be an enumeration:
+
+SELECT e.value FROM enumerated_values e
+   INNER JOIN variable_types t on t.id = e.type_id
+   WHERE t.type_name = 'colors'
+   ORDER BY e.id
+   LIMIT 1;
+   
+ -- List the names of all enumerated types:
+ 
+ SELECT DISTINCT t.type_name FROM variable_types t
+    INNER JOIN enumerated_values e ON e.type_id = t.id;
+    
+            </programlisting>
+        </informalexample>
      </refsect2>
   </refsect1>
 

@@ -12,6 +12,12 @@
         <listitem><para>
             Navigate variable database directory trees.
         </para></listitem>
+        <listitem><para>
+            Create, modify and examine variables.
+        </para></listitem>
+        <listitem><para>
+            Create enumerated types.
+        </para></listitem>
     </itemizedlist>
     <para>
         The remainder of this chapter has section that describe:
@@ -233,6 +239,54 @@ incr i
 let i $i
             </programlisting>
         </informalexample>
+        <para>
+            In addition to the primitive data types (integer, real, and string),
+            the variable database shell can create new data types with discrete
+            values. These are called <literal>enums</literal>.  Once an enum
+            type is created variables with that type can be created.
+        </para>
+        <para>
+            The <command>let</command> command will then not allow an enum
+            variable to have a type that is not in the list of legal values
+            for that type:
+        </para>
+        <informalexample>
+            <screen>
+<command>$DAQBIN/vardbsh myvariables.db</command>
+<computeroutput>(myvariables.db) /:</computeroutput> <command>enum colors {red white blue}</command>
+<computeroutput>(myvariables.db) /:</computeroutput> <command>declare /acolor colors</command>
+<computeroutput>(myvariables.db) /:</computeroutput> <command>let /acolor blue</command>
+<computeroutput>(myvariables.db) /:</computeroutput> <command>get /acolor</command>
+<computeroutput>blue</computeroutput>
+<computeroutput>(myvariables.db) /:</computeroutput> <command>let /acolor purple</command>
+<computeroutput>CVariable::set - Illegal value</computeroutput>
+<computeroutput>(myvariables.db) /:</computeroutput>
+            </screen>
+        </informalexample>
+        <para>
+            In the dialog above, the <command>enum</command> creates a new type
+            <literal>color</literal> which can take  any of the values
+            <literal>red, white</literal> or <literal>blue</literal>.
+            The values can be specified using any syntax that resolves to a
+            valid Tcl list.
+        </para>
+        <para>
+            <varname>/acolor</varname> is declared as a  <type>colors</type>
+            variable.  The default value for an enumerated type is the first
+            one in the declaration list.  Thuse the initial value for
+            <varname>/acolor</varname> is <literal>red</literal>.
+        </para>
+        <para>
+            The first <command>let</command> command modifes
+            <varname>/acolor</varname> to contain a new legal
+            value <literal>blue</literal>.  The <command>get</command>
+            command output shows the result of this operation.
+        </para>
+        <para>
+            Attempting to <command>let</command> the variable be
+            <literal>purple</literal> fails with an error message
+            as shown.
+        </para>
     </section>
 </chapter>
 <chapter>
