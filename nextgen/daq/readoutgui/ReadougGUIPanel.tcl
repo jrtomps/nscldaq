@@ -421,9 +421,9 @@ proc ReadougGUIPanel::runIsStarting {} {
     set ::ReadougGUIPanel::buttonBorder [$startstop cget -borderwidth]
 
     $startstop configure -relief flat -borderwidth 0 -text {Starting..}
-    update
-    update
-    update
+    update idletasks
+    update idletasks
+    update idletasks
 
 }
 ##
