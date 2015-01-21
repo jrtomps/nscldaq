@@ -124,6 +124,7 @@ public:
     // Getters:
 public:
     int getId() const;                     // Fully tested
+    int getTypeId() const;                 // get type id.
     std::string getName() const;           // Fully Tesetd
     std::string getDirectory();            // Fully Tested.
     

@@ -36,7 +36,7 @@ CIntegerType::CIntegerType(int id) :
 
 
 bool
-CIntegerType::legal(const char* attempt) const
+CIntegerType::legal(const char* attempt, int varid) const
 {
     char* endptr;
     

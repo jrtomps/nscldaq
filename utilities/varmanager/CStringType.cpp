@@ -36,7 +36,7 @@ CStringType::CStringType(int id) :
  * @return bool - true - for strings there are no illegal values.
  */
 bool
-CStringType::legal(const char* attempt) const
+CStringType::legal(const char* attempt, int varid) const
 {
     return true;
 }

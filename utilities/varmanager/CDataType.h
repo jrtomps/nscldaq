@@ -52,7 +52,7 @@ public:
      *  - defaultValue - default value for variables of this type.
      */
     
-    virtual bool        legal(const char* attempt) const = 0;
+    virtual bool        legal(const char* attempt, int varId = -1) const = 0;
     virtual std::string defaultValue()             const = 0;
 };
 

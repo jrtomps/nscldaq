@@ -859,6 +859,6 @@ Work on 11.0-rc11 begins
 	database.
 	Feature #3050 - Support to create variables with simple types in
 	the database.
-        Feture #3053 - Support for creating enumerated types.
-	
+        Feature #3053 - Support for creating enumerated types.
+	Feature #3059 - Support for state machine types.
 	

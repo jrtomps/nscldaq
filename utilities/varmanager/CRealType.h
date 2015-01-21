@@ -37,7 +37,7 @@ public:
     
     // operations implemented by concrete data types:
     
-    virtual bool        legal(const char* attempt) const;
+    virtual bool        legal(const char* attempt, int varid=-1) const;
     virtual std::string defaultValue()             const;
 };
 #endif

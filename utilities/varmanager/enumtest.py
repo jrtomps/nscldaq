@@ -58,6 +58,13 @@ class EnumTest(unittest.TestCase):
     def test_create_dupvalue_bad(self):
         with self.assertRaises(nscldaq.vardb.enum.error):
             nscldaq.vardb.enum.create(self._db, 'colors', ('red', 'white', 'blue', 'red'))
+    def test_create_with_array(self):
+        nscldaq.vardb.enum.create(self._db, 'colors', ['red', 'white', 'blue'])
+        nscldaq.vardb.variable.create(self._db, None, '/myvar', 'colors')
+        v = nscldaq.vardb.variable.Variable(self._db, path='/myvar')
+        self.assertEquals('red', v.get())
+        
+    
             
     def test_id_ok(self):
         id = nscldaq.vardb.enum.create(self._db, 'colors', ('red', 'white', 'blue'))

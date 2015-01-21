@@ -69,6 +69,10 @@ class EnumTests : public CppUnit::TestFixture {
   CPPUNIT_TEST(enumSetOk);
   CPPUNIT_TEST(enumGetOk);
   
+  // tests for CEnumeration::getValueId
+  
+  CPPUNIT_TEST(getvidOk);
+  CPPUNIT_TEST(getvidFail);
   
   CPPUNIT_TEST_SUITE_END();
   
@@ -123,6 +127,9 @@ protected:
   void enumVariableInstanceOk();
   void enumSetOk();
   void enumGetOk();
+  
+  void getvidOk();
+  void getvidFail();
 private:
     int createEnum(const char* name, const char** pValues);
     std::pair<int, std::set<std::string> > getEnumInfo(const char* typeName);
@@ -580,4 +587,26 @@ void EnumTests::enumGetOk()
     EQ(std::string("first"), var.get());
     var.set("second");
     EQ(std::string("second"), var.get());
+}
+
+void EnumTests::getvidOk()
+{
+       newOk();                   // Makes an enum named myenum.
+       int typeId = CEnumeration::id(*m_db, "myenum");
+       
+       // "first" is the first value of the first created enum so it should
+       // have a pk of 1:
+       
+       EQ(1, CEnumeration::getValueId(*m_db, typeId, "first"));
+       
+}
+void EnumTests::getvidFail()
+{
+    newOk();
+    int typeId = CEnumeration::id(*m_db, "myenum");
+    
+    CPPUNIT_ASSERT_THROW(
+        CEnumeration::getValueId(*m_db, typeId, "No such value"),
+        CEnumeration::CException
+    );
 }

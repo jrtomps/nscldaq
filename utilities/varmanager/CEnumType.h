@@ -54,7 +54,7 @@ public:
     // Interface methods required by CDataType
     
 public:
-    virtual bool        legal(const char* attempt) const;
+    virtual bool        legal(const char* attempt, int varid=-1) const;
     virtual std::string defaultValue() const;
 
     // Utilities:

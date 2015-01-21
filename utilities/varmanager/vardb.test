@@ -919,6 +919,93 @@ tcltest::test enum-create-3 {Fail creation with empty list of values} \
     catch {::vardb::enum $db fail [list]}
 } -result 1
 
+# State machine data types.
+
+tcltest::test statemachine-exists {State machine command exists} \
+-body {
+    info commands ::vardb::statemachine
+} -result ::vardb::statemachine
+
+tcltest::test statemachine-params-1 {Command requires parameters} \
+-body {
+    catch ::vardb::statemachine
+} -result 1
+
+tcltest::test statemachine-params-2 {First param must be a database} \
+-body {
+    catch {::vardb::statemachine junk statemachine \
+        [dict create a [list b c ] b [list a b] c [list a]]}
+} -result 1
+
+tcltest::test statemachine-params {Last param must be convertable to a dict} \
+-setup {
+    set filename [tcltest::makeFile {} testing]
+    file delete -force $filename
+    ::vardb::create $filename;   # now its properly formatted
+    set db [::vardb::open $filename]
+    sqlite3 dbcmd $filename
+} \
+-cleanup {
+    ::vardb::close $db
+    dbcmd close
+    file delete -force $filename
+} \
+-body {
+   catch {::vardb::statemachine $db statemachine "This string is not a dict see" }
+} -result 1
+
+tcltest::test statemachine-create-1 {Creation of a state machine works} \
+-setup {
+    set filename [tcltest::makeFile {} testing]
+    file delete -force $filename
+    ::vardb::create $filename;   # now its properly formatted
+    set db [::vardb::open $filename]
+    sqlite3 dbcmd $filename
+} \
+-cleanup {
+    ::vardb::close $db
+    dbcmd close
+    file delete -force $filename
+} \
+-body {
+    set transitions [dict create first second second third third [list first second]]
+    ::vardb::statemachine $db statemachine $transitions
+    
+    #  Ensure the type was created:
+    
+    dbcmd eval {
+        SELECT COUNT(*) AS count
+            FROM variable_types
+            WHERE type_name='statemachine'
+    } c {
+        
+        set typeCount $c(count)
+    }
+    set typeCount
+} -result 1
+
+tcltest::test statemachine-var {Variables created with this type have restricted transitions} \
+-setup {
+    set filename [tcltest::makeFile {} testing]
+    file delete -force $filename
+    ::vardb::create $filename;   # now its properly formatted
+    set db [::vardb::open $filename]
+    sqlite3 dbcmd $filename
+} \
+-cleanup {
+    ::vardb::close $db
+    dbcmd close
+    file delete -force $filename
+} \
+-body {
+    set transitions [dict create first second second third third [list first second]]
+    ::vardb::statemachine $db statemachine $transitions
+    
+    ::vardb::var create $db /mymachine statemachine;     # in first state.
+    ::vardb::var set    $db /mymachine second;           # ok
+    catch {::vardb::var set $db /mymachine first};       # invalid transition.
+    
+} -result 1
 #--------------------------------------------------------------------------
 # Collect/output results.
 

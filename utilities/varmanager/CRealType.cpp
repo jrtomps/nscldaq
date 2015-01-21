@@ -39,7 +39,7 @@ CRealType::CRealType(int id) :
  *   @return bool - true if the value is a legal real string-rep false otherwise.
  */
 bool
-CRealType::legal(const char* attempt) const
+CRealType::legal(const char* attempt, int varid) const
 {
    char* endpointer;
    strtod(attempt, &endpointer);

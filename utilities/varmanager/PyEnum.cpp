@@ -113,20 +113,25 @@ enum_create(PyObject* self, PyObject* args)
     CVariableDb* pDb = variableDbFromObj(db);
     if (!pDb) return NULL;
 
-    // values object must be a tuple:
+    // values object must be iterable
     
-    if (!PyTuple_Check(values)) {
-        return raise( "enum.create - last parameter must be a tuple of values");
+    PyObject* valueIterator = PyObject_GetIter(values);
+    if (!valueIterator) {
+        return raise( "enum.create - last parameter must be iterable");
 
     }
     
     // Marshall the values tuple into a vector:
     
     std::vector<std::string> vValues;
-    for (int i =0; i < PyTuple_GET_SIZE(values); i++) {
-        PyObject* v = PyTuple_GET_ITEM(values, i);
+    PyObject* v;
+    
+    while (v = PyIter_Next(valueIterator)) {
         vValues.push_back(std::string(PyString_AsString(v)));
+        Py_DECREF(v);
     }
+    Py_DECREF(valueIterator);
+
 
     // Create the new type mapping exceptions -> raises.
     

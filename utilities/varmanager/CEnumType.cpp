@@ -48,7 +48,7 @@ CEnumType::~CEnumType() {}
  *    @return bool - true if the value is a legal string.
  */
 bool
-CEnumType::legal(const char* value) const
+CEnumType::legal(const char* value, int varid) const
 {
     std::set<std::string> legalValues = getLegalValues();
     return legalValues.find(std::string(value)) != legalValues.end();

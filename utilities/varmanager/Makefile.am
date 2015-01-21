@@ -13,7 +13,8 @@ inittcl_LDFLAGS=@TCL_LDFLAGS@
 
 lib_LTLIBRARIES = libvardb.la \
 	libvardbtcl.la \
-	libvardbpy.la libvardirtreepy.la libvariablepy.la libenumpy.la
+	libvardbpy.la libvardirtreepy.la libvariablepy.la libenumpy.la \
+	libstatemachinepy.la
 
 #  Base C++ implementation
 
@@ -21,7 +22,8 @@ libvardb_la_SOURCES=CVariableDb.cpp CVarDirTree.cpp CTypeFactory.cpp \
 	CVariable.cpp CIntegerType.cpp CRealType.cpp CStringType.cpp \
 	CDataTypeCreatorBase.cpp CIntegerTypeCreator.cpp CRealTypeCreator.cpp \
 	CStringTypeCreator.cpp CEnumType.cpp CEnumeration.cpp CEnumTypeCreator.cpp \
-	CEnumTypeFamilyHandler.cpp
+	CEnumTypeFamilyHandler.cpp CStateMachineType.cpp CStateMachineTypeCreator.cpp \
+	CStateMachineTypeFamilyHandler.cpp CStateMachine.cpp
 
 libvardb_la_CPPFLAGS = @SQLITE3_CFLAGS@ -I@top_srcdir@/base/sqlite++ -I@top_srcdir@/base/factories
 libvardb_la_LDFLAGS  = 	@top_srcdir@/base/sqlite++/libsqlite3pp.la  @SQLITE3_LDFLAGS@ 
@@ -30,7 +32,9 @@ include_HEADERS = CVariableDb.h CVarDirTree.h CVariable.h CTypeFactory.h \
 	CDataType.h CIntegerType.h CRealType.h CStringType.h \
 	CDataTypeCreatorBase.h CIntegerTypeCreator.h CRealTypeCreator.h
 	CStringTypeCreator.h CEnumType.h CEnumeration.h CUnknownTypeHandler.h \
-	CEnumTypeCreator.h CEnumTypeFamilyHandler.h
+	CEnumTypeCreator.h CEnumTypeFamilyHandler.h CStateMachineType.h \
+	CStateMachineTypeCreator.h CStateMachineTypeFamilyHandler.h	\
+	CStateMachine.h
 
 
 #  Tcl bindings
@@ -45,7 +49,8 @@ libvardbtcl_la_SOURCES=VarDbTclPackage.cpp \
 	CVarDbLsCommand.cpp     CVarDbLsCommand.h	\
 	CVarDbRmdirCommand.cpp  CVarDbRmdirCommand.h	\
 	CVarDbVariableCommand.cpp CVarDbVariableCommand.h \
-	CVarDBEnumCommand.cpp   CVarDBEnumCommand.h
+	CVarDBEnumCommand.cpp   CVarDBEnumCommand.h	\
+	CStateMachineCommand.cpp CStateMachineCommand.h
 
 libvardbtcl_la_CPPFLAGS=@TCL_FLAGS@ @LIBTCLPLUS_CFLAGS@ 
 libvardbtcl_la_LDFLAGS= @builddir@/libvardb.la @top_srcdir@/base/sqlite++/libsqlite3pp.la  \
@@ -78,12 +83,16 @@ libenumpy_la_CPPFLAGS= $(PYBINDINGS_CPPFLAGS)
 libenumpy_la_LDFLAGS=  $(PYBINDINGS_LDFLAGS)
 
 
+libstatemachinepy_la_SOURCES = PyStateMachine.cpp
+libstatemachinepy_la_CPPFLAGS= $(PYBINDINGS_CPPFLAGS)
+libstatemachinepy_la_LDFLAGS = $(PYBINDINGS_LDFLAGS)
+
 ## Tests for compiled base
 
 
 noinst_PROGRAMS=unittests
 unittests_SOURCES = TestRunner.cpp  dirTests.cpp varTests.cpp typeFactoryTests.cpp \
-	enumtests.cpp									\
+	enumtests.cpp	statemachinetests.cpp								\
 	$(libvardb_la_SOURCES)
 
 unittests_CPPFLAGS = $(libvardb_la_CPPFLAGS) @CPPUNIT_CFLAGS@
@@ -104,6 +113,7 @@ vardbPyTest=$(PYTEST)    @srcdir@/vardbtest.py
 dirtreePyTest=$(PYTEST)  @srcdir@/dirtreetest.py
 variablePyTest=$(PYTEST) @srcdir@/variabletest.py
 enumPyTest = $(PYTEST)   @srcdir@/enumtest.py
+statemachinePyTest = $(PYTEST) @srcdir@/statemachinetests.py
 
 check-TESTS:
 	@builddir@/unittests 
@@ -112,6 +122,7 @@ check-TESTS:
 	$(dirtreePyTest)
 	$(variablePyTest)
 	$(enumPyTest)
+	$(statemachinePyTest)
 
 
 
@@ -138,5 +149,6 @@ install-exec-hook:
 	$(INSTALL_PROGRAM) @libdir@/libvardirtreepy.so  @prefix@/pythonLibs/nscldaq/vardb/dirtree.so
 	$(INSTALL_PROGRAM) @libdir@/libvariablepy.so    @prefix@/pythonLibs/nscldaq/vardb/variable.so
 	$(INSTALL_PROGRAM) @libdir@/libenumpy.so        @prefix@/pythonLibs/nscldaq/vardb/enum.so
+	$(INSTALL_PROGRAM) @libdir@/libstatemachinepy.so @prefix@/pythonLibs/nscldaq/vardb/statemachine.so
 	touch @prefix@/pythonLibs/nscldaq/vardb/__init__.py
 	$(INSTALL_PROGRAM) @builddir@/vardbsh.tcl @bindir@/vardbsh

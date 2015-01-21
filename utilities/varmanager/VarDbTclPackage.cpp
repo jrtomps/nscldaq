@@ -32,6 +32,7 @@
 #include "CVarDbRmdirCommand.h"
 #include "CVarDbVariableCommand.h"
 #include "CVarDBEnumCommand.h"
+#include "CStateMachineCommand.h"
 
 static const char* version="1.0";
 
@@ -74,6 +75,7 @@ extern "C" {
         new CVarDbRmdirCommand(Interp, "::vardb::rmdir");
         new CVarDbVariableCommand(Interp, "::vardb::var");
         new CVarDbEnumCommand(Interp, "::vardb::enum");
+        new CStateMachineCommand(Interp, "::vardb::statemachine");
         
         return TCL_OK;                
                                 

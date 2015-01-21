@@ -177,14 +177,14 @@
             <exceptionname>CVarDirTree::CException</exceptionname>
         </constructorsynopsis>
         <methodsynopsis>
-            <modifier></modifier>
+            
             <type>CVarDirTree::DirInfo </type>
             <methodname>getwd </methodname>
             <void />            
             <modifier>const</modifier>
         </methodsynopsis>
         <methodsynopsis>
-            <modifier></modifier>
+            
             <type>int     </type>
             <methodname>getRootid</methodname>
             <void />
@@ -192,7 +192,7 @@
             <modifier>const </modifier>
         </methodsynopsis>
         <methodsynopsis>
-            <modifier></modifier>
+            
             <type>void </type>
             <methodname>mkdir</methodname>
             <methodparam>
@@ -203,10 +203,10 @@
                 <type>bool </type><parameter>createIntermediate</parameter>
                 <initializer>true</initializer>
             </methodparam>
-            <modifier></modifier>
+            
         </methodsynopsis>  
         <methodsynopsis>
-            <modifier></modifier>
+            
             <type>void </type>
             <methodname>rmdir</methodname>
             <methodparam>
@@ -214,10 +214,10 @@
                 <parameter>path</parameter>
             </methodparam>
             
-            <modifier></modifier>
+            
         </methodsynopsis>  
         <methodsynopsis>
-            <modifier></modifier>
+            
             <type>void </type>
             <methodname>cd</methodname>
             <methodparam>
@@ -225,21 +225,21 @@
                 <parameter>path</parameter>
             </methodparam>
             <exceptionname></exceptionname>
-            <modifier></modifier>
+            
         </methodsynopsis>  
         <methodsynopsis>
-            <modifier></modifier>
+            
             <type>std::vector&lt;CVarDirTree::DirInfo&gt;</type>
             <methodname>ls</methodname>
             <void />
-            <modifier></modifier>
+            
         </methodsynopsis>  
         <methodsynopsis>
-            <modifier></modifier>
+            
             <type>std::string</type>
             <methodname>wdPath</methodname>
             <void />
-            <modifier></modifier>
+            
         </methodsynopsis>  
       
         typedef struct _DirInfo {
@@ -440,7 +440,7 @@ catch (std::exception&amp; e) {
         <varlistentry>
             <term>
                 <methodsynopsis>
-                        <modifier></modifier>
+                        
                         <type>CVarDirTree::DirInfo </type>
                         <methodname>getwd </methodname>
                         <void />            
@@ -465,7 +465,7 @@ catch (std::exception&amp; e) {
         <varlistentry>
             <term>
                 <methodsynopsis>
-                        <modifier></modifier>
+                        
                         <type>int     </type>
                         <methodname>getRootid</methodname>
                         <void />
@@ -484,7 +484,7 @@ catch (std::exception&amp; e) {
         <varlistentry>
             <term>
                 <methodsynopsis>
-                        <modifier></modifier>
+                        
                         <type>void </type>
                         <methodname>mkdir</methodname>
                         <methodparam>
@@ -495,7 +495,7 @@ catch (std::exception&amp; e) {
                             <type>bool </type><parameter>createIntermediate</parameter>
                             <initializer>true</initializer>
                         </methodparam>
-                        <modifier></modifier>
+                        
                     </methodsynopsis> 
             </term>
             <listitem>
@@ -522,7 +522,7 @@ catch (std::exception&amp; e) {
         <varlistentry>
             <term>
                 <methodsynopsis>
-                        <modifier></modifier>
+                        
                         <type>void </type>
                         <methodname>rmdir</methodname>
                         <methodparam>
@@ -530,7 +530,7 @@ catch (std::exception&amp; e) {
                             <parameter>path</parameter>
                         </methodparam>
                         
-                        <modifier></modifier>
+                        
                     </methodsynopsis>  
             </term>
             <listitem>
@@ -553,7 +553,7 @@ catch (std::exception&amp; e) {
         <varlistentry>
             <term>
                 <methodsynopsis>
-                        <modifier></modifier>
+                        
                         <type>void </type>
                         <methodname>cd</methodname>
                         <methodparam>
@@ -561,7 +561,7 @@ catch (std::exception&amp; e) {
                             <parameter>path</parameter>
                         </methodparam>
                         <exceptionname></exceptionname>
-                        <modifier></modifier>
+                        
                     </methodsynopsis>  
             </term>
             <listitem>
@@ -581,11 +581,11 @@ catch (std::exception&amp; e) {
         <varlistentry>
             <term>
                 <methodsynopsis>
-                        <modifier></modifier>
+                        
                         <type>std::vector&lt;CVarDirTree::DirInfo&gt;</type>
                         <methodname>ls</methodname>
                         <void />
-                        <modifier></modifier>
+                        
                     </methodsynopsis>  
             </term>
             <listitem>
@@ -604,11 +604,11 @@ catch (std::exception&amp; e) {
         <varlistentry>
             <term>
                 <methodsynopsis>
-                        <modifier></modifier>
+                        
                         <type>std::string</type>
                         <methodname>wdPath</methodname>
                         <void />
-                        <modifier></modifier>
+                        
                     </methodsynopsis>  
             </term>
             <listitem>
@@ -757,7 +757,7 @@ catch (std::exception&amp; e) {
                     <initializer>0</initializer>
             </methodparam>
             <exceptionname>CVariable::CException</exceptionname>
-            <modifier></modifier>
+            
         </methodsynopsis>
         <methodsynopsis>
             <modifier>static </modifier>
@@ -767,7 +767,7 @@ catch (std::exception&amp; e) {
                 <type>CVariableDb&amp;</type><parameter> db</parameter>
             </methodparam>
             <methodparam>
-                <modifier></modifier><type> CVarDirTree&amp;</type>
+                <type> CVarDirTree&amp;</type>
                     <parameter>dir</parameter>
             </methodparam>
             <methodparam>
@@ -785,7 +785,7 @@ catch (std::exception&amp; e) {
             </methodparam>
             
             <exceptionname>CVariable::CException</exceptionname>
-            <modifier></modifier>
+            
         </methodsynopsis>
         <methodsynopsis>
             <modifier>static </modifier>
@@ -795,11 +795,11 @@ catch (std::exception&amp; e) {
                 <type>CVariableDb&amp;</type><parameter>db</parameter>
             </methodparam>
             <methodparam>
-                <modifier></modifier><type>int </type>
+                <type>int </type>
                     <parameter>id</parameter>
             </methodparam>
             <exceptionname>CVariable::CException</exceptionname>
-            <modifier></modifier>
+            
         </methodsynopsis>
         <methodsynopsis>
             <modifier>static </modifier>
@@ -809,13 +809,13 @@ catch (std::exception&amp; e) {
                 <type>CVariable* </type><parameter>pVariable</parameter>
             </methodparam>
             <methodparam>
-                <modifier></modifier><type>bool </type>
+                <type>bool </type>
                     <parameter>doDelete</parameter>
                     <initializer>true</initializer>
             </methodparam>
             
             <exceptionname>CVariable::CException</exceptionname>
-            <modifier></modifier>
+            
         </methodsynopsis>
         <methodsynopsis>
             <modifier>static</modifier>
@@ -825,7 +825,7 @@ catch (std::exception&amp; e) {
                 <type>CVariableDb&amp;</type><parameter> db</parameter>
             </methodparam>
             <methodparam>
-                <modifier></modifier><type>CVarDirTree&amp;</type>
+                <type>CVarDirTree&amp;</type>
                     <parameter>dir</parameter>
             </methodparam>
             <methodparam>
@@ -834,7 +834,7 @@ catch (std::exception&amp; e) {
             </methodparam>
             
             <exceptionname>CVariable::CException</exceptionname>
-            <modifier></modifier>
+            
         </methodsynopsis>
         <methodsynopsis>
             <modifier>static </modifier>
@@ -849,7 +849,7 @@ catch (std::exception&amp; e) {
             </methodparam>
             
             <exceptionname>CVariable::CException</exceptionname>
-            <modifier></modifier>
+            
         </methodsynopsis>
         <methodsynopsis>
             <modifier>static </modifier>
@@ -859,7 +859,7 @@ catch (std::exception&amp; e) {
                 <type>CVariableDb*</type> <parameter>db</parameter>
             </methodparam>
             <methodparam>
-                <modifier></modifier><type>CVarDirTree&amp;</type>
+                <type>CVarDirTree&amp;</type>
                     <parameter> dir</parameter>
             </methodparam>
             <methodparam>
@@ -869,12 +869,12 @@ catch (std::exception&amp; e) {
             </methodparam>
             
             <exceptionname></exceptionname>
-            <modifier></modifier>
+            
         </methodsynopsis>  
         <constructorsynopsis>
            <methodname>CVariable</methodname>
            <methodparam>
-            <modifier></modifier><type>CVariableDb&amp;</type>
+            <type>CVariableDb&amp;</type>
                 <parameter>db</parameter>
            </methodparam>
            <methodparam>
@@ -886,11 +886,11 @@ catch (std::exception&amp; e) {
         <constructorsynopsis>
            <methodname>CVariable</methodname>
            <methodparam>
-            <modifier></modifier><type>CVariableDb&amp;</type>
+            <type>CVariableDb&amp;</type>
                 <parameter>db</parameter>
            </methodparam>
            <methodparam>
-            <modifier></modifier><type>CVarDirTree&amp;</type>
+            <type>CVarDirTree&amp;</type>
                 <parameter>dir</parameter>
            </methodparam>
            <methodparam>
@@ -903,18 +903,18 @@ catch (std::exception&amp; e) {
         <constructorsynopsis>
            <methodname>CVariable</methodname>
            <methodparam>
-            <modifier></modifier><type>CVariableDb&amp;</type>
+            <type>CVariableDb&amp;</type>
                 <parameter>db</parameter>
            </methodparam>
            <methodparam>
-            <modifier></modifier><type>int </type>
+            <type>int </type>
                 <parameter>id</parameter>
            </methodparam>
            
            <exceptionname>CVariable::CException</exceptionname>
         </constructorsynopsis>
         <methodsynopsis>
-            <modifier></modifier>
+            
             <type>void </type>
             <methodname>set</methodname>
             <methodparam>
@@ -923,17 +923,17 @@ catch (std::exception&amp; e) {
             </methodparam>
             
             <exceptionname>CVariable::CException</exceptionname>
-            <modifier></modifier>
+            
         </methodsynopsis>
         <methodsynopsis>
-            <modifier></modifier>
+            
             <type>std::string</type>
             <methodname>get</methodname>
             <void />
-            <modifier></modifier>
+            
         </methodsynopsis>
         <methodsynopsis>
-            <modifier></modifier>
+            
             <type>int</type>
             <methodname>getId</methodname>
             <void />
@@ -941,7 +941,7 @@ catch (std::exception&amp; e) {
             <modifier>const</modifier>
         </methodsynopsis>
         <methodsynopsis>
-            <modifier></modifier>
+            
             <type>std::string</type>
             <methodname>getName</methodname>
             <void />
@@ -949,7 +949,7 @@ catch (std::exception&amp; e) {
             <modifier>const</modifier>
         </methodsynopsis>
         <methodsynopsis>
-            <modifier></modifier>
+            
             <type>std::string</type>
             <methodname>getDirectory</methodname>
             <void />
@@ -1028,7 +1028,7 @@ catch (std::exception&amp; e) {
                         <initializer>0</initializer>
                 </methodparam>
                 <exceptionname>CVariable::CException</exceptionname>
-                <modifier></modifier>
+                
             </methodsynopsis>
         <methodsynopsis>
             <modifier>static </modifier>
@@ -1038,7 +1038,7 @@ catch (std::exception&amp; e) {
                 <type>CVariableDb&amp;</type><parameter> db</parameter>
             </methodparam>
             <methodparam>
-                <modifier></modifier><type> CVarDirTree&amp;</type>
+                <type> CVarDirTree&amp;</type>
                     <parameter>dir</parameter>
             </methodparam>
             <methodparam>
@@ -1056,7 +1056,7 @@ catch (std::exception&amp; e) {
             </methodparam>
             
             <exceptionname>CVariable::CException</exceptionname>
-            <modifier></modifier>
+            
         </methodsynopsis>
         </synopsis>
         <para>
@@ -1163,11 +1163,11 @@ catch (std::exception&amp; e) {
                     <type>CVariableDb&amp;</type><parameter>db</parameter>
                 </methodparam>
                 <methodparam>
-                    <modifier></modifier><type>int </type>
+                    <type>int </type>
                         <parameter>id</parameter>
                 </methodparam>
                 <exceptionname>CVariable::CException</exceptionname>
-                <modifier></modifier>
+                
             </methodsynopsis>
             <methodsynopsis>
                 <modifier>static </modifier>
@@ -1177,13 +1177,13 @@ catch (std::exception&amp; e) {
                     <type>CVariable* </type><parameter>pVariable</parameter>
                 </methodparam>
                 <methodparam>
-                    <modifier></modifier><type>bool </type>
+                    <type>bool </type>
                         <parameter>doDelete</parameter>
                         <initializer>true</initializer>
                 </methodparam>
                 
                 <exceptionname>CVariable::CException</exceptionname>
-                <modifier></modifier>
+                
             </methodsynopsis>
             <methodsynopsis>
                 <modifier>static</modifier>
@@ -1193,7 +1193,7 @@ catch (std::exception&amp; e) {
                     <type>CVariableDb&amp;</type><parameter> db</parameter>
                 </methodparam>
                 <methodparam>
-                    <modifier></modifier><type>CVarDirTree&amp;</type>
+                    <type>CVarDirTree&amp;</type>
                         <parameter>dir</parameter>
                 </methodparam>
                 <methodparam>
@@ -1202,7 +1202,7 @@ catch (std::exception&amp; e) {
                 </methodparam>
                 
                 <exceptionname>CVariable::CException</exceptionname>
-                <modifier></modifier>
+                
             </methodsynopsis>
             <methodsynopsis>
                 <modifier>static </modifier>
@@ -1217,7 +1217,7 @@ catch (std::exception&amp; e) {
                 </methodparam>
                 
                 <exceptionname>CVariable::CException</exceptionname>
-                <modifier></modifier>
+                
             </methodsynopsis>
                 
         </synopsis>
@@ -1318,7 +1318,7 @@ catch (std::exception&amp; e) {
                     <type>CVariableDb*</type> <parameter>db</parameter>
                 </methodparam>
                 <methodparam>
-                    <modifier></modifier><type>CVarDirTree&amp;</type>
+                    <type>CVarDirTree&amp;</type>
                         <parameter> dir</parameter>
                 </methodparam>
                 <methodparam>
@@ -1328,7 +1328,7 @@ catch (std::exception&amp; e) {
                 </methodparam>
                 
                 <exceptionname></exceptionname>
-                <modifier></modifier>
+                
             </methodsynopsis>  
             
         </synopsis>
@@ -1403,7 +1403,7 @@ catch (std::exception&amp; e) {
                     <constructorsynopsis>
                        <methodname>CVariable</methodname>
                        <methodparam>
-                        <modifier></modifier><type>CVariableDb&amp;</type>
+                        <type>CVariableDb&amp;</type>
                             <parameter>db</parameter>
                        </methodparam>
                        <methodparam>
@@ -1444,11 +1444,11 @@ catch (std::exception&amp; e) {
                     <constructorsynopsis>
                        <methodname>CVariable</methodname>
                        <methodparam>
-                        <modifier></modifier><type>CVariableDb&amp;</type>
+                        <type>CVariableDb&amp;</type>
                             <parameter>db</parameter>
                        </methodparam>
                        <methodparam>
-                        <modifier></modifier><type>CVarDirTree&amp;</type>
+                        <type>CVarDirTree&amp;</type>
                             <parameter>dir</parameter>
                        </methodparam>
                        <methodparam>
@@ -1498,11 +1498,11 @@ CVariable        var(db, dir, "a/variable");
                     <constructorsynopsis>
                        <methodname>CVariable</methodname>
                        <methodparam>
-                        <modifier></modifier><type>CVariableDb&amp;</type>
+                        <type>CVariableDb&amp;</type>
                             <parameter>db</parameter>
                        </methodparam>
                        <methodparam>
-                        <modifier></modifier><type>int </type>
+                        <type>int </type>
                             <parameter>id</parameter>
                        </methodparam>
                        
@@ -1520,7 +1520,7 @@ CVariable        var(db, dir, "a/variable");
             <varlistentry>
                 <term>
                     <methodsynopsis>
-                        <modifier></modifier>
+                        
                         <type>void </type>
                         <methodname>set</methodname>
                         <methodparam>
@@ -1529,7 +1529,7 @@ CVariable        var(db, dir, "a/variable");
                         </methodparam>
                         
                         <exceptionname>CVariable::CException</exceptionname>
-                        <modifier></modifier>
+                        
                     </methodsynopsis>
                 </term>
                 <listitem>
@@ -1546,11 +1546,11 @@ CVariable        var(db, dir, "a/variable");
             <varlistentry>
                 <term>
                     <methodsynopsis>
-                        <modifier></modifier>
+                        
                         <type>std::string</type>
                         <methodname>get</methodname>
                         <void />
-                        <modifier></modifier>
+                        
                     </methodsynopsis>
                 </term>
                 <listitem>
@@ -1566,7 +1566,7 @@ CVariable        var(db, dir, "a/variable");
             <varlistentry>
                 <term>
                     <methodsynopsis>
-                        <modifier></modifier>
+                        
                         <type>int</type>
                         <methodname>getId</methodname>
                         <void />
@@ -1586,7 +1586,7 @@ CVariable        var(db, dir, "a/variable");
             <varlistentry>
                 <term>
                     <methodsynopsis>
-                        <modifier></modifier>
+                        
                         <type>std::string</type>
                         <methodname>getName</methodname>
                         <void />
@@ -1606,7 +1606,7 @@ CVariable        var(db, dir, "a/variable");
             <varlistentry>
                 <term>
                     <methodsynopsis>
-                        <modifier></modifier>
+                        
                         <type>std::string</type>
                         <methodname>getDirectory</methodname>
                         <void />
@@ -1759,12 +1759,12 @@ CVariable        var(db, dir, "a/variable");
                     <parameter>pTypeName</parameter>
             </methodparam>
             <methodparam>
-                <modifier></modifier><type>std::vector&lt;std::string&gt; </type>
+                <type>std::vector&lt;std::string&gt; </type>
                     <parameter>values</parameter>
             </methodparam>
             
             <exceptionname>CEnumeration::CException</exceptionname>
-            <modifier></modifier>
+            
         </methodsynopsis>
         
         <methodsynopsis>
@@ -1772,7 +1772,7 @@ CVariable        var(db, dir, "a/variable");
             <type>void </type>
             <methodname>addValue</methodname>
             <methodparam>
-                <modifier></modifier><type> CVariableDb&amp;</type>
+                <type> CVariableDb&amp;</type>
                     <parameter> db </parameter>
             </methodparam>
             <methodparam>
@@ -1790,7 +1790,7 @@ CVariable        var(db, dir, "a/variable");
             <type>std::vector&lt;std::string&gt; </type>
             <methodname>listValues</methodname>
             <methodparam>
-                <modifier></modifier><type>(CVariableDb&amp; </type>
+                <type>(CVariableDb&amp; </type>
                     <parameter>db</parameter>
             </methodparam>
             <methodparam>
@@ -1804,11 +1804,11 @@ CVariable        var(db, dir, "a/variable");
             <type>std::vector&lt;std::string&gt; </type>
             <methodname>listEnums</methodname>
             <methodparam>
-                <modifier></modifier><type>CVariableDb&amp;</type>
+                <type>CVariableDb&amp;</type>
                     <parameter>db</parameter>
             </methodparam>
             
-            <modifier></modifier>
+            
         </methodsynopsis>  
     
 };
@@ -1859,12 +1859,12 @@ CVariable        var(db, dir, "a/variable");
                             <parameter>pTypeName</parameter>
                     </methodparam>
                     <methodparam>
-                        <modifier></modifier><type>std::vector&lt;std::string&gt; </type>
+                        <type>std::vector&lt;std::string&gt; </type>
                             <parameter>values</parameter>
                     </methodparam>
                     
                     <exceptionname>CEnumeration::CException</exceptionname>
-                    <modifier></modifier>
+                    
                 </methodsynopsis>
             </term>
             <listitem>
@@ -1914,7 +1914,7 @@ CVariable        var(db, dir, "a/variable");
                     <type>int </type>
                     <methodname>id</methodname>
                     <methodparam>
-                        <modifier></modifier><type>CVariableDb&amp;</type>
+                        <type>CVariableDb&amp;</type>
                             <parameter>db</parameter>
                     </methodparam>
                     <methodparam>
@@ -1923,7 +1923,7 @@ CVariable        var(db, dir, "a/variable");
                     </methodparam>
                     
                     <exceptionname>CEnumeration::Exception</exceptionname>
-                    <modifier></modifier>
+                    
                 </methodsynopsis>  
             </term>
             <listitem>
@@ -1948,7 +1948,7 @@ CVariable        var(db, dir, "a/variable");
                     <type>void </type>
                     <methodname>addValue</methodname>
                     <methodparam>
-                        <modifier></modifier><type> CVariableDb&amp;</type>
+                        <type> CVariableDb&amp;</type>
                             <parameter> db </parameter>
                     </methodparam>
                     <methodparam>
@@ -1991,7 +1991,7 @@ CVariable        var(db, dir, "a/variable");
                     <type>std::vector&lt;std::string&gt; </type>
                     <methodname>listValues</methodname>
                     <methodparam>
-                        <modifier></modifier><type>(CVariableDb&amp; </type>
+                        <type>(CVariableDb&amp; </type>
                             <parameter>db</parameter>
                     </methodparam>
                     <methodparam>
@@ -2025,11 +2025,11 @@ CVariable        var(db, dir, "a/variable");
                     <type>std::vector&lt;std::string&gt; </type>
                     <methodname>listEnums</methodname>
                     <methodparam>
-                        <modifier></modifier><type>CVariableDb&amp;</type>
+                        <type>CVariableDb&amp;</type>
                             <parameter>db</parameter>
                     </methodparam>
                     
-                    <modifier></modifier>
+                    
                 </methodsynopsis>  
             </term>
             <listitem>
@@ -2065,6 +2065,542 @@ CVariable        var(db, dir, "a/variable");
         -&lt; <classname>CEnumeration::CException</classname>
       </para>
    </refsect1>
+</refentry>
+<refentry id="daq3_cstatemachine">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id ='daq3_cstatemachine_title'>CStateMachine</refentrytitle>
+     <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>CStateMachine</refname>
+     <refpurpose>Manipulate state machine data types.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+#include &lt;CStateMachine&gt;
+       <ooclass><classname>CStateMachine</classname></ooclass>
+{
+public:
+<type>typedef std::map&lt;std::string, std::set&lt;std::string&gt; &gt; TransitionMap;</type>
+public:
+        <methodsynopsis>
+            <modifier>static </modifier>
+            <type>void </type>
+            <methodname>addTransition</methodname>
+            
+            <methodparam>
+                <type>TransitionMap&amp;</type>
+                    <parameter>map</parameter>
+            </methodparam>
+            <methodparam>
+                <type>std::string </type>
+                    <parameter>from</parameter>
+            </methodparam>
+            <methodparam>
+                <type>std::string to</type>
+                    <parameter>std::string to</parameter>
+            </methodparam>
+            
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier>static </modifier>
+            <type>int </type>
+            <methodname>create </methodname>
+            
+            <methodparam>
+                <type>CVariableDb&amp; </type>
+                    <parameter>db</parameter>
+            </methodparam>
+            <methodparam>
+                <type>std::string </type>
+                    <parameter>typeName </parameter>
+            </methodparam>
+            <methodparam>
+                <type>TransitionMap </type>
+                    <parameter>transitions</parameter>
+            </methodparam>
+            
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier>static </modifier>
+            <type>bool </type>
+            <methodname>isStateMachine</methodname>
+            
+            <methodparam>
+                <type>CVariableDb&amp;</type>
+                    <parameter> db</parameter>
+            </methodparam>
+            <methodparam>
+                <type>int</type>
+                    <parameter>typeId</parameter>
+            </methodparam>
+            
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier>static </modifier>
+            <type>std::vector&lt;std::string&gt;</type>
+            <methodname>validNextStates</methodname>
+        
+            <methodparam>
+                <type>CVariableDb&amp;</type>
+                    <parameter> db</parameter>
+            </methodparam>
+            <methodparam>
+                <type>int </type>
+                    <parameter>typeId</parameter>
+            </methodparam>
+            <methodparam>
+                <type>std::string </type>
+                    <parameter>from</parameter>
+            </methodparam>
+            
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier>static </modifier>
+            <type>std::vector&lt;std::string&gt; </type>
+            <methodname>validNextStates</methodname>
+        
+            <methodparam>
+                <type>CVariableDb&amp; </type>
+                    <parameter>db</parameter>
+            </methodparam>
+            <methodparam>
+                <type>int </type>
+                    <parameter>varId</parameter>
+            </methodparam>
+            
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier>static </modifier>
+            <type>TransitionMap </type>
+            <methodname>getTransitionMap</methodname>
+            
+            <methodparam>
+                <type>CVariableDb&amp; </type>
+                    <parameter>db</parameter>
+            </methodparam>
+            <methodparam>
+                <type>int </type>
+                    <parameter>typeId</parameter>
+            </methodparam>
+            
+        </methodsynopsis>
+        <ooclass><classname>CException : public std::runtime_error</classname></ooclass> {
+            <constructorsynopsis>
+               <methodname>explicit CException</methodname>
+               <methodparam>
+                <modifier>const</modifier><type>std::string&amp;</type>
+                    <parameter>mst</parameter>
+               </methodparam>
+               
+            </constructorsynopsis>
+        };
+};
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        A state machine type is a type that has a discrete number of values
+        (states) and well defined trasitions from value to value within those
+        states.  A state machine can also be thought of as an enumerated type
+        with constraints on which values a variable can be assigned that depend
+        on the current value (state) of the variable.
+     </para>
+     <para>
+        <classname>CStateMachine</classname> allows you to manipulate state
+        state machine data types.  You must still use
+        <link linkend='daq3_cvariable' endterm='daq3_cvariable_title' /> to
+        create actual instances of state machines.
+     </para>
+     <para>
+        In order to describe a state machine (states and transitions) a
+        data structure,
+        <type>CStateMachine::TransitionMap</type> is used.  A convenience
+        method, <methodname>addTransition</methodname>, is provided to
+        help build up this data structure.
+        For more information about this data structure see:
+        <link linkend='daq3_cstatemachine_pvtc'
+              endterm='daq3_cstatemachine_pvtc_title' /> below.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                        <modifier>static </modifier>
+                        <type>void </type>
+                        <methodname>addTransition</methodname>
+                        
+                        <methodparam>
+                            <type>TransitionMap&amp;</type>
+                                <parameter>map</parameter>
+                        </methodparam>
+                        <methodparam>
+                            <type>std::string </type>
+                                <parameter>from</parameter>
+                        </methodparam>
+                        <methodparam>
+                            <type>std::string to</type>
+                                <parameter>std::string to</parameter>
+                        </methodparam>
+                    </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Convenience method to build up a description of the
+                    states and allowed transtions needed to
+                    create a state machine type.  <parameter>map</parameter>
+                    is the state machine transition map that is being built up.
+                    <parameter>from</parameter> is the initial state prior to the
+                    transition being described and <parameter>to</parameter>
+                    is a state directly reachable when the state is
+                    <parameter>from</parameter>.
+                </para>
+                <para>
+                    If <parameter>from</parameter> has not yet been seen,
+                    it is added as a valid state.
+                    <type>CStateMachine::TransitionMap</type> is such that
+                    dead end states (states with no outbound transitions) are
+                    not allowed.  This is intentional and is because in general
+                    state machines used by the data acquisition system
+                    don't have terminal states but run for the life of the system.
+                </para>
+                <para>
+                    For more information about the
+                    <type>CStateMachine::TransitinoMap</type> data type,
+                    see
+                    <link linkend='daq3_cstatemachine_pvtc'
+                        endterm='daq3_cstatemachine_pvtc_title' /> below.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                        <modifier>static </modifier>
+                        <type>int </type>
+                        <methodname>create </methodname>
+                        
+                        <methodparam>
+                            <type>CVariableDb&amp; </type>
+                                <parameter>db</parameter>
+                        </methodparam>
+                        <methodparam>
+                            <type>std::string </type>
+                                <parameter>typeName </parameter>
+                        </methodparam>
+                        <methodparam>
+                            <type>TransitionMap </type>
+                                <parameter>transitions</parameter>
+                        </methodparam>
+                    </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Creates a new state machine data type.
+                    <parameter>db</parameter> is a reference to the database
+                    in which the data type is being created.
+                    <parameter>typeName</parameter> is the name of the data type
+                    being created.  <parameter>transitions</parameter> is the
+                    <type>CStateMachine::TransitionMap</type>
+                    that defines the state machine.
+                </para>
+                <para>
+                    For more information about
+                    <type>CStateMachine::TransitionMap</type> see
+                    <link linkend='daq3_cstatemachine_pvtc'
+                        endterm='daq3_cstatemachine_pvtc_title' /> below.
+                    Note as well that the simplest way to build up a state
+                    transition map is to use the
+                    <methodname>addTransition</methodname> repeatedly to
+                    describe all legal transitions.
+                </para>
+                <para>
+                    The return value is the type id of the new data type.
+                    <classname>CStateMachine::CException</classname> will be
+                    thrown if:
+                    <orderedlist>
+                        <listitem><para>
+                            A state transition list for a state is empty.
+                            This cannot happen if you use
+                            <methodname>addTransition</methodname> to build up
+                            the transition map.
+                        </para></listitem>
+                        <listitem><para>
+                            A transition in the transition map identifies
+                            a state that is not defined.
+                        </para></listitem>
+                        <listitem><para>
+                            The data type <parameter>typeName</parameter>
+                            is already defined.
+                        </para></listitem>
+                    </orderedlist>
+                </para>
+                <para>
+                    The initial state of a state machine is defined as the
+                    alphabetically first state in the map.  Thus you may want
+                    your initial state to be named something like
+                    <literal>0</literal><replaceable>state-name</replaceable>.
+                    When you create a state machine variable, it can oly be
+                    given an intial value that matches the initial state
+                    of the variable.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                        <modifier>static </modifier>
+                        <type>bool </type>
+                        <methodname>isStateMachine</methodname>
+                        
+                        <methodparam>
+                            <type>CVariableDb&amp;</type>
+                                <parameter> db</parameter>
+                        </methodparam>
+                        <methodparam>
+                            <type>int</type>
+                                <parameter>typeId</parameter>
+                        </methodparam>
+                    </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Returns <literal>true</literal> if
+                    <parameter>typeId</parameter> is the type id of a state
+                    machine in the data base identified by
+                    <parameter>db</parameter>.
+                </para>
+                <para>
+                    An exception is thrown if <parameter>typeId</parameter>
+                    does not identify a data type.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                        <modifier>static </modifier>
+                        <type>std::vector&lt;std::string&gt;</type>
+                        <methodname>validNextStates</methodname>
+                        
+                        <methodparam>
+                            <type>CVariableDb&amp;</type>
+                                <parameter> db</parameter>
+                        </methodparam>
+                        <methodparam>
+                            <type>int </type>
+                                <parameter>typeId</parameter>
+                        </methodparam>
+                        <methodparam>
+                            <type>std::string </type>
+                                <parameter>from</parameter>
+                        </methodparam>
+                        
+                    </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Returns a vector of the allowed next states
+                    of the state machine whose type id identified by
+                    <parameter>typeId</parameter> in the
+                    database connected on <parameter>db</parameter> given
+                    it is in the state <parameter>from</parameter>.
+                    The return value is a vector of strings.  Each element of
+                    the vetor is a valid next state for the state
+                    <parameter>from</parameter>.
+                </para>
+                <para>
+                    This method will throw a
+                    <classname>CStateMachine::CException</classname> if:
+                    <orderedlist>
+                        <listitem><para>
+                            The <parameter>typeId</parameter> parameter does not
+                            identify a variable type.
+                        </para></listitem>
+                        <listitem><para>
+                            <parameter>typeId</parameter> does not identify
+                            a state machine.
+                        </para></listitem>
+                    </orderedlist>
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                        <modifier>static </modifier>
+                        <type>std::vector&lt;std::string&gt; </type>
+                        <methodname>validNextStates</methodname>
+                        
+                        <methodparam>
+                            <type>CVariableDb&amp; </type>
+                                <parameter>db</parameter>
+                        </methodparam>
+                        <methodparam>
+                            <type>int </type>
+                                <parameter>varId</parameter>
+                        </methodparam>
+                        
+                    </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Returns the valid next states for the
+                    variable identifies by <parameter>varId</parameter>
+                    in the database <parameter>db</parameter>.
+                    This method determins the data type of the variable
+                    and invokes the previous overload of this method.
+                    Thus it has the same return value and exception
+                    specifications.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                        <modifier>static </modifier>
+                        <type>TransitionMap </type>
+                        <methodname>getTransitionMap</methodname>
+                        
+                        <methodparam>
+                            <type>CVariableDb&amp; </type>
+                                <parameter>db</parameter>
+                        </methodparam>
+                        <methodparam>
+                            <type>int </type>
+                                <parameter>typeId</parameter>
+                        </methodparam>
+                        
+                    </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns the transition map that defines the
+                    state machine type <parameter>typeId</parameter> in
+                    the database <parameter>db</parameter>.
+                    See
+                    <link linkend='daq3_cstatemachine_pvtc'
+                        endterm='daq3_cstatemachine_pvtc_title' /> below for
+                        more information about the data structure returned.
+                    An exception (
+                    <classname>CStateMachine::CException</classname>)
+                    is thrown if:
+                    <orderedlist>
+                        <listitem><para>
+                            The <parameter>typeId</parameter> parameter does not
+                            identify a data type.
+                        </para></listitem>
+                        <listitem><para>
+                            The <parameter>typeId</parameter> parameter identifies
+                            a data type that is not a state machine.
+                        </para></listitem>
+                    </orderedlist>
+                </para>
+            </listitem>
+        </varlistentry>
+                     
+     </variablelist>
+  </refsect1>
+   <refsect1 id='daq3_cstatemachine_pvtc'>
+      <title id='daq3_cstatemachine_pvtc_title'>PUBLIC VARIABLES, TYPES and CONSTANTS</title>
+      <para>
+        <classname>CStateMachine</classname> exports two types.
+        <type>CStateMachine::TransitionMap</type> describes the states and
+        allowed transitions between those states that define a state machine.
+        <classname>CStateMachine::CException</classname> is the type of exception
+        that is thrown directly from methods in the
+        <classname>CStateMachine</classname> class.  Note that other exception
+        types may be thrown from methods called by those methods.
+      </para>
+      <para>
+        <classname>CStateMachine::CException</classname> is derived from
+        the C++ standard library exception:
+        <classname>std::runtime_error</classname>.  All exceptions thrown directly
+        by the variable database API are derived from that exception as well.
+        Unless you need a more granular detection of the specific orign of
+        an exception, your code can just catch
+        <classname>std::runtime_exception&amp;</classname> exceptions and use the
+        <methodname>what</methodname> method to retrieve and report the error message.
+        <ulink url='http://en.cppreference.com/w/cpp/error/runtime_error'>
+            http://en.cppreference.com/w/cpp/error/runtime_error
+        </ulink> provides more information about the
+        <classname>std::runtime_error</classname> class.
+      </para>
+      <para>
+        <type>CStateMachine::TransitionMap</type> is defined as an
+        <classname>std::map</classname> whose elements are
+        <classname>std::set&lt;std::string&gt;</classname> and whose
+        indices are <classname>std::string</classname> objects.
+        Each index of the map represents a legal state for the state machine.
+        The set that index references is the set of allowed next states
+        the machine can be in if it is in the index state.
+      </para>
+      <para>
+        The <methodname>addTransition</methodname> method adds a transition
+        specification to the map. If you use <methodname>addTransiton</methodname>
+        to cdreate your state machine's transition map, you can not define
+        terminal states (a terminal state is one that has no valid outbound
+        transitions).  The initial state of the machine is the alphabetically first
+        state.  This is a consequence of the fact that
+        <classname>std::map</classname> keys have a defined ordering.  It is
+        therefore recommended that you have an initial state named something
+        like <literal>0</literal><replaceable>state-name</replaceable> to esnure
+        full control over what the initial state is.
+      </para>
+      <para>
+        In most cases not having a terminal state is not a problem as DAQ
+        state machines tend to run for the length of the experiment.  If, however
+        you need a terminal state in your state machine you can create one using
+        code like that below:
+      </para>
+      <informalexample>
+        <programlisting>
+#include &lt;CStateMachine.h&gt;
+...
+{
+...
+    CStateMachine::TransitionMap myStateMachine;
+    ...
+    std::set&lt;std::string&gt; dummy = myStateMachine["terminal"];
+    ...
+}
+        </programlisting>
+      </informalexample>
+      <para>
+        Since, presumably the state <literal>terminal</literal> has not
+        been a <parameter>from</parameter> for a call to
+        <methodname>addTransition</methodname>, this creates a new key in the
+        map for <literal>terminal</literal> whose value is the empty
+        set (result of a default constructino of
+        <classname>std::set&lt;std::string&gt;</classname>).
+        <literal>terminal</literal>  will be a valid state with no outbound
+        transitions as long as it does not appear as no states are inserted
+        into its target state set.  If you stock the remaining part of
+        <varname>myStateMachine</varname> using
+        <methodname>addTransition</methodname> this means not having
+        <literal>terminal</literal> as a <parameter>from</parameter>
+        parameter.
+      </para>
+   </refsect1>
 </refentry>     
 <refentry id="daq3_ctypefactory">
   <refentryinfo>
@@ -2098,7 +2634,7 @@ CVariable        var(db, dir, "a/variable");
             <type>void</type>
             <methodname>createSchema</methodname>
             <methodparam>
-                <modifier></modifier><type>CSqlite&amp;</type>
+                <type>CSqlite&amp;</type>
                     <parameter>db</parameter>
             </methodparam>
         </methodsynopsis>  
@@ -2109,39 +2645,39 @@ CVariable        var(db, dir, "a/variable");
            </methodparam>
         </constructorsynopsis>
         <methodsynopsis>
-            <modifier></modifier>
+            
             <type>CDataTpe*</type>
             <methodname>create</methodname>
             <methodparam>
-                <modifier></modifier><type>std::string</type>
+                <type>std::string</type>
                     <parameter>typeName</parameter>
             </methodparam>
-            <modifier></modifier>
+            
         </methodsynopsis>
         <methodsynopsis>
-            <modifier></modifier>
+            
             <type>void</type>
             <methodname>addCreator</methodname>
             <methodparam>
-                <modifier></modifier><type>std::string</type>
+                <type>std::string</type>
                     <parameter>typeName</parameter>
             </methodparam>
             <methodparam>
-                <modifier></modifier><type>CDataTypeCreator*</type>
+                <type>CDataTypeCreator*</type>
                     <parameter>pCreator</parameter>
             </methodparam>
-            <modifier></modifier>
+            
         </methodsynopsis>
         <methodsynopsis>
-            <modifier></modifier>
+            
             <type>void</type>
             <methodname>addUnknonwnTypeHandler</methodname>
             <methodparam>
-                <modifier></modifier><type>CUnknownTypeHandler*</type>
+                <type>CUnknownTypeHandler*</type>
                     <parameter>pHandler</parameter>
             </methodparam>
             
-            <modifier></modifier>
+            
         </methodsynopsis>  
 };
    </synopsis>
@@ -2225,7 +2761,7 @@ CVariable        var(db, dir, "a/variable");
                     <type>void</type>
                     <methodname>createSchema</methodname>
                     <methodparam>
-                        <modifier></modifier><type>CSqlite&amp;</type>
+                        <type>CSqlite&amp;</type>
                             <parameter>db</parameter>
                     </methodparam>
                 </methodsynopsis>  
@@ -2267,14 +2803,14 @@ CVariable        var(db, dir, "a/variable");
         <varlistentry>
             <term>
                 <methodsynopsis>
-                    <modifier></modifier>
+                    
                     <type>CDataTpe*</type>
                     <methodname>create</methodname>
                     <methodparam>
-                        <modifier></modifier><type>std::string</type>
+                        <type>std::string</type>
                             <parameter>typeName</parameter>
                     </methodparam>
-                    <modifier></modifier>
+                    
                 </methodsynopsis>
             </term>
             <listitem>
@@ -2297,18 +2833,18 @@ CVariable        var(db, dir, "a/variable");
         <varlistentry>
             <term>
                 <methodsynopsis>
-                    <modifier></modifier>
+                    
                     <type>void</type>
                     <methodname>addCreator</methodname>
                     <methodparam>
-                        <modifier></modifier><type>std::string</type>
+                        <type>std::string</type>
                             <parameter>typeName</parameter>
                     </methodparam>
                     <methodparam>
-                        <modifier></modifier><type>CDataTypeCreator*</type>
+                        <type>CDataTypeCreator*</type>
                             <parameter>pCreator</parameter>
                     </methodparam>
-                    <modifier></modifier>
+                    
                 </methodsynopsis>
             </term>
             <listitem>
@@ -2329,15 +2865,15 @@ CVariable        var(db, dir, "a/variable");
         <varlistentry>
             <term>
                 <methodsynopsis>
-                    <modifier></modifier>
+                    
                     <type>void</type>
                     <methodname>addUnknonwnTypeHandler</methodname>
                     <methodparam>
-                        <modifier></modifier><type>CUnknownTypeHandler*</type>
+                        <type>CUnknownTypeHandler*</type>
                             <parameter>pHandler</parameter>
                     </methodparam>
                     
-                    <modifier></modifier>
+                    
                 </methodsynopsis>  
             </term>
             <listitem>
@@ -2399,25 +2935,25 @@ CVariable        var(db, dir, "a/variable");
         <constructorsynopsis>
            <methodname>CDataType</methodname>
            <methodparam>
-            <modifier></modifier><type>int</type>
+            <type>int</type>
                 <parameter>id</parameter>
            </methodparam>
            <methodparam>
-            <modifier></modifier><type>std::string</type>
+            <type>std::string</type>
                 <parameter>typeName</parameter>
            </methodparam>
            
         </constructorsynopsis>
         
         <methodsynopsis>
-            <modifier></modifier>
+            
             <type>int</type>
             <methodname>id</methodname>
             <void />
             <modifier>const </modifier>
         </methodsynopsis>
         <methodsynopsis>
-            <modifier></modifier>
+            
             <type>std::string</type>
             <methodname>type</methodname>
             <void />
@@ -2477,11 +3013,11 @@ CVariable        var(db, dir, "a/variable");
                 <constructorsynopsis>
                    <methodname>CDataType</methodname>
                    <methodparam>
-                    <modifier></modifier><type>int</type>
+                    <type>int</type>
                         <parameter>id</parameter>
                    </methodparam>
                    <methodparam>
-                    <modifier></modifier><type>std::string</type>
+                    <type>std::string</type>
                         <parameter>typeName</parameter>
                    </methodparam>
                    
@@ -2502,7 +3038,7 @@ CVariable        var(db, dir, "a/variable");
         <varlistentry>
             <term>
                 <methodsynopsis>
-                    <modifier></modifier>
+                    
                     <type>int</type>
                     <methodname>id</methodname>
                     <void />
@@ -2521,7 +3057,7 @@ CVariable        var(db, dir, "a/variable");
         <varlistentry>
             <term>
                 <methodsynopsis>
-                    <modifier></modifier>
+                    
                     <type>std::string</type>
                     <methodname>type</methodname>
                     <void />
@@ -2617,12 +3153,12 @@ CVariable        var(db, dir, "a/variable");
         <constructorsynopsis>
            <methodname>CDataTypeCreatorBase</methodname>
            <methodparam>
-            <modifier></modifier><type>CSqlite&amp;</type>
+            <type>CSqlite&amp;</type>
                 <parameter> db</parameter>
            </methodparam>
         </constructorsynopsis>
         <methodsynopsis>
-            <modifier></modifier>
+            
             <type>int </type>
             <methodname>lookupId</methodname>
             <methodparam>
@@ -2635,7 +3171,7 @@ CVariable        var(db, dir, "a/variable");
             <type>CDataType* </type>
             <methodname>operator()</methodname>
             <void />
-            <modifier></modifier>
+            
         </methodsynopsis>  
         <methodsynopsis>
             <modifier>virtual </modifier>
@@ -2684,7 +3220,7 @@ CVariable        var(db, dir, "a/variable");
                 <constructorsynopsis>
                    <methodname>CDataTypeCreatorBase</methodname>
                    <methodparam>
-                    <modifier></modifier><type>CSqlite&amp;</type>
+                    <type>CSqlite&amp;</type>
                         <parameter> db</parameter>
                    </methodparam>
                 </constructorsynopsis>
@@ -2703,7 +3239,7 @@ CVariable        var(db, dir, "a/variable");
         <varlistentry>
             <term>
                 <methodsynopsis>
-                    <modifier></modifier>
+                    
                     <type>int </type>
                     <methodname>lookupId</methodname>
                     <methodparam>
@@ -2729,7 +3265,7 @@ CVariable        var(db, dir, "a/variable");
                     <type>CDataType* </type>
                     <methodname>operator()</methodname>
                     <void />
-                    <modifier></modifier>
+                    
                 </methodsynopsis>  
             </term>
             <listitem>
@@ -2799,11 +3335,11 @@ CVariable        var(db, dir, "a/variable");
                     <parameter>typeName</parameter>
             </methodparam>
             <methodparam>
-                <modifier></modifier><type>CSqlite&amp; </type>
+                <type>CSqlite&amp; </type>
                     <parameter>db</parameter>
             </methodparam>
             <methodparam>
-                <modifier></modifier><type>CTypeFactory&amp;</type>
+                <type>CTypeFactory&amp;</type>
                     <parameter>factory</parameter>
             </methodparam>
             <modifier> = 0</modifier>
@@ -2848,11 +3384,11 @@ CVariable        var(db, dir, "a/variable");
                             <parameter>typeName</parameter>
                     </methodparam>
                     <methodparam>
-                        <modifier></modifier><type>CSqlite&amp; </type>
+                        <type>CSqlite&amp; </type>
                             <parameter>db</parameter>
                     </methodparam>
                     <methodparam>
-                        <modifier></modifier><type>CTypeFactory&amp;</type>
+                        <type>CTypeFactory&amp;</type>
                             <parameter>factory</parameter>
                     </methodparam>
                     <modifier> =0 </modifier>
@@ -2992,6 +3528,11 @@ vardb::var <replaceable>subcommand $handle args...</replaceable>
             <cmdsynopsis>
                 <command>
 vardb::enum <replaceable>$handle type-name list-of-values</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+vardb::statemachine <replaceable>$handle type-name transition-dict</replaceable>
                 </command>
             </cmdsynopsis>
             
@@ -3313,6 +3854,80 @@ vardb::var set $handle /mycolor white;         # /mycolor is now white.
                     </informalexample>
                 </listitem>
             </varlistentry>
+            <varlistentry>
+                <term>
+                    <cmdsynopsis>
+                        <command>
+vardb::statemachine <replaceable>$handle type-name transition-dict</replaceable>
+                        </command>
+                    </cmdsynopsis>
+            
+                </term>
+                <listitem>
+                    <para>
+                        Creates a new type <parameter>type-name</parameter>
+                        that is a state machine.  The statemachine has a
+                        transition map that is determined by its
+                        <parameter>transition-dcit</parameter>.  The
+                        <parameter>transition-dict</parameter> is a Tcl
+                        dict object whose keys are valid states inthe state
+                        machine and whose values are reachable states from
+                        the key state.
+                    </para>
+                    <para>
+                        Note that the alphabetically first state will be the
+                        initial state for variables of this type.
+                    </para>
+                    <para>
+                        For example,  If you want to produce a state machine
+                        with the following transition table:
+                    </para>
+                    <informaltable frame='all'>
+                        <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+                        <thead>
+                            <row>
+                                <entry>From State</entry>
+                                <entry>To State</entry>
+                            </row>
+                        </thead>
+                        <tbody>
+                            <row>
+                                <entry>Not-Ready</entry><entry>Inactive</entry>
+                            </row>
+                            <row>
+                                <entry>Inactive</entry><entry>Active</entry>
+                            </row>
+                            <row>
+                                <entry>Inactive</entry><entry>Not-Ready</entry>
+                            </row>
+                            <row>
+                                <entry>Active</entry><entry>Inactive</entry>
+                            </row>
+                            <row>
+                                <entry>Active</entry><entry>Not-Ready</entry>
+                            </row>
+                        </tbody>
+                    </tgroup>
+                    </informaltable>
+                <para>
+                    You might use the following code.  Note that we name
+                    the <literal>Not-Ready</literal> state to be
+                    <literal>0Not-Ready</literal> to ensure it is the
+                    initial state:
+                </para>
+                <informalexample>
+                    <programlisting>
+set runStates [dict create   0Not-Ready Inactive   \
+    Inactive [list 0Not-Ready Active]              \
+    Active   [list 0Not-Ready Inactive]]
+    
+    
+vardb::statemachine runStateMachine $runStates
+
+                    </programlisting>
+                </informalexample>
+                </listitem>
+            </varlistentry>
             
            </variablelist>
         </refsect1>
@@ -3450,14 +4065,14 @@ flag     = <methodname>isRelative</methodname>(<parameter>pathString</parameter>
     </constructorsynopsis>
     
     <methodsynopsis>
-        <modifier></modifier>
+        
         <type>integer</type>
         <methodname>gerRootId</methodname>
         <void />
     </methodsynopsis>
     
     <methodsynopsis>
-        <modifier></modifier>
+        
         <type></type>
         <methodname>mkdir</methodname>
         <methodparam>
@@ -3466,7 +4081,7 @@ flag     = <methodname>isRelative</methodname>(<parameter>pathString</parameter>
     </methodsynopsis>
     
     <methodsynopsis>
-        <modifier></modifier>
+        
         <type></type>
         <methodname>cd</methodname>
         <methodparam>
@@ -3475,28 +4090,28 @@ flag     = <methodname>isRelative</methodname>(<parameter>pathString</parameter>
     </methodsynopsis>
     
     <methodsynopsis>
-        <modifier></modifier>
+        
         <type>string</type>
         <methodname>wdPath</methodname>
         <void />
     </methodsynopsis>  
     
     <methodsynopsis>
-        <modifier></modifier>
+        
         <type>dict</type>
         <methodname>getwd</methodname>
         <void />
     </methodsynopsis>
     
     <methodsynopsis>
-        <modifier></modifier>
+        
         <type>tuple</type>
         <methodname>ls</methodname>
         <void />
     </methodsynopsis>  
     
     <methodsynopsis>
-        <modifier></modifier>
+        
         <type></type>
         <methodname>rmdir</methodname>
         <methodparam>
@@ -3619,7 +4234,7 @@ flag     = <methodname>isRelative</methodname>(<parameter>pathString</parameter>
         <varlistentry>
             <term>
                 <methodsynopsis>
-                    <modifier></modifier>
+                    
                     <type>integer</type>
                     <methodname>gerRootId</methodname>
                     <void />
@@ -3638,7 +4253,7 @@ flag     = <methodname>isRelative</methodname>(<parameter>pathString</parameter>
         <varlistentry>
             <term>
                 <methodsynopsis>
-                    <modifier></modifier>
+                    
                     <type></type>
                     <methodname>mkdir</methodname>
                     <methodparam>
@@ -3671,7 +4286,7 @@ flag     = <methodname>isRelative</methodname>(<parameter>pathString</parameter>
         <varlistentry>
             <term>
                 <methodsynopsis>
-                    <modifier></modifier>
+                    
                     <type></type>
                     <methodname>cd</methodname>
                     <methodparam>
@@ -3690,7 +4305,7 @@ flag     = <methodname>isRelative</methodname>(<parameter>pathString</parameter>
         <varlistentry>
             <term>
                 <methodsynopsis>
-                    <modifier></modifier>
+                    
                     <type>string</type>
                     <methodname>wdPath</methodname>
                     <void />
@@ -3707,7 +4322,7 @@ flag     = <methodname>isRelative</methodname>(<parameter>pathString</parameter>
         <varlistentry>
             <term>
                 <methodsynopsis>
-                    <modifier></modifier>
+                    
                     <type>dict</type>
                     <methodname>getwd</methodname>
                     <void />
@@ -3758,7 +4373,7 @@ flag     = <methodname>isRelative</methodname>(<parameter>pathString</parameter>
         <varlistentry>
             <term>
                 <methodsynopsis>
-                    <modifier></modifier>
+                    
                     <type>tuple</type>
                     <methodname>ls</methodname>
                     <void />
@@ -3787,7 +4402,7 @@ flag     = <methodname>isRelative</methodname>(<parameter>pathString</parameter>
         <varlistentry>
             <term>
                 <methodsynopsis>
-                    <modifier></modifier>
+                    
                     <type></type>
                     <methodname>rmdir</methodname>
                     <methodparam>
@@ -3844,56 +4459,56 @@ nscldaq.vardb.variable.destroy(db, dir_or_none, path)
       <constructorsynopsis>
         <methodname>nscldaq.vardb.variable.Variable</methodname>
         <methodparam>
-            <modifier></modifier><type></type>
+            <type></type>
                 <parameter>db</parameter>
         </methodparam>
         <methodparam>
-            <modifier></modifier><type></type>
+            <type></type>
                 <parameter>keywords...</parameter>
         </methodparam>
         
         <exceptionname>nscldaq.vardb.variable.error</exceptionname>
       </constructorsynopsis>
       <methodsynopsis>
-          <modifier></modifier>
+          
           <type>integer</type>
           <methodname>getId</methodname>
           
             <void />
           
-          <modifier></modifier>
+          
       </methodsynopsis>
       <methodsynopsis>
-          <modifier></modifier>
+          
           <type></type>
           <methodname>set</methodname>
           <methodparam>
             <type>string</type> <parameter>value</parameter>
           </methodparam>
           <exceptionname>nscldaq.vardb.variable.error</exceptionname>
-          <modifier></modifier>
+          
       </methodsynopsis>
       <methodsynopsis>
-          <modifier></modifier>
+          
           <type>string</type>
           <methodname>get</methodname>
           <void />
-          <modifier></modifier>
+          
       </methodsynopsis>
       <methodsynopsis>
-          <modifier></modifier>
+          
           <type>string</type>
           <methodname>getName</methodname>
           <void />
           
-          <modifier></modifier>
+          
       </methodsynopsis>
       <methodsynopsis>
-          <modifier></modifier>
+          
           <type>string</type>
           <methodname>getDirectory</methodname>
           <void />
-          <modifier></modifier>
+          
       </methodsynopsis>
       
       
@@ -4066,11 +4681,11 @@ nscldaq.vardb.variable.destroy(db, dir_or_none, path)
                 <constructorsynopsis>
                    <methodname>nscldaq.vardb.variable.Variable</methodname>
                    <methodparam>
-                       <modifier></modifier><type></type>
+                       <type></type>
                            <parameter>db</parameter>
                    </methodparam>
                    <methodparam>
-                       <modifier></modifier><type></type>
+                       <type></type>
                            <parameter>keywords...</parameter>
                    </methodparam>
                    
@@ -4157,13 +4772,13 @@ nscldaq.vardb.variable.destroy(db, dir_or_none, path)
         <varlistentry>
             <term>
                 <methodsynopsis>
-                    <modifier></modifier>
+                    
                     <type>integer</type>
                     <methodname>getId</methodname>
                    
                       <void />
                    
-                    <modifier></modifier>
+                    
                 </methodsynopsis>
 
             </term>
@@ -4176,14 +4791,14 @@ nscldaq.vardb.variable.destroy(db, dir_or_none, path)
         <varlistentry>
             <term>
                 <methodsynopsis>
-                    <modifier></modifier>
+                    
                     <type></type>
                     <methodname>set</methodname>
                     <methodparam>
                       <type>string</type> <parameter>value</parameter>
                     </methodparam>
                     <exceptionname>nscldaq.vardb.variable.error</exceptionname>
-                    <modifier></modifier>
+                    
                 </methodsynopsis>
 
             </term>
@@ -4199,11 +4814,11 @@ nscldaq.vardb.variable.destroy(db, dir_or_none, path)
         <varlistentry>
             <term>
                 <methodsynopsis>
-                      <modifier></modifier>
+                      
                       <type>string</type>
                       <methodname>get</methodname>
                       <void />
-                      <modifier></modifier>
+                      
                   </methodsynopsis>
             </term>
             <listitem>
@@ -4215,12 +4830,12 @@ nscldaq.vardb.variable.destroy(db, dir_or_none, path)
         <varlistentry>
             <term>
                 <methodsynopsis>
-                    <modifier></modifier>
+                    
                     <type>string</type>
                     <methodname>getName</methodname>
                     <void />
                     
-                    <modifier></modifier>
+                    
                 </methodsynopsis>
                 
             </term>
@@ -4234,11 +4849,11 @@ nscldaq.vardb.variable.destroy(db, dir_or_none, path)
         <varlistentry>
             <term>
                 <methodsynopsis>
-                    <modifier></modifier>
+                    
                     <type>string</type>
                     <methodname>getDirectory</methodname>
                     <void />
-                    <modifier></modifier>
+                    
                 </methodsynopsis>                
             </term>
             <listitem>
@@ -4317,7 +4932,7 @@ except nscldaq.vardb.enum.error as error:
                     is a variable database instance that was opened on the database
                     in which the type will be created. <parameter>typeName</parameter>
                     is the name of the type being created.  <parameter>values</parameter>
-                    is a tuple that contains the legal values for the type.
+                    is an iterable object that contains the legal values for the type.
                 </para>
                 <para>
                     Once the type has been successfully created, you can create
@@ -4328,7 +4943,7 @@ except nscldaq.vardb.enum.error as error:
                 <para>
                     It is an error for <parameter>typeName</parameter> to name
                     a data type that already exists. It is an error
-                    for <parameter>values</parameter> to be an empty tuple
+                    for <parameter>values</parameter> to be an empty object
                     or to contain duplicate elements.
                 </para>
             </listitem>
@@ -4386,6 +5001,267 @@ except nscldaq.vardb.enum.error as error:
      </variablelist>
   </refsect1>
 </refentry>
+<refentry id="python3_statemachine">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='python3_statemachine_title'>nscldaq.vardb.statemachine</refentrytitle>
+     <manvolnum>3python</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>nscldaq.vardb.statemachine</refname>
+     <refpurpose>Python wrappers for manipulating state machines</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+import nscldaq.vardb.vardb
+import nscldaq.vardb.statemachine
+
+typeId         = nscldaq.vardb.statemachine.create(db, typeName, transitionDict)
+isSm           = nscldaq.vardb.statemachine.isStateMachine(db, typeId)
+nextStates     = nscldaq.vardb.statemachine.validNextStates(db, typeId, currentState)
+nextStates     = nscldaq.vardb.statemachine.validNextStates(db, varId)
+transitionDict = nscldaq.vardb.statemachine.getTransitionMap(db, typeId)
+
+
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1 id='python3_statemachine_description'>
+     <title id='python3_statemachine_description_title'>DESCRIPTION</title>
+     <para>
+        This module is a wrapper for the class
+        <link linkend='daq3_cstatemachine' endterm='daq3_cstatemachine_title' />.
+        It provides module level methods for creating and interrogating state
+        machies.
+     </para>
+     <para>
+        A state machine can be thought of as an enumerated type with
+        constraints that determine which enum values are valid given
+        the current value of the machine.  The constraints are
+        expressed as a set of <firstterm>reachable states</firstterm>
+        from each allowed state.  A state with no reachable states is
+        called a <firstterm>terminal state</firstterm>.
+        Each state machine also has an
+        <firstterm>initial state</firstterm>, which is the only allowed value
+        a state machine variable can have when it is created.  The initial state
+        is the alphabetically smallest state name.  Thus it is common to
+        prefix the initial state with e.g. <literal>0</literal>.
+     </para>
+     <para>
+        In the python bindings to <classname>CStateMachine</classname>,
+        the state machine states and transitions are represented by a python
+        dict.  Keys in the dict represent valid states while values, which are
+        iterables, represent reachable states from the key state.
+        It is perhaps simplest to give a small example that shows how to
+        define a state machine that represents a simplified run state diagram:
+     </para>
+     <para>
+        First lets look at a tabular representation of the state diagram:
+     </para>
+     <informaltable frame='all'>
+        <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+            <thead>
+                <row>
+                    <entry>From State</entry>
+                    <entry>To State</entry>
+                </row>
+            </thead>
+            <tbody>
+                <row>
+                    <entry>Not-Ready</entry><entry>Inactive</entry>
+                </row>
+                <row>
+                    <entry>Inactive</entry><entry>Active</entry>
+                </row>
+                <row>
+                    <entry>Inactive</entry><entry>Not-Ready</entry>
+                </row>
+                <row>
+                    <entry>Active</entry><entry>Inactive</entry>
+                </row>
+                <row>
+                    <entry>Active</entry><entry>Not-Ready</entry>
+                </row>
+            </tbody>
+        </tgroup>
+     </informaltable>
+     <para>
+        We want the initial state to be <literal>Not-Ready</literal>
+        from the <literal>Not-Ready</literal> state as programs
+        needed to take data are started, we transition to the
+        <literal>Inactive</literal> state.  From there
+        we can transition back and for to <literal>Active</literal>
+        as runs are started and stopped.  Failures will transition
+        back to the <literal>Not-Ready</literal> state.
+     </para>
+     <informalexample>
+        <programlisting>
+            ...
+transitions = {'0Not-Ready' : ('Inactive',)
+   'Inactive' : ('Active', '0Not-Ready'),
+   'Active'   : ('Inactive', '0Not-Ready')}
+   
+smId = nscldaq.vardb.statemachine.create(db, runStateMachine, transitions)
+...
+        </programlisting>
+     </informalexample>
+     <para>
+        First note that we ensure that the <literal>Not-Ready</literal> state
+        is initial by naming it <literal>0Not-Ready</literal>.
+        Second note that if we only have one reachable state we need to
+        add a trailing comma in the list to ensure that Python interprets
+        that as a list and not just a string in a parenthesized expression.
+        Using <literal>...'0Not-Ready': ('Inactive'),...</literal> would
+        be interpreted as a the state <literal>'0Not-Ready</literal> with
+        reachable states <literal>I,n,a,c,t,i,v</literal> and <literal>e</literal>
+        because strings are iterable in Python.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <cmdsynopsis>
+                    <command>
+typeId         = nscldaq.vardb.statemachine.create(db, typeName, transitionDict)
+                    </command>
+                </cmdsynopsis>
+                
+            </term>
+            <listitem>
+                <para>
+                    Creates a new state machine type named
+                    <parameter>typeName</parameter> in the database whose handle
+                    is <parameter>db</parameter>.  The
+                    <parameter>transitionDict</parameter> is a python dict
+                    that defines the legal states and transitions.  See
+                    <link linkend='python3_statemachine_description'
+                          endterm='python3_statemachine_description_title' />
+                    for information on how to describe state machines.
+                </para>
+                <para>
+                    The value returned is the id of the type in the
+                    variable types table.  It can be used to refer to this
+                    data type in other methods in this module.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <cmdsynopsis>
+                    <command>
+isSm           = nscldaq.vardb.statemachine.isStateMachine(db, typeId)
+                    </command>
+                </cmdsynopsis>
+                
+            </term>
+            <listitem>
+                <para>
+                    Returns <literal>True</literal> if
+                    <parameter>typeId</parameter> is the type id for a state
+                    machine data type in the database <parameter>db</parameter>.
+                    If <parameter>typeId</parameter> is a type but not
+                    a statemachine, the method returns <literal>False</literal>.
+                    If <parameter>typeId</parameter> is not a valid data type a
+                    <classname>nscldaq.vardb.statemachine.error</classname>
+                    is raised.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <cmdsynopsis>
+                    <command>
+nextStates     = nscldaq.vardb.statemachine.validNextStates(db, typeId, currentState)
+                    </command>
+                </cmdsynopsis>
+                
+            </term>
+            <listitem>
+                <para>
+                    Given a database connectino; <parameter>db</parameter>,
+                    a state machine <parameter>typeId</parameter>, and
+                    a <parameter>currentState</parameter>, this method
+                    returns a tuple that contains the states reachable from
+                    <parameter>currentState</parameter>
+                </para>
+                <para>
+                    If <parameter>typeId</parameter> is not a statemachine
+                    or not a valid type id,
+                    <classname>nscldaq.vardb.statemachine.error</classname>
+                    is raised.  If <parameter>currentState</parameter>
+                    is not a valid state for the state machine;
+                    <classname>nscldaq.vardb.statemachine.error</classname>
+                    is raised.  if <parameter>currentState</parameter> has
+                    no reachable states, is also thrown.
+                    <classname>nscldaq.vardb.statemachine.error</classname>.
+                    This is also the case for a <parameter>currentState</parameter>
+                    that is not a valid state.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <cmdsynopsis>
+                    <command>
+nextStates     = nscldaq.vardb.statemachine.validNextStates(db, varId)                                        
+                    </command>
+                </cmdsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Returns a tuple containing the valid next values
+                    the variable with the id <parameter>varId</parameter>
+                    can take in the database <parameter>db</parameter>.
+                    Raises a <classname>nscldaq.vardb.statemachine.error</classname>
+                    if the variable is not a state machine.
+                    Raises a <classname>nscldaq.vardb.variable.error</classname>
+                    if <parameter>varId</parameter> is not the id of a variable.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <cmdsynopsis>
+                    <command>
+transitionDict = nscldaq.vardb.statemachine.getTransitionMap(db, typeId)        
+                    </command>
+                </cmdsynopsis>
+                
+            </term>
+            <listitem>
+                <para>
+                    Returns a dict that describes the states and transitions
+                    that are legal for the statemachine whose type id
+                    is <parameter>typeId</parameter> in the database
+                    connected to <parameter>db</parameter>.
+                    The resulting dict has the same structure as the
+                    dict used in
+                    <methodname>nscldaq.vardb.statemachine.create</methodname>.
+                    If <parameter>typeId</parameter> is not a statemachine or
+                    not a valid type id,
+                    <classname>nscldaq.vardb.statemachine.error</classname> is
+                    raised.
+                </para>
+            </listitem>
+        </varlistentry>
+        
+     </variablelist>
+  </refsect1>
+</refentry>     
 <!-- /manpage -->
 <!-- manpage 5daq -->
 
@@ -4450,6 +5326,14 @@ CREATE TABLE enumerated_values (
     id                INTEGER PRIMARY KEY NOT NULL,     
     type_id           INTEGER NOT NULL,            -- fk into variable_types      
     value             VARCHAR(256) NOT NULL        -- legal enum type.
+);
+
+-- State machines are enumerated typs with constraints on allowed transitions:
+
+CREATE TABLE state_transitions (
+    id          INTEGER PRIMARY KEY NOT NULL, 
+    current_id  INTEGER NOT NULL,                 -- FK into enumerated_values: current state
+    next_id     INTEGER NOT NULL                  -- FK into enumerated_values: an allowed next state.
 );
     </programlisting>
 
@@ -4708,6 +5592,93 @@ SELECT e.value FROM enumerated_values e
     
             </programlisting>
         </informalexample>
+     </refsect2>
+     <refsect2>
+        <title>state_transtions</title>
+        <para>
+            This table supports state machine data types by defining
+            the valid transitions a state machine variable can take.
+            State machines can be thought of as a subclass of enumerated
+            types and therefore, state machines use the
+            <literal>enumerated_values</literal> table to store the
+            state names.  The values in those tables point back into
+            <literal>variable_types</literal> to indicate the
+            data type they are used in.
+        </para>
+        <para>
+            The fields of the <literal>enumerated_values</literal>
+            table are:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term>
+                    <literal>id          INTEGER PRIMARY KEY NOT NULL</literal>
+                </term>
+                <listitem>
+                    <para>
+                        The primary key of the record in this table.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <literal>current_id  INTEGER NOT NULL</literal>
+                </term>
+                <listitem>
+                    <para>
+                        The id of a record in the
+                        <literal>enumerated_values</literal> table that
+                        represents an originating (current state).
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <literal>next_id     INTEGER NOT NULL</literal>
+                </term>
+                <listitem>
+                    <para>
+                        The id of a record in the
+                        <literal>enumerated_values</literal> table that
+                        represents a state reachable from the state
+                        indicated by <literal>current_id</literal>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            
+        </variablelist>
+        <para>
+            You can think of <literal>state_transitions</literal> as a join table
+            but it's a bit peculiar in that it joins
+            <literal>enumerated_values</literal> to itself forming a join
+            between a state and a state that can be legally reached from that
+            state.
+        </para>
+        <example>
+            <title>Determining if a new state is legal for a variable</title>
+            <programlisting>
+ SELECT COUNT(*) FROM state_transitions t   
+            INNER JOIN enumerated_values vf ON vf.id = t.current_id     
+            INNER JOIN enumerated_values vt ON vt.id = t.next_id        
+            INNER JOIN variable_types    types ON types.id = vt.type_id 
+            INNER JOIN variables         v     ON v.type_id = types.id  
+            WHERE v.id = :varid                                              
+            AND   vt.value = :nextvalue                                         
+            AND   vf.value = v.value               
+            </programlisting>
+        </example>
+        <para>
+            In the example above, <literal>:varid</literal> is a place holder
+            for the variable's id (primary key in the
+            <literal>variables</literal> table)m, and
+            <literal>:nextvalue</literal> is a placeholder for the
+            string that is the value we are testing for legality.
+        </para>
+        <para>
+            The query will have one result item with a single field that
+            will be <literal>1</literal> if the next value is legal
+            and <literal>0</literal> if not.
+        </para>
      </refsect2>
   </refsect1>
 

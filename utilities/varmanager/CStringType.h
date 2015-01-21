@@ -38,7 +38,7 @@ public:
     // methods required by CDataType of concrete derivations:
     
 public:
-    virtual bool        legal(const char* attempt) const;
+    virtual bool        legal(const char* attempt, int varid=-1) const;
     virtual std::string defaultValue()             const;
 };
 

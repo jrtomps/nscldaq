@@ -287,6 +287,96 @@ let i $i
             <literal>purple</literal> fails with an error message
             as shown.
         </para>
+        <para>
+            A useful variation on enumerated types are
+            <firstterm>state machines</firstterm>. A state machine is an
+            enumerated type where the current value of a variable
+            determines the legal set of values the variable
+            can be assigned. 
+        </para>
+        <para>
+            A state machine type is used to describe, among other things,
+            the state of data taking.  Here we will give a simpler example of
+            a state machine. Specifically one that  is described in the following
+            state transition table:
+        </para>
+        <informaltable frame='all'>
+            <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+                <thead>
+                    <row>
+                        <entry>From State</entry>
+                        <entry>To State</entry>
+                    </row>
+                </thead>
+                <tbody>
+                    <row>
+                        <entry>state1</entry>
+                        <entry>state2</entry>
+                    </row>
+                    <row>
+                        <entry>state2</entry>
+                        <entry>state3</entry>
+                    </row>
+                    <row>
+                        <entry>state3</entry><entry>state1</entry>
+                    </row>
+                    <row>
+                        <entry>state3</entry><entry>state2</entry>
+                    </row>
+                </tbody>
+            </tgroup>            
+        </informaltable>
+        <para>
+            The example below shows the creation of a type named
+            <literal>toymachine</literal>
+            and a variable named <filename>/mymachine</filename>
+            We also show the results of legal and illegal state transition
+            attempts.
+        </para>
+        <informalexample>
+<screen>
+<command>$DAQBIN/vardbsh myvariables.db</command>
+<computeroutput>(myvariables.db) /:</computeroutput> <command>set transitions [dict create
+    state1 state2 state2 state3 state3 [list state1 state2]]</command>
+<computeroutput>(myvariables.db) /:</computeroutput><command>statemachine toymachine $transitions</command>
+<computeroutput>(myvariables.db) /:</computeroutput><command>declare /mymachine toymachine</command>
+<computeroutput>(myvariables.db) /:</computeroutput><command>ls</command>
+<computeroutput> mymachine toymachine state1
+(myvariables.db) /:</computeroutput><command>let mymachine state2</command>
+<computeroutput>(myvariables.db)</computeroutput><command>let mymachine state1;  #illegal</command>
+<computeroutput>
+CVariable::set - Illegal value    
+(myvariables.db) /:</computeroutput>
+            </screen>
+        </informalexample>
+        <para>
+            First thing to note is that the states and valid transitions are
+            described by a Tcl dict.  The keys of that dict are the valid states.
+            The values of the dict are a list of the reachable states from the
+            key state. 
+            See e.g.
+            <ulink url='http://www.tcl.tk/man/tcl8.5/TclCmd/dict.htm'>http://www.tcl.tk/man/tcl8.5/TclCmd/dict.htm</ulink>
+            for more information about how to manipulate Tcl dict objects, and
+            again, note that vardbsh is actually an extended Tcl shell.
+        </para>
+        <para>
+            Second note that the system enforces the restrictions on
+            state transitions.  This is done at the lowest levels of the
+            system. This is why the command
+            <command>let mymachine state1</command> fails.  When the
+            variable has the value <literal>state2</literal>, the only
+            legal transition is to <literal>state3</literal>.
+        </para>
+        <para>
+            Finally, note that like enums, the <command>statemachine</command>
+            command creates a new data type and any number of variables can
+            be created with this type.  You could imagine several readout
+            programs being centrally controlled, a single state machine type
+            defines the state diagram for all of those readout programs.
+            A master state machine might show the overall system status while
+            state machines for each readout program would describe the state
+            of each readout program.
+        </para>
     </section>
 </chapter>
 <chapter>
@@ -619,7 +709,7 @@ MakeDirectory(const char* dbName, const char*  path) <co id='vardb_cpp_function'
                     so that it remains polymorphic to the actual exception type.
                     Otherwise, for example, the <methodname>what</methodname>,
                     will return the fixed string the <classname>std::exception</classname>
-                    class returnss.
+                    class returns
                 </para>
                 <para>
                     Our exception handling is pretty naive.  We just output a message

@@ -85,7 +85,7 @@ CVariable::create(
     }
     // If the value is not legal throw as well:
     
-    bool valueOk = dtype->legal(value.c_str());
+    bool valueOk = dtype->legal(value.c_str(), -1);
     delete dtype;             // Don't need this object any more.
     
     if (!valueOk) {
@@ -338,7 +338,7 @@ CVariable::~CVariable()
 void
 CVariable::set(const char* value)
 {
-    if(!m_pDataType->legal(value)) {
+    if(!m_pDataType->legal(value, m_myId)) {
         throw CException("CVariable::set - Illegal value");
     }
     
@@ -409,6 +409,17 @@ CVariable::getDirectory()
 {
     CVarDirTree myDirData(m_db, m_myDir);
     return myDirData.wdPath();
+}
+/**
+ * getTypeId
+ *   Return the id of our data type.
+ *
+ *   @return int
+ */
+int
+CVariable::getTypeId() const
+{
+    return m_pDataType->id();
 }
 /*--------------------------------------------------------------------------
  * Private utility methods.

@@ -470,7 +470,7 @@ public:
     CDummyDataType(int id, std::string type) :
         CDataType(id, type) {}
     
-    bool legal(const char* attempt) const {return true;}
+    bool legal(const char* attempt, int varid=-1) const {return true;}
     std::string defaultValue() const {return std::string("default");}
  };
  CDummyDataType aType(1234, "dummy");

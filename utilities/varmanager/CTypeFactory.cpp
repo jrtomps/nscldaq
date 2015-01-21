@@ -32,6 +32,7 @@
 
 #include "CUnknownTypeHandler.h"
 #include "CEnumTypeFamilyHandler.h"
+#include "CStateMachineTypeFamilyHandler.h"
 
 
 template<class T>
@@ -102,7 +103,7 @@ CTypeFactory::addUnknownTypeHandler(CUnknownTypeHandler* pHandler)
 /**
  * create
  *    The factory method
- *    *   If the base class create produces a result we're don.
+ *    *   If the base class create produces a result we're done.
  *    *   If not we try the set of unknown handlers until they are either
  *        exhausted or one of them produces a result.
  * @param type  - data type name to create (e.g. "integer" or "derivedtype")
@@ -147,5 +148,9 @@ CTypeFactory::registerDefaultCreators()
 void
 CTypeFactory::registerDefaultUnknownHandlers()
 {
+     addUnknownTypeHandler(
+        new CStateMachineTypeFamilyHandler(m_db)
+    );
     addUnknownTypeHandler(new CEnumTypeFamilyHandler(m_db));
+   
 }

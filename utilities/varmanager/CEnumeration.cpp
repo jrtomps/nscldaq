@@ -184,7 +184,36 @@ CEnumeration::listEnums(CVariableDb& db)
     
     return result;
 }
-
+/**
+ * getValueId
+ *    Returns the id of a legal value for an enumeration.
+ *    This is the primary key of an element of the enumeration_values table
+ *    entry.
+ *    Mostly for internal use but knock yourself out.
+ * @param db     - Reference to the database.
+ * @param typeId - Primary key of the data type
+ * @param pValue - Null terminated string that is the value we are looking up.
+ * @return int   - primary key.
+ * @throw CException - if there's no match.
+ */
+int
+CEnumeration::getValueId(CVariableDb& db, int typeId, const char* pValue)
+{
+    CSqliteStatement finder(
+        db,
+        "SELECT id FROM enumerated_values               \
+            WHERE type_id = ?                           \
+            AND   value   = ?"  
+    );
+    finder.bind(1, typeId);
+    finder.bind(2, pValue, -1, SQLITE_TRANSIENT);
+    ++finder;
+    if (finder.atEnd()) {
+        throw CException("No such value");
+    }
+    
+    return finder.getInt(0);
+}
 /*------------------------------------------------------------------------
  * Utility methods:
  */

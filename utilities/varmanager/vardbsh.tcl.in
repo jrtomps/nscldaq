@@ -238,7 +238,32 @@ proc enum {typename values} {
     vardb::enum $::vardbsh::varDbHandle $typename $values
 }
 
-
+##
+# statemachine
+#    Create a statemachine data type.  Once created you can create variables
+#    of this type.
+#
+# @param typename    - name of the new type.
+# @param transitions - Tcl dict that defines the state diagram of the type.
+#                      dict keys are allowed states and dict values are lists
+#                      of legal states to which the key state can transition.
+#                      This is probably made clearer with an example:
+#                      dict create first second second third third [list first second]
+#                      defines a state machine with the following transition table:
+# \verbatim
+#                     |    From      |        To     |
+#                     +--------------+---------------+
+#                     |  first       | second        |
+#                     |  second      | third         |
+#                     |  third       | first         |
+#                     |  third       | second        |
+#                     +--------------+---------------+
+# \endverbatim
+#
+#
+proc statemachine {typename transitions} {
+    vardb::statemachine $vardbsh::varDbHandle $typename $transitions
+}
 
 set tcl_interactive 1
 

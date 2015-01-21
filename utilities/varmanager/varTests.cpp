@@ -84,6 +84,7 @@ class VarTests : public CppUnit::TestFixture {
   CPPUNIT_TEST(id);
   CPPUNIT_TEST(name);
   CPPUNIT_TEST(dirpath);
+  CPPUNIT_TEST(typeId);
   
   // Test of the listing method
   
@@ -99,6 +100,9 @@ class VarTests : public CppUnit::TestFixture {
   CPPUNIT_TEST(destroyByObj);
   CPPUNIT_TEST(destroyByRelPath);
   CPPUNIT_TEST(destroyByAbsPath);
+  
+  
+
   
   CPPUNIT_TEST_SUITE_END();
   
@@ -182,6 +186,7 @@ protected:
     void id();
     void name();
     void dirpath();
+    void typeId();
     
     void listEmpty();
     void listOne();
@@ -794,6 +799,22 @@ void VarTests::dirpath()
     
     delete pVar;
 }
+ void VarTests::typeId()
+ {
+    CVariable* pVar = CVariable::create(*m_db, "/int", "integer");
+    int typeId = pVar->getTypeId();
+    delete pVar;
+    
+    // Get the type id for integer:
+    
+    CSqliteStatement s(
+        *m_db,
+        "SELECT id FROM variable_types WHERE type_name='integer'"
+    );
+    ++s;
+    EQ(s.getInt(0), typeId);
+ }
+
 // listEmpty
 //    Listing the directories in an empty directory give and empty vector.
 

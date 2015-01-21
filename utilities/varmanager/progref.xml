@@ -76,6 +76,11 @@ del <replaceable>path</replaceable>
 enum <replaceable>type-name list-of-values</replaceable>
             </command>
         </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+statemachine <replaceable>type-name transition-dict</replaceable>
+            </command>
+        </cmdsynopsis>
                 
         </refsynopsisdiv>
         <refsect1>
@@ -280,6 +285,24 @@ pwd
                         that is an enumerated type. <parameter>list-of-values</parameter>
                         is a Tcl list that contains the legal values variables of this
                         type can have.
+                     </para>
+                 </listitem>
+             </varlistentry>
+             <varlistentry>
+                 <term>
+                      <cmdsynopsis>
+                        <command>
+statemachine <replaceable>type-name transition-dict</replaceable>
+                        </command>
+                    </cmdsynopsis>
+                 </term>
+                 <listitem>
+                     <para>
+                        Defines a new statemachine type.
+                        <parameter>type-name</parameter> is the name of the new
+                        data type. <parameter>transition-dict</parameter> is
+                        a dictionary whose keys are valid states and whose values
+                        are a list of the reachable states from that state.
                      </para>
                  </listitem>
              </varlistentry>

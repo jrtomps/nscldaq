@@ -140,9 +140,8 @@ CVariableDb::createSchema(CSqlite& db)
     CTypeFactory::createSchema(db);
     CTypeFactory factory(db);                 // Registers the types.
     
-    // Add the constraint types table:
-    // Define the variables table and the table that actualy contains
-    // constraints on variables:
+
+    // Define the variables table.
     
     CSqliteStatement::execute(
         db,
@@ -154,7 +153,6 @@ CVariableDb::createSchema(CSqlite& db)
             value               VARCHAR(256)  NOT NULL          \
         )"
     );
-    
 
 }
 

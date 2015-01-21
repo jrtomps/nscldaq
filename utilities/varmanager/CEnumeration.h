@@ -46,8 +46,12 @@ public:
     static void addValue(
         CVariableDb& db, const char* pTypeName, const char* value
     );
-    static std::vector<std::string> listValues(CVariableDb& db, const char* pTypeName);
+    static std::vector<std::string> listValues(
+        CVariableDb& db, const char* pTypeName
+    );
     static std::vector<std::string> listEnums(CVariableDb& db);
+    
+    static int getValueId(CVariableDb& db, int typeId, const char* pValue);
     
     // Utilities
 
