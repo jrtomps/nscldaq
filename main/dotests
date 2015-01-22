@@ -1,0 +1,18 @@
+#!/bin/bash
+
+set -e ;# make sure that the script exits with an error if _any_ error occurs
+
+test_dir () {
+for f in `find $1 -name Makefile -exec grep -l check-TESTS {}  \;`
+  do 
+    if test $f != ./Makefile
+    then
+      (cd `dirname $f`; make check-TESTS)
+    fi
+  done	
+
+}
+
+for dir in $* ; do
+  test_dir $dir
+done

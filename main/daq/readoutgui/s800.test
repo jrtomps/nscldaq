@@ -1,0 +1,327 @@
+package provide ReadoutGUIPanel 1.0
+
+package require tcltest
+package require S800_Provider
+
+tcltest::configure -verbose tebp
+namespace eval ::s800test {
+    variable fd
+    variable port 1234
+}
+
+proc startServer {} {
+    set tcl $::env(tcl)
+    set here [file dirname [info script]]
+    set server [file join $here s800fake.tcl]
+    set ::s800test::fd [open "|$tcl $server $::s800test::port" w]
+    after 500
+}
+proc stopServer {} {
+    close $::s800test::fd
+
+}
+##
+#  Reinit the s800 provider state white box
+proc clearS800ProviderState {} {
+    set ::S800::sourceParams [dict create] 
+}
+
+
+
+## Tests for admin functions:
+
+tcltest::test S800-parameters-1 {Check contents of the s800 parameter dict: } \
+-body {
+    ::S800::parameters
+    
+} -result [dict create host [list {Host name}] port [list {Run control server port}]]
+
+
+tcltest::test S800-capabilities-1 {Check contents of s800 capabilities dict} \
+-body {
+    ::S800::capabilities
+} -result [dict create canPause false runsHaveTitles true runsHaveNumbers true]
+
+## start tests.
+
+tcltest::test S800-start-1 {Starting when not started is ok} \
+-setup {
+    startServer
+} \
+-cleanup {
+    stopServer
+    clearS800ProviderState
+} \
+-body {
+    ::S800::start [dict create sourceid 0 host localhost port $::s800test::port]
+    
+    
+    set host [dict get $::S800::sourceParams 0 host] 
+    set port [dict get $::S800::sourceParams 0 port] 
+    set sourceid [dict get $::S800::sourceParams 0 sourceid] 
+    set state [dict get $::S800::sourceParams 0 state] 
+    set rctlObject [dict get $::S800::sourceParams 0 connectionObj] 
+
+    list $host $port $sourceid $state [expr {$rctlObject ne ""}]
+} -result [list localhost $::s800test::port 0 idle 1]
+
+tcltest::test s800-start-2 {Starting when already started is an error} \
+-setup {
+    startServer
+    ::S800::start [dict create sourceid 0 host localhost port $::s800test::port]
+} \
+-cleanup {
+    stopServer
+    clearS800ProviderState
+} \
+-body {
+    set status [catch {::S800::start  \
+        [dict create sourceid 0 host localhost port $::s800test::port]} msg]
+    list $status $msg
+} -result [list 1 {The remote data source at source id 0 must be in the halted state!}]
+
+## Test check
+
+tcltest::test s800-check-1 {Checking a source not managed is an error} \
+-body {
+    set status [catch {::S800::check 0} msg]
+    list $status $msg
+} -result [list 1 {0 is not the id of a source managed by the S800 provider.}]
+
+
+tcltest::test s800-check-2 {Checking a source managed and running is true} \
+-setup {
+    startServer
+    ::S800::start [dict create sourceid 0 host localhost port $::s800test::port]
+} \
+-cleanup {
+    stopServer
+    clearS800ProviderState
+} \
+-body {
+    ::S800::check 0
+} -result 1
+
+tcltest::test s800-check-3 {Checking a source that has been forced to die:} \
+-setup {
+    startServer
+    ::S800::start [dict create sourceid 0 host localhost port $::s800test::port]
+} \
+-cleanup {
+    clearS800ProviderState
+} \
+-body {
+    stopServer;   # Server exits now so:
+    update
+    set res [::S800::check 0];   # Should be zero.
+    
+    update
+    set res
+} -result 0
+##
+# stop tests:
+
+tcltest::test s800-stop-1 {Stop the provider when it is running} \
+-setup {
+    startServer
+    ::S800::start [dict create sourceid 0 host localhost port $::s800test::port]
+} \
+-cleanup {
+    stopServer
+    clearS800ProviderState
+} \
+-body {
+    update
+    ::S800::stop 0
+    set rctlObject [dict get $::S800::sourceParams 0 connectionObj]
+    set state [dict get $::S800::sourceParams 0 state]
+    list $rctlObject $state
+} -result [list {} halted]
+
+tcltest::test s800-stop-2 {Stop wrong provider fails} \
+-setup {
+    startServer
+    ::S800::start [dict create sourceid 0 host localhost port $::s800test::port]
+} \
+-cleanup {
+    stopServer
+    clearS800ProviderState
+} \
+-body {
+    set status [catch {::S800::stop 1} msg]
+    list $status $msg
+} -result [list 1 {1 is not the id of a source managed by the S800 provider.}]
+
+tcltest::test s800-stop-3 {Stop already stopped provider} \
+-setup {
+    startServer
+    ::S800::start [dict create sourceid 0 host localhost port $::s800test::port]
+    ::S800::stop 0
+} \
+-cleanup {
+    stopServer
+    clearS800ProviderState
+} \
+-body {
+    ::S800::stop 0;           # should work double stop is ok.
+    dict get $::S800::sourceParams 0 state
+} -result halted
+
+##
+# begin tests...we're going to this in the inactive and active state
+# though in the end we can't probe the guts of our test server in the middle
+# of the transactions runs.
+# What we can do is ensure that the server winds up in the right state.
+# A bit of white box-ness there as we're going to grab the s800rctl object
+# from the S800 provider to do that.
+
+tcltest::test s800-begin-1 {Start a run when the run is not started} \
+-setup {
+    startServer
+    ::S800::start [dict create sourceid 0 host localhost port $::s800test::port]
+} \
+-cleanup {
+    clearS800ProviderState
+} \
+-body {
+    S800::begin 0 1234 {This is a title}
+    set rctl [::S800::_getConnectionObject 0]
+    set runState [$rctl getState]
+    set title [lindex [$rctl Transaction {get title}] 1]
+    set run   [lindex [$rctl Transaction {get run}] 1]
+    
+    list $run $title $runState
+    
+} -result [list 1234 {This is a title}  active]
+
+tcltest::test s800-begin-2 {Start a run when the run is already active} \
+-setup {
+    startServer
+    ::S800::start [dict create sourceid 0 host localhost port $::s800test::port]
+   
+} \
+-cleanup {
+    clearS800ProviderState
+} \
+-body {
+    set status [catch {::S800::begin 1 1 {This is a title}} msg]
+    list $status $msg
+} -result [list 1 {1 is not the id of a source managed by the S800 provider.}]
+# end tests
+
+tcltest::test end-1 {End an active run} \
+-setup {
+    startServer
+    ::S800::start [dict create sourceid 0 host localhost port $::s800test::port]
+    ::S800::begin 0 1 {This is the first title};   # Run is already active.
+} \
+-cleanup {
+    clearS800ProviderState
+} \
+-body {
+    ::S800::end 0
+    set rctl [::S800::_getConnectionObject 0]
+    
+    set runState [$rctl getState]
+ } -result inactive 
+
+tcltest::test end-2 {End an inactive run} \
+-setup {
+    startServer
+    ::S800::start [dict create sourceid 0 host localhost port $::s800test::port]
+    set rctl [::S800::_getConnectionObject 0]
+    $rctl setMaster ;            # Should go back to slave after end.
+} \
+-cleanup {
+    clearS800ProviderState
+} \
+-body {
+    ::S800::end 0
+    set rctl [::S800::_getConnectionObject 0]
+    
+    set runState [$rctl getState]
+    set slaveState [lindex [$rctl Transaction {get slave}] 1]
+    
+    list $runState $slaveState
+} -result [list inactive 1]
+
+tcltest::test end-3 {End run with wrong source id fails} \
+-setup {
+    startServer
+    ::S800::start [dict create sourceid 0 host localhost port $::s800test::port]
+} \
+-cleanup {
+    clearS800ProviderState
+} \
+-body {
+    set status [catch {::S800::end 1} msg]
+    list $status $msg
+} -result [list 1 {1 is not the id of a source managed by the S800 provider.}]
+
+
+#-----------------------------------------------------------------------------#
+#
+#
+
+#
+#
+#
+tcltest::test init-0 {Init with no source id fails
+} -setup {
+#    startServer
+#    ::S800::start [dict create sourceid 0 host localhost port $::s800test::port]
+} -cleanup {
+#    clearS800ProviderState
+} -body {
+    set status [catch {::S800::init 0} msg]
+    list $status $msg
+} -result [list 1 {0 is not the id of a source managed by the S800 provider.}]
+
+#
+#
+#
+tcltest::test init-1 {Init with wrong source id fails 
+} -setup {
+    startServer
+    ::S800::start [dict create sourceid 0 host localhost port $::s800test::port]
+} -cleanup {
+    clearS800ProviderState
+} -body {
+    set status [catch {::S800::init 1} msg]
+    list $status $msg
+} -result [list 1 {1 is not the id of a source managed by the S800 provider.}]
+
+if {0} {
+#
+#
+#
+tcltest::test init-2 {Init succeeds when conditions are right 
+} -setup {
+    startServer
+    ::S800::start [dict create sourceid 0 host localhost port $::s800test::port]
+} -cleanup {
+    clearS800ProviderState
+} -body {
+    set status [catch {::S800::init 0} msg]
+    list $status $msg
+} -result [list 0 {}]
+}
+
+#
+#
+#
+tcltest::test init-3 {Init fails when source is not idle
+} -setup {
+    startServer
+    ::S800::start [dict create sourceid 0 host localhost port $::s800test::port]
+    ::S800::begin 0 1 {title}
+} -cleanup {
+    clearS800ProviderState
+} -body {
+    set status [catch {::S800::init 0} msg]
+    list $status $msg
+} -result [list 1 {Cannot initialize source 0 when not idle.}]
+
+
+## Report test results.
+tcltest::cleanupTests

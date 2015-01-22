@@ -1,0 +1,854 @@
+<!-- chapter libraries -->
+
+<chapter id="chapter.cringmaster">
+    <title>Ring master class library.</title>
+    <para>
+        The
+        <application>RingMaseter</application>
+        is a server that manages access to ringbuffers and cleans up ring buffer
+        resources left by improperly exiting programs. See
+        <link linkend="chapter.ringmaster">The RingMaster Server</link>
+        for more information about that server.
+    </para>
+    <para>
+        The
+        <classname>CRingMaster </classname>
+        class is a C++ class that provides access to the ring master in any
+        system.  In many cases, this is created, and functions called
+        transparently by higher level library modules.
+    </para>
+    <para>
+        The ring master library is part of the dataflow client library.
+        It provides a header
+        <filename>CRingMaster.h</filename> as well.
+        The examples below show how to incorporate this header, into your
+        source code and compilation, and how to link to the data flow library.
+        We assume there's an environment variable named DAQROOT which is the
+        top level of the NSCLDAQ installation tree.
+    </para>
+    <example>
+        <title>Including the header</title>
+        <programlisting>
+#include &lt;CRingMaster.h&gt;
+        
+        </programlisting>
+    </example>
+    <example>
+        <title>Compiling code</title>
+        <programlisting>
+g++ -c -I$DAQROOT/include mymodule.cpp
+        </programlisting>
+    </example>
+    <example>
+        <title>Linking code to the library</title>
+        <programlisting>
+g++ -o myprogram myprogram.cpp -L$DAQROOT/lib -ldataflow -Wl,"-rpath=$DAQROOT/lib"
+        </programlisting>
+    </example>
+    <para>
+        <link linkend="manpage.cringmaster">RingMaster access</link>
+        provides reference information on this library.
+    </para>
+</chapter>
+
+<chapter id="chapter.ringaccess">
+    <title>Networked ring buffer access</title>
+    <para>
+        The NSCL data acquisition system allows data inserted in local ring
+        buffers to be acquired by remote systems.   This is done in such a way as
+        to minimize data transfer.   The first application to request data from a
+        remote ring contacts the remote system's RingMaster server.  The RingMaster
+        runs an instance of
+        <application>ringtostdout</application> on the requested ring, with
+        stdout redirected across the request socket.  The local system sets up
+        a <firstterm>proxy ring</firstterm> and starts up an instance of
+        <application>stdintoring</application> with stdin connected to the data
+        transmission socket.  Finally the application is connected as a consumer
+        to the proxy ring.  Subsequent applications that request data from the same
+        remote ring are simply connected to the proxy ring.
+    </para>
+    <para>
+        The networked ring buffer access class
+        <classname>CRingAccess</classname> provides member functions that make
+        this operation completely transparent to application code.  Ring buffers
+        are specified using a URI (Universal Resource Identifier), that specifies
+        the host and remote ring name.
+    </para>
+    <example>
+        <title>A sample ring specification in URI form</title>
+        <programlisting>
+tcp://spdaq22.nscl.msu.edu/mydaq
+        </programlisting>
+    </example>
+    <para>
+        The example above requests data from the ring
+        <literal>mydaq</literal> on the host
+        <literal>spdaq22.nscl.msu.edu</literal>.
+        If the host specified is <literal>localhost</literal> the
+        <classname>CRingAccess</classname> will connect the application
+        directly to the specified local ring without creating a proxy ring.
+        When attaching to a ring you should construct URIs for rings
+        as shown below:
+    </para>
+    <example>
+        <title>Substituting local host for the hostname in URI's</title>
+        <programlisting>
+#include &lt;unistd.h&gt;
+#include &lt;string&gt;
+using namespace std;
+...
+
+string ringUri(string host, string ring)
+{
+    char localHost[100];
+    char domain[100];
+    gethostname(localhost, sizeof(localhost));   <co id="chapter.ringaccess.hostname" />
+    getdomainname(domain, sizeof(domain));       <co id="chapter.ringaccess.domain" />
+    
+    string fqdn(localHost);
+    if (host == fqdn) {
+       host = "localhost";
+    }
+    fqdn += domain;                              <co id="chapter.ringaccess.islocal" />
+    if (host == fqdn) {
+       host = "localhost";
+    }
+    string uri("tcp://");
+    uri   += host;
+    uri   += "/";                              <co id="chapter.ringaccess.builduri" />
+    uri   += ring;
+    return uri;
+    
+}
+        </programlisting>
+    </example>
+    <calloutlist>
+        <callout arearefs="chapter.ringaccess.hostname">
+            <para>
+                This section of code determines the name of the host.
+                For <literal>spdaq20.nscl.msu.edu</literal> e.g., this will
+                fill <varname>localhost</varname> with
+                <literal>localhost</literal>
+            </para>
+        </callout>
+        <callout arearefs="chapter.ringaccess.domain">
+            <para>
+                This section of code determines DNS domain name of the system.
+                For <literal>spdaq20.nscl.msu.edu</literal>
+                <varname>domain</varname> gets filled with the string
+                <literal>nscl.msu.edu</literal>.
+            </para>
+        </callout>
+        <callout arearefs="chapter.ringaccess.islocal">
+            <para>
+                This section of code considers the case that
+                <parameter>host</parameter> is either the
+                <firstterm>unqualified host name</firstterm> (e.g.
+                <literal>spdaq20</literal>), or the
+                <firstterm>fully qualified host name</firstterm>
+                (e.g. <literal>spdaq20.nscl.msu.edu</literal>), and if so
+                substitutes <literal>localhost</literal> to prevent the
+                formation of a proxy ring, when the URI is used to connect to
+                the <parameter>ring</parameter>
+            </para>
+        </callout>
+        <callout arearefs="chapter.ringaccess.builduri" >
+            <para>
+                Finally this section of code constructs and returns a string
+                containing the URI that will specify <parameter>ring</parameter>
+                in the system <parameter>host</parameter>.
+            </para>
+        </callout>
+    </calloutlist>
+    <para>
+        To use the remote access software,  you must incorporate the class definitions
+        into your software, tell the compiler how to locate the class header and
+        link your application to the data flow library.  The examples below show
+        how to do each of these. The compiler and linker lines assume that
+        you have defined DAQROOT to point to the top level directory of the
+        installed NSCLDAQ.
+    </para>
+    <example>
+        <title>Including the header</title>
+        <programlisting>
+#include &lt;CRemoteAccess.h&gt;
+...
+        </programlisting>
+    </example>
+    <example>
+        <title>Compiling code that uses <classname>CRingAccess</classname></title>
+        <programlisting>
+g++ -c -I$DAQROOT/include mycode.cpp
+        </programlisting>
+    </example>
+    <example>
+        <title>Linking code that uses <classname>CRingAccess</classname></title>
+        <programlisting>
+g++ -o myapp myapp.cpp -L$DAQROOT/lib -lDataFlow -Wl,"-rpath=$DAQROOT/lib"
+        </programlisting>
+    </example>
+    <para>
+        <link linkend="manpage.cringaccess">Remote Ring Access</link> provides
+        reference information about this class library.
+    </para>
+</chapter>
+<!-- /chapter -->
+
+<!-- manpage 3daq -->
+
+    <refentry id="manpage.cringmaster">
+      <refmeta>
+         <refentrytitle>
+            CRingMaster
+            <author><firstname>Ron</firstname> <surname>Fox</surname></author>
+            <productname>NSCLDAQ</productname>
+            <productnumber></productnumber>
+         </refentrytitle>
+         <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+      </refmeta>
+      <refnamediv>
+         <refname>CRingMaster</refname>
+	 <refpurpose>RingMaster access.</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;CRingMaster.h&gt;
+         </programlisting>
+         <synopsis>
+         class <ooclass><classname>CRingMaster</classname></ooclass> {
+            <constructorsynopsis>
+                <methodname>CRingMaster</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>host</parameter> <initializer>std::string("localhost")</initializer>
+                </methodparam>
+            </constructorsynopsis>
+            <destructorsynopsis>
+                <modifier>virtual</modifier>
+                <methodname>~CRingMaster</methodname>
+                <void />
+            </destructorsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>notifyConsumerConnection</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>ringname</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>id</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>std::string</type> <parameter>comment</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>notifyProducerConnection</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>ringname</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>std::string</type> <parameter>comment</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>notifyConsumerDisconnection</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>ringname</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>slot</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>notifyProducerDisconnection</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>ringname</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>notifyCreate</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>ringname</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>notifyDestroy</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>ringname</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>int</type> <methodname>requestData</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>ringname</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier></modifier>
+                <type>std::string</type>
+                <methodname>requestUsage</methodname>
+                <void />
+                <modifier></modifier>
+            </methodsynopsis>    
+         }
+         </synopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>Description</title>
+         <para>
+            This class provides simple member functions to communicate with a
+            remote ring master.  Constructing an object forms the connection
+            to the ring master, while destroying the object closes the connection.
+            Note that in most case, application code will not need to manipulate
+            <classname>CRingMaster</classname> objects.  They are transparently
+            manipulated by
+            <classname>CRingBuffer</classname> and
+            <classname>CRingAccess</classname> objects on behalf of the application.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            Public member functions
+         </title>
+            <constructorsynopsis>
+                <methodname>CRingMaster</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>host</parameter> <initializer>std::string("localhost")</initializer>
+                </methodparam>
+            </constructorsynopsis>
+            <para>
+                Constructs  a <classname>CRingMaster</classname> object.  This
+                forms a connection to the RingMaster server running in
+                <parameter>host</parameter>. If the <parameter>host</parameter>
+                parameter is not supplied, it defaults to connecting to the
+                ring master in the local host.
+            </para>
+            <destructorsynopsis>
+                <modifier>virtual</modifier>
+                <methodname>~CRingMaster</methodname>
+                <void />
+            </destructorsynopsis>
+            <para>
+                Destruction closes the ring master socket.  Note that the
+                RingMaster will release all outstanding ring consumer and
+                producer registrations when this happens.  The
+                <classname>CRingBuffer</classname> class therefore maintains a
+                single common
+                <classname>CRingMaster</classname> object for the life of the
+                application.
+            </para>
+            <methodsynopsis>
+                <type>void</type> <methodname>notifyConsumerConnection</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>ringname</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>id</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>std::string</type> <parameter>comment</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Interacts with the RingMaster to inform it that the application
+                has attached to a ring as a consumer.
+                The <classname>CRingBuffer</classname> class does this transparently.
+                This method will fail if the connection is not to the
+                the local ring master.  Note that local means the host name
+                on the constructor was
+                <literal>localhost</literal>.
+                <parameter>ringname</parameter> specifies the name and
+                <parameter>id</parameter> the consumer slot.
+                <parameter>comment</parameter> is just a documentation comment.
+            </para>
+            <methodsynopsis>
+                <type>void</type> <methodname>notifyProducerConnection</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>ringname</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>std::string</type> <parameter>comment</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Notifies the ring master that a the application has become the
+                producer for a ring.  This is done  transparently by the
+                <classname>CRingBuffer</classname>
+                constructor if the connection specified is
+                <varname>CRingBuffer::producer</varname>.  This method will fail if
+                the
+                <classname>CRingMaster</classname>
+                object is not connected to the server on <literal>localhost</literal>.
+                <parameter>ringname</parameter> is the name of the ring attached,
+                <parameter>comment</parameter> is just a documentation comment.
+            </para>
+            <methodsynopsis>
+                <type>void</type> <methodname>notifyConsumerDisconnection</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>ringname</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>slot</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Interacts with the ring master to indicate that the application
+                has released a consumer connection to a ring buffer.
+                <parameter>ringname</parameter> is the name of the ring, and
+                <parameter>slot</parameter> is the ring buffer consumer slot
+                number being released.
+                <classname>CRingBuffer</classname> will automatically call this
+                member function when a consumer object is destroyed.
+                Furthermore, if the
+                <classname>CRingMaster</classname> object is destroyed (including
+                on application exit), the server will release any ring buffer
+                consumer and producer resources that are still held that were
+                notified by that
+                <classname>CRingMaster</classname> object.
+            </para>
+            <methodsynopsis>
+                <type>void</type> <methodname>notifyProducerDisconnection</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>ringname</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Releases the producer resources for <parameter>ringname</parameter>.
+                A
+                <classname>CRingBuffer</classname>
+                object that is a  producer connection will transparently call
+                this to release the ring.  If the
+                <classname>CRingMaster</classname> object is destroyed (including
+                on application exit), the server will release any ring buffer
+                consumer and producer resources that are still held that were
+                notified by that
+                <classname>CRingMaster</classname> object.
+            </para>
+            <methodsynopsis>
+                <type>void</type> <methodname>notifyCreate</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>ringname</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Notifies the RingMaster server that a new ring;
+                <parameter>ringname</parameter>
+                has been created.  This is transparently called by the
+                <classname>CRingBuffer</classname>::<methodname>create</methodname>
+                member.
+            </para>
+            <methodsynopsis>
+                <type>void</type> <methodname>notifyDestroy</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>ringname</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Informs the RingMaster that a ring named
+                <parameter>ringname</parameter>
+                has been destroyed.  This is normally called
+                transparently by
+                <classname>CRingBuffer</classname>::<methodname>remove</methodname>.
+                Ring buffers persist beyond the lifetime of the creating process,
+                and even across reboots.
+            </para>
+            <methodsynopsis>
+                <type>int</type> <methodname>requestData</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>ringname</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Requests data from a ring <parameter>ringname</parameter> that is
+                local to the RingMaster this object is connected to.
+                The function returns a socket file descriptor along which the
+                data will be transmitted.  The RingMaster treats this like
+                disconnection from the object.  Further requests will most likely
+                result in error, it is best to destroy this object once
+                this method returns successfully.
+            </para>
+            <methodsynopsis>
+                <modifier></modifier>
+                <type>std::string</type>
+                <methodname>requestUsage</methodname>
+                <void />
+                <modifier></modifier>
+            </methodsynopsis>
+            <para>
+                Requests usage information from the RingMaster.  This is returned
+                as a, possibly empty, proper Tcl list with one element per ring.
+                Each list itself is a sublist which contains in order:
+                <variablelist>
+                    <varlistentry>
+                        <term>name</term>
+                        <listitem>
+                            <para>
+                                The name of the ring.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>size</term>
+                        <listitem>
+                            <para>
+                                Size of the ring buffer part of the ring shared memory
+                                region in bytes.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>Free space</term>
+                        <listitem>
+                            <para>
+                                Number of bytes of free space in the ring.  This is the size of
+                                the largest possible put into the ring at this instant in time.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>Producer</term>
+                        <listitem>
+                            <para>
+                                The process id of the producer or <literal>-1</literal>
+                                if there is no producer for this ringbuffer.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>Maximum available.</term>
+                        <listitem>
+                            
+                            <para>
+                                The size of the backlog in bytes for the consumer that is
+                                least caught up.  
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>Minimum Available</term>
+                        <listitem>
+                            <para>
+                                The size of the backlog in bytes for the consumer that is
+                                most caught up.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>Consumer information</term>
+                        <listitem>
+                            <para>
+                                This is a list containing one element per currently attached
+                                consumer.  The elements themselves are two element lists containing
+                                in order the PID of the consumer and the size of that consumer's
+                                backlog in bytes.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    
+                </variablelist>
+            </para>
+      </refsect1>
+   </refentry>
+
+    <refentry id="manpage.cringaccess">
+        <refentryinfo>
+            <author><firstname>Ron</firstname> <surname>Fox</surname></author>
+            <productname>NSCLDAQ</productname>
+            <productnumber></productnumber>           
+        </refentryinfo>
+      <refmeta>
+         <refentrytitle>CRingAccess</refentrytitle>
+         <manvolnum>3 daq</manvolnum>
+        <refmiscinfo class='empty'></refmiscinfo>
+      </refmeta>
+      <refnamediv>
+         <refname>CRingAccess</refname>
+	 <refpurpose>Remote Ring Access</refpurpose>
+         
+      </refnamediv>
+      
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;CRemoteAccess.h&gt;
+         </programlisting>
+         <classsynopsis>
+            <ooclass><classname>CRingAccess</classname></ooclass>
+            <methodsynopsis>
+                <modifier>static</modifier> <type>size_t</type>
+                <methodname>setProxyRingSize</methodname>
+                <methodparam>
+                    <type>size_t</type> <parameter>newSize</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier> <type>size_t</type>
+                <methodname>getProxyRingSize</methodname>
+                <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier> <type>size_t</type>
+                <methodname>setProxyMaxConsumers</methodname>
+                <methodparam>
+                    <type>size_t</type> <parameter>newMax</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier> <type>size_t</type>
+                <methodname>getProxyMaxConsumers</methodname>
+                <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier> <type>size_t</type>
+                <methodname>setMinData</methodname>
+                <methodparam>
+                    <type>size_t</type> <parameter>minData</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier> <type>size_t</type>
+                <methodname>getMinData</methodname>
+                <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier> <type>unsigned</type>
+                <methodname>setTimeout</methodname>
+                <methodparam>
+                    <type>unsigned</type> <parameter>newTimeout</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier> <type>unsigned</type>
+                                            <methodname>getTimeout</methodname>
+                        <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier> <type>CRingBuffer*</type>
+                        <methodname>daqConsumeFrom</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>uri</parameter>
+                </methodparam>
+            </methodsynopsis>
+         </classsynopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>Description</title>
+         <para>
+            This class provides a unified way to get consumer access to
+            ring buffer data in both local and remote systems.  Producer access
+            must always be to a local system and use the
+            <classname>CRingBuffer</classname>
+            class.
+         </para>
+         <para>
+            The class uses a proxy ring buffer scheme to minimize the
+            network traffic required to serve the needs of clients in remote rings,
+            as well as to make the programmatic interfaces consistent for both
+            cases.  The first time a client requires data from a specific remote
+            ring, the system creates a local ring that is a combinatin of the remote
+            host name and the remote ringname (speficially spdaq20's daq ringbuffer
+            will have a proxy named spdaq20.daq).  The software transparently
+            interacts with the remote system's RingMaster process to arrange for
+            data to be hoisted from the remote ring to the local proxy ring.
+         </para>
+         <para>
+            All clients are subsequently simply attached to the proxy ring.
+            Once attached, clients make normal ring buffer calls from
+            <classname>CRingBuffer</classname>
+            to get data, and the ring is pratically indistinguishable from a
+            remote ring.
+         </para>
+         <para>URI's are used to provide a naming scheme to specify hostnames and
+            ring buffer names.  A ring buffer URI will be of the form:
+            <literal>tcp://hostname/ringname</literal>.
+            If <literal>hostname</literal> is identical to
+            <literal>localhost</literal>, the ring buffer is assumed to be local
+            and no proxy is created.  Note that using the host's hostname
+            <emphasis>does</emphasis> create a proxy ring, and is less efficient
+            than using
+            <literal>localhost</literal>.
+         </para>
+         <para>
+            The chapter:
+            <link linkend="chapter.ringaccess">Networed Ring Buffer Access</link>
+            includes sample code for detecting and mapping the use of a system's
+            hostname into <literal>localhost</literal>.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            Public member functions
+         </title>
+         <para>
+            Note that all member functions are static and therefore do not
+            require an object.  See EXAMPLES below.
+         </para>
+        <methodsynopsis>
+             <modifier>static</modifier> <type>size_t</type>
+             <methodname>setProxyRingSize</methodname>
+             <methodparam>
+                 <type>size_t</type> <parameter>newSize</parameter>
+             </methodparam>
+        </methodsynopsis>
+           <para>
+                When the software creates a proxy ring, it uses a ring data size
+                stored in static data. This function sets the ring data size
+                for proxy rings that will be subsequently created to
+                <parameter>newSize</parameter>.  The function returns
+                the prior ring size.
+            </para>
+            <para>
+                Note that setting this value and then forming a connection to
+                a remote ring does not ensure the proxy ring will have the requested
+                size as the proxy ring might have already been created by another
+                application's connection to that ring.  
+            </para>
+         <methodsynopsis>
+             <modifier>static</modifier> <type>size_t</type>
+             <methodname>getProxyRingSize</methodname>
+             <void />
+         </methodsynopsis>
+         <para>
+            Returns the current proxy ring size parameter.
+         </para>
+         <methodsynopsis>
+             <modifier>static</modifier> <type>size_t</type>
+             <methodname>setProxyMaxConsumers</methodname>
+             <methodparam>
+                 <type>size_t</type> <parameter>newMax</parameter>
+             </methodparam>
+         </methodsynopsis>
+         <para>
+            Specifies <parameter>newMax</parameter> to be the maximum number of
+            concurrent consumers that can attacht to new proxy rings created by
+            this application in the future.  Note that a proxy ring counts as
+            a single consumer for the original target ring  in the remote system
+            regardless of how many consumers are connected to the proxy ring.
+         </para>
+         <para>
+            See the comments in <methodname>setProxyRingSize</methodname>
+            as the same caveats apply.  The function returns the prior value
+            of this configuration parameter.
+         </para>
+         <methodsynopsis>
+             <modifier>static</modifier> <type>size_t</type>
+             <methodname>getProxyMaxConsumers</methodname>
+             <void />
+         </methodsynopsis>
+         <para>
+            Returns the current application value of the parameter that
+            controls the maximum number of consumers that can connect to a new
+            proxy ring.
+         </para>
+         <methodsynopsis>
+             <modifier>static</modifier> <type>size_t</type>
+             <methodname>setMinData</methodname>
+             <methodparam>
+                 <type>size_t</type> <parameter>minData</parameter>
+             </methodparam>
+         </methodsynopsis>
+         <para>
+            Sets the value for new proxy ring's
+            <application>stdintoring</application>
+            <option>--mindata</option> value to
+            <parameter>minData</parameter>.
+            Returns the previous value.
+         </para>
+         <methodsynopsis>
+             <modifier>static</modifier> <type>size_t</type>
+             <methodname>getMinData</methodname>
+             <void />
+         </methodsynopsis>
+         <para>
+            Returns the value of the parameter that sets the
+            <option>--mindata</option> for
+            <application>stdintoring</application> for new proxy rings.
+         </para>
+         <methodsynopsis>
+             <modifier>static</modifier> <type>unsigned</type>
+             <methodname>setTimeout</methodname>
+             <methodparam>
+                 <type>unsigned</type> <parameter>newTimeout</parameter>
+             </methodparam>
+         </methodsynopsis>
+         <para>
+            Sets the value of the
+            <option>--timeout</option> parameter for the
+            <application>stdintoring</application> associated with new
+            proxy rings to <parameter>newTimeout</parameter>.
+            The function returns the previous value of this parameter.
+         </para>
+         <methodsynopsis>
+             <modifier>static</modifier> <type>unsigned</type>
+                                         <methodname>getTimeout</methodname>
+                     <void />
+         </methodsynopsis>
+         <para>
+            Returns the value that will be given to the
+            <option>--timeout</option> option for the
+            <application>stintoring</application> that will be created as the
+            producer for new proxy rings.
+         </para>
+         <methodsynopsis>
+             <modifier>static</modifier> <type>CRingBuffer*</type>
+                     <methodname>daqConsumeFrom</methodname>
+             <methodparam>
+                 <type>std::string</type> <parameter>uri</parameter>
+             </methodparam>
+         </methodsynopsis>
+         <para>
+            The core method of this class.  Attempts to form a connection to the
+            ring specified by <parameter>uri</parameter>.  If the URI is a local
+            ring, the application will connect directly to that ring.  If not,
+            proxy rings will be used as documented in DESCRIPTION above.
+        </para>
+        <para>
+            The return value is a pointer to a
+            <classname>CRingBuffer</classname> that can be used to accept data
+            from the ring.
+        </para>
+      </refsect1>
+      <refsect1>
+         <title>Exceptions</title>
+         <para>
+            Exceptions are used to signal all errors.  Most exceptions thrown
+            will be
+            <classname>CErrnoException</classname> objects.  The remaining wil
+            be some other form of
+            <classname>CException</classname>, or <type>string</type>
+            exception objects.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>EXAMPLES</title>
+         <para>
+            The first example connects to a local ring buffer named
+            <literal>daq</literal>.
+         </para>
+         <example>
+            <title>Using <classname>CRingAccess</classname> to connect to
+                    a local ring.</title>
+            <programlisting>
+#include &lt;CRemoteAccess&gt;
+...
+
+CRingBuffer* pRing = CRingAccess::daqConsumeFrom("tcp://localhost/daqring");
+...
+            </programlisting>
+         </example>
+         <example>
+            <title>Using <classname>CRingAccess</classname> to connect to a remote
+                ring</title>
+            <programlisting>
+#include &lt;CRemoteAccess&gt;
+...
+
+CRingBuffer* pRing =
+     CRingAccess::daqConsmeFrom("tcp://spdaq22.nscl.msu.edu/daqring");
+...
+            </programlisting>
+         </example>
+      </refsect1>
+   </refentry>
+
+
+<!-- /manpage -->

@@ -1,0 +1,11 @@
+package "glom"
+version "1.1"
+purpose "Build events given a stream of ordered fragments"
+
+
+option "dt" t "Coincidence time window in ticks" int required
+option "nobuild" n "If present, don't build" flag off
+option "timestamp-policy" p "How to derive timstamp of built events" 
+    values="earliest","latest","average" enum optional default="earliest"
+option "sourceid"   s  "Source Id of built events" int optional default="0"
+

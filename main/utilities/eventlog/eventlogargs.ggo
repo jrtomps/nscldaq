@@ -1,0 +1,12 @@
+package "EventLog"
+purpose "Log event data to file"
+
+option "source" s "URL of source ring buffer" string optional
+option "path"   p "Directory in which event files are made" string optional
+option "segmentsize" S "Size of event segments e.g. 2g or 2000m" string optional
+option "oneshot" o   "Record one run and exit, making synchronization files" optional
+option "number-of-sources" n "Number of data sources being built" int  optional default="1" 
+option "run"     r  "Run number : Overrides run state information ring items" int optional
+option "checksum" c "If present, in addition to run files, checksum files are produced" flag off
+option "combine-runs" C "If present, changes in run number in one-shot mode don't cause exit" flag off
+option "prefix" f "Specifies the prefix to use for the output file name" string optional

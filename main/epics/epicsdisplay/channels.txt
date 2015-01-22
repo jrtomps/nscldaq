@@ -1,0 +1,38 @@
+#EXPNUMBER  ExperimentNumber ("01234") 
+#EXPTITLE   Experiment Title ("Mg-99 Lifetime")
+#EXPSPOKES  Spokesperson's Name 
+#STRCHAN102 Name of Operator in charge
+#PBEAMZ     Proton Number Z of Primary Beam
+#PBEAMSTR   Chemical Symbol (e.g. "Au") of Primary Beam
+#PBEAMA     Mass Number A of Primary Beam
+#PBEAMMASS  Beam mass "A" as a floating-pt. variable [amu]
+#ENERGYK5   K500 Final Energy [MeV/nuc]
+#ENERGYK12  K1200 Final Energy [MeV/nuc]
+#FLTCHAN51  K1200 Final Rigidity    [Tm]
+#P#2:43411#BIN8    Cyclotron Freq [MHz/10^4 = centiHz?]
+#A19OPTICS  Optics File Name (A1900) 
+#INTCHAN58  Proton Number Z of Secondary Beam
+#STRCHAN300 Chemical Symbol for Secondary Beam
+#INTCHAN59  Mass Number A of Secondary Beam
+#P#1:401530 Attenuator Position Number (1-14)
+#STRCHAN27 Attenuator String (gen par)
+#FLTCHAN67 A1900 Seg 0 BRho Line          
+#FLTCHAN68 A1900 Seg 1 BRho Line
+#FLTCHAN69 A1900 Seg 2 BRho Line
+#FLTCHAN70 A1900 Seg 3 BRho Line
+#FLTCHAN71 A1900 Seg 4 BRho Line
+#FLTCHAN72 A1900 Seg 5 BRho Line
+#FLTCHAN99 GenPar A1900 D1 Rho
+#FLTCHAN100 GenPar A1900 D2 Rho
+#FLTCHAN101 GenPar A1900 D3 Rho
+#FLTCHAN102 GenPar A1900 D4 Rho
+# -----
+# -----   K1200 -> A1900 Target
+Z001DV    chart
+Z002DH
+Z003DV
+Z004QA
+Z005QB
+Z008DS   chart
+Z011QA
+Z012QB

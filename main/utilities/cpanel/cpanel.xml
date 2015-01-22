@@ -1,0 +1,348 @@
+<!-- chapter utilities -->
+
+<chapter id='chap.cpanel'>
+    <title id='chap.cpanel.title'>The state manager control panel</title>
+    <para>
+        The state manager control panel connects to the state manager.
+        See <link linkend='chap.statemgr' endterm='chap.statemgr.title' /> for
+        information about the state manager.  For the manpage on the control
+        panel see
+        <link linkend='daq1-cpanel' endterm='daq1-cpanel-title' />
+    </para>
+    <para>
+        The state manager provides a display that describes the current system
+        state as well as providing a context sensitive set of buttons that
+        allow you to request all legal state transitions for the current state.
+        Since the control panel gets state and transition publications, you can
+        start more than one panel and all panels will continue to be consistent
+        regardless of which panel initiates transitions.
+    </para>
+    <para>
+        The control panel (cpanel) needs to have a set of environment definitions made
+        to run correctly.  To get those definitions made, source the
+        <filename>daqsetup.bash</filename> script from the top level directory of
+        the NSCLDAQ installation tree.
+    </para>
+    <para>
+        cpanel determines how to connect to the state manager by following
+        the procedure below:
+    </para>
+    <orderedlist>
+        <listitem>
+            <para>
+                If the <option>--state_uri</option> and <option>--transition-uri</option>
+                are both defined, they are used as the URI's for the state/transition
+                publication port and the transition request port respectively.
+            </para>
+        </listitem>
+        <listitem>
+            <para>
+                If the above conditions are not satisified,
+                and the <option>--host</option>, <option>--state-service</option>
+                and <option>--transition-service</option> options are all
+                defined, the port manager is used to obtain the ports so that
+                the appropriate URI's can be constructed.
+            </para>
+        </listitem>
+        <listitem>
+            <para>
+                If the previous condition is not satisfied, cpanel will attempt
+                to obtain the values of the environment variables:
+                <literal>TRANSITION_SUBSCRIPTION_URI</literal> and
+                <literal>TRANSITION_REQUEST_URI</literal> and use
+                them as the state/transtion publication and transition
+                request port URI's respectively.  Note that if cpanel
+                is run from the boot manager, the boot manager will have
+                defined these environment variables.  Note as well, that
+                at least one control panel must not be run from the boot  manager
+                because the system has to be booted somehow.
+            </para>
+        </listitem>
+        <listitem>
+            <para>
+                If the previous condition is not satisfied, cpanel will
+                attempt to connect to the user's state manager in
+                <literal>localhost</literal> using the state manager's
+                default service names to look up the ports needed.
+            </para>
+        </listitem>
+    </orderedlist>
+    <para>
+        Typically, in addition to the state manager, you will want
+        the boot  manager running prior to asking the state manager
+        to make state transitions.  Let's look at a typical sequence of
+        bringing up the experiment (booting it), starting and stopping data taking
+        and then shutting down the experiment.  We're going to assum you've
+        just started the state and boot managers so that the system is in the
+        <literal>NotReady</literal> state.
+    </para>
+    <para>
+        The figure below shows what cpanel looks like when it is started:
+        <informalfigure>
+            
+            <mediaobject>
+               <imageobject>
+                    <imagedata fileref='cpanel-notready.jpg' format='JPEG' />
+                </imageobject>
+            </mediaobject>
+        </informalfigure>
+        At the right side of its window, the control panel will always display
+        the current state.  The buttons appropriate to that state will
+        be at the left side of the window.  The <guibutton>Boot</guibutton> button
+        will request that the state manager take a <literal>BOOT</literal>
+        transition to the <literal>Booting</literal> state.  From there the
+        boot manager will take over, create rings and processes and initiate
+        a transition to the <literal>Ready</literal> state.
+    </para>
+    <para>
+        The figure below shows what cpanel looks like when the system is in the
+        <literal>Ready</literal> state.
+        <informalfigure>
+            <mediaobject>
+               <imageobject>
+                    <imagedata fileref='cpanel-ready.jpg' format='JPEG' />
+                </imageobject>
+            </mediaobject>
+        </informalfigure>
+        There are now two buttons:
+        <itemizedlist>
+            <listitem><para><guibutton>Begin</guibutton>  requests a
+                <literal>BEGIN</literal> transition to the <literal>Active</literal>
+                state.   Readout program that are hooked into the state manager
+                will use that to begin data taking.
+                </para>
+            </listitem>
+            <listitem><para><guibutton>Fail</guibutton> can be clicked if you
+                think something is wrong.  It initiates a <literal>FAIL</literal>
+                transition that drops the system back into the <literal>NotReady</literal>
+                state.  The boot manager will catch that transition and stop all
+                programs.
+                </para>
+            </listitem>
+        </itemizedlist>
+    </para>
+    <para>
+        If you click <guibutton>Begin</guibutton> to start the run, the
+        control panel window will look like this:
+        <informalfigure>
+    
+            <mediaobject>
+               <imageobject>
+                    <imagedata fileref='cpanel-active.jpg' format='JPEG' />
+                </imageobject>
+            </mediaobject>
+        </informalfigure>
+        <itemizedlist>
+            <listitem><para><guibutton>End</guibutton> when clicked will
+            request an <literal>END</literal> transition which will take the
+            system back to the <literal>Ready</literal> state.  State aware
+            readout programs stop data taking when they observe that transition.
+            </para></listitem>
+            <listitem><para><guibutton>Fail</guibutton> when clicked requests
+            a <literal>FAIL</literal> transition to the <literal>NotReady</literal>
+            state.
+            </para>
+            </listitem>
+        </itemizedlist>
+    </para>
+    <para>
+        Once a run is ended, a new run can be started. The system can also be
+        shutdown by clicking the <guibutton>Fail</guibutton> button at any time.
+    </para>
+</chapter>
+
+<!-- /chapter -->
+
+<!-- manpage 1daq -->
+
+      <refentry id="daq1-cpanel">
+        <refmeta>
+           <refentrytitle id='daq1-cpanel-title'>cpanel</refentrytitle>
+           <manvolnum>1daq</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>cpanel</refname>
+           <refpurpose>Control panel for state manager</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+$DAQBIN/cpanel <optional>options...</optional>
+          </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Control panel for the state and boot managers.   Provides
+            a very simple GUI that can be used to control the state manager
+            and run it through it states via allowed transitions.
+           </para>
+           <para>
+            See <literal>OPTIONS</literal> below for the command line options.
+            Just a note first about how cpanel locates the state manager with
+            which it will interact.
+            <orderedlist>
+                <listitem>
+                    <para>
+                        If the <option>--state_uri</option> and <option>--transition-uri</option>
+                        are both defined, they are used as the URI's for the state/transition
+                        publication port and the transition request port respectively.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        If the above conditions are not satisified,
+                        and the <option>--host</option>, <option>--state-service</option>
+                        and <option>--transition-service</option> options are all
+                        defined, the port manager is used to obtain the ports so that
+                        the appropriate URI's can be constructed.
+                    </para>
+                </listitem>
+
+                <listitem>
+                    <para>
+                        If the previous condition is not satisfied, cpanel will attempt
+                        to obtain the values of the environment variables:
+                        <literal>TRANSITION_SUBSCRIPTION_URI</literal> and
+                        <literal>TRANSITION_REQUEST_URI</literal> and use
+                        them as the state/transtion publication and transition
+                        request port URI's respectively.  Note that if cpanel
+                        is run from the boot manager, the boot manager will have
+                        defined these environment variables.  Note as well, that
+                        at least one control panel must not be run from the boot  manager
+                        because the system has to be booted somehow.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        If the previous condition is not satisfied, cpanel will
+                        attempt to connect to the user's state manager in
+                        <literal>localhost</literal> using the state manager's
+                        default service names to look up the ports needed.
+                    </para>
+                </listitem>
+                    </orderedlist>
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              OPTIONS
+           </title>
+           <variablelist>
+            <varlistentry>
+                <term><option>--help</option>, <option>-h</option></term>
+                <listitem>
+                    <para>
+                        Outputs some help text that describes how to run the
+                        program.  The program then exits without doing anything
+                        else.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>--version</option>, <option>-v</option></term>
+                <listitem>
+                    <para>
+                        Outputs the program version and then exits without doing
+                        anything else.  Note that if <option>--help</option>
+                        is present on the command line, that takes
+                        precedence.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>--state-uri</option>, <option>-s</option></term>
+                <listitem>
+                    <para>
+                        The value of this option is a URI that specifies the
+                        host/port on which the state manager is broadcasting
+                        state and transition updates.  Note that this
+                        <emphasis>must</emphasis> be used in conjunction
+                        with the <option>--transition-uri</option> option
+                        or this option will be ignored.
+                        URI's are of the form:
+                        <literal>tcp://</literal><replaceable>hostname</replaceable><literal>:</literal><replaceable>portnum</replaceable>
+                        For example:
+                        <literal>--state-uri=tcp://localhost:1234</literal>
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>--transition-uri</option>, <option>-t</option></term>
+                <listitem>
+                    <para>
+                        The value of this option is the URI that specifies the
+                        host/port
+                        on which the state manager
+                        is accepting state transition requests.  Note that this
+                        <emphasis>must</emphasis> be used in conjunction
+                        with the <option>--state-uri</option> option
+                        or this option will be ignored.
+                    </para>
+                    <para>
+                        See the <option>--state-uri</option> above for information
+                        about the structure of URI's.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>--host</option>, <option>-n</option></term>
+                <listitem>
+                    <para>
+                        The value of this option is the host in which the
+                        state manager is running.
+                        The value of this option is used along with the
+                        <option>--state-service</option> and
+                        <option>--transition-service</option> options to
+                        interact with the port manager to determine the
+                        URIs to use to connect to the state manager.  These
+                        are only used if <option>--state-uri</option>
+                        and <option>--transition-uri</option> are
+                        not present on the command line.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>--state-service</option>, <option>-S</option></term>
+                <listitem>
+                    <para>
+                        This value supplies the name of the service the
+                        state manager advertises for state/transition publication.
+                        Used along with <option>--host</option> and
+                        <option>--transition-service</option> options to
+                        interact with the port manager to determine the
+                        URIs to use to connect to the state manager.  These
+                        are only used if <option>--state-uri</option>
+                        and <option>--transition-uri</option> are
+                        not present on the command line.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>--transitino-service</option>, <option>-T</option></term>
+                <listitem>
+                    <para>
+                        The value of this option supplies the name
+                        of the sevice the state manager is advertising on
+                        which state transition requests will be accepted.
+                        Used along with the <option>--host</option>
+                        and <option>--state-service</option> options to
+                        interact with the port manager to determine the
+                        URIs to use to connect to the state manager.  These
+                        are only used if <option>--state-uri</option>
+                        and <option>--transition-uri</option> are
+                        not present on the command line.
+                    </para>
+                </listitem>
+            </varlistentry>
+                        
+           </variablelist>
+        </refsect1>
+
+      </refentry>
+
+
+<!-- /manpage -->

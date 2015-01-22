@@ -1,0 +1,20 @@
+
+#include <string>
+#include <CMDGG16Control.h>
+#include <CMDGG16ControlCreator.h>
+#include <memory>
+
+///////////////////////////////////////////////////////////////////////////////
+/////////////////////// CMDGG16ControlCreator ///////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+namespace WienerMDGG16
+{
+
+  std::unique_ptr<CControlHardware> CControlCreator::operator()()
+  {
+    return std::unique_ptr<CControlHardware>(new CControlHdwr);
+  }
+
+}
+

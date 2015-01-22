@@ -1,0 +1,405 @@
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2013.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Author:
+#            Ron Fox
+#            NSCL
+#            Michigan State University
+#            East Lansing, MI 48824-1321
+
+##
+# @file rdocallouts.test
+# @brief Tests for the readout callouts callback bundle
+# @author Ron Fox <fox@nscl.msu.edu>
+
+package require tcltest
+package require RunstateMachine
+
+
+
+#
+# Mock object
+
+package provide ReadoutGUIPanel 1.0
+
+namespace eval ::ReadoutGUIPanel {
+    variable run -1
+}
+
+proc ReadoutGUIPanel::setRun num {
+    set ::ReadoutGUIPanel::run $num
+}
+
+proc ReadoutGUIPanel::getRun {} {
+    return $::ReadoutGUIPanel::run
+}
+
+#-------------------------------------------------------------------------------
+#  rdoCalloutsBundle is a bundle:
+
+tcltest::test bundle-1 {rdoCalloutsBundle package should have the rdoCallouts bundle} \
+-setup {
+    package require rdoCalloutsBundle
+    set s [RunstateMachine %AUTO%]
+
+} \
+-cleanup {
+    $s destroy
+    set s [RunstateMachineSingleton %AUTO%]
+    catch {$s removeCalloutBundle rdoCallouts}
+    $s destroy
+    package forget rdoCalloutsBundle
+    namespace delete ::rdoCallouts
+} \
+-body {
+    catch {$s addCalloutBundle rdoCallouts} msg
+} \
+-result 0
+
+tcltest::test bundle-2 {rdoCallouts package auto registerd with the singleton} \
+-setup {
+    package require rdoCalloutsBundle
+    set s [RunstateMachineSingleton %AUTO%] 
+} \
+-cleanup {
+    
+    $s removeCalloutBundle rdoCallouts
+    $s destroy
+    package forget rdoCalloutsBundle
+    namespace delete ::rdoCallouts
+} \
+-body {
+    $s listCalloutBundles
+} -result rdoCallouts
+
+#------------------------------------------------------------------------------
+# Check for load and reload of ReadoutCallouts.tcl - unfortunately we can only
+# check for it from [pwd] not all the other places.
+#
+
+tcltest::test load-1 {Initial load of readoutcallouts} \
+-setup {
+    tcltest::makeFile {
+        proc OnStart {} {}
+    } ReadoutCallouts.tcl [pwd]
+
+    package require rdoCalloutsBundle
+    set s [RunstateMachineSingleton %AUTO%] 
+    
+} \
+-cleanup {
+    $s removeCalloutBundle rdoCallouts
+    $s destroy
+    package forget rdoCalloutsBundle
+    namespace delete ::rdoCallouts
+    tcltest::removeFile ReadoutCallouts.tcl [pwd]
+} \
+-body {
+    info procs OnStart
+} -result OnStart
+
+tcltest::test load-2 {Reload should supersede} \
+-setup {
+    tcltest::makeFile {
+        proc OnStart {} {}
+    } ReadoutCallouts.tcl [pwd]
+
+    package require rdoCalloutsBundle
+    set s [RunstateMachineSingleton %AUTO%] 
+    
+} \
+-cleanup {
+    $s removeCalloutBundle rdoCallouts
+    $s destroy
+    package forget rdoCalloutsBundle
+    namespace delete ::rdoCallouts
+    tcltest::removeFile ReadoutCallouts.tcl [pwd]
+} \
+-body {
+    tcltest::makeFile {
+        proc OnBegin {run} {
+            
+        }
+    } ReadoutCallouts.tcl [pwd]
+    ::rdoCallouts::reload
+    list [info procs OnStart] [info procs OnBegin]
+} \
+-result [list "" OnBegin]
+
+#-------------------------------------------------------------------------------
+#
+#  Test that callouts actually are called.
+
+tcltest::test OnStart-called {Test OnStart is called on entry Starting -> Halted} \
+-setup {
+    tcltest::makeFile {
+        proc OnStart {} {incr ::OnStartCalled}
+    } ReadoutCallouts.tcl [pwd]
+
+    package require rdoCalloutsBundle
+    set s [RunstateMachineSingleton %AUTO%]
+    set OnStartCalled 0
+    
+} \
+-cleanup {
+    $s removeCalloutBundle rdoCallouts
+    $s destroy
+    package forget rdoCalloutsBundle
+    namespace delete ::rdoCallouts
+    tcltest::removeFile ReadoutCallouts.tcl [pwd]
+    unset ::OnStartCalled
+} \
+-body {
+    $s _setState Starting
+    $s transition Halted
+    
+    set ::OnStartCalled
+} -result 1
+
+
+tcltest::test OnFail-called {Test OnFailed called on transitions to NotReady} \
+-setup {
+    tcltest::makeFile {
+        proc OnFail {} {incr ::OnFailCalled}
+    } ReadoutCallouts.tcl [pwd]
+
+    package require rdoCalloutsBundle
+    set s [RunstateMachineSingleton %AUTO%]
+    set OnFailCalled 0
+    
+} \
+-cleanup {
+    $s removeCalloutBundle rdoCallouts
+    $s destroy
+    package forget rdoCalloutsBundle
+    namespace delete ::rdoCallouts
+    tcltest::removeFile ReadoutCallouts.tcl [pwd]
+    unset ::OnFailCalled
+} \
+-body {
+    $s _setState Active
+    $s transition NotReady
+    
+    set ::OnFailCalled
+} -result 1
+
+
+tcltest::test OnReady-called {Test OnReady called on transitions to halted from starting} \
+-setup {
+    tcltest::makeFile {
+        proc OnReady {} {incr ::OnReadyCalled}
+    } ReadoutCallouts.tcl [pwd]
+
+    package require rdoCalloutsBundle
+    set s [RunstateMachineSingleton %AUTO%]
+    set OnReadyCalled 0
+    
+} \
+-cleanup {
+    $s removeCalloutBundle rdoCallouts
+    $s destroy
+    package forget rdoCalloutsBundle
+    namespace delete ::rdoCallouts
+    tcltest::removeFile ReadoutCallouts.tcl [pwd]
+    unset ::OnReadyCalled
+} \
+-body {
+    $s _setState Starting
+    $s transition Halted
+    
+    set ::OnReadyCalled
+} -result 1
+
+#----------------------------------------------------------------------------
+#  Run state transitions also get the run number passed in.
+#
+
+tcltest::test OnBegin-called {Test OnBegin called when Halted is left for Active} \
+-setup {
+    tcltest::makeFile {
+        proc OnBegin {run} {
+            incr ::OnBeginCalled
+            set  ::OnBeginRunNumber $run
+        }
+    } ReadoutCallouts.tcl [pwd]
+
+    ::ReadoutGUIPanel::setRun 1234
+
+    package require rdoCalloutsBundle
+    set s [RunstateMachineSingleton %AUTO%]
+    set OnBeginCalled 0
+    set OnBeginRunNumber [list]
+    
+} \
+-cleanup {
+    $s removeCalloutBundle rdoCallouts
+    $s destroy
+    
+    package forget rdoCalloutsBundle
+    namespace delete ::rdoCallouts
+    tcltest::removeFile ReadoutCallouts.tcl [pwd]
+    unset ::OnBeginCalled
+    unset ::OnBeginRunNumber
+} \
+-body {
+    $s _setState Halted
+    $s transition Active
+    
+    list $::OnBeginCalled $::OnBeginRunNumber
+} -result [list 1 1234]
+
+tcltest::test OnEndCalled-1   {On end called entering Halted from Active} \
+-setup {
+    tcltest::makeFile {
+        proc OnEnd {run} {
+            incr ::OnEndCalled
+            set  ::OnEndRunNumber $run
+        }
+    } ReadoutCallouts.tcl [pwd]
+
+    ::ReadoutGUIPanel::setRun 1234
+    
+
+    package require rdoCalloutsBundle
+    set s [RunstateMachineSingleton %AUTO%]
+    set OnEndCalled 0
+    set OnEndRunNumber [list]
+    
+} \
+-cleanup {
+    $s removeCalloutBundle rdoCallouts
+
+    $s destroy
+    
+    package forget rdoCalloutsBundle
+    namespace delete ::rdoCallouts
+    tcltest::removeFile ReadoutCallouts.tcl [pwd]
+    unset ::OnEndCalled
+    unset ::OnEndRunNumber
+} \
+-body {
+    $s _setState Active
+    $s transition Halted
+    
+    list $::OnEndCalled $::OnEndRunNumber
+} -result [list 1 1234]
+
+tcltest::test OnEndCalled-2   {On end called entering Halted from Paused} \
+-setup {
+    tcltest::makeFile {
+        proc OnEnd {run} {
+            incr ::OnEndCalled
+            set  ::OnEndRunNumber $run
+        }
+    } ReadoutCallouts.tcl [pwd]
+
+
+    ::ReadoutGUIPanel::setRun 1234
+
+
+    package require rdoCalloutsBundle
+    set s [RunstateMachineSingleton %AUTO%]
+    set OnEndCalled 0
+    set OnEndRunNumber [list]
+    
+} \
+-cleanup {
+    $s removeCalloutBundle rdoCallouts
+    
+    $s destroy
+    
+    package forget rdoCalloutsBundle
+    namespace delete ::rdoCallouts
+    tcltest::removeFile ReadoutCallouts.tcl [pwd]
+    unset ::OnEndCalled
+    unset ::OnEndRunNumber
+} \
+-body {
+    $s _setState Paused
+    $s transition Halted
+    
+    list $::OnEndCalled $::OnEndRunNumber
+} -result [list 1 1234]
+
+tcltest::test onpause-called {OnPause called in Active -> Paused transition} \
+-setup {
+    tcltest::makeFile {
+        proc OnPause {run} {
+            incr ::OnPausedCalled
+            set  ::OnPausedRunNumber $run
+        }
+    } ReadoutCallouts.tcl [pwd]
+
+    ::ReadoutGUIPanel::setRun 1234
+
+    package require rdoCalloutsBundle
+    set s [RunstateMachineSingleton %AUTO%]
+    set OnPausedCalled 0
+    set OnPausedRunNumber [list]
+    
+} \
+-cleanup {
+    $s removeCalloutBundle rdoCallouts
+    $s destroy
+    
+    package forget rdoCalloutsBundle
+    namespace delete ::rdoCallouts
+    tcltest::removeFile ReadoutCallouts.tcl [pwd]
+    unset ::OnPausedCalled
+    unset ::OnPausedRunNumber
+} \
+-body {
+    $s _setState Active
+    $s transition Paused
+    
+    list $::OnPausedCalled $::OnPausedRunNumber
+} -result [list 1 1234]
+
+tcltest::test onresume-called {OnResume called when Paused left for Active} \
+-setup {
+    tcltest::makeFile {
+        proc OnResume {run} {
+            incr ::OnResumeCalled
+            set  ::OnResumeRunNumber $run
+        }
+    } ReadoutCallouts.tcl [pwd]
+
+    
+    ::ReadoutGUIPanel::setRun 1234
+    
+
+    package require rdoCalloutsBundle
+    set s [RunstateMachineSingleton %AUTO%]
+    set OnResumeCalled 0
+    set OnResumeRunNumber [list]
+    
+} \
+-cleanup {
+    $s removeCalloutBundle rdoCallouts
+    
+    $s destroy
+    
+    package forget rdoCalloutsBundle
+    namespace delete ::rdoCallouts
+    tcltest::removeFile ReadoutCallouts.tcl [pwd]
+    unset ::OnResumeCalled
+    unset ::OnResumeRunNumber
+} \
+-body {
+    $s _setState Paused
+    $s transition Active
+    
+    list $::OnResumeCalled $::OnResumeRunNumber
+} -result [list 1 1234]
+
+
+#-------------------------------------------------------------------------------
+#
+# Report the test results:
+
+tcltest::cleanupTests

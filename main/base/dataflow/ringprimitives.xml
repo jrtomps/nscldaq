@@ -1,0 +1,1553 @@
+<!-- chapter libraries -->
+
+
+<chapter id="chapter.ringprimitives">
+    <title>Ring Buffer Primitives</title>
+    <para>
+        The NSCL DAQ data flow software is based on single producer
+        multi-client ring buffers.   A ring buffer is a block of memory
+        that is treated as a circular buffer.  NSCL DAQ ring buffers are
+        located in POSIX shared memory regions. They feature a single
+        <firstterm>put</firstterm> pointer and several
+        <firstterm>get</firstterm> pointers.
+    </para>
+    <para>
+        Ring buffers of this type are an extremely low over head inter process
+        communications mechanism.  In most cases you will not need to interact
+        directly with NSCL DAQ Ring buffers.  Higher level classes and functions
+        built on top of them will interact for you.
+    </para>
+    <para>
+        This chapter describes:
+        <itemizedlist>
+            <listitem><para>
+                The steps you need to follow to compile and link to the ring buffer
+                library.
+            </para></listitem>
+            <listitem><para>
+                The general flavor of the ring buffer classes along with
+                sample code.
+            </para></listitem>
+        </itemizedlist>
+    </para>
+    <para>
+        Reference material can be found in the
+        <link linkend="manpage.cringbuffer">CRingBuffer reference page</link>
+    </para>
+    <section>
+        <title>Incorporating ring buffer software</title>
+        <para>
+            The low level ring buffer software is described in a single
+            header file <filename>CRingBuffer.h</filename>.  This header
+            defines the class, data structures and constants needed to
+            write applications that use the ring buffer primitives.
+        </para>
+        <para>
+            The header is installed in the
+            <filename>include</filename>
+            subdirectory of the NSCL DAQ installation tree.
+            Suppose there is an environment variable
+            <literal>DAQROOT</literal>
+            whose value is the top level installation directory of NSCL DAQ.
+            A sample compilation line might be:
+        </para>
+        <example>
+            <title>Compilation line for ring buffer primitives</title>
+            <screen>
+<command>g++ -c -I$DAQROOT/include consumer.cpp</command>
+            </screen>
+        </example>
+        <para>
+            Where <filename>consumer.cpp</filename> will have:
+        </para>
+        <example>
+            <title>Including the ring buffer primitives header</title>
+            <programlisting>
+#include &lt;CRingBuffer.h&gt;
+            </programlisting>
+        </example>
+        <para>
+            To link ring buffer programs, you need to specify that the
+            compile-time and run-time linker search the
+            <filename>lib</filename>
+            subdirectory of the nscldaq installation and incorporate the
+            <filename>libDataFlow</filename> library:
+        </para>
+        <example>
+            <title>Linking to the ring buffer primitives</title>
+            <screen>
+<command>g++ -o consumer -L$DAQROOT/lib consumer.o -lDataFlow -Wl,"-rpath=$DAQROOT/lib"</command>
+            </screen>
+        </example>
+    </section>
+    <section>
+        <title>Overview and Examples of ring buffers in action.</title>
+        <para>
+            This section will provide some annotated examples of ring buffers
+            in action. We will build a pair of simple ring buffer programs.
+        </para>
+        <para>
+            The first called
+            <application>consumer</application>
+            will create a ring buffer, attach to it as a consumer and
+            just accept all the data that is being written to the ring buffer.
+            <application>consumer</application> will not exit unless you
+            interrupt it.  Data will be read in 1Mbyte chunks.
+        </para>
+        <para>
+            The second program called
+            <application>producer</application>
+            will attach to a ring buffer and write several data buffers
+            to the ring.  The data buffers will consist of counting patterns
+            and will be 1Mbyte long.
+        </para>
+        <para>
+            Used together, these programs can (and have been), used to
+            measure raw ring buffer performance.  Throughout, we will do essentially
+            no error checking for the sake of brevity and clarity.
+            Production quality software, should check for errors at every step
+            and consideration must be given to graceful error recovery or at least
+            error reportage.
+        </para>
+        <section>
+            <title>A Ring Buffer Consumer</title>
+            <para>
+                Before a ring buffer can be used, it must be created.
+                When creating a ring buffer, the creator can specify
+                the size of the ring buffer (which determines the size of
+                the largest message that can be sent to the ring), as well
+                as the maximum number of consumers that can connect to the
+                ring.
+            </para>
+            <para>
+                The consumer program will create the ring buffer.  It will
+                be run first and sit there expecting buffers from the producer,
+                which will be run later.  In this way, the consumer will not miss
+                any data that might have been written prior to its startup.
+            </para>
+            <para>
+                Let's look at the consumer code:
+            </para>
+            <example>
+                <title>Sample ring buffer consumer</title>
+                <programlisting>
+#include &lt;string&gt;
+#include &lt;CRingBuffer.h&gt;            <co id="ringcons.include" />
+
+using namespace std;                      <co id="ringcons.std" />
+
+
+int main(int argc, char**argv)
+{
+  string ringname("timing");
+
+  CRingBuffer::create(ringname);          <co id="ringcons.create" />
+  CRingBuffer ring(ringname, CRingBuffer::consumer); <co id="ringcons.obj" />
+  ring.setPollInterval(1);                           <co id="ringcons.latency" />
+
+  char buffer[1024*1024];
+  while(1) {
+    ring.get(buffer, sizeof(buffer), sizeof(buffer));  <co id="ringcons.get" />
+  }
+}
+                </programlisting>
+            </example>
+            <para>
+                As you can see, this is a relatively short and simple program.
+            </para>
+            <calloutlist>
+                <callout arearefs="ringcons.include">
+                    <para>
+                        The
+                        <filename>CRingBuffer.h</filename>
+                        header is included.
+                        This include defines the
+                        <classname>CRingBuffer</classname>
+                        class which provides the ring buffer application
+                        programming interface
+                    </para>
+                </callout>
+                <callout arearefs="ringcons.std">
+                    <para>
+                        Incorporating the
+                        <literal>std</literal> namespace into the
+                        default compiler scoping list ensures that when we
+                        use the
+                        <classname>string</classname>
+                        class, which lives in the
+                        <literal>std</literal>
+                        namespace, we won't have to specify it as
+                        <classname>std::string</classname>
+                    </para>
+                </callout>
+                <callout arearefs="ringcons.create">
+                    <para>
+                        Ring buffers are created via a the
+                        <methodname>create</methodname> static
+                        member function.  This function creates the ring
+                        buffer and formats its header.  If the ring buffer
+                        is already created, it is still formatted.
+                        In general, the ring buffer should not be formatted
+                        in the middle of a running application.
+                        Additional optional parameters to the
+                        <methodname>create</methodname>
+                        method allow you to specify the size of the data region
+                        in the ring buffer as well as the maximum number of
+                        consumers that can connect to the ring.
+                    </para>
+                </callout>
+                <callout arearefs="ringcons.obj">
+                    <para>
+                        Existing ring buffers are accessed by creating and
+                        manipulating a
+                        <classname>CRingBuffer</classname>
+                        object.  There are two types of
+                        <classname>CRingBuffer</classname>
+                        objects;
+                        <firstterm>producer</firstterm> and
+                        <firstterm>consumer</firstterm>
+                        objects.
+                        As their names imply, producer objects
+                        insert data into the ring buffer, while
+                        consumers remove data from the ring buffer.
+                        There can only be one producer at a time.
+                        <application>consumer</application>
+                        creates a consumer ring buffer. 
+                    </para>
+                </callout>
+                <callout arearefs="ringcons.latency">
+                    <para>
+                        When a ring buffer consumer must block because
+                        there is not sufficient data to satisfy a get,
+                        the library enters a polling loop.  In each pass of
+                        the polling loop, the library checks for sufficient
+                        data and, if sufficient data is not available,
+                        sleeps for a specific number of milliseconds.
+                        This number of milliseconds is called the
+                        <firstterm>poll interval</firstterm>
+                    </para>
+                    <para>
+                        The polling interval determines the latency and
+                        the cost in compute cycles to wait for data.
+                        The lower the poll interval, the lower the latency.
+                        the lower the poll interval, the more compute intensive
+                        waiting is.
+                    </para>
+                    <para>
+                        <methodname>setPollInterval</methodname>
+                        sets the poll interval.  In this case we set the
+                        poll interval to 1 millisecond.
+                    </para>
+                </callout>
+                <callout arearefs="ringcons.get">
+                    <para>
+                        The
+                        <methodname>get</methodname>
+                        member function gets data from the ring buffer
+                        blocking if necessary. The two sizes are
+                        the size of the buffer (maximum number of bytes
+                        that can be read), and the minimum number of
+                        bytes that must be available for transfer to this
+                        consumer prior to satisfying the
+                        <methodname>get</methodname>.
+                    </para>
+                    <para>
+                        If necessary, the
+                        <methodname>get</methodname>
+                        method will block until the minimum required
+                        bytes of data are available.
+                    </para>
+                </callout>
+            </calloutlist>    
+        </section>
+        <section>
+            <title>A Ring Buffer Producer</title>
+            <para>
+                Our ring buffer producer program will assume that the ring
+                buffer has already been created.  It will attach to the ring
+                buffer as a producer, and send
+                <literal>10,000</literal> messages, where each message is
+                <literal>1024*1024</literal>
+                bytes (1 Megabyte).
+            </para>
+            <example>
+                <title>A sample Ring Buffer producer program</title>
+                <programlisting>
+#include &lt;string&gt;
+#include &lt;CRingBuffer.h&gt;                  <co id="ringprod.include" />
+
+using namespace std;
+
+int main(int argc, char** argv)
+{
+  string ringname("timing");
+
+  CRingBuffer ring(ringname, CRingBuffer::producer); <co id="ringprod.obj" />
+  ring.setPollInterval(1);                           <co id="ringprod.latency" />
+
+  char buffer[1024*1024];
+  for (int i =0; i &lt; sizeof(buffer); i++) {
+    buffer[i] = i;                                  <co id="ringprod.pattern" />
+  }
+
+  for (int i =0; i &lt; 10000; i++) {
+    ring.put(buffer, sizeof(buffer));              <co id="ringprod.put" />
+  }
+}
+
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs="ringprod.include">
+                    <para>
+                        Includes the
+                        <filename>CRingBuffer.h</filename>
+                        header which makes available the definition
+                        of the
+                        <classname>CRingBuffer</classname>
+                        class that serves as the API to
+                        ring buffers.
+                    </para>
+                </callout>
+                <callout arearefs="ringprod.latency">
+                    <para>
+                        See the discussion of the consumer for more
+                        information about this function.  This
+                        sets the poll interval so as to minimize buffer
+                        response latencies.
+                    </para>
+                </callout>
+                <callout arearefs="ringprod.pattern">
+                    <para>
+                        This loop creates a buffer that consists of 1MB
+                        counting pattern.
+                    </para>
+                </callout>
+                <callout arearefs="ringprod.put">
+                    <para>
+                        Sends the buffers as a message to ring buffer
+                        consumers 10,000 times.
+                    </para>
+                </callout>
+            </calloutlist>
+            <para>
+                Note that the producer and consumer programs must agree on a
+                message format.  In our simple examples, the messages have
+                been fixed length 1Mbytes messages.  A more general protocol
+                might include a message size at the front of the message.
+            </para>
+        </section>
+    </section>
+</chapter>
+
+<!-- /chapter -->
+
+<!-- manpage 3daq -->
+    <refentry id="manpage.cringbuffer">
+      <refmeta>
+         <refentrytitle>CRingBuffer</refentrytitle>
+         <manvolnum>3daq</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>CRingBuffer</refname>
+	 <refpurpose>Low level ring buffer primitives</refpurpose>
+      </refnamediv>
+
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;CRingBuffer&gt;
+         </programlisting>
+         <classsynopsis>
+            <ooclass><classname>CRingBuffer</classname></ooclass>
+         </classsynopsis>
+         <synopsis>
+      <methodsynopsis>
+        <modifier>static</modifier>
+        <type>void</type> <methodname>create</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <type>size_t</type> <parameter>dataBytes</parameter>
+                                <initializer>m_defaultDataSize</initializer>
+        </methodparam>
+        <methodparam>
+            <type>size_t</type> <parameter>maxConsumer</parameter> <initializer>m_defaultMaxConsumers</initializer>
+        </methodparam>
+	<methodparam>
+            <type>bool</type>
+         <parameter>tempConnection</parameter><initializer>false</initializer>
+	 </methodparam>
+      </methodsynopsis>
+      <methodsynopsis>
+        <modifier>static</modifier>
+        <type>CRingBuffer*</type> <methodname>createAndProduce</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <type>size_t</type> <parameter>dataBytes</parameter>
+                                <initializer>m_defaultDataSize</initializer>
+        </methodparam>
+        <methodparam>
+            <type>size_t</type> <parameter>maxConsumer</parameter> <initializer>m_defaultMaxConsumers</initializer>
+        </methodparam>
+	<methodparam>
+            <type>bool</type>
+         <parameter>tempConnection</parameter><initializer>false</initializer>
+	 </methodparam>
+      </methodsynopsis>
+      <methodsynopsis>
+        <modifier>static</modifier>
+        <type>void</type> <methodname>remove</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+      </methodsynopsis>
+      <methodsynopsis>
+        <modifier>static</modifier> <type>void</type> <methodname>format</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <type>size_t</type> <parameter>maxConsumer</parameter> <initializer>m_defaultMaxConsumers</initializer>
+        </methodparam>
+      </methodsynopsis>
+      <methodsynopsis>
+            <modifier>static</modifier> <type>bool</type> <methodname>isRing</methodname>
+            <methodparam>
+                <type>std::string</type> <parameter>name</parameter>
+            </methodparam>
+      </methodsynopsis>
+      <methodsynopsis>
+        <modifier>static</modifier> <type>void</type>
+                                    <methodname>setDefaultRingSize</methodname>
+        <methodparam>
+            <type>size_t</type> <parameter>byteCount</parameter>
+        </methodparam>
+      </methodsynopsis>
+      <methodsynopsis>
+        <modifier>static</modifier> <type>size_t</type> <methodname>getDefaultRingSize</methodname>
+                                                        <void />
+      </methodsynopsis>
+      <methodsynopsis>
+        <modifier>static</modifier> <type>void</type>
+                                    <methodname>setDefaultMaxConsumers</methodname>
+        <methodparam>
+            <type>size_t</type> <parameter>numConsumers</parameter>
+        </methodparam>
+      </methodsynopsis>
+      <methodsynopsis>
+        <modifier>static</modifier>
+        <type>size_t</type> <methodname>getDefaultMaxConsumers</methodname>
+                            <void />
+      </methodsynopsis>
+      <methodsynopsis>
+        <modifier>static</modifier> <type>std::string</type>
+        <methodname>defaultRing</methodname><void />
+      </methodsynopsis>
+      <methodsynopsis>
+        <modifier>static</modifier> <type>std::string</type>
+        <methodname>defaultRing</methodname><void />
+      </methodsynopsis>
+      <methodsynopsis>
+        <modifier>static</modifier><type> std::string</type>
+        <methodname>defaultRingUrl</methodname><void />
+      </methodsynopsis>
+
+      <constructorsynopsis>
+        <methodname>CRingBuffer</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <type>ClientMode</type> <parameter>mode</parameter>
+                                    <initializer>CRingBuffer::consumer</initializer>
+        </methodparam>
+      </constructorsynopsis>
+      <destructorsynopsis>
+        <modifier>virtual</modifier> <methodname>~CRingBuffer</methodname>
+                                     <void />
+      </destructorsynopsis>
+      <methodsynopsis>
+        <type>size_t</type>  <methodname>put</methodname>
+        <methodparam>
+            <modifier>const</modifier><type>void*</type> <parameter>pBuffer</parameter>
+        </methodparam>
+        <methodparam>
+            <type>size_t</type>
+            <parameter>nBytes</parameter>
+        </methodparam>
+        <methodparam>
+            <type>unsigned long</type> <parameter>timeout</parameter> <initializer>ULONG_MAX</initializer>
+        </methodparam>
+      </methodsynopsis>
+      <methodsynopsis>
+        <type>size_t</type> <methodname>get</methodname>
+        <methodparam>
+            <type>void*</type> <parameter>pBuffer</parameter>
+        </methodparam>
+        <methodparam>
+            <type>size_t</type> <parameter>maxBytes</parameter>
+        </methodparam>
+        <methodparam>
+            <type>size_t</type> <parameter>minBytes</parameter> <initializer>1</initializer>
+        </methodparam>
+        <methodparam>
+            <type>unsigned long</type> <parameter>timeout</parameter> <initializer>ULONG_MAX</initializer>
+        </methodparam>
+      </methodsynopsis>
+      <methodsynopsis>
+        <type>size_t</type> <methodname>peek</methodname>
+        <methodparam>
+            <type>void*</type> <parameter>pBuffer</parameter>
+        </methodparam>
+        <methodparam>
+            <type>size_t</type> <parameter>maxbytes</parameter>
+        </methodparam>
+      </methodsynopsis>
+      <methodsynopsis>
+        <type>void</type>   <methodname>skip</methodname>
+        <methodparam>
+            <type>size_t</type> <parameter>nBytes</parameter>
+        </methodparam>
+      </methodsynopsis>
+      <methodsynopsis>
+        <type>unsigned long</type> <methodname>setPollInterval</methodname>
+        <methodparam>
+            <type>unsigned long</type> <parameter>newValue</parameter>
+        </methodparam>
+      </methodsynopsis>
+      <methodsynopsis>
+        <type>unsigned long</type> <methodname>getPollInterval</methodname>
+                                   <void />
+      </methodsynopsis>
+      <methodsynopsis>
+        <type>size_t</type> <methodname>availablePutSpace</methodname>
+                            <void />
+      </methodsynopsis>
+      <methodsynopsis>
+        <type>size_t</type> <methodname>availableData</methodname>
+                            <void />
+      </methodsynopsis>
+      <methodsynopsis>
+        <type>CRingBuffer::Usage</type> <methodname>getUsage</methodname>
+                                        <void />
+      </methodsynopsis>
+      <methodsynopsis>
+        <type>int</type> <methodname>blockWhile</methodname>
+        <methodparam>
+            <type>CRingBuffer::CRingBufferPredicate&amp;</type> <parameter>pred</parameter>
+        </methodparam>
+        <methodparam>
+            <type>unsigned long</type> <parameter>timeout</parameter> <initializer>ULONG_MAX</initializer>
+        </methodparam>
+      </methodsynopsis>
+      <methodsynopsis>
+        <type>void</type>
+        <methodname>While</methodname>
+        <methodparam>
+            <type>CRingBufferPredicate&amp;</type> <parameter>pred</parameter>
+        </methodparam>
+      </methodsynopsis>
+<!-- new -->
+      <methodsynopsis>
+        <type>off_t</type> <methodname>getSlot</methodname>
+                           <void />
+      </methodsynopsis>
+      <methodsynopsis>
+        <type>void</type> <methodname>forceProducerRelease</methodname>
+                          <void />
+      </methodsynopsis>
+      <methodsynopsis>
+        <type>void</type> <methodname>forceConsumerRelease</methodname>
+        <methodparam>
+            <type>unsigned</type> <parameter>slot</parameter>
+        </methodparam>
+      </methodsynopsis>
+<!-- /new -->
+       }
+     </synopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>Description</title>
+         <para>
+            <classname>CRingBuffer</classname> provides a low level message-based
+            high performance interprocessor communication mechanism called a
+            ring buffer.  For information about ring buffers in general, see
+            <ulink url="http://en.wikipedia.org/wiki/Circular_buffer">http://en.wikipedia.org/wiki/Circular_buffer</ulink>.
+         </para>
+         <para>
+            <classname>CRingBuffer</classname> manages its ring buffer in
+            shared memory.  The shared memory region includes the buffer a
+            single put pointer and several get pointers.  This allows for a
+            single producer (in the NSCL DAQ, this would generally be a readout
+            program or event builder), and several consumers (e.g. data analysis,
+            event recording, scaler displays etc.).
+         </para>
+         <para>
+            The <classname>CRingBuffer</classname> class include static methods
+            for creating and reinitializing ring buffers as well as
+            object based members that allow ring buffer clients (both producers
+            and consumers) to transfer data.  For more on how to use
+            the ring buffer class see
+            <link linkend="chapter.ringprimitives">The Ring Buffer Primitives</link>
+         </para>
+         <para>
+            A unique feature of the <classname>CRingBuffer</classname>
+            class is predicate based blocking.  This allows a caller to block
+            until some arbitrary condition is no longer true.  Higher level
+            software that is aware of message structure can use this to select
+            specific messages from the ring, or implement message sampling.
+            For more information on that see the
+            description of <methodname>blockWhile</methodname> below, and
+            the "Types and public data" section later in this reference page.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            Public member functions
+         </title>
+      <methodsynopsis>
+        <modifier>static</modifier>
+        <type>void</type> <methodname>create</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <type>size_t</type> <parameter>dataBytes</parameter>
+                                <initializer>m_defaultDataSize</initializer>
+        </methodparam>
+        <methodparam>
+            <type>size_t</type> <parameter>maxConsumer</parameter> <initializer>m_defaultMaxConsumers</initializer>
+        </methodparam>
+	<methodparam>
+	   <type>bool</type> <parameter>tempConnection</parameter>
+	   <initializer>false</initializer>
+        </methodparam>
+      </methodsynopsis>
+      <para>
+        Creates a new ring buffer.  Each ring buffer has a distinct name.
+        Ring buffer names can be just about anything as long as there are no
+        <literal>/</literal> characters embedded in them.
+      </para>
+    <variablelist>
+        <varlistentry>
+            <term><type>std::string</type> <parameter>name</parameter></term>
+            <listitem>
+                <para>The name of the ring buffer.  If you call this for a
+                    ring buffer that already exists, the ring buffer will
+                    be re-initialized.  This has undesirable effects if clients
+                    are connected to the ring.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><type>size_t</type> <parameter>dataBytes</parameter></term>
+            <listitem>
+                <para>
+                    Determines the number of bytes of data that can exist
+                    in the ring buffer without having been consumed and without
+                    blocking another <methodname>put</methodname> operation.
+                    Note that due to the need to page align the shared memory
+                    region, this value is a lower bound on the actual number
+                    of bytes of storage.
+                </para>
+                <para>
+                    This paramteer is optional and has a default value.
+                    <methodname>setDefaultRingSize</methodname> can set the
+                    default value for this parameter, and
+                    <methodname>getDefaultRingSize</methodname>
+                    can provide the current value for this default.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><type>size_t</type> <parameter>maxConsumer</parameter></term>
+            <listitem>
+                <para>
+                    Provides the maximum number of consumers that can connect
+                    to the ring simultaneously.  This is an optional parameter.
+                    The value this parameter defaults to can be modifed and
+                    read using the
+                    <methodname>setDefaultMaxConsumers</methodname>
+                    and
+                    <methodname>getDefaultMaxConsumers</methodname>
+                    respectively.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><type>bool</type>
+         <parameter>tempConnection</parameter></term>
+	 <listitem>
+	   <para>
+	      If this is true, the ring buffer is registered with the
+	      Ring master using a temporary, one-time connection which is
+              closed down immediately after registration.  This allows
+              children to be created that don't inherit an open socket if done
+              early enough in the game.
+	   </para>
+	 </listitem>
+       </varlistentry>
+    </variablelist>
+    <para>
+        Note that no restrictions are imposed on which users can
+        read/write from/to the ring buffer.  That is the ring buffer,
+        which is encapsulated in a POSIX shared memory file,
+        has the permissions mode <literal>0666</literal>.
+    </para>
+        <methodsynopsis>
+            <modifier>static</modifier>
+        <type>CRingBuffer*</type> <methodname>createAndProduce</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <type>size_t</type> <parameter>dataBytes</parameter>
+                                <initializer>m_defaultDataSize</initializer>
+        </methodparam>
+        <methodparam>
+            <type>size_t</type> <parameter>maxConsumer</parameter> <initializer>m_defaultMaxConsumers</initializer>
+        </methodparam>
+	<methodparam>
+            <type>bool</type>
+         <parameter>tempConnection</parameter><initializer>false</initializer>
+	 </methodparam>
+      </methodsynopsis>
+      <para>
+        If the ringbuffer <parameter>name</parameter> does not exist it is
+        created.  The caller is then attached to the ring as a producer
+        and the <classname>CRingBuffer</classname> object created is returned
+        to the caller.  The return is a pointer to a dynamically allocated
+        <classname>CRingBuffer</classname> which must be deleted by the
+        client.
+      </para>
+      <para>
+        Note that if the ring already exists, only the
+        <parameter>name</parameter> parameter matters.  The other parameters
+        are used for name creation and have the same meaning as for
+        <methodname>create</methodname>
+      </para>
+      <methodsynopsis>
+        <modifier>static</modifier>
+        <type>void</type> <methodname>remove</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+      </methodsynopsis>
+        <para>
+            Marks the shared memory region assocaited with a ring buffer
+            for deletion.  Once no more processes are attached to the ring buffer,
+            or have file descriptors open on the ring buffer, the shared memory
+            region is deleted.
+        </para>
+      <methodsynopsis>
+        <modifier>static</modifier> <type>void</type> <methodname>format</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <type>size_t</type> <parameter>maxConsumer</parameter> <initializer>m_defaultMaxConsumers</initializer>
+        </methodparam>
+      </methodsynopsis>
+      <para>
+        Formats a ring buffer.  Formatting a ring buffer empties it and
+        resets all of the ring get/put pointers to not-owned.   It is a
+        very bad thing to format a ring buffer that is active.
+      </para>
+      <variablelist>
+        <varlistentry>
+            <term><type>std::string</type> <parameter>name</parameter></term>
+            <listitem>
+                <para>
+                    Provides the name of the ring buffer.  This must be the
+                    name of an existing ring buffer.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><type>size_t</type> <parameter>maxConsumer</parameter></term>
+            <listitem>
+                <para>
+                    Defines the maximum number of consumer programs that can connect
+                    to the ring buffer.  This is an optional parameter. The
+                    default for this parameter can be gotten and set using
+                    <methodname>setDefaultMaxConsumers</methodname>
+                    and
+                    <methodname>getDefaultMaxConsumers</methodname>
+                    respectively.
+                </para>
+            </listitem>
+        </varlistentry>
+      </variablelist>
+      <para>
+        Since
+        <methodname>format</methodname> does not resize the shared memory
+        region containing the buffer and its control data, the size of the
+        data will change if the number of consumers is changed from the value
+        used to create the initial ring. 
+      </para>
+      <methodsynopsis>
+            <modifier>static</modifier> <type>bool</type> <methodname>isRing</methodname>
+            <methodparam>
+                <type>std::string</type> <parameter>name</parameter>
+            </methodparam>
+      </methodsynopsis>
+        <para>
+            Ring buffers are shared memory segments, but not all shared memory
+            segments are rings.  Ring buffers have signature bytes in their headers
+            that allow software to unambiguously determine if a shared memory
+            region is a ring buffer or something else.
+        </para>
+        <para>
+            This function returns <literal>true</literal>
+            If a ring named
+            <parameter>name</parameter>
+            exists.  If it does not (either there's no corresponding shared
+            memory region or there is one, but it does not have the correct
+            signature bytes to qualify as a ring buffer), the function
+            returns
+            <literal>false</literal>
+        </para>
+      <methodsynopsis>
+        <modifier>static</modifier> <type>void</type>
+                                    <methodname>setDefaultRingSize</methodname>
+        <methodparam>
+            <type>size_t</type> <parameter>byteCount</parameter>
+        </methodparam>
+      </methodsynopsis>
+      <para>
+        Provides a new value, <parameter>byteCount</parameter> for the default
+        ring data size.  The function returns the prior default value.
+      </para>
+      <methodsynopsis>
+        <modifier>static</modifier> <type>size_t</type> <methodname>getDefaultRingSize</methodname>
+                                                        <void />
+      </methodsynopsis>
+      <para>
+        Returns the default size of the data region of a ring.
+      </para>
+      <methodsynopsis>
+        <modifier>static</modifier> <type>void</type>
+                                    <methodname>setDefaultMaxConsumers</methodname>
+        <methodparam>
+            <type>size_t</type> <parameter>numConsumers</parameter>
+        </methodparam>
+      </methodsynopsis>
+      <para>
+        Sets the default number of consumers supported by a new ring buffer
+        to <parameter>numConsumers</parameter>.
+      </para>
+      <methodsynopsis>
+        <modifier>static</modifier>
+        <type>size_t</type> <methodname>getDefaultMaxConsumers</methodname>
+                            <void />
+      </methodsynopsis>
+      <para>
+        Returns the default maximum number of consumers that will be supported
+        by the creation of a new ring buffer.
+      </para>
+      <methodsynopsis>
+        <modifier>static</modifier> <type>std::string</type>
+        <methodname>defaultRing</methodname><void />
+      </methodsynopsis>
+      <para>
+        Returns the default name of the ring for most NSCLDAQ cases.  This will
+        be the name of the logged in user.
+      </para>
+      <methodsynopsis>
+        <modifier>static</modifier><type> std::string</type>
+        <methodname>defaultRingUrl</methodname><void />
+      </methodsynopsis>
+      <para>
+        Returns a URL for the default ring for most NSCLDAQ applications.
+        If <methodname>CRingBuffer::defaultRing</methodname> returns
+        <literal>user</literal>, this function would return:
+        <literal>tcp://localhost/user</literal>.
+      </para>
+      <constructorsynopsis>
+        <methodname>CRingBuffer</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <type>ClientMode</type> <parameter>mode</parameter>
+                                    <initializer>CRingBuffer::consumer</initializer>
+        </methodparam>
+      </constructorsynopsis>
+      <para>
+        Creates a new ring buffer object.  Ring buffer objects are used to
+        connect clients to ring buffers created via
+        <methodname>CRingBuffer::create</methodname>.
+        A client can be  a manager, a producer or a consumer.
+        Only one producer can be attached to the ring buffer at a time.
+        Several consumers and an unlimited number of managers
+        can attach simlutaneously.
+      </para>
+      <para>
+        The <parameter>name</parameter> parameter is the name of the ring
+        buffer to which the object will be attached.  This ring buffer
+        must have been created with the <methodname>CRingBuffer::create</methodname>
+        member function.
+        <parameter>mode</parameter> determines the type of client connection
+        to be formed.  This is an optional parameter that defaults to
+        <literal>CRingBuffer::consumer</literal>, which creates a consumer
+        attachment. The value
+        <literal>CRingBuffer::producer</literal>
+        creates a producer attachment.
+        <literal>CRingBuffer::manager</literal>
+        creates a manager attachment.
+      </para>
+            
+      <destructorsynopsis>
+        <modifier>virtual</modifier> <methodname>~CRingBuffer</methodname>
+                                     <void />
+      </destructorsynopsis>
+      <para>
+        Destroys a ring buffer attachment object.   The object's destruction
+        results in a release of the access pointer associated with the ring buffer.
+        If the object was a producer attachment, a new producer can attach.
+        IF the object was a consumer attachment, that consumer pointer becomes
+        available for a new consumer.
+      </para>
+      <methodsynopsis>
+        <type>size_t</type>  <methodname>put</methodname>
+        <methodparam>
+            <modifier>const</modifier><type>void*</type> <parameter>pBuffer</parameter>
+        </methodparam>
+        <methodparam>
+            <type>size_t</type>
+            <parameter>nBytes</parameter>
+        </methodparam>
+        <methodparam>
+            <type>unsigned long</type> <parameter>timeout</parameter> <initializer>ULONG_MAX</initializer>
+        </methodparam>
+      </methodsynopsis>
+      <para>
+            Puts data into the ring buffer.  The object must hold a producer
+            attachment.
+      </para>
+      <variablelist>
+        <varlistentry>
+            <term><type>void*</type> <parameter>pBuffer</parameter></term>
+            <listitem>
+                <para>
+                    Pointer to the data to be transferred to the ring buffer.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><type>size_t</type>
+            <parameter>nBytes</parameter></term>
+            <listitem>
+                <para>
+                    The number of bytes to transfer to the ring buffer
+                    from the buffer.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><type>unsigned long</type> <parameter>timeout</parameter></term>
+            <listitem>
+                <para>
+                    The maximum number of seconds to wait for free space to
+                    be available in the ring buffer prior to failing the
+                    <methodname>put</methodname>
+                    operation.  This is an optional parameter that defaults to
+                    essentially forever (the largest value that can fit in a longword,
+                    in a 32 bit longword this is about 136 years.
+                </para>
+            </listitem>
+        </varlistentry>
+      </variablelist>
+      <para>
+        The return value is the number of bytes actually written. This should
+        either be the value of <parameter>nBytes</parameter>, indicating the
+        entire bufer was transferred to the ring buffer or 0 indicating that
+        a wait for free space timed out.
+      </para>
+      <methodsynopsis>
+        <type>size_t</type> <methodname>get</methodname>
+        <methodparam>
+            <type>void*</type> <parameter>pBuffer</parameter>
+        </methodparam>
+        <methodparam>
+            <type>size_t</type> <parameter>maxBytes</parameter>
+        </methodparam>
+        <methodparam>
+            <type>size_t</type> <parameter>minBytes</parameter> <initializer>1</initializer>
+        </methodparam>
+        <methodparam>
+            <type>unsigned long</type> <parameter>timeout</parameter> <initializer>ULONG_MAX</initializer>
+        </methodparam>
+      </methodsynopsis>
+      <para>
+        Retrieves a block of data from the ring buffer. This function allows the
+        caller to specify both a maximum, and a minimum size of the data to return.
+      </para>
+      <variablelist>
+        <varlistentry>
+            <term><type>void*</type> <parameter>pBuffer</parameter></term>
+            <listitem>
+                <para>
+                    Points to the storage in which the data from the ring buffer
+                    will be stored.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><type>size_t</type> <parameter>maxBytes</parameter></term>
+            <listitem>
+                <para>
+                    Specifies the maximum number of bytes that can be transferred
+                    to the buffer (this is usually, but not always, the size of the buffer).
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><type>size_t</type> <parameter>minBytes</parameter></term>
+            <listitem>
+                <para>
+                    Specifies the smallest message that can be transferred to
+                    the caller's buffer.   The function will block until
+                    <parameter>minBytes</parameter> of data is available for this
+                    consumer or until the timeout.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><type>unsigned long</type> <parameter>timeout</parameter> </term>
+            <listitem>
+                <para>
+                    Determines the maximum number of seconds the function will
+                    block for <parameter>minBytes</parameter> to be available.
+                    This is an optional parameter and defaults to essentially
+                    forever (in the limit as 136 years approaches forever).
+                </para>
+            </listitem>
+        </varlistentry>
+      </variablelist>
+      <para>
+        The function returns the number of bytes actually read.  The value
+        <literal>0</literal> implies the read timed out, or that
+        <parameter>minBytes</parameter> was <literal>0</literal> and no
+        bytes were available.
+      </para>
+      <methodsynopsis>
+        <type>size_t</type> <methodname>peek</methodname>
+        <methodparam>
+            <type>void*</type> <parameter>pBuffer</parameter>
+        </methodparam>
+        <methodparam>
+            <type>size_t</type> <parameter>maxbytes</parameter>
+        </methodparam>
+      </methodsynopsis>
+      <para>
+        Returns data from the ring buffer without actually removing it.
+        This function never blocks.
+      </para>
+      <variablelist>
+        <varlistentry>
+            <term><type>void*</type> <parameter>pBuffer</parameter></term>
+            <listitem>
+                <para>
+                    A pointer to a buffer that will hold the data retrieved from
+                    the ring.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><type>size_t</type> <parameter>maxbytes</parameter></term>
+            <listitem>
+                <para>
+                    Returns the maximum number of bytes that can be transferred
+                    to the buffer.
+                </para>
+            </listitem>
+        </varlistentry>
+      </variablelist>
+      <para>
+        The return value from this function is the actual number of bytes
+        transferred.  Since this function never blocks.  This can be
+        any value from <literal>0</literal> though <parameter>maxbytes</parameter>.
+     </para>
+      <methodsynopsis>
+        <type>void</type>   <methodname>skip</methodname>
+        <methodparam>
+            <type>size_t</type> <parameter>nBytes</parameter>
+        </methodparam>
+      </methodsynopsis>
+      <para>
+        Skips the consumer client's get pointer forward by <parameter>nBytes</parameter>,
+        wrapping as neeed.  <methodname>peek</methodname> and <methodname>Skip</methodname>
+        can be used to conditionally read data from the ring.  For example, a peek
+        at the front of the available data could determine the size and type of
+        a message.  The message could then either be read with <methodname>get</methodname>,
+        or skipped over with <methodname>skip</methodname>.
+      </para>
+      <methodsynopsis>
+        <type>unsigned long</type> <methodname>setPollInterval</methodname>
+        <methodparam>
+            <type>unsigned long</type> <parameter>newValue</parameter>
+        </methodparam>
+      </methodsynopsis>
+      <para>
+        The
+        <methodname>blockWhile</methodname> function polls a predicate blocking
+        between polls for some polling interval.
+        <methodname>setPollIntervale</methodname> allows the caller to set the
+        pollinterval for blocking operations on a ring.
+        <parameter>newValue</parameter>
+        is the number of milliseconds between polls.
+        The return value is the previous value of the polling interval.
+      </para>
+      <methodsynopsis>
+        <type>unsigned long</type> <methodname>getPollInterval</methodname>
+                                   <void />
+      </methodsynopsis>
+      <para>
+        See <methodname>setPollInterval</methodname> above.
+        This method returns the current polling interval.
+      </para>
+      <methodsynopsis>
+        <type>size_t</type> <methodname>availablePutSpace</methodname>
+                            <void />
+      </methodsynopsis>
+      <para>
+        Returns the number of bytes that can currently be put in the buffer
+        without the producer blocking.
+      </para>
+      <methodsynopsis>
+        <type>size_t</type> <methodname>availableData</methodname>
+                            <void />
+      </methodsynopsis>
+      <para>
+        Returns the amount of data available to this consumer.  
+      </para>
+      <methodsynopsis>
+        <type>CRingBuffer::Usage</type> <methodname>getUsage</methodname>
+                                        <void />
+      </methodsynopsis>
+      <para>
+        Returns a number of pieces of status and statistics information about
+        the ring buffer. See "Types and public data" below for more information
+        about the <classname>CRingBuffer::USage</classname> structure.
+      </para>
+      <methodsynopsis>
+        <type>int</type> <methodname>blockWhile</methodname>
+        <methodparam>
+            <type>CRingBuffer::CRingBufferPredicate&amp;</type> <parameter>pred</parameter>
+        </methodparam>
+        <methodparam>
+            <type>unsigned long</type> <parameter>timeout</parameter> <initializer>ULONG_MAX</initializer>
+        </methodparam>
+      </methodsynopsis>
+      <para>
+        Blocks the caller by calling the <methodname>operator()</methodname>
+        method of the <parameter>pred</parameter> parameter.  Blocking continues
+        as long as this predicate call returns true or until the
+        <parameter>timeout</parameter> seconds have passed.
+        <parameter>timeout</parameter> is an optional parameter that defaults to
+        136 years (or essentially forever).
+      </para>
+<!-- new -->
+     <methodsynopsis>
+        <type>void</type>
+        <methodname>While</methodname>
+        <methodparam>
+            <type>CRingBufferPredicate&amp;</type> <parameter>pred</parameter>
+        </methodparam>
+      </methodsynopsis>
+     <para>
+        Repeatedly calls the predicate <parameter>pred</parameter> until it returns
+        <literal>false</literal>.  The method polls the predicate rather than
+        blocking between calls.  One use of this function is to skip forward
+        through the ring buffer until a message that matches some specific
+        pattern is encountered.
+     </para>
+      <methodsynopsis>
+        <type>off_t</type> <methodname>getSlot</methodname>
+                           <void />
+      </methodsynopsis>
+      <para>
+        Returns the consumer slot that corresponds to the object.
+        If the object is a producer or a manager object, the return value
+        is <literal>-1</literal>.
+      </para>
+      <methodsynopsis>
+        <type>void</type> <methodname>forceProducerRelease</methodname>
+                          <void />
+      </methodsynopsis>
+      <para>
+        Forces the ring to no longer have a producer attachment.
+        This is intended to remove producers that have exited abnormally.
+      </para>
+      <methodsynopsis>
+        <type>void</type> <methodname>forceConsumerRelease</methodname>
+        <methodparam>
+            <type>unsigned</type> <parameter>slot</parameter>
+        </methodparam>
+      </methodsynopsis>
+      <para>
+        Forces the consumer slot <parameter>slot</parameter> to be freee for
+        reallocation.  This is intended to be used to remove consumers that
+        have exited abnormally.
+      </para>
+<!-- /new -->
+      </refsect1>
+      <refsect1>
+         <title>Types and public data</title>
+         <para>
+            The
+            <classname>CRingBuffer</classname> class defines several nested
+            data types:
+         </para>
+         <refsect2>
+            <title>CRingBuffer::ClientMode</title>
+            <para>
+                This is an enumerated type that is used to select the type
+                of connection desired when creating an instance of a
+                <classname>CRingBuffer</classname> object.
+                Possible values are:
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><literal>CRingBuffer::producer</literal></term>
+                    <listitem>
+                        <para>
+                            Requests a producer connection to the ring buffer.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>CRingBuffer::consumer</literal></term>
+                    <listitem>
+                        <para>
+                            Requests a consumer connection to the ring buffer.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>CRingBuffer::manager</literal></term>
+                    <listitem>
+                         <para>
+                            Requests a manager connection to the ring buffer.
+                            normal user code should not do this.  This sort of 
+			    connection allows force disconnection of existing 
+			    connection.
+                         </para>
+                    </listitem>
+                 </varlistentry>
+            </variablelist>
+         </refsect2>
+         <refsect2>
+            <title>CRingBuffer::Usage</title>
+            <para>
+                This structure is used to pass information about the status of
+                a ring from the <methodname>getUsage</methodname> method. The
+                struct contains the following members:
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><type>size_t</type> <structfield>s_bufferSpace</structfield></term>
+                    <listitem>
+                        <para>
+                            Contains the size of the ring buffer in bytes.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><type>size_t</type> <structfield>s_putSpace</structfield></term>
+                    <listitem>
+                        <para>
+                            Contains the number of bytes the producer could put
+                            in the buffer without blocking.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><type>size_t</type> <structfield>s_maxConsumers</structfield></term>
+                    <listitem>
+                        <para>
+                            Contains the number of consumers that can be
+                            simultaneously connected to the ring buffer.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><type>pid_t</type> <structfield>s_producer</structfield></term>
+                    <listitem>
+                        <para>
+                            Contains the process id of the ring buffer.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><type>size_t</type> <structfield>s_maxGetSpace</structfield></term>
+                    <listitem>
+                        <para>
+                            Contains the number of bytes that could be
+                            retrieved by the consumer that is furthest behind
+                            in reading the buffer.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><type>size_t</type> <structfield>s_minGetSpace</structfield></term>
+                    <listitem>
+                        <para>
+                            Returns the number of bytes that could be retrieved by the
+                            consumer that's most up to date in reading the buffer.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><type>std::vector&lt;std::pid_t, std::pair&lt;pid_t, size_t &gt; &gt;</type>
+                          <structfield>s_consumers</structfield></term>
+                    <listitem>
+                        <para>
+                            This vector returns information about each client currently
+                            attached to the ring buffer.  The first element of each pair
+                            is the process id of the consumer.  The second
+                            element of each pair is the number of bytes that
+                            consumer could get without blocking.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+         </refsect2>
+         <refsect2>
+            <title>CRingBuffer::CRingBufferPredicate</title>
+            <para>
+                <classname>CRingBuffer::CRingBufferPredicate</classname> provides an abstract
+                baseclass taht defines an interface for blocking predicate.
+                A blocking predicate is a function like object that can be used
+                by <methodname>blockWhile</methodname> to know how long to block.
+            </para>
+            <para>
+                The
+                <classname>CRingBuffer::CRingBufferPredicate</classname>
+                class defines only a single method:
+            </para>
+            <methodsynopsis>
+                <type>bool</type> <methodname>operator()</methodname>
+                <methodparam>
+                    <modifier>virtual</modifier>
+                        <type>CRingBuffer&amp;</type> <parameter>ring</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                On each pass through  its loop, the method
+                <methodname>blockWhile</methodname> invokes its predicates
+                <methodname>operator()</methodname> and continues blocking if
+                that method returns <literal>true</literal>.
+            </para>
+         </refsect2>
+      </refsect1>
+      <refsect1>
+         <title>Exceptions</title>
+         <para>
+            Some of the member functions in
+            <classname>CRingBuffer</classname> will throw exceptions:
+            
+         </para>
+         <variablelist>
+            <varlistentry>
+            <term><classname>CErrnoException</classname></term>
+            <listitem>
+                <para>
+                    Will be thrown when a system call returns an error in a
+                    system call that provides additional information in
+                    the <varname>errno</varname> variable.
+                </para>
+            </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><classname>CRangeException</classname></term>
+                <listitem>
+                    <para>
+                        Thrown when some value is not in a legal range.  For
+                        example, a user is requesting a get with
+                        <parameter>minbytes</parameter> larger than the
+                        total number of bytes the ring buffer can hold.
+                        Rather than blocking forever, this exception is thrown.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><classname>CStateException</classname></term>
+                <listitem>
+                    <para>
+                        Normally thrown if a consumer is attempting functions
+                        that are only allowed to producers, and vica versa.
+                    </para>
+                </listitem>
+            </varlistentry>
+         </variablelist>
+      </refsect1>
+      <refsect1>
+         <title>EXAMPLES</title>
+         <para>
+            The example below shows how to create a predicate that filters
+            messages.  We assume that each messages has a two longword header
+            that is defined in the struct <classname>header</classname>.
+            <structfield>s_size</structfield> is the size of the message,
+            including the header, and <structfield>type</structfield> is
+            the message type code.
+         </para>
+         <para>
+            The example predicate allows the application to skip all messages
+            that don't match the desired message type.
+         </para>
+         <example>
+            <title>Message filter predicate</title>
+            <programlisting>
+class CMessageFilterPredicate : public CRingBuffer::CRingBufferPredicate <co id="ringman.filter" />
+{
+private:
+    long    m_desiredType;
+public:
+    CMessageFilterPredicate(long desiredType) :
+        m_desiredType(desiredType)                                <co id="ringman.filter.savetype" />
+        {}
+    virtual bool operator()(CRingBuffer&amp; ring);
+};
+bool
+CMessageFilterPredicate::operator()(CRingBuffer&amp; ring)            <co id="ringman.filter.function" />
+{
+    // peek the header:
+    
+    struct header hdr;
+    size_t numRead = ring.peek(&amp;hdr, sizeof(hdr));                <co id="ringman.filter.peek" />
+    
+    if(numRead != sizeof(hdr)) return true;                       <co id="ringman.filter.noheader" />
+    
+    if (hdr.s_type  != m_desiredType) {                            
+        ring.skip(hdr.s_size);                                    <co id="ringman.filter.skip" />
+        return true;
+    }
+    return false;                                                 <co id="ringman.filter.found" />
+}
+
+...
+
+CRingBuffer myring(string("myring"));
+
+...
+
+// Wait for a message of type 3...
+// then read it.
+CMessageFilterPredicate filter(3);                                <co id="ringman.predicate" />
+myring.blockWhile(filter);                                        <co id="ringman.skipsome" />
+struct header &amp;hdr;
+myring.peek(&amp;hdr, sizeof(hdr));                                   <co id="ringman.peekheader" />
+char* message = new message[hdr.s_size];
+myring.get(message, hdr.s_size, hdr.s_size);                      <co id="ringman.readmsg" />
+
+...
+
+            </programlisting>
+         </example>
+         <calloutlist>
+            <callout arearefs="ringman.filter">
+                <para>
+                    Defines a class <classname>CMessageFilterPredicate</classname>
+                    that is derived from the
+                    <classname>CRingBuffer::CRingPRedicate</classname> base class.
+                    Objects that are <classname>CMessageFilterPredicate</classname>
+                    objects can therefore be passed as predicates to the
+                    <methodname>CRingBuffer::blockWhile</methodname> method.
+                </para>
+            </callout>
+            <callout arearefs="ringman.filter.savetype">
+                <para>
+                    The constructor of
+                    <classname>CMessageFilterPredicate</classname> will save
+                    the desired messsage type in member data it can be used
+                    to compare the types of messages in the ring buffer to
+                    the desired message type.
+                </para>
+            </callout>
+            <callout arearefs="ringman.filter.function">
+                <para>
+                    Concrete derivations of the
+                    <classname>CRingBuffer::CRingBufferPredicate</classname>
+                    class must implement the
+                    <methodname>operator()</methodname>.
+                    This method is called by the polling loop in
+                    <methodname>CRingBuffer::blockWhile</methodname>.
+                </para>
+            </callout>
+            <callout arearefs="ringman.filter.peek">
+                <para>
+                    The predicate function operator will peek at message
+                    headers.
+                </para>
+            </callout>
+            <callout arearefs="ringman.filter.noheader">
+                <para>
+                    If there are no messages in the ring buffer when the
+                    function operator is called, it will return
+                    <literal>true</literal> requesting that
+                    <methodname>CRingBuffer::blockWhile</methodname> continue
+                    blocking.
+                </para>
+            </callout>
+            <callout arearefs="ringman.filter.skip">
+                <para>
+                    This code assumes that messages are atomically put in the
+                    ring buffer, that is the entire messages is transfered in one
+                    <methodname>put</methodname> operation.  If the header of
+                    shows that the message type is not the one we're looking for,
+                    the entire message is skipped and
+                    <methodname>CRingBuffer::blockWhile</methodname> is told to
+                    continue to block.
+                </para>
+            </callout>
+            <callout arearefs="ringman.filter.found">
+                <para>
+                    If, on the other hand, the message matches the desired message
+                    type, the function operator returns <literal>false</literal>
+                    which tells
+                    <methodname>CRingBuffer::blockWhile</methodname> to stop
+                    blocking.
+                </para>
+            </callout>
+            <callout arearefs="ringman.predicate">
+                <para>
+                    The first step to actually filtering out unwanted message
+                    types is to create a
+                    <classname>CMessageFilterPredicate</classname>
+                    object passing the constructor the message type code
+                    we want to see.
+                </para>
+            </callout>
+            <callout arearefs="ringman.skipsome">
+                <para>
+                    This call to
+                    <methodname>CRingBuffer::blockWhile</methodname> will not
+                    return until a message of type <literal>3</literal>
+                    is found.  Due to the
+                    <methodname>skip</methodname> calls in the predicate,
+                    when control returns, the next available data in the
+                    ring buffer is the desired message.
+                </para>
+            </callout>
+            <callout arearefs="ringman.peekheader">
+                <para>
+                    Peeking at the message header allows us to allocate
+                    the storage needed for the entire message, and to read the
+                    message atomically.
+                </para>
+            </callout>
+            <callout arearefs="ringman.readmsg">
+                <para>
+                    Reads the message.
+                </para>
+            </callout>
+         </calloutlist>
+      </refsect1>
+   </refentry>
+
+<!-- /manpage -->

@@ -1,0 +1,49 @@
+<html>
+    <head>
+        <title>tkdumper introduction</title>
+    </head>
+    <body>
+        <h2>Introduction to tkdumper</h2>
+        <p>
+            tkdumper is a program that allows you to inspect data from a data
+            source in the NSCLDAQ version 10.0 and later (ring buffer data
+            distribution systems).  This page orients you to the operation of
+            of the dumper as well as pointing you to other help pages you are
+            likely to need.
+        </p>
+        <p>
+            The tkdumper window consists of three sections.
+            <ul>
+                <li>At the top is a menubar.  For information about the
+                    menubar menus see the <a href="menus.html">Menus</a>
+                    topic.
+                </li>
+                <li>
+                    The middle and largest section is the display area.  Events
+                    you sample from the data source are formatted and displayed
+                    here.  Dumped data are displayed here appropriately
+		    formatted.  In the case of event data you can control the
+		    formatting by extending the buffer dumper (See below).
+                </li>
+                <li>
+                    The bottom strip is a status bar.  It contains two items. om 
+                    The left most section displays the current data source or is
+                    empty if you have not connected tot a data source.
+                    The right most part of the bar is an arrow button that requests
+                    an event from the data source.
+                    For more information on this button, see the
+                    <a href="next.html">Get Next Event</a> topic..
+                </li>
+            </ul>
+        </p>
+        <p>
+            The tkdumper understands the general format of NSCL event buffers.
+            Specifically it understands that events are divided into packets,
+            it understands a set of defined packet ids, the format of a packet.
+            You an also
+            <a href="extend.html">extend tkdumper</a> to add packets to the known
+            packet list and to describe how packets should be formatted.
+        </p>
+    
+    </body>
+</html>

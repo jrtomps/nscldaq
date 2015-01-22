@@ -1,0 +1,81 @@
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Authors:
+#      NSCLDAQ Development Group
+#
+#	     NSCL
+#	     Michigan State University
+#	     East Lansing, MI 48824-1321
+
+# This software is Copyright by the Board of Trustees of Michigan
+# State University (c) Copyright 2297884. 
+
+# @file  runstatusui.test 
+# @author Jeromy Tompkins 
+
+
+package require tcltest
+package require OfflineEVBRunStatusUI
+
+tcltest::test transitionToNextJob-0 {Test the logic works
+} -setup {
+  set pr [RunStatusUIPresenter %AUTO% -widgetname .meh]
+} -cleanup {
+  $pr destroy
+} -body {
+  set jobs [dict create processing jc queued [list jd je jf] completed [list ja jb]]
+  $pr setModel $jobs
+
+  $pr transitionToNextJob je
+
+  $pr getModel
+} -result [dict create processing je queued [list jd jf] completed [list ja jb jc]]
+
+
+
+tcltest::test findUniqueName-0 {Test that we find the next appropriate unique name
+} -setup {
+  set pr [RunStatusUIPresenter %AUTO% -widgetname .meh]
+} -cleanup {
+  $pr destroy
+} -body {
+  set jobs [ JobStatusDisplay .meh.jobDisplay0  ]
+  $pr setDisplayedJobs [dict create job0 $jobs]
+
+  $pr findUniqueName
+   
+} -result  ".meh.jobDisplay1"
+
+
+
+tcltest::test transitionCurrent-0 {Test that transitioning current puts it into completed
+} -setup {
+  set pr [RunStatusUIPresenter %AUTO% -widgetname .meh]
+} -cleanup {
+  $pr destroy
+} -body {
+  $pr setModel [dict create processing "asdf" completed [list] queued [list]]
+
+  $pr transitionCurrent completed
+  $pr getModel
+} -result [dict create processing "" completed [list asdf] queued [list]]
+
+tcltest::test transitionCurrent-1 {Test that transitioning current puts it where we ask 
+} -setup {
+  set pr [RunStatusUIPresenter %AUTO% -widgetname .meh]
+} -cleanup {
+  $pr destroy
+} -body {
+  $pr setModel [dict create processing "asdf" completed [list] queued [list]]
+
+  $pr transitionCurrent queued 
+  $pr getModel
+} -result [dict create processing "" completed [list] queued [list asdf]]
+
+
+
+tcltest::cleanupTests

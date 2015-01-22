@@ -1,0 +1,11 @@
+
+package require tcltest
+
+tcltest::test pkgrequire-0 {Require the package as we know it
+} {
+  set ver [package require FrameSequencer]
+  expr {$ver>0}
+} 1
+
+
+tcltest::cleanupTests

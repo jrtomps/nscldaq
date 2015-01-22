@@ -1,0 +1,270 @@
+
+package require tcltest
+package require controlscript
+package require Globals 
+package require snit 
+
+set testfname "____test____"
+set testcontent $testfname
+set testpath [tcltest::makeFile $testcontent $testfname]
+
+## find a filename that doesn;t exist
+set missingfname "a"
+while {[file exists $missingfname]} {
+  append missingfname "a"
+}
+
+## Define a proc that we know exists 
+set testproc ::aDummyProcForTests
+proc $testproc args { 
+  set procname [dict get [info frame [info frame]] proc]
+  return "$procname executed"
+}
+
+## find a proc that doesn't exist
+set missingproc "a"
+while {[llength [info proc $missingproc]]!=0} {
+  append missingproc "a"
+}
+
+
+# we don't enforce -controllertype at construction, only at use
+tcltest::test constructor-0 {Constructor succeeds without -controllertype 
+} -body {
+  set object [controlscript myscript]
+  $object destroy
+} -returnCodes 0 
+
+#########################################################################################
+############ TEST the _setScript proc
+
+
+##
+tcltest::test setscript-0 {Test success for a file that is sure to exist
+} -setup {
+  controlscript myscript
+} -cleanup {
+  myscript destroy
+} -body {
+  myscript _setScript -initscript $testpath
+} -returnCodes 0 -result $testpath
+
+##
+tcltest::test setscript-0 {Test failure for a file that we know doesn't exist 
+} -setup {
+  controlscript myscript
+} -cleanup {
+  myscript destroy
+} -body {
+  myscript _setScript -initscript $missingfname
+} -returnCodes 1 -result "File path $missingfname specified for -initscript, but no file exists there."
+
+
+########### _setScript called by configure
+##
+tcltest::test configureinit-0 {Test failure for a file that we know doesn't exist for -initscript 
+} -setup {
+  controlscript myscript
+} -cleanup {
+  myscript destroy
+} -body {
+  myscript configure -initscript $missingfname
+} -returnCodes 1 -result "File path $missingfname specified for -initscript, but no file exists there."
+
+##
+tcltest::test configureinit-1 {Test success for a file that we know exist for -initscript
+} -setup {
+  controlscript myscript -initscript $testpath
+} -cleanup {
+  myscript destroy
+} -body {
+  myscript cget -initscript
+} -returnCodes 0 -result $testpath
+
+##
+tcltest::test configureupdate-0 {Test failure for a file that we know doesn't exist for -updatescript
+} -setup {
+  controlscript myscript
+} -cleanup {
+  myscript destroy
+} -body {
+  myscript configure -updatescript $missingfname
+} -returnCodes 1 -result "File path $missingfname specified for -updatescript, but no file exists there."
+
+##
+tcltest::test configureupdate-1 {Test success for a file that we know exist for -updatescript
+} -setup {
+  controlscript myscript -updatescript $testpath
+} -cleanup {
+  myscript destroy
+} -body {
+  myscript cget -updatescript
+} -returnCodes 0 -result $testpath
+
+##
+tcltest::test configuremonitor-0 {Test failure for a file that we know doesn't exist for -monitorscript
+} -setup {
+  controlscript myscript
+} -cleanup {
+  myscript destroy
+} -body {
+  myscript configure -monitorscript $missingfname
+} -returnCodes 1 -result "File path $missingfname specified for -monitorscript, but no file exists there."
+
+##
+tcltest::test configuremonitor-1 {Test success for a file that we know exist for -monitorscript
+} -setup {
+  controlscript myscript -monitorscript $testpath
+} -cleanup {
+  myscript destroy
+} -body {
+  myscript cget -monitorscript
+} -returnCodes 0 -result $testpath
+
+
+######################################
+## tests for _setControllerType
+#
+##
+tcltest::test setctlrtype-0 {Test set controller type for "vmusb" 
+} -setup {
+  controlscript myscript
+} -cleanup {
+  myscript destroy
+} -body {
+  myscript _setControllerType -controllertype vmusb
+  myscript cget -controllertype
+} -result "vmusb" -returnCodes 0
+
+tcltest::test setctlrtype-1 {Test set controller type for "ccusb"
+} -setup {
+  controlscript myscript
+} -cleanup {
+  myscript destroy
+} -body {
+  myscript _setControllerType -controllertype ccusb
+  myscript cget -controllertype
+} -result "ccusb" -returnCodes 0
+
+tcltest::test setctlrtype-2 {Test set controller type for "noneoftheabove"
+} -setup {
+  controlscript myscript
+} -cleanup {
+  myscript destroy
+} -body {
+  myscript _setControllerType -controllertype noneoftheabove
+} -result "Type of controller not specified! User must set -controllertype to either \"vmusb\" or \"ccusb\"" -returnCodes 1
+
+##################  setProc
+## 
+tcltest::test setproc-0 {Test set proc for success 
+} -setup {
+  controlscript myscript
+} -cleanup {
+  myscript destroy
+} -body {
+  myscript _setProc dumbyoption $testproc
+} -returnCodes 0 -result $testproc
+
+tcltest::test setproc-1 {Test set proc for failure 
+} -setup {
+  controlscript myscript
+} -cleanup {
+  myscript destroy
+} -body {
+  myscript _setProc dumbyoption $missingproc 
+} -result "Proc ($missingproc) specified for dumbyoption doesn't exist" -returnCodes 1
+
+tcltest::test configuremonitorproc-0 {Test configuring -monitorproc for success
+} -setup {
+  controlscript myscript
+} -cleanup {
+  myscript destroy
+} -body {
+  myscript configure -monitorproc $testproc
+} -returnCodes 0
+
+tcltest::test configuremonitorproc-1 {Test configuring -monitorproc for failure 
+} -setup {
+  controlscript myscript
+} -cleanup {
+  myscript destroy
+} -body {
+  myscript configure -monitorproc $missingproc
+} -returnCodes 1 -result "Proc ($missingproc) specified for -monitorproc doesn't exist"
+
+################### tests for unimplemented features
+
+tcltest::test set-0 {Test that Set fails
+} -setup {
+  controlscript myscript
+} -cleanup {
+  myscript destroy
+} -body {
+  myscript Set ctlr param val
+} -returnCodes 1 -result "Set is not supported"
+
+tcltest::test get-0 {Test that Get fails
+} -setup {
+  controlscript myscript
+} -cleanup {
+  myscript destroy
+} -body {
+  myscript Get ctlr param val
+} -returnCodes 1 -result "Get is not supported"
+
+################### test for Initialize
+
+tcltest::test initialize-0 {Test failure if -controllertype has not been specified
+} -setup {
+  controlscript myscript
+} -cleanup {
+  myscript destroy
+} -body {
+  myscript Initialize actlr
+} -result "Type of controller not specified! User must set -controllertype to either \"vmusb\" or \"ccusb\"" -returnCodes 1
+
+################### test for Update 
+
+tcltest::test update-0 {Test failure if -controllertype has not been specified
+} -setup {
+  controlscript myscript
+} -cleanup {
+  myscript destroy
+} -body {
+  myscript Update actlr
+} -result "Type of controller not specified! User must set -controllertype to either \"vmusb\" or \"ccusb\"" -returnCodes 1
+
+################### test for addMonitorList 
+
+tcltest::test addmonitorlist-0 {Test failure if -controllertype has not been specified
+} -setup {
+  controlscript myscript
+} -cleanup {
+  myscript destroy
+} -body {
+  myscript addMonitorList actlr
+} -result "Type of controller not specified! User must set -controllertype to either \"vmusb\" or \"ccusb\"" -returnCodes 1
+
+################### test for addMonitorList 
+
+tcltest::test processmonitorlist-0 {Test failure if -controllertype has not been specified
+} -setup {
+  controlscript myscript
+} -cleanup {
+  myscript destroy
+} -body {
+  myscript processMonitorList actlr
+} -result "Type of controller not specified! User must set -controllertype to either \"vmusb\" or \"ccusb\"" -returnCodes 1
+
+tcltest::test processmonitorlist-0 {Test failure if -controllertype has not been specified
+} -setup {
+  controlscript myscript -controllertype vmusb -monitorproc $testproc
+} -cleanup {
+  myscript destroy
+} -body {
+  set data [list 0 1 2 3 4]
+  myscript processMonitorList $data
+} -result "$testproc executed"
+
+tcltest::cleanupTests

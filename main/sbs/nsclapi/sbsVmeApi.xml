@@ -1,0 +1,2445 @@
+<!-- chapter libraries -->
+<chapter id="sbsvmebase">
+    <title>SBS Base interface classes to the VME </title>
+    <para>
+        This chapter describes the <classname>SBSVmeAPI</classname> library.
+        This library supplies base functionality that allows applications to
+        access one or more VME crates on a local system via the SBS/Bit3/GE-Fanuc
+        fiber optic interface.
+    </para>
+    <para>
+        This chapter is divided as follows:
+    </para>
+    <variablelist>
+        <varlistentry>
+            <term>The classes</term>
+            <listitem>
+            <para>Provides a list of the classes, their purpose and intent.
+            </para>
+            </listitem>
+            </varlistentry>
+        <varlistentry>
+            <term>Building</term>
+            <listitem>
+            <para>Describes how to incorporate the headers and libraries into
+                    one of you applications.
+                    </para>
+            </listitem>
+        </varlistentry>
+    </variablelist>
+    <section>
+        <title>The classes</title>
+        <para>
+            The class library consists of the following classes that are considered
+            public:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term><classname>CVMEInterface</classname></term>
+                <listitem>
+                    <para>
+                        Provides a thin class level wrapping around the set of
+                        SBS module operations that might exist for other types
+                        of VME interfaces
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><classname>SBSBit3API</classname></term>
+                <listitem>
+                    <para>
+                        Provides a thin class level wrapping around the set
+                        of SBS module operations that are very likely SBS unique.
+                        </para>
+                    </listitem>
+                </varlistentry>
+
+            <varlistentry>
+                <term><classname>CVMEptr</classname></term>
+                <listitem>
+                    <para>
+                        Encapsulates a VME address segment mapped into the
+                        process virtual address space in a pointer-like object.
+                        The pointer is reference counted so that it is well behaved
+                        in the presence of copy construction and asignment.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><classname>VmeModule</classname></term>
+                <listitem>
+                    <para>
+                        Provides base functionality that is intended to support
+                        classes that support a specific VME module.
+                        </para>
+                    </listitem>
+                </varlistentry>
+        </variablelist>
+        <para>
+            To understand how to use these classes a quick overview of VME
+            addressing may be useful.  The VME bus has the following characteristics:
+            <itemizedlist>
+                <listitem>
+                    <para>Up to 32 bits of address</para>
+                    </listitem>
+                <listitem>
+                    <para>Up to 32 bits of data</para>
+                    </listitem>
+                <listitem>
+                    <para>
+                        Address modifiers that provide several address spaces.
+                        </para>
+                    </listitem>
+                </itemizedlist>
+            </para>
+        <para>
+            A discussion of the purpose and use of address modifiers is of the
+            utmost importance.  Bus cycles consist of address and data cycles.
+            Each address cycle provides an address and an address modifier.
+            Each data cycle provides a longword transfer and a set of data strobes
+            that, for non-longword transfers, describe the set of bytes to be
+            transferred at the address.
+            </para>
+        <para>
+            Address modifiers select which of several address spaces should be
+            involved in data transfers associated with that address cycle.
+            Three main address modifiers are the most important ones.
+            These address modifiers are symbolically defined in the header file:
+            <filename>CVMEInterface.h</filename>.
+            They are:
+            </para>
+        <variablelist>
+            <varlistentry>
+                <term><literal>CVMEInterface::ShortIO</literal></term>
+                <listitem>
+                    <para>
+                        Describes an address space that only pays attention to
+                        the bottom 16 bits of the address.  Modules that recognize
+                        this space are intended to be I/O modules with a modest
+                        address space footprint.   Modules in this address space
+                        can define their address maps to start on an 8 bit address
+                        boundary.  This limits the bus to at most 256 short I/O
+                        address regions.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><literal>CVMEInterface::Standard</literal></term>
+                <listitem>
+                    <para>
+                        Describes an address space that only uses the bottom
+                        24 bits of the address. This address space provides
+                        for a 16 bit data bus which is entirely located on the
+                        P1 (top) connector.   In the past, this allowed for
+                        3-U VME cards (1/2 height VME cards) to be built that
+                        fit in to a 1/2 heigbht backplane.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><literal>CVMEInterface::Extended</literal></term>
+                <listitem>
+                    <para>
+                        Describes an address space that uses the full 32 bits
+                        of VME addressing capability.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        <para>
+            In addition to these addressing modes, the <literal>CVMEInterface::GEO</literal>,
+            <literal>CVMEInterface::CBLT</literal>, and
+            <literal>CVMEInterface::Multicast</literal> address modifiers provide
+            symbolic names for the address modifier most often used by VME
+            modules that implement these access modes.  The VME64 standards provides
+            an additional set of address modes that, by multiplexing the address
+            and data lines on the backplane allow the same backplane to support
+            64 bit address and data spaces.  The SBS controllers we have
+            do not
+            support these addressing modes.
+            </para>
+        <para>
+            Some address modifiers define high performance block transfer
+            modes.  In these data transfer modes, the address cycle only happens
+            infrequently, followed by a burst of data cycles that are assumed
+            to come from a sequential set of addresses.  The SBS module can
+            peform block transfers and transparently modifies the base
+            address modifier you specify when a block transfer is performed.
+            </para>
+        <para>
+            See the reference pages for each of these classes for detailed
+            information.
+            </para>
+        </section>
+    <section>
+        <title>Incorporating headers and libraries into your program.
+        </title>
+        <para>
+            Class definitions for each of the classes described in the previous
+            section are provided in headers that have the same name as the class
+            name e.g. <filename>CVMEInterface.h</filename> provides the
+            class definitions for the <classname>CVMEInterface</classname> class.
+            </para>
+        <para>
+            Header files are installed in the <filename>include</filename>
+            subdirectory of the installation tree.  Suppose that the root
+            of the install tree is pointed to by the environment variable
+            <varname>DAQROOT</varname>.  Compilations should have the
+            <literal>-I$DAQROOT/include</literal> switch specified.
+            </para>
+        <para>
+            The library is installed in <filename>$DAQROOT/lib</filename> and
+            is called <filename>libSBSVmeAPI.so</filename>.  To incorporate this
+            library at link time, your link command line will need:
+            <literal>-L$DAQROOT/lib -lSBSVmeAPI</literal>.
+            </para>
+        </section>
+    
+</chapter>
+
+
+<!-- /chapter -->
+
+<!-- manpage 3daq -->
+
+    <refentry id="cvmeinterface">
+      <refmeta>
+         <refentrytitle>CVMEInterface</refentrytitle>
+         <manvolnum>3daq</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>CVMEInterface</refname>
+     <refpurpose>Class wrapping of the SBS VME library.</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;CVMEInterface.h&gt;
+         </programlisting>
+         <classsynopsis>
+            <ooclass><classname>CVMEInterface  static const char* m_szDriverName; // Name of driver (e.g. NSCLBiT3).
+            </classname></ooclass>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>void*</type> <methodname>Open</methodname>
+                <methodparam>
+                    <type>AddressMode</type> <parameter>nMode</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>unsigned short</type> <parameter>crate</parameter>
+                    <initializer> 0</initializer>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier> <type>void</type>
+                <methodname>Close</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pDeviceHandle</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier> <type>void*</type>
+                <methodname>Map</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pDeviceHandle</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>unsigned long</type> <parameter>nBase</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>unsigned long</type> <parameter>nBytes</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier> <type>void</type>
+                <methodname>Unmap</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pDeviceHandle</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>void*</type> <parameter>pBase</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>unsigned long</type> <parameter>lBytes</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier> <type>int</type>
+                <methodname>Read</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>DeviceHandle</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>unsigned long</type> <parameter>nOffset</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>void*</type> <parameter>pBuffer</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>unsigned long</type> <parameter>nBytes</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>static int</type> <methodname>Write</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pDeviceHandle</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>unsigned long</type> <parameter>nOffset</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>void*</type> <parameter>pBuffer</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>unsigned long</type> <parameter>nBytes</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier> <type>void</type>
+                <methodname>Lock</methodname>
+                <void />
+                </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier> <type>void</type>
+                <methodname>Unlock</methodname>
+                <void />
+            </methodsynopsis>
+         </classsynopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>Description</title>
+         <para>
+            This class provides  low level access to VME crates connected to
+            the host system via the SBS PCI/VME fibre optic bus bridge.  Each
+            interface can connect to a single crate.  The crates are numbered from
+            zero in the order deteced at power up by the linux kernel.  The
+            utility <link linkend="cratelocator">cratelocator</link> is able
+            to help you determine which crate is which.
+         </para>
+         <para>
+            A closely related class is
+            <link linkend="csbsbit3vmeinterface"><classname>CSBSBit3VmeInterface</classname></link>
+            which provides access to the advanced interfaces of the module.
+            </para>
+         <para>
+            The section below (Public member functions) provides reference
+            information about each member function. Data types that are exported
+            from this class are described in "Types and public data".
+            </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            Public member functions
+         </title>
+        <methodsynopsis>
+             <modifier>static</modifier>
+             <type>void*</type> <methodname>Open</methodname>
+             <methodparam>
+                 <type>AddressMode</type> <parameter>nMode</parameter>
+                 </methodparam>
+             <methodparam>
+                 <type>unsigned short</type> <parameter>crate</parameter>
+                 <initializer> 0</initializer>
+                 </methodparam>
+             </methodsynopsis>
+        <para>
+            Opens a handle to the sbs driver.  The <parameter>nMode</parameter>
+            defines the address modifier that will be used for all references
+            to the VME crate through this handle.  See the
+            "Types and public data" section for the definitions of legal
+            values of <type>AddressMode</type>.  The <parameter>crate</parameter>
+            selects which of the potentially several VME crates to
+            operate on.  You can us the
+            <link linkend="cratelocator"><application>cratelocator</application></link>
+            utility to determine which crates are which.
+            </para>
+        <para>
+            The return value from this function is a handle to be used in subsequent
+            calls.  The handle is an opaque data type and should not be assumed
+            to have any particular structure other thanbeing the size of a pointer.
+            On error, the function will throw a <classname>std::string</classname>
+            exception.  The exception string will be an error message suitable
+            for display to human users.
+            </para>
+         <methodsynopsis>
+             <modifier>static</modifier> <type>void</type>
+             <methodname>Close</methodname>
+             <methodparam>
+                 <type>void*</type> <parameter>pDeviceHandle</parameter>
+                 </methodparam>
+             </methodsynopsis>
+         <para>
+            Closes an open handle.  On error, this will throw an
+            <classname>std::string</classname> exception that contains an error
+            message suitable for display to human users.
+            </para>
+         <methodsynopsis>
+             <modifier>static</modifier> <type>void*</type>
+             <methodname>Map</methodname>
+             <methodparam>
+                 <type>void*</type> <parameter>pDeviceHandle</parameter>
+                 </methodparam>
+             <methodparam>
+                 <type>unsigned long</type> <parameter>nBase</parameter>
+                 </methodparam>
+             <methodparam>
+                 <type>unsigned long</type> <parameter>nBytes</parameter>
+                 </methodparam>
+             </methodsynopsis>
+         <para>
+            Creates a mapping between an address segment in VME space and an chunk
+            of process virtual address space.  Once created, the process can
+            perform VME transactions by simply dereferencing pointers into this
+            adress map.  The map persists after the handle is closed, although
+            the handle is needed if you want to explicitly release the map
+            rather than allowing process cleanup to do so.
+            </para>
+        <para>
+            The <parameter>pDeviceHandle</parameter> is a handle returned
+            by a call to the <methodname>Open</methodname> method.  <parameter>nBase</parameter>
+            <parameter>nBytes</parameter> describe the desired range of VME address space
+            to map to the process.  The address modifier is determined by the modifier
+            passed to the <methodname>Open</methodname> method.
+            </para>
+        <para>
+            On succedss, the method returns a pointer to the base address of the
+            process virtual address space that corresponds to the VME address segment.
+            On error, the method will throw a <classname>std::string</classname>
+            exception where the string is a human readable error message.
+            </para>
+         <methodsynopsis>
+             <modifier>static</modifier> <type>void</type>
+             <methodname>Unmap</methodname>
+             <methodparam>
+                 <type>void*</type> <parameter>pDeviceHandle</parameter>
+                 </methodparam>
+             <methodparam>
+                 <type>void*</type> <parameter>pBase</parameter>
+                 </methodparam>
+             <methodparam>
+                 <type>unsigned long</type> <parameter>lBytes</parameter>
+                 </methodparam>
+             </methodsynopsis>
+         <para>
+            Breaks an address space mapping to the VME bus that was established
+            by a call to the <methodname>Map</methodname> method.  Once broken,
+            the results of memory references to the process address space that
+            was mapped to a VME bus are undefined, but will most likely fail
+            with a <literal>SEGFAULT</literal>
+            </para>
+         <para>
+            <parameter>pDeviceHandle</parameter> is the handle returned from
+            the <methodname>Open</methodname> used to create the map.  The
+            <parameter>pBase</parameter> and <parameter>lBytes</parameter> parameters
+            describe the region in <emphasis>process virtual address space</emphasis>
+            of the map (<parameter>pBase</parameter> is the value returned from the
+            <methodname>Map</methodname> method).
+            </para>
+         <para>
+            On error, the method will throw a <classname>std::string</classname>
+            exception that contains a user readable error message describing
+            the error
+            </para>
+         <methodsynopsis>
+             <modifier>static</modifier> <type>int</type>
+             <methodname>Read</methodname>
+             <methodparam>
+                 <type>void*</type> <parameter>DeviceHandle</parameter>
+                 </methodparam>
+             <methodparam>
+                 <type>unsigned long</type> <parameter>nOffset</parameter>
+                 </methodparam>
+             <methodparam>
+                 <type>void*</type> <parameter>pBuffer</parameter>
+                 </methodparam>
+             <methodparam>
+                 <type>unsigned long</type> <parameter>nBytes</parameter>
+                 </methodparam>
+             </methodsynopsis>
+         <para>
+            Peforms a read from several consecutive locations of VME
+            memory into a user buffer.  Depending on parameter settings and the
+            transfer count,
+            (see <link linkend="csbsbit3vmeinterface">CSBSBit3VmeInterface</link>),
+            the transfer might be done under program control in the device driver,
+            via DMA or via blockmode.  The width of the transfer is also
+            determined by driver parameters set via
+            <classname>CSBSBit3VmeInterface</classname> member functions.
+            </para>
+         <para>
+            <parameter>DeviceHandle</parameter> is the device handle returned from
+            a call to the <methodname>Open</methodname> method.  <parameter>nOffset</parameter>
+            is the base address in VME address space at which the transfer starts, while
+            <parameter>nBytes</parameter> is the number of bytes to transfer.  The
+            user buffer is pointed to by <parameter>pBuffer</parameter> and must
+            be at least <parameter>nBytes</parameter> long.
+            </para>
+         <para>
+            On success, the function returns the number of bytes transferred.
+            If a bus error (BERR) is signalled on the backplane, this is
+            <emphasis>approximately</emphasis> the number of bytes transferred
+            before the BERR occurred, however the hardware is not able to
+            accurately report the partial transfer count.
+            </para>
+         <para>
+            On failure a <classname>std::string</classname> error message
+            exception is thrown.
+            </para>
+         <methodsynopsis>
+             <type>static int</type> <methodname>Write</methodname>
+             <methodparam>
+                 <type>void*</type> <parameter>pDeviceHandle</parameter>
+                 </methodparam>
+             <methodparam>
+                 <type>unsigned long</type> <parameter>nOffset</parameter>
+                 </methodparam>
+             <methodparam>
+                 <type>void*</type> <parameter>pBuffer</parameter>
+                 </methodparam>
+             <methodparam>
+                 <type>unsigned long</type> <parameter>nBytes</parameter>
+                 </methodparam>
+             </methodsynopsis>
+         <para>
+            Writes a block of <parameter>nBytes</parameter> of data
+            from <parameter>pBuffer</parameter> to the address in the VME
+            space starting at <parameter>nOffset</parameter>.  <parameter>pDeviceHandle</parameter>
+            is the handle returned from an <methodname>Open</methodname> call.
+            </para>
+         <para>
+            On success, the number of  bytes transferred is returned.
+            As for reads, a BERR is not considered an error. Instead, an approximate
+            transfer count is returned.  On failure a <classname>std::string</classname>
+            exception is thrown containing a human readable errror message.
+            </para>
+         <methodsynopsis>
+             <modifier>static</modifier> <type>void</type>
+             <methodname>Lock</methodname>
+             <void />
+             </methodsynopsis>
+         <para>
+            Locks a semaphore associated with the VME interface system.  While
+            the interface is performing a DMA transfer, program controlled
+            transfers cannot take place.  If you are doing a block transfer
+            via <methodname>Read</methodname> or <methodname>Write</methodname>,
+            and suspect that some other process may attempt a VME transaction
+            via  memory map, or vica versa, bracket those operations with
+            a call to <methodname>Lock</methodname> and <methodname>Unlock</methodname>.
+            </para>
+         <methodsynopsis>
+             <modifier>static</modifier> <type>void</type>
+             <methodname>Unlock</methodname>
+             <void />
+         </methodsynopsis>
+         <para>
+               Releases the VME semaphore.  See <methodname>Lock</methodname> for more information
+               about why you would use the VME sempahore.
+            </para>
+      </refsect1>
+      <refsect1>
+         <title>Types and public data</title>
+         <para>
+            The <classname>CVMEInterface</classname> class exports an enumerator,
+            <structname>CVMEInterface::AddressMode</structname>,
+            that defines the basic address modifiers (address spaces) understood
+            by the module.  Some of these are synonymous with others.
+            </para>
+         <para>
+            Values defined by this enum are:
+            <variablelist>
+                <varlistentry>
+                    <term><structfield>A16</structfield> or
+                        <structfield>ShortIO</structfield>
+                        </term>
+                    <listitem>
+                        <para>
+                            Selects the 16 bit address space.  This is also
+                            known in VME parlance as <firstterm>Short I/O</firstterm>
+                            space.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                <varlistentry>
+                    <term><structfield>A24</structfield> or
+                    <structfield>Standard</structfield></term>
+                    <listitem>
+                        <para>
+                            Selects the 24 bit address space. For historical reasons,
+                            this is also known as the <firstterm>Standard</firstterm>
+                            address space.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                <varlistentry>
+                    <term><structfield>A32</structfield> or
+                    <structfield>Extended</structfield></term>
+                    <listitem>
+                        <para>
+                            Selects the 32 bit address space.  For historical
+                            reasons, this is also known as the <firstterm>Extended</firstterm>
+                            address space.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                <varlistentry>
+                    <term><structfield>MCST</structfield> or
+                    <structfield>Multicast</structfield>
+                    </term>
+                    <listitem>
+                        <para>
+                            Some boards support common initialization and cleanup
+                            functions via a <firstterm>multicast</firstterm> address.
+                            For those boards that do, the <structfield>MCST</structfield>
+                            or it synonym <structfield>Multicast</structfield>
+                            address modifier provides a mechanism to access those
+                            modes.  Not that at presen this is a synonym for
+                            <structfield>A32</structfield>.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                <varlistentry>
+                    <term>
+                        <structfield>CBLT</structfield> or
+                        <structfield>ChainedBlock</structfield>
+                        </term>
+                    <listitem>
+                        <para>
+                            Some modules implement a chained block transfer that
+                            allows a group of contiguous modules to be read out
+                            via a single VME block transfer.  This is implemented
+                            via the <structfield>A32</structfield> transfer in block
+                            mode only.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                <varlistentry>
+                    <term><structfield>GEO</structfield> or
+                    <structfield>Geographical</structfield></term>
+                    <listitem>
+                        <para>
+                            Some modules provide an extra connector on which the
+                            slot number is encoded.  These modules implement some
+                            addressing shceme tht allows you to access the module via
+                            a 24 bit adress that depends in some computible way on
+                            the module's slot. Thie GEO adrss space allows you to
+                            operate on the module in geo mode.
+                            </para>
+                        <para>
+                            At present, geographical addredssing is just the same as the
+                            A24 address modifier.,
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                </variablelist>
+            </para>
+      </refsect1>
+      <refsect1>
+         <title>Exceptions</title>
+         <para>
+            Most functions signal errors via a <classname>std::string</classname>
+            excpetion.  In that case the string contain a human readable error string
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>EXAMPLES</title>
+         <para>
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>See Also</title>
+            <para id="cratelocator">Fake cratelocator link target</para>
+      </refsect1>
+   </refentry>
+
+    <refentry id="csbsbit3vmeinterface">
+      <refmeta>
+         <refentrytitle>CSBSBit3VmeInterface</refentrytitle>
+         <manvolnum>3daq</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>CSBSBit3VmeInterface</refname>
+     <refpurpose>Provide access to SBS/Bit3 driver parameters.</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;SBSBit3API.h&gt;
+         </programlisting>
+         <classsynopsis>
+            <ooclass><classname>CSBSBit3VmeInterface</classname></ooclass>
+            <methodsynopsis>
+                <modifier>static</modifier> <type>void</type>
+                <methodname>SetDMABlockTransfer</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>bool</type> <parameter>enable</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier> <type>void</type>
+                <methodname>SetDMAPauseMode</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>bool</type> <parameter>enable</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>void</type> <methodname>SetMaxTransferWidth</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>bt_width_t</type> <parameter>width</parameter>
+                </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>void</type> <methodname>SetDMAAddressModifier</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>Modifier</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>void</type> <methodname>SetMMAPAddressModifier</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>Modifier</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>void</type> <methodname>SetSwapMode</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>bt_swap_t</type> <parameter>SwapMode</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>void</type> <methodname>SetDMAThreshold</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>nTransfers</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>void</type> <methodname>SetDMAPollCeiling</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>nTransfers</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>void</type>
+                <methodname>SetTraceMask</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>nMask</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>int</type> <methodname>GetLocalCardPartNumber</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>int</type> <methodname>GetRemoteCardPartNumber</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>unsigned int</type> <methodname>GetLocalMemorySize</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>bool</type> <methodname>IsDMABlockTransfer</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>bool</type> <methodname>IsDMAPauseMode</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier> <type>bt_width_t</type>
+                <methodname>GetMaxTransferWidth</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>int</type> <methodname>GetDMAAddressModifier</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>int</type> <methodname>GetMMAPAddressModifier</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>int</type> <methodname>GetSwapMode</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>int</type> <methodname>GetDMAThreshold</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>int</type> <methodname>GetDMAPollCeiling</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>int</type> <methodname>GetTraceMask</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>void</type> <methodname>ResetVme</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>bt_error_t</type> <methodname>CheckErrors</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>bt_error_t</type>
+                <methodname>ClearErrors</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                </methodsynopsis>
+         </classsynopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>Description</title>
+         <para>
+            This class is intended for use in conjunction with
+            <link linkend="cvmeinterface"><classname>CVMEInterface</classname></link>.
+            It provides access to the configurable parameters of the underlying
+            device driver and library for the SBS/Bit 3 VME/PCI bus bridge card.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            Public member functions
+         </title>
+         <para>
+            The functions below all include a <parameter>pHandle</parameter> parameter.
+            <parameter>pHandle</parameter> is a device handle returned by
+            <methodname>CVMEInterface::Open</methodname>.  It is an opaque data
+            type that represents a single VME crate interfaced to the host system.
+         </para>
+            <methodsynopsis>
+                <modifier>static</modifier> <type>void</type>
+                <methodname>SetDMABlockTransfer</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>bool</type> <parameter>enable</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <para>
+                DMA transfer from and to the VME interface can use the VME BLT
+                transfer capabilities or not.  In the VME BLT transfer mode,
+                a single address cycle is followed by multiple data cycles
+                that are assumed by the target hardware to access consecutive
+                VME addresses.  This mode is significantly faster than non BLT
+                transfers which require an address cycle for each data cycle.
+                </para>
+            <para>
+                If <parameter>enable</parameter> is <literal>true</literal>
+                block transfer mode is enabled.  If not, it is disabled.
+                See also, however <methodname>SetDMAThreshold</methodname>.
+                </para>
+            <methodsynopsis>
+                <modifier>static</modifier> <type>void</type>
+                <methodname>SetDMAPauseMode</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>bool</type> <parameter>enable</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <para>
+                By default, the SBS interface will hold the VME bus for the duration
+                of a block transfer.  In systems where there is more than one
+                VME bus master, this can starve other masters that may have an equal or
+                even higher bus access priority.  Setting <parameter>enable</parameter>
+                to <literal>true</literal> causes the interface to release and re-arbitrate
+                for the bus frrom time to time during a block transfer.
+                </para>
+            <para>
+                NSCL data taking systems do not at this time have bus masters other
+                than the host.  This means that it is not necessary to enable this
+                feature.  If you enable this feature, the performance of block
+                transfers will be degraded slightly by the periodic bus release
+                and arbitration cycles it will introduce.
+                </para>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>void</type> <methodname>SetMaxTransferWidth</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>bt_width_t</type> <parameter>width</parameter>
+                </methodparam>
+                </methodsynopsis>
+            <para>
+                Sets the maximum transfer width for DMA transfers.  This may be
+                needed if you are transferring data from a 16bit target, for example.
+                Note that there may be smaller transfers if your transfer count
+                does not represent an exact number of values of size
+                <parameter>width</parameter>.
+                </para>
+            <para>
+                See "Types and public data" below for the values that are acceptable
+                for the <parameter>width</parameter> parameter.  
+                </para>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>void</type> <methodname>SetDMAAddressModifier</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>Modifier</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <para>
+                Normally the address modifier of transfers initiated via the
+                <methodname>CVMEInterface::Read</methodname> method is
+                determined by the parameters to 
+                <methodname>CVMEInterface::Open</methodname>
+                This method allows you to specify that an arbitrary address
+                modifier be used for DMA transfers performed on that channel.
+                </para>
+            <para>
+                The <parameter>Modifier</parameter> parameter is the exact
+                VME address modifier to use.  The address meaning of address
+                modifiers is defined by the VME bus standard.  A rather complete
+                table of address modifiers is at:
+                <ulink url="http://www.vita.com/vme-faq/vmeamcod.html">http://www.vita.com/vme-faq/vmeamcod.html</ulink>.
+                Note that the SBS/VME interface does not support address nor data
+                widths wider than 32 bits.
+                </para>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>void</type> <methodname>SetMMAPAddressModifier</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>Modifier</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <para>
+                Sets the address modifier that is associated with
+                <methodname>CVMEInterface::Map</methodname> VME maps.
+                Normally the address modifier is determined by the modifier
+                parameter of the
+                <methodname>CVMEInterface::Open</methodname> method.
+                The <parameter>Modifier</parameter> parameter is the
+                exact value of the VME address modifier to use.
+                See also <methodname>SetDMAAddressModifier</methodname>.
+                </para>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>void</type> <methodname>SetSwapMode</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>bt_swap_t</type> <parameter>SwapMode</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <para>
+                Set the swap mode for transfers to and from the interface.
+                The VME bus is an inherently big endian bus.  Host systems could
+                in theory be either big or little endian (at the NSCL they are
+                intel linux systems and hence little endian).  The SBS
+                interface has hardware to do byte reordering during both DMA and
+                program controlled transfers.  This method requests a specific
+                byte reordering.
+                </para>
+            <para>
+                The default value applied by the
+                <methodname>CVMEInterface::Open</methodname> does the correct
+                translation for transfers from the VME bus Linux i386 host systems.
+                For a desription of the legal values of the
+                <parameter>SwapMode</parameter> parameter, see
+                "Types and public data" below.
+                </para>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>void</type> <methodname>SetDMAThreshold</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>nTransfers</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <para>
+                Block transfers via the
+                <methodname>CVMEInterface::Read</methodname> and
+                <methodname>CVMEInterface::Write</methodname> methods may or
+                may not use the DMA engine.  There are several factors that
+                determine when it is most efficient to do DMA vs. programmed
+                control.  Specifically, the time to set up the DMA engine,
+                queue the request and the time required to service completion
+                (see also <methodname>SetDMAPollCeiling</methodname>).
+                </para>
+            <para>
+                IF a block transfer size is less than the DMA Threshold
+                (set here by <parameter>nTransfers</parameter>), the transfer
+                is actually done via programmed I/O in the device driver.  If greater
+                or equal, then the DMA engine is used.
+                </para>
+            <para>
+                If this number is too small, DMA setup/teardown overhead will
+                dominate the transfer time.  If too large, the kernel will block
+                other activity as it peforms the transfer programmatically.
+                </para>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>void</type> <methodname>SetDMAPollCeiling</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>nTransfers</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <para>
+                When the DMA engine is used to block transfers, there are two
+                ways to note completion, polling the DMA engine status and
+                letting the DMA engine interrupt the processor.  This method
+                allows you to set the <parameter>nTransfers</parameter> at which
+                the driver switches to interrupt completion synchronization.
+                </para>
+            <para>
+                If this threshold is too small, transfer completion latencies
+                can dominate the transfer time, adversely affecting performance.
+                If this value is too large, the kernel will block other activity
+                significantly as it polls for DMA completion.
+                </para>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>void</type>
+                <methodname>SetTraceMask</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>nMask</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <para>
+                Sets the driver trace mask. The trace mask determines when the
+                driver makes log entries, and is a logical or of several bits.
+                Unless you are doing device driver debugging, you should not
+                modify this as it can have an incredibly bad effect on performance
+                if too much logging is going on.
+                </para>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>int</type> <methodname>GetLocalCardPartNumber</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <para>
+                Returns the part number of the PCI side of the interface pair.
+                </para>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>int</type> <methodname>GetRemoteCardPartNumber</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <para>
+                Returns the part number of the VME card of the interface card set.
+                </para>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>unsigned int</type> <methodname>GetLocalMemorySize</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <para>
+                The VME side of the cardset can have local memory daughterboards
+                installed.  This allows a local VME bus master to take data
+                into that memory and then for the host to transfer data from
+                that memory without causing VME bus contention.  This method
+                returns then number of bytes of memory on the VME bus card.
+                </para>
+            <para>
+                Most NSCL cards do not have local memory as we do not have
+                remote hosts.
+                </para>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>bool</type> <methodname>IsDMABlockTransfer</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <para>
+                Returns <literal>true</literal> if DMA BLT mode is enabled.
+                </para>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>bool</type> <methodname>IsDMAPauseMode</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <para>
+                Returns <literal>true</literal> if block transfers will
+                be carried out with bus re-arbitration pauses.
+                </para>
+            <methodsynopsis>
+                <modifier>static</modifier> <type>bt_width_t</type>
+                <methodname>GetMaxTransferWidth</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <para>
+                Returns the block transfer width.   See
+                "Types and public data" for the possible return
+                values.
+                </para>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>int</type> <methodname>GetDMAAddressModifier</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <para>
+                Gets the current DMA address modifier.
+                </para>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>int</type> <methodname>GetMMAPAddressModifier</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <para>
+                Gets the current address modifier used to create new memory
+                maps.
+                </para>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>bt_swap_t</type> <methodname>GetSwapMode</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <para>
+                Gets the current Swapping mode.  See
+                "Types and public data" for more information about the
+                possible return values.
+                </para>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>int</type> <methodname>GetDMAThreshold</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <para>
+                Returns the DMA threshold value.
+                </para>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>int</type> <methodname>GetDMAPollCeiling</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <para>
+                Returns the number of transfers after which DMA completion is
+                signalled via interrupts.
+                </para>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>int</type> <methodname>GetTraceMask</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <para>
+                Returns the current driver trace mask.
+                </para>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>void</type> <methodname>ResetVme</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <para>
+                Pulses the VME bus <literal>RESET</literal> line.
+                </para>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>bt_error_t</type> <methodname>CheckErrors</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <para>
+                Returns any pending VME interface errors.
+                </para>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>bt_error_t</type>
+                <methodname>ClearErrors</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pHandle</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <para>
+                Clears any pending VME bus interface errors.
+                </para>
+      </refsect1>
+      <refsect1>
+         <title>Types and public data</title>
+         <para>
+            The headers for the SBS interface library define three data types that
+            are used by this class:
+         </para>
+         <refsect2>
+            <title>Byte swap specification</title>
+            <para>
+                The <structname>bt_swap_t</structname> data type specifies
+                how the byte reordering hardware is configured.  By default this
+                is properly set up to transfer big endian (VME) data to
+                little endian (i386) hosts.
+            </para>
+            <para>
+                Legal values for this type are:
+                </para>
+            <variablelist>
+                <varlistentry>
+                    <term><structfield>BT_SWAP_NONE</structfield></term>
+                    <listitem>
+                        <para>
+                            Don't do any byte reordering.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                <varlistentry>
+                    <term><structfield>BT_SWAP_BSNBD</structfield></term>
+                    <listitem>
+                        <para>
+                            Byte swap any nonbyte sized data.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                <varlistentry>
+                    <term><structfield>BT_SWAP_WS</structfield></term>
+                    <listitem>
+                        <para>
+                            Word swap longword data.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                <varlistentry>
+                    <term><structfield>BT_SWAP_WS_BSNBD</structfield></term>
+                    <listitem>
+                        <para>
+                             Word swap and byte swap, non btye data
+                             </para>
+                        </listitem>
+                    </varlistentry>
+                <varlistentry>
+                    <term><structfield>BT_SWAP_BSBD</structfield></term>
+                    <listitem>
+                        <para>
+                            Byte swap, btye data
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                <varlistentry>
+                    <term><structfield>BT_SWAP_BSBD_BSNBD</structfield></term>
+                    <listitem>
+                        <para>
+                            Byte swap, byte data and byte swap, non byte data
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                <varlistentry>
+                    <term><structfield>BT_SWAP_BSBD_WS</structfield></term>
+                    <listitem>
+                        <para>
+                            Byte swap, byte data and word swap
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                <varlistentry>
+                    <term><structfield>BT_SWAP_BSBD_WS_BSNBD</structfield></term>
+                    <listitem>
+                        <para>
+                            All possible swapping
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                <varlistentry>
+                    <term><structfield>BT_SWAP_DEFAULT</structfield></term>
+                    <listitem>
+                        <para>
+                            Driver default swapping
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                </variablelist>
+            </refsect2>
+         <refsect2>
+            <title>
+                Data transfer width
+                </title>
+            <para>
+                The <structname>bt_width_t</structname> type defines the possible
+                data transfer widths that can be specified for the interface:
+                </para>
+            <variablelist>
+                <varlistentry>
+                    <term><structfield>BT_WIDTH_D8</structfield></term>
+                    <listitem>
+                        <para>
+                            Specifies an 8 bit transfer width (or one byte).
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                <varlistentry>
+                    <term><structfield>BT_WIDTH_D16</structfield></term>
+                    <listitem>
+                        <para>
+                            Specifies a 16 bit transfer width (or a word).
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                <varlistentry>
+                    <term><structfield>BT_WIDTH_D32</structfield></term>
+                    <listitem>
+                        <para>
+                            Specifies a 32 bit (longword) transfer width.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                </variablelist>
+            </refsect2>
+      </refsect1>
+      <refsect1>
+         <title>Exceptions</title>
+         <para>
+            Members of this class throw <classname>std::string</classname>
+            exceptions on error.  The string thrown is a human readable error
+            message.
+         </para>
+      </refsect1>
+   </refentry>
+
+    <refentry id="cvme">
+      <refmeta>
+         <refentrytitle>CVME&lt;T&gt;</refentrytitle>
+         <manvolnum>3daq</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>CVME&lt;T&gt;</refname>
+     <refpurpose>Reference counted pointer like object to VME address segments.</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;CVME.h&gt;
+         </programlisting>
+         <classsynopsis>
+            <ooclass><classname>template &lt;class T&gt; CVME&lt;T&gt;</classname></ooclass>
+            <constructorsynopsis>
+                <methodname>CVME&lt;T&gt;</methodname>
+                <methodparam>
+                    <type>VmeSpace</type> <parameter>space</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>UInt_t</type> <parameter>base</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>UInt_t</type> <parameter>length</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>UInt_t</type> <parameter>crate</parameter>
+                    <initializer>0</initializer>
+                    </methodparam>
+                </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname>CVME&lt;T&gt;</methodname>
+                <void />
+                </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname>CVME&lt;T&gt;</methodname>
+                <methodparam>
+                    <type>CVMEptr&lt;T&gt;*</type>
+                    <parameter>aCVMEptr</parameter>
+                    </methodparam>
+                </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname>CVME&lt;T&gt;</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CVME&amp;</type>
+                    <parameter>aCVME</parameter>
+                    </methodparam>
+                </constructorsynopsis>
+            <methodsynopsis>
+                <type>CVME&lt;T&gt;&amp;</type>
+                <methodname>operator=</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CVME&lt;T&gt;&amp;</type>
+                    <parameter>aCVME</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>int</type> <methodname>operator==</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CVME&lt;T&gt;&amp;</type>
+                    <parameter>aCVME</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>UInt_t</type> <methodname>getOffset</methodname>
+                <void />
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>UInt_t</type> <methodname>getLength</methodname>
+                <void />
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>Address_t</type> <methodname>getStart()</methodname>
+                <void />
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>Address_t</type> <methodname>getgenptr</methodname>
+                <methodparam>
+                    <type>UInt_t</type> <parameter>nOffset</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>Address_t</type> <methodname>getcurrptr</methodname>
+                <void />
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>T&amp;</type> <methodname>operator*</methodname>
+                <void />
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>T*</type> <methodname>operator-&lt;</methodname>
+                <void />
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>T&amp;</type> <methodname>operator[]</methodname>
+                <methodparam>
+                    <type>UInt_t</type> <parameter>nOffset</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>T&amp;</type> <methodname>operator[]</methodname>
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>CVME&lt;T&gt;&amp;</type> <methodname>operator+</methodname>
+                <methodparam>
+                    <type>UInt_t</type> <parameter>nOffset</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>CVME&lt;T&gt;&amp;</type>
+                <methodname>operator-</methodname>
+                <methodparam>
+                    <type>UInt_t</type> <parameter>nOffset</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>CVME&lt;T&gt;&amp;</type> <methodname>operator+=</methodname>
+                <methodparam>
+                    <type>UInt_t</type> <parameter>nOffset</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>CVME&lt;T&gt;&amp;</type> <methodname>operator-=</methodname>
+                <methodparam>
+                    <type>UInt_t</type> <parameter>nOffset</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>CVME&lt;T&gt;&amp;</type> <methodname>operator++</methodname>
+                <void />
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>CVME&lt;T&gt;&amp;</type> <methodname>operator--</methodname>
+                <void />
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>CVME&lt;T&gt;&amp;</type> <methodname>operator++</methodname>
+                <methodparam><type>Int_t</type> <parameter>dummy</parameter>
+                </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>CVME&lt;T&gt;&amp;</type> <methodname>operator--</methodname>
+                <methodparam><type>Int_t</type> <parameter>dummy</parameter>
+                </methodparam> 
+                </methodsynopsis>
+            <methodsynopsis>
+                <modifier>volatile</modifier> <type>UChar_t*</type>
+                <methodname>asChar</methodname> <void />
+                </methodsynopsis>
+            <methodsynopsis>
+                <modifier>volatile</modifier> <type>UShort_t*</type>
+                <methodname>asShort</methodname> <void />
+                </methodsynopsis>
+            <methodsynopsis>
+                <modifier>volatile</modifier> <type>ULong_t*</type>
+                <methodname>asLong</methodname> <void />
+                </methodsynopsis>
+         </classsynopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>Description</title>
+         <para>
+            This class encpasulates a 'pointer' to a segment of VME address space in
+            a reference counted object. This allows the pointer to be assigned
+            and copied.  When there are no longer references remaining to the
+            pointer it is automatically deleted freeing both host and interface
+            resources.
+         </para>
+         <para>
+            The underlying pointer is actually a base address and an offest.
+            All of this should be mostly transparent to the user who can generally
+            treat this just like any other pointer.
+            </para>
+         <para>
+            Note that the class is a template class allowing object that
+            emulate pointers to virtually any data type to be instantiated.
+            </para>
+
+      </refsect1>
+      <refsect1>
+         <title>
+            Public member functions
+         </title>
+            <methodsynopsis>
+                <methodname>CVME&lt;T&gt;</methodname>
+                <methodparam>
+                    <type>VmeSpace</type> <parameter>space</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>UInt_t</type> <parameter>base</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>UInt_t</type> <parameter>length</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>UInt_t</type> <parameter>crate</parameter>
+                    <initializer>0</initializer>
+                    </methodparam>
+                </methodsynopsis>
+            <para>
+                Constructs a new pointer like object that allows access to a
+                slice of VME address space.  Actual VME transactions are then
+                performed by dereferencing the resulting 'pointer'.
+                </para>
+            <para>
+                The VME address space slice this pointer can dereference to
+                is described by
+                <parameter>base</parameter> the base address of the slice,
+                <parameter>length</parameter> the number of bytes worth of address
+                in the slice, and <parameter>space</parameter> which selects a
+                VME address space.  See
+                "Types and public data" for the legal values for the
+                <parameter>space</parameter> parameter.
+                </para>
+            <para>
+                By default the address space is constructed within VME crate 0.
+                Specify a nonzero <parameter>crate</parameter> parameter
+                to use a different crate.
+                </para>
+            <methodsynopsis>
+                <methodname>CVME&lt;T&gt;</methodname>
+                <void />
+                </methodsynopsis>
+            <para>
+                Constructs an unmapped VME pointer like object.  If dereferenced,
+                a <literal>SEGFAULT</literal> will result.  The resulting pointer
+                can, however be made valid by assigning to it from another
+                valid <classname>CVME</classname> pointer.
+                </para>
+            <methodsynopsis>
+                <methodname>CVME&lt;T&gt;</methodname>
+                <methodparam>
+                    <type>CVMEptr&lt;T&gt;*</type>
+                    <parameter>aCVMEptr</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <para>
+                Constructs a VME pointer from an existing
+                <classname>CVMEptr</classname> object.   THe
+                <classname>CVMEptr</classname> class is not intended to be
+                used by user application code.  It is the object that is wrapped
+                with a reference count to produce a <classname>CVME</classname>
+                object.  Like a quark it should be considered to be very
+                tightly bound to the <classname>CVME</classname> object.
+                </para>
+            <methodsynopsis>
+                <methodname>CVME&lt;T&gt;</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CVME&amp;</type>
+                    <parameter>aCVME</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <para>
+                Copy construction for the <classname>CVME</classname> class.
+                A new <classname>CVME</classname> object is constructed from
+                and made equivalent to the <parameter>aCVME</parameter> object.
+                This allows you to pass a <classname>CVME</classname> pointer by
+                value to a function (as if it were an ordinary pointer).
+                </para>
+            <methodsynopsis>
+                <type>CVME&lt;T&gt;&amp;</type>
+                <methodname>operator=</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CVME&lt;T&gt;&amp;</type>
+                    <parameter>aCVME</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <para>
+                Allows you to assign one <classname>CVME</classname> pointer
+                to another.  Reference counts are maintained to ensure the
+                underlying address space resources are not destroyed until
+                the last reference to it is destroyed.
+                </para>
+            <methodsynopsis>
+                <type>int</type> <methodname>operator==</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CVME&lt;T&gt;&amp;</type>
+                    <parameter>aCVME</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <para>
+                Determines the equality of another <classname>CVME</classname>
+                object to this.   <classname>CVME</classname> objects have
+                a base pointer and an offset.  Two objects are considered
+                equal if they have the same base pointer and offset.
+                This definition can break down if you map two pointers to overlapping
+                or identical VME address slices, as no effort is made to pool
+                the mapping resources in that case or to use the actual underlying
+                VME address space in the comparison.  Errors of this sort will result
+                in false inequalities rather than false equalities.
+                </para>
+            <methodsynopsis>
+                <type>UInt_t</type> <methodname>getOffset</methodname>
+                <void />
+
+                </methodsynopsis>
+            <para>
+                Returns the offset portion of the object. This determines
+                how far into the address window the pointer actually points.
+                </para>
+            <methodsynopsis>
+                <type>UInt_t</type> <methodname>getLength</methodname>
+                <void />
+                </methodsynopsis>
+            <para>
+                Returns the length of the address window.
+                </para>
+            <methodsynopsis>
+                <type>Address_t</type> <methodname>getStart()</methodname>
+                <void />
+                </methodsynopsis>
+            <para>
+                Returns a pointer tothe start of the virtual address space
+                mapped to the VME space.
+                </para>
+            <methodsynopsis>
+                <type>Address_t</type> <methodname>getgenptr</methodname>
+                <methodparam>
+                    <type>UInt_t</type> <parameter>nOffset</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <para>
+                Returns a generic real pointer to the VME space window.
+                <parameter>nOffset</parameter> is a scaled offset
+                (in units of <type>T</type>) where relative to the current
+                pointer position the desired pointer should be.
+                </para>
+            <methodsynopsis>
+                <type>Address_t</type> <methodname>getcurrptr</methodname>
+                <void />
+                </methodsynopsis>
+            <para>
+                Equivalent to <literal>getgenptr(0);</literal>
+                </para>
+            <methodsynopsis>
+                <type>T&amp;</type> <methodname>operator*</methodname>
+                <void />
+                </methodsynopsis>
+            <para>
+                Dereferences the pointer.  This can be used as both an L and R value,
+                as a reference to the actual underlying address chunk is returned.
+                </para>
+            <methodsynopsis>
+                <type>T*</type> <methodname>operator-&lt;</methodname>
+                <void />
+                </methodsynopsis>
+            <para>
+                Dereferences a field of a complex object.  In order to support this,
+                the type <type>T</type> must either have member data or there must
+                be member functions associated with this data type.
+                </para>
+            <methodsynopsis>
+                <type>T&amp;</type> <methodname>operator[]</methodname>
+                <methodparam>
+                    <type>UInt_t</type> <parameter>nOffset</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <para>
+                Returns a refernce to the <parameter>nOffset</parameter>'th
+                <type>T</type> relative to the currnent pointer position.
+                </para>
+            <methodsynopsis>
+                <type>CVME&lt;T&gt;&amp;</type> <methodname>operator+</methodname>
+                <methodparam>
+                    <type>UInt_t</type> <parameter>nOffset</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <para>
+                Returns a new pointer that is <parameter>nOffset</parameter>
+                <type>T</type>'s past the current pointer position.
+                </para>
+            <methodsynopsis>
+                <type>CVME&lt;T&gt;&amp;</type>
+                <methodname>operator-</methodname>
+                <methodparam>
+                    <type>UInt_t</type> <parameter>nOffset</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <para>
+                Returns a new pointer that is <parameter>nOffset</parameter>
+                <type>T</type>'s prior to the current pointer position.
+                </para>
+            <methodsynopsis>
+                <type>CVME&lt;T&gt;&amp;</type> <methodname>operator+=</methodname>
+                <methodparam>
+                    <type>UInt_t</type> <parameter>nOffset</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <para>
+                Adds <parameter>nOffset</parameter> scaled by the size of
+                <type>T</type>
+                to the current pointer and returns that pointer.  Note that as with
+                the <literal>+=</literal> operator on normal pointers, the
+                object this is applied to is modified.
+                </para>
+            <methodsynopsis>
+                <type>CVME&lt;T&gt;&amp;</type> <methodname>operator-=</methodname>
+                <methodparam>
+                    <type>UInt_t</type> <parameter>nOffset</parameter>
+                    </methodparam>
+                </methodsynopsis>
+	    <para>
+	        Subtracts <parameter>nOffset</parameter> scaled by the size
+		of <type>T</type> to the current pointer and returns the
+		resulting pointer.  As with the <literal>-=</literal>
+		operator on normal pointers, the object this is applied to
+		is modified.
+		</para>
+            <methodsynopsis>
+                <type>CVME&lt;T&gt;&amp;</type> <methodname>operator++</methodname>
+                <void />
+                </methodsynopsis>
+            <para>
+	        Increments the pointer so that it points to the next
+		<type>T</type> object.
+		The result is a reference to the pointer after the increment.
+		This operator therefore implements the prefix increment
+		e.g. <literal>++p</literal>
+		</para>
+            <methodsynopsis>
+                <type>CVME&lt;T&gt;&amp;</type> <methodname>operator--</methodname>
+                <void />
+                </methodsynopsis>
+	    <para>
+	        Decrements the pointer so that it points to the previous
+		<type>T</type> object.
+		The result is a reference to the pointer after the decrement.
+		This operator therefore implements the pre-decrement operator
+		e.g. <literal>--p</literal>
+		</para>
+            <methodsynopsis>
+                <type>CVME&lt;T&gt;&amp;</type> <methodname>operator++</methodname>
+                <methodparam><type>Int_t</type> <parameter>dummy</parameter>
+                </methodparam>
+                </methodsynopsis>
+	    <para>
+	        Implements the post-increment operator
+		(<literal>p++</literal>).
+		The object is incremented to point to the next
+		<type>T</type> object.  The value of the object prior to 
+		the increment is returned.
+		</para>
+            <methodsynopsis>
+                <type>CVME&lt;T&gt;&amp;</type> <methodname>operator--</methodname>
+                <methodparam><type>Int_t</type> <parameter>dummy</parameter>
+                </methodparam>
+                </methodsynopsis>
+            <para>
+	        Implements the post decrement operator
+		<literal>p--</literal>.  The object is
+		decremented to point to the previous <literal>T</literal>.
+		The value returned is the pointer prior to being
+		decremented.
+                </para>
+            <methodsynopsis>
+                <modifier>volatile</modifier> <type>UChar_t*</type>
+                <methodname>asChar</methodname> <void />
+                </methodsynopsis>
+	    <para>
+	       Returns an ordinary pointer to an unsigned char that
+	       when dereferenced returns the byte at the current position
+	       of the object.
+	       </para>
+            <methodsynopsis>
+                <modifier>volatile</modifier> <type>UShort_t*</type>
+                <methodname>asShort</methodname> <void />
+                </methodsynopsis>
+            <para>
+                 Same as above but the pointer returned points to a
+`		 16 bit word.
+                 </para>
+            <methodsynopsis>
+                <modifier>volatile</modifier> <type>ULong_t*</type>
+                <methodname>asLong</methodname> <void />
+                </methodsynopsis>
+            <para>
+	       Same as above, but returns a pointer to a 32 bit word.
+	       </para>
+      </refsect1>
+      <refsect1>
+         <title>Types and public data</title>
+         <para>
+            <structname>VmeSpace</structname> represents a VME bus address
+	    modifier.  The legal values are:
+         </para>
+	 <variablelist>
+	    <varlistentry>
+	       <term><structfield>a16d16</structfield></term>
+	       <listitem>
+	          <para>
+		    VME short IO space (16 bits of address and usually
+		    16 bits of data too.
+		    </para>
+                  </listitem>
+                </varlistentry>
+		<varlistentry>
+		   <term><structfield>a24d32</structfield></term>
+		   <listitem>
+		      <para>
+		         VME Standard address space, (24 bits of data and
+			 16 or 32 bits of data.
+			 </para>
+		      </listitem>
+		   </varlistentry>
+		<varlistentry>
+		   <term><structfield>a32d32</structfield></term>
+		   <listitem>
+		      <para>
+		        VME Extended address space (32 bits of address and
+			data).
+		        </para>
+		       </listitem>
+		     </varlistentry>
+		 <varlistentry>
+		    <term><structfield>geo</structfield></term>
+		    <listitem>
+		       <para>
+		         Geographical addressing.  Requires both a card and
+			 backplane that support this.
+                         </para>
+	               </listitem>
+ 	         </varlistentry>
+	 </variablelist>
+      </refsect1>
+      <refsect1>
+         <title>Exceptions</title>
+         <para>
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>EXAMPLES</title>
+         <para>
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            SEE ALSO
+         </title>
+     <para>
+     </para>
+      </refsect1>
+   </refentry>
+    
+    <refentry id="vmemodule">
+      <refmeta>
+         <refentrytitle>CVMEModule</refentrytitle>
+         <manvolnum>3daq</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>CVMEModule </refname>
+     <refpurpose>Provide a base set of services for a VME module driver class.</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;VmeModule.h&gt;
+         </programlisting>
+         <classsynopsis>
+            <ooclass><classname>CVmeModule</classname></ooclass>
+            <constructorsynopsis>
+                <methodname>CVmeModule</methodname>
+                <methodparam>
+                    <type>CVmeModule::Space</type> <parameter>space</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>UInt_t</type> <parameter>base</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>UInt_t</type> <parameter>length</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>int</type>
+                    <parameter>nCrate</parameter> <initializer>0</initializer>
+                    </methodparam>
+                </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname>CVmeModule</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CVmeModule&amp;</type>
+                    <parameter>aCVmeModule</parameter>
+                    </methodparam>
+                </constructorsynopsis>
+            <methodsynopsis>
+                <type>CVmeModule&amp;</type>
+                <methodname>operator=</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CVmeModule&amp;</type>
+                    <parameter>aCVmeModule</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>int</type>
+                <methodname>operator==</methodname>
+                <methodparam>
+                    <modifier>const</modifier>
+                    <type>CVmeModule&amp;</type>
+                    <parameter>aCVmeModule</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>UChar_t</type>
+                <methodname>peekb</methodname>
+                <methodparam>
+                    <type>UInt_t</type> <parameter>offset</parameter>
+                    <initializer>0</initializer>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>UShort_t</type>
+                <methodname>peekw</methodname>
+                <methodparam>
+                    <type>UInt_t</type> <parameter>offset</parameter>
+                    <initializer>0</initializer>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>ULong_t</type> <methodname>peekl</methodname>
+                <methodparam>
+                    <type>UInt_t</type> <parameter>offset</parameter>
+                    <initializer>0</initializer>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type>
+                <methodname>pokeb</methodname>
+                <methodparam>
+                    <type>(Char_t</type> <parameter>byte</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>UInt_t</type> <parameter>nOffset</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>pokew</methodname>
+                <methodparam>
+                    <type>UShort_t</type> <parameter>word</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>UInt_t</type> <parameter>nOffset</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>pokel</methodname>
+                <methodparam>
+                    <type>ULong_t</type> <parameter>lword</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>UInt_t</type> <parameter>nOffset</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>UInt_t</type> <methodname>readl</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pBuffer</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>UInt_t</type> <parameter>nOffset</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>size_t</type> <parameter>longs</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>UInt_t</type> <methodname>readw</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pBuffer</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>UInt_t</type> <parameter>nOffset</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>size_t</type> <parameter>words</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>UInt_t</type> <methodname>readb</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pBuffer</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>UInt_t</type> <parameter>nOffset</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>size_t</type> <parameter>bytes</parameter>
+                    </methodparam>
+                </methodsynopsis>
+         </classsynopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>Description</title>
+         <para>
+            This class provides base methods and facilities on which you can
+            build a class to drive a specific hardware module.  This can be done
+            either by extension (public inheritance), by layering (protected/private
+            inheritance),
+            or composition as you choose.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            Public member functions
+         </title>
+        <methodsynopsis>
+            <methodname>CVmeModule</methodname>
+            <methodparam>
+                <type>CVmeModule::Space</type> <parameter>space</parameter>
+                </methodparam>
+            <methodparam>
+                <type>UInt_t</type> <parameter>base</parameter>
+                </methodparam>
+            <methodparam>
+                <type>UInt_t</type> <parameter>length</parameter>
+                </methodparam>
+            <methodparam>
+                <type>int</type>
+                <parameter>nCrate</parameter> <initializer>0</initializer>
+                </methodparam>
+            </methodsynopsis>
+        <para>
+            Base class constructor.  The base class encapsulates a
+            <classname>CVME</classname> object.  This constructor provides
+            the information requried to build that.
+            <parameter>space</parameter>, <parameter>base</parameter>
+            and <parameter>length</parameter> describe the addresss window
+            and address modifier that will access the module.  <parameter>nCrate</parameter>
+            selects in which of the VME crates the module is located.
+            </para>
+        <methodsynopsis>
+            <methodname>CVmeModule</methodname>
+            <methodparam>
+                <modifier>const</modifier> <type>CVmeModule&amp;</type>
+                <parameter>aCVmeModule</parameter>
+                </methodparam>
+            </methodsynopsis>
+        <para>
+            Provides copy construction of this base class.  It is not necessary,
+            and sometimes not possible for subclasses to provide a copy constructor.
+            In that case, the recommended procedure is for the subclass to
+            declare a <literal>private</literal> copy constructor but never
+            implement it.
+            </para>
+        <methodsynopsis>
+            <type>CVmeModule&amp;</type>
+            <methodname>operator=</methodname>
+            <methodparam>
+                <modifier>const</modifier> <type>CVmeModule&amp;</type>
+                <parameter>aCVmeModule</parameter>
+                </methodparam>
+            </methodsynopsis>
+        <para>
+            Provides for assignment of the base class. It may not be possible
+            for the subclass to provide that function.  In that case,
+            see the remarks for the copy constructor for the recommended
+            procedure.
+            </para>
+        <methodsynopsis>
+            <type>int</type>
+            <methodname>operator==</methodname>
+            <methodparam>
+                <modifier>const</modifier>
+                <type>CVmeModule&amp;</type>
+                <parameter>aCVmeModule</parameter>
+                </methodparam>
+            </methodsynopsis>
+        <para>
+            Provides base class support for an equality comparison.  If this
+            cannot be provided in a derived class see the notes for the copy
+            constructor.
+            </para>
+        <methodsynopsis>
+            <type>UChar_t</type>
+            <methodname>peekb</methodname>
+            <methodparam>
+                <type>UInt_t</type> <parameter>offset</parameter>
+                <initializer>0</initializer>
+                </methodparam>
+            </methodsynopsis>
+        <para>
+            Fetches a byte from the address window defined in the constructor.
+            <parameter>offset</parameter> is the byte offset from the base of
+            that address window to the byte fetched.
+            </para>
+        <methodsynopsis>
+            <type>UShort_t</type>
+            <methodname>peekw</methodname>
+            <methodparam>
+                <type>UInt_t</type> <parameter>offset</parameter>
+                <initializer>0</initializer>
+                </methodparam>
+            </methodsynopsis>
+        <para>
+            Same as <methodname>peekb</methodname> however a 16 bit word is
+            returned and <parameter>offset</parameter> is a word offset.
+            </para>
+        <methodsynopsis>
+            <type>ULong_t</type> <methodname>peekl</methodname>
+            <methodparam>
+                <type>UInt_t</type> <parameter>offset</parameter>
+                <initializer>0</initializer>
+                </methodparam>
+            </methodsynopsis>
+        <para>
+            Same as <methodname>peekb</methodname> however a 32 bit longword
+            is returned, and <parameter>offset</parameter> is a longword
+            offset.
+            </para>
+        <methodsynopsis>
+            <type>void</type>
+            <methodname>pokeb</methodname>
+            <methodparam>
+                <type>(Char_t</type> <parameter>byte</parameter>
+                </methodparam>
+            <methodparam>
+                <type>UInt_t</type> <parameter>nOffset</parameter>
+                </methodparam>
+            </methodsynopsis>
+        <para>
+            Writes an 8 bit byte to the address window created by the constructor.
+            <parameter>byte</parameter> is written to <parameter>nOffset</parameter>
+            bytes from the base of the base address of the window.
+            </para>
+                
+        <methodsynopsis>
+            <type>void</type> <methodname>pokew</methodname>
+            <methodparam>
+                <type>UShort_t</type> <parameter>word</parameter>
+                </methodparam>
+            <methodparam>
+                <type>UInt_t</type> <parameter>nOffset</parameter>
+                </methodparam>
+            </methodsynopsis>
+        <para>
+            Same as <methodname>pokeb</methodname> however a 16 bit
+            <parameter>word</parameter>   is written to
+            <parameter>nOffset</parameter> words from the base address
+            of the address window.
+            </para>
+        <methodsynopsis>
+            <type>void</type> <methodname>pokel</methodname>
+            <methodparam>
+                <type>ULong_t</type> <parameter>lword</parameter>
+                </methodparam>
+            <methodparam>
+                <type>UInt_t</type> <parameter>nOffset</parameter>
+                </methodparam>
+            </methodsynopsis>
+        <para>
+            Same as <methodname>pokeb</methodname> however a 32 bit
+            <parameter>lword</parameter> is written to
+            <parameter>nOffset</parameter> longwords fromt he base
+            address of the address window.
+            </para>
+        
+        <methodsynopsis>
+            <type>UInt_t</type> <methodname>readl</methodname>
+            <methodparam>
+                <type>void*</type> <parameter>pBuffer</parameter>
+                </methodparam>
+            <methodparam>
+                <type>UInt_t</type> <parameter>nOffset</parameter>
+                </methodparam>
+            <methodparam>
+                <type>size_t</type> <parameter>longs</parameter>
+                </methodparam>
+            </methodsynopsis>
+        <para>
+            Reads a block from the VME bus address window defined by this
+            module.  The block read starts at <parameter>nOffset</parameter>
+            longwords from the start of the window and is
+            <parameter>longs</parameter> longwords long.  The block is transferred
+            into the buffer pointed to by <parameter>pBuffer</parameter>.
+            On success, the function returns the number of longwords read.
+            </para>
+        <para>
+            Where possible, this function performs each read at a longword
+            width.
+            </para>
+        <methodsynopsis>
+            <type>UInt_t</type> <methodname>readw</methodname>
+            <methodparam>
+                <type>void*</type> <parameter>pBuffer</parameter>
+                </methodparam>
+            <methodparam>
+                <type>UInt_t</type> <parameter>nOffset</parameter>
+                </methodparam>
+            <methodparam>
+                <type>size_t</type> <parameter>words</parameter>
+                </methodparam>
+            </methodsynopsis>
+        <para>
+            Same as <methodname>readl</methodname> however,
+            <parameter>nOffset</parameter> is a word (16 bit) offset and
+            <parameter>words</parameter> counts the number of 16 bit words
+            to read.  All transfers are done in 16 bit width if possible.
+            </para>
+        <methodsynopsis>
+            <type>UInt_t</type> <methodname>readb</methodname>
+            <methodparam>
+                <type>void*</type> <parameter>pBuffer</parameter>
+                </methodparam>
+            <methodparam>
+                <type>UInt_t</type> <parameter>nOffset</parameter>
+                </methodparam>
+            <methodparam>
+                <type>size_t</type> <parameter>bytes</parameter>
+                </methodparam>
+            </methodsynopsis>
+        <para>
+            Same as <methodname>readl</methodname> however
+            <parameter>nOffset</parameter> is an 8 bit offset and
+            <parameter>bytes</parameter> is a byte count.  All transfers are
+            done 8 bit wide if possible).
+            </para>
+      </refsect1>
+      <refsect1>
+         <title>Types and public data</title>
+         <para>
+            In parallel with the address space selectors in
+            <link linkend="cvme"><classname>CVME</classname></link>,
+            this module defines the type <structname>CVmeModule::Space</structname>
+            which is an enumerated type with the following values defined:
+         </para>
+         <variablelist>
+            <varlistentry>
+                <term><structfield>a16d16</structfield></term>
+                <listitem>
+                    <para>
+                        Selects Short I/O space note that the data width is
+                        not actually restricted to 16 bits.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><structfield>a24d16</structfield> and
+                <structfield>a24d32</structfield></term>
+                <listitem>
+                    <para>
+                        Selects A24 addressing with no actual data width
+                        restriction.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><structfield>a32d32</structfield></term>
+                <listitem>
+                    <para>
+                        Selects A32 addresssing.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><structfield>geo</structfield></term>
+                <listitem>
+                    <para>
+                        Selects geographical addressing for backplanes
+                        that include the CERN P3 connector.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+      </refsect1>
+   </refentry>
+    <refentry id="cmmaperror">
+      <refmeta>
+         <refentrytitle>CMmapError</refentrytitle>
+         <manvolnum>3daq</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>CMmapError</refname>
+     <refpurpose>Report errors in memory mapping requests.</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;MmapError.h&gt;
+         </programlisting>
+         <classsynopsis>
+            <ooclass><classname>CMmapError : public CException</classname></ooclass>
+            <constructorsynopsis>
+                <methodname>CMmapError</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>char*</type>
+                    <parameter>pDoing</parameter>
+                    </methodparam>
+                </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname>CMmapError</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>std::string&amp;</type>
+                    <parameter>rDoing</parameter>
+                    </methodparam>
+                </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname>CMmapError</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CMmapError&amp;</type>
+                    <parameter>aCMmapError</parameter>
+                    </methodparam>
+                </constructorsynopsis>
+            <methodsynopsis>
+                <type>CMmapError</type>
+                <methodname>operator=</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CMmapError&amp;</type>
+                    <parameter>aCMmapError</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>int</type> <methodname>operator==</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CMmapError&amp;</type>
+                    <parameter>aCMmapError</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual const</modifier>
+                <type>char*</type> <methodname>ReasonText</methodname>
+                <void /><modifier>const</modifier>
+                </methodsynopsis>
+
+         </classsynopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>Description</title>
+         <para>
+            This class is an exception that can be thrown by the
+            <methodname>CVMEInterface::Map</methodname> method.  It is derived
+            from the <link linkend="manpage.cexception"><classname>CException</classname></link>
+            class.  See that page for full documentation on exception objects.
+         </para>
+      </refsect1>
+   </refentry>
+ 
+
+
+<!-- /manpage -->

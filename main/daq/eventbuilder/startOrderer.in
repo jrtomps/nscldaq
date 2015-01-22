@@ -1,0 +1,40 @@
+#!/bin/bash
+# Start Tclsh \
+exec @TCLSH_CMD@ ${0} ${@}
+
+
+
+lappend auto_path [file join @prefix@ TclLibs]
+
+package require Tk
+package require EventBuilder
+package require EVB::connectionList
+package require EVB::GUI
+
+
+# Any command line parameter is a port name suffix used to register with the
+# port manager.
+
+proc start args {
+
+    if {[llength $args] > 0} {
+        EVB::Start [lindex $args 0]
+    } else {
+        EVB::Start
+    }
+    
+    
+    EVB::createGui .evbGui
+    pack .evbGui
+    
+    button .reset -text Reset -command [list EVB::reset]
+    pack .reset -side bottom
+    
+    EVB::maintainGUI .evbGui
+    
+    fconfigure stdout -translation binary
+    
+    set me $::tcl_platform(user)
+    wm title . "Event Builder run by $me"
+
+}

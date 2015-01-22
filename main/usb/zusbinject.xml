@@ -1,0 +1,71 @@
+<!-- chapter frameworks -->
+
+<chapter>
+    <title>Injecting variables into the USB data taking frameworks</title>
+    <para>
+        Both the VMUSBReadout and CCUSBReadout frameworks support recording
+        the value of Tcl variables in their Tcl servers to the event stream
+        sent to the output ring buffer. One use of this is to make
+        <link linkend='manpage.controlpush'>controlpush(1epics)</link> a client of the
+        slow controls server so that EPICS process variables are recorded along
+        with event data.
+    </para>
+    <para>
+        To use this mechanism you must:
+        <itemizedlist>
+            <listitem><para>
+                Specify the set of variables that should be monitoed.
+            </para></listitem>
+            <listitem><para>
+                Arrange for some client program to push <command>set</command>
+                commands into the TclServer that maintain the values of those
+                variables to match reality.
+                </para>
+            </listitem>
+        </itemizedlist>
+    </para>
+    <para>
+        How to push variable values into the controls Tcl server is beyond the
+        scope of this chapter.  We have already pointed at one pre-written
+        application (<link linkend='manpage.controlpush'>controlpush(1epics)</link>),
+        that can do this.  The remainder of this chapter described hot to set a
+        up variables to be watched and monitored.
+    </para>
+    <para>
+        The controls Tcl server <command>watch</command> command takes as a
+        parameter a Tcl variable, an array or an array element.  At the beginning
+        of a run, all watched variables and array elements and their values are
+        output as a <literal>MONITORED_VARIABLES</literal> ring item.  Every second,
+        watched variables that have changed are output in additional
+        <literal>MONITORED_VARIABLES</literal> ring items.
+    </para>
+    <para>
+        The best place to declare watched variables is in the control configuration
+        file.  Scalar variables and array elements need not have been created
+        to be watched.  To watch an array does require that an array of that
+        name have been created.  Below is a sample fragment from a control
+        configuration script that shows all three uses of the
+        <command>watch</command> command.
+    </para>
+    <example>
+        <title>The <command>watch</command> command.</title>
+        <programlisting>
+
+watch scalar
+watch array(element)
+array set anarray [list]
+watch anarray
+        </programlisting>
+    </example>
+    <para>
+        The first two <command>watch</command> commands in the example above
+        watch a variable named <varname>scaler</varname> and the <varname>element</varname>
+        element of the array <varname>array</varname>.
+        The last two commands create an array with no elements and declare that
+        the entire array will be watched.
+    </para>
+</chapter>
+
+            
+    
+<!-- /chapter -->

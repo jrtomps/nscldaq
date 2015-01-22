@@ -1,0 +1,84 @@
+#  Test the portAllocator package.
+#  This will involve starting up a local server in process.
+#  Much the same techniques as connectionmanager.test.
+#
+# require the necessary packages.
+
+if {[lsearch [namespace children] ::tcltest] == -1} {
+    package require tcltest
+    namespace import ::tcltest::*
+}
+
+set here [file dirname [info script]]
+lappend auto_path $here
+
+
+
+source [file join $here Log.tcl]
+source [file join $here PortManager.tcl]
+source [file join $here ConnectionManager.tcl]
+source [file join $here portAllocator.tcl]
+
+package require Log
+package require PortManager
+package require ConnectionManager
+package require portAllocator
+
+#   support procs.
+
+proc testCleanup {} {
+    catch {file delete ./log.log}
+    catch {file delete ./usage.txt}
+    
+}
+proc makeLog {n} {
+    return [Log create $n -filename ./log.log]
+}
+proc makePorts {n} {
+    return [PortManager create $n]
+}
+
+proc makeManager {n} {
+    set l [makeLog l]
+    set p [makePorts p]
+    return [ConnectionManager create $n -usagefile ./usage.txt -logger $l -ports $p]
+}
+proc destroyManager {n} {
+    set log [$n cget -logger]
+    set pm  [$n cget -ports]
+    $n destroy
+    $log destroy
+    $pm  destroy 
+ }
+
+set v 0
+proc eventLoop {ms} {
+    global v
+    
+    # Execute the event loop for  $ms milliseconds:
+    
+    after $ms {incr v}
+    vwait v
+}
+
+
+#  tests for allocation:
+
+test 1.1 {Test allocation failure with no server present} {} {
+    set pa [::portAllocator create pa -port 1234]
+    
+    if {[catch {$pa allocatePort SpecTcl} msg]} {
+        set result $msg
+    } else {
+        set result "Port allocation worked!! $msg"
+    }
+    $pa destroy
+    set result
+    
+} {couldn't open socket: connection refused}
+
+
+#  Post test cleanup:
+
+
+::tcltest::cleanupTests

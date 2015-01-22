@@ -1,0 +1,158 @@
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Authors:
+#      NSCLDAQ Development Group
+#
+#	     NSCL
+#	     Michigan State University
+#	     East Lansing, MI 48824-1321
+
+# This software is Copyright by the Board of Trustees of Michigan
+# State University (c) Copyright 2297884. 
+
+# @file  jobprocessor.test 
+# @author Jeromy Tompkins 
+
+
+package require tcltest
+
+package require OfflineEVBHoistPipeline
+
+tcltest::test pkgrequire-0 {Test that we can require the package
+} -body {
+  package require OfflineEVBJobProcessor
+} -result 11.0
+
+
+
+### The next two tests go together and should not be reordered
+
+tcltest::test setupStateMachine-0 { Test that state machine has the callout bundles we expect
+} -setup {
+  set jp [JobProcessor %AUTO%] 
+} -cleanup {
+  $jp destroy
+} -body {
+  $jp setupStateMachine
+
+  [$jp getRunStateMachine] listCalloutBundles
+} -result "EventLog EVBStateCallouts DataSourceMgr"
+
+tcltest::test tearDownStateMachine-0 { Test that state machine has no bundles after it is torn down
+} -setup {
+  set jp [JobProcessor %AUTO%] 
+} -cleanup {
+  $jp destroy
+} -body {
+  $jp tearDownStateMachine
+
+  [$jp getRunStateMachine] listCalloutBundles
+} -result "" 
+
+
+
+tcltest::test generateStartEVBSources-0 {Test that we fail if no -hoistparams have been set
+} -setup {
+  set jp [JobProcessor %AUTO%] 
+} -cleanup {
+  $jp destroy
+} -body {
+  
+  $jp generateStartEVBSources  
+} -result  "JobProcessor::generateStartEVBSources cannot proceed because -hoistparams are nonexistent." -returnCodes 1
+
+tcltest::test generateStartEVBSources-1 {Test that we create the proc we think we should
+} -setup {
+  set jp [JobProcessor %AUTO%] 
+} -cleanup {
+  $jp destroy
+  rename ::startEVBSources ""
+} -body {
+  
+  set params [OfflineEVBHoistPipeParams %AUTO% -tstamplib asdf -info "b" \
+                                               -sourcering "c" -id 1234 \
+                                               -expectbheaders 1]
+  $jp configure -hoistparams $params
+  $jp generateStartEVBSources  
+  $params destroy
+
+  info body startEVBSources
+} -result { EVBC::startRingSource tcp://localhost/$::HoistConfig::ring $::HoistConfig::tstamplib $::HoistConfig::id $::HoistConfig::info $::HoistConfig::expectbh} 
+
+
+
+
+### The next two tests go together and should not be reordered
+
+tcltest::test setupDataSourceManager-0 {Test that the data source manager has only one source when we are done } -setup {
+  set jp [JobProcessor %AUTO%] 
+} -cleanup {
+  $jp destroy
+  $params destroy
+} -body {
+
+  set params [OfflineEVBInputPipeParams %AUTO% -inputring asdf -unglomid 23 \
+                                               -file "test0 tst2"]
+
+  $jp configure -inputparams $params
+  $jp setupDataSourceManager
+  
+  set sm [$jp getDataSourceManager]
+  set len [llength [$sm sources]]
+  set prov [dict get [lindex [$sm sources] 0] provider]
+
+  expr {($len == 1) && ($prov eq "Offline")}
+} -result 1
+
+tcltest::test clearDataSources-0 {Test that the data source manager is empty when cleared
+} -setup {
+  set jp [JobProcessor %AUTO%] 
+} -cleanup {
+  $jp destroy
+} -body {
+
+  $jp clearDataSources
+  
+
+  set sm [$jp getDataSourceManager]
+  llength [$sm sources]
+} -result 0
+
+
+tcltest::test startProcessing-0 {Test that if an error occurs, then the system will transition back to NotReady
+} -setup {
+  
+  # store the original leave proc
+  rename ::EventLog::leave ::EventLog::__leave__
+ 
+  # redefine it to something that always fails
+  proc ::EventLog::leave {from to} {
+    if {($from eq "Halted") && ($to eq "Active")} {
+      return -code error "FAIL"
+    }
+  }
+  
+  set jp [JobProcessor %AUTO%]
+} -cleanup {
+  proc ::EventLog::leave {from to} [info body ::EventLog::__leave__]
+  $jp destroy
+} -body {
+  $jp setupStateMachine
+
+  after 1000 {
+    .__tk__messagebox.ok invoke
+   # set win [focus]
+   # event generate $win <KeyPress-Return>
+  }
+  catch {$jp startProcessing} msg
+
+  [$jp getRunStateMachine] getState
+} -returnCodes 0 -result "NotReady"
+ 
+tcltest::cleanupTests
+
+

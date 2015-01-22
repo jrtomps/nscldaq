@@ -1,0 +1,218 @@
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2015.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Author:
+#      NSCLDAQ Development Group
+#	     NSCL
+#	     Michigan State University
+#	     East Lansing, MI 48824-1321
+
+# TESTS for the RingSourceMgr callout bundle
+
+package require tcltest
+
+set loadFailed 0
+tcltest::test pkgRequire-0 { Package require
+} {
+ set ::loadFailed [catch {package require ringsourcemgr}]
+} 0
+
+if {$::loadFailed} {
+  puts "Failed to load ringsourcemgr"
+  tcltest::cleanupTests
+  exit 1
+}
+
+if {[catch { package require evbcallouts }]} {
+  puts "Failed to load evbrdocallouts"
+  tcltest::cleanupTests
+  exit 1
+}
+
+## We won't depend on the presence of the event builder for tests.
+#
+proc ::RingSourceMgr::_waitForEventBuilder {} {}
+
+#
+#
+tcltest::test addSource-0 {Ability to add a ring fragment source
+} {
+  set resList [list]
+
+  lappend resList [set ::RingSourceMgr::sourceDict]
+
+  ::RingSourceMgr::addSource tcp://thesrc/ring lib 43 asdf 1
+
+  lappend resList [set ::RingSourceMgr::sourceDict]
+
+  set ::RingSourceMgr::sourceDict [dict create]
+
+  puts $resList
+  set resList
+} {{} {tcp://thesrc/ring {tstamplib lib id 43 info asdf expecthdrs 1 fd {}}}}
+
+#
+#
+tcltest::test clearSources-0 { Clear known sources
+} {
+  set ::RingSourceMgr::sourceDict {test {empty dict}}
+
+  ::RingSourceMgr::clearSources
+
+  set ::RingSourceMgr::sourceDict
+} {}
+
+#
+#
+tcltest::test transition-0 {Transition from halted to active starts sources
+} {
+  set body0 [info body ::RingSourceMgr::startSource]
+  set ::opList [list]
+  proc ::RingSourceMgr::startSource {src lib id info hdr} {
+    lappend ::opList [list $src $lib $id $info $hdr]
+  }
+
+
+  ::RingSourceMgr::addSource a b c d e
+  ::RingSourceMgr::addSource f g h i j
+  ::RingSourceMgr::addSource k l m n o
+
+  RunstateMachine sm
+  sm addCalloutBundle ::RingSourceMgr
+  sm _setState Halted
+
+  sm transition Active
+
+  sm destroy
+  proc ::RingSourceMgr::startSource {src lib id {info ""} {hdr ""}} $body0
+
+  ::RingSourceMgr::clearSources
+
+  set ::opList
+} {{a b c d e} {f g h i j} {k l m n o}}
+
+
+#
+#
+tcltest::test multipleTransitions-0 {Only first transition should start a source.
+} {
+  set body0 [info body ::RingSourceMgr::startSource]
+  set ::opList [list]
+  proc ::RingSourceMgr::startSource {src lib id info hdr} {
+    lappend ::opList [list $src $lib $id $info $hdr]
+    return "chan1"
+  }
+
+  ::RingSourceMgr::addSource a b c d e
+
+  RunstateMachine sm
+  sm addCalloutBundle ::RingSourceMgr
+
+  # intrusively set the state to Halted.. this avoids all the transition logic
+  # we are safe to do this b/c we have not dependence on transitions from 
+  # NotReady -> Starting -> Halted.
+  sm _setState Halted
+
+  # transition to active.. this should start the source
+  sm transition Active 
+
+  # transition to halted.. nothing really happens here.
+  sm transition Halted
+
+  # transition back to active... nothing should happen here.
+  sm transition Active
+
+  sm destroy
+  proc ::RingSourceMgr::startSource {src lib id {info ""} {hdr ""}} $body0
+
+  ::RingSourceMgr::clearSources
+
+  set ::opList
+} {{a b c d e}}
+
+
+#
+#
+tcltest::test multipleTransitions-1 {Transition to NotReady resets for next transition
+} {
+  set body0 [info body ::RingSourceMgr::startSource]
+  set ::opList [list]
+  proc ::RingSourceMgr::startSource {src lib id info hdr} {
+    lappend ::opList [list $src $lib $id $info $hdr]
+    return "chan1"
+  }
+
+  ::RingSourceMgr::addSource a b c d e
+
+  RunstateMachine sm
+  sm addCalloutBundle ::RingSourceMgr
+
+  # intrusively set the state to Halted.. this avoids all the transition logic
+  # we are safe to do this b/c we have not dependence on transitions from 
+  # NotReady -> Starting -> Halted.
+  sm _setState Halted
+
+  # transition to active.. this should start the source
+  sm transition Active 
+
+  # simulate failure
+  sm transition NotReady
+
+  # move back to halted. (see justification above)
+  sm _setState Halted
+
+  # transition back to active... nothing should happen here.
+  sm transition Active
+
+  sm destroy
+  proc ::RingSourceMgr::startSource {src lib id {info ""} {hdr ""}} $body0
+
+  ::RingSourceMgr::clearSources
+
+  set ::opList
+} {{a b c d e} {a b c d e}}
+
+#
+#
+tcltest::test ringsource-0 {Test that expect body headers 0 does not add anything to switches
+} -body {
+   # this calls the switches
+   set switches [::RingSourceMgr::_computeRingSourceSwitches a b c d e 0]
+
+   string match "*--expectbodyheaders*" $switches 
+} -result 0 
+
+#
+#
+tcltest::test ringsource-1 {Test that expect body headers 1 does not add anything to switches
+} -body {
+   # this calls the switches
+   set switches [::RingSourceMgr::_computeRingSourceSwitches a b c d e 1]
+
+   string match "*--expectbodyheaders*" $switches 
+} -result 1 
+
+#
+#
+tcltest::test resetsources-0 { Set fd key to "" for all sources
+} {
+  # we only depend on part of the dict for this so we will only create part of it.
+  set ::RingSourceMgr::sourceDict [dict create ring [dict create fd chan3]]
+
+  ::RingSourceMgr::resetSources 
+
+  set state $::RingSourceMgr::sourceDict
+  ::RingSourceMgr::clearSources
+
+  set state
+} {ring {fd {}}}
+
+
+
+
+tcltest::cleanupTests

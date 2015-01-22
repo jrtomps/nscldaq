@@ -1,0 +1,14 @@
+package "RingSelector"
+version "1.0"
+purpose "Select data from a ring buffer to stdout"
+
+option "source"  s "URL of source ring"           string optional
+option "sample"  S "List item types for sampling" string optional
+option "exclude" e "List item types to exclude"   string optional
+option "accept"  a "List item types to accept"    string optional
+option "formatted" F "Format data" optional
+option "exitonend" 1 "Exit on end run" optional
+option "non-blocking" n "Non blocking mode" flag off
+
+text "NOTE: if --non-blocking is on --exitonend may not see the end of run item"
+text "      it needs to exit."

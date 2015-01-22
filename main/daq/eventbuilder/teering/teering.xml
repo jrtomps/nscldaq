@@ -1,0 +1,50 @@
+
+<!-- manpage 1daq -->
+      <refentry id="daq1_teering">
+        <refmeta>
+           <refentrytitle id='daq1_teering_title'>teering</refentrytitle>
+           <manvolnum>1daq</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>teering</refname>
+           <refpurpose>Tee data to stdout and a ringbuffer.</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+          <command>
+teering --ring=<replaceable>ring-name</replaceable>
+          </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            <application>teering</application> is similar to the Unix
+            <application>tee</application> program.  Where
+            <application>tee</application> takes its standard input and
+            outputs it to a file as well as its standard output,
+            <application>teering</application>takes as input ringbuffer items,
+            and outputs them both to a ring buffer and standard output.
+           </para>
+           <para>
+            The intent of <application>teering</application> is to provide
+            you with the ability to create test points along the path of a
+            pipeline that transforms data from one set of ring items to another.
+            A sample use of teering is to provide a test point for the ordered
+            event fragments emitted from the event orderer before
+            <application>glom</application> is used to build events.
+           </para>
+           <para>
+            <application>teering</application> has a single command option
+            that is required: <option>--ring</option>'s argument provides the
+            name of the ring into which <application>teering</application> will
+            output data.
+           </para>
+           
+        </refsect1>
+
+      </refentry>
+
+<!-- /manpage -->

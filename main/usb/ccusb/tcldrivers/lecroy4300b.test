@@ -1,0 +1,377 @@
+
+
+package require tcltest
+package require MockCCUSB
+package require Itcl
+package require cccusbreadoutlist
+
+tcltest::test pkgrequire-0 {Ensure that we can require the package
+} {package require lecroy4300b} 11.0
+
+
+# we don't want to deal with swig vector<uint16_t> so fool the system
+# by redefining our conversion function
+namespace eval CCUSBDriverSupport {
+  proc shortsListToTclList {stackvar {grouping 2}} {
+    upvar $stackvar stack
+    return $stack
+  }
+}
+
+
+
+proc setup {} {
+  MockCCUSB::Controller ::ctlr
+  MockCCUSB::ReadoutList ::stack
+
+  ALeCroy4300B ::dev ::ctlr 23
+
+  rename cccusbreadoutlist::CCCUSBReadoutList _old
+  rename MockCCUSB::ReadoutList cccusbreadoutlist::CCCUSBReadoutList
+
+}
+
+proc tearDown {} {
+  ::ctlr destroy
+  ::stack destroy
+
+  itcl::delete object ::dev
+
+  rename cccusbreadoutlist::CCCUSBReadoutList MockCCUSB::ReadoutList 
+  rename _old cccusbreadoutlist::CCCUSBReadoutList
+}
+
+
+
+
+tcltest::test setgetController-0 {Test that we can set and retrieve cltr
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev SetController aNewController
+  ::dev GetController 
+} -result "aNewController"
+
+
+tcltest::test setPedestals-0 {Test that setting the pedestals does the right thing 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  set peds [list 10 10 10 10 10 10 10 10 \
+                 10 10 10 10 10 10 10 10]
+  ::dev SetPedestals $peds
+  ::ctlr getHistory
+} -result [list {write24 23 0 17 10} \
+                {write24 23 1 17 10} \
+                {write24 23 2 17 10} \
+                {write24 23 3 17 10} \
+                {write24 23 4 17 10} \
+                {write24 23 5 17 10} \
+                {write24 23 6 17 10} \
+                {write24 23 7 17 10} \
+                {write24 23 8 17 10} \
+                {write24 23 9 17 10} \
+                {write24 23 10 17 10} \
+                {write24 23 11 17 10} \
+                {write24 23 12 17 10} \
+                {write24 23 13 17 10} \
+                {write24 23 14 17 10} \
+                {write24 23 15 17 10} ]
+  
+tcltest::test setPedestals-1 {Test that providing fewer than 16 pedestals is an error 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  set peds [list 10 10 10 10 10 10 10 10 \
+                 10 10 10 10 10 10 10]
+  ::dev SetPedestals $peds
+} -result "ALeCroy4300B::SetPedestals Fewer than 16 pedestal values provided." \
+-returnCodes 1
+  
+
+tcltest::test setPedestal-0 {Test that we can write a single pedestal value
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev SetPedestal 3 120 
+  ::ctlr getHistory
+} -result [list {write24 23 3 17 120}] 
+
+tcltest::test setPedestal-1 {Test that a ped out of bounds will fail
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev SetPedestal 3 256 
+} -result {ALeCroy4300B::SetPedestal Pedestal value provided is out of range. Must be in range [0,255].} -returnCodes 1
+
+
+
+tcltest::test getPedestals-0 {Test that getting the pedestals does the right thing 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev GetPedestals
+  ::ctlr getHistory
+} -result [list {read24 23 0 1 0} \
+                {read24 23 1 1 0} \
+                {read24 23 2 1 0} \
+                {read24 23 3 1 0} \
+                {read24 23 4 1 0} \
+                {read24 23 5 1 0} \
+                {read24 23 6 1 0} \
+                {read24 23 7 1 0} \
+                {read24 23 8 1 0} \
+                {read24 23 9 1 0} \
+                {read24 23 10 1 0} \
+                {read24 23 11 1 0} \
+                {read24 23 12 1 0} \
+                {read24 23 13 1 0} \
+                {read24 23 14 1 0} \
+                {read24 23 15 1 0} ]
+
+
+tcltest::test getPedestal-0 {Test that getting a single pedestal does the right thing 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev GetPedestal 13
+  ::ctlr getHistory
+} -result [list {read24 23 13 1 0}]
+
+tcltest::test getPedestal-1 {Test that getting ped for an out-of-range channel fails 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev GetPedestal 16
+} -result {ALeCroy4300B::GetPedestal Channel index provided is out of range. Must be in range [0,15].}  \
+-returnCodes 1
+
+
+
+
+tcltest::test clear-0 {Test that clearing the module does what we expect
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev Clear
+  ::ctlr getHistory
+} -result [list {control 23 0 9}]
+
+
+
+
+
+tcltest::test setcontrolregister-0 { Test that we can set the control register
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev SetControlRegister 0xa0a0
+  ::ctlr getHistory
+} -result [list {write24 23 0 16 0xa0a0}]
+
+
+
+tcltest::test getcontrolregister-0 { Test that we can add the right cmd to read cntrl reg 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev GetControlRegister
+  ::ctlr getHistory
+} -result [list {read24 23 0 0 0}]
+
+
+
+
+tcltest::test init-0 {Test that init configures the control register
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev Init
+  ::ctlr getHistory
+} -result [list [list write24 23 0 16 [expr 0x7800]] ]
+
+
+
+tcltest::test readHeader-0 {Test that sReadHeader adds the right stuff to the stack
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev sReadHeader ::stack 
+  ::stack getHistory
+} -result [list {read24 23 0 2 0}]
+
+
+
+
+
+tcltest::test readChannel-0 {Test that sReadChannel adds the right stuff to the stack
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev sReadChannel ::stack 12
+  ::stack getHistory
+} -result [list {read24 23 12 2 0}]
+
+
+tcltest::test readSparse-0 {Test that we can setup a sparse read
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev sReadSparse ::stack 
+  ::stack getHistory
+} -result [list {qstop 23 0 2 17 1}]
+
+
+
+tcltest::test WritePedestals-0 {Test that we can setup a sparse read
+} -setup {
+  setup
+  set SCINT_ENERGY(ped00) 1
+  set SCINT_ENERGY(ped01) 1
+  set SCINT_ENERGY(ped02) 1
+  set SCINT_ENERGY(ped03) 1
+  set SCINT_ENERGY(ped04) 1
+  set SCINT_ENERGY(ped05) 1
+  set SCINT_ENERGY(ped06) 1
+  set SCINT_ENERGY(ped07) 1
+  set SCINT_ENERGY(ped08) 1
+  set SCINT_ENERGY(ped09) 1
+  set SCINT_ENERGY(ped10) 1
+  set SCINT_ENERGY(ped11) 1
+  set SCINT_ENERGY(ped12) 1
+  set SCINT_ENERGY(ped13) 1
+  set SCINT_ENERGY(ped14) 1
+  set SCINT_ENERGY(ped15) 1
+} -cleanup {
+  tearDown
+} -body {
+  ::dev WritePedestals
+  ::ctlr getHistory
+} -result [list {write24 23 0 17 1} \
+                {write24 23 1 17 1} \
+                {write24 23 2 17 1} \
+                {write24 23 3 17 1} \
+                {write24 23 4 17 1} \
+                {write24 23 5 17 1} \
+                {write24 23 6 17 1} \
+                {write24 23 7 17 1} \
+                {write24 23 8 17 1} \
+                {write24 23 9 17 1} \
+                {write24 23 10 17 1} \
+                {write24 23 11 17 1} \
+                {write24 23 12 17 1} \
+                {write24 23 13 17 1} \
+                {write24 23 14 17 1} \
+                {write24 23 15 17 1} ]
+
+
+tcltest::test WritePedestals-1 {Test that we can setup a sparse read
+} -setup {
+  setup
+  set FOO(ped00) 1
+  set FOO(ped01) 1
+  set FOO(ped02) 1
+  set FOO(ped03) 1
+  set FOO(ped04) 1
+  set FOO(ped05) 1
+  set FOO(ped06) 1
+  set FOO(ped07) 1
+  set FOO(ped08) 1
+  set FOO(ped09) 1
+  set FOO(ped10) 1
+  set FOO(ped11) 1
+  set FOO(ped12) 1
+  set FOO(ped13) 1
+  set FOO(ped14) 1
+  set FOO(ped15) 1
+} -cleanup {
+  tearDown
+} -body {
+  ::dev WritePedestals FOO
+  ::ctlr getHistory
+} -result [list {write24 23 0 17 1} \
+                {write24 23 1 17 1} \
+                {write24 23 2 17 1} \
+                {write24 23 3 17 1} \
+                {write24 23 4 17 1} \
+                {write24 23 5 17 1} \
+                {write24 23 6 17 1} \
+                {write24 23 7 17 1} \
+                {write24 23 8 17 1} \
+                {write24 23 9 17 1} \
+                {write24 23 10 17 1} \
+                {write24 23 11 17 1} \
+                {write24 23 12 17 1} \
+                {write24 23 13 17 1} \
+                {write24 23 14 17 1} \
+                {write24 23 15 17 1} ]
+
+
+tcltest::test WritePedestals-1 {Test that we can setup a sparse read
+} -setup {
+  setup
+  set BAR(ped00) 1
+} -cleanup {
+  tearDown
+} -body {
+  ::dev WritePedestals BAR
+  ::ctlr getHistory
+} -result "ALeCroy4300B::WritePedestals Array contains fewer than 16 elements." \
+-returnCodes 1
+
+
+
+tcltest::test readLAM-0 {Test that reading the lam adds an F(8)A(0)
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev ReadLAM
+  ::ctlr getHistory
+} -result "{control 23 0 8}"
+
+
+
+tcltest::test readAndClearLAM-0 {Test that read/clear the lam adds an F(10)A(0)
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev ReadAndClearLAM
+  ::ctlr getHistory
+} -result "{control 23 0 10}"
+
+
+tcltest::cleanupTests

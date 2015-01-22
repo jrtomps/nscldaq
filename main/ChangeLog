@@ -1,0 +1,920 @@
+Dec 16, 2010 
+      - Fix error in CRingItem copy construction ... if there was a
+	payload, the m_pCursor member was not being set to point to the
+	end of that payload...leading the CRingItem target to think the
+	item was empty.  This was also a problem with operator= which also
+	used CRingItem::copyin where the problem lay.
+      - Fix various copy in issues with CRingBuffer and subclasses.
+	make all the tests pass that should pass and remove those that
+	should no longer pass due to changes in the way sampling
+	has been done.
+Dec 20,2010
+      - Fix error in URL parsing that made absolute file urls fail.
+	(removed the leading /).
+      - Fix error in Gui that prevented event file segments from
+	showing up on the status strip.
+Dec 31, 2010
+      - In readout gui, make links between files symbolic so that they
+	port across backup and restores in a different directory tree as
+	happens during NSCL experiment closeout.
+January 27, 2011
+	- Fix up Experiment.tcl so things work on etch systems (for now).
+	- Fix errors in copy construction in daq/format.
+February 17, 2011	
+	- Fix error in event file overwite handling in readoutgui:
+	  the softlink must be deleted before being made.
+	
+March 10, 2011 10.0-004
+	- Make ring master wait until the port manager is actually alive
+	rather than dying if it isn't.
+	- Install VERSION file in make install target.
+	- Misc. changes to Makefile.am's and configure.ac so that
+	autoreconf isn't so bitchy.
+April 8 2011 10.0-005
+	- Stop elapsed run timer in readout gui when the run ends.
+April 13, 2011 10.0-006
+	- Really get the elapsed run timer logic right ...with
+	interpolation from the scaler buffers.
+	
+June 10, 2011 10.0-007
+	- Add -textheight switch Readout shell to support running
+	  in on displays with limited heights.
+	
+June 22, 2011 10.0-008
+	- Add --deleteonexit switch to stdintoring
+	- CRemoteAccess - modify to start stdintoring with --deleteonexit
+	  so that the proxy ring is deleted if the remote part of the
+	  hoisting pipeline dies.
+July 8, 2011 10.0-009
+	- Extend length of getpwbyuid buffer in CReadoutMain.cpp it was
+	only marginally good for some people with small gecos fields.
+August 5, 2011 10.0-010
+	- Remove extraneous -lpub from daqstart's Makefile.am.
+October 12, 2011 10.0-011
+	Fixes for defects in readout framework found when getting CAESAR ready:
+	- SBS Makefile did not honor USERCXXFLAGS, USERCCFLAGS nor
+ 	  USERLDFLAGS support was added in a way that ensures that
+	  USERCCFLAGS and USERCXXFLAGS may differ but nonetheless
+	  factoring out the common flagsets.
+	- Add -D's  to the Makefiel includes so that users accessing VME
+	  classes get the fact that we have a mapped interface.
+	- Add missing #define __CREADOUTMAIN_H to CReadoutMain.h
+	- Fix error in CAENV262Busy - defined GoReady rather than GoClear
+	  so it became an abstract class.  Fixed while retaining the
+	  GoReady function because we know the workaround kludge/fix won't
+	  disappear.
+	- Call clear on main scaler bank in CExperiment after the readout
+	  so scaler don't continuously increment
+	* Work around issues with the documentation getting too big for 
+	  docbook2dvi (it segfaults)...by generating man pages and 
+	  htmldocs only.
+        - Turn off driver tracing in CVMEInterface::Read. oops
+	- Lock/unlock VME Interface in trigger main loop for some dwell
+	  time.
+	- Fix broken -p switch in tcl server.
+	- Clear scalers and readout hardware much later in the
+ 	  initialization game.
+	- Fix time handling for scaler reads.
+October 17, 2011 10.0-012
+	- Move begin run emit to just prior to starting the 
+	  atual run itself...so we're not timing the hardware
+	  initialization.
+
+October 18, 2011 10.0-013	
+	- Stop using run state time for anything but keep computing each
+	from 'now' and start stamp.
+October 18, 2011 10.0-014
+	- Use ns resolutino realtime clock for all CExperiment timing
+	to try to get better synch with the scaler trigger clock.
+	- Fix error in CRingSelectionPredicate...would not allow the last
+	ring item to be fetched until more were in the ring.
+October 18, 2011 10.0-015
+	- Pull in up to date scaler display program from 8.2..which
+	diverged after this forked off.
+October 21, 2011 10.0-016
+	- Fix Packet/Vpacket macros so that they generate compatibility
+	  (word size-field) packets not checking for jumbo-bufferness.
+October 24, 2011 10.0-017
+	- Add memory barriers on shm operations that write to ensure
+	everthing is flushed to shm. - gcc specific code.
+	- Add a bit of a safety zone between get/put pointers.
+	- Go to a two phase client allocation: first set pid - 0
+	  which makes it ineligible for size computation, and claims it
+	  for use.  Then set the get pointer and finally set the PID to
+	  the actual value making it elligible for size computation.
+Nobvember 4, 2011 10.0-018
+	- Deal a bit better with pointer skew that can happen as new
+	  consumers enter the fray.
+	- Play with the tkdumper help file...fix missing link.
+	- Provide migration tutorial.
+	
+November 4, 2011 10.0-019
+	- Make stdintoring understand that data are structured not a
+	stream.
+November 7, 2011 10.0-020
+	- If a proxy ring has no producer then restart the pipeline if a
+	client attaches.  This provides a way to recover from remote
+	system reboot that's much saner.
+        - If a ring is deleted then kill its clients.
+	- If a get/put/peek operations discoveres the client's PID has
+	been co-opted by some other process or released, throw a state
+	exception and refuse to perform the operation.  This deals with an
+	edge case that should not happen...however better safe than sorry
+	especially since the cost is negligible.
+	- Require stdintoring have at least a full header in putData
+	else the remainder is a residual.
+	- Use same run time offset algorithm as scalers for variable dump
+	bufs.
+November 9-16, 2011 10.0-021
+	- Add --exitonend option to ringselector (WO W00957).
+	- Add compatibilitybuffer - ring to daq8.2 buffer utility (W00957)
+	- Add compatibilitylogger - pipeline element to make daq8.2 event
+ 	  file (W00957)
+	- Add eventlog script that provides an 8.2 compatible event
+	  logger.
+	- Add spectcldaq script that provides an 8.2 compatible SpecTcl
+   	  data source.
+	- Add spectcldaq.server - Tcp/IP script that provides 8.2
+	  compatible hoist of events out to a non daq system.
+	- Support using the EVENTLOGGER env varible to select the event
+	  logging program.
+	- Provide docs for the compatibility mode utilities in the
+	  utilities sections of the general docs and its own section of
+	  reference docs (1compatibility).
+  	- Add compatibility docs to the ring migration tutorial.
+	
+November 16-18, 2011 10.0-022
+	- Explicitly use ssh not rsh in the rsh package of
+	  ReadoutShell.
+	- Add complete docs for the readout GUI.
+November 21-23 2011 10.0-023
+	- Introductory docs for the grand unified documentation begun.
+	- Fix 2 stupidities in ringtostdout when writes needed to be
+	  segmented, both the wrong pointer and wrong count were used in
+	  subsequent writes.
+	- Fix copy problem in stdintoring -when residual was less than a
+	  header the residual was not being moved resulting in corrupted
+	  events, hangs and crashes.
+	- Remove misguided changes to Ring predicates that were supposed
+  	  to  improve sampling case...they actually killed sampling.
+	
+10.0-024:
+November 24-Dec 1, 2011
+	- Completed introductory section of comprehensive docs.
+	- Fixed error in stdintoring that would not flush the input buffer
+	  completely.
+	- Fixed error in stdintoring that re-declared the remainnig bytes
+	  value which had the bad effect of it never being initialized
+	  from the point of view of the code that needed it initalized.
+	- Incorporate Dirk's suggestions into the Ring buffer tutoria.
+
+10.0-25
+December 7, 2011
+	- In ring selection predicates don't block between skips as these
+	  can happen quickly.
+December 8, 2011
+	- Don't delete ring anymore when feeder exits as the code now
+	  alows it to be restarted (CRemoteAccess.cpp). 
+	- Support the RINGNAME environment variable to set the ring we use
+	  in the remote system for eventlog and sclclient.
+        - If the ring specified in a URL has a host that maps to the
+	  host' localname don't create a proxy ring but connect to the
+	  local ring. e.g. if I'm on charlie.nscl.msu.edu and 
+	  specify tcp://charlie/fox I'll connect to tcp://localhost
+December 12, 2011
+	- Truncate long title strings in sbs/readout/CExperiment rather
+	  than causing CRingStateChangeItem to throw a range exception.
+	- Add title string validation so that users cannot actually enter
+	  strings longer than 80 characters..so they are not surprised
+ 	  that their strings get truncated.
+	
+10.1
+January 26,2012
+	- Fold in VM-USB readout code from spectrodaq 
+10.1-001
+January 30-Feb 1,2012
+	- Fold in CC-USB readout code from spectrodaq
+10.1-002
+Feb 1, 2012 - Feb 24, 2012
+	- Extend CC-USB readout code to support user written C++
+          drivers as loadable objects.
+	- Wrap CCCUSB and CCCUSBReadoutList in SWIG for Tcl.
+	- Provide support for CCUSB drivers written in Tcl.
+	- Document all of this.
+	- Document the shape of ring items (daq/format/dataformat.xml)
+        - Add s800toring to utilties/compatibility
+        - Add -nomonitor switch to ReadoutShell - just stops run timer
+	  right away rather than waiting for end run indicator from rdo.
+10.1-003 
+	- Added s800 readout callouts to daq/s800callouts
+        - Add support for user written VM-USB drivers:
+	  * C++
+	  * Tcl
+	- Document VM-USB and driver support.
+        - Get the CAMAC window size right (tr 6639).
+	- Start s800toring in s800callouts - and monitor it.
+	- Provide a ring item generation library.
+	- Use ring item generation library in BufferToRing.
+	- Documment BufferToRing.
+	- Misc ReadoutGUI changes to better support aborting
+	  Begin run.
+	- Added ability to disable/enable user typing in the run number
+	  for integration with other systems that like to set the run number
+	  for us (e.g. Gretina).
+	- S800 rdocallouts - put the s800 status bar in the 'bottom line'
+	  of the GUI regardless of what that means.
+	- S800 rdocallouts documentation
+	- S800 Attempt to reconnect if status poll indicated dropped
+	  connection. 
+10.1-004
+	- Issue #1088 - added cratelocator.tcl and install in
+	  bin/cratelocator.
+        - Issue #1088 - Documented the cratelocator program.
+	- Issue #1121 - Support scalers that are not zeroed after each
+	  read.
+	- Move the CC/VMusb readout documentation chapters -> framworks
+	  from utilities.
+	- Issue #1019 - Improve error messages from the dumper when the
+	  --source cannot be parsed/opened.
+        - Issue #914 - Provide docs for the proposed API (coding will be
+          from that).
+	- Issue #914 - Complete testing of CRingBuffer with the API rather
+	  than direct shm_xxx calls.
+	- Issue #421 - Centralize the code that creates a ring (if
+	  needed) and attaches as a producer.
+        - Issue #419 - Factor out all the getDefaultRing/URL sorts of
+	  things.
+	- Issue #1119 - Honor env variables for stagearea and expdir when
+	                checking for a good stagearea link.
+	- Attempt to fix race condition between the s800 start and the
+	  polling of the s800 status.
+	- Turn on s800 record crate files by default per request by
+	  Daniel B. and Scott W.
+	- Turn it back off due to the potential of users to have to
+	  respond to a dialog on the s800 control panel.
+	- In S800 exit handler deal with the fact that the S800 may have
+	  exited so socket transactions with/to it may fail....correct
+	  bgerror so that it exits rather than breaking...which causes an
+	  infinite break handling loop.
+	- Issue #1195 deal with S800 bozo-ness on scalers.
+	- Ensure readoutGUI starts with correct colors.
+10.1-005
+	- Issue #1195 - Provide visual indication that runs are
+	  starting/stopping.
+	- Now that there is bandwidth and hopefully users are aware of the
+	  problems turn s800 record crate files _back_ on by default.
+	  Seems like they really just need the damned settings most of the
+	  time but they are not capable of separating the two somehow.
+10.1-006
+	- Add support for client of VM-USB server to VMUSBReadout.
+	  the --host (-h) switch if supplied selects the host on which the
+	  VMUSB server is running.
+	- Issue #1322 - Include product (NSCLDAQ) in the VERSION file.
+        - More wheezy-64 work:
+	  * Get sbs driver working/tested.
+	  * Ensure SBS device support is 64 bit clean.
+	  * Add libSBSDeviceSupport.la to the Readout executable build in sbs/readout/Makefile.am
+	- Attempt to fix race condition between the s800 start and the
+	  polling of the s800 status.
+	- Turn on s800 record crate files by default per request by
+	  Daniel B. and Scott W.
+	- Turn it back off due to the potential of users to have to
+	  respond to a dialog on the s800 control panel.
+	- In S800 exit handler deal with the fact that the S800 may have
+	  exited so socket transactions with/to it may fail....correct
+	  bgerror so that it exits rather than breaking...which causes an
+	  infinite break handling loop.
+	- Issue #1195 deal with S800 bozo-ness on scalers.
+	- Ensure readoutGUI starts with correct colors.
+	- Issue #1215  Support for SIS FADC in VMUSB readout.
+	- Issue #1216  Provide XLM/SISFADC hira pseudo module that gangs
+	them together.
+	- Issue #701 Add variable injection/monitoring to VM-USB readout
+	to support EPICS monitoring.
+	- Issue #989 - document VM-USB list remote list executino.
+10.1-007
+	- Issue #1215 - Suport for SISFADC in VMUSDB readout.
+	- Isssue #1216 - Add 'motherboard' type to VMUSB readout which
+	  supports pairing up to 2 XLM's and an SISFADC for HiRA readout.
+	- Issue #701 - Support variable injection into VM-USB Readout
+	- Issue #989 - Document the remote VMUSB readout list execution
+	  facility..as well as the various HiRA things.
+10.1-008
+
+10.1-100
+	- Add timestamped nonincr scaler item
+	- In BufferToRing emit both scaler and nonincr scaler items to the
+	s800 ring.  The concept there is that we can feed the timestamped
+	items to Gretina so that they get properly sorted.
+	- Debugged issues with the VMUSB Tcl stuff.
+	- Decided how to get pkgIndex to really work properly for lib.
+	 where some .so's may have dependencies based on the enclosing
+	app.
+=======
+	- Turn on s800 record crate files by default per request by
+	  Daniel B. and Scott W.
+	- Turn it back off due to the potential of users to have to
+	  respond to a dialog on the s800 control panel.
+	- In S800 exit handler deal with the fact that the S800 may have
+	  exited so socket transactions with/to it may fail....correct
+	  bgerror so that it exits rather than breaking...which causes an
+	  infinite break handling loop.
+	- Issue #1195 deal with S800 bozo-ness on scalers.
+	- Ensure readoutGUI starts with correct colors.
+10.1-005
+	- Issue #1195 - Provide visual indication that runs are
+	  starting/stopping.
+	- Now that there is bandwidth and hopefully users are aware of the
+	  problems turn s800 record crate files _back_ on by default.
+	  Seems like they really just need the damned settings most of the
+	  time but they are not capable of separating the two somehow.
+10.1-006
+	- Add support for client of VM-USB server to VMUSBReadout.
+	  the --host (-h) switch if supplied selects the host on which the
+	  VMUSB server is running.
+	- Issue #1322 - Include product (NSCLDAQ) in the VERSION file.
+        - More wheezy-64 work:
+	  * Get sbs driver working/tested.
+	  * Start SBS readout checkout (sbs/vmemodules/
+	    - Make CAENcard 64/32 bit clean.
+	    - Draft code for CADC2530 (Hytec adc...can't test this 'cause we don't own the module).
+	    - Draft code for CAEN V767 multihit TDC which probably nobody will ever use again.
+	    - Draft code for CAEN 262 I/O register.
+	    - camac.h - replace the old style INT32 etc. with stdint stuff.
+	    - Draft code for CBLT CAEN 32 bit digitizer chains.
+	    - Draft code for CAEN V1x90 multihit TDC family.
+	    - Draft code for CAEN V560 Scaler.
+	    - Draft code for CAEN V820/830 scaler.
+	    - Draft code for CAEN 977 I/O register.
+	    - Draft code for CAMAC (CES)
+	    - Draft code for 32 bit module.
+	    - Draft code CSIS3600 latch module.
+	  * Add libSBSDeviceSupport.la to the Readout executable build in sbs/readout/Makefile.am
+	- Attempt to fix race condition between the s800 start and the
+	  polling of the s800 status.
+	- Turn on s800 record crate files by default per request by
+	  Daniel B. and Scott W.
+	- Turn it back off due to the potential of users to have to
+	  respond to a dialog on the s800 control panel.
+	- In S800 exit handler deal with the fact that the S800 may have
+	  exited so socket transactions with/to it may fail....correct
+	  bgerror so that it exits rather than breaking...which causes an
+	  infinite break handling loop.
+	- Issue #1195 deal with S800 bozo-ness on scalers.
+	- Ensure readoutGUI starts with correct colors.
+
+10.2  
+	- Issue #1174 - Create development branch for nscldaq-10.2 with
+	the event builder (July 2, 2012).
+	- Issue #1193 - Factor the socket library used by epics and vmusb
+	  into a base library so it can be used by the event builder
+	  client libraries.
+	- Add timestamp based event builder to the software.
+        - Add stock fragment sources for ring buffers:
+	  * Generic source
+	  * S800 source
+	  * Gretina source.
+	- Factored out the various read/write loopy functions -> base/os
+	 (Issue #1417
+        - Add event builder client framework with mechanisms to get data
+	from rings and s800 -> EVB.
+	- Add glom to get data from event sorter -> events.
+	- Add teering so that event sorter can be monitored prior to
+	building.
+	- Issue #1521 - Provide mechanism to uniquify event orderer
+	instances and name them.
+	- Issue #1522 - Provide mechanism to contact named event orderer
+	and to specify the name of an orderer in the ring fragment data
+	source.
+	- Issue #1523 - ringFragmentSource secures its timestamp extractor
+	by actually mapping a temp copy.
+	-Provide CEventSegment in sbs/Readout with the following methods:
+	    reject -Rejects the event afer running all subsequent event
+	            segments.
+	    rejectImmediately - Rejects without running any more event
+	            segments.
+	    keep - Keep the event unless a subsequent event segment
+	           invokes one of the above.  Note that normally keep
+	           is called by the event segment's caller to user event 
+	           segments only need to invoke this if they've initially
+	           decided to reject(Immeditely) and then changed their
+	           mind e.g.:
+	            reject();
+	             ...
+	            if(ok) keep();
+	- Issue #1215  Support for SIS FADC in VMUSB readout.
+	- Issue #1216  Provide XLM/SISFADC hira pseudo module that gangs
+	them together.
+	- Issue #701 Add variable injection/monitoring to VM-USB readout
+	to support EPICS monitoring.
+	- Issue #989 - document VM-USB list remote list executino.
+        - Fix error in tclserver's managed port stuff which prematurely
+	  closed the connection to the port manager allowing double
+	  allocation.
+	- Add ReadoutCallouts for event builder/ReadoutGUI.
+	- Catch up on missing documentation for:
+	  *  teering
+	  *  glom
+	  *  readout callouts package for the event builder.
+	
+10.2-001
+	- Issue #1147 - Refactor various whoami's to os-specific code and
+	  replace locally defined methods and functions with calls to the
+	  centralized one.
+        - Issue #1219 - Refactor various uri based file/ring opens into  
+  	  a factory object.
+	- Issue #785 - Reconnect to VM-USB at the start of each run.
+	  this allows the controller to be powered off betwen runs.
+	- Issue #786 - Reconnect to CC-USB at the start of each run.
+	  Allows the controller to be powered off between runs.
+	- Issue #427 - Make VM-USB output buffer auto-resize on
+	  overflow...event size only limited by dynamic memory.
+	- Issue #1382 - Qualify s800 ring with username if defaulted.
+        - Issue #1326 - reconnect server's VM-USB controller when ethernet
+          controller is created by VMUSBReadout (this is done in the
+          controller factory creation method).
+          
+10.2-002 Support for HiRA VM-USB module:
+	- Issue #1215  Support for SIS FADC in VMUSB readout.
+	- Issue #1216  Provide XLM/SISFADC hira pseudo module that gangs
+	  them together.
+	- Issue #701 Add variable injection/monitoring to VM-USB readout
+	  to support EPICS monitoring.
+	- Issue #989 - document VM-USB list remote list executino.
+        - Final test build on Wheezy64
+	- Add -clearveto to CHINP.cpp
+	- Fix 32/64 bit uncleanliness in camac.h (J.T.).
+11.0 Better support for event builder (workoder W02101).
+	* Issue #1578 - Support runs with multiple end run marks in the
+	event logger.
+	* Issue #1577 - Add body headers to most ring items so that timestamp,
+        event source and barrier type information can be included with each ring
+        item.
+        * Issue #1590 - Make sclclient and ScalerDisplay aware of non-incremental
+        scalers and fractional interval increments.
+        * Issue #435 - Make CC/VMusb capable of using port manager to advertise
+        their slow controls services.
+        * Issue #458,424- Redo VM/CC-usb event counts so they work without scaler reads
+        * Issue #571 Add VM-USB control panels to the distribution.
+        * Issue #702 Add variable injection/montioring to CCUSBReadout
+        * Issue #570 Add control panels for CC-USB to system.
+        * Issue #1141 Remove dependency on BLT -  note RBC binaries are now
+                    part of the distribution (BSD licensed with credit in
+                    our LICENSE file)
+        * Issue #1653 Miscellaneous adjustments due to changes in data struct.
+        * Issue #1575 Import VM/CC-usb firmware updaters and make them work
+                 Thanks to W-IE-NE-R Plein & Baus for permission to redistribute
+                 this software.
+        * Fix up eventlog so that it can write the RING_FORMAT item that precedes
+          a ring item in nscldaq-11.  I >think< this utility will now work for
+          nscldaq-10.x (not recommended however) and nscldaq-11+.
+        * Provide a --sourceid option for sbs/Readout so the source id can be
+          set on the command line.
+        * Provide --sourceid and --timestamplib command line options for
+          CCUSBReadout: if --timestamplib is supplied it is a shared library
+          that contains getTimestamp and the events get full body headers with
+          timestamp returned by getTimestamp with source id specified by
+          --sourceid.
+        * Provide --sourceid and --timestamplib command line options for
+          VMUSBReadout: if --timestamplib is supplied it is a shared library
+          that contains getTimestamp and the events get full body headers with
+          timestamp returned by getTimestamp with source id specified by
+          --sourceid.
+        * Teach glom to put a timestamp in assembled events according to the
+          timestamp policy of first, latest, or average.
+        * Ensure that all readouts make body headers for all item types
+          though many of them will have null timestamps.
+        * Add timestamp policy to the GlomParameters item.
+        * Ensure that ring selector uses the ring item header to size its writes
+          rather than some fancy arithmetic that fails now that we have body
+          headers.
+        * Get all unit tests to pass.
+        * Add GUI element in event builder RDO Callouts to control the glom
+          --timestamp-policy switch.
+        * Document new format of Glom parametesr ring item and methods/parameters
+          that set/get the timestamp policy.
+        * Use tclplus deb package if availalble, fallback to local copy in
+	  libtcl
+	* Encapsulate the SWIG autoconf test in an m4 test.
+	* Encapsulate the gengetopt test in an m4 test.
+        * Encapsulate the EPICS tests/defs in an m4 test.
+11.0-rc3 Sprint for DDAS SBC reaodout board and then some.
+	* Issue #1765 - open rc3 development sprint.
+	* Issue #433  - Support out of tree builds.
+	* Issue #1045 - Pure plugin architecture for ReadoutShell.
+	* Task  #1729 - Add --run switch to eventlog so ReadoutGui can
+	     explicitly set the run number.
+	* Changing the bogus ReadougGUIPanel -> ReadoutGUIPanel as it
+	always should have been if I'd not been so lazy.
+	* Added documentation for ReadoutGUIPanel::Log method.
+        * Issue #1045 - Redo event GUI to support multiple readouts.
+        *   Add control over readout gui's log window charact>eristics
+        *   Add sshPipe provider wd parameter.
+        *   Expose that parameter in the prompter for the source in the
+	gui.
+	* Issue #1654 better document the CEventSegment methods for
+	handling event rejection and timestap/event source injection.
+	* Fold in fix for double de-alloc in CConfigurable object from
+	Jeromy.
+	* Issue #1876 Ensure all output is captured by the ssh pipe
+	(stupid redirection tricks).
+
+11.0-rc4  Misc fixes.
+	* Issue #1760  - Don't rethrow exception in XXUSB CTheApplication.cpp
+	operator() -- just exit since there's no other exception handler.
+	* Remove lines/cols from outputwindow settings...it's now resizeable
+        * Issue #1850 - Add skeleton build tests to Jenkins job.l
+	* Issue #1824 - Add and install documentation for unglom.
+        * Issue #1761 - Make the xxusbReadout frameworks not output versions
+          by default and synch their versions with nscldaq version when
+          used with the --version option.
+	* Issue #1835 - Remove duplicated VmeModule.{h,cpp} -- chose the
+	one in nsclapi over the one in vmemodules.
+        * Issue #1827 - Add --scaler-width option to dumper to deal with 
+	   X/Q bits in CCUSB Scalers e.g.  This was done by introducing a
+	public static attribute CRingScalerItem::m_ScalerFormatMask which
+	toString ands with scaler values.
+	* Issue #1825 - Document SBS readout commands and key variables.
+
+11.0-rc5 
+	* Issue #1834 - Add SBS and vmsub firmware upgraders for CAEN
+	products.
+	* Issue #1878 - Add documentation for the SBS Scripted readout
+	framework. 
+	* Issue #1721 - Remove use of usleep as that's posix deprecated.
+	This was done by creating an Os::usleep function that used
+	nanosleep which is still posix good and rewriting all uses of
+	usleep as Os::usleep.
+	* Issue #1762 add exit handlers to XXUSBReadout so that if the process exits
+	with acquisition active the XXUSB controller is told to exit
+	acquisition mode and buffers are dumped.	
+        * Issue #1899 Add dcoumentation for glom.
+        * Roll in Jeromy's fix for s800 ring data source startup in evb 
+         Readout callouts.
+
+11.0-rc6
+        *   Issue #1814 - Add run state callbacks to CEventSegment
+        *   Issue #1916 - Fix buffer overflow error in nscldaq-11.0
+        *   Added ReadoutGuiRemoteControl package that can remotely control
+            readout GUI.
+        *   Added ReadoutGuiClient.tcl - low level client procs for ReadoutGuiRemoteControl package.
+        *   Added ReadoutGUIProvider.tcl - Data source provider for remote
+	ReadoutGUIs.
+	* Fix errors in stdintoring that cause it to blow up badly if a
+	single event does not fit in the --minsize buffer.
+	* Add some new manpage sections.
+	* Fix edge case ordering errors in event builder/orderer section.
+	* Fix Issue #1928 - Event orderer GUI.tcl was never updating the
+          total output fragment count ui element.
+        * Issue #1927 (sort of) appended source id to identification of
+	  source of message so user doesn't have to worry about how to
+          name stuff (C++ and Tcl).
+	* Issue #700 Support user written drivers for VM-USB slow controls
+	server.
+	* Issue #544 Provide a convenience function to make range checked
+	integer lists in VMUSBReadout.
+	* Issue #699 Support user written slow controls drivers for the
+	CC-USB slow controls server (C++ and Tcl)
+	* Issue #1722  Use round trip synchronization rather than a delay 
+	  to know when runs are totally ended.
+	* Issue #1793 - Uniquify the ring used by tests.
+	* New drivers added to VMUSBReadout and CCUSBReadout
+	* Filter framework included
+	* Some aesthetics improved on ReadoutGUI
+	* Extra configuration controls added in vmusb driver
+
+11.0-rc6-001
+	* Issue #1942 - compatibiliby mode buffer dump script.
+	* Issue #1939 - Add checksum.
+	* Issue #1930 - Reduce the chance there will be event logs that
+	hand around on failures and actually record data.
+	* Issue #1941 - Re-assert the width of the field each insertion in
+	CRingItem::toString as it is apparently a one-shot thing.
+	* Issue #1919 - Provide optional argument for VM/CCusb loaders.
+	This is done by providing an optional program parameter after the
+	firmware file that is the serial number string (e.g. V1234).
+	
+Open rc7 work.
+	*  Get good compilation/tests on Ubunti 14.04 (trusty).
+	*  Modify default size in CRingItem so that instatiation
+	   with default size does not cause dynamic buffer allocation.
+	*  Ensure that failure to build/install documentation won't cause
+	build failure (e.g. user does not have docbook installed on
+	system).
+	*  Add directory tree top for experiment configurator.
+	*  Add installation point for Python libraries.
+	*  Roll event builder fix back from 10.2-107 (Issue #2035)
+	*  Roll in Issue #2035 - data rate smoother change.
+        *  Feature #1953 - Experiment configuration editor: Users create a
+           new (empty) project
+        *  Add a daqsetup.bash script to installation that provides environment
+        *  Feature #1954 - Experiment configuration editor: Users open an existing
+           project (not necessarily empty).
+        *  Feature #1951 - Users create an inventory of the hosts involved in
+           the experiment.
+	*  Feature #1952  - Users create an inventory of the ringbuffers
+	involved in the experiment.
+        * Tabbed output windows on ReadoutGUI to make it easier to
+	disentangle ouptput.
+	* Added error icons to tabs that have errors.
+	
+Open Rc10 work
+	*  Issue #1953, Issue #1954, Issue #1951, Issue #1952, 
+	Issue #1953, Issue #1955, Initial not so complete experiment
+	editor.
+	* Issue #1964 - State manager.
+	* Issue #1961, Issue #1965 - Boot manager, knows how to create
+	ringbuffers and programs and to force the state manager back to
+	the NotReady state if the programs fail to start or exit.
+	* Document the experiment editor program.
+	* Bug #2131 - ReadoutGui.tcl - don't let the ProvderListDialog
+	constructor invoke modal as that is the cause of the bug above..
+
+11.0-rc11
+	* Fix Bug #2115 - CCCUSB::readDelays has to be done as a read32.
+	* Fix Bug #2114 - XXUSBReadout - should not force a scaler dump
+	unless there is a stack established with  a scaler trigger.
+	* Fix Bug #2096 - tkbufudmp had hardcoded daqbin directory.
+	* Fix Bug #2083 - Improve error messages for CAENcard whengoe
+	addressing is not requested
+	* Allow CAENcard to be programmed with a GEO address that is not a
+	valid VME slot number if geo addressing is not being used.
+	* Sprint for experiment configuration Begin/End completed:
+	* Issue #1962 - Control panel for state manager.
+	* Issue #1966, Issue $1967 Users can use the control panel to
+	start and stop runs.
+	* Issue #2117 - State aware readouts report state transition
+	failures as well as failures in the active state to the
+	statemanager as FAIL transition requests.
+	* Issue #2122 - Documentation of the elements created/changed in
+	the experiment configuration Begin/End sprint.
+
+Work on 11.0-rc11 begins
+	
+        * Fix Bug #2135 - --version switch didn't really work for python programs
+          implemented in the rc11 sprint.
+        * Add Feature #2139 - Support running the CCUSBReadout from within the
+          state/boot manager by adding an --init-script option and ensuring that
+          the program runs an event loop for command input rather than just the
+          plain old Tcl interpreter loop (this last ensures that Tcl_ThreadQueueEvent
+          events are eventually actually executed in the target interpreter/thread).
+        * Add Feature #2138 - Support running the VMUSBReadout from within the
+          state/boot manager see above for the changes done.
+        * Partial fix for Bug #2132 : Schedule Tclserver exit from overriden exit
+          command and join with that thread prior to calling Tcl_Exit to ensure
+          the event loop mutexes all run down properly.
+        * Did similar partial fix for #2132 for CCUSBReadout
+	* Fix a couple of issues in scaler display:
+	  - S800 dt comes across as -NaN rather than 0 catch that.
+	  - Notebook no longer can give me -background just set
+	    normalcolor to white
+	* Change BufferToRing so that scaler buffers have not body header.
+        * Add -timestamp to VMUSB SIS3820 module.
+        * In port the CSIS3820 from nextgen to support the 48 bit scalers that
+          were added in that release.
+	* Fix errors in scaler display related to non-incremental scalers.
+	* Remove popup from s800toring on exit.  Put the policy decision
+	about what to do when it exits on the user (e.g. ReadoutShell)
+	rather than on the script itself.
+	* Add Os::blockSignal to allow code to block the delivery of
+	specifci signals.
+	* Block SIGPIPE in ringtostdin, stdintoring and ringselector to
+	fix edge case where the pipe breaks before the write starts.
+	* Fix errors with scaler display handling of -width switch.
+	
+11.0-Rc12
+	* Fix Issue #2197 - note that .started and its relatives just get
+	  silently deleted, but the first and last issue in this report
+	have been fixed by improved error messages in eventLogBundle.tcl
+	* Fix Bug #2191  - When a part of the EVB Pipeline downstream of
+	the event builder exits, then kill the entire pipeline with
+	notification so the restart works correctly.
+	* Fix? Bug #2188 - Ensure that all interesting numbers in the
+	event orderer gui are rendered as unsigned ints.
+	* Fix Bug #2182 as follows: Add key bindings for enter and tab
+	that update the --dt value.  So you do need to use one of those to
+	commit the value. 
+	* Turn off the pop up when s800toring exits.
+	* Fix Defect #2253 - Too long title in the Readout GUI makes run
+	start fail.
+	* Feature #2340 - Use monitor stack to periodically flush partial
+	  event buffer.
+	* Fix a few threading errors and edge cases with the monitor stack
+	* Complete first sprint of new scaler program:
+	* Feature #2204 - Users can specify scaler channels
+	* Feature #2209 - Users can specify alarms on channels.
+	* Feature #2206 - Users can specify display pages.
+	* Feature #2207 - Users can specify display_single lines.
+	* Feature #2208 - Users can specify display_ratio lines
+	* Feature #2210 - Alarmed scalers are highlighted in color.
+	* Feature #2205 - The scaler program can be attached to a ring.
+	* Feature #2211, Feature #2212 - Scalers update properly.
+	* Feature #2213 - Users get end of run reports.
+	* Complete second sprint of new scaler program:
+	* Feature #2256 - Users want to see the run duration (show max
+	over all sources).
+	* Feature #2257 - Show most recent update intervals from all
+	sources.
+	* Feature #2259 - Users can disable alarms (Checkbutton).
+	* Feature #2260 - Users can define a strip chart single parameter.
+	* Feature #2263 - Users can define a stripcharted ratio of
+	parameters.
+	* Feature #2266 - If there is a strip parameter or strip ratio, a
+	strip chart will be created.
+	* Feature #2268 Scaler events update the strip chart.
+	* Feature #2271 End of run produces a postscript of the strip
+	chart.
+	* Added the 'special' updated version of plotchart to the build.
+	* Added features to the plotchart stripchart to allow one to fetch
+	current plot limits.
+	* Added CAEN xyplotcontainer and related modules to the build.
+	* Feature #2457 - added padding in the elapsed time header of the
+	new scaler program
+	* Feature #2385 - Labeled axes for scaler program strip chart.
+	* Feature #2043 - Tested newscaler with multiple data source
+	(event builder 	output).
+	* Feature #2502 - Added 'blank' command to newscaler config file.
+	* Feature #2505 - Implement newscaler config file stripconfig
+	command. For now this only supports the -timeaxis option.
+	* Feature #2397 - Newscaler - default ring to
+	tcp://localhost/$tcl_platform(user) 
+	* Feature #2388 - new scaler  decimate old data so that we don't
+	ever blow away the virtual memory limit.
+	* Feature #2400 - Support SCALER_RING containing a list of ring
+	URIs.
+	* Feature #2391 - newscaler - add a startup script.
+	* Feature #2382 - newscaler strip chart trace names relate back to
+	the names of the scalers they chart.
+	* Feature #2394 - newscaler tabs have a background image that is a
+	color that reflects their alarm state - note this shows very bad
+	performance when remotely displayed over WAN
+	(e.g. comcast)... need to check that this is not bad inside the
+	NSCL or look for a better way to do thins).
+	* Feature #2406 - Test newscaler integration with a mix of
+	incremental and non-incremental scalers.
+	* Feature *2409 - Documented newscaler and TclRingBuffer package
+	* Fix errors in new scaler display script that happen when there
+	is no stripchart.
+
+
+11.0-rc14
+	Note you might think that the simplest way to get a non blocking
+	ring selector is to just do non blocking writes and drop ring
+	items on the floor once a non blocking write fails.  This is
+	vulnerable/complicated because entire ring items must be written
+	to stdout and theres no gaurantee the block won't happen in the
+	middle of a ring item leaving you wondering if you should be
+	continuing to try the write or get data from the ring. The
+	architecture chosen instead is to thread the ringselector so that
+	there's an output thread that can be blocking and to use a
+	CBufferQueue to transmit ring items between the ring reading
+	thread and the output thread.  Ring items get dropped when there
+	are no free items available for the ring reading thread to put in
+	to the transmit queue.  This results in very straightforward logic
+	for both the ring reading thread and the output thread:
+	
+	* Feature #2556  Hoist CBufferQueue from the USB readouts into
+	base/thread
+	* Feature #559 In the USB readouts, use the CBufferQueue from
+	base/thread getting rid of the local versions. (DRY-ness).
+	* Feature #2562 add nonblocking get to CBufferQueue
+	* feature #2565 add --non-blocking flag to ringselector and
+	document it.
+	* Feature #2568 have the ringselector create a free and in transit
+	buffer queue of CRingItem*
+	* Feature 2571 Ensure RingSelectorMain sends data to a buffer
+	queue rather than directly outputting it.  If --non-blocking is
+	true and a non blocking get from the free list shows there's no
+	free items, drop the ring item on the floor.  With --non-blocking
+	false, the get of free items is blocking.
+	* Feature 2574 Write an output thread that takes the ring items
+	from the in transit queue and writes them to stdout.  Start it in
+	the ringselector main thread.
+
+	Document the CBufferQueue and CGuardedObject classes that were
+	ported to the base/thread libdaqthreads library.
+	
+
+11.0-rc15:
+	Bug #1946 - INCLUDES symbol in Makefile.am is obsolete.  This has
+	been changed to target_CPPFLAGS pretty much everywhere or
+	integrated with an existing target_CXXFLAGS definition when that's
+	simpler. 
+        Feature # 2186 - Tcl ringbuffer package:  Allow ringbuffer usage
+        without a ringname so that all ring usages are given.  Provide
+        a ringbuffer list subcommand.  This also satisfies Feature #2535
+        since users can check for the ringbuffer in the list of names
+        returned by ringbuffer list.
+        Bug #2343 Document the VMUSBReadout marker command (daqconfig).
+        Fix other issues with documentation pages as we try to reduce the warnings.
+        Bug #2240 Better formatting for  new scaler display numbers.
+        Bug #2242 CDataFormatItem was mis-documented as CRingFormatItem.
+        Bug #2238 env is not available for daq/readoutgui/state.tcl fixed.
+        Feature #2074 - Add marker command to CCUSBReadout
+        Bug #2201 Late fragment statistics did not increment.
+        Feature #2628  Added duplicate timestamp (per queue) detection in
+	event orderer.
+        Bug #2061 Added global flow control to event orderer.
+         * Flow control is indicated on the GUI.
+         * Flow control is enforced by the connection manager.
+         * Flow control is all or nothing.  No data can be received if the
+           high water mark is exceeded.
+         * High/low water marks ensure that flow control does not oscillate
+           too severely.
+         * High/low water marks are in terms of bytes of fragment payload and.
+           There are commands to set these they default to a  high water mark
+           of 100Mbytes and low water mark of 80Mbytes.
+        
+11.0-rc16:
+	*  Bug #2073 Properly interpret bit 12 of VMUSB buffer header as part of the
+	number of events in the buffer.
+	*  Bug #2057 A - add -incremental option to VMUSBReadout stack module
+	driver so that the scalers ring items can be marked as
+	incremental.
+	*  Bug #2057 B - add -incremental option to CCUSBReadout stack module
+	driver as well.
+        *  Feature #2355 Add support for ABNORMAL_END ring items to the system.
+        *  Feature #2346 Enable BufferToRing to produce body headers if
+        desired or specified by user.
+        *  Feature #1826 - Tell user when xxUSBReadout config file exceeds
+	the available stack space.
+        *  Feature #2173 - Provide VMUSB-tcl package.
+        *  Feature #2975 - Add ability to place callout bundle anywhere in the
+                        ordered list of registered callout bundles.
+        *  Bug #2130 - Don't allow a new run to start until the event builder
+                    has flushed all its data out the output ring.
+        *  Feature #2099  - Add put(char* data, int nbytes) method to CDataSink interface
+        *  Bug #2034 - ringFragmentSources register to wrong event builder when
+        starting duplicate event builder.  Note this may  not really fix the
+        issue of a hanging event building pipeline since the next thing you're
+        likely to run into is that glom is still alive and is the ring producer
+        so the new pipeline won't start up right uniless the destination ring
+        is modified.
+        *  Feature #868 - Remove NSCLDAQ's dependency on BLT as that is not being
+        sufficiently supported for me to have confidence that it won't break (again)
+        when we go to Tcl 8.6
+        *  Bug #2915 - Don't emit body headers if there's no scaler timestamp extractor.
+        - Add try/catch block around the action register write that
+	triggers the vmusbreadout monitor list as this intermittently
+	fails.
+11.0-rc17 (Evidently I was not keeping up with starting new release candidates above).
+        *  Feature #3175 - ringFragmentSource stuff that used to go to source#.txt now goes
+        to stderr which in turn goes to an output window tab of the UI.
+        *  Feature #3205 - Only end run if the state is active or paused...this prevents
+        attempting to end the run while the rdothread is busy initializing the run.
+        *  Bug #3208 - Set paused state when pausing run so that resume is allowed.
+        Feature #3164 - For event builder windows put functional titles in that also
+        give a disambiguating username.
+        *  Bug #3155 - Don't emit EOF message in compatibilitybuffer method.
+        *  Feature #3202 - Don't let exceptions propagate out of the reaout thread into the
+        last chance exception handler.
+        *  Feature #3229 - Make timestamp extractors for XXUSBReadout aware of run starts
+        *  Bug #3238 - Fix VMUSBReadout OutputThread fails when run title is too long
+        *  Bug #3235 - Loop over drain/retries on writing the action register.  Note that the
+           original trigger was Bug #3238 which is fixed in this release as well.
+        *  Feature #3232 - Add mechanism to get the source id from sbsReadout CDExperiment objects
+        and document how to have an event segment produce its own event segments.
+        *  Feature #3217 - Provide indications of the Eventbuilder queue depth and throughputs in
+        bytes/sec.
+        *  Feature #3220 - Add Event builder diagnostics/display for out of order timestamps
+          in the input queue(s).
+        *  Feature #3223 - Diagnostic for output ring full - implemented as a tab on
+          the status display that  provides the output ring statistics.  This allows
+          users to see where the output ring buffers are rather than just an output ring
+          full indicator.
+        *  Feature #3161 - Here be dragons!!! save the stagearea value set in the
+          UI in the ~/stagearea/.settings.tcl file.  This may surprise test users.
+        *  Feature #3274:
+	   *   Add class CriticalSection safe critical sections via mutex (base/thread)
+	   *   Add Mutex to CXXUSB classes and encapsulate
+	      writeActionRegister, transaction and readUSB in a
+              CriticalSection to make the libusb stuff all thread
+              protected.
+	   *   Add a marker slow control module so any periodic flush of
+	      the physics buffer is at the discretion of the experimenter.
+       *  Merged rc17 development branch to nscldaq-11.0 development branch.
+11.0-rc18
+       * Bug #3367 - Swap order of type/name in the CCUSB TclServer Module command.
+       * Bug #2033 - If the file exists in /dev/shm but is not known by the ring
+         master when CRingBuffer::Create take action as follows:  If the file is
+         formatted as a ring buffer, just re-register it.  If the file is not
+         formatted as a ring buffer, then throw an error.
+       * Bug #3325 - Clean up the way that data source exits are handled in the readout GUI
+         specifically;
+         *  Had been first transitioning to Ready then NotReady...just go directly to notready.
+         *  In event log bundle {Active, Paused} -> NotReady kills eventlogger
+            does a clean run finalization.
+         *  In event builder these transitions kill off the event bulder.
+       * Bug #3400 - Event builder should protect itself from attempts to register the bundle
+         more than once.  Note that this makes the docs correct as it does not hurt to
+         useEventBuilder in the OnStart without protection.
+       * Fix error that -inrate would go negative if the event builder was
+	used persistently because of the counter resets.  If the rates
+	look negative assume there's been a reset.  Note for _very long_
+	runs (more than 4billion [2^32] or is it 2^64 fragents in a queue), there
+	may be one update cycle with an inaccurate rate because of the
+	counter wrap.  I'm not going to worry about that now.  What would
+	be needed to worry about it is knowledge in the GUI of when a
+	reset happens so that wraps are handled properly and resets set
+	the last counters to zero instead.
+         

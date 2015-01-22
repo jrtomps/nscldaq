@@ -1,0 +1,13 @@
+
+package require tcltest
+
+
+tcltest::test pkgrequire-0 {Ensure that we can require the package
+} {package require Offline_Provider} 1.0
+
+
+# i don't care if the source id exists of not... this doesn't do anything!
+tcltest::test init-0 {Calling init doesn't fail
+} {Offline::init 0} {}
+
+tcltest::cleanupTests

@@ -1,0 +1,215 @@
+
+#
+#   Test suite for the Experiment package.
+#   Note that some of this package may not be automatically testable
+#   due to environmental constraints.  This is noted
+#   in the comments preceding the 'tests that are not there.'
+set here [file dirname [info script]]
+
+# starting to just get too tough to do this without
+# packaging:
+package require tcltest
+
+set auto_saved $auto_path
+lappend auto_path $here
+if {[file exists pkgIndex.tcl]} {
+    file delete              pkgIndex.tcl.saved
+    file rename pkgIndex.tcl pkgIndex.tcl.saved
+}
+pkg_mkIndex . *.tcl
+
+
+#  Dummy packages:
+#   We'll implement stubs as needed for the
+#   procs used by the module under test.
+#
+package provide InstallRoot    0.0
+package provide ReadoutControl 0.0
+package require Diagnostics
+
+
+#  Dummy package stubs:
+#
+namespace eval InstallRoot {}
+proc InstallRoot::Where {} {
+    global here
+    return $here
+}
+
+set warningCalled 0
+
+namespace eval Diagnostics {}
+proc Diagnostics::Warning {args} {
+    global warningCalled
+    incr warningCalled
+}
+namespace eval ReadoutControl {}
+namespace eval Diagnostics {}
+
+package require Experiment
+package require ExpFileSystemConfig
+package require ExpFileSystem
+package require DAQParameters
+
+
+# Utility procs:
+#
+
+proc createTestStageArea {} {
+    global env
+
+    file delete -force stagearea]
+    set top [ tcltest::makeDirectory stagearea]
+    set env(EVENTS) $top
+    set env(EXPDIR) [file join $env(EVENTS) .. experiment]
+
+    ExpFileSystemConfig::setDefaults
+
+    ExpFileSystemConfig::environmentOverrides
+
+
+    DAQParameters::setDefaults
+
+
+    # Make the directories and the event file.
+
+    if {[catch {ExpFileSystem::CreateHierarchy} msg]} {
+        puts "Could not create hierarchy: $msg"
+    }
+
+}
+
+proc cleanupTestStageArea {} {
+    global env
+
+    file delete $env(EXPDIR)
+    tcltest::removeDirectory $env(EVENTS)
+}
+
+proc makeTestRundirs {runs} {
+    foreach run $runs {
+        tcltest::makeDirectory [ExpFileSystem::WhereisRun $run]
+    }
+}
+
+proc makeCurrentEventFile {run} {
+
+    global env
+
+    createTestStageArea
+
+    #Make the event file
+
+    set name [format run%d-4096.evt $run]
+
+    set testfile [ tcltest::makeFile {} [file join $env(EVENTS)  current $name]]
+
+    return $testfile
+}
+
+proc makeEventFileSet {run segments} {
+
+    # Segment 0 is just a 'normal event file':
+
+    set firstSegment [makeCurrentEventFile $run]
+    set directory    [file dirname $firstSegment]
+
+    for {set i 1} {$i < $segments} {incr i} {
+       set name [ExpFileSystem::GenRunFile $run $i]
+       tcltest::makeFile {} [file join $directory $name]
+    }
+
+}
+
+
+#  Test the ability to create spectrodaq URL's.
+#  There's a branch of the code that can't be tested
+#  because we don't want to flip the /etc/services file.
+
+tcltest::test Experiment-1.0 {Experiment::spectrudaqURL} {
+    Experiment::spectrodaqURL localhost
+} tcp://localhost/$tcl_platform(user)
+
+# Test waitFile:
+
+tcltest::test Experiment-2.0 {Experiment::waitFile - file never shows up} {
+    set result [Experiment::waitFile testfile 100 10]
+} 0
+tcltest::test Experiment-2.1 {Experiment::waitFile - file initially there:} {
+    set name   [tcltest::makeFile {} testfiledoesnotexist]
+    set result [Experiment::waitFile $name]
+    tcltest::removeFile $name
+    set result
+} 1
+tcltest::test Experiment-2.2 {Experiment::waitFile - file shows up later} {
+    set name [tcltest::makeFile {} testfile];   # just to get path.
+    tcltest::removeFile $name
+
+    exec /bin/sh << "sleep 1; touch $name"
+
+    set result [Experiment::waitFile $name 1000 5]
+
+    file delete $name
+    set result
+} 1
+
+#  Test makeEventLink  create stagearea directory for this.
+
+
+# Tests for the callback function:
+
+tcltest::test Experiment-4.0  {Experiment::callback - nosuch sub gives no error} {
+    catch {Experiment::callback nosuchfunction 1}
+} 0
+
+proc Experiment::testcallback {run} {
+    return $run;           # Will propagate back.
+}
+tcltest::test Experiment-4.1 {Experiment::callback - sub that returns run number} {
+    Experiment::callback Experiment::testcallback 1234
+} 1234
+
+
+
+
+
+
+
+
+
+#  Test run paused/run resumed.. readoutstarting.. these just call callbacks.
+#
+#
+set callbackCalled 0
+
+proc OnPause {run} {
+    global callbackCalled
+    incr callbackCalled
+}
+proc OnResume {run} {
+    global callbackCalled
+    incr   callbackCalled
+}
+proc OnStart {} {
+    global callbackCalled
+    incr   callbackCalled
+}
+
+
+# Cleanup
+
+file delete pkgIndex.tcl
+if {[file exists pkgIndex.tcl.saved]} {
+    file rename pkgIndex.tcl.saved pkgIndex.tcl
+}
+set auto_path $auto_saved
+
+package forget Experiment
+package forget ExpFileSystem
+package forget ExpFileSystemConfig
+package forget DAQParameters
+package forget InstallRoot
+package forget ReadoutControl
+package forget Diagnostics
+
+tcltest::cleanupTests

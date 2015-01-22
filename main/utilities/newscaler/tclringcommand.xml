@@ -1,0 +1,1228 @@
+<!-- chapter libraries -->
+<chapter>
+    <title>Tcl ring access package.</title>
+    <para>
+        The Tcl ring access package allows Tcl scripts direct access
+        to the both local and remote ring buffers used to distribute
+        data through the NSCL data acquisition system.
+        This chapter will describe:
+    </para>
+    <orderedlist>
+        <listitem><para>
+            How to incorporate the ring access package in your scripts
+        </para></listitem>
+        <listitem><para>
+            Software patterns you may need to keep in mind when
+            using this package.
+        </para></listitem>
+    </orderedlist>
+    <section>
+        <title>An overview of the Tcl ring access package.</title>
+        <para>
+            The ring access package is a loadable package that is installed
+            in the <filename>TclLibs</filename> directory tree of the
+            NSCLDAQ installation directory tree.  To  use the package
+            you must add the <filename>TclLibs</filename> directory tree
+            to the Tcl package search path and you must execute the appropriate
+            <command>package require</command> in your script
+        </para>
+        <para>
+            Starting with NSCLDAQ-11.0, the <filename>daqsetup.bash</filename>
+            shell script can be run to define several useful environment
+            variables that let you locate components of the NSCLDAQ system.
+            It is recommended that you source this script in your
+            <filename>.bashrc</filename> startup script to make these
+            environment variables available to all bash sessions.
+        </para>
+        <para>
+            Once these environment variables are loaded the following
+            Tcl script fragment will incorporate the Tcl ring access
+            package in your script:
+        </para>
+        <example>
+            <title>Incorporating the ring access package into a Tcl script</title>
+            <programlisting>
+lappend auto_path [file join $::env(DAQROOT) TclLibs]
+package require TclRingBuffer
+            </programlisting>
+        </example>
+        <para>
+            In the example above, the first command appends the <filename>TclLibs</filename>
+            directory to the library search path. It make use of the <literal>DAQROOT</literal>
+            environment variable defined by the <filename>daqsetup.bash</filename> script.
+            <literal>DAQROOT</literal> points to the top level of the NSCLDAQ installation
+            directory in which <filename>daqsetup.bash</filename> lives.
+        </para>
+        <para>
+            The second line actually requests the interpreter to load the package into the
+            interpreter.  The package also intializes and registers its commands at ths point.
+        </para>
+        <para>
+            Once registered, the package provides a command ensemble with the base command
+            <command>ring</command> sub commands allow you to connect to specific rings,
+            get data from those rings and disconnect from rings.  The package allows you to
+            connect to several rings simultaneously if your application requires it.
+        </para>
+        <para>
+            Detailed information about the <command>ring</command> command ensemble
+            can found in the
+            <link linkend="tcl3_ring">manual page</link> <command>ring</command>.
+        </para>
+        <para>
+            The subcommands are:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term><command>attach</command></term>
+                <listitem>
+                    <para>
+                        Attaches to a ring buffer.  The ring buffer is specified as
+                        a URI of the usual form (e.g. <literal>tcp://localhost/fox</literal>)
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><command>detach</command></term>
+                <listitem>
+                    <para>
+                        Detaches from a ring buffer you've already attached to.  The
+                        ring buffer is again specified as a URI of the usual form.
+                        The package remembers which URIs represent rings that have
+                        been attached and will emit an error if you attempt to detach
+                        a ring that has not been attached.
+                    </para>
+                    <para>
+                        Note that the URI used to detach a ring must be textually
+                        identical to the URI used to attach it. For example,
+                        <literal>tcp://LOCALHOST/fox</literal> won't match the ring described
+                        in the <command>attach</command> sub-command description.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>get</term>
+                <listitem>
+                    <para>
+                        Gets the next ring item from a ring buffer. A URI is used to specify the
+                        ring, which must already be attached.   The command blocks until an
+                        appropriate ring item is available.
+                    </para>
+                    <para>
+                        In addition to specifying a ring, you can optionally specify a list of
+                        ring item types.  If specified, only those item types will be
+                        accepted, and all other item types will be skipped.
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+        <para>
+            The ring items returned from <command>ring get</command> are transformed to
+            Tcl dicts which makes them very easy to manipulate within Tcl programs.
+            The actual dicts returned by each ring item are described in the
+            <link linkend="tcl3_ring">manual page</link> .
+        </para>
+    </section>
+    <section>
+        <title>Usage patterns</title>
+        <para>
+            This section describes two usage patterns.  The first usage pattern is
+            the simplest and is best used for simple Tcl scripts (e.g. scripts that
+            don't have a graphical user interface).  The second usage pattern is
+            needed when you have an application that requires a live event loop, such
+            as a Tk application.
+        </para>
+        <para>
+            The examples in this package assume that you've either sourced the
+            <filename>daqsetup.bash</filename> script or somehow defined the
+            <literal>DAQROOT</literal> environment variable.
+        </para>
+    <section>
+        <title>Using the package in a simple script</title>
+        <para>
+            This section shows a simple script that just takes data from a ring and dumps
+            the string representations of the ring items it gets.  If you are not clear
+            on the shape of the data returned by the <command>ring get</command>, this
+            script can be useful, especially if you modify the <command>ring get</command>
+            command to only return the ring item you care about.
+        </para>
+        <para>
+            Note that since the <command>ring get</command> command blocks until
+            a ring item bcomes available, this usage pattern is not suitable for use
+            in Tk applications or other Tcl scripts that need to maintain a live eventloop.
+            See the next section for a pattern appropriate to that situation.
+        </para>
+        <example>
+            <title>Simple usage of the Tcl Ring access package.</title>
+            <programlisting>
+lappend auto_path [file join $::env(DAQROOT) TclLibs]   <co id="simplering-libpath" />
+
+package require TclRingBuffer                           <co id='simplering-require' />
+
+if {[llength argv] != 1} {
+    puts stderr "Usage:"                               <co id='simplering-param' />
+    puts stderr "  simplescript ring-uri"
+    exit -1
+}
+set ringUri [lindex $argv 0]
+
+ring attach $ringUri                                 <co id='simplering-attach' />
+
+for {set i 0} {$i &lt; 100} {incr i} {
+    set ringItem [ring get $ringUri]                <co id='simplering-get' />
+
+    # Note that Event ring items have a body that is binary.
+    # binary scan lets us convert that, in this case, to a list of
+    # integer values, one integer for each uint16_t.
+
+    if {[dict get $ringItem type] eq "Event"} {
+        binary scan [dict get $ringItem body] su* data  <co id='simplering-event' />
+        puts [dict remove $ringItem body]
+        puts "Event body:"
+        set hexData [list]
+        foreach datum $data {
+            lappend hexData [format %04x $datum]
+        }
+        puts $hexData
+    } else {
+        # All other ring types are purely textual:
+
+        puts $ringItem                             <co id='simplering-othertypes' />
+    }
+    puts "";                        # Separate items with a blank line.
+}
+ring detach $ringUri                              <co id='simplering-detach' />
+
+            </programlisting>
+        </example>
+        <calloutlist>
+            <callout arearefs="simplering-libpath">
+                <para>
+                    The first thing done by the script is to ensure that the
+                    Tcl library directory tree for NSCLDAQ packages is
+                    part of the package library search path. This line
+                    assumes that the <literal>DAQROOT</literal> environment
+                    variable points to the top level of the NSCLDAQ installation
+                    script.
+                </para>
+            </callout>
+            <callout arearefs='simplering-require'>
+                <para>
+                    Actually loads and initializes the package.  This line
+                    adds the <command>ring</command> command ensemble to the
+                    script's interpreter.
+                </para>
+            </callout>
+            <callout arearefs='simplering-param'>
+                <para>
+                    The script takes a ring URI as a command line parameter.
+                    This section of code prints out an error message if the
+                    URI is not on the command line, or if the user supplies
+                    additiona, unexpected, arguments.  
+                </para>
+                <para>
+                    If the correct number of command line arguments is supplied,
+                    the URI is stored in the <varname>ringUri</varname> variable for
+                    later use.
+                </para>
+            </callout>
+            <callout arearefs='simplering-attach'>
+                <para>
+                    Attaches to the ring.  Note that if the ring does not exist,
+                    this command will return an error.   This command will also
+                    return an error if the number of consumer programs
+                    exceeds the consumer limits on the ring.
+                </para>
+            </callout>
+            <callout arearefs='simplering-get'>
+                <para>
+                    This the <command>ring get</command> command returns a dict
+                    that contains the next ring item in the ring.  Note that
+                    if no ring item is available, the command will block the
+                    script until one is available.   See the next section if this
+                    is a problem.
+                </para>
+                <para>
+                    The <command>ring get</command> command can accept an additional
+                    optional parameter.  If present, it is a list of numerical item
+                    types the <command>ring get</command> will return.  Any ring item
+                    type not in the list will be skipped.   See the
+                    <filename>DataFormat.h</filename> for the item types currently defined.
+                </para>
+            </callout>
+            <callout arearefs='simplering-event'>
+                <para>
+                    The only complication in this script is that the <literal>Event</literal>
+                    ring item type will contain a <literal>body</literal> key that contains
+                    binary data.  This allows scripts to interpret the body of an event in
+                    an application specific manner.
+                </para>
+                <para>
+                    The code that handles the <literal>Event</literal> item type
+                    uses the <command>binary scan</command> Tcl command to interpret
+                    the body of the event as a list of unsigned uint16_t words.
+                    These are rendered as a list of four digit hexadecimal values after
+                    the <literal>body</literal> item is removed from the ring item dict
+                    so that it will not be output.
+                </para>
+            </callout>
+            <callout arearefs='simplering-othertypes'>
+                <para>
+                    Since the contents of the dict keys present in other ring items have
+                    good string representations, all ring items that are not of type
+                    <literal>Event</literal> are just output as is.
+                </para>
+            </callout>
+        </calloutlist>
+        <para>
+            Below we show what an excerpt of the output from the start of a run might look like:
+        </para>
+        <informalexample>
+           <programlisting>
+type {Ring Item format version} major 11 minor 0
+
+type {Begin Run} run 0 timeoffset 0 realtime 1411479570 title {Set New Title}
+bodyheader {timestamp -1 source 0 barrier 1}
+
+type {Trigger count} timeoffset 0 divisor 1 realtime 1411479570 triggers 0
+
+type Event size 24
+Event body:
+000c 0000 68fd 2958 0000 0000 0000 0001 0002 0003 0004 0005
+
+type Event size 24
+Event body:
+000c 0000 68fe 2958 0000 0000 0000 0001 0002 0003 0004 0005
+           </programlisting>
+        </informalexample>
+    </section>
+    <section>
+        <title>Tcl ring package usage pattern for event loops.</title>
+    
+        <para>
+            When an event loop is present in the application (such as in Tk applications),
+            the fact that <command>ring get</command> can block can be a problem.
+            Specifically, calls to <command>ring get</command> not only starve the event
+            loop, but you'd need to either arrange for the event loop to execute manually,
+            or schedule the <command>ring get</command> command to run from the event loop
+            (using the <command>after</command> command for example).
+        </para>
+        <para>
+            A much simpler approach, is to use the Tcl thread package to run the
+            <command>ring get</command> command in a separate interpreter thread and
+            have the completion of that command post an event containing the ring item
+            to the main thread.  The new scaler display program uses this technique
+            to not only maintain the liveness of the GUI but, by using a thread per ring,
+            it supports getting data from more than one ring buffer at a time.
+        </para>
+        <para>
+            Before giving an example, it's useful to first look at the thread package
+            manpage and review a few of the commands we will use.
+            The Tclers Wiki includes a manpage for the thread package at:
+            <ulink url='http://www.tcl.tk/man/tcl/ThreadCmd/thread.htm'>http://www.tcl.tk/man/tcl/ThreadCmd/thread.htm</ulink>
+        </para>
+        <para>
+            The commands we will use are:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term><command>thread::create</command></term>
+                <listitem>
+                    <para>
+                        Creates a new thread and returns a handle to it called the
+                        <firstterm>threadid</firstterm>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><command>thread::send</command></term>
+                <listitem>
+                    <para>
+                        Sends a command to be executed in another thread (the thread must be running an
+                        event loop).  Note that if you create a thread with no script it enters an
+                        event loop.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><command>thread::id</command></term>
+                <listitem>
+                    <para>
+                        Returns the id of the currently running thread.  This is most commonly
+                        done to pass the id of the thread to another thread so that <emphasis>that</emphasis>
+                        thread can send a command/event back.
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+        <para>
+            Armed with this background, our strategy will be to:
+        </para>
+        <itemizedlist>
+            <listitem><para>
+                Create a thread that will acquire data from a ring and send it back to us.
+            </para></listitem>
+            <listitem><para>
+                Push commands into the thread to load the ring access package into that thread
+                (remember packages are loaded into interpreters, not applications).
+            </para></listitem>
+            <listitem><para>
+                Push a proc into the thread that will do the get/event post.
+            </para></listitem>
+            <listitem><para>
+                Push a call to that proc with the <literal>-async</literal> option so that
+                the main thread won't block on that command but can continue to run
+                and, eventually enter its event loop.
+            </para></listitem>
+        </itemizedlist>
+        <para>
+            There can be a bit of trickiness in pushing procs and other commands into a thread
+            since you have to think about when you need to escape Tcl special characters and
+            when you want substitutions done (in the target thread or the main thread).
+            Let's look at the proc <function>startAcqThread</function> used by the
+            new scaler display program to set up a ring reading thread:
+        </para>
+        <example>
+            <title>Setting up a ring readout thread in Tcl</title>
+            <programlisting>
+    proc startAcqThread {ringUrl} {                                                   <co id='threadring-proc-signature' />
+        set acqThread [thread::create -joinable]                                      <co id='threadring-create' />
+        if {[thread::send $acqThread [list lappend auto_path $::libdir] result]} {    <co id='threadring-libpath' />
+            puts "Could not extend thread's auto-path"
+            exit -1
+        }
+        if {[thread::send $acqThread [list package require TclRingBuffer] result]} { <co id='threadring-pkgload' />
+            puts "Could not load RingBuffer package in acqthread: $result"
+            exit -1
+        }
+    
+        if {[thread::send $acqThread [list ring attach $ringUrl] result]} {        <co id='threadring-attach' />
+            puts "Could not attach to scaler ring buffer in acqthread $result"
+            exit -1
+        }
+    
+        #  The main loop will forward data to our handleData item.
+    
+        set myThread [thread::id]                                               <co id='threadring-mainid' />
+        set getItems "proc getItems {tid uri} {
+            while 1 {
+                set ringItem \[ring get \$uri {1 2 20}]                        <co id='threadring-makegetItems' />
+                thread::send \$tid \[list handleData \$ringItem]
+            }
+        }
+        getItems $myThread $ringUrl                                           <co id='threadring-invokegetItems' />
+        "
+        thread::send -async $acqThread $getItems                             <co id='threadring-startup' />
+    
+    
+        return $acqThread                                                   <co id='threadring-id' />
+    }
+    
+            </programlisting>
+        </example>
+        <calloutlist>
+            <callout arearefs='threadring-proc-signature'>
+                <para>
+                    Defines a proc <function>startAcqThread</function>.  This proc
+                    is going to create the acquisition thread and arrange for it to post
+                    events to the thread of the caller when ring items are available.
+                    The parameter <parameter>ringUrl</parameter> must be a URI that
+                    specifies an existing ring.
+                </para>
+            </callout>
+            <callout arearefs='threadring-create'>
+                <para>
+                    Creates a child thread.  The <command>thread::create</command>
+                    command is not given a script to execute.  This means that the
+                    child thread will enter its event loop and be able to respond
+                    immediately to <command>thread::send</command> commands that target
+                    it.    This is one of the common patterns of thread creation/management
+                    in Tcl.
+                </para>
+            </callout>
+            <callout arearefs='threadring-libpath'>
+                <para>
+                    Since package inventories are a property of a thread not of
+                    the application the <varname>auto_path</varname> must be
+                    extended in the thread's interpreter to include the
+                    <filename>TclLibs</filename> directory tree of the
+                    NSCLDAQ installation.  This command pushes a command
+                    to do that into the child interpreter.
+                </para>
+            </callout>
+            <callout arearefs='threadring-pkgload' >
+                <para>
+                    Pushes the <command>package require</command> command
+                    into the child process needed to load the package into the
+                    child thread's interpreter.  Recall that package inventories
+                    are a per-interpreter item.  Thus the package must be required in
+                    the context of the child thread.
+                </para>
+            </callout>
+            <callout arearefs='threadring-attach'>
+                <para>
+                    Pushes the <command>ring attach</command> command
+                    into the child thread.  This attaches the child thread
+                    to the ring.
+                </para>
+            </callout>
+            <callout arearefs='threadring-mainid'>
+                <para>
+                    Obtains the thread id of the thread that is calling
+                    <function>startAcqThread</function>.  This thread
+                    will be used as the target of
+                    <command>thread::send</command> commands in the
+                    parent thread.
+                </para>
+            </callout>
+            <callout arearefs='threadring-makegetItems'>
+                <para>
+                    This section of code creates a variable named
+                    <varname>getItems</varname>.  That variable will contain
+                    the text of a proc named <function>getItems</function> and
+                    an invocation of that proc.  The proc will loop forever
+                    getting items from the ring and using
+                    <command>thread::send</command> to schedule the execution
+                    of the proc <function>handleData</function> in the thread
+                    named by the variable <varname>tid</varname>.
+                    The proc will be passed the dict returned by the
+                    <command>ring get</command> command.
+                </para>
+                <para>
+                    For this to work properly, the thread that
+                    <function>handleData</function> is executed in
+                    must enter the event loop in a timely way.
+                </para>
+            </callout>
+            <callout arearefs='threadring-invokegetItems'>
+                <para>
+                    Once the proc has been built up in the string, we add an
+                    invocation of the proc.  Note that in this case we have not escaped
+                    the <literal>$</literal> substitutions as they provide parameters to the
+                    call to <function>getItems</function> that are only known in the
+                    parent thread, the parent thread's thread id, and the URI
+                    of the ring from which we want the
+                    thread to read data.
+                </para>
+            </callout>
+            <callout arearefs='threadring-startup'>
+                <para>
+                    Sends the command we built up to the readout thread.
+                    Using the <option>-async</option> option means that the
+                    <command>thread::send</command> command returns immediately
+                    rather than waiting for the sent command to complete.
+                    This is a good thing since the command we sent won't complete.
+                </para>
+            </callout>
+            <callout arearefs='threadring-id'>
+                <para>
+                    The id of the created thread is returned.  For threads that
+                    spend significant time in an event loop, returning the thread of
+                    the created thread is useful because it allows other threads to
+                    communicate with it.  In this case it's not so useful because
+                    once the main loop in <function>getItems</function> is
+                    running the thread won't re-enter the event loop.
+                </para>
+            </callout>
+        </calloutlist>
+        <para>
+            For the proc in the preceeding example to work, you need to have a proc
+            named <function>handleData</function> defined and visible to the thread
+            that calls <function>startAcqThread</function>.  That proc must take a single
+            parameter that will be the dict the acquisition thread's <command>ring get</command>
+            commands return.  Furthermore, the thread that invokes <function>startAcqThread</function>
+            must mostly live in the event loop.  This is normally the case for Tk applications.
+            It is also the case for Tcl applications whose script ends with a call to
+            <command>vwait</command>.
+        </para>
+        
+    </section>        
+</section>
+</chapter>
+
+<!-- /chapter -->
+
+
+<!-- manpage 3tcl -->
+
+<refentry id="tcl3_ring">
+    <refmeta>
+        <refentrytitle id="tcl3_ring_title">ring</refentrytitle>
+        <manvolnum>3tcl</manvolnum>
+    </refmeta>
+    <refnamediv>
+        <refname>ring</refname>
+        <refpurpose>
+            Tcl ring buffer access package.k
+        </refpurpose>
+    </refnamediv>
+    <refsynopsisdiv>
+        <cmdsynopsis>
+<command>package require TclRingBuffer ?1.0?</command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+<command>ring attach <replaceable>ring-uri</replaceable></command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+<command>ring get <replaceable>ring-uri</replaceable> ?<replaceable>type-list</replaceable>?</command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+<command>ring detach <replaceable>ring-uri</replaceable></command>
+        </cmdsynopsis>
+    </refsynopsisdiv>
+    <refsect1>
+        <title>DESCRIPTION</title>
+        <para>
+            This package provides a mechanism for Tcl scripts to access data in ring buffers
+            as a client.  The package provides a command ensemble whose base command is
+            <command>ring</command>.  The subcommands are documented below
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term><command>ring attach</command> <replaceable>ring-uri</replaceable></term>
+                <listitem>
+                    <para>
+                        Attaches to the ringbuffer specified by the <parameter>ring-uri</parameter>.
+                        The <parameter>ring-uri</parameter> is of the form:
+                        <literal>tcp://</literal><replaceable>hostname</replaceable><literal>/</literal><replaceable>ringname</replaceable>
+                    </para>
+                    <para>
+                        Either the host <literal>localhost</literal> or the host name of the local
+                        system can be used to create a connection to a local ring without the need
+                        for a proxy ring. 
+                    </para>
+                    <para>
+                        Note that in the <command>ring get</command> and
+                        <command>ring detach</command> command below, the textually
+                        identical ring uri must be used to specify the same ring.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><command>ring get</command> <replaceable>ring-uri ?selection-list?</replaceable></term>
+                <listitem>
+                    <para>
+                        Blocks until a ring item is available on the ring specified by the
+                        <parameter>ring-uri</parameter>.  If <parameter>selection-list</parameter>
+                        is present, it is a list of ring item type ids (as defined in the header
+                        <filename>DataFormat.h</filename>), and all items whose type is not in the
+                        list are skipped.
+                    </para>
+                    <para>
+                        The ring items gotten is returned as a Tcl dict. See
+                        <literal>RING GET DICTS</literal> below for infomation
+                        about the keys and contents that appears in the dict from each type.
+                    </para>
+                    <para>
+                        The <parameter>ring-uri</parameter> must be textually identical
+                        to the <parameter>ring-uri</parameter> passed to a
+                        <command>ring attach</command> commmand.  For example
+                        the URI's:
+                        <literal>tcp://u6pc2.nscl.msu.edu/myring</literal> and
+                        <literal>tcp://u6pc2/myring</literal> are not identical
+                        (in the IP domain <literal>nscl.msu.edu</literal>).
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><command>ring detach</command> <replaceable>ring-uri</replaceable></term>
+                <listitem>
+                    <para>
+                        Detaches from the ring specified by <replaceable>ring-uri</replaceable>
+                        once detached your script will throw an error if you attempt a
+                        <command>ring get</command> from that ring (unless you do another
+                        <command>ring attach</command> of course).
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+    </refsect1>
+    <refsect1>
+        <title>RING GET DICTS</title>
+        <para>
+            This section describes the dicts that are returned by the
+            <command>ring get</command> command.  NSCLDAQ-11.x ring items
+            may or may not have a struture called a <firstterm>bodyheader</firstterm>.
+            The bodyheader contains information used by the NSCLDAQ event builder.
+        </para>
+        <para>
+            If present in a ring item there will be a <literal>bodyheader</literal>
+            key present in the dict returned by
+            <command>ring get</command>.  This dict will have the following
+            key/values:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term><literal>tstamp</literal></term>
+                <listitem>
+                    <para>
+                        The value of this item is a long integer that contains the
+                        timestamp that says when the ring item was created.  This is
+                        the high resolution timestamp used for event building, not the
+                        real time timestamp.
+                    </para>
+                    <para>
+                        A timestamp value of <literal>-1</literal> means that
+                        this ring item comes from a  ring that will be input to an event
+                        builder and the data source wants the event builder to assign a
+                        timestamp equal to the latest timestamp seen in that item's input
+                        queue.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><literal>source</literal></term>
+                <listitem>
+                    <para>
+                        The value of this item is the id of the source that
+                        created this item.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><literal>barrier</literal></term>
+                <listitem>
+                    <para>
+                        The value associated with this key is the barrier type.
+                        A barrier type of <literal>0</literal> means the
+                        ring item was not submitted to the event builder as
+                        a barrier.
+                    </para>
+                    <para>
+                        Barrier types are treated specially as event stream
+                        synchronization primitives.  When a barrier is encountered
+                        at the head of a input queue, no further data is emitted
+                        from that queue until there is a barrier at the head of
+                        all input queues, at which time all barrier items are emitted.
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+        <para>
+            All ring item dicts have a <literal>type</literal> key.  The value of this
+            key describes the ring item type.
+        </para>
+        <refsect2>
+            <title>State change items</title>
+            <para>
+                State change items indicate that the run has undergone a state
+                transition.  These items are used to indicate a run has begun,
+                ended, paused or resumed.
+            </para>
+            <para>
+                The key value pairs the dict returned for this ring item type are:
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><literal>type</literal></term>
+                    <listitem>
+                        <para>
+                            The ring item type.  This will be a string containing one of
+                            <literal>Begin Run</literal>, <literal>End Run</literal>,
+                            <literal>Pause Run</literal> or <literal>Resume Run</literal>.
+                            
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>run</literal></term>
+                    <listitem>
+                        <para>
+                            The value of this key is an integer run number.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>timeoffset</literal></term>
+                    <listitem>
+                        <para>
+                            The value of this key is an integer that is the number of
+                            seconds into the run at which this item was emitted.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>realtime</literal></term>
+                    <listitem>
+                        <para>
+                            The time at which the item was emitted.  The
+                            Tcl <command>clock format</command> command can turn this value
+                            into a human readable date/time string.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>title</literal></term>
+                    <listitem>
+                        <para>
+                            Contains the run title string.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>bodyheader</literal></term>
+                    <listitem>
+                        <para>
+                            If present, the contents of this key are themselves
+                            a dict that describe the body header of the ring item
+                            as previously described.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </refsect2>
+        <refsect2>
+            <title>Periodic scaler items</title>
+            <para>These ring items have the following dict key/values:</para>
+            <variablelist>
+                <varlistentry>
+                    <term><literal>type</literal></term>
+                    <listitem>
+                        <para>
+                            Type of the item.  This will be <literal>Scaler</literal>.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>start</literal></term>
+                    <listitem>
+                        <para>
+                            Together with the <literal>divisor</literal> value determines
+                            the time in floating point seconds relative to the start of the
+                            run of the start time of the begin of the interval represented by
+                            this scaler ring item.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>end</term>
+                    <listitem>
+                        <para>
+                            Together with the <literal>divisor</literal> value determines
+                            the time in floating point seconds relative to the start of the run
+                            of the end of the interval represented by this scaler ring item.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                
+                <varlistentry>
+                    <term><literal>realtime</literal></term>
+                    <listitem>
+                        <para>
+                            The actual time at which this scaler item was produced. The
+                            Tcl command <command>clock format</command> can be used to turn this
+                            into a human readable date/time string.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>divisor</literal></term>
+                    <listitem>
+                        <para>
+                            The value of this key represents the time base for the
+                            <literal>start</literal> and <literal>end</literal> times.
+                            Doing a floating point division of these values by the
+                            <literal>divisor</literal> value gives time offsets in seconds
+                            relative to the start of the run.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>divisor</literal></term>
+                    <listitem>
+                        <para>
+                            The value of this key is <literal>1</literal> if the scalers
+                            are cleared as they are read or <literal>0</literal> if not.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>scalers</literal></term>
+                    <listitem>
+                        <para>
+                            The value of this key is a list of values of the scalers.   You can
+                            use the Tcl <command>llength</command> command to determine how many
+                            scalers were read and pick off individual scalers either using the
+                            <command>foreach</command> or <command>lindex</command> commands.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>bodyheader</literal></term>
+                    <listitem>
+                        <para>
+                            If present, the contents of this key are themselves
+                            a dict that describe the body header of the ring item
+                            as previously described.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </refsect2>
+        <refsect2>
+            <title>String list ring items.</title>
+            <para>
+                String list items contain a set of strings.  The meaning of these strings
+                depends on the actual item type.  If the ring item contains monitored variables,
+                each string is a Tcl set command that, if executed will set the variable to the
+                value at the time.  If a Documented packate variable ring item, each string is a colon separated
+                set of fields that describe a packet type that can appear in a event.
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><literal>type</literal></term>
+                    <listitem>
+                        <para>
+                            Contains a string that is the type of the item.  This string is either
+                            <literal>Packet types</literal> or <literal>Monitored Variables</literal>
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>timeoffset</literal></term>
+                    <listitem>
+                        <para>
+                            Together with the <literal>divisor</literal> determines when relative
+                            to the start of the run this item was emitted.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>divisor</literal></term>
+                    <listitem>
+                        <para>
+                            If you do a floating point division of <literal>timeoffset</literal>
+                            by the value of this key the result is the time in floating point seconds
+                            relative to the start of the run this item was emitted.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>realtime</literal></term>
+                    <listitem>
+                        <para>
+                            The actual time at which this scaler item was produced. The
+                            Tcl command <command>clock format</command> can be used to turn this
+                            into a human readable date/time string.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>bodyheader</literal></term>
+                    <listitem>
+                        <para>
+                            If present, the contents of this key are themselves
+                            a dict that describe the body header of the ring item
+                            as previously described.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </refsect2>
+        <refsect2>
+            <title>Ring format items.</title>
+            <para>
+                Ring format items are intended to inform consumers of data which version of NSCLDAQ
+                was used to produce a stream of data.  In general they are the first item
+                inserted into a ring by a data source provider each run (even before the begin run).
+                These items never have a body header.  They have the following fields"
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><literal>type</literal></term>
+                    <listitem>
+                        <para>
+                            The item type which is <literal>Ring Item format version</literal>
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>major</literal></term>
+                    <listitem>
+                        <para>
+                            The format major version.  For NSCLDAQ-11 this will be <literal>11</literal>
+                            If a major version changes, existing ring items may have a different shape.
+                            Thus it is not safe to interpet items with a major version of 12 with a program
+                            that was built for major version of 11.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>minor</literal></term>
+                    <listitem>
+                        <para>
+                            The format minor version.  For NSCLDAQ-11.0 this will be <literal>0</literal>.
+                            Minor version changes mean that the existing ring format items will be readable
+                            by any program built against the major version libraries, but there might be
+                            additional ring item types an earlier format version might not know how to
+                            interpret (e.g. 11.0 programs can understand 11.1 items but there might be 11.1
+                            items that don't exist in 11.0).  
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </refsect2>
+        <refsect2>
+            <title>Physics events</title>
+            <para>
+                Physics events contain the data read in response to a trigger in the data acquisition system.
+                These dicts have the following key/values:
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><literal>type</literal></term>
+                    <listitem>
+                        <para>
+                            The ring item type which will be <literal>Event</literal>.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>size</literal></term>
+                    <listitem>
+                        <para>
+                            Number of bytes in the event body.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>body</literal></term>
+                    <listitem>
+                        <para>
+                            The body of the event.  This is a binary array that can be decoded in
+                            an application specific way using he
+                            <command>binary scan</command> command.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>bodyheader</literal></term>
+                    <listitem>
+                        <para>
+                            If present, the contents of this key are themselves
+                            a dict that describe the body header of the ring item
+                            as previously described.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </refsect2>
+        <refsect2>
+            <title>Event builder fragments</title>
+            <para>
+                The intermediate ring (if enabled) between the event orderer and event glom
+                in the event builder pipeline normally contains what are called event builder
+                fragments.  If you do a <command>ring get</command> from one of these rings
+                you could get one of those ring items.
+            </para>
+            <para>
+                The dict for an event builder fragment contains:
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><literal>type</literal></term>
+                    <listitem>
+                        <para>
+                            Contains the ring item type which is <literal>Event fragment</literal>
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>timestamp</literal></term>
+                    <listitem>
+                        <para>
+                            Contains the fragment timestamp from the event building clock.
+                            This is converted and treated as a uint64_t and becomes a
+                            Tcl long integer in order to retain the full value range.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>source</literal></term>
+                    <listitem>
+                        <para>
+                            Contains an integer that is the id of the source program.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>barrier</literal></term>
+                    <listitem>
+                        <para>
+                            Contains the barrier type.  For a complete description of the
+                            barrier type, see the descdription of the
+                            <literal>bodyheader</literal> dict at the beginning of this
+                            section.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>size</literal></term>
+                    <listitem>
+                        <para>
+                            Contains the number of bytes in the payload of the fragment.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>body</literal></term>
+                    <listitem>
+                        <para>
+                            Contains the payload of the fragment.  This is stored as a
+                            Tcl Byte array that can be decoded in an application specific
+                            manner using the <command>binary scan</command> command.
+                            Note that for fragments that come from NSCLDAQ data sources the
+                            payload will be a ring item with a form described by the
+                            <filename>DataFormat.h</filename> C header.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </refsect2>
+        <refsect2>
+            <title>Trigger Count ring items.</title>
+            <para>
+                This ring item contains trigger count statistics.  It is used by SpecTcl
+                to compute the fraction of the data that has been analyzed by SpecTcl.
+                This ring item is converted into a dict of the following form:
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><literal>type</literal></term>
+                    <listitem>
+                        <para>
+                            Contains the ring item type which is <literal>Trigger count</literal>
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>timeoffset</literal></term>
+                    <listitem>
+                        <para>
+                            Together with divisor this value determines when relative to the
+                            start of the run this item was emitted.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>divisor</literal></term>
+                    <listitem>
+                        <para>
+                            Doing a floating point division of the <literal>timeoffset</literal> value by
+                            this value results in the floating point number of seconds from the
+                            start of the run at which this item was emitted.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>realtime</literal></term>
+                    <listitem>
+                        <para>
+                            A timestamp that represents the date and time at which this item
+                            was emitted.  Use the Tcl <command>clock format</command> command
+                            to turn this into a human readable date and times string.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>triggers</literal></term>
+                    <listitem>
+                        <para>
+                            A long integer value that represents the number of triggers
+                            emitted by this source so far in this run.  The data come from
+                            a uint64_t value and a long integer is used to capture the full
+                            possible range of values.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>bodyheader</literal></term>
+                    <listitem>
+                        <para>
+                            If present, the contents of this key are themselves
+                            a dict that describe the body header of the ring item
+                            as previously described.
+                        </para>
+                        <para>
+                            Normally this key is not present in systems with only
+                            one event source.
+                        </para>
+                    </listitem>
+                </varlistentry>            
+            </variablelist>
+        </refsect2>
+        <refsect2>
+            <title>Glom parameter ring item.</title>
+            <para>
+                This item is created by the glom stage of the event builder and documents
+                the setting glom is using to organize data from the event ordering
+                stage of the event building pipeline.
+                It is put in a dict with the following key/value pairs:
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><literal>type</literal></term>
+                    <listitem>
+                        <para>
+                            The type of the ring item which for this is always
+                            <literal>Glom Parameters</literal>
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>isBuilding</literal></term>
+                    <listitem>
+                        <para>
+                            This is 1 if glom is building events from its input
+                            fragments and 0 if it is just passing data through and
+                            not event building.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>coincidenceWindow</literal></term>
+                    <listitem>
+                        <para>
+                            Contains the number of ticks that define a coincidence with
+                            respect to event building.  This is only meaningful if
+                            <literal>isBuilding</literal> is non zero.  If that
+                            condition is true then glom has glued together all fragments
+                            that are within this number of timestamp clock ticks of the
+                            oldest fragment of a consecutive list of fragments into a single
+                            output event.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>timestampPolicy</literal></term>
+                    <listitem>
+                        <para>
+                            A text string that describes how glom creates an output
+                            timestamp for an event from the fragments that make it up.
+                            The output timestamp is important if you are doing hierarchical
+                            (or multilevel) event building.
+                        </para>
+                        <para>
+                            The value of this key can be one of:
+                            <literal>first</literal> : the timestamp is that of the oldest
+                            fragment). <literal>last</literal> : the timestamp is that of the
+                            newest fragment.  <literal>average</literal> : the timestamp is
+                            that of the average timestamp in the fragment.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                
+            </variablelist>
+        </refsect2>
+        <refsect2>
+            <title>Abnormal End run items</title>
+            <para>
+                These are minimal items that are emitted when an abnormal end of run
+                has been deteted.  The only dict key is <literal>type</literal> which
+                will have the value <literal>Abnormal End</literal>.
+            </para>
+        </refsect2>
+    </refsect1>
+</refentry>
+
+
+<!-- /manpage -->

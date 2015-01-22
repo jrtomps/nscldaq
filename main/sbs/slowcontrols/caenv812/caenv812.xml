@@ -1,0 +1,910 @@
+<!-- chapter utilities -->
+<chapter id='caenv812sbscontrols'>
+    <title>CAEN V812 Constant Fraction Discriminator</title>
+    <para>
+        The CAEN V812 is a VME 16 channel constant fraction discriminator.
+        Support for this module comes in several levels.
+        <variablelist>
+            <varlistentry>
+            <term>CFD812</term>
+            <listitem>
+                <para>
+                    This is a package that provides low level control of the
+                    CAEN V812.  It can be used ot build custom GUI control
+                    panels or command driven software.
+                </para>
+            </listitem>
+            </varlistentry>
+            <varlistentry>
+            <term>caenv812Gui</term>
+            <listitem>
+                <para>
+                    Provides a Tk megawidget that can be incorporated in your own
+                    software.  The megawidget uses CFD812 to control the physical
+                    device.
+                </para>
+            </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>caenv812control</term>
+                <listitem>
+                    <para>
+                        A free standing program that allows you to control
+                        a set of CAEN V812 modules via the
+                        caenv812Gui widget.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>loadcfd</term>
+                <listitem>
+                    <para>
+                        A command line application that allows you to load
+                        settings into a CAEN V812 CFD.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>CAENV812Config</term>
+                <listitem>
+                    <para>
+                        The loadcfd and caenv812control programs are driven by
+                        a configuration file.  This is described in
+                        <link linkend='manpage.caenv812config'>CAENV812Config(5)</link>
+                    </para>
+                </listitem>
+            </varlistentry>        
+        </variablelist>
+    </para>
+    <para>
+        The CAENV812 packages are in the <filename>TclLibs</filename> subdirectory
+        tree of the NSCLDAQ installation.  Adding that directory to the Tcl
+        package include directory search list will ensure that these packages can
+        be loaded.
+    </para>
+    <para>
+        For example, if the current daq installation is in
+        <filename>/usr/opt/daq/10.0</filename>, the shell script line:
+        <informalexample>
+            <programlisting>
+export TCLLIBPATH=/usr/opt/daq/10.0/TclLibs
+            </programlisting>
+        </informalexample>
+        or the Tcl command:
+        <informalexample>
+            <programlisting>
+lappend auto_path /usr/opt/daq/10.0/TclLibs
+            </programlisting>
+        </informalexample>
+        will make these packages available.
+    </para>
+    <para>
+        Complete programs,
+        <link linkend='manpage.loadcfd'>loadcfd(1tcl)</link>
+        and
+        <link linkend='manpage.caenv812control'>caenv812control(1tcl)</link>
+        are in the <filename>bin</filename> subdirectory of the daq installation.
+    </para>
+</chapter>
+
+<!-- /chapter -->
+
+<!-- manpage 1tcl -->
+
+<refentry id="manpage.caenv812control">
+  <refmeta>
+     <refentrytitle>canev812control</refentrytitle>
+     <manvolnum>1tcl</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>caenv812control</refname>
+     <refpurpose>GUI for controlling CAEN V812 CFD modules</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <cmdsynopsis>
+    <command>
+caenv812control configfile ?configfile...?    
+    </command>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+  <refsect1>
+    <title>DESCRIPTION</title>
+    <para>
+        This command supplies a graphical user control panel for an arbitrary
+        number of CAEN V812  VME  constant
+        fraction discriminator modules.  As the application provides full
+        featured online help, the operation of
+        this program will not be described.
+    </para>
+    <para>
+       The program creates a control panel for each configuration file supplied
+       on the command line.   See  the
+       <link linkend='manpage.caenv812config'>caen812configfile(5)</link>
+       man page for information that describes the
+       configuration file format.
+     </para>
+  </refsect1>
+    <refsect1>
+        <title>SEE ALSO</title>
+        <para>
+            <link linkend='manpage.caenv812config'>CAENV812Config(5)</link>
+            <link linkend='manpage.loadcfd'>loadcfd(1tcl)</link>
+        </para>
+    </refsect1>
+</refentry>
+
+<refentry id="manpage.loadcfd">
+  <refmeta>
+     <refentrytitle>loadcfd</refentrytitle>
+     <manvolnum>1tcl</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>loadcfd</refname>
+     <refpurpose>Load settings in to a CAEN V812 CFD module.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <cmdsynopsis>
+    <command>
+loadcfd.tcl configfile ?settings?    
+    </command>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+       This command is a command line utility that loads a CFD given a
+       configuration file and an optional  settings  file.    The configuration
+       file is sourced in.  If the settings file is defined it too is sourced
+       in.  The CFD described by these files is loaded with any settings
+       information supplied.   Note  that  if there are conflicting definitions
+       between the two configuration files, the settings file overrides.
+
+       For  information  about the format of both the configuration file and
+       settings file, see the
+       <link linkend='manpage.caenv812config'>caen812configfile(5)</link>
+       manpage.
+
+     </para>
+  </refsect1>
+  <refsect1>
+        <title>SEE ALSO</title>
+        <para>
+        <link linkend='manpage.caenv812config'>caen812configfile(5)</link>,
+        <link linkend='manpage.caenv812control'>caenv812control(1tcl)</link>.
+        </para>
+  </refsect1>
+
+</refentry>
+
+
+<!-- /manpage -->
+
+<!-- manpage 3tcl -->
+
+<refentry id="manpage.cfd812">
+  <refmeta>
+     <refentrytitle>CFD812</refentrytitle>
+     <manvolnum>3tcl</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>CFD812 package</refname>
+     <refpurpose>low level control of the CAEN V812 CFD</refpurpose>
+  </refnamediv>
+  <refsynopsisdiv>
+    <cmdsynopsis>
+    <command>
+package  require CFD812   
+    </command>
+    </cmdsynopsis>
+<cmdsynopsis>
+    <command>
+::CFD812::Map base name crate=0
+    </command>
+</cmdsynopsis>
+<cmdsynopsis>
+    <command>
+::CFD812::Unmap name
+    </command>
+</cmdsynopsis>
+<cmdsynopsis>
+    <command>
+::CFD812::SetThreshold name channel value 
+    </command>
+</cmdsynopsis>
+<cmdsynopsis>
+    <command>
+::CFD812::SetWidth name bank value 
+    </command>
+</cmdsynopsis>
+<cmdsynopsis>
+    <command>
+::CFD812::SetDeadtime name bank value
+    </command>
+</cmdsynopsis>
+<cmdsynopsis>
+    <command>
+::CFD812::SetMask name mval 
+    </command>
+</cmdsynopsis>
+<cmdsynopsis>
+    <command>
+::CFD812::SetMultiplicityThreshold name value
+    </command>
+</cmdsynopsis>
+<cmdsynopsis>
+    <command>
+::CFD812::GetSerialNumber name
+    </command>
+</cmdsynopsis>
+<cmdsynopsis>
+    <command>
+::CFD812::GetBase name
+    </command>
+</cmdsynopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+       This Tcl package provides support for the CAEN V812 VME 16 channel constant  fraction  discriminator  to
+       Tcl  scripts.  The package is built on top of and depends on the Vme package.  Usually you will use this
+       package in conjunction with the CFDState package in order to retain information about the state  of  the
+       device as the CAEN V812 is a write only device.
+     </para>
+     <para>
+       The  CFD812::Map  command  allows  you  to establish a connection between a physical module and a unique
+       name.  The unique name is then used to identify the module when invoking all other commands in the pack-
+       age.   If  you  are done with a module, you can invoke ::CFD812::Unmap to remove the association between
+       the name and the module.
+
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>Commands</title>
+     <para>
+        The package commands become available as soon as your script issues
+        the <command>package require CFD812</command> command.  In the description
+        below we will be using several parameter names that have a common
+        meaning from command to command:
+     </para>
+        <segmentedlist>
+            <segtitle>Parameter</segtitle>
+            <segtitle>Usage</segtitle>
+            <seglistitem>
+                <seg>name</seg>
+                <seg>Name of a map to the device associated with a module
+                in the 
+                    <command>CFD812::Map</command></seg>
+            </seglistitem>
+            <seglistitem>
+                <seg>channel</seg>
+                <seg>Number of a channel within the module (0-15).
+                </seg>
+            </seglistitem>
+            <seglistitem>
+                <seg>bank</seg>
+                <seg>Number of a bank of channels. The module is divided into
+                     two banks.  Bank 0 which has channels 0-7 and bank
+                     1 which has channels 8-15.
+                </seg>
+            </seglistitem>
+            <seglistitem>
+                <seg>value</seg>
+                <seg>In settings commands this is the value set</seg>
+            </seglistitem>
+        </segmentedlist>
+     <variablelist>
+    <varlistentry>
+        <term><command>::CFD812::Map</command> <replaceable>base name crate=0</replaceable></term>
+        <listitem>
+        <para>
+            Creates a connection between a module at the specified
+            <parameter>base</parameter> address
+            and VME <parameter>crate</parameter> number (defaults to zero).
+            The <parameter>name</parameter> parameter is associated with
+            that connection and should be used to refer to the module in future
+            calls to the library.
+        </para>
+        </listitem>
+    </varlistentry>
+    <varlistentry>
+        <term><command>::CFD812::Unmap</command> <replaceable>name</replaceable></term>
+        <listitem>
+            <para>
+                Breaks the connection with the module <parameter>name</parameter>
+                and releases all resources associated with that connection.
+                Once this command is executed, you should not use
+                <parameter>name</parameter> in subsequent calls to the package.
+            </para>
+        </listitem>
+    </varlistentry>
+    <varlistentry>
+        <term><command>::CFD812::SetThreshold</command> <replaceable>name channel value</replaceable></term>
+        <listitem>
+            <para>
+              Sets the threshold for a
+              <parameter>channel</parameter> of the CFD specified by
+              <parameter>name</parameter>  to
+              <parameter>value</parameter>.  The value must be in the
+              range of
+              <literal>-1</literal> through <literal>-255</literal>.
+              The channel must be in the range
+              <literal>0</literal> through <literal>15</literal>.
+            </para>
+        </listitem>
+    </varlistentry>
+    <varlistentry>
+        <term><command>::CFD812::SetWidth</command> <replaceable>name bank value</replaceable></term>
+        <listitem>
+            <para>
+              Sets the width of a
+              <parameter>bank</parameter> of channels o the module
+              <parameter>name</parameter> to
+              <parameter>value</parameter>.  See the  documentation  of  the
+              CAENV812  for  information  about  how the width correlates to
+              physical units (the correlation is
+              nonlinear).  The bank parameter selects the set of 8 channels
+              whose width is set.  The CAEN  V812
+              width  controls  8  channel  banks.   Bank 0 controls channels
+              0 through 7, while bank 1 controls
+              channels 8 through 15.
+            </para>
+        </listitem>
+    </varlistentry>
+    <varlistentry>
+        <term><command>::CFD812::SetDeadtime</command> <replaceable>name bank value</replaceable></term>
+        <listitem>
+            <para>
+              Sets the <parameter>deadtime</parameter>
+              of a <parameter>bank</parameter>
+              of channels for the module named <parameter>name</parameter> to
+              <parameter>value</parameter>.   Banks  of  channels
+              for deadtime are defined in the same way as for widths 
+              see <command>::CFD812::SetWidth</command> above).  The value
+              is related to physical units in some not well documented
+              non-linear  way,  for  more  information
+              about that see the CAEN V812 manual.
+            </para>
+        </listitem>
+    </varlistentry>
+    <varlistentry>
+        <term><command>::CFD812::SetMask</command> <replaceable>name mval</replaceable></term>
+        <listitem>
+            <para>
+              Sets the enable mask of the module
+              <parameter>name</parameter> to
+              <parameter>mval</parameter>.
+              <parameter>mval</parameter> is a 16 bit mask of bits, one per channel.
+              The least significant bit represents the enable for channel 0,
+              the next channel 1 and so on until
+              the  most  significant bit of the mask, which represents channel
+              15.  If a bit is set, the corresponding channel is enabled,
+              otherwise, disabled.
+            </para>
+        </listitem>
+    </varlistentry>
+    <varlistentry>
+        <term><command>::CFD812::SetMultiplicityThreshold</command> <replaceable>name value</replaceable></term>
+        <listitem>
+            <para>
+                Sets the majority logic threshold of
+                <parameter>name</parameter> to <parameter>value</parameter>
+            </para>
+        </listitem>
+    </varlistentry>
+    <varlistentry>
+        <term><command>::CFD812::GetSerialNumber</command> <replaceable>name</replaceable></term>
+        <listitem>
+            <para>
+                Returns the serial number of the module
+                <parameter>name</parameter>.
+            </para>
+        </listitem>
+    </varlistentry>
+    <varlistentry>
+        <term><command>::CFD812::GetBase</command> <replaceable>name</replaceable></term>
+        <listitem>
+            <para>
+                Returns the base address of the module
+                <parameter>name</parameter>
+            </para>
+        </listitem>
+    </varlistentry>
+
+     </variablelist>
+  </refsect1>
+  <refsect1>
+     <title>SEE ALSO</title>
+     <para>
+        <link linkend='manpage.caenv812control'>caenv812control(1tcl)</link>,
+        <link linkend='manpage.caenv812gui'>caenv812gui(3tcl)</link>,
+        <link linkend='manpage.loadcfd'>loadcfd(1tcl)</link>
+     </para>
+  </refsect1>
+
+</refentry>
+
+<refentry id="manpage.caenv812gui">
+  <refmeta>
+     <refentrytitle>caenv812gui</refentrytitle>
+     <manvolnum>3tcl</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>caenv812gui</refname>
+     <refpurpose>Megawidget control panel for the CAEN V812 CFD</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <cmdsynopsis>
+    <command>
+package require caenv812    
+    </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+    <command>
+caenv812 <replaceable>pathName ?options?</replaceable>
+    </command>
+</cmdsynopsis>
+
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+       <command>caenv812gui</command>
+       supplies a megawidget that is a control panel for the CAEN V812 constant
+       fraction discriminator.  The megawidget is the same as that used by the
+       caenv812control application, and is available for
+       use in custom user control applications.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    OPTIONS
+     </title>
+     <variablelist>
+    <varlistentry>
+        <term><option>-crate</option> <replaceable>vmecrate</replaceable></term>
+        <listitem>
+        <para>
+            Specifies  the VME crate in which the module controlled by this
+            widget lives.  If this is not
+            supplied when constructing the widget, it defaults to 0.
+            You may not configure  the
+            <option>-crate</option>  after  the
+            widget has been constructed as the widget is bound to the module
+            when it is first constructed.
+        </para>
+        </listitem>
+    </varlistentry>
+    <varlistentry>
+        <term><option>-base</option> <replaceable>base-address</replaceable></term>
+        <listitem>
+            <para>
+                Required option at construction time.  The argument to this
+                option is the base address  of  the  module.
+                There  is no default.  The
+                <option>-base</option> option must be supplied at construction
+                time and cannot be reconfigured
+                after the widget is initially constructed.
+            </para>
+        </listitem>
+    </varlistentry>
+    <varlistentry>
+        <term><option>-name</option> <replaceable>module-name</replaceable></term>
+        <listitem>
+            <para>
+                Required option at construction time.  The argument
+                to  this  option  is  the name of the module.  This module name
+                is associated with the module address in
+                order to interface the widget with the device support packages
+                CFD812 and CFDState.  This option  cannot
+                be reconfigured after construction.
+            </para>
+        </listitem>
+    </varlistentry>
+    <varlistentry>
+        <term><option>-command</option> <replaceable>script</replaceable></term>
+        <listitem>
+            <para>
+                Provides a script to be called when significant modifications are
+                made to the device.  This allows for application specific
+                action that is not the function of the GUI to occur.
+                For example the new state of the device can be written
+                to a backup file.
+            </para>
+            <para>
+                Subsequent
+                <option>-command</option> options override rather than accumulating.
+                To remove an existing <option>-command</option>, specify
+                an empty string for the <parameter>script</parameter>.
+            </para>
+            <para>
+                The script is called with a three element list appended to it.
+                The elements are <parameter>action</parameter>, <parameter>id</parameter>,
+                and <parameter>newvalue</parameter>.
+            </para>
+            <para>
+                <parameter>action</parameter> describes what is being changed
+                and can be one of <literal>threshold</literal>,
+                <literal>width</literal>,
+                <literal>deadtime</literal>,
+                <literal>majority</literal>, or
+                <literal>mask</literal>.
+            </para>
+            <para>
+                <parameter>id</parameter> describes which item was modified.
+                For the <literal>threshold</literal> action this is a
+                channel number.  For <literal>mask</literal> parameter,
+                this is an empty string (<literal>""</literal>).  For
+                all others this is either <literal>0</literal>,
+                or <literal>1</literal>, describing which of the two
+                8 channel banks is being modified.
+                </para>
+            <para>
+                <parameter>newvalue</parameter> is the new value being set
+                for the parameter defined by <parameter>action</parameter> and
+                <parameter>id</parameter>
+            </para>
+        </listitem>
+    </varlistentry>
+    <varlistentry>
+        <term><option>-alarmscript</option> <replaceable>script</replaceable></term>
+        <listitem>
+            <para>
+                Provides a script that is called when some exceptional condition
+                is detected. The alarm script will be
+                passed a single parameter which is a human readable alarm string.
+                Note that caenv812gui does  not  currently define any alarms,
+                however this option is provided for compatibility with devices that do support
+                alarms.
+            </para>
+            </listitem>
+    </varlistentry>
+     </variablelist>
+  </refsect1>
+  <refsect1>
+     <title>METHODS</title>
+     <variablelist>
+    <varlistentry>
+        <term><command>getProperties</command></term>
+        <listitem>
+        <para>
+            Retrieves a property list that describes the current device settings.
+            Property lists are a device independent way to represent module settings.
+            Each property consists of a property name and a property value
+            formattted as a Tcl List.  A property list is a Tcl list containing
+            properties as elements.
+        </para>
+        <para>
+            See PROPERTIES below for a list of the properties and their
+            meaning.  
+        </para>
+        <para>
+            Please note that the device registers of the CAEN V812 are write-only.
+            The property list is therefore generated from internal data.  If you
+            have are controlling the same module from more than one place,
+            the property list will be unreliable.
+        </para>
+        </listitem>
+    </varlistentry>
+    <varlistentry>
+        <term><command>setProperties</command>  <replaceable>propertylist</replaceable></term>
+        <listitem>
+            <para>
+                Requests that the gui process the propertyList parameter and set the module accordingly.
+                The property list format is described in <command>getProperties</command> above.
+            </para>
+        </listitem>
+    </varlistentry>
+     </variablelist>
+  </refsect1>
+  <refsect1>
+     <title>PROPERTIES</title>
+     <para>
+        The following properties are supported by the <command>caenv812gui</command>:
+     </para>
+     <variablelist>
+        <varlistentry>
+            <term><literal>threshold0 .. threshold15</literal></term>
+            <listitem>
+                <para>
+                    The thresholds of the module's 16 channels.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>width0, width1</literal></term>
+            <listitem>
+                <para>
+                    The widths of the lower and upper bank of module channels.
+                    Bank 0 controls  channels  0-7  while
+                    bank 1 controls channels 8-15.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>deadtime0, deadtime1</literal></term>
+            <listitem>
+                <para>
+                    The deadtimes of the lower and upper bank of module channels.
+                    The banks referred to here are the
+                    same as the banks referred to by the
+                    <literal>width0</literal>,
+                    <literal>width1</literal> properties.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>majority</literal></term>
+            <listitem>
+                <para>
+                    The majority threshold.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>enables</literal></term>
+            <listitem>
+                <para>
+                    The enables mask.
+                </para>
+            </listitem>
+        </varlistentry>
+     </variablelist>
+  </refsect1>
+  <refsect1>
+    <title>SEE ALSO</title>
+    <para>
+        <link linkend='manpage.cfd812'>CFD812</link>,
+        <link linkend='manpage.caenv812control'>caenv812control</link>
+    </para>
+  </refsect1>
+</refentry>
+
+
+<!-- /manpage -->
+
+
+<!-- manpage 5tcl -->
+
+<refentry id="manpage.caenv812config">
+  <refmeta>
+     <refentrytitle>caen812configfile</refentrytitle>
+     <manvolnum>5tcl</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>caen812configfile</refname>
+     <refpurpose>Format of configuration files for CAENV 812 software.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <variablelist>
+        <varlistentry>
+        <term>Variables:</term>
+        <listitem>
+            <itemizedlist>
+                <listitem><para>Name</para></listitem>
+                <listitem><para>ModuleBase</para></listitem>
+                <listitem><para>Crate</para></listitem>
+                <listitem><para>Thresholds(i)</para></listitem>
+                <listitem><para>WidthLow</para></listitem>
+                <listitem><para>WidthHigh</para></listitem>
+                <listitem><para>DeadTimeLow</para></listitem>
+                <listitem><para>DeadTimeHIgh</para></listitem>
+                <listitem><para>Majority</para></listitem>
+                <listitem><para>mask_arr(i)</para></listitem>
+            </itemizedlist>
+        </listitem>
+        </varlistentry>
+    </variablelist>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+       This manpage describes the format of the configuration files used by
+       packaged CAEN V812 contant fraction
+       discriminator  control  software.   The purpose of a configuration file
+       is to describe how to connect to
+       and identify a module and optionally, to provide
+        a set of values to load into the module.
+     </para>
+     <para>
+       CFD configuration files are Tcl scripts.  Refer to the Tcl man pages for
+       more information about the syntax  of Tcl scripts, or get a book like:
+       <citetitle pubwork='book'>Practical Programming in Tcl and Tk</citetitle>
+       by K.B. Welch, K. Jones and
+       J. Hobbs.
+       The Tcl configuration files set a bunch of variables.  Each variable
+       controls some aspect  of
+       the configuration.  See the sections below for information about each
+       type of variable.
+
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    CONFIGURATION AND IDENTIFICATION VARIABLES
+     </title>
+    <para>
+       These  variables  describe  the device in such a way that the software
+       can connect to it and control it.
+       These variables also provide an identification of the module. 
+    </para>
+    <variablelist>
+        <varlistentry>
+            <term><literal>Name</literal></term>
+            <listitem>
+                <para>
+                    This variable is required.  It contains a human readable
+                    name for the module that is by the software to identify the module.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>ModuleBase</literal></term>
+            <listitem>
+                <para>
+                    This variable is required.  It contains the base address
+                    of the module
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>Crate</literal></term>
+            <listitem>
+                <para>
+                    This  variable is optional.   If provided it supplies the
+                    number of the VME crate that the module
+                    is plugged into.  If not supplied, this defaults to 0 which
+                    is sufficient  for  most  single  VME
+                    crate systems.
+                </para>
+            </listitem>
+        </varlistentry>
+    </variablelist>
+  </refsect1>
+    <refsect1>
+        <title>DEVICE SETTINGS VARIABLES</title>
+        <para>
+            Device  settings  allow  a configuration file to specify the
+            settings of the device.  All of these variables are optional.
+            If a variable is not present, the default is to not modify the
+            corresponding device
+            control parameter.
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term><literal>Thresholds(i)</literal></term>
+                <listitem>
+                    <para>
+                        The  Tresholds  variable is an array with indices in the
+                        range 0 through 15 inclusive.  Each element of the
+                        array corresponds to the threshold of a channel of the
+                        discriminator.  Element 0  for
+                        channel  0  and  so  on.  Threshold values must be in
+                        the range -1 through -255 inclusive.  These
+                        represent the threshold in mV.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><literal>WidthLow</literal></term>
+                <listitem>
+                    <para>
+                        Specifies the width value of the low bank of channels
+                        (channels 0-7).   The  width  value  is  an
+                        arbitrary  number  in the range 0..255 inclusive and is
+                        not linearly related to a physical width.
+                        See the CAEN V812 manual for more information about this.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><literal>WidthHigh</literal></term>
+                <listitem>
+                    <para>
+                        Specifies the width value of the high bank of channels
+                        (channels 8-15).
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><literal>DeadTimeLow</literal></term>
+                <listitem>
+                    <para>
+                        Specifies the deadtime value of the low bank of channels.
+                        The deadtime  is  an  arbitrary  value
+                        between 0 and 255 inclusive and is not linearly related
+                        to a physical deadtime.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><literal>DeadTimeHigh</literal></term>
+                <listitem>
+                    <para>
+                        Specifies the deadtime value of the high bank of channels.
+                        </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><literal>Majority</literal></term>
+                <listitem><para>
+                    Specifies the majority logic threshold.
+                </para></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><literal>mask_arr(i)</literal></term>
+                <listitem>
+                    <para>
+                        Specifies  the  enables  mask.  This array has element
+                        indices that run from 0..through 15 inclu-
+                        sive.   Each element of the array is non-zero to enable
+                        the corresponding  channel  and  zero  to
+                        disable it.
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+  </refsect1>
+  <refsect1>
+     <title>EXAMPLE</title>
+     <example>
+        <title>Sample configuration file</title>
+        <programlisting>
+              # CFD configuration file written Fri Dec 05 12:23:05 EST 2003
+              set Name "NSCL_CFD"
+              set ModuleBase 0xc20000
+              set Crate      0
+              set Thresholds(0) -20
+              set Thresholds(1) -20
+              set Thresholds(2) -20
+              set Thresholds(3) -20
+              set Thresholds(4) -20
+              set Thresholds(5) -255
+              set Thresholds(6) -255
+              set Thresholds(7) -255
+              set Thresholds(8) -20
+              set Thresholds(9) -20
+              set Thresholds(10) -20
+              set Thresholds(11) -20
+              set Thresholds(12) -255
+              set Thresholds(13) -255
+              set Thresholds(14) -255
+              set Thresholds(15) -255
+              set WidthLow  128
+              set WidthHigh 158
+              set DeadTimeLow  200
+              set DeadTimeHigh 200
+              set Majority  2
+              set mask_arr(0) 1
+              set mask_arr(1) 1
+              set mask_arr(2) 1
+              set mask_arr(3) 1
+              set mask_arr(4) 1
+              set mask_arr(5) 1
+              set mask_arr(6) 1
+              set mask_arr(7) 1
+              set mask_arr(8) 1
+              set mask_arr(9) 1
+              set mask_arr(10) 1
+              set mask_arr(11) 1
+              set mask_arr(12) 1
+              set mask_arr(13) 1
+              set mask_arr(14) 1
+              set mask_arr(15) 1
+        </programlisting>
+        </example>
+  </refsect1>
+    <refsect1>
+        <title>SEE ALSO</title>
+        <para>
+            <link linkend='manpage.caenv812control'>caenv812control(1tcl)</link>,
+            <link linkend='manpage.loadcfd'>loadcfd(1tcl)</link>
+        </para>
+    </refsect1>
+</refentry>
+
+
+<!-- /manpage -->

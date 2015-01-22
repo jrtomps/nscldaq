@@ -1,0 +1,180 @@
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2015.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Author:
+#    Jeromy Tompkins
+#	   NSCL
+#	   Michigan State University
+#	   East Lansing, MI 48824-1321
+
+
+
+package require tcltest
+package require snit
+
+set loadFailure 0
+
+tcltest::test pkgRequire-0 {Require the package 
+} {
+  set ::loadFailure [catch {package require mscf16statesaver}]
+} 0
+
+if {$::loadFailure} {
+  tcltest::cleanupTests
+  exit
+}
+
+if {[catch {
+  package require mscf16fakeview
+  package require mscf16memorizer
+  package require mscf16gui
+  package require mscf16guiapp
+}]} {
+  tcltest::cleanupTests
+  exit
+}
+
+set testDir [tcltest::makeDirectory test]
+
+MSCF16USB destroy
+snit::type MSCF16USB {
+
+  component _handle
+
+  delegate method * to _handle
+  delegate option * to _handle
+
+  constructor {args} {
+    install _handle using MSCF16Memorizer %AUTO%
+  }
+
+  destructor {
+  }
+}
+
+## A proc to load either the FakeHandle or FakeView with state
+proc LoadHandle {devname} {
+  for {set ch 0} {$ch<17} {incr ch} {
+    $devname SetThreshold $ch [expr $ch/2]
+    $devname SetPoleZero $ch [expr $ch/3]
+  }
+  for {set ch 0} {$ch<5} {incr ch} {
+    $devname SetGain $ch $ch
+    $devname SetShapingTime $ch $ch
+  }
+  $devname SetMode individual
+  $devname SetMonitor 8
+  $devname EnableRC on
+}
+
+proc setUp {} {
+  ::MSCF16AppOptions ::opts  -serialfile dummy
+
+  # set up a fake with a known state. 
+  ::MSCF16Memorizer ::handle
+  LoadHandle ::handle
+
+  ::MSCF16Form .view
+  ::MSCF16Presenter ::pres -view .view -handle ::handle
+  ::MSCF16StateSaver ::saver ::opts ::pres
+}
+
+proc tearDown {} {
+  catch {::opts destroy}
+  catch {::handle destroy}
+  catch {destroy .view}
+  catch {::saver destroy}
+}
+
+tcltest::test save-0 {
+} -setup {
+  setUp
+} -cleanup {
+  tearDown
+} -body {
+  set testFile [file join $::testDir test.out]
+  set res [catch {::saver SaveState $testFile} msg]
+
+  puts "$res $msg"
+
+  tcltest::viewFile $testFile
+} -result {package require mscf16usb
+set serialFile dummy
+
+if {![file exists $serialFile]} {
+  puts "Serial file \"$serialFile\" provided but does not exist."
+  exit
+}
+MSCF16USB ::dev $serialFile
+::dev EnableRC on
+::dev SetMode individual
+::dev SetMonitor 8
+::dev SetThreshold 0 0
+::dev SetPoleZero 0 0
+::dev SetThreshold 1 0
+::dev SetPoleZero 1 0
+::dev SetThreshold 2 1
+::dev SetPoleZero 2 0
+::dev SetThreshold 3 1
+::dev SetPoleZero 3 1
+::dev SetThreshold 4 2
+::dev SetPoleZero 4 1
+::dev SetThreshold 5 2
+::dev SetPoleZero 5 1
+::dev SetThreshold 6 3
+::dev SetPoleZero 6 2
+::dev SetThreshold 7 3
+::dev SetPoleZero 7 2
+::dev SetThreshold 8 4
+::dev SetPoleZero 8 2
+::dev SetThreshold 9 4
+::dev SetPoleZero 9 3
+::dev SetThreshold 10 5
+::dev SetPoleZero 10 3
+::dev SetThreshold 11 5
+::dev SetPoleZero 11 3
+::dev SetThreshold 12 6
+::dev SetPoleZero 12 4
+::dev SetThreshold 13 6
+::dev SetPoleZero 13 4
+::dev SetThreshold 14 7
+::dev SetPoleZero 14 4
+::dev SetThreshold 15 7
+::dev SetPoleZero 15 5
+::dev SetThreshold 16 8
+::dev SetPoleZero 16 5
+::dev SetGain 0 0
+::dev SetShapingTime 0 0
+::dev SetGain 1 1
+::dev SetShapingTime 1 1
+::dev SetGain 2 2
+::dev SetShapingTime 2 2
+::dev SetGain 3 3
+::dev SetShapingTime 3 3
+::dev SetGain 4 4
+::dev SetShapingTime 4 4
+namespace eval ::MSCF16ChannelNames {}
+set ::MSCF16ChannelNames::chan0 Ch1
+set ::MSCF16ChannelNames::chan1 Ch2
+set ::MSCF16ChannelNames::chan2 Ch3
+set ::MSCF16ChannelNames::chan3 Ch4
+set ::MSCF16ChannelNames::chan4 Ch5
+set ::MSCF16ChannelNames::chan5 Ch6
+set ::MSCF16ChannelNames::chan6 Ch7
+set ::MSCF16ChannelNames::chan7 Ch8
+set ::MSCF16ChannelNames::chan8 Ch9
+set ::MSCF16ChannelNames::chan9 Ch10
+set ::MSCF16ChannelNames::chan10 Ch11
+set ::MSCF16ChannelNames::chan11 Ch12
+set ::MSCF16ChannelNames::chan12 Ch13
+set ::MSCF16ChannelNames::chan13 Ch14
+set ::MSCF16ChannelNames::chan14 Ch15
+set ::MSCF16ChannelNames::chan15 Ch16}
+
+tcltest::cleanupTests
+

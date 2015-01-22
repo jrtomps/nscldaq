@@ -1,0 +1,26 @@
+
+package require tcltest
+
+eval ::tcltest::configure $argv
+
+package require eventLogBundle
+
+package require evbcallouts10
+puts "evbrdocallout10.test auto_path = $auto_path"
+
+
+# destroy the toplevel
+destroy .
+
+tcltest::test rdo10-0 {test evbcallouts10 call Experiment::spectrodaqURL} -setup {
+      # set RINGNAME to something
+      array set env [list RINGNAME elephant]
+      # set destRing to something... this is what should be used
+      set EVBC::destRing hehehe
+} -body {
+   # this calls the switches
+   set switches [::EventLog::_computeLoggerSwitches 11.0-rc12]
+   set usesRINGNAME [expr {"--source=tcp://localhost/$EVBC::destRing" in $switches}]
+   return [expr $usesRINGNAME >= 0]
+} -result {1}
+

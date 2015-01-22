@@ -1,0 +1,111 @@
+
+package require tcltest
+package require ReadoutGuiClient
+package require Thread
+package require ui
+
+tcltest::test pkgrequire-0 {Test that we can require the package 
+} {package require ReadoutGuiRemoteControl} 1.0  
+
+proc ReadLine {sock} {
+  if {[catch {gets $sock line} len] || [eof $sock]} {
+    puts "Closing client"
+    catch {close $sock}
+  } else {
+    puts $sock "OK - $line"
+  }
+}
+
+set ::StatusBar::theInstance [StatusArea .bar]
+
+proc setup {} {
+  set ::connected 0
+  puts "Setup start"
+  
+  ReadoutGuiRemoteControl ::rctl
+  set fd [::rctl info vars requestfd]
+  set ::serv [thread::create -joinable {
+
+    package require ReadoutGuiClient
+    package require Thread 
+    package require portAllocator 
+
+    proc OnConnect {chan clientaddr clientport} {
+      puts "Reply socket accepting connection from $clientaddr:$clientport"
+      flush stdout
+      set ::replyfd $chan
+      chan configure $::replyfd -blocking 0 -buffering line
+      chan event $::replyfd readable [list ReadLine $::replyfd]
+    }
+
+    proc ReadLine {sock} {
+      flush stdout
+      if {[catch {gets $sock line} len] || [eof $sock]} {
+        puts "Closing client"
+        catch {close $sock}
+      } else {
+        puts $sock "OK - $line"
+      
+      }
+    }
+
+
+    set allocator [portAllocator %AUTO% -hostname localhost]
+    set ::port [$allocator allocatePort s800rctl]
+    $allocator destroy
+    set listenfd [socket -server OnConnect $::port]
+    set ::replyfd ""
+
+    set ::port [readoutGUIControlPort localhost]
+    if {$::port eq ""} {
+      puts "couldn't located remotegui .... exiting "
+      exit 1
+    }
+    set ::client [socket localhost $::port]
+    chan configure $::client -blocking 0 -buffering line
+    chan event $::client readable [list ReadLine $::client]
+    
+    flush stdout 
+
+    # enter event loop
+    thread::wait
+  }]
+
+  vwait $fd
+  puts "Setup complete"
+}
+
+
+proc tearDown {} {
+  puts "teardown start"
+  thread::release $::serv 
+  set ::connected 0
+
+  puts "teardown complete"
+}
+
+
+tcltest::test send-0 {Test that we can send messages 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  set res [::rctl send end] 
+  after 10
+  update
+  set res
+} -result "OK - end"
+
+
+if {0} {
+tcltest::test init-0 {Test that we can call init
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+}
+}
+
+tcltest::cleanupTests

@@ -1,0 +1,153 @@
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Authors:
+#      NSCLDAQ Development Group
+#
+#	     NSCL
+#	     Michigan State University
+#	     East Lansing, MI 48824-1321
+
+# This software is Copyright by the Board of Trustees of Michigan
+# State University (c) Copyright 2297884. 
+
+# @file  globalconfig.test 
+# @author Jeromy Tompkins 
+
+
+package require tcltest
+
+package require ring
+package require OfflineEVBJob
+package require OfflineEVBInputPipeline
+package require OfflineEVBHoistPipeline
+package require evbcallouts 
+package require OfflineEVBOutputPipeline
+
+tcltest::test pkgrequire-0 {Ensure this can package required
+} -body {
+  package require OfflineEVBGlobalConfigUI
+} -result 11.0
+
+
+######################################################
+# Common procs
+
+
+proc setup {} {
+  set ::conf [GlobalConfigUIPresenter %AUTO% -widgetname ".c"]
+  set ::model [dict create -jobname "asdf" \
+                           -inputparams [OfflineEVBInputPipeParams %AUTO%] \
+                           -hoistparams [OfflineEVBHoistPipeParams %AUTO%] \
+                           -evbparams   [EVBC::AppOptions %AUTO%] \
+                           -outputparams [OfflineEVBOutputPipeParams %AUTO%]]
+
+}
+
+proc tearDown {} {
+   Job::destroy $::model 
+   $::conf destroy
+}
+
+
+
+proc getValidRing {name} {
+  # try to access the ring
+  if {[catch {ringbuffer usage $name} msg]} {
+    # failed to locate ring... create it
+    ringbuffer create $name
+  }
+}
+
+
+proc buildStageArea {root} {
+  set dir [tcltest::makeDirectory $root]
+  tcltest::makeDirectory [file join $root stage]
+  tcltest::makeDirectory [file join $root stage experiment]
+  tcltest::makeDirectory [file join $root stage experiment current]
+  tcltest::makeDirectory [file join $root stage current]
+  tcltest::makeDirectory [file join $root stage complete]
+
+  return $dir
+}
+
+
+######################################################
+
+
+
+tcltest::test clone-0 {Test that apply will configure all exists jobs 
+} -setup {
+  setup
+
+  set dir [buildStageArea [file join dummy stage]]
+  Configuration::Set Stagearea $dir
+} -cleanup {
+  tearDown
+  tcltest::removeDirectory $dir
+} -body {
+
+  set jobList [dict create j0 [Job::clone $::model] j1 [Job::clone $::model]]
+
+  set jb [JobBuilder::getInstance]
+  $jb setJobsList $jobList
+
+  set rname [getValidRing __test__]
+  $::conf setInputRing  "__test__"
+  $::conf setOutputRing "__test__"
+  $::conf setStagearea  $dir
+   
+  $::conf apply
+
+  set newJobList [$jb getJobsList]
+  
+  lappend res [[dict get $newJobList j0 -inputparams] cget -inputring]
+  lappend res [[dict get $newJobList j0 -hoistparams] cget -sourcering]
+  lappend res [[dict get $newJobList j0 -evbparams] cget -destring]
+  lappend res [[dict get $newJobList j0 -outputparams] cget -ringname]
+  lappend res [[dict get $newJobList j0 -outputparams] cget -stagearea]
+
+  lappend res [[dict get $newJobList j1 -inputparams] cget -inputring]
+  lappend res [[dict get $newJobList j1 -hoistparams] cget -sourcering]
+  lappend res [[dict get $newJobList j1 -evbparams] cget -destring]
+  lappend res [[dict get $newJobList j1 -outputparams] cget -ringname]
+  lappend res [[dict get $newJobList j1 -outputparams] cget -stagearea]
+  
+  set res
+} -result "__test__ __test__ __test__ tcp://localhost/__test__ [file join [pwd] dummy stage] __test__ __test__ __test__ tcp://localhost/__test__ [file join [pwd] dummy stage]"
+
+
+
+
+
+
+tcltest::test createStagearea-0 {Ensure that a nonexisting stagearea gets created
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+  file delete -force [file join [pwd] dummy]
+} -body {
+  $::conf setStagearea [file join [pwd] dummy stage]
+  $::conf createStagearea
+
+  set path [file join [pwd] dummy]
+  set results [list]
+  if {[file exists $path]} {
+    lappend results [file exists [file join $path stage current]]
+    lappend results [file exists [file join $path stage experiment]]
+    lappend results [file exists [file join $path stage complete]]
+    lappend results [file exists [file join $path stage experiment current]]
+    lappend results [file exists [file join $path experiment]]
+  
+  }
+
+  set results
+} -result "1 1 1 1 1"
+
+
+
+tcltest::cleanupTests

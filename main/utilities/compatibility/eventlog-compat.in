@@ -1,0 +1,66 @@
+#!/bin/bash
+
+#
+#   Pipeline to connect to a ring buffer and write event files for the next run in 
+#   NSCLDAQ 8.2 format (that is fixed length buffer format).
+#
+#  Usage:
+#    eventlog url
+#
+#  Note that if the  BUFFERSIZE environment variable is set and is numeric it
+#  sets the blocking factor for the output file.
+#
+#  Event files are written to the cwd.
+
+#  Establish the location of the installed binaries.
+
+bindir=@prefix@/bin
+
+
+# Proces command line switches:
+
+url="tcp://localhost/`whoami`"
+path="`pwd`"
+
+for param in $*
+do
+    case "$param" in
+	--oneshot)
+	;;
+	--path=*)
+            path=`echo $param | cut - -d= -f2`
+	;;
+	--source=*)
+	    url=`echo $param | cut - -d= -f2`
+	;;
+	*)
+	    echo Usage:  >&2  
+	    echo "   " eventlog --oneshot --path=where-to-save-files --source=ringurl
+
+	    exit -1
+       ;;
+    esac
+done
+
+
+# Set the bsw variable either to "" or to 
+#
+# --buffersize=$BUFFERSIZE if BUFFERSIZE is defined.
+#
+
+bsw=""
+if [ "NO$BUFFERSIZE" != "NO" ] 
+then
+    bsw=--buffersize=$BUFFERSIZE
+fi
+
+#
+#  Start the pipeline
+#
+(cd $path; $bindir/ringselector --exitonend --source=$url | $bindir/compatibilitybuffer $bsw | $bindir/compatibilitylogger $bsw)
+
+
+
+
+
+

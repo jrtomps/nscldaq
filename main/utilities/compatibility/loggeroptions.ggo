@@ -1,0 +1,6 @@
+package "CompatibilityLogger"
+version "1.0"
+purpose "Event logger that writes event files from stdin...terminal pipeline stage."
+
+
+option "buffersize" b "Output buffer size in bytes" int optional default="8192"

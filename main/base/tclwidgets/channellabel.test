@@ -1,0 +1,15 @@
+
+package require tcltest
+
+set loadFailure 0
+tcltest::test pkgRequire-0 { Require the package
+}  {
+  set ::loadFailure [catch {package require ChannelLabel}]
+} 0
+
+if {! $::loadFailure} {
+  tcltest::cleanupTests
+  exit
+}
+
+tcltest::cleanupTests

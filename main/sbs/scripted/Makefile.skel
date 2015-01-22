@@ -1,0 +1,46 @@
+
+include $(INSTDIR)/etc/SBSRdoMakeIncludes
+include $(INSTDIR)/etc/scriptedreadout_Makefile.include
+
+# 
+#  Fill in the definitions below to add extra flags for compilations
+#  or linking.
+#
+
+USERCCFLAGS=
+USERCXXFLAGS=$(USERCCFLAGS)
+USERLDFLAGS=
+
+#
+#  List here object files that make up your extension to the
+#  scripted readout.  Don't remove Skeleton.o from the line below.
+#
+OBJECTS=Skeleton.o
+
+
+#  Don't modify below:
+#--------------------------------------
+
+CXXFLAGS += $(USERCXXFLAGS)
+CCFLAGS  += $(USERCCFLAGS)
+LDFLAGS  += $(USERLDFLAGS)
+
+
+#--------------------------------------
+
+
+
+Readout: $(OBJECTS)
+	 $(CXXLD) -o Readout $(OBJECTS) $(LDFLAGS)
+
+clean:
+	rm -f $(OBJECTS) Readout
+
+depend:
+	makedepend $(CXXFLAGS) *.cpp *.c
+
+help:
+	echo "make        - Build scripted readout"
+	echo "make clean  - Remove .o and Readout."
+	echo "make depend - Add header dependencies to Makefile"
+

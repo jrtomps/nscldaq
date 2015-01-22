@@ -1,0 +1,105 @@
+<!-- manpage 3tcl -->
+
+      <refentry id="tcl3_ringstatus">
+        <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle id='tcl3_ringstatus_title'>RingStatus</refentrytitle>
+           <manvolnum>3tcl</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>RingStatus</refname>
+           <refpurpose>Widget that shows ring status.</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+            <command>
+package require RingStatus
+package require ring
+            </command>
+          </cmdsynopsis>
+          <cmdsynopsis>
+            <command>
+RingStatus <replaceable>path ?options?</replaceable>
+            </command>
+          </cmdsynopsis>
+          <cmdsynopsis>
+            <command>
+<replaceable>path</replaceable> configure <replaceable>options...</replaceable>
+            </command>
+          </cmdsynopsis>
+          <cmdsynopsis>
+            <command>
+<replaceable>path</replaceable> cget <replaceable>option</replaceable>
+            </command>
+          </cmdsynopsis>
+          <cmdsynopsis>
+            <command>
+<replaceable>path</replaceable> update [ringbuffer usage <replaceable>ringname</replaceable>]
+            </command>
+          </cmdsynopsis>
+          
+          
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Provides a Tcl megawidget that displays the status of a ringbuffer.
+            The widget shows the name, size and total free space of the ring
+            A table also shows the PIDs of each consumer along with the number of
+            bytes of backlog data for that consumer.
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              OPTIONS
+           </title>
+           <variablelist>
+            <varlistentry>
+                <term><option>-name</option> <replaceable>name-string</replaceable></term>
+                <listitem>
+                    <para>
+                        Configures the name of the ring. This is displayed in the widget.
+                    </para>
+                </listitem>
+            </varlistentry>
+            
+           </variablelist>
+        </refsect1>
+        <refsect1>
+            <title>
+                METHODS
+            </title>
+            <variablelist>
+                <varlistentry>
+                    <term><methodname>update</methodname> <replaceable>ring-info-list</replaceable></term>
+                    <listitem>
+                        <para>
+                            Accepts a list of data compatible with the output
+                            of the
+                            <link linkend='manpage.tclring'><command>ring usage</command></link>
+                            command.  This data is used to update the ring size, free space and
+                            consumer information table.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                
+            </variablelist>
+        </refsect1>
+        <refsect1>
+            <title>SEE ALSO</title>
+            <para>
+                <link linkend='manpage.tclring' endterm='manpage.tclring.title' />
+            </para>
+        </refsect1>
+      </refentry>

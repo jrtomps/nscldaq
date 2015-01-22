@@ -1,0 +1,326 @@
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2013.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Author:
+#            Ron Fox
+#            NSCL
+#            Michigan State University
+#            East Lansing, MI 48824-1321
+
+##
+# @file eventlog.test
+# @brief Tests for the eventlog bundle package.
+# @author Ron Fox <fox@nscl.msu.edu>
+
+#  Mocks:
+
+package provide Diagnostics 1.0
+package provide ReadoutGUIPanel 1.0
+
+
+package require tcltest
+package require eventLogBundle
+
+package require RunstateMachine
+package require Configuration
+package require ExpFileSystem
+package require snit
+package require DAQParameters 
+
+#------------------------------------------------------------------------------
+#   Procs for the mocks:
+
+namespace eval ::Diagnostics {}
+namespace eval ::ReadoutGUIPanel {}
+
+
+snit::type StatusBar {
+    method addMessage msg {return junk}
+    method setMessage {id msg} {}
+}
+StatusBar fakeStatusBar
+
+proc ::Diagnostics::Error  msg {}
+proc ::ReadoutGUIPanel::Log {src sev msg} {}
+proc ::ReadoutGUIPanel::isRecording {} { return true }
+proc ::ReadoutGUIPanel::recordData {} { return true }
+proc ::ReadoutGUIPanel::getRun {} { return 0 }
+proc ::StatusBar::getInstance {} {return fakeStatusBar}
+
+#------------------------------------------------------------------------------
+#  Run state transitions with event logging turned on
+#
+#  need to re-do this with a mock object.
+#
+
+#-----------------------------------------------------------------------------
+#  Run state transitions with event logging turned on.
+#  For our logger we'll use cat | touch .started | touch .exited
+#  This shouild make something that will hang around and
+#  also make all of the appropriate files. 
+#
+set here [pwd];           # This will get changed...
+set stagearea [tcltest::makeDirectory stagearea $here]
+::Configuration::Set StageArea $stagearea
+::Configuration::Set Experiment [file join $here experiment]
+
+set cat   [exec which cat]
+set touch [exec which touch]
+set echo [exec which echo]
+set startFile [file join [::Configuration::get StageArea] .started]
+set exitFile [file join [::Configuration::get StageArea] .exited]
+set testEventLogger "$echo EventLog 11.0 ; $touch $startFile && $touch $exitFile"
+::Configuration::Set EventLogger $testEventLogger 
+
+
+
+#------------------------------------------------------------------------------
+#  eventlogBundle is a bundle and can be registered/unregistered.
+
+tcltest::test register {::EventLog::register registers the bundle with the singleton} \
+-setup {
+    set m [RunstateMachineSingleton %AUTO%]
+    
+} \
+-cleanup {
+    $m removeCalloutBundle EventLog
+    $m destroy
+} \
+-body {
+    ::EventLog::register
+    $m listCalloutBundles
+} -result EventLog
+
+
+tcltest::test unregister {::EventLog::unregister unregisters the bundle with the singleton} \
+-setup {
+    set m [RunstateMachineSingleton %AUTO%]
+    ::EventLog::register
+} \
+-cleanup {
+   
+    $m destroy
+} \
+-body {
+    ::EventLog::unregister
+    $m listCalloutBundles
+} -result [list]
+
+#-----------------------------------------------------------------------------
+# Test the data/control methods:
+#
+
+tcltest::test getPid {::EventLog::getPid reflects the ::EventLog::loggerPid value} \
+-setup {
+    set oldPid $::EventLog::loggerPid
+    set ::EventLog::loggerPid 1234
+} \
+-cleanup {
+    set ::EventLog::loggerPid $oldPid;    # Restore original value.
+} \
+-body {
+    ::EventLog::getPid
+} -result 1234
+
+tcltest::test setStartupTimeout {::EventLog::startupTimeout should reflect settings} \
+-setup {
+    set oldValue $::EventLog::startupTimeout
+} \
+-cleanup {
+    set ::EventLog::startupTimeout $oldValue
+} \
+-body {
+    ::EventLog::setStartupTimeout 666
+    set ::EventLog::startupTimeout
+} -result 666
+
+tcltest::test getStartupTimeout {EventLog::getStartupTimeout shouild reflect the variable} \
+-setup {
+    set oldValue $::EventLog::startupTimeout
+    ::EventLog::setStartupTimeout 12345
+} \
+-cleanup {
+    ::EventLog::setStartupTimeout $oldValue
+} \
+-body {
+    ::EventLog::getStartupTimeout
+} -result 12345
+
+tcltest::test getShutdownTimeout {::EventLog::getShutdownTimeout should reflect the variable} \
+-setup {
+    set old $::EventLog::shutdownTimeout
+    set ::EventLog::shutdownTimeout 11111
+} -cleanup {
+    set ::EventLog::shutdownTimeout $old
+} -body {
+    ::EventLog::getShutdownTimeout
+} -result 11111
+
+tcltest::test setShutdownTimeout {::EventLog::setShutdownTimeout should be reflected in get} \
+-setup {
+    set old [::EventLog::getShutdownTimeout]
+    
+} -cleanup {
+    set ::EventLog::shutdownTimeout $old
+} -body {
+    ::EventLog::setShutdownTimeout 5440
+    ::EventLog::getShutdownTimeout
+} -result 5440
+
+tcltest::test setFilePollInterval {::EventLog::filePollInterval shouild track the setting} \
+-setup {
+    set old $::EventLog::filePollInterval
+} -cleanup {
+    set ::EventLog::filePollInterval $old
+} -body {
+    ::EventLog::setFilePollInterval 999
+    set ::EventLog::filePollInterval
+} -result 999
+
+tcltest::test getFilePollInterval {::EventLog::getFilePollInterval should track the setting} \
+-setup {
+    set old $::EventLog::filePollInterval
+    
+} -cleanup {
+    ::EventLog::setFilePollInterval $old
+} -body {
+    ::EventLog::setFilePollInterval 98765
+    ::EventLog::getFilePollInterval
+} -result 98765
+
+
+tcltest::test currentDirPassedToSwitches {::EventLog::_computeLoggerSwitches adds --path opt
+} -body {
+  set sw [::EventLog::_computeLoggerSwitches 11.0]
+  set currdir [::ExpFileSystem::getCurrentRunDir]
+  string match "* --path=$currdir*" $sw
+} -result 1 
+  
+tcltest::test startLoggerStaysInPWD {::EventLog::_startLogger remains in pwd } \
+-setup {
+  global testEventLogger
+  global ::env
+  global ::here
+  set oldpwd [pwd]
+  set oldlogger [::Configuration::get EventLogger]
+  ::Configuration::Set EventLogger $testEventLogger 
+  set oldexpdir [array get ::env STAGEAREA]
+  array set ::env [list STAGEAREA [file join $here stagearea]]
+} -cleanup {
+  global testEventLogger
+  cd $oldpwd
+  catch {close $::EventLog::loggerFd} msg
+  ::Configuration::Set EventLogger $oldlogger 
+  array set ::env $oldexpdir
+} -body {
+  ::EventLog::_startLogger
+  set newpwd [pwd]
+  set inpwd [string equal $newpwd $oldpwd]
+} -result 1 
+
+
+# Tests to ensure that the checksum switch is handled properly depending on the version of the code
+# being used.
+
+set incompatibleChecksumMsg "The selected version of eventlog does not support the --checksum option! Go to the Settings > Event Recording and deselect the \"Compute checksum\" option"
+
+
+tcltest::test vsn1p0EventlogGetsNoChecksum {::EventLog::_computeLoggerSwitches adds --checksum only if vsn > 11.0
+} -body {
+  ::EventLog::_computeLoggerSwitches 1.0
+} -returnCodes 1 -result $incompatibleChecksumMsg 
+
+
+tcltest::test vsn11p0rc7EventlogGetsChecksum {::EventLog::_computeLoggerSwitches adds --checksum vsn > 11.0 
+} -body {
+  set sw [::EventLog::_computeLoggerSwitches 11.0-rc6]
+  string match "* --checksum*" $sw 
+} -returnCodes 1 -result $incompatibleChecksumMsg 
+
+tcltest::test vsn11p0rc7EventlogGetsChecksum {::EventLog::_computeLoggerSwitches adds --checksum vsn > 11.0 
+} -body {
+  set sw [::EventLog::_computeLoggerSwitches 11.0-rc7]
+  string match "* --checksum*" $sw 
+} -result 1 
+
+
+tcltest::test vsn10p2dash107EventlogGetsChecksum {::EventLog::_computeLoggerSwitches adds --checksum vsn > 11.0
+} -body {
+  set sw [::EventLog::_computeLoggerSwitches 10.2-107]
+  string match "* --checksum*" $sw 
+} -returnCodes 1 -result $incompatibleChecksumMsg 
+
+tcltest::test vsn11EventlogGetsChecksum {::EventLog::_computeLoggerSwitches adds --checksum vsn > 11.0
+} -body {
+  set sw [::EventLog::_computeLoggerSwitches 11]
+  string match "* --checksum*" $sw 
+} -result 1 
+
+tcltest::test vsn11p0EventlogGetsChecksum {::EventLog::_computeLoggerSwitches adds --checksum vsn > 11.0
+} -body {
+  set sw [::EventLog::_computeLoggerSwitches 11.0]
+  string match "* --checksum*" $sw 
+} -result 1 
+
+tcltest::test vsn11p0EventlogGetsChecksum-0 {::EventLog::_computeLoggerSwitches doesn't add --checksum if DAQParameters::getUseChecksumFlag is set to 0
+} -setup {
+  set oldval [::Configuration::get EventLogUseChecksumFlag]
+  ::Configuration::Set EventLogUseChecksumFlag 0
+} -cleanup {
+  ::Configuration::Set EventLogUseChecksumFlag $oldval
+} -body {
+  set sw [::EventLog::_computeLoggerSwitches 11.0]
+  string match "* --checksum*" $sw 
+} -result 0 
+
+
+tcltest::test eventlogRunFilePrefix-0 {::EventLog::_computeLoggerSwitches adds --prefix 
+} -setup {
+  set oldval [::Configuration::get EventLogUseChecksumFlag]
+  ::Configuration::Set EventLogRunFilePrefix testprefix
+} -cleanup {
+  ::Configuration::Set EventLogRunFilePrefix $oldval
+} -body {
+  set sw [::EventLog::_computeLoggerSwitches 11.0]
+  string match "* --prefix=testprefix*" $sw 
+} -result 0 
+
+
+
+tcltest::test leave-0 {::EventLog::leave Halted to Active with identified errors aborts transition
+} -setup {
+  set stagearea [tcltest::makeDirectory dumbystagearea]
+  tcltest::makeDirectory dumbystagearea/experiment
+  tcltest::makeDirectory dumbystagearea/experiment/current
+  tcltest::makeFile {} file.evt dumbystagearea/experiment/current
+
+  Configuration::Set StageArea $stagearea
+  set rm [RunstateMachineSingleton %AUTO%]
+  EventLog::register
+} -cleanup {
+  EventLog::unregister
+  $rm destroy
+  tcltest::removeFile file.evt dumbystagearea/experiment/current
+  tcltest::removeDirectory dumbystagearea/experiment/current
+  tcltest::removeDirectory dumbystagearea/experiment
+  tcltest::removeDirectory dumbystagearea
+} -body {
+  $rm transition Starting
+  $rm transition Halted 
+  $rm transition Active
+} -returnCodes 1 -result {{EventLog error: the experiment/current directory contains run segments and needs to be cleaned.}}
+
+
+
+
+#------------------------------------------------------------------------------
+#  Report test results.
+
+
+tcltest::cleanupTests
+

@@ -1,0 +1,27 @@
+#
+#  Establish the compilers
+#
+
+CC=@CC@
+CXX=@CXX@
+CXXLD=@CXX@
+CCLD=@CC@
+
+COMMONFLAGS= -g -I. -I@prefix@/include -I@prefix@/include/sbsreadout \
+	     -DHAVE_VME_MAPPING -DHAVE_SBSVME_INTERFACE \
+	      @TCL_FLAGS@ @THREADCXX_FLAGS@
+
+CXXFLAGS = $(COMMONFLAGS)  $(USERCXXFLAGS)
+
+CCFLAGS= $(COMMONFLAGS) $(USERCCFLAGS)
+
+# Note THREAD_LDFLAGS are left off because:
+#  1. We need a threaded build of Tcl and the TCL_LDFLAGS get those.
+#  2. Both include -lieee which has a symbol that's not as weak as it should
+#     be and results in double definitions if it appears twice on the link line.
+#
+
+LDFLAGS=-L@prefix@/lib -lSBSProductionReadout -lSBSDeviceSupport -lSBSVmeAPI \
+		       -lException -ldaqthreads -ltclPlus  \
+		       $(USERLDFLAGS) \
+		       @TCL_LIBS@  -Wl,"-rpath=@prefix@/lib"

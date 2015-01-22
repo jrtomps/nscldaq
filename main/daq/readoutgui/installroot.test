@@ -1,0 +1,36 @@
+package require tcltest
+
+# Tests for the InstallRoot package.
+
+set here [file dirname [info script]]
+
+# starting to just get too tough to do this without
+# packaging:
+
+set auto_saved $auto_path
+lappend auto_path $here
+if {[file exists pkgIndex.tcl]} {
+    file delete              pkgIndex.tcl.saved
+    file rename pkgIndex.tcl pkgIndex.tcl.saved
+}
+pkg_mkIndex . *.tcl
+
+package require InstallRoot
+
+
+
+
+# Cleanup
+
+file delete pkgIndex.tcl
+if {[file exists pkgIndex.tcl.saved]} {
+    file rename pkgIndex.tcl.saved pkgIndex.tcl
+}
+
+
+
+set auto_path $auto_saved
+
+package forget InstallRoot
+
+tcltest::cleanupTests

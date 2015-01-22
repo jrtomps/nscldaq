@@ -1,0 +1,197 @@
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Authors:
+#      NSCLDAQ Development Group
+#
+#	     NSCL
+#	     Michigan State University
+#	     East Lansing, MI 48824-1321
+
+# This software is Copyright by the Board of Trustees of Michigan
+# State University (c) Copyright 2297884. 
+
+# @file  hoistpipeline.test 
+# @author Jeromy Tompkins 
+
+
+package require tcltest
+package require ring
+
+##
+#
+proc pickle {snitobj} {
+  set opts [$snitobj info options]
+
+  set state [dict create]
+  foreach opt $opts {
+    set value [$snitobj cget $opt]
+    dict set state $opt $value 
+  }
+  return $state
+}
+
+
+
+tcltest::test pkgrequire-0 {Test that OfflineEVBHoistPipeline can be required
+} -body {
+  package require OfflineEVBHoistPipeline
+} -result 11.0
+
+
+proc findMissingRing {} {
+  set name a
+  while {[catch {ringbuffer usage $name}] == 0} {
+    append name a
+  }
+  return $name
+}
+
+proc findMissingFile {} {
+  set name a
+  while {[file exists $name]} {
+    append name a
+  }
+  return $name
+}
+
+set absentRing [findMissingRing]
+set absentFile [findMissingFile]
+
+
+
+
+
+tcltest::test validateSourceRing-0 {Test that a non existent source ring append a message
+} -setup {
+  set params [OfflineEVBHoistPipeParams %AUTO%]
+} -cleanup {
+  $params destroy
+} -body {
+  $params configure -sourcering $::absentRing
+
+  set errors [list]
+  $params validateSourceRing errors
+  set errors
+} -result [list "Ring $::absentRing does not exist on localhost."]
+
+
+
+tcltest::test validateTstamp-0 {Test that a non existent file appends a message
+} -setup {
+  set params [OfflineEVBHoistPipeParams %AUTO%]
+} -cleanup {
+  $params destroy
+} -body {
+  $params configure -tstamplib $::absentFile -expectbheaders 0
+
+  set errors [list]
+  $params validateTstampLib errors
+  set errors
+} -result [list "Timestamp extractor library \"$::absentFile\" does not exist."]
+
+tcltest::test validateTstamp-1 {Test that a null entry for tstamplib appends a message
+} -setup {
+  set params [OfflineEVBHoistPipeParams %AUTO%]
+} -cleanup {
+  $params destroy
+} -body {
+  $params configure -tstamplib "" -expectbheaders 0
+
+  set errors [list]
+  $params validateTstampLib errors
+  set errors
+} -result [list "Timestamp extractor library has not been specified and is mandatory."]
+
+tcltest::test validateTstamp-2 {Test that an existing file appends no message
+} -setup {
+  set params [OfflineEVBHoistPipeParams %AUTO%]
+} -cleanup {
+  $params destroy
+} -body {
+  $params configure -tstamplib [info script] -expectbheaders 0
+
+  set errors [list]
+  $params validateTstampLib errors
+  set errors
+} -result  ""
+
+
+tcltest::test validateTstamp-3 {Test that a null tstamplib is ignored if expect body header 
+} -setup {
+  set params [OfflineEVBHoistPipeParams %AUTO%]
+} -cleanup {
+  $params destroy
+} -body {
+  $params configure -expectbheaders 1
+
+  set errors [list]
+  $params validateTstampLib errors
+  set errors
+} -result  ""
+
+
+
+tcltest::test validateId-0 {Test that a negative id appends a message 
+} -setup {
+  set params [OfflineEVBHoistPipeParams %AUTO%]
+} -cleanup {
+  $params destroy
+} -body {
+  $params configure -id -1 
+
+  set errors [list]
+  $params validateId errors
+  set errors
+} -result [list "Source id for ringFragmentSource must be greater than or equal to 0. User specified -1."]
+
+tcltest::test validateId-1 {Test that a 0 id appends a message 
+} -setup {
+  set params [OfflineEVBHoistPipeParams %AUTO%]
+} -cleanup {
+  $params destroy
+} -body {
+  $params configure -id 0 
+
+  set errors [list]
+  $params validateId errors
+  set errors
+} -result "" 
+
+
+
+tcltest::test validateInfo-0 {Test that a null info string appends a message 
+} -setup {
+  set params [OfflineEVBHoistPipeParams %AUTO%]
+} -cleanup {
+  $params destroy
+} -body {
+  $params configure -info "" 
+
+  set errors [list]
+  $params validateInfo errors
+  set errors
+} -result [list "Source info for ringFragmentSource has not been defined."] 
+
+
+
+
+tcltest::test clone-0 {Test that state can be cloned 
+} -setup {
+  set params [OfflineEVBHoistPipeParams %AUTO%]
+} -cleanup {
+  $params destroy
+  $newparams destroy
+} -body {
+  
+  $params configure -sourcering "Falsehoods" -tstamplib "another_farse" -id "12345" -info "Data from Falsehoods" \
+                    -expectbheaders 0
+
+  set newparams [$params clone]
+  pickle $newparams
+} -result "-sourcering Falsehoods -tstamplib another_farse -id 12345 -info {Data from Falsehoods} -expectbheaders 0"
+
+tcltest::cleanupTests

@@ -1,0 +1,280 @@
+<!-- manpage 3ccusb -->
+      <refentry id="ccusb3_ph7106widget">
+        <refmeta>
+           <refentrytitle id="ccusb3_ph7106widget_title">ph7106Widget</refentrytitle>
+           <manvolnum>3ccusb</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>ph7106Widget</refname>
+           <refpurpose>Control panel for Ph7106 LED</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+          <command>
+package require ph7106Widget
+          </command>
+          </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+ph7106Widget <replaceable>path ?options?</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>path</replaceable> configure <replaceable>options...</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>path</replaceable> cget <replaceable>?option?</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>path</replaceable>  getMode
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>path</replaceable> getThreshold
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>path</replaceable> setThresholdValue <replaceable>newValue</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>path</replaceable>  setMaskValue <replaceable>enables</replaceable>
+                </command>
+            </cmdsynopsis>
+
+
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Provides an integrated control panel for the Phillips PH7106
+            Leading Edge Discriminator (LED). The control panel interacts with
+            the control server in the CCUSBReadout application to modify
+            the settings in the device.
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              OPTIONS
+           </title>
+           <variablelist>
+            <varlistentry>
+                <term><option>-name</option> <replaceable>module-name</replaceable></term>
+                <listitem>
+                    <para>
+                        Configures the name of the module that will be used
+                        when communicating with the control server.  This
+                        module must have been defined in the
+                        <filename>controlconfig.tcl</filename> file.
+                    </para>
+                    <para>
+                        This value can be dynamically modified.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-host</option> <replaceable>host-name</replaceable></term>
+                <listitem>
+                    <para>
+                        Provides the name of the host on which the target
+                        control server is executing.  Note that the control panel
+                        opens a connection when it is created and does not
+                        dynamically monitor changes in this configuration value.
+                        If not provided at construction time, this defaults to
+                        <literal>localhost</literal>, the system the control panel
+                        is running on.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-port</option> <replaceable>port-number</replaceable></term>
+                <listitem>
+                    <para>
+                        Provides the number of the port on which the control server
+                        is listening for connections.  Note that the control panel
+                        opens a connection when it is created and does not
+                        dynamically monitor changes in this configuration value.
+                        If not provided at construction time, this defaults to
+                        <literal>27000</literal>, which is the default port
+                        on which the CCUSBReadout control server listens for
+                        connections.
+                    </para>
+                </listitem>
+            </varlistentry>
+           </variablelist>
+        </refsect1>
+        <refsect1>
+            <title>METHODS</title>
+            <variablelist>
+                <varlistentry>
+                    <term><cmdsynopsis><command>
+                    <replaceable>path</replaceable> configure <replaceable>options...</replaceable>
+                </command>
+            </cmdsynopsis></term>
+                    <listitem>
+                        <para>
+                            Configures one of the options accepted by the widget.
+                            Note that some of the options are not dynamically
+                            modified.  To know which these are an the set of options
+                            available, see the <literal>OPTIONS</literal>
+                            section of this manpage.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+            <cmdsynopsis>
+                <command>
+<replaceable>path</replaceable> cget <replaceable>?option?</replaceable>
+                </command>
+            </cmdsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Retrieves the value of the single <parameter>option</parameter>
+                            supplied on the command line.  If the option is not
+                            supplied, the value of all widget options is
+                            returned in a Tcl list.  The format of this list
+                            is the format of the list returned by any of the
+                            'normal' Tk widgets.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+            <cmdsynopsis>
+                <command>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>path</replaceable>  getMode
+                </command>
+            </cmdsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Returns the current online/local mode of the device.
+                            The value <literal>local</literal> means
+                            the module's local/camac switch is
+                            set to <literal>local</literal>.   The value
+                            <literal>camac</literal> means the module's
+                            local/camac switch is in the camac position.
+                            The module only accepts commands if this method
+                            returns <literal>camac</literal>
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+            <cmdsynopsis>
+                <command>
+<replaceable>path</replaceable> getThreshold
+                </command>
+            </cmdsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Returns the current value of the module threshold
+                            register.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+            <cmdsynopsis>
+                <command>
+<replaceable>path</replaceable> setThresholdValue <replaceable>newValue</replaceable>
+                </command>
+            </cmdsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Sets the value of the threshold register to
+                            <parameter>newValue</parameter>
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+            <cmdsynopsis>
+                <command>
+<replaceable>path</replaceable>  setMaskValue <replaceable>enables</replaceable>
+                </command>
+            </cmdsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Set the current value of the enables mask to
+                            <parameter>enables
+                            </parameter>
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </refsect1>
+      </refentry>
+
+
+
+<!-- /manpage -->
+
+<!-- manpage 1tcl -->
+      <refentry id="tcl1_ledph7106">
+        <refmeta>
+           <refentrytitle id="tcl1_ledph7106_title">ledph7106.tcl</refentrytitle>
+           <manvolnum>1tcl</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>ledph7106.tcl</refname>
+           <refpurpose>PH7106 Control application for CCUSBReadout</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+            <command>
+ledph7106.tcl <replaceable>module-name</replaceable>
+          </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            <filename>ph7106.tcl</filename> is a Tcl script that provides a
+            control application for the Phillips Ph7106 Leading Edge Discriminator
+            (LED).  The script makes use of the
+            <link linkend='ccusb3_ph7106widget' endterm='ccusb3_ph7106widget_title' />
+            widget to provide a user interface and control interface to a CCUSBReadout
+            control server.
+           </para>
+           <para>
+            <parameter>module-name</parameter> is the name of a Ph7106 module
+            defined in the <filename>controlconfig.tcl</filename> file.
+           </para>
+           <para>
+            On startup the user is presented with a chooser dialog that allows
+            him or her to select the CCUSBReadout control server that is managing
+            the device.  For servers that have used the port manager to allocate
+            a port, selection is limited to servers that are run under the same
+            username as the client.
+           </para>
+        </refsect1>
+
+      </refentry>
+
+<!-- /manpage -->

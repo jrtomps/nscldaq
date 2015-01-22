@@ -1,0 +1,353 @@
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2014.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Author:
+#    Jeromy Tompkins
+#	   NSCL
+#	   Michigan State University
+#	   East Lansing, MI 48824-1321
+
+
+package require tcltest
+
+
+tcltest::test pkgrequire-0 {verify that the package can be required
+} {package require mcfd16commandlogger} 1.0
+
+set testDir [tcltest::makeDirectory .test]
+proc setup {} {
+  # create a file that 
+  set ::logFile [file join $::testDir logger.out]
+  set channel [open $::logFile w]
+  MCFD16CommandLogger ::logger $channel -name ::dev
+}
+
+proc tearDown {} {
+  tcltest::removeFile $::logFile
+  ::logger destroy
+}
+
+tcltest::test threshold-0 {Setting threshold gets written to file
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::logger SetThreshold 0 12
+  ::logger SetThreshold 1 23
+  ::logger Flush
+    
+  tcltest::viewFile $::logFile
+} -result {::dev SetThreshold 0 12
+::dev SetThreshold 1 23}
+
+tcltest::test threshold-1 {Getting threshold gets written to file
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::logger GetThreshold 0
+  ::logger GetThreshold 1
+  ::logger Flush
+    
+  tcltest::viewFile $::logFile
+} -result {::dev GetThreshold 0
+::dev GetThreshold 1}
+
+tcltest::test gain-0 {Setting gain gets written to file
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # the below are actually not reasonable gain values but the logger
+  # is not designed to check. It is just intended to log commands.
+  ::logger SetGain 0 12
+  ::logger SetGain 1 23
+  ::logger Flush
+    
+  tcltest::viewFile $::logFile
+} -result {::dev SetGain 0 12
+::dev SetGain 1 23}
+
+tcltest::test gain-1 {Getting gain gets written to file
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::logger GetGain 0
+  ::logger GetGain 1
+  ::logger Flush
+    
+  tcltest::viewFile $::logFile
+} -result {::dev GetGain 0
+::dev GetGain 1}
+
+tcltest::test width-0 {Setting width gets written to file
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # the below are actually not reasonable values but the logger
+  ::logger SetWidth 0 12
+  ::logger SetWidth 1 23
+  ::logger Flush
+    
+  tcltest::viewFile $::logFile
+} -result {::dev SetWidth 0 12
+::dev SetWidth 1 23}
+
+tcltest::test width-1 {Getting width gets written to file
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::logger GetWidth 0
+  ::logger GetWidth 1
+  ::logger Flush
+    
+  tcltest::viewFile $::logFile
+} -result {::dev GetWidth 0
+::dev GetWidth 1}
+
+tcltest::test deadtime-0 {Setting deadtime gets written to file
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # the below are actually not reasonable values but the logger
+  # is not designed to check. It is just intended to log commands.
+  ::logger SetDeadtime 0 12
+  ::logger SetDeadtime 1 23
+  ::logger Flush
+    
+  tcltest::viewFile $::logFile
+} -result {::dev SetDeadtime 0 12
+::dev SetDeadtime 1 23}
+
+tcltest::test deadtime-1 {Getting deadtime gets written to file
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::logger GetDeadtime 0
+  ::logger GetDeadtime 1
+  ::logger Flush
+    
+  tcltest::viewFile $::logFile
+} -result {::dev GetDeadtime 0
+::dev GetDeadtime 1}
+
+tcltest::test delay-0 {Setting delay gets written to file
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # the below are actually not reasonable values but the logger
+  # is not designed to check. It is just intended to log commands.
+  ::logger SetDelay 0 12
+  ::logger SetDelay 1 23
+  ::logger Flush
+    
+  tcltest::viewFile $::logFile
+} -result {::dev SetDelay 0 12
+::dev SetDelay 1 23}
+
+tcltest::test delay-1 {Getting delay gets written to file
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::logger GetDelay 0
+  ::logger GetDelay 1
+  ::logger Flush
+    
+  tcltest::viewFile $::logFile
+} -result {::dev GetDelay 0
+::dev GetDelay 1}
+
+tcltest::test fraction-0 {Setting fraction gets written to file
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # the below are actually not reasonable values but the logger
+  # is not designed to check. It is just intended to log commands.
+  ::logger SetFraction 0 12
+  ::logger SetFraction 1 23
+  ::logger Flush
+    
+  tcltest::viewFile $::logFile
+} -result {::dev SetFraction 0 12
+::dev SetFraction 1 23}
+
+tcltest::test fraction-1 {Getting fraction gets written to file
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::logger GetFraction 0
+  ::logger GetFraction 1
+  ::logger Flush
+    
+  tcltest::viewFile $::logFile
+} -result {::dev GetFraction 0
+::dev GetFraction 1}
+
+tcltest::test polarity-0 {Setting polarity gets written to file
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # the below are actually not reasonable values but the logger
+  # is not designed to check. It is just intended to log commands.
+  ::logger SetPolarity 0 12
+  ::logger SetPolarity 1 23
+  ::logger Flush
+    
+  tcltest::viewFile $::logFile
+} -result {::dev SetPolarity 0 12
+::dev SetPolarity 1 23}
+
+tcltest::test polarity-1 {Getting polarity gets written to file
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::logger GetPolarity 0
+  ::logger GetPolarity 1
+  ::logger Flush
+    
+  tcltest::viewFile $::logFile
+} -result {::dev GetPolarity 0
+::dev GetPolarity 1}
+
+tcltest::test mode-0 {Setting mode gets written to file
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::logger SetMode mode
+  ::logger Flush
+    
+  tcltest::viewFile $::logFile
+} -result {::dev SetMode mode}
+
+tcltest::test mode-1 {Getting mode gets written to file
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::logger GetMode
+  ::logger Flush
+    
+  tcltest::viewFile $::logFile
+} -result {::dev GetMode}
+
+tcltest::test rc-0 {Enabling rc gets written to file
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::logger EnableRC true
+  ::logger Flush
+    
+  tcltest::viewFile $::logFile
+} -result {::dev EnableRC true}
+
+tcltest::test rc-1 {Reading rc state gets written to file
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::logger RCEnabled
+  ::logger Flush
+    
+  tcltest::viewFile $::logFile
+} -result {::dev RCEnabled}
+
+tcltest::test channelmask-0 {Setting channel mask gets written to file
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::logger SetChannelMask 234
+  ::logger Flush
+    
+  tcltest::viewFile $::logFile
+} -result {::dev SetChannelMask 234}
+
+tcltest::test channelmask-1 {Getting channel mask gets written to file
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::logger GetChannelMask
+  ::logger Flush
+    
+  tcltest::viewFile $::logFile
+} -result {::dev GetChannelMask}
+
+tcltest::test pulser-0 {Enabling pulser gets written to file
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+
+  ::logger EnablePulser 2
+  ::logger Flush
+    
+  tcltest::viewFile $::logFile
+} -result {::dev EnablePulser 2}
+
+tcltest::test pulser-1 {Disabling pulser gets written to file
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+
+  ::logger DisablePulser
+  ::logger Flush
+    
+  tcltest::viewFile $::logFile
+} -result {::dev DisablePulser}
+
+tcltest::test pulser-2 {Getting pulser state gets written to file
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+
+  ::logger PulserEnabled
+  ::logger Flush
+    
+  tcltest::viewFile $::logFile
+} -result {::dev PulserEnabled}
+
+tcltest::cleanupTests

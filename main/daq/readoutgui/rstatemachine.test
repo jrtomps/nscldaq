@@ -1,0 +1,640 @@
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2013.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Author:
+#            Ron Fox
+#            NSCL
+#            Michigan State University
+#            East Lansing, MI 48824-1321
+
+##
+# @file rstatemachine.test
+# @brief Tests for the new (NSCLDAQ 11.x) run state machine
+# @author Ron Fox <fox@nscl.msu.edu>
+
+package require tcltest
+package require RunstateMachine
+
+#-------------------------------------------------------------------------------
+##
+# Tests for callout management
+#
+
+tcltest::test calloutlist-1 {No callouts when asked to list gives empty list} \
+-setup {
+    set s [RunstateMachine %AUTO%]
+} \
+-cleanup {
+    $s destroy
+} \
+-body {
+    $s listCalloutBundles
+} \
+-result [list]
+
+tcltest::test addbundle-1  {Add a new bundle lets me list it.} \
+-setup {
+    set s [RunstateMachine %AUTO%]
+    namespace eval testBundle {
+        proc enter {old new} {}
+        proc leave {old new} {}
+        proc attach {current} {}
+        namespace export enter leave attach
+    }
+} \
+-cleanup {
+    $s destroy
+    namespace delete testBundle
+} \
+-body {
+    $s addCalloutBundle testBundle
+    $s listCalloutBundles
+} \
+-result [list testBundle]
+
+
+tcltest::test addbundle-2 {Adding a bundle that does not exist is an error} \
+-setup {
+    set s [RunstateMachine %AUTO%]
+} \
+-cleanup {
+    $s destroy
+} \
+-body {
+    set status [catch {$s addCalloutBundle testBundle} msg]
+    list $status $msg
+} \
+-result [list 1 {No such bundle testBundle}]
+
+tcltest::test addbundle-3 {Double registration is not allowed} \
+-setup {
+    set s [RunstateMachine %AUTO%]
+    namespace eval testBundle {
+        proc enter {old new} {}
+        proc leave {old new} {}
+        proc attach {current} {}
+        namespace export enter leave attach
+    }
+} \
+-cleanup {
+    $s destroy
+    namespace delete testBundle
+} \
+-body {
+    $s addCalloutBundle testBundle
+    set status [catch {$s addCalloutBundle testBundle} msg]
+    list $status $msg
+} \
+-result [list 1 {testBundle is already registered as a callback bundle}]
+
+tcltest::test addbundle-4 {Namespace must export all procs} \
+-setup {
+    set s [RunstateMachine %AUTO%]
+    
+    # This bundle is bad because it does not export the procs it needs to:
+    
+    namespace eval testBundle {
+        proc enter {old new} {}
+        proc leave {old new} {}
+        proc attach {current} {}
+    }
+} \
+-cleanup {
+    $s destroy
+    namespace delete testBundle
+} \
+-body {
+    set status [catch {$s addCalloutBundle testBundle} msg]
+
+    list $status $msg
+} \
+-result [list 1 {testBundle is missing the following exported procs: attach, enter, leave}]
+
+tcltest::test addbundle-5 {Exported namespace procs must have the right parameter count} \
+-setup {
+    set s [RunstateMachine %AUTO%]
+    
+    
+    
+    namespace eval testBundle {
+        proc enter {old new} {}
+        proc leave {new} {}
+        proc attach {} {}
+        
+        namespace export enter leave attach
+    }
+} \
+-cleanup {
+    $s destroy
+    namespace delete testBundle
+} \
+-body {
+    set status [catch {$s addCalloutBundle testBundle} msg]
+
+    list $status $msg
+} \
+-result [list 1 {testBundle has interface procs with the wrong number of params: attach(0), leave(1) should be: attach(1), leave(2)}]
+
+tcltest::test addbundle-6 {Properly added namespace bundles become a namespace ensemble.} \
+-setup {
+    set s [RunstateMachine %AUTO%]
+    namespace eval testBundle {
+        proc enter {old new} {}
+        proc leave {old new} {}
+        proc attach {current} {}
+        namespace export enter leave attach
+    }
+} \
+-cleanup {
+    $s destroy
+    namespace delete testBundle
+} \
+-body {
+    $s addCalloutBundle testBundle
+    namespace ensemble exists ::testBundle
+} \
+-result 1
+
+tcltest::test addbundle-7 {Added callback bundles have attach called} \
+-setup {
+    set s [RunstateMachine %AUTO%]
+    namespace eval testBundle {
+        variable attachState ""
+        proc enter {old new} {}
+        proc leave {old new} {}
+        proc attach {current} {
+            variable attachState
+            set attachState $current
+        }
+        namespace export enter leave attach
+    }
+} \
+-cleanup {
+    $s destroy
+    namespace delete testBundle
+} \
+-body {
+    $s addCalloutBundle testBundle
+    set ::testBundle::attachState
+} \
+-result NotReady
+
+tcltest::test  removebundle-1  {Remove an existing bundle works} \
+-setup {
+    set s [RunstateMachine %AUTO%]
+    namespace eval testBundle {
+        variable attachState ""
+        proc enter {old new} {}
+        proc leave {old new} {}
+        proc attach {current} {
+            variable attachState
+            set attachState $current
+        }
+        namespace export enter leave attach
+    }
+    $s addCalloutBundle testBundle
+} \
+-cleanup {
+    $s destroy
+    namespace delete testBundle
+} \
+-body {
+    $s removeCalloutBundle testBundle
+    $s listCalloutBundles
+} \
+-result [list]
+
+
+tcltest::test removebundle-2 {Remove a nonexistent bundle is an error} \
+-setup {
+    set s [RunstateMachine %AUTO%]
+} \
+-cleanup {
+    $s destroy
+} \
+-body {
+    set status [catch {$s removeCalloutBundle testBundle} msg]
+    list $status $msg
+} \
+-result [list 1 {testBundle has not been registered}]
+
+tcltest::test removebundle-3 {removing a bundle deletes its namespace ensemble} \
+-setup {
+    set s [RunstateMachine %AUTO%]
+    namespace eval testBundle {
+        variable attachState ""
+        proc enter {old new} {}
+        proc leave {old new} {}
+        proc attach {current} {
+            variable attachState
+            set attachState $current
+        }
+        namespace export enter leave attach
+    }
+    $s addCalloutBundle testBundle
+} \
+-cleanup {
+    $s destroy
+    namespace delete testBundle
+} \
+-body {
+    $s removeCalloutBundle testBundle
+    namespace ensemble exists ::testBundle
+} -result 0
+
+#------------------------------------------------------------------------------
+#
+#  State transition tests.
+#
+
+array set legalTransitions    [list               \
+        NotReady {Starting}                       \
+        Starting {NotReady Halted}                \
+        Halted   {NotReady Active}                \
+        Active   {NotReady Halted Paused}         \
+        Paused   {NotReady Halted Active}]
+        
+set states [list NotReady Starting Halted Active Paused];   # Give a known order.
+
+        
+tcltest::test transitions-1 {do all combinations of transitions} \
+-setup {
+    set s [RunstateMachine %AUTO%]
+} \
+-cleanup {
+    $s destroy
+} \
+-body {
+    foreach from $states {
+        set stateResults [list]
+        foreach to $states {
+            if {$from ne $to} {
+                $s _setState $from
+                lappend stateResults [catch {$s transition  $to}]
+            }
+        }
+        lappend results $stateResults
+    }
+    set results
+} -result \
+[list [list 0 1 1 1] \
+      [list 0 0 1 1] \
+      [list 0 1 0 1] \
+      [list 0 1 0 0] \
+      [list 0 1 0 0] ]
+
+tcltest::test transitions-2 {Transitions invoke leave callback}  \
+-setup {
+    set s [RunstateMachine %AUTO%]
+    namespace eval testBundle {
+        variable action ""
+        proc enter {old new} {
+            variable action
+            # set action [list enter $old $new]
+        }
+        proc leave {old new} {
+            variable action
+            set action [list left $old $new]
+        }
+        proc attach {current} {
+            variable action
+            # set action [list attach $current]
+        }
+        namespace export enter leave attach
+    }
+    $s addCalloutBundle testBundle    
+} \
+-cleanup {
+    $s destroy
+    namespace delete testBundle
+} \
+-body {
+    $s transition Starting
+    set ::testBundle::action
+} \
+-result [list left NotReady Starting]
+
+tcltest::test transitions-3 {Transitions invoke the enter callback} \
+-setup {
+    set s [RunstateMachine %AUTO%]
+    namespace eval testBundle {
+        variable action ""
+        proc enter {old new} {
+            variable action
+            set action [list enter $old $new]
+        }
+        proc leave {old new} {
+            variable action
+          #  set action [list left $old $new]
+        }
+        proc attach {current} {
+            variable action
+           # set action [list attach $current]
+        }
+        namespace export enter leave attach
+    }
+    $s addCalloutBundle testBundle    
+} \
+-cleanup {
+    $s destroy
+    namespace delete testBundle
+} \
+-body {
+    $s transition Starting
+    set ::testBundle::action
+} \
+-result [list enter NotReady Starting]
+
+#----------------------------------------------------------------------------
+#
+#  State introspection:
+
+tcltest::test introspect-states {List the set of allowed states} \
+-setup {
+    
+} \
+-cleanup  {
+    
+} \
+-body {
+   RunstateMachine listStates 
+} \
+-result [list Active Halted NotReady Paused Starting]
+
+tcltest::test introspect-transitions {List the allowed transitions} \
+-setup {
+    
+} \
+-cleanup  {
+    
+} \
+-body {
+    set result [list]
+    foreach state [RunstateMachine listStates] {
+        lappend result $state [RunstateMachine listTransitions $state]
+    }
+    set result
+} \
+-result [list Active   [list NotReady Halted Paused] \
+      Halted   [list NotReady Active]        \
+      NotReady [list NotReady Starting]               \
+      Paused   [list NotReady Halted Active] \
+      Starting [list NotReady Halted]]
+
+tcltest::test introspect-getstate {Check that we can know the current state} \
+-setup {
+    set s [RunstateMachine %AUTO%]
+} \
+-cleanup  {
+    $s destroy
+} \
+-body {
+    set result [list]
+    foreach state [RunstateMachine listStates] {
+        $s _setState $state
+        lappend result [$s getState]
+    }
+    set result
+} -result [list Active Halted NotReady Paused Starting]
+
+
+
+tcltest::test failedTransition-0 {Test that a failed callout bundle will cause subsequent
+  transitions to be aborted and a transition back to NotReady.
+} -setup {
+# A simple bundle to load into the 
+#
+  namespace eval FailBundle {
+    variable count 0
+
+      proc attach {state} {
+        variable count 0
+
+      }
+
+    proc enter {from to} {
+      return -code error "Failed enter $from to $to"
+    }
+
+    proc leave {from to} {
+      return -code error "Failed leave $from to $to"
+    }
+
+    namespace export attach enter leave
+  }
+
+  RunstateMachine rm
+  rm addCalloutBundle FailBundle
+
+} -cleanup {
+  namespace forget FailBundle
+  rm destroy
+} -body {
+  rm transition Starting
+} -result "Failed leave NotReady to Starting" -returnCodes 1
+
+#-----------------------------------------------------------------------------
+#
+# Singleton tests
+
+tcltest::test singleton {Check that instantiating a two runstate singletons refer to the same beast} \
+-setup {
+    set s1 [RunstateMachineSingleton %AUTO%]
+    set s2 [RunstateMachineSingleton %AUTO%]
+    namespace eval testBundle {
+        variable action ""
+        proc enter {old new} {
+            variable action
+            set action [list enter $old $new]
+        }
+        proc leave {old new} {
+            variable action
+          #  set action [list left $old $new]
+        }
+        proc attach {current} {
+            variable action
+           # set action [list attach $current]
+        }
+        namespace export enter leave attach
+    }
+    $s1 addCalloutBundle testBundle       
+} \
+-cleanup {
+    $s1 removeCalloutBundle testBundle;   #In case we get more singleton tests
+} \
+-body {
+    $s2 listCalloutBundles
+} -result testBundle
+
+#-----------------------------------------------------------------------------
+#  
+# Convenience function tests
+
+tcltest::test convenience-start {Check that start sets the state to Starting
+} -setup {
+    set s [RunstateMachineSingleton %AUTO%]
+    $s _setState NotReady
+    namespace eval testBundle {
+        variable action ""
+        proc enter {old new} {
+            variable action
+            set action [list enter $old $new]
+        }
+        proc leave {old new} {
+            variable action
+          #  set action [list left $old $new]
+        }
+        proc attach {current} {
+            variable action
+           # set action [list attach $current]
+        }
+        namespace export enter leave attach
+    }
+    $s addCalloutBundle testBundle    
+} \
+-cleanup {
+    $s removeCalloutBundle testBundle;   #In case we get more singleton tests
+    namespace delete testBundle
+} \
+-body {
+    start
+    set ::testBundle::action
+} \
+-result [list enter NotReady Starting]
+
+tcltest::test convenience-begin {Check that begin sets the state to Active
+} -setup {
+    set s [RunstateMachineSingleton %AUTO%]
+    $s _setState Halted
+    namespace eval testBundle {
+        variable action ""
+        proc enter {old new} {
+            variable action
+            set action [list enter $old $new]
+        }
+        proc leave {old new} {
+            variable action
+          #  set action [list left $old $new]
+        }
+        proc attach {current} {
+            variable action
+           # set action [list attach $current]
+        }
+        namespace export enter leave attach
+    }
+    $s addCalloutBundle testBundle    
+} \
+-cleanup {
+    $s removeCalloutBundle testBundle;   #In case we get more singleton tests
+    namespace delete testBundle
+} \
+-body {
+    begin
+    set ::testBundle::action
+} \
+-result [list enter Halted Active]
+
+tcltest::test convenience-end {Check that end sets the state to Halted
+} -setup {
+    set s [RunstateMachineSingleton %AUTO%]
+    $s _setState Active 
+    namespace eval testBundle {
+        variable action ""
+        proc enter {old new} {
+            variable action
+            set action [list enter $old $new]
+        }
+        proc leave {old new} {
+            variable action
+          #  set action [list left $old $new]
+        }
+        proc attach {current} {
+            variable action
+           # set action [list attach $current]
+        }
+        namespace export enter leave attach
+    }
+    $s addCalloutBundle testBundle    
+} \
+-cleanup {
+    $s removeCalloutBundle testBundle;   #In case we get more singleton tests
+    namespace delete testBundle
+} \
+-body {
+    end 
+    set ::testBundle::action
+} \
+-result [list enter Active Halted]
+
+tcltest::test convenience-pause {Check that pause sets the state to Paused 
+} -setup {
+    set s [RunstateMachineSingleton %AUTO%]
+    $s _setState Active 
+    namespace eval testBundle {
+        variable action ""
+        proc enter {old new} {
+            variable action
+            set action [list enter $old $new]
+        }
+        proc leave {old new} {
+            variable action
+          #  set action [list left $old $new]
+        }
+        proc attach {current} {
+            variable action
+           # set action [list attach $current]
+        }
+        namespace export enter leave attach
+    }
+    $s addCalloutBundle testBundle    
+} \
+-cleanup {
+    $s removeCalloutBundle testBundle;   #In case we get more singleton tests
+    namespace delete testBundle
+} \
+-body {
+    pause
+    set ::testBundle::action
+} \
+-result [list enter Active Paused]
+
+tcltest::test convenience-resume {Check that resume sets the state to Active
+} -setup {
+    set s [RunstateMachineSingleton %AUTO%]
+    $s _setState Paused 
+    namespace eval testBundle {
+        variable action ""
+        proc enter {old new} {
+            variable action
+            set action [list enter $old $new]
+        }
+        proc leave {old new} {
+            variable action
+          #  set action [list left $old $new]
+        }
+        proc attach {current} {
+            variable action
+           # set action [list attach $current]
+        }
+        namespace export enter leave attach
+    }
+    $s addCalloutBundle testBundle    
+} \
+-cleanup {
+    $s removeCalloutBundle testBundle;   #In case we get more singleton tests
+    namespace delete testBundle
+} \
+-body {
+    resume
+    set ::testBundle::action
+} \
+-result [list enter Paused Active]
+
+#  Report test results.
+
+tcltest::cleanupTests

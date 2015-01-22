@@ -1,0 +1,236 @@
+
+<!-- chapter utilities -->
+<chapter>
+  <title>
+    Mesytec MSCF-16 Controls 
+  </title>
+
+  <section>
+    <title>Overview</title>
+
+    <para>
+      The Mesytec MSCF-16 is a 16-channel shaping amplifier with CFD.
+      The device can be remotely controlled via either USB or Mesytec's RC-bus.
+      A GUI called MCFD16Control is provided as a part of NSCLDAQ to control the
+      device through the USB protocol only. 
+      A key feature is the ability to
+      generate a tcl script capable of configuring the device with the same
+      settings displayed in the GUI.
+    </para>
+
+    <para>
+      The parameters that the GUI provides control over are the threshold,
+      gain, pole zero, shaping time, configuration mode, remote control mode,
+      and also monitor channel.  All of these 
+      can be set individually or commonly depending on the mode setting selected
+      in the GUI. The interface reflects whether or not the device is being
+      configured in either of these modes and prevents the setting of individual
+      settings while in common mode.
+    </para>
+
+    <para>
+      Finally, the control provided over the MSCF-16 through the GUI is made
+      available through low-level drivers that can be used in any tclsh. The
+      user can incorporate calls to these drivers in any script they want and
+      can build input files to load into the GUI if desired.  In the same
+      manner, if the user is in need of control of the device through the
+      RC-bus, there is primitive support for communicating with a device through
+      a digitizer in the MxDC family in VMUSBReadout. The user can then make the
+      low level calls through the MXDCRCProxy snit::type.
+    </para>
+  </section>
+
+  <section>
+    <title>Synchronization Paradigm</title>
+    <para>
+      It is worth pointing out that the GUI is much more tightly coupled to the 
+      device than the MCFD16Control
+      gui. It seeks to maintain good synchronization between the device and the
+      gui at all times. What this means is that manipulating any of the widgets
+      will cause the device to be manipulated. There is a short delay provided
+      between the time the widget was changed and when the device is actually
+      communicated with. This allows the user to make a number of changes to the
+      same widget before any communication is attempted. The idea is that the
+      user can double-click on a button or even hold down the increment on the
+      spinbox without interruption. Once communication is attempted, the user is
+      prevented from making changes until the the process is completed. 
+    </para>
+
+    <para>
+      There is a targeted effort to provide the user with feedback about
+      what is happening at any given moment. For that reason, a status message is
+      updated at the bottom of the GUI to provide feedback.   
+    </para>
+
+  </section>
+
+  <section>
+    <title>Starting the GUI for USB communication</title>
+
+    <para>
+      To properly communicate over the USB protocol, the user should follow the
+      the subsequent procedure. Before beginning, know that the device is
+      particularly slow to respond over the USB protocol and so it is common for
+      some bit of lag to exist when committing new parameters to the device.
+    </para>
+
+    <orderedlist>
+      <listitem>
+        <para>
+          Locate the name of the serial file that represents the MSCF-16 device.
+          The serial file should be located in /dev with a name that begins with
+          "ttyUSB". The number that forms the end of this file name is
+          representative of the order in which the devices were plugged into the
+          host computer. The number is therefore not unique and should be
+          checked whenever the device is plugged in anew. Furthermore, ensure
+          that this file is both readable and writable to your account. The
+          spdaqs in the NSCL are configured to enforce these permissions.
+        </para>
+      </listitem> 
+
+      <listitem>
+        <para>
+          At the command line, call 
+        </para>
+        <programlisting>
+          MSCF16Control --serialfile your_serial_file
+        </programlisting>
+
+        <para>
+          Doing so should bring up a window that looks like this.
+        </para>
+        <figure>
+          <title>The MSCF16Control Graphical User Interface for USB</title>
+          <mediaobject>
+            <imageobject>
+              <imagedata fileref="figures/MSCF16Control-USBHowTo-0.png" align="center" format='PNG'/>
+            </imageobject>
+          </mediaobject>
+        </figure>
+      </listitem>
+
+      <listitem>
+        <para>
+          At this point, the user can manipulate the settings on the GUI, which
+          directly update the device.
+        </para> 
+      </listitem>
+    </orderedlist>
+  </section>
+
+  <section>
+    <title>
+      Saving and restoring state
+    </title>
+
+    <section>
+      <title>Overview</title>
+
+      <para>
+        One of the special behaviors of this GUI is that the state is always
+        saved at the end of a session (i.e. at exit) to a configuration file. This saves the entire state
+        of the GUI: channel names and device settings. At startup of the subsequent
+        session, the configuration file is read and only the channel
+        names are restored. In this way, the existing device state prior to
+        startup is left unalterred. The details of saving and loading are described below.
+      </para>
+    </section>
+
+    <section>
+      <title>Saving the state</title>  
+      <para>
+        The state of the GUI can always be saved to a file by means of the "File
+        > Save as..." drop-down menu button. The same thing happens at exit.
+        There difference between the drop-down menu button and the save on exit
+        operation is which file is saved to. When the drop-down menu is used,
+        the user specifies the file that will be written to. At exit, the
+        value of the --configfile command-line option will be used. 
+      </para>
+      
+      <para>
+        Saving the state of the gui
+        produces a tcl script that can be executed for configuring the device
+        exactly as the GUI would display it. This will 
+        record the state of the device itself within the synchronization
+        limitations of the application. To be more explicit, the only time the state written
+        to file may not be identical to the device is if the user closes the
+        GUI within the time window between the most recent change to the GUI and the
+        time at which that most recent change would be communicated to the
+        device. That is about a 300 ms time window. The best practice is therefore to allow
+        the GUI to finish communicating prior to exiting.
+      </para>
+
+      <para>
+        The script produced by a save as operation is actually a TCL script. It
+        can be sourced in a TCL shell to set the state of the device independent
+        of the GUI. This will work so long as:
+      </para>
+      <orderedlist>
+        <listitem>
+          <para>
+            The driver scripts are included in the TCLLIBPATH environment
+            variable. These scripts should be usable if the user adds
+            $DAQROOT/TclLibs to their TCLLIBPATH environment variable.
+          </para>
+        </listitem>
+
+        <listitem>
+          <para>
+            The same settings for the communication protocol that were valid
+            when the script was generated are still valid. In other words, if
+            the GUI was launched with --serialfile set to /dev/ttyUSB0,
+            then it must still be possible to write to the device through the
+            /dev/ttyUSB0 file.
+          </para>
+        </listitem>
+      </orderedlist>
+
+      <para>
+        If those requirements are satisfied, the script can be fed to a tclsh 
+        program. That will transfer all of the state explicitly set in the 
+        script to the device. To illustrate this further,
+        if the configuration file is named mysettings.tcl, one should execute
+        the following at the command line,
+      </para>
+      <programlisting>
+        tclsh &lt; mysettings.tcl
+      </programlisting>
+
+    </section>
+
+    <section>
+      <title>Restoring the state</title>
+
+      <para>
+        Like saving, restoring implies that settings are loaded to the GUI.
+        Because the device is tightly synchronized to the GUI, the loaded
+        settings are immediately communicated to the device. For best results, 
+        the user should load
+        a tcl script that was generated by the GUI through a save as
+        operation or at exit. If one knows what they are doing, they can
+        certainly write their own configuration script by simply calling the
+        same types of API calls as the scripts generated by the GUI.
+      </para>
+
+      <para>
+        Loading the file causes the lines that are understood to be
+        driver calls to be executed and loaded into the GUI. Furthermore, lines
+        that set channel names (set ::MSCF16ChannelNames::chan0 name) are
+        executed and read into the GUI. Other lines of code are not evaluated.
+        This is actually very strict.
+        For all of the parameters that are not set explicitly in the config file, the GUI will
+        simply ignore them. 
+      </para>
+
+      <para>
+        At startup, the state of only the channel names are restored from the
+        file if it exists. The device state is only ever changed if the user
+        explicitly uses the "Load settings..." menu button.
+      </para>
+    </section>
+
+  </section>
+
+</chapter>
+
+<!-- /chapter -->

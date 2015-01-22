@@ -1,0 +1,7 @@
+package "SclClient"
+version "1.0"
+purpose "Feed scaler data to scaler display program"
+
+option "source" s "URL of the source ring buffer"              string optional
+option "host"   H "Name of host in which TclServer is running" string optional
+option "port"   p "Port on which to connect to tclserver"      string optional

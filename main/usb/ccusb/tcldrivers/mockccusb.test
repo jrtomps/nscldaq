@@ -1,0 +1,43 @@
+
+
+package require tcltest
+
+
+tcltest::test pkgrequire-0 {Test that we can require the package 
+} {package require MockCCUSB} 1.0
+
+
+proc setup {} {
+  MockCCUSB::Controller ::ctlr
+  MockCCUSB::ReadoutList ::stack
+}
+
+proc tearDown {} {
+  ::ctlr destroy
+  ::stack destroy
+}
+
+
+tcltest::test executeList-0 {Test that if there is a write at the end we add xq
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::stack addWrite16 1 2 3 4
+  ::ctlr executeList ::stack 100
+} -result "3"
+
+tcltest::test executeList-1 {Test that if there is a write at the end we add xq
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::stack addRead24 1 2 3 
+  ::stack addWrite16 1 2 20 4
+  ::ctlr executeList ::stack 100
+} -result "67108863 3"
+
+
+tcltest::cleanupTests

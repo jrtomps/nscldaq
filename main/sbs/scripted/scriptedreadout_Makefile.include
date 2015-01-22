@@ -1,0 +1,34 @@
+#  The Definitions above were written by the installation procedure:
+#    VMEHEADERS   - Compilation switches needed for the VME access libs.
+#    VMELIBRARY   - Link switches needed for the VME access libs.
+#  The values for these symbols were calculated and obtained by autoconf's
+#  config script
+#
+#  This include file produces the following definitions:
+#
+#  CXXFLAGS       - Switches passed to C++ compiles
+#  CCFLAGS        - Switches passed to the C compiles
+#  LDFLAGS        - Swtches passed to the linker.
+#
+#   We depend on :
+#     INSTDIR      - Defined by the Makefile that includes us.
+#     $(INSTDIR)/etc/Directories.include - defines the directory tree.
+#     $(INSTDIR)/etc/CompilationRules.include - defines how to do compiles.
+#
+
+
+DAQLIBS=$(INSTDIR)/lib
+DAQINCLUDE=$(INSTDIR)/include
+SCRIPTINCLUDES=$(INSTDIR)/skeletons/scriptedReadout/include
+
+
+CXXFLAGS+= -D__UNIX__  $(TCL_FLAGS) \
+	  	-I$(DAQINCLUDE) -I$(SCRIPTINCLUDES) -pthread
+
+CCFLAGS = $(CXXFLAGS)
+
+
+LDFLAGS+=-L$(DAQLIBS) -lScriptedRdo
+
+
+

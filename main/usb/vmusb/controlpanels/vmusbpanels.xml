@@ -1,0 +1,1448 @@
+<!-- manpage 3vmusb --> <!-- packages -->
+
+<!-- client.tcl vm/ccusb client support -->
+
+<refentry id="vmusb3_controlclient">
+  <refmeta>
+     <refentrytitle id='vmusb3_controlclient_title'>controlClient</refentrytitle>
+     <manvolnum>3vmusb</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>controlClient</refname>
+     <refpurpose>Object to interact with VM/CCusb control server</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <cmdsynopsis>
+    <command>
+package require usbcontrolclient 
+    </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+set object [controlClient name ?options?]
+        </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+$object Get name channel
+        </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+$object Set name channel $value
+        </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+$object Update name
+        </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+$object Monitor name
+        </command>
+    </cmdsynopsis>
+
+
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        The VM and CC USB readout programs provide a slow controls server.  This
+        allows control panels to interact with drivers in the readout program
+        so that slow control device settings can be made and status read.
+        <classname>controlClient</classname> provides an encapsulation of a
+        connection witht the slow controls server.   The object opens the
+        connection sets it up properly and provides methods that allow you
+        to perform operations with drivers.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+        OPTIONS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term><option>-server</option></term>
+            <listitem>
+                <para>
+                    The value of this option is the host on which the controls
+                    server is running.  This defaults to <literal>localhost</literal>,
+                    the system the client is running on.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><option>-port</option></term>
+            <listitem>
+                <para>
+                    The number of the port on which the server is listening for
+                    connections. This defaults to <literal>27000</literal>.
+                    Note that with NSCLDAQ version 11.0 and later,
+                    VMUSBReadout and CCUSBReadout support the
+                    <option>--port=managed</option> option to specify that they
+                    will interact with the NSCL server port manager to obtain
+                    and advertise a port.  See
+                    <link linkend='vmusb3_usbcontrolops' endterm='vmusb3_usbcontrolops_title' />
+                    and
+                    <link linkend='vmusb3_slowControlsPrompter' endterm='vmusb3_slowControlsPrompter_title' />
+                    for methods to determine ports advertised by control servers
+                    on local and remote systems.
+                </para>
+                <para>
+                    Note that in general interacting with a driver instance
+                    while the run is active results in the run pausing so that
+                    the operation can take place, and then resuming once the
+                    operation has completed.
+                </para>
+            </listitem>
+        </varlistentry>
+     </variablelist>
+  </refsect1>
+    <refsect1>
+        <title>METHODS</title>
+        <variablelist>
+            <varlistentry>
+                <term><command><replaceable>$object</replaceable> Get <replaceable>device channel</replaceable></command></term>
+                <listitem>
+                    <para>
+                        Requests the control server to return a parameter from a
+                        device driver instance. <parameter>device</parameter> is the
+                        name of the device instance (created in the control
+                        configuration file).  <parameter>channel</parameter>
+                        is a driver specific name of something that can be
+                        retrieved.  See the documentation of individual
+                        device drivers for information about the names of
+                        parameters that can be retrieved.
+                    </para>
+                    <para>
+                        The <replaceable>$object</replaceable> is the object
+                        command
+                        created by constructing a
+                        <classname>controlClient</classname>
+                        instance.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><command><replaceable>$object</replaceable>Set <replaceable>device channel value</replaceable></command></term>
+                <listitem>
+                    <para>
+                        Sets the value of a parameter on the control server
+                        represented by <replaceable>$object</replaceable>.
+                        <parameter>device</parameter> is the name of a device
+                        driver instance and <parameter>channel</parameter>
+                        the name of a parameter supported by that instance.
+                    </para>
+                    <para>
+                        <parameter>value</parameter> is the value that will
+                        be assigned to <parameter>channel</parameter>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><command><replaceable>$object</replaceable> Update <replaceable>device</replaceable></command></term>
+                <listitem>
+                    <para>
+                        Some devices have sets of write only registers.  Device drivers
+                        for these devices generally maintain a shadow copy
+                        of these registers locally.  The
+                        <command>Update</command> command writes any shadow
+                        registers to the <parameter>device</parameter>
+                        connected to the server represented by
+                        <replaceable>$object</replaceable>
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><command><replaceable>$object</replaceable> Monitor <replaceable> device</replaceable></command></term>
+                <listitem>
+                    <para>
+                        Some devices require peridodic monitoring.  Device drivers
+                        for the control server can contribute elements to a
+                        list of operations that is periodically executed. This
+                        list is triggered both when the run is halted and when
+                        data taking is active.
+                    </para>
+                    <para>
+                        When the list returns data, each driver is then called to
+                        get its data from the input buffer.  The
+                        <command>Monitor</command> command retrieves the most
+                        recently received data from this monitor list for
+                        the driver instance <parameter>driver</parameter> defined
+                        in the server represented by <replaceable>$object</replaceable>
+                    </para>
+                </listitem>
+            </varlistentry>            
+        </variablelist>
+    </refsect1>
+</refentry>
+<refentry id="vmusb3_usbcontrolops">
+  <refmeta>
+     <refentrytitle id='vmusb3_usbcontrolops_title'>USB Control operations</refentrytitle>
+     <manvolnum>3vmusb</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>USB Control operations</refname>
+     <refpurpose>connect, controlOp, listUSBControlServers</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <cmdsynopsis>
+        <command>
+package require Tk
+        </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+package require usbcontrolclient
+        </command>
+    </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+set <replaceable>connectionObject</replaceable> [connect]
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+controlOp <replaceable>object args...</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+listUSBControlServers <replaceable>host prefix</replaceable>
+                </command>
+            </cmdsynopsis>
+
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        The commands described in this page provide some simple, non object-oriented
+        interfaces to the control server.
+     </para>
+     <para>
+        <command>connect</command> connects to the default port localhost control
+        server (<literal>localhost:27000</literal>), and returns a
+        <classname>controlClient</classname> object bound to that connection.
+        See <link linkend='vmusb3_controlclient' endterm='vmusb3_controlclient_title' />
+        for information about what you can do with one of these objects.
+        Normally you set the return value of this command to a variable which is
+        then used as the base command for a command in the command ensemble
+        supported by <classname>controlClient</classname> objecdts.
+     </para>
+     <para>
+        <command>controlOp</command> performs an operation on a control
+        server. The control server is encapsulated in<parameter>object</parameter>
+        which is an instance of <classname>controlClient</classname>.
+        The remaining parameters are a method name and its parameters.
+        For example, if you have a control object in the variable
+        <varname>server</varname> and want to set the value of the
+        <literal>george</literal> parameter of the driver instance named
+        <literal>tom</literal> to 3 you would:
+        <informalexample>
+            <programlisting>
+<command>controlOp $server Set tom george 3</command>.
+            </programlisting>
+        </informalexample>
+     </para>
+     <para>
+        <command>listUSBControlServers</command> returns a possibly empty list
+        of information about control servers registered with the port manager.
+        <parameter>host</parameter> identifies which host is being queried.
+        <parameter>prefix</parameter> identifies which type of server is being
+        requested.  At this point it should be one of the values
+        <literal>VMUSBReadout</literal> or <literal>CCUSBReadout</literal>.
+     </para>
+     <para>
+        
+        The returned value is a properly formatted Tcl list.  Each element of the
+        list is a pair containing in order a string identifying the USB controller
+        that is connected to the server and the IP port on which that server is
+        listening.  If the readout program was run on a specific interface by
+        specifying the <option>--serial</option> option, the controller identifer
+        is the serial number of the devices.  If the readout program did not specify
+        a <option>--serial</option>, the text <literal>FirstController</literal>
+        is provided.  If the controller controlled via a network connection to
+        a usb controller server, the identifier is the name of the host on which
+        the server is running (value of the <option>--host</option> option
+        the readout program is running with).
+     </para>
+  </refsect1>
+
+
+</refentry>
+
+<refentry id="vmusb3_slowControlsPrompter">
+  <refmeta>
+     <refentrytitle id="vmusb3_slowControlsPrompter_title">slowControlsPrompter</refentrytitle>
+     <manvolnum>3vmusb</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>slowControlsPrompter</refname>
+     <refpurpose>Prompt for slow controls server host and port</refpurpose>
+  </refnamediv>
+  <refsynopsisdiv>
+    <cmdsynopsis>
+    <command>
+package require Tk
+package require usbcontrolclient
+    </command>
+    </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+slowControlsPrompter <replaceable>path ?options?</replaceable>
+<replaceable>path</replaceable> update
+                </command>
+            </cmdsynopsis>
+
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        Provides a widget that allows users to select a slow controls server.
+        The widget lists the set of servers registered on the selected host,
+        allows a default port to be selected and also allows host and port
+        to be simply typed in by the user.  The <parameter>path</parameter> parameter
+        on the constructor is a Tk widget path.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+        OPTIONS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term><option>-defaultport</option> <replaceable>int</replaceable></term>
+            <listitem>
+                <para>
+                    The value of this option is loaded into the port text entry
+                    when the <guibutton>Default Port</guibutton> button is
+                    clicked.  If not configured, this defaults to
+                    <literal>27000</literal> which is also the default
+                    port used by the readout programs if the
+                    <option>--port</option> option is not specified for them.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><option>-host</option> <replaceable>string</replaceable></term>
+            <listitem>
+                <para>
+                    Provides or gets the name or IP address of the host.  The value
+                    of this option is loaded into the host entry.  It is also the
+                    host queried for registereda applications in the event the
+                    <guibutton>Update</guibutton> button is clicked.  If not
+                    configured, the default value is <literal>localhost</literal>
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><option>-port</option> <replaceable>integer</replaceable></term>
+            <listitem>
+                <para>
+                    Gets or sets the value in the port entry.  If not configured
+                    or not set by the user or by double clicking an element in
+                    the list, this is defaulted to <literal>27000</literal>
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><option>-type</option> <replaceable>string</replaceable></term>
+            <listitem>
+                <para>
+                    Specifies the type of server being queried.  This should
+                    be one of <literal>VMUSBReaodut</literal> or
+                    <literal>CCUSBReadout</literal>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><option>-okcmd</option> <replaceable>script</replaceable></term>
+            <listitem>
+                <para>
+                    The script that is called at the global level when the
+                    <guibutton>Ok</guibutton> button is clicked. See
+                    <literal>SUBSTITUTIONS</literal> below for more
+                    information about how the script is started.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><option>-cancelcmd</option> <replaceable>script</replaceable></term>
+            <listitem>
+                <para>
+                    The script that is called when the cancel button is clicked.
+                    See <literal>SUBSTITUTIONS</literal> below for more
+                    information about how this script is started.
+                </para>
+            </listitem>
+        </varlistentry>
+     </variablelist>
+  </refsect1>
+  <refsect1>
+    <title>
+        METHODS
+    </title>
+    <para>
+        The widget supports the following public methods:
+    </para>
+    <variablelist>
+        <varlistentry>
+            <term><command>configure<replaceable>options...</replaceable></command></term>
+            <listitem>
+                <para>
+                    Configures the options of an object.  The <parameter>options...</parameter>
+                    are a set of parameter pairs. The first item of each pair is
+                    the option name and the second the value.  For example, to
+                    configure the port to 1234:
+                </para>
+                <informalexample>
+                    <programlisting>
+<command><replaceable>path</replaceable> configure -port 1234</command>
+                    </programlisting>
+                </informalexample>
+                <para>
+                    Any number of options can be configured in a single method
+                    call.  In the event the same option appears twice, the
+                    lexically later value is used.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><command>cget <replaceable>option-name</replaceable></command></term>
+            <listitem>
+                <para>
+                    Returns the current value of the specified
+                    configuration <parameter>option-name</parameter>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><command>update</command></term>
+            <listitem>
+                <para>
+                    Updates the contents of the listbox selector with the
+                    names of the controllers that are being served by
+                    readout programs that are using managed ports.
+                </para>
+            </listitem>
+        </varlistentry>
+    </variablelist>
+  </refsect1>
+  <refsect1>
+    <title>
+        SUBSTITUTIONS
+    </title>
+    <para>
+        Callbacks specified by the <option>-okcmd</option> and
+        <option>-cancelcmd</option> options are called at the global level.
+        Any occurence of the string <literal>%W</literal> is replaced with the
+        path of the widget doing the callback.
+    </para>
+  </refsect1>
+</refentry>
+<refentry id="vmusb3_gdgcontrol">
+  <refmeta>
+     <refentrytitle id='vmusb3_gdgcontrol_title'>gdgcontrol</refentrytitle>
+     <manvolnum>3vmusb</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>gdbcontrol</refname>
+     <refpurpose>Slow control client of Wiener/JTec MGGD8</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <cmdsynopsis>
+        <command>
+package require gdgcontrol
+        </command>
+    </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+set <replaceable>object</replaceable> [gdgcontrol <replaceable>name ?options?</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>$object method args</replaceable>
+                </command>
+            </cmdsynopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        Provides a class that can be instantiated to control a Wiener/JTec
+        MGDD8 module as an eight channel gate and delay generator. The
+        object communicates with the control server of a VM-USB readout program
+        by being configured with a
+        <link linkend='vmusb3_controlclient' endterm='vmusb3_controlclient_title' />
+        object. While objects can be constructed without specifying a
+        <classname>controlClient</classname> object, one must be configured
+        prior to the first I/O operation to the server.
+     </para>
+     <para>
+        The object is intended to cooperate with a
+        <link linkend='vmusb3_gdgwidget' endterm='vmusb3_gdgwidget_title' />
+        object.  It must be constructed with the <option>-widget</option> option
+        specifying one of those objects as construction time sets up the widget
+        callbacks to methods in <classname>gdgcontrol</classname> object.
+        The callbacks from <classname>gdgwidget</classname> to <classname>gdgcontrol</classname>
+        are the controller logic of an MVC pattern where the model is the
+        <classname>gdgcontrol</classname> class and the view is the
+        <classname>gdgwidget</classname>.
+     </para>
+     <para>
+        See <literal>OPTIONS</literal> below for configuration options and
+        <literal>METHODS</literal> below for the operations that can be performed.
+     </para>
+     
+  </refsect1>
+  <refsect1>
+     <title>
+        OPTIONS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term><option>-widget</option></term>
+            <listitem>
+                <para>
+                    This option must and can only be configured at construction
+                    time.  It specifies a view widget object that will coordinate
+                    with this object.  The view widget will have calls into this
+                    object when the controls on the view change a value and
+                    will be called back by refresh methods in this object.
+                </para>
+                <para>
+                    See <literal>WIDGET REQUIREMENTS</literal> for the interfaces
+                    the view widget must export.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><option>-connection</option></term>
+            <listitem>
+                <para>
+                    Specifies the connection object (<classname>controlClient</classname>)
+                    that will be used to communicate with the control server.
+                    This can be configured at anytime prior to the first
+                    I/O operation with the server.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><option>-name</option></term>
+            <listitem>
+                <para>
+                    Configures the driver instance name as defined in the
+                    control configuration file.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><option>-onlost</option></term>
+            <listitem>
+                <para>
+                    Provides a script thati s called if the connection
+                    object loses its connection with the server.  If this
+                    is not supplied connection losses result in
+                    <command>error</command> throws.  If provided, it is up to
+                    the script supplied to handle and, if possible, recover
+                    from the error.
+                </para>
+            </listitem>
+        </varlistentry>
+     </variablelist>
+  </refsect1>
+  <refsect1>
+    <title>METHODS</title>
+    <variablelist>
+        <varlistentry>
+            <term><methodname>UpdateValues</methodname></term>
+            <listitem>
+                <para>
+                    Interacts with the view so that the view reflects the
+                    values most recentl read fromt he hardware.  Specifically
+                    calls the <methodname>refreshWidth</methodname> nd
+                    <methodname>refreshDelay</methodname> methods for each
+                    gate and delay channel.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><methodname>getAll</methodname></term>
+            <listitem>
+                <para>
+                    Interacts with the hardware to return a two element list.
+                    The first element of the list is an 8 element list that
+                    contains the width values for each channel of the module,
+                    the second element is an 8 element list that contains
+                    the delay values.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><methodname>setAll</methodname></term>
+            <listitem>
+                <para>
+                    Given as in put a list like that returned from
+                    <methodname>getAll</methodname> above, sets the
+                    gates widths and delays for all of the channels in the
+                    module.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><methodname>onWidthPlus</methodname> <parameter>channel old</parameter></term>
+            <listitem>
+                <para>
+                    This method is attached to the view's
+                    <option>-upwidth</option> option.
+                    The method sets the width for <parameter>channel</parameter>
+                    to one nanosecons larger than <parameter>old</parameter>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><methodname>onWidthDown</methodname> <parameter>channel old</parameter></term>
+            <listitem>
+                <para>
+                    Same idea as <methodname>onWidthPlus</methodname> except
+                    <parameter>channel</parameter>'s width is set to
+                    one nanosecond less than <parameter>old</parameter>.
+                    This is attached to the widgets <option>-downwidth</option>
+                    callback.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><methodname>onDelayPlus</methodname> <parameter>channel old</parameter></term>
+            <listitem>
+                <para>
+                    Simlar to <methodname>onWidthPlus</methodname> but the
+                    delay
+                    for <parameter>channel</parameter> is modified rather than the
+                    width.  This is attached to the widgets
+                    <option>-updelay</option> option.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><methodname>onDelayDown</methodname> <parameter>channel old</parameter></term>
+            <listitem>
+                <para>
+                    Same as <methodname>onDelayPlus</methodname> but the
+                    value of the dealy for <parameter>channel</parameter> is
+                    set to one nanosecond less than <parameter>old</parameter>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><methodname>onSetDelay</methodname> <parameter>channel value</parameter></term>
+            <listitem>
+                <para>
+                    Attached to the widget's <option>-setdelay</option> option,
+                    this method sets the delay for <parameter>channel</parameter>
+                    to the specified <parameter>value</parameter>
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><methodname>onSetWidth</methodname> <parameter>channel value</parameter></term>
+            <listitem>
+                <para>
+                    Like <methodname>onSetDelay</methodname> but the width of
+                    <parameter>channel</parameter> is modified.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><methodname>refreshWidth</methodname> <parameter>channel</parameter></term>
+            <listitem>
+                <para>
+                    Calls the widget's <methodname>setWidth</methodname> method
+                    passing the <parameter>channel</parameter> and the
+                    current width of that channel.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><methodname>refreshDelay</methodname> <parameter>channel</parameter></term>
+            <listitem>
+                <para>
+                    Calls the widget's <methodname>setDelay</methodname> method
+                    passing the <parameter>channel</parameter> parameter and the
+                    current the current delay setting of that channel.
+                </para>
+            </listitem>
+        </varlistentry>
+        
+    </variablelist>
+  </refsect1>
+  <refsect1>
+    <title>WIDGET REQUIREMENTS</title>
+    <para>
+        The <classname>gdgcontrol</classname> class is intended to be tightly
+        coupled to a view widget.  The view widget provides a specific set
+        of configuration options and methods that facilitate communication
+        between <classname>gdgcontrol</classname> and the view widget.
+        The
+        <link linkend="vmusb3_gdgwidget" endterm='vmusb3_gdgwidget_title' />
+        class provides a sample view widget that can be used directly and without
+        modification.
+    </para>
+    <para>
+        This section describes the interfaces that couple the view and this
+        class together so that, if desired, you can write your own view widget.
+    </para>
+    <refsect2>
+        <title>Required widget options</title>
+        <variablelist>
+            <varlistentry>
+                <term><option>-upwidth</option> <replaceable>script</replaceable></term>
+                <listitem>
+                    <para>
+                        This option provides a script that is called by the widget
+                        to increment
+                        a channel width by one nanosecond.  The script shouild have
+                        appended to it a channel  number and the current number
+                         of nanoseconds believed to be set for that width.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-downwidth</option> <replaceable>script</replaceable></term>
+                <listitem>
+                    <para>
+                        This option provides a script that is called by the widget
+                        to decrement
+                        a channel width by one nanosecond.  The script shouild have
+                        appended to it a channel  number and the current number
+                         of nanoseconds believed to be set for that width.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-updelay</option> <replaceable>script</replaceable></term>
+                <listitem>
+                    <para>
+                        This option provides a script that is called by the widget
+                        to increment
+                        a channel delay by one nanosecond.  The script shouild have
+                        appended to it a channel  number and the current number
+                         of nanoseconds believed to be set for that delay.
+                    </para>
+                </listitem>
+            </varlistentry>
+             <varlistentry>
+                <term><option>-downdelay</option> <replaceable>script</replaceable></term>
+                <listitem>
+                    <para>
+                        This option provides a script that is called by the widget
+                        to decrement
+                        a channel delay by one nanosecond.  The script shouild have
+                        appended to it a channel  number and the current number
+                         of nanoseconds believed to be set for that delay.
+                    </para>
+                </listitem>
+            </varlistentry>
+             <varlistentry>
+                <term><option>-setdelay</option> <replaceable>script</replaceable></term>
+                <listitem>
+                    <para>
+                        This option provides a script that is called by the widget
+                        to set a new value for the delay of a channel.
+                        The channel number and new delay value in nanoseconds
+                        should be appended as parameters to this script.
+                    </para>
+                </listitem>
+             </varlistentry>
+             <varlistentry>
+                <term><option>-setwidth</option> <replaceable>script</replaceable></term>
+                <listitem>
+                    <para>
+                        this options provides a script that is called by the widget
+                        when it wants to set a new value for the output width
+                        of a channel.  The channel number and new width in
+                        nanoseconds should be appended to the script.
+                    </para>
+                </listitem>
+             </varlistentry>   
+        </variablelist>
+    </refsect2>
+    <refsect2>
+        <title>Required widget methods</title>
+        <variablelist>
+            <varlistentry>
+                <term><methodname>setWidth</methodname> <parameter>channel value</parameter></term>
+                <listitem>
+                    <para>
+                        Called by the <classname>gdgcontrol</classname> object to
+                        tell the view widget to display the new
+                        <parameter>value</parameter> for the new with of
+                        <parameter>channel</parameter>
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>setDelay</methodname> <parameter>channel value</parameter></term>
+                <listitem>
+                    <para>
+                        Called by <classname>gdgcontrol</classname> to
+                        tell the view widget to display
+                        <parameter>value</parameter> for the delay of
+                        channel <parameter>channel</parameter>.
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+    </refsect2>
+  </refsect1>
+
+</refentry>
+<refentry id="vmusb3_gdgwidget">
+  <refmeta>
+     <refentrytitle id='vmusb3_gdgwidget_title'>gdgwidget</refentrytitle>
+     <manvolnum>3vmusb</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>gdgwidget</refname>
+     <refpurpose>Widget to control/display GDG-8.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <cmdsynopsis>
+      <command>
+package require gdgwidget
+    </command>
+    </cmdsynopsis>
+      <cmdsynopsis>
+          <command>
+gdgwidget <replaceable>path ?options...?</replaceable>
+          </command>
+      </cmdsynopsis>
+      <cmdsynopsis>
+          <command>
+<replaceable>path methodname ?params...</replaceable>
+          </command>
+      </cmdsynopsis>
+
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+      This is a pre-packaged widget that supplies the needed interfaces
+      for use with <link linkend='vmusb3_gdgcontrol' endterm='vmusb3_gdgcontrol_title' />.
+      The widget allows you to control and view the setttings of the
+      Wiener/Jtec GDG8 unit.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+        OPTIONS
+     </title>
+     <variablelist>
+      <varlistentry>
+          <term><option>-title</option></term>
+          <listitem>
+              <para>
+                  The value of this option is the title of the widget.
+                  The widget title is displayed at the top of the widget
+                  and should be used to differentiate between control
+                  panels of differing modules.
+              </para>
+          </listitem>
+      </varlistentry>
+      <varlistentry>
+          <term><option>-upwidth</option></term>
+          <listitem>
+              <para>
+                  The value of this option is a script called by the
+                  widget when the user has requested a channel width
+                  be incremented by one nanosecond.  The script is passed
+                  a channel number and the value prior to the increment.
+              </para>
+          </listitem>
+      </varlistentry>
+      <varlistentry>
+          <term><option>-downwidth</option></term>
+          <listitem>
+              <para>
+                  The value of this option is a script called by the
+                  widget when the user has requested a channel width
+                  be decremented by one nanosecond.  The script is passed
+                  a channel number and the value prior to the decrement.
+              </para>
+          </listitem>
+      </varlistentry>
+      <varlistentry>
+          <term><option>-updelay</option></term>
+          <listitem>
+              <para>
+                  The value of this option is called by the widget
+                  when the user has requested a channel delay be
+                  incremented by a nanosecond.  The script has
+                  the channel number and the original value of the
+                  delay appended to it.
+              </para>
+          </listitem>
+      </varlistentry>
+      <varlistentry>
+          <term><option>-downdelay</option></term>
+          <listitem>
+              <para>
+                  Same as <option>-updelay</option> except the user has
+                  requested the delay be decremented by a nanosecond.
+              </para>
+          </listitem>
+      </varlistentry>
+      <varlistentry>
+          <term><option>-setdelay</option></term>
+          <listitem>
+              <para>
+                  Script to process requests for a specific delay value to
+                  be set for a channel.  The channel number and requested
+                  delay in nanoseconds are appended to this script.
+              </para>
+          </listitem>
+      </varlistentry>
+      <varlistentry>
+          <term><option>-setwidth</option></term>
+          <listitem>
+              <para>
+                  Similar to <option>-setdelay</option> but a channel
+                  delay is being set.
+              </para>
+          </listitem>
+      </varlistentry>
+     </variablelist>
+  </refsect1>
+  <refsect1>
+      <title>METHODS</title>
+      <variablelist>
+          <varlistentry>
+              <term><methodname>getWidth</methodname> <parameter>chan</parameter></term>
+              <listitem>
+                  <para>
+                      Returns the value of the control for the width of
+                      channel <parameter>chan</parameter>.  The units
+                      of this width are nanoseconds.
+                  </para>
+              </listitem>
+          </varlistentry>
+          <varlistentry>
+              <term><methodname>setWidth</methodname> <parameter>channel width</parameter></term>
+              <listitem>
+                  <para>
+                      Sets the value of the width control for
+                      <parameter>channel</parameter> to <parameter>width</parameter>
+                      nanoseconds.
+                  </para>
+              </listitem>
+          </varlistentry>
+          <varlistentry>
+              <term><methodname>getDelay</methodname> <parameter>channel</parameter></term>
+              <listitem>
+                  <para>
+                      Gets the value of the delay control for
+                      <parameter>channel</parameter>.  The units of this
+                      value are nanoseconds.
+                  </para>
+              </listitem>
+          </varlistentry>
+          <varlistentry>
+              <term><methodname>setDelay</methodname> <parameter>channel value</parameter></term>
+              <listitem>
+                  <para>
+                      Sets the value of the control for the delay in
+                      <parameter>channel</parameter> to <parameter>value</parameter>
+                      nanoseconds.
+                  </para>
+              </listitem>
+          </varlistentry>       
+      </variablelist>
+  </refsect1>
+</refentry>
+<refentry id="vmusb3_v6533">
+  <refmeta>
+     <refentrytitle id='vmusb3_v6533_title'>V6533Driver</refentrytitle>
+     <manvolnum>3vmusb</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>V6533Driver</refname>
+     <refpurpose>Driver for CAEN V6533 HV modules</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <cmdsynopsis>
+    <command>
+package require v6533Driver
+    </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+set <replaceable>instance</replaceable> v6533 <replaceable>name ?options?</replaceable>
+        </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+<replaceable>$instance methodname args..</replaceable>
+        </command>
+    </cmdsynopsis>
+
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        Provides a driver that interfaces with the slow controls server of the
+        VM-USB readout program to control CAEN V6533 VME bias supply controllers.
+        Once created you can interact with an intance of the devices via the
+        methods described in the <literal>METHODS</literal> section below.
+        Connection is controlled by the <literal>OPTIONS</literal> defined
+        below and can be dynamic.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+        OPTIONS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term><option>-socket</option></term>
+            <listitem>
+                <para>
+                    The <option>-socket</option> option value must be a socket
+                    open on the control server.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><option>-name</option></term>
+            <listitem>
+                <para>
+                    The <option>-name</option> option value must be the name
+                    of a V6553 driver instance defined in the
+                    <filename>controlconfig.tcl</filename> file.
+                </para>
+            </listitem>
+        </varlistentry>
+     </variablelist>
+  </refsect1>
+    <refsect1>
+        <title>METHODS</title>
+        <variablelist>
+            <varlistentry>
+                <term><methodname>monitor</methodname></term>
+                <listitem>
+                    <para>
+                        The HV driver periodically monitors the device so that
+                        interlock data can be  gotten in real time without
+                        interrupting the run.
+                        This method returns the monitor data.  The monitor
+                        data consists of a Tcl list that contains in order:
+                    </para>
+                    <itemizedlist>
+                        <listitem><para>The most recent value of the global
+                            status register</para></listitem>
+                        <listitem><para>A 6 element list of the most recent values
+                            of the channel status registers</para></listitem>
+                        <listitem><para>A 6 element list of the most recent values
+                            for the actual voltages for each channel</para></listitem>
+                        <listitem><para>A 6 element list of the most recent values
+                            of the actual current for each channel</para></listitem>
+                        <listitem><para>A 6 element list of the most recent values
+                            of the channel temperatures.
+                            </para>
+                        </listitem>
+                    </itemizedlist>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>setpoint</methodname> <parameter>channel value</parameter></term>
+                <listitem>
+                    <para>
+                        Sets the voltage set point for the <parameter>channel</parameter>
+                        to <parameter>value</parameter>.  <parameter>value</parameter>
+                        is what is put in <parameter>channel</parameter>'s setpoint
+                        register. See the V6533 documentation to know what this
+                        means in terms of a voltage request.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>setIlimit</methodname> <parameter>channel value</parameter></term>
+                <listitem>
+                    <para>
+                        Sets the current  limit register for <parameter>channel</parameter>
+                        to <parameter>value</parameter>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>on</methodname> <parameter>channel</parameter></term>
+                <listitem>
+                    <para>
+                        Ramps <parameter>channel</parameter> to its set point.
+                        Once the setpoint is reached modifying the set point will
+                        cause the channel to ramp to the new setpoint.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>off</methodname> <parameter>channel</parameter></term>
+                <listitem>
+                    <para>
+                        Sets the <parameter>channel</parameter> voltage to zero.
+                        How the channel gets to zero is determined by the
+                        off mode set by <methodname>setOffMode</methodname>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>setTripTime</methodname> <parameter>channel value</parameter></term>
+                <listitem>
+                    <para>
+                        Sets the time a channel can be out of specification
+                        before it trips an interlock.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>setVmax</methodname> <parameter>channel limit</parameter></term>
+                <listitem>
+                    <para>
+                        Set sets the maximum voltage <parameter>limit</parameter> on a
+                        <parameter>channel</parameter>
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>setRupRate</methodname> <parameter> channel value</parameter></term>
+                <listitem>
+                    <para>
+                        Sets the <parameter>channel</parameter> voltage ramp up rate
+                        to <parameter>value</parameter>
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>setRdnRate</methodname> <parameter>channel value</parameter></term>
+                <listitem>
+                    <para>
+                        Sets the <parameter>channel</parameter> voltage ramp down rate
+                        to <parameter>value</parameter>
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>setOffMode</methodname> <parameter>channel kill|ramp</parameter></term>
+                <listitem>
+                    <para>
+                        Sets the manner in which a <parameter>channel</parameter>
+                        voltage returns to zero when turned off.
+                        <literal>kill</literal> mode rapidly removes voltage
+                        from the channel while <literal>ramp</literal> mode
+                        ramps the channel down at the ramp down rate set
+                        by <methodname>setRdnRate</methodname>
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>getGlobalVmax</methodname></term>
+                <listitem>
+                    <para>
+                        Returns the global maximum voltage set in the
+                        board hardware via the front panel trim pot.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>getGlobalImax</methodname></term>
+                <listitem>
+                    <para>
+                        Returns the global current limit set in the
+                        board hardware via its front panel trim pot.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>getSetpoints</methodname></term>
+                <listitem>
+                    <para>
+                        Returns a list of 6 voltage set points for the
+                        module channels
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>getIlimit</methodname></term>
+                <listitem>
+                    <para>
+                        Returns a list of 6 current limit valueas for the
+                        module channels.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>getVact</methodname></term>
+                <listitem>
+                    <para>
+                       Returns a list of 6 actual voltage values,
+                       one from each channel.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>getIact</methodname></term>
+                <listitem>
+                    <para>
+                        Returns a list of 6 actual curretn values, one from
+                        each channel.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>getStatus</methodname></term>
+                <listitem>
+                    <para>
+                        Returnss the 6 channel status register values.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>getTripTimes</methodname></term>
+                <listitem>
+                    <para>
+                        Returns the 6 trip timout values, one for
+                        each channel.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>getSoftVlimit</methodname></term>
+                <listitem>
+                    <para>
+                        Returns the 6 voltage limits, one for each
+                        channel.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>getRdnRate</methodname></term>
+                <listitem>
+                    <para>
+                        Returns a list of 6 ramp down rates, one
+                        for each channel.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>getRupRate</methodname></term>
+                <listitem>
+                    <para>
+                        Returns al ist of 6 ramp up rates, one for
+                        each channel.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>getOffMode</methodname></term>
+                <listitem>
+                    <para>
+                        Returns a list of 6 off modes, one for each channel.
+                        The possible values for each channel are
+                        <literal>ramp</literal> or <literal>kill</literal>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>getPolarities</methodname></term>
+                <listitem>
+                    <para>
+                        Returns a list of 6 channel polarities as reflected by
+                        the front panel LEDs.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>getTemps</methodname></term>
+                <listitem>
+                    <para>
+                        Returns the list of 6 temperatures, one per channel.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>getOnRequest</methodname></term>
+                <listitem>
+                    <para>
+                        Returns the list of 6 on requests for each channel.
+                        Note that a channel may have been requested to be on,
+                        but may actually be off due to a trip.
+                    </para>
+                </listitem>
+            </varlistentry>
+            
+        </variablelist>
+    </refsect1>
+    
+</refentry>
+
+  
+  
+<!-- /manpage -->
+<!-- manpage 1vmusb -->
+</refentry>
+<refentry id="vmusb1_v812usbcontrol">
+  <refmeta>
+     <refentrytitle id='vmusb1_v812usbcontrol_title'>VMUSB V812 control</refentrytitle>
+     <manvolnum>1vmusb</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>VMUSB V812 control</refname>
+     <refpurpose>Adapt CAENV812GUI to the VM-USB readout</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <cmdsynopsis>
+        <command>
+v812usbcontrol <replaceable>configfile</replaceable>
+        </command>
+    </cmdsynopsis>
+      <cmdsynopsis>
+          <command>
+vm895usbcontrol <replaceable>configfile</replaceable>
+          </command>
+      </cmdsynopsis>
+
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+      Control application for either the CAEN V812 constant fraction
+      discriminator or the CAEN V895 leading edge discriminator for the
+      VM-USB Readout control server.  This application uses the
+      V812 control widget
+      <link linkend='manpage.caenv812gui'> caenv812gui</link>
+     </para>
+     <para>
+      The configuration file format is the same as is described in
+      <link linkend='manpage.caenv812config'>caenv812config</link>
+      however the <literal>crate</literal> configuration variable is
+      ignored.
+     </para>
+     <para>
+      On startup the user is presented with a chooser dialog that allows
+      him or her to select the specific server to which the application
+      will connect.
+     </para>
+  </refsect1>
+
+<!-- /manpage -->
+<!-- manpage 1tcl -->
+    <refentry id="tcl1_gdgpanel">
+      <refentryinfo>
+        <author>
+                <personname>
+                        <firstname>Ron</firstname>
+                        <surname>Fox</surname>
+                </personname>
+        </author>
+        <productname>NSCLDAQ</productname>
+        <productnumber></productnumber>
+      </refentryinfo>
+      <refmeta>
+         <refentrytitle>!ModuleName!</refentrytitle>
+         <manvolnum>1tcl</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+      </refmeta>
+      <refnamediv>
+         <refname id='tcl1_gdgpanel_title'>gdgpanel</refname>
+         <refpurpose>Tabbed notebook for multiple GDG-8 controllers.</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+        <cmdsynopsis>
+          <command>
+gdgpanel
+        </command>
+        </cmdsynopsis>
+
+      </refsynopsisdiv>
+      <refsect1>
+         <title>DESCRIPTION</title>
+         <para>
+          This Tk script processes a control configuration file enumerating the
+          WIENER/JTECT gdg8 modules that it defines.  For each module created in that
+          file, a tab in a tabbed notebook is created that contains a control panel
+          for that module.   
+         </para>
+         <para>
+          See <literal>ENVIRONMENT VARIABLES</literal> below for information
+          about how to control the operation of this script.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            ENVIRONMENT VARIABLES
+         </title>
+         <para>
+          Several environment variables (which have reasonable default values
+          if not defined) control the operation of this script:
+         </para>
+         <variablelist>
+          <varlistentry>
+              <term><literal>CONTROLHOST</literal></term>
+              <listitem>
+                  <para>
+                      Defines the host on which the VMUSBReadout program is running.
+                      If not defined, this defaults to
+                      <literal>localhost</literal>, that is the same system
+                      on which the control panel is running.
+                  </para>
+              </listitem>
+          </varlistentry>
+          <varlistentry>
+              <term><literal>CONTROLPORT</literal></term>
+              <listitem>
+                  <para>
+                      Specifies the server port on which the VMUSBReadout
+                      control server is listening for connections. This defaults
+                      to <literal>27000</literal> which is also the default
+                      used by VMUSBReadout unless <option>--port</option>
+                      is used when invoking that program to override the
+                      default.
+                  </para>
+              </listitem>
+          </varlistentry>
+          <varlistentry>
+              <term><literal>CONFIGDIR</literal></term>
+              <listitem>
+                  <para>
+                      The directory in which the control configuration
+                      file lives.  This defaults to
+                      <filename>~/config</filename>
+                  </para>
+              </listitem>
+          </varlistentry>
+          <varlistentry>
+              <term><literal>CONFIGFILE</literal></term>
+              <listitem>
+                  <para>
+                      When joined with <literal>CONFIGDIR</literal>, determines
+                      the full path to the control configuration file.
+                      This defaults to <filename>controlconfig.tcl</filename>.
+                      This is the default unless overriden by the
+                       <option>--ctlconfig</option> option on the
+                       VMUSBReadout command line.
+                  </para>
+              </listitem>
+          </varlistentry>
+          
+         </variablelist>
+      </refsect1>
+
+    </refentry>
+
+<!-- /manpage -->

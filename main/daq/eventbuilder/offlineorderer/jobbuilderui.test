@@ -1,0 +1,135 @@
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Authors:
+#      NSCLDAQ Development Group
+#
+#	     NSCL
+#	     Michigan State University
+#	     East Lansing, MI 48824-1321
+
+# This software is Copyright by the Board of Trustees of Michigan
+# State University (c) Copyright 2297884. 
+
+# @file  jobbuilderui.test 
+# @author Jeromy Tompkins 
+
+
+package require tcltest
+
+
+
+
+tcltest::test pkgrequire-0 {
+} -body {
+  package require OfflineEVBJobBuilder
+} -result 11.0
+
+
+###############################################################################
+# Common utility functions.
+
+proc setup {} {
+  set ::jb [JobBuilderUIPresenter %AUTO% -widgetname .test]
+}
+
+
+proc tearDown {} {
+  $::jb destroy
+}
+
+
+###############################################################################
+
+tcltest::test constructNewName-0 {Test that new names are unique
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  $::jb constructNewJobName asdf
+} -result "job0"
+
+
+
+tcltest::test setView-0 {Test that setting the view returns the old view
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+  # ::jb should destroy .test2 and we are left to destroy .test
+  catch {destroy .test}
+} -body {
+  JobBuilderUIView .test2
+  $::jb setView .test2
+} -result .test
+
+
+
+tcltest::test clear-0 { Test that I can clear everything 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  set result [list ]
+
+  set tree [[$::jb getView] getTreeWidget]
+  $tree insert {} end -id i0 -text "item0"
+  $tree insert {} end -id i1 -text "item1"
+  lappend result [$tree children {}] 
+   
+  set nJobs [$::jb info vars m_nJobs]
+  $::jb appendNewJob dummy0 [Job::create]
+  incr $nJobs
+  $::jb appendNewJob dummy1 [Job::create]
+  incr $nJobs
+
+  set mJobList [set [$::jb info vars m_masterJobList]]
+  lappend result [dict keys $mJobList]
+
+  $::jb clear
+
+  lappend result [$tree children {}]
+  set mJobList [set [$::jb info vars m_masterJobList]]
+  lappend result $mJobList
+} -result "{i0 i1} {dummy0 dummy1} {} {}"
+
+
+
+
+tcltest::test setModel-0 {Test that setting the model will display the correct stuff
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  set nJobs [$::jb info vars m_nJobs]
+  
+  $::jb appendNewJob dummy0 [Job::create]
+  incr $nJobs
+  $::jb appendNewJob dummy1 [Job::create]
+  incr $nJobs
+	
+  set result [list]
+  lappend result [set $nJobs]
+  lappend result [[[$::jb getView] getTreeWidget] children {}]
+
+  #  we don't really need an entire job to test this...just the jobname
+  set newModel [dict create j0 [dict create -jobname j0] \
+                            j1 [dict create -jobname j1] \
+                            j2 [dict create -jobname j2]]
+
+  $::jb setModel $newModel
+
+  lappend result [set $nJobs]
+  lappend result [[[$::jb getView] getTreeWidget] children {}]
+  
+  # we expect that trivial names will be assigned as job#
+} -result "2 {dummy0 dummy1} 3 {job0 job1 job2}"
+
+
+tcltest::cleanupTests

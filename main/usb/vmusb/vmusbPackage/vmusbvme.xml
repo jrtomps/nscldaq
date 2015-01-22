@@ -1,0 +1,229 @@
+<!-- chapter 1tcl -->
+<chapter>
+    <title>VMUSB VME Tcl Package</title>
+    <para>
+        The VMUSB VME Tcl package allows applications written in Tcl to
+        perfrom VME operations over the VM-USB controller.  Note that only one
+        application can open a VM-USB controller at a time.  This package is
+        therefore intended to be used with VME crates that are not involved with
+        the experiment readout.
+    </para>
+    <para>
+        The VMUSB VME package is intentionally highly compatible with the
+        SBS Vme Tcl package.  Applications written for either should be easily
+        ported to the other.  
+    </para>
+    <para>
+        For more information, see
+        <link linkend='tcl1.vmusbvmetcl' endterm='tcl1.vmusbvmetcl.title' />
+    </para>
+</chapter>
+
+<!-- /chapter -->
+
+<!-- manpage 1tcl -->
+<refentry id="tcl1.vmusbvmetcl">
+  <refentryinfo>
+    <author>
+            <personname>
+                    <firstname>Ron</firstname>
+                    <surname>Fox</surname>
+            </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='tcl1.vmusbvmetcl.title'>VMUSB vmetcl</refentrytitle>
+     <manvolnum>1tcl</manvolnum>
+     <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>VMUSB vmetcl</refname>
+     <refpurpose>VME access via VM-USB for Tcl scripts.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <cmdsynopsis>
+        <command>
+package require vmusbvme
+        </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+vme enumerate
+        </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+vme create <replaceable>name ?options? base size</replaceable>
+        </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+vme list
+        </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+vme delete <replaceable>name</replaceable>
+        </command>
+    </cmdsynopsis>
+    
+    <cmdsynopsis>
+        <command>
+<replaceable>name</replaceable> get -l | -w | -b <replaceable> offset</replaceable>
+        </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+<replaceable>name</replaceable> put -l | -w | -b <replaceable>offset value</replaceable>
+        </command>
+    </cmdsynopsis>
+    
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        <literal>vmusbvme</literal> is a drop in replacement for the SBS Vme Tcl package.
+        Note that since, on linux, only one program can own a VME device at a time,
+        this package is intended to be used with VME crates that are not involved
+        in the readout of the experiment. 
+     </para>
+     <para>
+        In addition to the SBS subcommands for creating, listing and deleting address
+        windows in the VME crate, the package supports getting an enumeration of the
+        crates that are visible on the hosts USB subsystem.  This can be used to
+        determine which crate an application really wants to open in a multi-crate
+        environment.
+     </para>
+     <para>
+        <literal>vmusbvme</literal> contains a single public command which has several
+        subcommands.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+        SUBCOMMANDS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term><command>vme create</command> <replaceable>name options... base-address size</replaceable></term>
+            <listitem>
+                <para>
+                    Creates a new named window in the vme crate address space.
+                    The <parameter>base-address</parameter> is the start of this window
+                    and <parameter>size</parameter> the number of bytes covered by this
+                    window.
+                </para>
+                <para>
+                    <parameter>name</parameter> provides a name for the address space.
+                    The <parameter>name</parameter> becomes a new Tcl command if
+                    the <command>vme create</command> command succeeds. See
+                    <literal>WINDOW SUB-COMMANDS</literal> for information on how
+                    to use this new command to access the contents of the address window.
+                </para>
+                <para>
+                    <replaceable>options</replaceable> are a set of pairs of command
+                    parameters.  The first element of each pair is an option name and the
+                    second its value.
+                </para>
+                <para>
+                    The option <option>-device</option> determines
+                    which address modifier is used to access the window.  It can have the
+                    values <literal>standard, extended, shortio</literal> and
+                    <literal>geo</literal>.  The <literal>geo</literal> address modifier
+                    is inteded for accessing CAEN 32 channel digitizer in geographical
+                    addressing mode.  It is actually address modifier <literal>0x2f</literal>
+                    which the VME standard reserves for <literal>Configuration ROM/Control&amp;Status Register (CR/CSR)</literal>
+                    accesses.  This option defaults to <literal>standard</literal>
+                </para>
+                <para>
+                    The <option>-crate</option> option specifies the crate number to
+                    create the map in.  This defaults to <literal>0</literal> if not
+                    supplied.  See the <command>enumerate</command> subcommand.
+                </para>
+                <para>
+                    On success this command returns the <parameter>name</parameter>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><command>vme list</command></term>
+            <listitem>
+                <para>
+                    Returns a list of currently defined VME address windows.
+                    Each list element is a pair.  The first element of each
+                    pair is the name of the window and the second is the base address
+                    of the window.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><command>vme delete <replaceable>name</replaceable></command></term>
+            <listitem>
+                <para>
+                    Deletes the vme address window specified by <parameter>name</parameter>.
+                    The command is destroyed and the window will no longer appear in the list
+                    of windows returned by <command>vme list</command>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><command>vme enumerate</command></term>
+            <listitem>
+                <para>
+                    Returns an enumeration of the controllers that are currently
+                    attached to the host system.  The enumeration is a list of pairs.
+                    The first element of each pair is a crate number to use when
+                    creating maps in that VME crate.  The second element of each pair
+                    is the serial number string of the VM-USB controller that is
+                    interfacing the host to that crate.
+                </para>
+            </listitem>
+        </varlistentry>
+        
+     </variablelist>
+  </refsect1>
+  <refsect1>
+    <title>WINDOW SUB-COMMANDS</title>
+    <para>
+        VME address spaces created via <command>vme create</command> are command
+        ensembles.  The name of the space is the ensemble name.  Each command
+        has the following subcommands:
+    </para>
+    <variablelist>
+        <varlistentry>
+            <term><command>get <replaceable>size offset</replaceable></command></term>
+            <listitem>
+                <para>
+                    Fetches data from the VME bus.  The <replaceable>size</replaceable>
+                    parameter is one of <option>-l, -w</option>  or <option>-b</option>
+                    specifying respectively 32 bit, 16 bit or 8 bit accesses.  The
+                    <parameter>offset</parameter> is the byte offset into the VME
+                    window from which the data are to be fetched.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><command>put <replaceable>size offset value</replaceable></command></term>
+            <listitem>
+                <para>
+                    Writes data to the VME bus.  The <replaceable>size</replaceable>
+                    parameter specifies the width of the transfer (same values as for
+                    <command>get</command>).  The <parameter>offset</parameter>
+                    parameter is the byte offset into the window to which the write will
+                    be performed and <parameter>value</parameter> is the value written.
+                </para>
+            </listitem>
+        </varlistentry>
+        
+        
+    </variablelist>
+  </refsect1>
+
+</refentry>
+
+
+
+<!-- /manpage -->

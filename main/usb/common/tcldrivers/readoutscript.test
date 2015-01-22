@@ -1,0 +1,184 @@
+
+package require tcltest
+package require readoutscript
+
+###############################################################################
+###############################################################################
+
+# UTILITIES AND COMMON VARIABLES
+
+set testfname "____test____"
+set testcontent $testfname
+set testpath [tcltest::makeFile $testcontent $testfname]
+
+## find a filename that doesn;t exist
+set missingfname "a"
+while {[file exists $missingfname]} {
+  append missingfname "a"
+}
+
+###############################################################################
+###############################################################################
+
+# we don't enforce -controllertype at construction, only at use
+tcltest::test constructor-0 {Constructor succeeds without -controllertype 
+} -body {
+  set object [readoutscript myscript]
+  $object destroy
+} -returnCodes 0 
+
+#########################################################################################
+############ TEST the _setScript proc
+
+
+##
+tcltest::test setscript-0 {Test success for a file that is sure to exist
+} -setup {
+  readoutscript myscript
+} -cleanup {
+  myscript destroy
+} -body {
+  myscript _setScript -initscript $testpath
+} -returnCodes 0 -result $testpath
+
+##
+tcltest::test setscript-0 {Test failure for a file that we know doesn't exist 
+} -setup {
+  readoutscript myscript
+} -cleanup {
+  myscript destroy
+} -body {
+  myscript _setScript -initscript $missingfname
+} -returnCodes 1 -result "File path $missingfname specified for -initscript, but no file exists there."
+
+
+########### _setScript called by configure
+##
+tcltest::test configureinit-0 {Test failure for a file that we know doesn't exist for -initscript 
+} -setup {
+  readoutscript myscript
+} -cleanup {
+  myscript destroy
+} -body {
+  myscript configure -initscript $missingfname
+} -returnCodes 1 -result "File path $missingfname specified for -initscript, but no file exists there."
+
+##
+tcltest::test configureinit-1 {Test success for a file that we know exist for -initscript
+} -setup {
+  readoutscript myscript -initscript $testpath
+} -cleanup {
+  myscript destroy
+} -body {
+  myscript cget -initscript
+} -returnCodes 0 -result $testpath
+
+##
+tcltest::test configureonend-0 {Test failure for a file that we know doesn't exist for -onendscript
+} -setup {
+  readoutscript myscript
+} -cleanup {
+  myscript destroy
+} -body {
+  myscript configure -onendscript $missingfname
+} -returnCodes 1 -result "File path $missingfname specified for -onendscript, but no file exists there."
+
+##
+tcltest::test configureonend-1 {Test success for a file that we know exist for -onendscript
+} -setup {
+  readoutscript myscript -onendscript $testpath
+} -cleanup {
+  myscript destroy
+} -body {
+  myscript cget -onendscript
+} -returnCodes 0 -result $testpath
+
+##
+tcltest::test configurerdolist-0 {Test failure for a file that we know doesn't exist for -rdolistscript
+} -setup {
+  readoutscript myscript
+} -cleanup {
+  myscript destroy
+} -body {
+  myscript configure -rdolistscript $missingfname
+} -returnCodes 1 -result "File path $missingfname specified for -rdolistscript, but no file exists there."
+
+##
+tcltest::test configurerdolist-1 {Test success for a file that we know exist for -rdolistscript
+} -setup {
+  readoutscript myscript -rdolistscript $testpath
+} -cleanup {
+  myscript destroy
+} -body {
+  myscript cget -rdolistscript
+} -returnCodes 0 -result $testpath
+
+
+######################################
+## tests for _setControllerType
+#
+##
+tcltest::test setctlrtype-0 {Test set controller type for "vmusb" 
+} -setup {
+  readoutscript myscript
+} -cleanup {
+  myscript destroy
+} -body {
+  myscript _setControllerType -controllertype vmusb
+  myscript cget -controllertype
+} -result "vmusb" -returnCodes 0
+
+tcltest::test setctlrtype-1 {Test set controller type for "ccusb"
+} -setup {
+  readoutscript myscript
+} -cleanup {
+  myscript destroy
+} -body {
+  myscript _setControllerType -controllertype ccusb
+  myscript cget -controllertype
+} -result "ccusb" -returnCodes 0
+
+tcltest::test setctlrtype-2 {Test set controller type for "noneoftheabove"
+} -setup {
+  readoutscript myscript
+} -cleanup {
+  myscript destroy
+} -body {
+  myscript _setControllerType -controllertype noneoftheabove
+} -result "Type of controller not specified! User must set -controllertype to either \"vmusb\" or \"ccusb\"" -returnCodes 1
+
+################### test for Initialize
+
+tcltest::test initialize-0 {Test failure if -controllertype has not been specified
+} -setup {
+  readoutscript myscript
+} -cleanup {
+  myscript destroy
+} -body {
+  myscript Initialize actlr
+} -result "Type of controller not specified! User must set -controllertype to either \"vmusb\" or \"ccusb\"" -returnCodes 1
+
+################### test for onEnd 
+
+tcltest::test initialize-0 {Test failure if -controllertype has not been specified
+} -setup {
+  readoutscript myscript
+} -cleanup {
+  myscript destroy
+} -body {
+  myscript onEndRun actlr
+} -result "Type of controller not specified! User must set -controllertype to either \"vmusb\" or \"ccusb\"" -returnCodes 1
+
+################### test for addReadoutList 
+
+tcltest::test addreadoutlist-0 {Test failure if -controllertype has not been specified
+} -setup {
+  readoutscript myscript
+} -cleanup {
+  myscript destroy
+} -body {
+  myscript addReadoutList actlr
+} -result "Type of controller not specified! User must set -controllertype to either \"vmusb\" or \"ccusb\"" -returnCodes 1
+
+
+tcltest::cleanupTests

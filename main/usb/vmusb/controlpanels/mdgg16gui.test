@@ -1,0 +1,273 @@
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2014.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Author:
+#    Jeromy Tompkins
+#	   NSCL
+#	   Michigan State University
+#	   East Lansing, MI 48824-1321
+
+package require tcltest
+
+tcltest::test pkgrequire-0 {Must be able to require package
+} {package require mdgg16gui} 1.0
+
+
+# Some fake objects to use for test. These are minimally implemented to
+# provide the least amount of functionality to make testing possible.
+
+# View
+snit::type FakeView {
+  option -presenter
+
+  variable _log
+  variable _memory
+
+  constructor {args} {
+    $self configurelist $args
+    set _log [list]
+    set _memory [dict create 0 [dict create] 1 [dict create] \
+                             2 [dict create] 3 [dict create]]
+  }
+
+  method SetBit {col ch val} {
+    dict set _memory $col $ch $val
+  }
+
+  method GetBit {col ch} {
+    return [dict get $_memory $col $ch]
+  }
+
+  method SetOutOfSync {val} { }
+  method MapColumnToWidget {col} { return $self  }
+}
+
+# Handle
+snit::type FakeHandle {
+  variable _log
+
+  constructor {} {
+    set _log [list]
+  }
+
+  method SetLogicalORAB {val} {
+    lappend _log "SetLogicalORAB $val"
+  }
+
+  method SetLogicalORCD {val} {
+    lappend _log "SetLogicalORCD $val"
+  }
+
+  method GetLogicalORAB {} {
+    return 128;
+  }
+
+  method GetLogicalORCD {} {
+    return 127;
+  }
+
+  method GetLog {} {return $_log}
+}
+
+proc clock {subcommand {arg ""}} {
+  return "Wed Dec 31 12:00:00 EST 2014"
+}
+
+###############################################################################
+# Begin tests
+
+#
+#
+tcltest::test encodeMask-0 {Makes sure we can encode properly
+} {
+
+  MDGG16Presenter ::dev
+
+  set bits [list 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 \
+                 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 ] 
+  set res [::dev EncodeBitsIntoMask $bits]
+  ::dev destroy
+  set res
+} [expr 0xffffffff]
+
+#
+#
+tcltest::test decodeMask-0 {Makes sure we can decode properly
+} {
+
+  MDGG16Presenter ::dev
+  
+  set mask [expr 0xffffffff]
+  set res [::dev DecodeMaskIntoBits $mask]
+  ::dev destroy
+  set res
+} [list 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 \
+                 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 ] 
+#
+#
+tcltest::test saveToFile-0 {Makes sure we can save to file
+} {
+  set view [FakeView %AUTO%]
+
+  for {set col 0} {$col<4} {incr col} {
+    for {set ch 0} {$ch<16} {incr ch} {
+      $view SetBit $col $ch 1
+    }
+  }
+  MDGG16Presenter ::dev -view $view
+  ::dev SaveCurrentStateToFile tmp.txt
+  ::dev destroy
+  $view destroy
+  
+  
+  set content [tcltest::viewFile tmp.txt]
+  file delete tmp.txt
+  set content
+} {Configuration file for MDGG16Control
+Wed Dec 31 12:00:00 EST 2014
+or_a 65535
+or_b 65535
+or_c 65535
+or_d 65535
+ 0 : Ch0
+ 1 : Ch1
+ 2 : Ch2
+ 3 : Ch3
+ 4 : Ch4
+ 5 : Ch5
+ 6 : Ch6
+ 7 : Ch7
+ 8 : Ch8
+ 9 : Ch9
+10 : Ch10
+11 : Ch11
+12 : Ch12
+13 : Ch13
+14 : Ch14
+15 : Ch15}
+
+
+#
+#
+tcltest::test CommitMask-0 {Commit mask should copy state of view to handle
+} {
+  set handle [FakeHandle %AUTO%]
+  set view [FakeView %AUTO%]
+
+  MDGG16Presenter ::dev -view $view -handle $handle
+
+  # set the view state now b/c otherwise it would be set to whatever the 
+  # handle dictated in the previous line. 
+  for {set col 0} {$col<2} {incr col} {
+    for {set ch 0} {$ch<16} {incr ch} {
+      $view SetBit $col $ch [expr $ch%2]
+    }
+  }
+  for {set col 2} {$col<4} {incr col} {
+    for {set ch 0} {$ch<16} {incr ch} {
+      $view SetBit $col $ch 1
+    }
+  }
+
+  # commit the mask... because the view only knows how to return 1 for 
+  # every bit it maintains, this will produce two masks of value 65535
+  ::dev CommitMask 
+  $view destroy
+  
+  set log [$handle GetLog]
+  $handle destroy 
+  ::dev destroy
+
+  set log
+} {{SetLogicalORAB 2863311530} {SetLogicalORCD 4294967295}}
+
+#
+#
+tcltest::test UpdateViewFromModel-0 {Commit mask should copy state of view to handle
+} {
+  set handle [FakeHandle %AUTO%]
+  set view [FakeView %AUTO%]
+
+  # by default the next step will read from the handle the mask
+  # AB = 128 and CD = 127
+  MDGG16Presenter ::dev -view $view -handle $handle
+
+  # commit the mask... because the view only knows how to return 1 for 
+  # every bit it maintains, this will produce two masks of value 65535
+  ::dev UpdateViewFromModel
+
+  set result [list]
+  for {set col 0} {$col<4} {incr col} {
+    for {set ch 0} {$ch<16} {incr ch} {
+      lappend result [$view GetBit $col $ch] 
+    }
+  }
+  $view destroy
+  $handle destroy 
+  ::dev destroy
+
+  set result
+} [list 0 0 0 0  0 0 0 1  0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 0 \
+        1 1 1 1  1 1 1 0  0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 0 ]
+
+tcltest::test LoadStateFromFile-0 {Loading state from file translates to view
+} {
+  tcltest::makeFile {Configuration file for MDGG16Control
+Wed Dec 31 12:00:00 EST 2014
+or_a 6553
+or_b 6555
+or_c 6535
+or_d 5535
+ 0 : CCh0
+ 1 : CCh1
+ 2 : asdf
+ 3 : Ch3
+ 4 : Ch4
+ 5 : Ch5
+ 6 : Ch6
+ 7 : Ch7asdf
+ 8 : Ch8
+ 9 : Ch9asdf
+10 : Ch10
+11 : Ch11asdf
+12 : Ch12
+13 : Ch13
+14 : Ch14
+15 : Ch15asdf} fake.config
+
+  set handle [FakeHandle %AUTO%]
+  set view [FakeView %AUTO%]
+
+  # by default the next step will read from the handle the mask
+  # AB = 128 and CD = 127
+  MDGG16Presenter ::dev -view $view -handle $handle
+
+  ::dev LoadStateFromFile fake.config
+
+  set resList [list]
+  for {set ch 0} {$ch < 16} {incr ch} {
+    lappend  resList [set MDGG16ChannelNames::chan$ch]
+  }
+
+  set result [list]
+  for {set col 0} {$col<4} {incr col} {
+    for {set ch 0} {$ch<16} {incr ch} {
+      lappend resList [$view GetBit $col $ch] 
+    }
+  }
+
+  $view destroy
+  $handle destroy 
+  ::dev destroy
+
+  set resList
+} [list CCh0 CCh1 asdf Ch3 Ch4 Ch5 Ch6 Ch7asdf Ch8 Ch9asdf Ch10 Ch11asdf Ch12 Ch13 Ch14 Ch15asdf \
+1 0 0 1  1 0 0 1  1 0 0 1  1 0 0 0  1 1 0 1  1 0 0 1  1 0 0 1  1 0 0 0 \
+1 1 1 0  0 0 0 1  1 0 0 1  1 0 0 0  1 1 1 1  1 0 0 1  1 0 1 0  1 0 0 0]
+
+tcltest::cleanupTests

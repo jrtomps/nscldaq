@@ -1,0 +1,175 @@
+#!/usr/bin/tclsh
+#
+#   This file contains tests for scripts and packages in this directory.
+#
+package require tcltest
+set here [file dirname [info script]]
+
+# starting to just get too tough to do this without
+# packaging:
+
+set auto_saved $auto_path
+set auto_path [concat $here $auto_path]
+
+if {[file exists pkgIndex.tcl]} {
+    file delete              pkgIndex.tcl.saved
+    file rename pkgIndex.tcl pkgIndex.tcl.saved
+}
+pkg_mkIndex . *.tcl
+
+package require OS 2.0
+
+#  Tests:
+
+tcltest::test OS-1.0 {Ensure OS is set correctly} {
+    set OS::OSType
+} $tcl_platform(os)
+
+tcltest::test OS-1.1 {Ensure that OSList has the OS's in the package.} {
+    set OS::OSList
+} [list Linux OSF1]
+
+
+
+#  Ensure that we can add an OS (although we've already determined that
+#  in the prior test
+
+tcltest::test OS-1.2 {Ensure that OSList can be added to} {
+    set oldlist $OS::OSList
+    set OS::OSList {}
+    OS::AddOs myOS
+    set newlist $OS::OSList
+
+    set OS::OSList $oldlist
+
+    set newlist
+
+} [list myOS]
+
+tcltest::test OS-1.3 {Ensure OS knows our os} {
+    OS::OsPkg
+} $tcl_platform(os)
+
+#  Subsequent tests only work for unix.  The drill
+#  is that we'll test the Unix::Version of the test
+#  then we'll test the ability of the OS:: to dispatch
+#  to that test.    Expect therefore  a structure like:
+#    proc xxxsetup {} {...setup the test...}
+#    tcltest::test OS-x.0 {test UNIX::xxxx} {unix} {xxxsetup ...}
+#    tcltest::test OS-x.1 {test OS::xxxx}   {unix} {xxxsetup ...}
+
+# 2.x Test DiskSpace.
+
+tcltest::test OS-2.0 {Unix::DiskSpace. no setup required} {unix} {
+    set df [exec df -k .]
+    set usize [Unix::DiskSpace .]
+    set size [lindex $df 8]
+
+    # Hopefully changes will be < 1k in that time.
+
+    if {$usize == $size} {
+        set return 1
+    } else {
+        set return 0
+    }
+    set return
+} 1
+tcltest::test OS-2.1 {OS::DiskSpace. no setup required} {unix} {
+    set df [exec df -k .]
+    set usize [OS::DiskSpace .]
+    set size [lindex $df 8]
+
+    # Hopefully changes will be < 1k in that time.
+
+    if {$usize == $size} {
+        set return 1
+    } else {
+        set return 0
+    }
+    set return
+} 1
+
+
+# 3.x DiskSpaceWLinks
+
+
+# I don't know why I need to test within a tolerance but
+# 3.0 seems to fail otherwise... it may be that tcltest
+# makes temp files?  I see normally a diff of 8 on 3.0
+# but then exact match on 3.1!!!
+#
+
+set testdu [exec which du]
+set testtolerance 20
+
+
+# 4.x FreeSpace
+
+tcltest::test OS-4.0 {::Unix::FreeSpace} {unix} {
+    set myamount [exec df -k .]
+    set myamount [lindex $myamount 10]
+
+    set unixamount [::Unix::FreeSpace .]
+
+    if {$unixamount == $myamount} {
+        set return 1
+    } else {
+        set return "Unix::FreeSpace sb $myamount was $unixamount"
+    }
+    set return
+
+} 1
+
+tcltest::test OS-4.1 {::OS::FreeSpace} {unix} {
+    set myamount [exec df -k .]
+    set myamount [lindex $myamount 10]
+    set unixamount [::OS::FreeSpace .]
+
+    if {$unixamount == $myamount} {
+        set return 1
+    } else {
+        set return "Unix::FreeSpace sb $myamount was $unixamount"
+    }
+    set return
+} 1
+
+# 5.x  - SizeDir - Get the amount of space used by the
+#                  files under a subdirectory.
+#
+tcltest::test ReadoutControl-5.0 {::OS::SizeDir} {unix} {
+    set myamount [lindex [exec du -sk .] 0]
+    set osamount [::Unix::SizeDir .]
+    if {abs($myamount - $osamount) < 10} {
+        set result 1
+    } else {
+        set result "::Unix::SizeDir sb $myamount is $osamount"
+    }
+    set result
+} 1
+
+tcltest::test ReadoutControl-5.1 {::OS::SizeDir} {unix} {
+    set myamount [lindex [exec du -sk .] 0]
+    set osamount [::OS::SizeDir .]
+    if {abs($myamount - $osamount) < 10} {   # Probably a good tolerance.
+        set result 1
+    } else {
+        set result "::OS::SizeDir sb $myamount is $osamount"
+    }
+    set result
+} 1
+
+
+#  Tape list... very os dependent so can't do a simple test.
+
+tcltest::test ReadoutControl-6.0 {::OS::TapeList} {emptyTest} {
+} 0
+
+# Cleanup
+
+file delete pkgIndex.tcl
+if {[file exists pkgIndex.tcl.saved]} {
+    file rename pkgIndex.tcl.saved pkgIndex.tcl
+}
+set auto_path $auto_saved
+
+tcltest::cleanupTests

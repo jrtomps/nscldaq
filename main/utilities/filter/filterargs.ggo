@@ -1,0 +1,12 @@
+package "NSCLDaq Filter"
+version "0.1"
+purpose "Provides ability to insert experiment specific filter into data stream"
+
+option "source"  s "URL of source. Specifies either a ring buffer, file, or - for stdin" string default="-" optional
+option "sink"    d "URL of sink. Specifies either a ring buffer, file, or - for stdout" string default="-" optional
+option "skip"    m "Number of items to skip before dumping" int optional 
+option "count"   c "Number of items to process before exiting" int optional
+option "sample"  S "List of item types to sample" string optional 
+option "exclude" e "List of item types to remove from data stream" string optional
+option "oneshot" o   "Record one run and exit, making synchronization files" optional
+option "number-of-sources" n  "Number of data sources being built" int  optional default="1" 

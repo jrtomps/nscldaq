@@ -1,0 +1,153 @@
+<!-- chapter utilities -->
+
+<chapter id="usbloaders_chap">
+    <title id='usbloaders_chap_title'>VM/CCUSB Firmware loaders</title>
+    <para>
+        The VM-USB and CC-USB main Xilinx FPGA chips load their configuration
+        from an EEPROM.  The EEPROM can be programmed over the USB interface.
+        The <link linkend="daq1_ccusbloader" endterm='daq1_ccusbloader_title' />
+        and <link linkend='daq1_vmusbloader' endterm='daq1_vmusbloader_title' />
+        programs provided by and redistributed with the permission of Wiener-Plein
+        Baus are programs that program the FPGA load EEPROMS.
+    </para>
+    <para>
+        These loaders work both with Xilinx <filename>.bit</filename> and
+        <filename>.bin</filename> files.  
+    </para>
+    <para>
+        The XX-USB devices have four load locations. Which one runs and which
+        one is programmed is selected by the rotary switch on the XX-USB front panel.
+    </para>
+    <procedure>
+        <title>XX-USB load procedure</title>
+        <step><para>
+            Select a program location (1-4) by pointing to the appropriate
+            P1,2,3,4 location with the front panel rotary switch.
+            </para>
+        </step>
+        <step>
+            <para>
+                Run the appropriate loader as per the documentation in the
+                reference section linked to above.
+            </para>
+        </step>
+        <step>
+            <para>
+                Select the run location of the firmware by selecting the
+                appropriate C1,2,3,4 location with the rotary switch
+            </para>
+        </step>
+        <step>
+            <para>
+                Double check that the device will start that firmware by
+                cycling power on the VME/CAMAC crate.
+            </para>
+        </step>
+    </procedure>
+    <para>
+        Once you have checked that the firmware performs as expected,
+        you can program all firmware locations by following the above procedure
+        three more times selecting different P locations until all have been
+        programmed.
+    </para>
+        
+</chapter>
+
+<!-- /chapter -->
+
+
+<!-- manpage 1daq -->
+
+      <refentry id="daq1_ccusbloader">
+        <refmeta>
+           <refentrytitle id='daq1_ccusbloader_title'>ccusbloader</refentrytitle>
+           <manvolnum>1daq</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>ccusbloader</refname>
+           <refpurpose>CC-USB Firmware loader</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+            <command>
+ccusbloader <replaceable>firmware-filename <optional>serial-string</optional></replaceable>
+          </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Loads the <filename>firmware-filename</filename> into the currently
+            selected firmware location. See
+            <link linkend='usbloaders_chap' endterm='usbloaders_chap_title' />
+            for the full load procedure. 
+           </para>
+           <para>
+            If <replaceable>serial-string</replaceable> is provided it must be
+            a serial number string for a powered up device attached to the system.
+            The CC-USB with that serial number will be used.
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              KNOWN ISSUES
+           </title>
+           <para>
+            The format of firmware files does not match the documentation available.
+            For <filename>.bit</filename> files it is necessary to skip headers to get to the load
+            data.  If you have bit files that are not loadable report this problem
+            and use the corresponding <filename>.bin</filename> file instead.
+           </para>
+        </refsect1>
+
+      </refentry>
+      <refentry id="daq1_vmusbloader">
+        <refmeta>
+           <refentrytitle id='daq1_vmusbloader_title'>vmusbloader</refentrytitle>
+           <manvolnum>1daq</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>vmusbloader</refname>
+           <refpurpose>VM-USB Firmware loader</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+            <command>
+vmusbloader <replaceable>firmware-filename <optional>serial-string</optional></replaceable>
+          </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Loads the <filename>firmware-filename</filename> into the currently
+            selected firmware location. See
+            <link linkend='usbloaders_chap' endterm='usbloaders_chap_title' />
+            for the full load procedure. 
+           </para>
+           <para>
+            If <replaceable>serial-string</replaceable> is provided it must be
+            a serial number string for a powered up device attached to the system.
+            The VM-USB with that serial number will be used.
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              KNOWN ISSUES
+           </title>
+           <para>
+            The format of firmware files does not match the documentation available.
+            For <filename>.bit</filename> files it is necessary to skip headers to get to the load
+            data.  If you have bit files that are not loadable report this problem
+            and use the corresponding <filename>.bin</filename> file instead.
+           </para>
+        </refsect1>
+
+      </refentry>
+
+
+<!-- /manpage -->

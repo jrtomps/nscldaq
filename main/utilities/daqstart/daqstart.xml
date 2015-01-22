@@ -1,0 +1,214 @@
+
+<!-- chapter utilities -->
+
+<chapter id="chapter.daqstart">
+    <title>daqstart - Starting programs with logging and monitoring</title>
+    <para>
+        When running a critical component of a system, it is important to
+        know if that component exits.  Furthermore, if the exit is unintended,
+        maintaining a log of the output and error streams for that component
+        can aid in failure analysis.
+    </para>
+    <para>
+        The <application>daqstart</application> component provides the ability
+        to run an arbitrary executable (or script), capturing the error and or
+        output to a timestamped log and informing you if the executable or script
+        exits.
+        The
+        <link linkend="manpage.daqstart">daqstart</link>
+        reference page describes the detailed use of the
+        <application>daqstart</application> program.
+    </para>
+    <para>
+        Output monitoring by
+        <application>daqstart</application>
+        uses the concept of
+        <firstterm>sinks</firstterm>.
+        While the current implementation only supports file sinks, future implementations
+        may provide other types of sinks such as pipes or interfaces to the
+        unix system log facility, or even database logs.
+    </para>
+    <para>
+        Output sinks are specified using the form:
+        <literal>type:destination</literal>
+        where <literal>type</literal> defines the sink type (e.g. <literal>file</literal>),
+        and the <literal>destination</literal> is sink type specific
+        (e.g. for a <literal>file</literal> sink the destination is the
+        name of the file that will be the sink).
+    </para>
+    <para>
+        Now a simple example:
+    </para>
+    <example>
+        <title>Logging errors and informing on exit</title>
+        <programlisting>
+daqstart --error=file:/user/fox/logs/critical.log --notify \
+                   mycriticalprogram --anoption=avalue argument
+        </programlisting>
+    </example>
+    <para>
+        The logfile will be
+        <filename>/user/fox/logs/critical.log</filename>.  If that file
+        exists new data will be appended to the log.  Once a command argument that
+        is not recognized by the
+        <application>daqstart</application>
+        program appears on the command line, the remainder of the line is considered
+        to be the application that will be logged.
+    </para>
+</chapter>
+<!-- /chapter -->
+
+<!-- manpage 1daq -->
+
+    
+<refentry id="manpage.daqstart">
+  <refmeta>
+     <refentrytitle>daqstart</refentrytitle>
+     <manvolnum>1daq</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>daqstart</refname>
+     <refpurpose>Monitor essential programs</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <cmdsynopsis>
+	<command>
+daqstart <option>options...</option> <replaceable>command </replaceable>
+	</command>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+       This  utility facilitates the collection of logging/debugging information from
+       programs that were not originally intended to produce logs.  daqstart  runs  a
+       target  program.   Stdout  and stderr of the target program are initialized as
+       pipes that are monitored by the daqstart program.  Output on each pipe is
+       collected a line at a time and relayed to daqstarts stdout or stderr as
+       appropriate.  If a logging sink has been attached to  the  standard  file,  lines  are
+       timestamped and logged to that sink as well.  This utility is also very useful
+       for programs that are run from desktop shortcuts under window managers such as
+       e.g. kde.
+       </para>
+        <para>
+       On  target  program  exit,  if  an error sink is specified, an exit message is
+       logged to the error sink.  The exit message contains  such  information  about
+       why  the  program  exited as UNIX can provide (exit status and signal), and is
+       also timestamped.
+        </para>
+        <para>
+       If the <option>--notify</option>
+        option is specified, the exit message is also  sent  to  daqstart's
+        stderr.  Additionally,  if the DISPLAY environment variable is defined
+       and the PopUp program is executable in the current path, it is invoked to  pop
+       up an Xwindows dialog with similar information.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+	OPTIONS
+     </title>
+     <para>Each option has a short and a long form.  Short form options are preceded
+        by  a single <literal>-</literal>.  Long options are preceeded by
+        <literal>--</literal>.  If a value is required, it should be butted up against
+        short options or separated from long options by an <literal>=</literal>.  For
+        example: <option>-osomesink</option> and <option>--output=somesink</option>
+        are equivalent.
+     </para>
+     <variablelist>
+	<varlistentry>
+	    <term><option>-h --help</option></term>
+	    <listitem>
+		<para>
+                     Display short help and exit.
+		</para>
+	    </listitem>
+	</varlistentry>
+        <varlistentry>
+            <term><option> -V --version</option></term>
+            <listitem>
+                <para>
+                     Print program version number and exit
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><option>-e<replaceable>Sink</replaceable> --error=<replaceable>Sink</replaceable></option></term>
+            <listitem>
+                <para>
+                   Specify  a  logging  sink  for the program's standard error output.  If
+              specified, lines sent by the program to stderr are timestamped and teed
+              to  this  sink  as  well.  See
+              <link linkend="daqstartSINKSPECS">SINK SPECIFICATIONS</link>
+                for more information
+                about specifying sinks.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><option>-o<replaceable>Sink</replaceable> --output=<replaceable>Sink</replaceable></option></term>
+            <listitem>
+                <para>
+                     Specify a logging sink for the program's standard  output  output.   If
+              specified, lines sent by the program to stdout are timestamped and teed
+              to this sink as well.  See
+              <link linkend="daqstartSINKSPECS">SINK SPECIFICATIONS</link>
+              for  more  information
+              about specifying sinks.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><option>-n --notify</option></term>
+            <listitem>
+                <para>
+                Enables  exit  notification for the command.  If specified, the user is
+              notified of command exit.  Commend exit is always logged to  the  error
+              sink.   <option>--notify</option>
+                      causes  an message to be sent to stderr that includes
+              the command name, the exit status and, if exit was due to  an  uncaught
+              signal, the signal that caused the process to exit.  If the environment
+              variable <varname>DISPLAY</varname>
+              is defined and the program <application>PopUp</application>
+              is in the path, it is
+              run to produce an X11 pop up message as well.
+                </para>
+            </listitem>
+        </varlistentry>
+     </variablelist>
+  </refsect1>
+  <refsect1 id="daqstartSINKSPECS">
+     <title>SINK SPECIFICATIONS</title>
+        <para>
+          A sink is specified by a string containing two fields separated by a colon:
+       <replaceable>sinktype:sinkname</replaceable>
+       The left field is the sink type, while the right field is  a
+       sink  name interpreted within the sink type.  For example, the sink specification:
+       <literal>file:/user/fox/output.log</literal>
+       specifies the sink is a  file,  and  that  the
+       file is <filename>/user/fox/output.log.</filename>
+         </para>
+        <para>
+       Sink types that are currently supporteed include:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term><literal>file</literal></term>
+                <listitem>
+                    <para>
+                        A file.  The sink name is the name of the file.
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+       <para>
+       If  all this seems like a bit much to specify a file, recall that this is
+       version 1.0 of the program and future versions will probably support  other  sink
+       types.
+       </para>
+  </refsect1>
+
+</refentry>
+
+<!-- /manpage -->

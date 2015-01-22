@@ -1,0 +1,100 @@
+
+package require tcltest
+
+eval ::tcltest::configure $argv
+
+set loadFailure 0
+
+tcltest::test pkgRequire-0 {require the package
+} { 
+  set ::loadFailure [catch {package require evbcallouts}]
+} 0
+
+if {$::loadFailure} {
+  tcltest::cleanupTests
+  exit 1
+}
+
+if {[catch {
+  package require eventLogBundle
+}]} {
+  tcltest::cleanupTests
+  exit 1
+}
+
+
+tcltest::test rdo11-0 {test computeLoggerSwitches uses EVBC::destRing} -setup {
+      # set RINGNAME to something
+      array set env [list RINGNAME elephant]
+
+      # choose to use the dest ring
+      set EVBC::setsEvtlogSource true
+
+      # set destRing to something... 
+      set EVBC::destRing hehehe
+
+} -body {
+   # this calls the switches
+   set switches [::EventLog::_computeLoggerSwitches 11.0-rc12]
+   return [lindex $switches 0] 
+} -result "--source=tcp://localhost/$EVBC::destRing"
+
+tcltest::test rdo11-1 {test computeLoggerSwitches doesn't use EVBC::destRing} -setup {
+
+      # set RINGNAME to something
+      array set env [list RINGNAME elephant]
+
+      # choose to use the dest ring
+      set EVBC::setsEvtlogSource false
+
+      # set destRing to something... 
+      set EVBC::destRing hehehe
+
+} -body {
+   # this calls the switches
+   set switches [::EventLog::_computeLoggerSwitches 11.0-rc12]
+   return [lindex $switches 0] 
+} -result "--source=[::Configuration::get EventLoggerRing]"
+
+
+tcltest::test isRunning-0 {Test that we can set running
+} {
+  set resList [list]
+
+  set EVBC::pipefd chan2
+  lappend resList [EVBC::isRunning]
+  set EVBC::pipefd ""
+  lappend resList [EVBC::isRunning]
+  
+  set resList
+} {1 0}
+
+
+tcltest::test getAppName-0 { Retrieve the name of the application for finding the port
+} {
+  
+  set ::EVBC::appNameSuffix 1
+
+  ::EVBC::getAppName
+} "ORDERER:$::tcl_platform(user):1"
+
+
+tcltest::test registerRingSource-0 {
+} {
+  ::EVBC::registerRingSource a b c d e
+  set dict $::RingSourceMgr::sourceDict
+  ::RingSourceMgr::clearSources
+  set dict
+} {a {tstamplib b id c info d expecthdrs e fd {}}}
+
+tcltest::test registerS800Source-0 {
+} {
+  ::EVBC::registerS800Source a b c
+  set dict $::RingSourceMgr::sourceDict
+  ::RingSourceMgr::clearSources
+  set dict
+} [dict create a [dict create tstamplib [file join $::EVBC::daqtop lib libS800TimeExtractor.so]\
+                              id b info c expecthdrs 0 fd ""]]
+
+
+tcltest::cleanupTests

@@ -1,0 +1,94 @@
+
+
+package require tcltest
+
+
+package require tcltest
+
+set pkgReqStatus 0
+
+tcltest::test pkgRequire-0 {Package require works
+} {
+  set ::pkgReqStatus [catch {package require mdgg16guiapp}]
+} 0
+
+if {$pkgReqStatus == 1} {
+  tcltest::cleanupTests
+  exit
+}
+
+##############################################################
+
+set testDir [tcltest::makeDirectory test]
+proc tk_getSaveFile {args} {
+  return [file join $::testDir test]
+}
+
+### fake presenter
+
+# remove all knowledge of the MDGG16Proxy snit::type
+::MDGG16Proxy destroy
+
+# redefine a stub of it...
+snit::type MDGG16Proxy {
+  constructor {args} {}
+}
+
+snit::method MDGG16Presenter LoadStateFromFile {args} {
+  puts "overridden load state from file"
+}
+
+snit::method MDGG16Presenter UpdateViewFromModel {} {
+  puts "overridden update"
+}
+
+set globalPath {}
+snit::method MDGG16Presenter SaveCurrentStateToFile {path} {
+  set ::globalPath $path
+}
+
+snit::method MDGG16View constructor {args} {}
+
+
+proc setup {} {
+  MDGG16GuiApp ::app 
+}
+
+proc tearDown {} {
+  ::app destroy
+}
+
+tcltest::test save-0 { Save to config file when -configfile provided
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # make sure there is a config file present
+  ::app configure -configfile foo
+  ::app Save
+
+  set ::globalPath
+} -result foo
+
+
+tcltest::test save-1 { Config file should be set by tk_getSaveFile
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # make sure there is no config file present
+
+  ::app configure -configfile {}
+
+  # our overridden form of tk_getSaveFile should cause the path 
+  # to become $::testDir/test. Furthermore, the -configfile should
+  # now be updated to reflect this.
+  ::app Save
+
+  list $::globalPath [::app cget -configfile]
+} -result [list [file join $::testDir test] [file join $::testDir test]]
+
+
+tcltest::cleanupTests

@@ -1,0 +1,2543 @@
+<!-- chapter libraries -->
+
+<chapter id="chapter.threads">
+    <title>NSCL DAQ Thread Library</title>
+    <para>
+        The NSCL DAQ thread library supplies object oriented threading support.
+        This chapter describes:
+        <itemizedlist>
+            <listitem>
+                <para>
+                    The thread and synchronization model supported by the library
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    What you need to do to incorporate the library into your
+                    application code.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    A summary of the classes in the library and links to the
+                    reference material for each of them.
+                </para>
+            </listitem>
+        </itemizedlist>
+    </para>
+    <section>
+        <title>The thread and synchronization model</title>
+        <para>
+            The NSCL Daq software models each thread as an object from a
+            class that is derived from the
+            <classname>Thread</classname> base class.  This class provides
+            functions that allow a thread to be created, started, exited,
+            joined to and detached.  
+        </para>
+        <para>
+            The body of a thread is provided by you when you create your concrete
+            <classname>Thread</classname>
+            subclass.  The thread body is just your implementation of the
+            <methodname>virtual run</methodname> method.
+            Threads exit by returning from the
+            <methodname>run</methodname>
+            method.
+        </para>
+        <para>
+            Given a running thread, the
+            <methodname>join</methodname>
+            thread allows the caller to block until the thread represented
+            by the object exits.
+            <methodname>join</methodname>ing is a necessary part of thread
+            cleanup, unless the thread invokes its own
+            <methodname>detach</methodname> member.
+        </para>
+        <para>
+            In the following example, a thread is designed that will block itself
+            for a second, print a message and exit.  Code is shown that
+            creates the thread, starts it, joins it an deletes it.  Note that
+            deleting a running thread object is a bad idea and has undefined
+            consequences.
+        </para>
+        <example>
+            <title>The life of a thread</title>
+            <programlisting>
+        ...
+class MyThread : public Thread {      <co id="chapter.thread.mythread" />
+public:
+    virtual void run();
+};
+void
+MyThread::run()                      <co id="chapter.thread.run" />
+{
+    sleep(1);
+    std::cerr &lt;&lt; "My thread " &lt;&lt; getId() &lt;&lt; " is exiting\n";
+    return;
+};
+   ...
+   
+MyThread* aThread = new MyThread;   <co id="chapter.thread.creation" />
+aThread->start();                     <co id="chapter.thread.start" />
+
+   ...
+   
+aThread->join();                    <co id="chapter.thread.join" />
+delete aTrhead;                     <co id="chapter.thread.destroy" />
+ 
+    ...
+
+            </programlisting>
+        </example>
+        <calloutlist>
+            <callout arearefs="chapter.thread.mythread">
+                <para>
+                    By making
+                    <classname>MyThread</classname> a subclass of
+                    <classname>Thread</classname>,
+                    objects from class
+                    <classname>MyThread</classname>
+                    can be started as independent threads of execution
+                </para>
+            </callout>
+            <callout arearefs="chapter.thread.run">
+                <para>
+                    The
+                    <methodname>run</methodname>
+                    member of a thread is an abstract method.  Your thread classes
+                    must supply the behavior for this member.  When the
+                    thread is started, the
+                    <methodname>run</methodname>
+                    method gains control in the context of the new thread.
+                </para>
+            </callout>
+            <callout arearefs="chapter.thread.creation">
+                <para>
+                    Creating a thread is simple.  Just create an object that
+                    is of the thread class type.
+                </para>
+            </callout>
+            <callout arearefs="chapter.thread.start">
+                <para>
+                    Starting a thread is equally simple, Just call the
+                    thread's
+                    <methodname>start</methodname>
+                    method.  That starts the thread with an entry point that
+                    eventually calls the
+                    <methodname>run</methodname>
+                    method.
+                </para>
+            </callout>
+            <callout arearefs="chapter.thread.join">
+                <para>
+                    It's not safe to destroy a thread that is executing.
+                    Calling a thread's
+                    <methodname>join</methodname>
+                    method blocks the caller's thread until the thread exits.
+                    Note that it is not safe for a thread to call its own
+                    <methodname>join</methodname>
+                    method since that will block the thread forever.
+                </para>
+            </callout>
+            <callout arearefs="chapter.thread.destroy">
+                <para>
+                    Once a thread has exited, the object that ran it can be
+                    destroyed.  That effectively destroys the thread.
+                    If the state of the exiting thread allows, it is possible
+                    to start the thread again after it has exited.
+                </para>
+            </callout>
+        </calloutlist>
+        <para>
+            Non trivial threaded software will almost always need some means
+            for threads to synchronize against one another.  Consider the following
+            trivial, but wrong, example:
+        </para>
+        <example>
+            <title>Why synchonization is needed</title>
+            <programlisting>
+int someCounter = 0;
+
+class MyThread : public Thread
+{
+    virtual void run() {
+        for (int i=0; i &lt; 10000; i++) {
+            someCounter++;
+        }
+};
+
+...
+MyThread* th1 = new MyThread;
+MyThread* th2 = new MyThread;
+th1->start();
+th2->start();
+th1->join();
+th2->join();
+delete th1;
+delete th2;
+std::cerr &lt;&lt; "someCounter = " &lt;&lt; someCounter &lt;&lt; std::endl;
+...
+
+
+            </programlisting>
+        </example>
+        <para>
+            In this program, two threads increment the variable someCounter
+            in parallel 10,000 times each.  You might expect the output of this
+            program to always be 20000.  Most of the time, it probably will be.
+            Sometimes it will be something less than 20000.
+        </para>
+        <para>
+            Consider what
+            <programlisting>
+someCounter++;
+            </programlisting>
+            actually does.  The value of 
+            <varname>someCounter</varname>
+            is fetched to a processor register,
+            the register is incremented and finally, the
+            register is stored back into
+            <varname>someCounter</varname>.
+        </para>
+        <para>
+            Suppose thread <varname>th1</varname>
+            fetches <varname>someCounter</varname>, and increments the register
+            but before it has a chance to store the incremented value back into
+            <varname>someCounter</varname>
+            <varname>th2</varname> executes, fetches
+            <varname>someCounter</varname> (the old value), increments the
+            register and stores the value back.
+            Now <varname>th1</varname> gets scheduled, and stores its value back.
+        </para>
+        <para>
+            This sequence of steps results in a lost increment.  It is possible
+            to construct sequences of execution, that result in a final value
+            of <varname>someCounter</varname> holding any value from
+            10000 through 20000 depending on how access to
+            <varname>someCounter</varname> is interleaved.
+        </para>
+        <para>
+            One way to fix this is to ensure that the increment of
+            <varname>someCounter</varname> is
+            <firstterm>atomic</firstterm> with respect to the increment.
+            The NSCLDAQ threading library provides a synchonization primitive
+            called a
+            <classname>SyncGuard</classname> that can be used to implement
+            the Monitor construct first developed by Per Brinch Hansen
+            (see
+            <ulink url="http://en.wikipedia.org/wiki/Monitor_%28synchronization%29">
+            Wikipedia's Monitor (synchronization)</ulink> page.
+        </para>
+        <para>
+            Let's rewrite the previous example so that the increment is atomic
+            with respect to the scheduler.   To do this we will isolate the
+            counter in a class/object of its own so that it is not possible to
+            use it incorrectly
+        </para>
+        <example>
+            <title>Using <classname>SyncGuard</classname> to implement a monitor</title>
+            <programlisting>
+class ThreadedCounter {
+private:
+    Synchronizeable  m_guard;      <co id="chapter.thread.synchronizable" />
+    int              m_counter;
+public:
+    void increment();
+    int  get() const;
+};
+void
+ThreadedCounter::increment()
+{
+    sync_begin(m_guard);          <co id="chapter.thread.enter" />
+    m_counter++;
+    sync_end();                  <co id="chapter.thread.leave" />
+}
+int
+ThreadedCounter::get() const
+{
+    return m_counter;
+}
+
+ThreadedCounter someCounter;
+class MyThread : public Thread
+{
+    virtual void run() {
+        for (int i=0; i &lt; 10000; i++) {
+            someCounter.increment();     <co id="chapter.thread.monitoredincr" />
+        }
+};
+
+...
+MyThread* th1 = new MyThread;
+MyThread* th2 = new MyThread;
+th1->start();
+th2->start();
+th1->join();
+th2->join();
+delete th1;
+delete th2;
+std::cerr &lt;&lt; "someCounter = " &lt;&lt; someCounter.get() &lt;&lt; std::endl;
+...
+
+            </programlisting>
+        </example>
+        <calloutlist>
+            <callout arearefs="chapter.thread.synchronizable">
+                <para>
+                    This member is the synchronization element.  We will see
+                    it used in the
+                    <methodname>increment</methodname>
+                    member.
+                </para>
+            </callout>
+            <callout arearefs="chapter.thread.enter">
+                <para>
+                    The
+                    <function>sync_begin()</function>
+                    enters the monitor.  Only one thread at a time is allowed
+                    to execute the code between a
+                    <function>sync_begin</function>
+                    and a
+                    <function>sync_end</function> for the same synchronizing
+                    object.
+                </para>
+            </callout>
+            <callout arearefs="chapter.thread.leave">
+                <para>
+                    This call leaves the monitor.  The effect of the
+                    monitor is to make the increment atomic with respect to the
+                    scheduler.
+                </para>
+            </callout>
+            <callout arearefs="chapter.thread.monitoredincr">
+                <para>
+                    By using the
+                    <methodname>increment</methodname>
+                    function, the counter is incremented atomically.
+                </para>
+            </callout>
+        </calloutlist>
+    </section>
+    <section>
+        <title>Incorporating the library into an application.</title>
+        <para>
+            To incorporate the thread library in your software, you will
+            need to ensure that the compiler can locate the library headers
+            and the library, both at link time and at load time.
+        </para>
+        <para>
+            The library headers are in the
+            <filename>include</filename>
+            directory of the NSCLDAQ installation tree.  The library is called
+            <filename>libthreads</filename> and is in the
+            <filename>lib</filename>
+            directory of the installation tree.
+        </para>
+        <para>
+            In the compilation example below, we assume that an
+            environment variable named DAQROOT has been defined to point to the
+            top level of the NSCLDAQ installation tree:
+        </para>
+        <example>
+            <title>Compiling and linking NSCLDAQ threaded software</title>
+            <programlisting>
+g++ -o mythreadedapp -I$DAQROOT/include mythreadedapp.cpp -L$DAQROOT/lib -lthreads \
+    -Wl,"-rpath=$DAQROOT/lib"
+            </programlisting>
+        </example>
+    </section>
+    <section>
+      <title>Using CGaurdedObject to implement synchronized methods</title>
+      <para>
+	The <classname>CGaurdedObject</classname> class provides a base class that can be 
+	used for classes that must require some or all of their methods only be run by
+	one thread at a time.  The class incorporates a mutex as private class data.  It also 
+	provides <methodname>Enter</methodname> and <methodname>Leave</methodname> methods
+        that take and release the mutex respectively.
+      </para>
+      <para>
+	Below is a typical use pattern for this class:
+      </para>
+      <example>
+	<title>Using <classname>CGaurdedObject</classname></title>
+	<programlisting>
+#include &lt;GaurdedObject.h&gt;              <co id='gaurded_include' />
+...
+
+class MyClass : public CGaurdedObject    <co id='gaurded_inherit' />
+{
+   void someProtecedMethod();            <co id='guarded_inherit' />
+...
+}
+
+...
+void
+MyClass::someProtectedMethod()
+{
+   Enter();                             <co id='gaurded_enter' />
+    ...
+   Leave();                             <co id='gaurded_leave' />
+}
+	</programlisting>
+      </example>
+      <calloutlist>
+	<callout arearefs='gaurded_include'>
+	  <para>
+	    The header <filename>CGaurdedObject.h</filename> defines the
+	    <classname>CGaurdedObject</classname> class and must be included
+	    by classes that derive from that class.
+	  </para>
+	</callout>
+	<callout arearefs='gaurded_inherit'>
+	  <para>
+	    The <classname>CGaurdedObject</classname> must be derived from
+	    to be useful.  Here we define the <classname>MyClass</classname>
+	    as a derivation of <classname>CGaurdedObject</classname>.
+	    What this normally means is that <classname>MyClass</classname>
+	    has one or more methods that must be synchronized between threads.
+	    The concept of a method that can only run in one thread of execution
+	    was developed/discovered by Per Brinch-Hansen, and C.A. Hoare in 1972.
+	  </para>
+	</callout>
+	<callout arearefs='gaurded_enter'>
+	  <para>
+	    Invoking the <methodname>Enter</methodname> method of the base class
+	    enters the monitor.  You can think of this call as your execution flow
+	    entering a gate that only admits one execution thread at a time.  If a 
+	    thread is already executing code following an <methodname>Enter</methodname>
+	    call any other thread will block until the corresponding <methodname>Leave</methodname>
+	    call is executed.  Note that the underying mutex is a recursive mutex so that if a thread
+	    already in a monitor needs to call another protected method in the same class it
+	    will not block.
+	  </para>
+	</callout>
+	<callout arearefs='gaurded_leave'>
+	  <para>
+	    The <methodname>Leave</methodname> indicates the end of execution of a monitor.
+	    If there are threads waiting at an <methodname>Enter</methodname> for the same
+	    object one of them is scheduled for execution, and therefore enteres the monitor.
+	  </para>
+	</callout>
+      </calloutlist>
+      <para>
+	Note that the monitors implemented by <classname>CGaurdedObject</classname> are
+	object global, that is only one thread can execute in an <methodname>Enter</methodname>,
+	<methodname>Leave</methodname> over the entire object. 
+      </para>
+    </section>
+    <section>
+      <title>Thread safe queues (<classname>CBufferQueue</classname>). </title>
+      <para>
+	Often threads implement a pipeline in which data is passed from a producer thread
+	to a consumer thread.  Examples of this pattern are seen in the 
+	<application>CCUSBReadout</application> and <application>CVMUSBReadout</application>
+	applications in which an acquisition thread passes buffers of XXUSB data to an output thread
+	which decodes these buffers transforming them into a stream of ring items that are
+	inserted in to a ring buffer.
+      </para>
+      <para>
+	The <classname>CBufferQueue</classname> class is a templated class that allows you to
+	build queues that are intended to communicate data from a producer thread to a consumer
+	thread in a thread safe manner.  The important methods of the queue are:
+      </para>
+      <variablelist>
+	<varlistentry>
+	  <term><methodname>queue</methodname></term>
+	  <listitem><para>
+	    Normally called by a producer to queue an element of data for the consumer.
+	    If the consumer is blocked waiting for data it is woken.
+	  </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><methodname>get</methodname></term>
+	  <listitem><para>
+	    Gets an object from the queue.  If there are no objects in the queue,
+	    the calling thread is blocked until there are.
+	  </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><methodname>getnow</methodname></term>
+	  <listitem><para>
+	    Attempts to get an object from the queue. This method never blocks,
+	    instead it indicates there were no objects to get if the queue is
+	    empty.
+	  </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+      <para>
+	Here are a few usage patterns that build on single buffer queues:
+      </para>
+      <variablelist>
+	<varlistentry>
+	  <term>Limited size queue</term>
+	  <listitem>
+	    <para>
+	      This is useful to implement back-pressure flow control on a data source
+	      that has unbounded length.  Implement a queue that contains a limited number
+	      of 'free elements', and a second queue that transmits elements from the source
+	      to the consumer.  The source gets a queue element  from the  the
+	      free queue fills it in and queues it to the sender queue.  
+	      When the sink has finished processing an element from the sender queue it 
+	      returns it to the free queue.
+	    </para>
+	    <para>
+	      If the consumer can't keep up with the source, the source will eventually
+	      block on getting an element from the free queue.
+	    </para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Work queue (processing farm)</term>
+	  <listitem><para>
+	    Multiple consumers can get/put items to a queue.  A work queue provides
+	    a method for distributing work to multiple threads.  As work becomes available
+	    to be spun off to the processing farm, it is queued to the work queue.  Several
+	    threads
+	    (the processing farm) get element get elements from the queue. Normally sufficient
+	    information is provided in the queue element to parameterize the computation of the
+	    worker thread.
+	  </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Collecting results (farmer for a procesing farm)</term>
+	  <listitem><para>
+	    Once work has been done by a worker in the previous pattern the results of the work
+	    must often be collected by a single thread.  A farming queue can have results objects
+	    queued to it by many threads (the workers).  The collection thread (farmer) would 
+	    get elements from the collection queue and do whatever is needed with them.
+	  </para></listitem>
+	</varlistentry>
+      </variablelist>
+      <para>
+	The example below is a simplified version of the VMUSB Reaodut thead's main loop. It
+	shows the sender side of a limited entry queue.  Each entry is a VMUSB readout buffer
+	with a header.  The code fragment gets a free buffer reads data into it and
+	puts it on a queue for the output thread.
+      </para>
+      <example>
+	<title>Sending data to a CBufferQueue</title>
+	<programlisting>
+struct DataBuffer {
+  uint32_t   s_bufferSize;	// Bytes used in the buffer.
+  uint32_t   s_storageSize;     // bytes in s_rawData[].
+  uint32_t   s_bufferType;	// Type of buffer.              <co id='bufferqueue_databuffer' />
+  timespec   s_timeStamp;	// When the buffer was received.
+  uint16_t   s_rawData[1];	// Really larger than that
+
+};
+...
+extern CBufferQueue&lt;DataBuffer*&gt;  gFilledBuffers;                  <co id='bufferqueue_queues' />
+extern CBufferQueue&lt;DataBuffer*&gt;  gFreeBuffers;        
+
+...
+while(1) {
+   DataBuffer* pBuffer = gFreeBuffers.get();                      <co id='bufferqueue_get' />
+   ReadFromVMUSB(pBuffer);
+   gFilledBugffers.queue(pBuffer);                                <co id='bufferqueue_put' />
+}
+...
+	</programlisting>
+      </example>
+      <calloutlist>
+	<callout arearefs='bufferqueue_databuffer'>
+	  <para>
+	    This struct is what will be pushed around in the buffer queues.  The
+	    <varname>s_rawData</varname> element is really much larger, the
+	    [1] size is used to allow us to treat the item as an array. Normally
+	    it will hold 13Kwords of data.
+	  </para>
+	</callout>
+	<callout arearefs='bufferqueue_queues'>
+	  <para>
+	    These are the queues.  By passing pointers around in the queue
+            bulk data movement is avoided.  In fact, the queues can carry
+            any object that supports copy construction. The <varname>gFilledBuffers</varname>
+            carry buffers with data from the reaoudout thread to the output thread.
+            The <varname>gFreeBuffers</varname> are buffers that are available for
+            new data.
+          </para>
+        </callout>
+        <callout arearefs='bufferqueue_get'>
+            <para>
+                This line gets a free data buffer.  If there are no elements
+                in <varname>gFreeBuffers</varname>, the thread blocks until
+                the output thread returns some buffers to that queue.
+            </para>
+        </callout>
+        <callout arearefs='bufferqueue_put'>
+            <para>
+                This line takes the buffer that was filled in the previous
+                line and queues it for the output thread.  Calls to
+                <methodname>queue</methodname> will only block (and then only
+                for a short time) if the call happens while the consumer is actively
+                pulling an object from the queue.
+            </para>
+        </callout>
+      </calloutlist>
+      <para>
+        The next example shows a simplified version of the VMUSBReadout output thread
+        so that you can see what a consumer of data from a buffer queue might look like.
+        The same data structure definitions and queue definitions are used and therefore
+        not shown.
+      </para>
+      <example>
+        <title>Consumer of data from a CBufferQueue</title>
+        <programlisting>
+...
+while(1) {
+  DataBuffer* pBuffer = gFilledBuffers.get();    <co id='bufferqueue_outputget' />
+  processBuffer(pBuffer);
+  gFreeBuffers.queue(pBuffer);                   <co id='bufferqueue_outputput' />
+}
+      </programlisting>
+      </example>
+      <calloutlist>
+        <callout arearefs='bufferqueue_outputget'>
+            <para>
+                The output thread gets a filled buffer from the queue and processes it.
+            </para>
+        </callout>
+        <callout arearefs='bufferqueue_outputput'>
+            <para>
+                Once the buffer is processed, it is put back in the free queue where the
+                readout thread can put new data into it.
+            </para>
+        </callout>
+      </calloutlist>
+    </section>
+    <section>
+        <title>Pointers to the reference material</title>
+        <para>
+            This section provides pointers to the reference sections.
+            The following three classes define the public interfaces
+            for the threading and synchronization library:
+        </para>
+        <itemizedlist>
+            <listitem>
+                <para>
+                    <link linkend="manpage.thread"><classname>Thread</classname></link>
+                    is the abstract base class from which you can construct
+                    application specific threads.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    <link linkend="manpage.synchronizable"><classname>Synchronizable</classname></link>
+                    is the class used to perform synchronization.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    <link linkend="manpage.syncguard"><classname>SyncGuard</classname></link>
+                    is built on top of <classname>Synchronizable</classname> to 
+                    provide monitor like synchronization semantics.
+                </para>
+            </listitem>
+            <listitem><para>
+                <link linkend='manpage.ccondition' endterm='manpage.ccondition-title' />
+                documents condition variables.  Condition variables are a
+                synchronziation scheme that allows a thread to wait for a specific
+                condition to be signalled by another thread.
+                </para>
+            </listitem> 
+	    <listitem><para>
+	      <link linkend='manpage.gaurdedobject' endterm='manpage.gaurdedobject-title'/>
+	      documents the <classname>CGaurdedObject</classname> base class.
+	    </para></listitem>
+	    <listitem><para>
+	      <link linkend='manpage.bufferqueue' endterm='manpage.bufferqueue-title' /> described
+              the <classname>CBufferQueue</classname> inter thread communications
+              class.
+              </para></listitem>
+        </itemizedlist>
+    </section>
+
+</chapter>
+
+<!-- /chapter -->
+<!-- manpage 3daq -->
+    <refentry id="manpage.thread">
+      <refmeta>
+         <refentrytitle>Thread</refentrytitle>
+         <manvolnum>3daq</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>Thread</refname>
+	 <refpurpose>Abstract base class for thread objects.</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;Thread.h&gt;
+         </programlisting>
+         <classsynopsis>
+            <ooclass><classname>Thread</classname></ooclass>
+            <constructorsynopsis>
+                <methodname>Thread()</methodname>
+                <void />
+            </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname>Thread</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>name</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <destructorsynopsis>
+                <modifier>virtual</modifier> <methodname>~Thread</methodname>
+                                             <void />
+            </destructorsynopsis>
+            <methodsynopsis>
+                <type>int</type> <methodname>detach</methodname>
+                                 <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>unsigned long</type> <methodname>getId</methodname>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>start</methodname>
+                                  <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>setName</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>name</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>join</methodname>
+                                  <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>std::string</type> <methodname>getName</methodname>
+                                         <void /><modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>void</type>
+                                             <methodname>run</methodname>
+                                             <void /> <modifier>= 0</modifier>
+            </methodsynopsis>
+
+         </classsynopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>Description</title>
+         <para>
+            <classname>Thread</classname>
+            is an abstract base class that can be used to create threads.
+            To make a thread you will normally derive a class from
+            <classname>Thread</classname>
+            and write the
+            <methodname>run</methodname>
+            method to implement the thread's code.
+         </para>
+         <para>
+            A thread can then be created like any other object.
+            The
+            <methodname>start</methodname>
+            method schedules the thread's
+            <methodname>run</methodname>
+            member for execution
+         </para>
+         <para>
+            Threads can block on the completion of a thread via the
+            <methodname>join</methodname> method.  
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            Public member functions
+         </title>
+         <formalpara>
+            <title>Constructors</title>
+            <para>
+                Constructors create a thread.  The thread is not scheduled
+                for execution until the
+                <methodname>start</methodname>
+                method is called.
+                Threads can have an optional thread name.
+            </para>
+         </formalpara>
+        <constructorsynopsis>
+            <methodname>Thread()</methodname>
+            <void />
+        </constructorsynopsis>
+        <para>
+            Constructs an anonymous thread.
+        </para>
+        <constructorsynopsis>
+            <methodname>Thread</methodname>
+            <methodparam>
+                <type>std::string</type> <parameter>name</parameter>
+            </methodparam>
+        </constructorsynopsis>
+        <para>
+            Constructs a named thread.
+        </para>
+        <formalpara>
+            <title>Thread identification</title>
+            <para>
+                Threads are identified by an optional name, which need not
+                be unique, and a unique identifier (thread id), that is
+                assigned by the underlying operating systemn.
+            </para>
+        </formalpara>
+        <methodsynopsis>
+            <type>unsigned long</type> <methodname>getId</methodname>
+        </methodsynopsis>
+        <para>
+            Returns the thread id.  If the thread has not yet been started,
+            <literal>-1</literal>
+            is returned regardless of the thread.  A thread only gets an id
+            when it has been started.
+        </para>
+        <methodsynopsis>
+            <type>void</type> <methodname>start</methodname>
+                              <void />
+        </methodsynopsis>
+        <para>
+            Starts a thread.             
+            A thread id is allocated and the
+            <methodname>run</methodname>
+            method is scheduled for execution.
+        </para>
+        <methodsynopsis>
+            <type>void</type> <methodname>setName</methodname>
+            <methodparam>
+                <type>std::string</type> <parameter>name</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <para>
+            Modifies the name of the thread.
+        </para>
+        <methodsynopsis>
+            <type>int</type> <methodname>detach</methodname>
+                             <void />
+        </methodsynopsis>
+        <para>
+            Detaches an executing thread.   If the thread has not
+            started, this returns
+            <literal>-1</literal>.
+            Detaching a thread indicates that any operating system storage
+            (not object storage) associated with a thread can be released when
+            the thread exits.  If the thread does not
+            detach, it is necessary to
+            <methodname>join</methodname>
+            the thread to fully release its storage.
+        </para>
+        <para>
+            On success,
+            <literal>0</literal>
+            should be returned, otherwise a value that is one of the values
+            in
+            <filename>errno.h</filename> is returned to describe why
+            the call failed.
+        </para>
+        <methodsynopsis>
+            <type>void</type> <methodname>join</methodname>
+                              <void />
+        </methodsynopsis>
+        <para>
+            <methodname>join</methodname>
+            blocks until the thread exits.   When the thread does exit,
+            thread specific storage is reclaimed.  Note that if a thread
+            has calledis 
+            <methodname>detach</methodname>
+            it is not clear clear wht clear what this member will do.
+        </para>
+        <methodsynopsis>
+            <type>std::string</type> <methodname>getName</methodname>
+                                     <void /><modifier>const</modifier>
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier>virtual</modifier> <type>void</type>
+                                         <methodname>run</methodname>
+                                         <void /> <modifier>= 0</modifier>
+        </methodsynopsis>
+        <para>
+            You must implement this function to provide a concrete
+            <classname>Thread</classname>
+            run-time behavior.
+        </para>
+      </refsect1>
+
+   </refentry>
+
+    <refentry id="manpage.synchronizable">
+      <refmeta>
+         <refentrytitle>Synchronizable</refentrytitle>
+         <manvolnum>3daq</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>Synchronizable</refname>
+	 <refpurpose>Wait queue for threads</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;Synchronizable.h&gt;
+         </programlisting>
+         <classsynopsis>
+            <ooclass><classname>Synchronizable</classname></ooclass>
+            <constructorsynopsis>
+                <methodname>Synchronizable</methodname><void />
+            </constructorsynopsis>
+            <destructorsynopsis>
+                <modifier>virtual</modifier> <methodname>~Synchronizable()</methodname>
+                                             <void />
+            </destructorsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>waitFor</methodname>
+                                  <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>waitFor</methodname>
+                <methodparam>
+                    <type>long</type> <parameter>timeout</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>waitFor</methodname>
+                <methodparam>
+                    <type>long</type> <parameter>seconds</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>nanoseconds</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>notify</methodname>
+                                  <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>notifyAll</methodname>
+                                  <void />
+            </methodsynopsis>
+         </classsynopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>Description</title>
+         <para>
+            This class implements a wait queue for threads.  A thread can
+            place itself in a wait queue and then be awakened by another thread,
+            or by a timeout on the wait itself.
+         </para>
+         <para>
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            Public member functions
+         </title>
+        <constructorsynopsis>
+            <methodname>Synchronizable</methodname><void />
+        </constructorsynopsis>
+        <para>
+            Creates a thread wait queue.
+        </para>
+        <destructorsynopsis>
+            <modifier>virtual</modifier> <methodname>~Synchronizable()</methodname>
+                                         <void />
+        </destructorsynopsis>
+        <para>
+            Destroys a thread wait queue.
+        </para>
+        <methodsynopsis>
+            <type>void</type> <methodname>waitFor</methodname>
+                              <void />
+        </methodsynopsis>
+        <para>
+            Waits for an unbounded length of time.  The method completes
+            when either the calling thread is at the head of the wait queue
+            and another thread invokes the
+            <methodname>notify</methodname>, member or another thread invokes
+            the
+            <methodname>notifyAll</methodname> member function.
+        </para>
+        <methodsynopsis>
+            <type>void</type> <methodname>waitFor</methodname>
+            <methodparam>
+                <type>long</type> <parameter>timeout</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <para>
+            Waits as above, but for at most
+            <parameter>timeout</parameter> seconds.  In the current implementation,
+            it is not possible to distinguish between a wait that times out
+            and one that completes due to notification.
+        </para>
+        <methodsynopsis>
+            <type>void</type> <methodname>waitFor</methodname>
+            <methodparam>
+                <type>long</type> <parameter>seconds</parameter>
+            </methodparam>
+            <methodparam>
+                <type>int</type> <parameter>nanoseconds</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <para>
+            Waits as above, but for <parameter>seconds</parameter> seconds and
+            at least an additional <parameter>nanoseconds</parameter> nanoseconds,
+            or until notification awakens the thread.
+        </para>
+        <methodsynopsis>
+            <type>void</type> <methodname>notify</methodname>
+                              <void />
+        </methodsynopsis>
+        <para>
+            Wakes up the thread that least recently entered one of the wait
+            functions and has not yet timed out.
+        </para>
+        <methodsynopsis>
+            <type>void</type> <methodname>notifyAll</methodname>
+                              <void />
+        </methodsynopsis>
+        <para>
+            Awakens all of the threads that are currently blocked on this
+            object.
+        </para>
+      </refsect1>
+   </refentry>
+
+
+    <refentry id="manpage.syncguard">
+      <refmeta>
+         <refentrytitle>SyncGuard</refentrytitle>
+         <manvolnum>3daq</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>SyncGuard</refname>
+	 <refpurpose>Provide Critical Regions, Monitors</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;SyncGuard.h&gt;
+         </programlisting>
+         <classsynopsis>
+            <ooclass><classname>SyncGuard</classname></ooclass>
+            <constructorsynopsis>
+                <methodname>SyncGuard()</methodname>
+            </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname>SyncGuard</methodname>
+                <methodparam>
+                    <type>Synchronizable&amp;</type> <parameter>syncer</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname>SyncGuard</methodname>
+                <methodparam>
+                    <type>Synchronizable&amp;</type> <parameter>syncer</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>bool</type> <parameter>tryonly</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <destructorsynopsis>
+                <modifier>virtual</modifier> <methodname>~SyncGuard</methodname>
+                                             <void />
+            </destructorsynopsis>
+            <methodsynopsis>
+                <type>dshwrapthread_t</type> <methodname>getOwner</methodname>
+                                             <void />
+            </methodsynopsis>
+
+         </classsynopsis>
+        <programlisting>
+Macros:
+#define sync_self
+#define sync_begin(s)
+#define sync_begin2(t,s)
+#define sync_end
+
+
+#define sync_trybegin(s)
+#define sync_trybegin2(t,s)
+#define sync_tryend
+
+#define sync_global_begin(t)
+#define sync_global_end
+
+        </programlisting>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>Description</title>
+         <para>
+            The
+            <classname>SyncGuard</classname> class uses a
+            <classname>Synchronizable</classname> object to create
+            a critical region, or monitor.  Both of these synchronization
+            primitives are mechanisms that ensure that only one thread can
+            execute a guarded code segment at a time.
+         </para>
+         <para>
+            Creating a
+            <classname>SynchGuard</classname>
+            on a synchronizable object locks the guard.  Destroying the
+            object releases the guard.  You can create more than one
+            <classname>SyncGuard</classname> on a single
+            <classname>Synchronizable</classname> object, and typically will.
+         </para>
+         <para>
+            The simplest use of
+            <classname>SynchGuard</classname> is via its macros.
+         </para>
+         <para>
+            The NSCLDAQ threading system creates a global
+            <classname>Synchronizable</classname>
+            object that is used by all of the locking macros and constructors that
+            don't take an explicit parameter.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            Public member functions
+         </title>
+            <constructorsynopsis>
+                <methodname>SyncGuard()</methodname>
+            </constructorsynopsis>
+            <para>
+                Constructs a synchronization guard that uses the global
+                <classname>Syncrhonizable</classname> to perform
+                the synchronization.
+            </para>
+            <constructorsynopsis>
+                <methodname>SyncGuard</methodname>
+                <methodparam>
+                    <type>Synchronizable&amp;</type> <parameter>syncer</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <para>
+                Creates a
+                <classname>SyncGuard</classname>
+                that uses <parameter>syncer</parameter>
+                as its synchronization object.
+            </para>
+            <constructorsynopsis>
+                <methodname>SyncGuard</methodname>
+                <methodparam>
+                    <type>Synchronizable&amp;</type> <parameter>syncer</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>bool</type> <parameter>tryonly</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <para>
+                Same as above, however if <parameter>tryonly</parameter> is
+                true, and <parameter>syncer</parameter> is already locked, the thread continues
+                execution.
+            </para>
+            <destructorsynopsis>
+                <modifier>virtual</modifier> <methodname>~SyncGuard</methodname>
+                                             <void />
+            </destructorsynopsis>
+            <para>
+                Destroys the guard, releasing the synchronization object.
+            </para>
+            <methodsynopsis>
+                <type>dshwrapthread_t</type> <methodname>getOwner</methodname>
+                                             <void />
+            </methodsynopsis>
+            <para>
+                Returns the id of the thread that owns the synchronization
+                object used by a synchronization guard.  One use of this is to
+                do a tryonly creation and then check to see if the running thread
+                owns the object (indicating the try succeeded).
+            </para>
+         <formalpara>
+            <title>
+                Macros
+            </title>
+            <para>
+                The macros below simplify the creation of critical segments
+                of code.
+            </para>
+         </formalpara>
+         <funcsynopsis>
+            <funcprototype><funcdef>void <function>sync_self</function></funcdef>
+                           <void />
+            </funcprototype>
+         </funcsynopsis>
+         <para>
+            This macro is intended for use within an object that is
+            derived from a
+            <classname>Synchronizable</classname>.  It locks the
+            current object.
+         </para>
+         <funcsynopsis>
+            <funcprototype><funcdef>void <function>sync_begin</function></funcdef>
+                <paramdef>
+                    <parameter>Synchronizable&amp; s</parameter>
+                </paramdef>
+            </funcprototype>
+         </funcsynopsis>
+         <para>
+            Starts a a critical region that uses
+            <parameter>s</parameter>
+            to synchronize access.
+        </para>
+        <funcsynopsis>
+            <funcprototype><funcdef>void<function>sync_begin2</function></funcdef>
+            <paramdef>
+                <parameter>t</parameter>
+            </paramdef>
+            <paramdef>
+                <parameter>Synchronizable&amp; s</parameter>
+            </paramdef>
+            </funcprototype>
+        </funcsynopsis>
+        <para>
+            Same as <function>sync_begin</function> but
+            <parameter>t</parameter> is appended to the name of the temporary
+            <classname>Syncrhonizable</classname> the macro creates.
+        </para>
+        <funcsynopsis>
+            <funcprototype><funcdef>void <function>sync_end</function></funcdef>
+                                         <void />
+            </funcprototype>
+        </funcsynopsis>
+        <para>
+            Marks the end of a critical section that was begun with
+            one of the sync macros above.
+        </para>
+        <funcsynopsis>
+            <funcprototype><funcdef> void <function>sync_trybegin</function></funcdef>
+            <paramdef><parameter>Synchronizable&amp; s</parameter></paramdef>
+            </funcprototype>
+        </funcsynopsis>
+        <para>
+            This macro creates a temporary
+            <classname>SynchGuard</classname> object constructed on
+            <parameter>s</parameter>.
+            Non-blocking access is to the guard is attempted.  If successful,
+            the code that follows the macro up until the next
+            <function>sync_tryend</function> macro invocation is executed.
+            If access to the guard could not be gotten without blocking, the
+            code will not be executed.
+        </para>
+        <funcsynopsis>
+            <funcprototype><funcdef> void <function>sync_trybegin2</function></funcdef>
+            <paramdef>
+                <parameter>t</parameter>
+            </paramdef>
+            <paramdef>
+                <parameter>Synchronizable&amp; s</parameter>
+            </paramdef>
+            </funcprototype>
+        </funcsynopsis>
+        <para>
+            This macro behaves the same as
+            <function>sync_trybegin2</function>, however the parameter
+            <parameter>t</parameter> is used to construct the name of the
+            <classname>SyncGuard</classname> object used by the macro.
+        </para>
+        <funcsynopsis>
+            <funcprototype><funcdef>void <function>sync_tryend</function></funcdef>
+                        <void />
+            </funcprototype>
+        </funcsynopsis>
+        <para>
+           Marks the end of a block of code that was synchronized using the
+           <function>sync_trybegin*</function> macros.
+        </para>
+        <funcsynopsis>
+            <funcprototype><funcdef>void <function>sync_global_begin</function></funcdef>
+            <paramdef>
+                <parameter>t</parameter>
+            </paramdef>
+	    </funcprototype>
+        </funcsynopsis>
+        <para>
+            The NSCLDAQ thread synchronization library creates a global
+            <classname>Synchronizable</classname>
+            object.  This can do process wide synchronization on  a coarse grained
+            level.
+            <function>sync_global_begin</function> constructs a
+            temporary
+            <classname>SyncGuard</classname> on that object and locks it.
+            The <parameter>t</parameter> paramter is used to construct the name
+            of the guard object.
+        </para>
+        <funcsynopsis>
+            <funcprototype><funcdef>void sync_global_end</funcdef>
+            <void />
+	    </funcprototype>
+        </funcsynopsis>
+        <para>
+            Destroys the
+            <classname>SyncGuard</classname> created by lexically most recent
+            <function>sync_global_begin</function> macro.  This releases the
+            synchronization object for other threads.
+        </para>
+      </refsect1>
+   </refentry>
+	 <refentry id="manpage.cmutex">
+       <refmeta>
+          <refentrytitle id="manpage.cmutex-title">CMutex</refentrytitle>
+          <manvolnum>3daq</manvolnum>
+       </refmeta>
+       <refnamediv>
+          <refname>CMutex</refname>
+          <refpurpose>C++ encapsulation of pthread mutexes.</refpurpose>
+       </refnamediv>
+       
+       <refsynopsisdiv>
+        <synopsis>
+            #include &lt;CMutex.h&gt;
+            class <ooclass><classname>CMutexAttr</classname></ooclass> {
+            <methodsynopsis>
+                <modifier></modifier>
+                <type> void </type>
+                <methodname>setShared</methodname>
+                <void />
+                
+                <modifier></modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier></modifier>
+                <type>void </type>
+                <methodname>setUnshared</methodname>
+                <void />
+                <modifier></modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier></modifier>
+                <type>bool </type>
+                <methodname>isShareable</methodname>
+                <void />
+                <modifier></modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier></modifier>
+                <type>void </type>
+                <methodname>setType</methodname>
+                <methodparam>
+                    <type>int</type><parameter> type</parameter>
+                </methodparam>
+                <modifier></modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier></modifier>
+                <type>int  </type>
+                <methodname>getType</methodname>
+                <void />
+                <modifier></modifier>
+            </methodsynopsis>  
+};
+        class <ooclass><classname>CMutex</classname></ooclass> {
+           <constructorsynopsis>
+          <methodname>CMutex</methodname>
+          <void />
+           </constructorsynopsis>
+           <constructorsynopsis>
+          <methodname>CMutex</methodname>
+          <methodparam>
+            <type>pthread_mutexattr_t&amp;</type><parameter> attributes</parameter>
+          </methodparam>
+           </constructorsynopsis>
+           <constructorsynopsis>
+          <methodname>CMutex</methodname>
+          <methodparam>
+            <type>CMutexAttr&amp;</type><parameter> attributes</parameter>
+          </methodparam>
+           </constructorsynopsis>
+           <methodsynopsis>
+               <modifier></modifier>
+               <type>void</type>
+               <methodname> lock</methodname>
+               <void />
+               <modifier></modifier>
+           </methodsynopsis>
+           <methodsynopsis>
+               <modifier></modifier>
+               <type>bool </type>
+               <methodname>trylock</methodname>
+               <void />
+               <modifier></modifier>
+           </methodsynopsis>  
+            <methodsynopsis>
+                <modifier></modifier>
+                <type>void </type>
+                <methodname>unlock</methodname>
+                <void />
+                <modifier></modifier>
+            </methodsynopsis>  
+        
+};
+
+        </synopsis>
+       </refsynopsisdiv>
+       <refsect1>
+          <title>DESCRIPTION</title>
+          <para>
+            The pthreads threading library provides several synchorization primitives.
+            The simplest is a Mutual Exclusion (Mutex) primitive.  A mutex can
+            be used as a guard for critical regions of code (critical regions
+            of code are sections of code that are shared between threads but which
+            can only safely be executed by one thread at a time). Or for guards
+            of data structure arguments that are not inherently thread-atomic.
+          </para>
+          <para>
+            A mutex can be <firstterm>locked</firstterm> by one thread at a time,
+            if a thread attempts to lock a mutex it will block until the
+            mutex is unlocked.  A locked mutex can be unlocked only by the
+            thread that has it locked.
+          </para>
+          <para>
+            Linux mutexes come in a three flavors; <literal>PTHREAD_MUTEX_FAST_NP</literal>
+            which have very little error checking associated with them and
+            once locked may not be locked again the same thread <literal>PTHREAD_MUTEX_RECURSIVE_NP</literal>
+            which can be thought of as a counting mutex (the same thread can lock
+            the mutex several times, and to actually unlock the mutex it must
+            be unlocked as many times as it was locked).  <literal>PTHREAD_MUTEX_ERRORCHECK_NP</literal>
+            mutexes have extensive error checking at the cost of performance.
+            The NP in these symbols imply that these types are not POSIX standard.
+          </para>
+            <para>
+                Mutexes may also have sharing attributes.  A shared mutex
+                can live in a shared memory section that is in the address
+                space of several processes and can synchrnoize between processes
+                that have access to the Mutex, while an unshared mutex can
+                only synchronize threads within the same process.
+            </para>
+       </refsect1>
+       <refsect1>
+          <title>
+         METHODS
+          </title>
+          <variablelist>
+            <varlistentry>
+                <term>
+                    <constructorsynopsis>
+                   <methodname>CMutex</methodname>
+                   <void />
+                    </constructorsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Constructs a mutex with default attributes.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <constructorsynopsis>
+                   <methodname>CMutex</methodname>
+                   <methodparam>
+                     <type>pthread_mutexattr_t&amp;</type><parameter> attributes</parameter>
+                   </methodparam>
+                    </constructorsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Constructs a mutex with the attributes defined by the
+                        raw pthread <parameter>attributes</parameter> parameter.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <constructorsynopsis>
+                   <methodname>CMutex</methodname>
+                   <methodparam>
+                     <type>CMutexAttr&amp;</type><parameter> attributes</parameter>
+                   </methodparam>
+                    </constructorsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Constructs a mutex with the attributes defined by the
+                        <classname>CMutexAttr</classname> encapsualted
+                        <parameter>attributes</parameter>.  See
+                        <literal>PUBLIC VARIABLES, TYPES and CONSTANTS</literal>
+                        below for more information about <classname>CMutexAttr</classname>
+                        objects.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier></modifier>
+                        <type>void</type>
+                        <methodname> lock</methodname>
+                        <void />
+                        <modifier></modifier>
+                    </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Locks the mutex.  If the mutex is currently locked
+                        by another thread, the calling thread is placed at the
+                        back of the mutex wait queue and blocked until it is its
+                        turn to obtain the lock.
+                    </para>
+                    <para>
+                        If the thread is already locked by the calling thread,
+                        and the mutex is a recursive mutex, the lock count is
+                        incremented and the method returns immediately.  If,
+                        in this case, the mutex is not a recursive mutex, the
+                        method behavior is not defined.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier></modifier>
+                        <type>bool </type>
+                        <methodname>trylock</methodname>
+                        <void />
+                        <modifier></modifier>
+                    </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Attempts to lock the mutex.  If successful,
+                        the method returns <literal>true</literal> and the
+                        thread holds the mutex lock.   If the mutex is already
+                        locked by another thread, returns <literal>false</literal>
+                        but does not block.
+                    </para>
+                    <para>
+                        See <methodname>lock</methodname> for behavior if the
+                        mutex is already locked by the calling thread.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                     <methodsynopsis>
+                         <modifier></modifier>
+                         <type>void </type>
+                         <methodname>unlock</methodname>
+                         <void />
+                         <modifier></modifier>
+                     </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Unlocks the mutex.  To call this, the thread must hold
+                        the lock.
+                    </para>
+                    <para>
+                        If the mutex is not recursive and there
+                        is are threads blocked on the mutex, the one blocked
+                        longest ago is atomically granted the mutex and scheduled
+                        to run.  Note that scheduling the process to run does not
+                        mean the thread immediately runs.
+                    </para>
+                    <para>
+                        If the mutex is recursive, the lock count is decremented
+                        and, if zero, the mutex is released by the thread.
+                        If the mutex is released, and there are thread blocked on
+                        the mutex, the one blocked
+                        longest ago is atomically granted the mutex and scheduled
+                        to run.
+                    </para>
+                </listitem>
+            </varlistentry>
+          </variablelist>
+       </refsect1>
+        <refsect1>
+           <title>PUBLIC VARIABLES, TYPES and CONSTANTS</title>
+           <para>
+            Mutex attributes can be set at construction time.  This is done
+            either by configuring a raw <type>pthread_mutexattr_t</type> and
+            configuring it via the normal pthread functions, or by creating a
+            <classname>CMutexAttr</classname> object and using its methods to
+            configuring it.
+            <classname>CMutex</classname> has constructors that accept references
+            to either object and use those references to set the attributes of the
+            pthread mutex it wraps.
+           </para>
+           <para>
+            Below are methods defined <classname>CMutexAttr</classname> objects.
+           </para>
+           <variablelist>
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier></modifier>
+                        <type> void </type>
+                        <methodname>setShared</methodname>
+                        <void />                
+                        <modifier></modifier>
+                    </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Sets the attribute such that a created mutex can be shared
+                         between processes.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier></modifier>
+                        <type>void </type>
+                        <methodname>setUnshared</methodname>
+                        <void />
+                        <modifier></modifier>
+                    </methodsynopsis>
+                </term>
+                <listitem><para>
+                    Sets the attributes such that a created mutex must be
+                    process private.
+                    </para></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier></modifier>
+                        <type>bool </type>
+                        <methodname>isShareable</methodname>
+                        <void />
+                        <modifier></modifier>
+                    </methodsynopsis>
+                </term>
+                <listitem><para>
+                    Returns <literal>true</literal> if the attributes would create
+                    a shareable mutex.
+                    </para></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                        <modifier></modifier>
+                        <type>void </type>
+                        <methodname>setType</methodname>
+                        <methodparam>
+                            <type>int</type><parameter> type</parameter>
+                        </methodparam>
+                        <modifier></modifier>
+                    </methodsynopsis>
+                </term>
+                <listitem><para>
+                    Sets the mutex <parameter>type</parameter> see
+                    <literal>DESCRIPTION</literal> above for legal values
+                    for the <parameter>type</parameter> parameter.
+                    </para></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                
+                    <methodsynopsis>
+                        <modifier></modifier>
+                        <type>int  </type>
+                        <methodname>getType</methodname>
+                        <void />
+                        <modifier></modifier>
+                    </methodsynopsis>  
+                </term>
+                <listitem><para>
+                    Returns the current type for the attribute block.
+                    </para></listitem>
+            </varlistentry>
+           </variablelist>
+        </refsect1>
+     </refentry>     
+<refentry id="daq3_critical_section">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='daq3_critical_setion_title'>CriticalSection</refentrytitle>
+     <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>CriticalSection</refname>
+     <refpurpose>Simple, safe critical section</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+#include &lt;CMutex.h&gt;
+       <ooclass><classname>CriticalSection</classname></ooclass>
+      <constructorsynopsis>
+     <methodname>CriticalSection</methodname>
+     <methodparam>
+        <type>CMutex&amp;</type> <parameter>mutex</parameter>
+     </methodparam>
+      </constructorsynopsis>
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        Implements an easy to use critical section on top of a mutex.
+        To use, simply construct the CriticalSection object in the block
+        that needs synchronization. The constructor will lock the mutex and unlock
+        it when destroyed (when the block is exited)
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    EXAMPLE
+     </title>
+     <informalexample>
+        <programlisting>
+#include &lt;CMutex.h&gt;
+...
+
+CMutex guard;
+...
+{
+    CriticalSection s(guard);                 // Locks guard
+    ...
+    throw someException;                    // unlocks guard.
+    ...
+    
+}                                           // unlocks guard.
+
+        </programlisting>
+     </informalexample>
+   </refsect1>
+</refentry>     
+	 <refentry id="manpage.ccondition">
+       <refmeta>
+          <refentrytitle id="manpage.ccondition-title">CCondition</refentrytitle>
+          <manvolnum>3daq</manvolnum>
+       </refmeta>
+       <refnamediv>
+          <refname>CCondition</refname>
+          <refpurpose>Encapsulate POSIX condition variables.</refpurpose>
+       </refnamediv>
+       
+       <refsynopsisdiv>
+        <synopsis>
+            #include &lt;CCondition.h&gt;
+            struct <ooclass><classname>CConditionAttributes</classname></ooclass> {
+            <methodsynopsis>
+                <modifier></modifier>
+                <type>void </type>
+                <methodname>setShared</methodname>
+                <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier></modifier>
+                <type>void </type>
+                <methodname>setUnshared</methodname>
+                <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier></modifier>
+                <type>bool </type>
+                <methodname>isShared</methodname>
+                <void />
+            </methodsynopsis>
+            
+            class <ooclass><classname>CConditionVariable</classname></ooclass> {
+           <constructorsynopsis>
+                <methodname>CConditionVariable</methodname>
+                <void />
+            </constructorsynopsis>
+           <constructorsynopsis>
+                <methodname>CConditionVariable</methodname>
+                <methodparam>
+                    <type>pthread_condattr_t&amp;</type><parameter> attr</parameter>
+                </methodparam>
+            </constructorsynopsis>
+           <constructorsynopsis>
+                <methodname>CConditionVariable</methodname>
+                <methodparam>
+                    <type>CConditionAttributes&amp;</type><parameter> attr</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <methodsynopsis>
+                <modifier></modifier>
+                <type>void </type>
+                <methodname>signal</methodname>
+                <void />
+            </methodsynopsis>  
+            <methodsynopsis>
+                <modifier></modifier>
+                <type>void </type>
+                <methodname>broadcast</methodname>
+                <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier></modifier>
+                <type>bool </type>
+                <methodname>timedwait</methodname>
+                <methodparam>
+                    <type>CMutex&amp;</type><parameter> mutex</parameter>
+                </methodparam>
+                <methodparam>
+                    <modifier>const</modifier><type> struct timespec*</type>
+                    <parameter>abstime</parameter>
+                </methodparam>
+            </methodsynopsis>  
+            <methodsynopsis>
+                <modifier></modifier>
+                <type>bool </type>
+                <methodname>timedwait</methodname>
+                <methodparam>
+                    <type>pthread_mutex_t*</type><parameter> mutex</parameter>
+                </methodparam>
+                <methodparam>
+                    <modifier>const</modifier><type> struct timespec*</type>
+                    <parameter>abstime</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier></modifier>
+                <type>bool </type>
+                <methodname>timedwait</methodname>
+                <methodparam>
+                    <type>CMutex&amp;</type><parameter> mutex</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>int</type><parameter>milliseconds</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier></modifier>
+                <type>bool </type>
+                <methodname>timedwait</methodname>
+                <methodparam>
+                    <type>pthread_mutex_t*</type><parameter> mutex</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>int</type><parameter> milliseconds</parameter>
+                </methodparam>
+                <exceptionname></exceptionname>
+                <modifier></modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier></modifier>
+                <type>void </type>
+                <methodname>wait</methodname>
+                <methodparam>
+                    <type>CMutex&amp;</type><parameter> mutex</parameter>
+                </methodparam>
+                
+            </methodsynopsis>  
+            <methodsynopsis>
+                <modifier></modifier>
+                <type>void </type>
+                <methodname>wait</methodname>
+                <methodparam>
+                    <type>pthread_mutex_t*</type><parameter> mutex</parameter>
+                </methodparam>
+                <exceptionname></exceptionname>
+                <modifier></modifier>
+            </methodsynopsis>
+};
+        </synopsis>
+       </refsynopsisdiv>
+       <refsect1>
+          <title>DESCRIPTION</title>
+          <para>
+            This class encapsulates POSIX pthread condition variables.  A condition
+            variable allows a thread to atomically wait for another thread to
+            signal a condition.  Condition variables are used in conjunction
+            with mutexes as follows (once the mutex and condition variable are created):
+          </para>
+          <orderedlist>
+            <listitem><para>
+                Thread 1 takes the mutex.
+                </para></listitem>
+            <listitem><para>
+                Thread 1 performs one of the wait operations.  The condition
+                variable atomically releases the mutex and blocks the thread
+                on the condition varaible.
+                </para></listitem>
+            <listitem><para>
+                Thread 2 locks the same mutext (associated with the condition
+                variable).
+                </para></listitem>
+            <listitem><para>
+                Thread 2 signals to wake the next thread blocked on the condition
+                or broadcasts to wake all blocked threads.  At this time,
+                Thread 1's condition variable block is completed and the operating
+                system attempts to acquire the mutex which keeps thread 1 blocked.
+                </para></listitem>
+            <listitem><para>
+                Thread 2 unlocks the mutex.  At this time, Thread 1 gains the
+                mutex lock and becomes unblocked.
+                </para></listitem>
+            <listitem><para>
+                Thread 2 releases its mutex lock.
+                </para></listitem>
+          </orderedlist>
+          <para>
+            This class is intended to be used either with raw pthread mutexes
+            <type>pthread_mutex_t*</type> and
+            The <classname>CMutex</classname> class wrapper for pthread mutexes.
+          </para>
+       </refsect1>
+       <refsect1>
+          <title>
+         METHODS
+          </title>
+          <variablelist>
+            <varlistentry>
+                <term>
+                    <constructorsynopsis>
+                         <methodname>CConditionVariable</methodname>
+                         <void />
+                     </constructorsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Constructs a condition variable with the default
+                        attrributes.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <constructorsynopsis>
+                         <methodname>CConditionVariable</methodname>
+                         <methodparam>
+                             <type>pthread_condattr_t&amp;</type><parameter> attr</parameter>
+                         </methodparam>
+                     </constructorsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Constructs a condition variable with attributes defined by
+                        the raw pthreads condition variable <parameter>attr</parameter>
+                        as its attributes.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <constructorsynopsis>
+                         <methodname>CConditionVariable</methodname>
+                         <methodparam>
+                             <type>CConditionAttributes&amp;</type><parameter> attr</parameter>
+                         </methodparam>
+                     </constructorsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Constructs a condition variable with attributes set by
+                        the <classname>CConditionAttrbiutes</classname> <parameter>attr</parameter>
+                        parameter.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                     <methodsynopsis>
+                         <modifier></modifier>
+                         <type>void </type>
+                         <methodname>signal</methodname>
+                         <void />
+                     </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Signals the condition variable.  The calling thread must
+                        have a lock on the mutex associated with the waits on
+                        the condition variable.  One thread will be released from
+                        condition wait (however it will still be waiting to obtain
+                        the mutext lock).
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>  
+                     <methodsynopsis>
+                         <modifier></modifier>
+                         <type>void </type>
+                         <methodname>broadcast</methodname>
+                         <void />
+                     </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Broadcasts a condition variable.  This is the same as
+                        <methodname>signal</methodname> except all waiting
+                        threads are released from condition wait and attempt
+                        to acquire the associated mutex.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                     <methodsynopsis>
+                         <modifier></modifier>
+                         <type>bool </type>
+                         <methodname>timedwait</methodname>
+                         <methodparam>
+                             <type>CMutex&amp;</type><parameter> mutex</parameter>
+                         </methodparam>
+                         <methodparam>
+                             <modifier>const</modifier><type> struct timespec*</type>
+                             <parameter>abstime</parameter>
+                         </methodparam>
+                     </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Waits on the condition variable until either the condition
+                        variable is signalled (or broadcast), or until the absolute
+                        time specified by <parameter>abstime</parameter> is
+                        reached.  The thread must be holding the <parameter>mutex</parameter>
+                        to call this.
+                    </para>
+                    <para>
+                        If the condition variable was signalled before the timeout,
+                        <literal>true</literal> is returned and the thread is
+                        holding the <parameter>mutex</parameter>.
+                        If the wait timed out, the method returns
+                        <literal>false</literal> and the thread is not holding
+                        the mutex.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>  
+                     <methodsynopsis>
+                         <modifier></modifier>
+                         <type>bool </type>
+                         <methodname>timedwait</methodname>
+                         <methodparam>
+                             <type>pthread_mutex_t*</type><parameter> mutex</parameter>
+                         </methodparam>
+                         <methodparam>
+                             <modifier>const</modifier><type> struct timespec*</type>
+                             <parameter>abstime</parameter>
+                         </methodparam>
+                     </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        This is the same as the previous function however
+                        the <parameter>mutex</parameter> parameter is a raw
+                        posix mutex rather than one wrapped in a
+                        <classname>CMutex</classname> object.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                     <methodsynopsis>
+                         <modifier></modifier>
+                         <type>bool </type>
+                         <methodname>timedwait</methodname>
+                         <methodparam>
+                             <type>CMutex&amp;</type><parameter> mutex</parameter>
+                         </methodparam>
+                         <methodparam>
+                             <type>int</type><parameter>milliseconds</parameter>
+                         </methodparam>
+                     </methodsynopsis>
+                     <methodsynopsis>
+                         <modifier></modifier>
+                         <type>bool </type>
+                         <methodname>timedwait</methodname>
+                         <methodparam>
+                             <type>pthread_mutex_t*</type><parameter> mutex</parameter>
+                         </methodparam>
+                         <methodparam>
+                             <type>int</type><parameter> milliseconds</parameter>
+                         </methodparam>
+                         <exceptionname></exceptionname>
+                         <modifier></modifier>
+                     </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Same as above, however the timeout
+                        is specified in milliseconds from the time of the call.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                     <methodsynopsis>
+                         <modifier></modifier>
+                         <type>void </type>
+                         <methodname>wait</methodname>
+                         <methodparam>
+                             <type>CMutex&amp;</type><parameter> mutex</parameter>
+                         </methodparam>
+                         
+                     </methodsynopsis>  
+                     <methodsynopsis>
+                         <modifier></modifier>
+                         <type>void </type>
+                         <methodname>wait</methodname>
+                         <methodparam>
+                             <type>pthread_mutex_t*</type><parameter> mutex</parameter>
+                         </methodparam>
+                         <exceptionname></exceptionname>
+                         <modifier></modifier>
+                     </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Waits for the mutex without any bound on the timet the
+                        thread will block.
+                    </para>
+                </listitem>
+            </varlistentry>
+          </variablelist>
+       </refsect1>
+        <refsect1>
+           <title>PUBLIC VARIABLES, TYPES and CONSTANTS</title>
+           <para>
+                The behavior of pthread entities is controled by an attribute
+                block that is passed to the methods that create them.
+                <classname>CConditionAttributes</classname> is a struct that
+                wraps the <type>pthread_condattr_t</type> attribute block for
+                condition variables with methods that make it easy to set up the
+                block.
+           </para>
+            <variablelist>
+                <varlistentry>
+                    <term>
+                        <methodsynopsis>
+                            <modifier></modifier>
+                            <type>void </type>
+                            <methodname>setShared</methodname>
+                            <void />
+                        </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Sets the sharing attribute to:
+                            <literal>PTHREAD_PROCESS_SHARED</literal>.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <methodsynopsis>
+                            <modifier></modifier>
+                            <type>void </type>
+                            <methodname>setUnshared</methodname>
+                            <void />
+                        </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Sets the sharing attribute to:
+                            <literal>PTHREAD_PROCESS_PRIVATE
+                            </literal>
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <methodsynopsis>
+                            <modifier></modifier>
+                            <type>bool </type>
+                            <methodname>isShared</methodname>
+                            <void />
+                        </methodsynopsis>
+                    </term>
+                    <listitem><para>
+                        Returns <literal>true</literal> if the sharing attribute
+                        is <literal>PTHREAD_PROCESS_SHARED</literal>
+                        </para></listitem>
+                </varlistentry>
+                
+           </variablelist>
+        </refsect1>
+     </refentry>
+<refentry id="manpage.gaurdedobject">
+  <refmeta>
+     <refentrytitle id='manpage.gaurdedobject-title'>CGaurdedObject</refentrytitle>
+     <manvolnum>3daq</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>CGaurdedObject</refname>
+     <refpurpose>Provide entry/exit guards for object critical regions.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+    #include &lt;CGaurdedObject.h&gt;
+       <ooclass><classname> CGaurdedObject</classname></ooclass>
+      <constructorsynopsis>
+     <methodname>CGaurdedObject</methodname>
+     <void />
+     <exceptionname></exceptionname>
+      </constructorsynopsis>
+     <methodsynopsis>
+        <type>void</type>
+        <methodname>Enter</methodname>
+        <void />
+     </methodsynopsis>
+     <methodsynopsis>
+        <type>void</type> <methodname>Leave</methodname>
+        <void />
+     </methodsynopsis>
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        This is a base class intended for objects that require
+        entry and exit synchronization gaurds for object wide
+        critical regions.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <constructorsynopsis>
+                <methodname>CGaurdedObject</methodname>
+                <void />
+                <exceptionname></exceptionname>
+                 </constructorsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Default constructor of the base class.
+                    This creates and initializes the mutex
+                    that will be used to synchronize across threads.
+                </para>
+                <para>
+                    Note that there is no public copy constructor
+                    for this class and therefore objects which extend this
+                    base class cannot, in practice be copy constructed.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                   <type>void</type>
+                   <methodname>Enter</methodname>
+                   <void />
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Called to enter a critical region.  Only
+                    one thread at a time can be executing in the
+                    object past a call to <methodname>Enter</methodname>.
+                    This makes critical regions object wide.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                   <type>void</type> <methodname>Leave</methodname>
+                   <void />
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Called to leave a critical region.  If there are
+                    threads blocked in a call to
+                    <methodname>Enter</methodname> (on any
+                    method in this object), one is selected to
+                    resume execution (at the mercy of the scheduler).
+                </para>
+            </listitem>
+        </varlistentry>
+        
+     </variablelist>
+  </refsect1>
+</refentry>     
+<refentry id="manpage.bufferqueue">
+  <refmeta>
+     <refentrytitle id='manpage.bufferqueue-title'>CBufferQueue</refentrytitle>
+     <manvolnum>3daq</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>CBufferQueue</refname>
+     <refpurpose>Templated class for safe inter-thread messaging.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+    #include &lt;CBufferQueue.h&gt;
+    template&lt;class T&gt;
+
+
+       <ooclass><classname>
+        class CBufferQueue : public CGaurdedObject        
+       </classname></ooclass>
+      <constructorsynopsis>
+     <methodname>CBufferQueue</methodname>
+     <methodparam>
+        <type>size_t</type> <parameter>wakeLevel=0</parameter>
+    </methodparam>
+     <exceptionname></exceptionname>
+      </constructorsynopsis>
+      <methodsynopsis>
+        <type>void</type> <methodname>queue</methodname>
+        <methodparam>
+            <type>T</type> <parameter>object</parameter>
+        </methodparam>
+      </methodsynopsis>
+      <methodsynopsis>
+          <modifier></modifier>
+          <type>T</type>
+          <methodname>get</methodname>
+          <void />
+          <exceptionname></exceptionname>
+          <modifier></modifier>
+      </methodsynopsis>
+      <methodsynopsis>
+          <modifier></modifier>
+          <type>bool</type>
+          <methodname>getnow</methodname>
+          <methodparam>
+            <type>T&amp;</type> <parameter>object</parameter>
+          </methodparam>
+          <exceptionname></exceptionname>
+          <modifier></modifier>
+      </methodsynopsis>
+      <methodsynopsis>
+          <modifier></modifier>
+          <type>std::list&lt;T&gt;</type>
+          <methodname>getall</methodname>
+          <void />
+          <exceptionname></exceptionname>
+          <modifier></modifier>
+      </methodsynopsis>
+      <methodsynopsis>
+          <modifier></modifier>
+          <type>void</type>
+          <methodname>setWakeThreshold</methodname>
+          <methodparam>
+            <type>size_t</type><parameter>level</parameter>
+          </methodparam>
+          <exceptionname></exceptionname>
+          <modifier></modifier>
+      </methodsynopsis>
+      <methodsynopsis>
+          <modifier></modifier>
+          <type>void</type>
+          <methodname>wait</methodname>
+          <void />
+          <exceptionname></exceptionname>
+          <modifier></modifier>
+      </methodsynopsis>
+      <methodsynopsis>
+          <modifier></modifier>
+          <type>void</type>
+          <methodname>wake</methodname>
+          <void />
+          <exceptionname></exceptionname>
+          <modifier></modifier>
+      </methodsynopsis>  
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        <classname>CBufferQueue</classname> is a templated class
+        that provides a thread safe queue.  Thread-safeness
+        allows any number of threads to be producers and any number
+        of threads to be consumers. 
+     </para>
+     <para>
+        Thread-safeness is accomplished by deriving this class
+        from the <classname>CGuardedObject</classname> and sprinkling
+        an appropriate set of <methodname>Enter</methodname> and
+        <methodname>Leave</methodname> calls.
+        Blocking and waking is accomplished by means of a condition
+        variable.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <constructorsynopsis>
+                  <methodname>CBufferQueue</methodname>
+                  <methodparam>
+                     <type>size_t</type> <parameter>wakeLevel=0</parameter>
+                 </methodparam>
+                  <exceptionname></exceptionname>
+                </constructorsynopsis>
+                </term>
+            
+            <listitem>
+                <para>
+                    Constructs the buffer queue.  The <parameter>wakeLevel</parameter>
+                    parameter determines the depth of the queue above which threads
+                    waiting on a <methodname>get</methodname> will be woken. A
+                    <parameter>wakeLevel</parameter> of <literal>0</literal>,
+                    the default, will wake for every queue insertion.  The default
+                    is normally correct unless you have some specialized application.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                  <type>void</type> <methodname>queue</methodname>
+                  <methodparam>
+                      <type>T</type> <parameter>object</parameter>
+                  </methodparam>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Adds an <parameter>object</parameter>
+                    to the queue.  The type <literal>T</literal>
+                    is the templated type of the class.
+                    For example if the <classname>CBufferQueue</classname>
+                    was declared as <literal>CBufferQueue&lt;int&gt; q</literal>
+                    the <parameter>object</parameter> must be an
+                    <type>int</type>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>T</type>
+                    <methodname>get</methodname>
+                    <void />
+                    <exceptionname></exceptionname>
+                    <modifier></modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Returns the least recently queued item.  If the queue
+                    is emtpy the thread will block until there are more than
+                    the queue's wakelevel items in the queue (see the
+                    constructor documentation) at which time the oldest
+                    element will be returned.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>bool</type>
+                    <methodname>getnow</methodname>
+                    <methodparam>
+                      <type>T&amp;</type> <parameter>object</parameter>
+                    </methodparam>
+                    <exceptionname></exceptionname>
+                    <modifier></modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Attempts to get the oldest element from the queue.
+                    If there are elements in the queue, the function returns
+                    <literal>true</literal> and the <parameter>object</parameter>
+                    parameter is set to contain that element.   If there are
+                    no elements in the queue, the function returns <literal>false</literal>
+                    and the value of <parameter>object</parameter> is not
+                    defined.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>std::list&lt;T&gt;</type>
+                    <methodname>getall</methodname>
+                    <void />
+                    <exceptionname></exceptionname>
+                    <modifier></modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Returns a list that contains all of the
+                    elements that are now in the queue.  This method
+                    never blocks.  If the queue is empty, the
+                    returned value will be an empty list.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void</type>
+                    <methodname>setWakeThreshold</methodname>
+                    <methodparam>
+                      <type>size_t</type><parameter>level</parameter>
+                    </methodparam>
+                    <exceptionname></exceptionname>
+                    <modifier></modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Changes the queeu wake <parameter>level</parameter>.
+                    For a discussion  of the meaning of the queue
+                    wake level see the description of the constructor
+                    above.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void</type>
+                    <methodname>wait</methodname>
+                    <void />
+                    <exceptionname></exceptionname>
+                    <modifier></modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Waits for the next wake-up on the queue.  While this
+                    is a public interface, normal applications don't need
+                    to explicitly call this entry as the
+                    <methodname>get</methodname> method
+                    automatically calls it.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void</type>
+                    <methodname>wake</methodname>
+                    <void />
+                    <exceptionname></exceptionname>
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Wakes queue waiters.  The only reason
+                    for a normal application to invoke this is
+                    if the wake level is relatively large and
+                    the application knows that there will not
+                    be any elements queued for some long time
+                    (e.g. when the application is almost finished),
+                    then <methodname>wake</methodname> can force queue
+                    waiters to wake up and process the elements that
+                    are present in the queue.
+                </para>
+            </listitem>
+        </varlistentry>
+     </variablelist>
+  </refsect1>
+</refentry>     
+<!-- /manpage -->
