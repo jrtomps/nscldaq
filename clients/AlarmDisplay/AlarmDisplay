@@ -1,4 +1,0 @@
-#!/bin/bash
-
-SCRIPT_DIR=${0%/AlarmDisplay}/../Scripts
-$SCRIPT_DIR/AlarmDisplay.tcl $1 $2 $SCRIPT_DIR

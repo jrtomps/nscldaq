@@ -1,6 +1,0 @@
-#include "TCLList.h"
-#include <TCLInterpreter.h>
-#include <TCLVariable.h>
-#include <daqtypes.h>
-#include <histotypes.h>        //Required for include files
-

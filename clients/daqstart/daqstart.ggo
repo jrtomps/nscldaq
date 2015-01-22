@@ -1,8 +1,0 @@
-package "daqstart"
-version "1.0"
-purpose "Start a program with loggin of stdout, stderr and exit notification"
-
-option "error"   e "Error log sink (e.g. file:myfile.log)" string no
-option "output" o "Output log sink (e.g. file:myfile.log)" string no
-option "notify" n "Enable exit notification logging" flag off
-

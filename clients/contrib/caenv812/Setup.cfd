@@ -1,4 +1,0 @@
-# CFD configuration file written Mon Apr 28 13:56:51 EDT 2003
-set Name "SEE V812 VME Cfd"
-set ModuleBase 0x10000000
-set Crate 0

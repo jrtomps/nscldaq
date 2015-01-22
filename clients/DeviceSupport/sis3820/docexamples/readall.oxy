@@ -1,6 +1,0 @@
-	readscl (UINT32* buffer,int numscalers)
-	{
-          ...
-          pScaler->ReadAllChannels(buffer);
-          buffer+= 32;                    // The buffer pointer must advance.
-          ...

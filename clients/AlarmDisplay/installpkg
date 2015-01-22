@@ -1,6 +1,0 @@
-#!/bin/sh
-# Start tclsh: \
-exec tclsh ${0} ${@}
-cd $argv/Scripts
-pkg_mkIndex -verbose . *.tcl
-auto_mkindex . *.tcl

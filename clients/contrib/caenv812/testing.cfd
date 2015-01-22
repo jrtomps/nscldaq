@@ -1,4 +1,0 @@
-# CFD configuration file written Sun Nov 10 10:55:45 EST 2002
-set Name "Test_Module"
-set ModuleBase 0x20000
-set Crate 0

@@ -1,4 +1,0 @@
-#!/bin/bash
-
-prefix=/usr/opt/daq/9.0
-$prefix/bin/tclserver  $prefix/bin/ScalerDisplay.tcl $1 -pManaged -a"Scaler Display"

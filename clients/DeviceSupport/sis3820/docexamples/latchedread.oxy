@@ -1,7 +1,0 @@
-        readscl(UINT32* buffer, int numscalers)
-        {
-             ....
-             pScaler->LatchAndRead(buffer);
-             buffer += 32;
-             ...
-        }   

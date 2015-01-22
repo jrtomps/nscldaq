@@ -1,9 +1,0 @@
-          CSIS3820* pModule(0);
-           ...
-          void iniscl()
-          {
-             ...
-             if(!pModule) pModule=new CSIS3820(0x38000000);
-             pModule->setOperatingMode(CSIS3820::LatchingScaler);
-              ...
-          }
