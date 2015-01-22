@@ -1,7 +1,0 @@
-package "ringtostdout"
-version "1.0"
-purpose "Output data from an NSCL Ring buffer to stdout."
-
-option "mindata" m "Ring get chunking factor" string optional default="1m"
-option "timeout" t "Ring get timeout in seconds"   int    optional default="1"
-

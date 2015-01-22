@@ -1,5 +1,0 @@
-package "CompatibilityBuffer"
-version "1.0"
-purpose "Filter to take ring items in and produce as output old style NSCL data buffers"
-
-option "buffersize" b "Output buffer size in bytes" int optional default="8192"

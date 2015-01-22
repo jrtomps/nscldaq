@@ -1,8 +1,0 @@
-package "Readout"
-version "1.0"
-
-purpose "Reads out experimental data to spectrodaq"
-
-option "port" p "Enable tcl server functionality, next parameter is the port" string no
-option "ring" r "Ring buffer name, defaults to your username"                 string no
- 

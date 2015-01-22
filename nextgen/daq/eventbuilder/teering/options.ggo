@@ -1,9 +1,0 @@
-#
-#  Command line definition file for teering
-#  
-
-package "teering"
-version "1.0"
-purpose "Tee data to stdout and to a ring"
-
-option "ring" r "Output ring" string required

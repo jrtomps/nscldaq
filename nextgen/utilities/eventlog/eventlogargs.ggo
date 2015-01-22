@@ -1,8 +1,0 @@
-package "EventLog"
-version "1.0"
-purpose "Log event data to file"
-
-option "source" s "URL of source ring buffer" string optional
-option "path"   p "Directory in which event files are made" string optional
-option "segmentsize" S "Size of event segments e.g. 2g or 2000m" string optional
-option "oneshot" o   "Record one run and exit, making synchronization files" optional
