@@ -1,6 +1,0 @@
-#!/bin/sh
-find . -name .deps -exec rm -rf {} \;
-set -x
-aclocal
-automake --foreign --add-missing --copy
-autoconf
