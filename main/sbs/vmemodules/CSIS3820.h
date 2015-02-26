@@ -14,7 +14,7 @@
 	     East Lansing, MI 48824-1321
 */
 #ifndef __CSIS3820_H
-#define __CSIS3820_h
+#define __CSIS3820_H
 
 #ifndef __CMODULE32_H
 #include "CModule32.h"
