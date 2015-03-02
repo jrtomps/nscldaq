@@ -59,9 +59,20 @@
 
 <!-- manpage 1daq -->
 <refentry id="manpage.ringtostdout">
+    <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
   <refmeta>
      <refentrytitle>ringtostdout</refentrytitle>
      <manvolnum>1daq</manvolnum>
+      <refmiscinfo class='empty'></refmiscinfo>
   </refmeta>
   <refnamediv>
      <refname>ringtostdout</refname>
@@ -147,9 +158,20 @@ ringtostdout somering | od -xa
 </refentry>
 
 <refentry id="manpage.stdintoring">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>  
   <refmeta>
      <refentrytitle>stdintoring</refentrytitle>
      <manvolnum>1daq</manvolnum>
+      <refmiscinfo class='empty'></refmiscinfo>
   </refmeta>
   <refnamediv>
      <refname>stdintoring</refname>

@@ -861,4 +861,5 @@ Work on 11.0-rc11 begins
 	the database.
         Feature #3053 - Support for creating enumerated types.
 	Feature #3059 - Support for state machine types.
+	Feature #3541 Feature #3544 - Define protocol for server.
 	

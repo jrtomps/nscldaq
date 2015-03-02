@@ -54,9 +54,20 @@
 
 <!-- manpage 1daq -->
 <refentry id="manpage.ringbuffer">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>  
   <refmeta>
      <refentrytitle>ringbuffer</refentrytitle>
      <manvolnum>1daq</manvolnum>
+     <refmiscinfo class='empty'></refmiscinfo>
   </refmeta>
   <refnamediv>
      <refname>ringbuffer</refname>
