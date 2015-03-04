@@ -224,7 +224,7 @@ uint32_t
 CVmeModule::peekl(uint32_t offset)
 {
 
-   return (uint32_t)((m_CVME.asLong())[offset]);
+   return (uint32_t)((m_CVME.asInt32())[offset]);
 
 }
 
@@ -287,7 +287,7 @@ void
 CVmeModule::pokel(uint32_t lword, uint32_t nOffset)
 {
 
-   (m_CVME.asLong())[nOffset] = lword;
+   (m_CVME.asInt32())[nOffset] = lword;
 
 }
 /*!
@@ -326,7 +326,7 @@ CVmeModule::CopyToMe(const CVmeModule& rModule)
 uint32_t
 CVmeModule::readl(void* pBuffer, uint32_t nOffset, size_t longs)
 {
-  uint32_t* pSource = (uint32_t*)m_CVME.asLong() + nOffset;
+  uint32_t* pSource = (uint32_t*)m_CVME.asInt32() + nOffset;
   uint32_t* pDest   = (uint32_t*)pBuffer;
   for(uint32_t i =0; i < longs; i++) { // memcpy is not ensured to be long transfers.
     *pDest++ = *pSource++;

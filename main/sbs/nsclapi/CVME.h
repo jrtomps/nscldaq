@@ -46,6 +46,8 @@
 #include <Refptr.h>
 #endif
 
+#include <stdexcept>
+
 template<class T>
 class CVME
 {
@@ -117,6 +119,7 @@ private:
  public:
   volatile UChar_t*      asChar();
   volatile UShort_t*  asShort();
+  volatile UINT32*    asInt32();
   volatile ULong_t*   asLong();
 };
 
@@ -565,6 +568,38 @@ CVME<T>::asShort()
   p         += m_nOffset * sizeof(T)/sizeof(UShort_t);
 
   return p;
+}
+
+/*
+  \fn CVME<UINT32> CVME<T>::asInt32()
+
+  Operation Type:
+     Type conversion operator
+
+  Purpose:
+     Returns this as a CVME which maps m_pStart to an address space
+     containing data of type UINT32.
+*/
+template<class T>
+volatile UINT32*
+CVME<T>::asInt32()
+{
+  // casts to char* are always allowed and defined
+  char* pStart = reinterpret_cast<char*>(m_pRCptr->getStart());
+
+  // check that this doesn't introduce undefined behavior
+  if ((size_t(pStart)%__alignof__(UINT32))!=0) {
+    throw std::runtime_error("CVME<T>::asInt32() Cast to UINT32* failed because not properly aligned.");
+  }
+
+  // otherwise, this is safe
+  volatile UINT32* p = reinterpret_cast<UINT32*>(pStart);
+
+  // locate the proper position. Note that the alignment will be
+  // maintained because of integer division.
+  p += m_nOffset * sizeof(T)/sizeof(UINT32);
+
+  return p; 
 }
 
 /*

@@ -24,9 +24,11 @@
 #include <sstream>
 #include <algorithm>
 #include <functional>
+#include <cstdint>
 #include <time.h>
-#include <stdint.h>
 
+using std::uint32_t;
+using std::uint64_t;
 
 
 /*---------------------------------------------------------------------

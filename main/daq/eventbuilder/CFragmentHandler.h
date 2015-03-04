@@ -59,15 +59,6 @@
 #endif
 #endif
 
-
-
-#ifndef __CRT_STDINT_H
-#include <stdint.h>
-#ifndef __CRT_STDINT_H
-#define __CRT_STDINT_H
-#endif
-#endif
-
 #ifndef __CRT_TIME_H
 #include <time.h>
 #ifndef __CRT_TIME_H
@@ -82,7 +73,9 @@
 #endif
 #endif
 
+#include <cstdint>
 
+#include <limits>
 
 
 // Forward definitions:
@@ -122,15 +115,16 @@ private:
   // Private data types:
 
   typedef struct _SourceQueue {
-    uint64_t                                        s_newestTimestamp;
-    uint64_t                                        s_lastPoppedTimestamp;
-    uint64_t                                        s_bytesInQ; 
-    uint64_t                                        s_bytesDeQd;
-    uint64_t                                        s_totalBytesQd;
-    uint64_t                                        s_lastTimestamp;
+    std::uint64_t                                        s_newestTimestamp;
+    std::uint64_t                                        s_lastPoppedTimestamp;
+    std::uint64_t                                        s_bytesInQ; 
+    std::uint64_t                                        s_bytesDeQd;
+    std::uint64_t                                        s_totalBytesQd;
+    std::uint64_t                                        s_lastTimestamp;
     std::queue<std::pair<time_t,  EVB::pFragment> > s_queue;
     void reset() {
         s_newestTimestamp = 0;
+//        s_lastPoppedTimestamp = std::numeric_limits<std::uint64_t>::max();
         s_lastPoppedTimestamp = UINT64_MAX;
         s_bytesInQ = 0;
         s_bytesDeQd  = 0;
@@ -142,20 +136,20 @@ private:
 
   } SourceQueue, *pSourceQueue;
 
-  typedef std::map<uint32_t, SourceQueue> Sources, *pSources;
-  typedef std::pair<uint32_t, SourceQueue> SourceElement, *pSourceElement;
-  typedef std::pair<const uint32_t, SourceQueue> SourceElementV;
+  typedef std::map<std::uint32_t, SourceQueue> Sources, *pSources;
+  typedef std::pair<std::uint32_t, SourceQueue> SourceElement, *pSourceElement;
+  typedef std::pair<const std::uint32_t, SourceQueue> SourceElementV;
   typedef struct _BarrierSummary {
-    std::vector<std::pair<uint32_t, uint32_t> > s_typesPresent;
-    std::vector<uint32_t>                        s_missingSources;
+    std::vector<std::pair<std::uint32_t, std::uint32_t> > s_typesPresent;
+    std::vector<std::uint32_t>                        s_missingSources;
   } BarrierSummary, *pBarrierSummary;
   
   // public data types:
 public:
     typedef struct _QueueStatistics {
-        uint32_t   s_queueId;
-        uint32_t   s_queueDepth;
-        uint64_t   s_oldestElement;
+        std::uint32_t   s_queueId;
+        std::uint32_t   s_queueDepth;
+        std::uint64_t   s_oldestElement;
         size_t     s_queuedBytes;               // Currently queued bytes
         size_t     s_dequeuedBytes;
         size_t     s_totalQueuedBytes;          // bytes queued since last reset.
@@ -163,9 +157,9 @@ public:
     } QueueStatistics, *pQueueStatistics;
     
     typedef struct _InputStatistics {
-        uint64_t s_oldestFragment;
-        uint64_t s_newestFragment;
-        uint32_t s_totalQueuedFragments;
+        std::uint64_t s_oldestFragment;
+        std::uint64_t s_newestFragment;
+        std::uint32_t s_totalQueuedFragments;
         
         std::vector<QueueStatistics> s_queueStats;
     } InputStatistics, *pInputStatistics;
@@ -192,7 +186,7 @@ public:
     virtual ~DataLateObserver() {} // Support destructor chaining.
 
   public:
-    virtual void operator()(const ::EVB::Fragment& fragment,  uint64_t newest) = 0;
+    virtual void operator()(const ::EVB::Fragment& fragment,  std::uint64_t newest) = 0;
   };
 
   // Observer for successful barrier
@@ -202,7 +196,7 @@ public:
     BarrierObserver() {}
     virtual ~BarrierObserver() {}
   public:
-    virtual void operator()(const std::vector<std::pair<uint32_t, uint32_t> >& barrierTypes) = 0;
+    virtual void operator()(const std::vector<std::pair<std::uint32_t, std::uint32_t> >& barrierTypes) = 0;
   };
 
   class PartialBarrierObserver {
@@ -210,8 +204,8 @@ public:
     PartialBarrierObserver() {}
     virtual ~PartialBarrierObserver() {}
   public:
-    virtual void operator()(const std::vector<std::pair<uint32_t, uint32_t> >& barrierTypes, 
-			    const std::vector<uint32_t>& missingSources) = 0;
+    virtual void operator()(const std::vector<std::pair<std::uint32_t, std::uint32_t> >& barrierTypes, 
+			    const std::vector<std::uint32_t>& missingSources) = 0;
   };
   
   class DuplicateTimestampObserver {
@@ -219,7 +213,7 @@ public:
         DuplicateTimestampObserver() {}
         virtual ~DuplicateTimestampObserver() {}
     public:
-        virtual void operator()(uint32_t sourceId, uint64_t timestamp) = 0;
+        virtual void operator()(std::uint32_t sourceId, std::uint64_t timestamp) = 0;
   };
   
   class FlowControlObserver {
@@ -231,7 +225,7 @@ public:
   class NonMonotonicTimestampObserver {
     public:
         virtual void operator()(
-            unsigned sourceid, uint64_t priorTimestamp, uint64_t thisTimestamp
+            unsigned sourceid, std::uint64_t priorTimestamp, std::uint64_t thisTimestamp
         ) = 0;
   };
 
@@ -241,12 +235,12 @@ public:
 private:
     class QueueStatGetter {
     private:
-      uint32_t                     m_nTotalFragments;
+      std::uint32_t                     m_nTotalFragments;
       std::vector<QueueStatistics> m_Stats;
     public:
       QueueStatGetter();
       void operator()(SourceElementV& source);
-      uint32_t totalFragments();
+      std::uint32_t totalFragments();
       std::vector<QueueStatistics> queueStats();
     };
 
@@ -255,9 +249,9 @@ private:
 private:
   static CFragmentHandler* m_pInstance;	     //< The unique instance of this class.
 private:
-  uint64_t                     m_nOldest;              //!< Oldest fragment seen in terms of ticks.
-  uint64_t                     m_nNewest;              //!< Newest fragment seen in terms of ticks.
-  uint64_t                     m_nMostRecentlyPopped;    //!< Most recently popped fragment in ticks.
+  std::uint64_t                     m_nOldest;              //!< Oldest fragment seen in terms of ticks.
+  std::uint64_t                     m_nNewest;              //!< Newest fragment seen in terms of ticks.
+  std::uint64_t                     m_nMostRecentlyPopped;    //!< Most recently popped fragment in ticks.
 
   time_t                       m_nBuildWindow;
   time_t                       m_nNow;
@@ -266,7 +260,7 @@ private:
   time_t                       m_nStartupTimeout;   //!< N seconds to wait before flushing (dflt=2)
 
 
-  uint32_t                     m_nFragmentsLastPeriod; //!< # fragments in last flush check interval.
+  std::uint32_t                     m_nFragmentsLastPeriod; //!< # fragments in last flush check interval.
 
   std::list<Observer*>                       m_OutputObservers;
   std::list<DataLateObserver*>               m_DataLateObservers;
@@ -278,9 +272,9 @@ private:
 
   Sources                      m_FragmentQueues;
   bool                         m_fBarrierPending;      //< True if at least one queue has a barrier event.
-  std::set<uint32_t>           m_liveSources;	       //< sources that are live.
-  std::map<std::string, std::list<uint32_t> > m_socketSources; //< Each socket name has a list of source ids.
-  std::map<std::string, std::list<uint32_t> > m_deadSockets;   //< same as above but for dead sockets.
+  std::set<std::uint32_t>           m_liveSources;	       //< sources that are live.
+  std::map<std::string, std::list<std::uint32_t> > m_socketSources; //< Each socket name has a list of source ids.
+  std::map<std::string, std::list<std::uint32_t> > m_deadSockets;   //< same as above but for dead sockets.
   
   Tcl_TimerToken               m_timer;
   
@@ -365,8 +359,8 @@ public:
   // Get/set state of the queues etc.
 
   InputStatistics getStatistics();
-  void createSourceQueue(std::string socketName, uint32_t id);  
-  void markSourceFailed(uint32_t id);
+  void createSourceQueue(std::string socketName, std::uint32_t id);  
+  void markSourceFailed(std::uint32_t id);
   void markSocketFailed(std::string sockName);
   void reviveSocket(std::string sockName);
   void resetTimestamps();
@@ -389,11 +383,11 @@ private:
   //   void generateCompleteBarrier(std::vector<EVB::pFragment>& ouptputList); 156
   
   void goodBarrier(std::vector<EVB::pFragment>& outputList);
-  void partialBarrier(std::vector<std::pair<uint32_t, uint32_t> >& types, 
-		 std::vector<uint32_t>& missingSources);
-  void observeGoodBarrier(std::vector<std::pair<uint32_t, uint32_t> >& types);
-  void observeDuplicateTimestamp(uint32_t sourceId, uint64_t timestamp);
-  void observeOutOfOrderInput(unsigned sourceId, uint64_t prior, uint64_t bad);
+  void partialBarrier(std::vector<std::pair<std::uint32_t, std::uint32_t> >& types, 
+		 std::vector<std::uint32_t>& missingSources);
+  void observeGoodBarrier(std::vector<std::pair<std::uint32_t, std::uint32_t> >& types);
+  void observeDuplicateTimestamp(std::uint32_t sourceId, std::uint64_t timestamp);
+  void observeOutOfOrderInput(unsigned sourceId, std::uint64_t prior, std::uint64_t bad);
   void Xoff();
   void Xon();
   
@@ -401,7 +395,7 @@ private:
   size_t countPresentBarriers() const;
 
 
-  SourceQueue& getSourceQueue(uint32_t id);
+  SourceQueue& getSourceQueue(std::uint32_t id);
 
 
   void checkBarrier(bool complete);
