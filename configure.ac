@@ -397,6 +397,7 @@ AC_CONFIG_FILES([Makefile
 		 utilities/newscaler/ScalerDisplay.tcl
 		 utilities/varmanager/Makefile
 		 utilities/varmanager/vardbsh.tcl
+		 utilities/varmanager/server/Makefile
                  epics/chanlog/Makefile
                  epics/controlpush/Makefile
                  epics/epicsdisplay/Makefile
