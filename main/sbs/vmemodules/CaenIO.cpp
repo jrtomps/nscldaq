@@ -20,8 +20,9 @@
 #include <CVME.h>
 
 #include <stdlib.h>
+#include <sstream>
+#include <iomanip>
 using namespace std;
-
 
 /*!
   \fn CCaenIO(uint32_t base)
@@ -39,7 +40,7 @@ CCaenIO::CCaenIO(uint32_t base, int nCrate) :
   CVmeModule(CVmeModule::a24d16, base, LENGTH, nCrate),
   m_nOutputMask(0)
 {
-
+  throwIfUnrecognized(base);
 }
 
 /*!
@@ -276,4 +277,28 @@ CCaenIO::getECLOutputPointer()
   return ((uint16_t*)(map.getStart()) + 2);
 }
 
+
+void 
+CCaenIO::throwIfUnrecognized(uint32_t base) 
+{
+
+  uint16_t fixedCode = peekw(0xfa/sizeof(uint16_t));
+  uint16_t mfgMod    = peekw(0xfc/sizeof(uint16_t));
+  uint16_t modType   = (mfgMod&0x3ff);
+  uint16_t mfgNo     = (mfgMod>>10);
+
+  // The manual specifies that fixed code == 0xfaf5
+  // module type is 0x0001 and manufacturer number is 0x0002
+  // We check that this is in fact the case.
+  if ( (fixedCode != 0xfaf5) 
+      || (modType != 0x0001) 
+      || (mfgNo   != 0x0002) ) {
+    std::ostringstream errmsg;
+    errmsg << hex << setfill('0'); 
+    errmsg << "CCaenIO unable to recognize device at base address ";
+    errmsg << "0x" << setw(8) << base << " as a Caen V262";
+
+    throw errmsg.str();
+  }
+}
 

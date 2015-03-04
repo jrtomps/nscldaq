@@ -96,6 +96,9 @@ class CCaenIO : public CVmeModule
   uint16_t* getLatchedOutputPointer();
   uint16_t* getECLOutputPointer();
 
+private:
+  void throwIfUnrecognized(uint32_t base);
+
 };
 
 #endif

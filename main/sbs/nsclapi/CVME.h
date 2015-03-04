@@ -46,7 +46,12 @@
 #include <Refptr.h>
 #endif
 
-#include <stdexcept>
+#ifndef __CRTL_STDINT_H
+#include <stdint.h>
+#ifndef __CRTL_STDINT_H
+#define __CRTL_STDINT_H
+#endif
+#endif
 
 template<class T>
 class CVME
@@ -54,7 +59,7 @@ class CVME
 private:
   CRefcountedPtr<CVMEptr<T> > m_pRCptr;  // a reference counted pointer to the
                                          // CVMEptr which holds the mapping.
-  UInt_t   m_nOffset;                    // We need our own offset to do ++ e.g. 
+  uint32_t   m_nOffset;                    // We need our own offset to do ++ e.g. 
 
  public:
   // Enumeration of possible Vme devices to access
@@ -67,7 +72,7 @@ private:
   };
 
   // Default constructor
-  CVME<T>(VmeSpace space, UInt_t base, UInt_t length, UInt_t crate=0);
+  CVME<T>(VmeSpace space, uint32_t base, uint32_t length, UInt_t crate=0);
   CVME<T>();
   CVME<T>(CVMEptr<T>* aCVMEptr);
   // Copy constructor
@@ -87,10 +92,10 @@ private:
 
   // Public accessor functions
  public:
-  UInt_t getOffset() { return m_nOffset;  }
+  uint32_t getOffset() { return m_nOffset;  }
   UInt_t getLength() { return m_pRCptr.operator*().getLength(); }
   Address_t getStart() { return m_pRCptr.operator*().getStart(); }
-  Address_t getgenptr(UInt_t nOffset);
+  Address_t getgenptr(uint32_t nOffset);
   Address_t getcurrptr();
 
   // Public member functions
@@ -117,10 +122,10 @@ private:
 
   // Type conversion operators
  public:
-  volatile UChar_t*      asChar();
-  volatile UShort_t*  asShort();
-  volatile UINT32*    asInt32();
-  volatile ULong_t*   asLong();
+  volatile uint8_t*    asChar();
+  volatile uint16_t*   asShort();
+  volatile uint32_t*   asInt32();
+  volatile uint64_t*   asLong();
 };
 
 
@@ -140,7 +145,7 @@ private:
 	 UInt_t crate   - VME Crate number.
  */
 template<class T>
-CVME<T>::CVME(VmeSpace space, UInt_t base, UInt_t length, UInt_t crate) :
+CVME<T>::CVME(VmeSpace space, uint32_t base, uint32_t length, UInt_t crate) :
   m_nOffset(0)
 {
   CRefcountedPtr<CVMEptr<T> > p(new CVMEptr<T>(space, base, length, crate));
@@ -160,7 +165,7 @@ template<class T>
 CVME<T>::CVME() :
   m_nOffset(0)
 {
-  m_pRCptr = 0;
+
 }
 
 /*
@@ -256,7 +261,7 @@ template<class T>
 T*
 CVME<T>::operator->()
 {
-  UInt_t nOffset = m_pRCptr->getOffset();
+  uint32_t nOffset = m_pRCptr->getOffset();
 
   try {
     m_pRCptr->setOffset(m_nOffset);
@@ -284,7 +289,7 @@ CVME<T>::operator->()
 */
 template<class T>
 T&
-CVME<T>::operator[](UInt_t nOffset)
+CVME<T>::operator[](uint32_t nOffset)
 {
   try {
     return m_pRCptr.operator*().operator[](nOffset + m_nOffset);
@@ -308,7 +313,7 @@ CVME<T>::operator[](UInt_t nOffset)
 */
 template<class T>
 T&
-CVME<T>::operator[](UInt_t nOffset) const
+CVME<T>::operator[](uint32_t nOffset) const
 {
   try {
     return m_pRCptr.operator*().operator[](nOffset + m_nOffset);
@@ -336,7 +341,7 @@ CVME<T>::operator[](UInt_t nOffset) const
 */
 template<class T>
 CVME<T>&
-CVME<T>::operator+(UInt_t nOffset)
+CVME<T>::operator+(uint32_t nOffset)
 {
   CVME<T> result(*this);
   result.m_nOffset += nOffset;
@@ -356,7 +361,7 @@ CVME<T>::operator+(UInt_t nOffset)
 */
 template<class T>
 CVME<T>&
-CVME<T>::operator-(UInt_t nOffset)
+CVME<T>::operator-(uint32_t nOffset)
 {
   return operator+(-nOffset);
 
@@ -377,7 +382,7 @@ CVME<T>::operator-(UInt_t nOffset)
 */
 template<class T>
 CVME<T>&
-CVME<T>::operator+=(UInt_t nOffset)
+CVME<T>::operator+=(uint32_t nOffset)
 {
   m_nOffset += nOffset;
   return *this;
@@ -399,7 +404,7 @@ CVME<T>::operator+=(UInt_t nOffset)
 */
 template<class T>
 CVME<T>&
-CVME<T>::operator-=(UInt_t nOffset)
+CVME<T>::operator-=(uint32_t nOffset)
 {
   m_nOffset -= nOffset;
   return *this;
@@ -540,11 +545,11 @@ CVME<T>::getcurrptr()
      containing data of type UChar_t.
 */
 template<class T>
-volatile UChar_t*
+volatile uint8_t*
 CVME<T>::asChar()
 {
-  volatile UChar_t* p = (UChar_t*)m_pRCptr->getStart();
-  p         += m_pRCptr->getOffset() * sizeof(T)/sizeof(UChar_t);
+  volatile uint8_t* p = (uint8_t*)m_pRCptr->getStart();
+  p         += m_pRCptr->getOffset() * sizeof(T)/sizeof(uint8_t);
 
   return p;
 
@@ -561,45 +566,33 @@ CVME<T>::asChar()
      containing data of type UShort_t.
 */
 template<class T>
-volatile UShort_t*
+volatile uint16_t*
 CVME<T>::asShort()
 {
-  volatile UShort_t* p = (UShort_t*)m_pRCptr->getStart();
-  p         += m_nOffset * sizeof(T)/sizeof(UShort_t);
+  volatile uint16_t* p = (uint16_t*)m_pRCptr->getStart();
+  p         += m_nOffset * sizeof(T)/sizeof(uint16_t);
 
   return p;
 }
 
 /*
-  \fn CVME<UINT32> CVME<T>::asInt32()
+  \fn CVME<T>::asInt32()
 
   Operation Type:
      Type conversion operator
 
   Purpose:
      Returns this as a CVME which maps m_pStart to an address space
-     containing data of type UINT32.
+     containing data of type ULong_t.
 */
 template<class T>
-volatile UINT32*
+volatile uint32_t*
 CVME<T>::asInt32()
 {
-  // casts to char* are always allowed and defined
-  char* pStart = reinterpret_cast<char*>(m_pRCptr->getStart());
+  auto* p = reinterpret_cast<volatile uint32_t*>(m_pRCptr->getStart());
+  p       += m_nOffset * sizeof(T)/sizeof(uint32_t);
 
-  // check that this doesn't introduce undefined behavior
-  if ((size_t(pStart)%__alignof__(UINT32))!=0) {
-    throw std::runtime_error("CVME<T>::asInt32() Cast to UINT32* failed because not properly aligned.");
-  }
-
-  // otherwise, this is safe
-  volatile UINT32* p = reinterpret_cast<UINT32*>(pStart);
-
-  // locate the proper position. Note that the alignment will be
-  // maintained because of integer division.
-  p += m_nOffset * sizeof(T)/sizeof(UINT32);
-
-  return p; 
+  return p;
 }
 
 /*
@@ -613,11 +606,11 @@ CVME<T>::asInt32()
      containing data of type ULong_t.
 */
 template<class T>
-volatile ULong_t*
+volatile uint64_t*
 CVME<T>::asLong()
 {
-  volatile ULong_t* p = (ULong_t*)m_pRCptr->getStart();
-  p         += m_nOffset * sizeof(T)/sizeof(ULong_t);
+  volatile uint64_t* p = (uint64_t*)m_pRCptr->getStart();
+  p         += m_nOffset * sizeof(T)/sizeof(uint64_t);
 
   return p;
 }

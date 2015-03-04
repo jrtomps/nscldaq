@@ -47,7 +47,7 @@
 #endif
 
 
-#ifndef __DAQTYPES_H
+#ifndef __HISTOTYPES_H
 #include <daqdatatypes.h>
 #endif
 
@@ -67,23 +67,31 @@
 #include <MmapError.h>
 #endif
 
-#ifndef __CPP_IOSTREAM
+#ifndef __CXX_IOSTREAM
 #include <iostream>
-#ifndef __CPP_IOSTREAM
-#define __CPP_IOSTREAM
+#ifndef __CXX_IOSTREAM
+#define __CXX_IOSTREAM
 #endif
 #endif
 
+#ifndef __STDINT_H
+#include <stdint.h>
+#ifndef __STDINT_H
+#define __STDINT_H
+#endif
+#endif
+
+#include <stdexcept>
 
 template<class T>
 class CVMEptr
 {
-  UInt_t             m_nLength;  // the length of the mmap
+  uint32_t             m_nLength;  // the length of the mmap
   volatile Address_t m_pStart;   // the starting address of the mmap
   void*              m_pHandle;	 // Handle to VME interface device.
-  Int_t              m_nOffset;
-  UInt_t             m_nSpace;   // The address space of the mapping
-  UInt_t             m_nBase;    // The base address in the crate
+  uint32_t              m_nOffset;
+  uint32_t             m_nSpace;   // The address space of the mapping
+  uint32_t             m_nBase;    // The base address in the crate
 
  public:
   typedef enum _Space {
@@ -95,8 +103,8 @@ class CVMEptr
 
  public:
   // Default constructor and Copy Constructor 
-  CVMEptr<T>(UInt_t space, UInt_t base, UInt_t length, UInt_t crate=0);
-  CVMEptr<T>(Space space, UInt_t base, UInt_t length, UInt_t crate=0);
+  CVMEptr<T>(uint32_t space, uint32_t base, uint32_t length, uint32_t crate=0);
+  CVMEptr<T>(Space space, uint32_t base, uint32_t length, uint32_t crate=0);
   CVMEptr<T>(const CVMEptr& aCVMEptr);
   CVMEptr<T>();
 
@@ -118,16 +126,16 @@ class CVMEptr
 
   // Protected function member:
   // This does the actual mmapping of the VME module
-  void CreateMap(UInt_t space, UInt_t base, UInt_t length,
-		 UInt_t crate = 0);
+  void CreateMap(uint32_t space, uint32_t base, uint32_t length,
+		 uint32_t crate = 0);
 
   // Public accessor functions to data members
  public:
 
-  UInt_t getOffset() const {
+  uint32_t getOffset() const {
     return m_nOffset;
   }
-  UInt_t getLength() const {
+  uint32_t getLength() const {
     return m_nLength;
   }
   Address_t getStart() const {
@@ -136,21 +144,21 @@ class CVMEptr
   void* getHandle() const {
     return m_pHandle;
   }
-  UInt_t getSpace() const {
+  uint32_t getSpace() const {
     return m_nSpace;
   }
-  UInt_t getBase() const {
+  uint32_t getBase() const {
     return m_nBase;
   }
-  Address_t getgenptr(UInt_t nOffset);
+  Address_t getgenptr(uint32_t nOffset);
   Address_t getcurrptr();
 
   // Protected mutator functions to data members
  public:
-  void setOffset(UInt_t am_nOffset) {
+  void setOffset(uint32_t am_nOffset) {
     m_nOffset = am_nOffset;
   }
-  void setLength(UInt_t am_nLength) {
+  void setLength(uint32_t am_nLength) {
     m_nLength = am_nLength;
   }
   void setStart(Address_t pStart) {
@@ -159,10 +167,10 @@ class CVMEptr
   void setHandle(void* am_pHandle) {
     m_pHandle = am_pHandle;
   }
-  void setSpace(UInt_t am_nSpace) {
+  void setSpace(uint32_t am_nSpace) {
     m_nSpace = am_nSpace;
   }
-  void setBase(UInt_t am_nBase) {
+  void setBase(uint32_t am_nBase) {
     m_nBase = am_nBase;
   }
 
@@ -173,13 +181,13 @@ class CVMEptr
   T* operator->();
 
   // Indexing
-  T& operator[] (UInt_t nOffset);
+  T& operator[] (uint32_t nOffset);
   
   // Pointer addition/subtraction
-  CVMEptr<T> operator+(UInt_t nOffset);
-  CVMEptr<T> operator-(UInt_t nOffset);
-  CVMEptr<T>& operator+=(UInt_t nOffset);
-  CVMEptr<T>& operator-=(UInt_t nOffset);
+  CVMEptr<T> operator+(uint32_t nOffset);
+  CVMEptr<T> operator-(uint32_t nOffset);
+  CVMEptr<T>& operator+=(uint32_t nOffset);
+  CVMEptr<T>& operator-=(uint32_t nOffset);
 
   // Pointer pre-increment/decrement
   CVMEptr<T>& operator++();
@@ -193,20 +201,20 @@ class CVMEptr
 #endif
 
 /*
-  \fn CVMEptr(VmeSpace space, UInt_t base, UInt_t length)
+  \fn CVMEptr(VmeSpace space, uint32_t base, uint32_t length)
 
   Operation Type:
      Construction
 
   \param  VmeSpace space - enumeration indicating which vme address space 
                            to use
-          UInt_t base - the base (offset) into the mapping
-	  UInt_t length - the length of the mapping
+          uint32_t base - the base (offset) into the mapping
+	  uint32_t length - the length of the mapping
 */
 
 template<class T>
-CVMEptr<T>::CVMEptr(UInt_t space, UInt_t base, UInt_t length,
-		       UInt_t crate) :
+CVMEptr<T>::CVMEptr(uint32_t space, uint32_t base, uint32_t length,
+		       uint32_t crate) :
   m_nOffset(0),
   m_nLength(length),
   m_nSpace(space),
@@ -218,8 +226,8 @@ CVMEptr<T>::CVMEptr(UInt_t space, UInt_t base, UInt_t length,
   Same as above, but use Space instead of int:
 */
 template<class T>
-CVMEptr<T>::CVMEptr(Space space, UInt_t base, UInt_t length,
-		       UInt_t crate) :
+CVMEptr<T>::CVMEptr(Space space, uint32_t base, uint32_t length,
+		       uint32_t crate) :
   m_nOffset(0),
   m_nLength(length),
   m_nSpace(space),
@@ -300,20 +308,20 @@ CVMEptr<T>::~CVMEptr<T>()
 }
 
 /*
-  \fn void CVMEptr<T>::CreateMap(UInt_t space, UInt_t base, UInt_t length)
+  \fn void CVMEptr<T>::CreateMap(uint32_t space, uint32_t base, uint32_t length)
 
   Operation Type:
      Map
 
-  \param UInt_t space  - indicates which vme device to open 
+  \param uint32_t space  - indicates which vme device to open 
                          (a16d16, a24d32 or a32d32)
-         UInt_t base   - the base address of the module which we're mapping to
-	 UInt_t lenght - the length (bytes) of the map
-	 UInt_t crate  - Selects the vme crate.
+         uint32_t base   - the base address of the module which we're mapping to
+	 uint32_t lenght - the length (bytes) of the map
+	 uint32_t crate  - Selects the vme crate.
 */
 template<class T>
 void
-CVMEptr<T>::CreateMap(UInt_t space, UInt_t base, UInt_t length, UInt_t crate)
+CVMEptr<T>::CreateMap(uint32_t space, uint32_t base, uint32_t length, uint32_t crate)
 {
 
   m_nOffset = 0;
@@ -392,8 +400,15 @@ CVMEptr<T>::operator*()
 
   }
 
-  Address_t pVa = (Address_t)(m_nOffset*sizeof(T) + (UInt_t)m_pStart);
-  return (*(T*)pVa);
+  char* pVa = (reinterpret_cast<char*>(m_pStart) + m_nOffset*sizeof(T));
+
+  if ( (intmax_t(pVa) % __alignof__(T) ) != 0) {
+    throw std::runtime_error("CVMEptr<T>::operator*() Failed cast to T because misaligned memory");
+  }
+
+  T* pReturn = reinterpret_cast<T*>(pVa);
+
+  return *pReturn;
 }
 
 /*
@@ -415,13 +430,18 @@ CVMEptr<T>::operator->()
     throw CRangeError(0, m_nLength, m_nOffset, 
 		 "CVMEptr<T>::operator->() - outside of address window");
   }
-  Address_t pVa = (Address_t)(m_nOffset*sizeof(T) + (UInt_t)m_pStart);
-  
-  return (T*)pVa;
+
+  char* pVa = (reinterpret_cast<char*>(m_pStart) + m_nOffset*sizeof(T) );
+
+  if ( (intmax_t(pVa) % __alignof__(T) ) != 0) {
+    throw std::runtime_error("CVMEptr<T>::operator->() Failed cast to T because misaligned memory");
+  }
+
+  return reinterpret_cast<T*>(pVa);
 }
 
 /*
-  \fn T& CVMEptr<T>::operator[] (UInt_t nOffset)
+  \fn T& CVMEptr<T>::operator[] (uint32_t nOffset)
 
   Operation Type:
      Index read/write
@@ -430,23 +450,29 @@ CVMEptr<T>::operator->()
      Return the value stored at locaton nOffset into the mapped address
      space. Throws an exception if the value is out of range.
 
-  \param UInt_t nOffset - the offset into the address space from which to read.
+  \param uint32_t nOffset - the offset into the address space from which to read.
 */
 template <class T>
 T&
-CVMEptr<T>::operator[] (UInt_t nOffset)
+CVMEptr<T>::operator[] (uint32_t nOffset)
 {
   if((m_nOffset < 0) || (m_nOffset >= m_nLength)) {
     throw CRangeError(0, m_nLength, m_nOffset, 
 		      "CVMEptr<T>::operator[]() - outside of address window");
   }
-  Address_t pVa = (Address_t)(nOffset*sizeof(T) + (UInt_t)m_pStart);
 
-  return (*(T*)pVa);
+  char* pVa = (reinterpret_cast<char*>(m_pStart) + nOffset*sizeof(T));
+  if ( (intmax_t(pVa) % __alignof__(T) ) != 0) {
+    throw std::runtime_error("CVMEptr<T>::operator*() Failed cast to T because misaligned memory");
+  }
+
+  T* pReturn = reinterpret_cast<T*>(pVa);
+
+  return *pReturn;
 }
 
 /*
-  \fn CVMEptr<T>& CVMEptr<T>::operator+(UInt_t nOffset)
+  \fn CVMEptr<T>& CVMEptr<T>::operator+(uint32_t nOffset)
 
   Operation Type:
      Mutator
@@ -455,11 +481,11 @@ CVMEptr<T>::operator[] (UInt_t nOffset)
      Add an offset to the current offset. Throws an exception if this
      puts us out of range of the memory map.
 
-  \param UInt_t nOffset - the integer to add to the current offset
+  \param uint32_t nOffset - the integer to add to the current offset
 */
 template<class T>
 CVMEptr<T>
-CVMEptr<T>::operator+(UInt_t nOffset)
+CVMEptr<T>::operator+(uint32_t nOffset)
 {
   if(nOffset+m_nOffset <= m_nLength) {  // make sure we're in bounds
     CVMEptr<T> temp = *this;
@@ -474,7 +500,7 @@ CVMEptr<T>::operator+(UInt_t nOffset)
 }
 
 /*
-  \fn CVMEptr<T>& CVMEptr<T>::operator-(UInt_t nOffset)
+  \fn CVMEptr<T>& CVMEptr<T>::operator-(uint32_t nOffset)
 
   Operation Type:
      Mutator
@@ -483,11 +509,11 @@ CVMEptr<T>::operator+(UInt_t nOffset)
      Subtracts an offset to the current offset. Throws an exception if this
      puts us out of range of the memory map.
 
-  \param UInt_t nOffset - the integer to subtract from the current offset
+  \param uint32_t nOffset - the integer to subtract from the current offset
 */
 template<class T>
 CVMEptr<T>
-CVMEptr<T>::operator-(UInt_t nOffset)
+CVMEptr<T>::operator-(uint32_t nOffset)
 {
   if(nOffset <= m_nOffset) {    // make sure we're in bounds
     CVMEptr<T> temp = *this;
@@ -502,7 +528,7 @@ CVMEptr<T>::operator-(UInt_t nOffset)
 }
 
 /*
-  \fn CVMEptr<T>& CVMEptr<T>::operator+=(UInt_t nOffset)
+  \fn CVMEptr<T>& CVMEptr<T>::operator+=(uint32_t nOffset)
 
   Operation Type:
      Mutator
@@ -511,11 +537,11 @@ CVMEptr<T>::operator-(UInt_t nOffset)
      Add an offset to the current offset. Throws an exception if this
      puts us out of range of the memory map.
 
-  \param UInt_t nOffset - the integer to add to the current offset
+  \param uint32_t nOffset - the integer to add to the current offset
 */
 template<class T>
 CVMEptr<T>&
-CVMEptr<T>::operator+=(UInt_t nOffset)
+CVMEptr<T>::operator+=(uint32_t nOffset)
 {
   if(m_nOffset+nOffset <= m_nLength) {
     m_nOffset += nOffset;
@@ -529,7 +555,7 @@ CVMEptr<T>::operator+=(UInt_t nOffset)
 }
 
 /*
-  \fn CVMEptr<T>& CVMEptr<T>::operator-=(UInt_t nOffset)
+  \fn CVMEptr<T>& CVMEptr<T>::operator-=(uint32_t nOffset)
 
   Operation Type:
      Mutator
@@ -538,11 +564,11 @@ CVMEptr<T>::operator+=(UInt_t nOffset)
      Subtract an offset to the current offset. Throws an exception if this
      puts us out of range of the memory map.
 
-  \param UInt_t nOffset - the integer to subtract from the current offset
+  \param uint32_t nOffset - the integer to subtract from the current offset
 */
 template<class T>
 CVMEptr<T>&
-CVMEptr<T>::operator-=(UInt_t nOffset)
+CVMEptr<T>::operator-=(uint32_t nOffset)
 {
   if(m_nOffset-nOffset > 0) {
     m_nOffset -= nOffset;
@@ -667,7 +693,7 @@ CVMEptr<T>::operator--(Int_t)
 }
 
 /*
-  \fn Address_t CVMEptr<T>::getgenptr(UInt_t nOffset)
+  \fn Address_t CVMEptr<T>::getgenptr(uint32_t nOffset)
 
   Operation type:
      Selector
@@ -675,19 +701,19 @@ CVMEptr<T>::operator--(Int_t)
   Purpose:
      Return a pointer to the current address+offset into the module
 
-  \param UInt_t nOffset - an offset to use to determine the pointer
+  \param uint32_t nOffset - an offset to use to determine the pointer
 */
 template<class T>
 Address_t
-CVMEptr<T>::getgenptr(UInt_t nOffset)
+CVMEptr<T>::getgenptr(uint32_t nOffset)
 {
-  Address_t p = (Address_t)(nOffset*sizeof(T) + (UInt_t)m_pStart);
+  Address_t p = (Address_t)(nOffset*sizeof(T) + (uint64_t)m_pStart);
   if(p) return p;
   else return (Address_t)kpNULL;
 }
 
 /*
-  \fn Address_t CVMEptr<T>::getcurrptr(UInt_t nOffset)
+  \fn Address_t CVMEptr<T>::getcurrptr(uint32_t nOffset)
 
   Operation Type:
      Selector
@@ -699,7 +725,7 @@ template<class T>
 Address_t
 CVMEptr<T>::getcurrptr()
 {
-  Address_t p = (Address_t)(m_nOffset*sizeof(T) + (UInt_t)m_pStart);
+  Address_t p = (Address_t)(m_nOffset*sizeof(T) + (uint32_t)m_pStart);
   if(p) return p;
   else return (Address_t)kpNULL;
 }
