@@ -16,9 +16,8 @@
 
 #ifndef __CMODULE32_H
 #define __CMODULE32_H
-#ifndef __VMEMODULE_H
+
 #include "VmeModule.h"
-#endif
 
 #ifndef __CRT_STDINT_H
 #include <stdint.h>

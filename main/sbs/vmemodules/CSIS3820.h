@@ -26,10 +26,7 @@
 #define __STL_STRING
 #endif
 
-#ifndef __VMEMODULE_H
 #include <VmeModule.h>
-#endif
-
 
 #ifndef __CRT_STDINT_H
 #include <stdint.h>

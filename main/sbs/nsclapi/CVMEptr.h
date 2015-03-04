@@ -1,6 +1,6 @@
 /*
     This software is Copyright by the Board of Trustees of Michigan
-    State University (c) Copyright 2005.
+    State University (c) Copyright 2015.
 
     You may use this software under the terms of the GNU public license
     (GPL).  The terms of this license are described at:
@@ -31,8 +31,8 @@
      mailto: venemaja@msu.edu
 */
 
-#ifndef __CVMEPTR_H
-#define __CVMEPTR_H
+#ifndef CVMEPTR_H
+#define CVMEPTR_H
 
 #ifndef __SYS_MMAN_H
 #include <sys/mman.h>
@@ -55,9 +55,7 @@
 #include <RangeError.h>
 #endif
 
-#ifndef __CVMEINTERFACE_H
 #include <CVMEInterface.h>
-#endif
 
 #ifndef __STRING
 #include <string>

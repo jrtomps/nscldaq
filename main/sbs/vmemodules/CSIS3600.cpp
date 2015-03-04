@@ -18,11 +18,7 @@
 
 #include "CSIS3600.h"
 
-
-
-#ifndef __VMEMODULE_H
 #include <VmeModule.h>
-#endif
 
 using namespace std;
 

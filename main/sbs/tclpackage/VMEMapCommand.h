@@ -24,9 +24,7 @@
 #include <TCLProcessor.h>
 #endif
 
-#ifndef __VMEMODULE_H
 #include <VmeModule.h>
-#endif
 
                          
 class CVMEMapCommand  : public CTCLProcessor        

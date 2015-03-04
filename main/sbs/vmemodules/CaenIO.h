@@ -43,11 +43,7 @@
 
 #include <config.h>
 #include <stdint.h>
-
-
-#ifndef __VMEMODULE_H
 #include <VmeModule.h>
-#endif
 
 class CCaenIO : public CVmeModule
 {

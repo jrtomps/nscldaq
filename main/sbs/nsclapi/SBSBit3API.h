@@ -1,3 +1,18 @@
+/*
+    This software is Copyright by the Board of Trustees of Michigan
+    State University (c) Copyright 2015.
+
+    You may use this software under the terms of the GNU public license
+    (GPL).  The terms of this license are described at:
+
+     http://www.gnu.org/licenses/gpl.txt
+
+     Author:
+             Ron Fox
+	     NSCL
+	     Michigan State University
+	     East Lansing, MI 48824-1321
+*/
 /*!
    Device specific extensions to CVMEInterface for SBS's driver for
    the SBS/Bit3 PCI - VME bus bridge.  Use of these functions will
@@ -10,8 +25,8 @@
    it for everyone!!!!
 */
 
-#ifndef __SBSBIT3API_H
-#define __SBSBIT3API_H
+#ifndef SBSBIT3API_H
+#define SBSBIT3API_H
 
 #ifndef BT1003
 #define BT1003

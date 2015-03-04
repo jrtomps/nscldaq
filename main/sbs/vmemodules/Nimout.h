@@ -34,9 +34,7 @@
 #ifndef __NIMOUT_H
 #define __NIMOUT_H
 
-#ifndef __VMEMODULE_H
 #include <VmeModule.h>
-#endif
 
 #ifndef __CRTL_STDINT_H
 #include <stdint.h>

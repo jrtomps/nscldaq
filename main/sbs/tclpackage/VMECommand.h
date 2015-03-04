@@ -41,9 +41,7 @@
 #define __STL_STRING
 #endif
 
-#ifndef __VMEMODULE_H
 #include <VmeModule.h>
-#endif
 
 class CVmeCommand  : public CTCLProcessor        
 {                       
