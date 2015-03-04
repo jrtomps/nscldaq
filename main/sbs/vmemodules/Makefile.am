@@ -53,7 +53,6 @@ include_HEADERS =	CADC2530.h	\
 			v890.h		\
 			wienercamac.h	\
 			wienermacros.h	\
-			CVME.h CVMEptr.h \
 			CCAMACBranch.h	\
 			CMemoryMappedCAMACBranch.h \
 			CESCBD8210.h		\
