@@ -61,8 +61,10 @@
 import argparse
 import sys
 import os.path
+
 import nscldaq.vardb.vardb
 import nscldaq.vardb.dirtree
+
 
 import zmq
 from nscldaq.portmanager import PortManager
@@ -140,7 +142,22 @@ class databaseServer():
             self._notifyMkdir(path)
         except nscldaq.vardb.dirtree.error as e:
             self._req.send('FAIL:%s' % (e))
-        
+    
+    ##
+    # _rmdir
+    #   Attempt to remove a directory given its path.
+    #
+    # @param path - path of the directory to remove
+    #
+    def _rmdir(self, path):
+        dir = nscldaq.vardb.dirtree.DirTree(self._database)
+        try:
+            dir.rmdir(path)
+            self._req.send('OK:')
+            self._notifyRmdir(path)
+        except nscldaq.vardb.dirtree.error as e:
+            self._req.send('FAIL:%s' % (e))
+    
     #--------------------------- publication methods ------------------
 
     ##
@@ -154,10 +171,28 @@ class databaseServer():
             parent = '/'
             child = pathParts[0]
         else :
-            parent = '/'.join.pathParts[:-1]
+            parent = '/' + '/'.join(pathParts[:-1])
             child  = pathParts[-1]
         self._publishMessage(parent, 'MKDIR', child)
     
+    
+    ##
+    # _notifyRmDir
+    #
+    #   Notify the removal of a directory
+    #
+    # @param path - full path to the removed directory.
+    #
+    def _notifyRmdir(self, path):
+        pathParts = nscldaq.vardb.dirtree.parsePath(path)
+        if (len(pathParts) == 1):
+            parent = '/'
+            child = pathParts[0]
+        else :
+            parent = '/' + '/'.join(pathParts[:-1])
+            child  = pathParts[-1]
+        self._publishMessage(parent, 'RMDIR', child) 
+
     #-------------------------- other utilities ------------------------
      
     
@@ -189,6 +224,10 @@ class databaseServer():
         data    = msgParts[2]
         if command == 'MKDIR':
             self._mkdir(path)
+        elif command == 'RMDIR':
+            self._rmdir(path)
+        else:
+            self._req.send('FAIL:Unrecognized operation code %s' % (command))
         
     
     #---------------------------------------------------------------------------

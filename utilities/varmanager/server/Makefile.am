@@ -5,7 +5,7 @@ install-exec-local:
  
 
 
-SERVER_TESTS=startTests.py serviceTests.py mkdirTests.py
+SERVER_TESTS=startTests.py serviceTests.py mkdirTests.py rmdirTests.py
 
 check-TESTS:
 	for f in $(SERVER_TESTS); do echo $$f : ; PYTHONPATH=@prefix@/pythonLibs  BINDIR=@bindir@  @PYTHON@ @srcdir@/$$f; done

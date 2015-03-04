@@ -90,11 +90,13 @@ class TestBase(unittest.TestCase):
     #      store those in self._req and self._sub
     
     def setup0mq(self):
+
         self._zmq = zmq.Context.instance()
         self._req = self.createClient(zmq.REQ, self._requestService)
         self._sub = self.createClient(zmq.SUB, self._pubService)
         self._sub.setsockopt(zmq.SUBSCRIBE, '')
-        #
+        
+    #
     #  Gets the lines of data from stdout of a process as an array
     #
     def getLines(self, process):
