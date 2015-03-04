@@ -83,8 +83,8 @@ typedef unsigned int UInt_t;
 typedef short Short_t;
 typedef unsigned short UShort_t;
 
-typedef int64_t Long_t;
-typedef uint64_t ULong_t;
+typedef long Long_t;
+typedef unsigned long ULong_t;
 
 typedef float Float_t;
 typedef double DFloat_t;
