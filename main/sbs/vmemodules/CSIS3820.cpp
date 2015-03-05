@@ -119,7 +119,7 @@ CSIS3820::CSIS3820(unsigned long base, int crate) throw (string) :
   CModule32(base, ModuleSize, crate)
 {
 
-  ULong_t ModuleInfo = getModuleInfo();
+  uint32_t ModuleInfo = getModuleInfo();
 
   int     id         = ((ModuleInfo >> IDShift) & IDMask);
 
@@ -142,7 +142,7 @@ CSIS3820::CSIS3820(unsigned long base, int crate) throw (string) :
 double
 CSIS3820::getRevision() const
 {
-  int id = getModuleInfo();
+  uint32_t id = getModuleInfo();
   
   int minor = id & REVMask;
   int major = ((id >> MAJORShift) && REVMask);

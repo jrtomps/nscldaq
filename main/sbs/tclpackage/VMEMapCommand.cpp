@@ -78,9 +78,9 @@ static vector<string> vSizeSwitches(aSizeSwitches, &aSizeSwitches[3]);
  */
 CVMEMapCommand::CVMEMapCommand( string           Name, 
 				CTCLInterpreter* pInterp,
-				ULong_t          Base, 
-				UInt_t           nSize,
-				UInt_t           nCrate,
+				uint32_t          Base, 
+				uint32_t           nSize,
+				uint32_t           nCrate,
 				CVmeModule::Space space) :
   CTCLProcessor(Name, pInterp),
   m_nPhysBase(Base),
@@ -213,13 +213,13 @@ int CVMEMapCommand::Get(CTCLInterpreter& rInterp, CTCLResult& rResult,
 
   CVMEInterface::Lock();
 
-  ULong_t nValue;
+  uint32_t nValue;
   switch(nSize) {
   case SZ_LONG:
-    nValue = m_pSpace->peekl(nOffset/sizeof(long));
+    nValue = m_pSpace->peekl(nOffset/sizeof(uint32_t));
     break;
   case SZ_WORD:
-    nValue = m_pSpace->peekw(nOffset/sizeof(short));
+    nValue = m_pSpace->peekw(nOffset/sizeof(uint16_t));
     break;
   case SZ_BYTE:
     nValue = m_pSpace->peekb(nOffset);
@@ -292,10 +292,10 @@ int CVMEMapCommand::Set(CTCLInterpreter& rInterp, CTCLResult& rResult,
   CVMEInterface::Lock();
   switch(nSize) {
   case SZ_LONG:
-    m_pSpace->pokel(nValue, nOffset/sizeof(long));
+    m_pSpace->pokel(nValue, nOffset/sizeof(uint32_t));
     break;
   case SZ_WORD:
-    m_pSpace->pokew(nValue, nOffset/sizeof(UShort_t));
+    m_pSpace->pokew(nValue, nOffset/sizeof(uint16_t));
     break;
   case SZ_BYTE:
     m_pSpace->pokeb(nValue, nOffset);
