@@ -64,6 +64,9 @@ import os.path
 
 import nscldaq.vardb.vardb
 import nscldaq.vardb.dirtree
+import nscldaq.vardb.variable
+import nscldaq.vardb.enum
+import nscldaq.vardb.statemachine
 
 
 import zmq
@@ -126,6 +129,30 @@ class databaseServer():
         socket.bind(bindstring)
         
         return socket
+    ##
+    # _createStateMap
+    #
+    #    Given the data field of an SMACHINE request, returns the state transition
+    #    map for the state machine the requestor is trying to create.
+    #    The data field is a set of pipe separated fields.  Within each
+    #    of those fields are subfields that are comma separated.  The first
+    #    of those is a state name, the remainder are states reachable from
+    #    that state.
+    #
+    # @param data - The data as described above.
+    # @return map - Map containing the data as described.
+    #
+    def _createStateMap(self, data):
+        result = {}
+        stateDefs = data.split('|')
+        for stateDef in stateDefs:
+            transitions = stateDef.split(',')
+            state = transitions[0]
+            transitions = transitions[1:]
+            result[state] = transitions
+        return result
+            
+    
     #--------------------------- Action handlers ------------------------
     
     ##
@@ -157,8 +184,132 @@ class databaseServer():
             self._notifyRmdir(path)
         except nscldaq.vardb.dirtree.error as e:
             self._req.send('FAIL:%s' % (e))
+            
+    ##
+    # _declare
+    #   Declares a new variable and notifies consumers of the creation.
+    #
+    # @param path  - full path to the variable.
+    # @param dType - Data type name for the variable (e.g. 'integer')
+    # @param value - If not an empty string, the new value for the item.
+    #
+    def _declare(self, path, dType, value):
+        try:
+            if value == '':              # default initial value
+                nscldaq.vardb.variable.create(self._database, None, path, dType)
+                var = nscldaq.vardb.variable.Variable(self._database, path=path)
+                value = var.get()        # Be able to return the actual value.
+            else:                        # default supplied:
+                nscldaq.vardb.variable.create(
+                    self._database, None, path, dType, value
+                )
+            self._req.send('OK:')
+            self._notifyDecl(path, dType, value)
+        except nscldaq.vardb.variable.error as e:
+            self._req.send('FAIL:%s' % e)
+    
+    ##
+    # _set
+    #   Set a new value for a variable.
+    #
+    # @param path  - Path to that variable.
+    # @param value - New requested value.
+    #
+    def _set(self, path, value):
+        try:
+            var = nscldaq.vardb.variable.Variable(self._database, path=path)
+            var.set(value)
+            self._req.send('OK:')
+            self._notifySet(path, value)
+        except nscldaq.vardb.variable.error as e:
+            self._req.send('FAIL:%s' % e)
+     
+    ##
+    # _createEnum
+    #
+    #  Create a new enumerated type.
+    #
+    # @param typeName - Name of the new data atype.
+    # @param values   - Iterable of values.
+    #
+    def _createEnum(self, typeName, values):
+        try:
+            nscldaq.vardb.enum.create(self._database, typeName, values)
+            self._req.send('OK:')
+            self._notifyNewEnum(typeName)
+        except nscldaq.vardb.enum.error as e:
+            self._req.send('FAIL:%s' % e)
+            
+    ##
+    # _createStateMachine
+    #
+    #   Creates a new statemachine data type.
+    #
+    # @param typeName     - name of the new type.
+    # @param transitionMap- Transition map as defined by the python statemachine
+    #                       bindings.
+    #
+    def _createStateMachine(self, typeName, transitionMap):
+        try:
+            nscldaq.vardb.statemachine.create(self._database, typeName, transitionMap)
+            self._req.send('OK:')
+            self._notifyStateMachine(typeName)
+        except nscldaq.vardb.statemachine.error as e:
+            self._req.send('FAIL:%s' % (e))
+    
+    ##
+    # _get
+    #   Return the value of a variable to a client:
+    #
+    # @param path - path to the variable.
+    #
+    def _get(self, path):
+        try:
+            var = nscldaq.vardb.variable.Variable(self._database, path=path)
+            self._req.send('OK:%s' % var.get())
+        except nscldaq.vardb.variable.error as e:
+            self._req.send('FAIL:%s' % (e,))
     
     #--------------------------- publication methods ------------------
+
+    ##
+    # _notifyStateMachine
+    #
+    # @param typeName - new type name.
+    #
+    def _notifyStateMachine(self, typeName):
+        self._publishMessage(typeName, 'TYPE', 'statemachine')
+
+    ##
+    # _notifyNewEnum
+    #
+    #  Notify the existence of a new enum:
+    #
+    # @param typeName - name of new type
+    #
+    def _notifyNewEnum(self, typeName):
+        self._publishMessage(typeName, 'TYPE', 'enum')
+
+    ##
+    # _notifySet
+    #    Publish an ASSIGN notification.
+    #
+    # @param path - path to the variable that was modified.
+    # @param value- New value.
+    #
+    def _notifySet(self, path, value):
+        self._publishMessage(path, 'ASSIGN', value)
+
+    ##
+    # _notifyDecl
+    #   Publish a NEWVAR notification.
+    #
+    # @param path - path to the varaible.
+    # @param dType - Variable data type.
+    # @param value - actual initial value of the variable.
+    def _notifyDecl(self, path, dType, value):
+        data = '|'.join((dType, value))
+        self._publishMessage(path, 'NEWVAR', data)
 
     ##
     # _notifyMKdir
@@ -226,6 +377,21 @@ class databaseServer():
             self._mkdir(path)
         elif command == 'RMDIR':
             self._rmdir(path)
+        elif command == 'DECL':
+            dataParts = data.split('|')
+            dType = dataParts[0]
+            value = dataParts[1]
+            self._declare(path, dType, value)
+        elif command == 'SET':
+            self._set(path, data)
+        elif command == 'ENUM':
+            self._createEnum(path, data.split('|'))   # type, values.
+        elif command == 'SMACHINE':
+            type = path
+            map  = self._createStateMap(data)
+            self._createStateMachine(type, map)
+        elif command == 'GET':
+            self._get(path)
         else:
             self._req.send('FAIL:Unrecognized operation code %s' % (command))
         

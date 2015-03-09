@@ -2,10 +2,10 @@ install-exec-local:
 	echo "#!@PYTHON@" >  @bindir@/vardbServer
 	cat @srcdir@/vardbServer.py >>@bindir@/vardbServer
 	chmod a+x @bindir@/vardbServer
- 
 
 
-SERVER_TESTS=startTests.py serviceTests.py mkdirTests.py rmdirTests.py
+SERVER_TESTS=startTests.py serviceTests.py mkdirTests.py  \
+	testGet.py
 
 check-TESTS:
 	for f in $(SERVER_TESTS); do echo $$f : ; PYTHONPATH=@prefix@/pythonLibs  BINDIR=@bindir@  @PYTHON@ @srcdir@/$$f; done

@@ -58,7 +58,7 @@ class TestBase(unittest.TestCase):
         self._pid     = process.pid
         self._stdout  = process.stdout
         self._process = process
-        time.sleep(2)                 # Let server establish services.
+        time.sleep(3)                 # Let server establish services.
         return process
     
     ##
@@ -106,5 +106,18 @@ class TestBase(unittest.TestCase):
     
     def markExited(self):
         self._pid = None
-        self._stdout = None      
-
+        self._stdout = None
+        
+    def setdb(self,db):
+        self._db = db
+        
+    def mkdir(self, path):
+        self._req.send('MKDIR:%s:' % path)
+        self._req.recv()
+        self._sub.recv()
+        
+    def makevar(self, path, typeName, value):
+        self._req.send('DECL:%s:%s|%s' % (path, typeName, value))
+        self._req.recv()
+        self._sub.recv()
+    

@@ -128,7 +128,7 @@ class variableTest(unittest.TestCase):
     # Test ls with bad dir.
     def test_ls_baddir(self):
         with self.assertRaises(nscldaq.vardb.variable.error):
-            nscldaq.vardb.variable.ls(self._db, 1234)
+            nscldaq.vardb.variable.ls(self._db, 'junk/1234')
     
     # Test ls with default path, empty directory
     
