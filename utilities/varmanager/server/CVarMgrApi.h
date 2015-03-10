@@ -48,7 +48,7 @@ public:
     virtual void declare(const char* path, const char* type, const char* initial=0) = 0;
     virtual void set(const char* path, const char* value) = 0;
     virtual std::string get(const char* path) = 0;
-    virtual void defimeEnum(const char* typeName, EnumValues values) = 0;
+    virtual void defineEnum(const char* typeName, EnumValues values) = 0;
     virtual void defineStateMachine(const char* typeName, StateMap transitions) = 0;
     void addTransition(StateMap& map, std::string fromState, std::string  toState);
     bool validTransitionMap(StateMap map);
