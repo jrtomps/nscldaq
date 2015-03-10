@@ -15,5 +15,5 @@ check-TESTS:
 
 EXTRA_DIST=$(SERVER_TESTS) testBase.py vardbServer.py varserver.xml
 
-libvarmgr_la_SOURCES = 
-libvarmgr_la_HEADERS=CVarMgrApi.h
+libvarmgr_la_SOURCES = CVarMgrApi.cpp
+include_HEADERS=CVarMgrApi.h
