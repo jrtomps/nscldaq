@@ -369,7 +369,7 @@ class databaseServer():
     # @param msg - Message received on the req port.
     #
     def _processRequest(self, msg):
-        msgParts = msg.split(':')
+        msgParts = msg.split(':', 2)
         command = msgParts[0]
         path    = msgParts[1]
         data    = msgParts[2]
@@ -378,7 +378,7 @@ class databaseServer():
         elif command == 'RMDIR':
             self._rmdir(path)
         elif command == 'DECL':
-            dataParts = data.split('|')
+            dataParts = data.split('|', 1)
             dType = dataParts[0]
             value = dataParts[1]
             self._declare(path, dType, value)

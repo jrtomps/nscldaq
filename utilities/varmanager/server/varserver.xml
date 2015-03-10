@@ -1,0 +1,466 @@
+<!-- chapter servers -->
+<chapter>
+    <title>Variable Database Server</title>
+    <para>
+        The variable database server is a TCP/IP server that:
+    </para>
+    <itemizedlist>
+        <listitem><para>
+            Provides the ability for clients to manipulate a variable database.
+            Centralizing accesses to the underlying SQLite database ensures
+            that proper multi-acces synchronization is done.  It further more
+            allows the database to live on NFS shares where the locking needed
+            by SQLite to properly manage access by multiple programs often is not
+            implemented correctly.
+        </para></listitem>
+        <listitem><para>
+            Publishes changes in the database for programs that can subscribe
+            to changes in directory trees within the database. 
+        </para></listitem>
+    </itemizedlist>
+    <para>
+        The server uses the <ulink url='http://zeromq.org/'>0mq</ulink>
+        communications library to manage communications between clients and server.
+        The server creates a REQ/REP port that handles requests to modify or
+        query the database. It also creates a PUB/SUB port through which database
+        changes are published.
+    </para>
+    <para>
+        On startup, the port manager is used to allocated server ports for the
+        REP and PUB sockets, and to publish service names that allow clients
+        to locate it.  By default the REP service is named <literal>vardb-request</literal>
+        and the PUB service is named <literal>vardb-changes</literal>.
+    </para>
+    <para>
+        These defaults can be overidden via command line parameters.
+        See <link linkend='daq1_vardbserver' endterm='daq1_vardbserver_title' /> for
+        the command line options supported by the server.
+    </para>    
+</chapter>
+<!-- /chapter -->
+
+<!-- manpage 1daq -->
+<refentry id="daq1_vardbserver">
+  <refentryinfo>
+    <author>
+            <personname>
+                    <firstname>Ron</firstname>
+                    <surname>Fox</surname>
+            </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='daq1_vardbserver_title'>vardbServer</refentrytitle>
+     <manvolnum>1daq</manvolnum>
+     <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>vardbServer</refname>
+     <refpurpose>Server for variable databases</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <cmdsynopsis>
+    <command>
+$DAQBIN/vardbServer
+<option>--database</option> <replaceable>databaseFile</replaceable>
+<optional>...</optional>
+    </command>
+    </cmdsynopsis>
+
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+      The variable database server provides centralized access to variable
+      databases.  It will also publish data about changes to subscriber
+      processes.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+        OPTIONS
+     </title>
+     <variablelist>
+      <varlistentry>
+          <term><option>--help</option></term>
+          <listitem>
+              <para>
+                  Outputs a brief help text for the program and exits.
+                  This option supercedes all other options.
+              </para>
+          </listitem>
+      </varlistentry>
+      <varlistentry>
+          <term><option>--database</option> <replaceable>database-file</replaceable></term>
+          <listitem>
+              <para>
+                  This option is the only required option.  It's value
+                  is the path to the variable database file.
+                  It is an error to specify a non-existent file
+                  unless <option>--create-ok</option> is
+                  <literal>yes</literal>.
+              </para>
+          </listitem>
+      </varlistentry>
+      <varlistentry>
+          <term><option>--create-ok</option> <replaceable>yes | no</replaceable></term>
+          <listitem>
+              <para>
+                  If the value of this option is <literal>yes</literal>,
+                  and the database file specified by
+                  <option>--database</option> does not exist
+                  it will be created.  Otherwise it is an error
+                  to specify a nonexistent database file.
+              </para>
+              <para>
+                  If the database file does exist, and
+                  <option>--create-ok</option> is
+                  <literal>yes</literal>, the file is opened as is.
+                  Note that the default value for
+                  <option>--create-ok</option> is
+                  <literal>no</literal>
+              </para>
+          </listitem>
+      </varlistentry>
+      <varlistentry>
+          <term><option>--publish-service</option> <replaceable>service-name</replaceable></term>
+          <listitem>
+              <para>
+                  Overrides the default service name for the publish port.
+                  The default value is <literal>vardb-changes</literal>.
+                  This is the name the publish port is advertised as
+                  in the host system's port manager.
+              </para>
+          </listitem>
+      </varlistentry>
+      <varlistentry>
+          <term><option>--request-service</option> <replaceable>service-name</replaceable></term>
+          <listitem>
+              <para>
+              </para>
+          </listitem>
+      </varlistentry>
+      
+     </variablelist>
+  </refsect1>
+
+</refentry>
+
+<!-- /manpage -->
+<!-- manpage 5daq -->
+<refentry id="daq5_vardbserver_reqprotocol">
+<refentryinfo>
+  <author>
+          <personname>
+                  <firstname>Ron</firstname>
+                  <surname>Fox</surname>
+          </personname>
+  </author>
+  <productname>NSCLDAQ</productname>
+  <productnumber></productnumber>
+</refentryinfo>
+<refmeta>
+   <refentrytitle id = 'daq5_vardbserver_reqprotocol_title'>vardbServer REQ message formats</refentrytitle>
+   <manvolnum>5daq</manvolnum>
+   <refmiscinfo class='empty'></refmiscinfo>
+</refmeta>
+<refnamediv>
+   <refname>vardbServer</refname>
+   <refpurpose>vardbServer</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+  <note>
+    <title>NOTE</title>
+    <para>
+        The current reference information for the message data
+        structure and detailed messages are maintained on
+        the wiki for the project in the NSCLDAQ internal
+        redmine server.  If you require a copy of that document,
+        contact the NSCL team maintaining NSCLDAQ.
+    </para>
+    <para>
+        Note that the messages described here do not include
+        whatever message envelopes used by 0mq in transmitting
+        data between <literal>REQ/REP</literal> sockets.
+        You must use 0mq to talk with the server or else
+        undefined results may occur.
+    </para>
+  </note>
+
+</refsynopsisdiv>
+<refsect1>
+   <title>DESCRIPTION</title>
+   <para>
+    With the possible exception of the 0mq message envelopes, the
+    messages exchanged beetween the client and server are purely
+    textual. 
+   </para>
+   <para>
+    Each request consists of three colon separated fields that are
+    called the <literal>operation</literal>, <literal>operand1</literal>
+    and <literal>operand2</literal>.  For most messages,
+    <literal>operand1</literal> is a path specification within the
+    variable directory tree.
+   </para>
+   <para>
+    Each reply consists of two colon separated fields that are called
+    the <literal>status</literal> and <literal>data</literal> fields.
+    The <literal>status</literal> field will contain either
+    <literal>OK</literal> or <literal>FAIL</literal> indicating whether
+    the request succeeded.  For <literal>FAIL</literal>
+    returns, the <literal>data</literal> field contains a human
+    readable error message.
+    For <literal>OK</literal> returns, the <literal>data</literal>
+    field contents depend on the operation requested.
+   </para>
+</refsect1>
+<refsect1>
+   <title>
+      REQUESTS
+   </title>
+   <segmentedlist>
+    <segtitle>Operation</segtitle><segtitle>Operand1</segtitle><segtitle>Operand2</segtitle>
+    <segtitle>Description</segtitle>
+    <seglistitem>
+        <seg>MKDIR</seg><seg>path</seg><seg></seg>
+        <seg>
+            Attempts to create a new directory specified by
+            <literal>path</literal>.
+            On success, the reply's <literal>data</literal> field is empty.
+        </seg>
+    </seglistitem>
+    <seglistitem>
+        <seg>RMDIR</seg><seg>path</seg><seg></seg>
+        <seg>
+            Attempts to remove the directory indicated by the path.
+            On success, the <literal>data</literal> field of
+            the reply will be empty.
+        </seg>
+    </seglistitem>
+    <seglistitem>
+        <seg>DECL</seg><seg>path</seg><seg>type|?value?</seg>
+        <seg>
+            Attempts to create a new variable specified by
+            the absolute <literal>path</literal> provided.
+            <literal>type</literal> is the data type for the
+            variable and if <literal>value</literal> is present
+            and legal, specifies the initial value.
+            If <literal>value</literal> is not present,
+            the type's default value is used.  On success, the
+            <literal>data</literal> field of the reply
+            is empty.
+        </seg>
+    </seglistitem>
+    <seglistitem>
+        <seg>SET</seg><seg>path</seg><seg>value</seg>
+        <seg>
+            Attempt to set the variable specified by
+            <literal>path</literal> to <literal>value</literal>.
+            Type/value checking is done on the server and results
+            in a <literal>FAIL</literal> status if the
+            <literal>value</literal> is not valid for the
+            variable's type.  On success, the <literal>data</literal>
+            field of the reply is empty.
+        </seg>
+    </seglistitem>
+    <seglistitem>
+        <seg>GET</seg><seg>path</seg><seg></seg>
+        <seg>
+            Retrieves the value of the variable specified
+            by <literal>path</literal>.  If the status
+            of the request is <literal>OK</literal>, the
+            value of the variable is returned in the
+            <literal>data</literal> field of the reply.
+        </seg>
+    </seglistitem>
+    <seglistitem>
+        <seg>ENUM</seg><seg>type-name</seg><seg>value1|value2...</seg>
+        <seg>
+            Defines a new enumerated data type <literal>type-name</literal>.
+            The possible values this type can hold are pipe separated
+            fields of operand2.  The first item given is the default
+            value for variables of this type.
+            On success the data field of the reply
+            is empty.
+        </seg>
+    </seglistitem>
+    <seglistitem>
+        <seg>SMACHINE</seg><seg>type-name</seg><seg>state1,target1,...|state2,...</seg>
+        <seg>
+            Defines a new state machine type <literal>type-name</literal>.
+            The states and transitions are given in the operand 2 field.
+            This field is a set of <literal>|</literal> separated fields.
+            Each of those fields is a <literal>,</literal> separated set
+            of fields that give the state name, and the valid target states
+            in that order.  The state machine's initial state is the
+            alphabetically 'smallest' state name.  Therefore it is normal
+            for this state to be a name like <literal>0actual-state-name</literal>.
+        </seg>
+    </seglistitem>
+   </segmentedlist>
+</refsect1>
+<refsect1>
+    <title>BUGS</title>
+    <para>
+        There is no way to escape field separators.  This is not a problem for
+        most cases however it does mean that enumerated types cannot have the
+        <literal>|</literal> character in their values.  
+    </para>
+    <para>
+        Note that where there are a fixed number of fields, splitting fields stops
+        when the required number of fields have been split apart. Thus in:
+        <literal>DECL:a:string|This string|has pipes and :s</literal>,
+        since it is known that messages have 3 fields and that the last field
+        has two subfields, the <literal>|</literal> and <literal>:</literal>
+        characters are allowed in the string's value.
+    </para>
+</refsect1>
+</refentry>
+
+<refentry id="daq5_varserver_pubprotocol">
+  <refentryinfo>
+    <author>
+            <personname>
+                    <firstname>Ron</firstname>
+                    <surname>Fox</surname>
+            </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='daq5_varserver_pubprotocol_title'>Variable database server published messages</refentrytitle>
+     <manvolnum>5daq</manvolnum>
+     <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>vardbServer</refname>
+     <refpurpose>vardbServer</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+  <note>
+    <title>NOTE</title>
+    <para>
+        The current reference information for the message data
+        structure and detailed messages are maintained on
+        the wiki for the project in the NSCLDAQ internal
+        redmine server.  If you require a copy of that document,
+        contact the NSCL team maintaining NSCLDAQ.
+    </para>
+    <para>
+        Note that the messages described here do not include
+        whatever message envelopes used by 0mq in transmitting
+        data between <literal>PUB/SUB</literal> sockets.
+        You must use 0mq to talk with the server or else
+        undefined results may occur.
+    </para>
+  </note>
+    
+
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        With the exception of the 0mq message envelopes, the message
+        data are fully textual.  Since this service is a
+        <literal>PUB/SUB</literal> set of sockets where
+        the variable database is the publishers, messages flow
+        from the server without any back traffic along that
+        port set.
+     </para>
+     <para>
+        Messages consist of notifications to subscribers that
+        about changes to the contents of the database.
+        Each message consists of three colon separated fields in order;
+        <literal>Path</literal>, the path to the entity affectedm,
+        <literal>Operation</literal> the operation that was performed.
+        <literal>Data</literal> any additional data.
+     </para>
+     <para>
+        Since the <literal>Path</literal> field is first, and since
+        0mq subscriptions are based on the leading part of messages
+        published, it is trivial to declare interest in subtrees of
+        the variable database.  Note that a 0mq subscriber is allowed
+        to have more than one concurrent subscription.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+        MESSAGES
+     </title>
+    <segmentedlist>
+        <segtitle>Path</segtitle><segtitle>Operation</segtitle><segtitle>Data</segtitle>
+        <seglistitem>
+            <seg>containing directory</seg><seg>MKDIR</seg><seg>created directory</seg>
+            <seg>
+                Publishes the creation of a new directory.  The path field contains
+                a path to the parent directory while the data field contains
+                the name of the directory that was created with in that path.
+                Thus <literal>/this/that/the:MKDIR:other</literal>
+                notifies you of the creation of the directory
+                <literal>/this/that/the/other</literal>
+            </seg>
+        </seglistitem>
+        <seglistitem>
+            <seg>containing directory</seg><seg>RMDIR</seg><seg>deleted directory</seg>
+            <seg>
+                Publishes the deletion of a directory.  The <literal>path</literal>
+                and <literal>data</literal> fields are used in a
+                mannger identical to <literal>MKDIR</literal> above
+                however the directory is being deleted rather than being
+                created.
+            </seg>
+        </seglistitem>
+        <seglistitem>
+            <seg>type-name</seg><seg>TYPE</seg><seg>data-type</seg>
+            <seg>
+                Publishes the creation of a new data type. In this case the
+                <literal>path</literal> field is used to publish the new
+                type-name while the data field is the type family to
+                which the new type belongs (currently either <literal>enum</literal>
+                or <literal>statemachine</literal>).
+            </seg>
+        </seglistitem>
+        <seglistitem>
+            <seg>path-to-variable</seg><seg>NEWVAR</seg><seg>type|value</seg>
+            <seg>
+                Publishes the creation of a new variable.  The path
+                field is the full absolute path to the variable while
+                the data field consists of a pair of <literal>|</literal>
+                separated subfields holding in order the name of the variable's
+                data type and its intial value.  Note that the actual initial
+                value is supplied even if the value was defaulted at creation
+                time.  For example: <literal>/mydir/myvar:NEWVAR:colors|red</literal>
+                indicates the variable <literal>/mydir/myvar</literal> was created
+                and has the type <literal>colors</literal> with the initial value
+                <literal>red</literal>.
+            </seg>
+        </seglistitem>
+        <seglistitem>
+            <seg>path-to-variable</seg><seg>ASSIGN</seg><seg>new-value</seg>
+            <seg>
+                In most cases, these are the messages a real application
+                wants to see.  These messages indicate a new value
+                has been assigned to the variable specified by
+                the path field.  The new value is in the data field.
+            </seg>
+        </seglistitem>
+    </segmentedlist>
+  </refsect1>
+  <refsect1>
+    <title>BUGS</title>
+    <para>
+        Due to the irregular use of the path field for the <literal>TYPE</literal>
+        message, in general you can only get those notifications by subscribing
+        to everything.  In fact, there are few use cases where that's
+        meaningful so that is probably not an issue for real applications.
+    </para>
+  </refsect1>
+</refentry>
+
+<!-- /manpage  -->
