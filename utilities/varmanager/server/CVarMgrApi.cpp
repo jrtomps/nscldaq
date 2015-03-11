@@ -37,7 +37,7 @@ CVarMgrApi::addTransition(
     StateMap& map, std::string fromState, std::string  toState
 )
 {
-    map[fromState].push_back(toState);
+    map[fromState].insert(toState);
     
 }
 
@@ -66,8 +66,9 @@ CVarMgrApi::validTransitionMap(StateMap map)
      
     for(StateMap::iterator pState = map.begin(); pState != map.end(); pState++) {
         states.insert(pState->first);
-        for (int i = 0; i < pState->second.size(); i++) {
-            std::string to = pState->second[i];
+        std::set<std::string>::iterator i = pState->second.begin();
+        for (; i != pState->second.end(); i++) {
+            std::string to = *i;
             reachableStates.insert(to);
             if (map.find(to) == map.end()) {
                 return false;                 // Transition to no such state.
@@ -111,11 +112,13 @@ std::pair<std::string, std::string>
 CVarMgrApi::findInvalidTransition(CVarMgrApi::StateMap map)
 {
     for(StateMap::iterator pState = map.begin(); pState != map.end(); pState++) {
-       for (int i = 0; i < pState->second.size(); i++) {
-           std::string to = pState->second[i];
+        std::set<std::string>::iterator i = pState->second.begin();
+        while(i != pState->second.end()) {
+           std::string to = *i;
            if (map.find(to) == map.end()) {
                return std::pair<std::string, std::string>(pState->first, to);
            }
+           i++;
        }
     }
     // No invalid states:
@@ -145,8 +148,9 @@ CVarMgrApi::findUnreachableState(CVarMgrApi::StateMap map)
      
     for(StateMap::iterator pState = map.begin(); pState != map.end(); pState++) {
         states.insert(pState->first);
-        for (int i = 0; i < pState->second.size(); i++) {
-            std::string to = pState->second[i];
+        std::set<std::string>::iterator i = pState->second.begin();
+        for (; i != pState->second.end(); i++) {
+            std::string to = *i;
             reachableStates.insert(to);
         }
     }

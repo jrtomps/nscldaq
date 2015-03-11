@@ -13,6 +13,7 @@ class DummyApi : public CVarMgrApi
 {
 public:
     virtual void cd(const char* path = "/") {}
+    virtual std::string getwd() {return "";}
     virtual void mkdir(const char* path)    {}
     virtual void rmdir(const char* path)    {}
     virtual void declare(const char* path, const char* type, const char* initial=0) {}
@@ -63,7 +64,7 @@ void APIBaseTests::addTransition() {
     api.addTransition(map, "state1", "state2");
     EQ(static_cast<size_t>(1), map.size());
     EQ(static_cast<size_t>(1), map["state1"].size());
-    EQ(std::string("state2"), map["state1"][0]);
+    EQ(size_t(1), map["state1"].count("state2"));
     
 }
 

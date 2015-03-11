@@ -26,6 +26,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <set>
 
 
 /**
@@ -40,9 +41,10 @@ class CVarMgrApi
 {
 public:
     typedef std::vector<std::string> EnumValues;
-    typedef std::map<std::string, std::vector<std::string> > StateMap;
+    typedef std::map<std::string, std::set<std::string> > StateMap;
 public:
     virtual void cd(const char* path = "/") = 0;
+    virtual std::string getwd()             = 0;
     virtual void mkdir(const char* path)    = 0;
     virtual void rmdir(const char* path)    = 0;
     virtual void declare(const char* path, const char* type, const char* initial=0) = 0;
