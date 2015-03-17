@@ -269,6 +269,22 @@ class databaseServer():
             self._req.send('OK:%s' % var.get())
         except nscldaq.vardb.variable.error as e:
             self._req.send('FAIL:%s' % (e,))
+        
+    ##
+    # _dirlist
+    #   Return list of directories in the specified path.
+    # @param path - Path to list.
+    #
+    def _dirlist(self, path):
+        dirs = nscldaq.vardb.dirtree.DirTree(self._database)
+        try:
+            dirs.cd(path)
+            subdirs = dirs.ls()
+            
+            data = '|'.join(subdirs)
+            self._req.send('OK:%s' % data)
+        except nscldaq.vardb.dirtree.error as e:
+            self._req.send('FAIL:%s' % e)
     
     #--------------------------- publication methods ------------------
 
@@ -392,6 +408,8 @@ class databaseServer():
             self._createStateMachine(type, map)
         elif command == 'GET':
             self._get(path)
+        elif command == 'DIRLIST':
+            self._dirlist(path)
         else:
             self._req.send('FAIL:Unrecognized operation code %s' % (command))
         

@@ -62,6 +62,10 @@ private:
     std::string transaction(std::string command, std::string data1, std::string data2);
     void sendMessage(std::string command, std::string data1, std::string data2);
     std::pair<std::string, std::string> getReply();
+    std::string join(const CVarMgrApi::EnumValues& values, char sep);
+    std::string join(const std::set<std::string>& values, char sep);
+    std::string makePath(const char* path);
+    std::string canonicalize(std::string path);
 
 };
 

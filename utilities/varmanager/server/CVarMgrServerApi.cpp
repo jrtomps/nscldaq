@@ -20,6 +20,7 @@
 # @author <fox@nscl.msu.edu>
 */
 #include "CVarMgrServerApi.h"
+#include <CVarDirTree.h>
 #include <stdio.h>
 #include <string.h>
 #include <string>
@@ -66,8 +67,23 @@ CVarMgrServerApi::~CVarMgrServerApi()
     
     // Interface implemented:
     
-
-void CVarMgrServerApi::cd(const char* path) { }
+/**
+ * cd
+ *    Set the current working directory.
+ *
+ *  @param[in] path - new working directory
+ */
+void CVarMgrServerApi::cd(const char* path)
+{
+    if (CVarDirTree::isRelative(path)) {
+        m_wd += "/";
+        m_wd += path;
+        m_wd = canonicalize(m_wd);
+    } else {
+        m_wd = path;
+    }
+        
+}
 /**
  * getwd
  *    Return the current working directory string.
@@ -90,8 +106,7 @@ CVarMgrServerApi::getwd()
 void
 CVarMgrServerApi::mkdir(const char* path)
 {
-    
-    transaction("MKDIR", path, "");
+    transaction("MKDIR", makePath(path), "");
     
 }
 /**
@@ -103,7 +118,7 @@ CVarMgrServerApi::mkdir(const char* path)
 void
 CVarMgrServerApi::rmdir(const char* path)
 {
-    transaction("RMDIR", path, "");
+    transaction("RMDIR", makePath(path), "");
 }
 /**
  * declare
@@ -124,13 +139,66 @@ CVarMgrServerApi::declare(const char* path, const char* type, const char* initia
     if (initial) {
         data2 += initial;
     }
-    transaction("DECL", path, data2);
+    transaction("DECL", makePath(path), data2);
 }
-
-void CVarMgrServerApi::set(const char* path, const char* value) { }
-std::string CVarMgrServerApi::get(const char* path) { return ""; }
-void CVarMgrServerApi::defineEnum(const char* typeName, EnumValues values) { }
-void CVarMgrServerApi::defineStateMachine(const char* typeName, StateMap transitions) { }
+/**
+ * set
+ *     Set a variable to a new value.
+ *  @param[in] path - path to the variable.
+ *  @param[in] value - New proposed value for the variable.
+ */
+void CVarMgrServerApi::set(const char* path, const char* value)
+{
+    transaction("SET", makePath(path), value);
+}
+/**
+ * get
+ *  Return the value of a variable.
+ *
+ * @param path - path to the variable.
+ * @return std::string - current value of the variable.
+ */
+std::string CVarMgrServerApi::get(const char* path) {
+    return transaction("GET", makePath(path), "");
+}
+/**
+ * defineEnum
+ *   Define a new enumerated type.
+ *
+ *  @param[in] typeName - Name of the type to be used when declaring new variables
+ *                        of that type.
+ *  @param[in] values   - Set of values variables of this type can have.
+ *
+ */   
+void CVarMgrServerApi::defineEnum(const char* typeName, EnumValues values)
+{
+    transaction("ENUM", typeName, join(values, '|'));
+}
+/**
+ * defineStateMachine
+ *    Define a new data type that is a statemachine.
+ *  @param[in] typeName    - Name of the new state machine type.
+ *  @param[in] transitions - Transition map created with addTransition from the
+ *                           base class.
+ */
+void CVarMgrServerApi::defineStateMachine(const char* typeName, StateMap transitions)
+{
+    // Marshall the state transition map into the final parameter:
+    
+    std::vector<std::string> stateStrings;
+    for(CVarMgrApi::StateMap::iterator p = transitions.begin(); p != transitions.end(); p++) {
+        std::string states = p->first;             // State name.
+        if (p->second.size() > 0) {
+            states += ',';
+            states += join(p->second,',');
+        }
+        stateStrings.push_back(states);
+        
+    }
+    // stateStrings can be joined with a '|' to make the final data parameter:
+    
+    transaction("SMACHINE", typeName, join(stateStrings, '|'));
+}
 
     // Utilities:
     
@@ -217,3 +285,123 @@ CVarMgrServerApi::getReply()
     return std::pair<std::string, std::string>(status, data);
     
 }
+
+
+/**
+ * join
+ *    Joins the strings in a vector into a single string with the specified
+ *    separator.
+ *
+ *  @param[in] values - strings to join.
+ *  @param[in] sep     - Separator between strings.
+ *  @return std::string - generated string.
+ */
+std::string
+CVarMgrServerApi::join(const CVarMgrApi::EnumValues& values, char sep)
+{
+    std::string result;
+    
+    // Edge case of empty vector -> empty string.
+    
+    if (values.size() == 0) {
+        return result;
+    }
+    
+    // All but the last just append the strings and a sep.
+    for (int i =0; i < values.size()-1; i++) {
+        result += values[i];
+        result += sep;
+    }
+    // Last string is appended without a sep.
+    
+    result += values.back();
+    
+    return result;
+}
+/**
+ * join
+ *   Joins the strings that make up a set into a single string with the
+ *   specified separator.
+ *
+ * @param[in] values - strings to join.
+ * @param[in] sep    - separator character.
+ * @return std::string - Joined string.
+ */
+ std::string
+ CVarMgrServerApi::join(const std::set<std::string>& values, char sep)
+ {
+    std::string result;
+    std::set<std::string>::iterator p = values.begin();
+    
+    // This will leave an extra trailing separator:
+    while (p != values.end()) {
+        result += *p;
+        result += sep;
+        p++;
+    }
+    // Get rid of the last trailing separator before returning.
+    
+    result = result.substr(0, result.size()-1);
+    
+    return result;
+ }
+ /**
+  * makePath
+  *    Create the actual path for a directory:
+  *    - If the path is absolute it is as is.
+  *    - If the path is relative it's combined with the working directory.
+  *
+  *  @param[in] path - an absolute or relative path.
+  *  @return std::string - the final path.
+  */
+ std::string
+ CVarMgrServerApi::makePath(const char* path)
+ {
+    std::string result;
+    if (CVarDirTree::isRelative(path)) {
+        result = m_wd;
+        result += '/';
+        result += path;
+    } else {
+        result = path;
+    }
+    return result;
+ }
+ /**
+  * canonicalize
+  *    Canonicalize a path.  Currently this is done by  just
+  *    resolving the ..'s in the path.
+  *    TODO: Play around with the implementation of CVarDirTree::canonicalize
+  *          so that the code I stole from there can be factored out
+  *  @param[in] path - input path
+  *  @return std::string - canonicalized path
+  */
+ std::string
+ CVarMgrServerApi::canonicalize(std::string path)
+ {
+    std::vector<std::string> pathVec = CVarDirTree::parsePath(path.c_str());
+    
+    // For each .. remaining in the path, we need to remove it
+    // and the prior element of the vector.  If that would make us
+    // run off the front of the vector throw and exception.
+    
+    
+    std::vector<std::string>::iterator i = pathVec.begin();
+    while(i != pathVec.end()) {
+        if (*i == "..") {
+            if(i == pathVec.begin()) {
+                throw CException(
+                    "CVarMgrServerApi::canonicalize -- attempted t go above root directory"
+                );
+            }
+            i--;
+            i = pathVec.erase(i);
+            i = pathVec.erase(i);
+        } else {
+            i++;
+        }
+    }
+    std::string cPath = "/";
+    cPath += join(pathVec, '/');
+    return cPath;                       // Empty pathVec implies /.
+ }

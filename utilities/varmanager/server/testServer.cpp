@@ -45,8 +45,35 @@ class ServerApiTests : public CppUnit::TestFixture {
   CPPUNIT_TEST(declareInitial);
   CPPUNIT_TEST(declareInvalidPath);
   CPPUNIT_TEST(declareInvalidType);
-  //CPPUNIT_TEST(declareDuplicatePath);
-  //CPPUNIT_TEST(declareBadInitialValue);
+  CPPUNIT_TEST(declareDuplicatePath);
+  CPPUNIT_TEST(declareBadInitialValue);
+  
+  CPPUNIT_TEST(setOk);
+  CPPUNIT_TEST(setNoVar);
+  CPPUNIT_TEST(setBadValue);
+  
+  CPPUNIT_TEST(getOk);
+  CPPUNIT_TEST(getNoVar);
+  
+  CPPUNIT_TEST(defEnumOk);
+  CPPUNIT_TEST(defEnumDupType);
+  CPPUNIT_TEST(defEnumDupValue);
+  
+  CPPUNIT_TEST(defSmOk);
+  CPPUNIT_TEST(defSmUnreachable);
+  CPPUNIT_TEST(defSmBadTransition);
+  
+  // Tests for cd; Note that wherever a path is used
+  // we also need to test that relative paths work ok.
+  
+  CPPUNIT_TEST(cdOk);
+  //CPPUNIT_TEST(cdNoSuchPath);    // Needs server mods.
+  CPPUNIT_TEST(cdRelative);
+  CPPUNIT_TEST(relativeMkdir);
+  CPPUNIT_TEST(relativeRmdir);
+  CPPUNIT_TEST(relativeDeclare);
+  CPPUNIT_TEST(relativeSet);
+  CPPUNIT_TEST(relativeGet);
   
   CPPUNIT_TEST_SUITE_END();
 
@@ -61,7 +88,27 @@ protected:
   void declareInitial();
   void declareInvalidPath();
   void declareInvalidType();
-
+  void declareDuplicatePath();
+  void declareBadInitialValue();
+  void setOk();
+  void setNoVar();
+  void setBadValue();
+  void getOk();
+  void getNoVar();
+  void defEnumOk();
+  void defEnumDupType();
+  void defEnumDupValue();
+  void defSmOk();
+  void defSmUnreachable();
+  void defSmBadTransition();
+  void cdOk();
+  void cdRelative();
+  void relativeMkdir();
+  void relativeRmdir();
+  void relativeDeclare();
+  void relativeSet();
+  void relativeGet();
+  
 private:
     pid_t m_serverPid;
     int m_serverRequestPort;
@@ -311,4 +358,269 @@ void ServerApiTests::declareInvalidType()
         m_pApi->declare("/myvar", "rock-star"),
         CVarMgrApi::CException
     );
+}
+// Duplicate variable decl:
+
+void ServerApiTests::declareDuplicatePath()
+{
+    m_pApi->declare("/myvar", "integer");
+    CPPUNIT_ASSERT_THROW(
+        m_pApi->declare("/myvar", "real"),
+        CVarMgrApi::CException
+    );
+}
+// Bad initial value also throws:
+
+void ServerApiTests::declareBadInitialValue()
+{
+    CPPUNIT_ASSERT_THROW(
+        m_pApi->declare("/myvar", "integer", "hello-world"),
+        CVarMgrApi::CException
+    );
+}
+
+// Can set an existing variable:
+
+void ServerApiTests::setOk()
+{
+    m_pApi->declare("/myvar", "integer");
+    m_pApi->set("/myvar", "1234");
+    
+    CVariableDb db(m_tempFile);
+    CVariable   var(db, "/myvar");
+    
+    EQ(std::string("1234"), var.get());
+}
+// Cannot set a nonexisting variable:
+
+void ServerApiTests::setNoVar()
+{
+    CPPUNIT_ASSERT_THROW(
+        m_pApi->set("/myvar", "1234"),
+        CVarMgrApi::CException
+    );
+}
+// Cannot give a variable an illegal value:
+
+void ServerApiTests::setBadValue()
+{
+    m_pApi->declare("/myvar", "integer");
+    CPPUNIT_ASSERT_THROW(
+        m_pApi->set("/myvar", "3.14159265359"),
+        CVarMgrApi::CException
+    );
+}
+// Get value of a variable:
+
+void ServerApiTests::getOk()
+{
+    m_pApi->declare("/myvar", "integer", "12345");
+    EQ(std::string("12345"), m_pApi->get("/myvar"));
+}
+// Fails when getting a value of an undefined variable:
+
+void ServerApiTests::getNoVar()
+{
+    CPPUNIT_ASSERT_THROW(
+        m_pApi->get("/myvar"),
+        CVarMgrApi::CException
+    );
+}
+// Can define an enumerated type after which we can make a variable
+// of that type:
+
+void ServerApiTests::defEnumOk()
+{
+    CVarMgrApi::EnumValues v;
+    v.push_back("red");
+    v.push_back("green");
+    v.push_back("blue");
+    
+    m_pApi->defineEnum("colors", v);
+    
+    CPPUNIT_ASSERT_NO_THROW(
+        m_pApi->declare("/acolor", "colors")
+    );
+    EQ(std::string("red"), m_pApi->get("/acolor"));
+}
+// cannot define an enum with the same name as an existing enum/type:
+
+void ServerApiTests::defEnumDupType()
+{
+    CVarMgrApi::EnumValues v;
+    v.push_back("red");
+    v.push_back("green");
+    v.push_back("blue");
+
+    CPPUNIT_ASSERT_THROW(
+        
+        m_pApi->defineEnum("integer", v),
+        CVarMgrApi::CException
+    );
+}
+// Cannot define an enum type with a duplicate value:
+
+void ServerApiTests::defEnumDupValue()
+{
+CVarMgrApi::EnumValues v;
+    v.push_back("red");
+    v.push_back("green");
+    v.push_back("red");            // Duplicate !!
+    v.push_back("blue");
+    
+    CPPUNIT_ASSERT_THROW(
+        
+        m_pApi->defineEnum("integer", v),
+        CVarMgrApi::CException
+    );
+}
+// Successfully define a simple state machine.
+
+void ServerApiTests::defSmOk()
+{
+    // Define the state transition map for the machine:
+    
+    CVarMgrApi::StateMap sm;
+    m_pApi->addTransition(sm, "0ready", "running");
+    m_pApi->addTransition(sm, "running", "0ready");   // flip flop state machine.
+    
+    m_pApi->defineStateMachine("simple", sm);
+    
+    CPPUNIT_ASSERT_NO_THROW(
+        m_pApi->declare("/aStateMachine", "simple")
+    );
+    EQ(std::string("0ready"), m_pApi->get("/aStateMachine"));
+}
+// Define with an unreachable state should fail:
+
+void ServerApiTests::defSmUnreachable()
+{
+    CVarMgrApi::StateMap sm;
+    m_pApi->addTransition(sm, "0ready", "running");
+    m_pApi->addTransition(sm, "running", "0ready");   
+    m_pApi->addTransition(sm, "unreachable", "runing");
+    
+    CPPUNIT_ASSERT_THROW(
+        m_pApi->defineStateMachine("bad", sm),
+        CVarMgrApi::CException
+    );
+}
+// Define with a transition to a nonexistent state is bad:
+
+void ServerApiTests::defSmBadTransition()
+{
+    CVarMgrApi::StateMap sm;
+    m_pApi->addTransition(sm, "0ready", "running");
+    m_pApi->addTransition(sm, "running", "0ready");
+    m_pApi->addTransition(sm, "0ready", "does-not-exist");
+    
+    CPPUNIT_ASSERT_THROW(
+        m_pApi->defineStateMachine("bad", sm),
+        CVarMgrApi::CException
+    );
+}
+// cd to an existing path is ok:
+
+void ServerApiTests::cdOk()
+{
+    m_pApi->mkdir("/a/test/path");
+    CPPUNIT_ASSERT_NO_THROW(
+        m_pApi->cd("/a/test")
+    );
+    EQ(std::string("/a/test"), m_pApi->getwd());
+}
+// Given a cd other than / creating a directory with a relative path
+// takes into account the cd.
+
+void ServerApiTests::relativeMkdir()
+{
+    m_pApi->mkdir("/a/test/path");
+    m_pApi->cd("/a/test");
+    CPPUNIT_ASSERT_NO_THROW(
+        m_pApi->mkdir("directory")   // makes /a/test/directory
+    );
+    
+    CVariableDb db(m_tempFile);
+    CVarDirTree tree(db);
+    tree.cd("/a/test");
+    
+    std::vector<CVarDirTree::DirInfo> dirs = tree.ls();
+    EQ(size_t(2), dirs.size());
+    bool found = false;
+    for (int i =0; i < dirs.size(); i++) {
+        if (dirs[i].s_name == "directory") {
+            found = true;
+            break;
+        }
+    }
+    ASSERT(found);
+}
+// Remove a directory relative to a wd:
+
+void ServerApiTests::relativeRmdir()
+{
+    relativeMkdir();
+    
+    CPPUNIT_ASSERT_NO_THROW(
+        m_pApi->rmdir("directory")
+    );
+    CVariableDb db(m_tempFile);
+    CVarDirTree tree(db);
+    tree.cd("/a/test");
+    
+    std::vector<CVarDirTree::DirInfo> dirs = tree.ls();
+    EQ(size_t(1), dirs.size());
+    EQ(std::string("path"), dirs[0].s_name);
+}
+// Declare a variable relative to a wd
+
+void ServerApiTests::relativeDeclare()
+{
+    m_pApi->mkdir("/a/test/path");
+    m_pApi->cd("/a/test");
+    
+    CPPUNIT_ASSERT_NO_THROW(
+        m_pApi->declare("path/myvar", "integer")
+    );
+    
+    CVariableDb db(m_tempFile);
+    CVarDirTree tree(db);
+    tree.cd("/a/test/path");
+    
+    CPPUNIT_ASSERT_NO_THROW(
+        CVariable(db, tree, "myvar")
+    );
+}
+// Can set a variable relative to the cwd
+
+void ServerApiTests::relativeSet()
+{
+    relativeDeclare();        // /a/test/path/myvar is created.
+    m_pApi->cd("/a/test");
+    CPPUNIT_ASSERT_NO_THROW(
+        m_pApi->set("path/myvar", "1234")
+    );
+    EQ(std::string("1234"), m_pApi->get("/a/test/path/myvar"));
+}
+// Can get the value of a variable relative to the cwd:
+
+void ServerApiTests::relativeGet()
+{
+    relativeSet();            // /a/test/path/myvar = '1234'
+    m_pApi->cd("/a");
+    CPPUNIT_ASSERT_NO_THROW(
+        EQ(std::string("1234"), m_pApi->get("test/path/myvar"));
+    );
+}
+// cd with relative path canonicalizes:
+
+void ServerApiTests::cdRelative()
+{
+    m_pApi->mkdir("/a/first/test/dir");
+    m_pApi->mkdir("/a/second/test/dir");
+    
+    m_pApi->cd("/a/first/test/dir");
+    m_pApi->cd("../../../second/test/dir");
+    
+    EQ(std::string("/a/second/test/dir"), m_pApi->getwd());
 }

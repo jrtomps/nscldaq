@@ -18,7 +18,7 @@ install-exec-local:
 
 
 SERVER_TESTS=startTests.py serviceTests.py mkdirTests.py  \
-	testGet.py
+	testGet.py testDirlist.py
 
 noinst_PROGRAMS = testApi
 
@@ -37,7 +37,7 @@ testApi_LDFLAGS = $(COMMONLDFLAGS) \
 
 check-TESTS:
 	for f in $(SERVER_TESTS); do echo $$f : ; PYTHONPATH=@prefix@/pythonLibs  BINDIR=@bindir@  @PYTHON@ @srcdir@/$$f; done
-	testApi
+	PYTHONPATH=@prefix@/pythonLibs testApi
 
 
 EXTRA_DIST=$(SERVER_TESTS) testBase.py vardbServer.py varserver.xml
