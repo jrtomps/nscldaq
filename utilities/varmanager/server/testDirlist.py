@@ -91,9 +91,51 @@ class TestDirlist(testBase.TestBase):
         self.assertEqual(2, len(replyList))
         self.assertEqual('', replyList[1])
         
-    #def test_one(self):
-    #def test_several(self):
-    #def test_badPath(self):
+    #  If a have a single directory that should come back as the single item
+    
+    def test_one(self):
+        self.mkdir('/subdir')
+        self._req.send('DIRLIST:/:')
+        reply = self._req.recv()
+        replyList = reply.split(':')
+        self.assertEqual('subdir', replyList[1])
+        
+    # Should get a list of all subdirs if there are several
+    #  These will be pipe separated.
+        
+    def test_several(self):
+        self.mkdir("/dir1")
+        self.mkdir("/dir2")
+        self.mkdir("/dir3")
+        self._req.send('DIRLIST:/:')
+        reply = self._req.recv()
+        replyList = reply.split(':')
+        dirList   = replyList[1].split('|')
+        self.assertEqual(3, len(dirList))
+        dirList   = sorted(dirList)             # no assumptions about order.
+        self.assertEqual('dir1', dirList[0])
+        self.assertEqual('dir2', dirList[1])
+        self.assertEqual('dir3', dirList[2])
+    
+    # Should get the info from the right subdir:
+        
+    def test_subdir(self):
+        self.mkdir('/dir1')
+        self.mkdir('/dir2')
+        self.mkdir('/dir1/subdir')
+        self._req.send('DIRLIST:/dir1:')
+        reply = self._req.recv()
+        replyList = reply.split(':')
+        
+        self.assertEqual('subdir', replyList[1])
+        
+    # Should get an error if listing a nonexistent path:
+    
+    def test_badPath(self):
+        self._req.send('DIRLIST:/dir1:')
+        reply = self._req.recv()
+        replyList = reply.split(':')
+        self.assertEqual('FAIL', replyList[0])
         
     
     
