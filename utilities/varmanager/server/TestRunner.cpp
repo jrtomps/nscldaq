@@ -12,10 +12,11 @@ int main(int argc, char** argv)
                registry(CppUnit::TestFactoryRegistry::getRegistry());
 
   runner.addTest(registry.makeTest());
+  
 
   bool wasSucessful;
   try {
-    wasSucessful = runner.run("",false);
+    wasSucessful = runner.run("",false, true, true);
   } 
   catch(string& rFailure) {
     cerr << "Caught a string exception from test suites.: \n";

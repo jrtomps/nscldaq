@@ -2,13 +2,16 @@ lib_LTLIBRARIES=libvarmgr.la
 
 COMMONLDFLAGS = @builddir@/../libvardb.la 	\
 		@top_builddir@/base/sqlite++/libsqlite3pp.la 	\
+		@top_builddir@/base/uri/liburl.la		\
 		@SQLITE3_LDFLAGS@ @ZMQ_LDFLAGS@
 
-libvarmgr_la_SOURCES = CVarMgrApi.cpp CVarMgrFileApi.cpp CVarMgrServerApi.cpp
-libvarmgr_la_CPPFLAGS=-I@srcdir@/.. @SQLITE3_CFLAGS@ -I@top_srcdir@/base/sqlite++
+libvarmgr_la_SOURCES = CVarMgrApi.cpp CVarMgrFileApi.cpp CVarMgrServerApi.cpp \
+	CVarMgrApiFactory.cpp
+libvarmgr_la_CPPFLAGS=-I@srcdir@/.. @SQLITE3_CFLAGS@ -I@top_srcdir@/base/sqlite++ \
+	-I@top_srcdir@/base/uri
 libvarmgr_la_LDFLAGS = $(COMMONLDFLAGS)
 
-include_HEADERS=CVarMgrApi.h CVarMgrFileApi.h CVarMgrServerApi.h
+include_HEADERS=CVarMgrApi.h CVarMgrFileApi.h CVarMgrServerApi.h CVarMgrApiFactory.h
 
 
 install-exec-local:
@@ -18,12 +21,12 @@ install-exec-local:
 
 
 SERVER_TESTS=startTests.py serviceTests.py mkdirTests.py  \
-	testGet.py testDirlist.py
+	testGet.py testDirlist.py testVarlist.py
 
 noinst_PROGRAMS = testApi
 
 testApi_SOURCES=TestRunner.cpp TestApiBase.cpp testDirect.cpp \
-	testServer.cpp \
+	testServer.cpp factoryTests.cpp \
 	$(libvarmgr_la_SOURCES)
 testApi_CPPFLAGS=-DBINDIR=\"@bindir@\" \
 	-I@top_srcdir@/servers/portmanager -I@top_srcdir@/base/os \

@@ -24,6 +24,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <string>
+#include <iostream>
+#include <unistd.h>
+
+zmq::context_t* CVarMgrServerApi::m_pContext(0);
 
 /**
  * constructor
@@ -34,35 +38,30 @@
  *  @param[in] port   - Server's request port.
  */
 CVarMgrServerApi::CVarMgrServerApi(const char* server, int port) :
-    m_pContext(0),
     m_pSocket(0),
     m_wd("/")
 {
-    char* pUri = new char[strlen(server) + 1 + 20];
+    char Uri[strlen(server) + 1 + 200];
+    if (!m_pContext)  m_pContext = new zmq::context_t(2);
     
     try {
-        m_pContext = new zmq::context_t(1);
+       
         m_pSocket  = new zmq::socket_t(*m_pContext, ZMQ_REQ);
         
         
-        sprintf(pUri, "tcp://%s:%d", server, port);
-        m_pSocket->connect(pUri);
+        sprintf(Uri, "tcp://%s:%d", server, port);
+        m_pSocket->connect(Uri);
     }
     catch (...) {
-        delete []pUri;
         delete m_pSocket;
-        delete m_pContext;
         throw;
     }
-    
-    
-    delete []pUri;    
+     
 }
     
 CVarMgrServerApi::~CVarMgrServerApi()
 {
     delete m_pSocket;
-    delete m_pContext;
 }
     
     // Interface implemented:
@@ -75,14 +74,19 @@ CVarMgrServerApi::~CVarMgrServerApi()
  */
 void CVarMgrServerApi::cd(const char* path)
 {
+    std::string wd = m_wd;
     if (CVarDirTree::isRelative(path)) {
-        m_wd += "/";
-        m_wd += path;
-        m_wd = canonicalize(m_wd);
+        wd += "/";
+        wd += path;
+        wd = canonicalize(wd);
     } else {
-        m_wd = path;
+        wd = path;
     }
-        
+    if (existingDirectory(wd)) {
+        m_wd = wd;
+    } else {
+        throw CVarMgrApi::CException("CVarMgrServerApi::cd - Invalid/nonexistent directory");
+    }
 }
 /**
  * getwd
@@ -201,8 +205,39 @@ void CVarMgrServerApi::defineStateMachine(const char* typeName, StateMap transit
 }
 
     // Utilities:
+
+/**
+ *  existingDirectory
+ *     See if the specified directory exists in the database
+ *
+ *  @param[in] path - path to check.
+ *  @return bool - true the path exists, false it does not.
+ */
+bool CVarMgrServerApi::existingDirectory(std::string path)
+{
+    // Break the path up into the parent directory and the
+    // directory we are looking for in that directory.
     
-bool CVarMgrServerApi::existingDirectory(std::string path) {return true; }
+    std::vector<std::string> pathList = CVarDirTree::parsePath(path.c_str());
+    
+    // Special case, the path is empty - root directory always exists:
+    
+    if (pathList.size() == 0) {
+        return true;
+    }
+    std::string subdir = pathList.back();
+    pathList.pop_back();
+    
+    std::string parent("/");        
+    parent += join(pathList, '/');
+    
+    std::string result = transaction("DIRLIST", parent, "");
+    
+    std::set<std::string> dirSet = processDirList(result);
+    return dirSet.count(subdir) == 1;
+    
+    return true;
+}
 
 /**
  * transaction
@@ -215,12 +250,18 @@ bool CVarMgrServerApi::existingDirectory(std::string path) {return true; }
  * @return std::string - data part of the return.
  * @throw CException - if the reply status is not OK.
  */
+
 std::string
 CVarMgrServerApi::transaction(std::string command, std::string data1, std::string data2)
 {
     sendMessage(command, data1, data2);
     std::pair<std::string, std::string> reply = getReply();
+    
     if (reply.first != "OK") {
+#ifdef DEBUG        
+        std::cerr << "Failed on " << command << ":" << data1 << ":" << data2 <<std::endl;
+        std::cerr << reply.first << " " << reply.second << std::endl;
+#endif
         throw CVarMgrApi::CException(reply.second);
     }
     return reply.second;
@@ -242,11 +283,17 @@ CVarMgrServerApi::sendMessage(std::string command, std::string data1, std::strin
     messageString            += data1;
     messageString            += ":";
     messageString            += data2;
+    char reqsz[messageString.size()+1];
+    strcpy(reqsz, messageString.c_str());
+    zmq::message_t request(messageString.size());
+    memcpy(request.data(), reqsz, messageString.size());
     
-    zmq::message_t request(const_cast<char*>(
-        messageString.c_str()), messageString.size(), 0);
+    int status = m_pSocket->send(request);
     
-    m_pSocket->send(request); 
+    if(status == -1) {
+        perror("Failed to send");
+        throw CException("Failed to send");
+    }
 }
 
 /**
@@ -404,4 +451,31 @@ CVarMgrServerApi::join(const CVarMgrApi::EnumValues& values, char sep)
     std::string cPath = "/";
     cPath += join(pathVec, '/');
     return cPath;                       // Empty pathVec implies /.
+ }
+ /**
+  * processDirList
+  *    Get the set of directories from the data part of a DIRLIST transaction
+  * @param[in] dirlist - The data field of the DIRLIST reply.
+  * @return std::set<std::string> - whose elements are the directories in the dirlist.
+  */
+ std::set<std::string>
+ CVarMgrServerApi::processDirList(std::string dirlist)
+ {
+    std::set<std::string> result;
+    
+    while(dirlist.size() > 0) {
+        size_t nextSep = dirlist.find("|");
+        
+        // No separator means this is the last dir:
+        
+        if (nextSep == std::string::npos) {
+            result.insert(dirlist);
+            dirlist = "";                  // Done.
+        } else {
+            result.insert(dirlist.substr(0, nextSep));
+            dirlist = dirlist.substr(nextSep+1);
+        }
+    }
+    
+    return result;
  }

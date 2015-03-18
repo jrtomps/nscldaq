@@ -67,7 +67,7 @@ class ServerApiTests : public CppUnit::TestFixture {
   // we also need to test that relative paths work ok.
   
   CPPUNIT_TEST(cdOk);
-  //CPPUNIT_TEST(cdNoSuchPath);    // Needs server mods.
+  CPPUNIT_TEST(cdNoSuchPath);    // Needs server mods.
   CPPUNIT_TEST(cdRelative);
   CPPUNIT_TEST(relativeMkdir);
   CPPUNIT_TEST(relativeRmdir);
@@ -103,6 +103,7 @@ protected:
   void defSmBadTransition();
   void cdOk();
   void cdRelative();
+  void cdNoSuchPath();
   void relativeMkdir();
   void relativeRmdir();
   void relativeDeclare();
@@ -247,6 +248,7 @@ void ServerApiTests::initialGetwd() {
 
 void ServerApiTests::mkdirok()
 {
+    
     m_pApi->mkdir("/testing");
     
     CVariableDb db(m_tempFile);
@@ -623,4 +625,13 @@ void ServerApiTests::cdRelative()
     m_pApi->cd("../../../second/test/dir");
     
     EQ(std::string("/a/second/test/dir"), m_pApi->getwd());
+}
+// cd to nonexistent path:
+
+void ServerApiTests::cdNoSuchPath()
+{
+    CPPUNIT_ASSERT_THROW(
+        m_pApi->cd("/nosuch"),
+        CVarMgrApi::CException
+    );
 }

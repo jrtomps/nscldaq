@@ -37,7 +37,7 @@ class CVarMgrServerApi : public CVarMgrApi
     // object data  TODO:  Is it important to not proliferate zmq::context_t
     //                     objects?
 private:
-    zmq::context_t* m_pContext;
+    static zmq::context_t* m_pContext;
     zmq::socket_t*  m_pSocket;
     std::string     m_wd;
     
@@ -66,6 +66,7 @@ private:
     std::string join(const std::set<std::string>& values, char sep);
     std::string makePath(const char* path);
     std::string canonicalize(std::string path);
+    std::set<std::string> processDirList(std::string dirlist);
 
 };
 

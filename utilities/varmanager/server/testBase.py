@@ -58,7 +58,6 @@ class TestBase(unittest.TestCase):
         self._pid     = process.pid
         self._stdout  = process.stdout
         self._process = process
-        time.sleep(3)                 # Let server establish services.
         return process
     
     ##
@@ -72,7 +71,18 @@ class TestBase(unittest.TestCase):
     #
     def createClient(self, type, service):
         pm   = PortManager.PortManager('localhost')
-        portList = pm.find(service=service, user=getpass.getuser())
+        waited = 0
+        
+        # Give the subprocess up to 30 secondsto publish its service.
+        
+        while waited < 30:    
+            portList = pm.find(service=service, user=getpass.getuser())
+            if len(portList) == 0:
+               time.sleep(.1)
+            else:
+                break
+            waited = waited + 1
+        
         self.assertEqual(len(portList), 1)     # there can be only one.
         
         uri = 'tcp://localhost:%d' % portList[0]['port']

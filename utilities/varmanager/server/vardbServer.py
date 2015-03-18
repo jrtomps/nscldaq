@@ -286,6 +286,30 @@ class databaseServer():
         except nscldaq.vardb.dirtree.error as e:
             self._req.send('FAIL:%s' % e)
     
+    ##
+    # _varlist
+    #   Return list of information about variables in a directory.
+    #
+    # @param path - path to list.
+    #
+    def _varlist(self, path):
+        dirs = nscldaq.vardb.dirtree.DirTree(self._database)
+        try:
+            dirs.cd(path)
+            info = nscldaq.vardb.variable.ls(self._database, dirs)
+            dataList = list()
+            for var in info:
+                variable = nscldaq.vardb.variable.Variable(
+                    self._database, dir=dirs, path=var['name']
+                )
+                item = (var['name'], var['type'], variable.get())
+                dataList.append('|'.join(item))
+            data = '|'.join(dataList)
+            self._req.send('OK:%s' % data)
+        except nscldaq.vardb.dirtree.error as e:
+            self._req.send('FAIL:%s' % e)
+        
+    
     #--------------------------- publication methods ------------------
 
     ##
@@ -386,6 +410,9 @@ class databaseServer():
     #
     def _processRequest(self, msg):
         msgParts = msg.split(':', 2)
+        if len(msgParts) != 3:
+            self._req.send("FAIL:Bad message format")
+            return
         command = msgParts[0]
         path    = msgParts[1]
         data    = msgParts[2]
@@ -410,6 +437,8 @@ class databaseServer():
             self._get(path)
         elif command == 'DIRLIST':
             self._dirlist(path)
+        elif command == 'VARLIST':
+            self._varlist(path)
         else:
             self._req.send('FAIL:Unrecognized operation code %s' % (command))
         
@@ -465,7 +494,7 @@ class databaseServer():
         #
             
         while True:
-            msg = self._req.recv()
+            msg = self._req.recv(0, True)
             self._processRequest(msg)
 
 if __name__ == '__main__':
