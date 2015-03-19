@@ -189,7 +189,7 @@ URL::operator string() const
 }
 
 /*==============================================================*/
-/** @fn URL URL::parseString(string& rStr)
+/** @fn URL URL::bString(string& rStr)
 * @brief Parse a String into a URL.
 *
 * Parse a String into a URL.
@@ -247,6 +247,7 @@ void URL::parseString(string rStr) {
   off_t  nhostStart;
   size_t hostLength;
   size_t numSlashes;
+  bool   havePath(true);
 
   hostStart = protocolEnd + 1;	// Skip the colon.
   numSlashes= strspn(hostStart, slash);	// count the slashes...
@@ -256,10 +257,11 @@ void URL::parseString(string rStr) {
   hostStart += 2;		       // The real start of the host.
   hostEnd    = strchr(hostStart, ':');                  // We require a port, and thus a ':'.
   if (!hostEnd) {
-    hostEnd = strchr(hostStart, '/'); // Might not be a port... but must be a trailing slash.
+    hostEnd = strchr(hostStart, '/'); // Might not be a port... but might be a trailing /
   }
-  if (!hostEnd) {
-    throw CURIFormatException(rStr, __FILE__, __LINE__);
+  if (!hostEnd) {                     // no path or port:
+    hostEnd = &(hostStart[strlen(hostStart)]);
+    havePath = false;
   }
   nhostStart = hostStart - rStr.c_str();
   hostLength = hostEnd - hostStart;
@@ -276,7 +278,7 @@ void URL::parseString(string rStr) {
   off_t  nPortStart;
   size_t nPortSize;
   int    port(-1);
-  bool   havePath(true);
+  
 
   if (*hostEnd == ':') {
     portStart = hostEnd+1;	// Past colon...
@@ -302,7 +304,7 @@ void URL::parseString(string rStr) {
   else {
     portEnd = hostEnd;
     portEnd++;
-    havePath = (*portEnd != '\0');
+    havePath = havePath && (*portEnd != '\0');
   }
 
 
@@ -320,6 +322,7 @@ void URL::parseString(string rStr) {
   else {
     path = "/";
   }
+  if (path == "") path = "/";    // Consitent for empty paths.
 
   // If the protocol is file.. then the 
   // path is the host + path and host does not exist nor does it

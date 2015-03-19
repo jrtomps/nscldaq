@@ -3,12 +3,17 @@ lib_LTLIBRARIES=libvarmgr.la
 COMMONLDFLAGS = @builddir@/../libvardb.la 	\
 		@top_builddir@/base/sqlite++/libsqlite3pp.la 	\
 		@top_builddir@/base/uri/liburl.la		\
+		@top_builddir@/base/os/libdaqshm.la \
+		@top_builddir@/servers/portmanager/libPortManager.la \
 		@SQLITE3_LDFLAGS@ @ZMQ_LDFLAGS@
+
+COMMON_CPPFLAGS=-I@srcdir@/..  @SQLITE3_CFLAGS@ -I@top_srcdir@/base/sqlite++ \
+	-I@top_srcdir@/base/uri -I@top_srcdir@/base/os -I@top_srcdir@/servers/portmanager
 
 libvarmgr_la_SOURCES = CVarMgrApi.cpp CVarMgrFileApi.cpp CVarMgrServerApi.cpp \
 	CVarMgrApiFactory.cpp
-libvarmgr_la_CPPFLAGS=-I@srcdir@/.. @SQLITE3_CFLAGS@ -I@top_srcdir@/base/sqlite++ \
-	-I@top_srcdir@/base/uri
+
+libvarmgr_la_CPPFLAGS=$(COMMON_CPPFLAGS)
 libvarmgr_la_LDFLAGS = $(COMMONLDFLAGS)
 
 include_HEADERS=CVarMgrApi.h CVarMgrFileApi.h CVarMgrServerApi.h CVarMgrApiFactory.h
@@ -29,9 +34,9 @@ testApi_SOURCES=TestRunner.cpp TestApiBase.cpp testDirect.cpp \
 	testServer.cpp factoryTests.cpp \
 	$(libvarmgr_la_SOURCES)
 testApi_CPPFLAGS=-DBINDIR=\"@bindir@\" \
-	-I@top_srcdir@/servers/portmanager -I@top_srcdir@/base/os \
+	$(COMMON_CPPFLAGS)   \
 	 @LIBTCLPLUS_CFLAGS@ \
-	@CPPUNIT_CFLAGS@ @SQLITE3_CFLAGS@ -I@top_srcdir@/base/sqlite++ -I..
+	@CPPUNIT_CFLAGS@ 
 testApi_LDFLAGS = $(COMMONLDFLAGS) \
 	@top_builddir@/servers/portmanager/libPortManager.la \
 	@top_builddir@/base/os/libdaqshm.la	\

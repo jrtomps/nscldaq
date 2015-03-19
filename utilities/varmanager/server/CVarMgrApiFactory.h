@@ -47,8 +47,7 @@ public:
     static CVarMgrApi* create(std::string uri);
     static CVarMgrApi* createFileApi(std::string path);
     static CVarMgrApi* createServerApi(std::string host, int port);
-    static CVarMgrApi* createServerApi(std::string host, std::string service);
-    static CVarMgrApi* createServerApi(std::string host);
+    static CVarMgrApi* createServerApi(std::string host, std::string service = std::string("vardb-request"));
     
 };
 

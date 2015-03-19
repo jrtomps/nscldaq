@@ -28,7 +28,7 @@ libvardb_la_SOURCES=CVariableDb.cpp CVarDirTree.cpp CTypeFactory.cpp \
 	CStateMachineTypeFamilyHandler.cpp CStateMachine.cpp
 
 libvardb_la_CPPFLAGS = @SQLITE3_CFLAGS@ -I@top_srcdir@/base/sqlite++ -I@top_srcdir@/base/factories
-libvardb_la_LDFLAGS  = 	@top_srcdir@/base/sqlite++/libsqlite3pp.la  @SQLITE3_LDFLAGS@ 
+libvardb_la_LDFLAGS  = 	@top_builddir@/base/sqlite++/libsqlite3pp.la  @SQLITE3_LDFLAGS@ 
 
 include_HEADERS = CVariableDb.h CVarDirTree.h CVariable.h CTypeFactory.h \
 	CDataType.h CIntegerType.h CRealType.h CStringType.h \
@@ -54,8 +54,8 @@ libvardbtcl_la_SOURCES=VarDbTclPackage.cpp \
 	CVarDBEnumCommand.cpp   CVarDBEnumCommand.h	\
 	CStateMachineCommand.cpp CStateMachineCommand.h
 
-libvardbtcl_la_CPPFLAGS=@TCL_FLAGS@ @LIBTCLPLUS_CFLAGS@ 
-libvardbtcl_la_LDFLAGS= @builddir@/libvardb.la @top_srcdir@/base/sqlite++/libsqlite3pp.la  \
+libvardbtcl_la_CPPFLAGS=@TCL_FLAGS@ @LIBTCLPLUS_CFLAGS@ -I@top_srcdir@/base/sqlite++
+libvardbtcl_la_LDFLAGS= @builddir@/libvardb.la @top_builddir@/base/sqlite++/libsqlite3pp.la  \
 			@SQLITE3_LDFLAGS@ @LIBTCLPLUS_LDFLAGS@ @TCL_LDFLAGS@\
 			-Wl,"-rpath=@libdir@"
 
@@ -146,7 +146,7 @@ install-exec-hook:
 	$(INSTALL_PROGRAM) @libdir@/libvardbtcl.* @prefix@/TclLibs/vardb
 	echo  pkg_mkIndex -verbose  @prefix@/TclLibs/vardb "*.so"| @TCLSH_CMD@
 	$(mkinstalldirs) @prefix@/pythonLibs/nscldaq/vardb
-	rm @prefix@/pythonLibs/nscldaq/vardb/*
+	rm -f @prefix@/pythonLibs/nscldaq/vardb/*
 	$(INSTALL_PROGRAM) @libdir@/libvardbpy.so       @prefix@/pythonLibs/nscldaq/vardb/vardbmodule.so
 	$(INSTALL_PROGRAM) @libdir@/libvardirtreepy.so  @prefix@/pythonLibs/nscldaq/vardb/dirtree.so
 	$(INSTALL_PROGRAM) @libdir@/libvariablepy.so    @prefix@/pythonLibs/nscldaq/vardb/variable.so
