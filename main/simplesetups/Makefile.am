@@ -3,7 +3,7 @@
 
 DOCS    = @srcdir@/v775setup.xml @srcdir@/v775book.xml
 FIGURES = @srcdir@/v775ediagram.jpeg @srcdir@/v775ediagram.eps \
-	v77ediagram-eps-converted-to.pdf
+	v775ediagram-eps-converted-to.pdf
 FIGSRC  = @srcdir/v775ediagram.dia
 
 EXTRA_DIST=$(DOCS)
