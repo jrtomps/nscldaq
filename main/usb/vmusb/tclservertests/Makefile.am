@@ -18,6 +18,7 @@ unittests_LDADD = @top_builddir@/usb/vmusb/tclserver/libVMUSBControlServer.la \
 		@top_builddir@/usb/common/configurableobject/libConfigurableObject.la \
 		@LIBTCLPLUS_LDFLAGS@ \
 		@top_builddir@/usb/vmusb/daqconfig/libVMUSBConfig.la \
+		@top_builddir@/usb/vmusb/devices/libVMUSBDevices.la \
 		@top_builddir@/usb/vmusb/rdothread/libVMUSBRdoThread.la \
 		@top_builddir@/usb/vmusb/router/libVMUSBRouter.la \
 		$(CPPUNIT_LDFLAGS) \

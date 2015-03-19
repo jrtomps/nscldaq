@@ -1,5 +1,7 @@
-<!-- chapter utilities -->
 
+
+<!-- chapter utilities -->
+<!-- commented out until the real boot manager is possible
 <chapter id='chap.boot'>
     <title id='chap.boot.title'>The Boot utility</title>
     <para>
@@ -234,9 +236,11 @@ $DAQBIN/boot s800.experiment caesar.experiment s800-ceasar-merge.experiment
         </section>
     </section>
 </chapter>
+-->
 <!-- /chapter -->
 
 <!-- manpage 1daq -->
+<!-- commented out until the real boot manager is written
       <refentry id="daq1_boot">
         <refmeta>
            <refentrytitle id="daq1_boot_title">boot</refentrytitle>
@@ -364,5 +368,5 @@ $DAQBIN/boot <optional>options...</optional> <replaceable>databases....</replace
         </refsect1>
 
       </refentry>
-
+-->
 <!-- /manpage -->
