@@ -6,7 +6,7 @@ FIGURES = @srcdir@/v775ediagram.jpeg @srcdir@/v775ediagram.eps \
 	v775ediagram-eps-converted-to.pdf
 FIGSRC  = @srcdir/v775ediagram.dia
 
-EXTRA_DIST=$(DOCS)
+EXTRA_DIST=$(DOCS) $(FIGURES) $(FIGSRC)
 
 install-exec-local: v775book.pdf
 	$(mkinstalldirs) @prefix/share/html
