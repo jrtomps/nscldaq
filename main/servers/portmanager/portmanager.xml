@@ -56,9 +56,20 @@
 <!-- manpage 1tcl -->
 
 <refentry id="manpage.DaqPortManager">
+  <refentryinfo>
+    <author>
+            <personname>
+                    <firstname>Ron</firstname>
+                    <surname>Fox</surname>
+            </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
   <refmeta>
      <refentrytitle>DaqPortManager</refentrytitle>
      <manvolnum>1tcl</manvolnum>
+     <refmiscinfo class='empty'></refmiscinfo>
   </refmeta>
   <refnamediv>
      <refname>TCP/IP service port manager.</refname>
@@ -283,9 +294,20 @@ tclsh DaqPortManager <replaceable>options...</replaceable>
 <!-- manpage 3daq -->
 
     <refentry id="manpage.CPortManager">
+      <refentryinfo>
+        <author>
+                <personname>
+                        <firstname>Ron</firstname>
+                        <surname>Fox</surname>
+                </personname>
+        </author>
+        <productname>NSCLDAQ</productname>
+        <productnumber></productnumber>
+      </refentryinfo>
       <refmeta>
          <refentrytitle>CPortManager</refentrytitle>
          <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
       </refmeta>
       <refnamediv>
          <refname>CPortManager</refname>
@@ -563,9 +585,20 @@ catch (CPortManagerException&amp; error) {
     
 <!-- manpage 3daq -->
     <refentry id="manpage.CPortManagerException">
+      <refentryinfo>
+        <author>
+                <personname>
+                        <firstname>Ron</firstname>
+                        <surname>Fox</surname>
+                </personname>
+        </author>
+        <productname>NSCLDAQ</productname>
+        <productnumber></productnumber>
+      </refentryinfo>
       <refmeta>
          <refentrytitle>CPortManagerException</refentrytitle>
          <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
       </refmeta>
       <refnamediv>
          <refname>CPortManagerException</refname>
@@ -808,9 +841,20 @@ catch (CPortManagerException&amp; e) {
 <!-- manpage 3tcl -->
 
 <refentry id="manpage.portAllocator">
+    <refentryinfo>
+        <author>
+                <personname>
+                        <firstname>Ron</firstname>
+                        <surname>Fox</surname>
+                </personname>
+        </author>
+        <productname>NSCLDAQ</productname>
+        <productnumber></productnumber>
+    </refentryinfo>
   <refmeta>
      <refentrytitle>portAllocator</refentrytitle>
      <manvolnum>3tcl</manvolnum>
+     <refmiscinfo class='empty'></refmiscinfo>
   </refmeta>
   <refnamediv>
      <refname>portAllocator</refname>
@@ -999,9 +1043,20 @@ foreach allocation $usage {
 
 <!-- manpage 3python -->
       <refentry id="python3_PortManager">
+        <refentryinfo>
+            <author>
+                    <personname>
+                            <firstname>Ron</firstname>
+                            <surname>Fox</surname>
+                    </personname>
+            </author>
+            <productname>NSCLDAQ</productname>
+            <productnumber></productnumber>
+        </refentryinfo>
         <refmeta>
            <refentrytitle>PortManager</refentrytitle>
            <manvolnum>3python</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
         </refmeta>
         <refnamediv>
            <refname>PortManager</refname>

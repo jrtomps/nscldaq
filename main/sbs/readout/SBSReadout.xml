@@ -2603,9 +2603,9 @@ MySegment::read(void* pBuffer, size_t maxlen)
                     </methodparam>
                 <methodparam>
                     <type>size_t</type> <parameter>maxwords</parameter>
-                    </methodparam>
+                </methodparam>
                 <modifier>=0</modifier>
-                </methodsynopsis>
+            </methodsynopsis>
 	    <methodsynopsis>
 	      <modifier>virtual</modifier>
 	      <type>void</type> <methodname>onBegin</methodname>
@@ -2905,9 +2905,20 @@ MySegment::read(void* pBuffer, size_t maxlen)
    </refentry>
 
     <refentry id="manpage.ceventtrigger">
-      <refmeta>
+        <refentryinfo>
+            <author>
+                <personname>
+                    <firstname>Ron</firstname>
+                    <surname>Fox</surname>
+                </personname>
+            </author>
+            <productname>NSCLDAQ</productname>
+            <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
          <refentrytitle>CEventTrigger</refentrytitle>
          <manvolnum>3sbsReadout</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
       </refmeta>
       <refnamediv>
          <refname>CEventTrigger</refname>
@@ -2918,8 +2929,8 @@ MySegment::read(void* pBuffer, size_t maxlen)
          <programlisting>
 #include &lt;CEventTrigger&gt;
          </programlisting>
-         <classsynopsis>
-            <ooclass><classname>CEventTrigger</classname></ooclass>
+         <synopsis>
+            class <ooclass><classname>CEventTrigger</classname></ooclass> {
             <methodsynopsis>
                 <modifier>virtual</modifier>
                 <type>void</type> <methodname>setup</methodname>
@@ -2935,7 +2946,8 @@ MySegment::read(void* pBuffer, size_t maxlen)
                 <type>bool</type> <methodname>operator()</methodname>
                 <void /><modifier>= 0</modifier>
                 </methodsynopsis>
-         </classsynopsis>
+        };
+        </synopsis>
       </refsynopsisdiv>
       <refsect1>
          <title>Description</title>

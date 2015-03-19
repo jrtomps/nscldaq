@@ -20,6 +20,10 @@
 #include "CReadoutHardware.h"
 #endif
 
+#ifndef __CMESYTECBASE_H
+#include "CMesytecBase.h"
+#endif
+
 #ifndef __CRT_STDINT_H
 #include <stdint.h>
 #ifndef __CRT_STDINT_H
@@ -73,7 +77,7 @@ class CMADCChain : public CReadoutHardware
   // internally used data types:
 
 private:
-  typedef std::list<CMADC32*>    ChainList;
+  typedef std::list<CMesytecBase*>    ChainList;
   typedef ChainList::iterator    ChainListIterator;
   
   // Per object data:

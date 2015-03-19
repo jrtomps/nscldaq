@@ -106,6 +106,7 @@ public:
   virtual void onAttach(CReadoutModule& configuration);
   virtual void Initialize(CVMUSB& controller);
   virtual void addReadoutList(CVMUSBReadoutList& list);
+  virtual void onEndRun(CVMUSB& controller);
   virtual CReadoutHardware* clone() const; 
 
 private:
@@ -264,6 +265,23 @@ CTemplateDriver::addReadoutList(CVMUSBReadoutList& list)
    * MODIFY ME HERE */
 
   list.addMarker(id);
+
+  /* END MODIFICATIONS */
+}
+
+
+/** \brief On end procedures
+ *
+ *  This method is called after the VMUSB has been taken out of acquisition mode. It is a hook
+ *  for the user to disable their device during times when not acquiring data. The default 
+ *  implementation of this in the base class is a no-op.
+ *
+ *  @param controller - a vmusb controller
+ */
+void
+CTemplateDriver::onEndRun(CVMUSB& controller)
+{
+  /* MODIFY ME HERE */
 
   /* END MODIFICATIONS */
 }

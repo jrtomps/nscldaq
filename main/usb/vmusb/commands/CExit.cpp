@@ -25,6 +25,7 @@
 #include <TCLInterpreterObject.h>
 #include <Globals.h>
 #include <TclServer.h>
+#include <CAcquisitionThread.h>
 
 /**
  * constructor
@@ -81,6 +82,13 @@ CExit::operator()(CTCLInterpreter& interp, std::vector<CTCLObject>& objv)
         
         pServer->join();
         
+        // End the run and join with the acquisition thread
+        auto pReadout = CAcquisitionThread::getInstance();
+        if (pReadout->isRunning()) {
+          CControlQueues::getInstance()->EndRun();
+          CAcquisitionThread::getInstance()->join();
+        }
+
         // Exit the program:
         
         Tcl_Exit(status);

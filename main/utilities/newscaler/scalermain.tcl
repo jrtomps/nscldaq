@@ -70,6 +70,57 @@ set stripcharts "";               # xyplotContainer with the stripchart.
 set alarmcontrol 1;               # start with alarms on.
 
 
+#-------------------------------------------------------------------------
+# Provide access to the globals for extensions:
+
+
+##
+# getStartTime
+# @return [clock seconds] for when the run started.
+#
+proc getStartTime {} {
+    return $::startTime
+}
+##
+# get ElapsedTime
+#
+# @return - seconds of elapsed run time.
+#
+proc getElapsedTime {} {
+    return $::duration
+}
+##
+# getTitle
+#   @return most recent title string.
+#
+proc getTitle {} {
+    set h [getHeader]
+    
+    return [$h cget -title]
+}
+##
+# getRunNumber
+#
+# @return most recent run number.
+#
+proc getRunNumber {} {
+    set h [getHeader]
+    
+    return [$h cget -run]
+}
+##
+# getState
+#
+# @return  most recent run state string.
+#
+proc getState {} {
+    set h [getHeader]
+    retunr [$h cget -state]
+}
+
+#---------------------------------------------------------------------------
+# Internal private procs
+#
 
 ##
 # Create the thread that will read data from the ring and post it back to us:
@@ -271,7 +322,7 @@ proc scaler item {
     
     set elapsed [expr {$end/[dict get $item divisor]}]
     if {$elapsed > $::duration} {
-        set duration $elapsed
+        set ::duration $elapsed
         $h configure -elapsed $elapsed
     }
     # Set the dt in seconds for the source, if there is no  body
@@ -283,6 +334,11 @@ proc scaler item {
     }
     $h update $sid $dt
     
+    # If the user has extended us with a UserUpdate call that:
+    
+    if {[info commands ::UserUpdate] ne ""} {
+        ::UserUpdate
+    }
 }
 ##
 # beginRun
@@ -311,6 +367,12 @@ proc beginRun {item} {
     $h clear;                   # Clear the dt's for each data source.
     
     clearStripcharts;           # If there are stripcharts clear them.
+    
+    #  If the user has plugged into use with a UserBeginRun call it:
+    
+    if {[info commands ::UserBeginRun] ne ""} {
+        ::UserBeginRun
+    }
 }
 ##
 # endRun
@@ -343,6 +405,12 @@ proc endRun   {item} {
         
         set filename [format run%04d-stripchart.ps $run]
         saveStripcharts $filename
+    }
+    #
+    #  If the user has plugged into us with a UserEndRun proc, call it:
+    #
+    if {[info commands ::UserEndRun] ne ""} {
+        ::UserEndRun    
     }
 }
 

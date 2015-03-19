@@ -108,6 +108,13 @@ void COneShotMediator::mainLoop()
       break;
     }
 
+    // if we read an abnormal exit, pass it on and exit.
+    if (item->type() == ABNORMAL_ENDRUN) {
+      sink.putItem(*item);
+      delete item;
+      break;
+    }
+
     // only process if we have skipped the requested number
     if (tot_iter>=nskip) {
       
@@ -115,8 +122,15 @@ void COneShotMediator::mainLoop()
       m_oneShot.update(item);
 
       
-      if (!m_oneShot.waitingForBegin()) {
+      if (m_oneShot.waitingForBegin()) {
 
+        // there is a RING_FORMAT item that should precede the  
+        // BEGIN_RUN. Just let it through when it arrives.
+        if (item->type()==RING_FORMAT) {
+          sink.putItem(*item);
+        }
+
+      } else {
         // handle the item and get a pointer to 
         // to the new item
         CRingItem* new_item = handleItem(item);
@@ -136,12 +150,6 @@ void COneShotMediator::mainLoop()
           delete new_item;
         } 
 
-      } else {
-        // there is a RING_FORMAT item that should precede the  
-        // BEGIN_RUN. Just let it through when it arrives.
-        if (item->type()==RING_FORMAT) {
-          sink.putItem(*item);
-        }
       }
     
       // Increment the number processed

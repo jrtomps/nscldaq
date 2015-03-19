@@ -201,13 +201,35 @@ CStack::Initialize(CVMUSB& controller)
 {
   StackElements modules = getStackElements();
   StackElements::iterator p = modules.begin();
-  while(p != modules.end()) {
-    CReadoutHardware* pModule = *p;                                // Wraps the hardware.
 
-    pModule->Initialize(controller); 
+  // external try catch block to make sure that a single
+  // failure stops the initialize process in its tracks. We don't
+  // want to continue initializing.
+  try {
+    while(p != modules.end()) {
+      CReadoutHardware* pModule = *p;                                // Wraps the hardware.
 
-    p++;
+      pModule->Initialize(controller); 
+
+      p++;
+    }
+  } catch (std::string& errmsg) {
+    std::cout << "An error occurred during initialization! Reason: ";
+    std::cout << errmsg << std::flush << std::endl;
+    // rethrow to make this really fail 
+    throw;
+  } catch (std::exception& exc) {
+    std::cout << "An error occurred during initialization! Reason: ";
+    std::cout << exc.what() << std::flush << std::endl;
+    // rethrow to make this really fail
+    throw;
+  } catch (...) {
+    std::cout << "An error occurred during initialization! ";
+    std::cout << "No reason is provided." << std::flush << std::endl;
+    // rethrow to make this really fail 
+    throw;
   }
+
   // If this module is stack triggered, set the m_incrementalScalers varaible.
 
   if(m_pConfiguration->cget("-trigger") == std::string("scaler")) {
@@ -246,9 +268,25 @@ CStack::onEndRun(CVMUSB& controller)
   StackElements modules = getStackElements();
   StackElements::iterator p = modules.begin();
   while(p != modules.end()) {
-    CReadoutHardware* pModule = *p;                                // Wraps the hardware.
 
-    pModule->onEndRun(controller); 
+    // try-catch within the loop because  we want to give all
+    // modules a chance to perform end of run procedures independent
+    // of the success of all other readout hardware. Note also that
+    // we do not rethrow.
+    try {
+      CReadoutHardware* pModule = *p;                                // Wraps the hardware.
+      pModule->onEndRun(controller); 
+
+    } catch (std::string& errmsg) {
+      std::cout << "An error occurred during end run procedures! Reason: ";
+      std::cout << errmsg << std::flush << std::endl;
+    } catch (std::exception& exc) {
+      std::cout << "An error occurred during end run procedures! Reason: ";
+      std::cout << exc.what() << std::flush << std::endl;
+    } catch (...) {
+      std::cout << "An error occurred during end run procedures! ";
+      std::cout << "No reason is provided." << std::flush << std::endl;
+    }
 
     p++;
   }

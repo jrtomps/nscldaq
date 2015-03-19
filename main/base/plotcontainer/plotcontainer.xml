@@ -1,0 +1,707 @@
+<!-- manpage 3tcl -->
+
+<refentry id="tcl3_plotcontainer">
+  <refentryinfo>
+    <author>
+            <personname>
+                    <firstname>Ron</firstname>
+                    <surname>Fox</surname>
+            </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='tcl3_plotcontainer_title'>plotcontainer</refentrytitle>
+     <manvolnum>3tcl</manvolnum>
+     <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>plotcontainer</refname>
+     <refpurpose>Plotchart XY plot wrapper</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <cmdsynopsis>
+    <command>
+package require Plotchart::xyplotContainer
+    </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+set <replaceable>container</replaceable> Plotchart::xyPlotContainer <replaceable>name | %AUTO%</replaceable> -canvas <replaceable>widget</replaceable> ?option...?
+        </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+$container <replaceable>methodname</replaceable>    ...            
+        </command>
+    </cmdsynopsis>
+
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        Plotchart is a pure Tcl package that provides support for a powerful set of plotting primitives.
+        Plotchart itself is documented at Activestate at:
+        <ulink url='http://docs.activestate.com/activetcl/8.5/tklib/plotchart/plotchart.html'>
+            http://docs.activestate.com/activetcl/8.5/tklib/plotchart/plotchart.html
+        </ulink>.
+     </para>
+     <para>
+        Plotchart was not initially intended for interactive, or dynamic
+        graphics, however the author has recently added and improved support
+        for these capabilities.  Nonetheless, there are operations which
+        require plots to be generated from scratch.  The
+        <command>Plotchart::xyPlotContainer</command> <literal>snit::type</literal>
+        encapsulates a number of the Plotchart plot types in a wrapper
+        that knows when and how to regenerate a plot and when not to.
+     </para>
+     <para>
+        <command>Plotchart::xyPlotContainer</command> requires that the
+        plot it encapsulates be one of the plot types that supports plotcharts
+        <literal>xyplot</literal> methods.  By default, the container
+        encapsulates an xyplot but the <option>-plottype</option> option can be
+        used to modify the plot created and encapsulated by the container.
+     </para>
+     <para>
+        Note as well that since often a series of method calls and option
+        modifications will all require plot regeneration, the actual regeneration
+        is scheduled in order to perform the needed regeneration only once.
+    </para>
+  </refsect1>
+  <refsect1>
+     <title>
+        OPTIONS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term><option>-xmin</option> <replaceable>floating-value</replaceable></term>
+            <listitem>
+                <para>
+                    Sets the X axis minimum value.  This will schedule a plot
+                    regeneration. Data to the left of this value will be
+                    clipped from the plot.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><option>-xmax</option> <replaceable>floating-value</replaceable></term>
+            <listitem>
+                <para>
+                    Sets the X axis maximum value.  This will schedule a plot
+                    regeneration. Data to the right of this value will be
+                    clipped fromt he plot.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><option>-ymin</option> <replaceable>floating-value</replaceable></term>
+            <listitem>
+                <para>
+                    Sets the Y axis minimum value.  Data below this value
+                    will be clipped from the plot.  Setting this value
+                    schedules a plot regeneration.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><option>-ymax</option> <replaceable>floating-value</replaceable></term>
+            <listitem>
+                <para>
+                    Sets the Y axis maximum value.  Data above this value are
+                    clipped from the plot.  Setting this value
+                    schedules a plot regeneration.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><option>-plottype</option> <replaceable>plot-creation-base-command</replaceable></term>
+            <listitem>
+                <para>
+                    Provides the command keyword used to create a new plot.
+                    This defaults to <literal>::Plotchart::creteXYPlot</literal>
+                    Modifying this option value will schedule a plot regeneration.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><option>-title</option> <replaceable>title-text</replaceable></term>
+            <listitem>
+                <para>
+                    Modifies the title text for the plot.  The defafult
+                    text is an empty string, indicating you do not wish to
+                    display a title on the plot.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><option>-xtitle</option> <replaceable>title-text</replaceable></term>
+            <listitem>
+                <para>
+                    Modifies the X-axis title text for the plot.  The
+                    default text is the empty string, indicating you do not wish
+                    to display a title on the plot.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><option>-ytitle</option> <replaceable>title-text</replaceable></term>
+            <listitem>
+                <para>
+                    Modifies the default Y axis title text for the plot.
+                    The default text is the empty string, which indicates that
+                    you do not want to display a Y axis title.  Since the
+                    display of rotated text on canvases is not supported in
+                    Tk 8.5, the text is displayed at the top of the Y axis.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><option>-showkey</option> <replaceable>boolean</replaceable></term>
+            <listitem>
+                <para>
+                    Determines if the plot key should be displayed.  The
+                    plot key shows the correspondence between colors and
+                    series names.  By default this option is
+                    <literal>true</literal>
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><option>-grid</option> <replaceable>boolean</replaceable></term>
+            <listitem>
+                <para>
+                    Enables or disables the display of a grid on the plot.
+                    By default this is disabled.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><option>-plotid</option></term>
+            <listitem>
+                <para>
+                    This is a readonly option which returns the id of the plot.
+                    The id of a plot is the plotchart base command for performing
+                    raw method calls on the plot as documented in the
+                    Plotchart manpage.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><option>-canvas</option></term>
+            <listitem>
+                <para>
+                    At construction time this option is required and provides
+                    the canvas on which the plot is drawn.  After construction,
+                    this option is readonly and will return that canvas.
+                </para>
+            </listitem>
+        </varlistentry>
+
+    
+     </variablelist>
+  </refsect1>
+  <refsect1>
+    <title>METHODS</title>
+    <para>
+        The <classname>Plotchart::xycontainer</classname>
+        <literal>snit::type</literal> has several methods.  These
+        break down into the following categories:
+    </para>
+    <itemizedlist>
+        <listitem><para>
+            Plot functions - functions that affect the plot as a whole
+        </para></listitem>
+        <listitem><para>
+            Series functions - functions that manipulate data series.
+        </para></listitem>
+        <listitem><para>
+            Marker management - functions that manipulate plot markers.
+        </para></listitem>
+    </itemizedlist>
+    <refsect2>
+        <title>Plot methods</title>
+        <variablelist>
+            <varlistentry>
+                <term><methodname>worldToCanvas </methodname> <parameter>x y</parameter></term>
+                <listitem>
+                    <para>
+                        Plots live in a canvas and impose a world coordinate
+                        system on an underlying Tk canvas.  Sometimes it's useful to be
+                        able to draw something on the underlying canvas that has
+                        some relationship to the plot. 
+                    </para>
+                    <para>
+                        This method takes a point defined by <parameter>x</parameter>
+                        and <parameter>y</parameter> in plot (world) coordinates
+                        and converts it into a position on the underlying canvas.
+                        The method returns a two element list whose values are
+                        in order the corresponding x and y coordinates on the
+                        canvas.
+                    </para>
+                    <para>
+                        It is not an error to request world coordinates taht are
+                        outside the limits of the canvas.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>canvasToWorld </methodname> <parameter>x y</parameter></term>
+                <listitem>
+                    <para>
+                        See <methodname>worldToCanvas</methodname> above for the
+                        background discussion.  This method transforms a
+                        point on the canvas defined by
+                        <parameter>x</parameter> and <parameter>y</parameter>
+                        into the corresponding coordinate on the canvas.
+                        This can be used, for example, to relate the
+                        coordinates of an event to the plot.
+                    </para>
+                    <para>
+                        The return value is a two element list containing the
+                        in order the x and y world coordinates corresponding
+                        to the parameters.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>resize </methodname> <parameter>width height</parameter></term>
+                <listitem>
+                    <para>
+                        Resizes the canvas containing the plot and schedules a
+                        regeneration of the plot to fit properly in the new
+                        size of the canvas.  The new dimensions of the
+                        canvas are in pixels and given by
+                        <parameter>width</parameter> and
+                        <parameter>height</parameter>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>getPlotLimits</methodname></term>
+                <listitem>
+                    <para>
+                        Returns a list containing the current world coordinate
+                        plotting limits.  The elements in order are the
+                        minimum X, the maximum X, the minimum Y and the maximum Y
+                        coordinates.
+                    </para>
+                </listitem>
+            </varlistentry>
+            
+        </variablelist>
+    </refsect2>
+    <refsect2>
+        <title>Series methods</title>
+        <para>
+            Data plotted on a Plotchart plot are organized as series.  A series
+            is comprised of a name, a set of points to draw and  a color in which
+            to draw them. If you do not want to use the default drawing method
+            for a series, you can obtain the plot id and use the
+            Plotchart <methodname>dataconfig</methodname> method to reconfigure
+            how a series is displayed.
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term>
+                    <methodname>series </methodname> <parameter>name xcoords ycoords color</parameter>
+                </term>
+                <listitem>
+                    <para>
+                        Creates or modifies a series.  <parameter>name</parameter>
+                        is the name of the series.  If a series by this name
+                        does not yet exist it is created.
+                        <parameter>xcoords</parameter> and <parameter>ycoords</parameter>
+                        are the coordinates of the points in the series.
+                    </para>
+                    <para>
+                        <parameter>color</parameter> is the color in which
+                        the series is drawn. <parameter>color</parameter>
+                        is optional and defaults to <literal>black</literal>.
+                        Colors can be described using any of the
+                        valid color descriptions of Tk.
+                    </para>
+                    <para>
+                        Valid color descriptions are either named colors as
+                        listed in
+                        <ulink url='http://www.tcl.tk/man/tcl8.5/TkCmd/colors.htm'>
+                            http://www.tcl.tk/man/tcl8.5/TkCmd/colors.htm
+                        </ulink>,
+                        or RGB triplets of the form
+                        <literal>#rrggbb</literal> where e.g. <literal>rr</literal>
+                        is a hexadecimal red color intensity from
+                        <literal>00</literal> to <literal>ff</literal>.
+                        For example, the <literal>HotPink</literal>
+                        named color can also be specified as
+                        <literal>#ff69b4</literal>
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>deleteSeries </methodname> <parameter>name</parameter></term>
+                <listitem>
+                    <para>
+                        Destroys the series <parameter>name</parameter> and
+                        removes it from the plot.  Note that to move the
+                        data in a series it is only necessary to invoke
+                        <methodname>series</methodname>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>getSeries</methodname></term>
+                <listitem>
+                    <para>
+                        Returns a Tcl list containing the names of the
+                        currently known series.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>getSeriesColor</methodname> <parameter>name</parameter></term>
+                <listitem>
+                    <para>
+                        Returns the color specification for the series
+                        <parameter>name</parameter> as it was most recently
+                        supplied.  Thus if the series was specified
+                        with a color of <literal>HotPink</literal> that
+                        string is returned.  If, on the other hand, it was
+                        specified as <literal>#ff69b4</literal> that
+                        string is returned.
+                    </para>
+                    <para>
+                        The intent of this function is to allow you to draw
+                        other canvas elements in colors that match the color
+                        of a series.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <methodname>getSeriesMinMax </methodname> <parameter>left right</parameter>
+                </term>
+                <listitem>
+                    <para>
+                        For all series in a plot returns information about
+                        the minimum and maximum values of the the series
+                        within the world coordinate X positions given by
+                        <parameter>left</parameter> and <parameter>right</parameter>.
+                        The intent of this is to allow you to determine new
+                        reasonable scales after an expansion in X is done as
+                        a result of e.g. a mouse event.
+                    </para>
+                    <para>
+                        The method returns a dict with the following keys:
+                    </para>
+                    <itemizedlist>
+                        <listitem><para>
+                            <emphasis>series</emphasis> - A list of series names.
+                        </para></listitem>
+                        <listitem><para>
+                            <emphasis>mins</emphasis> - A list of the series
+                            Y coordinate
+                            minima in the range in order corresponding to
+                            the list of series names above.
+                        </para></listitem>
+                        <listitem><para>
+                            <emphasis>maxes</emphasis> - A list of the
+                            series Y coordinate minima in order correspnding
+                            to the list of series names above.
+                        </para></listitem>
+                        <listitem><para>
+                            <emphasis>xmax</emphasis> - list of X coordinates
+                            at which the <emphasis>maxes</emphasis> occur.
+                        </para></listitem>
+                        <listitem><para>
+                            <emphasis>xmin</emphasis> - list of X coordinates
+                            at which the <emphasis>mins</emphasis> occur.
+                        </para></listitem>
+                    </itemizedlist>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>addSeriesPoint  </methodname><parameter>name x y</parameter></term>
+                <listitem>
+                    <para>
+                        Adds a new point defined by the
+                        <parameter>x</parameter> and <parameter>y</parameter>
+                        coordinates to the series named <parameter>name</parameter>.
+                        Note that no effort is made to sort series points by
+                        X coordinates so, depending on what you are trying to
+                        plot you may not get what you want if the points are
+                        not added monotonically in X.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>clearSeries</methodname> <parameter>name</parameter></term>
+                <listitem>
+                    <para>
+                        Removes all data points from the
+                        series <parameter>name</parameter>.
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+    </refsect2>
+    <refsect2>
+        <title>Marker methods</title>
+        <para>
+            Markers are isoceles filled triangles that can be drawn, and moved
+            on the plot in world coordinates.  Markers have a name,
+            a facing (for the 'point' of the triangle) and a coordinate of the
+            'pont' of the triangle.  The methods below manipulate the markers
+            that are drawn on the plot.
+        </para>
+        <para>
+            Markers are intended to provide a mechanism to highlight features of the
+            plot.  Marker modification never requires a plot regeneration as they
+            are simply canvas items.  Regeneration of the plot also regenerates
+            the markers at their last known world coordinates.
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term><methodname>marker</methodname> <parameter>name x y faces color</parameter></term>
+                <listitem>
+                    <para>
+                        If the marker <parameter>name</parameter> does not
+                        yet exist, it is created and drawn as described.
+                        If the marker does exist, then it is redrawn as described.
+                    </para>
+                    <para>
+                        <parameter>x</parameter> and <parameter>y</parameter>
+                        are the world coordinates of the point fo the marker.
+                        <parameter>faces</parameter> determines which direction
+                        the maker points and can be one of the strings:
+                        <literal>up</literal>, <literal>down</literal>,
+                        <literal>left</literal> or <literal>right</literal>.
+                    </para>
+                    <para>
+                        <parameter>color</parameter> determines the color in
+                        which the marker is drawn (the outline and fill color).
+                        See the <methodname>series</methodname> command
+                        for information about how to specify colors.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>markerMove </methodname> <parameter>name newx newy</parameter></term>
+                <listitem>
+                    <para>
+                        Changes only the location of the point of the marker
+                        <parameter>name</parameter> to the world coordinates
+                        specified by <parameter>newx</parameter> and <parameter>newy</parameter>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>deleteMarker </methodname><parameter>name</parameter></term>
+                <listitem>
+                    <para>
+                        Destroys the marker <parameter>name</parameter>.
+                        <parameter>name</parameter> is no longer drawn on the
+                        plot.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>deleteAllMarkers</methodname></term>
+                <listitem>
+                    <para>
+                        Destroys all markers.  The plot will no longer have any
+                        markers displayed.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>markers</methodname></term>
+                <listitem>
+                    <para>
+                        Returns a list of dicts, one for each defined marker.
+                        Each dict has the keys:
+                    </para>
+                    <itemizedlist>
+                        <listitem><para>
+                            <emphasis>name</emphasis> - The name of a marker.
+                        </para></listitem>
+                        <listitem><para>
+                            <emphasis>marker</emphasis> - The marker object.
+                            See <link linkend='tcl3_marker' endterm='tcl3_marker_title' />
+                            for more information about the marker object and what it
+                            can do.
+                        </para></listitem>
+                    </itemizedlist>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+    </refsect2>
+  </refsect1>
+</refentry>
+<refentry id="tcl3_marker">
+    <refentryinfo>
+      <author>
+              <personname>
+                      <firstname>Ron</firstname>
+                      <surname>Fox</surname>
+              </personname>
+      </author>
+      <productname>NSCLDAQ</productname>
+      <productnumber></productnumber>
+    </refentryinfo>
+    <refmeta>
+       <refentrytitle id='tcl3_marker_title'>marker</refentrytitle>
+       <manvolnum>3tcl</manvolnum>
+       <refmiscinfo class='empty'></refmiscinfo>
+    </refmeta>
+    <refnamediv>
+       <refname>marker</refname>
+       <refpurpose>Manage markers on a plotchart plot.</refpurpose>
+    </refnamediv>
+    
+    <refsynopsisdiv>
+      <cmdsynopsis>
+          <command>
+package require Plotchart::marker 
+      </command>
+      </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+set <replaceable>marker</replaceable> [Plotchart::marker <replaceable>name | %AUTO% </replaceable> -plot <replaceable>plotId</replaceable>]
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+<replaceable>$marker</replaceable> method <replaceable>args...</replaceable>
+            </command>
+        </cmdsynopsis>
+                    
+    </refsynopsisdiv>
+    <refsect1>
+       <title>DESCRIPTION</title>
+       <para>
+        A marker is an annotation on a plotchart plot that is drawn in
+        the plot's coordinate systems.  Markers are represented as
+        triagles (filled or unfilled).  They have a name, a color,
+        an orientation, and location.  The location determines the
+        position of the <firstterm>point</firstterm> of the marker
+        and the orientation the location of the other vertices of the
+        marker triangle relative to the location.
+       </para>
+    </refsect1>
+    <refsect1>
+       <title>
+          OPTIONS
+       </title>
+       <variablelist>
+        <varlistentry>
+            <term><option>-plot</option> <replaceable>plotchart-object</replaceable></term>
+            <listitem>
+                <para>
+                    This option is mandatory at construction time and is the
+                    Plotchart id of the plot on which the marker should
+                    be displayed.  Once the marker is constructed, this
+                    option is readonly.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><option>-size</option> <replaceable>pixels</replaceable></term>
+            <listitem>
+                <para>
+                    The size of the leg of the triangle in pixels.  This
+                    defaults to <literal>5</literal> which is
+                    usually fine.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><option>-direction</option> <replaceable>direction-indicator</replaceable></term>
+            <listitem>
+                <para>
+                    Indicates the orientation of the marker's 'point'.
+                    This can be one of <literal>right</literal>,
+                    <literal>left</literal>, <literal>up</literal>,
+                    or <literal>down</literal>.
+                </para>
+                <para>
+                    The default vale is <literal>right</literal> which means
+                    that the remaining vertices of the triangle will be drawn
+                    to the left of the marker's position.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><option>color</option> <replaceable>color-spec</replaceable></term>
+            <listitem>
+                <para>
+                    Specifies the outline color and, if the marker is drawn filled,
+                    the fill color of the marker.  This defaults to
+                    <literal>black</literal>.  The color can be specified using
+                    any form that is valid for the color of an object
+                     on a canvas.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><option>-filled</option> <replaceable>boolean</replaceable></term>
+            <listitem>
+                <para>
+                    If the value of this option is <literal>true</literal>
+                    (using any of the boolean true values Tcl supports), the
+                    marker is drawn as a filled rectangle.  If <literal>false</literal>
+                    the marker is only drawn as an outline.
+                </para>
+            </listitem>
+        </varlistentry>
+       </variablelist>
+    </refsect1>
+    <refsect1>
+        <title>
+            METHODS
+        </title>
+        <para>
+            Once created, markers have the following methods (subcommands):
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term><methodname>drawAt</methodname> <parameter>x y</parameter></term>
+                <listitem>
+                    <para>
+                        Draws the marker at the world coordinates
+                        <parameter>x</parameter>, <parameter>y</parameter>.
+                        This is implemented by destroying the canvas object
+                        and making a new one at the requested position.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>moveTo</methodname> <parameter>x y</parameter></term>
+                <listitem>
+                    <para>
+                        Moves the marker to the world coordinates specified
+                        by <parameter>x</parameter>, <parameter>y</parameter>.
+                        This is implemented by using the <command>move</command>
+                        subcommand of the underlying canvas.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>coords</methodname></term>
+                <listitem>
+                    <para>
+                        Returns a two element list containing the
+                        world coordinate position of the marker's pointer.
+                        The first list element is the X coordinate, the
+                        second is the Y
+                    </para>
+                </listitem>
+            </varlistentry>
+            
+            
+        </variablelist>
+    </refsect1>
+</refentry>
+
+
+<!-- /manpage -->

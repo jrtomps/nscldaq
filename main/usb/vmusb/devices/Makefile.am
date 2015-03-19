@@ -8,7 +8,9 @@ libVMUSBDevices_la_SOURCES	= CReadoutModule.cpp 	\
 					CMarker.cpp		\
 					C3804.cpp		\
 					CNADC2530.cpp		\
+					CMesytecBase.cpp	\
 					CMADC32.cpp		\
+					CMTDC32.cpp		\
 					CMADCScaler.cpp		\
 					CV1x90.cpp		\
 					CV977.cpp		\
@@ -37,7 +39,9 @@ libVMUSBDevices_la_SOURCES	= CReadoutModule.cpp 	\
 					CXLMFERA.cpp \
 					CXLMTimestamp.cpp \
 					CLeCroy2551.cpp \
-					@top_srcdir@/usb/common/devices/CCamacBranchException.cpp 
+					@top_srcdir@/usb/common/devices/CCamacBranchException.cpp \
+					CMQDC32StackBuilder.cpp \
+					CMQDC32RdoHdwr.cpp
 
 libVMUSBDevices_la_CPPFLAGS	= 	-I@top_srcdir@/usb/vmusb/vmusb 	\
 			-I@top_srcdir@/usb/common/configurableobject \
@@ -69,7 +73,9 @@ noinst_HEADERS			= CReadoutModule.h 	\
 					CMarker.h		\
 					C3804.h			\
 					CNADC2530.h		\
+					CMesytecBase.h		\
 					CMADC32.h		\
+					CMTDC32.h		\
 					CMADCScaler.h		\
 					CV1x90.h		\
 					CV977.h			\
@@ -97,7 +103,11 @@ noinst_HEADERS			= CReadoutModule.h 	\
 					@top_srcdir@/usb/common/devices/CNAF.h \
 					CXLMFERA.h \
 					CXLMTimestamp.h \
-					@top_srcdir@/usb/common/devices/CCamacBranchException.h 
+					@top_srcdir@/usb/common/devices/CCamacBranchException.h  \
+					CMQDC32StackBuilder.h \
+					CMQDC32RdoHdwr.h \
+					MQDC32Registers.h
+
 
 
 

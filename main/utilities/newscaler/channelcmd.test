@@ -144,4 +144,78 @@ tcltest::test channel_with_limits {use -lowlim and -hilim} \
     lappend result [channel_0 cget -hilim]
 } -result [list 100 200]
 
+
+tcltest::test api_names {Test api element to get scaler names} \
+-cleanup {
+
+
+    # Need this to get a fresh channel map.
+    
+    ::scalerconfig::channelMap destroy
+    nameMap ::scalerconfig::channelMap
+    ::channel_0 destroy 
+    ::channel_2 destroy 
+    ::channel_1 destroy 
+    ::channel_5 destroy 
+    ::channel_4 destroy 
+} \
+-body {
+    channel a 0
+    channel c 1
+    channel b 2
+    channel d 5
+    channel e 4
+    
+    
+    lsort [getScalerNames]
+} -result [list a b c d e]
+
+tcltest::test api_rate_ok {Test API entry to get a scaler rate - valid name} \
+-cleanup {
+
+
+    # Need this to get a fresh channel map.
+    
+    ::scalerconfig::channelMap destroy
+    nameMap ::scalerconfig::channelMap
+    ::channel_1 destroy 
+} \
+-body {
+    channel a 1
+    set chObj [::scalerconfig::channelMap get a]
+    $chObj update 1234 1
+    getRate a
+} -result 1234.0
+
+tcltest::test api_rate_nox {Test API etnry to get a scaler rate - invalid name} \
+-body {
+    catch {getRate a}
+} -result 1
+
+tcltest::test api_total_ok {Test API scaler total getter - valid name} \
+-cleanup {
+ 
+
+    # Need this to get a fresh channel map.
+    
+    ::scalerconfig::channelMap destroy
+    nameMap ::scalerconfig::channelMap
+    ::channel_1 destroy 
+} \
+-body {
+    channel abcd 1
+    set chObj [::scalerconfig::channelMap get abcd]
+    $chObj update 1234 1
+    $chObj update 4321 1
+    
+    getTotal abcd
+} -result 5555
+
+tcltest::test api_total_nox {Test API scaler total getter -invalid name} \
+-body {
+    catch {getTotal aaaa}
+} -result 1
+#----------------------------------------------------------------------
+# Report test results.
+
 tcltest::cleanupTests

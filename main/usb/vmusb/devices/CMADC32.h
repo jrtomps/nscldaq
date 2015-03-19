@@ -17,8 +17,8 @@
 #ifndef __CMADC32_H
 #define __CMADC32_h
 
-#ifndef __CREADOUTHARDWARE_H
-#include "CReadoutHardware.h"
+#ifndef __CMESYTECBASE_H
+#include "CMesytecBase.h"
 #endif
 
 #ifndef __CRT_STDINT_H
@@ -84,14 +84,9 @@ class CVMUSBReadoutList;
 
 \endverbatim
 */
-class CMADC32 : public CReadoutHardware
+class CMADC32 : public CMesytecBase
 {
-public:
-  enum ChainPosition {
-    first,
-    middle,
-    last
-  };
+
 private:
   CReadoutModule*     m_pConfiguration;
 public:
@@ -114,7 +109,7 @@ public:
   // The following functions are used by the madcchain module.
   //
   void setChainAddresses(CVMUSB& controller,
-			 ChainPosition position,
+			 CMesytecBase::ChainPosition position,
 			 uint32_t      cbltBase,
 			 uint32_t      mcastBase);
 

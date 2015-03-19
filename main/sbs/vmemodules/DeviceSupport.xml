@@ -660,10 +660,20 @@
        </refentry>
     
     <refentry id="CAENcard">
-        
+          <refentryinfo>
+            <author>
+                <personname>
+                    <firstname>Ron</firstname>
+                    <surname>Fox</surname>
+                </personname>
+            </author>
+            <productname>NSCLDAQ</productname>
+            <productnumber></productnumber>
+          </refentryinfo>
         <refmeta>
             <refentrytitle>CAENcard</refentrytitle>
             <manvolnum>3DeviceSupport</manvolnum>
+            <refmiscinfo class='empty'></refmiscinfo>
         </refmeta>
         
         <refnamediv>
@@ -675,8 +685,8 @@
         <programlisting>
 #include &lt;CAENcard.h&gt;
         </programlisting>
-        <classsynopsis language="c++">
-            <ooclass><classname>CAENcard</classname></ooclass>
+        <synopsis>
+            class <ooclass><classname>CAENcard</classname></ooclass> {
             <constructorsynopsis>
                 <methodname>CAENcard</methodname>
                 <methodparam><type>int</type> <parameter>slotNum</parameter><initializer>-1</initializer></methodparam>
@@ -874,7 +884,8 @@
                 <type>int</type>
                 <methodname>EventCount</methodname>
             </methodsynopsis>
-        </classsynopsis>
+            };
+            </synopsis>
         </refsynopsisdiv>
         
         <refsect1>

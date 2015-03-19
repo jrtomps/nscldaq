@@ -38,6 +38,7 @@ using namespace std;
 #include "CChicoTriggerCreator.h"
 #include "CMxDCRCBusCreator.h"
 #include "CMDGG16ControlCreator.h"
+#include "CMxDCResetCreator.h"
 #include <memory>
 #include "CMarkerCreator.h"
 
@@ -83,6 +84,8 @@ CModuleCommand::CModuleCommand(CTCLInterpreter& interp,
 
   pFact->addCreator("mdgg16",
                     unique_ptr<CModuleCreator>(new WienerMDGG16::CControlCreator));
+  pFact->addCreator("mxdcreset",
+                    unique_ptr<CModuleCreator>(new CMxDCResetCreator));
 
 }
 //! Destroy the module.. no op provided only as a chain to the base class destructor.

@@ -28,7 +28,8 @@
 #include <string.h>
 #include "MADC32Registers.h"
 
-
+#include <iostream>
+#include <unistd.h>
 using namespace std;
 
 static CConfigurableObject::limit Zero(0);
@@ -83,7 +84,7 @@ CMADCChain::operator=(const CMADCChain& rhs)
    special validity checker for the -modules switch to ensure
    that we only are handed
    - defined module names.
-   - modules that are in fact CMADC32 modules.
+   - modules that are in fact Mesytec modules.
    @param configuration - The configuration object to attach to us.
 */
 void
@@ -161,9 +162,12 @@ CMADCChain::Initialize(CVMUSB& controller)
   (*first)->initCBLTReadout(controller, mcastAddress, wordsPerModule);
 
   
+
+
+  
 }
 /*!
-  Create the readout list for the MADC32 chain  This will be a fifo block read at the
+  Create the readout list for the Mesytec chain  This will be a fifo block read at the
   cblt address with a count that is the largest event size * maxwords * num_modules + 1
   That should be sufficient to ensure there's a terminating 0xffffffff
   @param rdolist - CVMUSBReadoutList we are appending our instructions to.
@@ -183,6 +187,7 @@ CMADCChain::addReadoutList(CVMUSBReadoutList& rdolist)
 
   // Broadcast readout_reswet:
 
+  
   rdolist.addWrite16(mcast + ReadoutReset, initamod, (uint16_t)1);
 }
 /*!
@@ -242,7 +247,7 @@ CMADCChain::namesToList(list<string> moduleNames)
   while(pName != moduleNames.end()) {
     string name = *pName;
     CReadoutModule* pModule = pModules->findAdc(name);
-    CMADC32*        pAdc    = dynamic_cast<CMADC32*>(pModule->getHardwarePointer());
+    CMesytecBase*        pAdc    = dynamic_cast<CMesytecBase*>(pModule->getHardwarePointer());
     assert(pAdc);
     m_Chain.push_back(pAdc);
 
@@ -250,13 +255,13 @@ CMADCChain::namesToList(list<string> moduleNames)
   }
 }
 /**
- * Checks that a module list consists of valid MADC32 modules.
+ * Checks that a module list consists of valid Mesytec modules.
  */
 bool
 CMADCChain::moduleChecker(string name, string value, void* arg)
 {
   // value should be a properly formatted list of strings.
-  // each string should be the name of an MADC32 module.
+  // each string should be the name of an Mesytec module.
 
   int     argc;			// Returns from Tcl_SplitList
   const char**  argv;
@@ -284,7 +289,7 @@ CMADCChain::moduleChecker(string name, string value, void* arg)
   for (int i = 0; i < argc; i++) {
     string moduleName        = argv[i];
     CReadoutModule* pModule = pConfiguration->findAdc(moduleName);
-    if (!pModule || !dynamic_cast<CMADC32*>(pModule->getHardwarePointer())) { // Not found, or not a C785.
+    if (!pModule || !dynamic_cast<CMesytecBase*>(pModule->getHardwarePointer())) { // Not found, or not a C785.
       Tcl_Free((char*) argv);
       return false;
     } 

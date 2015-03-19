@@ -10,6 +10,7 @@ libfilter_la_SOURCES = CFilterMain.cpp \
                        CCompositeFilter.cpp \
                        COneShotException.cpp \
                        CMediatorException.cpp \
+                       CAbnormalEndRunFilterHandler.cpp \
                        @srcdir@/../StringsToIntegers.cpp \
                        @srcdir@/filterargs.c
                        
@@ -29,7 +30,8 @@ include_HEADERS	=  CFilterMain.h \
                    CNullFilter.h \
                    COneShotException.h \
                    CMediatorException.h \
-                   CFatalException.h
+                   CFatalException.h \
+                   CAbnormalEndRunFilterHandler.h
 
 libfilter_la_CPPFLAGS	= -I@top_srcdir@/utilities \
     @LIBTCLPLUS_CFLAGS@	\
@@ -72,6 +74,7 @@ unittests_SOURCES	= TestRunner.cpp  \
 						transparentfiltertests.cpp \
 						oneshothandlertests.cpp \
 						oneshotmediatortests.cpp  \
+						abnormalendrunfiltertests.cpp  \
 						CTestFilter.h \
 						CTestFilter.cpp
 

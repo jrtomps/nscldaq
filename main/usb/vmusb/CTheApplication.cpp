@@ -182,7 +182,7 @@ int CTheApplication::operator()(int argc, char** argv)
 
     Globals::pUSBController  = CVMUSBFactory::createUSBController(type, connectionString);
     
-    std::cerr << "Attached VMUSB controller with firmare: " << std::hex << 
+    std::cerr << "Attached VMUSB controller with firmware: " << std::hex << 
       Globals::pUSBController->readFirmwareID() << std::dec << std::endl;
 
     
@@ -296,7 +296,7 @@ CTheApplication::startTclServer()
 void
 CTheApplication::startInterpreter()
 {
-  Tcl_CreateExitHandler(CTheApplication::ExitHandler, reinterpret_cast<ClientData>(this));
+//  Tcl_CreateExitHandler(CTheApplication::ExitHandler, reinterpret_cast<ClientData>(this));
   Tcl_Main(m_Argc, m_Argv, CTheApplication::AppInit);
 }
 

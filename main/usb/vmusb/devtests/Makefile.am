@@ -2,7 +2,7 @@ noinst_PROGRAMS = unittests
 
 unittests_CPPFLAGS=@TCL_CPPFLAGS@
 
-unittests_SOURCES = TestRunner.cpp cvmusbtest.cpp
+unittests_SOURCES = TestRunner.cpp cvmusbtest.cpp cmqdc32test.cpp cmqdc32stacktest.cpp
 
 unittests_DEPENDENCIES = @top_builddir@/usb/vmusb/devices/libVMUSBDevices.la \
 									@top_builddir@/usb/common/configurableobject/libConfigurableObject.la \

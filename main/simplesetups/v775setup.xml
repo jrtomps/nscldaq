@@ -1,0 +1,3004 @@
+<!-- chapter simple-setups -->
+<chapter>
+    <title>Simple V775 readout</title>
+    <section>
+        <title>Introduction</title>
+        <para>
+            This document will show how to take data from NSCLDAQ, and analyze it
+            with SpecTcl using a CAEN
+            V775 32 channel TDC.
+            We are going to:
+        </para>
+        <itemizedlist>
+            <listitem><para>
+                Show a simple electronics setup that will send test pulses into
+                the V775.
+            </para></listitem>
+            <listitem><para>
+                Show how to use the SBS readout framework to read events
+                from the V775
+            </para></listitem>
+            <listitem><para>
+                Show how to use NSCLSpecTcl to create raw spectra for the TDC
+                online.
+            </para></listitem>
+        </itemizedlist>
+        <para>
+            This paper assumes that you are at least somewhat familiar with Linux
+            since the DAQ software runs on a Linux box. It also assumes that you a
+            little familiar with C++. Finally it will be helpful if you know how to use
+            an oscilloscope, as that will be needed to setup your electronics.
+            All the code is available at:
+            <ulink url='http://docs.nscl.msu.edu/daq/samples/caenv775/code.zip' />
+        </para>
+    </section>
+    <section>
+        <title>Setting up the Electronics.</title>
+        <para>
+            A minimal electronics setup will need to:
+        </para>
+        <itemizedlist>
+            <listitem><para>
+                Provide a start signal to the TDC
+            </para></listitem>
+            <listitem><para>
+                Provide a stop signal to the TDC. For this setup we will use
+                a delayed start signal.
+            </para></listitem>
+        </itemizedlist>
+        <para>
+            In this simple setup we will trigger the computer readout when
+            data are ready in the TDC.  Since we only have a single module,
+            its busy output also indicates when the system as a whole
+            is busy.
+        </para>
+        <para>
+            The electronics diagram below lets us use a simple pocket pulser
+            to run this system:
+        </para>
+        <figure>
+            <title>V775 Simple setup electronics block diagram.</title>
+            <mediaobject>
+               <imageobject>
+                    <imagedata fileref='v775ediagram.jpeg' format='JPEG' />
+                </imageobject>
+               <imageobject>
+                    <imagedata fileref='v775ediagram.eps' format='EPS' />
+               </imageobject>
+            </mediaobject>
+        </figure>
+        <para>
+            The discriminator creates a digital pulse from the analog
+            pulser signals.  One discriminator output is fed to the
+            <literal>Gate</literal> NIM input of the TDC and will
+            serve as the TDC start signal.  A second output is delayed
+            by the Gate and delay generator before being converted to
+            the differential ECL signal expected on the ribbon cable
+            inputs of the V775.
+        </para>
+        <para>
+            When you connect the ribbon cable between the V775 and
+            NIM-&gt;ECL converter, be careful the read the module
+            front panels to ensure that pin 1 on the NIM-&gt; ECL
+            converter goes to pin 1 on the TDC.
+        </para>
+    </section>
+    <section>
+        <title>Creating the Readout program</title>
+        <para>
+            The readout program interacts with your electronics
+            to read data from your detector system.  In response to a
+            <firstterm>trigger</firstterm>, it will execute code you write
+            or incorporate to read an event.
+        </para>
+        <para>
+            We are going to use the
+            SBS readout framework.  This framwork requires that the
+            computer you use to read events is attached to your VME
+            crate with an SBS interface card pair connected with an
+            optical fibre cable.
+        </para>
+        <para>
+            Creating the reaout program requires that you:
+        </para>
+        <itemizedlist>
+            <listitem><para>
+                Copy the SBS readout skeleton to an empty directory where
+                you can work on the software
+            </para></listitem>
+            <listitem><para>
+                Create and register an event segment that initializes
+                andreads the
+                V775.
+            </para></listitem>
+            <listitem><para>
+                Create and register a trigger object that uses the
+                V775 data ready status to trigger readout.
+            </para></listitem>
+            <listitem><para>
+                Build and test your tailored readout program.
+            </para></listitem>
+        </itemizedlist>
+        <section>
+            <title>Obtaining the Readout Skeleton</title>
+            <para>
+                The readout skeleton is part of NSCLDAQ.  For this example
+                we are going to use the most recent version of NSCLDAQ-11.0
+                We are going to set up environment variables for that
+                version of NSCLDAQ, make a directory called readout in our
+                current working directory and copy the SBS skeleton into
+                that directory:
+            </para>
+            <informalexample>
+                <programlisting>
+. /usr/opt/daq/11.0/daqsetup                 # Define env variables
+mkdir readout                                # make an empty directory.
+cd readout                                  
+cp $DAQROOT/skeletons/sbs/* .                # Copy the skeleton.
+                </programlisting>
+            </informalexample>
+            <para>
+                The Readout skeleton is a template that can be modified
+                to build a functional readout program. In the next
+                two section, we'll do just that.
+            </para>
+        </section>
+        <section>
+            <title>Writing the Event segment</title>
+            <para>
+                The Readout program responds to triggers (we'll get to
+                triggers in the next section) by executing one or more
+                event segments to read data from the hardware into an
+                event buffer.  You can register as many event segments as you
+                want.  Event segments allow you to organize the readout of
+                your experiment into logical chunks.  Often event segments
+                will readout one of several detector subsystems that make
+                up your experiment.
+            </para>
+            <para>
+                Event segments are C++ classes that are derived from the
+                base class <classname>CEventSegment</classname>.  The base
+                class defines the interface between your event segment
+                and the SBS readout framework. The base class provides
+                reasonable default implementations for most of these
+                interfaces so you only need to implement the interfaces
+                your event segment needs.
+            </para>
+            <para>
+                We are going to implement:
+            </para>
+            <itemizedlist>
+                <listitem><para>
+                    initialize - To set up the V775 for readout.
+                </para></listitem>
+                <listitem><para>
+                    read - to read an event.
+                </para></listitem>
+            </itemizedlist>
+            <para>
+                See <filename>$DAQROOT/include/sbsreadout/CEventSegment.h</filename>
+                and the online reference for <classname>CEventSegment</classname>
+                in <ulink url='http://docs.nscl.msu.edu/daq'>
+                http://docs.nscl.msu.edu/daq</ulink> for more information about
+                the interface this class defines.
+            </para>
+            <para>
+                Here is a header that describes the class we are going to write:
+            </para>
+            <example>
+                <title>V775 Event Segment (V775EventSegment.h).</title>
+                <programlisting>
+#ifndef _V775EVENTSEGMENT_H                            <co id='v775_rdoh_protect' />
+#define _V775EVENTSEGMENT_H
+
+#include &lt;CEventSegment.h&gt;                       <co id='v775_rdoh_baseinclude' />
+
+class CAENcard;                                        <co id='v775_rdoh_caencard_forward' />
+
+
+
+class CV775EventSegment : public CEventSegment        <co id='v775_rdoh_classdef' />
+{
+private:
+  CAENcard&amp;   m_module;                          <co id='v775_rdoh_module_member' />
+
+public:
+  CV775EventSegment(CAENcard&amp; module);           
+public:
+  virtual void initialize();                         <co id='v775_rdoh_interfaces' />
+  virtual size_t read(void* pBuffer, size_t maxwords);
+};
+
+
+#endif
+                  
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs='v775_rdoh_protect'>
+                    <para>
+                        Since it is normally a compiler error to define the same
+                        entities twice (classes for example) users of your code
+                        will thank you for enclosing your headers in a
+                        <firstterm>multiple inclusion protection #ifdef</firstterm>.
+                    </para>
+                    <para>
+                        This <literal>#ifdef</literal> and the
+                        <literal>#define</literal> that follows it ensures that
+                        even if the header is included more than once the
+                        code within the body of the <literal>#ifderf</literal>
+                        is only seen once by the compiler.
+                    </para>
+                </callout>
+                <callout arearefs='v775_rdoh_baseinclude' >
+                    <para>
+                        this header is declaring a new class
+                        <classname>CV775EventSegmenty</classname> that
+                        is derived from the <classname>CEventSegment</classname>
+                        base class.  To do this properly the compiler needs to know
+                        the shape of the <classname>CEventSegment</classname> base
+                        class.  This class is defined in the
+                        <filename>CEventSegment.h</filename> header
+                        <literal>#include</literal>d in this line.
+                    </para>
+                </callout>
+                <callout arearefs='v775_rdoh_caencard_forward'>
+                    <para>
+                        The <classname>CAENcard</classname> class provides
+                        support for the CAEN V775/V785/V792/V862 digitizer
+                        cards.   Our class will hold a reference to one of
+                        these cards.  Since a reference is like a pointer,
+                        the compiler does not need to know the full
+                        shape of the class at this time so we can make do
+                        with declaring the <classname>CAENcard</classname>
+                        class as a forward definition.
+                    </para>
+                    <para>
+                        It's worth asking when to do this as opposed to
+                        actually <literal>#include</literal>ing the <filename>CAENcard.h</filename>
+                        header.  My approach has always been to include only when
+                        necessary.  This reduces the chances of a circular
+                        <literal>#include</literal> dependency in headers
+                        and reduces the work the compiler needs to do
+                        at any time.
+                    </para>
+                </callout>
+                <callout arearefs='v775_rdoh_classdef'>
+                    <para>
+                        We declare the <classname>CV775EventSegment</classname>.
+                        This class is a subclass derived fromt he
+                        <classname>CEventSegment</classname> base class.
+                        This is important as it lets the Readout framework
+                        treat all event segments in a uniform manner letting
+                        the system sort out at runtime if a pointer to an
+                        <classname>CEventSegment</classname> is really
+                        a pointer to a <classname>CV775EventSegment</classname>.
+                    </para> 
+                </callout>
+                <callout arearefs='v775_rdoh_module_member'>
+                    <para>
+                        We will construct our event segment by passing it a
+                        reference to the <classname>CAENcard</classname> object
+                        that is bound to our TDC.  Doing this requires that we
+                        hold a reference to that <classname>CAENcard</classname>
+                        object.  That reference is declared as object
+                        data by this line.
+                    </para>
+                </callout>
+                <callout arearefs='v775_rdoh_interfaces'>
+                    <para>
+                        These lines declare the methods in the base class we
+                        will be overriding and implementing in this class.
+                    </para>
+                </callout>
+            </calloutlist>
+            <para>
+                Let's look at the implementation.  We're going to look at the
+                following sections of the implementation file
+            </para>
+            <itemizedlist>
+                <listitem><para>
+                    File heading <literal>#include</literal> directives etc.
+                </para></listitem>
+                <listitem><para>
+                    <methodname>Constructor</methodname>
+                </para></listitem>
+                <listitem><para>
+                    <methodname>initialize</methodname>
+                </para></listitem>
+                <listitem><para>
+                    <methodname>read</methodname>
+                </para></listitem>
+            </itemizedlist>
+            <example>
+                <title>v775 Event Segment (V775EventSegment.cpp) - file heading</title>
+                <programlisting>
+#include "V775EventSegment.h"                  <co id='v775_impl_heading_declaration' />
+#include &lt;CAENcard.h&gt;                    <co id='v775_impl_heading_card' />
+#include &lt;iostream&gt;
+#include &lt;stdint.h&gt;
+
+
+static const unsigned  TDC_RANGE = 0x1e;       <co id='v775_impl_heading_range'  />
+static const unsigned  MAX_WORDS =
+        34*sizeof(uint32_t)/sizeof(uint16_t);  <co id='v775_impl_heading_maxwords' />
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs='v775_impl_heading_declaration'>
+                    <para>
+                        Class implementation files need access to the declaration
+                        of the class.  This <literal>#include</literal> incorporates
+                        that declaration.
+                    </para>
+                </callout>
+                <callout arearefs='v775_impl_heading_card'>
+                    <para>
+                        This module will be invoking methods of the
+                        <classname>CAENcard</classname> class so we need
+                        to provide the shape of that class to the compiler.
+                        This line incorporates the declaration of
+                        <classname>CAENcard</classname> into this
+                        compilation unit.
+                    </para>
+                </callout>
+                <callout arearefs='v775_impl_heading_range' >
+                    <para>
+                        The V775 has a variable full scale time.  The value
+                        chosen, when programmed into the module
+                        will result in a 1200nsec full scale value.
+                    </para>
+                </callout>
+                <callout arearefs='v775_impl_heading_maxwords'>
+                    <para>
+                        This is the maximum number of 16 bit words the
+                        TDC can deliver for an event.  The module can
+                        deliver 32 channels, at a 32 bit word per channel
+                        and a header and trailer each 32 bit word long.
+                    </para>
+                </callout>
+            </calloutlist>
+            <example>
+                <title>
+                    v775 Event Segment (V775EventSegment.cpp) - Constructor
+                </title>
+                <programlisting>
+CV775EventSegment::CV775EventSegment(CAENcard&amp; module) :
+  m_module(module)
+{}
+
+                </programlisting>
+            </example>
+            <para>
+                The constructor only has to initialize the reference to the
+                <classname>CAENcard</classname> object that is
+                controlling our TDC.
+            </para>
+            <example>
+                <title>
+                    v775 Event Segment (V775EventSegment.cpp) - Initialization
+                </title>
+                <programlisting>
+void
+CV775EventSegment::initialize()
+{
+  try {                                     <co id='v775_impl_init_try' />
+    m_module.commonStart();                 <co id='v775_impl_init_startstopmode' />
+    m_module.setRange(TDC_RANGE);           <co id='v775_impl_init_range' />
+    m_module.clearData();
+  }
+  catch (std::string msg) {                 <co id='v775_impl_init_fail' />
+    std::cerr &lt;&lt; "Unable to initialize TDC (V775)\n";
+    std::cerr &lt;&lt; msg &lt;&lt;std::endl;
+    throw;
+  }
+}
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs='v775_impl_init_try'>
+                    <para>
+                        Most methods of the <classname>CAENcard</classname>
+                        class report errors by throwing exceptions.  Placing
+                        the entire initialization inside a
+                        <literal>try</literal> block allows a coarse grain
+                        identification and handling of the error.
+                    </para>
+                </callout>
+                <callout arearefs='v775_impl_init_startstopmode'>
+                    <para>
+                        The V775 can be either a common start or common stop
+                        TDC.  This  method asks the module to run in common
+                        start mode.  In that mode the <literal>GATE</literal>
+                        input is the start and the individual channel inputs are
+                        the stops.
+                    </para>
+                    <para>
+                        In common stop mode, the individual channels are starts and
+                        the <literal>GATE</literal> input is the common
+                        stop for all channels.
+                    </para>
+                </callout>
+                <callout arearefs='v775_impl_init_range'>
+                    <para>
+                        Sets the time range of the TDC.  See the manual for
+                        the meaning of this value (section 4.34
+                        <literal>Full Scale Range Register</literal>).
+                    </para>
+                </callout>
+                <callout arearefs='v775_impl_init_fail'>
+                    <para>
+                        If the initialization failed at any point, control will
+                        be transferred to this block.  An error message is
+                        output to <literal>stderr</literal> and the error is rethrown
+                        to be dealt with by our caller. The SBS framework will
+                        abort the start of the run if an exception is detected.
+                    </para>
+                </callout>
+            </calloutlist>
+            <example>
+                <title>
+                    v775 Event Segment (V775EventSegment.cpp) - reading data
+                </title>
+                <programlisting>
+size_t
+CV775EventSegment::read(void* pBuffer, size_t maxWords)      <co id='v775_impl_read_signature' />
+{
+  if (MAX_WORDS &lt;= maxWords) {                            <co id='v775_impl_read_sizecheck' />
+    size_t n = m_module.readEvent(pBuffer);                      <co id='v775_impl_read_read' />
+    m_module.clearData();
+    return n/sizeof(uint16_t);
+  } else {
+    throw std::string(
+        "CV775EventSegment::read - maxWords won't hold my worst case event" <co id='v775_impl_throw' />
+    );
+  }
+}
+
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs='v775_impl_read_signature'>
+                    <para>
+                        The <methodname>read</methodname> method is called
+                        in response to a trigger.  The <parameter>pBuffer</parameter>
+                        parameter points to storage into which the event segment
+                        should store the data it contributes to the event.
+                        <parameter>maxWords</parameter> tells <methodname>read</methodname>
+                        how many 16 bit words of data are remaining in that
+                        buffer.  The method is expected to return the number of
+                        16 bit words of data itactually read.
+                    </para>
+                </callout>
+                <callout arearefs='v775_impl_read_sizecheck'>
+                    <para>
+                        The device is only read if there is sufficient room in the
+                        event buffer.
+                        In our simple example,
+                        <parameter>maxWords</parameter> will always be
+                        much greater than <literal>MAX_WORDS</literal>.
+                        This checking is, however good practice as this event
+                        segment could appear in conjunction with other event segments
+                        that might exhaust the buffer before we are even
+                        called.
+                    </para>
+                </callout>
+                <callout arearefs='v775_impl_read_read'>
+                    <para>
+                        This block of code reads the digiitzer data into the
+                        event buffer and clears it, preparing for the next event.
+                        The <methodname>readEvent</methodname> method returns the
+                        number of bytes read, so this must be scaled down to the
+                        number of words prior to returning to the caller.
+                    </para>
+                </callout>
+                <callout arearefs='v775_impl_throw' >
+                    <para>
+                        If there is not sufficient room in the buffer, an
+                        exception is thrown.  Note that the methods
+                        in block of code that read the event may also throw
+                        an exception.  
+                    </para>
+                </callout>
+            </calloutlist>
+        </section>
+        <section>
+            <title>Writing the trigger</title>
+            <para>
+                The event segment read methods are called in response to a trigger.
+                But what is a trigger?  In the SBS readout framework a trigger
+                is anything we say it is.  We supply, or use a trigger object
+                that tells the readout framework when to do the readout.
+            </para>
+            <para>
+                Usually there is a hardware trigger that is some combination
+                of external hardware and a trigger object that monitors that
+                hardware to determine when the trigger occured.  The external
+                trigger hardware then interfaces with the VME crate via either
+                a CAEN V262 I/O register or a CAEN V976 coincidecne register
+                for example. 
+            </para>
+            <para>
+                For our simple setup, the appropriate time to trigger a readout
+                is when the V775 has data available.  The
+                <classname>CAENcard</classname> class has a method
+                <methodname>dataPresent</methodname> that can report
+                this condition.  We will use that method as the basis for our
+                trigger class.
+            </para>
+            <para>
+                In SBS Readout, trigger classes
+                are derived from the <classname>CEventTrigger</classname> base
+                class.  As with the <classname>CEventSegment</classname> class,
+                this class provides a set of defined interfaces between the
+                readout framework and objects that can test for trigger
+                conditions.
+            </para>
+            <para>
+                While there are initialization and tear down methods, our
+                initialization is done by the event segment, so we only need
+                to check for the trigger condition.
+            </para>
+            <para>
+                Here's the header for our trigger class <classname>MyTrigger</classname>:
+            </para>
+            <example>
+                <title>V775 data ready trigger header (MyTrigger.h)</title>
+                <programlisting>
+#ifndef _MYTRIGGER_H
+#define _MYTRIGGER_H
+
+#include &lt;CEventTrigger.h&gt;
+
+class CAENcard;
+
+class MyTrigger : public CEventTrigger
+{
+private:
+  CAENcard&amp; m_module;
+public:
+
+  virtual bool operator()();
+};
+
+                </programlisting>
+            </example>
+            <para>
+                If you understood how we wrote the event segment this should be clear.
+                The only new wrinkle is the use of <methodname>operator()</methodname>.
+                This is the function call operator.  When defined, it allows
+                objects of a class to be dalled as if they were functions.
+                Objects of this sort, functions that have state are often called
+                <firstterm>functors</firstterm>.
+            </para>
+            <para>
+                The implementation is also simple:
+            </para>
+            <example>
+                <title>V775 data ready trigger implementation (MyTrigger.cpp)</title>
+                <programlisting>
+#include "MyTrigger.h"
+#include &lt;CAENcard.h&gt;
+
+
+MyTrigger::MyTrigger(CAENcard&amp; module) :
+  m_module(module)
+{}
+
+bool
+MyTrigger::operator()() {
+  return m_module.dataPresent();
+}
+                    
+                </programlisting>
+            </example>
+            <para>
+                The constructor saves a reference to the module and the function
+                call operator returns the state of that module's
+                data present.  If an object of this class is established
+                as a trigger, it will trigger a readout whenever thte module
+                has data.
+            </para>
+        </section>
+        <section>
+            <title>
+                Hooking everything together.
+            </title>
+            <para>
+                In the last two sections we've written our event segment and
+                trigger classes.  In order to use them
+            </para>
+            <itemizedlist>
+                <listitem><para>
+                    We must add an instance of our event segment to the Readout
+                    framework's top level event segment.
+                </para></listitem>
+                <listitem><para>
+                    We must declare an instance of our trigger as the event
+                    trigger.
+                </para></listitem>
+            </itemizedlist>
+            <para>
+                These are done by editing the <filename>Skeleton.cpp</filename>
+                file that you copied into your work directory for Readout.
+            </para>
+            <para>
+                At the top you will need to <literal>#include</literal> the
+                headers for your new classes:
+            </para>
+            <informalexample>
+                <programlisting>
+#include &lt;config.h&gt;
+#include &lt;Skeleton.h&gt;
+#include &lt;CExperiment.h&gt;
+#include &lt;TCLInterpreter.h&gt;
+#include &lt;CTimedTrigger.h&gt;
+
+#include &lt;CAENcard.h&gt;              // Add this line.
+#include "V775EventSegment.h"            // Add this line
+#include "MyTrigger.h"                   // Add this line.
+                    
+                </programlisting>
+            </informalexample>
+            <para>
+                The <filename>Skeleton.cpp</filename> method
+                <methodname>SetupReadout</methodname> is where
+                we will make the remainder of the changes.
+                We're going  have to:
+            </para>
+            <itemizedlist>
+                <listitem><para>
+                    Create a long lived <classname>CAENcard</classname>
+                    object to communicate with our V775.
+                </para></listitem>
+                <listitem><para>
+                    Create and register a <classname>MyTrigger</classname>
+                    object to act as the event trigger, that uses the
+                    card we created.
+                </para></listitem>
+                <listitem><para>
+                    Create and register a <classname>V775EventSegment</classname>
+                    to readout the V775 card we created.
+                </para></listitem>
+            </itemizedlist>
+            <para>
+                Here's what the <methodname>SetupReadout</methodname> method looks
+                like when we're done modifying it:
+            </para>
+            <informalexample>
+                <programlisting>
+static const uint32_t V775Base=0x11110000;                  <co id='v775_skel_base' />
+
+void
+Skeleton::SetupReadout(CExperiment* pExperiment)                 
+{
+  CReadoutMain::SetupReadout(pExperiment);
+
+  CAENcard* pModule = new CAENcard(10, 0, false, V775Base);     <co id='v775_skel_card' />
+  
+  pExperiment->EstablishTrigger(new MyTrigger(*pModule));       <co id='v775_skel_trigger' />
+
+  pExperiment->AddEventSegment(new CV775EventSegment(*pModule)); <co id='v775_skel_evseg' />
+
+
+}
+                    
+                </programlisting>
+            </informalexample>
+            <calloutlist>
+                <callout arearefs='v775_skel_base'>
+                    <para>
+                        Here we define a constant; <varname>V775Base</varname>
+                        to be the base address of the TDC module.  See
+                        <link linkend='v775ss_sec_addressing'
+                              endterm='v775ss_sec_addressing_title' />
+                        below
+                        for more about addessing VME modules.
+                    </para>
+                </callout>
+                <callout arearefs='v775_skel_card'>
+                    <para>
+                        The constructor for both the <classname>MyTrigger</classname>
+                        and <classname>CV775EventSegment</classname>
+                        classes require a reference to a
+                        <classname>CAENcard</classname> object.
+                        This object must live for the lifetime of the program.
+                        Therefore it is dynamically created here.  Had we simply
+                        declared a
+                        <literal>CAENcard module(10,0,false,V775Base)</literal>,
+                        that would have been destroyed when the function exitd.
+                    </para>
+                    <para>
+                        Please see:
+                        <link linkend='v775ss_sec_addressing'
+                              endterm='v775ss_sec_addressing_title' />
+                        below for guidance on how to specify this module.
+                        How you parameterize this constructor depends on a
+                        few things that I cannot predict.
+                    </para>
+                </callout>
+                <callout arearefs='v775_skel_trigger'>
+                    <para>
+                        The <methodname>EstablishTrigger</methodname> method of
+                        the <classname>CExperiment</classname> class is
+                        how you register the experiment's trigger.
+                        In this case we create and register an instance of our
+                        <classname>MyTrigger</classname> trigger class.
+                    </para>
+                    <para>
+                        The readout framework can only have a single trigger
+                        registered.  There is, however, nothing to stop you
+                        from building a trigger class that incorporates and
+                        does some logicn on more than one trigger source
+                        to decide if a Readout should be done.
+                    </para>
+                </callout>
+                <callout arearefs='v775_skel_evseg'>
+                    <para>
+                        The <methodname>AddEventSegment</methodname> method
+                        of <classname>CExperiment</classname> appends an
+                        event segment to the top level event segment.
+                        You can add as many event segments as you need.
+                    </para>
+                    <para>
+                        The top level event segment is a
+                        <classname>CCompoundEventSegment</classname> which is
+                        simply a container for other event segments that
+                        implements the <classname>CEventSegment</classname>
+                        interface by interating through its members.
+                    </para>
+                </callout>
+            </calloutlist>
+            <section id='v775ss_sec_addressing'>
+                <title id='v775ss_sec_addressing_title'>Addressing VME modules</title>
+                <para>
+                    The VME bus appears to the computer like chunk of memory.
+                    Modules plugged into the VME bus have a
+                    <firstterm>base address</firstterm> that determines
+                    where in this memory space they live.  In addition
+                    to a base address, the VME bus supports several address
+                    spaces through the use of
+                    <firstterm>address modifiers</firstterm> that are
+                    supplied in the address cycle of a transaction.
+                </para>
+                <para>
+                    The CAEN V775 base address can be determined either by
+                    a base address set in rotary switches mounted on the module,
+                    or, if conditions are right, by its position in the backplane.
+                    The latter mechanism is referred to as
+                    <firstterm>geographical addressing</firstterm>.
+                </para>
+                <para>
+                    Geograhpical addressing is only possible if both the module
+                    and the VME backplane have a small, middle connector between
+                    the top and bottom VME bus connectors.  This connector implements
+                    the <firstterm>VME430</firstterm> VME bus extension
+                    designed at CERN.  Geographical addressing requires it because
+                    the slot number is encoded in pins on that middle
+                    connector, and is used to compute the base address of the module.
+                </para>
+                <para>
+                    When setting up a VME system it is important to ensure that
+                    there are no overlaps in the address ranges of the
+                    modules qualified by the address spaces in which they live.
+                    In our example, we have assumed that we are not using geographical
+                    addressing (it's never mandatory) and that the base address
+                    rotary switches were set to <literal>0x11110000</literal>.
+                </para>
+                <para>
+                    Each module provides an identifying field in its data.
+                    This is also called the <literal>GEO</literal> field.
+                    This is because in a VME430 backplane, V775 modules
+                    that have the third connector will unconditionally
+                    return the slot number for this field.  For systems
+                    that don't implement VME430, this value is programmable.
+                </para>
+                <para>
+                    Thus the first parameter for the <classname>CAENcard</classname>
+                    constructor must be the slot number (for geographical addressing),
+                    or some unique number if geographical addressing is not being used
+                    (in which case it is programmed into the module's <literal>GEO</literal>)
+                    register.
+                </para>
+            </section>
+        </section>
+        <section>
+            <title>Building and testing your Readout</title>
+            <para>
+                When you copied the skeleton, you also copied in a starting point
+                for a Makefile for your project. In this section we're going to
+                modify that Makefile so that a build of your Readout program
+                will compile your trigger and event segments and link them
+                into the Readout.
+            </para>
+            <para>
+                The Makefile defines a symbol <literal>OBJECTS</literal> that
+                is the list of objects that need to be built.  It also
+                defines rules for building C and C++ source files
+                to an objet file in a way that allows access to
+                the headers and libraries of NSCLDAQ.  In many cases you
+                just need to add the desired objects to the
+                definition of <literal>OBJECTS</literal>:
+            </para>
+            <informalexample>
+                <programlisting>
+...
+#
+#  This is a list of the objects that go into making the application
+#  Make, in most cases will figure out how to build them:
+
+OBJECTS=Skeleton.o V775EventSegment.o MyTrigger.o
+...
+                </programlisting>
+            </informalexample>
+            <para>
+                Once you have made this modification to the
+                <filename>Makefile</filename>
+                just issue the <command>make</command> commnad
+                to build your Readout program.
+            </para>
+            <para>
+                We're going to use the NSCLDAQ dumper pgoram
+                to test our readout program. To do this, you
+                may want to have a copy of the V775 manual
+                handy so that you can make sense of the
+                data that is read.
+            </para>
+            <para>
+                Assuming the electronics is set up as described in the block
+                diagram and the base address of the V775 has been configured as
+                described above, we should be able to take data from this
+                system
+            </para>
+            <para>
+                First building and running your Readout interactively:
+            </para>
+            <informalexample>
+                <programlisting>
+make
+./Readout
+<computeroutput>%</computeroutput>
+                </programlisting>
+            </informalexample>
+            <para>
+                In a second terminal window; setup the NSCLDAQ environment definitions
+                as before and:
+            </para>
+            <informalexample>
+                <programlisting>
+$DAQBIN/dumper
+                </programlisting>
+            </informalexample>
+            <para>
+                Now in the Readout window start a run let it run for a while and
+                end the run.
+            </para>
+            <informalexample>
+                <programlisting>
+begin
+<computeroutput>%</computeroutput>  (wait a bit)
+end
+<computeroutput>%</computeroutput>
+                </programlisting>
+            </informalexample>
+            <para>
+                Let's look at some dumped events for the case where I had a stop
+                input in to channel 0 of the TDC:
+            </para>
+            <informalexample>
+                <programlisting>
+-----------------------------------------------------------
+Event 16 bytes long
+No body header
+0008 0000 5200 0100 5001 41f3 5400 1555 
+
+-----------------------------------------------------------
+Event 16 bytes long
+No body header
+0008 0000 5200 0100 5001 41f3 5400 1556 
+
+-----------------------------------------------------------
+Event 16 bytes long
+No body header
+0008 0000 5200 0100 5001 41f3 5400 1557 
+
+                </programlisting>
+            </informalexample>
+            <para>
+                Before we pick this apart, I want to make a comment about
+                word <firstterm>endianess</firstterm>.  Endianess, in this context
+                means that when you represent data that are larger than  a byte
+                there is a choice (usually made by the hardware) made to determine
+                if the first bytes represent the low order bits (little endian), or
+                the high order bits (big endian).
+            </para>
+            <para>
+                While the computers we run NSCLDAQ on (intel chips) are little
+                endian, the VME bus is inherently big endian.  This will be clear
+                as we describe the meaning of the longwords in the data.
+            </para>
+            <para>
+                The SBS readout framework will prefix the data you read with
+                a self-inclusive count of the number of 16 bit words in the
+                event.  Since this is generated by the SBS readout program running
+                in the intel CPU, this 32 bit item is in little endian order
+                (first the 0x0008 which are the low order bits then
+                0x0000 the high order bits).   According to these data, the event
+                8 16 bit words in length.
+            </para>
+            <para>
+                The remainder of the data are as described in the V775 manual.
+                The VME bus is inherently big endian, so the data
+                have the high order bits first:
+            </para>
+            <orderedlist>
+                <listitem><para>
+                    <literal>0x52000100</literal> is a header for virtual slot
+                    10 which has a single channel worth of data.
+                </para></listitem>
+                <listitem><para>
+                    <literal>0x500141f3</literal> is data for channel number 0
+                    with the value <literal>0x1f3</literal> and the valid
+                    data bit set.
+                </para></listitem>
+                <listitem><para>
+                    <literal>0x54001557</literal> is a trailer word for event number
+                    0x1557 since the event count was zeroed (a the start of the run).
+                </para></listitem>
+            </orderedlist>
+        </section>
+    </section>
+    <section>
+        <title>
+            Creating the tailored SpecTcl
+        </title>
+        <para>
+            Now that the data look right, we're going to tailor SpecTcl to do
+            online analysis of that data.  In this example, we are going to write
+            our code as if the module is the only item to decode.  We will decode
+            our data in to parameter named <literal>t.0</literal>...<literal>t.31</literal>.
+            In a larger set up you might want to encapsulate the data from the
+            TDC in a <firstterm>packet</firstterm> and have your code search
+            for that packet in the data, only unpacking that part of the data.
+        </para>
+        <para>
+            SpecTcl analyzes data using the model of an analysis pipeline.
+            Each stage of the pipeline has access to the prior stage's data,
+            as well as the raw event.  We'll illustrate this by writing
+            a second stage of the pipeline that produces time differences
+            between adjacent channels of the TDC.  The interesting thing
+            is that we can write that stage without having any knowledge
+            of the format of the raw event.
+        </para>
+        <para>
+            This suggests that your SpecTcl software should consists of
+            analysis stages that first decode the raw data and then
+            produce physically useful parameters once those data are
+            decoded.  This protects what is usually the hard part of
+            your analysis software from changes to the structure of the
+            raw event.
+        </para>
+        <section>
+            <title>Decoding raw TDC data</title>
+            <para>
+                SpecTcl's data analysis pipeline is expected to take a stream
+                of raw events and unpack it into <firstterm>parameters</firstterm>.
+                Spectra can then be defined on those parameters.  Gates can also be
+                defined on parameters and used to conditionalize when a spectrum
+                is incremented.  Each stage of the event analysis pipeline is an
+                object from a class derived from
+                <classname>CEventProcessor</classname>.
+            </para>
+            <para>
+                In this section we'll write an event processor class that will
+                decode the data our readout program is producing. To do this we will:
+            </para>
+            <itemizedlist>
+                    <listitem><para>
+                        Obtain a copy of the SpecTcl skeleton.
+                    </para></listitem>
+                    <listitem><para>
+                        Write our event processor class.
+                    </para></listitem>
+                    <listitem><para>
+                        Add an object of our event processor to the SpecTcl
+                        analysis pipeline.
+                    </para></listitem>
+                    <listitem><para>
+                        Create a SpecTcl startup script that creates raw
+                        time spectra.
+                    </para></listitem>
+                    <listitem><para>
+                        Build and test our modified SpecTcl.
+                    </para></listitem>
+            </itemizedlist>
+            <section>
+                <title>Getting the skeleton</title>
+                <para>
+                    In this section we are going to create a working directory
+                    and copy the SpecTcl-v3.4 skeleton in to that directory.
+                </para>
+                <example>
+                    <title>Copying in the SpecTcl-v3.4 skeleton</title>
+                    <programlisting>
+mkdir spectcl
+cd spectcl
+cp /usr/opt/spetcl/3.4/Skel/* .
+
+                    </programlisting>
+                </example>
+            </section>
+            <section>
+                <title>Creating the raw unpacker class</title>
+                <para>
+                    Here is the header for our raw unpacker
+                    (event processor) pipeline stage:
+                </para>
+                <example>
+                    <title>Raw TDC unpacker (RawUnpacker.h)</title>
+                    <programlisting>
+#ifndef _RAWUNPACKER_H
+#define _RAWUNPACKER_H
+#include &lt;config.h&gt;                             <co id='v775_rawheader_config' />
+#include &lt;EventProcessor.h&gt;                     <co id='v775_rawheader_evpbase' />
+
+class CTreeParameterArray;                            <co id='v775_rawheader_tparam' />
+
+class CRawUnpacker : public CEventProcessor           <co id='v775_rawheader_rawclass' />
+{
+public:
+  CRawUnpacker();                                     <co id='v775_rawheader_rawconstruct' />
+  virtual ~CRawUnpacker();
+  virtual Bool_t operator()(const Address_t pEvent,
+                            CEvent&amp;         rEvent,  <co id='v775_rawheader_rawfunctor' />
+                            CAnalyzer&amp;     rAnalyzer,
+                            CBufferDecoder&amp; rDecoder);
+private:
+    CTreeParameterArray&amp;  m_times;                 <co id='v775_rawheader_times' />
+};
+
+
+#endif
+                        
+                    </programlisting>
+                </example>
+                <calloutlist>
+                    <callout arearefs='v775_rawheader_config'>
+                        <para>
+                            SpecTcl's <filename>config.h</filename> header
+                            contains a bunch of definitions used by other headers
+                            to make their definitions properly depending on the
+                            system on which SpecTcl is installed.
+                        </para>
+                        <para>
+                            This header must be included prior to any other
+                            headers.
+                        </para>
+                    </callout>
+                    <callout arearefs='v775_rawheader_tparam'>
+                        <para>
+                            The tree paramter package is a useful package that
+                            makes defining and accessing parameters simple. We'll
+                            use it to define and access the parameters we will create.
+                            This lets the compiler know that we will use that
+                            class in a way that does not require the compiler to know
+                            its shape.
+                        </para>
+                    </callout>
+                    <callout arearefs='v775_rawheader_evpbase'>
+                        <para>
+                            The <filename>EventProcessor.h</filename> header
+                            defines the <classname>CEventProcessor</classname>
+                            abstract base class. Our class will derive from
+                            that base class.  This means that the compiler
+                            will need to know the shape of that class when
+                            compiling our header.
+                        </para>
+                    </callout>
+                    <callout arearefs='v775_rawheader_rawclass'>
+                        <para>
+                            This defines the new class
+                            <classname>CRawUnpacker</classname>.
+                            This will be our class for unpacking the raw
+                            data.  Note that it is declared with
+                            <classname>CEventProcessor</classname> as
+                            a base class.
+                        </para>
+                    </callout>
+                    <callout arearefs='v775_rawheader_rawconstruct'>
+                        <para>
+                           Our constructor needs to be declared because it
+                           cannot be compiler defined.  Specifically, we will
+                           make a connection to our parameters by allocating and
+                           saving a tree parameter array and binding it to our
+                           parameters.
+                        </para>
+                    </callout>
+                    <callout arearefs='v775_rawheader_rawfunctor'>
+                         <para>
+                            The function call operator is invoked for each event.
+                            Since our job is going to be to unpack the event,
+                            we need to declare this method.  This method is
+                            pure virtual in the base class and therefore all
+                            event processors must declare it.
+                         </para>
+                    </callout>
+                    <callout arearefs='v775_rawheader_times'>
+                        <para>
+                            This reference to a tree parameter array will
+                            be used to access our parameters.
+                        </para>
+                    </callout>
+                </calloutlist>
+                <para>
+                    Let's fill in the class implementation.  We'll do this in
+                    sections so that no single sample chunk of code is very large.
+                    Note that some sections may be presented out of order for the sake of
+                    clarity.
+                </para>
+                <example>
+                    <title>v775 raw unpacker implementation includes and defs (RawUnpacker.cpp)</title>
+                    <programlisting>
+#include "RawUnpacker.h"                                <co id='v775_rawimpl_classdef' />
+#include &lt;TreeParameter.h&gt;                        <co id='v775_rawimpl_treedef' />
+#include &lt;TranslatorPointer.h&gt;                    <co id='v775_rawimpl_transptrdef' />
+#include &lt;BufferDecoder.h&gt;
+#include &lt;TCLAnalyzer.h&gt;                          <co id='v775_rawimpl_miscincl' />
+#include &lt;assert.h&gt;
+
+#include &lt;stdint.h&gt;
+
+static const uint32_t TYPE_MASK (0x07000000);
+static const uint32_t TYPE_HDR  (0x02000000);
+static const uint32_t TYPE_DATA (0x00000000);
+static const uint32_t TYPE_TRAIL(0x04000000);
+
+static const unsigned HDR_COUNT_SHIFT(8);               <co id='v775_rawimpl_datadefs' />
+static const uint32_t HDR_COUNT_MASK (0x00003700);
+static const unsigned GEO_SHIFT(27);
+static const uint32_t GEO_MASK(0xf8000000);
+
+static const unsigned DATA_CHANSHIFT(16);
+static const uint32_t DATA_CHANMASK(0x001f0000);
+static const uint32_t DATA_CONVMASK(0x00000fff);
+
+                    </programlisting>
+                </example>
+                <calloutlist>
+                    <callout arearefs='v775_rawimpl_classdef'>
+                        <para>
+                            This include directive includes the header that defines
+                            the class we are going to implement.  The compiler needs
+                            the
+                            class definition in order to verify that our implementation
+                            methods have the right signatures and refer to defined
+                            data in the class.
+                        </para>
+                    </callout>
+                    <callout arearefs='v775_rawimpl_treedef'>
+                        <para>
+                            This header defines the tree parameter package
+                            classes.  We need it specifically to import the
+                            definition of
+                            <classname>CTreeParameterArray</classname>.
+                        </para>
+                    </callout>
+                    <callout arearefs='v775_rawimpl_transptrdef'>
+                        <para>
+                            This class imports definition for the translating pointer.
+                            In the discussion of the readout code we made mention
+                            of the concept of data endian-ness.  Translating pointers
+                            are pointer like objets that
+                            work with byte order <firstterm>signatures</firstterm>
+                            within the data and automatically convert data, if needed,
+                            to native format from the format of the data in the
+                            buffer.  
+                        </para>
+                        <para>
+                            Note that byte order signatures will typically be
+                            those of the system writing the event data.
+                            If those data, in turn, come from a device with
+                            different endian-ness thatn the host system,
+                            the user will have to know this and perform
+                            additional conversions.
+                        </para>
+                    </callout>
+                    <callout arearefs='v775_rawimpl_miscincl'>
+                        <para>
+                            These includes are for miscellaneous headers I am not
+                            going to describe in detail.
+                        </para>
+                    </callout>
+                    <callout arearefs='v775_rawimpl_datadefs'>
+                        <para>
+                            These constants give symbolic definitions to fields
+                            shift counts and values that will be seen in the
+                            raw data form the V775.  It is best to give symbolic
+                            names to values of this sort rather than to just put
+                            them into the code where a reader my have trouble
+                            identifying their meaning.
+                        </para>
+                    </callout>
+                </calloutlist>
+                <example>
+                    <title>V775 raw unpacker - getLong utility (RawUnpacker.cpp)</title>
+                    <programlisting>
+static inline uint32_t getLong(TranslatorPointer&lt;uint16_t&gt;&amp; p)
+{
+  uint32_t l = *p++ &lt;&lt; 16;
+  l         |= *p++;
+
+  return l;
+}
+
+                    </programlisting>
+                </example>
+                <para>
+                    While our redout program runs on a little endian computer,
+                    the VME bus is big-endian.  This utility takes a translator
+                    pointer object that points to a specific 32 bit item in
+                    big endian format and converts it to native format.
+                </para>
+                <para>
+                    Note that the translating pointer object is passed by
+                    reference.  The pointer is incremented to point beyond the
+                    <type>uint32_t</type> that was converted.
+                </para>
+                <example>
+                    <title>V775 raw unpacker object constructor/destructor (RawUnpacker.cpp)</title>
+                    <programlisting>
+CRawUnpacker::CRawUnpacker() :                        <co id='v775_rawimpl_constructor' />
+  m_times(*(new CTreeParameterArray("t", 4096, 0.0, 4095.0, "channels", 32, 0)))
+{}
+
+CRawUnpacker::~CRawUnpacker()
+{
+  delete &amp;m_times;                                    <co id='v775_rawimpl_destructor'  />
+}
+
+
+                    </programlisting>
+                </example>
+                <calloutlist>
+                    <callout arearefs='v775_rawimpl_constructor'>
+                        <para>
+                            The constructor is required to initialize the reference
+                            we have to a tree parameter array.  It does this
+                            by dynamically creating a new tree parameter array whose
+                            base name is <literal>t</literal>.  This will create
+                            actual parameters named
+                            <literal>t.00</literal> ... <literal>t.31</literal>.
+                        </para>
+                    </callout>
+                    <callout arearefs='v775_rawimpl_destructor'>
+                        <para>
+                            If an object is ever destroyed, its tree parameter
+                            array musb be destroyed as well to prevent
+                            memory leaks.
+                        </para>
+                    </callout>
+                </calloutlist>
+                <example>
+                    <title>v75 raw unpacker unpacking events (RawUnpacker.cpp)</title>
+                    <programlisting>
+Bool_t CRawUnpacker::operator()(const Address_t pEvent,
+                                CEvent&amp; rEvent,             <co id='v775_rawimpl_funtorsignature' />
+                                CAnalyzer&amp; rAnalyzer,
+                                CBufferDecoder&amp; rDecoder)
+{
+  TranslatorPointer&lt;uint16_t&gt; p(*rDecoder.getBufferTranslator(), pEvent); <co id='v775_rawimpl_tp' />
+  CTclAnalyzer&amp; a(dynamic_cast&lt;CTclAnalyzer&amp;&gt;(rAnalyzer)); <co id='v775_rawimpl_tclanalyzer' />
+
+  TranslatorPointer&lt;uint32_t&gt;p32 = p;
+  uint32_t  size = *p32++;
+  p = p32;                                                <co id='v775_rawimpl_setsize' />
+  a.SetEventSize(size*sizeof(uint16_t));
+
+  uint32_t header = getLong(p);
+  assert((header &amp; TYPE_MASK) == TYPE_HDR);
+  assert(((header &amp; GEO_MASK) >> GEO_SHIFT) == 0xa);    <co id='v775_rawimpl_headerprocessing' />
+  int nchans = (header &amp; HDR_COUNT_MASK) &gt;&gt; HDR_COUNT_SHIFT;
+
+  for (int i =0; i &lt; nchans; i++) {                      <co id='v775_rawimpl_channelloop' />
+    uint32_t datum = getLong(p);
+    assert((datum &amp; TYPE_MASK) == TYPE_DATA);
+    int channel = (datum &amp; DATA_CHANMASK) &gt;&gt; DATA_CHANSHIFT; <co id='v775_rawimp_chanproc' />
+    uint16_t conversion = datum &amp; DATA_CONVMASK;
+
+    m_times[channel] = conversion;                         <co id='v775_rawimpl_storeparam' />
+
+  }
+
+  uint32_t trailer = getLong(p);
+  assert((trailer &amp; TYPE_MASK) == TYPE_TRAIL);        <co id='v775_rawimple_trailer' />
+
+  return kfTRUE;
+}
+
+                    </programlisting>
+                </example>
+                <calloutlist>
+                    <callout arearefs='v775_rawimpl_funtorsignature'>
+                        <para>
+                            The <methodname>operator()</methodname> method
+                            of a registered event processor is called for each
+                            event.  This function has access to the raw
+                            event via the <parameter>pEvent</parameter>
+                            parameter and access to the unpacked parameters
+                            via the <parameter>rEvent</parameter> parameter
+                            array, although binding tree parameters and
+                            tree parameter arrays to <parameter>rEvent</parameter>
+                            is usually simpler.
+                        </para>
+                        <para>
+                            SpecTcl has two other objects that event processors
+                            need.  The <parameter>rAnalyzer</parameter> parameter
+                            is a reference to an object that oversees the flow
+                            of control through the analysis of the data. It is
+                            actually the object that invoked
+                            <methodname>operator()</methodname>.  Knowledge
+                            of the top level structure of the event data is
+                            held in <parameter>rDecoder</parameter> which,
+                            for
+                            historic reasons is called a <classname>CBufferDecoder</classname>.
+                            It is responsible for picking apart the outer
+                            structure of the data and passing type decoded
+                            data
+                            to the analyzer for dispatch.
+                        </para>
+                        <para>
+                            The expectation is that the analysis pipeline will:
+                        </para>
+                        <itemizedlist>
+                            <listitem><para>
+                                Decode the raw event turning it into parameters
+                                that are in <parameter>rEvent</parameter>
+                                (tree parameters get automatically bound to
+                                elements of <parameter>rEvent</parameter>
+                                before the analysis pipline starts).
+                            </para></listitem>
+                            <listitem><para>
+                                Inform the analyzer about the number of bytes
+                                that are in the event.
+                            </para></listitem>
+                            <listitem><para>
+                                Detect and inform the analyzer about failures
+                                in the pipeline that should abort its execution
+                                and discard the parameters prior to the histogramming
+                                pass over the data.
+                            </para></listitem>
+                        </itemizedlist>
+                        <para>
+                            All of the work done by <methodname>operator()</methodname>
+                            is directed at one of these three tasks.  Note that
+                            in a larger pipeline, the second of these tasks,
+                            telling the analyzer the event size, only needs to
+                            be performed by one of the pipeline elements.
+                            There is also no need for all elements of the
+                            analysis pipeline to touch the raw event data and,
+                            in complex analysis, usually only a few will.
+                        </para>
+                    </callout>
+                    <callout arearefs='v775_rawimpl_tp'>
+                        <para>
+                            SpecTcl and NSCLDAQ can run on systems of any
+                            endianness. <classname>TranslatorPointer</classname>
+                            objects behave somewhat like pointers but automatically
+                            translate data from the readout system's bye ordering
+                            to the host system's byte ordering. Therefore,
+                            to be fully portable, we encourage all access to
+                            raw event data to be done via a translating pointer.
+                        </para>
+                        <para>
+                            This line of code creates a translating pointer for
+                            <type>uint16_t</type> data that points to the
+                            raw event.
+                        </para>
+                    </callout>
+                    <callout arearefs='v775_rawimpl_tclanalyzer'>
+                        <para>
+                            SpecTcl's actual defautl analyzer is a
+                            <classname>TcAnalyzer</classname> object.
+                            While the analyzer object can be configured by 
+                            the user normally this is not done.
+                        </para>
+                        <para>
+                            We need to know the analyzer type because the
+                            method used to pass the size of the event back
+                            to the analyzer is, unfortunately analyzer dependent.
+                            In this line we initialize the variable
+                            <varname>a</varname> to be a reference to the
+                            anzalyzer.  The dynamic cast will throw an
+                            exception if the analyzer is not, in fact, a
+                            <classname>CTclAnalyzer</classname> or an object
+                            from a type derived from <classname>CTclAnalyzer</classname>.
+                        </para>
+                    </callout>
+                    <callout arearefs='v775_rawimpl_setsize'>
+                        <para>
+                            This section of code pulls the first 32 bit item
+                            from the event, the event size, and uses the
+                            <classname>CTclAnalyzer</classname>
+                            <methodname>SetEventSize</methodname>
+                            to inform the analyzer of the event size.
+                        </para>
+                        <para>
+                            The code does not care about the byte ordering of
+                            the data in the buffer because it creates
+                            a <classname>TranslatorPointer&lt;int32_t&gt;</classname>
+                            to extract this size.  Note that translator pointers
+                            of various simple data types can be assigned.
+                        </para>
+                    </callout>
+                    <callout arearefs='v775_rawimpl_headerprocessing'>
+                        <para>
+                            Immediately following the event we should see the
+                            header for the V775 data. This code ensures that
+                            this is the case.  It does this by:
+                        </para>
+                        <itemizedlist>
+                            <listitem><para>
+                                Using our utility function <methodname>getLong</methodname>
+                                to extract the next 32 bit item from the buffer
+                                in host order.
+                            </para></listitem>
+                            <listitem><para>
+                                Ensuring that the type field of that item is that
+                                of a header (the assert macros will make the
+                                program exit with an error message unless
+                                the program is defined with <literal>-DNDEBUG</literal>).
+                            </para></listitem>
+                            <listitem><para>
+                                Ensuring the geographical address field of the
+                                item matches the geographical address we programmed
+                                into the module.
+                            </para></listitem>
+                        </itemizedlist>
+                        <para>
+                            Once the item is validated as a header, the number of
+                            channels of data are extracted from it.  Note that
+                            in production code, the use of
+                            <function>assert</function> is probabl not appropriate
+                            other alternatives are:
+                        </para>
+                        <itemizedlist>
+                            <listitem><para>
+                                Throw an <classname>std::string</classname>
+                                exception.  The analyzer catches those exceptions,
+                                and outputs the message to stdout.  If
+                                the analyzer catches an exception, it aborts
+                                the event processing pipeline and does not
+                                histogram any parameters tht were extracted
+                                at that time.
+                            </para></listitem>
+                            <listitem><para>
+                                Output an error message and return
+                                <literal>kfFALSE</literal>.  This
+                                return value causes the analyzer to abort
+                                the event processing pipeline and not to run
+                                the histogrammer for the parameters extracted
+                                so far.
+                            </para></listitem>
+                            <listitem><para>
+                                In some cases it may even be appropriate to
+                                output a messasge and return
+                                <literal>kfTRUE</literal>.  That stops
+                                processing the event data but lets the
+                                analyzer continue with the next stage of
+                                the pipeline (or with histogramming the parameters
+                                unpacked so far if this is the last stage).
+                            </para></listitem>
+                        </itemizedlist>
+                    </callout>
+                    <callout arearefs='v775_rawimpl_channelloop'>
+                        <para>
+                            This loop unpackes the channel data in the TDC.
+                        </para>
+                    </callout>
+                    <callout arearefs='v775_rawimp_chanproc'>
+                        <para>
+                            The loop first asserts that the items that should
+                            contain channel data actually does.  It then
+                            extracts the TDC channel number an data value
+                            from the data.
+                        </para>
+                        <para>                            
+                            Note that the data also contains
+                            a <literal>Valid</literal> bit.   The default
+                            programming of the TDC suppresses data for which this
+                            bit is not set.   If you turn that supression off,
+                            you will need to decide what to do with data that
+                            are not valid.
+                        </para>
+                    </callout>
+                    <callout arearefs='v775_rawimpl_storeparam'>
+                        <para>
+                            Tree parameter array objects mimic arrays to the
+                            extent that they support indexing.  Therefore
+                            setting the actual parameter is as easy as this
+                            line of text.  In this way,
+                            <literal>t.00</literal> is the data from
+                            TDC channel 0 and so on.
+                        </para>
+                    </callout>
+                    <callout arearefs='v775_rawimple_trailer'>
+                        <para>
+                            The data words from the TDC should be followed by
+                            a trailer.  This code asserts that this is the
+                            case.
+                        </para>
+                    </callout>
+                </calloutlist>
+            </section>
+            <section>
+                <title>Adding the unpacker to the analysis pipeline</title>
+                <para>
+                    We have code to unpack the TDC.  SpecTcl needs to be told
+                    to use that code.   This is done in the method
+                    <methodname>CreateAnalysisPipeline</methodname> in the
+                    skeleton file <filename>MySpecTclApp.cpp</filename>.
+                    
+                </para>
+                <para>
+                    That file contains an example event processing pipeline which
+                    needs to be deleted.  In this section we'll look at the
+                    modifications you need to make to
+                    <filename>MySpecTclApp.cpp</filename> for our simple setup.
+                    
+                </para>
+                <para>
+                    First locate the section of that file that contains
+                    <literal>#include</literal> directives.  Add the following
+                    line after the last <literal>#include</literal>:
+                </para>
+                <informalexample>
+                    <programlisting>
+#include "RawUnpacker.h"
+                    </programlisting>
+                </informalexample>
+                <para>
+                    That makes our raw event unpacking class
+                    <classname>CRawUnpacker</classname> known to the compiler
+                    in this file.
+                </para>
+                <para>
+                    Next modify the <methodname>CreateAnalysisPipeline</methodname>
+                    method body to look like this:
+                </para>
+                <informalexample>
+                    <programlisting>
+void
+CMySpecTclApp::CreateAnalysisPipeline(CAnalyzer&amp; rAnalyzer)
+{
+  RegisterEventProcessor(*(new CRawUnpacker), "Raw-TDC");
+
+}
+
+                    </programlisting>
+                </informalexample>
+                <para>
+                    <methodname>RegisterEventProcessor</methodname> adds a new
+                    event processor to the end of the analysis pipeline.  The
+                    first parameter is a reference to the event processor object
+                    (an instance of a <classname>CRawUnpacker</classname>).
+                    The second parameter is a name to associate with the pipeline
+                    element.
+                </para>
+                <para>
+                    The name is an optional parameter, but there is the
+                    capability to introspect and to modify the analysis pipeline
+                    at run time (adding and removing pipeline elements at
+                    specific points in the pipe).  The methods that locate
+                    a specific pipeline element require a name for that pipeline
+                    element.
+                </para>
+            </section>
+            <section>
+                <title>Creating raw time spectra</title>
+                <para>
+                    We have our unpacking code and SpecTcl has an instance of our
+                    unpacker as its only analysis pipeline element.  If we ran
+                    SpecTcl now it could unpack the data just fine but nothing
+                    would be done with the unpacked parameters.  We also need
+                    to define a set of spectra.  We are going to write a startup
+                    script for SpecTcl that does this and ensure that this script
+                    is run by SpecTcl when it starts up.
+                </para>
+                <para>
+                    Before we do this, I want to point out that the
+                    Tcl in the name SpecTcl is there because SpecTcl uses an
+                    enhanced Tcl interpreter to implement its command language.
+                    Tcl is a powerful scripting language with a very simple
+                    and regular syntax.
+                </para>
+                <para>
+                    For information about Tcl, and it's graphical user interface
+                    languate Tk, see
+                    <ulink url='http://www.tcl.tk/doc/'>http://www.tcl.tk/doc/</ulink>.
+                    <ulink url='http://www.tcl.tk/man/tcl8.5/tutorial/tcltutorial.html'>
+                        http://www.tcl.tk/man/tcl8.5/tutorial/tcltutorial.html
+                    </ulink>
+                    is a good online tutorial that can get you up and running
+                    with the simple stuff quickly.
+                    <ulink url='http://www.tkdocs.com/tutorial/index.html'>
+                        http://www.tkdocs.com/tutorial/index.html
+                    </ulink>
+                    is a tutorial for Tk if you are interested in building
+                    GUIs on top of SpecTcl.
+                </para>
+                <para>
+                    Basing SpecTcl's command language around Tcl and Tk allows
+                    you to automate tasks SpecTcl performs as well as tailoring
+                    application specific graphical user interfaces (GUIs)
+                    on top of
+                    the program.  Most experimental groups have their own GUIs.
+                    In our script we're going to look at two approaches to
+                    defining our spectra. One is simple but verbose, the other
+                    takes better advantage of Tcl's capabilities and is
+                    much more consise but still clear.
+                </para>
+                <example>
+                    <title>Defining raw Time spectra the hard way.</title>
+                    <programlisting>
+spectrum t.00 1 t.00 {{0 4095 4096}}
+spectrum t.01 1 t.01 {{0 4095 4096}}
+spectrum t.02 1 t.02 {{0 4095 4096}}
+spectrum t.03 1 t.03 {{0 4095 4096}}
+spectrum t.04 1 t.04 {{0 4095 4096}}
+spectrum t.05 1 t.05 {{0 4095 4096}}
+spectrum t.06 1 t.06 {{0 4095 4096}}
+spectrum t.07 1 t.07 {{0 4095 4096}}
+...
+spectrum t.31 1 t.31 {{0 4095 4096}}
+
+                    </programlisting>
+                </example>
+                <para>
+                    Typing all that was pretty traumatic and error prone wasn't it?
+                    Let's first look at the spectrum command, which is used to
+                    define, delete and list information about spectra.
+                    It is used to create spectra with a general form:
+                </para>
+                <informalexample>
+                    <programlisting>
+spectrum <replaceable>name type parameter(s) axis-definition(s)</replaceable>
+                    </programlisting>
+                </informalexample>
+                <para>Where</para>
+                <variablelist>
+                    <varlistentry>
+                        <term>name</term>
+                        <listitem>
+                            <para>
+                                Is the name of the spectrum you are creating and
+                                must be unique.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>type</term>
+                        <listitem>
+                            <para>
+                                Is the type of spectrum being created.  SpecTcl
+                                supports a rich set of spectrum types.  Type
+                                <literal>1</literal> is a one dimensional specttrum.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>parameter(s)</term>
+                        <listitem>
+                            <para>
+                                Is a list of parameters that are used to increment
+                                the spectrum. The actual meaning of this will
+                                vary from spectrum type to spectrum type. A
+                                one dimensional spectrum needs only one parameter.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>
+                            axis-definition(s)
+                        </term>
+                        <listitem>
+                            <para>
+                                Are a list of three element lists that
+                                define the axis ranges and bins on each axis.
+                                These spectrum has a single axis definition
+                                with a range of
+                                <literal>0..4095</literal> and
+                                <literal>4096</literal> channels along that axis.
+                            </para>
+                            <para>
+                                The number of axis definitions depends on the
+                                type of the spectrum (e.g. 2d spectra, type
+                                <literal>2</literal>), have two axis definitions.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    
+                </variablelist>
+                <para>
+                    When you were typing this in I hope you were thinking "If
+                    Tcl is a scripting language there must be a better way to do
+                    this right? (Well actually I'm hoping you didn't bother to
+                    type this all in and were waiting for this next version).
+                </para>
+                <para>
+                    Have a look at this:
+                </para>
+                <informalexample>
+                    <programlisting>
+for {set i 0} {$i &lt; 32} {incr i} {
+    set name [format t.%02d $i]
+    spectrum $name 1 $name {{0 4096 4095}}
+}
+                    </programlisting>
+                </informalexample>
+                <para>
+                    Key things to know when decoding this:
+                </para>
+                <variablelist>
+                    <varlistentry>
+                        <term>$ substitution</term>
+                        <listitem>
+                            <para>
+                                If a <literal>$</literal> precedes a variable name,
+                                the value of that variable is substituted at that
+                                place in the command prior to executing the
+                                command. (e.g. $i &lt; 32).
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>[] substitution</term>
+                        <listitem>
+                            <para>
+                                If a string is enclosed with square brackets,
+                                It is considered to be a command and the
+                                result of executing that command is
+                                substituted right there in the original
+                                command prior to execution.
+                            </para>
+                            <para>
+                                (e.g. [format t.%02d $i]).
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>format command</term>
+                        <listitem>
+                            <para>
+                                The format command is like the C function
+                                <function>sprintf</function> the first command
+                                parameter is a format string that is, essentially
+                                a <function>sprintf</function> format string.
+                                The remaining command parameters are values for the
+                                placeholders in this string.  The command result
+                                is what <function>sprintf</function> would have
+                                stored in its <parameter>str</parameter> buffer.
+                            </para>
+                            <para>
+                                For example in <command>format t.%02d $i</command>
+                                if <varname>i</varname> has the value 3, the
+                                format command result would be
+                                <literal>t.03</literal>
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    
+                </variablelist>
+                <para>
+                    Now that's something that's much more type-able.  Create a file
+                    <filename>spectra.tcl</filename> and copy/paste that text
+                    into it.
+                </para>
+                <para>
+                    Having created <filename>spectra.tcl</filename> we want to
+                    ensure that our SpecTcl will execute the commands in that file
+                    when it starts.  SpecTcl automatically executes a script
+                    named <filename>SpecTclRC.tcl</filename> in the current
+                    working directory when it starts running.  This script
+                    is executed towards the end of initialization, after
+                    the analysis pipeline has been created (and in case
+                    the tree parameters have been created and bound to
+                    actual SpecTcl parameters).
+                </para>
+                <para>
+                    A sample <filename>SpecTclRC.tcl</filename> is provided
+                    with the skeleton you copied.  Locate the line:
+                </para>
+                <programlisting>
+splash::progress $splash {Loading SpecTcl Tree Gui} 1
+                </programlisting>
+
+                <para>
+                    Insert the following lines <emphasis>above</emphasis> that
+                    line:
+                </para>
+                <programlisting>
+set here [file dirname [info script]]
+source [file join $here spectra.tcl]
+sbind -all
+                </programlisting>
+                <para>
+                    The first line defines the variable <varname>here</varname>
+                    to be the directory in which the <filename>SpecTclRC.tcl</filename>
+                    file lives.
+                    The second line sources the <filename>spectra.tcl</filename>
+                    file we created from that directory.  The third line binds
+                    all spectra into the shared memory region SpecTcl uses to
+                    provide its displayer the spectra.
+                </para>
+            </section>
+            <section>
+                <title>Building and testing what we have so far.</title>
+                <para>
+                    Let's see if what we have so far actually works.  To do
+                    this we need to:
+                </para>
+                <itemizedlist>
+                    <listitem><para>
+                        Modify the skeleton Makefile so that our code will be built
+                        and linked to SpecTcl
+                    </para></listitem>
+                    <listitem><para>
+                        Build our tailored SpecTcl
+                    </para></listitem>
+                    <listitem><para>
+                        Run our tailored SpecTcl and attach it to the online
+                        data stream.
+                    </para></listitem>
+                    <listitem><para>
+                        Start a run so that we're taking data
+                    </para></listitem>
+                    <listitem><para>
+                        View the spectra SpecTcl creates.
+                    </para></listitem>
+                </itemizedlist>
+                <para>
+                    As with the Makefile for the SBS readout program, an
+                    <varname>OBJECTS</varname> variable lists the names of the
+                    objects we want to build.  Edit the Makefile that came with the
+                    skeleton you copied and change the definition of
+                    <varname>OBJECTS</varname> to look like this:
+                </para>
+                <programlisting>
+OBJECTS=MySpecTclApp.o RawUnpacker.o              
+                </programlisting>
+                <para>
+                    To build you tailored SpecTcl you can then type:
+                </para>
+                <programlisting>
+make
+                </programlisting>
+                <para>
+                    Run SpecTcl via the command:
+                </para>
+                <programlisting>
+./SpecTcl
+                </programlisting>
+                <para>
+                    A number of windows will pop up. We're going to use two of
+                    them.  The window titled <literal>treegui</literal> will be
+                    used to connect to the online data.  The window titled
+                    <literal>Xamine</literal> will be used to look at plots
+                    of our spectra.
+                </para>
+                <para>
+                    To attach SpecTcl to the online system; use the
+                    <literal>treegui</literal> window and select the
+                    <guimenuitem>Online...</guimenuitem> menum ite from the
+                    <guimenu>Data Source</guimenu> menu at the top of that
+                    window.  In the dialog that pops up, change the radio buttons
+                    at the bottom of the dialot to select <literal>ring11</literal>
+                    and click <guibutton>Ok</guibutton>.  You are now connected
+                    to the online data coming from the system on which you
+                    are logged in (so be sure that system is the one connected
+                    physically to your VME crate).  You can also acquire data
+                    that is taken in a remote host, as long as the system
+                    you are logged into is running NSCLDAQ.  Simply type
+                    the name of that system in the box labeled <literal>Host:</literal>
+                    before accepting the dialog.
+                </para>
+                <para>
+                    Now using another terminal window login run the Readout
+                    program you had already created, and begin a run.
+                    You should see statistics at the bottom of the SpecTcl
+                    <literal>treegui</literal> window changing showing
+                    that SpecTcl is analyzing data.  SpecTcl should not exit
+                    (that would most likely show that an assertion failed).
+                </para>
+                <para>
+                    To view a spectrum Click on the Display button at the bottom
+                    of the <literal>Xamine</literal> window and select the
+                    desired spectrum from the list either by double clicking it
+                    or by selecting it and clicking <guibutton>Ok</guibutton>.
+                </para>
+                <para>
+                    If you are using the sample electronics setup, the
+                    spectra that have signals should show sharp peaks that
+                    correspond to the delay you have set in your gate and delay
+                    generator.
+                </para>
+            </section>
+        </section>
+        <section>
+            <title>Producing parameters computed from the raw data</title>
+            <para>
+                In this section we are going to write a second event processor.
+                This event processor will be positioned after the raw unpacker
+                we just wrote in the event processing pipeline. It will produce
+                parameters that are the differences of the times different
+                channels of the TDC.
+                To test this event processor you will need to fan out
+                your delayed start so that at least two  channels will have
+                data.  For more fun, delay the fanned signals so that there is
+                a time difference between those channels.
+            </para>
+            <para>
+                The purpose of this section is to teach the following concepts:
+            </para>
+            <itemizedlist>
+                <listitem><para>
+                    How event processors can obtain data from previous stages
+                    of the event processing pipeline.
+                </para></listitem>
+                <listitem><para>
+                    How to determine if a parameter has been assigned a value
+                    by a previous stage of the pipeline
+                </para></listitem>
+            </itemizedlist>
+            <para>
+                We will produce parameters with names like
+                <literal>tdiff.00.01</literal> which wil be the time
+                difference betweeen channel 0 and 1.  For simplicity we will
+                produce parameters like <literal>tdiff.00.00</literal> even though
+                these will always have the value 0.  We just won't produce
+                spectra for those parameters.
+            </para>
+            <para>
+                Let's see what the header for an event processor like this might
+                look like:
+            </para>
+            <example>
+                <title>Header for time difference event processor (Tdiff.h)</title>
+                <programlisting>
+#ifndef _TDIF_H
+#define _TDIF_H
+
+#include &lt;config.h&gt;
+#include &lt;EventProcessor.h&gt;
+
+class CTreeParameterArray;
+
+class CTdiff : public CEventProcessor
+{
+public:
+  CTdiff();
+  virtual ~CTdiff();
+
+ virtual Bool_t operator()(const Address_t pEvent,
+                            CEvent&amp;         rEvent,
+                            CAnalyzer&amp;      rAnalyzer,
+                            CBufferDecoder&amp; rDecoder);
+private:
+  CTreeParameterArray&amp; m_times; 
+  CTreeParameterArray* m_diffs[32];
+  
+};
+
+#endif
+                    
+                </programlisting>
+            </example>
+            <para>
+                All this should look very familiar. The notable difference
+                (Besides the change in the class name) is that in addition
+                to a tree parameter reference for the raw times, we have
+                <varname>m_diffs</varname> is an array of 32 pointesr
+                to <classname>CTreeParameterArray</classname> objects.
+                We use pointers because, without creating a new class for
+                encapsulating an array of <classname>CTreeParameterArray</classname>
+                objects we don't have a good way to initialize an array of
+                references.
+            </para>
+            <para>
+                The idea of this data structure is that
+                <varname>m_diffs[i]</varname> will be an array of differences
+                between channel <varname>i</varname> and the other
+                channels of the TDC.
+            </para>
+            <para>
+                We will make our life simple by not considering the problems
+                inherent in allowing copy construction and assignment for
+                a class like this.
+            </para>
+            <para>
+                Let's look at the implementation of the <classname>CTdiff</classname>
+                class:
+            </para>
+            <example>
+                <title>CTdiff implementation (Tdiff.cpp)</title>
+                <programlisting>
+#include "Tdiff.h"
+#include &lt;TreeParameter.h&gt;
+#include &lt;BufferDecoder.h&gt;
+#include &lt;TCLAnalyzer.h&gt;
+#include &lt;stdio.h&gt;
+
+CTdiff::CTdiff() :
+  m_times(*(new CTreeParameterArray("t", 8192, -4095, 4095, "channels", 32, 0)))
+{
+  char baseName[100];
+  for (int i =0; i &lt; 32; i++) {
+    sprintf(baseName, "tdiff.%02d", i);
+    m_diffs[i] =
+      new  CTreeParameterArray(baseName, 8192, -4095, 4095, "channels", 32, 0);
+  }
+}
+
+CTdiff::~CTdiff()
+{
+  for (int i =0; i &lt;32; i++) {
+    delete m_diffs[i];
+  }
+}
+
+
+Bool_t CTdiff::operator()(const Address_t pEvent,
+                         CEvent&amp; rEvent,
+                         CAnalyzer&amp; rAnalyzer,
+                         CBufferDecoder&amp; rDecoder)
+{
+  for (int i = 0; i &lt; 32; i++) {
+    if (m_times[i].isValid()) {                       <co id='v775_tdiff_impl_valid1' />
+      for (int j = 0; j &lt; 32; j++) {
+        if (m_times[j].isValid()) {                   <co id='v775_tdiff_impl_valid2' />
+          (*m_diffs[i])[j] = m_times[i] - m_times[j]; <co id='v775_tdiff_compute' />
+        }
+      }
+    }
+  }
+
+  return kfTRUE;
+}
+                    
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs='v775_tdiff_impl_valid1'>
+                    <para>
+                        In order to be able to compute the difference of a pair of
+                        parameters we need to know that both parameters
+                        have been assigned a value by at least one prior
+                        stage of the analysis pipeline.  Tree parameters,
+                        as well as elements of the <parameter>rEvent</parameter>
+                        vector have a method called
+                        <methodname>isValid</methodname> which returns
+                        <literal>true</literal> if this is the case.
+                    </para>
+                    <para>
+                        This line ensures that the first time has been assigned
+                        a value.
+                    </para>
+                </callout>
+                <callout arearefs='v775_tdiff_impl_valid2'>
+                    <para>
+                        This line ensures that the second parameter in the
+                        difference has been assigned a value.  
+                    </para>
+                </callout>
+                <callout arearefs='v775_tdiff_compute'>
+                    <para>
+                        If both parameters have been assigned a value,
+                        the difference is computed and assigned to the
+                        appropriate tree parameter.
+                    </para>
+                </callout>
+            </calloutlist>
+            <para>
+                Note how all of this is done without needing to know
+                the structure of the raw event data.  Should the experiment
+                need to change the hardware in a way that changes
+                that structure this code still works properly.  A well
+                structured SpecTcl tailoring should consist of several
+                event processors working together to produce the
+                needed parameters.
+            </para>
+            <para>
+                Don't forget to add an instance of this class to the analysis
+                pipeline.
+            </para>
+            <para>
+                We'll leave it as an exercise to create a script that
+                makes spectra and to modify <filename>SpecTclRC.tcl</filename>
+                to source that script into the SpecTcl at startup.  The
+                axis specifications of these spectra should be
+                <literal>{{-4095 4095 8192}}</literal> e.g.
+            </para>
+        </section>
+    </section>
+    <section>
+        <title>Running the system.</title>
+        <para>
+           In this section we are going to run the Readout software with
+           a Readout GUI front end that can manage recording the event data.
+           This mode also supports running the Readout program on a remote system.
+           We will also take you on a brief tour of the way the directories
+           for recorded data are organized.
+        </para>
+        <para>
+           To prepare for this we will need to:
+        </para>
+        <itemizedlist>
+            <listitem>
+                <para>
+                    Set our account up for password-less login over ssh within
+                    the lab.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    Designate a directory tree for event recording and create
+                    a symbolic link that points to it.
+                </para>
+            </listitem>
+        </itemizedlist>
+        <section>
+            <title>Readout GUI</title>
+            <para>
+                The Readout GUI runs your readout program over an ssh pipe.
+                This allows it to start Readout in any system that shares
+                the directory in which your Readout is located.  For
+                experimental accounts, this is any system within the building,
+                though clearly you need to run Readout on the system that
+                is attached to the hardware it must access.
+            </para>
+            <para>
+                This is normally used in production experiments where users are
+                located in the data U's but their Readout will run on
+                spdaq systems in a vault.
+            </para>
+            <para>
+                In order to run the Readout program over an ssh pipe, you need
+                to first set up your account so that you don't need to provide
+                a password when ssh-ing from linux system to linux system within
+                the lab.  This involves creating an authentication key for you
+                as a user, without a passphrase and installing the public
+                key as an authorized key:
+            </para>
+            <example>
+                <title>Setting up ssh for password-less login</title>
+                <programlisting>
+ssh-keygen -t rsa
+<computeroutput>
+Generating public/private rsa key pair.
+Enter file in which to save the key (/home/a/.ssh/id_rsa):</computeroutput><keycap>Enter</keycap>
+<computeroutput>Created directory '/home/a/.ssh'.
+Enter passphrase (empty for no passphrase):</computeroutput><keycap>Enter</keycap>
+<computeroutput>Enter same passphrase again: </computeroutput><keycap>Enter</keycap>
+<computeroutput>Your identification has been saved in /home/a/.ssh/id_rsa.
+Your public key has been saved in /home/a/.ssh/id_rsa.pub.
+The key fingerprint is:
+3e:4f:05:79:3a:9f:96:7c:3b:ad:e9:58:37:bc:37:e4    
+</computeroutput>
+
+                </programlisting>
+            </example>
+            <para>
+                In the example above, <keycap>Enter</keycap> means to use
+                the Enter key
+                on your keyboard.  Note that some of the output may be slightly different
+                than what you see.
+            </para>
+            <para>
+                Next you must add the public key file (<filename>~/.ssh/id_rsa.pub</filename>)
+                to the list of keys that are considered known authentication key:
+            </para>
+            <informalexample>
+                <programlisting>
+cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+                </programlisting>
+            </informalexample>
+            <para>
+                This command appends your public key to the authorized keys list
+                creating it if necessary.
+            </para>
+        </section>
+        <section>
+            <title>Creating a directory in which to record events</title>
+            <para>
+                Where you put events depends on the type of account you have
+                and the volume of the data you intend to record:
+            </para>
+            <itemizedlist>
+                <listitem><para>
+                    If you have an account for a specific experiment, prior to
+                    the experiment an event area will be allocated and
+                    assigned to your account.
+                </para></listitem>
+                <listitem><para>
+                    If you have a test account and have told the helproom
+                    that you will need to record and retain a large amount
+                    of event data during your tests, your account will be
+                    assigned  a test event area.
+                </para></listitem>
+                <listitem><para>
+                    If you have a test account and don't need to record
+                    much data you can record it in a directory in your
+                    home diretory tree.  
+                </para></listitem>
+            </itemizedlist>
+            <para>
+                We will assume that you only need to record a small
+                amount of data and that you will create a
+                directory in which to record data data:
+            </para>
+            <example>
+                <title>Creating an event area for a small amount of data</title>
+                <programlisting>
+mkdir ~/events
+ln -s ~/events ~/stagearea
+                </programlisting>
+            </example>
+            <para>
+                The first command creates the directory in which you will record
+                your data. The second, creates a symbolic link expected by
+                the Readout GUI. 
+            </para>
+        </section>
+        <section>
+            <title>Running and configuring the ReadoutGUI</title>
+            <para>
+                Now that we have prepared the account we can start the
+                Readout GUI:
+            </para>
+            <informalexample>
+                <programlisting>
+$DAQBIN/ReadoutShell
+                </programlisting>
+            </informalexample>
+            <para>
+                The Readout GUI can manage several Readout programs that
+                contribute data to an <emphasis>Event Builder</emphasis>.
+                The Readout GUI refers to these programs as
+                <firstterm>Data Sources</firstterm>.  The first time you
+                start the Readout GUI you must specify the set of data
+                sources it manages.  
+            </para>
+            <para>
+                ReadoutGUI stores its state in the event area.  If you
+                restart ReadoutGUI with the same event area it will remember
+                the data sources you selected. 
+            </para>
+            <para>
+                To set up your data source, click the
+                <guimenu>Data Source</guimenu><guimenuitem>Add...</guimenuitem>
+                menu entry.  In the resulting popup dialog select <literal>SSHPipe</literal>
+                from the listbox and click <guibutton>Ok</guibutton>.
+            </para>
+            <para>
+                Each data source type is parameterized in a manner
+                appropriate to its type.  In our case, the parameters
+                we need to fill in in the resulting dialog box are:
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><literal>Host name:</literal></term>
+                    <listitem>
+                        <para>
+                            The name of the computer in which Readout
+                            will run.  If Readout will run in the
+                            computer on which ReadoutGUI is running,
+                            you can leave the default as
+                            <literal>localhost</literal>.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>Readout program:</literal></term>
+                    <listitem>
+                        <para>
+                            Use the <guibutton>Browse...</guibutton>
+                            button to locat your Readout program
+                            and select it.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                
+            </variablelist>
+            <para>
+                Once you have selected the appropriate parameterization
+                for the <literal>SSHPipe</literal> data source
+                type to run your Readut, Click <guibutton>Ok</guibutton>.
+            </para>
+            <para>
+                Before acquiring data, you must start the data
+                source(s).  Click the <guibutton>Start</guibutton>
+                button to do this.
+            </para>
+            <para>
+                When the Readout program starts successfully, you can
+                click the <guibutton>Begin</guibutton> button to
+                start a run and <guibutton>End</guibutton> button
+                to end the run (<guibutton>Begin</guibutton> becomes
+                the <guibutton>End</guibutton> button when a run is
+                active).
+            </para>
+            <para>
+                To record a run to disk, check the
+                <guibutton>Record</guibutton> checkbutton
+                before starting the run.
+            </para>
+            <para>
+                Record a few short runs before continuing to the next
+                section
+            </para>
+            <section>
+                <title>A brief tour of the event area structure</title>
+                <para>
+                    The event area maintains a structure that allows
+                    non event data to be associated with event files.
+                    The mechanics of doing that are beyond the scope
+                    of this (already too long) tutorial.  For the sake
+                    of this section, it's only important to know that
+                    the event area uses symbolic links to provide two
+                    views of the data.
+                </para>
+                <para>
+                    The event file view provides a single directory
+                    which appears to have all event files (appears
+                    because in reality this directory contains
+                    only symbolic links to the actual event
+                    files).
+                </para>
+                <para>
+                    The directory
+                    <filename>~/stagearea/complete</filename> contains
+                    the event file view.  When analyzing data
+                    offline this is usually the directory you will need
+                    to see.
+                    For experiments that don't store metadata with runs,
+                    this is usually the only directory you need to look at
+                </para>
+                <para>
+                    The Run view provides a view of the data in which
+                    all of the data associated with each run is in its
+                    own directory.  The
+                    <filename>~stagearea/experiment</filename> directory
+                    provides this view.
+                </para>
+                <para>
+                    Within this view you will find a directory for each
+                    run that was recorded to disk.  If you have not
+                    assocated metadata with runs, these directories
+                    will only contain the event files for that run,
+                    e.g. <filename>~/stagearea/experiment/run1</filename>
+                    will contain
+                    <filename>run-0001-00.evt</filename>.
+                </para>
+                <para>
+                    If you have associated metadata with the runs, the
+                    metadata at the time each run ends is also stored
+                    in that run's directory.
+                </para>
+            </section>
+        </section>
+    </section>
+    <section>
+        <title>Taking the example further.</title>
+        <para>
+            There are several directions in which you can take this example further:
+        </para>
+        <itemizedlist>
+            <listitem>
+                <para>
+                    If you have a set of CAEN 32 bit digitizers (V785, V775,
+                    V792, V862)
+                    modules you can modify the Readout and SpecTcl to read
+                    all of them.  In that case you can use an external
+                    trigger module such as the CAEN V262 or CAEN V977,
+                    or install a cable across the ECL control bus and
+                    use the global data ready of one of the modules for
+                    a trigger.  
+                </para>
+                <para>
+                    When the ECL control bus is bussed in this way,
+                    each module's global data ready is the OR
+                    of the data ready of the modules.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    You can setup a busy circuit to block triggers
+                    when one or more modules is busy.  In the
+                    existing, single module setup, the TDC can be
+                    used in multi-event mode.  With multiple modules,
+                    you'll either need to know how to build events
+                    from the trigger numbers in the trailers of the
+                    individual modules, write a timestamp extractor
+                    for the event builder that turns the readout into
+                    an event source per module or set up an
+                    external busy system that latches on the gate
+                    and is reset by the computer when readout is
+                    complete (effectively turning off the multi
+                    event buffers for the modules).
+                </para>
+            </listitem>
+        </itemizedlist>
+    </section>
+    <section>
+        <title>The full readout program.</title>
+        <para>
+            In this section we will include the full text of
+            the following files:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term><filename>Makefile</filename></term>
+                <listitem>
+                    <para>
+                        The Readout Makefile.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><filename>Skeleton.cpp</filename></term>
+                <listitem>
+                    <para>
+                        The modified skeleton file.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><filename>V775EventSegment.h</filename></term>
+                <listitem>
+                    <para>
+                        The header for our event segment class.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><filename>V775EventSegment.cpp</filename></term>
+                <listitem>
+                    <para>
+                        The implementation of our event segment.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><filename>MyTrigger.h</filename></term>
+                <listitem>
+                    <para>
+                        The header for our trigger class.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><filename>Mytrigger.cpp</filename></term>
+                <listitem>
+                    <para>
+                        The implementation of our trigger class.
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+        <example>
+            <title><filename>Makefile</filename></title>
+            <programlisting>
+#
+#  This establishes which version of NSCLDAQ we're using and where it's installed:
+#  Supposedly  you only need to change this definition to update to a newer
+#  version of the software:
+
+INSTDIR=/usr/opt/daq/11.0-rc18
+
+include $(INSTDIR)/etc/SBSRdoMakeIncludes
+
+
+
+USERCCFLAGS=
+USERCXXFLAGS=$(USERCCFLAGS)
+
+USERLDFLAGS=
+
+OBJECTS=Skeleton.o V775EventSegment.o MyTrigger.o
+
+Readout: $(OBJECTS)
+        $(CXXLD) -o Readout $(OBJECTS) $(USERLDFLAGS) $(LDFLAGS)
+
+clean:
+        rm -f $(OBJECTS) Readout
+
+depend:
+        makedepend $(USERCXXFLAGS) *.cpp *.c
+
+
+help:
+        echo make           - Build Readout.
+        echo make clean     - Remove products from previous builds.
+        echo make depend    - Add header dependencies to Makefile.
+
+            </programlisting>
+        </example>
+        <example>
+            <title><filename>Skeleton.cpp</filename></title>
+            <programlisting>
+#include &lt;config.h&gt;
+#include &lt;Skeleton.h&gt;
+#include &lt;CExperiment.h&gt;
+#include &lt;TCLInterpreter.h&gt;
+#include &lt;CTimedTrigger.h&gt;
+
+#include &lt;CAENcard.h&gt;
+#include "V775EventSegment.h"
+#include "MyTrigger.h"
+
+CTCLApplication* gpTCLApplication = new Skeleton;
+
+static const uint32_t V775Base=0x11110000;  // Base address of the V775.
+
+void
+Skeleton::SetupReadout(CExperiment* pExperiment)
+{
+  CReadoutMain::SetupReadout(pExperiment);
+
+  CAENcard* pModule = new CAENcard(10, 0, false, V775Base);
+
+
+  // Establish your trigger here by creating a trigger object
+  // and establishing it.
+
+  pExperiment->EstablishTrigger(new MyTrigger(*pModule));
+
+
+  // Create and add your event segments here, by creating them and invoking CExperiment's
+  // AddEventSegment
+
+  pExperiment->AddEventSegment(new CV775EventSegment(*pModule));
+
+
+}
+void
+Skeleton::SetupScalers(CExperiment* pExperiment)
+{
+  CReadoutMain::SetupScalers(pExperiment);      // Establishes the default scaler trigger.
+
+  // Sample: Set up a timed trigger at 2 second intervals.
+
+  timespec t;
+  t.tv_sec  = 2;
+  t.tv_nsec = 0;
+  CTimedTrigger* pTrigger = new CTimedTrigger(t);
+  pExperiment->setScalerTrigger(pTrigger);
+
+  // Create and add your scaler modules here.
+
+
+}
+
+void
+Skeleton::addCommands(CTCLInterpreter* pInterp)
+{
+  CReadoutMain::addCommands(pInterp); // Add standard commands.
+}
+
+
+void
+Skeleton::SetupRunVariables(CTCLInterpreter* pInterp)
+{
+  // Base class will create the standard commands like begin,end,pause,resume
+  // runvar/statevar.
+
+  CReadoutMain::SetupRunVariables(pInterp);
+
+  // Add any run variable definitions below.
+
+}
+
+void
+Skeleton::SetupStateVariables(CTCLInterpreter* pInterp)
+{
+  CReadoutMain::SetupStateVariables(pInterp);
+
+  // Add any state variable definitions below:
+
+
+}
+            
+            </programlisting>
+        </example>
+        <example>
+            <title><filename>V775EventSegment.h</filename></title>
+            <programlisting>
+#ifndef _V775EVENTSEGMENT_H
+#define _V775EVENTSEGMENT_H
+
+#include &lt;CEventSegment.h>
+
+class CAENcard;
+
+
+
+class CV775EventSegment : public CEventSegment
+{
+private:
+  CAENcard&amp;   m_module;
+
+public:
+  CV775EventSegment(CAENcard&amp; module);
+
+public:
+  virtual void initialize();
+
+  virtual size_t read(void* pBuffer, size_t maxwords);
+};
+                
+            </programlisting>
+        </example>
+        <example>
+            <title><filename>V775EventSegment.cpp</filename></title>
+            <programlisting>
+#include "V775EventSegment.h"
+#include &lt;CAENcard.h&gt;
+#include &lt;iostream&gt;
+#include &lt;stdint.h&gt;
+
+
+static const unsigned TDC_RANGE = 0x1e;         // Corresponds to 1.2usec.
+static const unsigned  MAX_WORDS = 34*sizeof(uint32_t)/sizeof(uint16_t);
+
+
+
+CV775EventSegment::CV775EventSegment(CAENcard&amp; module) :
+  m_module(module)
+{}
+
+void
+CV775EventSegment::initialize()
+{
+  try {
+    m_module.commonStart();
+    m_module.setRange(TDC_RANGE);
+    m_module.clearData();
+  }
+  catch (std::string msg) {
+    std::cerr &lt;&lt; "Unable to initialize TDC (V775)\n";
+    std::cerr &lt;&lt; msg &lt;&lt; std::endl;
+    throw;
+  }
+}
+
+size_t
+CV775EventSegment::read(void* pBuffer, size_t maxWords)
+{
+  if (MAX_WORDS &lt;= maxWords) {
+    size_t n =  m_module.readEvent(pBuffer);
+    m_module.clearData();
+    return n/sizeof(uint16_t);
+  } else {
+    throw std::string("CV775EventSegment::read - maxWords won't hold my worst case event");
+  }
+}
+                
+            </programlisting>
+        </example>
+        <example>
+            <title>MyTrigger.h</title>
+            <programlisting>
+#ifndef _MYTRIGGER_H
+#define _MYTRIGGER_H
+
+#include &lt;CEventTrigger.h&gt;
+
+class CAENcard;
+
+class MyTrigger : public CEventTrigger
+{
+private:
+  CAENcard&amp; m_module;
+public:
+  MyTrigger(CAENcard&amp; module);
+
+  virtual bool operator()();
+};
+                
+            </programlisting>
+        </example>
+        <example>
+            <title>MyTrigger.cpp</title>
+            <programlisting>
+
+#include "MyTrigger.h"
+#include &lt;CAENcard.h&gt;
+
+
+MyTrigger::MyTrigger(CAENcard&amp; module) :
+  m_module(module)
+{}
+
+bool
+MyTrigger::operator()() {
+  return m_module.dataPresent();
+}
+            </programlisting>
+        </example>
+    </section>
+    <section>
+        <title>The full SpecTcl program.</title>
+        <para>
+            This section gives full listings for the event processor
+            headers and implementations.  We also provide a full
+            listing of the
+            <filename>SpecTclRC.tcl</filename> and
+            <filename>spectra.tcl</filename> script
+            we wrote to define raw parameter spectra.
+        </para>
+        <para>
+            We don't providea full listing of the modified
+            <filename>MySpecTclApp.cpp</filename> file. You
+            can find that in the .zip archive for this setup,
+            however.
+        </para>
+        <example>
+            <title>RawUnpacker.h</title>
+            <programlisting>
+#ifndef _RAWUNPACKER_H
+#define _RAWUNPACKER_H
+#include &lt;config.h&gt;
+#include &lt;EventProcessor.h&gt;
+
+class CTreeParameterArray;
+
+class CRawUnpacker : public CEventProcessor
+{
+public:
+  CRawUnpacker();
+  virtual ~CRawUnpacker();
+  virtual Bool_t operator()(const Address_t pEvent,
+                            CEvent&amp;         rEvent,
+                            CAnalyzer&amp;      rAnalyzer,
+                            CBufferDecoder&amp; rDecoder);
+private:
+  CTreeParameterArray&amp; m_times;
+};
+
+
+#endif
+
+            </programlisting>
+        </example>
+        <example>
+            <title>RawUnpacker.cpp</title>
+            <programlisting>
+#include "RawUnpacker.h"
+#include &lt;TreeParameter.h&gt;
+#include &lt;TranslatorPointer.h&gt;
+#include &lt;BufferDecoder.h&gt;
+#include &lt;TCLAnalyzer.h&gt;
+#include &lt;assert.h&gt;
+
+#include &lt;stdint.h&gt;
+
+static const uint32_t TYPE_MASK (0x07000000);
+static const uint32_t TYPE_HDR  (0x02000000);
+static const uint32_t TYPE_DATA (0x00000000);
+static const uint32_t TYPE_TRAIL(0x04000000);
+
+static const unsigned HDR_COUNT_SHIFT(8);
+static const uint32_t HDR_COUNT_MASK (0x00003700);
+static const unsigned GEO_SHIFT(27);
+static const uint32_t GEO_MASK(0xf8000000);
+
+static const unsigned DATA_CHANSHIFT(16);
+static const uint32_t DATA_CHANMASK(0x001f0000);
+static const uint32_t DATA_CONVMASK(0x00000fff);
+
+
+static inline uint32_t getLong(TranslatorPointer&lt;uint16_t&gt;&amp; p)
+{
+  uint32_t l = *p++ &lt;&lt; 16;
+  l         |= *p++;
+
+  return l;
+}
+
+
+CRawUnpacker::CRawUnpacker() :
+  m_times(*(new CTreeParameterArray("t", 4096, 0.0, 4095.0, "channels", 32, 0)))
+{}
+
+CRawUnpacker::~CRawUnpacker()
+{
+  delete &amp;m_times;
+}
+
+
+Bool_t CRawUnpacker::operator()(const Address_t pEvent,
+                                CEvent&amp; rEvent,
+                                CAnalyzer&amp; rAnalyzer,
+                                CBufferDecoder&amp; rDecoder)
+{
+  TranslatorPointer&lt;uint16_t&gt;p(*rDecoder.getBufferTranslator(), pEvent);
+  CTclAnalyzer&amp; a(dynamic_cast&lt;CTclAnalyzer&amp;&gt;(rAnalyzer));
+
+  TranslatorPointer&lt;uint32_t&gt; p32 = p;
+  uint32_t  size = *p32++;
+  p = p32;
+  a.SetEventSize(size*sizeof(uint16_t));
+
+  uint32_t header = getLong(p);
+  assert((header &amp; TYPE_MASK) == TYPE_HDR);
+  assert(((header &amp; GEO_MASK) &gt;&gt; GEO_SHIFT) == 0xa);
+  int nchans = (header &amp; HDR_COUNT_MASK) &gt;&gt; HDR_COUNT_SHIFT;
+
+  for (int i =0; i &lt; nchans; i++) {
+    uint32_t datum = getLong(p);
+    assert((datum &amp; TYPE_MASK) == TYPE_DATA);
+    int channel = (datum &amp; DATA_CHANMASK) &gt;&gt; DATA_CHANSHIFT;
+    uint16_t conversion = datum &amp; DATA_CONVMASK;
+
+    m_times[channel] = conversion;
+
+  }
+
+  uint32_t trailer = getLong(p);
+  assert((trailer &amp; TYPE_MASK) == TYPE_TRAIL);
+
+  return kfTRUE;
+}
+
+            </programlisting>
+        </example>
+        <example>
+            <title>spectra.tcl</title>
+            <programlisting>
+for {set i 0} {$i &lt; 32} {incr i} {
+    set name [format t.%02d $i]
+    spectrum $name 1 $name {{0 4095 4096}}
+}                
+            </programlisting>
+        </example>
+        <example>
+            <title>SpecTclRC.tcl</title>
+            <programlisting>
+lappend auto_path $SpecTclHome/TclLibs
+package require splash
+package require img::jpeg
+
+
+
+set splash [splash::new -text 1 -imgfile $splashImage -progress 6 -hidemain 0]
+splash::progress $splash {Loading button bar} 0
+
+puts -nonewline "Loading SpecTcl gui..."
+source $SpecTclHome/Script/gui.tcl
+puts  "Done."
+
+splash::progress $splash {Loading state I/O scripts} 1
+
+puts -nonewline "Loading state I/O scripts..."
+source $SpecTclHome/Script/fileall.tcl
+puts "Done."
+
+splash::progress $splash {Loading formatted listing scripts} 1
+
+puts -nonewline "Loading formatted listing scripts..."
+source $SpecTclHome/Script/listall.tcl
+puts "Done."
+
+splash::progress $splash {Loading gate copy scripts} 1
+
+puts -nonewline "Loading gate copy script procs..."
+source $SpecTclHome/Script/CopyGates.tcl
+puts "Done."
+
+splash::progress $splash {Loading tkcon console} 1
+
+if {$tcl_platform(os) != "Windows NT"} {
+        puts -nonewline "Loading TKCon console..."
+        source $SpecTclHome/Script/tkcon.tcl
+        puts "Done."
+}
+
+
+set here [file dirname [info script]]
+source $here/spectra.tcl
+sbind -all
+
+splash::progress $splash {Loading SpecTcl Tree Gui} 1
+
+puts -nonewline "Starting treeparamgui..."
+source $SpecTclHome/Script/SpecTclGui.tcl
+puts " Done"
+
+
+splash::progress $splash {SpecTcl ready for use} 1
+
+splash::config $splash -delay 2000
+
+            </programlisting>
+        </example>
+        <example>
+            <title>Tdiff.h</title>
+            <programlisting>
+#ifndef _TDIF_H
+#define _TDIF_H
+
+#include &lt;config.h&gt;
+#include &lt;EventProcessor.h&gt;
+
+class CTreeParameterArray;
+
+class CTdiff : public CEventProcessor
+{
+public:
+  CTdiff();
+  virtual ~CTdiff();
+
+ virtual Bool_t operator()(const Address_t pEvent,
+                            CEvent&amp;         rEvent,
+                            CAnalyzer&amp;      rAnalyzer,
+                            CBufferDecoder&amp; rDecoder);
+private:
+ CTreeParameterArray&amp; m_times;
+ CTreeParameterArray* m_diffs[32];
+};
+
+#endif
+
+            </programlisting>
+        </example>
+        <example>
+            <title>Tdiff.cpp</title>
+            <programlisting>
+
+#include "Tdiff.h"
+#include &lt;TreeParameter.h&gt;
+#include &lt;BufferDecoder.h&gt;
+#include &lt;TCLAnalyzer.h&gt;
+#include &lt;stdio.h&gt;
+
+CTdiff::CTdiff() :
+  m_times(*(new CTreeParameterArray("t", 8192, -4095, 4095, "channels", 32, 0)))
+{
+  char baseName[100];
+  for (int i =0; i &lt; 32; i++) {
+    sprintf(baseName, "tdiff.%02d", i);
+    m_diffs[i] =
+      new  CTreeParameterArray(baseName, 8192, -4095, 4095, "channels", 32, 0);
+  }
+}
+
+CTdiff::~CTdiff()
+{
+  for (int i =0; i &lt; 32; i++) {
+    delete m_diffs[i];
+  }
+}
+
+
+Bool_t CTdiff::operator()(const Address_t pEvent,
+                         CEvent&amp; rEvent,
+                         CAnalyzer&amp; rAnalyzer,
+                         CBufferDecoder&amp; rDecoder)
+{
+  for (int i = 0; i &lt; 32; i++) {
+    if (m_times[i].isValid()) {
+      for (int j = 0; j &lt; 32; j++) {
+        if (m_times[j].isValid()) {
+          (*m_diffs[i])[j] = m_times[i] - m_times[j];
+        }
+      }
+    }
+  }
+
+  return kfTRUE;
+}
+
+            </programlisting>
+        </example>
+    </section>
+ </chapter>
+<!-- /chapter -->

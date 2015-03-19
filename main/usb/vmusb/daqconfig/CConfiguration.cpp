@@ -51,6 +51,8 @@
 #include "CUserCommand.h"
 //#include "C3820TstampCommand.h"
 #include "CXLMTimestamp.h"
+#include "CMQDC32RdoHdwr.h"
+#include "CMTDCCommand.h"
 
 #include <CReadoutModule.h>
 #include <TCLInterpreter.h>
@@ -108,6 +110,7 @@ CConfiguration::CConfiguration() :
   m_Commands.push_back(new CAddTclDriver(*m_pInterp, *this));
   m_Commands.push_back(new CHiRACommand(*m_pInterp, *this));
   m_Commands.push_back(new CVMUSBCommand(*m_pInterp, *this));
+  m_Commands.push_back(new CMTDCCommand(*m_pInterp, *this));
 
   m_Commands.push_back(new CUserCommand(*m_pInterp, *this, "delay", new CDelay));
 
@@ -117,6 +120,7 @@ CConfiguration::CConfiguration() :
                                         new CCBDCamacBranch) );
   m_Commands.push_back(new CUserCommand(*m_pInterp, *this, "XLMTimestamp", 
                                         new CXLMTimestamp) );
+  m_Commands.push_back(new CUserCommand(*m_pInterp, *this, "mqdc", new CMQDC32RdoHdwr) );
 
   // Add hybrid drivers
   typedef CCBD8210CrateController Ctlr;

@@ -249,9 +249,20 @@ int main(int argc, char* argv[])
 <!-- manpage 3daq -->
 
 <refentry id='manpage.cfilter'>
+    <refentryinfo>
+        <author>
+                <personname>
+                        <firstname>Jeromy</firstname>
+                        <surname>Tompkins</surname>
+                </personname>
+        </author>
+        <productname>NSCLDAQ</productname>
+        <productnumber></productnumber>
+    </refentryinfo>
   <refmeta>
     <refentrytitle id='manpage.cfilter_title'>CFilter</refentrytitle>
     <manvolnum>3daq</manvolnum>
+    <refmiscinfo class='empty'></refmiscinfo>
   </refmeta>
   
   <refnamediv>
@@ -484,9 +495,20 @@ int main(int argc, char* argv[])
 </refentry>
 
 <refentry id='manpage.ccompositefilter'>
+    <refentryinfo>
+        <author>
+                <personname>
+                        <firstname>Jeromy</firstname>
+                        <surname>Tompkins</surname>
+                </personname>
+        </author>
+        <productname>NSCLDAQ</productname>
+        <productnumber></productnumber>
+    </refentryinfo>
   <refmeta>
     <refentrytitle id='manpage.ccompositefilter_title'>CCompositeFilter</refentrytitle>
     <manvolnum>3daq</manvolnum>
+    <refmiscinfo class='empty'></refmiscinfo>
   </refmeta>
   
   <refnamediv>

@@ -820,6 +820,149 @@ stripconfig <replaceable>option ?...?</replaceable>
         
     </refsect1>
     <refsect1>
+        <title>EXTENSION POINTS AND API</title>
+        <para>
+            There are a number of ways to extend the scaler display. 
+        </para>
+        <para>
+            First the scaler configuration file is just a Tcl script with commands
+            added to the interpreter to support defining channels, pages and their
+            contents and strip chart channels.  Thus you could add additional
+            functionality via that script.
+        </para>
+        <para>
+            Second the scaler display program provides for callbacks to
+            user code that is either part of the configuration file
+            or incorporated by the configuration file. A minimal API
+            also allows extensions of that sort to gain information
+            needed for other processing.
+        </para>
+        <refsect2>
+            <title>Callbacks</title>
+            <para>
+                There are three callback points defined by the scaler display program.
+                If a user configuration file defines an appropriately named
+                <command>proc</command> it will be called:
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><command>UserBeginRun</command></term>
+                    <listitem>
+                        <para>
+                            As the namei implies, this proc, if defined,
+                            will be invoked when the scaler program processes
+                            begin run ring items.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>UserEndRun</command></term>
+                    <listitem>
+                        <para>
+                            Similarly this proc, if defined, is called when
+                            the scaler program processes an end of run.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>UserUpdate</command></term>
+                    <listitem>
+                        <para>
+                            Called, if defined, when a scaler ring item is
+                            processed.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                
+            </variablelist>
+        </refsect2>
+        <refsect2>
+            <title>API</title>
+            <para>
+                A very simple and minimal API provides access to data and objects
+                that make up the scaler program.  These are all simple Tcl procs.  
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><command>getStartTime</command></term>
+                    <listitem>
+                        <para>
+                            Returns the start time <command>[clock seconds]</command>
+                            at which the most recent run started.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>getElapsedTime</command></term>
+                    <listitem>
+                        <para>
+                            Return the run elapsed time in seconds.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>getTitle</term>
+                    <listitem>
+                        <para>
+                            Returns the title of the most recently started run.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>getRunNumber</term>
+                    <listitem>
+                        <para>
+                            Returns the run number of the most recently started run.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>getState</term>
+                    <listitem>
+                        <para>
+                            Returns the state of the run.  This is one of
+                            <literal>Active</literal> or <literal>Inactive</literal>
+                            depending on whether or not the run is in progress.
+                            Note that paused runs will appear as <literal>Active</literal>
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>getScalerNames</command></term>
+                    <listitem>
+                        <para>
+                            Returns a Tcl list that contains the name of all
+                            scaler channels defined.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>getRate</command> <replaceable>name</replaceable></term>
+                    <listitem>
+                        <para>
+                            Returns the counting rate of the channel
+                            <replaceable>name</replaceable>
+                            as of its most recent update.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <command>getTotal</command> <replaceable>name</replaceable>
+                    </term>
+                    <listitem>
+                        <para>
+                            Returns the total number of counts accumulated in the
+                            scaler <replaceable>name</replaceable> as of its most
+                            recent update.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                
+            </variablelist>
+        </refsect2>
+    </refsect1>
+    <refsect1>
         <title>ENVIRONMENT VARIABLES</title>
         <para>
             <literal>SCALER_RING</literal> is a space separated list of the

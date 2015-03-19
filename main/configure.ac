@@ -3,7 +3,7 @@
 
 AC_PREREQ(2.61)
 
-AC_INIT(nscldaq, 11.0-rc20, fox@nscl.msu.edu,[], [http://www.sourceforge.net/projects/nscldaq])
+AC_INIT(nscldaq, 11.0-000, fox@nscl.msu.edu,[], [http://www.sourceforge.net/projects/nscldaq])
 
 
 AC_CONFIG_SRCDIR([/utilities/StringsToIntegers.h])
@@ -403,6 +403,7 @@ AC_CONFIG_FILES([Makefile
 		 daq/actions/Makefile
 		 daq/eventbuilder/offlineorderer/Makefile
      daq/eventbuilder/offlineorderer/figures/Makefile
+		simplesetups/Makefile
 		 sbs/Makefile
 		 sbs/driver/Makefile
 		 sbs/driver/src/Makefile

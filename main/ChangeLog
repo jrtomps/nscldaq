@@ -918,3 +918,11 @@ Work on 11.0-rc11 begins
 	reset happens so that wraps are handled properly and resets set
 	the last counters to zero instead.
          
+11.0-000  
+	* Feature #3413 Merge in MTDC support from CAEN.
+	* Support callout extensions for scaler display.
+	* Added documentation for the xyplotcontainer and marker snidgets.
+	* Added simplesetup form v785
+	* Feature #3485 - Add mtdc VMUSB documentation.
+	
+	

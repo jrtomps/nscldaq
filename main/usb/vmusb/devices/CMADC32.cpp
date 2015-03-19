@@ -535,7 +535,7 @@ CMADC32::clone() const
 */
 void
 CMADC32::setChainAddresses(CVMUSB&                controller,
-			   CMADC32::ChainPosition position,
+			   CMesytecBase::ChainPosition position,
 			   uint32_t               cbltBase,
 			   uint32_t               mcastBase)
 {
@@ -543,6 +543,7 @@ CMADC32::setChainAddresses(CVMUSB&                controller,
   uint32_t base = m_pConfiguration->getIntegerParameter("-base");
 
   cerr << "Position: " << position << endl;
+  cerr << hex << "base: " << base << dec << endl;
 
   // Compute the value of the control register..though we will first program
   // the addresses then the control register:
@@ -603,17 +604,19 @@ CMADC32::initCBLTReadout(CVMUSB& controller, uint32_t mcast, int rdoSize)
   controller.vmeWrite16(mcast + StartAcq, initamod, (uint16_t)0);
   controller.vmeWrite16(mcast + InitFifo, initamod, (uint16_t)0);
 
-  // Set stamping
+  // Setup synchronized stamping - note that each module must set the correct
+  // mark type.   This is because the MTDC e.g. has a richer set of marktypes
+  // than the MADC32.
 
   if(timestamping) {
     // Oscillator sources are assumed to already be set.
     // Reset the timer:
 
-    controller.vmeWrite16(mcast + MarkType,       initamod, (uint16_t)1); // Show timestamp, not event count.
+    //    controller.vmeWrite16(mcast + MarkType,       initamod, (uint16_t)1); // Show timestamp, not event count.
     controller.vmeWrite16(mcast + TimestampReset, initamod, (uint16_t)3); // reset all counter.
   }
   else {
-    controller.vmeWrite16(mcast + MarkType,       initamod, (uint16_t)0); // Use Eventcounter.
+    //    controller.vmeWrite16(mcast + MarkType,       initamod, (uint16_t)0); // Use Eventcounter.
     controller.vmeWrite16(mcast + EventCounterReset, initamod, (uint16_t)0); // Reset al event counters.
   }
   // Set multievent mode
@@ -634,6 +637,7 @@ CMADC32::initCBLTReadout(CVMUSB& controller, uint32_t mcast, int rdoSize)
   controller.vmeWrite16(mcast + ReadoutReset, initamod, (uint16_t)0);
   controller.vmeWrite16(mcast + StartAcq , initamod, (uint16_t)1);
 }
+
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////

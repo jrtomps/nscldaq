@@ -1827,9 +1827,20 @@ ReadoutGuiApp  r                                  <co id='custom_readoutgui_inst
 <!-- /chapter -->
 <!-- manpage 3rdogui -->
    <refentry id='rdogui_man'>
+    <refentryinfo>
+        <author>
+                <personname>
+                        <firstname>Ron</firstname>
+                        <surname>Fox</surname>
+                </personname>
+        </author>
+        <productname>NSCLDAQ</productname>
+        <productnumber></productnumber>
+    </refentryinfo>
      <refmeta>
           <refentrytitle id='rdogui_man_title'>Introduction</refentrytitle>
           <manvolnum>3rdogui</manvolnum>
+          <refmiscinfo class='empty'></refmiscinfo>
        </refmeta>
        <refnamediv>
           <refname>Introduction</refname>
@@ -2059,9 +2070,20 @@ lappend auto_path $pkghome
      </refentry>     
 
       <refentry id="rdogui3_bells">
+        <refentryinfo>
+            <author>
+                    <personname>
+                            <firstname>Ron</firstname>
+                            <surname>Fox</surname>
+                    </personname>
+            </author>
+            <productname>NSCLDAQ</productname>
+            <productnumber></productnumber>
+        </refentryinfo>
         <refmeta>
            <refentrytitle id="rdogui3_bells_title">bells</refentrytitle>
            <manvolnum>3rdogui</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
         </refmeta>
         <refnamediv>
            <refname>bells</refname>
@@ -2268,9 +2290,20 @@ $abell destroy
       </refentry>
 
       <refentry id="rdogui3_configuration">
+        <refentryinfo>
+            <author>
+                    <personname>
+                            <firstname>Ron</firstname>
+                            <surname>Fox</surname>
+                    </personname>
+            </author>
+            <productname>NSCLDAQ</productname>
+            <productnumber></productnumber>
+        </refentryinfo>
         <refmeta>
            <refentrytitle id='rdogui3_configuration_title'>Configuration</refentrytitle>
            <manvolnum>rdogui3</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
         </refmeta>
         <refnamediv>
            <refname>Configuration</refname>
@@ -2417,9 +2450,20 @@ Configuration::readConfigFile <replaceable>path</replaceable>
 
       </refentry>
       <refentry id="rdogui3_daqparameters">
+        <refentryinfo>
+            <author>
+                    <personname>
+                            <firstname>Ron</firstname>
+                            <surname>Fox</surname>
+                    </personname>
+            </author>
+            <productname>NSCLDAQ</productname>
+            <productnumber></productnumber>
+        </refentryinfo>
         <refmeta>
            <refentrytitle id='rdogui3_daqparameters_title'>DAQParameters</refentrytitle>
            <manvolnum>rdogui3</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
         </refmeta>
         <refnamediv>
            <refname>Data Acquisition parameters</refname>
@@ -2751,9 +2795,20 @@ package require DAQParameters
 
       </refentry>
       <refentry id="rdogui3_DataSourceManager">
+        <refentryinfo>
+            <author>
+                    <personname>
+                            <firstname>Ron</firstname>
+                            <surname>Fox</surname>
+                    </personname>
+            </author>
+            <productname>NSCLDAQ</productname>
+            <productnumber></productnumber>
+        </refentryinfo>
         <refmeta>
            <refentrytitle id='rdogui3_DataSourceManager_title'>DataSourceManager</refentrytitle>
            <manvolnum>3rdogui</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
         </refmeta>
         <refnamediv>
            <refname>DataSourceManager</refname>
@@ -3189,9 +3244,20 @@ set <replaceable>source-descriptions</replaceable> [<replaceable>$singleton</rep
       </refentry>
 
       <refentry id="rdogui3_DatasourceUI">
+        <refentryinfo>
+            <author>
+                    <personname>
+                            <firstname>Ron</firstname>
+                            <surname>Fox</surname>
+                    </personname>
+            </author>
+            <productname>NSCLDAQ</productname>
+            <productnumber></productnumber>
+        </refentryinfo>
         <refmeta>
            <refentrytitle id="rdogui3_DatasourceUI_title">DataSourceUI</refentrytitle>
            <manvolnum>3rdogui</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
         </refmeta>
         <refnamediv>
            <refname>DataSourceUI</refname>
@@ -3598,9 +3664,20 @@ if {$result eq "Ok"} {
       </refentry>
       
       <refentry id="rdogui3_diagnostics">
+        <refentryinfo>
+            <author>
+                    <personname>
+                            <firstname>Ron</firstname>
+                            <surname>Fox</surname>
+                    </personname>
+            </author>
+            <productname>NSCLDAQ</productname>
+            <productnumber></productnumber>
+        </refentryinfo>
         <refmeta>
            <refentrytitle id='rdogui3_diagnostics_title'>Diagnostics</refentrytitle>
            <manvolnum>1tcl</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
         </refmeta>
         <refnamediv>
            <refname>Diagnostics</refname>
@@ -3708,9 +3785,20 @@ package require Diagnostics
       </refentry>
       
       <refentry id="rdogui3_expfilesystemconfig">
+        <refentryinfo>
+            <author>
+                    <personname>
+                            <firstname>Ron</firstname>
+                            <surname>Fox</surname>
+                    </personname>
+            </author>
+            <productname>NSCLDAQ</productname>
+            <productnumber></productnumber>
+        </refentryinfo>
         <refmeta>
            <refentrytitle id='rdogui3_expfilesystemconfig_title'>ExpFileSystemConfig</refentrytitle>
            <manvolnum>3rdogui</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
         </refmeta>
         <refnamediv>
            <refname>ExpFileSystemConfig</refname>
@@ -3867,9 +3955,20 @@ package require ExpFileSystemConfig
       </refentry>
 
       <refentry id="rdogui3_readoutgui">
+        <refentryinfo>
+            <author>
+                    <personname>
+                            <firstname>Ron</firstname>
+                            <surname>Fox</surname>
+                    </personname>
+            </author>
+            <productname>NSCLDAQ</productname>
+            <productnumber></productnumber>
+        </refentryinfo>
         <refmeta>
            <refentrytitle id='rdogui3_readoutgui_title'>ReadoutGui</refentrytitle>
            <manvolnum>3rdogui</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
         </refmeta>
         <refnamediv>
            <refname>ReadoutGui</refname>
@@ -4141,9 +4240,20 @@ ReadoutGuiApp <replaceable>%AUTO% | app-name</replaceable>
       </refentry>
 
       <refentry id="rdogui3_readoutguipanel">
+        <refentryinfo>
+            <author>
+                    <personname>
+                            <firstname>Ron</firstname>
+                            <surname>Fox</surname>
+                    </personname>
+            </author>
+            <productname>NSCLDAQ</productname>
+            <productnumber></productnumber>
+        </refentryinfo>
         <refmeta>
            <refentrytitle id='rdogui3_readoutguipanel_title'>ReadoutGUIPanel</refentrytitle>
            <manvolnum>3rdogui</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
         </refmeta>
         <refnamediv>
            <refname>ReadoutGUIPanel</refname>
@@ -4622,9 +4732,20 @@ $mymenu add command -label "a command" -command handleACommand
 
       </refentry>
       <refentry id="rdogui3_runstatemachine">
+        <refentryinfo>
+            <author>
+                    <personname>
+                            <firstname>Ron</firstname>
+                            <surname>Fox</surname>
+                    </personname>
+            </author>
+            <productname>NSCLDAQ</productname>
+            <productnumber></productnumber>
+        </refentryinfo>
         <refmeta>
            <refentrytitle id='rdogui3_runstatemachine_title'>RunStateMachine</refentrytitle>
            <manvolnum>3rdogui</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
         </refmeta>
         <refnamediv>
            <refname>RunStateMachine</refname>
@@ -5046,9 +5167,20 @@ $::MyBundle::sm    addCalloutBundle MyBundle          <co id='callout_bundle_reg
         </refsect1>
       </refentry>
       <refentry id="rdogui3_statemanager">
+        <refentryinfo>
+            <author>
+                    <personname>
+                            <firstname>Ron</firstname>
+                            <surname>Fox</surname>
+                    </personname>
+            </author>
+            <productname>NSCLDAQ</productname>
+            <productnumber></productnumber>
+        </refentryinfo>
         <refmeta>
            <refentrytitle id='rdogui3_statemanager_title'>StateManager</refentrytitle>
            <manvolnum>3rdogui</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
         </refmeta>
         <refnamediv>
            <refname>StateManager</refname>
@@ -5340,9 +5472,20 @@ $sm restore                                          <co id='statemgr_restore' /
         </refsect1>
       </refentry>
       <refentry id="rdogui3_ui">
+        <refentryinfo>
+            <author>
+                    <personname>
+                            <firstname>Ron</firstname>
+                            <surname>Fox</surname>
+                    </personname>
+            </author>
+            <productname>NSCLDAQ</productname>
+            <productnumber></productnumber>
+        </refentryinfo>
         <refmeta>
            <refentrytitle id='rdogui3_ui_title'>ui</refentrytitle>
            <manvolnum>3rdogui</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
         </refmeta>
         <refnamediv>
            <refname>ui</refname>
@@ -6302,9 +6445,20 @@ proc Output::getInstance { {win {}} args} {
         
       </refentry>
       <refentry id="rdogui3_outputwindowsettings">
+        <refentryinfo>
+            <author>
+                    <personname>
+                            <firstname>Ron</firstname>
+                            <surname>Fox</surname>
+                    </personname>
+            </author>
+            <productname>NSCLDAQ</productname>
+            <productnumber></productnumber>
+        </refentryinfo>
         <refmeta>
            <refentrytitle id='rdogui3_outputwindowsettings_title'>OutputWindowSettings</refentrytitle>
            <manvolnum>3rdogui</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
         </refmeta>
         <refnamediv>
            <refname>OutputWindowSettings</refname>
@@ -6402,9 +6556,20 @@ OutputWindowSettings <replaceable>widget-path ?options...?</replaceable>
       </refentry>
       
       <refentry id="rdogui3_StatusArea">
+        <refentryinfo>
+            <author>
+                    <personname>
+                            <firstname>Ron</firstname>
+                            <surname>Fox</surname>
+                    </personname>
+            </author>
+            <productname>NSCLDAQ</productname>
+            <productnumber></productnumber>
+        </refentryinfo>
         <refmeta>
            <refentrytitle id='rdogui3_StatusArea_title'>StatusArea</refentrytitle>
            <manvolnum>3rdogui</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
         </refmeta>
         <refnamediv>
            <refname>StatusArea</refname>
@@ -6557,9 +6722,20 @@ $status setMessage $msg {Some text} -foreground green
 <!-- /manpage -->
 <!-- manpage 3provider -->
       <refentry id="provider3_intro">
+        <refentryinfo>
+            <author>
+                    <personname>
+                            <firstname>Ron</firstname>
+                            <surname>Fox</surname>
+                    </personname>
+            </author>
+            <productname>NSCLDAQ</productname>
+            <productnumber></productnumber>
+        </refentryinfo>
         <refmeta>
            <refentrytitle id='provider3_intro_title'>Introduction</refentrytitle>
            <manvolnum>3provider</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
         </refmeta>
         <refnamediv>
            <refname>Introduction</refname>
@@ -6851,9 +7027,20 @@ proc ::MyDataSource::parameters {} {
       </refentry>
 
       <refentry id="provider3_parameters">
+        <refentryinfo>
+            <author>
+                    <personname>
+                            <firstname>Ron</firstname>
+                            <surname>Fox</surname>
+                    </personname>
+            </author>
+            <productname>NSCLDAQ</productname>
+            <productnumber></productnumber>
+        </refentryinfo>
         <refmeta>
            <refentrytitle id='provider3_parameters_title'>parameters</refentrytitle>
            <manvolnum>3provider</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
         </refmeta>
         <refnamediv>
            <refname>parameters</refname>
@@ -6891,9 +7078,20 @@ proc ::<replaceable>providerName</replaceable>::parameters {} {
 
       </refentry>
       <refentry id="provider3_start">
+        <refentryinfo>
+            <author>
+                    <personname>
+                            <firstname>Ron</firstname>
+                            <surname>Fox</surname>
+                    </personname>
+            </author>
+            <productname>NSCLDAQ</productname>
+            <productnumber></productnumber>
+        </refentryinfo>
         <refmeta>
            <refentrytitle id='provider3_start_title'>start</refentrytitle>
            <manvolnum>3provider</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
         </refmeta>
         <refnamediv>
            <refname>start</refname>
@@ -6926,9 +7124,20 @@ proc ::<replaceable>providerName</replaceable>::parameters {} {
  
       </refentry>
       <refentry id="provider3_check">
+        <refentryinfo>
+            <author>
+                    <personname>
+                            <firstname>Ron</firstname>
+                            <surname>Fox</surname>
+                    </personname>
+            </author>
+            <productname>NSCLDAQ</productname>
+            <productnumber></productnumber>
+        </refentryinfo>
         <refmeta>
            <refentrytitle id='provider3_check_title'>check</refentrytitle>
            <manvolnum>3provider</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
         </refmeta>
         <refnamediv>
            <refname>check</refname>
@@ -6966,9 +7175,20 @@ proc ::<replaceable>providerName</replaceable>::check <replaceable>sourceId</rep
 
       </refentry>
       <refentry id="provider3_stop">
+        <refentryinfo>
+            <author>
+                    <personname>
+                            <firstname>Ron</firstname>
+                            <surname>Fox</surname>
+                    </personname>
+            </author>
+            <productname>NSCLDAQ</productname>
+            <productnumber></productnumber>
+        </refentryinfo>
         <refmeta>
            <refentrytitle id='provider3_stop_title'>stop</refentrytitle>
            <manvolnum>3provider</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
         </refmeta>
         <refnamediv>
            <refname>stop</refname>
@@ -7004,9 +7224,20 @@ proc ::<replaceable>providername</replaceable>::stop <replaceable>sourceId</repl
 
       </refentry>
       <refentry id="provider3_begin">
+        <refentryinfo>
+            <author>
+                    <personname>
+                            <firstname>Ron</firstname>
+                            <surname>Fox</surname>
+                    </personname>
+            </author>
+            <productname>NSCLDAQ</productname>
+            <productnumber></productnumber>
+        </refentryinfo>
         <refmeta>
            <refentrytitle id='provider3_begin_title'>begin</refentrytitle>
            <manvolnum>3provider</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
         </refmeta>
         <refnamediv>
            <refname>begin</refname>
@@ -7044,9 +7275,20 @@ proc ::<replaceable>providerName</replaceable>::begin {sourceId runNumber title}
 
       </refentry>
       <refentry id="provider3_pause">
+        <refentryinfo>
+            <author>
+                    <personname>
+                            <firstname>Ron</firstname>
+                            <surname>Fox</surname>
+                    </personname>
+            </author>
+            <productname>NSCLDAQ</productname>
+            <productnumber></productnumber>
+        </refentryinfo>
         <refmeta>
            <refentrytitle id='provider3_pause_title'>pause</refentrytitle>
            <manvolnum>3provider</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
         </refmeta>
         <refnamediv>
            <refname>pause</refname>
@@ -7096,9 +7338,20 @@ proc ::<replaceable>providerName</replaceable>::pause <replaceable>sourceId</rep
       </refentry>
      
       <refentry id="provider3_resume">
+        <refentryinfo>
+            <author>
+                    <personname>
+                            <firstname>Ron</firstname>
+                            <surname>Fox</surname>
+                    </personname>
+            </author>
+            <productname>NSCLDAQ</productname>
+            <productnumber></productnumber>
+        </refentryinfo>
         <refmeta>
           <refentrytitle id='provider3_resume_title'>resume</refentrytitle>
           <manvolnum>3provider</manvolnum>
+          <refmiscinfo class='empty'></refmiscinfo>
         </refmeta>
         <refnamediv>
           <refname>resume</refname>
@@ -7141,9 +7394,20 @@ proc ::<replaceable>providerName</replaceable>::resume <replaceable>sourceId</re
     </refentry>
 
         <refentry id="provider3_end">
+            <refentryinfo>
+                <author>
+                        <personname>
+                                <firstname>Ron</firstname>
+                                <surname>Fox</surname>
+                        </personname>
+                </author>
+                <productname>NSCLDAQ</productname>
+                <productnumber></productnumber>
+            </refentryinfo>
           <refmeta>
             <refentrytitle id='provider3_end_title'>end</refentrytitle>
             <manvolnum>3provider</manvolnum>
+            <refmiscinfo class='empty'></refmiscinfo>
           </refmeta>
           <refnamediv>
             <refname>end</refname>
@@ -7174,9 +7438,20 @@ proc ::<replaceable>providerName</replaceable>::resume <replaceable>sourceId</re
         </refentry>
     
       <refentry id="provider3_init">
+        <refentryinfo>
+            <author>
+                    <personname>
+                            <firstname>Ron</firstname>
+                            <surname>Fox</surname>
+                    </personname>
+            </author>
+            <productname>NSCLDAQ</productname>
+            <productnumber></productnumber>
+        </refentryinfo>
         <refmeta>
            <refentrytitle id='provider3_init_title'>init</refentrytitle>
            <manvolnum>3provider</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
         </refmeta>
         <refnamediv>
            <refname>init</refname>
@@ -7208,9 +7483,20 @@ proc ::<replaceable>providerName</replaceable>::init <replaceable>sourceId</repl
        </refentry>
 
       <refentry id="provider3_capabilities">
+        <refentryinfo>
+            <author>
+                    <personname>
+                            <firstname>Ron</firstname>
+                            <surname>Fox</surname>
+                    </personname>
+            </author>
+            <productname>NSCLDAQ</productname>
+            <productnumber></productnumber>
+        </refentryinfo>
         <refmeta>
            <refentrytitle id='provider3_capabilities_title'>capabilities</refentrytitle>
            <manvolnum>3provider</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
         </refmeta>
         <refnamediv>
            <refname>capabilities</refname>
@@ -7284,9 +7570,20 @@ proc ::<replaceable>providerName</replaceable>::capabilities {} {
       </refentry>
       
       <refentry id="provider3_sshpipe">
+        <refentryinfo>
+            <author>
+                    <personname>
+                            <firstname>Ron</firstname>
+                            <surname>Fox</surname>
+                    </personname>
+            </author>
+            <productname>NSCLDAQ</productname>
+            <productnumber></productnumber>
+        </refentryinfo>
         <refmeta>
            <refentrytitle id='provider3_sshpipe_title'>SSHPipe</refentrytitle>
            <manvolnum>3provider</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
         </refmeta>
         <refnamediv>
            <refname>SSHPipe</refname>
@@ -7454,9 +7751,20 @@ package require SSHPipe_Provider
       </refentry>
 
       <refentry id="provider3_s800">
+        <refentryinfo>
+            <author>
+                    <personname>
+                            <firstname>Ron</firstname>
+                            <surname>Fox</surname>
+                    </personname>
+            </author>
+            <productname>NSCLDAQ</productname>
+            <productnumber></productnumber>
+        </refentryinfo>
         <refmeta>
            <refentrytitle id='provider3_s800_title'>s800</refentrytitle>
            <manvolnum>3provider</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
         </refmeta>
         <refnamediv>
            <refname>s800</refname>
@@ -7556,9 +7864,20 @@ $DAQROOT/bin/s800toring <replaceable>host port ring</replaceable>
       </refentry>
                 
       <refentry id="provider3_delay">
+        <refentryinfo>
+            <author>
+                    <personname>
+                            <firstname>Jeromy</firstname>
+                            <surname>Tompkins</surname>
+                    </personname>
+            </author>
+            <productname>NSCLDAQ</productname>
+            <productnumber></productnumber>
+        </refentryinfo>
         <refmeta>
            <refentrytitle id='provider3_delay_title'>Delay</refentrytitle>
            <manvolnum>3provider</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
         </refmeta>
         <refnamediv>
            <refname>delay</refname>
@@ -7605,9 +7924,20 @@ package require Delay_Provider
 <!-- manpage 1daq -->
 
       <refentry id="manpage_readoutshell">
+        <refentryinfo>
+            <author>
+                    <personname>
+                            <firstname>Ron</firstname>
+                            <surname>Fox</surname>
+                    </personname>
+            </author>
+            <productname>NSCLDAQ</productname>
+            <productnumber></productnumber>
+        </refentryinfo>
         <refmeta>
            <refentrytitle>ReadoutShell</refentrytitle>
            <manvolnum>1daq</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
         </refmeta>
         <refnamediv>
            <refname>ReadoutShell</refname>
@@ -7797,9 +8127,20 @@ $DAQROOT/bin/ReadoutShell
         </refsect1>
       </refentry>
         <refentry id="rdogui3_readoutguioutputclient">
+            <refentryinfo>
+                <author>
+                        <personname>
+                                <firstname>Ron</firstname>
+                                <surname>Fox</surname>
+                        </personname>
+                </author>
+                <productname>NSCLDAQ</productname>
+                <productnumber></productnumber>
+            </refentryinfo>
           <refmeta>
              <refentrytitle id="rdogui3_readoutguioutputclient_title">ReadoutGUIOutputClient</refentrytitle>
              <manvolnum>3rdogui</manvolnum>
+             <refmiscinfo class='empty'></refmiscinfo>
           </refmeta>
           <refnamediv>
              <refname>ReadoutGUIOutputClient</refname>

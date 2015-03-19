@@ -42,6 +42,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2014, Al
 #include "CTransparentFilter.h"
 #include "CNullFilter.h"
 #include "CTestFilter.h"
+#include <CMediatorException.h>
 
 #include <cppunit/extensions/HelperMacros.h>
 
@@ -70,6 +71,7 @@ class COneShotMediatorTest : public CppUnit::TestFixture
     CPPUNIT_TEST ( testWaitForBegin_0 );
     CPPUNIT_TEST ( initialize_0 );
     CPPUNIT_TEST ( finalize_0 );
+    CPPUNIT_TEST ( abnormalEndRun_0 );
     CPPUNIT_TEST_SUITE_END();
 
   public:
@@ -79,6 +81,7 @@ class COneShotMediatorTest : public CppUnit::TestFixture
     void testWaitForBegin_0();
     void initialize_0();
     void finalize_0();
+    void abnormalEndRun_0();
 
   private:
     size_t writeRingItemToFile(CRingItem& item,
@@ -210,4 +213,47 @@ void COneShotMediatorTest::finalize_0()
   m_mediator->finalize();
   CPPUNIT_ASSERT_EQUAL(true, filt->m_finalCalled );
 
+}
+
+void COneShotMediatorTest::abnormalEndRun_0 () {
+
+  tearDown();
+
+  // Set up the mediator
+  string proto("file://");
+  string infname("./run-0001-00.evt");
+  string outfname("./copy2-run-0000-00.evt");
+  string expectedResultFname("./copy2-run-0000-00.exp.evt");
+
+  // create the test file in a block so that it gets destroyed by 
+  // going out of scope
+  {
+    CFileDataSink test_infile(infname);
+    test_infile.putItem(CRingStateChangeItem(BEGIN_RUN));
+    test_infile.putItem(CRingStateChangeItem(ABNORMAL_ENDRUN));
+    test_infile.putItem(CDataFormatItem());
+  }
+
+  {
+    CFileDataSink exp_file(expectedResultFname);
+    exp_file.putItem(CRingStateChangeItem(BEGIN_RUN));
+    exp_file.putItem(CRingStateChangeItem(ABNORMAL_ENDRUN));
+    // no data format item
+  }
+
+  URL uri(proto+infname);
+  m_source = new CFileDataSource(uri, vector<uint16_t>());
+  m_sink = new CFileDataSink(outfname);
+  m_filter = new CTransparentFilter;
+
+  m_mediator = new COneShotMediator(m_source, m_filter, m_sink);
+  
+  CPPUNIT_ASSERT_NO_THROW(m_mediator->mainLoop());
+
+  CPPUNIT_ASSERT(filesEqual(expectedResultFname, outfname));
+
+  // cleanup
+  remove(infname.c_str());
+  remove(outfname.c_str());
+  remove(expectedResultFname.c_str());
 }

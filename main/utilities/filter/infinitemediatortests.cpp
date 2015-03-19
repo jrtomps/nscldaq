@@ -472,9 +472,7 @@ void CInfiniteMediatorTest::testTransparentMainLoop()
 //  m_sink = new COStreamDataSink(ofile);
   try {
     URL uri(proto+infname);
-    std::cout << "\nOpening data source = " << infname << std::endl;
     m_source = new CFileDataSource(uri, std::vector<uint16_t>());
-    std::cout << "\nOpening data sink = " << outfname << std::endl;
     m_sink = new CFileDataSink(outfname);
     m_filter = new CTransparentFilter;
 
@@ -519,9 +517,7 @@ void CInfiniteMediatorTest::testFilterReturnsNULL()
 //  m_sink = new COStreamDataSink(ofile);
   try {
     URL uri(proto+infname);
-    std::cout << "\nOpening data source = " << infname << std::endl;
     m_source = new CFileDataSource(uri, std::vector<uint16_t>());
-    std::cout << "\nOpening data sink = " << outfname << std::endl;
     m_sink = new CFileDataSink(outfname);
     m_filter = new CNullFilter;
 

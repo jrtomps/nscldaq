@@ -93,11 +93,14 @@ void print_vectors(const std::vector<T>& expected, const std::vector<T>& actual)
 
 void CLoggingReadoutListTests::clear_0()
 {
+  m_pList->addDelay(1);
+  CPPUNIT_ASSERT( m_pList->size() > size_t(0));
+  CPPUNIT_ASSERT( m_pList->logSize() > size_t(0));
+
   m_pList->clear();
 
-  vector<string> expected(1);
-  expected[0] = "clear";
-  CPPUNIT_ASSERT(expected == m_pList->getLog());
+  CPPUNIT_ASSERT( size_t(m_pList->size()) == size_t(0));
+  CPPUNIT_ASSERT(m_pList->logSize() == size_t(0));
 }
 
 void CLoggingReadoutListTests::append_0()

@@ -43,7 +43,7 @@ package require snit
 #
 # METHODS:
 #    total    - Return the total counts.
-#    rage     - Return the count rates.
+#    rate     - Return the count rates.
 #    update   - Update the counters.
 #    clear    - Clear the counters.
 #    alarming - Return the channels alarm status.

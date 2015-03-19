@@ -7,7 +7,7 @@ using namespace std;
 
 void CLoggingReadoutList::clear() { 
   CVMUSBReadoutList::clear();
-  m_log.push_back("clear");
+  clearLog();
 }
 
 void CLoggingReadoutList::append(const CLoggingReadoutList& list) {
