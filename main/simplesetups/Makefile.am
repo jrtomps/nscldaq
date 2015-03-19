@@ -1,5 +1,6 @@
 DOCS    = @srcdir@/v775setup.xml @srcdir@/v775bookinfo.xml
-FIGURES = @srcdir@/v775ediagram.jpeg @srcdir@/v775ediagram.eps FIGSRC  = @srcdir@/v775ediagram.dia
+FIGURES = @srcdir@/v775ediagram.jpeg @srcdir@/v775ediagram.eps 
+FIGSRC  = @srcdir@/v775ediagram.dia
 
 
 CHAPTER2BOOK=@top_srcdir@/docbuild/chapter2book.py
