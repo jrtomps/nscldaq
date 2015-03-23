@@ -1,6 +1,6 @@
 <!-- chapter servers -->
-<chapter>
-    <title>Variable Database Server</title>
+<chapter id='chapter.vardbserver'>
+    <title id='chapter.vardbserver.title'>Variable Database Server</title>
     <para>
         The variable database server is a TCP/IP server that:
     </para>
@@ -36,6 +36,239 @@
         See <link linkend='daq1_vardbserver' endterm='daq1_vardbserver_title' /> for
         the command line options supported by the server.
     </para>    
+</chapter>
+<!-- /chapter -->
+
+<!-- chapter libraries -->
+<chapter>
+    <title>High level variable database API.</title>
+    <para>
+        The variable database can be accessed by a pair of API's. The low level
+        API directly accesses the database file and is intended for use by NSCLDAQ
+        utilities.  The high level API described in this chapter can operate either
+        directly on a database file, or through a database file server.
+    </para>
+    <para>
+        When you operate through the database file server described in
+        <link linkend='chapter.vardbserver' endterm='chapter.vardbserver.title' />,
+        changes to the database are published to clients that have subscribed
+        to them.  Your programs should generally use the high level API
+        described here.
+    </para>
+    <para>
+        The API consists of a hierarchy of classes that allow the
+        concrete API classes to be polymorphic, and a factory that, given
+        a URI can generate an appropriate concrete API object.  This
+        design allows you to write an application that accepts a URI and
+        can work interchangeably with direct file access (such as when
+        setting up an experiment), or via a server (such as when an
+        experiment is running).
+    </para>
+    <para>
+        To use the API your program will need to:
+    </para>
+    <itemizedlist>
+        <listitem><para>
+            Include the <literal>&lt;CVarMgrApi.h&gt;</literal> header which
+            defines the interface concrete API's define
+        </para></listitem>
+        <listitem><para>
+            Inlude the <literal>&lt;CVarMgrApiFactory.h&gt;</literal> header
+            which defines the interface provide by the factory
+        </para></listitem>
+        <listitem><para>
+            Use one of the factory creation methods to create an instance
+            of an API object (usually via an URI).
+        </para></listitem>
+        <listitem><para>
+            Use the methods of the API object to interact with the variable database
+        </para></listitem>
+        <listitem><para>
+            delete the API object when you are done.
+        </para></listitem>
+    </itemizedlist>
+    <note>
+        <title>NOTE</title>
+        <para>
+            The API assumes you are operating on existing database files.  You must
+            an NSCLDAQ utility such as vardbsh or the low level interface to create
+            a new database file.
+        </para>
+    </note>
+    <para>
+        Below is  simple program that uses the API.  It creates a new directory,
+        an integer variable in the directory and, every second, increments that
+        variable. 
+    </para>
+    <example>
+        <title>Using the High level variable database API.</title>
+        <programlisting>
+#include &lt;CVarMgrApi.h>&gt;                    <co id='vmapiex_apiinclude' />
+#include &lt;CVarMgrApiFactory.h&gt;              <co id='vmapiex_apifactinclude' />
+#include &lt;string&gt;
+#include &lt;stdio.h&gt;             
+#include &lt;unistd.h&gt;
+
+int main(int argc, char** argv)
+{
+  std::string uri = argv[1];                     <co id='vmapiex_uri' />
+  CVarMgrApi*  api = CVarMgrApiFactory::create(uri); <co id='vmapiex_apimake' />
+  api-&gt;mkdir("/mydir");                           <co id='vmapiex_mkdir' />
+  api-&gt;cd("/mydir");                              <co id='vmapiex_cd' />
+  api-&gt;declare("counter", "integer");             <co id='vmapiex_declare' />
+
+  int value(0);
+
+  while(1) {
+    char strCounter[100];
+    sleep(1);
+    value++;
+    sprintf(strCounter, "%d", value);
+    api-&gt;set("counter", strCounter);            <co id='vmapiex_inc' />
+
+  }
+}
+// Compile with:                                  <co id='vmapiex_compile' />
+//g++ -std=c++11 -I$DAQROOT/include -o hlapiExample hlapiExample.cpp \
+//               -L$DAQLIB -lvarmgr -Wl,"-rpath=$DAQLIB"
+        </programlisting>
+    </example>
+    <calloutlist>
+        <callout arearefs='vmapiex_apiinclude'>
+            <para>
+                This header defines the <classname>CVarMgrApi</classname>
+                class which is the abstract base class that defines
+                the high level API. 
+            </para>
+        </callout>
+        <callout arearefs='vmapiex_apifactinclude'>
+            <para>
+                This header defines the <classname>CVarMgrApiFactory</classname>.
+                That class has several static methods which are
+                responsible for generating
+                objects that are derived from, and polymorphic with
+                the <classname>CVarMgarApi</classname> class.
+            </para>
+        </callout>
+        <callout arearefs='vmapiex_uri'>
+            <para>
+                The program's first command line parameter is expected to be the
+                URI of a variable database.  In a production quality application,
+                clearly you need to ensure this parameter is present or else, if
+                omitted, the application will segfault.
+            </para>
+            <para>
+                The URI's protocol (the part before the first <literal>:</literal>)
+                will be used to determine which of the concrete subclasses
+                of the <classname>CVarMgrApi</classname> class will be created.
+                If the URI uses the <literal>file</literal> protocol, the database
+                will be directly accessed, and the path of the URI will be used
+                to determine the filename e.g. <literal>file:///users/fox/test.db</literal>
+                will directly access the file <filename>/users/fox/test.db</filename>.
+            </para>
+            <para>
+                If the <literal>tcp</literal> protocol is used an api that attempts
+                to connect to a variable database server will be created.
+                In this case the host part of the URI determines the system while
+                the port is selected as follows:
+                <itemizedlist>
+                    <listitem><para>
+                        If the port is specified it is used e.g.
+                        <literal>tcp:/localhost:1234</literal> connects to a
+                        server in the same host as the client who's REQ/REP
+                        service is listening for connections on port
+                        <literal>1234</literal>.
+                    </para></listitem>
+                    <listitem><para>
+                        If the port is not specified, but there is a path,
+                        the path is assumed to be the service name
+                        advertised by the server with the NSCLDAQ
+                        port manager. E.g.:
+                        <literal>tcp://localhost/myvarmgr-req</literal>
+                        translates the servicename <literal>myvarmgr-req</literal>
+                        to determine on which port the REQ/REP server is listening.
+                    </para></listitem>
+                    <listitem><para>
+                        If neither the port nor the path is specified
+                        (e.g. <literal>tcp://localhost</literal>), a default
+                        service name; <literal>vardb-request</literal> is translated
+                        using the NSCLDAQ port manager to determine on which port
+                        to connect.
+                    </para></listitem>
+                </itemizedlist>
+            </para>
+            <para>
+                Note that URI's that have both ports and paths are illegal in
+                this application (e.g. <literal>tcp://localhost:1234/myserver-req</literal>).
+            </para>
+        </callout>
+        <callout arearefs='vmapiex_apimake'>
+            <para>
+                The <methodname>create</methodname> static method of the factory
+                creates an appropriate API object connected to the database
+                in a manner specified by the URI it is passed.  The result
+                of <methodname>create</methodname> is a pointer to a dynamically
+                allocated object that should be <literal>delete</literal>ed
+                when your application is done using it.
+            </para>
+        </callout>
+        <callout arearefs='vmapiex_mkdir' >
+            <para>
+                The <methodname>mkdir</methodname> method of the API creates
+                a new directory as specified by its parameter.
+            </para>
+        </callout>
+        <callout arearefs='vmapiex_cd'>
+            <para>
+                The variable API has a concept of a current working directory.
+                Any paths that are specified as relative paths (paths not
+                staring with <literal>/</literal>), are computed relative
+                to the current working directory.
+            </para>
+            <para>
+                When created an API object's current working directory is
+                <literal>/</literal>.  The <methodname>cd</methodname>
+                API method changes the current working directory to a
+                directory specified by its parameter. 
+            </para>
+        </callout>
+        <callout arearefs='vmapiex_declare'>
+            <para>
+                The <methodname>declare</methodname> method of the API
+                creates a new variable.  The first parameter is the
+                path to the variable.  This can be an absolute path or, as in
+                the case of the example, a path relative to the current
+                working directory.  The second parameter is the variable
+                type, in this case an integer.  If an optional third
+                parameter is supplied it is the initial value of the variable.
+                If not supplied, the default value for that variable type
+                is used (<literal>0</literal> for integers).
+            </para>
+            <para>
+                Note that in order to accomodate values for all variables,
+                variable values are always specified as strings.
+            </para>
+        </callout>
+        <callout arearefs='vmapiex_inc'>
+            <para>
+                The <methodname>set</methodname> method modifies the value
+                of a variable.  This set is done in a loop that waits for
+                about
+                a second, increments the integer value for the variable,
+                computes the string value of the variable and then performs
+                the <methodname>set</methodname> operation to change
+                the variable.
+            </para>
+        </callout>
+    </calloutlist>
+    <para>
+        For reference information on the variable manager high level API and
+        factory, see:
+        <link linkend='daq3_cvarmgrapi' endterm='daq3_cvarmgrapi_title' />
+        and
+        <link linkend='daq3_cvarmgrapifactory'
+              endterm='daq3_cvarmgrapifactory_title' />.
+    </para>
 </chapter>
 <!-- /chapter -->
 
@@ -150,6 +383,902 @@ $DAQBIN/vardbServer
 </refentry>
 
 <!-- /manpage -->
+
+<!-- manpage 3daq -->
+<refentry id="daq3_cvarmgrapi">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='daq3_cvarmgrapi_title'>CVarMgrApi</refentrytitle>
+     <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>CVarMgrApi</refname>
+     <refpurpose>Defines the variable manager API.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+#include &lt;CVarMgrApi.h&gt;
+class <ooclass><classname>CVarMgrApi</classname></ooclass>
+{
+public:
+    typedef <type>std::vector&lt;std::string&gt; EnumValues;</type>
+    typedef <type>std::map&lt;std::string, std::set&lt;std::string&gt; &gt; StateMap;</type>
+public:
+    <methodsynopsis>
+        <modifier>virtual </modifier>
+        <type>void </type>
+        <methodname>cd</methodname>
+        <methodparam>
+            <modifier>const</modifier><type> char*</type>
+                <parameter>path </parameter>
+                <initializer>= "/"</initializer>
+        </methodparam>
+        <modifier>= 0</modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier>virtual </modifier>
+        <type>std::string </type>
+        <methodname>getwd</methodname>
+        <void />
+        <modifier> = 0</modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier>virtual </modifier>
+        <type>void </type>
+        <methodname>mkdir</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+            <parameter>path</parameter>
+        </methodparam>
+        <modifier> = 0</modifier>
+    </methodsynopsis>      
+    <methodsynopsis>
+        <modifier>virtual </modifier>
+        <type>void </type>
+        <methodname>rmdir</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>path</parameter>
+        </methodparam>
+        <modifier>    = 0;</modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier>virtual </modifier>
+        <type>void </type>
+        <methodname>declare</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>path</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>type</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier>char* </modifier><type></type>
+                <parameter>initial</parameter>
+                <initializer>=0</initializer>
+        </methodparam>
+        <modifier>= 0</modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier>virtual </modifier>
+        <type>void </type>
+        <methodname>set</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>path</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier> const </modifier><type>char* </type>
+                <parameter>value </parameter>
+        </methodparam>
+        <modifier>= 0</modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier>virtual </modifier>
+        <type>std::string </type>
+        <methodname>get</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>path</parameter>
+        </methodparam>
+        <modifier> = 0</modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier>virtual </modifier>
+        <type>void </type>
+        <methodname>defineEnum</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>typeName</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier></modifier><type> EnumValues </type>
+                <parameter>values</parameter>
+        </methodparam>
+         <modifier> = 0</modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier>virtual </modifier>
+        <type>void </type>
+        <methodname>defineStateMachine</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>typeName</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier></modifier><type>StateMap </type>
+                <parameter>transitions</parameter>
+        </methodparam>
+        <modifier>= 0</modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void </type>
+        <methodname>addTransition</methodname>
+        <methodparam>
+            <modifier></modifier><type>StateMap&amp; </type>
+                <parameter>map</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier></modifier><type>std::string </type>
+                <parameter>fromState</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier></modifier><type>std::string  </type>
+                <parameter>toState</parameter>
+        </methodparam>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>bool </type>
+        <methodname>validTransitionMap</methodname>
+        <methodparam>
+            <modifier></modifier><type>StateMap</type>
+                <parameter>map</parameter>
+        </methodparam>
+    </methodsynopsis>      
+    
+};
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        This class is an abstract base class that defines
+        an API for a variable database.  In conjunction with
+        <link linkend='daq3_cvarmgrapifactory'
+              endterm='daq3_cvarmgrapifactory_title' />,
+        and concrete subclasses of <classname>CVarMgrApi</classname>,
+        applications have an API to variable databases that is
+        independent of the connection mechanism (direct or via
+        server).
+     </para>
+     <para>
+        In addition, this class provides a set of utility methods that
+        applications and derived classes can use to build and validate the
+        state transition tables used to define new state machine data types.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>virtual </modifier>
+                    <type>void </type>
+                    <methodname>cd</methodname>
+                    <methodparam>
+                        <modifier>const</modifier><type> char*</type>
+                            <parameter>path </parameter>
+                            <initializer>= "/"</initializer>
+                    </methodparam>
+                    <modifier>= 0</modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    The API has the concept of a current working directory.
+                    When paths are provided to the API that are relative
+                    (not starting with a <literal>/</literal>), the actual
+                    path used s calculated relative to this working directory.
+                </para>
+                <para>
+                    The <methodname>cd</methodname> method changes the
+                    current working directory to <parameter>path</parameter>.
+                    If the <parameter>path </parameter> does not exist a
+                    <classname>CVarMgrApi::CException</classname> is thrown.
+                    See PUBLIC VARIABLES, TYPES and CONSTANTS
+                    for more about this exception.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>virtual </modifier>
+                    <type>std::string </type>
+                    <methodname>getwd</methodname>
+                    <void />
+                    <modifier> = 0</modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns the current working directory.  See
+                    the description of <methodname>cd</methodname>
+                    above for more information.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>virtual </modifier>
+                    <type>void </type>
+                    <methodname>mkdir</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                        <parameter>path</parameter>
+                    </methodparam>
+                    <modifier> = 0</modifier>
+                </methodsynopsis>      
+            </term>
+            <listitem>
+                <para>
+                    Creates a new directory specified by
+                    <parameter>path</parameter>.  If the
+                    <parameter>path</parameter> is relative
+                    the actual path is computed relative to the
+                    current working directory.   If needed,
+                    missing intermediate path elements are also
+                    created.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>virtual </modifier>
+                    <type>void </type>
+                    <methodname>rmdir</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>path</parameter>
+                    </methodparam>
+                    <modifier>    = 0;</modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Deletes a diretory specified by
+                    <parameter>path</parameter>.  Relative paths are
+                    computed relative to thye object's current working
+                    directory.
+                </para>
+                <para>
+                    If the directory does not exist or is not empty,
+                    <classname>CVarMgrApi::CException</classname> is
+                    thrown.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>virtual </modifier>
+                    <type>void </type>
+                    <methodname>declare</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>path</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>type</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier>char* </modifier><type></type>
+                            <parameter>initial</parameter>
+                            <initializer>=0</initializer>
+                    </methodparam>
+                    <modifier>= 0</modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Creates a new variable.  The path to the variable is
+                    determined by <parameter>path</parameter> in conjunction
+                    (if the <parameter>path</parameter> is relative) with the
+                    current working directory.  
+                </para>
+                <para>
+                    The type of the variable is specified by the <parameter>type</parameter>
+                    parameter.  If the <parameter>initial</parameter> parameter
+                    is defined, it must be a legal value for the specified
+                    <parameter>type</parameter> and is assigned to be the
+                    initial value of the variable.  If the parameters is not
+                    suppied, the defautl vale for the type is used instead.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>virtual </modifier>
+                    <type>void </type>
+                    <methodname>set</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>path</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier> const </modifier><type>char* </type>
+                            <parameter>value </parameter>
+                    </methodparam>
+                    <modifier>= 0</modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Sets the variable <parameter>path</parameter> to a
+                    new <parameter>value</parameter>.  The
+                    <parameter>value</parameter> must be legal for
+                    the variable's type.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>virtual </modifier>
+                    <type>std::string </type>
+                    <methodname>get</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>path</parameter>
+                    </methodparam>
+                    <modifier> = 0</modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns the value of the variable specified by
+                    the <parameter>path</parameter> parameter. If the
+                    <parameter>path</parameter> is relative, the
+                    current working directory is used as the base of the
+                    path computation.
+                </para>
+                <para>
+                    If the variable does not exist the
+                    <classname>CVarDbMgr::CException</classname> exception
+                    is thrown.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>virtual </modifier>
+                    <type>void </type>
+                    <methodname>defineEnum</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>typeName</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier></modifier><type> EnumValues </type>
+                            <parameter>values</parameter>
+                    </methodparam>
+                     <modifier> = 0</modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Defines a new enumerated type.  <parameter>typeName</parameter>
+                    is the name of the type.  <parameter>value</parameter>
+                    is a vector of allowed values.  An exception derived
+                    from <classname>std::runtime_error</classname> is thrown
+                    if there are duplicate values in <parameter>values</parameter>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>virtual </modifier>
+                    <type>void </type>
+                    <methodname>defineStateMachine</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>typeName</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier></modifier><type>StateMap </type>
+                            <parameter>transitions</parameter>
+                    </methodparam>
+                    <modifier>= 0</modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Defines a state machine data type.  The name of the new
+                    data type will be <parameter>typeName</parameter>.
+                    The state transition map is <parameter>transitions</parameter>.
+                </para>
+                <para>
+                    See <methodname>addTransition</methodname> below
+                    for information about how to build up state transition
+                    maps.  In addtion the <methodname>validTransitionMap</methodname>
+                    will validate the transition map for unreachable states and
+                    transitions to states that were not defined.  If you use
+                    <methodname>addTransition</methodname> to build your
+                    state map there can be no dead end states (states with no
+                    outbound transitions) as that method defines a state
+                    when a transition from that state is first defined.
+                </para>
+            </listitem>
+        </varlistentry>        
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>addTransition</methodname>
+                    <methodparam>
+                        <modifier></modifier><type>StateMap&amp; </type>
+                            <parameter>map</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier></modifier><type>std::string </type>
+                            <parameter>fromState</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier></modifier><type>std::string  </type>
+                            <parameter>toState</parameter>
+                    </methodparam>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    This utility is implemente in the
+                    <classname>CVarMgrApi</classname> base class.
+                    It defines a new state transition in the
+                    state transition <parameter>map</parameter>.
+                    <parameter>fromState</parameter> is the originating
+                    state. If necessary it is created.  The
+                    <parameter>toState</parameter> is the final state
+                    of the transition.  It is not created.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>bool </type>
+                    <methodname>validTransitionMap</methodname>
+                    <methodparam>
+                        <modifier></modifier><type>StateMap</type>
+                            <parameter>map</parameter>
+                    </methodparam>
+                </methodsynopsis>      
+            </term>
+            <listitem>
+                <para>
+                    Returns <literal>true</literal> if the
+                    state transition <parameter>map</parameter>
+                    is a valid state transition map.  The map is
+                    checked to ensure that the target states of
+                    all transitions are defined and that there
+                    are no states defined that do not have at least
+                    one transition as their target (island states).
+                </para>
+            </listitem>
+        </varlistentry>
+     </variablelist>
+  </refsect1>
+   <refsect1>
+      <title>PUBLIC VARIABLES, TYPES and CONSTANTS</title>
+      <para>
+        The <classname>CVarMgrApi</classname> class defines the following
+        internal types.  By internal type we mean a type that is defined
+        within the class namespace (e.g. <classname>CVarMgrApi::CException</classname>
+        not just <classname>CException</classname>).
+      </para>
+      <variablelist>
+        <varlistentry>
+            <term><type>std::vector&lt;std::string&gt; EnumValues;</type></term>
+            <listitem>
+                <para>
+                    Used to describe the set of values an enumerated type
+                    may take.  
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><type>std::map&lt;std::string, std::set&lt;std::string&gt; &gt; StateMap;</type></term>
+            <listitem>
+                <para>
+                    Used to describe state transitions.  The keys in the map are
+                    defined states. The sets for each key are the target states
+                    reachable from the key state.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>CException</term>
+            <listitem>
+                <para>
+                    Exception type that is derive from
+                    <classname>std::runtime_exception</classname> used to report
+                    API errors.
+                </para>
+            </listitem>
+        </varlistentry>
+
+      </variablelist>
+   </refsect1>
+</refentry>
+
+<refentry id="daq3_cvarmgrapifactory">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='daq3_cvarmgrapifactory_title'>CVarMgrFactory</refentrytitle>
+     <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>CVarMgrFactory</refname>
+     <refpurpose>Producer of <classname>CVarMgrApi</classname> objects.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+#include &lt;CVarMgrApiFactory.h&gt;
+class <ooclass><classname>CVarMgrApiFactory</classname></ooclass>
+{
+        <methodsynopsis>
+            <modifier>static </modifier>
+            <type>CVarMgrApi* </type>
+            <methodname>create</methodname>
+            <methodparam>
+                <modifier></modifier><type>std::string </type>
+                    <parameter>uri</parameter>
+            </methodparam>
+        </methodsynopsis>  
+        <methodsynopsis>
+            <modifier>static </modifier>
+            <type>CVarMgrApi*</type>
+            <methodname> createFileApi</methodname>
+            <methodparam>
+                <modifier></modifier><type>std::string </type>
+                    <parameter>path</parameter>
+            </methodparam>
+          </methodsynopsis>  
+        <methodsynopsis>
+            <modifier>static </modifier>
+            <type>CVarMgrApi* </type>
+            <methodname>createServerApi</methodname>
+            <methodparam>
+                <modifier></modifier><type>std::string </type>
+                    <parameter>host</parameter>
+            </methodparam>
+            <methodparam>
+                <modifier></modifier><type>int</type>
+                    <parameter> port</parameter>
+            </methodparam>
+            
+        </methodsynopsis>  
+        <methodsynopsis>
+            <modifier>static </modifier>
+            <type>CVarMgrApi* </type>
+            <methodname>createServerApi</methodname>
+            <methodparam>
+                <modifier></modifier><type>std::string </type>
+                    <parameter>host</parameter>
+            </methodparam>
+            <methodparam>
+                <modifier></modifier><type>std::string </type>
+                    <parameter>service</parameter>
+                    <initializer>std::string("vardb-request")</initializer>
+            </methodparam>
+            
+        </methodsynopsis>  
+    
+};
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        The <classname>CVarMgrApiFactory</classname> class creates
+        <classname>CVarMgrApi</classname> objects for your application
+        program. All methods are static so it is not necessary to
+        instantiate an object.  Simply qualify the calls with the name
+        of the class (e.g. <methodname>CMVarMgrApi::create(uri);</methodname>).
+     </para>
+     <para>
+        All methods either return a pointer to a dynamically created
+        <classname>CVarMgrApi</classname> object or throw a
+        <classname>CVarMgrApi::CException</classname> object.
+        If your application is finished using an API object created by
+        this factory, you should <literal>delete</literal> it to recover
+        resources used by that object.
+     </para>
+     <para>
+        In most cases your application will only need to use the
+        <methodname>create</methodname> method.  The other methods
+        of the factory are used by that method to create specific
+        types of APIs, and are available in the event you are writing
+        an application that needs a specific API type.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>static </modifier>
+                    <type>CVarMgrApi* </type>
+                    <methodname>create</methodname>
+                    <methodparam>
+                        <modifier></modifier><type>std::string </type>
+                            <parameter>uri</parameter>
+                    </methodparam>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Creates a new <classname>CVarMgrApi</classname> object.
+                    The <parameter>uri</parameter> parameter is a URI
+                    string that determines both the actual type of the
+                    object and what database connection is performed.
+                </para>
+                <para>
+                    If the protocol of the URI is  <literal>file</literal>,
+                    the host part of <parameter>uri</parameter> is
+                    ignored and the path part of <parameter>uri</parameter>
+                    specifies the path to a variable database file that
+                    will be directly connected to a
+                    <classname>CVarMgrFileApi</classname> object.  See
+                    <methodname>createFileApi</methodname> below for more
+                    information about the characeristics of these objects.
+                </para>
+                <para>
+                    If the protocol part of <parameter>uri</parameter>
+                    is a <literal>tcp</literal>, a
+                    <classname>CVarMgrServerApi</classname> object is
+                    created to connect to the variable database via a server
+                    process.  In this case, the host part of
+                    <parameter>uri</parameter> is mandatory and
+                    specifies a computer in which a variable database server
+                    is running.  The port used to connect with the server
+                    is determined as follows:
+                </para>
+                <itemizedlist>
+                    <listitem><para>
+                        If a port number is supplied in <parameter>uri</parameter>
+                        that port is used for the connection attempt.
+                    </para></listitem>
+                    <listitem><para>
+                        If a path is present in <parameter>uri</parameter> it
+                        is a service name that is translated using the
+                        DAQ port manager in the host part of the
+                        <parameter>uri</parameter> to determine which port
+                        is used for the connection attempt.
+                    </para></listitem>
+                    <listitem><para>
+                        If neither a port number nor a path is present in
+                        <parameter>uri</parameter>, a default service name
+                        is translated in the specified host to determine
+                        which port is used for the connection attempt.
+                    </para></listitem>
+                </itemizedlist>
+                <para>
+                    Supplying both a port and a path to the <parameter>uri</parameter>
+                    is not legal for the <literal>tcp</literal> protocol and
+                    results in a a
+                    <classname>CVarMgrApi::CException</classname> being thrown.
+                    For more information about the <classname>CVarMgrApi</classname>
+                    see the <methodname>createServerApi</methodname> methods below.
+                </para>
+                <para>
+                    Regardless of the type of <classname>CVarMgrApi</classname>
+                    created, your application should <literal>delete</literal>
+                    it when it is no longer needed.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>static </modifier>
+                    <type>CVarMgrApi*</type>
+                    <methodname> createFileApi</methodname>
+                    <methodparam>
+                        <modifier></modifier><type>std::string </type>
+                            <parameter>path</parameter>
+                    </methodparam>
+              </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Creates a <classname>CVarMgrFileApi</classname> object.
+                    <parameter>path</parameter> is the filesystem path
+                    to the data base file.  This is normally used by
+                    <methodname>create</methodname> when presented with a
+                    URI that specifies a 
+                    <literal>file</literal> protocol.
+                </para>
+                <para>
+                    <classname>CVarMgrFileApi</classname> objects implement the
+                    interface described by
+                    <link linkend='daq3_cvarmgrapi' endterm='daq3_cvarmgrapi_title' />
+                    operating directly on a variable database file.
+                </para>
+                <para>
+                    This is suitable for use when the experiment is not running.
+                    For example, setting up the initial contents of the database
+                    prior to starting the experiment or examining it after the
+                    experiment is done.
+                </para>
+                <para>
+                    This is because it is the database server that publishes
+                    changes to clients.  Direct access, without going through
+                    the database server will circumvent change publications.
+                </para>
+                <para>
+                    Furtheremore, the sorts of locking that SQLite needs to do
+                    to allow multiple writers to operate on a database file
+                    in a consistent and safe manner don't work properly on
+                    many NFS implementations, and in most cases your variable
+                    databases will be located on NFS servers.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>static </modifier>
+                    <type>CVarMgrApi* </type>
+                    <methodname>createServerApi</methodname>
+                    <methodparam>
+                        <modifier></modifier><type>std::string </type>
+                            <parameter>host</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier></modifier><type>int</type>
+                            <parameter> port</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Constructs a <classname>CVarMgrServerApi</classname>
+                    object.  This object connects to a variable database
+                    via a server process. In addition to responding to requests
+                    to modify/query the database, the server implements a
+                    publish/subscribe system that notifies subscribers of
+                    changes in the database that clients requested.
+                </para>
+                <para>
+                    This method is invoked by <methodname>creaet</methodname>
+                    when the URI has a <literal>tcp</literal> protocol.
+                    <parameter>host</parameter> specifies the system in
+                    which the server is running while <parameter>port</parameter>
+                    specifies the numbered port that the server is using
+                    for its REQ/REP communications service.
+                </para>
+                <para>
+                    <classname>CVarMgrServerApi</classname> objects
+                    completely implement the interface
+                    described by
+                    <link linkend='daq3_cvarmgrapi'
+                          endterm='daq3_cvarmgrapi_title' />
+                </para>
+                <para>
+                    <classname>CVarMgrServerApi</classname> objects are what
+                    should be used when the experiment is running.  Using
+                    it serializes multiple requestors and runs the PUB/SUB
+                    system that allows clients to be informed when
+                    parts of the database they are interested in change.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>static </modifier>
+                    <type>CVarMgrApi* </type>
+                    <methodname>createServerApi</methodname>
+                    <methodparam>
+                        <modifier></modifier><type>std::string </type>
+                            <parameter>host</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier></modifier><type>std::string </type>
+                            <parameter>service</parameter>
+                            <initializer>std::string("vardb-request")</initializer>
+                    </methodparam>
+                </methodsynopsis>      
+            </term>
+            <listitem>
+                <para>
+                    Creates a <classname>CVarMgrServerApi</classname> object.
+                    See the previous method for more information about the
+                    object created.  The only difference between this
+                    method and the previous one is that the
+                    port connected to is determined by translating the
+                    <parameter>service</parameter> name via the
+                    DAQ port manager running in the <parameter>host</parameter>
+                    system.
+                </para>
+                <para>
+                    The default value for the <parameter>service</parameter>
+                    parameter is the the same as the default service advertised
+                    by the server for its REQ/REP service.
+                </para>
+                <para>
+                    Note as well that DAQ Port manager service names are
+                    qualified by the name of the user running the application.
+                    When doing the service name lookup, this method only
+                    looks for service names run by the user running the
+                    application.
+                </para> 
+            </listitem>
+        </varlistentry>
+     </variablelist>
+  </refsect1>
+  <refsect1>
+    <title>BUGS and RESTRICTIONS</title>
+    <para>
+        It is not possible to directly use the factory to generate an API object
+        for a server run by a different user.  Your application can, however
+        accomplish this by using the DAQ Port manager API to locate the
+        correct service port and call the version of
+        <methodname>createServerApi</methodname> that accepts a
+        numeric <parameter>port</parameter>
+        parameter.
+    </para>
+  </refsect1>
+   <refsect1>
+      <title>SEE ALSO</title>
+      <para>
+        <link linkend='daq3_cvarmgrapi' endterm='daq3_cvarmgrapi_title' />
+      </para>
+   </refsect1>
+</refentry>     
+
+<!-- /manpage -->
+
 <!-- manpage 5daq -->
 <refentry id="daq5_vardbserver_reqprotocol">
 <refentryinfo>
@@ -299,6 +1428,25 @@ $DAQBIN/vardbServer
             in that order.  The state machine's initial state is the
             alphabetically 'smallest' state name.  Therefore it is normal
             for this state to be a name like <literal>0actual-state-name</literal>.
+        </seg>
+    </seglistitem>
+    <seglistitem>
+        <seg>DIRLIST</seg><seg>directory-path</seg><seg></seg>
+        <seg>
+            Requests a list of the sub directories in the specified
+            <literal>directory-path</literal>.   The data part of the
+            return message is the set of subdirectories in that path
+            separated by the pipe (<literal>|</literal>) character.
+        </seg>
+        <seg>VARLIST</seg><seg>directory-path</seg><seg></seg>
+        <seg>
+            Requests a list of the variables in the directory specified by the
+            <literal>directory-path</literal>.
+            The data part of a success reply contains a list of pipe
+            (<literal>|</literal>) separated fields.  Three consecutive fields
+            are required/used to describe a single variable.  In order, these
+            contain the variable's name, data type and value as of when the
+            message was marshalled for transmission.
         </seg>
     </seglistitem>
    </segmentedlist>

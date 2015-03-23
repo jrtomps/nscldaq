@@ -863,3 +863,6 @@ Work on 11.0-rc11 begins
 	Feature #3059 - Support for state machine types.
 	Feature #3541 Feature #3544 - Define protocol for server.
 	Feature #3547 - Variable database server.
+	Feature #3550 - Factory based API to the database that can work
+	either with the server or direct file access.
+	
