@@ -1,0 +1,398 @@
+<!-- chapter user-guide -->
+  <chapter>
+    <title>The Ring Buffer</title>
+    <section>
+      <title>Overview</title>
+
+      <para>
+        A ring buffer is a fundamental component of the system NSCLDAQ uses to
+        pass data from one process to another. It is basically just a piece of
+        memory that is accessible to multiple processes. Access is however
+        controlled in such a way that only one process can contribute data to it
+        while many processes can read from it. There is only allowed to be a
+        single producer per ring buffer while there may be any number of
+        consumers.
+      </para>
+
+      <para>
+        Ring buffers are local to a specific computer but are accessible
+        over the network. Each ring buffer is identified by a user-defined name
+        and the hostname of the computer it is located on. When processes want to
+        attach to a ring to either produce or consume its data, they must specify
+        the name of the ring via a universal resource identifier (URI). The URI
+        specifies the protocol (<literal>proto://</literal>), the hostname
+        (<literal>host</literal>), and the name of the ring
+        (<literal>name</literal>) as a single string:
+        <literal>proto://host/name</literal>. Ring buffers can be accessed by
+        using either the ring:// or tcp:// protocols (they are identical). When a
+        user attaches to a ring on another computer, a service running in the
+        background called <literal>RingMaster</literal> sets up the connection
+        that will stream the data across the network for you. In this way, the
+        nework is basically transparent.
+      </para>
+
+      <para>
+        Sometimes it is useful to know what ring buffers exist. You can
+        determine this using the <command>ringbuffer status</command>
+        command. Doing so might produce the following ouput:
+      </para>
+
+      <screen>
+<literal>spdaqxx&gt;</literal> <command>ringbuffer status</command>
++-----+------------+-------+-------------+--------+---------+---------+------+-------------+
+|Name |data-size(k)|free(k)|max_consumers|producer|maxget(k)|minget(k)|client|clientdata(k)|
++-----+------------+-------+-------------+--------+---------+---------+------+-------------+
+|0400x|8194        |8194   |100          |26550   |0        |0        |-     |-            |
+|-    |-           |-      |-            |-       |-        |-        |26552 |0            |
+|test |8194        |8194   |100          |-1      |0        |0        |-     |-            |
++-----+------------+-------+-------------+--------+---------+---------+------+-------------+
+    </screen>
+    <para>
+      The leftmost column of the table specifies the name of the ring
+      buffers on the system. Only rows with names other than "-" are
+      actually ring buffers. Here you see there are two rings whose
+      names are 0400x and test. The middle row that has a name entry of
+      "-" is actually a row containing information for a client or
+      consumer process attached to the 0400x ring buffer. The number in
+      the client column is the pid of the consumer process. The producer column
+      of the 0400x and test rows specify the pid of process except that it
+      is for the producer process. You can see that the 0400x
+      ring has a producer process with pid 26550, whereas the test ring
+      has no producer process (pid=-1). Note also that the test
+      ring buffer also does not have any consuming processes.
+    </para>
+    <para>
+      You can create a new ring buffer whose name is "myring" by typing:
+    </para>
+    <screen>
+<literal>spdaqxx&gt;</literal> <command>ringbuffer create myring</command>
+<literal>spdaqxx&gt;</literal> <command>ringbuffer status</command>
++------+------------+-------+-------------+--------+---------+---------+------+-------------+
+|Name  |data-size(k)|free(k)|max_consumers|producer|maxget(k)|minget(k)|client|clientdata(k)|
++------+------------+-------+-------------+--------+---------+---------+------+-------------+
+|0400x |8194        |8194   |100          |26550   |0        |0        |-     |-            |
+|-     |-           |-      |-            |-       |-        |-        |26552 |0            |
+|myring|8194        |8194   |100          |-1      |0        |0        |-     |-            |
+|test  |8194        |8194   |100          |-1      |0        |0        |-     |-            |
++------+------------+-------+-------------+--------+---------+---------+------+-------------+
+    </screen>
+
+    <para>
+      You can clearly see that this create a brand new ring buffer on
+      the system. Likewise, you can also delete ringbuffers. In general
+      it is best to only delete them when there are no consuming
+      processes. For illustration, I will delete the ring I just
+      created.
+    </para>
+    <screen>
+<literal>spdaqxx&gt;</literal> <command>ringbuffer delete myring</command>
+<literal>spdaqxx&gt;</literal> <command>ringbuffer status</command>
++-----+------------+-------+-------------+--------+---------+---------+------+-------------+
+|Name |data-size(k)|free(k)|max_consumers|producer|maxget(k)|minget(k)|client|clientdata(k)|
++-----+------------+-------+-------------+--------+---------+---------+------+-------------+
+|0400x|8194        |8194   |100          |26550   |0        |0        |-     |-            |
+|-    |-           |-      |-            |-       |-        |-        |26552 |0            |
+|test |8194        |8194   |100          |-1      |0        |0        |-     |-            |
++-----+------------+-------+-------------+--------+---------+---------+------+-------------+
+    </screen>
+
+    <para>
+      The only other thing that is worth mentioning is that ring buffers
+      can be reset to an initial state. This process is called
+      formatting the ring buffer. It is done very analogously to the
+      creation and deletion commands.
+    </para>
+
+    <screen>
+<literal>spdaqxx&gt;</literal> <command>ringbuffer format myring</command>
+    </screen>
+
+    <para>
+      You may wonder why this is useful. Well, it is typically only
+      useful if the producing process for the ring buffer exits badly.
+      As you can see, each ring buffer keeps track of the processes that
+      are are attached to it. Usually when one of these processes
+      terminates, the ring buffer updates its records. However, if one
+      of these processes exits uncleanly (e.g. segmentation fault), the
+      ring may not properly get notified causing it to think that the
+      now nonexistent process is still attached to it. For consumer
+      processes, this is not the end of the world. However, if the
+      process was a producer, the ring buffer will not allow a new
+      producer process to attach to it. In this case, the ring buffer is
+      just fooled and needs to be reset using the ringbuffer format.
+    </para>
+
+    <para>
+      Complete reference documentation of the
+      <command>ringbuffer</command> 
+      can be found in the
+      <link linkend="manpage.ringbuffer">ringbuffer</link> reference pages
+    </para>
+
+  </section>
+  <section>
+    <title>Data Transfer and Flow Control</title>
+
+    <para>
+      The last section just scratched the surface on the ring buffer and gave a
+      functional overview of how to use it. In this section, we will discuss
+      how it works in a bit more detail in hopes to remove some of its mystery.
+      In what follows, we'll describe a single producer, single consumer ring
+      buffer first and then generalize to a single producer multi-consumer ring
+      buffer.
+    </para>
+    <para>
+      Suppose we have a chunk of memory which is shareable between processes
+      and within which we are going to use modulo addressing.  Using modulo
+      addressing means that if we have a pointer sequentially accessing this
+      memory, when the pointer would run off the end of this memory region
+      instead it returns to the beginning.
+    </para>
+    <para>
+      You can therefore think of this memory as an 'endless' ring of addresses.
+      A <firstterm>ring buffer</firstterm>.
+    </para>
+    <para>
+      For a ring buffer to be useful as a mechanism for exchanging data we need
+      a bit more information.  Specifically, we need a <firstterm>put
+        pointer</firstterm> and a <firstterm>get pointer</firstterm>.  As we
+      will see we also need some concept of flow control.
+    </para>
+    <para>
+      Here's how this all works.  Define the ring buffer as being empty if the
+      put and get pointers are equal.  Define the ring buffer as full if
+      advancing the put pointer one storage unit would make it equal to the get
+      pointer (we don't want an ambiguity between full and empty ring buffers).
+      A producer will ensure it has space in the ring buffer for whatever data
+      it wants to put by calculating the modulo distance between the put and
+      get pointers.  When space becomes available (producers wait if necessary
+      for space), data are transferred to the ring buffer starting at the
+      location indicated by the put pointer (using modulo addressing again).
+      When the data are transferred, the put pointer is advanced to point to
+      the location just following the message.
+    </para>
+    <para>
+      Similarly, a consumer that wants to get data from the ring ensures there
+      is enough data to get by waiting until the distance between the put and
+      get pointers is at least the size of the data transfer it wants to
+      perform.  Once there is sufficient data in the ring buffer it transfers
+      the data out of the ring and, when the data have been read, updates the
+      get pointer so that it points to the next unread unit of memory.
+    </para>
+    <para>
+      This business of the produceer waiting for space to be available and the
+      consumer waiting for data to be available is called flow control.
+    </para>
+    <para>
+      In a data acquisition system, we usually want to have several consumers.
+      This can be accomodated by having more than one get pointer.  This
+      slightly complicates the flow control logic of the producer.  Now the
+      producer must consider the free space to be the minimum distance between
+      the the put pointer and all of the get pointers.
+    </para>
+    <para>
+      The result of this is that ring buffers are a very low overhead mechanism to transfer
+      data between processes in a single shared memory computer system.
+      Messages can be atomically put without any requirement to negotiate
+      locks.  Furthermore, since data are in shared memory, it's not necessary
+      to transfer buffers to kernel space and then back out to application
+      space.  For more information about ring buffers see <ulink
+        url='http://en.wikipedia.org/wiki/Circular_buffer'>
+        http://en.wikipedia.org/wiki/Circular_buffer </ulink> 
+    </para>
+    <para>
+      Finally, the data transferred through the ring buffer is just
+      a stream of bytes, in practice and in the NSCL Ring buffer Data
+      Acquisition system, we send messages that have structure. The messages
+      have a structure defined later in <xref linkend="chapter.ringformat"/>.
+    </para>
+  </section>
+  <section>
+    <title>Proxy Rings, Ring Masters, and Network Transparency</title>
+    <section>
+      <title>Proxy Rings</title>
+      <para>
+        In a data data acquisition system we usually want several such computer
+        systems to join the party.  Data taken in one system must be made
+        visible in near real-time to analysis software in other computer
+        systems.  This section describes the mechanism used by the NSCL Ring
+        Buffer data acquisition system to accomplish this feat.
+      </para>
+      <para>
+        Each system that runs the ring buffer data acquisition system
+        has a simple server process called the <application>RingMaster</application>.
+        We'll talk more about the RingMaster and its role in the next
+        section.
+      </para>
+      <para>
+        One role the ring master performs is to assist in hoisting
+        data out of an local ring, sending it across the network to
+        another system.  This is done through a mechanism called a
+        <firstterm>proxy ring</firstterm> which makes the semantics
+        of getting data from a remote system identical to the semantics
+        of getting data from a local system.      
+      </para>
+      <para>
+        If a process attempts to open a ring buffer whose URL does not
+        specify <literal>localhost</literal> as the hostname, the ring buffer
+        DAQ system contacts the RingMaster in the target host and collaborates
+        with it to create a local ring and a network pipeline that
+        ships data from the ring in the remote host to the local proxy ring.
+        Only the first consumer goes through the gymnastics of creating a proxy
+        ring and subsequent consumers simply connect to the proxy as an
+        additional consumer. In this way, network traffic between rings and
+        their proxies are aggregated.
+      </para>
+      <para>
+        A proxy ring has the local name <literal>hostname.remote-ringname</literal>
+        where <literal>hostname</literal> is the host in which the
+        'real ring' is located and <literal>remote-ringname</literal>
+        is the name of the real ring in <literal>hostname</literal>.
+        Thus the proxy ring for <literal>tcp://spdaq42/fox</literal>
+        will be <literal>tcp://localhost/spdaq42.fox</literal>.
+      </para>
+    </section>
+    <section>
+      <title>The RingMaster server</title>
+      <para>
+        All systems that run the Ring buffer data acquisition system
+        also run a simple server called the <application>RingMaster</application>.
+        The RingMaster performs the following functions:
+      </para>
+      <itemizedlist>
+        <listitem>
+          <para>
+            Collaborates with remote clients to set up a pipeline
+            to produce data into proxy rings as described in the
+            previous section.
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            Allocate ring resources for local consumers.
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            Cleans up when local consumer exit or release their
+            ring resources.
+          </para>
+        </listitem>
+      </itemizedlist>
+      <para>
+        The Ring buffer DAQ system has two types of clients.  Producers
+        and consumers.  Recall that each ring can have at most one
+        producer, and many consumers.
+      </para>
+      <para>
+        The ring master keeps track of which local processes are attached
+        to a ring and whether or not a process is the producer or
+        a consumer (actually a consumer could be consuming data from several rings,
+        or even be more than one consumer on one ring).
+      </para>
+      <para>
+        When a client wants to obtain the put or a get pointer,
+        it asks the ring master for one.  It does so by opening a
+        TCP/IP connection to the ring master and sending it a pointer
+        request message.  The ring master identifies the pointer
+        it provides to the client.  The client is then required to hold
+        the TCP/IP connection open.  If the TCP/IP connection closes,
+        as it will normally  if a process exits, the RingMaster releases
+        the pointer that was associated with that connection.
+      </para>
+      <para>
+        In this way, ring buffers are immune to stalls that could occur
+        if a pointer got orphaned.
+      </para>
+    </section>
+  </section>
+  <section>
+    <title>Ring buffer utilities</title>
+    <para>
+      This section will give a brief overview of some of the ring buffer
+      utilities.  Please refer to the remainder of this documentation
+      for detailed descriptions and reference material for each utility.
+      This list is only a selection of utilities.
+    </para>
+    <variablelist>
+      <varlistentry>
+        <term><application>ringbuffer</application></term>
+        <listitem>
+          <para>
+            This utility allows you to create, re-initialize, delete  and
+            monitor the status of ringbuffers.  Normally you don't have to
+            create ring buffers as producer frameworks will create them if they
+            don't already exist. See the <link
+              linkend="manpage.ringbuffer">man page</link> for more information.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><application>dumper</application></term>
+        <listitem><para>
+            Provides a simple textual formatted dump of the buffers.  If you
+            want more advanced formatting, you can use the
+            <application>tkdumper</application> application.  By contrast with
+            <application>dumper</application>,
+            <application>tkdumper</application> can be extended with plugins in
+            such a way that it can provide a human readable formatted view of
+            each event and the packets within the event. See <link linkend="ch.dumper">user documentation</link> and <link
+              linkend="manpage.dumper">man page</link> for more information.
+        </para></listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><application>eventlog</application></term>
+        <listitem><para>
+            Performs native mode event loggging.  In this mode, event file
+            segments consists of streams of ring buffer items. See <link linkend="chap.eventlog">user documentation</link> and <link
+              linkend="manpage.eventlog">man page</link> for more information.
+        </para></listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><application>ringselector</application></term>
+        <listitem><para>
+            Provides a flexible ringbuffer consumer that pipes the ring items
+            it gets to standard output.  This can be run over a pipe into your
+            program or as the first stage of a pipeline that transforms data
+            before providing it to an application. Unlike other processes, this
+            will never introduce flow control and is suitable for sampling
+            applications like SpecTcl. See <link
+              linkend="chapter.ringselector">user documentation</link> and <link
+              linkend="manpage.ringselector">man page</link> for more information.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><application>ringtostdout</application></term>
+        <listitem><para>
+            Accepts data from a ring and pipes it to stdout.  This is the server
+            side of the pipeline between systems when you are setting up a proxy
+            ring.  It can also be used as the first stage of a pipeline to
+            process data from  a ring. See the <link
+              linkend="manpage.ringtostdout">man page</link> for more information.
+        </para></listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><application>ScalerDisplay</application></term>
+        <listitem><para>
+            Provides a display of scaler event data.  This application is highly
+            configurable.  It can accept an arbitrary number of scalers and
+            format any number of pages as tabs in a notebook.  Strip charts of
+            selected scalers are also supported. See <link
+              linkend="chapter.scalerdisplay">user documentation</link> and <link
+              linkend="manpage.scalerdisplay">man page</link> for more information.
+        </para></listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><application>stdintoring</application></term>
+        <listitem><para>
+            Accepts data on stdin and puts it in a ring buffer.  This is the
+            client side of the data pipeline that sets up a proxy ring. See the <link
+              linkend="manpage.stdintoring">man page</link> for more information.
+        </para></listitem>
+      </varlistentry>
+    </variablelist>
+  </section>
+</chapter>
+<!-- /chapter -->
+

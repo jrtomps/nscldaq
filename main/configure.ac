@@ -19,20 +19,56 @@ AC_PROG_LIBTOOL
 
 AX_CXX_COMPILE_STDCXX_11([noext])
 
-AC_CHECK_PROG(HAVE_DOCBOOK2PDF, [docbook2pdf], true, false)
-AC_CHECK_PROG(HAVE_XMLTO, [xmlto], true, false)
-AC_CHECK_PROG(MANDB, mandb, mandb, echo)
+AC_ARG_ENABLE([docs],
+              AS_HELP_STRING([--enable-docs],[Build the documentation]),
+              [ENABLE_DOCS=yes],[ENABLE_DOCS=no])
+if test "x$ENABLE_DOCS" == "xyes"
+then
+
+  AC_CHECK_PROG(HAVE_DOCBOOK2PDF, [docbook2pdf], [true], [false])
+  if test "$HAVE_DOCBOOK2PDF" == "false"
+  then
+    AC_MSG_FAILURE([docbook2pdf is required to build documentation but was not found])
+  else
+    AC_SUBST(DOCBOOK2PDF,[docbook2pdf])
+  fi
+
+  AC_CHECK_PROG(HAVE_DOCBOOK2HTML, [docbook2html], [true], [false])
+  if test "$HAVE_DOCBOOK2HTML" == "false"
+  then
+    AC_MSG_FAILURE([docbook2html is required to build documentation but was not found])
+  else
+    AC_SUBST(DOCBOOK2HTML,[docbook2html])
+  fi
+
+  AC_CHECK_PROG(HAVE_XMLTO, [xmlto], [true], [false])
+  if test "$HAVE_XMLTO" == "false"
+  then
+    AC_MSG_FAILURE([xmlto is required to build documentation but was not found])
+  else
+    AC_SUBST(DOCBOOK2MAN,["xmlto man"])
+  fi
+
+  AC_CHECK_PROG(HAVE_MANDB, mandb, [true], [false])
+  if test "$HAVE_MANDB" == "false"
+  then
+    AC_MSG_FAILURE([mandb is required to build documentation but was not found])
+  else
+    AC_SUBST(MANDB,[mandb])
+  fi
+  AM_CONDITIONAL([BUILD_DOCS],[true])
+else
+  AM_CONDITIONAL([BUILD_DOCS],[false])
+fi
 
 AC_CHECK_LIB([X11], [XSetWindowBackground])
 AC_CHECK_LIB([Xt], [XtManage])
-# AC_CHECK_LIB([cppunit], [_ZN7CppUnit12XmlOutputterD1Ev], [CPPUNIT_LDFLAGS=-lcppunit])
-
 
 AM_PATH_CPPUNIT
 
 # Checksums in eventlog require openssl for the digest libs:
 
-AX_CHECK_OPENSSL([AC_MSG_RESULT([found openssl])],[AC_MSG_ERROR([Open SSL  is required but can't be found])])
+AX_CHECK_OPENSSL([AC_MSG_RESULT([found openssl])],[AC_MSG_ERROR([OpenSSL is required but cannot be found])])
 
 
 #
@@ -293,7 +329,6 @@ AC_DEFINE(__STDC_LIMIT_MACROS, [], [Needed to define UINT64_C])
 AC_DEFINE(__STDC_CONSTANT_MACROS, [], [Needed to define UINT64_C])
 
 AC_SUBST(SOVERSION)
-AC_SUBST(MANDB)
 
 AC_SUBST(TCL_FLAGS)
 AC_SUBST(TCL_LDFLAGS)
@@ -305,9 +340,6 @@ AC_SUBST(TCLSH_CMD)
 
 
 AC_SUBST(CPPUNIT_LDFLAGS)
-
-AM_CONDITIONAL([PDFDOCS], [test x$HAVE_DOCBOOK2PDF = xtrue])
-AM_CONDITIONAL([XMLMANS], [test x$HAVE_XMLTO = xtrue])
 
 #
 #  Threading is hard coded to -pthread now.
@@ -404,6 +436,9 @@ AC_CONFIG_FILES([Makefile
 		 daq/eventbuilder/offlineorderer/Makefile
      daq/eventbuilder/offlineorderer/figures/Makefile
 		simplesetups/Makefile
+		simplesetups/v775/Makefile
+		simplesetups/v785/Makefile
+		simplesetups/vmusb/Makefile
 		 sbs/Makefile
 		 sbs/driver/Makefile
 		 sbs/driver/src/Makefile

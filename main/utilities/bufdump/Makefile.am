@@ -43,5 +43,5 @@ dumper_CXXFLAGS = $(THREADCXX_FLAGS) $(AM_CXXFLAGS)
 		--set-version=@VERSION@
 
 
-EXTRA_DIST=dumperargs.ggo dumper.xml
+EXTRA_DIST=dumperargs.ggo dumper_user.xml dumper_man.xml
 

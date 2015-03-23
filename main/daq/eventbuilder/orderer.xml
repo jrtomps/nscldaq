@@ -1,5 +1,5 @@
 <!-- chapter frameworks -->
-<chapter>
+<chapter id="chapter.evbcallouts-dev">
     <title>Event builder Readout Callouts</title>
     <para>
         Event builder readout callouts allow you to integrate the event builder
@@ -151,8 +151,8 @@ proc startEVBSources {} {                    <co id='evbbundle.startsources' />
 
 </chapter>
 <!-- /chapter -->
-<!-- manpage 3evb -->
 
+<!-- manpage 3evb -->
 
 <!--  Event builder API layer. -->
       <refentry id="evb3_start">

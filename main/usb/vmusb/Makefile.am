@@ -67,4 +67,4 @@ cmdline.o: commandline.ggo
 	$(GENGETOPT) <@top_srcdir@/usb/vmusb/commandline.ggo --set-version=@VERSION@
 	$(CC) -c -I. cmdline.c $(THREADCFLAGS)
 
-EXTRA_DIST=commandline.ggo vmusbReadout.xml
+EXTRA_DIST=commandline.ggo vmusbReadout_user.xml vmusbReadout_man.xml

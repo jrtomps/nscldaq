@@ -1,977 +1,842 @@
 <!-- chapter libraries -->
 
-<chapter id="chapter.ringformat">
-    <title>Format of Event Data In Ring Buffers</title>
-    <para>
-        The NSCL Ring buffer based data distribution scheme ia a very flexible
-        data distribution scheme that makes no restrictions on the format
-        of the data it transmits.  This section describes the format of data
-        that is placed in the ring buffer by NSCL DAQ readout software.
-        These data are formatted in a consistent way so that consumer programs
-        know what to expect and so that library functions can (and have been) be
-        written that can select specific data record types in specific ways from
-        the data stream.
+<chapter id="chapter.ringformat-dev">
+  <title>Data Format Support Software</title>
+  <para> 
+    In the user guide section on <link linkend="chapter.ringformat">data
+      formats</link>, the format of all the ring items were explained in
+    detail. These were described without any mention of how NSCLDAQ
+    implements them in software. This section seeks to provide an overview
+    of the existing support that is free for use by experimenters. 
+  </para>
+  <para>
+    This chapter is divided into these sections:
+    <itemizedlist>
+      <listitem>
+        <para>
+          A description of the C/C++ structure that represent the data
+          format for I/O operations.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          A description of the class library that helps you build and
+          decode items in the ring buffer in the format described in
+          this chapter.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          A description of a simple library that allows you to
+          create ring items that may not wind up being placed in a ring.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          A description of the mechanisms that are available to selectively
+          get data from ring buffers.
+        </para>
+      </listitem>
+    </itemizedlist>
+  </para>
+
+  <para>
+    Reference material is provided in in the 3daq section that describes the
+    class library.
+  </para>
+
+  <section>
+    <title>The basic data formats</title>
+     <para>
+      The header <filename>DataFormat.h</filename> contains, among other
+      things, the <literal>struct</literal> definitions that define
+      the shapes of each item as they are passed around. These structs are given typenames via
+      the <literal>typedef</literal> statement.  The remaining
+      discussion will use these typenames, rather than the names of the
+      underlying structs. The contents of each structure mirror the data as
+      described in the user guide describing the data format. For that reason,
+      the details of the implementation are provided here. 
     </para>
     <para>
-        This chapter is divided into these sections:
-        <itemizedlist>
-            <listitem>
-                <para>
-                    A description of the data records that will be put in
-                    ring buffers, and how to incorporate definitions of these
-                    structures in your software.
-                </para>
-            </listitem>
-            <listitem>
-                <para>
-                    A description of the mechanisms that are available to selectively
-                    get data from ring buffers.
-                </para>
-            </listitem>
-            <listitem>
-                <para>
-                    A description of the class library that helps you build and
-                    decode items in the ring buffer in the format described in
-                    this chapter.
-                </para>
-            </listitem>
-            <listitem>
-                <para>
-                    A description of a simple library that allows you to
-                    create ring items that may not wind up being placed in a ring.
-                </para>
-            </listitem>
-        </itemizedlist>
+      The general structure of a ring item is:
+    </para>
+    <programlisting>
+typedef PSTRUCT _RingItem {
+  RingItemHeader s_header;
+  union {
+    struct {
+      uint32_t s_mbz;
+      uint8_t  s_body[1];
+    } u_noBodyHeader;
+    struct {
+        BodyHeader s_bodyHeader;
+        uint8_t s_body[];
+    } u_hasBodyHeader;
+  } s_body;
+} RingItem, *pRingItem;
+    </programlisting>
+    <para>
+      As you can see, the RingItem is composed of a RingItemHeader first,
+      followed by a union of structs. The union handles the fact that there may or may not
+      be a body header present. The body header is a new addition to the data
+      format in NSCLDAQ 11.0 and will be explained in a bit more detail later.
+      The case in which the body header is absent causes the body to have a
+      uint32_t followed immediately by the body data. Alternatively, the body
+      begins with at BodyHeader which is followed by the body data. This is
+      common for all ring items. The s_body element refers to the remaining data
+      that is lives in the body and that may or may not have a defined format.
+      To representation the different body formats, there are different structs
+      defined that are all variations of this theme. In the end, these are being
+      treated as data entities without methods of their own.
     </para>
     <para>
-        Reference material is provided in in the 3daq section that describes the
-        class library.
+      The header of each item type is of type <structname>RingItemHeader</structname>
+      for convenience, the type <structname>pRingItemHeader</structname> is defined
+      to be a pointer to a <structname>RingItemHeader</structname>.  This is a
+      common pattern in the <filename>DataFormat.h</filename> header.
     </para>
-
-    <section>
-        <title>The basic data formats</title>
-        <para>
-            Data placed in the ring buffer consists of 'items'.   Items have a
-            header, which has the same shape from item type to item type and
-            an item body whose format varies from type to type.
-        </para>
-        <para>
-            The header <filename>DataFormat.h</filename> contains, among other
-            things, the <literal>struct</literal> definitions that define
-            the shapes of each item.  These structs are given typenames via
-            the <literal>typedef</literal> statement.  The remaining
-            discussion will use these typenames, rather than the names of the
-            underlying structs.            <!-- added in 11.0 -->
-            <funcsynopsis>
-                <funcprototype><funcdef><type>pScalerItem</type>
-                <function>formatNonIncrTSScalerItem</function></funcdef>
-                <paramdef>
-                    <parameter><type>unsigned</type> scalerCount</parameter>
-                </paramdef>
-                <paramdef>
-                    <parameter><type>time_t</type> timestamp</parameter>
-                </paramdef>
-                <paramdef>
-                    <parameter><type>uint32_t</type> btime</parameter>
-                </paramdef>
-                <paramdef>
-                    <parameter><type>uint32_t</type>  etime</parameter>
-                </paramdef>
-                <paramdef>
-                    <parameter><type>uint64_t</type> eventTimestamp</parameter>
-                </paramdef>
-                <paramdef>
-                    <parameter><type>void*</type> pCounters</parameter>
-                </paramdef>
-                <paramdef>
-                    <parameter><type>uint32_t</type> timebaseDivisor</parameter>
-                </paramdef>
-                </funcprototype>
-            </funcsynopsis>
-            <funcsynopsis>
-                <funcprototype>
-                <funcdef><type>pDataFormat</type><function>formatDataFormat</function>
-                </funcdef>
-                <void />
-                </funcprototype>
-            </funcsynopsis>
-            <funcsynopsis>
-                <funcprototype>
-                    <funcdef><type>pGlomParameters</type>
-                        <function>formatGlomParameters</function>
-                    </funcdef>
-                    <paramdef>
-                        <parameter><type>uint64_t</type> coincidenceWindow</parameter>
-                    </paramdef>
-                    <paramdef>
-                        <parameter><type>int</type>isBuilding</parameter>
-                    </paramdef>
-                    <paramdef>
-                        <parameter><type>int</type>timestampPolicy</parameter>
-                    </paramdef>
-                </funcprototype>
-            </funcsynopsis>
-            <funcsynopsis>
-                <funcprototype>
-                    <funcdef><type>pEventBuilderFragment</type>
-                        <function>formatEVBFragment</function>
-                    </funcdef>
-                    <paramdef>
-                        <parameter><type>uint64_t</type> timestamp</parameter>
-                    </paramdef>
-                    <paramdef>
-                        <parameter><type>uint32_t</type> sourceId</parameter>
-                    </paramdef>
-                    <paramdef>
-                        <parameter><type>uint32_t</type> barrier</parameter>
-                    </paramdef>
-                    <paramdef>
-                        <parameter><type>uint32_t</type> payloadSize</parameter>
-                    </paramdef>
-                    <paramdef>
-                        <parameter><type>const void*</type>
-                        pPayload</parameter>
-                    </paramdef>
-                </funcprototype>
-            </funcsynopsis>
-            <funcsynopsis>
-                <funcprototype>
-                    <funcdef><type>pEventBuilderFragment</type>
-                        <function>formatEVBFragmentUnknown</function>
-                    </funcdef>
-                    <paramdef>
-                        <parameter><type>uint64_t timestamp</type></parameter>
-                    </paramdef>
-                    <paramdef>
-                        <parameter><type>uint32_t</type> sourceId</parameter>
-                    </paramdef>
-                    <paramdef>
-                        <parameter><type>uint32_t</type> barrier</parameter>
-                    </paramdef>
-                    <paramdef>
-                        <parameter><type>uint32_t</type> payloadSize</parameter>
-                    </paramdef>
-                    <paramdef>
-                        <parameter><type>const void*</type> pPayload</parameter>
-                    </paramdef>
-                </funcprototype>
-            </funcsynopsis>
-            <funcsynopsis>
-                <funcprototype>
-                    <funcdef>
-                        <type>pPhysicsEventItem</type>
-                        <function>formatTimestampedEventItem</function>
-                    </funcdef>
-                    <paramdef>
-                        <parameter><type>uint64_t</type> timestamp</parameter>
-                    </paramdef>
-                    <paramdef>
-                        <parameter><type>uint32_t</type> sourceId</parameter>
-                    </paramdef>
-                    <paramdef>
-                        <parameter><type>uint32_t</type> barrier</parameter>
-                    </paramdef>
-                    <paramdef>
-                        <parameter><type>uint32_t</type> payloadSize</parameter>
-                    </paramdef>
-                    <paramdef>
-                        <parameter><type>const void*</type> pPayload</parameter>
-                    </paramdef>
-                </funcprototype>
-            </funcsynopsis>
-            <funcsynopsis>
-                <funcprototype>
-                    <funcdef>
-                        <type>pPhysicsEventCountItem</type>
-                        <function>formatTimestampedTriggerCountItem</function>
-                    </funcdef>
-                    <paramdef>
-                        <parameter><type>uint64_t</type> timestamp</parameter>
-                    </paramdef>
-                    <paramdef>
-                        <parameter><type>uint32_t</type> sourceId</parameter>
-                    </paramdef>
-                    <paramdef>
-                        <parameter><type>uint32_t</type> barrier</parameter>
-                    </paramdef>
-                    <paramdef>
-                        <parameter><type>uint32_t</type> runTime</parameter>
-                    </paramdef>
-                    <paramdef>
-                        <parameter><type>uint32_t</type> offsetDivisor</parameter>
-                    </paramdef>
-                    <paramdef>
-                        <parameter><type>time_t</type> stamp</parameter>
-                    </paramdef>
-                    <paramdef>
-                        <parameter><type>uint64_t</type> triggerCount</parameter>
-                    </paramdef>
-                </funcprototype>
-            </funcsynopsis>
-            <funcsynopsis>
-                <funcprototype>
-                    <funcdef>
-                        <type>pScalerItem</type>
-                        <function>formatTimestampedScalerItem</function>
-                    </funcdef>
-                    <paramdef>
-                        <parameter><type>uint64_t</type>timestamp</parameter>
-                    </paramdef>
-                    <paramdef>
-                        <parameter><type>uint32_t</type> sourceId</parameter>
-                    </paramdef>
-                    <paramdef>
-                        <parameter><type>uint32_t</type> barrier</parameter>
-                    </paramdef>
-                    <paramdef>
-                        <parameter><type>int</type> isIncremental</parameter>
-                    </paramdef>
-                    <paramdef>
-                        <parameter><type>uint32_t</type> timeIntervalDivisor</parameter>
-                    </paramdef>
-                    <paramdef>
-                        <parameter><type>uint32_t</type> timeofday</parameter>
-                    </paramdef>
-                    <paramdef>
-                        <parameter><type>uint32_t</type> btime</parameter>
-                    </paramdef>
-                    <paramdef>
-                        <parameter><type>uint32_t</type> etime</parameter>
-                    </paramdef>
-                    <paramdef>
-                        <parameter><type>uint32_t</type> nScalers</parameter>
-                    </paramdef>
-                    <paramdef>
-                        <parameter><type>void*</type> pCounters</parameter>
-                    </paramdef>
-                </funcprototype>
-            </funcsynopsis>
-            <funcsynopsis>
-                <funcprototype>
-                    <funcdef>
-                        <type>pTextItem</type>
-                        <function>formatTimestampedTextItem</function>
-                    </funcdef>
-                    <paramdef>
-                        <parameter><type>uint64_t</type> timestamp</parameter>
-                    </paramdef>
-                    <paramdef>
-                        <parameter><type>uint32_t</type> sourceId</parameter>
-                    </paramdef>
-                    <paramdef>
-                        <parameter><type>uint32_t</type> barrier</parameter>
-                    </paramdef>
-                    <paramdef>
-                        <parameter><type>unsigned</type> nStrings</parameter>
-                    </paramdef>
-                    <paramdef>
-                        <parameter><type>time_t</type> stamp</parameter>
-                    </paramdef>
-                    <paramdef>
-                        <parameter><type>uint32_t</type> runTime</parameter>
-                    </paramdef>
-                    <paramdef>
-                        <parameter><type>const char**</type>pStrings</parameter>
-                    </paramdef>
-                    <paramdef>
-                        <parameter><type>int</type> type</parameter>
-                    </paramdef>
-                    <paramdef>
-                        <parameter><type>uint32_t</type> timeIntervalDivisor</parameter>
-                    </paramdef>
-                </funcprototype>
-            </funcsynopsis> 
-            <funcsynopsis>
-                <funcprototype>
-                    <funcdef>
-                        <type>pStateChangeItem</type>
-                        <function>formatTimestampedStateChange</function>
-                    </funcdef>
-                    <paramdef>
-                        <parameter><type>uint64_t</type> timestamp</parameter>
-                    </paramdef>
-                    <paramdef>
-                        <parameter><type>uint32_t</type> sourceId</parameter>
-                    </paramdef>
-                    <paramdef>
-                        <parameter><type>uint32_t</type> barrier</parameter>
-                    </paramdef>
-                    <paramdef>
-                        <parameter><type>time_t</type> stamp</parameter>
-                    </paramdef>
-                    <paramdef>
-                        <parameter><type>uint32_t</type> offset</parameter>
-                    </paramdef>
-                    <paramdef>
-                        <parameter><type>uint32_t</type> runNumber</parameter>
-                    </paramdef>
-                    <paramdef>
-                        <parameter><type>uint32_t</type> offsetDivisor</parameter>
-                    </paramdef>
-                    <paramdef>
-                        <parameter><type>const char*</type> pTitle</parameter>
-                    </paramdef>
-                    <paramdef>
-                        <parameter><type>int</type> type</parameter>
-                    </paramdef>
-                </funcprototype>
-            </funcsynopsis>
-            <funcsynopsis>
-                <funcprototype>
-                    <funcdef>
-                        <type>void*</type> <function>bodyPointer</function>
-                    </funcdef>
-                    <paramdef>
-                        <parameter><type>pRingItem</type> pItem</parameter>
-                    </paramdef>
-                </funcprototype>
-            </funcsynopsis>
-
-            <!-- end of 11.0 additions -->
-
-        </para>
-        <para>
-            The header of each item type is of type <structname>RingItemHeader</structname>
-            for convenience, the type <structname>pRingItemHeader</structname> is defined
-            to be a pointer to a <structname>RingItemHeader</structname>.  This is a
-            common pattern in the <filename>DataFormat.h</filename> header.
-        </para>
-        <para>
-            The header has the following fields:
-            <variablelist>
-                <varlistentry>
-                    <term>uint32_t <structfield>s_size</structfield></term>
-                    <listitem>
-                        <para>Contains the size of the item in bytes.
-                            <structfield>s_size</structfield> should include the
-                            size of the header as well
-                        </para>
-                    </listitem>
-                </varlistentry>
-                <varlistentry>
-                    <term>uint32_t <structfield>s_type</structfield></term>
-                    <listitem>
-                        <para>
-                            Contains a value that uniquely defines the type of
-                            datain the item.  While this is a 32 bit field,
-                            the actual type values a 16 bits wide, with the
-                            remaining 16 bit set to zero.  This allows consumer
-                            software to detect byte order differences between
-                            systems that generate the data and consumer systems.
-                        </para>
-                        <para>
-                            The NSCL DAQ reserves types 1 through 32767
-                            for itself.  Type 0 is illegal, as it's byte order
-                            is indeterminate.  Types
-                            37678 through 65535 are available for user applications.
-                            The constant <varname>FIRST_USER_ITEM_CODE</varname>
-                            provides the symbolic value for the first item code
-                            available for user applications.
-                        </para>
-                        <para>
-                            The NSCL DAQ is currently using the following
-                            item codes, defined in the <filename>DataFormat.h</filename>
-                            header:
-                        </para>
-                        <variablelist>
-                            <varlistentry>
-                            <term><varname>BEGIN_RUN</varname></term>
-                            <listitem>
-                                <para>
-                                    The item describes the beginning of a data
-                                    taking run.
-                                </para>
-                            </listitem>
-                            </varlistentry>
-                            <varlistentry>
-                                <term><varname>END_RUN</varname></term>
-                                <listitem>
-                                    <para>
-                                        The item descdribes the end of a data taking
-                                        run.
-                                    </para>
-                                </listitem>
-                            </varlistentry>
-                            <varlistentry>
-                                <term><varname>PAUSE_RUN</varname></term>
-                                <listitem>
-                                    <para>
-                                        The item describes a temporary pause in
-                                        data taking.  This item must be followed
-                                        immediately by either a
-                                        <varname>RESUME_RUN</varname> item,
-                                        or an <varname>END_RUN</varname> item.
-                                    </para>
-                                </listitem>
-                            </varlistentry>
-                            <varlistentry>
-                                <term><varname>RESUME_RUN</varname></term>
-                                <listitem>
-                                    <para>
-                                        This item describes the resumption of
-                                        data taking after a temporary pause.
-                                        Barring user defined types that may
-                                        follow a
-                                        <varname>PAUSE_RUN</varname>, this
-                                        item will always follow a
-                                        <varname>PAUSE_RUN</varname> item.
-                                    </para>
-                                </listitem>
-                            </varlistentry>
-                            <varlistentry>
-                                <term><varname>PACKET_TYPES</varname></term>
-                                <listitem>
-                                    <para>
-                                        NSCL DAQ readout frameworks can package
-                                        chunks of a physics event into packets.
-                                        Packets have essentially the same
-                                        format as ring buffer items.
-                                        The frameworks also support documenting
-                                        the packet types that can occur in a
-                                        data taking run.  This item supplies that
-                                        documentation to interested consumers.
-                                    </para>
-                                </listitem>
-                            </varlistentry>
-                            <varlistentry>
-                                <term><varname>MONITORED_VARIABLES</varname></term>
-                                <listitem>
-                                    <para>
-                                        Some readout frameworks support the creation
-                                        of variables that can monitor external
-                                        conditions such as EPICS channels.
-                                        This item contains information about the
-                                        latest state of a monitored variable.
-                                    </para>
-                                </listitem>
-                            </varlistentry>
-                            <varlistentry>
-                                <term><varname>PERIODIC_SCALERS</varname></term>
-                                <listitem>
-                                    <para>
-                                        NSCL DAQ readout frameworks support the
-                                        periodic readout of counters.  These counters
-                                        are called <firstterm>scalers</firstterm> by
-                                        the experimental community and are used to
-                                        monitor the rates of trigger components,
-                                        detector systems, or system live-time.
-                                        Data from these are put in
-                                        <varname>INCREMENTAL_SCALERS</varname> items.
-                                    </para>
-                                </listitem>
-                            </varlistentry>
-                            <varlistentry>
-                                <term><varname>RING_FORMAT</varname></term>
-                                <listitem>
-                                    <para>
-                                        Describes the format level of the ring item.
-                                        This is described in terms of the earliest
-                                        NSCLDAQ major and minor versions that can
-                                        transparently handle this data.  Readout
-                                        frameworks output this item at the beginning
-                                        of each run, prior to the begin run item.
-                                    </para>
-                                </listitem>
-                            </varlistentry>
-                            <varlistentry>
-                                <term><varname>PHYSICS_EVENT</varname></term>
-                                <listitem>
-                                    <para>
-                                        The purpose of NSCL DAQ readout frameworks,
-                                        is to respond to event triggers and read out
-                                        digitizer hardware that has captured the data
-                                        from a nucleus-nucleus collision.
-                                        These data are placed in
-                                        <varname>PHYSICS_EVENT</varname> items.
-                                    </para>
-                                </listitem>
-                            </varlistentry>
-                            <varlistentry>
-                                <term><varname>PHYSICS_EVENT_COUNT</varname></term>
-                                <listitem>
-                                    <para>
-                                        Periodically emitted to tell clients how
-                                        many <varname>PHYSICS_EVENT</varname>
-                                        items have been inserted in the
-                                        ring.  This is can be used to
-                                        determine sampling efficiency for
-                                        analysis consumers, as well as to
-                                        compute event rates.
-                                    </para>
-                                </listitem>
-                            </varlistentry>
-                            <varlistentry>
-                                <term><varname>EVB_FRAGMENT</varname></term>
-                                <listitem>
-                                    <para>
-                                        An event fragment from the ordering phase of the
-                                        event builder.  Fragments of this type
-                                        are believed to contain ring items as their
-                                        payloads.
-                                    </para>
-                                </listitem>
-                            </varlistentry>
-                            <varlistentry>
-                                <term><varname>EVB_UNKNOWN_PAYLOAD</varname></term>
-                                <listitem>
-                                    <para>
-                                        Same as <varname>EVB_FRAGMENT</varname>
-                                        however it's pretty certain the payload
-                                        of these items are not ring items.
-                                    </para>
-                                </listitem>
-                            </varlistentry>
-                            <varlistentry>
-                                <term><varname>EVB_GLOM_INFO</varname></term>
-                                <listitem>
-                                    <para>
-                                        Emitted by the <application>glom</application>
-                                        component of the event builder to
-                                        describe the parameters it has been started
-                                        with.
-                                    </para>
-                                    <para>
-                                        One of these ring items is emitted
-                                        one as glom is started.
-                                    </para>
-                                </listitem>
-                            </varlistentry>
-                        </variablelist>
-                    </listitem>
-                </varlistentry>
-            </variablelist>
-        </para>
-        <para>
-            These item types break down in to four distinct categories of
-            item which will be described in the remaining subsections of this
-            section.
-        </para>
-        <section>
-            <title>State Change Items</title>
+    <para>
+      The header has the following fields:
+      <variablelist>
+        <varlistentry>
+          <term>uint32_t <structfield>s_size</structfield></term>
+          <listitem>
+            <para>Contains the size of the item in bytes.
+              <structfield>s_size</structfield> should include the
+              size of the header as well
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>uint32_t <structfield>s_type</structfield></term>
+          <listitem>
             <para>
-                State change items are those with types
-                <varname>BEGIN_RUN</varname>, <varname>END_RUN</varname>,
-                <varname>PAUSE_RUN</varname>, and <varname>RESUME_RUN</varname>.
-                As the type names imply, these signal state transitions in
-                data taking. 
+              Contains a value that uniquely defines the type of
+              datain the item.  While this is a 32 bit field,
+              the actual type values a 16 bits wide, with the
+              remaining 16 bit set to zero.  This allows consumer
+              software to detect byte order differences between
+              systems that generate the data and consumer systems.
             </para>
             <para>
-                State change items have the type
-                <structname>StateChangeItem</structname>.  This item has the
-                following fields:
-            </para>
-            <variablelist>
-                <varlistentry>
-                    <term>uint32_t <structfield>s_runNumber</structfield></term>
-                    <listitem>
-                        <para>
-                            Is the number of the run for which this state transition
-                            is being documented.  Typically, run numbers are
-                            unique, for recorded runs, as the run number is encoded
-                            into the name of the run's event file.
-                        </para>
-                    </listitem>
-                </varlistentry>
-                <varlistentry>
-                    <term>uint32_t <structfield>s_timeOffset</structfield></term>
-                    <listitem>
-                        <para>
-                            Is the number of seconds the run has been active prior
-                            to this state transition.  Clearly if the type of the
-                            item is <varname>BEGIN_RUN</varname> this will be zero.
-                            For the NSCLDAQ frameworks, the time offset only
-                            counts seconds during which the run was active (time
-                            during which the run was paused are not counted).
-                        </para>
-                    </listitem>
-                </varlistentry>
-                <varlistentry>
-                    <term>uint32_t <structfield>s_Timestamp</structfield></term>
-                    <listitem>
-                        <para>
-                            Is the absolute time at which the transition
-                            occured. This is represented in seconds since
-                            the Unix epoch of
-                            <literal>00:00:00 UTC, January 1, 1970</literal>.
-                            Once translated into the host's byte order, it can
-                            be passed to any of the time formatting functions
-                            (e.g. <function>asctime</function>).
-                        </para>
-                    </listitem>
-                </varlistentry>
-                <varlistentry>
-                    <term>char <structfield>s_title</structfield>[TITLE_MAXSIZE+1]</term>
-                    <listitem>
-                        <para>
-                            Holds the run title.  Run titles are restricted in
-                            size to <varname>TITLE_MAXSIZE</varname> characters,
-                            with the <literal>+1</literal> to accomodate the
-                            trailing <literal>'\0'</literal>.
-                            <varname>TITLE_MAXSIZE</varname>
-                            is also defined in
-                            <filename>DataFormat.h</filename>.
-                        </para>
-                    </listitem>
-                </varlistentry>
-            </variablelist>
-            <para>
-                All item types have a field
-                <structfield>s_header</structfield> of type
-                RingItemHeader that holds the item header.
+              The NSCL DAQ reserves types 1 through 32767
+              for itself.  Type 0 is illegal, as it's byte order
+              is indeterminate.  Types
+              37678 through 65535 are available for user applications.
+              The constant <varname>FIRST_USER_ITEM_CODE</varname>
+              provides the symbolic value for the first item code
+              available for user applications.
             </para>
             <para>
-                Beginning with NSCLDAQ version 11.0, the ring item body has
-                been modified to allow it to include timestamp, event source
-                and barrier information either emitted by or intended for the
-                event building pipeline.
-                This header is either a <type>uint32_t</type> containing zero,
-                which indicates there is no header, or a structure of the
-                following type:
+              The supported NSCLDAQ data item codes are defined in
+              the <filename>DataFormat.h</filename> header. They
+              are also defined i
             </para>
-            <programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </para>
+    <para>
+      The body header includes a timestamp, event source and barrier information
+      either emitted by or intended for the event building pipeline.  This
+      header is either a <type>uint32_t</type> containing zero, which indicates
+      there is no header, or a structure of the following type: 
+    </para>
+    <programlisting>
 typedef struct _BodyHeader {
   uint32_t   s_size;		/* 0 or sizeof(DataSourceHeader) */
   uint64_t   s_timestamp;
   uint32_t   s_sourceId;
   uint32_t   s_barrier;   
 } BodyHeader, *pBodyHeader;
+    </programlisting>
+    <para>
+      The fields of this structure are as follows:
+    </para>
+    <variablelist>
+      <varlistentry>
+        <term><varname>s_size</varname></term>
+        <listitem>
+          <para>
+            The size of the header.  This value includes the
+            <varname>s_size</varname> field.  Thus you can also
+            think of items that don't have a body header
+            as having a header size of zero.  We promise to maintain
+            backwards compatility by adding any new elements to the
+            end of the body header.  Thus you can use
+            <varname>s_size</varname> to determine where the
+            body header ends and the structure fields will not
+            move from version to version.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><varname>s_timestamp</varname></term>
+        <listitem>
+          <para>
+            The value of the event/globally synchronized
+            timestamp at the time this ring item was initially
+            formed.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><varname>s_sourceId</varname></term>
+        <listitem>
+          <para>
+            Unique identifier of the source of this ring item.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><varname>s_barrier</varname></term>
+        <listitem>
+          <para>
+            If the item was part of a barrier synchronization amongst
+            the data sources, this field will be non-zero and
+            represent the type of the barrier.  If zero, this
+            item was not part of a barrier.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
 
-            </programlisting>
-            <para>
-                The fields of this structure are as follows:
-            </para>
-            <variablelist>
-                <varlistentry>
-                    <term><varname>s_size</varname></term>
-                    <listitem>
-                        <para>
-                            The size of the header.  This value includes the
-                            <varname>s_size</varname> field.  Thus you can also
-                            think of items that don't have a body header
-                            as having a header size of zero.  We promise to maintain
-                            backwards compatility by adding any new elements to the
-                            end of the body header.  Thus you can use
-                            <varname>s_size</varname> to determine where the
-                            body header ends and the structure fields will not
-                            move from version to version.
-                        </para>
-                    </listitem>
-                </varlistentry>
-                <varlistentry>
-                    <term><varname>s_timestamp</varname></term>
-                    <listitem>
-                        <para>
-                            The value of the event/globally synchronized
-                            timestamp at the time this ring item was initially
-                            formed.
-                        </para>
-                    </listitem>
-                </varlistentry>
-                <varlistentry>
-                    <term><varname>s_sourceId</varname></term>
-                    <listitem>
-                        <para>
-                            Unique identifier of the source of this ring item.
-                        </para>
-                    </listitem>
-                </varlistentry>
-                <varlistentry>
-                    <term><varname>s_barrier</varname></term>
-                    <listitem>
-                        <para>
-                            If the item was part of a barrier synchronization amongst
-                            the data sources, this field will be non-zero and
-                            represent the type of the barrier.  If zero, this
-                            item was not part of a barrier.
-                        </para>
-                    </listitem>
-                </varlistentry>
-            </variablelist>
-        </section>
-        <section>
-            <title>Text List Items</title>
-            <para>
-                Text list items contain a list of null terminated strings.
-                They are usually used to provide metadata for the run.  At present,
-                two types of text list items are defined.
-                <varname>PACKET_TYPES</varname> and
-                <varname>MONITORED_VARIABLES</varname>.
-            </para>
-            <para>
-                <varname>PACKET_TYPES</varname> document the packets you might
-                expect to find in a run's <varname>PHYSICS_EVENT</varname> items.
-                Creating instances of the
-                <classname>CDocumentedPacket</classname> object
-                automatically generates these.  Each packet is documented with a
-                single string.  The string consists of five colon separated fields.
-                These fields contain, in order:
-                <orderedlist>
-                    <listitem>
-                        <para>The Name the packet.</para>
-                    </listitem>
-                    <listitem>
-                        <para>The id of the packet given as a hex string e.g.
-                            "0x1234"
-                        </para>
-                    </listitem>
-                    <listitem>
-                        <para>A desription of the packet.</para>
-                    </listitem>
-                    <listitem>
-                        <para>A version string for the packet.  Presumably this
-                            will change if the packet with this type ever
-                            changes 'shape'>
-                        </para>
-                    </listitem>
-                    <listitem>
-                        <para>The date and time at which the
-                            <classname>CDocumentedPacket</classname> object
-                            creating this entry was created.
-                        </para>
-                    </listitem>
-                </orderedlist>
-            </para>
-            <para>
-                <varname>MONITORED_VARIABLES</varname> items contains a snapshot
-                of the values of process variables that have been declared
-                by the readout software.   Each variable takes up one string and is
-                formatted like a Tcl <command>set</command> command that, if executed,
-                would define that variable to the value it had when the item was created.
-            </para>
-            <para>
-                String list items have type <structname>TextItem</structname>.
-                This item has the following fields:
-            </para>
-            <variablelist>
-                <varlistentry>
-                    <term>uint32_t <structfield>s_timeOffset</structfield></term>
-                    <listitem>
-                        <para>
-                            The number of seconds of data taking that have gone on
-                            in this run prior to the generation of this item.
-                            This time offset does not count time in the paused
-                            state.
-                        </para>
-                    </listitem>
-                </varlistentry>
-                <varlistentry>
-                    <term>uint32_t<structfield>s_timestamp</structfield></term>
-                    <listitem>
-                        <para>
-                            Is the absolute time at which the item was 
-                            created. This is represented in seconds since
-                            the Unix epoch of
-                            <literal>00:00:00 UTC, January 1, 1970</literal>.
-                            Once translated into the host's byte order, it can
-                            be passed to any of the time formatting functions
-                            (e.g. <function>asctime</function>).
-                        </para>
-                    </listitem>
-                </varlistentry>
-                <varlistentry>
-                    <term>uint32_t <structfield>s_stringCount</structfield></term>
-                    <listitem>
-                        <para>
-                            Number of strings in the item.
-                        </para>
-                    </listitem>
-                </varlistentry>
-                <varlistentry>
-                    <term>char <structfield>s_strings[]</structfield></term>
-                    <listitem>
-                        <para>
-                            An array of characters large enough to hold all
-                            the strings.  Each string is a null terminated set
-                            of characters immediately followed by the next
-                            string.
-                        </para>
-                    </listitem>
-                </varlistentry>
-            </variablelist>
-        </section>
-        <section>
-            <title>Scaler Items</title>
-            <para>
-                NSCLDAQ readout frameworks support periodically reading scaler
-                data.  These data are represented as
-                <structname>ScalerItem</structname> items in ring buffers.
-                These items have the following fields:
-            </para>
-            <variablelist>
-                <varlistentry>
-                    <term>uint32_t <structfield>s_intervalStartTime</structfield></term>
-                    <listitem>
-                        <para>
-                            The number of seconds of active data taking prior
-                            the start of the time period represented by the counts
-                            in this scaler item.
-                        </para>
-                    </listitem>
-                </varlistentry>
-                <varlistentry>
-                    <term>uint32_t <structfield>s_intervalEndTime</structfield></term>
-                    <listitem>
-                        <para>
-                            The number of seconds of active data taking prior to
-                            the end of the time period represented by the counts
-                            in this scaler item.
-                        </para>
-                    </listitem>
-                </varlistentry>
-                <varlistentry>
-                    <term>uint32_t  <structfield>s_timestamp</structfield></term>
-                    <listitem>
-                        <para>
-                            Is the absolute time of the end of the
-                            scaler counting period.
-                            This is represented in seconds since
-                            the Unix epoch of
-                            <literal>00:00:00 UTC, January 1, 1970</literal>.
-                            Once translated into the host's byte order, it can
-                            be passed to any of the time formatting functions
-                            (e.g. <function>asctime</function>).
-                        </para>
-                    </listitem>
-                </varlistentry>
-                <varlistentry>
-                    <term>uint32_t <structfield>s_scalerCount</structfield></term>
-                    <listitem>
-                        <para>
-                            The number of scalers in the item.
-                        </para>
-                    </listitem>
-                </varlistentry>
-                <varlistentry>
-                    <term>uint32_t <structfield>s_scalers</structfield>[]</term>
-                    <listitem>
-                        <para>
-                            The array of scaler counts.  This contains
-                            <structfield>s_scalerCount</structfield> elements.
-                        </para>
-                    </listitem>
-                </varlistentry>
-            </variablelist>
-        </section>
-        <section>
-            <title>Event Data Items</title>
-            <para>
-                These items are of type
-                <varname>PHYSICS_EVENT</varname>.
-                The contain the data read from the hardware.  Depending on the
-                readout framework, this can be the response to one trigger or to
-                a block of triggers. It is up to the analysis software to know
-                which is which.
-            </para>
-            <para>
-                This item is of type <structname>PhysicsEventItem</structname>
-                and contains the field
-                uint16_t <structfield>s_body</structfield> that is the data
-                from the event.
-            </para>
 
-        </section>
-        <section>
-            <title>Event count items</title>
+    <para>
+      To generate the various ring items, the <filename>DataFormat.h</filename>
+      provides a series of functions.
+      <!-- added in 11.0 -->
+      <funcsynopsis>
+        <funcprototype><funcdef><type>pScalerItem</type>
+            <function>formatNonIncrTSScalerItem</function></funcdef>
+          <paramdef>
+            <parameter><type>unsigned</type> scalerCount</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>time_t</type> timestamp</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>uint32_t</type> btime</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>uint32_t</type>  etime</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>uint64_t</type> eventTimestamp</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>void*</type> pCounters</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>uint32_t</type> timebaseDivisor</parameter>
+          </paramdef>
+        </funcprototype>
+      </funcsynopsis>
+      <funcsynopsis>
+        <funcprototype>
+          <funcdef><type>pDataFormat</type><function>formatDataFormat</function>
+          </funcdef>
+          <void />
+        </funcprototype>
+      </funcsynopsis>
+      <funcsynopsis>
+        <funcprototype>
+          <funcdef><type>pGlomParameters</type>
+            <function>formatGlomParameters</function>
+          </funcdef>
+          <paramdef>
+            <parameter><type>uint64_t</type> coincidenceWindow</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>int</type>isBuilding</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>int</type>timestampPolicy</parameter>
+          </paramdef>
+        </funcprototype>
+      </funcsynopsis>
+      <funcsynopsis>
+        <funcprototype>
+          <funcdef><type>pEventBuilderFragment</type>
+            <function>formatEVBFragment</function>
+          </funcdef>
+          <paramdef>
+            <parameter><type>uint64_t</type> timestamp</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>uint32_t</type> sourceId</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>uint32_t</type> barrier</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>uint32_t</type> payloadSize</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>const void*</type>
+              pPayload</parameter>
+          </paramdef>
+        </funcprototype>
+      </funcsynopsis>
+      <funcsynopsis>
+        <funcprototype>
+          <funcdef><type>pEventBuilderFragment</type>
+            <function>formatEVBFragmentUnknown</function>
+          </funcdef>
+          <paramdef>
+            <parameter><type>uint64_t timestamp</type></parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>uint32_t</type> sourceId</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>uint32_t</type> barrier</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>uint32_t</type> payloadSize</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>const void*</type> pPayload</parameter>
+          </paramdef>
+        </funcprototype>
+      </funcsynopsis>
+      <funcsynopsis>
+        <funcprototype>
+          <funcdef>
+            <type>pPhysicsEventItem</type>
+            <function>formatTimestampedEventItem</function>
+          </funcdef>
+          <paramdef>
+            <parameter><type>uint64_t</type> timestamp</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>uint32_t</type> sourceId</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>uint32_t</type> barrier</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>uint32_t</type> payloadSize</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>const void*</type> pPayload</parameter>
+          </paramdef>
+        </funcprototype>
+      </funcsynopsis>
+      <funcsynopsis>
+        <funcprototype>
+          <funcdef>
+            <type>pPhysicsEventCountItem</type>
+            <function>formatTimestampedTriggerCountItem</function>
+          </funcdef>
+          <paramdef>
+            <parameter><type>uint64_t</type> timestamp</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>uint32_t</type> sourceId</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>uint32_t</type> barrier</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>uint32_t</type> runTime</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>uint32_t</type> offsetDivisor</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>time_t</type> stamp</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>uint64_t</type> triggerCount</parameter>
+          </paramdef>
+        </funcprototype>
+      </funcsynopsis>
+      <funcsynopsis>
+        <funcprototype>
+          <funcdef>
+            <type>pScalerItem</type>
+            <function>formatTimestampedScalerItem</function>
+          </funcdef>
+          <paramdef>
+            <parameter><type>uint64_t</type>timestamp</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>uint32_t</type> sourceId</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>uint32_t</type> barrier</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>int</type> isIncremental</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>uint32_t</type> timeIntervalDivisor</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>uint32_t</type> timeofday</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>uint32_t</type> btime</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>uint32_t</type> etime</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>uint32_t</type> nScalers</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>void*</type> pCounters</parameter>
+          </paramdef>
+        </funcprototype>
+      </funcsynopsis>
+      <funcsynopsis>
+        <funcprototype>
+          <funcdef>
+            <type>pTextItem</type>
+            <function>formatTimestampedTextItem</function>
+          </funcdef>
+          <paramdef>
+            <parameter><type>uint64_t</type> timestamp</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>uint32_t</type> sourceId</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>uint32_t</type> barrier</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>unsigned</type> nStrings</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>time_t</type> stamp</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>uint32_t</type> runTime</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>const char**</type>pStrings</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>int</type> type</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>uint32_t</type> timeIntervalDivisor</parameter>
+          </paramdef>
+        </funcprototype>
+      </funcsynopsis> 
+      <funcsynopsis>
+        <funcprototype>
+          <funcdef>
+            <type>pStateChangeItem</type>
+            <function>formatTimestampedStateChange</function>
+          </funcdef>
+          <paramdef>
+            <parameter><type>uint64_t</type> timestamp</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>uint32_t</type> sourceId</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>uint32_t</type> barrier</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>time_t</type> stamp</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>uint32_t</type> offset</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>uint32_t</type> runNumber</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>uint32_t</type> offsetDivisor</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>const char*</type> pTitle</parameter>
+          </paramdef>
+          <paramdef>
+            <parameter><type>int</type> type</parameter>
+          </paramdef>
+        </funcprototype>
+      </funcsynopsis>
+      <funcsynopsis>
+        <funcprototype>
+          <funcdef>
+            <type>void*</type> <function>bodyPointer</function>
+          </funcdef>
+          <paramdef>
+            <parameter><type>pRingItem</type> pItem</parameter>
+          </paramdef>
+        </funcprototype>
+      </funcsynopsis>
+
+      <!-- end of 11.0 additions -->
+
+    </para>
+    <para>
+      These item types break down in to four distinct categories of
+      item which will be described in the remaining subsections of this
+      section.
+    </para>
+    <section>
+      <title>State Change Items</title>
+      <para>
+        State change items are those with types
+        <varname>BEGIN_RUN</varname>, <varname>END_RUN</varname>,
+        <varname>PAUSE_RUN</varname>, and <varname>RESUME_RUN</varname>.
+        As the type names imply, these signal state transitions in
+        data taking. 
+      </para>
+      <para>
+        State change items have the type
+        <structname>StateChangeItem</structname>.  This item has the
+        following fields:
+      </para>
+      <variablelist>
+        <varlistentry>
+          <term>uint32_t <structfield>s_runNumber</structfield></term>
+          <listitem>
             <para>
-                These items are of type <structname>PhysicsEventCountItem</structname>.
-                <type>uint32_t</type> <structfield>s_timeOffset</structfield> is
-                the number of seconds into the active run the event occured.
-                <type>uint32_t</type> <structfield>s_timesamp</structfield>
-                is the absolute timestamp indicating when this item was created.
-                <type>uint64_t</type> <structfield>s_eventCount</structfield> is
-                the total number of events that have been contributed to this
-                ring for this run.
+              Is the number of the run for which this state transition
+              is being documented.  Typically, run numbers are
+              unique, for recorded runs, as the run number is encoded
+              into the name of the run's event file.
             </para>
-        </section>
-            
-    </section>
-    
-    <section>
-        <title>Selecting Data From a Ring Buffer</title>
-        <para>
-            Many data consumers are not interested in all of the
-            item types that could be put in a ring buffer.   This section
-            describes the infrastructure for selecting subsets of the data
-            from ring buffers that are formatted as described in this chapter.
-        </para>
-        <para>
-            The ring buffer low level access library provides
-            two powerful mechanisms for manipulating ring buffers based
-            the concept of <firstterm>predicates</firstterm>.
-            A predicate is a function that implement the
-            <methodname>operator()</methodname> method in a way that it returns
-            a <literal>bool</literal>.
-            Predicate objects can therefore be thought of as functions that can
-            have state that persists between calls.
-        </para>
-        <para>
-            <classname>CRingBuffer</classname> has two member functions
-            <methodname>blockWhile</methodname> which periodically
-            invokes a predicate until it returns <literal>false</literal>
-            blocking for a settable time period between calls, and for a
-            maximum timeout.
-            <methodname>While</methodname> which simply repeatedly calls
-            a predicate until it returns <literal>false</literal>.
-            (like <methodname>blockWhile</methodname> but without blocking
-            between calls to the predicate.
-        </para>
-        <para>
-            Armed with predicates, these two member functions an an understanding
-            that items in the ring will have the item format described in the
-            previous section, it is possible to implement a scheme for selectively
-            obtaining data from a ring buffer.
-        </para>
-        <para>
-            The base class for this selectivity is
-            <classname>CRingSelectionPredicate</classname>
-            defined in
-            <filename>CRingSelectionPredicate.h</filename>.  It provides
-            base classes with the capability of specifying a list of item types
-            called a <firstterm>selection  map</firstterm>.  Elements of this
-            map consist of an item type and a flag.  The virtual function
-            <methodname>selectThis</methodname> is given an item type peeked from
-            the ring buffer and returns <literal>false</literal> if the item
-            is acceptable.  Unacceptable items are skipped, and true is returned
-            so that <methodname>While</methodname> continues to loop.
-        </para>
-        <para>
-            If <methodname>selectThis</methodname> returns true, the framework
-            insepcts the type's flag.  If false, the predicate as a whole
-            returns true. I false, the predicate skips the item if it is not
-            the last one in the ring.
-        </para>
-        <para>
-            Two pre-packaged specific derivations of
-            <classname>CRingSelectionPredicate</classname> have been built.
-            In
-            <classname>CDesiredTypesPredicate</classname>, any type not in the
-            list is assumed to be undesirable and skipped.   In
-            <classname>CAllButPredicate</classname>, the list of types define
-            exceptiosn to the rule that all items are desired without sampling.
-            Items in the list with the sample flag false, are assumed to be
-            undesirable and are skipped.  items in the list with the sample flag
-            true, are assumed to be wanted but only in sample mode.
-        </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>uint32_t <structfield>s_timeOffset</structfield></term>
+          <listitem>
+            <para>
+              Is the number of seconds the run has been active prior
+              to this state transition.  Clearly if the type of the
+              item is <varname>BEGIN_RUN</varname> this will be zero.
+              For the NSCLDAQ frameworks, the time offset only
+              counts seconds during which the run was active (time
+              during which the run was paused are not counted).
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>uint32_t <structfield>s_Timestamp</structfield></term>
+          <listitem>
+            <para>
+              Is the absolute time at which the transition
+              occured. This is represented in seconds since
+              the Unix epoch of
+              <literal>00:00:00 UTC, January 1, 1970</literal>.
+              Once translated into the host's byte order, it can
+              be passed to any of the time formatting functions
+              (e.g. <function>asctime</function>).
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>char <structfield>s_title</structfield>[TITLE_MAXSIZE+1]</term>
+          <listitem>
+            <para>
+              Holds the run title.  Run titles are restricted in
+              size to <varname>TITLE_MAXSIZE</varname> characters,
+              with the <literal>+1</literal> to accomodate the
+              trailing <literal>'\0'</literal>.
+              <varname>TITLE_MAXSIZE</varname>
+              is also defined in
+              <filename>DataFormat.h</filename>.
+            </para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <para>
+        All item types have a field
+        <structfield>s_header</structfield> of type
+        RingItemHeader that holds the item header.
+      </para>
     </section>
     <section>
-        <title>Incorporating the headers and libraries into your applications.</title>
-        <para>
-            NSCL DAQ provides a class library that allows you to encapsulate
-            ring buffer data items in objects from which you can get/set data.
-            Ring buffer item objects are intended both for producers and consumers
-            of data.  See the 3daq section of the reference material for
-            detailed per class documentation.
-        </para>
-        <para>
-            Each class has a header file that is named the same as the
-            class with a <filename>.h</filename> appended. Thus to incorporate
-            the definitions for the
-            <classname>CRingItem</classname> base class in your source code you would
-            add the line:
-        </para>
-        <example>
-            <title>Including a ring item class </title>
-            <programlisting>
+      <title>Text List Items</title>
+      <para>
+        Text list items contain a list of null terminated strings.
+        They are usually used to provide metadata for the run.  At present,
+        two types of text list items are defined.
+        <varname>PACKET_TYPES</varname> and
+        <varname>MONITORED_VARIABLES</varname>.
+      </para>
+      <para>
+        <varname>PACKET_TYPES</varname> document the packets you might
+        expect to find in a run's <varname>PHYSICS_EVENT</varname> items.
+        Creating instances of the
+        <classname>CDocumentedPacket</classname> object
+        automatically generates these.  Each packet is documented with a
+        single string.  The string consists of five colon separated fields.
+        These fields contain, in order:
+        <orderedlist>
+          <listitem>
+            <para>The Name the packet.</para>
+          </listitem>
+          <listitem>
+            <para>The id of the packet given as a hex string e.g.
+              "0x1234"
+            </para>
+          </listitem>
+          <listitem>
+            <para>A desription of the packet.</para>
+          </listitem>
+          <listitem>
+            <para>A version string for the packet.  Presumably this
+              will change if the packet with this type ever
+              changes 'shape'>
+            </para>
+          </listitem>
+          <listitem>
+            <para>The date and time at which the
+              <classname>CDocumentedPacket</classname> object
+              creating this entry was created.
+            </para>
+          </listitem>
+        </orderedlist>
+      </para>
+      <para>
+        <varname>MONITORED_VARIABLES</varname> items contains a snapshot
+        of the values of process variables that have been declared
+        by the readout software.   Each variable takes up one string and is
+        formatted like a Tcl <command>set</command> command that, if executed,
+        would define that variable to the value it had when the item was created.
+      </para>
+      <para>
+        String list items have type <structname>TextItem</structname>.
+        This item has the following fields:
+      </para>
+      <variablelist>
+        <varlistentry>
+          <term>uint32_t <structfield>s_timeOffset</structfield></term>
+          <listitem>
+            <para>
+              The number of seconds of data taking that have gone on
+              in this run prior to the generation of this item.
+              This time offset does not count time in the paused
+              state.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>uint32_t<structfield>s_timestamp</structfield></term>
+          <listitem>
+            <para>
+              Is the absolute time at which the item was 
+              created. This is represented in seconds since
+              the Unix epoch of
+              <literal>00:00:00 UTC, January 1, 1970</literal>.
+              Once translated into the host's byte order, it can
+              be passed to any of the time formatting functions
+              (e.g. <function>asctime</function>).
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>uint32_t <structfield>s_stringCount</structfield></term>
+          <listitem>
+            <para>
+              Number of strings in the item.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>char <structfield>s_strings[]</structfield></term>
+          <listitem>
+            <para>
+              An array of characters large enough to hold all
+              the strings.  Each string is a null terminated set
+              of characters immediately followed by the next
+              string.
+            </para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </section>
+    <section>
+      <title>Scaler Items</title>
+      <para>
+        NSCLDAQ readout frameworks support periodically reading scaler
+        data.  These data are represented as
+        <structname>ScalerItem</structname> items in ring buffers.
+        These items have the following fields:
+      </para>
+      <variablelist>
+        <varlistentry>
+          <term>uint32_t <structfield>s_intervalStartTime</structfield></term>
+          <listitem>
+            <para>
+              The number of seconds of active data taking prior
+              the start of the time period represented by the counts
+              in this scaler item.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>uint32_t <structfield>s_intervalEndTime</structfield></term>
+          <listitem>
+            <para>
+              The number of seconds of active data taking prior to
+              the end of the time period represented by the counts
+              in this scaler item.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>uint32_t  <structfield>s_timestamp</structfield></term>
+          <listitem>
+            <para>
+              Is the absolute time of the end of the
+              scaler counting period.
+              This is represented in seconds since
+              the Unix epoch of
+              <literal>00:00:00 UTC, January 1, 1970</literal>.
+              Once translated into the host's byte order, it can
+              be passed to any of the time formatting functions
+              (e.g. <function>asctime</function>).
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>uint32_t <structfield>s_scalerCount</structfield></term>
+          <listitem>
+            <para>
+              The number of scalers in the item.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>uint32_t <structfield>s_scalers</structfield>[]</term>
+          <listitem>
+            <para>
+              The array of scaler counts.  This contains
+              <structfield>s_scalerCount</structfield> elements.
+            </para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </section>
+    <section>
+      <title>Event Data Items</title>
+      <para>
+        These items are of type
+        <varname>PHYSICS_EVENT</varname>.
+        The contain the data read from the hardware.  Depending on the
+        readout framework, this can be the response to one trigger or to
+        a block of triggers. It is up to the analysis software to know
+        which is which.
+      </para>
+      <para>
+        This item is of type <structname>PhysicsEventItem</structname>
+        and contains the field
+        uint16_t <structfield>s_body</structfield> that is the data
+        from the event.
+      </para>
+
+    </section>
+    <section>
+      <title>Event count items</title>
+      <para>
+        These items are of type <structname>PhysicsEventCountItem</structname>.
+        <type>uint32_t</type> <structfield>s_timeOffset</structfield> is
+        the number of seconds into the active run the event occured.
+        <type>uint32_t</type> <structfield>s_timesamp</structfield>
+        is the absolute timestamp indicating when this item was created.
+        <type>uint64_t</type> <structfield>s_eventCount</structfield> is
+        the total number of events that have been contributed to this
+        ring for this run.
+      </para>
+    </section>
+
+  </section>
+
+  <section>
+    <title>Selecting Data From a Ring Buffer</title>
+    <para>
+      Many data consumers are not interested in all of the
+      item types that could be put in a ring buffer.   This section
+      describes the infrastructure for selecting subsets of the data
+      from ring buffers that are formatted as described in this chapter.
+    </para>
+    <para>
+      The ring buffer low level access library provides
+      two powerful mechanisms for manipulating ring buffers based
+      the concept of <firstterm>predicates</firstterm>.
+      A predicate is a function that implement the
+      <methodname>operator()</methodname> method in a way that it returns
+      a <literal>bool</literal>.
+      Predicate objects can therefore be thought of as functions that can
+      have state that persists between calls.
+    </para>
+    <para>
+      <classname>CRingBuffer</classname> has two member functions
+      <methodname>blockWhile</methodname> which periodically
+      invokes a predicate until it returns <literal>false</literal>
+      blocking for a settable time period between calls, and for a
+      maximum timeout.
+      <methodname>While</methodname> which simply repeatedly calls
+      a predicate until it returns <literal>false</literal>.
+      (like <methodname>blockWhile</methodname> but without blocking
+      between calls to the predicate.
+    </para>
+    <para>
+      Armed with predicates, these two member functions an an understanding
+      that items in the ring will have the item format described in the
+      previous section, it is possible to implement a scheme for selectively
+      obtaining data from a ring buffer.
+    </para>
+    <para>
+      The base class for this selectivity is
+      <classname>CRingSelectionPredicate</classname>
+      defined in
+      <filename>CRingSelectionPredicate.h</filename>.  It provides
+      base classes with the capability of specifying a list of item types
+      called a <firstterm>selection  map</firstterm>.  Elements of this
+      map consist of an item type and a flag.  The virtual function
+      <methodname>selectThis</methodname> is given an item type peeked from
+      the ring buffer and returns <literal>false</literal> if the item
+      is acceptable.  Unacceptable items are skipped, and true is returned
+      so that <methodname>While</methodname> continues to loop.
+    </para>
+    <para>
+      If <methodname>selectThis</methodname> returns true, the framework
+      insepcts the type's flag.  If false, the predicate as a whole
+      returns true. I false, the predicate skips the item if it is not
+      the last one in the ring.
+    </para>
+    <para>
+      Two pre-packaged specific derivations of
+      <classname>CRingSelectionPredicate</classname> have been built.
+      In
+      <classname>CDesiredTypesPredicate</classname>, any type not in the
+      list is assumed to be undesirable and skipped.   In
+      <classname>CAllButPredicate</classname>, the list of types define
+      exceptiosn to the rule that all items are desired without sampling.
+      Items in the list with the sample flag false, are assumed to be
+      undesirable and are skipped.  items in the list with the sample flag
+      true, are assumed to be wanted but only in sample mode.
+    </para>
+  </section>
+  <section>
+    <title>Incorporating the headers and libraries into your applications.</title>
+    <para>
+      NSCL DAQ provides a class library that allows you to encapsulate
+      ring buffer data items in objects from which you can get/set data.
+      Ring buffer item objects are intended both for producers and consumers
+      of data.  See the 3daq section of the reference material for
+      detailed per class documentation.
+    </para>
+    <para>
+      Each class has a header file that is named the same as the
+      class with a <filename>.h</filename> appended. Thus to incorporate
+      the definitions for the
+      <classname>CRingItem</classname> base class in your source code you would
+      add the line:
+    </para>
+    <example>
+      <title>Including a ring item class </title>
+      <programlisting>
 #include &lt;CRingItem.h&gt;
             </programlisting>
         </example>

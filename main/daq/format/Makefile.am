@@ -100,4 +100,4 @@ unittests_LDFLAGS	= -Wl,"-rpath-link=$(libdir)"
 
 TESTS=./unittests
 
-EXTRA_DIST		=	dataformat.xml
+EXTRA_DIST		=	dataformat_user.xml dataformat_dev.xml

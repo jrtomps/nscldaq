@@ -1,0 +1,1127 @@
+<!-- chapter user-guide -->
+
+<chapter id="chapter.ringformat">
+  <title>NSCLDAQ Data Format : The Ring Item</title>
+  <para>
+    Although, ring buffers make no
+    restrictions on the format of the data they deal with, the applications that
+    produce for and consume from them operate according to a well-defined data
+    format. The generic data format is referred to as a ring item. A ring item
+    encapsulates a complete set of data elements for a specific type of data
+    record. NSCLDAQ supports a set of record types, otherwise referred to as the ring item
+    types. In this section, we will provide a general overview of the basic
+    structure of ring item as is common to all types as well as a the detailed
+    structure of each ring item type.
+  </para>
+  <para>
+    Reference material is provided in in the 3daq section that describes the
+    class library. Furthermore, an overview of the software implementation of
+    the data format can be is provided <link
+      linkend="chapter.ringformat-dev">here</link>.
+  </para>
+
+  <section>
+    <title>Generic Ring Item Traits</title>
+
+    <para>
+      Ring items are variable length entities that consist of a header section
+      followed immediately by a body section. The header is composed of two 32-bit
+      integers identifying the total size of the ring item and the type of
+      content it stores in the body. The header structure is the same for every
+      type of ring item. The content of the body, on the other hand, is specific
+      to the type of the item and has either a predefined or an undefined
+      structure.
+    </para>
+    <para>
+      The most commonly sized data element in the ring item is the 32-bit
+      integer. Byte ordering information is actually encoded in the type
+      identifier. The type identifier is a 16-bit integer stored in a
+      32-bit integer. Since the top 16 bits of this integer must be zero, byte
+      ordering can be inferred by noting which 16-bit field of that 32-bit
+      integer is non-zero.
+    </para>
+
+    <table frame="all">
+      <title>Ring Item Top-Level Memory Layout</title>
+      <tgroup cols="3">
+        <thead>
+          <row>
+            <entry/>
+            <entry>Description</entry>
+            <entry>Size (bytes)</entry>
+          </row>
+        </thead> 
+        <tbody>
+          <row>
+            <entry morerows="1">Header</entry>
+            <entry>Inclusive Size</entry>
+            <entry>4</entry>
+          </row>
+          <row>
+            <entry>Type</entry>
+            <entry>4</entry>
+          </row>
+          <row>
+            <entry>Body</entry>
+            <entry>Data...</entry>
+            <entry>&gt;=0</entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </section>
+
+  <section>
+    <title>The Body Header</title>
+    <para>
+      Beginning with NSCLDAQ version 11.0, the ring item body has been modified
+      to allow it to include timestamp, event source, and barrier information
+      either emitted by or intended for the event builder.  This header follows
+      immediately after the ring item header but is optionally present. If it is
+      not present, there is a single 32-bit integer whose value is zero to
+      indicate no body header is present. Otherwise, it is present. The
+      structure of the body header is as follows:
+    </para>
+    <table frame="all">
+      <title>Body Header</title>
+      <tgroup cols="2">
+        <thead>
+          <row>
+            <entry>Description</entry>
+            <entry>Size (bytes)</entry>
+          </row>
+        </thead> 
+        <tbody>
+          <row>
+            <entry>Size</entry>
+            <entry>4</entry>
+          </row>
+          <row>
+            <entry>Timestamp</entry>
+            <entry>8</entry>
+          </row>
+          <row>
+            <entry>Source ID</entry>
+            <entry>4</entry>
+          </row>
+          <row>
+            <entry>Barrier Type</entry>
+            <entry>4</entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+
+    <para>
+      The fields of this structure are as follows:
+    </para>
+    <variablelist>
+      <varlistentry>
+        <term>Size</term>
+        <listitem>
+          <para>
+            The inclusive size in bytes. You can also think of items that don't have
+            a body header as having a header size of zero.  We promise to
+            maintain backwards compatility by adding any new elements to the end
+            of the body header. 
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Timestamp</term>
+        <listitem>
+          <para>
+            The value of the event/globally synchronized timestamp at the time
+            this ring item was initially formed.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Source ID</term>
+        <listitem>
+          <para>
+            Unique identifier of the source of this ring item.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Barrier type</term>
+        <listitem>
+          <para>
+            If the item was part of a barrier synchronization amongst the data
+            sources, this field will be non-zero and represent the type of the
+            barrier.  If zero, this item was not part of a barrier.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+
+
+    <para>
+      To be even more explicit, the format of a complete ring item with a body
+      header present is as follows:
+    </para>
+    <table frame="all">
+      <title>Ring Item With Body Header</title>
+      <tgroup cols="3">
+        <thead>
+          <row>
+            <entry/>
+            <entry>Description</entry>
+            <entry>Size (bytes)</entry>
+          </row>
+        </thead> 
+        <tbody>
+          <row>
+            <entry morerows="1">Header</entry>
+            <entry>Inclusive Size</entry>
+            <entry>4</entry>
+          </row>
+          <row>
+            <entry>Type</entry>
+            <entry>4</entry>
+          </row>
+          <row>
+            <entry morerows="3">Body Header</entry>
+            <entry>Size = 20</entry>
+            <entry>4</entry>
+          </row>
+          <row>
+            <entry>Timestamp</entry>
+            <entry>8</entry>
+          </row>
+          <row>
+            <entry>Source ID</entry>
+            <entry>4</entry>
+          </row>
+          <row>
+            <entry>Barrier Type</entry>
+            <entry>4</entry>
+          </row>
+          <row>
+            <entry>Body</entry>
+            <entry>Data...</entry>
+            <entry>&gt;=0</entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+
+    <para>
+      Alternatively, the complete ring item without a body header present looks
+      like the following:
+    </para>
+    <table frame="all">
+      <title>Ring Item Without Body Header</title>
+      <tgroup cols="3">
+        <thead>
+          <row>
+            <entry/>
+            <entry>Description</entry>
+            <entry>Size (bytes)</entry>
+          </row>
+        </thead> 
+        <tbody>
+          <row>
+            <entry morerows="1">Header</entry>
+            <entry>Inclusive Size</entry>
+            <entry>4</entry>
+          </row>
+          <row>
+            <entry>Type</entry>
+            <entry>4</entry>
+          </row>
+          <row>
+            <entry>Body Header</entry>
+            <entry>Size = 0</entry>
+            <entry>4</entry>
+          </row>
+          <row>
+            <entry>Body</entry>
+            <entry>Data...</entry>
+            <entry>&gt;=0</entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+
+  </section>
+
+  <section>
+    <title>The Ring Item Types</title>
+    <para>
+      As was mentioned in the previous section, there are a number of different
+      ring item types that identify the data encapsulated by the items with
+      specific event records. There are althogether 12 predefined ring item
+      types. If these do not satisfy the needs of an experimenter, user's can
+      also implement their own type. The predefined types will suit most
+      needs and I have yet to come across a situation that demanded a new type.
+      The 12 predefined type are as follows:
+    </para>
+
+    <table frame="all">
+      <title>Ring Item Types</title>
+      <tgroup cols="2">
+        <thead>
+          <row>
+            <entry>Name</entry>
+            <entry>Value</entry>
+          </row>
+        </thead> 
+        <tbody>
+          <row>
+            <entry>BEGIN_RUN</entry>
+            <entry>1</entry>
+          </row>
+          <row>
+            <entry>END_RUN</entry>
+            <entry>2</entry>
+          </row>
+          <row>
+            <entry>PAUSE_RUN</entry>
+            <entry>3</entry>
+          </row>
+          <row>
+            <entry>RESUME_RUN</entry>
+            <entry>4</entry>
+          </row>
+          <row>
+            <entry>ABNORMAL_ENDRUN</entry>
+            <entry>4</entry>
+          </row>
+          <row>
+            <entry>PACKET_TYPES</entry>
+            <entry>10</entry>
+          </row>
+          <row>
+            <entry>MONITORED_VARIABLES</entry>
+            <entry>11</entry>
+          </row>
+          <row>
+            <entry>RING_FORMAT</entry>
+            <entry>12</entry>
+          </row>
+          <row>
+            <entry>PERIODIC_SCALERS</entry>
+            <entry>20</entry>
+          </row>
+          <row>
+            <entry>PHYSICS_EVENT</entry>
+            <entry>30</entry>
+          </row>
+          <row>
+            <entry>PHYSICS_EVENT_COUNT</entry>
+            <entry>31</entry>
+          </row>
+          <row>
+            <entry>EVB_FRAGMENT</entry>
+            <entry>40</entry>
+          </row>
+          <row>
+            <entry>EVB_UNKNOWN_PAYLOAD</entry>
+            <entry>41</entry>
+          </row>
+          <row>
+            <entry>EVB_GLOM_INFO</entry>
+            <entry>42</entry>
+          </row>
+          <row>
+            <entry>FIRST_USER_ITEM_CODE</entry>
+            <entry>32768</entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+
+    <para>
+      In more detail, the meanings of each of these ring items is described
+      below.
+    </para>
+
+    <variablelist>
+      <varlistentry>
+        <term><varname>BEGIN_RUN</varname></term>
+        <listitem>
+          <para>
+            The item describes the beginning of a data taking run.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><varname>END_RUN</varname></term>
+        <listitem>
+          <para>
+            The item descdribes the end of a data taking run.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><varname>PAUSE_RUN</varname></term>
+        <listitem>
+          <para>
+            The item describes a temporary pause in data taking.  This item must
+            be followed immediately by either a <varname>RESUME_RUN</varname>
+            item, or an <varname>END_RUN</varname> item.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><varname>RESUME_RUN</varname></term>
+        <listitem>
+          <para>
+            This item describes the resumption of data taking after a temporary
+            pause.  Barring user defined types that may follow a
+            <varname>PAUSE_RUN</varname>, this item will always follow a
+            <varname>PAUSE_RUN</varname> item.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><varname>PACKET_TYPES</varname></term>
+        <listitem>
+          <para>
+            NSCL DAQ readout frameworks can package chunks of a physics event
+            into packets.  Packets have essentially the same format as ring
+            buffer items.  The frameworks also support documenting the packet
+            types that can occur in a data taking run.  This item supplies that
+            documentation to interested consumers.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><varname>MONITORED_VARIABLES</varname></term>
+        <listitem>
+          <para>
+            Some readout frameworks support the creation of variables that can
+            monitor external conditions such as EPICS channels.  This item
+            contains information about the latest state of a monitored variable.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><varname>PERIODIC_SCALERS</varname></term>
+        <listitem>
+          <para>
+            NSCL DAQ readout frameworks support the periodic readout of
+            counters.  These counters are called <firstterm>scalers</firstterm>
+            by the experimental community and are used to monitor the rates of
+            trigger components, detector systems, or system live-time.  Data
+            from these are put in <varname>INCREMENTAL_SCALERS</varname> items.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><varname>RING_FORMAT</varname></term>
+        <listitem>
+          <para>
+            Describes the format level of the ring item.  This is described in
+            terms of the earliest NSCLDAQ major and minor versions that can
+            transparently handle this data.  Readout frameworks output this item
+            at the beginning of each run, prior to the begin run item.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><varname>PHYSICS_EVENT</varname></term>
+        <listitem>
+          <para>
+            The purpose of NSCL DAQ readout frameworks, is to respond to event
+            triggers and read out digitizer hardware that has captured the data
+            from a nucleus-nucleus collision.  These data are placed in
+            <varname>PHYSICS_EVENT</varname> items.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><varname>PHYSICS_EVENT_COUNT</varname></term>
+        <listitem>
+          <para>
+            Periodically emitted to tell clients how many
+            <varname>PHYSICS_EVENT</varname> items have been inserted in the
+            ring.  This is can be used to determine sampling efficiency for
+            analysis consumers, as well as to compute event rates.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><varname>EVB_FRAGMENT</varname></term>
+        <listitem>
+          <para>
+            An event fragment from the ordering phase of the event builder.
+            Fragments of this type are believed to contain ring items as their
+            payloads.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><varname>EVB_UNKNOWN_PAYLOAD</varname></term>
+        <listitem>
+          <para>
+            Same as <varname>EVB_FRAGMENT</varname> however it's pretty certain
+            the payload of these items are not ring items.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><varname>EVB_GLOM_INFO</varname></term>
+        <listitem>
+          <para>
+            Emitted by the <application>glom</application> component of the
+            event builder to describe the parameters it has been started with.
+          </para>
+          <para>
+            One of these ring items is emitted one as glom is started.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+
+    <para>
+      These item types break down in to four distinct categories of
+      item which will be described in the remaining subsections of this
+      section.
+    </para>
+    <section>
+      <title>State Change Items</title>
+      <para>
+        State change items are those with types <varname>BEGIN_RUN</varname>,
+        <varname>END_RUN</varname>, <varname>PAUSE_RUN</varname>, and
+        <varname>RESUME_RUN</varname>.  As the type names imply, these signal
+        state transitions in data taking. 
+      </para>
+      <para>
+        State change items have the type
+        <structname>StateChangeItem</structname>.  This item has the following
+        fields:
+      </para>
+      <table frame="all">
+        <title>Predefined State Change Body Layout</title>
+        <tgroup cols="2">
+          <thead>
+            <row>
+              <entry>Description</entry>
+              <entry>Size (bytes)</entry>
+            </row>
+          </thead> 
+          <tbody>
+            <row>
+              <entry>Run number</entry>
+              <entry>4</entry>
+            </row>
+            <row>
+              <entry>Time offset</entry>
+              <entry>4</entry>
+            </row>
+            <row>
+              <entry>Timestamp (Unix)</entry>
+              <entry>4</entry>
+            </row>
+            <row>
+              <entry>Offset divisor</entry>
+              <entry>4</entry>
+            </row>
+            <row>
+              <entry>Title</entry>
+              <entry>80</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+      <para>
+        The meaning of each element is described below:
+      </para>
+      <variablelist>
+        <varlistentry>
+          <term>Run number</term>
+          <listitem>
+            <para>
+              Is the number of the run for which this state transition is being
+              documented.  Typically, run numbers are unique, for recorded runs,
+              as the run number is encoded into the name of the run's event
+              file.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Time offset</term>
+          <listitem>
+            <para>
+              Is the number of seconds the run has been active prior to this
+              state transition.  Clearly if the type of the item is
+              <varname>BEGIN_RUN</varname> this will be zero.  For the NSCLDAQ
+              frameworks, the time offset only counts seconds during which the
+              run was active (time during which the run was paused are not
+              counted).
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Timestamp (Unix)</term>
+          <listitem>
+            <para>
+              Is the absolute time at which the transition occured. This is
+              represented in seconds since the Unix epoch of <literal>00:00:00
+                UTC, January 1, 1970</literal>.  Once translated into the host's
+              byte order, it can be passed to any of the time formatting
+              functions (e.g. <function>asctime</function>).
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Offset divisor</term>
+          <listitem>
+            <para>
+              This is used for fractional timing.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Title</term>
+          <listitem>
+            <para>
+              Holds the run title. Run titles are restricted in size to
+              80 ASCII characters.
+            </para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+
+    </section>
+
+    <section>
+      <title>Text Items</title>
+      <para>
+        Text items contain a list of null-terminated strings.  They are
+        usually used to provide metadata for the run.  At present, two types of
+        text list items are defined.  <varname>PACKET_TYPES</varname> and
+        <varname>MONITORED_VARIABLES</varname>.
+      </para>
+      <para>
+        String list items fall into the category of text items.  The predefined
+        body structure of these types of items is as follows:
+      </para>
+      <table frame="all">
+        <title>Predefined Text Item Body Layout</title>
+        <tgroup cols="2">
+          <thead>
+            <row>
+              <entry>Description</entry>
+              <entry>Size (bytes)</entry>
+            </row>
+          </thead> 
+          <tbody>
+            <row>
+              <entry>Time offset</entry>
+              <entry>4</entry>
+            </row>
+            <row>
+              <entry>Timestamp (Unix)</entry>
+              <entry>4</entry>
+            </row>
+            <row>
+              <entry>String count</entry>
+              <entry>4</entry>
+            </row>
+            <row>
+              <entry>Offset divisor</entry>
+              <entry>4</entry>
+            </row>
+            <row>
+              <entry>Null-terminated strings</entry>
+              <entry>&gt;=0</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+      <para>
+        These each are explained in more detail:
+      </para>
+
+      <variablelist>
+        <varlistentry>
+          <term>Time offset</term>
+          <listitem>
+            <para>
+              The number of seconds of data taking that have gone on in this run
+              prior to the generation of this item.  This time offset does not
+              count time in the paused state.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Timestamp (Unix)</term>
+          <listitem>
+            <para>
+              Is the absolute time at which the item was created. This is
+              represented in seconds since the Unix epoch of <literal>00:00:00
+                UTC, January 1, 1970</literal>.  Once translated into the host's
+              byte order, it can be passed to any of the time formatting
+              functions (e.g.  <function>asctime</function>).
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>String count</term>
+          <listitem>
+            <para>
+              Number of null-terminated strings in the item.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Null-terminated strings</term>
+          <listitem>
+            <para>
+              An array of characters large enough to hold all the strings.  Each
+              string is a null-terminated set of characters immediately followed
+              by the next string.
+            </para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+
+      <para>
+        The actual null-terminated strings may also have a predefined structure.
+        Ring items of type <varname>PACKET_TYPES</varname> document the packets
+        you might expect to find in a run's <varname>PHYSICS_EVENT</varname>
+        items.  Creating instances of the
+        <classname>CDocumentedPacket</classname> object automatically generates
+        these.  Each packet is documented with a single string.  The string
+        consists of five colon separated fields.  These fields contain, in
+        order:
+        <orderedlist>
+          <listitem>
+            <para>The Name the packet.</para>
+          </listitem>
+          <listitem>
+            <para>The id of the packet given as a hex string e.g.
+              "0x1234"
+            </para>
+          </listitem>
+          <listitem>
+            <para>A desription of the packet.</para>
+          </listitem>
+          <listitem>
+            <para>A version string for the packet.  Presumably this
+              will change if the packet with this type ever
+              changes 'shape'.
+            </para>
+          </listitem>
+          <listitem>
+            <para>The date and time at which the
+              <classname>CDocumentedPacket</classname> object
+              creating this entry was created.
+            </para>
+          </listitem>
+        </orderedlist>
+      </para>
+      <para>
+        On the other hand, ring items of type
+        <varname>MONITORED_VARIABLES</varname> contain a snapshot of the values
+        of process variables that have been declared by the readout software.
+        Each variable takes up one string and is formatted like a Tcl
+        <command>set</command> command that, if executed, would define that
+        variable to the value it had when the item was created.
+      </para>
+    </section>
+    <!-- end of text list items -->
+
+    <section>
+      <title>Scaler Items</title>
+      <para>
+        NSCLDAQ readout frameworks support the periodic reading of scaler data.
+        These data are encapsulated as ring items of type PERIODIC_SCALERS.
+        The body of these items have the following predefined memory layout:
+      </para>
+
+      <table frame="all">
+        <title>Predefined Scaler Item Body Layout</title>
+        <tgroup cols="2">
+          <thead>
+            <row>
+              <entry>Description</entry>
+              <entry>Size (bytes)</entry>
+            </row>
+          </thead> 
+          <tbody>
+            <row>
+              <entry>Interval start offset</entry>
+              <entry>4</entry>
+            </row>
+            <row>
+              <entry>Interval end offset</entry>
+              <entry>4</entry>
+            </row>
+            <row>
+              <entry>Timestamp (Unix)</entry>
+              <entry>4</entry>
+            </row>
+            <row>
+              <entry>Interval divisor</entry>
+              <entry>4</entry>
+            </row>
+            <row>
+              <entry>Scaler count</entry>
+              <entry>4</entry>
+            </row>
+            <row>
+              <entry>Incremental?</entry>
+              <entry>4</entry>
+            </row>
+            <row>
+              <entry>Scaler values</entry>
+              <entry>&gt;=0</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <para>
+        The details of each entry are explained next.
+      </para>
+      <variablelist>
+        <varlistentry>
+          <term>Interval start offset</term>
+          <listitem>
+            <para>
+              The number of seconds of active data taking prior the start of the
+              time period represented by the counts in this scaler item.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Interval end offset</term>
+          <listitem>
+            <para>
+              The number of seconds of active data taking prior to the end of
+              the time period represented by the counts in this scaler item.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Timestamp (Unix)</term>
+          <listitem>
+            <para>
+              Is the absolute time of the end of the scaler counting period.
+              This is represented in seconds since the Unix epoch of
+              <literal>00:00:00 UTC, January 1, 1970</literal>.  Once translated
+              into the host's byte order, it can be passed to any of the time
+              formatting functions (e.g. <function>asctime</function>).
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Scaler count</term>
+          <listitem>
+            <para>
+              The number of scalers in the item.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Incremental?</term>
+          <listitem>
+            <para>
+              A boolean value labeling the scaler data as having been cleared
+              after reading. Scalers that are cleared after each read are
+              incremental whereas scalers that are only read without clearing
+              are non-incremental. 
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Scaler values</term>
+          <listitem>
+            <para>
+              The array of scaler counts. Each scaler value is treated as a
+              32-bit integer.
+            </para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </section>
+
+    <section>
+      <title>Event Data Items</title>
+      <para>
+        These items are of type <varname>PHYSICS_EVENT</varname>.  They contain
+        the data read from the hardware.  Depending on the readout framework,
+        this can be the response to one trigger or to a block of triggers. It is
+        up to the analysis software to know which is which.
+      </para>
+      <para>
+        There is no predefined structure to the body of this type of ring item,
+        though some of the NSCLDAQ provided programs produce a define format.
+        The various formats are described in the remainder of this section.
+      </para>
+
+      <section>
+        <title>VMUSBReadout and CCUSBReadout</title>
+
+        <para>
+          The first 16-bit word of the body in these is the event header as
+          produced by the xx-USB device. The least significant 12-bits of this
+          word defines the number of 16-bits words to follow in the body. The
+          remainder of of the body consists of the raw data format produced by
+          the executed event stack. 
+        </para>
+      </section>
+      <section>
+        <title>SBS Readout Framework</title>
+
+        <para>
+         The first 32-bit word of the body produced by the SBS Readout Framework
+         is an inclusive count of the 16-bit words in the body.  The remainder
+         of the body has the structure defined by the user's event segment code.
+         If the user had more than one event segment, the resulting data from
+         each segment will be present in the order the segments were registered
+         in the source code.
+        </para>
+      </section>
+
+      <section>
+        <title>Event built Data</title>
+
+        <para>
+          The body of PHYSICS_EVENT item produced by the event builder begins
+          with a 32-bit integer that specifies the total number of bytes in the
+          body. The number is inclusive and includes itself. The remainder of
+          the body consists of at least one fragment and will contain as many as
+          correlated together. Each fragment specifies its total size in bytes
+          so that the user can determine how many fragment are present merely by
+          traversing the body and keeping tabs on how many bytes have been
+          traversed.
+        </para>
+      </section>
+    </section>
+    <!-- PHYSICS_EVENT -->
+
+    <section>
+      <title>Event count items</title>
+      <para>
+        These items are of type PHYSICS_EVENT_COUNT and contain statistics
+        concerning how many ring items of type PHYSICS_EVENT have been produced.
+        They are useful for programs that sample the data stream and need to
+        know where they are in the stream.  
+      </para>
+      <para>
+        These have a predefined body layout:
+      </para>
+      <table frame="all">
+        <title>Predefined Physics Event Count Body Layout</title>
+        <tgroup cols="2">
+          <thead>
+            <row>
+              <entry>Description</entry>
+              <entry>Size (bytes)</entry>
+            </row>
+          </thead> 
+          <tbody>
+            <row>
+              <entry>Time offset</entry>
+              <entry>4</entry>
+            </row>
+            <row>
+              <entry>Offset divisor</entry>
+              <entry>4</entry>
+            </row>
+            <row>
+              <entry>Timestamp (Unix)</entry>
+              <entry>4</entry>
+            </row>
+            <row>
+              <entry>Event count</entry>
+              <entry>8</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <para>
+        In more detail, these elements are:
+      </para>
+      <variablelist>
+        <varlistentry>
+          <term>Time offset</term>
+          <listitem>
+            <para>
+              The number of seconds int the active run when the ring item was
+              created.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Offset divisor</term>
+          <listitem>
+            <para>
+              Number intended to deal with the case that the time offset is not
+              an integer. 
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Timestamp (Unix)</term>
+          <listitem>
+            <para>
+              Is the absolute time of the end of the scaler counting period.
+              This is represented in seconds since the Unix epoch of
+              <literal>00:00:00 UTC, January 1, 1970</literal>.  Once translated
+              into the host's byte order, it can be passed to any of the time
+              formatting functions (e.g. <function>asctime</function>).
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Event count</term>
+          <listitem>
+            <para>
+              Total number of event that have been contributed to this ring for
+              this run.
+            </para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+
+    </section>
+    <!-- physics_event_count -->
+
+    <section>
+      <title>Data format</title>
+
+      <para>
+        Data format items always provide two pieces of information. The major
+        version and the minor version of NSCLDAQ that was used to produce the
+        data in the stream. This is intended to label the format of the data and
+        is the very first ring item produced by any Readout program. It is
+        useful to understand that the data format item will NEVER have a body
+        header. The predefined body layout is:
+      </para>
+      <table frame="all">
+        <title>Predefined Data Format Body Layout</title>
+        <tgroup cols="2">
+          <thead>
+            <row>
+              <entry>Description</entry>
+              <entry>Size (bytes)</entry>
+            </row>
+          </thead> 
+          <tbody>
+            <row>
+              <entry>Major version</entry>
+              <entry>4</entry>
+            </row>
+            <row>
+              <entry>Minor version</entry>
+              <entry>4</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+    </section>
+    <!-- data format -->
+
+    <section>
+      <title>Event Builder Fragment</title>  
+
+      <para>
+        Event builder fragments are ring items of type EVB_FRAGMENT and
+        EVB_UNKNOWN_PAYLOAD. The structure of these is identical and the
+        differences are only semantic. It is important not to confuse these with the
+        fragments that stuff the body of event built physics items. Those
+        fragments are not ring items. You can consider these the equivalent
+        entities promoted to ring item status. In fact, the same basic
+        information is present between the two. The information that lives in
+        the fragment header (timestamp, source id, and barrier type) is found
+        in the body header. The body header is mandatory in these and must
+        always be present. Furthermore, the body of a these ring items is left
+        undefined. In this way, the format is the same as a PHYSICS_EVENT item
+        except that the body header is mandatory. The body of an EVB_FRAGMENT
+        is expected to be a complete ring item, whereas, the body of an
+        EVB_UNKNOWN_PAYLOAD is completely undefined. 
+      </para>
+    </section>
+
+    <section>
+      <title>Event Builder Parameter</title>
+
+      <para>
+        The event builder in 11.0 produces a data item that indicates to the
+        user what sort of operating parameters it was using. Those data items
+        have a type of EVB_GLOM_INFO. They are useful for
+        understanding the built event data independently from a note jotted into
+        a logbook somewhere (or not jotted down anywhere). There is NEVER a body
+        header on these as they are purely informational and have no association
+        with a physical event. The predefined body layout is as follows:
+      </para>
+
+      <table frame="all">
+        <title>Predefined Glom Information Body Layout</title>
+        <tgroup cols="2">
+          <thead>
+            <row>
+              <entry>Description</entry>
+              <entry>Size (bytes)</entry>
+            </row>
+          </thead> 
+          <tbody>
+            <row>
+              <entry>Coincident ticks</entry>
+              <entry>8</entry>
+            </row>
+            <row>
+              <entry>Is Building?</entry>
+              <entry>2</entry>
+            </row>
+            <row>
+              <entry>Timestamp policy</entry>
+              <entry>2</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <para>
+        The elements in this are explained in more detail:
+      </para>
+      <variablelist>
+        <varlistentry>
+          <term>Coincident ticks</term>
+          <listitem>
+            <para>
+              Specifies the correlation parameter in units of clock ticks. Note
+              that this provides no information about what the true time this
+              corresponds to is. That information is left to the experimenter.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Is Building?</term>
+          <listitem>
+            <para>
+              A boolean value that indicates whether the event builder's
+              correlation stage (a.k.a. glom) is output correlated data.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Timestamp policy</term>
+          <listitem>
+            <para>
+              It is possible that multiple stages of event building will occur
+              during an experiment. In that scenario, the built data from one
+              event builder will be correlated to other data. The built data
+              must therefore be labeled with a timestamp of its own. The policy
+              determines whether the event timestamp is labeled with the
+              earliest, average, or latest timestamp of the fragments in that
+              correlated together.
+            </para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+
+    </section>
+    <!-- end of glom info -->
+
+  </section>
+</chapter>
+<!-- /chapter -->

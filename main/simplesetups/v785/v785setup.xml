@@ -1,31 +1,7 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
-"file:///usr/share/xml/docbook/schema/dtd/4.5/docbookx.dtd" 
->
-<book>
-  <bookinfo>
-    <title>Using NSCLDAQ with a CAEN V785 Peak-Sensing ADC and CAEN V262 IO Register</title>
-    <author><firstname>Jeromy</firstname> <surname>Tompkins</surname></author>
-    <author><firstname>Tim</firstname> <surname>Hoagland</surname></author>
-    <author><firstname>Ron</firstname> <surname>Fox</surname></author>
-    <revhistory>
-      <revision>
-        <revnumber>1.0</revnumber>
-        <date>11/03/04</date>
-        <authorinitials>TH &amp; RF</authorinitials>
-        <author><firstname>Tim</firstname> <surname>Hoagland</surname></author>
-        <revremark>Original release</revremark>
-      </revision>
-      <revision>
-        <revnumber>2.0</revnumber>
-        <date>Feb 5, 2015</date>
-        <authorinitials>J.R.T.</authorinitials>
-        <author><firstname>Jeromy</firstname><surname>Tompkins</surname></author>
-        <revremark>Updated for NSCLDAQ 11.0</revremark>
-      </revision>
-    </revhistory>
-  </bookinfo>
-  <chapter>
+<!-- chapter simple-setups -->
+<chapter>
+  <title>Using NSCLDAQ with a CAEN V785 Peak-Sensing ADC and CAEN V262 IO Register</title> 
+  <section>
     <title>PREFACE</title>
     <para> 
       This paper's purpose is to guide the reader through the process of
@@ -80,9 +56,9 @@
 <literal>spdaqxx&gt;</literal> source /usr/opt/nscldaq/11.0/daqsetup.bash
 <literal>spdaqxx&gt;</literal> export PATH=$DAQBIN:$PATH
     </screen>
-  </chapter>
+  </section>
 
-  <chapter>
+  <section>
     <title>The electronics</title>
     <para>
       The CAEN V785 is a 12-bit, 32-channel analog-to-digital converter that
@@ -200,31 +176,31 @@
         After you are happy with the signal from the amplifier, plug
         the bipolar output into the splitter. The splitter will simply split
         the signal much like a "T" but will keep the 50 Ohm termination
-        needed by the pulser 
+        needed by the pulser. 
       </para>
 
       <para> 
-        <emphasis>NOTE:</emphasis> Ribbon cable can be difficult to
-        work with because it is easy to get it twisted and lose track of
-        which end is which. To avoid this look carefully at the coloring on
-        the cable you are using and be sure it is plugged in the correct
-        channel of the ADC. Also, the connectors typically have a marking on
-        one end that conventionally specifies channel 0.  
+        Take an output of the splitter, convert it to a ribbon cable, and plug
+        that into the channel inputs of the V785.  Ribbon cable can be difficult
+        to work with because it is easy to get it twisted and lose track of
+        which end is which. To avoid this look carefully at the coloring on the
+        cable you are using and be sure it is plugged into the correct channel of
+        the ADC. Another useful tip is that the connectors typically
+        have a marking on one end to conventionally identify channel 0.  
       </para>
 
       <para> 
-        The other output from the splitter will go into a
-        discriminator.  This could be either a leading edge or a constant
-        fraction discriminator. The job of the discriminator is to output a
-        logic signal when an input signals has exceeded a certain voltage
-        threshold. The output signal will be used to tell the ADC to
-        initiate the process of recording the peak height
-        of the signal. The discriminator will have a threshold knob, be sure
-        that the threshold is set above any background noise that may be
-        present so that the discriminator only trips on the pulser signal.
-        It will be useful to look at the both the logic pulse and the signal
-        from the amplifier at the same time when setting the threshold
-        value. Figure 1-4 shows what you will see.  
+        The other output from the splitter will go into a discriminator.  This
+        could be either a leading edge or a constant fraction discriminator. The
+        job of the discriminator is to output a logic signal when an input
+        signals has exceeded a certain voltage threshold. The output signal will
+        be used to tell the ADC to initiate the process of recording the peak
+        height of the signal. The discriminator will have a threshold knob, be
+        sure that the threshold is set above any background noise that may be
+        present so that the discriminator only trips on the pulser signal.  It
+        will be useful to look at the both the logic pulse and the signal from
+        the amplifier at the same time when setting the threshold value. Figure
+        1-4 shows what you will see.  
       </para>
 
       <figure>
@@ -271,8 +247,8 @@
         this tutorial.  
       </para>
     </section>
-  </chapter>
-  <chapter>
+  </section>
+  <section>
     <title>Setting up the software</title>
     <para>
       The software modifications needed to make the system work can
@@ -786,9 +762,9 @@ make
               error free compilation
             </para>
           </section>
-      </chapter>
+      </section>
 
-      <chapter>
+      <section>
         <title>The dumper program</title>
         <para>
           When we run our program, we are going to want to inspect the data
@@ -902,9 +878,9 @@ exiting
 <literal>spdaqxx&gt;</literal> <command>dumper --source=tcp://localhost/user0 --count=10</command>
             </screen>
           </section>
-        </chapter>
+        </section>
 
-        <chapter>
+        <section>
             <title>Running the Readout Program</title>
 
             <para>
@@ -1007,9 +983,9 @@ exiting
 % <command>exit</command>              
             </screen>
 
-          </chapter>
+          </section>
 
-          <chapter>
+          <section>
             <title>Interpreting the dumper output</title>
 
             <para>
@@ -1145,5 +1121,6 @@ ff00     <co id="docpkt_id"/>
             The makes complete sense and this we can now rest assured that our
             system is set up correctly.
           </para>
-    </chapter>
-  </book>
+    </section>
+</chapter>
+<!-- /chapter -->

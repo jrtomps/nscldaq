@@ -1,0 +1,1828 @@
+<!-- chapter user-guide -->
+<chapter>
+    <title>ReadoutGUI &amp; ReadoutShell</title>
+    <para>
+        The <literal>ReadoutShell</literal> is a graphical user interface that
+        servers as a front end for experiment control. The terms ReadoutShell
+        and ReadoutGUI are typically used interchangeably, though
+        ReadoutGUI properly refers to the packaged user interface and
+        ReadoutShell properly refers to the program that launches the
+        ReadoutGUI interface. The <literal>ReadoutGUI</literal> for NSCLDAQ-11 is
+        significantly different than that of earlier versions.  The
+        ReadoutShell for NSCLDAQ-11 has been built to better support the
+        multi-data source/event builder environment that NSCLDAQ-11 provides.
+    </para>
+    <para>
+        The remainder of this chapter describes:
+        <itemizedlist>
+            <listitem>
+                <para>
+                    The principles of operation of the ReadoutShell.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    The ReadoutShell's GUI (ReadoutGUI) and how to operate it.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    The way the event logger ties into the Readout GUI and
+                    The directory structure the ReadoutShell maintains
+                    to support an experiment.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    Ways in which the ReadoutShell supports customization
+                    of both its appearance and operation.
+                </para>
+            </listitem>
+        </itemizedlist>
+    </para>
+    <para>
+      Reference material on the API provided by the ReadoutShell can be found in
+      the <link linkend='rdogui_man'>3rdogui</link> man page section.      
+    </para>
+    <section>
+        <title>Principles of operation</title>
+        <para>
+            This chapter describes the underlying principles of operation
+            of the event builder.  Along the way terminology that will be used
+            in the remainder of this chapter will be informally defined.
+        </para>
+        <para>
+            The purpose of the ReadoutShell is to provide a graphical user interface
+            that can control a set of readout programs or <firstterm>Data Sources</firstterm>.
+            To do this, the ReadoutShell must know how to ask readout programs
+            of various types to start, stop, pause and resume (if supported) runs.
+            To do this it uses a set of <firstterm>Data Source Providers</firstterm>.
+            You can think of a data source provider as a set of software that knows
+            how to run a specific type of data source program.
+        </para>
+        <para>
+            The ReadoutShell and Data source providers communicate via a
+            well defined programmatic interface that is described in
+            <link linkend="provider3_intro">3provider</link>.
+        </para>
+        <para>
+            At the core of the ReadoutShell is a finite state automaton or
+            <firstterm>State Machine</firstterm>.  The State machine defines
+            a set of running modes or <firstterm>States</firstterm> the ReadoutShell
+            can be in as well as the set of legal states to which the system
+            can proceed via <firstterm>State Transitions</firstterm>.
+            The ReadoutShell state machine provides a mechanism for other
+            components of the ReadoutShell to register an interest in the transitions
+            between states and to take appropriate action both prior to leaving
+            a state and upon completing the transition to the new state.
+            Functionality that is registered on a state machine is referred to
+            as a <firstterm>bundle</firstterm>
+        </para>
+        <para>
+            For example, event logging is implemented as a bundle.  As the
+            state machine is transitioning from a halted state to an active state,
+            the event log bundle starts up the event logger. When the state machine
+            transitions either from the paused, or active states to the halted
+            state, the bundle waits for logging to complete and then finalizes
+            the run data by maintaining the correct filesystem/directory
+            structure.
+        </para>
+        <para>
+            We complete this section with a diagram of the state machine
+            and a description of each state, what it means to be in that state,
+            the legal transitions from that state and what it means to make
+            those transitions.
+        </para>
+        <figure id='rdogui_statediagram'>
+            <title id='rdogui_statediagram_title'>ReadoutShell's state diagram</title>
+            <mediaobject>
+               <imageobject>
+                    <imagedata fileref='RunState.jpg' format='JPEG' />
+                </imageobject>
+               <imageobject>
+                    <imagedata fileref='RunState.eps' format='EPS' />
+               </imageobject>
+            </mediaobject>
+        </figure>
+        <para>
+            As we will see in the discussion below, some of the transitions
+            that go directly back to <literal>NotReady</literal> actually
+            represent a transition through <literal>Halted</literal> followed by
+            a transition to <literal>NotReady</literal>.  The diagram's transitions
+            are abbreviated in order to reduce the complexity and provide the
+            intent (that the 'stable' end state of the transition is
+            <literal>NotReady</literal>).
+        </para>
+        <para>
+            Let's look at each state from top to bottom.
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term><literal>NotReady</literal></term>
+                <listitem>
+                    <para>
+                        This state means that none of the data sources are running
+                        and therefore the system is not yet ready to be used.
+                        In this state you can define the set of data sources
+                        to use.  The <guibutton>Start</guibutton> button
+                        causes a transition to the <literal>Starting</literal>
+                        state.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><literal>Starting</literal></term>
+                <listitem>
+                    <para>
+                        On making a transition to the <literal>Starting</literal>
+                        state, the data source manager attempts to start all of the
+                        data sources.  If any of the data sources fail to start,
+                        a transition back to the <literal>NotReady</literal> state
+                        is forced.  Once all data sources start successfully,
+                        the data source manager forces a transition to the
+                        <literal>Halted</literal> state.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><literal>Halted</literal></term>
+                <listitem>
+                    <para>
+                        In the <literal>Halted</literal> state, the system is
+                        ready for use.  The <guibutton>Begin</guibutton> button
+                        can start a data taking run transitioning to the
+                        <literal>Active</literal> state.  If a data source
+                        fails, the system will transition back to the
+                        <literal>NotReady</literal> state.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><literal>Active</literal></term>
+                <listitem>
+                    <para>
+                        In this state, all data sources are actively taking data.
+                        If a data source fails, the data source manager will
+                        attempt to gracefully stop the run (transition to
+                        <literal>Halted</literal>).  Regardless, eventually
+                        a failing data source will result in the <literal>NotReady</literal>
+                        state.
+                    </para>
+                    <para>
+                        If all data sources being used support paused runs, the
+                        <guibutton>Pause</guibutton> button is available
+                        and clicking it will result in a transition to the
+                        <literal>Paused</literal> state.
+                        The <guibutton>End</guibutton> button is always available
+                        in this state and forces a transition to <literal>Halted</literal>,
+                        cleanly ending the run.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><literal>Paused</literal></term>
+                <listitem>
+                    <para>
+                        This state represents a temporary halt of data taking
+                        that does not close event files.   The
+                        state is only reachable if all event sources support
+                        pausing a run. If not, the <guibutton>Pause</guibutton>
+                        button is not shown so operators of the GUI cannot
+                        force a transition to this state.
+                    </para>
+                    <para>
+                        Once <literal>Paused</literal> clicking the
+                        <guibutton>Resume</guibutton> button forces a transtion
+                        back to the <literal>Active</literal> state while
+                        clicking the <guibutton>End</guibutton> button forces
+                        a transition to the <literal>Halted</literal> state (ending
+                        the run).
+                    </para>
+                    <para>
+                        If any data source fails during the <literal>Paused</literal>
+                        state, the data source manager attempts to force a transition
+                        to the <literal>Halted</literal> state prior to forcing a
+                        transition to the <literal>NotReady</literal> state.
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+                
+    </section>
+    <section>
+        <title>Operating the user interface</title>
+        <para>
+            Below is a screenshot of the graphical user interface presented by
+            the ReadoutShell program.
+        </para>
+        <figure>
+            <title>ReadoutShell's GUI</title>
+            <mediaobject>
+               <imageobject>
+                    <imagedata fileref='readoutshell.jpg' format='JPEG' />
+                </imageobject>
+               <imageobject>
+                    <imagedata fileref='readoutshell.eps' format='EPS' />
+               </imageobject>
+            </mediaobject>
+        </figure>
+        <para>
+            The GUI is divided into four vertically stripped segments. From
+            top to bottom these segments are:
+        </para>
+        <itemizedlist>
+            <listitem>
+                <para>
+                    The <firstterm>Menu Bar</firstterm> which provides acces
+                    to infrequenly used operations and commands.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    The <firstterm>Run management segment</firstterm>
+                    which allows you to set up run
+                    parameters and to manage the ReadoutShell's state machine
+                    as far as you are supposed to be able to stimulate it.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    The <firstterm>Output Log window</firstterm> which provides
+                    a scrolling text widget in which modules that make up the
+                    RadoutShell can place textual messages.   In many cases
+                    the messages are output in a log/severity format which just
+                    means that messages have a timestamp and a severity and that the
+                    severity affects the formatting of the messages.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    The <firstterm>Status Bar</firstterm> which provides a region
+                    for modules that make up the ReadoutShell, and data providers
+                    to display status information that will not scroll away.
+                </para>
+            </listitem>
+        </itemizedlist>
+        <section>
+            <title>The Menu bar</title>
+            <para>
+                The menu bar provides access to ReadoutShell commands
+                that are not as frequently used as those that are presented
+                by the Run Management segment described below.  In addtion
+                to the fixed menus described in this section,
+                <link linkend='customizing_readoutshell'
+                      endterm='customizing_readoutshell_title' /> describes
+                how your extensions to ReadoutShell can add more entries to the
+                menus or create entirely new menus.
+            </para>
+            <formalpara>
+                <title>The File menu</title>
+                <para>
+                    Provides access to file related commands.  The
+                    specific operations provided are:
+                    <variablelist>
+                        <varlistentry>
+                            <term><menuchoice><guimenu>File</guimenu><guimenuitem>Load...</guimenuitem></menuchoice></term>
+                            <listitem>
+                                <para>
+                                    This command prompts for a file which must be
+                                    a Tcl/Tk script.  The script selected is then
+                                    sourced into the ReadoutShell.  The source is
+                                    done in global level context.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><menuchoice><guimenu>File</guimenu>
+                                <guimenuitem>Add Library..</guimenuitem></menuchoice></term>
+                            <listitem>
+                                <para>
+                                    This command prompts for a directory.  The
+                                    directory is then added to the path of
+                                    directories that is searched for Tcl packages.
+                                    This can be used, for example, to add a directory
+                                    or set of directories that have data source
+                                    provider packages to the search path making
+                                    them known to the data source manager.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><menuchoice><guimenu>File</guimenu><guimenuitem>Log...</guimenuitem></menuchoice></term>
+                            <listitem>
+                                <para>
+                                    Prompts for a file.  Once the file is selelcted,
+                                    all output sent to the Output Log window is
+                                    also logged to this file. Logging continues
+                                    until either the <guimenuitem>Disable Log</guimenuitem>
+                                    command is seleted, the program exits, or another
+                                    log file is selected.
+                                </para>
+                                <para>
+                                    If the selected log file already exists,
+                                    it is opened for append, allowing a single file to
+                                    easily log the output from more than one session.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><menuchoice><guimenu>File</guimenu><guimenuitem>Disable Log</guimenuitem></menuchoice></term>
+                            <listitem>
+                                <para>
+                                    Once seleted, if logging has been established,
+                                    the log file is closed.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><menuchoice><guimenu>File</guimenu><guimenuitem>Exit...</guimenuitem></menuchoice></term>
+                            <listitem>
+                                <para>
+                                    After prompting for confirmation, exits the ReadoutShell.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                    </variablelist>
+                </para>
+            </formalpara>
+            <formalpara>
+                <title>The Data Source menu</title>
+                <para>
+                    This menu provides operations that allow you to establishthe set of
+                    data sources you will be using and well as to list data sources
+                    and their parameterizations.
+                    <variablelist>
+                        <varlistentry>
+                            <term><menuchoice><guimenu>Data Source</guimenu>
+                                <guimenuitem>Add...</guimenuitem></menuchoice></term>
+                            <listitem>
+                                <para>
+                                    Allows you to add a data source to the set of data
+                                    sources being used by the Readout GUI.  This can only
+                                    be done when the state is not <literal>Paused</literal>
+                                    or <literal>Active</literal>.  This also forces all
+                                    running data sources to stop and transitions the state
+                                    to the <literal>Not Ready</literal> state.
+                                </para>
+                                <para>
+                                    Prompting for a data source is a two step operation.
+                                    First you will be prompted for the Data source Provider
+                                    (data source type) you want to use.  The built
+                                    in providers are <literal>SSHPipe</literal> (suitable
+                                    for Readout programs that operate on the
+                                    end of an ssh pipeline),
+                                    <literal>S800</literal> which knows how to
+                                    control the S800 data acquisition system, <literal>Delay</literal>
+                                    (used for inserting delay between providers), and 
+                                    <literal>RemoteGUI</literal> (for remote controlling a 
+                                    ReadoutGUI).
+                                </para>
+                                <para>
+                                    Data sources are parameterized instances
+                                    of a data source provider.  For example, the
+                                    <literal>SSHPipe</literal> data source needs
+                                    to  know which host the data source runs in
+                                    as well as the program to run on the end
+                                    of the pipe.  Optionally it an accept command
+                                    line parameters for the program.
+                                </para>
+                                <para>
+                                    Once you have been prompted for the
+                                    data source provider, you will be prompted
+                                    for its parameterization.  The dialog used
+                                    to prompt for the data source parameterization
+                                    will appear differently depending on the
+                                    provider you choose.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><menuchoice><guimenu>Data Source</guimenu>
+                                <guimenuitem>Delete...</guimenuitem></menuchoice></term>
+                            <listitem>
+                                <para>
+                                    Presents a list of data sources and their
+                                    parameterizations.  You can click on a
+                                    data source to select it. Click
+                                    <guibutton>Ok</guibutton> to delete the
+                                    selected data source or <guibutton>Cancel</guibutton>
+                                    to do nothing.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><menuchoice><guimenu>DataSource</guimenu>
+                                <guimenuitem>List</guimenuitem></menuchoice></term>
+                            <listitem>
+                                <para>
+                                    Lists the set of data sources you have currently
+                                    selected for use and their parameterizations.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                    </variablelist>
+                </para>
+            </formalpara>
+            <note>
+                 <title>Note</title>
+                 <para>
+                     Data sources set up in the Data source menu are saved
+                     and read back in when you next start the ReadoutShell,
+                     this means that in general you only have to set up your
+                     data sources once.
+                 </para>
+             </note>
+            <formalpara>  <!-- used to get a title for these paragraphs -->
+                <title> The Settings menu</title>
+                <para>
+                    The settings menu currently  an
+                    <menuchoice><guimenu>Settings</guimenu><guimenuitem>Event Recording>></guimenuitem></menuchoice>
+                    selection and a
+                    <menuchoice><guimenu>Settings</guimenu><guimenuitem>Output Window..</guimenuitem></menuchoice>
+                    selection.
+                </para>
+            </formalpara>
+                <para>
+                    The
+                    <menuchoice><guimenu>Settings</guimenu><guimenuitem>Output Window..</guimenuitem></menuchoice>
+                    selection allows you to configure the shape of the output
+                    window, the number of lines of history information
+                    retained and accessible through the vertical scroll-bar.
+                    A checkbutton also allows you to turn on or off the display
+                    of debugging output.
+                </para>
+                <para>
+                    The
+                    <menuchoice><guimenu>Settings</guimenu><guimenuitem>Event Recording>></guimenuitem></menuchoice>
+                    allows you to configure parameters that control the way
+                    events are recorded.
+                    This allows you to set up a large number
+                    configuration parameters for the event logging program.
+                    The dialog this menu pops up is a bit complex and therefore
+                    will be shown and described below.
+                </para>
+           
+            <figure>
+                <title>The Eventlog settings dialog</title>
+                <mediaobject>
+                   <imageobject>
+                        <imagedata fileref='eventlogsettings.jpg' format='JPEG' />
+                    </imageobject>
+                   <imageobject>
+                        <imagedata fileref='eventlogsettings.eps' format='EPS' />
+                   </imageobject>
+                </mediaobject>
+            </figure>
+            <variablelist>
+                <varlistentry>
+                    <term>Event Log Program</term>
+                    <listitem>
+                        <para>
+                            This item allows you to select the event logging
+                            program.  This is normally used either to do
+                            NSCLDAQ-8.x event logging via the compatibility
+                            tools, or to select the 10.x event logger when
+                            using the 11.x ReadoutShell with 10.x software.
+                        </para>
+                        <para>
+                            The
+                            <guibutton>Browse...</guibutton>
+                            button alows you to graphically
+                            select the event logger.  You must be sure the event
+                            logger will produce event segment files with names
+                            that are compatible with what is expected by the
+                            ReadoutShell.  See the section
+                            <link linkend='readoutshell_filestruct'
+                                  endterm='readoutshell_filestruct_title' /> for
+                            more information about this.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>Data Source Ring URI</term>
+                    <listitem>
+                        <para>
+                            Allows you to override the ring from which data are
+                            logged.  Note that if you are using the event builder,
+                            it will override this setting using the output
+                            ring from the event builder instead of your selection
+                            here.
+                        </para>
+                        <para>
+                            If you click the <guibutton>Known Rings..</guibutton>
+                            button, you can choose from a list of rings.  This
+                            list will include all local rings and all rings remote
+                            rings from which data has been accepted previously.
+                            It is possible that the ring you want won't be
+                            listed (if it is a remote ring from which data has
+                            not been taken since the last reboot).  In that
+                            case you can type in the ring specification which
+                            is of the form
+                            <literal>tcp://</literal><replaceable>host-name</replaceable><literal>/</literal><replaceable>ringname</replaceable>
+                            Where <replaceable>host-name</replaceable> is the name
+                            of the host on which the ring producer is located
+                            and <replaceable>ringname</replaceable> is the name
+                            of the ring in that host.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>Use <option>--number-of-sources</option></term>
+                    <listitem>
+                        <para>
+                            This checkbutton causes the ReadoutGUI to use the
+                            <option>--number-of-sources</option> option when
+                            starting the event logger.  It can only be used with
+                            the NSCLDAQ-11.x and later native event logger.
+                        </para>
+                        <para>
+                            This option should be used if you are combining
+                            the data from more than one event source using the
+                            NSCLDAQ-11.x or later event builder.
+                            See
+                            <link linkend='manpage.eventlog'
+                                  endterm='manpage.eventlog_title' /> for more
+                            detailed information about this option.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>Additional Sources</term>
+                    <listitem>
+                        <para>
+                            This option is related to the <literal>use --number-of-sources</literal>
+                            checkbutton and only does something if that box is checked.
+                            When <literal>use --number-of-sources</literal> is checked,
+                            the ReadoutShell computes a
+                            <firstterm>base source count</firstterm> from the
+                            number of data sources it is controlling.  The
+                            signed value of the <literal>Additional Sources</literal>
+                            field is added to the base source count and used as
+                            the value of the <option>--number-of-sources</option>
+                            option when starting the event logger.
+                            This value is the number of end run records the event
+                            logger will expect to see to indicate all data in a
+                            run has been received/recorded.
+                        </para>
+                        <para>
+                            Usually <literal>0</literal> is the right value for
+                            this control.  If, however you have data sources
+                            which are not being managed by the ReadoutShell, you
+                            may need to put a positive number in this box.
+                            If you have data sources which are managed by the
+                            ReadoutShell that don't produce end run records,
+                            you may need to use a negative value here to adjust
+                            the base source count downward.
+                        </para>
+                        <para>
+                            The important thing is that the base source count
+                            as modified by this value must be the number of active
+                            sources that produce NSCL end run records at the
+                            end of a data taking run.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>Use GUI Run number</term>
+                    <listitem>
+                        <para>
+                            This checkbox determines if the ReadoutShell uses
+                            the <option>--run</option> option when starting the
+                            eventlog program.  When this option is used, its
+                            value is the value in the ReadoutShell's run  number
+                            control in the Run management segment of the GUI.
+                            That value overrides anything eventlog might see in
+                            the data stream and determines the run number field
+                            of the filename in the event segments it generates.
+                        </para>
+                        <para>
+                            This checkbutton should normally  not be checked.  It
+                            should only be checked if all data sources are non-NSCL
+                            data sources and none of them generate anything
+                            like a begin run record that has a run number.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </section>
+        <section>
+            <title>The Run Management segment</title>
+            <para>
+                Below the ReadoutShell menubar are a set of controls that collectively
+                make up the <firstterm>Run Management segment</firstterm>.  These
+                are used to control data taking and the state of the system.
+                Here is a description of the controls and what they do.
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term>Title</term>
+                    <listitem>
+                        <para>
+                            This entry control allows you to type in a title.
+                            Titles can only be entered when the state of the
+                            system is not <literal>Active</literal> or
+                            <literal>Paused</literal>.  When the state is any of
+                            those, the title entry is disabled.
+                        </para>
+                        <para>
+                            When a run is started, the text in this title
+                            field is passed to the data source provider for each
+                            data source.  It is the responsibility of that provider
+                            to know what to do.  NSCL data source providers
+                            use this to set the title of the run in the data source.
+                            For standard NSCL data sources this sets the title of
+                            the begin run ring item record. For the S800, this
+                            sets the title in the Begin run buffer.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>Run Number</term>
+                    <listitem>
+                        <para>
+                            As with the titlwe field, this entry control is only
+                            enabled when the state is not <literal>Active</literal>
+                            or <literal>Paused</literal>. When you navigate
+                            focus out of this control, the value of the control
+                            is checked and, if it is not a positive integer
+                            (<literal>0</literal> is legal), an error message pops up
+                            and the field is restored to its prior value.
+                        </para>
+                        <para>
+                            When a run is started, the run number is passed to
+                            the data source providers for  all data sources.
+                            For NSCL data sources this value is passed to the readout
+                            program as the run number to place in state transition
+                            records.
+                        </para>
+                        <para>
+                            For the S800 data provider, the run number is passed
+                            in and used by the S800 Data source to set the run
+                            number in its state transition buffers.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>Run Control cluster</term>
+                    <listitem>
+                        <para>
+                            The run control cluster is the set of two or
+                            three buttons at the left side of the
+                            Run Management segment.  The top button of this
+                            cluster of buttons is always the <guibutton>Start</guibutton>
+                            button.  It is enabled whenever the system is in the
+                            <literal>NotReady</literal> state.
+                        </para>
+                        <para>
+                            Clicking the <guibutton>Start</guibutton> button
+                            transitions to the <literal>Starting</literal> state.
+                            The data source manager then attempts to start
+                            all of the data sources and, if successful, the
+                            system transitions to the <literal>Halted</literal>
+                            state.
+                        </para>
+                        <para>
+                            The <guibutton>Begin/End</guibutton> button contains
+                            a label and state that depends on the systsem state:
+                        </para>
+                        <itemizedlist>
+                            <listitem>
+                                <para>The button is disabled when the system
+                                    is in the <literal>NotReady</literal> or
+                                    <literal>Starting</literal> state.
+                                </para>
+                            </listitem>
+                            <listitem>
+                                <para>The button is enabled and labeled
+                                    <literal>Begin</literal> when the state
+                                    is <literal>Halted</literal>. In this state,
+                                    when clicked, the system transitions to
+                                    <literal>Active</literal> and all data sources
+                                    are told to start taking data.
+                                </para>
+                            </listitem>
+                            <listitem>
+                                <para>The button is enabled and labeled
+                                    <literal>End</literal> when the state of the'
+                                    system is <literal>Active</literal> or
+                                    <literal>Paused</literal>.  When clicked in
+                                    this state, the data sources are told to stop
+                                    taking data (end the run), and the system
+                                    transitions to the <literal>Halted</literal>
+                                    state.
+                                </para>
+                            </listitem>
+                        </itemizedlist>
+                        <para>
+                            If all data sources support pausing a run, a third
+                            button appears in this cluster.  The third button
+                            is the <guibutton>Pause/Resume</guibutton> button.
+                        </para>
+                        <itemizedlist>
+                            <listitem>
+                                <para>
+                                    This button is disabled when the system
+                                    is not in the <literal>Active</literal>
+                                    or <literal>Paused</literal> state.
+                                </para>
+                            </listitem>
+                            <listitem>
+                                <para>
+                                    This button is enabled and labeled
+                                    <guibutton>Pause</guibutton> when the system
+                                    is in the <literal>Active</literal> state.
+                                    If clicked in that state, the system transitions
+                                    to the <literal>Paused</literal> state and
+                                    all data sources are instructed to pause data
+                                    taking but keep the run alive.
+                                </para>
+                            </listitem>
+                            <listitem>
+                                <para>
+                                    This button is enabled and labeled
+                                    <guibutton>Resume</guibutton>. Clicking
+                                    this button transition to the <literal>Active</literal>
+                                    state after instructing all data sources
+                                    to resume data taking in their paused run.
+                                </para>
+                            </listitem>
+                        </itemizedlist>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><guibutton>Record</guibutton></term>
+                    <listitem>
+                        <para>
+                            This is located below the Run control cluster.
+                            It is enabled only when the state is not
+                            <literal>Active</literal> or <literal>Paused</literal>
+                            when checked, the next begin run will also initiate
+                            the event logger as configured by the
+                            <menuchoice><guimenu>Settings</guimenu><guimenuitem>Event Recording...</guimenuitem></menuchoice>
+                            menu item.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>Active Run Time</term>
+                    <listitem>
+                        <para>
+                            This is located to the right of the <guibutton>Start</guibutton>
+                            button.  This represents the elapsed time of the
+                            current or most recent run.  The timer is cleared
+                            when a run begins, pauses when a run is paused
+                            and runs when in the <literal>Active</literal> state.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>Timed Run Controls</term>
+                    <listitem>
+                        <para>
+                            This set of controls is located to the right
+                            of the <guibutton>Begin</guibutton> and
+                            <guibutton>Pause</guibutton> (if visible) buttons.
+                            The controls consist of two segments:
+                        </para>
+                        <itemizedlist>
+                            <listitem>
+                                <para>
+                                    A <literal>Timed Run</literal> checkbutton
+                                    which, when checked automatically ends
+                                    a run when the Active run time counter
+                                    reaches the selected length
+                                </para>
+                            </listitem>
+                            <listitem>
+                                <para>
+                                    A set of drop downs that allow you to
+                                    select the length of time a run will
+                                    be active if timed.
+                                </para>
+                            </listitem>
+                        </itemizedlist>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </section>
+        <section>
+            <title>The Output Log window</title>
+            <para>
+                The output log window provides a scrolling window for messages
+                from components of the ReadoutShell and data sources.
+                Must but not all messages will include a timestamp as well
+                as a logging type.  The log type may also carry some visual form
+                of emphasis.
+            </para>
+            <para>
+                Note that when event logging is active, the background of ths
+                window is Spartan Green, otherwise it is grey.
+            </para>
+            <para>
+                Unless otherwise noted below, log entries are in black text
+                on the current background.
+                The log types are currently:
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><literal>debug</literal></term>
+                    <listitem>
+                        <para>
+                            The <literal>debug</literal> log level is intended
+                            to provide debugging/tracing information that shows
+                            programmers the internal operation of components of
+                            the ReadoutShell.
+                            By default these log entries are not displayed.
+                            See, however
+                            <link linkend='rdogui3_ui_OutputWindow'
+                                endterm='rdogui3_ui_OutputWindow_title' />  for
+                            information on how to make these visible.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>log</literal></term>
+                    <listitem>
+                        <para>
+                            Log entries at the <literal>log</literal> level
+                            log a significant event that represents the normal
+                            operation of the program.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>output</literal></term>
+                    <listitem>
+                        <para>
+                            <literal>output</literal> log entries capture
+                            output from a program that is being run under the
+                            control of the ReadoutShell (usually a data source).
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>warning</literal></term>
+                    <listitem>
+                        <para>
+                            <literal>warning</literal> log entries are intended
+                            to warn you of an unusual condition.  They are
+                            displayed in magenta text on the current background.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>error</literal></term>
+                    <listitem>
+                        <para>
+                            <literal>error</literal> log entries are intended
+                            to inform you of a problem.  A typical cause of an
+                            error is the unexpected exit of a data source.
+                            Error log messagesa are displayed in red on a white
+                            background.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+            <para>
+                The log types and their visual representations can be controlled
+                programmatically. See
+                <link linkend='rdogui3_ui_OutputWindow'
+                      endterm='rdogui3_ui_OutputWindow_title' /> for information
+                that describes how to locate the output window widget
+                and the interfaces it provides.
+            </para>
+        </section>
+        <section>
+            <title>The Status Bar</title>
+            <para>
+                At the very bottom of the ReadoutShell GUI is the status bar.
+                This is used by components of the ReadoutShell and its
+                extensions to provide status information about their operation
+                that should not scroll out of the visible part of the Output
+                Window.  Currently the only use of the status bar by the
+                core ReadoutShell components is to display the event recording
+                status of active runs.
+            </para>
+        </section>
+        
+    </section>
+    <section id='readoutshell_filestruct'>
+        <title id='readoutshell_filestruct_title'>The event logger and ReadoutShell</title>
+        <para>
+            The Readout GUI works with the event logger to maintain
+            a directory structure of event files and associated data.
+            You can associate an arbitrary set of files and directory subtrees
+            with each run.  Through heavy use of symbolic links, the
+            Readout GUI provides you with two views of your data.
+        </para>
+        <formalpara>
+            <title>Events view</title>
+            <para>
+                The events view presents all of the event files in a single
+                directory.  This view allows you to sequentially analyze
+                several runs without needing to move around in the directory
+                hierarchy.
+            </para>
+        </formalpara>
+        <formalpara>
+            <title>Runs view</title>
+            <para>
+                This view collects all of the data associated with each run
+                into a single directory.
+            </para>
+        </formalpara>
+        <para>
+            The top of the directory subtree that is managed by Readout Gui is
+            determined by a symbolic link; <filename>~/stagearea</filename>.
+            <footnote>
+                <para>
+                    Environment variables can override this link however and are
+                    useful in the event you are using a single account to do
+                    multiple tests for which you want to segregate the data.
+                </para>
+            </footnote>
+            This must be created by you when you set the account up for data taking
+            and should point to the event area that you were assigned.
+        </para>
+        <para>
+            When Readout GUI runs the first time it will create the directory
+            structure it need underneath the directory pointed to by
+            <filename>~/stagearea</filename>.
+        </para>
+        <para>
+            The directory tree created looks like this:
+        </para>
+        <figure>
+            <title>Readout GUI Directory tree</title>
+            <literallayout><![CDATA[
+stagearea +
+          +----> experiment+
+          |                +---> current
+          |                +---> run1
+          |                +---> run2
+          ...             ...
+          +----> complete
+          +----> current
+            ]]>
+            </literallayout>
+        </figure>
+        <para>
+            Let's start with the <filename>~/stagearea/current</filename> directory.
+            The Readout GUI arranges for the event file set currently being
+            accumulated to be written in this directory.  Event files have the name
+            <literal>run-nnnn-ss.evt</literal> where <literal>nnnn</literal> is a
+            zero filled run number (e.g. <literal>0001</literal>), and
+            <literal>ss</literal> is a zero filled event segment.
+        </para>
+        <para>
+            The event data from each run are segmented into files that are no
+            more than 2GBytes long.  The segments number from 00.  Segmenting
+            runs into file that are no larger than 2Gbytes avoids problems
+            with file size limitations on some types of file systems.
+        </para>
+        <para>
+            The <filename>~/stagearea/experiment</filename> subdirectory tree
+            provides the run view of the data.  Within that directory are
+            subdirectories for each recorded run.  At the end of a run,
+            the Readout GUI moves the event data files from the
+            <filename>~/stagearea/current</filename> directory into the
+            associated run directory.  The data in
+            <filename>~stagearea/experiment/current</filename> is copied into
+            the run directory as well.  Files or directories pointed to by
+            symoblic links in the <filename>experiment/current</filename> subtree
+            are copied rather than the links themselves.
+        </para>
+        <para>
+            Finally, the <filename>complete</filename> directory provides the
+            events view of the experiment.  At the end of a run, after the
+            event file segments copied to <filename>~stagearea/experiment/runn</filename>,
+            a symbolic link to each event file segment is created here.
+        </para>
+    </section>
+    <section id='customizing_readoutshell'>
+        <title id='customizing_readoutshell_title'>Customizing the ReadoutShell</title>
+        <para>
+            The ReadoutShell can be customized in several ways.
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        Environment variables can affect the operation of
+                        the ReadoutShell.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        The <filename>ReadoutCallouts.tcl</filename> script
+                        can provide additional code that executes at times
+                        during state machine transitions.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        The <menuchoice><guimenu>File</guimenu><guimenuitem>Load...</guimenuitem></menuchoice>
+                        menu command can load an arbitrary Tcl script which can
+                        register itself with the run state machine.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        The <menuchoice><guimenu>File</guimenu><guimenuitem>Add Library...</guimenuitem></menuchoice>
+                        menu command can add library directories that are searched
+                        for packages that supply additional data source providers.
+                    </para>
+                </listitem>
+            </itemizedlist>
+        </para>
+        <para>
+            The remainder of this section describes these customization paths.
+            Each subsection points to appropriate reference information.
+        </para>
+        <section>
+            <title>Environment variables</title>
+            <para>
+                This section describes sets of related environment variables
+                that can affect the way the ReadoutShell operates.
+            </para>
+            <table>
+                <title>Event logger environment variables</title>
+                <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+                    <thead>
+                        <row>
+                            <entry>Variable Name</entry>
+                            <entry>Default Value</entry>
+                            <entry>Meaning</entry>
+                        </row>
+                    </thead>
+                    <tbody>
+                        <row>
+                            <entry>EVENTLOGGER</entry>
+                            <entry>$DAQROOT$/bin/eventlog</entry>
+                            <entry>Selects the program that will be used to log events.</entry>
+                        </row>
+                        <row>
+                            <entry>EVENTLOGGER_RING</entry>
+                            <entry>tcp://localhost/$::tcl_platform(user)</entry>
+                            <entry>Selects the ring from which the event
+                                   logger logs data. Note that ::tcl_platform(user)
+                                   is a Tcl variable that is always defined to
+                                   be the  name of the logged in user.
+                            </entry>
+                        </row>
+                        <row>
+                            <entry>EVENTLOGGER_NSRCSFLAGS_SUPPORTED</entry>
+                            <entry>true</entry>
+                            <entry>If true the event logger will be started with the
+                                <option>--number-of-sources</option>
+                                option provided as
+                                described earlier. If false, this flag will be
+                                omitted.  The variable accepts any valid Tcl
+                                boolean value (e.g. true, false, on, off, 1, 0).
+                            </entry>
+                        </row>
+                        <row>
+                            <entry>EVENTLOGGER_UNCONTROLLED_SOURCE_COUNT</entry>
+                            <entry>0</entry>
+                            <entry>Integer value added to the base source count
+                                to provide the value for
+                                <option>--number-of-sources</option>
+                            </entry>
+                        </row>
+                        <row>
+                            <entry>EVENTLOGGER_USE_GUI_RUNNUM</entry>
+                            <entry>0</entry>
+                            <entry>If Tcl boolean true, the run number for the
+                                current run will be provided to the eventlog
+                                program via the <option>--run</option> flag
+                                to determine the name of the event files.
+                            </entry>
+                        </row>
+                        <row>
+                            <entry>EVENTLOGGER_USE_CHECKSUM_FLAG</entry>
+                            <entry>1</entry>
+                            <entry>If Tcl boolean true, an sha512 hash of 
+                                all logged data will be computed by 
+                                passing the <option>--checksum</option> flag
+                                to the program.
+                            </entry>
+                        </row>
+                    </tbody>
+                </tgroup>
+            </table>
+            <para>
+                Note that settings made using the
+                <menuchoice><guimenu>Settings</guimenu><guimenuitem>Event Recording...</guimenuitem></menuchoice>
+                override environment variables.  This includes settings that have
+                been saved from prior runs of the program.
+            </para>
+            <para>
+                The table below describes the settings used to control where
+                data is saved.
+            </para>
+            <table>
+                <title>Experiment file systems environment variables</title>
+                <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+                    <thead>
+                        <row>
+                            <entry>Variable Name</entry>
+                            <entry>Default Value</entry>
+                            <entry>Meaning</entry>
+                        </row>
+                    </thead>
+                    <tbody>
+                        <row>
+                            <entry>EVENTS</entry>
+                            <entry>~/stagearea</entry>
+                            <entry>The root of the directory tree that
+                            ReadoutGUI will use to manage the event and related
+                            data.
+                            </entry>
+                        </row>
+                    </tbody>
+                </tgroup>
+            </table>
+            <note>
+                <title>NOTE - difference from prior versions</title>
+                <para>
+                    In the 10.x and prior versions it was possible to separate
+                    where the experiment view lived from where the event view
+                    lived by specifying the <literal>EXPDIR</literal> environment
+                    variable.   This variable is now ignored and that the
+                    <filename>experiment</filename> directory will always live in the
+                    <filename>stagearea</filename> directory tree.
+                </para>
+            </note>
+            <para>
+                SSHPipe clients also have default parameterizations.  These
+                are based on the environment variables that were used by the
+                10.x readout shell.  Reliance on these environment variables
+                is not recommended, as they only populate the sshPIPE parameter
+                prompter and because the point of this software is to
+                manage multiple data sources rather so the concept of
+                default data source parameters becomes a bit meaningless.
+            </para>
+            <para>
+                The table below shows the environment variables that can populate
+                the SSHPipe settings prompter:
+            </para>
+            <table>
+                <title>SSHPipe prompter environment variables</title>
+                <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+                    <thead>
+                        <row>
+                            <entry>Variable Name</entry>
+                            <entry>Default Value</entry>
+                            <entry>Meaning</entry>
+                        </row>
+                    </thead>
+                    <tbody>
+                        <row>
+                            <entry>DAQHOST</entry>
+                            <entry>localhost</entry>
+                            <entry>Host in which the readout program runs</entry>
+                        </row>
+                        <row>
+                            <entry>RDOFILE</entry>
+                            <entry><emphasis>undefined</emphasis></entry>
+                            <entry>The path to the program to run.
+                            </entry>
+                        </row>
+                    </tbody>
+                </tgroup>
+            </table>
+            <para>
+                One last word.  In the past, ReadoutShell has failed to run
+                properly because users have defined the environment variable
+                <literal>TCLLIBPATH</literal> to include Tcl package directories
+                from an older version of NSCLDAQ.  In the 11.x version of the
+                program, if <literal>TCLLIBPATH</literal> is defined the program
+                will exit with an error message unless you additionally define
+                <literal>TCLLIPATH_OK</literal> which indicates that you are
+                sure your <literal>TCLLIBPATH</literal> definition doesn not
+                include any NSCLDAQ directories.
+            </para>
+        </section>
+        <section>
+            <title>ReadoutCallouts.tcl</title>
+            <para>
+                As with the 10.x and earlier ReadoutShells, the 11.0 program
+                looks for a <filename>ReadoutCallouts.tcl</filename> file which,
+                if found is sourced as the program is initialized.  This script
+                can contain anything, however it's main purpose is to define one
+                or more of a set of <command>proc</command>s that can be called
+                by the ReadoutShell at specific times during the program's execution.
+            </para>
+            <para>
+                The ReadoutShell looks for the <filename>ReadoutCallouts.tcl</filename>
+                file in the following directories.  Only the first one is
+                sourced in.  Sourcing is done at the global level.
+            </para>
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        <filename>~</filename> your home directory.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <filename>~/stagearea/experiment/current</filename> The
+                        location the metadata associated with the current run is
+                        stored.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <filename>.</filename> the current working directory.
+                        at the time ReadoutShell was first started.
+                    </para>
+                </listitem>
+            </itemizedlist>
+            <para>
+                If ReadoutCallouts or any other script sourced into
+                ReadoutShell provides them the following <command>proc</command>s
+                are called.
+            </para>
+            <note>
+                <title>NOTE</title>
+                <para>
+                    Two additional callouts not avaialble in <filename>ReadoutCallouts.tcl</filename>
+                    scripts for NSCLDAQ-10.x and earlier have been added.
+                </para>
+            </note>
+            <variablelist>
+                <varlistentry>
+                    <term><command>OnBegin</command></term>
+                    <listitem>
+                        <para>
+                            This command is invoked when the <literal>Halted</literal>
+                            state is left for the <literal>Active</literal> state.
+                            The command is passed the number of the run that is
+                            about to be started.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>OnEnd</command></term>
+                    <listitem>
+                        <para>
+                            This command is invoked when the <literal>Halted</literal>
+                            state is being entered from either the
+                            <literal>Active</literal> or <literal>Paused</literal>
+                            states.  As with <command>OnBegin</command> the run
+                            number of the run being ended is passed to the command.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>OnPause</command></term>
+                    <listitem>
+                        <para>
+                            Called when the <literal>Paused</literal> state is
+                            entered.  The run number of the current run is passed
+                            in.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>OnResume</command></term>
+                    <listitem>
+                        <para>
+                            Called when the <literal>Paused</literal> state
+                            is left for <literal>Active</literal>. Again the
+                            current run number is passed to the command.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>OnStart</command></term>
+                    <listitem>
+                        <para>
+                            Called wen the <literal>Halted</literal> state
+                            is entered from the <literal>Starting</literal> state
+                            indicating that all event sources have started
+                            without errors.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>OnFail</command></term>
+                    <listitem>
+                        <para>
+                            Called when <literal>NotReady</literal> is
+                            entered from any state other than
+                            <literal>NotReady</literal>.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+            <para>
+                Note that all procs described above are called at the global
+                level (<command>uplevel #0</command>).
+            </para>
+        </section>
+        <section>
+            <title>Integrating Tcl scripts</title>
+            <para>
+                Besides automatically sourcing the <filename>ReadoutCallouts.tcl</filename>
+                script described in the previous section, the ReadoutShell's
+                <menuchoice><guimenu>File</guimenu><guimenuitem>Load...</guimenuitem></menuchoice>
+                allows you to choose a Tcl/Tk script and source it at the
+                global level at any time.
+                The script you source can define any of the <command>proc</command>s
+                described inthe previous section.  It can also invoke API
+                <command>proc</command>s from the packages described in
+                <link linkend='readoutshell_api_packages'
+                      endterm='readoutshell_api_packages_title' />.
+            </para>
+        </section>
+        <section>
+            <title>Libraries and Data source providers</title>
+            <para>
+                The <menuchoice><guimenu>File</guimenu><guimenuitem>Library...</guimenuitem></menuchoice>
+                menu command allows you to choose a directory to be added to your
+                library path.  One of the main reasons to do this is to add
+                a custom data source provider.  This section describes in
+                general terms how to create data source providers.  See
+                <link linkend='provider3_intro'
+                      endterm='provider3_intro_title' />
+                for reference information on data source providers.
+            </para>
+            <para>
+                Data source providers can be thought of as a class whose instances
+                manage data sources.  In order to create a data source provider
+                you must:
+            </para>
+            <itemizedlist>
+                <listitem>
+                    <para>Create a provider package that encapsulates the
+                    provider's interface into a Tcl <command>namespace</command>.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>Optionally create a prompter package that encapsulates
+                    provides a custom GUI prompter for the parameterization
+                    of the data sources your data source provider manages.
+                    </para>
+                </listitem>
+            </itemizedlist>
+            <para>
+                A data source provider has a name which we will refer to as
+                <emphasis>providername</emphasis> in this chapter.  The provider
+                must provide a Tcl package.  The name of that package must
+                be <emphasis>providername</emphasis><literal>_Provider</literal>.
+                Furthermore it must define a namespace
+                <literal>::</literal><emphasis>providername</emphasis>.
+                If these conditions are met, and the provider's package is in the
+                Tcl library search path, the ReadoutShell's
+                <menuchoice><guimenu>Data Source</guimenu><guimenuitem>Add...</guimenuitem></menuchoice>
+                will list the <emphasis>providername</emphasis> as one of the
+                providers available to add a data source
+            </para>
+            <para>
+                Data sources have parameterizations.  It is differences in their
+                parameterizations that typically distinguish between the data
+                sources a provider manages.  Data sources describe their
+                the form of their parameterizations via their
+                <emphasis>providername</emphasis><literal>::parameters</literal>
+                <command>proc</command>.   The <literal>parameters</literal>
+                proc is described in
+                <link linkend='provider3_parameters' endterm='provider3_parameters_title' />
+            </para>
+            <para>
+                If the data source provider does not provide a parameter prompeter,
+                the ReadoutShell will construct a default simple prompter from
+                the information returned by the data sourcde provider's
+                <literal>parameters</literal> proc.   This prompter will just
+                be a bunch of verbose names and text entries for each name.
+            </para>
+            <para>
+                If this prompter is too simplistic, it is possible for a
+                data source provider to also define a prompter. A prompter is
+                provide by providing a package named
+                <emphasis>providername</emphasis><literal>_Prompter</literal>
+                which defines the proc
+                <literal>::</literal><emphasis>providername</emphasis><literal>::promptParameters</literal>.
+                This proc is called by the ReadoutShell with no parameters and is
+                expected to return the either the parameterization dict
+                (see <link linkend='provider3_start' endterm='provider3_start_title' />)
+                for information about this dict.  If the user declines to
+                provide parameters (e.g. cancels the dialog prompter's dialog),
+                the prompter should return an empty string.
+            </para>
+            <para>
+                The parameterization of a data source, along with a data
+                source id are passed to the
+                <literal>::</literal><emphasis>providername</emphasis><literal>::start</literal>
+                proc to start a data source.  The source id is a unique value
+                that is generated by the ReadoutShell and used to refer to
+                individual data sources.  The data source id is globally unique
+                (not just unique to the provider). For more information
+                abut starig data sources see:
+                <link linkend='provider3_start' endterm='provider3_start_title' />.
+            </para>
+            <para>
+                Not all data sources are created equal.  Thus a data source
+                must provide a proc named
+                <literal>::</literal><emphasis>providername</emphasis><literal>::capabilities</literal>
+                that returns a dict that descsribes the capabilities of the
+                data sources it manages.  For example, if a data source is not
+                capable of pausing an active run its <literal>capabilities</literal>
+                proc will report that in the dict it returns.
+                For more information see:
+                <link linkend='provider3_capabilities' endterm='provider3_capabilities_title' />
+            </para>
+            <para>
+                Data sources must also provide a
+                <literal>::</literal><emphasis>providername</emphasis><literal>::check</literal>
+                proc.  The <literal>check</literal> proc is passed the data source
+                id and is expected to return a boolean that is true if the
+                data source is still alive or false if the data source is
+                no longer alive.  The data source provider can expect the
+                ReadoutShell to periodically poll its <literal>check</literal>
+                proc so that it is able to report to the user an unexpected
+                exit of a data source.
+                The <literal>check</literal> proc is described more completely in
+                <link linkend='provider3_check' endterm='provider3_check_title' />.
+            </para>
+            <para>
+                Data source providers must know how to end a data source.  This
+                mechanism is exposed to the ReadoutShell via a proc named:
+                <literal>::</literal><emphasis>providername</emphasis><literal>::stop</literal>.
+                This proc is passed the source id of the source to stop.
+                For more information see:
+                <link linkend='provider3_stop' endterm='provider3_stop_title' />.
+            </para>
+            <para>
+                Finally, providers must be able to actually control their data
+                sources.  This implies at a minimum providing
+                <literal>::</literal><replaceable>providername</replaceable><literal>::begin</literal>
+                to start a run and
+                <literal>::</literal><replaceable>providername</replaceable><literal>::end</literal>
+                to end a run.
+                In addition, if the provider's capabilities include the ability
+                to pause and resume an active run,
+                <literal>::</literal><replaceable>providername</replaceable><literal>::pause</literal>
+                and
+                <literal>::</literal><replaceable>providername</replaceable><literal>::resume</literal>
+                must also be supplied.
+            </para>
+
+            <para>
+              The data source manager is capable of sending on-demand
+              initialization to its registered data sources. It is thus required
+              that each provider implements a proc named:
+              <literal>::</literal><replaceable>providername</replaceable><literal>::init</literal>
+              to handle on-demand initialization procedures. It is particularly
+              useful for doing things like loading firmware.
+
+            </para>
+        </section>
+        <section>
+            <title>Using the ReadoutGUI in your own container script</title>
+            <para>
+                The ReadoutShell is a very small script.  It simply creates
+                an instance of a <literal>ReadoutGui</literal> object after
+                getting the package paths set up properly.  This allows you
+                to customize the way the Readout GUI is produced, not only via
+                <filename>ReadoutCallouts.tcl</filename> scripts and
+                State maching callback bundles, but by writing your own
+                container script.
+            </para>
+            <para>
+                If you are going to do this you'll certainly need to know
+                about
+                <link linkend='readoutshell_api_packages' endterm='readoutshell_api_packages_title' />
+                and their contents so that you can effectively customize the
+                behavior and appearance of the resulting GUI.
+            </para>
+            <para>
+                Assuming the environment variable <literal>DAQROOT</literal>
+                is defined and points to the top directory of the DAQ installation
+                The example below shows a minimal ReadoutGUI startup script
+                with  comments that show where to include customizations.
+            </para>
+            <example>
+                <title>Custom ReadoutGUI startup script</title>
+                <programlisting>
+
+set TclLibs [file join $::env(DAQROOT) TclLibs]    <co id='custom_readoutgui_pkgdir' />
+lappend auto_path $TclLibs
+
+package require ReadoutGui
+ReadoutGuiApp  r                                  <co id='custom_readoutgui_instance' />
+
+                                                   <co id='custom_readoutgui_extend' />
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs='custom_readoutgui_pkgdir'>
+                    <para>
+                        This line and the next add the NSCLDAQ Tcl library
+                        directory tree to the search path used by
+                        <command>package require</command>.
+                    </para>
+                </callout>
+                <callout arearefs='custom_readoutgui_instance'>
+                    <para>
+                        The previous line incorporates the <literal>ReadoutGui</literal>
+                        package.  This package includes the entire Readout GUI
+                        graphical user interface object set and also defines the
+                        <classname>ReadoutGuiApp</classname> which drives the
+                        Readout Graphical user interface.
+                    </para>
+                    <para>
+                        The line itself creates an instance of the class named
+                        <varname>r</varname>.  Creating an <classname>ReadoutGuiApp</classname>
+                        object creates the user interface and initializes it.
+                        Initialization includes locating the
+                        <filename>ReadoutCallouts.tcl</filename> script and
+                        sourcing it.
+                    </para>
+                </callout>
+                <callout arearefs='custom_readoutgui_extend'>
+                    <para>
+                        Once the <classname>ReadoutGuiApp</classname> application
+                        object has been created additional customizations
+                        can be done here.  These customizations include
+                        invoking procs and methods from the various
+                        <link linkend='readoutshell_api_packages'
+                              endterm='readoutshell_api_packages_title' /> which
+                        might alter the appearance or the behavior of the application.
+                    </para>
+                    <para>
+                        Similarly, data source providers and additional
+                        run state machine callback bundles can be registered
+                        at this time.
+                    </para>
+                </callout>
+            </calloutlist>
+        </section>
+        <section id='readoutshell_api_packages'>
+            <title id='readoutshell_api_packages_title'>ReadoutGUI API packages</title>
+            <para>
+                This section will describe in general terms the packages that
+                make up the ReadoutGui's application programming interface.
+                pointers to reference material will be provided as well. 
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><literal>bells</literal></term>
+                    <listitem>
+                        <para>
+                            This package provides the <classname>bells</classname>
+                            class.  This can be used to ring alarm bells in accordance with
+                            some pattern.
+                        </para>
+                        <para>
+                            See
+                            <link linkend='rdogui3_bells' endterm='rdogui3_bells_title' />
+                            for reference information.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>Configuration</literal></term>
+                    <listitem>
+                        <para>
+                            Provides a manager for configuration data.  This
+                            package allows you to define configuration variables
+                            and their defaults.  It also supports overidding
+                            default values with environment variables.
+                            Normally this package is used in conjunction with the
+                            <literal>StateManager</literal> package to save
+                            and restore the state of configuration parameters
+                            to the configuration file.
+                        </para>
+                        <para>
+                            See
+                            <link linkend='rdogui3_configuration'
+                                  endterm='rdogui3_configuration_title' />
+                            for reference information.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>DAQParameters</literal></term>
+                    <listitem>
+                        <para>
+                            Provides access to parameters that affect data taking.
+                            This package provides both query and modify access.
+                            It uses the <literal>Configuration</literal> package
+                            above.
+                        </para>
+                        <para>
+                            See
+                            <link linkend='rdogui3_daqparameters'
+                                  endterm='rdogui3_daqparameters_title' />
+                            for reference information.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>DataSourceManager</literal></term>
+                    <listitem>
+                        <para>
+                            This package manages the data source providers
+                            and data sources.  You need to interact with this
+                            package if you want to create data sources
+                            yourself (e.g. to create an exportable pre-packaged ReadoutGUI
+                            for a specific setup).
+                        </para>
+                        <para>
+                            See
+                            <link linkend='rdogui3_DataSourceManager'
+                                  endterm='rdogui3_DataSourceManager_title' />
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>DataSourceUI</literal></term>
+                    <listitem>
+                        <para>
+                            This package provides the user interface
+                            elements that prompt for data source parameters.
+                            It provides at least one useful class
+                            <classname>DialogWrapper</classname> which
+                            can be  used to build custom prompters for
+                            data source providers.
+                        </para>
+                        <para>
+                            See
+                            <link linkend='rdogui3_DatasourceUI'
+                                  endterm='rdogui3_DatasourceUI_title' />
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>Diagnostics</literal></term>
+                    <listitem>
+                        <para>
+                            Provides simple error/warning/info dialogs.
+                            See:
+                            <link linkend='rdogui3_diagnostics'
+                                  endterm='rdogui3_diagnostics_title' />
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>ExpFileSystemConfig</literal></term>
+                    <listitem>
+                        <para>
+                            Provides read/write access to configuration parameters
+                            that determine where event data and related meta-data
+                            are stored.
+                            See:
+                            <link linkend='rdogui3_expfilesystemconfig'
+                                  endterm='rdogui3_expfilesystemconfig_title'
+                                  />
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>ReadoutGUI</literal></term>
+                    <listitem>
+                        <para>
+                            Provides the readout GUI application class which
+                            strings everything together. See
+                            <link
+                                  linkend='rdogui3_readoutgui'
+                                  endterm='rdogui3_readoutgui_title' />
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>ReadoutGUIPanel</literal></term>
+                    <listitem>
+                        <para>
+                            Provides a group of API elements that allow you
+                            to modify the user interface presented by the
+                            <classname>ReadoutGuiApp</classname> application
+                            object.
+                            See:
+                            <link linkend='rdogui3_readoutguipanel'
+                                  endterm='rdogui3_readoutguipanel_title' />
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>RunstateMachine</literal></term>
+                    <listitem>
+                        <para>
+                            Implements the run state machine.  This also
+                            provides the mechanism to register custom
+                            callback bundles.
+                            See:
+                            <link linkend='rdogui3_runstatemachine'
+                                  endterm='rdogui3_runstatemachine_title' />
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>StateManager</literal></term>
+                    <listitem>
+                        <para>
+                            Provides a package that supports simple Tcl
+                            configuration files.  A simple Tcl configuration file
+                            is a script with a bunch  of <command>set</command>
+                            commands that define configuration variables.
+                            The package allows you define variables that
+                            are exported/imported from these files and
+                            getters and setters for those variables.
+                        </para>
+                        <para>
+                            See
+                            <link linkend='rdogui3_statemanager'
+                                  endterm='rdogui3_statemanager_title' />
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>ui</literal></term>
+                    <listitem>
+                        <para>
+                            Provides access to all elements of the user interface.
+                            Before using this package, see if you needs are
+                            met by the <literal>ReadoutGUIPanel</literal> package
+                            since that tends to be easier to use.
+                        </para>
+                        <para>
+                            See
+                            <link linkend="rdogui3_ui" endterm='rdogui3_ui_title' />
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </section>
+    </section>
+    <section>
+      <title>Remote control package</title>
+      <para>
+        When doing event building, it can be useful to have a ReadoutGUI for
+        each data source and then another ReadoutGUI that controls them all.
+        Doing this allows data sources to be worked on independently when
+        it is not necessary to run all of them together to build events.
+        The remote control packages for the ReadoutGUI support this
+        mode of operation.
+      </para>
+      <para>
+        If you choose to use this approach you must enable the ReadoutGUIs
+        that will be slaved to the master control panel to:
+        <itemizedlist>
+          <listitem><para>
+              Run a remote control server component that allows the master
+              GUI to tell it what to do.
+          </para></listitem>
+          <listitem><para>
+              Run a remote console monitor component that allows the master
+              GUI to relay output that goes to the slave output window to
+              the master's output window.
+          </para></listitem>
+        </itemizedlist>
+      </para>
+      <para>
+        This is done by adding the following two lines to the slave
+        GUI's <filename>ReadoutCallouts.tcl</filename> file:
+      </para>
+      <informalexample>
+        <programlisting>
+          package require ReadoutGuiRemoteControl   <co id='remote_control_package' />
+
+          RemoteControlClient::initalize <co id='remote_control_initialize' />
+        </programlisting>
+      </informalexample>
+      <calloutlist>
+        <callout arearefs='remote_control_package'>
+          <para>
+            The remote control software is an optional component.
+            This line incorporates that component into the ReadoutGUI
+          </para>
+        </callout>
+        <callout arearefs='remote_control_initialize'>
+          <para>
+            An instance of the ReadoutGUIRemoteControl class and OutputClient
+            are instantiated, thus providing the required capabilities for run
+            control and output forwarding.  Furthermore, the
+            <command>end</command> proc is renamed to
+            <command>local_end</command> and a new <command>end</command> proc
+            is created that will propagate an end run request to the master
+            ReadoutGUI. This forwarding of the end run may be important if the
+            enslaved GUI runs a filter in conjunction with the Actions package.
+          </para>
+        </callout>
+      </calloutlist>
+      <para>
+        To use a slave UI, you must run a readout shell and add data sources
+        with the RemoteGUI data source provider for each slave you want your master
+        to control.  You will need to know which system is running the slave GUI
+        and under which user name it is running. Furthermore, the system to be
+        enslaved must have already been started (i.e. state = HALTED) in order
+        for the master ReadoutGUI to enslave it.  
+      </para>
+      <para>
+        At this time you can only have a single master control panel control
+        any single slave control panel.  This restriction might be lifted in the
+        future.
+      </para>
+    </section>
+
+  </chapter>
+<!-- /chapter -->

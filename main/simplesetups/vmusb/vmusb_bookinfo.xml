@@ -1,0 +1,14 @@
+<bookinfo>
+  <title>A Simple Experiment with VMUSBReadout</title>
+  <author><firstname>Jeromy</firstname> <surname>Tompkins</surname></author>
+  <revhistory>
+    <revision>
+      <revnumber>1.0</revnumber>
+      <date>March 11, 2015</date>
+      <authorinitials>J.R.T.</authorinitials>
+      <author><firstname>Jeromy</firstname><surname>Tompkins</surname></author>
+      <revremark>Original release</revremark>
+    </revision>
+  </revhistory>
+</bookinfo>
+

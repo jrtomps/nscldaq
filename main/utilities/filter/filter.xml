@@ -1,63 +1,92 @@
-<!-- chapter utilities -->
+<!-- chapter frameworks -->
 
 <chapter id="ch.filter">
-  <title>Filter framework</title>
+  <title id="ch.filter-title">Filter framework</title>
 
   <section>
     <title>Overview</title>
- 
+
     <para>
-  The data stream in nscldaq is flexibly configured and consists of streaming data between nodes, which are most commonly ringbuffers. Data is pulled from the upstream node, the source, and passed on to the downstream node, the sink. Occasionally, it is useful to be able to insert a program to inspect or manipulate the data in between nodes. Probably the most common example of this is a data integrity checker program. Other scenarios that may find use for a filter program are when a program downstream, like SpecTcl, expects a certain data format and the data is not originally formatted that way or if for diagnostic purposes one needs to implement a program to count events in a channel for which there are no hardware scalers setup.
+      The data stream in nscldaq is flexibly configured and consists of
+      streaming data between nodes, which are most commonly ringbuffers. Data is
+      pulled from the upstream node, the source, and passed on to the downstream
+      node, the sink. Occasionally, it is useful to be able to insert a program
+      to inspect or manipulate the data in between nodes. Probably the most
+      common example of this is a data integrity checker program. Other
+      scenarios that may find use for a filter program are when a program
+      downstream, like SpecTcl, expects a certain data format and the data is
+      not originally formatted that way or if for diagnostic purposes one needs
+      to implement a program to count events in a channel for which there are no
+      hardware scalers setup.
     </para>
 
-  <para>
-  The nscldaq provides a framework for constructing a filter program that aims to greatly simplify the development of a filter program. A filter program essentially consists of three stages. 
-  </para>
-  
-  <variablelist>
-    <title>Stages of a filter program</title>
-    <varlistentry>
-      <term>Extraction</term>
-      <listitem>
-      <para>In this stage the ring items are read from the data source.</para>
-      </listitem>
-    </varlistentry>
+    <para>
+      The nscldaq provides a framework for constructing a filter program that aims
+      to greatly simplify the development of a filter program. A filter program
+      essentially consists of three stages. 
+    </para>
 
-    <varlistentry>
-      <term>Filtering / Handling</term>
-      <listitem>
-      <para>The filtering or handling stage deals with how the ring items are to be manipulated. It is here that the differing functionality of filter programs is defined and consists of experiment-specific code.</para>
-      </listitem>
-    </varlistentry>
+    <variablelist>
+      <title>Stages of a filter program</title>
+      <varlistentry>
+        <term>Extraction</term>
+        <listitem>
+          <para>
+            In this stage the ring items are read from the data source.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Filtering / Handling</term>
+        <listitem>
+          <para>
+            The filtering or handling stage deals with how the ring items are to
+            be manipulated. It is here that the differing functionality of filter
+            programs is defined and consists of experiment-specific code.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Insertion</term>
+        <listitem>
+          <para>
+            The final stage inserts the filtered ring items back into the data
+            stream to send to the sink.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
 
-    <varlistentry>
-      <term>Insertion</term>
-      <listitem>
-      <para>The final stage inserts the filtered ring items back into the data stream to send to the sink.</para>
-      </listitem>
-    </varlistentry>
-  </variablelist>
+    <para>
+      The first and the last stages of the filter program are completely generic
+      to all filter programs because all must read data from the source before
+      processing it and then subsequently send the data to the sink. Because these
+      are generic, the nscldaq filter framework has already implemented those
+      stages out of the box. The user is left the responsibility of implementing
+      the second stage. Implementation of stage 2 consists of defining C++ classes
+      that instantiate primitive filter objects to be registered to the framework.
+      Though initially this may sound like some work, it is only as complicated as
+      the filter the user desires to construct. For example, the trivial task of
+      counting the number of physics event items in the data stream, can be
+      accomplished with the following primitive filter:
 
-  <para>
-The first and the last stages of the filter program are completely generic to all filter programs because all must read data from the source before processing it and then subsequently send the data to the sink. Because these are generic, the nscldaq filter framework has already implemented those stages out of the box. The user is left the responsibility of implementing the second stage. Implementation of stage 2 consists of defining C++ classes that instantiate primitive filter objects to be registered to the framework. Though initially this may sound like some work, it is only as complicated as the filter the user desires to construct. For example, the trivial task of counting the number of physics event items in the data stream, can be accomplished with the following primitive filter:
-
-  <programlisting>
+      <programlisting>
 #include &lt;CFilter.h&gt;
 
 class CounterFilter : public CFilter
 {
-	int m_count;
+  int m_count;
 
-	public:
-	CounterFilter() : m_count(0) {}
-  
-	CounterFilter* clone() const { return new CounterFilter(*this); }
-  
-	CRingItem* handlePhysicsEventItem(CPhysicsEventItem* item) 
-	{ ++m_count; }
+  public:
+    CounterFilter() : m_count(0) {}
+
+    CounterFilter* clone() const { return new CounterFilter(*this); }
+
+    CRingItem* handlePhysicsEventItem(CPhysicsEventItem* item) 
+    { ++m_count; }
 };
-  </programlisting>
-  </para>
+      </programlisting>
+    </para>
 
   </section>
   
@@ -65,22 +94,37 @@ class CounterFilter : public CFilter
     <title>Getting Started</title>
 
     <para>
-    A small kit is provided in the /usr/opt/nscldaq/VERSION/filterkit directory. All of the source code needed to build a fully functional filter program is provided in this directory. It is recommended that the user start with these files to begin the process of creating his/her filter program. Simply copy the entire directory to a working location or the relevant files: Makefile, SkeletonMain.cpp, and CTemplateFilter.cpp. I will explain the contents of each of these files in the following sections.
+      A small kit is provided in the /usr/opt/nscldaq/VERSION/filterkit
+      directory. All of the source code needed to build a fully functional
+      filter program is provided in this directory. It is recommended that the
+      user start with these files to begin the process of creating his/her
+      filter program. Simply copy the entire directory to a working location or
+      the relevant files: Makefile, SkeletonMain.cpp, and CTemplateFilter.cpp. I
+      will explain the contents of each of these files in the following
+      sections.
     </para>
 
   </section>
 
   <section>
     <title>Defining a primitive filter</title>
-    
+
     <para>
-      Let's move to stage 2 of the filter program. The user defines the behavior of the filter program by defining primitive filter objects that are constructed by the user and registered to the framework. For the remainder of this section, the term filter will refer to these objects rather than the program. 
+      Let's move to stage 2 of the filter program. The user defines the behavior
+      of the filter program by defining primitive filter objects that are
+      constructed by the user and registered to the framework. For the remainder
+      of this section, the term filter will refer to these objects rather than
+      the program. 
     </para>
 
     <para>
-    All filters used in the filter framework must derive from the CFilter base class. A derived class of CFilter will define specific operations on the different types of ring items by providing a new implementation of the specific ring item handler. There are handlers defined for each of the different ring item types:
+      All filters used in the filter framework must derive from the CFilter base
+      class. A derived class of CFilter will define specific operations on the
+      different types of ring items by providing a new implementation of the
+      specific ring item handler. There are handlers defined for each of the
+      different ring item types:
 
-    <programlisting>
+      <programlisting>
 CRingItem* handleStateChangeItem(CRingStateChangeItem*);
 CRingItem* handleScalerItem(CRingScalerItem*);
 CRingItem* handlePhysicsEventItem(CPhysicsEventItem*);
@@ -88,31 +132,86 @@ CRingItem* handleFragmentItem(CRingFragmentItem*);
 CRingItem* handlePhysicsEventCountItem(CRingPhysicsEventCountItem*);
 CRingItem* handleTextItem(CRingTextItem*);
 CRingItem* handleRingItem(CRingItem*);       
-    </programlisting>
+      </programlisting>
     </para>
 
     <para>
-     Each handler accepts as an argument a ring item read from the source and will output a ring item to send to the sink. The framework will use the type of each ring item it reads from the source to call the appropriate handler method. Also, it is worth noting that handlers that receive a specific ring item type can actually output any ring item type. It is not clear why the user would want to do this, but it is possible to, for example, mutate scaler items into physics event items by means of a filter. It is also possible to prevent an item from being sent to the sink by return 0 from a handler. 
+     Each handler accepts as an argument a ring item read from the source and
+     will output a ring item to send to the sink. The framework will use the
+     type of each ring item it reads from the source to call the appropriate
+     handler method. Also, it is worth noting that handlers receiving a
+     specific ring item type can actually output any ring item type.
+     <footnote>
+       <para>
+         There is a limitation to this behavior though. If you have registered
+         more than one filter to the framework, and the first one mutates the
+         type of the ring item, the handler of the second filter will operate on
+         the ring item as though it were the original type.
+       </para>
+     </footnote>
+     It is not clear why the user would want to do this, but it is possible to,
+     for example, mutate scaler items into physics event items by means of a
+     filter.  It is also possible to prevent an item from being sent to the sink
+     by return 0 or nullptr from a handler. 
     </para>
 
     <para>
-     Implementing code for all of the handlers listed above is not necessary because each handler has a default implementation in the base class. These base implementations do nothing more than return the argument. An example code snippet is included to illustrate this:
-    <programlisting>
+      Implementing code for all of the handlers listed above is not necessary
+      because each handler has a default implementation in the base class. These
+      base implementations do nothing more than return the argument. An example
+      code snippet is included to illustrate this:
+      <programlisting>
 CRingItem* CFilter::handleTextItem(CRingTextItem* item) {
 
 	return static_cast&lt;CRingItem*&gt;(item);
 
 }
-    </programlisting>
+      </programlisting>
     </para>
 
     <para>
-      The CFilter base class provides transparent handlers, i.e. it outputs the exact data it receives as input. The base class handlers are defined as virtual methods so that if the derived class implements a method with the same signature as the base class, its implementation will be used instead of the base implementation. This allows the user to define only the handlers relevant to their problem area.
+      The CFilter base class provides transparent handlers, i.e. it outputs the
+      exact data it receives as input. The base class handlers are defined as
+      virtual methods so that if the derived class implements a method with the
+      same signature as the base class, its implementation will be used instead
+      of the base implementation. This allows the user to define only the
+      handlers relevant to their problem area.
     </para>
-  
+
     <para>
-    The CTemplateFilter.cpp source file contains a basic implementation of a filter. It solves the unrealistic problem of needing to produce a mirror image of event data. It copies event data in reverse order to the end of the body. This hopefully demonstrates the flexibility that exists in the framework. Notice that the TemplateFilter only implements one handler. 
+      The CTemplateFilter.cpp source file contains a basic implementation of a
+      filter. It solves the unrealistic problem of needing to produce a mirror
+      image of event data. It copies event data in reverse order to the end of
+      the body. This hopefully demonstrates the flexibility that exists in the
+      framework. Notice that the TemplateFilter only implements one handler. 
     </para>
+
+    <para>
+      In addition to handlers, user-defined filters can implement hooks that get
+      called prior to and after processing all ring items. The two methods have
+      the following signatures:
+    </para>
+
+    <classsynopsis language="c++">
+      <ooclass>
+        <classname>CFilter</classname>
+      </ooclass>
+
+      <methodsynopsis>
+        <void/> <methodname>initialize</methodname> <void/>
+      </methodsynopsis>
+
+      <methodsynopsis>
+        <void/> <methodname>finalize</methodname> <void/>
+      </methodsynopsis>
+    </classsynopsis>
+
+    <para>
+      The initialize() method is executed prior to the first ring item is
+      processed and the finalize() method is executed after the last ring item is
+      processed.
+    </para>
+
 
   </section> 
   <!-- End of building a primitive filter -->
@@ -121,11 +220,25 @@ CRingItem* CFilter::handleTextItem(CRingTextItem* item) {
     <title>Building a composite filter</title>
 
     <para>
-     A special filter is provided that allows users to stack primitive filters together into a composite filter. This composite filter, CCompositeFilter, maintains a list of registered filters and will call their respective handlers in the order in which they were registered to it. The output of the first filter is fed as an input to the second filter and so on. For this reason, each subsequent filter must know how to parse the data outputted from the previous filter. If a primitive filter returns 0, the composite filter will stop iterating through its filters and return 0.
+     A special filter is provided that allows users to stack primitive filters
+     together into a composite filter. This composite filter, CCompositeFilter,
+     maintains a list of registered filters and will call their respective
+     handlers in the order in which they were registered to it. The output of
+     the first filter is fed as an input to the second filter and so on. For
+     this reason, each subsequent filter must know how to parse the data
+     outputted from the previous filter. If a primitive filter returns 0, the
+     composite filter will stop iterating through its filters and return 0.
     </para> 
 
     <para>
-    Earlier it was mentioned that the user registers primitive filters to the framework. To be more explicit, the framework maintains a composite filter that the user registers his/her primitive filters to. Even though this is the most basic and ubiquitous usage of the composite filter, one can actually register composite filters to the filter framework as well. This is possible because in the end, the composite filter is just another filter. So have fun and don?t fear building composite filters to use in the filter framework if it makes sense.
+      Earlier it was mentioned that the user registers primitive filters to the
+      framework. To be more explicit, the framework maintains a composite filter
+      that the user registers his/her primitive filters to. Even though this is
+      the most basic and ubiquitous usage of the composite filter, one can
+      actually register composite filters to the filter framework as well. This
+      is possible because in the end, the composite filter is just another
+      filter. So have fun and don?t fear building composite filters to use in
+      the filter framework if it makes sense.
     </para>
 
   </section>
@@ -135,7 +248,11 @@ CRingItem* CFilter::handleTextItem(CRingTextItem* item) {
     <title>The main function</title> 
 
     <para>
-    The main function of the program is where the user instantiates the experiment specific filters and registers them to the framework. The framework clones the filter objects and manages the cloned objects. The original filter objects are left to the user to clean up. The SkeletonMain.cpp file contains the main function for the filter kit. 
+      The main function of the program is where the user instantiates the
+      experiment specific filters and registers them to the framework. The
+      framework clones the filter objects and manages the cloned objects. The
+      original filter objects are left to the user to clean up. The
+      SkeletonMain.cpp file contains the main function for the filter kit. 
     </para>
 
     <programlisting>
@@ -180,45 +297,63 @@ int main(int argc, char* argv[])
     </programlisting>
 
 			<para>
-			In the discussion below, the numbers refer to the same numbers
-			in the example above.
+        In the discussion below, the numbers refer to the same numbers in the
+        example above.
 			</para>
 		
 			<calloutlist>
 		
 				<callout arearefs='filter-main-tempfiltinc'>
 					<para>
-					Include the source code for the CTemplateFilter class. In more elaborate filter programs this would likely just include the header file and then link the implementation at compile time. However, for simplicity, the CTemplateFilter class is defined and implemented in the same source file. 
+            Include the source code for the CTemplateFilter class. In more
+            elaborate filter programs this would likely just include the header
+            file and then link the implementation at compile time. However, for
+            simplicity, the CTemplateFilter class is defined and implemented in
+            the same source file. 
 					</para>
 				</callout>
 
 				<callout arearefs='filter-main-maininst'>
 					<para>
-					Instantiate the CFilterMain object. This object sets up the framework, including the source and sink. It also handles the parsing of command line parameters.
+            Instantiate the CFilterMain object. This object sets up the
+            framework, including the source and sink. It also handles the
+            parsing of command line parameters.
 					</para>
 				</callout>
 
 				<callout arearefs='filter-main-userfiltinst'>
 					<para>
-					Instantiate the user's filter(s). There can be any number of filters instantiated here. If the user creates the filter on the heap instead of the stack, they must delete their filter at the end of the main program.
+            Instantiate the user's filter(s). There can be any number of
+            filters instantiated here. If the user creates the filter on the
+            heap instead of the stack, they must delete their filter at the end
+            of the main program.
 					</para>
 				</callout>
 
 				<callout arearefs='filter-main-register'>
 					<para>
-					Register the user's filter(s). More than one filter can be registered and the same filter can be registered multiple times. The framework clones the filter and handles the memory allocated for the cloned object. 
+            Register the user's filter(s). More than one filter can be
+            registered and the same filter can be registered multiple times.
+            The framework clones the filter and handles the memory allocated
+            for the cloned object. 
 					</para>
 				</callout>
 
 				<callout arearefs='filter-main-mainloop'>
 					<para>
-					Run the main loop of the program. Once this is called, data start being read from the source, processed by the registered filters, and then are passed to the sink. 
+            Run the main loop of the program. Once this is called, data start
+            being read from the source, processed by the registered filters,
+            and then are passed to the sink. 
 					</para>
 				</callout>
 
 				<callout arearefs='filter-main-fatalexcept'>
 					<para>
-					Catch fatal exception. The CFatalException class is a dummy class that has an empty implementation. It is just used to pass fatal errors to the main function to abort execution. By default, the filter framework will not throw fata exceptions from the main loop. These should be limited to the first stage of filter.
+            Catch fatal exception. The CFatalException class is a dummy class
+            that has an empty implementation. It is just used to pass fatal
+            errors to the main function to abort execution. By default, the
+            filter framework will not throw fata exceptions from the main loop.
+            These should be limited to the first stage of filter.
 					</para>
 				</callout>
 
@@ -237,37 +372,40 @@ int main(int argc, char* argv[])
     <title>Building the filter program</title>
 
     <para>
-    It is strongly recommended that you use the Makefile provided in the driverkit directory to build your program. It can easily be modified to adapt to changes in file names and even addition files if more than one filter will be used.
+      It is strongly recommended that you use the Makefile provided in the
+      driverkit directory to build your program. It can easily be modified to
+      adapt to changes in file names and even addition files if more than one
+      filter will be used.
     </para>
 
   </section>
   <!-- End of building the filter program -->
-</chapter>
 
+</chapter>
 <!-- /chapter -->
 
 <!-- manpage 3daq -->
 
 <refentry id='manpage.cfilter'>
-    <refentryinfo>
-        <author>
-                <personname>
-                        <firstname>Jeromy</firstname>
-                        <surname>Tompkins</surname>
-                </personname>
-        </author>
-        <productname>NSCLDAQ</productname>
-        <productnumber></productnumber>
-    </refentryinfo>
+  <refentryinfo>
+    <author>
+      <personname>
+        <firstname>Jeromy</firstname>
+        <surname>Tompkins</surname>
+      </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
   <refmeta>
     <refentrytitle id='manpage.cfilter_title'>CFilter</refentrytitle>
     <manvolnum>3daq</manvolnum>
     <refmiscinfo class='empty'></refmiscinfo>
   </refmeta>
-  
+
   <refnamediv>
     <refname>CFilter</refname>
-	  <refpurpose>Base class for primitive filters</refpurpose>
+    <refpurpose>Base class for primitive filters</refpurpose>
   </refnamediv>
 
 
@@ -359,6 +497,15 @@ int main(int argc, char* argv[])
         </methodparam>
       </methodsynopsis>
 
+      <methodsynopsis>
+        <modifier>virtual</modifier>
+        <void/> <methodname>initialize</methodname> <void/>
+      </methodsynopsis>
+
+      <methodsynopsis>
+        <modifier>virtual</modifier>
+        <void/> <methodname>finalize</methodname> <void/>
+      </methodsynopsis>
     </synopsis>
 
   </refsynopsisdiv>
@@ -367,11 +514,18 @@ int main(int argc, char* argv[])
     <title>DESCRIPTION</title>
 
     <para>
-      <classname>CFilter</classname> is the base class of all primitive filters. It cannot be instantiated because it is an abstract class. The <methodname>clone</methodname> method is a null method to enforce that this must be clonable.
+      <classname>CFilter</classname> is the base class of all primitive
+      filters. It cannot be instantiated because it is an abstract class. The
+      <methodname>clone</methodname> method is a null method to enforce that
+      this must be clonable.
     </para>
 
     <para>
-      A series of handler methods are declared virtual for derived classes to write their own handler implementations. Because all of these handlers provide a default implementation, derived classes need not write an implementation for all of the handlers. All of the handlers in the base class do nothing more than return the ring item passed as an argument.
+      A series of handler methods are declared virtual for derived classes to
+      write their own handler implementations. Because all of these handlers
+      provide a default implementation, derived classes need not write an
+      implementation for all of the handlers. All of the handlers in the base
+      class do nothing more than return the ring item passed as an argument.
     </para>
 
   </refsect1>
@@ -488,6 +642,30 @@ int main(int argc, char* argv[])
     </methodsynopsis>
     <para>
       Downcasts the item pointer to a CRingItem and returns it.
+    </para>
+
+    <methodsynopsis>
+      <modifier>virtual</modifier>
+      <void/>
+      <methodname>initialize</methodname>
+      <void/>
+    </methodsynopsis>
+    <para>
+      Method executed prior to the first ring item is handled. It is useful for
+      one-time initialization tasks. You should not use it for code that must
+      execute when a begin run occurs. 
+    </para>
+
+    <methodsynopsis>
+      <modifier>virtual</modifier>
+      <void/>
+      <methodname>finalize</methodname>
+      <void/>
+    </methodsynopsis>
+    <para>
+      Method executed after the last ring item is handled. It is useful for
+      clean up tasks such as writing a result to a file. You should not use it
+      for code that must execute when an end run occurs. 
     </para>
 
   </refsect1>
@@ -630,6 +808,19 @@ int main(int argc, char* argv[])
         </methodparam>
       </methodsynopsis>
 
+      <methodsynopsis>
+        <modifier>virtual</modifier>
+        <void/>
+        <methodname>initialize</methodname>
+        <void/>
+      </methodsynopsis>
+      <methodsynopsis>
+        <modifier>virtual</modifier>
+        <void/>
+        <methodname>finalize</methodname>
+        <void/>
+      </methodsynopsis>
+
     </synopsis>
 
   </refsynopsisdiv>
@@ -638,11 +829,23 @@ int main(int argc, char* argv[])
     <title>DESCRIPTION</title>
 
     <para>
-      <classname>CCompositeFilter</classname> is a derived class of CFilter and is technically a primitive filter. However, it maintains a registry of primitive filters that ultimately define its functionality. The composite filter owns the filters that exist in its registry. When registering a primitive filter, the actual filter passed as an argument is not registered. Instead, it is cloned and the clone is registered. In this way, the composite filter guarantees that it has ownership of all filters in its registry. It will delete all of the filters it owns at destruction time. When the composite filter is copied, it clones all of the target&apos;s filters rather than sharing pointers. 
+      <classname>CCompositeFilter</classname> is a derived class of CFilter and
+      is technically a primitive filter. However, it maintains a registry of
+      primitive filters that ultimately define its functionality. The composite
+      filter owns the filters that exist in its registry. When registering a
+      primitive filter, the actual filter passed as an argument is not
+      registered. Instead, it is cloned and the clone is registered. In this
+      way, the composite filter guarantees that it has ownership of all filters
+      in its registry. It will delete all of the filters it owns at destruction
+      time. When the composite filter is copied, it clones all of the
+      target&apos;s filters rather than sharing pointers. 
     </para>
 
     <para>
-      All handler methods iteratively call the corresponding handler methods of the registered primitive filters. The registration order of the primitive filters defines the order in which the filters will be called. When its registry is empty, the composite filter is just a transparent filter. 
+      All handler methods iteratively call the corresponding handler methods of
+      the registered primitive filters. The registration order of the primitive
+      filters defines the order in which the filters will be called. When its
+      registry is empty, the composite filter is just a transparent filter. 
     </para>
 
   </refsect1>
@@ -666,7 +869,8 @@ int main(int argc, char* argv[])
       </methodparam>
     </constructorsynopsis>
     <para>
-      All of the filters in the argument&apos;s registry are cloned. The order of the registry is maintained.
+      All of the filters in the argument&apos;s registry are cloned. The order
+      of the registry is maintained.
     </para>
 
     <methodsynopsis>
@@ -678,7 +882,11 @@ int main(int argc, char* argv[])
       </methodparam>
     </methodsynopsis>
     <para>
-      All of the filters in the argument&apos;s registry are cloned into a temporary registry. If no exceptions occur while performing this deep copy, the filters currently in the registry are deleted. Subsequently, the temporary registry becomes the registry. In this way, if errors occur while performing the copy, the current registry is not alterred.
+      All of the filters in the argument&apos;s registry are cloned into a
+      temporary registry. If no exceptions occur while performing this deep
+      copy, the filters currently in the registry are deleted. Subsequently,
+      the temporary registry becomes the registry. In this way, if errors occur
+      while performing the copy, the current registry is not alterred.
     </para>
 
     <destructorsynopsis>
@@ -708,7 +916,8 @@ int main(int argc, char* argv[])
       </methodparam>
     </methodsynopsis>
     <para>
-      Clones the filter passes as an argument and adds the clone to the back of the registry. 
+      Clones the filter passes as an argument and adds the clone to the back of
+      the registry. 
     </para>
 
     <methodsynopsis>
@@ -720,7 +929,14 @@ int main(int argc, char* argv[])
       </methodparam>
     </methodsynopsis>
     <para>
-      Passes the item to the handleRingItem method of the registered primitives in the order in which they were registered. The output of the first primitive filter is passed as input to the second primitive filter. If the primitive filters return a newly allocated CRingItem, this will properly cleanup the items that are outputted by inner filters. In other words, if there are two filters registered and both return different ring items than they are passed, the output of the first filter will be deleted and the output of the second filter will be returned. 
+      Passes the item to the handleRingItem method of the registered primitives
+      in the order in which they were registered. The output of the first
+      primitive filter is passed as input to the second primitive filter. If
+      the primitive filters return a newly allocated CRingItem, this will
+      properly cleanup the items that are outputted by inner filters. In other
+      words, if there are two filters registered and both return different ring
+      items than they are passed, the output of the first filter will be
+      deleted and the output of the second filter will be returned. 
     </para>
 
     <methodsynopsis>
@@ -756,7 +972,8 @@ int main(int argc, char* argv[])
       </methodparam>
     </methodsynopsis>
     <para>
-      Behaves exactly like handleRingItem except that handlePhysicsEventItem is called.
+      Behaves exactly like handleRingItem except that handlePhysicsEventItem is
+      called.
     </para>
 
     <methodsynopsis>
@@ -793,6 +1010,26 @@ int main(int argc, char* argv[])
     </methodsynopsis>
     <para>
       Behaves exactly like handleRingItem except that handleTextItem is called.
+    </para>
+
+    <methodsynopsis>
+      <modifier>virtual</modifier>
+      <void/>
+      <methodname>initialize</methodname>
+      <void/>
+    </methodsynopsis>
+    <para>
+      Behaves exactly like handleRingItem except that initialize() called.
+    </para>
+
+    <methodsynopsis>
+      <modifier>virtual</modifier>
+      <void/>
+      <methodname>finalize</methodname>
+      <void/>
+    </methodsynopsis>
+    <para>
+      Behaves exactly like handleRingItem except that finalize() called.
     </para>
 
   </refsect1>

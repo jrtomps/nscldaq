@@ -1,0 +1,23 @@
+<bookinfo>
+  <title>Using NSCLDAQ with a CAEN V785 Peak-Sensing ADC and CAEN V262 IO Register</title>
+  <author><firstname>Jeromy</firstname> <surname>Tompkins</surname></author>
+  <author><firstname>Tim</firstname> <surname>Hoagland</surname></author>
+  <author><firstname>Ron</firstname> <surname>Fox</surname></author>
+  <revhistory>
+    <revision>
+      <revnumber>1.0</revnumber>
+      <date>11/03/04</date>
+      <authorinitials>TH &amp; RF</authorinitials>
+      <author><firstname>Tim</firstname> <surname>Hoagland</surname></author>
+      <revremark>Original release</revremark>
+    </revision>
+    <revision>
+      <revnumber>2.0</revnumber>
+      <date>Feb 5, 2015</date>
+      <authorinitials>J.R.T.</authorinitials>
+      <author><firstname>Jeromy</firstname><surname>Tompkins</surname></author>
+      <revremark>Updated for NSCLDAQ 11.0</revremark>
+    </revision>
+  </revhistory>
+</bookinfo>
+

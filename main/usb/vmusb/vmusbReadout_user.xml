@@ -1,0 +1,3879 @@
+<!-- chapter user-guide -->
+
+<chapter>
+  <title>VMUSBReadout</title>
+  <section>
+    <title>Introduction</title>
+
+    <para>
+      The VMUSBReadout is a standalone executable that provides support for
+      reading out front-end electronics through the Wiener-JTec VM-USB VME
+      controller. It provides:
+    </para>
+    <itemizedlist>
+      <listitem>
+        <para>
+          A high-level means to interact with readout hardware using the VM-USB. 
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          A slow-controls server that enables remote programs to interact
+          with front-end hardware.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Support for the readout and control of numerous devices commonly
+          employed at the NSCL for data taking.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          C++ and TCL frameworks for extending the set of devices that the
+          program can read out and control.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Dynamic loading of user-defined code to extract timestamps from both
+          event and scaler data.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Direct insertion of data taken to an arbitrary destination
+          ringbuffer.
+        </para>
+      </listitem>
+    </itemizedlist>
+
+    <para>
+      In this document, we will cover the following  
+    </para>
+
+    <itemizedlist>
+      <listitem>
+        <para>
+          A basic overview of the VM-USB
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          How to write configuration files for the VMUSB readout
+          framework.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Understanding the output of VMUSBReadout program
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          How to write device support modules in in C++ and incorpoprate those
+          modules into the VMUSB readout framework.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          How to write device support modules in Tcl and incorporate
+          those modules into a VM-USB readout DAQ configuration file.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          How to write device support modules for the slow control server in C++
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          How to write device support modules for the slow control server in Tcl.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          The slow controls protocol and its primitives.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Variable monitoring.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Information on how to run VMUSBReadout under the state/boot
+          managers that were introduced with NSCLDAQ-11.0
+        </para>
+      </listitem>
+    </itemizedlist>
+
+    <para>
+      Reference information is available in the
+      <literal>3vmusb</literal> section of the reference material.
+    </para>
+  </section>
+
+  <section>
+    <title>Basic Tenets of VM-USB Operation</title>
+
+    <para>
+      The functionality of VMUSBReadout is driven by the operating
+      characteristics of the VM-USB itself. For that reason, a short overview
+      of its operating principles will be provided here. Only enough detail is
+      provided concerning the device to understand how to use the VMUSBReadout
+      program. If you would like to know more about its operational
+      characteristics, you can download its manual from the Wiener 
+      <ulink url="http://www.wiener-d.com">website</ulink>.
+    </para>
+
+    <para>
+      The VM-USB operates in either interactive mode or data acquisition mode.
+      When in interactive mode, the user can execute VME operations and access
+      the resulting data on the fly. In acquisition mode, on the other hand,
+      the VM-USB acts autonomously according to a predefined set of
+      VME-operation lists, a.k.a. stacks, and their corresponding trigger
+      conditions. When a stack's trigger condition is satisfied, the VM-USB
+      executes the list of VME operations and stores the resulting data in its
+      internal memory buffer for later read out. In this mode the device can no
+      longer be configured and, besides causing stacks to execute or
+      transitioning back to interactive mode, the device will only accept read
+      operations.  For this reason, the user must set up these stacks and
+      define the trigger conditions that should elicit their execution prior to
+      entering autonomous data taking mode.
+    </para>
+
+    <para>
+      There are three different means by which a stack might be caused to
+      execute. They are:
+    </para>
+    <itemizedlist>
+      <listitem>
+        <para>
+          External logic signal to NIM input 1
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Internally-generated, periodic trigger
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          VME Interrupt
+        </para>
+      </listitem>
+    </itemizedlist>
+
+    <para>
+      Furthermore, the device accommodates the definition of 8 separate
+      stacks each with their own trigger condition. In this way, the user can 
+      cause different pieces of hardware to be read out in different
+      scenarios. The stacks are enumerated by an index between 0 and 7. Stack
+      0 is the index of the default event stack that reads out hardware on an
+      event-wise basis and stack 1 is the stack used for scaler readout. The
+      event stack can be triggered by a NIM signal at input 1 or an interrupt,
+      whereas the scaler stack will be triggered by the internally-generated,
+      periodic trigger. The other 6 stacks are used for executing interrupt
+      driven stacks. In VMUSBReadout, stack 7 is used by the slow-controls
+      server for monitoring slow-controlled hardware.
+    </para>
+  </section>
+
+  <section>
+    <title>Writing the Configuration Script</title>
+    <para>
+      Configuring the VM-USB for readout requires no compilation of code or
+      writing of C++, rather it amounts to writing a simple configuration
+      script, daqconfig.tcl, that is written in the TCL language. In general,
+      one does not need to know how to write TCL to create their config file.
+      Instead, knowing the names of the device driver commands and their
+      arguments should be enough.          
+      <footnote>
+        <para>
+          Because TCL is a full blown programming language, it has rules for
+          syntax.  If you know zero TCL, it may happen that you unknowingly
+          violate one of the syntax rules when writing your daqconfig.tcl
+          script. You will know you did if you begin a run and VMUSBReadout
+          fails to transition to data taking because of a TCL error. In that
+          case, you might have to learn a little bit of the TCL syntax to fix
+          it. Do not fret though, TCL is <emphasis>very</emphasis> simple and
+          nowhere near as complicated as other languages like C++. Here is a
+          reasonable starting point <ulink
+            url="http://www.tutorialspoint.com/tcl-tk/index.htm"/>.
+        </para>
+      </footnote>
+      On the other hand, if you are TCL savvy, then go ahead and
+      write standard TCL in the script, because it is evaluated with the
+      standard TCL interpeter.
+    </para>
+
+    <para>
+      As was mentioned in the previous section, the VM-USB requires the
+      definition of a "stack", i.e., a list of VME operations that should be executed
+      given a specific trigger condition, and the configuration script is where
+      this is done. You can imagine that every device in an experiment
+      is read out using a well-defined set of VME operations so that if
+      more than one device needs to be read out, the stack can be constructed by
+      appending each successive device's readout operations to it. This is
+      exactly what is done. In fact, VMUSBReadout provides support for readout
+      of many commonly used devices out of the box. The user simply needs to
+      declare which of devices he/she is using and then add them to a stack.
+    </para>
+
+    <para>
+      Each supported device class is represented in the configuration file by
+      a Tcl command ensemble. The command ensemble provides subcommands that
+      allow you to create, configure, and query the configuration of physical
+      devices (device instances). The device configuration is represented in
+      the configuration file in a manner analagous to the state of a Tk widget.
+      That is, you never actually program the device directly, you simply
+      specify the desired configuration. The actual programming is done by the
+      device class's device support software. Device instances are created with
+      a user-provided name that must be unique, because specific device
+      instances are always identified by their name later in the script.
+    </para>
+
+    <para>
+      In accordance with the way the VM-USB operates, you can define up to 8
+      stacks in the configuration script. Just like the device classes, stacks
+      are represented as command ensembles that can create, configure, and query stack
+      instances. The user adds their specific device instances to a stack
+      by passing them as list to the <option>-modules</option>
+      configuration option. Furthermore, the trigger condition for the stack
+      is specified by the <option>-trigger</option>. It is important to
+      understand that unless a device instance is registered to a stack
+      instance, the VM-USB will ignore its presence.
+    </para>
+
+    <para>
+      The DAQ configuration file is processed at the beginning of each run and
+      in a fresh interpreter each time. What this means practically is that
+      state cannot be maintained across runs via your configuration file.
+    </para>
+
+    <example>
+      <title>Creating and configuring devices</title>
+      <para>
+        Some things are best demonstrated than explained in prose. For that
+        reason, we will conclude our discussion of the configuration file by
+        walking through the set up of a basic daqconfig.tcl file. This script
+        will focus on configuring a system to read out a single Caen V785
+        peak-sensing ADC in slot 15, with base address 0x11000000. We will also
+        readout out a Struck SIS3820 scaler every two seconds. 
+      </para>
+      <para>
+        The name of the command ensemble that does this is
+        <command>adc</command>, so we add the following two lines to our
+        daqconfig.tcl file.
+      </para>
+      <programlisting>
+adc create myadc 0x11000000     <co id="vmusb.config.create"/>
+adc config myadc -geo 15        <co id="vmusb.config.config"/>
+      </programlisting>
+
+      <para>
+        The <command>adc</command> command implements base support for the
+        CAEN 32 channel digitizer family (V775, V785, V792, V862). 
+      </para>
+
+      <calloutlist>
+        <callout arearefs="vmusb.config.create">
+          <para>
+            This line creates an instance of one of those modules with a base address
+            <literal>0x11000000</literal>.  The instance is given the name
+            <literal>myadc</literal> to uniquely identify it later in the script.
+          </para>
+        </callout>
+
+        <callout arearefs="vmusb.config.config">
+          <para>
+            The second line sets a configuration parameter, the geographical
+            address of the  module, for the instance created by the first line.
+            The reference ssection <literal>3vmusb</literal> provides detailed
+            information about the configuration options supported by each
+            device class.
+          </para>
+        </callout>
+      </calloutlist>
+
+      <para>
+        Configuration files must also specify at least one stack and, if
+        scaler modules are to be read periodically, a second scaler stack.
+        See the <xref linkend="vmusb3-stack"/> command
+        in the reference material for detailed information about how
+        to create and configure stacks.
+      </para>
+
+      <para>
+        To continue building on the daqconfig.tcl that was just created, we
+        will add a stack that will read out myadc.
+      </para>
+
+      <programlisting>
+stack create events 
+stack config event -trigger nim1 -modules [list myadc]
+      </programlisting>
+
+      <para>
+        Stacks are created and configured exactly like any other module.  In
+        this configuration file fragment, a stack named
+        <literal>events</literal> is created.  It is configured to manage the
+        <literal>myadc</literal> module (<option>-modules</option>).  as well as
+        to be executed when a NIM signal arrives at the IN 1 input of the VM-USB
+        (<literal>-trigger nim1</literal>).
+      </para>
+
+      <para>
+        Finally, we add the SIS3820 scaler to the configuration script and
+        create a second stack specifically for reading the scalers. Because this
+        is logically equivalent to what we did to set up the Caen V785, we will
+        be a bit more terse. Here are the lines that need to be added to the
+        daqconfig.tcl for reading out the scaler every 2 seconds.
+      </para>
+      <programlisting>
+sis3820 create sisscaler 0x38000000       <co id="vmusb.config.sis3820"/>
+
+stack create scaler 
+stack config scaler -modules [list sisscaler] -trigger scaler -period 2 <co
+  id="vmusb.config.sclrStack"/> 
+      </programlisting>
+
+      <calloutlist>
+        <callout arearefs="vmusb.config.sis3820">
+          <para>
+            Here we create the device instance for the SIS3820. We are using the 
+            device to read all 32-channels during each read operation which is
+            accomplished without anything other than default settings.
+          </para>
+        </callout>
+        <callout arearefs="vmusb.config.sclrStack">
+          <para>
+            Because we want to execute the stack every 2 seconds, we must
+            provide the <literal>scaler</literal> value to the
+            <option>-trigger</option> option. Furthermore, we must also provide
+            the number of seconds for the period of execution to the
+            <option>-period</option> option.
+          </para>
+        </callout>
+      </calloutlist>
+    </example>
+
+    <para>
+      The reference pages in <literal>3vmusb</literal> describe, among other
+      things the commands that implement device support that are supported by
+      the NSCL programming group.  In addtion to user device drivers that are
+      described later in this chapter, two device drivers support modules have
+      been contributed by Washington University at St. Louis.  These modules
+      support XLMs used to read out the ASIC systems they have developed for
+      managing large detector arrays.
+    </para>
+
+    <para>
+      For information about how to use those modules, contact Lee Sobotka or Jon
+      Elson at Washington University directly.
+    </para>
+
+    <para>
+      If the device support provided by <application>VMUSBReadout</application>
+      is insufficient for your experiment, you can extend the supported modules
+      by developing your own module. The details of extending device support can
+      be found in <xref linkend="vmusb-develop-rdohdwr"
+        endterm="vmusb-develop-rdohdwr-title"/>.
+    </para>
+  </section>
+  <section>
+    <title>The Slow-Controls Subsystem</title>
+
+    <para>
+      A fundamental limitation placed on the VM-USB is that only one process can
+      communicate with it at a given time. This introduces a complication when
+      trying to use separate programs for controlling devices that need only to
+      be configured rather than read out. There many ways to deal with this
+      issue, but the approach taken by VMUSBReadout is to turn the VMUSBReadout
+      program into a proxy for other applications that might want to use the
+      VM-USB. In another sense, the VMUSBReadout serves the VM-USB to other
+      programs. This is accomplished via the slow-controls server that listens
+      and accepts connections from clients who make remote requests to it. The
+      port on which the server listens defaults to 27000 but can be defined by
+      passing the <option>--port</option> command line argument to
+      VMUSBReadout.
+    </para>
+
+    <para>
+      If the run is halted, the slow-controls server can directly manipulate the
+      VM-USB to perform the desired device changes. If, however, the VMUSB is in
+      data taking mode, the slow-controls server pauses the run, performs the requested 
+      operation, and then resumes the run.  You should avoid working with control
+      panels during production runs for that reason.
+    </para>
+
+    <para>
+      The configuration of the slow-controls subsystem is similar to that of
+      the readout subsystem.  A configuration file, written in Tcl, defines the
+      control modules present in the system. An important difference to the
+      daqconfig.tcl file is that the controls configuration file is read only once
+      when VMUSBReadout starts. For that reason, modules loaded into the
+      slow-controls server are configured once at start up and do not change
+      during the duration of VMUSBReadout.
+    </para>
+
+    <para>
+      The <command>Module</command> command is used to create, configure, and
+      query the configuration of slow-controls devices known to the server. A
+      set of prepackaged module types are provided by VMUSBReadout. Each created
+      module must be given a unique name and is automatically registered to the
+      server upon creation. When a client makes a request to the slow-controls
+      server, it must provide the name of the client it wishes to handle its
+      request. If no module with the name the client provides has been
+      registered to the server, unexpected results are likely to occur as well
+      as an error. For that reason, if you wish to use the slow-controls server,
+      it is important that you register the module with the server first before
+      using your client. Client requests either get, set, or update requests.     
+    </para>
+
+    <para>
+      Up to this point, we have mostly discussed how the slow-controls server
+      acts as a proxy for other client applications. However, the slow-controls
+      subsystem also has some utility in its own right. For one, the
+      <command>watch</command> command can be used to periodically poll devices
+      for status without pausing data taking.  This is useful for monitoring the
+      performance of devices over the coarse
+      of data taking. The subsystem is also ideal for performing tasks that
+      need to occur only once during a session or on demand. A good example of
+      this is the loading of firmware. The vast majority of times, firmware only
+      needs to be loaded once per power cycle. For this reason and the fact that
+      it often takes a noticeable amount of time to complete, it makes little
+      sense to do it every run. The slow-controls server is a good tool for
+      this kind of operation because slow-controls modules each define an
+      initialization procedure that is executed at start up or anytime
+      thereafter via the <command>init</command> command.
+    </para>
+
+    <para>
+      Once again, it is simplest to illustrate how to set up the controls
+      configuration script by example rather than in prose. For that reason we
+      will proceed with a short example.
+    </para>
+
+    <example>
+      <title>A Sample Controls Configuration</title>
+      
+      <para>
+        In this example, we will set up the server to configure a Caen V812
+        constant-fraction discriminator. The Caen V812 is a VME board that
+        responds to commands addressed to it. The board that we are configuring
+        has a base address of 0x12450000, which we will need to provide to the
+        module we create. The type of module that understands how to work with
+        the V812 has a module type of "caenv812" so we must pass that type as an
+        argument to the <command>Module</command> command. To create the module and
+        configure its from a file we add the following two lines to our
+        ctlconfig.tcl script.
+      </para>
+      <programlisting>
+Module create caenv812 cfd
+Module config cfd -base 0x1245000 \
+        -file [file join [file dirname [info script]] cfd1.cofig]
+      </programlisting>
+
+      <para>
+        That is it. The act of creating the module also registers it by the name
+        <literal>cfd</literal> to the slow-controls server. At this point, a
+        client application could in principle attempt to send it requests.
+      </para>
+    </example>
+
+    <para>
+      If a user wants to write their own module for the slow-controls subsystem,
+      they can do so. There is a well-defined framework for developing these.
+      You can learn more about creating your own modules at 
+      <xref linkend="vmusb-develop-module" endterm="vmusb-develop-module-title"/>.
+    </para>
+
+    <section>
+      <title>Using Remote Procedure Calls To Execute Stacks</title>
+      <para>
+        There are numerous slow-controls modules availabe for use with the
+        Module command (see <xref linkend="vmusb3-Module"/>). Because of its
+        usefulness, we will very briefly mention the "vmusb" module type. This
+        module enables a client of the slow-controls server to execute arbitrary
+        command stacks as remote procedure calls. This functionality must be
+        enabled by including the following line in your control configuration
+        file:
+      </para>
+      <programlisting>
+Module create vmusb ctlr
+      </programlisting> 
+      <para>
+        You can see that there is no magic here compared to the previous
+        example. We have just created a new module named "ctlr" of type
+        vmusb. This module type is the handler for the remote procedure calls
+        and literally only knows how to execute lists and return the results.
+        Clients that want to submit their remote requests then do so by using
+        the following classes:
+      </para>
+      <variablelist>
+        <varlistentry>
+          <term><classname>CVMUSBReadoutList</classname></term>
+          <listitem>
+            <para>
+              Instances of this class represent lists of VME operations you want
+              to perform via the server.  See <link
+                linkend='vmusb3-CVMUSBReadoutList'
+                endterm='vmusb3-CVMUSBReadoutList-title' /> for reference
+              information.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term><classname>CVMUSBRemote</classname></term>
+          <listitem>
+            <para>
+              Instances of this class represent connections to VMUSBReadout slow
+              controls servers.  Instances provide a mechanism for submitting a
+              <classname>CVMUSBReaoutlist</classname> for remote execution and
+              gathering the results back for client code.
+            </para>
+            <para>
+              See <link linkend='vmusb3-CVMUSBRemote'
+                endterm='vmusb3-CVMUSBRemote-title' />
+              for reference information about this class.
+            </para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+
+      <para> 
+        Programs using these classes must link to the
+        <filename>libVMUSBRemote</filename> library in the NSCLDAQ
+        <filename>lib</filename> subdirectory.
+      </para>
+
+    </section>
+    <!-- end of remote list execution -->
+
+  </section>
+
+  <section id="vmusb-running-vmusbreadout">
+    <title id="vmusb-running-vmusbreadout-title">
+      Running the VMUSBReadout program
+    </title>
+
+    <para>
+      With a configuration script defined, it is time to connect the device and
+      start the VMUSBReadout program. First let's connect the device. Though
+      this seems like a task unworthy of mentioning, it has caused significant
+      headache, so the reader would do well to make use of the following wisdom.
+      First of all, the USB 2.0 protocol specifies that the maximum length of
+      cable should be no longer than 5 meters. It has been observed that when
+      using cables near this length, there is the possibility that data becomes
+      corrupt somehow. For that reason, <emphasis>always use the shortest length
+        of cable possible</emphasis>. Secondly, not all USB ports are created
+      equal. <emphasis>Choose to use the ports on the back of your PC rather than the
+      ports on the front.</emphasis>
+    </para>
+
+    <para>
+      Several command options control the way VMUSBReadout operates:
+    </para>
+    <variablelist>
+      <varlistentry>
+        <term><option>-serialno</option></term>
+        <listitem>
+          <para>
+            Specifies the serial number of the VMUSB the program will use.  See
+            <option>--enumerate</option> below.  If not provided, the first
+            VMUSB located will be used.  If you only have one VMUSB connected
+            to your system, this is suitable.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--ring</option></term>
+        <listitem>
+          <para>
+            Specifies the ring buffer in which event data will be put by the
+            program.  By default this is the same as the username you are
+            logged in on.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--daqconfig</option></term>
+        <listitem>
+          <para>
+            Specifies the filename that contains the data acquisition
+            configuration script.  This defaults to
+            <filename>~/config/daqconfig.tcl</filename>
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--ctlconfig</option></term>
+        <listitem>
+          <para>
+            Specifies the filename that contains the slow controls
+            configuration script.  This defaults to
+            <filename>~/config/controlconfig.tcl</filename>. Note that this
+            file is required even if it is just an empty file.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--port</option></term>
+        <listitem>
+          <para>
+            Specifies the port on which the slow controls server listens for
+            connections.  This defaults to <literal>27000</literal>.
+          </para>
+          <para>
+            The value of the <option>--port</option> options must either be an
+            integer port number or the special string
+            <literal>managed</literal>.  If <literal>managed</literal> is used,
+            the program interacts with the NSCL port manager server to allocate
+            and advertise a port.  The port is advertised under the name
+            <literal>VMUSBReadout:</literal><replaceable>connection</replaceable>.
+            <replaceable>connection</replaceable> specifies the connection to
+            the VM-USB.  If the VM-USB is attached directly either the Serial
+            number string is used or, if the VM-USB serial number was not
+            selected at program startup, the string
+            <literal>FirstController</literal> is used.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--enumerate</option></term>
+        <listitem>
+          <para>
+            Requests that the software list the serial numbers of the VMUSB
+            devices currently attached to the system and exit.  Note that the
+            serial 'numbers' are actually strings of the form
+            <literal>VMnnnn</literal> where <replaceable>nnnn</replaceable> is
+            a number.  One of these strings can be handed to the
+            <option>--serialno </option> to select the VMUSB to use.
+          </para>
+          <para>
+            Sample output:
+          </para>
+          <informalexample>
+            <programlisting>
+/usr/opt/daq/10.1/bin/VMUSBReadout --enumerate
+VM-USB scriptable readout version V5.0
+[0] : VM0134
+            </programlisting>
+          <para>
+            This output says the system is attached to a single
+            VMUSB whose serial number string is
+            <literal>VM0134</literal>
+          </para>
+        </informalexample>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term><option>--sourceid</option></term>
+      <listitem>
+        <para>
+          If a <option>--timestamplib</option> option is present,
+          events will have a full body header and the integer
+          value of this switch determines the value of the source
+          id.
+        </para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term><option>--timestamplib</option></term>
+      <listitem>
+        <para>
+          The value of this option is a path to a shared object
+          library.  If present, the library must have a C
+          compatible entry point named <function>getTimestamp</function>.
+          If not supplied all events will have abbreviated body
+          headers and no timestamps will be present.
+        </para>
+        <para>
+          The library is dynamically loaded into the readout
+          program and <function>getTimestamp</function> is called
+          for each event.  <function>getTimestamp</function>
+          receives a single null pointer parameter, which points
+          to the event and is supposed to return a
+          <type>uint64_t</type> value that is that event's
+          timestamp.
+        </para>
+        <para>
+          If the library has a further entry named
+          <function>onBeginRun</function>, taking no parametesr and
+          having no return value, this funtion is called when the run
+          starts.
+        </para>
+        <para>
+          For more information about how to generate this library, see 
+          <xref linkend="vmusb-develop-tstamplib"
+            endterm="vmusb-develop-tstamplib-title"/>.
+        </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
+      With the VM-USB connected, start the application at the command line. I
+      will assume that you have properly defined your DAQBIN environment
+      variable by sourcing the daqsetup.bash script provided in the NSCLDAQ
+      installation directory.
+    </para>
+
+    <screen>
+<literal>spdaqXX&gt;</literal> <command>$DAQBIN/VMUSBReadout</command>
+    </screen>
+
+    <para>
+      Upon startup, the VMUSBReadout will proceed to initialize the modules
+      registered to the slow-controls subsystem. This may take a few seconds but
+      after it is done you should be prompted for input. The prompt is provided
+      by a Tcl
+      interpreter that has been extended to support run-control operations as
+      well as the variables <literal>title</literal> and <literal>run</literal>.
+      You can set the title and run like any other Tcl variable using the
+      <command>set</command> command. Here is what that looks like when you set
+      the title to the string "My title" and the run number to 4.
+    </para>
+
+    <screen>
+<literal>%</literal> set title "My title"
+<literal>%</literal> set run 4
+    </screen>
+
+    <para>
+      There are four run-control commands:
+    </para>
+
+    <variablelist>
+      <varlistentry>
+        <term>begin</term>
+        <listitem>
+          <para>
+            Transitions the VM-USB from interactive mode to autonomous data taking
+            mode. The devices registered to the command
+            stacks are initialized and the stacks are built and loaded into the
+            VM-USB. Also, this transition causes a data format item to be
+            outputted followed immediately by a begin run data item containing
+            information about the run. The begin transition is only allowed when
+            in an inactive, unpaused state.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>end</term>
+        <listitem>
+          <para>
+            Transitions the VM-USB from autonomous data taking mode back to
+            interactive mode and then works through the end of run procedures for
+            each registered readout device. Once the last data is read from the
+            VM-USB memory and all of these end run procedures are complete, an end
+            run data item is emitted. Furthermore, the <literal>run</literal>
+            variable is incremented. An end transition is disallowed only when the
+            run is not paused or active.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>pause</term> 
+        <listitem>
+          <para>
+            This is almost identical to the <command>end</command> command except
+            that no end of run data item is emitted. Also the
+            <literal>run</literal> variable is not incremented. A pause data item
+            is emitted. A pause transition is only allowed to occur when the run
+            is active.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>resume</term>
+        <listitem>
+          <para>
+            Similar to the <command>begin</command> command except that not data
+            format item or begin run item is emitted. Instead, a resume data item
+            is emitted. A resume transition is only allowed when a run is paused.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+
+    <para>
+      So to start data taking, you simply enter <command>begin</command> at the
+      prompt. After a while, you can end the run by entering
+      <command>end</command>.
+    </para>
+  </section>
+
+  <section id="vmusb-understanding-output">
+    <title id="vmusb-understanding-output-title">
+      Understanding VMUSBReadout Output
+    </title>
+
+    <para>
+      Besides configuring and interacting with hardware, the VMUSBReadout
+      program parses the raw USB buffers read from the VM-USB into a series of
+      NSCLDAQ ring items. The raw USB buffers are composed of data produced by
+      at least one stack execution, normally many. There is a header for the
+      entire buffer and then a header word for each chunk of the buffer that
+      corresponds to a single stack execution. Those latter header words
+      identify the index of the stack that produced the data. VMUSBReadout uses
+      the index in each header to generate NSCLDAQ ring items of the
+      appropriate type before emitting them to the outside world. For example,
+      if that stack index is 1 the data in the buffer is used to fill a ring
+      item of type PERIODIC_SCALER. If the stack index is 0, the data in the
+      buffer is used to fill a ring item of type PHYSICS_EVENT.
+    </para>
+    <para>
+      For all stacks whose index is different than 1 and 7, a PHYSICS_EVENT is
+      created. The body of that PHYSICS_EVENT will begin with the 16-bit long
+      event header containing the index. The lower 12-bits of this header word
+      is the number of 16-bit words that follow in the body. The most
+      significant 4-bits of that header identify the stack index. For example,
+      if the data corresponds to stack index 0 and contained 10 words, the
+      header would be 0x000a. On the other hand, if the stack index was 6 and
+      contained 10 words, it would be 0x600a. Unless you defined some stacks in
+      your daqconfig.tcl that would trigger on interrupts, you should not expect
+      any data labeled with an index different than 0. 
+    </para>
+
+    <para>
+      The data corresponding to stack 1 is treated specially as scaler data. The
+      approximate time of readout is attached to scaler data and some other
+      useful information for later processing, such as the readout period, is
+      added. The scaler data is then stuffed into an array of 32-bit
+      integers. The event header in this case is discarded because the stack
+      index is uniquely 1 for the scaler stack and the size of the data is well
+      determined by the size of the scaler data item.
+    </para>
+
+    <para>
+      Data from stack index 7 is not outputted to the destination ring buffer.
+      Rather, it is interpreted as data from a monitor list and passed to the
+      slow-controls server for handling. Clients of the server can then gain
+      access to that data.
+    </para>
+  </section>
+
+
+  <section id="vmusb-develop-tstamplib">
+    <title id="vmusb-develop-tstamplib-title">
+      Developing a Timestamp Extractor Library
+    </title>
+
+    <para>
+      As was mentioned in <xref linkend="vmusb-running-vmusbreadout"
+        endterm="vmusb-running-vmusbreadout-title"/>, the user can pass a
+      compiled library to <application>VMUSBReadout</application> at runtime.
+      The path to the library is provided as the <option>--timestamplib</option>
+      option and the contents of it are linked into the program dynamically.
+      There are three functions that can be defined in that library and they
+      will each be detailed in this section.
+    </para>
+
+    <section id="vmusb-develop-getEventTstamp">
+      <title id="vmusb-developt-getEventTstamp-title">
+        Implementing a getEventTimestamp() function 
+      </title>
+
+      <para>
+        If the data from the <application>VMUSBReadout</application> program is
+        intended for event building later, it must be labeled with a timestamp.
+        This is particularly important for event data. To cause
+        <application>VMUSBReadout</application> to output event data labeled
+        with timestamps, the user must define a function whose signature is:
+      </para>
+
+      <funcsynopsis>
+        <funcprototype>
+          <funcdef>uint64_t <function>getEventTimestamp</function></funcdef>
+          <paramdef>void *<parameter>pBuffer</parameter></paramdef>
+        </funcprototype>
+      </funcsynopsis>
+
+      <para>
+        The <parameter>pBuffer</parameter> parameter is a pointer to the very beginning
+        of the event's body data. The responsibility of this function is to
+        process the event data and return a 64-bit integer that will be used as
+        the timestamp. The function can be defined to suit the needs of the
+        experimenter and need not depend on the data at all. In most cases
+        though, it will be extracted from the data referred to by the
+        <parameter>pBuffer</parameter> pointer.
+      </para>
+
+      <example>
+        <title>A sample getEventTimestamp() implementation</title>
+
+        <para>
+          The getEventTimestamp() function should be defined to meet the needs
+          of a specific experiment. For our hypothetical experiment, we will be
+          reading out a set of digitizers whose data should be timestamped with
+          a value stored in a latching scaler. The details of the electronics
+          are
+          unimportant. In each readout cycle, the VM-USB
+          will first read out two 32-bit words from the latching scaler containing
+          the 64-bit
+          timestamp followed by the digitized data. In other
+          words our event buffer will look something like this when printed as a
+          list of 16-bit words:
+        </para>
+
+        <screen>
+          <computeroutput>
+0x0007 
+0x12ab 
+0x0001 
+0x0000
+0x0000
+0x1234 
+0x1234 
+0x1234
+          </computeroutput>
+        </screen>
+
+        <para>
+          From the <xref linkend="vmusb-understanding-output"
+            endterm="vmusb-understanding-output-title"/>, we know the first
+          16-bit word is the event header for the subsequent data words. The header
+          specifies that the event data was generated by stack 0 and that it consists of
+          seven 16-bit words. The four 16-bits words that follow the event
+          header correspond to the two 32-bit scaler values, which are then
+          followed by the digitizer output. (This is hypothetical data...). Our
+          task is to use the second, third, forth, and fifth words to
+          reconstruct the complete 64-bit integer. Here is how we do that:
+        </para>
+
+        <programlisting>
+
+#include &lt;cstdint&gt;
+#include &lt;cstring&gt;                        <co id="vmusb-dev-getEvtTstamp-include"/>
+using namespace std;                            <co id="vmusb-dev-getEvtTstamp-using"/>
+
+extern "C" {                                    <co id="vmusb-dev-getEvtTstamp-extern"/>
+
+  uint64_t getEventTimestamp(void* pBuffer) 
+  {
+    uint64_t tstamp = 0; 
+    uint16_t header = 0;
+
+    const char* pData = reinterpret_cast&lt;const char*&gt;(pBuffer); <co
+    id="vmusb-dev-getEvtTstamp-reinterp"/>
+
+    memcpy(&amp;header, pData, sizeof(header)); <co
+    id="vmusb-dev-getEvtTstamp-copy"/>
+
+    if ((header&amp;0x0fff)&gt;=4) {            <co
+    id="vmusb-dev-getEvtTstamp-rangecheck"/>
+      pData += 2;                               <co id="vmusb-dev-getEvtTstamp-incr"/>
+
+      memcpy(&amp;tstamp, pData, sizeof(tstamp)); 
+    }
+    return tstamp;                              <co id="vmusb-dev-getEvtTstamp-return"/>
+  }
+
+} // end of extern
+        </programlisting>
+        <calloutlist>
+          <callout arearefs="vmusb-dev-getEvtTstamp-include">
+            <para>
+              Includes C++ headers for using the uint64_t, uint16_t, and memcpy.
+              Both of these are C++11 conformant and require that the -std=c++11
+              flag be passed to the compiler to succeed. NSCLDAQ is conformant
+              with C++11 and we recommend its use.
+            </para>
+          </callout>
+          <callout arearefs="vmusb-dev-getEvtTstamp-using">
+            <para>
+              Technically, the uint64_t and uint16_t types and memcpy are defined only in
+              the std namespace according to C++11. We bring them into scope
+              with the using keyword. 
+            </para>
+          </callout>
+          <callout arearefs="vmusb-dev-getEvtTstamp-extern">
+            <para>
+              C++ decorates or "mangles" the names of functions when they are
+              compiled. <application>VMUSBReadout</application> demands that
+              this is not the case. To avoid name mangling, we wrap our function
+              in an extern block that declares the language linkage as C. In this
+              way, the symbol table of the shared library we are creating will
+              actually have an entry called "getEventTimestamp".
+            </para>
+          </callout>
+          <callout arearefs="vmusb-dev-getEvtTstamp-reinterp">
+            <para>
+              Void pointers are of little use beyond referencing a chunk of
+              memory. Because we need to traverse the data buffer, we need to
+              first cast the memory as type const char*. This is always a safe
+              cast. In general, one should try to avoid reinterpret_cast in
+              their code, because it is an easy way to introduce undefined
+              behavior.
+            </para>
+          </callout>
+          <callout arearefs="vmusb-dev-getEvtTstamp-copy">
+            <para>
+              The C++ standard demands that data types adhere to certain memory
+              alignment rules that are implementation defined. Violating these
+              rules introduces undefined behavior. This demonstrates the correct
+              way to access data in the buffer without introducing undefined
+              behavior. Basically, we created properly aligned variables on the
+              stack and then we copy the bytes of the buffer into our variables.
+            </para>
+          </callout>
+          <callout arearefs="vmusb-dev-getEvtTstamp-rangecheck">
+            <para>
+              It is only gauranteed that 2 bytes worth of data exist in a
+              buffer, those containing the event header information. Before looking deeper
+              into the buffer for our timestamp, we have to ensure that the
+              buffer actually contains that data. This check ensures that at
+              least 64-bits (four 16-bit words) follow the event header.
+            </para>
+          </callout>
+          <callout arearefs="vmusb-dev-getEvtTstamp-incr">
+            <para>
+              The pointer <parameter>pBuffer</parameter> refers to the event
+              header initially and our timestamp begin two bytes further into
+              the body. This skips our pointer directly to the least significant
+              16-bits of the timestamp.
+            </para>
+          </callout>
+          <callout arearefs="vmusb-dev-getEvtTstamp-return">
+            <para>
+              The value of the timestamp is returned. Without the return
+              statement, the program exhibits undefined behavior. Note that if
+              there was not enough data in the buffer to compute our timestamp,
+              the returned value will be 0.
+            </para>
+          </callout>
+        </calloutlist>
+      </example>
+    </section>
+    <!-- end of getEventTimestamp section -->
+
+    <section id="vmusb-develop-getSclrTstamp">
+      <title id="vmusb-develop-getSclrTstamp-title">
+        Implementing the getScalerTimestamp() function
+      </title>
+
+      <para>
+        Sometimes it may be useful to label the scaler data with a timestamp as
+        well. It is not necessary but is useful. You have two options for
+        implementing the scaler timestamp (these technically also applies to the
+        event timestamp):
+      </para>
+      <orderedlist>
+        <listitem>
+          <para>Always return zero</para>
+        </listitem>
+        <listitem>
+          <para>Returning computed value</para>
+        </listitem>
+      </orderedlist>
+
+      <para>
+       If you have implemented a timestamp extractor for event data and you do
+       not care about have a precise timestamp labeling your scaler data, the
+       first option is a good one. A zero timestamp is treated specially by the
+       event builder in that the corresponding event will simply be labeled with
+       timestamp of the event preceding it. In other words, it gets dealt with
+       in the order it was received.
+      </para>
+
+      <para>
+        If on the other hand, you have not defined an extractor for your event
+        data, and you want to send your scaler data to the event builder, it is
+        quintessential that you return a non-zero timestamp. Consider what
+        happens when the event timestamps are always zero or the event data is
+        non-existent. In such a case, the timestamp will always be zero because
+        the event preceding will have a timestamp of 0 or never have happened.
+        The event builder will then queue data in ways you did not originally
+        expect.
+        The other reason you might want to define a scaler timestamp extractor
+        would be for having precise scaler information. The readout period of
+        the scaler stack in the VM-USB 
+        historically has not been particularly precise, which makes comparing
+        its value to data non-trivial at times. If instead, the data is
+        timestamped, you can know for sure how it should be interpreted with the
+        event data.
+      </para>
+
+      <para>
+        There is very little different to defining this function in comparison to
+        the getEventTimestamp() function. Actually, if the first
+        two scaler channels of your scaler data contained a 64-bit timestamp,
+        you would define it in in an identical way. The prototype of the
+        getScalerTimestamp is:
+      </para>
+      <funcsynopsis>
+        <funcprototype>
+          <funcdef>uint64_t <function>getScalerTimestamp</function></funcdef>
+          <paramdef>void *<parameter>pBuffer</parameter></paramdef>
+        </funcprototype>
+      </funcsynopsis>
+
+      <example>
+        <title>
+          Defining a null getScalerTimestamp()
+        </title>
+
+        <para>
+          Probably the most common case for the getScalerTimestamp() function
+          will be to return zero. To do this, you would add three lines for your
+          function just prior to the close of the extern block in the previous
+          example. Here is what the end of that file might look like with that
+          addition.
+        </para>
+
+        <programlisting>
+// ...
+extern "C" {
+  uint64_t getEventTimestamp(void* pBuffer)
+  {
+   // ...
+  }
+
+  uint64_t getScalerTimestamp(void* pBuffer) {
+    return uint64_t(0);
+  }
+
+} // end of extern
+        </programlisting>
+      </example>
+    </section>
+
+    <section>
+      <title>Implementing an onBeginRun() function</title>
+
+      <para>
+        The third function that can be defined in the timestamp extractor
+        library has the prototype:
+      </para>
+
+      <funcsynopsis>
+        <funcprototype>
+          <funcdef>void <function>onBeginRun</function></funcdef>
+          <void/>
+        </funcprototype>
+      </funcsynopsis>
+
+      <para>
+        This can be used for whatever you can think of. A sample usage might be
+        to define an offset for the timestamp that gets read from a file every
+        begin run. This could be done by declaring a global variable that is
+        referred to in the getEventTimestamp() function. 
+      </para>
+
+      <example>
+        <title>Adding an offset to the timestamp</title>
+
+        <para>
+          Consider the following scenario. The data streams of two Readout programs
+          are being merged together using the event builder and their clocks
+          have been synchronized at the hardware level. In this way, the offset
+          between the timestamps for these systems is fixed from run to run
+          besides maybe a single clock tick variation. If the offset is 10
+          clock ticks and it is repeatable, the user might want to add an offset
+          to one of the timestamps to remove the offset. The utility in doing
+          this is questionable but let's consider that someone really needed to
+          do so. We could accomplish this by storing the offset in a file that
+          gets read in everytime a run begins. The getEventTimestamp() function
+          could then correct its timestamp using this user-provided offset. Here
+          is how we might do that.
+        </para>
+
+        <programlisting>
+#include &lt;fstream&gt;    <co id="vmusb-dev-onBegRun-fstream"/>
+#include &lt;cstring&gt;
+#include &lt;cstdint&gt;
+
+using namespace std;
+
+uint64_t offset = 0         <co id="vmusb-dev-onBegRun-decl"/>
+
+extern "C" {
+
+  uint64_t getEventTimestamp(void* pBuffer) {
+    uint64_t tstamp = 0; 
+    uint16_t header = 0;
+
+    const char* pData = reinterpret_cast&lt;const char*&gt;(pBuffer);
+
+    memcpy(&amp;header, pData, sizeof(header)); 
+
+    if ((header&amp;0x0fff)&lt;=4) {
+      pData += 2; 
+
+      memcpy(&amp;, pData, sizeof(tstamp)); 
+    }
+
+    return tstamp + offset;               <co id="vmusb-dev-getEvtTstamp-offset"/>
+  }
+
+  void onBeginRun() {
+    ifstream myOffsetFile("offset.dat");  <co id="vmusb-dev-onBegRun-open"/>
+
+    myOffsetFile &gt;&gt; offset;         <co id="vmusb-dev-onBegRun-read"/>
+  }
+
+} // end of extern
+        </programlisting>
+
+        <calloutlist>
+          <callout arearefs="vmusb-dev-onBegRun-fstream">
+            <para>
+              Input operations from a file require the inclusion of this header.
+              It defines the std::ifsream class.
+            </para>
+          </callout>
+          <callout arearefs="vmusb-dev-onBegRun-decl">
+            <para>
+              The offset variable is declared in the global scope as to be
+              accessible in all of the functions.
+            </para>
+          </callout>
+          <callout arearefs="vmusb-dev-getEvtTstamp-offset">
+            <para>
+              This is where we add the offset correction to the timestamp. Only
+              positive corrections are supported by this implementation
+              for the purpose of keeping the logic simple.
+            </para>
+          </callout>
+          <callout arearefs="vmusb-dev-onBegRun-open">
+            <para>
+              Open the file <filename>offset.dat</filename> for reading.
+            </para>
+          </callout>
+          <callout arearefs="vmusb-dev-onBegRun-read">
+            <para>
+              Extracts the offset from the file. This expects that the first
+              non-whitespace string in the file is intepretable as a uint64_t.
+              If this is not the case, an error will occur in the stream. In
+              production code you should check for this and ensure proper
+              behavior in the event of an error.
+            </para>
+          </callout>
+        </calloutlist>
+
+        <para>
+          This is arguably a very naive implementation because the onBeginRun()
+          does not check for any errors that might have happened when opening
+          the file <filename>offset.dat</filename>. However, as long as the
+          file exists and is readable, it should do what we expect. On the other
+          hand, if there is a failure opening the file, the offset will have
+          been initialized to zero. In a production experiment, you would
+          probably want to alert the user by throwing an exception or printing a
+          message to stderr.
+        </para>
+      </example>
+    
+      <section>
+        <title>
+          Compiling the shared library
+        </title>
+
+        <para>
+          Unless have introduced dependencies on other software in your
+          implementation of these methods, you should not need any complicated
+          build system to compile it. Let's assume we put the code in a file named
+          <filename>mytstamplib.cpp</filename>. We can compile it with nothing more
+          than the following command
+        </para>
+
+        <screen>
+<literal>spdaqXX&gt;</literal> <command>g++ -std=c++11 -fPIC -shared -o mytstamplib.so mytstamplib.cpp</command>
+        </screen>
+      </section>
+    </section>
+  </section>
+  <!-- end of tstamp extractor lib section -->
+
+
+  <section id="vmusb-develop-rdohdwr">
+    <title id="vmusb-develop-rdohdwr-title">
+      Extending the Supported Readout Hardware
+    </title>
+
+    <para>
+      It is quite conceivable that the device support provided by
+      <application>VMUSBReadout</application> does not include a piece of
+      hardware in your front-end electronics. There are many reasons this may be
+      the case, but it is does not prevent you from using
+      <application>VMUSBReadout</application>. The application supports a
+      plug-in architecture that allows a user to define support via C++ or Tcl
+      code. In the following, these two will be explained in much more detail.
+    </para>
+
+    <section>
+      <title>Writing C++ device support software</title>
+      <para>
+        This section describes how to write C++ software support for new data
+        taking devices and how to integrate that support into the system.  Device
+        support modules are built into shared images.  Tcl provides the
+        <command>load</command> command which loads a shared object into an
+        application and invokes an initialization function.  This provicdes a
+        plugin scheme that the framework leverages to support externally written
+        device drivers.
+      </para>
+      <para>
+        A device driver therefore consists of a C++ program that provides
+        a new device class and an initialization function that associates
+        this class with a Tcl command in the interpreter that reads the
+        configuration file.  Since each time the configuration file is read,
+        a new interpreter is used, this also means that the current version
+        of the device driver shared image is loaded at the start of each
+        run.
+      </para>
+      <para>
+        The device driver support package is supplied as a driver development
+        kit that consists of a template driver and a Makefile.  These are two
+        files in the <filename>vmusbdriver</filename> directory of the
+        NSCLDAQ installation.  The example below shows how to create
+        a new directory and prepare it for driver development.  In the example
+        we are assuming that the environment variable <literal>DAQROOT</literal>
+        points to the top level of the installation directory.
+      </para>
+      <example>
+        <title>Obtaning the VM-USB device driver development kit</title>
+        <programlisting>
+mkdir mydriver
+cd mydriver
+cp $DAQROOT/vmusbdriver/drivertemplate.cpp .
+cp $DAQROOT/vmusbdriver/Makefile .
+            </programlisting>
+        </example>
+        <para>
+            The template driver is a complete example that builds a
+            marker driver which inserts  constant word into the event.
+            You can do a <command>make</command> to build the driver if you like.
+            The template driver then defines a command <command>changeme</command>
+            for the configuration file interpreter and a configuration parameter
+            <option>-value</option> which allows you to set the value of the
+            markrer.
+        </para>
+        <para>
+            The script fragment below shows how to load the driver, create and
+            configure a module instance using it. The fragment assumes that the
+            driver shared object <filename>libtemplatedriver.so</filename>
+            is in the same directory as the DAQ configuration script but that
+            that directory my not be the current working directory when
+            the configuration script is sourced.
+        </para>
+        <example>
+            <title>Using a user written VMUSB driver</title>
+            <programlisting>
+set here [file nativename [file dirname [info script]]]
+load [file join $here libtemplatedriver.so]
+changeme cdreate testing -value -0x1234
+            </programlisting>
+        </example>
+        <para>
+            The work done by the <command>set here...</command> command builds
+            the full path to the directory the driver is in.  This is necessary
+            beause the <command>load</command> command normally only uses directories
+            that are in the dynamic loader search path to look for shared objects.
+            Note finally that once the driver is loaded, it registers the
+            <command>changeme</command> command with the interpreter and that
+            this command operates exactly like any other driver command.
+        </para>
+        <para>
+            The next sections will examine the driver elements in detail. Before
+            doing that, let's take a broad brush overview look at the driver
+            template.
+        </para>
+        <para>
+            The template consists of two sections.  The first section is the
+            definition and implementation of a class which derives from
+            <classname>CReadoutHardware</classname> the base class for
+            all DAQ device support.  The methods of this class define
+            configuration parameters, initialize the module as the run
+            is starting and provides the appropriate commands to the
+            VME list that is being generated for the stack this module
+            is an element of.  Finally virtual duplication
+            (<methodname>clone</methodname>) is also defined.
+        </para>
+        <para>
+            The second section  is an initialization
+            function that the Tcl <command>load</command> command automatically
+            locates and calls.  This function creates an instance of the
+            driver which is cloned for each device instance the user creates.
+            It also associates a Tcl command with the device driver so that
+            the DAQ configuration script can create and manipulate new instances.
+        </para>
+        <para>
+            While the driver template is heavily commmented, and modification
+            points indicated, the next few sectinos are a guided tour
+            of the driver in detail, pointing out what needs to be modified
+            to make the driver work with a specific device.
+        </para>
+        <section>
+            <title>The driver <methodname>onAttach</methodname> method</title>
+            <para>
+                Each driver instance has a configuration database attached to it
+                when it is created.  The configuration database holds configuration
+                parameter definitions and their current values.  The framework
+                takes care of managing the values for you, however you must
+                define the set of configuration parameters supported by your
+                driver.
+            </para>
+            <para>
+                The template driver's code is (comments removed for brevity:
+            </para>
+            <informalexample>
+                <programlisting>
+void
+CTemplateDriver::onAttach(CReadoutModule&amp; configuration)
+{
+  m_pConfiguration = &amp;configuration;     <co id='vmusb-dtemplate-saveconfig' />
+
+  m_pConfiguration->addIntegerParameter("-base");  <co id='vmusb-dtemplate-baseparam' />
+  m_pConfiguration->addIntegerParameter("-id", 0, 0xffff, 0); <co id='vmusb-dtemplate-idparam' />
+
+
+}
+                </programlisting>
+            </informalexample>
+            <para>
+                In the discussion below, the numbers refer to the same numbers
+                in the example above.
+            </para>
+            <calloutlist>
+                <callout arearefs='vmusb-dtemplate-saveconfig'>
+                
+                    <para>
+                        The method is passed a reference to its instance
+                        configuration database.  This will be used here,
+                        to establish configuration parameters, in the
+                        <methodname>Initialize</methodname> method to know
+                        how to set up the module and  in
+                        <methodname>addReadoutList</methodname> to know
+                        how to read the module.
+                    </para>
+                    <para>
+                        This line saves a pointer to the configuration
+                        database for this instance in member data where it
+                        can be accessed in those other methods.
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-dtemplate-baseparam'>
+                    
+                    <para>
+                        Most if not all VME modules must be addressed relative
+                        to some base address that is set via jumpers or switches
+                        on the module itself.  Therefore the template driver
+                        provides a definition for a <option>-base</option>
+                        option to hold this value.  The specific version of
+                        <methodname>addIntegerParameter</methodname> used
+                        only requires that the value passed to <option>-base</option>
+                        be a valid integer.  No constraint on the range is
+                        imposed.
+                    </para>
+                    
+                </callout>
+                <callout arearefs='vmusb-dtemplate-idparam'>
+                    
+                    <para>
+                        Since the template driver inserts a marker
+                        the <option>id</option> parameter is defined
+                        to provide the value of the marker.  The VM-USB
+                        only supports 16 bit markers, therefore the
+                        version of <methodname>addIntegerParameter</methodname>
+                        constrains the range of values to be in the range
+                        <literal>[0..0xffff]</literal>.
+                    </para>
+                    <para>
+                        If a constraint is specified, and a daq configuration
+                        script violates it, the configuration file interpreter
+                        outputs an error message and refuses to start the run.
+                        Using constraints allows error checking to be done
+                        by the configuration subsystem without intervention
+                        by user code.
+                    </para>
+                    <para>
+                        Constraint checking comes from the
+                        <classname>CConfigurableObject</classname> class.
+                        See <xref linkend='vmusb3-CConfigurableObject' />
+                        for pre-defined constraints.  That manpage also shows
+                        you how to create your own constraints if the pre-defined
+                        ones don't work for you.
+                    </para>
+                    
+                </callout>
+            </calloutlist>
+        </section>
+        <section>
+            <title>The driver <methodname>Initialize</methodname> method</title>
+            <para>
+                When a run is starting, each stack invokes the
+                <methodname>Initialize</methodname> method for each element in
+                its <option>-modules</option> list.  Each driver is supposed
+                to query its configuration and do any initialization demanded
+                by the configuration.  For example the <command>adc</command>
+                command queries the set of pedestal values and programs them
+                into its module (using the <option>-base</option> of course)
+                at this time.
+            </para>
+            <para>
+                The <methodname>Initialize</methodname> method is passed a
+                reference to a <classname>CVMUSB</classname> object.  Methods
+                on that object allow you to perform single or block VME
+                operations.  You can also create and stock a
+                <classname>CVMUSBReadoutList</classname> with several VME
+                operations and ask the controller to execute that list in
+                immediate mode.
+            </para>
+            <para>
+                See <xref linkend='vmusb3-CVMUSB' /> and
+                <xref linkend='vmusb3-CVMUSBReadoutList'
+                        endterm='vmusb3-CVMUSBReadoutList-title'/> for reference
+                information about those two classes.
+            </para>
+            <para>
+                The template driver is a marker and does not perform any
+                VME operations.  Since, however your driver will most likely
+                need the <option>-base</option> parameter value, it shows
+                how to obtain that from the configuration database:
+            </para>
+            <example>
+                <title>The template driver <methodname>Initialize</methodname> method</title>
+                <programlisting>
+void
+CTemplateDriver::Initialize(CVMUSB&amp; controller)
+{
+
+  uint32_t base = m_pConfiguration->getUnsignedParameter("-base");
+
+
+}
+                </programlisting>
+            </example>
+            <para>
+                The configuration database stores all parameter values as
+                strings after validating them however it also provides a rich
+                set of member function to convert the string to some other
+                format.  Since the <option>-base</option> parameter can take values
+                greater than <literal>0x80000000</literal> it must be converted
+                and treated as an unsigned integer.
+                <methodname>getUnsignedParameter</methodname> converts the
+                value of the configuration parameter given to an unsigned integer.
+            </para>
+        </section>
+        <section>
+            <title>The driver <methodname>addReadoutList</methodname> method</title>
+            <para>
+                The <methodname>addReadoutList</methodname> method is called
+                by stacks containing a driver instance when the stack is
+                building its list of VME operations to download into the VM-USB.
+                <methodname>addReadoutList</methodname> is passed a
+                <classname>CVMUSBReadoutList</classname> object and is expected
+                to add entries to that object.
+            </para>
+            <para>
+                The template ddriver fetches the <option>-base</option>
+                and <option>-id</option> option values and adds a marker
+                instruction to the stack with the value of the
+                <option>-id</option> option.
+            </para>
+            <example>
+                <title>Template Driver <methodname>addReadoutList</methodname> method</title>
+                <programlisting>
+void
+CTemplateDriver::addReadoutList(CVMUSBReadoutList&amp; list)
+{
+
+  uint32_t base  = m_pConfiguration->getUnsignedParameter("-base"); 
+  int      id    = m_pConfiguration->getIntegerParameter("-id"); <co id='vmusb-dtemplate-getid' />
+
+  list.addMarker(id);                                            <co id='vmusb-dtemplate-addmarker' />
+}
+
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs='vmusb-dtemplate-getid'>
+                
+                    <para>
+                        The <option>-id</option> option is an integer
+                        in the range <literal>[0 .. 0xffff]</literal>.
+                        This line
+                        fetches its current value from the configuration
+                        database.
+                    </para>
+                    
+                </callout>
+                <callout arearefs='vmusb-dtemplate-addmarker'>
+                    
+                    <para>
+                        This line adds a marker instruction to the
+                        stack.  The value of the marker to be
+                        inserted in the event is the value of the
+                        <option>-id</option> configuration parameter.
+                    </para>
+                    
+                </callout>
+            </calloutlist>
+        </section>
+        <section>
+            <title>Driver initialization <methodname>xxxx_init</methodname></title>
+            <para>
+                The driver will build to a shared object of the name
+                <filename>libxxxx.so</filename> where you will choose
+                <literal>xxxx</literal> when you edit the driver Makefile.
+                When the <command>load</command> command loads this library,
+                it will look for a function named
+                <methodname>Xxxx_Init</methodname> (note the capitalization).
+                and call it with a pointer to the running Tcl Interptreter.
+            </para>
+            <para>
+                You must make sure the initialization entry point name is
+                correct for the driver name.  For exmample:
+                <filename>libmyvmedriver.so</filename> requires an initialization
+                function entry point of
+                <methodname>Myvmedriver_Init</methodname>.
+            </para>
+            <para>
+                Let's pick apart the template driver's implementation of its
+                initialization function.
+            </para>
+            <example>
+                <title>
+                    The VMUSB driver <methodname>Xxxx_Init</methodname>
+                    function.
+                </title>
+                <programlisting>
+extern "C" {                                     <co id="vmusb-dtemplate-ccall" />
+  int Templatedriver_Init(Tcl_Interp* pInterp)   <co id="vmusb-dtemplate-initname" />
+  {
+
+    Tcl_PkgProvide(pInterp, "Templatedriver", "1.0"); <co id='vmusb-dtemplate-package' />
+
+    CUserCommand::addDriver("changeme", new CTemplateDriver); <co id='vmusb-dtemplate-adddriver' />
+
+    return TCL_OK;     <co id='vmusb-dtemplate-initsuccess' />
+    
+  }
+}                      <co id='vmusb-dtemplate-endccall' />
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs="vmusb-dtemplate-ccall">
+                    
+                    <para>
+                        The Tcl <command>load</command> command will be
+                        looking for a specific function name to call
+                        to initialize the library it just loaded.
+                        C++ <firstterm>decorates</firstterm> or
+                        <firstterm>mangles</firstterm> function names adding
+                        information about the return type and the
+                        type of parameters expected by the function.
+                        This is how it implements function/operator overloading.
+                    </para>
+                    <para>
+                        Using the <literal>extern "C"</literal> block shown
+                        tells the GNU C++ compiler to use <literal>C</literal>
+                        language call methods which disable this function
+                        name mangling.  Without this, the <command>load</command>
+                        command would not find the initialization function.
+                    </para>
+                
+                </callout>
+                <callout arearefs="vmusb-dtemplate-initname">
+                
+                    <para>
+                        As described above, the initialization function
+                        name must be precisely chosen to match both the
+                        library and the package name (see below).
+                        The function name used here must be modified to
+                        match your changes to the  Makefile.  The
+                        initialization function here is correct for
+                        the package <literal>TemplateDriver</literal>
+                        and the library file
+                        <filename>libtemplatedriver.so</filename>.
+                    </para>
+                
+                </callout>
+                <callout arearefs='vmusb-dtemplate-package'>
+                
+                    <para>
+                        This line also allows you to use the
+                        Tcl <command>package require</command> command to
+                        load the driver if you have created a
+                        <filename>pkgIndex.tcl</filename> file using e.g.
+                        <command>pkg_mkIndex</command> and added the diretory
+                        the driver lives in to the Tcl package load path
+                        (<varname>auto_path</varname>) or the
+                        <varname>TCLLIBPATH</varname> environment variable.
+                    </para>
+                    <para>
+                        The package name must match the part of the
+                        function name prior to <literal>_Init</literal>, as it
+                        is used to located the name of the package initialzation
+                        function by <command>package require</command>
+                    </para>
+                
+                </callout>
+                <callout arearefs='vmusb-dtemplate-adddriver'>
+                
+                    <para>
+                        This line associates the tcl command
+                        <command>changeme</command> with the
+                        driver by creating a <firstterm>prototype</firstterm>
+                        instance of the driver object that will be cloned
+                        to produce driver instances.  Normally you would change
+                        the name of the command to be a meaningful command
+                        name for your driver.
+                    </para>
+                    <para>
+                        This is part of an implementation of the
+                        <firstterm>prototype pattern</firstterm>. For more
+                        about the prototype pattern see e.g.
+                        <ulink url='http://en.wikipedia.org/wiki/Prototype_pattern'>
+                            http://en.wikipedia.org/wiki/Prototype_pattern
+                        </ulink>
+                    </para>
+                
+                </callout>
+                <callout arearefs='vmusb-dtemplate-initsuccess'>
+                
+                    <para>
+                        The <command>load</command> or
+                        <command>package require</command> command expects
+                        the initialization function to return
+                        <literal>TCL_OK</literal> on success or
+                        <literal>TCL_ERROR</literal> if  it is not able
+                        to successfully initialize. This line indicates
+                        a successful installation/initialization of the library.
+                    </para>
+               
+                </callout>
+                <callout arearefs='vmusb-dtemplate-endccall'>
+                    <para>
+                        Ends the <literal>extern "C" { </literal> block.
+                    </para>
+                </callout>
+            </calloutlist>
+        </section>
+    </section>
+    <section>
+        <title>Writing device support software in Tcl</title>
+        <para>
+            The <command>addtcldriver</command> command allows you to
+            add a Tcl command ensemble as a module which can then be
+            added to the <option>-modules</option> list of modules read out
+            by a stack.  In Tcl a <firstterm>command ensemble</firstterm> is
+            a command that has subcommands.  The <command>addtcldriver</command>
+            command registers  the base command of a command ensemble
+            as a module.  In turn, the command ensemble is required to provide
+            at least two subcommands; <command>Initialize</command> and
+            <command>addReadoutList</command> which perform functions
+            analagous to methods with the same name in a C++ driver.
+        </para>
+        <para>
+            Possibly the simplest way to build command ensembles that can be
+            re-used to support more than one module is to use a
+            Tcl object oriented extension.  When you do this, a driver
+            is a class and instances of those classes are modules.  Almost all
+            Tcl object oriented extensions make objects (class instances) command
+            ensembles where the base name is the object names and methods of the
+            class are  subcommands.
+        </para>
+        <para>
+            Driver modules will also need to access the VM-USB during
+            initialization and create lists of VME operations in their
+            <methodname>addReadoutList</methodname> method.  This
+            is accomplished by wrappgin the <classname>CVMUSB</classname>
+            and <classname>CVMUSBReadoutList</classname> classes using the
+            <firstterm>Simplified Wrapper and Interface Generator</firstterm> or
+            SWIG.  SWIG wrappers are provided as loadable Tcl modules in the
+            <filename>lib</filename> directory of the NSCLDAQ software
+            installation.
+        </para>
+        <para>
+            This chapter will look at two trivial drivers that put a
+            marker in the buffer and, at initialization time, turn on the
+            bottom yellow LED.  One of these drivers is written using
+            <firstterm>Incr-Tcl</firstterm> (itcl) the other using
+            <firstterm>Snit Is Not Incr Tcl</firstterm> (snit).
+            While trivial these examples illustrate most of the
+            key concepts you need to understand when writing device support
+            software in Tcl.
+        </para>
+        <para>
+            Finally, a configuration file fragment is shown that illustrates
+            loading and using these two drivers.
+        </para>
+        <section>
+            <title>An Incr-Tcl (itcl) driver</title>
+            <para>
+                The example below is a complete itcl driver class.  When the run
+                is initialized, it lights to bottom yellow LED of the VM-USB.
+                For each event it inserts a programmable marker (literal)
+                value in the event.
+            </para>
+            <example>
+                <title>Itcl VM-USB device driver</title>
+                <programlisting>
+lappend auto_path /usr/opt/daq/10.1/lib   <co id='vmusb-itcldrv-auto-path' />
+package require Itcl                      <co id='vmusb-itcldrv-itclpkg' />
+package require cvmusb                    <co id='vmusb-itcldrv-cvmusbpkg' />
+package require cvmusbreadoutlist         <co id='vmusb-itcldrv-cvmusbrlistpkg' />
+
+itcl::class marker-itcl {                 <co id='vmusb-itcldrv-class' />
+    public variable value 0               <co id='vmusb-itcldrv-option' />
+
+    constructor args {                    <co id='vmusb-itcldrv-constructor' />
+        eval configure $args
+    }
+
+    public method Initialize driverPtr { <co id='vmusb-itcldrv-initialize' />
+
+        cvmusb::CVMUSB c -this $driverPtr;  <co id='vmusb-itcldrv-wrapvmusb' />
+
+        set leds [c readLEDSource]          <co id='vmusb-itcldrv-vmusbreadled' />
+
+        set leds [expr {$leds &amp;  0xffff}]
+        set leds [expr {$leds | 0x110000}]
+
+        c writeLEDSource $leds             <co id='vmusb-itcldrv-vmusbwriteled' />
+
+    }
+    
+    public method addReadoutList list {   <co id='vmusb-itcldrv-addrdolist' />
+
+        cvmusbreadoutlist::CVMUSBReadoutList l -this $list; <co id='vmusb-itcldrv-wraplist' />
+
+        l addMarker $value                 <co id='vmusb-itcldrv-addmarker' />
+
+    }
+}
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs='vmusb-itcldrv-auto-path'>
+                    <para>
+                        In order to locate the SWIG wrappers of the
+                        <classname>CVMUSB</classname> and
+                        <classname>CVMUSBReadoutList</classname>, the Tcl
+                        variable <varname>auto_path</varname> must be extended
+                        to include the <filename>lib</filename> subdirectory
+                        of the NSCLDAQ installation directory.  In this case,
+                        NSCLDAQ is installed in <filename>/usr/opt/daq/10.1</filename>.
+                        You will need to check your installation and use
+                        the appropriate value here.
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-itcldrv-itclpkg'>
+                    <para>
+                        This loads the Incr-Tcl extension.  Incr-Tcl provides
+                        object oriented constructs for Tcl.
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-itcldrv-cvmusbpkg'>
+                    <para>
+                        The <literal>cvmusb</literal> package is the
+                        SWIG wrapping of the <classname>CVMUSB</classname>
+                        C++ class.
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-itcldrv-cvmusbrlistpkg'>
+                    <para>
+                        The <literal>cvmusbreadoutlist</literal> package
+                        is the SWIG wrapping of the
+                        <classname>CVMUSBReadoutList</classname> C++ class.
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-itcldrv-class'>
+                    <para>
+                        This command creates an Incr-Tcl class.  A class itself
+                        is a command ensemble whose main purpose is to create
+                        instances (objects) of the class, which are also command
+                        ensembles whose subcommands are the <firstterm>method</firstterm>s
+                        of the class.  The class name <classname>marker-itcl</classname>
+                        is used to generate instances of the class.
+                    </para>
+                    <para>
+                        As with all object oriented languages, classes wrap
+                        behavior and data into a single package.
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-itcldrv-option'>
+                    <para>
+                        C++ device support modules provide a set of
+                        configuration options.  We want our driver to do that
+                        as well.  In Incr-Tcl, instance variables that are
+                        declared as <literal>public</literal> can be set
+                        both at object construction time, and via an object's
+                        built in <command>configure</command> method.
+                    </para>
+                    <para>
+                        This makes Incr-Tcl objects very much like Tk widgets.
+                        The example below shows how you can set the
+                        <varname>value</varname>
+                        variable at both construction and configuration time:
+                        <informalexample>
+                            <programlisting>
+marker-itcl obj -value 0x1234;  # Set value to 0x1234 at construction time.
+obj configure -value 0x4321;    # use <command>configure</command> to modify value.
+                            </programlisting>
+                        </informalexample>
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-itcldrv-constructor'>
+                    <para>
+                        Constructor methods are analagous to C++ constructors.
+                        They are called when a class instance is created.
+                        the <command>eval configure $args</command> takes
+                        the arguments passed to the construtor and uses them
+                        to configure public variables.
+                    </para>
+                    <para>
+                        This constructor does nothing except allow the use
+                        of configuration option settings when an object
+                        is constructed.
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-itcldrv-initialize'>
+                    <para>
+                        <methodname>Initialize</methodname> implements
+                        device initialization that is done at the start of the
+                        run.  The <parameter>driverPtr</parameter> is a SWIG
+                        <emphasis>pointer</emphasis> that represents the address
+                        of the <classname>CVMUSB</classname> object normally
+                        passed to C++ <methodname>Initialize</methodname>
+                        driver methods.
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-itcldrv-wrapvmusb'>
+                    <para>
+                        This linexcomp contructs a SWIG wrapping of a
+                        <classname>CVMUSB</classname> object.  The
+                        <option>-this</option> option tells SWIG to build its
+                        wrapping around an existing SWIG pointer.  The
+                        end result of this line is that the object named
+                        <literal>c</literal> is created that talks to the
+                        same VM-USB as the object normally passed in to a
+                        C++ device support class/object.
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-itcldrv-vmusbreadled'>
+                    <para>
+                        Invokes the <methodname>readLEDSource</methodname>
+                        method of the <classname>CVMUSB</classname> object.
+                        This reads the current value of the VM-USB LED source
+                        register.  The arithmetic that follows modifies the
+                        bottom Yellow LED selector to use the inverse of the
+                        <literal>Not Slot one</literal> state as the
+                        source of the LED.
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-itcldrv-vmusbwriteled'>
+                    <para>
+                        Writes the new value back to the LED register.
+                        Using the inverse of the <literal>Not Slot one</literal>
+                        source ensures that as long as the VM-USB is being
+                        used as a slot 1 controller, it will have its
+                        bottom yellow LED lit.
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-itcldrv-addrdolist'>
+                    <para>
+                        The <methodname>addReadoutList</methodname> method
+                        is intended to provide a list of VME operations that
+                        are executed in response to each event trigger.
+                        The <parameter>list</parameter> is a SWIG pointer to the
+                        <classname>CVMUSBReadoutList</classname> normally passed
+                        to a C++ driver's <methodname>addReadoutList</methodname>
+                        method.
+                    </para>
+                    <para>
+                        The first command in this method wraps the
+                        list in a SWIG object named <literal>l</literal>
+                        so that it can be used from within Tcl to manipulate
+                        the list.
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-itcldrv-addmarker'>
+                    <para>
+                        Adds a marker to the list.  A marker is a literal value.
+                        The value of the marker comes from the
+                        <varname>value</varname> object instance variable.
+                        As previously discussed, since this is a public variable
+                        it is hooked to the <option>-value</option> configuration
+                        option for the object.
+                    </para>
+                </callout>
+            </calloutlist>
+            <para>
+                In general you will need to look at the reference information
+                on the SWIG wrappers for
+                <link linkend='vmusb3-cvmusb-swig'>CVMUSB</link>
+                <link linkend='vmusb3-cvmusbreadoutlist-swig'>CVMUSBReadoutList</link>
+            </para>
+        </section>
+        <section>
+            <title>A Snit Is Not Incr Tcl (snit) driver</title>
+            <para>
+                Snit is a pure Tcl object oriented extension to Tcl. In this
+                section we will look at an annotated sample Snit Tcl driver.
+                The sample driver will just turn on the VM-USB's bottom yellow
+                LED at initialization time and inserts a configurable marker into
+                each event in response to a trigger.
+            </para>
+            <para>
+                While this driver is realtively trivial, it illustrates many
+                of the key points you will need to understand to write Tcl
+                drivers in snit.  If you have looked at the Incr-Tcl driver
+                in the previous section there will be very little that is new
+                here other than Snit syntactical differences from Incr-Tcl.
+            </para>
+            <example>
+                <title>A Snit VM-USB driver.</title>
+                <programlisting>
+lappend auto_path /usr/opt/daq/10.1/lib   <co id='vmusb-snit-apath' />
+
+package require snit                      <co id='vmusb-snit-snitpkg' />
+
+package require cvmusb                   <co id='vmusb-snit-cvmusbpkg' />
+package require cvmusbreadoutlist        <co id='vmusb-snit-cvmusbreadoutlist' />
+
+snit::type marker-snit {                 <co id='vmusb-snit-type' />
+    option -value 0;                     <co id='vmusb-snit-option' />
+
+    constructor args {                   <co id='vmusb-snit-constructor' />
+        $self configurelist $args        
+    }
+
+    method Initialize driverPtr {       <co id='vmusb-snit-init' />
+
+        cvmusb::CVMUSB v -this $driverPtr; <co id='vmusb-snit-wrapcvmusb' />
+
+        set leds [v readLEDSource]     <co id='vmusb-snit-readleds' />
+        
+        set leds [expr {$leds &amp; 0xf0ffffff}]; 
+        set leds [expr {$leds | 0x08000000}]; 
+
+        v writeLEDSource $leds         <co id='vmusb-snit-writelds' />
+    }
+
+    method addReadoutList list {       <co id='vmusb-snit-addreadoutlist' />
+        cvmusbreadoutlist::CVMUSBReadoutList l  -this $list; <co id='vmusb-snit-wrapreadoutlist' />
+
+        l addMarker $options(-value)   <co  id='vmusb-snit-addmarker' />
+
+    }
+}
+                   
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs='vmusb-snit-apath'>
+                    <para>
+                        In order to load the packages that wrap the
+                        <classname>CVMUSB</classname> and
+                        <classname>CVMUSBReadoutList</classname> you must
+                        add the directory in which they are installed to the
+                        <varname>auto_path</varname> variable.  This is the
+                        <filename>lib</filename> directory below the top
+                        level of your NSCLDAQ installation.  You may need
+                        to change the directory in the example script to match
+                        your installation.
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-snit-snitpkg'>
+                    <para>
+                        This line loads the
+                        <literal>snit</literal> package.  Snit provides definitions
+                        of the commands that make up the Snit is Not
+                        Incr Tcl package.
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-snit-cvmusbpkg' >
+                    <para>
+                        Loads the <literal>cvmusb</literal> package.  This package
+                        provides the Tcl wrapping of the
+                        <classname>CVMUSB</classname> class.
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-snit-cvmusbreadoutlist'>
+                    <para>
+                        Loads the <literal>cvmusbreadoutlist</literal> package.
+                        This package provides the Tcl wrapping of the
+                        <classname>CVMUSBReadoutList</classname>.
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-snit-type'>
+                    <para>
+                        Snit allows you to create three types of
+                        'classes', types, widgets,and widgetadaptors.  The latter
+                        two have to do with creating widgets in snit's Tk
+                        megawidget framework.  The first, the type,
+                        is the most suited class type for a VMUSB driver.
+                    </para>
+                    <para>
+                        This line creates a new snit::type named
+                        <literal>marker-snit</literal>. Each instance of this
+                        class can be registered as a module allowing it to be
+                        included in a stack.
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-snit-option'>
+                    <para>
+                        Snit objects all have a built in
+                        <command>configure</command>  sub-command much like the
+                        one that Tk objects have.  The snit
+                        <command>option</command> defines an option that is a
+                        target for the <command>configure</command> sub-command.
+                        Snit options are stord in an array accessible to all
+                        methods named <varname>options</varname> the indices
+                        of this array are the option names, the values of the
+                        array are the values of the options.
+                    </para>
+                    <para>
+                        The purpose of the <option>-value</option> option
+                        is to hold the value of the marker that will be inserted
+                        by this driver into each event.
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-snit-constructor'>
+                    <para>
+                        <command>constructor</command> methods are called
+                        by snit when an object of a specified type is
+                        created.  The body of this constructor invokes the
+                        <command>configurelist</command> built in
+                        sub-command (<varname>self</varname> is like the
+                        C++ <varname>this</varname> pointer).
+                    </para>
+                    <para>
+                        The call to <command>configurelist</command> processes
+                        the parameters to the constructor as a set of option/value
+                        pairs.  This allows objects to be constructed and
+                        configured in a single step (again like
+                        Tk widgets).
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-snit-init'>
+                    <para>
+                        The <methodname>Initialize</methodname> method
+                        of an object is called by the readout framework
+                        when a run is being started.  It is expected to
+                        interact with the hardware to initialize the
+                        device it manages in accordance with its configuration.
+                    </para>
+                    <para>
+                        The <parameter>driverPtr</parameter> is a
+                        <firstterm>SWIG Pointer</firstterm>.  Swig pointers
+                        are text strings that provide a strongly typed pointer
+                        to a C++ object.
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-snit-wrapcvmusb' >
+                    <para>
+                        This line creates a new SWIG object that wraps the
+                        C++ object represented by <varname>driverPtr</varname>.
+                        The resulting object is called <varname>v</varname>
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-snit-readleds'>
+                    <para>
+                        This invokes the <methodname>readLEDSource</methodname>
+                        method on the SWIG object <varname>v</varname>.
+                        That method reads the current value of the
+                        LED Source register, a register internal to the VM-USB
+                        that controls what makes the front panel LED's light.
+                    </para>
+                    <para>
+                        The arithmetic that follows sets the field responsible
+                        for controlling the bottom yellow LED such that it
+                        will light on the inverse of the case when the VM-USB
+                        is not a slot one controller.  This means that if the
+                        VM-USB is in slot one, it will have the bottom
+                        yellow LED lit.
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-snit-writelds'>
+                    <para>
+                        Once the new value of the LED source register is
+                        computed this line writes then ew value back into the
+                        LED source register.
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-snit-addreadoutlist' >
+                    <para>
+                        This method is normally called as a run is starting.
+                        <varname>list</varname> is a SWIG pointer to a
+                        <classname>CVMUSBReadoutList</classname>. The method is
+                        expected to add the entries to that list it needs to
+                        execute for each event trigger.
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-snit-wrapreadoutlist'>
+                    <para>
+                        Wraps the <parameter>list</parameter> parameter in a
+                        SWIG object named <varname>l</varname> in a mannner
+                        analagous to what was done in <methodname>Initialize</methodname>
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-snit-addmarker'>
+                    <para>
+                        Adds a markter to the list of VM-USB operations that
+                        will be performed in response to an event trigger.
+                        The value of the marker word (<literal>options(-value)</literal>)
+                        is the value of the <option>-value</option> configuration
+                        option.
+                    </para>
+                </callout>
+            </calloutlist>
+            <para>
+                In general you will need to look at the reference information
+                on the SWIG wrappers for
+                <link linkend='vmusb3-cvmusb-swig'>CVMUSB</link>
+                <link linkend='vmusb3-cvmusbreadoutlist-swig'>CVMUSBReadoutList</link>
+             </para>
+        </section>
+        <section>
+            <title>Using a Tcl driver in a DAQ configuration script</title>
+            <para>
+                This section assumes you are using a driver that has a
+                generator of driver instances.  The object oriented examples
+                meet those criteria.
+                To use a Tcl driver in a DAQ configuration file you must:
+            </para>
+            <orderedlist>
+                <listitem>
+                    <para>
+                        Incorporate the driver in the daqconfig file source code.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Create and configure an instance of the driver for
+                        the device(s) it manages in your physical configuration
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Use the <command>addtcldriver</command> command to
+                        turn each driver instance into a module.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        As with any module, incorporate it into a
+                        stack's <option>-modules</option> list.
+                    </para>
+                </listitem>
+            </orderedlist>
+            <para>
+                Consider the drivers we described in the previous section.
+                Suppose the source code for those driver files,
+                <filename>tcldriver-itcl.tcl</filename> and
+                <filename>tcldriver-snit.tcl</filename> are located in the same
+                directory as the DAQ configuration file.  The following
+                configuration file fragment creates an instance of each
+                and adds them to a stack containing other natively coded
+                modules that is triggered on the NIM 1 input.
+            </para>
+            <example>
+                <title>USing a Tcl VM-USB driver.</title>
+                <programlisting>
+source tcldriver-snit.tcl;                   # load a snit tcl driver.
+marker-snit create snitmarker -value 0x5a5a; # Create an instance..
+addtcldriver snitmarker;                     # Add it to the list of known modules.
+
+
+source tcldriver-itcl.tcl;                   # load an incrtcl driver.
+marker-itcl itclmarker -value 0xa5a5         # crate/configure an instance.
+addtcldriver itclmarker                      # register it.
+
+...
+stack config event -modules [list test test2 test <emphasis>snitmarker itclmarker</emphasis>]
+
+                </programlisting>
+            </example>
+            <para>
+                In the exmample above, the Tcl modules are <emphasis>highlighted</emphasis>
+                in the <command>stack</command> configuration command.
+            </para>
+            <formalpara>
+                <title>Other approaches to packaging</title>
+                <para>
+                    If you rdriver is intended for re-use across several setups
+                    and even users, the method described above is not maintainable.
+                    In that case, it is better to stoere the driver sources in
+                    some central location, add <command>package provide</command>
+                    commands to each driver files and use
+                    <command>pkg_mkIndex</command> command to build a package
+                    index file.
+                </para>
+            </formalpara>
+            <para>
+                If this is done, and the directory added to the
+                Tcl search path, you could then use
+                <command>package require</command> to load the driver file.
+                Storing driver code centrally allows you to ensure that
+                experiments are using up-to-date versions of your software.
+            </para>
+
+        </section>
+    </section>
+  </section>
+  <!-- end of extending RdoHardware support -->
+
+    <section id="vmusb-develop-module">
+      <title id="vmusb-develop-module-title">Extending the slow controls subsystem</title>
+      <para>
+        There is nothing to stop you from creating device support that
+        does not do anything in its <methodname>addReadoutList</methodname>.
+        You could do this to implement static controls devices.  That is
+        non data taking devices whose configuration is set up at the start of
+        a run and cannot be dynamically modified.
+      </para>
+    <section id="vmusb-develop-module-cpp">
+      <title>Writing slow control drivers in C++</title>
+      <para>
+        Slow control drivers can be dynamically loaded into the TclServer
+        that runs the slow controls software.  This section provides
+        an overview to the process of writing these drivers and loading them
+        into your VMUSBReadout program.
+      </para>
+      <para>
+        Slow control drivers consist of the following pair of classes:
+      </para>
+      <variablelist>
+        <varlistentry>
+          <term>The driver</term>
+          <listitem>
+            <para>
+              Contains the actual code to translate Set, Get, Update
+              and Mon operations into actions on the hardware or internal
+              data or both.
+              Drivers are classes that are derived from
+              <classname>CControlHardware</classname>  They also
+              contain a configurable object called a <classname>CControlModule</classname>
+              which provides support for an option configuration database much like
+              that of readout drivers.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>A driver creator</term>
+          <listitem>
+            <para>
+              This object is registered with a module factory and associated with
+              a module type.  It provides a method that creates a specific module
+              driver type.  The factory is used by the <command>Module</command>
+              command to create specific drivers.
+            </para>
+            <para>
+              The driver creator must be a subclass of <classname>CModuleCreator</classname>
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>An initialization function</term>
+          <listitem>
+            <para>
+              The initialization function is called when the driver is loaded
+              either via the Tcl <command>load</command> command or via the
+              <command>package require</command> command if you create a Tcl
+              package index that supports loading your driver in that manner.
+            </para>
+            <para>
+              The initialization function must have <literal>C</literal> bindings
+              and is expected to register the creator with the module factory
+            </para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <para>
+        These three bits of code must be compiled and linked together into a
+        shared object.  The resulting shared object must have no dangling external
+        references outside of the VMUSBReadout program or else it cannot be loaded
+        by the Tcl server's interpreter.
+      </para>
+      <para>
+        What I mean by a dangling reference is best illustrated by an example.
+        Suppose you need the function <function>crypt</function> in your driver
+        (<command>man crypt</command> to know what that does).  That function
+        lives in the <filename>libcrypt</filename> library.  For a library intended 
+        to be linked into other code to make a complete program, it's not necessary
+        for your libarary to link explicitly to <filename>libcrypt</filename> so long
+        as the program itself is linke to <filename>libcrypt</filename>.
+        For a shared library used as a slow control driver, however no expclicitly
+        linking it to <filename>libcrypt</filename> would leave an undefined reference
+        that Tcl would not know how to satisfy, so the <command>load</command> of the
+        library would fail.
+      </para>
+      <section>
+        <title>Driver requirements</title>
+        <para>
+          A Slow controls device driver is a class that is derived from
+          the 
+          <link linkend='vmusb3_ccontrolhardware' 
+            endterm='vmusb3_ccontrolhardware_title' /> abstract base class.
+          In this section I will briefly go over the mandatory and optional 
+          requirements of a driver class as well as providing an annotated
+          sample (if silly) driver.
+        </para>
+        <para>
+          The <link linkend='vmusb3_ccontrolhardware' 
+            endterm='vmusb3_ccontrolhardware_title' /> class is an abstract
+          base class.  This means it has some virtual methods that are not 
+          implemented and must be implemented by derived classes.
+          In addition the name of the object being created (<command>Module</command>
+          command's name) is maintained by the base class.  
+        </para>
+        <para>
+          These constraints mean that a control driver class must implement the
+          following member functions.
+        </para>
+        <variablelist>
+          <varlistentry>
+            <term>constructor</term>
+            <listitem>
+              <para>
+                The class must implement a constructor that takes as a parameter
+                (at least) a <classname>std::string</classname> modulename which
+                it passes to the base class constructor.
+              </para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term><methodname>onAttach</methodname> 
+              (<type>CControlModule&amp;</type> <parameter>configuration</parameter>)
+            </term>
+            <listitem>
+              <para>
+                <methodname>onAttach</methodname> is called when the driver's
+                configuration object <parameter>configuration</parameter> is being
+                attached to the object.  The base class provides a protected data
+                item named <varname>m_pConfig</varname> in which a pointer to the
+                <parameter>configuration</parameter> can be stored for future use.
+              </para>
+              <para>
+                The <methodname>onAttach</methodname> method is also where you must
+                define your configuration options and their constraints.  Soon after this
+                method is invoked, the driver is likely to have to respond to 
+                requests to configure values into these parameters.
+                As with readout drivers, the process of giving values to configuration
+                options transparent to your driver code.  When you need to know the
+                value of an option, you just ask the <parameter>configuration</parameter>
+                and it's magically there.
+              </para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>
+              <methodname>Update</methodname>(<type>CVMUSB&amp;</type> <parameter>vme</parameter>
+            </term>
+            <listitem>
+              <para>
+                For some devices it is necessary to maintain an internal state
+                that describes the device.  This is done for devices that are
+                write only such as the V812.  For those devicdes it is useful to be able
+                to refresh the device state from an internal copy of what the state should
+                be.  <methodname>Update</methodname> is provided for that  purpose.
+                This method must be implemented though the implementation can be empty.
+              </para>
+              <para>
+                The <parameter>vme</parameter> parameter is a reference to a VMUSB controller
+                object that can be used to perform VME operations or to execute a 
+                <classname>CVMUSBReadoutList</classname> of operations built up by this
+                method.
+              </para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>
+              <methodname>Set</methodname>(<type>CVMUSB&amp;</type> <parameter>vme</parameter>, 
+              <type>std::string</type> <parameter>parameter</parameter>,
+              <type>std::string</type> <parameter>value</parameter>)
+            </term>
+            <listitem>
+              <para>
+                Fundamentally, slow control device drivers manage some settable 
+                parameters in a device.  The driver associates a name with each parameter.
+                The <methodname>Set</methodname> operation provides a new value for a parameter.
+                The driver is expected to propagate that value out to the device.
+              </para>
+              <para>
+                The <parameter>parameter</parameter> argument is the name of the parameter to
+                modify.  Names are assigned by the driver and known to the client via documentation.
+                <parameter>value</parameter> is the new value for the parameter. The driver is
+                responsible for all validity checking and error reporting in the event the parameter
+                value is not valid.
+              </para>
+              <para>
+                <parameter>vme</parameter> is a reference to a VMUSB controller object that is used
+                by the driver to perform VME operations or list of VME operations encapsulated in
+                a <classname>CVMUSBReaoutList</classname>
+              </para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>
+              <methodname>Get</methodname>(<type>CVMUSB&amp;</type> <parameter>vme</parameter>,
+              <type>std::string</type> <parameter>parameter</parameter>)
+            </term>
+            <listitem>
+              <para>
+                This is expected to return the value of a <parameter>parameter</parameter> in 
+                the hardware.  The <parameter>vme</parameter> can be used to perform the
+                needed VME operations or lists of VME operations encapsulated in a
+                <classname>CVMUSBReadouList</classname>
+              </para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term><methodname>clone</methodname>(<type>const CControllerHardware&amp;</type> <parameter>rhs</parameter>)
+            </term>
+            <listitem>
+              <para>
+                There are times when the framework needs to create a copy of a driver instance. When 
+                this happens <methodname>clone</methodname> is invoked.  The
+                <parameter>rhs</parameter> object is the object we are copying into ourselves.  If the object
+                has no additional state it can just cop construct the
+                <classname>CControlMdoule</classname> configuration into <varname>m_pConfig</varname>.
+              </para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+        <para>
+          In addition to the mandatory methods above, you can implement several optional
+          methods if required.
+        </para>
+        <variablelist>
+          <varlistentry>
+            <term><methodname>Initialize</methodname>(<type>CVMUSB&amp;</type> <parameter>vme</parameter>)
+            </term>
+            <listitem>
+              <para>
+                If you need to perform any one-time initialization of your
+                hardware you can do that here.  An example of where this is used
+                is with the CAEN V812 driver.   The V812 registers
+                are write only.  Therefore, the driver maintains a
+                configuration file with settings and at initialization
+                time, that configuration file is read and loaded into the
+                device returning it to a known state.
+              </para>
+              <para>
+                The <parameter>vme</parameter> parameter is a reference to
+                a VMUSB controller object.  It can be used to perform
+                operations on the VME crate or to execute 
+                <classname>CVMUSBReadoutList</classname> objects the
+                method builds.
+              </para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term><methodname>addMonitorList</methodname> (<type>CVMUSBReadoutList&amp;</type> <parameter>vmeList</parameter>)
+            </term>
+            <listitem>
+              <para>
+                For some devices, the ability set and get parameters is not the whole story. 
+                This is especially the case because in order to set or get a parameter, active data taking must
+                be stopped and restarted which is time-consuming.  Consider, for example, a VME Bias supply
+                controller.  A control panel would want to monitor the supply for trips periodically and display
+                those trips regardless of whether or not data taking is active.  This  is accomplisshed with
+                a monitor list.
+              </para>
+              <para>
+                The monitor list is one of the 8 stacks supported by the VM-USB.  It contains a set of operations
+                that are periodically performed by manually triggering the list in the action register.  The
+                data routing software forwards data from this list to the Tcl server for processing.  Since this list
+                can be triggered just like any other acquisition mode list, no time consuming stop/start is needed
+                when data taking is active.  If data taking is inactive the list is periodically issued as an
+                immediate mode list.
+              </para>
+              <para>
+                <methodname>addMonitorList</methodname> provides an opportunity for a driver to specify a set
+                of VME operations to perform to gather the needed data to monitor the device.
+                This is optional and the default method adds nothing to the list.
+              </para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>
+              <methodname>processMonitorList</methodname>(<type>void*</type> <parameter>pData</parameter>,
+              <type>size_t</type> <parameter>remaining</parameter>)
+            </term>
+            <listitem>
+              <para>
+                This is called when the data from a monitorlist becomes available.  The drivers
+                <methodname>processMonitorList</methodname> are called in the same order in which their
+                <methodname>addMonitorList</methodname> methods were called.
+                <parameter>pData</parameter> is a pointer to the as yet unprocesssed part of the
+                data read by the monitor list while <parameter>remaining</parameter> is the number
+                of bytes of unprocessed data in that list.
+                The return value from this method should be a pointer to the first unprocessed
+                byte of monitor list data after the data consumed by this driver.
+              </para>
+              <para>
+                Normally the driver will pull data out of the monitor list and store it internall for
+                the next call to <methodname>getMonitoredData</methodname> below.  It's up to the driver
+                how the data are stored.
+              </para>
+              <para>
+                The base class implementation just returns <parameter>pData</parameter> which is
+                exactly right for a driver that does not use monitor lists.
+              </para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>
+              <methodname>getMonitoredData</methodname>()
+            </term>
+            <listitem>
+              <para>
+                This is called when the Mon command is issued for this device.  The driver
+                should package up the most recently received data from the monitor list and return it
+                to the caller as a string in the documented form.  Note: Since many clients are in Tcl
+                it is convenient to return these data as a properly formatted Tcl list.
+              </para>
+            </listitem>
+          </varlistentry>		  
+        </variablelist>
+        <para>
+          Let's look at the code for a rather silly user written driver a piece at a time.
+          The driver is not going to interact with any hardware.  What it will do is provide
+          the configuration options <option>-anint</option> which will hold an integer,
+          <option>-astring</option> which holds an arbitraty string, and 
+          <option>-alist</option> which holds a list of integers.
+          The Set and Get operations will modify and retrieve these options.
+          The driver won't support monitor lists.
+        </para>
+        <section>
+          <title>The driver</title>
+          <para>
+            This section provides an annotated view of the driver source code.  For clarity,
+            the header and driver are combined in a single file.  Comments that might ordinarily
+            be in the source code are in the annotations instead.
+          </para>
+          <example>
+            <title>Control driver headers</title>
+            <programlisting>
+#include &lt;CControlHardware.h&gt;
+#include &lt;CControlModule.h&gt;
+#include &lt;CVMUSB.h&gt;
+#include &lt;CVMUSBReadoutList.h&gt;
+	      </programlisting>
+	    </example>
+	    <para>
+	      This section of the driver sourcde includes the headers required by the driver 
+	      itself.  The headers are:
+	    </para>
+	    <orderedlist>
+	      <listitem><para>
+		<filename>CControlHardware.h</filename> the base class for the
+		driver class
+	      </para></listitem>
+	      <listitem><para>
+		<filename>CControlModule.h</filename>  the specialized version of the 
+		configurable object that is used by control drivers is a  <classname>CControlModule</classname>
+		this includes the command dispatching that makes configuration transparent
+		to your driver code, as well as the harness for dispatching the driver
+		calls themselves and marshalling them in a way that makes them available
+		to the clients.
+	      </para></listitem>
+	      <listitem><para>
+		<filename>CVMSUB.h</filename> Defines the class that provides access to
+		the VMUSB.
+	      </para></listitem>
+	      <listitem><para>
+		<filename>CVMUSBReadoutList.h</filename>  provides a class for constructing
+		VME lists of operations that can b executed immediately for better
+		performance than single operations with the <classname>CVMUSB</classname>
+	      </para></listitem>
+	    </orderedlist>
+	    <example>
+	      <title>Control driver class definition</title>
+	      <programlisting>
+class CUserDriver : public CControlHardware
+{
+
+public:
+  CUserDriver();
+  virtual void onAttach(CControlModule&amp; configuration);
+  virtual std::string Update(CVMUSB&amp; vme);
+  virtual std::string Set(CVMUSB&amp; vme, 
+			  std::string parameter, 
+			  std::string value);
+  virtual std::string Get(CVMUSB&amp; vme, 
+			  std::string parameter);
+  virtual void clone(const CControlHardware&amp; rhs);
+
+};
+	      </programlisting>
+	    </example>
+	    <para>
+	      The key points are that the user driver inherits from the
+	      <classname>CControlHardware</classname> base class. Since
+	      <classname>CControlHardware</classname> is an abstract base class,
+	      it is necessary to define all abstract methods.  Furthermore, since
+	      <classname>CControlHardware</classname> has no default constructor,
+	      our driver must define a constructor that is capable of passing the
+	      driver instance name (module name) to the base class.
+	    </para>
+	    <example>
+	      <title>Control driver constructor</title>
+	      <programlisting>
+CUserDriver::CUserDriver() :
+  CControlHardware()
+{}
+	      </programlisting>
+	    </example>
+	    <para>
+	      The only mandatory function of the constructor is to initialize the
+              base class.
+	    </para>
+	    <example>
+	      <title>Control driver <methodname>onAttach</methodname> method</title>
+	      <programlisting>
+void
+CUserDriver::onAttach(CControlModule&amp; configuration)
+{
+  m_pConfig = &amp;configuration;	       <co id='ctldriver-onattach-saveconfig' />
+  m_pConfig-&gt;addIntegerParameter("-anint", 0);
+  m_pConfig-&gt;addParameter("-astring", NULL, NULL, ""); <co id='ctldriver-onattach-makeparams' />
+  m_pConfig-&gt;addIntListParameter("-alist", 16);
+
+}
+	      </programlisting>
+	    </example>
+	    <para>
+	      <methodname>onAttache</methodname> is called when a driver instance
+	      is being created and attached to its configuration object. The
+	      <parameter>configuration</parameter> is passed as a parameter to the
+	      method.  The numbers inthe example text are referenced below in the
+	      annotations:
+	    </para>
+	    <calloutlist>
+	      <callout arearefs='ctldriver-onattach-saveconfig'>
+		<para>
+		  The base class (<classname>CControlHardware</classname>) 
+		  provides a protected data member <varname>m_pConfig</varname>
+		  that is intended to hold a pointer to the driver instance's
+		  configuration object (<classname>CControlModule</classname>).
+		  It is usually important to be able to access your configuration
+		  later in the life cycle of the driver.
+		</para>
+	      </callout>
+	      <callout arearefs='ctldriver-onattach-makeparams'>
+		<para>
+		  Drivers normally are parameterized by a set of configuration 
+		  paramters.  These are defined/described and constrained in the
+		  <methodname>onAttache</methodname> method.  For this toy
+		  driver we just define the options
+		  <option>-anint</option> which is constrained to be an integer,
+		  <option>-astring</option> which is unconstrained and
+		  <option>-alist</option> which is constrained to be a list of
+		  16 integer parameters.
+		</para>
+		<para>
+		  Normal drivers will defined at least a 
+		  <option>-base</option> option which is intended to hold
+		  the base address of the device being controlled.
+		</para>
+	      </callout>
+	    </calloutlist>
+	    <example>
+	      <title>Control driver <methodname>Update</methodname></title>
+	      <programlisting>
+std::string
+CUserDriver::Update(CVMUSB&amp; vme)
+{
+  return "OK";
+}
+	      </programlisting>
+	    </example>
+	    <para>
+	      Some devices have write only registers.  Since it is not possible
+	      to determine the device state by reading the device registers, it is
+	      useful to have an operation that will set the device to a known state.
+	      Typcially this state is maintained in a set of <firstterm>shadow registers</firstterm>
+	      that are maintained in the driver instance,and possibly read from a 
+	      file that is also maintained by that instance or by a control panel for the
+	      device.  
+	    </para>
+	    <para>
+	      The <methodname>Update</methodname> method is intended to provide a mechanism
+	      for device control panel clients to request the driver set the hardware to a known
+	      state. The method should return the string <literal>OK</literal> on success or
+	      a streing of the form <literal>ERROR - </literal><replaceable>some descriptive error message</replaceable>
+	      normally control panels, on seeing the first return word is <literal>ERROR</literal>
+	      will parse the error message out and display it for the user.
+	    </para>
+	    <example>
+	      <title>Control driver <methodname>Set</methodname> method.</title>
+	      <programlisting>
+
+std::string
+CUserDriver::Set(CVMUSB&amp; vme,    
+                 std::string parameter,           <co id='ctldriver-set-params' />
+                 std::string value)
+{
+  try {
+    m_pConfig-&gt;configure(parameter, value);   <co id='ctldriver-set-configure' />
+    return "OK";
+  }
+  catch (std::string msg) {	// configure reports errors via std::string exceptions.
+    std::string status = "ERROR - ";
+    status += msg;
+    return status;                              <co id='ctldriver-set-error' />
+  }
+}
+	      </programlisting>
+	    </example>
+
+	    <para>
+	      The <methodname>Set</methodname> is intended to provide a new
+	      value for a device parameter.  When you write a device driver
+	      you must give names to each device parameter you want to allow
+	      clients to control.  These names are used by the client to identify
+	      device parameters both for the <methodname>Set</methodname> and
+	      the <methodname>Get</methodname> we will discuss next.
+	    </para>
+	    <para>
+	      In our toy driver, we have no hardware to modify so we are accepting the
+	      names of our configuration options as the parameter names.  Normal drivers
+	      will need to pull their base address from the configuration
+	      and use them, along with the value of the <parameter>parameter</parameter>
+	      parameter to know what to do to change the requested
+	      parameter to <parameter>value</parameter>.
+	    </para>
+	    <calloutlist>
+	      <callout arearefs='ctldriver-set-params'>
+		<para>
+		  The parameters passed to the <methodname>Set</methodname> are:
+		  <variablelist>
+		    <varlistentry>
+		      <term><parameter>vme</parameter></term>
+		      <listitem><para>
+			A <classname>CVMUSB</classname> object reference
+			that can be used to either perform direct VME operations
+			or to execute <classname>CVMUSBReadoutList</classname>
+			objects that have been created and stocked this 
+			method.
+		      </para></listitem>
+		    </varlistentry>
+		    <varlistentry>
+		      <term><parameter>parameter</parameter></term>
+		      <listitem><para>
+			The name of the parameter to modify.
+		      </para></listitem>
+		    </varlistentry>
+		    <varlistentry>
+		      <term><parameter>value</parameter></term>
+		      <listitem><para>
+			The stringified version of the new value to 
+			set for the parameter.  This parameter is always
+			a <classname>std::string</classname> and therefore
+			may require conversion by the driver.
+		      </para></listitem>
+		    </varlistentry>
+		  </variablelist>
+		</para>
+	      </callout>
+	      <callout arearefs='ctldriver-set-configure'>
+		<para>
+		  Since we are using our configuration parameters as device
+		    parameters, this line just attempts to set the requested
+		    configuration parameter to the reqested value.
+		  </para>
+		  <para>
+		    The <methodname>configure</methodname> throws 
+		    <classname>std::string</classname> exceptions
+		    on errors.  Hence the <methodname>configure</methodname>
+		    operation is done in a <literal>try</literal> block.
+		  </para>
+		</callout>
+		<callout arearefs='ctldriver-set-error'>
+		  <para>
+		    Error exceptions are caught by this
+		    <literal>catch</literal> block where they are turned
+		    into error messages.  The return value from
+		    the <methodname>Set</methodname> method is either
+		    <literal>OK</literal> (No error) or
+		    <literal>ERROR -</literal> followeed by an error
+		    message string.
+		  </para>
+		</callout>
+	      </calloutlist>
+	      <example>
+		<title>Control driver <methodname>Get</methodname> method</title>
+		<programlisting>
+
+std::string
+CUserDriver::Get(CVMUSB&amp; vme, std::string parameter) <co id='ctldriver-get-params' />
+{
+  try {
+    return m_pConfig-&gt;cget(parameter);                <co id='ctldriver-get-cget' />
+  }
+  catch (std::string msg) {
+    std::string retval = "ERROR - ";                    <co id='ctldriver-get-error' />
+    retval += msg;
+    return msg;
+  }
+}
+		</programlisting>
+	      </example>
+	      <para>
+		The <methodname>Get</methodname> method is used by control panel
+		clients to fetch values of device parameters from the driver.
+	      </para>
+	      <calloutlist>
+		<callout arearefs='ctldriver-get-params'>
+		  <para>
+		    The parameters for the <methodname>Get</methodname> are:
+		    <variablelist>
+		      <varlistentry>
+			<term><parameter>vme</parameter></term>
+			<listitem><para>
+			  Reference to a <classname>CVMUSB</classname> controller
+			  object that can be used to perform VME operations directly
+			  or to execute <classname>CVMUSBReadoutList</classname>
+			  objects that are created and filled by this method.
+			</para></listitem>
+		      </varlistentry>
+		      <varlistentry>
+			<term><parameter>parameter</parameter></term>
+			<listitem><para>
+			  The name of the parameter to modify.
+			</para></listitem>
+		      </varlistentry>
+		    </variablelist>
+		  </para>
+		</callout>
+		<callout arearefs='ctldriver-get-cget' >
+		  <para>
+		    In our toy driver our parameter names are configuration option names.
+		    In a real driver we would typically need to retrieve the
+		    <option>-base</option> value to locate our device in VME space.
+		    We would then use the value of <parameter>parameter</parameter>
+		    to determine which value to fetch.  That value would be 
+		    represented as a string and then returned to the caller.
+		  </para>
+	      </callout>
+	      <callout arearefs='ctldriver-get-error'>
+		<para>
+		  In the toy driver, <methodname>cget</methodname> can throw an
+		  exception.  We turn this into an error return indicated by
+		  returning a string of the form
+		  <literal>ERROR -</literal>  followed by a descriptive error
+		  string.
+		</para>
+	      </callout>
+	      </calloutlist>
+	      <example>
+		<title>Control driver <methodname>clone</methodname> method</title>
+		<programlisting>
+void
+CUserDriver::clone(const CControlHardware&amp; rhs)
+{
+  CControlHardware* pRhs = const_cast&lt;CControlHardware*&gt;(&amp;rhs);
+  m_pConfig = new CControlModule(*(pRhs->getConfiguration()));
+}
+		</programlisting>
+	      </example>
+	      <para>
+		All control drivers must supply a <methodname>clone</methodname>
+		method.  This method must clone a <parameter>rhs</parameter> object
+		into <varname>this</varname>.  The minimal work that must be done
+		is to clone the <parameter>rhs</parameter> configuration into our
+		<varname>m_pConfig</varname>.
+	      </para>
+	      <para>
+		Any internal data the driver has must also be copied.  Wether this can
+		be a shallow or deep copy is up to the needs of the driver.
+	      </para>
+	  </section>
+	  <section>
+	    <title>The creator</title>
+	    <para>
+	      The creator is used by the extensible module factory. It captures
+	      knowledge of how to create a driver instance.  The factory matches
+	      driver type names with creators and uses the creator to produce
+	      the correct constructor.
+	    </para>
+	    <example>
+	      <title>Control driver creator</title>
+	      <programlisting>
+#include &lt;CModuleCreator.h&gt;                             <co id='cltcreator-headers' />
+#include &lt;CControlHardware.h&gt;
+   
+
+class CUserDriverCreator : public CModuleCreator             <co id='ctlcreator-classdef' />
+{
+public:
+  virtual std::unique_ptr&lt;CControlHardware&gt;
+    operator()();                           <co id='ctlcreator-functordef' />
+};
+
+std::unique_ptr&lt;CControlHardware&gt;
+CUserDriverCreator::operator()()
+{
+  return std::unique_ptr&lt;CControlHardware&gt;(emasc 
+        new CUserDriver()                               <co id='ctlcreator-new' />
+    );                               
+}
+	      </programlisting>
+	    </example>
+	    <calloutlist>
+	      <callout arearefs='cltcreator-headers'>
+		<para>
+		  The creator must have <classname>CModuleCreator</classname> as 
+		  a base class.   This line includes the header for that class.
+		</para>
+	      </callout>
+	      <callout arearefs='ctlcreator-classdef'>
+		<para>
+		  This is the class definition for the creator.  By convention
+		  the name of a creator is built from the name of the class
+		  it creates with <literal>Creator</literal> suffixed.
+		  As previously described this class must inherit from
+		  <classname>CModuleCreator</classname>
+		</para>
+	      </callout>
+	      <callout arearefs='ctlcreator-functordef'>
+		<para>
+		  The creator must define and implement a functor
+		  (<methodname>operator()</methodname>).  This method
+		  must t return a dynamically
+		  allocated <classname>CControlHardware*</classname>
+		  whose underlying type is the same as the type we are
+		  supposed to be creating.  
+		</para>
+                <para>
+                    The use of the <classname>std::unique_ptr</classname>
+                    smarpt pointer class provides that the
+                    created object's  lifetime can be properly managed.
+                </para>
+	      </callout>
+	      <callout arearefs='ctlcreator-new'>
+		<para>
+		  The implementation of the functor operator is usually 
+		  as simple as what's shown here.  Just
+		  <literal>new</literal> into existence the object
+		  and return an std::unique_ptr containing it.
+		</para>
+	      </callout>
+	    </calloutlist>
+	  </section>
+	  <section>
+	    <title>The initialization function</title>
+	    <para>
+	      The initialization function is called automatically by the
+	      Tcl <command>load</command> or <command>package require</command>
+	      command used to load the driver into the interpreter.
+	      The initialization function must have a specific name that matches
+	      the name of the library/package it is built into.  The name must be
+	      of the form described in 
+	      <ulink url='http://www.tcl.tk/man/tcl8.5/TclCmd/load.htm'>
+		http://www.tcl.tk/man/tcl8.5/TclCmd/load.htm
+	      </ulink>
+	      Unless otherwise specified in the <command>load</command> command,
+	      the package name is the part of the name of the library that follows
+	      the <literal>lib</literal> part but before the file type.  E.g. for
+	      a shared library named <filename>libMyControlDriver.so</filename>,
+	      the initialization function should be
+	      <literal>Mycontroldriver</literal>
+	    </para>
+	    <para> 
+	      Here is the initialization function for our sample driver:
+	    </para>
+	    <example>
+	      <title>Control driver initialization</title>
+	      <programlisting>
+#include &lt;CModuleFactory.h&gt;                          <co id='ctldriver-init-headers' />
+#include &lt;tcl.h&gt;
+
+extern "C" {                                               <co id='ctldriver-init-cbinding' />
+  int Userdriver_Init(Tcl_Interp* pInterp)                 <co id='ctldriver-init-prototype' />
+  {
+    CModuleFactory* pFact = CModuleFactory::instance();    <co id='ctldriver-init-factget' />
+    pFact->addCreator(
+        "mydriver",
+        std::unique_ptr&lt;CModuleCreator&gt;(new CUserDriverCreator)); <co id='ctldriver-init-creator' />
+
+    return TCL_OK;                                         <co id='ctldriver-init-status' />
+  }
+  
+}
+	      </programlisting>
+	    </example>
+	    <calloutlist>
+	      <callout arearefs='ctldriver-init-headers'>
+		<para>
+		  The headers required for the initialization function are (in addition
+		  to any header that defines the module creator):
+		  <variablelist>
+		    <varlistentry>
+			<term><filename>CModuleFactory.h</filename></term>
+			<listitem><para>
+			  Defines the <classname>CModuleFactory</classname>
+			  singleton which is the class in which our creator must
+			  be registered.
+			</para></listitem>
+		      </varlistentry>
+		      <varlistentry>
+			<term><filename>tcl.h</filename></term>
+			<listitem><para>
+			  Contains interface definitions for the API to the
+			  Tcl interpreter.
+			</para></listitem>
+		      </varlistentry>
+		    </variablelist>
+		  </para>
+		</callout>
+		<callout arearefs='ctldriver-init-cbinding'>
+		  <para>
+		    The Tcl interpreter needs to be able to compute
+		    the function name explicitly.   Since C++ function names
+		    are <firstterm>decorated</firstterm> in ways that depend on
+		    their signatures, the initialization function must be 
+		    declared with C name bindings.  This is done with the
+		    <literal>extern "C"</literal> block shown here.
+		  </para>
+		</callout>
+		<callout arearefs='ctldriver-init-prototype'>
+		  <para>
+		    The initialization functdion takes an interpreter
+		    (<type>Tcl_Interp*</type>) as a parameter and returns
+		    an <type>int</type> status.  The normal return status
+		    is <literal>TCL_OK</literal>.  The failure return status is
+		    <literal>TCL_ERROR</literal> and  an error message can be
+		    put in the interpreter result (using e.g.
+		    <ulink url='http://www.tcl.tk/man/tcl8.5/TclLib/SetResult.htm'>
+		      Tcl_SetResult</ulink>).
+		  </para>
+		</callout>
+		<callout arearefs='ctldriver-init-factget'>
+		  <para>
+		    The main work of the intitialization function is to register
+		    the module creator with the module factory.  The
+		    <function>CModuleFactory::instance()</function>
+		    returns a pointer to the 
+		    <ulink url='http://en.wikipedia.org/wiki/Singleton_pattern'>
+		      singleton instance</ulink>
+		    of the factory.
+		  </para>
+		</callout>
+		<callout arearefs='ctldriver-init-creator'>
+		  <para>
+		    Registers the new creator object associating it with the
+		    module type <literal>mydriver</literal>
+		  </para>
+		</callout>
+		<callout arearefs='ctldriver-init-status'>
+		  <para>
+		    Returns a normal status value.
+		  </para>
+		</callout>
+	    </calloutlist>
+
+	  </section>
+	  <section>
+	    <title>Building the driver and using it.</title>
+	    <para>
+	      Compiled drivers must be built as shared libraries.  You can then
+	      either use the Tcl <command>load</command> command to directly
+	      load them or build a <filename>pkg_Index.tcl</filename> in a 
+	      Tcl library directory and use <command>package require</command>
+	      instead.
+	    </para>
+	    <para>
+	      Regardless of the choices you make, if you have bundled your
+	      driver into a single file you can build it using:
+	    </para>
+	    <informalexample>
+	      <cmdsynopsis><command>
+g++ -shared -o libMyDriver.so MyDriver.cpp
+	      </command></cmdsynopsis>
+	    </informalexample>
+	    <para>
+	      Note that you don't need to specify libraries that are
+	      included in the readout program, however you do need to
+	      resolve any other undefined symbols that are in libraries
+	      not part of the readout program.
+	    </para>
+            <para>
+	      To use the driver you need to load it into the interpreter
+	      and the use the <command>Module</command> to make an instance
+	      and to maniuplate that instance.  For example:
+	    </para>
+	    <informalexample>
+	      <programlisting>
+load [file join [file dirname [info script]] libMyDriver.so]
+Module create testModule mydriver
+Module config testModule -anint 1234
+	      </programlisting>
+	    </informalexample>
+	  </section>
+	</section>
+	
+    </section>
+    <section id="vmusb-develop-module-tcl">
+      <title>Writing slow control drivers in Tcl</title>
+      <para>
+	Using the SWIG wrappers for the <classname>CVMUSB</classname> and
+	<classname>CVMUSBReadoutList</classname> classes and the
+	<literal>tcl</literal> wrapper module type you can write
+	slow control modules using pure Tcl. A Tcl driver is a command ensemble
+	that defines the following subcommands:
+      </para>
+      <variablelist>
+	<varlistentry>
+	  <term><command>Initialize</command></term>
+	  <listitem><para>
+	    Called by the wrapper's <methodname>Initialize</methodname>
+	    to perform initialization.
+	  </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><command>Update</command></term>
+	  <listitem><para>
+	    Called by the wrapper's <methodname>Update</methodname>
+	    method.
+	  </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><command>Set</command></term>
+	  <listitem><para>
+	    Called by the wrapper's <methodname>Set</methodname> method.
+	  </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><command>Get</command></term>
+	  <listitem><para>
+	    Called by the wrapper's <methodname>Get</methodname> method.
+	  </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><command>addMonitorList</command></term>
+	  <listitem>
+	    <para>
+	      Called by the wrappers <methodname>addMonitorList</methodname>
+	      method.  This method must be supplied though it need not do
+	      anything.
+	    </para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><command>processMonitorList</command></term>
+	  <listitem><para>
+	    Called by the wrappers's <methodname>processMonitorList</methodname>.
+	    Again while this  method must be supplied, it need not do anything
+	    (except return 0 indicating it has not processed antyhing from the monitor
+	    list).
+	  </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><command>getMonitoredData</command></term>
+	  <listitem>
+	    <para>
+	      Called from the wrapper's <methodname>getMonitoredData</methodname>.
+	      Must be defined but need not do anything useful if the driver
+	      does not make use of monitor lists.
+	    </para>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+      <para>
+	The remainder of this section will pick apart a Tcl driver that performs
+	the same basic function as the C++ driver we wrote in the previous section.
+	We will also show how to incorporate the driver into a 
+	<filename>controlconfig.tcl</filename> file.
+      </para>
+      <para>
+	For this example we will use a driver written using snit. incrTcl or 
+	Xotcl or even namespace ensembles can be used to implement drivers, or
+	even just a Tcl procedure of only one instance is going to be supported.
+      </para>
+      <para>
+	Let's start by looking at the overall framework of the driver:
+      </para>
+      <example>
+	<title>Control drivers - structure of a Tcl driver</title>
+	<programlisting>
+
+package provide Mydriver 1.0
+package require cvmusb                            <co id='ctldriver-tclstruct-packages' />
+package require cvmusbreadoutlist
+
+
+snit::type Mydriver {                            <co id='ctldriver-tclstruct-snittype' />
+    option -anint -configuremethod _validInt
+    option -astring                              <co id='ctldriver-tclstruct-options' />
+    option -alist -configuremethod _validIntList
+
+    constructor args {
+       ...
+       $self configurelist $args                <co id='ctldriver-tclstruct-constructor' />
+    }
+
+    method Initialize vme {...}
+    method Update     vme {...}
+    method Set        {vme parameter value} {...}
+    method Get       {vme parameter} {...}     <co id='ctldriver-tclstruct-methods' />
+    method addMonitorList vmeList {...}
+    method processMonitorList data {...}
+    method getMonitoredData {...}
+
+    #  Private method:
+    
+    method _validInt {optname value} {...}      <co id='ctldriver-tclstruct-configmethods' />
+    method _validIntList {optname value} {...}
+    
+
+}
+	</programlisting>
+      </example>
+      <calloutlist>
+	<callout arearefs='ctldriver-tclstruct-packages'>
+	  <para>
+	    This section of code defines a package name; <literal>Mydriver</literal>
+	    and specifies it to have a version of <literal>1.0</literal>.  This
+	    allows the Tcl command 
+	    <ulink url='http://www.tcl.tk/man/tcl8.5/TclCmd/pkgMkIndex.htm'>
+	    <command>pkg_mkIndex</command></ulink>
+	    to create a <filename>pkgIndex.tcl</filename> package index that includes 
+	    the <literal>Mydriver</literal> package.
+	    The two <command>package require</command> packages include the packages
+	    that implement SWIG wrappings of the <classname>CVMUSB</classname>
+	    and <classname>CVMUSBReadoutList</classname> classes.
+	  </para>
+	</callout>
+	<callout arearefs='ctldriver-tclstruct-snittype'>
+	  <para>
+	    Snit classes are declared with the <command>snit::type</command> 
+	    command.  That command takes two parameters, the typename
+	    (<literal>Mydriver</literal>), and the body of the type definition
+	    which begins with the <literal>{</literal>.
+	  </para>
+	</callout>
+	<callout arearefs='ctldriver-tclstruct-options'>
+	  <para>
+	    The <command>option</command>, defined within a <command>snit::type</command>
+	    body declares a configuration option for objects created with this type.
+	    These three lines declare the three configuration options we said we would 
+	    support.  We want to perform validation on the
+	    <option>-anint</option> and the <option>-alist</option>.  The
+	    <option>-configuremethod</option> option in the
+	    <command>option</command> provides the name of a method that
+	    will be called when the option is configured.  This provides for
+	    validation.
+	  </para>
+	</callout>
+
+	<callout arearefs='ctldriver-tclstruct-constructor'>
+	  <para>
+	    The constructor  method must do all internal initializations,
+	    it should also process the configuration options that were passed
+	    on the construction command line.  The built-in method
+	    <methodname>configurelist</methodname> processes a list of
+	    option/value pairs.  Precisely what the <parameter>args</parameter>
+	    parameter contains.
+	  </para>
+	</callout>
+	<callout arearefs='ctldriver-tclstruct-methods'>
+	  <para>
+	    These lines of code are skeletal definitions of the 
+	    methods we are required to implement in a Tcl driver. 
+	    The <command>method</command> in a <command>snit::type</command>
+	    is used to create object methods for a Snit object.  We will
+	    look at the bodies of these methods in separate sections.
+	  </para>
+	</callout>
+	<callout arearefs='ctldriver-tclstruct-configmethods'>
+	  <para>
+	    These lines of code create skeletal definitions of the methods
+	    we established as configuration handlers via the 
+	    <option>-configuremethod</option>.  Confifgure methods take a pair of parameters.
+	    <parameter>optname</parameter> is the name of the parameter being configured
+	    while <parameter>value</parameter> is the proposed new value for that parameter.
+	    This parameterization allows configuremethods to be shared between several
+	    options (for example if we had more than one option we wanted to constrain
+	    to be an integer.
+	  </para>
+	</callout>
+      </calloutlist>
+      <section>
+	<title>Initialize</title>
+	<para>
+	  The full implementation of the <methodname>Initialize</methodname> is shown
+	  below:
+	</para>
+	<example>
+	  <title>Tcl control driver <methodname>Initialize</methodname> method</title>
+	  <programlisting>
+    method Initialize vme {
+    
+    }
+	  </programlisting>
+	</example>
+	<para>
+	  The <methodname>Initialize</methodname> does nothing for our driver.
+	  For a real driver the options might be queried to find the base address
+	  of the hardware as well as other static configuration options.  The 
+	  <parameter>vme</parameter> argument, which is a Swig wrapped
+	  <classname>CVUSB</classname> object would then be used to perform the
+	  VME transactions needed to initialize the device.
+	</para>
+	<para>
+	  In the event of an error while executing this method, the wrapper
+	  will pull the result of the command as a string, and throw it as a
+	  <classname>std::string</classname> exception.  This is the accepted way
+	  for drivers to indicate errors in their <methodname>Initialize</methodname>
+	  methods
+	</para>
+      </section>
+      <section>
+        <title>The update method</title>
+        <para>
+            The <methodname>Update</methodname> method servesthe same function
+            in a Tcl driver as in a C++ driver.  In our case the implementationis
+        </para>
+        <example>
+            <title>Tcl control driver <methodname>Update</methodname> method</title>
+            <programlisting>
+    method Update vme {
+        return "OK"
+    }
+            </programlisting>
+        </example>
+        <para>
+            The <parameter>vme</parameter> is a SWIG encapsulated
+            <classname>CVMUSB</classname> object that, in a real driver,
+            would be used to perform VME operations or execute lists created
+            via  <classname>CVMUSBReadoutList</classname> objects created and
+            filled in by this method.
+        </para>
+        <para>
+            The return string of <literal>OK</literal> indicates a normal
+            completion.  Tcl methods have two mechanisms to return errors.
+            Returning a string that begins with <literal>ERROR - </literal>
+            and concludes with an error message, or simply executing the
+            <command>error</command> with an error message argument.
+            The wrapper will map error returns into an <literal>ERROR - </literal>
+            string return with the value of the string passed t the
+            <command>error</command> command appended to the end of the
+            error return string.
+        </para>
+      </section>
+      <section>
+        <title>The Set method</title>
+        <para>
+            As with the C++ driver, the <methodname>Set</methodname> method is
+            used to process client requests to change a device parameter.
+            The Tcl version of this method is:
+        </para>
+        <example>
+            <title>Tcl control driver <methodname>Set</methodname> method</title>
+            <programlisting>
+    method Set {vme parameter value} {
+        $self configure $parameter $value
+        return "OK"
+    }
+            </programlisting>
+        </example>
+        <para>
+            The parameters passed into this are the same as those passed into
+            a C++ driver's set, however the <parameter>vme</parameter> parameter
+            is a swig wrapped <classname>CVMUSB</classname> object.
+        </para>
+        <para>
+            By using the <methodname>configure</methodname> method rather than
+            just directly writing to the <varname>options</varname> array
+            we force the call of any <option>-configuremethod</option> code
+            that may do validations and throw errors.
+        </para>
+        <para>
+            The return of <literal>OK</literal> indicates successful completion,
+            an error will be converted by the wrapper into a return string of the form
+            <literal>ERROR - </literal><replaceable>intepreter error result string</replaceable>.
+            This allows errors from the <methodname>configurmethod</methodname>,
+            including specifying an invalid option name as well as failures
+            in validation by the <option>-configuremethod</option> code to be
+            naturally mapped back to proper error returns.
+        </para>
+        <para>
+            In a real driver, the <parameter>vme</parameter> parameter will
+            be used to perform VME operations.  In addition you can choose
+            to explicitly return an error string, or use the
+            <command>error</command> command to report failures.
+        </para>
+      </section>
+      <section>
+        <title>The Get method</title>
+        <para>
+            As with the C++ driver this is called to fetch the value of a
+            driver parameter.  Our toy driver fetches configuration parameters
+            rather than hardware parameters.
+        </para>
+        <example>
+            <title>Tcl control driver <methodname>Get</methodname> method</title>
+            <programlisting>
+    method Get {vme parameter} {
+        if {[array names options $parameter] eq ""} {
+            error "Invalid parameter name: $parameter"
+        }
+        return $options($parameter)
+    }
+            </programlisting>
+        </example>
+        <para>
+            Our driver ensures the value of <parameter>parameter</parameter> really
+            is an option name and then returns the option value from the
+            <varname>options</varname> array.
+            By doing the check for <command>array names options $parameter</command>
+            we can produce a more meaningful error message than would be
+            produced if we just let <command>return $options($parameter)</command>
+            error.
+        </para>
+        <para>
+            Instead of the <command>error</command> command we could have just
+            as easily done a <command>return "ERROR - Invalid parameter name: $parameter"</command>
+        </para>
+        <para>
+            A real driver would use the <parameter>vme</parameter> parameter,
+            which is a Swig wrapped <classname>CVMUSB</classname> object
+            to fetch the value of the parameter from the hardware.
+        </para>
+      </section>
+      <section>
+	<title>The addMonitorList method</title>
+	<para>
+	  Since we are not using monitor lists, this method is trivial:
+	</para>
+	<example>
+	  <title>Tcl control drer <methodname>addMonitorList</methodname> method</title>
+	  <programlisting>
+    method addMonitorList vmeList {
+    }
+	  </programlisting>
+	</example>
+	<para>
+	  The <parameter>vmeList</parameter> is a <classname>CVMEReadoutList</classname>
+	  that is wrapped by Swig.  A driver that uses monitor lists would add operations
+	  to the list as needed to retrieve the data being monitored from the device.
+	</para>
+      </section>
+      <section>
+	<title>The processMonitorList method</title>
+	<para>
+	  <methodname>processMonitorList</methodname> is called with the data read
+	  by the monitor list marshalled into a Tcl list of bytes (string representation).
+	  The method is expected to process what it needs from the front of the list
+	  and return a count of the number of bytes processed.  Since we are not using
+	  monitor lists, our implementation is:
+	</para>
+	<example>
+	  <title>Tcl control driver <methodname>processMonitorList</methodname> method</title>
+	  <programlisting>
+    method processMonitorList data {
+        return 0
+    }
+	  </programlisting>
+	</example>
+      </section>
+      <section>
+	<title>The getMonitoredData method</title>
+	<para>
+	  If using a monitor list, this method typically returns the data
+	  last processed by <methodname>processMonitorList</methodname> with
+	  <literal>OK - </literal> prepended to indicate a successful completion.
+	  As usual an <command>error</command> or script errors will result in
+	  a return of <literal>ERROR - </literal> with the result string appended.
+	</para>
+	<para>
+	  Since we are not using a monitor list, it's appropriate for us
+	  to return an error condition:
+	</para>
+	<example>
+	  <title>Tcl control driver <methodname>getMonitoredData</methodname> method</title>
+	  <programlisting>
+    method getMonitoredData {} {
+        error "This driver has no monitored data"
+    }
+          </programlisting>
+	</example>
+      </section>
+      <section>
+	<title>Validating the command options</title>
+	<para>
+	  The only thing left to do is write the option validation methods
+	  <methodname>_validInd</methodname> and <methodname>_validIntList</methodname>.
+	</para>
+	<note><title>Note</title>
+	<para>
+	  Snit does not have method visibility control, that is all methods
+	  are public.   By convention, methods that are not intended to be
+	  called by a client are given names that start with a <literal>_</literal>.
+	  Therefore these methods should be considered private.
+	</para>
+	</note>
+	<example>
+	  <title>Tcl control driver validation</title>
+	  <programlisting>
+    method _validInt {optname value} {
+        if {[string is integer -strict $value]} {                  <co id='tcldriver-validate-isinteger' />
+	    set options($optname) $value                           <co id='tcldriver-validate-setintopt' />
+        } else {
+            error "$optname must be configured with an integer was given '$value'" <co id='tcldriver-validate-intinvalid' />
+        }
+    }
+    method _validIntList {optname value} {
+        if {![info complete $value]} {                            <co id='tldriver-validate-islist' />
+            error "$optname must be given an integer list and '$value' isn't one"
+        }
+
+	set elements [llength $value]
+        if {$elements != 16} {                                    <co id='tcldriver-validate-listcount' />
+	    error "$optname must be given an integer list 16 '$value" as $elements"
+	}
+	
+	foreach item $value {                                     <co id='tcldriver-validate-intelements' />
+            if {![string is integer -strict $item]} {             
+	       error "$optname list elements must be integer but '$item' in '$value' is not"
+            }
+        }
+	set options($optname) $value                              <co id='tcldriver-validate-setlistopt' />
+    }
+	  </programlisting>
+	</example>
+	<calloutlist>
+	  <callout arearefs='tcldriver-validate-isinteger'>
+	    <para>
+	      The <command>string is integer -strict</command> command takes its argument
+	      and returns true if the argument is an integer and non-blank (a blank integer
+	      can be interpreted as a zero).
+	    </para>
+	  </callout>
+	  <callout arearefs='tcldriver-validate-setintopt'>
+	    <para>
+	      This sets the appropriate element of the <varname>options</varname>
+	      array.  This array is used by e.g. <command>cget</command> to
+	      return configuration options, unless overridden with a <option>-cgetmethod</option>.
+	    </para>
+	  </callout>
+	  <callout arearefs='tcldriver-validate-intinvalid'>
+	    <para>
+	      If the option value does not validate as an integer, an error is thrown.  Note 
+	      that we have seen that errors are mapped by the wrapper into the appropriate
+	      error indication to the driver framework.
+	    </para>
+	  </callout>
+	  <callout arearefs='tldriver-validate-islist'>
+	    <para>
+	      This trick checks that <varname>value</varname> is a valid list.  This works
+	      because complete commands must be valid Tcl lists as well.
+	    </para>
+	  </callout>
+	  <callout arearefs='tcldriver-validate-listcount'>
+	    <para>
+	      This ensures the list has exactly 16 elements, else an error is thrown.
+	    </para>
+	  </callout>
+	  <callout arearefs='tcldriver-validate-intelements'>
+	    <para>
+	      Element by element, the list is checked to ensure that all elements are
+	      valid integers.
+	    </para>
+	  </callout>
+	  <callout arearefs='tcldriver-validate-setlistopt'>
+	    <para>
+	      If by now we have not errored out, the value is valid and is set in the
+	      <varname>options</varname> array.
+	    </para>
+	  </callout>
+	</calloutlist>
+      </section>
+      <section>
+	<title>Using a Tcl control driver</title>
+	<para>
+	  To use a Tcl control driver you must:
+	</para>
+	<orderedlist>
+	  <listitem><para>
+	    Incorporate the driver into your <filename>controlconfig.tcl</filename>
+	    script either using the <command>source</command> or 
+	    <command>package require</command> command.
+	  </para></listitem>
+	  <listitem><para>
+	    Create an instance of your driver if needed.  In the case of
+	    our toy driver, this means a command like:
+	    <command>Mydriver aninstance</command> to create a command
+	    ensemble named <literal>aninstance</literal>
+	  </para></listitem>
+	  <listitem><para>
+	    If necessary configure our driver instance.
+	  </para></listitem>
+	  <listitem><para>
+	    Wrap your driver with the <literal>tcl</literal> module type:
+	    <informalexample>
+	      <programlisting>
+Module create  atcldriver tcl
+Module config atcldriver -ensemble aninstance
+        </programlisting>
+      </informalexample>
+  </para></listitem>
+</orderedlist>
+
+<para>
+  The key point is that the <option>-ensemble</option> for a 
+  <literal>tcl</literal> module provides the base name of the
+  command ensemble that Tcl driver wraps.
+</para>
+      </section>
+    </section>
+  </section>
+    <section>
+        <title>Pushing external data into the event stream</title>
+        <para>
+            The slow controls port can also be used to send data that will
+            be periodically inserted in the data stream.  The mechanism
+            for this is intended to monitor slowly varying values (for example
+            magnet currents).  Here's a brief sketch about how this works:
+        </para>
+        <itemizedlist>
+            <listitem><para>
+                In your slow controls configuration file you specify Tcl
+                variables whose values will be watched.
+                </para></listitem>
+            <listitem><para>
+                A slow controls client sets those variables to value that
+                reflect the things to be monitored in the outside world
+                (e.g. <application>controlpush</application> can set
+                the arrays <varname>EPICS_DATA</varname>,
+                <varname>EPISC_UNITS</varname> and <varname>EPICS_UPDATED</varname>
+                to reflect changes in epics process variables).
+                </para></listitem>
+            <listitem><para>
+                When the run is active, every two seconds the current values of
+                any variables that were modified since the last update operation
+                are pushed to the ring buffer as <literal>MONITORED_VARIABLE</literal>
+                string list items.  Note that towards the beginning of the
+                run one or more ring items will be generated that have
+                all monitored variable values.
+                </para>
+            </listitem>
+        </itemizedlist>
+        <section>
+            <title>Specifying variables to be monitored.</title>
+            <para>
+                The key to monitoring variables is that the control server is
+                really a Tcl interpreter executing commands that are poked into
+                it by its client sockets.  The Tcl server supports a new
+                command <command>watch</command> which allows you to specify
+                which variables should be monitored.
+            </para>
+            <para>
+                The example below specifies that the arrays
+                <varname>EPICS_DATA</varname>, <varname>EPICS_UNITS</varname>,
+                <varname>EPICS_UPDATED</varname> and the scalar variable
+                <varname>monitored</varname> should be monitored.;
+            </para>
+            <example>
+                <title>Specifying VM-USB monitored variables</title>
+                <programlisting>
+array set EPICS_DATA    [list]
+array set EPICS_UNITS   [list]     <co id='watchexample-createarrays' />
+array set EPICS_UPDATED [list]
+
+watch EPICS_DATA
+watch EPICS_UNITS                  <co id='watchexample-monitorarrays' />
+watch EPICS_UPDATED
+
+watch monitored                   <co id='watchexample-monitorscalar' />
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs='watchexample-createarrays' >
+                    <para>
+                        In order to monitor an array, the array must first
+                        be created. Note that this is not the case
+                        for a scalar variable.
+                        </para>
+                </callout>
+                <callout arearefs='watchexample-monitorarrays'>
+                    <para>
+                        These commands specify that the three arrays
+                        we created with the <command>array set</command>
+                        command should be monitored.
+                    </para>
+                </callout>
+                <callout arearefs='watchexample-monitorscalar'>
+                    <para>
+                       Since <varname>monitored</varname> was not created as
+                       an array only the single scalar value
+                       will be monitored.
+                       </para>
+                </callout>
+            </calloutlist>
+            <para>
+                For more information about the <command>watch</command>
+                command see <link linkend="vmusb3-watch" endterm='vmusb3-watch-title' />
+                in the reference manual pages.
+            </para>
+        </section>
+    </section>
+
+<!--  
+    <section>
+        <title>Using VMUSBReadout with the state/boot managers</title>
+        <para>
+            For background on the state and boot managers as well as
+            the experiment configuration editor, see:
+            <link linkend='chap.boot' endterm='chap.boot.title' />,
+            <link linkend='chap.statemgr' endterm='chap.statemgr.title' /> and
+            <link linkend='chap.expconfig' endterm='chap.expconfig.title' />.
+        </para>
+        <para>
+            To make the VMUSBReadout run under the state/boot managers you must:
+        </para>
+        <itemizedlist>
+            <listitem>
+                <para>
+                    Write a small script to incorporate the
+                    <literal>ReadoutStateHook</literal> package into the
+                    VMUSBReadout's main interpreter.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    Configure the VMUSBReadout to use the
+                    -<option>-init-script </option> option to specify this
+                    script.
+                </para>
+            </listitem>
+        </itemizedlist>
+        <para>
+            Here's a sample of the script you need to write:
+        </para>
+        <example>
+            <title>Script to incoprorate <literal>ReaodutStateHook</literal> into
+            VMUSBReadout</title>
+            <programlisting>
+set pkgDirs [file join $env(DAQROOT) TclLibs]
+lappend auto_path $pkgDirs
+
+package require ReadoutStateHook                   
+            </programlisting>
+        </example>
+        <para>
+            Note that the <literal>DAQROOT</literal> environment variable gets
+            defined by the boot manager for all of the programs it manages.
+            Other environment variables get defined as well that describe to
+            the <literal>ReadoutStateHook</literal> how to connect to the
+            state manager.
+        </para>
+        
+    </section> 
+-->
+
+</chapter>
+
+<!-- /chapter -->
+

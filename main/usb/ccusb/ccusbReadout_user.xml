@@ -1,0 +1,3448 @@
+<!-- chapter user-guide -->
+<chapter>
+    <title>CCUSBReadout</title>
+    <para>
+        The CCUSB Readout framework provides support for the Wiener-JTec
+        CC-USB CAMAC controller.  The CC-USB is a USB CAMAC controller that
+        uses a Xilinx gate array to implement a CAMAC list processor.
+        The CCUSB Readout framework provides:
+    </para>
+    <itemizedlist>
+        <listitem><para>
+            A high level approach to the problem of data taking with the CC-USB
+        </para></listitem>
+        <listitem><para>
+            Support for user written device support without any need to
+            understand the format of list operations supported by the CC-USB.
+            Drivers can be written in either C++ or in object oriented extensions
+            to Tcl.
+        </para></listitem>
+        <listitem>
+            <para>
+                Direct insertion of data taken to an arbitrary destination
+                ringbuffer.
+            </para>
+        </listitem>
+        <listitem>
+            <para>
+                Support for use as a data source with the NSCL event builder.
+            </para>
+        </listitem>
+    </itemizedlist>
+    <para>
+        This Chapter provides overview information that describes
+    </para>
+    <itemizedlist>
+        <listitem>
+            <para>
+                The philosophy behind the CCUSB readout framework.
+            </para>
+        </listitem>
+        <listitem>
+            <para>
+                How to write configuration files for the CCUSB readout
+                framework.
+            </para>
+        </listitem>
+        <listitem>
+            <para>
+                How to write device support modules in in C++ and incorpoprate
+                those modules into the
+                CCUSB readout framework 
+            </para>
+        </listitem>
+        <listitem>
+            <para>
+                How to write device support modules in Tcl and incorporate
+                those modules in the CCUSB readout framework.
+            </para>
+        </listitem>
+
+        <listitem>
+            <para>
+                How the slow controls framework operates.
+            </para>
+        </listitem>
+        <listitem>
+            <para>
+                How to write slow controls drivers in C++
+            </para>
+        </listitem>
+        <listitem>
+            <para>
+                How to write slow controls drivers in Tcl
+            </para>
+        </listitem>
+        <listitem>
+            <para>
+                How to integrate the CCUSBReadout program with the state
+                manager.
+            </para>
+        </listitem>
+    </itemizedlist>
+    <para>
+        Reference information is available in the <literal>3ccusb</literal>
+        section of the referencae material.
+    </para>
+    <section>
+        <title>How the CCUSB readout framework works</title>
+        <para>
+            The CCUSB readout framework provides a high level approach to
+            configuring devices supported by the system.  A plugin architecture
+            allows user written device support to be incorporated into
+            the framework at run-time.  
+        </para>
+        <para>
+            The framework supports both data taking devices and slow control
+            devices that may require a control panel.  Naturally you can
+            support relatively static slow control devices by using the
+            data taking device support as well.
+        </para>
+        <para>
+            The recurring concepts for both the data taking device support
+            and slow controls device support are:
+        </para>
+        <itemizedlist>
+            <listitem>
+                <para>
+                    A Tcl configuration file describes the devices used
+                    by the experiment.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    Each supported device class is represented in the
+                    configuration file by a Tcl command ensemble. The
+                    command ensemble provides subcommands that allow you to
+                    create, configure and query the configuration of
+                    physical devices (device instances).
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    The device configuration is represented in the configuration
+                    file in manner analagous to the state of a Tk widget.
+                    That is, you never actually program the device directly,
+                    you simply specify the desired configuration. The actual
+                    programming is done by the device class's device support
+                    software.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    In accordance with the way the CC-USB operates, you can create
+                    two lists or <firstterm>stack</firstterm>s in CC-USB parlance.
+                    One stack is an event stack and is intended to be used
+                    to handle event triggers.  The second stack is a scaler stack
+                    and typically is set to readout periodically.
+                </para>
+                <para>
+                    Each stack has, configuration properties as well. One
+                    configuration property is the set of modules managed
+                    by that stack.  Modules managed by that stack are initialized
+                    by the software, in accordance with their configuration,
+                    and contribute to the readout list that executes in response
+                    to that stack's trigger.
+                </para>
+            </listitem>
+        </itemizedlist>
+
+    </section>
+    <section>
+        <title>Writing DAQ configuration files</title>
+        <para>
+            The DAQ configuration file is processed at the beginning of each run.
+            The configuration file is processed in a fresh interpreter each time.
+            You therefore cannot maintain any state across runs via your configuration
+            file.
+        </para>
+        <para>
+            To illustrate module creation and configuration,
+            this let's look at a fragment from a configuration
+            file:
+        </para>
+        <example>
+            <title>Creating and configuring devices</title>
+            <programlisting>
+ph7xxx create tdc -slot 13 -id 0x7186 -sparse false
+ph7xxx config tdc -readhits true -usellt false -usehlt false
+            </programlisting>
+        </example>
+        <para>
+            The ph7xxx driver supports the Phillips 7xxx series
+            CAMAC 16 channel digitizers.  The <command>ph7xxx</command> command is the Tcl
+            command this driver recognizes.  The <command>create</command>
+            subcommand creates a new device instance and names it <literal>tdc</literal>.
+            When you create a module any addition command words following the
+            device name are interpreted as configuration options.
+            In this case, the module is configured to be in slot 13,
+            the driver is configured to emit a literal value (<option>-id</option>)
+            <literal>0x7186</literal> prior to data from the device.
+            The module is also configured to read all channels
+            (<option>-sparse</option> <literal>false</literal>).
+        </para>
+        <para>
+            The <command>config</command> subcommand allows you to further
+            configure the options of a device instance.  The second line
+            of the example continues specifying the configuration of the
+            device named <literal>tdc</literal>.  The configuration parameters
+            on that line request the driver to read the hit pattern register
+            (<option>-readhits</option> <literal>true</literal>), to not
+            enable  either the lower level threshold or the upler level threshold
+            (<option>-usellt</option> and <option>usehlt</option>).
+        </para>
+        <para>
+            The reference section <literal>3ccusb</literal> provides detailed
+            information that describes each supported device and the
+            configuration options it supports.
+        </para>
+        <para>
+            Configuration files must also specify at least one stack and, if
+            scaler modules are to be read periodically, a second scaler stack.
+            See the <xref linkend="ccusb3-stack" /> command
+            in the reference material for detailed information about how
+            to create and configure stacks.
+        </para>
+        <para>
+            To continue with the previous example:
+        </para>
+        <example>
+            <title>Configuring an event stack</title>
+            <programlisting>
+stack create events
+stack config events -modules [list tdc] -type event -delay 108
+            </programlisting>
+        </example>
+        <para>
+            Stacks are created and configured exactly like any other module.
+            In this configuration file fragment, a stack named
+            <literal>events</literal> is created.  It is configured to
+            manage the <literal>tdc</literal> module (<option>-modules</option>).
+            It is configured as the event stack (<option>-type</option>) which,
+            by default is triggered by a nim pulse in the <literal>IN1</literal>
+            input of the module. The <option>-delay </option> parameter
+            specifies a delay of 108usec between the trigger input and stack
+            execution.  This capability is provided to allow the digitizers
+            in the stack time to convert.
+        </para>
+        <para>
+            Finally here's a configuration file fragment that sets up an
+            LRS 2551 scaler and the scaler stack:
+        </para>
+        <example>
+            <title>Setting up a scaler stack</title>
+            <programlisting>
+
+lrs2551 create counters -slot 5
+stack create scaler
+stack config scaler -type scaler -period 2 -modules [list counters]
+
+            </programlisting>
+        </example>
+    </section>
+    <section>
+        <title>Writing device support software</title>
+        <para>
+            This section describes how to write a device support module.
+            Device support modules are built into shared object libraries
+            that can be dynamically loaded into the readout software via
+            the <command>load</command> command.
+        </para>
+        <para>
+            The device support package is provided as a template driver
+            source file and a Makefile that builds the shared object.
+            If the DAQ software is installed in $DAQROOT, the following
+            commands copy the template driver and its makefile:
+        </para>
+        <example>
+            <title>Obtaining the ccusb driver development kit</title>
+            <programlisting>
+<command>cp $DAQROOT/ccusbdriver/drivertemplate.cpp .</command>
+<command>cp $DAQROOT/ccusbdriver/Makefile .</command>
+            </programlisting>
+        </example>
+        <para>
+            The example below shows how to load a user written driver
+            and use the driver that is created by an unmodified driver template:
+        </para>
+        <example>
+            <title>Using a user written CCUSB driver</title>
+            <programlisting>
+set here [file nativename [file dirname [info script]]]
+load [file join $here libtemplatedriver.so]
+changeme create testing -value 0x1234
+            </programlisting>
+        </example>
+        <para>
+            The example assumes that you have built the driver in the same
+            directory as your configuration file.  The first example line
+            computes the full file path to the configuration file's directory.
+            The second loads the driver, joining that path to the name of the
+            shared object created by the Makefile.  Note that you typically will
+            need to provide a full path to the driver shared object or the
+            <command>load</command> command will claim the file cannot be located.
+            The final command creates and configures a device instance
+            named <literal>testing</literal> using the <command>changeme</command>
+            command the unmodified driver creates.
+        </para>
+        <para>
+            Let's look at the template driver you copied.
+            The template consists of two main chunks.  The first chunk is a
+            class derived from <classname>CReadoutHardware</classname> that is
+            responsible for managing the driver itself. You will normally
+            need to modify the <methodname>onAttach</methodname>,
+            <methodname>Initialize</methodname> and <methodname>addReadoutList</methodname>
+            methods of this class, as well as changing the class name to something
+            more reasonable than <classname>CTemplateDriver</classname>.
+        </para>
+        <para>
+            The second chunk is a Tcl package initialization function that
+            must define the Tcl command that is associated twith the driver.
+        </para>
+        <para>
+            While the driver template is heavily commented, and modification
+            points are indicated, the next few sections are a guided tour
+            of the main sections you will need to modify.
+        </para>
+        <section>
+            <title>The driver onAttach method</title>
+            <para>
+                Each driver instance has a configuration database attached to it
+                when it is created.  The configuration database holds configuration
+                parameter definitions and their current values.  The framework
+                takes care of managing the values for you, however you must
+                define the set of configuration parameters supported by your
+                driver.
+            </para>
+            <para>
+                The template driver's code is (comments removed for brevity:
+            </para>
+            <informalexample>
+                <programlisting>
+void
+CTemplateDriver::onAttach(CReadoutModule&amp; configuration)
+{
+  m_pConfiguration = &amp;configuration;                    <co id='ccusb-dtemplate-saveconfig' />
+  m_pConfiguration->addIntegerParameter("-slot", 1, 23, 1); <co id='ccusb-dtemplate-slotparam' />
+
+  m_pConfiguration->addIntegerParameter("-value"); // default is 0. <co id='ccusb-dtemplate-valueparam' />
+}
+                </programlisting>
+            </informalexample>
+            <calloutlist>
+                <callout arearefs='ccusb-dtemplate-saveconfig'>
+                    <para>
+                        <methodname>onAttach</methodname> needs to be able
+                        to access its configuration in other methods.
+                        The <parameter>configuration</parameter> parameter is
+                        a reference to that configuration.  This line
+                        saves a pointer to that configuration in the
+                        <varname>m_pConfiguration</varname> member variable.
+                        Note that a <classname>CReadoutModule</classname>
+                        is derived from a <classname>CConfigurableObject</classname>
+                        and that base class holds the configuration.
+                    </para>
+                    <para>
+                        This code is provided by the driver template.
+                    </para>
+                </callout>
+                <callout arearefs='ccusb-dtemplate-slotparam'>
+                    <para>
+                        Virtually all of the device support you write will
+                        need to know which slot in the CAMAC crate contains
+                        your module.  This line creates an integer
+                        parameter constrained to lie in the range
+                        <literal>[1..23]</literal> named <literal>-slot</literal>.
+                        The default value (if the user does not configure
+                        this item) is <literal>1</literal> (the last parameter
+                        of the <methodname>addIntegerParameter</methodname> call).
+                    </para>
+                    <para>
+                        This code is provided by the driver template.
+                    </para>
+                </callout>
+                <callout arearefs='ccusb-dtemplate-valueparam'>
+                    <para>
+                        This sample line shows how to create an unconstrained
+                        integer parameter named <literal>-value</literal>.
+                        The configuration subsystem will ensure the value
+                        is a valid integer but will not contrain the range
+                        of that integer.
+                    </para>
+                    <para>
+                        This line is provided by the template driver but normally
+                        is removed as you edit the code to define the
+                        configuration options you actually need.
+                    </para>
+                </callout>
+            </calloutlist>
+            <para>
+                Normally the <methodname>onAttach</methodname> method is simply
+                defining the set of configuration parameters it needs to know
+                how to initialize and read the device it manages.  Configuration
+                parameters are named items (by convention the names start with the
+                dash character) and are strongly typed. Integer, real, string,
+                enumerated, and boolean simple parameters are supported.  In
+                addtion collection (Tcl lists) are supported.
+            </para>
+            <para>
+                Parameter values can have constraints placed on them (the
+                range of <option>-slot</option> parameter values e.g.) which
+                are checked by the configuration subsystem without any intervention
+                by you.  Several pre-defined constraint checkers are available,
+                as are convenience functions for defining configuration parameters.
+                You can also define custom constraint checkers and register them
+                with the configuration subsystem.
+            </para>
+            <para>
+                See <xref linkend='ccusb3-CConfigurableObject' /> for
+                detailed information about how to define configuration
+                parameters.
+            </para>
+        </section>
+        <section>
+            <title>The driver Initialize method</title>
+            <para>
+                The <methodname>Initialize</methodname> method of each
+                device instance that has been put in a stack is called
+                after the configuration file is processed prior to loading
+                the stack and prior to turning on data taking mode in the
+                CC-USB.
+            </para>
+            <para>
+                Typically in <methodname>Initialize</methodname> you must:
+                <orderedlist>
+                    <listitem>
+                        <para>
+                            Fetch the configuration parameters you need
+                            to know how to initialize the device and prepare
+                            it for data taking.
+                        </para>
+                    </listitem>
+                    <listitem>
+                        <para>
+                            Issue method calls to the <parameter>controller</parameter>
+                            <classname>CCCUSB</classname> object passed in to the
+                            method.  Note that if your device requires a lot of
+                            initialization, you can speed up that process
+                            by creating <classname>CCCUSBReadoutList</classname>
+                            objects, which are lists of instructions, using
+                            its methods to create a list of operatinos and then
+                            asking the controller to execute that list.
+                        </para>
+                    </listitem>
+                </orderedlist>
+            </para>
+            <para>
+                For detailed information about the methods supported by
+                the <classname>CCCUSB</classname> and <classname>CCCUSBReadoutList</classname>,
+                see <xref linkend='ccusb3-CCCUSB' /> and <xref linkend='ccusb3-CCCUSBReadoutList' />
+            </para>
+            <para>
+                The template driver provides the following code (most
+                comments removed for brevity).
+            </para>
+            <informalexample>
+                <programlisting>
+void
+CTemplateDriver::Initialize(CCCUSB&amp; controller)
+{
+
+  int slot = m_pConfiguration->getIntegerParameter("-slot"); <co id='ccusb-dtemplate-init1' />
+
+  /* MODIFY ME HERE */
+                                                             <co id='ccusb-dtemplate-init2' />
+  /* END MODIFICATIONS */
+
+}
+
+
+                </programlisting>
+            </informalexample>
+            <calloutlist>
+                <callout arearefs='ccusb-dtemplate-init1'>
+                    <para>
+                        In most cases you need the slot number of the module
+                        to initialize it.  This call obtains the value of the
+                        <option>-slot</option> configuration parameter
+                        from the configuration database for this module.
+                    </para>
+                </callout>
+                <callout arearefs='ccusb-dtemplate-init2'>
+                    <para>
+                        You would add code here to fetch parameter values
+                        as well as method calls for the <parameter>controller</parameter>
+                        object to manipulate the CAMAC crate.  If initialization
+                        requires a large number of CAMAC operations you could
+                        also create a <classname>CCCUSBReadoutList</classname>,
+                        manipulate it to store a set of operatiuons and then
+                        use <parameter>controller.executeList(3ccusb)</parameter> to
+                        execute that list.
+                    </para>
+                </callout>
+            </calloutlist>
+        </section>
+        <section>
+            <title>The driver addReadoutList method</title>
+            <para>
+                <methodname>addReadoutList</methodname> is called as a run is
+                being intialized.  This method is expected to contribute items
+                to the <classname>CCCUSBRedoutList</classname> that will be
+                loaded into either a scaler or event stack.  Usuall this is done
+                by fetching the set of configuration parameters that are required
+                to know how to read the device and then invoking appropriate
+                methods on the <parameter>list</parameter> parameter to
+                add CAMAC operations to the stack.
+            </para>
+            <para>
+                The template driver implements a marker 'device'. The marker
+                device ignores its <option>-slot</option> configuration parameter
+                (a production quality marker driver would probably not define
+                a <option>-slot</option> parameter).  It adds an instrution
+                to the <parameter>list</parameter> that inserts a  literal
+                value into the event.  The value inserted is determined by
+                the <option>-value</option> parameter.
+            </para>
+            <para>
+                Here's the sample driver code for the <methodname>addReadoutList</methodname>
+                method:
+            </para>
+            <informalexample>
+                <programlisting>
+void
+CTemplateDriver::addReadoutList(CCCUSBReadoutList&amp; list)
+{
+  int slot = m_pConfiguration->getIntegerParameter("-slot");
+  
+  /* MODIFY ME HERE */
+  
+  int value = m_pConfiguration->getIntegerParameter("-value");  <co id='ccusb-dtemplate-read1' />
+  list.addMarker(value);        // This is a longword marker.   <co id='ccusb-dtemplate-read2' />
+
+  /* END MODIFICATIONS */
+}
+
+                </programlisting>
+            </informalexample>
+            <calloutlist>
+                <callout arearefs='ccusb-dtemplate-read1'>
+                    <para>
+                        This line fetches the <option>-value</option>
+                        cofiguration parameter.  This is the value
+                        that we are going to insert into the event buffer
+                    </para>
+                </callout>
+                <callout arearefs='ccusb-dtemplate-read2'>
+                    <para>
+                        The <methodname>addMarker</methodname> method adds
+                        the CCUSB instructions to insert a literal value in the
+                        output buffer to the list being built up. This
+                        therefore instructs the CCUSB that the readout of this
+                        'device' consists of inserting the value of the
+                        <option>-value</option> configuration parameter.
+                    </para>
+                    <para>
+                        Naturally a real device would add NAF instructions or
+                        Q-Stop/C-Scan operations to the list via other
+                        <classname>CCCUSBReadoutList</classname> methods.
+                    </para>
+                </callout>
+            </calloutlist>
+        </section>
+        <section>
+            <title>Initializing the driver with the framework.</title>
+            <para>
+                The Tcl <command>load</command> command searches the
+                shared object for a specific function entry point that
+                it will call to initialize the library.  The initialization function
+                must follow the correct naming conventions or Tcl will complain
+                about not being able to find the library's initialization function.
+            </para>
+            <para>
+                The initialization entry point must be the name of the
+                resulting library with the <literal>lib</literal> prefix stripped
+                off and the first letter capitalized suffixed by <literal>_Init</literal>.
+                Thus if you are building
+                <filename>libmydriver.so</filename>, the initialation function
+                must be called <function>Mydriver_Init</function>.
+            </para>
+            <para>
+                The template driver provides the following code:
+            </para>
+            <informalexample>
+                <programlisting>
+extern "C" {                                    <co id='ccusb-dtemplate-dinit1' />
+  int Templatedriver_Init(Tcl_Interp* pInterp)  <co id='ccusb-dtemplate-dinit2' />
+  {
+    Tcl_PkgProvide(pInterp, "Templatedriver", "1.0"); <co id='ccusb-dtemplate-dinit3' />
+ 
+    CUserCommand::addDriver("changeme", new CTemplateDriver); <co id='ccusb-dtemplate-dinit4' />
+
+    return TCL_OK;                               <co id='ccusb-dtemplate-dinit5' />
+
+  }
+}
+                </programlisting>
+            </informalexample>
+            <calloutlist>
+                <callout arearefs='ccusb-dtemplate-dinit1' >
+                    <para>
+                        Since C++ <firstterm>decorates</firstterm> function  names
+                        with an encoding of the call signature, to support function
+                        overloading, you must declare the initialization
+                        functino using C linkage conventions.  The
+                        <literal>extern "C" {}</literal> creates a block of
+                        code whose externally visible symbols will use C
+                        linkage conventions.
+                    </para>
+                </callout>
+                <callout arearefs='ccusb-dtemplate-dinit2'>
+                    <para>
+                        In general you will need to modify the name of this
+                        to work with the name of the library file you
+                        create.  The discussion prior to this example
+                        describes the naming conventions that are required.
+                    </para>
+                </callout>
+                <callout arearefs='ccusb-dtemplate-dinit3'>
+                    <para>
+                        In our examples we used the Tcl <command>load</command>
+                        command to load the driver.  This statement registers
+                        the library as providing a Tcl loadable package.
+                        You can use the Tcl command <command>pkg_mkIndex</command>
+                        to build an auto load index file for loadable packages
+                        including those in shared libraries.  This allows you
+                        to collect several drivers into a directory added to the
+                        auto load path, and use the <command>package require</command>
+                        command to load them by package name.  You must
+                        change the name of the package in this call
+                        to be something unique and descriptive of your driver.
+                    </para>
+                </callout>
+                <callout arearefs='ccusb-dtemplate-dinit4'>
+                    <para>
+                        The <classname>CUserCommand</classname>::<methodname>addDriver</methodname>
+                        function associates a template device driver object
+                        with its Tcl command ensemble name.  The template device driver
+                        object is cloned for each <command>create</command> subcommand
+                        issued for this driver in the configuration script.
+                        You should change both the name of the driver command
+                        from <literal>changeme</literal> and you should have
+                        previously changted the class name of the
+                        driver class from <classname>CTemplateDriverM</classname>
+                    </para>
+                </callout>
+                <callout arearefs='ccusb-dtemplate-dinit5'>
+                    <para>
+                        If the library initialization was successful it
+                        should return <literal>TCL_OK</literal> on failure
+                        it shouild return <literal>TCL_ERROR</literal>.
+                        In this case it is also customary to use
+                        e.g. Tcl_SetResult or a similar function to set the
+                        result of the load command to a descriptive error
+                        message.
+                    </para>
+                </callout>
+            </calloutlist>
+        </section>
+    </section>
+    <section>
+        <title>Tcl device driver support</title>
+        <para>
+            This section describes how to provide support for device drivers
+            as Tcl modules.  The first subsection will describe in general
+            terms how to do this.  The second and third subsections will show
+            sample drivers written in the snit and Incr-Tcl object oriented
+            extensions of Tcl along with sample fragments of DAQ configuration
+            files that show how to use these drivers. Note that while snit and
+            Incr-Tcl drivers are shown any Tcl object oriented extension can
+            probably be used as could a carefully crafted set of
+            <command>namespace ensemble</command> commands.
+        </para>
+        <section>
+            <title>Conceptual background</title>
+            <para>
+                If you have not read the section on writing C++ device drivers
+                you should at least skim it.  Several of the concepts
+                are important.  Specifically:
+            </para>
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        A device support module provides a command that
+                        generates device instances.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Device instances have to provide an
+                        <methodname>Initialize</methodname> method that
+                        initializes the device according to some configuration
+                        of the instance.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Device instances have to provide a
+                        <methodname>addReadoutList</methodname> method that
+                        adds elements to the list of CAMAC operations
+                        that are executed when the stack they live in
+                        is triggered.
+                    </para>
+                </listitem>
+            </itemizedlist>
+            <para>
+                All of this is a natural match to the way all of the object
+                oriented extensions to Tcl work.  Specifically you write a
+                class like thing.  Creating an instance of the class creates
+                a new Tcl command <firstterm>ensemble</firstterm>.  The
+                public methods of the instance become sub commands of the
+                new Tcl command.  
+            </para>
+            <para>
+                The CCUSB framework therefore provides a
+                mechanism, the <command>addtcldriver</command> command to
+                add an object instance command to the set of devices that
+                can be added to a stack. The <command>addtcldriver</command>
+                command registers the command name as a name of a  device
+                that can be put in a stack.  The command ensemble is also
+                wrapped in an actual driver that invokes
+                <methodname>Initialize</methodname>, and
+                <methodname>addReadoutList</methodname>
+                methods at the appropriate times.
+            </para>
+            <para>
+                The final piece of the puzzle is providing access to the
+                CCUSB and CCUSBReadout list capabilities to Tcl drivers.
+                This has been done by wrapping Tcl command ensembles around both
+                of those classes using SWIG
+                (see <ulink url='http://www.swig.org'>http://www.swig.org</ulink>).
+            </para>
+            <para>
+                As we will see when we work our way through sample drivers,
+                the C++ wrappers are not able to actually pass a SWIG wrapped
+                object to the driver methods.  The driver must take the
+                swig pointer like parameter and turn it into a SWIG object
+                before it can be used.  A Tcl fragment that shows how to
+                turn the CCCUSB pointer into a SWIG CCCUSB object is shown
+                below:
+            </para>
+            <informalexample>
+                <programlisting>
+...
+method Initialize ccusbPointer {
+    cccusb::CCCUSB c -this $ccusbPointer
+    ...
+}
+...
+                </programlisting>
+            </informalexample>
+            <para>
+                The example takes the <varname>ccusbPointer</varname> parameter
+                which must be a swig like pointer to  a CCCUSB object and
+                turns it in to a swig object named <literal>c</literal>
+                which is a SWIG object representing the underlying CCCUSB
+                passed in to the <methodname>Initialize</methodname> method.
+            </para>
+        </section>
+        <section>
+            <title>A sample snit Tcl CCUSB framework driver</title>
+            <para>
+                This section will go through a sample snit driver describing
+                how it works.  To see this driver incorporated in a DAQ
+                configuration file see
+                <xref linkend='ccusb-general-tcldriver-usage' />.
+            </para>
+            <para>
+                First a word or two about snit.  Snit is a pure Tcl object
+                oriented framework for Tcl written by Will Duquette from
+                the Jet Propulsion Laboratory in Pasadena.
+                <ulink url='http://wiki.tcl.tk/3963'>
+                    http://wiki.tcl.tk/3963</ulink>
+                provides access to documentation and examples of snit in action.
+            </para>
+            <para>
+                snit is part of the <literal>TclLib</literal> which is installed
+                on all systems at the NSCL.
+            </para>
+            <para>
+                Snit classes are created via the <command>snit::type</command>
+                command.  Snit classes feature <command>method</command>s
+                which are analagous to member functions in C++ classes.
+            </para>
+            <para>
+                snit also
+                provides all types with a <command>configure</command> and
+                <command>cget</command> command and a mechanism for declaring
+                options that can be manipulated by these commands. Using this
+                capability allows you to configure snit device driver instances
+                in a manner analagous to the C++ driver instances supported
+                by the CCUSB framework.
+            </para>
+            <para>
+                Below is a complete implementation of a snit driver that,
+                at initialization time turns on the yellow LED and adds
+                a marker to the readout list.  The marker value can be configured
+                via the instances built in configure subcommand.
+            </para>
+            <example>
+                <title>A snit CCUSB device driver module</title>
+                <programlisting>
+lappend auto_path /usr/opt/daq/10.1/lib  <co id='ccusb-snit-auto_path' />
+
+package require snit                    
+package require cccusb                  <co id='ccusb-snit-packages' />
+package require cccusbreadoutlist
+
+
+snit::type marker-snit {                <co id='ccusb-snit-type' />
+    option -value 0                     <co id='ccusb-snit-option' />
+
+    #
+    # Called when the run is being started.  
+    # 
+    # @param driverPtr - 'pointer' to the CCUSB object.
+    #
+    method Initialize driverPtr {      <co id='ccusb-snit-Initializemethod' />
+
+ 
+        cccusb::CCCUSB c -this $driverPtr; <co id='ccusb-snit-ccusbswigwrap' />
+
+        # Get the led programming now
+        # Yellow is the mask of FF0000
+        # Clear out those bits and set that field to be 110000 which is source I3 and
+        # inverted.
+
+        set leds [c readLedSelector]      <co id='ccusb-snit-readleds' />
+        set leds [expr {$leds &amp;  0xffff}]
+        set leds [expr {$leds | 0x110000}]
+        c writeLedSelector $leds         <co id='ccusb-snit-writeleds' />
+
+    }
+    # Called to contribute to the readout list
+    #   
+    # @param list - 'pointer' to the CCCUSBReadoutList which will be wrapped in a
+    #                swig wrapper.
+    #
+    method addReadoutList list {       <co id='ccusb-snit-addReadoutListmethod' />
+
+        #
+        # Wrap the list so we can use it:
+        #
+        cccusbreadoutlist::CCCUSBReadoutList l -this $list; <co id='ccusb-snit-ccusbreadoutlist-swigwrap' />
+
+        l addMarker $options(-value)                        <co id='ccusb-snit-addmarker' />
+
+    }
+}
+
+                </programlisting>
+            </example>
+            <para>
+                The numbers in the explanations below refer to the corresponding
+                numbers in the example text.
+            </para>
+            <calloutlist>
+                <callout arearefs='ccusb-snit-auto_path'>
+                    <para>
+                        The SWIG Tcl wrappers for the CCUSB and CCUSBReadoutList
+                        classes are installed in the <filename>lib</filename>
+                        subdirectory of the NSCLDAQ installation.  This
+                        adds that directory for the 10.1 verssion of nslcdaq
+                        to the package loads search path.  This allows those
+                        packages to be loaded via the <command>package require</command>
+                        package.
+                    </para>
+                </callout>
+                <callout arearefs='ccusb-snit-packages'>
+                    <para>
+                        Incorporates the following packages into the
+                        driver, if they have not been loaded elsewhere:
+                    </para>
+                    <variablelist>
+                        <varlistentry>
+                            <term>snit</term>
+                            <listitem><para>
+                                The snit package.  This implements the
+                                object oriented framework this example uses.
+                                </para></listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term>cccusb</term>
+                            <listitem>
+                                <para>
+                                    The  swig wrapper for the
+                                    CCUSB C++ class.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term>cccusbreadoutlist</term>
+                            <listitem>
+                                <para>
+                                    The swig wrapper for the CCCUSBReadoutList
+                                    C++ class.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                    </variablelist>
+                </callout>
+                <callout arearefs='ccusb-snit-type'>
+                    <para>
+                        The <command>snit::type</command> command
+                        creates a new snit class like entity. The
+                        type is named <command>marker-snit</command> and
+                        the list of commands that follow define the
+                        body of the class.  This creates a new command
+                        <command>marker-snit</command> primarly used to
+                        construct instances of the type.
+                    </para>
+                </callout>
+                <callout arearefs='ccusb-snit-option'>
+                    <para>
+                        Snit objects all have a set of options that are
+                        modified via their built in
+                        <command>configure</command> sub command and accessed
+                        externally via their <command>cget</command>
+                        built in sub command.
+                    </para>
+                    <para>
+                        The <command>option</command> command within a snit
+                        type body defines a configurable option
+                        (<option>-value</option> in this case), and optionally
+                        provides an initial value.
+                    </para>
+                </callout>
+                <callout arearefs='ccusb-snit-Initializemethod'>
+                    <para>
+                        Instance subcommands are created via the
+                        snit <command>method</command> command.  This command
+                        looks exactly like the <command>pro</command> command
+                        except that methods generate subcommands.
+                    </para>
+                    <para>
+                        The <methodname>Initialize</methodname> method must
+                        be implemented by all device driver objecgt (do-nothing
+                        implementations are fine).  The parameter to this method
+                        is a pointer like entity which points to a
+                        <classname>CCCUSB</classname> object that communuicates
+                        with the selected CAMAC crate.
+                    </para>
+                    <para>
+                        The <methodname>Initialize</methodname> method is
+                        invoke for all object instances that are added to stacks.
+                        It is suposed to look at the configuration items and
+                        do what is necessary to program the module it supports
+                        to prepare to take data in the specified configuration.
+                    </para>
+                </callout>
+                <callout arearefs='ccusb-snit-ccusbswigwrap'>
+                    <para>
+                        Creates a swig wrapping of the <classname>CCCUSB</classname>
+                        class whose underlying class is the class 'pointed to'
+                        by the <parameter>driverPtr</parameter> parameter.
+                    </para>
+                    <para>
+                        The wrapping creats a command <command>c</command>
+                        Subcommands of that command are mapped to methods in the
+                        <classname>CCCUSB</classname> C++ class.
+                    </para>
+                    <para>
+                        You can also get Swig to name the new object after
+                        the pointer that was passed in:
+                        <informalexample>
+                            <programlisting>
+...
+cccusb::CCCUSB -this $driverPtr
+...
+                            </programlisting>
+                        </informalexample>
+                        Where $driverPtr can be used as the CCCUSB object
+                        command.
+                    </para>
+                </callout>
+                <callout arearefs='ccusb-snit-readleds'>
+                    <para>
+                        This is an example of invoking a CCCUSB method.
+                        The subcommand <methodname>readLedSelector</methodname>
+                        reads the CC-USB LED selector register. The subsequent
+                        code makes changes the fields that control the yellow
+                        LED so that it's input is the NIM IN3 inpout and is lit
+                        when there is no input (inverted state).  This should
+                        normally light the yellow LED.
+                    </para>
+                </callout>
+                <callout arearefs='ccusb-snit-writeleds'>
+                    <para>
+                        Invokes the CCCUSB <methodname>writeLedSelector</methodname>
+                        so that the new value of the LED selector register
+                        takes effect.
+                    </para>
+                </callout>
+                <callout arearefs='ccusb-snit-addReadoutListmethod'>
+                    <para>
+                        The <methodname>addReadoutList</methodname>
+                        is invoked for each driver instance that is in a stack
+                        as the run is started.  It is is expected to contribute
+                        elements to a <classname>CCCUSBReadoutList</classname>
+                        object that read the supported module in the manner
+                        defined by the object's configuration.
+                    </para>
+                    <para>
+                        The <parameter>list</parameter> parameter is a pointer
+                        like value to a <classname>CCCUSBReadoutList</classname>
+                        object.
+                    </para>
+                </callout>
+                <callout arearefs='ccusb-snit-ccusbreadoutlist-swigwrap'>
+                    <para>
+                        Wraps the pointer in a SWIG object analagous to what
+                        was done for the ccusb pointer passed to
+                        <methodname>Initialize</methodname>.
+                    </para>
+                </callout>
+                <callout arearefs='ccusb-snit-addmarker'>
+                    <para>
+                        Adds a marker to the list.
+                        The marker value will be value of the
+                        <option>-value</option> option. In snit, options
+                        are put in an array named <varname>options</varname>
+                        indexed by the option name.
+                    </para>
+                </callout>
+
+            </calloutlist>
+        </section>
+        <section>
+            <title>A sample Incr-Tcl Tcl CCUSB framework driver</title>
+            <para>
+                Incr Tcl is an object oriented extension for Tcl.  It is installed
+                on all NSCL systems.  It provides the ability to define
+                <firstterm>classes</firstterm>. As with snit, creating a class
+                 instance (object) creates a new command.  The public class
+                 methods are then subcommands for the object command.
+            </para>
+            <para>
+                As with snit, objects can have configurations that are manipulated
+                and queried via built in <command>config</command> and
+                <command>cget</command> object subcommands.  Unlike snit,
+                all public member variables are considered to be
+                configurable objects to Incr Tcl.
+            </para>
+            <para>
+                The properties above make Incr Tcl a viable option for
+                implementing driver support.
+            </para>
+            <para>
+                <ulink url='http://incrtcl.sourceforge.net/itcl/'>
+                    http://incrtcl.sourceforge.net/itcl/</ulink>
+                provides information about Incr Tcl.
+            </para>
+            <para>
+                The example below shows a marker driver identical in functionality
+                to the snit driver shown in the previous section, but written
+                with Incr Tcl.
+            </para>
+            <example>
+                <title>CCUSB device support example writtin in Incr Tcl</title>
+                <programlisting>
+lappend auto_path /usr/opt/daq/10.1/lib
+puts $auto_path
+package require Itcl                       <co id='ccusb-itcl-header' />
+package require cccusb
+package require cccusbreadoutlist
+
+itcl::class marker-itcl {                 <co id='ccusb-itcl-class' />
+    public variable value 0               <co id='ccusb-itcl-options' />
+
+    #
+    # Called when the run is being started.  
+    # 
+    # @param driverPtr - 'pointer' to the CCUSB object.
+    #
+    public method Initialize driverPtr {  <co id='ccusb-itcl-initialize' />
+
+        #  This turns the driver pointer into a CCUSB object which
+        #  can make use of the SWIG wrappers for the CCUSB code:
+
+        cccusb::CCCUSB c -this $driverPtr; # c is a CAMAC controller object.
+
+        # Get the led programming now
+        # Yellow is the mask of FF0000
+        # Clear out those bits and set that field to be 110000 which is source I3 and
+        # inverted.
+
+        set leds [c readLedSelector]
+        set leds [expr {$leds &amp;  0xffff}]
+        set leds [expr {$leds | 0x110000}]
+        c writeLedSelector $leds
+
+    }
+    # Called to contribute to the readout list
+    #   
+    # @param list - 'pointer' to the CCCUSBReadoutList which will be wrapped in a
+    #                swig wrapper.
+    #
+    public method addReadoutList list {               <co id='ccusb-itcl-addreadoutlist' />
+
+        #
+        # Wrap the list so we can use it:
+        #
+        cccusbreadoutlist::CCCUSBReadoutList l -this $list; # l is now a swig wrapper over the list.
+
+        l addMarker $value                          <co id='ccusb-itcl-addmarker' />
+
+    }
+
+                </programlisting>
+            </example>
+            <para>
+                 The numbers in the explanations below refer to the numbers
+                 in the example above.
+            </para>
+            <calloutlist>
+                <callout arearefs='ccusb-itcl-header'>
+                    <para>
+                        This heading is easily  understandable from the
+                        example in the previous section.  The only difference
+                        is that the Itcl package is loaded instead of snit.
+                    </para>
+                </callout>
+                <callout arearefs='ccusb-itcl-class'>
+                    <para>
+                        The <command>class</command> command creates an Incr
+                        Tcl class. The class name <command>marker-itcl</command>
+                        becomes the command name for creating class instances
+                        (objects).
+                    </para>
+                </callout>
+                <callout arearefs='ccusb-itcl-options'>
+                    <para>
+                        Unlike snit Incr Tcl does not have a separate facility
+                        for creating options.  Any instance variable that is
+                        declared <literal>public</literal> is treated as
+                        a configuration parameter.
+                    </para>
+                    <para>
+                        Therefore this line creates the
+                        <option>-value</option>.   Configuring
+                        <option>-value</option> will modify this variable.
+                        Cgetting <option>-value</option> will read this
+                        variable.
+                    </para>
+                </callout>
+                <callout arearefs='ccusb-itcl-initialize'>
+                    <para>
+                        The <methodname>Initialize</methodname> method
+                        has been described previously.  The body of this
+                        method is identical to the body of the
+                        correpondig <literal>snit::type</literal>.
+                        method.
+                    </para>
+                </callout>
+                <callout arearefs='ccusb-itcl-addreadoutlist'>
+                    <para>
+                        Creates a method to be called when the software
+                        is building readout lists.  With the exception
+                        shown below, this too is identical to the
+                        contents of the same method in the snit example.
+                    </para>
+                </callout>
+                <callout arearefs='ccusb-itcl-addmarker'>
+                    <para>
+                        In Incr Tcl, options are just member variables.
+                        Therefore when the marker is added ot the stack,
+                        <literal>$value</literal> substitutes the
+                        selected value.
+                    </para>
+                </callout>
+            </calloutlist>
+        </section>
+        <section id="ccusb-general-tcldriver-usage">
+            <title>Using Tcl drivers in the DAQ configuration file.</title>
+            <para>
+                Using a Tcl driver in the DAQ configuration file requires that you
+            </para>
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        Incorporate the driver code into your DAQ configuration
+                        script.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Create device instances for the hardware you want read
+                        out by your experiment.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Register the device instances with the CCUSB frameowork
+                        so that they can be referred to in
+                        <command>stack</command> or other
+                        module containing commands.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Add the instances to a stack
+                    </para>
+                </listitem>
+            </itemizedlist>
+            <formalpara>
+                <title>Incorporating driver code into the DAQ configuration file</title>
+                <para>
+                    Tcl provides two suitable mechanisms for incorporating
+                    device support code into your DAQ configuration script.  Note
+                    that these mechanisms are not restricted to device support
+                    code but could be used to incorporate any Tcl library code
+                    you might need.
+                </para>
+            </formalpara>
+            <para>
+                The <command>source</command> command allows you to include
+                a specific Tcl script file given a relative or absolute path
+                directly to that script.  Suppose our device support
+                file named <filename>mydriver.tcl</filename> is located
+                in the same directory as the configuration script.  The
+                code fragment below is an accepted way to source that file
+                that doesn ot assume the current working directory is where the
+                script is:
+            </para>
+            <informalexample>
+                <programlisting>
+set here [file dirname [info script]]
+source [file join $here mydriver.tcl]
+                </programlisting>
+            </informalexample>
+            <para>
+                The first command determines the directory that holds the
+                script while the second uses that to construct a path to the
+                <filename>mydriver.tcl</filename> file for the <command>source</command>
+                command.
+            </para>
+            <para>
+                If you develop a library of device support code, or are using
+                someone else's device support code, it is probably preferable
+                to use the Tcl <command>package</command> command,
+                <filename>pkgIndex.tcl</filename> and package search paths
+                to load the driver code.
+            </para>
+            <para>
+                The author of the driver code you are using must have cooperated
+                to the extent of having a <command>package provide</command>
+                command in their scripts, and creating a <filename>pkgIndex.tcl</filename>
+                (through e.g. Tcl's <command>pkg_mkIndex</command> command) in the
+                directories holding their packagtes.
+            </para>
+            <para>
+                Once this is done you can append the script package directories
+                to your <varname>auto_path</varname> variable and use
+                <command>package require</command> to pull in the required
+                files.
+            </para>
+            <para>
+                Suppose, for example, <filename>/projects/mydetector/drivers</filename>
+                is a directory that contains several device support scripts
+                given package names like <literal>device1</literal>
+                <literal>device2</literal>, suppose further that you are
+                running in conjunction with another system that has
+                <literal>device3</literal> in <filename>/projects/otherdetector/drivers</filename>.
+                The following script fragment uses the Tcl package facility to load
+                those drivers:
+            </para>
+            <informalexample>
+                <programlisting>
+lappend auto_path /projects/mydetector/drivers /projects/otherdetector/drivers
+package require device1
+package require device2
+package require device3
+                </programlisting>
+            </informalexample>
+            <para>
+                Furthermore, by using the <literal>TCLLIBPATH</literal>
+                rather than the <varname>auto_path</varname> variable you
+                can make it so that your script does not need to know
+                which directories have package files.
+            </para>
+            <formalpara>
+                <title>Creating device instances</title>
+                <para>
+                    How you create device instances depends on how you the
+                    driver was written.  In snit, for example you use the
+                    <command>snit::type</command> type name's create
+                    sub command.  For example for the previous example driver:
+                </para>
+            </formalpara>
+            <informalexample>
+                <programlisting>
+marker-snit create snitmarker
+                </programlisting>
+            </informalexample>
+            <para>
+                creates an instance of the driver named <literal>snitmarker</literal>.
+                The base name of the resulting command ensemble is also
+                <command>snitmarker</command>.
+                In the case of our Incr Tcl driver:
+            </para>
+            <informalexample>
+                <programlisting>
+marker-itcl itclmarker
+                </programlisting>
+            </informalexample>
+            <para>
+                Creates an instance whose name is <literal>itclmarker</literal>
+                and whose instance command is
+                <command>itclmarker</command>
+            </para>
+            <para>
+                Once created, how you configure the device depends on the
+                framework used to build the driver.  For both the
+                snit and Incr Tcl examples, the <command>configure</command>
+                command can be used to configure  the object instance:
+            </para>
+            <informalexample>
+                <programlisting>
+<replaceable>instance-command</replaceable> configure -value 0x1234
+                </programlisting>
+            </informalexample>
+            <formalpara>
+                <title>Registering device instances</title>
+                <para>
+                    Device instances must be registered.  Until they are,
+                    they have an existence completely independent of the CCUSB
+                    framework.  Registration makes their instance command
+                    the name of a device that can be added to <command>stack</command>
+                    <option>-module</option> lists.
+                </para>
+            </formalpara>
+            <para>
+                The <command>addtcldriver</command> command associated a Tcl
+                instance command with a module name:
+            </para>
+            <informalexample>
+                <programlisting>
+addtcldriver snitmarker
+                </programlisting>
+            </informalexample>
+            <para>
+                Creates a module name <literal>snitmarker</literal> that is
+                associated with the <command>snitmarker</command>
+                instance of the <classname>marker-snit</classname> driver.
+            </para>
+            <para>
+                Given this discussion, here is a fragment of a
+                daq cofiguration script:
+            </para>
+            <example>
+                <title>DAQ config script fragment with tcl drivers.</title>
+                <programlisting>
+...
+set here [file dirname [info script]]
+
+source [file join $here testdriver-snit.tcl]
+marker-snit create snitmarker
+snitmarker configure -value 0x5678
+addtcldriver snitmarker
+
+source [file join $here testdriver-itcl.tcl]
+marker-itcl itclmarker
+itclmarker configure -value 0xfafa
+addtcldriver itclmarker
+
+
+# testing and tdc were defined earlier by 'normal' commands.,
+
+stack create events
+stack config events -modules [list itclmarker snitmarker testing tdc] -type event -delay 108
+
+                </programlisting>
+            </example>
+        </section>
+            
+    </section>
+    <section>
+      <title>The slow controls subsystem</title>
+        <anchor id="ccusb.slowcontrols.intro"/>
+        <para>
+            There is nothing to stop you from creating device support that
+            does not do anything in its <methodname>addReadoutList</methodname>.
+            You could do this to implement static controls devices.  That is
+            non data taking devices whose configuration is set up at the start of
+            a run and cannot be dynamically modified.
+        </para>
+        <para>
+            There are cases, however when you'd like to have some control
+            panel associated with a device, that would provide a virtual knob
+            allowing you to dynamically modify settings in the device.
+            The slow controls subsystem supports this by offering a
+            TCP/IP server which can accept commands to set and query
+            devices.  
+        </para>
+        <para>
+            If the run is halted, the slow controls server can directly
+            manipulate the CCUSB to perform the desired device changes.
+            If, however the CCUSB is in data taking mode, the slow controls
+            server pauses the run, makes the setting and then resumes the run.
+            You should avoid working with control panels during production runs
+            for that reason.
+        </para>
+        <para>
+            The philosophy of the slow controls subsystem is similar to that
+            of the readout subsystem.  A controls configuration file defines
+            the control modules present in the system and their unchanging
+            configuration.  Note that the controls configuration file
+            is read only as CCUSBReadout starts, not once per run as
+            for the data acquisition configuration file.
+        </para>
+        <para>
+            The <command>Module</command> command is used to create configure
+            and query the configuration of slow controls devices known to the server.
+            The example below shows how to a Phillips PH7106 leading edge
+            discriminator:
+        </para>
+        <informalexample>
+            <programlisting>
+Module create led ph7106
+Module config led -slot 3
+            </programlisting>
+        </informalexample>
+        <para>
+            The <literal>3ccusb</literal> reference section describes the Module types available,
+            the configuration options available, their control panels and
+            the network protocol used to communicate with the controls server.
+        </para>
+    </section>
+    <section>
+        <title>Running CCUSBReadout</title>
+        <para>
+            <application>CCUSBReadout</application> is installed as:
+            <filename>$DAQROOT/bin/CCUSBReadout</filename>.
+        </para>
+        <para>
+            Several command options control the way CCUSBReadout operates:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term><option>-serialno</option></term>
+                <listitem>
+                    <para>
+                        Specifies the serial number of the CCUSB the program
+                        will use.  See <option>--enumerate</option> below.
+                        If not provided, the first CCUSB located will be used.
+                        If you only have one CCUSB connected to your system,
+                        this is suitable.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>--ring</option></term>
+                <listitem>
+                    <para>
+                        Specifies the ring buffer in which event data will
+                        be put by the program.  By default this is the
+                        same as the username you are logged in on .
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>--daqconfig</option></term>
+                <listitem>
+                    <para>
+                        Specifies the filename that contains the data acquisition
+                        configuration script.  This defaults to
+                        <filename>~/config/daqconfig.tcl</filename>
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>--ctlconfig</option></term>
+                <listitem>
+                    <para>
+                        Specifies the filename that contains the slow controls
+                        configuration script.  This defaults to
+                        <filename>~/config/controlconfig.tcl</filename>. Note
+                        that this file is required even if it is just an empty file.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>--init-script</option></term>
+                <listitem>
+                    <para>
+                        Specifies the name of a script that will be run in the
+                        interpreter just prior to starting the interpreter's
+                        command/event loop.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>--port</option></term>
+                <listitem>
+                    <para>
+                        Specifies the port on which the slow controls server
+                        listens for connections.  This defaults to
+                        <literal>27000</literal>.  The value of thie parameter
+                        can be either an intger port number or the special
+                        string <literal>managed</literal>.
+                    </para>
+                    <para>
+                        If the value is <literal>managed</literal> CCUSBReadout
+                        will work with the NSCL port manager to allocate and
+                        advertise itself on a managed port.  The port will
+                        be advertised as <literal>CCUSBReadout:</literal><replaceable>controller</replaceable>
+                        Where <replaceable>controller</replaceable> is the serial
+                        number of the controller or <literal>FirstController</literal>
+                        if no specific serial number was requested.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>--enumerate</option></term>
+                <listitem>
+                    <para>
+                        Requests that the software list the serial numbers of
+                        the CCUSB devices currently attached to the system and
+                        exit.  Note that the serial 'numbers' are actually strings
+                        of the form <literal>CCnnnn</literal> where <replaceable>nnnn</replaceable>
+                        is a number.  One of these strings can be handed to the
+                        <option>--serialno </option> to select the CCUSB
+                        to use.
+                    </para>
+                    <para>
+                        Sample output:
+                    </para>
+                    <informalexample>
+                        <programlisting>
+/usr/opt/daq/10.1/bin/CCUSBReadout --enumerate
+CC-USB scriptable readout version V2.0
+[0] : CC0134
+
+                        </programlisting>
+                        <para>
+                            This output says the system is attached to a single
+                            CCUSB whose serial number string is
+                            <literal>CC0134</literal>
+                        </para>
+                    </informalexample>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>--sourceid</option></term>
+                <listitem>
+                    <para>
+                        If a <option>--timestamplib</option> option is present,
+                        events will have a full body header and the integer
+                        value of this switch determines the value of the source
+                        id.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>--timestamplib</option></term>
+                <listitem>
+                    <para>
+                        The value of this option is a path to a shared object
+                        library.  If present, the library must have a C
+                        compatible entry point named <function>getTimestamp</function>.
+                        If not supplied all events will have abbreviated body
+                        headers and no timestamps will be present.
+                    </para>
+                    <para>
+                        The library is dynamically loaded into the readout
+                        program and <function>getTimestamp</function> is called
+                        for each event.  <function>getTimestamp</function>
+                        receives a single null pointer parameter, which points
+                        to the event and is supposed to return a
+                        <type>uint64_t</type> value that is that event's
+                        timestamp.
+                    </para>
+                    <para>
+                        If the library has a further entry named
+                        <function>onBeginRun</function>, taking no parametesr and
+                        having no return value, this funtion is called when the run
+                        starts.
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+    </section>
+    <section>
+        <title>Writing C++ slow controls device drivers</title>
+        <para>
+            The slow controls system can make use of the Tcl <command>load</command>
+            or <command>package require</command> commands to dynamically
+            load compiled code in shared object modules.  This section provides a
+            step by step tutorial that describes how to write, build and
+            incorporate compiled slow controls drivers.
+        </para>
+        <para>
+            It is also possible to write slow controls drivers in Tcl and
+            <link linkend='sec-ccusb-tcl-slowcontrols-drivers'
+                    endterm='sec-ccusb-tcl-slowcontrols-drivers-title' />
+            describes how to do this.
+        </para>
+        <para>
+            To build a slow controls driver you should
+        </para>
+        <orderedlist>
+            <listitem><para>
+                Obtain the sample driver and Makefile from the skeleton
+                directories.
+                </para></listitem>
+            <listitem><para>
+                Modify the sample driver and Makefile to meet your needs
+                </para>
+            </listitem>
+            <listitem><para>
+                Optionally make a <filename>pkgIndex.tcl</filename> package
+                file to make the resulting shared library into a
+                Tcl loadable package.
+                </para></listitem>
+        </orderedlist>
+        <section>
+            <title>Obtaining the sample driver and its Makefile</title>
+            <para>
+                The skeleton driver is in the <filename>ccusbdriver/example</filename>
+                directory of the installation directory tree.  If, you have an
+                environment variable <literal>DAQROOT</literal> defined,
+                the following sequence of command makes a directory and copies
+                the files into it:
+            </para>
+            <example>
+                <title>Obtaining the sample CCUSB slow controls driver</title>
+                <programlisting>
+mkdir mydriver
+cp $DAQROOT/ccusbdriver/example * mydriver
+                </programlisting>
+            </example>
+            <para>
+                The driver example contains the following files:
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><filename>sampleDriver.cpp</filename></term>
+                    <listitem><para>
+                        The source code for the sample driver itself.
+                        </para></listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><filename>Makefile</filename></term>
+                    <listitem><para>
+                        A Makefile that can build a shared library out of the
+                        driver.  The Makefile will also build a <filename>pkgIndex.tcl</filename>
+                        file that, when put on the package search path alog with
+                        the driver shared library, allows the driver to be loaded
+                        with the <command>package require</command> command.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+            <para>
+                Note that both the sample driver and its makefile will need to
+                be modified to be of any use to you.
+            </para>
+        </section>
+        <section>
+            <title>Modifying the sample driver and Makefile.</title>
+            <para>
+                This section will go step by step through the sample device
+                driver sourc code.   The intent is to describe the classes and
+                functions it contains, as well as the class methods and expections
+                for those methods.
+            </para>
+            <para>
+                It is assumed that you are familiar with the
+                <link linkend='ccusb3-CCCUSB'>CCCUSB</link> and
+                <link linkend='ccusb3-CCCUSBReadoutList'>CCCUSBReadoutList</link>
+                classes.
+            </para>
+            <para>
+                Before proceeding to a description of the sample driver it is
+                important to know how driver instances (<command>Module</command>s)
+                come into existence.  The <command>Module</command> makes use
+                of an extensible driver factory.  A set of creator objects
+                that know how to create an instance of a driver for a specific
+                driver type.
+            </para>
+            <para>
+                Thus the sampled driver contains the following code:
+            </para>
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        The driver code (a class definition and implementation).
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        A creator (class definition and implementation) the
+                        extensible factory can use to creaste instances of our
+                        driver.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Initialization code that registers the driver as a
+                        package with the interpreter and registers the
+                        creator with the extensible factory so that the
+                        <command>Module</command> command can create
+                        instances of our driver.
+                    </para>
+                </listitem>
+            </itemizedlist>
+            <para>
+                Our driver will be a fairly abstract 'device' so that you can
+                play with it without the need for any specific hardware.
+                The driver will define several configuration options and
+                these options can be set and gotten by slow control
+                clients.
+            </para>
+            <section>
+                <title>Driver Code</title>
+                <para>
+                    This section breaks down the code in the driver and annotates it.
+                    As usual, the first part of the source file is a set of includes:
+                </para>
+                <example>
+                    <title>Headers for the CCUSB sample slow controls driver</title>
+                    <programlisting>
+
+#include &lt;tcl.h&gt;                      <co id='ccusb-slowdriver-includes-tcl.h' />
+#include &lt;CModuleFactory.h&gt;           <co id='ccusb-slowdriver-includes-CModuleFactory.h' />
+#include &lt;CModuleCreator.h&gt;           <co id='ccusb-slowdriver-includes-CModuleCreator.h' />
+#include &lt;CControlHardware.h&gt;         <co id='ccusb-slowdriver-includes-CControlHardware.h' />
+#include &lt;CControlModule.h&gt;           <co id='ccusb-slowdriver-includes-CControlModule.h' />
+#include &lt;string&gt;
+
+                    </programlisting>
+                </example>
+                <calloutlist>
+                    <callout arearefs='ccusb-slowdriver-includes-tcl.h' >
+                        <para>
+                            Since our driver will get loaded via the Tcl
+                            <command>load</command> or <command>package require</command>
+                            commands, we will need to interact a bit with the
+                            Tcl interpreter that runs the slow control server.
+                            This header includes the public Tcl definitions.
+                        </para>
+                    </callout>
+                    <callout arearefs='ccusb-slowdriver-includes-CModuleFactory.h'>
+                        <para>
+                            The <classname>CModuleFactory</classname> class is
+                            a singleton object that is the extensible module
+                            factory that was described above.  We need to know
+                            about it because we will need to register a
+                            creator object with it and associate that creator
+                            with a module type.
+                        </para>
+                        <para>
+                            See:
+                                <link linkend='ccusb3-cmodulefactory'
+                                      endterm='ccusb3-cmodulefactory-title' />
+                            for a reference page on the <classname>CModuleFactory</classname>
+                            extensible factory class.
+                        </para>
+                    </callout>
+                    <callout arearefs='ccusb-slowdriver-includes-CModuleCreator.h'>
+                        <para>
+                            This header defines the base class for all module
+                            creators registered with the <classname>CModuleFactory</classname>.
+                            Since we need to define a creator for our driver,
+                            we need the base class definition so that we can derive
+                            our own creator. (see
+                            <link linkend='ccusb3-cmodulecreator'
+                                  endterm='ccusb3-cmodulecreator-title' />
+                            )
+                        </para>
+                    </callout>
+                    <callout arearefs='ccusb-slowdriver-includes-CControlHardware.h'>
+                        <para>
+                            Drivers are classes that are derived from
+                            the <classname>CControlHardware</classname> base class.
+                            The base class defines the methods each driver must
+                            implement as abstract methods.  This header makes
+                            the definition of that base class available.
+                            (see
+                            <link linkend='ccusb3-ccontrolhardware'
+                                  endterm='ccusb3-ccontrolhardware-title' />
+                        </para>
+                    </callout>
+                    <callout arearefs='ccusb-slowdriver-includes-CControlModule.h'>
+                        <para>
+                            The makeup of a <classname>CControlHardware</classname>
+                            derived class is very similar to that of a <classname>
+                            CReadoutHardware</classname> derived class.  The driver
+                            provides the code needed to interface with the device.
+                            A <classname>CControlModule</classname> contains the
+                            configurable aspects of the device as well as providing
+                            Tcl parsing mechanisms for the module related commands.
+                            Finally the <classname>CControlModule</classname> provides
+                            the wrapper that translates client requests into
+                            driver requests.
+                        </para>
+                        <para>
+                            The <classname>CControlModule</classname> also, if
+                            necessary interfaces with the readout thread to bracket
+                            driver calls with run pause/resume operations so that
+                            single shot operations can be performed by the driver
+                            in the middle of a run (the CCUSB cannot perform single
+                            shot operations when the device is in data taking
+                            mode).
+                        </para>
+                        <para>
+                            <filename>CControModule.h</filename> defines the
+                            <classname>CControlModule</classname> class. Reference
+                            documentation of that class is in
+                            <link linkend='ccusb3-ccontrolmodule'
+                                  endterm='ccusb3-ccontrolmodule-title' />.
+                        </para>
+                    </callout>
+                </calloutlist>
+                <para>
+                    The remainder of this section is subdivided into sections
+                    that describe  the driver class and its implementation,
+                    the creator class and its implementation, the intialization
+                    code.
+                </para>
+                <section>
+                    <title>The driver class and its implementation</title>
+                    <para>
+                        Let's start by looking at the class definition for the
+                        driver itself.  First we'll give a brief overview of the
+                        methods the driver must define.  Then we will look at
+                        the implementation of each method with an eye towards
+                        what the method is expected to do.
+                    </para>
+                    <example><title>CCUSB Slow control driver class definition </title>
+                        <programlisting>
+class SampleDriver : public CControlHardware           <co id='ccusb-slowdriver-def-subclass' />
+{
+private:
+  CControlModule* m_pConfig;                           <co id='ccusb-slowdriver-def-m_pConfig' />
+public:
+  SampleDriver(std::string name);
+  virtual ~SampleDriver ();
+
+  // Forbidden methods
+
+private:                                              <co id='ccusb-slowdriver-def-noimplementation' />
+  SampleDriver(const SampleDriver&amp; rhs);
+  SampleDriver&amp; operator=(const SampleDriver&amp; rhs);
+  int operator==(const SampleDriver&amp; rhs);	    
+  int operator!=(const SampleDriver&amp; rhs);	    
+
+
+public:
+  virtual void onAttach(CControlModule&amp; configuration); <co id='ccusb-slowdriver-def-onattach' />
+  virtual void Initialize(CCCUSB&amp; camac);	            <co id='ccusb-slowdriver-def-initialize' />
+  virtual std::string Update(CCCUSB&amp; camac);            <co id='ccusb-slowdriver-def-update' />
+  virtual std::string Set(CCCUSB&amp; camac,                <co id='ccusb-slowdriver-def-set' />
+			  std::string parameter, 
+			  std::string value);              
+  virtual std::string Get(CCCUSB&amp; camac,                <co id='ccusb-slowdriver-def-get' />
+			  std::string parameter);          
+  virtual void clone(const CControlHardware&amp; rhs);	    <co id='ccusb-slowdriver-def-clone' />
+
+};
+                        </programlisting>
+                    </example>
+                    <para>
+                        Note that all the methods that are labeled as
+                        <literal>virtual</literal> are pure vitual in the base
+                        class.  This means that actual, concrete, device drivers
+                        must implement them.  If one of these methods does not
+                        make much sense for your driver, you can implement it
+                        as a method that does nothing, but you must implement
+                        all virtual methods.
+                    </para>
+                    <calloutlist>
+                        <callout arearefs='ccusb-slowdriver-def-subclass'>
+                            <para>
+                                As we mentioned earlier, all slow controls device
+                                drivers are derived from the
+                                <classname>CControlHardware</classname> class.
+                                In writing your own driver you must choose
+                                your own classname and substitute all
+                                instances of <literal>SampleDriver</literal>
+                                with the name you choose.
+                            </para>
+                        </callout>
+                        <callout arearefs='ccusb-slowdriver-def-m_pConfig'>
+                            <para>
+                                Each driver class has associated with it a
+                                <classname>CControlModule</classname> object.
+                                This object, among other things, contains the database
+                                of configurable parameters and their current
+                                values.  Most drivers will have member
+                                data to allow them to continue to use this
+                                object to define and fetch their configuration.
+                            </para>
+                            <para>
+                                For the sample driver. <varname>m_pConfig</varname>
+                                will contain a pointer to that object.  The
+                                object is associated with the driver instance
+                                by a call to <methodname>OnAttach</methodname>
+                                which is described below.
+                            </para>
+                        </callout>
+                        <callout arearefs='ccusb-slowdriver-def-noimplementation'>
+                            <para>
+                                If not defined, the methods in this section will
+                                get a default implementation from the compiler.
+                                For CCUSBReadout, these operations don't make sense
+                                and, in some circumstances, can be hard to implement
+                                properly.
+                            </para>
+                            <para>
+                                By declaring them to be <literal>private</literal>
+                                no external client of the class can call them.
+                                By not implementing them, internal, accidental
+                                requirements will fail as well.
+                                <footnote id='footnote-smprivate'>
+                                    <para>This idea comes from Scott Meyers <citetitle>Effective C++</citetitle>
+                                    book
+                                </para>
+                                </footnote>
+                            </para>
+                        </callout>
+                        <callout arearefs='ccusb-slowdriver-def-onattach'>
+                            <para>
+                                The <methodname>OnAttach</methodname> method is
+                                when the framework associates a
+                                <classname>CControlModule</classname> with the
+                                driver class.  Normally this method will
+                                define configuration parameters and save a
+                                pointer to the <classname>CControlModule</classname>
+                                object so that the configuration parameters
+                                can be fetched.
+                            </para>
+                            <para>
+                                If real CAMAC hardware is involved, a slow control
+                                driver will at least need a <literal>slot</literal>
+                                configuration parameter so it knows how to address
+                                the device.
+                            </para>
+                        </callout>
+                        <callout arearefs='ccusb-slowdriver-def-initialize'>
+                            <para>
+                                Some devices require a one-time initialization
+                                to place them into a known state.  This method is
+                                called at a suitable time for drivers to provide that
+                                initialization.
+                            </para>
+                        </callout>
+                        <callout arearefs='ccusb-slowdriver-def-update'>
+                            <para>
+                                Some devices have write only registers and can
+                                get in a state where the only knowledge of the
+                                internal state of the device is a shadow state
+                                maintained by the driver.  This method is
+                                used by clients to force the device to match
+                                that internal memorized state.
+                            </para>
+                        </callout>
+                        <callout arearefs='ccusb-slowdriver-def-set'>
+                            <para>
+                                This method is called when a client wants to set
+                                a parameter controlled by this driver instance.
+                                Normally this means changing a register or set of
+                                registers inside the physical device.
+                            </para>
+                        </callout>
+                        <callout arearefs='ccusb-slowdriver-def-get'>
+                            <para>
+                                This method is called when a client wants to read
+                                a parameter controlled by this driver instance.
+                                Normally this means reading a register or set of
+                                registers from the hardware.
+                            </para>
+                        </callout>
+                        <callout arearefs='ccusb-slowdriver-def-clone'>
+                            <para>
+                                <methodname>clone</methodname> is intended to
+                                implement virtual copy construction.  At this
+                                time that facility is not yet used and it is
+                                not likely it will be used in the future.
+                            </para>
+                        </callout>
+                    </calloutlist>
+                    <para>
+                        Let's look at the implementation of each of the methods
+                        of the class with an eye to the expectations placed on
+                        each method by the framework and to what a real driver
+                        might have to do to meet those expectations.
+                    </para>
+                    <formalpara>
+                        <title>Construction and destruction</title>
+                        <para>
+                            See
+                            <link linkend='ccusb-slowdriver-impl-condestruct'
+                                  endterm='ccusb-slowdriver-impl-condestruct-title' />
+                            for the actual implementation of these methods in the
+                            sample driver.
+                        </para>
+                    </formalpara>
+                    <example id='ccusb-slowdriver-impl-condestruct'>
+                        <title id='ccusb-slowdriver-impl-condestruct-title'>
+                            The constructor and destructor
+                        </title>
+                        <programlisting>
+
+SampleDriver::SampleDriver(std::string name) :
+  CControlHardware(name),             <co id='ccusb-slowdriver-impl-constr-baseinit' />
+  m_pConfig(0)                        <co id='ccusb-slowdriver-impl-constr-configinit' />
+{
+  
+}
+SampleDriver::~SampleDriver()
+{}                                   <co id='ccusb-slowdriver-impl-destruct' />
+
+                        </programlisting>
+                    </example>
+                    <calloutlist>
+                        <callout arearefs='ccusb-slowdriver-impl-constr-baseinit' >
+                            <para>
+                                The constructor must initialize the base
+                                class to ensure that the framework knows this
+                                object by its name.  The <parameter>name</parameter>
+                                parameter passed to the constructor and relayed
+                                to the base class constructor is the name given
+                                to the instance in the <command>Module create</command>
+                                command that resulted in creating this instance.
+                            </para>
+                        </callout>
+                        <callout arearefs='ccusb-slowdriver-impl-constr-configinit' >
+                            <para>
+                                The <varname>m_pConfig</varname> member variable
+                                will be used to hold a pointer to the
+                                driver instance's configuration object.
+                                In order to ensure that calls to this object
+                                fail with a bus-error if made prior to this
+                                attachment, the pointer is initialized to zero.
+                            </para>
+                        </callout>
+                        <callout arearefs='ccusb-slowdriver-impl-destruct'>
+                            <para>
+                                If the driver needs to create any dynamic data
+                                it would use this destructor to perform an
+                                orderly free of that data.  Since our driver
+                                is too simple to need dynamically allocated
+                                data, this method does nothing.
+                            </para>
+                        </callout>
+                    </calloutlist>
+                    <formalpara>
+                        <title>OnAttach</title>
+                        <para>
+                            This method is when the framework attaches a
+                            <classname>CControlModule</classname> to our instance.
+                            The <classname>CControlModule</classname>, among
+                            other things is derived from a
+                            <classname>CConfigurableObject</classname> and
+                            therefore maintains our configuration data.
+                        </para>
+                    </formalpara>
+                    <para>
+                        Usually <methodname>OnAttach</methodname> saves a pointer
+                        to the <classname>CControlModule</classname> and defines
+                        configuration parameters and their constraints.
+                        Our driver is no exception.  A normal driver will need to
+                        at least define a <literal>slot</literal> parameter so
+                        that the driver instance knows how to address the module
+                        it is controlling.
+                    </para>
+                    <example><title>CCUSB Slow controls driver <methodname>OnAttach</methodname></title>
+                        <programlisting>
+void
+SampleDriver::onAttach(CControlModule&amp; configuration) <co id='ccusb-slowdriver-impl-attach-params' />
+{
+  m_pConfig = &amp;configuration;                         <co id='ccusb-slowdriver-impl-attach-save' />
+  m_pConfig->addIntegerParameter("anint");                <co id='ccusb-slowdriver-impl-attach-anint' />
+  m_pConfig->addIntListParameter("test", 16);             <co id='ccusb-slowdriver-impl-attach-intlist' />
+  m_pConfig->addBooleanParameter("abool");                <co id='ccusb-slowdriver-impl-attach-abool' />
+}
+                        </programlisting>
+                    </example>
+                    <calloutlist>
+                        <callout arearefs='ccusb-slowdriver-impl-attach-params' >
+                            <para>
+                                Sincethe point of the call to <methodname>
+                                OnAttach</methodname> is to provide the
+                                <classname>CControlModule</classname> to the
+                                driver, a reference is passed to the
+                                driver (the <parameter>configuration</parameter>
+                                parameter).
+                            </para>
+                        </callout>
+                        <callout arearefs='ccusb-slowdriver-impl-attach-save' >
+                            <para>
+                                Since drivers, in general, define configuration
+                                parameters maintained by <parameter>configuration</parameter>,
+                                a pointer to the configuration is saved in
+                                <varname>m_pConfig</varname>.  This allows the
+                                values of configuration parameters to be
+                                accessed.
+                            </para>
+                        </callout>
+                        <callout arearefs='ccusb-slowdriver-impl-attach-anint'>
+                            <para>
+                                <methodname>OnAttach</methodname> is the method
+                                that should be used to create configuration
+                                parameters.  This line adds an integer
+                                parameter that is named <literal>anint</literal>
+                            </para>
+                        </callout>
+                        <callout arearefs='ccusb-slowdriver-impl-attach-intlist'>
+                            <para>
+                                Similarly this line adds a parameter that
+                                consists of a list of 16 integers named
+                                <literal>test</literal> to the configuration
+                                parameters.
+                            </para>
+                        </callout>
+                        <callout arearefs='ccusb-slowdriver-impl-attach-abool'>
+                            <para>
+                                This line creates a boolean parameter named
+                                <literal>abool</literal>
+                            </para>
+                        </callout>
+                    </calloutlist>
+                    <formalpara>
+                        <title>The <methodname>Initialize</methodname> method.</title>
+                        <para>
+                            Normally this method is used to place the
+                            hardware controlled by a driver instance into
+                            a known initial state.
+                        </para>
+                    </formalpara>
+                    <para>
+                        Since we have no hardware we don't need to do this:
+                    </para>
+                    <example>
+                        <title>CCUSB Slow controls driver initialize method</title>
+                        <programlisting>
+void
+SampleDriver::Initialize(CCCUSB&amp; camac)
+{
+}
+                        </programlisting>
+                    </example>
+                    <para>
+                        The only remark I want to make here is that the
+                        parameter <parameter>camac</parameter> allows the
+                        method to perform single short CAMAC operations.
+                        It also allows the method to execute immediate lists
+                        that were built up in a
+                        <classname>CCCUSBReadoutList</classname> object.
+                    </para>
+                    <formalpara>
+                        <title>The Update method</title>
+                        <para>
+                            The <methodname>Update</methodname> method is normally
+                            used by clients of devices that have state that is partially
+                            or entirely write only.
+                            Such drivers often maintain a 'shadow' state that
+                            attempts to maintain a knowledge of the hidden internal
+                            state of the device itself.
+                        </para>
+                    </formalpara>
+                    <para>
+                        The implementation of <methodname>Update</methodname> is:
+                    </para>
+                    <example>
+                        <title>CCUSB Slow controls driver Update</title>
+                        <programlisting>
+std::string
+SampleDriver::Update(CCCUSB&amp; camac)
+{
+    return "OK";
+}
+                        </programlisting>
+                    </example>
+                    <para>
+                        I want to clarify:
+                    </para>
+                    <orderedlist>
+                        <listitem>
+                            <para>
+                                The <parameter>camac</parameter> parameter allows
+                                this method to perform CAMAC operations. The
+                                method can build immediate lists using
+                                the <classname>CCCUSBReadoutList</classname>
+                                and execute them with the <parameter>camac</parameter>
+                                parameter as well.
+                            </para>
+                        </listitem>
+                        <listitem>
+                            <para>
+                                The return value of the method should either be
+                                the string <literal>OK</literal> which is passed
+                                back to the client and indicates the initialization
+                                was successful or
+                                <literal>ERROR </literal> which should be followed
+                                by an error message that is human readable, indicating
+                                the initialization failed.  The client usually
+                                strips off the <literal>ERROR</literal> part and
+                                displays the remainder.
+                            </para>
+                            <para>
+                                A sample error return might be:
+                                <literal>ERROR No X response, be sure the slot parameter is correct</literal>
+                            </para>
+                        </listitem>
+                        <listitem>
+                            <para>
+                                Driver code can be assured that there is no active run
+                                when this method is called.
+                            </para>
+                        </listitem>
+                    </orderedlist>
+                    <formalpara>
+                        <title>The Set method</title>
+                        <para>
+                            The <methodname>Set</methodname> method is eventually called
+                            to satisfy client <command>Set</command> requests that
+                            are directed at this module name.  Normal drivers
+                            will take the parameter name and value and use them
+                            to set some device state.
+                        </para>
+                    </formalpara>
+                    <para>
+                        Our driver instance uses its configuration parameters
+                        as the settable parameters rather than hardware.
+                        Note that when called the <methodname>Set</methodname>
+                        method can be assured that data taking is not active.
+                        If there is an active run, the framework pauses it
+                        before calling <methodname>Set</methodname> and
+                        resumes it when that method returns.
+                    </para>
+                    <para>
+                        Therefore the implemntation is:
+                    </para>
+                    <example>
+                        <title>CCUSB Slow controls driver Set method</title>
+                        <programlisting>
+std::string
+SampleDriver::Set(CCCUSB&amp; camac, std::string parameter, std::string value)
+{
+  try {
+    m_pConfig->configure(parameter, value);   <co id='cccusb-slowdriver-impl-set-configure' />
+  }
+  catch(std::string msg) {
+    std::string error = "ERROR ";             <co id='cccusb-slowdriver-impl-set-error' />
+    error += msg;
+
+    return error;
+  }
+  return "OK";                                 <co id='cccusb-slowdriver-impl-set-ok' />
+}
+                        </programlisting>
+                    </example>
+                    <calloutlist>
+                        <callout arearefs='cccusb-slowdriver-impl-set-configure'>
+                            <para>
+                                Our driver uses the configuration database
+                                as its 'device state'.  Instead of this
+                                line, a real driver would use the
+                                <parameter>parameter</parameter> argument to
+                                select a bit of device state and set that
+                                device state to what is desired by the
+                                <parameter>value</parameter> parameter.
+                            </para>
+                            <para>
+                                Normally this will involve CAMAC operations that
+                                can be done via the <parameter>camac</parameter>
+                                object.  Immediate lists can also be performed
+                                using a <classname>CCCUSBReadoutList</classname>
+                                to build the list and the <parameter>camac</parameter>
+                                object to execute them.
+                            </para>
+                        </callout>
+                        <callout arearefs='cccusb-slowdriver-impl-set-error'>
+                            <para>
+                                The string result of the method is used to report
+                                both success and failure back to the client.
+                                Srings that start with
+                                <literal>ERROR </literal> are error returns and
+                                the remainder of the string is a human readable
+                                error message the client usually displays.
+                            </para>
+                            <para>
+                                One example of an error return is:
+                                <literal>ERROR There is no parameter 'junk'</literal>.
+                            </para>
+                            <para>
+                                In the sample driver, errors in the
+                                <methodname>configure</methodname>
+                                method are reported by thrown strings.  These
+                                exceptions are caught and the actual value of
+                                the string is appended to the leading
+                                <literal>ERROR</literal> word.  In practice you
+                                will need to decide how to detect and communiate
+                                errors between different sections of your driver.
+                            </para>
+                        </callout>
+                        <callout arearefs='cccusb-slowdriver-impl-set-ok'>
+                            <para>
+                                On success, the <methodname>Set</methodname>
+                                method is supposed to return
+                                <literal>OK</literal>.
+                            </para>
+                        </callout>
+                    </calloutlist>
+                    <formalpara>
+                        <title>CCUSB Slow controls Get method</title>
+                        <para>
+                            The <methodname>Get</methodname> method is eventually
+                            called by the framework when a client requests an
+                            item of device state.  As with other methods that
+                            have a <parameter>camac</parameter> object as a
+                            parameter, if necessary, an active run is paused
+                            prior to the all and resumed after the method
+                            returns.
+                        </para>
+                    </formalpara>
+                    <para>
+                        Our device uses its configuration parameters to simulate
+                        a device state.  In a normal driver the driver would
+                        interact with the hardware to return the desired state.
+                    </para>
+                    <para>
+                        Here's our driver's <methodname>Get</methodname>
+                        implementation:
+                    </para>
+                    <example>
+                        <title>CCUSB slow controls Get method</title>
+                        <programlisting>
+std::string
+SampleDriver::Get(CCCUSB&amp; camac, std::string parameter)
+{
+  try {
+    return m_pConfig->cget(parameter);    <co id='ccusb-slowdriver-impl-get-cget' />
+  } catch(std::string msg) {
+    std::string error = "ERROR - ";       <co id='ccusb-slowdriver-impl-get-error' />
+    error += msg;
+    return error;
+  }
+  
+}
+                        </programlisting>
+                    </example>
+                    <calloutlist>
+                        <callout arearefs='ccusb-slowdriver-impl-get-cget'>
+                            <para>
+                                Since our device uses its configuration parameters
+                                as its 'device state', we just perform a
+                                call to <methodname>cget</methodname> on our
+                                configuration object.   This fetches the
+                                configuration parameter named <parameter>parameter</parameter>
+                                and returns its value.
+                            </para>
+                            <para>
+                                On successful return the method is supposed to
+                                return the stringified value of the device parameter
+                                specified by its <parameter>parameter</parameter>
+                                argument.  In a normal driver, the
+                                <parameter>camac</parameter> object would be used
+                                to interact with some physical device to
+                                fetch the requested device state.
+                            </para>
+                        </callout>
+                        <callout arearefs='ccusb-slowdriver-impl-get-error'>
+                            <para>
+                                The <methodname>cget</methodname> method throws
+                                a string exception on error.  The framework and
+                                client expect a string beginning with
+                                <literal>ERROR - </literal> if the
+                                <methodname>Get</methodname> method fails.
+                                As usual, the tail of this string should be a
+                                human readable error message.
+                            </para>
+                            <para>
+                                The sample driver simply appends the string
+                                exception value to the initial <literal>ERROR - </literal>
+                                to generate the return string.  An example of
+                                an error string might also be:
+                                <literal>ERROR - Parameter junk does not exist</literal>
+                            </para>
+                        </callout>
+                    </calloutlist>
+                    <formalpara>
+                        <title>The clone method</title>
+                        <para>
+                            The <methodname>clone</methodname> method is a
+                            placeholder for future funtionality. It is intended
+                            to support virtual copy construction if that is needed.
+                            It is very likely this functionality will never be needed
+                            and driver implementers can simply provide an empy
+                            implementation of this method (that's what the sample
+                            driver does).
+                        </para>
+                    </formalpara>
+                    <example>
+                        <title>CCUSB Slow controls clone method</title>
+                        <programlisting>
+void
+SampleDriver::clone(const CControlHardware&amp; rhs)
+{
+}
+                        </programlisting>
+                    </example>
+                    <para>
+                        If you do try to take on a real implementation of
+                        <methodname>clone</methodname> you will need to
+                        set your internal state to be the same as the
+                        object <parameter>rhs</parameter>, remember that
+                        internal state includes the internal state of
+                        superclasses.
+                    </para>
+                    <para>
+                        The <parameter>rhs</parameter> is an object that is
+                        guaranteed to be the type as your driver.
+                    </para>         
+                </section>
+                <section>
+                    <title>The creator class and its implementation</title>
+                    <para>
+                        The creator class is normally a very simple class.  It
+                        has only two requirements:
+                    </para>
+                    <itemizedlist>
+                        <listitem><para>
+                            It must be derived from <classname>CModuleCreator</classname>
+                            </para></listitem>
+                        <listitem><para>
+                            It must provide a functor method (<methodname>operator()</methodname>)
+                            that creates a named instance of the driver object.
+                            </para></listitem>
+                    </itemizedlist>
+                    <para>
+                        Here is the entire creator for our driver:
+                    </para>
+                    <example>
+                        <title>Module creator for the CCUSB Sample slow controls driver</title>
+                        <programlisting>
+class SampleCreator : public CModuleCreator {     <co id='ccusb-slowdriver-creatordef-derive' />
+public:
+  CControlHardware* operator()(std::string name);
+};
+
+CControlHardware*
+SampleCreator::operator()(std::string name)
+{
+  return new SampleDriver(name);                <co id='ccusb-slowdriver-creatordef-functor' />
+}
+                        </programlisting>
+                    </example>
+                    <calloutlist>
+                        <callout arearefs='ccusb-slowdriver-creatordef-derive'>
+                            <para>
+                                The <classname>SampleCreator</classname> class is
+                                derived from <classname>CModuleCreator</classname>
+                                and therefore meets the first requirement of
+                                creators.
+                            </para>
+                        </callout>
+                        <callout arearefs='ccusb-slowdriver-creatordef-functor'>
+                            <para>
+                                This method creates drivers instances and fulfils
+                                the second requirement of creators.
+                            </para>
+                        </callout>
+                    </calloutlist>
+                </section>
+                <section>
+                    <title>Driver initialization</title>
+                    <para>
+                        Drive initialization is normally relatively simple:
+                    </para>
+                    <itemizedlist>
+                        <listitem><para>
+                            If you decide to make your driver an actual Tcl
+                            package that can be loaded by the
+                            <command>package require</command> command, the
+                            package must be registered with the
+                            Tcl interpreter via a call to
+                            <function>Tcl_PkgProvide</function>
+                            </para></listitem>
+                        <listitem><para>
+                            An instance of the creator must be registered
+                            with the module factory.
+                            </para></listitem>
+                    </itemizedlist>
+                    <para>
+                        In addition, since at load time the Tcl interpreter
+                        computes the name of the initialization function from
+                        the name of the shared library or package, the
+                        initialization function must:
+                    </para>
+                    <itemizedlist>
+                        <listitem><para>
+                            Conform to the naming conventions specified in
+                            the documentation of the
+                            <ulink url='http://www.tcl.tk/man/tcl8.5/TclCmd/load.htm'>
+                                Tcl Load Command</ulink>.
+                           </para></listitem>
+                        <listitem><para>
+                            Have a C binding via the <literal>extern "C"</literal>
+                            construct so that C++ does not decorate the function
+                            name with the function signature.
+                            </para></listitem>
+                    </itemizedlist>
+                    <example>
+                        <title>CCUSB Slow control driver initialization function</title>
+                        <programlisting>
+extern "C" {                                 <co id='ccusb-slowdriver-init-externc' />
+int
+Sampledriver_Init(Tcl_Interp* pInterp)       <co id='ccusb-slowdriver-init-name' />
+{
+  int status;
+  
+  status = Tcl_PkgProvide(pInterp, "Sampledriver", "1.0");    
+  if (status != TCL_OK) {                   <co id='ccusb-slowdriver-init-provide' />
+    return status;
+  }
+  
+  CModuleFactory* pFact = CModuleFactory::instance(); <co id='ccusb-slowdriver-init-factinstance' />
+  pFact->addCreator("sample", new SampleCreator);     <co id='ccusb-slowdriver-init-factadd' />
+  
+  return TCL_OK;
+}
+}
+                        </programlisting>
+                    </example>
+                    <calloutlist>
+                        <callout arearefs='ccusb-slowdriver-init-externc'>
+                            <para>
+                                This line and the closing brace at the end of
+                                the example ensures that the function defined
+                                inside this block are not decorated.  Normally
+                                C++ mangles (decorates) the names of functions
+                                and methods to encode the types of parameters
+                                and return types in the function name.
+                                This is how overloading is implemented.
+                            </para>
+                            <para>
+                                Functions that are declared as
+                                <literal>extern "C"</literal> are intended to
+                                be called from C or other languages where this
+                                decoration is not done.  This construction
+                                therefore disables that decoration.
+                            </para>
+                        </callout>
+                        <callout arearefs='ccusb-slowdriver-init-name'>
+                            <para>
+                                Since the driver will be encapsulated in a package
+                                named <literal>Sampledriver</literal>, the initializer
+                                must be named <function>Sampledriver_Init</function>.
+                                Note that the slow controls interpreter is not a
+                                safe interpreter so the
+                                <function>Sampledriver_SafeInit</function> function
+                                does not need to be implemented.
+                            </para>
+                        </callout>
+                        <callout arearefs='ccusb-slowdriver-init-provide' >
+                            <para>
+                                This sectrion of code uses the
+                                <function>Tcl_PkgProvide</function> function
+                                to provide the package <literal>Sampledriver</literal>
+                                with a version of <literal>1.0</literal> to the
+                                interpreter.
+                            </para>
+                        </callout>
+                            
+                        <callout arearefs='ccusb-slowdriver-init-factinstance'>
+                            <para>
+                                The module creator factory (<classname>CModuleFactory</classname>)
+                                is a singleton object and the call to
+                                <methodname>CModuleFactory::instance</methodname>
+                                returns a pointer to the singleton.  If this icall fails,
+                                the failure status is returned from this function.
+                            </para>
+                        </callout>
+                        <callout arearefs='ccusb-slowdriver-init-factadd' >
+                            <para>
+                                This line instantiates a creator for the sample
+                                driver and registers it with the module factory.
+                                This registration allows the <command>Module create</command>
+                                command to create instances of our driver.
+                            </para>
+                        </callout>
+                    </calloutlist>
+                </section>
+            </section>
+
+            <section>
+                <title>The Makefile and typical modifications.</title>
+                <para>
+                    The Makefile has been written to be easily modified.
+                    In many cases you just need to adjust the values of some
+                    Makefile variables to get your driver built.
+                </para>
+                <para>
+                    The Makefile has targets to build both the shared library
+                    that contains your driver code, and a
+                    <filename>pkgIndex.tcl</filename> file that tells Tcl
+                    how to load your package.
+                </para>
+                <para>
+                    The example below is the Makefile as it is distributed.
+                </para>
+                <example>
+                    <title>CCUSB Slow controls driver Skeleton Makefile</title>
+                    <programlisting>
+INSTDIR=/usr/opt/nscldaq/11.0                     <co id='ccusb-slowdriver-makefile-instdir' />
+
+HEADER_DIR=$(INSTDIR)/ccusbdriver/includes
+LIB_DIR=$(INSTDIR)/lib
+
+
+#
+#  Modify the line below to include all of your driver files:
+
+SOURCES=sampleDriver.cpp                        <co id='ccusb-slowdriver-makefile-sources' />
+
+
+# Modify the lines below to be the name and version of your package
+# in the call to Tcl_PkgProvide
+
+PKGNAME=Sampledriver                          <co id='ccusb-slowdriver-makefile-pkginfo' />
+PKGVER=1.0
+
+#
+# Modify the line below to be the name of the desired
+# shared library:
+
+SONAME=sampleDriver.so                     <co id='ccusb-slowdriver-makefile-libname ' />
+
+# Don't touch these, use USERCXXFLAGS and USERLDFLAGS
+
+CXXFLAGS=-I/usr/include/tcl8.5 -I/usr/include/tcl8.5
+LDFLAGS= -L/usr/lib -ltcl8.5 -ldl  -lpthread -lieee -lm
+
+# Add your flag defs here:
+
+USERCXXFLAGS=                             <co id='ccusb-slowdriver-makefile-flags' />
+USERLDFLAGS=
+
+
+# Make the package index file if possible
+
+pkgIndex.tcl: $(SONAME)
+	echo "package ifneeded $(PKGNAME) $(PKGVER) [list load [file join \$$dir $(SONAME)]]" > pkgIndex.tcl
+
+
+# linux specific!
+
+$(SONAME):	$(SOURCES)
+	$(CXX) -o$(SONAME) -I$(HEADER_DIR) -L$(LIB_DIR) $(CXXFLAGS) $(USERCXXFLAGS) -shared -fPIC \
+	$(SOURCES) \
+	$(USERLDFLAGS) $(LDFLAGS) -Wl,"-rpath=$(LIB_DIR)"
+                    </programlisting>
+                </example>
+                <calloutlist>
+                    <callout arearefs='ccusb-slowdriver-makefile-instdir'>
+                        <para>
+                            This line defines the top level directory of the NSCLDAQ
+                            installation you are building against.  The minium
+                            that supports custom slow control drivers is
+                            11.0.  If you port your code to more recent versions
+                            of nscldaq, or to systems that have NSCLDAQ
+                            installed elsewhere you will need to modify this line.
+                        </para>
+                        <para>
+                            This line is normally generated by the NSCLDAQ installation
+                            process.
+                        </para>
+                    </callout>
+                    <callout arearefs='ccusb-slowdriver-makefile-sources'>
+                        <para>
+                            This line should contain a space separated list
+                            of the C/C++ sources that make up your driver.  These
+                            sources will be compiled by the Makefile and bound
+                            into the driver shared library.  If you neeed to continue
+                            on multiple lines, use a <literal> \ </literal> at the
+                            end of a line to indicate there is more.
+                        </para>
+                    </callout>
+                    <callout arearefs='ccusb-slowdriver-makefile-pkginfo'>
+                        <para>
+                            The part of the Makefile that generates the
+                            <filename>pgkIndex.tcl</filename> package index
+                            file needs to know the name and version of your
+                            package (as registered in the intialization function
+                            via the call to <function>Tcl_Pkg_Provide</function>).
+                        </para>
+                    </callout>
+                    <callout arearefs='ccusb-slowdriver-makefile-libname ' >
+                        <para>
+                            Similarly, the Makefile needs to know the name of
+                            the shared library you will be creating.  This
+                            is used when building the library and the package
+                            index file.
+                        </para>
+                    </callout>
+                    <callout arearefs='ccusb-slowdriver-makefile-flags'>
+                        <para>
+                            If you have additional compilation or
+                            link flags, supply them here.
+                        </para>
+                    </callout>
+                </calloutlist>
+            </section>
+              
+        </section>
+    </section>
+    <section id='sec-ccusb-tcl-slowcontrols-drivers'>
+        <title id ='sec-ccusb-tcl-slowcontrols-drivers-title'>
+            Writing Tcl slow controls device drivers </title>
+        <para>
+            Using the SWIG generated Tcl wrappers and the <literal>tcl</literal>
+            control module wrapper you can also write your slow controls drivers
+            in pure Tcl.  This section describes:
+        </para>
+        <itemizedlist>
+            <listitem><para>
+                How to write a slow controls driver in Tcl
+                </para></listitem>
+            <listitem><para>
+                How to use the <classname>Module create</classname> command
+                to hook an instance of your driver into the slow controls
+                framework.
+                </para>
+            </listitem>
+        </itemizedlist>
+        <para>
+            Before continuing with a detailed discussion of pure Tcl drivers,
+            it is important to understand Tcl command ensembles.  A command
+            ensemble is a command that has subcommands.  Traditionally, the
+            subcommand is the second keyword on the command line.
+            The Tcl
+            <ulink url='http://www.tcl.tk/man/tcl8.5/TclCmd/string.htm'>
+                string</ulink> command is an example ofa  command ensemble
+            that is part of the core lanaguage.
+        </para>
+        <para>
+            All Tcl slow controls drivers must be Tcl command ensembles that
+            implement some pre-defined subcommands.  When writing Tcl drivers,
+            it is useful to have an <firstterm>ensemble generator</firstterm>.
+            An ensemble generator is a mechanism that generates command ensembles
+            that follow the form of some template.  For example, all
+            Tk user interface creation commands (e.g.
+            <ulink url='http://www.tcl.tk/man/tcl8.5/TkCmd/canvas.htm'>canvas</ulink>)
+            are ensemble generators.  The widget they create becomes a Tcl command
+            that at least has the <command>config</command> and
+            <command>cget</command> subcommands.
+        </para>
+        <para>
+            Tcl object oriented extensions such as
+            <ulink url='http://www.tcl.tk/man/itcl3.1/'>IncrTcl</ulink>,
+            <ulink url='http://tcllib.sourceforge.net/doc/snit.html'>snit</ulink>
+            and as we transition to Tcl6.0,
+            <ulink url='http://wiki.tcl.tk/18152'>the Tcl6.0 tcloo object system</ulink>.
+            Can serve as generators.
+        </para>
+        <para>
+            For example, in instances of an incrTcl <literal>class</literal>,
+            public methods of that class are ensemble subcommands for the name of
+            the object.  Similarly, for objects generated by
+            <literal>snit::type</literal> class commands, the methods of that
+            type are ensemble methods of the generated command.
+        </para>
+        <para>
+            The remainder of this section describes a sample Tcl driver written
+            in Tcl that is similar in functionality to the sample driver written
+            in C++ described in the previous section. We'll use this sample driver
+            as a mechanism to describe and discuss the interfaces between the
+            sample driver and the framework.
+        </para>
+        <para>
+            Note that sample drivers perform CCUSB operations via the SWIG
+            wrappers for the CCCUSB class.  They can generate and perform lists
+            as well by using the SWIG wrapping of the CCUSBReadoutList class.
+            This section assumes you are familiar with those wrappers.
+        </para>
+        <para>
+            We are going to approach the description of the driver by first
+            showing a skeletal <command>snit::type</command> and then filling
+            in the body of each method.  Finally we'll show some script fragments
+            that show how to create instances of the type and how to integrate those
+            instances into the slow controls framework.
+        </para>
+        <para>
+            The example below is a snit driver with all of the executable code
+            stripped out.  This shows the general structure of the driverand
+            its methods.
+        </para>
+        <example>
+            <title>CCUSB Tcl slow controls driver skeleton</title>
+            <programlisting>
+package require cccusb             <co id='ccusb-tclslowdriver-skel-requires' />
+snit::type SampleDriver {          <co id='ccusb-tclslowdriver-skel-snittype' />
+    option -anint   -default 0    -configuremethod _CheckInt
+    option -anintlist -default 0  -configuremethod _CheckIntList <co id='ccusb-tclslowdriver-skel-options' />
+    option -abool   -default true -configuremethod _CheckBool
+    
+    
+    construtor args {}             <co id='ccusb-tclslowdriver-skel-construct' />
+    method Initialize crate {}     <co id='ccusb-tclslowdriver-skel-initialize' />
+    method Update crate {}         <co id='ccusb-tclslowdriver-skel-update' />
+    method Set {crate what value} {} <co id='ccusb-tclslowdriver-skel-set' />
+    method Get {crate what}  {}      <co id='ccusb-tclslowdriver-skel-get' />
+    
+    method _CheckInt     {name value} {}
+    method _CheckIntList {name value} {}
+    method _CheckBool    {name value} {}
+}
+            </programlisting>
+        </example>
+        <para>
+            It is no accident that there is a close parallel between the names of
+            the methods for the Tcl driver and those of a C++ class that
+            implements a slow control driver.
+        </para>
+        <calloutlist>
+            <callout arearefs='ccusb-tclslowdriver-skel-requires' >
+                <para>
+                    The <literal>cccusb</literal> package is the SWIG wrapping
+                    of the <classname>CCCUSB</classname> driver class.  In order
+                    to successfully <command>package require</command> this,
+                    the <filename>lib</filename> subdirectory of the NSCLDAQ
+                    installation must be part of the package search path.
+                </para>
+                <para>
+                    Some drivers may want to block up several CCUSB operations
+                    into a list.  To do this will also require a
+                    <command>package require cccusbreadoutlist</command>
+                    command to incorporate the SWIG wrapper for the
+                    <classname>CCCUSBReadoutList</classname>
+                </para>
+            </callout>
+            <callout arearefs='ccusb-tclslowdriver-skel-snittype' >
+                <para>
+                    This line starts the definition of a <command>snit::type</command>.
+                    The name of the type is <literal>SampleDriver</literal>.
+                    The definition continues through the final closing
+                    <literal>}</literal> in the example.
+                </para>
+                <para>
+                    <command>snit::type</command> creates an ensemble generating
+                    command (in this case <command>SampleDriver</command>) with
+                    subcommands defined by the <command>method</command> definitions
+                    within the body of the type.  The generated command ensembles
+                    also automatically have configuration management commands;
+                    <command>configure</command> which configures an object's
+                    option database, and <command>cget</command> which obtains
+                    information about that database.
+                </para>
+            </callout>
+            <callout arearefs='ccusb-tclslowdriver-skel-options' >
+                <para>
+                    <command>snit::type</command> objects can have associated
+                    configuration parameters.  These are maniuplated externally
+                    via the <command>configure</command> and
+                    <command>cget</command> subcommands much like for a Tk widget.
+                    Internally, methods can manipulate these options via the
+                    <varname>options</varname> array (indexed by option name).
+                </para>
+                <para>
+                    This section of code defines three options much like the
+                    C++ sample driver does. The <option>-default</option> option
+                    provides a default value for the option, effectively initializing
+                    that element of the <varname>options</varname> array.
+                    The <option>-configuremethod</option> option provides a
+                    method that is automatically called when an option is
+                    configured via the <command>configure</command> sub-command.
+                    We will use these methods to validate  a proposed new
+                    value for the option.
+                </para>
+                <para>
+                    Note that <command>snit::type</command> does not have
+                    any concept of a private method.  By NSCLDAQ convention,
+                    however, methods with names that begin with
+                    <literal>_</literal> should be considered internal and
+                    not called by external clients.
+                </para>
+            </callout>
+            <callout arearefs='ccusb-tclslowdriver-skel-construct'>
+                <para>
+                    If a <command>snit::type</command> defines a
+                    <command>constructor</command> this method is
+                    called when a new object is being created.  One reason
+                    most <command>snit::type</command>s need a constructor
+                    is to configure the options that may be specified on the
+                    end of the construction command (e.g.
+                    <command>SampleDriver adriver -anint 1234</command>).
+                </para>
+            </callout>
+            <callout arearefs='ccusb-tclslowdriver-skel-initialize'>
+                <para>
+                    This is called after the configuration script has been
+                    full processed. It is intended to allow the driver
+                    to perform one-time device initialization.  Note that
+                    the <parameter>crate</parameter> parameter is a
+                    SWIG wrapped <classname>CCCUSB</classname> controller that
+                    can be used by the driver to perform CAMAC operations.
+                </para>
+            </callout>  
+            <callout arearefs='ccusb-tclslowdriver-skel-update'>
+                <para>
+                    This is called in response to an Update request from a
+                    client.  One common use of this is to ensure that a device
+                    with write-only registers has a state that matches an
+                    internal shadow state maintained by the driver.
+                </para>
+            </callout>
+            <callout arearefs='ccusb-tclslowdriver-skel-set' >
+                <para>
+                    Called in response to a <command>Set</command> request by
+                    a client.  <parameter>crate</parameter> is a SWIG wrapped
+                    <classname>CCCUSB</classname> object and allows the
+                    ensemble to perform CAMAC operations.  The driver is suppoed
+                    define a set of named parameters the client can modify.
+                    <parameter>what</parameter> identifies which parameter the
+                    client wants to modify and <parameter>value</parameter> provides
+                    the new proposed value for the parameter.
+                </para>
+                <para>
+                    On success the method should return <literal>OK</literal>.
+                    The simplest way to report an error is with the
+                    Tcl <command>error</command> command.  The error text becomes
+                    the string after the <literal>ERROR </literal> text of an
+                    error return.
+                </para>
+            </callout>
+            <callout arearefs='ccusb-tclslowdriver-skel-get'>
+                <para>
+                    Called in response to a <command>Get</command> request by
+                    a client.  <parameter>crate</parameter> is a SWIG encapsulated
+                    <classname>CCCUSB</classname> object that can be used to
+                    perform CAMAC operations.
+                </para>
+                <para>
+                    Drivers are expected to define a set of named parameters
+                    that can be read.  These need not be the same as the set
+                    that can be written. <parameter>what</parameter> should be
+                    the name of one of these defined parameters.  On success, the
+                    driver should return the value of that parameter. On failure
+                    the driver should either execute an <command>error</command> comman
+                    or return a string of the form
+                    <literal>ERROR -</literal><replaceable>Error message</replaceable>
+                </para>
+                <para>
+                    If the driver does use <command>error</command> to indicate an
+                    error condition, the string passed to that command will
+                    be concatenated to <literal>ERROR -</literal> and returned to
+                    the client.
+                </para>
+            </callout>
+        </calloutlist>
+        <para>
+            Let's now look at the implementations of these methods:
+        </para>
+        <formalpara>
+            <title>construction</title>
+            <para>
+                Construction should be used to initialize the driver's internal
+                state.  Furthermore, the <methodname>configurelist</methodname>
+                predefined method can be used to process the configuration arguments
+                passed to the constructor.
+            </para>
+        </formalpara>
+        <example>
+            <title>CCUSB Tcl slow controls driver construction</title>
+            <programlisting>
+construtor args {
+    $self configurelist $args
+}
+            </programlisting>
+        </example>
+        <formalpara>
+            <title>Initialization</title>
+            <para>
+                Since we have no hardware we have no one-type initialization
+                of that hardware.  Note that if we did have to initialize
+                hardware the <parameter>crate</parameter> parameter can be
+                used to perform the CAMAC operations needed to do that
+                initialization.
+            </para>
+        </formalpara>
+        <example>
+            <title>CCUSB Tcl slow controls initialization</title>
+            <programlisting>
+method Initialize crate {
+}
+            </programlisting>
+        </example>
+        <formalpara>
+            <title>Update</title>
+            <para>
+                We don't have anything to do on Update.  In this case it's best
+                to make Update signal and error because clients should be
+                written not to use it for this device.
+            </para>
+            </formalpara>
+        <example>
+            <title>CCUSB Tcl Slow Controls Update</title>
+            <programlisting>
+method Update crate {
+    error "This device does not support 'Update'"
+}
+            </programlisting>
+        </example>
+        <para>
+            In this case we use the <command>error</command> command to signal
+            the error.  The Tcl module will catch this error and turn it into
+            the string
+            <literal>ERROR - This device does not support 'Update'</literal>.
+            We could have also directly returned that string.
+        </para>
+        <para>
+            If the <command>Update</command> method was legal for this driver,
+            and it executed successfully, we should return the string that we
+            want the client to get.  This is normally <literal>OK</literal>
+            indicating success.
+        </para>
+        <formalpara>
+            <title>Set</title>
+            <para>
+                In our case, <command>Set</command> will treat
+                <parameter>what</parameter> like a configuration
+                parameter name and <parameter>value</parameter> like
+                the value to use to set the parameter.
+                We are just going to do a <command>$self configure</command>
+                and let this produce an error if there are problems
+                (illegal configuration options, illegal values).
+                If we succeed, we'll return <literal>OK</literal> to indicate
+                that.
+            </para>
+        </formalpara>
+        <para>
+            Normally we'd need to use the <parameter>crate</parameter> parameter
+            to perform actual CAMAC operations.
+        </para>
+        <example>
+            <title>CCUSB Tcl Slow controls driver Set</title>
+            <programlisting>
+method Set {crate what value} {
+    $self configure $what $value
+    return "OK"
+}
+            </programlisting>
+        </example>
+        <formalpara>
+            <title>Get</title>
+            <para>
+                The <command>Get</command> will treat the <parameter>what</parameter>
+                parameter as the name of a configuration option.  If that option
+                exists it will be returned, otherwise an error message will be
+                generated.
+            </para>
+        </formalpara>
+        <example>
+            <title>CCUSB Tcl Slow Control driver Get</title>
+            <programlisting>
+method Get {crate what} {
+    if {[array names options $what] ne ""} {
+        return $options($what)
+    } else {
+        error "No such parameter '$what'"
+    }
+}
+            </programlisting>
+        </example>
+        <para>
+            Note that in <command>snit::type</command>s, the <varname>options</varname>
+            array contains the configuration options. The Tcl command
+            <command>array names</command> returns the names of array indices
+            that match a glob pattern.  We can get fooled into not emitting the
+            correct error message if, for example, we are asked to get
+            <literal>*anint</literal>.  In that case there will be a match with
+            <literal>-anint</literal>, and the error produced will be:
+            <literal>ERROR - can't read "options(*anint)": no such element in array</literal>
+        </para>
+        <formalpara>
+            <title>Option value checking.</title>
+            <para>
+                In our C++ driver we used configuration constraints to enforce
+                correctness in the form and values of the configuration options.
+                Tcl rivers are not able to take advantage of the capabilities of
+                a <classname>CConfigurableObject</classname>.  Therefore,
+                the onus of ensuring that options are correct is placed on
+                the driver.
+            </para>
+        </formalpara>
+        <para>
+            <command>snit::type</command> provides the ability to intercept
+            the <command>configure</command> (and for that matter the <command>cget</command>)
+            operations on an option by option basis.  This is done using the
+            <option>-configuremethod</option> when defining an option.
+        </para>
+        <para>
+            Configure methods are responsible for updating (or
+            not) the appropriate element of the
+            <varname>options</varname> array and can therefore
+            reject proposed changes.
+            Configure methods receive as parameters the name of
+            the option being configured and the new proposed value.
+            This allows options to share configuremethods.
+        </para>
+        <para>
+            We are going to further share code by having a helper function
+            that will throw an error if a string is not an integer.  This
+            helper will be used by both <methodname>_CheckInt</methodname> and
+            <methodname>_CheckIntList</methodname>.  For now we will assume
+            that <methodname>_CheckIntList</methodname> needs to see a 16
+            element list.  If this method needs to validate several lists
+            that are of different lengths, we would define a <command>variable</command>
+            for the object that would be an array indexed by option name whose
+            values would be the lengths of the list.
+        </para>            
+        <example>
+            <title>CCUSB Slow controls Tcl driver option validation</title>
+            <programlisting>
+
+method _CheckInt     {name value} {
+    $self _IsInt $value
+    set options($name) $value
+}
+
+method _CheckIntList {name value} {
+    if {[string is list $value]} {
+        if {[llength $value] == 16} {
+            foreach element $value {
+                $self _IsInt $element
+            }
+            set options($name) $value
+        } else {
+            error "$name option expects a list exactly 16 elements long"
+        }
+    } else {
+        error "$name must be a valid Tcl list"
+    }
+}
+method _CheckBool    {name value} {
+    if {[string is boolean -strict $value]} {
+        set options($name) $value
+    } else {
+        error "$name must be a boolean parameter, was: $value"
+    }
+}
+method _IsInt        {value} {
+    if {![string is integer -strict $value]} {
+        error "Configuration value $value must be an integer and is not"
+    }
+}
+            </programlisting>
+        </example>
+        <para>
+            Once a driver class/type has been created it can be used in the slow
+            controls configuration script by
+            <orderedlist>
+                <listitem><para>
+                    Creating an instance of the class/type.
+                    </para></listitem>
+                <listitem><para>
+                    Configuring any options for the instance
+                    </para></listitem>
+                <listitem><para>
+                    Wrapping the object in an tcl driver type by specifying it's
+                    name as the <option>-ensemble</option> option of the
+                    object.
+                    </para></listitem>
+            </orderedlist>
+        </para>
+        <example>
+            <title>Using the Tcl sample driver in a configuration script.</title>
+            <programlisting>
+set mydriver [SampleDriver %AUTO% -anint 1234 -abool false]
+Module create mydriver tcl
+Module config mydriver -ensemble $mydriver
+            </programlisting>
+        </example>
+    </section>
+    <section>
+      <title>The ccusbcamac Tcl package </title>
+      <anchor id="intro.ccusbcamac"/>
+      <para>
+        Now that you have been introduced to the slow-controls server and how to
+        write your own custom drivers to work with it, we will discuss a fully
+        implemented example of how this system might be used.  In the 
+        <link linkend="ccusb.slowcontrols.intro">Slow controls subsystem section</link>,
+        you were shown the <command>Module</command> command and instructed on how 
+        it can be used to register a slow-controls driver for a CAMAC discriminator. 
+        It can also be used to create a module of type <literal>ccusb</literal>, which 
+        is a module that enables remote control over the CC-USB from a client program. 
+        This chapter will focus on the the <literal>ccusbcamac</literal> Tcl package, 
+        which provides a client-side API to execute remote CAMAC commands through the 
+        <literal>ccusb</literal> module.
+      </para>
+      <para>
+        The <literal>ccusbcamac</literal> package provides an API compatible with 
+        the <literal>camac</literal> and <literal>wienercamac</literal> packages. It is 
+        therefore intended to be a drop in replacement for those two. 
+        The <literal>ccusbcamac</literal> package allows Tcl scripts to send
+        remote commands to the CC-USB device attached to the slow-controls server
+        it is connected to in a transparent way.
+      </para>
+      <para>
+        The package can be used to communicate with up to 56, unrelated CAMAC 
+        crates at the same time. Each of these crates is uniquely identified
+        by a pair of branch ane crate indices. It is important to understand that 
+        there are no physical CAMAC branches being referred to. Instead, the branch
+        and crate indices are used to uniquely identify a specific crate and
+        to store the connection information with it. A major benefit of maintaining
+        the branch and crate parameters is the maintaining of compatibility with the
+        <literal>camac</literal> and <literal>wienercamac</literal> packages.
+      </para>
+      <para>
+        The remainder of this chapter describes:
+        <itemizedlist>
+          <listitem>
+            <para>
+              How to incorporate this package in your scripts.
+            </para>
+          </listitem>
+          <listitem>
+            <para>
+              How to use the package itself and configure the CCUSBReadout 
+              slow-controls server.
+            </para>
+          </listitem>
+        </itemizedlist>
+      </para>
+      <para>
+        Reference material is available at
+        <link linkend="manpage.ccusbcamac">ccusbcamac(3tcl)</link>.
+      </para>
+      <section>
+        <title>Incorporating ccusbcamac in your scripts.</title>
+        <para>
+          Incorporating <literal>ccusbcamac</literal> in your scripts is a
+          three step process:
+          <orderedlist>
+            <listitem>
+              <para>
+                The NSCLDAQ Tcl package repository must be added to the
+                Tcl interpreter's package search path.
+              </para>
+            </listitem>
+            <listitem>
+              <para>
+                The NSCLDAQ lib directory must be added to the
+                Tcl interpreter's package search path.
+              </para>
+            </listitem>
+            <listitem>
+              <para>
+                The ccusbcamac package must be loaded into the interpreter
+                via an explicit <command>package require</command> command.
+              </para>
+            </listitem>
+          </orderedlist>
+        </para>
+        <para>
+          There are two ways to manipulate the Tcl interpreter package load
+          search path.  The environment variable <varname>TCLLIBPATH</varname>
+          is a space separated set of additional directories to search for packages.
+          The Tcl global variable <varname>auto_path</varname> is one of the
+          several Tcl variables that control the package search path.
+        </para>
+        <para>
+          From now on we will assume that the environment variable
+          <varname>DAQROOT</varname> has been defined to point to the
+          top level of the NSCLDAQ installation directory tree.
+          A bash shell script fragment that shows how to append the
+          NSCLDAQ Tcl package repository and lib path to the <varname>TCLLIBPATH</varname>
+          environment variable is shown below:
+        </para>
+        <informalexample>
+          <programlisting>
+            export TCLLIBPATH="$TCLLIBPATH $DAQROOT/TclLibs $DAQROOT/lib"
+          </programlisting>
+        </informalexample>
+        <para>
+          Similarly the code to add the NSCLDAQ Tcl package repository and 
+          lib directory to the <varname>auto_path</varname> interpreter global is shown
+          below:
+        </para>
+        <informalexample>
+          <programlisting>
+            global env
+            global auto_path
+            lappend auto_path [file join $env(DAQROOT) TclLibs]
+            lappend auto_path [file join $env(DAQROOT) lib]
+          </programlisting>
+        </informalexample>
+        <para>
+          Once these directories have been added to the
+          repository search path, an explicit <command>package require</command>
+          as shown below must be issued prior to using the package commands:
+        </para>
+        <informalexample>
+          <programlisting>
+            package require ccusbcamac
+          </programlisting>
+        </informalexample>
+        <para>
+          The commands defined by <literal>ccusbcamac</literal> are
+          defined in the <literal>ccusbcamac::</literal> namespace.
+          The examples in the next section will use fully qualified command
+          names (e.g. <command>::ccusbcamac::cdreg 1 1</command>).  It is
+          also possible to import the commands from that namespace
+          using the <command>namespace import</command> command.
+          If you are also using the <literal>wienercamac</literal> or <literal>camac</literal> 
+          package, this is not advisable as both packages share many of the same command names.
+        </para>
+      </section>
+      <section>
+        <title>Using ccusbcamac</title>
+        <para>
+          The ccusbcamac package is the client code to the slow-controls
+          server in the CCUSBReadout program. All communication with the 
+          server is via the TCP/IP protocol and must proceed after a connection
+          has been established. The server-side handler is the CCCUSBControl
+          class, which must be registered to the slow controls server by adding
+          a line to the controlconfig.tcl script such as:
+        </para>
+        <informalexample>
+          <programlisting>
+            Module create ccusb ctlr
+          </programlisting>
+        </informalexample>
+        <para>
+          The example creates a new control module named "ctlr" and is of type
+          ccusb. In order to establish a functional connection, the name of
+          the module, the name of the host running the server, and the port
+          on which it listens must be provided to the ccusbcamac package. 
+          These three pieces of connection information are associated and stored with a 
+          branch and crate index by the <command>cdconn</command>
+          command. This leads us to the major difference between the <literal>ccusbcamac</literal>
+          package and the <literal>wienercamac</literal>
+          packages that affects the user. The difference is that the 
+          <command>cdconn</command> command MUST be
+          called prior to any other methods for a given branch and crate index combination. 
+          If for some reason the
+          user forgets to call <command>cdconn</command> prior to calling <command>cdreg</command>, they
+          will be presented with an error. It is not essential, but it is not
+          a bad idea to check whether or not the server is accepting connections
+          before calling <command>cdreg</command> using the <command>isOnline</command>
+          procedure.
+        </para>
+        <para>
+          The commands in the package are loosely based on a subset of the
+          ESONE CAMAC function standard (IEEE 785).  In that standard, the unit
+          of address is a single CAMAC module.  The <command>cdreg</command>
+          produces a handle to a module which is then used in subsequent
+          commands that operate on that module. Extensions to the standard
+          include commands that allow you to get the graded lam register values,
+          sense and control the inhibit and determine if the crate is online.
+        </para>
+        <para>
+          While the ESONE block transfer functions are supported, connecting
+          a LAM to a script is not.  The example below enables the LAM on a module
+          in Slot 15 of the crate labeled by the user as branch 0 and crate 1.
+        </para>
+        <example>
+          <title>Enabling a module Lam with <literal>ccusbcamac</literal></title>
+          <programlisting>
+
+            # Load the package.
+
+            lappend auto_path [file join $env(DAQROOT) TclLibs]
+            lappend auto_path [file join $env(DAQROOT) lib]
+            package require ccusbcamac
+
+            # Provide the connection information for b=0, c=1
+            set host   localhost
+            set port   27000      ;# The standard slow-controls server port
+            set module ctlr
+            ccusbcamac::cdconn 0 1 $host $port $module
+
+            #  Initialize the crate and uninhibit it
+
+            ccusbcamac::C 0 1
+            ccusbcamac::Z 0 1
+            ccusbcamac::Inhibit 0 1 false
+
+            # Make the module handle:
+
+            set module [ccusbcamac::cdreg 0 1 15]
+
+            # F26 at any subaddress normally enables LAM:
+
+            ccusbcamac::cssa $module 26 0
+          </programlisting>
+        </example>
+
+      </section>
+    </section> 
+    <!-- end of ccusbcamac tcl package-->
+
+    <!--    <section>
+        <title>Integrating CCUSBReadout with the statemanager</title>
+        <para>
+            The state manager/boot manager are described in
+            <link linkend='chap.statemgr' endterm='chap.statemgr.title' />
+            and
+            <link linkend='chap.boot' endterm='chap.boot.title' />.
+            Used together with the experiment configuration editor
+            (<link linkend='chap.expconfig' endterm='chap.expconfig.title' />), they
+            provide the next generation of experiment definition and control.
+        </para>
+        <para>
+            The <literal>ReadoutStateHook</literal> package provides a standard
+            mechanism for Tcl based Readout programs with the normal run
+            control commands to become aware of state manager state changes and
+            react appropriately.  It also provides a mechanism to intiate a
+            <literal>FAIL</literal> transition should CCUSBReadout suffer an
+            unrecoverable error.
+        </para>
+        <para>
+            To integrate <filename>CCUSBReadout</filename> with the state manager
+            requires that you:
+        </para>
+        <itemizedlist>
+            <listitem>
+                <para>
+                    Write a small script that incorporates the
+                    <literal>ReadoutStateHook</literal> into the
+                    <filename>CCUSBReadout</filename>'s Tcl interpreter at start
+                    time.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    Configure the experiment to use the <option>init-script</option>
+                    option to load that small script at start time (when the
+                    experiment is booted).
+                </para>
+            </listitem>
+        </itemizedlist>
+        <para>
+            The script below shows what you need to do to load the
+            <literal>ReadoutStateHook</literal> package into the CCUSBReadout
+            interpreter:
+        </para>
+        <example>
+            <title>Script to incorporate <literal>ReadoutStateHook</literal></title>
+            <programlisting>
+set pkgDirs [file join $env(DAQROOT) TclLibs]
+lappend auto_path $pkgDirs
+package require ReadoutStateHook
+            </programlisting>
+        </example>
+        <para>
+            Note that in the script above, the <literal>DAQROOT</literal> environment
+            variable is set by the boot manager when it starts a program.
+            Further environment variables are set by the boot manager to allow
+            the programs it manages to know how to connect to the state manager
+            server.
+        </para>
+    </section>  
+    -->
+</chapter>
+<!-- /chapter -->
+

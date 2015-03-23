@@ -68,7 +68,7 @@ check-TESTS:
 EXTRA_DIST = $(TCLPACKAGES) $(TCLAPPS) $(TCLTESTS) $(TKTESTS)\
 	RunReadout.sh \
 	warning.tcl InstallRoot.tcl.in \
-	readoutgui.xml RunState.eps RunState.jpg s800fake.tcl\
+	readoutgui_user.xml RunState.eps RunState.jpg s800fake.tcl\
 	readoutshell.jpg readoutshell.eps \
 	sshsimulator.testscript start.bash \
 	eventlogsettings.jpg eventlogsettings.eps error.png

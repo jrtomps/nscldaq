@@ -87,7 +87,8 @@ libSBSProductionReadout_la_LIBADD	=	@top_builddir@/sbs/vmemodules/libSBSDeviceSu
 libSBSProductionReadout_la_LDFLAGS	=	-version-info	1:0:0	\
 						@LIBTCLPLUS_LDFLAGS@ $(TCL_LDFLAGS) $(THREADLD_FLAGS)
 
-EXTRA_DIST	=	options.ggo Skeleton.cpp UserMakefile.in SBSRdoMakeIncludes.in SBSReadout.xml \
+EXTRA_DIST	=	options.ggo Skeleton.cpp UserMakefile.in SBSRdoMakeIncludes.in SBSReadout_user.xml \
+							SBSReadout_man.xml \
 			$(TCLPACKAGES)
 
 

@@ -18,7 +18,7 @@ def load_tests(loader, tests, pattern):
         for test_suite in all_test_suite:
             suite.addTests(test_suite)
     try:
-        display = os.environm['DISPLAY']
+        display = os.environ['DISPLAY']
         for all_test_suite in unittest.defaultTestLoader.discover('.', pattern='*TestDisplay.py'):
             for test_suite in all_test_suite:
                 suite.addTests(test_suite)

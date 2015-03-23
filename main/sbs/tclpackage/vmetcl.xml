@@ -1,4 +1,4 @@
-<!-- chapter commands -->
+<!-- chapter utilities -->
 
 <chapter id="vmetclintro">
     <title>Tcl access to the VME via the SBS interface</title>

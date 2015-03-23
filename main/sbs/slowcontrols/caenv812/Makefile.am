@@ -20,5 +20,5 @@ install-exec-local:
 	echo "pkg_mkIndex $(DRIVERDIR) *.tcl" | $(TCLSH_CMD)
 
 
-EXTRA_DIST= $(PACKAGES) $(APPS)  $(HELPFILES) caenv812.xml
+EXTRA_DIST= $(PACKAGES) $(APPS)  $(HELPFILES) caenv812_user.xml caenv812_man.xml
 

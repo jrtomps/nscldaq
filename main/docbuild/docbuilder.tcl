@@ -88,33 +88,33 @@
 #
 proc processMetaDirectory {directory} {
 
-    # Check config file readability.
+# Check config file readability.
 
-    set configFile [file join $directory config]
-    if {![file readable $configFile]} {
-	error "Meta directory does not contain a readable 'config' file."
-    }
+  set configFile [file join $directory config]
+  if {![file readable $configFile]} {
+    error "Meta directory does not contain a readable 'config' file."
+  }
 
-    # Open the config file read it and split into a list of lines.
+  # Open the config file read it and split into a list of lines.
 
-    set configFd [open $configFile r]
-    set configData [read -nonewline $configFd]
-    close $configFd
+  set configFd [open $configFile r]
+  set configData [read -nonewline $configFd]
+  close $configFd
 
-    set configData [split $configData "\n"]
+  set configData [split $configData "\n"]
 
-    # there must be 2 lines:
+  # there must be 2 lines:
 
-    if {[llength $configData] != 2} {
-	error "$configFile has incorrect format : must have two lines of text"
-    }
+  if {[llength $configData] != 2} {
+    error "$configFile has incorrect format : must have two lines of text"
+  }
 
-    # Set the order variables.
+  # Set the order variables.
 
-    set ::partorder [lindex $configData 0]
-    set ::secorder  [lindex $configData 1]
+  set ::partorder [lindex $configData 0]
+  set ::secorder  [lindex $configData 1]
 
-    set ::metafiles [glob -nocomplain [file join $directory *.xml]]
+  set ::metafiles [glob -nocomplain [file join $directory *.xml]]
 
 }
 
@@ -252,30 +252,31 @@ proc incorporateFragment xmlFile {
 # Side-Effects:
 # 
 proc walkDirectory {directory} {
-    set xmlFiles [glob -nocomplain [file join $directory *.xml]]
+
+  processDirectory $directory
+
+  set subDirs  [glob -nocomplain -types d [file join $directory *]]
+
+  # Need to remove . and .. from the list since we're already
+  # 
+
+  set dot [lsearch -exact $subDirs .]
+  set subDirs [lreplace $subDirs $dot $dot]
+  set dotdot [lsearch -exact $subDirs ..]
+  set subDirs [lreplace  $subDirs  $dotdot $dotdot]
+
+  foreach dir [lsort $subDirs] {
+    walkDirectory $dir
+  }
+}
+
+proc processDirectory {directory} {
+  set xmlFiles [glob -nocomplain [file join $directory *.xml]]
 
 
-    foreach xml [lsort $xmlFiles] {
-	incorporateFragment $xml
-    }
-
-    set subDirs  [glob -nocomplain -types d [file join $directory *]]
-
-    # Need to remove . and .. from the list since we're already
-    # 
-
-
-    set dot [lsearch -exact $subDirs .]
-    set subDirs [lreplace $subDirs $dot $dot]
-    set dotdot [lsearch -exact $subDirs ..]
-    set subDirs [lreplace  $subDirs  $dotdot $dotdot]
-		 
-
-
-
-    foreach dir [lsort $subDirs] {
-	walkDirectory $dir
-    }
+  foreach xml [lsort $xmlFiles] {
+    incorporateFragment $xml
+  }
 }
 
 #-----------------------------------------------------------------
@@ -426,7 +427,7 @@ proc dumpRefsec sect {
     if {[array name :::sections $sect] eq ""} {
 	return
     }
-    puts "<reference>"
+    puts "<reference id='man-$sect'>"
     puts "<title>$sect</title>"
 
     # If there's an intro file, output it:
@@ -505,23 +506,24 @@ proc usage {} {
 
 if {[info global testing] eq ""} {
 
-    if {[llength $argv] < 3} {
-	usage
-    }
+  if {[llength $argv] < 3} {
+    usage
+  }
 
-    set metadir       [lindex $argv 0]
-    set ::booktitle   [lindex $argv 1]
-    set xmldirs       [lrange $argv 2 end]
+  set metadir       [lindex $argv 0]
+  set ::booktitle   [lindex $argv 1]
+  set xmldirs       [lrange $argv 2 end]
 
-    processMetaDirectory $metadir
+  processMetaDirectory $metadir
 
-    # Collect the fragments:
+  # Collect the fragments:
 
-    foreach dir $xmldirs {
-	walkDirectory $dir
-    }
+  foreach dir $xmldirs {
+#    walkDirectory $dir
+    processDirectory $dir
+  }
 
-    # Dump the document:
+  # Dump the document:
 
-    createDocument
+  createDocument
 }

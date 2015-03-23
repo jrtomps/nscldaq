@@ -1,0 +1,526 @@
+<!-- manpage 1daq -->
+
+<refentry id='daq1_scalerdisplay11'>
+    <refmeta>
+        <refentrytitle id='daq1_scalerdisplay11_title'>Scaler Display program
+	<anchor id="manpage.scalerdisplay" /></refentrytitle>
+        <manvolnum>1daq</manvolnum>
+    </refmeta>
+    <refnamediv>
+        <refname>ScalerDisplay</refname>
+        <refpurpose>Display counts and rates in scalers.</refpurpose>
+    </refnamediv>
+    <refsynopsisdiv>
+        <cmdsynopsis>
+            <command>
+$DAQBIN/ScalerDisplay <replaceable>definition-file</replaceable>
+            </command>            
+        </cmdsynopsis>
+        <literallayout>
+Configuration file commands:
+
+        </literallayout>
+        <cmdsynopsis>
+            <command>
+channel <replaceable>?option...? name channel?.sourceid?</replaceable>
+            </command>
+        </cmdsynopsis>        
+        <cmdsynopsis>
+            <command>
+page <replaceable>tabname page-title</replaceable>
+            </command>
+        </cmdsynopsis>        
+        <cmdsynopsis>
+            <command>
+display_single <replaceable>tabname scaler-name</replaceable>
+            </command>
+        </cmdsynopsis>        
+        <cmdsynopsis>
+            <command>
+display_ratio <replaceable>tabname numerator-scaler denominator-scaler</replaceable>
+            </command>
+        </cmdsynopsis>        
+        <cmdsynopsis>
+            <command>
+blank <replaceable>tabname</replaceable>
+            </command>
+        </cmdsynopsis>        
+        <cmdsynopsis>
+            <command>
+stripparam <replaceable>name</replaceable>
+            </command>
+        </cmdsynopsis>        
+        <cmdsynopsis>
+            <command>
+stripratio <replaceable>numerator denominator</replaceable>
+            </command>
+        </cmdsynopsis>        
+        <cmdsynopsis>
+            <command>
+stripconfig <replaceable>option ?...?</replaceable>
+            </command>
+        </cmdsynopsis>        
+        
+    </refsynopsisdiv>
+    <refsect1>
+        <title>DESCRIPTION</title>
+        <para>
+            The scaler display program displays scaler counts and rates
+            during active data taking runs.   The environment variable
+            <literal>SCALER_RING</literal> (See <literal>ENVIRONMENT VARIABLSE</literal> below)
+            specifies the rings from which data will be taken.  A configuration file
+            determines what is displayed and how.  
+        </para>
+        <para>
+            The configuration file is described in the section <literal>CONFIGURATION FILE</literal>
+            below.  The path to the configuration file is the one command line parameter that is both
+            required and accepted by the scaler display program.
+        </para>
+        <para>
+            The command synopsis assumes you have sourced the <filename>daqsetup.bash</filename> file
+            into your shell.
+        </para>
+    </refsect1>
+    <refsect1>
+        <title>CONFIGURATION FILE</title>
+        <para>
+            The configuration file is a Tcl script with a few command extensions.  The extensions
+            provide the ability to associate a name with a scaler channel, and describe how and if that
+            channel should be displayed.
+        </para>
+        <para>
+            The display is organized into two sections.  A tabbed notebook at the top of the user interface
+            provides several <firstterm>pages</firstterm>.  Each page is a table containing scaler names, rates, totals and,
+            if appropriate, ratios of rates and totals for a pair of scalers.
+            The lower section is an optional stripchart that shows the time evolution of counting rates
+            in a scaler or the ratio of a pair of scaler rates.
+        </para>
+        <refsect2>
+            <title>channel</title>
+            <para>
+                The <command>channel</command> command associates a name with a scaler channel from
+                a data source.  The name is then used both to display the channel and to refer to
+                it in other configuration file commands.  The form of this command is: 
+            </para>
+            <cmdsynopsis>
+                <command>
+channel <replaceable>?option...? name channel?.sourceid?</replaceable>                    
+                </command>
+            </cmdsynopsis>
+            <variablelist>
+                <varlistentry>
+                    <term><replaceable>option...</replaceable></term>
+                    <listitem>
+                        <para>
+                            Are options that control how the channel is treated.
+                            Legal options are:
+                        </para>
+                        <variablelist>
+                            <varlistentry>
+                                <term><option>-incremental</option> <replaceable>bool</replaceable></term>
+                                <listitem>
+                                    <para>
+                                        A boolean value which, if true, means that the
+                                        scaler channel is incremental (cleared after each read).
+                                        If false, the scaler counts are cumulative over the entire run.
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+                            <varlistentry>
+                                <term><option>-width</option> <replaceable>nbits</replaceable></term>
+                                <listitem>
+                                    <para>
+                                        The value is an integer that specifies the width of the scaler
+                                        channel in bits.  All bits in positions higher than this value
+                                        will be ignored.  This is primarily used with some CAMAC
+                                        scalers read out through some interfaces that put additional
+                                        bits in positions above bit <literal>23</literal>.
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+                            <varlistentry>
+                                <term><option>-lowlim</option> <replaceable>rate</replaceable></term>
+                                <listitem>
+                                    <para>
+                                        Specifies a low rate limit for the scaler.  If the count
+                                        rate for this scaler drops below the specfied <replaceable>rate</replaceable>,
+                                        the channel will show in a low rate alarmed status, if alarms are
+                                        enabled via the checkbutton on the scaler display screen.
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+                            <varlistentry>
+                                <term><option>-hilim</option> <replaceable>rate</replaceable></term>
+                                <listitem>
+                                    <para>
+                                        Specifies a high rate limit for this scaler.
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+                        </variablelist>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>name</term>
+                    <listitem>
+                        <para>
+                            Is the name that will be given to the channel.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>channel</term>
+                    <listitem>
+                        <para>
+                            Is the index into the data source's scaler array in which
+                            the counts for this scaler live.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>sourceid</term>
+                    <listitem>
+                        <para>
+                            If supplied this specifies the source id from which the data
+                            comes.  If not specified, the source id defaults no source id
+                            which is what you get when the data has no body header.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+            
+        </refsect2>
+        <refsect2>
+            <title>page</title>
+            <para>
+                The <command>page</command> command defines a new scaler display table page.
+                It has the form:
+            </para>
+            <cmdsynopsis>
+                <command>
+page <replaceable>tabname page-title</replaceable>
+                </command>
+            </cmdsynopsis>        
+            <variablelist>
+                <varlistentry>
+                    <term><replaceable>tabname</replaceable></term>
+                    <listitem>
+                        <para>
+                            Is the text on the tab of the tabbed notebook in which the page is displayed.
+                            This is also the name used to refer to this page in other
+                            commands in the configuration file.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </refsect2>
+        <refsect2>
+            <title>display_single</title>
+            <para>
+                The <command>display_single</command> command appends a line to a page.
+                The line displays the rates and total counts for a single scaler.
+                The syntax of this command is:
+            </para>
+            <cmdsynopsis>
+                <command>
+display_single <replaceable>tabname scaler-name</replaceable>
+                </command>
+            </cmdsynopsis>        
+            <variablelist>
+                <varlistentry>
+                    <term><replaceable>tabname</replaceable></term>
+                    <listitem>
+                        <para>
+                            Is the name of the tab that has the page the line will be added to.  Lines
+                            are added to the bottom of the page.  
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><replaceable>scaler-name</replaceable></term>
+                    <listitem>
+                        <para>
+                            The name of the scaler channel (as defined by  a
+                            <command>channel</command> command) that will be displayed
+                            on that line.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+            
+        </refsect2>
+        <refsect2>
+            <title>display_ratio</title>
+            <para>
+                The display ratio command adds a line to a page that displays two
+                scalers.  In additon the ratio of the rates and totals are displayed.
+                The line is added to the end of the page.
+                The syntax of this command is:
+            </para>
+            <cmdsynopsis>
+                <command>
+display_ratio <replaceable>tabname numerator-scaler denominator-scaler</replaceable>
+                </command>
+            </cmdsynopsis>        
+            <variablelist>
+                <varlistentry>
+                    <term><replaceable>tabname</replaceable></term>
+                    <listitem>
+                        <para>
+                            Is the label on the tab that is displaying the page
+                            to which this line will be added.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><replaceable>numerator-scaler</replaceable></term>
+                    <listitem>
+                        <para>
+                            Is the name of the scaler that will be the numerator of the
+                            ratios.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><replaceable>denominator-scaler</replaceable></term>
+                    <listitem>
+                        <para>
+                            Is the name of the scaler that will be the denominator of the ratios.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </refsect2>
+        <refsect2>
+            <title>blank</title>
+            <para>
+                Appends a blank line to the specified tab.  The syntax of this command is:
+            </para>
+            <cmdsynopsis>
+                <command>
+        
+blank <replaceable>tabname</replaceable>
+                </command>
+            </cmdsynopsis>        
+            
+        </refsect2>
+        <refsect2>
+            <title>stripparam</title>
+            <para>
+                If no other strip chart traces have been defined, this enables the strip chart.
+                The command also enables the plot of a single trace of the rate of the
+                specified parameter on the strip chart.  The syntax of this command is:
+            </para>
+            <cmdsynopsis>
+                <command>
+stripparam <replaceable>name</replaceable>
+                </command>
+            </cmdsynopsis>        
+
+        </refsect2>
+        <refsect2>
+            <title>stripratio</title>
+            <para>
+                If no other strip chart traces have been defined, this enables the strip chart.
+                The command enables the plot of a trace that is the ratio of the numerator scaler
+                to the denominator scaler.   The scalers are specified by the name they were given in
+                their <command>channel</command> commands.
+                The form of this command is:
+            </para>
+            <cmdsynopsis>
+                <command>
+stripratio <replaceable>numerator denominator</replaceable>
+                </command>
+            </cmdsynopsis>        
+
+        </refsect2>
+        <refsect2>
+            <title>stripconfig</title>
+            <para>
+                Sets configuration options for the strip chart.  Naturally this is only meaningful
+                if at least one trace is defined via the <command>stripparam</command> or
+                <command>stripratio</command> commands above.
+            </para>
+            <para>
+                The syntax of this command is:
+            </para>
+            <cmdsynopsis>
+                <command>
+stripconfig <replaceable>option ?...?</replaceable>
+                </command>
+            </cmdsynopsis>
+            <para>
+                The available options are:
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><option>-timeaxis</option> <replaceable>seconds</replaceable></term>
+                    <listitem>
+                        <para>
+                            Number of seconds on the time axis.  Note that since the
+                            plot is allowed to choose axis labels that are 'natural' you may
+                            get slightly something a bit different, for example a value of
+                            <literal>1198</literal> will almost certainly be modified to
+                            <literal>1200</literal>.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </refsect2>
+        
+        
+    </refsect1>
+    <refsect1>
+        <title>EXTENSION POINTS AND API</title>
+        <para>
+            There are a number of ways to extend the scaler display. 
+        </para>
+        <para>
+            First the scaler configuration file is just a Tcl script with commands
+            added to the interpreter to support defining channels, pages and their
+            contents and strip chart channels.  Thus you could add additional
+            functionality via that script.
+        </para>
+        <para>
+            Second the scaler display program provides for callbacks to
+            user code that is either part of the configuration file
+            or incorporated by the configuration file. A minimal API
+            also allows extensions of that sort to gain information
+            needed for other processing.
+        </para>
+        <refsect2>
+            <title>Callbacks</title>
+            <para>
+                There are three callback points defined by the scaler display program.
+                If a user configuration file defines an appropriately named
+                <command>proc</command> it will be called:
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><command>UserBeginRun</command></term>
+                    <listitem>
+                        <para>
+                            As the namei implies, this proc, if defined,
+                            will be invoked when the scaler program processes
+                            begin run ring items.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>UserEndRun</command></term>
+                    <listitem>
+                        <para>
+                            Similarly this proc, if defined, is called when
+                            the scaler program processes an end of run.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>UserUpdate</command></term>
+                    <listitem>
+                        <para>
+                            Called, if defined, when a scaler ring item is
+                            processed.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                
+            </variablelist>
+        </refsect2>
+        <refsect2>
+            <title>API</title>
+            <para>
+                A very simple and minimal API provides access to data and objects
+                that make up the scaler program.  These are all simple Tcl procs.  
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><command>getStartTime</command></term>
+                    <listitem>
+                        <para>
+                            Returns the start time <command>[clock seconds]</command>
+                            at which the most recent run started.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>getElapsedTime</command></term>
+                    <listitem>
+                        <para>
+                            Return the run elapsed time in seconds.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>getTitle</term>
+                    <listitem>
+                        <para>
+                            Returns the title of the most recently started run.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>getRunNumber</term>
+                    <listitem>
+                        <para>
+                            Returns the run number of the most recently started run.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>getState</term>
+                    <listitem>
+                        <para>
+                            Returns the state of the run.  This is one of
+                            <literal>Active</literal> or <literal>Inactive</literal>
+                            depending on whether or not the run is in progress.
+                            Note that paused runs will appear as <literal>Active</literal>
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>getScalerNames</command></term>
+                    <listitem>
+                        <para>
+                            Returns a Tcl list that contains the name of all
+                            scaler channels defined.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>getRate</command> <replaceable>name</replaceable></term>
+                    <listitem>
+                        <para>
+                            Returns the counting rate of the channel
+                            <replaceable>name</replaceable>
+                            as of its most recent update.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <command>getTotal</command> <replaceable>name</replaceable>
+                    </term>
+                    <listitem>
+                        <para>
+                            Returns the total number of counts accumulated in the
+                            scaler <replaceable>name</replaceable> as of its most
+                            recent update.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                
+            </variablelist>
+        </refsect2>
+    </refsect1>
+    <refsect1>
+        <title>ENVIRONMENT VARIABLES</title>
+        <para>
+            <literal>SCALER_RING</literal> is a space separated list of the
+            ring URIs from which the program will acquire data.
+        </para>
+    </refsect1>
+</refentry>
+
+
+<!-- /manpage -->

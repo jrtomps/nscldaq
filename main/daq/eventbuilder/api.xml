@@ -1,5 +1,5 @@
 <!-- chapter frameworks -->
-<chapter>
+<chapter id="chapter.evb-orderer-dev0">
     <title>Event orderer and its user interface</title>
     <para>
         The NSCL event builder is a two stage pipeline.  The first stage of the
@@ -430,7 +430,7 @@ EVB::maintainGUI .test                 <co id='orderstart_maintain' />
         </variablelist>
     </section>
 </chapter>
-<chapter>
+<chapter id="chapter.evb-orderer-dev">
     <title>Event builder client framework</title>
     <para>
         <link linkend='evbapi_chap' endterm='evbapi_chaptitle' /> describes a low

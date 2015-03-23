@@ -7,7 +7,17 @@ TEST_FILES=nameMap.test channel.test channelcmd.test singleModel.test \
 	ratioModel.test stripparam.test stripratio.test emptyModel.test
 APP_FILES=ScalerDisplay.tcl.in
 IMAGES=red.gif green.gif amber.gif
-DOCS=tclringcommand.xml scalerdisplay.xml
+
+DOCS=tclringcommand.xml scalerdisplay_user.xml scalerdisplay_man.xml \
+		 scalerdisplay_user_bookinfo.xml
+FIGURES = @srcdir@/figures/ScalerDisplayUserGuide_empty_600.png \
+					 @srcdir@/figures/ScalerDisplayUserGuide_data_600.png \
+					 @srcdir@/figures/ScalerDisplayUserGuide_stripchart_600.png \
+					 @srcdir@/figures/ScalerDisplayUserGuide_GimpStripChart_600.png
+
+# auto book
+BOOK=scalerdisplay_user_autobook.pdf
+CHAPTER2BOOK = @top_srcdir@/docbuild/chapter2book.py
 
 INTERACTIVE_TESTS=pagetest.tcl 
 
@@ -16,16 +26,22 @@ INTERACTIVE_TESTS=pagetest.tcl
 
 INSTDIR=@prefix@/TclLibs/newscaler
 GRAPHDIR=@prefix@/share/scalerdisplay
+FIGUREDIR=@prefix@/share/html/figures
 
 install-exec-hook:
 	$(mkinstalldirs) $(INSTDIR) 
 	$(mkinstalldirs) $(GRAPHDIR)
+	$(mkinstalldirs) $(FIGUREDIR)
+	$(mkinstalldirs) @prefix@/share/pdfs
 	install @libdir@/libTclRingBuffer.so $(INSTDIR)
 	(cd @srcdir@; $(INSTALL_SCRIPT) $(PACKAGE_FILES) $(INSTDIR))
 	echo pkg_mkIndex -verbose $(INSTDIR) "*.tcl" | @TCLSH_CMD@
 	echo "package ifneeded TclRingBuffer 1.0 [list load [file join \$$dir libTclRingBuffer.so]]" >> $(INSTDIR)/pkgIndex.tcl
 	install @builddir@/ScalerDisplay.tcl @bindir@/ScalerDisplay
+	$(CHAPTER2BOOK) -s @srcdir@/scalerdisplay_user.xml -b @srcdir@/scalerdisplay_user_bookinfo.xml -o .
+	$(INSTALL_DATA)  $(BOOK) @prefix@/share/pdfs
 	(cd @srcdir@; install $(IMAGES) $(GRAPHDIR))
+	install $(FIGURES) $(FIGUREDIR)
 
 
 
@@ -34,7 +50,7 @@ check-TESTS: check_PROGRAMS
 
 
 EXTRA_DIST=$(PACKAGE_FILES) $(TEST_FILES) $(INTERACTIVE_TESTS) $(APP_FILES) $(IMAGES) \
-	$(DOCS)
+	$(DOCS) $(FIGURES)
 
 #  The Tcl API to get data from rings...and tests.
 

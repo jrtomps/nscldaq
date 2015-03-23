@@ -57,7 +57,7 @@ BUILT_SOURCES = @srcdir@/cmdline.c
 @srcdir@/cmdline.h: @srcdir@/commandline.ggo
 	@GENGETOPT@ < @srcdir@/commandline.ggo --output-dir=@srcdir@ --set-version=@VERSION@
 
-EXTRA_DIST= commandline.ggo ccusb.xml
+EXTRA_DIST= commandline.ggo ccusbReadout_user.xml ccusbReadout_man.xml
 
 install-data-local:
 	$(mkinstalldirs) @prefix@/ccusbdriver
