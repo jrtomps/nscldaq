@@ -57,6 +57,7 @@ public:
     virtual std::string get(const char* path) ;
     virtual void defineEnum(const char* typeName, CVarMgrApi::EnumValues values) ;
     virtual void defineStateMachine(const char* typeName, CVarMgrApi::StateMap transitions) ;
+    virtual std::vector<std::string> ls(const char* path=0);
 private:
     bool existingDirectory(std::string dirname);
     std::string transaction(std::string command, std::string data1, std::string data2);
@@ -67,6 +68,7 @@ private:
     std::string makePath(const char* path);
     std::string canonicalize(std::string path);
     std::set<std::string> processDirList(std::string dirlist);
+    
 
 };
 

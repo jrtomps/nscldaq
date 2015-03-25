@@ -21,6 +21,8 @@ public:
     virtual std::string get(const char* path) {return "";}
     virtual void defineEnum(const char* typeName, EnumValues values) {}
     virtual void defineStateMachine(const char* typeName, StateMap transitions) {}
+    virtual std::vector<std::string> ls(const char* path = 0) {std::vector<std::string> result;
+                                                                return result;}
 
     std::pair<std::string, std::string> ivt(CVarMgrApi::StateMap map) {
         return findInvalidTransition(map);

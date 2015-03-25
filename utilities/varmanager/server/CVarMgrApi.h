@@ -52,8 +52,11 @@ public:
     virtual std::string get(const char* path) = 0;
     virtual void defineEnum(const char* typeName, EnumValues values) = 0;
     virtual void defineStateMachine(const char* typeName, StateMap transitions) = 0;
+    virtual std::vector<std::string> ls(const char* path=0) = 0;
+    
     void addTransition(StateMap& map, std::string fromState, std::string  toState);
     bool validTransitionMap(StateMap map);
+    
 protected:
     
     std::pair<std::string, std::string> findInvalidTransition(StateMap map);

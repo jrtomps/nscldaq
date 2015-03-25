@@ -74,14 +74,8 @@ CVarMgrServerApi::~CVarMgrServerApi()
  */
 void CVarMgrServerApi::cd(const char* path)
 {
-    std::string wd = m_wd;
-    if (CVarDirTree::isRelative(path)) {
-        wd += "/";
-        wd += path;
-        wd = canonicalize(wd);
-    } else {
-        wd = path;
-    }
+    std::string wd = makePath(path);
+    
     if (existingDirectory(wd)) {
         m_wd = wd;
     } else {
@@ -204,6 +198,36 @@ void CVarMgrServerApi::defineStateMachine(const char* typeName, StateMap transit
     transaction("SMACHINE", typeName, join(stateStrings, '|'));
 }
 
+/**
+ * ls
+ *   list directories.
+ *
+ * @param[in] path  - Optional path parameter.
+ *                    - If not provided the wd is listed.
+ *                    - If provided and absolute the path is listed.
+ *                    - If provided and relative the wd combined with the path are listed.
+ * @return std::vector<std::string> - vector of subdirectories in the path.
+ */
+std::vector<std::string>
+CVarMgrServerApi::ls(const char* path)
+{
+    std::string parent = m_wd;
+    if (path) {
+        parent = makePath(path);
+    }
+    std::string result = transaction("DIRLIST", parent, "");
+    std::set<std::string> dirSet = processDirList(result);
+    
+    std::set<std::string>::iterator p = dirSet.begin();
+    std::vector<std::string> resultVec;
+    while (p != dirSet.end()) {
+        resultVec.push_back(*p);
+        p++;
+    }
+    return resultVec;
+    
+}
+
     // Utilities:
 
 /**
@@ -236,7 +260,6 @@ bool CVarMgrServerApi::existingDirectory(std::string path)
     std::set<std::string> dirSet = processDirList(result);
     return dirSet.count(subdir) == 1;
     
-    return true;
 }
 
 /**
@@ -412,7 +435,7 @@ CVarMgrServerApi::join(const CVarMgrApi::EnumValues& values, char sep)
     } else {
         result = path;
     }
-    return result;
+    return canonicalize(result);
  }
  /**
   * canonicalize
@@ -479,3 +502,4 @@ CVarMgrServerApi::join(const CVarMgrApi::EnumValues& values, char sep)
     
     return result;
  }
+ 

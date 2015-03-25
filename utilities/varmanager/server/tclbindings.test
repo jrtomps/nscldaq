@@ -256,12 +256,125 @@ tcltest::test getwd-badhandle {getwd bad handle} \
     catch {varmgr::getwd bad-handle}
 } -result 1
 
+tcltest::test ls-empty {lswd - initially empty} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    varmgr::ls $handle
+} -result [list]
+
+tcltest::test ls-nonempt {lswd - not empty} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    varmgr::mkdir $handle /atest
+    varmgr::mkdir $handle /directory
+    varmgr::mkdir $handle /last
+    
+    set dirs [varmgr::ls $handle]
+    set dirs [lsort -increasing $dirs]
+    list [llength $dirs] $dirs
+} -result [list 3 [list atest directory last]]
+    
+tcltest::test ls-wdfull  {lswd - when cd'd to a non empty  dir} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    varmgr::mkdir $handle /atest
+    varmgr::mkdir $handle /directory
+    varmgr::mkdir $handle /last
+    
+    varmgr::mkdir $handle /atest/1
+    varmgr::mkdir $handle /atest/2
+    varmgr::mkdir $handle /atest/3
+    
+    varmgr::cd $handle /atest
+    set dirs [varmgr::ls $handle]
+    set dirs [lsort -increasing $dirs]
+    list [llength $dirs] $dirs
+} -result [list 3 [list 1 2 3]]
+    
+tcltest::test ls-relative {lswd - when relative path supplied} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    varmgr::mkdir $handle /atest
+    varmgr::mkdir $handle /directory
+    varmgr::mkdir $handle /last
+    
+    varmgr::mkdir $handle /atest/1
+    varmgr::mkdir $handle /atest/2
+    varmgr::mkdir $handle /atest/3
+    
+    
+    set dirs [varmgr::ls $handle atest]
+    set dirs [lsort -increasing $dirs]
+    list [llength $dirs] $dirs
+    
+} -result [list 3 [list 1 2 3]]
+
+tcltest::test ls-abs      {lswd - when abs path is supplied} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    varmgr::mkdir $handle /atest
+    varmgr::mkdir $handle /directory
+    varmgr::mkdir $handle /last
+    
+    varmgr::mkdir $handle /atest/1
+    varmgr::mkdir $handle /atest/2
+    varmgr::mkdir $handle /atest/3
+    
+    varmgr::cd $handle /atest
+    
+    set dirs [varmgr::ls $handle /]
+    set dirs [lsort -increasing $dirs]
+    list [llength $dirs] $dirs
+} -result [list 3 [list atest directory last]]
+
+tcltest::test ls-badhandle {ls - badhandle} \
+-body {
+    catch {varmgr::ls nosuch-handle}
+} -result 1
+
+
 ##  This bit of magic ensures that we can produce a failing error code if tests
 #   failed:
 
 proc tcltest::cleanupTestsHook {} {
     variable numTests
     set ::exitCode $numTests(Failed)
+
 }
 
 tcltest::cleanupTests

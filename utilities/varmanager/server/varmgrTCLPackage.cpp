@@ -28,6 +28,7 @@
 #include "CVarMgrMkdirCommand.h"
 #include "CVarMgrCdCommand.h"
 #include "CVarMgrGetwdCommand.h"
+#include "CVarMgrLsCommand.h"
 
 
 static const char* version="1.0";
@@ -63,6 +64,7 @@ extern "C" {
         new CVarMgrMkdirCommand(*pWrappedInterp, "::varmgr::mkdir");
         new CVarMgrCdCommand(*pWrappedInterp, "::varmgr::cd");
         new CVarMgrGetwdCommand(*pWrappedInterp, "::varmgr::getwd");
+        new CVarMgrLsCommand(*pWrappedInterp, "::varmgr::ls");
         
         // Success.
         

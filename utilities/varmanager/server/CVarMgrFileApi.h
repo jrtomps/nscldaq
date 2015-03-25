@@ -49,6 +49,7 @@ public:
     virtual std::string get(const char* path) ;
     virtual void defineEnum(const char* typeName, EnumValues values) ;
     virtual void defineStateMachine(const char* typeName, StateMap transitions) ;
+    virtual std::vector<std::string> ls(const char* path=0);
 };
 
 #endif

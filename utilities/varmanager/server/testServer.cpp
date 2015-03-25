@@ -75,6 +75,11 @@ class ServerApiTests : public CppUnit::TestFixture {
   CPPUNIT_TEST(relativeSet);
   CPPUNIT_TEST(relativeGet);
   
+  CPPUNIT_TEST(lsEmpty);
+  CPPUNIT_TEST(lsList);
+  CPPUNIT_TEST(lsAbsPath);
+  CPPUNIT_TEST(lsRelPath);
+  
   CPPUNIT_TEST_SUITE_END();
 
 protected:
@@ -109,6 +114,10 @@ protected:
   void relativeDeclare();
   void relativeSet();
   void relativeGet();
+  void lsEmpty();
+  void lsList();
+  void lsAbsPath();
+  void lsRelPath();
   
 private:
     pid_t m_serverPid;
@@ -634,4 +643,65 @@ void ServerApiTests::cdNoSuchPath()
         m_pApi->cd("/nosuch"),
         CVarMgrApi::CException
     );
+}
+
+// List initially gives an empty vector>
+
+void ServerApiTests::lsEmpty()
+{
+    CVarMgrApi& api(*m_pApi);
+    EQ(size_t(0), api.ls().size());
+}
+
+// List nonempty directory:
+
+void ServerApiTests::lsList()
+{
+    CVarMgrApi& api(*m_pApi);
+    api.mkdir("/adir");
+    api.mkdir("/anotherdir");
+    api.mkdir("/lastdir");
+    
+    std::vector<std::string> dirs = api.ls();
+    
+    EQ(size_t(3), dirs.size());
+    
+    ASSERT(find(dirs.begin(), dirs.end(), "adir") != dirs.end());
+    ASSERT(find(dirs.begin(), dirs.end(), "anotherdir") != dirs.end());
+    ASSERT(find(dirs.begin(), dirs.end(), "lastdir") != dirs.end());
+    
+}
+// Ls with path absolute:
+void ServerApiTests::lsAbsPath()
+{
+    CVarMgrApi& api(*m_pApi);
+    api.mkdir("/adir");
+    api.mkdir("/anotherdir");
+    api.mkdir("/lastdir");
+    api.cd("/adir");    
+    std::vector<std::string> dirs = api.ls("/");
+    
+    EQ(size_t(3), dirs.size());
+    
+    ASSERT(find(dirs.begin(), dirs.end(), "adir") != dirs.end());
+    ASSERT(find(dirs.begin(), dirs.end(), "anotherdir") != dirs.end());
+    ASSERT(find(dirs.begin(), dirs.end(), "lastdir") != dirs.end());
+
+    EQ(size_t(0), api.ls("/adir").size());    
+    
+}
+// Ls with relative path
+
+void ServerApiTests::lsRelPath()
+{
+    CVarMgrApi& api(*m_pApi);
+    api.mkdir("/adir");
+    api.mkdir("/anotherdir");
+    api.mkdir("/lastdir");
+    api.cd("/adir");
+    api.mkdir("/anotherdir/test");
+    
+    std::vector<std::string> dirs = api.ls("../anotherdir");
+    EQ(size_t(1), dirs.size());
+    EQ(std::string("test"), dirs[0]);
 }

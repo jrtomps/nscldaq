@@ -18,6 +18,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <algorithm>
 
 
 // White box:  We are assuming the API is sitting on top of the primitive API
@@ -44,6 +45,11 @@ class TestDirect : public CppUnit::TestFixture {
   CPPUNIT_TEST(get);
   
   CPPUNIT_TEST(defEnum);
+  
+  CPPUNIT_TEST(lsEmpty);
+  CPPUNIT_TEST(lsList);
+  CPPUNIT_TEST(lsAbsPath);
+  CPPUNIT_TEST(lsRelPath);
   
   CPPUNIT_TEST(defStateMachine);
   CPPUNIT_TEST_SUITE_END();
@@ -87,6 +93,11 @@ protected:
   void defEnum();
 
   void defStateMachine();
+  
+  void lsEmpty();
+  void lsList();
+  void lsAbsPath();
+  void lsRelPath();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(TestDirect);
@@ -245,4 +256,64 @@ void TestDirect::defStateMachine()
     EQ(std::string("silly"), vinfo[0].s_type);
     
     
+}
+// List initially gives an empty vector>
+
+void TestDirect::lsEmpty()
+{
+    CVarMgrFileApi api(m_tempFile);
+    EQ(size_t(0), api.ls().size());
+}
+
+// List nonempty directory:
+
+void TestDirect::lsList()
+{
+    CVarMgrFileApi api(m_tempFile);
+    api.mkdir("/adir");
+    api.mkdir("/anotherdir");
+    api.mkdir("/lastdir");
+    
+    std::vector<std::string> dirs = api.ls();
+    
+    EQ(size_t(3), dirs.size());
+    
+    ASSERT(find(dirs.begin(), dirs.end(), "adir") != dirs.end());
+    ASSERT(find(dirs.begin(), dirs.end(), "anotherdir") != dirs.end());
+    ASSERT(find(dirs.begin(), dirs.end(), "lastdir") != dirs.end());
+    
+}
+// Ls with path absolute:
+void TestDirect::lsAbsPath()
+{
+    CVarMgrFileApi api(m_tempFile);
+    api.mkdir("/adir");
+    api.mkdir("/anotherdir");
+    api.mkdir("/lastdir");
+    api.cd("/adir");    
+    std::vector<std::string> dirs = api.ls("/");
+    
+    EQ(size_t(3), dirs.size());
+    
+    ASSERT(find(dirs.begin(), dirs.end(), "adir") != dirs.end());
+    ASSERT(find(dirs.begin(), dirs.end(), "anotherdir") != dirs.end());
+    ASSERT(find(dirs.begin(), dirs.end(), "lastdir") != dirs.end());
+
+    EQ(size_t(0), api.ls("/adir").size());    
+    
+}
+// Ls with relative path
+
+void TestDirect::lsRelPath()
+{
+    CVarMgrFileApi api(m_tempFile);
+    api.mkdir("/adir");
+    api.mkdir("/anotherdir");
+    api.mkdir("/lastdir");
+    api.cd("/adir");
+    api.mkdir("/anotherdir/test");
+    
+    std::vector<std::string> dirs = api.ls("../anotherdir");
+    EQ(size_t(1), dirs.size());
+    EQ(std::string("test"), dirs[0]);
 }

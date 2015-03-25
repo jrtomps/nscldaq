@@ -26,7 +26,8 @@ libvarmgrtcl_la_SOURCES=varmgrTCLPackage.cpp \
 	CVarMgrCloseCommand.h  CVarMgrCloseCommand.cpp	\
 	CVarMgrMkdirCommand.h  CVarMgrMkdirCommand.cpp	\
 	CVarMgrCdCommand.h     CVarMgrCdCommand.cpp	\
-	CVarMgrGetwdCommand.h  CVarMgrGetwdCommand.cpp
+	CVarMgrGetwdCommand.h  CVarMgrGetwdCommand.cpp	\
+	CVarMgrLsCommand.h     CVarMgrLsCommand.cpp
 
 
 include_HEADERS=CVarMgrApi.h CVarMgrFileApi.h CVarMgrServerApi.h CVarMgrApiFactory.h
@@ -63,7 +64,7 @@ testApi_LDFLAGS = $(COMMONLDFLAGS) \
 check-TESTS:
 	for f in $(SERVER_TESTS); do echo $$f : ; PYTHONPATH=@prefix@/pythonLibs  BINDIR=@bindir@  @PYTHON@ @srcdir@/$$f; done
 	PYTHONPATH=@prefix@/pythonLibs testApi
-	TCLLIBS=@prefix@/TclLibs @TCLSH_CMD@ tclbindings.test
+	TCLLIBPATH=@prefix@/TclLibs @TCLSH_CMD@ tclbindings.test
 
 
 EXTRA_DIST=$(SERVER_TESTS) testBase.py vardbServer.py varserver.xml

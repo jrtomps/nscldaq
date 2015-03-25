@@ -177,3 +177,33 @@ void CVarMgrFileApi::defineStateMachine(const char* typeName, CVarMgrApi::StateM
 {
     CStateMachine::create(*m_pDb, typeName, transitions);
 }
+/**
+ * ls
+ *   Produce a listing of subdirectories for a path.
+ *
+ *  @param[in] path - Directory path
+ *                  - if not supplied, the wd is listed.
+ *                  - if supplied and absolute, the path is listed.
+ *                  - if supplied and relative the path computed from the wd
+ *                    is listed.
+ *  @return std::vector<std::string> sub-directories in the path.
+ */
+std::vector<std::string>
+CVarMgrFileApi::ls(const char* path)
+{
+    // Make dirtree that depends on the specific path value:
+    
+    CVarDirTree parent(*m_pDb);
+    parent.cd(m_pWd->wdPath().c_str());
+    if (path) {
+        parent.cd(path);
+    }
+   
+    std::vector<CVarDirTree::DirInfo> dirs = parent.ls();
+    std::vector<std::string> result;
+    
+    for (int i =0; i < dirs.size(); i++) {
+        result.push_back(dirs[i].s_name);
+    }
+    return result;
+}
