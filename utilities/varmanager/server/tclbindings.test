@@ -1,0 +1,159 @@
+#!/bin/sh
+# -*- tcl -*-
+# The next line is executed by /bin/sh, but not tcl \
+exec tclsh "$0" ${1+"$@"}
+
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2014.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Authors:
+#             Ron Fox
+#             Jeromy Tompkins 
+#	     NSCL
+#	     Michigan State University
+#	     East Lansing, MI 48824-1321
+
+
+
+##
+# @file tclbindings.tcl
+# @brief Tests for varmgr Tcl bindings.
+# @author Ron Fox <fox@nscl.msu.edu>
+#
+
+package require tcltest
+package require vardb
+package require varmgr
+
+
+# Utilities:
+
+proc tempName {} {
+    set filename [tcltest::makeFile {} testing]
+    file delete -force $filename
+    return $filename
+}
+
+proc mkdb {} {
+    set f [tempName]
+    varmgr::create $f
+    return $f
+}
+
+# Note since it's simpler all tests with actual API instance handles will be
+# done with file: uris.
+
+
+tcltest::test ns {Loading the module should create the varmgr namespace} \
+-body {
+    set idx [lsearch -exact [namespace children ::] ::varmgr]
+    expr {$idx != -1}
+} -result 1
+
+# create:
+
+tcltest::test create {Should be able to create a database file} \
+-setup {
+    set f [tempName]
+} \
+-cleanup {
+    file delete -force $f    
+} \
+-body {
+    varmgr::create $f
+    set status [catch {vardb::open $f} handle]
+    if {$status == 0} {
+        catch (vardb::close $handle)
+    }
+    
+    set status
+    
+} -result 0
+
+##
+# open tests:
+
+tcltest::test open {Open an existing db file} \
+-setup {
+    set file [mkdb]
+} \
+-cleanup {
+    file delete -force $file
+} \
+-body {
+    catch {varmgr::open file://$file}
+} -result 0
+
+tcltest::test open_nosuch {Open a nonexistent db file} \
+-body {
+    catch {varmgr::open file:///no/such/database/file}
+} -result 1
+
+##
+# close tests:
+
+tcltest::test close-ok {closing an open db file is ok} \
+-setup {
+    set file [mkdb]
+} \
+-cleanup {
+    file delete -force $file
+} \
+-body {
+    set handle [varmgr::open file://$file]
+    catch {varmgr::close $handle}
+} -result 0
+
+tcltest::test close-invalidates {closing an open db file invalidates the handle} \
+-setup {
+    set file [mkdb]
+} \
+-cleanup {
+    file delete -force $file
+} \
+-body {
+    set handle [varmgr::open file://$file]
+    varmgr::close $handle
+    
+    # Only thing we can test with is close at this point:
+    
+    catch {varmgr::close $handle}    
+} -result 1
+
+tcltest::test mkdir-ok {Make a directory } \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    varmgr::mkdir $handle /a/test/dir
+    set h [vardb::open $file]
+    set code [catch {vardb::cd $h /a/test/dir} msg]
+    vardb::close $h
+    
+    set code
+} -result 0
+
+#tcltest::test mkdir-dup {mkdir - Duplicate directory fails}
+#tcltest::test mkdir-missing-dir {mkdir - directory parameter not supplied}
+#tcltest::test mkdir-badhandle   {mkdir - invalid handle}
+
+##  This bit of magic ensures that we can produce a failing error code if tests
+#   failed:
+
+proc tcltest::cleanupTestsHook {} {
+    variable numTests
+    set ::exitCode $numTests(Failed)
+}
+
+tcltest::cleanupTests
+exit $::exitCode

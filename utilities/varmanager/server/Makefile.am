@@ -1,11 +1,11 @@
-lib_LTLIBRARIES=libvarmgr.la
+lib_LTLIBRARIES=libvarmgr.la libvarmgrtcl.la
 
 COMMONLDFLAGS = @builddir@/../libvardb.la 	\
 		@top_builddir@/base/sqlite++/libsqlite3pp.la 	\
 		@top_builddir@/base/uri/liburl.la		\
 		@top_builddir@/base/os/libdaqshm.la \
 		@top_builddir@/servers/portmanager/libPortManager.la \
-		@SQLITE3_LDFLAGS@ @ZMQ_LDFLAGS@
+		@SQLITE3_LDFLAGS@ @ZMQ_LDFLAGS@ -Wl,"-rpath=@libdir@"
 
 COMMON_CPPFLAGS=-I@srcdir@/..  @SQLITE3_CFLAGS@ -I@top_srcdir@/base/sqlite++ \
 	-I@top_srcdir@/base/uri -I@top_srcdir@/base/os -I@top_srcdir@/servers/portmanager
@@ -16,13 +16,28 @@ libvarmgr_la_SOURCES = CVarMgrApi.cpp CVarMgrFileApi.cpp CVarMgrServerApi.cpp \
 libvarmgr_la_CPPFLAGS=$(COMMON_CPPFLAGS)
 libvarmgr_la_LDFLAGS = $(COMMONLDFLAGS)
 
+libvarmgrtcl_la_CPPFLAGS=@TCL_FLAGS@ @LIBTCLPLUS_CFLAGS@ $(COMMON_CPPFLAGS) 
+libvarmgrtcl_la_LDFLAGS= @builddir@/libvarmgr.la \
+	$(COMMONLDFLAGS) @LIBTCLPLUS_LDFLAGS@ @TCL_LDFLAGS@
+
+libvarmgrtcl_la_SOURCES=varmgrTCLPackage.cpp \
+	CVarMgrCreateCommand.h CVarMgrCreateCommand.cpp \
+	CVarMgrOpenCommand.h   CVarMgrOpenCommand.cpp   \
+	CVarMgrCloseCommand.h  CVarMgrCloseCommand.cpp	\
+	CVarMgrMkdirCommand.h  CVarMgrMkdirCommand.cpp
+
+
 include_HEADERS=CVarMgrApi.h CVarMgrFileApi.h CVarMgrServerApi.h CVarMgrApiFactory.h
 
 
-install-exec-local:
+install-exec-hook:
 	echo "#!@PYTHON@" >  @bindir@/vardbServer
 	cat @srcdir@/vardbServer.py >>@bindir@/vardbServer
 	chmod a+x @bindir@/vardbServer
+	$(mkinstalldirs) @prefix@/TclLibs
+	$(mkinstalldirs) @prefix@/TclLibs/varmgr
+	$(INSTALL_PROGRAM) @libdir@/libvarmgrtcl.* @prefix@/TclLibs/varmgr
+	echo pkg_mkIndex -verbose @prefix@/TclLibs/varmgr "*.so" | @TCLSH_CMD@
 
 
 SERVER_TESTS=startTests.py serviceTests.py mkdirTests.py  \
@@ -46,6 +61,7 @@ testApi_LDFLAGS = $(COMMONLDFLAGS) \
 check-TESTS:
 	for f in $(SERVER_TESTS); do echo $$f : ; PYTHONPATH=@prefix@/pythonLibs  BINDIR=@bindir@  @PYTHON@ @srcdir@/$$f; done
 	PYTHONPATH=@prefix@/pythonLibs testApi
+	TCLLIBS=@prefix@/TclLibs @TCLSH_CMD@ tclbindings.test
 
 
 EXTRA_DIST=$(SERVER_TESTS) testBase.py vardbServer.py varserver.xml
