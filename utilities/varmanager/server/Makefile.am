@@ -24,7 +24,9 @@ libvarmgrtcl_la_SOURCES=varmgrTCLPackage.cpp \
 	CVarMgrCreateCommand.h CVarMgrCreateCommand.cpp \
 	CVarMgrOpenCommand.h   CVarMgrOpenCommand.cpp   \
 	CVarMgrCloseCommand.h  CVarMgrCloseCommand.cpp	\
-	CVarMgrMkdirCommand.h  CVarMgrMkdirCommand.cpp
+	CVarMgrMkdirCommand.h  CVarMgrMkdirCommand.cpp	\
+	CVarMgrCdCommand.h     CVarMgrCdCommand.cpp	\
+	CVarMgrGetwdCommand.h  CVarMgrGetwdCommand.cpp
 
 
 include_HEADERS=CVarMgrApi.h CVarMgrFileApi.h CVarMgrServerApi.h CVarMgrApiFactory.h

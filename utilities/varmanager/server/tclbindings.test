@@ -143,9 +143,118 @@ tcltest::test mkdir-ok {Make a directory } \
     set code
 } -result 0
 
-#tcltest::test mkdir-dup {mkdir - Duplicate directory fails}
-#tcltest::test mkdir-missing-dir {mkdir - directory parameter not supplied}
-#tcltest::test mkdir-badhandle   {mkdir - invalid handle}
+tcltest::test mkdir-dup {mkdir - Duplicate directory fails} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    varmgr::mkdir $handle /a/test/dir
+    catch {varmgr::mkdir $handle /a/test/dir}
+} -result 1
+
+tcltest::test mkdir-missing-dir {mkdir - directory parameter not supplied} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    catch {vamrgr::mkdir $handle}
+} -result 1
+
+tcltest::test mkdir-badhandle   {mkdir - invalid handle} \
+-body {
+    catch {varmgr::mkdir junk dir}
+    
+} -result 1
+
+tcltest::test cd-ok {cd - to ok directory} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    varmgr::mkdir $handle /this/is/a/dir
+    catch {varmgr::cd $handle /this/is}
+} -result 0
+
+tcltest::test cd-baddir {cd - to nonexistent directory} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    catch {varmgr::cd $handle /this/is}
+} -result 1
+
+tcltest::test cd-missing-path {cd with missing path parameter} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    varmgr::mkdir $handle /this/is/a/dir
+    catch {varmgr::cd $handle}
+} -result 1
+
+
+tcltest::test cd-badhandle {cd - bad handle} \
+-body {
+    catch {varmgr::cd bad-handle /this/is}
+} -result 1
+
+tcltest::test getwd-initial {getwd - initially /} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    varmgr::getwd $handle
+} -result /
+
+tcltest::test getwd-cd {getwd - after cd} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    varmgr::mkdir $handle /this/is/a/test
+    varmgr::cd $handle /this/is/a
+    varmgr::getwd $handle
+} -result /this/is/a
+
+tcltest::test getwd-badhandle {getwd bad handle} \
+-body {
+    catch {varmgr::getwd bad-handle}
+} -result 1
 
 ##  This bit of magic ensures that we can produce a failing error code if tests
 #   failed:

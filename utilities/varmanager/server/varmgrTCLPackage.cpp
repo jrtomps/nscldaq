@@ -26,6 +26,8 @@
 #include "CVarMgrOpenCommand.h"
 #include "CVarMgrCloseCommand.h"
 #include "CVarMgrMkdirCommand.h"
+#include "CVarMgrCdCommand.h"
+#include "CVarMgrGetwdCommand.h"
 
 
 static const char* version="1.0";
@@ -59,6 +61,9 @@ extern "C" {
         new CVarMgrOpenCommand(*pWrappedInterp, "::varmgr::open");
         new CVarMgrCloseCommand(*pWrappedInterp, "::varmgr::close");
         new CVarMgrMkdirCommand(*pWrappedInterp, "::varmgr::mkdir");
+        new CVarMgrCdCommand(*pWrappedInterp, "::varmgr::cd");
+        new CVarMgrGetwdCommand(*pWrappedInterp, "::varmgr::getwd");
+        
         // Success.
         
         return TCL_OK;
