@@ -284,7 +284,7 @@ proc EVBC::start args {
     set hunting $appName
     set found 0
     set me $::tcl_platform(user)
-    for {set i 0} {$i <s 100} {incr i} {
+    for {set i 0} {$i < 100} {incr i} {
 	set allocations [$ports listPorts]
 	foreach allocation $allocations {
 	    set name [lindex $allocation 1]
