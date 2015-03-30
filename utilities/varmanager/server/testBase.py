@@ -130,4 +130,33 @@ class TestBase(unittest.TestCase):
         self._req.send('DECL:%s:%s|%s' % (path, typeName, value))
         self._req.recv()
         self._sub.recv()
+        
+        
+    ##
+    # _analyzeVarlistReply
+    #   Takes a reply message and breaks it up into a list of dicts
+    #   sorted by variable name.  dicts have the keys
+    #   'name', 'type' and 'value' with obvious meanings.
+    #
+    # @param reply - the full reply from the server ("OK:variable descriptions")
+    def _analyzeVarlistReply(self, reply):
+        variableDescriptions = reply.split(':')[1].split('|')
+        result = list()
+        if (len(variableDescriptions) > 1):   # 1 because an empty string gives 1 on the split.
+            for i in range(0, len(variableDescriptions), 3):
+                item = {
+                    'name': variableDescriptions[i],
+                    'type': variableDescriptions[i+1],
+                    'value': variableDescriptions[i+2]
+                }
+                result.append(item)
+            
+
+        # Now sort using a custom sort function:
+        #  See e.g. http://www.php2python.com/wiki/function.strcmp/ for the comparison
+        #  function....this is python3 clean while cmp is not.
+        
+        return sorted(
+            result,
+            lambda x,y: ((x['name'] > y['name']) - (x['name'] > y['name'])))
     

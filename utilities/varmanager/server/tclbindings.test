@@ -49,6 +49,8 @@ proc mkdb {} {
 # done with file: uris.
 
 
+#   package loading.
+
 tcltest::test ns {Loading the module should create the varmgr namespace} \
 -body {
     set idx [lsearch -exact [namespace children ::] ::varmgr]
@@ -125,6 +127,10 @@ tcltest::test close-invalidates {closing an open db file invalidates the handle}
     catch {varmgr::close $handle}    
 } -result 1
 
+#
+# mkdir tests
+#
+
 tcltest::test mkdir-ok {Make a directory } \
 -setup {
     set file [mkdb]
@@ -176,6 +182,10 @@ tcltest::test mkdir-badhandle   {mkdir - invalid handle} \
     
 } -result 1
 
+#
+# cd tests
+#
+
 tcltest::test cd-ok {cd - to ok directory} \
 -setup {
     set file [mkdb]
@@ -223,6 +233,10 @@ tcltest::test cd-badhandle {cd - bad handle} \
     catch {varmgr::cd bad-handle /this/is}
 } -result 1
 
+#
+# getwd tests
+#
+
 tcltest::test getwd-initial {getwd - initially /} \
 -setup {
     set file [mkdb]
@@ -255,6 +269,10 @@ tcltest::test getwd-badhandle {getwd bad handle} \
 -body {
     catch {varmgr::getwd bad-handle}
 } -result 1
+
+#
+# ls tests
+#
 
 tcltest::test ls-empty {lswd - initially empty} \
 -setup {
@@ -366,6 +384,742 @@ tcltest::test ls-badhandle {ls - badhandle} \
 -body {
     catch {varmgr::ls nosuch-handle}
 } -result 1
+
+#
+# rmdir tests
+#
+
+tcltest::test rmdir-ok {rmdir - abs path} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+    
+    # make a directory structure of some sort.
+    
+    varmgr::mkdir $handle /atest
+    varmgr::mkdir $handle /directory
+    varmgr::mkdir $handle /last
+    
+    varmgr::mkdir $handle /atest/1
+    varmgr::mkdir $handle /atest/2
+    varmgr::mkdir $handle /atest/3
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    varmgr::rmdir $handle /atest/1
+    set dirs [varmgr::ls $handle /atest]
+    set dirs [lsort -increasing $dirs]
+    list [llength $dirs] $dirs
+}  -result [list 2 [list 2 3]]
+
+tcltest::test rmdir-ok-rel {rmdir - relative to wd} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+    
+    # make a directory structure of some sort.
+    
+    varmgr::mkdir $handle /atest
+    varmgr::mkdir $handle /directory
+    varmgr::mkdir $handle /last
+    
+    varmgr::mkdir $handle /atest/1
+    varmgr::mkdir $handle /atest/2
+    varmgr::mkdir $handle /atest/3
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    varmgr::cd $handle atest
+    varmgr::rmdir $handle ../last
+    set dirs [varmgr::ls $handle /]
+    set dirs [lsort -increasing $dirs]
+    list [llength $dirs] $dirs
+    
+} -result [list 2 [list atest directory]]
+
+tcltest::test rmdir-nosuch {rmdir - no such path} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+    
+    # make a directory structure of some sort.
+    
+    varmgr::mkdir $handle /atest
+    varmgr::mkdir $handle /directory
+    varmgr::mkdir $handle /last
+    
+    varmgr::mkdir $handle /atest/1
+    varmgr::mkdir $handle /atest/2
+    varmgr::mkdir $handle /atest/3
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    catch {varmgr::rmdir $handle /no/such/path}
+} -result 1
+
+tcltest::test rmdir-notempty {rmdir - not empty} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+    
+    # make a directory structure of some sort.
+    
+    varmgr::mkdir $handle /atest
+    varmgr::mkdir $handle /directory
+    varmgr::mkdir $handle /last
+    
+    varmgr::mkdir $handle /atest/1
+    varmgr::mkdir $handle /atest/2
+    varmgr::mkdir $handle /atest/3
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    catch {varmgr::rmdir $handle /atest}
+} -result 1
+
+tcltest::test rmdir-nopath   {rmdir - missing path} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+    
+    # make a directory structure of some sort.
+    
+    varmgr::mkdir $handle /atest
+    varmgr::mkdir $handle /directory
+    varmgr::mkdir $handle /last
+    
+    varmgr::mkdir $handle /atest/1
+    varmgr::mkdir $handle /atest/2
+    varmgr::mkdir $handle /atest/3
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    catch {varmgr::rmdir $handle}
+}  -result 1
+
+tcltest::test rmdir-badhandle {rmdir - bad handle} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+    
+    # make a directory structure of some sort.
+    
+    varmgr::mkdir $handle /atest
+    varmgr::mkdir $handle /directory
+    varmgr::mkdir $handle /last
+    
+    varmgr::mkdir $handle /atest/1
+    varmgr::mkdir $handle /atest/2
+    varmgr::mkdir $handle /atest/3
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    catch {varmgr::rmdir bad-handle /atest}
+} -result 1
+
+#
+# var create tests (declare)
+#
+
+tcltest::test declare-nodefault {declare - but with no default value} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+    
+
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    varmgr::var create $handle /test integer
+    set h [vardb::open $file]
+    set value [vardb::var get $h /test]
+    vardb::close $h
+    
+    set value
+} -result 0
+tcltest::test declare-default   {declare -default value provided} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    varmgr::var create $handle /test integer 1234
+    set h [vardb::open $file]
+    set value [vardb::var get $h /test]
+    vardb::close $h
+    
+    set value
+} -result 1234
+tcltest::test declare-abspath   {declare -abspath outside of wd} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    varmgr::mkdir $handle /subdir
+    varmgr::cd $handle /subdir
+    varmgr::var create $handle /test integer 1234
+    set h [vardb::open $file]
+    set value [vardb::var get $h /test]
+    vardb::close $h
+    
+    set value
+} -result 1234
+tcltest::test declare-relpath   {declare -relpath outside of wd} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    varmgr::mkdir $handle /subdir
+    varmgr::cd $handle /subdir
+    varmgr::var create $handle ../test integer 1234
+    set h [vardb::open $file]
+    set value [vardb::var get $h /test]
+    vardb::close $h
+    
+    set value
+} -result 1234
+
+
+tcltest::test declare-badtype   {declare - bad data type} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    catch {varmgr::var create $handle /test no-such-type}
+} -result 1
+
+tcltest::test declare-nopath    {declare - no contaning dir} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    catch {varmgr::var create $handle /tmp/test integer }
+} -result 1
+
+tcltest::test declare-badinitial {declare - Invalid initial value} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    catch {varmgr::var create $handle /test integer hello}
+} -result 1
+
+
+tcltest::test declare-notype    {declare -missing data type} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    catch {varmgr::var create $handle /test}
+} -result 1
+
+tcltest::test declare-badhandle {declare -bad handle}  \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    catch {varmgr::var create handle /test integer}
+} -result 1
+
+#
+# var get tests
+#
+
+tcltest::test get-abs {get  - Absolute path} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    varmgr::mkdir $handle /adir
+    varmgr::var create $handle /adir/avar integer 1234
+    varmgr::var get    $handle /adir/avar
+} -result 1234
+
+tcltest::test get-rel {get  - path relative to dir} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    varmgr::mkdir $handle /adir
+    varmgr::var create $handle /adir/avar integer 1234
+    varmgr::cd $handle adir
+    varmgr::var get    $handle avar
+} -result 1234
+
+tcltest::test get-nosuch {get - no such variable} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    catch {varmgr::var get $handle /avar}
+} -result 1
+
+tcltest::test get-novar {get - no path given} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    catch {varmgr::var get $handle}
+} -result 1
+
+tcltest::test get-badhandle {get - bad handle} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    varmgr::var create $handle /avar integer
+    catch {varmgr::var get handle /avar/}
+} -result 1
+
+#
+# set tests
+#
+
+tcltest::test set-abs       {set - set absolute var path} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    varmgr::mkdir $handle /testdir
+    varmgr::var create $handle /testdir/a integer
+    varmgr::var set    $handle /testdir/a 1234
+    varmgr::var get    $handle /testdir/a
+} -result 1234
+
+tcltest::test set-rel       {set - set path relative to wd} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    varmgr::mkdir $handle /testdir
+    varmgr::var create $handle /testdir/a integer
+    varmgr::cd $handle testdir
+    varmgr::var set    $handle a 1234
+    varmgr::var get    $handle /testdir/a
+} -result 1234
+
+
+tcltest::test set-badvalue  {set - bad variable value} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    varmgr::mkdir $handle /testdir
+    varmgr::var create $handle /testdir/a integer
+    catch {varmgr::var set    $handle /testdir/a hello}
+    
+} -result 1
+
+tcltest::test set-badpath   {set - set no such variable} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    
+    catch {varmgr::var set    $handle /testdir/a 1234}
+    
+} -result 1
+
+tcltest::test set-nopath    {set - no path provided} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    catch {varmgr::var set    $handle }
+    
+} -result 1
+
+tcltest::test set-badhandle {set - invalid handle} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    varmgr::mkdir $handle /testdir
+    varmgr::var create $handle /testdir/a integer
+    catch {varmgr::var set    handle /testdir/a 1234}
+    
+} -result 1
+
+# var ls tests
+
+tcltest::test varlist-empty   {Empty variable list} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    varmgr::var ls $handle
+} -result [list]
+
+tcltest::test varlist-1       {list with one item } \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    varmgr::var create $handle /anint integer 1234
+    
+    varmgr::var ls $handle
+} -result [list [list -1 anint integer -1 -1]]
+
+
+tcltest::test varlist-n       {list with several items} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    varmgr::var create $handle /anint integer 1234
+    varmgr::var create $handle /areal real    3.1416
+    varmgr::var create $handle /astring string "Hello world"
+    
+    
+    set vars [varmgr::var ls $handle]
+    lsort -increasing -index 1 $vars
+} -result [list [list -1 anint integer -1 -1] \
+                [list -1 areal real -1 -1]   \
+                [list -1 astring string -1 -1]]
+                
+tcltest::test varlist-abspath {list with abs path. } \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    varmgr::mkdir $handle /a/test/dir
+    varmgr::var create $handle /a/test/dir/anint integer 1234
+    varmgr::var create $handle /a/test/dir/areal real    3.1416
+    varmgr::var create $handle /a/test/dir/astring string "Hello world"
+    
+    set vars [varmgr::var ls $handle /a/test/dir]
+    lsort -increasing -index 1 $vars
+} -result [list [list -1 anint integer -1 -1] \
+                [list -1 areal real -1 -1]   \
+                [list -1 astring string -1 -1]]
+    
+tcltest::test varlist-relpath {list with relative path} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    varmgr::mkdir $handle /a/test/dir
+    varmgr::var create $handle /a/test/dir/anint integer 1234
+    varmgr::var create $handle /a/test/dir/areal real    3.1416
+    varmgr::var create $handle /a/test/dir/astring string "Hello world"
+    
+    varmgr::cd $handle /a/test
+    set vars [varmgr::var ls $handle dir]
+    lsort -increasing -index 1 $vars
+} -result [list [list -1 anint integer -1 -1] \
+                [list -1 areal real -1 -1]   \
+                [list -1 astring string -1 -1]]
+tcltest::test varlist-badpath {list with bad path} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    catch {varmgr::var ls $handle /test}
+} -result 1
+
+tcltest::test varlist-badhandle {list with bad handle} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    varmgr::mkdir $handle /a/test/dir
+    varmgr::var create $handle /a/test/dir/anint integer 1234
+    varmgr::var create $handle /a/test/dir/areal real    3.1416
+    varmgr::var create $handle /a/test/dir/astring string "Hello world"
+    
+    varmgr::cd $handle /a/test
+    catch {varmgr::var ls handle dir}
+} -result 1
+
+
+tcltest::test rmvar-ok {removing a var in the wd is ok} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    varmgr::var create $handle /anint integer 1234
+    varmgr::var create $handle /areal real    3.1416
+    varmgr::var create $handle /astring string "Hello world"
+    
+    varmgr::var destroy $handle /areal
+    
+    set vars [varmgr::var ls $handle]
+    lsort -increasing -index 1 $vars
+} -result [list [list -1 anint integer -1 -1] \
+                [list -1 astring string -1 -1]]
+
+tcltest::test rmvar-notroot {removing a var in a wd other than root works} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    varmgr::mkdir $handle /a/test/dir
+    varmgr::var create $handle /a/test/dir/anint integer 1234
+    varmgr::var create $handle /a/test/dir/areal real    3.1416
+    varmgr::var create $handle /a/test/dir/astring string "Hello world"
+    
+    varmgr::var destroy $handle /a/test/dir/areal
+    set vars [varmgr::var ls $handle /a/test/dir]
+    lsort -increasing -index 1 $vars
+} -result [list [list -1 anint integer -1 -1] \
+                [list -1 astring string -1 -1]]
+    
+tcltest::test rmvar-rel {Removing a var in relative path is ok} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    varmgr::mkdir $handle /a/test/dir
+    varmgr::var create $handle /a/test/dir/anint integer 1234
+    varmgr::var create $handle /a/test/dir/areal real    3.1416
+    varmgr::var create $handle /a/test/dir/astring string "Hello world"
+    
+    varmgr::cd $handle /a/test
+    varmgr::var destroy $handle dir/areal
+    
+    set vars [varmgr::var ls $handle /a/test/dir]
+    lsort -increasing -index 1 $vars
+} -result [list [list -1 anint integer -1 -1] \
+                [list -1 astring string -1 -1]]
+
+tcltest::test rmvar-abs {Removing a var in an abs path is ok} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    varmgr::mkdir $handle /a/test/dir
+    varmgr::var create $handle /a/test/dir/anint integer 1234
+    varmgr::var create $handle /a/test/dir/areal real    3.1416
+    varmgr::var create $handle /a/test/dir/astring string "Hello world"
+    
+    varmgr::cd $handle /a/test
+    varmgr::var destroy $handle /a/test/dir/areal
+    
+    set vars [varmgr::var ls $handle /a/test/dir]
+    lsort -increasing -index 1 $vars
+} -result [list [list -1 anint integer -1 -1] \
+                [list -1 astring string -1 -1]]
+
+tcltest::test rmvar-nosuch {Error to remove a nonexistent var} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    catch {::varmgr::var destroy $handle /nosuch}
+} -result 1
+
+tcltest::test rmvar-badhandle {Error using a bad handle} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    varmgr::var create $handle /anint integer
+    
+    catch {varmgr::var destroy handle /anint}
+} -result 1
+
+#  tests for enum (create an enumerated data type):
+
+tcltest::test  enum-createok {enum -can create without error} \
+\
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    set result [catch {varmgr::enum $handle colors [list red green blue]} msg]
+    list $result $msg
+    
+} -result [list 0 ""]
+
+
+#tcltest::test  enum-usedefault {enum - vars know default value}
+#tcltest::test  enum-missing-list {enum - missing value list}
+#tcltest::test  enum-badhandle {enum -invalid handle}
 
 
 ##  This bit of magic ensures that we can produce a failing error code if tests

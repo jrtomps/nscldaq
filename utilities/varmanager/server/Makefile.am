@@ -27,7 +27,10 @@ libvarmgrtcl_la_SOURCES=varmgrTCLPackage.cpp \
 	CVarMgrMkdirCommand.h  CVarMgrMkdirCommand.cpp	\
 	CVarMgrCdCommand.h     CVarMgrCdCommand.cpp	\
 	CVarMgrGetwdCommand.h  CVarMgrGetwdCommand.cpp	\
-	CVarMgrLsCommand.h     CVarMgrLsCommand.cpp
+	CVarMgrLsCommand.h     CVarMgrLsCommand.cpp	\
+	CVarMgrRmdirCommand.h  CVarMgrRmdirCommand.cpp  \
+	CVarMgrVarCommand.h    CVarMgrVarCommand.cpp	\
+	CVarMgrEnumCommand.h   CVarMgrEnumCommand.cpp
 
 
 include_HEADERS=CVarMgrApi.h CVarMgrFileApi.h CVarMgrServerApi.h CVarMgrApiFactory.h
@@ -44,7 +47,7 @@ install-exec-hook:
 
 
 SERVER_TESTS=startTests.py serviceTests.py mkdirTests.py  \
-	testGet.py testDirlist.py testVarlist.py
+	testGet.py testDirlist.py testVarlist.py testRmvar.py
 
 noinst_PROGRAMS = testApi
 

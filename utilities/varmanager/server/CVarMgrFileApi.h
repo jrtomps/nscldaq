@@ -50,6 +50,8 @@ public:
     virtual void defineEnum(const char* typeName, EnumValues values) ;
     virtual void defineStateMachine(const char* typeName, StateMap transitions) ;
     virtual std::vector<std::string> ls(const char* path=0);
+    virtual std::vector<VarInfo> lsvar(const char* path =0);
+    virtual void rmvar(const char* path);
 };
 
 #endif

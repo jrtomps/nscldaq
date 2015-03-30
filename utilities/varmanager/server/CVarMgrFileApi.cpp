@@ -207,3 +207,49 @@ CVarMgrFileApi::ls(const char* path)
     }
     return result;
 }
+/**
+ * lsvar
+ *    List information about the variables in a directory path.
+ *    @param[in] path - directory path, see ls above for how it's treated.
+ *    @return std::vector<CVarMgrApi::VarInfo> - containing info about the
+ *            variables in the directory.
+ */
+std::vector<CVarMgrApi::VarInfo>
+CVarMgrFileApi::lsvar(const char* path)
+{
+    
+    std::vector<CVariable::VarInfo> rawResult = CVariable::list(m_pDb, *m_pWd, path);
+    std::vector<CVarMgrApi::VarInfo> result;
+    for (int i = 0; i < rawResult.size(); i++) {
+        VarInfo vInfo = {
+            rawResult[i].s_name, rawResult[i].s_type, "0"    
+        };
+        std::string varp;
+        if (path) {
+            varp += path;
+            varp += "/";
+        }   
+        varp += vInfo.s_name;
+        
+        CVariable v(*m_pDb, *m_pWd, varp.c_str());
+        vInfo.s_value = v.get();
+        
+        result.push_back(vInfo);
+        
+    }
+    return result;
+}
+/**
+ * rmvar
+ *    Remove an existing variable.
+ *
+ *   @param path - path to the variable to remove (this can be wd relative).
+ *
+ *  @throw std::runtime_error derviec exception
+ *         if error (e.g. the path does not exist).
+ */
+void
+CVarMgrFileApi::rmvar(const char* path)
+{
+    CVariable::destroy(*m_pDb, *m_pWd, path);
+}

@@ -52,6 +52,15 @@ class TestDirect : public CppUnit::TestFixture {
   CPPUNIT_TEST(lsRelPath);
   
   CPPUNIT_TEST(defStateMachine);
+  
+  CPPUNIT_TEST(lsvarEmpty);
+  CPPUNIT_TEST(lsvarOneVar);
+  CPPUNIT_TEST(lsvarVars);
+  CPPUNIT_TEST(lsvarRelpath);
+  CPPUNIT_TEST(lsvarAbsPath);
+  
+  CPPUNIT_TEST(rmvarOk);
+  CPPUNIT_TEST(rmvarNoSuch);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -98,6 +107,15 @@ protected:
   void lsList();
   void lsAbsPath();
   void lsRelPath();
+  
+  void lsvarEmpty();
+  void lsvarOneVar();
+  void lsvarVars();
+  void lsvarRelpath();
+  void lsvarAbsPath();
+  
+  void rmvarOk();
+  void rmvarNoSuch();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(TestDirect);
@@ -316,4 +334,127 @@ void TestDirect::lsRelPath()
     std::vector<std::string> dirs = api.ls("../anotherdir");
     EQ(size_t(1), dirs.size());
     EQ(std::string("test"), dirs[0]);
+}
+
+// lsvar with empty dir gives empty list:
+
+void TestDirect::lsvarEmpty()
+{
+    CVarMgrFileApi api(m_tempFile);
+    EQ(size_t(0), api.lsvar().size());
+}
+// lsvar with a single variable in the wd gives the stuff for that var:
+
+class FindVar {
+    std::string m_name;
+public:
+    FindVar(std::string name) : m_name(name) {}
+    bool operator()(CVarMgrApi::VarInfo item) {
+        return item.s_name == m_name;
+    }
+};
+
+static void varcheck(
+    std::vector<CVarMgrApi::VarInfo> info, std::string name, std::string type,
+    std::string value
+)
+{
+    std::vector<CVarMgrApi::VarInfo>::iterator p;
+    FindVar matcher(name);
+    p = find_if(info.begin(), info.end(), matcher);
+    ASSERT(p != info.end());
+    
+    EQ(name, p->s_name);
+    EQ(type, p->s_typeName);
+    EQ(value, p->s_value);
+}
+
+void TestDirect::lsvarOneVar()
+{
+    CVarMgrFileApi api(m_tempFile);
+    api.declare("/aninteger", "integer", "1234");
+    std::vector<CVarMgrApi::VarInfo> info = api.lsvar();
+    
+    EQ(size_t(1), info.size());
+    EQ(std::string("aninteger"), info[0].s_name);
+    EQ(std::string("integer"),   info[0].s_typeName);
+    EQ(std::string("1234"),      info[0].s_value);
+}
+// lsvarVars - list when there's more than one.
+
+void TestDirect::lsvarVars()
+{
+    CVarMgrFileApi api(m_tempFile);
+    api.declare("/aninteger", "integer", "1234");
+    api.declare("/areal", "real", "3.1416");
+    api.declare("/astring", "string", "hello world");
+    
+    std::vector<CVarMgrApi::VarInfo> info = api.lsvar();
+    EQ(size_t(3), info.size());
+    
+    varcheck(info, "aninteger", "integer", "1234");
+    varcheck(info, "areal", "real", "3.1416");
+    varcheck(info, "astring", "string", "hello world");
+}
+
+// lsvarRelpath - List variables in a path relative to the wd.
+
+void TestDirect::lsvarRelpath()
+{
+    CVarMgrFileApi api(m_tempFile);
+    api.mkdir("/subdir");
+    api.declare("/subdir/aninteger", "integer", "1234");
+    api.declare("/subdir/areal", "real", "3.1416");
+    api.declare("/subdir/astring", "string", "hello world");
+    
+    
+    std::vector<CVarMgrApi::VarInfo> info = api.lsvar("subdir");
+    EQ(size_t(3), info.size());
+    
+    varcheck(info, "aninteger", "integer", "1234");
+    varcheck(info, "areal", "real", "3.1416");
+    varcheck(info, "astring", "string", "hello world");
+}
+// lsvarAbsPath - List variables in an absolute path
+
+void TestDirect::lsvarAbsPath()
+{
+    CVarMgrFileApi api(m_tempFile);
+    api.mkdir("/subdir");
+    api.declare("/subdir/aninteger", "integer", "1234");
+    api.declare("/subdir/areal", "real", "3.1416");
+    api.declare("/subdir/astring", "string", "hello world");
+    api.cd("subdir");
+    
+    std::vector<CVarMgrApi::VarInfo> info = api.lsvar("/subdir");
+    EQ(size_t(3), info.size());
+    
+    varcheck(info, "aninteger", "integer", "1234");
+    varcheck(info, "areal", "real", "3.1416");
+    varcheck(info, "astring", "string", "hello world");
+    
+}
+// Deleting works:
+
+void TestDirect::rmvarOk()
+{
+    CVarMgrFileApi api(m_tempFile);
+    
+    api.declare("/avar", "integer", "1234");
+    
+    api.rmvar("/avar");
+    
+    std::vector<CVarMgrApi::VarInfo> info = api.lsvar();
+    EQ(size_t(0), info.size());
+}
+// Throw if removing a nonexistent variable:
+
+void TestDirect::rmvarNoSuch()
+{
+    CVarMgrFileApi api(m_tempFile);
+    
+    CPPUNIT_ASSERT_THROW(
+        api.rmvar("/avar"),
+        std::runtime_error
+    );
 }

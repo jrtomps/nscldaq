@@ -309,7 +309,21 @@ class databaseServer():
         except nscldaq.vardb.dirtree.error as e:
             self._req.send('FAIL:%s' % e)
         
-    
+    ##
+    # _rmvar
+    #   Remove a variable.  Removal is published as well
+    #
+    # @param path - the variable being deleted.
+    #
+    def _rmvar(self, path):
+        try:
+            dir = nscldaq.vardb.dirtree.DirTree(self._database)
+            nscldaq.vardb.variable.destroy(self._database, dir, path)
+            self._req.send('OK:')
+            self._publishMessage(path, 'RMVAR', '')
+        except nscldaq.vardb.variable.error as e:
+            self._req.send('FAIL:%s' % e)
+        
     #--------------------------- publication methods ------------------
 
     ##
@@ -439,6 +453,8 @@ class databaseServer():
             self._dirlist(path)
         elif command == 'VARLIST':
             self._varlist(path)
+        elif command == 'RMVAR':
+            self._rmvar(path)
         else:
             self._req.send('FAIL:Unrecognized operation code %s' % (command))
         

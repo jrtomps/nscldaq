@@ -29,6 +29,9 @@
 #include "CVarMgrCdCommand.h"
 #include "CVarMgrGetwdCommand.h"
 #include "CVarMgrLsCommand.h"
+#include "CVarMgrRmdirCommand.h"
+#include "CVarMgrVarCommand.h"
+#include "CVarMgrEnumCommand.h"
 
 
 static const char* version="1.0";
@@ -65,6 +68,9 @@ extern "C" {
         new CVarMgrCdCommand(*pWrappedInterp, "::varmgr::cd");
         new CVarMgrGetwdCommand(*pWrappedInterp, "::varmgr::getwd");
         new CVarMgrLsCommand(*pWrappedInterp, "::varmgr::ls");
+        new CVarMgrRmdirCommand(*pWrappedInterp, "::varmgr::rmdir");
+        new CVarMgrVarCommand(*pWrappedInterp, "::varmgr::var");
+        new CVarMgrEnumCommand(*pWrappedInterp, "::varmgr::enum");
         
         // Success.
         

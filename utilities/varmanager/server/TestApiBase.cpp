@@ -23,6 +23,8 @@ public:
     virtual void defineStateMachine(const char* typeName, StateMap transitions) {}
     virtual std::vector<std::string> ls(const char* path = 0) {std::vector<std::string> result;
                                                                 return result;}
+    virtual std::vector<VarInfo> lsvar(const char* path = 0) {std::vector<VarInfo> result; return result;}
+    virtual void rmvar(const char* path) {}
 
     std::pair<std::string, std::string> ivt(CVarMgrApi::StateMap map) {
         return findInvalidTransition(map);

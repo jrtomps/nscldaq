@@ -42,6 +42,11 @@ class CVarMgrApi
 public:
     typedef std::vector<std::string> EnumValues;
     typedef std::map<std::string, std::set<std::string> > StateMap;
+    typedef struct _VarInfo {
+        std::string s_name;
+        std::string s_typeName;
+        std::string s_value;
+    } VarInfo, *pVarInfo;
 public:
     virtual void cd(const char* path = "/") = 0;
     virtual std::string getwd()             = 0;
@@ -53,6 +58,8 @@ public:
     virtual void defineEnum(const char* typeName, EnumValues values) = 0;
     virtual void defineStateMachine(const char* typeName, StateMap transitions) = 0;
     virtual std::vector<std::string> ls(const char* path=0) = 0;
+    virtual std::vector<VarInfo>     lsvar(const char* path=0) = 0;
+    virtual void rmvar(const char* path) = 0;
     
     void addTransition(StateMap& map, std::string fromState, std::string  toState);
     bool validTransitionMap(StateMap map);

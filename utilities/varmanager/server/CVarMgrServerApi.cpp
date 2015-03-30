@@ -227,6 +227,44 @@ CVarMgrServerApi::ls(const char* path)
     return resultVec;
     
 }
+/**
+ * lsvar
+ *    List information about the variables in a directory.
+ *
+ *  @param path - See ls for how this is treated.
+ *  @return std::vector<CVarMgrApi::VarInfo> -information about the variables.
+ */
+
+std::vector<CVarMgrApi::VarInfo>
+CVarMgrServerApi::lsvar(const char* path)
+{
+    std::string parent = m_wd;
+    if (path) {
+        parent = makePath(path);
+    }
+    std::string data  = transaction("VARLIST", parent, "");
+    std::vector<std::string> infoList = split(data, '|');
+    
+    std::vector<CVarMgrApi::VarInfo> result;
+    for (int i =0; i < infoList.size(); i+=3) {
+        CVarMgrApi::VarInfo v = {infoList[i], infoList[i+1], infoList[i+2] };
+        result.push_back(v);
+    }
+    return result;
+}
+/**
+ * rmvar
+ *     Remove an existing directory.
+ *
+ *   @param path - Path to the variable.
+ */
+void
+CVarMgrServerApi::rmvar(const char* path)
+{
+    std::string fullpath = makePath(path);
+    
+    transaction("RMVAR", fullpath, "");
+}
 
     // Utilities:
 
@@ -486,20 +524,35 @@ CVarMgrServerApi::join(const CVarMgrApi::EnumValues& values, char sep)
  {
     std::set<std::string> result;
     
-    while(dirlist.size() > 0) {
-        size_t nextSep = dirlist.find("|");
-        
-        // No separator means this is the last dir:
-        
-        if (nextSep == std::string::npos) {
-            result.insert(dirlist);
-            dirlist = "";                  // Done.
-        } else {
-            result.insert(dirlist.substr(0, nextSep));
-            dirlist = dirlist.substr(nextSep+1);
-        }
+    std::vector<std::string> dirs = split(dirlist, '|');
+    for (int i = 0; i < dirs.size(); i++) {
+        result.insert(dirs[i]);
     }
-    
     return result;
  }
- 
+/**
+ * split
+ *   split a delimted string into a vector of strings:
+ *
+ *   @param string - The string to split
+ *   @param sep    - The separating character.
+ *   @return std::vector<std::string> of fields.
+ */
+std::vector<std::string>
+CVarMgrServerApi::split(std::string string, char sep)
+{
+    std::vector<std::string> result;
+    while (string.size() > 0) {
+        size_t nextSep = string.find(sep);
+        
+        if (nextSep == std::string::npos) {
+            result.push_back(string);
+            string = "";
+        } else {
+            result.push_back(string.substr(0, nextSep));
+            string = string.substr(nextSep+1);
+                            
+        }
+    }
+    return result;
+}
