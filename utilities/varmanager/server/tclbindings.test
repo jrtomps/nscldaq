@@ -1269,6 +1269,7 @@ tcltest::test statemachine-badhandle     {statemachine, bad handle} \
             inactive [list active 00notready]]
     catch {varmgr::statemachine handle RunState $sm}
 } -result 1
+
 ##  This bit of magic ensures that we can produce a failing error code if tests
 #   failed:
 

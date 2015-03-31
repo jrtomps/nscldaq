@@ -28,33 +28,35 @@ exec @prefix@/bin/inittcl "$0" ${1+"$@"}
 
 ##
 # usage:
-#   vardbsh  path-to-db-file
-#   *   if path-to-db-file does not exist, user is prompted to create a new one
-#       or exit.
-#   *   if path-to-db-file is not a variable database, program exits with message.
-#   *   if path-to-db-file i a database, program silently continues.
+#   vardbsh  db-uri
+#   *   if db-uri is a file: uri and the file does not exist, user is prompted
+#       to create a new one or exit.
+#   *   if db-uri is a file: uri andis not a variable database, program
+#       exits with message.
+#
 #   Prompts are handled as follows:
 #   * Initial command prompt is ([file tail])[pwd]
 #   * Continuation prompt is '_'
 #
 lappend auto_path [file join  [file dirname [info script]] .. TclLibs]
 
-package require vardb
+package require varmgr
 
 namespace eval vardbsh {
     set varDbFile ""
-    set varDbHandle ""   
+    set varDbHandle ""
+    set prompt1     ""
 }
 
 ##
 # prompt1
 #   This proc returns the command prompt for the start of a command.
 #
-proc prompt1 {} {
-    set prefix [file tail $vardbsh::varDbFile]
-    set suffix [::vardb::getwd $::vardbsh::varDbHandle]
+proc prompt1 {} { 
+    set suffix [::varmgr::getwd $::vardbsh::varDbHandle]
     
-    return "($prefix) $suffix: "
+    return "($::varmgr::prompt1): $suffix "
+
 }
 
 ##
@@ -71,27 +73,40 @@ proc prompt2 {} {
 
 if {[llength $argv] != 1} {
     puts stderr "Usage:"
-    puts stderr "   vardbsh path-to-variable-database-file"
+    puts stderr "   vardbsh database-uri"
     puts stderr " NOTE: If the path provided does not exist you'll be allowed to"
     puts stderr "       to create it as a variable database file"
     exit -1
 }
 
-set vardbsh::varDbFile [lindex $argv 0]
-if {![file exists $vardbsh::varDbFile]} {
-    puts -nonewline "$vardbsh::varDbFile does not exist. Create it? "
-    flush stdout
-    set reply [gets stdin]
-    if {[string range $reply 0 0] in [list Y y]} {
-        vardb::create $vardbsh::varDbFile
-    } else {
-        exit 0
-    }
-}
+# If a file URI, figure out the file and, if it does not exist offer to create
+# it:
 
+
+
+set uri [lindex $argv 0]
+set protocol [lindex [split $uri :] 0]
+set vardbsh::varDbFile [string range $uri [string length $protocol]+1 end]
+
+if {$protocol eq "file"} {
+    set vardbsh::varDbFile [file normalize $vardbsh::varDbFile]
+    if {![file exists $vardbsh::varDbFile]} {
+        puts -nonewline "$vardbsh::varDbFile does not exist. Create it? "
+        flush stdout
+        set reply [gets stdin]
+        if {[string range $reply 0 0] in [list Y y]} {
+            varmgr::create $vardbsh::varDbFile
+        } else {
+            exit 0
+        }
+    }
+    set ::varmgr::prompt1 [file tail $::vardbsh::varDbFile]
+} else {
+    set ::varmgr::prompt1 $::vardbsh::varDbFile
+}
 # By now the database file should exist:
 
-if {[catch {vardb::open $vardbsh::varDbFile} ::vardbsh::varDbHandle]} {
+if {[catch {varmgr::open $uri} ::vardbsh::varDbHandle]} {
     puts stderr "Could not open $vardbsh::varDbFile as a variable database"
     puts stderr $vardbsh::varDbHandle
     exit -1
@@ -115,7 +130,7 @@ set tcl_prompt2 prompt2
 #  @param path - path of directory to create:
 #
 proc mkdir path {
-    ::vardb::mkdir $::vardbsh::varDbHandle  $path
+    ::varmgr::mkdir $::vardbsh::varDbHandle  $path
 }
 ##
 # ls
@@ -126,9 +141,9 @@ proc ls {{path {}}} {
     #  First the subdirectories:
     
     if {$path eq ""} {
-        set subdirs [::vardb::ls $::vardbsh::varDbHandle]
+        set subdirs [::varmgr::ls $::vardbsh::varDbHandle]
     } else {
-        set subdirs [::vardb::ls $::vardbsh::varDbHandle $path]
+        set subdirs [::varmgr::ls $::vardbsh::varDbHandle $path]
     }
     foreach subdir $subdirs {
         puts $subdir/
@@ -136,9 +151,9 @@ proc ls {{path {}}} {
     #  Now the variables:
      
      if {$path ne ""} {
-        set vars [::vardb::var ls $::vardbsh::varDbHandle $path]
+        set vars [::varmgr::var ls $::vardbsh::varDbHandle $path]
      } else {
-        set vars [::vardb::var ls $::vardbsh::varDbHandle]
+        set vars [::varmgr::var ls $::vardbsh::varDbHandle]
         set path [pwd]
      }
     
@@ -159,7 +174,7 @@ proc ls {{path {}}} {
 #
 rename cd Cd
 proc cd path {
-    ::vardb::cd $::vardbsh::varDbHandle $path
+    ::varmgr::cd $::vardbsh::varDbHandle $path
     set a ""
 }
 ##
@@ -168,7 +183,7 @@ proc cd path {
 #
 rename pwd Pwd
 proc pwd {} {
-    ::vardb::getwd $::vardbsh::varDbHandle
+    ::varmgr::getwd $::vardbsh::varDbHandle
 }
 
 ##
@@ -177,7 +192,7 @@ proc pwd {} {
 # @param path - path to remvoe.
 #
 proc rmdir {path} {
-    ::vardb::rmdir $::vardbsh::varDbHandle $path
+    ::varmgr::rmdir $::vardbsh::varDbHandle $path
 }
 
 ##
@@ -190,9 +205,9 @@ proc rmdir {path} {
 #
 proc declare {path type args} {
     if {[llength $args] == 0} {
-        vardb::var create $::vardbsh::varDbHandle $path $type
+        varmgr::var create $::vardbsh::varDbHandle $path $type
     } elseif {[llength $args] == 1} {
-        vardb::var create $::vardbsh::varDbHandle $path $type $args
+        varmgr::var create $::vardbsh::varDbHandle $path $type $args
     } else {
         error "usage: declare path type ?initial-value?"
     }
@@ -206,7 +221,7 @@ proc declare {path type args} {
 # @param value - new variable value.
 #
 proc let {path value} {
-    vardb::var set $::vardbsh::varDbHandle $path $value
+    varmgr::var set $::vardbsh::varDbHandle $path $value
 }
 ##
 # get
@@ -214,7 +229,7 @@ proc let {path value} {
 # @param path path name
 # @return current value.
 proc get {path} {
-    return [vardb::var get $::vardbsh::varDbHandle $path]
+    return [varmgr::var get $::vardbsh::varDbHandle $path]
 }
 ##
 #  del
@@ -223,7 +238,7 @@ proc get {path} {
 # @param path - path to dwelete.
 #
 proc del {path} {
-    vardb::var destroy $::vardbsh::varDbHandle $path
+    varmgr::var destroy $::vardbsh::varDbHandle $path
 }
 
 ##
@@ -235,7 +250,7 @@ proc del {path} {
 # @param value-list - List of values the type can have.
 #
 proc enum {typename values} {
-    vardb::enum $::vardbsh::varDbHandle $typename $values
+    varmgr::enum $::vardbsh::varDbHandle $typename $values
 }
 
 ##
@@ -262,7 +277,7 @@ proc enum {typename values} {
 #
 #
 proc statemachine {typename transitions} {
-    vardb::statemachine $vardbsh::varDbHandle $typename $transitions
+    varmgr::statemachine $vardbsh::varDbHandle $typename $transitions
 }
 
 set tcl_interactive 1
