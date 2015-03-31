@@ -1101,7 +1101,6 @@ tcltest::test rmvar-badhandle {Error using a bad handle} \
 #  tests for enum (create an enumerated data type):
 
 tcltest::test  enum-createok {enum -can create without error} \
-\
 -setup {
     set file [mkdb]
     set handle [varmgr::open file://$file]
@@ -1117,11 +1116,159 @@ tcltest::test  enum-createok {enum -can create without error} \
 } -result [list 0 ""]
 
 
-#tcltest::test  enum-usedefault {enum - vars know default value}
-#tcltest::test  enum-missing-list {enum - missing value list}
-#tcltest::test  enum-badhandle {enum -invalid handle}
+tcltest::test  enum-usedefault {enum - vars know default value} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    varmgr::enum $handle colors [list red green blue]
+    varmgr::var create $handle /acolor colors
+    
+    varmgr::var get $handle /acolor
+} -result red
+    
+tcltest::test  enum-missing-list {enum - missing value list}\
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    catch {varmgr::enum $handle colors }
+} -result 1
+    
+    
+tcltest::test  enum-badhandle {enum -invalid handle} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    catch {varmgr::enum handle colors [list red green blue]}
+} -result 1
+    
+tcltest::test statemachine-ok {can create statemachine} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    set sm [dict create 00notready ready ready [list active 00notready] active [list ready 00notready]]
+    set result [catch {varmgr::statemachine $handle RunState $sm} msg]
+    list $result $msg
+} -result [list 0 ""]
+    
+tcltest::test statemachine-var {can create a statemachine variable} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    set sm [dict create 00notready ready ready [list active 00notready] active [list ready 00notready]]
+    varmgr::statemachine $handle RunState $sm
+    
+    varmgr::var create $handle /runState RunState
+    varmgr::var get $handle /runState
+    
+} -result 00notready
+    
+tcltest::test statemachine-unreachable {state machine with unreachable state} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    #inactive is not reachable.
+    set sm [dict create 00notready ready ready [list active 00notready] active [list ready 00notready] \
+            inactive [list active 00notready]]
+    catch {varmgr::statemachine $handle RunState $sm}
+} -result 1
 
 
+tcltest::test statemachine-badtransition {statemachine with transition to undefined state} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    # notready -  no such state.
+    set sm [dict create 00notready ready ready [list active 00notready] active [list ready notready]]
+    catch {varmgr::statemachine $handle RunState $sm}
+} -result 1
+
+tcltest::test statemachine-emptymap      {State machine with empty map} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    #inactive is not reachable.
+    
+    catch {varmgr::statemachine $handle RunState [list]}
+} -result 1
+
+tcltest::test statemachine-nomap         {statemachine missing map} \
+\
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    #inactive is not reachable.
+    
+    catch {varmgr::statemachine $handle RunState }
+} -result 1
+tcltest::test statemachine-badhandle     {statemachine, bad handle} \
+-setup {
+    set file [mkdb]
+    set handle [varmgr::open file://$file]
+} \
+-cleanup {
+    varmgr::close $handle
+    file delete -force $file
+} \
+-body {
+    #inactive is not reachable.
+    set sm [dict create 00notready ready ready [list active 00notready] active [list ready 00notready] \
+            inactive [list active 00notready]]
+    catch {varmgr::statemachine handle RunState $sm}
+} -result 1
 ##  This bit of magic ensures that we can produce a failing error code if tests
 #   failed:
 

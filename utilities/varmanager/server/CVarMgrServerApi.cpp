@@ -181,6 +181,9 @@ void CVarMgrServerApi::defineEnum(const char* typeName, EnumValues values)
  */
 void CVarMgrServerApi::defineStateMachine(const char* typeName, StateMap transitions)
 {
+    if (!validTransitionMap(transitions)) {
+        throw CVarMgrApi::CException("Invalid state transition map");
+    }
     // Marshall the state transition map into the final parameter:
     
     std::vector<std::string> stateStrings;

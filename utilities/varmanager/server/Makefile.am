@@ -30,7 +30,8 @@ libvarmgrtcl_la_SOURCES=varmgrTCLPackage.cpp \
 	CVarMgrLsCommand.h     CVarMgrLsCommand.cpp	\
 	CVarMgrRmdirCommand.h  CVarMgrRmdirCommand.cpp  \
 	CVarMgrVarCommand.h    CVarMgrVarCommand.cpp	\
-	CVarMgrEnumCommand.h   CVarMgrEnumCommand.cpp
+	CVarMgrEnumCommand.h   CVarMgrEnumCommand.cpp	\
+	CVarMgrStateMachine.h  CVarMgrStateMachine.cpp
 
 
 include_HEADERS=CVarMgrApi.h CVarMgrFileApi.h CVarMgrServerApi.h CVarMgrApiFactory.h

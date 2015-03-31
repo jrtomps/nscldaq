@@ -32,6 +32,7 @@
 #include "CVarMgrRmdirCommand.h"
 #include "CVarMgrVarCommand.h"
 #include "CVarMgrEnumCommand.h"
+#include "CVarMgrStateMachine.h"
 
 
 static const char* version="1.0";
@@ -71,6 +72,7 @@ extern "C" {
         new CVarMgrRmdirCommand(*pWrappedInterp, "::varmgr::rmdir");
         new CVarMgrVarCommand(*pWrappedInterp, "::varmgr::var");
         new CVarMgrEnumCommand(*pWrappedInterp, "::varmgr::enum");
+        new CVarMgrStateMachine(*pWrappedInterp, "::varmgr::statemachine");
         
         // Success.
         

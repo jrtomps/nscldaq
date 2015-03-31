@@ -175,6 +175,9 @@ CVarMgrFileApi::defineEnum(const char* typeName, CVarMgrApi::EnumValues values)
  */
 void CVarMgrFileApi::defineStateMachine(const char* typeName, CVarMgrApi::StateMap transitions)
 {
+    if (!validTransitionMap(transitions)) {
+        throw CVarMgrApi::CException("Invalid state transition map");
+    }
     CStateMachine::create(*m_pDb, typeName, transitions);
 }
 /**
