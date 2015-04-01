@@ -230,7 +230,9 @@ CVarMgrFileApi::lsvar(const char* path)
         std::string varp;
         if (path) {
             varp += path;
-            varp += "/";
+            if (varp != "/") { 
+                varp += "/";
+            }
         }   
         varp += vInfo.s_name;
         

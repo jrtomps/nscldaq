@@ -23,7 +23,7 @@
         <refsynopsisdiv>
           <cmdsynopsis>
          <command>
-$DAQBIN/vardbsh <replaceable>variable-database-file</replaceable>
+$DAQBIN/vardbsh <replaceable>database-uri</replaceable>
           </command>
           </cmdsynopsis>
           <cmdsynopsis>
@@ -97,6 +97,58 @@ statemachine <replaceable>type-name transition-dict</replaceable>
             within the variable database.   The original Tcl commands are first
             renamed to <command>Pwd</command> and <command>Cd</command> respectively.
            </para>
+           <para>
+            The <replaceable>database-uri</replaceable> is a URI with either a
+            <literal>file</literal> protocol (to directly talk to the database file)
+            or a <literal>tcp</literal> protocol (to work through a database server).
+        </para>
+        <para>
+            If the <replaceable>database-uri</replaceable> uses the
+            <literal>file</literal> protocol, and the specified file
+            does not yet exist,
+            you will be prompted to confirm creating a new database. If the
+            <replaceable>database-file</replaceable> exists and is a valid
+            variable database that database will be used for the shell's session.
+            If the <replaceable>database-file</replaceable> exists but is not
+            a valid variable database, the shell exits with an error message.
+            Examples of a file protocol URI are:
+            <literal>file:///user/0400x/test.db</literal> which specifies
+            a direct connection to the file <filename>/user/0400x/test.db</filename>
+        </para>
+        <para>
+            If the <replaceable>database-uri</replaceable> is a <literal>tcp</literal>
+            protocol, it specifies the host and either TCP port or published service
+            on which the database server is running.  There are three possible
+            forms of this sort of uri:
+        </para>
+        <orderedlist>
+            <listitem><para>
+                <literal>tcp://hostname</literal>  in this case the connection
+                is made to a server running in <literal>hostname</literal> that
+                is listening on the default service for database change requests.
+            </para></listitem>
+            <listitem><para>
+                <literal>tcp://hostname:port-num</literal>  in this case
+                the connection is made to a server running in <literal>hostname</literal>
+                that is listening on the port <replaceable>port-num</replaceable>
+                for database change requests.  <replaceable>port-num</replaceable>
+                is a numeric TCP/IP port number.
+            </para></listitem>
+            <listitem><para>
+                <literal>tcp://hostname/service-name</literal> in this case
+                the connection is made to a server running in <literal>hostame</literal>
+                that has published itself as listening for database change requests
+                on the service <replaceable>service-name</replaceable>.
+            </para></listitem>
+        </orderedlist>
+        <note>
+            <title>NOTE</title>
+            <para>
+                Service names are qualitifed by the name of the user looking them
+                up.  Therefore two users can unambiguously publish the same
+                service name and not collide.
+            </para>
+        </note>
         </refsect1>
         <refsect1>
            <title>

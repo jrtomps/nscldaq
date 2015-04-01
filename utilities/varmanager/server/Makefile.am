@@ -1,4 +1,4 @@
-lib_LTLIBRARIES=libvarmgr.la libvarmgrtcl.la
+lib_LTLIBRARIES=libvarmgr.la libvarmgrtcl.la libvarmgrpy.la
 
 COMMONLDFLAGS = @builddir@/../libvardb.la 	\
 		@top_builddir@/base/sqlite++/libsqlite3pp.la 	\
@@ -34,6 +34,10 @@ libvarmgrtcl_la_SOURCES=varmgrTCLPackage.cpp \
 	CVarMgrStateMachine.h  CVarMgrStateMachine.cpp
 
 
+libvarmgrpy_la_CPPFLAGS=$(COMMON_CPPFLAGS) @PYTHON_CPPFLAGS@
+libvarmgrpy_la_LDFLAGS= @PYTHON_LDFLAGS@ libvarmgr.la $(libvarmgr_la_LDFLAGS)
+libvarmgrpy_la_SOURCES=pyVarMgr.cpp
+
 include_HEADERS=CVarMgrApi.h CVarMgrFileApi.h CVarMgrServerApi.h CVarMgrApiFactory.h
 
 
@@ -45,10 +49,15 @@ install-exec-hook:
 	$(mkinstalldirs) @prefix@/TclLibs/varmgr
 	$(INSTALL_PROGRAM) @libdir@/libvarmgrtcl.* @prefix@/TclLibs/varmgr
 	echo pkg_mkIndex -verbose @prefix@/TclLibs/varmgr "*.so" | @TCLSH_CMD@
+	$(mkinstalldirs) @prefix/pythonLibs 
+	$(mkinstalldirs) @prefix@/pythonLibs/nscldaq
+	$(mkinstalldirs) @prefix@/pythonLibs/nscldaq/vardb
+	$(INSTALL_PROGRAM) @libdir@/libvarmgrpy.so @prefix@/pythonLibs/nscldaq/vardb/varmgr.so
 
 
 SERVER_TESTS=startTests.py serviceTests.py mkdirTests.py  \
-	testGet.py testDirlist.py testVarlist.py testRmvar.py
+	testGet.py testDirlist.py testVarlist.py testRmvar.py \
+	pyVarMgrTests.py
 
 noinst_PROGRAMS = testApi
 

@@ -384,6 +384,561 @@ $DAQBIN/vardbServer
 
 <!-- /manpage -->
 
+<!-- manpage 3tcl -->
+      <refentry id="tcl3_varmgr">
+        <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle id='tcl3_varmgr_title'>varmgr</refentrytitle>
+           <manvolnum>3tcl</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>varmgr</refname>
+           <refpurpose>Tcl Bindings to Variable Database API</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+            <cmdsynopsis>
+                <command>
+lappend auto_path [$::env(DAQROOT) TclLibs]
+package require varmgr
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+varmgr::create <replaceable>filename</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+set <replaceable>handle</replaceable> [varmgr::open <replaceable>uri</replaceable>]
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+varmgr::close <replaceable>$handle</replaceable>
+                </command>
+            </cmdsynopsis>
+            
+            <cmdsynopsis>
+                <command>
+varmgr::mkdir <replaceable>$handle directory-path</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+varmgr::cd <replaceable>$handle directory-path</replaceable>                    
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+set wd [varmgr::getwd <replaceable>$handle</replaceable>]
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+varmgr::ls <replaceable>$handle ?directory-path?</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+varmgr::rmdir <replaceable>$handle directory-path</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+varmgr::var <replaceable>subcommand $handle args...</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+varmgr::enum <replaceable>$handle type-name list-of-values</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+varmgr::statemachine <replaceable>$handle type-name transition-dict</replaceable>
+                </command>
+            </cmdsynopsis>
+            
+            
+            
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            The <literal>varmgr</literal> package provides Tcl bindings to the
+            variable manager API.  The bindings appear as a set of commands in the
+            <literal>::varmgr::</literal> namespace (See COMMANDS below).
+           </para>
+           <para>
+            This package, once a handle is open is compatible with
+            <link linkend='tcl3_vardb' endterm='tcl3_vardb_title' />
+           </para>
+           <para>
+            The difference is that a database is opened by specifying a URI.
+            The URI allows either direct connection with the database file
+            (<literal>file</literal> URI's), or connection via a database
+            server which will also publish database change notifications
+            to subscribing clients (<literal>tcp</literal>) protocol URIs.
+           </para>
+           <para>
+            The bindings follow an object-handle manipulation
+            pattern.  <command>::varmgr::open</command> opens a database file and
+            returns a database handle that must be used in other  varmgr commands.
+            The <command>::varmgr::close</command> command closes handles returned
+            by <command>::varmgr::open</command> rendering them useless, and releasing
+            any associated resources.
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              COMMANDS
+           </title>
+           <variablelist>
+            <varlistentry>
+                <term>
+                    <cmdsynopsis>
+                            <command>
+varmgr::create <replaceable>filename</replaceable>
+                            </command>
+                        </cmdsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Creates a new variable database in
+                        <parameter>filename</parameter>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <cmdsynopsis>
+                            <command>
+set <replaceable>handle</replaceable> [varmgr::open <replaceable>uri</replaceable>]
+                            </command>
+                        </cmdsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Opens an existing variable database and
+                        returns a handle to it.  That handle must
+                        be used in all variable database commands that are
+                        intended to apply to that database.
+                    </para>
+                    <para>
+                        The <parameter>uri</parameter> argument defines both how
+                        the database is connected and which database is connected
+                        to the handle.
+                    </para>
+                    <para>
+                        The <replaceable>database-uri</replaceable> is a URI with either a
+                        <literal>file</literal> protocol (to directly talk to the database file)
+                        or a <literal>tcp</literal> protocol (to work through a database server).
+                    </para>
+                    <para>
+                        If the <replaceable>database-uri</replaceable> uses the
+                        <literal>file</literal> protocol, and the specified file
+                        does not yet exist,
+                        you will be prompted to confirm creating a new database. If the
+                        <replaceable>database-file</replaceable> exists and is a valid
+                        variable database that database will be used for the shell's session.
+                        If the <replaceable>database-file</replaceable> exists but is not
+                        a valid variable database, the shell exits with an error message.
+                        Examples of a file protocol URI are:
+                        <literal>file:///user/0400x/test.db</literal> which specifies
+                        a direct connection to the file <filename>/user/0400x/test.db</filename>
+                    </para>
+                    <para>
+                        If the <replaceable>database-uri</replaceable> is a <literal>tcp</literal>
+                        protocol, it specifies the host and either TCP port or published service
+                        on which the database server is running.  There are three possible
+                        forms of this sort of uri:
+                    </para>
+                    <orderedlist>
+                        <listitem><para>
+                            <literal>tcp://hostname</literal>  in this case the connection
+                            is made to a server running in <literal>hostname</literal> that
+                            is listening on the default service for database change requests.
+                        </para></listitem>
+                        <listitem><para>
+                            <literal>tcp://hostname:port-num</literal>  in this case
+                            the connection is made to a server running in <literal>hostname</literal>
+                            that is listening on the port <replaceable>port-num</replaceable>
+                            for database change requests.  <replaceable>port-num</replaceable>
+                            is a numeric TCP/IP port number.
+                        </para></listitem>
+                        <listitem><para>
+                            <literal>tcp://hostname/service-name</literal> in this case
+                            the connection is made to a server running in <literal>hostame</literal>
+                            that has published itself as listening for database change requests
+                            on the service <replaceable>service-name</replaceable>.
+                        </para></listitem>
+                    </orderedlist>
+                    <note>
+                        <title>NOTE</title>
+                        <para>
+                            Service names are qualitifed by the name of the user looking them
+                            up.  Therefore two users can unambiguously publish the same
+                            service name and not collide.
+                        </para>
+                    </note>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <cmdsynopsis>
+                            <command>
+varmgr::close <replaceable>$handle</replaceable>
+                            </command>
+                        </cmdsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Closes the database represented by the
+                        <parameter>handle</parameter> parameter.  The
+                        <parameter>handle</parameter> parameter must be a value
+                        returned from a previous successful
+                        <command>::varmgr::open</command> command.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <cmdsynopsis>
+                            <command>
+varmgr::mkdir <replaceable>$handle directory-path</replaceable>
+                            </command>
+                        </cmdsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Creates a directory in the variable database
+                        represented by <parameter>handle</parameter>.
+                        The <parameter>handle</parameter> parameter must have
+                        been returned from a successful prior
+                        <command>::varmgr::open</command> command. The
+                        <parameter>directory-path</parameter> is an absolute
+                        or relative path that specifies which directory to create.
+                    </para>
+                    <para>
+                        The Tcl bindings create any missing path elements along
+                        the way to the terminal path element.  For example,
+                        in an emtpy database (only the root directory exists)
+                        <command>::varmgr::mdkir $handle /this/directory/here</command>
+                        creates three directories:
+                        <filename>/this</filename>, <filename>/this/directory</filename>
+                        and the terminal node: <filename>/this/directory/here</filename>
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <cmdsynopsis>
+                            <command>
+varmgr::cd <replaceable>$handle directory-path</replaceable>                    
+                            </command>
+                        </cmdsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Sets the current working directory to
+                        <parameter>directory-path</parameter> in the database
+                        represented by <parameter>handle</parameter>.
+                    </para>
+                    <para>
+                        Each database handle has an associated current working
+                        directory.  When first opened, the current working directory
+                        is the root directory; <literal>/</literal>.  The current
+                        working directory is the starting point for relative paths.
+                    </para>
+                    <para>
+                        Suppose, for example, that the current working directory
+                        is <filename>/here/now</filename>.  The path:
+                        <filename>../there/again</filename> refers to the
+                        absolute path <filename>/here/there/again</filename>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <cmdsynopsis>
+                            <command>
+set wd [varmgr::getwd <replaceable>$handle</replaceable>]
+                            </command>
+                        </cmdsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        This command returns as its value the current working
+                        directory for the database represented by the.
+                        <parameter>handle</parameter>
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <cmdsynopsis>
+                            <command>
+varmgr::ls <replaceable>$handle ?directory-path?</replaceable>
+                            </command>
+                        </cmdsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Returns a list of the directories immediately below
+                        the <parameter>directory-path</parameter> parameter
+                        if provided or the current working directory if not.
+                        The directories are in the database represented by
+                        the <parameter>handle</parameter> parameter.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <cmdsynopsis>
+                            <command>
+varmgr::rmdir <replaceable>$handle directory-path</replaceable>
+                            </command>
+                        </cmdsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Removes the directory <parameter>directory-path</parameter>
+                        in the variable database represented by <parameter>handle</parameter>
+                        It is an error to remove a directory that is not empty.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <cmdsynopsis>
+                        <command>
+        varmgr::var <replaceable>subcommand $handle args...</replaceable>
+                        </command>
+                    </cmdsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Performs an operation on a variable.  In the discussion
+                        below, relative paths are interpreted to be relative to
+                        the current working directory established by the
+                        most recent
+                        <command>varmgr::cd</command> command.
+                    </para>
+                    <para>
+                        The operation
+                        performed depends on the subcommand and arguments
+                        that follow the <varname>handle</varname>:
+                    </para>
+                    <variablelist>
+                        <varlistentry>
+                            <term><command>create <replaceable>handle path type ?value?</replaceable></command></term>
+                            <listitem>
+                                <para>
+                                    Creates a new variable.
+                                    <parameter>path</parameter> determines
+                                    the path to the new variable.
+                                    <parameter>type</parameter>
+                                    is the type of the variable
+                                    (e.g. <literal>string</literal>).
+                                    <parameter>value</parameter> is the
+                                    optional initial value of the variable.
+                                    note that all types have a default value
+                                    the variable is initialized to if
+                                    <parameter>value</parameter>
+                                    is not supplied.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><command>destroy <replaceable>handle path</replaceable></command></term>
+                            <listitem>
+                                <para>
+                                    Destroys the variable specified by <parameter>path</parameter>
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><command>set <replaceable>handle path value</replaceable></command></term>
+                            <listitem>
+                                <para>
+                                    Sets the variable described by
+                                    <parameter>path</parameter> to a new
+                                    <parameter>value</parameter>.  
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><command>get <replaceable>handle path</replaceable></command></term>
+                            <listitem>
+                                <para>
+                                    Returns the value of the variable
+                                    specified by
+                                    <parameter>path</parameter>
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><command>ls <replaceable>handle ?path?</replaceable></command></term>
+                            <listitem>
+                                <para>
+                                    Returns a list describing the variables that
+                                    live in a directory.  If the
+                                    <parameter>path</parameter> parameter is
+                                    not provided, the current working directory
+                                    is listed.  If <parameter>path</parameter>
+                                    is provided and is a relative path, the variable's
+                                    path is computed with the current working directory
+                                    as a base. 
+                                </para>
+                                <para>
+                                    The command returns a (possibly empty) list.
+                                    Each element of the list is a 5 element sublist
+                                    containing in order the variable's id,
+                                    the variables name (excluding the directory path
+                                    part of it), the variable's type,
+                                    the id of the variable type
+                                    and the id of the
+                                    directory that contains the variable and the
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        
+                    </variablelist>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <cmdsynopsis>
+                        <command>
+        varmgr::enum <replaceable>$handle type-name list-of-values</replaceable>
+                        </command>
+                    </cmdsynopsis>
+
+                </term>
+                <listitem>
+                    <para>
+                        Creates a new data type <parameter>type-name</parameter>
+                        that is an enumerated data type.
+                        <parameter>list-of-values</parameter> is a Tcl list that
+                        defines the set of legal values for variables created of
+                        this new type.
+                    </para>
+                    <para>
+                        Once <parameter>type-name</parameter> has been created
+                        you can create variables of that type just like you
+                        would
+                        any other variable.   The first value of the
+                        <parameter>list-of-values</parameter> will be the default
+                        value for variables of thsi type.
+                    </para>
+                    <para>
+                        For example:
+                    </para>
+                    <informalexample>
+                        <programlisting>
+varmgr::enum $handle colors [list red white blue]
+varmgr::var create $handle /mycolor;            # /mycolor is red (default).
+varmgr::var create $handle /anothercolor blue;  # /anothercolor is blue.
+varmgr::var set $handle /mycolor grey;          # fails, grey is not a valid color.
+varmgr::var set $handle /mycolor white;         # /mycolor is now white.
+                        </programlisting>
+                    </informalexample>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <cmdsynopsis>
+                        <command>
+varmgr::statemachine <replaceable>$handle type-name transition-dict</replaceable>
+                        </command>
+                    </cmdsynopsis>
+            
+                </term>
+                <listitem>
+                    <para>
+                        Creates a new type <parameter>type-name</parameter>
+                        that is a state machine.  The statemachine has a
+                        transition map that is determined by its
+                        <parameter>transition-dcit</parameter>.  The
+                        <parameter>transition-dict</parameter> is a Tcl
+                        dict object whose keys are valid states inthe state
+                        machine and whose values are reachable states from
+                        the key state.
+                    </para>
+                    <para>
+                        Note that the alphabetically first state will be the
+                        initial state for variables of this type.
+                    </para>
+                    <para>
+                        For example,  If you want to produce a state machine
+                        with the following transition table:
+                    </para>
+                    <informaltable frame='all'>
+                        <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+                        <thead>
+                            <row>
+                                <entry>From State</entry>
+                                <entry>To State</entry>
+                            </row>
+                        </thead>
+                        <tbody>
+                            <row>
+                                <entry>Not-Ready</entry><entry>Inactive</entry>
+                            </row>
+                            <row>
+                                <entry>Inactive</entry><entry>Active</entry>
+                            </row>
+                            <row>
+                                <entry>Inactive</entry><entry>Not-Ready</entry>
+                            </row>
+                            <row>
+                                <entry>Active</entry><entry>Inactive</entry>
+                            </row>
+                            <row>
+                                <entry>Active</entry><entry>Not-Ready</entry>
+                            </row>
+                        </tbody>
+                    </tgroup>
+                    </informaltable>
+                <para>
+                    You might use the following code.  Note that we name
+                    the <literal>Not-Ready</literal> state to be
+                    <literal>0Not-Ready</literal> to ensure it is the
+                    initial state:
+                </para>
+                <informalexample>
+                    <programlisting>
+set runStates [dict create   0Not-Ready Inactive   \
+    Inactive [list 0Not-Ready Active]              \
+    Active   [list 0Not-Ready Inactive]]
+    
+    
+varmgr::statemachine runStateMachine $runStates
+
+                    </programlisting>
+                </informalexample>
+                </listitem>
+            </varlistentry>
+            
+           </variablelist>
+        </refsect1>
+
+      </refentry>
+
+
+<!-- /manpage -->
+
 <!-- manpage 3daq -->
 <refentry id="daq3_cvarmgrapi">
   <refentryinfo>

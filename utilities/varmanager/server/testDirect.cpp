@@ -58,6 +58,7 @@ class TestDirect : public CppUnit::TestFixture {
   CPPUNIT_TEST(lsvarVars);
   CPPUNIT_TEST(lsvarRelpath);
   CPPUNIT_TEST(lsvarAbsPath);
+  CPPUNIT_TEST(lsvarAbsPath2);
   
   CPPUNIT_TEST(rmvarOk);
   CPPUNIT_TEST(rmvarNoSuch);
@@ -113,6 +114,7 @@ protected:
   void lsvarVars();
   void lsvarRelpath();
   void lsvarAbsPath();
+  void lsvarAbsPath2();
   
   void rmvarOk();
   void rmvarNoSuch();
@@ -434,6 +436,27 @@ void TestDirect::lsvarAbsPath()
     varcheck(info, "astring", "string", "hello world");
     
 }
+
+// lsvarAbsPath2 - same as above but listing / -- which initiall fails:
+
+void TestDirect::lsvarAbsPath2()
+{
+    CVarMgrFileApi api(m_tempFile);
+    api.mkdir("/subdir");
+    api.declare("/aninteger", "integer", "1234");
+    api.declare("/areal", "real", "3.1416");
+    api.declare("/astring", "string", "hello world");
+    api.cd("subdir");
+    
+    std::vector<CVarMgrApi::VarInfo> info = api.lsvar("/");
+    EQ(size_t(3), info.size());
+    
+    varcheck(info, "aninteger", "integer", "1234");
+    varcheck(info, "areal", "real", "3.1416");
+    varcheck(info, "astring", "string", "hello world");
+    
+}
+
 // Deleting works:
 
 void TestDirect::rmvarOk()

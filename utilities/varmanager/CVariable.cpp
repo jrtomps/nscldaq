@@ -479,6 +479,7 @@ CVariable::findId(CVariableDb& db, CVarDirTree& dir, const char* path)
     std::pair<std::string, std::string> p = breakPath(path);
     std::string dirname = p.first;
     std::string varname = p.second;
+    
 
     
     // CD to the directory.   If that fails, map the error to a CVariable::Exception
@@ -539,6 +540,11 @@ CVariable::breakPath(const char* path)
         // Ensure subsequent path elements are divided by /
         
         separator = CVarDirTree::m_pathSeparator;
+    }
+    // Special case for root directory:
+    
+    if (dirname == "" && !CVarDirTree::isRelative(path)) {
+        dirname = CVarDirTree::m_pathSeparator;
     }
 
     return std::pair<std::string, std::string>(dirname, varname);    
