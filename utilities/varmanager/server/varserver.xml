@@ -269,6 +269,13 @@ int main(int argc, char** argv)
         <link linkend='daq3_cvarmgrapifactory'
               endterm='daq3_cvarmgrapifactory_title' />.
     </para>
+    <para>
+        In addtion to the C++ bindings, 
+        <link linkend='tcl3_varmgr'>Tcl bindings</link>
+        and
+        <link linkend='python3_varmgr'>Python bindings</link>
+        are also available.
+    </para>
 </chapter>
 <!-- /chapter -->
 
@@ -2167,3 +2174,516 @@ class <ooclass><classname>CVarMgrApiFactory</classname></ooclass>
 </refentry>
 
 <!-- /manpage  -->
+<!-- manpage 3python -->
+<refentry id="python3_varmgr">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='python3_varmgr_title'>nscldaq.vardb.varmgr</refentrytitle>
+     <manvolnum>3</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>nscldaq.vardb.varmgr.Api</refname>
+     <refpurpose>Python bindings to variable manager API.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   
+    <programlisting>
+import nscldaq.vardb.varmgr
+
+nscldaq.vardb.varmgr.create(filepath)
+
+api = nscldaq.vardb.varmgr.Api(uri)
+api.mkdir(path)
+api.cd(path)
+api.getwd()
+api.rmdir(path)
+api.declare(path, typename[, initialValue])
+api.set(path, newValue)
+value = api.get(path)
+api.defineEnum(typeName, values)
+api.defineStateMachine(typeName, transitions)
+dirs = api.ls([path])
+vars = api.lsvar([path])
+api.rmvar(path)
+
+
+    </programlisting>
+   
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        <literal>nscldaq.vardb.varmgr</literal> provides  binding to the
+        VarMgr api and api factories.  This allows python scripts to be
+        written that can operate either directly on database files of via
+        the variable database server.
+     </para>
+     <para>
+        A module level method;
+        <methodname>nscldaq.vardb.varmgr.create</methodname>
+        allows your script to create a new varialbe database.
+     </para>
+     <para>
+        All errors are reported by raising the
+        <literal>nscldaq.vardb.varmgr.error</literal> exception.  This
+        exception's string representation is a human readable error message.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+         <term>
+            <methodname>nscldaq.vardb.varmgr.create(<replaceable>filepath</replaceable>)</methodname>
+         </term>
+         <listitem>
+             <para>
+                Creates a new database in the file specified by
+                <parameter>filepath</parameter>.  If the file already
+                exists and is a valid database, this is a no-op.
+                If the file exists and is an SQLite database but does not
+                have the variable datbase schema, the schema is created.
+                This allows a variable database to co-exist with other
+                tables in another database.
+             </para>
+             <para>
+                If <parameter>filpath</parameter> does not specify
+                a createable file, or if it specifies an existing file that
+                is not an SQLite database, the
+                <literal>nscldaq.vardb.varmgr.error</literal>
+                exception is raised.
+             </para>
+         </listitem>
+        </varlistentry>
+         <varlistentry>
+             <term>
+                <methodname>nscldaq.vardb.varmgr.Api(<replaceable>uri</replaceable>)</methodname>
+             </term>
+             <listitem>
+                 <para>
+                    Creates an instance of a new VarMgr API object. The
+                    <parameter>uri</parameter> parameter determines how
+                    the API connects to the database.  Two URI protocols
+                    are supported; <literal>file</literal> and <literal>tcp</literal>
+                 </para>
+                 <para>
+                    A <literal>file</literal> protocol indicates a direct
+                    connection to a file.  These URI's are of the form
+                    <literal>tcp://</literal><replaceable>/path/to/file</replaceable>.
+                    Where <replaceable>/path/to/file</replaceable> is the
+                    File system path to the data base file.  The database file must
+                    already exist and be a valid variable database.
+                    Note that <replaceable>/path/to/file</replaceable> is an
+                    absolute file system path and knows nothing of your
+                    current working directory.
+                 </para>
+                 <para>
+                    A <literal>tcp</literal> protocol indicates a connection
+                    to a variable database server.  Using the variable database
+                    server provides notification of changes to the variable
+                    database to applications that subscsribe to notifications.
+                    There are three forms the <literal>tcp</literal> protocol
+                    URI's can take.
+                 </para>
+                 <para>
+                    The first form a <literal>tcp</literal> protocol URI can take
+                    is <literal>tcp://</literal><replaceable>hostname</replaceable>
+                    In this form, the server is considered to be running in
+                    the system <replaceable>hostname</replaceable>.  The server's
+                    request port is determined by looking up a default service name
+                    for that request port via the DAQPortManager running in
+                    <replaceable>hostname</replaceable>.  Since the server
+                    publishes its service names via the DAQPortManager, if you
+                    started up the server using the default service names, this
+                    sort of URI works just fine.
+                 </para>
+                 <para>
+                    The second form a <literal>tcp</literal> protocol is most
+                    often used when you used a request service name other than
+                    the default.  It takes the form:
+                    <literal>tcp://</literal><replaceable>hostname/servicename</replaceable>
+                    Once more,  The <replaceable>hostname</replaceable>  is the
+                    name of the system in which the server is running.  The
+                    request port is determined by looking up the
+                    service <replaceable>servicename</replaceable> in the
+                    DAQPort manager running in <replaceable>hostname</replaceable>.
+                 </para>
+                 <para>
+                    The final form of a <literal>tcp</literal> protocol URI
+                    is almost never needed.  It takes the form:
+                    <literal>tcp://</literal><replaceable>hostname:portnum</replaceable>
+                    Where <replaceable>hostname</replaceable> is the host in which the
+                    server is running and <replaceable>portnum</replaceable>
+                    is the numeric port on which the server processes requests.
+                    Since the server publishes a service name/port mapping with
+                    the port manager, this form of URI is only supplied for
+                    completeness and because URI's are allowed to have a port number
+                    specified in a host specification.
+                 </para>
+             </listitem>
+         </varlistentry>
+         <varlistentry>
+             <term>
+                <methodname>api.mkdir(<replaceable>path</replaceable>)</methodname>
+             </term>
+             <listitem>
+                 <para>
+                    Given an API object, this method creates a new directory
+                    in the variable database.  The variable database is organized
+                    as a set of hierarchical directories.  Each directory can
+                    contain subdirectories and  variables.  The
+                    <parameter>path</parameter> parameter is the path to the
+                    directory to be created.
+                 </para>
+                 <para>
+                    As we will later see, the api object has a concept of a
+                    current working directory (or cwd).  The <parameter>path</parameter>
+                    can be specified as either an absolute path or a path relative
+                    to the Api object's cwd.
+                 </para>
+                 <para>
+                    If needed, missing intermediate directories will be created.
+                    It is an error to create a duplicate directory.  That
+                    error will raise a <classname>nscldaq.vardb.varmgr.error</classname>
+                 </para>
+             </listitem>
+             
+         </varlistentry>
+         <varlistentry>
+             <term>
+                <methodname>api.cd(<replaceable>path</replaceable>)</methodname>
+             </term>
+             <listitem>
+                 <para>
+                    Api objects have a concept of a current working directory
+                    (much like the Unix does with its file system).  This
+                    method sets the api object's current working directory
+                    to <parameter>path</parameter>.  If <parameter>path</parameter>
+                    is relative the new cwd is computed relative to the
+                    old cwd.
+                 </para>
+                 <para>
+                    It is an error to attempt to make a nonexistent directory
+                    current.  It is an error to specify a cwd that is above the
+                    root directory.  All error will be flagged by raising
+                    a <classname>nscldaq.vardb.varmgr.error</classname> exception.
+                 </para>
+                 <para>
+                    The code fragment below illustrates illustrates
+                    the manner in which relative directories are computed.
+                 </para>
+                 <informalexample>
+                    <programlisting>
+                    ...
+                    api.cd('/some/directory')
+                    api.cd('deeper')      # cwd is now /some/directory/deeper
+                    api.cd('..')          # cwd is now /some/directory
+                    </programlisting>
+                 </informalexample>
+             </listitem>
+         </varlistentry>
+         <varlistentry>
+             <term>
+                <methodname>api.getwd()</methodname>
+             </term>
+             <listitem>
+                 <para>
+                    This method returns a string that is the canonicalized
+                    current working directory.   The example
+                    below shows what is meant by canonicalized
+                 </para>
+                 <informalexample>
+                    <programlisting>
+                        api.cd('/some/directory')
+                        api.cd('../other/directory')
+                        print(api.getwd())   # prints /some/other/directory
+                    </programlisting>
+                 </informalexample>
+                 <para>
+                    Note how the output from the print will be
+                    <literal>/some/other/directory</literal> rather than
+                    <literal>some/directory/../other/directory</literal>.
+                    That is what is mean by canonicalized.
+                 </para>
+             </listitem>
+         </varlistentry>
+         <varlistentry>
+             <term>
+                <methodname>api.rmdir(<replaceable>path</replaceable>)</methodname>
+             </term>
+             <listitem>
+                 <para>
+                    Removes the directory specified by <parameter>path</parameter>.
+                    If <parameter>path</parameter> is relative the actual
+                    directory is computed using the current working directory
+                    as the base.
+                 </para>
+                 <para>
+                    It is illegal to remove a directory that does not exist.
+                    It is also illegal to remove a directory that is not empty.
+                    All errors are reported by raising a
+                    <classname>nscldaq.vardb.varmgr.error</classname> exception.
+                 </para>
+             </listitem>
+         </varlistentry>
+         <varlistentry>
+             <term>
+                <methodname>api.declare(<replaceable>path, typename[, initialValue]</replaceable>)</methodname>
+             </term>
+             <listitem>
+                 <para>
+                    Creates a new variable. <parameter>path</parameter> specifies
+                    the variable's name and directory.  If <parameter>path</parameter>
+                    is relative the actual variable path is computed using the api
+                    object's current working directory as the base path.
+                 </para>
+                 <para>
+                    <parameter>typename</parameter> is the type of the variable.
+                    If provided <parameter>initialValue</parameter> specifies an
+                    initial value for the variable.  If this optional parameter
+                    is omitted, the variable is initialize with the type's
+                    default initial value.
+                 </para>
+                 <para>
+                    It is an error to create a duplicate variable.
+                    It is an error to create a variable in a directory that does not
+                    yet exist.
+                    It is an error to specify an undefined <parameter>typeName</parameter>.
+                    It is an error to specify an <parameter>initialValue</parameter>
+                    that is not a legal initial value for the variable.
+                    These and all other errors are reported to your script by
+                    raising a <classname>nscldaq.vardb.varmgr.error</classname>
+                    exception.
+                 </para>
+             </listitem>
+         </varlistentry>
+         <varlistentry>
+             <term>
+                <methodname>api.set(<replaceable>path, newValue</replaceable>)</methodname>
+             </term>
+             <listitem>
+                 <para>
+                    Modifies the value of the variable specified by
+                    <parameter>path</parameter> to be
+                    <parameter>newValue</parameter>.  If
+                    <parameter>path</parameter> is relative the
+                    actual absolute path is computed using
+                    the api object's current working directory as
+                    a base.
+                 </para>
+                 <para>
+                    It is an error to specify a variable that does not exist.
+                    It is an error to specify a <parameter>newValue</parameter>
+                    that is not legal for the variable's underlying type.
+                    These and all other errors are reported to your script by
+                    raising a <classname>nscldaq.vardb.varmgr.error</classname>
+                    exception.
+                 </para>
+             </listitem>
+         </varlistentry>
+         <varlistentry>
+             <term>
+                <methodname>api.get(<replaceable>path</replaceable>)</methodname>
+             </term>
+             <listitem>
+                 <para>
+                    Returns the value of the variable specified by
+                    <parameter>path</parameter>.
+                    If
+                    <parameter>path</parameter> is relative the
+                    actual absolute path is computed using
+                    the api object's current working directory as
+                    a base.
+                 </para>
+                 <para>
+                    Note that while variables have underlying types,
+                    in order to accomodate the wide variety of possible values,
+                    variable values are stored in the database, and returned
+                    from this method as strings.
+                 </para>
+                 <para>
+                    If <parameter>path</parameter> specifies a
+                    nonexistent variable,
+                    a <classname>nscldaq.vardb.varmgr.error</classname>
+                    exception is raised.
+                 </para>
+             </listitem>
+         </varlistentry>
+         <varlistentry>
+             <term>
+                <methodname>api.defineEnum(<replaceable>typeName, values</replaceable>)</methodname>
+             </term>
+             <listitem>
+                 <para>
+                    Defines a new enumerated type.  <parameter>typeName</parameter>
+                    is the name of the new type.  <parameter>values</parameter>
+                    is any iterable.   Each element of the iterable is a legal
+                    value that variables of that type can be assigned.
+                 </para>
+                 <para>
+                    Remember that strings are iterables.  The following two types
+                    are different:
+
+                 </para>
+                 <informalexample>
+                    <programlisting>
+                        api.defineEnum('letters', ('hi'))
+                        api.defineEnum('word', ('hi', ))
+                    </programlisting>
+                 </informalexample>
+                 <para>
+                    In the first statement, the legal values for
+                    <literal>letters</literal> variables are
+                    <literal>h</literal> and <literal>i</literal>, while
+                    the legal value of <literal>word</literal> variables
+                    is only <literal>hi</literal>.
+                 </para>
+                 <para>
+                    Defining a duplicate data type is an error.
+                    Having duplicate values is an error.
+                    Having elements that are not strings is an error as well.
+                    These and all other errors are reported to your script by
+                    raising a <classname>nscldaq.vardb.varmgr.error</classname>
+                    exception.
+                 </para>
+             </listitem>
+         </varlistentry>
+         <varlistentry>
+             <term>
+                <methodname>api.defineStateMachine(<replaceable>typeName, transitions</replaceable>)</methodname>
+             </term>
+             <listitem>
+                 <para>
+                    Defines a new statemachine data type named
+                    <parameter>typeName</parameter>.  <parameter>transitions</parameter>
+                    define both the states and legal transitions.
+                    <parameter>transitions</parameter> is a dict whose keys are
+                    legal states and whose values are iterables whose elements are
+                    reachable states.  The  lexically first state is the default initial
+                    state of the machine.  Note that if you create a state machine
+                    variable the only legal initial values you can supply are
+                    states that are reachable from the default initial state.
+                 </para>
+                 <para>
+                    It is illegal to define a duplicate data type name.
+                    It is illegal to define a state that is not reachable.
+                    It is illegal to define a transition to an undefined state.
+                    These and all other errors are reported to your script by
+                    raising a <classname>nscldaq.vardb.varmgr.error</classname>
+                    exception.
+                 </para>
+             </listitem>
+         </varlistentry>
+         <varlistentry>
+             <term>
+                <methodname>dirs = api.ls(<replaceable>[path]</replaceable>)</methodname>
+             </term>
+             <listitem>
+                 <para>
+                    Returns a tuple whose values are subdirectories.  If
+                    <parameter>path</parameter> is provided it is an absolute
+                    or relative path that defines which directory is listed.
+                    If not supplied the cwd is listed.
+                 </para>
+                 <informalexample>
+                    <programlisting>
+                        api.cd('/this/that/theother')
+                        result1 = api.ls()      # /this/that/theother is listed
+                        result2 = api.ls('/this') # /this is listed.
+                        result3 = api.ls('..')    # /this/that is listed.
+                    </programlisting>
+                 </informalexample>
+                 <para>
+                    If the <parameter>path</parameter> resolves to a nonexistent
+                    directory, a <classname>nscldaq.vardb.varmgr.error</classname>
+                    exception is raised.
+                 </para>
+             </listitem>
+         </varlistentry>
+         <varlistentry>
+             <term>
+                <methodname>api.lsvar(<replaceable>[path]</replaceable>)</methodname>
+             </term>
+             <listitem>
+                 <para>
+                    Returns information about the variables in a directory.
+                    If the optional parameter <parameter>path</parameter>
+                    is not given the cwd is listed.   If provided it can
+                    be an absolute path or a relative path referenced
+                    to the cwd.
+                 </para>
+                 <para>
+                    The method returns a (possibly empty) tuple of maps.
+                    Each map has the following key values:
+                 </para>
+                 <variablelist>
+                    <varlistentry>
+                        <term><literal>name</literal></term>
+                        <listitem>
+                            <para>
+                                The name of the variable.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><literal>type</literal></term>
+                        <listitem>
+                            <para>
+                                The variable type.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><literal>value</literal></term>
+                        <listitem>
+                            <para>
+                                The current value of the variable.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    
+                 </variablelist>
+                 <para>
+                    If the <parameter>path</parameter> resolves to a nonexistent
+                    directory, a <classname>nscldaq.vardb.varmgr.error</classname>
+                    exception is raised.
+                 </para>
+             </listitem>
+         </varlistentry>
+         <varlistentry>
+             <term>
+                <methodname>api.rmvar(<replaceable>path</replaceable>)</methodname>
+             </term>
+             <listitem>
+                 <para>
+                    Removes (destroys) the variable described by the
+                    <parameter>path</parameter> parameter.
+                    <parameter>path</parameter> can either be an
+                    absolute path or it can be a path relative to the
+                    cwd.
+                 </para>
+                 <para>
+                    If the <parameter>path</parameter> resolves to a nonexistent
+                    directory, a <classname>nscldaq.vardb.varmgr.error</classname>
+                    exception is raised.
+                 </para>
+             </listitem>
+         </varlistentry>
+     </variablelist>
+  </refsect1>
+   
+</refentry>     
+<!-- /manpage -->
