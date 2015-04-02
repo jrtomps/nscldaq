@@ -655,6 +655,37 @@ Api_lsvar(PyObject* self, PyObject* args)
     return pResult;
 }
 
+
+/**
+* Api_rmvar
+*     Removes a variable.
+*
+* @param self - Pointer to the object whose method this is.
+* @param args - Pointer to the python argument list (tuple).
+*               This should be a single string that is the path to the var
+*               to delete
+* @return PyObject* - PyNone
+*/
+static PyObject*
+Api_rmvar(PyObject* self, PyObject* args)
+{
+    char* path;
+    if (!PyArg_ParseTuple(args, "s", &path)) {
+        return 0;
+    }
+    
+    try {
+        CVarMgrApi* pApi = getApi(self);
+        pApi->rmvar(path);
+    }
+    catch (std::exception& e) {
+        PyErr_SetString(exception, e.what());
+        return 0;
+    }
+    
+    Py_INCREF(Py_None);
+    return Py_None;
+}
 // Module level dispatch table:
 
 static PyMethodDef VarMgrClassMethods[] = {
@@ -679,6 +710,7 @@ static PyMethodDef ApiMethods[] {
                              METH_VARARGS,  "Define a statemachine type"},
     {"ls",      Api_ls,      METH_VARARGS,  "List subdirectories"},
     {"lsvar",   Api_lsvar,   METH_VARARGS,  "List variables in directory"},
+    {"rmvar",   Api_rmvar,   METH_VARARGS,  "Remove a variable"},
     {NULL, NULL, 0, NULL}
 };
 

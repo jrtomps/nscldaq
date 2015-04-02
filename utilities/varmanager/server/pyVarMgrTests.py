@@ -501,6 +501,48 @@ class VarmgrApiTests(unittest.TestCase):
     def test_lsvar_noxpath(self):
         with self.assertRaises(nscldaq.vardb.varmgr.error):
             self._api.lsvar('/test')
+            
+            
+    # rmvar ok
+    
+    def test_rmvarOk(self):
+        self._api.declare('/anint', 'integer', '1234')
+        self._api.declare('/pi', 'real', '3.14159')
+        
+        self._api.rmvar('/anint')
+        
+        vars = self._api.lsvar('/')
+        self.assertEquals(1, len(vars))
+        self.assertDictEqual(
+            {'name': 'pi', 'type': 'real', 'value': '3.14159'}, vars[0]
+        )
+    
+    # rmvar relpath
+    def test_rmvarRelpath(self):
+        self._api.declare('/anint', 'integer', '1234')
+        self._api.mkdir('/test')
+        self._api.cd('/test')
+        
+        self._api.rmvar('../anint')
+        vars = self._api.lsvar('/')
+        self.assertEquals(0, len(vars))
+        
+    # rmvar abspath
+    
+    def test_rmvarAbsPath(self):
+        self._api.declare('/anint', 'integer', '1234')
+        self._api.mkdir('/test')
+        self._api.cd('/test')
+        
+        self._api.rmvar('/anint')
+        vars = self._api.lsvar('/')
+        self.assertEquals(0, len(vars))
+        
+    # rmvar noxvar.
+    
+    def test_rmvarNoxvar(self):
+        with self.assertRaises(nscldaq.vardb.varmgr.error):
+            self._api.rmvar('/anint')
     
     
 if __name__ == '__main__':
