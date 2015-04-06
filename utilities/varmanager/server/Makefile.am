@@ -11,10 +11,13 @@ COMMON_CPPFLAGS=-I@srcdir@/..  @SQLITE3_CFLAGS@ -I@top_srcdir@/base/sqlite++ \
 	-I@top_srcdir@/base/uri -I@top_srcdir@/base/os -I@top_srcdir@/servers/portmanager
 
 libvarmgr_la_SOURCES = CVarMgrApi.cpp CVarMgrFileApi.cpp CVarMgrServerApi.cpp \
-	CVarMgrApiFactory.cpp
+	CVarMgrApiFactory.cpp CVarMgrSubscriptions.cpp
 
-libvarmgr_la_CPPFLAGS=$(COMMON_CPPFLAGS)
-libvarmgr_la_LDFLAGS = $(COMMONLDFLAGS)
+include_HEADERS= CVarMgrApi.h CVarMgrFileApi.h CVarMgrServerApi.h CVarMgrFactory.h CVarMgrSubscriptions.h
+
+
+libvarmgr_la_CPPFLAGS=$(COMMON_CPPFLAGS) @LIBTCLPLUS_CFLAGS@
+libvarmgr_la_LDFLAGS = $(COMMONLDFLAGS)  @LIBTCLPLUS_LDFLAGS@
 
 libvarmgrtcl_la_CPPFLAGS=@TCL_FLAGS@ @LIBTCLPLUS_CFLAGS@ $(COMMON_CPPFLAGS) 
 libvarmgrtcl_la_LDFLAGS= @builddir@/libvarmgr.la \
@@ -59,7 +62,7 @@ SERVER_TESTS=startTests.py serviceTests.py mkdirTests.py  \
 	testGet.py testDirlist.py testVarlist.py testRmvar.py \
 	pyVarMgrTests.py
 
-noinst_PROGRAMS = testApi
+noinst_PROGRAMS = testApi testSub
 
 testApi_SOURCES=TestRunner.cpp TestApiBase.cpp testDirect.cpp \
 	testServer.cpp factoryTests.cpp \
@@ -74,11 +77,27 @@ testApi_LDFLAGS = $(COMMONLDFLAGS) \
 	@LIBEXCEPTION_LDFLAGS@	\
 	 @CPPUNIT_LDFLAGS@
 
+
+
+testSub_SOURCES=TestRunner.cpp SubscriptionTests.cpp \
+	$(libvarmgr_la_SOURCES)
+
+testSub_CPPFLAGS=-DBINDIR=\"@bindir@\" \
+	$(COMMON_CPPFLAGS)   \
+	 @LIBTCLPLUS_CFLAGS@ \
+	@CPPUNIT_CFLAGS@ 
+
+testSub_LDFLAGS = $(COMMONLDFLAGS) \
+	@top_builddir@/servers/portmanager/libPortManager.la \
+	@top_builddir@/base/os/libdaqshm.la	\
+	@LIBEXCEPTION_LDFLAGS@	\
+	 @CPPUNIT_LDFLAGS@
+
 check-TESTS:
 	for f in $(SERVER_TESTS); do echo $$f : ; PYTHONPATH=@prefix@/pythonLibs  BINDIR=@bindir@  @PYTHON@ @srcdir@/$$f; done
 	PYTHONPATH=@prefix@/pythonLibs testApi
 	TCLLIBPATH=@prefix@/TclLibs @TCLSH_CMD@ tclbindings.test
-
+	PYTHONPATH=@prefix@/pythonLibs testSub
 
 EXTRA_DIST=$(SERVER_TESTS) testBase.py vardbServer.py varserver.xml
 
