@@ -34,7 +34,9 @@ libvarmgrtcl_la_SOURCES=varmgrTCLPackage.cpp \
 	CVarMgrRmdirCommand.h  CVarMgrRmdirCommand.cpp  \
 	CVarMgrVarCommand.h    CVarMgrVarCommand.cpp	\
 	CVarMgrEnumCommand.h   CVarMgrEnumCommand.cpp	\
-	CVarMgrStateMachine.h  CVarMgrStateMachine.cpp
+	CVarMgrStateMachine.h  CVarMgrStateMachine.cpp  \
+	CVarMgrSubScribe.h     CVarMgrSubscribe.cpp     \
+	CVarMgrSubCommand.h    CVarMgrSubCommand.cpp  
 
 
 libvarmgrpy_la_CPPFLAGS=$(COMMON_CPPFLAGS) @PYTHON_CPPFLAGS@
@@ -52,7 +54,7 @@ install-exec-hook:
 	$(mkinstalldirs) @prefix@/TclLibs/varmgr
 	$(INSTALL_PROGRAM) @libdir@/libvarmgrtcl.* @prefix@/TclLibs/varmgr
 	echo pkg_mkIndex -verbose @prefix@/TclLibs/varmgr "*.so" | @TCLSH_CMD@
-	$(mkinstalldirs) @prefix/pythonLibs 
+	$(mkinstalldirs) @prefix@/pythonLibs 
 	$(mkinstalldirs) @prefix@/pythonLibs/nscldaq
 	$(mkinstalldirs) @prefix@/pythonLibs/nscldaq/vardb
 	$(INSTALL_PROGRAM) @libdir@/libvarmgrpy.so @prefix@/pythonLibs/nscldaq/vardb/varmgr.so
@@ -97,7 +99,8 @@ check-TESTS:
 	for f in $(SERVER_TESTS); do echo $$f : ; PYTHONPATH=@prefix@/pythonLibs  BINDIR=@bindir@  @PYTHON@ @srcdir@/$$f; done
 	PYTHONPATH=@prefix@/pythonLibs testApi
 	TCLLIBPATH=@prefix@/TclLibs @TCLSH_CMD@ tclbindings.test
+	PYTHONPATH=@prefix@/pythonLibs BINDIR=@prefix@/bin TCLLIBPATH=@prefix@/TclLibs @TCLSH_CMD@ tclsub.test
 	PYTHONPATH=@prefix@/pythonLibs testSub
 
-EXTRA_DIST=$(SERVER_TESTS) testBase.py vardbServer.py varserver.xml
+EXTRA_DIST=$(SERVER_TESTS) testBase.py vardbServer.py varserver.xml tclbindings.test tclsub.test
 

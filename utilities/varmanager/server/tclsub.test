@@ -1,0 +1,444 @@
+#!/bin/sh
+# -*- tcl -*-
+# The next line is executed by /bin/sh, but not tcl \
+exec tclsh "$0" ${1+"$@"}
+
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2014.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Authors:
+#             Ron Fox
+#             Jeromy Tompkins 
+#	     NSCL
+#	     Michigan State University
+#	     East Lansing, MI 48824-1321
+
+
+
+##
+# @file tclsub.test
+# @brief Test Tcl subscription APi bindings.
+# @author Ron Fox <fox@nscl.msu.edu>
+#
+
+package require tcltest
+package require varmgr
+package require portAllocator
+
+#-----------------------------------------------------------------------------
+#   Utility procs
+
+
+set ::service vardb-changes
+
+##
+# create a database file
+#
+proc createDatabase {file} {
+    varmgr::create $file
+}
+
+##
+# start the server
+#
+proc startServer {file} {
+    set bin $::env(BINDIR)
+    set server [file join $bin vardbServer]
+    set pid [exec $server --database=$file  &]
+    return $pid
+    
+}
+##
+#  Translate a service name to a port number.
+#
+# @param name - Name of the service to translate (localhost)
+# @param timeout - Number of seconds to wait for the service to appear.
+#                  *  Latency is 100ms
+#                  *  -1 means no timeout (well really a year or so).
+#                  *  0  means no wait.
+#
+proc translateService {name {timeout -1}} {
+    if {$timeout < 0} {
+        set timeout [expr {3600*24*365}];  # 3600 secs in an hour etc.
+    }
+    set pa [portAllocator create  %AUTO% ]
+    set me $::tcl_platform(user)
+    
+    while {$timeout > 0} {
+        set ports [$pa listPorts]
+        foreach port $ports {
+            set num [lindex $port 0]
+            set svc [lindex $port 1]
+            set u   [lindex $port 2]
+            
+            if {($me eq $u) && ($name eq $svc)} {
+                return $num
+            }
+        }
+        # Wait.
+        
+        incr timeout -1
+        if {$timeout < 0} {
+            error "No such port"
+        }
+        after 1000
+    }
+    error "No such port after timeout"
+}
+
+set flag 0
+set data ""
+proc recordData sub {
+    set ::data [$sub read]
+    incr ::flag
+}
+#---------------------------------------------------------------------------
+#  The tests
+
+tcltest::test create-destroy {Can create/destroy the command} \
+-setup {
+    set dbFile [exec tempfile]
+    createDatabase $dbFile
+    set pid [startServer $dbFile]
+    translateService $::service;    # Wait for server to be ready.
+    
+} \
+-cleanup {
+    exec kill -9 $pid
+    file delete -force $dbFile
+} \
+-body {
+    set cstat [catch {varmgr::subscribe tcp://localhost atest} msg]
+    set cmd [info commands atest]
+    set dstat [catch {atest destroy}]
+    list $cstat $cmd $dstat
+    
+} -result [list 0 atest 0]
+
+tcltest::test create-badhost {Can't create on bad host} \
+-setup {
+    set dbFile [exec tempfile]
+    createDatabase $dbFile
+    set pid [startServer $dbFile]
+    translateService $::service;    # Wait for server to be ready.
+    
+} \
+-cleanup {
+    exec kill -9 $pid
+    file delete -force $dbFile
+} \
+-body {
+    catch {varmgr::subscribe tcp://no.such.host atest}
+               
+    
+} -result 1
+
+
+tcltest::test create-withservice {create sub with explicit service} \
+-setup {
+    set dbFile [exec tempfile]
+    createDatabase $dbFile
+    set pid [startServer $dbFile]
+    translateService $::service;    # Wait for server to be ready.
+    
+} \
+-cleanup {
+    exec kill -9 $pid
+    file delete -force $dbFile
+} \
+-body {
+    set cstat [catch {varmgr::subscribe tcp://localhost/$::service atest} msg]
+    set cmd [info commands atest]
+    set dstat [catch {atest destroy}]
+    list $cstat $cmd $dstat
+    
+} -result [list 0 atest 0]
+
+tcltest::test create-withport {creat with explicit port}  \
+-setup {
+    set dbFile [exec tempfile]
+    createDatabase $dbFile
+    set pid [startServer $dbFile]
+    set port [translateService $::service];    # Wait for server to be ready.
+    
+} \
+-cleanup {
+    exec kill -9 $pid
+    file delete -force $dbFile
+} \
+-body {
+    set cstat [catch {varmgr::subscribe tcp://localhost:$port atest} msg]
+    set cmd [info commands atest]
+    set dstat [catch {atest destroy}]
+    list $cstat $cmd $dstat
+    
+} -result [list 0 atest 0]
+
+tcltest::test create-port-and-service {not allowed to supply both} \
+-setup {
+    set dbFile [exec tempfile]
+    createDatabase $dbFile
+    set pid [startServer $dbFile]
+    set port [translateService $::service];    # Wait for server to be ready.
+    
+} \
+-cleanup {
+    exec kill -9 $pid
+    file delete -force $dbFile
+} \
+-body {
+    catch {varmgr::subscribe tcp://localhost:$port/$::service atest}
+} -result 1
+
+
+
+# I can test the ability to add subs but not actually their
+# effectiveness until read is implemented:
+
+tcltest::test sub-ok-1 {sub with new subscription is ok} \
+-setup {
+    set dbFile [exec tempfile]
+    createDatabase $dbFile
+    set pid [startServer $dbFile]
+    translateService $::service;    # Wait for server to be ready.
+    
+} \
+-cleanup {
+    exec kill -9 $pid
+    file delete -force $dbFile
+} \
+-body {
+    varmgr::subscribe tcp://localhost sub
+    set status [catch {sub subscribe /atest} msg]
+
+    set status
+} -result 0
+
+tcltest::test sub-ok-2 {Sub with two distinct subscriptions are ok} \
+-setup {
+    set dbFile [exec tempfile]
+    createDatabase $dbFile
+    set pid [startServer $dbFile]
+    translateService $::service;    # Wait for server to be ready.
+    
+} \
+-cleanup {
+    exec kill -9 $pid
+    file delete -force $dbFile
+} \
+-body {
+    varmgr::subscribe tcp://localhost sub
+    set stat1 [catch {sub subscribe /atest} msg]
+    set stat2 [catch {sub subscribe /another} msg]
+    
+    list $stat1 $stat2
+} -result [list 0 0]
+
+tcltest::test sub-bad {Sub with two identical subs is bad} \
+-setup {
+    set dbFile [exec tempfile]
+    createDatabase $dbFile
+    set pid [startServer $dbFile]
+    translateService $::service;    # Wait for server to be ready.
+    
+} \
+-cleanup {
+    exec kill -9 $pid
+    file delete -force $dbFile
+} \
+-body {
+    varmgr::subscribe tcp://localhost sub
+    set stat1 [catch {sub subscribe /atest} msg]
+    set stat2 [catch {sub subscribe /atest} msg]
+    
+    list $stat1 $stat2
+} -result [list 0 1]
+
+#  Test that subscriptions cause messages to arrive:
+
+tcltest::test read-ok {Reads return stuff if subscribed} \
+-setup {
+    set dbFile [exec tempfile]
+    createDatabase $dbFile
+    set pid [startServer $dbFile]
+    translateService $::service;    # Wait for server to be ready.
+    
+    set handle [varmgr::open tcp://localhost]
+    
+} \
+-cleanup {
+    exec kill -9 $pid
+    file delete -force $dbFile
+    
+    varmgr::close $handle
+} \
+-body {
+    varmgr::subscribe tcp://localhost sub
+    sub subscribe /test
+    
+    varmgr::mkdir $handle /test/testing
+    
+    sub read 
+    
+    
+} -result [list path /test op MKDIR data testing]
+
+# Test wait operation.
+
+tcltest::test wait-timeout {Wait with nothing expecte times out} \
+-setup {
+    set dbFile [exec tempfile]
+    createDatabase $dbFile
+    set pid [startServer $dbFile]
+    translateService $::service;    # Wait for server to be ready.
+    
+    set handle [varmgr::open tcp://localhost]
+    
+} \
+-cleanup {
+    exec kill -9 $pid
+    file delete -force $dbFile
+    
+    varmgr::close $handle
+} \
+-body {
+    varmgr::subscribe tcp://localhost sub
+
+    sub wait 100
+} -result 0
+
+
+tcltest::test wait-data {Wait with stuff to read} \
+-setup {
+    set dbFile [exec tempfile]
+    createDatabase $dbFile
+    set pid [startServer $dbFile]
+    translateService $::service;    # Wait for server to be ready.
+    
+    set handle [varmgr::open tcp://localhost]
+    
+} \
+-cleanup {
+    exec kill -9 $pid
+    file delete -force $dbFile
+    
+    varmgr::close $handle
+} \
+-body {
+    varmgr::subscribe tcp://localhost sub
+    sub subscribe /test
+    
+    varmgr::mkdir $handle /test/testing
+    
+    set result [sub wait 1000]
+    set data   [sub read]
+    
+    list $result $data
+    
+} -result [list 1 [list path /test op MKDIR data testing]]
+
+
+tcltest::test unsubscribe-ok {Unsubscribe remove notifications} \
+-setup {
+    set dbFile [exec tempfile]
+    createDatabase $dbFile
+    set pid [startServer $dbFile]
+    translateService $::service;    # Wait for server to be ready.
+    
+    set handle [varmgr::open tcp://localhost]
+    
+} \
+-cleanup {
+    exec kill -9 $pid
+    file delete -force $dbFile
+    
+    varmgr::close $handle
+} \
+-body {
+    varmgr::subscribe tcp://localhost sub
+    sub subscribe /test
+    
+    sub unsubscribe /test
+    
+    varmgr::mkdir $handle /test/testing
+    
+    sub wait 100
+} -result 0
+
+tcltest::test unsubscribe-nosuch {unsubscribe nonexistent subscription fails} \
+-setup {
+    set dbFile [exec tempfile]
+    createDatabase $dbFile
+    set pid [startServer $dbFile]
+    translateService $::service;    # Wait for server to be ready.
+    
+    set handle [varmgr::open tcp://localhost]
+    
+} \
+-cleanup {
+    exec kill -9 $pid
+    file delete -force $dbFile
+    
+    varmgr::close $handle
+} \
+-body {
+    varmgr::subscribe tcp://localhost sub
+    
+    catch {sub unsubscribe /test}
+} -result 1
+
+# notify tests:
+
+tcltest::test nofify {Notification dispatches} \
+-setup {
+    set dbFile [exec tempfile]
+    createDatabase $dbFile
+    set pid [startServer $dbFile]
+    translateService $::service;    # Wait for server to be ready.
+    
+    set handle [varmgr::open tcp://localhost]
+    
+} \
+-cleanup {
+    exec kill -9 $pid
+    file delete -force $dbFile
+    
+    varmgr::close $handle
+} \
+-body {
+    varmgr::subscribe tcp://localhost sub
+    
+    sub subscribe /test
+    
+    set ::data ""
+    set ::flag 0
+    sub notify [list recordData sub]
+    
+    varmgr::mkdir $handle /test/test1
+    
+    after 200 incr ::flag
+    vwait ::flag;               # Enter event loop
+    
+    set ::data
+} -result [list path /test op MKDIR data test1]
+
+#--------------------------------------------------------------------------
+# Post test stuff
+
+##  This bit of magic ensures that we can produce a failing error code if tests
+#   failed:
+
+proc tcltest::cleanupTestsHook {} {
+    variable numTests
+    set ::exitCode $numTests(Failed)
+
+}
+
+tcltest::cleanupTests
+exit $::exitCode
+

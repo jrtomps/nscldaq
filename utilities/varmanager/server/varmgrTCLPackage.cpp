@@ -33,6 +33,7 @@
 #include "CVarMgrVarCommand.h"
 #include "CVarMgrEnumCommand.h"
 #include "CVarMgrStateMachine.h"
+#include "CVarMgrSubscribe.h"
 
 
 static const char* version="1.0";
@@ -73,6 +74,7 @@ extern "C" {
         new CVarMgrVarCommand(*pWrappedInterp, "::varmgr::var");
         new CVarMgrEnumCommand(*pWrappedInterp, "::varmgr::enum");
         new CVarMgrStateMachine(*pWrappedInterp, "::varmgr::statemachine");
+        new CVarMgrSubscribe(*pWrappedInterp, "::varmgr::subscribe");
         
         // Success.
         
