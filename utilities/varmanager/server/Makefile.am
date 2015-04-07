@@ -17,7 +17,7 @@ include_HEADERS= CVarMgrApi.h CVarMgrFileApi.h CVarMgrServerApi.h CVarMgrFactory
 
 
 libvarmgr_la_CPPFLAGS=$(COMMON_CPPFLAGS) @LIBTCLPLUS_CFLAGS@
-libvarmgr_la_LDFLAGS = $(COMMONLDFLAGS)  @LIBTCLPLUS_LDFLAGS@
+libvarmgr_la_LDFLAGS = $(COMMONLDFLAGS)  @LIBEXCEPTION_LDFLAGS@
 
 libvarmgrtcl_la_CPPFLAGS=@TCL_FLAGS@ @LIBTCLPLUS_CFLAGS@ $(COMMON_CPPFLAGS) 
 libvarmgrtcl_la_LDFLAGS= @builddir@/libvarmgr.la \
