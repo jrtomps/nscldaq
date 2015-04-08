@@ -169,7 +169,7 @@ Api_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
         
     } else {
         // allocationfailed:
-        PyErr_SetString(exception, "Could not allocated ApiObject");
+        PyErr_SetString(exception, "Could not allocate ApiObject");
         return NULL;
     }
 }

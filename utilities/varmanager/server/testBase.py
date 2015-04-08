@@ -59,17 +59,11 @@ class TestBase(unittest.TestCase):
         self._stdout  = process.stdout
         self._process = process
         return process
-    
     ##
-    # Create a 0mq client for a service
+    # getport
+    #   Given figure out the port that corresponds to a service with a 30 second timeout:
     #
-    # @param type - type of socket created (e.g. zmq.REQ
-    # @param service - name of service to connect to.
-    # @return socket object.
-    # @note since we're running tests, the service is assumed to be in the
-    #       localhost
-    #
-    def createClient(self, type, service):
+    def getport(self, service):
         pm   = PortManager.PortManager('localhost')
         waited = 0
         
@@ -84,8 +78,21 @@ class TestBase(unittest.TestCase):
             waited = waited + 1
         
         self.assertEqual(len(portList), 1)     # there can be only one.
+        return portList[0]['port']
+    
+    ##
+    # Create a 0mq client for a service
+    #
+    # @param type - type of socket created (e.g. zmq.REQ
+    # @param service - name of service to connect to.
+    # @return socket object.
+    # @note since we're running tests, the service is assumed to be in the
+    #       localhost
+    #
+    def createClient(self, type, service):
+        port = self.getport(service)
         
-        uri = 'tcp://localhost:%d' % portList[0]['port']
+        uri = 'tcp://localhost:%d' % port
  
         socket = self._zmq.socket(type)
         socket.connect(uri)
