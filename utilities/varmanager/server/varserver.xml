@@ -40,6 +40,7 @@
 <!-- /chapter -->
 
 <!-- chapter libraries -->
+
 <chapter>
     <title>High level variable database API.</title>
     <para>
@@ -275,6 +276,154 @@ int main(int argc, char** argv)
         and
         <link linkend='python3_varmgr'>Python bindings</link>
         are also available.
+    </para>
+</chapter>
+<chapter>
+    <title>Variable database server subscriptions</title>
+    <para>
+        The variable database server features a publish/subscribe service as
+        well as a request service.  This service allows clients to get selective
+        notification of changes in the database.  Selectivity is based on path
+        prefixes.
+    </para>
+    <para>
+        A path prefix is simply a text string that is part of a path specification.
+        A subscription to a path prefix will cause the application to be notified
+        of all changes to the database where the path matches that path prefix.
+        Note that the path prefix is just a string so a prefix like:
+        <filename>/this/test</filename> will match not only:
+        <filenme>this/test/variable</filenme> but <filename>/this/testing</filename>.
+    </para>
+    <para>
+        To lock a path prefix to a specific directory hierarchy you must include
+        the trailing <literal>/</literal>.  In the example above:
+        <filename>/this/test/</filename> would be a path prefix that would exclude
+        <filename>/this/testing</filename> while accepting
+        <filename>this/test/variable</filename>.
+    </para>
+    <para>
+        The varmgr library includes the
+        <link linkend='daq3_cvarmgrsubscriptions'
+              endterm='daq3_cvarmgrsubscriptions_title' /> class, which implements
+        the subscription API.
+    </para>
+    <para>
+        Here's a sample application that just outputs all changes to the
+        database that match the path prefix it accepts as a parameter.
+    </para>
+    <example>
+        <title>Simple subscription example</title>
+        <programlisting>
+#include &lt;iostream&gt;
+#include &lt;CVarMgrSubscriptions.h&gt;   <co id='subex_include' />
+#include &lt;stdlib.h&gt;
+
+static std::string service="vardb-changes";  <co id='subex_svcname' />
+
+// Usage:
+//   programname host path
+
+int main(int argc, char** argv)
+{
+  const char* host = argv[1];              <co id='subex_parameters' />
+  const char* path = argv[2];
+
+
+  CVarMgrSubscriptions sub(host, service);   <co id='subex_subobj' />
+  sub.subscribe(path);                    <co id='subex_subscribe' />
+
+  while (1) {
+    CVarMgrSubscriptions::Message msg = sub.read();  <co id='subex_read' />
+
+    std::cout &lt;&lt; "Path: " &lt;&lt; msg.s_path &lt;&lt; std::endl;
+    std::cout &lt;&lt; "Op  : " &lt;&lt; msg.s_operation &lt;&lt; std::endl;
+    std::cout &lt;&lt; "Data: " &lt;&lt; msg.s_data &lt;&lt; std::endl &lt;&lt; std::endl;
+  }
+
+}
+/* Compile with:
+    g++ -o testsub testsub.cpp -I$DAQROOT/include -L$DAQLIB -lvarmgr -lPortManager \
+          -lException -std=c++11  -Wl,"-rpath=$DAQLIB"
+*/
+
+        </programlisting>
+    </example>
+    <calloutlist>
+        <callout arearefs='subex_include'>
+            <para>
+                This header file provides the definition for the
+                <classname>CVarMgrSubscriptions</classname> class
+                and must be included in all programs that make use of that
+                class.
+            </para>
+        </callout>
+        <callout arearefs='subex_svcname'>
+            <para>
+                This defines a string that contains the default service
+                advertised by the variable database manager as the
+                publish/subscribe port.  In this example we are assuming
+                that the variable database server default service names have
+                not been overidden.
+            </para>
+        </callout>
+        <callout arearefs='subex_parameters'>
+            <para>
+                Our program is written to take a pair of command line
+                parameters.  The first of these is the host in which we have
+                started the variable database server.  The second is the
+                path prefix we want to subscribe to.
+            </para>
+            <para>
+                A production quality program should be verifying that the
+                correct number of command line parameters have been defined.
+                This is a simple example so we omit that code for the sake of
+                brevity.
+            </para>
+        </callout>
+        <callout arearefs='subex_subobj'>
+            <para>
+                We create a
+                <classname>CVarMgrSubscriptions</classname> object to
+                interact with the publish/subscribe service.  The
+                specific <classname>CVarMgrSubscriptions</classname>
+                constructor we used knows how to translate service names
+                into ports.
+            </para>
+        </callout>
+        <callout arearefs='subex_subscribe'>
+            <para>
+                This line of code adds a path prefix subscription to our
+                subscription list.  You can add any number of subscriptions your
+                application needs.  You may not add duplicat subscriptions,
+                a <classname>std::runtime_error</classname> exception will be
+                thrown if you attempt to.
+                If you add an overlapping subscriptions
+                (e.g <filename>/test</filename> and <filename>/test/dir/</filename>),
+                you will only get a single message for changes that match all
+                overlaps.
+            </para>
+        </callout>
+        <callout arearefs='subex_read'>
+            <para>
+                The <methodname>read</methodname> method blocks until the next notification
+                message arrives breaks it up into a
+                <classname>>CVarMgrSubscriptions::Message</classname> struct and
+                returns that struct.                
+            </para>
+            <para>
+                The remainder of the loop simply outputs the notification message
+                to <literal>cout</literal>.
+            </para>
+        </callout>
+    </calloutlist>
+    <para>
+        For reference information on <classname>CVarMgrSubscriptions</classname> see
+        <link linkend='daq3_cvarmgrsubscriptions' endterm='daq3_cvarmgrsubscriptions_title' />
+        In addition to a C++ class, there are
+        Tcl  (<link linkend='tcl3_varmgrsubscribe' endterm='tcl3_varmgrsubscribe_title' />)
+        and Python
+        (<link linkend='python3_varmgrnotify' endterm='python3_varmgrnotify_title' />)
+        bindings to this class.
     </para>
 </chapter>
 <!-- /chapter -->
@@ -2685,5 +2834,194 @@ api.rmvar(path)
      </variablelist>
   </refsect1>
    
+</refentry>
+<refentry id="daq3_cvarmgrsubscriptions">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='daq3_cvarmgrsubscriptions_title'>CVarMgrSubscriptions</refentrytitle>
+     <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>CVarMgrSubscriptions</refname>
+     <refpurpose>Subscribe to variable database manager changes.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+#include &lt;CVarMgrSubscriptions.h&gt;
+       <ooclass><classname>CVarMgrSubscriptions</classname></ooclass>
+{
+public:
+    typedef struct _Message {
+        std::string      s_path;
+        std::string      s_operation;
+        std::string      s_data;
+    } Message, *pMessage;
+
+    <constructorsynopsis>
+       <methodname>CVarMgrSubscriptions</methodname>
+       <methodparam>
+        <modifier>const</modifier><type> char* </type>
+            <parameter>host</parameter>
+       </methodparam>
+       <methodparam>
+        <modifier></modifier><type>int </type>
+            <parameter>port</parameter>
+       </methodparam>
+    </constructorsynopsis>
+    <constructorsynopsis>
+       <methodname>CVarMgrSubscriptions</methodname>
+       <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>host</parameter>
+       </methodparam>
+       <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>service</parameter>
+       </methodparam>
+       
+    </constructorsynopsis>
+    <methodsynopsis>
+        <modifier>virtual </modifier>
+        <type></type>
+        <methodname>~CVarMgrSubscriptions</methodname>
+        <void />
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>zmq::socket_t* </type>
+        <methodname>socket</methodname>
+        <void />
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>int  </type>
+        <methodname>fd</methodname>
+        <void />
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void </type>
+        <methodname>subscribe</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>pathPrefix</parameter>
+        </methodparam>
+        
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void </type>
+        <methodname>unsubscribe</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>pathPrefix</parameter>
+        </methodparam>
+        
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>bool </type>
+        <methodname>waitmsg</methodname>
+        <methodparam>
+            <modifier></modifier><type>int </type>
+                <parameter>milliseconds </parameter>
+                <initializer>-1</initializer>
+        </methodparam>
+        
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void operator()</type>
+        <methodname></methodname>
+        <methodparam>
+            <modifier></modifier><type>int </type>
+                <parameter>milliseconds</parameter>
+                <initializer>-1</initializer>
+        </methodparam>
+        
+        <modifier></modifier>
+    </methodsynopsis>  
+<methodsynopsis>
+        <modifier></modifier>
+        <type>bool </type>
+        <methodname>readable</methodname>
+        <void />
+        <modifier></modifier>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>Message </type>
+        <methodname>read</methodname>
+        <void />
+        <modifier></modifier>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier>virtual </modifier>
+        <type>void</type>
+        <methodname>notify</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>pMessage </type>
+                <parameter>message</parameter>
+        </methodparam>
+        <modifier></modifier>
+    </methodsynopsis>  
+
+    <ooclass><classname>class CException : public std::runtime_error</classname></ooclass>
+    {
+        <constructorsynopsis>
+           <methodname>CException</methodname>
+           <methodparam>
+            <modifier></modifier><type>std::string</type>
+                <parameter> what</parameter>
+           </methodparam>
+           
+           <exceptionname>noexcept </exceptionname>
+        </constructorsynopsis>
+        <constructorsynopsis>
+           <methodname>CException</methodname>
+           <methodparam>
+            <modifier>const</modifier><type>char*</type>
+                <parameter> what</parameter>
+           </methodparam>
+           
+           <exceptionname>noexcept </exceptionname>
+        </constructorsynopsis>
+    };
+
+};
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+     </variablelist>
+  </refsect1>
+   <refsect1>
+      <title>PUBLIC VARIABLES, TYPES and CONSTANTS</title>
+      <variablelist>
+      </variablelist>
+   </refsect1>
 </refentry>     
 <!-- /manpage -->

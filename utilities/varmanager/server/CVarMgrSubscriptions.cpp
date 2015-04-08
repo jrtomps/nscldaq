@@ -129,7 +129,7 @@ void CVarMgrSubscriptions::unsubscribe(const char* pathPrefix)
  *                       If milliseconds is 0 this will test without blocking.
  * @return bool - true if there are messages waiting to be read.
  */
-bool CVarMgrSubscriptions::waitmsg(unsigned int milliseconds)
+bool CVarMgrSubscriptions::waitmsg(int milliseconds)
 {
     zmq_pollitem_t item =  { (void*)(*m_pSocket), -1, ZMQ_POLLIN, 0};
     

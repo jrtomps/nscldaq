@@ -78,7 +78,7 @@ public:
     // Waiting for notificatinos:
     
 public:
-    bool waitmsg(unsigned int milliseconds = -1);
+    bool waitmsg(int milliseconds = -1);
     
     void operator()(int milliseconds = -1);
 
