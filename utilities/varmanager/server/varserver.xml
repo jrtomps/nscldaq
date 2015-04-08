@@ -292,7 +292,7 @@ int main(int argc, char** argv)
         of all changes to the database where the path matches that path prefix.
         Note that the path prefix is just a string so a prefix like:
         <filename>/this/test</filename> will match not only:
-        <filenme>this/test/variable</filenme> but <filename>/this/testing</filename>.
+        <filename>this/test/variable</filename> but <filename>/this/testing</filename>.
     </para>
     <para>
         To lock a path prefix to a specific directory hierarchy you must include
@@ -1088,6 +1088,214 @@ varmgr::statemachine runStateMachine $runStates
             </varlistentry>
             
            </variablelist>
+        </refsect1>
+
+      </refentry>
+      <refentry id="tcl3_varmgrsubscribe">
+        <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle id='tcl3_varmgrsubscribe_title'>varmgr::subscribe</refentrytitle>
+           <manvolnum>3tcl</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>varmgr::subscribe</refname>
+           <refpurpose>Tcl bindings to the variable database publish/subscribe service.</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+            <command>
+package require varmgr
+          </command>
+          </cmdsynopsis>
+          <programlisting>
+varmgr::subscribe <replaceable>uri command</replaceable>
+<replaceable>command</replaceable> subscribe <replaceable>pathPrefix</replaceable>
+<replaceable>command</replaceable> unsubscribe <replaceable>pathPrefix</replaceable>
+<replaceable>command</replaceable> wait <replaceable>?timeout?</replaceable>
+<replaceable>command</replaceable> read
+<replaceable>command</replaceable> notify <replaceable>script</replaceable>
+<replaceable>command</replaceable> destroy
+
+          </programlisting>
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Provides a Tcl-ish encapsulation of the variable database manager's
+            subscription API.  This API allows your script to subscribe to and be
+            informed of changes to the variable database.
+           </para>
+           <para>
+            Subscriptions take the form of a path prefix that is textually matched
+            to the first characters of the path field for each publication. If
+            the path matches, the subscription is fulfilled and the message
+            is made available to the application.
+           </para>
+           <para>
+            The API is based on the creation of a new command ensemble for each
+            bundle of subscriptions.  The command ensemble include a subcommand that
+            can destroy itself.
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              COMMANDS
+           </title>
+            <para>
+                A subscription set consists of a command ensemble.  An ensemble
+                represents a connection to the subscription  service of a variable
+                database server.  It is possible to have several such ensembles in
+                existence each talking with a different database server or even
+                several ensembles talking with the same server.
+            </para>
+            <para>
+                The
+                <informalexample>
+                    <programlisting>
+varmgr::subscribe
+                    </programlisting>
+                </informalexample>
+                command creates a new ensemble.  The first parameter is a URI
+                that specifies the server the new command will be connected to.
+                The second parameter is the name of a new command that will be
+                created to manage the subscriptions on this service.
+            </para>
+            <para>
+                The connection URI is of the form:
+                <filename>tcp://hostname?:portnum:/service-name</filename>
+                where <replaceable>hostname</replaceable> is the host
+                name or dotted ip of the system that is running the server.
+                <replaceable>portnum</replaceable> is the numeric port on which the
+                service is waiting for connections and <replaceable>service-name</replaceable>
+                is the name of the service the server advertises for its publish/subscribe
+                service.
+            </para>
+            <para>
+                The URI has several constraints and special cases:
+            </para>
+            <itemizedlist>
+                <listitem><para>A URI must use the <literal>tcp</literal> protocol
+                </para></listitem>
+                <listitem><para>The URI cannot have both the port and the
+                    service name.
+                </para></listitem>
+                <listitem><para>If the URI has neither the port number nor the
+                    service name, the default service name is translated to
+                    determine the port.</para></listitem>
+            </itemizedlist>
+            <para>
+                The created command is an ensemble with the following subcommands:
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term>
+                        <replaceable>command</replaceable> subscribe <replaceable>pathPrefix</replaceable>
+                    </term>
+                    <listitem>
+                        <para>
+                            Adds a subscription to the part of the database
+                            specified by <parameter>pathPrefix</parameter>.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <replaceable>command</replaceable> unsubscribe <replaceable>pathPrefix</replaceable>
+                    </term>
+                    <listitem>
+                        <para>
+                            Removes a subscription to <parameter>pathPrefix</parameter>
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <replaceable>command</replaceable> wait <replaceable>?timeout?</replaceable>
+                    </term>
+                    <listitem>
+                        <para>
+                            Waits for a message to arrive for at most
+                            <parameter>timeout</parameter> milliseconds.
+                            If <parameter>timeout</parameter> is <literal>0</literal>
+                            the function never blocks.  If <parameter>timeout</parameter>
+                            is omitted or negative, the command blocks until a
+                            message is available.
+                        </para>
+                        <para>
+                            The command returns 0 if no message is avaialble and 1 if
+                            it is on return.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <replaceable>command</replaceable> read
+                    </term>
+                    <listitem>
+                        <para>
+                            Reads the next notification message, blocking if needed
+                            until one is available.  The method returns a
+                            dict with the following keys:
+                        </para>
+                        <itemizedlist>
+                            <listitem><para>
+                                <literal>path</literal> the path for which the
+                                notification is being delivered.
+                            </para></listitem>
+                            <listitem><para>
+                                <literal>op</literal> the operation that was
+                                performed.
+                            </para></listitem>
+                            <listitem><para>
+                                <literal>data</literal> additional data associated
+                                with the notification.
+                            </para></listitem>
+                        </itemizedlist>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <replaceable>command</replaceable> notify <replaceable>script</replaceable>
+                    </term>
+                    <listitem>
+                        <para>
+                            This command is used with scripts that use
+                            event loops (e.g. Tk scripts or scripts that
+                            vwait).  When a notification message is available
+                            and the script is in the event loop,
+                            <parameter>script</parameter> is run.
+                        </para>
+                        <para>
+                            To remove notification scripts, use notify with an empty
+                            script.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <replaceable>command</replaceable> destroy
+                    </term>
+                    <listitem>
+                        <para>
+                            Destroys the command ensemble.  If any notification is
+                            enabled, it too is destroyed.
+                        </para>
+                    </listitem>
+              
+                    
+                </varlistentry>               
+            </variablelist>
         </refsect1>
 
       </refentry>
@@ -2835,6 +3043,186 @@ api.rmvar(path)
   </refsect1>
    
 </refentry>
+
+      <refentry id="python3_varmgrnotify">
+        <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle id="python3_varmgrnotify_title">nscldaq.vardb.notifier</refentrytitle>
+           <manvolnum>3python</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>nscldaq.vardb.notifier</refname>
+           <refpurpose>Python bindings for variable database publish/subscribe API</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <programlisting>
+import nscldaq.vardb.notifier
+
+
+sub = nscldaq.vardb.notifier.Notifier(uri)
+sub.subscribe(pathPrefix)
+sub.unsubscribe(pathPrefix)
+if sub.waitmsg(timeout):
+    # Message is available.
+    ...
+if sub.readable():
+    # Message is avaiable.
+
+msg = sub.read()
+
+          </programlisting>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            The variable database server provides a publish/subscribe service
+            that allows applications to be selectively notified of changes
+            to the database.  This module provides access to the
+            underlying API for that service.
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              METHODS
+           </title>
+           <variablelist>
+            <varlistentry>
+                <term>nscldaq.vardb.notifier.Notifier(uri)</term>
+                <listitem>
+                    <para>
+                        Creates a new notifier object.  A notifier object
+                        encapsulates a connection to the publish/subscribe
+                        service of one variable datbase server.  The
+                        <parameter>uri</parameter> identifies which server
+                        is being used.
+                    </para>
+                    <para>
+                        The <parameter>uri</parameter> has the form:
+                        <informalexample>
+                            <programlisting>
+tcp://<replaceable>hostname</replaceable><optional>:portnum</optional><optional>/service-name</optional>.        
+                            </programlisting>
+                        </informalexample>
+                        Where <replaceable>hostname</replaceable> is the name of the
+                        host in which the sever is running.  The
+                        <replaceable>portnum</replaceable> if supplied is the
+                        numerical port number on which the server is offering the
+                        publish subscribe service.  The <replaceable>service-name</replaceable>
+                        is the service name the server has advertised for the publish
+                        subscribe service.
+                    </para>
+                    <para>
+                        It is illegal to provide both the port and service name.
+                        If neither the port nor the servide name are provided, the
+                        port is determined by translating the default service name for
+                        the variable database server (<literal>vardb-changes</literal>).
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>subscribe(pathPrefix)</methodname></term>
+                <listitem>
+                    <para>
+                        Adds a subscription for <parameter>pathPrefix</parameter>.
+                        Path prefixes are textually matched against the first
+                        characters in the path field of publications.
+                        If there is a match, a message is generated and delivered
+                        to the application.
+                    </para>
+                    <para>
+                        It is an error for the same path prefix to be subscribed
+                        to more than once.  There is not, however detection of
+                        overlapping path prefixes (e.g.
+                        <filename>/test/</filename> and <filename>/test/dir/</filename>).
+                        Note that if there are overlapping subscriptions, only one
+                        message is generated, rather than one for each matching
+                        subscription.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>unsubscribe(pathPrefix)</methodname></term>
+                <listitem>
+                    <para>
+                        Removes the <parameter>pathPrefix</parameter> from the
+                        current subscription set.  It is an error to
+                        unsubscribe a path prefix that you have not yet
+                        subscribed to in this object.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>waitmsg(timeout)</methodname></term>
+                <listitem>
+                    <para>
+                        Waits for a subscription message to be ready to read
+                        for at most <parameter>timeout</parameter> milliseconds.
+                        If <parameter>timeout</parameter> is <literal>0</literal>,
+                        the program will not block.  If the <parameter>timeout</parameter>
+                        is negative, the wait operation will not timeout.
+                    </para>
+                    <para>
+                        Receipt of a signal halts the <methodname>waitmsg</methodname>.
+                        The return value of <methodname>waitmsg</methodname> is
+                        a boolean <literal>True</literal> if when the method
+                        returns a message can be read without blocking.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>readable()</methodname></term>
+                <listitem>
+                    <para>
+                        This is equivalent to <methodname>waitmsg(0)</methodname>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>read</methodname></term>
+                <listitem>
+                    <para>
+                        Reads the next notification message from the socket
+                        blocking if needed until there is a message.
+                        The message is return as a dict with the following keys:
+                    </para>
+                    <itemizedlist>
+                        <listitem><para>
+                            <literal>path</literal> contains the path part of
+                            the message.
+                        </para></listitem>
+                        <listitem><para>
+                            <literal>op</literal> Contains the operation field of
+                            the message.
+                        </para></listitem>
+                        <listitem><para>
+                            <literal>data</literal> contains the addtional data field
+                            of the message.
+                        </para></listitem>
+                    </itemizedlist>
+                </listitem>
+            </varlistentry>
+           </variablelist>
+        </refsect1>
+
+      </refentry>
+
+
+
+<!-- /manpage -->
+<!-- manpage 3daq -->
+
 <refentry id="daq3_cvarmgrsubscriptions">
   <refentryinfo>
     <author>
@@ -2956,7 +3344,7 @@ public:
         
         <modifier></modifier>
     </methodsynopsis>  
-<methodsynopsis>
+    <methodsynopsis>
         <modifier></modifier>
         <type>bool </type>
         <methodname>readable</methodname>
@@ -3009,6 +3397,22 @@ public:
   <refsect1>
      <title>DESCRIPTION</title>
      <para>
+        This class encapsulates a connection to the publish/subscribe
+        service offered by the variable database server. By using it a
+        client program can gain access to this service, manipulate a set of
+        subscriptions and obtain notifications for changes relevant to
+        the subscriptions that have been established.
+     </para>
+     <para>
+        Sufficient introspection exists to allow code to interface with event loops
+        for most application frameworks allowing a seamless integration
+        with those frameworks.
+     </para>
+     <para>
+        All errors are reported via by throwing
+        <classname>CVarMgrSubscriptions::CException</classname> objects.
+        For more information about this nested class see
+        <literal>PUBLIC VARIABLES, TYPES and CONSTANTS</literal> below.
      </para>
   </refsect1>
   <refsect1>
@@ -3016,12 +3420,377 @@ public:
     METHODS
      </title>
      <variablelist>
+        <varlistentry>
+            <term>
+                <constructorsynopsis>
+                   <methodname>CVarMgrSubscriptions</methodname>
+                   <methodparam>
+                    <modifier>const</modifier><type> char* </type>
+                        <parameter>host</parameter>
+                   </methodparam>
+                   <methodparam>
+                    <modifier></modifier><type>int </type>
+                        <parameter>port</parameter>
+                   </methodparam>
+                </constructorsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Constructor for a
+                    <classname>CVarMgrSubscriptions</classname> object.
+                    <parameter>host</parameter> is the host in which
+                    the variable database server is running. This can
+                    be either a resolvable host name or a string that is
+                    a dotted IP address (e.g. <literal>35.8.34.123</literal>).
+                    <parameter>port</parameter> is the numeric port on
+                    which the server maintains its publish/subscribe
+                    service.
+                </para>
+                <para>
+                    Errors are reported by throwing a
+                    <classname>CVarMgrSubscriptions::CException</classname>
+                    which is derived from a <classname>std::runtime_error</classname>
+                    exception.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <constructorsynopsis>
+                   <methodname>CVarMgrSubscriptions</methodname>
+                   <methodparam>
+                    <modifier>const </modifier><type>char* </type>
+                        <parameter>host</parameter>
+                   </methodparam>
+                   <methodparam>
+                    <modifier>const </modifier><type>char* </type>
+                        <parameter>service</parameter>
+                   </methodparam>
+                   
+                </constructorsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Constructor for <classname>CVarMgrSubscriptions</classname>
+                    objects.  As before, the <parameter>host</parameter> specifies
+                    the system in which the server is running.
+                    <parameter>service</parameter> is the service name the
+                    server published its publish/subscribe service as.  By default
+                    this is <literal>vardb-changes</literal>.  Note that the
+                    constructor does not accept a default value for this.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>zmq::socket_t* </type>
+                    <methodname>socket</methodname>
+                    <void />
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns a pointer to the underlying ZMQ socket object
+                    that is connected to the publish/subscribe service.
+                    This is intended to allow the
+                    zmq <methodname>poll</methodname> function to be
+                    called with sockets from this and other ZMQ connections.
+                </para>
+                <para>
+                    For simplicity, actually reading or checking for readability
+                    should be done using the methods provided in this class, as
+                    that will insulate you from application level message format
+                    changes that might occur with time.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>int  </type>
+                    <methodname>fd</methodname>
+                    <void />
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns the file descriptor used by the underlying ZMQ socket.
+                    This is intended for use in integrating this class's notifications
+                    with an event loop provided by an application framework.
+                </para>
+                <para>
+                    Note that according to the ZMQ documentation if the file
+                    descriptor indicates readability it may not yet actually have
+                    a message.  It is best to first invoke <methodname>readable</methodname>
+                    to test if a message is fully received.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>subscribe</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>pathPrefix</parameter>
+                    </methodparam>
+                    
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Adds a subscription (<parameter>pathPrefix</parameter>)
+                    to the set of monitored path
+                    prefixes.  Subscriptions are on prefixes of paths in the
+                    variable database.  A prefix is a string that is the leading
+                    part of a path specification.  Note that maching is not done
+                    in the semantics of the database but as a string. 
+                </para>
+                <para>
+                    This implies that the path prefix
+                    <filename>/test</filename> will not only match changes in
+                    <filename>/test/thing</filename> but also
+                    <filename>/testing/stuff</filename>.
+                    To force path matching semantics,
+                    path prefixes should include a trailing <literal>/</literal>
+                    (e.g. <filename>/test/</filename>) above.
+                </para>
+                <para>
+                    No checking is performed to determine if there actually are
+                    entities with the specified path prefix.
+                    It is illegal to specify a <parameter>pathPrefix</parameter>
+                    that has already been established.  It is legal to
+                    specify overlapping path prefixes (e.g. <filename>/test/</filename>
+                    and <filename>/test/subdir/</filename>).  If you do so, however
+                    only one message will be received for changes in the overlap.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>unsubscribe</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>pathPrefix</parameter>
+                    </methodparam>
+                    
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Removes the specified <parameter>pathPrefix</parameter>
+                    from the set that are subscribed.  It is an error if
+                    <parameter>pathPrefix</parameter> is not a current
+                    subscription.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>bool </type>
+                    <methodname>waitmsg</methodname>
+                    <methodparam>
+                        <modifier></modifier><type>int </type>
+                            <parameter>milliseconds </parameter>
+                            <initializer>-1</initializer>
+                    </methodparam>
+                    
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Blocks until a notification message is available or
+                    until the <parameter>milliseconds</parameter> (at most)
+                    milliseconds have elapsed.  <parameter>milliseconds</parameter>
+                    is a maximum timeout as if a signal is handled by the program
+                    the wait will end at that time.
+                </para>
+                <para>
+                    The return value is <literal>true</literal> if a message
+                    is available and <literal>false</literal> if not.  If
+                    <parameter>milliseconds</parameter> is <literal>0</literal>, the
+                    method never blocks. If it is negative, there is no timeout
+                    and the method will block until either a signal or a message
+                    is available.  It is therefore important to check the return
+                    value even if you supply a negative timeout.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void operator()</type>
+                    <methodname></methodname>
+                    <methodparam>
+                        <modifier></modifier><type>int </type>
+                            <parameter>milliseconds</parameter>
+                            <initializer>-1</initializer>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Provides a hook for the class to implement an event callback
+                    scheme.   This method is very much like:
+                </para>
+                <informalexample>
+                    <programlisting>
+if (waitmsg(milliseconds)) {
+    Message msg = read();
+    notify(&amp;msg);
+}
+                    </programlisting>
+                </informalexample>
+                <para>
+                    To use this method you must create a subclass and override the
+                    <methodname>notify</methodname> virtual method to implement
+                    the desired behavior when a message is received.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>bool </type>
+                    <methodname>readable</methodname>
+                    <void />
+                    <modifier></modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    This method is a short hand for
+                    a call to <methodname>waitmsg(0)</methodname>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>Message </type>
+                    <methodname>read</methodname>
+                    <void />
+                    <modifier></modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    If necessary blocks until a message can be read.  The message
+                    is read from the underlying <classname>zmq::socket_t</classname>
+                    object and processed into a <classname>CVarMgrSubscriptions::Message</classname>
+                    type which is returned.
+                </para>
+                <para>
+                    For more on the <classname>CVarMgrSubscriptions::Message</classname>
+                    see <literal>PUBLIC VARIABLES, TYPES and CONSTANTS</literal>
+                    below.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier>virtual </modifier>
+                    <type>void</type>
+                    <methodname>notify</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>pMessage </type>
+                            <parameter>message</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Virtual method that is called by
+                    <methodname>operator()</methodname> when a message is
+                    received.  The <parameter>message</parameter> parameter
+                    is a pointer to the decoded message.  The base class
+                    implementation of this function is emtpy.  To use
+                    <methodname>operator()</methodname>, you must
+                    therefore create a subclass of
+                    <classname>CVarMgrSubscriptions</classname> that
+                    overrides <methodname>notify</methodname> to
+                    implement the desired behavior.
+                </para>
+            </listitem>
+        </varlistentry>
+        
      </variablelist>
   </refsect1>
    <refsect1>
       <title>PUBLIC VARIABLES, TYPES and CONSTANTS</title>
+      <para>
+        The <classname>CVarMgrSubscriptions</classname> class includes
+        a nested class and a structure that are publicly visible.
+      </para>
+      <para>
+        The
+        <classname>CVarMgrSubscriptions::CException</classname> is thrown
+        as an exception when errors are detected.  It is derived from the
+        <classname>std::runtime_error</classname> exception class.
+      </para>
+      <para>
+        The <classname>CVarMgrSubscriptions::Message</classname> type is
+        a struct used to represent a message that was received by the
+        from the publication/subscription interface.  It has the following fields:
+      </para>
       <variablelist>
+        <varlistentry>
+            <term><structfield>std::string s_path</structfield></term>
+            <listitem>
+                <para>
+                    Has the notification path.  Depending on what is being
+                    notified, this is either the path of the object being
+                    modified or the path of the directory that contains
+                    the object being notified.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><structfield>std::string s_operation</structfield></term>
+            <listitem>
+                <para>
+                    Contains a string that is the operation field fo the
+                    message received.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <structfield>std::string s_data</structfield>
+            </term>
+            <listitem>
+                <para>
+                    Contains the data's message field.
+                </para>
+            </listitem>
+        </varlistentry>
+        
       </variablelist>
+      <para>
+        For more information about what these message fields can contain see
+        <link linkend='daq5_varserver_pubprotocol'
+              endterm='daq5_varserver_pubprotocol_title' />
+      </para>
    </refsect1>
 </refentry>     
 <!-- /manpage -->
