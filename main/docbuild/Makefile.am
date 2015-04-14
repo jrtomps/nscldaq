@@ -77,6 +77,7 @@ BOOKDIRS = 	@top_srcdir@ \
 						@top_srcdir@/usb/loaders \
 						@top_srcdir@/usb/caenfwloader \
 						@top_srcdir@/utilities/filter \
+						@top_srcdir@/daq/actions \
 						@top_srcdir@/utilities/sequencer \
 						@top_srcdir@/utilities/ringselector \
 						@top_srcdir@/utilities/compatibility \
