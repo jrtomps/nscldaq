@@ -25,6 +25,8 @@
 #include <CVMUSBusb.h>
 #include <CVMUSBFactory.h>
 
+#include <CMutex.h>
+#include <CCondition.h>
 #include <TCLInterpreter.h>
 #include <TCLLiveEventLoop.h>
 #include <CBeginRun.h>
@@ -137,7 +139,8 @@ int CTheApplication::operator()(int argc, char** argv)
   
   // If a timstamp lib was given save that as well:
   
-  
+  m_pMutex = shared_ptr<CMutex>(new CMutex); 
+  m_pCondition = shared_ptr<CConditionVariable>(new CConditionVariable);
   
   Globals::pTimestampExtractor = 0;
   if (parsedArgs.timestamplib_given) {
@@ -282,7 +285,7 @@ CTheApplication::startOutputThread(std::string ring)
 void
 CTheApplication::startTclServer()
 {
-  TclServer* pServer = new TclServer;
+  TclServer* pServer = new TclServer(m_pMutex, m_pCondition);
   pServer->start(tclServerPort, Globals::controlConfigFilename.c_str(),
 		   *Globals::pUSBController);
   Globals::pTclServer = pServer; // Save for readout.
@@ -296,8 +299,15 @@ CTheApplication::startTclServer()
 void
 CTheApplication::startInterpreter()
 {
+  m_pCondition->wait(*m_pMutex);
+
 //  Tcl_CreateExitHandler(CTheApplication::ExitHandler, reinterpret_cast<ClientData>(this));
   Tcl_Main(m_Argc, m_Argv, CTheApplication::AppInit);
+
+  // we own the mutex so we need to unlock it... not that the main thread will
+  // own it for the duration of the program because Tcl_Main will not 
+  // actually return until all is done
+  m_pMutex->unlock();
 }
 
 

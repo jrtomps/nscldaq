@@ -50,11 +50,15 @@
 #endif
 #endif
 
-class CVMUSB;
 #include <CControlModule.h>
+
+#include <memory>
+
+class CVMUSB;
 class CTCLInterpreter;
 struct DataBuffer;
-
+class CMutex;
+class CConditionVariable;
 
 /*!
   The TclServer class implements a little Tcl server for our readout software.
@@ -96,6 +100,8 @@ private:
   bool                         m_dumpAllVariables;
   bool                         m_exitNow;
   Tcl_ThreadId                 m_tclThreadId;    // In case Tcl encapsulates.
+  std::shared_ptr<CMutex>      m_pMutex;
+  std::shared_ptr<CConditionVariable>  m_pCondition;
 
 
   // Public data structures:
@@ -110,7 +116,7 @@ public:
   } TclServerEvent;
   
 public:
-  TclServer();
+  TclServer(std::shared_ptr<CMutex> pMutex, std::shared_ptr<CConditionVariable> pCond);
   ~TclServer();			// This is a final class.
 private:
   TclServer(const TclServer& rhs);

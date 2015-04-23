@@ -30,10 +30,13 @@
 #include <TCLObject.h>
 #endif
 
+#include <memory>
+
 class CTCLInterpreter;
 struct Tcl_Interp;
 struct Tcl_Event;
-
+class CMutex;
+class CConditionVariable;
 
 /*!
    This class is  the thread that is the main application startup thread.
@@ -64,6 +67,9 @@ private:
   int                  m_Argc;
   char**               m_Argv;
   CTCLInterpreter*     m_pInterpreter;
+  std::shared_ptr<CMutex> m_pMutex;
+  std::shared_ptr<CConditionVariable> m_pCondition;
+
 public:
   // Canonicals
 

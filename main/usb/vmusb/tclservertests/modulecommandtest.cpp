@@ -19,12 +19,18 @@ using namespace std;
 #include <TCLInterpreter.h>
 #include <TCLObject.h>
 #include <TclServer.h>
+#include <CMutex.h>
+#include <CCondition.h>
+
+std::shared_ptr<CMutex> gpMutex(new CMutex);
+std::shared_ptr<CConditionVariable> gpCond(new CConditionVariable);
 
 // TclServer is supposed to be a final class, but we just need
 // something fake to pass to the constructor. We had to bend its arm
 // a bit too by adding a virtual keyword in front of setResult.
 class CFakeTclServer : public TclServer {
   public: 
+    CFakeTclServer() : TclServer(gpMutex, gpCond) {}
     void setResult(std::string) {}
 };
 
