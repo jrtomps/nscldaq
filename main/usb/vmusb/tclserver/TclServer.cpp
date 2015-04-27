@@ -217,6 +217,7 @@ TclServer::operator()()
     }
 
     // signal we are done initializing to let the main thread resume
+    cout << "tclserver done initializing " << endl;
     m_pCondition->signal();
 
     EventLoop();		// Run the Tcl event loop forever.

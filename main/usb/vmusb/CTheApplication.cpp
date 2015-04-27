@@ -299,7 +299,9 @@ CTheApplication::startTclServer()
 void
 CTheApplication::startInterpreter()
 {
+  cout << "main waiting" << endl;
   m_pCondition->wait(*m_pMutex);
+  cout << "initializing main interp" << endl;
 
 //  Tcl_CreateExitHandler(CTheApplication::ExitHandler, reinterpret_cast<ClientData>(this));
   Tcl_Main(m_Argc, m_Argv, CTheApplication::AppInit);
