@@ -71,22 +71,15 @@ CTypeFactory::createSchema(CSqlite& db)
 {
     // Only create the schema if it does not already exist:
     
-    CSqliteStatement vtypes(
-        db,
-        "SELECT COUNT(*) c FROM sqlite_master \
-            WHERE type = 'table' AND name = 'variable_types'"
-    );
-    ++vtypes;
-    if(vtypes.getInt(0) == 0) {
     
-        CSqliteStatement::execute(
-            db,
-            "CREATE TABLE variable_types (                            \
-                id         INTEGER PRIMARY KEY NOT NULL,              \
-                type_name  VARCHAR(256) NOT NULL                      \
-            )"
-        );
-    }    
+    CSqliteStatement::execute(
+        db,
+        "CREATE TABLE IF NOT EXISTS variable_types (             \
+            id         INTEGER PRIMARY KEY NOT NULL,              \
+            type_name  VARCHAR(256) NOT NULL                      \
+        )"
+    );
+
 }
 /**
  * addUnknownTypeHandler

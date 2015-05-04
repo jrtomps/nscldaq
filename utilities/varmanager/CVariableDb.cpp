@@ -125,7 +125,7 @@ CVariableDb::createSchema(CSqlite& db)
     
     CSqliteStatement::execute(
         db,
-        "CREATE TABLE directory (                              \
+        "CREATE TABLE IF NOT EXISTS directory (                   \
             id         INTEGER PRIMARY KEY NOT NULL,              \
             name       VARCHAR(256) DEFAULT NULL,                 \
             parent_id  INTEGER DEFAULT NULL                       \
@@ -145,7 +145,7 @@ CVariableDb::createSchema(CSqlite& db)
     
     CSqliteStatement::execute(
         db,
-        "CREATE TABLE variables (                               \
+        "CREATE TABLE IF NOT EXISTS variables (                               \
             id                  INTEGER PRIMARY KEY NOT NULL,   \
             name                VARCHAR(256) NOT NULL,          \
             directory_id        INTEGER NOT NULL,               \
@@ -165,33 +165,16 @@ CVariableDb::createSchema(CSqlite& db)
 void
 CVariableDb::checkSchema()
 {
-    if (! checkTable("directory")) {
+    if (! tableExists("directory")) {
         throw CException("Diretory table missing");
     }
-    if (! checkTable("variable_types")) {
+    if (! tableExists("variable_types")) {
         throw CException("Variable types table missing");
     }
 
-    if(!checkTable("variables")) {
+    if(!tableExists("variables")) {
         throw CException("Variables table missing");
     }
     
 }
 
-/**
- * checkTable
- *   @param table -name of the table.
- *   @return bool - true if the database contains the specified table.
- */
-bool
-CVariableDb::checkTable(const char* table)
-{
-    CSqliteStatement s(
-        *this,
-        "SELECT COUNT(*) c FROM sqlite_master            \
-            WHERE type='table' AND name=:name"
-    );
-    s.bind(1, table, -1, SQLITE_TRANSIENT);
-    ++s;
-    return (s.getInt(0) > 0);
-}

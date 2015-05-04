@@ -55,7 +55,6 @@ public:
     virtual ~CVariableDb();
 
 private:
-    bool checkTable(const char* tableName);
     void checkSchema();
     
  
