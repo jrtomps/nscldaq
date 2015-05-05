@@ -51,6 +51,7 @@ CVarMgrServerApi::CVarMgrServerApi(const char* server, int port) :
         
         sprintf(Uri, "tcp://%s:%d", server, port);
         m_pSocket->connect(Uri);
+        transaction("PING", "", "");
     }
     catch (...) {
         delete m_pSocket;
@@ -352,9 +353,8 @@ CVarMgrServerApi::sendMessage(std::string command, std::string data1, std::strin
     zmq::message_t request(messageString.size());
     memcpy(request.data(), reqsz, messageString.size());
     
-    int status = m_pSocket->send(request);
     
-    if(status == -1) {
+    if(!m_pSocket->send(request)) {
         perror("Failed to send");
         throw CException("Failed to send");
     }

@@ -36,7 +36,7 @@ libvarmgrtcl_la_SOURCES=varmgrTCLPackage.cpp \
 	CVarMgrVarCommand.h    CVarMgrVarCommand.cpp	\
 	CVarMgrEnumCommand.h   CVarMgrEnumCommand.cpp	\
 	CVarMgrStateMachine.h  CVarMgrStateMachine.cpp  \
-	CVarMgrSubScribe.h     CVarMgrSubscribe.cpp     \
+	CVarMgrSubscribe.h     CVarMgrSubscribe.cpp     \
 	CVarMgrSubCommand.h    CVarMgrSubCommand.cpp  
 
 
