@@ -88,6 +88,32 @@ CSqlite::versionNumber()
 {
     return sqlite3_libversion_number();
 }
+
+/**
+ * tableExists
+ *   @param table - Name of table to check for.
+ *   @return bool - true if table exists, false otherwise.
+ */
+bool
+CSqlite::tableExists(const char* tableName)
+{
+    const char* strStatement = "SELECT COUNT(*) AS n FROM sqlite_master WHERE type='table' and name=?";
+    sqlite3_stmt* pStatement;
+    int status = sqlite3_prepare(m_pConnection, strStatement, -1, &pStatement, 0);
+    checkStatus(status);
+    
+    status = sqlite3_bind_text(pStatement, 1, tableName, -1, SQLITE_STATIC);
+    checkStatus(status);
+    
+    status = sqlite3_step(pStatement);
+    if (status != SQLITE_ROW) {
+        throw CSqliteException(status);
+    }
+    int num = sqlite3_column_int(pStatement, 0);
+    
+    sqlite3_finalize(pStatement);
+    return num > 0;
+}
 /*----------------------------------------------------------------------------
  * Utility methods:
  */

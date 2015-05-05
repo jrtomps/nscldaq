@@ -20,6 +20,8 @@ class ConnectionTest : public CppUnit::TestFixture {
   CPPUNIT_TEST(versionString);
   CPPUNIT_TEST(versionNumber);
 
+  CPPUNIT_TEST(tblExistsNo);
+  CPPUNIT_TEST(tblExistsYes);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -37,6 +39,9 @@ protected:
   
   void versionString();
   void versionNumber();
+
+  void tblExistsNo();
+  void tblExistsYes();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(ConnectionTest);
@@ -89,4 +94,31 @@ void ConnectionTest::versionString()
 void ConnectionTest::versionNumber()
 {
     EQ(SQLITE_VERSION_NUMBER, CSqlite::versionNumber());
+}
+// tableExists when it does not:
+
+void  ConnectionTest::tblExistsNo()
+{
+    CSqlite db(":memory:");
+    
+    ASSERT(!db.tableExists("NoSuchtable"));
+}
+// Table exists when it does:
+
+void ConnectionTest::tblExistsYes()
+{
+    CSqlite db(":memory:");
+    sqlite3* pDb = db.connection();
+    
+    sqlite3_stmt* pStatement;
+    int status = sqlite3_prepare_v2(
+        pDb, "CREATE TABLE test (id INTEGER PRIMARY KEY NOT NULL)",
+        -1, &pStatement, NULL
+    );
+    EQ(SQLITE_OK, status);             // preparing should not fail,.
+    
+    status = sqlite3_step(pStatement);
+    EQ(SQLITE_DONE, status);
+    
+    ASSERT(db.tableExists("test"));
 }

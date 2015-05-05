@@ -77,8 +77,9 @@ public:
 
     // Shared utilities.
 public:
-
+    bool tableExists(const char* tableName);
     static void checkStatus(int status);
+    
 };
 
 #endif
