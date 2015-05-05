@@ -69,6 +69,13 @@ class CFilterMain
     */
     void registerFilter(const CFilter* filter);
 
+    /**! Retrieve the mediator
+     *
+     * Ownership of the mediator remains with the CFilterMain instance.
+     *
+     * \returns ptr to the mediator
+     */
+    CMediator* getMediator() { return m_mediator; }
 
   private:
     // Private utility functions 

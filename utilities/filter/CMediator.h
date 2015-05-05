@@ -56,6 +56,20 @@ class CMediator
     */
     virtual void mainLoop() = 0;
 
+    /**! Initialize procedure 
+     *
+     *  Depending on the mediator, this may look different.
+     *
+     */
+    virtual void initialize() = 0;
+
+    /**! Finalization procedure.
+     *
+     *  Depending on the mediator, this may look different.
+     *
+     */
+    virtual void finalize() = 0;
+
     /**! Set the filter
       This transfers ownership of the object to this CMediator.
       Ownership of the previous filter is transfered to the caller.

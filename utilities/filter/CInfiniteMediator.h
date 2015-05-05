@@ -28,6 +28,13 @@ class CRingItem;
 class CRingStateChangeItem;
 
 
+/**! \brief A mediator that never quits unless count is satisfied or stream ends.
+ *
+ *  This provides a very basic mediator that will read from a source and then 
+ *  output to a file forever. The only reason it would stop is if there is a 
+ *  count parameter specified or if the source fails.
+ *
+ */
 class CInfiniteMediator : public CMediator
 {
   public:
@@ -47,6 +54,18 @@ class CInfiniteMediator : public CMediator
     */
     virtual void mainLoop();
 
+    /**! Initialize operations 
+     *
+     *  This simply calls the initialize method of the filter.
+     *
+     */
+    virtual void initialize();
+
+    /**! Finalization operations 
+     *
+     *  This simply calls the finalize method of the filter.
+     */
+    virtual void finalize();
 };
 
 #endif

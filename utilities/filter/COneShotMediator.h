@@ -29,6 +29,14 @@ class CRingItem;
 class CRingStateChangeItem;
 
 
+/**! \brief A mediator that understands one-shot logic
+ *
+ * The one shot logic is built into the COneShotHandler class. Basically,
+ * it should be understood as causing operations to occur throughout a run 
+ * and then automatically shutting down when the sufficient number of 
+ * end run events have been observed.
+ *
+ */
 class COneShotMediator : public CMediator
 {
   private:
@@ -55,9 +63,18 @@ class COneShotMediator : public CMediator
     */
     void mainLoop();
 
-    /**! Set one shot handler 
-    */
-    
+    /**! Initialize operations 
+     *
+     *  This simply calls the initialize method of the filter.
+     *
+     */
+    void initialize(); 
+
+    /**! Finalization operations 
+     *
+     *  This simply calls the finalize method of the filter.
+     */
+    void finalize(); 
 
 };
 

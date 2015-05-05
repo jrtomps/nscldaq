@@ -31,7 +31,6 @@ static const char* Copyright = "(C) Copyright Michigan State University 2014, Al
 #include <CPhysicsEventItem.h>
 #include <CRingPhysicsEventCountItem.h>
 #include <CRingFragmentItem.h>
-#include <CMediatorException.h>
 
 /**! Constructor
 
@@ -72,11 +71,6 @@ void CInfiniteMediator::mainLoop()
   // the main loop
   CDataSource& source = *getDataSource();
   CDataSink& sink = *getDataSink();
-  CFilter* filter = getFilter();
-  if (filter==0) {
-    std::string errmsg = "No filter has been registered to the CMediator. Cannot proceed with mainloop";
-    throw CMediatorException("CInfiniteMediator::mainLoop()",errmsg);
-  }
 
   // Set up some counters
   int tot_iter=0, proc_iter=0, nskip=0, nprocess=0;
@@ -84,9 +78,6 @@ void CInfiniteMediator::mainLoop()
   nskip = getSkipCount(); 
   nprocess = getProcessCount(); 
 
-  // Initial single-shot operations
-  filter->initialize();
-  
   while (1) {
     
     // Check if all has been processed that was requested
@@ -136,9 +127,14 @@ void CInfiniteMediator::mainLoop()
     ++tot_iter;
   }
 
-  // Final single-shot operations
-  filter->finalize();
-
 }
 
+void CInfiniteMediator::initialize() 
+{
+  getFilter()->initialize();
+}
 
+void CInfiniteMediator::finalize() 
+{
+  getFilter()->finalize();
+}

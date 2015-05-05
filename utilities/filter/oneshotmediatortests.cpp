@@ -41,6 +41,8 @@ static const char* Copyright = "(C) Copyright Michigan State University 2014, Al
 
 #include "CTransparentFilter.h"
 #include "CNullFilter.h"
+#include "CTestFilter.h"
+#include <CMediatorException.h>
 
 #include <cppunit/extensions/HelperMacros.h>
 
@@ -55,55 +57,6 @@ using namespace std;
 // A test suite 
 class COneShotMediatorTest : public CppUnit::TestFixture
 {
-  private:
-    // Define a test filter to return some testable results
-    class CTestFilter : public CFilter {
-      private:
-        int m_nProcessed;
-  
-      public:
-       CTestFilter() : CFilter(), m_nProcessed(0) {}
-      CTestFilter* clone() const { return new CTestFilter(*this);}
-
-      virtual CRingItem* handleStateChangeItem(CRingStateChangeItem*) 
-      { ++m_nProcessed; return new CRingStateChangeItem(BEGIN_RUN);}
-
-      virtual CRingItem* handleScalerItem(CRingScalerItem* ) 
-      { ++m_nProcessed; return new CRingScalerItem(200);}
-
-      virtual CRingItem* handleTextItem(CRingTextItem*) 
-      { ++m_nProcessed; 
-        vector<string> str_vec;
-        str_vec.push_back("0000");
-        str_vec.push_back("1111");
-        str_vec.push_back("2222");
-        return new CRingTextItem(PACKET_TYPES,str_vec);
-      }
-
-      virtual CRingItem* handlePhysicsEventItem(CPhysicsEventItem* ) 
-      { ++m_nProcessed; return new CPhysicsEventItem(4096);}
-
-      virtual CRingItem* 
-        handlePhysicsEventCountItem(CRingPhysicsEventCountItem*) 
-        { ++m_nProcessed; 
-            return new CRingPhysicsEventCountItem(static_cast<uint64_t>(4),
-                                                  static_cast<uint32_t>(1001));}
-
-      virtual CRingItem* handleFragmentItem(CRingFragmentItem*)
-      {
-        ++m_nProcessed; 
-        return new CRingFragmentItem(static_cast<uint64_t>(10101),
-            static_cast<uint32_t>(1),
-            static_cast<uint32_t>(2),
-            reinterpret_cast<void*>(new char[2]),
-            static_cast<uint32_t>(3));
-      }
-
-      virtual CRingItem* handleRingItem(CRingItem*) 
-      { ++m_nProcessed; return new CRingItem(100);}
-
-      int getNProcessed() const { return m_nProcessed;}
-    };
 
   private:
     CFilter* m_filter;
@@ -116,6 +69,9 @@ class COneShotMediatorTest : public CppUnit::TestFixture
 
     CPPUNIT_TEST_SUITE( COneShotMediatorTest );
     CPPUNIT_TEST ( testWaitForBegin_0 );
+    CPPUNIT_TEST ( initialize_0 );
+    CPPUNIT_TEST ( finalize_0 );
+    CPPUNIT_TEST ( abnormalEndRun_0 );
     CPPUNIT_TEST_SUITE_END();
 
   public:
@@ -123,6 +79,9 @@ class COneShotMediatorTest : public CppUnit::TestFixture
     void tearDown();
 
     void testWaitForBegin_0();
+    void initialize_0();
+    void finalize_0();
+    void abnormalEndRun_0();
 
   private:
     size_t writeRingItemToFile(CRingItem& item,
@@ -238,3 +197,63 @@ bool COneShotMediatorTest::filesEqual(string fname0, string fname1)
 
 }
 
+
+void COneShotMediatorTest::initialize_0() 
+{ 
+  CTestFilter* filt = dynamic_cast<CTestFilter*>(m_filter);
+  CPPUNIT_ASSERT_EQUAL(false, filt->m_initCalled );
+  m_mediator->initialize();
+  CPPUNIT_ASSERT_EQUAL(true, filt->m_initCalled );
+}
+
+void COneShotMediatorTest::finalize_0() 
+{ 
+  CTestFilter* filt = dynamic_cast<CTestFilter*>(m_filter);
+  CPPUNIT_ASSERT_EQUAL(false, filt->m_finalCalled );
+  m_mediator->finalize();
+  CPPUNIT_ASSERT_EQUAL(true, filt->m_finalCalled );
+
+}
+
+void COneShotMediatorTest::abnormalEndRun_0 () {
+
+  tearDown();
+
+  // Set up the mediator
+  string proto("file://");
+  string infname("./run-0001-00.evt");
+  string outfname("./copy2-run-0000-00.evt");
+  string expectedResultFname("./copy2-run-0000-00.exp.evt");
+
+  // create the test file in a block so that it gets destroyed by 
+  // going out of scope
+  {
+    CFileDataSink test_infile(infname);
+    test_infile.putItem(CRingStateChangeItem(BEGIN_RUN));
+    test_infile.putItem(CRingStateChangeItem(ABNORMAL_ENDRUN));
+    test_infile.putItem(CDataFormatItem());
+  }
+
+  {
+    CFileDataSink exp_file(expectedResultFname);
+    exp_file.putItem(CRingStateChangeItem(BEGIN_RUN));
+    exp_file.putItem(CRingStateChangeItem(ABNORMAL_ENDRUN));
+    // no data format item
+  }
+
+  URL uri(proto+infname);
+  m_source = new CFileDataSource(uri, vector<uint16_t>());
+  m_sink = new CFileDataSink(outfname);
+  m_filter = new CTransparentFilter;
+
+  m_mediator = new COneShotMediator(m_source, m_filter, m_sink);
+  
+  CPPUNIT_ASSERT_NO_THROW(m_mediator->mainLoop());
+
+  CPPUNIT_ASSERT(filesEqual(expectedResultFname, outfname));
+
+  // cleanup
+  remove(infname.c_str());
+  remove(outfname.c_str());
+  remove(expectedResultFname.c_str());
+}

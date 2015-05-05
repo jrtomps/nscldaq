@@ -32,7 +32,6 @@ static const char* Copyright = "(C) Copyright Michigan State University 2014, Al
 #include <CPhysicsEventItem.h>
 #include <CRingPhysicsEventCountItem.h>
 #include <CRingFragmentItem.h>
-#include <CMediatorException.h>
 
 /**! Constructor
 
@@ -88,22 +87,12 @@ void COneShotMediator::mainLoop()
   // the main loop
   CDataSource& source = *getDataSource();
   CDataSink& sink = *getDataSink();
-  CFilter* filter = getFilter();
-  if (filter==0) {
-    std::string errmsg = "No filter has been registered to the CMediator. Cannot proceed with mainloop";
-    throw CMediatorException("COneShotMediator::mainLoop()",errmsg);
-  }
-
 
   // Set up some counters
   int tot_iter=0, proc_iter=0, nskip=0, nprocess=0;
 
   nskip = getSkipCount(); 
   nprocess = getProcessCount(); 
-
-  // Initial single-shot operations
-  filter->initialize();
-  
 
   while (1) {
     
@@ -119,6 +108,13 @@ void COneShotMediator::mainLoop()
       break;
     }
 
+    // if we read an abnormal exit, pass it on and exit.
+    if (item->type() == ABNORMAL_ENDRUN) {
+      sink.putItem(*item);
+      delete item;
+      break;
+    }
+
     // only process if we have skipped the requested number
     if (tot_iter>=nskip) {
       
@@ -126,8 +122,15 @@ void COneShotMediator::mainLoop()
       m_oneShot.update(item);
 
       
-      if (!m_oneShot.waitingForBegin()) {
+      if (m_oneShot.waitingForBegin()) {
 
+        // there is a RING_FORMAT item that should precede the  
+        // BEGIN_RUN. Just let it through when it arrives.
+        if (item->type()==RING_FORMAT) {
+          sink.putItem(*item);
+        }
+
+      } else {
         // handle the item and get a pointer to 
         // to the new item
         CRingItem* new_item = handleItem(item);
@@ -147,12 +150,6 @@ void COneShotMediator::mainLoop()
           delete new_item;
         } 
 
-      } else {
-        // there is a RING_FORMAT item that should precede the  
-        // BEGIN_RUN. Just let it through when it arrives.
-        if (item->type()==RING_FORMAT) {
-          sink.putItem(*item);
-        }
       }
     
       // Increment the number processed
@@ -171,8 +168,17 @@ void COneShotMediator::mainLoop()
 
     // Increment our counter
     ++tot_iter;
-  } // end of while
+  }
 
-  // Final single-shot operations
-  filter->finalize();
+}
+
+
+void COneShotMediator::initialize()
+{
+  getFilter()->initialize();
+}
+
+void COneShotMediator::finalize()
+{
+  getFilter()->finalize();
 }

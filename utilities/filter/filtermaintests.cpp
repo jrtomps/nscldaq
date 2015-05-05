@@ -19,6 +19,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2014, Al
 
 #include <fstream>
 #include <vector>
+#include <string>
 #include <CPhysicsEventItem.h>
 #include <CRingStateChangeItem.h>
 #include <CRingScalerItem.h>
@@ -43,6 +44,8 @@ static const char* Copyright = "(C) Copyright Michigan State University 2014, Al
 #undef private
 #undef protected
 
+using namespace std;
+
 // A test suite 
 class CFilterMainTest : public CppUnit::TestFixture
 {
@@ -56,6 +59,7 @@ class CFilterMainTest : public CppUnit::TestFixture
     CPPUNIT_TEST ( testCountTransmitted );
     CPPUNIT_TEST ( testOneShot );
     CPPUNIT_TEST ( testMultiProducersOnRingIsFatal );
+    CPPUNIT_TEST ( mainLoop_0 );
 
     CPPUNIT_TEST_SUITE_END();
 
@@ -72,6 +76,7 @@ class CFilterMainTest : public CppUnit::TestFixture
     void testSetMembers();
     void testOneShot();
     void testMultiProducersOnRingIsFatal();
+    void mainLoop_0();
 
   private:
 };
@@ -130,7 +135,6 @@ void CFilterMainTest::testSkipTransmitted()
   int argc = 2;
   const char* argv[] = {"Main",
                       "--skip=5"};
-  // Ensure that this thing only throws a CFatalException
   CFilterMain app(argc, const_cast<char**>(argv)); 
   CPPUNIT_ASSERT_EQUAL(5, app.m_mediator->m_nToSkip);
 }
@@ -140,7 +144,6 @@ void CFilterMainTest::testCountTransmitted()
   int argc = 2;
   const char* argv[] = {"Main",
                       "--count=5"};
-  // Ensure that this thing only throws a CFatalException
   CFilterMain app(argc, const_cast<char**>(argv)); 
   CPPUNIT_ASSERT_EQUAL(5, app.m_mediator->m_nToProcess);
 }
@@ -150,14 +153,12 @@ void CFilterMainTest::testOneShot()
   int argc = 2;
   const char* argv[] = {"Main",
                       "--oneshot"};
-  // Ensure that this thing only throws a CFatalException
   CFilterMain app(argc, const_cast<char**>(argv)); 
   CPPUNIT_ASSERT(0 != &(dynamic_cast<COneShotMediator*>(app.m_mediator)->m_oneShot));
 }
 
 void CFilterMainTest::testMultiProducersOnRingIsFatal()
 {
-  std::cout << "\ntestMultiProducersOnRingIsFatal" << std::endl;
    CRingBuffer *ring = 0;
    std::string rname = "test";
    if (CRingBuffer::isRing(rname)) {
@@ -197,3 +198,47 @@ void CFilterMainTest::testMultiProducersOnRingIsFatal()
    }
 
 }
+
+class CFakeMediator : public CMediator {
+  private:
+    std::vector<std::string> m_log;
+  
+  public:
+    CFakeMediator(): CMediator(nullptr, nullptr, nullptr), m_log() {}
+    void mainLoop() {
+      m_log.push_back("mainLoop");
+    }
+
+    void initialize() {
+      m_log.push_back("initialize");
+    }
+
+    void finalize() {
+      m_log.push_back("finalize");
+    }
+
+    std::vector<std::string> getLog () const { return m_log;}
+};
+
+void CFilterMainTest::mainLoop_0()
+{
+  int argc = 2;
+  const char* argv[] = {"Main",
+                      "--count=5"};
+  CFilterMain app(argc, const_cast<char**>(argv)); 
+  delete app.m_mediator;
+
+  CFakeMediator* newMediator = new CFakeMediator;
+  app.m_mediator = newMediator;
+
+  // run the main loop
+  app();
+
+  auto log = newMediator->getLog();
+  CPPUNIT_ASSERT_EQUAL(size_t(3), log.size());
+  CPPUNIT_ASSERT_EQUAL(string("initialize"),log.at(0));
+  CPPUNIT_ASSERT_EQUAL(string("mainLoop"),log.at(1));
+  CPPUNIT_ASSERT_EQUAL(string("finalize"),log.at(2));
+
+}
+

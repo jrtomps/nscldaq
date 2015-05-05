@@ -16,7 +16,8 @@ LDFLAGS = $(LIBDIR)/libdaqshm.so	\
 	$(LIBDIR)/liburl.so	\
 	$(LIBDIR)/libfilter.so	\
 	@LIBEXCEPTION_LDFLAGS@ \
-	$(TCL_LDFLAGS) @THREADLD_FLAGS@
+	$(TCL_LDFLAGS) @THREADLD_FLAGS@ \
+	-Wl,-rpath=$(LIBDIR)
 
 # Compilation rules:
 

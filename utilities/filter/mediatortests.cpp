@@ -26,7 +26,6 @@ static const char* Copyright = "(C) Copyright Michigan State University 2014, Al
 #include <string>
 #include <vector>
 #include <unistd.h>
-#include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -43,9 +42,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2014, Al
 #include <CDataSinkFactory.h>
 #include <CDataSourceFactory.h>
 
-#include "CTransparentFilter.h"
-#include "CNullFilter.h"
-#include "CTestFilter.h"
+#include "CFilter.h"
 
 #include <cppunit/extensions/HelperMacros.h>
 
@@ -58,6 +55,85 @@ static const char* Copyright = "(C) Copyright Michigan State University 2014, Al
 // A test suite 
 class CInfiniteMediatorTest : public CppUnit::TestFixture
 {
+  private:
+    // Define a test filter to return some testable results
+    class CTestFilter : public CFilter {
+      private:
+        int m_nProcessed;
+  
+      public:
+       CTestFilter() : CFilter(), m_nProcessed(0) {}
+
+      virtual CRingItem* handleStateChangeItem(CRingStateChangeItem*) 
+      { ++m_nProcessed; return new CRingStateChangeItem(BEGIN_RUN);}
+
+      virtual CRingItem* handleScalerItem(CRingScalerItem* ) 
+      { ++m_nProcessed; return new CRingScalerItem(200);}
+
+      virtual CRingItem* handleTextItem(CRingTextItem*) 
+      { ++m_nProcessed; 
+        std::vector<std::string> str_vec;
+        str_vec.push_back("0000");
+        str_vec.push_back("1111");
+        str_vec.push_back("2222");
+        return new CRingTextItem(PACKET_TYPES,str_vec);
+      }
+
+      virtual CRingItem* handlePhysicsEventItem(CPhysicsEventItem* ) 
+      { ++m_nProcessed; return new CPhysicsEventItem(4096);}
+
+      virtual CRingItem* 
+        handlePhysicsEventCountItem(CRingPhysicsEventCountItem*) 
+        { ++m_nProcessed; 
+            return new CRingPhysicsEventCountItem(static_cast<uint64_t>(4),
+                                                  static_cast<uint32_t>(1001));}
+
+      virtual CRingItem* handleFragmentItem(CRingFragmentItem*)
+      {
+        ++m_nProcessed; 
+        return new CRingFragmentItem(static_cast<uint64_t>(10101),
+            static_cast<uint32_t>(1),
+            static_cast<uint32_t>(2),
+            reinterpret_cast<void*>(new char[2]),
+            static_cast<uint32_t>(3));
+      }
+
+      virtual CRingItem* handleRingItem(CRingItem*) 
+      { ++m_nProcessed; return new CRingItem(100);}
+
+      int getNProcessed() const { return m_nProcessed;}
+    };
+
+    class TestFilter2 : public CFilter {
+      public :
+        TestFilter2* clone() const { return new TestFilter2(*this); }
+
+        CRingItem* handleScalerItem(CRingScalerItem*) {
+          return 0;
+        }
+
+        CRingItem* handleTextItem(CRingTextItem*) {
+          return 0;
+        }
+
+        CRingItem* handleFragmentItem(CRingFragmentItem*) {
+          return 0;
+        }
+        CRingItem* handlePhysicsEventCountItem(CRingPhysicsEventCountItem*) {
+          return 0;
+        }
+
+        CRingItem* handlePhysicsEventItem(CPhysicsEventItem*) {
+          return 0;
+        }
+        CRingItem* handleStateChangeItem(CRingStateChangeItem*) {
+          return 0;
+        }
+
+        CRingItem* handleRingItem(CRingItem*) {
+          return 0;
+        }
+    };
 
   private:
     CFilter* m_filter;
@@ -87,9 +163,6 @@ class CInfiniteMediatorTest : public CppUnit::TestFixture
     CPPUNIT_TEST ( testTransparentMainLoop );
 
     CPPUNIT_TEST ( testFilterReturnsNULL );
-
-    CPPUNIT_TEST ( initialize_0 );
-    CPPUNIT_TEST ( finalize_0 );
 //    CPPUNIT_TEST ( testMultiSourceStates );
     CPPUNIT_TEST_SUITE_END();
 
@@ -117,9 +190,6 @@ class CInfiniteMediatorTest : public CppUnit::TestFixture
 //    void testMultiSourceStates();
 
     void testFilterReturnsNULL();
-
-    void initialize_0();
-    void finalize_0();
 
   private:
     size_t writeRingItemToFile(CRingItem& item,
@@ -314,7 +384,7 @@ void CInfiniteMediatorTest::testSkipNone()
 
     m_mediator->setDataSource(m_source);
     m_mediator->setDataSink(m_sink);
-    m_mediator->setFilter(new CTransparentFilter);
+    m_mediator->setFilter(new CFilter);
 
     m_mediator->mainLoop();
 
@@ -333,8 +403,6 @@ void CInfiniteMediatorTest::testSkipNone()
   }
 
   CPPUNIT_ASSERT( filesEqual(infname,outfname) );
-
-  remove(outfname.c_str());
 
 }
 
@@ -360,7 +428,7 @@ void CInfiniteMediatorTest::testSkipSome()
     m_mediator = new CInfiniteMediator(0,0,0);
     m_mediator->setDataSource(m_source);
     m_mediator->setDataSink(m_sink);
-    m_mediator->setFilter(new CTransparentFilter);
+    m_mediator->setFilter(new CFilter);
 
     m_mediator->setSkipCount(nToSkip);
 
@@ -382,9 +450,6 @@ void CInfiniteMediatorTest::testSkipSome()
 
   CPPUNIT_ASSERT( filesEqual(modeloutfname,outfname) );
 
-  // cleanup 
-  remove(outfname.c_str());
-  remove(modeloutfname.c_str());
 }
 
 void CInfiniteMediatorTest::setUpSkipTestFile(int nToSkip, 
@@ -394,7 +459,7 @@ void CInfiniteMediatorTest::setUpSkipTestFile(int nToSkip,
   URL uri(infname);
   CDataSource* source = new CFileDataSource(uri, std::vector<uint16_t>());
   CDataSink* sink = new CFileDataSink(ofname);
-  CFilter* filt = new CTransparentFilter;
+  CFilter* filt = new CFilter;
   CInfiniteMediator* med = new CInfiniteMediator(source,filt,sink);
 
   // Extract the number of events we want to skip
@@ -453,7 +518,6 @@ void CInfiniteMediatorTest::testProcessSome()
     CPPUNIT_FAIL(errmsg.c_str()); 
   }
 
-  remove(outfname.c_str());
 
 }
 
@@ -472,9 +536,11 @@ void CInfiniteMediatorTest::testTransparentMainLoop()
 //  m_sink = new COStreamDataSink(ofile);
   try {
     URL uri(proto+infname);
+    std::cout << "\nOpening data source = " << infname << std::endl;
     m_source = new CFileDataSource(uri, std::vector<uint16_t>());
+    std::cout << "\nOpening data sink = " << outfname << std::endl;
     m_sink = new CFileDataSink(outfname);
-    m_filter = new CTransparentFilter;
+    m_filter = new CFilter;
 
     m_mediator = new CInfiniteMediator(0,0,0);
     m_mediator->setDataSource(m_source);
@@ -498,8 +564,6 @@ void CInfiniteMediatorTest::testTransparentMainLoop()
   }
 
   CPPUNIT_ASSERT( filesEqual(infname,outfname) );
-
-  remove(outfname.c_str());
 }
 
 void CInfiniteMediatorTest::testFilterReturnsNULL() 
@@ -517,9 +581,11 @@ void CInfiniteMediatorTest::testFilterReturnsNULL()
 //  m_sink = new COStreamDataSink(ofile);
   try {
     URL uri(proto+infname);
+    std::cout << "\nOpening data source = " << infname << std::endl;
     m_source = new CFileDataSource(uri, std::vector<uint16_t>());
+    std::cout << "\nOpening data sink = " << outfname << std::endl;
     m_sink = new CFileDataSink(outfname);
-    m_filter = new CNullFilter;
+    m_filter = new TestFilter2;
 
     m_mediator = new CInfiniteMediator(0,0,0);
     m_mediator->setDataSource(m_source);
@@ -545,8 +611,6 @@ void CInfiniteMediatorTest::testFilterReturnsNULL()
   struct stat st;
   stat(outfname.c_str(), &st);
   CPPUNIT_ASSERT_EQUAL( 0, int(st.st_size) );
-
-  remove(outfname.c_str());
 }
 
 
@@ -616,20 +680,5 @@ size_t CInfiniteMediatorTest::writeRingItemToFile(CRingItem& item,
 }
 
 
-void CInfiniteMediatorTest::initialize_0 () 
-{
-  CTestFilter* filt = dynamic_cast<CTestFilter*>(m_filter);
-  CPPUNIT_ASSERT_EQUAL(false, filt->m_initCalled );
-  m_mediator->initialize();
-  CPPUNIT_ASSERT_EQUAL(true, filt->m_initCalled );
-}
-
-void CInfiniteMediatorTest::finalize_0 () 
-{
-  CTestFilter* filt = dynamic_cast<CTestFilter*>(m_filter);
-  CPPUNIT_ASSERT_EQUAL(false, filt->m_finalCalled );
-  m_mediator->finalize();
-  CPPUNIT_ASSERT_EQUAL(true, filt->m_finalCalled );
-}
 
 

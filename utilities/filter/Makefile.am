@@ -10,6 +10,7 @@ libfilter_la_SOURCES = CFilterMain.cpp \
                        CCompositeFilter.cpp \
                        COneShotException.cpp \
                        CMediatorException.cpp \
+                       CAbnormalEndRunFilterHandler.cpp \
                        @srcdir@/../StringsToIntegers.cpp \
                        @srcdir@/filterargs.c
                        
@@ -29,7 +30,8 @@ include_HEADERS	=  CFilterMain.h \
                    CNullFilter.h \
                    COneShotException.h \
                    CMediatorException.h \
-                   CFatalException.h
+                   CFatalException.h \
+                   CAbnormalEndRunFilterHandler.h
 
 libfilter_la_CPPFLAGS	= -I@top_srcdir@/utilities \
     @LIBTCLPLUS_CFLAGS@	\
@@ -66,12 +68,15 @@ libfilter_la_DEPENDENCIES = @srcdir@/filterargs.h
 noinst_PROGRAMS = unittests testapp
 
 unittests_SOURCES	= TestRunner.cpp  \
-            infinitemediatortests.cpp \
-            filtermaintests.cpp  \
-            compositefiltertests.cpp \
-            transparentfiltertests.cpp \
-            oneshothandlertests.cpp \
-            oneshotmediatortests.cpp 
+						infinitemediatortests.cpp \
+						filtermaintests.cpp  \
+						compositefiltertests.cpp \
+						transparentfiltertests.cpp \
+						oneshothandlertests.cpp \
+						oneshotmediatortests.cpp  \
+						abnormalendrunfiltertests.cpp  \
+						CTestFilter.h \
+						CTestFilter.cpp
 
 unittests_LDADD		= -L$(libdir) $(CPPUNIT_LDFLAGS) 		\
 			@top_builddir@/base/dataflow/libDataFlow.la 	\

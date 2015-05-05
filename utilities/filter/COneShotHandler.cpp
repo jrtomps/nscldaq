@@ -34,12 +34,10 @@ COneShotHandler::COneShotHandler(unsigned int ntrans)
 */
 void COneShotHandler::update(CRingItem* pItem)
 {
-
-  if (pItem==0) {
+  if (pItem==nullptr) {
     throw COneShotException("COneShotHandler::update(CRingStateChangeItem*)",
-                            "Passed null pointer argument");
+                            "Null pointer passed as argument.");
   }
-
   uint32_t type = pItem->type();
 
   // if we have already reached our limit, throw
