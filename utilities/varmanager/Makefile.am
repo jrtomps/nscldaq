@@ -133,7 +133,7 @@ noinst_HEADERS=Asserts.h
 
 DOCFILES=libref.xml progref.xml tutorial.xml
 
-EXTRA_DIST=$(tclTests) \
+EXTRA_DIST= vardb.test \
 	vardbtest.py dirtreetest.py variabletest.py \
 	vardbsh.tcl.in $(DOCFILES)
 
