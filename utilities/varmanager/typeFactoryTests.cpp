@@ -193,13 +193,7 @@ void TypeFactoryTests::makeSchema()
 
 void TypeFactoryTests::createSchema() {
     CTypeFactory::createSchema(*m_db);
-    CSqliteStatement s(
-        *m_db,
-        "SELECT COUNT(*) AS c FROM sqlite_master      \
-            WHERE type = 'table' AND name='variable_types'"
-    );
-    ++s;
-    EQ(1, s.getInt(0));
+    ASSERT(m_db->tableExists("variable_types"));
 }
 // Ensure that creating a factory gets the default types in
 // The database.

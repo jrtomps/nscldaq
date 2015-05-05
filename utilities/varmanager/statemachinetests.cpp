@@ -205,7 +205,7 @@ int StateMachineTests::makeStateMachine()
 // The schema must have been created in the db file.
 
 void StateMachineTests::schema() {
-    ASSERT(m_db->checkTable("state_transitions"));
+    ASSERT(m_db->tableExists("state_transitions"));
 }
 
 void StateMachineTests::undefLegal()

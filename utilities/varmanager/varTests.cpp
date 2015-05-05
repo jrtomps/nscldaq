@@ -216,16 +216,8 @@ CPPUNIT_TEST_SUITE_REGISTRATION(VarTests);
 bool
 VarTests::haveTable(const char* name)
 {
-    CSqliteStatement stmt(
-        *m_db,
-        "SELECT COUNT(*) AS c FROM sqlite_master \
-            WHERE type ='table' AND name=? \
-        "
-    );
-    stmt.bind(1, name, -1, SQLITE_TRANSIENT);
-    ++stmt;
-    
-    return 1 == stmt.getInt(0);
+    return m_db->tableExists(name);
+
 }
 // True if the 'constraint' is allowed for 'type'.
 

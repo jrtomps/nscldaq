@@ -210,15 +210,7 @@ EnumTests::getEnumInfo(const char* typeName)
 // 'enumerated_values'  Note CVariableDb is subclassed from CSqlite:
 
 void EnumTests::schemaExists() {
-    CSqliteStatement exists(
-        *m_db,
-        "SELECT COUNT(*) FROM sqlite_master    \
-           WHERE name = 'enumerated_values'    \
-           AND   type = 'table'                \
-        "
-    );
-    ++exists;
-    EQ(1, exists.getInt(0));
+    ASSERT(m_db->tableExists("enumerated_values"));
 }
 
 // Check that legal values are legal:
