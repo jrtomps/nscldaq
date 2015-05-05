@@ -910,6 +910,18 @@ void mkdir(CSqlite&amp; db, int parent, std::vector&lt;std::string&gt;&amp; path
         </methodparam>
         <exceptionname>CSqliteException</exceptionname>
      </methodsynopsis>
+     <methodsynopsis>
+         <modifier>static</modifier>
+         <type>bool</type>
+         <methodname>tableExists</methodname>
+         <methodparam>
+            <modifier>const</modifier><type>char*</type>
+                <parameter>tableName</parameter>
+         </methodparam>
+         
+         <exceptionname>CSqliteException</exceptionname>
+         <modifier></modifier>
+     </methodsynopsis>  
     static const int <varname>nomutex</varname>;
     static const int <varname>fullmutex</varname>;
     static const int <varname>sharedcache</varname>;
@@ -1058,6 +1070,32 @@ void mkdir(CSqlite&amp; db, int parent, std::vector&lt;std::string&gt;&amp; path
                 </para>
             </listitem>
         </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+         <modifier>static</modifier>
+         <type>bool</type>
+         <methodname>tableExists</methodname>
+         <methodparam>
+            <modifier>const</modifier><type>char*</type>
+                <parameter>tableName</parameter>
+         </methodparam>
+         
+         <exceptionname>CSqliteException</exceptionname>
+         <modifier></modifier>
+     </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Determines if the table named <parameter>tableName</parameter>
+                    exists.  Returns <literal>true</literal> if so or
+                    <literal>false</literal> if not.  If any errors are detected
+                    in the process of determining the existence of the table,
+                    a <classname>CSqliteException</classname> will be thrown.
+                </para>
+            </listitem>
+        </varlistentry>
+        
 
      </variablelist>
   </refsect1>

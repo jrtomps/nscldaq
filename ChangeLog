@@ -868,4 +868,7 @@ Work on 11.0-rc11 begins
 	Feature #3553 - Tcl bindings to the varmgr api
 	Feature #3556 - Python bindings to the varmgr api.
         Feature #3655 - Provide subscription API.
+	Feature #3709 - Add tableExists method to CSqlite.
+	Feature #3712 - Add PING operation to variable database server so
+	clients can immediately detect connection failures.
 	
