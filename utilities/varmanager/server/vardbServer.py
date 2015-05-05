@@ -455,6 +455,8 @@ class databaseServer():
             self._varlist(path)
         elif command == 'RMVAR':
             self._rmvar(path)
+        elif command == 'PING':
+            self._req.send('OK:')
         else:
             self._req.send('FAIL:Unrecognized operation code %s' % (command))
         

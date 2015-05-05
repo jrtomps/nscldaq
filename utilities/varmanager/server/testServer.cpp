@@ -88,6 +88,9 @@ class ServerApiTests : public CppUnit::TestFixture {
 
   CPPUNIT_TEST(rmvarOk);
   CPPUNIT_TEST(rmvarNoSuch);
+  
+  CPPUNIT_TEST(connectfail);
+  
   CPPUNIT_TEST_SUITE_END();
 
 protected:
@@ -133,6 +136,8 @@ protected:
   void lsvarAbsPath();
   void rmvarOk();
   void rmvarNoSuch();
+  
+  void connectfail();
 private:
     pid_t m_serverPid;
     int m_serverRequestPort;
@@ -837,6 +842,16 @@ void ServerApiTests::rmvarNoSuch()
     
     CPPUNIT_ASSERT_THROW(
         api.rmvar("/anint"),
+        std::runtime_error
+    );
+}
+
+// connect fails (added PING).
+
+void ServerApiTests::connectfail()
+{
+    CPPUNIT_ASSERT_THROW(
+        CVarMgrServerApi("localhost", 666),   // Some random non-zmq port.
         std::runtime_error
     );
 }

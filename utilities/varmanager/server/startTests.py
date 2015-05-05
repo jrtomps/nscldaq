@@ -122,6 +122,21 @@ class TestServerStart(testBase.TestBase):
         time.sleep(1)
         self.assertTrue(os.path.isfile(self._dbName))
     
+    ##
+    #  Test PING operation.
+    
+    def test_ping(self):
+        process = self.startServer(['--database', self._dbName, '--create-ok', 'yes'])
+        self._requestService = 'vardb-request'
+        self._pubService     = 'vardb-changes'
+        time.sleep(1)
+        self.setup0mq()
+        self._req.send('PING::')
+        msg = self._req.recv()
+        msgFields = msg.split(':')
+        self.assertEqual('OK', msgFields[0])
+        
+        pass
     
     
     
