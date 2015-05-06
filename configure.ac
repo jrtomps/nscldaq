@@ -398,6 +398,7 @@ AC_CONFIG_FILES([Makefile
 		 utilities/varmanager/Makefile
 		 utilities/varmanager/vardbsh.tcl
 		 utilities/varmanager/server/Makefile
+		 utilities/varmanager/scripts/Makefile
                  epics/chanlog/Makefile
                  epics/controlpush/Makefile
                  epics/epicsdisplay/Makefile

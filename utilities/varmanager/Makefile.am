@@ -32,7 +32,7 @@ libvardb_la_LDFLAGS  = 	@top_builddir@/base/sqlite++/libsqlite3pp.la  @SQLITE3_L
 
 include_HEADERS = CVariableDb.h CVarDirTree.h CVariable.h CTypeFactory.h \
 	CDataType.h CIntegerType.h CRealType.h CStringType.h \
-	CDataTypeCreatorBase.h CIntegerTypeCreator.h CRealTypeCreator.h
+	CDataTypeCreatorBase.h CIntegerTypeCreator.h CRealTypeCreator.h \
 	CStringTypeCreator.h CEnumType.h CEnumeration.h CUnknownTypeHandler.h \
 	CEnumTypeCreator.h CEnumTypeFamilyHandler.h CStateMachineType.h \
 	CStateMachineTypeCreator.h CStateMachineTypeFamilyHandler.h	\
