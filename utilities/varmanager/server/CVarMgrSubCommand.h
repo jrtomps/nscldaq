@@ -56,6 +56,8 @@ protected:
     void wait(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
     void unsubscribe(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
     void notify(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void addFilter(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void checkFilter(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
     
     
 private:

@@ -82,6 +82,10 @@ CVarMgrSubCommand::operator()(CTCLInterpreter& interp, std::vector<CTCLObject>& 
             unsubscribe(interp, objv);
         } else if (subcommand == "notify") {
             notify(interp, objv);
+        } else if (subcommand == "filtercheck") {
+            checkFilter(interp, objv);
+        } else if (subcommand == "filter") {
+            addFilter(interp, objv);
         } else {
             throw std::runtime_error("Invalid subcommand");
         }
@@ -254,6 +258,65 @@ CVarMgrSubCommand::notify(CTCLInterpreter& interp, std::vector<CTCLObject>& objv
     }
     m_script = script;
 }
+ 
+ /**
+  * checkFilter
+  *    filtercheck subcommand.
+  *    - Script must have provided a pattern.
+  *    - Check the pattern against the filters in our subscription object and
+  *      return the result.
+* @param interp - Reference to encapsulated Tcl interpreter object
+* @param objv   - Reference to the vector of encapsulated Tcl_Obj's that make up the
+*                 command word.
+*
+* @return int
+* @retval TCL_OK - Successful completion.
+* @retval TCL_ERROR - Failure.
+*/
+void
+CVarMgrSubCommand::checkFilter(CTCLInterpreter& interp, std::vector<CTCLObject>& objv)
+{
+    requireExactly(objv, 3);
+    
+    std::string pattern = objv[2];
+    bool result = m_subscriptions.checkFilters(pattern.c_str());
+    
+    interp.setResult((result ? "1" : "0"));
+    
+}
+ 
+ /**
+  *   addFilter
+  *      filter sub command needs
+  *      -   a type (accept | reject)
+  *      -   a pattern.
+    * @param interp - Reference to encapsulated Tcl interpreter object
+    * @param objv   - Reference to the vector of encapsulated Tcl_Obj's that make up the
+    *                 command word.
+    *
+    * @return int
+    * @retval TCL_OK - Successful completion.
+    * @retval TCL_ERROR - Failure.
+    */
+ void
+ CVarMgrSubCommand::addFilter(CTCLInterpreter& interp, std::vector<CTCLObject>& objv)
+ {
+    requireExactly(objv, 4);
+    std::string type    = objv[2];
+    std::string pattern = objv[3];
+    
+    CVarMgrSubscriptions::FilterType ft;
+    if (type == "accept" ) {
+        ft = CVarMgrSubscriptions::accept;
+    } else if (type == "reject") {
+        ft = CVarMgrSubscriptions::reject;
+    } else {
+        throw std::string("Invalid filter type");
+    }
+    
+    m_subscriptions.addFilter(ft, pattern.c_str());
+   
+ }
  
  /**
   * readable

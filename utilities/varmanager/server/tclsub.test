@@ -421,12 +421,194 @@ tcltest::test nofify {Notification dispatches} \
     
     varmgr::mkdir $handle /test/test1
     
-    after 200 incr ::flag
+    set id [after 200 incr ::flag]
     vwait ::flag;               # Enter event loop
-    
+    after cancel $id;           #  might not be left.
     set ::data
 } -result [list path /test op MKDIR data test1]
 
+#------------------------------------------------------------------------
+# Test for filtering. Note that Tcl filtering is always manual
+# and a convenience since we can't peek at the data without consuming it.
+#
+
+tcltest::test filter1 {Checks without filters always pass} \
+-setup {
+    set dbFile [exec tempfile]
+    createDatabase $dbFile
+    set pid [startServer $dbFile]
+    translateService $::service;    # Wait for server to be ready.
+    
+    set handle [varmgr::open tcp://localhost]
+    
+} \
+-cleanup {
+    exec kill -9 $pid
+    file delete -force $dbFile
+    
+    varmgr::close $handle
+} \
+-body {
+    varmgr::subscribe tcp://localhost sub
+    
+    sub filtercheck test
+} -result 1
+
+tcltest::test filter2 {Need pattern to check} \
+-setup {
+    set dbFile [exec tempfile]
+    createDatabase $dbFile
+    set pid [startServer $dbFile]
+    translateService $::service;    # Wait for server to be ready.
+    
+    set handle [varmgr::open tcp://localhost]
+    
+} \
+-cleanup {
+    exec kill -9 $pid
+    file delete -force $dbFile
+    
+    varmgr::close $handle
+} \
+-body {
+    varmgr::subscribe tcp://localhost sub
+    
+    catch {sub filtercheck}
+} -result 1
+
+
+tcltest::test filter3 {Too many params is also bad:} \
+-setup {
+    set dbFile [exec tempfile]
+    createDatabase $dbFile
+    set pid [startServer $dbFile]
+    translateService $::service;    # Wait for server to be ready.
+    
+    set handle [varmgr::open tcp://localhost]
+    
+} \
+-cleanup {
+    exec kill -9 $pid
+    file delete -force $dbFile
+    
+    varmgr::close $handle
+} \
+-body {
+    varmgr::subscribe tcp://localhost sub
+    
+    catch {sub filtercheck test junk}
+} -result 1
+
+tcltest::test filter4 {Check acceptance pattern}  \
+-setup {
+    set dbFile [exec tempfile]
+    createDatabase $dbFile
+    set pid [startServer $dbFile]
+    translateService $::service;    # Wait for server to be ready.
+    
+    set handle [varmgr::open tcp://localhost]
+    
+} \
+-cleanup {
+    exec kill -9 $pid
+    file delete -force $dbFile
+    
+    varmgr::close $handle
+} \
+-body {
+    varmgr::subscribe tcp://localhost sub
+    sub filter accept /test/t*
+    
+    list [sub filtercheck /test/testing] [sub filtercheck /test/nope]
+} -result [list 1 0]
+
+tcltest::test filter5 {Check reject pattern}  \
+-setup {
+    set dbFile [exec tempfile]
+    createDatabase $dbFile
+    set pid [startServer $dbFile]
+    translateService $::service;    # Wait for server to be ready.
+    
+    set handle [varmgr::open tcp://localhost]
+    
+} \
+-cleanup {
+    exec kill -9 $pid
+    file delete -force $dbFile
+    
+    varmgr::close $handle
+} \
+-body {
+    varmgr::subscribe tcp://localhost sub
+    sub filter reject /test/t*
+    
+    list [sub filtercheck /test/testing] [sub filtercheck /test/nope]
+} -result [list 0 1]
+
+tcltest::test filter6 {filter - bad filter type} \
+-setup {
+    set dbFile [exec tempfile]
+    createDatabase $dbFile
+    set pid [startServer $dbFile]
+    translateService $::service;    # Wait for server to be ready.
+    
+    set handle [varmgr::open tcp://localhost]
+    
+} \
+-cleanup {
+    exec kill -9 $pid
+    file delete -force $dbFile
+    
+    varmgr::close $handle
+} \
+-body {
+    varmgr::subscribe tcp://localhost sub
+    catch {sub filter Reject /test/t*}
+} -result 1
+
+tcltest::test filter7 {Filter - too few parameters} \
+-setup {
+    set dbFile [exec tempfile]
+    createDatabase $dbFile
+    set pid [startServer $dbFile]
+    translateService $::service;    # Wait for server to be ready.
+    
+    set handle [varmgr::open tcp://localhost]
+    
+} \
+-cleanup {
+    exec kill -9 $pid
+    file delete -force $dbFile
+    
+    varmgr::close $handle
+} \
+-body {
+    varmgr::subscribe tcp://localhost sub
+    catch {sub filter reject }
+} -result 1
+
+tcltest::test filter8 {filter - too many parameters} \
+-setup {
+    set dbFile [exec tempfile]
+    createDatabase $dbFile
+    set pid [startServer $dbFile]
+    translateService $::service;    # Wait for server to be ready.
+    
+    set handle [varmgr::open tcp://localhost]
+    
+} \
+-cleanup {
+    exec kill -9 $pid
+    file delete -force $dbFile
+    
+    varmgr::close $handle
+} \
+-body {
+    varmgr::subscribe tcp://localhost sub
+    catch {sub filter reject /test/t* junk}
+} -result 1
+    
+    
 #--------------------------------------------------------------------------
 # Post test stuff
 

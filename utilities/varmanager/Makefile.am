@@ -64,7 +64,7 @@ libvardbtcl_la_LDFLAGS= @builddir@/libvardb.la @top_builddir@/base/sqlite++/libs
 
 PYBINDINGS_CPPFLAGS=@PYTHON_CPPFLAGS@ $(libvardb_la_CPPFLAGS)
 PYBINDINGS_LDFLAGS=@PYTHON_LDFLAGS@  @builddir@/libvardb.la \
-			@top_srcdir@/base/sqlite++/libsqlite3pp.la  \
+			@top_builddir@/base/sqlite++/libsqlite3pp.la  \
 			@SQLITE3_LDFLAGS@ \
 			-Wl,"-rpath=@libdir@"
 
