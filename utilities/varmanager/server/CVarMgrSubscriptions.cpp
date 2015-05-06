@@ -61,6 +61,18 @@ CVarMgrSubscriptions::~CVarMgrSubscriptions()
     delete m_pSocket;
     delete m_pContext;
     
+    // Delete the pattern specs in the filters:
+    
+    Filters::iterator p = m_acceptFilters.begin();
+    while (p != m_acceptFilters.end()) {
+        g_pattern_spec_free(p->second);
+        p++;
+    }
+    p = m_rejectFilters.begin();
+    while (p != m_rejectFilters.end()) {
+        g_pattern_spec_free(p->second);
+        p++;
+    }
 }
 /**
  * fd
@@ -118,6 +130,63 @@ void CVarMgrSubscriptions::unsubscribe(const char* pathPrefix)
     m_pSocket->setsockopt(ZMQ_UNSUBSCRIBE, pathPrefix, strlen(pathPrefix));
     m_subscriptions.erase(m_subscriptions.find(pathPrefix));
 }
+/**
+ * addFilter
+ *    Adds a software filter to the subscription.  Software filters allow
+ *    a finer grained selection than what is offered by the subscription
+ *    mechanism.  There are two lists of software filters,
+ *    A rejection and an acceptance list.  Each filter consists of
+ *    a path match string that can have glob style wild card characters.
+ *    The rejection filters are checked first.  If any of them match,
+ *    the messages is not accepted.
+ *    The acceptance filters are then checked.  If any of them match,
+ *    The message is accepted.
+ *
+ *    If the rejection filter list is empty nothing is rejected.
+ *    If the acceptance filter list is empty everything is accepted.
+ *
+ *    Probably one list is sufficient for most apps, but this provides maximum
+ *    expressive flexibility.  Note that these filters are only
+ *    applied to how operator() behaves, however they can be manually
+ *    checked with checkFilters().
+ *
+ *  @param ftype - The type of filters (CVarMgrSubscriptions::accept or
+ *                  CVarMgrSubscriptions::reject).
+ *  @param pattern - The pattern string.
+ */
+void
+CVarMgrSubscriptions::addFilter(
+    CVarMgrSubscriptions::FilterType ftype, const char* pattern
+)
+{
+    // Use the ftype to determine which list is used:
+    
+    Filters* pList(0);
+    if (ftype == accept) {
+        pList = &m_acceptFilters;
+    } else if (ftype == reject) {
+        pList = &m_rejectFilters;
+    } else {
+        throw CException("Invalid filter type");
+    }
+    
+    
+    addFilter(*pList, pattern);
+}
+/**
+ * checkFilters
+ *   Check to see if a string passes filter tests.
+ *
+ *  @param path - the path to check against the filters
+ *  @return bool - true if the message has passed the filters.
+ */
+bool
+CVarMgrSubscriptions::checkFilters(const char* path)
+{
+    return (!checkFilter(m_rejectFilters, path, false)) &&
+        checkFilter(m_acceptFilters, path, true);
+}
+
 /**
  * waitmsg
  *    Wait for a message to be available on the socket with a timeout.
@@ -204,7 +273,9 @@ void CVarMgrSubscriptions::operator()(int milliseconds)
 {
     if (waitmsg(milliseconds)) {
         Message msg = read();
-        notify(&msg);
+        if (checkFilters(msg.s_path.c_str())) {
+            notify(&msg);
+        }
     }
 }
 
@@ -270,4 +341,54 @@ CVarMgrSubscriptions::initialize(const char* host, int port)
         throw CException(e.what());
     }
     
+}
+/**
+ * addFilter
+ *    Adds a filter to a specific list
+ *    - The string is compiled to a GPatternSpec*
+ *    - A pair consisting of the string and the pattern spec is pushed into the
+ *      list provided.
+ *
+ *  @param pattern - the pattern specification.
+ *  @param filterList - The list of filters into which the filter is pushed.
+ */
+void
+CVarMgrSubscriptions::addFilter(
+    CVarMgrSubscriptions::Filters& filterList, const char* pattern
+)
+{
+    GPatternSpec* pCompiledPattern = g_pattern_spec_new(pattern);
+    if (!pCompiledPattern) {
+        throw CException("Filter pattern is not a valid glob pattern");
+    }
+    filterList.push_back(std::pair<std::string, GPatternSpec*>(
+        std::string(pattern), pCompiledPattern
+    ));
+}
+/**
+ * checkFilter
+ *   Checks  a pattern against a filter list.
+ *
+ *  @param filterList - list of filters.
+ *  @param pattern    - Pattern to checkk.
+ *  @param ifEmpty    - Value to return if the list is empty.
+ */
+bool
+CVarMgrSubscriptions::checkFilter(
+    CVarMgrSubscriptions::Filters& filterList, const char* pattern, bool ifEmpty
+)
+{
+    if (filterList.empty()) {
+        return ifEmpty;
+    }
+    
+    Filters::iterator p = filterList.begin();
+    size_t len = strlen(pattern);
+    while (p != filterList.end()) {
+        if (g_pattern_match(p->second, len, pattern, 0)) {
+            return true;
+        }
+        p++;
+    }
+    return false;
 }

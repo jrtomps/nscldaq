@@ -8,7 +8,7 @@ COMMONLDFLAGS = @builddir@/../libvardb.la 	\
 		@SQLITE3_LDFLAGS@ @ZMQ_LDFLAGS@ -Wl,"-rpath=@libdir@"
 
 COMMON_CPPFLAGS=-I@srcdir@/..  @SQLITE3_CFLAGS@ -I@top_srcdir@/base/sqlite++ \
-	-I@top_srcdir@/base/uri -I@top_srcdir@/base/os -I@top_srcdir@/servers/portmanager
+	-I@top_srcdir@/base/uri -I@top_srcdir@/base/os -I@top_srcdir@/servers/portmanager @GLIB_CFLAGS@
 
 libvarmgr_la_SOURCES = CVarMgrApi.cpp CVarMgrFileApi.cpp CVarMgrServerApi.cpp \
 	CVarMgrApiFactory.cpp CVarMgrSubscriptions.cpp
@@ -17,8 +17,8 @@ include_HEADERS= CVarMgrApi.h CVarMgrFileApi.h CVarMgrServerApi.h CVarMgrApiFact
 
 
 
-libvarmgr_la_CPPFLAGS=$(COMMON_CPPFLAGS) @LIBTCLPLUS_CFLAGS@
-libvarmgr_la_LDFLAGS = $(COMMONLDFLAGS)  @LIBEXCEPTION_LDFLAGS@
+libvarmgr_la_CPPFLAGS=$(COMMON_CPPFLAGS) @LIBTCLPLUS_CFLAGS@ 
+libvarmgr_la_LDFLAGS = $(COMMONLDFLAGS)  @LIBEXCEPTION_LDFLAGS@ @GLIB_LIBS@
 
 libvarmgrtcl_la_CPPFLAGS=@TCL_FLAGS@ @LIBTCLPLUS_CFLAGS@ $(COMMON_CPPFLAGS) 
 libvarmgrtcl_la_LDFLAGS= @builddir@/libvarmgr.la \
@@ -64,7 +64,7 @@ install-exec-hook:
 	echo pkg_mkIndex -verbose @prefix@/TclLibs/varmgr "*.so" | @TCLSH_CMD@
 	$(mkinstalldirs) @prefix@/pythonLibs 
 	$(mkinstalldirs) @prefix@/pythonLibs/nscldaq
-	$(mkinstalldirs) @prefix@/pythonLibs/nscldaq/vardb
+	$(mkinstalldirs) @prefix@/pythonLibs/nscldaq/vardb 
 	$(INSTALL_PROGRAM) @libdir@/libvarmgrpy.so @prefix@/pythonLibs/nscldaq/vardb/varmgr.so
 	$(INSTALL_PROGRAM) @libdir@/libnotifierpy.so @prefix@/pythonLibs/nscldaq/vardb/notifier.so
 
@@ -86,7 +86,7 @@ testApi_LDFLAGS = $(COMMONLDFLAGS) \
 	@top_builddir@/servers/portmanager/libPortManager.la \
 	@top_builddir@/base/os/libdaqshm.la	\
 	@LIBEXCEPTION_LDFLAGS@	\
-	 @CPPUNIT_LDFLAGS@
+	 @CPPUNIT_LDFLAGS@ @GLIB_LIBS@
 
 
 
@@ -96,13 +96,13 @@ testSub_SOURCES=TestRunner.cpp SubscriptionTests.cpp \
 testSub_CPPFLAGS=-DBINDIR=\"@bindir@\" \
 	$(COMMON_CPPFLAGS)   \
 	 @LIBTCLPLUS_CFLAGS@ \
-	@CPPUNIT_CFLAGS@ 
+	@CPPUNIT_CFLAGS@ @GLIB_LIBS@
 
 testSub_LDFLAGS = $(COMMONLDFLAGS) \
 	@top_builddir@/servers/portmanager/libPortManager.la \
 	@top_builddir@/base/os/libdaqshm.la	\
 	@LIBEXCEPTION_LDFLAGS@	\
-	 @CPPUNIT_LDFLAGS@
+	 @CPPUNIT_LDFLAGS@ @GLIB_LIBS@
 
 check-TESTS:
 	for f in $(SERVER_TESTS); do echo $$f : ; PYTHONPATH=@prefix@/pythonLibs  BINDIR=@bindir@  @PYTHON@ @srcdir@/$$f; done

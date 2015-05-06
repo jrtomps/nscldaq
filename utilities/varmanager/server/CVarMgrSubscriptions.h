@@ -28,6 +28,8 @@
 #include <set>
 #include <zmq.hpp>
 #include <stdexcept>
+#include <glib.h>
+#include <list>
 
 /**
  * @class CVarMgrSubscriptions
@@ -48,15 +50,22 @@ public:
         std::string      s_data;
     } Message, *pMessage;
     
+    typedef enum _FilterType {
+        accept, reject
+    } FilterType;
+    
     // Internal data types:
 private:
    typedef std::set<std::string> Subscriptions;
+   typedef std::list<std::pair<std::string, GPatternSpec*> > Filters;
    
    // Object data:
 private:
     Subscriptions m_subscriptions;
     zmq::context_t* m_pContext;
     zmq::socket_t*  m_pSocket;
+    Filters         m_acceptFilters;
+    Filters         m_rejectFilters;
     
     // Canonicals:
 public:
@@ -74,7 +83,8 @@ public:
 public:
     void subscribe(const char* pathPrefix);
     void unsubscribe(const char* pathPrefix);
-    
+    void addFilter(FilterType ftype, const char* pattern);
+    bool checkFilters(const char* pattern);
     // Waiting for notificatinos:
     
 public:
@@ -108,7 +118,9 @@ public:
 private:
     int translateService(const char* host, const char* serviceName);
     void initialize(const char* host, int port);
+    void addFilter(Filters& filterList, const char* pattern);
     
+    bool checkFilter(Filters& filterList, const char* pattern, bool ifEmpty);
 };
 
 #endif

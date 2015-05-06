@@ -34,6 +34,10 @@ AM_PATH_CPPUNIT
 
 AX_CHECK_OPENSSL([AC_MSG_RESULT([found openssl])],[AC_MSG_ERROR([Open SSL  is required but can't be found])])
 
+# Using glib bits:
+
+PKG_CHECK_MODULES([GLIB], glib-2.0 > 2.16)
+
 
 #
 #   For compatibility with existing AC_Substs:

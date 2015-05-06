@@ -69,6 +69,15 @@ class SubTests : public CppUnit::TestFixture {
   CPPUNIT_TEST(read);
   
   CPPUNIT_TEST(notifier);
+  
+  // Tests for second level filtering:
+  
+  CPPUNIT_TEST(acceptFilter);
+  CPPUNIT_TEST(acceptMultiple);
+  CPPUNIT_TEST(rejectFilter);
+  CPPUNIT_TEST(rejectMultiple);
+  CPPUNIT_TEST(rejectB4Accept);
+  
   CPPUNIT_TEST_SUITE_END();
 protected:
   void constructPortOk();
@@ -96,6 +105,12 @@ protected:
   void read();
   
   void notifier();
+  
+  void acceptFilter();
+  void acceptMultiple();
+  void rejectFilter();
+  void rejectMultiple();
+  void rejectB4Accept();
 private:
     pid_t m_serverPid;
     int m_serverRequestPort;
@@ -454,12 +469,19 @@ void SubTests::read()
 class NotTest : public CVarMgrSubscriptions {
 public:
     CVarMgrSubscriptions::Message m_message;
+    bool notified;
     
-    NotTest(const char* phost, const char* pService) : CVarMgrSubscriptions(phost, pService) {}
-    NotTest(const char* phost, int port) : CVarMgrSubscriptions(phost, port) {}
+    NotTest(const char* phost, const char* pService) : CVarMgrSubscriptions(phost, pService),
+        notified(false) {}
+    NotTest(const char* phost, int port) : CVarMgrSubscriptions(phost, port),
+        notified(false) {}
     virtual ~NotTest() {}
     void notify(CVarMgrSubscriptions::pMessage pm) {
         m_message = *pm;
+        notified  = true;
+    }
+    void reset() {
+        notified = false;
     }
 };
 
@@ -474,4 +496,169 @@ void SubTests::notifier()
     EQ(std::string("MKDIR"), sub.m_message.s_operation);
     EQ(std::string("testing"), sub.m_message.s_data);
     
+}
+// Check that a single accept filter will work (note it has wildcards).
+
+void SubTests::acceptFilter()
+{
+    
+    // Build up the variables we are going to carea bout
+    m_pApi->mkdir("/test");
+    m_pApi->declare("/test/atest", "integer");          // match
+    m_pApi->declare("/test/anothertest", "integer");    // match
+    m_pApi->declare("/test/btest", "integer");          // no match.
+    
+    
+    // Yes I know this is a silly test could have subed to /test/a
+    // but that's not the point.
+    
+    NotTest sub("localhost", m_serverSubPort);
+    sub.subscribe("/test");          // Blanket for stuff in /test.
+    sub.addFilter(CVarMgrSubscriptions::accept, "/test/a*"); // filtered to a* stuff.
+    
+    // This should create a notification:
+    
+    m_pApi->set("/test/atest", "1");
+    sub();
+    ASSERT(sub.notified);
+    
+    sub.reset();
+    
+    // This shouild notify too:
+    
+    m_pApi->set("/test/anothertest", " 123");
+    sub();
+    ASSERT(sub.notified);
+    
+    sub.reset();
+    
+    // This should not notify:
+    m_pApi->set("/test/btest", "666");
+    sub(500);
+    ASSERT(!sub.notified);
+}
+
+// Accept with multiple patterns:
+
+void SubTests::acceptMultiple()
+{
+    
+    // Build up the variables we are going to care about
+    m_pApi->mkdir("/test");
+    m_pApi->declare("/test/atest", "integer");          // match
+    m_pApi->declare("/test/ctest", "integer");          // match
+    
+    m_pApi->declare("/test/btest", "integer");          // no match.
+    
+    // Subscribe and filter.  This set can't be done with subs only:
+    
+    NotTest sub("localhost", m_serverSubPort);
+    sub.subscribe("/test");          // Blanket for stuff in /test.
+    sub.addFilter(CVarMgrSubscriptions::accept, "/test/a*"); // Accept /test/a*
+    sub.addFilter(CVarMgrSubscriptions::accept, "/test/c*"); // and /test/b*
+    
+    // This should create a notification:
+    
+    m_pApi->set("/test/atest", "1");      // First filter.
+    sub();
+    ASSERT(sub.notified);
+    
+    sub.reset();
+    
+    // This shouild notify too:
+    
+    m_pApi->set("/test/ctest", " 123");    // Second filter
+    sub();
+    ASSERT(sub.notified);
+    
+    sub.reset();
+    
+    // This should not notify:
+    
+    m_pApi->set("/test/btest", "666");    // no match.
+    sub();
+    ASSERT(!sub.notified);    
+}
+
+// Reject with single pattern:
+
+void SubTests::rejectFilter()
+{
+    // Build up the variables we are going to carea bout
+    m_pApi->mkdir("/test");
+    m_pApi->declare("/test/atest", "integer");          // match
+    m_pApi->declare("/test/anothertest", "integer");    // match
+    m_pApi->declare("/test/btest", "integer");          // no match.
+    
+    NotTest sub("localhost", m_serverSubPort);
+    sub.subscribe("/test");          // Blanket for stuff in /test.
+    sub.addFilter(CVarMgrSubscriptions::reject, "/test/a*"); // a* rejected.
+    
+    m_pApi->set("/test/btest", "1234");
+    sub();
+    ASSERT(sub.notified);
+    
+    sub.reset();
+    
+    // Won't notify:
+    
+    m_pApi->set("/test/atest", "666");
+    sub();
+    ASSERT(!sub.notified);
+    
+}
+
+// Reject with multiple patterns:
+
+void SubTests::rejectMultiple()
+{
+    m_pApi->mkdir("/test");
+    m_pApi->declare("/test/atest", "integer");          // match
+    m_pApi->declare("/test/anothertest", "integer");    // match
+    m_pApi->declare("/test/ctest", "integer");          // match
+    m_pApi->declare("/test/btest", "integer");          // no match.
+    
+    NotTest sub("localhost", m_serverSubPort);
+    sub.subscribe("/test");          // Blanket for stuff in /test.
+    sub.addFilter(CVarMgrSubscriptions::reject, "/test/a*"); // a* rejected.
+    sub.addFilter(CVarMgrSubscriptions::reject, "/test/c*");
+    
+    m_pApi->set("/test/btest", "1234");
+    sub();
+    ASSERT(sub.notified);
+    sub.reset();
+    
+    m_pApi->set("/test/atest", "666");            // Match/reject.
+    sub();
+    ASSERT(!sub.notified);
+    sub.reset();
+    
+    m_pApi->set("/test/ctest", "777");         // Match reject
+    sub();
+    ASSERT(!sub.notified);
+    sub.reset();
+}
+
+// If there are overlapping accept/rejects the reject wins:
+
+void SubTests::rejectB4Accept()
+{
+    m_pApi->mkdir("/test");
+    m_pApi->declare("/test/atest", "integer");          // reject match
+    m_pApi->declare("/test/ctest", "integer");          // Reject match
+    m_pApi->declare("/test/bTest", "integer");          // accept match.
+    
+    NotTest sub("localhost", m_serverSubPort);
+    sub.subscribe("/test");          // Blanket for stuff in /test.
+    sub.addFilter(CVarMgrSubscriptions::reject, "/test/*test");
+    sub.addFilter(CVarMgrSubscriptions::accept, "/test/*est");
+    
+    m_pApi->set("/test/atest", "1234");
+    sub();
+    ASSERT(!sub.notified);
+    sub.reset();
+    
+    m_pApi->set("/test/bTest", "555");
+    sub();
+    ASSERT(sub.notified);
 }
