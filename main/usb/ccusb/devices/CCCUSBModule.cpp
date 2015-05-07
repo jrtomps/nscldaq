@@ -314,28 +314,14 @@ CCCUSBModule::addReadoutList(CCCUSBReadoutList& list)
 {
 
   if (m_pConfiguration->getBoolParameter("-readscalers")) {
-//    list.addWrite24(25, 6, 16, m_deviceSource & ~(
-//          (CCCUSB::DeviceSourceSelectorsRegister::scalerAEnable
-//           | CCCUSB::DeviceSourceSelectorsRegister::scalerBEnable)
-//           | CCCUSB::DeviceSourceSelectorsRegister::scalerAFreeze
-//           | CCCUSB::DeviceSourceSelectorsRegister::scalerBFreeze
-//          ));
-   
-    // Read the scalers:
 
+    // Read the scalers:
     list.addRead24(25, 11, 0);	// scalerA
     list.addRead24(25, 12, 0);	// scalerB
 
     if (m_pConfiguration->getBoolParameter("-incremental")) {
-
-      list.addWrite24(25, 6, 16, m_deviceSource 
-		      | CCCUSB::DeviceSourceSelectorsRegister::scalerAReset
-          | CCCUSB::DeviceSourceSelectorsRegister::scalerAFreeze
-		      | CCCUSB::DeviceSourceSelectorsRegister::scalerBReset
-          | CCCUSB::DeviceSourceSelectorsRegister::scalerBFreeze );
+      list.addControl(25, 11, 15); // clear both scalerA and scalerB
     }
-//    list.addWrite24(25, 6, 16, m_deviceSource);
-
 
   }
 
