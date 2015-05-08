@@ -5,4 +5,4 @@ EXTRA_DIST	=	CCreator.h		\
 
 install-exec-local:
 	install -d -m 0755 $(prefix)/include
-	install -m 0744 *.h $(prefix)/include
+	install -m 0744 @srcdir@/*.h $(prefix)/include

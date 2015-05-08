@@ -403,6 +403,7 @@ AC_CONFIG_FILES([Makefile
 		 utilities/varmanager/vardbsh.tcl
 		 utilities/varmanager/server/Makefile
 		 utilities/varmanager/scripts/Makefile
+		 utilities/varmanager/scripts/addrdo
                  epics/chanlog/Makefile
                  epics/controlpush/Makefile
                  epics/epicsdisplay/Makefile

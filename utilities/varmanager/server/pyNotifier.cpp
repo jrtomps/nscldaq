@@ -26,6 +26,7 @@
 #include <string>
 #include <stdexcept>
 #include <Exception.h>
+#include <structmember.h>
 
 /*----------------------------------------------------------------------------
  * Definitions the methods need to be able to see.
@@ -38,6 +39,8 @@ PyObject* exception;
 typedef struct {
     PyObject_HEAD
     CVarMgrSubscriptions* m_pSubscriptions;
+    CVarMgrSubscriptions::FilterType m_accept;
+    CVarMgrSubscriptions::FilterType m_reject;
 } NotifierObject;
 
 /*----------------------------------------------------------------------------
@@ -205,6 +208,8 @@ Notifier_init(PyObject* self, PyObject* args, PyObject* kwargs)
         std::pair<std::string, int> connectionInfo = processUri(uri);
         pObject->m_pSubscriptions =
             new CVarMgrSubscriptions(connectionInfo.first.c_str(), connectionInfo.second);
+        pObject->m_accept = CVarMgrSubscriptions::accept;
+        pObject->m_reject = CVarMgrSubscriptions::reject;
         
     }
     catch (std::exception& e) {
@@ -213,6 +218,7 @@ Notifier_init(PyObject* self, PyObject* args, PyObject* kwargs)
     }
     return 0;
 }
+
 
 /**
 * Notifier_subscribe
@@ -400,6 +406,83 @@ Notifier_read(PyObject* self, PyObject* args)
     return result;
     
 }
+/**
+ * Notifier_filter
+ *     Checks a pattern against the currently established set of filters.
+ *     
+ *
+ * @param self - Pointer to the object whose method this is.
+ * @param args - Pointer to the python argument list (tuple).
+ * @return PyObject* - boolean True if the filters pass  else False
+ */
+ static PyObject*
+ Notifier_filter(PyObject* self, PyObject* args)
+ {
+    const char* pattern;
+    
+    if (!PyArg_ParseTuple(args, "s", &pattern)) {
+        return NULL;
+    }
+    
+    bool result;
+    CVarMgrSubscriptions* pSub = getSubscriptions(self);
+    try {
+        result = pSub->checkFilters(pattern);
+    } catch (std::exception& e) {
+        PyErr_SetString(exception, e.what());
+        return NULL;
+    }
+    PyObject* pResult = PyBool_FromLong(result ? 1 : 0);
+    Py_INCREF(pResult);
+    return pResult;
+ }
+
+/**
+* Notifier_addFilter
+*     Adds a filter pattern.
+*
+* @param self - Pointer to the object whose method this is.
+* @param args - Pointer to the python argument list (tuple).
+*              The tuple will have a filter type and a filter pattner.
+* @return PyObject* - None.
+*/
+static PyObject*
+Notifier_addFilter(PyObject* self, PyObject* args)
+{
+    CVarMgrSubscriptions::FilterType filterType;
+    const char*                      filterPattern;
+    
+    // pull the parameters from the ntuple
+    
+    if(!PyArg_ParseTuple(args, "is", &filterType, &filterPattern)) {
+        return NULL;
+    }
+    
+    // Validate the filter type.
+    
+    if (filterType != CVarMgrSubscriptions::accept && filterType !=
+        CVarMgrSubscriptions::reject
+    ) {
+        PyErr_SetString(exception, "Invalid filter type");
+        return NULL;
+        
+    }
+    
+    
+    // Add the filter in a try/catch block.
+    
+    try {
+        CVarMgrSubscriptions* pSub = getSubscriptions(self);
+        pSub->addFilter(filterType, filterPattern);
+    }
+    catch (std::exception& what) {
+        PyErr_SetString(exception, what.what());
+        return NULL;
+    }
+    
+    Py_INCREF(Py_None);
+    return Py_None;
+}
 
 // Module level dispatch table...there are no module level methods.
 
@@ -415,9 +498,18 @@ static PyMethodDef NotifierObjectMethods []   = {
     {"waitmsg",     Notifier_waitmsg,     METH_VARARGS, "Wait for a message"},
     {"readable",    Notifier_readable,    METH_VARARGS, "Is there a message now?"},
     {"read",        Notifier_read,        METH_VARARGS, "Read next notification message"},
+    {"filter",      Notifier_filter,      METH_VARARGS, "Check filter against pattern"},
+    {"addFilter",   Notifier_addFilter,   METH_VARARGS, "Add a filter pattern"},
     {NULL, NULL, 0, NULL}  
 };
 
+// We're using this to hold the values for the CVarMgrSubscriptions::FilterType enum:
+
+static PyMemberDef NotifierAttributes[] = {
+    {"Accept", T_INT, offsetof(NotifierObject, m_accept), READONLY, "Acceptance filter"},
+    {"Reject", T_INT, offsetof(NotifierObject, m_reject), READONLY, "Rejection filter"}, 
+    {NULL, 0, 0, 0, 0}
+};
 // Storage for the object -- needs to contain a CVarMgrSubscriptions pointer.
 
 
@@ -453,7 +545,7 @@ static PyTypeObject NotifierType = {
     0,		               /* tp_iter */
     0,		               /* tp_iternext */
     NotifierObjectMethods,     /* tp_methods */
-    0,                         /* tp_members */
+    NotifierAttributes,        /* tp_members */
     0,                         /* tp_getset */
     0,                         /* tp_base */
     0,                         /* tp_dict */

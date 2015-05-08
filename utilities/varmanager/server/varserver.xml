@@ -1126,6 +1126,8 @@ varmgr::subscribe <replaceable>uri command</replaceable>
 <replaceable>command</replaceable> read
 <replaceable>command</replaceable> notify <replaceable>script</replaceable>
 <replaceable>command</replaceable> destroy
+<replaceable>command</replaceable> filter <replaceable>type string</replaceable>
+<replaceable>command</replaceable> filtercheck <replaceable>string</replaceable>
 
           </programlisting>
         </refsynopsisdiv>
@@ -1294,7 +1296,75 @@ varmgr::subscribe
                     </listitem>
               
                     
-                </varlistentry>               
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <replaceable>command</replaceable> filter <replaceable>type string</replaceable>
+                    </term>
+                    <listitem>
+                        <para>
+                            Adds a filter to the subscription.  subscriptions are limited
+                            in that they can only specify a path prefix as the matching
+                            criterion.  Filters are entities that can be checked in
+                            software after the subscription matching is peformed
+                            (see <command>filtercheck</command> below). Filters
+                            provide a string that is an arbitrary glob pattern.
+                        </para>
+                        <para>
+                            This subcommand adds a new filter.  The <parameter>type</parameter>
+                            parameter can be either <literal>accept</literal>
+                            or <literal>reject</literal>.  The
+                            <parameter>string</parameter> parameter provides the
+                            filter string.
+                        </para>
+                        <para>
+                            <literal>accept</literal> filters describe patterns that
+                            should be passed to the application.
+                            <literal>rejecdt</literal> filters describe patterns
+                            that should not be passed to the application.
+                            See <command>filtercheck</command> for more
+                            information about how accept and reject filters
+                            interact.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <replaceable>command</replaceable> filtercheck <replaceable>string</replaceable>                        
+                    </term>
+                    <listitem>
+                        <para>
+                            Checks a
+                            <parameter>string</parameter>
+                            against the filters that have been established
+                            on the subscription object.  The result is
+                            true (<literal>1</literal>) if the string
+                            passes
+                            the filters and false (<literal>0</literal>)
+                            if not.
+                        </para>
+                        <para>
+                            Filter checking is as folllows: If there are no reject
+                            filters then no rejection filtering is done.  If
+                            there are rejection filters than if there is a
+                            match between <parameter>string</parameter> and those
+                            filters, the command returns false.  After
+                            the rejection filtering, if there are no
+                            acceptance filters, the commmand returns true.
+                            If there are acceptance filters then the command
+                            will return true only if at least one of those
+                            patterns matches the string.
+                        </para>
+                        <para>
+                            Note that given how event loop script dispatching
+                            works, it is up to the user's script to do any filter
+                            checking desired.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                
+
+
             </variablelist>
         </refsect1>
 
@@ -2531,7 +2601,9 @@ class <ooclass><classname>CVarMgrApiFactory</classname></ooclass>
 </refentry>
 
 <!-- /manpage  -->
+
 <!-- manpage 3python -->
+
 <refentry id="python3_varmgr">
   <refentryinfo>
     <author>
@@ -2545,11 +2617,11 @@ class <ooclass><classname>CVarMgrApiFactory</classname></ooclass>
   </refentryinfo>
   <refmeta>
      <refentrytitle id='python3_varmgr_title'>nscldaq.vardb.varmgr</refentrytitle>
-     <manvolnum>3</manvolnum>
+     <manvolnum>3python</manvolnum>
          <refmiscinfo class='empty'></refmiscinfo>
   </refmeta>
   <refnamediv>
-     <refname>nscldaq.vardb.varmgr.Api</refname>
+     <refname>nscldaq.vardb.varmgr</refname>
      <refpurpose>Python bindings to variable manager API.</refpurpose>
   </refnamediv>
   
@@ -3080,6 +3152,8 @@ if sub.readable():
     # Message is avaiable.
 
 msg = sub.read()
+sub.addFilter(type, pattern)
+sub.filter(string)
 
           </programlisting>
 
@@ -3213,6 +3287,68 @@ tcp://<replaceable>hostname</replaceable><optional>:portnum</optional><optional>
                     </itemizedlist>
                 </listitem>
             </varlistentry>
+            <varlistentry>
+                <term>
+                    <methodname>addFilter(type, pattern)</methodname>
+                </term>
+                <listitem>
+                    <para>
+                        Adds a new filter string to the subscription.  Filter
+                        strings are a mechanism that allows a finer grained
+                        selectivity than subscriptions allow. In ZMQ, a subscription
+                        is made on only the prefix of the message (path prefix).
+                        Filters provide a mechanism to do software post filtering
+                        of the message based on arbitrary glob patterns.
+                    </para>
+                    <para>
+                        The first parameter is the filter type.  This can be
+                        eitehr the Accept or Reject attribute of the subscription
+                        object (e.g. sub.Accept).   <parameter>pattern</parameter>
+                        is a string that contains the glob pattern on which to
+                        filter.  See the <methodname>filter</methodname> method
+                        below for more information about how filtering is actually
+                        done.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <methodname>filter(string)</methodname>
+                </term>
+                <listitem>
+                    <para>
+                        Checks <parameter>string</parameter> against the
+                        currently defined filters.  Note that in the Python
+                        bindings software filtering must be explicitly
+                        performed by the application and is, therefore,
+                        voluntary.  If the <parameter>string</parameter>
+                        passes the filters that have been established,
+                        the method returns <literal>True</literal> if not
+                        <literal>False</literal> is returned.
+                    </para>
+                    <para>
+                        Filter checking is as folllows: If there are no reject
+                        filters then no rejection filtering is done.  If
+                        there are rejection filters than if there is a
+                        match between <parameter>string</parameter> and those
+                        filters, the command returns false.  After
+                        the rejection filtering, if there are no
+                        acceptance filters, the commmand returns true.
+                        If there are acceptance filters then the command
+                        will return true only if at least one of those
+                        patterns matches the string.
+                    </para>
+                    <para>
+                        Note that given how event loop script dispatching
+                        works, it is up to the user's script to do any filter
+                        checking desired.
+                    </para>
+                </listitem>
+            </varlistentry>
+            
+
+
+
            </variablelist>
         </refsect1>
 
@@ -3221,6 +3357,7 @@ tcp://<replaceable>hostname</replaceable><optional>:portnum</optional><optional>
 
 
 <!-- /manpage -->
+
 <!-- manpage 3daq -->
 
 <refentry id="daq3_cvarmgrsubscriptions">
@@ -3255,7 +3392,10 @@ public:
         std::string      s_operation;
         std::string      s_data;
     } Message, *pMessage;
-
+    
+    typedef enum _FilterType {
+        accept, reject
+    } FilterType;
     <constructorsynopsis>
        <methodname>CVarMgrSubscriptions</methodname>
        <methodparam>
@@ -3319,6 +3459,33 @@ public:
         </methodparam>
         
         <modifier></modifier>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void</type>
+        <methodname>addFilter</methodname>
+        <methodparam>
+            <modifier></modifier><type>CVarMgrSubscriptions::FilterType</type>
+                <parameter>fType</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier>const</modifier><type>char*</type>
+                <parameter>pattern</parameter>
+        </methodparam>
+        
+        <modifier></modifier>
+
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>bool</type>
+        <methodname>checkFilters</methodname>
+        <methodparam>
+            <modifier>const</modifier><type>char*</type>
+                <parameter>string</parameter>
+        </methodparam>
+        
+        <modifier></modifier>
     </methodsynopsis>  
     <methodsynopsis>
         <modifier></modifier>
@@ -3367,7 +3534,8 @@ public:
                 <parameter>message</parameter>
         </methodparam>
         <modifier></modifier>
-    </methodsynopsis>  
+    </methodsynopsis>
+    
 
     <ooclass><classname>class CException : public std::runtime_error</classname></ooclass>
     {
@@ -3413,6 +3581,16 @@ public:
         <classname>CVarMgrSubscriptions::CException</classname> objects.
         For more information about this nested class see
         <literal>PUBLIC VARIABLES, TYPES and CONSTANTS</literal> below.
+     </para>
+     <para>
+        The subscriptions that ZMQ supports are limited to prefix strings
+        (path prefixes).  In order to provide finer grained control over the
+        messages that are processed, a concept of filtering is also implemented.
+        Filtering allows message acceptance or rejection based on matching
+        the path against arbitrary glob pattern strings.
+        See the discussion of the <methodname>addFilter</methodname> and
+        <methodname>checkFilters</methodname> method for
+        more on filtering.  
      </para>
   </refsect1>
   <refsect1>
@@ -3600,6 +3778,79 @@ public:
             <term>
                 <methodsynopsis>
                     <modifier></modifier>
+                    <type>void</type>
+                    <methodname>addFilter</methodname>
+                    <methodparam>
+                        <modifier></modifier><type>CVarMgrSubscriptions::FilterType</type>
+                            <parameter>fType</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier>const</modifier><type>char*</type>
+                            <parameter>pattern</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Adds a filter to one of the filter lists.
+                    <parameter>fType</parameter> determines which of the
+                    filter lists the <parameter>pattern</parameter>
+                    is added to.  If <literal>reject</literal> filters
+                    are added to the rejection list, if <literal>accept</literal>
+                    the filter <parameter>pattern</parameter> is added to the
+                    acceptance list.
+                </para>
+                <para>
+                    See <methodname>checkFilters</methodname> for information about
+                    how the filters are appllied.  See
+                    <literal>PUBLIC VARIABLES, TYPES and CONSTANTS</literal>
+                    for the <type>CVarMgrSubscriptions::FilterType</type>
+                    enum definition.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>bool</type>
+                    <methodname>checkFilters</methodname>
+                    <methodparam>
+                        <modifier>const</modifier><type>char*</type>
+                            <parameter>string</parameter>
+                    </methodparam>
+                    
+                    <modifier></modifier>
+                </methodsynopsis>  
+         
+            </term>
+            <listitem>
+                <para>
+                    The <methodname>checkFilters</methodname> applies the
+                    current set of filters to <parameter>string</parameter>
+                    and returns <literal>true</literal> if the string
+                    passes the filters.  If not, <literal>false</literal>
+                    is returned.
+                </para>
+                <para>
+                   Filters are checked as follows.  First the rejection
+                   filter list is checked.  If there are any rejection filter
+                   strings, and any of the match the <parameter>string</parameter>
+                   parameter, the method returns <literal>false</literal>./
+                   If either there were no reject filters or no matching reject
+                   filters, the accept filters are checked.  If there are no
+                   accept filters, <literal>true</literal> is returned.
+                   If there are accept filters the <literal>true</literal> is
+                   returned if there are any patterns that match
+                   <parameter>string</parameter>, and <parameter>false</parameter>
+                   if not.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
                     <type>bool </type>
                     <methodname>waitmsg</methodname>
                     <methodparam>
@@ -3653,7 +3904,9 @@ public:
                     <programlisting>
 if (waitmsg(milliseconds)) {
     Message msg = read();
-    notify(&amp;msg);
+    if (checkFilters(msg.s_path.c_str())) {
+        notify(&amp;msg);
+    }
 }
                     </programlisting>
                 </informalexample>
@@ -3740,13 +3993,23 @@ if (waitmsg(milliseconds)) {
       <title>PUBLIC VARIABLES, TYPES and CONSTANTS</title>
       <para>
         The <classname>CVarMgrSubscriptions</classname> class includes
-        a nested class and a structure that are publicly visible.
+        a nested class, an enumerated type and a structure that are publicly visible.
       </para>
       <para>
         The
         <classname>CVarMgrSubscriptions::CException</classname> is thrown
         as an exception when errors are detected.  It is derived from the
         <classname>std::runtime_error</classname> exception class.
+      </para>
+      <para>
+        The <classname>CVarMgrSubscriptions::FilterType</classname> is
+        an enum with the values <literal>accept</literal> and
+        <literal>reject</literal>.  These are used to specify which
+        filter list is operated on by the <methodname>addFilter</methodname>
+        method.  <literal>accept</literal> indicates a filter type whose
+        patterns determine which paths are accepted while
+        <literal>reject</literal> indicates a filter whose pattern determines
+        which paths are rejected.
       </para>
       <para>
         The <classname>CVarMgrSubscriptions::Message</classname> type is

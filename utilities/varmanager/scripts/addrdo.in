@@ -1,0 +1,170 @@
+#! @PYTHON@
+
+
+
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2013.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Author:
+#            Ron Fox
+#            NSCL
+#            Michigan State University
+#            East Lansing, MI 48824-1321
+
+##
+# @file   addrdo (.in)
+# @brief  Script that adds a readout directory to the run state manager.
+# @author <fox@nscl.msu.edu>
+
+
+
+import nscldaq.vardb.varmgr
+import argparse
+import sys
+import os
+import os.path
+import socket
+
+
+
+##
+# parseArgs
+#  Parses the command line parametrs returning the resulting namespace etc.
+#
+def parseArgs():
+    parser = argparse.ArgumentParser(description='Add a Readout directory to run control')
+    parser.add_argument('uri', type=str, nargs=1, help='URI to connect with the variable database')
+    
+    # --enable/--disable default enabled:
+    
+    parser.add_argument('--enable', dest='enable', action='store_true')
+    parser.add_argument('--disable', dest='enable', action='store_false')
+    parser.set_defaults(enable=True)
+    
+    # Required switches:
+    
+    parser.add_argument('--path', type=str, required=True)
+    parser.add_argument('--host', type=str, required=True)
+    parser.add_argument('--name', type=str, required=True)
+    
+    #  Optional switches:
+    
+    parser.add_argument('--oring', type=str)
+    parser.add_argument('--iring', type=str)
+    
+    return  parser.parse_args()
+    
+# goodPath
+#   Determines if a path exists and is executable
+#
+# @param path - Path to check.
+# @return bool - true if the path is good.
+def goodPath(path):
+    return os.access(path, os.X_OK)
+
+# haveRunState
+#   Is there a /RunState directory?
+# @param db - database api object.
+# @return bool true - yes, false no.
+#
+def haveRunState(db):
+    dirs = db.ls('/')
+    
+    return 'RunState' in dirs
+    
+
+# createDir
+#   Create the directory in which the readout will be defined.
+#   If  /RunState's ReadoutParentDir's var is nonempty, it will be the
+#   absolute path to the directory that will parent the dir.
+#   otherwise the parent will be /RunState itself.
+#
+# @param db - Database api object.
+# @param name - name of the subdirectory to create.
+#
+def createDir(db, name):
+    parent = db.get('/RunState/ReadoutParentDir')
+    if parent == '':
+        parent = '/RunState'
+        
+    dir = os.path.join(parent, name)
+    try:
+        db.mkdir(dir)
+    except nscldaq.vardb.varmgr.error as err:
+        sys.stderr.write('ERROR - Could ot create program directory: %s\n' % err)
+        exit(-1)
+    return dir
+
+# createContents
+#
+#   Fill in the current directory with the required variables:
+#   variables are created and initialized.
+#
+# @param db - database api object that is cd'd to the directory to fill in.
+# @param args - Parsed parametern namespace.
+# @note First error encountered is reported and the program exits.
+
+def createContents(db, args):
+    try:
+        db.declare('State', 'RunStateMachine')
+        db.declare('path', 'string', os.path.abspath(args.path))
+        db.declare('outring', 'string', args.oring)
+        db.declare('inring', 'string', args.iring)
+        
+        # The items that may require computing:
+        
+        host = args.host
+        if host == '':
+            host = socket.gethostname()
+        db.declare('host', 'string', host)
+        
+        
+        if args.enable:
+            enable = 'true'
+        else:
+            enable = 'false'
+            
+        db.declare('enable', 'boolean', enable)
+        
+        
+        # Warn about empty --iring, --oring
+        
+        if args.iring == '':
+            sys.stderr.write('WARNING --iring was not set')
+            sys.stderr.write('WARNING --oring was not set')
+        
+    except nscldaq.vardb.varmgr.error as e:
+        sys.stderr.write('ERROR - creating run contents for %s : %s' % (args.name, e))
+    
+#
+#
+# Main entry point.
+
+if __name__ == '__main__':    
+    args = parseArgs()
+    
+    # Ensure the path is reasonable:
+    
+    if (not goodPath(args.path)):
+        sys.stderr.write("WARNING - The --path parameter '%s' does not exist or is not executable.\n" % args.path)
+    
+    path = os.path.abspath(args.path)
+    #  Create the API object:
+    
+    db = nscldaq.vardb.varmgr.Api(args.uri[0])
+    
+    # Require that /RunState exists:
+    
+    if (not haveRunState(db)):
+        sys.stderr.write('ERROR - the database %s does not have a /RunState directory' % args.uri[0])
+        sys.exit(-1)
+        
+    dirPath = createDir(db, args.name)
+    db.cd(dirPath)
+    createContents(db, args)
+    

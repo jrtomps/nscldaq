@@ -222,7 +222,7 @@ CVarMgrVarCommand::ls(
         pPath = path.c_str();
     }
     
-    std::vector<CVarMgrApi::VarInfo> info = pApi->lsvar(path.c_str());
+    std::vector<CVarMgrApi::VarInfo> info = pApi->lsvar(pPath);
     CTCLObject result; result.Bind(interp);
     for(int i =0; i < info.size(); i ++) {
         CTCLObject item; item.Bind(interp);

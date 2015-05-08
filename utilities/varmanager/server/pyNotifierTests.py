@@ -148,6 +148,24 @@ class NotifierTest(testBase.TestBase):
             {'path': '/test', 'op': 'MKDIR', 'data': 'dir'},
             n.read()
         )
+    #  Tests for filter/addfilter method:
+    
+    def test_filterempty(self):
+        n = nscldaq.vardb.notifier.Notifier('tcp://localhost')
+        
+        self.assertTrue(n.filter("test"))
+    
+    def test_addFilterAccept(self):
+        n = nscldaq.vardb.notifier.Notifier('tcp://localhost')
+        n.addFilter(n.Accept, '/test/t*')
+        self.assertTrue(n.filter("/test/testing"))
+        self.assertFalse(n.filter("/test/nomathc"))
+    
+    def test_addFilterReject(self):
+        n = nscldaq.vardb.notifier.Notifier('tcp://localhost')
+        n.addFilter(n.Reject, '/test/t*')
+        self.assertFalse(n.filter("/test/testing"))
+        self.assertTrue(n.filter("/test/nomathc"))
     
     
 if __name__ == '__main__':
