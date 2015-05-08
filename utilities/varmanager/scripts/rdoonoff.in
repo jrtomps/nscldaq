@@ -1,0 +1,76 @@
+#! @PYTHON@
+
+
+
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2013.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Author:
+#            Ron Fox
+#            NSCL
+#            Michigan State University
+#            East Lansing, MI 48824-1321
+
+##
+# @file   rdoonoff
+# @brief  Turns a specific readout program on or off.
+# @author <fox@nscl.msu.edu>
+
+
+import os 
+import sys
+import argparse
+import nscldaq.vardb.varmgr
+
+
+##
+#  Parse parameters
+#     Parse command line parameters.
+#
+# @return dict with the following keys:
+#        - uri - URI of the database connetion.
+#        - name - Name of the program.
+#        - state - Either 'true' or 'false' - new desired variable state.
+#
+def parseParameters():
+    parser = argparse.ArgumentParser(description = 'Enable or disable a readout program')
+    parser.add_argument('uri', type=str, nargs=1, help='URI Specifying the variable database')
+    parser.add_argument('name', type=str, nargs=1, help='Name of program to modify')
+    parser.add_argument('state', type=str, nargs=1, help='enable | disable - new program state')
+    
+    args = parser.parse_args()
+    result = {'uri' : args.uri[0], 'name' : args.name[0]}
+    if args.state[0] == 'enable':
+        result['state'] = 'true'
+    elif args.state[0] == 'disable':
+        result['state'] = 'false'
+    else:
+        sys.stderr.write('Invalid value for the state parameter: %s ' % args.state)
+        exit(-1)
+        
+    return result
+    
+# programDir
+#   Change directory to the named program's state directory.
+# @param db - The API to cd.
+# @param name - Name of the program.
+#
+def programDir(db, name):
+    parentDir = db.get('/RunState/ReadoutParentDir')
+    if parentDir == '':
+        parentDir = '/RunState'
+    
+    return os.path.join(parentDir, name)
+    
+    
+if __name__ == '__main__':
+    args = parseParameters()
+    db = nscldaq.vardb.varmgr.Api(args['uri'])
+    db.cd(programDir(db, args['name']))
+    db.set('enable', args['state'])
+    

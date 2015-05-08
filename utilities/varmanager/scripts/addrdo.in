@@ -96,7 +96,7 @@ def createDir(db, name):
     try:
         db.mkdir(dir)
     except nscldaq.vardb.varmgr.error as err:
-        sys.stderr.write('ERROR - Could ot create program directory: %s\n' % err)
+        sys.stderr.write('ERROR - Could not create program directory: %s\n' % err)
         exit(-1)
     return dir
 
@@ -110,13 +110,27 @@ def createDir(db, name):
 # @note First error encountered is reported and the program exits.
 
 def createContents(db, args):
+    print(args)
     try:
         db.declare('State', 'RunStateMachine')
         db.declare('path', 'string', os.path.abspath(args.path))
-        db.declare('outring', 'string', args.oring)
-        db.declare('inring', 'string', args.iring)
+    
         
         # The items that may require computing:
+        
+        if args.oring == None:
+            oring = ''
+        else:
+            oring = args.oring
+            
+        db.declare('outring', 'string', oring)
+        
+        if args.iring == None:
+            iring = ''
+        else:
+            iring = args.iring
+            
+        db.declare('inring', 'string', iring)
         
         host = args.host
         if host == '':
@@ -139,7 +153,7 @@ def createContents(db, args):
             sys.stderr.write('WARNING --oring was not set')
         
     except nscldaq.vardb.varmgr.error as e:
-        sys.stderr.write('ERROR - creating run contents for %s : %s' % (args.name, e))
+        sys.stderr.write('ERROR - creating run contents for %s : %s \n' % (args.name, e))
     
 #
 #
