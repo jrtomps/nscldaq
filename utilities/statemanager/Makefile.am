@@ -27,7 +27,7 @@ install-exec-local:
 
 
 EXTRA_DIST=$(PACKAGE_FILES) $(MAINS) $(FIGURES) \
-	MonitorTest.py CommandTest.py StateMonitorTest1.py tcltest1.tcl statemanager.xml
+	MonitorTest.py CommandTest.py StateMonitorTest1.py tcltest1.tcl
 
 
 ## 

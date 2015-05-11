@@ -10,5 +10,5 @@ install-exec-hook:
 
 
 
-EXTRA_DIST=MakeRunControl.tcl $(PYPROGRAMS) varmgrcommon.py
+EXTRA_DIST=MakeRunControl.tcl $(PYPROGRAMS) varmgrcommon.py rdotools.xml
 

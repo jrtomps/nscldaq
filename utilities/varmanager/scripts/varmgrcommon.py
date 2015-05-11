@@ -45,7 +45,7 @@ def programParent(db):
 # @param name - Name of the program.
 #
 def programDir(db, name):
-    parentDir = programParent()
+    parentDir = programParent(db)
     return os.path.join(parentDir, name)
     
 # goodPath

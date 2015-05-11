@@ -1,0 +1,72 @@
+#!/usr/bin/env python
+
+
+
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2013.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Author:
+#            Ron Fox
+#            NSCL
+#            Michigan State University
+#            East Lansing, MI 48824-1321
+
+##
+# @file   resetrdo.in
+# @brief  Reset a readout state machine.
+# @author <fox@nscl.msu.edu>
+
+import argparse
+import nscldaq.vardb.varmgr as varmgr
+import nscldaq.vardb.varmgrcommon as common
+
+
+#
+#  Resets the readout state machine for a specific readout. Note that if the
+#  readout is enabled and part of the system, and the state manager is running,
+#  this should result in the shutdown of the system, if it is running.
+#  This is because the state manager will see the state machine go first to
+#  NotReady and then to 0Initial which will cause it to signal the entire system
+#  to go to NotReady and then eventually to 0Initial.
+#
+
+#  Usage:
+#   resetrdo uri rdoname
+#
+
+#
+# parseargs
+#
+#   Set up an argument parser and return the results of it applied to the
+#   args.
+#
+# @return namespace - the results of parse_args.
+#
+def parseargs() :
+    parser = argparse.ArgumentParser(description='Reset a readout statemachine')
+    parser.add_argument(
+        'uri', nargs=1, type=str, help='URI for database connection'
+    )
+    parser.add_argument(
+        'name', nargs=1, type=str, help='Name of readout to reset'
+    )
+    return parser.parse_args()
+
+if __name__ == '__main__' :
+    args = parseargs()
+    db = varmgr.Api(args.uri[0])
+    name = args.name[0]
+    
+    dir = common.programDir(db, name)
+    db.cd(dir)
+    db.set('State', 'NotReady')
+    db.set('State', '0Initial')
+
+
+
+
