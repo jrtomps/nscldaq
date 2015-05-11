@@ -52,7 +52,6 @@ def parseArgs():
 
 if __name__ == '__main__':
     args = parseArgs()
-    print(args)
     db = varmgr.Api(args.uri[0])
     
     # Figure out readout parent dir:
