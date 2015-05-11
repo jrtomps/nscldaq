@@ -1,0 +1,136 @@
+#!/usr/bin/env python
+
+
+
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2013.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Author:
+#            Ron Fox
+#            NSCL
+#            Michigan State University
+#            East Lansing, MI 48824-1321
+
+##
+# @file   rmrdo.in
+# @brief  Remove a readout program (really get rid of it).
+# @author <fox@nscl.msu.edu>
+
+import argparse
+import nscldaq.vardb.varmgr as varmgr
+import nscldaq.vardb.varmgrcommon as common
+import sys
+
+
+# Note usually it's better to just disable a readout program  unless the name
+# needs to be used for something else.
+#
+# In addition to the DB URI and program name; the following flags are accepted:
+#
+#  *  -c, --confirm - List the contents of the dir and request confirmation prior to
+#                  deleting it.
+#  * --parent  - Override the parent directory from that specified in /RunControl
+#
+##
+# @note If there are additional variables and subdirectories, they get destroyed.
+#       this is a full sub-tree deletion.
+
+
+
+##
+# parseArgs
+#
+#  Process the program parameters into a namesapce as defined  by the
+#  comments above.
+#
+# @return namespace - containing the parsed parameters.
+#
+def parseArgs():
+    parser = argparse.ArgumentParser(description = 'Delete a readout program.')
+    parser.add_argument('uri', type=str, nargs=1, help='URI Specifying the variable database')
+    parser.add_argument('name', type=str, nargs=1, help='Name of the program to delete')
+    parser.add_argument('--parent', type=str, default=None, help='Explicitly specify parent directory')
+    parser.add_argument('--confirm', '-c',  action='store_const', const=True,  default=False)
+    parser.add_argument('--no-confirm',  action='store_const', const=False, dest='confirm')
+    
+    return parser.parse_args()
+
+##
+# confirm
+#   Ask if the user really does want to delete the databse.
+#
+# @return bool - True if confirmed.
+#
+def confirm():
+    answer = raw_input('Delete (y/N) ? ')
+    a = answer[0]
+    if a == 'y' or a == 'Y':
+        return True
+    elif a == 'n' or a == 'N':
+        return False
+    else:
+        sys.stderr.write('Invalid confirmation response: %s\n' % answer)
+        exit(-1)
+
+
+
+##
+# deleteProgram
+#   Deletes the contents of a directory recursively.
+#
+# @param db -- datbase api.
+# @param name - Name of the directory to recursively delete.
+#
+def deleteProgram(db, name):
+    wd = db.getwd()
+    
+    # Recurse to delete subdirectory contents:
+    
+    db.cd(name)
+    subdirs = db.ls()
+    if subdirs:
+        for subdir in subdirs:
+            deleteProgram(db, subdir)
+            
+    # Delete variables, and the directory we are in:
+    
+    for var in db.lsvar():
+       db.rmvar(var['name']) 
+    
+    db.cd(wd)
+    db.rmdir(name)
+
+if __name__ == '__main__':
+    args = parseArgs()
+    db = varmgr.Api(args.uri[0])
+    
+    # Figure out the parent dir and cd to it.
+    
+    if args.parent is None:
+        parent = common.programParent(db)
+    else:
+        parent = args.parent
+        
+    db.cd(parent)
+    
+    # The name must exist:
+    
+    name = args.name[0]
+    if name not in db.ls():
+        sys.stderr.write("No such program: %s" % args.name)
+        exit(-1)
+    
+    # List the contents and confirm deletion:
+    
+    if args.confirm:
+        common.listProgramContents(db, name)
+        if not confirm():
+            exit(0)
+            
+    deleteProgram(db, name)
+    

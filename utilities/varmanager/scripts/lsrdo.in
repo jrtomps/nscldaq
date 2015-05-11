@@ -71,14 +71,6 @@ if __name__ == '__main__':
         sys.stdout.write(dir)
         if args.long:
             sys.stdout.write(":\n")
-            vars = db.lsvar(dir)
-            sys.stdout.write(
-                "   %-10s %-15s %-10s\n" % ('Variable', 'Type', 'Value')
-            )
-            sys.stdout.write('-------------------------------------------------\n')
-            for v in vars:
-                sys.stdout.write(
-                    "   %-10s %-15s %-10s\n" %(v['name'], v['type'], v['value'])
-                )
+            common.listProgramContents(db, dir)
         sys.stdout.write("\n")
     

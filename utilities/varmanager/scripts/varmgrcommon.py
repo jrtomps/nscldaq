@@ -24,6 +24,7 @@
 import os
 import os.path
 import nscldaq.vardb.varmgr
+import sys
 
 # programParent
 #   Return the parent directory of the run control programs:
@@ -64,3 +65,21 @@ def haveRunState(db):
     dirs = db.ls('/')
     
     return 'RunState' in dirs
+
+##
+# listProgramContents
+#   Lists the program contents to stdout:
+#
+# @param db - Database api.
+# @param dir - Name of program (assumed absolute or relative to cwd):
+#
+def listProgramContents(db, dir):
+        vars = db.lsvar(dir)
+        sys.stdout.write(
+            "   %-10s %-15s %-10s\n" % ('Variable', 'Type', 'Value')
+        )
+        sys.stdout.write('-------------------------------------------------\n')
+        for v in vars:
+            sys.stdout.write(
+                "   %-10s %-15s %-10s\n" %(v['name'], v['type'], v['value'])
+            )
