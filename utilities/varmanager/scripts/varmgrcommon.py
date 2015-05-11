@@ -24,7 +24,6 @@
 import os
 import os.path
 import nscldaq.vardb.varmgr
-import sys
 
 # programParent
 #   Return the parent directory of the run control programs:

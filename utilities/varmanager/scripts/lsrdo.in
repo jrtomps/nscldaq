@@ -61,7 +61,12 @@ if __name__ == '__main__':
     else:
         parent = common.programParent(db)
     db.cd(parent)
-    subdirs = db.ls()
+    
+    if args.name is None:
+        subdirs = db.ls()
+    else:
+        subdirs = (args.name, )
+    
     for dir in subdirs:
         sys.stdout.write(dir)
         if args.long:
