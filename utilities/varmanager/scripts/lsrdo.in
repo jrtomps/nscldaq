@@ -1,0 +1,80 @@
+#! @PYTHON@
+
+
+
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2013.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Author:
+#            Ron Fox
+#            NSCL
+#            Michigan State University
+#            East Lansing, MI 48824-1321
+
+##
+# @file   lsrdo.in
+# @brief  lists the readout programs known to the system.
+# @author <fox@nscl.msu.edu>
+
+#
+# The following are allowed:
+#   --long (-l)  Full listing.
+#   --parent     Overrides the parent directory of the programs.
+#   --name       Restricts listing to one program (usually with --long).
+#
+
+import argparse
+import nscldaq.vardb.varmgr as varmgr
+import nscldaq.vardb.varmgrcommon as common
+import sys
+
+
+##
+#  parseArgs
+#
+#   Processes the command line parameters as described in the comments at the
+#   top of this file.
+#
+# @return namespace containing the parsed parameters.
+def parseArgs():
+    parser = argparse.ArgumentParser(description = 'List readout programs')
+    parser.add_argument('--long', '-l',  action='store_const', const=True,  default=False)
+    parser.add_argument('--parent', type=str, default=None)
+    parser.add_argument('--name',   type=str, default=None)
+    parser.add_argument('uri', type=str, nargs=1, help='URI Specifying the variable database')
+    return parser.parse_args()
+
+
+if __name__ == '__main__':
+    args = parseArgs()
+    print(args)
+    db = varmgr.Api(args.uri[0])
+    
+    # Figure out readout parent dir:
+    
+    if args.parent is not None:
+        parent = args.parent
+    else:
+        parent = common.programParent(db)
+    db.cd(parent)
+    subdirs = db.ls()
+    for dir in subdirs:
+        sys.stdout.write(dir)
+        if args.long:
+            sys.stdout.write(":\n")
+            vars = db.lsvar(dir)
+            sys.stdout.write(
+                "   %-10s %-15s %-10s\n" % ('Variable', 'Type', 'Value')
+            )
+            sys.stdout.write('-------------------------------------------------\n')
+            for v in vars:
+                sys.stdout.write(
+                    "   %-10s %-15s %-10s\n" %(v['name'], v['type'], v['value'])
+                )
+        sys.stdout.write("\n")
+    

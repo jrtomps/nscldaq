@@ -1,10 +1,14 @@
+PKGDIR=@prefix@/pythonLibs/nscldaq/vardb
+PYPROGRAMS = addrdo.in rdoonoff.in lsrdo.in
+
 install-exec-hook:
 	$(mkinstalldirs) @bindir@
-	$(INSTALL_SCRIPT) MakeRunControl.tcl @bindir@
-	$(INSTALL_SCRIPT) addrdo @bindir@
-	$(INSTALL_SCRIPT) rdoonoff @bindir@
+	$(mkinstalldirs) $(PKGDIR)
+	$(INSTALL_SCRIPT) @srcdir@/varmgrcommon.py $(PKGDIR)
+	$(INSTALL_SCRIPT) @srcdir@/MakeRunControl.tcl @bindir@
+	for f in $(PYPROGRAMS); do $(INSTALL_SCRIPT) `basename $$f .in` @bindir@; done
 
 
 
-EXTRA_DIST=MakeRunControl.tcl addrdo.in rdoonoff.in
+EXTRA_DIST=MakeRunControl.tcl $(PYPROGRAMS) varmgrcommon.py
 

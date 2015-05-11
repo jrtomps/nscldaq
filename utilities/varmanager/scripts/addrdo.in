@@ -30,6 +30,7 @@ import os
 import os.path
 import socket
 
+import nscldaq.vardb.varmgrcommon as common
 
 
 ##
@@ -59,24 +60,7 @@ def parseArgs():
     
     return  parser.parse_args()
     
-# goodPath
-#   Determines if a path exists and is executable
-#
-# @param path - Path to check.
-# @return bool - true if the path is good.
-def goodPath(path):
-    return os.access(path, os.X_OK)
 
-# haveRunState
-#   Is there a /RunState directory?
-# @param db - database api object.
-# @return bool true - yes, false no.
-#
-def haveRunState(db):
-    dirs = db.ls('/')
-    
-    return 'RunState' in dirs
-    
 
 # createDir
 #   Create the directory in which the readout will be defined.
@@ -88,11 +72,8 @@ def haveRunState(db):
 # @param name - name of the subdirectory to create.
 #
 def createDir(db, name):
-    parent = db.get('/RunState/ReadoutParentDir')
-    if parent == '':
-        parent = '/RunState'
-        
-    dir = os.path.join(parent, name)
+    
+    dir = common.programDir(db, name)
     try:
         db.mkdir(dir)
     except nscldaq.vardb.varmgr.error as err:
@@ -110,7 +91,6 @@ def createDir(db, name):
 # @note First error encountered is reported and the program exits.
 
 def createContents(db, args):
-    print(args)
     try:
         db.declare('State', 'RunStateMachine')
         db.declare('path', 'string', os.path.abspath(args.path))
@@ -164,7 +144,7 @@ if __name__ == '__main__':
     
     # Ensure the path is reasonable:
     
-    if (not goodPath(args.path)):
+    if (not common.goodPath(args.path)):
         sys.stderr.write("WARNING - The --path parameter '%s' does not exist or is not executable.\n" % args.path)
     
     path = os.path.abspath(args.path)
@@ -174,7 +154,7 @@ if __name__ == '__main__':
     
     # Require that /RunState exists:
     
-    if (not haveRunState(db)):
+    if (not common.haveRunState(db)):
         sys.stderr.write('ERROR - the database %s does not have a /RunState directory' % args.uri[0])
         sys.exit(-1)
         

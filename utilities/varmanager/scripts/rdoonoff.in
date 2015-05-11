@@ -26,7 +26,7 @@ import os
 import sys
 import argparse
 import nscldaq.vardb.varmgr
-
+import nscldaq.vardb.varmgrcommon as common
 
 ##
 #  Parse parameters
@@ -55,22 +55,11 @@ def parseParameters():
         
     return result
     
-# programDir
-#   Change directory to the named program's state directory.
-# @param db - The API to cd.
-# @param name - Name of the program.
-#
-def programDir(db, name):
-    parentDir = db.get('/RunState/ReadoutParentDir')
-    if parentDir == '':
-        parentDir = '/RunState'
-    
-    return os.path.join(parentDir, name)
-    
+
     
 if __name__ == '__main__':
     args = parseParameters()
     db = nscldaq.vardb.varmgr.Api(args['uri'])
-    db.cd(programDir(db, args['name']))
+    db.cd(common.programDir(db, args['name']))
     db.set('enable', args['state'])
     
