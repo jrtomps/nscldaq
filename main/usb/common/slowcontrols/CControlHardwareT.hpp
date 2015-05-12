@@ -68,6 +68,16 @@ CControlHardwareT<Ctlr>::operator!=(const CControlHardwareT<Ctlr>& rhs) const
   return !(*this == rhs);	// In case operator== becomes meaningful.
 }
 
+/*!
+  Default initialize is a no-op.
+*/
+template<class Ctlr>
+void 
+CControlHardwareT<Ctlr>::onAttach(CControlModuleT<Ctlr>& config)
+{
+  m_pConfig = &config;
+}
+
 
 /*!
   Default initialize is a no-op.

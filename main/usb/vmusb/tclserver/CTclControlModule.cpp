@@ -44,6 +44,9 @@ void
 CTclControlModule::onAttach(CControlModule& configuration)
 {
   configuration.addParameter("-ensemble", NULL, NULL, "");
+  
+  // call parent to store configuration as m_pConfig
+  CControlHardware::onAttach(configuration);
 
 }
 /**

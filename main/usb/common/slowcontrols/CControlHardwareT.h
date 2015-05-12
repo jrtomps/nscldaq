@@ -141,7 +141,7 @@ class CControlHardwareT
      *
      *  \param configuration  the CControlModuleT that owns this
      */
-    virtual void onAttach(CControlModuleT<Ctlr>& configuration) = 0;  
+    virtual void onAttach(CControlModuleT<Ctlr>& configuration);  
 
     /**! \brief Initialization routine
      *
