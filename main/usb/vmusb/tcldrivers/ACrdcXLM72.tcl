@@ -28,6 +28,7 @@ package provide crdcxlm72 1.0
 
 package require xlm72
 package require Itcl
+package require Tk
 package require Utils
 
 
