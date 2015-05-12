@@ -3156,68 +3156,7 @@ Module config mydriver -ensemble $mydriver
             </programlisting>
         </example>
     </section>
-    <section>
-        <title>Integrating CCUSBReadout with the statemanager</title>
-        <para>
-            The state manager/boot manager are described in
-            <link linkend='chap.statemgr' endterm='chap.statemgr.title' />
-            and
-            <link linkend='chap.boot' endterm='chap.boot.title' />.
-            Used together with the experiment configuration editor
-            (<link linkend='chap.expconfig' endterm='chap.expconfig.title' />), they
-            provide the next generation of experiment definition and control.
-        </para>
-        <para>
-            The <literal>ReadoutStateHook</literal> package provides a standard
-            mechanism for Tcl based Readout programs with the normal run
-            control commands to become aware of state manager state changes and
-            react appropriately.  It also provides a mechanism to intiate a
-            <literal>FAIL</literal> transition should CCUSBReadout suffer an
-            unrecoverable error.
-        </para>
-        <para>
-            To integrate <filename>CCUSBReadout</filename> with the state manager
-            requires that you:
-        </para>
-        <itemizedlist>
-            <listitem>
-                <para>
-                    Write a small script that incorporates the
-                    <literal>ReadoutStateHook</literal> into the
-                    <filename>CCUSBReadout</filename>'s Tcl interpreter at start
-                    time.
-                </para>
-            </listitem>
-            <listitem>
-                <para>
-                    Configure the experiment to use the <option>--init-script</option>
-                    option to load that small script at start time (when the
-                    experiment is booted).
-                </para>
-            </listitem>
-        </itemizedlist>
-        <para>
-            The script below shows what you need to do to load the
-            <literal>ReadoutStateHook</literal> package into the CCUSBReadout
-            interpreter:
-        </para>
-        <example>
-            <title>Script to incorporate <literal>ReadoutStateHook</literal></title>
-            <programlisting>
-set pkgDirs [file join $env(DAQROOT) TclLibs]
-lappend auto_path $pkgDirs
 
-package require ReadoutStateHook
-            </programlisting>
-        </example>
-        <para>
-            Note that in the script above, the <literal>DAQROOT</literal> environment
-            variable is set by the boot manager when it starts a program.
-            Further environment variables are set by the boot manager to allow
-            the programs it manages to know how to connect to the state manager
-            server.
-        </para>
-    </section>  
 </chapter>
 <!-- /chapter -->
 

@@ -1,5 +1,5 @@
 PKGDIR=@prefix@/pythonLibs/nscldaq/vardb
-PYPROGRAMS = addrdo.in rdoonoff.in lsrdo.in rmrdo.in
+PYPROGRAMS = addrdo.in rdoonoff.in lsrdo.in rmrdo.in resetrdo.in
 
 install-exec-hook:
 	$(mkinstalldirs) @bindir@

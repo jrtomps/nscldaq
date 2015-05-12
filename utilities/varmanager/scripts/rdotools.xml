@@ -1,0 +1,1111 @@
+<!-- chapter frameworks -->
+
+<chapter>
+    <title>The run state framework.</title>
+    <para>
+        The RunState framework is a set of directories within the variable database
+        that manage and reflect the state of programs that must be aware of
+        and can influence the
+        run state.  By run state we mean the availability of the system to take
+        data, whether or not it is taking data and state information related to
+        the data taking run.
+    </para>
+    <para>
+        This chapter will:
+    </para>
+    <itemizedlist>
+        <listitem><para>
+            Describe the directory structure of the variable database sections
+            devoted to the run state framework, and the variables each directory
+            contains.
+        </para></listitem>
+        <listitem><para>
+            Describe how run transitions are handled by the run transition manager.
+        </para></listitem>
+        <listitem><para>
+            Describe a set of command line tools that can be used to manipulate
+            the run state database.
+        </para></listitem>
+    </itemizedlist>
+    <note>
+        <title>NOTE:</title>
+        <para>
+            The run state manager makes use of the change notifications provided
+            by the variable data base server.   It is important that, when using
+            these utilities with the state manager, not only the variable
+            database server is running, but the tools must reference the
+            variable datbase using a URI that points to it through that server
+            (e.g. not a direct <literal>file:</literal> URI).
+        </para>
+    </note>
+    <section>
+        <title>Variable database structure for run state management</title>
+        <para>
+            The variable database structure for run state management is
+            divided into a global state directory named <filename>/RunState</filename>
+            and a set of directories, one per state senstive/influending application.
+            Usually, but not exclusively these applications are Readout programs
+            whose output is built into events using the NSCLDAQ event builder.
+        </para>
+        <para>
+            By default, the application directories are subdirectories of
+            <filename>/RunState</filename>, however a variable in
+            the <filename>/RunState</filename> directory can define
+            another parent.  This allows one to build up a database that
+            stores multiple configurations, allowing one to switch between
+            those configurations simply by changing the value of one
+            variable.
+        </para>
+        <para>
+            Applications are have names.   The name of the application
+            is simply the name of the directory that holds it state data.
+        </para>
+        <para>
+            While the applications that manage the state system will produce
+            and manage a specific set of variables there is nothing to
+            stop you from adding to that set if required by your
+            application.  For example; if one of your applications is a
+            program the manages hardware that needs a firmware download
+            to operate, there is nothing to prevent you, and in fact
+            you are encouraged to, store the path to the firmware file
+            in your application's variable database directory.
+        </para>
+        <para>
+            In the remainder of this section we are going to look at:
+        </para>
+        <itemizedlist>
+            <listitem><para>
+                The additional data types introduced by the Run State
+                variables.
+            </para></listitem>
+            <listitem><para>
+                The contents of the <filename>/RunState</filename> directory
+            </para></listitem>
+            <listitem><para>
+                The contents of an application's state directory.
+            </para></listitem>
+        </itemizedlist>
+        <section>
+            <title>Data types</title>
+            <para>
+                The variables of the run state system require two data types.
+                One of them, <type>boolean</type> is an enumerated value
+                that can contain only the values <literal>true</literal>
+                and <literal>false</literal>.
+            </para>
+            <para>
+                The <type>RunStateMachine</type> is a state machine
+                that represents the states of the data acquisition system
+                and all of the legal transitions between those states.
+                The table below is a state transition diagram that describes these
+                states and transitions.
+            </para>
+            <table>
+                <title>
+                    Run State Transition table
+                </title>
+                <tgroup cols='3' align='left' rowsep='1' colsep='1'>
+                    <colspec colname='State' />
+                    <colspec colname='Transitions' />
+                    <colspec colname='Explanation' />
+                    <thead>
+                        <row>
+                            <entry>State</entry>
+                            <entry>Transitions</entry>
+                            <entry>Explanation</entry>
+                        </row>
+                    </thead>
+                    <tbody>
+                        <row>
+                            <entry>0Initial</entry>
+                            <entry>NotReady</entry>
+                            <entry>
+                                Initial state of the system.  Once the run state
+                                manager begins, it will immediately transition
+                                from this to <literal>NotReady</literal>.
+                                When the state manager shuts down, it will
+                                first transition the system back to
+                                <literal>0Initial</literal>.
+                            </entry>
+                        </row>
+                        <row>
+                            <entry>NotReady</entry>
+                            <entry>
+                                <itemizedlist>
+                                    <listitem><para>0Initial</para></listitem>
+                                    <listitem><para>Readying</para></listitem>
+                                </itemizedlist>
+                            </entry>
+                            <entry>
+                                This state indicates the state manager is running
+                                but none of the software managed by it is.
+                                If the state manager exits it will transition
+                                to <literal>0Initial</literal>.  In order
+                                to start the programs managed by it  it will
+                                transition to <literal>Readying</literal>.
+                            </entry> 
+                        </row>
+                        <row>
+                            <entry>Readying</entry>
+                            <entry>
+                                <itemizedlist>
+                                    <listitem><para>NotReady</para></listitem>
+                                    <listitem><para>Ready</para></listitem>
+                                </itemizedlist>
+                            </entry>
+                            <entry>
+                                Indicates the state manager is starting the
+                                programs it manages.  If one or more of them
+                                fail to start, the state manager transitions
+                                to <literal>NotReady</literal> which will force
+                                the programs already started to shut down.
+                                If all programs successfully start, the state
+                                manager transitions to the <literal>Ready</literal>
+                                state.
+                            </entry>
+                        </row>
+                        <row>
+                            <entry>Ready</entry>
+                            <entry>
+                                <itemizedlist>
+                                    <listitem><para>Beginning</para></listitem>
+                                    <listitem><para>NotReady</para></listitem>
+                                </itemizedlist>
+                            </entry>
+                            <entry>
+                                This state indicates all the software required
+                                to start a data taking run is running and ready
+                                to begin a run.  To start a run, the state manager
+                                takes a transition to the <literal>Beginning</literal>
+                                state.  All programs will then perform pre-begin actions.
+                                If a program fails while in the <literal>Ready</literal>
+                                state the state will be changed to <literal>NotReady</literal>
+                                forcing all other programs to exit in preparation for a clean
+                                restart.
+                            </entry>
+                        </row>
+                        <row>
+                            <entry>Active</entry>
+                            <entry>
+                                <itemizedlist>
+                                    <listitem><para>Pausing</para></listitem>
+                                    <listitem><para>Ending</para></listitem>
+                                    <listitem><para>NotReady</para></listitem>
+                                </itemizedlist>
+                            </entry>
+                            <entry>
+                                This state indicates that data taking is in
+                                progress. If the user wants to pause the run
+                                temporarily, the system will transition to
+                                <literal>Pausing</literal>.  If a user
+                                wants to end the run the system will transition
+                                to <literal>Ending</literal>.  Finally, if a
+                                program fails while taking data, the system will
+                                transition to <literal>NotReady</literal> forcing
+                                all of the programs to exit in preparation for a clean
+                                restart of the system.
+                            </entry>
+                        </row>
+                        <row>
+                            <entry>Pausing</entry>
+                            <entry>
+                                <itemizedlist>
+                                    <listitem><para>Paused</para></listitem>
+                                    <listitem><para>NotReady</para></listitem>
+                                </itemizedlist>
+                            </entry>
+                            <entry>
+                                Indicates the run is in the progress of pausing.
+                                The readout programs are taking the steps needed
+                                to shutdown data taking temporarily.  If all
+                                programs successfully do this, the run state
+                                transitions to <literal>Paused</literal>. If a
+                                program fails while trying to pause the system
+                                transitions to <literal>NotReady</literal>.
+                            </entry>
+                        </row>
+                        <row>
+                            <entry>Paused</entry>
+                            <entry>
+                                <itemizedlist>
+                                    <listitem><para>Ending</para></listitem>
+                                    <listitem><para>Resuming</para></listitem>
+                                    <listitem><para>NotReady</para></listitem>
+                                </itemizedlist>
+                            </entry>
+                            <entry>
+                                In this state a run is alive but data taking is
+                                temporarily paused.  If the user decides to end
+                                the run, the <literal>Ending</literal> state is
+                                entered.  If they decide to resume data taking
+                                in the paused run, <literal>Resuming</literal> is
+                                entered.  As usual any program failure leads to the
+                                <literal>NotReady</literal> state which forces
+                                all programs to shutdown.
+                            </entry>
+                        </row>
+                        <row>
+                            <entry>Resuming</entry>
+                            <entry>
+                                <itemizedlist>
+                                    <listitem><para>Active</para></listitem>
+                                    <listitem><para>NotReady</para></listitem>
+                                </itemizedlist>
+                            </entry>
+                            <entry>
+                                Indicates a paused run is becoming active again.
+                                If the run successfully resumes, a transition
+                                to <literal>Active</literal> is taken.
+                                Any program failure leads to the
+                                <literal>NotReady</literal> state which forces
+                                all programs to shutdown.
+                            </entry>
+                        </row>
+                        <row>
+                            <entry>Ending</entry>
+                            <entry>
+                                <itemizedlist>
+                                    <listitem><para>Ready</para></listitem>
+                                    <listitem><para>NotReady</para></listitem>
+                                </itemizedlist>
+                            </entry>
+                            <entry>
+                                Indicates a run is ending.  When the run successfully
+                                ends, the <literal>Ready</literal> state is entered.
+                                If a program fails, the <literal>NotReady</literal>
+                                state results.
+                            </entry>
+                        </row>
+                    </tbody>
+                </tgroup>
+            </table>
+        </section>
+        <section>
+            <title>Contents of the <filename>/RunState</filename> directory</title>
+            <para>
+                The <filename>/RunState</filename> directory contains global state
+                that is common to all readout programs and the data acuisition system
+                instance.  It contains the following variables:
+            </para>
+            <segmentedlist>
+                <segtitle>Name</segtitle>
+                <segtitle>Data Type</segtitle>
+                <segtitle>Explanation</segtitle>
+                <seglistitem>
+                    <seg>RunNumber</seg>
+                    <seg>int</seg>
+                    <seg>Contains the run number Readout programs should use when
+                    starting a new run.  A readout program is not obligated to make
+                    use of it, however if a readout program has the concept of an
+                    externally settable run number, this variable contains the
+                    run number it should use.</seg>
+                </seglistitem>
+                <seglistitem>
+                    <seg>Title</seg>
+                    <seg>string</seg>
+                    <seg>
+                        Contains the run title that Readout programs should use when
+                        beginning a new run.  As with <varname>RunNumber</varname>,
+                        a readout program is not obligated to understand run titles.
+                        If it does however, it should use the string in this variable.
+                    </seg>
+                </seglistitem>
+                <seglistitem>
+                    <seg>State</seg>
+                    <seg>RunStateMachine</seg>
+                    <seg>
+                        The global state.  Readout programs monitor this variable in
+                        order to know when global state changes are requested.
+                    </seg>
+                </seglistitem>
+                <seglistitem>
+                    <seg>Recording</seg>
+                    <seg>bool</seg>
+                    <seg>
+                        One of the set of state sensitive programs are the eventy loggers.
+                        These will initiate logging for runs that start when this
+                        variable is True.
+                    </seg>
+                </seglistitem>
+                <seglistitem>
+                    <seg>Timeout</seg>
+                    <seg>int</seg>
+                    <seg>
+                        When the state manager initiates a state transition by
+                        changing the global state variable, it waits for all of the
+                        readout programs to complete their full transitions  (see
+                        the section
+                        <link linkend='rstatechap_transitions'
+                              endterm='rstatechap_transitions_title' />
+                        for more information about the state transition algorithm).
+                        If all programs have not completed their full transitions
+                        within the number of seconds specified by this variable,
+                        the state transition will have been assumed to have failed
+                        and a transition to <literal>NotReady</literal> will
+                        be performed.
+                    </seg>
+                </seglistitem>
+                <seglistitem>
+                    <seg>ReadoutParentDir</seg>
+                    <seg>string</seg>
+                    <seg>
+                        If not empty, this string is a path to a
+                        directory that will contain
+                        the per readout program sub-directories.  If the string is
+                        empty, the Readout parent directory is assumed to be
+                        <filename>/RunState</filename>.
+                    </seg>
+                </seglistitem>
+            </segmentedlist>
+        </section>
+        <section>
+            <title>Contents of program directories.</title>
+            <para>
+                Each readout program has a directory of variables in the
+                variable data base.  As we have seen, in the running system,
+                the variable <filename>/RunState/ReadoutParentDir</filename>
+                determines where these directories are located.
+            </para>
+            <para>
+                Each of these directories must have at least the following set
+                of variables:
+            </para>
+            <segmentedlist>
+                <segtitle>Name</segtitle>
+                <segtitle>Data Type</segtitle>
+                <segtitle>Description</segtitle>
+                <seglistitem>
+                    <seg>State</seg>
+                    <seg>RunStateMachine</seg>
+                    <seg>
+                        The individual state of the Readout program.  This is maintained
+                        by the Readout program, in contrast to the global state which
+                        is maintained by the state manager.
+                    </seg>
+                </seglistitem>
+                <seglistitem>
+                    <seg>enable</seg>
+                    <seg>bool</seg>
+                    <seg>
+                        If this is <literal>false</literal> the program does not
+                        participate in state transitions.  This can be useful both in
+                        testing and when more than one nearly identical set up will be used.
+                    </seg>
+                </seglistitem>
+                <seglistitem>
+                    <seg>path</seg>
+                    <seg>string</seg>
+                    <seg>
+                        The full path of the program to run.  The State manager uses this
+                        string when taking the system from <literal>NotReady</literal>
+                        to <literal>Ready</literal>.
+                    </seg>
+                </seglistitem>
+                <seglistitem>
+                    <seg>host</seg>
+                    <seg>string</seg>
+                    <seg>
+                        The host in which this readout program runs.  This can be either
+                        an IP address (e.g. <literal>35.8.9.10</literal>),
+                        or a fully qualified domain name in DNS
+                        (e.g. <literal>spdaq32.nscl.msu.edu</literal>).
+                    </seg>
+                </seglistitem>
+                <seglistitem>
+                    <seg>outring</seg>
+                    <seg>string</seg>
+                    <seg>
+                        A ringbuffer name (not URI) into which the program may put data.
+                        For actual readout programs this is normally their output ring.
+                        The ring buffer must be local since ringbuffers only allow
+                        local clients.  Therefore it is an error to use a
+                        URL for the ring name.
+                    </seg>
+                </seglistitem>
+                <seglistitem>
+                    <seg>inring</seg>
+                    <seg>string</seg>
+                    <seg>
+                        A ringbuffer URI from which data are taken.  Since ring clients
+                        can be remote, you must use a URI here rather than a ring name,
+                        even if the ring is local.
+                    </seg>
+                </seglistitem>
+            </segmentedlist>
+        </section>
+    </section>
+    <section id='rstatechap_transitions'>
+        <title id='rstatechap_transitions_title'>How state transitions happen</title>
+        <para>
+            Run state transitions are triggered either by user actions or by activities
+            within the programs.  If you have looked at the state transition table you
+            may be struck by the large number of states with names that end in <literal>ing</literal>
+            These <firstterm>-ing</firstterm> states are an attempt to capture the fact that
+            some transitions take a macroscopic amount of time and we want to indicate that
+            a transition is in progress.  For example, the <literal>Readying</literal> state
+            is really an artificial state that captures being in the transition between
+            <literal>NotReady</literal> and <literal>Ready</literal>.
+        </para>
+        <para>
+            Let's look at this successful transition
+            (from <literal>NotReady</literal> to <literal>Ready</literal>)
+            and how it is managed.
+        </para>
+        <procedure>
+            <step>
+                <para>
+                    When the system is in the <literal>NotReady</literal> state the
+                    user requests a data acquisition system boot.  The state
+                    manager responds by placing the global state in the
+                    <literal>Readying</literal> state.
+                </para>
+            </step>
+            <step>
+                <para>
+                    As the state manager starts each program in the run state
+                    system, it places its individual state into <literal>Readying</literal>
+                    as well.
+                </para>
+            </step>
+            <step>
+                <para>
+                    As each program starts, once initialized and ready to respond to
+                    other transitions, it places itself in the <literal>Ready</literal>
+                    state.
+                </para>
+            </step>
+            <step>
+                <para>
+                    When the State manager has been informed that all programs
+                    are in the <literal>Ready</literal> state, it sets the
+                    global state to <literal>Ready</literal> as well indicating
+                    a successful transition.
+                </para>
+            </step>
+        </procedure>
+        <para>
+            Other than the need to start programs, this description holds for
+            most other transitions.  The main difference is that other transitions
+            are simply initiated by a change of global state to the appropriate
+            <literal>-ing</literal> state (e.g. from <literal>Ready</literal>
+            to <literal>Beginning</literal> to start a run).
+        </para>
+        <para>
+            You may also notice all states can transition to <literal>NotReady</literal>.
+            This transition recognizes that programs may fail (either in a hard
+            or well define way). Hard failures of a program (e.g. a SEGFAULT) are
+            noticed by the state manager because it is monitoring the liveness of
+            all programs it starts.  When a hard failure occurs, the state manager
+            sets the state of both that program and the global state to
+            <literal>NotReady</literal>.  All programs are supposed to respond to
+            this global state transition by cleanly shuttting down and setting
+            their states to
+            <literal>NotReady</literal> as well.
+        </para>
+        <para>
+            Finally state transitions have a timeout.  If all programs have not
+            transitioned within the timeout, a transition to <literal>NotReady</literal>
+            is forced by the global state manager.  If a program does not respond
+            to the <literal>NotReady</literal> the state manager has mechanisms
+            to force it to hard exit, and will do so.
+        </para>
+    </section>
+    <section>
+        <title>Command line utilities that build/modify the run control database</title>
+        <para>
+            Several command line utilities have been written to support building up
+            this part of the database.  While typically  you will use a graphical
+            tool to define state sensitive software and the data flow, these tools allow
+            you to do quick and dirty editing of this part of the database.
+        </para>
+        <para>
+            The list below refers you to the reference material on each of these scripts:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term>
+                    <link linkend='daq1_makeruncontrol' endterm='daq1_makeruncontrol_title' />
+                </term>
+                <listitem>
+                    <para>
+                        Creates the top level run control directory and its contents.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <link linkend='daq1_addrdo' endterm='daq1_addrdo_title' />
+                </term>
+                <listitem>
+                    <para>
+                        Adds a new readout (state sensitive) program directory with
+                        initialized contents.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <link linkend='daq1_lsrdo' endterm='daq1_lsrdo_title' />
+                </term>
+                <listitem>
+                    <para>
+                        Lists information about the readout programs that are
+                        known to the system.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <link linkend='daq1_rdoonoff' endterm='daq1_rdoonoff_title' />
+                </term>
+                <listitem>
+                    <para>
+                        Enables or disables a readout program.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <link linkend='daq1_resetrdo' endterm='daq1_resetrdo_title' />
+                </term>
+                <listitem>
+                    <para>
+                        Resets the state machine of a readout program to
+                        <literal>0Initial</literal>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <link linkend='daq1_rmrdo' endterm='daq1_rmrdo_title' />
+                </term>
+                <listitem>
+                    <para>
+                        Removes a readout program from the system.
+                    </para>
+                </listitem>
+            </varlistentry>
+            
+        </variablelist>
+    </section>
+</chapter>
+
+<!-- /chapter -->
+
+<!-- manpage 1daq -->
+
+      <refentry id='daq1_makeruncontrol'>
+        <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle id='daq1_makeruncontrol_title'>MakeRunControl.tcl</refentrytitle>
+           <manvolnum>1daq</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>MakeRunControl.tcl</refname>
+           <refpurpose>Make top level run control directory</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+          <command>
+$DAQBIN/vardbsh <replaceable>uri</replaceable> &lt; $DAQBIN/MakeRunControl.tcl
+          </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Creates the <filename>RunState</filename> directory in the
+            variable database connected to via <replaceable>uri</replaceable>.
+            The directory is filld in with the needed contents.
+           </para>
+           <para>
+            If the directory already exists, the state machine variable
+            <varname>State</varname> is first stepped to <literal>NotReady</literal>
+            and then to <varname>0Initial</varname>
+           </para>
+        </refsect1>
+        
+      </refentry>
+      <refentry id='daq1_addrdo'>
+        <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle id='daq1_addrdo_title'>addrdo</refentrytitle>
+           <manvolnum>1daq</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>addrdo</refname>
+           <refpurpose>Add a readout program to the variable database.</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+            <command>
+$DAQBIN/addrdo <replaceable>uri</replaceable> <optional>option value ...</optional>
+          </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Adds a new readout program to the variable database.  The readout
+            program is a directory whose parent depends on the value
+            of <varname>/RunState/ReadoutParentDir</varname>.
+           </para>
+           <para>
+            The <parameter>uri</parameter> parameter is a uniform resoure
+            identifier (URI) that defines the connection to the variable
+            database affected.  Options control the
+            directory name and the values of the variables in it.
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              OPTIONS
+           </title>
+           <variablelist>
+            <varlistentry>
+                <term>
+                    <option>--enable</option> (optional)
+                </term>
+                <listitem>
+                    <para>
+                        If present (default) the program is created
+                        enabled (with the <varname>enable</varname>
+                        set to <literal>true</literal>).
+                    </para>
+                </listitem>
+            </varlistentry>
+                <varlistentry>
+                    <term>
+                        <option>--disable</option> (optional)
+                    </term>
+                    <listitem>
+                        <para>
+                            If present, the program is created
+                            disabled (with the <varname>enable</varname>
+                            set to <literal>false</literal>
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <option>--path</option> <replaceable>program-path</replaceable> (required)
+                    </term>
+                    <listitem>
+                        <para>
+                            This is a required option that provides the
+                            path to the program to run.  If  the system has a
+                            heterogenous file system (that is not all systems
+                            share the same file system mounts), be sure to
+                            specify a valid path in the target host.
+                            <parameter>program-path</parameter> will be
+                            stored in the <varname>path</varname> variable.
+                        </para>
+                        <para>
+                            If <replaceable>program-path</replaceable>
+                            does not translate to an executable file
+                            in the current host, a warning is emitted but
+                            the definition is made anyway because the
+                            file could exist at the time the system is
+                            started and because the file could exist in the
+                            target system but not the host.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <option>--host</option> <replaceable>host-spec</replaceable> (required)
+                    </term>
+                    <listitem>
+                        <para>
+                            Speifies the host in which the program will be run.
+                            <replaceable>host-spec</replaceable> should
+                            be a valid dotted ip address (e.g. <literal>35.8.9.10</literal>)
+                            or Fully Qualified Domain name (e.g. spdaq32.nscl.msu.edu).
+                            <replaceable>host-spec</replaceable> is stored in the
+                            <varname>host</varname> variable.
+                        </para>
+                        <para>
+                            For the state manager to be able to start a program
+                            it must be able to ssh without the need for a password
+                            to the target host.  That is the runing user's id
+                            certificate must be installed in the hosts
+                            <filename>~/.ssh/authorized/authorized_keys</filename>
+                            file.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <option>--name</option> <replaceable>program-name</replaceable> (required)
+                    </term>
+                    <listitem>
+                        <para>
+                            Provides the program name.  This is not actually stored
+                            in a variable but is the name of the directory that
+                            will contain the program.  The <replaceable>program-name</replaceable>
+                            will be used to refer to the program in the future.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <option>-oring</option> <replaceable>ring-name</replaceable>
+                    </term>
+                    <listitem>
+                        <para>
+                            Sets the value of the <varname>outring</varname>
+                            variable to <replaceable>ring-name</replaceable>.
+                            If the program produces output to a ringbuffer,
+                            it should use this ring.  Note that
+                            since ring producers must be local,
+                            <replaceable>ring-name</replaceable> is the
+                            name of a  ringbuffer, not a URI to a ring buffer.
+        
+                        </para>
+                        <para>
+                            When the system is being made <literal>Ready</literal>,
+                            the state manager will create this ring buffer before
+                            starting this program.  Note that since a ring
+                            can only have one producer, the set of pairs
+                            of ring name and host names must be unique.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <option>-iring</option> <replaceable>ring-uri</replaceable>
+                    </term>
+                    <listitem>
+                        <para>
+                            Sets the value of the <varname>inring</varname>
+                            variable to <replaceable>ring-uri</replaceable>.
+                            If the program takes input from a ring this
+                            should be the URI of the ring it takes data from.
+                            Since consumers of ring data can be remote, this
+                            must be a URI not a ring name.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                
+                                                        
+           </variablelist>
+        </refsect1>
+
+      </refentry>
+      <refentry id="daq1_lsrdo">
+        <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle id="daq1_lsrdo_title">lsrdo</refentrytitle>
+           <manvolnum>1daq</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>lsrdo</refname>
+           <refpurpose>List readout programs.</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+$DAQBIN/lsrdo <replaceable>uri</replaceable> <optional>option value...</optional>
+          </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Lists the set of readout programs that have been defined
+            in a variable database.  The <parameter>uri</parameter>
+            parameter defines the connection to the database.
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              OPTIONS
+           </title>
+           <variablelist>
+                <varlistentry>
+                    <term>
+                        <option>--long</option>, <option>-l</option>
+                    </term>
+                    <listitem>
+                        <para>
+                            Produces a full  long listing.  With this
+                            switch present, the program names are listed followed
+                            by the variables, their types and values.
+                        </para>
+                        <para>
+                            If this flag is not present, only the program
+                            names are listed.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <option>---parent</option> <replaceable>parent-dir-path</replaceable>
+                    </term>
+                    <listitem>
+                        <para>
+                            Overrides the default parent directory for
+                            readouts with the <parameter>parent-dir-path</parameter>.
+                            This is useful when you have several configurations
+                            in separate directories and you need to see what's in
+                            a directory that is not the default parent for
+                            readout programs (e.g. to decide which directory)
+                            to switch the readout to.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <option>-name</option> <replaceable>program-name</replaceable>
+                    </term>
+                    <listitem>
+                        <para>
+                            Usually used along with <option>--long</option>
+                            to select a single program to list.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                
+           </variablelist>
+        </refsect1>
+
+      </refentry>
+      <refentry id='daq1_rdoonoff'>
+        <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle id='daq1_rdoonoff_title'>rdoonoff</refentrytitle>
+           <manvolnum>1daq</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>rdoonoff</refname>
+           <refpurpose>Enable/Disable a readout program.</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+            <command>
+$DAQBIN/rdoonoff <replaceable>uri name </replaceable> 
+          </command>
+            <group>
+                <arg>enable</arg> <arg>disable</arg>
+            </group>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Readout programs can be disabled by setting their
+            <varname>enable</varname> variable to <literal>false</literal>.
+            When disabled, they are not supposed to participate in global
+            state transitions and the global state manager does not monitor
+            them when it performs a transition.  This command
+            allows you to set the value of <varname>enable</varname> to
+            <literal>true</literal> or <literal>false</literal>.
+           </para>
+           <para>
+            <parameter>uri</parameter> is the URI the command uses
+            to connect to the variable database while
+            <parameter>name</parameter> is the name of the program
+            to modify.  The final parameter for the program can be either
+            <literal>enable</literal> or <literal>disable</literal> to
+            <varname>enable</varname> to <literal>true</literal> or
+            <literal>false</literal> respectively.
+           </para>
+        </refsect1>
+
+      </refentry>
+    
+      <refentry id="daq1_resetrdo">
+        <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle id="daq1_resetrdo_title">resetrdo</refentrytitle>
+           <manvolnum>1daq</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>resetrdo</refname>
+           <refpurpose>Reset readout statemachine</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+resetrdo
+          </command>
+              <arg>uri</arg> <arg>name</arg>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Reset the state machine associated with a specific
+            readout program.  The readout's <varname>State</varname>
+            is first set to <literal>NotReady</literal> and then
+            to <literal>0Initial</literal>.  These are legal
+            transitions regardless of the initial state.
+           </para>
+           <para>
+            The <parameter>uri</parameter> parameter
+            is the URI of the variable database connection.
+            The <parameter>name</parameter> parameter
+            is the name of the program.
+           </para>
+           <para>
+            The intent of this command is to set the
+            state variable to a reasonable initial value
+            in the event a program has failed badly.  Normally
+            you should not need to do this as prior to making the
+            transitions that go from <literal>0Initial</literal> to
+            <literal>Ready</literal>, the state manager will reset
+            all individual readout state machines.
+           </para>
+        </refsect1>
+
+      </refentry>
+
+      <refentry id="daq1_rmrdo">
+        <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle id='daq1_rmrdo_title'>rmrdo</refentrytitle>
+           <manvolnum>1daq</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>rmrdo</refname>
+           <refpurpose>Remove a readout program.</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+$DAQBIN/rmrdo                
+          </command>
+              <arg>uri</arg> <arg>name</arg> <arg>option...</arg>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Removes a readout program's directory and variables
+            from the variable database.  This is not a reversible operation.
+            Note that in order to deal with the case that additional variables
+            and directories have been added, the delete is recursive and total.
+           </para>
+           <para>
+            <parameter>uri</parameter> is the URI that specifies the database
+            connection. <parameter>name</parameter> is the name of the program to
+            remove.
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              OPTIONS
+           </title>
+           <variablelist>
+            <varlistentry>
+                <term><option>--parent</option> <replaceable>parent-dir-path</replaceable></term>
+                <listitem>
+                    <para>
+                        Specifies an alternative parent diretory path in which
+                        the readout lives. 
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <option>--confirm</option>, <option>-c</option>
+                </term>
+                <listitem>
+                    <para>
+                        If present, the command lists the contents of
+                        the directory and prompts for confirmation before
+                        deleting the program.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <option>-no-confirm</option> (default)
+                </term>
+                <listitem>
+                    <para>
+                        If  present, no confirmation is requested
+                        prior to the delete.
+                    </para>
+                </listitem>
+            </varlistentry>
+            
+           </variablelist>
+        </refsect1>
+
+      </refentry>
+
+      
+<!-- /manpage -->
