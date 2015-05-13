@@ -5,7 +5,12 @@ eval ::tcltest::configure $argv
 
 package require eventLogBundle
 
-package require evbcallouts10
+#  If evbcallouts10 can't be required, probably there's no
+#  10.x installed so we just bag it:
+
+if {[catch {package require evbcallouts10}]} {
+   exit
+}
 puts "evbrdocallout10.test auto_path = $auto_path"
 
 

@@ -39,7 +39,8 @@ BUILT_SOURCES=@srcdir@/CCCUSB_wrap.cxx @srcdir@/CCCUSBReadoutList_wrap.cxx
 
 
 ## Normal C++ library containing CCCUSB*
-libCCUSB_la_LIBADD	= @top_builddir@/base/os/libdaqshm.la \
+libCCUSB_la_LIBADD	= @top_builddir@/base/thread/libdaqthreads.la \
+			@top_builddir@/base/os/libdaqshm.la \
 			@TCL_LDFLAGS@ \
 	                @LIBTCLPLUS_LDFLAGS@ \
 			@top_builddir@/base/tcpip/libTcp.la \
@@ -101,6 +102,7 @@ remotetests_SOURCES = TestRunner.cpp \
 remotetests_LDADD = $(CPPUNIT_LDFLAGS) \
 			@builddir@/libCCUSB.la                      \
 			@top_builddir@/base/tcpip/libTcp.la         \
+			@top_builddir@/base/thread/libdaqthreads.la \
 			@LIBTCLPLUS_LDFLAGS@                        \
 			@LIBEXCEPTION_LDFLAGS@                      \
 		   	@TCL_LDFLAGS@                               \
