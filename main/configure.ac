@@ -310,9 +310,10 @@ AC_SUBST(ZMQ_LDFLAGS)
 
 ##
 # need the zmq c++ bindings
-#
+#  note in some c++11's we need to include <algorithm> to include zmq.hpp:
 AC_LANG_PUSH(C++)
-AC_CHECK_HEADER([zmq.hpp],[], [AC_MSG_ERROR([The zeromq C++ header (zmq.hpp) is missing and is required for nscldaq])])
+AC_CHECK_HEADERS([algorithm zmq.hpp],[], [AC_MSG_ERROR([The zeromq C++ header (zmq.hpp) is missing and is required for nscldaq])],
+			    [#include <algorithm>])
 AC_LANG_POP
 
 
