@@ -1,0 +1,73 @@
+#!/usr/bin/env python
+
+
+
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2013.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Author:
+#            Ron Fox
+#            NSCL
+#            Michigan State University
+#            East Lansing, MI 48824-1321
+
+##
+# @file   rdosalone
+# @brief  Set or unset standalone mode for a program.
+# @author <fox@nscl.msu.edu>
+
+import nscldaq.vardb.varmgrcommon as common
+import nscldaq.vardb.varmgr as mgr
+import argparse
+import sys
+
+##
+#  Parse parameters.
+#   Usage is much like rdoonoff:
+#    rdosalone uri program enable | disable
+#
+# @return namespace - that contains the parsed parameters.
+#
+def parseParams():
+    p = argparse.ArgumentParser(
+        prog='rdosalone',
+        description='Set program in/out of standalone mode'
+    )
+    p.add_argument('uri', nargs=1, type=str, help='URI specifying database connection')
+    p.add_argument('program', nargs=1, type=str, help='Program name')
+    p.add_argument('state', nargs=1, type=str, help='Desired state: enable | disable')
+    
+    args = p.parse_args()
+    print(args)
+    
+    # Cook the state to the right string:
+    
+    if args.state[0] == 'enable':
+        args.state = 'true'
+    elif args.state[0] == 'disable':
+        args.state = 'false'
+    else:
+        sys.stderr.write('Invalid value for state parameter, must be "enable" or "disable"\n')
+        exit(-1)
+    
+    # un-array-ize the other arguments.
+    
+    args.uri = args.uri[0]
+    args.program = args.program[0]
+    return args
+
+if __name__ == '__main__':
+    args = parseParams()
+    db  = mgr.Api(args.uri)
+    dir = common.programDir(db, args.program)
+    print('dir %s' % dir)
+    db.cd(dir)
+    db.set('standalone', args.state)
+
+
+

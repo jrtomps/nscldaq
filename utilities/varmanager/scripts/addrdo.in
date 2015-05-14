@@ -124,6 +124,7 @@ def createContents(db, args):
             enable = 'false'
             
         db.declare('enable', 'boolean', enable)
+        db.declare('standalone', 'boolean', 'false')
         
         
         # Warn about empty --iring, --oring
