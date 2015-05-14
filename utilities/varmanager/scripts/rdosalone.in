@@ -43,7 +43,6 @@ def parseParams():
     p.add_argument('state', nargs=1, type=str, help='Desired state: enable | disable')
     
     args = p.parse_args()
-    print(args)
     
     # Cook the state to the right string:
     
@@ -65,7 +64,6 @@ if __name__ == '__main__':
     args = parseParams()
     db  = mgr.Api(args.uri)
     dir = common.programDir(db, args.program)
-    print('dir %s' % dir)
     db.cd(dir)
     db.set('standalone', args.state)
 
