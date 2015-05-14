@@ -408,6 +408,7 @@ AC_CONFIG_FILES([Makefile
 		 utilities/varmanager/scripts/lsrdo
 		 utilities/varmanager/scripts/rmrdo
 		 utilities/varmanager/scripts/resetrdo
+		 utilities/varmanager/scripts/rdosalone
                  epics/chanlog/Makefile
                  epics/controlpush/Makefile
                  epics/epicsdisplay/Makefile
