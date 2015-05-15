@@ -81,4 +81,20 @@ private:
   void create(pthread_mutexattr_t* pAttributes);
 };
 
+// Lock on construction, unlock on destruction:
+
+class CriticalSection {
+private:
+  CMutex&   m_mutex;
+public:
+  CriticalSection(CMutex& mutex) :
+  m_mutex(mutex)
+  {
+    m_mutex.lock();
+  }
+  virtual ~CriticalSection() {
+    m_mutex.unlock();
+  }
+};
+
 #endif

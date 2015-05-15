@@ -4,7 +4,8 @@
 SUBDIRS = daqstart dvdburn \
 	sequencer ringselector eventlog bufdump	\
 	sclclient tkbufdump compatibility \
-	filter newscaler varmanager varmanager/server varmanager/scripts
+	filter newscaler varmanager varmanager/server varmanager/scripts \
+	statemanager
 
 
 # scalerdisplay - removed in favor of newscaler
