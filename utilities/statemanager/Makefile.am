@@ -8,7 +8,7 @@ lib_LTLIBRARIES = libstateclient.la
 COMMON_CPPFLAGS=-I@top_srcdir@/utilities/varmanager/server -I@top_srcdir@/base/thread \
 		-I@top_srcdir@/base/os -I@top_srcdir@/base/uri                        \
 		-I@top_srcdir@/base/thread -I@top_srcdir@/servers/portmanager         \
-		-I@top_srcdir@/utilities/varmanager @top_srcdir@/base/sqlite++ 	\
+		-I@top_srcdir@/utilities/varmanager -I@top_srcdir@/base/sqlite++ 	\
 		@SQLITE3_CFLAGS@							\
 		@LIBTCLPLUS_CFLAGS@ @GLIB_CFLAGS@
 
