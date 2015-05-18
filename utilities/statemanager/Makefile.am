@@ -8,6 +8,7 @@ lib_LTLIBRARIES = libstateclient.la
 COMMON_CPPFLAGS=-I@top_srcdir@/utilities/varmanager/server -I@top_srcdir@/base/thread \
 		-I@top_srcdir@/base/os -I@top_srcdir@/base/uri                        \
 		-I@top_srcdir@/base/thread -I@top_srcdir@/servers/portmanager         \
+		-I@top_srcdir@/utilities/varmanager				\
 		@LIBTCLPLUS_CFLAGS@ @GLIB_CFLAGS@
 COMMON_LOADFLAGS= @top_builddir@/utilities/varmanager/server/libvarmgr.la \
 		@top_builddir@/utilities/varmanager/libvardb.la \
