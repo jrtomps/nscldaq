@@ -936,3 +936,8 @@ Work on 11.0-rc11 begins
 	config
 	* If there is no nscldaq-10.x installation then don't do the 
 	evbrdocallouts10 test as it is going to require that.
+11.0-004
+	* Roll in changes from Dave Caussyn (FSU) for the VMUSB SIS3820
+	scaler support.  Specifically when -timestamp is true, use
+	external LNE as well.  Furthermore support configuration in the
+	create command.

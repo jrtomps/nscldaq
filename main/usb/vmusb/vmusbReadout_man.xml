@@ -1159,7 +1159,7 @@ addtcldriver <replaceable>name</replaceable>
          <refsynopsisdiv>
            <cmdsynopsis>
       	 <command>
-sis3820 create <replaceable>name base</replaceable>
+sis3820 create <replaceable>name base ?option value...?</replaceable>
       	 </command>
           </cmdsynopsis>
              <cmdsynopsis>

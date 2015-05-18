@@ -61,7 +61,8 @@ CScalerCommand::~CScalerCommand()
 
 /*!
    Process the command:
-   - Ensure there are exactly 4 command parameters.
+//--ddc may15 NOT  - Ensure there are exactly 4 command parameters.
+   - Ensure there are at LEAST 4 command parameters.
    - Ensure the subcommand is create.
    - Ensure the module name does not already exists.
    - Ensure the base address is a valid uint32_t.
@@ -86,7 +87,11 @@ int
 CScalerCommand:: operator()(CTCLInterpreter& interp, 
 			 std::vector<CTCLObject>& objv)
 {
-  if (objv.size() != 4) {
+  //--ddc may15, make changes to accept the modification for -timestamp
+  //NOTE this did not have 'config' option before, and so the timestamp is
+  //minimally handled in the create function.
+
+  if (objv.size() < 4) {
     Usage("Invalid parameter count", objv);
     return TCL_ERROR;
   }
@@ -113,6 +118,29 @@ CScalerCommand:: operator()(CTCLInterpreter& interp,
   CReadoutHardware* pHardware = new C3820;
   pModule  = new CReadoutModule(name, *pHardware);
   pModule->configure(string("-base"), sBase);
+
+
+  if(objv.size() > 5){
+    int i = 4;			// First unused parameter (option)
+
+    // Require an even number of left over parameters:
+
+    if ((objv.size() - 4) % 2) {
+      Usage("For each configuration parameter there must also be a value", objv);
+      return TCL_ERROR;
+    }
+    // Process the remaining parameter pairs as option/value pairs:
+
+    while(i < objv.size()) {
+
+      string option = objv[i];
+      string value  = objv[i+1];
+      pModule->configure(option, value);
+      i += 2;
+
+    }
+  }
+
 
   m_Config.addScaler(pModule);
   

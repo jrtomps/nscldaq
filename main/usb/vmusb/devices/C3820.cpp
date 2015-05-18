@@ -178,9 +178,27 @@ C3820::Initialize(CVMUSB& controller)
   //  Now set up the initialization list:
 
   CVMUSBReadoutList initList;
+
+  //--ddc NOT clear,  for clearing set this to zero
+  bool tsMode = m_pConfiguration->getBoolParameter("-timestamp");
+  uint32_t clearing;
+  uint32_t lne;
+  uint32_t inpmode;
+
+  if(tsMode){
+    clearing = acqNonClearing; //  Don't clear on latch.
+    lne=acqLNEFP;
+    inpmode=acqInpLNEInhLNE;
+    cout << "We are in timestamp mode, using external LNE(1) and CLEARING IS DISABLED" << endl; 
+  } else {
+    lne=acqLNEVME;
+    inpmode=acqInpLNEInh4s; //inhibit in 4 groups!!
+    clearing = 0; //  clear on latch.
+  }
+    
   initList.addWrite32(base+AcqMode, CVMUSBReadoutList::a32UserData,
-		      acq32Bit    | acqLNEVME     | acqArmWithFP | acqSRAMMemory |
-		       acqInpLNEInh4s | acqOutModeled | acqModeLatch);
+		      acq32Bit    | lne   | acqArmWithFP | acqSRAMMemory |
+		       inpmode | acqOutModeled | acqModeLatch | clearing);
   initList.addWrite32(base+KeyArm, CVMUSBReadoutList::a32UserData, (uint32_t)0);
   initList.addWrite32(base+KeyEnable, CVMUSBReadoutList::a32UserData, (uint32_t)0);
 
