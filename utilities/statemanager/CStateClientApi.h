@@ -52,6 +52,7 @@ private:
     StateQueue            m_StateChanges;
     std::string           m_lastState;           // Cache to not beat on server.
     bool                  m_standalone;
+    std::string           m_programName;
     
     // Canonicals:
     
@@ -94,6 +95,8 @@ private:
     void createApi(const char* uri);
     void createSubscriptions(const char* uri);
     void freeResources();
+    std::string getProgramDirectory();
+    std::string getProgramVar(const char* varname);
     
 };
 

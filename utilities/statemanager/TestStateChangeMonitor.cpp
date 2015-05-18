@@ -44,12 +44,14 @@ class ScmonTests : public CppUnit::TestFixture {
   CPPUNIT_TEST(getModifiedTitle);
   CPPUNIT_TEST(getInitialRunNum);
   CPPUNIT_TEST(getModifiedRunNum);
-  //CPPUNIT_TEST(getInitialRecording);
-  //CPPUNIT_TEST(getModifiedRecording);
-  //CPPUNIT_TEST(getinRing);
-  //CPPUNIT_TEST(getoutRing);
-  //CPPUNIT_TEST(getInitialEnable);
-  //CPPUNIT_TEST(getModifiedEnable);
+  CPPUNIT_TEST(getInitialRecording);
+  CPPUNIT_TEST(getModifiedRecording);
+  CPPUNIT_TEST(getinRing);
+  CPPUNIT_TEST(getModifiedInRing);
+  CPPUNIT_TEST(getoutRing);
+  CPPUNIT_TEST(getModifiedOutRing);
+  CPPUNIT_TEST(getInitialEnable);
+  CPPUNIT_TEST(getModifiedEnable);
   
   
   // Now test changes spotted by the monitor thread.
@@ -73,6 +75,15 @@ protected:
   void getModifiedTitle();
   void getInitialRunNum();
   void getModifiedRunNum();
+  void getInitialRecording();
+  void getModifiedRecording();
+  void getinRing();
+  void getModifiedInRing();
+  void getoutRing();
+  void getModifiedOutRing();
+  void getInitialEnable();
+  void getModifiedEnable();
+  
 private:
     pid_t m_serverPid;
     int m_serverRequestPort;
@@ -373,6 +384,69 @@ void ScmonTests::getModifiedRunNum()
     CStateClientApi api("tcp://localhost", "tcp://localhost", "test");
     m_pApi->set("/RunState/RunNumber", "1234");
     EQ(1234, api.runNumber());
+}
+
+// Recording gflag:
+
+void ScmonTests::getInitialRecording()
+{
+    CStateClientApi api("tcp://localhost", "tcp://localhost", "test");
+    EQ(false, api.recording());
+}
+
+void ScmonTests::getModifiedRecording()
+{
+    m_pApi->set("/RunState/Recording", "true");
+    CStateClientApi api("tcp://localhost", "tcp://localhost", "test");
+    
+    EQ(true, api.recording());
+}
+
+void ScmonTests::getinRing()
+{
+    CStateClientApi api("tcp://localhost", "tcp://localhost", "test");
+    EQ(std::string("tcp://localhost/fox"), api.inring());
+}
+
+void ScmonTests::getModifiedInRing()
+{
+    std::string inringName = "tcp://localhost/fox1";
+    m_pApi->set("/RunState/test/inring", inringName.c_str());
+    
+    CStateClientApi api("tcp://localhost", "tcp://localhost", "test");
+    EQ(inringName, api.inring());
+}
+
+// Output ring:
+
+void ScmonTests::getoutRing()
+{
+    CStateClientApi api("tcp://localhost", "tcp://localhost", "test");
+    EQ(std::string("output"), api.outring());
+}
+void ScmonTests::getModifiedOutRing()
+{
+    m_pApi->set("/RunState/test/outring", "outring");
+    
+    CStateClientApi api("tcp://localhost", "tcp://localhost", "test");
+    EQ(std::string("outring"), api.outring());
+}
+
+
+// Enable flag.
+
+void ScmonTests::getInitialEnable()
+{
+    CStateClientApi api("tcp://localhost", "tcp://localhost", "test");
+    EQ(true, api.isEnabled());
+}
+
+void ScmonTests::getModifiedEnable()
+{
+    m_pApi->set("/RunState/test/enable", "false");
+    
+    CStateClientApi api("tcp://localhost", "tcp://localhost", "test");
+    EQ(false, api.isEnabled());
 }
 /*------------------------------------------------------------------------*/
 // Cause we have libtcl++  -- need to get rid of this somehow.

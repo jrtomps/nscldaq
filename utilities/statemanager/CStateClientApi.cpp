@@ -48,7 +48,8 @@ CStateClientApi::CStateClientApi(
     m_pApi(0),
     m_pSubscriptions(0),
     m_lastState("unknown"),
-    m_standalone(false)
+    m_standalone(false),
+    m_programName(programName)
 {
     m_guard = new CMutex;
     
@@ -60,23 +61,14 @@ CStateClientApi::CStateClientApi(
         
         // Figure out where our program directory is:
         
-        std::string parent = m_pApi->get("/RunState/ReadoutParentDir");
-        if (parent == "") parent = "/RunState";
-        
-        std::string mydir = parent + "/";
-        mydir += programName;
-        
-        m_pApi->cd(mydir.c_str());
-        
-        // Get the standalone state:
-        
-        std::string standalone = m_pApi->get("standalone");
-        m_standalone = standalone == "true" ? true : false;
+        m_standalone = (getProgramVar("standalone") == "true" )? true : false;
         
         // Initial known state -> m_lastState.
+
         
+
         if (m_standalone) {
-            m_lastState = m_pApi->get("State");
+            m_lastState = getProgramVar("State");
         } else {
             m_lastState = m_pApi->get("/RunState/State");
         }
@@ -131,6 +123,47 @@ CStateClientApi::runNumber()
     return atoi(m_pApi->get("/RunState/RunNumber").c_str());
 }
 
+/**
+ * recording
+ *   @return bool - true if the global state Recording flag is "true" false
+ *                  if not.
+ */
+bool
+CStateClientApi::recording()
+{
+    std::string recording = m_pApi->get("/RunState/Recording");
+    return (recording == "true") ? true : false;
+}
+
+/**
+ * inring
+ *   @return std::string - Value of the input ring variable (global state).
+ */
+std::string
+CStateClientApi::inring()
+{
+    return getProgramVar("inring");
+}
+
+/**
+ * outring
+ *  @return std::string - value of the output ring
+ */
+std::string
+CStateClientApi::outring()
+{
+    return getProgramVar("outring");
+}
+
+/**
+ * isEnabled
+ *    @return bool  - true if the program is enabled else false.
+ */
+bool
+CStateClientApi::isEnabled()
+{
+    return (getProgramVar("enable") == "true") ? true : false;
+}
 /*---------------------------------------------------------------------------*/
 /* Private utilities.                                                        */
 
@@ -210,4 +243,36 @@ CStateClientApi::freeResources()
     m_guard = 0;
     m_pApi  = 0;
     m_pSubscriptions = 0;
+}
+/**
+ * getProgramDirectory
+ *    Return our program directory.
+ * @return std::string
+ */
+std::string
+CStateClientApi::getProgramDirectory()
+{
+    std::string parent = m_pApi->get("/RunState/ReadoutParentDir");
+    if (parent == "") parent = "/RunState";
+    
+    parent += "/";
+    parent += m_programName;
+ 
+    return parent;
+}
+/**
+ * getProgramVar
+ *    Get a program variable.
+ *
+ *   @param varname - the variable name
+ *   @return std::string - the value of the var.
+ */
+std::string
+CStateClientApi::getProgramVar(const char* varname)
+{
+    std::string fullVarname = getProgramDirectory();
+    fullVarname += "/";
+    fullVarname += varname;
+    
+    return m_pApi->get(fullVarname.c_str());
 }
