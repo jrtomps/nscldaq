@@ -26,7 +26,7 @@
 #include <CBufferQueue.h>
 #include <string>
 #include <stdexcept>
-#include <thread.h>
+#include <Thread.h>
 
 
 class CVarMgrApi;
@@ -58,7 +58,8 @@ private:
             bool                  m_exit;
         public:
             CMonitorThread(
-                std::string name CStateClientApi* api,
+                std::string name,
+                CStateClientApi* api,
                 CVarMgrSubscriptions* pSubs
             );
             virtual ~CMonitorThread();
@@ -96,7 +97,7 @@ public:
     bool        recording();
     std::string outring();
     std::string inring();
-    Thread
+
     
     bool waitTransition(std::string& newState, int timeout = -1);
     
