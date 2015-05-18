@@ -26,6 +26,8 @@
 #include <CBufferQueue.h>
 #include <string>
 #include <stdexcept>
+#include <thread.h>
+
 
 class CVarMgrApi;
 class CVarMgrSubscriptions;
@@ -43,8 +45,30 @@ class CMutex;
  */
 class CStateClientApi
 {
+
 public:
     typedef CBufferQueue<std::string> StateQueue;
+private:
+        // Thread that monitors state changes:
+    
+    class CMonitorThread : public Thread {
+        private:
+            CStateClientApi*      m_pApi;
+            CVarMgrSubscriptions* m_pSubs;
+            bool                  m_exit;
+        public:
+            CMonitorThread(
+                std::string name CStateClientApi* api,
+                CVarMgrSubscriptions* pSubs
+            );
+            virtual ~CMonitorThread();
+            
+            virtual void run();
+            void scheduleExit();
+        private:
+            void subscribe();
+    };
+    
 private:
     CMutex*               m_guard;
     CVarMgrApi*           m_pApi;
@@ -53,7 +77,7 @@ private:
     std::string           m_lastState;           // Cache to not beat on server.
     bool                  m_standalone;
     std::string           m_programName;
-    
+    CMonitorThread*       m_pMonitor;
     // Canonicals:
     
 public:
@@ -72,6 +96,7 @@ public:
     bool        recording();
     std::string outring();
     std::string inring();
+    Thread
     
     bool waitTransition(std::string& newState, int timeout = -1);
     
@@ -89,14 +114,18 @@ public:
     void updateStandalone(bool newValue);
     bool getStandalone();
     
+    std::string getProgramDirectory();
+    std::string getProgramVar(const char* varname);
+    
     // Utilities:
     
 private:
     void createApi(const char* uri);
     void createSubscriptions(const char* uri);
     void freeResources();
-    std::string getProgramDirectory();
-    std::string getProgramVar(const char* varname);
+    
+    
+
     
 };
 

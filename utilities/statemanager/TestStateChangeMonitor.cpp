@@ -57,6 +57,10 @@ class ScmonTests : public CppUnit::TestFixture {
   // Now test changes spotted by the monitor thread.
   //   Remember standalone is monitored.
   
+  CPPUNIT_TEST(noTransition);
+  //CPPUNIT_TEST(transition);
+  //CPPUNIT_TEST(saloneUpdate);
+  
   // State changes go to the right places and update the cached state.
   
   CPPUNIT_TEST_SUITE_END();
