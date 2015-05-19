@@ -211,10 +211,12 @@ CBufferQueue<T>::wait(int timeout)
 
     status = pthread_cond_timedwait(&m_condition, &mutex(), &abstime);
   }
+  Leave();			// We return owning the semaphore.
+  
   if (status && (status != ETIMEDOUT)) {
     throw CErrnoException("Waiting on buffer queue");
   }
-  Leave();			// We return owning the semaphore.
+ 
 }
 /*!
     Wakes up all threads that are hanging around in wait().

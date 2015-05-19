@@ -26,7 +26,8 @@
 #include <CBufferQueue.h>
 #include <string>
 #include <stdexcept>
-#include <Thread.h>
+#include <CSynchronizedThread.h>
+#include <CGaurdedObject.h>
 
 
 class CVarMgrApi;
@@ -42,8 +43,10 @@ class CMutex;
  *    to be called by the general public but only by classes that
  *    interact to maintain the state monitor, and tests.
  *    These will be indicated in this header.
+ *
+ *    This class should be thread-safe.
  */
-class CStateClientApi
+class CStateClientApi : public CGaurdedObject
 {
 
 public:
@@ -51,11 +54,13 @@ public:
 private:
         // Thread that monitors state changes:
     
-    class CMonitorThread : public Thread {
+    class CMonitorThread : public CSynchronizedThread {
         private:
+            std::string           m_name;
             CStateClientApi*      m_pApi;
             CVarMgrSubscriptions* m_pSubs;
             bool                  m_exit;
+            bool                  m_standalone;
         public:
             CMonitorThread(
                 std::string name,
@@ -64,14 +69,14 @@ private:
             );
             virtual ~CMonitorThread();
             
-            virtual void run();
+            virtual void operator()();
+            virtual void init();
             void scheduleExit();
         private:
-            void subscribe();
+            void subscribe(std::string programPath);
     };
     
 private:
-    CMutex*               m_guard;
     CVarMgrApi*           m_pApi;
     CVarMgrSubscriptions* m_pSubscriptions;
     StateQueue            m_StateChanges;
@@ -97,6 +102,7 @@ public:
     bool        recording();
     std::string outring();
     std::string inring();
+   
 
     
     bool waitTransition(std::string& newState, int timeout = -1);
@@ -108,13 +114,12 @@ public:
         CException(std::string what) noexcept : runtime_error(what) {}
     };
     
+    
     // Not intended for general consumption:
     
 public:
     void postTransition(std::string newState);
     void updateStandalone(bool newValue);
-    bool getStandalone();
-    
     std::string getProgramDirectory();
     std::string getProgramVar(const char* varname);
     
