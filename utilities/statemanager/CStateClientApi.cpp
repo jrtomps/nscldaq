@@ -164,6 +164,36 @@ CStateClientApi::isEnabled()
 {
     return (getProgramVar("enable") == "true") ? true : false;
 }
+/**
+ * waitTransition
+ *   Wait for a transition to be posted to the buffer queue
+ *
+ * @param[out] newState - state after the transition completes.
+ * @param timeout - # milliseconds to wait for timeout (-1 means forever).
+ *
+ * @return bool - false if no transition, true if there was one.
+ */
+bool
+CStateClientApi::waitTransition(std::string& newState, int timeout)
+{
+    m_StateChanges.Enter();
+    m_StateChanges.wait(timeout);
+    std::list<std::string> transitions = m_StateChanges.getAll();
+    m_StateChanges.Leave();
+    
+    if (transitions.empty()) {
+        newState = m_lastState;
+        return false;
+    } else {
+        while (!transitions.empty()) {
+            m_lastState = transitions.front();
+            transitions.pop_front();
+        }
+        newState = m_lastState;
+        return true;
+    }
+    
+}
 /*---------------------------------------------------------------------------*/
 /* Private utilities.                                                        */
 

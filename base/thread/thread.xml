@@ -670,8 +670,9 @@ while(1) {
          <programlisting>
 #include &lt;Thread.h&gt;
          </programlisting>
-         <classsynopsis>
-            <ooclass><classname>Thread</classname></ooclass>
+         
+            <ooclass><classname>Thread</classname></ooclass> 
+    
             <constructorsynopsis>
                 <methodname>Thread()</methodname>
                 <void />
@@ -2206,7 +2207,7 @@ Macros:
 
        <ooclass><classname>
         class CBufferQueue : public CGaurdedObject        
-       </classname></ooclass>
+       </classname></ooclass> {
       <constructorsynopsis>
      <methodname>CBufferQueue</methodname>
      <methodparam>
@@ -2260,7 +2261,9 @@ Macros:
           <modifier></modifier>
           <type>void</type>
           <methodname>wait</methodname>
-          <void />
+          <methodparam>
+            <type>int</type> <parameter>timeout</parameter><initializer>-1</initializer>
+          </methodparam>
           <exceptionname></exceptionname>
           <modifier></modifier>
       </methodsynopsis>
@@ -2271,7 +2274,8 @@ Macros:
           <void />
           <exceptionname></exceptionname>
           <modifier></modifier>
-      </methodsynopsis>  
+      </methodsynopsis>
+      };
    </synopsis>
   </refsynopsisdiv>
   <refsect1>
@@ -2433,18 +2437,19 @@ Macros:
                     <modifier></modifier>
                     <type>void</type>
                     <methodname>wait</methodname>
-                    <void />
+                    <type>int</type> <parameter>timeout</parameter><initializer>-1</initializer>
                     <exceptionname></exceptionname>
                     <modifier></modifier>
                 </methodsynopsis>
             </term>
             <listitem>
                 <para>
-                    Waits for the next wake-up on the queue.  While this
-                    is a public interface, normal applications don't need
-                    to explicitly call this entry as the
-                    <methodname>get</methodname> method
-                    automatically calls it.
+                    Waits for the next wake-up on the queue.  The
+                    <parameter>timeout</parameter> parameter specifies a maximum
+                    number of milliseconds to wait for the queue to be signalled
+                    as not empty.  If <parameter>timeout</parameter> is
+                    <literal>-1</literal> (the default), there is limit to the time
+                    the caller can block.
                 </para>
             </listitem>
         </varlistentry>

@@ -21,6 +21,7 @@
 #endif
 
 #include <ErrnoException.h>
+#include <sys/time.h>
 
 /*!  Construct the base class. we just need to set the initial value of
   the high water mark for waiters.  Note that there are two ways that
@@ -183,15 +184,34 @@ while (m_queue.empty()) {
    // and now it owns the queue semaphore with entries in the queue.
 
 \endverbatim
-
+@param timeout - number of milli-seconds to wait for the signal.  -1 means no timeout.
 
 */
 template<class T> void
-CBufferQueue<T>::wait()
+CBufferQueue<T>::wait(int timeout)
 {
   Enter();			// Blocking on the condition var requires this.
-  int status = pthread_cond_wait(&m_condition, &mutex());
-  if (status) {
+  int status;
+  if (timeout == -1) {
+    status = pthread_cond_wait(&m_condition, &mutex());
+  } else {
+    struct timespec abstime;
+    struct timeval  now;
+    gettimeofday(&now, NULL);
+    
+    abstime.tv_sec = now.tv_sec;
+    abstime.tv_nsec = now.tv_usec + (timeout * 1000  * 1000); // timeout in sec.
+
+    // Carry the seconds --
+
+    if (abstime.tv_nsec > (1000*1000*1000)) {
+      abstime.tv_sec += abstime.tv_nsec / (1000*1000*1000);
+      abstime.tv_nsec = (abstime.tv_nsec) % (1000*1000*1000);
+    }
+
+    status = pthread_cond_timedwait(&m_condition, &mutex(), &abstime);
+  }
+  if (status && (status != ETIMEDOUT)) {
     throw CErrnoException("Waiting on buffer queue");
   }
   Leave();			// We return owning the semaphore.

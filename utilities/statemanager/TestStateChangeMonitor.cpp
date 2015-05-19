@@ -57,9 +57,12 @@ class ScmonTests : public CppUnit::TestFixture {
   // Now test changes spotted by the monitor thread.
   //   Remember standalone is monitored.
   
-  //CPPUNIT_TEST(noTransition);
-  //CPPUNIT_TEST(transition);
-  //CPPUNIT_TEST(saloneUpdate);
+  CPPUNIT_TEST(noTransition);
+  CPPUNIT_TEST(transition);
+  //CPPUNIT_TEST(multitransition);
+  //CPPUNIT_TEST(saloneNoTransition);
+  //CPPUNIT_TEST(saloneTransition);
+  //CPPUNIT_TEST(saloneMultitransition);
   
   // State changes go to the right places and update the cached state.
   
@@ -88,6 +91,8 @@ protected:
   void getInitialEnable();
   void getModifiedEnable();
   
+  void noTransition();
+  void transition();
 private:
     pid_t m_serverPid;
     int m_serverRequestPort;
@@ -452,6 +457,32 @@ void ScmonTests::getModifiedEnable()
     CStateClientApi api("tcp://localhost", "tcp://localhost", "test");
     EQ(false, api.isEnabled());
 }
+
+// Transition notification queue:
+
+// If there are no transitions, waitTransition returns false.
+
+void ScmonTests::noTransition()
+{
+    CStateClientApi api("tcp://localhost", "tcp://localhost", "test");
+    
+    std::string newState;
+    
+    ASSERT(! api.waitTransition(newState, 100));
+}
+// Transition from 0Initial to Readying:
+
+void ScmonTests::transition()
+{
+    CStateClientApi api("tcp://localhost", "tcp://localhost", "test");
+    
+    m_pApi->set("/RunState/State", "Readying");
+    
+    std::string newState;
+    ASSERT(api.waitTransition(newState, 1000));   // should know within a second.
+    EQ(std::string("Readying"), newState);
+}
+
 /*------------------------------------------------------------------------*/
 // Cause we have libtcl++  -- need to get rid of this somehow.
 void* gpTCLApplication(0);
