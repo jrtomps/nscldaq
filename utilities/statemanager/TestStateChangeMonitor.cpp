@@ -58,7 +58,7 @@ class ScmonTests : public CppUnit::TestFixture {
   //   Remember standalone is monitored.
   
   CPPUNIT_TEST(noTransition);
-  CPPUNIT_TEST(transition);
+  //CPPUNIT_TEST(transition);
   //CPPUNIT_TEST(multitransition);
   //CPPUNIT_TEST(saloneNoTransition);
   //CPPUNIT_TEST(saloneTransition);
