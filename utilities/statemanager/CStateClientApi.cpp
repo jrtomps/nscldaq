@@ -465,7 +465,7 @@ CStateClientApi::CMonitorThread::operator()()
             if(m.s_operation == "ASSIGN") {
                 
                 if (m.s_path == standaloneVar) {
-                    bool m_standalone = (m.s_data == "true") ? true : false;
+                    m_standalone = (m.s_data == "true") ? true : false;
                     m_pApi->updateStandalone(m_standalone);
                 } else if (
                     (m_standalone && (m.s_path == localStateVar)) ||

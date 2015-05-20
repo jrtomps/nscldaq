@@ -59,10 +59,10 @@ class ScmonTests : public CppUnit::TestFixture {
   
   CPPUNIT_TEST(noTransition);
   CPPUNIT_TEST(transition);
-  //CPPUNIT_TEST(multitransition);
-  //CPPUNIT_TEST(saloneNoTransition);
-  //CPPUNIT_TEST(saloneTransition);
-  //CPPUNIT_TEST(saloneMultitransition);
+  CPPUNIT_TEST(multitransition);
+  CPPUNIT_TEST(saloneNoTransition);
+  CPPUNIT_TEST(saloneGlobalTransition);
+  CPPUNIT_TEST(saloneTransition);
   
   // State changes go to the right places and update the cached state.
   
@@ -93,6 +93,10 @@ protected:
   
   void noTransition();
   void transition();
+  void multitransition();
+  void saloneNoTransition();
+  void saloneGlobalTransition();
+  void saloneTransition();
 private:
     pid_t m_serverPid;
     int m_serverRequestPort;
@@ -483,6 +487,63 @@ void ScmonTests::transition()
     EQ(std::string("Readying"), newState);
 }
 
+// For multiple transitions we should get the last one:
+
+void ScmonTests::multitransition()
+{
+    CStateClientApi api("tcp://localhost", "tcp://localhost", "test");
+    
+    m_pApi->set("/RunState/State", "Readying");
+    m_pApi->set("/RunState/State", "Ready");
+    usleep(100);                                   // Give the monitor thread time to see
+    std::string newState;                          // both notifications...
+    ASSERT(api.waitTransition(newState, 1000));   // should know within a second.
+    
+    EQ(std::string("Ready"), newState);
+}
+
+// Standalone with no transitions should still update the m_standalone var:
+
+void ScmonTests::saloneNoTransition()
+{
+    CStateClientApi api("tcp://localhost", "tcp://localhost", "test");
+    
+    m_pApi->set("/RunState/test/standalone", "true");
+    std::string newState;
+    ASSERT(!api.waitTransition(newState, 1000));
+    
+    EQ(true, api.isStandalone());
+}
+// Standalone mode should ignore global transitions:
+
+void ScmonTests::saloneGlobalTransition()
+{
+    CStateClientApi api("tcp://localhost", "tcp://localhost", "test");
+    
+    m_pApi->set("/RunState/test/standalone", "true");
+    m_pApi->set("/RunState/State", "Readying");
+    
+    std::string newState;
+    ASSERT(!api.waitTransition(newState, 1000));
+    
+    EQ(true, api.isStandalone());
+}
+
+// On the other hand transitions on the local state variable won't be ignored
+// in local mode:
+
+void ScmonTests::saloneTransition()
+{
+    CStateClientApi api("tcp://localhost", "tcp://localhost", "test");
+    
+    m_pApi->set("/RunState/test/standalone", "true");
+    m_pApi->set("/RunState/test/State", "NotReady");
+    
+    std::string newState;
+    ASSERT(api.waitTransition(newState, 1000));
+    EQ(std::string("NotReady"), newState);
+    EQ(true, api.isStandalone());
+}
 /*------------------------------------------------------------------------*/
 // Cause we have libtcl++  -- need to get rid of this somehow.
 void* gpTCLApplication(0);
