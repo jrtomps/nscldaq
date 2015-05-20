@@ -23,14 +23,14 @@ COMMON_LOADFLAGS= @top_builddir@/utilities/varmanager/server/libvarmgr.la \
 
 #
 
-libstateclient_la_SOURCES=CStateClientApi.cpp CStateChangeMonitorThread.cpp CStateChangeMonitorThread.h
+libstateclient_la_SOURCES=CStateClientApi.cpp CStateTransitionMonitor.cpp
 libstateclient_la_CPPFLAGS=$(COMMON_CPPFLAGS)
 libstateclient_la_LDFALGS=$(COMMON_LOADFLAGS)
 
 
 # Headers for public APIS:
 
-include_HEADERS = CStateClientApi.h
+include_HEADERS = CStateClientApi.h CStateTransitionMonitor.h
 
 
 
