@@ -41,7 +41,7 @@ include_HEADERS = CStateClientApi.h CStateTransitionMonitor.h
 
 noinst_PROGRAMS=unittests
 
-unittests_SOURCES=TestRunner.cpp Asserts.h TestStateChangeMonitor.cpp
+unittests_SOURCES=TestRunner.cpp Asserts.h TestStateChangeMonitor.cpp changeMonitorTests.cpp
 
 unittests_CPPFLAGS=$(COMMON_CPPFLAGS) $(CPPUNIT_CFLAGS) -DBINDIR=\"@bindir@\"
 unittests_LDFLAGS=libstateclient.la $(COMMON_LOADFLAGS) $(CPPUNIT_LDFLAGS)
