@@ -104,6 +104,8 @@ CStateClientApi::~CStateClientApi()
     
     m_pMonitor->scheduleExit();
     m_pMonitor->join();
+    delete m_pMonitor;
+    m_pMonitor = 0;
     
     //  Deallocate dynamic storage.
     

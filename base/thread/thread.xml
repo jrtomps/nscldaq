@@ -667,12 +667,12 @@ while(1) {
       </refnamediv>
       
       <refsynopsisdiv>
-         <programlisting>
+         <synopsis>
 #include &lt;Thread.h&gt;
-         </programlisting>
-         
-            <ooclass><classname>Thread</classname></ooclass> 
     
+         
+     class <ooclass><classname>Thread</classname></ooclass> 
+ {   
             <constructorsynopsis>
                 <methodname>Thread()</methodname>
                 <void />
@@ -718,7 +718,8 @@ while(1) {
                                              <void /> <modifier>= 0</modifier>
             </methodsynopsis>
 
-         </classsynopsis>
+  };
+  </synopsis>
       </refsynopsisdiv>
       <refsect1>
          <title>Description</title>
@@ -862,7 +863,218 @@ while(1) {
       </refsect1>
 
    </refentry>
+<refentry id="daq3_csynchronizedthread">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='daq3_csynchronizedthread_title'>CSynchronizedThread</refentrytitle>
+     <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>CSynchronizedThread</refname>
+     <refpurpose>Thread with synchronized start up.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+#include &lt;CSynchronizedThread.h&gt;
+       class <ooclass><classname>CSynchronizedThread</classname></ooclass> : public Thread
+{
+    <constructorsynopsis>
+       <methodname>CSynchronizedThread</methodname>
+       <void />
+    </constructorsynopsis>
+   <methodsynopsis>
+       <modifier></modifier>
+       <type>void </type>
+       <methodname>start</methodname>
+       <void />
+       <modifier></modifier>
+   </methodsynopsis>  
+   <methodsynopsis>
+       <modifier>virtual </modifier>
+       <type>void </type>
+       <methodname>run</methodname>
+       <void />
+       <modifier></modifier>
+   </methodsynopsis>  
+   <methodsynopsis>
+       <modifier>virtual </modifier>
+       <type>void </type>
+       <methodname>init</methodname>
+       <void />
+       <modifier></modifier>
+   </methodsynopsis>  
+   <methodsynopsis>
+       <modifier>virtual </modifier>
+       <type>void </type>
+       <methodname>operator()</methodname>
+       <void />       
+       <modifier>= 0</modifier>
+   </methodsynopsis>
+};
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        Sometimes, when starting a thread it is useful to synchronize with that
+        thread's initialization.  For exmample, if you will
+        <methodname>join</methodname> to the exit of a thread, calling
+        <methodname>join</methodname> will complete immediately if the thread
+        had no actually started executing.
+     </para>
+     <para>
+        This class does that automatically by overrideing the
+        <methodname>start</methodname> and
+        <methodname>run</methodname> methods of the
+        <classname>Thread</classname> class.  The
+        <methodname>run</methodname> method will first
+        invoke a new <methodname>init</methodname> method,
+        assumed to do any initialization required and then
+        signal a condition variable on wich
+        <methodname>run</methodname> is blocked.  The
+        <methodname>operator()</methodname> must be overridden
+        to provide the actual thread body.
+     </para>
+     <para>
+        Thus, when <methodname>run</methodname> returns, the caller knows
+        that not only has the thread actualy started executing, but the
+        <methodname>init</methodname> method has completed.
+     </para>
+     <para>
+        A concrete synchronized thread will therefore:   
+     </para>
+     <itemizedlist>
+        <listitem><para>
+            Override <methodname>operator()</methodname> to provide the main
+            body of the thread.
+        </para></listitem>
+        <listitem><para>
+            Optionally override the <methodname>init</methodname> operator
+            to perform any intialization that must be done before the
+            parent thread is allowed to continue execution.
+        </para></listitem>
+     </itemizedlist>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <constructorsynopsis>
+                   <methodname>CSynchronizedThread</methodname>
+                   <void />
+                </constructorsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Constructs a thread object. Note that often you want
+                    to pass data from the creating thread to the called thread.
+                    This can be done a construction time by parameterizing
+                    the constructor.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                   <modifier></modifier>
+                   <type>void </type>
+                   <methodname>start</methodname>
+                   <void />
+                   <modifier></modifier>
+               </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Schedules the thread to be started and blocks until
+                    the thread's <methodname>init</methodname>
+                    method has completed.   This is the parent side of
+                    the synchronization performed on this thread.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                 <methodsynopsis>
+                   <modifier>virtual </modifier>
+                   <type>void </type>
+                   <methodname>run</methodname>
+                   <void />
+                   <modifier></modifier>
+               </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Entry point for the thread.  If a derived thread overrides
+                    this, it should be sure to invoke this method, as that's
+                    where the child side of the synchronization is performed:
+                </para>
+                <para>
+                    <methodname>run</methodname> invoks <methodname>init</methodname>,
+                    then signals the condition variable on which the parent thread
+                    is waiting and then finally invokes the thread's main entry point;
+                    <methodname>operator()</methodname>
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                   <modifier>virtual </modifier>
+                   <type>void </type>
+                   <methodname>init</methodname>
+                   <void />
+                   <modifier></modifier>
+               </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    In this base class, <methodname>init</methodname>
+                    does nothing.  Derived classes can override
+                    it to perform any operations desired prior to
+                    unblocking the parent's thread (blocked in the
+                    <methodname>start</methodname> method).
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                   <modifier>virtual </modifier>
+                   <type>void </type>
+                   <methodname>operator()</methodname>
+                   <void />       
+                   <modifier>= 0</modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    This method must be overriden in concrete classes.
+                    It runs in the child thread and when entered, you know
+                    that the parent thread has been unblocked from
+                    <methodname>start</methodname> (this is not the same
+                    as knowing the parent thread has actually returned from
+                    <methodname>start</methodname>).
+                </para>
+            </listitem>
+        </varlistentry>               
+     </variablelist>
+  </refsect1>
 
+</refentry>     
     <refentry id="manpage.synchronizable">
       <refmeta>
          <refentrytitle>Synchronizable</refentrytitle>
@@ -2424,7 +2636,7 @@ Macros:
             </term>
             <listitem>
                 <para>
-                    Changes the queeu wake <parameter>level</parameter>.
+                    Changes the queue wake <parameter>level</parameter>.
                     For a discussion  of the meaning of the queue
                     wake level see the description of the constructor
                     above.
@@ -2437,8 +2649,9 @@ Macros:
                     <modifier></modifier>
                     <type>void</type>
                     <methodname>wait</methodname>
-                    <type>int</type> <parameter>timeout</parameter><initializer>-1</initializer>
-                    <exceptionname></exceptionname>
+                    <methodparam>    
+                        <type>int</type> <parameter>timeout</parameter><initializer>-1</initializer>
+                    </methodparam>
                     <modifier></modifier>
                 </methodsynopsis>
             </term>
