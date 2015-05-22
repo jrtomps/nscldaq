@@ -22,8 +22,26 @@ class changeMonitorTests : public CppUnit::TestFixture {
   
   CPPUNIT_TEST(allPrograms1Default);
   CPPUNIT_TEST(allProgramsSeveralDefault);
-  //CPPUNIT_TEST(allPrograms1Changed);
-  //CPPUNIT_TEST(allProgramsSeveralChanged);
+  CPPUNIT_TEST(allPrograms1Changed);
+  CPPUNIT_TEST(allProgramsSeveralChanged);
+  
+  CPPUNIT_TEST(activePrograms1Default);
+  CPPUNIT_TEST(inactiveProgramsDefault);
+  CPPUNIT_TEST(activeProgramsSeveralDefault);
+  CPPUNIT_TEST(activeProgramsSomeInactiveDefault);
+  
+  CPPUNIT_TEST(activePrograms1Changed);
+  CPPUNIT_TEST(inactiveProgramsChanged);
+  CPPUNIT_TEST(activeProgramsSeveralChanged);
+  CPPUNIT_TEST(activeProgramsSomeInactiveChanged);
+
+  CPPUNIT_TEST(standaloneDefault);
+  CPPUNIT_TEST(notStandaloneDefault);
+  CPPUNIT_TEST(saloneNoSuchDefault);
+  CPPUNIT_TEST(standaloneChanged);
+  //CPPUNIT_TEST(notStandaloneChanged);
+  //CPPUNIT_TEST(saloneNoSuchChanged);
+  
   CPPUNIT_TEST_SUITE_END();
 
 protected:
@@ -32,6 +50,23 @@ protected:
 
     void allPrograms1Default();
     void allProgramsSeveralDefault();
+    void allPrograms1Changed();
+    void allProgramsSeveralChanged();
+    
+    void activePrograms1Default();
+    void inactiveProgramsDefault();
+    void activeProgramsSeveralDefault();
+    void activeProgramsSomeInactiveDefault();
+    
+    void activePrograms1Changed();
+    void inactiveProgramsChanged();
+    void activeProgramsSeveralChanged();
+    void activeProgramsSomeInactiveChanged();
+    
+    void standaloneDefault();
+    void notStandaloneDefault();
+    void saloneNoSuchDefault();
+    void standaloneChanged();
 private:
     pid_t m_serverPid;
     int m_serverRequestPort;
@@ -260,4 +295,202 @@ void changeMonitorTests::allProgramsSeveralDefault()
     EQ(size_t(2), pgms.size());
     EQ(std::string("test"), pgms[0]);
     EQ(std::string("zzz"), pgms[1]);
+}
+
+// one program but in a different directory from the default:
+
+void changeMonitorTests::allPrograms1Changed()
+{
+    m_pApi->mkdir("/programs");
+    makeProgram("/programs", "atest");
+    m_pApi->set("/RunState/ReadoutParentDir", "/programs");
+    
+    CStateTransitionMonitor mon("tcp://localhost", "tcp://localhost");
+    std::vector<std::string> pgms = mon.allPrograms();
+    
+    EQ(size_t(1), pgms.size());
+    EQ(std::string("atest"), pgms[0]);
+}
+// two programs but not in the default dir:
+
+void changeMonitorTests::allProgramsSeveralChanged()
+{
+    m_pApi->mkdir("/programs");
+    makeProgram("/programs", "atest");
+    makeProgram("/programs", "zztest");
+    m_pApi->set("/RunState/ReadoutParentDir", "/programs");
+    
+    CStateTransitionMonitor mon("tcp://localhost", "tcp://localhost");
+    std::vector<std::string> pgms = mon.allPrograms();
+    
+    EQ(size_t(2), pgms.size());
+    EQ(std::string("atest"), pgms[0]);
+    EQ(std::string("zztest"), pgms[1]);
+}
+
+// A program in the default dir that is active:
+
+void changeMonitorTests::activePrograms1Default()
+{
+    CStateTransitionMonitor mon("tcp://localhost", "tcp://localhost");
+    std::vector<std::string> pgms = mon.activePrograms();
+    
+    EQ(size_t(1), pgms.size());
+    EQ(std::string("test"), pgms[0]);
+}
+
+// No active programs either due to disabled or standalone:
+
+void changeMonitorTests::inactiveProgramsDefault()
+{
+    m_pApi->set("/RunState/test/enable", "false");   // Disabled
+    
+    CStateTransitionMonitor mon("tcp://localhost", "tcp://localhost");
+    std::vector<std::string> pgms = mon.activePrograms();
+    
+    EQ(size_t(0), pgms.size());
+    
+    m_pApi->set("/RunState/test/enable", "true");  // Enabled but...
+    m_pApi->set("/RunState/test/standalone", "true"); // Standalone:
+    
+    pgms = mon.activePrograms();
+    EQ(size_t(0), pgms.size());
+}
+// Several programs (2) all of them standalone:
+
+void changeMonitorTests::activeProgramsSeveralDefault()
+{
+    makeProgram("/RunState", "anotherTest");
+    
+    CStateTransitionMonitor mon("tcp://localhost", "tcp://localhost");
+    std::vector<std::string> pgms = mon.activePrograms();
+    
+    EQ(size_t(2), pgms.size());
+    EQ(std::string("anotherTest"), pgms[0]);   // They come out alpha.
+    EQ(std::string("test"), pgms[1]);
+    
+}
+// Several programs filter out the disabled:
+
+void changeMonitorTests::activeProgramsSomeInactiveDefault()
+{
+    makeProgram("/RunState", "anotherTest");
+    makeProgram("/RunState", "zzztest");
+    
+    m_pApi->set("/RunState/test/enable", "false");
+    
+    CStateTransitionMonitor mon("tcp://localhost", "tcp://localhost");
+    std::vector<std::string> pgms = mon.activePrograms();
+    
+    EQ(size_t(2), pgms.size());
+    EQ(std::string("anotherTest"), pgms[0]);   // They come out alpha.
+    EQ(std::string("zzztest"), pgms[1]);
+}
+
+// 1 active program but not in the default dir:
+
+void changeMonitorTests::activePrograms1Changed()
+{
+    m_pApi->set("/RunState/ReadoutParentDir", "/programs");
+    m_pApi->mkdir("/programs");
+    
+    makeProgram("/programs", "atest");
+    
+    CStateTransitionMonitor mon("tcp://localhost", "tcp://localhost");
+    std::vector<std::string> pgms = mon.activePrograms();
+    EQ(size_t(1), pgms.size());
+    EQ(std::string("atest"), pgms[0]);
+}
+
+// 1 program, inactive in non default dir:
+
+void changeMonitorTests::inactiveProgramsChanged()
+{
+    m_pApi->set("/RunState/ReadoutParentDir", "/programs");
+    m_pApi->mkdir("/programs");
+    
+    makeProgram("/programs", "atest");
+    m_pApi->set("/programs/atest/enable", "false");  // Disable.
+    
+    CStateTransitionMonitor mon("tcp://localhost", "tcp://localhost");
+    std::vector<std::string> pgms = mon.activePrograms();
+    EQ(size_t(0), pgms.size());
+}
+
+// Several active programs in non default dir:
+
+void changeMonitorTests::activeProgramsSeveralChanged()
+{
+    m_pApi->set("/RunState/ReadoutParentDir", "/programs");
+    m_pApi->mkdir("/programs");
+    
+    makeProgram("/programs", "atest");
+    makeProgram("/programs", "btest");
+    makeProgram("/programs", "ztest");
+    
+    CStateTransitionMonitor mon("tcp://localhost", "tcp://localhost");
+    std::vector<std::string> pgms = mon.activePrograms();
+    EQ(size_t(3), pgms.size());
+    EQ(std::string("atest"), pgms[0]);
+    EQ(std::string("btest"), pgms[1]);
+    EQ(std::string("ztest"), pgms[2]);
+}
+// Now some of those are inactive:
+
+void changeMonitorTests::activeProgramsSomeInactiveChanged()
+{
+    m_pApi->set("/RunState/ReadoutParentDir", "/programs");
+    m_pApi->mkdir("/programs");
+    
+    makeProgram("/programs", "atest");
+    makeProgram("/programs", "btest");
+    makeProgram("/programs", "ztest");
+    
+    // Disbable btest:
+    
+    m_pApi->set("/programs/btest/enable", "false");
+    
+    CStateTransitionMonitor mon("tcp://localhost", "tcp://localhost");
+    std::vector<std::string> pgms = mon.activePrograms();
+    EQ(size_t(2), pgms.size());
+    EQ(std::string("atest"), pgms[0]);
+    EQ(std::string("ztest"), pgms[1]);
+}
+
+// Test isStandalone()
+
+void changeMonitorTests::standaloneDefault()
+{
+    m_pApi->set("/RunState/test/standalone", "true");
+    
+    CStateTransitionMonitor mon("tcp://localhost", "tcp://localhost");
+    ASSERT(mon.isStandalone("test"));
+}
+
+void changeMonitorTests::notStandaloneDefault()
+{
+    CStateTransitionMonitor mon("tcp://localhost", "tcp://localhost");
+    ASSERT(!mon.isStandalone("test"));
+    
+}
+void changeMonitorTests::saloneNoSuchDefault()
+{
+    CStateTransitionMonitor mon("tcp://localhost", "tcp://localhost");
+    CPPUNIT_ASSERT_THROW(
+        mon.isStandalone("junk"),
+        std::runtime_error
+    );
+}
+// Now the same tests when programs are not in /RunState
+
+void changeMonitorTests::standaloneChanged()
+{
+    m_pApi->set("/RunState/ReadoutParentDir", "/programs");
+    m_pApi->mkdir("/programs");
+    makeProgram("/programs", "atest");
+    
+    m_pApi->set("/programs/atest/standalone", "true");
+    
+    CStateTransitionMonitor mon("tcp://localhost", "tcp://localhost");
+    ASSERT(mon.isStandalone("atest"));
 }

@@ -94,7 +94,48 @@ CStateTransitionMonitor::allPrograms()
     
     return result;
 }
+/**
+ * activeProgramsd
+ *   Filters the results from allPrograms to only those that are active.
+ *   active programs are those with either enabled false or standalone true
+ *   In either case, the program is not participating in global state tansitions.
+ *
+ * @return std::vector<std::string> names of active programs.
+ */
+std::vector<std::string>
+CStateTransitionMonitor::activePrograms()
+{
+    std::vector<std::string> all = allPrograms();
+    std::vector<std::string> result;
+    for (int i = 0; i < all.size(); i++) {
+        if (isActive(all[i])) {
+            result.push_back(all[i]);
+        }
+    }
+    return result;
+}
+/**
+ * isStandalone
+ *   @param name - name of a program.
+ *   @return bool - True if that program's standalone flag is true.
+ */
+bool
+CStateTransitionMonitor::isStandalone(const char* name)
+{
+    std::string programPath = m_programParentPath;
+    programPath += "/";
+    programPath += name;
+    
+    std::string wd = m_pRequestApi->getwd();
+    m_pRequestApi->cd(programPath.c_str());
+    
+    bool result  = getBool("standalone");
+    
+    m_pRequestApi->cd(wd.c_str());
+    
+    return result;
 
+}
 /*-----------------------------------------------------------------------------
  * Private utilities:
  */
@@ -177,4 +218,41 @@ CStateTransitionMonitor::releaseResources()
     
     m_pRequestApi = 0;
     m_pSubscriptions = 0;
+}
+
+/**
+ * isActive
+ *   Given a program name return true if the program is both enabled and
+ *   not standalone.
+ *
+ * @param name - Program name.
+ * @return bool
+ */
+bool
+CStateTransitionMonitor::isActive(std::string name)
+{
+    std::string fullPath = m_programParentPath;
+    fullPath += "/";
+    fullPath += name;
+    
+    std::string wd =m_pRequestApi->getwd();
+    m_pRequestApi->cd(fullPath.c_str());
+    
+    bool enabled = getBool("enable");
+    bool salone  = getBool("standalone");
+    
+    m_pRequestApi->cd(wd.c_str());
+    return (enabled && (!salone));
+}
+/**
+ * getBool
+ *   Return the value of a boolean variable:
+ *
+ * @param name - Name of the var.
+ * @return bool
+ */
+bool
+CStateTransitionMonitor::getBool(std::string name)
+{
+    return (m_pRequestApi->get(name.c_str()) == "true") ? true : false;
 }

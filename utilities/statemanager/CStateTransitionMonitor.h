@@ -143,5 +143,7 @@ private:
     void createSubAPI(const char* uri);
     void locateParentPath();
     void releaseResources();
+    bool isActive(std::string name);
+    bool getBool(std::string name);
 };
 #endif
