@@ -39,8 +39,8 @@ class changeMonitorTests : public CppUnit::TestFixture {
   CPPUNIT_TEST(notStandaloneDefault);
   CPPUNIT_TEST(saloneNoSuchDefault);
   CPPUNIT_TEST(standaloneChanged);
-  //CPPUNIT_TEST(notStandaloneChanged);
-  //CPPUNIT_TEST(saloneNoSuchChanged);
+  CPPUNIT_TEST(notStandaloneChanged);
+  CPPUNIT_TEST(saloneNoSuchChanged);
   
   CPPUNIT_TEST_SUITE_END();
 
@@ -67,6 +67,8 @@ protected:
     void notStandaloneDefault();
     void saloneNoSuchDefault();
     void standaloneChanged();
+    void notStandaloneChanged();
+    void saloneNoSuchChanged();
 private:
     pid_t m_serverPid;
     int m_serverRequestPort;
@@ -493,4 +495,25 @@ void changeMonitorTests::standaloneChanged()
     
     CStateTransitionMonitor mon("tcp://localhost", "tcp://localhost");
     ASSERT(mon.isStandalone("atest"));
+}
+
+void changeMonitorTests::notStandaloneChanged()
+{
+    m_pApi->set("/RunState/ReadoutParentDir", "/programs");
+    m_pApi->mkdir("/programs");
+    makeProgram("/programs", "atest");
+    
+    CStateTransitionMonitor mon("tcp://localhost", "tcp://localhost");
+    ASSERT(!mon.isStandalone("atest"));
+}
+void changeMonitorTests::saloneNoSuchChanged()
+{
+    m_pApi->set("/RunState/ReadoutParentDir", "/programs");
+    m_pApi->mkdir("/programs");
+    
+    CStateTransitionMonitor mon("tcp://localhost", "tcp://localhost");
+    CPPUNIT_ASSERT_THROW(
+        mon.isStandalone("test"),
+        std::runtime_error
+    );
 }

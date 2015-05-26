@@ -113,6 +113,21 @@ CStateClientApi::~CStateClientApi()
     freeResources();
     
 }
+/**
+ * setState
+ *    Change the program's state.
+ *
+ *  @param newState - the new state to set.
+ */
+void
+CStateClientApi::setState(std::string newState)
+{
+    std::string stateVar = getProgramVarPath("State");
+    Enter();
+    m_pApi->set(stateVar.c_str(), newState.c_str());
+    m_lastState = newState;
+    Leave();
+}
 
 /**
  * title
@@ -375,12 +390,26 @@ std::string
 CStateClientApi::getProgramVar(const char* varname)
 {
     Enter();
-    std::string fullVarname = getProgramDirectory();
-    fullVarname += "/";
-    fullVarname += varname;
+    std::string fullVarname = getProgramVarPath(varname);
     std::string value = m_pApi->get(fullVarname.c_str());
     Leave();
     return  value;
+}
+
+
+/**
+ * getProgramVarPath
+ *   @param varname program variable name.
+ *   @return std::string full path to that variable.
+ */
+std::string
+CStateClientApi::getProgramVarPath(const char* varname)
+{
+    std::string fullVarname = getProgramDirectory();
+    fullVarname += "/";
+    fullVarname += varname;
+    
+    return fullVarname;
 }
 
 /*------------------------------------------------------------------------
@@ -501,3 +530,5 @@ CStateClientApi::CMonitorThread::subscribe(std::string path)
     standalone += "/standalone";
     m_pSubs->subscribe(standalone.c_str());          // Standalone/global flag.
 }
+
+

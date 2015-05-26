@@ -130,6 +130,7 @@ private:
     void createSubscriptions(const char* uri);
     void freeResources();
     
+    std::string getProgramVarPath(const char* varname);
     
 
     

@@ -64,7 +64,10 @@ class ScmonTests : public CppUnit::TestFixture {
   CPPUNIT_TEST(saloneGlobalTransition);
   CPPUNIT_TEST(saloneTransition);
   
-  // State changes go to the right places and update the cached state.
+  // We can initiate state changes.
+  
+  CPPUNIT_TEST(changeState);
+  CPPUNIT_TEST(changeStateWithNotify);
   
   CPPUNIT_TEST_SUITE_END();
 
@@ -97,6 +100,9 @@ protected:
   void saloneNoTransition();
   void saloneGlobalTransition();
   void saloneTransition();
+  
+  void changeState();
+  void changeStateWithNotify();
 private:
     pid_t m_serverPid;
     int m_serverRequestPort;
@@ -543,6 +549,31 @@ void ScmonTests::saloneTransition()
     ASSERT(api.waitTransition(newState, 1000));
     EQ(std::string("NotReady"), newState);
     EQ(true, api.isStandalone());
+}
+
+// State changes should not only modify the state but the cached state.
+
+void ScmonTests::changeState()
+{
+    CStateClientApi api("tcp://localhost", "tcp://localhost", "test");
+    api.setState("Active");
+    
+    EQ(std::string("Active"), m_pApi->get("/RunState/test/State"));
+    EQ(std::string("Active"), api.getState());
+}
+
+// State changes in standalone mode get notified...regardess of source.
+
+void ScmonTests::changeStateWithNotify()
+{
+    CStateClientApi api("tcp://localhost", "tcp://localhost", "test");
+    m_pApi->set("/RunState/test/standalone", "true");
+    
+    api.setState("Active");
+    
+    std::string newState;
+    ASSERT(api.waitTransition(newState, 1000));
+    EQ(std::string("Active"), newState);
 }
 /*------------------------------------------------------------------------*/
 // Cause we have libtcl++  -- need to get rid of this somehow.
