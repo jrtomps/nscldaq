@@ -42,6 +42,21 @@ class changeMonitorTests : public CppUnit::TestFixture {
   CPPUNIT_TEST(notStandaloneChanged);
   CPPUNIT_TEST(saloneNoSuchChanged);
   
+  CPPUNIT_TEST(enabled);
+  CPPUNIT_TEST(notEnabled);
+  CPPUNIT_TEST(enabledChanged);
+  CPPUNIT_TEST(notEnabledChanged);
+  
+  CPPUNIT_TEST(transitionTimeout);
+  CPPUNIT_TEST(modifiedTranstionTimeout);
+  CPPUNIT_TEST(setTimeout);
+  
+  // CPPUNIT_TEST(notification1);
+  // CPPUNIT_TEST(notificationMany);
+  // CPPUNIT_TEST(notificationLimited);
+  // CPPUNIT_TEST(saNotification1);
+  // CPPUNIT_TEST(saNotificationMany);
+  // CPPUNIT_TEST(saNotificationLimited);
   CPPUNIT_TEST_SUITE_END();
 
 protected:
@@ -69,6 +84,15 @@ protected:
     void standaloneChanged();
     void notStandaloneChanged();
     void saloneNoSuchChanged();
+    
+    void enabled();
+    void notEnabled();
+    void enabledChanged();
+    void notEnabledChanged();
+    
+    void transitionTimeout();
+    void modifiedTranstionTimeout();
+    void setTimeout();
 private:
     pid_t m_serverPid;
     int m_serverRequestPort;
@@ -516,4 +540,67 @@ void changeMonitorTests::saloneNoSuchChanged()
         mon.isStandalone("test"),
         std::runtime_error
     );
+}
+
+
+// Our programs get built enabled:
+
+void changeMonitorTests::enabled()
+{
+    CStateTransitionMonitor mon("tcp://localhost", "tcp://localhost");
+    ASSERT(mon.isEnabled("test"));
+}
+// But they could get disabled:
+
+void changeMonitorTests::notEnabled()
+{
+    m_pApi->set("RunState/test/enable", "false");
+    
+    CStateTransitionMonitor mon("tcp://localhost", "tcp://localhost");
+    ASSERT(!mon.isEnabled("test"));
+}
+//  They could wind up in a different directory:
+
+void changeMonitorTests::enabledChanged()
+{
+    m_pApi->set("/RunState/ReadoutParentDir", "/programs");
+    m_pApi->mkdir("/programs");
+    makeProgram("/programs", "atest");
+    
+    CStateTransitionMonitor mon("tcp://localhost", "tcp://localhost");
+    ASSERT(mon.isEnabled("atest"));
+}
+// And maybe disabled there too:
+
+void changeMonitorTests::notEnabledChanged()
+{
+    m_pApi->set("/RunState/ReadoutParentDir", "/programs");
+    m_pApi->mkdir("/programs");
+    makeProgram("/programs", "atest");
+    
+    m_pApi->set("/programs/atest/enable", "false");
+    
+    CStateTransitionMonitor mon("tcp://localhost", "tcp://localhost");
+    ASSERT(!mon.isEnabled("atest"));
+}
+// Unmodified we set the transition timeout to 60.
+
+void changeMonitorTests::transitionTimeout()
+{
+     CStateTransitionMonitor mon("tcp://localhost", "tcp://localhost");
+     EQ(60, mon.transitionTimeout());
+}
+
+void changeMonitorTests::modifiedTranstionTimeout()
+{
+    m_pApi->set("/RunState/Timeout", "30");
+
+    CStateTransitionMonitor mon("tcp://localhost", "tcp://localhost");
+    EQ(30, mon.transitionTimeout());    
+}
+void changeMonitorTests::setTimeout()
+{
+    CStateTransitionMonitor mon("tcp://localhost", "tcp://localhost");
+    mon.setTransitionTimeout(30);
+    EQ(30, mon.transitionTimeout());
 }

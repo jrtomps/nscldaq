@@ -25,6 +25,8 @@
 #include <CVarMgrApi.h>
 #include <URL.h>
 #include <CVarMgrSubscriptions.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 static const std::string DefaultSubscriptionService("vardb-changes");
 
@@ -122,19 +124,54 @@ CStateTransitionMonitor::activePrograms()
 bool
 CStateTransitionMonitor::isStandalone(const char* name)
 {
-    std::string programPath = m_programParentPath;
-    programPath += "/";
-    programPath += name;
     
-    std::string wd = m_pRequestApi->getwd();
-    m_pRequestApi->cd(programPath.c_str());
-    
-    bool result  = getBool("standalone");
-    
-    m_pRequestApi->cd(wd.c_str());
+    bool result  = getBool(name, "standalone");
     
     return result;
 
+}
+
+/**
+ * isEnabled
+ *   @param name - Name of the program to test.
+ *   @return bool - Boolean; true if that program is enabled.
+ */
+bool
+CStateTransitionMonitor::isEnabled(const char* name)
+{
+    
+    bool result  = getBool(name, "enable");
+    
+    
+    return result;
+    
+}
+/**
+ * transitionTimeout
+ *    Returns the number of seconds in the state transition timeout.
+ *    This is in the global RunState directory.
+ *
+ *  @return int
+ */
+int
+CStateTransitionMonitor::transitionTimeout()
+{
+    std::string timeoutStr = m_pRequestApi->get("/RunState/Timeout");
+    return atoi(timeoutStr.c_str());
+}
+/**
+ * setTransitionTimeout
+ *    Set a new value for the state transition timeout.
+ *
+ *  @param secs - Timeout in seconds.
+ */
+void
+CStateTransitionMonitor::setTransitionTimeout(int secs)
+{
+    char timeoutStr[100];
+    sprintf(timeoutStr, "%d", secs);
+    m_pRequestApi->set("/RunState/Timeout", timeoutStr);
+    
 }
 /*-----------------------------------------------------------------------------
  * Private utilities:
@@ -231,28 +268,59 @@ CStateTransitionMonitor::releaseResources()
 bool
 CStateTransitionMonitor::isActive(std::string name)
 {
-    std::string fullPath = m_programParentPath;
-    fullPath += "/";
-    fullPath += name;
     
-    std::string wd =m_pRequestApi->getwd();
-    m_pRequestApi->cd(fullPath.c_str());
+    bool enabled = getBool(name.c_str(), "enable");
+    bool salone  = getBool(name.c_str(), "standalone");
     
-    bool enabled = getBool("enable");
-    bool salone  = getBool("standalone");
-    
-    m_pRequestApi->cd(wd.c_str());
     return (enabled && (!salone));
 }
 /**
  * getBool
  *   Return the value of a boolean variable:
  *
+ * @param program - Name of the program.
  * @param name - Name of the var.
  * @return bool
  */
 bool
-CStateTransitionMonitor::getBool(std::string name)
+CStateTransitionMonitor::getBool(std::string program, std::string name)
 {
-    return (m_pRequestApi->get(name.c_str()) == "true") ? true : false;
+    std::string value = getVar(program.c_str(), name.c_str());
+    
+    return (value == "true") ? true : false;
+}
+
+/**
+ * varPath
+ *   Given a program name and a variable name return the full variable path.
+ *
+ * @param   program  - Name of the program.
+ * @param   name     - Name of the variable.
+ * @return std::string - full path to this hypothetical variable (no effort is made
+ *                       to ensure the variable exists).
+ */
+std::string
+CStateTransitionMonitor::varPath(const char* program, const char* name)
+{
+    std::string fullPath = m_programParentPath;
+    fullPath += "/";
+    fullPath += program;
+    fullPath += "/";
+    fullPath += name;
+    
+    return fullPath;
+}
+/**
+ * getVar
+ *    Get the string value of a variable given its program name.
+ * @param program - Name of the program.
+ * @param name    - Name of the variable.
+ * @return std::string - variable's value.
+ */
+std::string
+CStateTransitionMonitor::getVar(const char* program, const char* name)
+{
+    std::string fullPath = varPath(program, name);
+    
+    return m_pRequestApi->get(fullPath.c_str());
 }

@@ -99,7 +99,7 @@ public:
     bool                     isStandalone(const char* programName);
     bool                     isEnabled(const char* programName);
     int                      transitionTimeout();
-    void                     setTransitionTimeout();
+    void                     setTransitionTimeout(int secs);
     
     std::vector<Notification>  getNotifications(
         int maxNotifixcations = -1, int timeout = -1
@@ -144,6 +144,8 @@ private:
     void locateParentPath();
     void releaseResources();
     bool isActive(std::string name);
-    bool getBool(std::string name);
+    bool getBool(std::string program, std::string name);
+    std::string getVar(const char* program, const char* name);
+    std::string varPath(const char* program, const char* name);
 };
 #endif
