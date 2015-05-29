@@ -123,9 +123,11 @@ itcl::body ATrigger2367::Connect {b c host port module slot} {
 # This method replaces the original wienercfsa
 itcl::body ATrigger2367::wienercfsa {m f args} {
   if {[llength $args] == 1} {
-    return [::ccusbcamac::cfsa $reg $f $args]
+    set res [::ccusbcamac::cfsa $reg $f $args]
+    return $res
   } elseif {[llength $args] == 2} {
-    return [::ccusbcamac::cfsa $reg $f [lindex $args 0] [lindex $args 1]]
+    set res [::ccusbcamac::cfsa $reg $f [lindex $args 0] [lindex $args 1]]
+    return $res
   } else {
     return -code error "ATrigger2367::wienercfsa provided wrong number of arguments"
   }
@@ -133,8 +135,8 @@ itcl::body ATrigger2367::wienercfsa {m f args} {
 
 # The following methods are imported from the original trigger.tcl code
 itcl::body ATrigger2367::SetupGUI {parent filename} {
-  global RunState firstupdate localfilename
-  set localfilename $filename
+  global RunState firstupdate configfilename
+  set configfilename $filename
  
   set top $parent
   if {$parent eq "."} {
@@ -786,12 +788,18 @@ itcl::body ATrigger2367::ReadStatus {} {
 }
 
 itcl::body ATrigger2367::WriteConfigFile {} {
-	global variable address configfilename increment localfilename
-	if {[info exist configfilename] == 0} {
-		set configfilename $localfilename
-#		set configfilename [tk_getSaveFile \
-#		-title "Please select the Trigger configuration file" -filetypes {{"Tcl file" {.tcl}}}]
-	}
+	global variable address configfilename increment
+	if { ! [info exist configfilename] } {
+		set configfilename [tk_getSaveFile \
+      -title "Please select the Trigger configuration file" -filetypes {{"Tcl file" {.tcl}}}]
+	} elseif { $configfilename eq {} } {
+		set configfilename [tk_getSaveFile \
+      -title "Please select the Trigger configuration file" -filetypes {{"Tcl file" {.tcl}}}]
+  }
+  if {$configfilename eq {}} {
+    # there is nothing to do because we have no file...
+    return
+  }
 	set ch [open $configfilename w]
 	puts $ch "set TRIGGER(configFileName) /user/s800/server/fpga/usbtrig.bit"
 	puts $ch "set TRIGGER(configuration) 5800"
@@ -806,12 +814,25 @@ itcl::body ATrigger2367::WriteConfigFile {} {
 }
 
 itcl::body ATrigger2367::ReadConfigFile {} {
-	global variable address increment function bit inspect configfilename locked localfilename
-	if {[info exist configfilename] == 0} {
-		set configfilename $localfilename
-#		set configfilename [tk_getOpenFile \
-#		-title "Please select the Trigger configuration file" -filetypes {{"Tcl file" {.tcl}}}]
-	}
+	global variable address increment function bit inspect configfilename locked
+	if { ! [info exist configfilename] } { 
+		set configfilename [tk_getOpenFile \
+	                        	-title "Please select the Trigger configuration file" \
+                            -filetypes {{"Tcl file" {.tcl}}}]
+	} elseif {$configfilename eq {}} {
+		set configfilename [tk_getOpenFile \
+	                        	-title "Please select the Trigger configuration file" \
+                            -filetypes {{"Tcl file" {.tcl}}}]
+  } elseif {! [file exists $configfilename] } {
+    set msg "Config file $configfilename does not yet exist. "
+    append msg "Maybe you need to write the state to file first"
+    tk_messageBox -icon error -message $msg
+    return
+  }
+  if {$configfilename eq {}} {
+    # there is nothing to do because we have no file...
+    return
+  }
 	set ch [open $configfilename r]
 	gets $ch str
 	gets $ch str

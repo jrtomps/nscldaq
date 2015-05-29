@@ -25,8 +25,6 @@
 #include <CVMUSBusb.h>
 #include <CVMUSBFactory.h>
 
-#include <CMutex.h>
-#include <CCondition.h>
 #include <TCLInterpreter.h>
 #include <TCLLiveEventLoop.h>
 #include <CBeginRun.h>
@@ -46,6 +44,8 @@
 #include <CPortManager.h>
 
 #include <vector>
+#include <cstdlib>
+#include <stdexcept>
 
 #include <usb.h>
 #include <sysexits.h>
@@ -85,6 +85,13 @@ static       int      tclServerPort(27000);		    // Default value.
 
 bool CTheApplication::m_Exists(false);
 std::string CTheApplication::m_initScript;
+
+unique_ptr<CBeginRun> CTheApplication::m_pBeginRun;
+unique_ptr<CEndRun> CTheApplication::m_pEndRun;
+unique_ptr<CPauseRun> CTheApplication::m_pPauseRun;
+unique_ptr<CResumeRun> CTheApplication::m_pResumeRun;
+unique_ptr<CInit> CTheApplication::m_pInit;
+unique_ptr<CExit> CTheApplication::m_pExit;
 
 /*!
    Construct ourselves.. Note that if m_Exists is true,
@@ -138,9 +145,6 @@ int CTheApplication::operator()(int argc, char** argv)
   Globals::sourceId = parsedArgs.sourceid_arg;
   
   // If a timstamp lib was given save that as well:
-  
-  m_pMutex = shared_ptr<CMutex>(new CMutex); 
-  m_pCondition = shared_ptr<CConditionVariable>(new CConditionVariable);
   
   Globals::pTimestampExtractor = 0;
   if (parsedArgs.timestamplib_given) {
@@ -234,6 +238,8 @@ int CTheApplication::operator()(int argc, char** argv)
     }
 
     startTclServer();
+
+
     startInterpreter();
   }
   catch (string msg) {
@@ -241,7 +247,12 @@ int CTheApplication::operator()(int argc, char** argv)
     Tcl_Exit(EXIT_FAILURE);
   }
   catch (const char* msg) {
-    cerr << "CTheApplication caught a char* excpetion " << msg << endl;
+    cerr << "CTheApplication caught a char* exception " << msg << endl;
+    Tcl_Exit(EXIT_FAILURE);
+
+  }
+  catch (exception& exc) {
+    cerr << "CTheApplication caught an exception: " << exc.what() << endl;
     Tcl_Exit(EXIT_FAILURE);
 
   }
@@ -258,7 +269,6 @@ int CTheApplication::operator()(int argc, char** argv)
   }
     return EX_SOFTWARE; // keep compiler happy, startInterpreter should not return.
 }
-
 
 /*
    Start the output thread.  This thread is responsible for 
@@ -285,11 +295,22 @@ CTheApplication::startOutputThread(std::string ring)
 void
 CTheApplication::startTclServer()
 {
-  TclServer* pServer = new TclServer(m_pMutex, m_pCondition);
-  pServer->start(tclServerPort, Globals::controlConfigFilename.c_str(),
+  // we have to set the global pTclServer immediately because
+  // the following line potentially will depend on the Globals::pTclServer
+  Globals::pTclServer = new TclServer;
+  Globals::pTclServer->start(tclServerPort, Globals::controlConfigFilename.c_str(),
 		   *Globals::pUSBController);
-  Globals::pTclServer = pServer; // Save for readout.
-  Os::usleep(500);
+
+  // TclServer is a CSynchronizedThread which uses condition variables to ensure that
+  // the calling thread waits until the spawned thread is done initializing. Because that
+  // is done when start is called and the TclServer updates its state to running only after it
+  // is done initializing, we are gauranteed to know where an error occurred or not by
+  // checking isRunning.
+  if ( ! Globals::pTclServer->isRunning() ) {
+    string msg("Slow control subsystem failed to initialize. ");
+    msg += "This is a fatal error.";
+    throw runtime_error(msg);
+  }
 }
 /*
     Start the Tcl interpreter, we use the static AppInit as a trampoline into the
@@ -299,17 +320,7 @@ CTheApplication::startTclServer()
 void
 CTheApplication::startInterpreter()
 {
-  cout << "main waiting" << endl;
-  m_pCondition->wait(*m_pMutex);
-  cout << "initializing main interp" << endl;
-
-//  Tcl_CreateExitHandler(CTheApplication::ExitHandler, reinterpret_cast<ClientData>(this));
   Tcl_Main(m_Argc, m_Argv, CTheApplication::AppInit);
-
-  // we own the mutex so we need to unlock it... not that the main thread will
-  // own it for the duration of the program because Tcl_Main will not 
-  // actually return until all is done
-  m_pMutex->unlock();
 }
 
 
@@ -356,33 +367,35 @@ CTheApplication::setConfigFiles()
 int
 CTheApplication::AppInit(Tcl_Interp* interp)
 {
+  Globals::mainThreadId     = Tcl_GetCurrentThread();
+
   Tcl_Init(interp);		// Get all the paths etc. setup.
-  CTCLInterpreter* pInterp = new CTCLInterpreter(interp);
-  new CBeginRun(*pInterp);
-  new CEndRun(*pInterp);
-  new CPauseRun(*pInterp);
-  new CResumeRun(*pInterp);
-  new CInit(*pInterp);
-  new CExit(*pInterp);
+
+  Globals::pMainInterpreter = new CTCLInterpreter(interp);
+
+  m_pBeginRun.reset(new CBeginRun(*Globals::pMainInterpreter));
+  m_pEndRun.reset(new CEndRun(*Globals::pMainInterpreter));
+  m_pPauseRun.reset(new CPauseRun(*Globals::pMainInterpreter));
+  m_pResumeRun.reset(new CResumeRun(*Globals::pMainInterpreter));
+  m_pInit.reset(new CInit(*Globals::pMainInterpreter));
+  m_pExit.reset(new CExit(*Globals::pMainInterpreter));
   
   // If there's an initialization script then run it now:
   
   if (m_initScript != "") {
     if (access(m_initScript.c_str(), R_OK) == 0) {
-            pInterp->EvalFile(m_initScript.c_str());
+            Globals::pMainInterpreter->EvalFile(m_initScript.c_str());
     } else {
             throw CErrnoException("Checking accessibility of --init-script");
     }
   }
   // Save the main thread id and interpreter:
   
-  Globals::mainThreadId     = Tcl_GetCurrentThread();
-  Globals::pMainInterpreter = pInterp;
   
     // Instantiate the live event loop and run it.
     
   CTCLLiveEventLoop* pEventLoop = CTCLLiveEventLoop::getInstance();
-  pEventLoop->start(pInterp);
+  pEventLoop->start(Globals::pMainInterpreter);
 
   return TCL_OK;
 }
@@ -534,7 +547,6 @@ CTheApplication::makeCommand(
 }
 
 /*-------------------------------------------------------------------------------------------*/
-
 
 /*
   Initialize the application.  All we need to do is instantiate a CTheApplication object

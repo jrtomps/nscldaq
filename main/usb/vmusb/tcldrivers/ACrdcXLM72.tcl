@@ -28,7 +28,6 @@ package provide crdcxlm72 1.0
 
 package require xlm72
 package require Itcl
-package require Tk
 package require Utils
 
 
@@ -304,7 +303,7 @@ itcl::body ACrdcXLM72::WriteThresholds {th} {
 		for {set c 0} {$c < 4} {incr c} {
 			set check [Read fpga [expr 44+$c*4]]
 			if {$check != [lindex $th [expr $i+$c*64]]} {
-				tk_messageBox -icon error -message "Failed to set threshold in XLM72V of [$this GetVariable self]: $check vs [lindex $th [expr $i+$c*64]]"
+				return -code error "Failed to set threshold in XLM72V of [$this GetVariable self]: $check vs [lindex $th [expr $i+$c*64]]"
 			}
 		}
 	}

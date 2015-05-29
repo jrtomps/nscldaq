@@ -682,7 +682,10 @@ CRingCommand::remove(CTCLInterpreter&    interp,
       result += name;
       result += " does not exist";
    
-    } 
+    } else if (except.ReasonCode() == EACCES) {
+      result += "User lacks write permissions to remove ";
+      result += "ring buffer " + name;
+    }
     else {
       result = except.ReasonText();
     }

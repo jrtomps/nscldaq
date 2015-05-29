@@ -14,6 +14,7 @@
 	     East Lansing, MI 48824-1321
 */
 #include <CSynchronizedThread.h>
+#include <stdexcept>
 /**
  * Creation  just chains to the base class construtor.
  */
@@ -52,11 +53,24 @@ CSynchronizedThread::start()
 void
 CSynchronizedThread::run()
 {
-  m_mutex.lock();
-  init();			// Do thread unsafe initialization.
-  m_conditionVar.signal();
-  m_mutex.unlock();
-  operator()();
+  try {
+    m_mutex.lock();
+
+    init();			// Do thread unsafe initialization.
+
+    m_conditionVar.signal();
+    m_mutex.unlock();
+    operator()();
+  } catch (...) {
+    // if anything in the try block failed, allow the parent thread to 
+    // continue. Maybe it will correct something and then attempt to respawn the
+    // thread.
+    m_conditionVar.signal();
+    m_mutex.unlock();
+
+    // throw to signal that this thread failed.
+    std::rethrow_exception(std::current_exception());
+  }
   
 }
 

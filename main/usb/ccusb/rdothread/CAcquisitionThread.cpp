@@ -142,9 +142,10 @@ CAcquisitionThread::init()
 {
   std::string errorMessage;
   try {
-    beginRun();			// Emit begin run buffer.
+    // Thread is off and running now. 
+    m_Running = true;	//	(End run command causes endRun() to execute)
     startDaq();  		// Setup and start data taking.
-    m_Running = true;		// Thread is off and running now.    
+    beginRun();			// Emit begin run buffer.
   }
   catch (string msg) {
     cerr << "CAcquisition thread caught a string exception: " << msg << endl;

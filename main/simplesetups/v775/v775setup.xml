@@ -1154,7 +1154,7 @@ static const uint32_t TYPE_DATA (0x00000000);
 static const uint32_t TYPE_TRAIL(0x04000000);
 
 static const unsigned HDR_COUNT_SHIFT(8);               <co id='v775_rawimpl_datadefs' />
-static const uint32_t HDR_COUNT_MASK (0x00003700);
+static const uint32_t HDR_COUNT_MASK (0x00003f00);
 static const unsigned GEO_SHIFT(27);
 static const uint32_t GEO_MASK(0xf8000000);
 
@@ -2787,7 +2787,7 @@ static const uint32_t TYPE_DATA (0x00000000);
 static const uint32_t TYPE_TRAIL(0x04000000);
 
 static const unsigned HDR_COUNT_SHIFT(8);
-static const uint32_t HDR_COUNT_MASK (0x00003700);
+static const uint32_t HDR_COUNT_MASK (0x00003f00);
 static const unsigned GEO_SHIFT(27);
 static const uint32_t GEO_MASK(0xf8000000);
 

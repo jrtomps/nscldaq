@@ -614,6 +614,7 @@ itcl::body APhillips71xx::sSetProgrammingMode {stack mode} {
 
 itcl::body APhillips71xx::sSetPedestals {stack peds} {
 
+  # 
   # check to see if the pedestal values are sensible
   if {![Utils::listElementsInRange -4095 4095 $peds]} {
     set msg "APhillips71xx::sSetPedestals at least one pedestal value is out "
@@ -621,13 +622,26 @@ itcl::body APhillips71xx::sSetPedestals {stack peds} {
     return -code error $msg
   }
 
+  # in addWrite32, there is an implicit conversion to a uint32_t in
+  # C++. A negative value in a 64-bit architecture is represented by 
+  # a bunch of bytes when interpreted as a unsigned int is larged than
+  # UINT32_MAX. This causes a swig exception. We thus have to be careful
+  # to truncate properly to 32 bits for that conversion. We also
+  # know that the module works with 16 bits twos-complement representations
+  # so that we need to truncate to 16 bits. This at least what worked in
+  # the S800DAQ implementation.
+  set pedsSafeForUint32 [list]
+  foreach ped $peds {
+    lappend pedsSafeForUint32 [expr 0xffff&$ped] 
+  }
+
   # the values were sensible so 
   sSetProgrammingMode $stack 0
-  set nPeds [llength $peds]
+  set nPeds [llength $pedsSafeForUint32]
   if {$nPeds>16} {set nPeds 16}
 
   for {set ch 0} {$ch<$nPeds} {incr ch} {
-    set ped [lindex $peds $ch]
+    set ped [lindex $pedsSafeForUint32 $ch]
     $stack addWrite24 $node $ch 20 $ped
   }
 }

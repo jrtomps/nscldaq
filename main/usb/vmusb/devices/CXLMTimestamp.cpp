@@ -112,12 +112,10 @@ CXLMTimestamp::onAttach(CReadoutModule& configuration)
 }
 
 /**
- * This method is called when a driver instance is being asked to initialize the hardware
- * associated with it. Usually this involves querying the configuration of the device
- * and using VMUSB controller functions and possibily building and executing
- * CVMUSBReadoutList objects to initialize the device to the configuration requested.
+ * The initialization routine sets loads the firmware if users want it to be loaded.
+ * It then clears the scaler value.
  * 
- * @param controller - Refers to a CCUSB controller object connected to the CAMAC crate
+ * @param controller - Refers to a CVUSB controller object connected to the VME crate
  *                     being managed by this framework.
  *
  */
@@ -126,12 +124,13 @@ CXLMTimestamp::Initialize(CVMUSB& controller)
 {
 
   // Load the firmware
-  std::string firmware = m_pConfiguration->cget("-firmware");
-  std::cout << "Loading firmware from file : " << firmware << std::endl;
-  loadFirmware(controller, firmware);
+  if (m_pConfiguration->getBoolParameter("-loadfirmware")) {
+    std::string firmware = m_pConfiguration->cget("-firmware");
+    std::cout << "Loading firmware from file : " << firmware << std::endl;
 
-  sleep(1);
- 
+    loadFirmware(controller, firmware);
+    sleep(1);
+  }
 
   // Clear the scaler
   accessBus(controller, CXLM::REQ_X);

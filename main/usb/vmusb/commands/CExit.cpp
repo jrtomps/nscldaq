@@ -71,31 +71,33 @@ CExit::operator()(CTCLInterpreter& interp, std::vector<CTCLObject>& objv)
         if (objv.size() == 2) {
             status = objv[1];                // Throws if not integer.
         }
-        // Send an event to the TclServer proces's interpreter asking it to exit.
-        //
         
-        TclServer* pServer = ::Globals::pTclServer;
-        pServer->scheduleExit();
-        
-        
-        // Join the TclServer's thread.
-        
-        pServer->join();
-        
-        // End the run and join with the acquisition thread
-        auto pReadout = CAcquisitionThread::getInstance();
-        if (pReadout->isRunning()) {
-          CControlQueues::getInstance()->EndRun();
-          CAcquisitionThread::getInstance()->join();
-        }
-
-        // Exit the program:
-        
-        Tcl_Exit(status);
+        CExit::exit(status);
     }
     catch (std::string msg) {
         interp.setResult(msg);
     }
     
     return TCL_ERROR;
+}
+
+void CExit::exit(int status) 
+{
+  // Send an event to the TclServer proces's interpreter asking it to exit.
+  TclServer* pServer = ::Globals::pTclServer;
+  if (pServer) {
+    pServer->scheduleExit();
+    pServer->join();
+  }
+
+  // End the run and join with the acquisition thread
+  auto pReadout = CAcquisitionThread::getInstance();
+  if (pReadout->isRunning()) {
+    CControlQueues::getInstance()->EndRun();
+    CAcquisitionThread::getInstance()->join();
+  }
+
+  // Exit the program:
+
+  Tcl_Exit(status);
 }

@@ -110,18 +110,59 @@ CAcquisitionThread::start(CVMUSB* usb)
   // starting the thread will eventually get operator() called and that
   // will do all the rest of the work in thread context.
 
-  pThread->Thread::start();
+  pThread->CSynchronizedThread::start();
 
 
 }
 /**
  * Adaptor to between spectrodaq and nextgen threading models:
  */
-  void
-CAcquisitionThread::run()
+//  void
+//CAcquisitionThread::run()
+//{
+//  m_tid = getId();
+//  operator()();
+//}
+
+/**
+ * 
+ */
+void CAcquisitionThread::init()
 {
   m_tid = getId();
-  operator()();
+
+  try {
+
+    cout << "CAcquisitionThread::init started" << endl;
+
+    Globals::running = true;
+    CRunState::getInstance()->setState(CRunState::Starting);
+
+    m_Running = true;   // Thread is off and running now.
+
+    startDaq();
+    beginRun();     // Emit begin run buffer.
+  
+    cout << "CAcquisitionThread::init done" << endl;
+  }
+    catch (string msg) {
+    Globals::running = false;
+    cerr << "CAcquisition thread caught a string exception: " << msg << endl;
+  }
+  catch (char* msg) {
+    Globals::running = false;
+    cerr << "CAcquisition thread caught a char* exception: " << msg << endl;
+  }
+  catch (CException& err) {
+    Globals::running = false;
+    cerr << "CAcquisition thread caught a daq exception: "
+      << err.ReasonText() << " while " << err.WasDoing() << endl;
+  }
+  catch (...) {
+    Globals::running = false;
+    cerr << "CAcquisition thread caught some other exception type.\n";
+  }
+
 }
 
 /*!
@@ -145,78 +186,48 @@ CAcquisitionThread::waitExit()
 /*!
   Entry point for the thread.
  */
-  int
-CAcquisitionThread::operator()()
+void CAcquisitionThread::operator()()
 {
-  Globals::running = true;
-  CRunState* pState = CRunState::getInstance();
-  pState->setState(CRunState::Starting);
+  std::string errorMessage;
   try {
-    m_Running = true;   // Thread is off and running now.
 
-
-    startDaq();             // Setup and start data taking.
-
-
-    beginRun();     // Emit begin run buffer.
-    std::string errorMessage;
-    try {
-
-      mainLoop();     // Enter the main processing loop.
-    }
-    catch (std::string msg) {
-        stopDaq();                       // Ensure we're not in ACQ moe.
-        errorMessage = msg;
-    }
-    catch (const char* msg) {
-        stopDaq();                       // Ensure we're not in ACQ moe.
-        errorMessage = msg;
-    }
-    catch (CException err) {
-        stopDaq();                       // Ensure we're not in ACQ moe.
-        errorMessage = err.ReasonText();
-    }
-    catch (...) {
-        //  This is a normal exit...
-    }
-    Globals::running = false;
-
-    pState->setState(CRunState::Idle);
-    endRun();			// Emit end run buffer.
-    
-    
-    m_Running = false;		// Exiting.
-    
-    // If there's an error message report the error to the main thread:
-    
-    if (errorMessage != "") {
-        
-        reportErrorToMainThread(errorMessage);
-    }
-    return      0;		// Successful exit I suppose.
+    mainLoop();     // Enter the main processing loop.
   }
-  catch (string msg) {
-    Globals::running = false;
-    cerr << "CAcquisition thread caught a string exception: " << msg << endl;
+  catch (std::string msg) {
+    stopDaq();                       // Ensure we're not in ACQ moe.
+    errorMessage = msg;
   }
-  catch (char* msg) {
-    Globals::running = false;
-    cerr << "CAcquisition thread caught a char* exception: " << msg << endl;
+  catch (const char* msg) {
+    stopDaq();                       // Ensure we're not in ACQ moe.
+    errorMessage = msg;
   }
-  catch (CException& err) {
-    Globals::running = false;
-    cerr << "CAcquisition thread caught a daq exception: "
-      << err.ReasonText() << " while " << err.WasDoing() << endl;
+  catch (CException err) {
+    stopDaq();                       // Ensure we're not in ACQ moe.
+    errorMessage = err.ReasonText();
   }
   catch (...) {
-    Globals::running = false;
-    cerr << "CAcquisition thread caught some other exception type.\n";
+    //  This is a normal exit...
   }
+  Globals::running = false;
+
+  CRunState* pState = CRunState::getInstance();
+  pState->setState(CRunState::Idle);
+  endRun();			// Emit end run buffer.
+
+
+  m_Running = false;		// Exiting.
+
+  // If there's an error message report the error to the main thread:
+
+  if (errorMessage != "") {
+    reportErrorToMainThread(errorMessage);
+    return;
+  }
+
   Globals::running = false;
   pState->setState(CRunState::Idle);
   m_Running = false;
 
-  return 0;
 }
 
 /*!

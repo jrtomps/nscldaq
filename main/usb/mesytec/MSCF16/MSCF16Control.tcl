@@ -14,8 +14,12 @@
 #	   Michigan State University
 #	   East Lansing, MI 48824-1321
 
+# this should be at $DAQROOT/bin
 set here [file dirname [file normalize [info script]]]
+# add the current directory to the auto_path
 lappend auto_path $here
+# add $DAQROOT/TclLibs to the auto_path
+lappend auto_path [file join $here .. TclLibs]
 
 # Tk package parses argv when it is required... It will cause a crash 
 # when it encounters unknown commands, so we have to hide the real arguments
@@ -40,6 +44,7 @@ if {("-help" in $argv_tmp) || ("-?" in $argv_tmp)} {
   exit
 }
 
+
 #----------------------------------------------------------------------
 # Here begins the code to process arguments and launch the program.
 #
@@ -48,6 +53,15 @@ set res [catch {
 } msg]
 if {$res == 1} {
   puts $msg
+  exit
+}
+
+# assert that -serialfile is provided
+if {$params(-serialfile) eq ""} {
+  puts "User must specify a -serialfile option"
+  puts ""
+  puts [cmdline::usage $options $usage]
+  flush stdout
   exit
 }
 

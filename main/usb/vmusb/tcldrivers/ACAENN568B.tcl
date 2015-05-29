@@ -678,13 +678,6 @@ itcl::body ACAENN568B::ParseStatusRegister {register} {
 #
 itcl::body ACAENN568B::Init {filename aname} {
   source $filename
-  set status [TestCommunication]
-  if {$status != 0} {
-    set msg "$this: shaper not responding. Module number: $number. "
-    append msg "Error code: $status"
-    puts stderr $msg
-    return $status
-  }
   foreach name [array names $aname] {
     set value [lindex [array get $aname $name] 1]
     if {![string is alpha $name]} {

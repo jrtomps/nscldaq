@@ -74,6 +74,7 @@ private:
   int operator==(const CExit& rhs) const;
   int operator!=(const CExit& rhs) const;
 public:
+  static void exit(int status);
 
   // Process the command:
 protected:

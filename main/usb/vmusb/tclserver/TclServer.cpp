@@ -30,8 +30,6 @@ using namespace std;
 #include <DataBuffer.h>
 #include <CBufferQueue.h>
 #include <DataFormat.h>
-#include <CMutex.h>
-#include <CCondition.h>
 
 #include <tcl.h>
 #include <TCLInterpreter.h>
@@ -59,12 +57,10 @@ static const int VarUpdateInterval(1); // Number of seconds between variable upd
 */
 TclServer* TclServer::m_pInstance(0); // static->object context. ptr.
 
-using std::shared_ptr;
-
 /*!  Constructor is not very interesting 'cause all the action is in 
     start and operator()
 */
-TclServer::TclServer(shared_ptr<CMutex> pMutex, shared_ptr<CConditionVariable> pCond) :
+TclServer::TclServer() :
   m_port(-1),
   m_configFilename(string("")),
   m_pVme(0),
@@ -75,8 +71,7 @@ TclServer::TclServer(shared_ptr<CMutex> pMutex, shared_ptr<CConditionVariable> p
   m_nMonitorDataSize(0),
   m_dumpAllVariables(true),
   m_exitNow(false),
-  m_pMutex(pMutex),
-  m_pCondition(pCond)
+  m_isRunning(false)
 {
   m_pInstance = this;		// static->object context.
 }
@@ -120,20 +115,10 @@ TclServer::start(int port, const char* configFile, CVMUSB& vme)
 
   // Schedule the thread for execution:
 
-  this->Thread::start();
+  this->CSynchronizedThread::start();
 
 }
 
-/**
- * Adapts from the nextgen to spectrodaq thread model.
- */
-void
-TclServer::run()
-{
-  m_tid = getId();		// Incase we have references internally.
-  m_tclThreadId = Tcl_GetCurrentThread();
-  operator()();
-}
 /**
  * scheduleExit
  *   This is called to set an exit event into my event queue.
@@ -146,7 +131,7 @@ TclServer::scheduleExit()
     Tcl_Event* pEvent = reinterpret_cast<Tcl_Event*>(Tcl_Alloc(sizeof(Tcl_Event)));
     pEvent->proc = TclServer::Exit;
     
-    Tcl_ThreadQueueEvent(m_tclThreadId, pEvent, TCL_QUEUE_HEAD);   // exit is urgent.
+    Tcl_ThreadQueueEvent(m_threadId, pEvent, TCL_QUEUE_HEAD);   // exit is urgent.
 }
 
 
@@ -191,6 +176,16 @@ TclServer::setResult(string msg)
   
   
 }
+
+void TclServer::init()
+{
+  initInterpreter();		// Create interp and add commands.
+  startTcpServer();	  	// Set up the Tcp/Ip listener event.
+  readConfigFile();	  	// Initialize the modules.
+  initModules();        // Initialize the fully configured modules.
+  createMonitorList();	// Figure out the set of modules that need monitoring.
+  m_isRunning = true;
+}
 /*!
    Entry point for the thread.  This will be called when the thread is first
    scheduled after start was called.  We just need to call our
@@ -198,28 +193,11 @@ TclServer::setResult(string msg)
    Parameters are ignored (start stocked the member data with everything
    we need) and we never return.
 */
-int
+void
 TclServer::operator()()
 {
-
-
+  m_threadId = Tcl_GetCurrentThread(); // Save for later use.
   try {
-    { 
-      // lock the mutex
-      CriticalSection lock(*m_pMutex);
-
-      m_threadId = Tcl_GetCurrentThread(); // Save for later use.
-      initInterpreter();		// Create interp and add commands.
-      readConfigFile();		// Initialize the modules.
-      initModules();              // Initialize the fully configured modules.
-      createMonitorList();	// Figure out the set of modules that need monitoring.
-      startTcpServer();		// Set up the Tcp/Ip listener event.
-    }
-
-    // signal we are done initializing to let the main thread resume
-    cout << "tclserver done initializing " << endl;
-    m_pCondition->signal();
-
     EventLoop();		// Run the Tcl event loop forever.
   }
   catch (string msg) {
@@ -231,8 +209,8 @@ TclServer::operator()()
     throw;
   }
   catch (CException& err) {
-    cerr << "CAcquisition thread caught a daq exception: "
-	 << err.ReasonText() << " while " << err.WasDoing() << endl;
+    cerr << "TclServer thread caught a daq exception: "
+      	 << err.ReasonText() << " while " << err.WasDoing() << endl;
     throw;
   }
   catch (...) {

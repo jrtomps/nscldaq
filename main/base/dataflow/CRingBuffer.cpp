@@ -40,8 +40,6 @@
 #include <daqshm.h>
 #include <os.h>
 
-
-
 using namespace std;
 
 // constants;
@@ -232,11 +230,7 @@ CRingBuffer::remove(string name)
     throw CErrnoException("CRingBuffer::remove - not a ring");
   }
 
-  // Tell the ringmaster to forget the ring and kill the clients
-
-
   connectToRingMaster();
-  m_pMaster->notifyDestroy(name);
 
   // At this point RM has acked so we can kill the ring itself:
 
@@ -246,6 +240,9 @@ CRingBuffer::remove(string name)
     throw CErrnoException("Shared memory deletion failed");
 
   }
+
+  // Tell the ringmaster to forget the ring and kill the clients
+  m_pMaster->notifyDestroy(name);
 }
 
 
@@ -334,6 +331,7 @@ CRingBuffer::isRing(string name)
     return false;
   }
 }				
+
 /*!
   Set the defafult ring size.  This will be the amount of data the ring can hold
   if that's not supplied at creation time.

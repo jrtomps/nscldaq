@@ -346,12 +346,15 @@ proc formatRing tail {
 #   tail - the command tail.
 #
 proc deleteRing tail {
-    if {[llength $tail] != 2} {
-	usage
-	exit -1
-    }
+  if {[llength $tail] != 2} {
+    usage
+    exit -1
+  }
 
-    ringbuffer remove [lindex $tail 1]
+  if {[catch {ringbuffer remove [lindex $tail 1]} msg ]} {
+    puts "FAILURE: $msg"
+    exit -1
+  }
 }
 #--------------------------------------------------------------------------
 #

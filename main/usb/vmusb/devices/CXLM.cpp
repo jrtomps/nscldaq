@@ -20,6 +20,7 @@
 
 #include <CVMUSB.h>
 #include <CVMUSBReadoutList.h>
+#include <os.h>
 
 #include <stdlib.h>
 #include <errno.h>
@@ -30,7 +31,11 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-#include<iostream>
+#include <fstream>
+#include <iostream>
+#include <iomanip>
+#include <chrono>
+#include <thread>
 
 using namespace std;
 
@@ -147,6 +152,9 @@ CXLM::onAttach(CReadoutModule& configuration)
 
   configuration.addParameter("-firmware",
 			     Utils::validFirmwareFile, NULL, "");
+
+  // whether to load firmware or not
+  configuration.addBooleanParameter("-loadfirmware", true);
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -169,8 +177,8 @@ CXLM::loadFirmware(CVMUSB& controller, string path) throw(std::string)
 {
   uint32_t base = m_pConfiguration->getUnsignedParameter("-base");
 
-  XLM::loadFirmware(controller, base, sramA(), path);
-
+  CFirmwareLoader loader(controller, base);
+  loader(path);
 }
 
 /*!
@@ -266,21 +274,18 @@ CXLM::Interface()
 /////////////////////// Namespace functions /////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////
 
-/*!
-  Load a firmware file into the FPGA in interactive mode. 
+CFirmwareLoader::CFirmwareLoader(CVMUSB& ctlr, uint32_t baseAddr)
+  : m_ctlr(ctlr), m_baseAddr(baseAddr) 
+{}
 
-  @param controller  - Reference to a CVMUSB controller object.
-  @param path Path to the firmware file.  This has to have been validated as existing
-              and readable by the caller.  Note that if this value came from
-	      -firmware, this has already been done by the configuration subsystem.
-  @exception std::string If there is an error.
-*/
-void loadFirmware(CVMUSB& controller, uint32_t base, uint32_t sramAddr, std::string path)
+void CFirmwareLoader::operator()(const string& pathToFirmware)
 {
-  // introduce the Utils namespace
-  using namespace Utils;
+  loadFirmware(pathToFirmware);
+}
 
-  cerr << hex << "Loading firmware for XLM at " << base << endl << dec;
+void CFirmwareLoader::loadFirmware(const string& pathToFirmware)
+{
+  cerr << hex << "Loading firmware for XLM at " << m_baseAddr << endl << dec;
 
   // Prep the FPGA for loading.  Specifically:
   // 1. Set the load source to SRAMA
@@ -295,99 +300,352 @@ void loadFirmware(CVMUSB& controller, uint32_t base, uint32_t sramAddr, std::str
   // let's assume everything is held reset and that we only want to start the fpga.
 
   uint32_t interruptRegister = 0; /* InterruptResetFPGA | InterruptResetDSP |
-				     InterruptInterruptFPGA | InterruptInterruptDSP */
+                                     InterruptInterruptFPGA | InterruptInterruptDSP */
 
   // Build the list of operations:
   // Done in a block so the list is destroyed after it's executed:
 
-  {
-    CVMUSBReadoutList initList;
-    initList.addWrite32(base + ForceOffBus, registerAmod, ForceOffBusForce); // Inhibit FPGA Bus access.
-    initList.addWrite32(base + Interrupt,   registerAmod,  InterruptResetFPGA); // Hold FPGA reset.
-    initList.addWrite32(base + FPGABootSrc, registerAmod, BootSrcSRAMA); // Set boot source
-    addBusAccess(initList, base, CXLM::REQ_A, 0);                         //  Request bus A.
+  // Open and read the entire fpga file into memory (can't be too large)
 
-    
-    // run the list:
+  uint32_t  bytesInFile = fileSize(pathToFirmware);
+  uint8_t*  contents    = new uint8_t[bytesInFile];
+  uint32_t* sramAImage  = new uint32_t[bytesInFile]; // Each byte becomes anSRAM Longword.
+  memset(sramAImage, 0, bytesInFile * sizeof(uint32_t));
 
-    size_t dummy;		// For read buffer.
+  // The remainder is in a try block so we can delete the file contents:
 
-    int status = controller.executeList(initList,
-					&dummy, sizeof(dummy), &dummy);
-    if (status != 0) {
-      string reason = strerror(errno);
-      string msg = "CXLM::loadFirmware - failed to execute initialization list: ";
-      msg       += reason;
+  try {
 
+    acquireBusses();
+
+    // Read the file, convert it to an sram a image and load it into SRAM A:
+    loadFile(pathToFirmware, contents, bytesInFile);	// Read the file into memory.
+
+    // Skip the header:
+    uint8_t* pc = skipHeader(contents);
+    bytesInFile -= (pc-contents);
+
+    // create sram image to load
+    remapBits(sramAImage, pc, bytesInFile);
+
+    // load the sram image to the device
+    loadSRAM0(m_baseAddr+XLM::SRAMA, sramAImage, bytesInFile*sizeof(uint32_t));
+
+    // wait a little bit for things to settle
+    this_thread::sleep_for( chrono::milliseconds(100) );
+
+    // Release the SRAMA Bus, 
+    // release the 'force'.
+    releaseBusses();
+    setBootSource();
+    bootFPGA();
+
+    // rest a bit while it loads
+    this_thread::sleep_for( chrono::milliseconds(1000) );
+
+    delete []contents;
+    delete []sramAImage;
+
+  } catch (...) {
+    delete []contents;
+    delete []sramAImage;
+    throw;			// Let some higher creature deal with this.
+  }
+}
+
+
+/// Read the contents of a file into memory
+void CFirmwareLoader::loadFile(const string& pathToFirmware, 
+                              uint8_t* contents, uint32_t nBytes)
+{
+  int fd = open(pathToFirmware.c_str(), O_RDONLY);
+  if (fd < 0) {
+    string error = strerror(errno);
+    string msg   = "CXLM::loadFile - Failed to open the file: ";
+    msg         += error;
+    throw msg;
+  }
+
+  // read can be partial... this can happen on signals or  just due to buffering;
+  // therefore the loop below is the safe way to use read(2) to load a file.
+  // TODO:  use os::readdata instead.
+  // 
+  uint8_t* p = contents; // qty read on each read(2) call are bytes.
+  try {
+    while (nBytes > 0) {
+      ssize_t bytesRead = read(fd, p, nBytes);
+      if (bytesRead < 0) {
+        // only throw if errno is not EAGAIN or EINTR.
+
+        int reason = errno;
+        if ((reason != EAGAIN) && (reason != EINTR)) {
+          string error = strerror(reason);
+          string msg   = "CXLM::loadFile - read(2) failed on firmware file: ";
+          msg         += error;
+          throw msg;
+        }
+      }
+      else {
+        nBytes -= bytesRead;
+        p      += bytesRead;
+      }
+    }
+  }
+  catch (...) {
+    // Close the file... and rethrow.
+
+    close(fd);
+    throw;
+  }
+  // close the file
+
+  close(fd); 			// should _NEVER_ fail.
+
+}
+
+void CFirmwareLoader::remapBits(uint32_t* sramImage, uint8_t* fileImage, uint32_t nBytes)
+{
+  static const uint32_t bitMap[]  = {
+    0x4, 0x8, 0x10, 0x400, 0x40000, 0x80000, 0x100000, 0x4000000
+  };
+
+  uint8_t*   src  = fileImage;
+  uint32_t*  dest = sramImage;
+
+  for(uint32_t i =0; i < nBytes; i++) {
+    uint32_t  lword = 0;		// build destination here.
+    uint8_t   byte  = *src++;	// Source byte
+    uint32_t  bit   = 1;
+    for (int b = 0; b < 8; b++) { // remap the bits for a byte -> longword
+      if (byte & bit) {
+        lword |= bitMap[b];
+      }
+      bit = bit << 1;
+    }
+    *dest++ = lword;		// set a destination longword.
+  }
+}
+
+void CFirmwareLoader::loadSRAM0(uint32_t destAddr, uint32_t* image, uint32_t nBytes)
+{
+  static const size_t   blockSize = 64;
+  uint32_t              nRemainingBytes    = nBytes;
+
+  // for now load it one byte at a time... in 256 tansfer chunks:
+
+  if (nRemainingBytes == 0) return;	// Stupid edge case but we'll handle it correctly.
+
+  std::ofstream dump("fwloader.txt");
+  dump << hex << setfill('0');
+
+  uint32_t* p  = image;
+  while (nRemainingBytes > blockSize*sizeof(uint32_t)) {
+    CVMUSBReadoutList  loadList;
+    for (int i =0; i < blockSize; i++) {
+      dump << "\n" << setw(8) << destAddr 
+           << " " << setw(2)  << static_cast<int>(sramaAmod)
+           << " " << setw(8) << *p;
+      loadList.addWrite32(destAddr, sramaAmod,  *p++);
+//      loadList.addRead32(destAddr, sramaAmod);
+      destAddr += sizeof(uint32_t);
+    }
+    nRemainingBytes -= blockSize*sizeof(uint32_t);
+    // Write the block:
+
+    std::vector<uint8_t> retData = m_ctlr.executeList(loadList, 2048*sizeof(uint32_t));
+    if (retData.size() == 0) {
+      string error = strerror(errno);
+      string msg   = "XLM::CFirmwareLoader::loadSRAMA - list execution failed to load the SRAM: ";
+      msg         += error;
       throw msg;
     }
 
-    // I should have bus a:
-
-    uint32_t owner =0;
-    controller.vmeRead32(base + BUSAOwner, registerAmod, &owner);
-    cerr << "BUSA Owner is: " << owner << endl;
-
-    // Open and read the entire fpga file into memory (can't be too large)
-
-
-
-    uint32_t  bytesInFile = fileSize(path);
-    uint8_t*  contents    = new uint8_t[bytesInFile];
-    uint32_t* sramAImage  = new uint32_t[bytesInFile]; // Each byte becomes anSRAM Longword.
-    memset(sramAImage, 0, bytesInFile * sizeof(uint32_t));
-
-    // The remainder is in a try block so we can delete the file contents:
-
-    try {
-      // Read the file, convert it to an sram a image and load it into SRAM A:
-
-      loadFile(path, contents, bytesInFile);	// Read the file into memory.
-
-      // Skip the header:
-
-      uint8_t* pc = contents;
-      while (*pc != 0xff) {
-	pc++;
-	bytesInFile--;
-      }
-
-      remapBits(sramAImage, pc, bytesInFile);
-      loadSRAM(controller, sramAddr, sramAImage, bytesInFile*sizeof(uint32_t));
-      
-      // Release the SRAMA Bus, 
-      // release the 'force'.
-      // Remove the reset from the FPGA:
-      
-      cerr << "Firmware loaded in SRAMA\n";
-
-      CVMUSBReadoutList  finalize;
-      finalize.addWrite32(base + BusRequest, registerAmod, (uint32_t)0);	// Release bus request.
-      finalize.addWrite32(base + ForceOffBus, registerAmod, (uint32_t)0); // Remove force
-      finalize.addWrite32(base + Interrupt, registerAmod, (uint32_t)0);	// Release FPGA reset 
-      status = controller.executeList(finalize,
-				       &dummy, sizeof(dummy), &dummy);
-				       
-      if (status != 0) {
-	string reason = strerror(errno);
-	string message = "CXLM::loadFirmware failed to execute finalization list: ";
-	message       += reason;
-	throw message;
-      }
-    }
-    catch (...) {
-      delete []contents;
-      delete []sramAImage;
-      throw;			// Let some higher creature deal with this.
-    }
-    delete []contents;
-    delete []sramAImage;
-    cerr << "FPGA Should now be started\n";
-
   }
-  
+
+  // Handle any odd partial block:
+  if (nRemainingBytes > 0) {
+    CVMUSBReadoutList loadList;
+    while (nRemainingBytes > 0) {
+      dump << "\n" << setw(8) << destAddr 
+           << " " << setw(2)  << static_cast<int>(sramaAmod)
+           << " " << setw(8) << *p;
+      loadList.addWrite32(destAddr, sramaAmod, *p++);
+//      loadList.addRead32(destAddr, sramaAmod);
+      destAddr += sizeof(uint32_t);
+      nRemainingBytes -= sizeof(uint32_t);
+    }
+    // Write the block:
+
+    std::vector<uint8_t> retData = m_ctlr.executeList(loadList, 2048*sizeof(uint32_t));
+    if (retData.size() == 0) {
+      string error = strerror(errno);
+      string msg   = "CXM::loadSRAMA - list execution failed to load the SRAM: ";
+      msg         += error;
+      throw msg;
+    }
+  }
+  dump << endl;
+}
+
+void CFirmwareLoader::loadSRAM1(uint32_t destAddr, uint32_t* image, uint32_t nBytes)
+{
+  // for now load it one byte at a time... in 256 tansfer chunks:
+
+  if (nBytes == 0) return;	// Stupid edge case but we'll handle it correctly.
+
+  std::ofstream dump("fwloader.txt");
+  dump << hex << setfill('0');
+
+  CVMUSBReadoutList loadList;
+  loadList.addBlockWrite32(destAddr, blockTransferAmod, image, nBytes/sizeof(uint32_t));
+  loadList.dump(dump);
+  std::vector<uint8_t> retData = m_ctlr.executeList(loadList, 2048*sizeof(uint32_t));
+  if (retData.size() == 0) {
+    string error = strerror(errno);
+    string msg   = "XLM::CFirmwareLoader::loadSRAMA - list execution failed to load the SRAM: ";
+    msg         += error;
+    throw msg;
+  }
 
 }
+void CFirmwareLoader::setBootSource()
+{
+  CVMUSBReadoutList list;
+  list.addWrite32(m_baseAddr + FPGABootSrc, registerAmod, BootSrcSRAMA); // Set boot source
+  list.addRead32(m_baseAddr + FPGABootSrc, registerAmod);
+
+  auto retData = m_ctlr.executeList(list, sizeof(uint32_t));
+
+  if (retData.size()==0) {
+      string error = strerror(errno);
+      string msg   = "CXM::setBootSource - list execution failed to set boot source to SRAMA: ";
+      msg         += error;
+      throw msg;
+
+  }
+}
+uint32_t CFirmwareLoader::readFwSignature(uint32_t signatureAddr)
+{
+  // acquire bus
+  accessBus(m_ctlr, m_baseAddr, CXLM::REQ_X | CXLM::REQ_A | CXLM::REQ_B);
+  m_ctlr.vmeWrite32(m_baseAddr + ForceOffBus, registerAmod, ForceOffBusForce); // Inhibit FPGA Bus access.
+
+  // perform read
+  uint32_t value;
+  m_ctlr.vmeRead32(signatureAddr, registerAmod, &value);
+
+  // release bus
+  m_ctlr.vmeWrite32(m_baseAddr + ForceOffBus, registerAmod, 0); // Inhibit FPGA Bus access.
+  accessBus(m_ctlr, m_baseAddr, 0);
+
+  return value;
+}
+
+bool CFirmwareLoader::validate(uint32_t signatureAddr, uint32_t expectedSignature)
+{
+  uint32_t actualSignature = readFwSignature(signatureAddr);
+  return  (expectedSignature == actualSignature);
+}
+
+
+///**
+// * Returns the size of a file.  The file must already exist and  be a valid target for 
+// * stat(2). As this is used in the firmware load process, this has typically been assured by
+// * a call to validFirmwareFile.
+// * @param path - Absolute or relative path to the firmware file.
+// * @return size_t
+// * @retval Number of bytes in the file.  This includes 'holes' if the file is spares.
+// * @throw std::string - if stat fails.
+// */
+uint32_t CFirmwareLoader::fileSize(const string& path)
+{
+  struct stat fileInfo;
+  int status = stat(path.c_str(), &fileInfo);
+  if(status) {
+    string msg = strerror(errno);
+    string error = "CXLM::fileSize - Unable to stat firmware(?) file: ";
+    error       += msg;
+    throw error;
+  }
+  return static_cast<uint32_t>(fileInfo.st_size); // Limited to 4Gbyte firmware files should be ok ;-]
+}
+
+
+// search for the end of the header identified by 0xff
+uint8_t* CFirmwareLoader::skipHeader(uint8_t* contents)
+{
+  uint8_t* pc = contents;
+  while (*pc != 0xff) {
+    pc++;
+  }
+  return pc;
+}
+
+void CFirmwareLoader::acquireBusses()
+{
+  CVMUSBReadoutList initList;
+  initList.addWrite32(m_baseAddr + ForceOffBus, 
+                      registerAmod, ForceOffBusForce); // Inhibit FPGA Bus access.
+  addBusAccess(initList, m_baseAddr, CXLM::REQ_A, 0);       //  Request bus A.
+
+
+  // run the list:
+  vector<uint8_t> retData = m_ctlr.executeList(initList, sizeof(uint32_t));
+  if (retData.size() == 0) {
+    string reason = strerror(errno);
+    string msg = "XLM::CFirmwareLoader::initialize - failed to execute initialization list: ";
+    msg       += reason;
+
+    throw msg;
+  }
+
+  // I should have bus A:
+  uint32_t busAOwner =0;
+  m_ctlr.vmeRead32(m_baseAddr + BUSAOwner, registerAmod, &busAOwner);
+  if (busAOwner != 1)  {
+    string reason = strerror(errno);
+    string msg = "CXLM::CFirmwareLoader::initialize - failed to acquire bus A ";
+    msg       += reason;
+
+    throw msg;
+  }
+
+}
+
+// Booting the fpga amounts to setting the FPGA reset register and releasing it.
+void CFirmwareLoader::bootFPGA()
+{
+  CVMUSBReadoutList  bootList;
+  bootList.addWrite32(m_baseAddr + Interrupt, registerAmod, InterruptResetFPGA); // Hold FPGA reset.
+  bootList.addWrite32(m_baseAddr + Interrupt, registerAmod, uint32_t(0) );	// Release FPGA reset 
+
+  // send the commands to the VM-USB
+  auto retData = m_ctlr.executeList(bootList, sizeof(size_t));
+  if (retData.size() == 0) {
+    string reason = strerror(errno);
+    string message = "XLM::CFirmwareLoader::bootFPGA failed to execute reset list ";
+    message       += reason;
+    throw message;
+  }
+
+}
+
+void CFirmwareLoader::releaseBusses()
+{
+  CVMUSBReadoutList list;
+  list.addWrite32(m_baseAddr + BusRequest, registerAmod, uint32_t(0));	// Release bus request.
+  list.addWrite32(m_baseAddr + ForceOffBus, registerAmod, uint32_t(0)); // Remove force
+
+  auto retData = m_ctlr.executeList(list, sizeof(size_t));
+  if (retData.size() == 0) {
+    string reason = strerror(errno);
+    string message = "XLM::CFirmwareLoader::releaseBusses failed to execute reset list ";
+    message       += reason;
+    throw message;
+  }
+
+}
+
 /*!
   Access some combination of the busses.  The assumption is that since this
   is a one shot, and since I'm ensured that I'll get the bus within 200ns, the host
@@ -427,7 +685,6 @@ void addBusAccess(CVMUSBReadoutList& list, uint32_t base, uint32_t accessPattern
 
 }
 
-
 // ...oooOOOooo......oooOOOooo......oooOOOooo......oooOOOooo......oooOOOooo......oooOOOooo......oooOOOooo...
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////   
 //
@@ -460,246 +717,6 @@ bool validFirmwareFile(string name, string value, void* arg)
   //       back to the configuration subsystem.. e.g. errno would exactly describe what was wrong here.
 
   return (status == 0);
-}
-
-/**
- * Returns the size of a file.  The file must already exist and  be a valid target for 
- * stat(2). As this is used in the firmware load process, this has typically been assured by
- * a call to validFirmwareFile.
- * @param path - Absolute or relative path to the firmware file.
- * @return size_t
- * @retval Number of bytes in the file.  This includes 'holes' if the file is spares.
- * @throw std::string - if stat fails.
- */
-uint32_t fileSize(string path)
-{
-  struct stat fileInfo;
-  int status = stat(path.c_str(), &fileInfo);
-  if(status) {
-    string msg = strerror(errno);
-    string error = "CXLM::fileSize - Unable to stat firmware(?) file: ";
-    error       += msg;
-    throw error;
-  }
-  return static_cast<uint32_t>(fileInfo.st_size); // Limited to 4Gbyte firmware files should be ok ;-]
-}
-/**
- * loads a firmware file into memory.  By this time the file is known to exist and be readable
- * and the size has been determined so:
- * @param path - Absolute or relative path to the file.
- * @param contents - Pointer to a buffer that will hold the file.
- * @param bytes - Number of bytes in the file.
- * @throw std::string on any system call error.
- */
-void loadFile(std::string path, void* contents, uint32_t size)
-{
-  int fd = open(path.c_str(), O_RDONLY);
-  if (fd < 0) {
-    string error = strerror(errno);
-    string msg   = "CXLM::loadFile - Failed to open the file: ";
-    msg         += error;
-    throw msg;
-  }
-
-  // read can be partial... this can happen on signals or  just due to buffering;
-  // therefore the loop below is the safe way to use read(2) to load a file.
-  // TODO:  use os::readdata instead.
-  // 
-  uint8_t* p = reinterpret_cast<uint8_t*>(contents); // qty read on each read(2) call are bytes.
-  try {
-    while (size > 0) {
-      ssize_t bytesRead = read(fd, p, size);
-      if (bytesRead < 0) {
-	// only throw if errno is not EAGAIN or EINTR.
-	
-	int reason = errno;
-	if ((reason != EAGAIN) && (reason != EINTR)) {
-	  string error = strerror(reason);
-	  string msg   = "CXLM::loadFile - read(2) failed on firmware file: ";
-	  msg         += error;
-	  throw msg;
-	}
-      }
-      else {
-	size -= bytesRead;
-	p    += bytesRead;
-      }
-    }
-  }
-  catch (...) {
-    // Close the file... and rethrow.
-    
-    close(fd);
-    throw;
-  }
-  // close the file
-
-  close(fd); 			// should _NEVER_ fail.
-}
-
-/**
- * Remap the bits of a firmware file into an SRAM image.  Each byte maps to some scattered set of
- * bits in an SRAM longword.  The mapping is defined by the table bitMap below.
- * @param sramImage - Buffer to hold the sramImage.
- * @param fileImage - Buffer holding the raw file contents.
- * @param bytes     - Number of bytes in fileImage.  It is up to the caller to ensure that the
- *                    size of sramImage is at least bytes*sizeof(uint32_t) big.
- */
-void remapBits(void* sramImage, void* fileImage, uint32_t bytes)
-{
-  static const uint32_t bitMap[]  = {
-    0x4, 0x8, 0x10, 0x400, 0x40000, 0x80000, 0x100000, 0x4000000
-  };
-
-  uint8_t*   src  = reinterpret_cast<uint8_t*>(fileImage);
-  uint32_t*  dest = reinterpret_cast<uint32_t*>(sramImage);
-
-  for(uint32_t i =0; i < bytes; i++) {
-    uint32_t  lword = 0;		// build destination here.
-    uint8_t   byte  = *src++;	// Source byte
-    uint32_t  bit   = 1;
-    for (int b = 0; b < 8; b++) { // remap the bits for a byte -> longword
-      if (byte & bit) {
-	lword |= bitMap[b];
-      }
-      bit = bit << 1;
-    }
-    *dest++ = lword;		// set a destination longword.
-  }
-
-}
-
-
-void loadSRAM(CVMUSB& controller, uint32_t dest, void* image, uint32_t bytes)
-{
-  static const size_t   blockSize = 256;
-  static const size_t   vblockSize = blockSize;
-  uint32_t              nBytes    = bytes;
-
-  // for now load it one byte at a time... in 256 tansfer chunks:
-
-  uint32_t*           p    = reinterpret_cast<uint32_t*>(image);
-
-  cerr << hex << "LOADSRAMA - SRAM A base addresss is " << dest << endl << dec;
-
-  if (bytes == 0) return;	// Stupid edge case but we'll handle it correctly.
-
-  while (bytes > blockSize*sizeof(uint32_t)) {
-    CVMUSBReadoutList  loadList;
-    for (int i =0; i < blockSize; i++) {
-      loadList.addWrite32(dest, sramaAmod,  *p++);
-      dest += sizeof(uint32_t);
-    }
-    bytes -= blockSize*sizeof(uint32_t);
-    // Write the block:
-
-    size_t data;
-    int status = controller.executeList(loadList,
-					&data,
-					sizeof(data), &data);
-    if (status < 0) {
-      string error = strerror(errno);
-      string msg   = "CXLM::loadSRAMA - list execution failed to load the SRAM: ";
-      msg         += error;
-      throw msg;
-    }
-
-  }
-  // Handle any odd partial block:
-
-  if (bytes > 0) {
-    CVMUSBReadoutList loadList;
-    while (bytes > 0) {
-      loadList.addWrite32(dest, sramaAmod, *p++);
-      dest += sizeof(uint32_t);
-      bytes -= sizeof(uint32_t);
-    }
-    // Write the block:
-
-    size_t readData;
-    int status = controller.executeList(loadList, &readData, sizeof(size_t), &readData);
-    if (status < 0) {
-      string error = strerror(errno);
-      string msg   = "CXM::loadSRAMA - list execution failed to load the SRAM: ";
-      msg         += error;
-      throw msg;
-    }
-  }
-
-  return;
-
-  /// Some tests for Jan.
-
-  uint32_t* compareData = new uint32_t[blockSize];
-  uint32_t src         = dest;
-  size_t   bytesRead;
-  size_t   bytesLeft   = nBytes;
-
-  while(bytesLeft > blockSize * sizeof(uint32_t)) {
-    CVMUSBReadoutList verifyList;
-    verifyList.addBlockRead32(src, blockTransferAmod,
-			      blockSize);
-    verifyList.dump(cerr);
-    int stat = controller.executeList(verifyList,
-				      compareData,
-				      blockSize*sizeof(uint32_t),
-				      &bytesRead);
-    string msg = strerror(errno);
-    cerr << "Status " << stat 
-	 << " Read Size: " << blockSize*sizeof(uint32_t)
-	 << "Actual read " << bytesRead << endl;
-    if (stat != 0) {
-      cerr << "Failure reason: " << msg << endl;
-    }
-
-    bytesLeft -= blockSize*sizeof(uint32_t);
-    src       += blockSize*sizeof(uint32_t);
-  }
-  
-
-    // Verify the load:
-
-  return;			// For now for speed.
-
-  cerr << "Verifying SRAMA contents\n";
-  p        = reinterpret_cast<uint32_t*>(image);
-  dest     = dest;
-  uint32_t* pSram = new uint32_t[vblockSize];
-  size_t    xfered = 0;
-
-  while (nBytes > vblockSize * sizeof(uint32_t)) {
-    CVMUSBReadoutList vlist;
-    uint32_t  daddr = dest;
-    uint32_t* pr = pSram;
-    for (int i =0; i < vblockSize; i++) {
-      controller.vmeRead32(daddr,sramaAmod, pr);
-      daddr += sizeof(uint32_t);
-      pr++;
-    }
-    pr = pSram;
-
-    for (int i =0; i < vblockSize; i++) {
-      if (*p != *pr) {
-	cerr << hex << "Mismatch at address " << dest << ": SB: " << *p << " Was: " << *pr  << endl <<dec;
-      }
-
-      p++;
-      pr++;
-      dest += sizeof(uint32_t);
-    }
-
-    nBytes -= vblockSize*sizeof(uint32_t);
-    cout << '.';
-    cout.flush();
-
-  }
-  cout << '\n';
-  delete []pSram;
-
-
-  cerr << "Verification complete\n";
-
-
 }
 
 } // end of Utils namespace

@@ -56,6 +56,7 @@ class CVMUSBReadoutList;
    parametr       Type       Default     Meaning
    -base          uint32_t   0           Base address of the module.
    -firmware      string     ""          Path to XLM firmware file.
+   -loadfirmware  boolean    ""          Whether to load firmware or not on initialization
 \verbatim
 
 
@@ -164,23 +165,132 @@ const uint32_t BusOwnerVME (1);	// VME host owns bus.
 const uint32_t BusOwnerFPGA(2);	// Bus owned by FPGA.
 const uint32_t BusOwnerDSP (3);	// Bus owned by DSP.
 
+/*! \brief A class that handles the loading of firmware for a generic XLM
+ */
+class CFirmwareLoader 
+{
+  private:
+    CVMUSB&   m_ctlr;       //!< non-owning reference to a VMUSB
+    uint32_t  m_baseAddr;   //!< module base address
+
+  public:
+
+    /*! \bried Constructor
+     *
+     * \param ctlr     - a VMUSB
+     * \param baseAddr - base address
+     */
+    CFirmwareLoader(CVMUSB& ctlr, uint32_t baseAddr);
+
+    /*! \brief Entry point for the load operation
+     *
+     *  \param pathToFirmware  location of firmware file 
+     */
+    void operator()(const std::string& pathToFirmware);
+
+    /*! \brief Checks whther register contains expected value
+     *
+     *  \param signatureAddr      address of register (e.g. base+offset)
+     *  \param expectedSignature  value that should be at signaturedAddr
+     *
+     *  \retval true - value at address matches expectedSignature
+     *  \retval false - otherwise
+     */
+    bool validate(uint32_t signatureAddr, uint32_t expectedSignature);
+
+    uint32_t getBaseAddress() const { return m_baseAddr; }
+
+  private:
+    /**! 
+     * Implements the firmware loading algorithm for the  
+     *
+     *   \param filename   path to the firmware file
+     */ 
+    void loadFirmware(const std::string& pathToFirmware);
+
+    /**! \brief Read a 32-bit register from specified address
+     *
+     * \param controller      the VM-USB device 
+     * \param base            the base address of xlm
+     *
+     */
+    uint32_t readFwSignature(uint32_t signatureAddr);
+
+    /**! \bried Loads the contents of the file into memory
+     *
+     * \param path     - path to the firmware file
+     * \param contents - allocated buffer to store the file content
+     * \param nBytes   - bytes allocated to contents buffer
+     */
+    void loadFile(const std::string& path, uint8_t* contents, uint32_t nBytes);
+
+    /**! \brief Transforms bytes in firmware file to sram loadable image
+     *
+     *  \param sramImage   - pre-allocated buffer to fill
+     *  \param fileImage   - file contents (presumably filled by loadFile)
+     *  \param nBytes      - # bytes in fileImage
+     */
+    void remapBits(uint32_t* sramImage, uint8_t* fileImage, uint32_t nBytes);
+
+    /**! \brief Algorothim to actually write to devices
+     *
+     * Uses the precomputed sramImage and writes it to the device's sramA.
+     *
+     * \param dest_addr   address to begin writing to
+     * \param image       sram image
+     * \param nBytes      # bytes in sram image to write
+     */
+    void loadSRAM0(uint32_t dest_addr, uint32_t* image, uint32_t nBytes);
+    void loadSRAM1(uint32_t dest_addr, uint32_t* image, uint32_t nBytes);
+
+    /**! \brief Compute size of file
+     * 
+     * The file must already exist and  be a valid target for 
+     * stat(2). As this is used in the firmware load process, this has typically been assured by
+     * a call to validFirmwareFile.
+     *
+     * @param path - Absolute or relative path to the firmware file.
+     * @return size_t
+     * @retval Number of bytes in the file.  This includes 'holes' if the file is spares.
+     * @throw std::string - if stat fails.
+     */
+    uint32_t fileSize(const std::string& path);
+
+    /**! \brief Find the end of the header 
+     * 
+     * Searches for the end of the header marked by 0xff.
+     *
+     * \param contents  pointer to start of buffer holding firmware file contents
+     *
+     * \return location of 0xff
+     * */
+    uint8_t* skipHeader(uint8_t* contents);
+
+    /**! \brief Acquire busses and hold FPGA interrupt 
+     *
+     *  - Acquires bus A for SramA communication.
+     *  - Forces the FPGA off the bus.
+     *  - Verifies that we own bus A 
+     */
+    void acquireBusses();
+
+    /**! \brief Release busses and FPGA interrupt */
+    void releaseBusses();
+
+    /**! \brief Changes the boot source of the FPGA */
+    void setBootSource();
+
+    /**! \brief Actually boots the device 
+     * 
+     * Sets and then releases the FPGA Reset register bits.
+     * DSP is not booted.
+     */ 
+    void bootFPGA();
+}; // end of FirmwareLoader class
+
 ///////////////////////////////////////////////////////////////////////////////
 //////////////////////// NAMESPACE FUNCTIONS //////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
-
-/**! \fn loadFirmware(CVMUSB& ctlr, uint32_t baseAddr, 
-                      uint32_t sramAddr, std::string fmwrpath)
-*
-* Implements the firmware loading algorithm for the  
-*
-*   \param controller the VM-USB device to communicate through
-*   \param baseAddr   the base address of the target XLM
-*   \param sramAddr   the address of the sram (SRAMA = 0x000000, SRAMB = 0x200000)
-*   \param filename   path to the firmware file
-*/ 
-extern 
-void loadFirmware(CVMUSB& controller, uint32_t baseAddr, uint32_t sramAddr, 
-                  std::string filename);
 
 /**! \fn accessBus(CVMUSB& ctlr, uint32_t baseAddr, uint32_t accessPattern)
 *
@@ -217,10 +327,6 @@ void addBusAccess(CVMUSBReadoutList& list, uint32_t base, uint32_t accessPattern
 namespace Utils 
 {
   extern bool validFirmwareFile(std::string name, std::string value, void* arg);
-  extern uint32_t fileSize(std::string path);
-  extern void loadFile(std::string path, void* contents, uint32_t size);
-  extern void loadSRAM(CVMUSB& controller, uint32_t dest_addr, void* image, uint32_t bytes);
-  extern void remapBits(void* sramImage, void* fileImage,  uint32_t bytes);
 }
 
 

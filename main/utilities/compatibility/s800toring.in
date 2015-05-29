@@ -18,10 +18,12 @@ DAQBIN=$DAQROOT/bin
 #   s800toring host port ring
 #
 
-if [ $# != 3 ] 
+if [[ $# -ne 3 ]] && [[ $# -ne 5 ]] 
 then
   echo Usage:
   echo "   "    s800toring host port ring-name
+  echo " or" 
+  echo "   "    s800toring host port ring-name sourceid tstamplib
   exit -1
 fi
 
@@ -40,9 +42,17 @@ else
     $DAQBIN/ringbuffer create $ring
 fi
 
+BUFFERSIZE=8192
 
-netcat $host $port | $DAQBIN/BufferToRing $BUFFERSIZE | $DAQBIN/stdintoring $ring
+if [ $# -eq 3 ] ; then
+  netcat $host $port | $DAQBIN/BufferToRing --create-body-header=no --buffersize=$BUFFERSIZE | $DAQBIN/stdintoring $ring
+elif [ $# -eq 5 ] ; then
+  sourceid=$4
+  tstamplib=$5
+  netcat $host $port | $DAQBIN/BufferToRing --create-body-header=yes --sourceid=$sourceid --ts-extract=$tstamplib --buffersize=$BUFFERSIZE | $DAQBIN/stdintoring $ring
+fi
 
 
-$DAQBIN/PopUp "S800 to ring pipeline exited"
+echo "S800 to ring pipeline exited"
+#$DAQBIN/PopUp "S800 to ring pipeline exited"
 

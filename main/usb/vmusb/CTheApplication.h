@@ -32,11 +32,17 @@
 
 #include <memory>
 
+
 class CTCLInterpreter;
 struct Tcl_Interp;
 struct Tcl_Event;
-class CMutex;
-class CConditionVariable;
+
+class CBeginRun;
+class CEndRun;
+class CPauseRun;
+class CResumeRun;
+class CInit;
+class CExit;
 
 /*!
    This class is  the thread that is the main application startup thread.
@@ -67,8 +73,17 @@ private:
   int                  m_Argc;
   char**               m_Argv;
   CTCLInterpreter*     m_pInterpreter;
-  std::shared_ptr<CMutex> m_pMutex;
-  std::shared_ptr<CConditionVariable> m_pCondition;
+  Tcl_ThreadId         m_threadId;
+
+  // various commands that will be registered in the main tcl interpreter
+  // we make them unique_ptrs so that their destructors get called at
+  // program completion.
+  static std::unique_ptr<CBeginRun>  m_pBeginRun;
+  static std::unique_ptr<CEndRun>    m_pEndRun;
+  static std::unique_ptr<CPauseRun>  m_pPauseRun;
+  static std::unique_ptr<CResumeRun> m_pResumeRun;
+  static std::unique_ptr<CInit>      m_pInit;
+  static std::unique_ptr<CExit>      m_pExit;
 
 public:
   // Canonicals

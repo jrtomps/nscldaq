@@ -462,34 +462,40 @@ CCCUSBusb::openUsb()
     throw msg;
   }
 
-    m_handle  = usb_open(m_device);
-    if (!m_handle) {
-  throw "CCCUSBusb::CCCUSBusb  - unable to open the device";
-    }
-    // Now claim the interface.. again this could in theory fail.. but.
+  m_handle  = usb_open(m_device);
+  if (!m_handle) {
+    throw "CCCUSBusb::CCCUSBusb  - unable to open the device";
+  }
+  // Now claim the interface.. again this could in theory fail.. but.
 
-    usb_set_configuration(m_handle, 1);
-    int status = usb_claim_interface(m_handle, 0);
-    if (status == -EBUSY) {
-  throw "CCCUSBusb::CCCUSBusb - some other process has already claimed";
-    }
+  usb_set_configuration(m_handle, 1);
+  int status = usb_claim_interface(m_handle, 0);
+  if (status == -EBUSY) {
+    throw "CCCUSBusb::CCCUSBusb - some other process has already claimed";
+  }
 
-    if (status == -ENOMEM) {
-  throw "CCCUSBusb::CCCUSBusb - claim failed for lack of memory";
-    }
-    usb_clear_halt(m_handle, ENDPOINT_IN);
-    usb_clear_halt(m_handle, ENDPOINT_OUT);
-   
-    Os::usleep(100);
+  if (status == -ENOMEM) {
+    throw "CCCUSBusb::CCCUSBusb - claim failed for lack of memory";
+  }
+  usb_clear_halt(m_handle, ENDPOINT_IN);
+  usb_clear_halt(m_handle, ENDPOINT_OUT);
 
-    // Turn off data taking and flush any data in the buffer:
-    
-    writeActionRegister(0);
-    
-    uint8_t buffer[8192*2];  // Biggest possible CC-USB buffer.
-    size_t  bytesRead;
-    while(usbRead(buffer, sizeof(buffer), &bytesRead) == 0) {
-         fprintf(stderr, "Flushing CCUSB Buffer\n");
-    }
-    
+  Os::usleep(100);
+
+  // Turn off data taking and flush any data in the buffer:
+
+  uint8_t buffer[8192*2];  // Biggest possible CC-USB buffer.
+  size_t  bytesRead;
+
+  // flush the data first with a read. For some reason, the
+  // CCUSB can get into a funk that disallows a write before 
+  // a read occurs.
+  usbRead(buffer, sizeof(buffer), &bytesRead);
+
+  writeActionRegister(0);
+
+  while(usbRead(buffer, sizeof(buffer), &bytesRead) == 0) {
+    fprintf(stderr, "Flushing CCUSB Buffer\n");
+  }
+
 }
