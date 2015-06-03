@@ -2,12 +2,15 @@ lib_LTLIBRARIES		= libVMUSBRdoThread.la
 libVMUSBRdoThread_la_SOURCES	= CAcquisitionThread.cpp 	\
 			CControlQueues.cpp
 
-libVMUSBRdoThread_la_CPPFLAGS = @THREADCXX_FLAGS@ -I@top_srcdir@/usb/vmusb/router		\
+libVMUSBRdoThread_la_CPPFLAGS = @THREADCXX_FLAGS@ \
+		  -I@top_srcdir@/usb/vmusb/router		\
 			-I@top_srcdir@/usb/common/slowcontrols	\
 			-I@top_srcdir@/usb/vmusb/devices	\
 			-I@top_srcdir@/usb/vmusb/vmusb		\
 			-I@top_srcdir@/usb/vmusb/daqconfig	\
-			-I@top_srcdir@/usb/vmusb/tclserver @TCL_FLAGS@ \
+			-I@top_srcdir@/usb/vmusb/tclserver \
+			-I@top_srcdir@/usb/vmusb/systemcontrol \
+			@TCL_FLAGS@ \
 			@LIBTCLPLUS_CFLAGS@		\
 			-I@top_srcdir@/base/headers	\
 			-I@top_srcdir@/base/thread	\

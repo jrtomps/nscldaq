@@ -18,6 +18,8 @@
 #include "COutputThread.h"
 #include "CRunState.h"
 #include "DataBuffer.h"
+#include <CSystemControl.h>
+#include <event.h>
 #include <string>
 #include <Exception.h>
 #include <ErrnoException.h>
@@ -92,7 +94,7 @@ mytimersub(timespec* minuend, timespec* subtrahend, timespec* difference)
 
 
 */
-COutputThread::COutputThread(std::string ring) : 
+COutputThread::COutputThread(std::string ring, CSystemControl& sysControl) : 
   m_nOutputBufferSize(0),		// Don't know yet.
   m_pBuffer(0),
   m_pCursor(0),
@@ -101,7 +103,8 @@ COutputThread::COutputThread(std::string ring) :
   m_pRing(0),
   m_pEvtTimestampExtractor(0),
   m_pSclrTimestampExtractor(0),
-  m_pBeginRunCallback(0)
+  m_pBeginRunCallback(0),
+  m_systemControl(sysControl)
 {
   
 }
@@ -137,8 +140,19 @@ int
 COutputThread::operator()()
 {
   // Main loop is pretty simple.
+  // - Acquire next filled buffer
+  // - process the filled buffer
+  // - add the buffer back onto the queue of free buffers
+  //
+  // should something bad happen...
+  // - schedule an exit
+  // - keep freeing buffers
+  //
+
+  bool failedState = false;
   try {
     attachRing();
+
     while(1) {
       
       DataBuffer& buffer(getBuffer());
@@ -149,20 +163,34 @@ COutputThread::operator()()
   }
   catch (string msg) {
     cerr << "COutput thread caught a string exception: " << msg << endl;
-    throw;
+    failedState = true;
+    scheduleApplicationExit(EXIT_FAILURE);
   }
   catch (char* msg) {
     cerr << "COutput thread caught a char* exception: " << msg << endl;
-    throw;
+    failedState = true;
+    scheduleApplicationExit(EXIT_FAILURE);
   }
   catch (CException& err) {
     cerr << "COutputThread thread caught a daq exception: "
-	 << err.ReasonText() << " while " << err.WasDoing() << endl;
-    throw;
+	        << err.ReasonText() << " while " << err.WasDoing() << endl;
+    failedState = true;
+    scheduleApplicationExit(EXIT_FAILURE);
   }
   catch (...) {
     cerr << "COutput thread caught some other exception type.\n";
-    throw;
+    failedState = true;
+    scheduleApplicationExit(EXIT_FAILURE);
+  }
+
+  // if we failed... don't try to output data.. just keep freeing buffers
+  // so that we can end the application gracefully.
+  if (failedState) {
+    while (1) {
+      DataBuffer& buffer(getBuffer());
+      freeBuffer(buffer);
+    }
+
   }
 }
 
@@ -814,4 +842,10 @@ COutputThread::getTimestampExtractor()
         dlclose(pDllHandle);
         
     }
+}
+
+
+void COutputThread::scheduleApplicationExit(int status)
+{
+  m_systemControl.scheduleExit(status);
 }

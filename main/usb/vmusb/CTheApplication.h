@@ -14,35 +14,19 @@
 	     East Lansing, MI 48824-1321
 */
 
-#ifndef __CTHEAPPLICATION_H
-#define __CTHEAPPLICATION_H
+#ifndef CTHEAPPLICATION_H
+#define CTHEAPPLICATION_H
+
 #include <config.h>
-
-
-#ifndef __STL_STRING
 #include <string>
-#ifndef __STL_STRING
-#define __STL_STRING
-#endif
-#endif
-
-#ifndef __TCLOBJECT_H
 #include <TCLObject.h>
-#endif
-
 #include <memory>
+#include <CSystemControl.h>
 
 
 class CTCLInterpreter;
 struct Tcl_Interp;
 struct Tcl_Event;
-
-class CBeginRun;
-class CEndRun;
-class CPauseRun;
-class CResumeRun;
-class CInit;
-class CExit;
 
 /*!
    This class is  the thread that is the main application startup thread.
@@ -69,21 +53,12 @@ class CTheApplication
 {
 private:
   static bool          m_Exists; //!< Enforce singletons via exceptions.
-  static std::string   m_initScript;
   int                  m_Argc;
   char**               m_Argv;
   CTCLInterpreter*     m_pInterpreter;
   Tcl_ThreadId         m_threadId;
 
-  // various commands that will be registered in the main tcl interpreter
-  // we make them unique_ptrs so that their destructors get called at
-  // program completion.
-  static std::unique_ptr<CBeginRun>  m_pBeginRun;
-  static std::unique_ptr<CEndRun>    m_pEndRun;
-  static std::unique_ptr<CPauseRun>  m_pPauseRun;
-  static std::unique_ptr<CResumeRun> m_pResumeRun;
-  static std::unique_ptr<CInit>      m_pInit;
-  static std::unique_ptr<CExit>      m_pExit;
+  CSystemControl      m_systemControl;
 
 public:
   // Canonicals
@@ -98,12 +73,11 @@ private:
 public:
 
   // entry point:
-
   virtual int operator()(int argc, char** argv);
-  static int  AcquisitionErrorHandler(Tcl_Event* pEvent, int flags);
+
+  const CSystemControl& getSystemControl() const { return m_systemControl;}
 
   // Segments of operation.
-
 private:
   void startOutputThread(std::string ring);
   void startTclServer();
@@ -115,14 +89,10 @@ private:
 
   // static functions:
 
-  static int AppInit(Tcl_Interp* interp);
   static std::string makeConfigFile(std::string baseName);
   static std::string destinationRing(const char* pRingName);
 
   static void ExitHandler(void* pData);
-  static CTCLObject makeCommand(
-    CTCLInterpreter* pInterp, const char* verb, std::string argument
-  );
   
 
 };
