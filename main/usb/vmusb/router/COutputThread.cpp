@@ -139,30 +139,36 @@ COutputThread::operator()()
   // Main loop is pretty simple.
   try {
     attachRing();
+    int count=0;
     while(1) {
       
       DataBuffer& buffer(getBuffer());
       processBuffer(buffer);
       freeBuffer(buffer);
+
+      if (count == 10) {
+        throw 1;
+      }
+      ++count;
       
     }
   }
   catch (string msg) {
     cerr << "COutput thread caught a string exception: " << msg << endl;
-    throw;
+    exit(EXIT_FAILURE);
   }
   catch (char* msg) {
     cerr << "COutput thread caught a char* exception: " << msg << endl;
-    throw;
+    exit(EXIT_FAILURE);
   }
   catch (CException& err) {
     cerr << "COutputThread thread caught a daq exception: "
-	 << err.ReasonText() << " while " << err.WasDoing() << endl;
-    throw;
+         << err.ReasonText() << " while " << err.WasDoing() << endl;
+    exit(EXIT_FAILURE);
   }
   catch (...) {
     cerr << "COutput thread caught some other exception type.\n";
-    throw;
+    exit(EXIT_FAILURE);
   }
 }
 
