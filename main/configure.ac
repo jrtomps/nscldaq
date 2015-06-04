@@ -471,7 +471,6 @@ AC_CONFIG_FILES([Makefile
      usb/vmusb/tclserver/Makefile 
 		 usb/vmusb/daqconfig/Makefile  
      usb/vmusb/commands/Makefile
-     usb/vmusb/systemcontrol/Makefile
 		 usb/vmusb/driverkit/Makefile 
      usb/vmusb/driverkit/Makefile-template
 		 usb/vmusb/tcldrivers/Makefile
