@@ -2669,167 +2669,167 @@ madc cget <replaceable>name</replaceable>
                applied as the run starts.  Only modules that are in
                <command>stack</command> are configured.
             </para>
-        </refsect1>
-        <refsect1>
-           <title>
+          </refsect1>
+          <refsect1>
+            <title>
               OPTIONS
-           </title>
-           <variablelist>
+            </title>
+            <variablelist>
               <varlistentry>
-                  <term><option>-base</option> <replaceable>address</replaceable></term>
-                  <listitem>
-                      <para>
-                        <parameter>address</parameter> must be the module base
-                        address as configured in its rotary switches.
-                        This base address is used to access the module's register
-                        and event memory.
-                      </para>
-                     <para>
-                        Each module must be programmed and hardware configured
-                        with a different base address. The address used will be
-                        an A32 VME address.
-                     </para>
-                  </listitem>
+                <term><option>-base</option> <replaceable>address</replaceable></term>
+                <listitem>
+                  <para>
+                    <parameter>address</parameter> must be the module base
+                    address as configured in its rotary switches.
+                    This base address is used to access the module's register
+                    and event memory.
+                  </para>
+                  <para>
+                    Each module must be programmed and hardware configured
+                    with a different base address. The address used will be
+                    an A32 VME address.
+                  </para>
+                </listitem>
               </varlistentry>
-               <varlistentry>
-                  <term><option>-id</option> <replaceable>vsn</replaceable></term>
-                  <listitem>
-                     <para>
-                        <parameter>vsn</parameter> will be used as the module's
-                        identifier or <firstterm>virtual slot number</firstterm>.
-                        The <parameter>vsn</parameter> will be encoded into the
-                        event data that is returned by the module.  This, in turn
-                        is normally used by event decoders to determine which parameters
-                        the channels of the module should be unpacked into.
-                     </para>
-                     <para>
-                        Each module should be given a unique <parameter>vsn</parameter>.
-                     </para>
-                  </listitem>
-               </varlistentry>
-               <varlistentry>
-                  <term><option>-ipl</option> <replaceable>irqlevel</replaceable></term>
-                  <listitem>
-                     <para>
-                        If the module will be used to trigger an interrupt driven
-                        stack, the <parameter>irqlevel</parameter> parameter must
-                        be programmed to a valid non zero interrupt priority level
-                        (<literal>1</literal> through <literal>7</literal>).
-                        This must match the interrupt priority level used to trigger
-                        the stack.
-                     </para>
-                     <para>
-                        The default value of <literal>0</literal> disables module
-                        interrupts.
-                     </para>
-                  </listitem>
-               </varlistentry>
-               <varlistentry>
-                  <term><option>-vector</option> <replaceable>statusId</replaceable></term>
-                  <listitem>
-                     <para>
-                        If the module will be used to trigger an interrupt driven
-                        stack, the <parameter>statusId</parameter> must be programmed
-                        to a non zero 8 bit status id, or <firstterm>vector</firstterm>
-                        (between <literal>1</literal> and <literal>255</literal>
-                     </para>
-                     <para>
-                        The value used must match the value of the
-                        <option>-vector</option> configuration parameter used to
-                        trigger the stack.
-                     </para>
-                  </listitem>
-               </varlistentry>
-               <varlistentry>
-                  <term><option>-timestamp</option>  <replaceable>onoff</replaceable></term>
-                  <listitem>
-                     <para>
-                        This option controls whether or not the
-                        module tags each event with a trigger number or with a
-                        timestamp (see also the
-                        <option>-timingsource</option> and
-                        <option>-timingdivisor</option> options).
-                     </para>
-                     <para>
-                        The <replaceable>onoff</replaceable> is a boolean value.
-                        If true, the module tags events with a timestamp.  If
-                        false, with a trigger number.
-                     </para>
-                  </listitem>
-               </varlistentry>
-               <varlistentry>
-                  <term><option>-gatemode</option>  <replaceable>mode</replaceable></term>
-                  <listitem>
-                     <para>
-                        The MADC32 has a pair of gate inputs.  The inputs may
-                        be used either as <literal>separate</literal> gates,
-                        where each gate controlls 16 of the 32 channels, or
-                        as <literal>common</literal> where either input will
-                        gate all 32 channels.
-                     </para>
-                     <para>
-                        The value <parameter>mode</parameter> should be either
-                        <literal>separate</literal> or <literal>common</literal>.
-                     </para>
-                  </listitem>
-               </varlistentry>
-               <varlistentry>
-                  <term><option>-gategenerator</option> <replaceable>onoff</replaceable></term>
-                  <listitem>
-                     <para>
-                        The module can either use the gates as provided or can
-                        insert a gate and delay generator between the gate inputs
-                        and the actual gates seen by the ADCs.  Since in most cases,
-                        gate must be stretched and timed to match the ADC inputs,
-                        this feature can reduce the external electronics needed to
-                        properly gate the adc.
-                     </para>
-                     <para>
-                        The <parameter>onoff</parameter> is a boolean that if
-                        true enables this gate generator, if false, disables it.
-                        See also the <option>-holddelays</option> and
-                        <option>-holdwidths</option> configuration parameters
-                        that control the gate and delay parameters for each of these
-                        resources.
-                     </para>
-                  </listitem>
-               </varlistentry>
-               <varlistentry>
-                  <term><option>-holddelays</option> <replaceable>delayList</replaceable></term>
-                  <listitem>
-                     <para>
-                        If the gate generators are enabled (see
-                        <option>-gategenerator</option> above), the
-                        <parameter>delayList</parameter> is a Tcl list consisting of
-                        the two delay parameters, one for each of the gate and
-                        delay generators. See the MADC32 manual for a description of
-                        the meaning of these values, which are just the values
-                        programmed into the module registers.
-                     </para>
-                  </listitem>
-               </varlistentry>
-               <varlistentry>
-                  <term><option>-holdwidths</option> <replaceable>widthList</replaceable></term>
-                  <listitem>
-                     <para>
-                        If the gate generators are enabled (see
-                        <option>-gategenerator</option> above), the
-                        <parameter>widthList</parameter> is a Tcl l ilst
-                        consisting of the two gate and delay generator width
-                        parameters.  See the MADC32 manual for a description
-                        of the meaning of these values, which are just the
-                        values programmed into the module registers.
-                     </para>
-                  </listitem>
-               </varlistentry>
-               <varlistentry>
-                  <term><option>-inputrange</option> <replaceable>rangeSelector</replaceable></term>
-                  <listitem>
-                     <para>
-                        Programs the input range for the module.
-                        The <parameter>rangeSelector</parameter> must
-                        <literal>4v</literal>, <literal>8v</literal>,
-                        or <literal>10v</literal>.  Where the selector
+              <varlistentry>
+                <term><option>-id</option> <replaceable>vsn</replaceable></term>
+                <listitem>
+                  <para>
+                    <parameter>vsn</parameter> will be used as the module's
+                    identifier or <firstterm>virtual slot number</firstterm>.
+                    The <parameter>vsn</parameter> will be encoded into the
+                    event data that is returned by the module.  This, in turn
+                    is normally used by event decoders to determine which parameters
+                    the channels of the module should be unpacked into.
+                  </para>
+                  <para>
+                    Each module should be given a unique <parameter>vsn</parameter>.
+                  </para>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term><option>-ipl</option> <replaceable>irqlevel</replaceable></term>
+                <listitem>
+                  <para>
+                    If the module will be used to trigger an interrupt driven
+                    stack, the <parameter>irqlevel</parameter> parameter must
+                    be programmed to a valid non zero interrupt priority level
+                    (<literal>1</literal> through <literal>7</literal>).
+                    This must match the interrupt priority level used to trigger
+                    the stack.
+                  </para>
+                  <para>
+                    The default value of <literal>0</literal> disables module
+                    interrupts.
+                  </para>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term><option>-vector</option> <replaceable>statusId</replaceable></term>
+                <listitem>
+                  <para>
+                    If the module will be used to trigger an interrupt driven
+                    stack, the <parameter>statusId</parameter> must be programmed
+                    to a non zero 8 bit status id, or <firstterm>vector</firstterm>
+                    (between <literal>1</literal> and <literal>255</literal>
+                  </para>
+                  <para>
+                    The value used must match the value of the
+                    <option>-vector</option> configuration parameter used to
+                    trigger the stack.
+                  </para>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term><option>-timestamp</option>  <replaceable>onoff</replaceable></term>
+                <listitem>
+                  <para>
+                    This option controls whether or not the
+                    module tags each event with a trigger number or with a
+                    timestamp (see also the
+                    <option>-timingsource</option> and
+                    <option>-timingdivisor</option> options).
+                  </para>
+                  <para>
+                    The <replaceable>onoff</replaceable> is a boolean value.
+                    If true, the module tags events with a timestamp.  If
+                    false, with a trigger number.
+                  </para>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term><option>-gatemode</option>  <replaceable>mode</replaceable></term>
+                <listitem>
+                  <para>
+                    The MADC32 has a pair of gate inputs.  The inputs may
+                    be used either as <literal>separate</literal> gates,
+                    where each gate controlls 16 of the 32 channels, or
+                    as <literal>common</literal> where either input will
+                    gate all 32 channels.
+                  </para>
+                  <para>
+                    The value <parameter>mode</parameter> should be either
+                    <literal>separate</literal> or <literal>common</literal>.
+                  </para>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term><option>-gategenerator</option> <replaceable>onoff</replaceable></term>
+                <listitem>
+                  <para>
+                    The module can either use the gates as provided or can
+                    insert a gate and delay generator between the gate inputs
+                    and the actual gates seen by the ADCs.  Since in most cases,
+                    gate must be stretched and timed to match the ADC inputs,
+                    this feature can reduce the external electronics needed to
+                    properly gate the adc.
+                  </para>
+                  <para>
+                    The <parameter>onoff</parameter> is a boolean that if
+                    true enables this gate generator, if false, disables it.
+                    See also the <option>-holddelays</option> and
+                    <option>-holdwidths</option> configuration parameters
+                    that control the gate and delay parameters for each of these
+                    resources.
+                  </para>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term><option>-holddelays</option> <replaceable>delayList</replaceable></term>
+                <listitem>
+                  <para>
+                    If the gate generators are enabled (see
+                    <option>-gategenerator</option> above), the
+                    <parameter>delayList</parameter> is a Tcl list consisting of
+                    the two delay parameters, one for each of the gate and
+                    delay generators. See the MADC32 manual for a description of
+                    the meaning of these values, which are just the values
+                    programmed into the module registers.
+                  </para>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term><option>-holdwidths</option> <replaceable>widthList</replaceable></term>
+                <listitem>
+                  <para>
+                    If the gate generators are enabled (see
+                    <option>-gategenerator</option> above), the
+                    <parameter>widthList</parameter> is a Tcl l ilst
+                    consisting of the two gate and delay generator width
+                    parameters.  See the MADC32 manual for a description
+                    of the meaning of these values, which are just the
+                    values programmed into the module registers.
+                  </para>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term><option>-inputrange</option> <replaceable>rangeSelector</replaceable></term>
+                <listitem>
+                  <para>
+                    Programs the input range for the module.
+                    The <parameter>rangeSelector</parameter> must
+                    <literal>4v</literal>, <literal>8v</literal>,
+                    or <literal>10v</literal>.  Where the selector
                         represents the input range in volts.
                      </para>
                   </listitem>
@@ -2909,111 +2909,111 @@ madc cget <replaceable>name</replaceable>
                         will hopefully implement this feature.
                      </para>
                   </listitem>
-               </varlistentry>
-               <varlistentry>
+                </varlistentry>
+                <varlistentry>
                   <term><option>-nimbusy</option> <replaceable>busyselect</replaceable></term>
                   <listitem>
-                     <para>
-                        This option selects which signal is presented at the
-                        NIM busy output lemo connector.  By default, this will
-                        be the module busy.  The <parameter>busyselect</parameter> can
-                        be any of the following strings:
-                     </para>
-                     <variablelist>
-                        <varlistentry>
-                           <term><literal>busy</literal></term>
-                           <listitem>
-                              <para>The module busy is output.  This is the
-                                 default.
-                              </para>
-                           </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                           <term><literal>gate0</literal></term>
-                           <listitem>
-                              <para>
-                                 The Gate0 signal is output. If the internal gate
-                                 and delay generator is enabled for Gate0,
-                                 the output will be the output of the gate and
-                                 delay generator.  This provides a mechanism
-                                 to check the gate timing on a scope if you are
-                                 using the internal gate and delay generators.
-                              </para>
-                           </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                           <term><literal>gate1</literal></term>
-                           <listitem>
-                              <para>
-                                 The Gate1 signal is output.  If the internal gate
-                                 and delay generator is enabled for Gate1,
-                                 the output will be the output of the gate and
-                                 delay generator.  This provides a mechanism
-                                 to check the gate timing on a scope if you are
-                                 using the internal gate and delay generators.
-                              </para>
-                              <para>
-                                 It is not clear to me what happens if you are using
-                                 module common gates.
-                              </para>
-                           </listitem>
-                        </varlistentry>
-                        <varlistentry>
-                           <term><literal>cbus</literal></term>
-                           <listitem>
-                              <para>
-                                 The CBUS output is reflected here.
-                              </para>
-                           </listitem>
-                        </varlistentry>
-                     </variablelist>
+                    <para>
+                      This option selects which signal is presented at the
+                      NIM busy output lemo connector.  By default, this will
+                      be the module busy.  The <parameter>busyselect</parameter> can
+                      be any of the following strings:
+                    </para>
+                    <variablelist>
+                      <varlistentry>
+                        <term><literal>busy</literal></term>
+                        <listitem>
+                          <para>The module busy is output.  This is the
+                            default.
+                          </para>
+                        </listitem>
+                      </varlistentry>
+                      <varlistentry>
+                        <term><literal>gate0</literal></term>
+                        <listitem>
+                          <para>
+                            The Gate0 signal is output. If the internal gate
+                            and delay generator is enabled for Gate0,
+                            the output will be the output of the gate and
+                            delay generator.  This provides a mechanism
+                            to check the gate timing on a scope if you are
+                            using the internal gate and delay generators.
+                          </para>
+                        </listitem>
+                      </varlistentry>
+                      <varlistentry>
+                        <term><literal>gate1</literal></term>
+                        <listitem>
+                          <para>
+                            The Gate1 signal is output.  If the internal gate
+                            and delay generator is enabled for Gate1,
+                            the output will be the output of the gate and
+                            delay generator.  This provides a mechanism
+                            to check the gate timing on a scope if you are
+                            using the internal gate and delay generators.
+                          </para>
+                          <para>
+                            It is not clear to me what happens if you are using
+                            module common gates.
+                          </para>
+                        </listitem>
+                      </varlistentry>
+                      <varlistentry>
+                        <term><literal>cbus</literal></term>
+                        <listitem>
+                          <para>
+                            The CBUS output is reflected here.
+                          </para>
+                        </listitem>
+                      </varlistentry>
+                    </variablelist>
                   </listitem>
-               </varlistentry>
-	       <varlistentry>
-		      <term><option>-multievent</option> <replaceable>boolean</replaceable></term>
-		      <listitem>
-		         <para>
-		            Allows the module to be used in multi-event mode.
-			    This is normally done in conjunction with the
-			    <command>madcchain</command> configuration command.
-			    It also usually requires a custom SpecTcl version
-			    to handle the data from this device.
-		         </para>
-			 <para>
-			    the default value for this parameter is
-			    <literal>false</literal> which runs the module in
-			    single event mode.
-		         </para>
-		      </listitem>
-               </varlistentry>
-	       <varlistentry>
-	          <term><option>-irqthreshold</option> <replaceable>integer</replaceable></term>
-		  <listitem>
-		     <para>
-		        Sets the interrupt threshold.  When a number of
-			complete events have put at least this number of
-			longwords in the fifo, if interupts are enabled,
-			the module will interrupt.
-		      </para>
-                    </listitem>
-               </varlistentry>
-               <varlistentry>
-	          <term><option>-resolution</option> <replaceable>2k|4k|4khires|8k|8khires</replaceable></term>
-		  <listitem>
-		     <para>
-		        Sets the resolution of the module.  This has an impact on
-			the conversion time. 
-		     </para>
+                </varlistentry>
+                <varlistentry>
+                  <term><option>-multievent</option> <replaceable>boolean</replaceable></term>
+                  <listitem>
+                    <para>
+                      Allows the module to be used in multi-event mode.
+                      This is normally done in conjunction with the
+                      <command>madcchain</command> configuration command.
+                      It also usually requires a custom SpecTcl version
+                      to handle the data from this device.
+                    </para>
+                    <para>
+                      the default value for this parameter is
+                      <literal>false</literal> which runs the module in
+                      single event mode.
+                    </para>
                   </listitem>
-	       </varlistentry>
-            </variablelist>
-        </refsect1>
+                </varlistentry>
+                <varlistentry>
+                  <term><option>-irqthreshold</option> <replaceable>integer</replaceable></term>
+                  <listitem>
+                    <para>
+                      Sets the interrupt threshold.  When a number of
+                      complete events have put at least this number of
+                      longwords in the fifo, if interupts are enabled,
+                      the module will interrupt.
+                    </para>
+                  </listitem>
+                </varlistentry>
+                <varlistentry>
+                  <term><option>-resolution</option> <replaceable>2k|4k|4khires|8k|8khires</replaceable></term>
+                  <listitem>
+                    <para>
+                      Sets the resolution of the module.  This has an impact on
+                      the conversion time. 
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </refsect1>
 
-        <refsect1>
-           <title>EXAMPLES</title>
-           <example>
-            <title>Sample use of madc command</title>
-            <programlisting>
+            <refsect1>
+              <title>EXAMPLES</title>
+              <example>
+                <title>Sample use of madc command</title>
+                <programlisting>
 set madcTimeDivisor 14
 
 madc create adc -base 0x40000000 -id 5 -ipl 0             <co id="madccreate" />
@@ -3026,46 +3026,625 @@ for {set i 0} {$i &lt; 32} {incr i} {
 }
 madc config adc -thresholds $thresholds                  <co id="madcthresholds" />
 
-            </programlisting>
-           </example>
-            <calloutlist>
-               <callout arearefs="madccreate">
+                </programlisting>
+              </example>
+              <calloutlist>
+                <callout arearefs="madccreate">
                   <para>
-                     This command creates an object to manage an MADC 32
-                     whose base address is <literal>0x40000000</literal>.
-                     The module will be referred to by the symbolic name:
-                     <literal>adc</literal>
+                    This command creates an object to manage an MADC 32
+                    whose base address is <literal>0x40000000</literal>.
+                    The module will be referred to by the symbolic name:
+                    <literal>adc</literal>
                   </para>
-               </callout>
-               <callout arearefs="madcsubst">
+                </callout>
+                <callout arearefs="madcsubst">
                   <para>
-                     This line illustrates substitution of a Tcl variable for
-                     a parameter value.  Tcl variable substition is textual,
-                     so you can also use varibles to hold option names, though
-                     that may be  a bit odd.
+                    This line illustrates substitution of a Tcl variable for
+                    a parameter value.  Tcl variable substition is textual,
+                    so you can also use varibles to hold option names, though
+                    that may be  a bit odd.
                   </para>
-               </callout>
-               <callout arearefs="madcmakethresh">
+                </callout>
+                <callout arearefs="madcmakethresh">
                   <para>
-                     This highlights the fact that the configuration file is
-                     really a configuration program.  The loop creates a
-                     varaiable named <varname>thresholds</varname> that
-                     contains a list of 32 zeroes.  This list will be used
-                     to program the <literal>adc</literal> thresholds.
-                     Normally these values will neither be zero nor uniform
-                     from channel to channel.  It may be best to read them from
-                     some external file.
+                    This highlights the fact that the configuration file is
+                    really a configuration program.  The loop creates a
+                    varaiable named <varname>thresholds</varname> that
+                    contains a list of 32 zeroes.  This list will be used
+                    to program the <literal>adc</literal> thresholds.
+                    Normally these values will neither be zero nor uniform
+                    from channel to channel.  It may be best to read them from
+                    some external file.
                   </para>
-               </callout>
-               <callout arearefs="madcthresholds" >
+                </callout>
+                <callout arearefs="madcthresholds" >
                   <para>
-                     This command uses the <varname>thresholds</varname> variable
-                     and programs the channel thresholds of the ADC.
+                    This command uses the <varname>thresholds</varname> variable
+                    and programs the channel thresholds of the ADC.
                   </para>
-               </callout>
-            </calloutlist>
+                </callout>
+              </calloutlist>
+            </refsect1>
+
+          </refentry>
+
+          <refentry id="vmusb3_mtdc">
+            <refentryinfo>
+              <author>
+                <personname>
+                  <firstname>Ron</firstname>
+                  <surname>Fox</surname>
+                </personname>
+              </author>
+              <productname>NSCLDAQ</productname>
+              <productnumber></productnumber>
+            </refentryinfo>
+            <refmeta>
+              <refentrytitle>mtdc</refentrytitle>
+              <manvolnum>3vmusb</manvolnum>
+              <refmiscinfo class='empty'></refmiscinfo>
+            </refmeta>
+            <refnamediv>
+              <refname>mtdc</refname>
+              <refpurpose>Mesytec 32/34 channel TDC</refpurpose>
+            </refnamediv>
+
+            <refsynopsisdiv>
+              <cmdsynopsis>
+                <command>
+                  mtdc create <replaceable>name ?options...?</replaceable>
+                </command>
+              </cmdsynopsis>
+              <cmdsynopsis>
+                <command>
+              mtdc config <replaceable>name option value ?...?</replaceable>
+            </command>
+          </cmdsynopsis>
+          <cmdsynopsis>
+            <command>
+              mtdc cget <replaceable>name</replaceable>
+            </command>
+          </cmdsynopsis>
+
+
+        </refsynopsisdiv>
+        <refsect1>
+          <title>DESCRIPTION</title>
+          <para>
+            The MTDC32 is a multi hit time digitizer from Mesytec.
+            It has two fundamentally different modes of operation;
+            <firstterm>trigger matching</firstterm> and
+            <firstterm>timestamping</firstterm>
+          </para>
+          <para>
+            In trigger matching mode you establish a time window
+            relative to gate inputs.  Hits which occur during that
+            time window are accepted and the hit time relative to
+            the gate is returned for each hit.  By placing the
+            time window correcty it is possible to use this
+            mode to simulate a common start or common stop
+            TDC. The module can run as two separate 16 channel
+            logical modules or as a single 32 channel module.
+          </para>
+          <para>
+            In timestamping mode, all hits are digitized and their
+            times relative to the most recent time clear are
+            returned.  In timestamping mode, the gate inputs are
+            simply another pair of inputs making the module a
+            34 channel module when used for timestamping.
+          </para>
+          <para>
+            The module is very flexible and setup can be complex so it is
+            important that you understand the MTDC32 manual when reading
+            this documentation.
+          </para>
+          <para>
+            The <command>mtdc</command> command is a typical VM-USB
+            device support command.  It provides a
+            <command>create</command> sub-command for generating module
+            instances, a <command>config</command> sub-command for
+            configuring module instances and a <command>cget</command>
+            subcommand for introspecting the configuration of a module
+            instance.
+          </para>
         </refsect1>
-      
+        <refsect1>
+          <title>
+            OPTIONS
+          </title>
+          <variablelist>
+            <varlistentry>
+              <term><option>-base</option> <parameter>base-address</parameter></term>
+              <listitem>
+                <para>
+                  Supplies the modules VME base address.
+                  The <parameter>base-address</parameter>
+                  value must match the base address as set in the
+                  module rotary switches.
+                </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term><option>-id</option> <parameter>module-id</parameter></term>
+              <listitem>
+                <para>
+                  Defines the module's id.  This value appears
+                  in the id field of the data returned by the device.
+                  The <option>-id</option> value is 8 bits wide
+                  and therefore can be an unsigned value between
+                  <literal>0</literal> and <literal>255</literal>.
+                </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term><option>-ipl</option> <parameter>priority-level</parameter></term>
+              <listitem>
+                <para>
+                  Sets the interrupt priority level for interrupt
+                  requests from this module.  The <option>-ipl</option>
+                  value can be between <literal>0</literal>
+                  and <literal>7</literal>.  A value of
+                  <literal>0</literal> disables interrupts.
+                </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term><option>-vector</option> <parameter>status-id</parameter></term>
+              <listitem>
+                <para>
+                  Provides the VME status id put on the bus
+                  when the module generates an interrupt.
+                  The MTDC issues an 8 bit status id.
+                  Therefore this value can be between
+                  <literal>0</literal> and
+                  <literal>255</literal>
+                </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term><option>-irqthreshold</option> <parameter>word-count</parameter></term>
+              <listitem>
+                <para>
+                  Determines the minimum number of 32 bit words the
+                  module  must have buffered before it interrupts.
+                  When an event has been buffered, if the number of
+                  words in the module FIFO is larger than the
+                  <option>-irqthreshold</option> value,
+                  an interrupt will be requested if enabled.
+                </para>
+                <para>
+                  The FIFO is 32K 32 bit words long so this
+                  value can be between
+                  <literal>0</literal> and <literal>0x7fff</literal>
+                </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term><option>-maxtransfers</option> <literal>word-count</literal></term>
+              <listitem>
+                <para>
+                  When the module is in multi-event mode 3, this sets
+                  a soft limit on the number of 32 bit words
+                  that can be transferred from the module before
+                  it issues a <literal>BERR</literal>.
+                  The limit is soft in that complete events are
+                  always transferred.
+                </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term><option>-datalen</option> <parameter>length-spec</parameter></term>
+              <listitem>
+                <para>
+                  Determins how the event is padded for alignment.
+                  while the values <literal>8</literal>,
+                  <literal>16</literal>, <literal>32</literal>
+                  and <literal>64</literal> are all legal,
+                  in pratice since the events are multiples
+                  of 32 bit words, only the latter
+                  two values are meaningful.  If the value
+                  <literal>64</literal> is chosen then if
+                  necessary 32 bit words containing
+                  <literal>0xffff</literal> are added
+                  to the event data to pad it out to the
+                  next 64 bit boundary.
+                </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term><option>-multievent</option> <parameter>on |off |limited</parameter></term>
+              <listitem>
+                <para>
+                  Enables or disables multi-event mode.
+                  If <literal>limited</literal> is used, the
+                  <option>-datalen</option> specification is used
+                  as well.
+                </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term><option>-skipberr</option> <parameter>on | off|</parameter></term>
+              <listitem>
+                <para>
+                  If true then at the end of the read rather
+                  than asserting <literal>BUSERR</literal>
+                  return data with the top two bits set to
+                  <literal>10</literal> indicating an end of
+                  buffer.
+                </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term><option>-countevents</option> <parameter>yes | no</parameter></term>
+              <listitem>
+                <para>
+                  If true, then the <option>-maxtransfers</option>
+                  value is taken to be the number of events rather
+                  than the number of words.
+                </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term><option>-marktype</option> <parameter>timestamp | eventcount | extended-timestamp</parameter></term>
+              <listitem>
+                <para>
+                  Determines what the value in the event correlation
+                  field of the data means.  
+                </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term><option>-joinedbanks</option> <parameter>yes |no</parameter></term>
+              <listitem>
+                <para>
+                  Only relevant in trigger matching mode when this determines if
+                  the gates are ored in to both banks (<literal>yes</literal>
+                  or if they affect individual banks
+                  of 16 channels (<literal>no</literal>).
+                </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term><option>-resolution</option> <parameter>resolution-value</parameter></term>
+              <listitem>
+                <para>
+                  Sets the TDC resolution.  This is only relevant in
+                  trigger matching modes as the timestamping mode
+                  resolution is always 3.9ps.
+                  Allowed values are
+                  <literal>500ps 250ps 125ps 62.5ps 31.3ps 15.6ps 7.8ps</literal>
+                  and <literal>3.9ps</literal>.
+                </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term><option>-format</option> <parameter>standard |fulltime</parameter></term>
+              <listitem>
+                <para>
+                  Determines if the data are time differences from the
+                  gate (trigger matching mode) or full timestamps
+                  (timestamping mode).
+                </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term><option>-bank0winstart</option> <parameter>ns</parameter></term>
+              <term><option>-bank1winstart</option> <parameter>ns</parameter></term>
+              <listitem>
+                <para>
+                  Determines when the matching window for trigger matching
+                  mode starts relative to the gate.  <option>-bank1winstart</option>
+                  is only relevant with the <option>-joinedbanks</option> is
+                  false.  This value is a number between <literal>0</literal>
+                  and <literal>32767</literal> where the vaslue
+                  <literal>16384</literal> means the window starts with the
+                  gate, larger values delay the start and smaller
+                  values start the
+                  matching window prior to the gate.
+                </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term><option>-bank0winwidth</option> <parameter>width</parameter></term>
+              <term><option>-bank1winwidth</option> <parameter>width</parameter></term>
+              <listitem>
+                <para>
+                  Determines the width of the trigger matching
+                  window.  The <parameter>width</parameter>
+                  value is in nanoseconds and can be
+                  <literal>0</literal> through
+                  <literal>16383</literal>, giving a range of
+                  16 microseconds.
+                </para>
+                <para>
+                  <option>-bank1winwidth</option> is only meaningful
+                  if the
+                  <option>-joinedbanks</option> is disabled.
+                </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term><option>-bank0triggersource</option> <parameter>trigger-spec</parameter></term>
+              <term><option>-bank1triggersource</option> <parameter>trigger-spec</parameter></term>
+              <listitem>
+                <para>
+                  The actual triggering of the module is quite flexible.
+                  These options allow you to specify how the module is triggered.
+                  <option>-bank1triggersource</option> is only
+                  meaningful if <option>-joinedbanks</option> is
+                  off.
+                </para>
+                <para>
+                  The valid values for the <parameter>trigger-spec</parameter>
+                  are:
+                </para>
+                <variablelist>
+                  <varlistentry>
+                    <term><literal>Tr0</literal></term>
+                    <listitem>
+                      <para>
+                        The bank is triggered on the Gate 0 input.
+                      </para>
+                    </listitem>
+                  </varlistentry>
+                  <varlistentry>
+                    <term><literal>Tr1</literal></term>
+                    <listitem>
+                      <para>
+                        The bank is triggered on the Gate 1 input.
+                      </para>
+                    </listitem>
+                  </varlistentry>
+                  <varlistentry>
+                    <term><literal>Ch0</literal> ... <literal>Ch31</literal></term>
+                    <listitem>
+                      <para>
+                        The specified channel is the trigger for the bank.
+                      </para>
+                    </listitem>
+                  </varlistentry>
+                  <varlistentry>
+                    <term><literal>Bank0</literal></term>
+                    <listitem>
+                      <para>
+                        A hit in any channel of Bank 0 is the trigger for
+                        the bank.
+                      </para>
+                    </listitem>
+                  </varlistentry>
+                  <varlistentry>
+                    <term><literal>Bank1</literal></term>
+                    <listitem>
+                      <para>
+                        A hit in any channel of Bank 1 is a trigger
+                        for the bank.
+                      </para>
+                    </listitem>
+                  </varlistentry>
+
+                </variablelist>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term><option>-bank0firsthit</option> <parameter>boolean</parameter></term>
+              <term><option>-bank1firsthit</option> <parameter>boolean</parameter></term>
+              <listitem>
+                <para>
+                  If true, only the first hit from the bank
+                  is
+                  transmitted.  Otherwise all hits in the
+                  bank's trigger matching window are
+                  transmitted.
+                </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term><option>-edge</option> <parameter>rising | falling</parameter></term>
+              <listitem>
+                <para>
+                  Determines which signal edge is timed.
+                </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term><option>-tr0terminated</option> <parameter>boolean</parameter></term>
+              <term><option>-tr1terminated</option> <parameter>boolean</parameter></term>
+              <listitem>
+                <para>
+                  If this parameter is true, the ECL Trn input is
+                  terminated by the module.  If not that
+                  input is unterminated.
+                </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term><option>-resetterminated</option> <parameter>boolean</parameter></term>
+              <listitem>
+                <para>
+                  If true, the ECL reset input is terminated
+                  otherwise it is unterminated.
+                </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term><option>-ecltrig1isoscillator</option> <parameter>boolean</parameter></term>
+              <listitem>
+                <para>
+                  If true then the ECL trig1 input is treated
+                  as an oscillator that is suitable for
+                  incrementing the timestamp.  Note that you must also set the
+                  <option>-timingsource</option> option properly as
+                  well to actually ulse this input as the
+                  timestamp clock.
+                </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term><option>-trigfromecl</option> <option>boolean</option></term>
+              <listitem>
+                <para>
+                  If true, the trigger comes from the ECL inputs,
+                  otherwise it comes from the NIM inputs.  This
+                  is an exclusive setting (see register
+                  <literal>0x6068</literal> documentation e.g.)
+                </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term><option>-nimtrig1isoscillator</option> <option>boolean</option></term>
+              <listitem>
+                <para>
+                  The nim TRIG1 input can be used to supply
+                  a clock pulse train for the timestamp.
+                  See <option>-timingsource</option> which must
+                  be set properly as well.
+                </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term><option>-busy</option> <parameter>bothbanks | cbusoutput | abovethreshold</parameter></term>
+              <listitem>
+                <para>
+                  Describes the function of the busy output:
+                </para>
+                <variablelist>
+                  <varlistentry>
+                    <term><literal>bothbanks</literal></term>
+                    <listitem>
+                      <para>
+                        The busy is set when FIFO is full or
+                        acquisition is halted (the module
+                        cannot accept a busy).
+                      </para>
+                    </listitem>
+                  </varlistentry>
+                  <varlistentry>
+                    <term><literal>cbusoutput</literal></term>
+                    <listitem>
+                      <para>
+                        The busy output is used to run
+                        a CBUS control bus.
+                      </para>
+                    </listitem>
+                  </varlistentry>
+                  <varlistentry>
+                    <term><literal>abovethreshold</literal></term>
+                    <listitem>
+                      <para>
+                        The busy output indicates the
+                        FIFO is occupied above the
+                        <option>-irqthreshold</option>
+                        value.
+                      </para>
+                    </listitem>
+                  </varlistentry>
+                </variablelist>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term><option>-pulseron</option> <parameter>boolean</parameter></term>
+              <listitem>
+                <para>
+                  If true, the test pulser is active
+                </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term><option>-pulserpattern</option> <parameter>bitmask</parameter></term>
+              <listitem>
+                <para>
+                  Sets the pulser pattern, which determines
+                  which channels are
+                  pulsed.
+                </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term><option>-bank0threshold</option> <parameter>level</parameter></term>
+              <term><option>-bank1threshold</option> <parameter>level</parameter></term>
+              <listitem>
+                <para>
+                  When the modue is jumpered for
+                  unipolar inputs, this value determines
+                  the threshold used to determine when a
+                  signal has happened on the inputs to bankn.
+                  If you are doing this
+                  <emphasis>read the manual carefully</emphasis>
+                </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term><option>-timingsource</option> <parameter>vme | external</parameter></term>
+              <listitem>
+                <para>
+                  Determines the timing source for the
+                  timestamp clock.  If <literal>vme</literal>
+                  the 16Mhz backplane clock specified
+                  by the VME standard is used.  If
+                  <parameter>external</parameter>,
+                  You must have configured one of
+                  <option>-ecltrig1isoscillator</option>
+                  or <option>-nimtrig1isoscillator</option>
+                  to be true in which case the associated
+                  input is used as the source for the
+                  timestamp clock.
+                </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term><option>-tsdivisor</option> <parameter>divisor</parameter></term>
+              <listitem>
+                <para>
+                  Sets the scaledown of the timestamp
+                  clock input. This is a 16 bit value and
+                  the value 0 means division by
+                  <literal>65536</literal>.
+                </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term><option>-multlow0</option> <parameter>0-255</parameter></term>
+              <listitem>
+                <para>
+                  The bank0 number of channels that must be
+                  present to define an event (note that
+                  if <option>-joinedbanks</option> is true
+                  this multiplicity is over both banks).
+                </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term><option>-multhi0</option> <parameter>0-255</parameter></term>
+              <listitem>
+                <para>
+                  The largest number of channels that must
+                  be
+                  present to define an event for bank0
+                  or both banks if <option>-joinedbanks</option>
+                  is true.
+                </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term><option>-multlow1</option> <parameter>0-255</parameter></term>
+              <listitem>
+                <para>
+                  If banks are not joined the low multiplicity
+                  required for an event from bank 1.
+                </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term><option>-multhi1</option> <parameter>0-255</parameter></term>
+              <listitem>
+                <para>
+                  If banks are not joined, the high multiplicity
+                  allowed for an event from bank1.
+                </para>
+              </listitem>
+            </varlistentry>
+          </variablelist>
+        </refsect1>
       </refentry>
 
       <refentry id="vmusb3-mqdc">
