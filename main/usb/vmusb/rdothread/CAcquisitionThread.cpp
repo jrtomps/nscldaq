@@ -18,7 +18,6 @@ East Lansing, MI 48824-1321
 #include <config.h>
 #include "CAcquisitionThread.h"
 #include "CTheApplication.h"
-#include <CSystemControl.h>
 #include <CReadoutModule.h>
 #include <CStack.h>
 #include <CVMUSB.h>
@@ -671,7 +670,7 @@ CAcquisitionThread::reportErrorToMainThread(std::string msg)
     // Allocate and fill in the event:
     
     event* pEvent = reinterpret_cast<event*>(Tcl_Alloc(sizeof(event)));
-    pEvent->event.proc = CSystemControl::AcquisitionErrorHandler;
+    pEvent->event.proc = CTheApplication::AcquisitionErrorHandler;
     pEvent->payload.pMessage = Tcl_Alloc(msg.size() +1);
     strcpy(pEvent->payload.pMessage, msg.c_str());
     Tcl_ThreadQueueEvent(

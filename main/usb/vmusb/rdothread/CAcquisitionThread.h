@@ -51,6 +51,8 @@ private:
   bool                         m_haveScalerStack;
 
   //Singleton pattern stuff:
+
+
 private:
   static CAcquisitionThread*    m_pTheInstance;
   CAcquisitionThread();

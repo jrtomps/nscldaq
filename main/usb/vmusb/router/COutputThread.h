@@ -45,7 +45,6 @@ struct DataBuffer;
 typedef struct _StringsBuffer StringsBuffer;
 
 class  CRingBuffer;
-class CSystemControl;
 
 /*!
     This class bridges the gap between the buffer format of the
@@ -130,13 +129,12 @@ private:
   TimestampExtractor m_pEvtTimestampExtractor;
   TimestampExtractor m_pSclrTimestampExtractor;
   StateChangeCallback m_pBeginRunCallback;
-  CSystemControl& m_systemControl;
 
 
   // Constuctors and other canonicals.
 
 public:
-  COutputThread(std::string ring, CSystemControl& sysControl);
+  COutputThread(std::string ring);
   virtual ~COutputThread();
 private:
   COutputThread(const COutputThread& rhs);
@@ -173,8 +171,6 @@ private:
   void getTimestampExtractor();
 
   bool hasOptionalHeader();
-
-  void scheduleApplicationExit(int status);
 };
 
 

@@ -10,7 +10,7 @@ unittests_SOURCES = @srcdir@/TestRunner.cpp \
 		@srcdir@/cxlmcontrolstest.cpp \
 		@srcdir@/cvmusbmoduletest.cpp \
 		@srcdir@/cwienermdgg16test.cpp \
-		@srcdir@/cmdgg16controltest.cpp 
+		@srcdir@/cmdgg16controltest.cpp
 
 
 unittests_LDADD = @top_builddir@/usb/vmusb/tclserver/libVMUSBControlServer.la \
@@ -20,7 +20,6 @@ unittests_LDADD = @top_builddir@/usb/vmusb/tclserver/libVMUSBControlServer.la \
 		@top_builddir@/usb/vmusb/rdothread/libVMUSBRdoThread.la \
 		@top_builddir@/usb/vmusb/daqconfig/libVMUSBConfig.la \
 		@top_builddir@/usb/vmusb/router/libVMUSBRouter.la \
-		@top_builddir@/usb/vmusb/systemcontrol/libVMUSBSystemControl.la \
 		$(CPPUNIT_LDFLAGS) \
 		@TCL_LDFLAGS@ \
 		@top_builddir@/base/thread/libdaqthreads.la 
