@@ -179,12 +179,18 @@ TclServer::setResult(string msg)
 
 void TclServer::init()
 {
-  initInterpreter();		// Create interp and add commands.
-  startTcpServer();	  	// Set up the Tcp/Ip listener event.
-  readConfigFile();	  	// Initialize the modules.
-  initModules();        // Initialize the fully configured modules.
-  createMonitorList();	// Figure out the set of modules that need monitoring.
-  m_isRunning = true;
+  try {
+    initInterpreter();		// Create interp and add commands.
+    startTcpServer();	  	// Set up the Tcp/Ip listener event.
+    readConfigFile();	  	// Initialize the modules.
+    initModules();        // Initialize the fully configured modules.
+    createMonitorList();	// Figure out the set of modules that need monitoring.
+    m_isRunning = true;
+  } catch (CException& err) {
+    cerr << "TclServer thread caught a daq exception: "
+      	 << err.ReasonText() << " while " << err.WasDoing() << endl;
+    exit(EXIT_FAILURE);
+  }
 }
 /*!
    Entry point for the thread.  This will be called when the thread is first
