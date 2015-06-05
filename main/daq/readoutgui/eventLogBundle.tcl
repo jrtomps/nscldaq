@@ -815,7 +815,7 @@ proc ::EventLog::register {} {
     
     set ::EventLog::statusBarManager      [::StatusBar::getInstance]
     set ::EventLog::statusbar \
-        [$::EventLog::statusBarManager addMessage {No Event Segments yet}]
+        [$::EventLog::statusBarManager addMessage {No event segments recorded yet}]
     
     #
     #  Arrange for the event logging parameters to be saved/restored.
