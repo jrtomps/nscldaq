@@ -30,7 +30,10 @@ snit::type ConnectionManager {
     
     variable ClientInfo
     variable ListenFd
-    variable localhostIP 127.0.0.1
+
+    #  List of Peer IP's that might be local. Note IPV6 is included now RF
+    
+    variable localhostIP [list 127.0.0.1 127.0.1.1 ::1]
     
     #  Consructor:  The options are parsed.
     #   The /var/tmp/daqportmgr directory is created just in case.
@@ -178,8 +181,9 @@ snit::type ConnectionManager {
         #
         #  The client must be the localhost:
         #
-        if {$client != $localhostIP} {
-            set Reason "[GetPeer $fd] : Only local applications get ports"
+	
+        if {$client ni $localhostIP} {
+            set Reason "[GetPeer $fd] ($client) : Only local applications get ports"
             $options(-logger) logAllocationFailure $application $user $Reason
             $self SendClient $fd [list FAIL $Reason]
             #
