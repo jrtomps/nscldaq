@@ -127,8 +127,24 @@ void
 COutputThread::init()
 {
 
+  try {
     attachRing();		// Attach to the ring, creating it if needed.
     getTimestampExtractor(); 
+  } catch (string msg) {
+    cerr << "COutput thread caught a string exception: " << msg << endl;
+    exit(EXIT_FAILURE);
+  } catch (char* msg) {
+    cerr << "COutput thread caught a char* exception: " << msg << endl;
+    exit(EXIT_FAILURE);
+  }
+  catch (CException& err) {
+    cerr << "COutputThread thread caught a daq exception: "
+	 << err.ReasonText() << " while " << err.WasDoing() << endl;
+    exit(EXIT_FAILURE);
+  } catch (...) {
+    cerr << "COutput thread caught an exception of unknown type: " << endl;
+    exit(EXIT_FAILURE);
+  }
  
 
 }
@@ -151,20 +167,20 @@ COutputThread::operator()()
   }
   catch (string msg) {
     cerr << "COutput thread caught a string exception: " << msg << endl;
-    throw;
+    exit(EXIT_FAILURE);
   }
   catch (char* msg) {
     cerr << "COutput thread caught a char* exception: " << msg << endl;
-    throw;
+    exit(EXIT_FAILURE);
   }
   catch (CException& err) {
     cerr << "COutputThread thread caught a daq exception: "
 	 << err.ReasonText() << " while " << err.WasDoing() << endl;
-    throw;
+    exit(EXIT_FAILURE);
   }
   catch (...) {
     cerr << "COutput thread caught some other exception type.\n";
-    throw;
+    exit(EXIT_FAILURE);
   }
 }
 
