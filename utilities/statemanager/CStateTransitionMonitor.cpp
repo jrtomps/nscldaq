@@ -52,8 +52,8 @@ CStateTransitionMonitor::CStateTransitionMonitor(
         createReqAPI(reqURI);
         createSubAPI(subURI);
         locateParentPath();
-        // Leave();
-        // startMonitorThread();
+        Leave();
+        startMonitorThread();
 
     }
     catch(...) {
@@ -67,13 +67,11 @@ CStateTransitionMonitor::CStateTransitionMonitor(
  */
 CStateTransitionMonitor::~CStateTransitionMonitor()
 {
-#ifdef MONITOR_OPERATIONAL
     if (m_pMonitor) {
         m_pMonitor->scheduleExit();
         m_pMonitor->join();
-        delete m_pMonitor();
+        delete m_pMonitor;
     }
-#endif
     releaseResources();
 }
 
@@ -173,6 +171,59 @@ CStateTransitionMonitor::setTransitionTimeout(int secs)
     m_pRequestApi->set("/RunState/Timeout", timeoutStr);
     
 }
+
+/**
+ * getNotifications
+ *    Return notifications queued or wait if desired, until some come
+ *    in.
+ *
+ *  @param max - Maximum notifications that will be accepted, -1 means no limit,
+ *              0 is not legal.
+ *  @param timeout - Number of milliseconds to block if there are not any notifications
+ *               in the queue. -1 means as long as needed, 0 means poll once.
+ *  @return std::vector<Notification> - Vector (possibily empty) of the notifications.
+ */
+std::vector<CStateTransitionMonitor::Notification>
+CStateTransitionMonitor::getNotifications(int max, int timeout)
+{
+    std::vector<Notification> result;
+    
+    if (max == 0) {
+        throw CException("CStateTransitionMonitor::getNotifications max cannot be 0");
+    }
+    // If we can get stuff without blocking that's what we'll do..
+    
+    Notification Not;
+    while (m_notifications.getnow(Not) &&
+        ((result.size() < max) || (max == -1))
+    ) {
+        result.push_back(Not);    
+    }
+    
+    // Otherwise block, then get stuff after we awaken:
+    
+    if (result.size() == 0) {
+        m_notifications.wait(timeout);
+        while (m_notifications.getnow(Not) &&            // Refactor.
+            ((result.size() < max) || (max == -1))
+        ) {
+            result.push_back(Not);    
+        }
+    }
+    return result;
+}
+
+/** postNotification
+ *   Post a new notification to the queue.
+ *
+ *   @param n - the element to post.
+ */
+void
+CStateTransitionMonitor::postNotification(CStateTransitionMonitor::Notification n)
+{
+    m_notifications.queue(n);
+}
+
 /*-----------------------------------------------------------------------------
  * Private utilities:
  */
@@ -323,4 +374,155 @@ CStateTransitionMonitor::getVar(const char* program, const char* name)
     std::string fullPath = varPath(program, name);
     
     return m_pRequestApi->get(fullPath.c_str());
+}
+/**
+ * startMonitorThread
+ *    Start the monitor thread.
+ *
+ */
+void
+CStateTransitionMonitor::startMonitorThread()
+{
+    m_pMonitor = new MonitorThread(m_pSubscriptions, this);
+    m_pMonitor->start();
+}
+
+/*------------------------------------------------------------------------------
+ * Monitor thread implementation:
+ */
+
+/**
+ * constructor
+ *   @param pApi - Pointer to a subscsription API.
+ *   @param parent - The CStateTransitionMonitor* that created us.
+ */
+CStateTransitionMonitor::MonitorThread::MonitorThread(
+    CVarMgrSubscriptions* pApi, CStateTransitionMonitor* parent
+) :
+    m_parentDir(parent->programParentDir()),
+    m_exiting(false),
+    m_pApi(pApi),
+    m_pParent(parent)
+{
+}
+/**
+ *  init
+ *     Initialize synchronized with the parent.  This is executing the
+ *     thread.
+ */
+void
+CStateTransitionMonitor::MonitorThread::init()
+{
+        // Subscribe to the global state variable.
+    
+    m_pApi->subscribe("/RunState/State");
+    m_pApi->subscribe(m_parentDir.c_str());
+    
+    // We  are really only interested in the state variables and changes to the
+    // program homedir: so hence these filters:
+    
+    m_pApi->addFilter(CVarMgrSubscriptions::accept, "*/State");    // All state vars.
+    m_pApi->addFilter(CVarMgrSubscriptions::accept, m_parentDir.c_str());   // Only stuff in the parent dir.
+    
+
+}
+/**
+ * operator()
+ *    The main loop.
+ *    Accept and process messages from the subscription. The messages
+ *    are cooked into CStateTransitionMonitor::Notification objects which are
+ *    posted to the message queue between the threads.
+ */
+void
+CStateTransitionMonitor::MonitorThread::operator()()
+{
+    while (!m_exiting) {
+        if (m_pApi->waitmsg(500)) {
+            CVarMgrSubscriptions::Message msg = m_pApi->read();
+            if (m_pApi->checkFilters(msg.s_path.c_str())) {
+                // Something worth doing:
+                
+                CStateTransitionMonitor::Notification notmsg; // s_type, s_state, s_program.
+                bool post = false;
+                if (msg.s_operation == "ASSIGN") {
+                    // State change:
+                    
+                    
+                    notmsg.s_state = msg.s_data;              // State value.
+                    
+                    // Global or program?
+                    
+                    if (msg.s_path == "/RunState/State") {
+                        // Global:
+                        
+                        post = true;                        // Post this transition.
+                        notmsg.s_type = CStateTransitionMonitor::GlobalStateChange;
+                    } else {
+                         post = true;
+                         notmsg.s_type    = CStateTransitionMonitor::ProgramStateChange;
+                         notmsg.s_program = programFromVarPath(msg.s_path);
+                    }
+                } else if (msg.s_operation == "MKDIR") {
+                    // Be sure the path  is the paernt directory.  The data will be
+                    // the program name:
+                    
+                    if (msg.s_path == m_parentDir) {
+                        notmsg.s_type = CStateTransitionMonitor::ProgramJoins;
+                        notmsg.s_program = msg.s_data;
+                        post = true;
+                    }
+                } else if (msg.s_operation == "RMDIR") {
+                    if (msg.s_path == m_parentDir) {
+                        notmsg.s_type = CStateTransitionMonitor::ProgramLeaves;
+                        notmsg.s_program = msg.s_data;
+                        post = true;
+                    }
+                }
+                // Only post if the operation resulted in  postable op.
+                
+                if (post) {
+                    m_pParent->postNotification(notmsg);
+                }
+            }
+        }
+    }
+}
+/**
+ * programFromVarPath
+ *    Given the path of a variable, returns the name of the program.   The
+ *    variable path name will be of the form:
+ *   \verbatim
+ *      ${m_parentDir}/programName/varname
+ *   \endverbatim
+ *
+ * Where:
+ *    *  ${m_parentDir} is the value of our m_parentDir variable and is the
+ *    *  directory in which programs live.
+ *    *  programName - is the grail that we seek.
+ *    *  varname     - is the name of some variable in the program's directory
+ *    *                that we care nothing for.
+ *
+ *  @param varpath - The variable path from which we are going to extract
+ *                   the program name (see above).
+ *  @return std::string - the programName in the discussion above.
+ */
+std::string
+CStateTransitionMonitor::MonitorThread::programFromVarPath(std::string varpath)
+{
+    // first remove the leading ${m_parentDir}/ from the string.
+    
+    size_t newFirst = m_parentDir.size() + 1; // points past the '/'.
+    std::string result = varpath.substr(newFirst);
+    
+    // Now we need to figure out where the '/' is between the program
+    // directory name and the variable name and only retain the stuff
+    // before it.
+    
+    size_t slashpos = result.find('/');
+    
+    // due to zero based indexing the following is correct:
+    
+    return result.substr(0, slashpos);
+    
+    
 }

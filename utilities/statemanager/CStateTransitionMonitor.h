@@ -25,7 +25,7 @@
 
 #include <vector>
 #include <string>
-#include <set>
+
 
 #include <CBufferQueue.h>
 #include <CGaurdedObject.h>
@@ -124,9 +124,10 @@ private:
     {
         
     private:
-        char*      m_parentDir;
-        std::set<std::string> m_knownPrograms;
-        bool       m_exiting;
+        std::string              m_parentDir;
+        bool                     m_exiting;
+        CVarMgrSubscriptions*    m_pApi;
+        CStateTransitionMonitor* m_pParent;
         
     public:
         MonitorThread(
@@ -135,6 +136,9 @@ private:
         void init();
         void operator()();
         void scheduleExit() {m_exiting = true;}
+        
+    private:
+        std::string programFromVarPath(std::string varpath);
     };
     
     // Utilities:
@@ -147,5 +151,8 @@ private:
     bool getBool(std::string program, std::string name);
     std::string getVar(const char* program, const char* name);
     std::string varPath(const char* program, const char* name);
+    
+    
+    void startMonitorThread();
 };
 #endif

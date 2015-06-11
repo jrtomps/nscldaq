@@ -51,12 +51,29 @@ class changeMonitorTests : public CppUnit::TestFixture {
   CPPUNIT_TEST(modifiedTranstionTimeout);
   CPPUNIT_TEST(setTimeout);
   
-  // CPPUNIT_TEST(notification1);
-  // CPPUNIT_TEST(notificationMany);
-  // CPPUNIT_TEST(notificationLimited);
-  // CPPUNIT_TEST(saNotification1);
-  // CPPUNIT_TEST(saNotificationMany);
-  // CPPUNIT_TEST(saNotificationLimited);
+  // Global and program state changes:
+  
+  CPPUNIT_TEST(noNotification);
+  CPPUNIT_TEST(notification1);
+  CPPUNIT_TEST(notificationMany);
+  CPPUNIT_TEST(notificationLimited);
+  
+  CPPUNIT_TEST(prNotification1);
+  CPPUNIT_TEST(prNotificationMany);
+  CPPUNIT_TEST(prNotificationLimited);
+  CPPUNIT_TEST(mixedNotifications);
+  
+  // Program joins
+
+  CPPUNIT_TEST(programJoins);
+  CPPUNIT_TEST(programMultiJoins);
+  
+  // Program leaves:
+  
+  CPPUNIT_TEST(programLeaves);
+  CPPUNIT_TEST(programMultiLeaves);
+  CPPUNIT_TEST(programJoinLeaves);
+  
   CPPUNIT_TEST_SUITE_END();
 
 protected:
@@ -93,6 +110,23 @@ protected:
     void transitionTimeout();
     void modifiedTranstionTimeout();
     void setTimeout();
+    
+    void noNotification();
+    void notification1();
+    void notificationMany();
+    void notificationLimited();
+    
+    void prNotification1();
+    void prNotificationMany();
+    void prNotificationLimited();
+    void mixedNotifications();
+    
+    void programJoins();
+    void programMultiJoins();
+    
+    void programLeaves();
+    void programMultiLeaves();
+    void programJoinLeaves();
 private:
     pid_t m_serverPid;
     int m_serverRequestPort;
@@ -134,10 +168,50 @@ private:
     void stopServer();
     void populateDb();
     void makeProgram(const char* parent, const char* name);
+    void removeProgram(const char* parent, const char* name);
 };
 
 
 // Utility methods:
+
+/**
+ * removeProgram
+ *    Destroy the variables and directory associated with a program.
+ *
+ *  @param parent - the directory that holds the program.
+ *  @param name   - the program's name.
+ */
+void
+changeMonitorTests::removeProgram(const char* parent, const char* name)
+{
+    std::string wd = m_pApi->getwd();
+    
+    // Compute the directory of the program and kill off the variables inside:
+    
+    std::string dir = parent;
+    dir += "/";
+    dir += name;
+    
+    m_pApi->cd(dir.c_str());
+    
+    // Kill the variables:
+    
+    
+    m_pApi->rmvar("State");
+    m_pApi->rmvar("enable");
+    m_pApi->rmvar("standalone");
+    m_pApi->rmvar("path");
+    m_pApi->rmvar("host");
+    m_pApi->rmvar("outring");
+    m_pApi->rmvar("inring");
+    
+    // Kill the directory:
+    
+    m_pApi->cd("..");
+    m_pApi->rmdir(name);
+    
+    m_pApi->cd(wd.c_str());
+}
 
 /**
  * makeProgram
@@ -604,3 +678,299 @@ void changeMonitorTests::setTimeout()
     mon.setTransitionTimeout(30);
     EQ(30, mon.transitionTimeout());
 }
+// Notification tests
+
+// Not standalone - no state change -> no notification (timeout).
+
+void changeMonitorTests::noNotification()
+{
+    CStateTransitionMonitor mon("tcp://localhost", "tcp://localhost");
+    std::vector<CStateTransitionMonitor::Notification> nots =
+        mon.getNotifications(-1, 500);
+    EQ(size_t(0), nots.size());
+}
+
+// One state change in the global state:
+
+void changeMonitorTests::notification1()
+{
+    
+    CStateTransitionMonitor mon("tcp://localhost", "tcp://localhost");
+    m_pApi->set("/RunState/State", "Readying");
+    usleep(500*1000);
+    
+    
+    std::vector<CStateTransitionMonitor::Notification> nots =
+        mon.getNotifications(-1, 500);
+    EQ(size_t(1), nots.size());
+    EQ(CStateTransitionMonitor::GlobalStateChange, nots[0].s_type);
+    EQ(std::string("Readying"), nots[0].s_state);
+    
+
+    
+}
+// Notifications can be queued:
+
+void changeMonitorTests::notificationMany()
+{
+    CStateTransitionMonitor mon("tcp://localhost", "tcp://localhost");
+    m_pApi->set("/RunState/State", "Readying");
+    m_pApi->set("/RunState/State", "Ready");
+    
+    usleep(500*1000);             // let this all trickle through;
+    
+    std::vector<CStateTransitionMonitor::Notification> nots =
+        mon.getNotifications(-1, 500);
+    EQ(size_t(2), nots.size());
+    EQ(CStateTransitionMonitor::GlobalStateChange, nots[0].s_type);
+    EQ(std::string("Readying"), nots[0].s_state);
+    
+    EQ(CStateTransitionMonitor::GlobalStateChange, nots[1].s_type);
+    EQ(std::string("Ready"), nots[1].s_state);
+}
+
+// We can control the maximum number of notifications delivered:
+
+void changeMonitorTests::notificationLimited()
+{
+    CStateTransitionMonitor mon("tcp://localhost", "tcp://localhost");
+    m_pApi->set("/RunState/State", "Readying");
+    m_pApi->set("/RunState/State", "Ready");
+    
+    usleep(500*1000);             // let this all trickle through;
+    
+    std::vector<CStateTransitionMonitor::Notification> nots =
+        mon.getNotifications(1, 500);
+    EQ(size_t(1), nots.size());
+    EQ(CStateTransitionMonitor::GlobalStateChange, nots[0].s_type);
+    EQ(std::string("Readying"), nots[0].s_state);
+}
+// Notification that  program, changed state:
+
+void changeMonitorTests::prNotification1()
+{
+    CStateTransitionMonitor mon("tcp://localhost", "tcp://localhost");
+    
+    m_pApi->set("/RunState/test/State", "Readying");
+    usleep(500*1000);             // let this all trickle through;
+    std::vector<CStateTransitionMonitor::Notification> nots =
+        mon.getNotifications(1, 500);
+        
+    EQ(size_t(1), nots.size());
+    EQ(CStateTransitionMonitor::ProgramStateChange, nots[0].s_type);
+    EQ(std::string("Readying"), nots[0].s_state);
+    EQ(std::string("test"), nots[0].s_program);
+    
+}
+// Several program change notifications can queue up... not limited
+// to one program.  but they shouild come out time ordered:
+
+void changeMonitorTests::prNotificationMany()
+{
+    makeProgram("RunState", "another");
+
+    CStateTransitionMonitor mon("tcp://localhost", "tcp://localhost");
+    
+    m_pApi->set("/RunState/test/State", "Readying");
+    m_pApi->set("/RunState/another/State", "Readying");
+    m_pApi->set("/RunState/test/State", "Ready");
+    
+    usleep(500*1000);             // let this all trickle through;
+    std::vector<CStateTransitionMonitor::Notification> nots =
+        mon.getNotifications(-1, 500);
+        
+    EQ(size_t(3), nots.size());         // Should get three notifications.
+    
+    // First is test -> Readying:
+    
+    EQ(CStateTransitionMonitor::ProgramStateChange, nots[0].s_type);
+    EQ(std::string("Readying"), nots[0].s_state);
+    EQ(std::string("test"),      nots[0].s_program);
+    
+    // Then another -> Readying
+    
+    EQ(CStateTransitionMonitor::ProgramStateChange, nots[1].s_type);
+    EQ(std::string("Readying"), nots[1].s_state);
+    EQ(std::string("another"),      nots[1].s_program);
+    
+    // Lastly test -> Ready.
+    
+    EQ(CStateTransitionMonitor::ProgramStateChange, nots[2].s_type);
+    EQ(std::string("Ready"),    nots[2].s_state);
+    EQ(std::string("test"),      nots[2].s_program);
+    
+}
+
+// program notifications participate in message limits:
+
+void changeMonitorTests::prNotificationLimited()
+{
+    makeProgram("RunState", "another");
+
+    CStateTransitionMonitor mon("tcp://localhost", "tcp://localhost");
+    
+    m_pApi->set("/RunState/test/State", "Readying");
+    m_pApi->set("/RunState/another/State", "Readying");
+    m_pApi->set("/RunState/test/State", "Ready");
+    
+    usleep(500*1000);             // let this all trickle through;
+    std::vector<CStateTransitionMonitor::Notification> nots =
+        mon.getNotifications(2, 500);
+        
+    EQ(size_t(2), nots.size());         // Should get three notifications.
+    
+    // First is test -> Readying:
+    
+    EQ(CStateTransitionMonitor::ProgramStateChange, nots[0].s_type);
+    EQ(std::string("Readying"), nots[0].s_state);
+    EQ(std::string("test"),      nots[0].s_program);
+    
+    // Then another -> Readying
+    
+    EQ(CStateTransitionMonitor::ProgramStateChange, nots[1].s_type);
+    EQ(std::string("Readying"), nots[1].s_state);
+    EQ(std::string("another"),      nots[1].s_program);
+    
+}
+// Global and program state notifications can both appear:
+
+void changeMonitorTests::mixedNotifications()
+{
+    CStateTransitionMonitor mon("tcp://localhost", "tcp://localhost");
+    
+    m_pApi->set("/RunState/test/State", "Readying");
+    m_pApi->set("/RunState/State", "Readying");
+    m_pApi->set("/RunState/test/State", "Ready");
+    
+    usleep(500*1000);             // let this all trickle through;
+    std::vector<CStateTransitionMonitor::Notification> nots =
+        mon.getNotifications(-1, 500);
+        
+    EQ(size_t(3), nots.size());         // Should get three notifications.
+    
+    // First is test -> Readying:
+    
+    EQ(CStateTransitionMonitor::ProgramStateChange, nots[0].s_type);
+    EQ(std::string("Readying"), nots[0].s_state);
+    EQ(std::string("test"),      nots[0].s_program);
+    
+    // Then global state -> Readying
+    
+    EQ(CStateTransitionMonitor::GlobalStateChange, nots[1].s_type);
+    EQ(std::string("Readying"), nots[1].s_state);
+    
+    
+    // Lastly test -> Ready.
+    
+    EQ(CStateTransitionMonitor::ProgramStateChange, nots[2].s_type);
+    EQ(std::string("Ready"),    nots[2].s_state);
+    EQ(std::string("test"),      nots[2].s_program);    
+}
+// Program joins the system.
+
+void changeMonitorTests::programJoins()
+{
+    CStateTransitionMonitor mon("tcp://localhost", "tcp://localhost");
+    
+    makeProgram("RunState", "new");
+    
+    usleep(500*1000);
+    
+    std::vector<CStateTransitionMonitor::Notification> nots =
+        mon.getNotifications(-1, 500);
+        
+    EQ(size_t(1), nots.size());         // Should get three notifications.
+    
+    
+    EQ(CStateTransitionMonitor::ProgramJoins, nots[0].s_type);
+    EQ(std::string("new"), nots[0].s_program);
+}
+// Several programs join the system:
+
+void changeMonitorTests::programMultiJoins()
+{
+    CStateTransitionMonitor mon("tcp://localhost", "tcp://localhost");
+    
+    makeProgram("RunState", "new");
+    makeProgram("RunState", "newer");
+    
+    usleep(500*1000);
+    
+    std::vector<CStateTransitionMonitor::Notification> nots =
+        mon.getNotifications(-1, 500);
+        
+    EQ(size_t(2), nots.size());         // Should get three notifications.
+    
+    
+    EQ(CStateTransitionMonitor::ProgramJoins, nots[0].s_type);
+    EQ(std::string("new"), nots[0].s_program);
+
+    EQ(CStateTransitionMonitor::ProgramJoins, nots[1].s_type);
+    EQ(std::string("newer"), nots[1].s_program);
+
+}
+
+// Program leaves the system:
+
+void changeMonitorTests::programLeaves()
+{
+    makeProgram("RunState", "new");
+    makeProgram("RunState", "newer");
+    
+    CStateTransitionMonitor mon("tcp://localhost", "tcp://localhost");
+    removeProgram("/RunState", "new");
+    usleep(500*1000);
+    
+    std::vector<CStateTransitionMonitor::Notification> nots =
+        mon.getNotifications(-1, 500);
+        
+    EQ(size_t(1), nots.size());         // Should get three notifications.
+    EQ(CStateTransitionMonitor::ProgramLeaves, nots[0].s_type);
+    EQ(std::string("new"), nots[0].s_program);
+    
+}
+// several programs leave:
+
+void changeMonitorTests::programMultiLeaves()
+{
+    makeProgram("RunState", "new");
+    makeProgram("RunState", "newer");
+    
+    CStateTransitionMonitor mon("tcp://localhost", "tcp://localhost");
+    removeProgram("/RunState", "new");
+    removeProgram("/RunState", "newer");
+    usleep(500*1000);
+    
+    std::vector<CStateTransitionMonitor::Notification> nots =
+        mon.getNotifications(-1, 500);
+        
+    EQ(size_t(2), nots.size());         // Should get three notifications.
+    EQ(CStateTransitionMonitor::ProgramLeaves, nots[0].s_type);
+    EQ(std::string("new"), nots[0].s_program);
+    
+
+    EQ(CStateTransitionMonitor::ProgramLeaves, nots[1].s_type);
+    EQ(std::string("newer"), nots[1].s_program);
+}
+// programs join and leave:
+
+void changeMonitorTests::programJoinLeaves()
+{
+     makeProgram("RunState", "new");
+     CStateTransitionMonitor mon("tcp://localhost", "tcp://localhost");
+     removeProgram("/RunState", "new");
+     makeProgram("RunState", "newer");
+     
+     usleep(500*100);
+     
+     std::vector<CStateTransitionMonitor::Notification> nots =
+        mon.getNotifications(-1, 500);
+        
+    EQ(size_t(2), nots.size());         // Should get three notifications.
+    EQ(CStateTransitionMonitor::ProgramLeaves, nots[0].s_type);
+    EQ(std::string("new"), nots[0].s_program);
+    
+    EQ(CStateTransitionMonitor::ProgramJoins, nots[1].s_type);
+    EQ(std::string("newer"), nots[1].s_program);
+}
+     
