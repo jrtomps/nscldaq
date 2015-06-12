@@ -1,0 +1,128 @@
+/**
+
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2013.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Author:
+#            Ron Fox
+#            NSCL
+#            Michigan State University
+#            East Lansing, MI 48824-1321
+
+##
+# @file   CStateManager.h
+# @brief  Manage state of programs and global state.
+# @author <fox@nscl.msu.edu>
+*/
+
+#ifndef CSTATEMANAGER_H
+#define CSTATEMANAGER_H
+
+#include <utility>
+#include <string>
+#include <vector>
+
+class CStateTransitionMonitor;
+
+class CVarMgrApi;
+
+/**
+ * @class CStateManager
+ * 
+ * This class pulls together the various bits and pieces that make up state
+ * management via the variable database.  It is a bit of a corncob anti-pattern
+ * for the convenience of its clients as it provides the following moderately
+ * independent facilities:
+ *
+ *  * Program management      - definition, deletion, control over programs.
+ *  * Global State control    - Provides the ability to modify the global state.
+ *  * State transition monitoring - Provides the ability to ensure that
+ *  *                           global state transitions trigger the correct
+ *  *                           local state transitions and, where there are
+ *  *                           '-ing' intermediate states, that the system
+ *  *                           stabilizes to the final state within the
+ *  *                           required timeout (e.g. Global NotReady -> Global Readying -> Individual
+ *  *                           Readying -> Individual Ready -> Global Ready)
+ *  * Stand alone state management - Drives the state of programs that have been
+ *                              marked as standalone.
+ *                              
+ *  What this not in the scope of this class is program startup (boot) and exit
+ *  (failure) detection.  That is normally done by the boot manager program
+ *  which has its own set of additional support classes for that.
+ */
+
+class CStateManager
+{
+    // Object data:
+    
+    CStateTransitionMonitor*  m_pMonitor;
+    std::string               m_reqURI;
+    std::string               m_subURI;
+    
+private:
+    
+    // Public data types:
+    
+public:
+    typedef struct _ProgramDefinition {
+        bool        s_enabled;
+        bool        s_standalone;
+        std::string s_path;
+        std::string s_host;
+        std::string s_outRing;
+        std::string s_inRing;
+        
+    } ProgramDefinition, *pProgramDefinition;
+public:
+    CStateManager(const char* requestUri, const char* subscriptionUri);
+    virtual ~CStateManager();
+    
+    // Managing programs:
+public:
+    std::string       getProgramParentDir();
+    void              setProgramParentDir(const char* path);
+    void              addProgram(const char* name, const pProgramDefinition def);
+    ProgramDefinition getProgramDefinition(const char* name);
+    void              modifyProgram(const char* name, const pProgramDefinition def);
+    void              enableProgram(const char* name);
+    void              disableProgram(const char* name);
+    bool              isProgramEnabled(const char* name);
+    void              setProgramStandalone(const char* name);
+    void              setProgramNoStandalone(const char* name);
+    bool              isProgramStandalone(const char* name);
+    std::vector<std::string> listPrograms();
+    std::vector<std::string> listActivePrograms();
+    std::vector<std::string> listStanadloneProgrmas();
+    std::vector<std::string> listInactivePrograms();
+    
+    // Global state control:
+    
+    void setGlobalState(const char* newState);
+    std::string getGlobalState();
+    std::vector<std::pair<std::string, std::string> > getParticipantStates();
+    
+    // State transition monitoring
+    
+    void waitTransition();
+    void updateState(unsigned timeout);              // Process messages.
+    
+    // Managing stand alone program state:
+    
+    bool isStandalone(const char* name);
+    bool isActive(const char* name);
+    void setProgramState(const char* name, const char* state);
+    std::string getProgramState(const char);
+    
+    // Utilities:
+private:    
+    std::string  getProgramDirectoryPath(const char* name);
+    
+    
+};
+
+#endif

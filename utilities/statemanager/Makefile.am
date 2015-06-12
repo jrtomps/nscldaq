@@ -23,14 +23,14 @@ COMMON_LOADFLAGS= @top_builddir@/utilities/varmanager/server/libvarmgr.la \
 
 #
 
-libstateclient_la_SOURCES=CStateClientApi.cpp CStateTransitionMonitor.cpp
+libstateclient_la_SOURCES=CStateClientApi.cpp CStateTransitionMonitor.cpp CStateManager.cpp
 libstateclient_la_CPPFLAGS=$(COMMON_CPPFLAGS)
 libstateclient_la_LDFALGS=$(COMMON_LOADFLAGS)
 
 
 # Headers for public APIS:
 
-include_HEADERS = CStateClientApi.h CStateTransitionMonitor.h
+include_HEADERS = CStateClientApi.h CStateTransitionMonitor.h CStateManager.h
 
 
 
@@ -41,7 +41,8 @@ include_HEADERS = CStateClientApi.h CStateTransitionMonitor.h
 
 noinst_PROGRAMS=unittests
 
-unittests_SOURCES=TestRunner.cpp Asserts.h TestStateChangeMonitor.cpp changeMonitorTests.cpp
+unittests_SOURCES=TestRunner.cpp Asserts.h TestStateChangeMonitor.cpp \
+	changeMonitorTests.cpp TestStateManager.cpp
 
 unittests_CPPFLAGS=$(COMMON_CPPFLAGS) $(CPPUNIT_CFLAGS) -DBINDIR=\"@bindir@\"
 unittests_LDFLAGS=libstateclient.la $(COMMON_LOADFLAGS) $(CPPUNIT_LDFLAGS)

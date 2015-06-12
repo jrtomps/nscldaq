@@ -94,6 +94,8 @@ public:
     // operations available to clients:
     
     std::string programParentDir() const {return m_programParentPath; }
+    CVarMgrApi* getApi(){ return m_pRequestApi; }
+    
     std::vector<std::string> activePrograms();
     std::vector<std::string> allPrograms();
     bool                     isStandalone(const char* programName);
