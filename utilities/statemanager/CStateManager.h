@@ -96,9 +96,10 @@ public:
     void              setProgramNoStandalone(const char* name);
     bool              isProgramStandalone(const char* name);
     std::vector<std::string> listPrograms();
-    std::vector<std::string> listActivePrograms();
-    std::vector<std::string> listStanadloneProgrmas();
+    std::vector<std::string> listEnabledPrograms();
+    std::vector<std::string> listStandalonePrograms();
     std::vector<std::string> listInactivePrograms();
+    void               deleteProgram(const char* name);
     
     // Global state control:
     
@@ -121,6 +122,12 @@ public:
     // Utilities:
 private:    
     std::string  getProgramDirectoryPath(const char* name);
+    std::string  getVarpath(const char* program, const char* name);
+    void         setProgramVar(
+        const char* program, const char* var, const char* value
+    );
+    std::string getProgramVar(const char* program, const char* var);
+    bool        getProgramBool(const char* program, const char* var);
     
     
 };

@@ -51,11 +51,40 @@ class TestStateManager : public CppUnit::TestFixture {
   CPPUNIT_TEST(modifyNoxProgramDef);
   
   CPPUNIT_TEST(enableProgramDefault);
-  //CPPUNIT_TEST(disableProgramDefault);
-  //CPPUNIT_TEST(enableProgramOtherDir);
-  //CPPUNIT_TEST(disableProgramOtherDir);
-  //CPPUNIT_TEST(enableNoxProgram);
-  //CPPUNIT_TEST(disableNoxProgram);
+  CPPUNIT_TEST(disableProgramDefault);
+  CPPUNIT_TEST(enableProgramOtherDir);
+  CPPUNIT_TEST(disableProgramOtherDir);
+  CPPUNIT_TEST(enableNoxProgram);
+  CPPUNIT_TEST(disableNoxProgram);
+
+  CPPUNIT_TEST(setStandaloneDefault);
+  CPPUNIT_TEST(setStandaloneOtherDir);
+  CPPUNIT_TEST(setStandaloneNox);
+  CPPUNIT_TEST(setNostandaloneDefault);
+  CPPUNIT_TEST(setNostandaloneOtherDir);
+  CPPUNIT_TEST(setNostandaloneNox);
+  
+  // Note these tests tests both senses for their flags.
+  
+  CPPUNIT_TEST(isEnabledDefault);
+  CPPUNIT_TEST(isEnabledOtherDir);
+  CPPUNIT_TEST(isEnabledNox);
+  CPPUNIT_TEST(isStandaloneDefault);
+  CPPUNIT_TEST(isStandaloneOtherDir);
+  CPPUNIT_TEST(isStandaloneNox);
+  
+  CPPUNIT_TEST(listNoProgramsDefault);
+  CPPUNIT_TEST(listNoProgramsOtherDir);
+  CPPUNIT_TEST(list1ProgramDefault);
+  CPPUNIT_TEST(list1ProgramOtherDir);
+  CPPUNIT_TEST(listnProgramsDefault);
+  CPPUNIT_TEST(listnProgramsOtherDir);
+
+  CPPUNIT_TEST(listNoActiveProgramsDefault);
+  CPPUNIT_TEST(listNoActiveProgramsOtherDir);
+  // CPPUNIT_TEST(listActiveProgramsOnly);
+  // CPPUNIT_TEST(listActiveProgramsFromMix);
+  
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -79,7 +108,36 @@ protected:
   void modifyNoxProgramDef();
   
   void enableProgramDefault();
-    
+  void enableProgramOtherDir();
+  void enableNoxProgram();
+  
+  void disableProgramDefault();
+  void disableProgramOtherDir();
+  void disableNoxProgram();
+  
+  void setStandaloneDefault();
+  void setStandaloneOtherDir();
+  void setStandaloneNox();
+  void setNostandaloneDefault();
+  void setNostandaloneOtherDir();
+  void setNostandaloneNox();
+  
+  void isEnabledDefault();
+  void isEnabledOtherDir();
+  void isEnabledNox();
+  void isStandaloneDefault();
+  void isStandaloneOtherDir();
+  void isStandaloneNox();
+  
+  void listNoProgramsDefault();
+  void listNoProgramsOtherDir();
+  void list1ProgramDefault();
+  void list1ProgramOtherDir();
+  void listnProgramsDefault();
+  void listnProgramsOtherDir();
+  
+  void listNoActiveProgramsDefault();
+  void listNoActiveProgramsOtherDir();
 private:
     pid_t m_serverPid;
     int m_serverRequestPort;
@@ -607,4 +665,490 @@ void TestStateManager::enableProgramDefault()
     CStateManager::ProgramDefinition def = sm.getProgramDefinition("mytest");
     ASSERT(def.s_enabled);
     
+}
+void TestStateManager::enableProgramOtherDir()
+{
+    m_pApi->mkdir("/Programs");
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    sm.setProgramParentDir("/Programs");
+   
+    CStateManager::ProgramDefinition pd;
+    pd.s_enabled = false;
+    pd.s_standalone = false;
+    pd.s_path= "/some/fake/path";
+    pd.s_host= "charlie.nscl.msu.edu";
+    pd.s_outRing = "Output";
+    pd.s_inRing  = "Input";
+    
+
+    sm.addProgram("mytest", &pd);
+    
+    sm.enableProgram("mytest");
+    CStateManager::ProgramDefinition def = sm.getProgramDefinition("mytest");
+    ASSERT(def.s_enabled);
+}
+
+void TestStateManager::enableNoxProgram()
+{
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    CPPUNIT_ASSERT_THROW(
+        sm.enableProgram("mytest"),
+        std::runtime_error
+    );
+}
+
+// Tests for disable program:
+
+void TestStateManager::disableProgramDefault()
+{
+// Make the program disabled:
+    
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    CStateManager::ProgramDefinition pd;
+    pd.s_enabled = true;
+    pd.s_standalone = false;
+    pd.s_path= "/some/fake/path";
+    pd.s_host= "charlie.nscl.msu.edu";
+    pd.s_outRing = "Output";
+    pd.s_inRing  = "Input";
+    
+
+    sm.addProgram("mytest", &pd);
+    
+    // Enable it and ensure it is enabled:
+    
+    sm.disableProgram("mytest");
+    
+    CStateManager::ProgramDefinition def = sm.getProgramDefinition("mytest");
+    ASSERT(!def.s_enabled);
+        
+}
+
+void TestStateManager::disableProgramOtherDir()
+{
+    m_pApi->mkdir("/Programs");
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    sm.setProgramParentDir("/Programs");
+   
+    CStateManager::ProgramDefinition pd;
+    pd.s_enabled = true;
+    pd.s_standalone = false;
+    pd.s_path= "/some/fake/path";
+    pd.s_host= "charlie.nscl.msu.edu";
+    pd.s_outRing = "Output";
+    pd.s_inRing  = "Input";
+    
+
+    sm.addProgram("mytest", &pd);
+    
+    sm.disableProgram("mytest");
+    
+    CStateManager::ProgramDefinition def = sm.getProgramDefinition("mytest");
+    ASSERT(!def.s_enabled);
+}
+
+void TestStateManager::disableNoxProgram()
+{
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    
+    CPPUNIT_ASSERT_THROW(
+        sm.disableProgram("mytest"),
+        std::runtime_error
+    );
+}
+//  Tests for setProgramStandalone -- the usual three
+
+void TestStateManager::setStandaloneDefault()
+{
+    // Make the program - initially not standalone:
+    
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    CStateManager::ProgramDefinition pd;
+    pd.s_enabled = true;
+    pd.s_standalone = false;
+    pd.s_path= "/some/fake/path";
+    pd.s_host= "charlie.nscl.msu.edu";
+    pd.s_outRing = "Output";
+    pd.s_inRing  = "Input";
+
+    sm.addProgram("mytest", &pd);
+    
+    
+    // Set it standalone:
+    
+    sm.setProgramStandalone("mytest");
+    
+    // Get the program definition:  Must have s_standalone true:
+    
+    CStateManager::ProgramDefinition def = sm.getProgramDefinition("mytest");
+    ASSERT(def.s_standalone);
+        
+}
+
+
+void TestStateManager::setStandaloneOtherDir()
+{
+    m_pApi->mkdir("/Programs");
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    sm.setProgramParentDir("/Programs");
+   
+    CStateManager::ProgramDefinition pd;
+    pd.s_enabled = true;
+    pd.s_standalone = false;
+    pd.s_path= "/some/fake/path";
+    pd.s_host= "charlie.nscl.msu.edu";
+    pd.s_outRing = "Output";
+    pd.s_inRing  = "Input";
+    
+
+    sm.addProgram("mytest", &pd);
+
+    sm.setProgramStandalone("mytest");
+    // Get the program definition:  Must have s_standalone true:
+    
+    CStateManager::ProgramDefinition def = sm.getProgramDefinition("mytest");
+    ASSERT(def.s_standalone);
+    
+}
+void TestStateManager::setStandaloneNox()
+{
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    CPPUNIT_ASSERT_THROW(
+        sm.setProgramStandalone("mytest"),
+        std::runtime_error
+    );
+}
+// Tests for setProgramNoStandalone:
+
+void TestStateManager::setNostandaloneDefault()
+{
+    // Make the program - initially  standalone:
+    
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    CStateManager::ProgramDefinition pd;
+    pd.s_enabled = true;
+    pd.s_standalone = true;
+    pd.s_path= "/some/fake/path";
+    pd.s_host= "charlie.nscl.msu.edu";
+    pd.s_outRing = "Output";
+    pd.s_inRing  = "Input";
+
+    sm.addProgram("mytest", &pd);
+    
+    
+    // Set it standalone:
+    
+    sm.setProgramNoStandalone("mytest");
+    
+    // Get the program definition:  Must have s_standalone true:
+    
+    CStateManager::ProgramDefinition def = sm.getProgramDefinition("mytest");
+    ASSERT(!def.s_standalone);
+           
+}
+
+void TestStateManager::setNostandaloneOtherDir()
+{
+    m_pApi->mkdir("/Programs");
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    sm.setProgramParentDir("/Programs");
+   
+    CStateManager::ProgramDefinition pd;
+    pd.s_enabled = true;
+    pd.s_standalone = true;
+    pd.s_path= "/some/fake/path";
+    pd.s_host= "charlie.nscl.msu.edu";
+    pd.s_outRing = "Output";
+    pd.s_inRing  = "Input";
+    
+
+    sm.addProgram("mytest", &pd);
+
+    sm.setProgramNoStandalone("mytest");
+    // Get the program definition:  Must have s_standalone true:
+    
+    CStateManager::ProgramDefinition def = sm.getProgramDefinition("mytest");
+    ASSERT(!def.s_standalone);
+
+}
+
+void TestStateManager::setNostandaloneNox()
+{
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    CPPUNIT_ASSERT_THROW(
+        sm.setProgramNoStandalone("mytest"),
+        std::runtime_error
+    );    
+}
+// Tests for isEnabled - each test checks both states:
+
+void TestStateManager::isEnabledDefault()
+{
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    CStateManager::ProgramDefinition pd;
+    pd.s_enabled = true;
+    pd.s_standalone = true;
+    pd.s_path= "/some/fake/path";
+    pd.s_host= "charlie.nscl.msu.edu";
+    pd.s_outRing = "Output";
+    pd.s_inRing  = "Input";
+
+    sm.addProgram("mytest", &pd);
+    
+    // Enabled now:
+    
+    ASSERT(sm.isProgramEnabled("mytest"));
+    
+    // Disable:
+    
+    sm.disableProgram("mytest");
+    ASSERT(!sm.isProgramEnabled("mytest"));
+}
+
+void TestStateManager::isEnabledOtherDir()
+{
+    m_pApi->mkdir("/Programs");
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    sm.setProgramParentDir("/Programs");
+   
+    CStateManager::ProgramDefinition pd;
+    pd.s_enabled = true;
+    pd.s_standalone = true;
+    pd.s_path= "/some/fake/path";
+    pd.s_host= "charlie.nscl.msu.edu";
+    pd.s_outRing = "Output";
+    pd.s_inRing  = "Input";
+    
+
+    sm.addProgram("mytest", &pd);
+
+
+    ASSERT(sm.isProgramEnabled("mytest"));
+    
+    sm.disableProgram("mytest");
+    ASSERT(!sm.isProgramEnabled("mytest"));
+}
+
+void TestStateManager::isEnabledNox()
+{
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    CPPUNIT_ASSERT_THROW(
+        sm.isProgramEnabled("mytest"),
+        std::runtime_error
+    );
+}
+
+// Tests for isProgramStandalone:
+
+void TestStateManager::isStandaloneDefault()
+{
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    CStateManager::ProgramDefinition pd;
+    pd.s_enabled = true;
+    pd.s_standalone = false;
+    pd.s_path= "/some/fake/path";
+    pd.s_host= "charlie.nscl.msu.edu";
+    pd.s_outRing = "Output";
+    pd.s_inRing  = "Input";
+
+    sm.addProgram("mytest", &pd);
+    
+    ASSERT(!sm.isProgramStandalone("mytest"));
+    
+    sm.setProgramStandalone("mytest");
+    
+    ASSERT(sm.isProgramStandalone("mytest"));
+}
+
+void TestStateManager::isStandaloneOtherDir()
+{
+    m_pApi->mkdir("/Programs");
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    sm.setProgramParentDir("/Programs");
+   
+    CStateManager::ProgramDefinition pd;
+    pd.s_enabled = true;
+    pd.s_standalone = false;
+    pd.s_path= "/some/fake/path";
+    pd.s_host= "charlie.nscl.msu.edu";
+    pd.s_outRing = "Output";
+    pd.s_inRing  = "Input";
+    
+
+    sm.addProgram("mytest", &pd);
+    
+    ASSERT(!sm.isProgramStandalone("mytest"));
+    
+    sm.setProgramStandalone("mytest");
+    ASSERT(sm.isProgramStandalone("mytest"));
+    
+}
+void TestStateManager::isStandaloneNox()
+{
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    CPPUNIT_ASSERT_THROW(
+        sm.isProgramStandalone("mytest"),
+        std::runtime_error
+    );
+}
+// listPrograms tests:
+
+// If there are no programs I get an empty list:
+// (remember setup makes program "test")
+
+void TestStateManager::listNoProgramsDefault()
+{
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+     
+     // Pending creation of deletProgram api element.
+     
+     m_pApi->rmvar("/RunState/test/State");
+     m_pApi->rmvar("/RunState/test/enable");
+     m_pApi->rmvar("/RunState/test/standalone");
+     m_pApi->rmvar("/RunState/test/path");
+     m_pApi->rmvar("/RunState/test/host");
+     m_pApi->rmvar("/RunState/test/outring");
+     m_pApi->rmvar("/RunState/test/inring");
+     
+     m_pApi->rmdir("/RunState/test");
+     
+     std::vector<std::string> progs = sm.listPrograms();
+     
+     EQ(size_t(0), progs.size());
+
+}
+// Easier in another dir:
+
+void TestStateManager::listNoProgramsOtherDir()
+{
+    m_pApi->mkdir("/Programs");
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    sm.setProgramParentDir("/Programs");
+    
+    std::vector<std::string> progs = sm.listPrograms();
+    EQ(size_t(0), progs.size());
+}
+
+// There's one program, "test" in the default dir:
+
+void TestStateManager::list1ProgramDefault()
+{
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    std::vector<std::string> progs = sm.listPrograms();
+    
+    EQ(size_t(1), progs.size());
+    EQ(std::string("test"), progs[0]);
+}
+// There's one program (we need to make it) in the non default dir:
+
+void TestStateManager::list1ProgramOtherDir()
+{
+    m_pApi->mkdir("/Programs");
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    sm.setProgramParentDir("/Programs");
+   
+    CStateManager::ProgramDefinition pd;
+    pd.s_enabled = true;
+    pd.s_standalone = false;
+    pd.s_path= "/some/fake/path";
+    pd.s_host= "charlie.nscl.msu.edu";
+    pd.s_outRing = "Output";
+    pd.s_inRing  = "Input";
+    
+
+    sm.addProgram("mytest", &pd);
+    
+    std::vector<std::string> progs = sm.listPrograms();
+    EQ(size_t(1), progs.size());
+    EQ(std::string("mytest"), progs[0]);
+}
+//  Several programs in default dir:
+
+void TestStateManager::listnProgramsDefault()
+{
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    CStateManager::ProgramDefinition pd;
+    pd.s_enabled = true;
+    pd.s_standalone = false;
+    pd.s_path= "/some/fake/path";
+    pd.s_host= "charlie.nscl.msu.edu";
+    pd.s_outRing = "Output";
+    pd.s_inRing  = "Input";
+
+    sm.addProgram("atest", &pd);
+    sm.addProgram("btest", &pd);
+    sm.addProgram("ztest", &pd);
+    
+    std::vector<std::string> progs = sm.listPrograms();
+    
+    EQ(size_t(4), progs.size());   // Remember test is already there.
+    
+    // They should pop out alphabetically:
+    
+    EQ(std::string("atest"), progs[0]);
+    EQ(std::string("btest"), progs[1]);
+    EQ(std::string("test"), progs[2]);
+    EQ(std::string("ztest"), progs[3]);
+}
+// Several programs in the other dir:
+
+void TestStateManager::listnProgramsOtherDir()
+{
+    m_pApi->mkdir("/Programs");
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    sm.setProgramParentDir("/Programs");
+   
+    CStateManager::ProgramDefinition pd;
+    pd.s_enabled = true;
+    pd.s_standalone = false;
+    pd.s_path= "/some/fake/path";
+    pd.s_host= "charlie.nscl.msu.edu";
+    pd.s_outRing = "Output";
+    pd.s_inRing  = "Input";
+    
+    sm.addProgram("atest", &pd);
+    sm.addProgram("btest", &pd);
+    sm.addProgram("ztest", &pd);
+    
+    std::vector<std::string> progs = sm.listPrograms();
+    
+    EQ(size_t(3), progs.size());   // there's no 'test' here.
+    EQ(std::string("atest"), progs[0]);
+    EQ(std::string("btest"), progs[1]);
+    EQ(std::string("ztest"), progs[2]);
+    
+}
+// Test for listActivePrograms.
+
+// No active programs though there's a program:
+
+void TestStateManager::listNoActiveProgramsDefault()
+{
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    sm.disableProgram("test");
+    
+    std::vector<std::string> progs = sm.listEnabledPrograms();
+    
+    EQ(size_t(0), progs.size());
+}
+// in other dir:
+
+void TestStateManager::listNoActiveProgramsOtherDir()
+{
+    m_pApi->mkdir("/Programs");
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    sm.setProgramParentDir("/Programs");
+   
+    CStateManager::ProgramDefinition pd;
+    pd.s_enabled = false;              // Disabled.
+    pd.s_standalone = false;
+    pd.s_path= "/some/fake/path";
+    pd.s_host= "charlie.nscl.msu.edu";
+    pd.s_outRing = "Output";
+    pd.s_inRing  = "Input";
+    
+    sm.addProgram("atest", &pd);
+    
+    std::vector<std::string> progs = sm.listEnabledPrograms();
+    EQ(size_t(0), progs.size());
 }

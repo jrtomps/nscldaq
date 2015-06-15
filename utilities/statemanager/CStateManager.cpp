@@ -93,9 +93,8 @@ CStateManager::setProgramParentDir(const char* path)
 void
 CStateManager::addProgram(const char* name, const pProgramDefinition def)
 {
-    std::string directory = getProgramParentDir();
-    directory            += "/";
-    directory            += name;
+    std::string directory = getProgramDirectoryPath(name);
+
     CVarMgrApi* pApi = m_pMonitor->getApi();
     std::string wd = pApi->getwd();
     try {
@@ -133,9 +132,7 @@ CStateManager::addProgram(const char* name, const pProgramDefinition def)
 CStateManager::ProgramDefinition
 CStateManager::getProgramDefinition(const char* name)
 {
-    std::string directory = getProgramParentDir();
-    directory            += "/";
-    directory            += name;
+    std::string directory = getProgramDirectoryPath(name);
     
     CVarMgrApi* pApi = m_pMonitor->getApi();
     std::string wd = pApi->getwd();
@@ -171,9 +168,7 @@ void
 CStateManager::modifyProgram(const char* name, const pProgramDefinition def)
 {
     CVarMgrApi* pApi = m_pMonitor->getApi();
-    std::string directory = getProgramParentDir();
-    directory            += "/";
-    directory            += name;
+    std::string directory = getProgramDirectoryPath(name);
     
     std::string wd = pApi->getwd();
     try {
@@ -201,21 +196,201 @@ CStateManager::modifyProgram(const char* name, const pProgramDefinition def)
 void
 CStateManager::enableProgram(const char* name)
 {
+    setProgramVar(name, "enable", "true");
+}
+/**
+ * disableProgram
+ *   Disable a program.
+ *
+ * @param name  - the program name
+ */
+void
+CStateManager::disableProgram(const char* name)
+{
+    setProgramVar(name, "enable", "false");
+
+}
+/**
+ * setProgramStandalone
+ *    Puts a program into standalone mode.
+ *
+ * @param name - name of the program.
+ */
+void
+CStateManager::setProgramStandalone(const char* name)
+{
+    setProgramVar(name, "standalone", "true");
+}
+/**
+ * setProgramNoStandalone
+ *    Takes a program out of standalone mode.
+ *
+ *    @param name - name of the program.
+ */
+void
+CStateManager::setProgramNoStandalone(const char* name)
+{
+    setProgramVar(name, "standalone", "false");
+}
+/**
+ * isProgramEnabled:
+ *     True if the specified program is enabled:
+ *
+ *  @param name - name of the program.
+ *  @return bool
+ */
+bool
+CStateManager::isProgramEnabled(const char* name)
+{
+    return getProgramBool(name, "enable");
+}
+/**
+ * isProgramStandalone
+ *
+ *   @param name - program name.
+ *   @return bool - true if the named program is set standalone.
+ */
+bool
+CStateManager::isProgramStandalone(const char* name)
+{
+    return getProgramBool(name, "standalone");
+}
+/**
+ * listPrograms
+ *    Returns a list of all programs.
+ * @return std::vector<string>
+ */
+std::vector<std::string>
+CStateManager::listPrograms()
+{
+    std::vector<std::string> result;
+    
+    // We are just going to return the names of the sub-directories
+    // in the program directory.  The claim is that users shouldn not
+    // put additional stuff there.  If this claim is false then we'll
+    // need to check for the variables that make each subdir a program.
+    
+    std::string dir = getProgramParentDir();
     CVarMgrApi* pApi = m_pMonitor->getApi();
+    result           = pApi->ls(dir.c_str());
+    
+    return result;
+}
+/**
+ * listEnabledPrograms
+ *    List programs for which enabled is set.
+ * @return std::vector<std::string> names of enabled programs (possibly empty)
+ */
+std::vector<std::string>
+CStateManager::listEnabledPrograms()
+{
+    std::vector<std::string> result;
+    std::vector<std::string> all  = listPrograms();
+    
+    // Filter that down to the set that are enabled:
+    
+    for (int i = 0; i < all.size(); i++) {
+        if (getProgramBool(all[i].c_str(), "enable")) {
+            result.push_back(all[i]);
+        }
+    }
+    
+    return result;
+}
+/*----------------------------------------------------------------------
+ * Private utilities
+ */
+
+/**
+ * getProgramDirectory
+ *
+ *  @param name - name of a program.
+ *  @return std::string - directory in whih that program lives.
+ *  @note - no determination is done to ensure the program/dir exists.
+ */
+std::string
+CStateManager::getProgramDirectoryPath(const char* name)
+{
     std::string directory = getProgramParentDir();
     directory           += "/";
     directory           += name;
     
-    std::string wd = pApi->getwd();
-    try {
-
-        pApi->cd(directory.c_str());
-        pApi->set("enable", "true");
-    }
-    catch (...) {
-        pApi->cd(wd.c_str());
-        throw;
-    }
+    return directory;
+}
+/**
+ * getVarPath
+ *    Returns the path to a variable in a program.
+ *
+ *  @param program - the program in which to return the path.
+ *  @param name    - Name of the value.
+ *  @return std::string - full path to the variable.
+ */
+std::string
+CStateManager::getVarpath(const char* program, const char* name)
+{
+    std::string path = getProgramDirectoryPath(program);
+    path += "/";
+    path += name;
     
-    pApi->cd(wd.c_str());
+    return path;
+}
+/**
+ * setProgramVar
+ *    set a new value for a program variable.
+ *
+ *  @param program - name of the program.
+ *  @param var     - name of the variable.
+ *  @param value   - New value for the variable.
+ */
+void
+CStateManager::setProgramVar(
+    const char* program, const char* var, const char* value
+)
+{
+    std::string varPath = getVarpath(program, var);
+    CVarMgrApi* pApi    = m_pMonitor->getApi();
+    
+    pApi->set(varPath.c_str(), value);
+}
+
+/**
+ * getProgramVar
+ *    Returns the value of a program variable:
+ *
+ *  @param program - name of the program.
+ *  @param var     - Name of the variable.
+ *  @return std::string - value of the variable.
+ */
+std::string
+CStateManager::getProgramVar(const char* program, const char* var)
+{
+    std::string path = getVarpath(program, var);
+    CVarMgrApi* pApi = m_pMonitor->getApi();
+    return pApi->get(path.c_str());
+}
+/**
+ * getProgramBool
+ *    Returns the value of a program boolean variable:
+ *  @param program - name of the program.
+ *  @param var     - Name of the variable.
+ *  @return bool   - Value.
+ */
+bool
+CStateManager::getProgramBool(const char* program, const char* var)
+{
+    std::string value = getProgramVar(program, var);
+    
+    if (value == "true") return true;
+    if (value == "false") return false;
+    
+    // Not a bool value:
+    
+    
+    std::string errorMessage("Variable: ");
+    errorMessage += var;
+    errorMessage += " for program ";
+    errorMessage += program;
+    errorMessage += " does not have a boolean value: ";
+    errorMessage += value;
+    throw std::runtime_error(errorMessage);
 }
