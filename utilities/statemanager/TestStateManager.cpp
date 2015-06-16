@@ -1,3 +1,4 @@
+
 // Template for a test suite.  -CStateManager tests.
 
 #include <cppunit/extensions/HelperMacros.h>
@@ -23,12 +24,103 @@
 #include <CVariableDb.h>
 
 #include "CStateClientApi.h"
-
 #include "CStateManager.h"
+
+#include <CSynchronizedThread.h>
 
 
 static const std::string serviceName("vardb-request");
 static const std::string serverName("vardbServer");
+
+/*-----------------------------------------------------------------------*/
+
+// This class is a 'program' that can execute a limited
+// set of transitions:
+
+class Program : public CSynchronizedThread
+{
+    std::vector<std::string> m_transitions;
+    std::string              m_program;
+    CStateClientApi*         m_pApi;
+public:
+    Program(
+        std::string program,std::vector<std::string> transitions
+    );
+    ~Program();
+    
+    //  run blocks until this finishes:
+    
+    virtual void init();
+    
+    // Thread body:
+    
+    virtual void operator()();
+};
+
+Program::Program(
+        std::string program,std::vector<std::string> transitions
+) :
+    m_transitions(transitions),
+    m_program(program),
+    m_pApi(0)
+{}
+
+Program::~Program()
+{
+    delete m_pApi;
+}
+// init creates the api which starts the message pump going.
+
+void
+Program::init()
+{
+    m_pApi = new CStateClientApi(
+        "tcp://localhost", "tcp://localhost", m_program.c_str()
+    );
+}
+// operator() -- wait for a global state transition then execute
+//               our transition list:
+
+void
+Program::operator()()
+{
+    std::string newState;
+    m_pApi->waitTransition(newState);
+    
+    for (int i = 0; i < m_transitions.size(); i++) {
+        m_pApi->setState(m_transitions[i]);
+    }
+}
+/*-------------------------------------------------------------------*/
+// This class provides a way to record callbacks from waitTransition:
+
+class CallbackRecorder
+{
+public:
+    std::vector<std::string>  m_states;
+public:
+    void recordCallback(std::string state);
+    static void Callback(
+        CStateManager& mgr, std::string program, std::string state, void* cb
+    );
+};
+
+
+void CallbackRecorder::recordCallback(std::string state)
+{
+    m_states.push_back(state);
+}
+void CallbackRecorder::Callback(
+    CStateManager& mgr, std::string program, std::string state, void* cb
+)
+{
+    CallbackRecorder* pThis = static_cast<CallbackRecorder*>(cb);
+    pThis->recordCallback(state);
+}
+
+/*--------------------------------------------------------------------*/
+
+
 
 class TestStateManager : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(TestStateManager);
@@ -82,8 +174,37 @@ class TestStateManager : public CppUnit::TestFixture {
 
   CPPUNIT_TEST(listNoActiveProgramsDefault);
   CPPUNIT_TEST(listNoActiveProgramsOtherDir);
-  // CPPUNIT_TEST(listActiveProgramsOnly);
-  // CPPUNIT_TEST(listActiveProgramsFromMix);
+  CPPUNIT_TEST(listActiveProgramsOnly);
+  
+  CPPUNIT_TEST(listNoStandalone);
+  CPPUNIT_TEST(listNoStandaloneOtherDir);
+  CPPUNIT_TEST(listStandaloneOnly);
+
+  CPPUNIT_TEST(listNoInactive);
+  CPPUNIT_TEST(listNoInactiveOtherDir);
+  CPPUNIT_TEST(listInactiveByDisabled);
+  CPPUNIT_TEST(listInactiveByStandalone);
+  CPPUNIT_TEST(listInactiveMixed);
+
+  CPPUNIT_TEST(delProgramDefault);
+  CPPUNIT_TEST(delProgramOtherDir);
+  CPPUNIT_TEST(delProgramNox);
+  
+  // Tests for global state and participant
+  // lists.
+  
+  CPPUNIT_TEST(setGlobal);
+  CPPUNIT_TEST(setGlobalIllegal);
+
+  CPPUNIT_TEST(getGlobalState);
+  
+  CPPUNIT_TEST(partStatesEmpty);
+  CPPUNIT_TEST(partStatesNoActive);
+  CPPUNIT_TEST(partStates1);
+  CPPUNIT_TEST(partStatesSeveral);
+  
+
+
   
   CPPUNIT_TEST_SUITE_END();
 
@@ -138,6 +259,32 @@ protected:
   
   void listNoActiveProgramsDefault();
   void listNoActiveProgramsOtherDir();
+  void listActiveProgramsOnly();
+  
+  void listNoStandalone();
+  void listNoStandaloneOtherDir();
+  void listStandaloneOnly();
+  
+  void listNoInactive();
+  void listNoInactiveOtherDir();
+  void listInactiveByDisabled();
+  void listInactiveByStandalone();
+  void listInactiveMixed();
+  
+  void delProgramDefault();
+  void delProgramOtherDir();
+  void delProgramNox();
+  
+  void setGlobal();
+  void setGlobalIllegal();
+  void getGlobalState();
+  
+  void partStatesEmpty();
+  void partStatesNoActive();
+  void partStates1();
+  void partStatesSeveral();
+  
+ 
 private:
     pid_t m_serverPid;
     int m_serverRequestPort;
@@ -1151,4 +1298,414 @@ void TestStateManager::listNoActiveProgramsOtherDir()
     
     std::vector<std::string> progs = sm.listEnabledPrograms();
     EQ(size_t(0), progs.size());
+}
+// Be able to distinguish active from inactive:
+
+void TestStateManager::listActiveProgramsOnly()
+{
+    // Make some programs:
+    
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    CStateManager::ProgramDefinition pd;
+    pd.s_enabled = true;
+    pd.s_standalone = false;
+    pd.s_path= "/some/fake/path";
+    pd.s_host= "charlie.nscl.msu.edu";
+    pd.s_outRing = "Output";
+    pd.s_inRing  = "Input";
+
+    sm.addProgram("atest", &pd);
+    sm.addProgram("btest", &pd);
+    sm.addProgram("ztest", &pd);           // Remember 'test' is also there.
+    
+    // Disable some of them:
+    
+    sm.disableProgram("test");
+    sm.disableProgram("btest");
+    
+    // See if we get the right answer:
+    
+    std::vector<std::string> progs = sm.listEnabledPrograms();
+    EQ(size_t(2), progs.size());
+    EQ(std::string("atest"), progs[0]);
+    EQ(std::string("ztest"), progs[1]);
+}
+// Tests for listStandalonePrograms.
+
+// Default dir - has no standalone programs initially:
+
+void TestStateManager::listNoStandalone()
+{
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    std::vector<std::string> progs = sm.listStandalonePrograms();
+    
+    EQ(size_t(0), progs.size());
+}
+
+// Should list correctly with another program dir.
+
+void TestStateManager::listNoStandaloneOtherDir()
+{
+    m_pApi->mkdir("/Programs");
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    sm.setProgramParentDir("/Programs");
+   
+    CStateManager::ProgramDefinition pd;
+    pd.s_enabled = false;              // Disabled.
+    pd.s_standalone = false;
+    pd.s_path= "/some/fake/path";
+    pd.s_host= "charlie.nscl.msu.edu";
+    pd.s_outRing = "Output";
+    pd.s_inRing  = "Input";
+    
+    sm.addProgram("atest", &pd);   // Not a standalone program.
+    
+    std::vector<std::string> progs = sm.listStandalonePrograms();
+    
+    EQ(size_t(0), progs.size());
+}
+// Should selectively list ok too:
+
+void TestStateManager::listStandaloneOnly()
+{
+// Make some programs:
+    
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    CStateManager::ProgramDefinition pd;
+    pd.s_enabled = true;
+    pd.s_standalone = false;
+    pd.s_path= "/some/fake/path";
+    pd.s_host= "charlie.nscl.msu.edu";
+    pd.s_outRing = "Output";
+    pd.s_inRing  = "Input";
+
+    sm.addProgram("atest", &pd);
+    sm.addProgram("btest", &pd);
+    sm.addProgram("ztest", &pd);           // Remember 'test' is also there.
+    
+    
+    // Make some standalone:
+    
+    sm.setProgramStandalone("atest");
+    sm.setProgramStandalone("ztest");
+    
+    std::vector<std::string> progs = sm.listStandalonePrograms();
+    EQ(size_t(2), progs.size());
+    EQ(std::string("atest"), progs[0]);
+    EQ(std::string("ztest"), progs[1]);
+}
+// tests for listInactive - inactive programs are those that
+// are either standalone or disabled.
+
+void TestStateManager::listNoInactive()
+{
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    
+    std::vector<std::string> progs = sm.listInactivePrograms();
+    
+    EQ(size_t(0), progs.size());
+}
+
+void TestStateManager::listNoInactiveOtherDir()
+{
+    m_pApi->mkdir("/Programs");
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    sm.setProgramParentDir("/Programs");
+   
+    CStateManager::ProgramDefinition pd;
+    pd.s_enabled = true;
+    pd.s_standalone = false;
+    pd.s_path= "/some/fake/path";
+    pd.s_host= "charlie.nscl.msu.edu";
+    pd.s_outRing = "Output";
+    pd.s_inRing  = "Input";
+    
+    sm.addProgram("atest", &pd);   // Not inactive.
+    
+    std::vector<std::string> progs = sm.listInactivePrograms();
+    EQ(size_t(0), progs.size());
+    
+}
+// If a program is disabled it is inactive:
+
+void TestStateManager::listInactiveByDisabled()
+{
+    // Make some programs:
+    
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    CStateManager::ProgramDefinition pd;
+    pd.s_enabled = true;
+    pd.s_standalone = false;
+    pd.s_path= "/some/fake/path";
+    pd.s_host= "charlie.nscl.msu.edu";
+    pd.s_outRing = "Output";
+    pd.s_inRing  = "Input";
+
+    sm.addProgram("atest", &pd);
+    sm.addProgram("btest", &pd);
+    sm.addProgram("ztest", &pd);           // Remember 'test' is also there.
+    
+    
+    
+    // Disable some of them:
+    
+    sm.disableProgram("test");
+    sm.disableProgram("ztest");
+    
+    // Should get atest, btest:
+    
+    std::vector<std::string> progs = sm.listInactivePrograms();
+    EQ(size_t(2), progs.size());
+    EQ(std::string("test"), progs[0]);
+    EQ(std::string("ztest"), progs[1]);
+    
+}
+// Standalone programs are also inactive:
+
+void TestStateManager::listInactiveByStandalone()
+{
+    // Make some programs:
+    
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    CStateManager::ProgramDefinition pd;
+    pd.s_enabled = true;
+    pd.s_standalone = false;
+    pd.s_path= "/some/fake/path";
+    pd.s_host= "charlie.nscl.msu.edu";
+    pd.s_outRing = "Output";
+    pd.s_inRing  = "Input";
+
+    sm.addProgram("atest", &pd);
+    sm.addProgram("btest", &pd);
+    sm.addProgram("ztest", &pd);           // Remember 'test' is also there.
+    
+    // Make some standalone:
+    
+    sm.setProgramStandalone("atest");
+    sm.setProgramStandalone("btest");
+    
+    std::vector<std::string> progs = sm.listInactivePrograms();
+    EQ(size_t(2), progs.size());
+    EQ(std::string("atest"), progs[0]);
+    EQ(std::string("btest"), progs[1]);
+}
+
+void TestStateManager::listInactiveMixed()
+{
+    // Make some programs:
+    
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    CStateManager::ProgramDefinition pd;
+    pd.s_enabled = true;
+    pd.s_standalone = false;
+    pd.s_path= "/some/fake/path";
+    pd.s_host= "charlie.nscl.msu.edu";
+    pd.s_outRing = "Output";
+    pd.s_inRing  = "Input";
+
+    sm.addProgram("atest", &pd);
+    sm.addProgram("btest", &pd);
+    sm.addProgram("ztest", &pd);           // Remember 'test' is also there.
+
+    // Disable some, set other standalone:
+    
+    sm.disableProgram("atest");
+    sm.disableProgram("ztest");
+    sm.setProgramStandalone("test");
+    
+    std::vector<std::string> progs= sm.listInactivePrograms();
+    EQ(size_t(3), progs.size());
+    EQ(std::string("atest"), progs[0]);
+    EQ(std::string("test"), progs[1]);
+    EQ(std::string("ztest"), progs[2]);
+    
+    
+}
+// deleteProgram tests.
+
+void TestStateManager::delProgramDefault()
+{
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    sm.deleteProgram("test");
+    
+    EQ(size_t(0), sm.listPrograms().size());
+}
+
+void TestStateManager::delProgramOtherDir()
+{
+    m_pApi->mkdir("/Programs");
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    sm.setProgramParentDir("/Programs");
+   
+    CStateManager::ProgramDefinition pd;
+    pd.s_enabled = true;
+    pd.s_standalone = false;
+    pd.s_path= "/some/fake/path";
+    pd.s_host= "charlie.nscl.msu.edu";
+    pd.s_outRing = "Output";
+    pd.s_inRing  = "Input";
+    
+    sm.addProgram("atest", &pd);   // Not inactive.
+    
+    sm.deleteProgram("atest");
+    
+    std::vector<std::string> progs = sm.listPrograms();
+    EQ(size_t(0), progs.size());
+    
+}
+// Error to delete a program that does not exist:
+
+void TestStateManager::delProgramNox()
+{
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    CPPUNIT_ASSERT_THROW(
+        sm.deleteProgram("atest"),
+        std::runtime_error
+    );
+}
+// Set legal global state:
+
+void TestStateManager::setGlobal()
+{
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    
+    // Global state is now 0Initial.
+    
+    sm.deleteProgram("test");      // For when transition monitorig works.
+    sm.setGlobalState("NotReady"); // Legal.
+    
+    EQ(std::string("NotReady"), m_pApi->get("/RunState/State"));
+}
+
+void TestStateManager::setGlobalIllegal()
+{
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    
+    // Global state is now 0Initial.
+    
+    sm.deleteProgram("test");      // For when transition monitorig works.
+    
+    CPPUNIT_ASSERT_THROW(
+        sm.setGlobalState("Active"),
+        std::runtime_error
+    );
+}
+void TestStateManager::getGlobalState()
+{
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    
+    // Global state is now 0Initial.
+    
+    sm.deleteProgram("test");      // For when transition monitorig works.
+    
+    EQ(std::string("0Initial"), sm.getGlobalState());
+    
+    // and after a transition:
+    
+    sm.setGlobalState("NotReady");
+    EQ(std::string("NotReady"), sm.getGlobalState());
+}
+// Tests for getParticipantStates
+
+// No programs -> empty vector.
+
+void TestStateManager::partStatesEmpty()
+{
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    sm.deleteProgram("test");
+    
+    EQ(size_t(0), sm.getParticipantStates().size());
+}
+// No active programs -> empty vector.
+
+void TestStateManager::partStatesNoActive()
+{
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    
+    sm.disableProgram("test");
+    EQ(size_t(0), sm.getParticipantStates().size());
+    
+    sm.enableProgram("test");
+    sm.setProgramStandalone("test");
+    EQ(size_t(0), sm.getParticipantStates().size());
+}
+// Active program...get the state:
+
+void TestStateManager::partStates1()
+{
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    
+    // Run the 'test' program's state to ready:
+    
+    m_pApi->set("/RunState/test/State", "NotReady");
+    m_pApi->set("/RunState/test/State", "Readying");
+    m_pApi->set("/RunState/test/State", "Ready");
+    
+    // Should have a single program named 'test' with the state
+    // 'Ready'.
+    
+    std::vector<std::pair<std::string, std::string> > states =
+        sm.getParticipantStates();
+        
+    EQ(size_t(1), states.size());
+    EQ(std::string("test"), states[0].first);
+    EQ(std::string("Ready"), states[0].second);
+}
+
+// Several programs should give me the states:
+
+void TestStateManager::partStatesSeveral()
+{
+    // Make some programs:
+    
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    CStateManager::ProgramDefinition pd;
+    pd.s_enabled = true;
+    pd.s_standalone = false;
+    pd.s_path= "/some/fake/path";
+    pd.s_host= "charlie.nscl.msu.edu";
+    pd.s_outRing = "Output";
+    pd.s_inRing  = "Input";
+
+    sm.addProgram("atest", &pd);
+    sm.addProgram("btest", &pd);
+    sm.addProgram("ztest", &pd);           // Remember 'test' is also there.
+
+    // btest should get filtered out:
+    
+    sm.disableProgram("btest");
+    
+    // Sequence them all through to ready:
+    
+    const char* vars[] = {
+        "/RunState/atest/State", "/RunState/btest/State",
+        "/RunState/test/State", "/RunState/ztest/State", NULL};
+    const char** p = vars;
+    
+    while (*p != NULL) {
+        m_pApi->set(*p++, "NotReady");
+    }
+    p = vars;
+    while (*p != NULL) {
+        m_pApi->set(*p++, "Readying");
+    }
+    p = vars;
+    while (*p != NULL) {
+        m_pApi->set(*p++, "Ready");
+    }
+    
+    std::vector<std::pair<std::string, std::string> > states =
+        sm.getParticipantStates();
+        
+    EQ(size_t(3), states.size());
+    
+    EQ(std::string("atest"), states[0].first);
+    EQ(std::string("Ready"), states[0].second);
+    
+    EQ(std::string("test"), states[1].first);
+    EQ(std::string("Ready"), states[1].second);
+    
+    EQ(std::string("ztest"), states[2].first);
+    EQ(std::string("Ready"), states[2].second);
+    
 }

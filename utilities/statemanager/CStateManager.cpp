@@ -24,6 +24,10 @@
 #include "CStateManager.h"
 #include "CStateTransitionMonitor.h"
 #include <CVarMgrApi.h>
+#include <stdio.h>
+#include <stdexcept>
+#include <set>
+
 
 /**
  * constructor
@@ -35,7 +39,23 @@ CStateManager::CStateManager(const char* requestURI, const char* subscriptionURI
     m_reqURI(requestURI),
     m_subURI(subscriptionURI)
 {
-    m_pMonitor = new CStateTransitionMonitor(m_reqURI.c_str(), m_subURI.c_str());        
+    m_pMonitor = new CStateTransitionMonitor(m_reqURI.c_str(), m_subURI.c_str());
+    
+    // For each new global state, m_finalStates provides the
+    // final program and global states expected.
+    // For now we don't worry about intermediate states from the programs:
+    // This presupposes that the final state is reachable from the in-transition
+    // state.  Since the final state is at most separated from the initial
+    // state by an 'ing' state this is the case.
+    
+    m_finalStates["0Initial"] = "0Initial";
+    m_finalStates["NotReady"] = "NotReady";
+    m_finalStates["Readying"] = "Ready";
+    m_finalStates["Beginning"] = "Active";
+    m_finalStates["Pausing"]  = "Paused";
+    m_finalStates["Resuming"] = "Active";
+    m_finalStates["Ending"]   = "Ready";
+    
 }
 
 /**
@@ -45,6 +65,9 @@ CStateManager::~CStateManager()
 {
     delete m_pMonitor;
 }
+/*-----------------------------------------------------------------------------
+ * Program management
+ */
 
 /**
  * getProgramParentDir
@@ -296,6 +319,251 @@ CStateManager::listEnabledPrograms()
     }
     
     return result;
+}
+/**
+ * listStandalonePrograms
+ *   Return only those programs that have the standalone flag set:
+ *
+ *  @return std::vector<std::string>
+ */
+std::vector<std::string>
+CStateManager::listStandalonePrograms()
+{
+    std::vector<std::string> result;
+    std::vector<std::string> all  = listPrograms();
+    
+    // Filter that down to the set that are enabled:
+    
+    for (int i = 0; i < all.size(); i++) {
+        if (getProgramBool(all[i].c_str(), "standalone")) {
+            result.push_back(all[i]);
+        }
+    }
+    
+    return result;
+}
+/**
+ * listInactivePrograms
+ *   Return only those programs that are inactive.
+ *   A program is inactive if either it is disabled or standalone.
+ *
+ * @return std::vector<std::string>
+ */
+std::vector<std::string>
+CStateManager::listInactivePrograms()
+{
+    std::vector<std::string> result;
+    std::vector<std::string> all  = listPrograms();
+    
+    // Filter that down to the set that are enabled:
+    
+    for (int i = 0; i < all.size(); i++) {
+        if (getProgramBool(all[i].c_str(), "standalone") ||
+            (!getProgramBool(all[i].c_str(), "enable"))) {
+            result.push_back(all[i]);
+        }
+    }
+    
+    return result;
+}
+/**
+ * listActivePrograms
+ *    Lists programs that are enabled and not standalone:
+ *
+ * @return std::vector<std::string>
+ */
+std::vector<std::string>
+CStateManager::listActivePrograms()
+{
+    std::vector<std::string> result;
+    std::vector<std::string> all  = listPrograms();
+    
+    // Filter that down to the set that are enabled:
+    
+    for (int i = 0; i < all.size(); i++) {
+        if ((!getProgramBool(all[i].c_str(), "standalone")) &&
+            (getProgramBool(all[i].c_str(), "enable"))) {
+            result.push_back(all[i]);
+        }
+    }
+    
+    return result;
+}
+/**
+ * deleteProgram
+ *    Delete a specified program.
+ * @param name - name of the program to delete.
+ */
+void
+CStateManager::deleteProgram(const char* name)
+{
+    // Get the name of the directory to delete:
+    
+    std::string progDir = getProgramDirectoryPath(name);
+    
+    // Delete all the variables in that directory:
+    
+    CVarMgrApi* pApi                      = m_pMonitor->getApi();
+    std::vector<CVarMgrApi::VarInfo> vars =
+        pApi->lsvar(progDir.c_str());
+    
+    // Step into that directory and delete them:
+    
+    std::string wd = pApi->getwd();
+    try {
+        pApi->cd(progDir.c_str());
+        for (int i = 0; i < vars.size(); i++) {
+            pApi->rmvar(vars[i].s_name.c_str());
+        }
+    }
+    catch(...) {
+        pApi->cd(wd.c_str());
+        throw;
+    }
+    pApi->cd(wd.c_str());
+    
+    // Delete the directory too:
+    
+    pApi->rmdir(progDir.c_str());
+}
+/**
+ * getParticipantStates
+ *    Get the states of programs that should be participating
+ *    in state transitions (active programs).
+ *
+ * @return std::vector<std::string, std::string> > -
+ *           .first is the name of a program, .second, the
+ *           state.
+ */
+std::vector<std::pair<std::string, std::string> >
+CStateManager::getParticipantStates()
+{
+    std::vector<std::string> progs = listActivePrograms();
+    std::vector<std::pair<std::string, std::string> > result;
+    for (int i = 0; i < progs.size(); i++) {
+        result.push_back(std::pair<std::string, std::string>(
+            progs[i], getProgramVar(progs[i].c_str(), "State")
+        ));
+    }
+    return result;
+}
+
+/*------------------------------------------------------
+ * State management/listing
+ */
+
+/**
+ * setGlobalState
+ *    Set a new global state value:
+ *
+ *  @param newState - new state value
+ *  @throw - Must be a valid next state given the current state.
+ */
+void
+CStateManager::setGlobalState(const char* newState)
+{
+    CVarMgrApi* pApi = m_pMonitor->getApi();
+    pApi->set("/RunState/State", newState);
+}
+/**
+ * getGlobalState
+ *
+ * @return std::string - current global state value
+ */
+std::string
+CStateManager::getGlobalState()
+{
+    CVarMgrApi* pApi = m_pMonitor->getApi();
+    return pApi->get("/RunState/State");
+}
+/*----------------------------------------------------------------
+ * State transition monitoring - ensuring all programs maintain
+ * state relations:
+ */
+
+/**
+ * waitTransition
+ *  Given the current global state processes monitor messages
+ *  until the timeout occurs or the proper final state in all the
+ *  participating programs is reached.
+ *
+ *  At each state transition processed, the optional user callout
+ *  is invoked (this allows application level updates).
+ *
+ *  @note If all programs are already at the global state,
+ *        this is a no-op.
+ *  @note if there is a timeout prior to reaching the correct
+ *        final state in all programs std::runtime_error
+ *        is thrown.
+ *
+ *  @param cb         - Pointer to callback function, 0 if not used.
+ *  @param clientData - Data passed to the callback.
+*/
+
+void
+CStateManager::waitTransition(TransitionCallback cb, void* clientData)
+{
+    
+    std::string gblState  = getGlobalState();
+    std::string nextState = m_finalStates[gblState];   // State we expect next:
+    std::vector<std::string> programs = listActivePrograms();
+    
+    std::set<std::string> stillWaiting;
+    for (int i = 0; i < programs.size(); i++) {
+        stillWaiting.insert(programs[i]);
+    }
+
+    
+    // Process state transitions until timeout or the conditions are
+    // met.
+    
+    CVarMgrApi* pApi = m_pMonitor->getApi();
+    std::string timeoutString = pApi->get("/RunState/Timeout");
+    int timeout;
+    sscanf(timeoutString.c_str(), "%d", &timeout);   // Seconds.
+    timeout *= 1000;                        // Milliseconds.
+    
+    std::vector<CStateTransitionMonitor::Notification> notifications;
+    notifications = m_pMonitor->getNotifications(-1, 0); // Clear backlog.
+   
+    do {
+        // Process messages:
+        
+         for (int i = 0; i < notifications.size(); i++) {
+            if (
+                (notifications[i].s_type ==
+                    CStateTransitionMonitor::ProgramStateChange)
+            ) {
+                // Invoke the callout:
+                if (cb) {
+                    (*cb)(
+                        *this, notifications[i].s_program,
+                        notifications[i].s_state, clientData
+                    );
+                }
+                // Remove appropriate programs for the waiting set:
+                
+                if (notifications[i].s_state == nextState) {
+                    stillWaiting.erase(notifications[i].s_program);
+                }
+            }
+        }
+        // if stilWaiting is empty the state transition completed:
+        
+        if(stillWaiting.empty()) {
+            if (gblState != nextState) {
+                setGlobalState(nextState.c_str());
+            }
+            return;
+        }
+ 
+        // Get the next notifications -- with timeout
+        
+        notifications.clear();
+        notifications = m_pMonitor->getNotifications(-1, timeout);
+        
+    } while (notifications.size() > 0);  // Timeout if no notifs.
+    throw std::runtime_error("State transition timeout");
 }
 /*----------------------------------------------------------------------
  * Private utilities

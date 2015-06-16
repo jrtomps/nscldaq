@@ -26,6 +26,7 @@
 #include <utility>
 #include <string>
 #include <vector>
+#include <map>
 
 class CStateTransitionMonitor;
 
@@ -58,13 +59,14 @@ class CVarMgrApi;
 
 class CStateManager
 {
+private:    
     // Object data:
     
     CStateTransitionMonitor*  m_pMonitor;
     std::string               m_reqURI;
     std::string               m_subURI;
-    
-private:
+    std::map<std::string, std::string> m_finalStates;
+
     
     // Public data types:
     
@@ -77,7 +79,14 @@ public:
         std::string s_outRing;
         std::string s_inRing;
         
+        
+        
+        
     } ProgramDefinition, *pProgramDefinition;
+    
+    typedef void (*TransitionCallback)(
+        CStateManager& mgr, std::string program, std::string state, void* cd
+    );
 public:
     CStateManager(const char* requestUri, const char* subscriptionUri);
     virtual ~CStateManager();
@@ -99,6 +108,7 @@ public:
     std::vector<std::string> listEnabledPrograms();
     std::vector<std::string> listStandalonePrograms();
     std::vector<std::string> listInactivePrograms();
+    std::vector<std::string> listActivePrograms();
     void               deleteProgram(const char* name);
     
     // Global state control:
@@ -109,7 +119,7 @@ public:
     
     // State transition monitoring
     
-    void waitTransition();
+    void waitTransition(TransitionCallback cb = 0, void* clientData = 0);
     void updateState(unsigned timeout);              // Process messages.
     
     // Managing stand alone program state:

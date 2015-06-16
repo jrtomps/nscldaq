@@ -39,7 +39,7 @@ include_HEADERS = CStateClientApi.h CStateTransitionMonitor.h CStateManager.h
 #
 
 
-noinst_PROGRAMS=unittests
+noinst_PROGRAMS=unittests stateTests
 
 unittests_SOURCES=TestRunner.cpp Asserts.h TestStateChangeMonitor.cpp \
 	changeMonitorTests.cpp TestStateManager.cpp
@@ -47,6 +47,13 @@ unittests_SOURCES=TestRunner.cpp Asserts.h TestStateChangeMonitor.cpp \
 unittests_CPPFLAGS=$(COMMON_CPPFLAGS) $(CPPUNIT_CFLAGS) -DBINDIR=\"@bindir@\"
 unittests_LDFLAGS=libstateclient.la $(COMMON_LOADFLAGS) $(CPPUNIT_LDFLAGS)
 
+stateTests_SOURCES=TestRunner.cpp Asserts.h TestStateTransitions.cpp
+
+stateTests_CPPFLAGS=$(COMMON_CPPFLAGS) $(CPPUNIT_CFLAGS) -DBINDIR=\"@bindir@\"
+stateTests_LDFLAGS=libstateclient.la $(COMMON_LOADFLAGS) $(CPPUNIT_LDFLAGS)
+
+
 
 check-TESTS:
 	BINDIR="@bindir@" PYTHONPATH=@prefix@/pythonLibs @builddir@/unittests
+	BINDIR="@bindir@" PYTHONPATH=@prefix@/pythonLibs @builddir@/stateTests
