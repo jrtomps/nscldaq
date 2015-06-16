@@ -196,18 +196,23 @@ CBufferQueue<T>::wait(int timeout)
     status = pthread_cond_wait(&m_condition, &mutex());
   } else {
     struct timespec abstime;
-    struct timeval  now;
-    gettimeofday(&now, NULL);
+
     
-    abstime.tv_sec = now.tv_sec;
-    abstime.tv_nsec = now.tv_usec + (timeout * 1000  * 1000); // timeout in sec.
-
-    // Carry the seconds --
-
-    if (abstime.tv_nsec > (1000*1000*1000)) {
-      abstime.tv_sec += abstime.tv_nsec / (1000*1000*1000);
-      abstime.tv_nsec = (abstime.tv_nsec) % (1000*1000*1000);
-    }
+    struct timeval  now;
+    struct timeval  dt;
+    struct timeval  timeoutTime;
+    gettimeofday(&now, NULL);        // now.
+    
+    // Express the timeout as a timeval
+    
+    dt.tv_sec   = timeout / 1000;   // Seconds;
+    dt.tv_usec  = timeout % (1000); // Left over usec.
+    timeradd(&now, &dt, &timeoutTime);   // abs time of timeout -> timeoutTime
+    
+    // Convert timeval -> timespec:
+    
+    abstime.tv_sec = timeoutTime.tv_sec;
+    abstime.tv_nsec = timeoutTime.tv_usec * 1000;
 
     status = pthread_cond_timedwait(&m_condition, &mutex(), &abstime);
   }
