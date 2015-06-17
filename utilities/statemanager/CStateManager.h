@@ -28,9 +28,10 @@
 #include <vector>
 #include <map>
 
-class CStateTransitionMonitor;
+#include "CStateTransitionMonitor.h"
 
 class CVarMgrApi;
+
 
 /**
  * @class CStateManager
@@ -87,6 +88,10 @@ public:
     typedef void (*TransitionCallback)(
         CStateManager& mgr, std::string program, std::string state, void* cd
     );
+    typedef void (*BacklogCallback)(
+        CStateManager& mgr, CStateTransitionMonitor::Notification Notification,
+        void* cd
+    );
 public:
     CStateManager(const char* requestUri, const char* subscriptionUri);
     virtual ~CStateManager();
@@ -120,14 +125,13 @@ public:
     // State transition monitoring
     
     void waitTransition(TransitionCallback cb = 0, void* clientData = 0);
-    void updateState(unsigned timeout);              // Process messages.
+    void processMessages(BacklogCallback cb = 0, void* clientData = 0);
     
     // Managing stand alone program state:
     
-    bool isStandalone(const char* name);
     bool isActive(const char* name);
     void setProgramState(const char* name, const char* state);
-    std::string getProgramState(const char);
+    std::string getProgramState(const char*);
     
     // Utilities:
 private:    

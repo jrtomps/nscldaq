@@ -565,6 +565,78 @@ CStateManager::waitTransition(TransitionCallback cb, void* clientData)
     } while (notifications.size() > 0);  // Timeout if no notifs.
     throw std::runtime_error("State transition timeout");
 }
+/**
+ * processMessages
+ *    Drains the publication message backlog invoking a user callback
+ *    for each message present (if supplied).
+ *
+ * @param cb - Callback to invoke.
+ * @param cd - Client data passed without interpretation to the callback.
+ *
+ * @note if cb is null then the message queue is just drained and
+ *       any internal processing needed is performd without notifying
+ *       the caller.
+ */
+void
+CStateManager::processMessages(BacklogCallback cb, void* cd)
+{
+    std::vector<CStateTransitionMonitor::Notification> nots =
+        m_pMonitor->getNotifications(-1, 0);  // Get all backlogged messages.
+        
+    for (int i = 0; i < nots.size(); i++) {
+        if (cb) {
+            (*cb)(*this, nots[i], cd);
+        }
+        // Local processing goes here or above the if above.
+    }
+}
+/*----------------------------------------------------------------------
+ * Individual programs...active/standalone:
+ */
+
+/**
+ * isActive
+ * 
+ * @param name -name of a program.
+ * @return bool true if the program is enabled and not standalone.
+ * 
+ */
+bool
+CStateManager::isActive(const char* name)
+{
+    bool enabled = getProgramBool(name, "enable");
+    bool standalone = getProgramBool(name, "standalone");
+    
+    return (enabled && (!standalone));
+}
+/**
+ * setProgramState
+ *   Set the state of a single program.  Note that this really should
+ *   only be done with standalone or disabled programs.  That policy
+ *   enforcement is not done here, however to allow a client to
+ *   take a program that's exited leaving its state in a bad uh...state
+ *   to be able to reset it without changing the active-ness of the program.
+ *
+ * @param name - name of the program.
+ * @param state - Desired state
+ */
+void
+CStateManager::setProgramState(const char* name, const char* state)
+{
+    setProgramVar(name, "State", state);
+}
+/**
+ * getProgramState
+ *
+ *   @param name - name of a program.
+ *   @return std::string - that program's current state.
+ */
+std::string
+CStateManager::getProgramState(const char* name)
+{
+    return getProgramVar(name, "State");    
+}
+
 /*----------------------------------------------------------------------
  * Private utilities
  */

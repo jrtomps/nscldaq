@@ -116,6 +116,23 @@ void CallbackRecorder::Callback(
     pThis->recordCallback(state);
 }
 
+/*---------------------------------------------------------------------*/
+// Class to record backlog messages.
+
+class BacklogRecorder
+{
+public:
+    std::vector<CStateTransitionMonitor::Notification> m_notifications;
+    
+    static void Callback(
+        CStateManager& mgr, CStateTransitionMonitor::Notification notification,
+        void* cd
+    ) {
+        BacklogRecorder* pThis = static_cast<BacklogRecorder*>(cd);
+        pThis->m_notifications.push_back(notification);
+    }
+};
+
 /*--------------------------------------------------------------------*/
 
 
@@ -133,7 +150,23 @@ class TestStateTransitions : public CppUnit::TestFixture {
   CPPUNIT_TEST(waitEndingToReady);
   CPPUNIT_TEST(waitResumingToActive);
 
+  CPPUNIT_TEST(backlogNone);
+  CPPUNIT_TEST(backlogOne);
+  CPPUNIT_TEST(backlogSeveral);
+  CPPUNIT_TEST(backlogPurges);
+  
+  CPPUNIT_TEST(isActiveYes);
+  CPPUNIT_TEST(isActiveNoStandalone);
+  CPPUNIT_TEST(isActiveNoDisabled);
+  CPPUNIT_TEST(isActiveNoBoth);
+  CPPUNIT_TEST(isActiveNoX);
 
+  CPPUNIT_TEST(setProgramState);
+  CPPUNIT_TEST(setProgramStateBadState);
+  CPPUNIT_TEST(setProgramStateNoX);
+
+  CPPUNIT_TEST(getProgramState);
+  CPPUNIT_TEST(getProgramStateNox);
   CPPUNIT_TEST_SUITE_END();
   
 
@@ -149,8 +182,24 @@ protected:
   void waitPausingToPaused();
   void waitEndingToReady();
   void waitResumingToActive();
-  void failing();
   
+  void backlogNone();
+  void backlogOne();
+  void backlogSeveral();
+  void backlogPurges();
+  
+  void isActiveYes();
+  void isActiveNoStandalone();
+  void isActiveNoDisabled();
+  void isActiveNoBoth();
+  void isActiveNoX();
+  
+  void setProgramState();
+  void setProgramStateBadState();
+  void setProgramStateNoX();
+
+  void getProgramState();
+  void getProgramStateNox();
 private:
     pid_t m_serverPid;
     int m_serverRequestPort;
@@ -705,3 +754,170 @@ void TestStateTransitions::waitResumingToActive()
     EQ(std::string("Active"),    r.m_states[1]);     
     
 }
+//   Tests for processMessages
+
+
+// Call processMessages with no backlog:
+
+void TestStateTransitions::backlogNone()
+{
+    BacklogRecorder r;
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    
+    sm.processMessages(BacklogRecorder::Callback, &r);
+    
+    EQ(size_t(0), r.m_notifications.size());
+    
+}
+// One backlog message:
+
+void TestStateTransitions::backlogOne()
+{
+    BacklogRecorder r;
+    CStateManager sm("tcp://localhost", "tcp://localhost"); //subscribes.
+    
+    m_pApi->set("/RunState/test/State", "NotReady");  // Program transition.
+    
+    usleep(5000);                                    // Let messages get sent.
+    sm.processMessages(BacklogRecorder::Callback, &r);
+    
+    EQ(size_t(1), r.m_notifications.size());
+    CStateTransitionMonitor::Notification n = r.m_notifications[0];
+    
+    EQ(CStateTransitionMonitor::ProgramStateChange, n.s_type);
+    EQ(std::string("NotReady"), n.s_state);
+    EQ(std::string("test"),     n.s_program);
+}
+// Several backlog messages:
+
+void TestStateTransitions::backlogSeveral()
+{
+    BacklogRecorder r;
+    CStateManager sm("tcp://localhost", "tcp://localhost"); //subscribes.
+    
+    m_pApi->set("/RunState/State", "NotReady");
+    m_pApi->set("/RunState/test/State", "NotReady");  // Program transition.
+    usleep(5000);                                     // Let messages get sent.
+    sm.processMessages(BacklogRecorder::Callback, &r);
+    
+    EQ(size_t(2), r.m_notifications.size());
+    
+    CStateTransitionMonitor::Notification n = r.m_notifications[0];
+    EQ(CStateTransitionMonitor::GlobalStateChange, n.s_type);
+    EQ(std::string("NotReady"), n.s_state);
+
+    // s_program is meaningless for globals
+    
+    // next message:
+     
+    n = r.m_notifications[1];
+    EQ(CStateTransitionMonitor::ProgramStateChange, n.s_type);
+    EQ(std::string("NotReady"), n.s_state);
+    EQ(std::string("test"),     n.s_program);
+}
+// After processing a backlog, there are no more:
+
+void TestStateTransitions::backlogPurges()
+{
+    BacklogRecorder r;
+    CStateManager sm("tcp://localhost", "tcp://localhost"); //subscribes.
+    
+    m_pApi->set("/RunState/State", "NotReady");
+    m_pApi->set("/RunState/test/State", "NotReady");  // Program transition.
+    usleep(5000);                                     // Let messages get sent.
+    sm.processMessages();
+    
+    // Now the backlog queue shoudl be empty:
+    
+    sm.processMessages(BacklogRecorder::Callback, &r);
+    
+    EQ(size_t(0), r.m_notifications.size());
+}
+//  Tests for isActive:
+
+void TestStateTransitions::isActiveYes()
+{
+    CStateManager sm("tcp://localhost", "tcp://localhost"); //subscribes.
+    
+    // Test is active:
+    
+    ASSERT(sm.isActive("test"));
+}
+void TestStateTransitions::isActiveNoStandalone()
+{
+    m_pApi->set("/RunState/test/standalone", "true"); // not active.
+    
+    CStateManager sm("tcp://localhost", "tcp://localhost"); //subscribes.
+    ASSERT(!sm.isActive("test"));
+}
+void TestStateTransitions::isActiveNoDisabled()
+{
+    m_pApi->set("/RunState/test/enable", "false");
+    CStateManager sm("tcp://localhost", "tcp://localhost"); //subscribes.
+    ASSERT(!sm.isActive("test"));
+}
+
+void TestStateTransitions::isActiveNoBoth()
+{
+    m_pApi->set("/RunState/test/enable", "false");
+    m_pApi->set("/RunState/test/standalone", "true");
+    
+    CStateManager sm("tcp://localhost", "tcp://localhost"); //subscribes.
+    ASSERT(!sm.isActive("test"));
+}
+
+void TestStateTransitions::isActiveNoX()
+{
+    CStateManager sm("tcp://localhost", "tcp://localhost"); //subscribes.
+    CPPUNIT_ASSERT_THROW(
+        sm.isActive("mytest"),
+        std::runtime_error
+    );
+}
+
+// Tests for set program individual state - intended for
+// use with standalone programs but there's no policy enforcement
+// at this level.
+
+void TestStateTransitions::setProgramState()
+{
+    CStateManager sm("tcp://localhost", "tcp://localhost"); //subscribes.
+    sm.setProgramState("test", "NotReady");
+    EQ(std::string("NotReady"), m_pApi->get("RunState/test/State"));
+}
+
+void TestStateTransitions::setProgramStateBadState()
+{
+    CStateManager sm("tcp://localhost", "tcp://localhost"); //subscribes.
+    CPPUNIT_ASSERT_THROW(
+        sm.setProgramState("test", "Active"),  // invalid transition.
+        std::runtime_error
+    );
+
+}
+void TestStateTransitions::setProgramStateNoX()
+{
+    CStateManager sm("tcp://localhost", "tcp://localhost"); //subscribes.
+    CPPUNIT_ASSERT_THROW(
+        sm.setProgramState("atest", "0Initial"),
+        std::runtime_error
+    );
+}
+// getProgramState tests:
+
+void TestStateTransitions::getProgramState()
+{
+    CStateManager sm("tcp://localhost", "tcp://localhost"); //subscribes.
+    EQ(std::string("0Initial"), sm.getProgramState("test"));
+    sm.setProgramState("test", "NotReady");
+    EQ(std::string("NotReady"), sm.getProgramState("test"));
+}
+void TestStateTransitions::getProgramStateNox()
+{
+    CStateManager sm("tcp://localhost", "tcp://localhost"); //subscribes.
+    CPPUNIT_ASSERT_THROW(
+        sm.getProgramState("mytest"),
+        std::runtime_error
+    );
+}
+
