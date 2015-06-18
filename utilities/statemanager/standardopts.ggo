@@ -1,0 +1,8 @@
+\# This is a fragment of a gengetopt include file intended to be processed by
+\# the C preprocessor.  The backslash in front of each pound char ensures that
+\#  cpp will not treat the line as a directive.  In the preprocessing phase, 
+\#  these get removed by piping the result through a tr filter.
+
+
+option "request-uri" r "URL of the variable manager's request port" string optional default="tcp://localhost"
+option "subscribe-uri" s "URL of the variable manager's subscription port" string optional default="tcp://localhost"

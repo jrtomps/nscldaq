@@ -143,6 +143,7 @@ class TestVarlist(testBase.TestBase):
         self.assertEquals('astring', vars[2]['name'])
         self.assertEquals('string', vars[2]['type'])
         self.assertEquals('hello world', vars[2]['value'])
+
         
     def test_subdir(self):
         self.mkdir("/subdir")

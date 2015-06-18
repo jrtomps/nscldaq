@@ -1,0 +1,12 @@
+\#
+\#  command options for the status command.  
+\#  the backslashes in front of comments are because this will be passed throught cpp
+\#  tr will filter those out later.
+
+package "status"
+version "1.0"
+purpose "Show status of the system"
+
+#include "standardopts.ggo"
+
+option "all" a "Show all programs" flag off

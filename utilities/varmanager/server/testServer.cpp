@@ -85,6 +85,7 @@ class ServerApiTests : public CppUnit::TestFixture {
   CPPUNIT_TEST(lsvarVars);
   CPPUNIT_TEST(lsvarRelpath);
   CPPUNIT_TEST(lsvarAbsPath);
+  CPPUNIT_TEST(lsvarEmptyString);
 
   CPPUNIT_TEST(rmvarOk);
   CPPUNIT_TEST(rmvarNoSuch);
@@ -133,6 +134,7 @@ protected:
   void lsvarVars();
   void lsvarRelpath();
   void lsvarAbsPath();
+  void lsvarEmptyString();
   void rmvarOk();
   void rmvarNoSuch();
   
@@ -821,6 +823,19 @@ void ServerApiTests::lsvarAbsPath()
     varcheck(info, "astring", "string", "hello world");
     
 }
+// Edge case -  a variable that is an empty string -- exposed a defect in
+// split:
+
+void ServerApiTests::lsvarEmptyString()
+{
+  CVarMgrApi& api(*m_pApi);
+  api.declare("/astring", "string");
+  std::vector<CVarMgrApi::VarInfo> info = api.lsvar("/");
+  EQ(size_t(1), info.size());
+  varcheck(info, "astring", "string", "");
+
+}
+
 // rmvar works:
 
 void ServerApiTests::rmvarOk()

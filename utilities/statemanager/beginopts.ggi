@@ -1,0 +1,5 @@
+package "begin"
+version "1.0"
+purpose "Begin a run"
+
+#include "transitionopts.ggi"

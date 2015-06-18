@@ -554,6 +554,13 @@ CVarMgrServerApi::split(std::string string, char sep)
         } else {
             result.push_back(string.substr(0, nextSep));
             string = string.substr(nextSep+1);
+	   
+	    // If the resulting string is empty ..need to push an empty string because
+	    // of the trailing field:
+
+	    if (string.size() == 0) {
+	      result.push_back("");
+	    }
                             
         }
     }

@@ -1,0 +1,6 @@
+package "resume"
+version "1.0"
+purpose "Resume a paused run"
+
+#include "transitionopts.ggi"
+

@@ -734,3 +734,5 @@ CStateManager::getProgramBool(const char* program, const char* var)
     errorMessage += value;
     throw std::runtime_error(errorMessage);
 }
+
+void* gpTCLApplication(0);

@@ -1,0 +1,5 @@
+package "pause"
+version "1.0"
+purpose "Pause a run"
+
+#include "transitionopts.ggi"

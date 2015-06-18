@@ -1,0 +1,3 @@
+#include "standardopts.ggo"
+
+option "verbose" V "Show progress of state transitions" flag off
