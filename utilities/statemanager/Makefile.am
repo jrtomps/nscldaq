@@ -42,13 +42,13 @@ include_HEADERS = CStateClientApi.h CStateTransitionMonitor.h CStateManager.h
 bin_PROGRAMS=status begin pause resume
 noinst_HEADERS=tracker.h
 
-status_SOURCES=status.cpp  @builddir@/statusopts.h
-status_DEPENDENCIES = @builddir@/statusopts.o 
+status_SOURCES=status.cpp  statusopts.h
+status_DEPENDENCIES = statusopts.o 
 status_CPPFLAGS=$(COMMON_CPPFLAGS) -I@builddir@
 status_LDADD=@builddir@/statusopts.o 
 status_LDFLAGS=libstateclient.la $(COMMON_LOADFLAGS) 
 
-statusopts.h: @builddir@/statusopts.o
+statusopts.h: statusopts.o
 
 
 
@@ -62,8 +62,8 @@ statusopts.o: @builddir@/statusopts.ggo
 @builddir@/statusopts.ggo: statusopts.ggi standardopts.ggo
 	$(PREPROCESSOR) -P @srcdir@/statusopts.ggi  |tr -d "\\\\" >@builddir@/statusopts.ggo
 
-begin_SOURCES=begin.cpp @builddir@/beginopts.h tracker.cpp
-begin_DEPENDENCIES=@builddir@/beginopts.o
+begin_SOURCES=begin.cpp beginopts.h tracker.cpp
+begin_DEPENDENCIES=beginopts.o
 begin_CPPFLAGS=$(COMMON_CPPFLAGS) -I@builddir@
 begin_LDADD=beginopts.o
 begin_LDFLAGS=libstateclient.la $(COMMON_LOADFLAGS) 
@@ -81,13 +81,13 @@ beginopts.o: @builddir@/beginopts.ggo
 	$(PREPROCESSOR) -P @srcdir@/beginopts.ggi  |tr -d "\\\\" >@builddir@/beginopts.ggo
 
 
-pause_SOURCES=pause.cpp @builddir@/pauseopts.h tracker.cpp
-pause_DEPENDENCIES=@builddir@/pauseopts.o
+pause_SOURCES=pause.cpp pauseopts.h tracker.cpp
+pause_DEPENDENCIES=pauseopts.o
 pause_CPPFLAGS=$(COMMON_CPPFLAGS) -I@builddir@
 pause_LDADD=pauseopts.o
 pause_LDFLAGS=libstateclient.la $(COMMON_LOADFLAGS) 
 
-pauseopts.h: @builddir@/pauseopts.o
+pauseopts.h: pauseopts.o
 
 
 
@@ -101,13 +101,13 @@ pauseopts.o: @builddir@/pauseopts.ggo
 
 
 
-resume_SOURCES=resume.cpp @builddir@/resumeopts.h tracker.cpp
-resume_DEPENDENCIES=@builddir@/resumeopts.o
+resume_SOURCES=resume.cpp resumeopts.h tracker.cpp
+resume_DEPENDENCIES=resumeopts.o
 resume_CPPFLAGS=$(COMMON_CPPFLAGS) -I@builddir@
 resume_LDADD=resumeopts.o
 resume_LDFLAGS=libstateclient.la $(COMMON_LOADFLAGS) 
 
-resumeopts.h: @builddir@/resumeopts.o
+resumeopts.h: resumeopts.o
 
 
 
