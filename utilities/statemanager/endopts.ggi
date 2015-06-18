@@ -1,0 +1,5 @@
+package "end"
+version "1.0"
+purpose "End an active or paused run"
+
+#include "transitionopts.ggi"

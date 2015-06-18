@@ -15,12 +15,12 @@
 #            East Lansing, MI 48824-1321
 
 ##
-# @file   resume.cpp
-# @brief  Command to resume a paused run.
+# @file   end.cpp
+# @brief  End active or paused run.
 # @author <fox@nscl.msu.edu>
 */
 
-#include "resumeopts.h"
+#include "endopts.h"
 
 #include "CStateManager.h"
 #include <iostream>
@@ -41,8 +41,8 @@ int main(int argc, char** argv)
     // The state must be paused to resume:
     
     std::string gState = sm.getGlobalState();
-    if (gState != "Paused") {
-        std::cerr << "Only runs in the 'Paused' state can be resumed. ";
+    if ((gState != "Active") && (gState != "Paused")) {
+        std::cerr << "Only runs in the 'Active' or 'Paused' state can be resumed. ";
         std::cerr << "The state is now '" << gState << "'\n";
         std::exit(EXIT_FAILURE);
     }
@@ -55,12 +55,12 @@ int main(int argc, char** argv)
     
     // Initiate and monitor the state transition:
     
-    sm.setGlobalState("Resuming");
+    sm.setGlobalState("Ending");
     try {
         sm.waitTransition(cb, nullptr);
     }
     catch(std::runtime_error& err) {
-        std::cerr << "Resume run failed: " << err.what() << std::endl;
+        std::cerr << "End run failed: " << err.what() << std::endl;
         std::cerr << "Failing the system\n";
         try {
             sm.setGlobalState("NotReady");   // brings everything down.

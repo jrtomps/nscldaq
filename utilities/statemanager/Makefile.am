@@ -39,7 +39,7 @@ include_HEADERS = CStateClientApi.h CStateTransitionMonitor.h CStateManager.h
 #  the system:
 
 
-bin_PROGRAMS=status begin pause resume
+bin_PROGRAMS=status begin pause resume end
 noinst_HEADERS=tracker.h
 
 status_SOURCES=status.cpp  statusopts.h
@@ -120,12 +120,31 @@ resumeopts.o: @builddir@/resumeopts.ggo
 	$(PREPROCESSOR) -P @srcdir@/resumeopts.ggi  |tr -d "\\\\" >@builddir@/resumeopts.ggo
 
 
+end_SOURCES=end.cpp endopts.h tracker.cpp
+end_DEPENDENCIES=endopts.o
+end_CPPFLAGS=$(COMMON_CPPFLAGS) -I@builddir@
+end_LDADD=endopts.o
+end_LDFLAGS=libstateclient.la $(COMMON_LOADFLAGS) 
+
+endopts.h: endopts.o
 
 
 
+endopts.o: @builddir@/endopts.ggo
+	$(GENGETOPT) <@builddir@/endopts.ggo --file=@builddir@/endopts
+	$(CC) -c -o @builddir@/endopts.o @builddir@/endopts.c
 
-EXTRA_DIST=statusopts.ggi  beginopts.ggi transitionopts.ggi  standardopts.ggo \
-	resumeopts.ggi 
+
+@builddir@/endopts.ggo: endopts.ggi standardopts.ggo transitionopts.ggi
+	$(PREPROCESSOR) -P @srcdir@/endopts.ggi  |tr -d "\\\\" >@builddir@/endopts.ggo
+
+
+
+EXTRA_DIST=statusopts.ggi  beginopts.ggi \
+		resumeopts.ggi endopts.ggi \
+		transitionopts.ggi  standardopts.ggo 
+
+BUILT_SOURCES=statusopts.h beginopts.h resumeopts.h endopts.h
 
 
 #---------------------------------------------------------------------------------
