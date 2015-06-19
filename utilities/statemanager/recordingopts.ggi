@@ -1,0 +1,5 @@
+package "recording"
+version "1.0"
+purpose "Enable/disable event recording"
+
+#include "standardopts.ggo"
