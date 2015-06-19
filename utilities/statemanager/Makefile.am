@@ -52,6 +52,19 @@ EXTRA_DIST=statusopts.ggi  beginopts.ggi \
 BUILT_SOURCES=statusopts.h beginopts.h resumeopts.h endopts.h titleopts.h pauseopts.h timeoutopts.h \
 	recordingopts.h programdiropts.h runnumopts.h
 
+clean-local:
+	rm -f $(BUILT_SOURCES)
+	rm -f statusopts.ggo endopts.ggo titleopts.ggo pauseopts.ggo transitionopts.ggo
+	rm -f timeoutopts.ggo recordingopts.ggo programdiropts.ggo runnumopts.ggo
+	rm -f resumeopts.ggo beginopts.ggo 
+	rm -f statusopts.c endopts.c titleopts.c pauseopts.c transitionopts.c
+	rm -f timeoutopts.c recordingopts.c programdiropts.c runnumopts.c
+	rm -f resumeopts.c beginopts.c
+	rm -f statusopts.o endopts.o titleopts.o pauseopts.o transitionopts.o
+	rm -f timeoutopts.o recordingopts.o programdiropts.o runnumopts.o
+	rm -f resumeopts.o beginopts.o 
+
+
 
 status_SOURCES=status.cpp  statusopts.h
 status_DEPENDENCIES = statusopts.o 
