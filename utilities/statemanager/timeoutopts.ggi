@@ -1,0 +1,5 @@
+package "timeout"
+version "1.0"
+purpose "Set a new state timeout"
+
+#include "standardopts.ggo"

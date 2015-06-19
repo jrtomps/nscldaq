@@ -116,11 +116,26 @@ public:
     std::vector<std::string> listActivePrograms();
     void               deleteProgram(const char* name);
     
+    
     // Global state control:
     
     void setGlobalState(const char* newState);
     std::string getGlobalState();
     std::vector<std::pair<std::string, std::string> > getParticipantStates();
+    
+    std::string title();
+    void title(const char*);
+    
+    unsigned timeout();
+    void timeout(unsigned newValue);
+    
+    bool recording();
+    void recording(bool state);
+    
+    unsigned runNumber();
+    void runNumber(unsigned newValue);
+    
+    
     
     // State transition monitoring
     

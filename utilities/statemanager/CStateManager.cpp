@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <stdexcept>
 #include <set>
+#include <stdlib.h>
 
 
 /**
@@ -448,6 +449,105 @@ CStateManager::getParticipantStates()
     return result;
 }
 
+/**
+ * title()
+ *   @return std::string - the title.
+ */
+std::string
+CStateManager::title()
+{
+    CVarMgrApi* pApi = m_pMonitor->getApi();
+    return pApi->get("/RunState/Title");
+}
+/**
+ * title(const char*)
+ *   @param title - new title.
+ */
+void
+CStateManager::title(const char* title)
+{
+    CVarMgrApi* pApi = m_pMonitor->getApi();
+    pApi->set("/RunState/Title", title);
+}
+
+/**
+ * timeout()
+ *  @return unsigned int - current timeout value in seconds
+ */
+unsigned
+CStateManager::timeout()
+{
+    CVarMgrApi* pApi = m_pMonitor->getApi();
+    std::string timeoutString = pApi->get("/RunState/Timeout");
+    char* endPtr;
+    unsigned long timeout = strtoul(timeoutString.c_str(), &endPtr, 0);
+    if (endPtr == timeoutString.c_str()) {
+        throw std::runtime_error("Invalid timeout value in database");
+    }
+    return timeout;
+    
+}
+/**
+ * timeout(unsigned)
+ *    Set a new timeout value.
+ *
+ *  @param newTo - new timeout value.
+ */
+void
+CStateManager::timeout(unsigned newValue)
+{
+    CVarMgrApi* pApi = m_pMonitor->getApi();
+    char timeoutString[100];
+    sprintf(timeoutString, "%u", newValue);
+    pApi->set("/RunState/Timeout", timeoutString);
+}
+
+/**
+ * recording()
+ *    @return bool -recording state
+ */
+bool
+CStateManager::recording()
+{
+    CVarMgrApi* pApi = m_pMonitor->getApi();
+    return pApi->get("/RunState/Recording") == "true";
+}
+
+/**
+ * recording(bool)
+ *
+ *  @param state - new state for the recording flag.
+ */
+void
+CStateManager::recording(bool state)
+{
+    CVarMgrApi* pApi = m_pMonitor->getApi();
+    pApi->set("/RunState/Recording", state ? "true" : "false");
+}
+/**
+ * runNumber()
+ *  @return unsigned  the current run number.
+ */
+unsigned
+CStateManager::runNumber()
+{
+    CVarMgrApi* pApi = m_pMonitor->getApi();
+    std::string runNumstr = pApi->get("/RunState/RunNumber");
+    return strtoul(runNumstr.c_str(), NULL, 0);
+}
+/**
+ * runNumber(unsigned)
+ *   @param newValue - New run number to set.
+ */
+void
+CStateManager::runNumber(unsigned newValue)
+{
+    CVarMgrApi* pApi = m_pMonitor->getApi();
+    char runStr[100];
+    sprintf(runStr, "%d", newValue);
+    
+    pApi->set("/RunState/RunNumber", runStr);
+}
 /*------------------------------------------------------
  * State management/listing
  */

@@ -140,6 +140,22 @@ public:
 class TestStateTransitions : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(TestStateTransitions);
   
+  // Title
+  
+  CPPUNIT_TEST(getTitle);
+  CPPUNIT_TEST(setTitle);
+  
+  CPPUNIT_TEST(getTimeout);
+  CPPUNIT_TEST(setTimeout);
+  
+  CPPUNIT_TEST(getRecording);
+  CPPUNIT_TEST(setRecording);
+  
+  CPPUNIT_TEST(getRunNumber);
+  CPPUNIT_TEST(setRunNumber);
+  
+  // State transitions
+  
   CPPUNIT_TEST(waitAlreadyThere);
   CPPUNIT_TEST(waitNotReady);
   CPPUNIT_TEST(waitNotReadyCallback);
@@ -171,6 +187,18 @@ class TestStateTransitions : public CppUnit::TestFixture {
   
 
 protected:
+  void getTitle();
+  void setTitle();
+  
+  void getTimeout();
+  void setTimeout();
+    
+  void getRecording();
+  void setRecording();
+  
+  void setRunNumber();
+  void getRunNumber();
+  
  // Tests for waitTransition:
   
   void waitAlreadyThere();
@@ -921,3 +949,80 @@ void TestStateTransitions::getProgramStateNox()
     );
 }
 
+
+// Tests for the title overloads:
+
+void TestStateTransitions::getTitle()
+{
+    const char* t = "This is a title";
+    m_pApi->set("/RunState/Title", t);
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    EQ(std::string(t), sm.title());
+    
+}
+
+void TestStateTransitions::setTitle()
+{
+    const char* t = "This is a title";
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    sm.title(t);
+    
+    EQ(std::string(t), sm.title());
+}
+
+// Tests for the timeout overload:
+
+void TestStateTransitions::getTimeout()
+{
+    unsigned int newTo = 123;
+    char newToString[100];
+    sprintf(newToString, "%d", newTo);
+    m_pApi->set("/RunState/Timeout", newToString);
+    
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    EQ(newTo, sm.timeout());
+}
+
+void TestStateTransitions::setTimeout()
+{
+    unsigned int newTo = 123;
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    sm.timeout(newTo);
+    EQ(newTo, sm.timeout());
+}
+
+void TestStateTransitions::getRecording()
+{
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    
+    m_pApi->set("/RunState/Recording", "false");
+    ASSERT(! sm.recording());
+    
+    m_pApi->set("RunState/Recording", "true");
+    ASSERT(sm.recording());
+}
+
+void TestStateTransitions::setRecording()
+{
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    sm.recording(false);
+    ASSERT(!sm.recording());
+    sm.recording(true);
+    ASSERT(sm.recording());
+}
+
+
+void TestStateTransitions::getRunNumber()
+{
+    m_pApi->set("/RunState/RunNumber", "1234");
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    
+    EQ(unsigned(1234), sm.runNumber());
+}
+void TestStateTransitions::setRunNumber()
+{
+    CStateManager sm("tcp://localhost", "tcp://localhost");
+    unsigned now = sm.runNumber();
+    sm.runNumber(now+1);
+    EQ(now+1, sm.runNumber());
+}

@@ -1,0 +1,6 @@
+package "title"
+version "1.0"
+purpose "Set a new title"
+
+#include "standardopts.ggo"
+

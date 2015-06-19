@@ -1,0 +1,5 @@
+package "runnum"
+version "1.0"
+purpose "Set/get the run number"
+
+#include "standardopts.ggo"

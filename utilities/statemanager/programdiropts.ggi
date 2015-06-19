@@ -1,0 +1,5 @@
+package "programdir"
+version "1.0"
+purpose "Set/get the programs directory path"
+
+#include "standardopts.ggo"

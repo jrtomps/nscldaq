@@ -39,8 +39,19 @@ include_HEADERS = CStateClientApi.h CStateTransitionMonitor.h CStateManager.h
 #  the system:
 
 
-bin_PROGRAMS=status begin pause resume end
+bin_PROGRAMS=status begin pause resume end title trtimeout \
+	recording programdir runnum
 noinst_HEADERS=tracker.h
+
+EXTRA_DIST=statusopts.ggi  beginopts.ggi \
+		resumeopts.ggi endopts.ggi titleopts.ggi pauseopts.ggi  \
+		transitionopts.ggi timeoutopts.ggi recordingopts.ggi \
+		programdiropts.ggi runnumopts.ggi \
+		 standardopts.ggo 
+
+BUILT_SOURCES=statusopts.h beginopts.h resumeopts.h endopts.h titleopts.h pauseopts.h timeoutopts.h \
+	recordingopts.h programdiropts.h runnumopts.h
+
 
 status_SOURCES=status.cpp  statusopts.h
 status_DEPENDENCIES = statusopts.o 
@@ -139,13 +150,99 @@ endopts.o: @builddir@/endopts.ggo
 	$(PREPROCESSOR) -P @srcdir@/endopts.ggi  |tr -d "\\\\" >@builddir@/endopts.ggo
 
 
+title_SOURCES=title.cpp titleopts.h tracker.cpp
+title_DEPENDENCIES=titleopts.o
+title_CPPFLAGS=$(COMMON_CPPFLAGS) -I@builddir@
+title_LDADD=titleopts.o
+title_LDFLAGS=libstateclient.la $(COMMON_LOADFLAGS) 
 
-EXTRA_DIST=statusopts.ggi  beginopts.ggi \
-		resumeopts.ggi endopts.ggi \
-		transitionopts.ggi  standardopts.ggo 
+titleopts.h: titleopts.o
 
-BUILT_SOURCES=statusopts.h beginopts.h resumeopts.h endopts.h
 
+
+titleopts.o: @builddir@/titleopts.ggo
+	$(GENGETOPT) <@builddir@/titleopts.ggo --file=@builddir@/titleopts --unamed-opts=STRING
+	$(CC) -c -o @builddir@/titleopts.o @builddir@/titleopts.c
+
+
+@builddir@/titleopts.ggo: titleopts.ggi standardopts.ggo transitionopts.ggi
+	$(PREPROCESSOR) -P @srcdir@/titleopts.ggi  |tr -d "\\\\" >@builddir@/titleopts.ggo
+
+
+trtimeout_SOURCES=timeout.cpp timeoutopts.h tracker.cpp
+trtimeout_DEPENDENCIES=timeoutopts.o
+trtimeout_CPPFLAGS=$(COMMON_CPPFLAGS) -I@builddir@
+trtimeout_LDADD=timeoutopts.o
+trtimeout_LDFLAGS=libstateclient.la $(COMMON_LOADFLAGS) 
+
+timeoutopts.h: timeoutopts.o
+
+
+
+timeoutopts.o: @builddir@/timeoutopts.ggo
+	$(GENGETOPT) <@builddir@/timeoutopts.ggo --file=@builddir@/timeoutopts --unamed-opts=TIMEOUT
+	$(CC) -c -o @builddir@/timeoutopts.o @builddir@/timeoutopts.c
+
+
+@builddir@/timeoutopts.ggo: timeoutopts.ggi standardopts.ggo transitionopts.ggi
+	$(PREPROCESSOR) -P @srcdir@/timeoutopts.ggi  |tr -d "\\\\" >@builddir@/timeoutopts.ggo
+
+
+recording_SOURCES=recording.cpp recordingopts.h tracker.cpp
+recording_DEPENDENCIES=recordingopts.o
+recording_CPPFLAGS=$(COMMON_CPPFLAGS) -I@builddir@
+recording_LDADD=recordingopts.o
+recording_LDFLAGS=libstateclient.la $(COMMON_LOADFLAGS) 
+
+recordingopts.h: recordingopts.o
+
+
+
+recordingopts.o: @builddir@/recordingopts.ggo
+	$(GENGETOPT) <@builddir@/recordingopts.ggo --file=@builddir@/recordingopts --unamed-opts=STATE
+	$(CC) -c -o @builddir@/recordingopts.o @builddir@/recordingopts.c
+
+
+@builddir@/recordingopts.ggo: recordingopts.ggi standardopts.ggo transitionopts.ggi
+	$(PREPROCESSOR) -P @srcdir@/recordingopts.ggi  |tr -d "\\\\" >@builddir@/recordingopts.ggo
+
+
+
+programdir_SOURCES=programdir.cpp programdiropts.h tracker.cpp
+programdir_DEPENDENCIES=programdiropts.o
+programdir_CPPFLAGS=$(COMMON_CPPFLAGS) -I@builddir@
+programdir_LDADD=programdiropts.o
+programdir_LDFLAGS=libstateclient.la $(COMMON_LOADFLAGS) 
+
+programdiropts.h: programdiropts.o
+
+
+
+programdiropts.o: @builddir@/programdiropts.ggo
+	$(GENGETOPT) <@builddir@/programdiropts.ggo --file=@builddir@/programdiropts --unamed-opts=PATH
+	$(CC) -c -o @builddir@/programdiropts.o @builddir@/programdiropts.c
+
+
+@builddir@/programdiropts.ggo: programdiropts.ggi standardopts.ggo transitionopts.ggi
+	$(PREPROCESSOR) -P @srcdir@/programdiropts.ggi  |tr -d "\\\\" >@builddir@/programdiropts.ggo
+
+runnum_SOURCES=runnum.cpp runnumopts.h tracker.cpp
+runnum_DEPENDENCIES=runnumopts.o
+runnum_CPPFLAGS=$(COMMON_CPPFLAGS) -I@builddir@
+runnum_LDADD=runnumopts.o
+runnum_LDFLAGS=libstateclient.la $(COMMON_LOADFLAGS) 
+
+runnumopts.h: runnumopts.o
+
+
+
+runnumopts.o: @builddir@/runnumopts.ggo
+	$(GENGETOPT) <@builddir@/runnumopts.ggo --file=@builddir@/runnumopts --unamed-opts=NUMBER
+	$(CC) -c -o @builddir@/runnumopts.o @builddir@/runnumopts.c
+
+
+@builddir@/runnumopts.ggo: runnumopts.ggi standardopts.ggo transitionopts.ggi
+	$(PREPROCESSOR) -P @srcdir@/runnumopts.ggi  |tr -d "\\\\" >@builddir@/runnumopts.ggo
 
 #---------------------------------------------------------------------------------
 # tests:
