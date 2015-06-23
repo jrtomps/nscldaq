@@ -365,6 +365,15 @@ CTCLStateClientInstanceCommand::MessagePump::scheduleExit()
  * operator()
  *   Main loop, process messages and schedule events
  *   until m_exit is true:
+ *
+ *   TODO:  There is a timing hole here that at some point should be remedied:
+ *          If in the time between the check for the empty proc string and
+ *          queueing the event, the outer class is destroyed, the event is
+ *          queued to a destroyed object which most likely results in a segfault.
+ *          What the stateChangeHandler method should do is check the
+ *          object it gets against a registry of existing objects (such as
+ *          the one maintained by CTCStateClientCommand), and only dispatch for
+ *          existing clients.
  */
 void
 CTCLStateClientInstanceCommand::MessagePump::operator()()

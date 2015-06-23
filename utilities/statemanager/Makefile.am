@@ -296,4 +296,4 @@ EXTRA_DIST+= tclbindings.test
 check-TESTS:
 	BINDIR="@bindir@" PYTHONPATH=@prefix@/pythonLibs @builddir@/unittests
 	BINDIR="@bindir@" PYTHONPATH=@prefix@/pythonLibs @builddir@/stateTests
-	DAQBIN="@bindir@" TCLLIBPATH=@prefix@/TclLibs @TCLSH_CMD@ @srcdir@/tclbindings.test
+	DAQBIN="@bindir@" TCLLIBPATH=@prefix@/TclLibs PYTHONPATH=@prefix@/pythonLibs @TCLSH_CMD@ @srcdir@/tclbindings.test

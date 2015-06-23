@@ -152,8 +152,9 @@ CTCLStateClientCommand::deleteEnsemble(std::string name)
     std::map<std::string, CTCLStateClientInstanceCommand*>::iterator p =
         m_createdCommands.find(name);
     if (p != m_createdCommands.end()) {
-        delete p->second;
+        CTCLStateClientInstanceCommand* pCommand = p->second;
         m_createdCommands.erase(p);
+        delete pCommand;
     } else {
         char message[1000];
         sprintf(message, "No such state client command: '%s'", name.c_str());
