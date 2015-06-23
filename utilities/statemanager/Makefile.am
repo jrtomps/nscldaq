@@ -1,7 +1,7 @@
 #
 # Primary targets are the APIS used by clients and managers:
 
-lib_LTLIBRARIES = libstateclient.la
+lib_LTLIBRARIES = libstateclient.la libTclstateclient.la
 
 PREPROCESSOR=cpp
 
@@ -28,6 +28,14 @@ COMMON_LOADFLAGS= @top_builddir@/utilities/varmanager/server/libvarmgr.la \
 libstateclient_la_SOURCES=CStateClientApi.cpp CStateTransitionMonitor.cpp CStateManager.cpp
 libstateclient_la_CPPFLAGS=$(COMMON_CPPFLAGS)
 libstateclient_la_LDFALGS=$(COMMON_LOADFLAGS)
+
+#
+
+libTclstateclient_la_SOURCES=CTCLStateClientCommand.cpp CTCLStateClientInstanceCommand.cpp \
+	TCLStateClientPackage.cpp							\
+	CTCLStateClientCommand.h CTCLStateClientInstanceCommand.h
+libTclstateclient_la_CPPFLAGS=$(COMMON_CPPFLAGS) @TCL_FLAGS@
+libTclstateclient_la_LDFLAGS= libstateclient.la $(COMMON_LOADFLAGS) @TCL_LDFLAGS@
 
 
 # Headers for public APIS:
@@ -257,6 +265,14 @@ runnumopts.o: @builddir@/runnumopts.ggo
 @builddir@/runnumopts.ggo: runnumopts.ggi standardopts.ggo transitionopts.ggi
 	$(PREPROCESSOR) -P @srcdir@/runnumopts.ggi  |tr -d "\\\\" >@builddir@/runnumopts.ggo
 
+#  Post installation tasks:
+
+install-exec-local:
+	$(mkinstalldirs) @prefix@/TclLibs/stateclient
+	rm -f           @prefix@/TclLibs/stateclient/libTclstateclient.so
+	$(LN_S)         @libdir@/libTclstateclient.so @prefix@/TclLibs/stateclient/libTclstateclient.so
+	echo pkg_mkIndex @prefix@/TclLibs/stateclient "*.so" | @TCLSH_CMD@
+
 #---------------------------------------------------------------------------------
 # tests:
 #
@@ -275,8 +291,9 @@ stateTests_SOURCES=TestRunner.cpp Asserts.h TestStateTransitions.cpp
 stateTests_CPPFLAGS=$(COMMON_CPPFLAGS) $(CPPUNIT_CFLAGS) -DBINDIR=\"@bindir@\"
 stateTests_LDFLAGS=libstateclient.la $(COMMON_LOADFLAGS) $(CPPUNIT_LDFLAGS)
 
-
+EXTRA_DIST+= tclbindings.test
 
 check-TESTS:
 	BINDIR="@bindir@" PYTHONPATH=@prefix@/pythonLibs @builddir@/unittests
 	BINDIR="@bindir@" PYTHONPATH=@prefix@/pythonLibs @builddir@/stateTests
+	DAQBIN="@bindir@" TCLLIBPATH=@prefix@/TclLibs @TCLSH_CMD@ @srcdir@/tclbindings.test
