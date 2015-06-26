@@ -1,0 +1,728 @@
+#!/bin/sh
+# -*- tcl -*-
+# The next line is executed by /bin/sh, but not tcl \
+exec tclsh "$0" ${1+"$@"}
+
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2014.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Authors:
+#             Ron Fox
+#             Jeromy Tompkins 
+#	     NSCL
+#	     Michigan State University
+#	     East Lansing, MI 48824-1321
+
+
+
+##
+# @file statemgr.test
+# @brief Tests of the state manager.
+# @author Ron Fox <fox@nscl.msu.edu>
+#
+
+package require stateclient
+package require varmgr
+package require portAllocator
+package require tcltest
+
+tcltest::test statemgr-exists {State manager command exists} \
+-body {
+    info command ::nscldaq::statemanager
+} -result ::nscldaq::statemanager
+
+tcltest::test statemgr-needs-subcommand {state manager cmd by itself is error} \
+-body {
+    catch nscldaq::statemanager
+} -result 1
+
+tcltest::test statemgr-noxdelete {Delete of nonexistent is error} \
+-body {
+    catch {nscldaq::statemanager -delete junk}
+
+} -result 1
+
+#-------------------------------------------------------------------
+#  The remaining tests require that there be a
+#  database and a variable server:
+
+
+
+#  Infrastructure for tests that need a database setup.
+
+set ::testFile ""
+set ::bindir $::env(DAQBIN)
+set ::serverPid ""
+
+proc waitServer {} {
+    portAllocator create lister
+    while {1} {
+        set ports [lister listPorts]
+        foreach port $ports {
+            if {[lindex $port 1] == "vardb-changes"} {
+                lister destroy
+                return
+            }
+            after 100
+        }
+    }
+    
+}
+
+proc createRunDir h {
+    varmgr::mkdir $h /RunState
+    varmgr::statemachine $h RunStateMachine [dict create \
+         0Initial NotReady NotReady [list 0Initial Readying] \
+         Readying [list NotReady Ready] Ready [list Beginning NotReady] \
+         Beginning [list Active NotReady] Active [list Pausing Ending NotReady] \
+         Pausing [list Paused NotReady] Paused [list Ending Resuming NotReady] \
+         Resuming [list Active NotReady] Ending [list Ready NotReady]           \
+    ]
+    varmgr::enum $h boolean [list true false]
+    
+    varmgr::var create $h /RunState/State RunStateMachine
+    varmgr::var create $h /RunState/RunNumber integer
+    varmgr::var create $h /RunState/Title     string
+    varmgr::var create $h /RunState/Recording boolean false
+    varmgr::var create $h /RunState/Timeout   integer  60
+    varmgr::var create $h /RunState/ReadoutParentDir string
+    
+}
+
+
+proc createProgram {h name} {
+    set dir /RunState/$name
+    varmgr::mkdir $h $dir
+    varmgr::var create $h $dir/State RunStateMachine
+    varmgr::var create $h $dir/enable boolean   true
+    varmgr::var create $h $dir/standalone boolean false
+    varmgr::var create $h $dir/path  string "/some/test/path"
+    varmgr::var create $h $dir/host string "somehost.nscl.msu.edu"
+    varmgr::var create $h $dir/outring string "output"
+    varmgr::var create $h $dir/inring string "tcp://localhost/ring"
+    
+}
+
+proc setup {} {
+    set dbPath [tcltest::makeFile "" testdb.db]
+    file delete -force $dbPath ;    # just using it to get a file in tempdir.
+    
+    varmgr::create $dbPath
+    set h [varmgr::open file://$dbPath]
+    
+    createRunDir $h
+    createProgram $h test
+    
+    varmgr::close $h
+    set ::testFile $dbPath
+    
+    # start the server
+    #
+    
+    set pid [exec -- $::bindir/vardbServer --database $dbPath &]
+    set ::serverPid $pid
+    
+    waitServer
+}
+
+
+proc cleanup {} {
+    # Kill the server
+    
+    exec kill -9 $::serverPid
+    
+    # Destroy the database
+    
+    tcltest::removeFile $::testFile
+    
+    # Reset global vars:
+    
+    set ::testFile ""
+    set ::serverPid ""
+}
+
+
+proc programList {name} {
+
+    set h [varmgr::open tcp://localhost]
+    varmgr::cd $h /RunState/$name
+    set enable [varmgr::var get $h enable]
+    set salone [varmgr::var get $h standalone]
+    set path   [varmgr::var get $h path]
+    set host   [varmgr::var get $h host]
+    set outring [varmgr::var get $h outring]
+    set inring  [varmgr::var get $h inring]
+    varmgr::close $h
+    
+    return [list $enable $salone $path $host $outring $inring]
+}
+
+# Very basic create/delete/instance tests
+
+tcltest::test create-delete-ok {Can delete created instancde} \
+-setup {
+    setup
+} \
+-cleanup {
+    cleanup
+} \
+-body {
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+    catch {nscldaq::statemanager -delete mgr}
+} -result 0
+
+
+tcltest::test instance-is-ensemble {Instance commands need subcommands} \
+-setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {mgr}
+} -result 1
+
+#--------------------------------------------------------
+#
+#  programParentDir command:
+
+tcltest::test pgmparent-initial {Gets the initial program parent dir} \
+-setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    mgr programParentDir
+} -result "/RunState"
+
+tcltest::test pgmparent-changed {Gets program parent dir after changed} \
+-setup {
+    setup
+    
+    set h [varmgr::open  tcp://localhost]
+    varmgr::mkdir $h /programs
+    varmgr::var set $h /RunState/ReadoutParentDir /programs
+    varmgr::close $h
+    
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    mgr programParentDir
+} -result "/programs"
+
+tcltest::test pgmparent-set {Can modify the program parent dir} \
+-setup {
+    setup
+    
+    set h [varmgr::open  tcp://localhost]
+    varmgr::mkdir $h /programs
+     varmgr::close $h
+    
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    mgr programParentDir /programs
+    mgr programParentDir
+} -result /programs
+
+tcltest::test pgmparent-toomany {Too many parameters to programParentDir errs} \
+-setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {mgr programParentDir a b}
+} -result 1
+
+# Test for invalid subcommand:
+
+tcltest::test invsubcommand {Invalid subcommand is an error} \
+-setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {mgr nosuchsubcommand}
+} -result 1
+
+#  Tests for addProgram.
+
+tcltest::test addProgram-name {addProgram needs a name} \
+-setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {mgr addProgram}
+} -result 1
+
+tcltest::test addProgram-dict {addProgram needs a dict} \
+-setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {mgr addProgram testing}
+} -result 1
+
+tcltest::test addProgram-toomany {add program has too many params} \
+-setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {mgr addProgram testing b c}
+} -result 1
+
+tcltest::test addProgram-success {Add a program fullspec.} \
+-setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    set programDef [dict create                                      \
+        enabled true standalone false path /home/fox/test host a.b.c \
+        outring test inring tcp://b.d.c/fox                         \
+    ]
+    mgr addProgram testing $programDef
+    programList testing
+} -result [list true false /home/fox/test a.b.c test tcp://b.d.c/fox]
+
+tcltest::test addProgram-defaults {Map applies default values} \
+-setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    set programDef [dict create path /home/fox/test host a.b.c ]
+    mgr addProgram testing $programDef
+    
+    programList testing
+} -result [list true false /home/fox/test a.b.c "" ""]
+
+tcltest::test addProgram-missingMandatory1 {Mandatory parameter missing} \
+-setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {mgr addProgram testing [dict create path /home/fox/test]}
+} -result 1
+
+
+tcltest::test addProgram-missingMandatory2 {Mandatory parameter missing} \
+-setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {mgr addProgram testing [dict create host a.b.c]}
+} -result 1
+
+#  getProgram
+
+tcltest::test getProgram-ok {Can get info about the 'test' program} \
+-setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    set progDict [mgr getProgram test]
+    list [dict get $progDict enabled]   \
+        [dict get $progDict standalone] \
+        [dict get $progDict path]       \
+        [dict get $progDict host]       \
+        [dict get $progDict outring]    \
+        [dict get $progDict inring]
+    
+} -result [list \
+    true false /some/test/path somehost.nscl.msu.edu \
+    output tcp://localhost/ring]
+
+tcltest::test getProgram-badprog {Invalid programname -> error} \
+-setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {mgr getProgram no-such-program}
+} -result 1
+
+tcltest::test getProgram-needsprogram {needs a program parameter} \
+-setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {mgr getProgram }
+} -result 1
+
+tcltest::test getProgram-extraparams {Error if extra params} \
+-setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {mgr getProgram test extra}
+} -result 1
+
+# modifyProgram:
+
+tcltest::test modify-enabled {Modify the enable state} \
+-setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    mgr modifyProgram test [dict create enabled false]
+    set off [dict get [mgr getProgram test] enabled]
+    
+    mgr modifyProgram test [dict create enabled true]
+    set on  [dict get [mgr getProgram test] enabled]
+    
+    list $on $off
+} -result [list true false]
+
+tcltest::test modify-standalone {Modify the standalone state} \
+-setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    mgr modifyProgram test [dict create standalone false]
+    set off [dict get [mgr getProgram test] standalone]
+    
+    mgr modifyProgram test [dict create standalone true]
+    set on  [dict get [mgr getProgram test] standalone]
+    
+    list $on $off
+} -result [list true false]
+
+tcltest::test modify-path {Modify the path variable} \
+-setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    mgr modifyProgram test [dict create path /something/new]
+    dict get [mgr getProgram test] path
+} -result /something/new
+
+
+tcltest::test modify-host {Modify the host} \
+-setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    mgr modifyProgram test [dict create host something.borrowed.old.or.new]
+    dict get [mgr getProgram test] host
+} -result something.borrowed.old.or.new
+
+
+tcltest::test modify-oring {Modify output ring} \
+-setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    mgr modifyProgram test [dict create outring some-outring]
+    dict get [mgr getProgram test] outring
+} -result some-outring
+
+tcltest::test modify-inring {modify input ring} \
+-setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    mgr modifyProgram test [dict create inring tcp://some.host/somering]
+    dict get [mgr getProgram test] inring
+} -result tcp://some.host/somering
+
+tcltest::test modify-needprogram {Need a program name} \
+-setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {mgr modifyProgram}
+} -result 1
+
+tcltest::test modify-needdict {modify program needs modify dict} \
+-setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {mgr modifyProgram test}
+} -result 1
+
+tcltest::test modify-needexistingprog {Modify program prog must exist} \
+-setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {mgr modifyProgram testing [dict create enabled true]}
+} -result 1
+
+
+# enableProgram
+
+tcltest::test enable-ok {Enable program works} \
+-setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    mgr modifyProgram test [dict create enabled false];  #first turn off.
+    mgr enableProgram test
+    dict get [mgr getProgram test] enabled
+} -result true
+
+tcltest::test enable-badprogram {Enable requires a good program} \
+-setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {mgr enableProgram nosuch}
+} -result 1
+
+tcltest::test enable-needsprogram {Enable requires a program arg} \
+-setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {mgr enableProgram}
+} -result 1
+
+
+#  Tests for disbable program
+
+tcltest::test disable-ok {Disable program works} \
+-setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    mgr disableProgram test
+    dict get [mgr getProgram test] enabled
+} -result false
+
+
+tcltest::test disable-badProgram {Program must exist} \
+-setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {mgr disableProgram junk}
+} -result 1
+
+tcltest::test disable-needProgram {program must be supplied} \
+-setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {mgr disableProgram}
+} -result 1
+
+#  isProgramEnabled test:
+
+tcltest::test isenabled-initial {It starts out enabled} \
+-setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    mgr isProgramEnabled test
+} -result 1
+
+#
+#------------------------------------------------------------------
+#
+# Magic to exit with errors if there are test failures:
+
+proc tcltest::cleanupTestHook {} {
+    variable numTests
+    set ::exitCode $numTests(Failed)
+}
+
+
+tcltest::cleanupTests
+
+
+

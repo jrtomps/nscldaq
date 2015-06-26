@@ -22,6 +22,7 @@
 #include <tcl.h>
 #include <TCLInterpreter.h>
 #include "CTCLStateClientCommand.h"
+#include "CTCLStateManagerCommand.h"
 
 const char* version = "1.0";
 const char* packageName = "stateclient";
@@ -52,7 +53,9 @@ extern "C" {
         new CTCLStateClientCommand(
             *pInterpObj, "::nscldaq::stateclient"
         );
-        
+        new CTCLStateManagerCommand(
+            *pInterpObj, "::nscldaq::statemanager"
+        );
         return TCL_OK;
     }
 }

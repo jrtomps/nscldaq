@@ -32,8 +32,11 @@ libstateclient_la_LDFALGS=$(COMMON_LOADFLAGS)
 #
 
 libTclstateclient_la_SOURCES=CTCLStateClientCommand.cpp CTCLStateClientInstanceCommand.cpp \
-	TCLStateClientPackage.cpp							\
-	CTCLStateClientCommand.h CTCLStateClientInstanceCommand.h
+	CTCLStateManagerCommand.cpp CTCLStateManagerInstanceCommand.cpp                    \
+	TCLStateClientPackage.cpp							   \
+	CTCLStateClientCommand.h CTCLStateClientInstanceCommand.h                          \
+	CTCLStateManagerCommand.h CTCLStateManagerInstanceCommand.h
+
 libTclstateclient_la_CPPFLAGS=$(COMMON_CPPFLAGS) @TCL_FLAGS@
 libTclstateclient_la_LDFLAGS= libstateclient.la $(COMMON_LOADFLAGS) @TCL_LDFLAGS@
 
@@ -291,9 +294,10 @@ stateTests_SOURCES=TestRunner.cpp Asserts.h TestStateTransitions.cpp
 stateTests_CPPFLAGS=$(COMMON_CPPFLAGS) $(CPPUNIT_CFLAGS) -DBINDIR=\"@bindir@\"
 stateTests_LDFLAGS=libstateclient.la $(COMMON_LOADFLAGS) $(CPPUNIT_LDFLAGS)
 
-EXTRA_DIST+= tclbindings.test
+EXTRA_DIST+= stateclient.test statemgr.test
 
 check-TESTS:
 	BINDIR="@bindir@" PYTHONPATH=@prefix@/pythonLibs @builddir@/unittests
 	BINDIR="@bindir@" PYTHONPATH=@prefix@/pythonLibs @builddir@/stateTests
-	DAQBIN="@bindir@" TCLLIBPATH=@prefix@/TclLibs PYTHONPATH=@prefix@/pythonLibs @TCLSH_CMD@ @srcdir@/tclbindings.test
+	DAQBIN="@bindir@" TCLLIBPATH=@prefix@/TclLibs PYTHONPATH=@prefix@/pythonLibs @TCLSH_CMD@ @srcdir@/stateclient.test
+	DAQBIN="@bindir@" TCLLIBPATH=@prefix@/TclLibs PYTHONPATH=@prefix@/pythonLibs @TCLSH_CMD@ @srcdir@/statemgr.test	
