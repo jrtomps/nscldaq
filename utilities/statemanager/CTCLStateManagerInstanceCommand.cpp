@@ -80,6 +80,38 @@ CTCLStateManagerInstanceCommand::operator()(
             disableProgram(interp, objv);
         } else if (subCommand == "isProgramEnabled") {
             isProgramEnabled(interp, objv);
+        } else if (subCommand == "setStandalone") {
+            setStandalone(interp, objv);
+        } else if (subCommand == "setNoStandalone") {
+            setNoStandalone(interp, objv);
+        } else if (subCommand == "isStandalone") {
+            isStandalone(interp, objv);
+        } else if (subCommand == "listPrograms") {
+            listPrograms(interp, objv);
+        } else if (subCommand == "listEnabledPrograms") {
+            listEnabledPrograms(interp, objv);
+        } else if (subCommand == "listStandalonePrograms") {
+            listStandalonePrograms(interp, objv);
+        } else if (subCommand == "listInactivePrograms") {
+            listInactivePrograms(interp, objv);
+        } else if (subCommand == "listActivePrograms") {
+            listActivePrograms(interp, objv);
+        } else if (subCommand == "deleteProgram") {
+            deleteProgram(interp, objv);
+        } else if (subCommand == "setGlobalState") {
+            setGlobalState(interp, objv);
+        } else if (subCommand == "getGlobalState") {
+            getGlobalState(interp, objv);
+        } else if (subCommand == "getParticipantStates") {
+            getParticipantStates(interp, objv);
+        } else if (subCommand == "title") {
+            title(interp, objv);
+        } else if (subCommand == "timeout") {
+            timeout(interp, objv);
+        } else if (subCommand == "recording"){
+            recording(interp, objv);
+        } else if (subCommand == "runNumber") {
+            runNumber(interp, objv);
         } else {
             throw std::invalid_argument("Invalid subcommand keyword");
         }
@@ -334,12 +366,340 @@ CTCLStateManagerInstanceCommand::modifyProgram(
         objv, 3, "isProgramEnabled requires exactly the program name"
     );
 
-    std::cerr << "Seting result\n";
     interp.setResult(
         m_pApi->isProgramEnabled(std::string(objv[2]).c_str()) ? "1" : "0"
     );
     
  }
+/**
+ * setStandalone
+ *    Set a program into the standalone state.
+ *
+ * @param interp - interpreter decoding the map.
+ *  @param dict   - CTCLObject& of the map.
+ */
+void
+CTCLStateManagerInstanceCommand::setStandalone(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
+{
+    requireExactly(objv, 3, "setStandalone requires exactly the program name");
+    std::string program = objv[2];
+    
+    m_pApi->setProgramStandalone(program.c_str());
+    
+}
+/**
+ * setNoStandalone
+ *    Turn off the standalone flag.
+ *  @param interp - interpreter decoding the map.
+ *  @param dict   - CTCLObject& of the map.
+ */
+void
+CTCLStateManagerInstanceCommand::setNoStandalone(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
+{
+    requireExactly(objv, 3, "setNoStandalone requires exactly the program name");
+    std::string program = objv[2];
+    
+    m_pApi->setProgramNoStandalone(program.c_str());
+}
+/**
+ * isStandalone
+ *   Set result to 1 if so 0 if not.
+ *  @param interp - interpreter decoding the map.
+ *  @param dict   - CTCLObject& of the map.
+ */
+void
+CTCLStateManagerInstanceCommand::isStandalone(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
+{
+   requireExactly(objv, 3, "isStandalone needs exactly a program name");
+   
+   std::string program = objv[2];
+   interp.setResult(m_pApi->isProgramStandalone(program.c_str()) ? "1" : "0");
+}
+/**
+ * listPrograms.
+ *    Returns a list of the defined programs.  No filtering is done.
+ * @param interp - interpreter running the command.
+ * @param objv   - vector of commnd words.
+ */
+void
+CTCLStateManagerInstanceCommand::listPrograms(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
+{
+    requireExactly(objv, 2, "listPrograms takes no additional parameters");
+    
+    std::vector<std::string> progs = m_pApi->listPrograms();
+    vectorToResult(interp, progs);
+}
+/**
+ * listEnabledPrograms
+ *    List the programs with the enable flag true.
+ * @param interp - interpreter the command is executing on.
+ * @param objv   - command words.
+ */
+void
+CTCLStateManagerInstanceCommand::listEnabledPrograms(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
+{
+    requireExactly(objv, 2, "listEnabledPrograms needs no other parameters");
+    
+    std::vector<std::string> progs = m_pApi->listEnabledPrograms();
+    vectorToResult(interp, progs);
+
+}
+/**
+ * listStanalonePrograms
+ *    List the set of programs that have their standalone flag 'true'.
+ *
+ * @param interp - Interpreter executing the command.
+ * @param objv   - Words that make up the command.
+ */
+void
+CTCLStateManagerInstanceCommand::listStandalonePrograms(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
+{
+    requireExactly(objv, 2, "listStandalonePrograms needs no other parameter");
+    
+    std::vector<std::string> progs = m_pApi->listStandalonePrograms();
+    vectorToResult(interp, progs);
+}
+/**
+ * listInactivePrograms
+ *    list programs that either are disabled or standalone.
+ *  @param interp - interpreter running the command.
+ *  @param objv   - Words that make up the command.
+ */
+void
+CTCLStateManagerInstanceCommand::listInactivePrograms(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
+{
+    requireExactly(objv, 2, "listInactivePrograms needs no other parameter");
+    
+    std::vector<std::string> progs = m_pApi->listInactivePrograms();
+    vectorToResult(interp, progs);
+}
+/**
+ * listActivePrograms
+ *    List the programs that are not inactive.
+ * @param interp - interpreter running the command.
+ * @param objv   - words that make up the command.
+ */
+void
+CTCLStateManagerInstanceCommand::listActivePrograms(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
+{
+    requireExactly(objv, 2, "listActivePrograms needs no other parameters");
+    
+    std::vector<std::string> progs = m_pApi->listActivePrograms();
+    vectorToResult(interp, progs);
+}
+
+/**
+ * deleteProgram
+ *    Delete an existing program.
+ *
+ * @param interp  - interpreter running the command.
+ * @param objv    - words that make up the command.
+ */
+void
+CTCLStateManagerInstanceCommand::deleteProgram(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
+{
+    requireExactly(objv, 3, "deleteProgram needs only a program name");
+    
+    std::string program = objv[2];
+    m_pApi->deleteProgram(program.c_str());
+}
+
+/**
+ * setGlobalState
+ *    Set the global state
+ *
+ *  @param interp - interpreter executing the command.
+ *  @param objv   - Words that make up the command.
+ */
+void
+CTCLStateManagerInstanceCommand::setGlobalState(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
+{
+    requireExactly(objv, 3, "setGlobalState requires only the next state");
+    std::string state = objv[2];
+    m_pApi->setGlobalState(state.c_str());
+}
+/**
+ * getGlobalState
+ *    Return the current value for the gflobal state.
+ *
+ * @param interp - the interpreter running the command.
+ * @param objv   - The words that make up the command.
+ */
+void
+CTCLStateManagerInstanceCommand::getGlobalState(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
+{
+    requireExactly(objv, 2, "getGlobal state requires no parameters");
+    
+    interp.setResult(m_pApi->getGlobalState());
+}
+/**
+ * getParticipantStates
+ *    Return a list of pairs.  The first element of each pair is a
+ *    participant in global state changes. The second element is the
+ *    state of that participant.
+ *
+ * @param interp - interpreter executing the command.
+ * @param objv   - command words.
+ */
+void
+CTCLStateManagerInstanceCommand::getParticipantStates(
+   CTCLInterpreter& interp, std::vector<CTCLObject>& objv 
+)
+{
+    requireExactly(objv, 2, "getParticipantStates requires no parameters");
+    
+    std::vector<std::pair<std::string, std::string> > progStates =
+        m_pApi->getParticipantStates();
+        
+    // Marshall the pairs into a list of pairs.
+    
+    CTCLObject result; result.Bind(interp);
+    for (int i = 0; i < progStates.size(); i++) {
+        CTCLObject progName;  progName.Bind(interp);
+        CTCLObject progState; progState.Bind(interp);
+        CTCLObject element;   element.Bind(interp);
+        
+        progName = progStates[i].first;
+        progState= progStates[i].second;
+        
+        element += progName;
+        element += progState;
+        result  += element;
+    }
+    
+    interp.setResult(result);
+}
+/**
+ * title
+ *   Set or get the current title.  If there's an extra parameter it is
+ *   the new title.  If not, the title is returned.
+ *
+ * @param interp - interpreter in which the command is runnig.
+ * @param objv   - Words that make up the command.
+ */
+void
+CTCLStateManagerInstanceCommand::title(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
+{
+    requireAtMost(objv, 3, "title can have at most a new title");
+    
+    if (objv.size() == 2) {
+        interp.setResult(m_pApi->title());
+    } else {
+        std::string title = objv[2];
+        m_pApi->title(title.c_str());
+    }
+}
+/**
+ * timeout
+ *    set/get the current state transition timeout.  If there's an extra
+ *    parameter it must be an integer new timeout value.
+ *
+ * @param interp - interpreter on which the command is running.
+ * @param objv   - Command words.
+ */
+void
+CTCLStateManagerInstanceCommand::timeout(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
+{
+    requireAtMost(objv, 3, "timeout can have at most a new timeout value");
+    
+    if (objv.size() == 2) {
+        CTCLObject result;
+        result.Bind(interp);
+        result = int(m_pApi->timeout());
+        
+        interp.setResult(result);
+    } else {
+        int newTimeout = objv[2];
+        m_pApi->timeout(newTimeout);
+    }
+}
+/**
+ * recording
+ *   Set/get the value of the recording flag.  If an extra parameter is
+ *   provided, it must be a legal Tcl boolean and becomes the new
+ *   value of the recording flag.
+ *
+ *  @param interp - interpreter on which the command is running.
+ *  @param objv   - command words.
+ */
+void
+CTCLStateManagerInstanceCommand::recording(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
+{
+    requireAtMost(objv, 3, "recording can have a most a new recording value");
+    
+    if (objv.size() == 2) {
+        interp.setResult(m_pApi->recording() ? "1" : "0");  // EIAS
+    } else {
+        std::string valueString = objv[2];
+        int valueInt;
+        int status = Tcl_GetBoolean(
+            interp.getInterpreter(), valueString.c_str(), &valueInt
+        );
+        
+        if (status != TCL_OK) {
+            throw std::invalid_argument("recording - invalid boolean parameter");
+        }
+        
+        m_pApi->recording(bool(valueInt));
+        
+    }
+}
+/**
+ * runNumber
+ *    get/set the run number.  If an extra integer parameter is provided,
+ *    it becomes the new run number.
+ *
+ *  @param interp  - interpreter on which the command is running.
+ *  @param objv    - Command words.
+ */
+void
+CTCLStateManagerInstanceCommand::runNumber(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
+{
+    requireAtMost(objv, 3, "runNumber takes at most a new run number parameter");
+    
+    if (objv.size() == 2) {
+        CTCLObject result;
+        result.Bind(interp);
+        result = int(m_pApi->runNumber());
+        interp.setResult(result);
+    } else {
+        int newRun = objv[2];
+        if (newRun < 0) {
+            throw std::domain_error("Run numbers must be positive");
+        }
+        m_pApi->runNumber(newRun);
+    }
+}
 /*------------------------------------------------------------------
  * utilities:
  */
@@ -381,4 +741,29 @@ CTCLStateManagerInstanceCommand::dictToMap(CTCLInterpreter& interp, CTCLObject& 
     }
     
     return result;
+}
+/**
+ * vectorToResult
+ *   Marshall a vector of strings into a TCL list that is set as an
+ *   interpreter result.
+ *
+ * @param interp - the interpreter who's result will be set.
+ * @param vec    - std::vector<std::string> to marshall.
+ */
+void
+CTCLStateManagerInstanceCommand::vectorToResult(
+    CTCLInterpreter& interp, std::vector<std::string> vec
+)
+{
+CTCLObject result;
+    result.Bind(interp);
+    for (int i =0; i < vec.size(); i++) {
+        CTCLObject item;
+        item.Bind(interp);
+        
+        item = vec[i];
+        result += item;
+    }
+    
+    interp.setResult(result);    
 }

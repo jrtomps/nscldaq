@@ -66,12 +66,40 @@ protected:
     void enableProgram(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
     void disableProgram(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
     void isProgramEnabled(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void setStandalone(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void setNoStandalone(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void isStandalone(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void listPrograms(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void listEnabledPrograms(
+        CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+    );
+    void listStandalonePrograms(
+        CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+    );
+    void listInactivePrograms(
+        CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+    );
+    void listActivePrograms(
+        CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+    );
+    void deleteProgram(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void setGlobalState(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void getGlobalState(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void getParticipantStates(
+        CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+    );
+    void title(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void timeout(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void recording(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void runNumber(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    
     
     // Utility methods.
 private:
     std::map<std::string, std::string> dictToMap(
         CTCLInterpreter& interp, CTCLObject& dict
     );
+    void vectorToResult(CTCLInterpreter& interp, std::vector<std::string> vec);
 };
 
 

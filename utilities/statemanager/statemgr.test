@@ -31,18 +31,33 @@ package require varmgr
 package require portAllocator
 package require tcltest
 
+
+# A quick note on -constraints below.  In tcltest a test with constraints is
+# only run if its constraints are true. Since the setup/teardown of most tests
+# is pretty expensive, and I want to maintain a quick development/test cycle,
+# oldTests are generally added with -constraints oldTest and run via:
+#
+#  make all install  && tclsh statemgr.test -constraintes oldTest
+#
+#  This limits the set of tests that are run to the chunks of code under
+#  development/test.  Once development is complete the associated tests
+#  have their constraint changed to oldTest.
+#
+# The Makefile, on the other hand has -constraints {oldTest oldTest}
+# so all tests get run.
+
 tcltest::test statemgr-exists {State manager command exists} \
--body {
+-constraints oldTest -body {
     info command ::nscldaq::statemanager
 } -result ::nscldaq::statemanager
 
 tcltest::test statemgr-needs-subcommand {state manager cmd by itself is error} \
--body {
+-constraints oldTest -body {
     catch nscldaq::statemanager
 } -result 1
 
 tcltest::test statemgr-noxdelete {Delete of nonexistent is error} \
--body {
+-constraints oldTest -body {
     catch {nscldaq::statemanager -delete junk}
 
 } -result 1
@@ -165,7 +180,7 @@ proc programList {name} {
 # Very basic create/delete/instance tests
 
 tcltest::test create-delete-ok {Can delete created instancde} \
--setup {
+-constraints oldTest -setup {
     setup
 } \
 -cleanup {
@@ -178,7 +193,7 @@ tcltest::test create-delete-ok {Can delete created instancde} \
 
 
 tcltest::test instance-is-ensemble {Instance commands need subcommands} \
--setup {
+-constraints oldTest -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -196,7 +211,7 @@ tcltest::test instance-is-ensemble {Instance commands need subcommands} \
 #  programParentDir command:
 
 tcltest::test pgmparent-initial {Gets the initial program parent dir} \
--setup {
+-constraints oldTest -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -210,7 +225,7 @@ tcltest::test pgmparent-initial {Gets the initial program parent dir} \
 } -result "/RunState"
 
 tcltest::test pgmparent-changed {Gets program parent dir after changed} \
--setup {
+-constraints oldTest -setup {
     setup
     
     set h [varmgr::open  tcp://localhost]
@@ -230,7 +245,7 @@ tcltest::test pgmparent-changed {Gets program parent dir after changed} \
 } -result "/programs"
 
 tcltest::test pgmparent-set {Can modify the program parent dir} \
--setup {
+-constraints oldTest -setup {
     setup
     
     set h [varmgr::open  tcp://localhost]
@@ -250,7 +265,7 @@ tcltest::test pgmparent-set {Can modify the program parent dir} \
 } -result /programs
 
 tcltest::test pgmparent-toomany {Too many parameters to programParentDir errs} \
--setup {
+-constraints oldTest -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -266,7 +281,7 @@ tcltest::test pgmparent-toomany {Too many parameters to programParentDir errs} \
 # Test for invalid subcommand:
 
 tcltest::test invsubcommand {Invalid subcommand is an error} \
--setup {
+-constraints oldTest -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -282,7 +297,7 @@ tcltest::test invsubcommand {Invalid subcommand is an error} \
 #  Tests for addProgram.
 
 tcltest::test addProgram-name {addProgram needs a name} \
--setup {
+-constraints oldTest -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -296,7 +311,7 @@ tcltest::test addProgram-name {addProgram needs a name} \
 } -result 1
 
 tcltest::test addProgram-dict {addProgram needs a dict} \
--setup {
+-constraints oldTest -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -310,7 +325,7 @@ tcltest::test addProgram-dict {addProgram needs a dict} \
 } -result 1
 
 tcltest::test addProgram-toomany {add program has too many params} \
--setup {
+-constraints oldTest -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -324,7 +339,7 @@ tcltest::test addProgram-toomany {add program has too many params} \
 } -result 1
 
 tcltest::test addProgram-success {Add a program fullspec.} \
--setup {
+-constraints oldTest -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -343,7 +358,7 @@ tcltest::test addProgram-success {Add a program fullspec.} \
 } -result [list true false /home/fox/test a.b.c test tcp://b.d.c/fox]
 
 tcltest::test addProgram-defaults {Map applies default values} \
--setup {
+-constraints oldTest -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -360,7 +375,7 @@ tcltest::test addProgram-defaults {Map applies default values} \
 } -result [list true false /home/fox/test a.b.c "" ""]
 
 tcltest::test addProgram-missingMandatory1 {Mandatory parameter missing} \
--setup {
+-constraints oldTest -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -375,7 +390,7 @@ tcltest::test addProgram-missingMandatory1 {Mandatory parameter missing} \
 
 
 tcltest::test addProgram-missingMandatory2 {Mandatory parameter missing} \
--setup {
+-constraints oldTest -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -391,7 +406,7 @@ tcltest::test addProgram-missingMandatory2 {Mandatory parameter missing} \
 #  getProgram
 
 tcltest::test getProgram-ok {Can get info about the 'test' program} \
--setup {
+-constraints oldTest -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -414,7 +429,7 @@ tcltest::test getProgram-ok {Can get info about the 'test' program} \
     output tcp://localhost/ring]
 
 tcltest::test getProgram-badprog {Invalid programname -> error} \
--setup {
+-constraints oldTest -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -428,7 +443,7 @@ tcltest::test getProgram-badprog {Invalid programname -> error} \
 } -result 1
 
 tcltest::test getProgram-needsprogram {needs a program parameter} \
--setup {
+-constraints oldTest -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -442,7 +457,7 @@ tcltest::test getProgram-needsprogram {needs a program parameter} \
 } -result 1
 
 tcltest::test getProgram-extraparams {Error if extra params} \
--setup {
+-constraints oldTest -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -458,7 +473,7 @@ tcltest::test getProgram-extraparams {Error if extra params} \
 # modifyProgram:
 
 tcltest::test modify-enabled {Modify the enable state} \
--setup {
+-constraints oldTest -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -478,7 +493,7 @@ tcltest::test modify-enabled {Modify the enable state} \
 } -result [list true false]
 
 tcltest::test modify-standalone {Modify the standalone state} \
--setup {
+-constraints oldTest -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -498,7 +513,7 @@ tcltest::test modify-standalone {Modify the standalone state} \
 } -result [list true false]
 
 tcltest::test modify-path {Modify the path variable} \
--setup {
+-constraints oldTest -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -514,7 +529,7 @@ tcltest::test modify-path {Modify the path variable} \
 
 
 tcltest::test modify-host {Modify the host} \
--setup {
+-constraints oldTest -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -530,7 +545,7 @@ tcltest::test modify-host {Modify the host} \
 
 
 tcltest::test modify-oring {Modify output ring} \
--setup {
+-constraints oldTest -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -545,7 +560,7 @@ tcltest::test modify-oring {Modify output ring} \
 } -result some-outring
 
 tcltest::test modify-inring {modify input ring} \
--setup {
+-constraints oldTest -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -560,7 +575,7 @@ tcltest::test modify-inring {modify input ring} \
 } -result tcp://some.host/somering
 
 tcltest::test modify-needprogram {Need a program name} \
--setup {
+-constraints oldTest -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -574,7 +589,7 @@ tcltest::test modify-needprogram {Need a program name} \
 } -result 1
 
 tcltest::test modify-needdict {modify program needs modify dict} \
--setup {
+-constraints oldTest -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -588,7 +603,7 @@ tcltest::test modify-needdict {modify program needs modify dict} \
 } -result 1
 
 tcltest::test modify-needexistingprog {Modify program prog must exist} \
--setup {
+-constraints oldTest -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -605,7 +620,7 @@ tcltest::test modify-needexistingprog {Modify program prog must exist} \
 # enableProgram
 
 tcltest::test enable-ok {Enable program works} \
--setup {
+-constraints oldTest -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -621,7 +636,7 @@ tcltest::test enable-ok {Enable program works} \
 } -result true
 
 tcltest::test enable-badprogram {Enable requires a good program} \
--setup {
+-constraints oldTest -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -635,7 +650,7 @@ tcltest::test enable-badprogram {Enable requires a good program} \
 } -result 1
 
 tcltest::test enable-needsprogram {Enable requires a program arg} \
--setup {
+-constraints oldTest -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -652,7 +667,7 @@ tcltest::test enable-needsprogram {Enable requires a program arg} \
 #  Tests for disbable program
 
 tcltest::test disable-ok {Disable program works} \
--setup {
+-constraints oldTest -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -668,7 +683,7 @@ tcltest::test disable-ok {Disable program works} \
 
 
 tcltest::test disable-badProgram {Program must exist} \
--setup {
+-constraints oldTest -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -682,7 +697,7 @@ tcltest::test disable-badProgram {Program must exist} \
 } -result 1
 
 tcltest::test disable-needProgram {program must be supplied} \
--setup {
+-constraints oldTest -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -698,7 +713,7 @@ tcltest::test disable-needProgram {program must be supplied} \
 #  isProgramEnabled test:
 
 tcltest::test isenabled-initial {It starts out enabled} \
--setup {
+-constraints oldTest -setup {
     setup
     ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
 } \
@@ -710,6 +725,1099 @@ tcltest::test isenabled-initial {It starts out enabled} \
 -body {
     mgr isProgramEnabled test
 } -result 1
+
+# set standalone.
+
+tcltest::test setstandalone-ok {set a program to standalone mode} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    mgr setStandalone test
+    set h [varmgr::open tcp://localhost]
+    set state [varmgr::var get $h /RunState/test/standalone]
+    varmgr::close $h
+    
+    set state
+} -result true
+
+tcltest::test setstandalone-needprogram {setStanadlone needs a program} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {mgr setStandalone}
+} -result 1
+
+tcltest::test setstandalone-needonly-program {setStandalone  too many params} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {mgr setStandalone test junk}
+} -result 1
+
+tcltest::test setstandalone-program-exists {program must exist} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {mgr setStandalone junk}
+} -result 1
+
+# setNoStandalone:
+
+tcltest::test setnostandalone-ok {setnoStandalone - does what it should} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    mgr setStandalone test;            # get it in standalone mode..
+    mgr setNoStandalone test;          # turn it back off.
+    set h [varmgr::open tcp://localhost]
+    set state [varmgr::var get $h /RunState/test/standalone]
+    varmgr::close $h
+    
+    set state
+} -result false    
+   
+tcltest::test setnostandalone-needsprogram {Must have program parameter} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {mgr setNoStandalone}
+} -result 1
+
+tcltest::test setnostandalone-extraparams {Must have only program param} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {mgr setNoStandalone test junk}
+} -result 1
+
+tcltest::test setnostandalone-exitingprogram {Must specify existing program} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {mgr setNoStandalone junk}
+} -result 1
+
+tcltest::test isStandalone-no {Program is not standalone} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    mgr isStandalone test
+} -result 0
+
+tcltest::test isStandalone-yes {Program is standalone} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    mgr setStandalone test
+    mgr isStandalone test
+} -result 1
+
+tcltest::test isStandalone-needprogram {isStandalone needs program param} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {mgr isStandalone}
+} -result 1
+
+tcltest::test isStandalone-needonlyprogram {isStandalone with extra params} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {mgr isStandalone test junk}
+} -result 1
+
+tcltest::test isStandalone-existingprogram {isStandalone program must exist} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {mgr isStandalone junk}
+} -result 1
+
+# listPrograms
+
+tcltest::test listPrograms-1 {List initial program set (test)} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    mgr listPrograms
+} -result test
+
+
+tcltest::test listPrograms-several {list programs when several} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    set h [varmgr::open tcp://localhost]
+    createProgram $h atest
+    createProgram $h btest
+    createProgram $h ztest
+    varmgr::close $h
+    
+    mgr listPrograms
+} -result [list atest btest test ztest]
+
+
+tcltest::test listPrograms-none {list programs when none present} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    set h [varmgr::open tcp://localhost]
+    varmgr::mkdir $h /programs
+    varmgr::close $h
+    
+    mgr programParentDir /programs;    #empty of programs.
+    mgr listPrograms
+} -result [list]
+    
+
+tcltest::test listPrograms-extraparam {list programs - extra parameter} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {mgr listPrograms junk}
+} -result 1
+
+# listEnabledPrograms - only those with enable == 'true'
+#
+
+tcltest::test listenabled-1 {List initial program, enabled} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    mgr listEnabledPrograms
+} -result test
+
+tcltest::test listenabled-0-from-1 {disable initial program} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    mgr disableProgram test
+    mgr listEnabledPrograms
+} -result [list]
+
+tcltest::test listenabled-many {enabled with all enabled} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+    set h [varmgr::open tcp://localhost]
+    createProgram $h atest
+    createProgram $h btest
+    createProgram $h ztest
+    varmgr::close $h
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    
+    mgr listEnabledPrograms
+} -result [list atest btest test ztest]
+
+tcltest::test listenabled-mixed {enabled with some enabled} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+    set h [varmgr::open tcp://localhost]
+    createProgram $h atest
+    createProgram $h btest
+    createProgram $h ztest
+    varmgr::close $h
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    mgr disableProgram btest
+    mgr disableProgram ztest
+    
+    mgr listEnabledPrograms
+} -result [list atest test]
+
+tcltest::test listenabled-extraparam {extra parameter} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {mgr listEnabledPrograms junk}
+} -result 1
+
+# listStandalonePrograms those with the standalone flag set.
+
+tcltest::test listStandalone-0  {Initially there are no standalone programs} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    mgr listStandalonePrograms
+} -result [list]
+
+tcltest::test listStandalone-1 {set test to standalone -list} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    mgr setStandalone test
+    mgr listStandalonePrograms
+} -result test
+
+tcltest::test listStandalone-many {Many programs all standalone} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+    set h [varmgr::open tcp://localhost]
+    createProgram $h atest
+    createProgram $h btest
+    createProgram $h ztest
+    varmgr::close $h    
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    mgr setStandalone atest
+    mgr setStandalone btest
+    mgr setStandalone test
+    mgr setStandalone ztest
+    
+    mgr listStandalonePrograms
+} -result [list atest btest test ztest]
+    
+tcltest::test listStandalone-some-from-many {Mix of standalone/non} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+    set h [varmgr::open tcp://localhost]
+    createProgram $h atest
+    createProgram $h btest
+    createProgram $h ztest
+    varmgr::close $h    
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    mgr setStandalone atest
+    mgr setStandalone test
+    
+    mgr listStandalonePrograms
+} -result [list atest test]
+
+tcltest::test listStandalone-extraparams {extra parameters} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {mgr listStandalonePrograms junk}
+} -result 1
+
+# listInactivePrograms - probrams with either enabled off or standalone on.
+
+tcltest::test listInactivePrograms-0 {nothing inactive to begin with} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    mgr listInactivePrograms
+} -result [list]
+
+tcltest::test listInactivePrograms-dis1 {Disable test} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    mgr disableProgram test
+    mgr listInactivePrograms
+} -result test
+
+tcltest::test listInactivePrograms-sa1 {standalone test} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    mgr setStandalone test
+    mgr listInactivePrograms
+} -result test
+
+tcltest::test listInactivePrograms-mixed {inactive mixed bag} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+    set h [varmgr::open tcp://localhost]
+    createProgram $h atest
+    createProgram $h btest
+    createProgram $h ztest
+    varmgr::close $h    
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    mgr disableProgram atest
+    mgr setStandalone  btest
+    
+    mgr disableProgram ztest
+    mgr setStandalone  ztest
+    
+    mgr listInactivePrograms
+} -result [list atest btest ztest]
+
+tcltest::test listInactivePrograms-extraarg {listInactive with extra parameter} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {mgr listInactivePrograms junk}
+} -result 1
+
+# listActivePrograms - those programs that are enabled and not standalone.
+
+tcltest::test listactive-1   {test initially is active} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup    
+} \
+-body {
+    mgr listActivePrograms
+} -result test
+
+tcltest::test listactive-0-disabled {test becomes inactive via disable} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    mgr disableProgram test
+    mgr listActivePrograms
+} -result [list]
+
+tcltest::test listinactive-0-standalone {test becomes inactive via standalone} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    mgr setStandalone test
+    mgr listActivePrograms
+} -result [list]
+
+tcltest::test listinactive-several {several programs some inactive for whatever} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+    set h [varmgr::open tcp://localhost]
+    createProgram $h atest
+    createProgram $h btest
+    createProgram $h ztest
+    varmgr::close $h    
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    mgr disableProgram atest
+    mgr setStandalone  btest
+    
+    mgr disableProgram ztest
+    mgr setStandalone  ztest
+    
+    mgr listActivePrograms
+} -result test
+
+tcltest::test listinactive-extraparam {Extra parameter on listInactive} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {mgr listActivePrograms junk}
+} -result 1
+
+# deleteProgram
+
+tcltest::test delete-exists {Delete an existing program} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    mgr deleteProgram test
+    
+    mgr listPrograms
+} -result [list]
+
+tcltest::test delete-nox    {Delete a program that does not exist} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {mgr deleteProgram junk}
+} -result 1
+
+tcltest::test delete-needprogram {Delete without a program fails} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {mgr deleteProgram}
+} -result 1
+
+tcltest::test delete-extraparam {delete with extra param fails} \
+-constraints oldTest -setup {
+   setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {mgr deleteProgram test junk}
+} -result 1
+
+#  setGlobalState  - can set the global state.
+
+tcltest::test setgblstate-ok {set to valid next state} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    mgr setGlobalState NotReady
+    
+    set h [varmgr::open tcp://localhost]
+    set state [varmgr::var get $h /RunState/State]
+    varmgr::close $h
+    
+    set state
+} -result NotReady
+
+tcltest::test setgblstate-badnext {Invalid next state} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {mgr setGlobalState Readying}
+} -result 1
+
+tcltest::test setgblstate-needstate {Need a state parameter} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {mgr setGlobalState}
+} -result 1
+
+tcltest::test setgblstate-extraparam {extra parameter} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+
+    catch {mgr setGlobalState NotReady junk}
+} -result 1
+
+
+# getGlobalState:
+
+tcltest::test getgblState-initial {initial value is correct} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    mgr getGlobalState
+
+} -result 0Initial
+
+
+tcltest::test getgblState-changed {Global state after change} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    mgr setGlobalState NotReady
+    mgr getGlobalState
+
+} -result NotReady
+
+
+tcltest::test getgblState-ExtraParam {extra parameter on getGlobalState} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {mgr getGlobalState junk}
+} -result 1
+
+# getParticipantStates
+
+tcltest::test getpartstates-initial {Initial participant state} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    mgr getParticipantStates
+} -result [list [list test 0Initial]]
+
+tcltest::test getpartstates-changed {Participant state changed} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+    ::nscldaq::stateclient  cl  tcp://localhost tcp://localhost test
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    ::nscldaq::stateclient  -delete cl
+    cleanup
+    
+} \
+-body {
+    cl setstate NotReady
+    
+    mgr getParticipantStates
+} -result [list [list test NotReady]]
+
+tcltest::test getpartstate-several {more than one participant state} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+    ::nscldaq::stateclient  test  tcp://localhost tcp://localhost test
+    
+    set h [varmgr::open tcp://localhost]
+    createProgram $h atest
+    varmgr::close $h
+    
+    ::nscldaq::stateclient atest tcp://localhost tcp://localhost atest
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    ::nscldaq::stateclient  -delete test
+    ::nscldaq::stateclient  -delete atest
+    cleanup
+    
+} \
+-body {
+    test setstate NotReady
+    
+    mgr getParticipantStates
+} -result [list [list atest 0Initial] [list test NotReady]]
+
+tcltest::test getpartstates-extraparam {Extra parameter provided} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {mgr getParticipantState junk}
+} -result 1
+
+
+# title getting/setting
+
+tcltest::test title-initial {Initial value of Title} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    mgr title
+} -result {}
+
+tcltest::test title-change-get {Set a new title and get it back} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    mgr title {This is a new title}
+    mgr title
+} -result {This is a new title}
+
+tcltest::test title-extra-param {Extra parameters} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {mgr title {this is a new title} junk}
+} -result 1
+
+# timeout - get/set the run state transition timeout.
+
+tcltest::test timeout-get-initial {Get initial timeout value} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    mgr timeout
+} -result 60
+
+tcltest::test timeout-set-get {Modify timeout and get it back} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    mgr timeout 35
+    mgr timeout
+} -result 35
+
+tcltest::test timeout-extra-param {Too many params is a fail} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {mgr timeout 12 junk}
+} -result 1
+
+tcltest::test timeout-mbint {timeout must be an integer} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {mgr timeout george}
+} -result 1
+
+# set/get recording status.
+
+tcltest::test recording-initial {Get initial recording status} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    mgr recording
+} -result 0
+
+tcltest::test recording-set-get {Change the state and get it} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    mgr recording on
+    mgr recording
+} -result 1
+
+tcltest::test recording-set-off-ok {Boolean keywords for off are ok} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    mgr recording on
+    mgr recording off
+    mgr recording
+} -result 0
+
+tcltest::test recording-extra-params {Extra parameters to recording} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {recording on junk}
+} -result 1
+
+# runNumber - set/get new run number.
+
+tcltest::test runnumber-initial {Get the initial run number} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    mgr runNumber
+} -result 0
+
+tcltest::test runnumber-setget {Change/get run number.} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    mgr runNumber 1234
+    mgr runNumber
+} -result 1234
+
+tcltest::test runnumber-mbint {Run number must be an integer} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {mgr runNumber abcd}
+} -result 1
+
+tcltest::test runnumber-extraparam {runNumber cannot have extra params} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {mgr runNumber 1234 junk}
+} -result 1
+
 
 #
 #------------------------------------------------------------------
