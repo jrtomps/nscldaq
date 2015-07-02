@@ -53,6 +53,7 @@ public:
 
 public:
     int operator()(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    bool isViable(const CTCLStateClientInstanceCommand* pObject);
 
 private:
     void deleteEnsemble(std::string name);

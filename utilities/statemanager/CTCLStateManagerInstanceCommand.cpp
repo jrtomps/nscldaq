@@ -112,6 +112,16 @@ CTCLStateManagerInstanceCommand::operator()(
             recording(interp, objv);
         } else if (subCommand == "runNumber") {
             runNumber(interp, objv);
+        } else if (subCommand == "waitTransition") {
+            waitTransition(interp, objv);
+        } else if (subCommand == "processMessages") {
+            processMessages(interp, objv);
+        } else if (subCommand == "isActive"){
+            isActive(interp, objv);
+        } else if (subCommand == "setProgramState") {
+            setProgramState(interp, objv);
+        } else if (subCommand == "getProgramState") {
+            getProgramState(interp, objv);
         } else {
             throw std::invalid_argument("Invalid subcommand keyword");
         }
@@ -134,6 +144,26 @@ CTCLStateManagerInstanceCommand::operator()(
     }
 
     return TCL_OK;
+}
+/**
+ * setProgramState
+ *    Set the state of an individual program  This is normally used if
+ *    the program is standalone or if the program has died and its state machine
+ *    needs to be set to a known condition.
+ *
+ * @param interp - interpreter executing the command.
+ * @param objv   - Command words.
+ */
+void
+CTCLStateManagerInstanceCommand::setProgramState(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
+{
+    requireExactly(objv, 4, "setProgramState needs program name and new state");
+    std::string name(objv[2]);
+    std::string state(objv[3]);
+    
+    m_pApi->setProgramState(name.c_str(), state.c_str());
 }
 
 /*-----------------------------------------------------------------------
@@ -700,6 +730,106 @@ CTCLStateManagerInstanceCommand::runNumber(
         m_pApi->runNumber(newRun);
     }
 }
+/**
+ * waitTransition
+ *   Wait for a transition to either complete or to time out.
+ *   If there is an additional parameter, it is a callback script that
+ *   is given program names and their state transitions.  Note that this
+ *   method is not waiting in the Tcl event loop so  you may need to
+ *   either spin this off into a thread or have your callback invoke
+ *   update idletasks.
+ *
+ * @param interp - Interpreter in which the command is being run.
+ * @param objv   - The words that make up the command.
+ */
+void
+CTCLStateManagerInstanceCommand::waitTransition(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
+{
+    requireAtMost(objv, 3, "waitTransition takes at most a callback script");
+    
+    try {
+        CStateManager::TransitionCallback cb(0);
+        void*                              cd(0);
+        CallbackInfo                       cinfo;
+        if(objv.size() == 3) {
+            cb = dispatchTransitionScript;
+            cd = &cinfo;
+            cinfo.s_pInterp = &interp;
+            cinfo.s_scriptBase = std::string(objv[2]);
+        }
+        m_pApi->waitTransition(cb, cd);
+        interp.setResult("1");
+    } catch(...) {
+        interp.setResult("0");
+    }
+}
+/**
+ * processMessages
+ *    Empty the message queue, potentially invoking a script callback
+ *    for each message in the queue.
+ *
+ * @param interp - interpreter running the command.
+ * @param objv   - Words that make up the command.
+ */
+void
+CTCLStateManagerInstanceCommand::processMessages(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
+{
+    requireAtMost(objv, 3, "processMessages at most takes a call back script");
+    
+    CStateManager::BacklogCallback  cb(0);
+    void*                           cd(0);
+    CallbackInfo                     info;
+    
+    if (objv.size() == 3) {
+        cb = &dispatchMessageScript;
+        cd = &info;
+        info.s_pInterp    = &interp;
+        info.s_scriptBase = std::string(objv[2]);
+    }
+    
+    m_pApi->processMessages(cb, cd);
+    
+    
+}
+
+/**
+ * isActive
+ *    Sets the result to a true value(1) if the specified program is
+ *    active and a false value (0) if not.
+ * @param interp - interpreter running the command.
+ * @param objv   - Words that make up the command.
+ */
+void
+CTCLStateManagerInstanceCommand::isActive(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
+{
+    requireExactly(objv, 3, "isActive requires (only) a program name");
+    std::string programName(objv[2]);
+    interp.setResult(m_pApi->isActive(programName.c_str()) ? "1" : "0");
+}
+
+/**
+ * getProgramState
+ *    Set the interpreter result with the state of a program.
+ *
+ *  @param interp - interpreter running the command
+ *  @param objv   - command words that make up the command.
+ */
+void
+CTCLStateManagerInstanceCommand::getProgramState(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
+{
+    requireExactly(objv, 3, "getProgramState requires exactly the program name");
+    
+    std::string name(objv[2]);
+    interp.setResult(m_pApi->getProgramState(name.c_str()));
+}
 /*------------------------------------------------------------------
  * utilities:
  */
@@ -767,3 +897,107 @@ CTCLObject result;
     
     interp.setResult(result);    
 }
+/**
+ * DictPutString
+ *   Puts a string key/value pair into a dict.
+ * @param pInt  - interpreter doing the processing.
+ * @param pDict - Target dict.
+ * @param key   - Key to put.
+ * @param value - Value to associate with the key.
+ */
+void
+CTCLStateManagerInstanceCommand::DictPutString(
+    Tcl_Interp* pInt, Tcl_Obj* pDict, std::string key, std::string value
+)
+{
+    Tcl_Obj* pKey   = Tcl_NewStringObj(key.c_str(), -1);
+    Tcl_Obj* pValue = Tcl_NewStringObj(value.c_str(), -1);
+    
+    Tcl_DictObjPut(pInt, pDict, pKey, pValue);
+}
+/** 
+*   dispatchTransitionScript
+*     Dispatches the state transtion callback script from waitTransition.
+*
+*     @param manager - state manager object pointer.
+*     @param program  - Name of program making transition.
+*     @param state    - New state that program is in.
+*     @param cd       - Actually  a pCallbackInfo struct.
+*
+* @note this is static.
+*/
+void
+CTCLStateManagerInstanceCommand::dispatchTransitionScript(
+    CStateManager& manager, std::string program, std::string state,
+    void* cd
+)
+{
+    pCallbackInfo pInfo = static_cast<pCallbackInfo>(cd);
+    
+    // Construct the command:
+    
+    std::string command = pInfo->s_scriptBase;
+    command += " {";
+    command += program;
+    command += "} {";
+    command += state;
+    command += "}";
+    
+    pInfo->s_pInterp->GlobalEval(command);
+}
+
+/**
+ * dispatchMessageCallback
+ *   Called from processMessages to dispatch to the callback script set up
+ *   by the user.
+ *
+ *  @param mgr - State manager object.
+ *  @param msg - Notification message.
+ *  @param cd  - Pointer to what is actually a CallbackInfo struct.
+ *  
+ */
+void
+CTCLStateManagerInstanceCommand::dispatchMessageScript(
+    CStateManager& mgr, CStateTransitionMonitor::Notification msg,
+    void* cd
+)
+{
+    pCallbackInfo pInfo = static_cast<pCallbackInfo>(cd);
+    CTCLInterpreter& Interp(*(pInfo->s_pInterp));
+    Tcl_Interp*      pInt = Interp.getInterpreter();
+    
+    // Create the parameter dict from the message.
+    
+    Tcl_Obj* pDict = Tcl_NewDictObj();
+    
+    switch (msg.s_type) {
+    case CStateTransitionMonitor::GlobalStateChange:
+        
+        DictPutString(pInt, pDict, "type", "GlobalStateChange");
+        DictPutString(pInt, pDict, "state", msg.s_state);
+        break;
+    case CStateTransitionMonitor::ProgramStateChange:
+        DictPutString(pInt, pDict, "type", "ProgramStateChange");
+        DictPutString(pInt, pDict, "state", msg.s_state);
+        DictPutString(pInt, pDict, "program", msg.s_program);
+        break;
+    case CStateTransitionMonitor::ProgramJoins:
+        DictPutString(pInt, pDict, "type", "ProgramJoins");
+        DictPutString(pInt, pDict, "program", msg.s_program);
+        break;
+    case CStateTransitionMonitor::ProgramLeaves:
+        DictPutString(pInt, pDict, "type", "ProgramLeaves");
+        DictPutString(pInt, pDict, "program", msg.s_program);
+        break;
+    default:
+        throw std::runtime_error("Unrecognized message type in processMessages callback");
+    }
+    
+    std::string command = pInfo->s_scriptBase;
+    command += " {";
+    command += Tcl_GetString(pDict);
+    command += "}";
+    
+    Interp.GlobalEval(command);
+}
+

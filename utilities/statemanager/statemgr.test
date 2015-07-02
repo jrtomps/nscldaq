@@ -30,6 +30,7 @@ package require stateclient
 package require varmgr
 package require portAllocator
 package require tcltest
+package require Thread
 
 
 # A quick note on -constraints below.  In tcltest a test with constraints is
@@ -1818,6 +1819,441 @@ tcltest::test runnumber-extraparam {runNumber cannot have extra params} \
     catch {mgr runNumber 1234 junk}
 } -result 1
 
+
+# waitTransition - first we need some procs/threads to make this all work.
+
+#  This proc can be popped off as a thread to perform program state
+#  transitions.
+#  It's parameter is the sequence of state transitions it should perform
+#  once it is triggered by a global state transition.
+#  It is intended that this proc be spun  off as a thread.
+
+proc programSequencer {mutex condvar transitions} {
+    package require stateclient
+    package require portAllocator
+
+    # This proc is called on the state change:
+    # @param client - client handle.
+    # @param mystates - State transitions to perform.
+    # @param newState - New global state.
+    proc handleStateChange {client mystates newState} {
+        foreach state $mystates {
+            $client setstate $state
+        }
+        incr ::done
+    }
+    # Create a client, set up the handle state proc and
+    # vwait to get into the event loop:
+    
+    set ::done 0;     # Vwait var.
+    ::nscldaq::stateclient client tcp://localhost tcp://localhost test
+    
+    client onStateChange [list handleStateChange client $transitions]
+    thread::mutex lock $mutex
+    thread::cond  notify $condvar
+    thread::mutex unlock $mutex
+    vwait ::done
+    ::nscldaq::stateclient -delete client
+    thread::release;     # Allow exit.
+
+}
+
+set mutexId [thread::mutex create]
+set condId  [thread::cond create]
+
+#  Load a proc into a thread:
+#  @param tid - thread id.
+#  @param procName - Name of the proc.
+#
+proc pushProc {tid procName} {
+    set argList [info args $procName]
+    set body    [info body $procName]
+    
+    set proc [list proc $procName $argList $body]
+    
+    
+    set status [thread::send $tid $proc msg]
+    if {$status} {
+        error "Failed to send $procName to $tid: $msg"
+    }
+    
+    
+}
+
+# Set up the sequencer thread.
+
+proc seqSetup {transitions} {
+    set tid [thread::create -joinable]
+    pushProc $tid programSequencer
+    
+    # Synchronized thread start:
+    
+    thread::mutex lock $::mutexId
+    thread::send -async $tid [list programSequencer $::mutexId $::condId $transitions]
+    thread::cond wait $::condId $::mutexId
+    thread::mutex unlock $::mutexId
+    
+    return $tid
+}
+
+# record changes
+
+set stateChangeRecord [list]
+
+proc recordChange {program newstate} {
+    lappend ::stateChangeRecord [list $program $newstate]
+}
+
+
+tcltest::test  waitTransition-ok-nocallback {Wait for transitions without cb} \
+-constraints oldTest -setup {
+    setup
+    set ::stateChangeRecord [list]
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+    set tid [seqSetup NotReady]
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    after 1;         # seem to need to yield to let the thread exit?!?
+    thread::join $tid
+
+    
+} \
+-body {
+    mgr setGlobalState NotReady
+    mgr waitTransition
+} -result 1
+
+tcltest::test waitTransition-ok-callback {Wait for transitions with cb} \
+-constraints oldTest -setup {
+    setup
+    set ::stateChangeRecord [list]
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+    set tid [seqSetup NotReady]
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    after 1;         # seem to need to yield to let the thread exit?!?
+    thread::join $tid
+
+    
+} \
+-body {
+    mgr setGlobalState NotReady
+    set status [mgr waitTransition recordChange]
+    list $status $::stateChangeRecord
+} -result [list 1 [list [list test NotReady]]]
+
+
+tcltest::test waitTransition-timeout {Wait for transitions that timeout} \
+-constraints oldTest -setup {
+    setup
+    set ::stateChangeRecord [list]
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+
+    
+} \
+-body {
+    mgr timeout 1
+    mgr setGlobalState NotReady
+    mgr waitTransition
+} -result 0
+
+tcltest::test waitTransition-extra-param {Extra parameter fails} \
+-constraints oldTest -setup {
+    setup
+    set ::stateChangeRecord [list]
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+
+    
+} \
+-body {
+    catch {mgr waitTransition a b}
+} -result 1
+
+# processMessages
+
+set messages [list]
+proc processCallback info {
+    lappend ::messages $info
+}
+
+tcltest::test processMessages-0  {No messages to process.} \
+-constraints oldTest -setup {
+    setup
+    set ::messages [list]
+    set ::stateChangeRecord [list]
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+} \
+-body {
+    mgr processMessages processCallback
+    llength $::messages
+} -result 0
+
+
+tcltest::test processMessages-1 {One message to process} \
+-constraints oldTest -setup {
+    setup
+    set ::messages [list]
+    set ::stateChangeRecord [list]
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+    set tid [seqSetup NotReady]
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+
+    
+} \
+-body {
+    mgr setGlobalState NotReady
+
+    # Wait for local state changtes.
+    
+    after 1;         # seem to need to yield to let the thread exit?!?
+    thread::join $tid
+    
+    mgr processMessages processCallback
+    
+    set ::messages
+} -result [list \
+           [dict create type GlobalStateChange state NotReady] \
+           [dict create type ProgramStateChange state NotReady program test] \
+        ]
+
+tcltest::test processMessages-extraparams {extra parameters are errors} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    
+} \
+-body {
+    catch {mgr processMessages processCallback junk}
+} -result 1
+
+#  isActive
+
+tcltest::test isActive-yes {test initially is active} \
+-constraints oldTest -setup {
+    setup
+    set ::stateChangeRecord [list]
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+} \
+-body {
+    mgr isActive test
+} -result 1
+
+tcltest::test isActive-notenabled {test is disabled -> inactive} \
+-constraints oldTest -setup {
+    setup
+    set ::stateChangeRecord [list]
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+} -body {
+    mgr disableProgram test
+    mgr isActive test
+} -result 0
+
+tcltest::test isActive-standalone {test is standalone ->inactive} \
+-constraints oldTest -setup {
+    setup
+    set ::stateChangeRecord [list]
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+} -body {
+    mgr setStandalone test
+    mgr isActive test
+} -result 0
+
+tcltest::test isActive-needs-program {need a program name} \
+-constraints oldTest -setup {
+    setup
+    set ::stateChangeRecord [list]
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+} -body {
+    catch {mgr isActive}
+} -result 1
+
+tcltest::test isActive-extraParams {extra param is an error} \
+-constraints oldTest -setup {
+    setup
+    set ::stateChangeRecord [list]
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+} -body {
+    catch {mgr isActive test junk}
+} -result 1
+
+tcltest::test isActive-mustexist {program must exist} \
+-constraints oldTest -setup {
+    setup
+    set ::stateChangeRecord [list]
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+} -body {
+    catch {mgr isActive junk}
+} -result 1
+
+#  setProgramState
+
+tcltest::test setProgState-ok {Set a program state} \
+-constraints oldTest -setup {
+    setup
+    set ::stateChangeRecord [list]
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+    set h [varmgr::open tcp://localhost]
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+    varmgr::close $h
+    
+} -body {
+    mgr setProgramState test NotReady
+  
+    varmgr::var get $h /RunState/test/State  
+}  -result NotReady
+
+tcltest::test setProgState-badState {Invalid state transition fails} \
+-constraints oldTest -setup {
+    setup
+    set ::stateChangeRecord [list]
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+} -body {
+    catch {mgr setProgramState test Readying}
+} -result 1
+
+tcltest::test setProgState-badProgram {program must exist}  \
+-constraints oldTest -setup {
+    setup
+    set ::stateChangeRecord [list]
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+} -body {
+    catch {mgr setProgramState junk NotReady}
+} -result 1
+
+tcltest::test setProgState-need-all-params {All params must be provided} \
+-constraints oldTest -setup {
+    setup
+    set ::stateChangeRecord [list]
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+} -body {
+    catch {mgr setProgramState test}
+} -result 1
+
+tcltest::test setProgState-extra-params {Must not have extra parameters} \
+-constraints oldTest -setup {
+    setup
+    set ::stateChangeRecord [list]
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+} -body {
+    catch {mgr setProgramState test NotReady junk}
+} -result 1
+
+#  getProgramState
+
+tcltest::test getProgState-initial {Get initial program state} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+} -body {
+    mgr getProgramState test
+} -result 0Initial
+
+tcltest::test getProgState-changed {Get program state after change} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+} -body {
+    mgr setProgramState test NotReady
+    mgr getProgramState test
+} -result NotReady
+
+tcltest::test getProgState-need-progname {get program state needs program name} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+} -body {
+    catch {mgr getProgramState}
+} -result 1
+
+tcltest::test getProgState-extraparams {Extra parameters are bad} \
+-constraints oldTest -setup {
+    setup
+    ::nscldaq::statemanager mgr tcp://localhost tcp://localhost
+} \
+-cleanup {
+    ::nscldaq::statemanager -delete mgr
+    cleanup
+} -body {
+    catch {mgr getProgramState test junk}
+} -result 1
 
 #
 #------------------------------------------------------------------

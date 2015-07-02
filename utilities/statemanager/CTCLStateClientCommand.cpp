@@ -136,6 +136,32 @@ CTCLStateClientCommand::operator()(
     return TCL_OK;
 }
 /**
+ * isViable - used by the instance message handler to ensure that the
+ *            object to which the message has been posted still exists.
+ *  @param pObject - Pointer to the object to check.
+ *  @return bool - true if the object has not yet been deleted.
+ *  
+ *  @note I know, this perfroms O(n) however, tyipcally n is small and
+ *        events get posted at macroscopic time scales, so this should not
+ *        really be an issue.
+ */
+bool
+CTCLStateClientCommand::isViable(const CTCLStateClientInstanceCommand* pObject)
+{
+    std::map<std::string, CTCLStateClientInstanceCommand*>::iterator p =
+        m_createdCommands.begin();
+    while(p != m_createdCommands.end()) {
+        if (p->second == pObject) return true;    // found.
+        p++;
+    }
+    return false;            // not found
+}
+/*--------------------------------------------------------------------------
+ *
+ * utilities.
+ */
+
+/**
  * deleteEnsemble
  *    Removes a command ensemble:
  *    - Look up the command ensemble in m_createdCommands
@@ -184,7 +210,8 @@ CTCLStateClientCommand::createEnsemble(
         
         CTCLStateClientInstanceCommand* pNewCommand =
             new CTCLStateClientInstanceCommand(
-                interp, name, reqUri, subUri, programName
+                interp, name, reqUri, subUri, programName,
+                this
             );
             
         m_createdCommands[name] = pNewCommand;

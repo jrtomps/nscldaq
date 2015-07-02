@@ -29,6 +29,7 @@
 class CTCLInterpreter;
 class CTCLObject;
 class CStateClientApi;
+class CTCLStateClientCommand;
 
 
 /**
@@ -48,6 +49,7 @@ private:
     typedef struct _Event {
         Tcl_Event                 s_event;
         char*                     s_newState;
+        CTCLStateClientCommand*         s_pRegistry;
         CTCLStateClientInstanceCommand* s_pObject;
     } Event, *pEvent;
     
@@ -68,7 +70,8 @@ private:
 public:
     CTCLStateClientInstanceCommand(
         CTCLInterpreter& interp, std::string name, std::string reqUri,
-        std::string subUri, std::string programName
+        std::string subUri, std::string programName,
+        CTCLStateClientCommand* pCreator
     );
     virtual ~CTCLStateClientInstanceCommand();
     
@@ -101,6 +104,7 @@ private:
     class MessagePump :  public CSynchronizedThread
     {
     private:
+        CTCLStateClientCommand* m_pRegistry;
         CStateClientApi*    m_pClient;
         Tcl_ThreadId        m_parent;
         bool                m_exit;
@@ -108,8 +112,9 @@ private:
     public:
         MessagePump(
             CStateClientApi* pClient, Tcl_ThreadId parent,
-            CTCLStateClientInstanceCommand* outerObject
-            );
+            CTCLStateClientInstanceCommand* outerObject,
+            CTCLStateClientCommand*         pRegistry
+        );
 
     public:
         void init();

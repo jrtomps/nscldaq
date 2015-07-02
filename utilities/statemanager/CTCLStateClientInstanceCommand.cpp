@@ -22,6 +22,7 @@
 
 
 #include "CTCLStateClientInstanceCommand.h"
+#include "CTCLStateClientCommand.h"
 #include "TCLInterpreter.h"
 #include "TCLObject.h"
 #include "CStateClientApi.h"
@@ -37,12 +38,14 @@
  * @param requri  - URI for the request port to the variable database server.
  * @param suburi  - URI for the subscription port to the variable database server.
  * @param programName - Name of the program we are attached to.
+ * @param pRegistry - The creator of instances.
  * 
  */
 CTCLStateClientInstanceCommand::CTCLStateClientInstanceCommand(
     CTCLInterpreter& interp, std::string name,
     std::string requri, std::string suburi,
-    std::string programName
+    std::string programName,
+    CTCLStateClientCommand* pRegistry
 ) :
     CTCLObjectProcessor(interp, name.c_str(), true),
     m_pClient(0),
@@ -51,7 +54,9 @@ CTCLStateClientInstanceCommand::CTCLStateClientInstanceCommand(
     m_pClient = new CStateClientApi(
         requri.c_str(), suburi.c_str(), programName.c_str()
     );
-    m_pPumpThread = new MessagePump(m_pClient, Tcl_GetCurrentThread(), this);
+    m_pPumpThread = new MessagePump(
+        m_pClient, Tcl_GetCurrentThread(), this, pRegistry
+    );
     m_pPumpThread->start();
     
     
@@ -310,22 +315,28 @@ int
 CTCLStateClientInstanceCommand::stateChangeHandler(Tcl_Event* pEvent, int flags)
 {
     pUEvent pE = reinterpret_cast<pUEvent>(pEvent);
-    std::string newState(pE->u_fullEvent.s_newState);
-    CTCLStateClientInstanceCommand* pObject = pE->u_fullEvent.s_pObject;
+
+    /* If the object no longer exists we need to get out of here real damned quick */
+    
+    if (pE->u_fullEvent.s_pRegistry->isViable(pE->u_fullEvent.s_pObject)) {
+    
+        std::string newState(pE->u_fullEvent.s_newState);
+        CTCLStateClientInstanceCommand* pObject = pE->u_fullEvent.s_pObject;
+        
+        // If there is a handler, construct the script:
+        
+        std::string script = pObject->m_stateChangeScript;
+        if  (script != "") {
+            script += " ";
+            script += newState;
+            CTCLInterpreter* pInterp = pObject->getInterpreter();
+            pInterp->GlobalEval(script);
+        }
+    }
     
     // Free storage before I forget:
     
     Tcl_Free(pE->u_fullEvent.s_newState);
-    
-    // If there is a handler, construct the script:
-    
-    std::string script = pObject->m_stateChangeScript;
-    if  (script != "") {
-        script += " ";
-        script += newState;
-        CTCLInterpreter* pInterp = pObject->getInterpreter();
-        pInterp->GlobalEval(script);
-    }
     
     return 1;
 }
@@ -341,8 +352,9 @@ CTCLStateClientInstanceCommand::stateChangeHandler(Tcl_Event* pEvent, int flags)
  */
 CTCLStateClientInstanceCommand::MessagePump::MessagePump(
     CStateClientApi* pClient, Tcl_ThreadId parent,
-    CTCLStateClientInstanceCommand* outerObject
-) : m_pClient(pClient), m_parent(parent), m_exit(false),
+    CTCLStateClientInstanceCommand* outerObject,
+    CTCLStateClientCommand* pRegistry
+) : m_pRegistry(pRegistry), m_pClient(pClient), m_parent(parent), m_exit(false),
     m_pOuterObject(outerObject)
 {}
 
@@ -366,14 +378,6 @@ CTCLStateClientInstanceCommand::MessagePump::scheduleExit()
  *   Main loop, process messages and schedule events
  *   until m_exit is true:
  *
- *   TODO:  There is a timing hole here that at some point should be remedied:
- *          If in the time between the check for the empty proc string and
- *          queueing the event, the outer class is destroyed, the event is
- *          queued to a destroyed object which most likely results in a segfault.
- *          What the stateChangeHandler method should do is check the
- *          object it gets against a registry of existing objects (such as
- *          the one maintained by CTCStateClientCommand), and only dispatch for
- *          existing clients.
  */
 void
 CTCLStateClientInstanceCommand::MessagePump::operator()()
@@ -389,8 +393,10 @@ CTCLStateClientInstanceCommand::MessagePump::operator()()
             pUEvent pEvent = reinterpret_cast<pUEvent>(Tcl_Alloc(sizeof(UEvent)));
             
             pEvent->u_fullEvent.s_pObject = m_pOuterObject;
+            pEvent->u_fullEvent.s_pRegistry = m_pRegistry;
             pEvent->u_fullEvent.s_newState = Tcl_Alloc(newState.size() +1);
             strcpy(pEvent->u_fullEvent.s_newState, newState.c_str());
+            
             
             pEvent->u_baseEvent.proc =
                 CTCLStateClientInstanceCommand::stateChangeHandler;

@@ -22,6 +22,7 @@
 #ifndef CSTATEMANAGERINSTANCECOMMAND_H
 #define CSTATEMANAGERINSTANCECOMMAND_H
 #include <TCLObjectProcessor.h>
+#include <CStateTransitionMonitor.h>
 
 
 class CTCLInterpreter;
@@ -43,6 +44,11 @@ class CStateManager;
  */
 class CTCLStateManagerInstanceCommand : public CTCLObjectProcessor
 {
+private:
+    typedef struct _CallbackInfo {
+        CTCLInterpreter*   s_pInterp;
+        std::string        s_scriptBase;
+    } CallbackInfo, *pCallbackInfo;
 private:
     CStateManager* m_pApi;
     
@@ -92,7 +98,11 @@ protected:
     void timeout(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
     void recording(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
     void runNumber(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
-    
+    void waitTransition(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void processMessages(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void isActive(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void setProgramState(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void getProgramState(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
     
     // Utility methods.
 private:
@@ -100,6 +110,17 @@ private:
         CTCLInterpreter& interp, CTCLObject& dict
     );
     void vectorToResult(CTCLInterpreter& interp, std::vector<std::string> vec);
+    static void DictPutString(
+        Tcl_Interp* pInterp, Tcl_Obj* pDict, std::string key, std::string value
+    );
+    static void dispatchTransitionScript(
+        CStateManager& manager, std::string program, std::string state,
+        void* cd
+    );
+    static void dispatchMessageScript(
+        CStateManager& mgr, CStateTransitionMonitor::Notification msg,
+        void* cd
+    );
 };
 
 
