@@ -1,7 +1,7 @@
 #
 # Primary targets are the APIS used by clients and managers:
 
-lib_LTLIBRARIES = libstateclient.la libTclstateclient.la
+lib_LTLIBRARIES = libstateclient.la libTclstateclient.la libPyStateClient.la
 
 PREPROCESSOR=cpp
 
@@ -27,7 +27,7 @@ COMMON_LOADFLAGS= @top_builddir@/utilities/varmanager/server/libvarmgr.la \
 
 libstateclient_la_SOURCES=CStateClientApi.cpp CStateTransitionMonitor.cpp CStateManager.cpp
 libstateclient_la_CPPFLAGS=$(COMMON_CPPFLAGS)
-libstateclient_la_LDFALGS=$(COMMON_LOADFLAGS)
+libstateclient_la_LDFLAGS=$(COMMON_LOADFLAGS)
 
 #
 
@@ -41,9 +41,20 @@ libTclstateclient_la_CPPFLAGS=$(COMMON_CPPFLAGS) @TCL_FLAGS@
 libTclstateclient_la_LDFLAGS= libstateclient.la $(COMMON_LOADFLAGS) @TCL_LDFLAGS@
 
 
+# 
+
+libPyStateClient_la_SOURCES= PyStateClient.cpp
+libPyStateClient_la_CPPFLAGS=@PYTHON_CPPFLAGS@ $(COMMON_CPPFLAGS)
+libPyStateClient_la_LIBADD = libstateclient.la
+libPyStateClient_la_LDFLAGS= @PYTHON_LDFLAGS@ $(COMMON_LOADFLAGS) 
+
+
+
 # Headers for public APIS:
 
 include_HEADERS = CStateClientApi.h CStateTransitionMonitor.h CStateManager.h
+
+
 
 #
 #  Programs that depend on these libraries that provide command line control over
@@ -276,6 +287,10 @@ install-exec-local:
 	$(LN_S)         @libdir@/libTclstateclient.so @prefix@/TclLibs/stateclient/libTclstateclient.so
 	echo pkg_mkIndex @prefix@/TclLibs/stateclient "*.so" | @TCLSH_CMD@
 
+install-exec-hook:
+	$(mkinstalldirs) @prefix@/pythonLibs/nscldaq/vardb
+	$(INSTALL_PROGRAM) @libdir@/libPyStateClient.so  @prefix@/pythonLibs/nscldaq/vardb/stateclient.so
+
 #---------------------------------------------------------------------------------
 # tests:
 #
@@ -294,10 +309,11 @@ stateTests_SOURCES=TestRunner.cpp Asserts.h TestStateTransitions.cpp
 stateTests_CPPFLAGS=$(COMMON_CPPFLAGS) $(CPPUNIT_CFLAGS) -DBINDIR=\"@bindir@\"
 stateTests_LDFLAGS=libstateclient.la $(COMMON_LOADFLAGS) $(CPPUNIT_LDFLAGS)
 
-EXTRA_DIST+= stateclient.test statemgr.test
+EXTRA_DIST+= stateclient.test statemgr.test  StateClientTests.py testBase.py
 
 check-TESTS:
 	BINDIR="@bindir@" PYTHONPATH=@prefix@/pythonLibs @builddir@/unittests
 	BINDIR="@bindir@" PYTHONPATH=@prefix@/pythonLibs @builddir@/stateTests
 	DAQBIN="@bindir@" TCLLIBPATH=@prefix@/TclLibs PYTHONPATH=@prefix@/pythonLibs @TCLSH_CMD@ @srcdir@/stateclient.test
 	DAQBIN="@bindir@" TCLLIBPATH=@prefix@/TclLibs PYTHONPATH=@prefix@/pythonLibs @TCLSH_CMD@ @srcdir@/statemgr.test	-constraints {oldTest newtest}
+	DAQBIN="@bindir@" TCLLIBPATH=@prefix@/TclLibs PYTHONPATH=@prefix@/pythonLibs @PYTHON@ StateClientTests.py
