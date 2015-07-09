@@ -1,7 +1,7 @@
 #
 # Primary targets are the APIS used by clients and managers:
 
-lib_LTLIBRARIES = libstateclient.la libTclstateclient.la libPyStateClient.la
+lib_LTLIBRARIES = libstateclient.la libTclstateclient.la libPyStateClient.la libPyStateManager.la
 
 PREPROCESSOR=cpp
 
@@ -43,11 +43,16 @@ libTclstateclient_la_LDFLAGS= libstateclient.la $(COMMON_LOADFLAGS) @TCL_LDFLAGS
 
 # 
 
-libPyStateClient_la_SOURCES= PyStateClient.cpp
+libPyStateClient_la_SOURCES= PyStateClient.cpp 
 libPyStateClient_la_CPPFLAGS=@PYTHON_CPPFLAGS@ $(COMMON_CPPFLAGS)
 libPyStateClient_la_LIBADD = libstateclient.la
 libPyStateClient_la_LDFLAGS= @PYTHON_LDFLAGS@ $(COMMON_LOADFLAGS) 
 
+
+libPyStateManager_la_SOURCES= PyStateManager.cpp
+libPyStateManager_la_CPPFLAGS=@PYTHON_CPPFLAGS@ $(COMMON_CPPFLAGS)
+libPyStateManager_la_LIBADD = libstateclient.la
+libPyStateManager_la_LDFLAGS= @PYTHON_LDFLAGS@ $(COMMON_LOADFLAGS) 
 
 
 # Headers for public APIS:
@@ -290,6 +295,7 @@ install-exec-local:
 install-exec-hook:
 	$(mkinstalldirs) @prefix@/pythonLibs/nscldaq/vardb
 	$(INSTALL_PROGRAM) @libdir@/libPyStateClient.so  @prefix@/pythonLibs/nscldaq/vardb/stateclient.so
+	$(INSTALL_PROGRAM) @libdir@/libPyStateManager.so  @prefix@/pythonLibs/nscldaq/vardb/statemanager.so
 
 #---------------------------------------------------------------------------------
 # tests:
@@ -309,7 +315,7 @@ stateTests_SOURCES=TestRunner.cpp Asserts.h TestStateTransitions.cpp
 stateTests_CPPFLAGS=$(COMMON_CPPFLAGS) $(CPPUNIT_CFLAGS) -DBINDIR=\"@bindir@\"
 stateTests_LDFLAGS=libstateclient.la $(COMMON_LOADFLAGS) $(CPPUNIT_LDFLAGS)
 
-EXTRA_DIST+= stateclient.test statemgr.test  StateClientTests.py testBase.py
+EXTRA_DIST+= stateclient.test statemgr.test  StateClientTests.py testBase.py StateManagerTests.py
 
 check-TESTS:
 	BINDIR="@bindir@" PYTHONPATH=@prefix@/pythonLibs @builddir@/unittests
@@ -317,3 +323,4 @@ check-TESTS:
 	DAQBIN="@bindir@" TCLLIBPATH=@prefix@/TclLibs PYTHONPATH=@prefix@/pythonLibs @TCLSH_CMD@ @srcdir@/stateclient.test
 	DAQBIN="@bindir@" TCLLIBPATH=@prefix@/TclLibs PYTHONPATH=@prefix@/pythonLibs @TCLSH_CMD@ @srcdir@/statemgr.test	-constraints {oldTest newtest}
 	DAQBIN="@bindir@" TCLLIBPATH=@prefix@/TclLibs PYTHONPATH=@prefix@/pythonLibs @PYTHON@ StateClientTests.py
+	DAQBIN="@bindir@" TCLLIBPATH=@prefix@/TclLibs PYTHONPATH=@prefix@/pythonLibs @PYTHON@ StateManagerTests.py
