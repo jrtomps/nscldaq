@@ -146,7 +146,6 @@ install-exec-hook:
 	$(INSTALL_PROGRAM) @libdir@/libvardbtcl.* @prefix@/TclLibs/vardb
 	echo  pkg_mkIndex -verbose  @prefix@/TclLibs/vardb "*.so"| @TCLSH_CMD@
 	$(mkinstalldirs) @prefix@/pythonLibs/nscldaq/vardb
-	rm -f @prefix@/pythonLibs/nscldaq/vardb/*
 	$(INSTALL_PROGRAM) @libdir@/libvardbpy.so       @prefix@/pythonLibs/nscldaq/vardb/vardbmodule.so
 	$(INSTALL_PROGRAM) @libdir@/libvardirtreepy.so  @prefix@/pythonLibs/nscldaq/vardb/dirtree.so
 	$(INSTALL_PROGRAM) @libdir@/libvariablepy.so    @prefix@/pythonLibs/nscldaq/vardb/variable.so

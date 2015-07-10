@@ -27,7 +27,7 @@
 #include <vector>
 #include <CEnumeration.h>
 
-PyObject* exception;
+static PyObject* exception;
 
 
 /*--------------------------------------------------------------------------

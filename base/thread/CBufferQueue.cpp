@@ -204,9 +204,11 @@ CBufferQueue<T>::wait(int timeout)
     gettimeofday(&now, NULL);        // now.
     
     // Express the timeout as a timeval
-    
+
+
+
     dt.tv_sec   = timeout / 1000;   // Seconds;
-    dt.tv_usec  = timeout % (1000); // Left over usec.
+    dt.tv_usec  = 1000*(timeout % (1000)); // Left over usec.
     timeradd(&now, &dt, &timeoutTime);   // abs time of timeout -> timeoutTime
     
     // Convert timeval -> timespec:

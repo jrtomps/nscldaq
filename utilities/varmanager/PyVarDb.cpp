@@ -28,7 +28,7 @@
 
 /** Module specific exception */
 
-PyObject* exception;
+static PyObject* exception;
 
 /*-----------------------------------------------------------------------------
  *  Module level methods (commands).

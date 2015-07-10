@@ -120,6 +120,28 @@ incref(PyObject* obj)
 }
 
 /**
+ * stringVecToList
+ *    Turn an std::vector<std::string> into a Python list obj,
+ *    increment its reference and return it.
+ *
+ * @param vec - the string vector
+ * @return PyObject* list with incremented refcount.
+ */
+static PyObject*
+stringVecToList(const std::vector<std::string>& vec)
+{
+    PyObject* result = PyList_New(vec.size());
+    
+
+    
+    for (int i = 0; i < vec.size(); i++) {
+        PyList_SetItem(result, i, PyString_FromString(vec[i].c_str()));
+    }
+    
+    return incref(result);    
+}
+
+/**
  * marshallDefinitionDict
  *   Marshalls a program definition dict into a ProgramDefinition struct.
  *
@@ -608,6 +630,203 @@ isProgramStandalone(PyObject* self, PyObject* args)
 
 }
 
+/**
+* listPrograms
+*     List the programs known to the system.
+*
+* @param self - Pointer to the object whose method this is.
+* @param args - Pointer to the python argument list (tuple) : empty
+* @return PyObject* - list sorted by program name containing the names of
+*                      the programs
+*/
+static PyObject*
+listPrograms(PyObject* self, PyObject* args)
+{
+    if (PyTuple_Size(args) > 0) {
+        return raise("listPrograms  does not have any parameters");
+    }
+    
+    CStateManager* pApi = getApi(self);
+    std::vector<std::string> programs;
+    try {
+        programs = pApi->listPrograms();
+    }
+    catch (std::exception& e) {
+        return raise(e.what());
+    }
+
+    return stringVecToList(programs);
+
+}
+
+/**
+* listEnabledPrograms
+*     List all programs with the enable flag set
+*
+* @param self - Pointer to the object whose method this is.
+* @param args - Pointer to the python argument list (tuple).
+* @return PyObject* - [description]
+*/
+static PyObject*
+listEnabledPrograms(PyObject* self, PyObject* args)
+{
+    if (PyTuple_Size(args) > 0) {
+        return raise("listPrograms  does not have any parameters");
+    }
+    
+    CStateManager* pApi = getApi(self);
+    std::vector<std::string> programs;
+    try {
+        programs = pApi->listEnabledPrograms();
+    }
+    catch (std::exception& e) {
+        return raise(e.what());
+    }
+
+    return stringVecToList(programs);
+}
+
+/**
+* listStandalonePrograms
+*     Lists programs that are set standalone
+*
+* @param self - Pointer to the object whose method this is.
+* @param args - Pointer to the python argument list (tuple) : empty
+* @return PyObject* - List of standalone programs
+*/
+static PyObject*
+listStandalonePrograms(PyObject* self, PyObject* args)
+{
+    if (PyTuple_Size(args) > 0) {
+        return raise("listPrograms  does not have any parameters");
+    }
+    
+    CStateManager* pApi = getApi(self);
+    std::vector<std::string> programs;
+    try {
+        programs = pApi->listStandalonePrograms();
+    }
+    catch (std::exception& e) {
+        return raise(e.what());
+    }
+
+    return stringVecToList(programs);
+
+}
+
+/**
+* listInactivePrograms
+*     List programs that don't participate in global state transitions.
+*     These are those that are either disabled or standalone.
+*
+* @param self - Pointer to the object whose method this is.
+* @param args - Pointer to the python argument list (tuple) : empty
+* @return PyObject* - list of inactive programs.
+*/
+static PyObject*
+listInactivePrograms(PyObject* self, PyObject* args)
+{
+    if (PyTuple_Size(args) > 0) {
+        return raise("listPrograms  does not have any parameters");
+    }
+    
+    CStateManager* pApi = getApi(self);
+    std::vector<std::string> programs;
+    try {
+        programs = pApi->listInactivePrograms();
+    }
+    catch (std::exception& e) {
+        return raise(e.what());
+    }
+
+    return stringVecToList(programs);
+
+}
+/**
+* listActivePrograms
+*     Return list of programs that are active.
+*
+* @param self - Pointer to the object whose method this is.
+* @param args - Pointer to the python argument list (tuple):Empty
+* @return PyObject* - List of active programs.
+*/
+static PyObject*
+listActivePrograms(PyObject* self, PyObject* args)
+{
+    if (PyTuple_Size(args) > 0) {
+        return raise("listPrograms  does not have any parameters");
+    }
+    
+    CStateManager* pApi = getApi(self);
+    std::vector<std::string> programs;
+    try {
+        programs = pApi->listActivePrograms();
+    }
+    catch (std::exception& e) {
+        return raise(e.what());
+    }
+
+    return stringVecToList(programs);
+}
+
+/**
+* deleteProgram
+*     Remove a program definition.
+*
+* @param self - Pointer to the object whose method this is.
+* @param args - Pointer to the python argument list (tuple) : program name.
+* @return PyObject* - Py_None
+*/
+static PyObject*
+deleteProgram(PyObject* self, PyObject* args)
+{
+    char* programName;
+    
+    if (!PyArg_ParseTuple(args, "s", &programName)) {
+        return raise("deleteProgram needs a program name (only)");
+    }
+    
+    CStateManager* pApi = getApi(self);
+    
+    try {
+        pApi->deleteProgram(programName);
+    }
+    catch (std::exception& e) {
+        return raise(e.what());
+    }
+    
+    Py_RETURN_NONE;
+}
+
+/**
+* setGlobalState
+*     Force a state transition.
+*
+* @param self - Pointer to the object whose method this is.
+* @param args - Pointer to the python argument list (tuple) : New state.
+* @return PyObject* - Py_None
+*/
+static PyObject*
+setGlobalState(PyObject* self, PyObject* args)
+{
+    char* newState;
+    
+    if (!PyArg_ParseTuple(args, "s", &newState)) {
+        return raise("setGlobalState requires a new state (only).");
+    }
+    
+    CStateManager* pApi = getApi(self);
+    
+    try {
+        pApi->setGlobalState(newState);
+    }
+    catch(std::exception& e) {
+        return raise(e.what());
+    }
+    
+    Py_RETURN_NONE;
+}
+
 /* Api definitions:  */
 
 static PyMethodDef ApiObjectMethods[] = {
@@ -629,6 +848,17 @@ static PyMethodDef ApiObjectMethods[] = {
         "Clear program standalone flag"},
     {"isProgramStandalone", isProgramStandalone, METH_VARARGS,
         "Check program standalone flag"},
+    {"listPrograms", listPrograms, METH_VARARGS, "List defined programs"},
+    {"listEnabledPrograms", listEnabledPrograms, METH_VARARGS,
+         "List the programs that are enabled"},
+    {"listStandalonePrograms", listStandalonePrograms, METH_VARARGS,
+         "List programs with the standalone flag set"},
+    {"listInactivePrograms", listInactivePrograms, METH_VARARGS,
+         "List programs that are either standalone or disabled"},
+    {"listActivePrograms", listActivePrograms, METH_VARARGS,
+         "List programs that are enabled and not standalone"},
+    {"deleteProgram", deleteProgram, METH_VARARGS, "delete a program"},
+    {"setGlobalState", setGlobalState, METH_VARARGS, "Start a global state transition"},
     {NULL, NULL, 0, NULL}                /* End of method definition marker */       
 };
 
