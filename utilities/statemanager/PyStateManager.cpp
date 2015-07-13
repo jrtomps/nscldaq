@@ -32,6 +32,13 @@
 
 static PyObject* error;
 
+/* data types:  */
+
+typedef struct {
+    PyObject*   s_stateManager;
+    PyObject*   s_callback;
+    PyObject*   s_calldata;
+} CallbackInfo, *pCallbackInfo;
 
 /*
  * Api Object storage:
@@ -138,7 +145,7 @@ stringVecToList(const std::vector<std::string>& vec)
         PyList_SetItem(result, i, PyString_FromString(vec[i].c_str()));
     }
     
-    return incref(result);    
+    return result;    
 }
 
 /**
@@ -182,6 +189,126 @@ marshallDefinitionDict(PyObject* programDef)
     }
     return p;
 }
+
+/**
+ * relayTransitionCallbacks
+ *    Callback for waitTransitions which relays to a Python
+ *    callable:
+ *
+ * @param mgr  - CStateManager* pointer ignored.
+ * @param program - name of the program that transitioned.
+ * @param state   - New state of that program.
+ * @param cd      - Actually a pCallbackInfo with additional
+ *                  information about the callback.
+ * @note if the CalllbackInfo struct has Py_None for a s_callback
+ *       no callback is actually performed.
+ */
+static void
+relayTransitionCallbacks(
+    CStateManager& mgr, std::string program, std::string state, void* cd
+)
+{
+    pCallbackInfo pInfo = static_cast<pCallbackInfo>(cd);
+    if (pInfo->s_callback != Py_None) {
+        // Marshall the callable's parameters into a tuple:
+        
+        PyObject* args = PyTuple_Pack(
+            4, pInfo->s_stateManager, PyString_FromString(program.c_str()),
+            PyString_FromString(state.c_str()), pInfo->s_calldata
+        );
+        
+        PyObject_CallObject(pInfo->s_callback, args);
+        
+    }
+}
+
+/**
+ * relayNotificationCallbacks
+ *    Relay the notification callbacks from processMessages
+ *    The callable is given the parameters:
+ *    - api          - Api object reference.
+ *    - notification - dict-ized version of the notification message. this has
+ *                     the following keys:
+ *                    - type - Type string.
+ *                    - state - if appropriate the new state.
+ *                    - program - if appropriate the program name.
+ *                    
+ *    - cd           - The callback data object.
+ *    
+ * @param mgr          - Reference to the underlying state manager.
+ * @param notification - Notification contains information about the event.
+ * @param cd           - Callback data which is actually a pCallbackInfo.
+ */
+static void
+relayNotificationCallbacks(
+    CStateManager& mgr, CStateTransitionMonitor::Notification notification,
+    void* cd
+)
+{
+    pCallbackInfo pInfo = static_cast<pCallbackInfo>(cd);
+    
+    /* Marshall the notification msg into a dict. */
+    
+    PyObject* notDict = PyDict_New();
+    
+    // What we put depends on the message type:
+    
+    switch (notification.s_type) {
+        case CStateTransitionMonitor::GlobalStateChange:
+            PyDict_SetItemString(
+                notDict, "type", PyString_FromString("GlobalStateChange")
+            );
+            PyDict_SetItemString(
+                notDict, "state",
+                PyString_FromString(notification.s_state.c_str())
+            );
+            break;
+        case CStateTransitionMonitor::ProgramStateChange:
+            PyDict_SetItemString(
+                notDict, "type", PyString_FromString("ProgramStateChange")
+            );
+            PyDict_SetItemString(
+                notDict, "program",
+                PyString_FromString(notification.s_program.c_str())
+            );
+            PyDict_SetItemString(
+                notDict, "state",
+                PyString_FromString(notification.s_state.c_str())
+            );
+            break;
+        case CStateTransitionMonitor::ProgramJoins:
+            PyDict_SetItemString(
+                notDict, "type", PyString_FromString("ProgramJoins")
+            );
+            PyDict_SetItemString(
+                notDict, "program",
+                PyString_FromString(notification.s_program.c_str())
+            );
+            break;
+        case CStateTransitionMonitor::ProgramLeaves:
+            PyDict_SetItemString(
+                notDict, "type", PyString_FromString("ProgramLeaves")
+            );
+            PyDict_SetItemString(
+                notDict, "program",
+                PyString_FromString(notification.s_program.c_str())
+            );
+            break;
+        default:
+            /* TODO:  Figure out what to do here?  */
+            break;
+    }
+    /* Build the parameter list for the callback: */
+    
+    PyObject* args = PyTuple_Pack(
+        3, pInfo->s_stateManager, notDict, pInfo->s_calldata
+    );
+    
+    /* Call the callback */
+    
+    PyObject_CallObject(pInfo->s_callback, args);
+}
+
 /**
  * Api_new
  *    Allocate storage for a new Api object.
@@ -282,7 +409,7 @@ getProgramParentDir(PyObject* self, PyObject* args)
     }
     
     PyObject* result = PyString_FromString(dir.c_str());
-    return incref(result);
+    return result;
 
 }
 /**
@@ -411,7 +538,7 @@ getProgramDefinition(PyObject* self, PyObject* args)
         result, "inring", PyString_FromString(def.s_inRing.c_str())
     );
     
-    return incref(result);
+    return result;
 }
 
 /**
@@ -827,6 +954,422 @@ setGlobalState(PyObject* self, PyObject* args)
     Py_RETURN_NONE;
 }
 
+/**
+* getGlobalState
+*     Return the current global state variable.
+*
+* @param self - Pointer to the object whose method this is.
+* @param args - Pointer to the python argument list (tuple) (empty)
+* @return PyObject* - PyString - current global state.
+*/
+static PyObject*
+getGlobalState(PyObject* self, PyObject* args)
+{
+    if (PyTuple_Size(args) > 0) {
+        return raise("getGlobalState does not require argumetns");
+    }
+    
+    CStateManager* pApi = getApi(self);
+    std::string result;
+    try {
+        result = pApi->getGlobalState();
+    }
+    catch (std::exception& e) {
+        return raise(e.what());
+    }
+    
+    return PyString_FromString(result.c_str());
+}
+
+/**
+* getParticipantStates
+*     Return a map of programs and their states.
+*
+* @param self - Pointer to the object whose method this is.
+* @param args - Pointer to the python argument list (tuple) (empty)
+* @return PyObject* - PyDict keys are the names of programs, values are their
+*                   states.
+*/
+static PyObject*
+getParticipantStates(PyObject* self, PyObject* args)
+{
+    if (PyTuple_Size(args) > 0) {
+        return raise("getGlobalState does not require argumetns");
+    }
+    
+    CStateManager* pApi = getApi(self);
+    std::vector<std::pair<std::string, std::string> > states;
+    try  {
+        states = pApi->getParticipantStates();
+    }
+    catch (std::exception& e) {
+        return raise(e.what());
+    }
+    
+    // Marshall the resulting vector into a dict:
+    
+    PyObject* result = PyDict_New();
+    for (int i =0; i < states.size(); i++) {
+        PyDict_SetItemString(
+            result, states[i].first.c_str(),
+            PyString_FromString(states[i].second.c_str())
+        );
+    }
+    return result;
+}
+
+/**
+* getTitle
+*     Return the current title string.
+*
+* @param self - Pointer to the object whose method this is.
+* @param args - Pointer to the python argument list (tuple) (empty)
+* @return PyObject* - PyString - current title string.
+*/
+static PyObject*
+getTitle(PyObject* self, PyObject* args)
+{
+    if (PyTuple_Size(args) > 0) {
+        return raise("getGlobalState does not require argumetns");
+    }
+    
+    CStateManager* pApi = getApi(self);
+    std::string title;
+    try {
+        title = pApi->title();
+    }
+    catch (std::exception& e) {
+        return raise(e.what());
+    }
+    
+    return PyString_FromString(title.c_str());
+}
+
+/**
+* setTitle
+*     Set the current title.
+*
+* @param self - Pointer to the object whose method this is.
+* @param args - Pointer to the python argument list (tuple) - title string
+* @return PyObject* - PyNone
+*/
+static PyObject*
+setTitle(PyObject* self, PyObject* args)
+{
+    char* title;
+    if(!PyArg_ParseTuple(args, "s", &title)) {
+        return raise("setTitle needs a title string parameter (only)");
+    }
+    
+    CStateManager* pApi = getApi(self);
+    
+    try {
+        pApi->title(title);
+    }
+    catch (std::exception& e) {
+        return raise(e.what());
+    }
+    
+    Py_RETURN_NONE;
+}
+
+/**
+* getTimeout
+*     Return the current timeout value.
+*
+* @param self - Pointer to the object whose method this is.
+* @param args - Pointer to the python argument list (tuple) (empty)
+* @return PyObject* - PyLong - containing the timeout.
+*/
+static PyObject*
+getTimeout(PyObject* self, PyObject* args)
+{
+    if(PyTuple_Size(args) > 0) {
+        return raise("getTimeout requires no parameters");
+    }
+    
+    CStateManager* pApi = getApi(self);
+    unsigned timeout;
+    
+    try {
+        timeout = pApi->timeout();
+    }
+    catch (std::exception& e) {
+        return raise(e.what());
+    }
+    
+    return PyLong_FromUnsignedLong(timeout);
+}
+
+/**
+* setTimeout
+*     Set the state transition timeout value.
+*
+* @param self - Pointer to the object whose method this is.
+* @param args - Pointer to the python argument list (tuple) (unsigned).
+* @return PyObject* - Py_None
+*/
+static PyObject*
+setTimeout(PyObject* self, PyObject* args)
+{
+    int timeout;
+    if (!PyArg_ParseTuple(args, "i", &timeout)) {
+        return raise("setTimeout needs a timeout parameter");
+    }
+    if (timeout <= 0) {
+        return raise("Timeout value must be at least one second");
+    }
+    
+    CStateManager* pApi = getApi(self);
+    try {
+        pApi->timeout(timeout);
+    }
+    catch (std::exception& e) {
+        return raise(e.what());
+    }
+    
+    Py_RETURN_NONE;
+}
+
+/**
+* isRecording
+*     Return recording state.
+*
+* @param self - Pointer to the object whose method this is.
+* @param args - Pointer to the python argument list (tuple) (empty)
+* @return PyObject* - Py_True if recording or Py_False if not.
+*/
+static PyObject*
+isRecording(PyObject* self, PyObject* args)
+{
+    if(PyTuple_Size(args) > 0) {
+        return raise("isRecording takes no parameters");
+    }
+    
+    CStateManager* pApi = getApi(self);
+    bool recording;
+    try {
+        recording = pApi->recording();
+    }
+    catch(std::exception& e) {
+        return raise(e.what());
+    }
+    
+    if (recording) {
+        Py_RETURN_TRUE;
+    } else {
+        Py_RETURN_FALSE;
+    }
+}
+
+/**
+* setRecording
+*     Set the recording state.
+*
+* @param self - Pointer to the object whose method this is.
+* @param args - Pointer to the python argument list (tuple) (PyBool)
+* @return PyObject* - PyNone.
+*/
+static PyObject*
+setRecording(PyObject* self, PyObject* args)
+{
+    PyObject* newState;
+    
+    if (!PyArg_ParseTuple(args, "O", &newState)) {
+        return raise("setRecording needs a new state value");
+    }
+    if (!PyBool_Check(newState)) {
+        return raise("setRecording new state must be a boolean");
+    }
+    
+    CStateManager* pApi = getApi(self);
+    bool state = (newState == Py_True) ? true : false;
+    
+    try {
+        pApi->recording(state);
+    }
+    catch (std::exception& e) {
+        return raise(e.what());
+    }
+    
+    Py_RETURN_NONE;
+}
+
+/**
+* getRunNumber
+*     Return the current run number.
+*
+* @param self - Pointer to the object whose method this is.
+* @param args - Pointer to the python argument list (tuple). (empty)
+* @return PyObject* - PyLong
+*/
+static PyObject*
+getRunNumber(PyObject* self, PyObject* args)
+{
+    if (PyTuple_Size(args) > 0) {
+        return raise("getRunNumber needs no parameters");
+    }
+    
+    CStateManager* pApi = getApi(self);
+    unsigned       runNum;
+    
+    try {
+        runNum = pApi->runNumber();
+    }
+    catch (std::exception & e) {
+        return raise(e.what());
+    }
+    
+    return PyLong_FromUnsignedLong(runNum);
+}
+/**
+* setRunNumber
+*     Change the run number
+*
+* @param self - Pointer to the object whose method this is.
+* @param args - Pointer to the python argument list (tuple) (unsigned).
+* @return PyObject* - PyNone
+*/
+static PyObject*
+setRunNumber(PyObject* self, PyObject* args)
+{
+    int newRun;
+    if (!PyArg_ParseTuple(args, "i", &newRun)) {
+        return raise("setRunNumber needs a run number parameter (only)");
+    }
+    if (newRun < 0) {
+        return raise("Run Numbers must be positive");
+    }
+    CStateManager* pApi = getApi(self);
+    
+    try {
+        pApi->runNumber(newRun);
+    }
+    catch (std::exception &e) {
+        return raise(e.what());
+    }
+    
+    Py_RETURN_NONE;
+    
+}
+
+/**
+* waitTransition
+*     Wait for a state transition to complete or timeout.
+*
+* @param self - Pointer to the object whose method this is.
+* @param args - Pointer to the python argument list (tuple).
+*               This can be 0,1, or two parameters as follows:
+*               - If provided the first parameter is a callback
+*                 for each program state transition that is detected
+*                 it is passed:
+*                 > This object (self)
+*                 > The name of the program transitioning.
+*                 > The new state of the program.
+*                 > Any client data (see below).
+*               - If provided, the second parameter is passed
+*                 without interpretation.  If not provided,
+*                 Py_None is passed.
+* @note if parameter 1 is missing, no callbacks will be invoked.
+* 
+* @return PyObject* - PyBool - Py_True on completed transition or
+*                              Py_False if failed transition.
+*/
+static PyObject*
+waitTransition(PyObject* self, PyObject* args)
+{
+    CallbackInfo info = {
+        self, Py_None, Py_None
+    };
+    // Fill in the supplied bits of the info struct:
+    
+    PyObject* item;
+    if (PyTuple_Size(args) > 2) {
+        return raise("waitTransition takes at most two parameters");
+    }
+    if (item = PyTuple_GetItem(args, 0)) {
+        if (!PyCallable_Check(item)) {    /* Must be a callable: */
+            return raise("waitTransition - first parameter must be callable");
+        }
+        info.s_callback = item;
+    }
+    if (item = PyTuple_GetItem(args, 1)) {
+        info.s_calldata = item;
+    }
+    PyErr_Clear();       /* Clear any get_item index errors. */
+    
+    CStateManager* pApi = getApi(self);
+    bool success;
+    try {
+        pApi->waitTransition(
+            relayTransitionCallbacks, reinterpret_cast<void*>(&info)
+        ); 
+        success = true;
+    }
+    catch (std::runtime_error& e) {
+        success = false;
+    }
+    
+    if (success) {
+        Py_RETURN_TRUE;
+    } else {
+        Py_RETURN_FALSE;
+    }
+    
+}
+
+/**
+* processMessages
+*     Process messages published by the varmgr server that have
+*     been cooked via a StateTransitionMonitor.
+*
+* @param self - Pointer to the object whose method this is.
+* @param args - Pointer to the python argument list (tuple)
+*              - Callable that is invoked for each message.
+*              - Optional data to be passed to the callable.
+*                If not suppled, Py_None is passed in its stead.
+*                
+* @return PyObject* - Py_None
+*/
+static PyObject*
+processMessages(PyObject* self, PyObject* args)
+{
+    CallbackInfo info = {self, Py_None, Py_None};
+    PyObject* item;
+    
+    /* there must be at least one parameter: */
+    
+    if (PyTuple_Size(args) == 0) {
+        return raise("processMessages needs at least a callable");
+    }
+    
+    /* Marshall the callback struct:  */
+    
+    info.s_callback = PyTuple_GetItem(args, 0);
+    if (!PyCallable_Check(info.s_callback)) {
+        return raise("processMessages first parameter must be a callable");
+    }
+    
+    if(item = PyTuple_GetItem(args, 1)) {
+        info.s_calldata = item;
+    }
+    PyErr_Clear();
+    if(PyTuple_Size(args) > 2) {
+        return raise("processMessages takes at most two parameters");
+    }
+    
+    CStateManager* pApi = getApi(self);
+    try {
+        pApi->processMessages(relayNotificationCallbacks, &info);
+    }
+    catch(std::exception& e) {
+        return raise(e.what());
+    }
+    
+    Py_RETURN_NONE;
+    
+}
+
 /* Api definitions:  */
 
 static PyMethodDef ApiObjectMethods[] = {
@@ -859,6 +1402,21 @@ static PyMethodDef ApiObjectMethods[] = {
          "List programs that are enabled and not standalone"},
     {"deleteProgram", deleteProgram, METH_VARARGS, "delete a program"},
     {"setGlobalState", setGlobalState, METH_VARARGS, "Start a global state transition"},
+    {"getGlobalState", getGlobalState, METH_VARARGS, "Get The global state"},
+    {"getParticipantStates", getParticipantStates, METH_VARARGS,
+        "Get the states of participants"},
+    {"getTitle", getTitle, METH_VARARGS, "Get the current title"},
+    {"setTitle", setTitle, METH_VARARGS, "Set the title"},
+    {"getTimeout", getTimeout, METH_VARARGS,
+        "Get the state transition timeout value"},
+    {"setTimeout", setTimeout, METH_VARARGS,
+        "Set the state transition timeout value"},
+    {"isRecording", isRecording, METH_VARARGS, "Return recording state"},
+    {"setRecording", setRecording, METH_VARARGS, "Set recording states"},
+    {"getRunNumber", getRunNumber, METH_VARARGS, "Get current run number"},
+    {"setRunNumber", setRunNumber, METH_VARARGS, "Set new run number"},
+    {"waitTransition", waitTransition, METH_VARARGS, "Wait for state transitions"},
+    {"processMessages", processMessages, METH_VARARGS, "Process messages"},
     {NULL, NULL, 0, NULL}                /* End of method definition marker */       
 };
 
