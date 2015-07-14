@@ -1086,6 +1086,82 @@ class ProcessMessageTests(StateManagerTests):
         with self.assertRaises(nscldaq.vardb.statemanager.error) :
             api.processMessages(self.Callback, 1, 2)
     
+
+class ProgramStates(StateManagerTests):
+    def test_isactive_ok(self):
+        api = nscldaq.vardb.statemanager.Api(
+                'tcp://localhost', 'tcp://localhost'
+        )
+        self.assertTrue(api.isActive('test'))
+        
+        api.disableProgram('test')
+        self.assertFalse(api.isActive('test'))
+        
+    def test_isactive_nosuch(self):
+        api = nscldaq.vardb.statemanager.Api(
+                'tcp://localhost', 'tcp://localhost'
+        )
+        with self.assertRaises(nscldaq.vardb.statemanager.error) :
+            api.isActive('no-such-program')
+            
+    def test_isactive_argcheck(self):
+        api = nscldaq.vardb.statemanager.Api(
+                'tcp://localhost', 'tcp://localhost'
+        )
+        with self.assertRaises(nscldaq.vardb.statemanager.error) :
+            api.isActive()           # Need program.
+        with self.assertRaises(nscldaq.vardb.statemanager.error) :
+            api.isActive('test', 'junk') # Extra param.
+
+    def test_setprogstate_ok(self):
+        api = nscldaq.vardb.statemanager.Api(
+                'tcp://localhost', 'tcp://localhost'
+        )
+        api.setProgramState('test', 'NotReady')
+        self.assertEquals(
+            {'test' : 'NotReady'}, api.getParticipantStates()
+        )
+    def test_setprogstate_nosuch(self):
+        api = nscldaq.vardb.statemanager.Api(
+                'tcp://localhost', 'tcp://localhost'
+        )
+        with self.assertRaises(nscldaq.vardb.statemanager.error) :
+            api.setProgramState('nosuch', 'NotReady')
+        
+    def test_setprogstate_badstate(self):
+        api = nscldaq.vardb.statemanager.Api(
+                'tcp://localhost', 'tcp://localhost'
+        )
+        with self.assertRaises(nscldaq.vardb.statemanager.error) :
+            api.setProgramState('test', 'Ready')
+            
+    def test_setprogstate_argcheck(self):
+        api = nscldaq.vardb.statemanager.Api(
+                'tcp://localhost', 'tcp://localhost'
+        )
+        with self.assertRaises(nscldaq.vardb.statemanager.error) :
+            api.setProgramState('test')  # Too few args.
+        with self.assertRaises(nscldaq.vardb.statemanager.error) :
+            api.setProgramState('test', 'NotReady', 0) #Too many
+    
+    def test_getprogstate_ok(self):
+        api = nscldaq.vardb.statemanager.Api(
+                'tcp://localhost', 'tcp://localhost'
+        )
+        self.assertEqual('0Initial', api.getProgramState('test'))
+        api.setProgramState('test', 'NotReady')
+        self.assertEqual('NotReady', api.getProgramState('test'))
+        
+    def test_getprogstate_argcheck(self):
+        api = nscldaq.vardb.statemanager.Api(
+                'tcp://localhost', 'tcp://localhost'
+        )
+        with self.assertRaises(nscldaq.vardb.statemanager.error) :
+            api.getProgramState()    # Need program.
+        with self.assertRaises(nscldaq.vardb.statemanager.error) :
+            api.getProgramState('test', 0) # Extra param.
+    
+    
 # Run the tests if this is main:
 
 

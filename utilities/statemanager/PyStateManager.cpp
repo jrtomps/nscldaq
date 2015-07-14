@@ -1370,6 +1370,95 @@ processMessages(PyObject* self, PyObject* args)
     
 }
 
+/**
+* isActive
+*     Check that a program is ative.
+*
+* @param self - Pointer to the object whose method this is.
+* @param args - Pointer to the python argument list (tuple) : program name..
+* @return PyObject* - PyBoolean Py_True if active, Py_False if not.
+*/
+static PyObject*
+isActive(PyObject* self, PyObject* args)
+{
+    char* program;
+    if (!PyArg_ParseTuple(args, "s", &program)) {
+        return raise("isActive needs (only) a program name.");
+    }
+    
+    CStateManager* pApi = getApi(self);
+    bool           isActive;
+    try {
+        isActive = pApi->isActive(program);
+    }
+    catch(std::exception& e) {
+        return raise(e.what());
+    }
+    
+    if (isActive) {
+        Py_RETURN_TRUE;
+    } else {
+        Py_RETURN_FALSE;
+    }
+
+}
+
+/**
+* setProgramState
+*     Set the program state for a specific program.
+*
+* @param self - Pointer to the object whose method this is.
+* @param args - Pointer to the python argument list (tuple) : program , state
+* @return PyObject* - Py_None
+*/
+static PyObject*
+setProgramState(PyObject* self, PyObject* args)
+{
+    char* program;
+    char* state;
+    
+    if (!PyArg_ParseTuple(args, "ss", &program, &state)) {
+        return raise("setProgramState needs program and state (only)");
+    }
+    
+    CStateManager* pApi = getApi(self);
+    try {
+        pApi->setProgramState(program, state);
+    }
+    catch (std::exception& e) {
+        return raise(e.what());
+    }
+    
+    Py_RETURN_NONE;
+}
+
+/**
+* getProgramState
+*     Get the state of a program.
+*
+* @param self - Pointer to the object whose method this is.
+* @param args - Pointer to the python argument list (tuple) : Program name
+* @return PyObject* - PyString - program's state.
+*/
+static PyObject*
+getProgramState(PyObject* self, PyObject* args)
+{
+    char* program;
+    if (!PyArg_ParseTuple(args, "s", &program)) {
+        return raise("getProgramState needs a programname (only).");
+    }
+    
+    CStateManager* pApi = getApi(self);
+    std::string state;
+    try {
+        state = pApi->getProgramState(program);
+    }
+    catch (std::exception& e) {
+        return raise(e.what());
+    }
+    
+    return PyString_FromString(state.c_str());
+}
 /* Api definitions:  */
 
 static PyMethodDef ApiObjectMethods[] = {
@@ -1417,6 +1506,9 @@ static PyMethodDef ApiObjectMethods[] = {
     {"setRunNumber", setRunNumber, METH_VARARGS, "Set new run number"},
     {"waitTransition", waitTransition, METH_VARARGS, "Wait for state transitions"},
     {"processMessages", processMessages, METH_VARARGS, "Process messages"},
+    {"isActive", isActive, METH_VARARGS, "Check for program active"},
+    {"setProgramState", setProgramState, METH_VARARGS, "Set state of a specific program"},
+    {"getProgramState", getProgramState, METH_VARARGS, "Get the state of a program"},
     {NULL, NULL, 0, NULL}                /* End of method definition marker */       
 };
 
