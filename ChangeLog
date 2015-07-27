@@ -873,4 +873,6 @@ Work on 11.0-rc11 begins
 	clients can immediately detect connection failures.
 	Feature #3802 - Add simple configuration tools/scripts for
 	readouts.
+	Feature #3793 - State client and state manager API classes and
+			language bindings.
 	
