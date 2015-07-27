@@ -635,9 +635,23 @@ COutputThread::event(void* pData)
 void
 COutputThread::attachRing()
 {
+  delete m_pRing;    // delete 0 is ok.
+  m_pRing = 0;
   m_pRing = CRingBuffer::createAndProduce(m_ringName);
 
 }
+/**
+ * setRing
+ *    Set a new ring name.
+ *  @param pRingName
+ */
+void
+COutputThread::setRing(const char* pRingname)
+{
+    m_ringName = pRingname;
+    attachRing();
+}
+
 /**
  * Output a physics trigger count event item.  These are used to monitor
  * overall rates as well as to provide sampling statistics for sampling

@@ -36,7 +36,7 @@ class CConfiguration;
 class CCCUSB;
 class TclServer;
 class CTCLInterpreter;
-
+class COutputThread;
 
 
 
@@ -65,6 +65,7 @@ namespace Globals {
   extern TclServer*      pTclServer;
   extern CTCLInterpreter* pMainInterpreter;
   extern Tcl_ThreadId           mainThread;   
+  extern COutputThread*   pOutputThread;
 };
 
 #endif

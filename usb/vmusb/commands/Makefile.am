@@ -4,6 +4,7 @@ libVMUSBCommands_la_SOURCES	=	CBeginRun.cpp	\
 				CPauseRun.cpp	\
 				CResumeRun.cpp	\
 				CExit.cpp	\
+				CRingCommand.cpp \
 				tclUtil.cpp	
 
 noinst_HEADERS		= 	CBeginRun.h	\
@@ -11,7 +12,8 @@ noinst_HEADERS		= 	CBeginRun.h	\
 				CPauseRun.h	\
 				CResumeRun.h	\
 				CExit.h		\
-				tclUtil.h
+				tclUtil.h	\
+				CRingCommand.h
 
 libVMUSBCommands_la_CXXFLAGS=@THREADCXX_FLAGS@ -I@top_srcdir@/usb/vmusb/rdothread	\
 				-I@top_srcdir@/usb/vmusb/router		\

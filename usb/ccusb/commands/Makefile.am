@@ -4,14 +4,16 @@ libCCUSBCommands_la_SOURCES	=	CBeginRun.cpp	\
 				CPauseRun.cpp	\
 				CResumeRun.cpp	\
 				CExit.cpp	\
-				tclUtil.cpp	
+				tclUtil.cpp	\
+				CRingCommand.cpp
 
 include_HEADERS		= 	CBeginRun.h	\
 				CEndRun.h	\
 				CPauseRun.h	\
 				CResumeRun.h	\
 				CExit.h		\
-				tclUtil.h
+				tclUtil.h	\
+				CRingCommand.h
 
 libCCUSBCommands_la_CPPFLAGS		= 	-I@top_srcdir@/usb/ccusb/rdothread	\
 				-I@top_srcdir@/usb/ccusb/router		\

@@ -712,8 +712,20 @@ COutputThread::sendToTclServer(uint16_t* pEvent)
 void
 COutputThread::attachRing()
 {
+  delete m_pRing;           // Delete 0 is ok.
   m_pRing = CRingBuffer::createAndProduce(m_ringName);
 
+}
+/**
+ * setRing
+ *   set a new ring name.
+ *  @param ringName - new name for the ring.
+ */
+void
+COutputThread::setRing(const char* ringName)
+{
+    m_ringName = ringName;
+    attachRing();
 }
 /**
  * getTimestampExtractor

@@ -141,7 +141,7 @@ public:
 
 public:
   virtual void init();		// Entry point.
-
+  void setRing(const char* pRingName);
 protected:
 
   virtual void operator()();	// Old style entry point.

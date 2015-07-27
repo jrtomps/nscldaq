@@ -142,7 +142,8 @@ private:
 public:
 
   virtual void run();		/* Adapt between nextgen and spectrodaq threading model. */
-
+  void setRing(const char* ringName);
+  
   // Thread operations are all non-public in fact.. don't want to call them4
   // from outside this class.. only from within the thread.. This includes the
   // thread entry point.
@@ -150,6 +151,7 @@ public:
 protected:
 
   virtual int operator()(); //!< Entry point.
+  
 private:
 
   DataBuffer& getBuffer();		      // 

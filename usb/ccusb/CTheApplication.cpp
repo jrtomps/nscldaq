@@ -30,6 +30,7 @@
 #include <CEndRun.h>
 #include <CPauseRun.h>
 #include <CResumeRun.h>
+#include <CRingCommand.h>
 #include <CExit.h>
 #include <Exception.h>
 #include <tcl.h>
@@ -236,6 +237,7 @@ CTheApplication::startOutputThread(std::string ring)
 {
   COutputThread* router = new COutputThread(ring.c_str());
   router->start();
+  Globals::pOutputThread = router;
 
 }
 
@@ -347,6 +349,7 @@ CTheApplication::AppInit(Tcl_Interp* interp)
   new CPauseRun(*pInterp);
   new CResumeRun(*pInterp);
   new CExit(*pInterp);
+  new CRingCommand(*pInterp, "ring", Globals::pOutputThread);
 
 
   // Look for readoutRC.tcl in the config directory.  If it exists, run it.

@@ -31,6 +31,7 @@
 #include <CEndRun.h>
 #include <CPauseRun.h>
 #include <CResumeRun.h>
+#include <CRingCommand.h>
 #include <CExit.h>
 #include <Exception.h>
 #include <ErrnoException.h>
@@ -270,6 +271,7 @@ CTheApplication::startOutputThread(std::string ring)
 {
   COutputThread* router = new COutputThread(ring);
   router->start();
+  Globals::pOutputThread = router;
   Os::usleep(500);
 
 }
@@ -350,6 +352,7 @@ CTheApplication::AppInit(Tcl_Interp* interp)
   new CPauseRun(*pInterp);
   new CResumeRun(*pInterp);
   new CExit(*pInterp);
+  new CRingCommand(*pInterp, "ring", Globals::pOutputThread);
   
   // If there's an initialization script then run it now:
   
