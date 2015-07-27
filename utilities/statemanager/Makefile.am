@@ -74,7 +74,7 @@ EXTRA_DIST=statusopts.ggi  beginopts.ggi \
 		resumeopts.ggi endopts.ggi titleopts.ggi pauseopts.ggi  \
 		transitionopts.ggi timeoutopts.ggi recordingopts.ggi \
 		programdiropts.ggi runnumopts.ggi \
-		 standardopts.ggo 
+		 standardopts.ggo  
 
 BUILT_SOURCES=statusopts.h beginopts.h resumeopts.h endopts.h titleopts.h pauseopts.h timeoutopts.h \
 	recordingopts.h programdiropts.h runnumopts.h
@@ -316,6 +316,8 @@ stateTests_CPPFLAGS=$(COMMON_CPPFLAGS) $(CPPUNIT_CFLAGS) -DBINDIR=\"@bindir@\"
 stateTests_LDFLAGS=libstateclient.la $(COMMON_LOADFLAGS) $(CPPUNIT_LDFLAGS)
 
 EXTRA_DIST+= stateclient.test statemgr.test  StateClientTests.py testBase.py StateManagerTests.py
+
+EXTRA_DIST+= stateclient.xml statemanager.xml
 
 check-TESTS:
 	BINDIR="@bindir@" PYTHONPATH=@prefix@/pythonLibs @builddir@/unittests

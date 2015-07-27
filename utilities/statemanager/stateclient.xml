@@ -1,0 +1,2001 @@
+<!-- chapter libraries -->
+<chapter>
+    <title>State client API</title>
+    <para>
+        The state client API provides a programmatic interface to the
+        variable database program state directory trees for programs that
+        are state-aware.  A program that is state aware is one that
+        participates in global state transitions.
+    </para>
+    <para>
+        This chapter provides:
+    </para>
+    <itemizedlist>
+        <listitem><para>
+            Background information programmers for state aware programs
+            must know.
+        </para></listitem>
+        <listitem><para>
+            A simple example of a state aware program as an introduction
+            to the <classname>CStateClientApi</classname> class.
+        </para></listitem>
+    </itemizedlist>
+    <para>
+        Here are links to reference information:
+    </para>
+    <itemizedlist>
+        <listitem><para>
+            <link linkend='daq3_cstateclientapi'
+                  endterm='daq3_cstateclientapi_title'
+            /> which documents the C++ interface provided by the
+            <classname>CStateClientApi</classname> class.
+        </para></listitem>
+        <listitem><para>
+            <link linkend='tcl3_stateclientapi'
+                  endterm='tcl3_stateclientapi_title' />
+            which docuements the Tcl bindings to the
+            <classname>CStateClientApi</classname> class.
+        </para></listitem>
+        <listitem><para>
+            
+        </para></listitem>
+    </itemizedlist>
+    <section>
+        <title>State Clients</title>
+        <para>
+            State clients are programs that are registered in the
+            variable database.  Each state client has several bits of data
+            associated with it:
+        </para>
+        <itemizedlist>
+            <listitem><para>
+                Program state; a state machine variable that indicates
+                the current state of the program.  For each global state
+                transition in wich the program participates it must
+                update its own state appropriately.
+            </para></listitem>
+            <listitem><para>
+                enable flag; This flag indicates if the program is
+                expected to participate in state transitions (see however
+                the standalone flag below).
+            </para></listitem>
+            <listitem><para>
+                standalone flag; This flag indicates if the program is
+                participating in global state transitions or local state
+                transitions only.  During experiment setup it may be useful
+                to run programs independently for test purposes, only joining
+                them to the global state machine later.
+            </para></listitem>
+            <listitem><para>
+                path - Describes the path of the program running for this program
+                This value is used by the boot manager to start the state aware
+                program.
+            </para></listitem>
+            <listitem><para>
+                host - The name or IP address in which the state aware program runs.
+                This is used by the boot manager to start the state aware
+                program.
+            </para></listitem>
+            <listitem><para>
+                outring - For programs that put output into a ring buffer,
+                this variable contains the name of that ring.  This value
+                is a ring name not a URI since producers must be local to
+                the ring buffer.
+            </para></listitem>
+            <listitem><para>
+                inring - For programs that consume data from a ring,
+                this variable is the URI of that ring.
+            </para></listitem>
+        </itemizedlist>
+        <para>
+            A state client is expected to be responsive to state change
+            requests (either local if standalone or global if not) unless
+            it is disabled.  It must respond to a transition by setting its own
+            state appropriately.  For example, a state transition to
+            <literal>Beginning</literal> indicates a run is starting.
+            The program is expected to:
+            <orderedlist>
+                <listitem><para>
+                    Set its own state to <literal>Beginning</literal>.
+                </para></listitem>
+                <listitem><para>
+                    Perform any pre-run activities required to take data.
+                </para></listitem>
+                <listitem><para>
+                    If the pre-run activities were successful, indicate
+                    that it is taking data by setting its state to
+                    <literal>Active</literal>, if there was a failure,
+                    the program is expected to set its state to
+                    <literal>NotReady</literal> and exit.
+                </para></listitem>
+            </orderedlist>
+        </para>
+        <para>
+            The table below shows the state transitions the program
+            must react to. Note that in standalone mode, the program
+            may see other state transitions.  These are echoes of the
+            transitions it has posted.
+        </para>
+        <table frame='all'>
+            <title>State aware program response to state changes</title>
+            <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+            <thead>
+                <row>
+                    <entry>Transition to:</entry>
+                    <entry>Client state obligations</entry>
+                </row>
+            </thead>
+            <tbody>
+                <row>
+                    <entry>
+                        <literal>NotReady</literal>
+                    </entry>
+                    <entry>
+                        The program is expected to set its own state to
+                        <literal>NotReady</literal> and exit. This transition
+                        indicates some sort of failure that requires state-aware
+                        programs to re-start in order to recover.
+                    </entry>
+                </row>
+                <row>
+                    <entry>
+                        <literal>Readying</literal>
+                    </entry>
+                    <entry>
+                        The program normally has just been started.  It must:
+                        <orderedlist>
+                            <listitem><para>
+                                Set its own state to <literal>Readying</literal>
+                            </para></listitem>
+                            <listitem><para>
+                                Perform any needed one-time intiailization.
+                            </para></listitem>
+                            <listitem><para>
+                                On successful initialization, set its state to
+                                <literal>Ready</literal>. On failure set its
+                                state to <literal>NotReady</literal> and
+                                exit.
+                            </para></listitem>
+                        </orderedlist>
+                    </entry>
+                </row>
+                <row>
+                    <entry><literal>Beginning</literal></entry>
+                    <entry>
+                        Indicates data taking is about to begin. This
+                        transition is initiated from the <literal>Ready</literal>
+                        state.  The program must:
+                        <orderedlist>
+                            <listitem><para>
+                                Set its state to <literal>Beginning</literal>
+                            </para></listitem>
+                            <listitem>
+                                <para>
+                                    Perform any preparation required for data taking.
+                                </para>
+                            </listitem>
+                            <listitem><para>
+                                If initialization is successful, set its state
+                                to <literal>Active</literal> and start taking data,
+                                otherwise, set its state to <literal>NotReady</literal>
+                                and exit.
+                            </para></listitem>
+                        </orderedlist>
+                    </entry>
+                </row>
+                <row>
+                    <entry>
+                        <literal>Pausing</literal>
+                    </entry>
+                    <entry>
+                        Indicates data taking is about to temporarily
+                        stop.  The program is expected to:
+                        <orderedlist>
+                            <listitem><para>
+                                Set its state to <literal>Pausing</literal>
+                            </para></listitem>
+                            <listitem><para>
+                                Perform all necessary steps to stop data taking while
+                                retaining sufficient state to resume data taking
+                                if required.
+                            </para></listitem>
+                            <listitem><para>
+                                If data taking was successfully shut down,
+                                set its state to <literal>Paused</literal>,
+                                if not set its state to <literal>NotReady</literal>
+                                and exit.
+                            </para></listitem>
+                        </orderedlist>
+                    </entry>
+                </row>
+                <row>
+                    <entry><literal>Resuming</literal></entry>
+                    <entry>
+                        This indicates that data taking is about to restart
+                        after a pause (state will be <literal>Paused</literal>).
+                        The program must:
+                        <orderedlist>
+                            <listitem><para>
+                                Set its state to <literal>Resuming</literal>.
+                            </para></listitem>
+                            <listitem><para>
+                                Perform any required initialization to resume
+                                data taking.
+                            </para></listitem>
+                            <listitem><para>
+                                On success set its state to <literal>Active</literal>.
+                                On failure set its state to <literal>NotReady</literal>
+                                and exit.
+                            </para></listitem>
+                        </orderedlist>
+                    </entry>
+                </row>
+                <row>
+                    <entry><literal>Ending</literal></entry>
+                    <entry>
+                        This indicates that data taking should be halted to
+                        end a run.  The program must:
+                        <orderedlist>
+                            <listitem><para>
+                                Set its state to <literal>Ending</literal>
+                            </para></listitem>
+                            <listitem><para>
+                                Perform all operations needed to shut down
+                                data taking.
+                            </para></listitem>
+                            <listitem><para>
+                                Set its state to <literal>Ready</literal>
+                                on success or <literal>NotReady</literal>
+                                if there is a failure, and exit.
+                            </para></listitem>
+                        </orderedlist>
+                    </entry>
+                </row>
+            </tbody>
+            </tgroup>
+        </table>
+        <para>
+            These two step transition seem a bit awkward.  They are needed
+            because the state variables must have a value, but state
+            transitions take time.  Therefore, additional states have been
+            introduced that actually represent the time required to perform
+            a transition (e.g. <literal>Beginning</literal> is really a
+            transition from <literal>Ready</literal> to <literal>Active</literal>).
+        </para>
+    </section>
+    <section>
+        <title>The <classname>CStateClientApi</classname> class</title>
+        <para>
+            This class defines an application programming interface
+            for state client programs.  It is defined in the
+            header <filename>CStateClientApi.h</filename> and is
+            in the library <filename>$DAQLIB/libstateclient.so</filename>.
+        </para>
+        <para>
+            In this chapter we will work through the top level flow of
+            control for a state aware program. What we will show is:
+        </para>
+        <itemizedlist>
+            <listitem><para>
+                How to construct a <classname>CStateClientApi</classname>
+                object.
+            </para></listitem>
+            <listitem><para>
+                How to wait for state transition notifications.
+            </para></listitem>
+            <listitem><para>
+                How to handle some state transitions.
+            </para></listitem>
+        </itemizedlist>
+        <para>
+            This program is deliberately incomplete.  The structure
+            of the program is assumed to be threaded. Specifically
+            all data taking is done in a thread other than the
+            thread shown.  Some of the functions and methods used,
+            whose implementations are not shown can be assumed
+            to be starting or communicating with those threads.
+        </para>
+        <section>
+            <title>Creating a <classname>CStateClientApi</classname> object</title>
+            <para>
+                To construct a <classname>CStateClientApi</classname> you need
+                several pieces of information.  If the state sensitive
+                program is started from the boot manager this
+                information is stored in environment variables
+            </para>
+            <itemizedlist>
+                <listitem><para>
+                    The URI of the variable data base server's request port.
+                    This is in the environment variable:
+                    <literal>VARMGR_REQ</literal>
+                </para></listitem>
+                <listitem><para>
+                    The URI of the variable database servers's subscription
+                    port.  This is in the environment variable:
+                    <literal>
+                        VARMGR_SUB
+                    </literal>
+                </para>
+                </listitem>
+                <listitem><para>
+                    The name of the program as it is known to the run
+                    control system.  This is in the environment variable:
+                    <literal>PROGRAM_NAME</literal>
+                </para></listitem>
+            </itemizedlist>
+            <para>
+                The following code fragment uses this information to
+                create a <classname>CStateClient</classname> object:
+            </para>
+            <example>
+                <title>Creating a <classname>CStateClient</classname> object</title>
+                <programlisting>
+#include &lt;stdlib.h&gt;
+#include &lt;CStateClientApi.h&gt;    <co id='make_stateclient_header' />
+
+CStateClientApi*
+createStateClient()
+{
+    const char* pProgram = getenv("PROGRAM_NAME");
+    const char* pReqURI  = getenv("VARMGR_REQ");  <co id='make_stateclient_getenvs' />
+    const char* pSubURI  = getenv("VARMGR_SUB");  
+    
+    return new CStateClientApi(pReqURI, pSubURI, pProgram); <co id='make_stateclient_new' />
+}
+                </programlisting>
+            </example>
+            
+            <calloutlist>
+                <callout arearefs='make_stateclient_header'>
+                    <para>
+                        The <filename>CStateClientApi.h</filename> header
+                        defines the state client API class sufficiently to allow
+                        it to be used by our program.
+                    </para>
+                </callout>
+                <callout arearefs='make_stateclient_getenvs'>
+                    <para>
+                        This section of code translates the environment
+                        variables for the REQ and SUB URIs as well as
+                        the program's name.  Note that this is not production
+                        code.  If it were we would need to take appropriate
+                        action if any of the calls to <function>getenv</function>
+                        returned <literal>NULL</literal>.
+                    </para>
+                </callout>
+                <callout arearefs='make_stateclient_new'>
+                    <para>
+                        Creates a and returns a new
+                        <classname>CStateClientApi</classname> object.
+                        Note again this is illustrative rather than
+                        production code. The constructor for
+                        <classname>CStateClientApi</classname> will
+                        throw a <classname>std::exception</classname>
+                        derived exception in the event it fails.
+                    </para>
+                    <para>
+                        Production quality code would need to encapsulate
+                        this in a try/catch block and take appropriate action
+                        in the event of an exception.
+                    </para>
+                </callout>
+            </calloutlist>
+        </section>
+        <section>
+            <title>Receiving state transition notifications</title>
+            <para>
+                This section provides a code fragment that shows
+                how to receive state transitions.  We are going
+                to assume the presence of two functions:
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term>checkError</term>
+                    <listitem>
+                        <para>
+                            Will return <literal>true</literal>
+                            if one of the threads we presume is running
+                            encountered an error.  We will not show that
+                            function as how it operates is
+                            beyond the scope of this
+                            discussion.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>handleTransition</term>
+                    <listitem>
+                        <para>
+                            Processes the actual state transition.
+                            We'll show bits of that function in the
+                            next section.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                
+            </variablelist>
+            <example>
+                <title>Receiving state transitions</title>
+                <programlisting>
+#include &lt;stdlib.h&gt;
+#include &lt;string&gt;
+#include &lt;CStateClientApi.h&gt;
+...
+CStateClientApi* pApi = createStateClient();  <co id='get_st_create' />
+while (!checkError()) {                       <co id='get_st_checkerror' />
+    std::string newState;
+    if(pApi->waitTransition(newState, 1000)) { <co id='get_st_waittrans' />
+        handleTransition(pApi, newState);      <co id='get_st_handle' />
+    }
+}
+pApi->setState("NotReady");                   <co id='get_st_error' />
+delete pApi;
+exit(EXIT_FAILURE);
+                </programlisting>
+            </example>
+            <para>
+                This code fragment shows a typical main loop of a
+                state aware program.  The program alternates between
+                deciding if it needs to fail or if it needs to
+                process a state transition:
+            </para>
+            <calloutlist>
+                <callout arearefs='get_st_create'>
+                    <para>
+                        This line uses the function defined in the
+                        previous section to create an instance of the
+                        <classname>CStateClientApi</classname> class.
+                    </para>
+                </callout>
+                <callout arearefs='get_st_checkerror'>
+                    <para>
+                        Recall that <function>checkError</function> will return
+                        <literal>true</literal> if some thread encounters
+                        an error that requires us to exit.  The main loop
+                        runs as long as this is not the case.
+                    </para>
+                </callout>
+                <callout arearefs='get_st_waittrans'>
+                    <para>
+                        The <methodname>waitTransition</methodname> method
+                        waits for a state transition to be announced.
+                        If the program is not in standalone mode, these
+                        mean waiting for changes in the global state.  If
+                        the program is in standalone mode, this means
+                        waiting for changes in the program's state.
+                    </para>
+                    <para>
+                        The first parameter, a string passed by reference,
+                        will receive the name of the new state if a transition
+                        occured.  The second parameter is a timeout in millisecond units.
+                        If a transition occured before the timeout, the
+                        method returns <literal>true</literal>.
+                    </para>
+                </callout>
+                <callout arearefs='get_st_handle'>
+                    <para>
+                        We will look at this function in the next
+                        section.  It will do all the heavy lifting associated
+                        with performing a state transition.
+                    </para>
+                </callout>
+                <callout arearefs='get_st_error'>
+                    <para>
+                        Prior to exiting the program must set its state to
+                        <literal>NotReady</literal>. If not in standalone mode,
+                        this will result in a full global state transition
+                        to <literal>NotReady</literal> as well.
+                    </para>
+                    <para>
+                        Note that if the program was started by the boot manager,
+                        any program exit will make the boot manager set the
+                        program's state to <literal>NotReady</literal> if the
+                        program did not do so prior to exiting (e.g. exiting
+                        due to a <literal>SEGFLT</literal>).
+                    </para>
+                </callout>
+            </calloutlist>
+        </section>
+        <section>
+            <title>Processing selected state transitions</title>
+            <para>
+                In this section we are going to look at the
+                function <function>handleTransition</function> which
+                was used in the previous section. We are going to show
+                two state transitions:
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><literal>NotReady</literal></term>
+                    <listitem>
+                        <para>
+                            A global state transition to not Ready. This
+                            occurs when the system is shutting down.  This
+                            could be due to a normal shutdown or it could
+                            be due to the failure of one or more programs.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>Readying</literal></term>
+                    <listitem>
+                        <para>
+                            A global state transition that indicates the user's
+                            desire to start data taking.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+            <para>
+                Let's first see the function signature for
+                <function>handleTransition</function>:
+            </para>
+            <example>
+                <title><function>handleTransition</function> signature</title>
+                <programlisting>
+void
+handleTransition(CStateClientApi* pApi, std::string newState)
+{
+...
+}
+                </programlisting>
+            </example>
+            <para>
+                The first parameter is a pointer to the API object while
+                the second is the new state.
+            </para>
+            <para>
+                Here's the code fragment that deals with transitions to
+                <literal>NotReady</literal>:
+            </para>
+            <example>
+                <title>Transition to <literal>NotReady</literal></title>
+                <programlisting>
+                    ....
+   else if(newState == "NotReady) {
+      shutdownHardware();
+      pApi->setState("NotReady");
+      exit(EXIT_SUCCESS);
+   }
+                </programlisting>
+            </example>
+            <para>
+                We're using the <literal>else if</literal> construct
+                under the assumption that this function is largely
+                composed of an if-else chain with branches for each
+                state transition we handle.
+            </para>
+            <para>
+                <function>shtudownHardware</function> is a function
+                that will shutdown any data taking hardware and stop
+                any data taking thread that might be active.
+                Once that's been accomplished we set our state to
+                <literal>NotReady</literal> and exit.
+            </para>
+            <para>
+                Let's next look at how the <literal>Beginning</literal>
+                transition works. Before doing so note that when all
+                programs have transitioned to <literal>Active</literal>,
+                the global state will be set to active as well.
+            </para>
+            <example>
+                <title><literal>Beginning</literal> transition</title>
+                <programlisting>
+   else if (newState == "Beginning") {      <co id='shandler_beginning' />
+      try {
+         pApi->setState("Beginning");       <co id='shandler_echobeginning' />
+         setupHardware();                   <co id='shandler_setup' />
+         pApi->setState("Active");          <co id='shandler_going_active' />
+      }
+      catch (...) {
+        pApi->setState("NotReady");         <co id='shandler_exception' />
+        exit(EXIT_FAILURE);
+      
+      }
+   } else if (newState == "Active") {       <co id='shandler_gblstate_active' />
+      try {
+         startAcquisition();                <co id='shandler_startacq' />
+      }
+      catch (...) {
+         pApi->setState("NotReady");
+         exit(EXIT_FAILURE);
+      }
+   }
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs='shandler_beginning'>
+                    <para>
+                        This block of code is executed when there's a state
+                        transition to <literal>Beginning</literal>.  This
+                        could be a global state transition or local if the program is
+                        in standalone mode.  The sample code, however
+                        assumes that this is a global state transition
+                        as otherwise we need to be careful about state
+                        transitions to the same state we are already in.
+                    </para>
+                </callout>
+                <callout arearefs='shandler_echobeginning'>
+                    <para>
+                        Before doing anything the state sensitive program must
+                        echo the requested state transition.  In this case
+                        that means setting our state to <literal>Beginning</literal>.
+                        Note that in standalone mode, this should not be
+                        done.
+                    </para>
+                </callout>
+                <callout arearefs='shandler_setup'>
+                    <para>
+                        This application specific function sets up the
+                        hardware for data taking and throws an exception
+                        if that operation fails.
+                    </para>
+                </callout>
+                <callout arearefs='shandler_going_active' >
+                    <para>
+                        If the hardware was successfully set up, the
+                        program transitions to the <literal>Active</literal>
+                        state as it could now start taking data.
+                    </para>
+                </callout>
+                <callout arearefs='shandler_exception'>
+                    <para>
+                        In the event of any exception, however the
+                        program declares itself <literal>NotReady</literal>
+                        and exits with a failure status.
+                    </para>
+                </callout>
+                <callout arearefs='shandler_gblstate_active'>
+                    <para>
+                        Once all the programs have gone <literal>Active</literal>
+                        (or we go <literal>Active</literal>) in standalone mode),
+                        this branch of code is taken.
+                    </para>
+                </callout>
+                <callout arearefs='shandler_startacq' >
+                    <para>
+                        Now that the system is active, we can start actually
+                        taking data.  As before, any exception results in
+                        a declaration of <literal>NotReady</literal> and
+                        an exit with a failure status.
+                    </para>
+                </callout>
+            </calloutlist>
+        </section>
+    </section>
+    
+</chapter>
+<!-- /chapter -->
+
+<!-- manpage 3daq -->
+
+<refentry id="daq3_cstatetransitionmonitor">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='daq3_cstatetransitionmonitor_title'>CStateTransitionMonitor</refentrytitle>
+     <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>CStateTransitionMonitor</refname>
+     <refpurpose>Low level state transition message pump</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+#include &lt;CStateTransitionMonitor.h&gt;
+       class <ooclass><classname>CStateTransitionMonitor  : public CGaurdedObject</classname></ooclass>
+{
+    // We provide the following types of notifications:
+    
+    typedef enum _NotificationType {
+        GlobalStateChange,                             // Change to global state variable.
+        ProgramStateChange,                            // Change to an individual program's state.
+        ProgramJoins,                                  // Program joins the system.
+        ProgramLeaves,                                 // Program Leaves the system.
+    } NotificationType;
+    
+    // Here's the message that's queued up to the main thread:
+    
+    typedef struct _Notification {
+        NotificationType    s_type;
+        std::string         s_state;
+        std::string         s_program;                // Used for all but GlobalState changes.
+    } Notification, *pNotification;
+     
+    <constructorsynopsis>
+       <methodname>CStateTransitionMonitor</methodname>
+       <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>reqURI</parameter>
+       </methodparam>
+       <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>subURI</parameter>
+       </methodparam>
+       
+    </constructorsynopsis>    
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>std::string </type>
+        <methodname>programParentDir</methodname>
+        <void />
+        <modifier>const</modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>CVarMgrApi* </type>
+        <methodname>getApi</methodname>
+        <void />
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>std::vector&lt;std::string&gt; </type>
+        <methodname>activePrograms</methodname>
+        <void />
+        <modifier></modifier>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>std::vector&lt;std::string&gt; </type>
+        <methodname>activePrograms</methodname>
+        <void />
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>std::vector&lt;std::string&gt; </type>
+        <methodname>allPrograms</methodname>
+        <void />
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>bool</type>
+        <methodname>isStandalone</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>programName</parameter>
+        </methodparam>
+        
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>bool </type>
+        <methodname>isEnabled</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>programName</parameter>
+        </methodparam>
+        
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>int</type>
+        <methodname>transitionTimeout</methodname>
+        <void />
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void </type>
+        <methodname>setTransitionTimeout</methodname>
+        <methodparam>
+            <modifier></modifier><type>int </type>
+                <parameter>secs</parameter>
+        </methodparam>
+        
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>std::vector&lt;Notification&gt;  </type>
+        <methodname>getNotifications</methodname>
+        <methodparam>
+            <modifier></modifier><type>int </type>
+                <parameter>maxNotifixcations </parameter>
+                <initializer>-1</initializer>
+        </methodparam>
+        <methodparam>
+            <modifier></modifier><type>int</type>
+                <parameter>timeout</parameter>
+                <initializer>-1</initializer>
+        </methodparam>
+        
+        <modifier></modifier>
+    </methodsynopsis>  
+        
+};
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        <classname>CStateTransitionMonitor</classname>
+        provides a message pump for state transition messages.  A message
+        pump is a software pattern that provides messages from some source
+        to an application.   Note that there is an assumption in this
+        software that the program parent directory does not change for
+        the lifetime of an object.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <constructorsynopsis>
+                   <methodname>CStateTransitionMonitor</methodname>
+                   <methodparam>
+                    <modifier>const </modifier><type>char* </type>
+                        <parameter>reqURI</parameter>
+                   </methodparam>
+                   <methodparam>
+                    <modifier>const </modifier><type>char* </type>
+                        <parameter>subURI</parameter>
+                   </methodparam>
+                   
+                </constructorsynopsis>    
+            </term>
+            <listitem>
+                <para>
+                    Constructor for the class.  <parameter>reqURI</parameter>
+                    is a URI that refers to the REQ port of a variable
+                    database server.  This is the port through which
+                    REQ/RES transactions are performed.
+                </para>
+                <para>
+                    <parameter>subURI</parameter> isthe URI that refers
+                    to the SUB port.  The SUB port is the port through
+                    which notification messages for specific subscriptions flow.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>std::string </type>
+                    <methodname>programParentDir</methodname>
+                    <void />
+                    <modifier>const</modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns the variable database path to the
+                    directory in which program information is stored.
+                    Each state sensitive program is stored as a
+                    directory that contains a specified set of
+                    variables that describe that program.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>CVarMgrApi* </type>
+                    <methodname>getApi</methodname>
+                    <void />
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns the <classname>CVarMgrApi</classname>
+                    object through which variable database API operations can be
+                    performed.  
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>std::vector&lt;std::string&gt; </type>
+                    <methodname>activePrograms</methodname>
+                    <void />
+                    <modifier></modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Returns a vector of the active programs.
+                    Programs are active if they are enabled
+                    and not standalone.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>std::vector&lt;std::string&gt; </type>
+                    <methodname>allPrograms</methodname>
+                    <void />
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns a list of all programs.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>bool</type>
+                    <methodname>isStandalone</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>programName</parameter>
+                    </methodparam>
+                    
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns <literal>true</literal> if the
+                    program specified by <parameter>programName</parameter>
+                    is in standalone mode.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>bool </type>
+                    <methodname>isEnabled</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>programName</parameter>
+                    </methodparam>
+                    
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns <literal>true</literal> if the program specified
+                    by <parameter>programName</parameter> is enabled.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>int</type>
+                    <methodname>transitionTimeout</methodname>
+                    <void />
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns the current value for the transition timeout.
+                    The transition timeout determines the maximum amount
+                    of time a state transition can take before it
+                    is declared to have failed.  Note, however that
+                    state transitions can also be actively failed by
+                    a transition of any participant to
+                    <literal>NotReady</literal>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>setTransitionTimeout</methodname>
+                    <methodparam>
+                        <modifier></modifier><type>int </type>
+                            <parameter>secs</parameter>
+                    </methodparam>
+                    
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Sets a new value for the state transition timeout.
+                    See <methodname>transitionTimeout</methodname> for
+                    a description of this variable.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>std::vector&lt;Notification&gt;  </type>
+                    <methodname>getNotifications</methodname>
+                    <methodparam>
+                        <modifier></modifier><type>int </type>
+                            <parameter>maxNotifications </parameter>
+                            <initializer>-1</initializer>
+                    </methodparam>
+                    <methodparam>
+                        <modifier></modifier><type>int</type>
+                            <parameter>timeout</parameter>
+                            <initializer>-1</initializer>
+                    </methodparam>
+                    
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Return notifications that have been queued by the
+                    pump thread. <parameter>maxNotifications</parameter>
+                    sets a limit on the number of notifiations that will
+                    be returned.  If -1 all queue elements will be returned.
+                    <parameter>timeout</parameter> sets a limit
+                    in milliseconds on how
+                    long this method can block if no notifications are
+                    queued.   
+                </para>
+                <para>
+                    If no notifications are queued and none arrive
+                    within the <parameter>timeout</parameter>, the
+                    return value could be an empty vector.
+                </para>
+                <para>
+                    See <literal>PUBLIC VARIABLES, TYPES and CONSTANTS</literal>
+                    for a description of the <classname>Notification</classname>
+                    struct.
+                </para>
+            </listitem>
+        </varlistentry>
+     </variablelist>
+  </refsect1>
+   <refsect1>
+      <title>PUBLIC VARIABLES, TYPES and CONSTANTS</title>
+      <refsect2>
+        <title>NotificationType</title>
+        <para>
+            Notifications from the message pump describe events that make sense
+            in the context of the run control/state sensitive program subsystem.
+            This type is an enum that says which event type the notification
+            describes.  It has the following possible values:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term><literal>GlobalStateChange</literal></term>
+                <listitem>
+                    <para>
+                        The event describes a change in the state of the
+                        global state machine.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><literal>ProgramStateChange</literal></term>
+                <listitem>
+                    <para>
+                        The event describes a change in the state of a
+                        program's state machine.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><literal>ProgramJoins</literal></term>
+                <listitem>
+                    <para>
+                        The event describes a program that has just
+                        joined the system.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><literal>ProgramLeaves</literal></term>
+                <listitem>
+                    <para>
+                        The event describes a program that just left
+                        the system.
+                    </para>
+                </listitem>
+            </varlistentry>
+            
+        </variablelist>
+      </refsect2>
+      <refsect2>
+        <title>Notification</title>
+        <para>
+            <type>Notification</type> is a struct that describes events
+            in the run control system.  Note that not all fields make
+            sense for all events. It has the following fields:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term>
+                    <type>NotificationType</type>
+                    <structfield>s_type</structfield></term>
+                <listitem>
+                    <para>
+                        This contains the type of notification.  See
+                        the previous section for possible values in this
+                        field.  This field makes sense for all notification
+                        types.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <type>std::string</type><structfield>s_state</structfield>
+                </term>
+                <listitem>
+                    <para>
+                        For state transition events (program or global)
+                        this field contains the new state.  For non state
+                        transition events this string is empty.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <type>std::string</type><structfield>s_program</structfield>
+                </term>
+                <listitem>
+                    <para>
+                        For program events (programs joining or leaving)
+                        and program state transitions, this field contains
+                        the name of the program involved.  For global state
+                        transitions, this field is an empty string.
+                    </para>
+                </listitem>
+            </varlistentry>
+            
+        </variablelist>
+      </refsect2>    
+   </refsect1>
+</refentry>     
+
+<refentry id="daq3_cstateclientapi">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='daq3_cstateclientapi_title'>CStateClientApi</refentrytitle>
+     <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>CStateClientApi</refname>
+     <refpurpose>Api for state cilent programs (high level).</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+#include &lt;CStateClientApi.h&gt;
+       class <ooclass><classname>CStateClientApi : public CGuardedObject</classname></ooclass>
+{
+    class CException : public std::runtime_error {
+    public:
+        CException(std::string what) noexcept;
+    };
+
+    <constructorsynopsis>
+       <methodname>CStateClientApi</methodname>
+       <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>reqURI</parameter>
+       </methodparam>
+       <methodparam>
+        <modifier>const</modifier><type> char* </type>
+            <parameter>notURI</parameter>
+       </methodparam>
+       <methodparam>
+        <modifier>const </modifier><type>char*</type>
+            <parameter> programName</parameter>
+       </methodparam>
+       
+    </constructorsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>std::string </type>
+        <methodname>getState</methodname>
+        <void />
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void </type>
+        <methodname>setState</methodname>
+        <methodparam>
+            <modifier></modifier><type>std::string </type>
+                <parameter>newState</parameter>
+        </methodparam>
+        <modifier></modifier>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>bool        </type>
+        <methodname>isEnabled</methodname>
+        <void />
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>bool        </type>
+        <methodname>isStandalone</methodname>
+        <void />
+        <modifier>const</modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>std::string </type>
+        <methodname>title</methodname>
+        <void />
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>int         </type>
+        <methodname>runNumber</methodname>
+        <void />
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>bool        </type>
+        <methodname>recording</methodname>
+        <void />
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>std::string </type>
+        <methodname>outring</methodname>
+        <void />
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>std::string </type>
+        <methodname>inring</methodname>
+        <void />
+        <modifier></modifier>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>bool </type>
+        <methodname>waitTransition</methodname>
+        <methodparam>
+            <modifier></modifier><type>std::string&amp; </type>
+                <parameter>newState</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier></modifier><type>int </type>
+                <parameter>timeout</parameter>
+                <initializer>1</initializer>
+        </methodparam>
+        
+        <modifier></modifier>
+    </methodsynopsis>  
+};
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        This class provides and application programming interface (API)
+        for programs that must be state aware.  State aware programs are
+        registered with the variable database relative to some
+        base directory which is stored in the string variable
+        <filename>/RunState/ReadoutParentDir</filename>. 
+     </para>
+     <para>
+        State aware programs can participate in global or purely local
+        state transitions and have access to global and program local data.
+     </para>
+     <para>
+        The methods in this class can throw an exception;
+        <classname>CStateClientApi::CException</classname> that is derived from
+        <classname>std::runtime_error</classname> in the event an error
+        is detected.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <constructorsynopsis>
+                   <methodname>CStateClientApi</methodname>
+                   <methodparam>
+                    <modifier>const </modifier><type>char* </type>
+                        <parameter>reqURI</parameter>
+                   </methodparam>
+                   <methodparam>
+                    <modifier>const</modifier><type> char* </type>
+                        <parameter>notURI</parameter>
+                   </methodparam>
+                   <methodparam>
+                    <modifier>const </modifier><type>char*</type>
+                        <parameter> programName</parameter>
+                   </methodparam>
+                   
+                </constructorsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Constructs a new API object.
+                    <parameter>reqURI</parameter> is the URI that specifies
+                    the REQ port of a variable database server that is managing
+                    the variable database this program runs under.
+                    <parameter>notURI</parameter> is the SUB URI of the same
+                    server. <parameter>programName</parameter> is the name
+                    of a registered program that the creator of this
+                    object will be running as.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>std::string </type>
+                    <methodname>getState</methodname>
+                    <void />
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns the current state.  If the prograsm is not
+                    in standalone mode, this returns the program's state
+                    otherwise it returns the globla state.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>setState</methodname>
+                    <methodparam>
+                        <modifier></modifier><type>std::string </type>
+                            <parameter>newState</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Sets the program state to <parameter>newState</parameter>.
+                    Note that this always sets the program's state and never
+                    the global state.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>bool        </type>
+                    <methodname>isEnabled</methodname>
+                    <void />
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns <literal>true</literal> if the program is
+                    enabled.  If the program is not enabled, it should not
+                    participate in any state transitions.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>bool        </type>
+                    <methodname>isStandalone</methodname>
+                    <void />
+                    <modifier>const</modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns <literal>true</literal> if the program
+                    is standalone.  A standalone program should not
+                    participate in global state transitions but, instead,
+                    should be driven by local state transitions.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>std::string </type>
+                    <methodname>title</methodname>
+                    <void />
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns the title string.  The title string is global
+                    data that is shared across all programs.  It provides
+                    a string that can be associated with data from
+                    a data taking run..
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>int         </type>
+                    <methodname>runNumber</methodname>
+                    <void />
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns the run number value.   The run number is
+                    global data that is shared across all programs.  it provides
+                    a number that is normally used t identify data from a
+                    data taking run.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>bool        </type>
+                    <methodname>recording</methodname>
+                    <void />
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns the recording flag state.  If the recording
+                    flag is set, this returnes <literal>true</literal>.
+                    The recording flag is global data that is shared amongst
+                    all programs.  Normally it is set true when users want
+                    data from the next data taking run to be recorded.  
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>std::string </type>
+                    <methodname>outring</methodname>
+                    <void />
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns the name of the output ring.  This is a
+                    program specific bit of data.  If the program is expected
+                    to produce output to a ring buffer this will be the
+                    name (not URI) of the ring in which it should put that
+                    data.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>std::string </type>
+                    <methodname>inring</methodname>
+                    <void />
+                    <modifier></modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Returns the URI of the input ring. This is a program
+                    specific bit of data.  If the progra is expected to
+                    take data from a ringbuffer, this will be the URI of
+                    that ring buffer.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>bool </type>
+                    <methodname>waitTransition</methodname>
+                    <methodparam>
+                        <modifier></modifier><type>std::string&amp; </type>
+                            <parameter>newState</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier></modifier><type>int </type>
+                            <parameter>timeout</parameter>
+                            <initializer>1</initializer>
+                    </methodparam>
+                    
+                    <modifier></modifier>
+                </methodsynopsis>  
+        
+            </term>
+            <listitem>
+                <para>
+                    Waits for a state transition and gets the name of
+                    the new state.  The method returns <literal>true</literal>
+                    if a state transition occured.
+                    <parameter>timeout</parameter> is the maximum
+                    number of milliseconds this method will block.  It
+                    defaults to <literal>-1</literal> which will block until
+                    a state transition returns, no matter how long.
+                    <parameter>newState</parameter> receives the name of the
+                    new state, if the method returned <literal>true</literal>
+                    otherwise, its contents are not defined.
+                </para>
+            </listitem>
+        </varlistentry>
+     </variablelist>
+  </refsect1>
+</refentry>     
+
+<!-- /manpage -->
+
+<!-- manpage 3tcl -->
+
+      <refentry id="tcl3_stateclientapi">
+        <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle id='tcl3_stateclientapi_title'>stateclient</refentrytitle>
+           <manvolnum>3tcl</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>stateclient</refname>
+           <refpurpose>Tcl bindings to CStateClientApi</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <programlisting>
+lappend auto_path [file join $::env(DAQROOT) TclLibs]
+package require stateclient
+::nscldaq::stateclient cmd requri suburi program
+cmd getstate
+cmd setstate newstate
+cmd isenabled
+cmd isstandalone
+cmd title
+cmd runnumber
+cmd recording
+cmd outring
+cmd inring
+cmd onStateChange script
+          </programlisting>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+                Provides Tcl bindings to the
+                <link linkend='daq3_cstateclientapi'
+                      endterm='daq3_cstateclientapi_title' /> class.
+                The bindings are implemented as a constructing command,
+                <command>::nbscldaq::stateclient</command> which creates a
+                command ensemble.  The client API instance is then manipulated
+                via subcommands of that ensemble.
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              CREATING AN API INSTANCE
+           </title>
+           <informalexample>
+            <programlisting>
+::nscldaq::stateclient cmd requri suburi program
+            </programlisting>
+           </informalexample>
+            <para>
+                Creates a new command ensemble <command>cmd</command>. The
+                ensemble represents an instance of a <classname>CStateClientApi</classname>
+                class.  <parameter>requri</parameter> is the URI that specifies
+                the REQ interface of a variable database server while
+                <parameter>suburi</parameter> is the URI that specifies the
+                subscription URI of the same database server.
+            </para>
+            <para>
+                <parameter>program</parameter> is the name of the program
+                this API instance represents.  The program must already
+                be registered with the run state part of the variable database.
+            </para>
+           
+        </refsect1>
+        <refsect1>
+            <title>ENSEMBLE SUB-COMMANDS</title>
+            <variablelist>
+                <varlistentry>
+                    <term><command>cmd getstate</command></term>
+                    <listitem>
+                        <para>
+                            Returns the state.  If the program is
+                            standalone this will be the program's state variable.
+                            If not it is the global state.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <command>cmd setstate <replaceable>newstate</replaceable></command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Sets the program's state to <parameter>newstate</parameter>.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <command>cmd isenabled</command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Returns a true value if the program is enabled or a false
+                            one otherwise.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <command>cmd isstandalone</command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Returns a true value if the program is standalone
+                            or a false value if not.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <command>cmd title</command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Returns the title string.  This is global and shared
+                            amongst all programs.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <command>cmd runnumber</command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Returns the run number.  This is global and shared
+                            amongst all programs.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <command>cmd recording</command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Returns the state of the global recording flag.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <command>cmd outring</command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Returns the name (not URI) of the output ring
+                            assigned to this program (if any).
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <command>cmd inring</command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Returns the URI of the input ring assigned to this
+                            prgram(if any).
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <command>cmd onStateChange script</command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Establishes a script to be invoked when state
+                            change notices arrive.  The new state is appended
+                            to this script when it is called.
+                        </para>
+                        <para>
+                            Dispatch depends on the event loop.  You must
+                            therefore either vwait (Tcl programs) or
+                            run Tk.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </refsect1>    
+      </refentry>
+
+
+<!-- /manpage -->
+
+
+<!-- manpage python -->
+
+<refentry id="python3_stateclient">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle>stateclient</refentrytitle>
+     <manvolnum>3python</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>stateclient</refname>
+     <refpurpose>Python bindings to CStateClientApi</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+    
+import nscldaq.vardb.stateclient
+api = nscldaq.vardb.stateclient.Api(reqUri, subUri, program)
+api.getstate()
+api.setstate(newstate)
+api.isenabled()
+api.isstandalone()
+api.gettitle()
+api.runnumber()
+api.recording()
+api.outring()
+api.inring()
+resultDict = api.waitTransition(timeout=-1)
+    
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        Provides a Python binding to the
+        <link linkend='daq3_cstateclientapi',
+              endterm='daq3_cstateclientapi_title' />
+        class.  The binding is a close mapping to the C++ class.
+        You create an API object bound to a variable database server and
+        program and then call methods on it to manipulate the underlying API.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                api = nscldaq.vardb.stateclient.Api(reqUri, subUri, program)
+            </term>
+            <listitem>
+                <para>
+                    Creates a new API object. <parameter>reqUri</parameter>
+                    is the URI of a variable database server's REQ port while
+                    <parameter>subUri</parameter> is the URI to its SUB
+                    port.  <parameter>program</parameter> is
+                    the name of a program registered
+                    with the state transition system and is the program this
+                    script will identified as.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                api.getstate()
+            </term>
+            <listitem>
+                <para>
+                    Gets the current state.  If the program is in standalone
+                    mode, this will be the local state otherwise it is the
+                    global state.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                api.setstate(newstate)
+            </term>
+            <listitem>
+                <para>
+                    Set the program's state to <parameter>newstate</parameter>.
+                    Naturally this must be an allowed next state for the current
+                    state.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                api.isenabled()
+            </term>
+            <listitem>
+                <para>
+                    Returns <literal>True</literal> if the program's enable
+                    flag is set otherwise returns <literal>False</literal>
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                api.isstandalone()
+            </term>
+            <listitem>
+                <para>
+                    Returns <literal>True</literal> if the program's
+                    standalone flag is set, otherwise returns <literal>False</literal>.
+                    Standalone programs should not participate in global
+                    state transitions but, instead, take their state transitions
+                    from their local state variable.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                api.gettitle()
+            </term>
+            <listitem>
+                <para>
+                    Returns the run title string.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                api.runnumber()
+            </term>
+            <listitem>
+                <para>
+                    Returns the run number.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                api.recording()
+            </term>
+            <listitem>
+                <para>
+                    Returns <literal>True</literal> if the recording flag
+                    is turned on else <literal>False</literal>.  Data
+                    logging programs use this to determine if a data
+                    taking run should be recorded.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                api.outring()
+            </term>
+            <listitem>
+                <para>
+                    Returns the name (not URI) of the output ring
+                    associated with the program.  If no output ring
+                    is associated with the program this will return an
+                    empty string.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                api.inring()
+            </term>
+            <listitem>
+                <para>
+                    Returns the URI of the input ring associated with the
+                    program.  If no input ring is associated, this will return
+                    an empty string.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                resultDict = api.waitTransition(timeout=-1)        
+            </term>
+            <listitem>
+                <para>
+                    Waits for at most <parameter>timeout</parameter>
+                    milliseconds for a state change. The default
+                    value for <parameter>timeout</parameter>, <literal>-1</literal>
+                    waits until there is a state change.
+                </para>
+                <para>
+                    The return value is a dict with the following keys:
+                </para>
+                <itemizedlist>
+                    <listitem><para>
+                        <literal>changed</literal> - a Boolean
+                        that is <literal>True</literal> if a state change
+                        occured prior to the timeout or
+                        <literal>False</literal> if the call timed out.
+                    </para></listitem>
+                    <listitem><para>
+                        <literal>state</literal>, only present if
+                        <literal>changed</literal> is <literal>True</literal>.
+                        In that case, this key holds the new state string.
+                    </para></listitem>
+                </itemizedlist>
+            </listitem>
+        </varlistentry>
+        
+                
+                
+                
+     </variablelist>
+  </refsect1>
+   <refsect1>
+      <title>PUBLIC VARIABLES, TYPES and CONSTANTS</title>
+      <variablelist>
+      </variablelist>
+   </refsect1>
+</refentry>     
+
+<!-- /manpage -->

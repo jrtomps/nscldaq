@@ -30,6 +30,7 @@
 #include <stdio.h>
 
 
+
 /**
  * constructor
  *
@@ -321,6 +322,7 @@ CTCLStateClientInstanceCommand::stateChangeHandler(Tcl_Event* pEvent, int flags)
     if (pE->u_fullEvent.s_pRegistry->isViable(pE->u_fullEvent.s_pObject)) {
     
         std::string newState(pE->u_fullEvent.s_newState);
+        
         CTCLStateClientInstanceCommand* pObject = pE->u_fullEvent.s_pObject;
         
         // If there is a handler, construct the script:
@@ -330,14 +332,21 @@ CTCLStateClientInstanceCommand::stateChangeHandler(Tcl_Event* pEvent, int flags)
             script += " ";
             script += newState;
             CTCLInterpreter* pInterp = pObject->getInterpreter();
-            pInterp->GlobalEval(script);
+            try {
+                pInterp->GlobalEval(script);
+            }
+            catch (CException& e) {
+                std::string msg = "statchange handler failed: ";
+                msg            += e.ReasonText();
+                pInterp->setResult(msg);
+                Tcl_BackgroundError(pInterp->getInterpreter());
+            }
         }
     }
     
     // Free storage before I forget:
     
     Tcl_Free(pE->u_fullEvent.s_newState);
-    
     return 1;
 }
 
@@ -384,26 +393,27 @@ CTCLStateClientInstanceCommand::MessagePump::operator()()
 {
     while(! m_exit) {
         std::string newState;
-        m_pClient->waitTransition(newState,  250);
-        
-        // If our outer object is interested:
-        // Create the event structure and fill it in:
-        
-        if (m_pOuterObject->m_stateChangeScript != "") {
-            pUEvent pEvent = reinterpret_cast<pUEvent>(Tcl_Alloc(sizeof(UEvent)));
+        if (m_pClient->waitTransition(newState,  250)) {
+
+            // If our outer object is interested:
+            // Create the event structure and fill it in:
             
-            pEvent->u_fullEvent.s_pObject = m_pOuterObject;
-            pEvent->u_fullEvent.s_pRegistry = m_pRegistry;
-            pEvent->u_fullEvent.s_newState = Tcl_Alloc(newState.size() +1);
-            strcpy(pEvent->u_fullEvent.s_newState, newState.c_str());
-            
-            
-            pEvent->u_baseEvent.proc =
-                CTCLStateClientInstanceCommand::stateChangeHandler;
-            
-            
-            Tcl_ThreadQueueEvent(m_parent, &(pEvent->u_baseEvent),TCL_QUEUE_TAIL);
-            Tcl_ThreadAlert(m_parent);
+            if (m_pOuterObject->m_stateChangeScript != "") {
+                pUEvent pEvent = reinterpret_cast<pUEvent>(Tcl_Alloc(sizeof(UEvent)));
+                
+                pEvent->u_fullEvent.s_pObject = m_pOuterObject;
+                pEvent->u_fullEvent.s_pRegistry = m_pRegistry;
+                pEvent->u_fullEvent.s_newState = Tcl_Alloc(newState.size() +1);
+                strcpy(pEvent->u_fullEvent.s_newState, newState.c_str());
+                
+                
+                pEvent->u_baseEvent.proc =
+                    CTCLStateClientInstanceCommand::stateChangeHandler;
+                
+                
+                Tcl_ThreadQueueEvent(m_parent, &(pEvent->u_baseEvent),TCL_QUEUE_TAIL);
+                Tcl_ThreadAlert(m_parent);
+            }
         }
     }
 }

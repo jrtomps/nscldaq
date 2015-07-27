@@ -79,10 +79,6 @@ public:
         std::string s_host;
         std::string s_outRing;
         std::string s_inRing;
-        
-        
-        
-        
     } ProgramDefinition, *pProgramDefinition;
     
     typedef void (*TransitionCallback)(
@@ -124,7 +120,7 @@ public:
     std::vector<std::pair<std::string, std::string> > getParticipantStates();
     
     std::string title();
-    void title(const char*);
+    void title(const char* newTitle);
     
     unsigned timeout();
     void timeout(unsigned newValue);
@@ -146,7 +142,7 @@ public:
     
     bool isActive(const char* name);
     void setProgramState(const char* name, const char* state);
-    std::string getProgramState(const char*);
+    std::string getProgramState(const char* name);
     
     // Utilities:
 private:    

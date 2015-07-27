@@ -1,0 +1,3156 @@
+<!-- chapter libraries -->
+<chapter>
+    <title>
+        State Manager API.
+    </title>
+    <para>
+        State manager programs are those that force global state transitions.
+        This chapter provides:
+    </para>
+    <itemizedlist>
+        <listitem><para>
+            Background information about state manager programs and what they
+            can do.
+        </para></listitem>
+        <listitem><para>
+            A small sample state manager program.
+        </para></listitem>
+    </itemizedlist>
+    <para>
+        Reference information is available:
+    </para>
+    <variablelist>
+        <varlistentry>
+            <term>
+                <link linkend='daq3_cstatemanager'
+                      endterm='daq3_cstatemanager_title' />
+            </term>
+            <listitem>
+                <para>
+                    The C++ <classname>CStateManager</classname> class
+                    which makes up the API.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <link linkend='tcl3_statemanager'
+                      endterm='tcl3_statemanager_title' />
+            </term>
+            <listitem>
+                <para>
+                    Documents the Tcl bindings to the
+                    <classname>CStateManager</classname> class.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <link linkend='python3_statemanager'
+                      endterm='python3_statemanager_title' />
+            </term>
+            <listitem>
+                <para>
+                    Documents the pyhon bindings to the
+                    <classname>CStateManager</classname>
+                    class.
+                </para>
+            </listitem>
+        </varlistentry>
+        
+    </variablelist>
+    <para>
+        The C++ header that defines the state manager API is
+        <filename>&lt;CStateManager.h&gt;</filename>.
+        The library you must link to is
+        <filename>$DAQLIB/libstateclient</filename>.
+    </para>
+    <section>
+        <title>State managers and what they can do</title>
+        <para>
+            State managers can perform the following functions:
+        </para>
+        <itemizedlist>
+            <listitem><para>
+                The can create/delete and edit the definition of programs
+                known to the state management system.
+            </para></listitem>
+            <listitem><para>
+                They can enable, disable programs.
+            </para></listitem>
+            <listitem><para>
+                They can set or clear program standalong flags.
+            </para></listitem>
+            <listitem><para>
+                They can set run global parameters.
+            </para></listitem>
+            <listitem><para>
+                Most importantly, they can initiate global or program
+                state transitions and, in the case of global transitions,
+                know when and if they have succeeded.
+            </para></listitem>
+        </itemizedlist>
+        <para>
+            State manager programs play a central role in defining and running
+            the experiment.            
+        </para>
+        <para>
+            During program definition and setup,
+            the program/dataflow editor defines state
+            sensitive programs and links them together by means of ring
+            buffers. 
+        </para>
+        <para>
+            During setup the program manager can select the set of programs
+            that actually participate in global state transitions.  The
+            program manager can also select programs that run in stand-alone
+            mode for debuggin/testing and development.
+        </para>
+        <para>
+            The Run control panel, together with the boot manager
+            initiate global and local state transitions.  The boot manager
+            ensures that the right set of programs are running while
+            the run control panel performs state changes, displays the
+            local and global states and ensures that global state
+            transitions have correctly completed.
+        </para>
+    </section>
+    <section>
+        <title>A Sample state manager program</title>
+        <para>
+            This simple sample program starts a run, first incrementing
+            the run number and setting the title to <literal>This is a test title</literal>.
+        </para>
+        <para>
+            The remainder of this section shows sample code fragments that:
+        </para>
+        <itemizedlist>
+            <listitem>
+                <para>
+                    Create a new <classname>CStateManager</classname>
+                    object.
+                </para>
+            </listitem>
+            <listitem><para>
+                Begin the run.
+            </para></listitem>
+            <listitem><para>
+                Ensure the run  starts correctly while outputting messages
+                that track the participant state transitions.
+            </para></listitem>
+        </itemizedlist>
+        <section>
+            <title>Creating the CStateManager object.</title>
+            <para>
+                In writing this code we are going to assume the state manager
+                program is run with environment variables:
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term>VARMGR_REQ</term>
+                    <listitem>
+                        <para>
+                            The URI of the variable database
+                            server's REQ port.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>VARMGR_SUB</term>
+                    <listitem>
+                        <para>
+                            The URI of the variable database server's SUB port.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                
+            </variablelist>
+            <example>
+                <title>Createing a CStateManager Object</title>
+                <programlisting>
+#include &lt;stdlib.h&gt;
+#include &lt;CStateManager.h&gt;                      <co id='make_statemgr_hdr' />
+
+CStateManager*
+makeStateManager()
+{
+   const char* reqUri = getenv("VARMGR_REQ");        <co id='make_statmgr_getenv' />
+   const char* subUri = getenv("VARMGR_SUB");
+   
+   return new CStateManager(reqUri, subUri);         <co id='make_statemgr_new' />
+}
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs='make_statemgr_hdr'>
+                    <para>
+                        To use the <classname>CStateManager</classname> within
+                        a program unit, the <filename>CStateManager.h</filename>
+                        header must be included.  This file defines the
+                        class sufficiently for the compiler.
+                    </para>
+                </callout>
+                <callout arearefs='make_statmgr_getenv'>
+                    <para>
+                        Translate the environment variables.  This is not
+                        production quality code.  The code should protect
+                        itself against return values of
+                        <literal>NULL</literal>, which indicate the
+                        environament variable was not defined.
+                        Error handling was removed for clarity.
+                    </para>
+                </callout>
+                <callout arearefs='make_statemgr_new'>
+                    <para>
+                        Create and return a new state manager object.
+                    </para>
+                </callout>
+            </calloutlist>
+        </section>
+        <section>
+            <title>Starting the run.</title>
+            <para>
+                The sample code in this section:
+            </para>
+            <itemizedlist>
+                <listitem><para>
+                    Sets a new run title.
+                </para></listitem>
+                <listitem><para>
+                    Increments the run number.
+                </para></listitem>
+                <listitem><para>
+                    Initiates a state change to start taking data.
+                </para></listitem>
+            </itemizedlist>
+            <para>
+                Note that no effort is made to ensure that the
+                system is in a state where data taking can be started.
+                If the global state is not compatible with a transition
+                to the <literal>Beginning</literal> state the
+                function below will propagate an exception.
+            </para>
+            <example>
+                <title>
+                    Starting a run.
+                </title>
+                <programlisting>
+#include &lt;CStateManager.h&gt;
+
+void
+startRun(CStateManager* pStateManager, const char* title) <co id='sm_begrun_sig' />
+{
+    pStateManager->title(title);                          <co id='sm_begrun_title' />
+    pStateManager->runNumber(runNumber() + 1);            <co id='sm_begrun_incrun' />
+    
+    pStateManager->setGlobalState("Beginning");           <co id='sm_begrun_beg' />
+}
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs='sm_begrun_sig'>
+                    <para>
+                        The first functino parameter is a pointer to the
+                        <classname>CStateManager</classname> object
+                        we created in the previous section. The second parameter
+                        is a new title string.
+                    </para>
+                </callout>
+                <callout arearefs='sm_begrun_title'>
+                    <para>
+                        Sets the new title string.
+                    </para>
+                </callout>
+                <callout arearefs='sm_begrun_incrun' >
+                    <para>
+                        Increments the run number.
+                    </para>
+                </callout>
+                <callout arearefs='sm_begrun_beg'>
+                    <para>
+                        The <literal>Begining</literal> state indicates
+                        to all participants that they must start a
+                        data taking run.  The full description of
+                        what participants must do and the tracking
+                        of the start of the run is shown in the next
+                        section.
+                    </para>
+                </callout>
+            </calloutlist>
+        </section>
+        <section>
+            <title>Tracking the state transition</title>
+            <para>
+                In the previous section, we had made a global state
+                transtion to <literal>Beginning</literal>.  In response
+                to this transition, participants are expected to:
+            </para>
+            <orderedlist>
+                <listitem><para>
+                    Make a local transition to <literal>Beginning</literal>.
+                </para></listitem>
+                <listitem><para>
+                    Perform all initialization required to begin data
+                    taking.
+                </para></listitem>
+                <listitem><para>
+                    Make a local state transition to <literal>Active</literal>.
+                </para></listitem>
+                <listitem><para>
+                    When the global state transitions to <literal>Active</literal>,
+                    programs are supposed to start taking data.
+                </para></listitem>
+            </orderedlist>
+            <para>
+                If at any point in this process, a participant program
+                encounters an error it cannot recover from, it must
+                set its state to <literal>NotReady</literal> and exit.
+                This will result in a global state transition to
+                <literal>NotReady</literal> which, in turn, will eventually
+                cause all participants to go <literal>NotReady</literal>
+                and exit.
+            </para>
+            <example>
+                <title>Tracking the state changes to start a run</title>
+                <programlisting>
+#include &lt;CStateManager.h&gt;
+#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+void reportTransition(                      <co id='sm_mon_cbsig' />
+    CStateManager&amp; mgr, std::string program, std::string state,
+    void* cd
+)
+{
+    std::cout &lt;&lt; program &lt;&lt; " transitioned to  " 
+        &lt;&lt; state &lt;&lt; std::endl; 
+}
+
+void monitorTransition(CStateManager* pMgr)
+{
+    try {
+        pMgr->waitTransition(reportTransition, NULL);   <co id='sm_mon_mon' />
+    }
+    catch (std::exception&amp; e) {                    <co id='sm_mon_fail' />
+        std::cerr &lt;&lt; " Transition failed: " &lt;&lt; e.what() &lt;&lt; std::endl;
+    }
+}
+
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout  arearefs='sm_mon_mon'>
+                    <para>
+                        <methodname>waitTransition</methodname> waits for
+                        a transition to complete, time out or fail.  Transitions
+                        timeout when the state manager is table for longer than
+                        the number of seconds in
+                        <filename>/RunState/Timeout</filename>.
+                        Transitions fail if one or more participants declare
+                        themselves as <literal>NotReady</literal>
+                    </para>
+                    <para>
+                        <methodname>waitTransition</methodname> can call a callback
+                        function every time a participant reports a state change.
+                        In this case we've specified <function>reportTransition</function>
+                        as our callback.
+                    </para>
+                </callout>
+                <callout arearefs='sm_mon_cbsig'>
+                    <para>
+                        Our state transition callback will just output
+                        the program and its new state so that our
+                        users can see the progress of that transition.
+                    </para>
+                </callout>
+                <callout arearefs='sm_mon_fail'>
+                    <para>
+                        A failed or timed out transition throws an exception
+                        which is caught and reported here.
+                    </para>
+                </callout>
+            </calloutlist>
+            
+        </section>
+    </section>
+</chapter>
+<!-- /chapter -->
+
+<!-- manpage 3daq -->
+
+<refentry id="daq3_cstatemanager">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='daq3_cstatemanager_title'>CStateManager</refentrytitle>
+     <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>CStateManager</refname>
+     <refpurpose>API for state manager programs.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+#include &lt;CStateManager&gt;
+       class <ooclass><classname>CStateManager</classname></ooclass>
+{
+    typedef struct _ProgramDefinition {
+        bool        s_enabled;
+        bool        s_standalone;
+        std::string s_path;
+        std::string s_host;
+        std::string s_outRing;
+        std::string s_inRing;
+    } ProgramDefinition, *pProgramDefinition;
+
+   typedef void (*TransitionCallback)(
+        CStateManager&amp; mgr, std::string program, std::string state, void* cd
+    );
+    typedef void (*BacklogCallback)(
+        CStateManager&amp; mgr, CStateTransitionMonitor::Notification Notification,
+        void* cd
+    );
+    <constructorsynopsis>
+       <methodname>CStateManager</methodname>
+       <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>requestUri</parameter>
+       </methodparam>
+       <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>subscriptionUri</parameter>
+       </methodparam>
+       
+    </constructorsynopsis>    
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>std::string       </type>
+        <methodname>getProgramParentDir</methodname>
+        <void />
+        <modifier></modifier>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void </type>
+        <methodname>setProgramParentDir</methodname>
+        <methodparam>
+            <modifier>const</modifier><type>char* </type>
+                <parameter>path</parameter>
+        </methodparam>
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void  </type>
+        <methodname>addProgram</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier>const </modifier><type>pProgramDefinition </type>
+                <parameter>def</parameter>
+        </methodparam>
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>ProgramDefinition </type>
+        <methodname>getProgramDefinition</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>name</parameter>
+        </methodparam>
+        
+        <modifier></modifier>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void </type>
+        <methodname>modifyProgram(</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier>const </modifier><type>pProgramDefinition </type>
+                <parameter>def</parameter>
+        </methodparam>
+        
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void  </type>
+        <methodname>enableProgram</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>name</parameter>
+        </methodparam>
+        
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void  </type>
+        <methodname>disableProgram</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char*</type>
+                <parameter>char* name</parameter>
+        </methodparam>
+        
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>bool  </type>
+        <methodname>isProgramEnabled</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>name</parameter>
+        </methodparam>
+        
+        <modifier></modifier>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void  </type>
+        <methodname>setProgramStandalone</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>name</parameter>
+        </methodparam>
+        
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void  </type>
+        <methodname>setProgramNoStandalone</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>name</parameter>
+        </methodparam>
+        
+        <modifier></modifier>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>bool   </type>
+        <methodname>isProgramStandalone</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char*</type>
+                <parameter> name</parameter>
+        </methodparam>
+        
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>std::vector&lt;std::string&gt; </type>
+        <methodname>listPrograms</methodname>
+        <void />
+        <modifier></modifier>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>std::vector&lt;std::string&gt; </type>
+        <methodname>listEnabledPrograms</methodname>
+        <void />
+        <modifier></modifier>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>std::vector&lt;std::string&gt; </type>
+        <methodname>listStandalonePrograms</methodname>
+        <void />
+        <modifier></modifier>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>std::vector&lt;std::string&gt; </type>
+        <methodname>listInactivePrograms</methodname>
+        <void />
+        <modifier></modifier>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>std::vector&lt;std::string&gt; </type>
+        <methodname>listActivePrograms</methodname>
+        <void />
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void  </type>
+        <methodname>deleteProgram</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>name</parameter>
+        </methodparam>
+        
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void </type>
+        <methodname>setGlobalState</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>newState</parameter>
+        </methodparam>
+        
+        <modifier></modifier>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>std::string </type>
+        <methodname>getGlobalState</methodname>
+        <void />
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>std::vector&lt;std::pair&lt;std::string, std::string&gt; &gt; </type>
+        <methodname>getParticipantStates</methodname>
+        <void />
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>std::string </type>
+        <methodname>title</methodname>
+        <void />
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void </type>
+        <methodname>title</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char*</type>
+                <parameter>newTitle</parameter>
+        </methodparam>
+        
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>unsigned </type>
+        <methodname>timeout</methodname>
+        <void />
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void </type>
+        <methodname>timeout</methodname>
+        <methodparam>
+            <modifier></modifier><type>unsigned</type>
+                <parameter> newValue</parameter>
+        </methodparam>
+        
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>bool </type>
+        <methodname>recording</methodname>
+        <void />
+        <modifier></modifier>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>bool </type>
+        <methodname>recording</methodname>
+        <methodparam>
+            <modifier></modifier><type>bool</type>
+                <parameter>state</parameter>
+        </methodparam>
+        
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void </type>
+        <methodname>runNumber</methodname>
+        <methodparam>
+            <modifier></modifier><type>unsigned </type>
+                <parameter>newValue</parameter>
+        </methodparam>
+        
+        <modifier></modifier>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void </type>
+        <methodname>runNumber</methodname>
+        <void />
+        
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void </type>
+        <methodname>waitTransition</methodname>
+        <methodparam>
+            <modifier></modifier><type>TransitionCallback </type>
+                <parameter>cb </parameter><initializer>0</initializer>
+        </methodparam>
+        <methodparam>
+            <modifier></modifier><type>void* </type>
+                <parameter>clientData</parameter><initializer>0</initializer>
+        </methodparam>
+        
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void </type>
+        <methodname>processMessages</methodname>
+        <methodparam>
+            <modifier></modifier><type>BacklogCallback</type>
+                <parameter> cb</parameter><initializer>0</initializer>
+        </methodparam>
+        <methodparam>
+            <modifier></modifier><type>void* </type>
+                <parameter>clientData </parameter><initializer>0</initializer>
+        </methodparam>
+        
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>bool </type>
+        <methodname>isActive</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>name</parameter>
+        </methodparam>
+        
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void </type>
+        <methodname>setProgramState</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>state</parameter>
+        </methodparam>
+        
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>std::string </type>
+        <methodname>getProgramState</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char*</type>
+                <parameter>name</parameter>
+        </methodparam>
+        
+        <modifier></modifier>
+    </methodsynopsis>  
+    
+};
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        <classname>CSateManager</classname> provides an API to the state
+        management part of the variable database.  Since it requires
+        notifications of changes to that part of the database, this class
+        is meant to be used with a variable database server.
+     </para>
+     <para>
+        The class addresses the following needs:
+     </para>
+     <itemizedlist>
+        <listitem><para>
+            Need to define, re-define, list and delete programs.
+        </para></listitem>
+        <listitem><para>
+            Need to modify the enable and standalone flags for programs.
+        </para></listitem>
+        <listitem><para>
+            Need to initiate and monitor global state transitions as well
+            as initiating local state transitions for standalone programs.
+        </para></listitem>
+        <listitem><para>
+            Need to process notification messages that can occur when state
+            transitions are not in progress (e.g. program failures to
+            <literal>NotReady</literal>).
+        </para></listitem>
+     </itemizedlist>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <constructorsynopsis>
+                   <methodname>CStateManager</methodname>
+                   <methodparam>
+                    <modifier>const </modifier><type>char* </type>
+                        <parameter>requestUri</parameter>
+                   </methodparam>
+                   <methodparam>
+                    <modifier>const </modifier><type>char* </type>
+                        <parameter>subscriptionUri</parameter>
+                   </methodparam>
+                   
+                </constructorsynopsis>    
+            </term>
+            <listitem>
+                <para>
+                    The constructor requires
+                    <parameter>requestUri</parameter>, the URI for the
+                    request (REQ) port of a database server that is serving the
+                    variable database whose state management system
+                    we're going to manipulate.  It also requires
+                    <parameter>subscriptinoUri</parameter> the URI
+                    for the same server's subscription (SUB) port.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>std::string       </type>
+                    <methodname>getProgramParentDir</methodname>
+                    <void />
+                    <modifier></modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Programs that are state aware are registered
+                    with the state management system via variables in
+                    directories that are children of a specific parent.
+                    This method returns the path to that parent
+                    directory.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>setProgramParentDir</methodname>
+                    <methodparam>
+                        <modifier>const</modifier><type>char* </type>
+                            <parameter>path</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    See <methodname>getProgramParentDir</methodname>,
+                    this sets the parent directory for the state aware
+                    program registry.  Note that use of ths allows several
+                    data acquisition system configuration to co-exist in
+                    the same database.   
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void  </type>
+                    <methodname>addProgram</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier>const </modifier><type>pProgramDefinition </type>
+                            <parameter>def</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Adds a new program to the state aware program registry.
+                    The registry used is the one pointed to by the
+                    curretn program parent directory.  <parameter>name</parameter>
+                    is the name of the program and must be unique within that
+                    registry.  <parameter>def</parameter> points to the
+                    program definitions.  See
+                    <literal>PUBLIC VARIABLES, TYPES and CONSTANTS</literal>
+                    below for a description of the
+                    <type>ProgramDefinition</type>
+                    struct which <type>pProgramDefinition</type> points to
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>ProgramDefinition </type>
+                    <methodname>getProgramDefinition</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    
+                    <modifier></modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Returns the definition of a specified program
+                    given its <parameter>name</parameter>.
+                    See
+                    <literal>PUBLIC VARIABLES, TYPES and CONSTANTS</literal>
+                    for a description of the <type>ProgramDefinition</type>
+                    struct.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>modifyProgram(</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier>const </modifier><type>pProgramDefinition </type>
+                            <parameter>def</parameter>
+                    </methodparam>
+                    
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Modifies the definition of a specific program.
+                    Normally this is used by first
+                    invoking <methodname>getProgramDefinition</methodname>
+                    both to ensure the program exists and to get it current
+                    definition. The desired fields are then  modified
+                    and passed to <parameter>modifyProgram</parameter>.
+                </para>
+                <para>
+                    <parameter>name</parameter> is the name of the program
+                    to modify.  This must exist in the current program registry.
+                    <parameter>def</parameter> is a
+                    <type>ProgramDefinition</type> pointer that points to the
+                    new description of that program.
+                    See <literal>PUBLIC VARIABLES, TYPES and CONSTANTS</literal>
+                    for a description of the <type>ProgramDefinition</type>
+                    struct.
+                </para> 
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void  </type>
+                    <methodname>enableProgram</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Enables the program <parameter>name</parameter>.
+                    Enabled non-standalone programs participate in
+                    global state transitions.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void  </type>
+                    <methodname>disableProgram</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char*</type>
+                            <parameter>char* name</parameter>
+                    </methodparam>
+                    
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Disables the program specified by <parameter>name</parameter>.
+                    Disabled programs do not take part in state transitions.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>bool  </type>
+                    <methodname>isProgramEnabled</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    
+                    <modifier></modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Returns <literal>true</literal> if the program
+                    <parameter>name</parameter> is enabled or
+                    <literal>false</literal> otherwise.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void  </type>
+                    <methodname>setProgramStandalone</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Sets a program selected by
+                    <parameter>name</parameter> into standalone mode.
+                    Standalone programs perform state transitions when
+                    directed by their local state rather than the global
+                    state.  This allows them to operate independently of the
+                    system as a whole during development, testing and setup.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void  </type>
+                    <methodname>setProgramNoStandalone</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    
+                    <modifier></modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Turn off the program <parameter>name</parameter>'s
+                    standalone flag. with the standalone flag turned off,
+                    the program, if enabled, will participate in global
+                    state transitons.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>bool   </type>
+                    <methodname>isProgramStandalone</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char*</type>
+                            <parameter> name</parameter>
+                    </methodparam>
+                    
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns <literal>true</literal> if the program
+                    <parameter>name</parameter>'s standalone flag
+                    is set.  If not, returns <literal>false</literal>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>std::vector&lt;std::string&gt; </type>
+                    <methodname>listPrograms</methodname>
+                    <void />
+                    <modifier></modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Returns a vector that contains the name of all
+                    programs that are defined in the current state
+                    aware programs registry.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>std::vector&lt;std::string&gt; </type>
+                    <methodname>listEnabledPrograms</methodname>
+                    <void />
+                    <modifier></modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Returns a vector that contains the nanmes of all
+                    programs that have their enable flag set to
+                    <literal>true</literal>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>std::vector&lt;std::string&gt; </type>
+                    <methodname>listStandalonePrograms</methodname>
+                    <void />
+                    <modifier></modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Returns a vector that contains the names of all
+                    programs that have their standalone flags
+                    set to <literal>true</literal>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>std::vector&lt;std::string&gt; </type>
+                    <methodname>listInactivePrograms</methodname>
+                    <void />
+                    <modifier></modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    An inactive program is one that is either
+                    not enabled or has its standalone flag true.
+                    This method returns a vector containing the
+                    names of all inactive programs.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>std::vector&lt;std::string&gt; </type>
+                    <methodname>listActivePrograms</methodname>
+                    <void />
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns a vector containing the names of all
+                    programs that are not inactive (see
+                    <methodname>listInactivePrograms</methodname>), that is
+                    all programs that are active.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void  </type>
+                    <methodname>deleteProgram</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Deletes the program <parameter>name</parameter>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>setGlobalState</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>newState</parameter>
+                    </methodparam>
+                    
+                    <modifier></modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Sets the global state to <parameter>newState</parameter>.
+                    In general this initiates a state transition.  All
+                    participating (active) programs will perform a set of
+                    operations that, if successful will bring them and the
+                    global state into the next steady state.
+                </para>
+                <para>
+                    See <methodname>waitStateTransition</methodname> for information
+                    on how to monitor the global state transition and know if
+                    it succeeded, timed out or failed.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>std::string </type>
+                    <methodname>getGlobalState</methodname>
+                    <void />
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns the current global state name.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>std::vector&lt;std::pair&lt;std::string, std::string&gt; &gt; </type>
+                    <methodname>getParticipantStates</methodname>
+                    <void />
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    For each active program returns a pair containing in order the
+                    program's name and its local state.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>std::string </type>
+                    <methodname>title</methodname>
+                    <void />
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns the current title string.  This string is global
+                    data that active programs can associate with data taking
+                    runs.  The use of this string is entirely up to the program.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>title</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char*</type>
+                            <parameter>newTitle</parameter>
+                    </methodparam>
+                    
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Changes the global title string.  This should normally
+                    only be done when the system is not in the middle
+                    of a data taking run.  This includes the states:
+                    <literal>0Initial</literal>, <literal>NotReady</literal>
+                    <literal>Readying</literal>, and <literal>Ready</literal>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>unsigned </type>
+                    <methodname>timeout</methodname>
+                    <void />
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Global state transitions must settle to the
+                    proper final state within a timeout.  This
+                    method returns the number of seconds in that timeout.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>timeout</methodname>
+                    <methodparam>
+                        <modifier></modifier><type>unsigned</type>
+                            <parameter> newValue</parameter>
+                    </methodparam>
+                    
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Sets the new state transition timeout to
+                    <parameter>newValue</parameter> seconds.  This
+                    must be a number that is at least <literal>1</literal>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>bool </type>
+                    <methodname>recording</methodname>
+                    <void />
+                    <modifier></modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Returns the state of the global recording flag.  Participant
+                    programs that are data loggers can use this to determine
+                    whether or not to record data from a run.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>bool </type>
+                    <methodname>recording</methodname>
+                    <methodparam>
+                        <modifier></modifier><type>bool</type>
+                            <parameter>state</parameter>
+                    </methodparam>
+                    
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Sets the new state of the global recording flag.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>runNumber</methodname>
+                    <methodparam>
+                        <modifier></modifier><type>unsigned </type>
+                            <parameter>newValue</parameter>
+                    </methodparam>
+                    
+                    <modifier></modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Modifies the value of the global run number. The run number
+                    is an integer that participant programs can associate with
+                    a data taking run.  The new run number, which must be
+                    a positive integer is <parameter>newValue</parameter>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>runNumber</methodname>
+                    <void />
+                    
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns the current value of the global run number.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>waitTransition</methodname>
+                    <methodparam>
+                        <modifier></modifier><type>TransitionCallback </type>
+                            <parameter>cb </parameter><initializer>0</initializer>
+                    </methodparam>
+                    <methodparam>
+                        <modifier></modifier><type>void* </type>
+                            <parameter>clientData</parameter><initializer>0</initializer>
+                    </methodparam>
+                    
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Waits for a state transition to either complete, time
+                    out or fail.  If <parameter>cb</parameter> is supplied
+                    and non null, it must be a function pointer. The
+                    function is invoked for each program state transition.
+                    The <parameter>clientData</parameter> parameter is
+                    passed to that callback without interpretation.
+                </para>
+                <para>
+                    See <literal>PUBLIC VARIABLES, TYPES and CONSTANTS</literal>
+                    for a description of the <type>TransitionCallback</type>
+                    function type and how it is called.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>processMessages</methodname>
+                    <methodparam>
+                        <modifier></modifier><type>BacklogCallback</type>
+                            <parameter> cb</parameter><initializer>0</initializer>
+                    </methodparam>
+                    <methodparam>
+                        <modifier></modifier><type>void* </type>
+                            <parameter>clientData </parameter><initializer>0</initializer>
+                    </methodparam>
+                    
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Each state manager has a thread that is responsible
+                    for processing subscription messages into a queue.
+                    These messages, among other things, inform the program
+                    of state transitions.
+                </para>
+                <para>
+                    When called, this method processes all messages in the
+                    message queue backlog.  If a <parameter>cb</parameter>
+                    is supplied it is called for each message.
+                    See <literal>PUBLIC VARIABLES, TYPES and CONSTANTS</literal>
+                    for a description of the <type>BacklogCallback</type> function
+                    pointer data type and how those functions are called.
+                    The <parameter>clientData</parameter> parameter is
+                    passed to the callback without any interpretation.
+                </para>
+                <para>
+                    It is important to call this from time to time to ensure
+                    that the message queue does not expand without bound.
+                    If your application is interested in knowing about
+                    programs joining, leaving or failing supplying the
+                    <parameter>cb</parameter> parameter makes that possible.   
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>bool </type>
+                    <methodname>isActive</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    If the program <parameter>name</parameter> is active
+                    this method returns <literal>true</literal> otherwise
+                    it returns <literal>false</literal>,
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>setProgramState</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>state</parameter>
+                    </methodparam>
+                    
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Used to set the state of a specific program. This is
+                    normally used when either the program is standalone,
+                    to drive it, or if it was detected that the program
+                    exited without setting its state to <literal>NotReady</literal>.
+                </para>
+                <para>
+                    <parameter>name</parameter> is the name of the program and
+                    <parameter>state</parameter> is the desired new state.
+                    Naturally the legal values for <parameter>state</parameter>
+                    are constrained by the legal state transitions from the
+                    program's current state.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>std::string </type>
+                    <methodname>getProgramState</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char*</type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns the current local state of the program
+                    <parameter>name</parameter>
+                </para>
+            </listitem>
+        </varlistentry>
+     </variablelist>
+  </refsect1>
+   <refsect1>
+      <title>PUBLIC VARIABLES, TYPES and CONSTANTS</title>
+        <para>
+            The <classname>CStateManager</classname> defines
+            three types.  Two of these are callback function
+            prototypes, the last is a structure definition that
+            describes a program.
+        </para>
+        <refsect2>
+            <title>TransitionCallback</title>
+            <para>
+                This function prototype specifies the call signature
+                of functions called back from the
+                <methodname>waitTransition</methodname> method.
+                The callback function must be of type <type>void</type>
+                and takes parameters in the following order:
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><type>CStateManager&amp;</type> <parameter>mgr</parameter></term>
+                    <listitem>
+                        <para>
+                            Reference to the state manager that is doing
+                            the callback.  This allows the callaback to
+                            access the featurs and services of that
+                            state manager.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><type>std::string</type> <parameter>program</parameter></term>
+                    <listitem>
+                        <para>
+                            The name of the program that has just taken
+                            a local state transition.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><type>std::string</type> <parameter>state</parameter></term>
+                    <listitem>
+                        <para>
+                            That program's new state.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><type>void*</type> <parameter>cd</parameter></term>
+                    <listitem>
+                        <para>
+                            The callback data parameter passed to
+                            <methodname>waitTransition</methodname>.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                
+            </variablelist>
+        </refsect2>
+        <refsect2>
+            <title>BacklogCallback</title>
+            <para>
+                This function prototype represents functions that can be
+                called back from <methodname>processMessages</methodname>.
+                This function is of type <type>void</type> and has, in order,
+                the following parameters:
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><type>CStateManager&amp;</type> <parameter>mgr</parameter></term>
+                    <listitem>
+                        <para>
+                            The <classname>CStateManager</classname> that is
+                            performing this callback.  This allows the called
+                            function to make use of the services of this class.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><type>CStateTransitionMonitor::Notification</type> <parameter>not</parameter></term>
+                    <listitem>
+                        <para>
+                            The notification structure that describes the message
+                            that is being processed. See
+                            <link linkend='daq3_cstatetransitionmonitor'
+                                  endterm='daq3_cstatetransitionmonitor_title'
+                                  />
+                            for more information about this struct.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><type>void*</type> <parameter>cd</parameter></term>
+                    <listitem>
+                        <para>
+                            Callback data passed to
+                            <methodname>processMessages</methodname>.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                
+            </variablelist>
+        </refsect2>
+        <refsect2>
+            <title>ProgramDefinition</title>
+            <para>
+                This data type is a struct that defines a program.
+                It has the following fields:
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><type>bool</type> <structfield>s_enabled</structfield></term>
+                    <listitem>
+                        <para>
+                            This is true if the program is enabled.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><type>bool</type> <structfield>s_standalone</structfield></term>
+                    <listitem>
+                        <para>
+                            This should be true if the program runs in standalone
+                            mode.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><type>std::string</type> <structfield>s_path</structfield></term>
+                    <listitem>
+                        <para>
+                            Path to the program to run.  This is used by he boot
+                            manager to start the program.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><type>std::string</type> <structfield>s_host</structfield></term>
+                    <listitem>
+                        <para>
+                            The host in wich the program runs.  This is used by the
+                            boot manager to start the program.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><type>std::string</type> <structfield>s_outRing</structfield></term>
+                    <listitem>
+                        <para>
+                            If the program is a ring buffer producer, this
+                            should be set to the desired output ring name.
+                            The program should honor this so that the
+                            data flow can be set up by the experiment
+                            defnition editor.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><type>std::string</type> <structfield>s_inRing</structfield></term>
+                    <listitem>
+                        <para>
+                            If the program is a consumer of ring buffer data,
+                            this should be set to the URI of the ring from
+                            which data is taken.   The program should honor
+                            this setting so that the data flow can be setup
+                            by the experiment definition editor.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                
+            </variablelist>
+        </refsect2>
+   </refsect1>
+</refentry>     
+
+<!-- /manpage -->
+
+<!-- manpage 3tcl -->
+
+      <refentry id="tcl3_statemanager">
+        <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle id='tcl3_statemanager_title'>statemanager</refentrytitle>
+           <manvolnum>3tcl</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>statemanager</refname>
+           <refpurpose>Tcl Bindings to the CStateManager class.</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <synopsis>
+lappend auto_path [file join $::env(DAQROOT) TclLibs]
+package require stateclient
+
+::nscldaq::statemanager mgr requri suburi
+::nscldaq::statemanager -destroy mgr
+
+mgr programParentDir ?newpath?
+mgr setProgramState  name newstate
+
+mgr addProgram       name programDict
+set programDict [mgr getProgram name]
+mgr modifyProgram    name programDict
+
+mgr enableProgram    name
+mgr disableProgram   name
+if {[mgr isProgramEnabled name]} {...}
+
+mgr setStandalone    name
+mgr setNoStandalone  name
+if {[mgr isStandalone name]} {...}
+
+foreach program [mgr listPrograms] {...}
+foreach program [mgr listEnabledPrograms] {...}
+foreach program [mgr listStandalonePrograms] {...}
+foreach program [mgr listActivePrograms] {...}
+foreach program [mgr listInactivePrograms] {...}
+
+mgr deleteProgram name
+
+mgr setGlobalState newState
+set state [mgr getGlobalState]
+
+set partDict [mgr getParticipantStates]
+
+mgr title ?newTitle?
+mgr timeout ?newTimeout?
+mgr recording ?newRecordingState?
+mgr runNumber ?newRunNumber?
+
+mgr waitTransition ?callback?
+
+mgr processMessages ?callback?
+
+if {[mgr isActive name]} {...}
+set state [mgr getProgramState name]
+
+          </synopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            This package provides a Tcl binding to
+            <link linkend='daq3_cstatemanager'
+                  endterm='daq3_cstatemanager_title' />
+            The binding is implemented via a construction command
+            which produces a command ensemble that wraps an instance
+            of a <classname>CStateManager</classname>.
+            Subcommands of he ensemble base command map directly to
+            methods in the underlying <classname>CStateManager</classname>
+            object.
+           </para>
+           <para>
+            An ensemble is constructed via a command of the form:
+           </para>
+           <informalexample>
+            <cmdsynopsis>
+            <command>
+::nscldaq::statemanager <replaceable>mgr requri suburi</replaceable>
+            </command>
+            </cmdsynopsis>
+           </informalexample>
+           <para>
+            <parameter>mgr</parameter> is the name of a new command
+            that is created by this command.
+            <parameter>requri </parameter> and <parameter>suburi</parameter>
+            are the URI's that describe the REQ and SUB ports respectively
+            of a variable database server that is managing the variable
+            database that we want to connect to.
+           </para>
+           <para>
+            An ensemble created in this way is destroyed by:
+           </para>
+           <informalexample>
+            <cmdsynopsis>
+                <command>
+::nscldaq::statemanager -delete <replaceable>mgr</replaceable>
+                </command>
+            </cmdsynopsis>
+           </informalexample>
+           <para>
+            Where <parameter>mgr</parameter> is the name of the command
+            ensemble previously created by the
+            <command>::nscldaq::statemanager</command> command.
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              ENSEMBLE SUBCOMMANDS
+           </title>
+           <variablelist>
+            <varlistentry>
+                <term>
+                    <command>mgr programParentDir ?newpath?</command>
+                </term>
+                <listitem>
+                    <para>
+                        Without the <parameter>newpath</parameter> optional
+                        parameterk this returns the path to the current
+                        program parent diretory.  With the parameter it
+                        sets a new program parent path.
+                        <parameter>newpath</parameter> must be a path
+                        to an existing directory in the variable database.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <command>mgr setProgramState  name newstate</command>
+                </term>
+                <listitem>
+                    <para>
+                        Changes the local state of a specific program.
+                        The program is <parameter>name</parameter>
+                        which is assigned the <parameter>newstate</parameter>.
+                        Naturally <parameter>newstate</parameter> must
+                        be compatible with the set of target states
+                        allowed given the current state.
+                    </para>
+                    <para>
+                        This is normally used to modfiy the state of
+                        standalone programs or, if a program has crashed,
+                        to set its state to <literal>NotReady</literal>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><command>mgr addProgram       name programDict</command></term>
+                <listitem>
+                    <para>
+                        Adds a new program; <parameter>name</parameter> to
+                        the system. <parameter>name</parameter> must be
+                        unique.  The <parameter>programDict</parameter>
+                        is a dict that describes the new program.
+                        It has the following key/value pairs:
+                    </para>
+                    <variablelist>
+                        <varlistentry>
+                            <term><literal>path</literal> (required)</term>
+                            <listitem>
+                                <para>
+                                    The path to the program to run.  This is
+                                    used by the boot manager to start the
+                                    program.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><literal>host</literal> (required></term>
+                            <listitem>
+                                <para>
+                                    The host in which the program should be run.
+                                    This is used by the boot manager to starty
+                                    the program.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><literal>enabled</literal></term>
+                            <listitem>
+                                <para>
+                                    Optional parameter that defaults to
+                                    <literal>true</literal>.  Determines the
+                                    initial enable state of the program.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><literal>standalone</literal></term>
+                            <listitem>
+                                <para>
+                                    Optional parameter that defaults to
+                                    <literal>false</literal>.  Determines
+                                    the initial state of the standalone flag
+                                    of the program.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><literal>outring</literal></term>
+                            <listitem>
+                                <para>
+                                    Optional parameter that defaults to an
+                                    empty string.  If the program is data
+                                    producer for a ring buffer this should be the
+                                    name of that ring (not URI).
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><literal>inring</literal></term>
+                            <listitem>
+                                <para>
+                                    Optional parameter that defaults to an
+                                    empty string.  If the program is a data
+                                    consumer froma  ring, this shold
+                                    be the URI of that ring.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        
+                    </variablelist>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <command>mgr getProgram name</command>
+                </term>
+                <listitem>
+                    <para>
+                        Returns a dict that describes the program
+                        <parameter>name</parameter>.  The dict is described
+                        in <command>addProgram</command> above.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <command>mgr modifyProgram    name programDict</command>
+                </term>
+                <listitem>
+                    <para>
+                        Modifies the program <parameter>name</parameter>
+                        in accordance with the <parameter>programDict</parameter>
+                        parameter.  This dictionary is described in
+                        <command>addProgram</command> above.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <command>mgr enableProgram    name</command>
+                </term>
+                <listitem>
+                    <para>
+                        Enables the program <parameter>name</parameter>
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <command>mgr disableProgram   name</command>
+                </term>
+                <listitem>
+                    <para>
+                        Disables the program <parameter>name</parameter>
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <command>mgr isProgramEnabled name</command>
+                </term>
+                <listitem>
+                    <para>
+                        Returns true if <parameter>name</parameter>
+                        is an enabled program.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <command>mgr setStandalone    name</command>
+                </term>
+                <listitem>
+                    <para>
+                        Set the program <parameter>name</parameter>
+                        to standalone mode.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <command>mgr setNoStandalone  name</command>
+                </term>
+                <listitem>
+                    <para>
+                        Take the program <parameter>name</parameter>
+                        out of standalone mode.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <command>mgr isStandalone name</command>
+                </term>
+                <listitem>
+                    <para>
+                        Returns true if the program <parameter>name</parameter>
+                        is in standalone mode.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <command>mgr listPrograms</command>
+                </term>
+                <listitem>
+                    <para>
+                        Returns a list of the names of all programs
+                        in the current program directory.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <command>mgr listEnabledPrograms</command>
+                </term>
+                <listitem>
+                    <para>
+                        Returns a list of the names of all programs
+                        that are enabled.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <command>mgr listStandalonePrograms</command>
+                </term>
+                <listitem>
+                    <para>
+                        Returns a list of the names of programs that are
+                        standalone.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <command>mgr listActivePrograms</command>
+                </term>
+                <listitem>
+                    <para>
+                        Returns a list of the names of programs  that
+                        are active.  A program is active if it is enabled
+                        and not standalone; that is it will participate in
+                        global state transitions.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <command>mgr listInactivePrograms</command>
+                </term>
+                <listitem>
+                    <para>
+                        Return a list of the names of programs that are
+                        not active.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <command>mgr deleteProgram name</command>
+                </term>
+                <listitem>
+                    <para>
+                        Deletes the program <parameter>name</parameter>
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <command>mgr setGlobalState newState</command>
+                </term>
+                <listitem>
+                    <para>
+                        Set the global state to <parameter>newState</parameter>.
+                        The <parameter>newState</parameter> must be a legal
+                        next state for the current global state value.
+                        In general, this command will initiate a global
+                        state transition.  See <command>waitTransition</command>
+                        for information about how to monitor that
+                        state transition for success and progress.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <command>mgr getGlobalState</command>
+                </term>
+                <listitem>
+                    <para>
+                        Returns the current value of the global state
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <command>mgr getParticipantStates</command>
+                </term>
+                <listitem>
+                    <para>
+                        Returns a dict.  The dict keys are the
+                        names of participant (active) programs.
+                        Their values are the states of those programs.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <command>mgr title ?newTitle?</command>
+                </term>
+                <listitem>
+                    <para>
+                        If <parameter>newTitle</parameter> is not supplied,
+                        this returnst the current title string. If
+                        <parameter>newTitle</parameter> is supplied, that
+                        becomes the new title string..
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <command>mgr timeout ?newTimeout?</command>
+                </term>
+                <listitem>
+                    <para>
+                        If <parameter>newTimeout</parameter> is not
+                        supplied, the command returns the current state
+                        transition timeout in seconds.  If
+                        <parameter>newTimeout</parameter> is supplied,
+                        it must be an integer greater than zero and
+                        becomes the new state transition timeout.
+                        
+                    </para>
+                    <para>
+                        Note that state transition timeouts are enforced
+                        by <command>waitTransition</command>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <command>mgr recording ?newRecordingState?</command>
+                </term>
+                <listitem>
+                    <para>
+                        If <parameter>newRecordingState</parameter> is
+                        supplied it becomes the new recording state flag (must
+                        be a boolean).  If not, this command returns the
+                        value of the current recording state..
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <command>mgr runNumber ?newRunNumber?</command>
+                </term>
+                <listitem>
+                    <para>
+                        If <parameter>newRunNumber</parameter> is supplied
+                        it becomes the new run number.  If not this command
+                        returns the current run number value.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <command>mgr waitTransition ?callback?</command>
+                </term>
+                <listitem>
+                    <para>
+                        Waits for an in progress transition to complete.
+                        The command returns a true value if the transition
+                        completed successfully and a false value if not.
+                    </para>
+                    <para>
+                        If <parameter>callback</parameter> is supplied it must
+                        be a script that is invoked for every program
+                        state transition that is observed.  The name of the
+                        program and its new state are appended to the
+                        callback.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <command>
+                        mgr processMessage ?callback?    
+                    </command>
+                </term>
+                <listitem>
+                    <para>
+                        Drains the message queue of subscribed messages.
+                        If <parameter>callback</parameter> is supplied,
+                        it is invoked for each messsage.
+                    </para>
+                    <para>
+                        A dict is appended to the callback that contains
+                        the some of following key value pairs:
+                    </para>
+                    <variablelist>
+                        <varlistentry>
+                            <term><literal>type</literal></term>
+                            <listitem>
+                                <para>
+                                    The type of message.  This is one of
+                                    <literal>GlobalStateChange</literal>,
+                                    <literal>ProgramStateChange</literal>
+                                    <literal>ProgramJoins</literal> or
+                                    <literal>ProgramLeaves</literal> with
+                                    pretty obvious meanings.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><literal>state</literal></term>
+                            <listitem>
+                                <para>
+                                    This is present for either
+                                    <literal>GlobalStateChange</literal> or
+                                    <literal>ProgramStateChange</literal>.
+                                    It contains the new state (global or program).
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><literal>program</literal></term>
+                            <listitem>
+                                <para>
+                                    Contains the name of the program involved.
+                                    This is present for:
+                                    <literal>ProgramStateChange</literal>
+                                    <literal>ProgramJoins</literal> or
+                                    <literal>ProgramLeaves</literal>.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        
+                    </variablelist>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><command>mgr isActive name</command></term>
+                <listitem>
+                    <para>
+                        Retruns true if the program <parameter>name</parameter>
+                        is active.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><command>getProgramState name</command></term>
+                <listitem>
+                    <para>
+                        Returns the current program state for
+                        <parameter>name</parameter>.
+                    </para>
+                </listitem>
+            </varlistentry>
+           </variablelist>
+        </refsect1>
+
+      </refentry>
+
+
+<!-- /manpage -->
+
+
+<!-- manpage 3python -->
+
+<refentry id="python3_statemanager">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='python3_statemanager_title'>statemanager</refentrytitle>
+     <manvolnum>3python</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>statemanager</refname>
+     <refpurpose>Python bindings for CStateManager class.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+import nscldaq.vardb.statemanager
+mgr = nscldaq.vardb.statemanager.Api(reqUri, subUri)
+mgr.getProgramParentDir()
+mgr.setProgramParentDir(path)
+mgr.addProgram(name, description)
+mgr.getProgramDefinition(name)
+mgr.modifyProgram(name, description)
+mgr.enableProgram(name)
+mgr.disableProgram(name)
+mgr.isProgramEnabled(name)
+mgr.setProgramStandalone(name)
+mgr.setProgramNoStandalone(name)
+mgr.isProgramStandalone(name)
+mgr.listPrograms()
+mgr.listEnabledPrograms()
+mgr.listStandalonePrograms()
+mgr.listInactivePrograms()
+mgr.listActivePrograms()
+mgr.deleteProgram(name)
+mgr.setGlobalState(newState)
+mgr.getGlobalState()
+mgr.getParticipantStates()
+mgr.getTitle()
+mgr.setTitle(title)
+mgr.getTimeout()
+mgr.setTimeout(timeout)
+mgr.isRecording()
+mgr.setRecording(flag)
+mgr.getRunNumber()
+mgr.setRunNumber(number)
+mgr.waitTransition(callable, arg)
+mgr.processMessages(callable, arg)
+mgr.isActive(name)
+mgr.setProgramState(name, state)
+mgr.getProgramState(name)
+
+
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        This module provides a Python binding to the
+        <link linkend='daq3_cstatemanager'
+              endterm='daq3_cstatemanager_title' />.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                nscldaq.vardb.statemanager.Api(reqUri, subUri)
+            </term>
+            <listitem>
+                <para>
+                    Constructs a new state manager API object.
+                    <parameter>reqUri</parameter> is the URI
+                    of a variable manager's REQ port.
+                    <parameter>subUri</parameter> is the
+                    URI of the same variable manager's SUB port.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                mgr.getProgramParentDir()
+            </term>
+            <listitem>
+                <para>
+                    Return the path to the current program parent directory.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                mgr.setProgramParentDir(path)
+            </term>
+            <listitem>
+                <para>
+                    Sets the path to the new program parent directory to be
+                    <parameter>path</parameter>.  This should be the path to an
+                    already existing directory in the variable database.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                mgr.addProgram(name, description)
+            </term>
+            <listitem>
+                <para>
+                    Adds a program named <parameter>name</parameter>
+                    to the system.  <parameter>description</parameter>
+                    is a dictionary that describes the program.
+                    <parameter>description</parameter> has the following key
+                    value pairs.
+                </para>
+                <variablelist>
+                    <varlistentry>
+                        <term><literal>enabled</literal></term>
+                        <listitem>
+                            <para>
+                                Defaults to true.  If true the
+                                program is created enabled.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><literal>standalone</literal></term>
+                        <listitem>
+                            <para>
+                                Defaults to false.  If true, the program
+                                is created standalone.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><literal>path</literal></term>
+                        <listitem>
+                            <para>
+                                Required.  The path to the program to run.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><literal>host</literal></term>
+                        <listitem>
+                            <para>
+                                Required.  The host in which the program runs.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><literal>outring</literal></term>
+                        <listitem>
+                            <para>
+                                Optional.  If the program is to produce output
+                                into a ringbuffer, this is the name of the
+                                ringbuffer into which that data should be put.
+                                Default value is the empty string.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><literal>inring</literal></term>
+                        <listitem>
+                            <para>
+                                Optional.  If the program is to consume data from
+                                a ringbuffer, this is the URI of the ring.
+                                Default value is the empty string.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    
+                </variablelist>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                mgr.getProgramDefinition(name)
+            </term>
+            <listitem>
+                <para>
+                    Returns the program definition dictionary that
+                    describes the program <parameter>name</parameter>.
+                    The keys and values are described in
+                    <methodname>addProgram</methodname> above.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                mgr.modifyProgram(name, description)
+            </term>
+            <listitem>
+                <para>
+                    Modifies the descriptionof a program.  <parameter>name</parameter>
+                    names the program and <parameter>description</parameter>
+                    is a dict that provides a new program definition.
+                    The dict is described in
+                    <methodname>addProgram</methodname>.
+                </para>
+                <para>
+                    A very normal usage pattern is to first use
+                    <methodname>getProgramDefinition</methodname> to obtain
+                    the definition of the program.  Second change the specifid
+                    items you want to change and finally, use
+                    <methodname>modifyProgram</methodname> to update the
+                    program definition.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                mgr.enableProgram(name)
+            </term>
+            <listitem>
+                <para>
+                    Enables the program <parameter>name</parameter>.  Enabled
+                    programs participate in  state changes.  If they are
+                    not standalone, they participate in global tate changes.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                mgr.disableProgram(name)
+            </term>
+            <listitem>
+                <para>
+                    Disables the program <parameter>name</parameter>.
+                    Disabled programs don't participate in state changes.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                mgr.isProgramEnabled(name)
+            </term>
+            <listitem>
+                <para>
+                    Returnes <literal>True</literal> if
+                    <parameter>name</parameter> is enabled else returns
+                    <literal>False</literal>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                mgr.setProgramStandalone(name)
+            </term>
+            <listitem>
+                <para>
+                    Sets the program <parameter>name</parameter> into standalone mode
+                    Enabled programs in standalone mode only take state transitions
+                    from their local state variable.  This allows them to be
+                    run in isolation, without participating in global state
+                    transitions.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                mgr.setProgramNoStandalone(name)
+            </term>
+            <listitem>
+                <para>
+                    Sets the program <parameter>name</parameter> out of
+                    standalone mode.  This means that if the program is enabled
+                    it will participate in global state transitions.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                mgr.isProgramStandalone(name)
+            </term>
+            <listitem>
+                <para>
+                    Returns <literal>True</literal> if the program
+                    <parameter>name</parameter> is in standalone mode
+                    else returns <literal>False</literal>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                 mgr.listPrograms()
+            </term>
+            <listitem>
+                <para>
+                    Returns a list that contains the names of all the
+                    programs that are known to the state transition system.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                mgr.listEnabledPrograms()
+            </term>
+            <listitem>
+                <para>
+                    Returns a list of the names of all enabled programs. 
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                mgr.listStandalonePrograms()
+            </term>
+            <listitem>
+                <para>
+                    Returns a list of the names of all standalone programs.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                mgr.listInactivePrograms()
+            </term>
+            <listitem>
+                <para>
+                    Return a list of the names of all inactive programs.
+                    A programs is inactive if it does not participate in
+                    global state transitions.  This can be either because
+                    it is disabled or because it is standalone.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                mgr.listActivePrograms()
+            </term>
+            <listitem>
+                <para>
+                    Returns a list of the names of all programs that are
+                    active.  Active programs are those that participate in
+                    global state transitions because they are both
+                    enabled an <emphasis>not</emphasis> standalone.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                mgr.deleteProgram(name)
+            </term>
+            <listitem>
+                <para>
+                    Deletes the definition for the program <parameter>name</parameter>.
+                    This action is irreversible.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                mgr.setGlobalState(newState)
+            </term>
+            <listitem>
+                <para>
+                    Sets the new global state value to <parameter>newState</parameter>.
+                    This value must be a valid next state for the current state.
+                    If successful, in general, this initiates a global state
+                    transition in which all active programs participate.
+                    You can determine the success of this transition as well
+                    as monitor its progress via <methodname>waitTransition</methodname>
+                    described below.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                mgr.getGlobalState()
+            </term>
+            <listitem>
+                <para>
+                    Returns the current global state.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                mgr.getParticipantStates()
+            </term>
+            <listitem>
+                <para>
+                    Returns a dict whose keys are program names and whose values
+                    are the state that program is in.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                mgr.getTitle()
+            </term>
+            <listitem>
+                <para>
+                    Returns the current title string.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                mgr.setTitle(title)
+            </term>
+            <listitem>
+                <para>
+                    Sets the title string to the new value <parameter>title</parameter>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                mgr.getTimeout()
+            </term>
+            <listitem>
+                <para>
+                    Returns the global state transition timeout value in seconds.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                mgr.setTimeout(timeout)
+            </term>
+            <listitem>
+                <para>
+                    Sets the global state transition timeout to <parameter>timeout</parameter>
+                    seconds.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                mgr.isRecording()
+            </term>
+            <listitem>
+                <para>
+                    Returns <literal>True</literal> if the recording flag
+                    is true.  <literal>False</literal> otherwise.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                mgr.setRecording(flag)
+            </term>
+            <listitem>
+                <para>
+                    Sets the recording flag to the state of the
+                    boolean <parameter>flag</parameter>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                mgr.getRunNumber()
+            </term>
+            <listitem>
+                <para>
+                    Returns the current integer value of the run number.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                mgr.setRunNumber(number)
+            </term>
+            <listitem>
+                <para>
+                    Set the run number to the unsigned positive value
+                    <parameter>number</parameter>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                mgr.waitTransition(callable, arg)
+            </term>
+            <listitem>
+                <para>
+                    Waits for global transitions to either succeed, fail or
+                    timeout.  If the <parameter>callable</parameter> is
+                    supplied, it is called for each participant state
+                    transition.  The callable is passed:
+                </para>
+                <variablelist>
+                    <varlistentry>
+                        <term>Api</term>
+                        <listitem>
+                            <para>
+                                The api object that is doing the
+                                <methodname>waitTransition</methodname>
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>program</term>
+                        <listitem>
+                            <para>
+                                The name of the transitioning program.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>state</term>
+                        <listitem>
+                            <para>
+                                That program's new state.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>
+                            arg
+                        </term>
+                        <listitem>
+                            <para>
+                                The <parameter>arg</parameter> passed
+                                to the <methodname>waitTransition</methodname>
+                                method.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    
+                </variablelist>
+                <para>
+                    The method returns <literal>True</literal> if the
+                    transition succeeded or <literal>False</literal> if not.
+                    Transitions can fail due to a timeout or can fail if a
+                    program changes state to <literal>NotReady</literal>
+                    indicating it could not complete its part of the
+                    global state transition.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                mgr.processMessages(callable, arg)
+            </term>
+            <listitem>
+                <para>
+                    Process all messages in the subscription message backlog.
+                    If <parameter>callable</parameter> is provided it is
+                    called for each message processed and receives the
+                    following parameters:
+                    
+                </para>
+                <variablelist>
+                    <varlistentry>
+                        <term>api</term>
+                        <listitem>
+                            <para>
+                                The api object that is executing the
+                                <methodname>processMessages</methodname>
+                                method.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>notDict</term>
+                        <listitem>
+                            <para>
+                                A notification dictionary (see
+                                <literal>PUBLIC VARIABLES, TYPES and CONSTANTS</literal>
+                                for more information about this).
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>arg</term>
+                        <listitem>
+                            <para>
+                                The <parameter>arg</parameter> parameter
+                                passed to <methodname>processMessages</methodname>.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    
+                </variablelist>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                mgr.isActive(name)
+            </term>
+            <listitem>
+                <para>
+                    Returns <literal>True</literal> if the program
+                    <parameter>name</parameter> is active.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                mgr.setProgramState(name, state)
+            </term>
+            <listitem>
+                <para>
+                    Sets the program state for <parameter>name</parameter>
+                    to <parameter>state</parameter>.  The <parameter>state</parameter>
+                    parameter must be a valid next state for the
+                    program's current state. 
+                </para>
+                <para>
+                    This method is normally used to make a state transition
+                    in a standalone program
+                    and to make the state of a program that crashed badly
+                    <literal>NotReady</literal> once that has been noticed.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>mgr.getProgramState(name)</term>
+            <listitem>
+                <para>
+                    Returns the name of the program <parameter>name</parameter>'s
+                    current state.
+                </para>
+            </listitem>
+        </varlistentry>
+     </variablelist>
+  </refsect1>
+   <refsect1>
+      <title>PUBLIC VARIABLES, TYPES and CONSTANTS</title>
+      <para>
+        This class offers two dictionary types that are important, the
+        notification dictionary and the program description dictionary.
+      </para>
+        <refsect2>
+            <title>Notification dictionary</title>
+            <para>
+                Dictionaries of this type are passed in to the
+                notification callback callable in calls to
+                <methodname>processMessages</methodname>.  These dicts
+                represent the information in a notification message.
+            </para>
+            <para>
+                The <literal>type</literal> key is always present
+                and contains a string that describes the notification
+                type.  The notification type determines which other keys
+                are present.  The possible other keys are
+                <literal>state</literal> which is either the global state
+                or a program state, and <literal>program</literal>
+                which is a program name.
+            </para>
+            <para>
+                Here are the notification types and the keys that are provided
+                with them.
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><literal>GlobalStateChange</literal></term>
+                    <listitem>
+                        <para>
+                            The message notifies you of a global state change.
+                            <literal>state</literal> is the only other key
+                            in the dictionary and it represents the new state.
+                            This may mean some other program is forcing a
+                            state transition. 
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <literal>ProgramStateChange</literal>
+                    </term>
+                    <listitem>
+                        <para>
+                            A program's state has changed.
+                            <literal>program</literal> will contain the
+                            name of the program and <literal>state</literal>
+                            the new state name.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>ProgramJoins</literal></term>
+                    <listitem>
+                        <para>
+                            Indicates a new program is being added to the
+                            system.  <literal>program</literal> is the
+                            name of the program.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>PorgramLeaves</literal></term>
+                    <listitem>
+                        <para>
+                            A program has left the system (been deleted).
+                            <literal>program</literal> is the name of the
+                            program that left.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                
+            </variablelist>
+        </refsect2>
+        <refsect2>
+            <title>Program description dictionary</title>
+            <para>
+                This dictionary is used to describe programs.  It is used
+                by <methodname>addProgram</methodname> and
+                <methodname>modifyProgram</methodname>
+                and also is returned by <methodname>getProgramDefinition</methodname>.
+                The dictionary has the following keys:
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><literal>enabled</literal></term>
+                    <listitem>
+                        <para>
+                            Boolean value that is the state of the enable
+                            flag for the program.  If the user does not
+                            provide this it defaults to <literal>True</literal>
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>standalone</literal></term>
+                    <listitem>
+                        <para>
+                            Boolean value that is the state of the
+                            standalone flag for the program.  If the user
+                            does not provide this it defaults to
+                            <literal>False</literal>.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>path</literal></term>
+                    <listitem>
+                        <para>
+                            A string value that is the filesystem path
+                            in which the program is installed.  This
+                            is required and is used by the boot manager
+                            to start the program.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>host</literal></term>
+                    <listitem>
+                        <para>
+                            A string which is either the IP address or the
+                            DNS hostname of the system on which the program
+                            should run.  Again this is used by the boot manager
+                            when starting the program.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>outring</literal></term>
+                    <listitem>
+                        <para>
+                            This defaults to an empty string.  If the program
+                            produces output in a ring buffer, it should
+                            use this value to get the name of the ring buffer
+                            it uses for output.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>inring</literal></term>
+                    <listitem>
+                        <para>
+                            This defaults to an empty string.  If the
+                            program should be a consumer of data from a
+                            ringbuffer it should use this value to get the
+                            URI of the ring.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                
+            </variablelist>
+        </refsect2>
+   </refsect1>
+</refentry>     
+
+<!-- /manpage -->
