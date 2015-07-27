@@ -1,0 +1,442 @@
+<!-- chapter utilities -->
+<chapter>
+    <title>Boot manager</title>
+    <para>
+        The boot manager works with the state manager system to start and monitor
+        programs that have been registered with the state management system.
+        The boot manager:
+    </para>
+    <itemizedlist>
+        <listitem><para>
+            Starts all programs when a global state transition to
+            <literal>Readying</literal> is performed.
+        </para></listitem>
+        <listitem>
+            <para>
+                Ensures that all programs exit when a global state transition
+                to <literal>NotReADY</literal> is performed.
+            </para>
+        </listitem>
+        <listitem><para>
+            Monitors running programs.  If any program exits, the boot manager
+            forces a global state transition to <literal>NotReady</literal>
+            which, in turn, shuts down the entire system.
+        </para></listitem>
+    </itemizedlist>
+    <para>
+        The remainder of this chapter:
+    </para>
+    <itemizedlist>
+        <listitem><para>
+            Describes what defines a registered program and how to register one.
+        </para></listitem>
+        <listitem><para>
+            Describes the environment in which a registered program runs.  Note that
+            registered programs should be state aware programs.
+        </para></listitem>
+        <listitem><para>
+            Provides pointers to relevant reference material.
+        </para></listitem>
+    </itemizedlist>
+    <section>
+        <title>Registered programs</title>
+        <para>
+            Registered programs are those that are added to the state management
+            system via the <command>addrdo</command> command.  They are represented
+            by a directory in the variable data base and a specific minimum set
+            of variables in that directory.
+        </para>
+        <para>
+            By default these directories live as subdirectories to the
+            <filename>/RunState</filename> directory, however the variable
+            <filename>/RunState/ReadoutParentDir</filename> can be set to
+            an existign directory path to override parent directory for
+            program directories.
+        </para>
+        <para>
+            Each program has the following variables:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term><varname>State</varname></term>
+                <listitem>
+                    <para>
+                        This variable is the local state of the program.
+                        The variable type is <type>RunStateMachine</type>
+                        The program must maintain its state in this variable.
+                        If a global state transition is requested, there are a
+                        specific set of states the program must transition to
+                        in order to complete its part of this transition.
+                    </para>
+                    <para>
+                        If the program exits it should set its state to
+                        <literal>NotReady</literal> first to indicate this.
+                        Programs registered are assumed to be essential and
+                        persistent.  If a program exits, the boot manager will
+                        make a global state transition to <literal>NotReady</literal>
+                        which should make all programs exit.  If a program exits,
+                        the boot manager will ensure that the program's sate is
+                        set to <literal>NotReady</literal> if the program
+                        did not do that.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><varname>enable</varname></term>
+                <listitem>
+                    <para>
+                        This variable allows the program to participate or
+                        ignore state transitions.  Its type is <type>boolean</type>
+                        (an enum with values <literal>true</literal>  and
+                        <literal>false</literal>).
+                    </para>
+                    <para>
+                        If <varname>enable</varname> is <literal>true</literal>
+                        the program is supposed to participate in state transitions
+                        if not it is supposed to ignore state transitions.  This
+                        allows you to remove a program from the state manager
+                        temporarily without removing its definition from the system.
+                    </para>
+                    <para>
+                        <command>addrdo</command> can create a program either
+                        enabled or disabled, however the default, if not specified,
+                        is enabled.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><varname>host</varname></term>
+                <listitem>
+                    <para>
+                        This is a string data type and represents the host in which
+                        the program should be run.  Programs are run on the end
+                        of an SSH pipe and therefore can run in any reachable network
+                        node.  You should specify the node name or IP address and
+                        <emphasis>never</emphasis> use <literal>localhost</literal>
+                        since you cannot predict where the boot manager will be run.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><varname>inring</varname></term>
+                <listitem>
+                    <para>
+                        For programs which will take data from a ringbuffer, this
+                        variable should have the URI of the ring buffer from which
+                        they will take data.  Againthe host in the URI should never
+                        be <literal>localhost</literal>.
+                    </para>
+                    <para>
+                        Programs which do not take data from a ringbuffer can leave
+                        this variable set to an empty string (default).
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><varname>outring</varname></term>
+                <listitem>
+                    <para>
+                        For programs which will put data into a ring buffer
+                        (e.g. readout programs), this should be the name
+                        of that ring buffer (not URI).  If the program
+                        does not put data into a ring buffer, this
+                        string can be left empty (its default value).
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><varname>path</varname></term>
+                <listitem>
+                    <para>
+                        This should be the path to the program to run in the
+                        file systems available to the <varname>host</varname>
+                        on which the program is to be run.  The last command
+                        the boot manager gives the programs ssh shell is
+                        <command>exec</command> of this string.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><varname>standalone</varname></term>
+                <listitem>
+                    <para>
+                        This boolean variable should be used to determine which
+                        state machine drives transitions of the program.
+                        If <literal>false</literal>, program state transitions
+                        should be driven by global state transitions
+                        (changes to <filename>/RunState/State</filename>). If
+                        this is <literal>true</literal>, program state transitions
+                        should be driven by the program's own state variable.
+                    </para>
+                    <para>
+                        Note that the <varname>enable</varname> value should
+                        be used regardless of the value of this variable.
+                        Thus if <varname>enable</varname> is <literal>false</literal>
+                        the program should not take state transitions regardless
+                        of the value of <varname>standalone</varname>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            
+        </variablelist>
+    </section>
+    <section>
+        <title>The environment in which a program runs.</title>
+        <para>
+            Programs started by the boot manager run in a specific, well
+            defined environment.  This may not, however be the environment
+            you assume it runs in. Therefore, be sure to read this section
+            carefully so that you understand exactly what that environment is.
+        </para>
+        <itemizedlist>
+            <listitem><para>
+                The user's login dot scripts are run prior to the
+                application's start up.
+            </para></listitem>
+            <listitem><para>
+                The initial working directory for the application is the
+                user's home directory/
+            </para></listitem>
+            <listitem><para>
+                The following environment variables are defined by the
+                boot manager prior to running the application.
+            </para>
+                <variablelist>
+                    <varlistentry>
+                        <term><literal>PROGRAM</literal></term>
+                        <listitem>
+                            <para>
+                                The name of the program being started.
+                                This is not the <varname>path</varname>
+                                variable but rather the name of the
+                                program passed to <command>addrdo</command>,
+                                which becomes the name of the directory holding
+                                the program's variables.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><literal>REQ_URI</literal></term>
+                        <listitem>
+                            <para>
+                                The URI for the variable database server's
+                                request port.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><literal>SUB_URI</literal></term>
+                        <listitem>
+                            <para>
+                                The URI for the variable database server's
+                                subscription port.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><literal>OUTRING</literal></term>
+                        <listitem>
+                            <para>
+                                The value of the program's
+                                <varname>outring</varname> variable.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><literal>INRING</literal></term>
+                        <listitem>
+                            <para>
+                                The value of the program's
+                                <varname>inring</varname> variable.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><literal>DAQROOT</literal></term>
+                        <listitem>
+                            <para>
+                                Contains the path to the top level NSCLDAQ
+                                installation directory.  This implies that
+                                the <filename>daqsetup.bash</filename> script
+                                was sourced prior to the start of the
+                                boot manager (this is required actually).
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><literal>DAQBIN</literal></term>
+                        <listitem>
+                            <para>
+                                Contains the path to the directory that holds
+                                the nscldaq executables.  In practice this
+                                is <filename>$DAQROOT/bin</filename>.  Again
+                                this assumes that the <filename>daqsetup.bash</filename>
+                                script is run.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><literal>DAQLIB</literal></term>
+                        <listitem>
+                            <para>
+                                Contains the path to the directory that holds the
+                                nscldaq libraries.  This is normally
+                                <filename>$DAQROOT/lib</filename>.  This assumes
+                                that the <filename>daqsetup.bash</filename> file
+                                was sourced into the shell prior to running the boot
+                                manager.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>PYTHONPATH</term>
+                        <listitem>
+                            <para>
+                                Related from the boot manager.  If
+                                <filename>daqsetup.bash</filename> was run, this
+                                includes the path to the package directory
+                                tree for nscldaq packages
+                                (<filename>$DAQROOT/pythonLibs</filename>).
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    
+                </variablelist>
+            </listitem>
+            <listitem><para>
+                Once the application exits the ssh session also closes and
+                is destroyed.
+            </para></listitem>
+        </itemizedlist>
+    </section>
+    <section>
+        <title>Relevant reference material.</title>
+        <variablelist>
+            <varlistentry>
+                <term>bootmanager command reference</term>
+                <listitem>
+                    <para>
+                        <link linkend='daq1_bootmanager'
+                              endterm='daq1_bootmanager_title' />
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><command>addrdo</command> command to register a program.</term>
+                <listitem>
+                    <para>
+                        <link linkend='daq1_addrdo' endterm='daq1_addrdo_title' />
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><command>lsrdo</command> command to list registered programs.</term>
+                <listitem>
+                    <para>
+                        <link linkend='daq1_lsrdo' endterm='daq1_lsrdo_title' />
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><command>rdoonoff</command> - command to enable or disable a program.</term>
+                <listitem>
+                    <para>
+                        <link linkend='daq1_rdoonoff' endterm='daq1_rdoonoff_title' />
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>vardbsh - variable data base shell</term>
+                <listitem>
+                    <para>
+                        <link linkend='daq1_vardbsh' endterm='daq1_vardbsh_title' />
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>MakeRunControl.tcl - build run control infrastructure in vardb.</term>
+                <listitem>
+                    <para>
+                        <link linkend='daq1_makeruncontrol'
+                              endterm='daq1_makeruncontrol_title' />
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>vardbServer - variable database server</term>
+                <listitem>
+                    <para>
+                        <link linkend='daq1_vardbserver'
+                              endterm='daq1_vardbserver_title' />
+                    </para>
+                </listitem>
+            </varlistentry>
+            
+        </variablelist>
+    </section>
+</chapter>
+<!-- /chapter -->
+
+<!-- manpage 1daq -->
+
+      <refentry id="daq1_bootmanager">
+        <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle id='daq1_bootmanager_title'>bootmanager</refentrytitle>
+           <manvolnum>1daq</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>bootmanager</refname>
+           <refpurpose>Boot up and monitor registered DAQ programs.</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+$DAQBIN/bootmanager <replaceable>req_uri sub_uri</replaceable>
+          </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Persistent program that works with the state manager to boot up
+            registered DAQ programs.  See e.g.
+            <link linkend='daq1_addrdo' endterm='daq1_addrdo_title' /> for
+            information about how to register a daq program.
+           </para>
+           <para>
+            When the state manager's global state changes to
+            <literal>Readying</literal>, this program starts all registered
+            programs and, when all have declared themselves <literal>Ready</literal>,
+            sets the global state to <literal>Ready</literal>.  If any program
+            exits, the global state is set to <literal>NotReady</literal> bringing the
+            system down.
+           </para>
+           <para>
+            stdout and stderr are captured and output to the boot manager's stdout.
+            A future version of this program may interact with a logging manager to
+            make this information more widely avaialble.
+           </para>
+           <para>
+            Note that registered programs are assumed to be state aware, that is
+            they are assumed to know how to take part in global and local state
+            transitions and to know which, if any are appropriate to it
+            ant any given time.
+           </para>
+        </refsect1>
+      </refentry>
+
+
+<!-- /manpage -->
