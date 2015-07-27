@@ -146,6 +146,7 @@ public:
   CRingBuffer* getRing() {
     return m_pRing;
   }
+  void setRing(std::string name);
   void setTimestamp(uint64_t stamp);
   void setSourceId(uint32_t id);
   void triggerFail(std::string msg);

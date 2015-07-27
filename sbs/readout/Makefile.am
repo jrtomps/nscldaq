@@ -13,7 +13,7 @@ COMPILATION_FLAGS	=	-I@top_srcdir@/sbs/vmemodules	\
 			$(TCL_FLAGS) $(THREADCXX_FLAGS)	\
 			-DHAVE_VME_MAPPING -DHAVE_SBSVME_INTERFACE
 
-TCLPACKAGES = readoutStateHook.tcl
+TCLPACKAGES = readoutStateHook.tcl stateManagerControl.tcl
 TCLPKGDIR   = @prefix@/TclLibs/readoutStateHook
 
 BUILT_SOURCES=options.c options.h
@@ -51,7 +51,8 @@ libSBSProductionReadout_la_SOURCES	=				\
 						CVariableBuffers.cpp		\
 						CBusy.cpp			\
 						CCAENV262Busy.cpp		\
-						CV977Busy.cpp
+						CV977Busy.cpp			\
+						CRingCommand.cpp
 
 
 libSBSProductionReadout_la_CPPFLAGS=$(COMPILATION_FLAGS)
@@ -68,7 +69,7 @@ noinst_HEADERS	=	CReadoutMain.h Skeleton.h CTCLAuthorizer.h	\
 			CEndCommand.h CDocumentedPacket.h CDocumentedPacketManager.h \
 			CReadoutException.h CInvalidPacketStateException.h	\
 			CEventPacket.h CVarList.h CDocumentedVars.h CVariableBuffers.h \
-			CBusy.h CCAENV262Busy.h CV977Busy.h
+			CBusy.h CCAENV262Busy.h CV977Busy.h CRingCommand.h
 
 
 
@@ -117,6 +118,8 @@ install-exec-local:
 	$(INSTALL_SCRIPT) @srcdir@/*.h @prefix@/include/sbsreadout
 	for f in $(TCLPACKAGES); do $(INSTALL_SCRIPT) @srcdir@/$$f $(TCLPKGDIR); done
 	echo "package ifneeded ReadoutStateHook 1.0 [list source [file join \$$dir readoutStateHook.tcl]]" > $(TCLPKGDIR)/pkgIndex.tcl
+	echo "package ifneeded StateManagerControl 1.0 [list source [file join \$$dir stateManagerControl.tcl]]" >> $(TCLPKGDIR)/pkgIndex.tcl
+
 
 
 options.c:	options.ggo

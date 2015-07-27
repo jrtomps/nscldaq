@@ -92,7 +92,8 @@ CExperiment::CExperiment(string ringName,
   m_nDataBufferSize(eventBufferSize),
   m_nDefaultSourceId(0)
 {
-  m_pRing = CRingBuffer::createAndProduce(ringName);
+  setRing(ringName);
+  
   m_pRunState = RunState::getInstance();
 
 }
@@ -297,7 +298,9 @@ CExperiment::Stop(bool pause)
       m_pTriggerLoop->stop(pause); // run is active
     }
     else {
-      ScheduleEndRunBuffer(false); // for ending paused we need to schedule.
+      // ScheduleEndRunBuffer(false); // for ending paused we need to just do it.
+      
+      syncEndRun(pause);
       
     }
 
@@ -711,6 +714,20 @@ CExperiment::getTimeMs()
 
   return msTime;
 
+}
+/**
+ * setRing
+ *    Sets a new ring buffer (added to support new 'ring' command needed for
+ *    state manager interface)
+ *
+ * @param ringName - name of the new ring.
+ */
+void
+CExperiment::setRing(std::string ringName)
+{
+    delete m_pRing;                      // delete 0; is fine.
+    m_pRing = 0;        
+    m_pRing = CRingBuffer::createAndProduce(ringName);
 }
 /**
  * setTimestamp

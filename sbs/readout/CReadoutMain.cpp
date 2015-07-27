@@ -33,6 +33,7 @@
 #include <TCLInterpreter.h>
 #include <CRingBuffer.h>
 #include <TCLApplication.h>
+#include <CRingCommand.h>
 
 #include <netdb.h>
 #include <stdlib.h>
@@ -261,6 +262,7 @@ CReadoutMain::addCommands()
 
 void 
 CReadoutMain::addCommands(CTCLInterpreter* pInterp) {
+  new CRingCommand(*pInterp, "ring", m_pExperiment);
   CRunControlPackage::getInstance(*pInterp);
   CVariableBuffers* pVarbufs = new CVariableBuffers(*pInterp);
 
