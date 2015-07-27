@@ -1,0 +1,198 @@
+<!-- chapter frameworks -->
+
+<chapter>
+    <title>
+        Hooking readout programs to the runstate framework
+    </title>
+    <para>
+        Recall that the run state framework is a publish/subscribe method for
+        controlling runs.  With that framework programs get registered to the
+        run control system and then subscribe to global state changes.
+        When a global state change occurs, they perform local state changes
+        and report the results of those changes to the system in the form
+        of their final states.
+    </para>
+    <para>
+        The NSCL has two families of Readout programs; the SBS or, Production
+        Readout framework, and the XXUSB Readout frameworks.  Since both
+        of these are built around event driven
+        Tcl command interpreters, it is actually
+        quite easy to integrate those programs with the run state framework.
+    </para>
+    <para>
+        NSCLDAQ installs a package; <literal>StateManagerControl</literal>
+        which can be installed in the readout programs.  This package monitors
+        state changes and issues the appropriate commands to the underlying
+        readout program.  A summary of the procedure is as follows:
+    </para>
+    <itemizedlist>
+        <listitem><para>
+            Create a script that contains the lines:
+            <informalexample>
+                <programlisting>
+lappend auto_path [file join $::env(DAQROOT) TclLibs]
+package require StateManagerControl
+                </programlisting>
+            </informalexample>
+        </para></listitem>
+        <listitem><para>
+            Create a script that runs your Readout program. Along with any
+            other startup options you need, add the option
+            <option>--init-script=</option><replaceable>name-of-previous-script</replaceable>
+        </para>
+        <para>
+            Where <replaceable>name-of-previous-script</replaceable> is the path to the Tcl script
+            you made in the first step.
+        </para></listitem>
+        <listitem><para>
+            Use <filename>$DAQBIN/addrdo</filename> to add you program to the
+            state system. It is recommended that you set the <option>--oring</option>
+            to the desired output ringbuffer name, rather than using the
+            <option>--ring</option> option in the script that starts up readout.
+        </para></listitem>
+        <listitem><para>
+            Rather than using the old ReadoutGui to start your readout, let the
+            boot manager start it and use the new State manager Gui to control the
+            runs.
+        </para></listitem>
+    </itemizedlist>
+    <para>
+        The boot manager will ensure that several environment variables are
+        defined for each program it runs:
+    </para>
+    <variablelist>
+        <varlistentry>
+            <term><literal>REQ_URI</literal></term>
+            <listitem>
+                <para>
+                    The URI of the variable database server's request port.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>SUB_URI</literal></term>
+            <listitem>
+                <para>
+                    The URI of the variable database server's subscription port.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>PROGRAM</literal></term>
+            <listitem>
+                <para>
+                    The name of the program being started.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>DAQROOT</literal></term>
+            <listitem>
+                <para>
+                    Top level directory path of the DAQ installation being run.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>DAQBIN</literal></term>
+            <listitem>
+                <para>
+                    <filename>$DAQROOT/bin</filename>
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>DAQLIB</literal></term>
+            <listitem>
+                <para>
+                    <filename>$DAQROOT/lib</filename>
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>PYTHONPATH</literal></term>
+            <listitem>
+                <para>
+                    Python module path points at the NSCLDAQ python packages.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>OUTRING</term>
+            <listitem>
+                <para>
+                    Output ring name (might be an empty string)
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>INRING</term>
+            <listitem>
+                <para>
+                    URI Of input ring (might be an empty string).
+                </para>
+            </listitem>
+        </varlistentry>
+        
+    </variablelist>
+    <section>
+        <title>Complete example</title>
+    
+    <formalpara>
+        <title>File to load the <literal>StateManagerControl</literal> package</title>
+        <para>
+            Here's the contents of a file named <filename>loadcontrol.tcl</filename>
+            that loads the <literal>StateManagerControl</literal> package.  This
+            file will be used as the Readout initialization script.
+        </para>
+    </formalpara>
+    <example>
+        <title>loadcontrol.tcl - load StateManagerControl</title>
+        <programlisting>
+lappend auto_path [file join $::env(DAQROOT) TclLibs]
+package require StateManagerControl
+        </programlisting>
+    </example>
+    <formalpara>
+        <title>Script to start Readout</title>
+        <para>
+            Here are the contents of a script that starts the readout program.
+            It is written to not assume the use of the boot manager.
+            The file is named <filename>runreadout.bash</filename>
+        </para>
+    </formalpara>
+    <example>
+        <title>runreadout.bash - file to run readout:</title>
+        <programlisting>
+#!/bin/bash
+. /usr/opt/daq/11.0/daqsetup.bash
+
+$DAQROOT/VMUSBReadout --init-script ~/config/loadcontrol.tcl \
+                      --ctlconfig /dev/null --daqconfig ~/config/daqconfig.tcl \
+                      --ring $OUTRING
+        </programlisting>
+    </example>
+    <para>
+        Note that the <literal>OUTRING</literal> environment variable is set
+        to the value of the outring variable for the program.
+    </para>
+    <formalpara>
+        <title>Adding the program to the run state system</title>
+        <para>
+            We use addrdo to add the readout program to the state system.
+            We are going to set the host, program path, the program name,
+            and the output ring.  We will assume that the variable data
+            base is not being served yet and that our variable database is
+            just in <filename>~/config/experiment.db</filename>.  Note this only
+            has to be done once as the variable database is non-volatile.
+        </para>
+    </formalpara>
+    <example>
+        <title>Adding the program to the run state system:</title>
+        <programlisting>
+$DAQBIN/addrdo --host spdaq20.nscl.msu.edu --path ~/bin/runreadout.bash \
+               --name spdaq20Readout --oring `whoami` file://$HOME/config/experiment.db
+        </programlisting>
+    </example>
+    </section>
+</chapter>
