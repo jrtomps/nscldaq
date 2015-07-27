@@ -15,7 +15,7 @@ if BUILD_USB
 endif
 
 if BUILD_DOCS
-	DOCDIR=docbuild docconfig simplesetups
+   DOCDIR=docbuild docconfig simplesetups
 endif
 
 SUBDIRS =	 base caenfw-common servers base/dataflow  \

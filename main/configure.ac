@@ -3,7 +3,7 @@
 
 AC_PREREQ(2.61)
 
-AC_INIT(nscldaq, 11.0-006, fox@nscl.msu.edu,[], [http://www.sourceforge.net/projects/nscldaq])
+AC_INIT(nscldaq, 11.0-007, fox@nscl.msu.edu,[], [http://www.sourceforge.net/projects/nscldaq])
 
 
 AC_CONFIG_SRCDIR([/utilities/StringsToIntegers.h])
@@ -56,6 +56,7 @@ then
   else
     AC_SUBST(MANDB,[mandb])
   fi
+
   AM_CONDITIONAL([BUILD_DOCS],[true])
 else
   AM_CONDITIONAL([BUILD_DOCS],[false])
@@ -76,6 +77,7 @@ AX_CHECK_OPENSSL([AC_MSG_RESULT([found openssl])],[AC_MSG_ERROR([OpenSSL is requ
 
 CPPUNIT_LDFLAGS="${CPPUNIT_LIBS}"
 
+AC_SUBST([AM_CXXFLAGS], [-fno-strict-aliasing])
 
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT

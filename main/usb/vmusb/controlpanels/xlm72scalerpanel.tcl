@@ -46,6 +46,7 @@ package require TclServer
 package require portAllocator 
 package require InstallRoot
 package require ScalerClient
+package require ChannelLabel
 
 # Set a default value for RunState. The sclclient manipulates
 # this parameter when it is running but we will set a default
@@ -437,7 +438,7 @@ itcl::body XLM72ScalerGUI::BuildGUI {parent} {
 
   ## Put it all together
   grid $panels -columnspan 2 -sticky news -padx 3
-  grid $sclrctrls $updatectrls -sticky nsew -padx 3 -pady 6
+#  grid $sclrctrls $updatectrls -sticky nsew -padx 3 -pady 6
   grid $top.buttons -columnspan 2 -sticky nsew
 
 }
@@ -475,9 +476,11 @@ itcl::body XLM72ScalerGUI::BuildPanel {parent name offset} {
   for {set i $begin} {$i < $end} {incr i} {
 
     set trigger($i) 0
-    ttk::label $w.ch$i -text [format "%02d" $i] -width 2
-    ttk::entry $w.name$i   -textvariable [itcl::scope name($i)] -width 8 \
-                      ;#-validatecommand SaveSettings
+#    ttk::label $w.ch$i -text [format "%02d" $i] -width 2
+    ChannelLabel $w.name$i -defaultstring [format "Ch %02d" $i] \
+                          -textvariable [itcl::scope name($i)] -width 20
+    #ttk::entry $w.name$i   -textvariable [itcl::scope name($i)] -width 8 \
+    #                  ;#-validatecommand SaveSettings
     ttk::label $w.scaler$i -textvariable [itcl::scope scaler($i)]  \
                           -padding 2 -width 10 -anchor e
     ttk::label $w.rate$i   -textvariable [itcl::scope rate($i)] \
@@ -489,9 +492,11 @@ itcl::body XLM72ScalerGUI::BuildPanel {parent name offset} {
   }
 
   ## Grid the panel
-  grid $w.chanLbl $w.nameLbl $w.totalLbl $w.rateLbl $w.enableLbl -stick nsew
+  grid $w.nameLbl $w.enableLbl -stick nsew
+#  grid $w.chanLbl $w.nameLbl $w.totalLbl $w.rateLbl $w.enableLbl -stick nsew
   for {set i $begin} {$i < $end} {incr i} {
-    grid $w.ch$i $w.name$i $w.scaler$i $w.rate$i $w.trigger$i -sticky news
+    grid $w.name$i $w.trigger$i -sticky news
+#    grid $w.ch$i $w.name$i $w.scaler$i $w.rate$i $w.trigger$i -sticky news
     grid rowconfigure $w [expr ($i-$begin)+1] -weight 1
   }
   grid columnconfigure $w {1 2 3} -weight 1 

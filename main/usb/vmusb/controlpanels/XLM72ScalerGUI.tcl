@@ -17,6 +17,11 @@
 #
 # @author Jeromy Tompkins
 
+set here [file normalize [file dirname [info script]]]
+lappend auto_path [file join $here .. TclLibs]
+lappend auto_path [file join $here .. lib]
+puts $auto_path
+
 package require InstallRoot
 package require cmdline
 package require Itcl 

@@ -411,7 +411,7 @@ snit::type AXLM72ScalerControl {
   #
   constructor args {
     $self configurelist $args
-    set driver [AXLM72Scaler #auto $options(-slot)]
+    set driver [AXLM72Scaler #auto {} $options(-slot)]
   }
 
   # The CControlHardware interface
@@ -511,7 +511,7 @@ snit::type AXLM72ScalerControl {
   # @param parameter  name of parameter requested
   #
   # @return result of request
-  method Get {parameter} {
+  method Get {ctlr parameter} {
     # convert swig pointer into something useful
     set ctlr [::VMUSBDriverSupport::convertVmUSB $ctlr]
     
