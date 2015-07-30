@@ -615,7 +615,7 @@ snit::type DataSourcemanagerSingleton {
 #  Bundle declaration:
 #
 namespace eval ::DataSourceMgr {
-    namespace export leave enter attach
+    namespace export leave enter attach onExit
 }
 
 ##
@@ -683,6 +683,17 @@ proc ::DataSourceMgr::leave {from to} {
     
     $mgr destroy
 }
+##
+# DataSourceMgr::onExit
+#   Bundle callback when exiting:
+#   Stop all the data sources
+#
+proc ::DataSourceMgr::onExit {} {
+    set mgr [DataSourcemanagerSingleton %AUTO%]
+    catch {$mgr stopAll};              # Could be in NotReady state.
+    $mgr destroy 
+}
+
 ##
 # ::DataSourceMgr::register
 #    Register our bundle with the state machine singleton.

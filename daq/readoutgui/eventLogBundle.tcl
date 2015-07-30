@@ -56,6 +56,8 @@ package require versionUtils
 #  * {Paused, Active} -> NotReady(enter):
 #                                       If the eventlogPID is set force the
 #                                       eventlog to exit and finalize the run.
+#  * OnExit - If the event log is running kill it off and try to finalize
+#             the run.
 #
 #            
 #
@@ -112,7 +114,7 @@ namespace eval ::EventLog {
     
     # Export the bundle interface methods
     
-    namespace export attach enter leave
+    namespace export attach enter leave onExit
 
 }
 
@@ -790,6 +792,21 @@ proc ::EventLog::leave {from to} {
       set ::EventLog::failed 0
     }
   }
+}
+
+##
+# ::EventLog::onExit
+#    Called when the program exits.
+#    - If the event logger is active, then kill it.
+#    - If the event logger was active finalize the run.
+#
+proc ::EventLog::onExit {} {
+    if {$::EventLog::loggerPid != -1} {
+        foreach pid $::EventLog::loggerPid {
+            catch {kill -9 $pid}
+            ::EventLog::_finalizeRun
+        }
+    }
 }
 
 #-------------------------------------------------------------------------------

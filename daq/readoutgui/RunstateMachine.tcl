@@ -32,6 +32,8 @@ package require snit
 #      *  leave  - Called when leaving a state, passed the old state, new state.
 #      *  attach - Called when added to the callouts list.  Passed the
 #                  current state.
+#      *  onExit - optional - if this exists it is called as the system
+#                  is exiting...assuming that's being done naturally.
 #
 #    It is up gto the client to ensure the namespaces registered exist.
 #    Note that a side effect of registration is to create a namespace
@@ -56,6 +58,7 @@ package require snit
 #   listStates
 #   listTransitions
 #   getState
+#   exit
 #
 #  Any methods that start with _ are considered private.  Note that
 #
@@ -239,6 +242,15 @@ snit::type RunstateMachine {
         }
     }
     
+    ##
+    # exit
+    #   Called when the program is about to exit.  Invoke the onExit
+    #   callback of all the bundles..if they have one.
+    #
+    method exit {} {
+        $self _callback onExit 
+    }
+    
     #--------------------------------------------------------------------------
     #
     # Private methods
@@ -263,7 +275,9 @@ snit::type RunstateMachine {
     #
     method _callback {method args} {
         foreach cb $callouts {
-            $cb $method {*}$args
+            if {[info command ::${cb}::${method}] ne ""} {
+                $cb $method {*}$args
+            }
         }
     }
     

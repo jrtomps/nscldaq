@@ -1237,13 +1237,13 @@ stagearea +
             </itemizedlist>
             <para>
                 If ReadoutCallouts or any other script sourced into
-                ReadoutShell provides them the following <command>proc</command>s
-                are called.
+                ReadoutShell will call any of the following <command>proc</command>s
+                it might have defined:
             </para>
             <note>
                 <title>NOTE</title>
                 <para>
-                    Two additional callouts not avaialble in <filename>ReadoutCallouts.tcl</filename>
+                    Three additional callouts not avaialble in <filename>ReadoutCallouts.tcl</filename>
                     scripts for NSCLDAQ-10.x and earlier have been added.
                 </para>
             </note>
@@ -1309,6 +1309,14 @@ stagearea +
                             Called when <literal>NotReady</literal> is
                             entered from any state other than
                             <literal>NotReady</literal>.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>OnExit</command></term>
+                    <listitem>
+                        <para>
+                            Called when the readout GUI is exiting.
                         </para>
                     </listitem>
                 </varlistentry>
@@ -4908,6 +4916,16 @@ set <replaceable>sm</replaceable> [RunstateMachineSingleton %AUTO%]
                         </para>
                     </listitem>
                 </varlistentry>
+                <varlistentry>
+                    <term><command>onExit</command></term>
+                    <listitem>
+                        <para>
+                            This optional proc is called when the Readout GUI
+                            is exiting.  It is not an error for the bundle not
+                            to define this proc in its namespace.
+                        </para>
+                    </listitem>
+                </varlistentry>
             </variablelist>
             <para>
                 The <command>enter</command> and <command>leave</command> procs
@@ -4931,7 +4949,7 @@ package require RunstateMachine                         <co id='callout_bundle_r
                     
 namespace eval ::MyBundle  {
     variable  sm
-    namespace export attach enter leave                 <co id='callout_bundle_namespace' />
+    namespace export attach enter leave               <co id='callout_bundle_namespace' />
 }
 
 proc ::MyBundle::attach currentState {

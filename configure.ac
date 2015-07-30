@@ -412,6 +412,7 @@ AC_CONFIG_FILES([Makefile
 		 utilities/statemanager/Makefile
 		 utilities/runcontrol/Makefile
 		 utilities/bootmanager/Makefile
+		 utilities/services/Makefile
                  epics/chanlog/Makefile
                  epics/controlpush/Makefile
                  epics/epicsdisplay/Makefile

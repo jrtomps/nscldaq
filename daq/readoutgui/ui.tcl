@@ -2875,7 +2875,9 @@ snit::widgetadaptor ReadoutGUI {
             set sm [RunstateMachineSingleton %AUTO%]
             if {[$sm getState] ne "NotReady"} {
                 $sm transition NotReady
+
             }
+            $sm exit;                  # Call the bundle onExit callbacks.
             $sm destroy;                # though there's not much point to this:
             #
             #  Save the state
