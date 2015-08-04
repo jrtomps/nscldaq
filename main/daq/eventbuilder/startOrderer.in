@@ -38,3 +38,11 @@ proc start args {
     wm title . "Event Builder run by $me"
 
 }
+
+if {[llength $argv] > 0} {
+  set ::OutputRing [lindex $argv 0]
+} else {
+  return -code error {User must provide name of output ring as first argument}
+}
+
+start 
