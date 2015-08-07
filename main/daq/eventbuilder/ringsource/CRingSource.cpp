@@ -421,7 +421,7 @@ CRingSource::copyLib(std::string original)
     
     // Open the dest.
     
-    int dest = open(destName.c_str(), O_CREAT | O_WRONLY, S_IRWXU);
+    dest = open(destName.c_str(), O_CREAT | O_WRONLY, S_IRWXU);
     if (!dest) {
       int err;
       std::string msg = "CRingSource: Faile to create a temp file for the shared  library: ";

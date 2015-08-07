@@ -5,8 +5,8 @@ include_HEADERS      = daqshm.h os.h io.h
 
 noinst_HEADERS	     = Asserts.h
 
-libdaqshm_la_LIBADD = @THREADLD_FLAGS@ -lcrypt
-COMPILATION_FLAGS            = @THREADCXX_FLAGS@
+libdaqshm_la_LIBADD = @THREADLD_FLAGS@ -lcrypt @LIBEXCEPTION_LDFLAGS@
+COMPILATION_FLAGS   = @THREADCXX_FLAGS@ @LIBTCLPLUS_CFLAGS@
 libdaqshm_la_CPPFLAGS=$(COMPILATION_FLAGS)
 
 

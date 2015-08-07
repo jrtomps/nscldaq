@@ -14,6 +14,7 @@
 	     East Lansing, MI 48824-1321
 */
 #include "os.h"
+#include <ErrnoException.h>
 #include <pwd.h>
 #include <errno.h>
 #include <string.h>
@@ -21,6 +22,7 @@
 #include <sys/types.h>
 #include <time.h>
 #include <signal.h>
+#include <stdexcept>
 
 static const unsigned NSEC_PER_SEC(1000000000); // nanoseconds/second.
 
@@ -137,7 +139,23 @@ Os::blockSignal(int sigNum)
 
   return sigaction(sigNum, &action, &oldAction);
 
-
-
   
+}
+
+int Os::checkStatus(int returnStatus, int checkedStatus, std::string msg) 
+{
+  if (returnStatus!=checkedStatus) {
+    throw std::runtime_error(msg);
+  }
+  //otherwise, we should just return the status
+  return returnStatus;
+}
+
+int Os::checkNegativeStatus(int returnStatus) 
+{
+  if (returnStatus<0) {
+    throw CErrnoException(strerror(errno));
+  }
+
+  return returnStatus;
 }
