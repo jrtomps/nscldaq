@@ -941,3 +941,9 @@ Work on 11.0-rc11 begins
 	scaler support.  Specifically when -timestamp is true, use
 	external LNE as well.  Furthermore support configuration in the
 	create command.
+11.0-007
+	* Issue #4447 get ring clients deleted again when ring buffers are
+	  destroyed.
+	* Issue 459 - Make ring master launch ringtostdout with an extra
+	  param that identifies the target host.
+	
