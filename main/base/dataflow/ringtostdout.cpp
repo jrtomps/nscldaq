@@ -200,9 +200,11 @@ int main(int argc, char** argv)
   }
 
   // There should be exactly one parameter, that is not a switch,
-  // the ring name:
+  // the ring name; Optional parameters are allowed but ignored.
+  // They can be used to document e.g. where the ring master is connecting.
 
-  if (parsed.inputs_num != 1) {
+
+  if (parsed.inputs_num < 1) {
     cmdline_parser_print_help();
     exit(EXIT_FAILURE);
   }
