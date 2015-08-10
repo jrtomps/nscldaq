@@ -229,11 +229,31 @@ CRingBuffer::remove(string name)
     errno = ENOENT;
     throw CErrnoException("CRingBuffer::remove - not a ring");
   }
-
+  
+  
+  // If _I_ don't own the ring don't allow deletion (unless I'm root).
+  
+  struct stat shmInfo;
+  int status = CDAQShm::stat(name, &shmInfo);
+  if (status == -1) {
+    throw CErrnoException("CRingBuffer::remove - Getting info about shared memory");
+  }
+  uid_t me = getuid();
+  if ((me != 0) && (me != shmInfo.st_uid)) {
+    errno = EPERM;
+    throw CErrnoException("CRingBuffer::remove - checking ringbuffer ownership");
+  }
+  // Connect to the ring master:
+  
   connectToRingMaster();
 
   // At this point RM has acked so we can kill the ring itself:
+  // Tell the ringmaster to forget the ring and kill the clients
 
+  m_pMaster->notifyDestroy(name);
+
+  // Delete the ring shared memory special file.
+  
   string fullName   = shmName(name);
 
   if (CDAQShm::remove(fullName)) {
@@ -241,8 +261,6 @@ CRingBuffer::remove(string name)
 
   }
 
-  // Tell the ringmaster to forget the ring and kill the clients
-  m_pMaster->notifyDestroy(name);
 }
 
 

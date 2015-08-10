@@ -44,6 +44,10 @@
 #endif
 #endif
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
 
 /**
  * CDAQShm provides an operating system independent interface for'
@@ -64,6 +68,8 @@ public:
   static ssize_t     size(std::string name);
   static int         lastError();
   static std::string errorMessage(int errorCode);
+  static int         stat(std::string name, struct stat* pStat);
+  
 
 private:
   static ssize_t fdSize(int fd);

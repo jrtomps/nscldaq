@@ -244,7 +244,20 @@ class <classname>CDAQShm</classname>
          <type>int</type><parameter>errorCode</parameter>
      </methodparam>
     </methodsynopsis>
-
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>int</type>
+        <methodname>stat</methodname>
+        <methodparam>
+            <modifier></modifier><type>std::string</type>
+                <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier></modifier><type>struct stat*</type>
+                <parameter>pStat</parameter>
+        </methodparam>
+        <modifier></modifier>
+    </methodsynopsis>  
    <fieldsynopsis><modifier>static const</modifier> <type>int</type> <varname>Success</varname></fieldsynopsis>
    <fieldsynopsis><modifier>static const</modifier> <type>int</type> <varname>Exists</varname></fieldsynopsis>
    <fieldsynopsis><modifier>static const</modifier> <type>int</type> <varname>NonExistent</varname></fieldsynopsis>
@@ -434,6 +447,32 @@ class <classname>CDAQShm</classname>
                     to <methodname>lastError</methodname>
                 </para>
             </listitem>
+           </varlistentry>
+           <varlistentry>
+               <term>
+                    <methodsynopsis>
+                        <modifier></modifier>
+                        <type>int</type>
+                        <methodname>stat</methodname>
+                        <methodparam>
+                            <modifier></modifier><type>std::string</type>
+                                <parameter>name</parameter>
+                        </methodparam>
+                        <methodparam>
+                            <modifier></modifier><type>struct stat*</type>
+                                <parameter>pStat</parameter>
+                        </methodparam>
+                        <modifier></modifier>
+                    </methodsynopsis>  
+               </term>
+               <listitem>
+                   <para>
+                    Fills in the <parameter>pStat</parameter> file status
+                    structure with the data appropriate to the
+                    <parameter>name</parameter> shared memory section.
+                    On error returns <literal>-1</literal>.
+                   </para>
+               </listitem>
            </varlistentry>
           </variablelist>
        </refsect1>
