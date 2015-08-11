@@ -285,13 +285,13 @@ proc processDirectory {directory} {
 #
 #
 proc dumpHeader {} {
-    puts {<?xml version="1.0" encoding="UTF-8"?>}
-    puts {<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"}
-    puts {"file:///usr/share/xml/docbook/schema/dtd/4.3/docbookx.dtd"}
-    puts { [] }
-    puts {>}
-    puts {<book>}
-    puts "<title>$::booktitle</title>"
+    puts $::outputChannel {<?xml version="1.0" encoding="UTF-8"?>}
+    puts $::outputChannel {<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"}
+    puts $::outputChannel {"file:///usr/share/xml/docbook/schema/dtd/4.3/docbookx.dtd"}
+    puts $::outputChannel { [] }
+    puts $::outputChannel {>}
+    puts $::outputChannel {<book>}
+    puts $::outputChannel "<title>$::booktitle</title>"
 }
 
 
@@ -299,7 +299,7 @@ proc dumpHeader {} {
 #  Dump the docbook trailer.
 #
 proc dumpTrailer {} {
-    puts {</book>}
+    puts $::outputChannel {</book>}
 }
 
 #-----------------------------------------------------------------
@@ -348,8 +348,8 @@ proc dumpPart name {
 
     # Part header:
 
-    puts "<part>"
-    puts "<title>$name</title>"
+    puts $::outputChannel "<part>"
+    puts $::outputChannel "<title>$name</title>"
 
     # Part prefix (if it exists)
 
@@ -357,15 +357,15 @@ proc dumpPart name {
 	set pf [open $prefixFile r]
 	set prefix [read $pf]
 	close $pf
-	puts "<partintro>"
-	puts $prefix
-	puts "</partintro>"
+	puts $::outputChannel "<partintro>"
+	puts $::outputChannel $prefix
+	puts $::outputChannel "</partintro>"
     }
     # Part body:
 
-    puts $contents
+    puts $::outputChannel $contents
     
-    puts </part>
+    puts $::outputChannel </part>
 }
 #-----------------------------------------------------------------
 #
@@ -376,17 +376,17 @@ proc dumpPart name {
 #
 
 proc refpartStart {} {
-    puts "<part>"
-    puts "<title>Reference Pages</title>"
+    puts $::outputChannel "<part>"
+    puts $::outputChannel "<title>Reference Pages</title>"
     
     set refIntroFile [lsearch -glob -inline $::metafiles */refpart.xml]
     if {$refIntroFile ne ""} {
 	set pf [open $refIntroFile r]
 	set intro [read $pf]
 	close $pf
-	puts "<partintro>"
-	puts $intro
-	puts "</partintro>"
+	puts $::outputChannel "<partintro>"
+	puts $::outputChannel $intro
+	puts $::outputChannel "</partintro>"
     }
 
 }
@@ -396,7 +396,7 @@ proc refpartStart {} {
 #  End matter for the reference part.
 #
 proc refpartEnd {} {
-    puts "</part>"
+    puts $::outputChannel "</part>"
 }
 
 #-----------------------------------------------------------------
@@ -427,26 +427,26 @@ proc dumpRefsec sect {
     if {[array name :::sections $sect] eq ""} {
 	return
     }
-    puts "<reference id='man-$sect'>"
-    puts "<title>$sect</title>"
+    puts $::outputChannel "<reference id='man-$sect'>"
+    puts $::outputChannel "<title>$sect</title>"
 
     # If there's an intro file, output it:
 
     set introFile [lsearch -glob -inline $::metafiles */refsec_$sect.xml]
     if {$introFile ne ""} {
-	puts "<partintro>"
+	puts $::outputChannel "<partintro>"
 	set fd [open $introFile r]
-	puts [gets $fd]
+	puts $::outputChannel [gets $fd]
 	close $fd
-	puts "</partintro>"
+	puts $::outputChannel "</partintro>"
     }
     # Now put the body of the section:
 
-    puts $::sections($sect)
+    puts $::outputChannel $::sections($sect)
 
     # And close the section body with the final end tag.
 
-    puts "</reference>"
+    puts $::outputChannel "</reference>"
 }
 
 #-----------------------------------------------------------------
@@ -480,6 +480,36 @@ proc createDocument {} {
     }
 
     dumpTrailer
+
+}
+
+
+proc createSectionDumps {} {
+
+
+# If there are any reference sections, dump them.
+
+  if {[info globals sections] ne ""} {
+
+
+    foreach sect $::secorder {
+      if {[catch {set ::outputChannel [open "$sect.xml" w]} msg]} {
+        puts $msg
+      }
+      dumpHeader
+      refpartStart
+      dumpRefsec $sect
+      refpartEnd
+      dumpTrailer
+      flush $::outputChannel
+      if {[catch {close $::outputChannel} msg]} {
+        puts stdout $msg
+      }
+    }
+
+    set outputChannel stdout
+  }
+
 
 }
 
@@ -525,5 +555,7 @@ if {[info global testing] eq ""} {
 
   # Dump the document:
 
+  set ::outputChannel stdout
   createDocument
+  createSectionDumps
 }

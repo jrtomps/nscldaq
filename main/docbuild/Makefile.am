@@ -17,7 +17,7 @@ install-exec-local: daq.html daq.mans tutorial.pdf tutorial.html
 	$(mkinstalldirs) @prefix@/share/tuthtml
 	$(mkinstalldirs) @prefix@/share/pdfs
 	for i in 1 2 3 4 5 6 7 8; do $(mkinstalldirs) @prefix@/share/man/man$$i; done
-	- for i in 1 2 3 4 5 6 7 8; do for f in *.$$i*; do  $(INSTALL_DATA) $$f @prefix@/share/man/man$$i; done; done
+	- for i in 1 2 3 4 5 6 7 8; do for f in man/*.$$i*; do  $(INSTALL_DATA) $$f @prefix@/share/man/man$$i; done; done
 	$(UPDATEMAN) @prefix@/share/man
 	- $(INSTALL_DATA) html/* @prefix@/share/html
 	- $(mkinstalldirs) @prefix@/share/images @prefix@/share/images/callouts
@@ -37,8 +37,27 @@ daq.pdf: daq.xml
 	$(TOPDF) daq.xml
 
 
+#	$(TOMAN) -o man --skip-validation 1usbReadout.xml
 daq.mans: daq.xml				
-	$(TOMAN) -o man daq.xml
+	$(TOMAN) -o man --skip-validation 1compatibility.xml
+	$(TOMAN) -o man --skip-validation 1daq.xml
+	$(TOMAN) -o man --skip-validation 1epics.xml
+	$(TOMAN) -o man --skip-validation 1evb.xml
+	$(TOMAN) -o man --skip-validation 1sbsReadout.xml
+	$(TOMAN) -o man --skip-validation 1tcl.xml
+	$(TOMAN) -o man --skip-validation 1utilities.xml
+	$(TOMAN) -o man --skip-validation 3ccusb.xml
+	$(TOMAN) -o man --skip-validation 3daq.xml
+	$(TOMAN) -o man --skip-validation 3evb.xml
+	$(TOMAN) -o man --skip-validation 3provider.xml
+	$(TOMAN) -o man --skip-validation 3python.xml
+	$(TOMAN) -o man --skip-validation 3rdogui.xml
+	$(TOMAN) -o man --skip-validation 3sbsReadout.xml
+	$(TOMAN) -o man --skip-validation 3tcl.xml
+	$(TOMAN) -o man --skip-validation 3vmusb.xml
+	$(TOMAN) -o man --skip-validation 5daq.xml
+	$(TOMAN) -o man --skip-validation 5tcl.xml
+	$(TOMAN) -o man --skip-validation 5vmusb.xml
 
 #	touch daq.mans
 
