@@ -2732,7 +2732,7 @@ snit::widgetadaptor ReadoutGUI {
     #   * Add Library - Adds a library directory to the auto_path.
     #   * <separator>
     #   * Log         - Select a log file for the output widget.
-    #   * Log Disable - Turn off logging in the output wigdget.
+    #   * Log Disable - Turn off logging in the output widget.
     #   * <separator>
     #   * Exit        - Ends any active run and exits the application.
     #
