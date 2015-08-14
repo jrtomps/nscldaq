@@ -416,14 +416,34 @@ COutputThread::scaler(void* pData)
 
   // Figure out how many words/scalers there are:
 
-  size_t        nWords   =  header & CCUSBEventLengthMask;
-  size_t        nScalers =  nWords/(sizeof(uint32_t)/sizeof(uint16_t));
+  size_t nWords   =  header & CCUSBEventLengthMask;
+  size_t nShortsPerLong = sizeof(uint32_t)/sizeof(uint16_t);
+  size_t nScalers       = nWords/nShortsPerLong;
 
   // Marshall the scalers into an std::vector:
 
   std::vector<uint32_t> counterData;
   for (int i = 0; i < nScalers; i++) {
     counterData.push_back((*pBody++));; // & 0xffffff); // 24 bits of data allows top bits are x/q e.g
+  }
+
+  // if the number of words did not evenly divide by nShortsPerLong, we need to handle
+  // the leftover word. Do so here in terms of bytes. They just get shoved in the
+  // lowest bytes of another 32-bit word.
+
+  size_t nLeftOverBytes = (nWords % nShortsPerLong)*sizeof(uint16_t);
+  if (nLeftOverBytes != 0) {
+
+    union IOU32 {
+      uint32_t value;
+      char     bytes[sizeof(uint32_t)];
+    } slopBytes;
+
+    slopBytes.value = 0;
+    uint8_t* pBytes = reinterpret_cast<uint8_t*>(pBody);
+    std::copy(pBytes, pBytes+nLeftOverBytes, slopBytes.bytes);
+
+    counterData.push_back(slopBytes.value);
   }
 
   // The CCUSB does not timestamp scaler data for us at this time so we
