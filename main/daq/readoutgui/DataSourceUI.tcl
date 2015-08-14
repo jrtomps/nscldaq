@@ -252,7 +252,7 @@ snit::widgetadaptor PromptDataSource {
 #   *  OK/Cancel buttons located below the widget.
 #   *  Method to become application modal.
 #   *  Delegation of all unrecognized options and methods to the contained
-#      widget.
+#      widget<methodsynopsis>
 # OPTIONS
 #  -form    - Sets the widget that will appear in the control area.
 #  -showcancel - Determines if the widget displays the cancel button.  If

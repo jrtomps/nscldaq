@@ -64,13 +64,18 @@ package require Tk
 package require ReadoutGui
 package require RunstateMachine
 package require DataSourceUI
+package require ExpFileSystemConfig
+package require ReadoutGUIPanel
 package require snit
-
+package require csv
 
 # Namespace to hold our variables:
 
 namespace eval multilogger {
     variable Initialized 0;                       # Protect against multi load:
+    variable Loggers   [list];                    # List of EventLogger objects.
+    variable configFile [file join ~ .multiloggers] ; # Initial configuration file
+    namespace export enter leave attach
 }
 
 ##
@@ -97,13 +102,129 @@ snit::type EventLogger {
     option -enable   0
     option -timeout 20
     
+    variable loggerPids [list]
+    variable loggerFd     -1
+    variable loggerProgram [file join $::env(DAQBIN) eventlog]
+    
+    variable expectingExit 0;             # Determines if pipe exists are bad.
+    variable waitDone      0;             # for vwait when waiting on exits.
+    
     constructor args {
         $self configurelist $args
     }
     
-    method start {} {}
-    method stop {} {}
+    ##
+    # start
+    #   Start our event logger:
+    #   - The logger command is constructed.
+    #   - The logger is started on a pipeline that captures stdin/stderr
+    #   - File events are used to make input event driven.
+    #   - The event logger's PIDS are captured.
+    #
+    method start {} {
+        if {$options(-enable)} {
+            set command [list $loggerProgram                    \
+                --source=$options(-ring) --path=$options(-out)  \
+                --oneshot --checksum                            \
+            ]
+            set loggerFd [open "| $command |& cat" r]
+            
+            fileevent $loggerFd readable [mymethod _handleInput]
+            set expectingExit 0
+            set loggerPids [pid $loggerFd]
+        }
+        
+    }
+    ##
+    # aboutToStop
+    #    Flag that it's ok for the loggers to exit.
+    #
+    method aboutToStop {} {
+        set expectingExit 1
+    }
+    ##
+    # stop
+    #  Stop the event logger.  We are going to wait at most the timeout
+    #  seconds for the logger to actually exit...well actually, the logger
+    #  should exit on its own and all we really need to do is wait for it
+    #  and kill it off should it not exit within the timeout.
+    #
+    method stop {} {
+        # First of all only do anything if there is a logger
+        # 
+        if {[llength $loggerPids] > 0} {
+            set expectingExit 1;            # So _handleInput does not freak.
+            set afterId                                 \
+                [after [expr $options(-timeout)*1000]   \
+                 [list incr ${selfns}::waitDone]        \
+            ]
+            vwait ${selfns}::waitDone
+            
+            if {[llength $loggerPids] == 0} {
+
+                # Logger exit was observed:
+                
+                after cancel $afterId;             # Cancel timeout.
+                
+            } else {
+                
+                # Logger did not exit:
+                # Shut it down the hard way:
+                
+                catch {close $loggerFd};        # Since this reports errors.
+                set loggerFd -1
+                foreach pid $loggerPids {
+                    catch [exec kill -9 $pid];   # Explicitly kill the pipe elements.
+                }
+                set loggerPids [list]
+                
+                # report the problem:
+                
+                set ring $options(-ring)
+                set out  $options(-out)
+                tk_messageBox -icon error -title {Timed out waiting for logger to exit}  \
+                    -type ok                                                            \
+                    -message "Multilogger $ring -> $out failed to exit within timeout"
+            }
+        }
+    }
+    ##
+    # _handleInput
+    #   Called when the logger fd is readable:
+    #   - Actual input is relayed as a log message to the console.
+    #   - Closed pipe means the program exited.  If this was expected, just
+    #     kill off  the fd and the Pids.  Otherwise, raise a stink as well
+    #     as killing off the fd and pids.
+    #
+    method _handleInput {} {
+        if {![eof $loggerFd]} {
+            fconfigure $loggerFd -blocking 0
+            set data [read $loggerFd];     # Gulp in all waiting data.
+            fconfigure $loggerFd -blocking 1;  # Else fileevent triggers.
+            
+            set ring $options(-ring)
+            set out  $options(-out)
+            ::ReadoutGUIPanel::Log Multilogger: output "$ring -> $out: $data"
+        } else {
+        
+            catch {close $loggerFd}
+            incr waitDone;             # Trigger vwait to finish if waiting.
+            set loggerFd -1;           # Set the variables back to show the logger
+            set loggerPids [list];     # no loger exists.
+            
+            # If the exit was unexpected, yell:
+            
+            if {! $expectingExit} {
+            
+                set ring $options(-ring)'
+                set out  $options(-out)
+                tk_messageBox -icon error -type ok -title {Logger exited} \
+                    -message "Mutlilogger: $ring ->$out unexpectedly exited check log for errors"
+            }
+        }
+    }
 }
+
 
 ##
 # @class AddLogger
@@ -181,6 +302,7 @@ snit::widgetadaptor AddLogger {
 #
 # METHODS
 #   getSelected - Returns the list of selected loggers.
+#   setButton   - Sets the state of a button by logger index.
 #
 #
 # The user interface is just a listing of the loggers with checkboxes next to
@@ -207,14 +329,35 @@ snit::widgetadaptor SelectLoggers {
         foreach logger $options(-loggers) {
             set ring [$logger cget -ring]
             set odir [$logger cget -out]
-            set labelText "$ring -> $odir"
+            set ena  [$logger cget -enable]
+            if {$ena}  {
+                set enaTxt Enabled
+            } else {
+                set enaTxt Disabled
+            }
+            set labelText "$ring -> $odir Logger is $enaTxt"
             
             set b $win.b$buttonIdx
-            puts $b
             lappend checkbuttons [ttk::checkbutton $b -text $labelText]
-            pack $b
+            pack $b -fill x -expand 1
             incr buttonIdx
         }
+    }
+    ##
+    # setButton
+    #   Sets the state of a specified button.
+    #
+    # @param idx - index of the button widget.
+    # @param state - boolean new state.
+    #
+    method setButton {idx state} {
+        if {$state} {
+            set flag selected
+        } else {
+            set flag !selected
+        }
+        set checkbutton [lindex $checkbuttons $idx]
+        $checkbutton state $flag
     }
     
     ##
@@ -307,9 +450,339 @@ snit::widgetadaptor LoggerList {
     }
 }
 
+#------------------------------------------------------------------------------
+#  Internal utility methods.
+#
 
+##
+# ::multilogger::_validateLoggerConfig
+#    Validate the configuration of a logger:
+# @param ring   - must not be empty (TODO - See if the ring actually exists?).
+# @param outdir - Must be non empty and an existing, writeable directory.
+# @param enable - Must be a valid boolean.
+# @param timeout - Must be a an integer strictly greater than zero.
+# @return boolean - true if all te validations above pass else false.
+#
+proc ::multilogger::_validateLoggerConfig {ring outdir enable timeout} {
+    if {$ring eq ""}                          { return 0 }
+    
+    if {$outdir eq ""}                        {return 0}
+    if {![file isdirectory $outdir]}          {return 0}
+    if {![file writable $outdir]}             {return 0}
+    
+    if {![string is boolean -strict $enable]} {return 0}
+    
+    if {![string is integer -strict $timeout]} {return 0}
+    if {$timeout <= 0}                         {return 0}
+    
+    return 1
+}
 
+#-------------------------------------------------------------------------------
+#  User interface procs that handle the menu commands:
 
+##
+# multilogger::addLogger
+#   Called to create a new logger.
+#   The logger definition form (AddLogger) is wrapped in a DialogWrapper in
+#   a top level and we wait on user input.  If the user exited with Ok and
+#   specified everything we need, we create an appropriate EventLogger object
+#   and add it to the list of loggers.
+#
+proc ::multilogger::addLogger {} {
+    #
+    #  If somehow we get here when the logger prompt is already displayed
+    #  don't do it:
+    #
+    if {![winfo exists .addlogger]} {
+        toplevel .addlogger
+        set dialog [DialogWrapper .addlogger.dialog]
+        set container [$dialog controlarea]
+        set form [AddLogger $container.form \
+            -enable 1 -out [::ExpFileSystemConfig::getStageArea] \
+        ]
+        $dialog configure -form $form
+        pack $dialog
+        set action [$dialog modal]
+
+        if {$action eq "Ok"} {
+            set ring    [$form cget -ring]
+            set outdir  [$form cget -out]
+            set enable  [$form cget -enable]
+            set timeout [$form cget -timeout]
+            
+            if {[::multilogger::_validateLoggerConfig $ring $outdir $enable $timeout]} {
+                lappend ::multilogger::Loggers [EventLogger %AUTO%             \
+                    -ring $ring -out $outdir -enable $enable -timeout $timeout \
+                ]
+            } else {
+                tk_messageBox -icon error -parent $dialog -title {Bad logger def} \
+                    -message {The logger was incompletely or improperly defined} 
+            }
+            ::multilogger::saveLoggers
+        }
+        destroy .addlogger
+    }
+}
+
+##
+# ::multilogger::listLoggers
+#    Lists the defined loggers and their characteristics.  Note that the main
+#    event logger is not listed, only the loggers we manage.
+#
+proc ::multilogger::listLoggers { } {
+    
+    #  Create the dialog if it's not up.
+    
+    if {![winfo exists .listloggers]} {
+        
+        toplevel .listloggers
+        set dlg  [DialogWrapper .listloggers.dialog -showcancel 0]
+        set container [$dlg controlarea]
+        
+        set lister [LoggerList $container.form -loggers $::multilogger::Loggers]
+        $dlg configure -form $lister
+        
+        pack $dlg
+        $dlg modal
+        destroy .listloggers
+    } else {
+        # Update the -loggers value if it is (don't think this can happen but..)
+        
+        set container [.listloggers.dialog controlarea]
+        $container.form configure -loggers $::multilogger::Loggers
+        $dlg modal
+        destroy .listloggers
+    }  
+}
+
+##
+# ::multilogger::enableLoggers
+#    Allow users to enable/disable loggers.
+#    The actual dialog is a form that contains  instructional text at the
+#    top and the SelectLoggers widget at the bottom.  The SelectLoggers
+#    widget is initialized with checkboxes set when the logger is enabled.
+#    and cleared when not.
+#
+proc ::multilogger::enableLoggers {} {
+    if {![winfo exists .enableloggers]} {
+        toplevel .enableloggers
+        message  .enableloggers.help -text \
+        {In the list of loggers below, check the boxes next to those you want
+enabled an uncheck those you don't want enabled}
+        pack .enableloggers.help -fill x -expand 1
+        
+        set dlg [DialogWrapper .enableloggers.dialog]
+        set container [$dlg controlarea]
+        
+        set sel [SelectLoggers $dlg.select -loggers $::multilogger::Loggers]
+        set idx 0
+        foreach logger $::multilogger::Loggers {
+            $sel setButton $idx [$logger cget -enable]
+            incr idx
+        }
+        
+        $dlg configure -form $sel
+        pack $dlg -fill x -expand 1
+        
+        set result [$dlg modal]
+        
+        if {$result eq "Ok"} {
+            set selection [$sel getSelected]
+            foreach logger $::multilogger::Loggers {
+                if {$logger in $selection} {
+                    set state 1
+                } else {
+                    set state 0
+                }
+                $logger configure -enable $state
+            }
+            ::multilogger::saveLoggers
+        }
+        destroy .enableloggers
+    }
+ 
+}
+
+##
+# ::multilogger::deleteLoggers
+#      Pop up a dialog to allow users to delete event loggers.
+#      List the loggers using Dialog wrapped SelectLoggers.
+#      Once the loggers have been accepted, present a dialog that shows which
+#      ones will be deleted for confirmation.
+#
+proc ::multilogger::deleteLoggers {} {
+    if {![winfo exists .delloggers] && ![winfo exists .confirmdelloggers]} {
+        
+        # Prompt for deletions:
+        
+        toplevel .delloggers
+        message .delloggers.help \
+            -text {Select the event loggers to delete below}
+        pack .delloggers.help -fill x -expand 1
+        
+        set dlg [DialogWrapper .delloggers.dialog]
+        set container [$dlg controlarea]
+        set form [SelectLoggers $dlg.select -loggers $::multilogger::Loggers]
+        $dlg configure -form $form
+        
+        pack $dlg -fill x -expand 1
+        
+        set result [$dlg modal]
+        
+        # IF ok prompt for confirmation:
+        
+        if {$result eq "Ok"} {
+            set pendingDelete [$form getSelected]
+            destroy .delloggers
+            
+            # Treat an empty selection like a cancel:
+            
+            if {[llength $pendingDelete] > 0} {
+                toplevel .confirmdelloggers
+                message  .confirmdelloggers.help \
+                    -text {Really delete these event loggers?}
+                pack .confirmdelloggers.help -fill x -expand 1
+                set dlg [DialogWrapper .confirmdelloggers.dialog]
+                set container [$dlg controlarea]
+                set form [LoggerList $container.form -loggers $pendingDelete]
+                $dlg configure -form $form
+                pack  $dlg -fill x -expand 1
+                tkwait visibility $dlg
+                
+                set result [$dlg modal]
+                destroy .confirmdelloggers
+                
+                # Confirmed so delete:
+                
+                if {$result eq "Ok"} {
+                    foreach logger $pendingDelete {
+                        set idx [lsearch -exact $::multilogger::Loggers $logger ]
+                        if {$idx == -1} {
+                            error "BUG - Deleting logger not in registered list!"
+                        }
+                        set  ::multilogger::Loggers [lreplace $::multilogger::Loggers $idx $idx]
+                        $logger destroy
+                    }
+                    ::multilogger::saveLoggers
+                }
+            }
+        } else {
+            destroy .delloggers
+        }
+    }
+}
+
+##
+# ::multilogger::saveLoggers
+#    Save the loggers to the program's dot file
+#    See mulitlogger::loadLoggers below for the format of this file.
+#
+proc ::multilogger::saveLoggers {} {
+    set fd [open $::multilogger::configFile w]
+    
+    foreach logger $::multilogger::Loggers {
+        set ring [$logger cget -ring]
+        set out  [$logger cget -out]
+        set ena  [$logger cget -enable]
+        set tmo  [$logger cget -timeout]
+        
+        puts $fd [::csv::join [list $ring $out $ena $tmo]]
+    }
+    
+    close $fd
+}
+##
+# ::multilogger::loadLoggers
+#    If the file ~/.multiloggers exists, load the logger setup from there.
+#    This is a csv files with fields that are
+#    * ring uri         - refers to the source ring.
+#    * logger directory - The directory in which logging is done.
+#    * enable-flag      - True if the logger is enabled.
+#    * timeout          - Seconds to wait for the logger to exit on end run.
+#
+proc ::multilogger::loadLoggers {} {
+    if {[file readable $::multilogger::configFile]} {
+        set fd [open $::multilogger::configFile r]
+        while {![eof $fd]} {
+            set line [gets $fd]
+            set infoList [::csv::split $line]
+            if {[llength $infoList] == 4}  {
+                set ring [lindex $infoList 0]
+                set out  [lindex $infoList 1]
+                set ena  [lindex $infoList 2]
+                set tmo  [lindex $infoList 3]
+                lappend ::multilogger::Loggers [EventLogger %AUTO%      \
+                    -ring $ring -out $out -enable $ena -timeout $tmo    \
+                ]
+            }
+        }
+        close $fd
+    } else {
+        # Make an empty one:
+        
+        set fd [open $::multilogger::configFile w]
+        close $fd
+    }
+}
+
+#------------------------------------------------------------------------------
+#  Our state transition methods:
+#
+
+##
+# attach
+#   Called when our bundle is attached to the state manager.
+#   NO-OP
+# @param state - current state of the system.
+#
+proc ::multilogger::attach state {
+    
+}
+
+##
+# leave
+#   Called as a state is left:
+#    Leaving Halted for Active, with recording enabled, start the loggers.
+#
+# @param from - initial state (Being left).
+# @param to   - Next state.
+#
+proc ::multilogger::leave {from to} {
+    if {($from eq "Halted") && ($to eq "Active")} {
+        if {[::ReadoutGUIPanel::recordData]} {
+            foreach logger $::multilogger::Loggers {
+                $logger start
+            }
+        }
+    }
+}
+
+##
+# enter
+#   Called as a state is entered:
+#   If entering Haltd from either Active or Paused, stop all loggers.
+#   We don't need to check for recording active. stop is a no-op for loggers
+#   that did not start.
+#
+# @param from - prior state.
+# @param to   - State being entered.
+#
+proc ::multilogger::enter {from to} {
+    if {($from in {Active Paused}) && ($to eq "Halted")} {
+        #  Let the loggers know it's ok for to exit
+        
+        foreach logger $::multilogger::Loggers {
+            $logger aboutToStop
+        }
+        
+        # ensure they all vanished within their timeout or kill:
+        
+        foreach logger $::multilogger::Loggers {
+            $logger stop
+        }
+    }
+}
 
 
 #-----------------------------------------------------------------------------
@@ -328,9 +801,18 @@ proc ::multilogger::initPackage {} {
         $myMenu add command -label {Enable Loggers...} -command ::multilogger::enableLoggers
         $myMenu add command -label {Delete Loggers...} -command ::multilogger::deleteLoggers
         
+        # Load the initial loggers from last time if they exist else build the
+        # ~/.multiloggers file.
+        
+        ::multilogger::loadLoggers
         
         set ::multilogger::Initialized 1
     }
+    # Register the callback bundle prior to the event logger:
+    
+    set sm [::RunstateMachineSingleton %AUTO%]
+    $sm addCalloutBundle multilogger EventLog
+    $sm destroy
 }
 
 after 500 ::multilogger::initPackage

@@ -106,6 +106,7 @@ namespace eval ::EventLog {
     
     variable loggerfd     [list]
     variable expectingExit 0
+    variable needFinalization 0
     
     ## 
     # @var failed         - Indicates whether or not the system has failed or succeeded
@@ -326,7 +327,7 @@ proc ::EventLog::_startLogger {} {
     set logger [DAQParameters::getEventLogger] 
     set loggerVsn [::EventLog::_getLoggerVersion $logger]
     set switches [::EventLog::_computeLoggerSwitches $loggerVsn]
-    puts $switches
+
     set ::EventLog::loggerFd \
         [open "| $logger $switches" r]
     set ::EventLog::loggerPid [pid $::EventLog::loggerFd]
@@ -356,6 +357,8 @@ proc ::EventLog::_handleInput {} {
         if {!$::EventLog::expectingExit} {
             ::ReadoutGUIPanel::Log EventLogManager error "Unexpected event log error! $msg"
             ::Diagnostics::Error {The event logger exited unexpectedly!!}
+        } else {
+            ::EventLog::_finalizeRun;            # May need that if exit before wait.
         }
         set ::EventLog::loggerFd [list]
         set ::EventLog::loggerPid -1
@@ -399,62 +402,66 @@ proc ::EventLog::_waitForFile {name waitTimeout pollInterval} {
 #
 #
 proc ::EventLog::_finalizeRun {} {
-    set srcdir [::ExpFileSystem::getCurrentRunDir]
-    set completeDir [::ExpFileSystem::getCompleteEventfileDir]
-    set run [ReadoutGUIPanel::getRun]
-    set destDir [::ExpFileSystem::getRunDir $run]
-    
-    # Make the run directory:
-    # and mv the event files into it... remembering the destination names.
-    
-    file attributes \
-        [file normalize [file join $destDir ..]] -permissions 0770;   # Let me write here.
-    file mkdir $destDir
-    set  fileBaseName [::ExpFileSystem::genEventfileBasename $run]
-    set  eventFiles [glob -nocomplain [file join $srcdir ${fileBaseName}*.evt]]
-    set  mvdNames [list]
-    foreach eventFile $eventFiles {
-        set destFile [file join $destDir [file tail $eventFile]]
-        file rename -force $eventFile $destFile
-        lappend mvdNames $destFile
-    }
-    #
-    #  If there is a checksum file (there should be) move that to the experiment directory
-    #
+    if {$::EventLog::needFinalization} {
 
-    set cksumFile [file join $srcdir "${fileBaseName}.sha512"]
-    set destFile [file join $destDir [file tail $cksumFile]]
-    if {[file readable $cksumFile]} {
-      file rename -force $cksumFile $destFile
-    }
-
-    #  If 
-    #  Make links in the complete directory for all mvdNames:
-    
-    foreach file $mvdNames {
-        set targetLink [file join $completeDir [file tail $file]]
-        catch {exec ln -s $file $targetLink}
-    }
-    #  Now what's left gets recursively/link-followed copied to the destDir
-    #  using tar.
-    
-    set tarcmd "(cd $srcdir; tar chf - .) | (cd $destDir; tar xpf -)"
-    exec sh << $tarcmd
-    
-    # If required, protect the files:
-    #   - The destDir is set to 0550
-    #   - The parent dir is set to 0550.
-    #   - A chmod -R is done to set the contents to 0x550 as well.
-    
-    if {$::EventLog::protectFiles} {
-        set files [glob -nocomplain -directory $destDir -types {f d} *]
-        if {[llength $files]>0} {
-          exec sh << "chmod -R 0550 $files"
-          file attributes $destDir -permissions 0550 
-          file attributes [file join $destDir ..] -permissions 0550 
+        set srcdir [::ExpFileSystem::getCurrentRunDir]
+        set completeDir [::ExpFileSystem::getCompleteEventfileDir]
+        set run [ReadoutGUIPanel::getRun]
+        set destDir [::ExpFileSystem::getRunDir $run]
+        
+        # Make the run directory:
+        # and mv the event files into it... remembering the destination names.
+        
+        file attributes \
+            [file normalize [file join $destDir ..]] -permissions 0770;   # Let me write here.
+        file mkdir $destDir
+        set  fileBaseName [::ExpFileSystem::genEventfileBasename $run]
+        set  eventFiles [glob -nocomplain [file join $srcdir ${fileBaseName}*.evt]]
+        set  mvdNames [list]
+        foreach eventFile $eventFiles {
+            set destFile [file join $destDir [file tail $eventFile]]
+            file rename -force $eventFile $destFile
+            lappend mvdNames $destFile
         }
-    }
+        #
+        #  If there is a checksum file (there should be) move that to the experiment directory
+        #
     
+        set cksumFile [file join $srcdir "${fileBaseName}.sha512"]
+        set destFile [file join $destDir [file tail $cksumFile]]
+        if {[file readable $cksumFile]} {
+          file rename -force $cksumFile $destFile
+        }
+    
+        #  If 
+        #  Make links in the complete directory for all mvdNames:
+        
+        foreach file $mvdNames {
+            set targetLink [file join $completeDir [file tail $file]]
+            catch {exec ln -s $file $targetLink}
+        }
+        #  Now what's left gets recursively/link-followed copied to the destDir
+        #  using tar.
+        
+        set tarcmd "(cd $srcdir; tar chf - .) | (cd $destDir; tar xpf -)"
+        exec sh << $tarcmd
+        
+        # If required, protect the files:
+        #   - The destDir is set to 0550
+        #   - The parent dir is set to 0550.
+        #   - A chmod -R is done to set the contents to 0x550 as well.
+        
+        if {$::EventLog::protectFiles} {
+            set files [glob -nocomplain -directory $destDir -types {f d} *]
+            if {[llength $files]>0} {
+              exec sh << "chmod -R 0550 $files"
+              file attributes $destDir -permissions 0550 
+              file attributes [file join $destDir ..] -permissions 0550 
+            }
+        }
+        set ::EventLog::needFinalization 0
+        ReadoutGUIPanel::incrRun
+    }
 }
 ##
 # ::EventLog::_getSegmentInfo
@@ -683,6 +690,7 @@ proc ::EventLog::runStarting {} {
     ::EventLog::deleteStartFile
     set ::EventLog::expectingExit 0
     ::EventLog::_setStatusLine 2000
+    set ::EventLog::needFinalization 1
   }
 }
 ##
@@ -703,6 +711,7 @@ proc ::EventLog::runEnding {} {
     # ::EventLog::loggerPid will be a list of pids which freaks out ==.
     
     if {$::EventLog::loggerPid ne -1} {
+        
         set ::EventLog::expectingExit 1
         ::EventLog::_waitForFile $exitFile $::EventLog::shutdownTimeout \
             $::EventLog::filePollInterval
@@ -717,7 +726,7 @@ proc ::EventLog::runEnding {} {
         
         # Incremnt the run number:
         
-        ReadoutGUIPanel::incrRun
+       
         ReadoutGUIPanel::normalColors
         
         if {$::EventLog::statusUpdateId != -1} {
@@ -790,6 +799,9 @@ proc ::EventLog::leave {from to} {
       ::EventLog::runStarting
       # reset the failure state
       set ::EventLog::failed 0
+  }
+  if {($from in [list "Active" "Paused"]) && ($to eq "Halted") } {
+    set  ::EventLog::expectingExit 1
   }
 }
 

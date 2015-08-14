@@ -947,3 +947,6 @@ Work on 11.0-rc11 begins
 	* Issue 459 - Make ring master launch ringtostdout with an extra
 	  param that identifies the target host.
 	
+11.0-008
+	* Added multilogger package - provides for logging from multiple
+	rings
