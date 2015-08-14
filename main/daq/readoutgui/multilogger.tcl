@@ -101,6 +101,7 @@ snit::type EventLogger {
     option -out
     option -enable   0
     option -timeout 20
+    option -sources  1
     
     variable loggerPids [list]
     variable loggerFd     -1
@@ -123,9 +124,11 @@ snit::type EventLogger {
     #
     method start {} {
         if {$options(-enable)} {
-            set command [list $loggerProgram                    \
-                --source=$options(-ring) --path=$options(-out)  \
-                --oneshot --checksum                            \
+            set command [list $loggerProgram                        \
+                --source=$options(-ring) --path=$options(-out)      \
+                --oneshot --checksum                                \
+                --number-of-sources=$options(-sources)              \
+                
             ]
             set loggerFd [open "| $command |& cat" r]
             
@@ -242,6 +245,7 @@ snit::widgetadaptor AddLogger {
     option -out
     option -enable   0
     option -timeout 20
+    option -sources  1
     
 
     
@@ -271,9 +275,14 @@ snit::widgetadaptor AddLogger {
         ttk::checkbutton $win.enable -text {Enable} -onvalue 1 -offvalue 0 \
             -variable ${selfns}::options(-enable)
         
+        ttk::label $win.lsources -text {Number of sources}
+        ttk::spinbox $win.sources -from 1 -to 1000 -textvariable ${selfns}::options(-sources)
+        
+        
         grid $win.rlabel $win.ring                   -sticky w
         grid $win.lout $win.outdir $win.outbrowse    -sticky w
         grid $win.ltimeout $win.timeout              -sticky w
+        grid $win.lsources $win.sources              -sticky w
         grid $win.enable                   -column 1 -sticky w
     }
     
@@ -422,7 +431,9 @@ snit::widgetadaptor LoggerList {
         ttk::label $win.dirtitle  -text "To directory"
         ttk::label $win.enabled   -text "Is enabled"
         ttk::label $win.timeout   -text "End run timeout (Sec)"
+        ttk::label $win.sources   -text "Event sources"
         grid $win.ringtitle $win.dirtitle $win.enabled $win.timeout \
+             $win.sources                                           \
             -sticky w  -padx 5 -pady 5
         
         set idx 0
@@ -431,6 +442,7 @@ snit::widgetadaptor LoggerList {
             set dest   [$logger cget -out]
             set enflag [$logger cget -enable]
             set tmo    [$logger cget -timeout]
+            set srcs   [$logger cget -sources]
             if {$enflag} {
                 set enableText Yes
             } else {
@@ -440,8 +452,10 @@ snit::widgetadaptor LoggerList {
             ttk::label $win.dest$idx -text $dest
             ttk::label $win.ena$idx  -text $enableText
             ttk::label $win.tmo$idx  -text $tmo
+            ttk::label $win.srcs$idx -text $srcs
             
             grid $win.ring$idx $win.dest$idx $win.ena$idx $win.tmo$idx \
+                $win.srcs$idx                                           \
                 -sticky w -padx 5
             
             incr idx
@@ -461,9 +475,10 @@ snit::widgetadaptor LoggerList {
 # @param outdir - Must be non empty and an existing, writeable directory.
 # @param enable - Must be a valid boolean.
 # @param timeout - Must be a an integer strictly greater than zero.
+# @param sourcdes - number of event sources in ring.
 # @return boolean - true if all te validations above pass else false.
 #
-proc ::multilogger::_validateLoggerConfig {ring outdir enable timeout} {
+proc ::multilogger::_validateLoggerConfig {ring outdir enable timeout sources} {
     if {$ring eq ""}                          { return 0 }
     
     if {$outdir eq ""}                        {return 0}
@@ -474,6 +489,9 @@ proc ::multilogger::_validateLoggerConfig {ring outdir enable timeout} {
     
     if {![string is integer -strict $timeout]} {return 0}
     if {$timeout <= 0}                         {return 0}
+    
+    if {![string is integer -strict $sources]} {return 0}
+    if {$sources <= 0}                        {return 0}
     
     return 1
 }
@@ -510,10 +528,12 @@ proc ::multilogger::addLogger {} {
             set outdir  [$form cget -out]
             set enable  [$form cget -enable]
             set timeout [$form cget -timeout]
+            set sources [$form cget -sources]
             
-            if {[::multilogger::_validateLoggerConfig $ring $outdir $enable $timeout]} {
+            if {[::multilogger::_validateLoggerConfig $ring $outdir $enable $timeout $sources]} {
                 lappend ::multilogger::Loggers [EventLogger %AUTO%             \
                     -ring $ring -out $outdir -enable $enable -timeout $timeout \
+                    -sources $sources
                 ]
             } else {
                 tk_messageBox -icon error -parent $dialog -title {Bad logger def} \
@@ -686,8 +706,9 @@ proc ::multilogger::saveLoggers {} {
         set out  [$logger cget -out]
         set ena  [$logger cget -enable]
         set tmo  [$logger cget -timeout]
+        set srcs [$logger cget -sources]
         
-        puts $fd [::csv::join [list $ring $out $ena $tmo]]
+        puts $fd [::csv::join [list $ring $out $ena $tmo $srcs]]
     }
     
     close $fd
@@ -707,13 +728,15 @@ proc ::multilogger::loadLoggers {} {
         while {![eof $fd]} {
             set line [gets $fd]
             set infoList [::csv::split $line]
-            if {[llength $infoList] == 4}  {
+            if {[llength $infoList] == 5}  {
                 set ring [lindex $infoList 0]
                 set out  [lindex $infoList 1]
                 set ena  [lindex $infoList 2]
                 set tmo  [lindex $infoList 3]
+                set srcs [lindex $infoList 4]
                 lappend ::multilogger::Loggers [EventLogger %AUTO%      \
                     -ring $ring -out $out -enable $ena -timeout $tmo    \
+                    -sources $srcs                                      \
                 ]
             }
         }
