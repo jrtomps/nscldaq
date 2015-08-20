@@ -18,9 +18,7 @@
 #define __CHIRACOMMAND_H
 
 
-#ifndef __TCLOBJECTPROCESSOR_H
-#include <TCLObjectProcessor.h>
-#endif
+#include "CDeviceCommand.h"
 
 #ifndef __STL_VECTOR
 #include <vector>
@@ -48,7 +46,7 @@ class CConfiguration;
  * XLM and a FADC module.
  *
  */
-class CHiRACommand : public CTCLObjectProcessor
+class CHiRACommand : public CDeviceCommand
 {
 private:
   CConfiguration& m_Config;
@@ -70,19 +68,12 @@ private:
 
  // command entry point:
 protected:
-  virtual int operator()(CTCLInterpreter& interp,
-			 std::vector<CTCLObject>& objv);
 
   CConfiguration* getConfiguration();
 
 private:
   virtual int create(CTCLInterpreter& interp, 
 		     std::vector<CTCLObject>& objv);
-  virtual int config(CTCLInterpreter& interp,
-		     std::vector<CTCLObject>& objv);
-  virtual int cget(CTCLInterpreter& interp,
-		   std::vector<CTCLObject>& objv);
-  virtual void Usage(std::string msg, std::vector<CTCLObject>& objv);
 };
 
 

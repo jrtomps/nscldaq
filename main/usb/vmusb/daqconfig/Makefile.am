@@ -6,13 +6,7 @@ libVMUSBConfig_la_SOURCES	= 	CADCCommand.cpp		\
 				CStackCommand.cpp	\
 				CCAENV830Command.cpp	\
 				CMarkerCommand.cpp	\
-				CSIS3804Command.cpp	\
-				CNADC2530Command.cpp	\
-				CMADCCommand.cpp	\
 				CMADCScalerCommand.cpp	\
-				CV1x90Command.cpp	\
-				CV977Command.cpp	\
-				CMASECommand.cpp	\
 				CMADCChainCommand.cpp   \
 				CHINPCommand.cpp \
 				CPSDCommand.cpp \
@@ -22,7 +16,7 @@ libVMUSBConfig_la_SOURCES	= 	CADCCommand.cpp		\
 				CAddTclDriver.cpp	\
 				CHiRACommand.cpp	\
 				CVMUSBCommand.cpp	\
-				CMTDCCommand.cpp
+				CDeviceCommand.cpp	
 
 libVMUSBConfig_la_CXXFLAGS=@THREADCXX_FLAGS@
 
@@ -34,13 +28,7 @@ noinst_HEADERS		=	CADCCommand.h  		\
 				CStackCommand.h		\
 				CCAENV830Command.h	\
 				CMarkerCommand.h	\
-				CSIS3804Command.h	\
-				CNADC2530Command.h	\
-				CMADCCommand.h		\
 				CMADCScalerCommand.h	\
-				CV1x90Command.h		\
-				CV977Command.h		\
-				CMASECommand.h		\
 				CMADCChainCommand.h	\
 				CHINPCommand.h \
 				CPSDCommand.h		\
@@ -50,7 +38,7 @@ noinst_HEADERS		=	CADCCommand.h  		\
 				CAddTclDriver.h		\
 				CHiRACommand.h		\
 				CVMUSBCommand.h		\
-				CMTDCCommand.h
+				CDeviceCommand.h
 
 
 
@@ -73,3 +61,21 @@ install-data-local:
 	$(mkinstalldirs) @prefix@/vmusbdriver
 	$(mkinstalldirs) @prefix@/vmusbdriver/includes
 	$(INSTALL_DATA)  @srcdir@/*.h @prefix@/vmusbdriver/includes
+
+
+noinst_PROGRAMS=cmdtests
+
+cmdtests_SOURCES=TestRunner.cpp Asserts.h ad811test.cpp \
+	v830tests.cpp hinptest.cpp hiratests.cpp madcscaler.cpp \
+	markertests.cpp sis3820test.cpp v1495tests.cpp v1729tests.cpp \
+	sis3804tests.cpp hytectests.cpp madctests.cpp tdc1x90tests.cpp \
+	v977tests.cpp masetests.cpp mtdctests.cpp delaytests.cpp \
+	xlmferatests.cpp cbdtests.cpp xlmtimestamptests.cpp mqdctests.cpp \
+	cbdcratetests.cpp ulmtriggertests.cpp lrs4300tests.cpp lrs4434tests.cpp \
+	lrs2551tests.cpp
+
+
+cmdtests_CXXFLAGS=@CPPUNIT_CFLAGS@ $(libVMUSBConfig_la_CXXFLAGS) $(libVMUSBConfig_la_CPPFLAGS)
+cmdtests_LDFLAGS=@CPPUNIT_LDFLAGS@ libVMUSBConfig.la $(libVMUSBConfig_la_LIBADD)
+
+TESTS=cmdtests

@@ -15684,7 +15684,7 @@ watch <replaceable>name</replaceable>
   <refsynopsisdiv>
     <cmdsynopsis>
     	<command>
-delay create <replaceable>name base</replaceable>
+delay create <replaceable>name ?options...?</replaceable>
 	    </command>
     </cmdsynopsis>
     

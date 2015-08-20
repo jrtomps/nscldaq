@@ -17,9 +17,7 @@
 #ifndef __CSCALERCOMMAND_H
 #define __CSCALERCOMMAND_H
 
-#ifndef __TCLOBJECTPROCESSOR_H
-#include <TCLObjectProcessor.h>
-#endif
+#include "CDeviceCommand.h"
 
 
 #ifndef __STL_VECTOR
@@ -53,7 +51,7 @@ class CConfiguration;
     This module does not require configuration.
 
 */
-class CScalerCommand : public CTCLObjectProcessor
+class CScalerCommand : public CDeviceCommand
 {
   CConfiguration&     m_Config;
 public:
@@ -68,13 +66,9 @@ public:
 
   // Command entry point:
 
-  virtual int operator()(CTCLInterpreter& interp, 
-			 std::vector<CTCLObject>& objv);
+  virtual int create(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+  
 
-private:
-
-  void Usage(std::string msg, std::vector<CTCLObject>& objv);
-	     
 };
    
 

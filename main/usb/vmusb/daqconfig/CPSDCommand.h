@@ -17,9 +17,7 @@
 #ifndef __CPSDCOMMAND_H
 #define __CPSDCOMMAND_H
 
-#ifndef __TCLOBJECTPROCESSOR_H
-#include <TCLObjectProcessor.h>
-#endif
+#include "CDeviceCommand.h"
 
 #ifndef __STL_VECTOR
 #include <vector>
@@ -78,7 +76,7 @@ puts [psd cget psd1]
 \endverbatim
 
 */
-class CPSDCommand : public CTCLObjectProcessor
+class CPSDCommand : public CDeviceCommand
 {
 private:
   CConfiguration& m_Config;
@@ -95,20 +93,11 @@ private:
   int operator!=(const CPSDCommand& rhs) const;
 public:
 
-  // command entry point:
-protected:
-  virtual int operator()(CTCLInterpreter& interp,
-			 std::vector<CTCLObject>& objv);
-
-  CConfiguration* getConfiguration();
 
 private:
   virtual int create(CTCLInterpreter& interp, 
 		     std::vector<CTCLObject>& objv);
-  virtual int config(CTCLInterpreter& interp,
-		     std::vector<CTCLObject>& objv);
-  virtual int cget(CTCLInterpreter& interp,
-		   std::vector<CTCLObject>& objv);
-  virtual void Usage(std::string msg, std::vector<CTCLObject>& objv);
+protected:
+  CConfiguration* getConfiguration();
 };
 #endif

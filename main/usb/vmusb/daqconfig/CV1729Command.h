@@ -17,9 +17,7 @@
 #ifndef __CV1729COMMAND_H
 #define __CV1729COMMAND_H
 
-#ifndef __TCLOBJECTPROCESSOR_H
-#include <TCLObjectProcessor.h>
-#endif
+#include "CDeviceCommand.h"
 
 #ifndef __STL_VECTOR
 #include <vector>
@@ -48,7 +46,7 @@ class CConfiguration;
  * by this device driver.
  *
  */
-class CV1729Command : public CTCLObjectProcessor
+class CV1729Command : public CDeviceCommand
 {
 private:
   CConfiguration& m_Config;
@@ -67,18 +65,13 @@ public:
 
   // command entry point:
 protected:
-  virtual int operator()(CTCLInterpreter& interp,
-			 std::vector<CTCLObject>& objv);
+
 
   CConfiguration* getConfiguration();
 
 private:
   virtual int create(CTCLInterpreter& interp, 
 		     std::vector<CTCLObject>& objv);
-  virtual int config(CTCLInterpreter& interp,
-		     std::vector<CTCLObject>& objv);
-  virtual int cget(CTCLInterpreter& interp,
-		   std::vector<CTCLObject>& objv);
-  virtual void Usage(std::string msg, std::vector<CTCLObject>& objv);
+
 };
 #endif

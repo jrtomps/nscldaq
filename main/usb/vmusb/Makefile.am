@@ -68,3 +68,5 @@ cmdline.o: commandline.ggo
 	$(CC) -c -I. cmdline.c $(THREADCFLAGS)
 
 EXTRA_DIST=commandline.ggo vmusbReadout_user.xml vmusbReadout_man.xml
+
+

@@ -14,8 +14,8 @@
 	     East Lansing, MI 48824-1321
 */
 
-#ifndef __CNADC2530_H
-#ifndef __CREADOUTHARDWARE_H
+#ifndef CNADC2530_H
+#ifndef CNADC2530_H
 #include "CReadoutHardware.h"
 #endif
 

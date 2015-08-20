@@ -13,8 +13,8 @@
 # @author Ron Fox (rfoxkendo@gmail.com)
 
 */
-#ifndef __MTDC32_H
-#define __MTDC32_H
+#ifndef CNADC2530_H
+#define CNADC2530_H
 
 
 #ifndef __CMESYTECBASE_H

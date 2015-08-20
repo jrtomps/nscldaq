@@ -47,7 +47,7 @@ using std::vector;
 CHiRACommand::CHiRACommand(CTCLInterpreter& interp,
 			 CConfiguration&  config,
 			 std::string      commandName) : 
-  CTCLObjectProcessor(interp, commandName),
+  CDeviceCommand(interp, commandName.c_str(), config),
   m_Config(config)
 {
 }
@@ -62,51 +62,6 @@ CHiRACommand::~CHiRACommand()
 ////////////////////////////////////////////////////////////////////////
 ///////////////////// Command processing ///////////////////////////////
 ////////////////////////////////////////////////////////////////////////
-
-/*
-  The command entry just:
-  - Ensures there is at least 3 parameters, the command, subcommand and
-    module name.
-  - Dispatches to the appropriate subcommand processor... or
-  - Returns an error if the subcommand keyword is not recognized.
-  Parameters:
-    CTCLInterpreter& interp        - Interpreter running the command.
-    std::vector<CTCLObject>& objv  - Command line words.
-  Returns:
-    int: 
-       TCL_OK      - Command was successful.
-       TCL_ERROR   - Command failed.
-  Side effects:
-     The interpreter's result will be set in a manner that depends on 
-     success/failure and the subcommand's operation.
-
-*/
-int
-CHiRACommand::operator()(CTCLInterpreter& interp, vector<CTCLObject>& objv)
-{
-  // require at least 3 parameters.
-
-  if (objv.size() < 3) {
-    Usage("Insufficient command parameters", objv);
-    return TCL_ERROR;
-  }
-  // Get the subcommand keyword and dispatch or error:
-
-  string subcommand = objv[1];
-  if (subcommand == string("create")) {
-    return create(interp, objv);
-  }
-  else if (subcommand == string("config")) {
-    return config(interp, objv);
-  } 
-  else if (subcommand == string("cget")) {
-    return cget(interp, objv);
-  }
-  else {
-    Usage("Invalid subcommand", objv);
-    return TCL_ERROR;
-  }
-}
 /*
    Process the create subcommand:
    - ensure we have enough values on the command line.
@@ -132,8 +87,8 @@ CHiRACommand::create(CTCLInterpreter& interp, vector<CTCLObject>& objv)
 {
   // Need to have exactly 4 elements, command 'create' name base.
 
-  if (objv.size() != 3) {
-    Usage("Not enough parameters for create subcommand", objv);
+  if (objv.size() < 3) {
+    Usage(interp, "Not enough parameters for create subcommand", objv);
     return TCL_ERROR;
   }
 
@@ -144,7 +99,7 @@ CHiRACommand::create(CTCLInterpreter& interp, vector<CTCLObject>& objv)
 
   CReadoutModule* pModule = m_Config.findAdc(name);
   if (pModule) {
-    Usage("Duplicate module creation attempted", objv);
+    Usage(interp, "Duplicate module creation attempted", objv);
     return TCL_ERROR;
   }
   // This is a unique module so we can create it:
@@ -152,116 +107,16 @@ CHiRACommand::create(CTCLInterpreter& interp, vector<CTCLObject>& objv)
   CHiRA* pAdc = new CHiRA;
   pModule    = new CReadoutModule(name, *pAdc);
 
+  if (objv.size() > 3) {
+    if(configure(interp, pModule, objv, 3) != TCL_OK) {
+      return TCL_ERROR;
+    }
+  }
   m_Config.addAdc(pModule);
 
   m_Config.setResult(name);
   return TCL_OK;
   
-}
-/*
-    Configure an adc module.
-    - Ensure that there are enough command line parameters.  These means
-      at least 5 parameters in order to have at least one configuration
-      keyword value pair... and that there are an odd number of params
-      (to ensure that all keywords have values).
-    - Ensure the module exists.
-    - For each command keyword/value pair, configure the module.
-
-   Parameters:
-     CTCLInterpreter&    interp   - Interpreter that is executing this command.
-     vector<CTCLObject>& objv     - Vector of command words.
-  Returns:
-    int: 
-       TCL_OK      - Command was successful.
-       TCL_ERROR   - Command failed.
-  Side effects:
-     The interpreter result is set with an error message if the return value
-     is TCL_ERROR, otherwise it is set with the module name.
-     Note that all error messages will start with the text "ERROR:"
-*/
-int
-CHiRACommand::config(CTCLInterpreter& interp, vector<CTCLObject>& objv)
-{
-  if ( (objv.size() < 5) || ((objv.size() & 1) == 0)) {
-    Usage("Incorrect number of command parameters for config", objv);
-    return TCL_ERROR;
-  }
-  /* Get the module name and use it to locate the module or report an error. */
-
-  string name = objv[2];
-  CReadoutModule* pModule = m_Config.findAdc(name);
-  if (!pModule) {
-    Usage("Adc module does not exist", objv);
-    return TCL_ERROR;
-  }
-  /* Process the configuration... this is done inside a try/catch block
-    as the configure can throw.
-  */
-  try {
-    for (int i = 3; i < objv.size(); i += 2) {
-      string key   = objv[i];
-      string value = objv[i+1];
-      pModule->configure(key, value);
-    }
-  }
-  catch (string msg) {		// BUGBUG - This may partially configure object.
-    Usage(msg, objv);
-    return TCL_ERROR;
-  }
-
-  m_Config.setResult(name);
-  return TCL_OK;
-}
-/*
-   Get the configuration of a module and return it as a list of
-   keyword/value pairs.
-   - ensure we have enough command line parameters (exactly 3).
-   - Ensure the module exists and get its pointer.
-   - Fetch the module's configuration.
-   - Map the configuration into a list of 2 element lists and set the
-     result accordingly.
-
-   Parameters:
-     CTCLInterpreter&    interp   - Interpreter that is executing this command.
-     vector<CTCLObject>& objv     - Vector of command words.
-  Returns:
-    int: 
-       TCL_OK      - Command was successful.
-       TCL_ERROR   - Command failed.
-  Side effects:
-     The interpreter result is set.  If the command returned an error, 
-     This is a string that begins with the text ERROR:  otherwise it is a 
-     list of 2 element sublists where each sublist is a configuration keyword
-     value pair...e.g. {-base 0x80000000} ...
-*/
-int
-CHiRACommand::cget(CTCLInterpreter& interp, vector<CTCLObject>& objv)
-{
-  if (objv.size() != 3) {
-    Usage("Invalid command parameter count for cget", objv);
-    return TCL_ERROR;
-  }
-  string           name    = objv[2];
-  CReadoutModule *pModule = m_Config.findAdc(name);
-  if (!pModule) {
-    Usage("No such  module", objv);
-    return TCL_ERROR;
-  }
-  CConfigurableObject::ConfigurationArray config = pModule->cget();
-
-  Tcl_Obj* pResult = Tcl_NewListObj(0, NULL);
-
-  for (int i =0; i < config.size(); i++) {
-    Tcl_Obj* key   = Tcl_NewStringObj(config[i].first.c_str(), -1);
-    Tcl_Obj* value = Tcl_NewStringObj(config[i].second.c_str(), -1);
-
-    Tcl_Obj* sublist[2] = {key, value};
-    Tcl_Obj* sl = Tcl_NewListObj(2, sublist);
-    Tcl_ListObjAppendElement(interp.getInterpreter(), pResult, sl);
-  }
-  Tcl_SetObjResult(interp.getInterpreter(), pResult);
-  return TCL_OK;
-
 }
 /*
   Return the configuration. This allows subclassed commands to function properly.
@@ -272,25 +127,3 @@ CHiRACommand::getConfiguration()
   return &m_Config;
 }
 
-////////////////////////////////////////////////////////////////////////////////
-/////////////////////////// Utility function(s) ////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-
-void
-CHiRACommand::Usage(std::string msg, std::vector<CTCLObject>& objv)
-{
-  string result("ERROR: ");
-  result += msg;
-  result += "\n";
-  for (int i = 0; i < objv.size(); i++) {
-    result += string(objv[i]);
-    result += ' ';
-  }
-  result += "\n";
-  result += "Usage\n";
-  result += "    hira create name base-address\n";
-  result += "    hira config name config-params...\n";
-  result += "    hira cget name";
-
-  m_Config.setResult(result);
-}
