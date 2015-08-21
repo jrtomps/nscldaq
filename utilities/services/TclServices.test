@@ -1,0 +1,481 @@
+#!/bin/sh
+# -*- tcl -*-
+# The next line is executed by /bin/sh, but not tcl \
+exec tclsh "$0" ${1+"$@"}
+
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2014.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Authors:
+#             Ron Fox
+#             Jeromy Tompkins 
+#	     NSCL
+#	     Michigan State University
+#	     East Lansing, MI 48824-1321
+
+
+
+##
+# @file TclServices.test
+# @brief tests for the Tcl bindings to libServices.
+# @author Ron Fox <fox@nscl.msu.edu>
+#
+
+package require tcltest
+package require daqservices
+package require vardb
+
+#--------------------------------- utility procs ------------------------------
+
+##
+# setup
+#    Set up a variable database and return its name.
+proc setup {} {
+    set fname [tcltest::makeFile {} testdb]
+    vardb::create $fname
+    
+    return $fname
+}
+##
+# cleanup
+#    Clean up after tests that called setup:
+#
+proc cleanup {filename} {
+    tcltest::removeFile $filename
+}
+
+##
+# fnameToUri
+#  turn a filename into a URI.
+# @param name
+# @return uri
+#
+proc fnameToUri {fname} {
+    set fullName [file normalize $fname]
+    return "file://$fullName"
+}
+
+##
+# progInfo
+#   Get program info with direct database operations
+#
+# @param dbname - database filename.
+# @param name   - program name
+# @return list  - first element is the path the second the host.
+#
+proc progInfo {dbname name} {
+    set handle   [vardb::open $dbname]
+    set prog [vardb::var get $handle /Services/$name/path]
+    set host [vardb::var get $handle /Services/$name/host]
+    vardb::close $handle
+    
+    return [list $prog $host]
+}
+
+#-------------------------------- the tests -----------------------------------
+
+##
+#  Test the creational class.
+#
+
+tcltest::test creator-exists {::nscldaq::services command exists:} \
+-body {
+    info commands ::nscldaq::services
+} -result ::nscldaq::services
+
+tcltest::test creator-param1 {::nscldaq::services command fails if no parameters} \
+-body {
+    catch {::nscldaq::services}
+} -result 1
+
+tcltest::test creator-param2 {::nscldaq::services command fails if only one parameter too} \
+-body {
+    catch {::nscldaq::service}
+} -result 1
+
+
+tcltest::test creator-createok {Can create a new service manager command } \
+-setup {
+    set dbFile [setup]
+    set dbUri  [fnameToUri $dbFile]
+} \
+-cleanup {
+    cleanup $dbFile
+} \
+-body {
+    set status [catch {::nscldaq::services svctest $dbUri}]
+    set cmd [info command svctest]
+    list $status $cmd
+} -result [list 0 svctest]
+
+tcltest::test creator-createdup  {Cannot create duplicate manager} \
+-setup {
+    set dbFile [setup]
+    set dbUri  [fnameToUri $dbFile]
+} \
+-cleanup {
+    cleanup $dbFile
+} \
+-body {
+    ::nscldaq::services svtest $dbUri
+    catch {::nscldaq::services svtest $dbUri}
+} -result 1
+
+tcltest::test creator-delete {after -delete command is gone} \
+-setup {
+    set dbFile [setup]
+    set dbUri  [fnameToUri $dbFile]
+} \
+-cleanup {
+    cleanup $dbFile
+} \
+-body {
+    ::nscldaq::services svc $dbUri
+    ::nscldaq::services -delete svc
+    info command svc
+} -result [list]
+
+tcltest::test createor-delete-nosuch {delete item must exist} \
+-body {
+    catch {::nscldaq::services -delete svc}
+} -result 1
+
+
+##
+# test the instance create/exists subcommands.
+#
+
+tcltest::test instance-needs-subcommand {instance command needs subcommand} \
+-setup {
+    set dbFile [setup]
+    set dbUri  [fnameToUri $dbFile]
+     ::nscldaq::services svc $dbUri
+} \
+-cleanup {
+    ::nscldaq::services -delete svc
+    cleanup $dbFile
+} \
+-body {
+   
+    catch {svc}
+} -result 1
+
+tcltest::test exists-nouch {Until a create is done, there's no service db} \
+-setup {
+    set dbFile [setup]
+    set dbUri  [fnameToUri $dbFile]
+     ::nscldaq::services svc $dbUri
+} \
+-cleanup {
+    ::nscldaq::services -delete svc
+    cleanup $dbFile
+} \
+-body {
+    svc exists
+} -result 0
+
+tcltest::test exists-aftercreate {After a create is done there's a service db} \
+-setup {
+    set dbFile [setup]
+    set dbUri  [fnameToUri $dbFile]
+     ::nscldaq::services svc $dbUri
+} \
+-cleanup {
+    ::nscldaq::services -delete svc
+    cleanup $dbFile
+} \
+-body {
+    svc create
+    svc exists
+} -result 1
+
+tcltest::test invsubcommand {Invalid subcommand is an error} \
+-setup {
+    set dbFile [setup]
+    set dbUri  [fnameToUri $dbFile]
+     ::nscldaq::services svc $dbUri
+} \
+-cleanup {
+    ::nscldaq::services -delete svc
+    cleanup $dbFile
+} \
+-body {
+    catch {svc xyzzy};              # plugh
+} -result 1
+
+##
+#  tests for creating a program:
+#  createprog
+
+tcltest::test create-ok {Create a program} \
+-setup {
+    set dbFile [setup]
+    set dbUri  [fnameToUri $dbFile]
+     ::nscldaq::services svc $dbUri
+     svc create
+} \
+-cleanup {
+    ::nscldaq::services -delete svc
+    cleanup $dbFile
+} \
+-body {
+    svc createprog testprogram /usr/bin/ls localhost
+    progInfo $dbFile testprogram
+
+} -result [list /usr/bin/ls localhost]
+    
+tcltest::test create-toofewparams {Need all the params} \
+-setup {
+    set dbFile [setup]
+    set dbUri  [fnameToUri $dbFile]
+     ::nscldaq::services svc $dbUri
+     svc create
+} \
+-cleanup {
+    ::nscldaq::services -delete svc
+    cleanup $dbFile
+} \
+-body {
+    catch {svc createprog /usr/bin/ls /localhost}
+} -result 1
+
+##
+#  Tests for setHost
+#
+
+tcltest::test test_sethostok {set host command ok} \
+-setup {
+    set dbFile [setup]
+    set dbUri  [fnameToUri $dbFile]
+     ::nscldaq::services svc $dbUri
+     svc create
+     svc createprog testprogram /usr/bin/ls localhost
+} \
+-cleanup {
+    ::nscldaq::services -delete svc
+    cleanup $dbFile
+} \
+-body {
+    svc setHost testprogram spdaq20.nscl.msu.edu
+    progInfo $dbFile testprogram
+
+} -result [list /usr/bin/ls spdaq20.nscl.msu.edu]
+
+tcltest::test test_sethost_needparams {setHost command with insufficient params} \
+-setup {
+    set dbFile [setup]
+    set dbUri  [fnameToUri $dbFile]
+     ::nscldaq::services svc $dbUri
+     svc create
+     svc createprog testprogram /usr/bin/ls localhost
+} \
+-cleanup {
+    ::nscldaq::services -delete svc
+    cleanup $dbFile
+} \
+-body {
+    catch {svc setHost spdaq20.nscl.msu.edu}
+} -result 1
+
+##
+# tests for setCommand
+#
+tcltest::test setCommand-ok {setCommand works} \
+-setup {
+    set dbFile [setup]
+    set dbUri  [fnameToUri $dbFile]
+     ::nscldaq::services svc $dbUri
+     svc create
+     svc createprog testprogram /usr/bin/ls localhost
+} \
+-cleanup {
+    ::nscldaq::services -delete svc
+    cleanup $dbFile
+} \
+-body {
+    svc setCommand testprogram "/some/other/path"
+    progInfo $dbFile testprogram
+} -result [list /some/other/path localhost]
+
+tcltest::test setCommand-needparams  {Need all parameters} \
+-setup {
+    set dbFile [setup]
+    set dbUri  [fnameToUri $dbFile]
+     ::nscldaq::services svc $dbUri
+     svc create
+     svc createprog testprogram /usr/bin/ls localhost
+} \
+-cleanup {
+    ::nscldaq::services -delete svc
+    cleanup $dbFile
+} \
+-body {
+    catch {svc setCommand /some/other/path}
+} -result 1
+
+##
+#  remove tests (remove program).
+#
+
+tcltest::test remove-ok {Remove works } \
+-setup {
+    set dbFile [setup]
+    set dbUri  [fnameToUri $dbFile]
+     ::nscldaq::services svc $dbUri
+     svc create
+     svc createprog testprogram /usr/bin/ls localhost
+} \
+-cleanup {
+    ::nscldaq::services -delete svc
+    cleanup $dbFile
+} \
+-body {
+    svc remove testprogram
+ 
+    set handle [vardb::open $dbFile]
+    set listing [vardb::ls $handle /Services]
+    vardb::close $handle
+    set listing
+} -result [list]
+
+tcltest::test remove-missingparam {Remove with missing parameters fails} \
+-setup {
+    set dbFile [setup]
+    set dbUri  [fnameToUri $dbFile]
+     ::nscldaq::services svc $dbUri
+     svc create
+     svc createprog testprogram /usr/bin/ls localhost
+} \
+-cleanup {
+    ::nscldaq::services -delete svc
+    cleanup $dbFile
+} \
+-body {
+    catch {svc remove}
+} -result 1
+
+# list all programs
+
+tcltest::test listall-empty {list all when there are no programs} \
+-setup {
+    set dbFile [setup]
+    set dbUri  [fnameToUri $dbFile]
+     ::nscldaq::services svc $dbUri
+     svc create
+} \
+-cleanup {
+    ::nscldaq::services -delete svc
+    cleanup $dbFile
+} \
+-body {
+    svc listall
+} -result [list]
+
+tcltest::test listall-extraparams {listall with too many parameters} \
+-setup {
+    set dbFile [setup]
+    set dbUri  [fnameToUri $dbFile]
+     ::nscldaq::services svc $dbUri
+     svc create
+} \
+-cleanup {
+    ::nscldaq::services -delete svc
+    cleanup $dbFile
+} \
+-body {
+    catch {svc listall junk}
+} -result 1
+
+tcltest::test listall-1 {List all with one program defined} \
+-setup {
+    set dbFile [setup]
+    set dbUri  [fnameToUri $dbFile]
+     ::nscldaq::services svc $dbUri
+     svc create
+     svc createprog testprogram /usr/bin/ls localhost
+} \
+-cleanup {
+    ::nscldaq::services -delete svc
+    cleanup $dbFile
+} \
+-body {
+    svc listall
+} -result [list testprogram [list /usr/bin/ls localhost]]
+
+tcltest::test listall-several {list all with several programs defined} \
+-setup {
+    set dbFile [setup]
+    set dbUri  [fnameToUri $dbFile]
+     ::nscldaq::services svc $dbUri
+     svc create
+} \
+-cleanup {
+    ::nscldaq::services -delete svc
+    cleanup $dbFile
+} \
+-body {
+    svc createprog atest /some/test1 somehost1
+    svc createprog ztest /some/testz somehostz
+    svc createprog testprogram /some/test/program localhost
+    
+    svc listall
+} -result [list atest [list /some/test1 somehost1]               \
+                testprogram [list /some/test/program localhost]  \
+                ztest [list /some/testz somehostz]]
+
+# tests for list:
+
+tcltest::test list-ok {list a single program from a set} \
+-setup {
+    set dbFile [setup]
+    set dbUri  [fnameToUri $dbFile]
+    ::nscldaq::services svc $dbUri
+    svc create
+    svc createprog atest /some/test1 somehost1
+    svc createprog ztest /some/testz somehostz
+    svc createprog testprogram /some/test/program localhost
+} \
+-cleanup {
+    ::nscldaq::services -delete svc
+    cleanup $dbFile
+} \
+-body {
+    svc list ztest
+} -result [list /some/testz somehostz]
+
+tcltest::test list-missingparam {list when missing program name} \
+-setup {
+    set dbFile [setup]
+    set dbUri  [fnameToUri $dbFile]
+    ::nscldaq::services svc $dbUri
+    svc create
+    svc createprog atest /some/test1 somehost1
+    svc createprog ztest /some/testz somehostz
+    svc createprog testprogram /some/test/program localhost
+} \
+-cleanup {
+    ::nscldaq::services -delete svc
+    cleanup $dbFile
+} \
+-body {
+   catch  {svc list}
+} -result 1
+
+
+
+#------------------------------------------------------------------
+#
+# Magic to exit with errors if there are test failures:
+
+proc tcltest::cleanupTestHook {} {
+    variable numTests
+    set ::exitCode $numTests(Failed)
+}
+
+
+tcltest::cleanupTests

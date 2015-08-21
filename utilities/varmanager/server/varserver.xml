@@ -2600,7 +2600,7 @@ class <ooclass><classname>CVarMgrApiFactory</classname></ooclass>
   </refsect1>
 </refentry>
 
-<!-- /manpage  -->
+<!-- /manpage -->
 
 <!-- manpage 3python -->
 
@@ -4055,5 +4055,6 @@ if (waitmsg(milliseconds)) {
               endterm='daq5_varserver_pubprotocol_title' />
       </para>
    </refsect1>
-</refentry>     
+</refentry>
+
 <!-- /manpage -->

@@ -1,0 +1,1047 @@
+<!-- chapter frameworks -->
+
+
+<chapter>
+    <title>Service programs</title>
+    <para>
+        Service programs are
+        per experiment programs that live outside the main data flow.
+        These include servers such as the variable data base manager and boot
+        managers.  
+    </para>
+    <para>
+        This chapter describes a section of the variable database
+        that is set aside to describe these programs and where
+        they should run. We describe specifically:
+    </para>
+    <itemizedlist>
+        <listitem><para>
+            Where in the variable database directory hierarchy this
+            description lives.
+        </para></listitem>
+        <listitem><para>
+            The API an language bindings that allow software to manipulate
+            these variables.
+        </para></listitem>
+        <!-- insert info about the daqstart program ehere when written -->
+    </itemizedlist>
+    <section>
+        <title>Describing services in the variable database</title>
+        <para>
+            Service descriptions require specifying:
+        </para>
+        <itemizedlist>
+            <listitem><para>
+                The path to a program to be run.
+            </para></listitem>
+            <listitem><para>
+                The host in which that program should be run.
+            </para></listitem>
+            <listitem><para>
+                Any additional information the program might need.
+            </para></listitem>
+        </itemizedlist>
+        <para>
+            Service program description are located in the
+            variable database's <filename>/Services</filename>
+            directory.  Each program occupies a subdirectory.  The name
+            of the subdirectory is also used to provide a name for the service.
+        </para>
+        <para>
+            Within service program subdirectories are at least two string variables:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term><literal>Path</literal></term>
+                <listitem>
+                    <para>
+                        Contains the file system path to the program to run for
+                        this service.  The path must, by the time the system is
+                        started, refer to an executable file. The file
+                        can be a program or a script.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><literal>Host</literal></term>
+                <listitem>
+                    <para>
+                        Contains either the hostname or IP address of the system
+                        on which this program should be run.  To use the DAQ start
+                        program, the user you run under must have passed its ssh
+                        public keys to that host so that an ssh session can be
+                        created without requiring a password.
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+        <para>
+            Individual programs may require addition information.  This information
+            can be stored in other variables in the program's directory.  The
+            NSCLDAQ system will ignore all other variables and subdirectories
+            below the program's directory.  However, when asked to delete a
+            program from the services the program's subdirectory is recursively
+            deleted in order to ensure that all traces are wiped out.
+        </para>
+    </section>
+    <section>
+        <title>Apis and language bindings</title>
+        <para>
+            The Service database has a native API (C++) and bindings for that
+            API to Tcl and Python.  This section describes how to incorporate
+            those bindings into your programs/scripts and points to reference
+            information for each of the API/bindings.
+        </para>
+        <para>
+            C++ native bindings are in the library <filename>$DAQLIB/libServices.so.</filename>
+            The header is called <filename>CServicApi.h</filename>.  Therefore to use the
+            native bindings you must:
+        </para>
+        <orderedlist>
+            <listitem><para>
+                <command>#include &lt;CServiceApi.h&gt;</command> in the
+                compilation units that use the API.
+            </para></listitem>
+            <listitem><para>
+                Compile with -I$DAQROOT/include so that the compiler
+                can locate this header.
+            </para></listitem>
+            <listitem><para>
+                Add the following options when linking your application:
+                <informalexample>
+                    <programlisting>
+-L$DAQLIB -lServices -lvarmgr -lvardb -lsqlite3pp -lurl -ldaqshm -lPortManager -lException -lsqlite3
+                    </programlisting>
+                </informalexample>
+            </para></listitem>
+        </orderedlist>
+        <para>
+            The <classname>CServiceApi</classname> class reference docmentation
+            is at:
+            <link linkend='daq3_cserviceapi' endterm='daq3_cserviceapi_title' />
+        </para>
+        <para>
+            The Tcl bindings are a loadable package named <literal>daqservices</literal>.
+            Within tht package all Tcl commands are in the <literal>::nscldaq</literal> namespace.
+            To incorporate the package in your script you must:
+        </para>
+        <orderedlist>
+            <listitem><para>
+                Add <filename>$DAQROOT/TclLibs</filename> to your Tcl package
+                search path.  This can be done either
+                by adding it to the <literal>TCLLIBPATH</literal> environment
+                variable or, in your script, by adding the line:
+                <informalexample>
+                    <programlisting>
+lappend auto_path [file join $::env(DAQROOT) TclLibs]
+                    </programlisting>
+                </informalexample>
+                prior to:
+            </para></listitem>
+            <listitem><para>
+                Use the <command>package require</command> command to load the
+                package:
+                <informalexample>
+                    <programlisting>
+package require daqservices
+                    </programlisting>
+                </informalexample>
+            </para></listitem>
+        </orderedlist>
+        <para>
+            The reference material on the <literal>daqservices</literal>
+            package is at:
+            <link linkend='tcl3_daqservices' endterm='tcl3_daqservices_title' />
+        </para>
+        <para>
+            The Python package is a module named <literal>nscldaq.vardb.services</literal>.
+            This module must be imported into your application script via the
+            Python statement:
+        </para>
+        <informalexample>
+            <programlisting>
+import nscldaq.vardb.services
+            </programlisting>
+        </informalexample>
+        <para>
+            Reference material on the Python bindings are at:
+            <link linkend='python3_services' endterm='python3_services_title' />
+        </para>
+    </section>
+    
+</chapter>
+
+<!-- /chapter -->
+
+<!-- manpage 3daq -->
+
+<refentry id="daq3_cserviceapi">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='daq3_cserviceapi_title'>CServiceApi</refentrytitle>
+     <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>CServiceApi</refname>
+     <refpurpose>Define and manipulate DAQ system services.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+#include &lt;CServiceApi.h&gt;
+       class <ooclass><classname>CServiceApi</classname></ooclass>
+{
+    <constructorsynopsis>
+       <methodname>CServiceApi</methodname>
+       <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>reqUri</parameter>
+       </methodparam>
+    </constructorsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>bool </type>
+        <methodname>exists</methodname>
+        <void />
+        <modifier></modifier>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void </type>
+        <methodname>create</methodname>
+        <void />
+        <modifier></modifier>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void </type>
+        <methodname>create</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>command</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier> const </modifier><type>char* </type>
+                <parameter>host</parameter>
+        </methodparam>
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void </type>
+        <methodname>setHost</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>newHost</parameter>
+        </methodparam>
+        <modifier></modifier>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void </type>
+        <methodname>setCommand</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>newCommand</parameter>
+        </methodparam>
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void </type>
+        <methodname>remove</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>name</parameter>
+        </methodparam>
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>std::map&lt;std::string, std::pair&lt;std::string, std::string&gt; &gt; </type>
+        <methodname>list</methodname>
+        <void />
+        <modifier></modifier>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>std::pair&lt;std::string, std::string&gt; </type>
+        <methodname>list</methodname>
+        <methodparam>
+            <modifier>const </modifier><type>char* </type>
+                <parameter>name</parameter>
+        </methodparam>
+        <modifier></modifier>
+    </methodsynopsis>  
+
+};
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        Provides a mechanism for defining, removing and editing data acquisition
+        system services.  A service is a program that is required for proper
+        functioning of the data acquisition system but which does not
+        participate in run state transitions.
+     </para>
+     <para>
+        While state sensitive programs are started and stoppped by state
+        transitions detected by the boot manager, services are started
+        by the DAQ startup program and should not exit.  Typically only
+        when the data acquisition system is shut down by the DAQ shutdown
+        program, are services killed.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <constructorsynopsis>
+                    <methodname>CServiceApi</methodname>
+                    <methodparam>
+                     <modifier>const </modifier><type>char* </type>
+                         <parameter>reqUri</parameter>
+                    </methodparam>
+                 </constructorsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    When constructing a <classname>CServiceApi</classname>
+                    object you must supply <parameter>reqUri</parameter>
+                    which describes the database you will connect to and how.
+                    When initially setting up the system a <literal>file</literal>
+                    URI is fine.  Once the database server has been started, however,
+                    your application should go through it via a
+                    <literal>tcp</literal> URI in order to ensure proper
+                    synchronization and, where appropriate, notifications to
+                    subscribed programs.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                     <modifier></modifier>
+                     <type>bool </type>
+                     <methodname>exists</methodname>
+                     <void />
+                     <modifier></modifier>
+                 </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Test for the existence of the directory framework in which
+                    services are defined.  Normally this is used in a code
+                    fragment like:
+                </para>
+                <informalexample>
+                    <programlisting>
+    if(!api.exists()) {
+        api.create();      
+    }
+                    </programlisting>
+                </informalexample>
+                <para>
+                    See <methodname>create</methodname> below.
+                </para>
+            </listitem>
+        </varlistentry>        
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                     <modifier></modifier>
+                     <type>void </type>
+                     <methodname>create</methodname>
+                     <void />
+                     <modifier></modifier>
+                 </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Creates the directory infrastructure needed to support
+                    service definitions.  If the infrastructure already exists,
+                    a <classname>std::exception</classname> is thrown.
+                    See <methodname>exists</methodname> above.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                     <modifier></modifier>
+                     <type>void </type>
+                     <methodname>create</methodname>
+                     <methodparam>
+                         <modifier>const </modifier><type>char* </type>
+                             <parameter>name</parameter>
+                     </methodparam>
+                     <methodparam>
+                         <modifier>const </modifier><type>char* </type>
+                             <parameter>command</parameter>
+                     </methodparam>
+                     <methodparam>
+                         <modifier> const </modifier><type>char* </type>
+                             <parameter>host</parameter>
+                     </methodparam>
+                     <modifier></modifier>
+                 </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Creates a new service definition.  The service will
+                    be named <parameter>name</parameter> and will run
+                    <parameter>command</parameter> on the specified
+                    <parameter>host</parameter>.  If you are running
+                    several identical programs on differing hosts you may want
+                    to adopt a service naming convention of
+                    <parameter>basename@host</parameter> where
+                    <parameter>basename</parameter> describes the service
+                    and <parameter>host</parameter> describes where that
+                    service runs.
+                </para>
+            </listitem>
+        </varlistentry>         
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                     <modifier></modifier>
+                     <type>void </type>
+                     <methodname>setHost</methodname>
+                     <methodparam>
+                         <modifier>const </modifier><type>char* </type>
+                             <parameter>name</parameter>
+                     </methodparam>
+                     <methodparam>
+                         <modifier>const </modifier><type>char* </type>
+                             <parameter>newHost</parameter>
+                     </methodparam>
+                     <modifier></modifier>
+                 </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Changes the definition for the service <parameter>name</parameter>
+                    so that it runs on <parameter>host</parameter>
+                    instead of where it previously ran.  This method does
+                    not affect any running instances of the <parameter>name</parameter>
+                    service.  It only modifies the definition database.
+                </para>
+            </listitem>
+        </varlistentry>         
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                     <modifier></modifier>
+                     <type>void </type>
+                     <methodname>setCommand</methodname>
+                     <methodparam>
+                         <modifier>const </modifier><type>char* </type>
+                             <parameter>name</parameter>
+                     </methodparam>
+                     <methodparam>
+                         <modifier>const </modifier><type>char* </type>
+                             <parameter>newCommand</parameter>
+                     </methodparam>
+                     <modifier></modifier>
+                 </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Changes the definition for <parameter>name</parameter>
+                    so that it now runs the <parameter>newCommand</parameter>
+                    command rather than the command it ran previously.
+                    This method does
+                    not affect any running instances of the <parameter>name</parameter>
+                    service.  It only modifies the definition database.
+                </para>
+            </listitem>
+        </varlistentry>         
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                     <modifier></modifier>
+                     <type>void </type>
+                     <methodname>remove</methodname>
+                     <methodparam>
+                         <modifier>const </modifier><type>char* </type>
+                             <parameter>name</parameter>
+                     </methodparam>
+                     <modifier></modifier>
+                 </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Removes the definition of the <parameter>name</parameter>
+                    service.   This service will no longer be started by the
+                    DAQ startup software.
+                    This method does
+                    not affect any running instances of the <parameter>name</parameter>
+                    service.  It only modifies the definition database.
+                </para>
+            </listitem>
+        </varlistentry>         
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                     <modifier></modifier>
+                     <type>std::map&lt;std::string, std::pair&lt;std::string, std::string&gt; &gt; </type>
+                     <methodname>list</methodname>
+                     <void />
+                     <modifier></modifier>
+                 </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Lists all services.  The return value is a
+                    <classname>std::map</classname> whose keys are service names
+                    and whose values are a pair containing the
+                    command (first) and host in which the command is to run
+                    (second).
+                </para>
+            </listitem>
+        </varlistentry>         
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                     <modifier></modifier>
+                     <type>std::pair&lt;std::string, std::string&gt; </type>
+                     <methodname>list</methodname>
+                     <methodparam>
+                         <modifier>const </modifier><type>char* </type>
+                             <parameter>name</parameter>
+                     </methodparam>
+                     <modifier></modifier>
+                 </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns the definition of the specified service
+                    <parameter>name</parameter>.  The return value is
+                    a pair containing the
+                    command (first) and host in which the command is to run
+                    (second).
+                </para>
+            </listitem>
+        </varlistentry>        
+                 
+
+     </variablelist>
+  </refsect1>
+</refentry>     
+
+<!-- /manpage -->
+
+<!-- manpage 3tcl -->
+
+<refentry id="tcl3_daqservices">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='tcl3_daqservices_title'>daqservices</refentrytitle>
+     <manvolnum>3tcl</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>daqservices</refname>
+     <refpurpose>Tcl bindings to <classname>CServiceApi</classname></refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+<command>lappend auto_path [file join $::env(DAQROOT) TclLibs</command>
+<command>package require daqservices</command>
+
+<command>nscldaq::services <replaceable>newCommand dbURI</replaceable></command>
+<command>nscldaq::serviceas -delete <replaceable>name</replaceable></command>
+<command><replaceable>newCommand</replaceable> exists</command>
+<command><replaceable>newCommand</replaceable> create</command>
+<command><replaceable>newCommand</replaceable> createprog <replaceable>name command host</replaceable></command>
+<command><replaceable>newCommand</replaceable> setHost <replaceable>name newHost</replaceable></command>
+<command><replaceable>newCommand</replaceable> setCommand <replaceable>name newCommand</replaceable></command>
+<command><replaceable>newCommand</replaceable> remove <replaceable>name</replaceable></command>
+<command><replaceable>newCommand</replaceable> listall</command>
+<command><replaceable>newCommand</replaceable> list <replaceable>name</replaceable></command>
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        This package provides Tcl bindings to the NSCLDAQ services database.
+        This can be thought of as a wrapper for
+        <link linkend='daq3_cserviceapi' endterm='daq3_cserviceapi_title' />.
+     </para>
+     <para>
+        The wrapper provides a single command in the <literal>::nscldaq</literal>
+        namespace.  The command can create a command ensemble which implements a wrapper
+        around an instance of a <classname>CServiceApi</classname> object or it
+        can destroy an existing wrapper command.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    COMMANDS
+     </title>
+     <para>
+        The <command>::nscldaq::servicesa</command> command can create or destroy
+        command ensembles that wrap an instance of a <classname>CServiceApi</classname>
+        object.  To create a new command ensemble use the following form:
+     </para>
+    <informalexample>
+        <programlisting><command>
+::nscldaq::services <replaceable>newCommand dbURI</replaceable>
+        </command></programlisting>
+    </informalexample>
+    <para>
+        In this command <parameter>newCommand</parameter> is the name of a new
+        command you will be createing.  The command is an ensemble whose
+        sub-commands map directly to methods of the <classname>CServiceApi</classname>
+        object it wraps.  <parameter>dbURI</parameter> specifies a connection
+        to a variable database.  It can be either a <literal>file</literal> URI
+        in which case the database is directly opened, or it can be a
+        <literal>tcp</literal> URI in which case the database is opened via an
+        existing, running database server.
+    </para>
+    <para>
+        To destroy an existing command wrapper:
+    </para>
+    <informalexample>
+        <programlisting><command>
+::nscldaq::services <option>-delete</option> <replaceable>newCommand</replaceable>
+        </command></programlisting>
+    </informalexample>
+    <para>
+        Where <parameter>newCommand</parameter> is a command ensemble previously
+        created. 
+    </para>
+    <para>
+        <classname>CServiceApi</classname> wrapper command ensembles provide
+        the following subcommands:
+    </para>
+    <variablelist>
+        <varlistentry>
+            <term>
+                <command>exists</command>
+            </term>
+            <listitem>
+                <para>
+                    Returns a Tcl true value if the directory infrastructure
+                    to support services definitions has been defined.
+                    If not, this returns false.   A fairly typical use of
+                    this is:
+                </para>
+                <informalexample>
+                    <programlisting>
+::nscldaq::services svc $someUri
+if {![svc exists]} {
+    svc create
+}
+                    </programlisting>
+                </informalexample>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><command>create</command></term>
+            <listitem>
+                <para>
+                    Creates the infrastructure to support service definitions
+                    in the variable database.  By infrastructure, at present,
+                    I just mean the <filename>/Services</filename> directory.
+                    The infrastructure may expand at a later date.
+                </para>
+                <para>
+                    If the infrastructure already exists, this command
+                    returns an error.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <command>createprog <replaceable>name command host</replaceable></command>
+            </term>
+            <listitem>
+                <para>
+                    Creates a new service entry.  The service will be called
+                    <parameter>name</parameter> and runs <parameter>command</parameter>
+                    in <parameter>host</parameter>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <command>setHost <replaceable>name newHost</replaceable></command>
+            </term>
+            <listitem>
+                <para>
+                    Changes the host in which the service <parameter>name</parameter>
+                    runs to <parameter>newHost</parameter>
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <command>setCommand <replaceable>name newCommand</replaceable></command>
+            </term>
+            <listitem>
+                <para>
+                    Changes the command which the service <parameter>name</parameter>
+                    runs to <parameter>newCommand</parameter>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <command>remove <replaceable>name</replaceable></command>
+            </term>
+            <listitem>
+                <para>
+                    Removes the entry for service <parameter>name</parameter> from
+                    the service database.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <command>listall</command>
+            </term>
+            <listitem>
+                <para>
+                    Lists information about all services that are currently
+                    defined.  The return from this command is a list which can
+                    also be used as a dict.  
+                </para>
+                <para>
+                    When accessed as a list, you must interpret the list in pairs.
+                    The even numbered elements of the list are service names.
+                    The odd numbered elements of the list are program definitions
+                    containing the command and host in a sublist.
+                    For example:
+                </para>
+                <informalexample>
+                    <programlisting>
+foreach [list name info] [svc listall] {
+    set command [lindex $info 0]
+    set host    [lindex $info 1]
+    puts "Service: $name : $command@$host
+}
+                    </programlisting>
+                </informalexample>
+                <para>
+                    When accessed as a dict the dict keys are program names and
+                    the dict values are two element lists  containing the cpmmand
+                    and host.  For example:
+                </para>
+                <informalexample>
+                    <programlisting>
+set svcInfo [svc listall]
+dict for {name info} $svcInfo {
+    set command [lindex $info 0]
+    set host    [lindex $info 1]
+    puts "Service $name : $command@$host
+}
+                    </programlisting>
+                </informalexample>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <command>list <replaceable>name</replaceable></command>
+            </term>
+            <listitem>
+                <para>
+                    Returns the definition of the service <parameter>name</parameter>.
+                    The definition is returned as a two element list containing
+                    the command (first element) and host (second element).
+                </para>
+            </listitem>
+        </varlistentry>
+    </variablelist>
+  </refsect1>
+</refentry>     
+
+<!-- /manpage -->
+
+<!-- manpage 3python -->
+<refentry id='python3_services'>
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='python3_services_title'>nscldaq.vardb.services</refentrytitle>
+     <manvolnum>3python</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>nscldaq.vardb.services</refname>
+     <refpurpose>Access to nscldaq services database.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+import nscldaq.vardb.services
+api = nscldaq.vardb.services.Api(uri)
+
+api.exists()
+api.create()
+api.createProgram(name, command, host)
+api.setHost(name, newHost)
+api.setCommand(name, newCommand)
+api.remove(name)
+api.list()
+api.listProgram(name)
+
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        This module provides access to the NSCLDAQ services database.
+        The <literal>nscldaq.vardb.services.Api</literal> constructor
+        creates and object that is a wrapper for the
+        <link linkend='daq3_cserviceapi' endterm='daq3_cserviceapi_title' />
+        class.
+     </para>
+     <para>
+        Once created, methods of that object map directly to methods
+        of the <classname>CServiceApi</classname> class.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <para>
+        The <methodname>Api</methodname> static method of the module
+        creates a new object that represents a <classname>CServiceApi</classname>
+        object.  The <parameter>uri</parameter> parameter is a URI that specifies
+        how the object connects to the underlying variable database.  The
+        <parameter>uri</parameter> can be either a <literal>file</literal>
+        or <literal>tcp</literal> URI.
+     </para>
+     <para>
+        The resulting object suports the following methods:
+     </para>
+      <variablelist>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>boolean</type>
+                    <methodname>exists</methodname>
+                    <void />
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns <literal>True</literal> if the infrastructure
+                    needed to define services exists in the variable database.
+                    One typicall use for this is:
+                </para>
+                <informalexample>
+                    <programlisting>
+if api.exists() :
+    api.create()
+                    </programlisting>
+                </informalexample>
+            </listitem>
+            
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>None</type>
+                    <methodname>create</methodname>
+                    <void />
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Creates the infrastructure needed to define services.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>None</type>
+                    <methodname>createProgram</methodname>
+                    <methodparam>
+                        <modifier></modifier><type>string</type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier></modifier><type>string</type>
+                            <parameter>command</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier></modifier><type>string</type>
+                            <parameter> host</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Creates a new service definition. The service will be called
+                    <parameter>name</parameter>.  When activated it will run
+                    <parameter>command</parameter> in <parameter>host</parameter>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>None</type>
+                    <methodname>setHost</methodname>
+                    <methodparam>
+                        <modifier></modifier><type>string</type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier></modifier><type>string</type>
+                            <parameter>newHost</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Changes the host in which the existing service
+                    <parameter>name</parameter> runs to
+                    <parameter>host</parameter>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>None</type>
+                    <methodname>setCommand</methodname>
+                    <methodparam>
+                        <modifier></modifier><type>string</type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier></modifier><type>string</type>
+                            <parameter>newCommand</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Changes the command that will be run by the
+                    service <parameter>name</parameter> to
+                    <parameter>newCommand</parameter>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>None</type>
+                    <methodname>remove</methodname>
+                    <methodparam>
+                        <modifier></modifier><type>string</type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Removes the definition of the service <parameter>name</parameter>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>dict</type>
+                    <methodname>list</methodname>
+                    <void />
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns a dict that describes the set of services
+                    that have been defined.  Keys to the dict are service names
+                    and values of the dict are two element tuples that contain
+                    in order the command and host for that service.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>tuple</type>
+                    <methodname>listProgram</methodname>
+                    <methodparam>
+                        <modifier></modifier><type>string</type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns a two element tuple that contains, in order
+                    the command and host in which the service <parameter>name</parameter>
+                    will be run.
+                </para>
+            </listitem>
+        </varlistentry>
+      </variablelist>
+   </refsect1>
+</refentry>     
+<!-- /manpage -->
