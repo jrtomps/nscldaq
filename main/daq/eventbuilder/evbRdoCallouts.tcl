@@ -517,6 +517,7 @@ proc EVBC::initialize args {
         if {[$EVBC::applicationOptions cget -gui] && ($EVBC::guiFrame eq "")} {
             EVBC::_StartGui
         }
+
         EVBC::_StartMonitorThread;                      # Start thread for event monitoring.
          
     }
@@ -586,9 +587,11 @@ proc EVBC::onBegin {} {
     }
     #  Start the monitor thread looking at the output ring:
     
-    thread::send -async $EVBC::monitorTid  \
-        [list monitorRing tcp://localhost/$destring \
-            $::EVBC::monitorMutex $::EVBC::monitorCondVar]
+    if {[$EVBC::applicationOptions cget -restart]} {
+      thread::send -async $EVBC::monitorTid  \
+          [list monitorRing tcp://localhost/$destring \
+              $::EVBC::monitorMutex $::EVBC::monitorCondVar]
+    }
     after 1500;                         # Give things a chance to start up.
 }
 #------------------------------------------------------------------------------
@@ -604,7 +607,9 @@ proc EVBC::onEnd {} {
     # Wait for the monitor thread to signal the end runs balanced the begin runs:
     
     
-    thread::cond wait $::EVBC::monitorCondVar $::EVBC::monitorMutex;     # Releases/re-locks the mutex.
+    if { [$::EVBC::applicationOptions cget -restart] } {
+      thread::cond wait $::EVBC::monitorCondVar $::EVBC::monitorMutex;     # Releases/re-locks the mutex.
+    }
     
     if {$EVBC::guiFrame ne ""} {
             EVBC::_EnableGUI
