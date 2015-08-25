@@ -2,6 +2,7 @@
 package require Actions 1.0
 package require tcltest
 
+set ::fullPath [tcltest::makeDirectory test]
 
 tcltest::test buildPktERR {Test that ERRMSG directives succeed
 } -setup {
@@ -63,6 +64,7 @@ tcltest::test buildPktDBGMSG {Test that DBGMSG directives succeed
   $action buildPacket
 } -result {DBGMSG abcdefghij 10}
 
+
 tcltest::test buildPktIncomplete {Test that packet building stops on incomplete pkt
 } -setup {
   set action [::Actions %AUTO%]
@@ -72,6 +74,7 @@ tcltest::test buildPktIncomplete {Test that packet building stops on incomplete 
 } -body {
   $action buildPacket
 } -result {}
+
 
 tcltest::test buildPktWithNewline {Test that packet is handled with internal newlines 
 } -setup {
@@ -98,99 +101,142 @@ tcltest::test buildPktWithMultiDirs {Test that only first packet outputted if mu
 } -result {OUTPUT abcd 4}
 
 namespace eval testHandlers {
-  proc handleLog msg { puts -nonewline "log $msg"}
-  proc handleError msg { puts -nonewline "error $msg"}
-  proc handleWarning msg { puts -nonewline "warning $msg"}
-  proc handleTclCommand msg { puts -nonewline "tcl $msg"}
-  proc handleOutput msg { puts -nonewline "output $msg"}
-  proc handleDebug msg { puts -nonewline "debug $msg"}
+  variable line {}
+  proc handleLog msg { variable line;  set line "log $msg"}
+  proc handleError msg { variable line; set line "error $msg"}
+  proc handleWarning msg { variable line; set line "warning $msg"}
+  proc handleTclCommand msg { variable line; set line "tcl $msg"}
+  proc handleOutput msg { variable line; set line "output $msg"}
+  proc handleDebug msg { variable line; set line "debug $msg"}
 
   namespace export handleLog handleError handleWarning \
                   handleTclCommand handleOutput handleDebug
   namespace ensemble create
 }
 
+tcltest::test buildPktSmushed-0 {Test that dropped whitespace get handled
+} -setup {
+  set action [::Actions %AUTO% -actionbundle testHandlers]
+  
+  set read0Path [tcltest::makeFile "LOGMSG \n" test0.txt $fullPath]
+  set read1Path [tcltest::makeFile "4 \n" test1.txt $fullPath]
+  set read2Path [tcltest::makeFile "asdf\n" test2.txt $fullPath]
+  set read0 [open $read0Path r]
+  set read1 [open $read1Path r]
+  set read2 [open $read2Path r]
+  set ::testHandlers::line {}
+} -cleanup {
+  $action destroy
+  close $read0
+  close $read1
+  close $read2
+} -body {
+  $action handleReadable $read0
+  $action handleReadable $read1
+  $action handleReadable $read2
+  set ::testHandlers::line
+} -result "log asdf" ;# we will have to live with the fact that there is a blank line 
+# emitted that gets registered as an output line. This should at least not break.
+
+
 tcltest::test handleNonPktNoDirective {Test that fully non-directive data is properly handled
 } -setup {
   set action [::Actions %AUTO% -actionbundle testHandlers]
   $action setLine "abcdefghij"
+  set ::testHandlers::line {}
 } -cleanup {
   $action destroy
 } -body {
   $action handleNonPacket
-} -output {output abcdefghij}
+  set ::testHandlers::line
+} -result {output abcdefghij}
 
 tcltest::test handleNonPktWithDirective {Test that directive data is properly handled
 } -setup {
   set action [::Actions %AUTO% -actionbundle testHandlers]
   $action setLine "abcdefERRMSG 4 ghij"
+  set ::testHandlers::line {}
 } -cleanup {
   $action destroy
 } -body {
   $action handleNonPacket
-} -output {output abcdef}
+  set ::testHandlers::line
+} -result {output abcdef}
 
 
 tcltest::test handleMessageLOG {test handleDirective for LOGMSG
 } -setup {
   set action [::Actions %AUTO% -actionbundle testHandlers]
+  set ::testHandlers::line {}
 } -cleanup {
   $action destroy
 } -body {
   set parsedmsg [list LOGMSG {my message}]
   $action handleMessage $parsedmsg
-} -output {log my message}
+  set ::testHandlers::line
+} -result {log my message}
 
 tcltest::test handleMessageERROR {test handleDirective for ERRMSG
 } -setup {
   set action [::Actions %AUTO% -actionbundle testHandlers]
+  set ::testHandlers::line {}
 } -cleanup {
   $action destroy
 } -body {
   set parsedmsg [list ERRMSG {my message}]
   $action handleMessage $parsedmsg
-} -output {error my message}
+  set ::testHandlers::line
+} -result {error my message}
 
 tcltest::test handleMessageWRN {test handleDirective for WRNMSG
 } -setup {
   set action [::Actions %AUTO% -actionbundle testHandlers]
+  set ::testHandlers::line {}
 } -cleanup {
   $action destroy
 } -body {
   set parsedmsg [list WRNMSG {my message}]
   $action handleMessage $parsedmsg
-} -output {warning my message}
+  set ::testHandlers::line
+} -result {warning my message}
 
 tcltest::test handleMessageTCLCMD {test handleDirective for TCLCMD 
 } -setup {
   set action [::Actions %AUTO% -actionbundle testHandlers]
+  set ::testHandlers::line {}
 } -cleanup {
   $action destroy
 } -body {
   set parsedmsg [list TCLCMD {my message}]
   $action handleMessage $parsedmsg
-} -output {tcl my message}
+  set ::testHandlers::line
+} -result {tcl my message}
 
 
 tcltest::test handleMessageOUTPUT {test handleDirective for OUTPUT 
 } -setup {
   set action [::Actions %AUTO% -actionbundle testHandlers]
+  set ::testHandlers::line {}
 } -cleanup {
   $action destroy
 } -body {
   set parsedmsg [list OUTPUT {my message}]
   $action handleMessage $parsedmsg
-} -output {output my message}
+  set ::testHandlers::line
+} -result {output my message}
 
 tcltest::test handleMessageDBG {test handleDirective for DBGMSG 
 } -setup {
   set action [::Actions %AUTO% -actionbundle testHandlers]
+  set ::testHandlers::line {}
 } -cleanup {
   $action destroy
 } -body {
   set parsedmsg [list DBGMSG {my message}]
   $action handleMessage $parsedmsg
-} -output {debug my message}
+  set ::testHandlers::line
+} -result {debug my message}
+
 
 
 tcltest::cleanupTests

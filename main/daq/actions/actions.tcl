@@ -58,28 +58,33 @@ snit::type Actions {
 
   method handleReadable {fd} {
 
+    set incomplete 0
+
     # read what the channel has to give us
     set input [chan read $fd ]
 
     append line "$input"
-    set line [string trimright $line " \0\n"]
+    set line [string trimright $line "\0\n"]
 
     while {[string length $line]>0 && !($incomplete)} {
-      set line [string trim $line]
       set firstWord [$self extractFirstWord $line]
 
       # if we have a legal directive, treat it
       # as a packet
+      set result {}
       if {[$self isLegalDirective $firstWord]} {
         set parsedLine [$self buildPacket ]
-        if {!("$parsedLine" eq "")} {
-          $self handleMessage $parsedLine
+        if {"$parsedLine" ne ""} {
           set incomplete 0
-        } 
+          set result [$self handleMessage $parsedLine]
+        } else {
+        }
       } else {
-        $self handleNonPacket
+        set result [$self handleNonPacket]
       }
     }; # end of nonzero input
+
+    return $result
   }
  
   method extractFirstWord {sentence} {
@@ -114,7 +119,7 @@ snit::type Actions {
 
        set incomplete 0
        set line [string range $line [expr $b3+1] end] 
-
+      
        return $parsedLine
     } else {
        return ""
@@ -138,14 +143,15 @@ snit::type Actions {
         set msg [string range $line 0 [expr $index-1]]
         set line [string range $line $index end]
 
-        $self handleOutput $msg
-        return ""
-      }
+        return [$self handleOutput $msg]
+        
+      } 
     }
 
     # if we are here then we didn't find any directives
-    $self handleOutput $line
+    set result [$self handleOutput $line]
     set line ""
+    return $result
   } 
 
   # Determine if there word is a legal directive
@@ -160,38 +166,41 @@ snit::type Actions {
     set directive [lindex $parsedLine 0]
     set msg [lindex $parsedLine 1]
     set dirId [dict get $directiveMap $directive]
+    set result {}
     switch $dirId {
-      0 { $self handleError $msg }
-      1 { $self handleLog $msg }
-      2 { $self handleWarning $msg }
-      3 { $self handleTclCommand $msg }
-      4 { $self handleOutput $msg }
-      5 { $self handleDebug $msg }
+      0 { set result [$self handleError $msg ] }
+      1 { set result [$self handleLog $msg ]}
+      2 { set result [$self handleWarning $msg ] }
+      3 { set result [$self handleTclCommand $msg ]}
+      4 { set result [$self handleOutput $msg] }
+      5 { set result [$self handleDebug $msg] }
     } 
+
+    return $result
   }
 
   method handleError {str} {
-     $options(-actionbundle) handleError $str
+    return [$options(-actionbundle) handleError $str]
   }
 
   method handleLog {str} {
-    $options(-actionbundle) handleLog $str
+   return [$options(-actionbundle) handleLog $str]
   }
 
   method handleWarning {str} {
-    $options(-actionbundle) handleWarning $str
+    return [$options(-actionbundle) handleWarning $str]
   }
 
   method handleDebug {str} {
-    $options(-actionbundle) handleDebug $str
+    return [$options(-actionbundle) handleDebug $str]
   }
 
   method handleOutput {str} {
-    $options(-actionbundle) handleOutput $str
+    return [$options(-actionbundle) handleOutput $str]
   }
 
   method handleTclCommand {str} {
-    $options(-actionbundle) handleTclCommand $str
+    return [$options(-actionbundle) handleTclCommand $str]
   }
 }
 
