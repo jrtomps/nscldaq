@@ -66,18 +66,17 @@ snit::type Actions {
     append line "$input"
     set line [string trimright $line "\0\n"]
 
+    set result {}
     while {[string length $line]>0 && !($incomplete)} {
       set firstWord [$self extractFirstWord $line]
 
       # if we have a legal directive, treat it
       # as a packet
-      set result {}
       if {[$self isLegalDirective $firstWord]} {
         set parsedLine [$self buildPacket ]
         if {"$parsedLine" ne ""} {
           set incomplete 0
           set result [$self handleMessage $parsedLine]
-        } else {
         }
       } else {
         set result [$self handleNonPacket]
