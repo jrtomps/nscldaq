@@ -875,4 +875,6 @@ Work on 11.0-rc11 begins
 	readouts.
 	Feature #3793 - State client and state manager API classes and
 			language bindings.
-	
+	Feature #3280 - Add on exit methods for readout callout bundles.
+	Feature #4345 - Add systems/services database support.
+	Feature #4348 - Programs to support system programs/services definition

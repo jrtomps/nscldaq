@@ -7,7 +7,9 @@
         Service programs are
         per experiment programs that live outside the main data flow.
         These include servers such as the variable data base manager and boot
-        managers.  
+        managers.  These programs are referred to interchangeably as
+        <firstterm>services</firstterm>
+        and <firstterm>system programs</firstterm>.
     </para>
     <para>
         This chapter describes a section of the variable database
@@ -18,6 +20,9 @@
         <listitem><para>
             Where in the variable database directory hierarchy this
             description lives.
+        </para></listitem>
+        <listitem><para>
+            NSCLDAQ commands that allow you to define and edit services.
         </para></listitem>
         <listitem><para>
             The API an language bindings that allow software to manipulate
@@ -83,6 +88,68 @@
             program from the services the program's subdirectory is recursively
             deleted in order to ensure that all traces are wiped out.
         </para>
+    </section>
+    <section>
+        <title>
+            NSCLDAQ service related commands.
+        </title>
+        <para>
+            NSCLDAQ has several tools that allow you to define services.  The
+            tools allow you to allocate the standard NSCLDAQ services to hosts.
+            They also allow you to define and edit arbitrary services.
+        </para>
+        <formalpara>
+            <title>svcwiz</title>
+            <para>
+                NSCLDAQ has a set of standard services.  The
+                <application>svcwiz</application> program is a GUI wizard that
+                allows you to specify the hosts in which these services will run.
+                This is primarily used when you define the experiment but can also
+                be used to alter the existing program allocation.
+                See:
+                <link linkend='daq1_svcwiz' endterm='daq1_svcwiz_title' />
+                for more information.
+            </para>
+        </formalpara>
+        <formalpara>
+            <title>addsysprogram</title>
+            <para>
+                This command allows you to add an arbitrary system program
+                definition.  A system program of this name must not have been
+                defined. See
+                <link linkend='daq1_addsysprogram' endterm='daq1_addsysprogram_title' />
+            </para>
+        </formalpara>
+        <formalpara>
+            <title>lsservices</title>
+            <para>
+                Lists the services that are currently defined.
+                <application>lsservices</application> can either just
+                list the names of the programs or provide a full listing of the
+                service details.  For more information see:
+                <link linkend='daq1_lsservices' endterm='daq1_lsservices_title' />
+            </para>
+        </formalpara>
+        <formalpara>
+            <title>modsysprogram</title>
+            <para>
+                Allows you to modify the definition of an existing system program.
+                See
+                <link linkend='daq1_modsysprogram' endterm='daq1_modsysprogram_title' />
+                for more information.
+            </para>
+        </formalpara>
+        <formalpara>
+            <title>rmsysprogram</title>
+            <para>
+                Allows you to permanently remove a system program.  Note that
+                unlike programs that are state sensitive, services cannot be
+                disabled.  Removing a service is the only way to ensure that it
+                does not run when the services are started.
+                For more information see:
+                <link linkend='daq1_rmsysprogram' endterm='daq1_rmsysprogram_title' />
+            </para>
+        </formalpara>
     </section>
     <section>
         <title>Apis and language bindings</title>
@@ -1045,3 +1112,290 @@ if api.exists() :
    </refsect1>
 </refentry>     
 <!-- /manpage -->
+
+<!-- manpage 1daq -->
+      <refentry id="daq1_svcwiz">
+        <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle id='daq1_svcwiz_title'>svcwiz</refentrytitle>
+           <manvolnum>1daq</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>svcwiz</refname>
+           <refpurpose>Wizard to configure standard services</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+         <command>
+$DAQBIN/svcwiz dbURI
+          </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Runs a GUI wizard that allows you to allocate systems to the standard
+            services of an NSCLDAQ experiment.  At the time this is being written
+            there are two standard services:  The variable database server and the
+            boot manager.  
+           </para>
+           <para>
+            The <parameter>dbURI</parameter> specifies a URI that describes how
+            to connect to the variable database.  If the database server is
+            already running for the database you are modifying you can use the
+            URI for that server.
+           </para>
+           <para>
+            Each page of the wizard describes a service and provides an entry
+            box into which you type the DNS name or the IP address of the
+            system to run that service. If the service is already defined it is
+            loaded with the current allocation, otherwise the host is blank.
+            At the bottom of the page are at least
+            two pushbuttons selected from a set of three:
+           </para>
+           <variablelist>
+            <varlistentry>
+                <term><guibutton>Next&gt;</guibutton></term>
+                <listitem>
+                    <para>
+                        Saves the contents of the current page and advances to the
+                        next page.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><guibutton>&lt;Back</guibutton></term>
+                <listitem>
+                    <para>
+                        Saves the contents of the current page and regresses
+                        to the previous page in the wizard.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><guibutton>Exit</guibutton></term>
+                <listitem>
+                    <para>
+                        Saves the contents of the current page and exits
+                        the program.
+                    </para>
+                </listitem>
+            </varlistentry>
+            
+           </variablelist>
+           <para>
+                Note that to exit without saving the current page,
+                simply close the window via the window manager decoration
+                provided for that purpose.
+            </para>
+        </refsect1>
+
+      </refentry>
+            <refentry id="daq1_addsysprogram">
+              <refentryinfo>
+                <author>
+                        <personname>
+                                <firstname>Ron</firstname>
+                                <surname>Fox</surname>
+                        </personname>
+                </author>
+                <productname>NSCLDAQ</productname>
+                <productnumber></productnumber>
+              </refentryinfo>
+              <refmeta>
+                 <refentrytitle id='daq1_addsysprogram_title'>addsysprogram</refentrytitle>
+                 <manvolnum>1daq</manvolnum>
+                 <refmiscinfo class='empty'></refmiscinfo>
+              </refmeta>
+              <refnamediv>
+                 <refname>addsysprogram</refname>
+                 <refpurpose>Add new system program.</refpurpose>
+              </refnamediv>
+              
+              <refsynopsisdiv>
+                <cmdsynopsis>
+                    <command>
+$DAQBIN/addsysprogram <replaceable>dbURI name path host</replaceable>
+              </command>
+                </cmdsynopsis>
+      
+              </refsynopsisdiv>
+              <refsect1>
+                 <title>DESCRIPTION</title>
+                 <para>
+                    Adds a new system program (service) to the database.
+                    The service manager will start this program when asked to
+                    start the NSCLDAQ services.
+                 </para>
+                 <para>
+                    The <parameter>dbURI</parameter> specifies the connection
+                    to the variable database that is holding the configuration.
+                    If the variable database server is running its URI can be used,
+                    if not a <literal>file</literal> URI must be used instead.
+                 </para>
+                 <para>
+                    <parameter>name</parameter> is the name that will be used
+                    to refer to the service.  <parameter>path</parameter> is
+                    the path to the program or script that will be used to
+                    run the program and <parameter>host</parameter> should
+                    be the IP address or DNS host name of the system in which
+                    the program should run.
+                 </para>
+              </refsect1>
+      
+            </refentry>
+                  <refentry id="daq1_lsservices">
+                    <refentryinfo>
+                      <author>
+                              <personname>
+                                      <firstname>Ron</firstname>
+                                      <surname>Fox</surname>
+                              </personname>
+                      </author>
+                      <productname>NSCLDAQ</productname>
+                      <productnumber></productnumber>
+                    </refentryinfo>
+                    <refmeta>
+                       <refentrytitle id='daq1_lsservices_title'>lsservices</refentrytitle>
+                       <manvolnum>1daq</manvolnum>
+                       <refmiscinfo class='empty'></refmiscinfo>
+                    </refmeta>
+                    <refnamediv>
+                       <refname>lsservices</refname>
+                       <refpurpose>List defined services.</refpurpose>
+                    </refnamediv>
+                    
+                    <refsynopsisdiv>
+                      <cmdsynopsis>
+                          <command>
+$DAQBIN/lsservices <replaceable>dbURI</replaceable> <optional><option>-l</option></optional>
+                      </command>
+                      </cmdsynopsis>
+            
+                    </refsynopsisdiv>
+                    <refsect1>
+                       <title>DESCRIPTION</title>
+                       <para>
+                        Lists the set of services that have been defined
+                         in the database connected to via
+                         <parameter>dbURI</parameter>.  Note that if the
+                         variable database server is running <parameter>dbURI</parameter>
+                         can be a <literal>tcp</literal> URI for that server.  If not
+                         a <literal>file</literal> URI must be used.
+                       </para>
+                       <para>
+                        If <option>-l</option> is supplied the listing displays
+                        the name of each service, the command that is run and the host
+                        in which it will be run.  If <option>-l</option>
+                        is not supplied on
+                        the command line, only the names of each service are listed.
+                       </para>
+                    </refsect1>
+            
+                  </refentry>
+      <refentry id="daq1_modsysprogram">
+        <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle id='daq1_modsysprogram_title'>modsysprogram</refentrytitle>
+           <manvolnum>1daq</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>modsysprogram</refname>
+           <refpurpose>Modify the definition of a system program.</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+$DAQBIN/modsysprogram <replaceable>dbURI name item-name new-value</replaceable>
+          </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Modifies the definition of a system program.
+            <parameter>dbURI</parameter> is the URI that defines ow the program
+            connects to the variable database.  <parameter>name</parameter>
+            is the name of the program.
+            <parameter>item-name</parameter> can be <literal>path</literal>
+            or <literal>host</literal> and defines what is being modified.
+            <parameter>new-vailue</parameter> is the new value to be given to
+            that attribute for <parameter>name</parameter>.
+           </para>
+        </refsect1>
+        
+
+      </refentry>
+      <refentry id="daq1_rmsysprogram">
+        <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle id='daq1_rmsysprogram_title'>rmsysprogram</refentrytitle>
+           <manvolnum>1daq</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>rmsysprogram</refname>
+           <refpurpose>Remove a system program definition</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+$DAQBIN/rmsysprogram <replaceable>dbURI program-name</replaceable>                
+          </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Removes the definition of a system program.  All contents of the
+            variable database directory containing the program definition are
+            removed along with the directory itself. If there are non-standard
+            variable definitions and subdirectories these too will be properly
+            removed.
+           </para>
+           <para>
+            <parameter>dbURI</parameter> specifies the <literal>tcp</literal> or
+            <literal>file</literal> URI that defines how the database is connected.
+            <parameter>program-name</parameter> is the name of the program to
+            delete.
+           </para>
+        </refsect1>
+      </refentry>
+
+            
+<!-- /manpage  -->

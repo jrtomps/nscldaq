@@ -1,0 +1,5 @@
+#!/bin/sh
+
+export PYTHONPATH=@prefix@/pythonLibs
+
+@PYTHON@ @prefix@/bin/ServiceWizard.py $*

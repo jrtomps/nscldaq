@@ -413,6 +413,11 @@ AC_CONFIG_FILES([Makefile
 		 utilities/runcontrol/Makefile
 		 utilities/bootmanager/Makefile
 		 utilities/services/Makefile
+		 utilities/services/addsysprogram
+		 utilities/services/rmsysprogram
+		 utilities/services/modsysprogram
+		 utilities/services/lsservices
+		 utilities/services/svcwiz
                  epics/chanlog/Makefile
                  epics/controlpush/Makefile
                  epics/epicsdisplay/Makefile

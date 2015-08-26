@@ -1,0 +1,64 @@
+#!/bin/sh
+# -*- tcl -*-
+# The next line is executed by /bin/sh, but not tcl \
+exec @TCLSH_CMD@ "$0" ${1+"$@"}
+
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2014.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Authors:
+#             Ron Fox
+#             Jeromy Tompkins 
+#	     NSCL
+#	     Michigan State University
+#	     East Lansing, MI 48824-1321
+
+
+
+##
+# @file addsysprogram
+# @brief Create a new system program in a database.
+# @author Ron Fox <fox@nscl.msu.edu>
+#
+
+#  Usage:
+#    addsysprogram URI name path host
+#       URI  - database URI.
+#       name - name of the program.
+#       path - Program path.
+#       host - Host in which the program should run.
+
+lappend auto_path [file join [file dirname [info script]] .. TclLibs]
+package require daqservices
+
+# Check usage:
+
+if {[llength $argv] != 4} {
+    puts stderr "Usage:"
+    puts stderr "   addsysprogram dbURI name path host"
+    exit 1
+}
+
+# Extract the command line elements.
+
+set URI   [lindex $argv 0]
+set name  [lindex $argv 1]
+set path  [lindex $argv 2]
+set host  [lindex $argv 3]
+
+#  Open the database, if necessary, crate the schema:
+
+nscldaq::services db $URI
+
+if {![db exists]} {
+    db create
+}
+
+db createprog $name $path $host
+
+nscldaq::services -delete db

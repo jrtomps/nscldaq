@@ -1,0 +1,107 @@
+#!/bin/sh
+# -*- tcl -*-
+# The next line is executed by /bin/sh, but not tcl \
+exec tclsh "$0" ${1+"$@"}
+
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2014.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Authors:
+#             Ron Fox
+#             Jeromy Tompkins 
+#	     NSCL
+#	     Michigan State University
+#	     East Lansing, MI 48824-1321
+
+
+
+##
+# @file lsservices.in
+# @brief List the services that are defined.
+# @author Ron Fox <fox@nscl.msu.edu>
+#
+lappend auto_path [file join [file dirname [info script]] .. TclLibs]
+package require daqservices
+# Usage:
+#    lsservices dbURI ?-l?
+#
+#  Where:
+#     dbURI is the URI specifying the database connetion.
+#     -l    is an optional parameter that asks for a listing of not just the
+#           services but their charactiestics.
+#
+
+
+##
+#  usage
+#    output program usage and exit.
+#
+proc usage {} {
+    puts stderr "Usage"
+    puts stderr "  lsservices dbURI ?-l?"
+    puts stderr "Where:"
+    puts stderr "  dbURI   - Is the URI that specifies the datbase connection"
+    puts stderr "  -l      - Is an option that if present lists service characteristics"
+    puts stderr "            rather than just service names"
+    exit -1
+}
+
+##
+# listBrief
+#   Output a brief listing of services.
+# @param infoDict - dict from listall
+#
+proc listBrief infoDict {
+    set names [dict keys $infoDict]
+    foreach name $names {
+        puts $name
+    }
+}
+
+##
+# listFull
+#   output a full listing of services:
+#   this listing has lines of the form:
+#   name:    command@host
+#
+# @param infoDict - the dict containing the info about the services;
+#
+proc listVerbose infoDict {
+    dict for {key value} $infoDict {
+        puts [format "%s:\t%s@%s" $key [lindex $value 0] [lindex $value 1]]
+    }
+}
+
+##
+# Process/validate parameters:
+#
+
+if {([llength $argv] != 1) && ([llength $argv] != 2)} {
+    usage
+}
+
+set dbURI [lindex $argv 0]
+set verbose 0
+if {[llength $argv] == 2} {
+    if {[lindex $argv 1] != "-l"} {
+        usage
+    }
+    set verbose 1
+}
+
+#  Get the listing via the listall subcommand:
+
+::nscldaq::services db $dbURI
+set rawInfo [db listall]
+::nscldaq::services -delete db
+
+if {$verbose} {
+    listVerbose $rawInfo
+} else {
+    listBrief $rawInfo
+}

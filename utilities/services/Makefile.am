@@ -1,5 +1,7 @@
 lib_LTLIBRARIES = libServices.la libTclServices.la libPyServices.la
 
+TCL_APPS=addsysprogram rmsysprogram modsysprogram lsservices
+
 libServices_la_SOURCES = CServiceApi.cpp
 libServices_la_CPPFLAGS= @SQLITE3_CFLAGS@ -I@top_srcdir@/base/factories \
 	-I@top_srcdir@/utilities/varmanager -I@top_srcdir@/utilities/varmanager/server \
@@ -49,4 +51,7 @@ install-exec-hook:
 	echo package ifneeded daqservices 1.0 [list load [file join \$$dir libTclServices.so]] > @prefix@/TclLibs/services/pkgIndex.tcl
 	$(mkinstalldirs) @prefix@/pythonLibs/nscldaq/vardb
 	$(INSTALL_PROGRAM) @libdir@/libPyServices.so @prefix@/pythonLibs/nscldaq/vardb/services.so
+	for f in $(TCL_APPS) ; do $(INSTALL_PROGRAM) $$f @bindir@; done
+	$(INSTALL_PROGRAM) svcwiz @bindir@
+	$(INSTALL_PROGRAM) ServiceWizard.py @bindir@
 

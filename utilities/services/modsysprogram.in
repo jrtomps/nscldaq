@@ -1,0 +1,93 @@
+#!/bin/sh
+# -*- tcl -*-
+# The next line is executed by /bin/sh, but not tcl \
+exec tclsh "$0" ${1+"$@"}
+
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2014.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Authors:
+#             Ron Fox
+#             Jeromy Tompkins 
+#	     NSCL
+#	     Michigan State University
+#	     East Lansing, MI 48824-1321
+
+
+
+##
+# @file  modsysprogram.in
+# @brief modify the characteristics of an existing system program.
+# @author Ron Fox <fox@nscl.msu.edu>
+#
+#   Usage:
+#      modsysprogram dbURI name what to-what
+#
+#   Where
+#      dbURI   is the URI that connects to the database.
+#      name    is the name of the program to be mo dified.
+#      what    is a keyword specifying what is modified: 'path' or 'host'
+#      to-what is the new value of the thing that will be modified
+#
+# e.g.:
+#
+#    modsysprogram file://`pwd`/test.db dbserver path $DAQBIN/vardbserver
+#    modsysprogram file://`pwd`/test.db bootmgr  host spdaq20.nscl.msu.edu
+#
+
+lappend auto_path [file join [file dirname [info script]] .. TclLibs]
+package require daqservices
+
+##
+# usage:
+#   Prints program usage and exits with -1 status:
+#
+proc usage {} {
+    puts stderr "Usage:"
+    puts stderr "   modsysprogram dbURI program-name item-name new-value"
+    puts stderr "Where:"
+    puts stderr "   dbURI        - is the URI that specifies the database connection"
+    puts stderr "   program-name - specifies the name of the program being modified"
+    puts stderr "   item-name    - Specifies what to modify: 'path' or 'host'"
+    puts stderr "   new-value    - Supplies an new value for the modified item"
+    
+    exit -1
+}
+
+#
+#  Need exactly 4 parameters:
+#
+if {[llength $argv] != 4} {
+    usage
+}
+
+#
+# extract the parameters and validate the item-name param
+#
+set dbUri  [lindex $argv 0]
+set name   [lindex $argv 1]
+set item   [lindex $argv 2]
+set value  [lindex $argv 3]
+
+if {($item ne "path") && ($item ne "host")} {
+    usage
+}
+
+#  Connect to the database and change the program:
+
+::nscldaq::services db $dbUri
+
+if {$item eq "path"} {
+    db setCommand $name $value
+} else {
+    db setHost $name $value;           # Already validated item.
+}
+
+
+::nscldaq::services -delete  db
+               
