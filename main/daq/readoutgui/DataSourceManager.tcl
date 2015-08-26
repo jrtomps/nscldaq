@@ -326,9 +326,10 @@ snit::type DataSourceManager {
     method stopAll {} {
         if {![catch {$self _listOrderedSources ignore} sources]} {
             foreach id $sources {
-                catch {$self stop $id};    # In case there are stopped sources.
+                catch {$self stop $id}; # In case there are stopped sources.
             }
         }
+        set state "inactive"
     }
     ##
     # startAll
@@ -778,6 +779,9 @@ proc ::DataSourceMgr::leave {from to} {
     }
     if {($from eq "Active") && ($to eq "Paused")} {
         $mgr pause
+    }
+    if {($from in [list Active Paused Halted]) && ($to eq "NotReady")} {
+        $mgr stopAll
     }
     
     $mgr destroy

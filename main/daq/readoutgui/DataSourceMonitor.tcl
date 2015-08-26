@@ -126,10 +126,6 @@ proc ::DataSourceMonitor::_checkSources ms {
                 $::DataSourceMonitor::sm transition Halted
             }
         }
-        # Stop the rest of the sources:
-        
-        ::ReadoutGUIPanel::Log DataSourceMonitor warning "Stoping the remaining sources"
-        $::DataSourceMonitor::dsm stopAll
         
         #  -> not ready
         
