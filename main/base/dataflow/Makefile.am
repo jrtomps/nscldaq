@@ -10,9 +10,9 @@ noinst_HEADERS         = ringbufint.h Asserts.h testcommon.h CRingCommand.h
 
 COMPILATION_FLAGS =  -I@top_srcdir@/base/headers 	\
 	   -I@top_srcdir@/servers/portmanager \
-		@LIBTCLPLUS_CFLAGS@	\
 	   -I@top_srcdir@/base/uri	\
 	   -I@top_srcdir@/base/os	\
+		@LIBTCLPLUS_CFLAGS@	\
 		$(TCL_FLAGS)		\
 	-DBINDIR='"@prefix@/bin"'
 
