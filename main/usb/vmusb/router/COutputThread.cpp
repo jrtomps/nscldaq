@@ -139,18 +139,12 @@ COutputThread::operator()()
   // Main loop is pretty simple.
   try {
     attachRing();
-    int count=0;
     while(1) {
       
       DataBuffer& buffer(getBuffer());
       processBuffer(buffer);
       freeBuffer(buffer);
 
-      if (count == 10) {
-        throw 1;
-      }
-      ++count;
-      
     }
   }
   catch (string msg) {
