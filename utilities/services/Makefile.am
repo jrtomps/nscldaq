@@ -34,7 +34,9 @@ unittest_SOURCES=TestRunner.cpp apiTests.cpp   \
 unittest_CPPFLAGS=$(libServices_la_CPPFLAGS) @CPPUNIT_CFLAGS@
 unittest_LDFLAGS =$(libServices_la_LDFLAGS) @CPPUNIT_LDFLAGS@
 
-EXTRA_DIST=TclServices.test apiTests.py services.xml
+EXTRA_DIST=TclServices.test apiTests.py services.xml ServiceWizard.py \
+	addsysprogram.in lssservices.in modsysprogram.in rmsysprogram.in \
+	svcwin.in
 
 check-TESTS:
 	@builddir@/unittest
@@ -52,6 +54,6 @@ install-exec-hook:
 	$(mkinstalldirs) @prefix@/pythonLibs/nscldaq/vardb
 	$(INSTALL_PROGRAM) @libdir@/libPyServices.so @prefix@/pythonLibs/nscldaq/vardb/services.so
 	for f in $(TCL_APPS) ; do $(INSTALL_PROGRAM) $$f @bindir@; done
-	$(INSTALL_PROGRAM) svcwiz @bindir@
-	$(INSTALL_PROGRAM) ServiceWizard.py @bindir@
+	$(INSTALL_PROGRAM) @srcdir@/svcwiz @bindir@
+	$(INSTALL_PROGRAM) @srcdir@/ServiceWizard.py @bindir@
 
