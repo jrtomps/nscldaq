@@ -36,7 +36,7 @@ unittest_LDFLAGS =$(libServices_la_LDFLAGS) @CPPUNIT_LDFLAGS@
 
 EXTRA_DIST=TclServices.test apiTests.py services.xml ServiceWizard.py \
 	addsysprogram.in lsservices.in modsysprogram.in rmsysprogram.in \
-	svcwin.in
+	svcwiz.in
 
 check-TESTS:
 	@builddir@/unittest
