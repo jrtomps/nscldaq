@@ -2492,10 +2492,10 @@ proc ::ReadoutGUIPanel::Log {src class msg} {
     set w [::Output::getInstance]
     $w logFrom $src $class "$src: $msg"
     
-    update idletasks
-    update idletasks;        # Ensure the UI is updated in case
-    update idletasks;        # the log is prior to some event loop dead wait.
-    update idletasks
+#    update idletasks
+#    update idletasks;        # Ensure the UI is updated in case
+#    update idletasks;        # the log is prior to some event loop dead wait.
+#    update idletasks
 }
 
 #------------------------------------------------------------------------------
