@@ -35,7 +35,7 @@ unittest_CPPFLAGS=$(libServices_la_CPPFLAGS) @CPPUNIT_CFLAGS@
 unittest_LDFLAGS =$(libServices_la_LDFLAGS) @CPPUNIT_LDFLAGS@
 
 EXTRA_DIST=TclServices.test apiTests.py services.xml ServiceWizard.py \
-	addsysprogram.in lssservices.in modsysprogram.in rmsysprogram.in \
+	addsysprogram.in lsservices.in modsysprogram.in rmsysprogram.in \
 	svcwin.in
 
 check-TESTS:
