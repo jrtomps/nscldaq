@@ -1,15 +1,20 @@
-PYTHONPKGS=bootmanager.py programs.py  ssh.py
+PYTHONPROGS=@srcdir@/bootmanager.py 
+PYTHONPKGS=@srcdir@/programs.py  @srcdir@/ssh.py
 
 install-exec-local:
 	$(mkinstalldirs) @prefix@/pythonLibs/nscldaq/bootmanager
-	$(INSTALL_PROGRAM) @srcdir@/*.py @prefix@/pythonLibs/nscldaq/bootmanager
+	$(mkinstalldirs) @prefix@/pythonLibs/nscldaq/programs
+	$(INSTALL_PROGRAM) $(PYTHONPROGS) @prefix@/pythonLibs/nscldaq/bootmanager
 	touch @prefix@/pythonLibs/nscldaq/bootmanager/__init__.py
+	$(INSTALL_PROGRAM) $(PYTHONPKGS) @prefix@/pythonLibs/nscldaq/programs
+	touch @prefix@/pythonLibs/nscldaq/programs/__init__.py
 	echo "#! @PYTHON@ "  > @bindir@/bootmanager
 	echo  import nscldaq.bootmanager.bootmanager >>@bindir@/bootmanager
 	chmod a+x @bindir@/bootmanager
+	$(INSTALL_PROGRAM) @srcdir@/boot-service.sh  @bindir@/boot-service
 
 
 
 
-EXTRA_DIST=bootmanager.xml $(PYTHONPKGS)  
+EXTRA_DIST=bootmanager.xml $(PYTHONPKGS)  boot-service.sh
 

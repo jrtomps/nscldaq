@@ -33,8 +33,8 @@
 #
 
 import nscldaq.vardb.statemanager
-from  nscldaq.bootmanager import ssh
-from  nscldaq.bootmanager import programs
+from  nscldaq.programs import ssh
+from  nscldaq.programs import programs
 
 import argparse
 import time
@@ -199,5 +199,4 @@ while True :
     result = select.select(inWaits, [], [], 1)
     readReady = result[0]
     if len(readReady) > 0:
-        print("%d fds ready for input" % len(readReady))
         processProgramInput(readReady)

@@ -21,7 +21,7 @@
 # @brief  Class that manages programs.
 # @author <fox@nscl.msu.edu>
 
-from nscldaq.bootmanager import ssh
+from nscldaq.programs import ssh
 import os
 
 

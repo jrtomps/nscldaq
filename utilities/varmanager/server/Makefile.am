@@ -67,6 +67,7 @@ install-exec-hook:
 	$(mkinstalldirs) @prefix@/pythonLibs/nscldaq/vardb 
 	$(INSTALL_PROGRAM) @libdir@/libvarmgrpy.so @prefix@/pythonLibs/nscldaq/vardb/varmgr.so
 	$(INSTALL_PROGRAM) @libdir@/libnotifierpy.so @prefix@/pythonLibs/nscldaq/vardb/notifier.so
+	$(INSTALL_PROGRAM) @srcdir@/vardb-service.sh @bindir@/vardb-service
 
 
 SERVER_TESTS=startTests.py serviceTests.py mkdirTests.py  \
@@ -111,5 +112,6 @@ check-TESTS:
 	PYTHONPATH=@prefix@/pythonLibs BINDIR=@prefix@/bin TCLLIBPATH=@prefix@/TclLibs @TCLSH_CMD@ tclsub.test
 	PYTHONPATH=@prefix@/pythonLibs testSub
 
-EXTRA_DIST=$(SERVER_TESTS) testBase.py vardbServer.py varserver.xml tclbindings.test tclsub.test
+EXTRA_DIST=$(SERVER_TESTS) testBase.py vardbServer.py varserver.xml tclbindings.test tclsub.test \
+	vardb-service.sh
 

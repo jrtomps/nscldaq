@@ -150,6 +150,16 @@
                 <link linkend='daq1_rmsysprogram' endterm='daq1_rmsysprogram_title' />
             </para>
         </formalpara>
+        <formalpara>
+            <title>svcmanager</title>
+            <para>
+                This program manages the services that have been defined by the
+                other programs in this section.  With it you can start and stop
+                all services.
+                See
+                <link linkend='daq1_svcmanager' endterm='daq1_svcmanager_title' />
+            </para>
+        </formalpara>
     </section>
     <section>
         <title>Apis and language bindings</title>
@@ -1395,6 +1405,81 @@ $DAQBIN/rmsysprogram <replaceable>dbURI program-name</replaceable>
             delete.
            </para>
         </refsect1>
+      </refentry>
+      <refentry id="daq1_svcmanager">
+        <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle id='daq1_svcmanager_title'>svcmanager</refentrytitle>
+           <manvolnum>1daq</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>svcmanager</refname>
+           <refpurpose>Manage service programs.</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+$DAQBIN/svcmanager <replaceable>dbFilename</replaceable>
+          </command>
+            
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            <application>svcmanager</application> manages the services that
+            were defined in a variable database.  It can start and stop the services.
+            Each start of the services re-reads the set of services defined.
+           </para>
+           <para>
+            dbFilename is the name of the database file that is to be used.
+            Once started, the program accepts the following interactive commands:
+           </para>
+           <variablelist>
+            <varlistentry>
+                <term><command>start</command></term>
+                <listitem>
+                    <para>
+                        Starts all the services.  This is illegal if the servics
+                        are already active.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <command>stop</command>
+                </term>
+                <listitem>
+                    <para>
+                        Stops any services that are still runningh.  Thi sis illegal
+                        if the services are all already stopped.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><command>exit</command></term>
+                <listitem>
+                    <para>
+                        If any services are already active, the program stops
+                        them. It then exits.
+                    </para>
+                </listitem>
+            </varlistentry>
+           </variablelist>
+        </refsect1>
+
       </refentry>
 
             

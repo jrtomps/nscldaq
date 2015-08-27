@@ -266,7 +266,7 @@ class DAQBINProgram(WizardStep):
         # If needed modify the program:
         
         if info[0] != self._program:
-            self._db.setProgram(self._name, self._program)
+            self._db.setCommand(self._name, self._program)
             
         # Save the host:
         
@@ -342,8 +342,8 @@ def main():
     db  = getSvcApi()
     app = QtGui.QApplication(sys.argv)
     ex  = Wizard()
-    ex.addPage(DAQBINProgram('VARDBServer', 'vardbServer', db))
-    ex.addPage(DAQBINProgram('BootManager', 'bootmanager', db))
+    ex.addPage(DAQBINProgram('VARDBServer', 'vardb-service', db))
+    ex.addPage(DAQBINProgram('BootManager', 'boot-service', db))
     ex.show()
     
     sys.exit(app.exec_())

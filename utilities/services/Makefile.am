@@ -36,7 +36,7 @@ unittest_LDFLAGS =$(libServices_la_LDFLAGS) @CPPUNIT_LDFLAGS@
 
 EXTRA_DIST=TclServices.test apiTests.py services.xml ServiceWizard.py \
 	addsysprogram.in lsservices.in modsysprogram.in rmsysprogram.in \
-	svcwiz.in
+	svcwiz.in svcmanager.py
 
 check-TESTS:
 	@builddir@/unittest
@@ -56,4 +56,8 @@ install-exec-hook:
 	for f in $(TCL_APPS) ; do $(INSTALL_PROGRAM) $$f @bindir@; done
 	$(INSTALL_PROGRAM) svcwiz @bindir@
 	$(INSTALL_PROGRAM) @srcdir@/ServiceWizard.py @bindir@
+	$(INSTALL_PROGRAM) @srcdir@/svcmanager.py @bindir@/svcmanager.py
+	echo "#!/bin/bash"    > @bindir@/svcmanager
+	echo @PYTHON@ @prefix@/bin/svcmanager.py \$$1 >>@bindir@/svcmanager
+	chmod a+x @bindir@/svcmanager
 
