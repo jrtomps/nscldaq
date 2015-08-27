@@ -109,6 +109,8 @@ CXLMTimestamp::onAttach(CReadoutModule& configuration)
   // Call the base class's onAttach
   // This stores the m_pConfiguration pointer for later use
   CXLM::onAttach(configuration);
+
+  configuration.addBooleanParameter("-initclear", true);
 }
 
 /**
@@ -133,10 +135,12 @@ CXLMTimestamp::Initialize(CVMUSB& controller)
   }
 
   // Clear the scaler
-  accessBus(controller, CXLM::REQ_X);
-  controller.vmeWrite32( FPGA(), registerAmod, static_cast<uint32_t>(1)); 
-  controller.vmeWrite32( FPGA(), registerAmod, static_cast<uint32_t>(0)); 
-  accessBus(controller, 0);
+  if (m_pConfiguration->getBoolParameter("-initclear")) {
+    accessBus(controller, CXLM::REQ_X);
+    controller.vmeWrite32( FPGA(), registerAmod, static_cast<uint32_t>(1)); 
+    controller.vmeWrite32( FPGA(), registerAmod, static_cast<uint32_t>(0)); 
+    accessBus(controller, 0);
+  }
   
 }
 
