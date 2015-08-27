@@ -54,6 +54,6 @@ install-exec-hook:
 	$(mkinstalldirs) @prefix@/pythonLibs/nscldaq/vardb
 	$(INSTALL_PROGRAM) @libdir@/libPyServices.so @prefix@/pythonLibs/nscldaq/vardb/services.so
 	for f in $(TCL_APPS) ; do $(INSTALL_PROGRAM) $$f @bindir@; done
-	$(INSTALL_PROGRAM) @srcdir@/svcwiz @bindir@
+	$(INSTALL_PROGRAM) svcwiz @bindir@
 	$(INSTALL_PROGRAM) @srcdir@/ServiceWizard.py @bindir@
 
