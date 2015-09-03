@@ -70,6 +70,7 @@ bin_PROGRAMS=status begin pause resume end title trtimeout \
 	recording programdir runnum
 noinst_HEADERS=tracker.h
 
+
 EXTRA_DIST=statusopts.ggi  beginopts.ggi \
 		resumeopts.ggi endopts.ggi titleopts.ggi pauseopts.ggi  \
 		transitionopts.ggi timeoutopts.ggi recordingopts.ggi \
@@ -284,6 +285,16 @@ runnumopts.o: @builddir@/runnumopts.ggo
 @builddir@/runnumopts.ggo: runnumopts.ggi standardopts.ggo transitionopts.ggi
 	$(PREPROCESSOR) -P @srcdir@/runnumopts.ggi  |tr -d "\\\\" >@builddir@/runnumopts.ggo
 
+##
+# Python module and sources
+#
+
+PYTHON_MODULES=RunControl.py StateControllerWidget.py StateMonitorWidget.py ReadoutGui.py
+
+
+
+EXTRA_DIST+=$(PYTHON_MODULES) 
+
 #  Post installation tasks:
 
 install-exec-local:
@@ -294,8 +305,15 @@ install-exec-local:
 
 install-exec-hook:
 	$(mkinstalldirs) @prefix@/pythonLibs/nscldaq/vardb
+	$(mkinstalldirs) @prefix@/pythonLibs/nscldaq/rctl
 	$(INSTALL_PROGRAM) @libdir@/libPyStateClient.so  @prefix@/pythonLibs/nscldaq/vardb/stateclient.so
 	$(INSTALL_PROGRAM) @libdir@/libPyStateManager.so  @prefix@/pythonLibs/nscldaq/vardb/statemanager.so
+	for f in $(PYTHON_MODULES); do $(INSTALL_PROGRAM) $$f @prefix@/pythonLibs/nscldaq/rctl; done
+	touch @prefix@/pythonLibs/nscldaq/rctl/__init__.py
+	echo "#! @PYTHON@"  > @bindir@/ReadoutGui
+	echo from nscldaq.rctl import ReadoutGui >> @bindir@/ReadoutGui
+	echo "ReadoutGui.main()" >> @bindir@/ReadoutGui
+	chmod a+x @bindir@/ReadoutGui
 
 #---------------------------------------------------------------------------------
 # tests:
@@ -314,6 +332,7 @@ stateTests_SOURCES=TestRunner.cpp Asserts.h TestStateTransitions.cpp
 
 stateTests_CPPFLAGS=$(COMMON_CPPFLAGS) $(CPPUNIT_CFLAGS) -DBINDIR=\"@bindir@\"
 stateTests_LDFLAGS=libstateclient.la $(COMMON_LOADFLAGS) $(CPPUNIT_LDFLAGS)
+
 
 EXTRA_DIST+= stateclient.test statemgr.test  StateClientTests.py testBase.py StateManagerTests.py
 

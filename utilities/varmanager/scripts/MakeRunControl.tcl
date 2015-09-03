@@ -66,7 +66,7 @@ set wd [pwd];                                 # Want to restore wd later.
 cd /RunState
 ignoreError declare RunNumber           integer
 ignoreError declare Title               string
-ignoreError declare Timeout             integer
+ignoreError declare Timeout             integer  30;    # Initial state timeout
 ignoreError declare ReadoutParentDir    string
 
 # Some items neeed to be set to some reasonable initial values:

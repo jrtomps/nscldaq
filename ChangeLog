@@ -880,4 +880,4 @@ Work on 11.0-rc11 begins
 	Feature #4348 - Programs to support system programs/services definition
         Feature #4351 - Add service manager to start/stop/monitor
 	services.
-	
+	Feature #3796 - ZMQ GUI for run control

@@ -1,6 +1,6 @@
 lib_LTLIBRARIES = libServices.la libTclServices.la libPyServices.la
 
-TCL_APPS=addsysprogram rmsysprogram modsysprogram lsservices
+TCL_APPS=addsysprogram rmsysprogram modsysprogram lsservices svcpropset
 
 libServices_la_SOURCES = CServiceApi.cpp
 libServices_la_CPPFLAGS= @SQLITE3_CFLAGS@ -I@top_srcdir@/base/factories \
@@ -36,7 +36,7 @@ unittest_LDFLAGS =$(libServices_la_LDFLAGS) @CPPUNIT_LDFLAGS@
 
 EXTRA_DIST=TclServices.test apiTests.py services.xml ServiceWizard.py \
 	addsysprogram.in lsservices.in modsysprogram.in rmsysprogram.in \
-	svcwiz.in svcmanager.py
+	svcwiz.in svcpropset.in svcmanager.py
 
 check-TESTS:
 	@builddir@/unittest

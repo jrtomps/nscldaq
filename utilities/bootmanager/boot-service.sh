@@ -16,4 +16,5 @@ vardbURI="tcp://$vardbHost"
 
 # Run the boot manager pointing at the vardb URI - service names default.
 
+sleep 2                       # Wait for the vardb server to start.
 $DAQBIN/bootmanager $vardbURI $vardbURI

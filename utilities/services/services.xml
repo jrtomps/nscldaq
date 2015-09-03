@@ -160,6 +160,14 @@
                 <link linkend='daq1_svcmanager' endterm='daq1_svcmanager_title' />
             </para>
         </formalpara>
+        <formalpara>
+            <title>svcpropset</title>
+            <para>
+                Create and modify additional variables (properties) associated
+                with a service. See
+                <link linkend='daq1_svcpropset' endterm='daq1_svcpropset_title' />.
+            </para>
+        </formalpara>
     </section>
     <section>
         <title>Apis and language bindings</title>
@@ -1479,6 +1487,67 @@ $DAQBIN/svcmanager <replaceable>dbFilename</replaceable>
             </varlistentry>
            </variablelist>
         </refsect1>
+
+      </refentry>
+      <refentry id="daq1_svcpropset">
+        <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle id='daq1_svcpropset_title'>svcpropset</refentrytitle>
+           <manvolnum>1daq</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>svcpropset</refname>
+           <refpurpose>Create/set service properties</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+$DAQBIN/svcpropset <replaceable>uri program-name property create type <optional>value</optional></replaceable>
+          </command>
+          </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+$DAQBIN/svcpropset <replaceable>uri program-name property set value</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Manipulates service properties.  Properties are just variables
+            (and their values) that live in the same directory as a service
+            description.  This command allows you to create properties and
+            give them values.
+            For all forms of the command, <parameter>uri</parameter> is
+            the URI that describes how the database connection is made,
+            <parameter>program-name</parameter> is the name of the program
+            and <parameter>property</parameter> is the name of the property.
+           </para>
+           <para>
+            The first form of the command creates a new property.
+            <parameter>type</parameter> is the data type that the property
+            will have.  Any variable database defined data type is legal here.
+            <parameter>value</parameter>, if provided assigns a value other than
+            the default value for the property's data type.
+           </para>
+           <para>
+            The second form of the command sets an existing property to a new
+            <parameter>value</parameter>.
+           </para>
+        </refsect1>
+        
 
       </refentry>
 

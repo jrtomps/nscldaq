@@ -170,6 +170,31 @@ def processProgramInput(readable):
         else:
             relayProgramOutput(program, line)
 
+#  Initialize states:  Global state is NotReady and any
+#  programs that are not in that state get set to that state
+#  All of these should kill off any programs that are still live and
+#  properly reacting.
+#
+#  @param client - state manager client.
+def initializeStateMachines(client):
+    
+    #
+    #  This try block is because NotReady -> NotReady is not allowed.
+    #
+    try:
+        client.setGlobalState('NotReady')
+    except:
+        pass
+    
+    # Set all programs that are not NotReady to NotReady - this will
+    # kill off the standalone programs.
+    
+    
+    for program in client.listPrograms():
+        currentState = client.getProgramState(program)
+        if currentState != 'NotReady':
+            client.setProgramState(program, 'NotReady')
+
 # Main entry point:
 
 # Create the state client.
@@ -182,11 +207,16 @@ client = nscldaq.vardb.statemanager.Api(result[0], result[1])
 reqUri = makeAbsoluteUri(result[0])
 subUri = makeAbsoluteUri(result[1])
 
+
+
+
 # Main loop: alternate between processing messages and waiting
 # for input from the processes.
 
 
 programs = programs.Programs(reqUri, subUri, client)
+initializeStateMachines(client)
+
 while True :
     time.sleep(1)
     changes = []

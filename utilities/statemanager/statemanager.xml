@@ -15,6 +15,9 @@
         <listitem><para>
             A small sample state manager program.
         </para></listitem>
+        <listitem><para>
+            The State manager ReadoutGUI is described.
+        </para></listitem>
     </itemizedlist>
     <para>
         Reference information is available:
@@ -57,7 +60,17 @@
                 </para>
             </listitem>
         </varlistentry>
-        
+        <varlistentry>
+            <term>
+                <link linkend='daq1_readoutgui'
+                      endterm='daq1_readoutgui_title' />
+            </term>
+            <listitem>
+                <para>
+                    Describes how to use the state manager Run control GUI.
+                </para>
+            </listitem>
+        </varlistentry>
     </variablelist>
     <para>
         The C++ header that defines the state manager API is
@@ -373,8 +386,231 @@ void monitorTransition(CStateManager* pMgr)
             
         </section>
     </section>
+    <section>
+        <title>The ReadoutGui</title>
+        <para>
+            The ReadoutGUI is used with the service manager to provide a
+            graphical user interface that controls the startup and shutdown
+            of a DAQ system as well as guiding the system through state changes
+            (beginning, ending, pausing and resuming runs).  Using the
+            ReadoutGUI essentially allows you control over almost all of the content
+            in the <filename>/RunState</filename> directory.
+        </para>
+        <para>
+            To use the ReadoutGUI you must first:
+        </para>
+        <itemizedlist>
+            <listitem><para>
+                Configure the variable database server as a service
+            </para></listitem>
+            <listitem><para>
+                Configure the boot manager as a service.
+            </para></listitem>
+            <listitem><para>
+                Run the service manager and start all services.
+            </para></listitem>
+        </itemizedlist>
+        <para>
+            Once the above steps ahve been accomplished you can run
+            the ReadoutGui:
+        </para>
+        <informalexample>
+            <cmdsynopsis><command>
+$DAQBIN/ReadoutGui <replaceable>requestUri subscriptionUri</replaceable>
+            </command></cmdsynopsis>
+        </informalexample>
+        <para>
+            Where <parameter>requestUri</parameter> and
+            <parameter>subscriptionUri</parameter> are the URIs of the
+            request and subscription services advertised by the variable
+            database server you started via the service manager.
+            
+        </para>
+        <para>
+            The GUI of the ReadoutGUi is a tabbed widget with a pair of tabs.
+            The <literal>RunControl</literal> tab supplies the user interface
+            for controlling the runs.  On the other hand, the
+            <literal>Program states</literal> tab provides information about the
+            states of the state sensitive programs being controlled.
+        </para>
+        <para>
+            The ReadoutGUI works via the variable database.  You can run as many
+            instances as you like.  The ReadoutGui uses variable change
+            subscription/notification to update its appearance.  This means that
+            changes performed in one ReadoutGUI instance will be reflected in all
+            instances that are connected to the same variable database.
+        </para>
+        <para>
+            Some features of note about the GUI:
+        </para>
+        <itemizedlist>
+            <listitem><para>
+                The Top section of the <literal>Run Control</literal> tab
+                allow you to set information about the next run.   In addition
+                to the title and the run number there is a checkbox to enable
+                or disable recording.  This check button assumes there is a state
+                aware event logger that will log data to disk when this box is
+                checked.
+            </para>
+            <para>
+                When the run is active, these controls are replaced by labels so
+                that they cannot be modified.
+            </para></listitem>
+            <listitem>
+                <para>
+                    The global state is always displayed below the run information
+                    section.   The global state will determine which controls will
+                    be displayed below it.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    There is always either a <guibutton>Boot</guibutton> or
+                    <guibutton>Shutdown</guibutton> button at the bottom of the
+                    UI.  When the system is in <literal>NotReady</literal> state
+                    the <guibutton>Boot</guibutton> button changes the global
+                    state to <literal>Readying</literal> which instructs the
+                    boot manager to start the state sensitive programs and
+                    complete the transition to Ready.
+                </para>
+                <para>
+                    When the state sensitive programs are running, the
+                    <guibutton>Boot</guibutton> button is removed and
+                    replaced with a <guibutton>Shutdown</guibutton> button.
+                    The <guibutton>Shutdown</guibutton> button
+                    sets the global state to <literal>NotReady</literal>
+                    which instructs
+                    the boot manager to kill off the state sensitive programs.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    Above the <guibutton>Boot</guibutton> and
+                    <guibutton>Shutdown</guibutton> area is an area where run
+                    control buttons approprate to the run state will be displayed.
+                    The buttons that can be displayed are:
+                </para>
+                <variablelist>
+                    <varlistentry>
+                        <term><guibutton>Begin</guibutton></term>
+                        <listitem>
+                            <para>
+                                This button appears only in the <literal>Ready</literal>
+                                state.  Clicking on it sets the global state to
+                                <literal>Beginning</literal>.  State sensitive
+                                programs then do what they need to do to start a
+                                new run completing the transition to
+                                <literal>Active</literal>
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>
+                            <guibutton>End</guibutton>
+                        </term>
+                        <listitem>
+                            <para>
+                                Appears only in the <literal>Active</literal>
+                                and <literal>Paused</literal> states.  Clicking the
+                                button sets the global state to <literal>Ending</literal>.
+                                State sensitive programs then shut down data taking, if
+                                active,
+                                end their runs and complete the state transition to
+                                <literal>Ready</literal>.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><guibutton>Pause</guibutton></term>
+                        <listitem>
+                            <para>
+                                Appears only in the <literal>Active</literal>
+                                state.  When clicked sets the global state to
+                                <literal>Pausing</literal>.  State sensitive
+                                programs temporarily pause data taking and complete
+                                the transition to the <literal>Paused</literal>
+                                state.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><guibutton>Resume</guibutton></term>
+                        <listitem>
+                            <para>
+                                Only present in the <literal>Paused</literal> state.
+                                This button transitions to the <literal>Resuming</literal>
+                                state.  State sensitive programs continue taking data
+                                after a pause in the run and complete a state
+                                transition to <literal>Active</literal>.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                </variablelist>
+            </listitem>
+            <listitem><para>
+                The <literal>Program States</literal> tab consists of a table
+                that is periodically updated.  The table has a line for each
+                state sensitive program that is registered in the variable
+                database.  The line for a program displays the program's name,
+                individual state and the state of the <literal>Enabled</literal>
+                and <literal>Standalone</literal> flags.
+            </para></listitem>
+        </itemizedlist>
+    </section>
 </chapter>
 <!-- /chapter -->
+
+<!-- manpage 1daq -->
+      <refentry id="daq1_readoutgui">
+        <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle id='daq1_readoutgui_title'>ReadoutGui</refentrytitle>
+           <manvolnum>1daq</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>ReadoutGui</refname>
+           <refpurpose>Run control via variable database</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+          <command>
+$DAQBIN/ReadoutGui <replaceable>requestURI subscriptionURI</replaceable>
+          </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Runs the ReadoutGui program.  This program interacts with a variable
+            database server to visually maintain the state of the system as
+            well as to request changes to the state of the system.
+           </para>
+           <para>
+            <parameter>requestURI</parameter> and <parameter>subscriptionURI</parameter>
+            are URIs that respectively
+            specify the request and subscription ports of the
+            a variable database server.  By using the subscription mechanims,
+            all instances of the ReadoutGui that specify the same
+            <parameter>requestURI</parameter> and <parameter>subscriptionURI</parameter>
+            values will be synchronized with each other.
+           </para>
+        </refsect1>
+        
+      </refentry>
+
+<!-- /manpage -->
 
 <!-- manpage 3daq -->
 

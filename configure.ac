@@ -417,6 +417,7 @@ AC_CONFIG_FILES([Makefile
 		 utilities/services/rmsysprogram
 		 utilities/services/modsysprogram
 		 utilities/services/lsservices
+		 utilities/services/svcpropset
 		 utilities/services/svcwiz
                  epics/chanlog/Makefile
                  epics/controlpush/Makefile

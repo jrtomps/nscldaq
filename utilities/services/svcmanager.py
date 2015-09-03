@@ -24,7 +24,7 @@
 
 ##
 # Usage:
-#    python svcmanager dbURI
+#    python svcmanager dbFile
 #
 #  dbName - the path to the database file.
 #
@@ -81,7 +81,7 @@ def usage() :
     print >> sys.stderr, "Usage:"
     print >> sys.stderr, "   svcmanager dbFile"
     print >> sys.stderr, "Where:"
-    print >> sys.stderr, "   dbURI is the database file path."
+    print >> sys.stderr, "   dbFile is the database file path."
     sys.exit(os.EX_USAGE)
 
 ##
@@ -171,10 +171,19 @@ def stopPrograms():
     global active
     for program in programs:
         if not program.stdin().closed:
-            program.intr()
-            program.stdin().close()
-            program.stdout().close()
-            program.stderr().close()
+            #
+            #  Sometimes stdin stays open so encapsulate:
+            #
+            try :
+                program.intr()
+            except:
+                pass
+            if not program.stdin().closed :
+                program.stdin().close()
+            if not program.stdout().closed:
+                program.stdout().close()
+            if not program.stderr().closed:
+                program.stderr().close()
     programs = list()
     active = False
 
