@@ -954,3 +954,7 @@ Work on 11.0-rc11 begins
 	* Feature #4531 - Better error recovery on script errors for
 	  begin run.  Specifically, catch CTCLExceptions and dump out
 	  the errorInfo variable value in the error message.
+	* Bug #4477 - Add missing table in VMUSB V977 documentation.
+	  describes what gets read depending on the -readmode and -reset 
+	  option values.
+	

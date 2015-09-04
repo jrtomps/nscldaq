@@ -1765,7 +1765,48 @@ well formed Tcl list that consists of option name value pairs.
           </varlistentry>
           
       </variablelist>
-      
+      <table frame='all'>
+	  <title>Readmode and Read and clear implications</title>
+	  <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	       <thead>
+		    <row>
+			 <entry>Read mode</entry>
+			 <entry>Read and clear</entry>
+			 <entry>Readout meaning</entry>
+		    </row>
+	       </thead>
+	       <tbody>
+		    <row>
+			 <entry>singlehit</entry>
+			 <entry>false</entry>
+			 <entry>The SingleHitRead register (0x0006) will be read.
+			 </entry>
+		    </row>
+		    <row>
+			 <entry>singlehit</entry>			 
+			 <entry>false</entry>
+			 <entry>The SingleHitRdClear register (0x0016)
+			      will be read.
+			 </entry>
+		    </row>
+		    <row>
+			 <entry>multihit</entry>
+			 <entry>true</entry>
+			 <entry>
+			      The MultiHitRdClear register (0x0018) will be read.
+			 </entry>
+		    </row>
+		    <row>
+			 <entry>multhit</entry>
+			 <entry>false</entry>
+			 <entry>
+			      The MultiHitRead register (0x0008) will be read.
+			 </entry>
+		    </row>
+	       </tbody>
+	  </tgroup>
+	  
+      </table>
 	</refsect1>
       
       </refentry>
