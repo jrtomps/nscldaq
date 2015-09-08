@@ -16,5 +16,5 @@ install-exec-local:
 
 
 
-EXTRA_DIST=bootmanager.xml $(PYTHONPKGS)  boot-service.sh
+EXTRA_DIST=bootmanager.xml $(PYTHONPKGS) $(PYTHONPROGS)  boot-service.sh
 
