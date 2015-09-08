@@ -308,7 +308,7 @@ install-exec-hook:
 	$(mkinstalldirs) @prefix@/pythonLibs/nscldaq/rctl
 	$(INSTALL_PROGRAM) @libdir@/libPyStateClient.so  @prefix@/pythonLibs/nscldaq/vardb/stateclient.so
 	$(INSTALL_PROGRAM) @libdir@/libPyStateManager.so  @prefix@/pythonLibs/nscldaq/vardb/statemanager.so
-	for f in $(PYTHON_MODULES); do $(INSTALL_PROGRAM) $$f @prefix@/pythonLibs/nscldaq/rctl; done
+	for f in $(PYTHON_MODULES); do $(INSTALL_PROGRAM) @srcdir@/$$f @prefix@/pythonLibs/nscldaq/rctl; done
 	touch @prefix@/pythonLibs/nscldaq/rctl/__init__.py
 	echo "#! @PYTHON@"  > @bindir@/ReadoutGui
 	echo from nscldaq.rctl import ReadoutGui >> @bindir@/ReadoutGui
