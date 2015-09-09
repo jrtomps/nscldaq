@@ -24,7 +24,7 @@ set options {
   {-slot.arg   -1         "slot ULM occupies \[MANDATORY\]" }
   {-host.arg "localhost"  "host running VMUSBReadout slow-controls server" }
   {-port.arg  27000       "port the slow-controls server is listening on" }
-  {-ring.arg $::tcl_platform(user) "name of ring VMUSBReadout is filling" }
+  {-ring.arg "" "name of ring VMUSBReadout is filling <your username>" }
   {-configfile.arg ""  "name of file to write GUI state to" }
 }
 

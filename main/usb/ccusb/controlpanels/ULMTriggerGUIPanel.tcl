@@ -39,7 +39,7 @@ itcl::class ATrigger2367 {
     }
     puts "TclServer started on port = $port $ring"
     set sclClientPID [startScalerClient localhost $port \
-                                        localhost $ring]
+                                        $host $ring]
     # if we made it here, then the connection was made. 
 
 		set parameters [list PCDelay PCWidth SCDelay SCWidth PSDelay CCWidth SSDelay \
