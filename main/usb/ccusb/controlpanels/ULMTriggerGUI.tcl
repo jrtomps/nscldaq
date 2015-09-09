@@ -63,7 +63,7 @@ set ring [lindex [array get params -ring] 1]
 set path [lindex [array get params -configfile] 1]
 
 
-ATrigger2367 mygui 0 1 $host $port $module $slot 
+ATrigger2367 mygui 0 1 $host $port $module $slot $ring
 mygui SetupGUI . $path
 
 # Configure some window manager details 

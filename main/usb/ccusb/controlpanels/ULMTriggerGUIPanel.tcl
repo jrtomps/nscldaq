@@ -22,7 +22,7 @@ itcl::class ATrigger2367 {
 	private variable Apara
 	private variable wtrigger
 	
-	constructor {b c host port module slot} {
+    constructor {b c host port module slot {ring ""}} {
 
     if {[catch {set reg [Connect $b $c $host $port $module $slot]} msg]} {
       set msg "Slow-controls server at $host:$port is either not listening or accepting connections. "
@@ -34,9 +34,12 @@ itcl::class ATrigger2367 {
    
 #    set sclClientPID -1
     set port [startServer ]
-    puts "TclServer started on port = $port"
+    if {$ring eq ""} {
+	set ring $::tcl_platform(user);    #More portable/reliable than the env.
+    }
+    puts "TclServer started on port = $port $ring"
     set sclClientPID [startScalerClient localhost $port \
-                                        localhost $::env(USER)]
+                                        localhost $ring]
     # if we made it here, then the connection was made. 
 
 		set parameters [list PCDelay PCWidth SCDelay SCWidth PSDelay CCWidth SSDelay \
