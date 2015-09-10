@@ -28,6 +28,7 @@
 #include <iostream>
 #include <memory>
 #include <iomanip>
+#include <stdexcept>
 
 #include <pthread.h>
 
@@ -1276,3 +1277,28 @@ CCCUSB::dumpConfiguration(std::ostream& stream)
   stream << flush;
 }
 
+/**
+ * checkExecuteError:
+ *   Check the error from an executeList operation
+ *
+ * @param status - the return from an executeList
+ * @throw std::string - some error message if status != 0
+ */
+void
+CCCUSB::checkExecuteError(int status)
+{
+  if (status ==  0) return;	// most common case.
+  if (status == -1) {
+    throw std::runtime_error("CCUSBCamac operation - write failed");
+  } else if (status == -2) {
+    throw std::runtime_error("CCUSBCamac operation - read failed");
+  } else if (status == -3) {
+    throw std::runtime_error("CCUSBCamacRemote server returned an error or data were malformed"); // This is a cheat.
+  } else if (status == -4) {
+    throw std::runtime_error("CCUSBCamacRemote server disconnected");
+  } else {
+    char msg[100];
+    sprintf(msg, "CCUSBCamac error number %d", status);
+    throw std::runtime_error(msg);
+  }
+}

@@ -961,7 +961,10 @@ Work on 11.0-rc11 begins
 	  gets the ring buffer
 11.0-010
 	* Bug #4474 - Add missing docs for V1495sc (VMUSBReadout).
-	* Bug 4516  - Fragments with assigned timestamps should not
+	* Bug #4516  - Fragments with assigned timestamps should not
 	  be counted as having a duplicate timestamp as by definition they
 	do.
+	* Bug #4540 - Wrap simpleXXX operations in CCUSB.h with 
+	  checkExecuteError which throws std::runtime_error if there's an
+	  error.  This blows away tclsh with the message in the exception.
 	

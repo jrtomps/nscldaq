@@ -165,7 +165,7 @@ public:
 
     int simpleWrite16(int n, int a, int f, int data) {
       uint16_t  qx16;
-      simpleWrite16(n,a,f, (uint16_t)data, qx16);
+      checkExecuteError(simpleWrite16(n,a,f, (uint16_t)data, qx16));
       return qx16;
     }
 
@@ -173,7 +173,7 @@ public:
     int simpleWrite24(int n, int a, int f, int data) {
 
       uint16_t  qx16;
-      simpleWrite24(n,a,f, (uint16_t)data, qx16);
+      checkExecuteError(simpleWrite24(n,a,f, (uint16_t)data, qx16));
       return qx16;
     }
 
@@ -182,14 +182,14 @@ public:
       uint16_t data;
       uint16_t qx;
 
-      simpleRead16(n,a,f,data,qx);
+      checkExecuteError(simpleRead16(n,a,f,data,qx));
       return (int)data | ((int)qx << 24);	/* qx in the top byte. */
     }
     unsigned int simpleRead24(int n, int a, int f)
     {
       uint32_t data;
       uint16_t qx;
-      simpleRead24(n,a,f,data,qx);
+      checkExecuteError(simpleRead24(n,a,f,data,qx));
       
       return data | ((int)qx << 24);
       
@@ -198,7 +198,7 @@ public:
     unsigned int simpleControl(int n, int a, int f)
     {
       uint16_t qx;
-      simpleControl(n,a,f,qx);
+      checkExecuteError(simpleControl(n,a,f,qx));
       return qx;
     }
 
@@ -663,6 +663,9 @@ public:
 #ifndef FLATTEN_NESTED_CLASSES    
   };
 #endif
+
+private:
+  void checkExecuteError(int status);
 };
 
 
