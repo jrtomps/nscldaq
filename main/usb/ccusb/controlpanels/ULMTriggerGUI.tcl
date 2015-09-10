@@ -20,7 +20,7 @@ package require Tk
 set argv $argv_tmp
 
 set options {
-  {-module.arg ""         "name of module registered to slow-controls server \[MANDATORY\]"}
+  {-module.arg "ccusb"         "name of module registered to slow-controls server"}
   {-slot.arg   -1         "slot ULM occupies \[MANDATORY\]" }
   {-host.arg "localhost"  "host running VMUSBReadout slow-controls server" }
   {-port.arg  27000       "port the slow-controls server is listening on" }

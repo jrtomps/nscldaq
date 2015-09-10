@@ -270,6 +270,8 @@ TclServer::initInterpreter()
   new CWatchCommand(*m_pInterpreter, *this);
   new CRunStateCommand(*m_pInterpreter, *this);
   
+  m_pInterpreter->GlobalEval("Module create vmusb vmusb");
+  
 }
 /*
    Read the configuration file.  This is just sourcing the the file

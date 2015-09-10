@@ -967,4 +967,7 @@ Work on 11.0-rc11 begins
 	* Bug #4540 - Wrap simpleXXX operations in CCUSB.h with 
 	  checkExecuteError which throws std::runtime_error if there's an
 	  error.  This blows away tclsh with the message in the exception.
-	
+	* Feature #2241 - Add CCUSB and VMUSB modules to control server by
+	default.
+	* Feature #4537 - Make module for ULMTriggerGUI default to the
+	  auto-registered ccusb slow controls device.

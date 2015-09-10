@@ -237,6 +237,10 @@ TclServer::initInterpreter()
 		    *m_pVme);
   new CWatchCommand(*m_pInterpreter, *this);
   
+  // Register the ccusb module as 'ccusb'.
+  
+  m_pInterpreter->GlobalEval("Module create ccusb ccusb");
+  
 }
 /*
    Read the configuration file.  This is just sourcing the the file
