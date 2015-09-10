@@ -17962,6 +17962,219 @@ AXLM72Scaler <replaceable>name slot</replaceable>
 
    <!-- caenchain command - aggregate 785's into CBLT chains -->
 
+      <refentry id="vmusb3_v1495sc">
+	<refentryinfo>
+	  <author>
+		  <personname>
+			  <firstname>Ron</firstname>
+			  <surname>Fox</surname>
+		  </personname>
+	  </author>
+	  <productname>NSCLDAQ</productname>
+	  <productnumber></productnumber>
+	</refentryinfo>
+	<refmeta>
+	   <refentrytitle id='vmusb3_v1495sc_title'>v1495sc</refentrytitle>
+	   <manvolnum>3vmusb</manvolnum>
+	   <refmiscinfo class='empty'></refmiscinfo>
+	</refmeta>
+	<refnamediv>
+	   <refname>v1495sc</refname>
+	   <refpurpose>CAEN V1495 with Scaler firmware</refpurpose>
+	</refnamediv>
+	
+	<refsynopsisdiv>
+	  <cmdsynopsis>
+	  <command>
+v1495sc create <replaceable>name base-address</replaceable>
+	   </command>
+	  </cmdsynopsis>
+	  <cmdsynopsis>
+	       <command>
+v1495sc create <replaceable>name ?options...?</replaceable>
+	       </command>
+	  </cmdsynopsis>
+	  <cmdsynopsis>
+	       <command>
+v1495sc cget <replaceable>name</replaceable>
+	       </command>
+	  </cmdsynopsis>
+	  
+
+	</refsynopsisdiv>
+	<refsect1>
+	   <title>DESCRIPTION</title>
+	   <para>
+	       When equipped with the appropriate firmware a V1495 logic
+	       module is a 128 channel scaler.  This module is then sold
+	       under the name V1495sc.  This command supplies support for the
+	       V1495sc module in the VMUSBReadout program.
+	   </para>
+	   <para>
+	       As with all device support commands <command>v1495sc</command>
+	       is a command ensemble with the three subcommands;
+	       <command>create</command>, <command>config</command> and
+	       <command>cget</command>.  The <command>create</command>
+	       command is responsible for adding new scalers to the system
+	       configuration and naming them.  The <command>config</command>
+	       command is responsible for setting the detailed configuration
+	       of the module.  The configuration is used to define how the
+	       module is going to be programmed when the run starts.  The
+	       <command>cget</command> command allows you to retrieve a module's
+	       current configuration.  See <literal>OPTIONS</literal> below
+	       for information about the options supported.
+	   </para>
+	</refsect1>
+	<refsect1>
+	   <title>
+	      OPTIONS
+	   </title>
+	   <variablelist>
+	       <varlistentry>
+		   <term>
+		    <option>-base</option>
+		    <replaceable>base-addresss</replaceable>
+		   </term>
+		   <listitem>
+		       <para>
+			 Allows you to override the base address set at creation
+			 time.  The base address must be the address of a
+			 V1495sc module.
+		       </para>
+		   </listitem>
+	       </varlistentry>
+	       <varlistentry>
+		   <term>
+		    <option>-exttrig </option> <literal>enabled | disabled</literal>
+		   </term>
+		   <listitem>
+		       <para>
+			 Enables the external trigger to latch scaler
+			 values into the multi-event memory of the module.
+			 The external trigger is the module's G0 input.
+			 By default this is <literal>disabled</literal>.
+		       </para>
+		   </listitem>
+	       </varlistentry>
+	       <varlistentry>
+		   <term>
+		     <option>-inttrig</option>  <replaceable>enabled | disabled</replaceable>
+		   </term>
+		   <listitem>
+		       <para>
+			  Enables the internal trigger to latch values in to the
+			  scaler's mult-event memory.  THe internal trigger
+			  fires when the scaler dwell tiem has been reached.
+			  See <option>-dwelltime</option> for more information
+			  about this.  The default value is
+			  <literal>disabled</literal>.
+		       </para>
+		   </listitem>
+	       </varlistentry>
+	       <varlistentry>
+		   <term>
+		     <option>-vmetrigger</option> <replaceable>enabled |disabled</replaceable>
+		   </term>
+		   <listitem>
+		       <para>
+			  Enables or disables the software trigger.  This is used
+			  to programmatically latch scaler values as desired.
+			  The default value of this option is  <literal>enabled</literal>
+			  which is suitable for using this scaler as
+			  a provider of scaler channels to the scaler display program.
+		       </para>
+		   </listitem>
+	       </varlistentry>
+	       <varlistentry>
+		   <term>
+		    <option>-inputlevel</option> <replaceable>nim | ttl</replaceable>
+		   </term>
+		   <listitem>
+		       <para>
+			 Sets the input signalling levels expected by the
+			 G0, and G1 inputs.  The default value is <literal>nim</literal>
+		       </para>
+		   </listitem>
+	       </varlistentry>
+	       <varlistentry>
+		   <term>
+		    <option>-autoreset</option> <replaceable>on | off</replaceable>
+		   </term>
+		   <listitem>
+		       <para>
+			  If <literal>on</literal> (the default), the scalers are
+			  atomically reset after a read.  This is suitable for use
+			  in creating incremental scaler items.
+		       </para>
+		   </listitem>
+	       </varlistentry>
+	       <varlistentry>
+		   <term>
+		    <option>-g1_mode</option> <replaceable>inhibit | reset | test</replaceable>
+		   </term>
+		   <listitem>
+		       <para>
+			 Sets the use of the G1 input.  If <literal>inhibit</literal>
+			 (the default), while G1 is logic true, the scalers are
+			 inhibited from counting.  If <literal>reset</literal>,
+			 scaler values will be cleared on the leading edge of a
+			 false to true transition.  See the documentation for the
+			 V1495sc module for information about the effect of using
+			 <literal>test</literal> for this configuration value.
+		       </para>
+		   </listitem>
+	       </varlistentry>
+	       <varlistentry>
+		   <term>
+		    <option>-includetime</option> <replaceable>yes | no</replaceable>
+		   </term>
+		   <listitem>
+		       <para>
+			 If
+			 <literal>yes</literal>, includes the trigger time since
+			 the latest board reset
+			 in the event data in the MEB.  This is <literal>no</literal>
+			 by default
+		       </para>
+		   </listitem>
+	       </varlistentry>
+	       <varlistentry>
+		   <term>
+		    <option>-bank*enables</option> <replaceable>mask</replaceable>
+		   </term>
+		   <listitem>
+		       <para>
+			 Where <literal>*</literal> should be replaced by any of
+			 <literal>1, 2, 3, 4</literal> (e.g. -bank1enables).
+			 The value is a bitmask that determines which scaler
+			 channels are enabled to count.  These options
+			 all default to <literal>0xffffffff</literal> enabling
+			 all 32 channels in an input bank.  Input banks represent
+			 the scalers associated with one of the input connectors
+			 on the module.
+		       </para>
+		   </listitem>
+	       </varlistentry>
+	       <varlistentry>
+		   <term>
+		    <option>-dwelltime</option> <replaceable>micro-seconds</replaceable>
+		   </term>
+		   <listitem>
+		       <para>
+			 When the internal trigger is enabled, this sets the
+			 number of microseconds between internal triggers.
+			 The default value is <literal>0x20000</literal>, an
+			 arbitrary value that works out to .131 seconds or so.
+		       </para>
+		   </listitem>
+	       </varlistentry>
+	   </variablelist>
+	</refsect1>
+
+      </refentry>
+        
+
+
 <!-- /manpage -->
 <!-- manpage 5vmusb -->
 
@@ -18096,6 +18309,5 @@ mon <replaceable>module-name</replaceable>
     </refentry>
 
 
-        
         
 <!-- /manpage -->
