@@ -992,11 +992,7 @@ CFragmentHandler::popOldest()
     if (nextOldest != UINT64_MAX) { // Found one in pOldestQ.
       std::pair<time_t, ::EVB::pFragment> oldestFrag = pOldestQ->second.s_queue.front();
       uint64_t fragmentTimestamp  = oldestFrag.second->s_header.s_timestamp;
-      if (fragmentTimestamp == pOldestQ->second.s_lastPoppedTimestamp) {
-        // Duplicate timestamp:
-        
-        observeDuplicateTimestamp(pOldestQ->first, fragmentTimestamp);
-      }
+      
       pOldestQ->second.s_lastPoppedTimestamp = fragmentTimestamp;
       pOldestQ->second.s_bytesDeQd          += oldestFrag.second->s_header.s_size;
       pOldestQ->second.s_bytesInQ           -= oldestFrag.second->s_header.s_size;
@@ -1122,6 +1118,17 @@ CFragmentHandler::addFragment(EVB::pFlatFragment pFragment)
 		  << timestamp << " Next: 0x" << pFrag->s_header.s_timestamp << std::endl;
       }
     }
+    /*
+     Bug #4516 - avoid counting duplicate timestamps if the timestamp was
+                 assigned because those are duplicate by design.
+    
+       This code makes the tacit assumption that timestamps of 0 are not likely to be
+       assigned timestamps... because queue s_newestTimestamp is initialized to 0.
+    */
+    if ((timestamp == destQueue.s_newestTimestamp) && (!assigned)) {
+      observeDuplicateTimestamp(pHeader->s_sourceId, timestamp);  
+    }
+    
     // Update stastistics:
     
     destQueue.s_newestTimestamp = timestamp;                  // for sure the newest 

@@ -1179,8 +1179,9 @@ proc EVBC::useEventBuilder {} {
         set callouts [$stateMachine listCalloutBundles]
         $stateMachine addCalloutBundle EVBC [lindex $callouts 0]
         set ::EVBC::registered 1
+        $stateMachine addCalloutBundle ::RingSourceMgr [lindex $callouts 0]
     }
-    $stateMachine addCalloutBundle ::RingSourceMgr [lindex $callouts 0]
+    
 }
 
 ##

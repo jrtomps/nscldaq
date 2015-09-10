@@ -961,4 +961,7 @@ Work on 11.0-rc11 begins
 	  gets the ring buffer
 11.0-010
 	* Bug #4474 - Add missing docs for V1495sc (VMUSBReadout).
+	* Bug 4516  - Fragments with assigned timestamps should not
+	  be counted as having a duplicate timestamp as by definition they
+	do.
 	
