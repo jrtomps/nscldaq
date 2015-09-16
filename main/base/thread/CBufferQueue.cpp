@@ -197,7 +197,7 @@ CBufferQueue<T>::wait()
   Enter();			// Blocking on the condition var requires this.
   struct timespec endwait = msToAbsTime(500);
   int status = pthread_cond_timedwait(&m_condition, &mutex(), &endwait);
-  if (status) {
+  if ((status) && (status != ETIMEDOUT)) {
     throw CErrnoException("Waiting on buffer queue");
   }
   Leave();			// We return owning the semaphore.
@@ -242,6 +242,8 @@ CBufferQueue<T>::msToAbsTime(unsigned ms)
   
   result.tv_sec = now.tv_sec + secs;
   result.tv_nsec= (now.tv_usec + msec * 1000) * 1000;
+  result.tv_sec += result.tv_nsec/(1000*1000*1000);
+  result.tv_nsec = result.tv_nsec % (1000*1000*1000);
   
   return result;
 }

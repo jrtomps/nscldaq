@@ -665,7 +665,7 @@ snit::widgetadaptor RunControl {
     #
 
     method _setState {optname value} {
-	foreach b [list $win.beginend $win.pauseresume} {
+	foreach b [list $win.beginend $win.pauseresume] {
 	    $b configure -state $value
 	}
 	set options($optname) $value
