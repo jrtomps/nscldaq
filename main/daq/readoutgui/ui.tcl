@@ -547,12 +547,14 @@ proc ::ReadoutGUIPanel::incrRun {} {
 # OPTIONS:
 #    -pauseable     - Boolean indicating if the pause button should be displayed.
 #    -recording     - State of the record checkbox.
+#    -state         - Set the state of the widgets (disabled/normal)
 #
 snit::widgetadaptor RunControl {
     component stateMachine
     
     option -pauseable -default 1 -configuremethod _changePauseVisibility
     option -recording -default 0
+    option -state     -default normal -configuremethod _setState
     
     #
     #  The variable below is an array indexed by state the values are two
@@ -657,7 +659,17 @@ snit::widgetadaptor RunControl {
     #---------------------------------------------------------------------------
     #  Configuration methods
     
-    
+    ##
+    # _setState
+    #    Set begin/end/paus button states.
+    #
+
+    method _setState {optname value} {
+	foreach b [list $win.beginend $win.pauseresume} {
+	    $b configure -state $value
+	}
+	set options($optname) $value
+    }
     ##
     # _changePauseVisibility
     #

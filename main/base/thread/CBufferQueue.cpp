@@ -184,13 +184,19 @@ while (m_queue.empty()) {
 
 \endverbatim
 
-
+  @note - a timed wait is used because there's a small timing hole in get:
+          if, between the check for data and the wait acquiring the mutex
+          the entire queue is filled, the condition variable will never be
+          signalled.  By timing out the wait (.5sec) when this rare case
+          occurs, the wait will time out and then there will be a new check
+          for data in the queue in get.
 */
 template<class T> void
 CBufferQueue<T>::wait()
 {
   Enter();			// Blocking on the condition var requires this.
-  int status = pthread_cond_wait(&m_condition, &mutex());
+  struct timespec endwait = msToAbsTime(500);
+  int status = pthread_cond_timedwait(&m_condition, &mutex(), &endwait);
   if (status) {
     throw CErrnoException("Waiting on buffer queue");
   }
@@ -210,4 +216,32 @@ CBufferQueue<T>::wake()
   if (status) {
     throw CErrnoException("Waking up buffer queue waiters");
   }
+}
+
+/**
+ *  msToAbsTime
+ *    Convert a ms time offset into an absolute time (timespec).
+ *
+ *  @param ms - number of milliseconds.
+ *  @return struct timespec - corresponding absolute time specification.
+ */
+template <class T> struct timespec
+CBufferQueue<T>::msToAbsTime(unsigned ms)
+{
+  // Break this in to seconds and microseconds.
+  
+  unsigned secs = ms / 1000;
+  unsigned msec = ms % 1000;
+  
+  // Get the time of day and add the secs/msec to it:
+  
+  struct timeval now;
+  gettimeofday(&now, NULL);
+  
+  struct timespec result;
+  
+  result.tv_sec = now.tv_sec + secs;
+  result.tv_nsec= (now.tv_usec + msec * 1000) * 1000;
+  
+  return result;
 }

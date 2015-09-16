@@ -44,6 +44,10 @@ using namespace std;
 #endif
 #endif
 
+#include <sys/time.h>
+#include <time.h>
+
+
 /*!
    Implements a thread safe queue of arbitrary objects.
    in our application there are two uses:
@@ -80,6 +84,8 @@ public:
   void setWakeThreshold(size_t level);
   void wait();	     		//!< Wait for buffers.
   void wake();			//!< Wake buffer waiters.
+private:
+  static struct timespec msToAbsTime(unsigned ms);
 
 };
 

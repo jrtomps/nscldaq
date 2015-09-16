@@ -971,3 +971,9 @@ Work on 11.0-rc11 begins
 	default.
 	* Feature #4537 - Make module for ULMTriggerGUI default to the
 	  auto-registered ccusb slow controls device.
+        * Close timing hole in the buffer queue class.  If between
+	  testing for data in the queue and locking the semaphore
+	  prior to waiting for data the queue completely fills, the
+	  condwait will never see a signal.  Solve this by 
+	  putting a timeout on the wait which, when rarely hit
+	  will cause get to take another stab at getting data.
