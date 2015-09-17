@@ -446,6 +446,14 @@ CAcquisitionThread::stopDaq()
     assert(pStack);
     pStack->onEndRun(*m_pCamac);    // Call onEndRun for daq hardware associated with the stack.
   }
+  
+  // IF the scripts left the fifo with something flush it out:
+  
+  cerr << "Flushing FIFO\n";
+  char junk[100000];
+  size_t moreJunk;
+  m_pCamac->usbRead(junk, sizeof(junk), &moreJunk, 1*1000); // One second timeout.
+  
   cerr << "End of run operations complete\n";
 }
 /*!
