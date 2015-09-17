@@ -550,6 +550,15 @@ CAcquisitionThread::drainUsb()
 
 
   gFreeBuffers.queue(pBuffer);
+  //
+  // evidence is that there may be junk in the FIFO after that last buffer is read.
+  // this code gets rid of that junk.
+  //
+  char junk[100000];
+  size_t moreJunk;
+  m_pCamac->usbRead(junk, sizeof(junk), &moreJunk, 1*1000); // One second timeout.
+
+
   cerr << "Done finished\n";
   
 }
