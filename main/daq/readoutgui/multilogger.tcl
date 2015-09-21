@@ -55,8 +55,14 @@ exec tclsh "$0" ${1+"$@"}
 #    *  Enable Loggers... - Allows you to specify which loggers will be active.
 #    *  List Loggers      - Lists the loggers and their states.
 #
-#  This package is installed by default but you must load it (e.g. with  ReadoutCallouts.tcl)
-#  to incorporate it into the readout gui.
+#   Normally the loggers only function when the readoutGUI is recording, however
+#   if the ::multilogger::recordAlways flag is set, recording is always done.
+#   NOTE: in that case it's important to always ensure there are unique
+#         run numbers as the eventloggers will refuse to write over existing
+#         event files.
+#
+#  This package is installed by default but you must load it
+#  (e.g. with  ReadoutCallouts.tcl) to incorporate it into the readout gui.
 #
 #
 package provide multilogger 1.0
@@ -75,6 +81,7 @@ namespace eval multilogger {
     variable Initialized 0;                       # Protect against multi load:
     variable Loggers   [list];                    # List of EventLogger objects.
     variable configFile [file join ~ .multiloggers] ; # Initial configuration file
+    variable recordAlways 0;                      # If true, always record data.
     namespace export enter leave attach
 }
 
@@ -773,7 +780,7 @@ proc ::multilogger::attach state {
 #
 proc ::multilogger::leave {from to} {
     if {($from eq "Halted") && ($to eq "Active")} {
-        if {[::ReadoutGUIPanel::recordData]} {
+        if {[::ReadoutGUIPanel::recordData] || $::multilogger::recordAlways} {
             foreach logger $::multilogger::Loggers {
                 $logger start
             }

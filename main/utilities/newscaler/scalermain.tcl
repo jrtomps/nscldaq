@@ -70,6 +70,7 @@ set stripcharts "";               # xyplotContainer with the stripchart.
 set alarmcontrol 1;               # start with alarms on.
 
 
+
 #-------------------------------------------------------------------------
 # Provide access to the globals for extensions:
 

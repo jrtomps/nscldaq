@@ -388,6 +388,10 @@ stripconfig <replaceable>option ?...?</replaceable>
             also allows extensions of that sort to gain information
             needed for other processing.
         </para>
+	<para>
+	    Third, variable values can affect the operation and visual
+	    display of the program.
+	</para>
         <refsect2>
             <title>Callbacks</title>
             <para>
@@ -512,6 +516,53 @@ stripconfig <replaceable>option ?...?</replaceable>
                 
             </variablelist>
         </refsect2>
+	<refsect2>
+	    <title>VARIABLES</title>
+	    <para>
+		The following variables affect the visual display of the program:
+	    </para>
+	    <variablelist>
+		<varlistentry>
+		    <term><varname>::scalerconfig::normalColor</varname></term>
+		    <listitem>
+			<para>
+			    Background color for channels that are not in the
+			    alarmed state.  This can be expressed either as
+			    a known named color or as an rgb intensity. The default
+			    value is <literal>white</literal>.  Note that this and
+			    all alarm color definitions must be defined prior to
+			    the page definition in which they apply.
+			</para>
+		    </listitem>
+		</varlistentry>
+		<varlistentry>
+		    <term><varname>::scalerconfig::lowAlarmColor</varname></term>
+		    <listitem>
+			<para>
+			    Background color for channels that are alarming
+			    due to a count rate below the <option>-lowlim</option>
+			    value.  The default value is <literal>green</literal>.
+			    Note that changing the background color of the
+			    alarmed channel does not, at this time, affect the
+			    tab color for pages containing the channel.
+			</para>
+		    </listitem>
+		</varlistentry>
+		<varlistentry>
+		    <term><varname>::scalerconfig::highAlarmColor</varname></term>
+		    <listitem>
+			<para>
+			    Background color for channels that are alarming
+			    due to a count rate above the <option>hilimi</option>
+			    value.  The default avale is <literal>red</literal>.
+			    Note that changing the background color of the
+			    alarmed channel does not, at this time, affect the
+			    tab color for pages containing the channel.
+			</para>
+		    </listitem>
+		</varlistentry>
+	    </variablelist>
+	</refsect2>
     </refsect1>
     <refsect1>
         <title>ENVIRONMENT VARIABLES</title>

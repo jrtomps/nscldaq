@@ -38,6 +38,10 @@ package require stripratio
 namespace eval ::scalerconfig {
     variable pageNumber 0
     variable stripItems [list]
+    variable normalColor     white
+    variable lowAlarmColor   green
+    variable highAlarmColor  red
+
 }
 
 nameMap ::scalerconfig::channelMap;   # Mapping channel names -> Channel objs
@@ -174,7 +178,11 @@ proc page {tabname title} {
     }
     #  Actually make the page, and add it to the notebook:
     
-    pageDisplay $newWidget -title $title -tab $tabname
+    pageDisplay $newWidget -title $title -tab $tabname \
+        -normalbackground $::scalerconfig::normalColor \
+        -lowalarmbackground $::scalerconfig::lowAlarmColor \
+        -highalarmbackground  $::scalerconfig::highAlarmColor
+    
     addPage $newWidget $tabname
     
 }
