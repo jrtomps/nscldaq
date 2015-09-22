@@ -22,6 +22,7 @@ package provide ringsourcemgr 1.0
 package require InstallRoot
 package require portAllocator
 package require evbcallouts
+package require EndrunMon
 
 #-------------------------------------------------------------------------------
 #
@@ -46,7 +47,8 @@ package require evbcallouts
 # immediately afterwards. 
 #
 namespace eval ::RingSourceMgr {
-  variable sourceDict [dict create]
+  variable sourceDict [dict create];            # Sources we defined
+  variable diedSources [dict create];           # Sources that exited.
 }
 
 #------------------------------------------------------------------------------
@@ -74,6 +76,8 @@ proc ::RingSourceMgr::addSource [list source tstamplib {id ""} \
       info $info \
       expecthdrs $expectHeaders \
       fd ""]
+    
+    
 }
 
 #------------------------------------------------------------------------------
@@ -114,6 +118,7 @@ proc ::RingSourceMgr::getOrdererPort {} {
 proc ::RingSourceMgr::clearSources {} {
   variable sourceDict
   set sourceDict [dict create]
+
 }
 
 #------------------------------------------------------------------------------
@@ -173,6 +178,13 @@ proc ::RingSourceMgr::startSource {sourceRingUrl timestampExtractorLib id info {
   chan configure $fd -buffering line -blocking 0
   chan event $fd readable [list ::RingSourceMgr::_HandleDataSourceInput $fd $info $id]
 
+  # Indicate to the end run monitor it will have an end run from this src:
+    
+  EndrunMon::incEndRunCount
+  
+  ::RingSourceMgr::addSource $sourceRingUrl $timestampExtractorLib $id $info
+  dict set ::RingSourceMgr::sourceDict $sourceRingUrl fd $fd
+  
   return $fd
 }
 
@@ -187,12 +199,10 @@ proc ::RingSourceMgr::startSource {sourceRingUrl timestampExtractorLib id info {
 #
 proc ::RingSourceMgr::onBegin {} {
   variable sourceDict
-
   dict for {source paramDict} $sourceDict {
 
   # find the handle associated with it.
     set fd [dict get $paramDict fd]
-
     # only start it if it is not already started.
     if {$fd eq ""} {
       set lib [dict get $paramDict tstamplib]
@@ -204,7 +214,6 @@ proc ::RingSourceMgr::onBegin {} {
     }
   }
 }
-
 ###########-------------------------------------------------------------#######
 #                      BEGIN CALLOUT BUNDLE INTERFACE                         #
 
@@ -308,11 +317,35 @@ proc ::RingSourceMgr::_HandleDataSourceInput {fd info id} {
   if {[eof $fd]} {
     catch {close $fd} msg
     append text "exited: $msg"
+    ::EndrunMon::decEndRunCount;           # One less end run to wait for.
+    ::RingSourceMgr::_SourceDied  $fd;     # Do the book keeping for a dead source.
   } else {
     append text [gets $fd]
   }
   RingSourceMgr::_Output $text
 }
+
+##
+# _SourceDied
+#   Marks the fd in the sourceDict as empty.  Ths will make OnBegin
+#   restart the source.
+#
+#   Unfortunately the only way to do any of this is a linear search of the
+#   source dict for the source with the fd that closed
+#
+# @param fd - The fd that is being closed.
+#
+
+proc ::RingSourceMgr::_SourceDied {fd} {
+  dict for {uri info} $::RingSourceMgr::sourceDict {
+    set sourceFd [dict get $info fd]
+    if {$sourceFd == $fd} {
+      dict set ::RingSourceMgr::sourceDict $uri fd  ""
+      break;          # No need to go further.
+    }
+  }
+}
+
 
 #-------------------------------------------------------------------------------
 ##

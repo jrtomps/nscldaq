@@ -26,13 +26,14 @@ package require ring
 package require StateManager
 package require Thread
 package require ringsourcemgr
+package require EndrunMon
 
 
 namespace eval ::EVBC {
-    set registered 0;            # nonzero if the event bundle is registered.
-    set initialized 0
-    set pipefd    "";            # Holds the fd to the pipe to the evbpipeline
-    set evbpids   [list];        # Holds list of PIDS that are the event builder.
+    variable registered 0;            # nonzero if the event bundle is registered.
+    variable initialized 0
+    variable pipefd    "";            # Holds the fd to the pipe to the evbpipeline
+    variable evbpids   [list];        # Holds list of PIDS that are the event builder.
     
     # Figure out where we are and hence the root of the daq system:
     # We assume we are in one directory below TclLibs in computing this:
@@ -40,37 +41,37 @@ namespace eval ::EVBC {
     #  ::EVBC::scriptdir - The director this script is in.
     #  ::EVBC::daqtop    - canonicalized top level directory of DAQ installation.
     #
-    set scriptdir [file dirname [info script]]
-    set daqtop    [file normalize [file join $scriptdir .. ..]]
+    variable scriptdir [file dirname [info script]]
+    variable daqtop    [file normalize [file join $scriptdir .. ..]]
     
     #
     #  Application options passed to initialize:
     #
-    set applicationOptions ""
+    variable applicationOptions ""
     
     # GUI things
     
-    set guiFrame             ""
+    variable guiFrame             ""
 
-    set buildEvents          ""
-    set intermediateRing     ""
-    set intermediateRingName ""
-    set destRing             $::tcl_platform(user)
+    variable buildEvents          ""
+    variable intermediateRing     ""
+    variable intermediateRingName ""
+    variable destRing             $::tcl_platform(user)
 
-    set setsEvtlogSource    false
+    variable setsEvtlogSource    false
     
-    set glomTsPolicy        earliest
+    variable glomTsPolicy        earliest
     
     # Communicating with the output ring monitoring thread:
     
-    set monitorTid            "";            # Thread id
-    set monitorMutex          "";            # Mutex handle for condition variable
-    set monitorCondVar        "";            # Condition variable signalled at end of run.
+    variable monitorTid            "";            # Thread id
+    variable monitorMutex          "";            # Mutex handle for condition variable
+    variable monitorCondVar        "";            # Condition variable signalled at end of run.
     
     #  Suffix for the application:
     
     
-    set appNameSuffix       ""
+    variable appNameSuffix       ""
 }
 
 
@@ -286,6 +287,7 @@ proc EVBC::start args {
     set me $::tcl_platform(user)
     for {set i 0} {$i < 100} {incr i} {
 	set allocations [$ports listPorts]
+        puts $allocations
 	foreach allocation $allocations {
 	    set name [lindex $allocation 1]
 	    set owner [lindex $allocation 2]
@@ -300,8 +302,11 @@ proc EVBC::start args {
 	    set i 100
 	}
     }
+    puts "Found"
     $ports destroy
+    puts "Portmgr object destroyed"
     destroy .waiting
+    puts "Marked waiting for delete"
     if {!$found} {
 	error "Event builder failed to start within timeout"
     }
@@ -518,7 +523,6 @@ proc EVBC::initialize args {
             EVBC::_StartGui
         }
 
-        EVBC::_StartMonitorThread;                      # Start thread for event monitoring.
          
     }
     #
@@ -585,14 +589,7 @@ proc EVBC::onBegin {} {
     } else {
 	EVBC::reset
     }
-    #  Start the monitor thread looking at the output ring:
     
-    if {[$EVBC::applicationOptions cget -restart]} {
-      thread::send -async $EVBC::monitorTid  \
-          [list monitorRing tcp://localhost/$destring \
-              $::EVBC::monitorMutex $::EVBC::monitorCondVar]
-    }
-    after 1500;                         # Give things a chance to start up.
 }
 #------------------------------------------------------------------------------
 ##
@@ -607,9 +604,6 @@ proc EVBC::onEnd {} {
     # Wait for the monitor thread to signal the end runs balanced the begin runs:
     
     
-    if { [$::EVBC::applicationOptions cget -restart] } {
-      thread::cond wait $::EVBC::monitorCondVar $::EVBC::monitorMutex;     # Releases/re-locks the mutex.
-    }
     
     if {$EVBC::guiFrame ne ""} {
             EVBC::_EnableGUI
@@ -635,60 +629,6 @@ proc EVBC::isRunning {} {
 #
 ###############################################################################
 
-#------------------------------------------------------------------------------
-# @fn [private] EVBC::_StartMonitorThread
-#
-#    * Create a mutex and condition variable to handle end run signalling.
-#    * Acquire the mutex.
-#    * Start a thread that will count begin/ends and signal the cond var
-#      whenever they balance.
-#
-proc ::EVBC::_StartMonitorThread {} {
-    set EVBC::monitorMutex [thread::mutex create]
-    set EVBC::monitorCondVar [thread::cond create]
-    
-    thread::mutex lock $EVBC::monitorMutex
-    
-    set EVBC::monitorTid [thread::create]
-    thread::send $EVBC::monitorTid [list set auto_path $::auto_path]
-    thread::send $EVBC::monitorTid    {
-    
-        package require TclRingBuffer
-        package require Thread
-
-        ##
-        # monitorRing
-        #   takes begin/end data from a ring.
-        #   when the nesting level goes to zero, signal the cond var.
-        #
-        # @param ringurl - Url for the ring to monitor
-        # @param mutex   - mutex handle that guards the condvar.
-        # @param condvar - condition variable handle to signal.
-        #
-        proc ::monitorRing {ringurl mutex condvar} {
-            ring attach $ringurl
-            set nesting 0
-            while {1} {
-                set item [ring get $ringurl [list 1 2]];  # Begin/end only.
-                if {[dict get $item type] eq "Begin Run"} {
-                    incr nesting
-                  puts "Found begin run: nesting = $nesting"
-                }
-                if {[dict get $item type] eq "End Run"} {
-                    incr nesting -1
-                  puts "Found end run: nesting = $nesting"
-                    if {$nesting == 0} {
-                        thread::mutex lock $mutex
-                        thread::cond  notify $condvar
-                        thread::mutex unlock $mutex
-                        break
-                    }
-                }
-            }
-            ring detach $ringurl
-        }
-    }
-}
 
 #------------------------------------------------------------------------------
 ##

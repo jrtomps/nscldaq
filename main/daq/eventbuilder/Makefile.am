@@ -82,7 +82,7 @@ TCL_PACKAGE_FILES=ConnectionManager.tcl callbackManager.tcl eventOrderer.tcl \
 
 
 TCL_EVB_PACKAGE_FILES=evbRdoCallouts.tcl evbRdoCallouts10.tcl EVBStateCallouts.tcl \
-											 ringSourceMgr.tcl
+			 ringSourceMgr.tcl endrunmon.tcl
 
 TCL_TEST_FILES=tclTests.tcl cbmanagerTests.test cmanagerCallbacks.test ringsourcemgr.test
 

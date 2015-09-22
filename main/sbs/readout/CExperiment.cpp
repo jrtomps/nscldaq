@@ -297,7 +297,7 @@ CExperiment::Stop(bool pause)
       m_pTriggerLoop->stop(pause); // run is active
     }
     else {
-      ScheduleEndRunBuffer(false); // for ending paused we need to schedule.
+      syncEndRun(false);
       
     }
 

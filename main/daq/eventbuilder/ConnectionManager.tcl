@@ -398,7 +398,10 @@ snit::type EVB::Connection {
 	    $callbacks invoke -fragmentcommand [list] [list]
 
 	    
-	    puts $socket "OK"
+	    if {[catch {puts $socket "OK"} msg]} {
+		puts stderr "Event orderer failed to ack ok to a data source $msg"
+		$self  _Close LOST
+	    }
 
 	} else {
 	    # Anything else is a crime against The Protocol:

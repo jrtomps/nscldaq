@@ -977,3 +977,7 @@ Work on 11.0-rc11 begins
 	  condwait will never see a signal.  Solve this by 
 	  putting a timeout on the wait which, when rarely hit
 	  will cause get to take another stab at getting data.
+        * Feature #4507  Improve logic of EVB end run monitor thread so
+	that it can detect the end run even if one or more data sources
+	has exited.
+	
