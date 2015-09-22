@@ -30,7 +30,10 @@ tcltest::test pkgrequire-0 {Test that we can require the package
 
 
 ### The next two tests go together and should not be reordered
-
+##
+#   This is a fragile test - as it is sensitive to the set of 
+#   bundles...which may change with time.
+#
 tcltest::test setupStateMachine-0 { Test that state machine has the callout bundles we expect
 } -setup {
   set jp [JobProcessor %AUTO%] 
@@ -40,7 +43,7 @@ tcltest::test setupStateMachine-0 { Test that state machine has the callout bund
   $jp setupStateMachine
 
   [$jp getRunStateMachine] listCalloutBundles
-} -result "EventLog EVBStateCallouts DataSourceMgr"
+} -result "EndrunMon EventLog EVBStateCallouts DataSourceMgr"
 
 tcltest::test tearDownStateMachine-0 { Test that state machine has no bundles after it is torn down
 } -setup {
