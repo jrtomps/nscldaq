@@ -10,6 +10,10 @@ TOMAN = @DOCBOOK2MAN@
 TOHTML = @DOCBOOK2HTML@
 UPDATEMAN = @MANDB@
 
+MANSECTS = 1compatibility.xml 1daq.xml 1epics.xml 1evb.xml 1tcl.xml 1utilities.xml \
+	3ccusb.xml 3daq.xml 3evb.xml 3provider.xml 3python.xml 3rdogui.xml 3sbsReadout.xml 3tcl.xml 3vmusb.xml \
+	5daq.xml 5tcl.xml 5vmusb.xml
+
 install-exec-local: daq.html daq.mans tutorial.pdf tutorial.html
 	$(mkinstalldirs) @prefix@/share
 	$(mkinstalldirs) @prefix@/share/man
@@ -31,6 +35,7 @@ install-exec-local: daq.html daq.mans tutorial.pdf tutorial.html
 clean-local:
 	-rm -f *.pdf
 	-rm -f daq.xml
+	-rm -f $(MANSECTS)
 	-rm -f daq.html daq.mans tutorial.pdf tutorial.html
 
 daq.pdf: daq.xml
@@ -38,26 +43,8 @@ daq.pdf: daq.xml
 
 
 #	$(TOMAN) -o man --skip-validation 1usbReadout.xml
-daq.mans: daq.xml				
-	$(TOMAN) -o man --skip-validation 1compatibility.xml
-	$(TOMAN) -o man --skip-validation 1daq.xml
-	$(TOMAN) -o man --skip-validation 1epics.xml
-	$(TOMAN) -o man --skip-validation 1evb.xml
-	$(TOMAN) -o man --skip-validation 1sbsReadout.xml
-	$(TOMAN) -o man --skip-validation 1tcl.xml
-	$(TOMAN) -o man --skip-validation 1utilities.xml
-	$(TOMAN) -o man --skip-validation 3ccusb.xml
-	$(TOMAN) -o man --skip-validation 3daq.xml
-	$(TOMAN) -o man --skip-validation 3evb.xml
-	$(TOMAN) -o man --skip-validation 3provider.xml
-	$(TOMAN) -o man --skip-validation 3python.xml
-	$(TOMAN) -o man --skip-validation 3rdogui.xml
-	$(TOMAN) -o man --skip-validation 3sbsReadout.xml
-	$(TOMAN) -o man --skip-validation 3tcl.xml
-	$(TOMAN) -o man --skip-validation 3vmusb.xml
-	$(TOMAN) -o man --skip-validation 5daq.xml
-	$(TOMAN) -o man --skip-validation 5tcl.xml
-	$(TOMAN) -o man --skip-validation 5vmusb.xml
+daq.mans: daq.xml
+	- for f in $(MANSECTS); do $(TOMAN) -o man --skip-validation $$f; done				
 
 #	touch daq.mans
 
