@@ -8,8 +8,8 @@ TEST_FILES=nameMap.test channel.test channelcmd.test singleModel.test \
 APP_FILES=ScalerDisplay.tcl.in
 IMAGES=red.gif green.gif amber.gif
 
-DOCS=tclringcommand.xml scalerdisplay_user.xml scalerdisplay_man.xml \
-		 scalerdisplay_user_bookinfo.xml
+DOCS=scalerdisplay_user.xml scalerdisplay_man.xml \
+		 scalerdisplay_user_bookinfo.xml tclring_user.xml
 FIGURES = @srcdir@/figures/ScalerDisplayUserGuide_empty_600.png \
 					 @srcdir@/figures/ScalerDisplayUserGuide_data_600.png \
 					 @srcdir@/figures/ScalerDisplayUserGuide_stripchart_600.png \

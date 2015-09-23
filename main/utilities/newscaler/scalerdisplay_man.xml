@@ -575,3 +575,486 @@ stripconfig <replaceable>option ?...?</replaceable>
 
 
 <!-- /manpage -->
+
+<!-- manpage 3tcl -->
+<refentry id="tcl3_tclringbuffer">
+  <refentryinfo>
+    <author>
+	    <personname>
+		    <firstname>Ron</firstname>
+		    <surname>Fox</surname>
+	    </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='tcl3_tclringbuffer_title'>TclRingBuffer</refentrytitle>
+     <manvolnum>3tcl</manvolnum>
+     <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>TclRingBuffer</refname>
+     <refpurpose>Tcl ring buffer consumer package</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <cmdsynopsis>
+    <command>
+package require TclRingBuffer
+   </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+	<command>
+ringbuffer attach <replaceable>ring-uri</replaceable>
+	</command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+	<command>
+set item [ringbuffer get <replaceable>ring-uri ?type-list?</replaceable>
+	</command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+	<command>
+ringbuffer detach <replaceable>ring-uri</replaceable>
+	</command>
+    </cmdsynopsis>
+    
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+	Provides Tcl scripts with access to ring buffer data.
+	NSCLDAQ ring buffers are identified by Uniform Resource
+	Identifiers (URI).  These URIs are of the form:
+	tcp://<replaceable>hostname/ringname</replaceable>.
+     </para>
+     <para>
+	A program wishing to get data from  ring must first use
+	the <command>ringbuffer attach</command> command to
+	attach as a client to that ring.  Once attached the
+	<command>ringbuffer get</command> command gets data
+	fromt he ring, blocking as needed.  The optional
+	<replaceable>type-list</replaceable> limits the types
+	of ring items returned.  The type list is a list of integer
+	item types.  See the header <filename>DataFormat.h</filename>
+	for the ring data types.
+     </para>
+     <para>
+	Once done with a ring, the script either exits, which automatically
+	detaches all rings that have been attached, or explicitly uses
+	the <command>detach</command> command to detach the ring. 
+     </para>
+     <para>
+	The items returned by <command>ring get</command> are dicts that are
+	descsribed in the <literal>RING ITEM DICT</literal> section below.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+	RING ITEM DICT
+     </title>
+     <para>
+	Ring items returned by the <command>ringitem get</command> command are
+	decoded into dicts.  All dicts contain a <literal>type</literal> key
+	whose value is a textually encoded ring item type.  Further more, if a ring item
+	has a body header it has an additional key <literal>bodyheader</literal>
+	whos value is a dict that contains three key value pairs:
+	<literal>timestamp</literal> is the timestamp from the body header,
+	<literal>source</literal>  is an integer that identifies the data source
+	and <literal>barrier</literal> is the barrier flag, nonzero if the
+	item was an event builder barrier synchronization item and zero if not.
+     </para>
+     <para>
+	The remaining keys depend on the type of ring item>
+     </para>
+     <refsect2>
+	<title>Run state change types</title>
+	<para>
+	    These are types <literal>Begin</literal>, <literal>Pause</literal>,
+	    <literal>Resume</literal>, and <literal>End</literal>.  The
+	    additional dict key/value pairs these item type have are:
+	</para>
+	<variablelist>
+	    <varlistentry>
+		<term><literal>run</literal></term>
+		<listitem>
+		    <para>
+			The number of the run affected.
+		    </para>
+		</listitem>
+	    </varlistentry>
+	    <varlistentry>
+		<term>timeoffset</term>
+		<listitem>
+		    <para>
+			The number of seconds into the run at which this
+			item was emitted.
+		    </para>
+		</listitem>
+	    </varlistentry>
+	    <varlistentry>
+		<term>title</term>
+		<listitem>
+		    <para>
+			The title of the run.
+		    </para>
+		</listitem>
+	    </varlistentry>
+	    <varlistentry>
+		<term><literal>realtime</literal></term>
+		<listitem>
+		    <para>
+			A unix timestamp that can, for example be passed to
+			<command>clock format</command> to get date and time
+			at which this item was emitted.
+		    </para>
+		</listitem>
+	    </varlistentry>
+	</variablelist>
+     </refsect2>
+     <refsect2>
+	<title>Scaler items</title>
+	<para>
+	    These items are of type <literal>Scaler</literal>.
+	    The additional key value pairs specific to this ring item are:
+	</para>
+	<variablelist>
+	    <varlistentry>
+		<term><literal>start</literal></term>
+		<listitem>
+		    <para>
+			Number of seconds into the run at which the counting
+			interval for this scaler item started. See
+			<literal>divisor</literal> below, however.
+		    </para>
+		</listitem>
+	    </varlistentry>
+	    <varlistentry>
+		<term><literal>end</literal></term>
+		<listitem>
+		    <para>
+			Number of seconds into the run at which the counting
+			interval ended. See
+			<literal>divisor</literal> below, however.
+		    </para>
+		</listitem>
+	    </varlistentry>
+	    <varlistentry>
+		<term><literal>realtime</literal></term>
+		<listitem>
+		    <para>
+			A unix timestamp that indicates the absolute time
+			at which this item was emitted.  This can be
+			passed to <command>clock format</command> to get a
+			date/time string.
+		    </para>
+		</listitem>
+	    </varlistentry>
+	    <varlistentry>
+		<term><literal>divisor</literal></term>
+		<listitem>
+		    <para>
+			Applications can do fractional second timing.
+			If so, this value is the what to divide the
+			start and end offsets by to actually get seconds.
+		    </para>
+		</listitem>
+	    </varlistentry>
+	    <varlistentry>
+		<term><literal>incremental</literal></term>
+		<listitem>
+		    <para>
+			Boolean flag that is true if the scalers are incremental
+			(cleared when latched/read) or false if not.
+		    </para>
+		</listitem>
+	    </varlistentry>
+	    <varlistentry>
+		<term><literal>scalers</literal></term>
+		<listitem>
+		    <para>
+			A list of the scaler values.
+		    </para>
+		</listitem>
+	    </varlistentry>
+	</variablelist>
+     </refsect2>
+     <refsect2>
+	<title>String items</title>
+	<para>
+	    These are types <literal>Packet Types</literal> and
+	    <literal>Monitored Variables</literal>.  The have the
+	    additional key value pairs:
+	</para>
+	<variablelist>
+	    <varlistentry>
+		<term><literal>timeoffset</literal></term>
+		<listitem>
+		    <para>
+			Number of seconds into the run the item was emitted.
+			See, however <literal>divisor</literal> below.
+		    </para>
+		</listitem>
+	    </varlistentry>
+	    <varlistentry>
+		<term><literal>divisor</literal></term>
+		<listitem>
+		    <para>
+			If the producer is using fractional timing, this is
+			the value to divide the time offset by to get seconds
+			again.
+		    </para>
+		</listitem>
+	    </varlistentry>
+	    <varlistentry>
+		<term><literal>realtime</literal></term>
+		<listitem>
+		    <para>
+			A unix time stamp value specifying when the
+			item was emitted.  This can be passed to
+			<command>clock format</command> to get a date/time
+			string.
+		    </para>
+		</listitem>
+	    </varlistentry>
+	    <varlistentry>
+		<term><literal>strings</literal></term>
+		<listitem>
+		    <para>
+			A valid Tcl list of the strings in the item.  The
+			meanings of these strings depends on the actual item type.
+		    </para>
+		</listitem>
+	    </varlistentry>
+	</variablelist>
+     </refsect2>
+     <refsect2>
+	<title>Ring format description items</title>
+	<para>
+	    This item type;
+	    <literal>Ring Item format version</literal>, describes the
+	    format of the data.  It should be the first item emitted in
+	    a run.  It contains the following key/value pairs
+	</para>
+	<variablelist>
+	    <varlistentry>
+		<term><literal>major</literal></term>
+		<listitem>
+		    <para>
+			The major version of the format.
+		    </para>
+		</listitem>
+	    </varlistentry>
+	    <varlistentry>
+		<term><literal>minor</literal></term>
+		<listitem>
+		    <para>
+			The minor version of the format.
+		    </para>
+		</listitem>
+	    </varlistentry>
+	</variablelist>
+     </refsect2>
+     <refsect2>
+	<title>Physics events</title>
+	<para>
+	    This dict contains data acquired in response to accepted physics
+	    triggers.  It contains the following items:
+	</para>
+	<variablelist>
+	    <varlistentry>
+		<term><literal>size</literal></term>
+		<listitem>
+		    <para>
+			Number of bytes of data in the event body.
+		    </para>
+		</listitem>
+	    </varlistentry>
+	    <varlistentry>
+		<term><literal>body</literal></term>
+		<listitem>
+		    <para>
+			The body of the physics event as a byte array.  Byte
+			arrays can be decoded using the Tcl
+			<command>binary scan</command> command.  Byte arrays
+			are used because, unlike other item types, we have no
+			clues to the semantics of the body contents.
+		    </para>
+		</listitem>
+	    </varlistentry>
+	</variablelist>
+     </refsect2>
+     <refsect2>
+	<title>Event fragment</title>
+	<para>
+	    These represent event fragments.  They can occur if you monitor a
+	    ring that is the direct output of the event orderer.  Using the
+	    ReadoutGUI this is done by requesting a 'tee ring' and looking at it.
+	</para>
+	<para>
+	    Event fragment dicts have the following key/value pairs:
+	</para>
+	<variablelist>
+	    <varlistentry>
+		<term><literal>timestamp</literal></term>
+		<listitem>
+		    <para>
+			The timestamp associated with the fragment.  Note that
+			event fragments don't ever have body headers.
+		    </para>
+		</listitem>
+	    </varlistentry>
+	    <varlistentry>
+		<term><literal>source</literal></term>
+		<listitem>
+		    <para>
+			Id of the source of this event.
+		    </para>
+		</listitem>
+	    </varlistentry>
+	    <varlistentry>
+		<term><literal>barrier</literal></term>
+		<listitem>
+		    <para>
+			Barrier type of the fragment.  Nonzero values indicate
+			the fragment cause a barrier synchronization of the
+			event orderer's output while zero means the fragment is
+			did not.
+		    </para>
+		</listitem>
+	    </varlistentry>
+	    <varlistentry>
+		<term><literal>size</literal></term>
+		<listitem>
+		    <para>
+			Number of bytes in the body of the fragment.
+		    </para>
+		</listitem>
+	    </varlistentry>
+	    <varlistentry>
+		<term><literal>body</literal></term>
+		<listitem>
+		    <para>
+			A byte array contaning the fragment body (payload).
+			This byte arrays can be decoded using the
+			Tcl <command>binary scan</command> command.
+		    </para>
+		</listitem>
+	    </varlistentry>
+	</variablelist>
+     </refsect2>
+     <refsect2>
+	<title>Trigger count items</title>
+	<para>
+	    Of type <literal>Trigger count</literal>, these items provide
+	    gross statistics for the triggers seen by a data source.  These are
+	    normally used by SpecTcl to determine the fraction of data analyzed
+	    online.  
+	</para>
+	<para>
+	    The following key/value pairs are used by this type:
+	</para>
+	<variablelist>
+	    <varlistentry>
+		<term><literal>timeoffset</literal></term>
+		<listitem>
+		    <para>
+			Offset into the run at which this item was emitted.
+		    </para>
+		</listitem>
+	    </varlistentry>
+	    <varlistentry>
+		<term><literal>divisor</literal></term>
+		<listitem>
+		    <para>
+			Dividing <literal>timeoffset</literal> by this value
+			yields the number of seconds into the run at which
+			this item was emitted.
+		    </para>
+		</listitem>
+	    </varlistentry>
+	    <varlistentry>
+		<term><literal>realtime</literal></term>
+		<listitem>
+		    <para>
+			The unix time of day value at which this item was emitted.
+			This can be passed to <command>clock format</command> to
+			get a time/day string.
+		    </para>
+		</listitem>
+	    </varlistentry>
+	    <varlistentry>
+		<term><literal>triggers</literal></term>
+		<listitem>
+		    <para>
+			Number of triggers this source responded to this run
+			(live trigers).
+		    </para>
+		</listitem>
+	    </varlistentry>
+	    
+	</variablelist>
+     </refsect2>
+     <refsect2>
+	<title>Glom parameters</title>
+	<para>
+	    When the event builder pipeline is in use, the glom stage of the
+	    pipeline has a set of parameters it uses to determine how, or if
+	    to glue event fragments together to make an event.  These parameters
+	    are documented in a ring item it emits at the start of each run.
+	</para>
+	<para>
+	    The glom parameter item has the type <literal>Glom Parameters</literal>.
+	    It never has a body header and has the following key/value pairs:
+	</para>
+	<variablelist>
+	    <varlistentry>
+		<term><literal>isBuilding</literal></term>
+		<listitem>
+		    <para>
+			Boolean value that is true if glom was told to build
+			events and false if ont.
+		    </para>
+		</listitem>
+	    </varlistentry>
+	    <varlistentry>
+		<term><literal>conicidenceWindow</literal></term>
+		<listitem>
+		    <para>
+			This only has meaning if <literal>isBuilding</literal>
+			is true.  In that case it is the width of the window
+			in ticks that defines a coincidence.
+		    </para>
+		</listitem>
+	    </varlistentry>
+	    <varlistentry>
+		<term><literal>timstampPolicy</literal></term>
+		<listitem>
+		    <para>
+			Only meaningful if <literal>isBuilding</literal> is
+			true, this value describes how timestamps are
+			assigned to built events.  If this value is
+			<literal>first</literal>, the event timestamp is taken
+			from the earliest fragment.  If <literal>last</literal>,
+			the timestamp is taken from the last fragment.  Finally,
+			if <literal>average</literal>, indicates the timestamp is
+			the average of all fragments in the event.
+		    </para>
+		</listitem>
+	    </varlistentry>
+	</variablelist>
+     </refsect2>
+     <refsect2>
+	<title>Abnormal end items</title>
+	<para>
+	    These can be emitted by various NSCLDAQ components to indicate the
+	    run did not end properly.  The type, <literal>Abnormal End</literal>,
+	    is the only key value pair this dictionary has.
+	</para>
+     </refsect2>
+  </refsect1>
+
+</refentry>
+
+ <!-- /manpage -->
