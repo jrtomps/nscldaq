@@ -73,7 +73,7 @@ CConfigure::operator()(CTCLInterpreter& interp, std::vector<CTCLObject>& objv)
   // We need at leats three parameters...command, subcommand, and parameter name.
 
   try {
-    requireAtLeast(objv, 3, " Ivalid request length");
+    requireAtLeast(objv, 3, " Invalid request length");
     bindAll(interp, objv);
 
     std::string subcommand = objv[1];
