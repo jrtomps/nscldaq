@@ -384,6 +384,13 @@ snit::type EVB::Connection {
 
 	} elseif {$header eq "FRAGMENTS"} {
 
+	    # Acknowledging the fragments here allows next bunch to be prepared
+	    # in the caller.
+	    
+	    if {[catch {puts $socket "OK"} msg]} {
+		puts stderr "Event orderer failed to ack ok to a data source $msg"
+		$self  _Close LOST
+	    }
 	    # protocol allows FRAGMENTS here:
 	    # TODO: Handle errors as a close
 
@@ -398,10 +405,7 @@ snit::type EVB::Connection {
 	    $callbacks invoke -fragmentcommand [list] [list]
 
 	    
-	    if {[catch {puts $socket "OK"} msg]} {
-		puts stderr "Event orderer failed to ack ok to a data source $msg"
-		$self  _Close LOST
-	    }
+	    
 
 	} else {
 	    # Anything else is a crime against The Protocol:

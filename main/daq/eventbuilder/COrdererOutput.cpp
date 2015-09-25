@@ -69,7 +69,7 @@ COrdererOutput::operator()(const std::vector<EVB::pFragment>& event)
 {
   for (int i = 0; i < event.size(); i++) {
     EVB::pFragment p = event[i];
-
+//    std::cerr << "Frag @ " << p->s_header.s_timestamp << std::endl;
     io::writeData(m_OutputChannel, &(p->s_header), sizeof(EVB::FragmentHeader));
     io::writeData(m_OutputChannel, p->s_pBody, p->s_header.s_size);
 

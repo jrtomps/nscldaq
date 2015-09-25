@@ -175,9 +175,12 @@ CFragmentHandler::addFragments(size_t nSize, EVB::pFlatFragment pFragments)
     if (first) {
       timeOfFirstSubmission = m_nNow;
     }
-
+   int frags = 0;
+   int srcid = -1;
     while (nSize) {
       EVB::pFragmentHeader pHeader = &(pFragments->s_header);
+      frags++;
+      srcid = pHeader->s_sourceId;
       size_t fragmentSize = totalFragmentSize(pHeader);
       if((pHeader->s_size + sizeof(EVB::FragmentHeader)) > nSize) {
 	std::stringstream s;
@@ -201,6 +204,7 @@ CFragmentHandler::addFragments(size_t nSize, EVB::pFlatFragment pFragments)
       pFragments  = reinterpret_cast<EVB::pFlatFragment>(pNext);
       nSize -= fragmentSize;
     }
+    
     findOldest();		// Probably not needed but pretty quick.
     if (m_nNow-timeOfFirstSubmission > m_nStartupTimeout) {
       // Don't flush until we have allowed time for all data sources to 
@@ -208,6 +212,7 @@ CFragmentHandler::addFragments(size_t nSize, EVB::pFlatFragment pFragments)
       flushQueues();		// flush events with received time stamps older than m_nNow - m_nBuildWindow
     }
 
+    std::cerr << "Fragment processing done: " << m_nOldestReceived << std::endl;
 
 }
 /**
@@ -850,7 +855,7 @@ void
 CFragmentHandler::flushQueues(bool completely)
 {
  loop: 			// avoid recursion with a good old fashioned goto.
-  m_nNow = time(NULL);
+  
 
 
   // Ensure there's at least one fragment available:
@@ -874,17 +879,22 @@ CFragmentHandler::flushQueues(bool completely)
       break;		// If there are more fragments they are barriers.
     }
   }
-
+  
   // Now we need to flush all fragments that are older than the build window.
   // This deals with the case of a source that just doesn't emit fragments
   // very often (e.g. scaler only case).
   // This should only be done if the most recently emptied queue was emptied outside
   // the build interval time.
 
+  findOldest();     // Previous code could have made oldest uh.. newer.
   time_t firstOldest = m_nOldestReceived;
+  m_nNow = time(NULL);
   if ((m_nNow - m_nOldestReceived) >= m_nBuildWindow) {
+    std::cerr << "window exceeded: " << m_nNow << " "
+      << m_nOldestReceived << " " << m_nBuildWindow << std::endl;
     while (!queuesEmpty() && ((m_nNow - m_nOldestReceived) >= m_nBuildWindow) ) {
       std::pair<time_t, ::EVB::pFragment>* p = popOldest();
+      findOldest();
       if (p) {
         if (p->second->s_header.s_timestamp < m_nMostRecentlyPopped) {
           dataLate(*(p->second));        

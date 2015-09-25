@@ -723,11 +723,9 @@ proc ::EventLog::runEnding {} {
         ::EventLog::_finalizeRun
         file delete -force $startFile;   # So it's not there next time!!
         file delete -force $exitFile;   # So it's not there next time!!
-        
-        # Incremnt the run number:
-        
-       
-        ReadoutGUIPanel::normalColors
+
+        #  Cancel the after that updates the event segments and set a new
+        #  status line entry indicting the run ended.
         
         if {$::EventLog::statusUpdateId != -1} {
             after cancel $::EventLog::statusUpdateId
@@ -736,7 +734,7 @@ proc ::EventLog::runEnding {} {
                 {Run ended}
         }
     }
-   
+    ReadoutGUIPanel::normalColors
 }
 
 

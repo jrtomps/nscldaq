@@ -70,8 +70,13 @@ namespace eval ::EVBC {
     
     #  Suffix for the application:
     
+        variable appNameSuffix       ""
+
+    # Configuration parameters for the event builder:
     
-    variable appNameSuffix       ""
+    variable window             ""
+    variable XoffThreshold      ""
+    variable XonThreshold       ""
 }
 
 
@@ -268,6 +273,15 @@ proc EVBC::start args {
     ::flush $EVBC::pipefd
     puts $EVBC::pipefd "start $::EVBC::appNameSuffix"
     ::flush $EVBC::pipefd
+    
+    # If any parameters have been set push those out now:
+    
+    foreach param [list window XoffThreshold XonThreshold] {
+        set value [set ::EVBC::$param]
+        if {$value ne ""} {
+            EVBC::configParams $param $value
+        }
+    }
     
     close $infd
         
@@ -609,6 +623,53 @@ proc EVBC::onEnd {} {
             EVBC::_EnableGUI
     }
 }
+
+#-------------------------------------------------------------------------------
+# @fn EVBC::configParams
+#    Send dynamic configuration options (EVB::config command).
+#    If the event builder is actually running, the config param is sent now
+#    If not, the config param is sent on all subsequent event builder starts.
+#
+# @param parameter - the parameter to configure must be one of
+#                    * window set number of seconds in the build window.
+#                    * XoffThreshold - set the number of queued bytes before xoffing.
+#                    * XonThreshold  - set then umber of queued bytes at which XON
+# @param value    - A new positive integer value (all config parameters above take
+#                   positive integers).
+#
+# @note - it is an error (not caught) for XonThreshold to be larger than Xoffthreshold.
+# @note - I actually anticipate the user is going to mostly adjust the build window
+#         so that the event builder latency gets better matched to its sources.
+#
+proc EVBC::configParams {parameter value} {
+    
+    # Validate the parameter name:
+    
+    set configParams [list window XoffThreshold XonThreshold]
+    if {$parameter ni $configParams} {
+        error "EVBC::configure $parameter must be one of [join $configParams {, }]"
+    }
+    # Validate the parameter value:
+    
+    if {![string is integer -strict $value]} {
+        error "EVBC::configure $parameter value $value must be an integer and is not"
+    }
+    if {$value <= 0} {
+        error "EVBC::configure $parameter value $value must be strictly > 0"
+    }
+    
+    set EVBC::$parameter $value;         # Send next start.
+    
+    ## Send now if we can.
+    
+    if {$::EVBC::pipefd ne ""}  {
+        # send the command and flush the pipe:
+        puts "Sending: EVB::config set $parameter $value"
+        puts $EVBC::pipefd "EVB::config set $parameter $value"
+        ::flush $EVBC::pipefd
+    }
+}
+    
 
 #------------------------------------------------------------------------------
 ## 

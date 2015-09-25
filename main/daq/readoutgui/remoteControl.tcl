@@ -205,20 +205,48 @@ snit::type ReadoutGuiRemoteControl {
       set allocator [portAllocator %AUTO% -hostname $clientaddr]
 
       # try to find the s800rctl service
-      set port [$allocator findServer s800rctl]
-      if {$port ne ""} {
-        # found the service
+      # note we could only use findServer if we know the user that is connecting
+      # to us.  in 12.0 we should add to the master/slave connection protocol
+      # a requirement that the master ship us its username.
+      #
+      #  What we are going to do is about as reliable as we can be lacking that
+      #  information.
+      #  1. Look for all instances of the s800rctl service in the client node.
+      #  2. If there's only one instance that's the one.
+      #  3. If there are multiple instances fail.
+      #  4. Obviously if there are  no instances fail too:
+      #
+      
+      puts stderr "Getting port usage: "
+      set services [$allocator listPorts]
+      puts stderr $services
+      set foundCount 0
+      foreach service $services {
+        set port [lindex $service 0]
+        set app  [lindex $service 1]
+        puts stderr "Port $port app $app"
+        if {$app eq "s800rctl"} {
+          puts stderr "found one"
+          incr foundCount
+        }
+      }
+      if {$foundCount == 1} {
+        puts stderr "Opening client connection"
         set requestfd [socket $clientaddr $port]
         chan configure $requestfd -blocking 0 -buffering line
         chan event $requestfd readable [mymethod _onRequestReadable]
-        
-      } else {
-        # not finding the service is not an error to fail on but the user needs
-        # to be informed
+        puts "all set up."
+      } elseif {$foundCount == 0} {
         set msg "ReadoutGUIRemoteControl::_onConnection Unable to locate "
         append msg "s800rctl service on $clientaddr"
         puts stderr $msg
+      } else {
+        set msg "ReadoutGUIRemoteControl::_onConnection Multiple s800rctl services"
+        append msg " on $clientaddr\n"
+        append msg "Can't determine which one to connect to"
+        puts stderr $msg
       }
+      
       $allocator destroy
 
       # now setup the reply socket for receiving requests from the master 
