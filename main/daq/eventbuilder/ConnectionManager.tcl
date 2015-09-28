@@ -104,7 +104,7 @@ snit::type EVB::Connection {
     method tryRead {} {
 	if {[chan pending input $options(-socket)] > 0} {
 	    $callbacks register -fragmentcommand [list]; # turn off callback
-	    $expecting $options(-socket)
+	    $self $expecting $options(-socket)
 	    $callbacks register -fragmentcommand $options(-fragmentcommand); #  Restore.
 	}
     }
