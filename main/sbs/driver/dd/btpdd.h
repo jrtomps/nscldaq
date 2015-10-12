@@ -142,7 +142,7 @@
 /*
 **  Unit, logical device, and info macros
 */
-#define GET_MINOR_NUM(dev_id) (MINOR((dev_id)->f_dentry->d_inode->i_rdev))
+#define GET_MINOR_NUM(dev_id) (MINOR((dev_id)->f_path.dentry->d_inode->i_rdev))
 #define GET_UNIT_NUM(dev_id)  (GET_MINOR_NUM(dev_id) & BT_MAX_UNITS)
 #define GET_UNIT_PTR(dev_id)  (bt_unit_array_gp[GET_UNIT_NUM(dev_id)])
 #define GET_LDEV_TYPE(dev_id) (GET_MINOR_NUM(dev_id) >> BT_AXS_SHFT)
