@@ -784,6 +784,14 @@ proc ::multilogger::leave {from to} {
             foreach logger $::multilogger::Loggers {
                 $logger start
             }
+            after 1000;             # Allow loggers to initialize.
+        }
+    }
+    if {($from in {Active Paused}) && ($to eq "Halted")} {
+        #  Let the loggers know it's ok for to exit
+
+        foreach logger $::multilogger::Loggers {
+            $logger aboutToStop
         }
     }
 }
@@ -800,12 +808,7 @@ proc ::multilogger::leave {from to} {
 #
 proc ::multilogger::enter {from to} {
     if {($from in {Active Paused}) && ($to eq "Halted")} {
-        #  Let the loggers know it's ok for to exit
-        
-        foreach logger $::multilogger::Loggers {
-            $logger aboutToStop
-        }
-        
+       
         # ensure they all vanished within their timeout or kill:
         
         foreach logger $::multilogger::Loggers {

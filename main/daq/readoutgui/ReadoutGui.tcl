@@ -304,11 +304,6 @@ snit::widget InitProvider {
     return $selection
   }
 
-  if {0}  {
-  method onInit {} {
-    puts "init $selection"
-  }
-  }
 } 
 
 snit::widgetadaptor InitProviderDialog {
