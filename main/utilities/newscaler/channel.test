@@ -363,3 +363,37 @@ tcltest::test stdev-3 {stddev with 3 data points} \
     
     achannel stddev
 }  -result [expr {sqrt((100 + 36 + 400)/2.0 - 144)}]
+
+#  Nonincremental scalers should wrap properly 24 and 32 bit both:
+
+tcltest::test wrap-24 {24 bit scaler wraps properly} \
+-setup {
+   Channel achannel -width 24 -incremental 0
+   
+} \
+-cleanup {
+   achannel destroy
+} \
+-body {
+   set increment [expr 1 << 23];            # 1/2 full scale.
+   achannel update $increment 1
+   achannel update 1 1
+   achannel total
+   
+} -result [expr {(1 << 24) + 1}]
+
+tcltest::test wrap-32 {32 bit scaler wraps properly} \
+-setup {
+   Channel achannel -width 32 -incremental 0
+   
+} \
+-cleanup {
+   achannel destroy
+} \
+-body {
+   set increment [expr 1 << 31];            # 1/2 full scale.
+   achannel update $increment 1
+   achannel update 1 1
+   achannel total
+   
+} -result [expr {(1 << 32) + 1}]

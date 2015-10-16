@@ -60,6 +60,10 @@ snit::type Channel {
     variable elapsed 0
     variable sumOfSquares 0
     variable samples      0
+    
+    # The data below is needed to handle wraps in non-incremental mode
+    
+    variable lastUpdate   0
 
     
     ##
@@ -99,10 +103,21 @@ snit::type Channel {
             set rate [expr {double($counts)/$dt}]
         } else {
             
+            # Correct counts for any single wrap.  It's just
+            # not possible to correct for multiple wraps:
+            
+            if {$counts < $lastUpdate} {
+                set lastUpdate $counts
+                incr counts [expr 1 << $options(-width)]
+            } else {
+                set lastUpdate $counts
+            }
+            
             # non incremental scaler:
             
             set rate [expr {double($counts - $total)/$dt}]
             set total $counts
+            
         }
         set elapsed [expr {$elapsed + $dt}];      # dt could be non-integer.
         set sumOfSquares [expr {$sumOfSquares + $rate*$rate}]
