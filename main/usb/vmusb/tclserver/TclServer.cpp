@@ -171,12 +171,16 @@ TclServer::addModule(CControlModule* pNewModule)
 void
 TclServer::setResult(string msg)
 {
-  Tcl_Obj* result = Tcl_NewStringObj(msg.c_str(), -1);
-  Tcl_SetObjResult(m_pInterpreter->getInterpreter(), result);
+  m_pInterpreter->setResult(msg);
   
   
 }
-
+/**
+ * Syncrhonized initialization of the Tcl Server thread.  This method signals
+ * the thread starting us when done. That all makes the start method's
+ *  call to CSynchronizedThread::start block until this method has
+ *  completed.
+ */
 void TclServer::init()
 {
   try {
@@ -187,9 +191,9 @@ void TclServer::init()
     createMonitorList();	// Figure out the set of modules that need monitoring.
     m_isRunning = true;
   } catch (CException& err) {
-    cerr << "TclServer thread caught a daq exception: "
+    cerr << "TclServer thread caught a daq exception while initializing: "
       	 << err.ReasonText() << " while " << err.WasDoing() << endl;
-    exit(EXIT_FAILURE);
+    exit(EXIT_FAILURE);           // This is an application exit.
   }
 }
 /*!
@@ -203,26 +207,48 @@ void
 TclServer::operator()()
 {
   m_threadId = Tcl_GetCurrentThread(); // Save for later use.
-  try {
-    EventLoop();		// Run the Tcl event loop forever.
+  
+  // In this version, we keep running the event loop, reporting
+  // exceptions but continuing to try to run after them.
+
+  // initialize the stuff the event loop dispatches on:
+  
+  // If there's a nonempty monitor list we need to start its periodic execution
+
+  if (m_pMonitorList && m_pMonitorList->size()) {
+    MonitorDevices(this);	// Allow it to locate us.
   }
-  catch (string msg) {
-    cerr << "TclServer thread caught a string exception: " << msg << endl;
-    throw;
+
+  // Start the timed send of monitored variable values.
+
+  updateVariables(this);
+  
+  while(!m_exitNow) {
+    try {
+      EventLoop();		// Run the Tcl event loop forever.
+    }
+    catch (string msg) {
+      cerr << "TclServer thread caught a string exception: " << msg << endl;
+    }
+    catch (char* msg) {
+      cerr << "TclServer thread caught a char* exception: " << msg << endl;
+    }
+    catch (CException& err) {
+      cerr << "TclServer thread caught a daq exception: "
+	   << err.ReasonText() << " while " << err.WasDoing() << endl;
+    }
+    catch (...) {
+      cerr << "TclServer thread caught some other exception type.\n";
+    }
   }
-  catch (char* msg) {
-    cerr << "TclServer thread caught a char* exception: " << msg << endl;
-    throw;
-  }
-  catch (CException& err) {
-    cerr << "TclServer thread caught a daq exception: "
-      	 << err.ReasonText() << " while " << err.WasDoing() << endl;
-    throw;
-  }
-  catch (...) {
-    cerr << "TclServer thread caught some other exception type.\n";
-    throw;
-  }
+  // We can only fall out of this loop on an exception - exit.
+  
+  /*
+   * TODO:
+   *    Should we try to stop an active run so the FIFOs of the VMUSB are
+   *    empty?
+   */
+  exit(EXIT_FAILURE);
 }
 
 /*
@@ -330,15 +356,7 @@ TclServer::startTcpServer()
 void
 TclServer::EventLoop()
 {
-  // If there's a nonempty monitor list we need to start its periodic execution
 
-  if (m_pMonitorList && m_pMonitorList->size()) {
-    MonitorDevices(this);	// Allow it to locate us.
-  }
-
-  // Start the timed send of monitored variable values.
-
-  updateVariables(this);
 
   // Start the event loop:
 

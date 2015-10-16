@@ -140,10 +140,14 @@ TclServer::setResult(string msg)
 void
 TclServer::init()
 {
+  try {
     initInterpreter();		// Create interp and add commands.
     readConfigFile();		// Initialize the modules.
     initModules();              // Initialize the fully configured modules.
     startTcpServer();		// Set up the Tcp/Ip listener event.
+  } catch(...) {
+    exit(EXIT_FAILURE);
+  }
 }
 /**
  * scheduleExit
@@ -192,6 +196,7 @@ TclServer::operator()()
     cerr << "TclServer thread caught some other exception type.\n";
     throw;
   }
+  exit(EXIT_FAILURE);
 }
 
 /*

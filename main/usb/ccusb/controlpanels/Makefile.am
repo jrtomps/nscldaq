@@ -8,6 +8,8 @@ install-exec-local:
 	echo pkg_mkIndex @prefix@/TclLibs/ccusbpanels "*.tcl" | @TCLSH_CMD@
 	for f in $(APPS); do $(INSTALL_SCRIPT) @srcdir@/$$f     @bindir@; done
 	$(INSTALL_SCRIPT) @srcdir@/ULMTriggerGUI.tcl @bindir@/ULMTriggerGUI 
+	$(mkinstalldirs) @prefix@/share/html/figures
+	$(INSTALL_DATA) @srcdir@/ulmtrigger_startup.png @prefix@/share/html/figures/.
 
-EXTRA_DIST=$(APPS) $(PACKAGES) ULMTriggerGUI.tcl
+EXTRA_DIST=$(APPS) $(PACKAGES) ULMTriggerGUI.tcl ulmtrigger.xml @srcdir@/ulmtrigger_startup.png
 

@@ -43,7 +43,8 @@ TCLPACKAGES=Configuration.tcl \
   versionUtils.tcl error.png \
   delayProvider.tcl \
   offlineProvider.tcl \
-	multilogger.tcl
+	multilogger.tcl \
+	stageareaValidation.tcl
 
 
 

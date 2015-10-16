@@ -2365,8 +2365,8 @@ catch (CReadoutException&amp; error) {
          <programlisting>
 #include &lt;CScalerBank&gt;
          </programlisting>
-         <classsynopsis>
-            <ooclass><classname>CScalerBank : public CScaler</classname></ooclass>
+         <synopsis>
+          class  <ooclass><classname>CScalerBank : public CScaler</classname></ooclass> {
             <methodsynopsis>
                 <modifier>virtual</modifier>
                 <type>void</type> <methodname>initialize</methodname>
@@ -2433,7 +2433,22 @@ catch (CReadoutException&amp; error) {
                 <methodname>isComposite</methodname>
                 <void /><modifier>const</modifier>
                 </methodsynopsis>
-         </classsynopsis>
+             <methodsynopsis>
+                 <modifier>virtual</modifier>
+                 <type>uint64_t</type>
+                 <methodname>timestamp</methodname>
+                 <void />
+                 <modifier></modifier>
+             </methodsynopsis>
+             <methodsynopsis>
+                 <modifier>virtual</modifier>
+                 <type>int</type>
+                 <methodname>sourceId</methodname>
+                 <void />
+                 <modifier></modifier>
+             </methodsynopsis>
+             };
+         </synopsis>
       </refsynopsisdiv>
       <refsect1>
          <title>Description</title>
@@ -2605,7 +2620,49 @@ while(p != theBank.end()) {
                 number of elements regardless of the value returned by
                 <methodname>isComposite</methodname>.
                 </para>
-
+                         <methodsynopsis>
+                 <modifier>virtual</modifier>
+                 <type>uint64_t</type>
+                 <methodname>timestamp</methodname>
+                 <void />
+                 <modifier></modifier>
+             </methodsynopsis>
+             <para>
+                Returns the 'consensus' timestamp from the scaler bank.
+                Each scaler in the bank is asked for its timestamp. If any
+                return a value other than <literal>NULL_TIMESTAMP</literal>,
+                the last visited module's timestamp is used as the body header
+                timestamp of the module.  If none do, <literal>NULL_TIMESTAMP</literal>
+                is returned.
+             </para>
+             <para>
+              Normally there will be one scaler module that understands the
+              timestamp (that module might well not return any scalers).  That
+              module's <methodname>read</methodname> method should read and
+              save the timestamp for <methodname>timestamp</methodname>
+              to return.  You are assured that all scaler modules will have
+              their <methodname>read</methodname> method invoked before
+              the <methodname>timestamp</methodname> methods are
+              invoked.
+             </para>
+             <methodsynopsis>
+                 <modifier>virtual</modifier>
+                 <type>int</type>
+                 <methodname>sourceId</methodname>
+                 <void />
+                 <modifier></modifier>
+             </methodsynopsis>  
+             <para>
+                  Returns the consensus Source id for the most recently read
+                  scaler event data.  This is done by traversing the scaler
+                  modules invoking their <methodname>sourceId</methodname> methods.
+                  If any of them return other than <literal>-1</literal>, the
+                  value returned by the last such will be returned.  If all
+                  return <literal>-1</literal>, that is returned instead.
+                  A value of <literal>-1</literal> informs the framework
+                  to use the source id that was passed on the command line
+                  (e.g. via <option>--sourceid</option>).
+             </para>
       </refsect1>
       <refsect1>
          <title>Types and public data</title>
@@ -3294,8 +3351,8 @@ std::cout &lt;&lt; " The run is currently "
          <programlisting>
 #include &lt;CScaler.h&gt;
          </programlisting>
-         <classsynopsis>
-            <ooclass><classname>CScaler</classname></ooclass>
+         <synopsis>
+          class  <ooclass><classname>CScaler</classname></ooclass> {
             <methodsynopsis>
                 <modifier>virtual</modifier>
                 <type>void</type> <methodname>initialize</methodname>
@@ -3323,7 +3380,22 @@ std::cout &lt;&lt; " The run is currently "
                 <void />
                 <modifier>const</modifier>
                 </methodsynopsis>
-         </classsynopsis>
+             <methodsynopsis>
+                 <modifier>virtual</modifier>
+                 <type>uint64_t</type>
+                 <methodname>timestamp</methodname>
+                 <void />
+                 <modifier></modifier>
+             </methodsynopsis>
+             <methodsynopsis>
+                 <modifier>virtual</modifier>
+                 <type>int</type>
+                 <methodname>sourceId</methodname>
+                 <void />
+                 <modifier></modifier>
+             </methodsynopsis>  
+  };
+         </synopsis>
       </refsynopsisdiv>
       <refsect1>
          <title>Description</title>
@@ -3389,6 +3461,48 @@ std::cout &lt;&lt; " The run is currently "
                 and implements the interface defined by
                 <link linkend='manpage.cscalerbank'>CScalerBank(3sbsReadout)</link>.
                 </para>
+             <methodsynopsis>
+                 <modifier>virtual</modifier>
+                 <type>uint64_t</type>
+                 <methodname>timestamp</methodname>
+                 <void />
+                 <modifier></modifier>
+             </methodsynopsis>
+             <para>
+                Override this if you want to associate a real timestamp with scaler
+                events.  In that case, the <methodname>read</methodname> method
+                should read and save the timestamp which is returned by this
+                method.  You are guaranteed that all scaler <methodname>read</methodname>
+                methods will be called before any <methodname>timestamp</methodname>
+                methods.
+             </para>
+             <para>
+                If you don't override this method, the default is to return
+                <literal>NULL_TIMESTAMP</literal>.  See
+                <classname>CScalerBank</classname> for a description of how
+                the final timestamp will be chosen from amongst those
+                returned by the various <classname>Scaler</classname> objects.
+             </para>
+             <methodsynopsis>
+                 <modifier>virtual</modifier>
+                 <type>int</type>
+                 <methodname>sourceId</methodname>
+                 <void />
+                 <modifier></modifier>
+             </methodsynopsis>
+             <para>
+                Override this if you want a source Id other than the
+                one specified on the command line (via
+                <option>--sourceid</option>) to be
+                put in the scaler event's body header.  If you do not override
+                this, <literal>-1</literal> is returned, requesting that
+                the <option>--sourceid</option> value be used.
+             </para>
+             <para>
+              See <classname>CScalerBank</classname> for a description of how
+              the source id value is computed when there are more than one
+              <classname>CScaler</classname> objects in use.
+             </para>
       </refsect1>
       <refsect1>
          <title>

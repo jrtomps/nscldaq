@@ -212,7 +212,6 @@ CFragmentHandler::addFragments(size_t nSize, EVB::pFlatFragment pFragments)
       flushQueues();		// flush events with received time stamps older than m_nNow - m_nBuildWindow
     }
 
-    std::cerr << "Fragment processing done: " << m_nOldestReceived << std::endl;
 
 }
 /**
@@ -890,8 +889,6 @@ CFragmentHandler::flushQueues(bool completely)
   time_t firstOldest = m_nOldestReceived;
   m_nNow = time(NULL);
   if ((m_nNow - m_nOldestReceived) >= m_nBuildWindow) {
-    std::cerr << "window exceeded: " << m_nNow << " "
-      << m_nOldestReceived << " " << m_nBuildWindow << std::endl;
     while (!queuesEmpty() && ((m_nNow - m_nOldestReceived) >= m_nBuildWindow) ) {
       std::pair<time_t, ::EVB::pFragment>* p = popOldest();
       findOldest();
@@ -1458,9 +1455,7 @@ CFragmentHandler::findOldest()
 
       if ((pf->s_header.s_timestamp < oldest) && (pf->s_header.s_barrier ==0)) { // nonbarriers only counted
 #ifdef DEBUG
-	std::cerr << "Find oldest changing from "
-		  << std::hex << oldest << " to " << pf->s_header.s_timestamp
-		  << std::dec << std::endl;
+
 	if (oldest == 0) {
 	  std:: cerr << "That's zero!! \n";
 	  dumpFragment(pf);

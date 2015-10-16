@@ -15,6 +15,7 @@
 */
 #include <config.h>
 #include "CScalerBank.h"
+#include <fragment.h>
 
 using namespace std;
 
@@ -70,6 +71,38 @@ public:
   }
 };
 
+// Visitor to get timestamp:
+
+class TimestampVisitor : public CScalerBank::CVisitor
+{
+private:
+  uint64_t m_timestamp;
+public:
+  TimestampVisitor() : m_timestamp(NULL_TIMESTAMP) {}
+  virtual void operator() (CScaler* pItem) {
+    uint64_t t = pItem->timestamp();
+    if (t != NULL_TIMESTAMP) m_timestamp = t;
+  }
+  uint64_t timestamp() const {
+    return m_timestamp;
+  }
+};
+
+// Visitor to get source id:
+
+class SourceIdVisitor : public CScalerBank::CVisitor
+{
+private:
+  int m_id;
+public:
+  SourceIdVisitor() : m_id(-1) {}
+  virtual void operator() (CScaler* pItem) {
+    int id = pItem->sourceId();
+    if (id != -1) m_id = id;
+  }
+  int getId() const {return m_id; }
+};
+
   // Members inherited from CScaler:
 
 /*!
@@ -112,7 +145,37 @@ CScalerBank::read()
   return v.getScalers();
 
 }
+ /**
+  * timestamp
+  *   Returnt a timestamp for the scaler bank.
+  *   Each scaler is visited.  The timestamp returned by the last scaler
+  *   not returning NULL_TIMESTAMP wins.   If no scaler returns a non
+  *   NULL_TIMESTAMP stamp, NULL_TIMESTAMP is used.
+  *   See TimestampVisitor
+  */
+uint64_t
+CScalerBank::timestamp()
+{
+  TimestampVisitor tstamp;
+  visit(tstamp);
+  return tstamp.timestamp();
+}
 
+/**
+ * sourceId
+ *    Return the source id associated with the scaler event.
+ *    This is done by visiting each scaler and asking it for its source id.
+ *    The last one that is not -1 is returned.  If none are -1
+ *    then -1 is returned.  The framework treats a -1 return as a request to
+ *    use the source id specified on the command line (--sourceid).
+ */
+int
+CScalerBank::sourceId()
+{
+  SourceIdVisitor v;
+  visit(v);
+  return v.getId();
+}
 
 // Type safe adapter to CComposite:
 

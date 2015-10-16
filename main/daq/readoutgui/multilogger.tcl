@@ -74,6 +74,7 @@ package require ExpFileSystemConfig
 package require ReadoutGUIPanel
 package require snit
 package require csv
+package require stageareaValidation
 
 # Namespace to hold our variables:
 
@@ -137,11 +138,17 @@ snit::type EventLogger {
                 --number-of-sources=$options(-sources)              \
                 
             ]
+
             set loggerFd [open "| $command |& cat" r]
             
-            fileevent $loggerFd readable [mymethod _handleInput]
+            fileevent $loggerFd readable [mymethod _handleInput $loggerFd]
             set expectingExit 0
             set loggerPids [pid $loggerFd]
+
+            set ring $options(-ring)
+            set out  $options(-out)
+            set msg "$ring -> $out started eventlog as pid [lindex $loggerPids 0]"
+            ::ReadoutGUIPanel::Log MultiLogger: log $msg
         }
         
     }
@@ -181,20 +188,26 @@ snit::type EventLogger {
                 # Logger did not exit:
                 # Shut it down the hard way:
                 
+                set ring $options(-ring)
+                set out  $options(-out)
+                set pid  [lindex $loggerPids 0]
+
                 catch {close $loggerFd};        # Since this reports errors.
                 set loggerFd -1
                 foreach pid $loggerPids {
-                    catch [exec kill -9 $pid];   # Explicitly kill the pipe elements.
+                    catch {exec kill -9 $pid};   # Explicitly kill the pipe elements.
                 }
-                set loggerPids [list]
+
+                set msg "MultiLogger $ring -> $out (pid=$pid) failed to exit within timeout"
+                ::ReadoutGUIPanel::Log MultiLogger: error $msg
                 
                 # report the problem:
                 
-                set ring $options(-ring)
-                set out  $options(-out)
                 tk_messageBox -icon error -title {Timed out waiting for logger to exit}  \
                     -type ok                                                            \
-                    -message "Multilogger $ring -> $out failed to exit within timeout"
+                    -message $msg
+
+                set loggerPids [list]
             }
         }
     }
@@ -206,30 +219,62 @@ snit::type EventLogger {
     #     kill off  the fd and the Pids.  Otherwise, raise a stink as well
     #     as killing off the fd and pids.
     #
-    method _handleInput {} {
-        if {![eof $loggerFd]} {
-            fconfigure $loggerFd -blocking 0
-            set data [read $loggerFd];     # Gulp in all waiting data.
-            fconfigure $loggerFd -blocking 1;  # Else fileevent triggers.
-            
-            set ring $options(-ring)
-            set out  $options(-out)
-            ::ReadoutGUIPanel::Log Multilogger: output "$ring -> $out: $data"
+    method _handleInput {channel} {
+
+      set pid [lindex [pid $channel] 0]
+
+        if {![eof $channel]} {
+            fconfigure $channel -blocking 0
+            set data [read $channel];     # Gulp in all waiting data.
+            fconfigure $channel -blocking 1;  # Else fileevent triggers.
+
+            if {[string length $data]>0} {
+              set ring $options(-ring)
+              set out  $options(-out)
+              ::ReadoutGUIPanel::Log MultiLogger: output "$ring -> $out (pid=$pid): \"$data\""
+            }
         } else {
         
-            catch {close $loggerFd}
-            incr waitDone;             # Trigger vwait to finish if waiting.
-            set loggerFd -1;           # Set the variables back to show the logger
-            set loggerPids [list];     # no loger exists.
+            if {$loggerFd eq $channel} {
+              set ring $options(-ring)
+              set out  $options(-out)
+
+              catch {close $channel}
+              incr waitDone;             # Trigger vwait to finish if waiting.
+              set loggerFd -1;           # Set the variables back to show the logger
+              set loggerPids [list];     # no loger exists.
             
-            # If the exit was unexpected, yell:
-            
-            if {! $expectingExit} {
-            
-                set ring $options(-ring)'
-                set out  $options(-out)
+              # If the exit was unexpected, yell:
+
+              if {! $expectingExit} {
+                set msg "$ring -> $out (pid=$pid) exited unexpectedly!"
+
+                set dlgmsg "MultiLogger: $msg Check log for errors."
                 tk_messageBox -icon error -type ok -title {Logger exited} \
-                    -message "Mutlilogger: $ring ->$out unexpectedly exited check log for errors"
+                  -message $dlgmsg 
+
+                ::ReadoutGUIPanel::Log MultiLogger: error $msg 
+              } else {
+                set msg "$ring -> $out (pid=$pid) exited normally."
+                ::ReadoutGUIPanel::Log MultiLogger: log $msg
+              }
+
+            } else { 
+
+              # Log this occurrence as a warning. It is not really an error necessarily, but
+              # should be noted as something potentially bizarre.
+              set ring $options(-ring)
+              set out  $options(-out)
+              set msg "$ring -> $out: closing eventlog process (pid=$pid) different than most recently launched! "
+              append msg "This is not a bad thing if there was a failure during startup of the a previous run."
+              ::ReadoutGUIPanel::Log MultiLogger: warning $msg
+
+              # clean up the pids associated with the pipe and close the pipe 
+              set pids [pid $channel]
+              catch {close $channel}
+              foreach pid $pids {
+                catch {exec kill -9 $pid}
+              }
             }
         }
     }
@@ -781,6 +826,7 @@ proc ::multilogger::attach state {
 proc ::multilogger::leave {from to} {
     if {($from eq "Halted") && ($to eq "Active")} {
         if {[::ReadoutGUIPanel::recordData] || $::multilogger::recordAlways} {
+          ::StageareaValidation::correctAndValidate
             foreach logger $::multilogger::Loggers {
                 $logger start
             }
@@ -841,10 +887,30 @@ proc ::multilogger::initPackage {} {
         
         set ::multilogger::Initialized 1
     }
-    # Register the callback bundle prior to the event logger:
+    # Register the callback bundle just after the event logger, so that 
+    # if the event logger bundle fails, this bundle does not transition
     
     set sm [::RunstateMachineSingleton %AUTO%]
+    
     $sm addCalloutBundle multilogger EventLog
+    if {0} {
+    set bundles [$sm listCalloutBundles]
+    set evtLogIndex [lsearch -exact $bundles EventLog]
+    if {$evtLogIndex ne -1} { 
+
+      # add it after EventLog only if there is a bundle after EventLog
+      if {$evtLogIndex < [expr [llength $bundles]-1]} {
+        set bundleAfterEvtLog [lindex $bundles [expr $evtLogIndex+1]]
+        $sm addCalloutBundle multilogger $bundleAfterEvtLog
+      } else {
+        # add it to the end of the bundles 
+        $sm addCalloutBundle multilogger
+      }
+    } else {
+      #add it to the end of the bundles
+      $sm addCalloutBundle multilogger
+    }
+    }
     $sm destroy
 }
 

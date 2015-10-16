@@ -460,21 +460,16 @@ proc ::EVBC::registerS800Source {ringUrl id {desc {S800 USB data}}} {
 }
 #------------------------------------------------------------------------------
 ##
-# @fn EVBC::startRingSource
+# @fn EVBC::startRingSource [obsolete - use RingSourceMgr::startSource for new apps]
 #
 #   Starts a ring buffer event source
 #
-# @param sourceRingUrl          - URL of the source ring.
-# @param timestampExtractorLib  - Path to the timestamp extractor shared object.
-# @param id                     - Source id used to associate event fragments
-#                                 with an input queue.
-# @param info                   - Long description used to identify the source
-#                                 in the event orderer GUI.
+# @param args -set of parameters expected by ::RingSourceMgr::startSource
 # @note Event sourcese are subprocesses of us but not subprocesses of the
 #       the event building pipeline.
 #
-proc EVBC::startRingSource {sourceRingUrl timestampExtractorLib id info {expectHeaders 0}} {
-  ::RingSourceMgr::startSource $sourceRingUrl $timestampExtractorLib $id $info $expectHeaders
+proc EVBC::startRingSource {args} {
+  ::RingSourceMgr::startSource {*}$args
 }
 
 

@@ -1,7 +1,7 @@
 SUBDIRS = 	ccusb 		\
 		devices		\
-		router		\
 		rdothread	\
+		router		\
 		tclserver		\
 		daqconfig	\
 		commands	\

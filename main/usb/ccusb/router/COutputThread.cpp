@@ -40,6 +40,7 @@
 #include <CRingTextItem.h>
 #include <dlfcn.h>
 #include <CStack.h>
+#include <CControlQueues.h>
 
 #include <fragment.h>
 
@@ -167,21 +168,35 @@ COutputThread::operator()()
   }
   catch (string msg) {
     cerr << "COutput thread caught a string exception: " << msg << endl;
-    exit(EXIT_FAILURE);
   }
   catch (char* msg) {
     cerr << "COutput thread caught a char* exception: " << msg << endl;
-    exit(EXIT_FAILURE);
   }
   catch (CException& err) {
     cerr << "COutputThread thread caught a daq exception: "
 	 << err.ReasonText() << " while " << err.WasDoing() << endl;
-    exit(EXIT_FAILURE);
   }
   catch (...) {
     cerr << "COutput thread caught some other exception type.\n";
-    exit(EXIT_FAILURE);
   }
+  /**
+   * We can only get here on an exception
+   *   -   End data taking if active.
+   *   -   If necessary, flush buffers.
+   *   -   Exit with failure status.
+   */
+  CRunState* pState = CRunState::getInstance();
+  if (pState->getState() == CRunState::Active) {
+    CControlQueues *pControl = CControlQueues::getInstance();
+    pControl->EndRun();
+    while (true) {
+      DataBuffer& buffer(getBuffer());
+      if(buffer.s_bufferType == TYPE_STOP) break;
+      
+      freeBuffer(buffer);
+    }
+  }
+  exit(EXIT_FAILURE);
 }
 
 /////////////////////////////////////////////////////////////////////////

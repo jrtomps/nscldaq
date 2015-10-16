@@ -81,7 +81,9 @@ noinst_PROGRAMS = unittests
 unittests_SOURCES	= TestRunner.cpp selecttest.cpp desiredtests.cpp	\
 			  allbuttests.cpp ringitemtests.cpp teststate.cpp	\
 			scalertests.cpp texttest.cpp physcounttests.cpp		\
-			formatoutputtests.cpp dataformattests.cpp       \
+			infotests.cpp phystests.cpp trigcounttests.cpp \
+			scalerformattests.cpp  statechangetests.cpp dataformattests.cpp       \
+			textformattests.cpp					\
                         fragmenttest.cpp glomparamtests.cpp factorytests.cpp \
                       physeventtests.cpp filedatasinktests.cpp \
                      datasinkfactorytests.cpp \

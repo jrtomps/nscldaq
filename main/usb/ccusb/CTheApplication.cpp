@@ -38,6 +38,8 @@
 #include <TclServer.h>
 #include <CRingBuffer.h>
 #include <CAcquisitionThread.h>
+#include <CRunState.h>
+#include <CControlQueues.h>
 
 #include <CPortManager.h>
 #include <Events.h>
@@ -201,25 +203,33 @@ int CTheApplication::operator()(int argc, char** argv)
   }
   catch (string msg) {
     cerr << "CTheApplication caught a string exception: " << msg << endl;
-    exit(EXIT_FAILURE);
+    
   }
   catch (const char* msg) {
     cerr << "CTheApplication caught a char* excpetion " << msg << endl;
-    exit(EXIT_FAILURE);
+    
 
   }
   catch (CException& error) {
     cerr << "CTheApplication caught an NCLDAQ exception: " 
 	 << error.ReasonText() << " while " << error.WasDoing() << endl;
-    exit(EXIT_FAILURE);
+    
 
   }
   catch (...) {
     cerr << "CTheApplication thread caught an excpetion of unknown type\n";
-    exit(EXIT_FAILURE);
+    
 
   }
-    return EX_SOFTWARE; // keep compiler happy, startInterpreter should not return.
+  //  If acquisition is active shut it down.
+  
+  CRunState* pState = CRunState::getInstance();
+  if (pState->getState() == CRunState::Active) {
+    CControlQueues* pControl = CControlQueues::getInstance();
+    pControl->EndRun();
+  }
+  
+  return EX_SOFTWARE; // keep compiler happy, startInterpreter should not return.
 }
 
 

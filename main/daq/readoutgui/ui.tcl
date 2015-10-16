@@ -549,6 +549,20 @@ proc ::ReadoutGUIPanel::incrRun {} {
 #    -recording     - State of the record checkbox.
 #    -state         - Set the state of the widgets (disabled/normal)
 #
+#  @note - In order to support more than one module wanting to control
+#          the -state, there is a disable counter so that:
+#
+# <verbatim>
+
+#   .buttons configure -state disabled
+#    ...
+#   .buttons  configure -state disabled
+#   ...
+#   .buttons  configure -state normal;    # Still disabled.
+#   ...
+#   .buttons configures -state normal;    # _Now_ normal state.
+#   
+#
 snit::widgetadaptor RunControl {
     component stateMachine
     
@@ -589,6 +603,8 @@ snit::widgetadaptor RunControl {
     ]
     
     variable slave 0
+    
+    variable disableCount 0;                 # Support for nested disable.
     
     ##
     # constructor
@@ -665,9 +681,26 @@ snit::widgetadaptor RunControl {
     #
 
     method _setState {optname value} {
-	foreach b [list $win.beginend $win.pauseresume] {
-	    $b configure -state $value
-	}
+
+        set setState 0;             # Assume we make no state change.
+        if {$value eq "disabled"} {
+            incr disableCount
+            set setState 1
+        } elseif {$value eq "normal"} {
+            incr disableCount -1
+            if {$disableCount <= 0} {
+                set setState 1
+                set disableCount 0;             # In case they go too far.
+            }
+        } else {
+            error "Invalid state must be disabled or normal was $value"
+        }
+
+        if {$setState} {
+            foreach b [list $win.beginend $win.pauseresume] {
+                $b configure -state $value
+            }
+        }
 	set options($optname) $value
     }
     ##

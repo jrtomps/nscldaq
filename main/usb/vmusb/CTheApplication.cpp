@@ -40,6 +40,8 @@
 #include <CRingBuffer.h>
 #include <CAcquisitionThread.h>
 #include <os.h>
+#include <CRunState.h>
+#include <CControlQueues.h>
 
 #include <CPortManager.h>
 
@@ -244,30 +246,43 @@ int CTheApplication::operator()(int argc, char** argv)
   }
   catch (string msg) {
     cerr << "CTheApplication caught a string exception: " << msg << endl;
-    Tcl_Exit(EXIT_FAILURE);
   }
   catch (const char* msg) {
     cerr << "CTheApplication caught a char* exception " << msg << endl;
-    Tcl_Exit(EXIT_FAILURE);
 
   }
   catch (exception& exc) {
     cerr << "CTheApplication caught an exception: " << exc.what() << endl;
-    Tcl_Exit(EXIT_FAILURE);
 
   }
   catch (CException& error) {
     cerr << "CTheApplication caught an NCLDAQ exception: " 
 	 << error.ReasonText() << " while " << error.WasDoing() << endl;
 
-    Tcl_Exit(EXIT_FAILURE);
   }
   catch (...) {
     cerr << "CTheApplication thread caught an excpetion of unknown type\n";
-    Tcl_Exit(EXIT_FAILURE);
 
   }
-    return EX_SOFTWARE; // keep compiler happy, startInterpreter should not return.
+  /**
+   *  If we get here an exception occured.  If the run is active,
+   *  We'll try to shut it down.  In that way when we exit, the
+   *  VMUSB Data fifo should be flushed.
+   *
+   * TODO:
+   *   A couple of edge cases that are not handled here:
+   *   *  If the readout thread has exited because it's thrown an exception
+   *      too, the attempt to EndRun will deadlock.
+   *   *  If the Router thread has given up the ghost unexpectly, the
+   *      buffer queue could be full and again this will all neatly
+   *      deadlock.
+   */
+  CRunState* pState = CRunState::getInstance();
+  if (pState->getState() == CRunState::Active) {
+    CControlQueues* pControl = CControlQueues::getInstance();
+    pControl->EndRun();
+  }
+  return EX_SOFTWARE; // keep compiler happy, startInterpreter should not return.
 }
 
 /*

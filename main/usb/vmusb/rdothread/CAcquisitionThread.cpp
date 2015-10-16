@@ -162,6 +162,19 @@ void CAcquisitionThread::init()
     Globals::running = false;
     cerr << "CAcquisition thread caught some other exception type.\n";
   }
+  // If we are not running, there must have been an exception:
+  // -  Turn off the VM-USB
+  // -  Drain the buffers.
+  // Any exceptions here just cause us to abort this cleanup process.
+  // that's generally ok as the next run of VMUSBReadout will try
+  // to put the VMUSB into halt and flush the fifos too.
+  
+  if (!Globals::running) {
+    try {
+      stopDaq();                 // Calls drainUsb and bootToTheHead for us.
+    }
+    catch (...)  {}
+  }
 
 }
 
@@ -193,6 +206,8 @@ void CAcquisitionThread::operator()()
 
     mainLoop();     // Enter the main processing loop.
   }
+  // TODO:  Error exits should produce abnormal end items.
+  
   catch (std::string msg) {
     stopDaq();                       // Ensure we're not in ACQ moe.
     errorMessage = msg;
@@ -205,8 +220,13 @@ void CAcquisitionThread::operator()()
     stopDaq();                       // Ensure we're not in ACQ moe.
     errorMessage = err.ReasonText();
   }
-  catch (...) {
+  catch (int i) {
     //  This is a normal exit...
+  }
+  catch(...) {
+    stopDaq();
+    errorMessage = "Unanticipated exception type caught by Readout Thread";
+    
   }
   Globals::running = false;
 
@@ -289,7 +309,7 @@ CAcquisitionThread::mainLoop()
   }
   catch (...) {
     gFreeBuffers.queue(pBuffer);  // Don't lose buffers!!
-    throw;
+    throw;                        // 'normal exit' caught by caller.
   }
 }
 /*!

@@ -981,3 +981,12 @@ Work on 11.0-rc11 begins
 	that it can detect the end run even if one or more data sources
 	has exited.
 	
+11.0-015
+	* Feature #3277-  Provide a bit more activity in thread final
+	  catch blocks to ensure that XXUSB's in the stopped state and
+	  its fifos are flushed.
+	* Feature #3394 - Provide a method for Scaler events in SBS
+	readout to have a real assinged timestamp.
+	* Feature #2352 - add oneshot logic to ringfragmentsource
+	* Feature #4441 - Use non UI blocking waits for event log and evb
+	  to exit.

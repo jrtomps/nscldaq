@@ -171,6 +171,7 @@ private:
   void getTimestampExtractor();
 
   bool hasOptionalHeader();
+  void closeOut();
 };
 
 

@@ -30,6 +30,7 @@
 #include <errno.h>
 #include <string.h>
 #include <time.h>
+#include <sys/time.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/types.h>
@@ -66,14 +67,20 @@ CRingSource::CRingSource(int argc, char** argv) :
   m_pArgs(0),
   m_pBuffer(0),
   m_timestamp(0),
-  m_sourceId(0)
+  m_sourceId(0),
+  m_nEndsSeen(0)
 {
   GetOpt parsed(argc, argv);
   m_pArgs = new gengetopt_args_info;
   memcpy(m_pArgs, parsed.getArgs(), sizeof(gengetopt_args_info));
 
-
-
+  if (m_pArgs->oneshot_given) {
+    m_fOneshot  = true;
+    m_nEndRuns = m_pArgs->oneshot_arg;
+  } else {
+    m_fOneshot = false;
+  }
+  m_nTimeout = m_pArgs->timeout_arg * 1000;        // End run timeouts in ms.
 }
 /**
  * destructor
@@ -190,12 +197,20 @@ CRingSource::dataReady(int ms)
   clock_gettime(CLOCK_MONOTONIC, &initial);
 
   do {
-    if (m_pBuffer->availableData()) return true;
+    if (m_pBuffer->availableData()) {
+      m_nTimeWaited = 0;
+      return true;
+    }
     m_pBuffer->pollblock();	// block a while.
 
     clock_gettime(CLOCK_MONOTONIC, &now);
   } while(timedifMs(now, initial) < ms);
-
+  m_nTimeWaited += ms;
+  if (m_fOneshot && (m_nEndsSeen > 0) && (m_nTimeWaited > m_nTimeout)) {
+    std::cerr << "End run timeout expired exiting\n";
+    exit(EXIT_FAILURE);
+  }
+  
   return false;			// timed out.
 }
 /**
@@ -218,6 +233,7 @@ CRingSource::getEvents()
   CEVBFragmentList frags;
   uint8_t*         pFragments = reinterpret_cast<uint8_t*>(malloc(max_event*2));
   uint8_t*         pDest = pFragments;
+  bool             doExit(false);
   if (pFragments == 0) {
     throw std::string("CRingSource::getEvents - memory allocation failed");
   }
@@ -257,15 +273,28 @@ CRingSource::getEvents()
         frag.s_timestamp = p->getEventTimestamp();
         frag.s_sourceId  = p->getSourceId();
         frag.s_barrierType = p->getBarrierType();
+        if (pRingItem->s_header.s_type == END_RUN) {
+          m_nEndsSeen++;
+          if (m_fOneshot && (m_nEndsSeen >= m_nEndRuns)) {
+            doExit = true;
+          }          
+        }
     } else {
 
         // if we are here, then all is well in the world.
+        
+        frag.s_barrierType = pRingItem->s_header.s_type; // default.
         switch (pRingItem->s_header.s_type) {
         case BEGIN_RUN:
+          break;
         case END_RUN:
+          m_nEndsSeen++;
+          if (m_fOneshot && (m_nEndsSeen >= m_nEndRuns)) {
+           doExit = true;
+          }
+          break;
         case PAUSE_RUN:
         case RESUME_RUN:
-          frag.s_barrierType = pRingItem->s_header.s_type;
         case PERIODIC_SCALERS:	// not a barrier but no timestamp either.
           break;
         case PHYSICS_EVENT:
@@ -287,7 +316,7 @@ CRingSource::getEvents()
     delete p;
 
 
-
+  
     
   }
   // Send those fragments to the event builder:
@@ -299,6 +328,8 @@ CRingSource::getEvents()
 
 
   delete []pFragments;		// free storage.
+  
+  if (doExit) exit(EXIT_SUCCESS);
 }
 
 /**
@@ -335,29 +366,16 @@ CRingSource::shutdown()
 uint64_t
 CRingSource::timedifMs(struct timespec& later, struct timespec& earlier)
 {
-  time_t sec = later.tv_sec;
-  long   ns  = later.tv_nsec;
-
-  ns -= earlier.tv_nsec;
-
-  // Borrow from seconds:
-  if (ns < 0) {
-    sec--;
-    ns += 1000*1000*1000;	// 1e9 ns in a sec.
-  }
-
-  sec -= earlier.tv_sec;
-
-  // Illegal difference:
-
-  if (sec < 0) {
-    throw std::string("BUGCHECK -- Invalid time difference direction");
-  }
-
-  uint64_t result = sec;
-  result *= 1000;		// milliseconds.
-  result += ns/1000*1000;	// Nanoseconds -> ms without rounding.
-
+  struct timeval l = {later.tv_sec, later.tv_nsec/1000};
+  struct timeval e = {earlier.tv_sec, earlier.tv_nsec/1000};
+  struct timeval res;
+  timersub(&l, &e, &res);
+  
+  
+  uint64_t result = res.tv_sec * 1000;
+  result         += res.tv_usec/1000;
+  
+  
   return result;
   
 

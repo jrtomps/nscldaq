@@ -81,7 +81,6 @@ CFragmentHandlerCommand::operator()(CTCLInterpreter& interp, std::vector<CTCLObj
     
     objv[1].Bind(interp);
     std::string channelName = objv[1];
-    std::cerr << "Data from " << channelName << std::endl;
     Tcl_Channel pChannel = Tcl_GetChannel(interp.getInterpreter(), channelName.c_str(), NULL);
     if (pChannel == NULL) {
     interp.setResult(std::string("Tcl does not know about this channel name"));

@@ -103,6 +103,11 @@ private:
   tsExtractor      m_timestamp;
   bool             m_stall;
   uint32_t         m_stallCount;
+  bool             m_fOneshot;
+  unsigned         m_nEndRuns;
+  unsigned         m_nEndsSeen;
+  unsigned         m_nTimeout;
+  unsigned         m_nTimeWaited;
 
  
   

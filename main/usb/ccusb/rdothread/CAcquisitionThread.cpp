@@ -206,7 +206,7 @@ CAcquisitionThread::operator()()
     std::cerr << "Caught unexpected condition\n";
   }
   
-  endRun();			// Emit end run buffer.
+  stopDaq();			// Stop data taking/flush CCUSB emit end.
   m_Running = false;		// Exiting.
   if (errorMessage != "") {
     reportErrorToMainThread(errorMessage);

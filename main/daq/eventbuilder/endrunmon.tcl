@@ -45,6 +45,7 @@ package provide EndrunMon 1.0
 package require Thread
 package require evbcallouts
 package require RunstateMachine
+package require ui
 
 ##
 # Create the namespace and any variables needed in the parent thread.
@@ -177,13 +178,25 @@ proc ::EndrunMon::waitEndRun {} {
     # Wait on the condition variable
     # and on the thread exit.
     #
-    thread::cond wait $EndrunMon::condVar $::EndrunMon::mutex
-    thread::join $EndrunMon::tid 
+    
+    set ui [::RunControlSingleton::getInstance]
+    $ui configure -state disabled
+    
+    while {[thread::exists $::EndrunMon::tid]} {
+        thread::cond wait $EndrunMon::condVar $::EndrunMon::mutex 300
+        update idletasks;              #Keep UI alive.
+    }
+    # Thread exited so:
+    
+    thread::join $EndrunMon::tid
+    
     #
     #  indicate the thread is gone and free the mutex.
     #
     set EndrunMon::tid ""
     thread::mutex unlock $EndrunMon::mutex
+    
+    $ui configure -state normal
 }
 ##
 # abort

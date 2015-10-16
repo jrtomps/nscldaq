@@ -196,7 +196,7 @@ class noData :  public CRingBuffer::CRingBufferPredicate
 	 
 	 /*
 	   As of NSCLDAQ-11 it is possible for the item just before a begin run
-	   to be a Ring format item:
+	   to be one or more ring format items.
 	 */
 	 
 	 if (pItem->type() == RING_FORMAT) {
@@ -205,9 +205,9 @@ class noData :  public CRingBuffer::CRingBufferPredicate
 	   m_nBeginsSeen = 1;
 	   break;
 	 } else {
-	   // Ring format item must >exactly< precede BEGIN_RUN:
-	   delete pFormatItem;
-	   pFormatItem = 0;
+	   // If not a begin or a ring_item we're tossing it out.
+	   delete pItem;
+	   pItem = 0;
 	 }
 	 
 	 if (!warned && !pFormatItem) {
@@ -217,7 +217,7 @@ class noData :  public CRingBuffer::CRingBufferPredicate
        }
        
        // Now we have the begin run item; and potentially the ring format item
-       // too:
+       // too. Alternatively we have been told the run number on the command line.
        
        CRingStateChangeItem item(*pItem);
        recordRun(item, pFormatItem);
@@ -225,10 +225,17 @@ class noData :  public CRingBuffer::CRingBufferPredicate
        delete pItem;
        pFormatItem = 0;
        
-       // Return/exit after making our .exited file if this is a one-shot.
+       
      } else {
+      //
+      // Run number is overidden we don't need a state change item.  Could,
+      // for example, be a non NSCLDAQ system or a system without
+      // State change items.
+      //
        recordRun(*(reinterpret_cast<const CRingStateChangeItem*>(0)), 0);
      }
+     // Return/exit after making our .exited file if this is a one-shot.
+
      if (m_exitOnEndRun) {
        string exitedFile = m_eventDirectory;
        exitedFile       += "/.exited";

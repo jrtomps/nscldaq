@@ -24,6 +24,8 @@
 #include <Globals.h>
 #include <CVMUSB.h>
 #include <TclServer.h>
+#include <CControlQueues.h>
+
 
 #include <assert.h>
 #include <stdlib.h>
@@ -147,23 +149,57 @@ COutputThread::operator()()
 
     }
   }
+  // The close out method ensures that if data taking is active
+  // it's shutdown and the fifos flushed before we exit.
+  
   catch (string msg) {
     cerr << "COutput thread caught a string exception: " << msg << endl;
-    exit(EXIT_FAILURE);
+    
   }
   catch (char* msg) {
     cerr << "COutput thread caught a char* exception: " << msg << endl;
-    exit(EXIT_FAILURE);
+    
   }
   catch (CException& err) {
     cerr << "COutputThread thread caught a daq exception: "
          << err.ReasonText() << " while " << err.WasDoing() << endl;
-    exit(EXIT_FAILURE);
+    
   }
   catch (...) {
     cerr << "COutput thread caught some other exception type.\n";
-    exit(EXIT_FAILURE);
+    
   }
+  /*
+   * Control can only fall here on an exception.  There are two cases to consider:
+   *   # The run is active (most likely case).  Tell the readout threadd to
+   *      shutdown the run and get/release data buffers until the end run
+   *      marker buffer is seens.  We don't process the buffers because
+   *      presumbably that was what caused this in the first plaxce.
+   *  #   The run is idle - In that case we can safely just exit.
+   *
+   *  TODO:  Is it necessary to provide a non-blocking form of EndRun()?
+   *         is it possible that when we do the pControls->EndRun() the
+   *         buffer queue is full so we deadlock and never get an ack?
+   *         I don't think that's likely but it _is_ a currently unhandled edge
+   *         case.
+   */
+  
+
+   CRunState* pRunstate = CRunState::getInstance();
+   CRunState::RunState state = pRunstate->getState();
+   if ((state == CRunState::Active)) {
+      cerr << "Run is active, asking VMUSB to shutdown\n";
+      CControlQueues* pControls = CControlQueues::getInstance();
+      pControls->EndRun(); 
+      cerr << "VMUSB is shutdown...flushing buffers\n";
+      while (true) {
+        DataBuffer& buffer(getBuffer());
+        if (buffer.s_bufferType == TYPE_STOP) break;
+        freeBuffer(buffer);
+      }
+      cerr << "Flushed... exiting\n";
+   }
+   exit(EXIT_FAILURE);                  // Exiting with clean fifos.
 }
 
 /////////////////////////////////////////////////////////////////////////

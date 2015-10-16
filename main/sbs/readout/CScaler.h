@@ -60,6 +60,9 @@ public:
   virtual std::vector<uint32_t> read() = 0;
 
   virtual bool isComposite() const;
+
+  virtual uint64_t timestamp();
+  virtual int      sourceId();
 };
 
 #endif
