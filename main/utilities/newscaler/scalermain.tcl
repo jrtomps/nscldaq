@@ -209,14 +209,22 @@ proc clearStripcharts {} {
 	foreach series $seriesNames {
 	    $::stripcharts clearSeries $series
 	}
-	# Ensure the next time is a new one:
-	
-	foreach item [_getStripItems] {
-	    $item clear
-	}
+
+
 	#  Reset the ymax to 1 so autoscale will start up again.:
 	
-	$::stripcharts configure -ymax 1
+	$::stripcharts configure -ymax 1 -xmin 0 -xmax $::scalerconfig::stripChartOptions(-timeaxis)
+
+	# Create empty series...to re-establish colors.
+	#
+	foreach series [_getStripItems] color {black red green blue goldenrod purple cyan yellow orange brown} {
+	    if {$series eq ""} {
+		break
+	    }
+	    $series clear;                          # Invalidate the time.
+	    $::stripcharts series [$series name] [list] [list] $color
+	}
+
     }
 }
 ##
@@ -252,16 +260,12 @@ proc updateStripcharts {} {
 	}
 	
 	# If needed update the -ymax to autoscale that axis.
-	#  The game with limits is needed in case the x axis has scrolled.
-	#  in which case it won't be what -xmin/-xmax say it will be.
 	
 	
 	
 	if {$ymax > [$::stripcharts cget -ymax]} {
 	    set ymax [expr {$ymax * 1.1}]
-	    set limits [$::stripcharts getPlotLimits]
-	    $::stripcharts configure \
-            -ymax $ymax -xmin [lindex $limits 0] -xmax [lindex $limits 1]
+	    $::stripcharts configure -ymax $ymax
 	}
     }
 }

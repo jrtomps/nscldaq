@@ -990,3 +990,8 @@ Work on 11.0-rc11 begins
 	* Feature #2352 - add oneshot logic to ringfragmentsource
 	* Feature #4441 - Use non UI blocking waits for event log and evb
 	  to exit.
+	* Fix scaler display error in wrapping counts when channel is in
+    	  non-incremental mode.
+	* Ensure that the strip chart plot limits get reset at the start
+	  of a new run rather than remaining off to the right somewhere.
+	
