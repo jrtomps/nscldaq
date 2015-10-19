@@ -60,6 +60,7 @@ snit::type Channel {
     variable elapsed 0
     variable sumOfSquares 0
     variable samples      0
+    variable overflowCount 0
     
     # The data below is needed to handle wraps in non-incremental mode
     
@@ -107,16 +108,16 @@ snit::type Channel {
             # not possible to correct for multiple wraps:
             
             if {$counts < $lastUpdate} {
-                set lastUpdate $counts
-                incr counts [expr 1 << $options(-width)]
-            } else {
-                set lastUpdate $counts
-            }
+		incr overflowCount
+            }   
+	    set lastUpdate $counts
+	    incr counts [expr $overflowCount * (1 << $options(-width))]; # Adjust for all historical oveflows.
             
             # non incremental scaler:
             
             set rate [expr {double($counts - $total)/$dt}]
             set total $counts
+
             
         }
         set elapsed [expr {$elapsed + $dt}];      # dt could be non-integer.
@@ -133,6 +134,8 @@ snit::type Channel {
         set elapsed 0
         set sumOfSquares 0
         set samples 0
+	set lastUpdate 0
+	set overflowCount 0
     }
     ##
     # alarming
