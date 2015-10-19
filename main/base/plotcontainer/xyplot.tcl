@@ -566,8 +566,8 @@ snit::type Plotchart::xyplotContainer {
     method _ScheduleRecreate {optionName value} {
         # Update the option value:
         
+
         set options($optionName) $value
-        
         #  If necessary schedule the update:
         
         if {$recreateAfterId == -1} {
@@ -781,8 +781,6 @@ snit::type Plotchart::xyplotContainer {
     #      recreate request.
     #
     method _Recreate {} {
-        
-        
          
         # Kill off any existing plot:
         # and save the marker information so the markers can be regenerated.
@@ -833,7 +831,6 @@ snit::type Plotchart::xyplotContainer {
         set options(-xmax) [lindex $xSpecs 1]
         set options(-ymin) [lindex $ySpecs 0]
         set options(-ymax) [lindex $ySpecs 1]
-        
         
         set plotId [$options(-plottype) $options(-canvas) $xSpecs $ySpecs ]
         set options(-plotid) $plotId
@@ -914,11 +911,12 @@ snit::type Plotchart::xyplotContainer {
 
         # plot the series and set its color:
         # If there are no points give up:
+
+        $options(-plotid) dataconfig $name -color $color -type line
         
         if {[llength [lindex $coords 0]] < 2} return
         
         
-        $options(-plotid) dataconfig $name -color $color -type line
         $options(-plotid) plotlist $name [lindex $coords 0] [lindex $coords 1]
     }
     ##
