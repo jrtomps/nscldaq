@@ -419,6 +419,7 @@ AC_CONFIG_FILES([Makefile
 		 utilities/services/lsservices
 		 utilities/services/svcpropset
 		 utilities/services/svcwiz
+		 utilities/expEditor/Makefile
                  epics/chanlog/Makefile
                  epics/controlpush/Makefile
                  epics/epicsdisplay/Makefile
