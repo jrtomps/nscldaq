@@ -1190,7 +1190,9 @@ sis3820 cget <replaceable>name</replaceable>
                <option>-timestamp</option> mode in which case the data are three
                longwords that consist of channel 0, channel 16 and the high bits
                register that has the top 16 bits of each of those channels as
-               a 48 bit scaler.
+               a 48 bit scaler. In the timestamp mode, the scaler values are 
+               latched when a logic signal arrives on control input 1, because
+               the module is configured for control input mode 1.
             </para>
             <para>
                The <command>config</command> sub-command configures the options
