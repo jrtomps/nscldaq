@@ -110,7 +110,3 @@ CFileIterator::onEnd()
             << m_nSuccessCount << " Failed: " << m_nErrorCount << std::endl;
     }
 }
-
-// So I can commit without pissing off jenkins
-
-int main(int argc, char**argv) {}

@@ -1,6 +1,6 @@
 bin_PROGRAMS =dumpend
 
-dumpend_SOURCES = CFileIterator.cpp CFileIterator.h
+dumpend_SOURCES = CFileIterator.cpp CFileIterator.h main.cpp CEndRunInfo.cpp CEndRunInfo.h
 
 
 noinst_PROGRAMS=unittests
