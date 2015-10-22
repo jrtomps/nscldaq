@@ -420,6 +420,7 @@ AC_CONFIG_FILES([Makefile
 		 utilities/services/svcpropset
 		 utilities/services/svcwiz
 		 utilities/expEditor/Makefile
+		 utilities/dumpend/Makefile
                  epics/chanlog/Makefile
                  epics/controlpush/Makefile
                  epics/epicsdisplay/Makefile
