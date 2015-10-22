@@ -43,7 +43,7 @@ include_HEADERS	= CRingSelectionPredicate.h	\
                         CDataFormatItem.h        \
                         CGlomParameters.h       \
                         CUnknownFragment.h      \
-			DataFormat.h	\
+			DataFormat.h DataFormat10.h	\
       RingItemComparisons.h \
 			CDataSource.h CRingDataSource.h CFileDataSource.h \
 			CDataSourceFactory.h \
