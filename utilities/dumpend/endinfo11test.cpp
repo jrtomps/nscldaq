@@ -182,4 +182,4 @@ void TestEndInfo11::nobodyHeaderThrows()
   );
 }
 
-void TestEndInfo11:twoWithBh() {}
+void TestEndInfo11::twoWithBh() {}
