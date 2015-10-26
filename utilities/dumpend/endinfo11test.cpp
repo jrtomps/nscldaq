@@ -182,4 +182,55 @@ void TestEndInfo11::nobodyHeaderThrows()
   );
 }
 
-void TestEndInfo11::twoWithBh() {}
+// This run has two end run records with body headers.
+//
+void TestEndInfo11::twoWithBh()
+{
+  char tmplate[] = "testrunXXXXXX";
+  int fd = mkstemp(tmplate);
+  time_t now = time(NULL);
+  
+  // First one:
+  
+  CRingStateChangeItem end(
+    666, 1, 2,
+    END_RUN, 1234, 456, now, "This is a title"
+  );
+  RingItem* pItem = end.getItemPointer();
+  uint32_t itemSize = pItem->s_header.s_size;
+  io::writeData(fd, pItem, itemSize);
+    
+  // Second one:
+  
+  CRingStateChangeItem end2(
+    676, 2, 2,
+    END_RUN, 1234, 456, now, "This is a title"
+  );
+  pItem    = end2.getItemPointer();
+  itemSize = pItem->s_header.s_size;
+  io::writeData(fd, pItem, itemSize);
+  
+  // Rewind the fd and create the end run info around it.
+  
+  lseek(fd, 0, SEEK_SET);
+  CEndRunInfo11 er(fd);
+  close(fd);                          // should be done now.
+  
+  // Now check what we found:
+  
+  EQ(2U, er.numEnds());
+  
+  ASSERT(er.hasBodyHeader(0));
+  ASSERT(er.hasBodyHeader(1));
+  
+  // These should be enough to tell us that we are getting the
+  // right items.
+  
+  EQ(uint64_t(666), er.getEventTimestamp(0));
+  EQ(uint64_t(676), er.getEventTimestamp(1));
+  
+  EQ(uint32_t(1), er.getSourceId());
+  EQ(uint32_t(2), er.getSourceId(1));
+  
+  
+}
