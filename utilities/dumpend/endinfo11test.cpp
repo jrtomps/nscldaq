@@ -28,9 +28,11 @@ class TestEndInfo11 : public CppUnit::TestFixture {
   CPPUNIT_TEST(noSuchEr1);
   CPPUNIT_TEST(nobodyHeaderThrows);
 
+  // probably if I can do two I can do n.
+  
   CPPUNIT_TEST(twoWithBh);
-  // CPPUNIT_TEST(twoWoBh);
-  // CPPUNIT_TEST(twoWithMixed);
+  CPPUNIT_TEST(twoWoBh);
+  CPPUNIT_TEST(twoWithMixed);
 
   CPPUNIT_TEST_SUITE_END();
 
@@ -50,6 +52,8 @@ protected:
   void nobodyHeaderThrows();
   
   void twoWithBh();
+  void twoWoBh();
+  void twoWithMixed();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(TestEndInfo11);
@@ -233,4 +237,90 @@ void TestEndInfo11::twoWithBh()
   EQ(uint32_t(2), er.getSourceId(1));
   
   
+}
+
+
+void TestEndInfo11::twoWoBh()
+{
+  char tmplate[] = "testrunXXXXXX";
+  int fd = mkstemp(tmplate);
+  time_t now = time(NULL);
+  
+  // first one:
+  
+  CRingStateChangeItem end(
+    END_RUN, 1234, 456, now, "This is a title"
+  );
+  RingItem* pItem = end.getItemPointer();
+  uint32_t itemSize = pItem->s_header.s_size;
+  io::writeData(fd, pItem, itemSize);
+  
+  // Second one: + 10 seconds to tell them apart.
+
+  CRingStateChangeItem end2(
+    END_RUN, 1234, 456, now+10, "This is a title"
+  );
+  pItem    = end2.getItemPointer();
+  itemSize = pItem->s_header.s_size;
+  io::writeData(fd, pItem, itemSize);
+  
+  // Rewind the fd and create the end run info around it.
+  
+  lseek(fd, 0, SEEK_SET);
+  CEndRunInfo11 er(fd);
+  close(fd);                          // should be done now.
+  
+  // Now check what we found:
+  
+  EQ(2U, er.numEnds());
+  
+  ASSERT(!er.hasBodyHeader(0));
+  ASSERT(!er.hasBodyHeader(1));
+  
+  // This should be enough to differentiate them:
+  
+  EQ(now, er.getTod());    // 0.
+  EQ(now+10, er.getTod(1));
+  
+}
+
+void TestEndInfo11::twoWithMixed()   // One with body hdr one without.
+{
+  char tmplate[] = "testrunXXXXXX";
+  int fd = mkstemp(tmplate);
+  time_t now = time(NULL);
+  
+  // First one:
+  
+  CRingStateChangeItem end(
+    666, 1, 2,
+    END_RUN, 1234, 456, now, "This is a title"
+  );
+  RingItem* pItem = end.getItemPointer();
+  uint32_t itemSize = pItem->s_header.s_size;
+  io::writeData(fd, pItem, itemSize);
+
+  // second one:
+  
+  CRingStateChangeItem end2(
+    END_RUN, 1234, 456, now+10, "This is a title"
+  );
+  pItem    = end2.getItemPointer();
+  itemSize = pItem->s_header.s_size;
+  io::writeData(fd, pItem, itemSize);
+  
+  // Rewind the fd and create the end run info around it.
+  
+  lseek(fd, 0, SEEK_SET);
+  CEndRunInfo11 er(fd);
+  close(fd);                          // should be done now.
+  
+  // Now check what we found:
+  
+  EQ(2U, er.numEnds());
+  
+  // Should be enough to differentiate.
+  
+  ASSERT(er.hasBodyHeader(0));
+  ASSERT(!er.hasBodyHeader(1));
 }
