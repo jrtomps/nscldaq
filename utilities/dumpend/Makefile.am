@@ -16,6 +16,7 @@ noinst_PROGRAMS=unittests
 
 unittests_SOURCES=TestRunner.cpp fileitertest.cpp \
 	endinfo11test.cpp endrun10test.cpp	\
+	erinfofactorytest.cpp			\
 	CFileIterator.cpp CFileIterator.h \
 	CEndRunInfo.cpp CEndRunInfo.h	\
 	CEndRunInfo11.cpp CEndRunInfo11.h \
