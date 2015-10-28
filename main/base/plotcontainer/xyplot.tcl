@@ -961,12 +961,9 @@ snit::type Plotchart::xyplotContainer {
         
         set index 0;         # Starting with first data point.
         
-        return [CAEN::digitizer decimate \
-            $data $lowXpixel $hiXpixel $options(-xmin) $options(-xmax)]
         
-        # TODO:
-        #   When I'm really confident remove this code as the C++ call
-        #   above is much faster and hopefully synonymous.
+        # At NSCL the compiled decimation proc is not available as that's part
+        # of the CAEN digitizer wrapper which is not used/supplied.
 
         for {set p $lowXpixel} {$p < $hiXpixel} {incr p} {
             
