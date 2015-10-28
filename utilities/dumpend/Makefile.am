@@ -26,7 +26,7 @@ CLEAN_FILES=options.c options.h
 
 @srcdir@/options.h: @srcdir@/options.ggo
 	$(GENGETOPT) < @srcdir@/options.ggo \
-	--output-dir=@srcdir@ --file options --unamed-opts="OPTIONS" 
+	--output-dir=@srcdir@ --file option --unamed-opts=FILE 
 
 
 noinst_PROGRAMS=unittests
