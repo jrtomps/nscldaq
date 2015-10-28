@@ -53,13 +53,7 @@ public:
     virtual uint32_t getRunNumber(int which = 0)      const = 0;
     virtual float    getElapsedTime(int which=0)      const = 0;
     virtual std::string getTitle(int which=0)         const = 0;
-    virtual time_t   getTod(int which = 0)            const = 0;
-    
-    
-    
-    
-    
-    
+    virtual time_t   getTod(int which = 0)            const = 0;    
 };
 
 #endif
