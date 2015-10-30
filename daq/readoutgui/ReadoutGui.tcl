@@ -30,7 +30,7 @@ package require rdoCalloutsBundle;     # Auto registers.
 package require ExpFileSystem
 package require Diagnostics
 package require StateManager
-
+package require multilogger
 ##
 # @class ProviderList
 #

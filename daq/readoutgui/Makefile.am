@@ -42,7 +42,8 @@ TCLPACKAGES=Configuration.tcl \
 	ReadoutGuiClient.tcl readoutGuiProvider.tcl \
   versionUtils.tcl error.png \
   delayProvider.tcl \
-  offlineProvider.tcl
+  offlineProvider.tcl \
+  multilogger.tcl
 
 
 
