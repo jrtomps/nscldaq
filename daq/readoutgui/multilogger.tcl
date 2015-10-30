@@ -140,8 +140,19 @@ snit::type EventLogger {
     #
     method start {} {
         if {$options(-enable)} {
+            #
+            #  Ensure the output directory is writable:
+            #
+            
+            file attributes $options(-out) -permissions u+rw
+            
+            # Save the run number and start time for end run renaming.
+            
             set run [ReadoutGUIPanel::getRun]
             set startTime [clock seconds]
+            
+            # Construct the logger command and start it.
+            
             set command [list $loggerProgram                        \
                 --source=$options(-ring) --path=$options(-out)      \
                 --oneshot --checksum                                \
@@ -149,6 +160,8 @@ snit::type EventLogger {
                 
             ]
             set loggerFd [open "| $command |& cat" r]
+
+            # Enable event driven handling of output from the logger.
             
             fileevent $loggerFd readable [mymethod _handleInput]
             set expectingExit 0
@@ -281,9 +294,17 @@ snit::type EventLogger {
             append basename "-[clock format $startTime -format {%d%b%Y-%T}]"
             set newpath [file join $dir $basename]$ext
             
-            puts "Renaming $fullpath -> $newpath"
+            
             file rename -force $fullpath $newpath
+            
+            # Turn off write access for everyone:
+            
+            file attributes $newpath -permissions ugo-w
+            
         }
+        # Turn off writ-ability of the directory:
+        
+        file attributes $options(-out) -permissions ugo-w 
         
     }
 }

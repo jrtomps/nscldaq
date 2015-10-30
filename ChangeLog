@@ -882,4 +882,8 @@ Work on 11.0-rc11 begins
 	services.
 	Feature #3796 - ZMQ GUI for run control
 	Feature #1668 - add program to dump end of runs.l
-        Bug #4735 - Ensure multilogger does not try to overwrite existing runs.	
+        Bug #4735 - Ensure multilogger does not try to overwrite existing
+	runs.	
+	Feature #4732 - Multilogger should play the same permission games
+	that eventlog does.
+	
