@@ -1,0 +1,93 @@
+#!/bin/sh
+# -*- tcl -*-
+# The next line is executed by /bin/sh, but not tcl \
+exec tclsh "$0" ${1+"$@"}
+
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2014.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Authors:
+#             Ron Fox
+#             Jeromy Tompkins 
+#	     NSCL
+#	     Michigan State University
+#	     East Lansing, MI 48824-1321
+
+
+
+##
+# @file properties.test
+# @brief Test for the property 'class'.
+# @author Ron Fox <fox@nscl.msu.edu>
+#
+
+
+package require tcltest
+source properties.tcl
+
+tcltest::test property-needs-name {Making a property without a name is an error} \
+-body {
+catch {property %AUTO%} 
+} -result 1
+
+tcltest::test property-construct-ok {Construct a property properly} \
+-body {
+    set p [property %AUTO% -name test]
+    lappend result [$p cget -name]
+    lappend result [$p cget -value]
+    lappend result [$p cget -validate]
+    
+    set result
+} -result [list test "" ""]
+
+tcltest::test property-namerdo {Property names are invariant} \
+-setup {
+    set p [property %AUTO% -name test]
+} \
+-body {
+    catch {$p configure -name forbidden}
+    
+} -result 1
+
+
+tcltest::test property-set {unvalidated set} \
+-setup {
+    set p [property %AUTO% -name test]
+} \
+-body {
+    set value {just about anything is legal}
+    $p configure -value $value
+    
+    expr {$value eq [$p cget -value]}
+} -result 1
+
+tcltest::test property-set-validator1 {Set with validator - ok value} \
+-setup {
+    set p [property %AUTO% -name test -validate [snit::integer %AUTO% -min 0 -max 10 ]]
+} \
+-body {
+    catch {$p configure -value 2}
+} -result 0
+    
+tcltest::test property-set-validator2 {Set with validator - bad value} \
+-setup {
+    set p [property %AUTO% -name test -validate [snit::integer %AUTO% -min 0 -max 10 ]]
+} \
+-body {
+    catch {$p configure -value 20}
+} -result 1
+# End/summarize the tests - note the magic below is intended to ensure that
+# a failed test fails the makefile test target too.
+
+proc tcltest::cleanupTestsHook {} {
+    variable numTests
+    set ::exitCode $numTests(Failed)
+}
+
+
+tcltest::cleanupTests
