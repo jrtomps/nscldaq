@@ -7,7 +7,7 @@ install-exec-local:
 	echo pkg_mkIndex @prefix@/TclLibs/expeditor "*.tcl" | @TCLSH_CMD@
 
 
-TCLTESTS=properties.test
+TCLTESTS=properties.test proplist.test
 
 check-TESTS:
 	for f in $(TCLTESTS); do @TCLSH_CMD@ $$f; done

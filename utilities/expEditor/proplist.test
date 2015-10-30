@@ -1,0 +1,115 @@
+#!/bin/sh
+# -*- tcl -*-
+# The next line is executed by /bin/sh, but not tcl \
+exec tclsh "$0" ${1+"$@"}
+
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2014.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Authors:
+#             Ron Fox
+#             Jeromy Tompkins 
+#	     NSCL
+#	     Michigan State University
+#	     East Lansing, MI 48824-1321
+
+
+
+##
+# @file proplist.test
+# @brief Tests for the property list object.
+# @author Ron Fox <fox@nscl.msu.edu>
+#
+package require tcltest
+
+source properties.tcl
+
+tcltest::test construct-1  {Construction of the list is ok} \
+-body {
+    catch {propertylist %AUTO%}
+} -result 0
+
+tcltest::test getobjs-1 {Empty object list} \
+-setup {
+    set pl [propertylist %AUTO%]
+} \
+-body {
+    $pl get
+} -result [list]
+
+tcltest::test addobjs-1 {Adding an object to the property list should get it back} \
+-setup {
+    set p   [property %AUTO% -name test -value 1234]
+    set pl [propertylist %AUTO%]
+} \
+-body {
+    $pl add $p
+    set props [$pl get]
+    list [llength $props] [$props cget -value] [$props cget -name]
+} -result [list 1 1234 test]
+
+tcltest::test addobjs-2 {Adding a pair of objects} \
+-setup {
+    set p1   [property %AUTO% -name test1 -value 1234]
+    set p2   [property %AUTO% -name test2]
+    set p [propertylist %AUTO%]
+} \
+-body {
+    $p add $p1
+    $p add $p2
+    
+    set props [$p get]
+    lappend result [[lindex $props 0] cget -name]
+    lappend result [[lindex $props 1] cget -name]
+    
+    set result
+} -result [list test1 test2]
+
+tcltest::test clear {Clear object list} \
+-setup {
+    set p1   [property %AUTO% -name test1 -value 1234]
+    set p2   [property %AUTO% -name test2]
+    set p [propertylist %AUTO%]
+    
+    $p add $p1
+    $p add $p2
+} \
+-body {
+    $p clear
+    
+    $p get
+} -result [list]
+
+tcltest::test foreach {Test iteration over properties} \
+-setup {
+    set p1   [property %AUTO% -name test1 -value 1234]
+    set p2   [property %AUTO% -name test2 -value 4567]
+    set p [propertylist %AUTO%]
+    
+    $p add $p1
+    $p add $p2
+} \
+-body {
+    set result [dict create]
+
+    $p foreach var {
+        dict set result [$var cget -name] [$var cget -value]
+    }
+    set result
+} -result [list test1 1234 test2 4567]
+
+# End/summarize the tests - note the magic below is intended to ensure that
+# a failed test fails the makefile test target too.
+
+proc tcltest::cleanupTestsHook {} {
+    variable numTests
+    set ::exitCode $numTests(Failed)
+}
+
+
+tcltest::cleanupTests

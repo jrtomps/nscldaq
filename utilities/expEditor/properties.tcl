@@ -76,3 +76,56 @@ snit::type property {
         }
     }
 }
+##
+# @class propertylist
+#    List of properties.
+#
+# METHODS:
+#    get   - Returns he current property list.
+#    add   - Adds a new property to the list.
+#    clear - Clear the property list.
+#    foreach - Execute a script for each property in the list.
+#
+snit::type propertylist {
+    variable props [list]
+    
+    ##
+    # get
+    #   Return the list of properties:
+    #
+    method get {} {
+        return $props
+    }
+    ##
+    #  add
+    #    Append a property to the list:
+    #
+    # @param property  - property object to append.
+    method add {property} {
+        lappend props $property
+    
+    }
+    ##
+    #  clear
+    #
+    # Clear the property list.  Note that the properties themselves are not
+    # destroyed.
+    #
+    method clear {} {
+        set props [list]
+    }
+    ##
+    #  foreach
+    #    Iterate over all properties in the list applying a script to each.
+    # @param var - variable that will receive the property object in script's
+    #              stack level.
+    # @param script - script to execute
+    #
+    method foreach {var script} {
+        upvar 1 $var property
+        foreach property $props {
+            uplevel 1 $script
+        }
+    }
+}
+
