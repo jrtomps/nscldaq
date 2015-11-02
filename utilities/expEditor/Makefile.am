@@ -1,9 +1,11 @@
 TCLPACKAGES=properties.tcl propertyEditor.tcl
+IMAGES=program.png ringbuffer.png
 
 install-exec-local:
 	$(mkinstalldirs) @prefix@/TclLibs
 	$(mkinstalldirs) @prefix@/TclLibs/expeditor
 	for f in $(TCLPACKAGES) ; do $(INSTALL_SCRIPT) @srcdir@/$$f @prefix@/TclLibs/expeditor; done
+	for f in $(IMAGES) ; do $(INSTALL_DATA) @srcdir@/$$f @prefix@/TclLibs/expeditor; done
 	echo pkg_mkIndex -verbose @prefix@/TclLibs/expeditor "*.tcl" | @TCLSH_CMD@
 
 
@@ -13,4 +15,4 @@ check-TESTS:
 	for f in $(TCLTESTS); do @TCLSH_CMD@ $$f; done
 
 
-EXTRA_DIST = $(TCLPACKAGES) $(TCLTESTS)
+EXTRA_DIST = $(TCLPACKAGES) $(TCLTESTS) $(IMAGES)
