@@ -1,10 +1,10 @@
-TCLPACKAGES=properties.tcl
+TCLPACKAGES=properties.tcl propertyEditor.tcl
 
 install-exec-local:
 	$(mkinstalldirs) @prefix@/TclLibs
 	$(mkinstalldirs) @prefix@/TclLibs/expeditor
-	$(INSTALL_SCRIPT) properties.tcl @prefix@/TclLibs/expeditor
-	echo pkg_mkIndex @prefix@/TclLibs/expeditor "*.tcl" | @TCLSH_CMD@
+	for f in $(TCLPACKAGES) ; do $(INSTALL_SCRIPT) @srcdir@/$$f @prefix@/TclLibs/expeditor; done
+	echo pkg_mkIndex -verbose @prefix@/TclLibs/expeditor "*.tcl" | @TCLSH_CMD@
 
 
 TCLTESTS=properties.test proplist.test
