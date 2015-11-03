@@ -27,7 +27,8 @@ exec tclsh "$0" ${1+"$@"}
 #
 package require tcltest
 
-source properties.tcl
+set here [file dirname [info script]]
+source [file join $here properties.tcl]
 
 tcltest::test construct-1  {Construction of the list is ok} \
 -body {
@@ -102,6 +103,33 @@ tcltest::test foreach {Test iteration over properties} \
     }
     set result
 } -result [list test1 1234 test2 4567]
+
+tcltest::test find-1 {Find with no match gives empty} \
+-setup {
+    set p1   [property %AUTO% -name test1 -value 1234]
+    set p2   [property %AUTO% -name test2 -value 4567]
+    set p [propertylist %AUTO%]
+    
+    $p add $p1
+    $p add $p2
+} \
+-body {
+    $p find junk
+} -result ""
+
+tcltest::test find-2 {Find with match gives correcty one} \
+-setup {
+    set p1   [property %AUTO% -name test1 -value 1234]
+    set p2   [property %AUTO% -name test2 -value 4567]
+    set p [propertylist %AUTO%]
+    
+    $p add $p1
+    $p add $p2
+} \
+-body {
+    set prop [$p find test2]
+    $prop cget -value
+} -result 4567
 
 # End/summarize the tests - note the magic below is intended to ensure that
 # a failed test fails the makefile test target too.

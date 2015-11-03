@@ -26,7 +26,7 @@ exec tclsh "$0" ${1+"$@"}
 # @author Ron Fox <fox@nscl.msu.edu>
 #
 package require Tk
-package require DaqObject
+package require daqObject
 package require img::png
 
 ##

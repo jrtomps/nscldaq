@@ -25,7 +25,7 @@ exec tclsh "$0" ${1+"$@"}
 # @brief Base functionality for an object in the daq  configuration editor.
 # @author Ron Fox <fox@nscl.msu.edu>
 #
-package provide DaqObject 1.0
+package provide daqObject 1.0
 package require Tk
 package require snit
 ##
@@ -50,8 +50,8 @@ package require snit
 #     clone    - Return an object with this image that is not on a canvas.
 #
 snit::type DaqObject {
-    option -image ""   -configuremethod _unbind
-    option -canvas ""  -configuremethod _unbind
+    option -image  -default ""  -configuremethod _unbind
+    option -canvas -default ""  -configuremethod _unbind
     
     # Current position.
     

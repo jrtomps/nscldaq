@@ -1,0 +1,278 @@
+#!/bin/sh
+# -*- tcl -*-
+# The next line is executed by /bin/sh, but not tcl \
+exec tclsh "$0" ${1+"$@"}
+
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2014.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Authors:
+#             Ron Fox
+#             Jeromy Tompkins 
+#	     NSCL
+#	     Michigan State University
+#	     East Lansing, MI 48824-1321
+
+
+
+##
+# @file ringobject.test
+# @brief Tests for RingBuffer 'class'.
+# @author Ron Fox <fox@nscl.msu.edu>
+#
+
+set here [file dirname [info script]]
+
+source [file join $here ringBuffer.tcl]
+package require tcltest
+
+tcltest::test construct-1 {Construction makes object with no provider.} \
+-setup {
+    set o [RingBuffer %AUTO%]
+    
+} \
+-cleanup {
+    $o destroy
+} \
+-body {
+    
+    $o cget -provider
+    
+} -result ""
+
+tcltest::test construct-2 {Construction makes object with no consumers} \
+-setup {
+    set o [RingBuffer %AUTO%]
+    
+} \
+-cleanup {
+    $o destroy
+} \
+-body {
+    $o getSinks
+} -result [list]
+
+tcltest::test construct-3 {Construction makes node property but empty} \
+-setup {
+    set o [RingBuffer %AUTO%]
+    
+} \
+-cleanup {
+    $o destroy
+} \
+-body {
+    set properties [$o getProperties]
+    $properties foreach property {
+        if {[$property cget -name] eq "host"} {
+            set result [$property cget -value]
+        }
+    }
+    set result
+} -result ""
+
+
+tcltest::test construct-4 {Construction makes name properyt but empty} \
+-setup {
+    set o [RingBuffer %AUTO%]
+    
+} \
+-cleanup {
+    $o destroy
+} \
+-body {
+    set properties [$o getProperties]
+    $properties foreach property {
+        if {[$property cget -name] eq "name"} {
+            set result [$property cget -value]
+        }
+    }
+    set result
+} -result ""
+
+tcltest::test construct-5 {Construction with source sticks} \
+-setup {
+    set o [RingBuffer %AUTO% -provider junk]
+    
+} \
+-cleanup {
+    $o destroy
+} \
+-body {
+    $o cget -provider
+} -result junk
+
+tcltest::test sink-1 {Adding a sink allows me to see the sink} \
+-setup {
+    set o [RingBuffer %AUTO%]
+} \
+-cleanup {
+    $o destroy
+} \
+-body {
+    $o addSink sink1
+    $o getSinks
+} -result [list sink1]
+
+tcltest::test sink-2 {Adding a few sinks gives them back to me} \
+-setup {
+    set o [RingBuffer %AUTO%]
+} \
+-cleanup {
+    $o destroy
+} \
+-body {
+    $o addSink sink1
+    $o addSink sink2
+    $o addSink sink3
+    $o addSink sink4
+    
+    $o getSinks
+} -result [list sink1 sink2 sink3 sink4]
+
+tcltest::test delsink-1 {Removing a sink removes it} \
+-setup {
+    set o [RingBuffer %AUTO%]
+} \
+-cleanup {
+    $o destroy
+} \
+-body {
+    $o addSink sink1
+    $o addSink sink2
+    $o addSink sink3
+    $o addSink sink4
+     
+    $o rmSink sink3
+    $o getSinks
+} -result [list sink1 sink2 sink4]
+
+tcltest::test delsink-2 {Clearing sinks does just that} \
+-setup {
+    set o [RingBuffer %AUTO%]
+} \
+-cleanup {
+    $o destroy
+} \
+-body {
+    $o addSink sink1
+    $o addSink sink2
+    $o addSink sink3
+    $o addSink sink4
+    
+    $o clearSinks
+    
+    $o getSinks
+    
+} -result [list]
+
+tcltest::test clone-1 {cloning should produce the same provider} \
+-setup {
+    set o [RingBuffer %AUTO% -provider ptest]
+    $o addSink sink1
+    $o addSink sink2
+    $o addSink sink3
+    
+    set props [$o getProperties]
+    set name [$props find name]
+    $name configure -value "myring"
+    
+    set host [$props find host]
+    $host configure -value "some.host.some.where"
+    
+} \
+-cleanup {
+    $o  destroy
+} \
+-body {
+    set new [$o clone]
+    $new cget -provider
+} -result ptest
+
+tcltest::test clone-2 {Cloning gives same sinks} \
+-setup {
+    set o [RingBuffer %AUTO% -provider ptest]
+    $o addSink sink1
+    $o addSink sink2
+    $o addSink sink3
+    
+    set props [$o getProperties]
+    set name [$props find name]
+    $name configure -value "myring"
+    
+    set host [$props find host]
+    $host configure -value "some.host.some.where"
+    
+} \
+-cleanup {
+    $o  destroy
+} \
+-body {
+    set new [$o clone]
+    $new getSinks
+} -result [list sink1 sink2 sink3]
+
+tcltest::test clone-3 {Cloning gives same host} \
+-setup {
+    set o [RingBuffer %AUTO% -provider ptest]
+    $o addSink sink1
+    $o addSink sink2
+    $o addSink sink3
+    
+    set props [$o getProperties]
+    set name [$props find name]
+    $name configure -value "myring"
+    
+    set host [$props find host]
+    $host configure -value "some.host.some.where"
+    
+} \
+-cleanup {
+    $o  destroy
+} \
+-body {
+    set new [$o clone]
+    set props [$new getProperties]
+    set host [$props find host]
+    $host cget -value
+} -result some.host.some.where
+
+tcltest::test clone-4 {Cloningt gives same ring name} \
+-setup {
+    set o [RingBuffer %AUTO% -provider ptest]
+    $o addSink sink1
+    $o addSink sink2
+    $o addSink sink3
+    
+    set props [$o getProperties]
+    set name [$props find name]
+    $name configure -value "myring"
+    
+    set host [$props find host]
+    $host configure -value "some.host.some.where"
+    
+} \
+-cleanup {
+    $o  destroy
+} \
+-body {
+    set new [$o clone]
+    set props [$new getProperties]
+    set name [$props find name]
+    $name cget -value
+} -result myring
+
+# End/summarize the tests - note the magic below is intended to ensure that
+# a failed test fails the makefile test target too.
+
+proc tcltest::cleanupTestsHook {} {
+    variable numTests
+    set ::exitCode $numTests(Failed)
+}
+
+
+tcltest::cleanupTests

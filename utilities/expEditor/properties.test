@@ -26,9 +26,9 @@ exec tclsh "$0" ${1+"$@"}
 # @author Ron Fox <fox@nscl.msu.edu>
 #
 
-
+set here [file dirname [info script]]
 package require tcltest
-source properties.tcl
+source [file join $here properties.tcl]
 
 tcltest::test property-needs-name {Making a property without a name is an error} \
 -body {

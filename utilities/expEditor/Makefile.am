@@ -1,4 +1,5 @@
-TCLPACKAGES=properties.tcl propertyEditor.tcl daqobject.tcl
+TCLPACKAGES=properties.tcl propertyEditor.tcl daqobject.tcl ringBuffer.tcl \
+	ringBufferObject.tcl
 IMAGES=program.png ringbuffer.png
 
 install-exec-local:
@@ -9,10 +10,10 @@ install-exec-local:
 	echo pkg_mkIndex -verbose @prefix@/TclLibs/expeditor "*.tcl" | @TCLSH_CMD@
 
 
-TCLTESTS=properties.test proplist.test
+TCLTESTS=properties.test proplist.test ringobject.test
 
 check-TESTS:
-	for f in $(TCLTESTS); do @TCLSH_CMD@ $$f; done
+	for f in $(TCLTESTS); do TCLLIBPATH=@prefix@/TclLibs @TCLSH_CMD@ $$f; done
 
 
 EXTRA_DIST = $(TCLPACKAGES) $(TCLTESTS) $(IMAGES)
