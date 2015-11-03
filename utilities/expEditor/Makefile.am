@@ -1,4 +1,4 @@
-TCLPACKAGES=properties.tcl propertyEditor.tcl
+TCLPACKAGES=properties.tcl propertyEditor.tcl daqobject.tcl
 IMAGES=program.png ringbuffer.png
 
 install-exec-local:
