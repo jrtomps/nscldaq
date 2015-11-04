@@ -75,7 +75,7 @@ snit::type Service {
     #
     constructor args {
         install data using ServiceData %AUTO%
-        install gui   using DaqObject %AUTO% -image ServiceIcon
+        install gui  using DaqObject %AUTO% -image ServiceIcon
         
         $self configurelist $args
     }
