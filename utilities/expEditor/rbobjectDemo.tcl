@@ -42,12 +42,16 @@ exec tclsh "$0" ${1+"$@"}
 package require Tk
 set here [file dirname [info script]]
 source [file join $here ringBufferObject.tcl]
+source [file join $here StateProgram.tcl]
+source [file join $here Service.tcl]
 
 package require properties
 package require propertyEditor
 
 canvas .c -width 512 -height 512
 pack   .c
+
+#  Ring buffer tool.
 set tool [RingBufferObject %AUTO% -canvas .c]
 $tool drawat 55 55
 
@@ -55,6 +59,21 @@ $tool drawat 55 55
 
 $tool addtag creator
 .c bind creator <Double-1> [list createNew %W $tool 55 55]
+
+
+# State program tool:
+
+set stool [StateProgram %AUTO% -canvas .c]
+$stool drawat 55 110
+$stool addtag screator
+.c bind screator <Double-1> [list createNew %W $stool 55 110]
+
+# Services:
+
+set svtool [Service %AUTO% -canvas .c]
+$svtool drawat 55 165
+$svtool addtag svcreator
+.c bind svcreator <Double-1> [list createNew %W $svtool 55 165]
 
 proc createNew {canvas original x y} {
     set newItem [$original clone]

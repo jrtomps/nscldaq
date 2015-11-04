@@ -80,7 +80,14 @@ snit::type RingBuffer {
     # Methods not intended for general use.
     #
     
-
+    ##
+    #  _setProperties
+    #    Replace the current set of properties with a new set.  This is used.
+    
+    method _setProperties props {
+        $properties destroy
+        set properties $props
+    }
     #-------------------------------------------------------------------------
     #  Public methods
     

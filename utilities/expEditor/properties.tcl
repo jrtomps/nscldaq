@@ -132,7 +132,8 @@ snit::type propertylist {
     #   @param name - name of property to find.
     #   @return property - empty string if does not exist.
     method find {name} {
-        set result ""     
+        set result ""
+        
         $self foreach property {
             if {[$property cget -name] eq $name} {
                 set result $property              

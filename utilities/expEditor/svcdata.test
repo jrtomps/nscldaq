@@ -1,0 +1,112 @@
+#!/bin/sh
+# -*- tcl -*-
+# The next line is executed by /bin/sh, but not tcl \
+exec tclsh "$0" ${1+"$@"}
+
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2014.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Authors:
+#             Ron Fox
+#             Jeromy Tompkins 
+#	     NSCL
+#	     Michigan State University
+#	     East Lansing, MI 48824-1321
+
+
+
+##
+# @file svcdata.test
+# @brief Test ServiceData package/class.
+# @author Ron Fox <fox@nscl.msu.edu>
+#
+
+set here [file dirname [info script]]
+source [file join $here ServiceData.tcl]
+
+package require tcltest
+package require properties
+
+
+tcltest::test construct-1 {Ensure construction gets the right proeprtylist vals} \
+-setup {
+    set obj [ServiceData %AUTO%]
+
+} -cleanup {
+    $obj destroy
+} -body  {
+  set pl [$obj getProperties]
+  $pl foreach prop {
+    lappend propnames [$prop cget -name]
+  }
+  set propnames [lsort -increasing $propnames]
+  
+} -result [list host name path]
+
+tcltest::test clone-1 {Cloning results in the copied name property} \
+-setup {
+    set obj [ServiceData %AUTO%]
+    set pl [$obj getProperties]
+    set p [$pl find name]
+    $p configure -value binky
+    
+} -cleanup {
+    $obj destroy
+    $clone destroy
+} -body {
+    set clone [$obj clone]
+    set pl [$clone getProperties]
+    set p [$pl find name]
+    $p cget -value
+} -result binky
+
+tcltest::test clone-2 {Cloning results in a copyied host property} \
+-setup {
+    set obj [ServiceData %AUTO%]
+    set pl [$obj getProperties]
+    set p [$pl find host]
+    $p configure -value charlie.nscl.msu.edu
+    
+} -cleanup {
+    $obj destroy
+    $clone destroy
+} -body {
+    set clone [$obj clone]
+    set pl [$clone getProperties]
+    set p [$pl find host]
+    $p cget -value
+} -result charlie.nscl.msu.edu
+
+tcltest::test clone-3 {Cloning preserves the command line property} \
+-setup {
+    set obj [ServiceData %AUTO%]
+    set pl [$obj getProperties]
+    set p [$pl find path]
+    $p configure -value /usr/bin/emacs
+    
+} -cleanup {
+    $obj destroy
+    $clone destroy
+} -body {
+    set clone [$obj clone]
+    set pl [$clone getProperties]
+    set p [$pl find path]
+    $p cget -value
+} -result /usr/bin/emacs
+
+
+# End/summarize the tests - note the magic below is intended to ensure that
+# a failed test fails the makefile test target too.
+
+proc tcltest::cleanupTestsHook {} {
+    variable numTests
+    set ::exitCode $numTests(Failed)
+}
+
+
+tcltest::cleanupTests

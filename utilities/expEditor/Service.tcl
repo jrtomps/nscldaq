@@ -21,27 +21,27 @@ exec tclsh "$0" ${1+"$@"}
 
 
 ##
-# @file ringBufferObject.tcl
-# @brief Provide graphical wrapper on Ring buffer objects.
+# @file <filename>.tcl
+# @brief <brief purpose>
 # @author Ron Fox <fox@nscl.msu.edu>
 #
 
-package provide ringBufferObject 1.0
-package require ringBuffer
+package provide Service 1.0
+package require serviceData
 package require daqObject
-package require Tk
 package require img::png
 
 
 ##
-# @class RingBufferObject
-#   This class encapsulates a ring buffer item, that is pure data with a
-#   DaqObject that handles the display stuff.
+# @class Service
+#   Encapsulates the data and user interface for defining a service item.
+#   A service is a program that must run but is neither connected to data flow
+#   nor to the state manager.
 #
-snit::type RingBufferObject {
+snit::type Service {
     component data
     component gui
-    
+ 
     delegate option -provider to data
     delegate option -canvas   to gui
     
@@ -62,52 +62,44 @@ snit::type RingBufferObject {
     delegate method tags          to gui
     
     ##
-    # typeconstructor
-    #    Create the image that will be bound into all our GUI elements.
-    typeconstructor {
-        image create photo RingBufferIcon -format png \
-            -file [file join [file dirname [info script]] ringbuffer.png]
-    }
+    # Construct our icon image:
     
+    typeconstructor {
+        image create photo ServiceIcon  \
+            -format png                 \
+            -file [file join [file dirname [info script]] sysprogram.png] 
+    }
     ##
     # constructor
-    #   Construct an object
-    #   -  Install the components.
-    #   -  Configure them:
+    #   Install the pieces and configure
     #
     constructor args {
-        install data using RingBuffer %AUTO%
-        install gui  using DaqObject %AUTO% -image RingBufferIcon
+        install data using ServiceData %AUTO%
+        install gui   using DaqObject %AUTO% -image ServiceIcon
         
         $self configurelist $args
     }
     
     ##
-    # _replaceData
-    #   Replace our data object.  Used by clone.
+    #  clone
+    #   Create a copy of self.
     #
-    method _replaceData newdata {
-        $data destroy
-        set data $newdata
-    }
-
-    #--------------------------------------------------------------------------
-    # Public methods
-    #
-    
-    
-    ##
-    # clone
-    #   Create a clone.  This is done by returning an object that has
-    #   copies of our components as its own.
-    #  @note to accomplish this we need private methods to override the existing
-    #        values of the data object.
-    #  @return RingBufferObject
+    # @return copy of self.
     #
     method clone {} {
-        set newObject [RingBufferObject %AUTO%]
-        $newObject _replaceData [$data clone]
+        set newObj [Service %AUTO%]
+        set myprops [$data getProperties]
+        set newprops [$newObj getProperties]
         
-        return $newObject
+        $myprops foreach property {
+            set name [$property cget -name]
+            set value [$property cget -value]
+            
+            set newprop [$newprops find $name]
+            $newprop configure -value $value
+        }
+        
+        return $newObj
     }
+    
 }

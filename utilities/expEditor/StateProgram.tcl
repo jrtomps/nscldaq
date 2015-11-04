@@ -21,27 +21,29 @@ exec tclsh "$0" ${1+"$@"}
 
 
 ##
-# @file ringBufferObject.tcl
-# @brief Provide graphical wrapper on Ring buffer objects.
+# @file StateProgram.tcl
+# @brief Encapsulate state program data and a GUI element.
 # @author Ron Fox <fox@nscl.msu.edu>
 #
 
-package provide ringBufferObject 1.0
-package require ringBuffer
-package require daqObject
+package provide stateProgram 1.0
+package require snit
 package require Tk
+package require stateProgramData
+package require daqObject
 package require img::png
 
-
 ##
-# @class RingBufferObject
-#   This class encapsulates a ring buffer item, that is pure data with a
-#   DaqObject that handles the display stuff.
+# @class StateProgram
+#   Wraps a DaqObject that has the icon for a state program with a
+#   StateProgramdata object that has the data.   Appropriate command
+#   and option forwarding are done to make this all hang together.
 #
-snit::type RingBufferObject {
+
+snit::type StateProgram {
     component data
     component gui
-    
+ 
     delegate option -provider to data
     delegate option -canvas   to gui
     
@@ -63,49 +65,49 @@ snit::type RingBufferObject {
     
     ##
     # typeconstructor
-    #    Create the image that will be bound into all our GUI elements.
+    #   Create the image that will be used as the object's icon:
+    
     typeconstructor {
-        image create photo RingBufferIcon -format png \
-            -file [file join [file dirname [info script]] ringbuffer.png]
+        image create photo StateProgramIcon -format png \
+            -file [file join [file dirname [info script]] program.png] 
     }
     
     ##
     # constructor
-    #   Construct an object
-    #   -  Install the components.
-    #   -  Configure them:
+    #   Construct the object. This just means constructing the components.
     #
     constructor args {
-        install data using RingBuffer %AUTO%
-        install gui  using DaqObject %AUTO% -image RingBufferIcon
+        install data using StateProgramData %AUTO%
+        install gui  using DaqObject %AUTO% -image StateProgramIcon
         
         $self configurelist $args
     }
     
     ##
-    # _replaceData
-    #   Replace our data object.  Used by clone.
+    # destructor
     #
-    method _replaceData newdata {
+    destructor {
         $data destroy
-        set data $newdata
+        $gui  destroy
+        
     }
-
-    #--------------------------------------------------------------------------
-    # Public methods
+    ##
+    # _replaceData
+    #   Used in a clone operation to replace the data with the data to be copied.
     #
-    
+    # @param new data object.
+    #
+    method _replaceData newData {
+        $data destroy
+        set data $newData
+    }
     
     ##
     # clone
-    #   Create a clone.  This is done by returning an object that has
-    #   copies of our components as its own.
-    #  @note to accomplish this we need private methods to override the existing
-    #        values of the data object.
-    #  @return RingBufferObject
+    #   Create/return a copy of self
     #
     method clone {} {
-        set newObject [RingBufferObject %AUTO%]
+        set newObject [StateProgram %AUTO%]
         $newObject _replaceData [$data clone]
         
         return $newObject

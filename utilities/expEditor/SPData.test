@@ -1,0 +1,207 @@
+#!/bin/sh
+# -*- tcl -*-
+# The next line is executed by /bin/sh, but not tcl \
+exec tclsh "$0" ${1+"$@"}
+
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2014.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Authors:
+#             Ron Fox
+#             Jeromy Tompkins 
+#	     NSCL
+#	     Michigan State University
+#	     East Lansing, MI 48824-1321
+
+
+
+##
+# @file SPData.test
+# @brief Tests for StateProgramData
+# @author Ron Fox <fox@nscl.msu.edu>
+#
+
+package require tcltest
+set here [file dirname [info script]]
+source [file join $here StateProgramData.tcl]
+
+proc getValue {obj propname} {
+    set pl [$obj getProperties]
+    set p [$pl find $propname]
+    return [$p cget -value    ]
+}
+
+proc setValue {obj propname value} {
+    set pl [$obj getProperties]
+    set p [$pl find $propname]
+    $p configure -value $value
+}
+
+tcltest::test construct-1 {Construction enable is true} \
+-setup {
+    set obj [StateProgramData %AUTO%]
+    
+} \
+-cleanup {
+    $obj destroy
+} \
+-body  {
+    getValue $obj enable
+} -result true
+
+tcltest::test construct-2 {Construction standalone false} \
+-setup {
+    set obj [StateProgramData %AUTO%]
+    
+} \
+-cleanup {
+    $obj destroy
+} \
+-body  {
+    getValue $obj standalone
+} -result false
+
+tcltest::test construct-3 {path is empty} \
+-setup {
+    set obj [StateProgramData %AUTO%]
+    
+} \
+-cleanup {
+    $obj destroy
+} \
+-body  {
+    getValue $obj path
+} -result ""
+
+tcltest::test construct-4 {host is empty} \
+-setup {
+    set obj [StateProgramData %AUTO%]
+    
+} \
+-cleanup {
+    $obj destroy
+} \
+-body  {
+    getValue $obj host
+} -result ""
+
+tcltest::test construct-5 {input ring empty} \
+-setup {
+    set obj [StateProgramData %AUTO%]
+    
+} \
+-cleanup {
+    $obj destroy
+} \
+-body  {
+    getValue $obj {Input Ring}
+} -result ""
+
+tcltest::test construct-6 {output ring is empty} \
+-setup {
+    set obj [StateProgramData %AUTO%]
+    
+} \
+-cleanup {
+    $obj destroy
+} \
+-body  {
+    getValue $obj {Output Ring}
+} -result ""
+
+tcltest::test clone-1 {clone keeps path.} \
+-setup {
+    set obj [StateProgramData %AUTO%]
+    
+    setValue $obj path "/some/program"
+    setValue $obj host "charlie.nscl.msu.edu"
+    setValue $obj {Input Ring} "fox"
+    setValue $obj {Output Ring} "outring"
+    
+    set newobj [$obj clone]
+    
+} \
+-cleanup {
+    $obj destroy
+    $newobj destroy
+} \
+-body  {
+    getValue $obj path
+} -result /some/program
+
+tcltest::test clone-2 {Clone keeps host} \
+-setup {
+    set obj [StateProgramData %AUTO%]
+    
+    setValue $obj path "/some/program"
+    setValue $obj host "charlie.nscl.msu.edu"
+    setValue $obj {Input Ring} "fox"
+    setValue $obj {Output Ring} "outring"
+    
+    set newobj [$obj clone]
+    
+} \
+-cleanup {
+    $obj destroy
+    $newobj destroy
+} \
+-body  {
+    getValue $obj host
+} -result charlie.nscl.msu.edu
+
+tcltest::test clone-3 {Clone keeps input ring} \
+-setup {
+    set obj [StateProgramData %AUTO%]
+    
+    setValue $obj path "/some/program"
+    setValue $obj host "charlie.nscl.msu.edu"
+    setValue $obj {Input Ring} "fox"
+    setValue $obj {Output Ring} "outring"
+    
+    set newobj [$obj clone]
+    
+} \
+-cleanup {
+    $obj destroy
+    $newobj destroy
+} \
+-body  {
+    getValue $obj {Input Ring}
+} -result fox
+
+tcltest::test clone-4 {Clone keeps output ring} \
+-setup {
+    set obj [StateProgramData %AUTO%]
+    
+    setValue $obj path "/some/program"
+    setValue $obj host "/charlie.nscl.msu.edu"
+    setValue $obj {Input Ring} "fox"
+    setValue $obj {Output Ring} "outring"
+    
+    set newobj [$obj clone]
+    
+} \
+-cleanup {
+    $obj destroy
+    $newobj destroy
+} \
+-body  {
+    getValue $obj {Output Ring}
+} -result outring
+
+
+# End/summarize the tests - note the magic below is intended to ensure that
+# a failed test fails the makefile test target too.
+
+proc tcltest::cleanupTestsHook {} {
+    variable numTests
+    set ::exitCode $numTests(Failed)
+}
+
+
+tcltest::cleanupTests
