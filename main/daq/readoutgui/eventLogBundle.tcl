@@ -608,7 +608,7 @@ proc ::EventLog::runEnding {} {
             
             ::EventLog::_waitForFile $exitFile $::EventLog::shutdownTimeout \
                 $::EventLog::filePollInterval
-            ::EventLog::deleteExitFile
+            ::StageareaValidation::deleteExitFile
             
         }
         puts "Enabling"
