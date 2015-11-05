@@ -62,6 +62,10 @@ snit::type StateProgram {
     delegate method addtag        to gui
     delegate method rmtag         to gui
     delegate method tags          to gui
+    delegate method getPosition   to gui
+    delegate method getId         to gui
+    delegate method size          to gui
+
     
     ##
     # typeconstructor

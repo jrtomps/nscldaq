@@ -886,4 +886,6 @@ Work on 11.0-rc11 begins
 	runs.	
 	Feature #4732 - Multilogger should play the same permission games
 	that eventlog does.
-	
+	Feature #4738  - Create properties and property editor.
+	Feature #4741  - Create editor objects
+	Feature #4744 - Get basic toolbar working.

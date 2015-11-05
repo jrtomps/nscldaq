@@ -132,7 +132,7 @@ snit::type DaqObject {
             
             set id [$c create image  $xx $yy -image $i -anchor center]
             set x $xx
-            set y $xx
+            set y $yy
         }
     }
     ##
@@ -250,5 +250,41 @@ snit::type DaqObject {
     method clone {} {
         return [DaqObject %AUTO% -image $options(-image)]
     }
-    
+    ##
+    # getPosition
+    #   @return two element list of x/y coordinates.
+    #
+    method getPosition {} {
+        set c $options(-canvas)
+        if {($c eq "") || ($id eq "")} {
+            # Not drawn
+            
+            error "DaqObject.getPosition - object is not drawn."
+        }
+        return [list $x $y]
+    }
+    ##
+    # getId
+    #   Return the object's canvas id.
+    #
+    # @return integer -id.
+    #
+    method getId {} {
+        set c $options(-canvas)
+        if {($c eq "") || ($id eq "") } {
+            error "DaqObject.getId - object is not drawn"
+        }
+        return $id
+    }
+    ##
+    # size
+    #    Return the x/y extents of the image.
+    #
+    method size {} {
+        if {$options(-image) eq ""} {
+            error "DaqObject.size  no -image is configured"
+        }
+        set i $options(-image)
+        return [list [image width $i] [image height $i]]
+    }
 }

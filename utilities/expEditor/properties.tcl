@@ -136,7 +136,8 @@ snit::type propertylist {
         
         $self foreach property {
             if {[$property cget -name] eq $name} {
-                set result $property              
+                set result $property 
+		break
             }
         }
         return $result
