@@ -570,6 +570,7 @@ proc ::EventLog::runEnding {} {
     
     set startFile [file join [::ExpFileSystem::getCurrentRunDir] .started]
     set exitFile [file join [::ExpFileSystem::getCurrentRunDir] .exited]
+    set ui [::RunControlSingleton::getInstance]
 
     # ne is used below because the logger could be a pipeline in which case
     # ::EventLog::loggerPid will be a list of pids which freaks out ==.
@@ -583,7 +584,6 @@ proc ::EventLog::runEnding {} {
         #  A timeout is used in case there's a problem and the event log
         #  never exists.
         
-        set ui [::RunControlSingleton::getInstance]
         $ui configure -state disabled
         
         set timeoutId [after \
@@ -628,6 +628,7 @@ proc ::EventLog::runEnding {} {
                 {Run ended}
         }
     }
+    $ui configure -state normal
     ReadoutGUIPanel::normalColors
 }
 
