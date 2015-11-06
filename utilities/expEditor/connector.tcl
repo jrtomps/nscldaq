@@ -171,6 +171,10 @@ snit::type connector {
     # @return newCoords - New coordinate values.
     #
     method _moveCoords {x y oldList} {
+        if {$priorX eq ""} {
+            $self _startMove $x $y
+            return $oldList
+        }
         set dx [expr {$x - $priorX}]
         set dy [expr {$y - $priorY}]
         
@@ -179,8 +183,8 @@ snit::type connector {
         
         #  Apply dx/dy to oldList:
         
-        set ox [lindex $oldList 0]
-        set oy [lindex $oldList 1]
+        set ox [expr {int([lindex $oldList 0])}]
+        set oy [expr {int([lindex $oldList 1])}]
         incr ox $dx
         incr oy $dy
         
@@ -230,7 +234,10 @@ snit::type connector {
     # @param value   - new value for that option.
     #
     method _changeArrow {optname value} {
-        $options(-canvas) itemconfigure $id -arrow $value
+        if {$options(-canvas) ne ""} {
+            $options(-canvas) itemconfigure $id -arrow $value    
+        }
+        
         set options($optname) $value
     }
     #---------------------------------------------------------------------------

@@ -1,10 +1,10 @@
 TCLPACKAGES=properties.tcl propertyEditor.tcl daqobject.tcl ringBuffer.tcl \
 	ringBufferObject.tcl StateProgramData.tcl StateProgram.tcl	\
 	ServiceData.tcl Service.tcl connector.tcl tool.tcl ObjectInstaller.tcl \
-	toolbar.tcl
+	toolbar.tcl ConnectorObject.tcl ConnectorInstaller.tcl
 
 
-IMAGES=program.png ringbuffer.png sysprogram.png
+IMAGES=program.png ringbuffer.png sysprogram.png arrow.png
 
 install-exec-local:
 	$(mkinstalldirs) @prefix@/TclLibs

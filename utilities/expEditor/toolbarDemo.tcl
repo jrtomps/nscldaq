@@ -27,13 +27,17 @@ exec tclsh "$0" ${1+"$@"}
 #
 
 set here [file dirname [info script]]
-source [file join $here toolbar.tcl]
 
+source [file join ConnectorInstaller.tcl]
+
+
+package require toolbar
 package require ringBufferObject
 package require stateProgram
 package require Service
 package require objectInstaller
 package require tool
+package require connectorObject
 
 # Make the tool bar:
 
@@ -57,3 +61,9 @@ tool statePgm [StateProgram %AUTO%] [ObjectInstaller %AUTO%]
 
 tool service [Service %AUTO%] [ObjectInstaller %AUTO%]
 .t add service
+
+# Connector
+
+tool knect [ConnectorObject %AUTO%] [ConnectorInstaller %AUTO%];   # Need new installer
+.t add knect
+
