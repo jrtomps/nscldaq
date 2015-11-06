@@ -998,4 +998,6 @@ Work on 11.0-rc11 begins
         * Fix Bug #4873 - Remove dependency on ::CAEN::digitizer decimate
 	from the nscl version of xyplot.tcl  Use the old inlined code
 	instead.
+	* Fix Bug #4933 - after recording run control buttons are not
+	re-enabled
 	
