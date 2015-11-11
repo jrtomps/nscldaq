@@ -1000,4 +1000,7 @@ Work on 11.0-rc11 begins
 	instead.
 	* Fix Bug #4933 - after recording run control buttons are not
 	re-enabled
-	
+  * Fix Bug #4945 - Sources permuted between ReadoutGUI sessions. The
+	 DataSourceManager::sources method now returns a properly ordered list
+	 of parameter dicts, and reading in .settings.tcl causes sources to 
+	 be added in the order of their source ids.
