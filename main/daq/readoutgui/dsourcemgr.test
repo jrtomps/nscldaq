@@ -496,6 +496,46 @@ if {$debug} {
     tcltest::cleanupTests
 }
 
+tcltest::test sources-3 {[sources] list is ordered by source id of parameters
+} \
+-setup {
+    setupTestProvider
+
+    # redefine the parameter list
+    proc ::Test::parameters {} { return [dict A a B b] }
+    set manager [DataSourceManager %AUTO%]
+    $manager load Test 
+} \
+-cleanup {
+    $manager destroy
+    forgetTestProvider
+} \
+-body {
+# add a lot of sources
+  for {set i 0} {$i<100} {incr i} {
+    $manager addSource Test [dict create A myA B myB] 
+  }
+
+# loop through the list of parameter sets and verify that the 
+  # paremeter sets are ordered by source id.
+  set lastId -1
+  set ordered 1
+  foreach source [$manager sources] {
+    set currentId [dict get $source sourceid]
+    if {$currentId <=$lastId} {
+      set ordered 0
+      break
+    } else {
+      set lastId $currentId
+    }
+  }
+  set ordered
+} \
+-result 1
+
+if {$debug} {
+    tcltest::cleanupTests
+}
 #-----------------------------------------------------------------------------#
 #
 # Tests for stopping a data source

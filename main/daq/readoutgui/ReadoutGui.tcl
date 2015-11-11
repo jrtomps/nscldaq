@@ -565,8 +565,23 @@ snit::type ReadoutGuiApp {
     # @param value - List of dicts as returned from $dataSources sources
     #
     method _setSources {name value} {
+
+        # create a dict that maps the source id to the index in the list
+        set order [dict create]
+        set index 0
         foreach sourceDict $value {
-            set provider [dict get $sourceDict provider]
+          set sid [dict get $sourceDict sourceid]
+          dict set order $sid $index
+          incr index
+        }
+
+        # loop through the sorted ids and look up the list index
+        # for each id...THis ensures that sources are added in the order
+        # of their source ids.
+        set orderedIds [lsort -integer -increasing [dict keys $order]]
+        foreach id $orderedIds {
+            set sourceDict [lindex $value [dict get $order $id]]
+            set provider   [dict get $sourceDict provider]
             
             # Remove extraneous dicts to forma pure parameterization dict.
             
@@ -576,7 +591,7 @@ snit::type ReadoutGuiApp {
             catch {$dataSources load $provider};   #Make sure the provider's loaded
             $dataSources addSource $provider $sourceDict
         }
-	$self _setPausability
+	      $self _setPausability
 
     }
     ##
@@ -721,9 +736,7 @@ snit::type ReadoutGuiApp {
           $dm initall
         } else {
 
-          puts $sel
           set match [regexp -inline {^(\w+):(\d+)$} $sel]
-          puts $match 
 
           if {[llength $match]==3} {
             $dm init [lindex $match 2]

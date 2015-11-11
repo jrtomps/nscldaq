@@ -286,7 +286,7 @@ snit::type DataSourceManager {
     #
     method sources {} {
         set result [list]
-        foreach sourceId [array names dataSources] {
+        foreach sourceId [lsort -integer -increasing [array names dataSources]] {
             lappend result [_SortDict $dataSources($sourceId)]
         }
         return $result
