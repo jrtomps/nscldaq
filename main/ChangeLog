@@ -1004,3 +1004,7 @@ Work on 11.0-rc11 begins
 	 DataSourceManager::sources method now returns a properly ordered list
 	 of parameter dicts, and reading in .settings.tcl causes sources to 
 	 be added in the order of their source ids.
+	* Fixes bug #4906 - MCFD16Control fails to properly display state of
+	  channel mask in the GUI.
+  * Fixes bug #4948 - CCUSBReadout fails to output END_RUN.
+
