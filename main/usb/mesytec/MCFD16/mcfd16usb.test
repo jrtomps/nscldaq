@@ -741,7 +741,6 @@ tcltest::test chanmask-1 {Mask parameter outside of range [0,255] fails
 } -result [list {1 {Invalid mask argument provided. Must be in range [0,255].}} \
                 {1 {Invalid mask argument provided. Must be in range [0,255].}} ]
 
-if {0} {
 tcltest::test chanmask-3 {Read channel mask returns cached value
 } -setup {
   setup
@@ -750,9 +749,18 @@ tcltest::test chanmask-3 {Read channel mask returns cached value
 } -cleanup {
   tearDown
 } -body {
-  ::dev GetChannelMask 0
-}  -result {}
-}
+  ::dev GetChannelMask
+}  -result 48
+
+tcltest::test chanmask-4 {Read channel mask updates if needed
+} -setup {
+  setup
+  setNeedsUpdate ::dev 1
+} -cleanup {
+  tearDown
+} -body {
+  ::dev GetChannelMask
+}  -result 48
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
 # pulser tests

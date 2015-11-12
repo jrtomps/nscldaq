@@ -438,6 +438,11 @@ snit::type MCFD16USB {
   #
   # @returns integer value of channel mask
   method GetChannelMask {} {
+
+    if {$m_needsUpdate} {
+      $self Update
+    }
+
     return [dict get $m_moduleState {Mask register}]
   }
 
