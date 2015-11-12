@@ -206,7 +206,15 @@ CAcquisitionThread::operator()()
     std::cerr << "Caught unexpected condition\n";
   }
   
-  stopDaq();			// Stop data taking/flush CCUSB emit end.
+  // IF the scripts left the fifo with something flush it out:
+  
+  cerr << "Flushing FIFO\n";
+  char junk[100000];
+  size_t moreJunk;
+  m_pCamac->usbRead(junk, sizeof(junk), &moreJunk, 1*1000); // One second timeout.
+  
+  endRun();
+  cerr << "End of run operations complete\n";
   m_Running = false;		// Exiting.
   if (errorMessage != "") {
     reportErrorToMainThread(errorMessage);
@@ -447,14 +455,6 @@ CAcquisitionThread::stopDaq()
     pStack->onEndRun(*m_pCamac);    // Call onEndRun for daq hardware associated with the stack.
   }
   
-  // IF the scripts left the fifo with something flush it out:
-  
-  cerr << "Flushing FIFO\n";
-  char junk[100000];
-  size_t moreJunk;
-  m_pCamac->usbRead(junk, sizeof(junk), &moreJunk, 1*1000); // One second timeout.
-  
-  cerr << "End of run operations complete\n";
 }
 /*!
   Pause the daq. This means doing a stopDaq() and fielding 
