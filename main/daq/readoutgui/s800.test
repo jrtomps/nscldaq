@@ -16,9 +16,9 @@ proc startServer {} {
     set ::s800test::fd [open "|$tcl $server $::s800test::port" w]
     after 500
 }
+
 proc stopServer {} {
     close $::s800test::fd
-
 }
 ##
 #  Reinit the s800 provider state white box
@@ -49,6 +49,7 @@ tcltest::test S800-start-1 {Starting when not started is ok} \
     startServer
 } \
 -cleanup {
+    ::S800::stop 0
     stopServer
     clearS800ProviderState
 } \
@@ -71,6 +72,7 @@ tcltest::test s800-start-2 {Starting when already started is an error} \
     ::S800::start [dict create sourceid 0 host localhost port $::s800test::port]
 } \
 -cleanup {
+    ::S800::stop 0
     stopServer
     clearS800ProviderState
 } \
@@ -95,6 +97,7 @@ tcltest::test s800-check-2 {Checking a source managed and running is true} \
     ::S800::start [dict create sourceid 0 host localhost port $::s800test::port]
 } \
 -cleanup {
+  ::S800::stop 0
     stopServer
     clearS800ProviderState
 } \
@@ -108,6 +111,7 @@ tcltest::test s800-check-3 {Checking a source that has been forced to die:} \
     ::S800::start [dict create sourceid 0 host localhost port $::s800test::port]
 } \
 -cleanup {
+  ::S800::stop 0
     clearS800ProviderState
 } \
 -body {
@@ -138,12 +142,15 @@ tcltest::test s800-stop-1 {Stop the provider when it is running} \
     list $rctlObject $state
 } -result [list {} halted]
 
+
+
 tcltest::test s800-stop-2 {Stop wrong provider fails} \
 -setup {
     startServer
     ::S800::start [dict create sourceid 0 host localhost port $::s800test::port]
 } \
 -cleanup {
+  ::S800::stop 0 ;# stop the actual source...
     stopServer
     clearS800ProviderState
 } \
@@ -181,6 +188,7 @@ tcltest::test s800-begin-1 {Start a run when the run is not started} \
     ::S800::start [dict create sourceid 0 host localhost port $::s800test::port]
 } \
 -cleanup {
+    ::S800::stop 0
     clearS800ProviderState
 } \
 -body {
@@ -201,6 +209,7 @@ tcltest::test s800-begin-2 {Start a run when the run is already active} \
    
 } \
 -cleanup {
+    ::S800::stop 0
     clearS800ProviderState
 } \
 -body {
@@ -216,6 +225,7 @@ tcltest::test end-1 {End an active run} \
     ::S800::begin 0 1 {This is the first title};   # Run is already active.
 } \
 -cleanup {
+    ::S800::stop 0
     clearS800ProviderState
 } \
 -body {
@@ -233,6 +243,7 @@ tcltest::test end-2 {End an inactive run} \
     $rctl setMaster ;            # Should go back to slave after end.
 } \
 -cleanup {
+    ::S800::stop 0
     clearS800ProviderState
 } \
 -body {
@@ -251,6 +262,7 @@ tcltest::test end-3 {End run with wrong source id fails} \
     ::S800::start [dict create sourceid 0 host localhost port $::s800test::port]
 } \
 -cleanup {
+    ::S800::stop 0
     clearS800ProviderState
 } \
 -body {
@@ -285,6 +297,7 @@ tcltest::test init-1 {Init with wrong source id fails
     startServer
     ::S800::start [dict create sourceid 0 host localhost port $::s800test::port]
 } -cleanup {
+  ::S800::stop 0
     clearS800ProviderState
 } -body {
     set status [catch {::S800::init 1} msg]
@@ -316,6 +329,7 @@ tcltest::test init-3 {Init fails when source is not idle
     ::S800::start [dict create sourceid 0 host localhost port $::s800test::port]
     ::S800::begin 0 1 {title}
 } -cleanup {
+  ::S800::stop 0
     clearS800ProviderState
 } -body {
     set status [catch {::S800::init 0} msg]

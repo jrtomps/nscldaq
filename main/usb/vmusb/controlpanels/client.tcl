@@ -75,7 +75,11 @@ snit::type controlClient {
   #
   method Get {device channel} {
     puts $connection "Get $device $channel"
-    return [gets $connection]
+    set response [gets $connection]
+    if {[eof $connection]} {
+      return -code error "USB control client has lost connection to server"
+    }
+    return $response
 
   }
   # Set device channel value
@@ -87,20 +91,32 @@ snit::type controlClient {
   #
   method Set {device channel value} {
     puts $connection "Set $device $channel $value"
-    return [gets $connection]
+    set response [gets $connection]
+    if {[eof $connection]} {
+      return -code error "USB control client has lost connection to server"
+    }
+    return $response
   }
   # Update device
   #     Force the device settings/readings to be udpated.
   #
   method Update device {
     puts $connection "Update $device"
-    return [gets $connection]
+    set response [gets $connection]
+    if {[eof $connection]} {
+      return -code error "USB control client has lost connection to server"
+    }
+    return $response
   }
   # Get monitored data.
   #
   method Monitor device {
     puts $connection "mon $device"
-    return [gets $connection]
+    set response [gets $connection]
+    if {[eof $connection]} {
+      return -code error "USB control client has lost connection to server"
+    }
+    return $response
   }
 }
 #  The following are convenience functions that may be used

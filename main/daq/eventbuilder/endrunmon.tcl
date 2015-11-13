@@ -289,5 +289,17 @@ namespace eval EndrunMon {
 }
 
 
-set sm [RunstateMachineSingleton %AUTO%]
-$sm addCalloutBundle EndrunMon
+##
+# register the bundle to the state machine before a specific callout bundle
+#
+# @param beforeBundle   name of callout bundle you want to insert this before
+#
+proc EndrunMon::register {{beforeBundle {}}} {
+  set sm [RunstateMachineSingleton %AUTO%]
+  if {$beforeBundle eq {}} {
+    $sm addCalloutBundle EndrunMon
+  } else {
+    $sm addCalloutBundle EndrunMon $beforeBundle
+  }
+  $sm destroy
+}

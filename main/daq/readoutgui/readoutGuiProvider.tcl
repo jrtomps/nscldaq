@@ -22,6 +22,7 @@ package provide RemoteGUI_Provider 1.0
 package require S800_Provider
 package require ui
 package require ReadoutGuiClient
+package require RunstateMachine
 
 
 ##
@@ -98,8 +99,31 @@ proc ::RemoteGUI::check id {
 proc ::RemoteGUI::stop id {
     variable outputMonitor
     
-    S800::stop $id
+    # If still alive and necessary stop the run.
+    set rctl [::S800::_getConnectionObject $id]
+    set state [::S800::_getState $id]
+    set status [::S800::check $id]
+    if {($state ne "halted") && $status} {
+        
+        set status [$rctl getState]
+        if {$status eq "active"} {
+            $rctl masterTransition NotReady
+        }
+        # Regardless, _failed will run down the rest of this.
+        
+        ::S800::_failed $id;    # Will do all the right stuff.
+                                # including destroying the connection object
+        
+    }
+
+    # because ::S800::_failed could have been called in the conditional,
+    # we need to make sure that the connection object has not been destroyed
+    # already before we destroy it ourselves.
+    if {$rctl in [::s800rctl info instances]} {
+      $rctl destroy
+    }
     $outputMonitor destroy
+    
 }
 ##
 # begin - start a run.
@@ -156,13 +180,23 @@ proc ::RemoteGUI::_handleOutput output {
 # _outserverClosed
 #
 #  Called when the output server closes...probably the ReadoutGUI has blown
-#  away.  Just destroy the connection object and complain to the ow.
+#  away.
+#   *  destroy the connection object and complain to the output log.
+#   *  Start a transition to notready:
 #
 proc ::RemoteGUI::_outserverClosed {} {
+    
+    #  Log the disconnecty
+    
     variable outputMonitor
     $outputMonitor destroy
     
     set ow [::Output::getInstance]
     $ow log error "Lost connection to remote GUI output server."
     $ow log error "Probably the control server connection already was lost or soon will be"
+    
+    #  Transition to NotReady:
+    
+    forceFailure;            # in RunstateMachine pkg.
+
 }

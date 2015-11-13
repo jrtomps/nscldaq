@@ -44,7 +44,6 @@ package require DataSourceManager
 namespace eval ::DataSourceMonitor {
     variable afterId          -1;
     variable monitorInterval  1000; # ms between checks.
-    variable sm               [RunstateMachineSingleton %AUTO%]
     variable dsm              [DataSourcemanagerSingleton %AUTO%]
     
     # Mandatory bundle exports.
@@ -130,7 +129,10 @@ proc ::DataSourceMonitor::_checkSources ms {
         #  -> not ready
         
         ReadoutGUIPanel::Log DataSourceMonitor warning "Emergency transition to not ready:"
-        $::DataSourceMonitor::sm transition NotReady
+        set sm [::RunstateMachineSingleton %AUTO%]
+        $sm transition NotReady
+        destroy $sm
+
     }
  
     #
@@ -193,7 +195,9 @@ proc ::DataSourceMonitor::enter {from to} {
 #  Register with the statemachine:
 #
 proc ::DataSourceMonitor::register {} {
-    $DataSourceMonitor::sm addCalloutBundle DataSourceMonitor
+  set sm [::RunstateMachineSingleton %AUTO%]
+  $sm  addCalloutBundle DataSourceMonitor
+  $sm destroy
 }
 
 

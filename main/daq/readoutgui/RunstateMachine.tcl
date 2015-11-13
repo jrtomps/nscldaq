@@ -334,6 +334,153 @@ snit::type RunstateMachine {
     }
 }
 
+
+
+## A run state machine to use when enslaved by a master ReadoutGUI
+#
+# This is really just a wrapper around a local RunstateMachine snit::type.
+# The difference here is that the transition method is redefined to forward
+# requests to a connected master ReadoutGUI. It then provides an extra
+# method called masterTransition that is invoked by the master to initiate
+# a local transition. 
+#
+snit::type ClientRunstateMachine {
+
+  component localStateMachine
+
+  delegate method * to localStateMachine
+  delegate option * to localStateMachine
+
+  ## @brief Construct the local runstate machine
+  #
+  constructor {localStMachine} {
+    install localStateMachine using set localStMachine
+  }
+
+  ## @brief Handle transitions initiated by the local ReadoutGUI
+  #
+  # If the ReadoutGUI is connected to a master ReadoutGUI (i.e. is enslaved),
+  # then the transition request is forwarded to the master. On the other hand,
+  # if it is not enslaved, then it simple initiates a state transition using the
+  # local runstate machine.
+  #
+  # @param  to    state to transition to
+  method transition to {
+
+    if {[$self _isConnectedToMaster]} {
+      # we have not forwarded the request yet to the master
+      # so do it and then set flags to handle the next transition
+      # locally
+      $::RemoteControlClient::control send "transitionTo $to"
+    } else {
+      $localStateMachine transition $to 
+    }
+
+  }
+
+  ## @brief Response to a master-initiated state transition
+  #
+  # This simple invokes a state transition using the local 
+  # runstate machine
+  #
+  # @param  to  the state the transition to
+  #
+  method masterTransition to {
+        $localStateMachine transition $to
+  }
+
+  ##  @brief Determine whether the system is enslaved and connected
+  #
+  # @returns boolean
+  # @retval 0 - not connected to a master ReadoutGUI
+  # @retval 1 - connected to a master ReadoutGUI
+  #
+  method _isConnectedToMaster {} {
+    set retval 0
+
+    # check to see if the user has enabled the remote control package.
+    # If they have, the RemoteControlClient namespace will exist.
+    if {[namespace exists ::RemoteControlClient]} {
+      # next we need to check to see if there is actually a connection object
+      # in existence. It is possible to not be connected to the master even though
+      # the user enable the remote control capability
+      if {$::RemoteControlClient::control ne {}} {
+      # get the connection status
+        set connectionStatus [$::RemoteControlClient::control getConnectionStatus]
+
+        # if the connection is healthy, then we are all set.
+        if {[lindex $connectionStatus 1]} { 
+          set retval 1
+        }
+      }
+    }
+
+    return $retval
+  }
+
+}; # end of ClientRunstateMachine snit::type
+
+
+
+## @brief A snit::type that delegates methods to the appropriate Runstate machine
+#
+# This is an implementation of the State design pattern. The type contains both a
+# normal RunstateMachine and a ClientRunstateMachine instance. Depending on whether
+# the user has enabled the remote control package, the delegation will proceed through
+# either the ClientRunstateMachine instance or the RunstateMachine. 
+#
+# This object is used by the RunstateMachineSingleton.
+#
+snit::type RemoteControllableRunstateMachine {
+  component localStateMachine     ;# instance of a RunstateMachine
+  component clientStateMachine    ;# instance of a CLientRunstateMachine
+
+  component currentStateMachine   ;# "pointer" to the appropriate RunstateMachine
+
+  delegate method * to currentStateMachine
+  delegate option * to currentStateMachine
+
+  ## @brief Initialize our run state machines
+  #
+  constructor args {
+    install localStateMachine using RunstateMachine %AUTO%
+    install clientStateMachine using ClientRunstateMachine %AUTO% $localStateMachine
+
+    install currentStateMachine using set localStateMachine
+
+    $self configurelist $args
+  }
+
+
+  ## @brief Destroy the run state machines
+  #
+  destructor {
+    $localStateMachine destroy
+    $clientStateMachine destroy
+  }
+
+  ## @brief Switch to state machine appropriate for the enslaved state
+  #
+  # @param value  boolean indicating if new state is an enslaved state (use values 0 or 1)
+  #
+  method setSlave {value} {
+    if {$value} {
+      set currentStateMachine $clientStateMachine
+    } else {
+      set currentStateMachine $localStateMachine
+    }
+  }
+
+  ## @brief Check whether the instance delegates to a runstate machine for remote control ops
+  #
+  # @return boolean 
+  # @retval 0 - local control
+  # @retval 1 - remote controllable
+  method isSlave {} {
+    return [expr {$currentStateMachine eq $clientStateMachine}]
+  }
+}
+
 ##
 # @class RunstateMachineSingleton
 #
@@ -354,7 +501,7 @@ snit::type RunstateMachineSingleton {
     #
     constructor args {
         if {$actualObject eq ""} {
-            set actualObject [RunstateMachine %AUTO%]
+            set actualObject [RemoteControllableRunstateMachine %AUTO%]
         
         }
         # The delegates and this magic take care of the rest.
@@ -407,4 +554,25 @@ proc resume {} {
     error "resume failed with message : $msg"
   }
   $machine destroy
+}
+
+proc forceFailure {} {
+  set machine [RunstateMachineSingleton %AUTO%]
+  if { [catch { $machine transition NotReady } msg] } {
+    error "Transition to not ready failed with message : $msg"
+  }
+  $machine destroy    
+}
+
+proc transitionTo {to} {
+  set machine [RunstateMachineSingleton %AUTO%]
+
+  set retCode [catch [$machine transition $to] msg]
+  $machine destroy
+
+  if {$retCode} {
+    return -code error $msg
+  } else {
+    return $msg
+  }
 }

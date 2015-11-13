@@ -54,12 +54,20 @@ exec tclsh "$0" ${1+"$@"}
 #    *  Remove loggers... - Allows you to destroy an existing logger.
 #    *  Enable Loggers... - Allows you to specify which loggers will be active.
 #    *  List Loggers      - Lists the loggers and their states.
+#    *  [ ] Record Always - If checked multiloggers are launched even if
+#                           recording is disabled.
+#                     
 #
 #   Normally the loggers only function when the readoutGUI is recording, however
 #   if the ::multilogger::recordAlways flag is set, recording is always done.
 #   NOTE: in that case it's important to always ensure there are unique
 #         run numbers as the eventloggers will refuse to write over existing
 #         event files.
+#
+#   NOTE:  in record always mode, if the main recording checkbutton is not set
+#          the run number is incremented at the end of run to dodge efforts
+#          to record over existing files.
+#
 #
 #  This package is installed by default but you must load it
 #  (e.g. with  ReadoutCallouts.tcl) to incorporate it into the readout gui.
@@ -117,7 +125,8 @@ snit::type EventLogger {
     
     variable expectingExit 0;             # Determines if pipe exists are bad.
     variable waitDone      0;             # for vwait when waiting on exits.
-    
+    variable run           -1;            # GUI run number.
+    variable startTime     -1;            # When started.
     constructor args {
         $self configurelist $args
     }
@@ -132,6 +141,19 @@ snit::type EventLogger {
     #
     method start {} {
         if {$options(-enable)} {
+            #
+            #  Ensure the output directory is writable:
+            #
+            
+            file attributes $options(-out) -permissions u+rw
+            
+            # Save the run number and start time for end run renaming.
+            
+            set run [ReadoutGUIPanel::getRun]
+            set startTime [clock seconds]
+            
+            # Construct the logger command and start it.
+            
             set command [list $loggerProgram                        \
                 --source=$options(-ring) --path=$options(-out)      \
                 --oneshot --checksum                                \
@@ -140,6 +162,8 @@ snit::type EventLogger {
             ]
 
             set loggerFd [open "| $command |& cat" r]
+
+            # Enable event driven handling of output from the logger.
             
             fileevent $loggerFd readable [mymethod _handleInput $loggerFd]
             set expectingExit 0
@@ -157,7 +181,9 @@ snit::type EventLogger {
     #    Flag that it's ok for the loggers to exit.
     #
     method aboutToStop {} {
-        set expectingExit 1
+        if {$options(-enable)} {
+            set expectingExit 1
+        }
     }
     ##
     # stop
@@ -167,48 +193,45 @@ snit::type EventLogger {
     #  and kill it off should it not exit within the timeout.
     #
     method stop {} {
-        # First of all only do anything if there is a logger
-        # 
-        if {[llength $loggerPids] > 0} {
-            set expectingExit 1;            # So _handleInput does not freak.
-            set afterId                                 \
-                [after [expr $options(-timeout)*1000]   \
-                 [list incr ${selfns}::waitDone]        \
-            ]
-            vwait ${selfns}::waitDone
-            
-            if {[llength $loggerPids] == 0} {
+        if {$options(-enable) } {
 
-                # Logger exit was observed:
-                
-                after cancel $afterId;             # Cancel timeout.
-                
-            } else {
-                
-                # Logger did not exit:
-                # Shut it down the hard way:
-                
-                set ring $options(-ring)
-                set out  $options(-out)
-                set pid  [lindex $loggerPids 0]
-
-                catch {close $loggerFd};        # Since this reports errors.
-                set loggerFd -1
-                foreach pid $loggerPids {
-                    catch {exec kill -9 $pid};   # Explicitly kill the pipe elements.
+            # First of all only do anything if there is a logger
+            # 
+            if {[llength $loggerPids] > 0} {
+                set expectingExit 1;            # So _handleInput does not freak.
+                set afterId                                 \
+                    [after [expr $options(-timeout)*1000]   \
+                     [list incr [myvar waitDone]]        \
+                ]
+                vwait [myvar waitDone]
+                if {[llength $loggerPids] == 0} {
+    
+                    # Logger exit was observed:
+                    
+                    after cancel $afterId;             # Cancel timeout.
+                    
+                } else {
+                    
+                    # Logger did not exit:
+                    # Shut it down the hard way:
+                    
+                    catch {close $loggerFd};        # Since this reports errors.
+                    set loggerFd -1
+                    foreach pid $loggerPids {
+                        catch [exec kill -9 $pid];   # Explicitly kill the pipe elements.
+                    }
+                    set loggerPids [list]
+                    
+                    # report the problem:
+                    
+                    set ring $options(-ring)
+                    set out  $options(-out)
+                    tk_messageBox -icon error -title {Timed out waiting for logger to exit}  \
+                        -type ok                                                            \
+                        -message "Multilogger $ring -> $out failed to exit within timeout"
                 }
-
-                set msg "MultiLogger $ring -> $out (pid=$pid) failed to exit within timeout"
-                ::ReadoutGUIPanel::Log MultiLogger: error $msg
-                
-                # report the problem:
-                
-                tk_messageBox -icon error -title {Timed out waiting for logger to exit}  \
-                    -type ok                                                            \
-                    -message $msg
-
-                set loggerPids [list]
             }
+            $self _renameFiles
         }
     }
     ##
@@ -234,49 +257,98 @@ snit::type EventLogger {
               ::ReadoutGUIPanel::Log MultiLogger: output "$ring -> $out (pid=$pid): \"$data\""
             }
         } else {
-        
             if {$loggerFd eq $channel} {
-              set ring $options(-ring)
-              set out  $options(-out)
-
-              catch {close $channel}
-              incr waitDone;             # Trigger vwait to finish if waiting.
-              set loggerFd -1;           # Set the variables back to show the logger
-              set loggerPids [list];     # no loger exists.
-            
-              # If the exit was unexpected, yell:
-
-              if {! $expectingExit} {
-                set msg "$ring -> $out (pid=$pid) exited unexpectedly!"
-
-                set dlgmsg "MultiLogger: $msg Check log for errors."
-                tk_messageBox -icon error -type ok -title {Logger exited} \
-                  -message $dlgmsg 
-
-                ::ReadoutGUIPanel::Log MultiLogger: error $msg 
-              } else {
-                set msg "$ring -> $out (pid=$pid) exited normally."
-                ::ReadoutGUIPanel::Log MultiLogger: log $msg
-              }
-
+		set ring $options(-ring)
+		set out  $options(-out)
+		
+		catch {close $channel}
+		incr waitDone;             # Trigger vwait to finish if waiting.
+		set loggerFd -1;           # Set the variables back to show the logger
+		set loggerPids [list];     # no loger exists.
+		catch {close $loggerFd}
+		incr [myvar waitDone];             # Trigger vwait to finish if waiting.
+		set loggerFd -1;           # Set the variables back to show the logger
+		set loggerPids [list];     # no loger exists.
+		
+		# If the exit was unexpected, yell:
+		
+		if {! $expectingExit} {
+		    set msg "$ring -> $out (pid=$pid) exited unexpectedly!"
+		    
+		    set dlgmsg "MultiLogger: $msg Check log for errors."
+		    tk_messageBox -icon error -type ok -title {Logger exited} \
+			-message $dlgmsg 
+		    
+		    ::ReadoutGUIPanel::Log MultiLogger: error $msg 
+		} else {
+		    set msg "$ring -> $out (pid=$pid) exited normally."
+		    ::ReadoutGUIPanel::Log MultiLogger: log $msg
+		}
+		
             } else { 
-
-              # Log this occurrence as a warning. It is not really an error necessarily, but
-              # should be noted as something potentially bizarre.
-              set ring $options(-ring)
-              set out  $options(-out)
-              set msg "$ring -> $out: closing eventlog process (pid=$pid) different than most recently launched! "
-              append msg "This is not a bad thing if there was a failure during startup of the a previous run."
-              ::ReadoutGUIPanel::Log MultiLogger: warning $msg
-
-              # clean up the pids associated with the pipe and close the pipe 
-              set pids [pid $channel]
-              catch {close $channel}
-              foreach pid $pids {
-                catch {exec kill -9 $pid}
-              }
+		
+		# Log this occurrence as a warning. It is not really an error necessarily, but
+		# should be noted as something potentially bizarre.
+		set ring $options(-ring)
+		set out  $options(-out)
+		set msg "$ring -> $out: closing eventlog process (pid=$pid) different than most recently launched! "
+		append msg "This is not a bad thing if there was a failure during startup of the a previous run."
+		::ReadoutGUIPanel::Log MultiLogger: warning $msg
+		
+		# clean up the pids associated with the pipe and close the pipe 
+		set pids [pid $channel]
+		catch {close $channel}
+		foreach pid $pids {
+		    catch {exec kill -9 $pid}
+		}
             }
         }
+  }
+    ##
+    # _renameFiles
+    #   Rename all files that are associated with the recently ended run.
+    #   We look for all files of the form
+    #    $options(-out)/run-runnum* and rename them to a file with a timestamp
+    #    placed prior to the extension e.g.
+    #     /this/that/run-0001-00.evt gets renamed to
+    #     /this/that/run-0001-00-01JAN2015-13:45:02.evt
+    #
+    #    For a run that was started January 1, 2015 at 1:45:02 PM.
+    #
+    #
+    method _renameFiles {} {
+        set nameGlob [format {run-%04d-[0-9][0-9].*} $run]
+        set pathGlob [file join $options(-out) $nameGlob];   # Fully qualified glob.
+        
+        set shaglob  [format {run-%04d.sha512} $run]
+        set shaglob  [file join $options(-out) $shaglob]
+        
+        
+        set originalFiles [glob -nocomplain $pathGlob $shaglob]
+        foreach file $originalFiles {
+            set fullpath [file normalize $file]
+            set ext [file extension $fullpath]
+            set dir [file dirname $fullpath]
+            set fname [ file tail $fullpath] ;   #includes $ext.
+            set basename [string map [list $ext ""] $fname]
+            
+            # Append the timestamp to basename and reconstruct a new path:
+            
+            append basename "-[clock format $startTime -format {%d%b%Y-%T}]"
+            set newpath [file join $dir $basename]$ext
+            
+            
+            file rename -force $fullpath $newpath
+            
+            # Turn off write access for everyone:
+            
+            file attributes $newpath -permissions ugo-w
+            
+        }
+        # Turn off writ-ability of the directory:
+        
+        file attributes $options(-out) -permissions ugo-w 
+        
     }
 }
 
@@ -314,21 +386,21 @@ snit::widgetadaptor AddLogger {
         $self configurelist $args
         
         ttk::label $win.rlabel -text {Ring URI}
-        ttk::entry $win.ring   -textvariable ${selfns}::options(-ring)
+        ttk::entry $win.ring   -textvariable [myvar options(-ring)]
         
         ttk::label  $win.lout   -text {Output directory}
-        ttk::entry  $win.outdir -textvariable ${selfns}::options(-out)
+        ttk::entry  $win.outdir -textvariable [myvar options(-out)]
         ttk::button $win.outbrowse -text Browse... -command [mymethod _browseDir]
         
         ttk::label $win.ltimeout -text {End Run timeout}
-        ttk::spinbox $win.timeout -from 2 -to 1000 -textvariable ${selfns}::options(-timeout)
+        ttk::spinbox $win.timeout -from 2 -to 1000 -textvariable [myvar options(-timeout)]
         
         
         ttk::checkbutton $win.enable -text {Enable} -onvalue 1 -offvalue 0 \
-            -variable ${selfns}::options(-enable)
+            -variable [myvar options(-enable)]
         
         ttk::label $win.lsources -text {Number of sources}
-        ttk::spinbox $win.sources -from 1 -to 1000 -textvariable ${selfns}::options(-sources)
+        ttk::spinbox $win.sources -from 1 -to 1000 -textvariable [myvar options(-sources)]
         
         
         grid $win.rlabel $win.ring                   -sticky w
@@ -535,7 +607,7 @@ proc ::multilogger::_validateLoggerConfig {ring outdir enable timeout sources} {
     
     if {$outdir eq ""}                        {return 0}
     if {![file isdirectory $outdir]}          {return 0}
-    if {![file writable $outdir]}             {return 0}
+#    if {![file writable $outdir]}             {return 0}
     
     if {![string is boolean -strict $enable]} {return 0}
     
@@ -859,7 +931,16 @@ proc ::multilogger::enter {from to} {
         
         foreach logger $::multilogger::Loggers {
             $logger stop
+            
+            # If multilogger is recording but the 'central' eventlogger is not,l
+            # increment the run number to avoid stomping on event files next time
+            # around.
+            
+            
         }
+        if {$::multilogger::recordAlways && ![::ReadoutGUIPanel::recordData]} {
+                ::ReadoutGUIPanel::setRun [expr {[::ReadoutGUIPanel::getRun] + 1}]
+            }
     }
 }
 
@@ -879,11 +960,14 @@ proc ::multilogger::initPackage {} {
         $myMenu add separator
         $myMenu add command -label {Enable Loggers...} -command ::multilogger::enableLoggers
         $myMenu add command -label {Delete Loggers...} -command ::multilogger::deleteLoggers
+        $myMenu add separator
+        $myMenu add checkbutton -offvalue 0 -onvalue 1 -variable ::multilogger::recordAlways -label {Record Always}
         
         # Load the initial loggers from last time if they exist else build the
         # ~/.multiloggers file.
         
         ::multilogger::loadLoggers
+        
         
         set ::multilogger::Initialized 1
     }

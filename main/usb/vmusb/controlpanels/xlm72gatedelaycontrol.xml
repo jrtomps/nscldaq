@@ -1,0 +1,311 @@
+<!-- chapter device-support -->
+<chapter>
+  <title>
+    XLM72 Gate Delay Control GUI
+  </title>
+
+  <section>
+    <title>Introduction</title>
+
+    <para>
+      The JTec XLM72 is a multipurpose logic module that can be configured via firmware to 
+      accomplish any task within its hardware limitations. A certain firmware written by Daniel Bazin exists that implements a 
+      16 channel gate delay generator. One can typically find it at /user/s800/server/fpga/gd16.bit as a
+      world-readable file. NSCLDAQ provides a driver for the XLM72 when running
+      this firmware and also a graphical user interface (GUI) for communicating with it in the environment of VMUSBReadout.
+      The following documentation will provide an overview of the GUI that can be used to 
+      directly configure a device and also to save and restore configurations from
+      files. The reader will learn how to set up an XLM72 to be remotely controlled by this GUI,
+      how to launch the GUI, and the various features associated with it. 
+    </para>
+
+    <para>
+      The XLM72GateDelayControl GUI provides direct access to the XLM to control:
+    </para>
+
+    <itemizedlist>
+      <listitem>
+        <para>Channel labels</para>
+      </listitem> 
+
+      <listitem>
+        <para>Gate widths for each channel</para>
+      </listitem> 
+
+      <listitem>
+        <para>Gate delays for each channel</para>
+      </listitem> 
+
+      <listitem>
+        <para>Whether a channel should be bypassed</para>
+      </listitem>
+
+      <listitem>
+        <para>The inspect channels</para>
+      </listitem>
+    </itemizedlist>
+
+  </section>
+
+  <section>
+    <title>
+      Setting up an XLM72 as a gate delay generator for remote control
+    </title>
+
+    <para>
+      The support for the gate delay generator is provided within VMUSBReadout.
+      Among other support for this device, NSCLDAQ provides a high level driver
+      that can satisfy requests to the device from remote clients of the slow
+      controls server.  The first thing that the user will need to do to set up
+      the device is to load a proper gd16.bit firmware on the device. To do so,
+      the user should make use of the "xlm" slow controls module. This module
+      specifically loads firmware onto the specified device and can be used to
+      verify a firmware signature. Let's assume that we have an XLM72 device in
+      slot 10 and want to turn it into an gate delay generator. I will also
+      assume that this is being run on the NSCL network and has access to
+      /user/s800/server/fpga/gd16.bit. Given those assumptions, the following
+      lines should be added to the ctlconfig.tcl file: 
+    </para>
+
+    <programlisting>
+set slot 10
+Module create xlm xlmloader
+Module config xlmloader -base [expr {$slot &lt;&lt; 27}]
+Module config xlmloader -firmware [file join /user s800 server fpga gd16.bit]
+Module config xlmloader -validate on -signature [expr 0xdaba0006]
+    </programlisting>
+
+    <para>
+      All this does is create a slow controls module called "xlmloader" and
+      then pass a series of configuration options to. The first configuration
+      option is -base, which specifies the base address of the XLM72 device we
+      wish to talk to. The XLM72 I am using is geographically addressed and
+      thus responds to the address formed by bit shifting the slot number up 27
+      bits. The next option we set is the location of the firmware (i.e.
+      /user/s800/server/fpga/gd16.bit). We then also tell the xlmloader module
+      that we want it to check that the firmware is loaded properly by setting
+      the -validate option to "on". The idea here is that the gd16.bit firmware
+      will set a register in the fpga to 0xdaba0006 when properly loaded. Note
+      that the signature is specific to this firmware and could be different if
+      using a different version of the gd16.bit firmware. If in doubt, contact
+      Daniel Bazin for the proper firmware signature to use.
+      
+      <important>
+        If you are using different
+        firmware than gd16.bit, you should have no expectation that any NSCLDAQ
+        drivers will work properly. Remember that the gate and delay generator's
+        behavior is defined by both the hardware and the firmware. If you choose
+        to use a different firmware, you are essentially using a different module
+        than any of the drivers in NSCLDAQ were written to support.
+      </important>
+    </para>
+
+    <para>
+      With the above lines added to the ctlconfig.tcl file, the module will be
+      configured when VMUSBReadout starts up and whenever the user calls the
+      "init" command at the console. At this point, we have a gate delay
+      generator but have no way of communicating with it remotely via the
+      XLM72GateDelayControl GUI. To do that we need to add a few more lines to
+      the ctlconfig.tcl after the ones you have already added. Those lines are:
+    </para>
+
+    <programlisting>
+lappend auto_path [file join $::env(DAQROOT) TclLibs]
+lappend auto_path $::env(DAQLIB)
+
+package require snit
+package require gd16xlm72
+
+AGD16XLM72Control gd16controlObj -slot $slot
+Module create tcl GD16control
+Module config GD16control -ensemble gd16controlObj
+    </programlisting>
+
+    <para>
+      The first three lines here are very important because it specifies that
+      we want to use the gd16xlm72 package in the tclsh and also where to look
+      find it. The gd16xlm72 contains the actual drivers for communicating with
+      the XLM72 once it has the proper firmware loaded on it. The driver that
+      handles remote requests through the slow controls server is called
+      AGD16XLM72Control. This is what is called a snit::type in the language of
+      tcl, but that is not terribly important. You can feel free to treat this
+      as a magic box. The only specific aspect to the line beginning with
+      "AGD16XLM72Control" that is important for you to set to your specific
+      situation is the value passes to the -slot option. In our example this
+      should be 10, which it is based on the code we already added to the
+      ctlconfig.tcl file. The final two lines are how we load a snit::type
+      driver into the slow controls server as with the module name of
+      "GD16control".  The module name is very important to remember because it
+      must be passed to the XLM72GateDelayControl application when launched.
+    </para>
+
+    <para>
+      With that, you should now have a proper ctlconfig.tcl to use an XLM72 as
+      a gate delay generator if it is in slot 10.
+    </para>
+  </section>
+
+  <section>
+    <title>
+      Launching the XLM72GateDelayControl
+    </title>
+
+    <para>
+      The first thing you need to realize is that the XLM72GateDelayControl is
+      a client to the slow controls server within VMUSBReadout. For that reason, the very first
+      thing that you need to do is ensure that your instance of VMUSBReadout is
+      running and that it has been fed the ctlconfig.tcl that was described in
+      the previous section. By default, VMUSBReadout will listen on port 27000
+      for connections, however this will be different if you have specified a
+      different value to the --port command-line option on VMUSBReadout or if
+      you already have another application listening on port 27000.
+    </para>
+
+    <para>
+      Now that VMUSBReadout is running, it is time to launch the
+      XLM72GateDelayControl program. It should be living in the $DAQBIN
+      directory (note that DAQBIN is set properly by sourcing the daqsetup.bash
+      script in a specific install directory of NSCLDAQ). The only required
+      argument for launching the application is the -module option. The value
+      for this is the name of the module loaded into the slow controls server.
+      In the previous section we set this to be "GD16control". The application
+      needs to also be provided the name of the host and port number associated with the
+      slow controls server. These are given sensible defaults of "localhost"
+      and 27000, so you do not have to explicitly specify them if your
+      VMUSBReadout is running locally and listening on the default port. If you
+      know these values to be different that the defaults, then you should explicitly pass the
+      correct values to XLM72GateDelayControl using the -host and -port options. 
+      The one final piece of the information that must be known
+      is the name of a ring buffer to look for state transitions on and it is
+      specified by the -ring option. Once again, this is given the default
+      value of tcp://localhost/USERNAME, where USERNAME is your user name. It
+      is the default location that VMUSBReadout will output its data if not
+      expicitly specified to be otherwise.
+    </para>
+
+    <para>
+      The application makes use of the ring buffer name provided by monitoring
+      data passing through it for the purpose of locking the GUI while a run is
+      in process. The locking mechanism is quite simple, any END_RUN or
+      PAUSE_RUN item observed in the ringbuffer will unlock the GUI while any
+      BEGIN_RUN or RESUME_RUN item will lock it. If the ringbuffer does not
+      exist, an error will be printed to the terminal and the program will
+      exit. This is to protect the user from accidentally changing the state of the
+      gate and delay generator while a run is in progress.
+    </para>
+
+    <para>
+      Finally, let's be more illustrative about how to launch the program.
+      Assume that we have our VMUSBReadout program running locally, is
+      listening on port 27000 for slow controls server connections, has a slow
+      controls module loaded into it called "GD16control", and is outputting
+      data into the default ring buffer. To launch the application, you can
+      enter the command
+    </para>
+
+    <programlisting>
+$DAQBIN/XLM72GateDelayControl -module GD16control
+    </programlisting>
+
+    <para>
+      You can learn all of the parameters that can be passed to the application at startup by 
+      passing the -help option. By doing so, you will see the following output.
+    </para>
+
+    <programlisting>
+XLM72GateDelayControl -module value ?option value? :
+ -module value        name of module registered to slow-controls server [MANDATORY] &lt;&gt; 
+ -host value          host running VMUSBReadout slow-controls server &lt;localhost&gt;
+ -port value          port the slow-controls server is listening on &lt;27000&gt;
+ -ring value          name of ring VMUSBReadout is filling &lt;&gt; 
+ -configfile value    name of configuration file to read from to initialize the GUI &lt;&gt;
+ --                   Forcibly stop option processing
+ -help                Print this message
+ -?                   Print this message
+
+User must pass a valid value for the -module option
+    </programlisting>
+
+    <para>
+      <important>
+        It is important to note that at the moment the GUI only works when the -host parameter is localhost.
+      </important>
+    </para>
+
+    <para>
+      This command should cause a window to open that looks like this:
+    </para>
+
+    <figure>
+      <title>Screenshot of XLM72GateDelayControl</title>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="figures/gd16_startup.png" align="center" format='PNG'/>
+        </imageobject>
+        <caption>
+          <para>
+            A screenshot of the gate delay GUI immediately upon startup. 
+          </para>
+        </caption>
+      </mediaobject>
+    </figure>
+
+    <para>
+      Finally, it is useful to point out the final option that can be passed to
+      the XLM72GateDelayGUI. That option is the -configfile option and is used
+      for specifying the name of the configuration file that should be
+      atomatically loaded into the GUI on startup. The user should realize that
+      this does not automatically apply the restored configuration to the XLM.
+      It merely loads it into the GUI for viewing. If the user wants to apply
+      this to the device, then they can press the "Put" button to "put" the
+      configuration into the device. Otherwise, the user can press the "Get"
+      button to discard the restored configuration in favor of the current
+      state of the device. The main utility in this feature is more for the
+      sake of channel labels. Once a configuration is restored from a file, the
+      labels will remain after a "Get" or "Put" operation.
+    </para>
+
+    <para>
+      To write the state of the GUI to a configuration file, you should simply
+      write the name of the configuration file in the text entry at the top of
+      the GUI and then press "Write". It will overwrite any existing file with
+      that name without prompting you, so tred carefully. 
+    </para>
+  </section>
+
+  <section>
+    <title>
+      Overview of Functionality
+    </title>
+
+    <para>
+      The GUI is "directly-connected" to the XLM72 and remains synchronized
+      with the state of the device. In other words, changes that are made to
+      the GUI immediately produce a change in the XLM72. You cannot configure a
+      setting and then apply it to the device at a later time!  
+    </para>
+
+    <para>
+      There are only two times that the GUI will not reflect the actual state
+      of the device. Those two times are at startup and after the "Read" button
+      has been pressed. At startup there is no communication with the module.
+      To retrieve the state of the device and display it in the GUI, the user should
+      press the "Get" button. This button synchronizes the state of the GUI
+      to the state of the XLM. The other scenario is when the Read button has
+      been pressed. In that case, a configuration file will be read and then
+      its restored state will be represented in the GUI. At that point, the user
+      can either discard the state or use it by pressing the "Get" or "Put"
+      buttons, respectively.
+    </para>
+
+    <para>
+      The one final interesting aspect to this GUI is the "dt" parameter. This
+      should be understood as being purely for the sake of the user. It is used
+      for translating the raw parameter values to calibrated time values for
+      display and adjusts for the length of the external delay cable being
+      used.
+    </para>
+
+  </section>
+</chapter>
+<!-- /chapter -->

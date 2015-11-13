@@ -480,6 +480,7 @@ snit::type JobBuilderUIPresenter {
     toplevel .jobconf
     wm title .jobconf "Configure Job"
     wm resizable .jobconf false false
+    
 
     set config [JobConfigUIPresenter %AUTO% -widgetname .jobconf.ui \
                                             -ismaster 1]

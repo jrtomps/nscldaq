@@ -3,13 +3,35 @@
 #  Mark them for a rewrite ...somehow the server/client setup looks backwards.
 #
 if {0} {
+# This set of tests is intended to test that a remote client of the master
+# readout gui can send requests to the master.
+
 package require tcltest
 package require ReadoutGuiClient
 package require Thread
 package require ui
 
+
+## These are some overridden procs that are needed by ReadoutGuiRemoteControl
+# when it makes connection. Rather than including all of the ReadoutGUIPanel
+# we can just provide some dummy versions of the procs needed.
+namespace eval ReadoutGUIPanel {
+
+  proc getRun {} {
+    return 1
+  }
+
+  proc getTitle {} {
+    return "This is only a test"
+  }
+}
+
+
+# Ensure that we can require the package
 tcltest::test pkgrequire-0 {Test that we can require the package 
 } {package require ReadoutGuiRemoteControl} 1.0  
+
+
 
 proc ReadLine {sock} {
   if {[catch {gets $sock line} len] || [eof $sock]} {
@@ -22,12 +44,26 @@ proc ReadLine {sock} {
 
 set ::StatusBar::theInstance [StatusArea .bar]
 
+
+# To test the remote control stuff, we need to have both
+# the slave side components and the master side components.
+# The only thing needed for the slave side is the instance
+# of the ReadoutGuiRemoteControl snit::type. We create that
+# in the main thread. The master side will need a bit more
+# to be created and is set up in its own thread. This proc
+# will set up both and will not complete until it is understood
+# that the connection is established between the slave and
+# the master.
 proc setup {} {
   set ::connected 0
   puts "Setup start"
   
+  # Set up the slave side component of the communication
   ReadoutGuiRemoteControl ::rctl
   set fd [::rctl info vars requestfd]
+
+  
+  # launch a thread that will run the master ReadoutGUI's components.
   set ::serv [thread::create -joinable {
   
   set replyfd ""
@@ -62,6 +98,7 @@ proc setup {} {
     set allocator [portAllocator %AUTO% -hostname localhost]
     set ::port [$allocator allocatePort s800rctl]
     $allocator destroy
+
     set listenfd [socket -server OnConnect $::port]
     set ::replyfd ""
 
@@ -100,6 +137,8 @@ proc tearDown {} {
 
 
 
+## This is testing the ability of the slave to send an
+# end message to the master.
 tcltest::test send-0 {Test that we can send messages 
 } -setup {
   setup

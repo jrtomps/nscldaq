@@ -1,7 +1,7 @@
 
 DRIVERDest=@prefix@/TclLibs/tclutils
 
-TCLDRIVERS= Utils.tcl BlockCompleter.tcl TclSourceFilter.tcl
+TCLDRIVERS= Utils.tcl BlockCompleter.tcl TclSourceFilter.tcl Process.tcl
 TCLTESTS= utils.test blockcompleter.test tclsourcefilter.test
 
 install-exec-local:

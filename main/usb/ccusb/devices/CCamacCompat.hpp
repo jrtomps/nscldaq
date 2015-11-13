@@ -9,20 +9,13 @@
 /**! \brief A compatibility class for Camac hardware
 *   
 *   This class wraps an arbitrary object
-*   in a ReadoutHardware object. This facilitates the ability to 
-*   use the same source code to control a camac module when it lives
-*   on a Camac branch rooted in a vme crate by means of a module 
-*   like the CES CBD8210 or when in a stand alone camac crate controlled 
-*   with a module lke the Wiener CCUSB. The similarity between the
-*   software architecture for the VMUSBReadout and the CCUSBReadout
-*   is what makes this largely possible. The original intent of the
-*   class was to support the CBD8210 branch driver framework. A module that
-*   lives on the CBD8210 branch will never be loaded directly into the
-*   the stack. Instead, it must be registered to a CCamacCrate. That CCamacCrate
-*   will then access the wrapped object that this owns and calls its
-*   Initialize and addReadoutList methods directly. As a result there 
-*   should never be a time that the Initialize(CVMUSB&) and 
-*   addReadoutList(CVMUSBReadoutList&) methods are called. 
+*   in a ReadoutHardware object. This facilitates the ability to use the same
+*   source code in both a VMUSBReadout and CCUSBReadout environment. This 
+*   compatibility layer however differs from the VMUSBReadout version becuase
+*   it is sensible for a call to Initialize or addReadoutList be forwarded
+*   directly to the wrapped object. In the VMUSBReadout world, you cannot pass
+*   a CVMUSB or CVMUSBREadoutList to the objectm, because it just does not make
+*   sense. So these Initialize and addReadoutList methods do not throw.
 *
 *   This requires that the wrapped object of type T must define the following
 *   methods:
@@ -126,7 +119,7 @@ class CCamacCompat : public CReadoutHardware
         *
         *   \throws unnamed exception
         */
-        void Initialize(CCCUSB& controller) { throw;}
+        void Initialize(CCCUSB& controller) { m_obj->Initialize(controller);}
 
         /**! \brief Off limits addReadoutList 
         *
@@ -134,15 +127,8 @@ class CCamacCompat : public CReadoutHardware
         *
         *   \throws unnamed exception
         */
-        void addReadoutList(CCCUSBReadoutList& controller) { throw;}
+        void addReadoutList(CCCUSBReadoutList& list) { m_obj->addReadoutList(list);}
         
-        /**! \brief call onEndRun 
-        *
-        *   This ensures that no one actually tries to use this. 
-        *
-        *   \throws unnamed exception
-        */
-        void onEndRun(CCCUSB& controller) { throw; }
 
         /**! Polymorphic copy constructor
         *

@@ -25,14 +25,17 @@ package require eventLogBundle
 package require DataSourceManager
 package require DataSourceMonitor
 package require EVBStateCallouts
+package require ringsourcemgr
 
 package require ExpFileSystem
 package require OfflineEVBInputPipeline
 package require OfflineEVBHoistPipeline
 package require evbcallouts
+package require evbconfigure
 
 package require Thread
 package require OfflineEVBOutputPipeline
+package require RunStateObserver
 
 ## @namespace HoistConfig
 #
@@ -83,12 +86,17 @@ snit::type JobProcessor {
   variable sourceManager ""
   variable stateMachine  ""
   variable completionStatus FAIL ; # assume failure unless told otherwise
+  variable runStateObserver ""
+  variable processingComplete 0
 
   ## @brief Pass the options
   #
   constructor {args} {
     set sourceManager [DataSourcemanagerSingleton %AUTO%]
     set stateMachine  [RunstateMachineSingleton %AUTO%]
+    set processingComplete 0
+
+    set runStateObserver [RunStateObserver %AUTO% -onend [mymethod onEndRun]]
 
     $self configurelist $args
 
@@ -105,6 +113,8 @@ snit::type JobProcessor {
       $stateMachine destroy
       set stateMachine ""
     }
+
+    $runStateObserver destroy
   }
 
   ## @brief Register all of the bundles that we need
@@ -114,8 +124,9 @@ snit::type JobProcessor {
     # rdoCalloutsBundle has already been registered
     ::EventLog::register
     ::EVBStateCallouts::register
+    ::RingSourceMgr::register
+    ::EVBConfigure::register
     ::DataSourceMgr::register
-  #  ::DataSourceMonitor::register
   }
 
   ## @brief return the data source manager known to this
@@ -142,18 +153,55 @@ snit::type JobProcessor {
     # hook to handle one-time startup procedures 
     $self setup
 
+    set processingComplete 0
     if {![catch {$self startProcessing} msg]} {
-      # the transition to active was successful so we should expect that 
-      # processing succeeds.
-      #
-      # Tell the eventlog that it is okay for it to exit, because that is 
-      # what we expect.
-      EventLog::runEnding    ;# wait until run is ended and finalize
-      set completionStatus OK
+     set newRing tcp://localhost/[$options(-evbparams) cget -destring]
+     set currentRing [$runStateObserver cget -ringurl]
+     if {$currentRing ne $newRing} {
+       if {$currentRing ne {}} {
+         $runStateObserver detachFromRing
+       }
+       $runStateObserver configure -ringurl $newRing
+       $runStateObserver attachToRing
+     }
+
+      vwait [myvar processingComplete]
+
+      # wait for some time to finish getting all of the end runs
+      after 100
+
+      if {$processingComplete == 1} {
+        # job ended normally
+        puts "we are going to try to end this thing"
+
+        if {$::EventLog::loggerPid != -1} { 
+          ::EventLog::runEnding
+        }
+        # the transition to active was successful so we should expect that 
+        # processing succeeds.
+        #
+        # Tell the eventlog that it is okay for it to exit, because that is 
+        # what we expect.
+        #
+        # Currently we have no mechanism for aborting a run in progress.
+        #
+        set completionStatus OK
+        $self stopProcessing   ;# stop the processing pipelines
+
+      } else {
+        # run aborted
+         puts "aborted"
+        set completionStatus ABORT
+        $self forceStopProcessing
+      }
+
     }
 
-    $self stopProcessing   ;# stop the processing pipelines
     return $completionStatus
+  }
+
+  method onEndRun {item} {
+    set processingComplete 1
   }
 
   ## @brief Load and configure the callout bundles 
@@ -219,7 +267,6 @@ snit::type JobProcessor {
   # the update calls.
   #
   method waitForHalted {} {
-    variable stateMachine
 
     set state [$stateMachine getState]
     while {$state ne "Halted"} {
@@ -232,7 +279,6 @@ snit::type JobProcessor {
   ## @brief Transition the state machine into a NotReady state
   #
   method stopProcessing {} {
-    variable stateMachine
 
     if {[$stateMachine getState] eq "Active"} {
       $stateMachine transition Halted
@@ -241,6 +287,11 @@ snit::type JobProcessor {
     $stateMachine transition NotReady
 
     $self tearDown 
+  }
+
+  method forceStopProcessing {} {
+    $stateMachine transition NotReady
+    $self tearDown
   }
 
   ## @brief Transition the system into a clean state
@@ -304,8 +355,11 @@ snit::type JobProcessor {
     set ::HoistConfig::id         [$options(-hoistparams) cget -id]
     set ::HoistConfig::expectbh   [$options(-hoistparams) cget -expectbheaders]
 
-    # define a startEVBSources proc or overwrite it if it already exists
-    eval { proc ::startEVBSources {} { EVBC::startRingSource tcp://localhost/$::HoistConfig::ring $::HoistConfig::tstamplib $::HoistConfig::id $::HoistConfig::info $::HoistConfig::expectbh}}
+    ::EVBC::registerRingSource tcp://localhost/$::HoistConfig::ring \
+      $::HoistConfig::tstamplib \
+      $::HoistConfig::id \
+      $::HoistConfig::info \
+      $::HoistConfig::expectbh
   }
 
   ## Pass the configuration information to the ::EVBC:: parameters
@@ -374,6 +428,12 @@ snit::type JobProcessor {
     $sourceManager addSource Offline [dict create unglomid [$options(-inputparams) cget -unglomid] \
                                                 ring [$options(-inputparams) cget -inputring] \
                                                 file [$options(-inputparams) cget -file]]
+  }
+
+
+  method abortRun {} {
+    puts "setting processingComplete -> 2"
+    set processingComplete 2
   }
 
 }

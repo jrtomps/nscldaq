@@ -220,12 +220,12 @@ CExperiment::Start(bool resume)
       m_nPausedmSeconds += (msTime - m_nLastScalerTime);
       m_nLastScalerTime = msTime;
     }
-    
+
     uint32_t elapsedTime = (msTime - m_nRunStartStamp - m_nPausedmSeconds)/1000;
-    
+
     CRingStateChangeItem item(NULL_TIMESTAMP, m_nSourceId, BARRIER_START,
-        resume ? PAUSE_RUN : BEGIN_RUN,  m_pRunState->m_runNumber,
-	elapsedTime, stamp,
+        resume ? RESUME_RUN : BEGIN_RUN,  m_pRunState->m_runNumber,
+        elapsedTime, stamp,
         std::string(m_pRunState->m_pTitle).substr(0, TITLE_MAXSIZE));
     item.commitToRing(*m_pRing);
 
@@ -233,9 +233,9 @@ CExperiment::Start(bool resume)
 
     if (m_pReadout) {
       if (resume) {
-	m_pReadout->onResume();
+        m_pReadout->onResume();
       } else {
-	m_pReadout->onBegin();
+        m_pReadout->onBegin();
       }
     }
     

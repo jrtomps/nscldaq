@@ -27,13 +27,13 @@ tcltest::test transitionToNextJob-0 {Test the logic works
 } -cleanup {
   $pr destroy
 } -body {
-  set jobs [dict create processing jc queued [list jd je jf] completed [list ja jb]]
+  set jobs [dict create processing jc aborted [list] queued [list jd je jf] completed [list ja jb]]
   $pr setModel $jobs
 
   $pr transitionToNextJob je
 
   $pr getModel
-} -result [dict create processing je queued [list jd jf] completed [list ja jb jc]]
+} -result [dict create processing je aborted [list] queued [list jd jf] completed [list ja jb jc]]
 
 
 
@@ -58,11 +58,11 @@ tcltest::test transitionCurrent-0 {Test that transitioning current puts it into 
 } -cleanup {
   $pr destroy
 } -body {
-  $pr setModel [dict create processing "asdf" completed [list] queued [list]]
+  $pr setModel [dict create processing "asdf" aborted [list] completed [list] queued [list]]
 
   $pr transitionCurrent completed
   $pr getModel
-} -result [dict create processing "" completed [list asdf] queued [list]]
+} -result [dict create processing "" aborted [list] completed [list asdf] queued [list]]
 
 tcltest::test transitionCurrent-1 {Test that transitioning current puts it where we ask 
 } -setup {
@@ -70,11 +70,11 @@ tcltest::test transitionCurrent-1 {Test that transitioning current puts it where
 } -cleanup {
   $pr destroy
 } -body {
-  $pr setModel [dict create processing "asdf" completed [list] queued [list]]
+  $pr setModel [dict create processing "asdf" aborted [list] completed [list] queued [list]]
 
   $pr transitionCurrent queued 
   $pr getModel
-} -result [dict create processing "" completed [list] queued [list asdf]]
+} -result [dict create processing "" aborted [list] completed [list] queued [list asdf]]
 
 
 
