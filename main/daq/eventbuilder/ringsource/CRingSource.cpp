@@ -48,7 +48,7 @@ static uint64_t lastTimestamp(NULL_TIMESTAMP);
 
 
 
-static size_t max_event(1024*128); // initial Max bytes of events in a getData
+static size_t max_event(1024*1024*10); // initial Max bytes of events in a getData
 
 /*----------------------------------------------------------------------
  * Canonicals
@@ -283,11 +283,13 @@ CRingSource::getEvents()
 
         // if we are here, then all is well in the world.
         
-        frag.s_barrierType = pRingItem->s_header.s_type; // default.
+        frag.s_barrierType = 0; // default.
         switch (pRingItem->s_header.s_type) {
         case BEGIN_RUN:
+	  frag.s_barrierType = 1;
           break;
         case END_RUN:
+	  frag.s_barrierType = 2;
           m_nEndsSeen++;
           if (m_fOneshot && (m_nEndsSeen >= m_nEndRuns)) {
            doExit = true;

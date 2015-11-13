@@ -61,6 +61,7 @@ public:
     
     uint16_t getMajor() const;
     uint16_t getMinor() const;
+
     
     // object methods:
 

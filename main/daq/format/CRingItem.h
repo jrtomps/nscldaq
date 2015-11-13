@@ -96,7 +96,7 @@ public:
   const _RingItem* getItemPointer() const;
   uint32_t type() const;
   bool mustSwap() const;
-  bool hasBodyHeader() const;
+  virtual bool hasBodyHeader() const;
   uint64_t getEventTimestamp() const;
   uint32_t getSourceId() const;
   uint32_t getBarrierType() const;
