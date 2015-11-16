@@ -1470,7 +1470,7 @@ snit::widgetadaptor TimedRunControls {
     # to options(-days)
     #
     method _updateDays {} {
-        set options(-days) [$win.days get]
+        set options(-days) [$win.time.days get]
     }
 
     ##
@@ -1667,7 +1667,7 @@ proc ::ReadoutGUIPanel::getRequestedRunTime {} {
     set days [$w cget -days]
     
     return [expr {
-        ((($days*24) + $hrs * 60) + $mins *60) + $secs
+        (($days*24 + $hrs)*60 + $mins)*60 + $secs
     }]
 }
 ##
