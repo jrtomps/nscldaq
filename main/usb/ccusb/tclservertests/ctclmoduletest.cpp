@@ -17,11 +17,13 @@
 #undef protected
 #undef private
 
+#include <TCLInterpreter.h>
 using namespace std;
 
 class CTclControlModuleTests : public CppUnit::TestFixture {
   private:
     unique_ptr<CTclControlModule> m_cmd;
+    unique_ptr<CTCLInterpreter>   m_interp;
 
   public:
     CPPUNIT_TEST_SUITE(CTclControlModuleTests);
@@ -32,7 +34,8 @@ class CTclControlModuleTests : public CppUnit::TestFixture {
 
 public:
   void setUp() {
-    m_cmd.reset(new CTclControlModule);
+    m_interp.reset(new CTCLInterpreter);
+    m_cmd.reset(new CTclControlModule(*m_interp));
   }
   void tearDown() {
   }

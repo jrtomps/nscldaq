@@ -1,0 +1,21 @@
+
+#include <string>
+#include <CXLMControls.h>
+#include <CXLMControlsCreator.h>
+#include <memory>
+
+namespace XLM
+{
+
+///////////////////////////////////////////////////////////////////////////////
+/////////////////////// CXLMControlsCreator ///////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+
+  std::unique_ptr<CControlHardware> CXLMControlsCreator::operator()()
+  {
+    return std::unique_ptr<CControlHardware>(new CXLMControls);
+  }
+
+
+}

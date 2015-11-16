@@ -21,6 +21,7 @@
 #endif
 
 #include <ErrnoException.h>
+#include <sys/time.h>
 
 /*!  Construct the base class. we just need to set the initial value of
   the high water mark for waiters.  Note that there are two ways that
@@ -183,6 +184,7 @@ while (m_queue.empty()) {
    // and now it owns the queue semaphore with entries in the queue.
 
 \endverbatim
+@param timeout - number of milli-seconds to wait for the signal.  -1 means no timeout.
 
   @note - a timed wait is used because there's a small timing hole in get:
           if, between the check for data and the wait acquiring the mutex
@@ -192,15 +194,44 @@ while (m_queue.empty()) {
           for data in the queue in get.
 */
 template<class T> void
-CBufferQueue<T>::wait()
+CBufferQueue<T>::wait(int timeout)
 {
   Enter();			// Blocking on the condition var requires this.
-  struct timespec endwait = msToAbsTime(500);
-  int status = pthread_cond_timedwait(&m_condition, &mutex(), &endwait);
-  if ((status) && (status != ETIMEDOUT)) {
-    throw CErrnoException("Waiting on buffer queue");
+  
+  int status;
+  if (timeout == -1) {
+    struct timespec endwait = msToAbsTime(500);
+    status = pthread_cond_timedwait(&m_condition, &mutex(), &endwait);
+  } else {
+    struct timespec abstime;
+    
+    
+    struct timeval  now;
+    struct timeval  dt;
+    struct timeval  timeoutTime;
+    gettimeofday(&now, NULL);        // now.
+    
+    // Express the timeout as a timeval
+
+
+
+    dt.tv_sec   = timeout / 1000;   // Seconds;
+    dt.tv_usec  = 1000*(timeout % (1000)); // Left over usec.
+    timeradd(&now, &dt, &timeoutTime);   // abs time of timeout -> timeoutTime
+    
+    // Convert timeval -> timespec:
+    
+    abstime.tv_sec = timeoutTime.tv_sec;
+    abstime.tv_nsec = timeoutTime.tv_usec * 1000;
+
+    status = pthread_cond_timedwait(&m_condition, &mutex(), &abstime);
   }
   Leave();			// We return owning the semaphore.
+  
+  if (status && (status != ETIMEDOUT)) {
+    throw CErrnoException("Waiting on buffer queue");
+  }
+ 
 }
 /*!
     Wakes up all threads that are hanging around in wait().

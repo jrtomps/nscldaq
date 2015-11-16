@@ -62,6 +62,13 @@ CScalerCommand::~CScalerCommand()
 /*!
    Process the command:
 /
+//--ddc may15 NOT  - Ensure there are exactly 4 command parameters.
+   - Ensure there are at LEAST 4 command parameters.
+   - Ensure the subcommand is create.
+   - Ensure the module name does not already exists.
+   - Ensure the base address is a valid uint32_t.
+   - Create and configure the scaler.
+   - Add it to the configuration.
 
    @param interp : CTCLInterpreter&
        Referes to the interpreter that is running this command.
@@ -110,7 +117,6 @@ CScalerCommand:: create(CTCLInterpreter& interp,
 
 
   if(objv.size() > 5){
-    int i = 4;			// First unused parameter (option)
     
     int status = configure(interp, pModule, objv, 4);
     if (status == TCL_ERROR) return status;

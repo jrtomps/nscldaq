@@ -14,29 +14,12 @@
 	     East Lansing, MI 48824-1321
 */
 
-#ifndef __FRAGMENT_H
-#define __FRAGMENT_H
+#ifndef FRAGMENT_H
+#define FRAGMENT_H
 
-#ifndef __CONFIG_H
 #include <config.h>
-#ifndef __CONFIG_H
-#define __CONFIG_H
-#endif
-#endif
-
-#ifndef __CRTL_STDINT_H
 #include <stdint.h>
-#ifndef __CRTL_STDINT_H
-#define __CRTL_STDINT_H
-#endif
-#endif
-
-#ifndef __CRTL_TYPE_H
 #include <sys/types.h>
-#ifndef __CRTL_TYPE_H
-#define __CRTL_TYPE_H
-#endif
-#endif
 
 /**
  * The conditional directives in this file are for two reasons:

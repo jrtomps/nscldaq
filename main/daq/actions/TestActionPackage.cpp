@@ -77,3 +77,5 @@ int main (int argc, char** argv)
     fastMessages();
     alternateMessages();
 }
+
+void* gpTCLApplication(0);

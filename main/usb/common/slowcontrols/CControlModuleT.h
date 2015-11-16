@@ -15,19 +15,12 @@
        East Lansing, MI 48824-1321
        */
 
-#ifndef __CCONTROLMODULET_H
-#define __CCONTROLMODULET_H
+#ifndef CCONTROLMODULET_H
+#define CCONTROLMODULET_H
 
-#ifndef __CCONFIGURABLEOBJECT_H
 #include <CConfigurableObject.h>
-#endif
 
-#ifndef __STL_STRING
 #include <string>
-#ifndef __STL_STRING
-#define __STL_STRING
-#endif
-#endif
 
 #include <memory>
 

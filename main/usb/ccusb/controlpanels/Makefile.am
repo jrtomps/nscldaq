@@ -10,6 +10,8 @@ install-exec-local:
 	$(INSTALL_SCRIPT) @srcdir@/ULMTriggerGUI.tcl @bindir@/ULMTriggerGUI 
 	$(mkinstalldirs) @prefix@/share/html/figures
 	$(INSTALL_DATA) @srcdir@/ulmtrigger_startup.png @prefix@/share/html/figures/.
+	$(INSTALL_SCRIPT) @srcdir@/ULMTriggerGUI.tcl @bindir@/ULMTriggerGUI 
 
 EXTRA_DIST=$(APPS) $(PACKAGES) ULMTriggerGUI.tcl ulmtrigger.xml @srcdir@/ulmtrigger_startup.png
+
 

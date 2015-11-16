@@ -1383,6 +1383,8 @@ snit::type LoadFromFilePresenter {
     set fakeHandle [$self SwapInHandle $realHandle]
 
     $fakeHandle destroy
+
+    [[$_contentFr GetCurrent] cget -view] SetOutOfSync 1
   }
 
   method FilterOutNonAPICalls {content} {

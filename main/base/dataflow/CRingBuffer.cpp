@@ -247,12 +247,13 @@ CRingBuffer::remove(string name)
   
   connectToRingMaster();
 
-  // At this point RM has acked so we can kill the ring itself:
+
   // Tell the ringmaster to forget the ring and kill the clients
 
   m_pMaster->notifyDestroy(name);
 
-  // Delete the ring shared memory special file.
+  // At this point RM has acked so we can kill the ring itself:
+
   
   string fullName   = shmName(name);
 

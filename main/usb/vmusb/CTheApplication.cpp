@@ -27,12 +27,6 @@
 
 #include <TCLInterpreter.h>
 #include <TCLLiveEventLoop.h>
-#include <CBeginRun.h>
-#include <CEndRun.h>
-#include <CPauseRun.h>
-#include <CResumeRun.h>
-#include <CInit.h>
-#include <CExit.h>
 #include <Exception.h>
 #include <ErrnoException.h>
 #include <tcl.h>
@@ -86,20 +80,15 @@ static       int      tclServerPort(27000);		    // Default value.
 // Static member variables and initialization.
 
 bool CTheApplication::m_Exists(false);
-std::string CTheApplication::m_initScript;
 
-unique_ptr<CBeginRun> CTheApplication::m_pBeginRun;
-unique_ptr<CEndRun> CTheApplication::m_pEndRun;
-unique_ptr<CPauseRun> CTheApplication::m_pPauseRun;
-unique_ptr<CResumeRun> CTheApplication::m_pResumeRun;
-unique_ptr<CInit> CTheApplication::m_pInit;
-unique_ptr<CExit> CTheApplication::m_pExit;
+
 
 /*!
    Construct ourselves.. Note that if m_Exists is true,
    we BUGCHECK.
 */
 CTheApplication::CTheApplication()
+  : m_systemControl()
 {
   if (m_Exists) {
     cerr << "Attempted to create more than one instance of the application\n";
@@ -167,7 +156,7 @@ int CTheApplication::operator()(int argc, char** argv)
     Tcl_Exit(EXIT_SUCCESS);
   }
   if (parsedArgs.init_script_given) {
-    m_initScript = parsedArgs.init_script_arg;
+    m_systemControl.setInitScript(string(parsedArgs.init_script_arg));
   }
   try {				// Last chance exception catching...
     
@@ -249,10 +238,12 @@ int CTheApplication::operator()(int argc, char** argv)
   }
   catch (const char* msg) {
     cerr << "CTheApplication caught a char* exception " << msg << endl;
+    Tcl_Exit(EXIT_FAILURE);
 
   }
   catch (exception& exc) {
     cerr << "CTheApplication caught an exception: " << exc.what() << endl;
+    Tcl_Exit(EXIT_FAILURE);
 
   }
   catch (CException& error) {
@@ -297,7 +288,7 @@ int CTheApplication::operator()(int argc, char** argv)
 void
 CTheApplication::startOutputThread(std::string ring)
 {
-  COutputThread* router = new COutputThread(ring);
+  COutputThread* router = new COutputThread(ring, m_systemControl);
   router->start();
   Os::usleep(500);
 
@@ -312,7 +303,7 @@ CTheApplication::startTclServer()
 {
   // we have to set the global pTclServer immediately because
   // the following line potentially will depend on the Globals::pTclServer
-  Globals::pTclServer = new TclServer;
+  Globals::pTclServer = new TclServer(m_systemControl);
   Globals::pTclServer->start(tclServerPort, Globals::controlConfigFilename.c_str(),
 		   *Globals::pUSBController);
 
@@ -335,7 +326,8 @@ CTheApplication::startTclServer()
 void
 CTheApplication::startInterpreter()
 {
-  Tcl_Main(m_Argc, m_Argv, CTheApplication::AppInit);
+
+  m_systemControl.run(m_Argc, m_Argv);
 }
 
 
@@ -371,49 +363,6 @@ CTheApplication::setConfigFiles()
 }
 
 
-
-/*
-   Initialize the interpreter.  This invoves:
-   - Wrapping the interpreter into a CTCLInterpreter Object.
-   - Creating the commands that extend the interpreter.
-   - Returning TCL_OK so that the interpreter will start running the main loop.
-
-*/
-int
-CTheApplication::AppInit(Tcl_Interp* interp)
-{
-  Globals::mainThreadId     = Tcl_GetCurrentThread();
-
-  Tcl_Init(interp);		// Get all the paths etc. setup.
-
-  Globals::pMainInterpreter = new CTCLInterpreter(interp);
-
-  m_pBeginRun.reset(new CBeginRun(*Globals::pMainInterpreter));
-  m_pEndRun.reset(new CEndRun(*Globals::pMainInterpreter));
-  m_pPauseRun.reset(new CPauseRun(*Globals::pMainInterpreter));
-  m_pResumeRun.reset(new CResumeRun(*Globals::pMainInterpreter));
-  m_pInit.reset(new CInit(*Globals::pMainInterpreter));
-  m_pExit.reset(new CExit(*Globals::pMainInterpreter));
-  
-  // If there's an initialization script then run it now:
-  
-  if (m_initScript != "") {
-    if (access(m_initScript.c_str(), R_OK) == 0) {
-            Globals::pMainInterpreter->EvalFile(m_initScript.c_str());
-    } else {
-            throw CErrnoException("Checking accessibility of --init-script");
-    }
-  }
-  // Save the main thread id and interpreter:
-  
-  
-    // Instantiate the live event loop and run it.
-    
-  CTCLLiveEventLoop* pEventLoop = CTCLLiveEventLoop::getInstance();
-  pEventLoop->start(Globals::pMainInterpreter);
-
-  return TCL_OK;
-}
 /*
    Create the buffer pool.  The following are configurable parameters at the
    top of this file;
@@ -499,67 +448,6 @@ CTheApplication::ExitHandler(ClientData pData)
   }
 }
 
-/**
- * AcquisitionErrorHandler
- *    The event handler for errors from the readout thread
- *    * construct and invoke the onTriggerFail command
- *    * If that fails, construct and invoke the bgerror command.
- *
- * @param pEvent - pointer to the event.
- * @param flags  - event flags.
- *
- * @return int - 1 -indicating the event storage can be Tcl_Free'd.
- */
-int
-CTheApplication::AcquisitionErrorHandler(Tcl_Event* pEvent, int flags)
-{
-    // Get the message text:
-    
-    struct event {
-        Tcl_Event     event;
-        StringPayload message;
-    };
-    event* pFullEvent = reinterpret_cast<event*>(pEvent);
-    std::string msg = pFullEvent->message.pMessage;
-    Tcl_Free(pFullEvent->message.pMessage);
-    
-    // Try the onTriggerFail command:
-    
-    CTCLInterpreter* pInterp = Globals::pMainInterpreter;
-    try {
-        pInterp->GlobalEval(
-            std::string(makeCommand(pInterp, "onTriggerFail", msg))
-        );
-    }
-    catch (...) {
-        // If that failed try bgerror:
-        
-        try {
-            pInterp->GlobalEval(
-                std::string(makeCommand(pInterp, "bgerror", msg))
-            );
-        }
-        catch(...) {}
-    }
-
-    return 1;    
-}
-/**
- * makeCommand
- *    Create a command as a CTCLObject
-*/
-CTCLObject
-CTheApplication::makeCommand(
-    CTCLInterpreter* pInterp, const char* verb, std::string param
-)
-{
-    CTCLObject result;
-    result.Bind(pInterp);
-    result += verb;
-    result += param;
-    
-    return result;
-}
 
 /*-------------------------------------------------------------------------------------------*/
 

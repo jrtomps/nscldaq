@@ -16,6 +16,8 @@
 #undef protected
 #undef private
 
+#include <TCLInterpreter.h>
+
 using namespace std;
 
 class CTclControlModuleTests : public CppUnit::TestFixture {
@@ -41,11 +43,13 @@ CPPUNIT_TEST_SUITE_REGISTRATION(CTclControlModuleTests);
 
 
 void CTclControlModuleTests::construct_0() {
-  CTclControlModule bus;
+  CTCLInterpreter interp;
+  CTclControlModule bus(interp);
 }
 
 void CTclControlModuleTests::cget_0() {
-  unique_ptr<CTclControlModule> bus(new CTclControlModule);
+  CTCLInterpreter interp;
+  unique_ptr<CTclControlModule> bus(new CTclControlModule(interp));
   CControlModule module("test",move(bus));
 
   CPPUNIT_ASSERT_NO_THROW( module.cget("-ensemble"));

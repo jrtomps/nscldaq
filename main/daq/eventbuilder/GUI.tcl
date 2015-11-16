@@ -237,6 +237,8 @@ snit::widgetadaptor ::EVB::sourceStatistics {
     component queuestats
     component barrierstats
     component connections
+    component vertPane
+    component paneFrame
     delegate option * to hull
     
     ##
@@ -249,31 +251,42 @@ snit::widgetadaptor ::EVB::sourceStatistics {
         
         # The hull will be a ttk::frame.
         
-        installhull using ttk::labelframe
+        installhull using ttk::frame
         
         # Create the components:
         
-        install queuestats using EVB::inputStatistics::queueStats $win.queue \
+        install vertPane using ttk::panedwindow $win.pane -orient vertical
+        install paneFrame using ttk::frame $win.paneFrame 
+
+        install queuestats using EVB::inputStatistics::queueStats $win.paneFrame.queue \
             -width 250 -height 100 -title {Queue statistics}
         
-        install barrierstats using EVB::BarrierStats::queueBarriers $win.barrier \
+        install barrierstats using EVB::BarrierStats::queueBarriers $win.paneFrame.barrier \
             -width 250 -height 100 -title {Barrier statistics}
         
         install connections using EVB::connectionList $win.connections \
             -text "Connected clients" 
         
+
         # Layout the components:
  
 #        grid configure $win -padx 5 -pady 5 
 
         grid $queuestats -row 0 -column 0 -sticky nsew -padx 5 -pady 5
         grid $barrierstats -row 0 -column 1 -sticky nsew  -padx 5 -pady 5
-        grid $connections -column 0 -columnspan 2 -sticky nsew \
-                                           -padx 5 -pady 5
 
-        grid columnconfigure $win {0 1} -weight 1 -uniform a
+#        grid $connections -column 0 -columnspan 2 -sticky nsew \
+#                                           -padx 5 -pady 5
+#
+        grid rowconfigure $paneFrame 0 -weight 1
+        grid columnconfigure $paneFrame {0 1} -weight 1
+
+        $vertPane add $paneFrame -weight 1
+        $vertPane add $connections -weight 1
+        grid $vertPane -sticky nsew
+
+        grid columnconfigure $win 0 -weight 1
         grid rowconfigure $win 0 -weight 0 
-        grid rowconfigure $win 1 -weight 1 -minsize 100
 
         # process the options:
         

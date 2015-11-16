@@ -177,6 +177,9 @@ itcl::class ATrigger2367 {
   # To use an external clock, the code should be 1 and to use an internal 
   # clock, the code should be 0.
   #
+  # @important if the code is different than 0, the ULM will
+  #            NOT output a clock signal!
+  #
   # @param code  the code to write. must be in range [0,3]
   #
   # @returns integer encoded with Q and X response 
@@ -184,7 +187,7 @@ itcl::class ATrigger2367 {
   # Exceptional returns:
   # - Error is user has not set the controller.
   # - Error if argument is out of range.
-  public method Select {bit} 
+  public method Select {code}
 
   ## @brief Read timestamp timestamp mode
   #

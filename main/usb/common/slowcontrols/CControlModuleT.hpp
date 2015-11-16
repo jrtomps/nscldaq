@@ -15,9 +15,7 @@
 */
 
 #include <config.h>
-#include <CControlHardwareT.h>
-#include <CRunState.h>
-#include <CControlQueues.h>
+#include <CControlHardware.h>
 
 using namespace std;
 
@@ -33,7 +31,7 @@ using namespace std;
 */
 template<class Ctlr>
 CControlModuleT<Ctlr>::CControlModuleT(string name, 
-                               std::unique_ptr<CControlHardwareT<Ctlr>> hardware) :
+                    std::unique_ptr<CControlHardwareT<Ctlr>> hardware) :
   CConfigurableObject(name),
   m_pHardware(std::move(hardware))
 {
@@ -82,17 +80,7 @@ template<class Ctlr>
 void
 CControlModuleT<Ctlr>::Initialize(Ctlr& ctlr)
 {
-  bool mustRelease(false);
-  if (CRunState::getInstance()->getState() == CRunState::Active) {
-    mustRelease = true;
-    CControlQueues::getInstance()->AcquireUsb();
-  }
   m_pHardware->Initialize(ctlr);
-
-  if (mustRelease) {
-    CControlQueues::getInstance()->ReleaseUsb();
-  }
-
 }
 
 /*!
@@ -105,18 +93,8 @@ template<class Ctlr>
 string
 CControlModuleT<Ctlr>::Update(Ctlr& ctlr)
 {
-  bool mustRelease(false);
-  if (CRunState::getInstance()->getState() == CRunState::Active) {
-    mustRelease = true;
-    CControlQueues::getInstance()->AcquireUsb();
-  }
   string result =  m_pHardware->Update(ctlr);
-
-  if (mustRelease) {
-    CControlQueues::getInstance()->ReleaseUsb();
-  }
   return result;
-    
 }
 /*!
     Set a module parameter.
@@ -134,16 +112,7 @@ template<class Ctlr>
 string
 CControlModuleT<Ctlr>::Set(Ctlr& ctlr, const char* what, const char* value)
 {
-  bool mustRelease(false);
-  if (CRunState::getInstance()->getState() == CRunState::Active) {
-    mustRelease = true;
-    CControlQueues::getInstance()->AcquireUsb();
-  }
   string reply  = m_pHardware->Set(ctlr, what, value);
-
-  if (mustRelease) {
-    CControlQueues::getInstance()->ReleaseUsb();
-  }
   return reply;
     
 }
@@ -162,18 +131,8 @@ template<class Ctlr>
 string
 CControlModuleT<Ctlr>::Get(Ctlr& ctlr, const char* what)
 {
-  bool mustRelease(false);
-  if (CRunState::getInstance()->getState() == CRunState::Active) {
-    mustRelease = true;
-    CControlQueues::getInstance()->AcquireUsb();
-  }
   string reply = m_pHardware->Get(ctlr, what);;
-
-  if (mustRelease) {
-    CControlQueues::getInstance()->ReleaseUsb();
-  }
   return reply;
-    
 }
 
 /*----------------------------- Support for periodic monitoring --------------------*/

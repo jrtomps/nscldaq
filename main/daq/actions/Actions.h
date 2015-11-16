@@ -1,204 +1,131 @@
+/**
+
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2013.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Author:
+#            Ron Fox
+#            NSCL
+#            Michigan State University
+#            East Lansing, MI 48824-1321
+
+##
+# @file   Actions.h
+# @brief  Define the Actions class -mechanisms for children to get readoutGUi to do stuff.
+# @author <fox@nscl.msu.edu>
+*/
 
 #ifndef ACTIONS_H
 #define ACTIONS_H
 
-#include <iostream>
+#include <CBufferQueue.h>
+#include <CSynchronizedThread.h>
+#include <map>
 #include <string>
 #include <time.h>
-#include <map>
-#include <sstream>
-
-/**! The C++ functions for the actions package */
 
 /**
- * @note In 12.0, the implementation should be separated from the
- *       header.  That allows the implementation to get complicated while
- *       not complicating the header.  Since I'm doing throttling in the
- *       11.0 branch this is going to get complex...but we have Makefiles out there
- *       we can't affect so here goes...
+ * @class Actions
+ *     This class contains a bunch of static methods that provide
+ *     the ability for children of ReadoutGUI to get the GUI to do stuff
+ *     for them.  'stuff' is defined as:
+ *     - Logging a message
+ *     - Performing a Tcl command on their behalf.  This is normally, but not
+ *       exclusively used to affect the run state.
+ *
+ *  @note Message consolidation is used to avoid saturating the event loop
+ *        of the readout gui.  It is that message consolidation that makes
+ *        this class more than a simple namespace.  This class will have
+ *        entries that queue messages to a thread which consolidates them and
+ *        then, only every 'now and then' outputs those messages on stderr
+ *        where the ReadoutGui interprets them....Tcl operations will
+ *        result in a flush of any queued output prior to performing the
+ *        command.
  */
-
-namespace Actions 
+class Actions
 {
-    /* Private code - do not call these methods (hmm reimplementation
-     * should make this a class with static methods so privacy can be enforced) */
+    // Internal data structures:
+private:
+    // Types of actions clients can request:
     
-    typedef struct _lastMessageInfo {
-        std::string s_message;
-        time_t      s_firstTime;
-        size_t      s_count;                   // Additional consecutive counts.
-    } lastMessageInfo, *pLastMessageInfo;
+    typedef enum _ActionType {
+        ErrorMessage, LogMessage, WarningMessage, OutputMessage, DebugMessage,
+        TclCommand
+    } ActionType;
     
-    std::map<std::string, lastMessageInfo> m_messageHistory;
-    /**
-     * buildMessage
-     *    Build a message.  This is called when we already know we want a message
-     *    emitted (it's been checked and found not to be a repeat or found to
-     *    be out of time).
-     *
-     *    @param type - type of message.
-     *    @param body - message body.
-     *    @return std::string the message string in the form "type bodysize body\n"
-    */
-    std::string buildMessage(std::string type, std::string body) {
-        std::stringstream msg;
-        msg << type << " " << body.size() << " " << body << std::endl;
-        return msg.str();
-    }
-    /**
-     * buildMessage
-     *    overloaded version of the prior method that has a count  The body
-     *    is transformed to "n occurences of 'oldbody'" and then the prior
-     *    buildMessage is used to build the result.
-     * @param type - message type.
-     * @param count - Number of repetitions
-     * @param body  - Body that was repeated.
-     * @return std::string - message to output.
-     */
-    std::string buildMessage(std::string type, size_t count, std::string body)
+    // Struct queued between the threads:
+    
+    
+    typedef struct _ActionItem {
+        ActionType           s_type;
+        char*                s_pMessage;
+    } ActionItem, *pActionType;
+    
+    // Internal data:
+    
+private:
+    static CBufferQueue<ActionItem>  m_actionQueue;
+    static CSynchronizedThread*      m_pOutputThread;
+    
+    
+    // Public actions:
+
+public:
+    static void Error(std::string message);
+    static void Log(std::string message);
+    static void Warning(std::string message);
+    static void Output(std::string message);
+    static void Debug(std::string message);
+
+    static void TCLCommand(std::string command);
+    static void BeginRun();
+    static void EndRun(bool propagate=true);
+    static void PauseRun();
+    static void ResumeRun();
+    
+    
+    // Private Utilities:
+    
+private:
+    static void initialize();
+    static void queueMessage(ActionType type, std::string payload);
+    
+    
+    // The output thread:
+    
+    class COutputThread : public CSynchronizedThread
     {
-        std::stringstream newBody;
-        newBody << count << " occurences of '" << body << "'";
-        return buildMessage(type, newBody.str());
-    }
-    /**
-     * flushRepeatedMessages
-     *   Sometimes its necessary to output messages prior to formatting the
-     *   new message (e.g. when a different message body arrives).
-     *   This outputs the message implied by the last message struct and type
-     *
-     *   @param type - type of message.
-     *   @param msg  - Refers to a lastMessageInfo struct that describes the
-     *                 message to output.
-     */
-    void
-    flushRepeatedMessages(std::string type, const lastMessageInfo& msg)
-    {
-        std::cerr << buildMessage(type, msg.s_count, msg.s_message);
-    }
-    /**
-     * Construct the message given the type and body and implicitly the history.
-     * returns "" if nothing to output at this time...note a 'Big Flaw'  Suppose
-     * there are a stream of messages that are all identical and then they stop.
-     * In this implementation it's quite possible that the last set of
-     * 'n occcurences of "this message"' won't go out until the next message
-     * and that could be some time much later in the future.  The
-     * 'right' way to solve this is, once more, to buld a class and have a thread
-     * associated with that class that periodically wakes up and flushes old
-     * messages.  Too much work to get right  in the next couple of days.
-     *
-     * @param - type of message.
-     * @param - body - body of message.
-     * @return std::string - if not empty the string should be outputted otherwise
-     *                       not.
-     */
-    std::string constructMessage(std::string type, std::string body) {
-        time_t now = time(NULL);
-        
-        // If the message type has no map entry fabricate one  --
-        // emit the message as is.
-        
-        if (! m_messageHistory.count(type)) {
-            lastMessageInfo thisMessage = {body, now, 0};
-            m_messageHistory[type] = thisMessage;
-            return buildMessage(type, body);
-        } else {
-            // If the time of the current entry differs from now flush it out.
+        // Private data structures.
+        typedef struct _ActionInfo {
+            std::string    s_message;
+            unsigned       s_messageCount;
             
-            lastMessageInfo lastMessage = m_messageHistory[type];
-            if ((now != lastMessage.s_firstTime)   &&
-                (body == lastMessage.s_message)) {
-                // update the record and return the duplicate message thingy.
-                
-                if (lastMessage.s_count > 0) {
-                    flushRepeatedMessages(type, lastMessage);
-                }
-                
-                lastMessage.s_count = 0;
-                lastMessage.s_firstTime = now;
-                m_messageHistory[type] = lastMessage;
-                
-                return buildMessage(type,  body);
-            } else if (lastMessage.s_message != body) {
-                // flush the last message, construct new last Message struct
-                // with the current message and return the buit message with
-                // the current message:
-                
-                if (lastMessage.s_count > 0) {
-                    flushRepeatedMessages(type, lastMessage);
-                }
-                lastMessage.s_message    = body;
-                lastMessage.s_count      = 0;
-                lastMessage.s_firstTime  = now;
-                m_messageHistory[type]   = lastMessage;
-                return buildMessage(type, body);
-            } else {
-                // If here, the messages is the same and the time is the same...
-                // just update the count. Return an empty message signallilng
-                // no output needed at this time:
-                
-                lastMessage.s_count++;
-                m_messageHistory[type] = lastMessage;
-                return "";
-            }
-        }
-    }
-    
-    void sendMessage(std::string type, std::string body) {
-        std::string message = constructMessage(type, body);
-        if (message != "") {
-            std::cerr <<  message << std::flush;
-        }
-    }
-    
-    /* Public interface - only call functions below this line:  */
-    
-    void Error (std::string message ) {
-        sendMessage("ERRMSG", message);
+        } ActionInfo, *pActionInfo;
         
-    }  
 
-    void Log (std::string message ) {
-        sendMessage("LOGMSG", message);
-    }  
-
-    void Warning (std::string message ) {
-        sendMessage("WRNMSG", message);
-    }  
-
-
-    void Output (std::string message ) {
-        sendMessage("OUTPUT", message);
-    }  
-
-    void Debug (std::string message ) {
-        sendMessage("DBGMSG", message);
-
-    }  
-    void TCLCommand (std::string message ) {
-        std::cerr << "TCLCMD " << message.size() << " " 
-                  << message << "\n" << std::flush;
-    }  
-
-    void BeginRun () {
-        TCLCommand ( "begin" );
-    }
-
-    void PauseRun () {
-        TCLCommand ( "pause" );
-    }
-
-    void ResumeRun () {
-        TCLCommand ( "resume" );
-    }
-
-    void EndRun (bool propagate=true) {
-        if (propagate) {
-          TCLCommand ( "end" );
-        } else {
-          TCLCommand ( "local_end" );
-        }
-    }
-}
+        // Private data:
+    private:
+        CBufferQueue<Actions::ActionItem>*        m_pActionQueue;
+        std::map<Actions::ActionType, ActionInfo> m_ConsolidatedActions;
+        std::map<Actions::ActionType, std::string> m_actionTypesToNames;
+    public:
+        COutputThread(CBufferQueue<Actions::ActionItem>* queue);
+        void operator()();
+    private:
+        void flushMessages();
+        void flushItem(Actions::ActionType type);
+        void outputItem(Actions::ActionType type, std::string msg);
+        void processItem(Actions::ActionItem item);
+        void createConsolidation(Actions::ActionType type, std::string msg);
+        
+        
+    };
+    
+};
 
 #endif

@@ -16,21 +16,12 @@ using namespace std;
 
 #include <TCLInterpreter.h>
 #include <TCLObject.h>
-#include <TclServer.h>
-
-// TclServer is supposed to be a final class, but we just need
-// something fake to pass to the constructor. We had to bend its arm
-// a bit too by adding a virtual keyword in front of setResult.
-class CFakeTclServer : public TclServer {
-  public: 
-    void setResult(std::string) {}
-};
-
+#include <CCtlConfiguration.h>
 
 
 class CModuleCommandTests : public CppUnit::TestFixture {
   private:
-    unique_ptr<CFakeTclServer> m_server;
+    unique_ptr<CCtlConfiguration> m_server;
     unique_ptr<CTCLInterpreter> m_interp;
     unique_ptr<CModuleCommand> m_cmd;
 
@@ -44,7 +35,7 @@ class CModuleCommandTests : public CppUnit::TestFixture {
 public:
   void setUp() {
 
-    m_server.reset(new CFakeTclServer);
+    m_server.reset(new CCtlConfiguration);
     m_interp.reset(new CTCLInterpreter);
     m_cmd.reset(new CModuleCommand(*m_interp, *m_server));
   }

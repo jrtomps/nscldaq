@@ -23,14 +23,7 @@ libdataformat_la_SOURCES = CRingSelectionPredicate.cpp	\
 			CRingItemFactory.cpp		\
 			ringitem.c			\
       RingItemComparisons.cpp \
-			CDataSource.cpp CRingDataSource.cpp CFileDataSource.cpp  \
-			CDataSourceFactory.cpp \
-      CFileDataSink.cpp CDataSinkFactory.cpp \
-      CRingDataSink.cpp \
-      CDataSinkException.cpp \
-      CAbnormalEndItem.cpp  \
-			CFakeDataSource.cpp \
-			CLoggingDataSink.cpp
+      CAbnormalEndItem.cpp  
 
 libdataformat_la_CPPFLAGS=$(COMPILATION_FLAGS)
 
@@ -50,14 +43,7 @@ include_HEADERS	= CRingSelectionPredicate.h	\
                         CUnknownFragment.h      \
 			DataFormat.h	\
       RingItemComparisons.h \
-			CDataSource.h CRingDataSource.h CFileDataSource.h \
-			CDataSourceFactory.h \
-      CDataSink.h CFileDataSink.h CDataSinkFactory.h \
-      CRingDataSink.h \
-      CDataSinkException.h \
-      CAbnormalEndItem.h \
-			CFakeDataSource.h \
-			CLoggingDataSink.h
+      CAbnormalEndItem.h 
 
 
 
@@ -85,9 +71,7 @@ unittests_SOURCES	= TestRunner.cpp selecttest.cpp desiredtests.cpp	\
 			scalerformattests.cpp  statechangetests.cpp dataformattests.cpp       \
 			textformattests.cpp					\
                         fragmenttest.cpp glomparamtests.cpp factorytests.cpp \
-                      physeventtests.cpp filedatasinktests.cpp \
-                     datasinkfactorytests.cpp \
-                     datasourcefactorytests.cpp ringdatasinktests.cpp
+                      physeventtests.cpp 
 
 unittests_LDADD		= -L$(libdir) $(CPPUNIT_LDFLAGS) 		\
 			@top_builddir@/base/dataflow/libDataFlow.la 	\

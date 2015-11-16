@@ -152,10 +152,10 @@ snit::type MCFD16USB {
   ## @brief Set the gain value for a channel pair
   #
   # @param chanPair the channel pair (must be in range [0,8]).
-  # @param val      gain value (must be either 1, 3, or 10)
+  # @param val      gain value (must be either 0, 1, or 2)
   #
   # @throws error if chanPair is out of range
-  # @throws error if val is not 1, 3, or 10
+  # @throws error if val is not 0, 1, or 2
   method SetGain {chanPair val} {
     if {$val ni [list 0 1 2]} {
       set msg "Invalid gain value. Must be either 0, 1, or 2."
@@ -340,7 +340,7 @@ snit::type MCFD16USB {
   ## @brief Set the delay line for a channel pair
   # 
   # @param chanPair   the channel pair targeted (must be in range [0,8])
-  # @param value      delay setting (must be in range [1,5])
+  # @param value      delay setting (must be in range [0,4])
   # 
   # @returns response from  module
   #
@@ -507,11 +507,12 @@ snit::type MCFD16USB {
     }
   }
 
-  ## @brief Set into or remove from remote control
+  ## @brief Set individual or common configuration mode
   #
-  # @param on   boolean to enable or disable rc mode
+  # @param mode   Configuration mode (either "individual" or "common")
   #
   # @returns response from the device
+  # @throws error if invalid argument
   method SetMode {mode} {
     if {$mode ni [list individual common]} {
       set msg {Invalid argument provided. Must be either "individual" or }

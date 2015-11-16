@@ -614,7 +614,7 @@ ffff
           As we expect by header word of the V775, this is the end of event word.
           We know this for sure because bits 24-26 store the value 4. Once again
           the bits 27-31 store the value 10 so the word originated from the
-          V775. The lower 24 bits store the event count, which converts to 3079
+          V775. The lower 24 bits store the event count, which converts to 3080
           in decimal.
         </para>
       </callout>

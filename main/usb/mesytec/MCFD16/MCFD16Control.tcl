@@ -35,12 +35,13 @@ package require cmdline ;# for the command line option parsing
 
 # Handle the options
 set options {
-  {-protocol.arg   ""          "type of communication protocol (either \"usb\" or \"mxdcrcbus\")"}
+  {-protocol.arg   ""          "type of communication protocol (either \"usb\", \"mxdcrcbus\", or \"test\")"}
   {-serialfile.arg ""          "name of serial file (e.g. /dev/ttyUSB0) \[MANDATORY for USB\]"}
   {-module.arg     ""          "name of module registered to slow-controls server \[MANDATORY for MxDC RCbus\]"}
   {-host.arg       "localhost" "host running VMUSBReadout slow-controls server" }
   {-port.arg       27000       "port the slow-controls server is listening on" }
   {-devno.arg      0           "address of targeted device on rcbus"}
+  {-configfile.arg ""          "file to load GUI state on startup"}
 }
 set usage " --protocol value ?option value? :"
 
@@ -58,7 +59,7 @@ proc assertProtocolDependencies {arrname} {
 
   set fatal 0
   if {$params(-protocol) eq ""} {
-    puts "User must pass either \"usb\" or \"rcbus\" for the --protocol option"
+    puts "User must pass either \"usb\" or \"mxdcrcbus\" for the --protocol option"
     set fatal 1
   }
   if {$params(-protocol) eq "usb"} {
@@ -71,9 +72,9 @@ proc assertProtocolDependencies {arrname} {
       puts "The --module argument is mandatory for mxdcrcbus protocol but none was provided."
       set fatal 1
     }
-  } else {
-    set msg "User provided a argument to the --protocol argument that is not "
-    append msg "supported. Only \"usb\" and \"rcbus\" are allowed."
+  } elseif {$params(-protocol) ne "test"} {
+    set msg "User provided an argument to the --protocol argument that is not "
+    append msg "supported. Only \"usb\" and \"mxdcrcbus\" are allowed."
     puts $msg
     set fatal 1
   }

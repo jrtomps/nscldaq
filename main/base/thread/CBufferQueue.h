@@ -82,7 +82,7 @@ public:
   bool getnow(T& element);      //!< Get without wait (nowait = now).
   std::list<T> getAll();		//!< Emtpy the queue..
   void setWakeThreshold(size_t level);
-  void wait();	     		//!< Wait for buffers.
+  void wait(int timeout = -1);	//!< Wait for buffers.
   void wake();			//!< Wake buffer waiters.
 private:
   static struct timespec msToAbsTime(unsigned ms);

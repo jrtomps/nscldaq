@@ -8,12 +8,12 @@ TCL_LDFLAGS=@TCL_LDFLAGS@
 
 # Compilation flags:
 
-CXXFLAGS = -g -fPIC -I. -I$(MAININCLUDES) -I$(INCLUDES)   $(TCL_FLAGS) @THREADCXX_FLAGS@
+CXXFLAGS = -g -std=c++11 -fPIC -I. -I$(MAININCLUDES) -I$(INCLUDES)   $(TCL_FLAGS) @THREADCXX_FLAGS@
 CCFLAGS=$(CXXFLAGS)
 
 LDFLAGS = -shared \
-	$(LIBDIR)/libVMUSBDevices.so	\
-	$(LIBDIR)/libVMUSBConfig.so	\
+	$(LIBDIR)/libVMUSBDaqConfig.so	\
+	$(LIBDIR)/libConfigurableObject.so \
 	$(LIBDIR)/libVMUSB.so		\
 	$(TCL_LDFLAGS) @THREADLD_FLAGS@
 

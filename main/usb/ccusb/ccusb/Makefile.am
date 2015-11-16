@@ -1,5 +1,6 @@
 lib_LTLIBRARIES		= libCCUSB.la libCCCUSB.la libCCCUSBReadoutList.la
-COMPILATION_FLAGS		= -I@top_srcdir@/base/os \
+COMPILATION_FLAGS		= \
+				-I@top_srcdir@/base/os \
 				-I@top_srcdir@/base/thread \
 				@LIBTCLPLUS_CFLAGS@ \
 				@TCL_FLAGS@ \
@@ -9,19 +10,35 @@ COMPILATION_FLAGS		= -I@top_srcdir@/base/os \
 
 
 
-libCCUSB_la_SOURCES	= CCCUSB.cpp CCCUSBusb.cpp CCCUSBRemote.cpp \
-											CMockCCUSB.cpp CCCUSBReadoutList.cpp \
-											CLoggingReadoutList.cpp
+libCCUSB_la_SOURCES	= CCCUSB.cpp \
+			CCCUSBusb.cpp \
+			CCCUSBRemote.cpp \
+			CMockCCUSB.cpp \
+			CCCUSBReadoutList.cpp \
+			CLoggingReadoutList.cpp
 libCCUSB_la_CPPFLAGS    = $(COMPILATION_FLAGS)
-include_HEADERS         = CCCUSB.h CCCUSBusb.h CCCUSBRemote.h \
-													CMockCCUSB.h CCCUSBReadoutList.h \
-													CLoggingReadoutList.h
+include_HEADERS         = CCCUSB.h \
+			CCCUSBusb.h \
+			CCCUSBRemote.h \
+			CMockCCUSB.h \
+			CCCUSBReadoutList.h \
+			CLoggingReadoutList.h
 
+## Normal C++ library containing CCCUSB*
+libCCUSB_la_LIBADD	= \
+		  @top_builddir@/base/os/libdaqshm.la \
+		  @top_builddir@/base/thread/libdaqthreads.la \
+			@TCL_LDFLAGS@ \
+      @LIBTCLPLUS_LDFLAGS@ \
+			@top_builddir@/base/tcpip/libTcp.la \
+			@LIBEXCEPTION_LDFLAGS@ \
+			@THREADLD_FLAGS@ \
+	 		@USB_LIBS@  
 
 ## SWIG wrapper generation
 
-libCCCUSB_la_SOURCES    = @srcdir@/CCCUSB_wrap.cxx
-libCCCUSB_la_CPPFLAGS=$(COMPILATION_FLAGS)
+libCCCUSB_la_SOURCES  = @srcdir@/CCCUSB_wrap.cxx
+libCCCUSB_la_CPPFLAGS =$(COMPILATION_FLAGS)
 
 libCCCUSBReadoutList_la_SOURCES = @srcdir@/CCCUSBReadoutList_wrap.cxx
 libCCCUSBReadoutList_la_CPPFLAGS= $(COMPILATION_FLAGS)
@@ -38,26 +55,22 @@ BUILT_SOURCES=@srcdir@/CCCUSB_wrap.cxx @srcdir@/CCCUSBReadoutList_wrap.cxx
 
 
 
-## Normal C++ library containing CCCUSB*
-libCCUSB_la_LIBADD	= @top_builddir@/base/thread/libdaqthreads.la \
-			@top_builddir@/base/os/libdaqshm.la \
-			@TCL_LDFLAGS@ \
-	                @LIBTCLPLUS_LDFLAGS@ \
-			@top_builddir@/base/tcpip/libTcp.la \
-			@LIBEXCEPTION_LDFLAGS@  @THREADLD_FLAGS@ \
-	  		@USB_LIBS@  
-
 ## SWIG Wrapper containing cvmusb::CCCUSB 
-libCCCUSB_la_LIBADD = libCCUSB.la @top_builddir@/base/os/libdaqshm.la \
+libCCCUSB_la_LIBADD = \
+			libCCUSB.la \
+			@top_builddir@/base/os/libdaqshm.la \
 			@top_builddir@/base/thread/libdaqthreads.la \
 			@top_builddir@/base/tcpip/libTcp.la         \
 			@LIBTCLPLUS_LDFLAGS@                        \
 			@LIBEXCEPTION_LDFLAGS@                      \
-		   	@TCL_LDFLAGS@                               \
-	 		@USB_LIBS@   @THREADLD_FLAGS@
+		 	@TCL_LDFLAGS@                               \
+	 		@USB_LIBS@ \
+			@THREADLD_FLAGS@
 
 ## SWIG Wrapper containing cvmusbreadoutlist::CCCUSBReadoutList
-libCCCUSBReadoutList_la_LIBADD = libCCUSB.la @top_builddir@/base/os/libdaqshm.la \
+libCCCUSBReadoutList_la_LIBADD = \
+			libCCUSB.la \
+			@top_builddir@/base/os/libdaqshm.la \
 			@THREADLD_FLAGS@ 
 
 install-data-local:

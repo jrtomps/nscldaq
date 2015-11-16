@@ -4,4 +4,6 @@ include_HEADERS = buffer.h \
 									DesignByContract.h \
 									Refptr.h \
 									fdstream.h \
-									VMEAddressModifier.h
+									VMEAddressModifier.h \
+									make_unique.h \
+									byte_cast.h

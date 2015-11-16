@@ -8,13 +8,13 @@ TCL_LDFLAGS=@TCL_LDFLAGS@
 
 # Compilation flags:
 
-CXXFLAGS = -g -fPIC -I. -I$(MAININCLUDES) -I$(INCLUDES)   $(TCL_FLAGS) @THREADCXX_FLAGS@
+CXXFLAGS = -g -std=c++11 -fPIC -I. -I$(MAININCLUDES) -I$(INCLUDES)   $(TCL_FLAGS) @THREADCXX_FLAGS@
 CCFLAGS=$(CXXFLAGS)
 
 LDFLAGS = -shared \
-	$(LIBDIR)/libCCUSBDevices.so	\
-	$(LIBDIR)/libCCUSBConfig.so	\
+	$(LIBDIR)/libCCUSBDaqConfig.so	\
 	$(LIBDIR)/libCCUSB.so		\
+	$(LIBDIR)/libConfigurableObject.so	\
 	$(TCL_LDFLAGS) @THREADLD_FLAGS@
 
 # Compilation rules:

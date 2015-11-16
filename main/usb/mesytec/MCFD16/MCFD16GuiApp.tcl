@@ -34,6 +34,7 @@ snit::type MCFD16AppOptions {
   option -host
   option -port 
   option -devno
+  option -configfile
 
   ## @brief Parse and set options
   constructor {args} {
@@ -91,6 +92,17 @@ snit::type MCFD16GuiApp {
     $self setUpMenu
     $self BuildGUI
 
+    if {[$_options cget -configfile] ne ""} {
+      set path [$_options cget -configfile]
+      if {[file exists $path]} {
+        $self LoadConfigFile $path
+      } else {
+        set msg "Cannot load config file because "
+        append msg "$path does not exist."
+        tk_messageBox -icon error -message $msg
+      }
+    }
+
   }
 
   ## @brief Cleanup the device driver
@@ -119,10 +131,18 @@ snit::type MCFD16GuiApp {
 
         install _handle using factory create usb
         flush stdout
-      } else {
+      } elseif {$protocol eq "mxdcrcbus"} {
       # at this point the only other option is mxdcrcbus because 
       # assertProtocolDependencies would have exited otherwise.
         install _handle using factory create mxdcrcbus
+      } elseif {$protocol eq "test"} {
+
+        install _handle using factory create memorizer
+
+        $self loadTestState
+
+      } else {
+        return -code error "Invalid protocol name specified for --protocol argument"
       }
     } msg]
 
@@ -288,7 +308,7 @@ snit::type MCFD16GuiApp {
 
       grid $top.info.protoLbl $top.info.serialFile -sticky nsew
       grid columnconfigure $top.info {0 1} -weight 1
-    } else {
+    } elseif {[dict get $paramDict -protocol] eq "mxdcrcbus"} {
       set protoLbl "Protocol : MxDC-RCbus"
       set module "Module name : [dict get $paramDict -module]"
       set host "Server host : [dict get $paramDict -host]"
@@ -305,6 +325,11 @@ snit::type MCFD16GuiApp {
       grid $top.info.module $top.info.port -sticky nsew
       grid $top.info.devno x -sticky nsew
       grid columnconfigure $top.info {0 1} -weight 1
+    } else {
+      set protoLbl "TEST MODE - NO HARDWARE INTERACTION"
+      ttk::label $top.info.protoLbl -text $protoLbl
+      grid $top.info.protoLbl -sticky nsew
+      grid columnconfigure $top.info {0} -weight 1
     }
 
 
@@ -349,6 +374,33 @@ snit::type MCFD16GuiApp {
   # @returns the instance of the options that this snit::type delegates to.
   method GetOptions {} {
     return $_options
+  }
+
+  method loadTestState {} {
+    for {set ch 0} {$ch <= 16} {incr ch} {
+      $_handle SetThreshold $ch 100
+    }
+    for {set ch 0} {$ch <= 8} {incr ch} {
+      $_handle SetPolarity $ch neg
+      $_handle SetGain $ch 1 
+      $_handle SetWidth $ch 100 
+      $_handle SetDeadtime $ch 30
+      $_handle SetDelay $ch 3 
+      $_handle SetFraction $ch 20 
+    }
+
+    $_handle SetMode individual
+    $_handle SetChannelMask 255
+  }
+
+  ## @brief Load a config file into the GUI
+  #
+  # @param top  the parent widget
+  #
+  # @returns the name of the LoadFromFileForm instance
+  method LoadConfigFile {path} {
+    LoadFromFilePresenter loader $_controlPrsntr
+    loader Load $path
   }
 
 }

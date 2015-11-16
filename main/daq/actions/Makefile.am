@@ -1,10 +1,16 @@
-install-exec-local:  testCompile.o
+lib_LTLIBRARIES=libActions.la
+
+libActions_la_SOURCES=Actions.cpp
+libActions_la_CPPFLAGS = -I@top_srcdir@/base/thread @LIBTCLPLUS_CFLAGS@
+libActions_la_LDFLAGS  = @top_builddir@/base/thread/libdaqthreads.la @LIBEXCEPTION_LDFLAGS@
+include_HEADERS = Actions.h
+
+install-exec-local:
 	$(mkinstalldirs) $(prefix)/bin
 	$(mkinstalldirs) $(prefix)/TclLibs/Stager
 	$(mkinstalldirs) @prefix@/share/html
 	for f in  $(TCLPACKAGES); do install @srcdir@/$$f $(prefix)/TclLibs/Stager; done
 	echo "pkg_mkIndex -verbose $(prefix)/TclLibs/Stager *.tcl" | $(TCLSH_CMD)
-	for f in  $(CXXPACKAGES); do install @srcdir@/$$f $(prefix)/include; done
 
 
 #  This is here just to let us shake out the compilation errors in Actions.h before
@@ -17,7 +23,12 @@ TCLPACKAGES=actions.tcl defaultActions.tcl
 
 TCLTESTS =    actions.test tclTests.tcl
 
-CXXPACKAGES = Actions.h
+
+noinst_PROGRAMS=testacts
+
+testacts_SOURCES=TestActionPackage.cpp
+testacts_CPPFLAGS=$(libActions_la_CPPFLAGS)
+testacts_LDFLAGS=@builddir@/libActions.la $(libActions_la_LDFLAGS) @TCL_LDFLAGS@
 
 check-TESTS:
 	TCLLIBPATH=@prefix@/TclLibs HERE=@srcdir@ tcl=@TCLSH_CMD@ @TCLSH_CMD@ @srcdir@/tclTests.tcl

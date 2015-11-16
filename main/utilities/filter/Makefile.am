@@ -3,7 +3,9 @@
 lib_LTLIBRARIES	=	libfilter.la
 
 libfilter_la_SOURCES = CFilterMain.cpp \
+                       CBaseMediator.cpp \
                        CMediator.cpp \
+                       CFakeMediator.cpp \
                        CInfiniteMediator.cpp \
                        COneShotMediator.cpp \
                        COneShotHandler.cpp \
@@ -12,17 +14,23 @@ libfilter_la_SOURCES = CFilterMain.cpp \
                        CMediatorException.cpp \
                        CAbnormalEndRunFilterHandler.cpp \
                        @srcdir@/../StringsToIntegers.cpp \
-                       @srcdir@/filterargs.c
+                       @srcdir@/filterargs.c \
+											 CRunStatistics.cpp  \
+											 SatisfyTclPlus.cpp 
                        
+#                       COneShotMediator.cpp 
+
 BUILT_SOURCES = @srcdir@/filterargs.c
 
 noinst_HEADERS = @srcdir@/../StringsToIntegers.h \
-                 @srcdir@/filterargs.h
+                 @srcdir@/filterargs.h 
 
 include_HEADERS	=  CFilterMain.h \
+									 CBaseMediator.h \
                    CMediator.h \
+									 CFakeMediator.h \
                    CInfiniteMediator.h \
-                   COneShotMediator.h \
+									 COneShotMediator.h \
                    COneShotHandler.h \
                    CFilter.h \
                    CCompositeFilter.h  \
@@ -31,23 +39,30 @@ include_HEADERS	=  CFilterMain.h \
                    COneShotException.h \
                    CMediatorException.h \
                    CFatalException.h \
-                   CAbnormalEndRunFilterHandler.h
+                   CAbnormalEndRunFilterHandler.h \
+									 CRunStatistics.h
+
+
+#                   COneShotMediator.h 
 
 libfilter_la_CPPFLAGS	= -I@top_srcdir@/utilities \
+		-I@top_srcdir@/utilities/IO \
     @LIBTCLPLUS_CFLAGS@	\
 		-I@top_srcdir@/base/uri		\
     -I@top_srcdir@/daq/format \
-    -I@top_srcdir@/base/dataflow
+		-I@top_srcdir@/base/os \
+		-I@top_srcdir@/base/headers
 
 libfilter_la_LDFLAGS	= -version-info $(SOVERSION)	\
 				-Wl,"-rpath-link=$(libdir)" -lrt \
 				$(THREADLD_FLAGS)
 
-libfilter_la_LIBADD	= @top_builddir@/daq/format/libdataformat.la \
-			@top_builddir@/base/dataflow/libDataFlow.la \
-			@top_builddir@/base/uri/liburl.la		\
-			@top_builddir@/base/os/libdaqshm.la		\
-			@LIBEXCEPTION_LDFLAGS@
+libfilter_la_LIBADD	= \
+											@top_builddir@/utilities/IO/libdaqio.la \
+											@top_builddir@/base/dataflow/libDataFlow.la \
+											@top_builddir@/base/uri/liburl.la		\
+											@top_builddir@/base/os/libdaqshm.la		\
+											@LIBEXCEPTION_LDFLAGS@
 
 
 libfilter_la_CXXFLAGS = $(THREADCXX_FLAGS) $(AM_CXXFLAGS)
@@ -73,21 +88,26 @@ unittests_SOURCES	= TestRunner.cpp  \
 						compositefiltertests.cpp \
 						transparentfiltertests.cpp \
 						oneshothandlertests.cpp \
-						oneshotmediatortests.cpp  \
 						abnormalendrunfiltertests.cpp  \
 						CTestFilter.h \
 						CTestFilter.cpp
 
-unittests_LDADD		= -L$(libdir) $(CPPUNIT_LDFLAGS) 		\
+#						oneshotmediatortests.cpp  
+
+unittests_LDADD		= \
+			@top_builddir@/utilities/filter/libfilter.la	\
+			@top_builddir@/utilities/IO/libdaqio.la \
 			@top_builddir@/base/dataflow/libDataFlow.la 	\
 			@top_builddir@/base/uri/liburl.la 	\
 			@top_builddir@/daq/format/libdataformat.la	\
-			@top_builddir@/utilities/filter/libfilter.la	\
+			$(CPPUNIT_LDFLAGS) 		\
 			@LIBEXCEPTION_LDFLAGS@
 
-unittests_CPPFLAGS=  -I@top_srcdir@/utilities \
+unittests_CPPFLAGS=  -I@top_srcdir@/utilities/filter \
+										 -I@top_srcdir@/utilities/IO \
     @LIBTCLPLUS_CFLAGS@	\
 		-I@top_srcdir@/base/uri		\
+		-I@top_srcdir@/base/headers		\
     -I@top_srcdir@/daq/format \
     -I@top_srcdir@/base/dataflow
 unittests_CXXFLAGS = $(AM_CXXFLAGS)
@@ -101,6 +121,7 @@ testapp_CPPFLAGS= -I@top_srcdir@/utilities \
 		-I@top_srcdir@/base/uri		\
     -I@top_srcdir@/daq/format \
     -I@top_srcdir@/base/dataflow
+
 testapp_LDADD = -L$(libdir) $(CPPUNIT_LDFLAGS) 		\
 			@top_builddir@/base/dataflow/libDataFlow.la 	\
 			@top_builddir@/base/uri/liburl.la 	\

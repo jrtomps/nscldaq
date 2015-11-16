@@ -1,14 +1,11 @@
 SUBDIRS = 	ccusb 		\
-		devices		\
-		rdothread	\
-		router		\
-		tclserver		\
 		daqconfig	\
-		commands	\
+		ctlconfig \
+		core \
 		driverkit   \
-    tcldrivers \
-    controlpanels \
-    tclpackage \
+		tcldrivers \
+		controlpanels \
+		tclpackage \
 		devtests \
 		tclservertests
 
@@ -17,13 +14,12 @@ bin_PROGRAMS = CCUSBReadout
 
 CCUSBReadout_SOURCES = CTheApplication.cpp Globals.cpp @srcdir@/cmdline.c
 
-noinst_HEADERS = CTheApplication.h Globals.h Events.h
+noinst_HEADERS = CTheApplication.h Globals.h
 
-CCUSBReadout_CPPFLAGS = -I@top_srcdir@/usb/ccusb/ccusb -I@top_srcdir@/usb/ccusb/devices \
-	-I@top_srcdir@/usb/ccusb/router \
-	-I@top_srcdir@/usb/ccusb/rdothread \
-	 -I@top_srcdir@/usb/ccusb/daqconfig -I@top_srcdir@/usb/ccusb/commands \
-	-I@top_srcdir@/usb/ccusb/tclserver  \
+CCUSBReadout_CPPFLAGS = -I@top_srcdir@/usb/ccusb/ccusb \
+	 -I@top_srcdir@/usb/ccusb/daqconfig \
+	 -I@top_srcdir@/usb/ccusb/ctlconfig \
+	 -I@top_srcdir@/usb/ccusb/core \
 	-I@top_srcdir@/usb/common/slowcontrols  \
 	-I@top_srcdir@/base/headers @LIBTCLPLUS_CFLAGS@ \
 	-I@top_srcdir@/base/thread \
@@ -32,15 +28,12 @@ CCUSBReadout_CPPFLAGS = -I@top_srcdir@/usb/ccusb/ccusb -I@top_srcdir@/usb/ccusb/
 	$(TCL_FLAGS) @THREADCXX_FLAGS@ 
 
 
-CCUSBReadout_LDADD	=  @top_builddir@/usb/ccusb/devices/libCCUSBDevices.la	\
-	@top_builddir@/usb/ccusb/commands/libCCUSBCommands.la	\
-	@top_builddir@/usb/ccusb/daqconfig/libCCUSBConfig.la		\
-	@top_builddir@/usb/ccusb/rdothread/libCCUSBRdoThread.la	\
-	@top_builddir@/usb/ccusb/commands/libCCUSBCommands.la		\
-	@top_builddir@/usb/ccusb/router/libCCUSBRouter.la		\
+CCUSBReadout_LDADD	= \
 	@top_builddir@/usb/ccusb/ccusb/libCCUSB.la		\
-	@top_builddir@/usb/ccusb/tclserver/libCCUSBControlServer.la \
-        @top_builddir@/servers/portmanager/libPortManager.la \
+	@top_builddir@/usb/ccusb/daqconfig/libCCUSBDaqConfig.la		\
+	@top_builddir@/usb/ccusb/ctlconfig/libCCUSBCtlConfig.la		\
+	@top_builddir@/usb/ccusb/core/libCCUSBCore.la \
+	@top_builddir@/servers/portmanager/libPortManager.la \
 	@top_builddir@/base/dataflow/libDataFlow.la \
 	@top_builddir@/base/thread/libdaqthreads.la		\
 	@LIBTCLPLUS_LDFLAGS@	\

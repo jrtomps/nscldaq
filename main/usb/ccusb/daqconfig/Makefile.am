@@ -1,5 +1,7 @@
-lib_LTLIBRARIES		= libCCUSBConfig.la
-libCCUSBConfig_la_SOURCES	= 	CConfiguration.cpp	\
+lib_LTLIBRARIES		= libCCUSBDaqConfig.la
+
+libCCUSBDaqConfig_la_SOURCES	= \
+				CConfiguration.cpp	\
 				CStackCommand.cpp	\
 				CPH7xxCommand.cpp	\
 				CAD811Command.cpp	\
@@ -13,12 +15,32 @@ libCCUSBConfig_la_SOURCES	= 	CConfiguration.cpp	\
 				CUserCommand.cpp	\
 				CAddTclDriver.cpp 	\
 				CMarkerCommand.cpp	\
-				@top_srcdir@/usb/common/devices/CCamacBranchException.cpp	
+				@top_srcdir@/usb/common/devices/CCamacBranchException.cpp	 \
+			 	CConfigurableObject.cpp	\
+				CReadoutModule.cpp	\
+				CReadoutHardware.cpp	\
+				CPH7xx.cpp	\
+				CAD811.cpp	\
+				CStack.cpp	\
+				CLRS2551.cpp	\
+				CLRS2249.cpp	\
+				CLRS2228.cpp	\
+				CCAEN257.cpp	\
+				CC1205.cpp	\
+				CCCUSBModule.cpp	\
+				CPH7132.cpp	\
+				CTclModule.cpp	\
+				CLeCroy4434.cpp \
+				CCamacCrate.cpp \
+				CLeCroy4300B.cpp \
+				CULMTrigger.cpp \
+				CMarker.cpp
 
 
 
 
-noinst_HEADERS		=	CConfiguration.h 	\
+noinst_HEADERS		= \
+				CConfiguration.h 	\
 				CStackCommand.h		\
 				CPH7xxCommand.h		\
 				CAD811Command.h		\
@@ -31,27 +53,53 @@ noinst_HEADERS		=	CConfiguration.h 	\
 				CPH7132Command.h	\
 				CUserCommand.h		\
 				CAddTclDriver.h		\
-				CMarkerCommand.h
+				CMarkerCommand.h \
+				CConfigurableObject.h	\
+				CReadoutModule.h 	\
+				CReadoutHardware.h 	\
+				CStack.h		\
+				CAD811.h		\
+				CPH7xx.h		\
+				CLRS2551.h		\
+				CLRS2249.h		\
+				CLRS2228.h		\
+				CCAEN257.h		\
+				CC1205.h		\
+				CCCUSBModule.h		\
+				CPH7132.h		\
+				CTclModule.h		\
+				CMarker.h		\
+				CCamacCompat.hpp
 
-#				CScalerCommand.h
 
 
 
-
-libCCUSBConfig_la_CPPFLAGS		= 	-I@top_srcdir@/usb/ccusb/devices	\
+libCCUSBDaqConfig_la_CPPFLAGS		= \
 				-I@top_srcdir@/usb/ccusb		\
 				-I@top_srcdir@/usb/ccusb/ccusb		\
+				-I@top_srcdir@/usb/ccusb/daqconfig		\
 				-I@top_srcdir@/usb/common/devices		\
-				@LIBTCLPLUS_CFLAGS@		\
+				-I@top_srcdir@/usb/common/configurableobject \
 				-I@top_srcdir@/base/headers		\
-				$(TCL_FLAGS) @THREADCXX_FLAGS@
+				@LIBTCLPLUS_CFLAGS@		\
+				@TCL_FLAGS@ \
+				@THREADCXX_FLAGS@
 
-libCCUSBConfig_la_LIBADD	=	@top_builddir@/usb/ccusb/devices/libCCUSBDevices.la 	\
-				$(TCL_LDFLAGS) @THREADLD_FLAGS@ \
-				@LIBTCLPLUS_LDFLAGS@	
+libCCUSBDaqConfig_la_LIBADD	=	 \
+				@top_builddir@/usb/ccusb/ccusb/libCCUSB.la \
+				@top_builddir@/usb/common/configurableobject/libConfigurableObject.la \
+				@LIBTCLPLUS_LDFLAGS@ \
+				@TCL_LDFLAGS@ \
+				@THREADLD_FLAGS@ 
 
 
 install-data-local:
 	$(mkinstalldirs) @prefix@/ccusbdriver
 	$(mkinstalldirs) @prefix@/ccusbdriver/includes
 	$(INSTALL_DATA)  @srcdir@/*.h @prefix@/ccusbdriver/includes
+
+
+EXTRA_DIST = CCamacCompat.hpp 
+
+
+#CReadoutModule.h CReadoutHardware.h CStack.h

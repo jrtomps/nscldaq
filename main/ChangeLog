@@ -1021,3 +1021,20 @@ Work on 11.0-rc11 begins
 	of data.
 	* Feature 4684 - Do piles more failure handling at end run.
 	
+11.0-003
+	* Good builds on Ubuntu 12.04 with gcc/g++-4.8 installed.
+	* Roll in shmmap status check fixes from 10.2 that were missed.
+	* Fix some link order problems that express in gcc/g++4.8
+	* If zmq.hpp needs a prerequisite #include <algorithm> don't fail the 
+	config
+	* If there is no nscldaq-10.x installation then don't do the 
+	evbrdocallouts10 test as it is going to require that.
+11.0-004
+	* Roll in changes from Dave Caussyn (FSU) for the VMUSB SIS3820
+	scaler support.  Specifically when -timestamp is true, use
+	external LNE as well.  Furthermore support configuration in the
+	create command.
+
+11.1-000
+	Good compilation of mergeer of 11.1 and 11.0head.
+	

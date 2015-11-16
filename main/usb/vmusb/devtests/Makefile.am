@@ -4,21 +4,19 @@ unittests_CPPFLAGS=@TCL_CPPFLAGS@
 
 unittests_SOURCES = TestRunner.cpp cvmusbtest.cpp cmqdc32test.cpp cmqdc32stacktest.cpp
 
-unittests_DEPENDENCIES = @top_builddir@/usb/vmusb/devices/libVMUSBDevices.la \
+unittests_DEPENDENCIES = @top_builddir@/usb/vmusb/daqconfig/libVMUSBDaqConfig.la \
 									@top_builddir@/usb/common/configurableobject/libConfigurableObject.la \
 									@top_builddir@/usb/vmusb/vmusb/libVMUSB.la \
-									@top_builddir@/usb/vmusb/daqconfig/libVMUSBConfig.la \
 									$(NSCLDAQ_LIB) 
 
-unittests_LDADD = @top_builddir@/usb/vmusb/devices/libVMUSBDevices.la \
+unittests_LDADD = @top_builddir@/usb/vmusb/daqconfig/libVMUSBDaqConfig.la \
 									@top_builddir@/usb/common/configurableobject/libConfigurableObject.la \
 									@top_builddir@/usb/vmusb/vmusb/libVMUSB.la \
-									@top_builddir@/usb/vmusb/daqconfig/libVMUSBConfig.la \
 									$(NSCLDAQ_LIB) @CPPUNIT_LDFLAGS@ @THREADLD_FLAGS@
 
 unittests_CXXFLAGS = @TCL_CPPFLAGS@ $(CPPUNIT_INCLUDES) $(THREADCXX_FLAGS) $(AM_CXXFLAGS) \
 										 -I@top_srcdir@/usb/common/configurableobject \
-											-I@srcdir@/../. -I@srcdir@/../devices/. \
+											-I@srcdir@/../. -I@srcdir@/../daqconfig/. \
 											-I@srcdir@/../vmusb/.
 
 unittests_LDFLAGS = @LIBTCLPLUS_LDFLAGS@  $(TCL_LDFLAGS) \

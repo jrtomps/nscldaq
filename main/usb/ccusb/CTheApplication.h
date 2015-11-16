@@ -14,21 +14,15 @@
 	     East Lansing, MI 48824-1321
 */
 
-#ifndef __CTHEAPPLICATION_H
-#define __CTHEAPPLICATION_H
+#ifndef CTHEAPPLICATION_H
+#define CTHEAPPLICATION_H
 #include <config.h>
 
-#ifndef __STL_STRING
-#include <string>
-#ifndef __STL_STRING
-#define __STL_STRING
-#endif
-#endif
+#include <CSystemControl.h>
 
-
-#ifndef __TCLOBJECT_H
 #include <TCLObject.h>
-#endif
+
+#include <string>
 
 class CTCLInterpreter;
 struct Tcl_Interp;
@@ -58,6 +52,7 @@ private:
   int                  m_Argc;
   char**               m_Argv;
   CTCLInterpreter*     m_pInterpreter;
+  CSystemControl       m_sysControl;
 public:
   // Canonicals
 
@@ -73,14 +68,15 @@ public:
   // entry point:
 
   virtual int operator()(int argc, char** argv);
-  static int  HandleAcqThreadError(Tcl_Event* evPtr, int flags);
+
+  const CSystemControl& getSystemControl() const { return m_sysControl;}
 
   // Segments of operation.
-
 private:
   void startOutputThread(std::string pRing);
   void startTclServer(int port);
   void startInterpreter();
+
   void createUsbController(const char* pSerialNo = NULL);
   void setConfigFiles(const char* pDaqConfig, const char* pCtlConfig);
   void initializeBufferPool();
@@ -89,13 +85,9 @@ private:
 
   // static functions:
 
-  static int AppInit(Tcl_Interp* interp);
   static std::string makeConfigFile(std::string baseName);
 
   static void ExitHandler(void* pData);
-  static CTCLObject makeCommand(
-    CTCLInterpreter* pInterp, const char* verb, std::string argument
-  );
 
 };
 #endif

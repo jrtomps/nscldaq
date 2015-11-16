@@ -14,7 +14,7 @@
 #	     Michigan State University
 #	     East Lansing, MI 48824-1321
 #
-# @file   AGD16XLM72.tcl
+# @file   ACrdcXLM72.tcl
 # @author Daniel Bazin and Jeromy Tompkins
 # @note   This is a modified version of the original AGD16XLM72 class
 #         that was written by Daniel Bazin. It has been updated to use
@@ -39,12 +39,12 @@ itcl::class AGD16XLM72 {
 	public method ReadDelayWidth {ch}
 
 	public method WriteBypass {by} 
-  public method ReadBypass {}
+        public method ReadBypass {}
 
 	public method WriteInspect {in}
 	public method ReadInspect {}
 
-  public method ReadFirmware {}
+        public method ReadFirmware {}
 
 	public method Init {filename aname}
 }
@@ -66,7 +66,9 @@ itcl::body AGD16XLM72::ReadDelayWidth {ch} {
   return [list $delay $width]
 }
 
-
+itcl::body AGD16XLM72::ReadDelayWidth {ch} {
+  set offset [expr $ch*4] 
+}
 itcl::body AGD16XLM72::WriteBypass {by} {
   return [Write fpga 68 $by]
 }

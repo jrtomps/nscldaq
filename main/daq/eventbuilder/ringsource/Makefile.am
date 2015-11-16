@@ -1,5 +1,5 @@
 bin_PROGRAMS    = ringFragmentSource
-noinst_PROGRAMS = ringTestSource
+noinst_PROGRAMS = ringTestSource unittests
 lib_LTLIBRARIES= libTimeExtractorTest.la libS800TimeExtractor.la libGretinaTimeExtractor.la
 
 libTimeExtractorTest_la_SOURCES = testTimeExtractor.c	
@@ -12,14 +12,17 @@ libGretinaTimeExtractor_la_SOURCES = gretinaTimestamp.c
 libGretinaTimeExtractor_la_CPPFLAGS=-I@top_srcdir@/daq/format
 
 
-ringFragmentSource_SOURCES=@srcdir@/rfcmdline.c CRingSource.cpp Main.cpp GetOpt.cpp
+ringFragmentSource_SOURCES=@srcdir@/rfcmdline.c \
+													 CRingSource.cpp \
+													 CRingItemToFragmentTransform.cpp \
+													 Main.cpp GetOpt.cpp
 
 ringTestSource_SOURCES= ringTestSource.cpp ringtestoptions.c TestSource.cpp
 
 ringTestSource_CPPFLAGS=@LIBTCLPLUS_CFLAGS@ -I@top_srcdir@/base/dataflow \
 	-I@top_srcdir@/daq/format -I@top_srcdir@/base/os
 
-noinst_HEADERS=CRingSource.h s800.h TestSource.h
+noinst_HEADERS=CRingSource.h CRingItemToFragmentTransform.h s800.h TestSource.h
 
 
 BUILT_SOURCES = @srcdir@/rfcmdline.c @srcdir@/rfcmdline.h  \
@@ -31,6 +34,7 @@ BUILT_SOURCES = @srcdir@/rfcmdline.c @srcdir@/rfcmdline.h  \
 
 @srcdir@/options.ggo: @top_srcdir@/daq/eventbuilder/options.ggo
 	cp @top_srcdir@/daq/eventbuilder/options.ggo  @srcdir@
+	echo option \"default-id\" S \"Source id to assign data without a predefined source id\" int optional >> @srcdir@/options.ggo
 	echo option \"ring\" r \"URL of ring from which fragments come\" string required >> @srcdir@/options.ggo
 	echo option \"timestampextractor\" t \"Shared library with timestamp extraction code\" string optional >> \
 		@srcdir@/options.ggo
@@ -81,3 +85,23 @@ ringFragmentSource_LDADD=  		 \
 	$(THREAD_LDFLAGS)  -ldl
 
 EXTRA_DIST=ringsource.xml ringtestoptions.ggo
+
+unittests_SOURCES = TestRunner.cpp CRingSource.cpp CRingItemToFragmentTransform.cpp cringsourcetests.cpp rfcmdline.c
+unittests_LDADD = \
+	@top_builddir@/daq/eventbuilder/libEventBuilderClient.la \
+	@top_builddir@/daq/format/libdataformat.la \
+	@top_builddir@/base/dataflow/libDataFlow.la \
+	@top_builddir@/base/dataflow/libRingBuffer.la \
+	@top_builddir@/base/os/libdaqshm.la	\
+	@CPPUNIT_LDFLAGS@ \
+	$(THREAD_LDFLAGS)  -ldl
+
+unittests_CPPFLAGS = -I@top_srcdir@/daq/eventbuilder -I@top_srcdir@/base/dataflow \
+	-I@top_srcdir@/daq/format \
+	@LIBTCLPLUS_CFLAGS@	 \
+	 -I@top_srcdir@/base/headers \
+	@CPPUNIT_CFLAGS@ \
+	-I@top_srcdir@/base/os
+
+check-TESTS:
+		./unittests

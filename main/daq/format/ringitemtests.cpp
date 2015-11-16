@@ -17,14 +17,17 @@
 #include <CDesiredTypesPredicate.h>
 
 #include <CRingBuffer.h>
+#include <CRingItemFactory.h>
+
+#include <memory>
 
 std::string uniqueName(std::string);
 
 
 using namespace std;
 
-class ritemtests : public CppUnit::TestFixture {
-  CPPUNIT_TEST_SUITE(ritemtests);
+class physeventtests : public CppUnit::TestFixture {
+  CPPUNIT_TEST_SUITE(physeventtests);
   CPPUNIT_TEST(construct);
   CPPUNIT_TEST(selectors);
   CPPUNIT_TEST(cursor);
@@ -35,6 +38,7 @@ class ritemtests : public CppUnit::TestFixture {
   CPPUNIT_TEST(tsconstruct);
   CPPUNIT_TEST(addbodyheader);
   CPPUNIT_TEST(equality);
+  CPPUNIT_TEST(size);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -57,16 +61,17 @@ protected:
   void tsconstruct();
   void addbodyheader();
   void equality();
+  void size();
 };
 
-CPPUNIT_TEST_SUITE_REGISTRATION(ritemtests);
+CPPUNIT_TEST_SUITE_REGISTRATION(physeventtests);
 
 //
 // There are two cases for construction...
 // assuming the static ring buffer size is 8k.
 // 
 // 
-void ritemtests::construct() {
+void physeventtests::construct() {
   CRingItem small(1);
   CRingItem big(1, CRingItemStaticBufferSize*2);
 
@@ -94,7 +99,7 @@ void ritemtests::construct() {
 // Test that we've fixed the error in copy construction that did not
 // get the cursor right:
 //
-void ritemtests::copyconstruct()
+void physeventtests::copyconstruct()
 {
   // Make the source ring and put something in it:
   CRingItem source(100);
@@ -133,7 +138,7 @@ void ritemtests::copyconstruct()
 // Tests the various selector  member functions.
 //
 void
-ritemtests::selectors()
+physeventtests::selectors()
 {
   CRingItem item(5, 1024);
   EQ((size_t)1024, item.getStorageSize());
@@ -149,7 +154,7 @@ ritemtests::selectors()
 // updating the body cursor.
 //
 void
-ritemtests::cursor()
+physeventtests::cursor()
 {
   CRingItem item(0x1234);
   uint16_t* pData = reinterpret_cast<uint16_t*>(item.getBodyCursor());
@@ -165,7 +170,7 @@ ritemtests::cursor()
 // Test the ability to write an item into a ring buffer.
 //
 void
-ritemtests::toring()
+physeventtests::toring()
 {
   CRingBuffer::create(uniqueName("items"));
 
@@ -216,7 +221,7 @@ ritemtests::toring()
 // we'll use a the all predicate with no exceptions in this test.
 //
 void
-ritemtests::fromring()
+physeventtests::fromring()
 {
   CRingBuffer::create(uniqueName("items"));
   
@@ -263,7 +268,7 @@ ritemtests::fromring()
 // we'll request type 2 only with no sampling.. getting should get us that
 // item.
 void
-ritemtests::selection()
+physeventtests::selection()
 {
   CRingBuffer::create(uniqueName("items"));
 
@@ -298,7 +303,7 @@ ritemtests::selection()
 // the second item.
 //
 void 
-ritemtests::sampling()
+physeventtests::sampling()
 {
    CRingBuffer::create(uniqueName("items"));
 
@@ -339,7 +344,7 @@ ritemtests::sampling()
  *   Construction of timestamped item.
  */
 void
-ritemtests::tsconstruct()
+physeventtests::tsconstruct()
 {
     CRingItem ts(
         1, static_cast<uint64_t>(0x1122334455667788ll), 12, 34, 10
@@ -364,7 +369,7 @@ ritemtests::tsconstruct()
 // test subsequent add of body header:
 
 void
-ritemtests::addbodyheader()
+physeventtests::addbodyheader()
 {
     CRingItem item(1, 8192);
     uint16_t* p = reinterpret_cast<uint16_t*>(item.getBodyCursor());
@@ -395,11 +400,29 @@ ritemtests::addbodyheader()
     
 }
 
-void ritemtests::equality()
+void physeventtests::equality()
 {
     CRingItem item0(30,8192);
     CRingItem item1(item0);
 
     ASSERT( item0 == item1 );
 
+}
+
+
+void physeventtests::size() 
+{
+  CRingItem item( PHYSICS_EVENT );
+  uint16_t* pBody = reinterpret_cast<uint16_t*>(item.getBodyPointer());
+  *pBody = 0;
+  pBody++;
+
+  item.setBodyCursor(pBody);
+  item.updateSize();
+
+  pRingItem pItem = item.getItemPointer();
+
+  // because we made the item locally on this computer, we don't
+  // need to worry about byte order
+  EQ( pItem->s_header.s_size, item.size() );
 }
