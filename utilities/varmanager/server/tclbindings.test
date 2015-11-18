@@ -31,6 +31,8 @@ package require vardb
 package require varmgr
 
 
+tcltest::configure -verbose [list body error start]
+
 # Utilities:
 
 proc tempName {} {

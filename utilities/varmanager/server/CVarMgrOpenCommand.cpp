@@ -65,17 +65,20 @@ int
 CVarMgrOpenCommand::operator()(CTCLInterpreter& interp, std::vector<CTCLObject>& objv)
 {
     CVarMgrApi* pApi(0);
-    char usage[100];
     
     bindAll(interp, objv);
     
-    sprintf(usage, "Usage\n   %s database-uri", std::string(objv[1]).c_str());
+    
+    std::string usage = "Usage\n   ";
+    usage += std::string(objv[1]);
+    usage += " database-uri";
+
     
    
     
     try {
         char handle[100];
-        requireExactly(objv, 2, usage);
+        requireExactly(objv, 2, usage.c_str());
         
         std::string uri = objv[1];
         pApi = CVarMgrApiFactory::create(uri);
