@@ -135,6 +135,7 @@ DOCFILES=libref.xml progref.xml tutorial.xml
 
 EXTRA_DIST= vardb.test \
 	vardbtest.py dirtreetest.py variabletest.py \
+	enumtest.py statemachinetests.py   \
 	vardbsh.tcl.in $(DOCFILES)
 
 # Get compiled bindings installed where the languages can find them relies on the libs being
