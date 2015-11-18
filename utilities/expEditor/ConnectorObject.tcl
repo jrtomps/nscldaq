@@ -64,6 +64,7 @@ snit::type ConnectorObject {
     delegate method getPosition   to gui
     delegate method getId         to gui
     delegate method size          to gui
+    delegate method bind          to gui
     
     ##
     # typeconstructor
@@ -84,7 +85,13 @@ snit::type ConnectorObject {
         
         $self configurelist $args
     }
+    ##
+    # Return the property list
+    #
     method getProperties {} {
         return $dummyPropertyList
+    }
+    method type {} {
+        return connector    
     }
 }

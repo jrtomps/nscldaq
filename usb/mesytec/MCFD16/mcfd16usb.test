@@ -1,0 +1,1057 @@
+
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2014.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Author:
+#    Jeromy Tompkins
+#	   NSCL
+#	   Michigan State University
+#	   East Lansing, MI 48824-1321
+
+
+package require tcltest
+
+tcltest::test pkgrequire-0 { ensure we can require the package
+} { package require mcfd16usb } {1.0}
+
+
+# set up some fake directories to write
+set testdir [tcltest::makeDirectory test]
+#set serialFile [file join $::testdir fake] 
+
+# -------------- HELPER PROCS ------------------------------------------------#
+
+# create a new driver object
+proc setup {} {
+  set ::serialFile [tcltest::makeFile " " fake $::testdir]
+  MCFD16USB ::dev $::serialFile
+}
+
+# destroy our object
+proc tearDown {} {
+  ::dev destroy
+  file delete $::serialFile
+}
+
+# because the real read operation will fail in a test environment,
+# we fake it to just add a mcfd-16> to the end of the file.
+
+snit::method MCFD16USB _Read {} {
+  return "mcfd-16>" 
+}
+
+snit::method MCFD16USB Update {} {
+  set m_moduleState $::parsedDSDict
+}
+
+proc setNeedsUpdate {objname state} {
+
+  set varname [lindex [$objname info vars m_needsUpdate] 0]
+  set $varname $state
+}
+
+# sets up for a read test... basically just does the usual setup but sets
+# the stored state of the driver
+proc setupForRead {} {
+  setup
+  ::dev _CacheModuleState $::parsedDSDict
+  setNeedsUpdate ::dev 0
+}
+
+#-----------------------------------------------------------------------------#
+# Common data
+  
+# the response from DS (display settings that we need to parse)
+set dsResponse {DS
+
+Threshold:     0 20 20 40 20 20 20 20
+               20 20 20 20 20 20 20 20 - 20
+Gain:          1 1 1 1 3 1 1 1 - 1
+Width [ns]:    100 50 40 50 50 50 50 50 - 50
+Deadtime [ns]: 50 50 50 50 202 50 50 50 - 20 
+Delay (Tap):   3 3 3 3 1 3 3 3 - 2
+Fraction [%]:  20 40 40 40 40 40 40 40 - 40
+Polarity:      neg neg neg pos neg neg neg neg - neg
+
+Mask register: chan pairs 15/14...1/0: 00110000 (0)
+Discrimination: Constant fraction
+Gate: leading: 10, trailing: 100
+Global coincidence time: 20 (= 12 ns)
+Operating mode: Common
+Bandwidth limit: Off
+Remote Control: Off
+Frequency monitor channel: 0
+Test pulser: On
+Switch settings: BWL: Off, Discr.: Constant fraction
+mcfd-16>
+}
+
+set parsedDSDict [dict create Threshold {0 20 20 40 20 20 20 20 20 20 20 20 20 20 20 20 20} \
+                       Gain {1 1 1 1 3 1 1 1 1} \
+                       Width {100 50 40 50 50 50 50 50 50} \
+                       Deadtime {50 50 50 50 202 50 50 50 20} \
+                       Delay {3 3 3 3 1 3 3 3 2} \
+                       Fraction {20 40 40 40 40 40 40 40 40} \
+                       Polarity {neg neg neg pos neg neg neg neg neg} \
+                       {Mask register} 48 \
+                       Discrimination {Constant fraction} \
+                       {Operating mode} Common \
+                       {Bandwidth limit} Off \
+                       {Remote Control} Off \
+                       {Test pulser} On \
+                       WidthRaw {72 45 39 45 45 45 45 45 45} \
+                       DeadtimeRaw {45 45 45 45 117 45 45 45 27} ]
+          
+
+###############################################################################
+# BEGIN TESTS
+#
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
+# Polarity tests
+
+tcltest::test polarity-0 {Setting polarity for channel pairs is simple
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # set channel pairs 0 to positive polarity
+  ::dev SetPolarity 0 pos
+
+  # check to see what we wrote to the file
+  tcltest::viewFile $::serialFile
+} -result "SP 0 0"
+
+
+tcltest::test polarity-1 {Make sure that bad argument fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # set channel pairs 0 to bad value
+  ::dev SetPolarity 0 this_will_fail 
+}  -result {Invalid value provided. Must be "pos" or "neg".} \
+-returnCodes 1
+
+tcltest::test polarity-2 {Bad channel pair value will fail
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # set channel pairs 0 to bad value
+  ::dev SetPolarity 9 neg
+}  -result {Invalid channel pair provided. Must be in range [0,8].} \
+-returnCodes 1
+
+
+tcltest::test polarity-3 {Read polarity returns the cached value if up-to-date
+} -setup {
+  setupForRead
+} -cleanup {
+  tearDown
+} -body {
+  ::dev GetPolarity 3
+}  -result {pos}
+
+tcltest::test polarity-4 {Read polarity fails if bad channel pair
+} -setup {
+  setupForRead
+} -cleanup {
+  tearDown
+} -body {
+  ::dev GetPolarity 9
+}  -result {Invalid channel pair provided. Must be in range [0,8].} \
+-returnCodes 1
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
+# Gain tests
+
+tcltest::test gain-0 {Make sure we can set gain properly
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # set channel pairs 0 to a good value (i.e. in range [0,2])
+  ::dev SetGain 0 1
+  tcltest::viewFile $::serialFile
+} -result "SG 0 3"
+
+tcltest::test gain-1 {Bad gain value fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # gain can only be 0, 1, or 2
+  ::dev SetGain 0 3
+} -result "Invalid gain value. Must be either 0, 1, or 2." \
+-returnCodes 1
+
+
+tcltest::test gain-2 {Bad channel pair fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # channel pair can only be in range [0,8]
+  ::dev SetGain 123 2 
+} -result {Invalid channel pair provided. Must be in range [0,8].} \
+-returnCodes 1
+
+
+tcltest::test gain-3 {Read gain returns the cached value if up-to-date
+} -setup {
+  setupForRead
+} -cleanup {
+  tearDown
+} -body {
+  ::dev GetGain 4
+}  -result {1}
+
+tcltest::test gain-4 {Read gain fails if bad channel pair
+} -setup {
+  setupForRead
+} -cleanup {
+  tearDown
+} -body {
+  ::dev GetGain 9
+}  -result {Invalid channel pair provided. Must be in range [0,8].} \
+-returnCodes 1
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
+# Bandwidth limit tests 
+
+tcltest::test bandwidthlimit-0 {Check that we can enable bandwidth limit
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # the argument can be any boolean type
+  ::dev EnableBandwidthLimit on
+
+  ::tcltest::viewFile $::serialFile
+} -result "BWL 1"
+
+
+tcltest::test bandwidthLimit-1 { Non-boolean value fails 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # arguments that are not boolean will fail
+  ::dev EnableBandwidthLimit 123
+
+} -result "Invalid argument provided. Must be a boolean type." \
+-returnCodes 1
+
+if {0} {
+tcltest::test bandwidthLimit-2 {If not in RC mode, this will fail 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # attempt to set into CFD mode
+  ::dev EnableBandwidthLimit false
+} -result "Bandwidth limit cannot be overridden when in non-RC mode." 
+-returnCodes 1
+}
+
+tcltest::test bandwidthLimit-3 {Retreiving BWL when state up-to-date just returns cached value
+} -setup {
+  setupForRead
+} -cleanup {
+  tearDown
+} -body {
+  ::dev GetBandwidthLimit
+}  -result {0}
+
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
+# CFD state
+
+tcltest::test cfd-0 {Enabling the CFD writes the correct string
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # dictate whether to use led mode
+  ::dev SetDiscriminatorMode led
+
+  ::tcltest::viewFile $::serialFile
+} -result "CFD 0"
+
+
+tcltest::test cfd-1 {Enabling the CFD writes the correct string
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # dictate whether to use led mode
+  ::dev SetDiscriminatorMode bad_mode
+} -result "Invalid argument provided. Must be either \"led\" or \"cfd\"." \
+-returnCodes 1
+
+if {0} {
+tcltest::test cfd-2 {If not in RC mode, this will fail 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # attempt to set into CFD mode
+  ::dev SetDiscriminatorMode cfd
+} -result "Discriminator mode cannot be overridden when in non-RC mode." 
+-returnCodes 1
+}
+
+tcltest::test cfd-3 {Retreiving CFD mode when state up-to-date just returns cached value
+} -setup {
+  setupForRead
+} -cleanup {
+  tearDown
+} -body {
+  ::dev GetDiscriminatorMode
+}  -result {cfd}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
+# Threshold value
+
+tcltest::test threshold-0 {Ensure we can set the threshold properly
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # ensure we can set all thresholds to 0 in common mode
+  ::dev SetThreshold 16 0
+  # write threshold for channel 0 to be 255
+  ::dev SetThreshold 0 255
+
+  ::tcltest::viewFile $::serialFile
+} -result {ST 16 0
+ST 0 255}
+
+tcltest::test threshold-1 {Bad channel value fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # ensure we can set all thresholds to 0 in common mode
+  ::dev SetThreshold 17 0
+} -result {Invalid channel argument. Must be in range [0,16].} \
+-returnCodes 1
+
+
+tcltest::test threshold-2 {Bad threshold value fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # ensure we can set all thresholds to 0 in common mode
+  ::dev SetThreshold 8 256
+} -result {Invalid threshold argument. Must be in range [0,255].} \
+-returnCodes 1
+
+
+tcltest::test threshold-3 {Read threshold returns the cached value if up-to-date
+} -setup {
+  setupForRead
+} -cleanup {
+  tearDown
+} -body {
+  set resList [list]
+  lappend resList [::dev GetThreshold 0]
+  lappend resList [::dev GetThreshold 3]
+
+  set resList
+}  -result {0 40}
+
+tcltest::test threshold-4 {Failure when the requested channel is out of range
+} -setup {
+  setupForRead
+} -cleanup {
+  tearDown
+} -body {
+  ::dev GetThreshold 17
+}  -result {Invalid channel argument. Must be in range [0,16].} \
+-returnCodes 1
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
+# Width value
+
+tcltest::test width-0 {Setting the width with valid values writes the correct stuff
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # there is a translation table to convert input values to actual time in the
+  # manual. 
+  ::dev SetWidth 3 16 ;# minimum input
+  ::dev SetWidth 7 222 ;# maximum input
+
+  # the future I might store the lookup table such that the user could do 
+  # ::dev SetWidth 3 [nsToWidth 17] 
+  # but this is not supported at the moment
+
+  ::tcltest::viewFile $::serialFile
+} -result {SW 3 16
+SW 7 222}
+
+
+tcltest::test width-1 {Bad channel pair fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # there is a translation table to convert input values to actual time in the
+  # manual. 
+  ::dev SetWidth 9 16 ;# minimum input
+} -result {Invalid channel pair provided. Must be in range [0,8].} \
+-returnCodes 1
+
+
+tcltest::test width-2 {Bad element index fails 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  set returnVals [list]
+
+  set res [catch {::dev SetWidth 7 15} msg] ;# just below valid input range 
+  lappend returnVals [list $res $msg]
+
+  set res [catch {::dev SetWidth 7 223} msg] ;# just above valid input range 
+  lappend returnVals [list $res $msg]
+
+  set returnVals
+} -result [list {1 {Invalid width argument provided. Must be in range [16,222].}} \
+                {1 {Invalid width argument provided. Must be in range [16,222].}} ]
+
+
+tcltest::test width-3 {Read width returns the cached value if up-to-date
+} -setup {
+  setupForRead
+} -cleanup {
+  tearDown
+} -body {
+  set resList [list]
+  lappend resList [::dev GetWidth 0]
+  lappend resList [::dev GetWidth 2]
+
+  set resList
+}  -result {72 39}
+
+tcltest::test width-4 {Failure when the requested channel is out of range
+} -setup {
+  setupForRead
+} -cleanup {
+  tearDown
+} -body {
+  ::dev GetWidth 9 
+}  -result {Invalid channel pair provided. Must be in range [0,8].} \
+-returnCodes 1
+
+tcltest::test width-5 {Given time values, convert to raw parameter vals
+} -setup {
+  setupForRead
+} -cleanup {
+  tearDown
+} -body {
+  ::dev _ConvertTimeWidthsToRawWidths {66 68 231 234 403 390 35 26 77}
+} -result {54 55 128 129 178 175 36 31 60}
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
+# Deadtime tests
+
+tcltest::test deadtime-0 {Given good parameter, ensure the correct things are written
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev SetDeadtime 1 27 ; # minimum dead time
+  ::dev SetDeadtime 8 222 ; # maximum dead time
+
+  tcltest::viewFile $::serialFile
+} -result {SD 1 27
+SD 8 222}
+
+
+tcltest::test deadtime-1 {Fails on bad channel parameter value
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev SetDeadtime 9 27 ; # just outside of valid channel param range
+
+} -result {Invalid channel pair provided. Must be in range [0,8].} \
+-returnCodes 1
+
+tcltest::test deadtime-2 {Fails on value of out range 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  set returnVals [list]
+
+  set res [catch {::dev SetDeadtime 7 26} msg] ;# just below valid input range 
+  lappend returnVals [list $res $msg]
+
+  set res [catch {::dev SetDeadtime 7 223} msg] ;# just above valid input range 
+  lappend returnVals [list $res $msg]
+
+  set returnVals
+} -result [list {1 {Invalid deadtime argument provided. Must be in range [27,222].}} \
+                {1 {Invalid deadtime argument provided. Must be in range [27,222].}} ]
+
+
+
+tcltest::test deadtime-3 {Read deadtime returns the cached value if up-to-date
+} -setup {
+  setupForRead
+} -cleanup {
+  tearDown
+} -body {
+  set resList [list]
+
+  # returns the value of the DeadtimeRaw rather than the Deadtime
+  lappend resList [::dev GetDeadtime 4]
+  lappend resList [::dev GetDeadtime 8]
+
+  set resList
+}  -result {117 27}
+
+tcltest::test deadtime-4 {Failure for bad channel pair
+} -setup {
+  setupForRead
+} -cleanup {
+  tearDown
+} -body {
+  ::dev GetDeadtime 9 ;# bad channel pair
+}  -result {Invalid channel pair provided. Must be in range [0,8].} \
+-returnCodes 1
+
+
+tcltest::test deadtime-5 {Convert values in ns back to raw parameter vals
+} -setup {
+  setupForRead
+} -cleanup {
+  tearDown
+} -body {
+  ::dev _ConvertDeadtimesToRaw {64 298 354 421 430 506 624 434 172}
+} -result {53 150 166 182 184 199 217 185 105}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
+# Delay line tests
+
+tcltest::test delay-0 {Given good parameter, ensure the correct things are written
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # delay is settable in range [0,4]
+  ::dev SetDelay 0 0 ; # minimum dead time and chan pair
+  ::dev SetDelay 8 4 ; # maximum dead time and chan pair
+
+  tcltest::viewFile $::serialFile
+  # for consistency with RCbus, there is a direct mapping of [0,4] --> [1,5]
+} -result {SY 0 1
+SY 8 5}
+
+
+tcltest::test delay-1 {Bad channel pair value will fail as always.
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # channel pairs should be in range of 0 to 8. -1 is bad
+  ::dev SetDelay -1 3 ; 
+} -result {Invalid channel pair provided. Must be in range [0,8].} \
+-returnCodes 1
+
+
+tcltest::test delay-2 {Fails on value of out range 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  set returnVals [list]
+
+  set res [catch {::dev SetDelay 0 -1} msg] ;# just below valid input range 
+  lappend returnVals [list $res $msg]
+
+  set res [catch {::dev SetDelay 7 6} msg] ;# just above valid input range 
+  lappend returnVals [list $res $msg]
+
+  set returnVals
+} -result [list {1 {Invalid delay argument provided. Must be in range [0,4].}} \
+                {1 {Invalid delay argument provided. Must be in range [0,4].}} ]
+
+tcltest::test delay-3 {Read delay returns the cached value if up-to-date
+} -setup {
+  setupForRead
+} -cleanup {
+  tearDown
+} -body {
+  set resList [list]
+  lappend resList [::dev GetDelay 4]
+  lappend resList [::dev GetDelay 8]
+
+  set resList
+}  -result {0 1}
+
+tcltest::test delay-4 {Failure for bad channel pair
+} -setup {
+  setupForRead
+} -cleanup {
+  tearDown
+} -body {
+  ::dev GetDelay 9 
+}  -result {Invalid channel pair provided. Must be in range [0,8].} \
+-returnCodes 1
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
+# Fraction tests
+
+tcltest::test fraction-0 {Given good parameter, ensure the correct things are written
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # only two values are allowed 20 and 40
+  ::dev SetFraction 0 20 ; 
+  ::dev SetFraction 8 40 ;
+
+  tcltest::viewFile $::serialFile
+} -result {SF 0 20
+SF 8 40}
+
+tcltest::test fraction-1 {Bad channel pair value fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # only values in range 0 to 8 are allowd for channel pairs
+  ::dev SetFraction -1 20 
+
+} -result {Invalid channel pair provided. Must be in range [0,8].} \
+-returnCodes 1
+
+tcltest::test fraction-2 {Failure if param is not 20 or 40
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  set returnVals [list]
+
+  set res [catch {::dev SetFraction 0 0} msg] ;# just below valid input range 
+  lappend returnVals [list $res $msg]
+  
+  set returnVals
+} -result [list {1 {Invalid fraction argument provided. Must be either 20 or 40.}}]
+
+
+tcltest::test fraction-3 {Read fraction returns the cached value if up-to-date
+} -setup {
+  setupForRead
+} -cleanup {
+  tearDown
+} -body {
+  set resList [list]
+  lappend resList [::dev GetFraction 0]
+  lappend resList [::dev GetFraction 8]
+
+  set resList
+}  -result {20 40}
+
+tcltest::test fraction-4 {Failure for bad channel pair
+} -setup {
+  setupForRead
+} -cleanup {
+  tearDown
+} -body {
+  ::dev GetFraction 9
+}  -result {Invalid channel pair provided. Must be in range [0,8].} \
+-returnCodes 1
+
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
+# Channel mask tests
+
+tcltest::test chanmask-0 {If the parameters are good, make sure the proper string is written
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  dev SetChannelMask 255 ; # enable all channels in set bank 0 (channels 0-7)
+
+  tcltest::viewFile $::serialFile
+} -result {SK 255}
+
+tcltest::test chanmask-1 {Mask parameter outside of range [0,255] fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # bank must be 0 or 1, 2 will cause it to fail
+  set returnVals [list]
+
+  set res [catch {dev SetChannelMask -1} msg]
+  lappend returnVals [list $res $msg]
+
+  set res [catch {dev SetChannelMask 256} msg]
+  lappend returnVals [list $res $msg]
+
+  set returnVals
+} -result [list {1 {Invalid mask argument provided. Must be in range [0,255].}} \
+                {1 {Invalid mask argument provided. Must be in range [0,255].}} ]
+
+tcltest::test chanmask-3 {Read channel mask returns cached value
+} -setup {
+  setup
+  ::dev _CacheModuleState $::parsedDSDict
+  setNeedsUpdate ::dev 0
+} -cleanup {
+  tearDown
+} -body {
+  ::dev GetChannelMask
+}  -result 48
+
+tcltest::test chanmask-4 {Read channel mask updates if needed
+} -setup {
+  setup
+  setNeedsUpdate ::dev 1
+} -cleanup {
+  tearDown
+} -body {
+  ::dev GetChannelMask
+}  -result 48
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
+# pulser tests
+
+tcltest::test pulser-0 {Proper parameters produce a valid write to set pulser
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # index must be either 1 or 2
+  dev EnablePulser 1
+  dev EnablePulser 2
+
+  tcltest::viewFile $::serialFile
+} -result {P1
+P2}
+
+tcltest::test pulser-1 {A pulser index other than 1 or 2 causes failure
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+
+  # P0 is actually intended to disable the pulser. Not a valid enable arg
+  dev EnablePulser 0
+
+} -result {Invalid pulser index provided. Must be either 1 or 2.} \
+-returnCodes 1
+
+
+tcltest::test pulser-2 {Disabling pulser
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  dev DisablePulser
+
+  # disabling the pulser is accomplished by writing P0 to the device
+  tcltest::viewFile $::serialFile
+} -result {P0}
+
+tcltest::test pulser-3 {Checking for whether the pulser is enable returns the cached state
+} -setup {
+  setupForRead
+} -cleanup {
+  tearDown
+} -body {
+  ::dev PulserEnabled 
+} -result 1
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
+# Retrieve firmware
+
+tcltest::test firmware-0 {Retrieving the firmware accomplished with proper protocol 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  dev ReadFirmware
+
+  # disabling the pulser is accomplished by writing P0 to the device
+  tcltest::viewFile $::serialFile
+} -result {V}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
+# RC bus control
+
+tcltest::test rc-0 {enable/disable rc done by ON/OFF commands
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  dev EnableRC 0
+  dev EnableRC 1 
+
+  # disabling the pulser is accomplished by writing P0 to the device
+  tcltest::viewFile $::serialFile
+} -result {OFF
+ON}
+
+tcltest::test rc-1 {Non-boolean argument causes failure
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  dev EnableRC not_a_boolean
+
+} -result "Invalid argument provided. Must be a boolean value." \
+-returnCodes 1
+
+tcltest::test rc-2 {Reading the rc mode should return cached value if not out of date
+} -setup {
+  setupForRead
+} -cleanup {
+  tearDown
+} -body {
+  # this should be disabled via the cached dict (see parsedDSDict)
+  dev RCEnabled
+} -result 0
+
+
+
+tcltest::test mode-0 {setting into individual or common mode works appropriately 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  dev SetMode individual
+  dev SetMode common 
+
+  tcltest::viewFile $::serialFile
+} -result {MI
+MC}
+
+tcltest::test mode-1 {ensure that we can read the mode
+} -setup {
+  setupForRead
+} -cleanup {
+  tearDown
+} -body {
+  dev GetMode
+} -result {common}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
+# Parse the DS response 
+
+
+tcltest::test parseDS-0 {Given a DS response, parse it into a dict
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  dev _ParseDSResponse $::dsResponse
+} -result $::parsedDSDict              
+
+# helper parsing utilities
+tcltest::test parseChanPairLine-0 {Parser for a line consisting of chan pair
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  dev _ParseChanPairLine "Delay (Tap):   3 3 3 3 3 3 3 3 - 3" 1
+} -result [dict create name "Delay"\
+                       values [list 3 3 3 3 3 3 3 3 3]]
+
+
+# custom parser for the thresholds
+tcltest::test parseThresholds-0 {Make sure we can properly parse the thresholds line
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  dev _ParseThresholds \
+{{Threshold:     0 21 20 40 20 20 20 20} {               20 20 23 20 20 20 20 20 - 29}}
+} -result [dict create name Threshold \
+                       values [list 0 21 20 40 20 20 20 20 \
+                                   20 20 23 20 20 20 20 20 29]]
+
+# custom parser for the mask register line
+tcltest::test parseMaskReg-0 {Make sure we can parse the mask register
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+ dev _ParseMaskReg "Mask register: chan pairs 15/14...1/0: 10101110 (0)"
+} -result [dict create name "Mask register" values [expr 0xae]]
+
+# helper proc to turn get rid of the dash that is in lines for a channel pair type config
+tcltest::test removeDash-0 {make sure we can remove the dash properly
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  dev _RemoveDash "3 3 3 3 3 3 3 3 - 3"
+} -result "3 3 3 3 3 3 3 3 3"
+
+# simple helper for splitting the line and then also trimming the results
+tcltest::test splitAndTrim-0 {Ensure that we can split the string at the dash
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  dev _SplitAndTrim "threshold: 3 4134 4 - " ":"
+} -result [list "threshold" "3 4134 4 -"]
+
+# for parsing a simple line that has two parts separated by a colon.
+tcltest::test _ParseSimpleLine-0 {Split and trim a string at colon
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  dev _ParseSimpleLine "threshold: 3 4134 4 - " 
+} -result {name threshold values {3 4134 4 -}}
+
+tcltest::test _TransformToDict-0 {Convert a list of dicts to a single dict
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  dev  _TransformToDict [list [dict create name n0 values v0] [dict create name n1 values v1]]
+} -result [dict create n0 v0 n1 v1]
+
+# for names that have a unit, this can be used to drop the unit
+tcltest::test _StripUnit-0 {Get rid of a possible unit
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  dev _StripUnit {Width [ns]}
+} -result "Width"
+
+
+# ----------------------------------------------------------------------------#
+# Device state synchronization tests
+
+tcltest::test modified-0 {When a write changes the config, flag cache as out of data
+} -setup {
+  setup
+  set varname [lindex [dev info vars m_needsUpdate] 0]
+  set $varname 0 ;# tell it that its value are up to date
+} -cleanup {
+  tearDown
+} -body {
+  dev _Write "SG 0 1" ;# example command that would change the MCFD16's state
+                      # and thereby require us to read a new state
+  set [lindex [dev info vars m_needsUpdate] 0]
+} -result 1
+
+tcltest::test modified-1 {For any writes that should merely retrieve the MCFD16's state, we don't schedule a new update
+} -setup {
+  setup
+  set varname [lindex [dev info vars m_needsUpdate] 0]
+  set $varname 0 ;# tell it that its value are up to date
+} -cleanup {
+  tearDown
+} -body {
+  # the following commands should not effect the need to update the cache
+  dev _Write "DS"
+  dev _Write "DP"
+  dev _Write "DT"
+  dev _Write "V"
+  dev _Write "?"
+  dev _Write "H"
+  set [lindex [dev info vars m_needsUpdate] 0]
+} -result 0
+
+
+#-----------------------------------------------------------------------------#
+# Retrieve state
+
+
+tcltest::test convertWidthToArg-0 { Make sure that the conversion table works
+} -setup {
+} -cleanup {
+} -body {
+  set res [list]
+  lappend res [MCFD16USB ConvertWidthToArg 6]
+  lappend res [MCFD16USB ConvertWidthToArg 96]
+  lappend res [MCFD16USB ConvertWidthToArg 174]
+  lappend res [MCFD16USB ConvertWidthToArg 314]
+  lappend res [MCFD16USB ConvertWidthToArg 524]
+} -result {19 70 106 155 202}
+
+
+tcltest::test convertDeadtimeToArg-0 { Make sure that the deadtime conversion table works
+} -setup {
+} -cleanup {
+} -body {
+  set res [list]
+  lappend res [MCFD16USB ConvertDeadtimeToArg 20]
+  lappend res [MCFD16USB ConvertDeadtimeToArg 96]
+  lappend res [MCFD16USB ConvertDeadtimeToArg 174]
+  lappend res [MCFD16USB ConvertDeadtimeToArg 314]
+  lappend res [MCFD16USB ConvertDeadtimeToArg 524]
+} -result {27 70 106 155 202}
+
+tcltest::cleanupTests
+

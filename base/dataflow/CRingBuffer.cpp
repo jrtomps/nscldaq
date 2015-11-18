@@ -40,8 +40,6 @@
 #include <daqshm.h>
 #include <os.h>
 
-
-
 using namespace std;
 
 // constants;
@@ -135,14 +133,45 @@ CRingBuffer::create(std::string name,
   size_t pages     = (rawSize + (pageSize-1))/pageSize;
   size_t shmSize   = pages*pageSize;
 
-  if(CDAQShm::create(shmName(name), shmSize, 
-		     CDAQShm::GroupRead | CDAQShm::GroupWrite | CDAQShm::OtherRead | CDAQShm::OtherWrite)) {
-    throw CErrnoException("Shared memory creation failed");
+  std::string memoryName = shmName(name);
+  
+  // If the shared memory does not exist, just create it:
+  
+  ssize_t existingSize = CDAQShm::size(memoryName);
+  
+  if (existingSize < 0) {
+    if(CDAQShm::create(shmName(memoryName), shmSize, 
+                       CDAQShm::GroupRead | CDAQShm::GroupWrite | CDAQShm::OtherRead | CDAQShm::OtherWrite)) {
+      throw CErrnoException("Shared memory creation failed");
+    }
+  
+  
+    format(name, maxConsumer);
+  }  else if (isRing(name)) {
+      // If the memory region exists - and is a ring
+      //  *   If the ring master knows about it it's an error to make a new one.
+      //  *   If the ring master does not know about it and it's  ring, make it known to the ring master.
+      
+      CRingMaster master;
+      bool exists = false;
+      try {
+        master.requestUsage();
+      }
+      catch (...) {
+        exists = true;                  // For now assume existence for any exxception
+      }
+      if (exists) {
+        errno  = EEXIST;
+        throw CErrnoException("Ring buffer already exists");
+      }
+      
+    
+  } else {
+    // If the memory region exists but is not a ring that's ean error.
+    
+    errno = EEXIST;
+    throw CErrnoException("Shared memory region exists but is not formatted as a ring buffer");
   }
-
-
-  format(name, maxConsumer);
-
   // Notify the ring master this has been created.
 
   CRingMaster* pOld = m_pMaster;
@@ -200,21 +229,39 @@ CRingBuffer::remove(string name)
     errno = ENOENT;
     throw CErrnoException("CRingBuffer::remove - not a ring");
   }
+  
+  
+  // If _I_ don't own the ring don't allow deletion (unless I'm root).
+  
+  struct stat shmInfo;
+  int status = CDAQShm::stat(name, &shmInfo);
+  if (status == -1) {
+    throw CErrnoException("CRingBuffer::remove - Getting info about shared memory");
+  }
+  uid_t me = getuid();
+  if ((me != 0) && (me != shmInfo.st_uid)) {
+    errno = EPERM;
+    throw CErrnoException("CRingBuffer::remove - checking ringbuffer ownership");
+  }
+  // Connect to the ring master:
+  
+  connectToRingMaster();
+
 
   // Tell the ringmaster to forget the ring and kill the clients
 
-
-  connectToRingMaster();
   m_pMaster->notifyDestroy(name);
 
   // At this point RM has acked so we can kill the ring itself:
 
+  
   string fullName   = shmName(name);
 
   if (CDAQShm::remove(fullName)) {
     throw CErrnoException("Shared memory deletion failed");
 
   }
+
 }
 
 
@@ -303,6 +350,7 @@ CRingBuffer::isRing(string name)
     return false;
   }
 }				
+
 /*!
   Set the defafult ring size.  This will be the amount of data the ring can hold
   if that's not supplied at creation time.

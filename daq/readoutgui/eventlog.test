@@ -313,8 +313,7 @@ tcltest::test leave-0 {::EventLog::leave Halted to Active with identified errors
   $rm transition Starting
   $rm transition Halted 
   $rm transition Active
-} -returnCodes 1 -result "EventLog aborted transition because of the following impending problems:
-EventLog error: the experiment/current directory contains run segments and needs to be cleaned."
+} -returnCodes 1 -result {{StageareaValidation error: the experiment/current directory contains run segments and needs to be cleaned.}}
 
 
 

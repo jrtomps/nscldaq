@@ -8,6 +8,7 @@ noinst_HEADERS = cmdline.h CDAQStart.h  CFileSinkCreator.h \
 		CFileSink.h  CLocalMonitoredProgram.h  CSink.h \
 		CSinkFactory.h grep.h
 
+
 COMPILATION_FLAGS  =-I@top_srcdir@/base/os \
 	-I@top_srcdir@/base/headers @LIBTCLPLUS_CFLAGS@
 
@@ -20,6 +21,8 @@ daqstart_LDADD = @LIBEXCEPTION_LDFLAGS@ \
 daqstart_CXXFLAGS=$(THREADCXX_FLAGS) -D_GNU_SOURCE $(AM_CXXFLAGS)
 
 
+cmdline.h: daqstart.ggo
+	$(GENGETOPT) --unamed-opts <@top_srcdir@/utilities/daqstart/daqstart.ggo
 
 cmdline.c: daqstart.ggo
 	$(GENGETOPT) --unamed-opts <@top_srcdir@/utilities/daqstart/daqstart.ggo

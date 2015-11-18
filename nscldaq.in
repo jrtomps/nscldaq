@@ -59,7 +59,7 @@ stop_portmanager() {
     --quiet \
     --pidfile "${PORTMANAGERPIDFILE}"
   retval=$?
-  if test "0" == "${retval}"
+  if test "0" = "${retval}"
   then
     rm -f "${PORTMANAGERPIDFILE}"
   fi
@@ -80,7 +80,7 @@ stop_ringmaster() {
     --quiet \
     --pidfile "${RINGMASTERPIDFILE}"
   retval=$?
-  if test "0" == "${retval}"
+  if test "0" = "${retval}"
   then
     rm -f "${RINGMASTERPIDFILE}"
   fi
@@ -117,7 +117,7 @@ case "$1" in
     unset status
     log_begin_msg "${PORTMANAGERNAME} "
     status_of_proc -p "${PORTMANAGERPIDFILE}" "${PORTMANAGERNAME}" " process" && status="0" || status="$?"
-    if test "0" == "${status}"
+    if test "0" = "${status}"
     then
       echo ${PORTMANAGERNAME} PID: `cat "${PORTMANAGERPIDFILE}"`
     else
@@ -128,7 +128,7 @@ case "$1" in
     unset status
     log_begin_msg "${RINGMASTERNAME} "
     status_of_proc -p "${RINGMASTERPIDFILE}" "${RINGMASTERNAME}" "process"  && status="0" || status="$?"
-    if test "0" == "${status}"
+    if test "0" = "${status}"
     then
       echo ${RINGMASTERNAME} PID: `cat "${RINGMASTERPIDFILE}"`
     else

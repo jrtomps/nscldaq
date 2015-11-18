@@ -23,10 +23,8 @@ libdataformat_la_SOURCES = CRingSelectionPredicate.cpp	\
 			CRingItemFactory.cpp		\
 			ringitem.c			\
       RingItemComparisons.cpp \
-			CDataSource.cpp CRingDataSource.cpp CFileDataSource.cpp  \
-			CDataSourceFactory.cpp \
-      CFileDataSink.cpp CDataSinkFactory.cpp \
-      CRingDataSink.cpp CAbnormalEndItem.cpp 
+      CAbnormalEndItem.cpp  
+
 libdataformat_la_CPPFLAGS=$(COMPILATION_FLAGS)
 
 include_HEADERS	= CRingSelectionPredicate.h	\
@@ -45,10 +43,7 @@ include_HEADERS	= CRingSelectionPredicate.h	\
                         CUnknownFragment.h      \
 			DataFormat.h DataFormat10.h	\
       RingItemComparisons.h \
-			CDataSource.h CRingDataSource.h CFileDataSource.h \
-			CDataSourceFactory.h \
-      CDataSink.h CFileDataSink.h CDataSinkFactory.h \
-      CRingDataSink.h CAbnormalEndItem.h
+      CAbnormalEndItem.h 
 
 
 
@@ -72,11 +67,11 @@ noinst_PROGRAMS = unittests
 unittests_SOURCES	= TestRunner.cpp selecttest.cpp desiredtests.cpp	\
 			  allbuttests.cpp ringitemtests.cpp teststate.cpp	\
 			scalertests.cpp texttest.cpp physcounttests.cpp		\
-			formatoutputtests.cpp dataformattests.cpp       \
+			infotests.cpp phystests.cpp trigcounttests.cpp \
+			scalerformattests.cpp  statechangetests.cpp dataformattests.cpp       \
+			textformattests.cpp					\
                         fragmenttest.cpp glomparamtests.cpp factorytests.cpp \
-                      physeventtests.cpp filedatasinktests.cpp \
-                     datasinkfactorytests.cpp \
-                     datasourcefactorytests.cpp ringdatasinktests.cpp
+                      physeventtests.cpp 
 
 unittests_LDADD		= -L$(libdir) $(CPPUNIT_LDFLAGS) 		\
 			@top_builddir@/base/dataflow/libDataFlow.la 	\
@@ -91,4 +86,4 @@ unittests_LDFLAGS	= -Wl,"-rpath-link=$(libdir)"
 
 TESTS=./unittests
 
-EXTRA_DIST		=	dataformat.xml
+EXTRA_DIST		=	dataformat_user.xml dataformat_dev.xml

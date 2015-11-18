@@ -70,6 +70,9 @@ static const uint8_t  blockTransferAmod      (CVMUSBReadoutList::a32UserBlock);
 static const uint8_t  privBlockTransferAmod  (CVMUSBReadoutList::a32PrivBlock);
 
 
+// Import the XLM namesapce
+using namespace XLM;
+
 
 CXLMTimestamp::CXLMTimestamp()  : CXLM() {}
 
@@ -106,15 +109,15 @@ CXLMTimestamp::onAttach(CReadoutModule& configuration)
   // Call the base class's onAttach
   // This stores the m_pConfiguration pointer for later use
   CXLM::onAttach(configuration);
+
+  configuration.addBooleanParameter("-initclear", true);
 }
 
 /**
- * This method is called when a driver instance is being asked to initialize the hardware
- * associated with it. Usually this involves querying the configuration of the device
- * and using VMUSB controller functions and possibily building and executing
- * CVMUSBReadoutList objects to initialize the device to the configuration requested.
+ * The initialization routine sets loads the firmware if users want it to be loaded.
+ * It then clears the scaler value.
  * 
- * @param controller - Refers to a CCUSB controller object connected to the CAMAC crate
+ * @param controller - Refers to a CVUSB controller object connected to the VME crate
  *                     being managed by this framework.
  *
  */
@@ -123,18 +126,21 @@ CXLMTimestamp::Initialize(CVMUSB& controller)
 {
 
   // Load the firmware
-  std::string firmware = m_pConfiguration->cget("-firmware");
-  std::cout << "Loading firmware from file : " << firmware << std::endl;
-  loadFirmware(controller, firmware);
+  if (m_pConfiguration->getBoolParameter("-loadfirmware")) {
+    std::string firmware = m_pConfiguration->cget("-firmware");
+    std::cout << "Loading firmware from file : " << firmware << std::endl;
 
-  sleep(1);
- 
+    loadFirmware(controller, firmware);
+    sleep(1);
+  }
 
   // Clear the scaler
-  accessBus(controller, CXLM::REQ_X);
-  controller.vmeWrite32( FPGA(), registerAmod, static_cast<uint32_t>(1)); 
-  controller.vmeWrite32( FPGA(), registerAmod, static_cast<uint32_t>(0)); 
-  accessBus(controller, 0);
+  if (m_pConfiguration->getBoolParameter("-initclear")) {
+    accessBus(controller, CXLM::REQ_X);
+    controller.vmeWrite32( FPGA(), registerAmod, static_cast<uint32_t>(1)); 
+    controller.vmeWrite32( FPGA(), registerAmod, static_cast<uint32_t>(0)); 
+    accessBus(controller, 0);
+  }
   
 }
 

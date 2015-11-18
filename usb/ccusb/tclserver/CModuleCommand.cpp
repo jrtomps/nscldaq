@@ -15,6 +15,7 @@
 */
 
 #include <config.h>
+#include <memory>
 using namespace std;
 
 #include "CModuleCommand.h"
@@ -28,6 +29,7 @@ using namespace std;
 #include "CCAEN894Creator.h"
 #include "CPH7106Creator.h"
 #include "CTclModuleCreator.h"
+#include "CCCUSBControlCreator.h"
 
 #include "C894.h"
 #include "CPH7106.h"
@@ -51,9 +53,10 @@ CModuleCommand::CModuleCommand(CTCLInterpreter& interp,
   m_Server(server)  
 {
   CModuleFactory* pFact = CModuleFactory::instance();
-  pFact->addCreator("caen894", new CCAEN894Creator);
-  pFact->addCreator("ph7106", new CPH7106Creator);
-  pFact->addCreator("tcl",    new CTclModuleCreator);
+  pFact->addCreator("caen894", unique_ptr<CModuleCreator>(new CCAEN894Creator));
+  pFact->addCreator("ph7106", unique_ptr<CModuleCreator>(new CPH7106Creator));
+  pFact->addCreator("tcl",    unique_ptr<CModuleCreator>(new CTclModuleCreator));
+  pFact->addCreator("ccusb",  unique_ptr<CModuleCreator>(new CCCUSBControlCreator));
 }
 //! Destroy the module.. no op provided only as a chain to the base class destructor.
 CModuleCommand::~CModuleCommand()
@@ -124,22 +127,30 @@ CModuleCommand::create(CTCLInterpreter& interp,
     m_Server.setResult("module create: Wrong number of params need: module create type name");
     return TCL_ERROR;
   }
+  
   string type = objv[2];
   string name = objv[3];
 
-  CModuleFactory* pFact = CModuleFactory::instance();
+  CControlModule* pConfig = m_Server.findModule(name);
+  if (pConfig!=nullptr) {
+    string msg = "Module create: Cannot create duplicate module of name \"";
+    msg += name;
+    msg += "\"";
+    m_Server.setResult(msg);
 
-  CControlHardware* pModule = pFact->create(name,type);
-  if (pModule) {
-    CControlModule*   pConfig = pModule->getConfiguration();
-    pModule->onAttach(*pConfig);
-    m_Server.addModule(pConfig);
-    m_Server.setResult(name); 
-  } else {
-    m_Server.setResult("Invalid module type");
     return TCL_ERROR;
   }
-  
+
+  CModuleFactory* pFact = CModuleFactory::instance();
+  unique_ptr<CControlHardware> pHdwr = pFact->create(type);
+  if (!pHdwr) {
+    m_Server.setResult("Module create: Invalid type, must be one of caen894, ph7106, tcl, or ccusb.");
+    return TCL_ERROR;
+  }
+
+  pConfig = new CControlModule(name, std::move(pHdwr));
+  m_Server.addModule(pConfig);
+  m_Server.setResult(name);
 
   return TCL_OK;
 }

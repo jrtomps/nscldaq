@@ -27,6 +27,10 @@
 #include "CControlHardware.h"	/* base class. */
 #endif
 
+#include <memory>
+
+#include <CControlModule.h>
+
 class CTCLObject;
 class CTCLInterpreter;
 class CCCUSB;
@@ -58,7 +62,7 @@ class CCCUSB;
 class CTclControlModule :  public CControlHardware
 {
 public:
-  CTclControlModule(std::string name);
+  CTclControlModule();
   
 public:
   virtual void onAttach(CControlModule& configuration);
@@ -69,7 +73,7 @@ public:
 			  std::string value);
   virtual std::string Get(CCCUSB& vme, 
 			  std::string parameter);
-  virtual void clone(const CControlHardware& rhs);
+  virtual std::unique_ptr<CControlHardware> clone() const;
 
  
 

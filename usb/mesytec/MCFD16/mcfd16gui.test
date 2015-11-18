@@ -1,0 +1,849 @@
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2014.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Author:
+#    Jeromy Tompkins
+#	   NSCL
+#	   Michigan State University
+#	   East Lansing, MI 48824-1321
+
+package require tcltest
+package require snit
+set loadFailure 0
+tcltest::test pkgrequire-0 {Ensure that we can require the package
+} {set ::loadFailure [catch {package require mcfd16gui}]} 0
+
+if $::loadFailure {
+  tcltest::cleanupTests
+  exit 
+}
+
+if {[catch {
+package require mcfd16usb
+package require mcfd16memorizer
+}]} {
+  puts "Failed to load requisite packages!"
+  tcltest::cleanupTests
+  exit 1
+}
+
+snit::method MCFD16IndividualView BuildGUI {} {}
+
+snit::method MCFD16USB GetPolarity {ch} {return neg}
+snit::method MCFD16USB GetGain {ch} { return 1}
+snit::method MCFD16USB GetBandwidthLimit {} {return 1 }
+snit::method MCFD16USB GetDiscriminatorMode {} {return cfd }
+snit::method MCFD16USB GetThreshold {ch} {return 24 }
+snit::method MCFD16USB GetWidth {ch} {return 25 }
+snit::method MCFD16USB GetDeadtime {ch} {return 27 }
+snit::method MCFD16USB GetDelay {ch} {return 2 }
+snit::method MCFD16USB GetFraction {ch} {return 20 }
+snit::method MCFD16USB GetMode {} {return common }
+
+
+snit::method MCFD16USB SetPolarity {ch val} {dict set ::mockMemory polarity $ch $val}
+snit::method MCFD16USB SetGain {ch val} {dict set ::mockMemory gain $ch $val}
+snit::method MCFD16USB SetBandwidthLimit {val} {dict set ::mockMemory bwl $val}
+snit::method MCFD16USB SetDiscriminatorMode {val} {dict set ::mockMemory discriminator $val}
+snit::method MCFD16USB SetThreshold {ch val} {dict set ::mockMemory threshold $ch $val}
+snit::method MCFD16USB SetWidth {ch val} {dict set ::mockMemory width $ch $val}
+snit::method MCFD16USB SetDeadtime {ch val} {dict set ::mockMemory deadtime $ch $val}
+snit::method MCFD16USB SetDelay {ch val} {dict set ::mockMemory delay $ch $val}
+snit::method MCFD16USB SetFraction {ch val} {dict set ::mockMemory fraction $ch $val}
+snit::method MCFD16USB SetMode {val} {dict set ::mockMemory mode $val}
+snit::method MCFD16USB EnablePulser {val} {dict set ::mockMemory pulser $val}
+snit::method MCFD16USB DisablePulser {} {dict set ::mockMemory pulser 0}
+snit::method MCFD16USB PulserEnabled {} {return [dict get $::mockMemory pulser] }
+
+proc arrayToList {objname param len} {
+  set varname [$objname mcfd]
+  set res [list]
+
+  for {set i 0} {$i<$len} {incr i} {
+    lappend res [lindex [array get $varname $param$i] 1]
+  }
+
+  return $res
+}
+
+proc listToArray {objname list param} {
+  set varname [$objname mcfd]
+  set res [list]
+
+  set i 0
+  set params [dict create]
+  foreach val $list {
+    dict set params $param$i $val
+  }
+
+  array set $varname $params
+}
+
+proc sequence {start n {inc 1}} {
+  set res [list]
+  for {set i 0} {$i<$n} {incr i} {
+    lappend res [expr $start+$i*$inc]
+  }
+  return $res
+}
+
+proc intSeries {val size} {
+  return [sequence $val $size 0]
+}
+
+proc wordSeries {word size} {
+  set res [list]
+  for {set i 0} {$i<$size} {incr i} {
+    lappend res $word 
+  }
+  return $res
+}
+
+proc dictKeyToList {dict key} {
+  set subdict [dict get [set $dict] $key]
+
+  set values [list]
+  foreach key [dict keys $subdict] {
+    lappend values [dict get $subdict $key]
+  }
+
+  return $values
+}
+
+proc initDict {name} {
+  set $name [dict create]
+  dict set $name polarity [dict create]
+  dict set $name gain [dict create]
+  dict set $name threshold [dict create]
+  dict set $name width [dict create]
+  dict set $name deadtime [dict create]
+  dict set $name delay [dict create]
+  dict set $name fraction [dict create]
+}
+
+set testdir [tcltest::makeDirectory test]
+#set serialFile [file join $::testdir fake] 
+
+proc setup {} {
+  if {0} {  catch {::dev destroy}}
+  set ::serialFile [tcltest::makeFile " " fake $::testdir]
+  MCFD16USB ::dev $::serialFile
+  MCFD16IndividualPresenter ::pres -widgetname .mock \
+                                   -handle ::dev
+
+  initDict ::mockMemory
+
+}
+
+proc tearDown {} {
+  ::pres destroy
+  ::dev destroy
+
+   file delete $::serialFile
+}
+
+
+tcltest::test updateViewThresholds-0 { Check that we properly set values
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::pres UpdateViewThresholds
+  
+  arrayToList .mock th 16
+} -result [intSeries 24 16]
+
+tcltest::test updateViewPolarities-0 {Check that polarities are set in view
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::pres UpdateViewPolarities
+  
+  arrayToList .mock po 8
+} -result [wordSeries neg 8]
+
+tcltest::test updateViewGains-0 {Check that gains are set in view
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::pres UpdateViewGains
+  
+  arrayToList .mock ga 8
+} -result [intSeries 1 8]
+
+tcltest::test updateViewWidths-0 {Check that widths are set in view
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::pres UpdateViewWidths
+  
+  arrayToList .mock wi 8
+} -result [intSeries 25 8]
+
+tcltest::test updateViewDeadtimes-0 {Check that deadtimes are set in view
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::pres UpdateViewDeadtimes
+  
+  arrayToList .mock dt 8
+} -result [intSeries 27 8]
+
+
+tcltest::test updateViewDelays-0 {Check that delays are set in view
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::pres UpdateViewDelays
+  
+  arrayToList .mock dl 8
+} -result [intSeries 2 8]
+
+tcltest::test updateViewFractions-0 {Check that fractions are set in view
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::pres UpdateViewFractions
+  
+  arrayToList .mock fr 8
+} -result [intSeries 20 8]
+
+tcltest::test commitViewThresholds-0 {Makes sure that view data gets written
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::pres CommitViewThresholds
+
+  dictKeyToList ::mockMemory threshold
+} -result [intSeries 24 16] 
+
+tcltest::test commitViewPolarity-0 {Ensure that the pol  data ends up in view
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::pres CommitViewPolarities 
+
+  dictKeyToList ::mockMemory polarity
+} -result [wordSeries neg 8]
+
+tcltest::test commitViewGains-0 {Ensure that the gain data ends up in view
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::pres CommitViewGains
+
+  dictKeyToList ::mockMemory gain
+} -result [intSeries 1 8]
+
+tcltest::test commitViewWidths-0 {Ensure that the width data ends up in view
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::pres CommitViewWidths
+
+  dictKeyToList ::mockMemory width
+} -result [intSeries 25 8]
+
+
+tcltest::test commitViewDeadtimes-0 {Ensure that the deadtime data ends up in view
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::pres CommitViewDeadtimes
+
+  dictKeyToList ::mockMemory deadtime
+} -result [intSeries 27 8]
+
+
+tcltest::test commitViewDelays-0 {Ensure that the delay data ends up in view
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::pres CommitViewDelays
+
+  dictKeyToList ::mockMemory delay
+} -result [intSeries 2 8]
+
+tcltest::test commitViewFractions-0 {Ensure that the fraction data ends up in view
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::pres CommitViewFractions
+
+  dictKeyToList ::mockMemory fraction
+} -result [intSeries 20 8]
+
+# --------------------------------------------------------------------------- #
+
+
+proc setupCom {} {
+
+  set ::serialFile [tcltest::makeFile " " fake $::testdir]
+# the MCFD16USB will take on values as described at the top of this script
+# I have gutted it to return on specific values
+  MCFD16USB ::dev $::serialFile
+  MCFD16CommonPresenter ::pres -widgetname .mock \
+                               -handle ::dev
+
+  initDict ::mockMemory
+}
+
+tcltest::test updateViewThresholds-0 { Check that we properly set values
+} -setup {
+  setupCom
+} -cleanup {
+  tearDown
+} -body {
+  ::pres UpdateViewThresholds
+  
+  set "[.mock mcfd](th16)"
+} -result 24
+
+
+tcltest::test updateViewPolarities-0 {Check that polarities are set in view
+} -setup {
+  setupCom
+} -cleanup {
+  tearDown
+} -body {
+  ::pres UpdateViewPolarities
+  
+  set "[.mock mcfd](po8)"
+} -result neg
+
+tcltest::test updateViewGains-0 {Check that gains are set in view
+} -setup {
+  setupCom
+} -cleanup {
+  tearDown
+} -body {
+  ::pres UpdateViewGains
+  
+  set "[.mock mcfd](ga8)"
+} -result 1
+
+tcltest::test updateViewWidths-0 {Check that widths are set in view
+} -setup {
+  setupCom
+} -cleanup {
+  tearDown
+} -body {
+  ::pres UpdateViewWidths
+  set "[.mock mcfd](wi8)"
+} -result 25
+
+tcltest::test updateViewDeadtimes-0 {Check that deadtimes are set in view
+} -setup {
+  setupCom
+} -cleanup {
+  tearDown
+} -body {
+  ::pres UpdateViewDeadtimes
+  
+  set "[.mock mcfd](dt8)"
+} -result 27
+
+
+tcltest::test updateViewDelays-0 {Check that delays are set in view
+} -setup {
+  setupCom
+} -cleanup {
+  tearDown
+} -body {
+  ::pres UpdateViewDelays
+  set "[.mock mcfd](dl8)"
+} -result 2
+
+tcltest::test updateViewFractions-0 {Check that fractions are set in view
+} -setup {
+  setupCom
+} -cleanup {
+  tearDown
+} -body {
+  ::pres UpdateViewFractions
+  set "[.mock mcfd](fr8)"
+} -result 20
+
+tcltest::test commitViewThresholds-0 {Makes sure that view data gets written
+} -setup {
+  setupCom
+} -cleanup {
+  tearDown
+} -body {
+  ::pres CommitViewThresholds
+
+  dictKeyToList ::mockMemory threshold
+} -result 24
+
+tcltest::test commitViewPolarity-0 {Ensure that the pol  data ends up in view
+} -setup {
+  setupCom
+} -cleanup {
+  tearDown
+} -body {
+  ::pres CommitViewPolarities 
+
+  dictKeyToList ::mockMemory polarity
+} -result neg
+
+tcltest::test commitViewGains-0 {Ensure that the gain data ends up in view
+} -setup {
+  setupCom
+} -cleanup {
+  tearDown
+} -body {
+  ::pres CommitViewGains
+
+  dictKeyToList ::mockMemory gain
+} -result 1
+
+tcltest::test commitViewWidths-0 {Ensure that the width data ends up in view
+} -setup {
+  setupCom
+} -cleanup {
+  tearDown
+} -body {
+  ::pres CommitViewWidths
+
+  dictKeyToList ::mockMemory width
+} -result 25
+
+
+tcltest::test commitViewDeadtimes-0 {Ensure that the deadtime data ends up in view
+} -setup {
+  setupCom
+} -cleanup {
+  tearDown
+} -body {
+  ::pres CommitViewDeadtimes
+
+  dictKeyToList ::mockMemory deadtime
+} -result 27
+
+
+tcltest::test commitViewDelays-0 {Ensure that the delay data ends up in view
+} -setup {
+  setupCom
+} -cleanup {
+  tearDown
+} -body {
+  ::pres CommitViewDelays
+
+  dictKeyToList ::mockMemory delay
+} -result 2
+
+tcltest::test commitViewFractions-0 {Ensure that the fraction data ends up in view
+} -setup {
+  setupCom
+} -cleanup {
+  tearDown
+} -body {
+  ::pres CommitViewFractions
+
+  dictKeyToList ::mockMemory fraction
+} -result 20 
+
+
+
+###################################################################################
+
+proc setup {} { 
+  set ::serialFile [tcltest::makeFile " " fake $::testdir]
+  MCFD16ControlPanel .pres -handle [MCFD16USB %AUTO% $::serialFile]
+}
+
+proc tearDown {} {
+  destroy .pres
+  file delete $::serialFile
+}
+
+tcltest::test modeChange-0 {Check that mode change changes the displayed view
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+
+  # obtain access to the variable being traced
+  set modeVarName [lindex [.pres info vars m_mode] 0]
+  set mode [set $modeVarName]
+
+  # figure out what the current presenter is
+  set current [.pres GetCurrent]
+
+  # switch modes... this should force it to change current
+  if {$mode eq "common"} {
+    set $modeVarName individual
+  } else {
+    set $modeVarName common
+  }
+
+  # make sure current changes
+  expr {$current ne [.pres GetCurrent]}
+} -result 1
+
+tcltest::test commit-0 {Check that a commit will commit for the current obj
+} -setup {
+
+  setup
+
+  # obtain access to the variable being traced
+  set modeVarName [lindex [.pres info vars m_mode] 0]
+  set oldBody [.pres info body Commit]
+  snit::method MCFD16CommonPresenter Commit {} {
+    return -code error "MCFD16CommonPresenter::Commit"
+  }
+  set $modeVarName common
+  
+} -cleanup {
+  snit::method MCFD16CommonPresenter Commit {} $oldBody
+  tearDown
+
+} -body {
+  set res [catch {.pres Commit} msg]
+
+  list $res $msg
+} -result {1 MCFD16CommonPresenter::Commit}
+
+
+
+#################### PulserPresenter tests ####################################
+
+
+proc setupPulser {} {
+  snit::type FakePulserView {
+    option -presenter -default {}
+    option -pulserid -default 1
+    option -buttontext -default "Enable"
+    option -radiobuttonstate -default 1
+    constructor {args} {
+      $self configurelist $args
+    }
+  }
+
+  initDict ::mockMemory
+  set ::serialFile [tcltest::makeFile " " fake $::testdir]
+  MCFD16USB ::dev $::serialFile
+}
+
+proc tearDownPulser {} {
+  # the nuclear option... kill all instances and all namespace/type existence
+  ::FakePulserView destroy
+  ::dev destroy
+  file delete $::serialFile
+}
+
+tcltest::test onpress-0 {Test that we can properly handle an on press event to enable
+} -setup {
+  setupPulser 
+
+} -cleanup {
+  tearDownPulser
+
+} -body {
+  FakePulserView fake
+  PulserPresenter pulser fake ::dev
+
+  # force the state of the device to be enabled and update view to reflect that
+  dict set ::mockMemory pulser 0
+  pulser UpdateViewFromModel
+
+  # this is what gets called when the button is pressed on the view
+  pulser OnPress
+
+  set res [list]
+  lappend res [fake cget -buttontext]
+  lappend res [fake cget -radiobuttonstate]
+  lappend res [dict get $::mockMemory pulser]
+
+  pulser destroy
+  set res
+} -result {Disable 0 1}
+
+tcltest::test onpress-1 {Test that we can properly handle an button press to enable
+} -setup {
+  setupPulser 
+
+} -cleanup {
+  tearDownPulser
+
+} -body {
+  FakePulserView fake
+  PulserPresenter pulser fake ::dev
+
+  # force the state of the device to be enabled and update view to reflect that
+  dict set ::mockMemory pulser 1
+  pulser UpdateViewFromModel
+
+  pulser OnPress
+
+  set res [list]
+  lappend res [fake cget -buttontext]
+  lappend res [fake cget -radiobuttonstate]
+  lappend res [dict get $::mockMemory pulser]
+
+  pulser destroy
+  set res
+} -result {Enable 1 0}
+
+tcltest::test commitViewWithoutTransition-1 {Test that we can synchronize model to view (w/out transitioning)
+} -setup {
+  setupPulser 
+
+} -cleanup {
+  tearDownPulser
+
+} -body {
+  FakePulserView fake
+  PulserPresenter pulser fake ::dev
+
+  # force the state of the device to be disabled and update view to reflect that
+  dict set ::mockMemory pulser 1
+  pulser UpdateViewFromModel
+
+  pulser CommitViewToModelNoTransition
+
+  set res [list]
+  lappend res [fake cget -buttontext]
+  lappend res [fake cget -radiobuttonstate]
+  lappend res [dict get $::mockMemory pulser]
+
+  pulser destroy
+  set res
+} -result {Disable 0 1}
+
+
+
+
+###############################################################################
+#
+
+proc generateTestAPICalls {} {
+  return [list \
+    "asdf SetThreshold 0 2" \
+    "asdf GetThreshold 0" \
+    "asdf SetGain 0 2" \
+    "asdf GetGain 0" \
+    "asdf SetWidth 0 2" \
+    "asdf GetWidth 0" \
+    "asdf SetDeadtime 0 2" \
+    "asdf GetDeadtime 0" \
+    "asdf SetDelay 0 3" \
+    "asdf GetDelay 0" \
+    "asdf SetFraction 0 20" \
+    "asdf GetFraction 0" \
+    "asdf SetPolarity 0 neg" \
+    "asdf GetPolarity 0" \
+    "asdf SetMode common" \
+    "asdf GetMode" \
+    "asdf EnableRC 1" \
+    "asdf RCEnabled" \
+    "asdf SetChannelMask 0" \
+    "asdf GetChannelMask" \
+    "asdf EnablePulser 2" \
+    "asdf DisablePulser" \
+    "asdf PulserEnabled"]
+}
+
+tcltest::test loader_filterOutNonAPICalls-0 { Verify all lines of valid API call are accepted
+} -setup {
+  # there are 8 lines in a usb protocol header
+  set ::lines [generateTestAPICalls]
+  lappend ::lines "set ::MCFD16ChannelNames::chan3 thename"
+  LoadFromFilePresenter loader {}
+} -cleanup {
+  loader destroy
+} -body {
+  loader FilterOutNonAPICalls [join $lines "\n"]
+} -result [concat [generateTestAPICalls] [list "set ::MCFD16ChannelNames::chan3 thename"]]
+
+
+tcltest::test loader_filterOutNonAPICalls-1 { Verify non-API calls are discarded
+} -setup {
+  # there are 8 lines in a usb protocol header
+  LoadFromFilePresenter loader {}
+} -cleanup {
+  loader destroy
+} -body {
+  loader FilterOutNonAPICalls {{asdf} {nothing} asdf}
+} -result {}
+
+tcltest::test loader_extractDeviceName-0 { extract name of device from first command line
+} -setup {
+  # there are 8 lines in a usb protocol header
+  set ::lines [generateTestAPICalls]
+  LoadFromFilePresenter loader {}
+} -cleanup {
+  loader destroy
+} -body {
+  loader ExtractDeviceName [lindex $::lines 0]
+} -result ::asdf
+
+if {0} {
+tcltest::test loader_isvalidapicall-0 { valid api calls are accepted
+} -setup {
+  LoadFromFilePresenter loader {}
+} -cleanup {
+  loader destroy
+} -body {
+  loader IsValidAPICall "name SetThreshold"
+} -result 1
+}
+
+tcltest::test loader_evaluateLines-0 {establish that evaluating lines produces state
+} -setup {
+  # there are 8 lines in a usb protocol header
+  set ::lines [generateTestAPICalls]
+  LoadFromFilePresenter loader {} 
+} -cleanup {
+  loader destroy
+} -body {
+  # ::lines contains only valid API calls
+  MCFD16Memorizer ::asdf
+
+  loader EvaluateAPILines $::lines
+
+  set res [list]
+  lappend res [::asdf GetThreshold 0]
+  lappend res [::asdf GetGain 0]
+  lappend res [::asdf GetWidth 0]
+  lappend res [::asdf GetDeadtime 0]
+  lappend res [::asdf GetDelay 0]
+  lappend res [::asdf GetFraction 0]
+  lappend res [::asdf GetPolarity 0]
+  lappend res [::asdf GetMode]
+  lappend res [::asdf RCEnabled]
+  lappend res [::asdf PulserEnabled]
+  lappend res [::asdf GetChannelMask]
+  set res 
+} -result {2 2 2 2 3 20 neg common 1 0 0}
+
+
+
+###############################################################################
+
+# don't build the gui 
+snit::method ChannelEnableDisableView BuildGUI {} {}
+
+tcltest::test updateViewFromModel-0 {Calculate mask from bit settings
+} -setup {
+  set handle [MCFD16Memorizer %AUTO%]
+  $handle SetChannelMask 0 ; # if not here, update will fail bc it will try to 
+                           ; # convert "NA" to bits
+  ChannelEnableDisableView .enableview
+  set prsntr [ChannelEnableDisablePresenter %AUTO% -view .enableview \
+                                                   -handle $handle]
+} -cleanup {
+  destroy .enableview
+  $prsntr destroy
+  $handle destroy
+} -body {
+  
+  # set the mask bits so they form 0xda = 218
+  $handle SetChannelMask 218
+
+  $prsntr UpdateViewFromModel
+
+  set res [list]
+  for {set ch 0} {$ch < 8} {incr ch} {
+    lappend res [.enableview GetBit $ch]
+  }
+
+  set res
+} -result {0 1 0 1 1 0 1 1}
+
+
+tcltest::test decodeMaskBits-0 {Given a normal integer, return list of bits
+} -setup {
+  set prsntr [ChannelEnableDisablePresenter %AUTO%]
+} -cleanup {
+  $prsntr destroy
+} -body {
+  # convert 0x4b (=75) to a list of bits (assuming little-endian) and then return
+  # list in order of bit0 to bit7.
+  $prsntr DecodeMaskIntoBits 75
+} -result {1 1 0 1 0 0 1 0}
+
+tcltest::test encodeMaskBits-0 {Given a list of bits, convert to an integer
+} -setup {
+  set prsntr [ChannelEnableDisablePresenter %AUTO%]
+} -cleanup {
+  $prsntr destroy
+} -body {
+  $prsntr EncodeMaskIntoBits {1 1 0 1 0 0 1 0}
+} -result 75
+
+tcltest::test encodeMaskBits-1 {Make sure conversion works for values greater than 128
+} -setup {
+  set prsntr [ChannelEnableDisablePresenter %AUTO%]
+} -cleanup {
+  $prsntr destroy
+} -body {
+  $prsntr EncodeMaskIntoBits {1 1 0 1 0 0 1 1}
+} -result 203
+
+tcltest::test commit-0 {View state translates to model 
+} -setup {
+  set handle [MCFD16Memorizer %AUTO%]
+  $handle SetChannelMask 0 ; # if not here, update will fail bc it will try to 
+                           ; # convert "NA" to bits
+  ChannelEnableDisableView .enableview
+  set prsntr [ChannelEnableDisablePresenter %AUTO% -view .enableview \
+                                                   -handle $handle]
+} -cleanup {
+  destroy .enableview
+  $prsntr destroy
+  $handle destroy
+} -body {
+  
+  # set up view to hold a bit representation of 0xe5 (=229)
+  .enableview SetBit 0 1
+  .enableview SetBit 1 0
+  .enableview SetBit 2 1
+  .enableview SetBit 3 0
+  .enableview SetBit 4 0
+  .enableview SetBit 5 1
+  .enableview SetBit 6 1
+  .enableview SetBit 7 1
+
+  # committing should translate bits and set them in the device
+  $prsntr CommitMask
+
+  $handle GetChannelMask
+} -result 229
+
+
+tcltest::cleanupTests
+

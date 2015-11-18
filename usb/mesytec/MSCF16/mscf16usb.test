@@ -1,0 +1,366 @@
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2015.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Author:
+#    Jeromy Tompkins
+#	   NSCL
+#	   Michigan State University
+#	   East Lansing, MI 48824-1321
+
+if {[catch {package require tcltest 
+            package require snit
+            package require Utils}] } {
+}
+
+tcltest::test pkgrequire-0 {Package require
+} {
+  set res [catch {package require mscf16usb}]
+} 0
+
+
+# set up some fake directories to write
+set testdir [tcltest::makeDirectory test]
+#set serialFile [file join $::testdir fake] 
+
+# -------------- HELPER PROCS ------------------------------------------------#
+
+# create a new driver object
+proc setup {} {
+  set ::serialFile [tcltest::makeFile " " fake $::testdir]
+  MSCF16USB ::dev $::serialFile
+}
+
+# destroy our object
+proc tearDown {} {
+  ::dev destroy
+  file delete $::serialFile
+}
+
+# because the real read operation will fail in a test environment,
+# we fake it to just add a mcfd-16> to the end of the file.
+
+snit::method MSCF16USB _Read {} {
+  return "mcfd-16>" 
+}
+
+snit::method MSCF16USB Update {} {
+  set m_moduleState $::parsedDSDict
+  set m_needsUpdate 0
+}
+
+proc setNeedsUpdate {objname state} {
+
+  set varname [lindex [$objname info vars m_needsUpdate] 0]
+  set $varname $state
+}
+
+# the following is actual output from the device's DS command
+set rawDSResponse \
+{DS
+
+MSCF-16 Panel settings:
+gains: 0 0 0 0 c:0
+threshs: 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 c:8
+pz: 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 c:0
+shts: 0 0 0 0 c:3
+mult: 2 1
+monitor: 1
+BLR active
+ECL delay: on
+TF int: 2
+common mode
+
+MSCF-16 rc settings:
+gains: 1 13 13 12 c:0
+threshs: 0 0 0 128 2 2 2 10 10 10 10 10 10 10 1 10 c:128
+pz: 70 70 70 128 20 20 20 20 20 20 20 20 20 20 255 255 c:128
+shts: 1 1 1 3 c:0
+mult: 4 4
+monitor: 7
+BLR active
+ECL delay: off
+TF int: 1
+single mode
+
+rc on
+pz disp resolution: 16
+
+MSCF-16 general settings:
+BLR thresh: 25
+Coincidence time: 128
+MSCF-16 software version: 5.2
+MSCF-16 firmware version: 5.0-2
+mscf-RC>
+}
+
+set parsedDSDict [dict create Gains {1 13 13 12 0} \
+      Thresholds {0 0 0 128 2 2 2 10 10 10 10 10 10 10 1 10 128} \
+      PoleZero {70 70 70 128 20 20 20 20 20 20 20 20 20 20 255 255 128} \
+      ShapingTime {1 1 1 3 0} \
+      Monitor 7 \
+      Mode single \
+      Remote on]
+
+tcltest::test gain-0 {Gain parameter ranges are protected 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+
+  set resList [list]
+  set res [catch {::dev SetGain 5 1} msg]
+  lappend resList [list $res $msg]
+  set res [catch {::dev SetGain 4 16} msg]
+  lappend resList [list $res $msg]
+
+  ::dev SetGain 1 1
+  lappend resList [tcltest::viewFile $::serialFile]
+} -result [list {1 {Invalid channel provided. Must be in range [0,4].}} \
+{1 {Invalid value provided. Must be in range [0,15].}} \
+{SG 2 1}]
+
+
+tcltest::test gain-1 {Able to get gain
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+
+  set resList [list]
+  set res [catch {::dev GetGain 5} msg]
+  lappend resList [list $res $msg]
+
+  lappend resList [::dev GetGain 1]
+  set resList
+} -result [list {1 {Invalid channel provided. Must be in range [0,4].}} \
+13]
+
+tcltest::test shapingTime-0 {Shaping time parameter ranges are protected 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+
+  set resList [list]
+  set res [catch {::dev SetShapingTime 5 1} msg]
+  lappend resList [list $res $msg]
+  set res [catch {::dev SetShapingTime 4 16} msg]
+  lappend resList [list $res $msg]
+
+  ::dev SetShapingTime 1 1
+  lappend resList [tcltest::viewFile $::serialFile]
+} -result [list {1 {Invalid channel provided. Must be in range [0,4].}} \
+{1 {Invalid value provided. Must be in range [0,3].}} \
+{SS 2 1}]
+
+
+tcltest::test shapingTime-1 {Retrieve shaping time for channel
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+
+  set resList [list]
+  set res [catch {::dev GetShapingTime 6} msg]
+  lappend resList [list $res $msg]
+
+  lappend resList [::dev GetShapingTime 3]
+  set resList
+} -result [list {1 {Invalid channel provided. Must be in range [0,4].}} \
+3]
+
+tcltest::test poleZero-0 {Pole zero parameter ranges are protected
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  set resList [list]
+  set res [catch {::dev SetPoleZero 17 1} msg]
+  lappend resList [list $res $msg]
+  set res [catch {::dev SetPoleZero 4 256} msg]
+  lappend resList [list $res $msg]
+
+  ::dev SetPoleZero 16 255
+  lappend resList [tcltest::viewFile $::serialFile]
+} -result [list {1 {Invalid channel provided. Must be in range [0,16].}} \
+{1 {Invalid value provided. Must be in range [0,255].}} \
+{SP 17 255}]
+
+
+tcltest::test poleZero-1 {Retrieve pole zero for channel
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+
+  set resList [list]
+  set res [catch {::dev GetPoleZero 17} msg]
+  lappend resList [list $res $msg]
+
+  # because ch 3 really means the 3rd channel, then we need to get the value
+  # at index 2
+  lappend resList [::dev GetPoleZero 3]
+  set resList
+} -result [list {1 {Invalid channel provided. Must be in range [0,16].}} \
+128]
+
+tcltest::test threshold-0 {Threshold parameter ranges are protected
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  set resList [list]
+  set res [catch {::dev SetThreshold 17 1} msg]
+  lappend resList [list $res $msg]
+  set res [catch {::dev SetThreshold 4 256} msg]
+  lappend resList [list $res $msg]
+
+  ::dev SetThreshold 16 255
+  lappend resList [tcltest::viewFile $::serialFile]
+} -result [list {1 {Invalid channel provided. Must be in range [0,16].}} \
+{1 {Invalid value provided. Must be in range [0,255].}} \
+{ST 17 255}]
+
+tcltest::test threshold-1 {Retrieve threshold for channel
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+
+  set resList [list]
+  set res [catch {::dev GetThreshold 17} msg]
+  lappend resList [list $res $msg]
+
+  # because ch 3 really means the 3rd channel, then we need to get the value
+  # at index 2
+  lappend resList [::dev GetThreshold 3]
+  set resList
+} -result [list {1 {Invalid channel provided. Must be in range [0,16].}} \
+128]
+
+tcltest::test monitor-0 {Monitor parameter ranges are protected
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  set resList [list]
+  set res [catch {::dev SetMonitor 16} msg]
+  lappend resList [list $res $msg]
+
+  ::dev SetMonitor 15
+  lappend resList [tcltest::viewFile $::serialFile]
+} -result [list {1 {Invalid channel provided. Must be in range [0,15].}} \
+{MC 16}]
+
+tcltest::test monitor-1 {Retrieve the monitored channel 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  # the device returns a value that treats index 1 as the first rather than index 0.
+  # this conflict with the way 
+  #
+  set resList [list]
+  set res [catch {::dev GetMonitor} msg]
+  list $res $msg
+} -result {0 6}
+
+tcltest::test mode-0 {Mode parameter value protection and functionality
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  set resList [list]
+  set res [catch {::dev SetMode invalid_mode} msg]
+  lappend resList [list $res $msg]
+
+  ::dev SetMode common
+  lappend resList [tcltest::viewFile $::serialFile]
+} -result [list {1 {Invalid mode provided. Must be either common or individual.}} \
+{SI 0}]
+
+
+tcltest::test mode-1 {Retrieve the configuration mode
+} -setup {
+  setup
+  set oldval [dict get $::parsedDSDict Mode]
+} -cleanup {
+  tearDown
+  dict set ::parsedDSDict Mode $oldval
+} -body {
+  set resList [list]
+  dict set ::parsedDSDict Mode common
+  lappend resList [::dev GetMode]
+  dict set ::parsedDSDict Mode single
+  setNeedsUpdate ::dev 1
+  lappend resList [::dev GetMode]
+} -result {common individual}
+
+
+
+tcltest::test enablerc-0 {
+Enabling RC mode protects against bad params and does what is expected
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  set resList [list]
+  set res [catch {::dev EnableRC not_a_boolean} msg]
+  lappend resList [list $res $msg]
+
+  ::dev EnableRC on
+  ::dev EnableRC 0 
+  lappend resList [tcltest::viewFile $::serialFile]
+} -result [list {1 {Invalid argument provided. Must be a boolean value.}} \
+{ON
+OFF}]
+
+tcltest::test rcenabled-0 {Check whether remote control is enabled
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  set res [catch {::dev RCEnabled} msg]
+
+  list $res $msg
+} -result {0 1}
+
+
+tcltest::test parseDS-0 {Parses the DS reponse into a dictionary
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  MSCF16DSParser parser
+  set resp [parser parseDSResponse $::rawDSResponse]
+  parser destroy
+
+  set resp
+} -result [dict create Gains {1 13 13 12 0} \
+Thresholds {0 0 0 128 2 2 2 10 10 10 10 10 10 10 1 10 128} \
+PoleZero {70 70 70 128 20 20 20 20 20 20 20 20 20 20 255 255 128} \
+ShapingTime {1 1 1 3 0} \
+Monitor 7 \
+Mode single \
+Remote on]
+
+tcltest::cleanupTests

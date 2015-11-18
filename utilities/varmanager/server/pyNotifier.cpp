@@ -28,6 +28,8 @@
 #include <Exception.h>
 #include <structmember.h>
 
+#define UNCONST(cstring)  const_cast<char*>(cstring)
+
 /*----------------------------------------------------------------------------
  * Definitions the methods need to be able to see.
  */
@@ -506,8 +508,8 @@ static PyMethodDef NotifierObjectMethods []   = {
 // We're using this to hold the values for the CVarMgrSubscriptions::FilterType enum:
 
 static PyMemberDef NotifierAttributes[] = {
-    {"Accept", T_INT, offsetof(NotifierObject, m_accept), READONLY, "Acceptance filter"},
-    {"Reject", T_INT, offsetof(NotifierObject, m_reject), READONLY, "Rejection filter"}, 
+  {UNCONST("Accept"), T_INT, offsetof(NotifierObject, m_accept), READONLY, UNCONST("Acceptance filter")},
+  {UNCONST("Reject"), T_INT, offsetof(NotifierObject, m_reject), READONLY, UNCONST("Rejection filter")}, 
     {NULL, 0, 0, 0, 0}
 };
 // Storage for the object -- needs to contain a CVarMgrSubscriptions pointer.

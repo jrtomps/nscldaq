@@ -19,25 +19,28 @@
 #ifndef CMEDIATOR_H
 #define CMEDIATOR_H
 
+#include <CBaseMediator.h>
+#include <CFilter.h>
+#include <memory>
+
 class CDataSource;
-class CFilter;
 class CDataSink;
 class CRingItem;
 class CRingStateChangeItem;
 
 
-class CMediator
+class CMediator : public CBaseMediator
 {
   private:
-    CDataSource* m_pSource; //!< the source
-    CFilter* m_pFilter; //!< the filter 
-    CDataSink* m_pSink; //!< the sink 
+    std::unique_ptr<CFilter>     m_pFilter; //!< the filter 
     int  m_nToProcess; //!< number to process
     int  m_nToSkip; //!< number to skip
 
   public:
     // The constructor
     CMediator(CDataSource* source, CFilter* filter, CDataSink* sink);
+    CMediator(std::unique_ptr<CDataSource> source, std::unique_ptr<CFilter> filter, 
+              std::unique_ptr<CDataSink> sink);
 
     virtual ~CMediator();
 
@@ -79,52 +82,15 @@ class CMediator
     */
     CFilter* setFilter( CFilter* filter) 
     {
-        CFilter* old_filter = m_pFilter;
-        m_pFilter = filter;
+        CFilter* old_filter = m_pFilter.release();
+        m_pFilter.reset(filter);
         return old_filter;
-    }  
-
-    /**! Set the source
-      This transfers ownership of the object to this CMediator.
-      Ownership of the previous source is transfered to the caller.
-  
-      \param source the new source
-      \return the old source 
-    */
-    CDataSource* setDataSource( CDataSource* source) 
-    {
-        CDataSource* old_source = m_pSource;
-        m_pSource = source;
-        return old_source;
-    }  
-  
-    /**! Set the sink
-      This transfers ownership of the object to this CMediator.
-      Ownership of the previous sink is transfered to the caller.
-  
-      \param sink the new sink
-      \return the old sink 
-    */
-    CDataSink* setDataSink( CDataSink* sink) 
-    {
-        CDataSink* old_sink = m_pSink;
-        m_pSink = sink;
-        return old_sink;
     }  
 
 
     /**! Access to the filter 
     */
-    CFilter* getFilter() { return m_pFilter;}
-
-    /**! Access to the source 
-    */
-    CDataSource* getDataSource() { return m_pSource;}
-
-    /**! Access to the sink 
-    */
-    CDataSink* getDataSink() { return m_pSink;}
-
+    CFilter* getFilter() { return m_pFilter.get();}
 
     /**! Set the number to skip */
     void setSkipCount(int nEvents) { m_nToSkip = nEvents; }

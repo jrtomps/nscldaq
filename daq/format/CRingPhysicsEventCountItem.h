@@ -98,6 +98,7 @@ public:
   uint64_t getEventCount() const;
   void     setEventCount(uint64_t count);
 
+
   // Virtual method overrides:
 
 

@@ -269,6 +269,22 @@ proc ::SSHPipe::end source {
     dict set ::SSHPipe::activeProviders($source) idle true
 
 }
+
+## init
+#
+# Simply sends whatever program on the other end of the pipe an init command.
+#
+# @param source - id of source to init
+#
+proc ::SSHPipe::init id {
+  if {$id ni [array names ::SSHPipe::activeProviders]} {
+    set msg "SSHPipe::init Source id does not exist."
+    return -code error $msg
+  }
+  ::SSHPipe::_send $id init
+}
+
+
 ##
 # capabilities
 #    Returns a dict with the capabilities of SSHPipe data sources.

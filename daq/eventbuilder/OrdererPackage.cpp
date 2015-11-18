@@ -39,6 +39,8 @@
 #include "CDuplicateTimeStatCommand.h"
 #include "CConfigure.h"
 #include "CXonXOffCallbackCommand.h"
+#include "COutOfOrderTraceCommand.h"
+#include "CFragmentHandler.h"
 
 static const char* version = "1.0"; // package version string.
 
@@ -56,7 +58,9 @@ int Eventbuilder_Init(Tcl_Interp* pInterp)
   // Wrap pInterp in a CTCLInterpretr object and create the command extensions:
 
   CTCLInterpreter* pInterpObject = new CTCLInterpreter(pInterp);
-
+  
+  
+  
   new CFragmentHandlerCommand(*pInterpObject, "EVB::handleFragment");
   new CInputStatsCommand(*pInterpObject, "EVB::inputStats");
   new COutputStatsCommand(*pInterpObject, "EVB::outputStats");
@@ -72,9 +76,12 @@ int Eventbuilder_Init(Tcl_Interp* pInterp)
   new CConfigure(*pInterpObject, "EVB::config");
   new CDuplicateTimeStatCommand(*pInterpObject, "EVB::dupstat");
   new CXonXoffCallbackCommand(*pInterpObject, "EVB::onflow");
+  new COutOfOrderTraceCommand(*pInterpObject, "EVB::ootrace");
 
   // Setup the output stage:
 
+  
+  CFragmentHandler* pInstance = CFragmentHandler::getInstance();
   new COrdererOutput(STDOUT_FILENO);
 
   return TCL_OK;

@@ -29,6 +29,7 @@
 #include <CVMUSBReadoutList.h>
 #include <CReadoutModule.h>
 #include <TclServer.h>
+#include <TCLException.h>
 
 using std::vector;
 using std::string;
@@ -135,6 +136,19 @@ CBeginRun::operator()(CTCLInterpreter& interp,
     tclUtil::setResult(interp, errorMessage);
     return TCL_ERROR;
   }
+  catch (CTCLException& e) {     // These can leave tracebacks:
+    errorMessage += e.ReasonText();
+       // Append to this the errorInfo global:
+    
+    CTCLVariable errorInfo(&interp, "errorInfo", false);
+    errorMessage += "\n";
+    errorMessage += errorInfo.Get(TCL_GLOBAL_ONLY);
+
+    tclUtil::setResult(interp, errorMessage);
+    return TCL_ERROR;
+
+  }
+
   catch (CException& e) {
     errorMessage += e.ReasonText();
     tclUtil::setResult(interp, errorMessage);

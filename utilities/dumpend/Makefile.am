@@ -1,8 +1,8 @@
 bin_PROGRAMS =dumpend
 
-COMMON_CFLAGS = -I@top_srcdir@/daq/format -I@top_srcdir@/base/os @LIBTCLPLUS_CFLAGS@
+COMMON_CFLAGS = -I@top_srcdir@/daq/format -I@top_srcdir@/base/os -I@top_srcdir@/utilities/IO  @LIBTCLPLUS_CFLAGS@ 
 COMMON_LOADFLAGS= @top_builddir@/daq/format/libdataformat.la @top_builddir@/base/dataflow/libDataFlow.la \
-	@top_builddir@/base/os/libdaqshm.la	\
+	@top_builddir@/base/os/libdaqshm.la @top_builddir@/utilities/IO/libdaqio.la	\
 	@LIBEXCEPTION_LDFLAGS@
 
 dumpend_SOURCES = CFileIterator.cpp CFileIterator.h main.cpp CEndRunInfo.cpp CEndRunInfo.h \

@@ -29,6 +29,8 @@
 #include <CModuleCreator.h>
 #endif
 
+#include <CControlHardware.h>
+#include <memory>
 
 /**
  * Concrete CModuleCreator that created Tcl driver wrapper objects.
@@ -36,7 +38,7 @@
 class CTclModuleCreator : public CModuleCreator
 {
 public:
-  virtual CControlHardware* operator()(std::string name);
+  virtual std::unique_ptr<CControlHardware> operator()();
 };
 
 

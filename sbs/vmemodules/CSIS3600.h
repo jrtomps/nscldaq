@@ -26,9 +26,7 @@
 #define __STL_STRING
 #endif
 
-#ifndef __VMEMODULE_H
 #include <VmeModule.h>
-#endif
 
 /*!
    This class provides software support for the SIS 3600 latch

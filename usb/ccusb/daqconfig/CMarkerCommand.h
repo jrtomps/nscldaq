@@ -14,13 +14,9 @@
 	     East Lansing, MI 48824-1321
 */
 
-/**
- * @file CMarkerCommand.h
- * @brief Defines the marker command which creates, configs marker drivers.
- * @author Ron FOx <fox@nscl.msu.edu>
- */
 #ifndef __CMARKERCOMMAND_H
 #define __CMARKERCOMMAND_H
+
 
 #ifndef __TCLOBJECTPROCESSOR_H
 #include <TCLObjectProcessor.h>
@@ -45,25 +41,37 @@
 class CTCLInterpreter;
 class CTCLObject;
 class CConfiguration;
-class CReadoutModule;
 
-/**
- * @class CMarkerCommand
- *    Defines the command that creates, configures and queries marker device
- *    driver instances.  This command is the base command for an ensemble with the usual
- *    create, config, cget sub commands.
- * @note
- *    This manages a pseudo device that does not occupy any hardware position in the crate.
- */
+/*!
+   This class creates and configure marker stack entries.  A marker stack
+   entry adds a literal 16 bit word to the output buffer for an event.
+
+   The command supports the usual syntaxes for module generating commands:
+
+\verbatim
+  marker create name value
+  marker config name -value new_value
+  marker cget   name
+
+\endverbatim
+
+  As you can see, the only configuration option supported is
+
+  - -value   Sets a new value for the marker.
+
+  Requiring the value on the creation command line is how we ensure that
+the value is mandatory
+*/
+
 class CMarkerCommand : public CTCLObjectProcessor
 {
 private:
-  CConfiguration& m_Config;                    // Global device configuration instance.
-
-  // Canonicals.
+  CConfiguration& m_Config;
 
 public:
-  CMarkerCommand(CTCLInterpreter& interp, CConfiguration& config);
+  CMarkerCommand(CTCLInterpreter&     interp,
+		 CConfiguration&      config,
+		 std::string          commandName = std::string("marker"));
   virtual ~CMarkerCommand();
 
 private:
@@ -71,28 +79,25 @@ private:
   CMarkerCommand& operator=(const CMarkerCommand& rhs);
   int operator==(const CMarkerCommand& rhs) const;
   int operator!=(const CMarkerCommand& rhs) const;
-
 public:
-  virtual int operator()(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
 
-  // Processors for the individual ensemble subcommands.
+
+  // Command entry point:
+
+protected:
+
+
+  virtual int operator()(CTCLInterpreter& interp,
+			 std::vector<CTCLObject>& objv);
 
 private:
-  void create(CTCLInterpreter& interp,
-	     std::vector<CTCLObject>& objv);
-  void config(CTCLInterpreter& interp,
-	     std::vector<CTCLObject>& objv);
-  void cget(CTCLInterpreter& interp,
-	   std::vector<CTCLObject>& objv);
-
-  // Utilty functions.
-
-  std::string Usage(std::string msg, std::vector<CTCLObject>& objv);
-  void    configure(CTCLInterpreter&         interp,
-		   CReadoutModule*          pModule,
-		   std::vector<CTCLObject>& config,
-		   int                      firstPair = 3);
-
+  virtual int create(CTCLInterpreter& interp, 
+		     std::vector<CTCLObject>& objv);
+  virtual int config(CTCLInterpreter& interp,
+		     std::vector<CTCLObject>& objv);
+  virtual int cget(CTCLInterpreter& interp,
+		   std::vector<CTCLObject>& objv);
+  virtual void Usage(std::string msg, std::vector<CTCLObject>& objv);
 };
 
 #endif

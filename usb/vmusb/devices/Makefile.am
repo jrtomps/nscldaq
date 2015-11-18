@@ -1,6 +1,5 @@
 lib_LTLIBRARIES 		= libVMUSBDevices.la
-libVMUSBDevices_la_SOURCES	= 	CConfigurableObject.cpp	\
-					CReadoutModule.cpp 	\
+libVMUSBDevices_la_SOURCES	= CReadoutModule.cpp 	\
 					C3820.cpp		\
 					C785.cpp		\
 					CCAENChain.cpp		\
@@ -9,7 +8,9 @@ libVMUSBDevices_la_SOURCES	= 	CConfigurableObject.cpp	\
 					CMarker.cpp		\
 					C3804.cpp		\
 					CNADC2530.cpp		\
+					CMesytecBase.cpp	\
 					CMADC32.cpp		\
+					CMTDC32.cpp		\
 					CMADCScaler.cpp		\
 					CV1x90.cpp		\
 					CV977.cpp		\
@@ -38,12 +39,15 @@ libVMUSBDevices_la_SOURCES	= 	CConfigurableObject.cpp	\
 					CXLMFERA.cpp \
 					CXLMTimestamp.cpp \
 					CLeCroy2551.cpp \
-					@top_srcdir@/usb/common/devices/CCamacBranchException.cpp 
+					@top_srcdir@/usb/common/devices/CCamacBranchException.cpp \
+					CMQDC32StackBuilder.cpp \
+					CMQDC32RdoHdwr.cpp
 
 libVMUSBDevices_la_CPPFLAGS	= 	-I@top_srcdir@/usb/vmusb/vmusb 	\
+			-I@top_srcdir@/usb/common/configurableobject \
 			-I@top_srcdir@/usb/vmusb/daqconfig 	\
 			-I@top_srcdir@/usb/vmusb		\
-			-I@top_srcdir@/usb/common/devices		\
+			-I@top_srcdir@/usb/common/devices	\
 			@LIBTCLPLUS_CFLAGS@		\
 			-I@top_srcdir@/base/headers		\
 			-I@top_srcdir@/base/os			\
@@ -56,10 +60,10 @@ libVMUSBDevices_la_LIBADD	= $(top_builddir)/usb/vmusb/vmusb/libVMUSB.la \
 				@top_builddir@/base/os/libdaqshm.la	\
 					@LIBTCLPLUS_LDFLAGS@	\
 					@TCL_LDFLAGS@ \
+					@top_builddir@/usb/common/configurableobject/libConfigurableObject.la \
 				-lm @THREADLD_FLAGS@
 
-noinst_HEADERS			= 	CConfigurableObject.h	\
-					CReadoutModule.h 	\
+noinst_HEADERS			= CReadoutModule.h 	\
 					CReadoutHardware.h 	\
 					C3820.h			\
 					C785.h			\
@@ -69,7 +73,9 @@ noinst_HEADERS			= 	CConfigurableObject.h	\
 					CMarker.h		\
 					C3804.h			\
 					CNADC2530.h		\
+					CMesytecBase.h		\
 					CMADC32.h		\
+					CMTDC32.h		\
 					CMADCScaler.h		\
 					CV1x90.h		\
 					CV977.h			\
@@ -97,7 +103,11 @@ noinst_HEADERS			= 	CConfigurableObject.h	\
 					@top_srcdir@/usb/common/devices/CNAF.h \
 					CXLMFERA.h \
 					CXLMTimestamp.h \
-					@top_srcdir@/usb/common/devices/CCamacBranchException.h 
+					@top_srcdir@/usb/common/devices/CCamacBranchException.h  \
+					CMQDC32StackBuilder.h \
+					CMQDC32RdoHdwr.h \
+					MQDC32Registers.h
+
 
 
 
@@ -108,3 +118,4 @@ install-data-local:
 	$(INSTALL_DATA)  @srcdir@/*.h @prefix@/vmusbdriver/includes
 
 
+EXTRA_DIST = CCamacCompat.hpp

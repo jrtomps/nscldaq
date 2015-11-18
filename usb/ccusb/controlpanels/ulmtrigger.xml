@@ -1,0 +1,202 @@
+<!-- chapter device-support -->
+
+<chapter>
+  <title>
+    ULM Trigger GUI    
+  </title>
+
+  <para>
+    A firmware for the LeCroy 2367 Universal Logic Module written by Daniel
+    Bazin turns the device into a trigger processing unit commonly referred to
+    as the S800 ULM Trigger Box. This device has numerous configurable
+    parameters that can be used to determine how and when a live trigger is
+    formed from a set of triggers. NSCLDAQ provides support for configuring and
+    reading out this device and also a mechanism for controlling it remotely as
+    a slow-controlled device. The latter mechanism is a GUI called the
+    ULMTriggerGUI and will be the subject of this documentation. The
+    ULMTriggerGUI is heavily geared towards its use in the S800 and has many
+    controls specifically labeled as corresponding to the S800. The aim of this
+    documentation is not to detail all of the various features for use, but
+    rather how to set up and launch an instance of the program as well as
+    explain a bit about the saving and restoring state to and from files. 
+  </para>
+
+  <section>
+    <title>Configuring CCUSBReadout for Remote Communication</title>
+
+    <para>
+      The ULMTriggerGUI makes use of the ccusbcamac TCL package to send remote
+      NAF commands to a CCUSBReadout slow-controls server. The first step to
+      use the ULMTriggerGUI is to ensure that the CCUSBReadout is configured to
+      receive remote CCUSB requests. The only thing that is required is that a
+      slow controls module of type "ccusb" be loaded. To do that you need to
+      add the following line to your CCUSBReadout's ctlconfig.tcl script.
+    </para>
+
+    <programlisting>
+Module create ccusb remoteHandler
+    </programlisting>
+
+    <para>
+      Depending on the version of NSCLDAQ that you are using, this may or may
+      not be necessary because in recent versions the remote handler is
+      preloaded into the CCUSBReadout program. However, it is simplest to just
+      add the single line above.
+    </para>
+
+  </section>
+
+  <section>
+    <title>
+      Launching the ULMTriggerGUI
+    </title>
+
+    <para>
+      It is first and foremost important to realize that the ULMTriggerGUI is a
+      client of the CCUSBReadout slow controls server. In that sense, there is
+      no way that the ULMTriggerGUI can run without the CCUSBReadout running
+      first. So you must launch a CCUSBReadout program that has been fed the
+      ctlconfig.tcl script from the previous section before you launch the
+      ULMTriggerGUI. Depending on whether other processes are running that
+      might have control over port 27000 already, you may have to explicitly
+      specify a port to listen for connections using the --port option. Once
+      the CCUSBReadout program is running, you can then proceed to launch the
+      ULMTriggerGUI.
+    </para>
+
+    <para>
+      The ULMTriggerGUI requires only a few pieces of information to launch.
+      They are:
+    </para>
+
+    <itemizedlist>
+      <listitem>
+        <para>Hostname of the computer running the slow controls server</para> 
+      </listitem>
+
+      <listitem>
+        <para>Port on which the slow controls server listens for connections</para> 
+      </listitem>
+
+      <listitem>
+        <para>Slow controls module name</para>
+      </listitem>
+
+      <listitem>
+        <para>Slot number that the LeCroy 2367 ULM module resides</para>
+      </listitem>
+
+      <listitem>
+        <para>Name of ringbuffer to listen for state transitions on</para>
+      </listitem>
+
+      <listitem>
+        <para>Configuration file name</para>
+      </listitem>
+
+    </itemizedlist>
+
+    <para>
+      In general, these are given reasonable default values so that you can
+      typically forego specifying all of the options except for the
+      slow-controls module name and the slot number. By default, the host name
+      is given as "localhost", the port number is provided 27000, and the
+      ringbuffer name is given tcp://localhost/USERNAME. Here the USERNAME is a
+      placeholder for your user name. Note that only ring buffers on localhost
+      can be specified. Only the slow controls module must be specified because
+      there is no a priori way of knowing the name of the module you have
+      loaded into you ctlconfig.tcl. If we continue the example from the
+      previous section, you would specify the value passed to -module as
+      remoteHandler.
+    </para>
+
+    <para> 
+      Putting this all together, we can launch the ULMTriggerGUI to control a
+      ULM in slot 10 read out by a CCUSBReadout running locally, listening on
+      port 27000, and outputting data to tcp://localhost/USERNAME by either
+      entering:
+    </para>
+
+    <programlisting>
+$DAQBIN/ULMTriggerGUI --module remoteHandler --slot 10
+    </programlisting>
+
+    <para>
+      or
+    </para>
+
+    <programlisting>
+$DAQBIN/ULMTriggerGUI --moduel remoteHandler --port 27000 --host localhost --ring USERNAME --slot 10
+    </programlisting>
+
+    <para>
+      After executing those commands, you should see a window pop up that looks like:
+      <figure>
+        <title>Screenshot of ULMTriggerGUI</title>
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="figures/ulmtrigger_startup.png" align="center" format='PNG'/>
+          </imageobject>
+          <caption>
+            <para>
+              Screenshot of the ULMTriggerGUI after startup.
+            </para>
+          </caption>
+        </mediaobject>
+      </figure>
+    </para>
+  </section>
+
+  <section>
+    <title>Overview of Basic Operation</title>
+
+    <para>
+      The ULMTriggerGUI state is "directly connected", or tightly synchronized,
+      to the state of the ULM it is associated with.  For that reason, it is
+      only safe to manipulate the GUI elements while a run is not active. To
+      protect against modifying the settings during a run, the ULMTriggerGUI
+      will lock when a BEGIN_RUN item is observed in the ring buffer it is
+      monitoring and only unlock when an END_RUN item is observed. 
+    </para>
+    <para>
+      A consequence of the GUI being tightly synchronized is that the GUI will
+      display the state of the ULM at all times after the start up and an
+      "Update from Module" has been pressed. It will only display a different
+      state than the ULM 1) before you press "Update from Module" after
+      starting it and 2) after you press "Read from File".
+    </para>
+
+    <para>
+      One of the important features of the ULMTriggerGUI is the ability to save
+      and restore the state of the GUI to a file. This file is then used to
+      configure the ULM at the start of runs in the S800 DAQ. To write the
+      state of the GUI to a file, you simply need to press the "Save to File".
+      If the --configfile option has not been set, a file browser for you to
+      choose the location to save the file. This will only occur the first time
+      and the selection will be used in all future occurrences. If you provided
+      the --configfile option, then the file you provided will be used and no
+      browser will pop up. 
+    </para>
+
+    <para>
+      There is some red text next to the "Save to File" button that says "Save
+      to make Active!".  This is a bit of a red herring and should be
+      understood properly. Because the GUI is tightly synchronized to the ULM,
+      any change to the GUI actively changes the state of the ULM. However, the
+      S800 DAQ uses the configuration file generated by this GUI to configure
+      the device at the start of the run. So when a run begins in the S800DAQ,
+      the ULM is configured based on the settings of the GUI the last time
+      "Save to File" was pressed. Of course, this is all dependent upon
+      configuration of the ULM being done in a manner similar to the S800DAQ
+      and also that the "Save to File" writes to the same file as the
+      configuration procedures reads from. As I said in the beginning, this GUI
+      is designed in a manner that is S800 centric. To boil this down, "Save to
+      make Active!" should be read as "Save to make Active during run if you
+      use the file to configure your ULM at the start of each run!"
+    </para>
+
+  </section>
+
+</chapter>
+
+<!-- /chapter -->

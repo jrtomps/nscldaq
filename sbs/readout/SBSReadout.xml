@@ -655,6 +655,240 @@ Skeleton::SetupReadout(CExperiment* pExperiment)
 }
                 </programlisting>
             </informalexample>
+            <para>
+                There are cases where you will want to directly emit ring items
+                from your readout segment.  Imagine, for example, you have a
+                block trigger.   That is a trigger that produces
+                several events.  While you can build your trigger so that it will
+                immediately re-trigger, it may be more efficient to emit the
+                ring items associated with the trigger directly.
+            </para>
+            <para>
+                The keys to the example below are that:
+            </para>
+            <itemizedlist>
+                <listitem><para>
+                    The Ring buffer (<classname>CRingBuffer</classname> object)
+                    to which data are emitted is held by the
+                    <classname>CExperiment</classname> object which has a method
+                    for getting a pointer back to the ring buffer.
+                </para></listitem>
+                <listitem><para>
+                    The <classname>CPhysicsEventItem</classname> class allows
+                    you to create physics event items.
+                </para></listitem>
+                <listitem><para>
+                    <classname>CRingItem</classname> is the base class
+                    for <classname>CPhysicsEventItem</classname> and it
+                    has methods that allow you to fill a ring item and
+                    submit it to a ring buffer.
+                </para></listitem>
+            </itemizedlist>
+            <para>
+                The example is in two parts. The first part shows how to
+                construct an event segment so that it has the ring buffer
+                which it can hold as member data.  The second part shows
+                how to use that to emit an event from data taken in a buffer
+                that is internal to your event segment.
+            </para>
+            <example>
+                <title>Passing the ring buffer to the construction of an Event segment.</title>
+                <programlisting>
+void
+Skeleton::setupReadout(CExperiment* pExperiment)
+{
+    CReadoutMain::SetupReadout(pExperiment);
+    
+    pExperiment->EstablishTrigger(new CMyTrigger());       <co id='specialring-normal-stuff' />
+    pExperiment->EstablishBusy(new CMyBusy());
+    
+    CRingBuffer* pRing = pExperiment->getRing();         <co id='specialring-getring' />
+    pExperiment->AddEventSegment(new MySegment(pExperiment, pRing)); <co id='specialring-newseg' />
+}
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs='specialring-normal-stuff'>
+                    <para>
+                        This is part of the usual stuff that's needed in
+                        <methodname>setupReadout</methodname>, the triggter and
+                        busy systems you use are created and registered.  How you do
+                        this will, of course, vary depending on what the constructors
+                        for those classes require in your application.
+                    </para>
+                </callout>
+                <callout arearefs='specialring-getring'>
+                    <para>
+                        This line obtains a pointer to the ring buffer into
+                        which data will be written by this program.
+                    </para>
+                </callout>
+                <callout arearefs='specialring-getring'>
+                    <para>
+                        When you create the event segment, you pass in the ring
+                        buffer pointer and a pointer to the experiment
+                        object.  The experiment object, among other things,
+                        allows you to obtain the data source id which you
+                        will need when creating ring items.
+                    </para>
+                </callout>
+            </calloutlist>
+            <para>
+                Lets now look at a code fragment from the event read
+                method in the event segment.  We are going to assume
+                that the event segment has read several events
+                into a buffer called <varname>buffer</varname> and
+                that you have a few methods that help you to deconstruct
+                the buffer, specifically:
+            </para>
+            <itemizedlist>
+                <listitem><para>
+                    <methodname>eventCount</methodname> which returns the number
+                    of events in the buffer.
+                </para></listitem>
+                <listitem><para>
+                    <methodname>eventPtr</methodname> which returns a pointer to
+                    the first unprocessed event
+                </para></listitem>
+                <listitem><para>
+                    <methodname>eventSize</methodname> which returns the number
+                    of bytes in the event.
+                </para></listitem>
+                <listitem><para>
+                    <methodname>timestamp</methodname> Given an event returns its timestamp.
+                </para></listitem>
+                <listitem>
+                    <para>
+                        <methodname>nextEvent</methodname> which informs the
+                        event unpacker that you are done with the current.
+                    </para>
+                </listitem>
+            </itemizedlist>
+            <para>
+                It's important to note that you don't have to do it this way.
+                These assumptions are made just to make it easier to present
+                the code that actually is responsible for creating ring item
+                events.
+            </para>
+            <note>
+                <title>NOTE</title>
+                <para>
+                    When you take over creating events, and produce more than
+                    one event ring item per trigger, the trigger count items
+                    will reflect the number of triggers rather than the number
+                    of events produced.  SpecTcl's event analysis fraction will
+                    therefore be incorrect.
+                </para>
+            </note>
+            <example>
+                <title>Creating Events</title>
+                <programlisting>
+...
+unsigned nEvents = eventCount();                           <co id='specialring_getevtcount'></co>
+while(nEvents) {
+    void*    pEvent = eventPtr();
+    uint64_t tstamp = timestamp(pEvent);                    <co id='specialring_geteventinfo' />
+    size_t   nBytes = eventSize(pEvent); 
+    
+    CPhysicsEventItem event(
+        timestamp, m_pExperiment->getSourceId(), 0         <co id='specialring_makeitem' />
+    );  
+    void* pCursor = event.getBodyCursor();                 <co id='specialring_fillitem' />       
+    memcpy(pCursor, pEvent, nBytes);
+    
+    pCursor = reinterpret_cast&lt;void*&gt;(
+        reinterpret_cast&lt;uint8_t&gt;(pCursor) + nBytes  <co id='specialring_updatecursor' />
+    );
+    event.setBodyCursor(pCursor);
+    event.commitToRing(*m_pRing);                          <co id='specialring_commit' />
+    
+    nextEvent();                                           <co id='specialring_bookkeeping' />
+    nEvent--;
+}
+...
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs='specialring_getevtcount'>
+                    <para>
+                        To set up for the loop that emits ring items we first
+                        fetch the number of events that have been read.
+                    </para>
+                </callout>
+                <callout arearefs='specialring_geteventinfo'>
+                    <para>
+                        This section of code gets the informatino about the event
+                        that we need to create the ring item; a pointer to the  event data,
+                        the timestamp and the number of bytes of event data to put in the
+                        event.  There is an implicit assumption in this code that,
+                        in keeping with the normal formatting of
+                        NSCLDAQ events, the data pointed to by
+                        <varname>pEvent</varname> has a leading
+                        word count.  If this is not the case
+                        then code can be added to this example that computes
+                        and inserts that data from the <varname>nBytes</varname>
+                        variable.
+                    </para>
+                </callout>
+                <callout arearefs='specialring_makeitem'>
+                    <para>
+                        This line creates a ring item.  The form of this
+                        constructor creates a skeletal physics event
+                        ring item with a body header.  Note that
+                        our assumption is that when our event
+                        segment was constructed with the experiment object
+                        pointer as a construction parameter, that pointer
+                        was stored in the member variable.
+                        <varname>m_pExperiment</varname>.  That is then
+                        used to obtain the event source id from that object.
+                    </para>
+                </callout>
+                <callout arearefs='specialring_fillitem'>
+                    <para>
+                        The <methodname>getBodyCursor</methodname> method
+                        of the <classname>CPhysicsEventItem</classname> class
+                        provides a pointer to the body of the ring item
+                        (first byte following the body header).  The following
+                        <function>memcpy</function> call fill in the body with the
+                        event data.
+                    </para>
+                </callout>
+                <callout arearefs='specialring_updatecursor'>
+                    <para>
+                        This line computes a pointer to the first unused byte
+                        of data following the data we just inserted in the ring
+                        item.  This is then passed back to the ring item
+                        so that it can compute the actual size of the ring item.
+                        If you are filling in a ring item in multiple bits of
+                        independent code, <methodname>getBodyCursor</methodname>
+                        can also be used by the next section of code to know where
+                        to put its data.
+                    </para>
+                </callout>
+                <callout arearefs='specialring_commit' >
+                    <para>
+                        Puts the ring item into the ring buffer.  We've assumed
+                         the ring item pointer passed to the constructor
+                         was saved in the <varname>m_pRing</varname>
+                         member variable.  Note that <methodname>commitToRing</methodname>
+                         takes a ring buffer reference, not a pointer.
+                    </para>
+                </callout>
+                <callout arearefs='specialring_bookkeeping'>
+                    <para>
+                        This bit of book keeping prepares for the next pass through
+                        the loop.
+                    </para>
+                </callout>
+            </calloutlist>
+            <note>
+                <title>NOTE</title>
+                <para>
+                    If you build your own ring itesm, the read function should
+                    indicate that it has not read any data to its caller so that
+                    no ring item will be created by that level of the code.
+                </para>
+            </note>
         </section>
     <section>
         <title>Obtaining and building the skeleton application</title>
@@ -2373,6 +2607,10 @@ MySegment::read(void* pBuffer, size_t maxlen)
                     <type>uint32_tr</type><parameter>id</parameter>
                 </methodparam>
             </methodsynopsis>
+            <methodsynopsis>
+                <type>uint32_t</type> <methodname>getSourceId</methodname>
+                <void />
+            </methodsynopsis>
                 
         };
          </programlisting>
@@ -2561,6 +2799,13 @@ MySegment::read(void* pBuffer, size_t maxlen)
             Called by an event segment to set the source id.  Normally
             this is set at the command line via the <option>--sourceid</option>
             option.
+        </para>
+        <methodsynopsis>
+            <type>uint32_t</type> <methodname>getSourceId</methodname>
+            <void />
+        </methodsynopsis>
+        <para>
+            Returns the experiment's source id.
         </para>
       </refsect1>
       <refsect1>

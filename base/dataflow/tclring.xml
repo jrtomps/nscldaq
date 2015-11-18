@@ -39,10 +39,10 @@ package require ring
 
 <!-- /chapter -->
 
-<!-- manpage 1tcl -->
+<!-- manpage 3tcl -->
 <refentry id="manpage.tclring">
   <refmeta>
-     <refentrytitle>
+     <refentrytitle  id='manpage.tclring.title'>
         TCL Ring package.
         <author>
             <firstname>Ron</firstname> <surname>Fox</surname>
@@ -50,7 +50,7 @@ package require ring
         <productname>NSCLDAQ</productname>
         <productnumber></productnumber>
      </refentrytitle>
-     <manvolnum>1tcl</manvolnum>
+     <manvolnum>3tcl</manvolnum>
      <refmiscinfo class='empty'></refmiscinfo>
   </refmeta>
   <refnamediv>
@@ -240,7 +240,7 @@ ringbuffer list
                         <listitem>
                             <para>
                                 The amount of data that can be gotten without
-                                blocking by the consumer that is most caught up.
+                                blocking by the consumer that is least caught up.
                                 (maximum that can be gotten by any consumer).
                                 If no consumers are connected, this returns 0.
                             </para>
@@ -252,7 +252,7 @@ ringbuffer list
                             <para>
                                 Same as for <varname>maxGet</varname> but gives
                                 the amount of data that can be gotten by the
-                                consumer that is least caught up.
+                                consumer that is most caught up.
                             </para>
                         </listitem>
                     </varlistentry>

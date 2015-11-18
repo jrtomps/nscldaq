@@ -22,6 +22,9 @@
 #
 
 package provide VMUSBDriverSupport 1.0
+package require DriverSupport 
+package require cvmusb 
+package require cvmusbreadoutlist
 
 
 # Establish the namespace in which the procs will live.
@@ -80,15 +83,7 @@ proc ::VMUSBDriverSupport::convertVmUSBReadoutList name {
 # @note missing trailing parameters are allowed and treated as "".
 #
 proc ::VMUSBDriverSupport::checkRange {value {low ""} {high  ""}} {
-
-    if {($low ne "") && ($value < $low)} {
-	error "$value must be >= $low"
-    }
-
-    if {($high ne "") && ($value > $high)} {
-	error "$value must be <= $high"
-    }    
-
+  ::DriverSupport::checkRange $value $low $high
 }
 
 ##
@@ -105,11 +100,7 @@ proc ::VMUSBDriverSupport::checkRange {value {low ""} {high  ""}} {
 #          the VM-USB framework catches it and aborts the run-start.
 #
 proc ::VMUSBDriverSupport::validInt {value {low ""} {high ""}} {
-    if {![string is integer -strict $value]} {
-	error "Invalid integer parameter $value"
-    }
-    ::VMUSBDriverSupport::checkRange $value $low $high
-
+  ::DriverSupport::validInt $value $low $high
 }
 ##
 # validReal
@@ -125,10 +116,7 @@ proc ::VMUSBDriverSupport::validInt {value {low ""} {high ""}} {
 #          the value does not make the limit.
 #
 proc ::VMUSBDriverSupport::validReal {value {low ""} {high ""}} {
-    if {![string is double -strict $value]} {
-	error "Invalid real parameter: $value"
-    }
-    ::VMUSBDriverSupport::checkRange $value $low $high
+  ::DriverSupport::validReal $value $low $high
 }
 ##
 # validEnum
@@ -143,9 +131,7 @@ proc ::VMUSBDriverSupport::validReal {value {low ""} {high ""}} {
 #
 # 
 proc ::VMUSBDriverSupport::validEnum {value set} {
-    if {$value ni $set} {
-	error "$value must be one of {[join $set {, }]}"
-    }
+  ::DriverSupport::validEnum $value $set
 }
 
 ##
@@ -159,9 +145,7 @@ proc ::VMUSBDriverSupport::validEnum {value set} {
 # @throw If value does not pass string is boolean -strict
 #
 proc ::VMUSBDriverSupport::validBool {value} {
-    if {![string is boolean -strict $value]} {
-	error "$value is not a valid boolean"
-    }
+  ::DriverSupport::validBool $value
 }
 
 ##
@@ -182,28 +166,7 @@ proc ::VMUSBDriverSupport::validBool {value} {
 #        to make the message clearer and then rethrown.
 #
 proc ::VMUSBDriverSupport::validList {value {fewest ""} {most ""} {checker ""} {args ""} } {
-    if {![string is list $value]} {
-	error "$value must be a valid Tcl list and is not"
-    }
-
-    #  Check the list length constraints:
-
-    set length [llength $value]
-    set result [catch {
-	::VMUSBDriverSupport::checkRange $length $fewest $most
-    } msg]
-    if {$result} {
-	error "List length of "$value" invalid: length $msg"
-    }
-
-    if {$checker ne ""} {
-	foreach element $value {
-	    if {[catch {$checker $element  {*}$args} msg]} {
-		set errorMessage "Element of $value failed type check: $msg"
-		error $errorMessage
-	    }
-	}
-    }
+  ::DriverSupport::validList $value $fewest $most $checker $args
 }
 ##
 # validIntList:
@@ -220,7 +183,7 @@ proc ::VMUSBDriverSupport::validList {value {fewest ""} {most ""} {checker ""} {
 # @throw error if any of the constraints are not met.
 #
 proc ::VMUSBDriverSupport::validIntList {value {fewest ""} {most ""} {low ""} {high ""}} {
-    VMUSBDriverSupport::validList $value $fewest $most VMUSBDriverSupport::validInt $low $high
+    ::DriverSupport::validList $value $fewest $most ::DriverSupport::validInt $low $high
 }
 ##
 # validBoolList 
@@ -234,5 +197,60 @@ proc ::VMUSBDriverSupport::validIntList {value {fewest ""} {most ""} {low ""} {h
 # @throw error if any of the constraints are not met.
 #
 proc ::VMUSBDriverSupport::validBoolList {value {fewest ""} {most ""}} {
-    VMUSBDriverSupport::validList $value $fewest $most VMUSBDriverSupport::validBool
+    ::DriverSupport::validList $value $fewest $most ::DriverSupport::validBool
 }
+
+
+
+proc ::VMUSBDriverSupport::convertToReadoutList {atcllist} { 
+
+  set len [llength $atcllist]
+  set vecptr [cvmusbreadoutlist::vecuint32_create $len ]
+
+  for {set i 0} {$i < $len} {incr i} {
+    cvmusbreadoutlist::vecuint32_set $vecptr $i [lindex $atcllist $i] 
+  }
+  
+  set rdolist [cvmusbreadoutlist::CVMUSBReadoutList rdolist \
+                [cvmusbreadoutlist::vecuint32_ptr2ref $vecptr]]
+  return $rdolist
+
+}
+
+
+
+##
+# Convert a std::vector<uint8_t> to a TCL list of 32-bit integers
+#
+# This makes use of the cvmusb::uint8_vector_get and cvmusb::uint8_vector_size
+# procs to form the command. The proc will only succeed if the number of elements
+# in the std::vector<uint8_t> is divisible by 4 (i.e. it converts cleanly to 
+# a uint32_t). 
+#
+# 
+#
+proc ::VMUSBDriverSupport::convertBytesListToTclList {data_} { 
+
+  upvar $data_ data
+
+  set pkg cvmusb
+  
+  set nbytes [${pkg}::uint8_vector_size $data]
+  if {($nbytes%4) != 0} {
+    error "VMUSBDriverSupport::convertBytesListToTclList size of bytes list must be divisible by 4"
+  }
+  
+  set intList [list] 
+  for {set byte 0} {$byte < $nbytes} {incr byte 4} {
+      set byte0 [${pkg}::uint8_vector_get $data $byte]
+      set byte1 [${pkg}::uint8_vector_get $data [expr $byte+1]]
+      set byte2 [${pkg}::uint8_vector_get $data [expr $byte+2]]
+      set byte3 [${pkg}::uint8_vector_get $data [expr $byte+3]]
+      set int [expr ($byte3<<24)|($byte2<<16)|($byte1<<8)|$byte0]
+    
+      lappend intList $int
+  }
+
+  return $intList
+}
+

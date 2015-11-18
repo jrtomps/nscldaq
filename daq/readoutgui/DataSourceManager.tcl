@@ -127,6 +127,27 @@ snit::type DataSourceManager {
         
         lappend loadedProviders $name
     }
+
+    ##
+    # unload
+    #
+    #   The opposite of the load method. All pieces of a loaded package are to
+    #   be removed. The package is forgotten and the loadedProviders are
+    #   destroyed. If the named package doesn't exist, this is a no-op; it is
+    #   not considered a failure.
+    #
+    # @param name   name of package to unload
+    #
+    method unload name {
+      if {[$self _isLoaded $name]} {
+        set package ${name}_Provider
+        package forget $package
+
+        set index [lsearch -exact $loadedProviders $name]
+        set loadedProviders [lreplace $loadedProviders $index $index]
+      }
+    }
+
     ##
     # parameters
     #   Ask about the parameterization of a data source provider.
@@ -265,7 +286,7 @@ snit::type DataSourceManager {
     #
     method sources {} {
         set result [list]
-        foreach sourceId [array names dataSources] {
+        foreach sourceId [lsort -integer -increasing [array names dataSources]] {
             lappend result [_SortDict $dataSources($sourceId)]
         }
         return $result
@@ -305,9 +326,10 @@ snit::type DataSourceManager {
     method stopAll {} {
         if {![catch {$self _listOrderedSources ignore} sources]} {
             foreach id $sources {
-                catch {$self stop $id};    # In case there are stopped sources.
+                catch {$self stop $id}; # In case there are stopped sources.
             }
         }
+        set state "inactive"
     }
     ##
     # startAll
@@ -322,7 +344,7 @@ snit::type DataSourceManager {
                 dict set paramDict sourceid $id
                 if {[catch {::${providerType}::start $paramDict} msg]} {
                     incr failures
-                    lappend errors $msg
+                    lappend errors [join $msg " "]
                 }
             }
         }
@@ -501,6 +523,84 @@ snit::type DataSourceManager {
             error $messages
         }      
     }
+
+
+    method init {id} {
+      set sm [RunstateMachineSingleton %AUTO%]
+      set runstate [$sm getState]
+      $sm destroy
+      if {$runstate ne "Halted"} {
+        set msg "DataSourceManager::init Cannot initialize data providers "
+        append msg "unless in Halted state."
+        error $msg 
+      }
+
+      if {$state eq "active"} {
+        set msg "DataSourceManager::init Cannot initialize while in active "
+        append msg "state."
+        error $msg 
+      }
+
+      if {$state eq "paused"} {
+        set msg "DataSourceManager::init Cannot initialize from paused "
+        append msg "state."
+        error $msg 
+      }
+
+      set ids [array names dataSources]
+      if {$id ni $ids} {
+        error "DataSourceManager::init Source $id does not exist to initialize."
+      }
+
+      set provider [dict get $dataSources($id) provider]
+      if {[catch {::${provider}::init $id} msg]} {
+        error [list [list $provider $id] $msg]
+      }
+
+    }
+
+    method initall {} {
+      set sm [RunstateMachineSingleton %AUTO%]
+      set runstate [$sm getState]
+      $sm destroy
+      if {$runstate ne "Halted"} {
+        set msg "DataSourceManager::initall Cannot initialize data providers "
+        append msg "unless in Halted state."
+        error $msg 
+      }
+
+      set sources [$self _listOrderedSources \
+        "DataSourceManager::initall No data sources exist."]
+
+      if {$state eq "active"} {
+        set msg "DataSourceManager::initall Cannot initialize while in active "
+        append msg "state."
+        error $msg 
+      }
+
+      if {$state eq "paused"} {
+        set msg "DataSourceManager::initall Cannot initialize from paused "
+        append msg "state."
+        error $msg 
+      }
+
+      # Initialize all the data sources but accumulate error information
+      # along the way into messages.
+
+      set messages [list]
+      foreach id $sources {
+        set provider [dict get $dataSources($id) provider]
+        if {[catch {::${provider}::init $id} msg]} {
+          lappend messages [list [list $provider $id] $msg]
+        }
+      }
+
+      if {[llength $messages] > 0} {
+        error $messages
+      }
+
+    }
+
     #--------------------------------------------------------------------------
     # Private utilities.
     
@@ -679,6 +779,9 @@ proc ::DataSourceMgr::leave {from to} {
     }
     if {($from eq "Active") && ($to eq "Paused")} {
         $mgr pause
+    }
+    if {($from in [list Active Paused Halted]) && ($to eq "NotReady")} {
+        $mgr stopAll
     }
     
     $mgr destroy

@@ -29,12 +29,18 @@ using namespace std;
 #include <CVMUSBModule.h>
 #include <ChicoTrigger.h>
 #include "CModuleFactory.h"
-#include "CChicoTriggerCreator.h"
 #include "CJtecgdgCreator.h"
 #include "CV6533Creator.h"
 #include "CV812Creator.h"
 #include "CVMUSBCreator.h"
 #include "CTclModuleCreator.h"
+#include "CXLMControlsCreator.h"
+#include "CChicoTriggerCreator.h"
+#include "CMxDCRCBusCreator.h"
+#include "CMDGG16ControlCreator.h"
+#include "CMxDCResetCreator.h"
+#include <memory>
+#include "CMarkerCreator.h"
 
 /*!
    Construct the command. 
@@ -56,13 +62,30 @@ CModuleCommand::CModuleCommand(CTCLInterpreter& interp,
   // Register the standard creators:
 
   CModuleFactory* pFact = CModuleFactory::instance();
-  pFact->addCreator("jtecgdg", new CJtecgdgCreator);
-  pFact->addCreator("caenv812", new CV812Creator);
-  pFact->addCreator("caenv895", new CV812Creator); // not a typo these create the same type.
-  pFact->addCreator("vmusb", new CVMUSBCreator);
-  pFact->addCreator("v6533", new CV6533Creator);
-  pFact->addCreator("ChicoTrigger", new CChicoTriggerCreator);
-  pFact->addCreator("tcl", new CTclModuleCreator);
+  pFact->addCreator("jtecgdg", 
+                    unique_ptr<CModuleCreator>(new CJtecgdgCreator));
+  pFact->addCreator("caenv812", 
+                    unique_ptr<CModuleCreator>(new CV812Creator));
+  pFact->addCreator("caenv895", 
+                    unique_ptr<CModuleCreator>(new CV812Creator)); // not a typo these create the same type.
+  pFact->addCreator("vmusb", 
+                    unique_ptr<CModuleCreator>(new CVMUSBCreator));
+  pFact->addCreator("v6533", 
+                    unique_ptr<CModuleCreator>(new CV6533Creator));
+  pFact->addCreator("tcl", 
+                    unique_ptr<CModuleCreator>(new CTclModuleCreator));
+  pFact->addCreator("xlm", 
+                    unique_ptr<CModuleCreator>(new XLM::CXLMControlsCreator));
+  pFact->addCreator("mxdcrcbus", 
+                    unique_ptr<CModuleCreator>(new CMxDCRCBusCreator));
+  pFact->addCreator("chicotrigger", 
+                    unique_ptr<CModuleCreator>(new CChicoTriggerCreator));
+  pFact->addCreator("marker", unique_ptr<CModuleCreator>(new CMarkerCreator));
+
+  pFact->addCreator("mdgg16",
+                    unique_ptr<CModuleCreator>(new WienerMDGG16::CControlCreator));
+  pFact->addCreator("mxdcreset",
+                    unique_ptr<CModuleCreator>(new CMxDCResetCreator));
 
 }
 //! Destroy the module.. no op provided only as a chain to the base class destructor.
@@ -91,7 +114,7 @@ CModuleCommand::operator()(CTCLInterpreter& interp,
   // validate the parameter count.
 
   if (objv.size() < 2) {
-    m_Server.setResult("module: Insufficient parameters need module create | config | cget");
+    m_Server.setResult("Module: Insufficient parameters need: Module create | config | cget");
     return TCL_ERROR;
   }
 
@@ -108,7 +131,7 @@ CModuleCommand::operator()(CTCLInterpreter& interp,
     return cget(interp, objv);
   }
   else {
-    m_Server.setResult("module: Invalid subcommand need module create | config |cget");
+    m_Server.setResult("Module: Invalid subcommand need: Module create | config | cget");
     return TCL_ERROR;
   }
 }
@@ -128,22 +151,37 @@ CModuleCommand::create(CTCLInterpreter& interp,
 		       vector<CTCLObject>& objv)
 {
   if (objv.size() != 4) {
-    m_Server.setResult("module create: Wrong number of params need: module create type name");
+    string msg("Module create: Wrong number of params need: ");
+    msg += "Module create type name";
+    m_Server.setResult(msg);
     return TCL_ERROR;
   }
+
   string type = objv[2];
   string name = objv[3];
 
-  CControlHardware* pModule;
-  CModuleFactory*   pFact = CModuleFactory::instance();
-  pModule  = pFact->create(type, name);
-  if (!pModule) {
-    m_Server.setResult("module create: Invalid type, must be one of jtecgdg, caenv182, caenvg895, vmusb, v6533 ChicoTrigger");
+  CControlModule* pConfig = m_Server.findModule(name);
+  if (pConfig!=nullptr) {
+    string msg = "Module create: Cannot create duplicate module of name \"";
+    msg += name;
+    msg += "\"";
+    m_Server.setResult(msg);
+
     return TCL_ERROR;
   }
 
-  CControlModule*   pConfig = pModule->getConfiguration();
-  pModule->onAttach(*pConfig);
+  // If we made it here, the module doesn't already exist. We can not safely 
+  // create it.
+  CModuleFactory*   pFact = CModuleFactory::instance();
+  unique_ptr<CControlHardware> pHdwr = pFact->create(type);
+  if (!pHdwr) {
+    m_Server.setResult("Module create: Invalid type, must be one of jtecgdg, caenv182, caenvg895, vmusb, chicotrigger, v6533, xlm");
+    return TCL_ERROR;
+  }
+
+  // Hardware was successfully created, wrap it into a CControlModule and
+  // register it with the TclServer
+  pConfig = new CControlModule(name,std::move(pHdwr));
   m_Server.addModule(pConfig);
   m_Server.setResult(name);
   
@@ -166,14 +204,14 @@ CModuleCommand::configure(CTCLInterpreter& interp,
 
   size_t nelements = objv.size();
   if ((nelements < 3) || ((nelements % 2) == 0)) {
-    m_Server.setResult("module config : invalid number of command elements.");
+    m_Server.setResult("Module config : invalid number of command elements.");
     return TCL_ERROR;
   }
   string name = objv[2];
 
   CControlModule* pModule = m_Server.findModule(name);
   if (!pModule) {
-    string msg("module config: ");
+    string msg("Module config: ");
     msg += name;
     msg += " not found.";
     m_Server.setResult(msg);
@@ -186,7 +224,7 @@ CModuleCommand::configure(CTCLInterpreter& interp,
       pModule->configure(key, value);
     }
     catch (string failmsg) {
-      string msg("module config: Failed to configure ");
+      string msg("Module config: Failed to configure ");
       msg += name;
       msg += " with: ";
       msg += key;
@@ -218,16 +256,16 @@ int
 CModuleCommand::cget(CTCLInterpreter& interp, vector<CTCLObject>& objv)
 {
   if ((objv.size() < 3) || (objv.size() > 4)) {
-    m_Server.setResult("module cget : invalid number of parameters; need module cget name ?key?");
+    m_Server.setResult("Module cget : invalid number of parameters; need Module cget name ?key?");
     return TCL_ERROR;
   }
 
   string          name    = objv[2];
   CControlModule* pModule = m_Server.findModule(name);
   if(!pModule) {
-    string msg("module cget ");
+    string msg("Module cget ");
     msg += name;
-    msg += " module not found";
+    msg += " Module not found";
     m_Server.setResult( msg);
     return TCL_ERROR;
   }
@@ -258,7 +296,7 @@ CModuleCommand::cget(CTCLInterpreter& interp, vector<CTCLObject>& objv)
       value = pModule->cget(key);
     }
     catch (string failmsg) {
-      string msg("module cget: Failed for key: ");
+      string msg("Module cget: Failed for key: ");
       msg += key;
       msg += " because: ";
       msg += failmsg;

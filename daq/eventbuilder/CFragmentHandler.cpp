@@ -24,9 +24,11 @@
 #include <sstream>
 #include <algorithm>
 #include <functional>
+#include <cstdint>
 #include <time.h>
-#include <stdint.h>
 
+using std::uint32_t;
+using std::uint64_t;
 
 
 /*---------------------------------------------------------------------
@@ -41,8 +43,8 @@ static const time_t DefaultBuildWindow(20); // default seconds to accumulate dat
 static const uint32_t IdlePollInterval(2);  // Seconds between idle polls.
 static const time_t DefaultStartupTimeout(4); // default seconds to accumulate data before ordering.
 static time_t timeOfFirstSubmission(UINT64_MAX); //
-static const  size_t defaultXonLimit(80*Mega);     // Default total fragment storage at which we can xon
-static const  size_t defaultXoffLimit(100*Mega);    // Default total fragment storage at which we xoff.
+static const  size_t defaultXonLimit(150*Mega);     // Default total fragment storage at which we can xon
+static const  size_t defaultXoffLimit(200*Mega);    // Default total fragment storage at which we xoff.
 
 /*---------------------------------------------------------------------
  * Debugging
@@ -173,9 +175,12 @@ CFragmentHandler::addFragments(size_t nSize, EVB::pFlatFragment pFragments)
     if (first) {
       timeOfFirstSubmission = m_nNow;
     }
-
+   int frags = 0;
+   int srcid = -1;
     while (nSize) {
       EVB::pFragmentHeader pHeader = &(pFragments->s_header);
+      frags++;
+      srcid = pHeader->s_sourceId;
       size_t fragmentSize = totalFragmentSize(pHeader);
       if((pHeader->s_size + sizeof(EVB::FragmentHeader)) > nSize) {
 	std::stringstream s;
@@ -199,6 +204,7 @@ CFragmentHandler::addFragments(size_t nSize, EVB::pFlatFragment pFragments)
       pFragments  = reinterpret_cast<EVB::pFlatFragment>(pNext);
       nSize -= fragmentSize;
     }
+    
     findOldest();		// Probably not needed but pretty quick.
     if (m_nNow-timeOfFirstSubmission > m_nStartupTimeout) {
       // Don't flush until we have allowed time for all data sources to 
@@ -511,6 +517,65 @@ CFragmentHandler::removeFlowControlObserver(FlowControlObserver* pObserver)
 }
 
 /**
+ * addNonMonotonicTimestampObserver
+ *   Add an observer that is called if an input queue has a timestamp that is
+ *   non-monotonic with respect to the previous timestamp.
+ *
+ *  @param pObserver - pointer to the observer to add.
+ */
+void
+CFragmentHandler::addNonMonotonicTimestampObserver(
+    CFragmentHandler::NonMonotonicTimestampObserver* pObserver
+)
+{
+    m_nonMonotonicTsObservers.push_back(pObserver);
+}
+/**
+ * removeNonMonotonicTimestampobserver
+ *   Remove an observer observer established with
+ *   addNonMonotonicTimestampObserver above
+ *
+ *   @param pObserver - pointer to the observer to remove.
+ *
+ *   @note we do not own the storage for the observer, if the observer
+ *   is dynamically allocated it is not our responsibility to delete it.
+ */
+void
+CFragmentHandler::removeNonMonotonicTimestampobserver(
+    CFragmentHandler::NonMonotonicTimestampObserver* pObserver
+)
+{
+    std::list<NonMonotonicTimestampObserver*>::iterator p =
+        std::find(m_nonMonotonicTsObservers.begin(),
+                  m_nonMonotonicTsObservers.end(), pObserver);
+    if (p != m_nonMonotonicTsObservers.end()) {
+        m_nonMonotonicTsObservers.erase(p);
+    }
+}
+
+/**
+ * observeOutOfOrderInput
+ *    Fire the observers associated with an out of order timestamp on an
+ *    input queue.
+ *
+ *   @param sourceId - id of the source that has out of order input.
+ *   @param prior    - Timestamp prior to the out of order one.
+ *   @param bad      - Out of order timestamp.
+ */
+void
+CFragmentHandler::observeOutOfOrderInput(
+    unsigned sourceId, uint64_t prior, uint64_t bad
+)
+{
+    std::list<NonMonotonicTimestampObserver*>::iterator p =
+        m_nonMonotonicTsObservers.begin();
+    while (p != m_nonMonotonicTsObservers.end()) {
+        NonMonotonicTimestampObserver* pObs = *p;
+        (*pObs)(sourceId, prior, bad);
+        p++;
+    }
+}
+/**
  * Xon
  *   Initiate a flow on event.  This means invoking the Xon method
  *   of each flow control observer registered with us.
@@ -730,8 +795,7 @@ CFragmentHandler::resetTimestamps()
   m_nMostRecentlyPopped = 0;
 
   for (Sources::iterator p = m_FragmentQueues.begin(); p != m_FragmentQueues.end(); p++) {
-    p->second.s_newestTimestamp = 0;
-    p->second.s_lastPoppedTimestamp = UINT64_MAX;
+    p->second.reset();
   }
 }
       
@@ -790,7 +854,7 @@ void
 CFragmentHandler::flushQueues(bool completely)
 {
  loop: 			// avoid recursion with a good old fashioned goto.
-  m_nNow = time(NULL);
+  
 
 
   // Ensure there's at least one fragment available:
@@ -814,17 +878,20 @@ CFragmentHandler::flushQueues(bool completely)
       break;		// If there are more fragments they are barriers.
     }
   }
-
+  
   // Now we need to flush all fragments that are older than the build window.
   // This deals with the case of a source that just doesn't emit fragments
   // very often (e.g. scaler only case).
   // This should only be done if the most recently emptied queue was emptied outside
   // the build interval time.
 
+  findOldest();     // Previous code could have made oldest uh.. newer.
   time_t firstOldest = m_nOldestReceived;
+  m_nNow = time(NULL);
   if ((m_nNow - m_nOldestReceived) >= m_nBuildWindow) {
     while (!queuesEmpty() && ((m_nNow - m_nOldestReceived) >= m_nBuildWindow) ) {
       std::pair<time_t, ::EVB::pFragment>* p = popOldest();
+      findOldest();
       if (p) {
         if (p->second->s_header.s_timestamp < m_nMostRecentlyPopped) {
           dataLate(*(p->second));        
@@ -932,12 +999,10 @@ CFragmentHandler::popOldest()
     if (nextOldest != UINT64_MAX) { // Found one in pOldestQ.
       std::pair<time_t, ::EVB::pFragment> oldestFrag = pOldestQ->second.s_queue.front();
       uint64_t fragmentTimestamp  = oldestFrag.second->s_header.s_timestamp;
-      if (fragmentTimestamp == pOldestQ->second.s_lastPoppedTimestamp) {
-        // Duplicate timestamp:
-        
-        observeDuplicateTimestamp(pOldestQ->first, fragmentTimestamp);
-      }
+      
       pOldestQ->second.s_lastPoppedTimestamp = fragmentTimestamp;
+      pOldestQ->second.s_bytesDeQd          += oldestFrag.second->s_header.s_size;
+      pOldestQ->second.s_bytesInQ           -= oldestFrag.second->s_header.s_size;
       pOldestQ->second.s_queue.pop();
 
       // If this queue has been emptied mark that time:
@@ -1039,6 +1104,8 @@ CFragmentHandler::addFragment(EVB::pFlatFragment pFragment)
 
     memcpy(pFrag->s_pBody, pFragment->s_body, pFrag->s_header.s_size);
 
+    // Get a reference to the fragment queue, creating it if needed:
+    
     SourceQueue& destQueue(getSourceQueue(pHeader->s_sourceId));
 
 
@@ -1058,12 +1125,43 @@ CFragmentHandler::addFragment(EVB::pFlatFragment pFragment)
 		  << timestamp << " Next: 0x" << pFrag->s_header.s_timestamp << std::endl;
       }
     }
-    destQueue.s_newestTimestamp = timestamp; // for sure the newest 
+    /*
+     Bug #4516 - avoid counting duplicate timestamps if the timestamp was
+                 assigned because those are duplicate by design.
+    
+       This code makes the tacit assumption that timestamps of 0 are not likely to be
+       assigned timestamps... because queue s_newestTimestamp is initialized to 0.
+    */
+    if ((timestamp == destQueue.s_newestTimestamp) && (!assigned)) {
+      observeDuplicateTimestamp(pHeader->s_sourceId, timestamp);  
+    }
+    
+    // Update stastistics:
+    
+    destQueue.s_newestTimestamp = timestamp;                  // for sure the newest 
+    destQueue.s_bytesInQ       += pFrag->s_header.s_size;     // Only count payloads.
+    destQueue.s_totalBytesQd   += pFrag->s_header.s_size;     // Total bytes into the queue.
+    
+    
+    // Before we push the queue element, see if we need to observe a bad
+    // timestamop:
+    
+    
+    
+    
+    
+    uint64_t newTimestamp   = pFrag->s_header.s_timestamp;
+    uint64_t priorTimestamp =
+        destQueue.s_lastTimestamp;
+    
+    if (newTimestamp < priorTimestamp) {
+        observeOutOfOrderInput(pHeader->s_sourceId, priorTimestamp, newTimestamp);
+    }
 
-    
-   // Get a reference to the fragment queue, creating it if needed:
-    
     destQueue.s_queue.push(std::pair<time_t, EVB::pFragment>(m_nNow, pFrag));
+    destQueue.s_lastTimestamp = newTimestamp;
+    
+    
     m_liveSources.insert(pHeader->s_sourceId); // having a fragment makes a source live.
     
     // update newest/oldest if needed -- and not a barrier:
@@ -1088,7 +1186,7 @@ CFragmentHandler::addFragment(EVB::pFlatFragment pFragment)
 #endif
 	m_nOldest = timestamp;
     }
-    // Queue out of order fragmen?
+    // Queue out of order fragment?
     if (!destQueue.s_queue.empty()) {
       if (timestamp < destQueue.s_newestTimestamp) {
 	std::cerr << "Queue timestamp took a jump backwards from : "
@@ -1201,8 +1299,12 @@ CFragmentHandler::QueueStatGetter::operator()(SourceElementV& source)
     QueueStatistics stats;
     stats.s_queueId       = source.first;
     stats.s_queueDepth    = sourceQ.s_queue.size();
-    stats.s_oldestElement = stats.s_queueDepth ?sourceQ.s_queue.front().second->s_header.s_timestamp :
-      0;
+    stats.s_oldestElement =
+        stats.s_queueDepth ? sourceQ.s_queue.front().second->s_header.s_timestamp 
+                           : 0;
+    stats.s_queuedBytes       = sourceQ.s_bytesInQ;
+    stats.s_dequeuedBytes     = sourceQ.s_bytesDeQd;
+    stats.s_totalQueuedBytes  = sourceQ.s_totalBytesQd;
     
     m_nTotalFragments += stats.s_queueDepth;
     m_Stats.push_back(stats);
@@ -1262,6 +1364,8 @@ CFragmentHandler::generateBarrier(std::vector<EVB::pFragment>& outputList)
     if (!p->second.s_queue.empty()) {
       ::EVB::pFragment pFront = p->second.s_queue.front().second;
       p->second.s_lastPoppedTimestamp = pFront->s_header.s_timestamp;
+      p->second.s_bytesDeQd           += pFront->s_header.s_size;
+      p->second.s_bytesInQ            -= pFront->s_header.s_size;
       if (pFront->s_header.s_barrier) {
 	outputList.push_back(pFront);
 	p->second.s_queue.pop();
@@ -1351,9 +1455,7 @@ CFragmentHandler::findOldest()
 
       if ((pf->s_header.s_timestamp < oldest) && (pf->s_header.s_barrier ==0)) { // nonbarriers only counted
 #ifdef DEBUG
-	std::cerr << "Find oldest changing from "
-		  << std::hex << oldest << " to " << pf->s_header.s_timestamp
-		  << std::dec << std::endl;
+
 	if (oldest == 0) {
 	  std:: cerr << "That's zero!! \n";
 	  dumpFragment(pf);
@@ -1446,8 +1548,6 @@ CFragmentHandler::getSourceQueue(uint32_t id)
   Sources::iterator p = m_FragmentQueues.find(id);
   if (p  == m_FragmentQueues.end()) {	       // Need to create.
     SourceQueue& queue = m_FragmentQueues[id]; // Does most of the creation.
-    queue.s_newestTimestamp = m_nNewest;	       // Probably the best initial value.
-    queue.s_lastPoppedTimestamp = UINT64_MAX;
     return queue;
   }  else {			              // already exists.
     return p->second;

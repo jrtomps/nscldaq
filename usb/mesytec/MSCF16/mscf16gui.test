@@ -1,0 +1,190 @@
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2015.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Author:
+#    Jeromy Tompkins
+#	   NSCL
+#	   Michigan State University
+#	   East Lansing, MI 48824-1321
+
+
+
+package require tcltest
+package require snit
+
+set loadFailure 0
+
+tcltest::test pkgRequire-0 {Require the package 
+} {
+  set ::loadFailure [catch {package require mscf16gui}]
+} 0
+
+if {$::loadFailure} {
+  tcltest::cleanupTests
+  exit
+}
+
+# require the memorizer safely so that cleanupTests gets called if 
+# we fail.
+if {[catch {package require mscf16memorizer} msg]} {
+  tcltest::cleanupTests
+  exit
+}
+
+## A simple fake of the view
+#
+# The MSCF16View that this is intended to mimic has the same type of interface 
+# as the MSCF16USB in terms of Setters and Getters. So this uses the FakeHandle
+# class to manage any calls to that interface through delegation.
+snit::type FakeView {
+  option -committable 1
+  option -presenter
+
+  component _stdinterface
+
+  variable _lastStatus {}
+
+  delegate option * to _stdinterface
+  delegate method * to _stdinterface
+
+  constructor {args} {
+    install _stdinterface using MSCF16Memorizer %AUTO%
+
+    $self configurelist $args
+  }
+
+  method SetStatus {message} {
+    set _lastStatus $message 
+  }
+  method GetStatus {} { return $_lastStatus }
+
+  method SetStateOfAllControls {state} {}
+  method SetStateOfMonitorControls {state} {}
+  method SetStateForMode {} {}
+}
+
+## Some simple proc to facilitate the tests...
+proc setup {} {
+  MSCF16Memorizer ::handle
+  FakeView ::fakeview
+  MSCF16Presenter ::pres -handle ::handle -view ::fakeview
+}
+
+proc tearDown {} {
+  ::handle destroy
+  ::fakeview destroy
+  ::pres destroy
+}
+
+## A proc to load either the FakeHandle or FakeView with state
+proc LoadHandle {devname} {
+  for {set ch 0} {$ch<17} {incr ch} {
+    $devname SetThreshold $ch [expr $ch/2]
+    $devname SetPoleZero $ch [expr $ch/3]
+  }
+  for {set ch 0} {$ch<5} {incr ch} {
+    $devname SetGain $ch $ch
+    $devname SetShapingTime $ch $ch
+  }
+  $devname SetMode individual
+  $devname SetMonitor 8
+  $devname EnableRC on
+}
+
+## A proc to read the state of either the FakeHandle or FakeView into a list
+proc ReadInterface {devname} {
+  set state [list]
+
+  # these are in separate loops because I want the order of the list to be 
+  # easily understood
+  for {set ch 0} {$ch<17} {incr ch} {
+    lappend state [$devname GetThreshold $ch]
+  }
+  for {set ch 0} {$ch<17} {incr ch} {
+    lappend state [$devname GetPoleZero $ch]
+  }
+  for {set ch 0} {$ch<5} {incr ch} {
+    lappend state [$devname GetGain $ch]
+  }
+  for {set ch 0} {$ch<5} {incr ch} {
+    lappend state [$devname GetShapingTime $ch]
+  }
+  lappend state [$devname GetMode]
+  lappend state [$devname GetMonitor]
+  lappend state [$devname RCEnabled] 
+
+  # return the list...
+  return $state
+}
+
+############# BEGIN TESTS ############################################
+
+
+#
+#
+tcltest::test update-0 {Update view from model
+} -setup {
+  setup
+  LoadHandle ::handle
+} -cleanup {
+  tearDown
+} -body {
+  ::pres UpdateViewFromModel 
+  
+  ReadInterface ::fakeview 
+} -result [list 0 0 1 1  2 2 3 3  4 4 5 5  6 6 7 7  8 \
+0 0 0 1  1 1 2 2  2 3 3 3  4 4 4 5  5 \
+0 1 2 3 4  0 1 2 3 4  \
+individual 8 on]
+
+
+#
+#
+tcltest::test commitsinglechan-0 {Committing a single param with index
+} -setup {
+  setup
+  LoadHandle ::fakeview
+} -cleanup {
+  tearDown
+} -body {
+  # commit only the threshold parameter for channel 2
+  ::pres CommitSingleChan SetThreshold 2 23
+  
+  # should produce a list that is all NA except for the 2nd element of the
+  # threshold component
+  ReadInterface ::handle
+} -result [list NA NA 23 NA  NA NA NA NA  NA NA NA NA  NA NA NA NA  NA\
+NA NA NA NA  NA NA NA NA  NA NA NA NA  NA NA NA NA  NA \
+NA NA NA NA NA  NA NA NA NA NA \
+NA NA NA ]
+
+
+#
+#
+tcltest::test commitsingle-0 {Committing a single param
+} -setup {
+  setup
+  LoadHandle ::fakeview
+} -cleanup {
+  tearDown
+} -body {
+  # commit only the monitor paramater
+  ::pres CommitSingle SetMonitor 14 
+  
+  # this should produce a list that is mostly NA except for the only
+  # entry for the monitor
+  ReadInterface ::handle
+} -result [list NA NA NA NA  NA NA NA NA  NA NA NA NA  NA NA NA NA  NA\
+NA NA NA NA  NA NA NA NA  NA NA NA NA  NA NA NA NA  NA \
+NA NA NA NA NA  NA NA NA NA NA \
+NA 14 NA ]
+
+
+
+
+tcltest::cleanupTests

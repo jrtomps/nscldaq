@@ -24,9 +24,7 @@
 #include "CVMEScaler.h"
 #endif
 
-#ifndef __VMEMODULE_H
 #include <VmeModule.h>
-#endif
                                
 /*!
    Encapsulates an LRS 1151

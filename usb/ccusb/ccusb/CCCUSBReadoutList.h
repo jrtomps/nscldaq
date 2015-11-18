@@ -76,6 +76,7 @@
 
  public:
    CCCUSBReadoutList() {}
+   CCCUSBReadoutList(const std::vector<uint16_t>& list) : m_list(list) {}
    CCCUSBReadoutList(const CCCUSBReadoutList& rhs);
    CCCUSBReadoutList& operator=(const CCCUSBReadoutList& rhs);
 
@@ -85,32 +86,33 @@
    std::vector<uint16_t> get()     const;
    size_t                size()    const;
    void                  clear();
+   void                  append(const CCCUSBReadoutList& rdolist);
 
    // Adding elements to the list:
 
  public:
    // Single shot operations:
 
-   void addWrite16(int n, int a, int f, uint16_t data);
-   void addWrite24(int n, int a, int f, uint32_t data);
+   virtual void addWrite16(int n, int a, int f, uint16_t data);
+   virtual void addWrite24(int n, int a, int f, uint32_t data);
 
-   void addWrite16(int n, int a, int f, int data) { /* swig */
-     addWrite16(n,a,f, (uint16_t)data);
-   }
-   void addWrite24(int n, int a, int f, int data) { /* swig */
-     addWrite24(n,a,f, (uint32_t)data);
-   }
+//   void addWrite16(int n, int a, int f, int data) { /* swig */
+//     addWrite16(n,a,f, (uint16_t)data);
+//   }
+//   void addWrite24(int n, int a, int f, int data) { /* swig */
+//     addWrite24(n,a,f, (uint32_t)data);
+//   }
 
-   void addRead16(int n, int a, int f, bool lamWait=false);
-   void addRead24(int n, int a, int f, bool lamWait=false);
+   virtual void addRead16(int n, int a, int f, bool lamWait=false);
+   virtual void addRead24(int n, int a, int f, bool lamWait=false);
 
-   void addControl(int n, int a, int f);
+   virtual void addControl(int n, int a, int f);
 
 
    // Block transfer operations:
 
-   void addQStop(int n, int a, int f, uint16_t max, bool lamWait = false);
-   void addQStop24(int n, int a, int f, uint16_t max, bool lamWait = false);
+   virtual void addQStop(int n, int a, int f, uint16_t max, bool lamWait = false);
+   virtual void addQStop24(int n, int a, int f, uint16_t max, bool lamWait = false);
    void addQStop(int n, int a, int f, int max, bool lamWait = false) { /* swig */
      addQStop(n,a,f, (uint16_t)max, lamWait);
    }
@@ -119,22 +121,25 @@
    }
 
 
-   void addQScan(int n, int a, int f, uint16_t max, bool lamWait = false);
+   virtual void addQScan(int n, int a, int f, uint16_t max, bool lamWait = false);
    void addQScan(int n, int a, int f, int max, bool lamWait = false) { /* swig */
      addQScan(n,a,f,(uint16_t)max, lamWait);
    }
 
-   void addRepeat(int n, int a, int f,uint16_t count, bool lamWait=false);
+   virtual void addRepeat(int n, int a, int f,uint16_t count, bool lamWait=false);
    void addRepeat(int n, int a, int f, int count, bool lamWait=false) {
      addRepeat(n,a,f, (uint16_t) count, lamWait);
    }
 
    // Other:
 
-   void addMarker(uint16_t value);    // Add literal value to event.
+   virtual void addMarker(uint16_t value);    // Add literal value to event.
    void addMarker(int value) {	     /* swig */
      addMarker((uint16_t)value);
    }
+
+   virtual void addAddressPatternRead16(int n, int a, int f, bool lamWait=false);
+//   void addAddressPatternRead24(int n, int a, int f, bool lamWait=false);
 
   // 
 private:
@@ -150,5 +155,30 @@ private:
 
   
 };
+
+inline std::vector<uint16_t>* vecuint16_create(int size)
+{
+  return new std::vector<uint16_t>(size);
+}
+
+inline void vecuint16_pushback(std::vector<uint16_t>* vec, uint16_t val)
+{
+  vec->push_back(val); 
+}
+
+inline void vecuint16_set(std::vector<uint16_t>* vec, int index, uint16_t val)
+{
+  if (index >= vec->size()) {
+    vec->resize(index+1);
+  }
+
+  (*vec)[index] = val;
+}
+
+inline std::vector<uint16_t>& vecuint16_ptr2ref(std::vector<uint16_t>* vec)
+{
+  return *vec;
+}
+
 
 #endif

@@ -3,7 +3,7 @@
 
 AC_PREREQ(2.61)
 
-AC_INIT(nscldaq, 11.0-exp-varmgr, fox@nscl.msu.edu,[], [http://www.sourceforge.net/projects/nscldaq])
+AC_INIT(nscldaq, 11.1-exp-varmgr, fox@nscl.msu.edu,[], [http://www.sourceforge.net/projects/nscldaq])
 
 
 AC_CONFIG_SRCDIR([/utilities/StringsToIntegers.h])
@@ -19,20 +19,57 @@ AC_PROG_LIBTOOL
 
 AX_CXX_COMPILE_STDCXX_11([noext])
 
-AC_CHECK_PROG(HAVE_DOCBOOK2PDF, [docbook2pdf], true, false)
-AC_CHECK_PROG(HAVE_XMLTO, [xmlto], true, false)
-AC_CHECK_PROG(MANDB, mandb, mandb, echo)
+AC_ARG_ENABLE([docs],
+              AS_HELP_STRING([--enable-docs],[Build the documentation]),
+              [ENABLE_DOCS=yes],[ENABLE_DOCS=no])
+if test "x$ENABLE_DOCS" == "xyes"
+then
+
+  AC_CHECK_PROG(HAVE_DOCBOOK2PDF, [docbook2pdf], [true], [false])
+  if test "$HAVE_DOCBOOK2PDF" == "false"
+  then
+    AC_MSG_FAILURE([docbook2pdf is required to build documentation but was not found])
+  else
+    AC_SUBST(DOCBOOK2PDF,[docbook2pdf])
+  fi
+
+  AC_CHECK_PROG(HAVE_DOCBOOK2HTML, [docbook2html], [true], [false])
+  if test "$HAVE_DOCBOOK2HTML" == "false"
+  then
+    AC_MSG_FAILURE([docbook2html is required to build documentation but was not found])
+  else
+    AC_SUBST(DOCBOOK2HTML,[docbook2html])
+  fi
+
+  AC_CHECK_PROG(HAVE_XMLTO, [xmlto], [true], [false])
+  if test "$HAVE_XMLTO" == "false"
+  then
+    AC_MSG_FAILURE([xmlto is required to build documentation but was not found])
+  else
+    AC_SUBST(DOCBOOK2MAN,["xmlto man"])
+  fi
+
+  AC_CHECK_PROG(HAVE_MANDB, mandb, [true], [false])
+  if test "$HAVE_MANDB" == "false"
+  then
+    AC_MSG_FAILURE([mandb is required to build documentation but was not found])
+  else
+    AC_SUBST(MANDB,[mandb])
+  fi
+
+  AM_CONDITIONAL([BUILD_DOCS],[true])
+else
+  AM_CONDITIONAL([BUILD_DOCS],[false])
+fi
 
 AC_CHECK_LIB([X11], [XSetWindowBackground])
 AC_CHECK_LIB([Xt], [XtManage])
-# AC_CHECK_LIB([cppunit], [_ZN7CppUnit12XmlOutputterD1Ev], [CPPUNIT_LDFLAGS=-lcppunit])
-
 
 AM_PATH_CPPUNIT
 
 # Checksums in eventlog require openssl for the digest libs:
 
-AX_CHECK_OPENSSL([AC_MSG_RESULT([found openssl])],[AC_MSG_ERROR([Open SSL  is required but can't be found])])
+AX_CHECK_OPENSSL([AC_MSG_RESULT([found openssl])],[AC_MSG_ERROR([OpenSSL is required but cannot be found])])
 
 # Using glib bits:
 
@@ -44,6 +81,7 @@ PKG_CHECK_MODULES([GLIB], glib-2.0 > 2.16)
 
 CPPUNIT_LDFLAGS="${CPPUNIT_LIBS}"
 
+AC_SUBST([AM_CXXFLAGS], [-fno-strict-aliasing])
 
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
@@ -289,9 +327,10 @@ AC_SUBST(ZMQ_LDFLAGS)
 
 ##
 # need the zmq c++ bindings
-#
+#  note in some c++11's we need to include <algorithm> to include zmq.hpp:
 AC_LANG_PUSH(C++)
-AC_CHECK_HEADER([zmq.hpp],[], [AC_MSG_ERROR([The zeromq C++ header (zmq.hpp) is missing and is required for nscldaq])])
+AC_CHECK_HEADERS([algorithm zmq.hpp],[], [AC_MSG_ERROR([The zeromq C++ header (zmq.hpp) is missing and is required for nscldaq])],
+			    [#include <algorithm>])
 AC_LANG_POP
 
 
@@ -308,7 +347,6 @@ AC_DEFINE(__STDC_LIMIT_MACROS, [], [Needed to define UINT64_C])
 AC_DEFINE(__STDC_CONSTANT_MACROS, [], [Needed to define UINT64_C])
 
 AC_SUBST(SOVERSION)
-AC_SUBST(MANDB)
 
 AC_SUBST(TCL_FLAGS)
 AC_SUBST(TCL_LDFLAGS)
@@ -320,9 +358,6 @@ AC_SUBST(TCLSH_CMD)
 
 
 AC_SUBST(CPPUNIT_LDFLAGS)
-
-AM_CONDITIONAL([PDFDOCS], [test x$HAVE_DOCBOOK2PDF = xtrue])
-AM_CONDITIONAL([XMLMANS], [test x$HAVE_XMLTO = xtrue])
 
 #
 #  Threading is hard coded to -pthread now.
@@ -375,11 +410,14 @@ AC_CONFIG_FILES([Makefile
 		 base/plotcontainer/Makefile
 		 base/tcpip/Makefile
 		 base/factories/Makefile
+		 base/tclutils/Makefile
+		 base/testutils/Makefile
 		 caenfw-common/Makefile
 		 servers/Makefile
 		 servers/tclserver/Makefile
                  servers/portmanager/Makefile
 		 utilities/Makefile
+		 utilities/Buffer/Makefile
                  utilities/daqstart/Makefile
                  utilities/dvdburn/Makefile
 		 utilities/scalerdisplay/ScalerDisplay
@@ -397,6 +435,14 @@ AC_CONFIG_FILES([Makefile
 		 utilities/compatibility/spectcldaq
 		 utilities/compatibility/s800toring
 		 utilities/compatibility/bufdump
+		utilities/conversion/Makefile
+    		utilities/fileanalyzer/Makefile
+    		utilities/format/Makefile
+    		utilities/format/V8/Makefile
+    		utilities/format/V10/Makefile
+    		utilities/format/V11/Makefile
+    		utilities/IO/Makefile
+    		utilities/FormattedIO/Makefile
 		 utilities/newscaler/Makefile
 		 utilities/newscaler/ScalerDisplay.tcl
 		 utilities/varmanager/Makefile
@@ -438,8 +484,9 @@ AC_CONFIG_FILES([Makefile
 		 daq/eventbuilder/glom/Makefile
 		 daq/eventbuilder/unglom/Makefile
 		 daq/eventbuilder/startOrderer
+		 daq/actions/Makefile
 		 daq/eventbuilder/offlineorderer/Makefile
-     daq/eventbuilder/offlineorderer/figures/Makefile
+     		 daq/eventbuilder/offlineorderer/figures/Makefile
 		 sbs/Makefile
 		 sbs/driver/Makefile
 		 sbs/driver/src/Makefile
@@ -462,30 +509,50 @@ AC_CONFIG_FILES([Makefile
 		 sbs/VmeDevice/Makefile
 		 sbs/caenfwloader/Makefile
 		 usb/Makefile
-                 usb/loaders/Makefile
-		 usb/vmusb/Makefile
-		 usb/vmusb/vmusb/Makefile usb/vmusb/devices/Makefile 
-		 usb/vmusb/router/Makefile
-		 usb/vmusb/rdothread/Makefile usb/vmusb/tclserver/Makefile 
-		 usb/vmusb/daqconfig/Makefile  usb/vmusb/commands/Makefile
-		 usb/vmusb/driverkit/Makefile usb/vmusb/driverkit/Makefile-template
-		 usb/vmusb/tcldrivers/Makefile
-		 usb/vmusb/driverkit/VMUSBDriverIncludes
-                 usb/vmusb/controlpanels/Makefile usb/vmusb/controlpanels/cv6533/Makefile
-		 usb/vmusb/devtests/Makefile
-		 usb/vmusb/vmusbPackage/Makefile
-		 usb/ccusb/Makefile
-		 usb/ccusb/ccusb/Makefile usb/ccusb/devices/Makefile 
-		 usb/ccusb/router/Makefile
-		 usb/ccusb/rdothread/Makefile usb/ccusb/tclserver/Makefile 
-		 usb/ccusb/tclserver/driver_Makefile
-		 usb/ccusb/daqconfig/Makefile  usb/ccusb/commands/Makefile
-		 usb/ccusb/driverkit/Makefile
+		 usb/loaders/Makefile
+    		 usb/vmusb/Makefile
+    		 usb/vmusb/vmusb/Makefile 
+    		 usb/vmusb/core/Makefile 
+    		 usb/vmusb/ctlconfig/Makefile 
+    		 usb/vmusb/daqconfig/Makefile  
+    		 usb/vmusb/driverkit/Makefile 
+    		 usb/vmusb/driverkit/Makefile-template
+    		 usb/vmusb/tcldrivers/Makefile
+    		 usb/vmusb/driverkit/VMUSBDriverIncludes
+    		 usb/vmusb/controlpanels/Makefile 
+    		 usb/vmusb/controlpanels/cv6533/Makefile
+    		 usb/vmusb/controlpanels/figures/Makefile
+    		 usb/vmusb/devtests/Makefile
+    		 usb/vmusb/vmusbPackage/Makefile
+    		 usb/vmusb/tclservertests/Makefile
+    		 usb/ccusb/Makefile
+    		 usb/ccusb/ccusb/Makefile 
+    		 usb/ccusb/core/Makefile
+    		 usb/ccusb/daqconfig/Makefile 
+    		 usb/ccusb/ctlconfig/Makefile 
+    		 usb/ccusb/ctlconfig/driver_Makefile
+    		 usb/ccusb/tclpackage/Makefile
+    		 usb/ccusb/tcldrivers/Makefile
+    		 usb/ccusb/driverkit/Makefile
 		 usb/ccusb/driverkit/Makefile-template
 		 usb/ccusb/driverkit/CCUSBDriverIncludes
-                 usb/ccusb/controlpanels/Makefile
+		 usb/ccusb/controlpanels/Makefile
+		 usb/ccusb/devtests/Makefile
+		 usb/ccusb/tclservertests/Makefile
 		 usb/caenfwloader/Makefile
+		 usb/common/Makefile
+		 usb/common/tcldrivers/Makefile
+		 usb/common/devices/Makefile
+		 usb/common/configurableobject/Makefile
+		 usb/common/slowcontrols/Makefile
+		 usb/mesytec/Makefile
+		 usb/mesytec/MCFD16/Makefile
+		 usb/mesytec/MCFD16/figures/Makefile
+		 usb/mesytec/MSCF16/Makefile
+		 usb/mesytec/MSCF16/figures/Makefile
 		 docbuild/Makefile
+		 docbuild/images/Makefile
+		 docbuild/images/callouts/Makefile
 		 docconfig/Makefile])
 
 AC_OUTPUT

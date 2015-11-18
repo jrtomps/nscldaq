@@ -30,7 +30,11 @@ namespace eval ::RdoCallouts10 {
     # above toplevel:
 
     set ::RdoCallouts10::here [file normalize [file dirname [info script]]]
-
+    puts "--------------------------------"
+    set daq10s  [glob -nocomplain [file join $::RdoCallouts10::here ../../../10.2*]]
+    if {$daq10s eq ""} {
+       error "No NSCLDAQ-10.x installed"
+    }
     set ::RdoCallouts10::libpath10 [file normalize [file join [lindex [lsort -decreasing \
        [glob -nocomplain [file join $::RdoCallouts10::here ../../../10.2*]]] 0] TclLibs]]
     puts "Path: $::RdoCallouts10::libpath10"

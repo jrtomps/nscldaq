@@ -25,15 +25,17 @@ package require eventLogBundle
 package require DataSourceManager
 package require DataSourceMonitor
 package require EVBStateCallouts
+package require ringsourcemgr
 
 package require ExpFileSystem
-package require rdoCalloutsBundle ;# self registers
-package require OfflineEVBOutputPipeline
 package require OfflineEVBInputPipeline
 package require OfflineEVBHoistPipeline
 package require evbcallouts
+package require evbconfigure
 
 package require Thread
+package require OfflineEVBOutputPipeline
+package require RunStateObserver
 
 ## @namespace HoistConfig
 #
@@ -83,14 +85,18 @@ snit::type JobProcessor {
 
   variable sourceManager ""
   variable stateMachine  ""
+  variable completionStatus FAIL ; # assume failure unless told otherwise
+  variable runStateObserver ""
+  variable processingComplete 0
 
   ## @brief Pass the options
   #
   constructor {args} {
-    variable sourceManager
-    variable stateMachine
     set sourceManager [DataSourcemanagerSingleton %AUTO%]
     set stateMachine  [RunstateMachineSingleton %AUTO%]
+    set processingComplete 0
+
+    set runStateObserver [RunStateObserver %AUTO% -onend [mymethod onEndRun]]
 
     $self configurelist $args
 
@@ -107,6 +113,8 @@ snit::type JobProcessor {
       $stateMachine destroy
       set stateMachine ""
     }
+
+    $runStateObserver destroy
   }
 
   ## @brief Register all of the bundles that we need
@@ -114,10 +122,11 @@ snit::type JobProcessor {
   #
   method setupStateMachine {} {
     # rdoCalloutsBundle has already been registered
-    ::EVBStateCallouts::register
     ::EventLog::register
+    ::EVBStateCallouts::register
+    ::RingSourceMgr::register
+    ::EVBConfigure::register
     ::DataSourceMgr::register
-    ::DataSourceMonitor::register
   }
 
   ## @brief return the data source manager known to this
@@ -140,37 +149,73 @@ snit::type JobProcessor {
   # Sets up all the pipelines and then processes all of the files provided
   #
   method run {} {
+    set completionStatus FAIL
     # hook to handle one-time startup procedures 
-    puts "setup"
     $self setup
 
-    puts "startProcessing"
-    $self startProcessing 
+    set processingComplete 0
+    if {![catch {$self startProcessing} msg]} {
+     set newRing tcp://localhost/[$options(-evbparams) cget -destring]
+     set currentRing [$runStateObserver cget -ringurl]
+     if {$currentRing ne $newRing} {
+       if {$currentRing ne {}} {
+         $runStateObserver detachFromRing
+       }
+       $runStateObserver configure -ringurl $newRing
+       $runStateObserver attachToRing
+     }
 
-    # Tell the eventlog that it is okay for it to exit, because that is 
-    # what we expect.
-    EventLog::runEnding    ;# wait until run is ended and finalize
+      vwait [myvar processingComplete]
 
-    $self stopProcessing   ;# stop the processing pipelines
+      # wait for some time to finish getting all of the end runs
+      after 100
+
+      if {$processingComplete == 1} {
+        # job ended normally
+        puts "we are going to try to end this thing"
+
+        if {$::EventLog::loggerPid != -1} { 
+          ::EventLog::runEnding
+        }
+        # the transition to active was successful so we should expect that 
+        # processing succeeds.
+        #
+        # Tell the eventlog that it is okay for it to exit, because that is 
+        # what we expect.
+        #
+        # Currently we have no mechanism for aborting a run in progress.
+        #
+        set completionStatus OK
+        $self stopProcessing   ;# stop the processing pipelines
+
+      } else {
+        # run aborted
+         puts "aborted"
+        set completionStatus ABORT
+        $self forceStopProcessing
+      }
+
+    }
+
+    return $completionStatus
+  }
+
+  method onEndRun {item} {
+    set processingComplete 1
   }
 
   ## @brief Load and configure the callout bundles 
   #
   #
   method setup {} {
-    puts "setupStateMachine"
     $self setupStateMachine 
 
-    puts "generateStartEVBSources"
     $self generateStartEVBSources 
 
-    puts "configureEVB"
     $self configureEVB
 
-    puts "configureEventLog"
     $self configureEventLog
 
-    puts "setupDataSourceManager"
     $self setupDataSourceManager
 
   }
@@ -191,19 +236,25 @@ snit::type JobProcessor {
     # Transition the state machine to Starting (note this schedules
     # a transition to Active on its own)
     if {[catch {$stateMachine transition Starting} msg]} {
-      $stateMachine transition NotReady
+      # things may not like being forced back to NotReady
+      catch {$stateMachine transition NotReady}
       $self tearDown
-      return -code error "JobProcessor::startProcessing failed to transition to Starting : $msg"
+      set msg "JobProcessor::startProcessing failed to transition to Starting : $msg"
+      tk_messageBox -icon error -message $msg
+      return -code error $msg 
     }
-
     # We need to wait for the scheduled transition to succeed
     # before transitioning to Active because otherwise it will fail
     $self waitForHalted
 
+    # exceptional behavior is caught by the transition
     if {[catch {$stateMachine transition Active} msg]} {
-      $stateMachine transition NotReady
+      # things may not like being forced back to NotReady
+      catch {$stateMachine transition NotReady}
       $self tearDown
-      return -code error "JobProcessor::startProcessing failed to transition to Active : $msg"
+      set msg "JobProcessor::startProcessing failed to transition to Active : $msg"
+      tk_messageBox -icon error -message $msg
+      return -code error $msg
     }
 
   }
@@ -216,7 +267,6 @@ snit::type JobProcessor {
   # the update calls.
   #
   method waitForHalted {} {
-    variable stateMachine
 
     set state [$stateMachine getState]
     while {$state ne "Halted"} {
@@ -229,35 +279,27 @@ snit::type JobProcessor {
   ## @brief Transition the state machine into a NotReady state
   #
   method stopProcessing {} {
-    puts "stopProcessing"
-    variable stateMachine
 
     if {[$stateMachine getState] eq "Active"} {
-      puts "Active -> Halted"
       $stateMachine transition Halted
     }
 
-    puts "Halted -> NotReady"
     $stateMachine transition NotReady
 
     $self tearDown 
+  }
 
-#    after 1000 [list $options(-runprocessor) runNext]
-#    puts "Child thinks parent is : $::_parentThread"
-#    after 1000 "thread::send $::_parentThread [list $options(-runprocessor) runNext] ; set ::done 1"
-#    vwait ::done
-#    thread::send -async $::_parentThread [list $options(-runprocessor) runNext]
-#    puts "Child thread completed run"
+  method forceStopProcessing {} {
+    $stateMachine transition NotReady
+    $self tearDown
   }
 
   ## @brief Transition the system into a clean state
   #
   method tearDown {} {
 
-    puts "clearDataSources"
     $self clearDataSources
     
-    puts "tearDownStateMachine"
     $self tearDownStateMachine
   }
 
@@ -313,8 +355,11 @@ snit::type JobProcessor {
     set ::HoistConfig::id         [$options(-hoistparams) cget -id]
     set ::HoistConfig::expectbh   [$options(-hoistparams) cget -expectbheaders]
 
-    # define a startEVBSources proc or overwrite it if it already exists
-    eval { proc ::startEVBSources {} { EVBC::startRingSource tcp://localhost/$::HoistConfig::ring $::HoistConfig::tstamplib $::HoistConfig::id $::HoistConfig::info $::HoistConfig::expectbh}}
+    ::EVBC::registerRingSource tcp://localhost/$::HoistConfig::ring \
+      $::HoistConfig::tstamplib \
+      $::HoistConfig::id \
+      $::HoistConfig::info \
+      $::HoistConfig::expectbh
   }
 
   ## Pass the configuration information to the ::EVBC:: parameters
@@ -383,6 +428,12 @@ snit::type JobProcessor {
     $sourceManager addSource Offline [dict create unglomid [$options(-inputparams) cget -unglomid] \
                                                 ring [$options(-inputparams) cget -inputring] \
                                                 file [$options(-inputparams) cget -file]]
+  }
+
+
+  method abortRun {} {
+    puts "setting processingComplete -> 2"
+    set processingComplete 2
   }
 
 }

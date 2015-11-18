@@ -29,6 +29,8 @@ package require OfflineEVBInputPipeline
 package require OfflineEVBHoistPipeline
 package require evbcallouts
 package require OfflineEVBOutputPipeline
+package require Process
+
 
 package require snit
 package require Tk
@@ -75,36 +77,17 @@ package require Tk
 #
 # @ingroup jobconfigui
 #
-# This is the megawidget that the user will ultimately interact with. It is a
-# megawidget whose hull is a ttk::frame. Other software should not directly
-# instantiate one of these unless it knows what it is doing because these are
-# only useful when attached to a JobConfigUIPresenter.
-#
-# There are a few useful options that can provided to configure the way that
-# this appears to the user:
-# 
-# -missingwidget    a MissingSourceUIView object
-# -buildwidget      a BuildEventsWidget object
-# -showbuttons      boolean value indicating whether to show buttons or not
-#                   (basically this determines whether this is its own master)
-# -buttontext       the text to put on the "Accept" button
-#
-# Otherwise, the other options contain the display state of view. These are the
-# value of the data that could be written into the model if the presenter
-# decides to synchronize to the view state.
+# This is essentially a container for the ConfigurationFrame and the AnalysisProgress
+# megawidgets. It delegates all options and methods to the view that is currently
+# being shown to the user. The presenter can switch between the two modes.
 snit::widget JobConfigUIView {
 
-  
-  option -nsources        -default 2        ;#< number of end runs to expect
-  option -jobname         -default "Job"    ;#< name of job (not used)
-  option -missingwidget   -default ""       ;#< name of missing source widget
-  option -buildwidget     -default ""       ;#< name of buildevents widget
-
-  option -showbuttons     -default 1        ;#< show buttons or not? 
-  option -buttontext      -default "Create" ;#< Label to put on button
-
   component m_presenter                     ;#< The presenter
-  variable m_fileTree                       ;#< FileList widget name
+
+  component m_currentView                  ;#< the current view
+
+  delegate option * to m_currentView
+  delegate method * to m_currentView
 
   ## @brief Construct the megawidget
   #
@@ -116,12 +99,15 @@ snit::widget JobConfigUIView {
   constructor {presenter args} {
 
     set m_presenter $presenter
-    set m_fileTree ""
 
+    AnalysisProgress $win.analysis $m_presenter -onabort [mymethod onAbort]
+
+    install m_currentView using ConfigurationFrame $win.config $m_presenter
+    
     $self configurelist $args 
 
     # build the gui
-    $self buildGUI    
+    $self gridConfigurationView
   }
 
   ## @brief Destroy this thing 
@@ -131,89 +117,39 @@ snit::widget JobConfigUIView {
   }
 
 
-  ## @brief Assemble the megawidget
+  ## @brief Switch the configuration mode
   #
-  # Because this is a snit::widget object, the hull is actually just a ttk::frame.
-  # This fills that frame ($win) with a bunch of configuration widgets. These are 
-  # simply some labels on text entries.
-  #
-  method buildGUI {} {
-    variable m_paramFrame
-    
-    ttk::label $win.jobNameLbl    -text "Job name"
-    ttk::label $win.jobNameEntry  -textvariable [myvar options(-jobname)]
-
-    set top $win.fileFrame
-    set m_fileTree $top.files
-
-    ttk::frame $top
-    ttk::label $top.addFilesLbl -text "Add run files"
-    FileList $m_fileTree -sort 1
-    grid $top.addFilesLbl -sticky new
-    grid $top.files -sticky nsew
-    grid rowconfigure    $top 0 -weight 1
-    grid columnconfigure $top 0 -weight 1
-
-    set m_paramFrame $win.params
-    set top $m_paramFrame
-    ttk::frame $top 
-
-    ttk::label $top.nsrcsLbl -text "Number of end runs to expect"
-    ttk::entry $top.nsrcsEntry -textvariable [myvar options(-nsources)] -width 3
-
-
-    set buttons $win.buttons
-    ttk::frame $buttons 
-    ttk::button $buttons.cancel -text "Cancel" -command [mymethod onCancel]
-    ttk::button $buttons.create -textvariable [myvar options(-buttontext)]\
-                                -command [mymethod onCreate]
-    grid $buttons.cancel $buttons.create -sticky e -padx {9 0}
-
-    grid $top.nsrcsLbl $top.nsrcsEntry  -sticky nw 
-    if {$options(-missingwidget) ne ""} {
-      $self gridMissingMissingWidget $options(-missingwidget)
+  # Remove all current widgets that are displayed and 
+  # replace them with the configuration view
+  method gridConfigurationView {} {
+    if {$m_currentView ne "$win.config"} {
+      foreach slave [grid slaves $win] {
+        grid remove $slave
+      }
     }
-    if {$options(-buildwidget) ne ""} {
-      $self gridBuildWidget $options(-buildwidget)
+    set m_currentView $win.config
+
+    grid $m_currentView -sticky nsew
+    grid rowconfigure $win all -weight 1
+    grid columnconfigure $win all -weight 1
+  }
+
+  ## @brief Switch to the analysis mode
+  #
+  # Analogous to gridAnalysisView but for the analysis mode.
+  method gridAnalysisView {} {
+#    set oldGeo [wm geometry [winfo toplevel $self]]
+    if {$m_currentView ne "$win.analysis"} {
+      foreach slave [grid slaves $win] {
+        grid remove $slave
+      }
     }
-    grid configure $top.nsrcsEntry -sticky ne
+    set m_currentView $win.analysis
 
+    grid $m_currentView -sticky nsew
+    grid rowconfigure $win all -weight 1
+    grid columnconfigure $win all -weight 1
 
-    grid $win.fileFrame  -row 0 -column 0 -padx {0 9} -sticky nsew
-    grid $top        -row 0 -column 1 -padx {9 0} -sticky nsew
-    grid x $buttons  -row 1 -padx 9 -sticky sew -pady 9
-    grid columnconfigure $win {0 1} -weight 1 -minsize 300
-
-  }
-
-  ## @brief Grid the missing sources widget
-  # @param name name of the widget
-  method gridMissingWidget {name} {
-    variable m_paramFrame
-    grid $name - -row 1 -sticky new -pady 9 -in $m_paramFrame
-  }
-
-  ## @brief Grid the build event widget
-  # @param name of the widget
-  method gridBuildWidget {name} {
-    variable m_paramFrame
-    grid $name -  -row 2 -sticky new -in $m_paramFrame
-  }
-
-  ## @brief Forward button press event to presenter
-  #
-  # This does not check whether the presenter exists. It is assumed that the
-  # user has already set this up.
-  method onCancel {} {
-    $m_presenter cancel
-  }
-
-  ## @brief Forward button press event to presenter
-  #
-  # This does not check whether the presenter exists. It is assumed that the
-  # user has already set this up.
-  method onCreate {} {
-    $m_presenter create
   }
 
   ## @brief Pass this a different presenter object 
@@ -238,10 +174,15 @@ snit::widget JobConfigUIView {
   #
   # @returns name of the object in control of the filelist widget
   method getFileListPresenter {} {
-    return $m_fileTree
+    return [$win.config getFileListPresenter]
   }
-}
 
+
+  method onAbort {} {
+    $m_presenter onAnalysisAbort
+  }
+
+}
 # End of JobConfigUIView code
 
 # ------------------------------------------------------------------------------
@@ -279,6 +220,7 @@ snit::type JobConfigUIPresenter {
   variable m_filelist ;#< the view's file list widget
 
   variable m_observer  ;#< observes whether this is to be accepted
+  variable m_analysisDone ;
 
   ## Construct the model, view, and synchronize view
   #
@@ -604,6 +546,164 @@ snit::type JobConfigUIPresenter {
     $m_view configure -buttontext $text
   }
 
+  ## @brief Analyze the files in the file list
+  #
+  # @todo Break this off into its own snit::type 
+  #
+  # In this method, the presenter retrieves the files to the be processed,
+  # then sends them through the FileAnalyzer program. This program counts the
+  # number of item of each type for each source id in the file and then writes a
+  # tcl dictionary summarizing the results to a file. This proc then sources the 
+  # file to bring the results into the tcl world and then uses the dictionary of
+  # statistics to fill in some details for the user. It catches problems with 
+  # insufficient state change items, and missing body headers.  While the analysis
+  # is in progress, it switches the view to the analysis view so that the user sees
+  # a progress bar and an abort button.
+  #
+  method onAnalyze {} {
+
+    set files [[$m_view getFileListPresenter]  getFiles]
+    if {[llength $files] == 0} {
+      tk_messageBox -icon error -message "You must specify some files before you can analyze"
+      return ""
+    }
+
+    # swap the state of the view so that users see a progress bar
+    $m_view gridAnalysisView
+
+    # launch the analyzer
+    set analyzer [file join [InstallRoot::Where] bin FileAnalyzer]
+    # figure out a unique file path to use for writing the result to
+    set resultFile [$self generateResultFilePath]
+    Process analyzer -command [list cat $files | $analyzer --source=- \
+      --sink=file:///dev/null --oneshot --number-of-sources=100000 \
+      --output-file=$resultFile] \
+                 -oneof [list set [myvar m_analysisDone] 1]
+    set analysisPid [analyzer getPIDs]
+
+    # once the file closes we will be done waiting, alternatively we can stop waiting
+    # if the user presses the abort button
+    vwait [myvar m_analysisDone]
+    analyzer destroy
+
+    # switch back to the configuration view
+    $m_view gridConfigurationView 
+
+
+    # the result file did not get created... shoot. This can happen if the user
+    # aborts
+    if {![file exists $resultFile]} {
+      tk_messageBox -icon error -message "Analysis of file(s) did not complete normally"
+      return
+    }
+
+    # bring the results into the tcl world as a dict
+    source $resultFile
+
+    # clean up.
+    file delete $resultFile
+
+    # Do some basic analysis
+    
+    # count the number of sources
+    set beginCount 0
+    set endCount 0
+    dict for {id itemCounts} $sourceMap {
+      incr beginCount [dict get $itemCounts BEGIN_RUN]
+      incr endCount [dict get $itemCounts END_RUN]
+    }
+
+    if {$beginCount != $endCount} {
+      set msg "Analysis found $beginCount begin items and $endCount end items. "
+      append msg "Because these are different numbers, the file cannot be safely processed."
+      tk_messageBox -icon error -message $msg -parent $m_view
+      return ""
+    }
+    $m_view configure -nsources $endCount
+    
+    if {[dict exists $sourceMap 4294967295]} {
+      set missingWidget [$m_view cget -missingwidget]
+      $missingWidget configure -missing 1
+      set suggestedId [$self generateSuggestedID $sourceMap]
+      $missingWidget setSourceID $suggestedId
+    }
+
+  }
+
+  ## @brief Break the vwait
+  method onAnalysisAbort {} {
+     set m_analysisDone 1
+  }
+
+  ## @brief Figure out a unique path to use as the result file
+  #
+  #  This is not 100% fool proof. The goal is to not clobber a file
+  #  that already exists with the output of the analyzer. However, 
+  #  someone could be nasty and create of file of the same name as the
+  #  resulting path found by this program while the analyzer is running.
+  #  If they do that, their file will be overwritten by the analyzer. 
+  #
+  #  But the odds that someone is going to come up with a file names 
+  #  .[pid]_fileanalysis is pretty low.
+  #
+  #  @return path name that currently does not exist
+  #
+  method generateResultFilePath {} {
+    set path [file join [pwd] .[pid]_fileanalysis]
+    set i 0
+    while {[file exists $path]} {
+      set path [file join [pwd] .[expr [pid]+$i]_fileanalysis]
+    }
+    return $path
+  }
+
+  ## @brief Figure out a good source id to use for missing body header
+  #
+  # If this is called, it has been determined that some ring items were
+  # missing body headers. We can assume this and try to help the user
+  # choose an appropriate source id to use for those items. 
+  # We really want to prevent the user from choosing a duplicate 
+  # source id to the other ring items that had body headers. That way 
+  # they don't run into the nasty situation wehre they are sticking multiple
+  # BEGIN_RUN and END_RUN items into the same event order queues. While
+  # we do this, we try to give them the source id that corresponds to the other
+  # "body-header"less ring items. We detect this by finding out that a source id
+  # exists for which there are no BEGIN_RUN items. In the end it is up to the user
+  # to decided to use our suggested number. 
+  #
+  # @return a safe source id
+  #
+  method generateSuggestedID {statistics} {
+    set ids [dict keys $statistics]
+    foreach id $ids {
+      if {([dict get $statistics $id BEGIN_RUN] == 0) && ([dict get $statistics $id PHYSICS_EVENT]>0)} {
+
+        set msg "Analysis of the file revealed that source id $id "
+        append msg "lacks BEGIN_RUN items but has PHYSICS_EVENT items. "
+        append msg "This is symptomatic of a Readout that did not include "
+        append msg "body headers in its data. "
+        append msg "Do you want to use $id as the source id for items "
+        append msg "missing body headers? If not, a unique source id will "
+        append msg "provided as a suggestion."
+        set answer [tk_messageBox -icon question -message $msg -type yesno -parent $m_view]
+        update
+
+        if {$answer == "yes"} {
+          return $id
+        }
+      }
+    }
+
+    # we couldn't figure out the correct source id to use or the user 
+    # rejected our attempt to help them out. Pity. In any case, we can 
+    # still help them by providing a unique source id.
+    set trialID 0
+    while {$trialID in $ids} {
+      incr trialID
+    }
+    return $trialID
+  }
+
 }
 
 #------------------------------------------------------------------------------
@@ -860,3 +960,185 @@ snit::type BuildEventsPresenter {
     return [$m_view getWindowName]
   }
 }
+
+
+##
+# ConfigurationFrame
+#
+# This is the megawidget that the user will ultimately interact with. It is a
+# megawidget whose hull is a ttk::frame. Other software should not directly
+# instantiate one of these unless it knows what it is doing because these are
+# only useful when attached to a JobConfigUIPresenter.
+#
+# There are a few useful options that can provided to configure the way that
+# this appears to the user:
+# 
+# -missingwidget    a MissingSourceUIView object
+# -buildwidget      a BuildEventsWidget object
+# -showbuttons      boolean value indicating whether to show buttons or not
+#                   (basically this determines whether this is its own master)
+# -buttontext       the text to put on the "Accept" button
+#
+# Otherwise, the other options contain the display state of view. These are the
+# value of the data that could be written into the model if the presenter
+# decides to synchronize to the view state.
+snit::widget ConfigurationFrame {
+
+  option -nsources        -default 2        ;#< number of end runs to expect
+  option -jobname         -default "Job"    ;#< name of job (not used)
+  option -missingwidget   -default ""       ;#< name of missing source widget
+  option -buildwidget     -default ""       ;#< name of buildevents widget
+
+  option -showbuttons     -default 1        ;#< show buttons or not? 
+  option -buttontext      -default "Create" ;#< Label to put on button
+
+  component m_fileTree
+
+  variable m_presenter
+  variable m_paramFrame
+
+  constructor {presenter args} {
+    set m_presenter $presenter
+
+    $self configurelist $args
+
+    ttk::label $win.jobNameLbl    -text "Job name"
+    ttk::label $win.jobNameEntry  -textvariable [myvar options(-jobname)]
+
+    set top $win.fileFrame
+    set m_fileTree $top.files
+
+    ttk::frame $top
+    ttk::label $top.addFilesLbl -text "Add run files"
+    FileList $m_fileTree -sort 1
+    grid $top.addFilesLbl -sticky new
+    grid $top.files -sticky nsew
+    grid rowconfigure    $top 0 -weight 1
+    grid columnconfigure $top 0 -weight 1
+
+    set m_paramFrame $win.params
+    set top $m_paramFrame
+    ttk::frame $top 
+
+    ttk::label $top.nsrcsLbl -text "Number of end runs to expect"
+    ttk::entry $top.nsrcsEntry -textvariable [myvar options(-nsources)] -width 3
+
+    set analyze $top.analyze
+    ttk::frame $analyze
+    ttk::label $analyze.help -text "Analyzing the file extracts information from it \nand fill in some of the information above."
+    ttk::button $analyze.analyze -text "Analyze File" -command [mymethod onAnalyze]
+    grid $analyze.help -sticky nsew -padx 9 -pady 9
+    grid $analyze.analyze -sticky nsew -padx 9 -pady 9
+    grid rowconfigure $analyze all -weight 1
+    grid columnconfigure $analyze all -weight 1
+
+    set buttons $win.buttons
+    ttk::frame $buttons 
+    ttk::button $buttons.cancel -text "Cancel" -command [mymethod onCancel]
+    ttk::button $buttons.create -textvariable [myvar options(-buttontext)]\
+                                -command [mymethod onCreate]
+    grid $buttons.cancel $buttons.create -sticky e -padx {9 0}
+
+    grid $top.nsrcsLbl $top.nsrcsEntry  -sticky nw 
+    if {$options(-missingwidget) ne ""} {
+      $self gridMissingWidget $options(-missingwidget)
+    }
+    if {$options(-buildwidget) ne ""} {
+      $self gridBuildWidget $options(-buildwidget)
+    }
+    grid $analyze -row 3 -sticky nsew
+    grid configure $top.nsrcsEntry -sticky ne
+
+    grid $win.fileFrame  -row 0 -column 0 -padx {0 9} -sticky nsew
+    grid $top        -row 0 -column 1 -padx {9 0} -sticky nsew
+    grid x $buttons  -row 2 -padx 9 -sticky sew -pady 9
+    grid columnconfigure $win {0 1} -weight 1 -minsize 300
+  }
+
+  ## @brief Grid the missing sources widget
+  # @param name name of the widget
+  method gridMissingWidget {name} {
+    grid $name - -row 1 -sticky new -pady 9 -in $m_paramFrame
+    $self configure -missingwidget $name
+  }
+
+  ## @brief Grid the build event widget
+  # @param name of the widget
+  method gridBuildWidget {name} {
+    grid $name -  -row 2 -sticky new -in $m_paramFrame
+  }
+
+  ## @brief Forward button press event to presenter
+  #
+  # This does not check whether the presenter exists. It is assumed that the
+  # user has already set this up.
+  method onCancel {} {
+    $m_presenter cancel
+  }
+
+  ## @brief Forward button press event to presenter
+  #
+  # This does not check whether the presenter exists. It is assumed that the
+  # user has already set this up.
+  method onCreate {} {
+    $m_presenter create
+  }
+
+  method getFileListPresenter {} {
+    return $m_fileTree
+  }
+
+  method onAnalyze {} {
+    $m_presenter onAnalyze
+  }
+
+}
+
+##
+# AnalysisProgress
+#
+#  This is the megawidget that the user will see when/if they choose
+#  to analyze the file(s) they have selected. It is just a progress bar
+#  and an abort button along with a message telling them to be patient
+#  while the file is being analyzed. The progress updates automatically 
+#  so that the user has visual indication that something is happening.
+#
+#  There is an -onabort method that is called when the user presses
+#  the abort button. It is on the caller to define the appropriate behavior
+#  on abortion of the analysis.
+#
+snit::widget AnalysisProgress {
+
+  option -onabort {}
+
+  variable m_presenter
+
+  constructor {presenter args} {
+    set m_presenter $presenter
+
+    $self configurelist $args
+
+    ttk::label $win.label -text "Analyzing File. Please be patient"
+    ttk::progressbar $win.progbar -orient horizontal -mode indeterminate
+    ttk::button $win.abort -text "Abort" -command [mymethod onAbort]
+    grid $win.label -sticky nsew
+    grid $win.progbar -sticky nsew
+    grid $win.abort -sticky sew
+
+    grid rowconfigure $win all -weight 1
+    grid columnconfigure $win all -weight 1
+
+    $win.progbar start 25
+
+  }
+
+  method progress {} {
+    $win.progbar step
+  }
+
+  method onAbort {} {
+    uplevel #0 $options(-onabort)
+  }
+
+}
+

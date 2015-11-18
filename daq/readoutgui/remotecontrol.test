@@ -1,0 +1,168 @@
+#
+#  These tests are confusing and send just does not work on my system.
+#  Mark them for a rewrite ...somehow the server/client setup looks backwards.
+#
+if {0} {
+# This set of tests is intended to test that a remote client of the master
+# readout gui can send requests to the master.
+
+package require tcltest
+package require ReadoutGuiClient
+package require Thread
+package require ui
+
+
+## These are some overridden procs that are needed by ReadoutGuiRemoteControl
+# when it makes connection. Rather than including all of the ReadoutGUIPanel
+# we can just provide some dummy versions of the procs needed.
+namespace eval ReadoutGUIPanel {
+
+  proc getRun {} {
+    return 1
+  }
+
+  proc getTitle {} {
+    return "This is only a test"
+  }
+}
+
+
+# Ensure that we can require the package
+tcltest::test pkgrequire-0 {Test that we can require the package 
+} {package require ReadoutGuiRemoteControl} 1.0  
+
+
+
+proc ReadLine {sock} {
+  if {[catch {gets $sock line} len] || [eof $sock]} {
+    puts "Closing client"
+    catch {close $sock}
+  } else {
+    puts $sock "OK - $line"
+  }
+}
+
+set ::StatusBar::theInstance [StatusArea .bar]
+
+
+# To test the remote control stuff, we need to have both
+# the slave side components and the master side components.
+# The only thing needed for the slave side is the instance
+# of the ReadoutGuiRemoteControl snit::type. We create that
+# in the main thread. The master side will need a bit more
+# to be created and is set up in its own thread. This proc
+# will set up both and will not complete until it is understood
+# that the connection is established between the slave and
+# the master.
+proc setup {} {
+  set ::connected 0
+  puts "Setup start"
+  
+  # Set up the slave side component of the communication
+  ReadoutGuiRemoteControl ::rctl
+  set fd [::rctl info vars requestfd]
+
+  
+  # launch a thread that will run the master ReadoutGUI's components.
+  set ::serv [thread::create -joinable {
+  
+  set replyfd ""
+    package require ReadoutGuiClient
+    package require Thread 
+    package require portAllocator 
+
+    proc OnConnect {chan clientaddr clientport} {
+      puts "Reply socket accepting connection from $clientaddr:$clientport"
+      flush stdout
+      set ::replyfd $chan
+      chan configure $::replyfd -blocking 0 -buffering line
+      chan event $::replyfd readable [list ReadLine $::replyfd]
+    }
+
+    proc ReadLine {sock} {
+      puts "Readline"
+      flush stdout
+      if {[catch {gets $sock line} len] || [eof $sock]} {
+        puts "Closing client"
+        flush stdout
+        catch {close $sock}
+      } else {
+        puts "Socket received $line"
+        flush stdout
+        puts $sock "OK - $line"
+        flush $sock
+      }
+    }
+
+
+    set allocator [portAllocator %AUTO% -hostname localhost]
+    set ::port [$allocator allocatePort s800rctl]
+    $allocator destroy
+
+    set listenfd [socket -server OnConnect $::port]
+    set ::replyfd ""
+
+    set ::port [readoutGUIControlPort localhost]
+    if {$::port eq ""} {
+      puts "couldn't located remotegui .... exiting "
+      exit 1
+    }
+    set ::client [socket localhost $::port]
+    chan configure $::client -blocking 0 -buffering line
+    chan event $::client readable [list ReadLine $::client]
+    puts "Events all set up"
+    flush stdout
+    
+
+    # enter event loop
+    
+    vwait ::replyfd
+    puts  "Replyfd set"
+    flush stdout
+    thread::wait
+  }]
+
+  vwait $fd
+  puts "Setup complete"
+}
+
+
+proc tearDown {} {
+  puts "teardown start"
+  thread::release $::serv 
+  set ::connected 0
+
+  puts "teardown complete"
+}
+
+
+
+## This is testing the ability of the slave to send an
+# end message to the master.
+tcltest::test send-0 {Test that we can send messages 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  set res [::rctl send end] 
+  after 100
+  update
+  update
+  update
+  set res
+} -result "OK - end"
+
+
+if {0} {
+tcltest::test init-0 {Test that we can call init
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+}
+}
+
+tcltest::cleanupTests
+}

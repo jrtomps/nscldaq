@@ -372,7 +372,7 @@ CTCPConnectionLost::operator==(const CTCPConnectionLost& rhs)
 const char*
 CTCPConnectionLost::ReasonText() const
 {
-  m_ReasonText  = "Connectionwith host ";
+  m_ReasonText  = "Connection with host ";
   m_ReasonText += m_Host;
   m_ReasonText += " at ";
   m_ReasonText += m_Port;

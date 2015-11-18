@@ -22,7 +22,10 @@
 #include <Exception.h>
 #include <ErrnoException.h>
 #include <Globals.h>
+#include <CVMUSB.h>
 #include <TclServer.h>
+#include <CControlQueues.h>
+
 
 #include <assert.h>
 #include <stdlib.h>
@@ -44,6 +47,8 @@
 
 #include <fragment.h>
 
+#include <iostream>
+#include <iomanip>
 using namespace std;
 
 
@@ -97,7 +102,8 @@ COutputThread::COutputThread(std::string ring) :
   m_ringName(ring),
   m_pRing(0),
   m_pEvtTimestampExtractor(0),
-  m_pSclrTimestampExtractor(0)
+  m_pSclrTimestampExtractor(0),
+  m_pBeginRunCallback(0)
 {
   
 }
@@ -140,26 +146,60 @@ COutputThread::operator()()
       DataBuffer& buffer(getBuffer());
       processBuffer(buffer);
       freeBuffer(buffer);
-      
+
     }
   }
+  // The close out method ensures that if data taking is active
+  // it's shutdown and the fifos flushed before we exit.
+  
   catch (string msg) {
     cerr << "COutput thread caught a string exception: " << msg << endl;
-    throw;
+    
   }
   catch (char* msg) {
     cerr << "COutput thread caught a char* exception: " << msg << endl;
-    throw;
+    
   }
   catch (CException& err) {
     cerr << "COutputThread thread caught a daq exception: "
-	 << err.ReasonText() << " while " << err.WasDoing() << endl;
-    throw;
+         << err.ReasonText() << " while " << err.WasDoing() << endl;
+    
   }
   catch (...) {
     cerr << "COutput thread caught some other exception type.\n";
-    throw;
+    
   }
+  /*
+   * Control can only fall here on an exception.  There are two cases to consider:
+   *   # The run is active (most likely case).  Tell the readout threadd to
+   *      shutdown the run and get/release data buffers until the end run
+   *      marker buffer is seens.  We don't process the buffers because
+   *      presumbably that was what caused this in the first plaxce.
+   *  #   The run is idle - In that case we can safely just exit.
+   *
+   *  TODO:  Is it necessary to provide a non-blocking form of EndRun()?
+   *         is it possible that when we do the pControls->EndRun() the
+   *         buffer queue is full so we deadlock and never get an ack?
+   *         I don't think that's likely but it _is_ a currently unhandled edge
+   *         case.
+   */
+  
+
+   CRunState* pRunstate = CRunState::getInstance();
+   CRunState::RunState state = pRunstate->getState();
+   if ((state == CRunState::Active)) {
+      cerr << "Run is active, asking VMUSB to shutdown\n";
+      CControlQueues* pControls = CControlQueues::getInstance();
+      pControls->EndRun(); 
+      cerr << "VMUSB is shutdown...flushing buffers\n";
+      while (true) {
+        DataBuffer& buffer(getBuffer());
+        if (buffer.s_bufferType == TYPE_STOP) break;
+        freeBuffer(buffer);
+      }
+      cerr << "Flushed... exiting\n";
+   }
+   exit(EXIT_FAILURE);                  // Exiting with clean fifos.
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -258,6 +298,13 @@ COutputThread::startRun(DataBuffer& buffer)
 {
 
   time_t timestamp;
+  
+  // If there's a begin run callback call it before emitting the begin  run
+  // record:
+  
+  if (m_pBeginRunCallback) {
+    (*m_pBeginRunCallback)();
+  }
 
   m_nOutputBufferSize = Globals::usbBufferSize;
 
@@ -279,13 +326,14 @@ COutputThread::startRun(DataBuffer& buffer)
 
   CDataFormatItem format;
   format.commitToRing(*m_pRing);
-
+  
+ 
   CRingStateChangeItem begin(NULL_TIMESTAMP, Globals::sourceId, BARRIER_START,
                              BEGIN_RUN,
 			     m_runNumber,
 			     0,
 			     static_cast<uint32_t>(timestamp),
-			     m_title);
+			     m_title.substr(0, TITLE_MAXSIZE-1));
 
   begin.commitToRing(*m_pRing);
   
@@ -340,6 +388,20 @@ COutputThread::endRun(DataBuffer& buffer)
 
 }
 
+/**!
+* Check whether the bit in the global mode register to output
+* a second buffer header word is set. 
+*
+* \return whether the devices is set to out an extra buffer header
+*/
+bool COutputThread::hasOptionalHeader()
+{
+  uint16_t glbl_mode = Globals::pUSBController->getShadowRegisters().globalMode;
+
+  return (glbl_mode & CVMUSB::GlobalModeRegister::doubleHeader);
+}
+
+
 /**
  * Process events in a buffer creating output buffers as required.
  *  - Figure out the used words in the buffer
@@ -361,11 +423,20 @@ COutputThread::processEvents(DataBuffer& inBuffer)
 
   bufferNumber++;
 
-
-
   pContents++;			// Point to first event.
   ssize_t    nWords    = (inBuffer.s_bufferSize)/sizeof(uint16_t) - 1; // Remaining words read.
 
+  // Check if the optional second header exists
+  if (hasOptionalHeader()) {
+    uint16_t wordsInBuffer = *pContents++;  
+    if (wordsInBuffer != nWords-1) {
+      // The words that are reported in the optional header do not count 
+      // the first buffer header word. The number is self inclusive though.
+      cerr << "VMUSB specifies " << wordsInBuffer << " in buffer, but ";
+      cerr << "the number of words read is in disagreement." ;
+    }
+    --nWords;
+  } 
 
   while (nWords > 0) {
     if (nEvents <= 0) {
@@ -475,8 +546,14 @@ COutputThread::processStrings(DataBuffer& buffer, StringsBuffer& strings)
 void
 COutputThread::outputTriggerCount(uint32_t runOffset)
 {
-  CRingPhysicsEventCountItem item(m_nEventsSeen, runOffset);
-  item.commitToRing(*m_pRing);
+  if ((m_pEvtTimestampExtractor != nullptr) || (m_pSclrTimestampExtractor != nullptr)) {
+    CRingPhysicsEventCountItem item(NULL_TIMESTAMP, Globals::sourceId, BARRIER_NOTBARRIER,
+                                    m_nEventsSeen, runOffset, time(NULL));
+    item.commitToRing(*m_pRing);
+  } else {
+    CRingPhysicsEventCountItem item(m_nEventsSeen, runOffset);
+    item.commitToRing(*m_pRing);
+  }
 }
 
 /**
@@ -515,14 +592,34 @@ COutputThread::scaler(void* pData)
 
   // Figure out how many wods/scalers there are:
 
-  size_t        nWords   =  header & VMUSBEventLengthMask;
-  size_t        nScalers =  nWords/(sizeof(uint32_t)/sizeof(uint16_t));
+  size_t nWords         = header & VMUSBEventLengthMask;
+  size_t nShortsPerLong = sizeof(uint32_t)/sizeof(uint16_t);
+  size_t nScalers       = nWords/nShortsPerLong;
 
   // Marshall the scalers into an std::vector:
 
   std::vector<uint32_t> counterData;
   for (int i = 0; i < nScalers; i++) {
     counterData.push_back(*pBody++);
+  }
+
+  // if the number of words did not evenly divide by nShortsPerLong, we need to handle
+  // the leftover word. Do so here in terms of bytes. They just get shoved in the
+  // lowest bytes of another 32-bit word.
+
+  size_t nLeftOverBytes = (nWords % nShortsPerLong)*sizeof(uint16_t);
+  if (nLeftOverBytes != 0) {
+
+    union IOU32 {
+      uint32_t value;
+      char     bytes[sizeof(uint32_t)];
+    } slopBytes;
+
+    slopBytes.value = 0;
+    uint8_t* pBytes = reinterpret_cast<uint8_t*>(pBody);
+    std::copy(pBytes, pBytes+nLeftOverBytes, slopBytes.bytes);
+
+    counterData.push_back(slopBytes.value);
   }
 
   // The VM-USB does not timestamp scaler data for us at this time so we
@@ -616,13 +713,15 @@ COutputThread::event(void* pData)
   // Events must currently fit in the buffer...otherwise we throw an error.
 
   segmentSize += 1;		// Size is not self inclusive
+
   if ((segmentSize + m_nWordsInBuffer) >= m_nOutputBufferSize/sizeof(uint16_t)) {
     int newSize          = 2*segmentSize*sizeof(uint16_t);
-    uint8_t* pNewBuffer = reinterpret_cast<uint8_t*>(realloc(m_pBuffer, newSize));
+    uint8_t* pNewBuffer = reinterpret_cast<uint8_t*>(realloc(m_pBuffer, m_nOutputBufferSize+newSize));
     if (pNewBuffer) {
       m_pBuffer            = pNewBuffer;
       m_pCursor            = m_pBuffer + m_nWordsInBuffer * sizeof(uint16_t);
       m_nOutputBufferSize += newSize;
+
     } else {
       throw std::string("Failed to resize event buffer to fit an oversized segment");
     }
@@ -778,6 +877,12 @@ COutputThread::getTimestampExtractor()
             std::cerr << "Fatal error: user provided library with neither"
                       << " timestamp extractor function" << std::endl;
             exit(EXIT_FAILURE);
+        }
+        // If there is a begin run callback register it too:
+        
+        void* pBegRun = dlsym(pDllHandle, "onBeginRun");
+        if (pBegRun) {
+            m_pBeginRunCallback = reinterpret_cast<StateChangeCallback>(pBegRun);
         }
 
         dlclose(pDllHandle);

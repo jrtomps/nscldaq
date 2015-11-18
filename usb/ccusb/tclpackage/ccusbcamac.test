@@ -1,0 +1,569 @@
+#
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2014.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#     Author:
+#       NSCL DAQ Development Group 
+#       NSCL
+#       Michigan State University
+#       East Lansing, MI 48824-1321
+# @author Jeromy Tompkins
+
+
+
+package require tcltest
+package require ccusbcamac
+package require snit
+
+# Define a Mock CCUSB to use for these tests
+# The idea is to override the actual cccusb::CCCUSBRemote
+# object with a fake one.
+
+## Create a namespace cccusb if it doesn't exist
+if {![namespace exists cccusb]} {
+  namespace eval cccusb { 
+  }
+}
+
+set fw 0x8e000601
+proc ::cccusb::CCCUSBRemote {name modname host port} {
+  return [CMockCCUSB %AUTO% -firmware $::fw] 
+}
+
+snit::type CMockCCUSB {
+  option -record  -default [list]
+  option -q       -default 1 
+  option -x       -default 1
+  option -data    -default 1234
+  option -inhibited -default 0 
+  option -firmware -default 0x8e000601
+  
+  constructor {args} {
+    $self configurelist $args
+  }
+
+  method readFirmware {} {
+    lappend options(-record) "readFirmware"
+    return [$self cget -firmware]
+  }
+
+  method simpleWrite16 {n a f d} {
+    lappend options(-record) "simpleWrite16 $n $a $f $d"
+    return [$self encodeQX 0]
+  }
+
+  method simpleWrite24 {n a f d} {
+    lappend options(-record) "simpleWrite24 $n $a $f $d"
+    return [$self encodeQX 0]
+  }
+
+  method simpleRead16 {n a f} {
+    lappend options(-record) "simpleRead16 $n $a $f"
+    return [expr {[$self encodeQX 24]|$options(-data)}]
+  }
+
+  method simpleRead24 {n a f} {
+    lappend options(-record) "simpleRead24 $n $a $f"
+    return [expr {[$self encodeQX 24]|$options(-data)}]
+  }
+  
+  method simpleControl {n a f} {
+    lappend options(-record) "simpleControl $n $a $f"
+    return [$self encodeQX 0]
+  }
+
+  method executeList {n a f maxn} {
+  
+  }
+
+  method readCAMACLams {} {
+    lappend options(-record) "readCAMACLams"
+    return 0xffffff
+  }
+
+  method c {} {
+    lappend options(-record) "c"
+  }
+
+  method z {} {
+    lappend options(-record) "z"
+  }
+
+  method inhibit {} {
+    lappend options(-record) "inhibit"
+    $self configure -inhibited 1
+  }
+
+  method uninhibit {} {
+    lappend options(-record) "uninhibit"
+    $self configure -inhibited 0
+  }
+
+  method isInhibited {} {
+    lappend options(-record) "isInhibited"
+    return [$self cget -inhibited] 
+  }
+
+  method encodeQX {shift} {
+    set qx [expr {($options(-q)<<1)|$options(-x)}]
+    return [expr {$qx<<$shift}]
+  }
+}
+
+## @brief Define a test server
+#
+proc Server {chan clientaddr clientport} {
+  puts "Accepted connection from $clientaddr:$clientport" 
+  catch {close $chan}
+}
+
+# Run the server
+set testserver [socket -server Server 0]
+set info [chan  configure $::testserver -sockname]
+
+proc findDeadPort {} {
+  set info [chan configure $::testserver -sockname]
+  set host [lindex $info 1]
+  set port [lindex $info 2]
+
+  puts "Test server on port $port"
+  while {! [catch {socket localhost $port} msg] } {incr port} 
+  return $port
+}
+
+###########################################################
+#
+# Start the tests
+#
+#
+
+tcltest::test iswrite-0 {Test that valid write f values return true 
+} -body {
+  ccusbcamac::_isWrite 16
+} -result 1
+
+
+tcltest::test iswrite-1 {Test that valid write f values return true
+} -body {
+  ccusbcamac::_isWrite 23 
+} -result 1
+
+tcltest::test iswrite-2 {Test that bad write f values return false
+} -body {
+  ccusbcamac::_isWrite 0 
+} -result 0
+
+tcltest::test iswrite-3 {Test that bad write f values return false
+} -body {
+  ccusbcamac::_isWrite 24 
+} -result 0
+
+tcltest::test iswrite-4 {Test that bad write f values return false
+} -body {
+  ccusbcamac::_isWrite 15 
+} -result 0
+
+
+
+tcltest::test isread-0 {Test that valid read f values return true
+} -body {
+  ccusbcamac::_isRead 0 
+} -result 1
+
+tcltest::test isread-1 {Test that valid read f values return true
+} -body {
+  ccusbcamac::_isRead 7 
+} -result 1
+
+tcltest::test isread-2 {Test that bad read f values return false
+} -body {
+  ccusbcamac::_isRead 8 
+} -result 0
+
+tcltest::test isread-3 {Test that bad read f values return false
+} -body {
+  ccusbcamac::_isRead 28 
+} -result 0
+
+
+
+
+
+tcltest::test cdconn-0 {Test that the value are properly stored
+} -body {
+  ccusbcamac::cdconn 0 1 localhost 27000 ccusb
+
+  # This should produce an id of 1
+  set conn [dict get $ccusbcamac::connectionInfo 1 ]
+
+  set val0Good [expr {[lindex $conn 0] eq "localhost"}]
+  set val1Good [expr {[lindex $conn 1] == 27000}]
+  set val2Good [expr {[lindex $conn 2] eq "ccusb"}]
+  
+  expr {$val0Good && $val1Good && $val2Good}
+} -result 1
+
+
+tcltest::test cdconn-1 {Test that multiple values are properly stored
+} -body {
+  ccusbcamac::cdconn 0 1 localhost 27000 ccusb0
+  ccusbcamac::cdconn 3 3 spdaq12 27123 ccusb1
+
+  set ::ccusbcamac::connectionInfo
+} -result {1 {localhost 27000 ccusb0} 24 {spdaq12 27123 ccusb1}} 
+
+
+
+
+
+set badBranchMsg {ccusbcamac::_checkValidBAndC : branch index out of range [0,7]}
+set badCrateMsg {ccusbcamac::_checkValidBAndC : crate index out of range [1,7]}
+set badBAndCMsg {ccusbcamac::_checkValidBAndC : branch and crate indices out of range. Branch should be in range [0,7] and crate in range [1,7]}
+
+set CCdconnMissingMsg "::ccusbcamac::C connection info not provided. "
+append CCdconnMissingMsg "cdconn needs to be called prior to calling this." 
+
+set ZCdconnMissingMsg "::ccusbcamac::Z connection info not provided. "
+append ZCdconnMissingMsg "cdconn needs to be called prior to calling this." 
+
+set ICdconnMissingMsg "::ccusbcamac::isInhibited connection info not provided. "
+append ICdconnMissingMsg "cdconn needs to be called prior to calling this." 
+
+proc getUnsupportedIMsg {version} {
+  set msg "::ccusbcamac::isInhibited unsupported for CC-USB firmware version "  
+  append msg [format "0x%x. Version must be >= 0x8e000601." $version]
+  return $msg
+}
+
+
+
+tcltest::test computeID-0 {Test that b c produces correct index
+} -body {
+  ccusbcamac::_computeIndex 0 1 
+} -result 1 
+
+tcltest::test computeID-1 {Test that b c produces correct index
+} -body {
+  ccusbcamac::_computeIndex 3 7 
+} -result 28 
+
+tcltest::test computeID-2 {Test that b>7 produces error
+} -body {
+  ccusbcamac::_computeIndex 8 1
+} -result $badBranchMsg -returnCodes 1
+
+
+tcltest::test computeID-3 {Test that b<0 produces error
+} -body {
+  ccusbcamac::_computeIndex -1 1
+} -result $badBranchMsg -returnCodes 1
+
+
+tcltest::test computeID-4 {Test that c<1 produces error
+} -body {
+  ccusbcamac::_computeIndex 3 0 
+} -result $badCrateMsg -returnCodes 1
+
+tcltest::test computeID-5 {Test that c>7 produces error
+} -body {
+  ccusbcamac::_computeIndex 3 8 
+} -result $badCrateMsg -returnCodes 1
+
+
+
+
+tcltest::test _isValidBranchIndex-0 {test that branch index <0 produces 0
+} -body {
+  ccusbcamac::_isValidBranchIndex -1 
+} -result 0
+
+tcltest::test _isValidBranchIndex-1 {test that branch index >7 produces 0 
+} -body {
+  ccusbcamac::_isValidBranchIndex 8 
+} -result 0 
+
+tcltest::test _isValidBranchIndex-2 {test that branch index 7 produces 1
+} -body {
+  ccusbcamac::_isValidBranchIndex 7 
+} -result 1
+
+tcltest::test _isValidBranchIndex-3 {test that branch index 1 produces 1
+} -body {
+  ccusbcamac::_isValidBranchIndex 1 
+} -result 1
+
+
+
+tcltest::test _isValidCrateIndex-0 {test that crate index <1 produces 0
+} -body {
+  ccusbcamac::_isValidCrateIndex 0
+} -result 0
+
+tcltest::test _isValidCrateIndex-1 {test that crate index >7 produces 0 
+} -body {
+  ccusbcamac::_isValidCrateIndex 8 
+} -result 0 
+
+tcltest::test _isValidCrateIndex-2 {test that crate index 7 produces 1
+} -body {
+  ccusbcamac::_isValidCrateIndex 7 
+} -result 1
+
+tcltest::test _isValidCrateIndex-3 {test that crate index 1 produces 1
+} -body {
+  ccusbcamac::_isValidCrateIndex 1 
+} -result 1
+
+
+tcltest::test _checkValidBAndC-0 {test that good crate and branch produce nothing 
+} -body {
+  ccusbcamac::_checkValidBAndC 0 1 
+} -result ""
+
+tcltest::test _checkValidBAndC-1 {test that good crate and bad branch produce bad branch exception
+} -body {
+  ccusbcamac::_checkValidBAndC -1 1 
+} -result $badBranchMsg -returnCodes 1 
+
+tcltest::test _checkValidBAndC-2 {test that bad crate and good branch produce bad crate exception
+} -body {
+  ccusbcamac::_checkValidBAndC 0 -1 
+} -result $badCrateMsg -returnCodes 1 
+
+tcltest::test _checkValidBAndC-3 {test that bad crate and bad branch produce bad branch & crate exception
+} -body {
+  ccusbcamac::_checkValidBAndC -1 -1 
+} -result $badBAndCMsg -returnCodes 1 
+
+
+tcltest::test cdreg-0 {test that failure occurs when the cdconn was not called
+} -setup {
+  # clear the dict
+  set ::ccusbcamac::connectionInfo ""
+} -body {
+  ccusbcamac::cdreg 0 1 1 
+} -result {ccusbcamac::cdreg no connection info found. User must call "cdconn 0 1 host port name" before calling cdreg 0 1} -returnCodes 1
+
+
+tcltest::test cfsa-0 {test that an f=0 produces a simpleRead24
+} -body {
+  set conInfo [chan configure $::testserver -sockname]
+  ccusbcamac::cdconn 0 1 [lindex $conInfo 1] [lindex $conInfo 2] c
+  set reg [ccusbcamac::cdreg 0 1 23]
+  ccusbcamac::cfsa $reg 0 0
+  [lindex $reg 0] cget -record
+} -result [list "simpleRead24 23 0 0"]
+
+tcltest::test cfsa-1 {test that an f=8 produces a simpleControl
+} -body {
+  set conInfo [chan configure $::testserver -sockname]
+  ccusbcamac::cdconn 0 1 [lindex $conInfo 1] [lindex $conInfo 2] c
+  set reg [ccusbcamac::cdreg 0 1 23]
+  ccusbcamac::cfsa $reg 8 0
+  [lindex $reg 0] cget -record
+} -result [list "simpleControl 23 0 8"]
+
+tcltest::test cfsa-2 {test that an f=16 produces a simpleWrite24
+} -body {
+  set conInfo [chan configure $::testserver -sockname]
+  ccusbcamac::cdconn 0 1 [lindex $conInfo 1] [lindex $conInfo 2] c
+  set reg [ccusbcamac::cdreg 0 1 23]
+  ccusbcamac::cfsa $reg 16 0 200
+  [lindex $reg 0] cget -record
+} -result [list "simpleWrite24 23 0 16 200"]
+
+tcltest::test cfsa-3 {test that an f=16 without data produces error
+} -body {
+  set conInfo [chan configure $::testserver -sockname]
+  ccusbcamac::cdconn 0 1 [lindex $conInfo 1] [lindex $conInfo 2] c
+  set reg [ccusbcamac::cdreg 0 1 23]
+  ccusbcamac::cfsa $reg 16 0
+  [lindex $reg 0] cget -record
+} -result "ccusbcamac::cfsa not provided data to write"  -returnCodes 1
+
+tcltest::test cfsa-4 {test that an f=24 without data produces error
+} -body {
+  set conInfo [chan configure $::testserver -sockname]
+  ccusbcamac::cdconn 0 1 [lindex $conInfo 1] [lindex $conInfo 2] c
+  set reg [ccusbcamac::cdreg 0 1 23]
+  ccusbcamac::cfsa $reg 24 0
+  [lindex $reg 0] cget -record
+} -result [list "simpleControl 23 0 24"]
+
+
+tcltest::test cssa-0 {test that an f=0 produces a simpleRead16
+} -body {
+  set conInfo [chan configure $::testserver -sockname]
+  ccusbcamac::cdconn 0 1 [lindex $conInfo 1] [lindex $conInfo 2] c
+  set reg [ccusbcamac::cdreg 0 1 23]
+  ccusbcamac::cssa $reg 0 0
+  [lindex $reg 0] cget -record
+} -result [list "simpleRead16 23 0 0"]
+
+tcltest::test cssa-1 {test that an f=8 produces a simpleControl
+} -body {
+  set conInfo [chan configure $::testserver -sockname]
+  ccusbcamac::cdconn 0 1 [lindex $conInfo 1] [lindex $conInfo 2] c
+  set reg [ccusbcamac::cdreg 0 1 23]
+  ccusbcamac::cssa $reg 8 0
+  [lindex $reg 0] cget -record
+} -result [list "simpleControl 23 0 8"]
+
+tcltest::test cssa-2 {test that an f=16 produces a simpleWrite16
+} -body {
+  set conInfo [chan configure $::testserver -sockname]
+  ccusbcamac::cdconn 0 1 [lindex $conInfo 1] [lindex $conInfo 2] c
+  set reg [ccusbcamac::cdreg 0 1 23]
+  ccusbcamac::cssa $reg 16 0 200
+  [lindex $reg 0] cget -record
+} -result [list "simpleWrite16 23 0 16 200"]
+
+tcltest::test cssa-3 {test that an f=16 without data produces error
+} -body {
+  set conInfo [chan configure $::testserver -sockname]
+  ccusbcamac::cdconn 0 1 [lindex $conInfo 1] [lindex $conInfo 2] c
+  set reg [ccusbcamac::cdreg 0 1 23]
+  ccusbcamac::cssa $reg 16 0
+  [lindex $reg 0] cget -record
+} -result "ccusbcamac::cssa not provided data to write"  -returnCodes 1
+
+tcltest::test cssa-4 {test that an f=24 produces simpleControl 
+} -body {
+  set conInfo [chan configure $::testserver -sockname]
+  ccusbcamac::cdconn 0 1 [lindex $conInfo 1] [lindex $conInfo 2] c
+  set reg [ccusbcamac::cdreg 0 1 23]
+  ccusbcamac::cssa $reg 24 0
+  [lindex $reg 0] cget -record
+} -result [list "simpleControl 23 0 24"]
+
+
+tcltest::test c-0 {test that valid b and c produce a c
+} -body {
+  set conInfo [chan configure $::testserver -sockname]
+  ccusbcamac::cdconn 0 1 [lindex $conInfo 1] [lindex $conInfo 2] c
+  ccusbcamac::C 0 1
+  set ctlr [lindex $::ccusbcamac::lastReg 0]
+  $ctlr cget -record 
+} -result [list "c"]
+
+tcltest::test c-1 {test that not calling cdconn produces error 
+} -setup {
+  set ::ccusbcamac::connectionInfo ""
+} -body {
+  ccusbcamac::C 0 1
+} -result $CCdconnMissingMsg -returnCodes 1
+
+tcltest::test z-0 {test that valid b and c produce a z
+} -body {
+  set conInfo [chan configure $::testserver -sockname]
+  ccusbcamac::cdconn 0 1 [lindex $conInfo 1] [lindex $conInfo 2] c
+  ccusbcamac::Z 0 1
+  set ctlr [lindex $::ccusbcamac::lastReg 0]
+  $ctlr cget -record 
+} -result [list "z"]
+
+tcltest::test z-1 {test that not calling cdconn produces error 
+} -setup {
+  set ::ccusbcamac::connectionInfo ""
+} -body {
+  ccusbcamac::Z 0 1
+} -result $ZCdconnMissingMsg -returnCodes 1
+
+
+
+
+
+tcltest::test online-0 {test that ability to connect means online
+} -setup {
+  set info [chan configure $::testserver -sockname]
+  set host [lindex $info 1]
+  set port [lindex $info 2]
+} -body {
+  ccusbcamac::cdconn 0 1 $host $port dummy 
+  ccusbcamac::isOnline 0 1
+} -result 1 
+
+tcltest::test online-1 {test that inability to connect means offline
+} -setup {
+  set port [findDeadPort]
+  puts "Found no server on port $port"
+} -body {
+  ccusbcamac::cdconn 0 1 $host $port dummy 
+  ccusbcamac::isOnline 0 1
+} -result 0 
+
+
+
+
+
+tcltest::test inhibit-0 {Test that an inhibit operation succeeds
+} -body {
+  set conInfo [chan configure $::testserver -sockname]
+  ccusbcamac::cdconn 0 1 [lindex $conInfo 1] [lindex $conInfo 2] c
+  ccusbcamac::Inhibit 0 1 1
+
+  set ctlr [lindex $::ccusbcamac::lastReg 0]
+  $ctlr cget -record 
+} -result [list "inhibit"]
+
+tcltest::test inhibit-1 {Test that an uninhibit operation succeeds
+} -body {
+  set conInfo [chan configure $::testserver -sockname]
+  ccusbcamac::cdconn 0 1 [lindex $conInfo 1] [lindex $conInfo 2] c
+  ccusbcamac::Inhibit 0 1 0
+
+  set ctlr [lindex $::ccusbcamac::lastReg 0]
+  $ctlr cget -record 
+} -result [list "uninhibit"]
+
+
+
+
+tcltest::test isInhibited-0 {Test that isInhibited succeeds 
+} -body {
+  set conInfo [chan configure $::testserver -sockname]
+  ccusbcamac::cdconn 0 1 [lindex $conInfo 1] [lindex $conInfo 2] c
+  ccusbcamac::isInhibited 0 1
+
+  set ctlr [lindex $::ccusbcamac::lastReg 0]
+  $ctlr cget -record 
+} -result [list "readFirmware" "isInhibited" ]
+
+tcltest::test isInhibited-1 {Test that isInhibited succeeds 
+} -setup { 
+  set ::ccusbcamac::connectionInfo ""
+} -body {
+  ccusbcamac::isInhibited 0 1 
+} -result $ICdconnMissingMsg -returnCodes 1
+
+tcltest::test isInhibited-2 {Test that isInhibited returns error when unsupported. 
+} -setup { 
+  set ::fw 0x5e000600
+  set conInfo [chan configure $::testserver -sockname]
+  ccusbcamac::cdconn 0 1 [lindex $conInfo 1] [lindex $conInfo 2] c
+} -body {
+  ccusbcamac::isInhibited 0 1 
+} -result [getUnsupportedIMsg 0x5e000600] -returnCodes 1
+
+
+
+tcltest::test readLAM-0 {Test that a ReadLams causes a simpleRead24
+} -setup {
+  set ::ccusbcamac::connectionInfo ""
+  set ::ccusbcamac::lastReg ""
+} -body {
+  set conInfo [chan configure $::testserver -sockname]
+  ccusbcamac::cdconn 0 1 [lindex $conInfo 1] [lindex $conInfo 2] c
+  ccusbcamac::ReadLams 0 1
+
+  set ctlr [lindex $::ccusbcamac::lastReg 0]
+  $ctlr cget -record
+} -result [list "readCAMACLams"]
+
+
+tcltest::cleanupTests

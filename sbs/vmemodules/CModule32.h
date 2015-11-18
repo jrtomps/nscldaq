@@ -16,9 +16,8 @@
 
 #ifndef __CMODULE32_H
 #define __CMODULE32_H
-#ifndef __VMEMODULE_H
+
 #include "VmeModule.h"
-#endif
 
 #ifndef __CRT_STDINT_H
 #include <stdint.h>
@@ -79,7 +78,7 @@ protected:
   void Key(uint32_t offset) const; //!< write a key register.
 
   static uint32_t Offset(uint32_t off)  {
-    return off/sizeof(long);
+    return off/sizeof(uint32_t);
   }
   static void ThrowString(const char*  pLeader,
 		     const char*  pMessage) throw (std::string);

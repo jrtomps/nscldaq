@@ -71,6 +71,58 @@ set alarmcontrol 1;               # start with alarms on.
 
 
 
+#-------------------------------------------------------------------------
+# Provide access to the globals for extensions:
+
+
+##
+# getStartTime
+# @return [clock seconds] for when the run started.
+#
+proc getStartTime {} {
+    return $::startTime
+}
+##
+# get ElapsedTime
+#
+# @return - seconds of elapsed run time.
+#
+proc getElapsedTime {} {
+    return $::duration
+}
+##
+# getTitle
+#   @return most recent title string.
+#
+proc getTitle {} {
+    set h [getHeader]
+    
+    return [$h cget -title]
+}
+##
+# getRunNumber
+#
+# @return most recent run number.
+#
+proc getRunNumber {} {
+    set h [getHeader]
+    
+    return [$h cget -run]
+}
+##
+# getState
+#
+# @return  most recent run state string.
+#
+proc getState {} {
+    set h [getHeader]
+    retunr [$h cget -state]
+}
+
+#---------------------------------------------------------------------------
+# Internal private procs
+#
+
 ##
 # Create the thread that will read data from the ring and post it back to us:
 #
@@ -157,14 +209,22 @@ proc clearStripcharts {} {
 	foreach series $seriesNames {
 	    $::stripcharts clearSeries $series
 	}
-	# Ensure the next time is a new one:
-	
-	foreach item [_getStripItems] {
-	    $item clear
-	}
+
+
 	#  Reset the ymax to 1 so autoscale will start up again.:
 	
-	$::stripcharts configure -ymax 1
+	$::stripcharts configure -ymax 1 -xmin 0 -xmax $::scalerconfig::stripChartOptions(-timeaxis)
+
+	# Create empty series...to re-establish colors.
+	#
+	foreach series [_getStripItems] color {black red green blue goldenrod purple cyan yellow orange brown} {
+	    if {$series eq ""} {
+		break
+	    }
+	    $series clear;                          # Invalidate the time.
+	    $::stripcharts series [$series name] [list] [list] $color
+	}
+
     }
 }
 ##
@@ -200,16 +260,12 @@ proc updateStripcharts {} {
 	}
 	
 	# If needed update the -ymax to autoscale that axis.
-	#  The game with limits is needed in case the x axis has scrolled.
-	#  in which case it won't be what -xmin/-xmax say it will be.
 	
 	
 	
 	if {$ymax > [$::stripcharts cget -ymax]} {
 	    set ymax [expr {$ymax * 1.1}]
-	    set limits [$::stripcharts getPlotLimits]
-	    $::stripcharts configure \
-            -ymax $ymax -xmin [lindex $limits 0] -xmax [lindex $limits 1]
+	    $::stripcharts configure -ymax $ymax
 	}
     }
 }
@@ -271,7 +327,7 @@ proc scaler item {
     
     set elapsed [expr {$end/[dict get $item divisor]}]
     if {$elapsed > $::duration} {
-        set duration $elapsed
+        set ::duration $elapsed
         $h configure -elapsed $elapsed
     }
     # Set the dt in seconds for the source, if there is no  body
@@ -283,6 +339,11 @@ proc scaler item {
     }
     $h update $sid $dt
     
+    # If the user has extended us with a UserUpdate call that:
+    
+    if {[info commands ::UserUpdate] ne ""} {
+        ::UserUpdate
+    }
 }
 ##
 # beginRun
@@ -311,6 +372,12 @@ proc beginRun {item} {
     $h clear;                   # Clear the dt's for each data source.
     
     clearStripcharts;           # If there are stripcharts clear them.
+    
+    #  If the user has plugged into use with a UserBeginRun call it:
+    
+    if {[info commands ::UserBeginRun] ne ""} {
+        ::UserBeginRun
+    }
 }
 ##
 # endRun
@@ -343,6 +410,12 @@ proc endRun   {item} {
         
         set filename [format run%04d-stripchart.ps $run]
         saveStripcharts $filename
+    }
+    #
+    #  If the user has plugged into us with a UserEndRun proc, call it:
+    #
+    if {[info commands ::UserEndRun] ne ""} {
+        ::UserEndRun    
     }
 }
 

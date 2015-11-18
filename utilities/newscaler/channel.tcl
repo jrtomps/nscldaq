@@ -43,7 +43,7 @@ package require snit
 #
 # METHODS:
 #    total    - Return the total counts.
-#    rage     - Return the count rates.
+#    rate     - Return the count rates.
 #    update   - Update the counters.
 #    clear    - Clear the counters.
 #    alarming - Return the channels alarm status.
@@ -60,6 +60,11 @@ snit::type Channel {
     variable elapsed 0
     variable sumOfSquares 0
     variable samples      0
+    variable overflowCount 0
+    
+    # The data below is needed to handle wraps in non-incremental mode
+    
+    variable lastUpdate   0
 
     
     ##
@@ -99,10 +104,21 @@ snit::type Channel {
             set rate [expr {double($counts)/$dt}]
         } else {
             
+            # Correct counts for any single wrap.  It's just
+            # not possible to correct for multiple wraps:
+            
+            if {$counts < $lastUpdate} {
+		incr overflowCount
+            }   
+	    set lastUpdate $counts
+	    incr counts [expr $overflowCount * (1 << $options(-width))]; # Adjust for all historical oveflows.
+            
             # non incremental scaler:
             
             set rate [expr {double($counts - $total)/$dt}]
             set total $counts
+
+            
         }
         set elapsed [expr {$elapsed + $dt}];      # dt could be non-integer.
         set sumOfSquares [expr {$sumOfSquares + $rate*$rate}]
@@ -118,6 +134,8 @@ snit::type Channel {
         set elapsed 0
         set sumOfSquares 0
         set samples 0
+	set lastUpdate 0
+	set overflowCount 0
     }
     ##
     # alarming

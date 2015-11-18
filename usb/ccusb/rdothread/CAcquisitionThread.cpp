@@ -142,9 +142,10 @@ CAcquisitionThread::init()
 {
   std::string errorMessage;
   try {
-    beginRun();			// Emit begin run buffer.
+    // Thread is off and running now. 
+    m_Running = true;	//	(End run command causes endRun() to execute)
     startDaq();  		// Setup and start data taking.
-    m_Running = true;		// Thread is off and running now.    
+    beginRun();			// Emit begin run buffer.
   }
   catch (string msg) {
     cerr << "CAcquisition thread caught a string exception: " << msg << endl;
@@ -198,10 +199,22 @@ CAcquisitionThread::operator()()
 	 << err.ReasonText() << " while " << err.WasDoing() << endl;
     errorMessage = err.ReasonText();
   }
+  catch(int i) {
+    // normal end run.
+  }
   catch (...) {			// exceptions are used to exit the main loop.?
+    std::cerr << "Caught unexpected condition\n";
   }
   
-  endRun();			// Emit end run buffer.
+  // IF the scripts left the fifo with something flush it out:
+  
+  cerr << "Flushing FIFO\n";
+  char junk[100000];
+  size_t moreJunk;
+  m_pCamac->usbRead(junk, sizeof(junk), &moreJunk, 1*1000); // One second timeout.
+  
+  endRun();
+  cerr << "End of run operations complete\n";
   m_Running = false;		// Exiting.
   if (errorMessage != "") {
     reportErrorToMainThread(errorMessage);
@@ -240,7 +253,7 @@ CAcquisitionThread::mainLoop()
 	    cerr << "Bad status from usbread: " << strerror(errno) << endl;
 	    cerr << "Ending the run .. check CAMAC crate.  If it tripped off ";
 	    cerr << " you'll need to restart this program\n";
-	    throw 1;
+	    throw (int)1;
 	  }
 	}
       // Commands from our command queue.
@@ -284,7 +297,7 @@ CAcquisitionThread::processCommand(CControlQueues::opCode command)
       stopDaq();
     }
     queues->Acknowledge();
-    throw "Run ending";
+    throw 1;
   }
   else if (command == CControlQueues::PAUSE) {
     pauseDaq();
@@ -441,6 +454,7 @@ CAcquisitionThread::stopDaq()
     assert(pStack);
     pStack->onEndRun(*m_pCamac);    // Call onEndRun for daq hardware associated with the stack.
   }
+  
 }
 /*!
   Pause the daq. This means doing a stopDaq() and fielding 
@@ -544,6 +558,15 @@ CAcquisitionThread::drainUsb()
 
 
   gFreeBuffers.queue(pBuffer);
+  //
+  // evidence is that there may be junk in the FIFO after that last buffer is read.
+  // this code gets rid of that junk.
+  //
+  char junk[100000];
+  size_t moreJunk;
+  m_pCamac->usbRead(junk, sizeof(junk), &moreJunk, 1*1000); // One second timeout.
+
+
   cerr << "Done finished\n";
   
 }

@@ -50,6 +50,21 @@ proc begin {} {
 proc end {} {
     set ::state inactive
 }
+
+proc init {} {
+    set ::state idle
+}
+
+proc masterTransition {to} {
+  switch $to {
+    Halted   {set ::state inactive} 
+    Active   {set ::state active }
+    Paused   {set ::state inactive}
+    NotReady {set ::state inactive}
+  }
+  set ::result {}
+}
+
 ##
 # ack
 #   Send an acknowledgemnt msg

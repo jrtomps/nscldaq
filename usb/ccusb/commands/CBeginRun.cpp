@@ -29,7 +29,7 @@
 #include <CCCUSB.h>
 #include <CCCUSBReadoutList.h>
 #include <CReadoutModule.h>
-
+#include <TCLException.h>
 
 static const size_t MAX_STACK_STORAGE(1024);
 
@@ -131,13 +131,29 @@ CBeginRun::operator()(CTCLInterpreter& interp,
   }
   catch (string msg) {
     errorMessage += msg;
+    
     tclUtil::setResult(interp, errorMessage);
+    
+    
+    
     return TCL_ERROR;
   }
   catch (const char* msg) {
     errorMessage += msg;
     tclUtil::setResult(interp, errorMessage);
     return TCL_ERROR;
+  }
+  catch (CTCLException& e) {     // These can leave tracebacks:
+    errorMessage += e.ReasonText();
+       // Append to this the errorInfo global:
+    
+    CTCLVariable errorInfo(&interp, "errorInfo", false);
+    errorMessage += "\n";
+    errorMessage += errorInfo.Get(TCL_GLOBAL_ONLY);
+
+    tclUtil::setResult(interp, errorMessage);
+    return TCL_ERROR;
+
   }
   catch (CException& e) {
     errorMessage += e.ReasonText();

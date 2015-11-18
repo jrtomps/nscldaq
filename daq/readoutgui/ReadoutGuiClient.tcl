@@ -18,7 +18,7 @@ package require snit
 
 ##
 # @file   ReadoutGuiClient.tcl
-# @brief  Provide suppport for remote clients of a ReadoutGUI.
+# @brief  Provide support for remote clients of a ReadoutGUI.
 # @author Ron Fox <fox@nscl.msu.edu>
 #
 

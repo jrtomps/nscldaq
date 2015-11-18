@@ -53,6 +53,8 @@
 #endif
 
 
+#include <CMutex.h>
+
 //  The structures below are defined in <usb.h> which is included
 //  by the implementation and can be treated as opaque by any of our
 //  clients (they are in fact opaque in usb.h if memory servers.
@@ -93,6 +95,7 @@ private:
     int                     m_timeout; // Timeout used when user doesn't give one.
     uint16_t                m_irqMask; // interrupt mask shadow register.
     std::string             m_serial;  // Attached serial number.
+    CMutex*                 m_pMutex;  // Mutex for critical sections.
 
     // Static functions.
 public:
@@ -119,141 +122,37 @@ private:
 public:
     virtual void reconnect();
 
-    // Register I/O operations.
-public:
-    void     writeActionRegister(uint16_t value);
-
-
-    int readFirmwareID();
-
-    void     writeGlobalMode(uint16_t value);
-    int  readGlobalMode();
-
-
-
-
-
-
-    void     writeDAQSettings(uint32_t value);
-    int readDAQSettings();
-
-
-
-
-    void    writeLEDSource(uint32_t value);
-    int     readLEDSource();
-
-
-    void     writeDeviceSource(uint32_t value);
-    int      readDeviceSource();
-
-
-    void     writeDGG_A(uint32_t value);
-    uint32_t readDGG_A();
-
-    void     writeDGG_B(uint32_t value);
-    uint32_t readDGG_B();
-
-    void     writeDGG_Extended(uint32_t value);
-    uint32_t readDGG_Extended();
-
-    uint32_t readScalerA();
-    uint32_t readScalerB();
-
-
-    void     writeVector(int which, uint32_t value);
-    int      readVector(int which);
-
-
-    void     writeIrqMask(uint8_t mask);
-    int      readIrqMask();
-
-    void     writeBulkXferSetup(uint32_t value);
-    int      readBulkXferSetup();
-
-
-
-    
-
-    // VME transfer operations (1 shot)
-
-    int vmeWrite32(uint32_t address, uint8_t aModifier, uint32_t data);
-    int vmeRead32(uint32_t address, uint8_t aModifier, uint32_t* data);
-
-
-
-    int vmeWrite16(uint32_t address, uint8_t aModifier, uint16_t data);
-    int vmeRead16(uint32_t address, uint8_t aModifier, uint16_t* data);
-
-    int vmeWrite8(uint32_t address, uint8_t aModifier, uint8_t data);
-    int vmeRead8(uint32_t address, uint8_t aModifier, uint8_t* data);
-
-    int vmeBlockRead(uint32_t baseAddress, uint8_t aModifier,
-		     void* data,  size_t transferCount, size_t* countTransferred);
-    int vmeFifoRead(uint32_t address, uint8_t aModifier,
-         	    void* data, size_t transferCount, size_t* countTransferred);
-
-    
-
-    // Support for immediate counted VME variable block transfer operations:
-    // See comments prior to CVMEReadoutList::addBlockCountMask
-
-    int vmeReadBlockCount8(uint32_t address,  uint32_t mask, uint8_t amod);
-    int vmeReadBlockCount16(uint32_t address, uint32_t mask, uint8_t amod);
-    int vmeReadBlockCount32(uint32_t address, uint32_t mask, uint8_t amod);
-
-
-    int vmeVariableBlockRead(uint32_t address, uint8_t amod, 
-			     void* data, size_t maxCount, size_t* countTransferred);
-    int vmeVariableFifoRead(uint32_t address, uint8_t amod,  
-			    void* data, size_t maxCount,  size_t* countTransferred);
-
-
-    
     // List operations.
 
 public:
+    void writeActionRegister(uint16_t value);
+
     int executeList(CVMUSBReadoutList& list,
 		    void*               pReadBuffer,
 		    size_t              readBufferSize,
 		    size_t*             bytesRead);
     
-    int loadList(uint8_t                listNumber,
-		 CVMUSBReadoutList&    list,
-		 off_t                  listOffset = 0);
+    int loadList(uint8_t listNumber, CVMUSBReadoutList& list,
+                 off_t listOffset = 0);
       
 
     // Once the interface is in DAQ auntonomous mode, the application
     // should call the following function to read acquired data.
 
     int usbRead(void* data, size_t bufferSize, size_t* transferCount,
-		int timeout = 2000);
+		            int timeout = 2000);
 
     // Other administrative functions:
 
     void setDefaultTimeout(int ms); // Can alter internally used timeouts.
 
-    // Register bit definintions.
-
-public: 
-
 private:
     void openVMUsb();
 
     int transaction(void* writePacket, size_t writeSize,
-		    void* readPacket,  size_t readSize);
-
-    void* addToPacket16(void* packet,   uint16_t datum);
-    void* addToPacket32(void* packet,   uint32_t datum);
-    void* getFromPacket16(void* packet, uint16_t* datum);
-    void* getFromPacket32(void* packet, uint32_t* datum);
+		                void* readPacket,  size_t readSize);
     void  writeRegister(unsigned int address, uint32_t data);
     uint32_t readRegister(unsigned int address);
-    unsigned int whichToISV(int which);
-    int   doVMEWrite(CVMUSBReadoutList& list);
-    int   doVMERead(CVMUSBReadoutList&  list, uint32_t* datum);
-    uint16_t* listToOutPacket(uint16_t ta, CVMUSBReadoutList& list, size_t* outSize,
-			      off_t offset = 0);
 };
 
 #endif

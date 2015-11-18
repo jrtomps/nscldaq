@@ -48,6 +48,7 @@ package require snit
 #     rmtag    - Remove a tag from an object.
 #     tags     - Reports the tags associated with an object..
 #     clone    - Return an object with this image that is not on a canvas.
+#     bind     - Add an event binding to the object.
 #
 snit::type DaqObject {
     option -image  -default ""  -configuremethod _unbind
@@ -286,5 +287,18 @@ snit::type DaqObject {
         }
         set i $options(-image)
         return [list [image width $i] [image height $i]]
+    }
+    ##
+    # bind
+    #   Binds an event to the object.
+    #
+    # @param event - event specification stringk.
+    # @param script - Script to bind.
+    #
+    method bind {event script} {
+        if {($id eq "") || ($options(-canvas) eq "")} {
+            error "To bind the object must be drawn on a canvas."
+        }
+        $options(-canvas) bind $id $event $script
     }
 }

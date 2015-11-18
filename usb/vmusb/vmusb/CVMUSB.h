@@ -15,17 +15,16 @@
 */
 
 
-#ifdef SWIG
-#ifndef _FLATTEN_NESTED_CLASSES
-#define _FLATTEN_NESTED_CLASSES
-#endif
-%module CVMUSB
-%{
-#define _FLATTEN_NESTED_CLASSES
-#include <CVMUSB.h>
-void *gpTCLApplication(0);
-%}
-#endif
+//#ifdef SWIG
+//#ifndef _FLATTEN_NESTED_CLASSES
+//#define _FLATTEN_NESTED_CLASSES
+//#endif
+//%module CVMUSB
+//%{
+//#define _FLATTEN_NESTED_CLASSES
+//#include <CVMUSB.h>
+//%}
+//#endif
 
 #ifndef __CVMUSB_H
 #define __CVMUSB_H
@@ -97,13 +96,39 @@ struct usb_dev_handle;
 
 class CVMUSB 
 {
+  public:
+    typedef CVMUSBReadoutList RdoList;
+
+  public:
+    /**! Register shadow
+    * Contains the most recent values of the VMUSB
+    */ 
+    struct ShadowRegisters {
+      uint32_t firmwareID;
+      uint16_t globalMode;
+      uint32_t daqSettings;
+      uint32_t ledSources;
+      uint32_t deviceSources;
+      uint32_t dggA; 
+      uint32_t dggB; 
+      uint32_t dggExtended; 
+      uint16_t eventsPerBuffer;
+      std::vector<uint16_t> interruptVectors;
+      uint16_t irqMask;
+      uint32_t bulkTransferSetup;
+
+      // Provide default constructor to ensure that 
+      // the vector is initialized to a length of 8
+      ShadowRegisters() : interruptVectors(9,0) {}
+    };
+
 
     // Class member data.
 private:
     struct usb_dev_handle*  m_handle;	// Handle open on the device.
     struct usb_device*      m_device;   // Device we are open on.
-    int                     m_timeout; // Timeout used when user doesn't give one.
-    uint16_t                m_irqMask; // interrupt mask shadow register.  
+    int                    m_timeout; // Timeout used when user doesn't give one.
+    ShadowRegisters      m_regShadow; // stores copies of all the  
 
     // Static functions.
 public:
@@ -132,24 +157,29 @@ private:
     int operator!=(const CVMUSB& rhs) const;
 public:
 
-    CVMUSBReadoutList* createReadoutList() const { return new CVMUSBReadoutList(); }
+    virtual CVMUSBReadoutList* createReadoutList() const { return new CVMUSBReadoutList(); }
+
+
+    virtual void     reconnect(); /* Drop USB/open USb. */
 
     // Register I/O operations.
 public:
-    virtual void     reconnect(); /* Drop USB/open USb. */
 
-    virtual void     writeActionRegister(uint16_t value);
-    void     writeActionRegister(int value) { // SWIG
-      writeActionRegister((uint16_t)value);
-    }
+    /**! Acquire the shadow registers  */
+    const ShadowRegisters& getShadowRegisters() const;
+
+    virtual void     writeActionRegister(uint16_t value) = 0;
+//    void     writeActionRegister(int value) { // SWIG
+//      writeActionRegister((uint16_t)value);
+//    }
 
     virtual int readFirmwareID();
 
     virtual void     writeGlobalMode(uint16_t value);
     virtual int  readGlobalMode();
-    void writeGlobalMode(int value) { // SWIG
-       writeGlobalMode((uint16_t) value);
-    }
+//    void writeGlobalMode(int value) { // SWIG
+//       writeGlobalMode((uint16_t) value);
+//    }
 
 
 
@@ -157,23 +187,23 @@ public:
 
     virtual void     writeDAQSettings(uint32_t value);
     virtual int readDAQSettings();
-    void writeDAQSettings(int value) { // SWIG
-      writeDAQSettings((uint32_t) value);
-    }
+//    void writeDAQSettings(int value) { // SWIG
+//      writeDAQSettings((uint32_t) value);
+//    }
 
 
 
     virtual void    writeLEDSource(uint32_t value);
     virtual int     readLEDSource();
-    void    writeLEDSource(int value) { // SWIG
-       writeLEDSource((uint32_t)value);
-    }
+//    void    writeLEDSource(int value) { // SWIG
+//       writeLEDSource((uint32_t)value);
+//    }
 
     virtual void     writeDeviceSource(uint32_t value);
     virtual int      readDeviceSource();
-    void     writeDeviceSource(int value) { // SWIG
-      writeDeviceSource((uint32_t)value);
-    }
+//    void     writeDeviceSource(int value) { // SWIG
+//      writeDeviceSource((uint32_t)value);
+//    }
 
     virtual void     writeDGG_A(uint32_t value);
     virtual uint32_t readDGG_A();
@@ -190,61 +220,61 @@ public:
 
     virtual void     writeVector(int which, uint32_t value);
     virtual int      readVector(int which);
-    void     writeVector(int which, int value) { // SWIG
-      writeVector(which, (uint32_t)value);
-    }
+//    void     writeVector(int which, int value) { // SWIG
+//      writeVector(which, (uint32_t)value);
+//    }
 
     virtual void     writeIrqMask(uint8_t mask);
     virtual int      readIrqMask();
-    void     writeIrqMask(int mask) { // SWIG
-      writeIrqMask((uint8_t)mask);
-    }
+//    void     writeIrqMask(int mask) { // SWIG
+//      writeIrqMask((uint8_t)mask);
+//    }
 
     virtual void     writeBulkXferSetup(uint32_t value);
     virtual int      readBulkXferSetup();
-    void     writeBulkXferSetup(int value) { // SWIG
-      writeBulkXferSetup((uint32_t)value);
-    }
+//    void     writeBulkXferSetup(int value) { // SWIG
+//      writeBulkXferSetup((uint32_t)value);
+//    }
 
     virtual void writeEventsPerBuffer(uint32_t value);
     virtual uint32_t readEventsPerBuffer(void);
-    void     writeEventsPerBuffer(int value) { // SWIG
-      writeEventsPerBuffer((uint32_t)value);
-    }
+//    void     writeEventsPerBuffer(int value) { // SWIG
+//      writeEventsPerBuffer((uint32_t)value);
+//    }
 
     // VME transfer operations (1 shot)
 
     virtual int vmeWrite32(uint32_t address, uint8_t aModifier, uint32_t data);
     virtual int vmeRead32(uint32_t address, uint8_t aModifier, uint32_t* data);
-    int vmeWrite32(int address, int amodifier, int data) { // SWIG
-      return vmeWrite32((uint32_t)address, (uint8_t)amodifier, (uint32_t)data);
-    }
-    int vmeRead32(int address, int amodifier) { // SWIG
+//    int vmeWrite32(int address, int amodifier, int data) { // SWIG
+//      return vmeWrite32((uint32_t)address, (uint8_t)amodifier, (uint32_t)data);
+//    }
+    uint32_t vmeRead32(uint32_t address, uint8_t amodifier) { // SWIG
       uint32_t d32 =0;
-      vmeRead32((uint32_t)address, (uint8_t)amodifier, &d32);
-      return (int)d32;
+      vmeRead32(address, amodifier, &d32);
+      return d32;
     }
 
 
     virtual int vmeWrite16(uint32_t address, uint8_t aModifier, uint16_t data);
     virtual int vmeRead16(uint32_t address, uint8_t aModifier, uint16_t* data);
-    int vmeWrite16(int address, int amodifier, int data) { // SWIG
-      return vmeWrite16((uint32_t)address, (uint8_t)amodifier, (uint16_t)data);
-    }
-    int vmeRead16(int address,int amodifier) { // SWIG
+//    int vmeWrite16(int address, int amodifier, int data) { // SWIG
+//      return vmeWrite16((uint32_t)address, (uint8_t)amodifier, (uint16_t)data);
+//    }
+    uint16_t vmeRead16(uint32_t address,uint8_t amodifier) { // SWIG
       uint16_t d16 = 0;
-      vmeRead16((uint32_t)address, (uint8_t)amodifier, &d16);
+      vmeRead16(address, amodifier, &d16);
       return d16;
     }
 
     virtual int vmeWrite8(uint32_t address, uint8_t aModifier, uint8_t data);
     virtual int vmeRead8(uint32_t address, uint8_t aModifier, uint8_t* data);
-    int vmeWrite8(int address, int  amodifier, int data) { // SWIG
-      return vmeWrite8((uint32_t)address, (uint8_t)amodifier, (uint8_t)data);
-    }
-    int vmeRead8(int address, int amodifier) { // SWIG
+//    int vmeWrite8(int address, int  amodifier, int data) { // SWIG
+//      return vmeWrite8((uint32_t)address, (uint8_t)amodifier, (uint8_t)data);
+//    }
+    uint8_t vmeRead8(uint32_t address, uint8_t amodifier) { // SWIG
       uint8_t d8;
-      vmeRead8((uint32_t)address, (uint8_t)amodifier, &d8);
+      vmeRead8(address, amodifier, &d8);
       return d8;
     }
     virtual int vmeBlockRead(uint32_t baseAddress, uint8_t aModifier,
@@ -259,8 +289,8 @@ public:
 
       vmeBlockRead((uint32_t)base, (uint8_t)amod, (void*)data,
 			  (size_t)xfercount, &xferred);
-      for (int i =0; i < xferred; i++) {
-	result.push_back(data[i]);
+        for (int i =0; i < xferred; i++) {
+      	result.push_back(data[i]);
       }
       return result;
 
@@ -274,74 +304,24 @@ public:
       vmeFifoRead((uint32_t)base, (uint8_t)amod, data,
 		  (size_t)xfercount, &xferred);
       for (int i = 0; i < xferred; i++) {
-	result.push_back(data[i]);
+      	result.push_back(data[i]);
       }
       return result;
     }
 
-
-    // Support for immediate counted VME variable block transfer operations:
-    // See comments prior to CVMEReadoutList::addBlockCountMask
-
-    virtual int vmeReadBlockCount8(uint32_t address,  uint32_t mask, uint8_t amod);
-    virtual int vmeReadBlockCount16(uint32_t address, uint32_t mask, uint8_t amod);
-    virtual int vmeReadBlockCount32(uint32_t address, uint32_t mask, uint8_t amod);
-    int vmeReadBlockCount8(int address, int mask, int amod) { // SWIG
-      return vmeReadBlockCount8((uint32_t)address, (uint32_t)mask, (uint8_t)amod);
-    }    
-    int vmeReadBlockCount16(int address, int mask, int amod) { // SWIG
-      return vmeReadBlockCount16((uint32_t)address, (uint32_t)mask, (uint8_t)amod);
-    }    
-    int vmeReadBlockCount32(int address, int mask, int amod) { // SWIG
-      return vmeReadBlockCount32((uint32_t)address, (uint32_t)mask, (uint8_t)amod);
-    }
-
-    virtual int vmeVariableBlockRead(uint32_t address, uint8_t amod, 
-			     void* data, size_t maxCount, size_t* countTransferred);
-    virtual int vmeVariableFifoRead(uint32_t address, uint8_t amod,  
-			    void* data, size_t maxCount,  size_t* countTransferred);
-    std::vector<uint32_t>
-      vmeVariableBlockRead(int address, int amod, int maxCount) { // SWIG
-      uint32_t data[maxCount];
-      size_t   transferred;
-      std::vector<uint32_t> result;
-
-      vmeVariableBlockRead((uint32_t)address, (uint8_t)amod, data,
-			   (size_t)maxCount, &transferred);
-      for (int i = 0; i < transferred; i++) {
-	result.push_back(data[i]);
-      }
-      return result;
-    }
-    std::vector<uint32_t>
-      vmeVariableFifoRead(int address, int amod, int maxcount) { // SWIG
-      uint32_t data[maxcount];
-      size_t   transferred;
-
-      std::vector<uint32_t> result;
-
-      vmeVariableFifoRead((uint32_t)address, (uint8_t)amod, data, (size_t)maxcount, 
-			  &transferred);
-      for (int i =0; i < transferred; i++) {
-	result.push_back(data[i]);
-      }
-      return result;
-    }
-
-    
     // List operations.
-
+  
 public:
     virtual int executeList(CVMUSBReadoutList& list,
-		    void*               pReadBuffer,
-		    size_t              readBufferSize,
-		    size_t*             bytesRead);
+		                        void* pReadBuffer,
+		                        size_t readBufferSize,
+		                        size_t* bytesRead) = 0;
     virtual std::vector<uint8_t> executeList(CVMUSBReadoutList& list,
-				     int maxBytes); // SWIG
+				                                      int maxBytes); // SWIG
     
-    virtual int loadList(uint8_t                listNumber,
-		 CVMUSBReadoutList&    list,
-		 off_t                  listOffset = 0);
+    virtual int loadList(uint8_t listNumber,
+                    		 CVMUSBReadoutList& list,
+		                     off_t listOffset) = 0;
     int loadList(int listNumber, CVMUSBReadoutList& list, int offset) { // SWIG
       return loadList((uint8_t)listNumber, list, (off_t)offset);
     }
@@ -351,11 +331,12 @@ public:
     // should call the following function to read acquired data.
 
     virtual int usbRead(void* data, size_t bufferSize, size_t* transferCount,
-		int timeout = 2000);
+		                    int timeout) = 0;
 
     // Other administrative functions:
 
     void setDefaultTimeout(int ms); // Can alter internally used timeouts.
+
 
     // Register bit definintions.
 
@@ -628,21 +609,20 @@ public:
 	static const uint32_t timeoutShift           = 8;
     };
     // Local functions:
-private:
-    int transaction(void* writePacket, size_t writeSize,
-		    void* readPacket,  size_t readSize);
-
+protected:
     void* addToPacket16(void* packet,   uint16_t datum);
     void* addToPacket32(void* packet,   uint32_t datum);
     void* getFromPacket16(void* packet, uint16_t* datum);
     void* getFromPacket32(void* packet, uint32_t* datum);
-    void  writeRegister(unsigned int address, uint32_t data);
-    uint32_t readRegister(unsigned int address);
     unsigned int whichToISV(int which);
     int   doVMEWrite(CVMUSBReadoutList& list);
     int   doVMERead(CVMUSBReadoutList&  list, uint32_t* datum);
     uint16_t* listToOutPacket(uint16_t ta, CVMUSBReadoutList& list, size_t* outSize,
 			      off_t offset = 0);
+
+private:
+    virtual void  writeRegister(unsigned int address, uint32_t data) = 0;
+    virtual uint32_t readRegister(unsigned int address) = 0;
 
   //  These functions are needed for the Swig wrappers:
 
@@ -665,7 +645,11 @@ private:
   return value;
 }
 
- inline size_t uint8_vector_size(std::vector<uint8_t> vec)  {
+inline std::vector<uint8_t> uint8_vector_create() {
+  return std::vector<uint8_t>(10,0);
+}
+
+inline size_t uint8_vector_size(std::vector<uint8_t> vec)  {
   return vec.size();
 }
  inline int uint8_vector_get(std::vector<uint8_t> vec, int i) {

@@ -1,0 +1,57 @@
+
+package require tcltest
+
+
+set failedLoad 0
+tcltest::test pkgRequire-0 {Require the package
+} {
+  set ::failedLoad [catch {package require TclSourceFilter}]
+} 0
+
+
+if {$::failedLoad} {
+  tcltest::cleanupTests
+  exit
+}
+
+
+tcltest::test tokenize-0 {Split a bunch of tcl source into complete blocks
+} {
+  set contents {
+if {"there" eq "here"} {
+  puts "we have arrived"
+}
+set destination there
+set arrived true}
+
+  TclSourceFilter filter 
+  set res [filter Tokenize $contents]
+  filter destroy
+
+  set res
+} [list {} {if {"there" eq "here"} {
+  puts "we have arrived"
+}} {set destination there} {set arrived true}]
+
+
+
+
+tcltest::test filter-0 {given file content, select only those line we want
+} {
+  set contents {
+if {"there" eq "here"} {
+  puts "we have arrived"
+}
+set destination there
+set arrived true}
+
+  TclSourceFilter filter 
+  filter SetValidPatterns {{^set \w+ \w+$}}
+  set res [filter Filter $contents]
+
+  filter destroy
+  set res
+
+} [list {set destination there} {set arrived true}]
+
+tcltest::cleanupTests

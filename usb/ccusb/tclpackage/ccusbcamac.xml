@@ -1,0 +1,293 @@
+
+<!-- chapter libraries -->
+
+<chapter>
+  <title>The ccusbcamac tcl package</title>
+
+  <section>
+    <title>Overview</title>
+
+    <para>
+      The tcl <command>ccusbcamac</command> package provides a mechanism for the
+      user to send single-shot operations to a remote Wiener CC-USB device
+      controlled by a <application>CCUSBReadout</application> program. The package
+      provides a workaround for the restriction demanding that only one process
+      can communicate with a USB device at any given time. The
+      <command>ccusbcamac</command> package interacts with the slow-controls
+      server of the <application>CCUSBReadout</application> program to remotely
+      execute commands.  
+    </para>
+
+    <section>
+      <title>Goals</title>
+      <orderedlist>
+        <listitem>
+          <para>
+            Interactive access to CAMAC devices through a tcl interpreter.
+          </para>
+        </listitem>
+
+        <listitem>
+          <para>
+            Backwards compatibility to <command>wienercamac</command> and
+            <command>camac</command> packages.
+          </para>
+        </listitem>
+      </orderedlist>
+    </section>
+
+    <section>
+      <title>Interactive Control</title>
+
+      <para>
+        The <command>ccusbcamac</command> can be loaded into any TCL interpreter
+        using the <programlisting>package require ccusbcamac</programlisting>
+        command. For best performance, the user should avoid trying to send
+        interactive commands to the CAMAC device while the CC-USB is in data
+        acquisition mode. When the command is received by the slow-controls
+        server, the CCUSBReadout program will exit acquisition mode, drain the
+        device of data, execute the command, retrieve the resulting data caused
+        by the command, and the reenter acquisition mode. Altogether, that
+        process takes a couple seconds. On the other hand, if the user issues
+        commands while the device is not in acquisition mode, the device will
+        respond almost immediately.
+      </para>
+
+    </section>
+
+    <section>
+      <title>Backwards compatibility</title>
+      <para> 
+        The package is is nearly a drop-in
+        replacement for the <command>wienercamac</command> and
+        <command>camac</command> packages designed to work with the SBS Bit3
+        device. Backwards compatibility means that the same API has been provided
+        that was provided by those packages. There are two major difference
+        between the former packages and this package:
+      </para>
+      <orderedlist>
+        <listitem>
+          <para>
+            The namespace is <command>ccusbcamac</command>
+          </para>
+        </listitem>
+
+        <listitem>
+          <para>
+            Additional information needs to be provided to define the location of
+            the slow-controls server. 
+          </para>
+        </listitem>
+      </orderedlist>
+    </section>
+
+    <section>
+      <title>Migrating to ccusbcamac</title>
+
+      <para>
+        This section addresses the scenario of a user who has a functional
+        tcl script that can control some CAMAC devices via one of the
+        <command>wienercamac</command> or <command>camac</command> packages and
+        wants to migrate to a CC-USB system.
+      </para>
+
+      <para>
+        The first step that the user needs to take to convert their script is to
+        convert the namespace of the former package to
+        <command>ccusbcamac</command>. Because there is a one-to-one mapping between the
+        commands in the former packages to the <command>ccusbcamac</command>
+        package, this amounts to a search and replace.
+      </para>
+
+      <para>
+        The second step that the user must take to migrate is to provide some
+        information about the slow-controls that will mediate the interaction with
+        the CC-USB device. To properly interact with the slow-controls server, it
+        is essential that the server can be connected to. For that reason the user
+        must provide the hostname on which the server is running and the port on
+        which it is listening for connections. Also, a plug must be loaded into
+        the server to handle the requests. This plugin is just name of the ccusb
+        module loaded in a ctlconfig.tcl script. These three pieces of information
+        <emphasis>must</emphasis> be provided to the <command>ccusbcamac</command>
+        package before ever trying to execute commands. The means for providing
+        these data is through the <function>ccusbcamac::cdconn</function> proc. 
+      </para>
+
+      <para>
+        The <function>ccusbcamac::cdconn</function> proc must be called prior to
+        the calling of the <function>ccusbcamac::cdreg</function> (or any other
+        proc taking arguments b and c) for a specific set of b and c
+        indices. The information provided by the
+        <function>ccusbcamac::cdconn</function> are the following:
+      </para>
+      <cmdsynopsis>
+        <command>ccusbcamac::cdconn</command>
+        <arg>b</arg>
+        <arg>c</arg>
+        <arg>host</arg>
+        <arg>port</arg>
+        <arg>module</arg>
+      </cmdsynopsis>
+      <para>where</para>
+      <variablelist>
+        <varlistentry>
+          <term>b</term>
+          <listitem>
+            <para>
+              branch index 
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>c</term>
+          <listitem>
+            <para>
+              crate index 
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>host</term>
+          <listitem>
+            <para>
+              name of host on which the slow-controls server is running
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>port</term>
+          <listitem>
+            <para>
+              port on which the slow-controls server is listening
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>modname</term>
+          <listitem>
+            <para>
+              name of ccusb module loaded into the CCUSBReadout program
+            </para>
+          </listitem>
+        </varlistentry>
+
+      </variablelist>
+
+      <para>
+        The host, port, and module arguments should be clear after the earlier
+        discussion. However, you may be wondering what the branch and crate
+        indices refer to in a CC-USB system where there are no physical CAMAC
+        branches. Together, a set of branch and crate indices identify a
+        specific CCUSBReadout slow-controls server or analogously a specific CC-USB
+        device. There is no limit to how many slow-controls servers a single script can
+        interact with and the user can easily target a server to receive a command
+        with the b and c indices. You can imagine then that the purpose of the
+        <function>ccusbcamac::cdconn</function> proc is to bind a set of b and c
+        to the information for a slow-controls server.
+      </para>
+
+    </section>
+  </section>
+
+  <section>
+    <title>
+      A simple example
+    </title>
+
+    <para>
+     Consider the following setup. A LeCroy 4434 32-channel latching scaler
+     resides in slot 15 of a CAMAC crate controlled by a CC-USB device.  The
+     CCUSBReadout's slow-controls server is to listen for connections on the
+     default port (27000) on localhost with a ccusb module loaded with the name
+     <emphasis>myccusb</emphasis>.  
+   </para>
+
+    <section>
+      <title>Configuring the ctlconfig.tcl</title>
+
+      <para>
+        A prerequisite for communicating with the CC-USB through the slow
+        controls server is that the a module of type "ccusb" has been loaded. A
+        very simple ctlconfig.tcl is shown below that accomplishes only this. 
+      </para>
+
+      <programlisting>
+        # ctlconfig.tcl
+
+        # load a ccusb module into the slow-controls server named "myccusb"
+        Module create ccusb myccusb
+      </programlisting>
+
+      <warning>
+        <para>
+          If you do not load the ccusb module into the slow-controls server, the
+          <command>ccusbcamac</command> package will not necessarily fail in an
+          obvious manner. The connection will be made with the slow-controls
+          server without complaint but the commands sent from the
+          <command>ccusbcamac</command> procs will fail to do anything.
+        </para>
+      </warning>
+
+      <para>
+        Run the CCUSBReadout program. If you want to be 100% sure that the slow
+        controls server will listen on port 27000, you can specify the
+        command-line switch --port to be 27000. In most cases, this is not
+        necessary because it defaults to that value.
+      </para>
+    </section>
+
+    <section>
+      <title>The script that runs ccusbcamac commands</title>
+
+      <para>
+        Below is an example of the script that the user will need to write 
+        that will connect to the server and issue commands to the scaler module
+        living in slot 15. Make sure that the TCLLIBPATH includes the
+        $DAQROOT/TclLibs directory, where DAQROOT is the top-level directory of
+        the NSCLDAQ installation being used.
+      </para>
+
+      <programlisting>
+        # Load the ccusbcamac package
+        package require ccusbcamac
+
+        # map the b and c to the connection information 
+        ccusbcamac::cdconn 0 1 localhost 27000 myccusb 
+
+        # ensure that the slow-controls server is listening for connections
+        # stop if it isn't because no further calls to ccusbcamac procs will ever
+        # succeed.
+        if {![ccusbcamac::isOnline 0 1]} {
+          exit
+        }
+
+        # create a device registry for LeCroy 4434 living in slot 15 of 
+        # crate referenced as (b,c)=(0,1)
+        set reg [ ccusbcamac::cdreg 0 1 15]
+
+        # use Q-stop to read all 12 channels and demand that it doesn't
+        # perform more than 12 iterations. 
+        set data [::ccusbcamac::qstop $reg 0 0 12]
+
+        # print the resulting output to stdout
+        foreach datum $data {
+          puts "$datum"
+        }
+      </programlisting>
+
+      <para>
+        The user will then run the script as a separate process.
+      </para>
+
+    </section>
+
+  </section>
+
+</chapter>
+
+
+<!-- /chapter -->

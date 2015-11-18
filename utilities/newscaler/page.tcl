@@ -54,6 +54,9 @@ package require snit
 snit::widgetadaptor pageDisplay {
     option -title
     option -tab
+    option -normalbackground     white
+    option -lowalarmbackground   green
+    option -highalarmbackground  red
     
     #  Each element of the models array is a model that manages the
     #  data for a line of the page (e.g. a singleModel).
@@ -156,9 +159,11 @@ snit::widgetadaptor pageDisplay {
     method alarms state {
         
         if {$state} {
-            set colors {white red green}
+            set colors  [list $options(-normalbackground) \
+                 $options(-highalarmbackground) $options(-lowalarmbackground) \
+            ]
         } else {
-            set colors {white white white}
+            set colors [lrepeat 3 $options(-normalbackground)]
         }
         # Add the highlighting tags.
         

@@ -10,7 +10,7 @@ rm -rf nscldaq-${version}
 tar xzf nscldaq-${version}.tar.gz
 cd nscldaq-${version}
 
-./configure --prefix=${WORKSPACE}/11.0
+./configure --prefix=${WORKSPACE}/11.0 --enable-usb
 make clean all
 make install
 chmod u+x nscldaq

@@ -27,6 +27,7 @@
 #include "CPauseCommand.h"
 #include "CResumeCommand.h"
 #include "CEndCommand.h"
+#include "CInitCommand.h"
 #include <TCLTimer.h>
 
 using namespace std;
@@ -201,4 +202,5 @@ void CRunControlPackage::createCommands(CTCLInterpreter& interp)
   addCommand(new CPauseCommand(interp));
   addCommand(new CResumeCommand(interp));
   addCommand(new CEndCommand(interp));
+  addCommand(new CInitCommand(interp));
 }

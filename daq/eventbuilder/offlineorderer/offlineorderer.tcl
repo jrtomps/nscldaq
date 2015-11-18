@@ -18,8 +18,13 @@
 # @file  offlineorderer.tcl 
 # @author Jeromy Tompkins 
 
+set here [file dirname [file normalize [info script]]]
+lappend auto_path [file join $here .. TclLibs]
+lappend auto_path [file join $here .. lib]
+
 package require cmdline
 package require InstallRoot
+package require ring
 
 # -----------------------------------------------------------------------------
 
@@ -42,6 +47,18 @@ set outring [lindex [array get params outputring] 1]
 set stagearea [lindex [array get params stagearea] 1]
 
 lappend auto_path [file join [::InstallRoot::Where] TclLibs] 
+
+# ----------------------------------------------------------------------------
+# Create the rings if they do not exist already
+#
+set knownRings [ringbuffer list]
+if {$inring ni $knownRings} {
+  ringbuffer create $inring
+}
+
+if {$outring ni $knownRings} {
+  ringbuffer create $outring
+}
 
 
 # -----------------------------------------------------------------------------
@@ -92,9 +109,9 @@ set orderer [OfflineOrdererUIPresenter %AUTO% -widgetname .view]
 
 # add these frames to the sequencer and then set it to the main configuration
 # window
-$seq add main   .view [list $Globals::menu add command -label "Config" \
+$seq staticAdd main .view {} [list $Globals::menu add command -label "Config" \
                         -command { $seq select config ; $::Globals::menu delete 0 1} ]
-$seq add config .globalConfig
+$seq staticAdd config .globalConfig main
 $seq select main
 
 # grid that beast

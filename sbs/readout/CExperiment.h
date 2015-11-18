@@ -149,6 +149,7 @@ public:
   void setRing(std::string name);
   void setTimestamp(uint64_t stamp);
   void setSourceId(uint32_t id);
+  uint32_t getSourceId();
   void triggerFail(std::string msg);
   void syncEndRun(bool pause);
 

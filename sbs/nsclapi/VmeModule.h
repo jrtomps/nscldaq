@@ -1,6 +1,6 @@
 /*
     This software is Copyright by the Board of Trustees of Michigan
-    State University (c) Copyright 2013.
+    State University (c) Copyright 2015.
 
     You may use this software under the terms of the GNU public license
     (GPL).  The terms of this license are described at:
@@ -36,12 +36,10 @@
      mailto: venemaja@msu.edu
 */
 
-#ifndef __VMEMODULE_H
-#define __VMEMODULE_H
+#ifndef VMEMODULE_H
+#define VMEMODULE_H
 
-#ifndef __CVME_H
 #include <CVME.h>
-#endif
 
 #ifndef _CRT_STDINT_H
 

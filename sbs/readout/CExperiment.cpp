@@ -221,12 +221,12 @@ CExperiment::Start(bool resume)
       m_nPausedmSeconds += (msTime - m_nLastScalerTime);
       m_nLastScalerTime = msTime;
     }
-    
+
     uint32_t elapsedTime = (msTime - m_nRunStartStamp - m_nPausedmSeconds)/1000;
-    
+
     CRingStateChangeItem item(NULL_TIMESTAMP, m_nSourceId, BARRIER_START,
-        resume ? PAUSE_RUN : BEGIN_RUN,  m_pRunState->m_runNumber,
-	elapsedTime, stamp,
+        resume ? RESUME_RUN : BEGIN_RUN,  m_pRunState->m_runNumber,
+        elapsedTime, stamp,
         std::string(m_pRunState->m_pTitle).substr(0, TITLE_MAXSIZE));
     item.commitToRing(*m_pRing);
 
@@ -234,9 +234,9 @@ CExperiment::Start(bool resume)
 
     if (m_pReadout) {
       if (resume) {
-	m_pReadout->onResume();
+        m_pReadout->onResume();
       } else {
-	m_pReadout->onBegin();
+        m_pReadout->onBegin();
       }
     }
     
@@ -540,10 +540,15 @@ CExperiment::readScalers()
   // can only do scaler readout if we have a root scaler bank:
 
   if (m_pScalers) {
+    
     vector<uint32_t> scalers = m_pScalers->read();
+    uint64_t timestamp = m_pScalers->timestamp();
+    int      srcid     = m_pScalers->sourceId();
+    if (srcid == -1) srcid = m_nSourceId;
+    
     m_pScalers->clear();	// Clear scalers after read.
 
-    CRingScalerItem  item(NULL_TIMESTAMP, m_nSourceId, BARRIER_NOTBARRIER,
+    CRingScalerItem  item(timestamp, srcid, BARRIER_NOTBARRIER,
                           startTime,
 			  endTime,
 			  now,
@@ -754,6 +759,16 @@ CExperiment::setSourceId(uint32_t id)
 {
     m_nSourceId  = id;
     m_needHeader = true;
+}
+/**
+ * getSourceId
+ *   return the current evnt source id.
+ * @return uint32_t
+ */
+uint32_t
+CExperiment::getSourceId()
+{
+  return m_nSourceId;
 }
 /**
  * triggerFail

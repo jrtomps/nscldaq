@@ -181,7 +181,8 @@ uint8_t
 CVmeModule::peekb(uint32_t offset)
 {
 
-   return (uint8_t)((m_CVME.asChar())[offset]);
+  volatile uint8_t* device = m_CVME.asChar();
+   return device[offset];
 
 }
 
@@ -202,8 +203,8 @@ uint16_t
 CVmeModule::peekw(uint32_t offset)
 {
 
-   volatile uint16_t* c = (m_CVME.asShort());
-   return (uint16_t)(c[offset]);
+   volatile uint16_t* device = m_CVME.asShort();
+   return device[offset];
 
 }
 
@@ -223,8 +224,8 @@ CVmeModule::peekw(uint32_t offset)
 uint32_t
 CVmeModule::peekl(uint32_t offset)
 {
-
-   return (uint32_t)((m_CVME.asLong())[offset]);
+   volatile uint32_t* device = m_CVME.asInt32();
+   return device[offset];
 
 }
 
@@ -287,7 +288,7 @@ void
 CVmeModule::pokel(uint32_t lword, uint32_t nOffset)
 {
 
-   (m_CVME.asLong())[nOffset] = lword;
+   (m_CVME.asInt32())[nOffset] = lword;
 
 }
 /*!
@@ -326,7 +327,7 @@ CVmeModule::CopyToMe(const CVmeModule& rModule)
 uint32_t
 CVmeModule::readl(void* pBuffer, uint32_t nOffset, size_t longs)
 {
-  uint32_t* pSource = (uint32_t*)m_CVME.asLong() + nOffset;
+  uint32_t* pSource = (uint32_t*)m_CVME.asInt32() + nOffset;
   uint32_t* pDest   = (uint32_t*)pBuffer;
   for(uint32_t i =0; i < longs; i++) { // memcpy is not ensured to be long transfers.
     *pDest++ = *pSource++;

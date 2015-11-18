@@ -1,0 +1,470 @@
+
+package require tcltest
+package require Itcl
+package require MockCCUSB
+
+tcltest::test pkgrequire-0 {Ensure we can package require 
+} -body {
+  package require caenc671
+} -result 11.0 
+
+
+proc setup {} {
+  MockCCUSB::Controller ::ctlr
+  ACAENC671 ::dev ctlr 3
+}
+
+proc tearDown {} {
+  itcl::delete object ::dev
+  ::ctlr destroy
+}
+
+
+
+tcltest::test setCtlr-0 {Test that we can set the controller
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev SetController myctlr
+  ::dev GetController 
+} -result "myctlr"
+
+
+
+
+
+tcltest::test enable-0 {Test that bank = 0 causes no error 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev Enable 0 1
+  ::ctlr getHistory
+} -result "{simpleWrite24 3 0 18 1}"
+
+tcltest::test enable-1 {Test that bank = 2 causes error 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev Enable 2 1
+  ::ctlr getHistory
+} -result "ACAENC671::Enable bank 2 is invalid. Must be either 0 or 1."  \
+-returnCodes 1
+
+tcltest::test enable-2 {Test that bank = -1 causes error 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev Enable -1 1
+  ::ctlr getHistory
+} -result "ACAENC671::Enable bank -1 is invalid. Must be either 0 or 1."  \
+-returnCodes 1
+
+#tcltest::test enable-3 {Test that non-boolean fails 
+#} -setup {
+#  setup
+#} -cleanup {
+#  tearDown
+#} -body {
+#  ::dev Enable 0 asdf 
+#  ::ctlr getHistory
+#} -result "ACAENC671::Enable user provided non-boolean value."  \
+#-returnCodes 1
+
+
+
+
+tcltest::test thresh-0 {Test that good ch and value succeeds 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev Threshold 8 128
+  ::ctlr getHistory
+} -result "{simpleWrite24 3 8 16 128}"
+
+tcltest::test thresh-1 {Test that ch<0 fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev Threshold -1 128
+} -result {ACAENC671::Threshold ch -1 is invalid. Must be in range [0,15].} \
+ -returnCodes 1
+
+tcltest::test thresh-2 {Test that ch>15 fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev Threshold 16 128
+} -result {ACAENC671::Threshold ch 16 is invalid. Must be in range [0,15].} \
+ -returnCodes 1
+
+tcltest::test thresh-3 {Test that th<0 fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev Threshold 0 -1 
+} -result {ACAENC671::Threshold -1 is an invalid threshold setting. Must be in range [0,255].} \
+ -returnCodes 1
+
+tcltest::test thresh-4 {Test that th>255 fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev Threshold 0 256 
+} -result {ACAENC671::Threshold 256 is an invalid threshold setting. Must be in range [0,255].} \
+ -returnCodes 1
+
+
+
+
+
+
+
+
+tcltest::test delay-0 {Test that good ch and value succeeds 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev Delay 8 128
+  ::ctlr getHistory
+} -result "{simpleWrite24 3 8 17 128}"
+
+tcltest::test delay-1 {Test that ch<0 fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev Delay -1 128
+} -result {ACAENC671::Delay ch -1 is invalid. Must be in range [0,15].} \
+ -returnCodes 1
+
+tcltest::test delay-2 {Test that ch>15 fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev Delay 16 128
+} -result {ACAENC671::Delay ch 16 is invalid. Must be in range [0,15].} \
+ -returnCodes 1
+
+tcltest::test delay-3 {Test that delay<0 fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev Delay 0 -1 
+} -result {ACAENC671::Delay -1 is an invalid delay setting. Must be in range [0,255].} \
+ -returnCodes 1
+
+tcltest::test delay-4 {Test that delay>255 fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev Delay 0 256 
+} -result {ACAENC671::Delay 256 is an invalid delay setting. Must be in range [0,255].} \
+ -returnCodes 1
+
+
+
+
+
+tcltest::test width-0 {Test that good bank and value succeeds 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev Width 0 128
+  ::ctlr getHistory
+} -result "{simpleWrite24 3 0 20 128}"
+
+tcltest::test width-1 {Test that bank<0 fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev Width -1 128
+} -result {ACAENC671::Width bank -1 is invalid. Must be either 0 or 1.} \
+ -returnCodes 1
+
+tcltest::test width-2 {Test that bank>1 fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev Width 2 128 
+} -result {ACAENC671::Width bank 2 is invalid. Must be either 0 or 1.} \
+ -returnCodes 1
+
+tcltest::test width-3 {Test that width<0 fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev Width 0 -1 
+} -result {ACAENC671::Width -1 is an invalid width setting. Must be in range [0,255].} \
+ -returnCodes 1
+
+tcltest::test width-4 {Test that width>255 fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev Width 0 256 
+} -result {ACAENC671::Width 256 is an invalid width setting. Must be in range [0,255].} \
+ -returnCodes 1
+
+
+
+
+
+tcltest::test deadtime-0 {Test that good bank and value succeeds 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev DeadTime 1 128
+  ::ctlr getHistory
+} -result "{simpleWrite24 3 5 20 128}"
+
+tcltest::test deadtime-1 {Test that bank<0 fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev DeadTime -1 128
+} -result {ACAENC671::DeadTime bank -1 is invalid. Must be either 0 or 1.} \
+ -returnCodes 1
+
+tcltest::test deadtime-2 {Test that bank>1 fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev DeadTime 2 128 
+} -result {ACAENC671::DeadTime bank 2 is invalid. Must be either 0 or 1.} \
+ -returnCodes 1
+
+tcltest::test deadtime-3 {Test that deadtime<0 fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev DeadTime 0 -1 
+} -result {ACAENC671::DeadTime -1 is an invalid dead time setting. Must be in range [0,255].} \
+ -returnCodes 1
+
+tcltest::test deadtime-4 {Test that deadtime>255 fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev DeadTime 0 256 
+} -result {ACAENC671::DeadTime 256 is an invalid dead time setting. Must be in range [0,255].} \
+ -returnCodes 1
+
+
+
+
+tcltest::test promptwidth-0 {Test that good bank and value succeeds 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev PromptWidth 1 128
+  ::ctlr getHistory
+} -result "{simpleWrite24 3 7 20 128}"
+
+tcltest::test promptwidth-1 {Test that bank<0 fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev PromptWidth -1 128
+} -result {ACAENC671::PromptWidth bank -1 is invalid. Must be either 0 or 1.} \
+ -returnCodes 1
+
+tcltest::test promptwidth-2 {Test that bank>1 fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev PromptWidth 2 128 
+} -result {ACAENC671::PromptWidth bank 2 is invalid. Must be either 0 or 1.} \
+ -returnCodes 1
+
+tcltest::test promptwidth-3 {Test that promptwidth<0 fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev PromptWidth 0 -1 
+} -result {ACAENC671::PromptWidth -1 is an invalid output width setting. Must be in range [0,255].} \
+ -returnCodes 1
+
+tcltest::test promptwidth-4 {Test that promptwidth>255 fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev PromptWidth 0 256 
+} -result {ACAENC671::PromptWidth 256 is an invalid output width setting. Must be in range [0,255].} \
+ -returnCodes 1
+
+
+
+tcltest::test internalMajority-0 {Test good numChan succeeds
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev InternalMajority  13 
+  ::ctlr getHistory
+} -result "{simpleWrite24 3 3 20 72}" 
+
+tcltest::test internalMajority-1 {Test numChan<1 fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev InternalMajority 0 
+  ::ctlr getHistory
+} -result {ACAENC671::InternalMajority 0 is an invalid internal majority setting. Must be in range [1,16].} \
+-returnCodes 1
+
+
+
+tcltest::test externalMajority-0 {Test good numChan succeeds
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev ExternalMajority  43 1
+  ::ctlr getHistory
+} -result "{simpleWrite24 3 2 20 508}" 
+
+tcltest::test externalMajority-1 {Test numChan<1 fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev ExternalMajority 0 0
+  ::ctlr getHistory
+} -result {ACAENC671::ExternalMajority 0 is an invalid external majority setting. Must be in range [1,43].} \
+-returnCodes 1
+
+
+
+tcltest::test multiplexPrompt-0 { Test that proper multiplex channel cmd is called
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev SetMultiplexPrompt 4
+  ::ctlr getHistory
+} -result "{simpleWrite24 3 4 19 256}"
+
+tcltest::test multiplexPrompt-1 { Test that channel out of range fails to multiplex 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev SetMultiplexPrompt 16
+  ::ctlr getHistory
+} -result {ACAENC671::SetMultiplexPrompt 16 is an invalid channel. Must be in range [0,15].} \
+-returnCodes 1
+
+
+
+tcltest::test multiplexDelay-0 { Test that proper multiplex channel cmd is called
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev SetMultiplexDelay 4
+  ::ctlr getHistory
+} -result "{simpleWrite24 3 4 21 256}"
+
+tcltest::test multiplexDelay-1 { Test that channel out of range fails to multiplex 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev SetMultiplexDelay 16
+  ::ctlr getHistory
+} -result {ACAENC671::SetMultiplexDelay 16 is an invalid channel. Must be in range [0,15].} \
+-returnCodes 1
+
+
+
+
+tcltest::test multiplexInputLevel-0 { Test that proper multiplex channel cmd is called
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev SetMultiplexInputLevel 4
+  ::ctlr getHistory
+} -result "{simpleWrite24 3 4 22 256}"
+
+tcltest::test multiplexInputLevel-1 { Test that channel out of range fails to multiplex 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev SetMultiplexInputLevel 16
+  ::ctlr getHistory
+} -result {ACAENC671::SetMultiplexInputLevel 16 is an invalid channel. Must be in range [0,15].} \
+-returnCodes 1
+
+
+
+tcltest::cleanupTests

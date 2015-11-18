@@ -18,9 +18,8 @@
 #define __CMARKERCOMMAND_H
 
 
-#ifndef __TCLOBJECTPROCESSOR_H
-#include <TCLObjectProcessor.h>
-#endif
+#include "CDeviceCommand.h"
+
 
 #ifndef __STL_VECTOR
 #include <vector>
@@ -63,7 +62,7 @@ class CConfiguration;
 the value is mandatory
 */
 
-class CMarkerCommand : public CTCLObjectProcessor
+class CMarkerCommand : public CDeviceCommand
 {
 private:
   CConfiguration& m_Config;
@@ -84,20 +83,11 @@ public:
 
   // Command entry point:
 
-protected:
 
-
-  virtual int operator()(CTCLInterpreter& interp,
-			 std::vector<CTCLObject>& objv);
 
 private:
   virtual int create(CTCLInterpreter& interp, 
 		     std::vector<CTCLObject>& objv);
-  virtual int config(CTCLInterpreter& interp,
-		     std::vector<CTCLObject>& objv);
-  virtual int cget(CTCLInterpreter& interp,
-		   std::vector<CTCLObject>& objv);
-  virtual void Usage(std::string msg, std::vector<CTCLObject>& objv);
 };
 
 #endif

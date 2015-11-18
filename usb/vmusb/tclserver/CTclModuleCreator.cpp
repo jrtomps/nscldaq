@@ -22,6 +22,7 @@
 
 #include "CTclModuleCreator.h"
 #include "CTclControlModule.h"
+#include <memory>
 
 /**
  * operator()
@@ -30,8 +31,8 @@
  * @param name - Name of the module.
  * @return CControlHardware* Pointer to the newly created module.
  */
-CControlHardware*
-CTclModuleCreator::operator()(std::string name)
+  std::unique_ptr<CControlHardware>
+CTclModuleCreator::operator()()
 {
-  return new CTclControlModule(name);
+  return std::unique_ptr<CControlHardware>(new CTclControlModule);
 }

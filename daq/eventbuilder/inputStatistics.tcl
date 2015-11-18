@@ -77,6 +77,7 @@ namespace eval EVB {
 #
 # OPTIONS:
 #    - -fragments  Provides the total number of fragments.
+#    - -bytes      Provides the total number of queued bytes.
 #    - -oldest     Provides the oldest timestamp.
 #    - -newest     Provides the newest timestamp.
 #    - -deepestid  ID of deepest queue.
@@ -89,6 +90,7 @@ snit::widget ::EVB::inputStatistics::summaryDisplay {
     component innerHull
     
     option -fragments  -default 0 -configuremethod _unsignedOption
+    option -bytes      -default 0 -configuremethod _unsignedOption
     option -oldest     -default 0 -configuremethod _unsignedOption
     option -newest     -default 0 -configuremethod _unsignedOption
     option -deepestid  -default "" 
@@ -107,6 +109,7 @@ snit::widget ::EVB::inputStatistics::summaryDisplay {
         #  Define the widgets:
         #
         ttk::label $innerHull.fraglabel -text "Queued Fragments: "
+        ttk::label $innerHull.byteslabel -text " Bytes: "
         ttk::label $innerHull.oldlabel  -text "Oldest Timestamp: "
         ttk::label $innerHull.newlabel  -text "Newest Timestamp: "
         ttk::label $innerHull.deepIdLabel -text "Deepest Queue (id : depth)"
@@ -115,6 +118,7 @@ snit::widget ::EVB::inputStatistics::summaryDisplay {
 
         
         ttk::label $innerHull.fragments -textvariable ${selfns}::options(-fragments)
+        ttk::label $innerHull.bytes     -textvariable ${selfns}::options(-bytes)
         ttk::label $innerHull.oldest    -textvariable ${selfns}::options(-oldest)
         ttk::label $innerHull.newest    -textvariable ${selfns}::options(-newest)
         ttk::label $innerHull.deepid    -textvariable ${selfns}::options(-deepestid)
@@ -124,7 +128,9 @@ snit::widget ::EVB::inputStatistics::summaryDisplay {
         # Layout the widgets
         #
         grid $innerHull.fraglabel -row 0 -column 0 -padx 5 
-        grid $innerHull.fragments -row 0 -column 1 -columnspan 3 -padx 5
+        grid $innerHull.fragments -row 0 -column 1  -padx 5 -columnspan 2
+        grid $innerHull.byteslabel -row 0 -column 3 -padx 5
+        grid $innerHull.bytes      -row 0 -column 4 -padx 5
         grid $innerHull.oldlabel -row 1 -column 0 -padx 5
         grid $innerHull.oldest -row 1 -column 1 -columnspan 3 -padx 5
         grid $innerHull.newlabel -row 2 -column 0 -padx 5
@@ -169,9 +175,13 @@ snit::widget ::EVB::inputStatistics::summaryDisplay {
 #
 # OPTIONS:
 #   - -id        - Queue source identifier.
-#   - -depth     - Queue depth
+#   - -depth     - Queue depth (fragments)
+#   - -inbytes     - Queue depth in bytes.
+#   - -inrate      - enqueue rate in in bytes/sec.
 #   - -oldest    - Timestamp at frontof queue.
 #   - -outcount  - Count of output fragments from this queue.
+#   - -outbytes  - Count of output bytes fromt this queue.
+#   - -outrate   - Output rate in bytes/sec from this queue.
 #
 # DELEGATIONS:
 #   - all other options -> hull
@@ -180,9 +190,10 @@ snit::widget ::EVB::inputStatistics::summaryDisplay {
 #  \verbatim
 #
 #   +------------------------------------------------+
-#   |               Source ID: <id>                  |
-#   |  Depth      <depth>   Oldest: <timestamp>      |
-#   |  Out frags: <n-output>
+#   |  Source ID: <id>                               |
+#   |  Depth      <depth>     bytes: <bytes>         |
+#   |  Out frags: <n-output>  bytes: <bytes>         |
+#   | Enqueue rate: <inrate>  Dequeue rate: <outrate>|
 #   +------------------------------------------------+
 #
 #  \endverbatim
@@ -194,6 +205,10 @@ snit::widget ::EVB::inputStatistics::queueDisplay {
     option -depth    -default  0 -configuremethod _unsignedOption
     option -oldest   -default  0 -configuremethod _unsignedOption
     option -outcount -default  0 -configuremethod _unsignedOption
+    option -inbytes  -default  0 -configuremethod _unsignedOption
+    option -inrate   -default  0 -configuremethod _unsignedRealOption
+    option -outbytes -default  0 -configuremethod _unsignedOption
+    option -outrate  -default  0 -configuremethod _unsignedRealOption
     
     delegate option * to innerHull
     delegate method * to innerHull
@@ -215,21 +230,30 @@ snit::widget ::EVB::inputStatistics::queueDisplay {
         
         ttk::label $innerHull.idlabel    -text {Source ID: }
         ttk::label $innerHull.depthlabel -text {depth:     }
+        ttk::label $innerHull.inbyteslabel -text {bytes: }
         ttk::label $innerHull.oldlabel   -text {Oldest:    }
         ttk::label $innerHull.outcountlbl -text {Out frags:}
+        ttk::label $innerHull.outbyteslabel -text {bytes: }
+        ttk::label $innerHull.enqratelabel -text {Enqueue rate: }
+        ttk::label $innerHull.deqratelabel -text {Dequeue rate: }
        
         ttk::label $innerHull.id     -textvariable ${selfns}::options(-id)
         ttk::label $innerHull.depth  -textvariable ${selfns}::options(-depth)
+        ttk::label $innerHull.inbytes -textvariable ${selfns}::options(-inbytes)
         ttk::label $innerHull.oldest -textvariable ${selfns}::options(-oldest)
         ttk::label $innerHull.outcount -textvariable ${selfns}::options(-outcount)
+        ttk::label $innerHull.outbytes -textvariable ${selfns}::options(-outbytes)
+        ttk::label $innerHull.inrate   -textvariable ${selfns}::options(-inrate)
+        ttk::label $innerHull.outrate  -textvariable ${selfns}::options(-outrate)
         
         $self configurelist $args
         
         # Lay them out.
         
-        grid  x                    $innerHull.idlabel     $innerHull.id
-        grid $innerHull.depthlabel $innerHull.depth       $innerHull.oldlabel   $innerHull.oldest
-        grid $innerHull.outcountlbl $innerHull.outcount
+        grid $innerHull.idlabel      $innerHull.id          $innerHull.oldlabel      $innerHull.oldest
+        grid $innerHull.depthlabel   $innerHull.depth       $innerHull.inbyteslabel  $innerHull.inbytes
+        grid $innerHull.outcountlbl  $innerHull.outcount    $innerHull.outbyteslabel $innerHull.outbytes
+        grid $innerHull.enqratelabel $innerHull.inrate      $innerHull.deqratelabel  $innerHull.outrate
         
         grid $innerHull -sticky nsew
     }
@@ -246,6 +270,21 @@ snit::widget ::EVB::inputStatistics::queueDisplay {
 	} else {
 	    set options($optname) $value
 	}
+    }
+    ##
+    # _unsignedReadlOption
+    #   configurem method to ensure that an option is an unsigned real value
+    #  (e.g. rates)
+    #
+    # @param optname - name of the option being configured.
+    # @param optval  - proposed new value.
+    #
+    method _unsignedRealOption {optname optval} {
+        if {[string is double $optval] && ($optval >= 0.0)} {
+            set options($optname) $optval
+        } else {
+            error "$optname requires positive real values not: $optval"
+        }
     }
 }
 
@@ -295,9 +334,14 @@ snit::widgetadaptor EVB::inputStatistics::queueStats  {
     # @param oldest - The timestamp of the oldest element in the queue (head)
     # @param outfrags - The number of fragments that have been removed from the
     #                   queue for output.
+    # @param inbytes  - Number of bytes on the input queue.
+    # @param inrate   - Number of byts/sec queued on the input.
+    # @param outbytes - Number of dequeued bytes.
+    # @param outrate  - Rate at which bytes were dequeued.
     #
-    method updateQueue {source depth oldest outfrags} {
-        $hull update $source [list $source $depth $oldest $outfrags]
+    method updateQueue {source depth oldest outfrags inbytes inrate outbytes outrate} {
+        $hull update $source [list \
+            $source $depth $oldest $outfrags $inbytes $inrate $outbytes $outrate]
     }
     ##
     # clear
@@ -342,11 +386,17 @@ snit::widgetadaptor EVB::inputStatistics::queueStats  {
     #                 - oldest : The timestamp of the oldest queue element.
     #                 - output-count : The number of fragments that have been
     #                   output from this queue.
+    #                 - input depth in bytes.
+    #                 - input rate in bytes.
+    #                 - Number of dequeued bytes.
+    #                 - Dequeued rate in bytes.
     #
     method _UpdateWidget {widget data} {
         $widget configure \
             -id     [lindex $data 0] -depth    [lindex $data 1] \
-            -oldest [lindex $data 2] -outcount [lindex $data 3]
+            -oldest [lindex $data 2] -outcount [lindex $data 3] \
+            -inbytes [lindex $data 4] -inrate  [lindex $data 5] \
+            -outbytes [lindex $data 6] -outrate [lindex $data 7]
     }
 }
 
@@ -369,6 +419,7 @@ snit::widgetadaptor EVB::inputStatistics::queueStats  {
 #    - -newest    - Newest timestamp.
 #    - -deepestid - Id of queue with deepest id.
 #    - -deepestdepth - Depth of deepest queue.
+#    - -bytes      - Total number of queued bytes.
 #    - -columns   - Columns in the grid of queue status info.
 #
 # METHODS:
@@ -392,6 +443,7 @@ snit::widget EVB::inputStatistics::statusDisplay {
     delegate option -newest    to summary
     delegate option -deepestid to summary
     delegate option -deepestdepth to summary
+    delegate option -bytes     to summary
     
     delegate option * to queues
     

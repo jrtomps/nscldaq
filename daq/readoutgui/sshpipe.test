@@ -21,9 +21,27 @@ namespace eval mytests {
     array set log [list]
 }
 
-tcltest::configure -verbose tebp
+#
+# TESTING CONCEPT and METHOD 
+#
+# 1. The SSHPipe::start method invokes a proc called ssh::sshpid in order to
+# start up the ssh pipe it connects to. We simply override this with a different
+# implementation that is simpler that involves storing some useful values.
+#
+# 2. When the ssh pipe is readable, the ultimate thing that happens is that
+# ReadoutGUIPanel::Log is called to log the output of the ssh pipeline. We
+# overload it to simply append the information in an array of dicts called
+# ::mytests::log.
+#
+# 3. The sshsimulator.testscript is the standard process to start up with the
+# ssh::sshpid proc. It merely reads input and read output. When it reads an exit
+# from the stream, it exits.
+#
+
+
+#tcltest::configure -verbose tebp
 ##
-# Run program over ssh (substitute a pipe)
+# Run program over ssh (substitute a pipe) that is called by SSHPipe::start
 #
 proc ssh::sshpid {host program} {
     puts "program: $program"
@@ -35,17 +53,35 @@ proc ssh::sshpid {host program} {
     
     return [list $::mytests::lastpid $::mytests::lastinfd $::mytests::lastoutfd]
 }
+
+## Overridden Log proc to capture the data read from the sshpipe.
+#
+# This is what ultimately is called when the ssh pipe is readable. For each new
+# message read from the pipeline, append it to an array called ::mytests::log.
+# Each element of the array is actually a dict containing the following keys:
+#   source
+#   severity
+#   message
+#
+# whose values are the arguments passed to the ReadutGUIPanel::Log proc.
+#
 proc ReadoutGUIPanel::Log {source severity msg} {
     puts "Logging $source $severity $msg"
-    set ::mytests::log($::mytests::logcount) [dict create source $source severity $severity message $msg]
+    set ::mytests::log($::mytests::logcount) [dict create source $source \
+                                                          severity $severity \
+                                                          message $msg]
     incr ::mytests::logcount
 }
 
+## Clear out the log
+#
 proc ::mytests::clearlog {} {
     array unset ::mytests::log *
     set ::mytests::logcount 0
 }
 
+#------------------------------------------------------------------------------#
+#
 # Test parameters proc:
 
 tcltest::test paramters-1 {Get the right dict from parameters} \
@@ -55,6 +91,8 @@ tcltest::test paramters-1 {Get the right dict from parameters} \
 } -result $::SSHPipe::parameterization
 
 
+#------------------------------------------------------------------------------#
+#
 # Test Start
 
 tcltest::test start-1 {Bad program fails} \
@@ -100,7 +138,8 @@ tcltest::test start-2 {Start echo, check activeProviders contents.} \
     expr {$should == $actual}
 } -result 1
 
-##
+#------------------------------------------------------------------------------#
+#
 # tests for ::SSHPipe::Check.
 #
 
@@ -161,7 +200,10 @@ tcltest::test check-2 {After killing a started source, check should give false} 
      
 }  -result false
 
+#------------------------------------------------------------------------------#
+#
 # Tests for stop
+
 #
 tcltest::test stop-1 {After starting a source stopping it kills/cleans it} \
 -setup {
@@ -185,6 +227,7 @@ tcltest::test stop-1 {After starting a source stopping it kills/cleans it} \
     
 } -result ""
 
+if {0} {
 #  Test begin
 
 tcltest::test begin-1 {begin on an idle run is ok} \
@@ -431,6 +474,53 @@ tcltest::test resume-2 {begin on a run that is not idle fails} \
     list $status $msg
       
 } -result [list 1 "A run is not active in [file join [file dirname [info script]] sshsimulator.testscript]@localhost so no resume is possible."]
+}
+
+
+#-----------------------------------------------------------------------------
+#
+# Init tests
+
+#
+#
+#
+tcltest::test init-0 {Test that init command when not started fails
+} -setup {
+} -cleanup {
+} -body {
+ 
+    # not running so begin should fail
+    
+    set status [catch {::SSHPipe::init 0} msg]
+    list $status $msg
+} -result {1 {SSHPipe::init Source id does not exist.}}
+
+#
+#
+#
+tcltest::test init-1 {Test that init command when started succeeds
+} -setup {
+    set tclsh $::env(tcl)
+    set cat [file join [file dirname [info script]] sshsimulator.testscript]
+    ::SSHPipe::start [dict create \
+        host localhost path $tclsh parameters $cat sourceid 0 \
+    ]
+} -cleanup {
+    exec kill $::mytests::lastpid
+    catch {array unset ::SSHPipe::activeProviders 0}
+    ::mytests::clearlog
+} -body {
+ 
+    # not running so begin should fail
+    
+    set status [catch {::SSHPipe::init 0} msg]
+    list $status $msg
+    vwait ::SSHPipe::activeProviders(0);   #Echo of exit command
+    set msg [dict get $::mytests::log(0) message]
+    puts $msg 
+    set msg
+} -result {init
+}
 
 
 # Report results:

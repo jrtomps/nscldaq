@@ -33,5 +33,21 @@ proc start args {
     EVB::maintainGUI .evbGui
     
     fconfigure stdout -translation binary
+    
+    set me $::tcl_platform(user)
+    wm title . "Event Builder run by $me"
 
 }
+
+# if frame is 1 then we ran this as ./startOrderer, otherwise it was run
+# within another script
+set frame [info frame]
+if {$frame == 1} {
+  if {[llength $argv] > 0} {
+    set ::OutputRing [lindex $argv 0]
+  } else {
+    return -code error {User must provide name of output ring as first argument}
+}
+  start 
+}
+

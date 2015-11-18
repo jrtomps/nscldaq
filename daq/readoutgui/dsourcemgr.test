@@ -21,26 +21,59 @@ package require tcltest
 package require DataSourceManager
 package require RunstateMachine
 
-
 namespace eval  ::s800test {
     variable port 1234
     variable server localhost
     variable fd
 }
 
-proc startServer {} {
-    set tcl $::env(tcl)
-    set here [file dirname [info script]]
-    set server [file join $here s800fake.tcl]
-    set ::s800test::fd [open "|$tcl $server $::s800test::port" w]
-    after 500
-}
-proc stopServer {} {
-    close $::s800test::fd
+proc setupTestProvider {} {
+  package provide Test_Provider 1.0
 
+  # a pausable provider
+  namespace eval Test {
+    variable sourceInfo [dict create] 
+    
+    proc parameters {} { return [dict create]}
+    proc start {params} { 
+      variable sourceInfo 
+      dict set sourceInfo 0 [dict create state started checkState 1] 
+    } 
+    proc check {id} {variable sourceInfo; return [dict get $sourceInfo $id checkState] } 
+    proc stop {id} { variable sourceInfo; dict set sourceInfo $id state inactive} 
+    proc begin {id run title} { variable sourceInfo; dict set sourceInfo $id state active} 
+    proc end {id} { variable sourceInfo; dict set sourceInfo $id state inactive} 
+    proc pause {id} { variable sourceInfo; dict set sourceInfo $id state paused} 
+    proc resume {id} { variable sourceInfo; dict set sourceInfo $id state active} 
+    proc init {id} {variable sourceInfo; dict set sourceInfo $id state init}
+    proc capabilities {} { return [dict create canPause true] } 
+  }
+
+  package provide NoPauseTest_Provider 1.0
+  # a provider that cannot pause 
+  namespace eval NoPauseTest {
+    variable sourceInfo [dict create] 
+    proc parameters {} { return [dict create]}
+    proc start {params} { 
+      variable sourceInfo 
+      dict set sourceInfo 0 [dict create state started checkState 1] 
+    } 
+    proc check {id} {variable sourceInfo; return [dict get $sourceInfo $id checkState] } 
+    proc stop {id} { variable sourceInfo; dict set sourceInfo $id state inactive} 
+    proc begin {id run title} { variable sourceInfo; dict set sourceInfo $id state active} 
+    proc end {id} { variable sourceInfo; dict set sourceInfo $id state inactive} 
+    proc capabilities {} { return [dict create canPause false] } 
+  }
 }
 
-set debug 1
+proc forgetTestProvider {} {
+  namespace forget Test
+  namespace forget NoPauseTest
+  package forget Test_Provider
+  package forget NoPauseTest_Provider
+}
+
+set debug 0
 
 # Source enumeration note:  The list below must be modified if more
 # data sources become part of the standard installation!!!
@@ -100,6 +133,9 @@ if {$debug} {
     tcltest::cleanupTests
 }
 
+#
+#
+#
 tcltest::test load-3 {Load of package with no namespace no good.} \
 -setup {
     package provide Bad_Provider 0.0.7;    # Does not provide a namespace
@@ -119,6 +155,10 @@ if {$debug} {
     tcltest::cleanupTests
 }
 
+
+#
+#
+#
 tcltest::test load-4 {Load of an already loaded package is an error} \
 -setup {
     set manager [DataSourceManager %AUTO%]
@@ -136,9 +176,15 @@ if {$debug} {
     tcltest::cleanupTests
 }
 
+#-----------------------------------------------------------------------------#
+
 ##
 #  Test the ability to get package parameterizations from the manager:
 
+
+#
+#
+#
 tcltest::test parameters-1 {Get parameterization of S800 package} \
 -setup {
     set manager [DataSourceManager %AUTO%]
@@ -175,9 +221,13 @@ if {$debug} {
     tcltest::cleanupTests
 }
 
-##
+#-----------------------------------------------------------------------------#
+#
 # Test individual capabilities get
 
+#
+#
+#
 tcltest::test getcap-1 {Get capabilities of a loaded package ok.} \
 -setup {
     set manager [DataSourceManager %AUTO%]
@@ -196,6 +246,9 @@ if {$debug} {
     tcltest::cleanupTests
 }
 
+#
+#
+#
 tcltest::test getcap-2 {Get capabilities of non-loaded pkg is bad} \
 -setup {
     set manager [DataSourceManager %AUTO%]
@@ -214,29 +267,41 @@ if {$debug} {
     tcltest::cleanupTests
 }
 
-##
+#-----------------------------------------------------------------------------#
+#
 # Test global capabilities get.
 
+#
+#
+#
 tcltest::test syscap-1 {Get system capabilities} \
 -setup {
     set manager [DataSourceManager %AUTO%]
     $manager load S800
     $manager load SSHPipe
+    set result [catch {$manager addSource \
+        S800 [dict create host localhost port $::s800test::port]} msg]
+    $manager addSource SSHPipe [dict create host localhost path $::env(HOME)]
 } \
 -cleanup {
     $manager destroy
 } \
 -body {
-    $manager systemCapabilities
+    set caps [$manager systemCapabilities]
+    set caps
 } -result [::S800::capabilities]
 
 if {$debug} {
     tcltest::cleanupTests
 }
 
-##
+#-----------------------------------------------------------------------------#
+#
 # addSource tests - add data sources
 
+#
+#
+#
 tcltest::test addSource-1 {Add source for nonexisting provider} \
 -setup {
     set manager [DataSourceManager %AUTO%]
@@ -251,56 +316,75 @@ tcltest::test addSource-1 {Add source for nonexisting provider} \
     list $result $msg
 } -result [list 1 "The S800 provider is not loaded."]
 
+#
+#
+#
 tcltest::test addSource-2 {Add source for existing provider ok} \
 -setup {
+    setupTestProvider
     set manager [DataSourceManager %AUTO%]
-    $manager load S800
-    startServer
+    $manager load Test 
 } \
 -cleanup {
     $manager destroy
-    stopServer
-    set ::S800::state halted
  
+    forgetTestProvider
 } \
 -body {
-    set sourceId [$manager addSource \
-        S800 [dict create host localhost port $::s800test::port]]
+    set sourceId [$manager addSource Test [dict create]]
     $manager startAll
-    set status [::S800::check $sourceId]
+    set status [::Test::check $sourceId]
     list $sourceId $status
     
 } -result [list 0 1];   # White box - sources are allocated sequentially from 0:
 
+
 if {$debug} {
     tcltest::cleanupTests
 }
 
+#
+#
+#
 tcltest::test addSource-3 {Add source failed in provider} \
 -setup {
+    setupTestProvider
+
+
     set manager [DataSourceManager %AUTO%]
-    $manager load S800
+    $manager load Test
+
+    # redefine ::Test::start to just fail.
+    proc ::Test::start {id} {return -code error "Failed to start"}
 } \
 -cleanup {
     $manager destroy
+    forgetTestProvider
 } \
 -body {
-      $manager addSource \
-        S800 [dict create host no-such-host port $::s800test::port]
+    set sid [$manager addSource Test [dict create]]
+    set sid [$manager addSource Test [dict create]]
     
     set status [catch {$manager startAll} msg]
     list $status $msg
     
-} -result [list 1 "Error in constructor: couldn't open socket: no such device or address (No address associated with hostname)"]
+} -result [list 1 "At least one source could not start: {Failed to start} {Failed to start}"]
 
 if {$debug} {
     tcltest::cleanupTests
 }
+
+#-----------------------------------------------------------------------------#
+#
 # Tests for the manager check method.
 
+#
+#
+#
 tcltest::test check-1 {Check with no running sources is an empty dict} \
 -setup {
-    set manager [DataSourceManager %AUTO%]
+
+  set manager [DataSourceManager %AUTO%]
      
 } \
 -cleanup {
@@ -310,21 +394,25 @@ tcltest::test check-1 {Check with no running sources is an empty dict} \
     $manager check
 } -result [dict create]
 
+#
+#
+#
 tcltest::test check-2 {Check with a single running source is an dict with 1's for the ok sids} \
 -setup {
+    setupTestProvider
     set manager [DataSourceManager %AUTO%]
-    $manager load S800
-    startServer
+    $manager load Test
 } \
 -cleanup {
     $manager destroy
-    stopServer
-    set ::S800::state halted
+    forgetTestProvider
 } \
 -body {
-    set sourceId [$manager addSource \
-        S800 [dict create host localhost port $::s800test::port]]
+    set sourceId [$manager addSource Test [dict create]]
+
     $manager startAll  
+    # test provider defaults to returning 1 for check
+
     $manager check
     
 } -result [dict create 0 1]
@@ -333,35 +421,39 @@ if {$debug} {
     tcltest::cleanupTests
 }
 
+#
+#
+#
 tcltest::test check-3 {Check with a failed source is a dict with sid 0} \
 -setup {
+    setupTestProvider
     set manager [DataSourceManager %AUTO%]
-    $manager load S800
-    startServer
+    $manager load Test
+    
+    set sourceId [$manager addSource Test [dict create]]
+    $manager startAll
 } \
 -cleanup {
     $manager destroy
-    set ::S800::state halted
 } \
 -body {
-   set sourceId [$manager addSource \
-        S800 [dict create host localhost port $::s800test::port]]
 
-   $manager startAll
-
-   # Now that the source is established yank the server out from underneath the
-   # source:
-   
-   stopServer
-   
+   # explicitly set the return value for check to be 0
+   dict set ::Test::sourceInfo $sourceId checkState 0
    $manager check
 } -result [dict create 0 0]
 
 if {$debug} {
     tcltest::cleanupTests
 }
+
+#-----------------------------------------------------------------------------#
+#
 # Tests for sources (get info about all data sources)
 
+#
+#
+#
 tcltest::test sources-1 {[sources] when there are none gives an empty list} \
 -setup {
     set manager [DataSourceManager %AUTO%]
@@ -378,37 +470,88 @@ if {$debug} {
     tcltest::cleanupTests
 }
 
+#
+#
+#
 tcltest::test sources-2 {[sources] when there is a source gives a list of source info dicts} \
 -setup {
+    setupTestProvider
+
+    # redefine the parameter list
+    proc ::Test::parameters {} { return [dict A a B b] }
     set manager [DataSourceManager %AUTO%]
-    $manager load S800
-    startServer   
+    $manager load Test 
 } \
 -cleanup {
     $manager destroy
-    stopServer
-    set ::S800::state halted    
+    forgetTestProvider
 } \
 -body {
-    $manager addSource \
-        S800 [dict create host localhost port $::s800test::port]    
+    $manager addSource Test [dict create A myA B myB] 
     $manager sources
 } \
--result [list [dict create host localhost port $::s800test::port provider S800 sourceid 0]]
+-result [list [dict create A myA B myB provider Test sourceid 0]]
 
 if {$debug} {
     tcltest::cleanupTests
 }
+
+tcltest::test sources-3 {[sources] list is ordered by source id of parameters
+} \
+-setup {
+    setupTestProvider
+
+    # redefine the parameter list
+    proc ::Test::parameters {} { return [dict A a B b] }
+    set manager [DataSourceManager %AUTO%]
+    $manager load Test 
+} \
+-cleanup {
+    $manager destroy
+    forgetTestProvider
+} \
+-body {
+# add a lot of sources
+  for {set i 0} {$i<100} {incr i} {
+    $manager addSource Test [dict create A myA B myB] 
+  }
+
+# loop through the list of parameter sets and verify that the 
+  # paremeter sets are ordered by source id.
+  set lastId -1
+  set ordered 1
+  foreach source [$manager sources] {
+    set currentId [dict get $source sourceid]
+    if {$currentId <=$lastId} {
+      set ordered 0
+      break
+    } else {
+      set lastId $currentId
+    }
+  }
+  set ordered
+} \
+-result 1
+
+if {$debug} {
+    tcltest::cleanupTests
+}
+#-----------------------------------------------------------------------------#
+#
 # Tests for stopping a data source
 
+#
+#
+#
 tcltest::test stop-1 {Stopping a data source that does not exist is an error} \
 -setup {
     set manager [DataSourceManager %AUTO%]
-    set sm      [RunstateMachineSingleton %AUTO%]
+    set sm [RunstateMachineSingleton %AUTO%]
     $sm _setState Halted
 } \
 -cleanup {
     $manager destroy
+    $sm destroy
 } \
 -body {
     set status [catch {$manager stop 0} msg]
@@ -416,36 +559,49 @@ tcltest::test stop-1 {Stopping a data source that does not exist is an error} \
 } \
 -result [list 1 "There is no data source with the id 0"]
 
+if {$debug} {
+    tcltest::cleanupTests
+}
 
-tcltest::test stop-2 {Stopping a data source Removes it from the data source set} \
+tcltest::test stop-2 {Removing a data source stops it and removes it from the data source set} \
 -setup {
-    set manager [DataSourceManager %AUTO%]
-    $manager load S800
-    startServer
-    set sid [$manager addSource \
-        S800 [dict create host localhost port $::s800test::port]]
-    $manager startAll
-    set sm      [RunstateMachineSingleton %AUTO%]
+    set sm [RunstateMachineSingleton %AUTO%]
     $sm _setState Halted
+
+    setupTestProvider
+    set manager [DataSourceManager %AUTO%]
+    $manager load Test 
+    set sourceId [$manager addSource Test [dict create]] 
+
+    $manager startAll
 } \
 -cleanup {
     $manager destroy
-    stopServer
-    set ::S800::state halted        
+    $sm destroy
+    forgetTestProvider
 } \
 -body {
-    $manager removeSource $sid
-    $manager sources
+    set res [list]
+    lappend res [$manager sources]
+    $manager removeSource $sourceId
+    lappend res [$manager sources]
 } \
--result [list]
+-result [list {{provider Test sourceid 0}} {}]
 
+if {$debug} {
+    tcltest::cleanupTests
+}
 
-
+#-----------------------------------------------------------------------------#
+#
 # Tests for starting a run.
 
+#
+#
+#
 tcltest::test begin-1  {Starting with no sources is an error} \
 -setup {
-    set manager [DataSourceManager %AUTO%]
+  set manager [DataSourceManager %AUTO%]
 } \
 -cleanup {
     $manager destroy
@@ -456,52 +612,78 @@ tcltest::test begin-1  {Starting with no sources is an error} \
 } \
 -result [list 1 "No data sources are running so a run cannot be started."]
 
-tcltest::test begin-2 {Starting s800 data source when running should work} \
+if {$debug} {
+    tcltest::cleanupTests
+}
+
+#
+#
+#
+tcltest::test begin-2 {Calling begin when running should work} \
 -setup {
+    setupTestProvider 
+
     set manager [DataSourceManager %AUTO%]
-    $manager load S800
-    startServer
-    set sid [$manager addSource \
-        S800 [dict create host localhost port $::s800test::port]] 
+    $manager load Test 
+
+    set sourceId [$manager addSource Test [dict create]]
     $manager startAll
 } \
 -cleanup {
-    $manager destroy
-    stopServer
-    set ::S800::state halted     
+  $manager destroy
+  forgetTestProvider
 } \
 -body {
     $manager begin 123 "This is a test run"
-    set rctl [::S800::_getConnectionObject 0]
-    set runState [$rctl getState]
-   
 } \
 -result active
 
+
+if {$debug} {
+    tcltest::cleanupTests
+}
+
+#
+#
+#
 tcltest::test begin-3 {Begin run in active state is an error} \
 -setup {
+    setupTestProvider
     set manager [DataSourceManager %AUTO%]
-    $manager load S800
-    startServer
-    set sid [$manager addSource \
-        S800 [dict create host localhost port $::s800test::port]]
+    $manager load Test 
+
+    set sourceId [$manager addSource Test [dict create]] 
     $manager startAll
-    $manager begin 666 "Already starting the run"
 } \
 -cleanup {
     $manager destroy
-    stopServer
-    set ::S800::state halted     
 } \
 -body {
-    set status [catch {$manager begin 123 "This is a test run"} msg]
-    list $status $msg
+    # this first begin should be fine...
+    set res [list]
+    set good [catch {$manager begin 123 "This is a test run"} msg]
+    lappend res [list $good $msg]
+
+    # the next should fail
+    set bad [catch {$manager begin 123 "This is a test run"} msg]
+    lappend res [list $bad $msg]
+    
+    set res
     
 } \
--result [list 1 "Run is already active"]
+-result [list {0 active} {1 {Run is already active}}] 
 
+if {$debug} {
+    tcltest::cleanupTests
+}
+
+#-----------------------------------------------------------------------------#
+#
 # Tests for stopping a run.
 
+#
+#
+#
 tcltest::test end-1 {End run with no data sources fails} \
 -setup {
     set manager [DataSourceManager %AUTO%]
@@ -519,43 +701,46 @@ tcltest::test end-1 {End run with no data sources fails} \
 } \
 -result [list 1 {No data sources are running so a run cannot be ended}]
 
+#
+#
+#
 tcltest::test end-2 {End run with active run is fine} \
 -setup {
+    setupTestProvider
     set manager [DataSourceManager %AUTO%]
-    $manager load S800
-    startServer
-    set sid [$manager addSource \
-        S800 [dict create host localhost port $::s800test::port]]
+    $manager load Test 
+    set sid [$manager addSource Test [dict create]]
     $manager startAll
     $manager begin 666 "Already starting the run"
 } \
 -cleanup {
     $manager destroy
-    stopServer
-    set ::S800::state halted
 } \
 -body {
     $manager end
-    
-    set rctl [::S800::_getConnectionObject 0]
-    set runState [$rctl getState]
- 
-} \
--result inactive
 
+    # retrieve state from private variable in DataSourceManager
+    # by merit of reaching here, we know that we had no errors 
+    set state [set [$manager info vars state]]
+    set testState [dict get $::Test::sourceInfo $sid state]
+    list $state $testState
+} \
+-result "inactive inactive" 
+
+#
+#
+#
 tcltest::test end-3 {End run with halted run is an error} \
 -setup {
+    setupTestProvider
     set manager [DataSourceManager %AUTO%]
-    $manager load S800
-    startServer
-    set sid [$manager addSource \
-        S800 [dict create host localhost port $::s800test::port]]
+    $manager load Test
+    set sid [$manager addSource Test [dict create]]
     $manager startAll
 } \
 -cleanup {
     $manager destroy
-    stopServer
-    set ::S800::state halted
+    forgetTestProvider
 } \
 -body {
     set status [catch {$manager end} msg]
@@ -564,7 +749,11 @@ tcltest::test end-3 {End run with halted run is an error} \
 -result [list 1 "Run is already halted"]
 
 
+if {$debug} {
+    tcltest::cleanupTests
+}
 
+if {0} {
 # Tests for pausing a run -- note the s800 provider is not capable of
 # pause/resume so we need to set up something a bit like the SSHPipe
 # environment.
@@ -600,44 +789,51 @@ proc ::mytests::clearlog {} {
     array unset ::mytests::log *
     set ::mytests::logcount 0
 }
+}
 
+#-----------------------------------------------------------------------------#
+#
+# Tests for pausing a run -- note the s800 provider is not capable of
 
+#
+#
+#
 tcltest::test pause-1 {Pause with no data source is an error} \
 -setup {
-   set manager [DataSourceManager %AUTO%]
-   $manager load SSHPipe
+  setupTestProvider
+  set manager [DataSourceManager %AUTO%]
+  $manager load Test
 } \
 -cleanup {
-    $manager destroy
-    
+  $manager destroy
+  forgetTestProvider
 } \
 -body {
-    set status [catch {$manager pause} msg]
-    list $status $msg
+  set status [catch {$manager pause} msg]
+  list $status $msg
 } \
 -result [list 1 "No data sources are running so a run cannot be paused"]
 
+if {$debug} {
+    tcltest::cleanupTests
+}
 
+#
+#
+#
 tcltest::test pause-3 {Pause when paused is an error} \
 -setup {
+  setupTestProvider
+
     set manager [DataSourceManager %AUTO%]
-    $manager load SSHPipe
-    set program $::env(tcl)
-    set sourceId [$manager addSource SSHPipe [dict create \
-         host localhost path $program  sourceid 0 \
-         parameters  "[file join [file dirname [info script]] sshsimulator.testscript]" \
-     ]]
+    $manager load Test
+    set sid [$manager addSource Test [dict create]]
     $manager startAll
     $manager begin  1234 "This is a title"
-    vwait ::SSHPipe::activeProviders(0);  # Wait for echo set run
-    parray 
-    ::mytests::clearlog;                 # fresh log:
 } \
 -cleanup {
-    exec kill -9 $::mytests::lastpid
-    ::mytests::clearlog
-    catch {array unset ::SSHPipe::activeProviders(0)}
-    $manager destroy
+  $manager destroy
+  forgetTestProvider
 } \
 -body {
     $manager pause
@@ -646,23 +842,24 @@ tcltest::test pause-3 {Pause when paused is an error} \
 }\
 -result [list 1 {Run is already paused and cannot be paused again}]
 
+if {$debug} {
+    tcltest::cleanupTests
+}
 
+#
+#
+#
 tcltest::test pause-4 {Pause when inactive is an error} \
 -setup {
+    setupTestProvider
     set manager [DataSourceManager %AUTO%]
-    $manager load SSHPipe
-    set program $::env(tcl)
-    set sourceId [$manager addSource SSHPipe [dict create \
-         host localhost path $program  sourceid 0 \
-         parameters  "[file join [file dirname [info script]] sshsimulator.testscript]" \
-     ]]
+    $manager load Test
+    set sid [$manager addSource Test [dict create]]
     $manager startAll
 } \
 -cleanup {
-    exec kill -9 $::mytests::lastpid
-    ::mytests::clearlog
-    catch {array unset ::SSHPipe::activeProviders(0)}
-    $manager destroy
+  $manager destroy
+  forgetTestProvider
 } \
 -body {
     set status [catch {$manager pause} msg]
@@ -670,42 +867,33 @@ tcltest::test pause-4 {Pause when inactive is an error} \
 } \
 -result [list 1 {Run is inactive and cannot be paused}]
 
+if {$debug} {
+    tcltest::cleanupTests
+}
+
+#
+#
+#
 tcltest::test pause-5 {Can't pause a run if all sources are not capable} \
 -setup {
+    setupTestProvider
     set manager [DataSourceManager %AUTO%]
-    $manager load SSHPipe
-    $manager load S800
-    startServer
-    
-    # Start the ssh pipe source.
-    
-    set program $::env(tcl)
-    set sshSourceId [$manager addSource SSHPipe [dict create \
-         host localhost path $program  sourceid 0 \
-         parameters  "[file join [file dirname [info script]] sshsimulator.testscript]" \
-     ]]
+    $manager load Test
+    $manager load NoPauseTest
+    set pausibleSId [$manager addSource Test [dict create]]
   
     # Start the ssh data source
     
-    set s800SourceId [$manager addSource \
-        S800 [dict create host localhost port $::s800test::port]]
+    set nopauseSId [$manager addSource NoPauseTest [dict create]]
 
     $manager startAll
   
     # Start the run in both:
-    
     $manager begin  1234 "This is a title"
-    vwait ::SSHPipe::activeProviders(0);  # Wait for echo set run
-    ::mytests::clearlog;                 # fresh log:
 } \
 -cleanup {
-    exec kill -9 $::mytests::lastpid
-    ::mytests::clearlog
-    catch {array unset ::SSHPipe::activeProviders(0)}
     $manager destroy
-    stopServer
-    set ::S800::state halted
-
+    forgetTestProvider
 } \
 -body {
     set status [catch {$manager pause} msg]
@@ -713,49 +901,315 @@ tcltest::test pause-5 {Can't pause a run if all sources are not capable} \
 } \
 -result [list 1 {Not all sources support paused runs}]
 
+if {$debug} {
+    tcltest::cleanupTests
+}
 
+#-----------------------------------------------------------------------------#
+#
 # Tests for resuming a run.
 
+#
+#
+#
 tcltest::test resume-1 {Resuming with no sources is an error} \
 -setup {
-    set manager [DataSourceManager %AUTO%]
+  setupTestProvider
+  set manager [DataSourceManager %AUTO%]
 } \
 -cleanup {
-    $manager destroy
+  $manager destroy
+  forgetTestProvider
 } \
 -body {
-    set status [catch {$manager resume} msg]
-    list $status $msg
+  set status [catch {$manager resume} msg]
+  list $status $msg
 } \
 -result [list 1 {No data sources are running so a run cannot be paused}]
 
+if {$debug} {
+    tcltest::cleanupTests
+}
 
+#
+#
+#
 tcltest::test resume-2 {Only paused runs can be resumed} \
 -setup {
+  setupTestProvider
     set manager [DataSourceManager %AUTO%]
-    $manager load SSHPipe
-    set program $::env(tcl)
-    set sourceId [$manager addSource SSHPipe [dict create \
-         host localhost path $program  sourceid 0 \
-         parameters  "[file join [file dirname [info script]] sshsimulator.testscript]" \
-     ]]
+    $manager load Test
+    set sourceId [$manager addSource Test [dict create]]
     $manager startAll
     $manager begin  1234 "This is a title"
-    vwait ::SSHPipe::activeProviders(0);  # Wait for echo set run
-
-    ::mytests::clearlog;                 # fresh log:
 } \
 -cleanup {
-    exec kill -9 $::mytests::lastpid
-    ::mytests::clearlog
-    catch {array unset ::SSHPipe::activeProviders(0)}
-    $manager destroy
+  $manager destroy
+  forgetTestProvider
 } \
 -body {
     set status [catch {$manager resume} msg]
     list $status $msg
 } \
 -result [list 1 {The run is not paused and therefore cannot be resumed}]
+
+if {$debug} {
+    tcltest::cleanupTests
+}
+
+
+#-----------------------------------------------------------------------------#
+#
+# tests for the init command
+
+#
+#
+#
+tcltest::test initall-0 {Init cannot be started when not in Halted state 
+} -setup {
+  setupTestProvider
+  set manager [DataSourceManager %AUTO%]
+  $manager load Test
+  set sid [$manager addSource Test [dict create]]
+
+  set sm [RunstateMachineSingleton %AUTO%]
+  $sm _setState NotReady
+
+} -cleanup {
+  $manager destroy
+  forgetTestProvider
+  $sm destroy
+
+} -body {
+  $manager initall
+
+} -result "DataSourceManager::initall Cannot initialize data providers unless in Halted state." \
+-returnCodes 1
+
+#
+#
+#
+tcltest::test initall-1 {Init will fail without any registered sources 
+} -setup {
+  setupTestProvider
+  set manager [DataSourceManager %AUTO%]
+
+  # make sure we are halted so we don't immediately fail
+  set sm [RunstateMachineSingleton %AUTO%]
+  $sm _setState Halted
+} -cleanup {
+  $manager destroy
+  forgetTestProvider
+  $sm destroy
+} -body {
+
+  $manager initall
+} -result "DataSourceManager::initall No data sources exist." \
+-returnCodes 1
+
+#
+#
+#
+tcltest::test initall-2 {Init from active state fails 
+} -setup {
+  setupTestProvider
+  set manager [DataSourceManager %AUTO%]
+  $manager load Test
+  $manager addSource Test [dict create]
+  $manager startAll
+  $manager begin 123 "test run"
+
+  # make sure we are halted so we don't immediately fail
+  set sm [RunstateMachineSingleton %AUTO%]
+  $sm _setState Halted
+
+} -cleanup {
+  $manager destroy
+  forgetTestProvider
+
+  $sm destroy
+} -body {
+
+  $manager initall
+} -result "DataSourceManager::initall Cannot initialize while in active state." \
+-returnCodes 1
+
+#
+#
+#
+tcltest::test initall-3 {Init from paused state fails 
+} -setup {
+  setupTestProvider
+  set manager [DataSourceManager %AUTO%]
+  $manager load Test
+  $manager addSource Test [dict create]
+  $manager startAll
+  $manager begin 123 "test run"
+  $manager pause
+
+  # make sure we are halted so we don't immediately fail
+  set sm [RunstateMachineSingleton %AUTO%]
+  $sm _setState Halted
+} -cleanup {
+  $manager destroy
+  forgetTestProvider
+  $sm destroy
+} -body {
+
+  $manager initall
+} -result "DataSourceManager::initall Cannot initialize from paused state." \
+-returnCodes 1
+
+#
+#
+#
+tcltest::test initall-4 {Init from inactive state succeeds for all sources
+} -setup {
+  setupTestProvider
+  set manager [DataSourceManager %AUTO%]
+  $manager load Test
+  $manager addSource Test [dict create]
+  $manager addSource Test [dict create]
+  $manager startAll
+
+  # make sure we are halted so we don't immediately fail
+  set sm [RunstateMachineSingleton %AUTO%]
+  $sm _setState Halted
+} -cleanup {
+  $manager destroy
+  forgetTestProvider
+
+  $sm destroy 
+} -body {
+
+  $manager initall
+} -result ""
+
+#-----------------------------------------------------------------------------#
+#
+# Test for init of single source
+
+#
+#
+#
+tcltest::test init-0 {Init can only be accomplished in halted state
+} -setup {
+  setupTestProvider
+  set manager [DataSourceManager %AUTO%]
+  $manager load Test
+
+  $manager addSource Test [dict create]
+
+} -cleanup {
+  $manager destroy
+  forgetTestProvider
+  $sm destroy
+} -body {
+
+  set sm [RunstateMachineSingleton %AUTO%]
+  $sm _setState NotReady
+
+  $manager init 0
+} -result "DataSourceManager::init Cannot initialize data providers unless in Halted state." \
+-returnCodes 1
+
+#
+#
+#
+tcltest::test init-1 {Init will fail if source does not exist
+} -setup {
+  setupTestProvider
+  set manager [DataSourceManager %AUTO%]
+
+  # make sure we are halted so we don't immediately fail
+  set sm [RunstateMachineSingleton %AUTO%]
+  $sm _setState Halted
+} -cleanup {
+  $manager destroy
+  forgetTestProvider
+  $sm destroy
+} -body {
+
+  $manager init 0
+} -result "DataSourceManager::init Source 0 does not exist to initialize." \
+-returnCodes 1
+
+#
+#
+#
+tcltest::test init-2 {Init from active state fails 
+} -setup {
+  setupTestProvider
+  set manager [DataSourceManager %AUTO%]
+  $manager load Test
+  $manager addSource Test [dict create]
+  $manager startAll
+  $manager begin 123 "test run"
+
+  # make sure we are halted so we don't immediately fail
+  set sm [RunstateMachineSingleton %AUTO%]
+  $sm _setState Halted
+} -cleanup {
+  $manager destroy
+  forgetTestProvider
+
+  $sm destroy
+} -body {
+
+  $manager init 0
+} -result "DataSourceManager::init Cannot initialize while in active state." \
+-returnCodes 1
+
+#
+#
+#
+tcltest::test init-3 {Init from paused state fails 
+} -setup {
+  setupTestProvider
+  set manager [DataSourceManager %AUTO%]
+  $manager load Test
+  $manager addSource Test [dict create]
+  $manager startAll
+  $manager begin 123 "test run"
+  $manager pause
+
+  # make sure we are halted so we don't immediately fail
+  set sm [RunstateMachineSingleton %AUTO%]
+  $sm _setState Halted
+} -cleanup {
+  $manager destroy
+  forgetTestProvider
+  $sm destroy
+
+} -body {
+
+  $manager init 0
+} -result "DataSourceManager::init Cannot initialize from paused state." \
+-returnCodes 1
+
+#
+#
+#
+tcltest::test init-4 {Init succeeds in inactive state if source exists 
+} -setup {
+  setupTestProvider
+  set manager [DataSourceManager %AUTO%]
+  $manager load Test
+  $manager addSource Test [dict create]
+  $manager startAll
+
+  # make sure we are halted so we don't immediately fail
+  set sm [RunstateMachineSingleton %AUTO%]
+  $sm _setState Halted
+} -cleanup {
+  $manager destroy
+  forgetTestProvider
+  $sm destroy
+
+} -body {
+
+  $manager init 0
+} -result ""
 
 
 ##

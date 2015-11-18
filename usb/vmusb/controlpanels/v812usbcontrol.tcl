@@ -323,7 +323,11 @@ slowControlsPrompter .prompter.p -host $serverHost -port $serverPort \
     -type VMUSBReadout -okcmd [list setConnectionInfo %W] \
     -cancelcmd [list cancelPrompt %W]
 set prompted 0
-pack .prompter.p
+#pack .prompter.p
+grid .prompter.p -sticky nsew
+grid rowconfigure    .prompter.p 0 -weight 1
+grid columnconfigure .prompter.p 0 -weight 1
+
 bind .prompter <Destroy> [list cancelPrompt .prompter.p]
 vwait prompted
 

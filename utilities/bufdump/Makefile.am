@@ -17,11 +17,13 @@ dumper_CPPFLAGS =	-I@srcdir@/.. 				\
 				-I@top_srcdir@/base/uri			\
 				@LIBTCLPLUS_CFLAGS@			\
 				-I@top_srcdir@/daq/format		\
-			        -I@top_srcdir@/base/dataflow		\
-				-I@top_srcdir@/base/os
+				-I@top_srcdir@/base/dataflow		\
+                                -I@top_srcdir@/utilities/IO		\
+                                -I@top_srcdir@/base/os
 
 dumper_LDADD		=		\
 				@top_builddir@/base/uri/liburl.la			\
+                                @top_builddir@/utilities/IO/libdaqio.la			\
 				@top_builddir@/daq/format/libdataformat.la	\
 				@top_builddir@/base/dataflow/libDataFlow.la	\
 				@top_builddir@/base/uri/liburl.la	\
@@ -43,5 +45,5 @@ dumper_CXXFLAGS = $(THREADCXX_FLAGS) $(AM_CXXFLAGS)
 		--set-version=@VERSION@
 
 
-EXTRA_DIST=dumperargs.ggo dumper.xml
+EXTRA_DIST=dumperargs.ggo dumper_user.xml dumper_man.xml
 

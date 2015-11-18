@@ -1760,7 +1760,7 @@ class CUserDriver : public CControlHardware
 {
 
 public:
-  CUserDriver(std::string name);
+  CUserDriver();
   virtual void onAttach(CControlModule&amp; configuration);
   virtual std::string Update(CVMUSB&amp; vme);
   virtual std::string Set(CVMUSB&amp; vme, 
@@ -1785,17 +1785,14 @@ public:
 	    <example>
 	      <title>Control driver constructor</title>
 	      <programlisting>
-CUserDriver::CUserDriver(std::string name) :
-  CControlHardware(name)
+CUserDriver::CUserDriver() :
+  CControlHardware()
 {}
 	      </programlisting>
 	    </example>
 	    <para>
-	      The only mandatory function of the constructor is to provide the
-	      instance <parameter>name</parameter> to the base class.  The
-	      instance name is the name provided to the <command>Module create</command>.
-	      Naturally if the driver has internal instance data that requires
-	      initialization, the constructor is where this should be done.
+	      The only mandatory function of the constructor is to initialize the
+              base class.
 	    </para>
 	    <example>
 	      <title>Control driver <methodname>onAttach</methodname> method</title>
@@ -2070,17 +2067,22 @@ CUserDriver::clone(const CControlHardware&amp; rhs)
 	      <title>Control driver creator</title>
 	      <programlisting>
 #include &lt;CModuleCreator.h&gt;                             <co id='cltcreator-headers' />
+#include &lt;CControlHardware.h&gt;
    
-class CUserDriverCreator : public CModuleCreator              <co id='ctlcreator-classdef' />
+
+class CUserDriverCreator : public CModuleCreator             <co id='ctlcreator-classdef' />
 {
 public:
-  virtual CControlHardware* operator()(std::string name);     <co id='ctlcreator-functordef' />
+  virtual std::unique_ptr&lt;CControlHardware&gt;
+    operator()();                           <co id='ctlcreator-functordef' />
 };
 
-CControlHardware*
-CUserDriverCreator::operator()(std::string name)
+std::unique_ptr&lt;CControlHardware&gt;
+CUserDriverCreator::operator()()
 {
-  return new CUserDriver(name);                               <co id='ctlcreator-new' />
+  return std::unique_ptr&lt;CControlHardware&gt;(emasc 
+        new CUserDriver()                               <co id='ctlcreator-new' />
+    );                               
 }
 	      </programlisting>
 	    </example>
@@ -2093,7 +2095,7 @@ CUserDriverCreator::operator()(std::string name)
 	      </callout>
 	      <callout arearefs='ctlcreator-classdef'>
 		<para>
-		  This is the class definition for the crator.  By convention
+		  This is the class definition for the creator.  By convention
 		  the name of a creator is built from the name of the class
 		  it creates with <literal>Creator</literal> suffixed.
 		  As previously described this class must inherit from
@@ -2104,19 +2106,23 @@ CUserDriverCreator::operator()(std::string name)
 		<para>
 		  The creator must define and implement a functor
 		  (<methodname>operator()</methodname>).  This method
-		  must take the <parameter>name</parameter> of a
-		  module as a parameter and return a dynamically
+		  must t return a dynamically
 		  allocated <classname>CControlHardware*</classname>
 		  whose underlying type is the same as the type we are
-		  supposed to be creating.
+		  supposed to be creating.  
 		</para>
+                <para>
+                    The use of the <classname>std::unique_ptr</classname>
+                    smarpt pointer class provides that the
+                    created object's  lifetime can be properly managed.
+                </para>
 	      </callout>
 	      <callout arearefs='ctlcreator-new'>
 		<para>
 		  The implementation of the functor operator is usually 
 		  as simple as what's shown here.  Just
 		  <literal>new</literal> into existence the object
-		  and return its pointer.
+		  and return an std::unique_ptr containing it.
 		</para>
 	      </callout>
 	    </calloutlist>
@@ -2153,7 +2159,9 @@ extern "C" {                                               <co id='ctldriver-ini
   int Userdriver_Init(Tcl_Interp* pInterp)                 <co id='ctldriver-init-prototype' />
   {
     CModuleFactory* pFact = CModuleFactory::instance();    <co id='ctldriver-init-factget' />
-    pFact->addCreator("mydriver", new CUserDriverCreator); <co id='ctldriver-init-creator' />
+    pFact->addCreator(
+        "mydriver",
+        std::unique_ptr&lt;CModuleCreator&gt;(new CUserDriverCreator)); <co id='ctldriver-init-creator' />
 
     return TCL_OK;                                         <co id='ctldriver-init-status' />
   }
@@ -3014,6 +3022,12 @@ VM-USB scriptable readout version V5.0
                         <type>uint64_t</type> value that is that event's
                         timestamp.
                     </para>
+                    <para>
+                        If the library has a further entry named
+                        <function>onBeginRun</function>, taking no parametesr and
+                        having no return value, this funtion is called when the run
+                        starts.
+                    </para>
                 </listitem>
             </varlistentry>
         </variablelist>
@@ -3027,9 +3041,20 @@ VM-USB scriptable readout version V5.0
             <!--  adc command reference -->
             
 <refentry id="vmusb3-adc">
+     <refentryinfo>
+        <author>
+            <personname>
+                <firstname>Ron</firstname>
+                <surname>Fox</surname>
+            </personname>
+        </author>
+        <productname>NSCLDAQ</productname>
+        <productnumber></productnumber>
+  </refentryinfo>
   <refmeta>
      <refentrytitle>adc</refentrytitle>
      <manvolnum>3vmusb</manvolnum>
+     <refmiscinfo class='empty'></refmiscinfo>
   </refmeta>
   <refnamediv>
      <refname>adc</refname>
@@ -3275,9 +3300,20 @@ adc config adc1    -geo 12 -supressrange off  -ipl 0 -vector 0
    <!-- caenchain command - aggregate 785's into CBLT chains -->
             
    <refentry id="vmusb3-caenchain">
+     <refentryinfo>
+        <author>
+            <personname>
+                <firstname>Ron</firstname>
+                <surname>Fox</surname>
+            </personname>
+        </author>
+        <productname>NSCLDAQ</productname>
+        <productnumber></productnumber>
+      </refentryinfo>
      <refmeta>
         <refentrytitle>caenchain</refentrytitle>
         <manvolnum>3vmusb</manvolnum>
+        <refmiscinfo class='empty'></refmiscinfo>
      </refmeta>
      <refnamediv>
         <refname>caenchain</refname>
@@ -3387,9 +3423,20 @@ caenchain config chain -base 0x10000000 -modules [list adc1 adc2 adc3]
    <!-- VM USB control and scaler readout -->
    
          <refentry id="vmusb3_vmusb">
+            <refentryinfo>
+                <author>
+                    <personname>
+                        <firstname>Ron</firstname>
+                        <surname>Fox</surname>
+                    </personname>
+                </author>
+                <productname>NSCLDAQ</productname>
+                <productnumber></productnumber>
+              </refentryinfo>
            <refmeta>
               <refentrytitle id='vmusb3_vmusb_title'>vmusb</refentrytitle>
               <manvolnum>3vmusb</manvolnum>
+              <refmiscinfo class='empty'></refmiscinfo>
            </refmeta>
            <refnamediv>
               <refname>vmusb</refname>
@@ -3633,7 +3680,7 @@ vmusb cget name
                     </listitem>
                 </varlistentry>
                 <varlistentry>
-                    <term><option>-redscalers</option></term>
+                    <term><option>-readscalers</option></term>
                     <listitem>
                         <para>
                             If this is true the two scalers A and B will
@@ -3684,6 +3731,135 @@ vmusb cget name
                         </para>
                     </listitem>
                 </varlistentry>
+                <varlistentry>
+                    <term><option>-dgga</option></term>
+                    <listitem>
+                        <para>
+                            Determines the condition that causes the signal to be
+                            generated by the DGGA device. Options are:
+                            <literal>off</literal>, <literal>nimi1</literal>,
+                            <literal>nimi2</literal>,<literal>trigger</literal>,
+                            <literal>endofevent</literal>,<literal>usbtrigger</literal>, 
+                            and <literal>pulser</literal>. The default option is <literal>pulser</literal>.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-dggb</option></term>
+                    <listitem>
+                        <para>
+                            Determines the condition that causes the signal to be
+                            generated by the DGGB device. Options are:
+                            <literal>off</literal>, <literal>nimi1</literal>,
+                            <literal>nimi2</literal>,<literal>trigger</literal>,
+                            <literal>endofevent</literal>,<literal>usbtrigger</literal>, 
+                            and <literal>pulser</literal>. The default option is <literal>nimi2</literal>.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-widtha</option></term>
+                    <listitem>
+                        <para>
+                            Determines the width of the gate produced by dgga in units of 12.5 ns.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-delaya</option></term>
+                    <listitem>
+                        <para>
+                            Determines the amount of time in units of 12.5 ns to delay the gate
+                            output of dgga once it has been triggered.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-widthb</option></term>
+                    <listitem>
+                        <para>
+                            Determines the width of the gate produced by dggb in units of 12.5 ns.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-delayb</option></term>
+                    <listitem>
+                        <para>
+                            Determines the amount of time in units of 12.5 ns to delay the gate
+                            output of dggb once it has been triggered.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-mixedbuffers</option></term>
+                    <listitem>
+                        <para>
+                            Sets whether scaler and event data can coexist in the same buffer.
+                            The default is false.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-spanbuffers</option></term>
+                    <listitem>
+                        <para>
+                            Sets whether event data can span buffer boundaries. Default is false. 
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-forcescalerdump</option></term>
+                    <listitem>
+                        <para>
+                            If set to true, the VM-USB will immediately output scaler data 
+                            once a scaler stack is executed. Default is false.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-busreqlevel</option></term>
+                    <listitem>
+                        <para>
+                            Determines the bus request level that the VMUSB will use for itself
+                            when it requests ownership of the bus. The valid values are any in
+                            the range [0,7] and the default value is 4.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-optionalheader</option></term>
+                    <listitem>
+                        <para>
+                            Determines whether a second optional header word will follow the first
+                            buffer header word. When present, this extra header specifies the number
+                            of words in the buffer. The default value is false.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-bufferlength</option></term>
+                    <listitem>
+                        <para>
+                            Determines size of the internal buffer used by the VMUSB in units of 
+                            words. The VMUSB fills the buffer before outputting data on a 
+                            usb_bulk_read so a smaller buffer size is useful for low data rates. 
+                            The optional values are: 13k, 8k, 4k, 2k, 1k, 512, 256, 128, 64, and evtcount.  
+                            The evtcount option depends on the value of the -eventsperbuffer option.
+                            The default value is 13k.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-eventsperbuffer</option></term>
+                    <listitem>
+                        <para>
+                          If the -bufferlength option is set to evtcount, this determines how many
+                          events must occur before transferring data to the FIFO for readout. The values
+                          can be any in the range [1,4095]. The default value is 1.
+                        </para>
+                    </listitem>
+                </varlistentry>
                 
    
               </variablelist>
@@ -3695,9 +3871,20 @@ vmusb cget name
    <!-- SIS 330x FADC driver -->
    
          <refentry id="vmusb3-sis330x">
+           <refentryinfo>
+            <author>
+                <personname>
+                    <firstname>Ron</firstname>
+                    <surname>Fox</surname>
+                </personname>
+            </author>
+            <productname>NSCLDAQ</productname>
+            <productnumber></productnumber>
+          </refentryinfo> 
            <refmeta>
               <refentrytitle>sis330x</refentrytitle>
               <manvolnum>3vmusb</manvolnum>
+              <refmiscinfo class='empty'></refmiscinfo>
            </refmeta>
            <refnamediv>
               <refname>sis330x</refname>
@@ -3988,9 +4175,20 @@ addtcldriver <replaceable>name</replaceable>
    <!-- SIS 3820 scaler command  -->
             
       <refentry id="vmusb3-sis3820">
+        <refentryinfo>
+            <author>
+                <personname>
+                    <firstname>Ron</firstname>
+                    <surname>Fox</surname>
+                </personname>
+            </author>
+            <productname>NSCLDAQ</productname>
+            <productnumber></productnumber>
+          </refentryinfo>
          <refmeta>
            <refentrytitle>sis3820</refentrytitle>
            <manvolnum>3vmusb</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
          </refmeta>
          <refnamediv>
            <refname>sis3820</refname>
@@ -4098,9 +4296,20 @@ sis3820 scaler1 0x38000000
       <!-- v830 command - configure CAEN V830 32 channel latching scalers -->
             
       <refentry id="vmusb3-v830">
+        <refentryinfo>
+            <author>
+                <personname>
+                    <firstname>Ron</firstname>
+                    <surname>Fox</surname>
+                </personname>
+            </author>
+            <productname>NSCLDAQ</productname>
+            <productnumber></productnumber>
+          </refentryinfo>
         <refmeta>
            <refentrytitle>v830</refentrytitle>
            <manvolnum>3vmusb</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
         </refmeta>
         <refnamediv>
            <refname>v830</refname>
@@ -4399,9 +4608,20 @@ v830 create scaler 0x80000000
 
       </refentry>
       <refentry id="vmusb3-v977">
+        <refentryinfo>
+            <author>
+                <personname>
+                    <firstname>Ron</firstname>
+                    <surname>Fox</surname>
+                </personname>
+            </author>
+            <productname>NSCLDAQ</productname>
+            <productnumber></productnumber>
+          </refentryinfo>
 	<refmeta>
 	   <refentrytitle>v977</refentrytitle>
 	   <manvolnum>3vmusb</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
 	</refmeta>
 	<refnamediv>
 	   <refname>v977</refname>
@@ -4589,9 +4809,20 @@ well formed Tcl list that consists of option name value pairs.
       
       </refentry>
       <refentry id="vmusb3-sis3804">
+        <refentryinfo>
+            <author>
+                <personname>
+                    <firstname>Ron</firstname>
+                    <surname>Fox</surname>
+                </personname>
+            </author>
+            <productname>NSCLDAQ</productname>
+            <productnumber></productnumber>
+          </refentryinfo>
         <refmeta>
            <refentrytitle>sis3804</refentrytitle>
            <manvolnum>3vmusb</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
         </refmeta>
         <refnamediv>
            <refname>sis3804</refname>
@@ -4705,9 +4936,20 @@ sis3804 config scaler1 -refpulser true
       
       </refentry>
       <refentry id="vmusb3-hira">
+        <refentryinfo>
+            <author>
+                <personname>
+                    <firstname>Ron</firstname>
+                    <surname>Fox</surname>
+                </personname>
+            </author>
+            <productname>NSCLDAQ</productname>
+            <productnumber></productnumber>
+          </refentryinfo>
         <refmeta>
            <refentrytitle>hira</refentrytitle>
            <manvolnum>3vmusb</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
         </refmeta>
         <refnamediv>
            <refname>hira</refname>
@@ -4829,9 +5071,20 @@ hira cget <replaceable>name</replaceable>
       </refentry>
 
       <refentry id="vmusb3-hytec">
+        <refentryinfo>
+        <author>
+            <personname>
+                <firstname>Ron</firstname>
+                <surname>Fox</surname>
+            </personname>
+        </author>
+        <productname>NSCLDAQ</productname>
+        <productnumber></productnumber>
+      </refentryinfo>
         <refmeta>
            <refentrytitle>hytec</refentrytitle>
            <manvolnum>3vmusb</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
         </refmeta>
         <refnamediv>
            <refname>hytec</refname>
@@ -5155,9 +5408,20 @@ hytec config adc -lld 0.0 -hld 8.191 -events 1 -id 0xadc1 -zerosuppress on
 	</refsect1>
       </refentry>
       <refentry id="vmusb3-tcldriversupport">
+        <refentryinfo>
+            <author>
+                <personname>
+                    <firstname>Ron</firstname>
+                    <surname>Fox</surname>
+                </personname>
+            </author>
+            <productname>NSCLDAQ</productname>
+            <productnumber></productnumber>
+          </refentryinfo>
         <refmeta>
            <refentrytitle>tcl driver support</refentrytitle>
            <manvolnum>3vmusb</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
         </refmeta>
         <refnamediv>
            <refname>tcl driver support</refname>
@@ -5374,9 +5638,20 @@ package require VMUSBDriverSupport
       </refentry>
 
       <refentry id="vmusb3-madc">
+        <refentryinfo>
+        <author>
+            <personname>
+                <firstname>Ron</firstname>
+                <surname>Fox</surname>
+            </personname>
+        </author>
+        <productname>NSCLDAQ</productname>
+        <productnumber></productnumber>
+      </refentryinfo>
         <refmeta>
            <refentrytitle>madc</refentrytitle>
            <manvolnum>3vmusb</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
         </refmeta>
         <refnamediv>
            <refname>madc</refname>
@@ -5832,9 +6107,20 @@ madc config adc -thresholds $thresholds                  <co id="madcthresholds"
       
       </refentry>
       <refentry id="vmusb3-madcchain">
+        <refentryinfo>
+        <author>
+            <personname>
+                <firstname>Ron</firstname>
+                <surname>Fox</surname>
+            </personname>
+        </author>
+        <productname>NSCLDAQ</productname>
+        <productnumber></productnumber>
+      </refentryinfo>
          <refmeta>
 	    <refentrytitle>madcchain</refentrytitle>
 	    <manvolnum>3vmusb</manvolnum>
+            <refmiscinfo class='empty'></refmiscinfo>
          </refmeta>
 	 <refnamediv>
 	    <refname>madcchain</refname>
@@ -5950,9 +6236,20 @@ madcchain cget <replaceable>name</replaceable>
 	 </refsect1>
       </refentry>
       <refentry id="vmusb3-madcscaler">
+        <refentryinfo>
+            <author>
+                <personname>
+                    <firstname>Ron</firstname>
+                    <surname>Fox</surname>
+                </personname>
+            </author>
+            <productname>NSCLDAQ</productname>
+            <productnumber></productnumber>
+          </refentryinfo>
         <refmeta>
            <refentrytitle>madcscaler</refentrytitle>
            <manvolnum>3vmusb</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
         </refmeta>
         <refnamediv>
            <refname>madcscaler</refname>
@@ -6023,9 +6320,20 @@ madcscaler cget <replaceable>name</replaceable>
       </refentry>
 
       <refentry id="vmusb3-mase">
+        <refentryinfo>
+        <author>
+            <personname>
+                <firstname>Ron</firstname>
+                <surname>Fox</surname>
+            </personname>
+        </author>
+        <productname>NSCLDAQ</productname>
+        <productnumber></productnumber>
+      </refentryinfo>
 	<refmeta>
 	   <refentrytitle>mase</refentrytitle>
 	   <manvolnum>3vmusb</manvolnum>
+            <refmiscinfo class='empty'></refmiscinfo>
 	</refmeta>
 	<refnamediv>
 	   <refname>mase</refname>
@@ -10156,9 +10464,10 @@ class <ooclass><classname>CVMUSBReadoutList</classname></ooclass>
                     worth of 32 bit data to transfer.  If a block transfer
                     <parameter>amod</parameter> is used, the controller will
                     only perform address cycles atthe start of the transfer
-                    and as the address crosses 256byte boundaries as provided
-                    for in the VME bus block transfer specification.
-                </para>
+                    and as the address crosses 256-byte boundaries as provided
+                    for in the VME bus block transfer specification. There must
+                    be at least 2 transfers for this to succeed. 
+                  </para>
             </listitem>
         </varlistentry>
         <varlistentry>
@@ -13939,12 +14248,12 @@ package require cvmusb
           </cmdsynopsis>
           <cmdsynopsis>
             <command>
-::cvmusb::CVMUSB_usb_device_vector_get <replaceable>enumeration i</replaceable>
+::cvmusb::usb_device_vector_get <replaceable>enumeration i</replaceable>
             </command>
           </cmdsynopsis>
         <cmdsynopsis>
         <command>
-::cvmusb::CVMUSB_usb_device_vector_size <replaceable>enumeration</replaceable>
+::cvmusb::usb_device_vector_size <replaceable>enumeration</replaceable>
             </command>
         </cmdsynopsis>
         <cmdsynopsis>
@@ -13959,12 +14268,12 @@ package require cvmusb
         </formalpara>
         <cmdsynopsis>
         <command>
-::cvmusb::CVMUSB <replaceable>name usbdevice</replaceable>
+::cvmusb::CVMUSBusb <replaceable>name usbdevice</replaceable>
             </command>
         </cmdsynopsis>
         <cmdsynopsis>
         <command>
-::cvmusb::CVMUSB <replaceable>name</replaceable> -this <replaceable>usb-object-ptr</replaceable>
+::cvmusb::CVMUSBusb <replaceable>name</replaceable> -this <replaceable>usb-object-ptr</replaceable>
             </command>
         </cmdsynopsis>
         <formalpara>
@@ -14183,32 +14492,32 @@ package require cvmusb
         </cmdsynopsis>
         <cmdsynopsis>
             <command>
-::cvmusb::CVMUSB_getuint16 <replaceable>uint16</replaceable>
+::cvmusb::getuint16 <replaceable>uint16</replaceable>
             </command>
         </cmdsynopsis>
         <cmdsynopsis>
             <command>
-::cvmusb::CVMUSB_string_to_char <replaceable>std_string</replaceable>
+::cvmusb::string_to_char <replaceable>std_string</replaceable>
             </command>
         </cmdsynopsis>
         <cmdsynopsis>
             <command>
-::cvmusb::CVMUSB_uint32_vector_get <replaceable>std_uint32_vector i</replaceable>
+::cvmusb::uint32_vector_get <replaceable>std_uint32_vector i</replaceable>
             </command>
         </cmdsynopsis>
         <cmdsynopsis>
             <command>
-::cvmusb::CVMUSB_uint32_vector_size <replaceable>std_uint32_vector</replaceable>
+::cvmusb::uint32_vector_size <replaceable>std_uint32_vector</replaceable>
             </command>
         </cmdsynopsis>
         <cmdsynopsis>
             <command>
-::cvmusb::CVMUSB_uint8_vector_get <replaceable>std_uint8_vector i</replaceable>
+::cvmusb::uint8_vector_get <replaceable>std_uint8_vector i</replaceable>
             </command>
         </cmdsynopsis>
         <cmdsynopsis>
             <command>
-::cvmusb::CVMUSB_uint8_vector_size <replaceable>std_uint8_vector</replaceable>
+::cvmusb::uint8_vector_size <replaceable>std_uint8_vector</replaceable>
             </command>
         </cmdsynopsis>
         
@@ -14259,7 +14568,7 @@ package require cvmusb
                 <term>
           <cmdsynopsis>
             <command>
-::cvmusb::CVMUSB_usb_device_vector_get <replaceable>enumeration i</replaceable>
+::cvmusb::usb_device_vector_get <replaceable>enumeration i</replaceable>
         </command>
           </cmdsynopsis>
         </term>
@@ -14280,7 +14589,7 @@ package require cvmusb
             <term>
         <cmdsynopsis>
         <command>
-::cvmusb::CVMUSB_usb_device_vector_size <replaceable>enumeration</replaceable>
+::cvmusb::usb_device_vector_size <replaceable>enumeration</replaceable>
             </command>
         </cmdsynopsis>
         </term>
@@ -14304,11 +14613,11 @@ package require cvmusb
         <listitem>
             <para>
                 Given a <parameter>usbdevice</parameter> returned from
-                <command>::cvmusb::CVMUSB_usb_device_vector_get</command>
+                <command>::cvmusb::usb_device_vector_get</command>
                 Returns the serial number string.  Note that this is not
                 immediately usable but must be converted to a Tcl string
                 via a call to
-                <command>::cvmsusb::CVMUSB_string_to_char</command>
+                <command>::cvmusb::string_to_char</command>
                 described below.
                 </para>
                 </listitem>
@@ -14331,19 +14640,24 @@ package require cvmusb
             <term>
         <cmdsynopsis>
         <command>
-::cvmusb::CVMUSB <replaceable>name usbdevice</replaceable>
+::cvmusb::CVMUSBusb <replaceable>name usbdevice</replaceable>
             </command>
         </cmdsynopsis>
         </term>
         <listitem>
             <para>
-                Creates a new CVMUSB object given a <parameter>usbdevice</parameter>
+                Creates a new CVMUSBusb object given a <parameter>usbdevice</parameter>
                 gotten from
-                <command>::cvmusb::CVMUSB_usb_device_vector_get</command>.
+                <command>::cvmusb::usb_device_vector_get</command>.
                 This results in a new command <parameter>name</parameter> unless
                 <parameter>name</parameter> is the special value
                 <literal>%AUTO</literal>, in which case a unique name will be
-                assigned the object.
+                assigned the object. To construct a CVMUSB-type object to control
+                a locally connected usb, this CVMUSBusb constructor must be used rather than 
+                a CVMUSB because the C++ CVMUSB base class is abstract and cannot be instantiated.
+                SWIG therefore does not produce a cvmusb::CVMUSB constructor. With that said, 
+                the object produced by this command will inherit the functionality of the
+                cvmusb::CVMUSB type.
                 </para>
             <para>
                 Naturally if you use <literal>%AUTO</literal> as the name
@@ -14351,7 +14665,7 @@ package require cvmusb
             </para>
             <informalexample>
                 <programlisting>
-set controller [::cvmusb::CVMUSB %AUTO $device]
+set controller [::cvmusb::CVMUSBusb %AUTO $device]
 $controller <replaceable>some method</replaceable>
                 </programlisting>
             </informalexample>
@@ -15176,7 +15490,8 @@ $controller <replaceable>some method</replaceable>
                 <parameter>ms</parameter> milliseconds.  This timeout is
                 used to define how long most of the methods in this
                 section will wait for a response from the VM-USB before
-                giving up.
+                giving up. It is ONLY valid to call with a cvmusb::CVMUSBusb
+                object.
                 </para>
                 </listitem>
                 </varlistentry>
@@ -15184,7 +15499,7 @@ $controller <replaceable>some method</replaceable>
                     <term>
         <cmdsynopsis>
             <command>
-::cvmusb::CVMUSB_getuint16 <replaceable>uint16</replaceable>
+::cvmusb::getuint16 <replaceable>uint16</replaceable>
             </command>
         </cmdsynopsis>
         </term>
@@ -15202,7 +15517,7 @@ $controller <replaceable>some method</replaceable>
                     <term>
         <cmdsynopsis>
             <command>
-::cvmusb::CVMUSB_string_to_char <replaceable>std_string</replaceable>
+::cvmusb::string_to_char <replaceable>std_string</replaceable>
             </command>
         </cmdsynopsis>
         </term>
@@ -15217,7 +15532,7 @@ $controller <replaceable>some method</replaceable>
                     <term>
         <cmdsynopsis>
             <command>
-::cvmusb::CVMUSB_uint32_vector_get <replaceable>std_uint32_vector i</replaceable>
+::cvmusb::uint32_vector_get <replaceable>std_uint32_vector i</replaceable>
             </command>
         </cmdsynopsis>
         </term>
@@ -15233,7 +15548,7 @@ $controller <replaceable>some method</replaceable>
                     <term>
         <cmdsynopsis>
             <command>
-::cvmusb::CVMUSB_uint32_vector_size <replaceable>std_uint32_vector</replaceable>
+::cvmusb::uint32_vector_size <replaceable>std_uint32_vector</replaceable>
             </command>
         </cmdsynopsis>
         </term>
@@ -15250,14 +15565,14 @@ $controller <replaceable>some method</replaceable>
                     <term>
         <cmdsynopsis>
             <command>
-::cvmusb::CVMUSB_uint8_vector_get <replaceable>std_uint8_vector i</replaceable>
+::cvmusb::uint8_vector_get <replaceable>std_uint8_vector i</replaceable>
             </command>
         </cmdsynopsis>
         </term>
         <listitem>
             <para>
                 Same as
-                <methodname>::cvmusb::CVMUSB_uint32_vector_get</methodname> but
+                <methodname>::cvmusb::uint32_vector_get</methodname> but
                 <parameter>std_uint8_vector</parameter> is a
                 <type>std::vector&lt;uint8_t&gt;</type>.
                 </para>
@@ -15267,13 +15582,13 @@ $controller <replaceable>some method</replaceable>
                     <term>
         <cmdsynopsis>
             <command>
-::cvmusb::CVMUSB_uint8_vector_size <replaceable>std_uint8_vector</replaceable>
+::cvmusb::uint8_vector_size <replaceable>std_uint8_vector</replaceable>
             </command>
         </cmdsynopsis>
         </term>
         <listitem>
             <para>
-                Same as <methodname>::cvmusb::CVMUSB_uint32_vector_size</methodname>
+                Same as <methodname>::cvmusb::uint32_vector_size</methodname>
                 but <parameter>std_uint8_vector</parameter>
                 is a <type>std::vector&lt;uint8_t&gt;</type>
                 </para>
@@ -16625,6 +16940,7 @@ Module cget <replaceable>name</replaceable>
                                 </para>
                             </listitem>
                         </varlistentry>
+                        
                         <varlistentry>
                             <term><literal>temp</literal></term>
                             <listitem>
@@ -16664,6 +16980,232 @@ Module cget <replaceable>name</replaceable>
                         The fourth and last list will be the channel temperatures.
                     </para>
                 </refsect3>
+            </refsect2>
+            <refsect2>
+                <title>mdgg16</title>
+                <para>
+                  This slow-controls module provides support for the Wiener 
+                  MDGG-16 device as used as a fourfold 16-channel configurable
+                  OR. It sets up the device to output NIM logic signals
+                  according to four separately defined OR definitions.                 
+                </para>
+                <refsect3>
+                  <title>Options</title>
+                  <variablelist>
+                    
+                    <varlistentry>
+                      <term><option>-base</option></term>
+                      <listitem>
+                        <para>
+                          The value of the base address of the Wiener MDGG-16
+                          must be provided via this option.  
+                        </para>
+                      </listitem>
+                    </varlistentry>
+
+                    <varlistentry>
+                      <term><option>-mode</option></term>
+                      <listitem>
+                        <para>
+                          This is an enumerated option that only accepts two
+                          parameter values: explicit, file. The "explicit" value
+                          will use the values of the -or_a, -or_b, -or_c, and
+                          -or_d parameters to set up the ORs. The "file" value
+                          will read an input file defined by the -configfile
+                          parameter to load the definitions. Default =
+                          explicit.
+                        </para>
+                      </listitem>
+                    </varlistentry>
+
+                    <varlistentry>
+                      <term><option>-or_a</option></term>
+                      <listitem>
+                        <para>
+                          This is a 16-bit integer that represents the 16-bit
+                          mask identifying which input channels will
+                          contribute to the NIM 0 output (OR A). A bit that is
+                          set indicates that its corresponding channel will
+                          contribute to the OR A output. Bit 0 corresponds to
+                          the first input channel and bit 15 corresponds to the
+                          last input channel.  Default value is 65535 (i.e. all
+                          16 channels contribute to output).
+                        </para>
+                      </listitem>
+                    </varlistentry>
+
+                    <varlistentry>
+                      <term><option>-or_b</option></term>
+                      <listitem>
+                        <para>
+                          This is the same as the -or_a parameter except that it
+                          corresponds to the OR B definition controlling the NIM
+                          1 output.
+                        </para>
+                      </listitem>
+                    </varlistentry>
+
+                    <varlistentry>
+                      <term><option>-or_c</option></term>
+                      <listitem>
+                        <para>
+                          This is the same as the -or_a parameter except that it
+                          corresponds to the OR C definition controlling the NIM
+                          2 output.
+                        </para>
+                      </listitem>
+                    </varlistentry>
+
+                    <varlistentry>
+                      <term><option>-or_d</option></term>
+                      <listitem>
+                        <para>
+                          This is the same as the -or_a parameter except that it
+                          corresponds to the OR D definition controlling the NIM
+                          3 output.
+                        </para>
+                      </listitem>
+                    </varlistentry>
+
+                    <varlistentry>
+                      <term><option>-configfile</option></term>
+                      <listitem>
+                        <para>
+                          The value of this parameter should be a valid path to
+                          a configuration file. The configuration file should be
+                          in the same form as the one generated by the
+                          MDGG16Control program. In general, it should have the
+                          following form:
+                        </para>
+
+                        <programlisting>
+                         or_a  value_a  
+                         or_b  value_b  
+                         or_c  value_c  
+                         or_d  value_d  
+                        </programlisting>
+
+                        <para> 
+                          where value_a, value_b, value_c, and value_d are the
+                          16-bit integers defining the bit masks for OR A, OR B,
+                          OR C, and OR D, respectively.
+                        </para>
+                      </listitem>
+                    </varlistentry>
+                  </variablelist>
+                </refsect3>
+
+                <refsect3>
+                  <title>Parameters</title>
+
+                  <para>
+                    The following parameters can be Set:
+                  </para>
+
+                  <variablelist>
+                    <varlistentry>
+                      <term><literal>or_ab</literal></term>
+                      <listitem>
+                        <para>
+                          Provides the bit masks for the OR A and the OR B 
+                          definitions. See the description of the -or_a option 
+                          for how each of these are defined individually. The
+                          value to provide for this parameter should be a
+                          combination of the two individual masks. It is a 32-bit
+                          integer where the least significant 16-bits are the OR A
+                          definition and the upper 16-bits are the OR B
+                          definition.
+                        </para>
+                        <para>
+                          The return value of this should be the response of the
+                          device when successful. Any failure will result in a
+                          return value beginning with "ERROR - " and is followed
+                          by a description of the error.
+                        </para>
+
+                      </listitem>
+                    </varlistentry>
+
+                    <varlistentry>
+                      <term><literal>or_cd</literal></term>
+                      <listitem>
+                        <para>
+                          This is the same as the <parameter>or_ab</parameter> 
+                          parameter except that it is formed by OR C and OR D bit
+                          masks. The least significant 16-bits are the OR C
+                          definition and the upper 16-bits are the OR D
+                          definition.
+                        </para>
+                        <para>
+                          The return value of this should be the response of the
+                          device when successful. Any failure will result in a
+                          return value beginning with "ERROR - " and is followed
+                          by a description of the error.
+                        </para>
+
+                      </listitem>
+                    </varlistentry>
+                  </variablelist>
+
+                  <para>
+                    The following parameters can be retrieved via Get:
+                  </para>
+
+                  <variablelist>
+                    <varlistentry>
+                      <term><literal>or_ab</literal></term>
+                      <listitem>
+                        <para>
+                          Reads the values of the OR A and OR B bit masks from the
+                          device. The returned value will have both 16-bit masks
+                          encoded into a 32-bit integer. The least significant
+                          16 bits define the OR A mask and the upper 16 bits
+                          define the OR B mask.
+                        </para>
+
+                        <para>
+                          If an error occurs while communicating with the device,
+                          the response will begin with "ERROR - " and will be
+                          followed by a description of the error.
+                        </para>
+                      </listitem>
+                    </varlistentry>
+
+                    <varlistentry>
+                      <term><literal>or_cd</literal></term>
+                      <listitem>
+                        <para>
+                          Reads the values of the OR C and OR D bit masks from the
+                          device. The returned value will have both 16-bit masks
+                          encoded into a 32-bit integer. The least significant
+                          16 bits define the OR C mask and the upper 16 bits
+                          define the OR D mask.
+                        </para>
+
+                        <para>
+                          If an error occurs while communicating with the device,
+                          the response will begin with "ERROR - " and will be
+                          followed by a description of the error.
+                        </para>
+                      </listitem>
+                    </varlistentry>
+                  </variablelist>
+                </refsect3>
+            </refsect2> 
+            <refsect2>
+                <title>marker</title>
+                <para>
+                    This module inserts a marker in the monitor list.  The main use
+                    is to get data buffers periodically flushed for slow data
+                    rate applications.
+                </para>
+                <para>
+                    The module has no gettable or settable parameters.  It has a
+                    single configuration option <option>-value</option> which
+                    sets the of the marker word.  Normally  you don't need to
+                    modify this as the marker word will never make it outside the
+                    VMUSBReadout program.
+                </para>
             </refsect2>
         </refsect1>
 
@@ -17938,15 +18480,1040 @@ XLMFERA cget <replaceable>name</replaceable>
   </refsect1>
 </refentry>
 
+<refentry id="vmusb3-AXLM72ScalerControl">
+  <refmeta>
+     <refentrytitle>AXLM72ScalerControl</refentrytitle>
+     <manvolnum>3vmusb</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>AXLM72ScalerControl</refname>
+     <refpurpose>slow-controls driver for controlling an XLM72 running 32-ch scaler firmware</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <cmdsynopsis>
+	<command>
+AXLM72ScalerControl <replaceable>name option value ...</replaceable>
+	</command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+<replaceable>name</replaceable> Set <replaceable>usb parameter value</replaceable>
+        </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+<replaceable>name</replaceable> Get <replaceable>usb parameter</replaceable>
+        </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+<replaceable>name</replaceable> Update <replaceable>usb</replaceable>
+        </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+<replaceable>name</replaceable> addMonitorList <replaceable>list</replaceable>
+        </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+<replaceable>name</replaceable> processMonitorList <replaceable>data</replaceable>
+        </command>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+  <refsect1>
+
+  <title>DESCRIPTION</title>
+
+     <para>
+    The AXLM72ScalerControl driver is a pure-TCL driver that is used to communicate with the XLM72 when running the ech32x24.bit firmware. It implements the CControlHardware interface as is equivalent in TCL. When loaded into the slow-controls server, any remote process can send it commands that it will translate into actual communication with a specific XLM72 device. It communicates through the low-level driver for the ech32x24.bit firmware called AXLM72Scaler. The XLM72ScalerGUI requires that an instance of this class is registered as a TCL module (see Module command), in the slow-controls server.
+    </para>
+
+  </refsect1>
+  
+  <refsect1>
+  <title>OPTIONS</title>
+    <variablelist>
+
+	    <varlistentry>
+	      <term><command>-slot</command> <replaceable>value</replaceable></term>
+	      <listitem>
+		    <para>
+          Specifies the slot in which the target XLM72 module resides.
+		    </para>
+	       </listitem>
+	    </varlistentry>
+    </variablelist>
+
+  </refsect1>
+
+  <refsect1>
+  <title>METHODS</title>
+  <variablelist>
+
+    <varlistentry>
+      <term><replaceable>name</replaceable> <command>Set</command> <replaceable>vmusb parameter value</replaceable></term>
+      <listitem>
+        <para>
+          The Set command causes a write to the XLM72. There are 34 supported parameters: enable, reset, trigger0, trigger1, trigger2, ..., and trigger31. The number appended to the trigger parameter identifies the channel number. The values provided for reset and the any trigger must be either 0 or 1, and the value of the reset command is ignored. The returned value is the status value of the return value for the write operation (0 => success, otherwise => failure).
+        </para>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term><replaceable>name</replaceable> <command>Get</command> <replaceable>vmusb parameter</replaceable></term>
+      <listitem>
+        <para>
+          The Get command causes a read from the XLM72. There are 5 parameters that can be provided to this method: enable, alltriggers, firmware, runstate, and allscalers. These all return the value read from the device. The enable parameter returns a 0 or 1 indicating whether the scalers are enabled. The alltriggers parameter returns a 32-bit integer with the status of each channel's trigger status encoded in its bits. Channel 0's status is encoded in bit 0 and channel 31's status is encoded in bit 31, with all others likewise. The firmware parameter returns the firmware signature. The runstate parameter causes a return of the run state as one of the following strings: idle, starting, stopping, active, paused. Finally the allscalers parameters causes the scaler values to be latched and read out of the device. These are returned as a list of 32 integers beginning with channel 0.
+        </para>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term><replaceable>name</replaceable> <command>Update</command> <replaceable>vmusb</replaceable></term>
+      <listitem>
+        <para>
+          The Update method is defined but does nothing.
+        </para>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term><replaceable>name</replaceable> <command>addMonitorList</command> <replaceable>list</replaceable></term>
+      <listitem>
+        <para>
+          The addMonitorList method is defined but does nothing.
+        </para>
+      </listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term><replaceable>name</replaceable> <command>processMonitorList</command> <replaceable>data</replaceable></term>
+      <listitem>
+        <para>
+          The processMonitorList method is defined but does nothing more than return 0.
+        </para>
+      </listitem>
+    </varlistentry>
+  </variablelist> 
+
+  </refsect1>
+
+  <refsect1>
+      <title>EXAMPLES</title>
+      <example>
+         <title>Simple setup of the AXLM72ScalerControl</title>
+         <programlisting>
+          package require scalerxlm72
+
+          # Instantiation an object
+          AXLM72ScalerControl mysclr -slot 5 
+
+          # create the module for the slow-controls configure it to call the methods of the mysclr object
+          Module create tcl sclrmod
+          Module config sclrmod -ensemble mysclr
+         </programlisting>
+      </example>
+      <para>
+        Sets up an instance of the AXLM72ScalerControl to run on the slow-controls server. If the XLM72ScalerGUI is to be run with this module, it would have to be given the name of the module as "sclrmod".
+      </para>
+  </refsect1>
+</refentry>
+
+<refentry id="vmusb3-XLM72ScalerGUI">
+  <refmeta>
+     <refentrytitle>XLM72ScalerGUI</refentrytitle>
+     <manvolnum>3vmusb</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>XLM72ScalerGUI</refname>
+     <refpurpose>Diagnostics GUI for controlling an XLM72 running 32 ch scaler firmware</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+  <cmdsynopsis>
+    <command>
+      XLM72ScalerGUI <replaceable>name option value ...</replaceable>
+    </command>
+  </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+
+  <title>DESCRIPTION</title>
+  <para>
+The XLM72ScalerGUI is a graphical user interface (GUI) that provides interactive control over an XLM72 running the ech32x24.bit firmware in a crate being readout by VMUSBReadout program. This firmware was written and is supported by Daniel Bazin and the software driver that supports the readout is provided by NSCLDAQ as the AXLM72Scaler tcl driver. The XLM72ScalerGUI is a UI that displays the scaler values of the XLM72 when not in DAQ mode and gives the user some basic control over the XLM72 while the VMUSB is not in acquisition mode. It is primarily a diagnostics tools that can be used to enable or disable the scaler channels from counting, to clear the scaler counters, and also to repeatedly update the values at a selectable frequency.
+  </para>
+
+  </refsect1>
+
+  <refsect1>
+    <title>PARAMETERS</title>
+
+    <variablelist>
+
+	    <varlistentry>
+	      <term><command>--module</command> <replaceable>value</replaceable></term>
+	      <listitem>
+		    <para>
+          The name of the module registered to the VMUSBReadout slow-controls server that will handle the requests of the GUI.
+		    </para>
+	       </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>--host</command> <replaceable>value</replaceable></term>
+	      <listitem>
+		    <para>
+          The host running the VMUSBReadout slow-controls server.
+		    </para>
+	       </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>--port</command> <replaceable>value</replaceable></term>
+	      <listitem>
+		    <para>
+          The port on which the VMUSBReadout slow-controls server is listening for connections.
+		    </para>
+	       </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>--ring</command> <replaceable>value</replaceable></term>
+	      <listitem>
+		    <para>
+          The name of the ring being filled by the VMUSBReadout program
+		    </para>
+	       </listitem>
+	    </varlistentry>
+    </variablelist>
+
+  </refsect1>
+
+
+  <refsect1>
+    <title>Configuration</title>
+
+    <para>
+      The XLM72ScalerGUI is designed as a client-server architecture and thus using it requires setting up two different pieces: the client and the server. The setup of the server will be explained first. To avoid confusion, the server that will be communicated with is the VMUSBReadout slow-controls server and thus setting it up requires loading a driver with the needed functionality into it. The specific driver to be used is contained in the AXLM72ScalerControl class. It is just a standard slow-controls driver written purely in TCL that implements the Set, Get, and Update methods. Once an instance has been created of the AXLM72ScalerControl class, it needs to be registered as a TCL module using the ?Module? command. The name of the ensemble is just the name of the instance created. As with all slow-controls set up, this must be done in the ctlconfig.tcl file. The name of the AXLM72ScalerControl instance is not important so long as it does not conflict with any other tcl commands (e.g. setting the name to ?set? would lead to unexpected failures). Here is a sample of how to set it up in the ctlconfig.tcl file.
+    </para>
+
+    <example>
+    <title>Example ctlconfig.tcl entry</title>
+    <programlisting>
+package require scalerxlm72			          ;# load the plugin
+
+AXLM72ScalerControl XLM72SclrCtl -slot 5  ;# Create an instance of for an XLM72 in slot 5
+
+Module create tcl xlm72sclrctl		        ;# Create a new pure tcl module named xlm72sclrctl
+Module config xlm72sclrctl -ensemble XLM72SclrCtl ;# set the name of the ensemble to be the same as the name of the instance
+    </programlisting>
+    </example>
+
+    <para>
+The second portion of the XLM72ScalerGUI is the setup of the client. The client is much simpler and amounts to running the XLM72ScalerGUI program with the appropriate arguments. This program requires a few pieces of information to successfully communicate with the server. Those are the name of the host running the VMUSBReadout slow-controls server, the port on which that server is listening for connections, the name of the ringbuffer being filled by the VMUSBReadout program, and the name of the slow-controls module that is receiving requests from the GUI. In the above example, the name of that module would be "xlm72sclrctl".  
+    </para>
+
+    <para>
+    That is it. If you want know why the ringbuffer name is needed read on about run state awareness.
+    </para>
+
+  </refsect1>
+
+  <refsect1>
+    <title>Run State Awareness</title>
+    <para>
+  The XLM72ScalerGUI is only allowed to query the XLM72 while a run is not in progress. When a run is in progress (i.e. the VM-USB is in data acquisition mode rather than interactive mode), all of the GUI components become disabled except for the Exit button. When a run ends, the GUI components become active again. The idea is that the XLM72ScalerGUI is really a diagnostics tool rather than a tool for data acquisition. In order to respond to run state transitions, the GUI needs to have some run state awareness. Two mechanisms provide this to form some redundancy. The primary means by which it obtains run state information is through a sclclient program attached to the ringbuffer filled by the VMUSBReadout program. This is why the user must provide the name of the ringbuffer, when starting up the GUI. The sclclient communicates with a TclServer embedded into the GUI and manages a variable called RunState. Unfortunately, this approach is leaves a small chance that the GUI sends a request after the run has started but before the sclclient has alerted the TclServer of the change. In this scenario, the second redundancy kicks in because the first thing that happens before a request is a request from the slow-controls server to return the run state. If the run state is not idle, then it is assumed that a run is in progress. Otherwise, the requests proceed as usual. 
+    </para>
+
+    <para>
+      This may seem overkill but there is a good reason for doing it this way that is tied to how the slow-controls server handles requests while in acquisition mode. Should a request come in that mode, the VMUSB will exit acquisition mode, process the request, and then resume acquisition. Unfortunately, ending a run usually lasts about a second or two, which causes long wait times. To avoid repeated interruptions like this, the above scheme ensures that at most, one interruption can occur. Understand that no data is ever lost in these scenarios, the data stream is simply interrupted for a period of time. 
+    </para>
+  </refsect1>
+  
+</refentry>
+
+      <refentry id="vmusb3-AXLM72">
+        <refmeta>
+           <refentrytitle>AXLM72</refentrytitle>
+           <manvolnum>3vmusb</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>AXLM72</refname>
+           <refpurpose>TCL base class for JTech XLM72 family of devices</refpurpose>
+        </refnamediv>
+    
+        <refsynopsisdiv>
+            <cmdsynopsis>
+                <command>
+package require xlm72
+                </command>
+            </cmdsynopsis>
+          
+        <cmdsynopsis>
+            <command>
+AXLM72 <replaceable>name slot</replaceable>
+            </command>
+        </cmdsynopsis>
+        
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> GetVariable <replaceable>v</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> Read <replaceable>ctlr dev address</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> Write <replaceable>ctlr dev address data</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> ReadSBLT <replaceable>ctlr dev address words</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> ReadNBLT <replaceable>ctlr ndev naddr mask dev addr</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> AccessBus <replaceable>ctlr code</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> ReleaseBus <replaceable>ctlr</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> BootFPGA <replaceable>ctlr</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> SetFPGABoot <replaceable>ctlr source</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> Configure <replaceable>ctlr filename</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> ExecuteLongStack <replaceable>ctlr stack</replaceable>
+            </command>
+        </cmdsynopsis>
+      
+        <formalpara> 
+          <title>Stack Building Methods</title>
+          <para></para>
+        </formalpara> 
+  
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> sRead <replaceable>stack dev addr</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> sWrite <replaceable>stack dev addr data</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> sReadSBLT <replaceable>stack dev addr words</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> sReadNBLT <replaceable>stack ndev naddr mask dev addr</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> sAccessBus <replaceable>stack code</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> sReleaseBus <replaceable>stack code</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        </refsynopsisdiv>
+
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+ This is the IncrTcl base class for the family of XLM72 devices. It provides
+ a large number of convenience functions that derived classes can use
+ in their drivers. The JTech XLM72 family of devices are general purpose
+ logic modules that have no real function independent of the firmware
+ loaded onto them. For this reason, derived classed typically handle
+ how to interact with devices that are running a specific firmware.
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              COMMANDS
+           </title>
+
+           <variablelist>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+AXLM72 <replaceable>name slot</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+                      Constructs an AXLM72 object for a device seated in
+                      slot <parameter>slot</parameter>
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> GetVariable <replaceable>v</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+                      Returns the value of the variable named <parameter>v</parameter>
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> Read <replaceable>ctlr dev address</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+                      Immediately performs an A32/D32 read from the address $<parameter>dev</parameter>+$<parameter>address</parameter>. The access is performed through the swig wrapped CVMUSB class provided as <parameter>ctlr</parameter>. The method returns the value of read from the device.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> Write <replaceable>ctlr dev address data</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+                      Immediately performs an A32/D32 write of <parameter>data</parameter> to the address $<parameter>dev</parameter>+$<parameter>address</parameter>. The access is performed through the swig wrapped CVMUSB class provided as <parameter>ctlr</parameter>. The returns the status of the write operation (success = 0, failure otherwise).
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> ReadSBLT <replaceable>ctlr dev address words</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+                      Immediately performs a block transfer (A32/D32) of <parameter>words</parameter> transfers beginning at address $<parameter>dev</parameter>+$<parameter>address</parameter>. The access is performed through the swig wrapped CVMUSB class provided as <parameter>ctlr</parameter>. The method returns a swig wrapped std::vector&lt;uint8_t&gt; so one must use the cvmusb::uint8_vector_get and cvmusb::uint8_vector_size procs to handle it. The VMUSBDriverSupport::convertBytesListToTclList will convert it to a tcl list of 32-bit integer values if that is desired and sensible.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> ReadNBLT <replaceable>ctlr ndev naddr mask dev addr</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+                      Immediately performs a block transfer (A32/D32) whose transfer count is determined by read data from the address $<parameter>ndev</parameter>+$<parameter>naddr</parameter> and applying the mask <parameter>mask</parameter> to the result. This read is an unprivileged A32/D32 read. A subsequent block transfer then begins at address $<parameter>dev</parameter>+$<parameter>address</parameter>. The access is performed through the swig wrapped CVMUSB class provided as <parameter>ctlr</parameter>. The method returns a swig wrapped std::vector&lt;uint8_t&gt; so one must use the cvmusb::uint8_vector_get and cvmusb::uint8_vector_size procs to handle it. The VMUSBDriverSupport::convertBytesListToTclList will convert it to a tcl list of 32-bit integer values if that is desired and sensible.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> AccessBus <replaceable>ctlr code</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+                      Convenience function for gaining access of an internal bus. This is 
+                      two single shot operations. The first requests the bus of interest
+                      and the second inhibits the FPGA and DSP from gaining mastership.
+                      The valid values for <parameter>code</parameter> are any bitwise OR of bus A (0x1), bus B (0x2), 
+                      bus X (0x1000), and bus D (0x2000). The <parameter>ctlr</parameter> is a 
+   swig cvmusb::CVMUSB object.
+
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> ReleaseBus <replaceable>ctlr</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+   Convenience function for releasing ownership of the internal busses. 
+   This is similar to the AccessBus method but writes 0 to both the bus
+   request and bus inhibit addresses. The <parameter>ctlr</parameter> is a 
+   swig cvmusb::CVMUSB object.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> BootFPGA <replaceable>ctlr</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+   Convenience function for booting the device. The operation only boots
+   the FPGA. This is accomplished by first writing 1's to the reset bits 
+   of the FPGA and DSP and then writing a 1 to the DSP and a 0 to the FPGA. 
+   This causes the FPGA to boot and the DSP remains in reset mode (i.e. its 
+   reset bit is still set). The <parameter>ctlr</parameter> is a 
+   swig cvmusb::CVMUSB object.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> SetFPGABoot <replaceable>ctlr source</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+   A convenience method for writing to the FPGA boot source register.
+   Valid values for <parameter>source</parameter> are : 0x0, 0x1, 0x2, 0x3, and 0x10000. The meanings
+   are as follows: 
+                  </para>
+  <informaltable frame="all">
+    <tgroup cols='2'>
+    <tbody>
+      <row>
+        <entry>Boot Source Value</entry>
+        <entry>Description</entry> 
+      </row>
+      <row>
+        <entry>0x0</entry>
+        <entry>Sector 0 flash</entry>
+      </row>
+      <row>
+        <entry>0x1</entry>
+        <entry>Sector 1 flash</entry>
+      </row>
+      <row>
+        <entry>0x2</entry>
+        <entry>Sector 2 flash</entry>
+      </row>
+      <row>
+        <entry>0x3</entry>
+        <entry>Sector 3 flash</entry>
+      </row>
+      <row>
+        <entry>0x10000</entry>
+        <entry>SRAM A</entry>
+      </row>
+    </tbody>
+    </tgroup>
+  </informaltable>
+                    <para>
+    The <parameter>ctlr</parameter> is a swig cvmusb::CVMUSB object.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> Configure <replaceable>ctlr filename</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+    Loads firmware into SRAMA and then boots the device from SRAMA. The firmware is
+    loaded from <parameter>filename</parameter>. The <parameter>ctlr</parameter> is a swig cvmusb::CVMUSB object.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> ExecuteLongStack <replaceable>ctlr stack</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+   Converts the <parameter>stack</parameter> tcl list of raw stack commands into a 
+   cvmusbreadoutlist::CVMUSBReadoutList object that gets 
+   subsequently executed. Before returning the value data it is 
+   parsed using the VMUSBDriverSupport::convertBytesListToTclList
+   because the executeList command returns a vector of bytes.
+   The <parameter>ctlr</parameter> is a swig cvmusb::CVMUSB object.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> sRead <replaceable>stack dev addr</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+   Adds an A32/D32 read from $<parameter>dev</parameter>+$<parameter>addr</parameter> to <parameter>stack</parameter>. <parameter>stack</parameter> is a swig cvmusbreadoutlist::CVMUSBReadoutList object.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> sWrite <replaceable>stack dev addr data</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+   Adds a A32/D32 write of <parameter>data</parameter> to $<parameter>dev</parameter>+$<parameter>addr</parameter> to <parameter>stack</parameter>. <parameter>stack</parameter> is a swig cvmusbreadoutlist::CVMUSBReadoutList object.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> sReadSBLT <replaceable>stack dev addr words</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+    Adds a standard block read of <parameter>words</parameter> transfers beginning at <parameter>dev</parameter>+<parameter>addr</parameter> to <parameter>stack</parameter>. <parameter>stack</parameter> is a swig cvmusbreadoutlist::CVMUSBReadoutList object.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> sReadNBLT <replaceable>stack ndev naddr mask dev addr words</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+                      This adds the same functionality of ReadNBLT to <parameter>stack</parameter>. See documentation for ReadNBLT for explanation of its functionality.
+                    </para>
+                </listitem>
+            </varlistentry>
+           
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> sAccessBus <replaceable>stack code</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+                      Adds a bus access command to the <parameter>stack</parameter> readoutlist. See documentation for AccessBus for the allowed values.
+                    </para>
+                </listitem>
+            </varlistentry>
+           
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> sReleaseBus <replaceable>stack</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+                      Adds a command to the <parameter>stack</parameter> readoutlist to release acquisition of any previously acquired busses.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+          </variablelist>
+        </refsect1>
+
+    </refentry>
+
+      <refentry id="vmusb3-AXLM72Scaler">
+        <refmeta>
+           <refentrytitle>AXLM72Scaler</refentrytitle>
+           <manvolnum>3vmusb</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>AXLM72Scaler</refname>
+           <refpurpose>Driver for an XLM72 running 32-channel scaler firmware</refpurpose>
+        </refnamediv>
+    
+        <refsynopsisdiv>
+            <cmdsynopsis>
+                <command>
+package require scalerxlm72
+                </command>
+            </cmdsynopsis>
+          
+        <cmdsynopsis>
+            <command>
+AXLM72Scaler <replaceable>name slot</replaceable>
+            </command>
+        </cmdsynopsis>
+        
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> GetFirmware <replaceable>ctlr</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> Reset <replaceable>ctlr</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> Latch <replaceable>ctlr</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> SetTrigger <replaceable>ctlr bit</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> SetTriggetBit <replaceable>ctlr bit value</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> SetTriggerBits <replaceable>ctlr bitset</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> ReadTrigger <replaceable>ctlr</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> SetEnable <replaceable>ctlr onoff</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> ReadEnable <replaceable>ctlr</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> ReadAll <replaceable>ctlr</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <formalpara> 
+          <title>Stack Building Methods</title>
+          <para></para>
+        </formalpara> 
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> sEnable <replaceable>stack</replaceable>
+            </command>
+        </cmdsynopsis>
+  
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> sDisable <replaceable>stack</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> sLatch <replaceable>stack</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> sReadAll <replaceable>stack</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        <cmdsynopsis>
+            <command>
+<replaceable>name</replaceable> sReset <replaceable>stack</replaceable>
+            </command>
+        </cmdsynopsis>
+
+        </refsynopsisdiv>
+
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+ This device is mostly just a 32-bit latching scaler but has the feature
+ that channel inputs can be redirected as a trigger output. The trigger 
+ output is the result of OR'ing all of the input signals of channels
+ whose trigger bits are set. 
+          </para>
+
+          <para>
+ The scaler can be enabled/disabled and atomically cleared (aka reset).
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              COMMANDS
+           </title>
+
+           <variablelist>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+AXLM72Scaler <replaceable>name slot</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+                      Constructs an AXLM72Scaler object for a device seated in
+                      slot <parameter>slot</parameter>
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> GetFirmware <replaceable>ctlr</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+                      Reads and returns the firmware signature. The <parameter>ctlr</parameter> is
+                      a cvmusb::CVMUSB object.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> Reset <replaceable>ctlr</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+                    Atomically resets all scaler values by writing a 1 and then a 0 to the lowest
+                    address of the FPGA address space. Returns 0 on success or a negative value for failure.
+                    The <parameter>ctlr</parameter> is a cvmusb::CVMUSB object. 
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> Latch <replaceable>ctlr</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+                      Latch the current values of the scaler counters into SRAMA for readout. 
+                      The <parameter>ctlr</parameter> is a cvmusb::CVMUSB object.
+
+                    </para>
+                    <para>
+                      The return value of this is either 0 for success or -1 for failure.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> SetTrigger <replaceable>ctlr bit</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+   As a result of history, this relies on the state of the
+   trigger array to determine what to write. This ultimately
+   calls SetTriggerBits after properly setting the requested
+   bit. The <parameter>ctlr</parameter> is a cvmusb::CVMUSB object.
+                    </para>
+                    <para>
+    The return value of this is either 0 for success or -1 for failure.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> SetTriggerBits <replaceable>ctlr bitset</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+   As opposed to the previous two methods, this replaces the
+   entire trigger register value rather than manipulating 
+   specific bits. It is therefore a lower level method but
+   it enables one to write all bits at once. The value of <parameter>bitset</parameter>
+   is written to the entire register. The <parameter>ctlr</parameter> is a 
+   cvmusb::CVMUSB object.
+                    </para>
+                    <para>
+    The return value of this is either 0 for success or -1 for failure.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> ReadTrigger <replaceable>ctlr</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+    Read the trigger register.
+    The <parameter>ctlr</parameter> parameter is a cvmusb::CVMUSB object.
+                    </para>
+                    <para>
+    The return value of this the value of the trigger register. 
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> SetEnable <replaceable>ctlr onoff</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+    Write the value of <parameter>onoff</parameter> to the enable register. Valid
+    values for <parameter>onoff</parameter> are 0 (i.e. enable on) and 1 (i.e. enable off).
+    The <parameter>ctlr</parameter> parameter is a cvmusb::CVMUSB object.
+                    </para>
+                    <para>
+    Returns either 0 for success or -1 for failure.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> ReadEnable <replaceable>ctlr</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+    Read and return the value of the enable register. 
+    The <parameter>ctlr</parameter> parameter is a cvmusb::CVMUSB object.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> ReadAll <replaceable>ctlr</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+    Read and return the value of all 32 scaler counters.
+    The <parameter>ctlr</parameter> parameter is a cvmusb::CVMUSB object.
+                    </para>
+                    <para>
+    The return value of this is a tcl list of all 32 channels of scaler values.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> sEnable <replaceable>stack</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+    Appends a write of 1 to the enable register onto <parameter>stack</parameter>.
+    The <parameter>stack</parameter> parameter is a cvmusbreadoutlist::CVMUSBReadoutList object.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> sDisable <replaceable>stack</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+    Appends a write of 0 to the enable register onto <parameter>stack</parameter>.
+    The <parameter>stack</parameter> parameter is a cvmusbreadoutlist::CVMUSBReadoutList object.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> sLatch <replaceable>stack</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+    Adds a command to <parameter>stack</parameter> to latch the current value of the scaler
+    counter into the SRAMA memory for later readout. The <parameter>stack</parameter> parameter is a cvmusbreadoutlist::CVMUSBReadoutList object.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> sReadAll <replaceable>stack</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+    Adds a readout cycle to <parameter>stack</parameter>. The values of the counters are
+    latched and then are readout using a BLT. After the BLT, the SRAMA data is reset. This handles the acquisition of the appropriate busses. The <parameter>stack</parameter> parameter is a cvmusbreadoutlist::CVMUSBReadoutList object. 
+                    </para>
+                </listitem>
+            </varlistentry>
+
+             <varlistentry>
+               <term><cmdsynopsis><command>
+<replaceable>name</replaceable> sReset <replaceable>stack</replaceable>
+              </command></cmdsynopsis></term>
+                <listitem>
+                    <para>
+    Adds a write of 0 to SRAMA[0] to reset the data. The <parameter>stack</parameter> parameter is a cvmusbreadoutlist::CVMUSBReadoutList object.
+                    </para>
+                </listitem>
+            </varlistentry>
+          </variablelist>
+        </refsect1>
+
+    </refentry>
+
    <!-- caenchain command - aggregate 785's into CBLT chains -->
 
 <!-- /manpage -->
 <!-- manpage 5vmusb -->
 
     <refentry id="vmusb5-slowcontrols-protocol">
+      <refentryinfo>
+        <author>
+            <personname>
+                <firstname>Ron</firstname>
+                <surname>Fox</surname>
+            </personname>
+        </author>
+        <productname>NSCLDAQ</productname>
+        <productnumber></productnumber>
+      </refentryinfo>  
       <refmeta>
          <refentrytitle>VMUSB slow controls protocol</refentrytitle>
          <manvolnum>5vmusb</manvolnum>
+          <refmiscinfo class='empty'></refmiscinfo>
       </refmeta>
       <refnamediv>
          <refname>VMUSB Slow controls protocol</refname>

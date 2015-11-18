@@ -70,6 +70,7 @@ CFragmentHandlerCommand::operator()(CTCLInterpreter& interp, std::vector<CTCLObj
   // objv must have the command name and a socket name:
   
   int status = TCL_OK;
+  uint8_t* msgBody(0);
 
   try {
     
@@ -81,7 +82,6 @@ CFragmentHandlerCommand::operator()(CTCLInterpreter& interp, std::vector<CTCLObj
     
     objv[1].Bind(interp);
     std::string channelName = objv[1];
-    
     Tcl_Channel pChannel = Tcl_GetChannel(interp.getInterpreter(), channelName.c_str(), NULL);
     if (pChannel == NULL) {
     interp.setResult(std::string("Tcl does not know about this channel name"));
@@ -102,11 +102,10 @@ CFragmentHandlerCommand::operator()(CTCLInterpreter& interp, std::vector<CTCLObj
 
 
     if (msgLength > 0) {
-      uint8_t msgBody[msgLength];
+      msgBody = new uint8_t[msgLength];
       n    = Tcl_Read(pChannel, reinterpret_cast<char*>(msgBody), msgLength);
       if(n != msgLength) {
-	interp.setResult("Message Body could not be completely read");
-	return TCL_ERROR;
+	throw std::string("Message Body could not be completely read");
       }
       
       // Dispatch the body as the flattened fragments they are:
@@ -150,7 +149,7 @@ CFragmentHandlerCommand::operator()(CTCLInterpreter& interp, std::vector<CTCLObj
     interp.setResult("Unanticipated exception in fragment handler");
     status = TCL_ERROR;
   }
-
+  delete []msgBody;
   return status;
   
 }

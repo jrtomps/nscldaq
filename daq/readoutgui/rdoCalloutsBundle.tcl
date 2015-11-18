@@ -64,7 +64,9 @@ namespace eval ::rdoCallouts {
 #
 # Implement the bundle methods:
 #
-proc ::rdoCallouts::attach {state} {}
+proc ::rdoCallouts::attach {state} {
+    
+}
 ##
 # ::rdoCallouts::enter
 #

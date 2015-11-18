@@ -1,0 +1,329 @@
+<!-- chapter frameworks -->
+
+<chapter>
+  <title>The actions library</title>
+  <para>
+    A package that allows output from programs run as a pipeline in
+    ReadoutCallouts.tcl to be formatted in the OutputWindow or interpreted as
+    commands.  
+  </para>
+
+  <section>
+    <title>
+      Introduction
+    </title>
+    <para>
+      The versatility of the filter framework makes it likely that the user will want
+      to run a filter in an online setting. The mechanism that allows the
+      launching of any filter in the online settiing is through the
+      ReadoutCallouts.tcl script that is run by the ReadoutGUI. Within this script
+      one can capture the output of a filter program to print to either the
+      terminal or the ReadoutGUI's OutputWindow. Doing so will result in the
+      output of the filter program being treated as just a stream of text.
+      With actually less effort in the ReadoutCallouts.tcl script, the user can
+      enable their filter program's output to be formatted or even initiate TCL
+      command executions in the interpreter of the ReadoutGUI. Why would you want this
+      feature? Consider, for example, wanting a filter program to output warning
+      messages that would be highlighted so as to stand out to the user. In
+      more advanced cases, one might want to execute commands in the tcl
+      interpreter that spawned it given some observed condition in the data
+      stream. The most obvious example of this is a filter requesting for the run
+      to end because it observed some bizarre data. Accomplishing any of these
+      things is made possible with the actions library.
+    </para>
+    <para>
+      The actions library provides a very simple mechanism for accomplishing these
+      tasks. It is implemented as two pieces, a set of C++ functions and a tcl
+      package. The idea is that the filter code seeking to do something of the
+      sort already described above will call one of the functions in the Actions
+      namespace. Then when the user writes the code in the ReadoutCallouts.tcl
+      script to launch the filter, they will do so by launching it as a pipeline.
+      In addition, they will register the actions::onReadable handler for when the
+      pipeline is readable. That's it! The result will be extended
+      capabilities of their filter program when run in the environment of the
+      ReadoutGUI. 
+    </para>
+
+    <para>
+      Here is the list of C++ methods that are supported for use in a filter
+      program:
+    </para>
+    <itemizedlist>
+
+      <listitem>
+        <methodsynopsis>
+          <type>void</type>
+          <methodname>Error</methodname>
+          <methodparam>
+            <type>std::string</type>
+            <parameter>message</parameter>
+          </methodparam>
+        </methodsynopsis>
+      </listitem>
+
+      <listitem>
+        <methodsynopsis>
+          <type>void</type>
+          <methodname>Log</methodname>
+          <methodparam>
+            <type>std::string</type>
+            <parameter>message</parameter>
+          </methodparam>
+        </methodsynopsis>
+      </listitem>
+
+      <listitem>
+        <methodsynopsis>
+          <type>void</type>
+          <methodname>Warning</methodname>
+          <methodparam>
+            <type>std::string</type>
+            <parameter>message</parameter>
+          </methodparam>
+        </methodsynopsis>
+      </listitem>
+
+      <listitem>
+        <methodsynopsis>
+          <type>void</type>
+          <methodname>Output</methodname>
+          <methodparam>
+            <type>std::string</type>
+            <parameter>message</parameter>
+          </methodparam>
+        </methodsynopsis>
+      </listitem>
+
+      <listitem>
+        <methodsynopsis>
+          <type>void</type>
+          <methodname>Debug</methodname>
+          <methodparam>
+            <type>std::string</type>
+            <parameter>message</parameter>
+          </methodparam>
+        </methodsynopsis>
+      </listitem>
+
+      <listitem>
+        <methodsynopsis>
+          <type>void</type>
+          <methodname>TCLCommand</methodname>
+          <methodparam>
+            <type>std::string</type>
+            <parameter>message</parameter>
+          </methodparam>
+        </methodsynopsis>
+      </listitem>
+
+      <listitem>
+        <methodsynopsis>
+          <type>void</type>
+          <methodname>BeginRun</methodname>
+          <void/>
+        </methodsynopsis>
+      </listitem>
+
+      <listitem>
+        <methodsynopsis>
+          <type>void</type>
+          <methodname>PauseRun</methodname>
+          <void/>
+        </methodsynopsis>
+      </listitem>
+
+      <listitem>
+        <methodsynopsis>
+          <type>void</type>
+          <methodname>ResumeRun</methodname>
+          <void/>
+        </methodsynopsis>
+      </listitem>
+
+      <listitem>
+        <methodsynopsis>
+          <type>void</type>
+          <methodname>EndRun</methodname>
+          <methodparam>
+            <type>bool</type>
+            <parameter>propagate</parameter>
+            <initializer>true</initializer>
+          </methodparam>
+        </methodsynopsis>
+      </listitem>
+    </itemizedlist>
+
+    <para>
+      It is worthwhile to mention that using these C++ functions in a filter
+      program does not restrict the program to run only in the context of the
+      ReadoutGUI. These function merely format the message and output it on
+      stderr.
+    </para>
+  </section>
+
+  <section>
+    <title>
+      How does it work?
+    </title>
+    <para>
+      One might be surprised at how simple this actually is. The C++ functions
+      that live in the Actions namespace simply prepends a directive and size to the message
+      the user seeks to output and then writes the output to stderr. The tcl
+      package that reads the output from the pipeline then reads the message and
+      handles the message in a manner dictated by the directive. 
+    </para>
+
+  </section>
+
+  <section>
+    <title>
+      Run Control and Command Execution
+    </title>
+    <para>
+      As was mentioned earlier in the overview, it is possible for a program
+      using the actions library to initiate command execution in the tcl
+      interpreter that spawned it. Because it is possible to end a run with the
+      end proc, it is possible to force the run state to change. Those running
+      data integrity checker programs in conjunction with the actions library may
+      find this useful. The capabilities of the command execution is much more
+      general than run control. Really, the limit of what can be done is at the
+      limit of what the user can create with the TCL programming language.
+    </para>
+    <para>
+      One special case that is worth mentioning is when the ReadoutGUI that has
+      been running the program is under remote control by a master ReadoutGUI.
+      There is no difference in the behavior of the actions library for this
+      scenario except that run control operations to end the run are forwarded
+      to the master ReadoutGUI. In this way, there will not be scenarios when
+      a single subsystem of the DAQ has shutdown. If the user chooses to
+      propagate the end run to the master ReadoutGUI (via the EndRun function's
+      argument), then they will be able to seamlessly run their DAQ while
+      enslaved and not enslaved. However, if the user chooses not to forward to
+      the master, they will need to add the following code to their
+      ReadoutCallouts.tcl script to ensure that the local_end proc is defined.
+    </para>
+
+    <programlisting>
+      if {[llength [info proc local_end]]==0} {
+        proc local_end {} {
+          end
+        }
+      }
+    </programlisting>
+  </section>
+
+  <section>
+    <title>
+      Exemplified Usage of the Actions package
+    </title>
+
+    <para>
+      Suppose there is an experiment that wanted to ensure that runs were
+      limited to only 1000 physics events each. (This is purely hypothetical).
+      A run size of 1000 events could easily be enforced with a filter that utilizes the
+      actions library. Here is the filter's handlePhysicsEvent method to
+      accomplish this task.
+    </para>
+
+    <programlisting>
+      #include &lt;Actions.h>
+      #include &lt;ilter.h>
+      #include &lt;iostream>
+      #include &lt;sstream>
+
+      class OneThousandDelimiter : public CFilter {
+        private:
+          bool m_stopEmitted;     // flag for outputting new events
+          int m_count;            // number of events
+
+        public:
+
+        /**! The handler of PHYSICS_EVENT ring items */
+        virtual CRingItem* handlePhysicsEventItem(CPhysicsEventItem* pItem) 
+        {
+          // if we have exceeded the threshold just stop outputting
+          if (m_stopEmitted) return 0; 
+
+          // increment the event count
+          ++m_count;
+
+          // display a log message every 100 events in the ReadoutGUI OutputWindow
+          if ((m_count%(100))==0) {
+            std::stringstream msg;
+            msg &lt;&lt; "Processed " &lt;&lt; m_count &lt;&lt; " of " &lt;&lt; 1000;
+            Actions::Log ( msg.str() ); 
+          }
+
+          // If we reached the 1000 event threshold, then emit a warning message 
+          // and end the run
+          if (m_count>=1000) { 
+            m_stopEmitted=true;
+            Actions::Warning("Exceeded threshold of events! Stopping the run");
+            Actions::EndRun();
+          }
+
+          return pItem;
+        }
+
+        /**! The required clone method */
+        virtual OneThousandDelimiter* clone () const {
+          return new OneThousandDelimiter(*this);
+        }
+
+        /**! Reset count prior to first events received after startup */
+        void initialize() {
+          m_count=0; 
+          m_stopEmitted=false;
+        }
+      };
+    </programlisting>
+    <para>
+      What this does is to count the number of PHYSICS_EVENT ring items
+      processed by the filter, all the while printing log messages to the
+      ReadoutGUI's OutputWindow to indicate progress. Once 1000 events have
+      been processed, a message formatted as a warning class will be printed on
+      the OutputWindow and the run will be ended. Considering that there is
+      time that passes between when the filter program emits the end run
+      command and when the ReadoutGUI's run control actually transitions the
+      state machine to Halted, there is a flag that is set called
+      m_stopEmitted. When this is set, the filter throws away all PHYSICS_EVENT items
+      that come its way. 
+    </para>
+
+    <para>
+      Assume that the user's source code above was built into an executable
+      named OneThousandLimiter. In the ReadoutCallouts directory this would be
+      launched as follows: 
+    </para>
+
+    <programlisting>
+      # load the packages we need
+      package require Actions         ;# the actions tcl package
+      package require DefaultActions  ;# the default response for the action package
+
+      # instantiate the parser for the actions 
+      set parser [::Actions %AUTO%]
+
+      # launch the program as a pipeline with read permissions
+      set cmd [file join /path to OneThousandLimiter]
+      set pipe [open "| $cmd  --source=tcp://localhost/user --sink=file:///dev/null |&amp; cat" r]
+      chan configure $pipe -blocking 0
+      chan configure $pipe -buffering line
+
+      # register the actions parser to the pipeline
+      chan event $pipe readable [list $parser onReadable $pipe]
+    </programlisting>
+
+    <para>
+      As you can see, the TCL portion of this has been reduced to instantiating
+      the Actions parser and then launching the OneThousandLimiter program as a
+      pipeline process. The key here is that the prewritten onReadable method
+      of the parser is used as the callback function for a readable event. Note
+      that this is actually less work for the user than writing the callback
+      from scratch.  
+    </para>
+  </section>
+
+</chapter>
+
+<!-- /chapter -->

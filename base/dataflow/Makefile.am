@@ -10,9 +10,9 @@ noinst_HEADERS         = ringbufint.h Asserts.h testcommon.h CRingCommand.h
 
 COMPILATION_FLAGS =  -I@top_srcdir@/base/headers 	\
 	   -I@top_srcdir@/servers/portmanager \
-		@LIBTCLPLUS_CFLAGS@	\
 	   -I@top_srcdir@/base/uri	\
 	   -I@top_srcdir@/base/os	\
+		@LIBTCLPLUS_CFLAGS@	\
 		$(TCL_FLAGS)		\
 	-DBINDIR='"@prefix@/bin"'
 
@@ -100,8 +100,10 @@ unittests_SOURCES = TestRunner.cpp StaticTests.cpp TransferTests.cpp testcommon.
 		ManageTest.cpp WhilePredTest.cpp crmastertests.cpp RemoteTests.cpp
 
 unittests_LDADD   = -L@prefix@/lib $(CPPUNIT_LDFLAGS) \
+			-lDataFlow		\
+			@top_builddir@/base/os/libdaqshm.la	\
 			@LIBEXCEPTION_LDFLAGS@	\
-			-lDataFlow  -lrt
+			-lrt
 
 unittests_LDFLAGS = -Wl,"-rpath-link=$(libdir)"
 
@@ -125,7 +127,7 @@ consuerm_CPPFLAGS=$(COMPILATION_FLAGS)
 
 TESTS=./unittests
 
-EXTRA_DIST=ringprimitives.xml ringbuffer.xml ringlib.xml ringmaster.xml ringpipes.xml tclring.xml \
+EXTRA_DIST=ringprimitives.xml ringbuffer_user.xml ringbuffer_man.xml ringlib.xml ringmaster.xml ringpipes.xml tclring.xml \
 	RingMaster.tcl ringbuffer.tcl \
 	ringtostdoutsw.ggo stdintoringsw.ggo 
 

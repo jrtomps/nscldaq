@@ -1,0 +1,12 @@
+package "NSCLDAQ Data Format Converter"
+version "0.1"
+purpose "Provides ability to transform between adjacent data format versions"
+
+option "source"  s "URL of source. Specifies either a ring buffer, file, or - for stdin" string default="-" optional
+option "sink"    d "URL of sink. Specifies either a ring buffer, file, or - for stdout" string default="-" optional
+option "input-version" i "Version of input data" values="8","10","11" enum required
+option "output-version" o "Version of output data" values="8","10","11" enum required
+option "v8-size-policy" p "Policy for interpreting buffer size"
+       values="Inclusive16BitWords","Inclusive32BitWords","Inclusive32BitBytes","Exclusive16BitWords" enum optional
+       default="Inclusive16BitWords"
+option "v8-buffer-size" b "Number of bytes in version 8 buffer" int default="8192" optional

@@ -88,33 +88,33 @@
 #
 proc processMetaDirectory {directory} {
 
-    # Check config file readability.
+# Check config file readability.
 
-    set configFile [file join $directory config]
-    if {![file readable $configFile]} {
-	error "Meta directory does not contain a readable 'config' file."
-    }
+  set configFile [file join $directory config]
+  if {![file readable $configFile]} {
+    error "Meta directory does not contain a readable 'config' file."
+  }
 
-    # Open the config file read it and split into a list of lines.
+  # Open the config file read it and split into a list of lines.
 
-    set configFd [open $configFile r]
-    set configData [read -nonewline $configFd]
-    close $configFd
+  set configFd [open $configFile r]
+  set configData [read -nonewline $configFd]
+  close $configFd
 
-    set configData [split $configData "\n"]
+  set configData [split $configData "\n"]
 
-    # there must be 2 lines:
+  # there must be 2 lines:
 
-    if {[llength $configData] != 2} {
-	error "$configFile has incorrect format : must have two lines of text"
-    }
+  if {[llength $configData] != 2} {
+    error "$configFile has incorrect format : must have two lines of text"
+  }
 
-    # Set the order variables.
+  # Set the order variables.
 
-    set ::partorder [lindex $configData 0]
-    set ::secorder  [lindex $configData 1]
+  set ::partorder [lindex $configData 0]
+  set ::secorder  [lindex $configData 1]
 
-    set ::metafiles [glob -nocomplain [file join $directory *.xml]]
+  set ::metafiles [glob -nocomplain [file join $directory *.xml]]
 
 }
 
@@ -252,30 +252,31 @@ proc incorporateFragment xmlFile {
 # Side-Effects:
 # 
 proc walkDirectory {directory} {
-    set xmlFiles [glob -nocomplain [file join $directory *.xml]]
+
+  processDirectory $directory
+
+  set subDirs  [glob -nocomplain -types d [file join $directory *]]
+
+  # Need to remove . and .. from the list since we're already
+  # 
+
+  set dot [lsearch -exact $subDirs .]
+  set subDirs [lreplace $subDirs $dot $dot]
+  set dotdot [lsearch -exact $subDirs ..]
+  set subDirs [lreplace  $subDirs  $dotdot $dotdot]
+
+  foreach dir [lsort $subDirs] {
+    walkDirectory $dir
+  }
+}
+
+proc processDirectory {directory} {
+  set xmlFiles [glob -nocomplain [file join $directory *.xml]]
 
 
-    foreach xml [lsort $xmlFiles] {
-	incorporateFragment $xml
-    }
-
-    set subDirs  [glob -nocomplain -types d [file join $directory *]]
-
-    # Need to remove . and .. from the list since we're already
-    # 
-
-
-    set dot [lsearch -exact $subDirs .]
-    set subDirs [lreplace $subDirs $dot $dot]
-    set dotdot [lsearch -exact $subDirs ..]
-    set subDirs [lreplace  $subDirs  $dotdot $dotdot]
-		 
-
-
-
-    foreach dir [lsort $subDirs] {
-	walkDirectory $dir
-    }
+  foreach xml [lsort $xmlFiles] {
+    incorporateFragment $xml
+  }
 }
 
 #-----------------------------------------------------------------
@@ -284,13 +285,13 @@ proc walkDirectory {directory} {
 #
 #
 proc dumpHeader {} {
-    puts {<?xml version="1.0" encoding="UTF-8"?>}
-    puts {<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"}
-    puts {"file:///usr/share/xml/docbook/schema/dtd/4.3/docbookx.dtd"}
-    puts { [] }
-    puts {>}
-    puts {<book>}
-    puts "<title>$::booktitle</title>"
+    puts $::outputChannel {<?xml version="1.0" encoding="UTF-8"?>}
+    puts $::outputChannel {<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"}
+    puts $::outputChannel {"file:///usr/share/xml/docbook/schema/dtd/4.3/docbookx.dtd"}
+    puts $::outputChannel { [] }
+    puts $::outputChannel {>}
+    puts $::outputChannel {<book>}
+    puts $::outputChannel "<title>$::booktitle</title>"
 }
 
 
@@ -298,7 +299,7 @@ proc dumpHeader {} {
 #  Dump the docbook trailer.
 #
 proc dumpTrailer {} {
-    puts {</book>}
+    puts $::outputChannel {</book>}
 }
 
 #-----------------------------------------------------------------
@@ -347,8 +348,8 @@ proc dumpPart name {
 
     # Part header:
 
-    puts "<part>"
-    puts "<title>$name</title>"
+    puts $::outputChannel "<part>"
+    puts $::outputChannel "<title>$name</title>"
 
     # Part prefix (if it exists)
 
@@ -356,15 +357,15 @@ proc dumpPart name {
 	set pf [open $prefixFile r]
 	set prefix [read $pf]
 	close $pf
-	puts "<partintro>"
-	puts $prefix
-	puts "</partintro>"
+	puts $::outputChannel "<partintro>"
+	puts $::outputChannel $prefix
+	puts $::outputChannel "</partintro>"
     }
     # Part body:
 
-    puts $contents
+    puts $::outputChannel $contents
     
-    puts </part>
+    puts $::outputChannel </part>
 }
 #-----------------------------------------------------------------
 #
@@ -375,17 +376,17 @@ proc dumpPart name {
 #
 
 proc refpartStart {} {
-    puts "<part>"
-    puts "<title>Reference Pages</title>"
+    puts $::outputChannel "<part>"
+    puts $::outputChannel "<title>Reference Pages</title>"
     
     set refIntroFile [lsearch -glob -inline $::metafiles */refpart.xml]
     if {$refIntroFile ne ""} {
 	set pf [open $refIntroFile r]
 	set intro [read $pf]
 	close $pf
-	puts "<partintro>"
-	puts $intro
-	puts "</partintro>"
+	puts $::outputChannel "<partintro>"
+	puts $::outputChannel $intro
+	puts $::outputChannel "</partintro>"
     }
 
 }
@@ -395,7 +396,7 @@ proc refpartStart {} {
 #  End matter for the reference part.
 #
 proc refpartEnd {} {
-    puts "</part>"
+    puts $::outputChannel "</part>"
 }
 
 #-----------------------------------------------------------------
@@ -426,26 +427,26 @@ proc dumpRefsec sect {
     if {[array name :::sections $sect] eq ""} {
 	return
     }
-    puts "<reference>"
-    puts "<title>$sect</title>"
+    puts $::outputChannel "<reference id='man-$sect'>"
+    puts $::outputChannel "<title>$sect</title>"
 
     # If there's an intro file, output it:
 
     set introFile [lsearch -glob -inline $::metafiles */refsec_$sect.xml]
     if {$introFile ne ""} {
-	puts "<partintro>"
+	puts $::outputChannel "<partintro>"
 	set fd [open $introFile r]
-	puts [gets $fd]
+	puts $::outputChannel [gets $fd]
 	close $fd
-	puts "</partintro>"
+	puts $::outputChannel "</partintro>"
     }
     # Now put the body of the section:
 
-    puts $::sections($sect)
+    puts $::outputChannel $::sections($sect)
 
     # And close the section body with the final end tag.
 
-    puts "</reference>"
+    puts $::outputChannel "</reference>"
 }
 
 #-----------------------------------------------------------------
@@ -483,6 +484,36 @@ proc createDocument {} {
 }
 
 
+proc createSectionDumps {} {
+
+
+# If there are any reference sections, dump them.
+
+  if {[info globals sections] ne ""} {
+
+
+    foreach sect $::secorder {
+      if {[catch {set ::outputChannel [open "$sect.xml" w]} msg]} {
+        puts $msg
+      }
+      dumpHeader
+      refpartStart
+      dumpRefsec $sect
+      refpartEnd
+      dumpTrailer
+      flush $::outputChannel
+      if {[catch {close $::outputChannel} msg]} {
+        puts stdout $msg
+      }
+    }
+
+    set outputChannel stdout
+  }
+
+
+}
+
+
 
 
 #-----------------------------------------------------------
@@ -505,23 +536,26 @@ proc usage {} {
 
 if {[info global testing] eq ""} {
 
-    if {[llength $argv] < 3} {
-	usage
-    }
+  if {[llength $argv] < 3} {
+    usage
+  }
 
-    set metadir       [lindex $argv 0]
-    set ::booktitle   [lindex $argv 1]
-    set xmldirs       [lrange $argv 2 end]
+  set metadir       [lindex $argv 0]
+  set ::booktitle   [lindex $argv 1]
+  set xmldirs       [lrange $argv 2 end]
 
-    processMetaDirectory $metadir
+  processMetaDirectory $metadir
 
-    # Collect the fragments:
+  # Collect the fragments:
 
-    foreach dir $xmldirs {
-	walkDirectory $dir
-    }
+  foreach dir $xmldirs {
+#    walkDirectory $dir
+    processDirectory $dir
+  }
 
-    # Dump the document:
+  # Dump the document:
 
-    createDocument
+  set ::outputChannel stdout
+  createDocument
+  createSectionDumps
 }

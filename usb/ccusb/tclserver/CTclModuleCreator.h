@@ -24,6 +24,9 @@
  * @author Ron Fox <fox@nscl.msu.edu>
  */
 
+#include <memory>
+
+#include <CControlHardware.h>
 
 #ifndef __CMODULECREATOR_H
 #include <CModuleCreator.h>
@@ -36,7 +39,7 @@
 class CTclModuleCreator : public CModuleCreator
 {
 public:
-  virtual CControlHardware* operator()(std::string name);
+  virtual std::unique_ptr<CControlHardware> operator()();
 };
 
 

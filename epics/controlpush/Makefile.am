@@ -20,7 +20,7 @@ LIBDIR=@prefix@/TclLibs
 
 bin_PROGRAMS        = controlpush
 
-BUILT_SOURCES = cmdline.c
+BUILT_SOURCES = cmdline.h cmdline.c
 
 APPITEMS= cmdline.c CApplication.cpp CChannelList.cpp \
 			CStrings.cpp \
@@ -56,6 +56,8 @@ cmdline.c: options.ggo
 	$(GENGETOPT) --unamed-opts <@top_srcdir@/epics/controlpush/options.ggo \
 		--output-dir=@top_srcdir@/epics/controlpush
 
+cmdline.h: cmdline.c
+
 EXTRA_DIST = options.ggo  Channels.dat  controlpush.xml
 
 
@@ -74,5 +76,8 @@ unittests_CPPFLAGS=$(COMPILATION_FLAGS)
 #  ioc with known channels/properties.
 
 # TESTS=./unittests
+
+clean-local:
+	rm -f cmdline.c rmcline.h
 
 endif

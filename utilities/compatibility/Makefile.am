@@ -36,9 +36,11 @@ BufferToRing_CPPFLAGS=-I@top_srcdir@/daq/format -I@top_srcdir@/base/headers \
 convert10to11_SOURCES = Convert10to11.cpp
 
 convert10to11_LDADD = @top_builddir@/daq/format/libdataformat.la \
-    @top_builddir@/base/os/libdaqshm.la
+    @top_builddir@/base/os/libdaqshm.la \
+                @top_builddir@/utilities/IO/libdaqio.la
 convert10to11_CPPFLAGS=-I@top_srcdir@/daq/format -I@top_srcdir@/base/headers \
-	-I@top_srcdir@/base/os
+	-I@top_srcdir@/base/os \
+        -I@top_srcdir@/utilities/IO
 
 
 #  Anything that is generated from a .in file is in builddir anything

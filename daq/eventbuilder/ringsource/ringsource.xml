@@ -123,7 +123,28 @@ $DAQROOT/bin/ringFragmentSource <replaceable>options...</replaceable>
                         </para>
                     </listitem>
                 </varlistentry>
-                
+                <varlistentry>
+                    <term><option>--oneshot</option>=<replaceable>endrunCount</replaceable></term>
+                    <listitem>
+                        <para>
+                          If present, after the program <replaceable>endrunCount</replaceable>
+                          end run items on the data source it will exit.   If not present,
+                          program will persist.  See also <option>--timeout</option> below.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>timeout</option>=<replaceable>seconds</replaceable></term>
+                    <listitem>
+                        <para>
+                          If <option>--oneshot</option> is present, this is the
+                          maximum number of seconds the program will wait for the last
+                          endrun item to occur after seeing the first one.  If
+                          not present, the timeout defaults to <literal>10</literal>
+                          seconds.
+                        </para>
+                    </listitem>
+                </varlistentry>
            </variablelist>
         </refsect1>
 

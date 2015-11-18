@@ -1,0 +1,399 @@
+<!-- chapter user-guide -->
+
+<chapter>
+  <title>Event Builder</title>
+
+  <section>
+    <title>Introduction</title>
+    <para>
+      The NSCLDAQ event orderer program is a server that orders data items,
+      a.k.a. fragments, submitted to it from an arbitrary number of clients,
+      and outputs a single, ordered, merged stream on stdout. It deals with all
+      fragments submitted to it generically, because all fragments wrap a
+      payload with a consistent set of information contained in a header. The
+      fragment header contains a timestamp, source ID, payload size, and
+      barrier type. These pieces of information provide all of the necessary
+      information for the event order to order its data and so that the event
+      orderer can be used with any payload format.
+    </para>
+
+    <para>
+      The pieces of information in the fragment header are used by the event
+      orderer for different purposes and those will be covered briefly here.
+      The timestamp is a 64-bit unsigned integer value that the fragments are
+      ordered by. It typically represents a time value but could equally be an
+      event number. The source ID is used to specify which internal queue  each
+      set of committed fragments will be buffered in. It is not essential, but
+      usually each client will submit their fragments to separate queues. The
+      event fragments for each source ID must be time ordered.
+    </para>
+
+    <para>
+      The payload size is the size of the data item  the fragment header
+      describes. Its value is in units of bytes. The final piece of data, the
+      barrier type, is an integer that specifies whether the fragment is to be
+      used for synchronization. It can take any integer value but is treated by
+      the orderer as a boolean. If it is zero, the fragment has no special
+      meaning, but if it is nonzero, it indicates that a barrier
+      synchronization is requested. Further details will be provided regarding
+      the synchronization scheme later.  Normally this is used to indicate some
+      event which performs gross synchronization between the data sources
+      (begin run, end run etc).
+    </para>
+
+    <para>
+      The client programs that submit data to the server are built using the
+      <link linkend="chapter.evb-orderer-dev">event builder client
+        framework</link>. In general, though, it is not necessary to implement a
+      client when using the ring buffer system, because the client for ring
+      items has already been provided as the <link
+        linkend="sec_ringfragsrc">ringFragmentSource</link> program. This
+      program simply reads ring items from a ring buffer, prepends fragment
+      headers to them, and then submits them to the server. 
+    </para>
+
+    <para>
+      The ordered fragments are output whenever the server is able to
+      unambiguously determine that its output stream will be ordered or when
+      one client has not submitted data for a user-definable amount of time,
+      the build window. The queues are processed for output
+      whenever new input is received and every second.
+    </para>
+  </section>
+
+  <section>
+    <title>Using the event builder</title>
+
+    <para>
+      In NSCLDAQ, the standard way to set up the event builder is to use the
+      ReadoutGUI. At the moment, the ReadoutGUI provides support for the event
+      builder through the ReadoutCallouts.tcl script. You can learn more about
+      this script in the ReadoutGUI section of the manual, but for this
+      situation you only need to know that it is a Tcl script that is sourced by
+      the ReadoutGUI when starting up. We can use it to enable the event builder
+      and configure it for use. The recommended method for
+      setting this up is to use the event builder callout bundle. Doing so
+      reduces the amount of Tcl that needs to be added and ensures that the
+      event builder recovers properly from errors. Simply add the following few
+      lines to your ReadoutCallouts.tcl script:
+    </para>
+
+    <programlisting>
+package require evbcallouts
+
+::EVBC::useEventBuilder
+
+proc OnStart {} {
+  ::EVBC::initialize i-restart false -glombuild true -glomdt 123 -destring evbout
+}
+    </programlisting>
+
+    <para>
+      When the "Start" button is pushed in the ReadoutGUI, this will add a set
+      of controls for the event builder to the bottom of it. The option values
+      provided here specify that the event builder will not restart on each new
+      run (-restart), event correlation will be enabled (-glombuild), events
+      within 123 clock ticks of each other will be correlated (-glomdt), and the
+      output will be put into the ring named evbout on localhost.  If you prefer
+      to change any of these parameters, feel free to do so. You can read more
+      details about the callouts in the <link
+        linkend="chapter.evbcallouts-dev">developer documentation</link> as well
+      in the <link linkend="man-3evb">man pages</link>.
+    </para>
+
+    <para>
+      The next thing that you need to do register clients
+      to the event builder, more specifically the event orderer. Assuming that
+      the data being committed to the event builder are ring items, the client
+      will be the ringFragmentSource. There is a convenience API call
+      provided to assist in registering the ringFragmentSource called
+      EVBC::registerRingSource. We will make use of it. However first a
+      timestamp extractor librrary must be created for the ringFragmentSource.
+      This library contains a function that will define how to extract a
+      timestamp from the body of a PHYSICS_EVENT item. You can find an example
+      of how to create one at the <link
+        linkend="sec_ringfragsrc">ringFragmentSource documentation</link>.
+    </para>
+    <para>
+      The registerRingSource proc has the form:
+    </para>
+    <programlisting>
+::EVBC::registerRingSource sourceURI tstamplib id info
+    </programlisting>
+
+    <para>
+      where <literal>sourceURI</literal> is the full URI specifying the ring
+      buffer to read data from, <literal>tstamplib</literal> is the path to the
+      compiled timestamp extractor library, <literal>id</literal> is the source
+      id for the data, and <literal>info</literal> is a string that describes To
+      illustrate how this works, consider an experiment in which the data
+      produced by some silicon detectors are read out by a single Readout
+      program in the system. The outputted data from this Readout are put into
+      the "sidet0" ring buffer on localhost, and a timestamp can be properly
+      extracted from each datum by the timestamp function recently compiled into
+      the libtstamp.so shared library. Being the first client registered, we
+      choose to label this stream of data with source id 0. We also want to
+      associate a human readable description of ?Si Dets? with it. In this
+      scenario, the line that would be added to the ReadoutCallouts.tcl would be
+      <programlisting>
+::EVBC::registerRingSource tcp://localhost/sidet0 /path/to/libtstamp.so 0 "Si Dets"
+      </programlisting>
+    </para>
+
+    <para>
+      Putting this all together you would have a ReadoutCallouts.tcl that looks
+      like this:
+    </para>
+
+    <programlisting>
+package require evbcallouts
+
+::EVBC::useEventBuilder
+
+proc OnStart {} {
+  ::EVBC::initialize -restart false -glombuild true -glomdt 123
+}
+
+EVBC::registerRingSource tcp://localhost/sidet0 /path/to/libtstamp.so 0 "Si Dets"
+    </programlisting>
+
+    <para>
+      Be aware that you need to add a registerRingSource line for every client
+      that will be submitting data to the event builder.
+    </para>
+  </section>
+  <section>
+    <title>More detail on when the fragments are ouptutted</title>
+
+    <para>
+      Let's dig a little deeper into the way the event orderer determines when
+      to output data. Knowing this logic will help understand its behavior,
+      which may otherwise seem unexpected in some circumstances. The handling
+      of non-barriers will be addressed first and then barriers second. 
+    </para>
+
+    <para>
+      For the case of non-barriers, the most basic principle that one should
+      remember about the event builder is that whenever all input queues have
+      data, ordered data can be emitted. Fragments will be outputted until at
+      least one queue does not have data. This is the sensible approach because
+      fragments may simply have not reached the orderer yet.
+    </para>
+
+    <para>
+      If one of the data sources does not receive new fragments, the data from
+      active sources will remain in the queue for the duration of the build
+      window. All fragments that have resided in a queue longer than the build
+      window are then are outputted in order of their timestamps. So if a
+      client ceases to commit fragments to the event orderer, the orderer will
+      cease to output data until a time equal to the build window has passed.
+      At that point, the event orderer will resume outputting data. If the
+      stalled client then resumes contributing fragments and those have
+      timestamps that should have been outputted earlier, these fragments are
+      called late. This is a recoverable error condition. The default build
+      window width is 20 seconds. Furthermore, the event orderer will not output data until 2
+      seconds have elapsed since the first fragment was submitted.  This is
+      intended to allow all sources time to submit their first fragment to the
+      orders as it is that action that creates a data source queue.
+    </para>
+
+    <para>
+      Barriers are treated differently. Recall that a barrier event implies
+      synchronization between the data sources. Therefore when a barrier is
+      detected in one queue, no more fragments are outputted from that queue until
+      a barrier is found in all other queues. Once the barrier is complete, all
+      barriers are output and then normal operations are resumed. There is an
+      extended time window, four times the build window, during which queues
+      will wait for a barrier to complete before resuming output. If that
+      window passes without establishing a complete barrier, the barrier will
+      be considered incomplete and the barrier fragments seen so far will be
+      flushed, the incomplete barrier is logged and then normal operation
+      resumes. Barrier synchronization is agnostic to the specific type of each
+      barrier.  If there is a barrier in all queues, the synchronization is
+      complete. However, if the type of barriers are different, the barriers
+      statistics presented to the user will report that the barrier was
+      heterogeneous. On the other hand, if all barriers are the same type, the
+      completed barrier will be considered homogeneous. In general, a healthy
+      set of data streams should produce complete, homogeneous barriers.
+    </para>
+  </section>
+
+  <section>
+    <title>Fragments and Data Format</title>
+
+    <para>
+      As has already been discussed, the event builder does not deal with ring
+      items. Instead it handles fragments. Fragments are generic and are
+      purposefully independent of the ring item data format so that the event
+      builder can work with any type of data format the same way. This section
+      will describe a bit more about the fragment as is useful for the standard
+      user.
+    </para>
+
+    <section>
+      <title>Anatomy of a fragment</title>
+      <para>
+        A fragment consists of a header and body just like the ring item. In the
+        parlance of the event builder, though, the body is referred to as the
+        payload. There are 4 elements in the fragment header a timestamp, source
+        id, payload size, and barrier type. The layout of the entire fragment is
+        as follows:
+      </para>
+
+      <table frame="all">
+        <title>Fragment header</title>
+        <tgroup cols="3">
+          <thead>
+            <row>
+              <entry/>
+              <entry>Description</entry>
+              <entry>Size (bytes)</entry>
+            </row>
+          </thead> 
+          <tbody>
+            <row>
+              <entry morerows="3">Header</entry>
+              <entry>Timestamp</entry>
+              <entry>8</entry>
+            </row>
+            <row>
+              <entry>Source ID</entry>
+              <entry>4</entry>
+            </row>
+            <row>
+              <entry>Payload size</entry>
+              <entry>4</entry>
+            </row>
+            <row>
+              <entry>Barrier type</entry>
+              <entry>4</entry>
+            </row>
+            <row>
+              <entry>Payload</entry>
+              <entry>Data...</entry>
+              <entry>(Payload size)</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+
+    <section>
+      <title>Output Format</title>
+
+      <para>
+        The event builder outputs standard NSCLDAQ 11.0 ring items. For
+        non-PHYSICS_EVENT items, the outputted items are the same are inputted.
+        Basically, the fragment headers that were appended to them by the client
+        are stripped off before the data is outputted.
+      </para>
+      <para>
+        The format of PHYSICS_EVENTS are a bit more interesting. For physics
+        events, the event builder will create "built" events. A built event is
+        just a standard PHYSICS_EVENT. However, the body is constructed of the
+        correlated fragments. It begins with a 32-bit
+        integer specifying the entire size of the body and the remainder is a
+        series of one or more fragments. There is no information specifying how
+        many fragments are present without processing the body. Because each
+        fragment specifies its payload size, the user can compute how many
+        fragments are present merely by traversing the body and keeping track of
+        the number of bytes and fragments traversed. Once the entire number of
+        bytes in the body have been traversed, the user will know how many
+        fragments are present.
+      </para>
+
+      <para>
+        From experience, the built body seems to be hard for many people to get
+        their head around. One of the confusing things is that the built event
+        is a ring item filled with fragments whose payloads are
+        <emphasis>complete</emphasis> ring items themselves. Most of the time,
+        users are shielded from the details of the ring item header and body
+        header and only see the body proper. The built ring item however
+        makes these plainly visible. This leads to confusion because typically
+        the body header in each embedded ring item and the fragment
+        header will have likely have the same information. It will look like there are
+        duplicates of the same information in the body. The timestamp sometimes
+        appears three times, because the number in the body header and fragment
+        header are usually derived from a number in raw data. Though this has
+        caused some users to panic when trying to understand their data, it is
+        typically the result of a misinterpretation. Don't be fooled.
+      </para>
+      <para>
+        To make all of this a bit more plain, a diagram of the
+        built ring item's body is shown when it contains two fragments.
+      </para>
+      <table frame="all">
+        <title>Body of Built PHYSICS_EVENT</title>
+        <tgroup cols="3">
+          <thead>
+            <row>
+              <entry>High-Level Description</entry>
+              <entry>Lower-Level Description</entry>
+              <entry>Size (bytes)</entry>
+            </row>
+          </thead> 
+          <tbody>
+            <row>
+              <entry>Body size</entry>
+              <entry>Number of bytes in body</entry>
+              <entry>4</entry>
+            </row>
+            <row>
+              <entry morerows="3">Fragment #0</entry>
+              <entry>Fragment Header</entry>
+              <entry>20</entry>
+            </row>
+            <row>
+              <entry>Ring Item Header</entry>
+              <entry>8</entry>
+            </row>
+            <row>
+              <entry>Ring Item Body Header</entry>
+              <entry>4 or 20</entry>
+            </row>
+            <row>
+              <entry>Ring Item Body</entry>
+              <entry>Determined by Readout program and user</entry>
+            </row>
+            <row>
+              <entry morerows="3">Fragment #1</entry>
+              <entry>Fragment Header</entry>
+              <entry>20</entry>
+            </row>
+            <row>
+              <entry>Ring Item Header</entry>
+              <entry>8</entry>
+            </row>
+            <row>
+              <entry>Ring Item Body Header</entry>
+              <entry>4 or 20</entry>
+            </row>
+            <row>
+              <entry>Ring Item Body</entry>
+              <entry>Determinable by Readout program and user</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+      <para>
+        Be aware that this is the format regardless of whether you choose to
+        correlate data or not. When the event builder is not correlating, i.e.
+        not building, the built events will always hold only 1 fragment in the
+        body.  Otherwise, there may be more than one fragment.
+      </para>
+      <para>
+        Finally, the built ring item will be produced with a body header, the
+        above table shows the format immediately following the body header. The
+        timestamp in the body header will be determined based on the timestamp
+        protocol of the event builder. The protocol allows you to choose whether
+        the entire built event is labeled with the earliest, latest, or average
+        timestamp of the correlated fragments. Also, the source id will be set
+        according to user preference.  This allows for multiple stages of event
+        building to be accomplished.
+      </para>
+    </section>
+  </section>
+</chapter>
+
+<!-- /chapter -->

@@ -26,6 +26,7 @@ using namespace std;
 #include "CUpdateCommand.h"
 #include "CMonCommand.h"
 #include "CWatchCommand.h"
+#include "CRunStateCommand.h"
 #include <DataBuffer.h>
 #include <CBufferQueue.h>
 #include <DataFormat.h>
@@ -45,6 +46,7 @@ using namespace std;
 #include <errno.h>
 #include <string.h>
 
+#include <iostream>
 
 #include <vector>
 
@@ -54,9 +56,6 @@ static const int VarUpdateInterval(1); // Number of seconds between variable upd
 ** static functions to object context.
 */
 TclServer* TclServer::m_pInstance(0); // static->object context. ptr.
-
-
-
 
 /*!  Constructor is not very interesting 'cause all the action is in 
     start and operator()
@@ -71,8 +70,8 @@ TclServer::TclServer() :
   m_pMonitorData(0),
   m_nMonitorDataSize(0),
   m_dumpAllVariables(true),
-  m_exitNow(false)
-
+  m_exitNow(false),
+  m_isRunning(false)
 {
   m_pInstance = this;		// static->object context.
 }
@@ -116,20 +115,10 @@ TclServer::start(int port, const char* configFile, CVMUSB& vme)
 
   // Schedule the thread for execution:
 
-  this->Thread::start();
+  this->CSynchronizedThread::start();
 
 }
 
-/**
- * Adapts from the nextgen to spectrodaq thread model.
- */
-void
-TclServer::run()
-{
-  m_tid = getId();		// Incase we have references internally.
-  m_tclThreadId = Tcl_GetCurrentThread();
-  operator()();
-}
 /**
  * scheduleExit
  *   This is called to set an exit event into my event queue.
@@ -142,7 +131,7 @@ TclServer::scheduleExit()
     Tcl_Event* pEvent = reinterpret_cast<Tcl_Event*>(Tcl_Alloc(sizeof(Tcl_Event)));
     pEvent->proc = TclServer::Exit;
     
-    Tcl_ThreadQueueEvent(m_tclThreadId, pEvent, TCL_QUEUE_HEAD);   // exit is urgent.
+    Tcl_ThreadQueueEvent(m_threadId, pEvent, TCL_QUEUE_HEAD);   // exit is urgent.
 }
 
 
@@ -182,10 +171,30 @@ TclServer::addModule(CControlModule* pNewModule)
 void
 TclServer::setResult(string msg)
 {
-  Tcl_Obj* result = Tcl_NewStringObj(msg.c_str(), -1);
-  Tcl_SetObjResult(m_pInterpreter->getInterpreter(), result);
+  m_pInterpreter->setResult(msg);
   
   
+}
+/**
+ * Syncrhonized initialization of the Tcl Server thread.  This method signals
+ * the thread starting us when done. That all makes the start method's
+ *  call to CSynchronizedThread::start block until this method has
+ *  completed.
+ */
+void TclServer::init()
+{
+  try {
+    initInterpreter();		// Create interp and add commands.
+    startTcpServer();	  	// Set up the Tcp/Ip listener event.
+    readConfigFile();	  	// Initialize the modules.
+    initModules();        // Initialize the fully configured modules.
+    createMonitorList();	// Figure out the set of modules that need monitoring.
+    m_isRunning = true;
+  } catch (CException& err) {
+    cerr << "TclServer thread caught a daq exception while initializing: "
+      	 << err.ReasonText() << " while " << err.WasDoing() << endl;
+    exit(EXIT_FAILURE);           // This is an application exit.
+  }
 }
 /*!
    Entry point for the thread.  This will be called when the thread is first
@@ -194,35 +203,52 @@ TclServer::setResult(string msg)
    Parameters are ignored (start stocked the member data with everything
    we need) and we never return.
 */
-int
+void
 TclServer::operator()()
 {
   m_threadId = Tcl_GetCurrentThread(); // Save for later use.
-  try {
-    initInterpreter();		// Create interp and add commands.
-    readConfigFile();		// Initialize the modules.
-    initModules();              // Initialize the fully configured modules.
-    createMonitorList();	// Figure out the set of modules that need monitoring.
-    startTcpServer();		// Set up the Tcp/Ip listener event.
-    EventLoop();		// Run the Tcl event loop forever.
+  
+  // In this version, we keep running the event loop, reporting
+  // exceptions but continuing to try to run after them.
+
+  // initialize the stuff the event loop dispatches on:
+  
+  // If there's a nonempty monitor list we need to start its periodic execution
+
+  if (m_pMonitorList && m_pMonitorList->size()) {
+    MonitorDevices(this);	// Allow it to locate us.
   }
-  catch (string msg) {
-    cerr << "TclServer thread caught a string exception: " << msg << endl;
-    throw;
+
+  // Start the timed send of monitored variable values.
+
+  updateVariables(this);
+  
+  while(!m_exitNow) {
+    try {
+      EventLoop();		// Run the Tcl event loop forever.
+    }
+    catch (string msg) {
+      cerr << "TclServer thread caught a string exception: " << msg << endl;
+    }
+    catch (char* msg) {
+      cerr << "TclServer thread caught a char* exception: " << msg << endl;
+    }
+    catch (CException& err) {
+      cerr << "TclServer thread caught a daq exception: "
+	   << err.ReasonText() << " while " << err.WasDoing() << endl;
+    }
+    catch (...) {
+      cerr << "TclServer thread caught some other exception type.\n";
+    }
   }
-  catch (char* msg) {
-    cerr << "TclServer thread caught a char* exception: " << msg << endl;
-    throw;
-  }
-  catch (CException& err) {
-    cerr << "CAcquisitino thread caught a daq exception: "
-	 << err.ReasonText() << " while " << err.WasDoing() << endl;
-    throw;
-  }
-  catch (...) {
-    cerr << "TclServer thread caught some other exception type.\n";
-    throw;
-  }
+  // We can only fall out of this loop on an exception - exit.
+  
+  /*
+   * TODO:
+   *    Should we try to stop an active run so the FIFOs of the VMUSB are
+   *    empty?
+   */
+  exit(EXIT_FAILURE);
 }
 
 /*
@@ -268,6 +294,9 @@ TclServer::initInterpreter()
 		    *m_pVme);
   new CMonCommand(*m_pInterpreter, *this);
   new CWatchCommand(*m_pInterpreter, *this);
+  new CRunStateCommand(*m_pInterpreter, *this);
+  
+  m_pInterpreter->GlobalEval("Module create vmusb vmusb");
   
 }
 /*
@@ -327,15 +356,7 @@ TclServer::startTcpServer()
 void
 TclServer::EventLoop()
 {
-  // If there's a nonempty monitor list we need to start its periodic execution
 
-  if (m_pMonitorList && m_pMonitorList->size()) {
-    MonitorDevices(this);	// Allow it to locate us.
-  }
-
-  // Start the timed send of monitored variable values.
-
-  updateVariables(this);
 
   // Start the event loop:
 
@@ -367,7 +388,7 @@ void
 TclServer::createMonitorList()
 {
   m_pMonitorList = new CVMUSBReadoutList;
-  m_pMonitorList->addMarker(0xffff);
+  
   for (int i =0; i < m_Modules.size(); i++) {
     m_Modules[i]->addMonitorList(*m_pMonitorList);
   }
@@ -451,9 +472,9 @@ TclServer::MonitorDevices(void* pData)
       pController->writeActionRegister( CVMUSB::ActionRegister::triggerL7 | 
 					CVMUSB::ActionRegister::startDAQ); // StartDAQ keeps acquisition alive.
       pObject->m_waitingMonitor = true;
-
     }
     catch (...) {
+      std::cerr << "Could not trigger monitor list.  No harm, this will be retried soon\n";
     }
   }
   else if ((state != CRunState::Starting) && (state != CRunState::Stopping)) {
@@ -489,7 +510,7 @@ TclServer::processMonitorList(void* pData, size_t nBytes)
   // by treating the data as uint8_t*
 
   uint8_t* p = reinterpret_cast<uint8_t*>(pData);
-  p+=2;                // Skip the uint16_t marker.
+  
   for (int i =0; i < m_Modules.size(); i++) {
     uint8_t* pNewPosition;
     pNewPosition = reinterpret_cast<uint8_t*>(m_Modules[i]->processMonitorList(p, nBytes));

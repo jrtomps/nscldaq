@@ -23,6 +23,7 @@
 #include "ringbufint.h"
 
 #include <URL.h>
+#include <os.h>
 #include <stdio.h>
 #include <iostream>
 #include <errno.h>
@@ -308,7 +309,9 @@ CRingAccess::startFeeder(string proxyName, int socket)
   // Take care of our standard files...
 
 
-  close(STDIN_FILENO);
+  if (socket != STDIN_FILENO) {
+    Os::checkNegativeStatus(close(STDIN_FILENO));
+  }
   int status = dup2(socket, STDIN_FILENO);
 
 

@@ -3,15 +3,24 @@ package require tcltest
 
 eval ::tcltest::configure $argv
 
-# require 11.0 evbcallouts
-package require evbcallouts
-package require eventLogBundle
-package require Configuration 
+set loadFailure 0
 
-# kill the window
-destroy .
+tcltest::test pkgRequire-0 {require the package
+} { 
+  set ::loadFailure [catch {package require evbcallouts}]
+} 0
 
-puts "evbrdocallouts.test auto_path = $auto_path"
+if {$::loadFailure} {
+  tcltest::cleanupTests
+  exit 1
+}
+
+if {[catch {
+  package require eventLogBundle
+}]} {
+  tcltest::cleanupTests
+  exit 1
+}
 
 
 tcltest::test rdo11-0 {test computeLoggerSwitches uses EVBC::destRing} -setup {
@@ -48,23 +57,44 @@ tcltest::test rdo11-1 {test computeLoggerSwitches doesn't use EVBC::destRing} -s
 } -result "--source=[::Configuration::get EventLoggerRing]"
 
 
+tcltest::test isRunning-0 {Test that we can set running
+} {
+  set resList [list]
+
+  set EVBC::pipefd chan2
+  lappend resList [EVBC::isRunning]
+  set EVBC::pipefd ""
+  lappend resList [EVBC::isRunning]
+  
+  set resList
+} {1 0}
 
 
+tcltest::test getAppName-0 { Retrieve the name of the application for finding the port
+} {
+  
+  set ::EVBC::appNameSuffix 1
+
+  ::EVBC::getAppName
+} "ORDERER:$::tcl_platform(user):1"
 
 
+tcltest::test registerRingSource-0 {
+} {
+  ::EVBC::registerRingSource a b c d e
+  set dict $::RingSourceMgr::sourceDict
+  ::RingSourceMgr::clearSources
+  set dict
+} {a {tstamplib b id c info d expecthdrs e oneshot {} timeout {} fd {}}}
 
-tcltest::test ringsource-0 {Test that expect body headers 0 does not add anything to switches
-} -body {
-   # this calls the switches
-   set switches [::EVBC::_computeRingSourceSwitches a b c d e 0]
+tcltest::test registerS800Source-0 {
+} {
+  ::EVBC::registerS800Source a b c
+  set dict $::RingSourceMgr::sourceDict
+  ::RingSourceMgr::clearSources
+  set dict
+} [dict create a [dict create tstamplib [file join $::EVBC::daqtop lib libS800TimeExtractor.so]\
+                              id b info c expecthdrs 0 oneshot {} timeout {} fd ""]]
 
-   string match "*--expectbodyheaders*" $switches 
-} -result 0 
 
-tcltest::test ringsource-1 {Test that expect body headers 1 does not add anything to switches
-} -body {
-   # this calls the switches
-   set switches [::EVBC::_computeRingSourceSwitches a b c d e 1]
-
-   string match "*--expectbodyheaders*" $switches 
-} -result 1 
+tcltest::cleanupTests

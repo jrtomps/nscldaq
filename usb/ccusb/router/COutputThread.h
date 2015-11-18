@@ -94,6 +94,7 @@ class COutputThread  : public CSynchronizedThread
   // Class private types
   
   typedef uint64_t (*TimestampExtractor)(void*);
+  typedef void      (*StateChangeCallback)();
   
   // Thread local data:
 private:
@@ -122,6 +123,7 @@ private:
   size_t       m_nWordsInBuffer;
   TimestampExtractor m_pEvtTimestampExtractor;
   TimestampExtractor m_pSclrTimestampExtractor;
+  StateChangeCallback m_pBeginRunCallback;
   
   // Constuctors and other canonicals.
 

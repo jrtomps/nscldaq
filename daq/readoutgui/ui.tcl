@@ -547,12 +547,27 @@ proc ::ReadoutGUIPanel::incrRun {} {
 # OPTIONS:
 #    -pauseable     - Boolean indicating if the pause button should be displayed.
 #    -recording     - State of the record checkbox.
+#    -state         - Set the state of the widgets (disabled/normal)
+#
+#  @note - In order to support more than one module wanting to control
+#          the -state, there is a disable counter so that:
+#
+# <verbatim>
+
+#   .buttons configure -state disabled
+#    ...
+#   .buttons  configure -state disabled
+#   ...
+#   .buttons  configure -state normal;    # Still disabled.
+#   ...
+#   .buttons configures -state normal;    # _Now_ normal state.
+#   
 #
 snit::widgetadaptor RunControl {
-    component stateMachine
     
     option -pauseable -default 1 -configuremethod _changePauseVisibility
     option -recording -default 0
+    option -state     -default normal -configuremethod _setState
     
     #
     #  The variable below is an array indexed by state the values are two
@@ -588,14 +603,14 @@ snit::widgetadaptor RunControl {
     
     variable slave 0
     
+    variable disableCount 0;                 # Support for nested disable.
+    
     ##
     # constructor
     #
     #   Construct and configure the widget.
     #   - Install a ttk::frame as the hull.#
     #   - create and layout the widgets.
-    #   - Install the RunStateMachine singleton as our stateMachine component.
-    #   - Make our appearance match the statemachine's current state.
     #   - configure any options provided at instantiation time.
     #
     # METHODS
@@ -618,7 +633,6 @@ snit::widgetadaptor RunControl {
         
         $self _layoutWidgets
         
-        install stateMachine using RunstateMachineSingleton %AUTO%
         $self _updateAppearance
         
         $self configurelist $args
@@ -627,12 +641,7 @@ snit::widgetadaptor RunControl {
     ##
     # destructor
     #
-    #  Destroy the stateMachine component:
-    #
     destructor {
-        if {$stateMachine ne ""} {
-            $stateMachine destroy
-        }
     }
     
     method slave {} {
@@ -657,7 +666,34 @@ snit::widgetadaptor RunControl {
     #---------------------------------------------------------------------------
     #  Configuration methods
     
-    
+    ##
+    # _setState
+    #    Set begin/end/paus button states.
+    #
+
+    method _setState {optname value} {
+
+        set setState 0;             # Assume we make no state change.
+        if {$value eq "disabled"} {
+            incr disableCount
+            set setState 1
+        } elseif {$value eq "normal"} {
+            incr disableCount -1
+            if {$disableCount <= 0} {
+                set setState 1
+                set disableCount 0;             # In case they go too far.
+            }
+        } else {
+            error "Invalid state must be disabled or normal was $value"
+        }
+
+        if {$setState} {
+            foreach b [list $win.beginend $win.pauseresume] {
+                $b configure -state $value
+            }
+        }
+	set options($optname) $value
+    }
     ##
     # _changePauseVisibility
     #
@@ -700,7 +736,9 @@ snit::widgetadaptor RunControl {
     # 
     #
     method _start {} {
-        $stateMachine transition Starting
+      set stateMachine [RunstateMachineSingleton %AUTO%]
+      $stateMachine transition Starting
+      $stateMachine destroy 
     }
     ##
     #  _beginend
@@ -714,11 +752,14 @@ snit::widgetadaptor RunControl {
     #       to change the appearance of the button itself.
     # 
     method _beginend {} {
+        set stateMachine [RunstateMachineSingleton %AUTO%]
         set state [$stateMachine getState]
+        $stateMachine destroy
+
         if {$state eq "Halted"} {
-            $stateMachine transition Active
+          begin
         } elseif {$state in [list Paused Active]} {
-            $stateMachine transition Halted
+          end
         } else {
             error "ERROR: begin/end button clicked when state is $state which should not happen"
         }
@@ -732,11 +773,13 @@ snit::widgetadaptor RunControl {
     #  *  Active -> Paused
     #  * Any other -> Bug error
     method _pauseresume {} {
+        set stateMachine [RunstateMachineSingleton %AUTO%]
         set state [$stateMachine getState]
+        $stateMachine destroy
         if {$state eq "Paused"} {
-            $stateMachine transition Active
+          resume
         } elseif {$state eq "Active"} {
-            $stateMachine transition Paused
+          pause
         } else {
             error "ERROR: pause/resume button clicked when state is $state which should not happen"
         }
@@ -767,7 +810,9 @@ snit::widgetadaptor RunControl {
     #   information.
     #
     method _updateAppearance {} {
+        set stateMachine [RunstateMachineSingleton %AUTO%]
         set state [$stateMachine getState]
+        $stateMachine destroy
         
         $win.slavemode configure -text "Currently  in slave mode ($state)"
         
@@ -810,9 +855,11 @@ namespace eval ::RunControlSingleton {
 proc ::RunControlSingleton::getInstance {{path ""} args} {
     if {$::RunControlSingleton::theInstance eq ""} {
         set ::RunControlSingleton::theInstance [RunControl $path {*}$args]
+
         set stateMachine [RunstateMachineSingleton %AUTO%]
         $stateMachine addCalloutBundle RunControlSingleton
         $stateMachine destroy
+
     } elseif {[llength $args] > 0} {
         $::RunControlSingleton::theInstance configure {*}$args
     }
@@ -1279,7 +1326,10 @@ proc ::ReadoutGUIPanel::getRunTime {} {
 #   |  [ ] timed run  [ ] days  [ ] hrs [ ] min [ ] sec   |
 #   +-----------------------------------------------------+
 #
-#   Days is a spin box while hrs/min/sec are comboboxes.
+#   Days is a spin box while hrs/min/sec are comboboxes. Like the 
+#   RunControl megawidget, this can be displayed differently if the
+#   ReadoutGUI has been enslaved. If the GUI is enslaved, the widgets
+#   are not displayed. Otherwise they are displayed.
 #
 #  OPTIONS:
 #    -state  - State of the controls (disabled, normal, readonly e.g.).
@@ -1301,6 +1351,9 @@ snit::widgetadaptor TimedRunControls {
     #  -state option.
     
     variable editableWidgets [list onoff days hrs min secs]
+
+    variable slave 0
+    variable wasTimedBeforeLastEnslavement 0
     
     ##
     # constructor
@@ -1311,37 +1364,71 @@ snit::widgetadaptor TimedRunControls {
     constructor args {
         installhull using ttk::frame
         
-        # Make a list that runs 0-59
+        $self _layoutTimeWidgets $win.time ;# normal widget display
+        $self _layoutBlank $win.blank ;# create what we will display when enslaved
         
+        $self configurelist $args
+
+        # we want to display our time widgets so long as we are not enslaved
+        grid $win.time -sticky nsew
+
+        grid rowconfigure $win 0 -weight 1
+        grid columnconfigure $win 0 -weight 1
+        
+    }
+
+    ## 
+    # Layout the normal widgets that would be displayed when in 
+    # master mode. The method simply creates a frame and stuffs
+    # it with the widgets. This makes it easy to make the 
+    # widgets appear and disappear at will.
+    #
+    # @param name   name of the frame to fill with widgets
+    # 
+    method _layoutTimeWidgets name {
+
+        
+        # Make a list that runs 0-59
         for {set i 0} {$i < 60} {incr i} {
             lappend values $i
         }
         
-        ttk::checkbutton $win.onoff  \
+        set top [ttk::frame $name]
+
+        ttk::checkbutton $top.onoff  \
             -text {Timed Run} -onvalue 1 -offvalue 0 -variable [myvar options(-timed)]
         
-        ttk::spinbox $win.days -from 0 -to 36500 -increment 1 \
+        ttk::spinbox $top.days -from 0 -to 36500 -increment 1 \
             -command [mymethod _updateDays] -format "%6.0f"  -width 6
-        $win.days set 0
+        $top.days set 0
         
-        ttk::label $win.daysep -text "-"
-        ttk::combobox $win.hrs -values [lrange $values 0 23] \
+        ttk::label $top.daysep -text "-"
+        ttk::combobox $top.hrs -values [lrange $values 0 23] \
             -textvariable [myvar options(-hours)] -width 2
-        ttk::label $win.hrsep -text ":"
-        ttk::combobox $win.min -values $values -width 2 \
+        ttk::label $top.hrsep -text ":"
+        ttk::combobox $top.min -values $values -width 2 \
             -textvariable [myvar options(-mins)]
-        ttk::label $win.minsep -text ":"
-        ttk::combobox $win.secs -values $values -width 2 \
+        ttk::label $top.minsep -text ":"
+        ttk::combobox $top.secs -values $values -width 2 \
             -textvariable [myvar options(-secs)]
-        
-        
-        $self configurelist $args
-        
-        grid $win.onoff $win.days $win.daysep $win.hrs $win.hrsep $win.min $win.minsep $win.secs -sticky nsew
-        grid rowconfigure $win 0 -weight 0
-        grid configure $win -ipadx 5 -ipady 5
-        
+
+        grid $top.onoff $top.days $top.daysep $top.hrs $top.hrsep $top.min $top.minsep $top.secs -sticky nsew
+        grid rowconfigure $top 0 -weight 0
+        grid configure $top -ipadx 5 -ipady 5
+
     }
+
+    ##
+    # Creates the widgets to be displayed when in slave mode
+    #
+    # In reality, this only makes an empty ttk::frame.
+    #
+    # @param name   name of frame to create
+    #
+    method _layoutBlank name {
+      ttk::frame $name
+    }
+
     #---------------------------------------------------------------------------
     #
     #  Configuration operations:
@@ -1358,7 +1445,7 @@ snit::widgetadaptor TimedRunControls {
     method _changeState {optname value} {
         set options($optname) $value
         foreach tail $editableWidgets {
-            $win.$tail configure -state $value
+            $win.time.$tail configure -state $value
         }
         
     }
@@ -1372,7 +1459,7 @@ snit::widgetadaptor TimedRunControls {
     #
     method _changeDays  {optname value} {
         set options($optname) $value
-        $win.days set $value
+        $win.time.days set $value
     }
     #---------------------------------------------------------------------------
     #  Action handlers.
@@ -1383,7 +1470,49 @@ snit::widgetadaptor TimedRunControls {
     # to options(-days)
     #
     method _updateDays {} {
-        set options(-days) [$win.days get]
+        set options(-days) [$win.time.days get]
+    }
+
+    ##
+    # Called when you want to enslave the ReadoutGUI. This will update the 
+    # displayed widgets of the instance
+    #
+    # @param value  a boolean value (true=slave mode, false=local mode)
+    method setSlave value {
+      set slave $value
+      if {$slave} {
+        set wasTimedBeforeLastEnslavement [$self cget -timed]
+        $self configure -timed 0
+        # get rid of time controls
+        if {[winfo viewable $win.time]} {
+          grid forget $win.time
+        }
+        grid $win.blank -sticky nsew
+
+      } else {
+        $self configure -timed $wasTimedBeforeLastEnslavement 
+
+        # we are becoming master again... show the time controls
+        #
+        if {[winfo viewable $win.blank]} {
+          grid forget $win.blank
+        }
+        grid $win.time -sticky nsew
+      }
+      grid rowconfigure $win 0 -weight 1
+      grid columnconfigure $win 0 -weight 1
+    }
+
+    ##
+    # Query whether the widgets are displayed according to slave mode 
+    # or not.
+    #
+    # @returns boolean
+    # @retval 0 - not slave mode
+    # @retval 1 - slave mode
+    #
+    method isSlave {} {
+      return $slave
     }
     
 }
@@ -1411,7 +1540,7 @@ proc ::TimedRun::getInstance {{win ""} args} {
         if {[llength $args] > 0} {
             $win configure {*}$args
         }
-        set sm [RunstateMachineSingleton %AUTO%]
+        set sm [::RunstateMachineSingleton %AUTO%]
         $sm addCalloutBundle TimedRun
     }
     return $::TimedRun::theInstance
@@ -1500,9 +1629,7 @@ proc ::TimedRun::enter {from to} {
 #   a transition to halted.  The state machine callbacks do the rest of the work.
 #
 proc ::TimedRun::_alarm {} {
-    set sm [RunstateMachineSingleton %AUTO%]
-    $sm transition Halted
-    $sm destroy
+  end
 }
 
 # API Functions for the length of the run.
@@ -1540,7 +1667,7 @@ proc ::ReadoutGUIPanel::getRequestedRunTime {} {
     set days [$w cget -days]
     
     return [expr {
-        ((($days*24) + $hrs * 60) + $mins *60) + $secs
+        (($days*24 + $hrs)*60 + $mins)*60 + $secs
     }]
 }
 ##
@@ -2316,7 +2443,7 @@ image create photo output_error -file $::Output::errorFilename
 proc Output::getInstance { {win {}} args} {
     if {$::Output::theInstance eq ""} {
         set ::Output::theInstance [TabbedOutput $win {*}$args]
-        set sm [RunstateMachineSingleton %AUTO%]
+        set sm [::RunstateMachineSingleton %AUTO%]
         $sm addCalloutBundle Output
         $sm destroy
       
@@ -2492,10 +2619,10 @@ proc ::ReadoutGUIPanel::Log {src class msg} {
     set w [::Output::getInstance]
     $w logFrom $src $class "$src: $msg"
     
-    update idletasks
-    update idletasks;        # Ensure the UI is updated in case
-    update idletasks;        # the log is prior to some event loop dead wait.
-    update idletasks
+#    update idletasks
+#    update idletasks;        # Ensure the UI is updated in case
+#    update idletasks;        # the log is prior to some event loop dead wait.
+#    update idletasks
 }
 
 #------------------------------------------------------------------------------
@@ -2732,7 +2859,7 @@ snit::widgetadaptor ReadoutGUI {
     #   * Add Library - Adds a library directory to the auto_path.
     #   * <separator>
     #   * Log         - Select a log file for the output widget.
-    #   * Log Disable - Turn off logging in the output wigdget.
+    #   * Log Disable - Turn off logging in the output widget.
     #   * <separator>
     #   * Exit        - Ends any active run and exits the application.
     #
@@ -2762,7 +2889,7 @@ snit::widgetadaptor ReadoutGUI {
     #     Halted.
     #
     method _stopRun {} {
-        set sm [RunstateMachineSingleton %AUTO%]
+        set sm [::RunstateMachineSingleton %AUTO%]
         if {[$sm getState] in [list Active Paused]} {
             $sm transition Halted
         }

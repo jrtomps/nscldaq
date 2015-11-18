@@ -1,0 +1,121 @@
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2014.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Author:
+#    Jeromy Tompkins
+#	   NSCL
+#	   Michigan State University
+#	   East Lansing, MI 48824-1321
+
+
+
+package require tcltest
+
+set ::loadFailure 0
+tcltest::test pkgrequire-0 {Require the package
+} { 
+  set ::loadFailure [catch {package require mcfd16factory}] 
+} 0
+
+if $::loadFailure {
+  tcltest::cleanupTests
+  exit
+}
+
+package require mcfd16guiapp
+
+proc setupFakeControlClient {} {
+  rename ::controlClient ::realControlClient
+  snit::type ::controlClient {
+    option -server
+    option -port
+    constructor {args} {
+      $self configurelist $args
+    }
+  }
+}
+
+proc tearDownFakeControlClient {} {
+  rename ::controlClient {}
+  rename ::realControlClient ::controlClient
+}
+
+########################
+
+tcltest::test usb-0 {Create usb device 
+} -setup {
+  set testdir [tcltest::makeDirectory .test]
+  set testfile [tcltest::makeFile {} .test $testdir]
+  
+  MCFD16AppOptions opts -protocol usb -serialfile $testfile
+  MCFD16Factory factory opts 
+} -cleanup {
+  opts destroy
+  factory destroy
+  $inst destroy
+} -body {
+  
+  set inst [factory create usb]
+  $inst info type
+} -result "::MCFD16USB"
+
+tcltest::test mxdcrcbus-0 {Create mxdcrcbus 
+} -setup {
+  MCFD16AppOptions opts -protocol mxdcrcbus -module dummy
+  MCFD16Factory factory opts 
+  setupFakeControlClient
+} -cleanup {
+  opts destroy
+  factory destroy
+  tearDownFakeControlClient
+  $inst destroy
+} -body {
+  set inst [factory create mxdcrcbus]
+  $inst info type
+} -result {::MCFD16RC}
+
+
+tcltest::test cmdlogger-0 {Create an MCFD16CommandLogger
+} -setup {
+  # we don't need options for this...
+  MCFD16Factory factory {}
+} -cleanup {
+  factory destroy
+  $inst destroy
+} -body {
+  set inst [factory create cmdlogger {}]
+  $inst info type
+} -result {::MCFD16CommandLogger}
+
+tcltest::test memorizer-0 {Create an MCFD16Memorizer
+} -setup {
+  # we don't need options for this...
+  MCFD16Factory factory {}
+} -cleanup {
+  factory destroy
+  $inst destroy
+} -body {
+  set inst [factory create memorizer]
+  $inst info type
+} -result {::MCFD16Memorizer}
+
+
+tcltest::test unknown-0 {Failure on unknown argument
+} -setup {
+  # we don't need options for this...
+  MCFD16Factory factory {}
+} -cleanup {
+  factory destroy
+} -body {
+  factory create notsupported
+} -result {MCFD16Factory::create passed unknown type.} \
+-returnCodes 1
+
+
+
+tcltest::cleanupTests

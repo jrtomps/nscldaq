@@ -63,6 +63,7 @@ snit::type RingBufferObject {
     delegate method getPosition   to gui
     delegate method getId         to gui
     delegate method size          to gui
+    delegate method bind          to gui
     
     ##
     # typeconstructor
@@ -112,5 +113,14 @@ snit::type RingBufferObject {
         $newObject _replaceData [$data clone]
         
         return $newObject
+    }
+    
+    ##
+    # type
+    #   Return object type.
+    #
+    method type {} {
+        return ring
+    
     }
 }

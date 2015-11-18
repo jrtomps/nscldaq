@@ -1,0 +1,174 @@
+
+
+package require tcltest
+
+tcltest::test pkgrequire-0 {make sure we can require the package
+} {package require VMUSBDriverSupport} 1.0
+
+
+####################### check range
+
+tcltest::test checkrange-0 {Test VMUSBDriverSupport::checkRange for null args
+} -body {
+  ::VMUSBDriverSupport::checkRange 0
+} -returnCodes 0
+
+tcltest::test checkrange-1 {Test VMUSBDriverSupport::checkRange for value at lower bound 
+} -body {
+  ::VMUSBDriverSupport::checkRange 0 0
+} -returnCodes 0
+
+tcltest::test checkrange-2 {Test VMUSBDriverSupport::checkRange for value below lower bound 
+} -body {
+  ::VMUSBDriverSupport::checkRange 0 1
+} -returnCodes 1 -result "0 must be >= 1"
+
+tcltest::test checkrange-3 {Test VMUSBDriverSupport::checkRange for value above lower bound 
+} -body {
+  ::VMUSBDriverSupport::checkRange 0 -1
+} -returnCodes 0
+
+tcltest::test checkrange-4 {Test VMUSBDriverSupport::checkRange for value at upper bound 
+} -body {
+  ::VMUSBDriverSupport::checkRange 0 -1 0
+} -returnCodes 0
+
+tcltest::test checkrange-5 {Test VMUSBDriverSupport::checkRange for value below upper bound 
+} -body {
+  ::VMUSBDriverSupport::checkRange 0 -1 1
+} -returnCodes 0
+
+tcltest::test checkrange-6 {Test VMUSBDriverSupport::checkRange for value above upper bound 
+} -body {
+  ::VMUSBDriverSupport::checkRange 0 -1 -0.3
+} -returnCodes 1 -result "0 must be <= -0.3"
+
+######################## end checkrange
+######################## check validInt
+
+tcltest::test validint-0 {Tests VMUSBDriverSupport::validInt for an integer
+} -body {
+  ::VMUSBDriverSupport::validInt 1 
+} -returnCodes 0
+
+tcltest::test validint-1 {Tests VMUSBDriverSupport::validInt for a floating point
+} -body {
+  ::VMUSBDriverSupport::validInt 1.1
+} -returnCodes 1 -result "Invalid integer parameter 1.1"
+
+tcltest::test validint-2 {Tests VMUSBDriverSupport::validInt for a string 
+} -body {
+  ::VMUSBDriverSupport::validInt "hey there"
+} -returnCodes 1 -result "Invalid integer parameter hey there"
+
+######################## end validInt
+######################## begin validReal tests
+
+tcltest::test validreal-0 {Test VMUSBDriverSupport::validReal for integer
+} -body {
+  ::VMUSBDriverSupport::validReal 1
+} -returnCodes 0
+
+tcltest::test validreal-1 {tests vmusbdriversupport::validreal for a floating point
+} -body {
+  ::VMUSBDriverSupport::validReal 1.1
+} -returnCodes 0
+
+tcltest::test validreal-2 {Tests VMUSBDriverSupport::validReal for a string 
+} -body {
+  ::VMUSBDriverSupport::validReal "hey there"
+} -returnCodes 1 -result "Invalid real parameter: hey there"
+
+tcltest::test validreal-3 {tests vmusbdriversupport::validreal for a floating point
+} -body {
+  ::VMUSBDriverSupport::validReal 1.03e9 
+} -returnCodes 0
+
+######################## end validReal tests
+######################## begin validEnum tests
+
+tcltest::test validenum-0 {Tests VMUSBDriverSupport::validEnum for success
+} -body {
+  lappend mylist "element0"
+  ::VMUSBDriverSupport::validEnum "element0" $mylist
+} -returnCodes 0
+
+tcltest::test validenum-1 {Tests VMUSBDriverSupport::validEnum for failure
+} -body {
+  lappend mylist1 "element0"
+  ::VMUSBDriverSupport::validEnum "thewrongelement" $mylist1
+} -returnCodes 1 -result "thewrongelement must be one of {element0}"
+
+######################## end validEnum tests
+######################## begin validBool tests
+
+tcltest::test validbool-0 {Tests VMUSBDriverSupport::validBool for success
+} -body {
+  ::VMUSBDriverSupport::validBool true
+} -returnCodes 0
+
+tcltest::test validbool-1 {Tests VMUSBDriverSupport::validBool for success
+} -body {
+  ::VMUSBDriverSupport::validBool on
+} -returnCodes 0
+
+tcltest::test validbool-2 {Tests VMUSBDriverSupport::validBool for success
+} -body {
+  ::VMUSBDriverSupport::validBool 1
+} -returnCodes 0
+
+tcltest::test validbool-3 {Tests VMUSBDriverSupport::validBool for success
+} -body {
+  ::VMUSBDriverSupport::validBool 0
+} -returnCodes 0
+
+tcltest::test validbool-4 {Tests VMUSBDriverSupport::validBool for success
+} -body {
+  ::VMUSBDriverSupport::validBool false
+} -returnCodes 0
+
+tcltest::test validbool-5 {Tests VMUSBDriverSupport::validBool for success
+} -body {
+  ::VMUSBDriverSupport::validBool off 
+} -returnCodes 0
+
+tcltest::test validbool-6 {Tests VMUSBDriverSupport::validBool for success 
+} -body {
+  ::VMUSBDriverSupport::validBool 2
+} -returnCodes 1 -result "2 is not a valid boolean"
+
+tcltest::test validbool-7 {Tests VMUSBDriverSupport::validBool for failure
+} -body {
+  ::VMUSBDriverSupport::validBool foo
+} -returnCodes 1 -result "foo is not a valid boolean"
+
+########################### end validBool tests
+########################### begin validList tests
+
+tcltest::test validlist-0 {Tests VMUSBDriverSupport::validList simple strings
+} -body {
+  set mylist [list the cat and the hat]
+  ::VMUSBDriverSupport::validList $mylist 
+} -returnCodes 0 
+
+tcltest::test validlist-1 {Tests VMUSBDriverSupport::validList too short
+} -body {
+  set mylist [list the cat and the hat]
+  ::VMUSBDriverSupport::validList $mylist 10
+} -returnCodes 1 -result "List length of {the cat and the hat} invalid: length 5 must be >= 10"
+
+tcltest::test validlist-2 {Tests VMUSBDriverSupport::validList too long
+} -body {
+  set mylist [list the cat and the hat]
+  ::VMUSBDriverSupport::validList $mylist 0 3 
+} -returnCodes 1 -result "List length of {the cat and the hat} invalid: length 5 must be <= 3"
+
+tcltest::test validlist-3 {Tests VMUSBDriverSupport::validList bad type 
+} -body {
+  set list {the cat and the hat}
+  ::VMUSBDriverSupport::validList $list 0 10 VMUSBDriverSupport::validInt 
+} -returnCodes 1 -result "Element of {the cat and the hat} failed type check: Invalid integer parameter the"
+
+########################### end validList tests
+
+tcltest::cleanupTests 

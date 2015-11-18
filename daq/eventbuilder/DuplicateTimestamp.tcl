@@ -39,7 +39,7 @@ snit::widget EVB::DuplicateTimestampWidget {
     component count
     component lastStamp
     
-    delegate option -count         to count     as -text
+    delegate option -count        to count     as -text
     delegate option -laststamp to lastStamp as -text
     
     ##
@@ -55,6 +55,7 @@ snit::widget EVB::DuplicateTimestampWidget {
         install lastStamp using label $win.laststamp
         
         grid $count $lastStamp -sticky nsw -padx 5
+        grid columnconfigure $win {0 1} -weight 1
         
         $self configurelist $args
     }
@@ -103,6 +104,8 @@ snit::widgetadaptor EVB::DuplicateTimestampStatistics {
         
         grid $win.tottitle $totalcounts -sticky wns
         grid $sidcontainer -columnspan 2 -sticky nsew
+        grid columnconfigure $win {0 1} -weight 1
+        grid rowconfigure $win 1 -weight 1
         
         $self configurelist $args
         
@@ -171,12 +174,15 @@ snit::widgetadaptor EVB::DuplicateWindow {
     #   EVB::DuplicateTimestampStatistics widget.
     #
     constructor args {
-        installhull using toplevel
+        
+        installhull using toplevel  
         install container using EVB::DuplicateTimestampStatistics $win.container
         
         pack $container -expand 1 -fill both
         
         $self configurelist $args
+        set me $::tcl_platform(user)
+        wm title $win "Ts dups for $me"
     }
 }
 ##

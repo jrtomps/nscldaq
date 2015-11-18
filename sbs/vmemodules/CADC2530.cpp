@@ -422,7 +422,7 @@ int CADC2530::readListEvent(void* buf,int lngsLeft) {
   if (lngsLeft < 2) return(0);
 
 
-  lptr[lngcnt] = ((volatile unsigned uint32_t*)my_pMemory)[my_cureventpos];
+  lptr[lngcnt] = ((volatile uint32_t*)my_pMemory)[my_cureventpos];
 
   int chans = GET_LIST_CHANCOUNT(lptr[0]);
 
@@ -435,7 +435,7 @@ int CADC2530::readListEvent(void* buf,int lngsLeft) {
 #ifdef ADC2530_LOOP_COPY
 
     for (int i = 0; i < (chans+1); i++) {
-      lptr[lngcnt] = ((volatile unsigned uint32_t*)my_pMemory)[my_cureventpos];
+      lptr[lngcnt] = ((volatile uint32_t*)my_pMemory)[my_cureventpos];
       my_cureventpos++;  
       lngcnt++; 
     } 

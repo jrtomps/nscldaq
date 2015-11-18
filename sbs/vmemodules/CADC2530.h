@@ -31,9 +31,7 @@
 #include <string>
 #include <stdint.h>
 
-#ifndef __CVMEINTERFACE_H
 #include <CVMEInterface.h>
-#endif
 
 #include <VmeModule.h>		// Needed to access registers via peek/poke.
 

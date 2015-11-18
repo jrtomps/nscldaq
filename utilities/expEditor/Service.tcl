@@ -63,6 +63,7 @@ snit::type Service {
     delegate method getPosition   to gui
     delegate method getId         to gui
     delegate method size          to gui
+    delegate method bind          to gui
 
     
     ##
@@ -104,6 +105,13 @@ snit::type Service {
         }
         
         return $newObj
+    }
+    ##
+    # type
+    #   Return the object type
+    #
+    method type {} {
+        return service
     }
     
 }

@@ -21,6 +21,8 @@ package provide eventLogBundle 1.0
 package provide Experiment     2.0;   # For compatibility with event builder.
 
 
+package require stageareaValidation
+
 package require Tk
 package require DAQParameters
 package require RunstateMachine
@@ -37,6 +39,7 @@ package require ring
 package require portAllocator
 package require DataSourceUI
 package require versionUtils
+package require StateManager
 
 
 
@@ -107,10 +110,16 @@ namespace eval ::EventLog {
     
     variable loggerfd     [list]
     variable expectingExit 0
+    variable needFinalization 0
     
     ## 
     # @var failed         - Indicates whether or not the system has failed or succeeded
-    variable failed 0 
+    variable failed 0
+    
+    ##
+    # incremented when the eventLogger exits...this can be a vwait target:
+    
+    variable eventLogEnded 0
     
     # Export the bundle interface methods
     
@@ -327,7 +336,7 @@ proc ::EventLog::_startLogger {} {
     set logger [DAQParameters::getEventLogger] 
     set loggerVsn [::EventLog::_getLoggerVersion $logger]
     set switches [::EventLog::_computeLoggerSwitches $loggerVsn]
-    puts $switches
+
     set ::EventLog::loggerFd \
         [open "| $logger $switches" r]
     set ::EventLog::loggerPid [pid $::EventLog::loggerFd]
@@ -356,10 +365,13 @@ proc ::EventLog::_handleInput {} {
 
         if {!$::EventLog::expectingExit} {
             ::ReadoutGUIPanel::Log EventLogManager error "Unexpected event log error! $msg"
-            ::Diagnostics::Error {The event logger exited unexpectedly!!}
+            ::Diagnostics::Error {The event logger exited unexpectedly check EventLogManager tab for errors.!!}
+        } else {
+            ::EventLog::_finalizeRun;            # May need that if exit before wait.
         }
         set ::EventLog::loggerFd [list]
         set ::EventLog::loggerPid -1
+        incr ::EventLog::eventLogEnded
     } else {
         set line [gets $fd]
         ::ReadoutGUIPanel::Log EventLogManager output $line
@@ -400,62 +412,81 @@ proc ::EventLog::_waitForFile {name waitTimeout pollInterval} {
 #
 #
 proc ::EventLog::_finalizeRun {} {
-    set srcdir [::ExpFileSystem::getCurrentRunDir]
-    set completeDir [::ExpFileSystem::getCompleteEventfileDir]
-    set run [ReadoutGUIPanel::getRun]
-    set destDir [::ExpFileSystem::getRunDir $run]
-    
-    # Make the run directory:
-    # and mv the event files into it... remembering the destination names.
-    
-    file attributes \
-        [file normalize [file join $destDir ..]] -permissions 0770;   # Let me write here.
-    file mkdir $destDir
-    set  fileBaseName [::ExpFileSystem::genEventfileBasename $run]
-    set  eventFiles [glob -nocomplain [file join $srcdir ${fileBaseName}*.evt]]
-    set  mvdNames [list]
-    foreach eventFile $eventFiles {
-        set destFile [file join $destDir [file tail $eventFile]]
-        file rename -force $eventFile $destFile
-        lappend mvdNames $destFile
-    }
-    #
-    #  If there is a checksum file (there should be) move that to the experiment directory
-    #
-
-    set cksumFile [file join $srcdir "${fileBaseName}.sha512"]
-    set destFile [file join $destDir [file tail $cksumFile]]
-    if {[file readable $cksumFile]} {
-      file rename -force $cksumFile $destFile
-    }
-
-    #  If 
-    #  Make links in the complete directory for all mvdNames:
-    
-    foreach file $mvdNames {
-        set targetLink [file join $completeDir [file tail $file]]
-        catch {exec ln -s $file $targetLink}
-    }
-    #  Now what's left gets recursively/link-followed copied to the destDir
-    #  using tar.
-    
-    set tarcmd "(cd $srcdir; tar chf - .) | (cd $destDir; tar xpf -)"
-    exec sh << $tarcmd
-    
-    # If required, protect the files:
-    #   - The destDir is set to 0550
-    #   - The parent dir is set to 0550.
-    #   - A chmod -R is done to set the contents to 0x550 as well.
-    
-    if {$::EventLog::protectFiles} {
-        set files [glob -nocomplain -directory $destDir -types {f d} *]
-        if {[llength $files]>0} {
-          exec sh << "chmod -R 0550 $files"
-          file attributes $destDir -permissions 0550 
-          file attributes [file join $destDir ..] -permissions 0550 
+    if {$::EventLog::needFinalization} {
+        
+        set srcdir [::ExpFileSystem::getCurrentRunDir]
+        set completeDir [::ExpFileSystem::getCompleteEventfileDir]
+        set run [ReadoutGUIPanel::getRun]
+        set destDir [::ExpFileSystem::getRunDir $run]
+        
+        # Make the run directory:
+        # and mv the event files into it... remembering the destination names.
+        
+        file attributes \
+            [file normalize [file join $destDir ..]] -permissions 0770;   # Let me write here.
+        file mkdir $destDir
+        set  fileBaseName [::ExpFileSystem::genEventfileBasename $run]
+        set  eventFiles [glob -nocomplain [file join $srcdir ${fileBaseName}*.evt]]
+        set  mvdNames [list]
+        set renameStatus [catch {
+            foreach eventFile $eventFiles {
+                set destFile [file join $destDir [file tail $eventFile]]
+                file rename -force $eventFile $destFile
+                lappend mvdNames $destFile
+            }
+        } msg]
+        if {$renameStatus} {
+            tk_messageBox -title {Rename failure} -icon error -type ok \
+                -message "Rename of event files to $destDir failed: $msg : fix problem and manually move the event files"
+            set ::EventLog::needFinalization 0
+            ReadoutGUIPanel::incrRun
+            return
         }
-    }
+        #
+        #  If there is a checksum file (there should be) move that to the experiment directory
+        #
     
+        set cksumFile [file join $srcdir "${fileBaseName}.sha512"]
+        set destFile [file join $destDir [file tail $cksumFile]]
+        if {[file readable $cksumFile]} {
+          file rename -force $cksumFile $destFile
+        }
+    
+        #  If 
+        #  Make links in the complete directory for all mvdNames:
+        
+        foreach file $mvdNames {
+            set targetLink [file join $completeDir [file tail $file]]
+            catch {exec ln -s $file $targetLink}
+        }
+        #  Now what's left gets recursively/link-followed copied to the destDir
+        #  using tar.
+        
+        set tarcmd "(cd $srcdir; tar chf - .) | (cd $destDir; tar xpf -)"
+        set tarStatus [catch {exec sh << $tarcmd} msg]
+        if {$tarStatus} {
+            tk_messageBox -title {Tar Failed} -icon error -type ok \
+                -message "Copy of files from $srcdir to $destDir failed: $msg, Fix problem and move files manually."
+            set ::EventLog::needFinalization 0
+            ReadoutGUIPanel::incrRun
+            return
+        }
+        # If required, protect the files:
+        #   - The destDir is set to 0550
+        #   - The parent dir is set to 0550.
+        #   - A chmod -R is done to set the contents to 0x550 as well.
+        
+        if {$::EventLog::protectFiles} {
+            set files [glob -nocomplain -directory $destDir -types {f d} *]
+            if {[llength $files]>0} {
+              exec sh << "chmod -R 0550 $files"
+              file attributes $destDir -permissions 0550 
+              file attributes [file join $destDir ..] -permissions 0550 
+            }
+        }
+        set ::EventLog::needFinalization 0
+        ReadoutGUIPanel::incrRun
+    }
 }
 ##
 # ::EventLog::_getSegmentInfo
@@ -506,45 +537,6 @@ proc ::EventLog::_setStatusLine repeatInterval {
     set ::EventLog::statusUpdateId \
         [after $repeatInterval [list ::EventLog::_setStatusLine $repeatInterval]]
 }
-##
-# ::EventLog::_duplicateRun
-#
-#  @return string -   
-#  @retval non empty  if the run we are about to write already exists.
-#          we're going to define 'exists' as having a run directory in the
-#          experiment view. 
-# @retval empty if there is no sign that this run had already been recorded.
-#
-proc ::EventLog::_duplicateRun {} {
-    
-    set run [::ReadoutGUIPanel::getRun]
-    
-    # Two possibilities;  If the run was properly ended, there will be a
-    # run directory in the experimnent view
-    
-    set runDirPath [::ExpFileSystem::getRunDir $run]
-    
-    # If the run was improperly ended, there could be event segments in the
-    # current directory.  We'll look for them with glob.
-    #
-    
-    set checkGlob [::ExpFileSystem::getCurrentRunDir]
-    set checkGlob [file join $checkGlob [::ExpFileSystem::genEventfileBasename $run]*.evt ]
-    
-    set eventSegments [llength [glob -nocomplain $checkGlob]]
-
-    #  Figure out the return value:
-
-    if {[file exists $runDirPath]} {
-	set message "The final run directory '$runDirPath' already exists indicating this run may already have been recorded"
-    } elseif {($eventSegments > 0)} {
-	set message "[::ExpFileSystem::getCurrentRunDir] has event segments in it for this run ($run) indicating this run may already have been recorded but not finalized"
-    } else {
-	set message ""
-    }
-    return $message
-
-}
 
 ##
 #   Check whether or not the .started file lives in the 
@@ -582,6 +574,7 @@ proc ::EventLog::_runFilesExistInCurrent {} {
 # Checks for a few things:
 # 1. experiment/run# directory already exists
 # 2. experiment/current/*.evt files exist
+# 
 #
 # @returns a list of error messages
 proc ::EventLog::listIdentifiableProblems {} {
@@ -668,22 +661,19 @@ proc ::EventLog::runStarting {} {
   }
 
   # Now if desired start the new run.
+  ::StageareaValidation::correctAndValidate
 
   if {[::ReadoutGUIPanel::recordData]} {
-    ::EventLog::correctFixableProblems;         # Some things can be fixed :-)
-    set errorMessages [::EventLog::listIdentifiableProblems]
-    if {[llength $errorMessages]>0} {
-      return -code error $errorMessages
-    }
     
     set startFile [file join [::ExpFileSystem::getCurrentRunDir] .started]
 
     ::EventLog::_startLogger
     ::EventLog::_waitForFile $startFile $::EventLog::startupTimeout \
-    $::EventLog::filePollInterval
-    ::EventLog::deleteStartFile
+                                        $::EventLog::filePollInterval
+    ::StageareaValidation::deleteStartFile
     set ::EventLog::expectingExit 0
     ::EventLog::_setStatusLine 2000
+    set ::EventLog::needFinalization 1
   }
 }
 ##
@@ -700,26 +690,56 @@ proc ::EventLog::runEnding {} {
     
     set startFile [file join [::ExpFileSystem::getCurrentRunDir] .started]
     set exitFile [file join [::ExpFileSystem::getCurrentRunDir] .exited]
+    set ui [::RunControlSingleton::getInstance]
+
     # ne is used below because the logger could be a pipeline in which case
     # ::EventLog::loggerPid will be a list of pids which freaks out ==.
     
     if {$::EventLog::loggerPid ne -1} {
+        
         set ::EventLog::expectingExit 1
-        ::EventLog::_waitForFile $exitFile $::EventLog::shutdownTimeout \
-            $::EventLog::filePollInterval
-        foreach pid $::EventLog::loggerPid {
-          catch {exec kill -9 $pid}; # in case waitforfile timed out.
+        
+        #  First do a vwait for eventLogEnded after disabling the
+        #  begin/end etc. buttons.
+        #  A timeout is used in case there's a problem and the event log
+        #  never exists.
+        
+        $ui configure -state disabled
+        
+        set timeoutId [after \
+            [expr {$::EventLog::shutdownTimeout*1000}]    \
+            [list incr ::EventLog::eventLogEnded]         \
+        ]
+        set oldValue $::EventLog::eventLogEnded;      # so we know if there was a timeout.
+        vwait ::EventLog::eventLogEnded
+        after cancel $timeoutId
+
+        if {$oldValue == $::EventLog::eventLogEnded} {
+            
+            # Wait timed out.
+            tk_messageBox -title "EventLogger exit timeout" -icon warning -type ok \
+                -message {Timed out waiting for eventlog to exit, killing it}
+            foreach pid $::EventLog::loggerPid {
+              catch {exec kill -9 $pid}; # in case waitforfile timed out.
+            }
+        } else {
+            # Normal exit, this should fall through very quickly, now that
+            #  we know the logger exited.
+            
+            ::EventLog::_waitForFile $exitFile $::EventLog::shutdownTimeout \
+                $::EventLog::filePollInterval
+            ::StageareaValidation::deleteExitFile
+            
         }
-        ::EventLog::deleteExitFile
+        puts "Enabling"
+        ::StageareaValidation::deleteExitFile
         set ::EventLog::loggerPid -1
         ::EventLog::_finalizeRun
         file delete -force $startFile;   # So it's not there next time!!
         file delete -force $exitFile;   # So it's not there next time!!
-        
-        # Incremnt the run number:
-        
-        ReadoutGUIPanel::incrRun
-        ReadoutGUIPanel::normalColors
+
+        #  Cancel the after that updates the event segments and set a new
+        #  status line entry indicting the run ended.
         
         if {$::EventLog::statusUpdateId != -1} {
             after cancel $::EventLog::statusUpdateId
@@ -728,7 +748,8 @@ proc ::EventLog::runEnding {} {
                 {Run ended}
         }
     }
-   
+    $ui configure -state normal
+    ReadoutGUIPanel::normalColors
 }
 
 
@@ -762,6 +783,16 @@ proc ::EventLog::enter {from to} {
     if {($from in [list Active Paused]) && ($to eq "NotReady")} {
       # if the start was aborted then we should not try to cleanup
       if {! $::EventLog::failed} {
+        # Kill of the event log program since it's not going to see ends:
+        foreach pid $::EventLog::loggerPid {
+            if {$pid != -1} {
+                catch {exec kill -9 $pid}
+            }
+        }
+        # Create the exit file:
+        set fd [open [file join [::ExpFileSystem::getCurrentRunDir] .exited] w]
+        puts $fd "dummy"
+        close $fd
       	::EventLog::runEnding
       } 
 
@@ -778,19 +809,19 @@ proc ::EventLog::enter {from to} {
 #
 proc ::EventLog::leave {from to} {
   if {($from eq "Halted") && ($to eq "Active")} {
-    set errors [::EventLog::listIdentifiableProblems]
-
-    # if the error list has error messages in it, then abort
-    if {[llength $errors]>0} {
-      set ::EventLog::failed 1
-      set errstr [join $errors "\n"]
-      return -code error "EventLog aborted transition because of the following impending problems:\n$errstr"
-    } else {
-      # no problems were identified, so start up the run
-      ::EventLog::runStarting
+      if {[catch {::EventLog::runStarting} msg]} {
+        set ::EventLog::failed 1
+        ::ReadoutGUIPanel::Log EventLogManager error $msg
+        error $msg
+      }
       # reset the failure state
       set ::EventLog::failed 0
+  }
+  if {($from in [list "Active" "Paused"]) && ($to eq "Halted") } {
+    if {! $::EventLog::failed} { 
+      set  ::EventLog::expectingExit 1
     }
+    set ::EventLog::failed 0
   }
 }
 
@@ -831,7 +862,12 @@ proc ::EventLog::register {} {
     
     set ::EventLog::statusBarManager      [::StatusBar::getInstance]
     set ::EventLog::statusbar \
-        [$::EventLog::statusBarManager addMessage {No Event Segments yet}]
+        [$::EventLog::statusBarManager addMessage {No event segments recorded yet}]
+    
+    #
+    #  Arrange for the event logging parameters to be saved/restored.
+    #
+    set sm [StateManagerSingleton %AUTO%]
 }
 ##
 #  ::EventLog::unregister
@@ -1308,6 +1344,8 @@ proc EventLog::promptParameters {} {
         Configuration::Set EventLogAdditionalSources [$ctl.f cget -additionalsources]
         Configuration::Set EventLogUseGUIRunNumber   [$ctl.f cget -forcerun]
         Configuration::Set EventLogUseChecksumFlag   [$ctl.f cget -usechecksum]
+        set priorStageArea [Configuration::get StageArea]
+        Configuration::Set StageArea                 [$ctl.f cget -stagearea]
         
         # If we're usin gthe nsrcs flag and it would currently be negative warn:
         
@@ -1323,6 +1361,11 @@ proc EventLog::promptParameters {} {
                     -message "Your total source count is negative: $mySources managed by us $adtlSources additional sources -> $totsrc total sources"
             }
             $sm destroy
+        }
+        #  If the stagearea changed ensure the directory structure is there and good:
+        
+        if {$priorStageArea ne [Configuration::get StageArea]} {
+            ExpFileSystem::CreateHierarchy
         }
     }
     destroy .eventlogsettings

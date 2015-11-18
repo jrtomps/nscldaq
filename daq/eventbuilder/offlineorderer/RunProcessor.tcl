@@ -68,6 +68,7 @@ snit::type RunProcessor {
                  # parameters)
 
   variable m_runObservers ;#< A list of observers for the job transitions
+  variable m_completionStatus; #< Completion status
   
   component processor ;#< The JobProcessor that will do the work
 
@@ -136,14 +137,12 @@ snit::type RunProcessor {
       set iparams [dict get $options(-jobs) $job -inputparams]
       if {[catch {set run [$self guessRunNumber [$iparams cget -file]]} msg]} {
         set resp [tk_messageBox -icon error -message "RunProcessor::run failed to identify the run number"]
-        puts $resp
         $self observeAbort
         return
       }
       thread::send $m_workerThread [list ReadoutGUIPanel::setRun $run ]
 
 
-      puts "$job , run $run"
       $self configureJobProcessor [dict get $options(-jobs) $job]
 
 #      # launch this thing but stop if it was aborted.
@@ -152,8 +151,14 @@ snit::type RunProcessor {
 #        $self observeAbort
 #        return
 #      }
-      thread::send -async $m_workerThread [list $processor run ] status
-      vwait status
+      thread::send -async $m_workerThread [list $processor run ] \
+                        [myvar m_completionStatus]
+      vwait [myvar m_completionStatus]
+
+      if {$m_completionStatus ne "OK"} {
+        $self observeAbort
+        return
+      }
 
       # remove the current processing job
       set options(-jobs) [dict remove $options(-jobs) $job]
@@ -187,6 +192,10 @@ snit::type RunProcessor {
     return $state
   }
 
+  method abortCurrent {} {
+    thread::send $m_workerThread [list $processor abortRun]
+  }
+
   ## @brief Configure the job processor with the job parameters
   #
   # @param dict with standard job parameter keys
@@ -194,25 +203,21 @@ snit::type RunProcessor {
   method configureJobProcessor {params} {
     set iparams [dict get $params -inputparams]
     set opts [$self pickle $iparams]
-    puts $opts
     set iparams [thread::send $m_workerThread [list OfflineEVBInputPipeParams %AUTO% {*}$opts]]
     thread::send $m_workerThread [list $processor configure -inputparams $iparams]
 
     set hparams [dict get $params -hoistparams]
     set opts [$self pickle $hparams]
-    puts $opts
     set iparams [thread::send $m_workerThread [list OfflineEVBHoistPipeParams %AUTO% {*}$opts]]
     thread::send $m_workerThread [list $processor configure -hoistparams $iparams]
 
     set eparams [dict get $params -evbparams]
     set opts [$self pickle $eparams]
-    puts $opts
     set iparams [thread::send $m_workerThread [list EVBC::AppOptions %AUTO% {*}$opts]]
     thread::send $m_workerThread [list $processor configure -evbparams $iparams]
 
     set oparams [dict get $params -outputparams]
     set opts [$self pickle $oparams]
-    puts $opts
     set iparams [thread::send $m_workerThread [list OfflineEVBOutputPipeParams %AUTO% {*}$opts]]
     thread::send $m_workerThread [list $processor configure -outputparams $iparams]
 
@@ -239,6 +244,9 @@ snit::type RunProcessor {
       # the number is treated as octal if it is padded with 0 on the left
       # so we need to trim those off
       set run [string trimleft $run "0"]
+      # but if the run number was 0, then we are left with an empty string.
+      # set it to 0.
+      if {$run eq {}} {set run 0}
       return $run 
     } else {
       return -code error "RunProcessor::guessRunNumber unable to parse run number from file list"
@@ -281,6 +289,7 @@ snit::type RunProcessor {
 
     # The new status object has all jobs in the queued position.
     set newdict [dict create queued     [dict keys $options(-jobs)] \
+                             aborted   [list] \
                              processing "" \
                              completed  [list]]
 
@@ -312,5 +321,6 @@ snit::type RunProcessor {
     }
 
   }
+
 }
 

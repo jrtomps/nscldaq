@@ -4,6 +4,9 @@
 #include <iostream>
 using namespace std;
 
+class TCLApplication;
+TCLApplication* gpTCLApplication = 0;
+
 int main(int argc, char** argv)
 {
   CppUnit::TextUi::TestRunner   

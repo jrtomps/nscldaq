@@ -38,6 +38,10 @@ package require stripratio
 namespace eval ::scalerconfig {
     variable pageNumber 0
     variable stripItems [list]
+    variable normalColor     white
+    variable lowAlarmColor   green
+    variable highAlarmColor  red
+
 }
 
 nameMap ::scalerconfig::channelMap;   # Mapping channel names -> Channel objs
@@ -174,7 +178,11 @@ proc page {tabname title} {
     }
     #  Actually make the page, and add it to the notebook:
     
-    pageDisplay $newWidget -title $title -tab $tabname
+    pageDisplay $newWidget -title $title -tab $tabname \
+        -normalbackground $::scalerconfig::normalColor \
+        -lowalarmbackground $::scalerconfig::lowAlarmColor \
+        -highalarmbackground  $::scalerconfig::highAlarmColor
+    
     addPage $newWidget $tabname
     
 }
@@ -277,4 +285,47 @@ proc stripconfig args {
     foreach [list optname optvalue] $args {
         set ::scalerconfig::stripChartOptions($optname) $optvalue
     }
+}
+
+#---------------------------------------------------------------------------
+# API for extensions.
+#
+
+
+##
+# getScalerNames
+#
+# @return list  - of defined scaler channels.
+#
+proc getScalerNames {} {
+    return [::scalerconfig::channelMap list]
+}
+##
+# getRate
+#
+# @param name   - A scaler rate.
+# @return float - The rate in counts per second from the most recent update.
+#
+proc  getRate name {
+    set validNames [getScalerNames]
+    if {$name ni $validNames} {
+        error "getRate - no such scaler : $name"
+    }
+    
+    set channel [::scalerconfig::channelMap get $name]
+    return [$channel rate]
+}
+##
+# getTotal
+#   @param name - a scaler name
+#   @return float - Total number of counts from the most recent update.
+#
+proc getTotal name {
+    set validNames [getScalerNames]
+    if {$name ni $validNames} {
+        error "getTotal - no such scaler: $name"
+    }
+    
+    set channel [::scalerconfig::channelMap get $name]
+    return [$channel total]
 }

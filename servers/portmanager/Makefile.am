@@ -40,7 +40,7 @@ TCLAPPS=DaqPortManager.tcl
 
 TCLTESTS=connectionmanager.test portallocator.test portmanager.test log.test
 
-PYTHON_TESTS=PortManagerTests.py
+PYTHON_TESTS=@srcdir@/PortManagerTests.py
 
 
 #

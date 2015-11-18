@@ -2,7 +2,7 @@ package "BufferToRing"
 version "1.0"
 
 option "create-body-header" h "Create body headers if so"  values="yes", "no" default="yes" enum optional
-option "sourceid" i "Source Id (required if --create-body-header is present)" int
-option "ts-extract" t "Timestamp extraction library (required if --create-body-header is present)" string
+option "sourceid" i "Source Id (required if --create-body-header is present)" int optional
+option "ts-extract" t "Timestamp extraction library (required if --create-body-header is present)" string optional
 option "incremental-scalers" s "Set/clear incremental flag in ths caler items" values="yes", "no" default="yes" enum optional
 option "buffersize" b "Buffer size in bytes" int optional default="8192"

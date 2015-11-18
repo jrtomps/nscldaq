@@ -43,18 +43,15 @@
 #endif
 #endif
 
-#ifndef __THREAD_H
-#include <Thread.h>
-#ifndef __THREAD_H
-#define __THREAD_H
-#endif
-#endif
+#include <CSynchronizedThread.h>
+
+#include <CControlModule.h>
+
+#include <memory>
 
 class CVMUSB;
-class CControlModule;
 class CTCLInterpreter;
 struct DataBuffer;
-
 
 /*!
   The TclServer class implements a little Tcl server for our readout software.
@@ -77,7 +74,7 @@ struct DataBuffer;
    connections from localhost.
 
 */
-class TclServer : public Thread
+class TclServer : public CSynchronizedThread
 {
 // Member data:
 private:
@@ -86,7 +83,6 @@ private:
   CVMUSB*                      m_pVme;		// VME controller.
   std::vector<CControlModule*> m_Modules;       // Hardware we can access.
   CTCLInterpreter*             m_pInterpreter;
-  unsigned long                m_tid;
   CVMUSBReadoutList*           m_pMonitorList; /* List to perform periodically. */
   Tcl_ThreadId                 m_threadId;
   bool                         m_waitingMonitor;
@@ -95,7 +91,7 @@ private:
   size_t                       m_nMonitorDataSize;
   bool                         m_dumpAllVariables;
   bool                         m_exitNow;
-  Tcl_ThreadId                 m_tclThreadId;    // In case Tcl encapsulates.
+  bool                         m_isRunning;
 
 
   // Public data structures:
@@ -123,31 +119,37 @@ public:
   void            start(int port, const char* configFile, CVMUSB& vme);
   CControlModule* findModule(std::string name);
   void            addModule(CControlModule* pNewModule);
-  void            setResult(std::string resultText);
+  virtual void            setResult(std::string resultText); // virtual for testing purposes only
   void            processMonitorList(void* pData, size_t nBytes);
   void QueueBuffer(void* pBuffer);
 
   // selectors:
 
   CVMUSBReadoutList getMonitorList(); /* Allow rdothread to get a copy. */
-  CTCLInterpreter* getInterp() {return m_pInterpreter;} /* For Tcl drivers. */
-  Tcl_ThreadId     getTclThreadId()  {return m_tclThreadId; }
+  CTCLInterpreter*  getInterp() {return m_pInterpreter;} /* For Tcl drivers. */
+  Tcl_ThreadId      getTclThreadId()  {return m_threadId; }
+
+  bool              isRunning() const { return m_isRunning; }
 
   // Adaptor to spectrodaq threading.
 
-  virtual void run();
   void scheduleExit();
   
 public:
 
+  // Thread unsafe initialization
+  void init();
+
+  // Initialize the the modules
+  void readConfigFile();
+  void initModules();
+
 protected:
-  int operator()();
+  void operator()();
 
 private:
   void sendWatchedVariables();
   void initInterpreter();
-  void readConfigFile();
-  void initModules();
   void startTcpServer();
   void createMonitorList();
   void EventLoop();

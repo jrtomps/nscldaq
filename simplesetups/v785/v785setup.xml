@@ -1,0 +1,1126 @@
+<!-- chapter simple-setups -->
+<chapter>
+  <title>Using NSCLDAQ with a CAEN V785 Peak-Sensing ADC and CAEN V262 IO Register</title> 
+  <section>
+    <title>PREFACE</title>
+    <para> 
+      This paper's purpose is to guide the reader through the process of
+      setting up and reading data from a CAEN V785 peak-sensing ADC using an SBS
+      Bit3 PCI/VME bridge. The trigger for the readout of the device in this
+      tutorial will be initiated by a CAEN V262 IO Register and the data read
+      out will be formatted in a "packet" structure. Furthermore, we will
+      demonstrate how to do this in way that generates data with body headers.
+    </para>
+    <para>
+      This tutorial will encompass the steps to get the 
+      system running from start to finish. In doing so, it will cover how to
+      set up the electronics and how to modify the SBS Readout software
+      skeleton. The targeted version of NSCLDAQ software will be 11.0.
+      Testing for the code is also covered to a limited extent.
+    </para>
+    <para>
+      This paper assumes that you are
+    </para>
+    <itemizedlist>
+      <listitem><para>
+          Somewhat familiar with Linux.
+      </para></listitem>
+      <listitem><para>
+          Familiar with the C++ programming language at a basic level.
+      </para></listitem>
+      <listitem><para>
+          Familiar with an oscilloscope.
+      </para></listitem>
+    </itemizedlist>
+    <para>
+      The final version of the software is available for download at:
+      <emphasis>MAKE THE LINK CORRECT!</emphasis>
+    </para>
+    <para>
+      Every effort has been made to ensure the accuracy of this document.
+      As authors we take very seriously reports of mistakes, omissions, and
+      unclear documentation. If you come across a part of the document you
+      think is wrong, needs expansion, or is not clearly worded, please
+      report this to <email>helpme@nscl.msu.edu</email>. We will correct this problem
+      as soon as possible and, if you like, credit you publicly in the
+      document for finding and helping us fix this issue.
+    </para>
+
+    <para>
+      It will be assumed that the user has a valid NSCLDAQ 11.0 installed at a
+      directory in your PATH. If you have not already done so, do the following
+      before continuing:
+    </para>
+    <screen>
+<literal>spdaqxx&gt;</literal> unset DAQROOT
+<literal>spdaqxx&gt;</literal> source /usr/opt/nscldaq/11.0/daqsetup.bash
+<literal>spdaqxx&gt;</literal> export PATH=$DAQBIN:$PATH
+    </screen>
+  </section>
+
+  <section>
+    <title>The electronics</title>
+    <para>
+      The CAEN V785 is a 12-bit, 32-channel analog-to-digital converter that
+      returns a digitized value of the maximum voltage that occurs during the
+      time a gate is present. The input signal must be positive and less
+      than 4V. The V785 is a VME-based module. For a complete understanding
+      of the module I suggest that you obtain a copy of the product manual,
+      available as a PDF at <ulink url="http://www.caen.it/"/>. 
+    </para>
+    <para>
+      The CAEN V262 is a device that can perform basic functions when an input
+      signal is received. For this setup, a register on the device will be
+      polled by software to determine if a signal is present. You can also find
+      the product manual for this by visiting the manufacturer's website at
+      <ulink url="http://www.caen.it/"/>.
+    </para>
+    <section>
+      <title>A minimal electronics setup</title>
+
+      <para>
+        The following items will be needed to build our simple setup:
+      </para>
+
+      <itemizedlist>
+        <listitem>
+          <para>CAEN V785 ADC module</para>
+        </listitem>
+        <listitem>
+          <para>VME Crate</para>
+        </listitem>
+        <listitem>
+          <para>SBS Bit3 PCI/VME bus interface</para>
+        </listitem>
+        <listitem>
+          <para>NIM Crate</para>
+        </listitem>
+        <listitem>
+          <para>NIM Spectroscopy amplifier of some sort</para>
+        </listitem>
+        <listitem>
+          <para>NIM Discriminator</para>
+        </listitem>
+        <listitem>
+          <para>Two channels of NIM Gate and delay generator</para>
+        </listitem>
+        <listitem>
+          <para>NIM Signal splitter</para>
+        </listitem>
+        <listitem>
+          <para>LEMO to Ribbon cable converter</para>
+        </listitem>
+        <listitem>
+          <para>Pulser</para>
+        </listitem>
+        <listitem>
+          <para>50-Ohm LEMO terminator</para>
+        </listitem>
+        <listitem>
+          <para>An assortment of LEMO cables</para>
+        </listitem>
+        <listitem>
+          <para>A 34-conductor ribbon cable with 3M connectors on each end</para>
+        </listitem>
+        <listitem>
+          <para>An oscilloscope</para>
+        </listitem>
+        <listitem>
+          <para>A CAEN V262 IO Register</para>
+        </listitem>
+      </itemizedlist>
+
+      <figure>
+        <title>A simple electronics setup for the CAEN V785</title>
+        <graphic fileref="figures/ss785_electronics_block_diagram_new.png" format="PNG"/> 
+      </figure>
+
+      <para>
+        Before starting, be sure that you can secure all of these items, many
+        are available through the NSCL electronics pool. Figure 1-1 shows
+        the complete setup of the system, due to the varying amount of
+        familiarity of readers to the electronics, a brief description of
+        the component and what the signal coming out of it should look like
+        will be given.
+      </para>
+
+      <para>
+        We will first look at the signal from the pulser. A pocket will
+        work well for this. A pocket pulser will give a small negative
+        pulse, but we will invert it later. The signal directly from the
+        pulser will look like figure 1-2 when viewed on a scope. The pulser
+        only works when terminated with 50 Ohms.
+      </para>
+
+      <para>
+        The pulser will run directly into a NIM based amplifier. This
+        amplifer serves two purposes. First it will amplify our signal
+        helping it stand out against any noise we might have in the
+        channel. It will also invert the negative pulser signal giving us
+        the positive signal that is required by the V785. The signal coming
+        from the bi-polar output of the amplifier will look like figure
+        1-3. Adjust the gain on the amplifier until you output signal has
+        an amplitude of about 2V
+      </para>
+
+      <figure>
+        <title>Pulser Output Signal</title>
+        <graphic fileref="figures/ss785_pulser_output.png" format="PNG"/>
+      </figure> 
+      <figure> 
+        <title>Amplifer Output Signal</title> 
+        <graphic fileref="figures/ss785_amplifier_output.png" format="PNG"/>
+      </figure>
+
+      <para> 
+        After you are happy with the signal from the amplifier, plug
+        the bipolar output into the splitter. The splitter will simply split
+        the signal much like a "T" but will keep the 50 Ohm termination
+        needed by the pulser. 
+      </para>
+
+      <para> 
+        Take an output of the splitter, convert it to a ribbon cable, and plug
+        that into the channel inputs of the V785.  Ribbon cable can be difficult
+        to work with because it is easy to get it twisted and lose track of
+        which end is which. To avoid this look carefully at the coloring on the
+        cable you are using and be sure it is plugged into the correct channel of
+        the ADC. Another useful tip is that the connectors typically
+        have a marking on one end to conventionally identify channel 0.  
+      </para>
+
+      <para> 
+        The other output from the splitter will go into a discriminator.  This
+        could be either a leading edge or a constant fraction discriminator. The
+        job of the discriminator is to output a logic signal when an input
+        signals has exceeded a certain voltage threshold. The output signal will
+        be used to tell the ADC to initiate the process of recording the peak
+        height of the signal. The discriminator will have a threshold knob, be
+        sure that the threshold is set above any background noise that may be
+        present so that the discriminator only trips on the pulser signal.  It
+        will be useful to look at the both the logic pulse and the signal from
+        the amplifier at the same time when setting the threshold value. Figure
+        1-4 shows what you will see.  
+      </para>
+
+      <figure>
+        <title>Amplified Signal with Logic Pulser</title>
+        <graphic fileref="figures/ss785_amplified_signal_with_logic_pulse.png"
+          format="PNG"/>
+      </figure>
+
+      <para>
+        When the threshold is set to a reasonable level, connect one of the
+        discriminator outputs to the start of one channel of your gate
+        and delay generator. The gate and delay generator will generate a
+        gate when it receives a logic signal from the discriminator. When
+        looking at the signal from the amplifier and the gate at the same
+        time on the scope, the signal pulse should fall within the gate as
+        seen in figure 1-5. If the gate is occurring too early you can use
+        the gate and delay generator to delay the gate or to make the gate
+        last longer. If the gate is too late you need to delay the signal
+        pulse, that can be done using a delay module, or by adding cable
+        delay. When you are happy with the gate timing, plug it into one of
+        the LEMO connectors on the CAEN V785 labeled gate, put a 50 Ohm
+        terminator in the other one.
+      </para>
+
+      <figure>
+        <title>Amplified Signal and Gate</title>
+        <graphic fileref="figures/ss785_amplified_signal_with_gate.png"
+          format="PNG"/>
+      </figure>
+
+      <para>
+        Next we will take the "DRDY" output of the V785 and send that into
+        the start input of a gate delay generator. We will then take the output
+        of that gate delay generator into the IN0 of the CAEN V262. Next you
+        should connect the SHP2 output of the V262 to the stop input of the GDG. 
+        This scheme ensures that the signal at INO is held high long enough for
+        the software to recognize it.
+      </para>
+      <para>
+        At this point your setup should be complete. Now is good time to
+        make sure that your setup is the same as Figure 1-1. If everything
+        is setup correctly the BUSY and DRDY lights on the V785 should be
+        lit up when we start actually taking data in subsequent sections of
+        this tutorial.  
+      </para>
+    </section>
+  </section>
+  <section>
+    <title>Setting up the software</title>
+    <para>
+      The software modifications needed to make the system work can
+      be divided into a few tasks:
+    </para>
+    <orderedlist>
+      <listitem>
+        <para>Defining which pieces of hardware are being used.</para>
+      </listitem>
+      <listitem>
+        <para>Defining what to do with the hardware when readout is triggered</para>
+      </listitem>
+      <listitem>
+        <para>Defining the conditions for triggering readout</para>
+      </listitem>
+    </orderedlist>
+
+    <para>
+      In order to tell the software about our electronics, we are going to
+      develop a C++ class for our module.  That class will be a derived
+      class but we don't need to concern ourselves with the details of
+      the parent class. Like all of the software tailoring we need to do,
+      most of the details are hidden and we need only to fill in a few
+      holes.
+    </para>
+
+    <para>
+      The following commands will make a new directory and copy the
+      skeleton files to it:
+    </para>
+    <screen>
+mkdir -p ~/experiment/readout
+cd ~/experiment/readout
+cp $DAQROOT/skeletons/sbs/* .
+    </screen>
+
+    <section>
+      <title>Modifying the Readout Skeleton</title>
+
+      <para>
+        Now that we have obtained a copy of the Skeleton file we can
+        begin to think about the modifications we need to make. We need to tell
+        the software what kind of module we are using, how to initialize it, how
+        to clear it, and how to read it. We will do this by creating a class
+        called by MyEventSegment. In that class we will also define a timestamp
+        for our data so that the Readout program will produce a body header. For
+        lack of anything better to in this setup, we will use the event counter
+        as the timestamp. We will not have to write custom software for the
+        trigger condition because a class is already provided by NSCLDAQ that we
+        will make use of.
+      </para>
+      <para>
+        In order to follow good coding practice and to make our code as
+        versatile as possible, we will write our class in two separate
+        files, a header file and an implementation file. Start by creating
+        a file called MyEventSement.h. It should look like this:
+      </para>
+
+      <example>
+        <title>Header for MyEventSegment</title>
+        <programlisting>
+
+#ifndef MYEVENTSEGMENT_H                          <co  id="ex0_inc_protect"/>
+#define MYEVENTSEGMENT_H
+
+#include &lt;CEventSegment.h&gt;
+#include &lt;CDocumentedPacket.h&gt;
+#include &lt;CAENcard.h&gt;
+
+/*! \brief A class to read out a V785
+ *
+ * This class derives from the CEventSegment class and defines the basic
+ * functionality we desire of the V785 during read. It will format the data in
+ * a documented packet before sending it out.
+ * 
+ */
+class MyEventSegment : public CEventSegment               <co id="ex0_class_decl"/>
+{
+  private:
+    CDocumentedPacket m_myPacket;                         <co id="ex0_docpacket"/>
+    CAENcard          m_module;                           <co id="ex0_module_ptr"/>
+
+  public:
+    MyEventSegment(short slot, unsigned short Id);        <co id="ex0_ctor"/>
+    virtual void initialize();                            <co id="ex0_init"/> 
+    virtual void clear();                                 <co id="ex0_clear"/>
+    virtual size_t read(void* pBuffer, size_t maxwords);  <co id="ex0_read"/>
+
+  private:
+    uint64_t extractEventCount(uint16_t* pEOE);          <co id="ex0_computeTstamp"/>
+};
+#endif 
+        </programlisting>
+        <para>
+          The header defines the class, its internal data and the services
+          it exports to the readout framework. Refer to the circled
+          numbers in the listing above when reading the following
+          explanation
+        </para>
+
+        <calloutlist>
+          <callout arearefs='ex0_inc_protect'>
+            <para>
+              Each header should protect itself against being included more
+              than once per compilation unit. This #ifndef directive and
+              the subsequente #define do this. The first time the header is
+              included, MYEVENTSEGMENT_H is not defined, and the #ifndef
+              is true. This causes MYEVENTSEGMENT_H to be defined, which
+              prevents subsequent inclusions from doing anything.
+            </para> 
+          </callout> 
+          <callout arearefs='ex0_class_decl'>
+            <para>
+              The class we are defining, MyEventSegment, implements the
+              services of a base class called CEventSegment. Anything that
+              reads out a chunk of the experiment is an event segment and
+              must be derived from the CEventSegment base class.
+            </para> 
+          </callout> 
+          <callout arearefs='ex0_docpacket'>
+            <para>
+              The m_myPacket is a utility that will automate some of the
+              formatting of the data. It will wrap the data read out of
+              this device in a packet structure. This structure is a
+              32-bit inclusive size (units=16-bit words) followed by a
+              16-bit packet id and then a payload of data. Documented
+              packets do the book-keeping associated with maintaining the
+              packet structure as well as documenting their presence in
+              documentation records written at the beginning of the run.
+            </para> 
+          </callout> 
+          <callout arearefs='ex0_module_ptr'>
+            <para>
+              The support software for the CAEN V785 ADC is itself a
+              class: CAENcard. We will create an object of this class in
+              order to access the module. 
+            </para> 
+          </callout> 
+          <callout arearefs='ex0_ctor'>
+            <para>
+              This line declares the constructor for MyEventSegment. A
+              constructor is a function that is called to initialize the
+              data of an object when the object is being created
+              (constructed). 
+            </para> 
+          </callout> 
+          <callout arearefs='ex0_init'>
+            <para>
+              The Initialize member function is called whenever the run is
+              about to become active. If hardware or software requires
+              initialization, it can be done here. This function will be
+              called both when a run is begun as well as when a run is
+              resumed.
+            </para> 
+          </callout> 
+          <callout arearefs='ex0_clear'>
+            <para>
+              The clear method is called when it is appropriate
+              to clear any data that may have been latched into the
+              digitizers. This occurs at the beginning of a run and after
+              each event is read out.
+            </para> 
+          </callout> 
+          <callout arearefs='ex0_read'>
+            <para>
+              The read method is called in response to a trigger.
+              This member must read the part of the event that is managed
+              by this event segment. 
+            </para> 
+          </callout> 
+
+          <callout arearefs="ex0_computeTstamp">
+            <para>
+              We are declaring here a method that will extract the event
+              count from the end of event word added by the V785. This will be
+              used for our timestamp.
+            </para>
+          </callout>
+        </calloutlist>
+      </example>
+
+      <para>
+        We will also create an implementation file: MyEventSegment.cpp.
+        This file will implement the member functions that were defined by
+        MyEventSegment.h above. The contents of this file are shown below:
+      </para>
+
+      <example>
+        <title>Impementation of CMyEventSegment</title>
+        <programlisting>
+#include &lt;config.h&gt;
+#include &lt;string&gt;
+#include &lt;stdint.h&gt;
+
+#ifdef HAVE_STD_NAMESPACE                             <co id="ex1_ifdef_std"/>
+using namespace std;
+#endif
+
+// Set the polling limit for a timeout
+static unsigned int CAENTIMEOUT = 100;
+
+#include "MyEventSegment.h"                             <co id="ex1_include_hdr"/>
+
+// Packet version -should be changed whenever major changes are made
+// to the packet structure.
+static const char* pPacketVersion = "1.0";                    <co id="ex1_pkt_version"/>
+
+//constructor set Packet details
+MyEventSegment::MyEventSegment(short slot, unsigned short Id):
+  m_myPacket(Id,"My Packet","Sample documented packet",pPacketVersion),
+  m_module(slot)                                           <co id="ex1_initlist"/>
+{
+}
+
+// Is called right after the module is created. All one time Setup
+// should be done now.
+void MyEventSegment::initialize()
+{
+  m_module.reset();                                        <co id="ex1_mod_ptr_reset"/>
+  clear();
+}
+
+// Is called after reading data buffer
+void MyEventSegment::clear()
+{
+  // Clear data buffer
+  m_module.clearData();                                    <co id="ex1_mod_ptr_clearData"/> 
+}
+
+//Is called to readout data on m_module
+size_t MyEventSegment::read(void* pBuffer, size_t maxsize)
+{
+  // Loop waits for data to become ready
+  for(int i=0;i&lt;CAENTIMEOUT; i++) {                      <co id="ex1_poll_for_data"/>
+
+    // If data is ready stop looping
+    if(m_module.dataPresent()) {
+      break;
+    }
+  }
+
+  size_t nShorts = 0;
+  // Tests again that data is ready
+  if(m_module.dataPresent())
+  {
+    // Opens a new Packet
+    uint16_t* pBufBegin = reinterpret_cast&lt;uint16_t*&gt;(pBuffer); <co id="ex1_reinterpret_cast"/>
+    uint16_t* pBuf = m_myPacket.Begin(pBufBegin);            <co id="ex1_pkt_begin"/>
+
+    // Reads data into the Packet
+    int nBytesRead = m_module.readEvent(pBuf);               <co id="ex1_read_event"/>
+
+    // Closes the open Packet
+    uint16_t* pBufEnd = m_myPacket.End(pBuf+nBytesRead/sizeof(uint16_t));  <co id="ex1_pkt_end"/>
+
+    nShorts = (pBufEnd-pBufBegin);                           <co id="ex1_compute_size"/>
+
+    // set the timestamp
+    setTimestamp(extractEventCount(pBufEnd-2));             <co id="ex1_setTstamp"/> 
+  }
+
+  return nShorts;                                            <co id="ex1_return"/>
+}
+
+// Extract the lower 24-bits of the end of event word
+uint64_t MyEventSegment::extractEventCount(uint16_t* pEOE) 
+{
+    uint64_t count =  *(pEOE)&lt;&lt;16;
+    count          |= *(pEOE+1);
+    return (count&amp;0x00ffffff);                          <co id="ex1_extractCount"/>
+}
+        </programlisting>
+
+        <calloutlist>
+          <callout arearefs='ex1_ifdef_std'>
+            <para>
+              The lines beginning with the #include of config.h and ending
+              with the #endif near here are boilerplate that is required
+              for all implementation (.cpp) files for Readout skeletons
+              at version 8.0 and later.
+            </para>
+          </callout>
+          <callout arearefs='ex1_include_hdr'>
+            <para>
+              In order to get access to the class definition, we must
+              include the header that we wrote that defines the class
+            </para>
+          </callout>
+          <callout arearefs='ex1_pkt_version'>
+            <para>
+              Recall that we will be putting our event segment into a
+              packet. The packet will be managed by a documented packet
+              (CDocumentedPacket) object. This packet can document the
+              revision level, or version of the structure of its body.
+              The string pPacketVersion will document the revision level
+              of the packet body for our packet.
+            </para>
+          </callout>
+          <callout arearefs='ex1_initlist'>
+            <para>
+              This code in the constructor is called an initializer list.
+              Initializer lists specify a list of constructor calls that are used
+              to construct base classes and data members of an object
+              under construction. The Id constructor parameter is used as
+              the id of the m_myPacket CDocumentedPacket. The three
+              strings that follow are, respectively, a packet name, a
+              packet description and the packet body revision level.
+              These items are put in the documentation entry for the
+              packet that is created by the packet at the beginning of
+              the run. Lastly, the CAENcard object is constructed using
+              slot number of the V785 for the geographical address
+              of the module.
+            </para>
+          </callout>
+          <callout arearefs='ex1_mod_ptr_reset'>
+            <para>
+              This code initializes the CAEN V785 module by resetting it
+              to the default data taking settings, and then invoking our
+              clear member function to clear any data that may be
+              latched.
+            </para>
+          </callout>
+          <callout arearefs='ex1_mod_ptr_clearData'>
+            <para>
+              This code clears any data that is latched in the module.
+            </para>
+          </callout>
+          <callout arearefs='ex1_poll_for_data'>
+            <para>
+              The trigger for reading this device out was generated by a
+              separate module that may have been generated prior to the
+              conversion has been completed and thereby ready to read out.
+              For this reason, we will poll the device a finite number
+              of times until the device indicates it is ready to be read
+              out. The CAENcard::dataPresent() function returns true when
+              the module has converted data buffered for read out. At that
+              time, control breaks out of the loop.
+            </para>
+          </callout>
+          <callout arearefs='ex1_reinterpret_cast'>
+            <para>
+              The address of the buffer was passed to the method as a
+              pointer without a type. We call this a "void pointer" (i.e.
+              void*). Though useful for passing an address to a generic
+              chunk of memory, there is little else useful that can
+              actually be done with it. To make this more meaningful for
+              filling our buffer, we declare that the pointer is referring
+              to memory segments of 16-bit width (i.e. type = uint16_t).
+              Since the compiler has no way of understanding that this is
+              valid way to treat the buffer, we must flag this as a
+              special type of cast where the memory is reinterpreted to be
+              of a different type. We are basically telling the compiler
+              that we know enough about what we are doing that it should
+              allow us to do so.
+            </para>
+          </callout>
+          <callout arearefs='ex1_pkt_begin'>
+            <para>
+              This call to the Begin member of our documented packet
+              indicates that we are starting to read data into the body of
+              the packet. The code reserves 32-bits for the word count and
+              then writes the 16-bit packet id. The return value is a "pointer" to
+              the body of the packet. 
+            </para>
+          </callout>
+          <callout arearefs='ex1_read_event'>
+            <para>
+              Data are read from the ADC into the packet.
+            </para>
+          </callout>
+          <callout arearefs='ex1_pkt_end'>
+            <para>
+              The size of the packet is written to the space reserved for
+              it, the packet is closed, and a "pointer" is returned to
+              the next free word in the buffer. 
+            </para>
+          </callout>
+          <callout arearefs='ex1_compute_size'>
+            <para>
+              The number of 16-bit words that have been added to the
+              buffer is computed. It is computed by taking the distance
+              between pointers that reference the original position in
+              the buffer before data was added and the position
+              afterwards. 
+            </para>
+          </callout>
+          <callout arearefs="ex1_setTstamp">
+            <para>
+              By calling the CEventSegment::setTimestamp() method, we are
+              ensuring that the event is emitted with a body header. Our
+              solution is to just assign the event count.  
+            </para>
+          </callout>
+          <callout arearefs='ex1_return'>
+            <para>
+              Returns the number of 16-bit words added to the data.
+            </para>
+          </callout>
+          <callout arearefs='ex1_extractCount'>
+            <para>
+              The function takes a pointer to the first 16-bits of the end of
+              event word. From the V785 manual, we know that this is a 32-bit
+              word whose lower 24 bits encode the event count. We just need to
+              do some bit-wise arithmetic to extract those 24 bits and return
+              their value.
+            </para>
+          </callout>
+        </calloutlist>
+      </example>
+
+      <para>
+        The numbers below refer to the circled numbers in the example
+        above.
+      </para>
+    </section>
+
+    <section>
+            <title>Integrating your event segment with Readout</title>
+
+            <para>
+              Once you have created one or more event segments, you must
+              register them with the Readout software.  Whenever the Readout
+              software must do something to its event segments, it calls the
+              appropriate member function in each event segment that has been
+              registered, in the order in which it has been registered.
+            </para>
+
+            <para>
+              Edit <literal>Skeleton.cpp</literal>. Towards the top of that
+              file, after all the other #include statements, add:
+            </para>
+
+            <programlisting>
+#include &lt;CCAENV262Trigger.h&gt;
+#include "MyEventSegment.h"
+            </programlisting>
+
+            <para>
+              This is necessary because we will be creating an object of class
+              MyEventSegment. We have also included a predefined class for the CCAENV262
+              IO register. We use this device as a trigger interface.
+            </para>
+
+            <para>
+              Next, locate the function
+              <literal>CMyExperiment::SetupReadout()</literal> Modify it to
+              create an instance of <literal>MyEventSegment</literal> and
+              register it to the experiment.  In this method we will also
+              instantiate our trigger instance. We provide the base address as
+              the argument to the CCAENV262Trigger constructor which should have
+              been set using the jumper switches on the board to be 0x00100000.
+            </para>
+
+            <programlisting>
+void
+CMyExperiment::SetupReadout(CExperiment* pExperiment)
+{
+  assert(pExperiment!=0);
+  CReadoutMain::SetupReadout(pExperiment);
+  pExperiment->AddEventSegment(new MyEventSegment(10, 0xff00));
+
+  // Register a the trigger module that is situated at base address
+  // 0x00100000.
+  pExperiment->EstablishTrigger(new CCAENV262Trigger(0x00100000));
+}
+            </programlisting>
+
+            <para>
+              This code creates a new event segment for a CAEN V785 in slot 10,
+              which will be read out into a packet with ID 0xff00.
+            </para>
+          </section>
+
+          <section>
+            <title>Compiling the Readout program</title>
+            <para>
+              Now that the source code for the Readout program is complete, 
+              we need to compile it into an executable.
+            </para>
+
+            <para>
+              First, edit the Makefile supplied with the skeleton code so that
+              it knows about your additional program files. Locate the line
+              that reads:
+            </para>
+
+            <programlisting>
+Objects=Skeleton.o
+            </programlisting>
+
+            <para>
+              and modify it so that it reads:
+            </para>
+
+            <programlisting>
+Objects=Skeleton.o MyEventSegment.o
+            </programlisting>
+
+            <para>
+              Save this edit, exit the editor and type:
+            </para>
+
+            <programlisting>
+make
+            </programlisting>
+
+            <para>
+              This will attempt to compile your readout software into an
+              executable program called Readout. If the make command fails, fix
+              the compilation errors indicated by it and retry until you get an
+              error free compilation
+            </para>
+          </section>
+      </section>
+
+      <section>
+        <title>The dumper program</title>
+        <para>
+          When we run our program, we are going to want to inspect the data
+          that is being read out from the hardware. To do this, we will use the
+          <command>dumper</command> program. But first, we need to understand a
+          little bit about a ring buffer (a.k.a. a "ring"). 
+        </para>
+
+        <section>
+          <title>A very brief introduction to ring buffers</title>
+          <para>
+            A ring buffer is a fundamental component of the system
+            NSCLDAQ uses to pass data from one process to another and is where
+            the readout program sends its data. Other processes can then read
+            the data from that ring buffer. From the vantage point of the ring
+            buffer, the program filling it with data is its
+            <emphasis>producer</emphasis> and the programs that read from it
+            are its <emphasis>consumers</emphasis>. There is only allowed to
+            be a single producer per ring buffer while there may be many
+            consumers.
+          </para>
+          <para>
+            Ring buffers are local to a specific computer but are accessible
+            over the network. Each ring buffer is identified by a user-defined
+            name and the hostname of the computer it is located on. When
+            processes want to attach to a ring to either produce or consume
+            its data, they must specify the name of the ring via a universal
+            resource identifier (URI). The URI specifies the protocol
+            (<literal>proto://</literal>), the hostname
+            (<literal>host</literal>), and the name of the ring
+            (<literal>name</literal>) as a single string:
+            <literal>proto://host/name</literal>. When a user attaches to a
+            ring on another computer, a service running in the background
+            called <literal>RingMaster</literal> sets up the connection that
+            will stream the data across the network for you. In this way, the
+            nework is basically transparent.
+          </para>
+        </section>
+
+        <section>
+          <title>Starting up the dumper program</title>
+          <para>
+            The program provided by NSCLDAQ for consuming data from a ring
+            buffer and printing it to a terminal is called
+            <command>dumper</command>. It is probably the most fundamental
+            diagnostic provided by NSCLDAQ and is incredibly useful in
+            understanding the integrity of a Readout program. We will use it
+            inspect the data outputted by our Readout program.
+          </para>
+
+          <para>
+            To start the <command>dumper</command> program, log onto any
+            computer on the same network as the one physically connected to
+            the VME crate in which your CAEN V785 has been installed.
+            Typically this is the same machine, but it doesn't have to be.
+            To launch the program, you have to specify the hostname of the
+            computer running the Readout program and also the name of the
+            ringbuffer to connect to. The default values for these are
+            "localhost" and your username. Assuming the Readout
+            program is running locally (i.e. hostname=localhost) and your user
+            name is "user0", you would type either:
+          </para>
+
+            <screen>
+<literal>spdaqxx&gt;</literal> <command>dumper --source=tcp://localhost/user0</command>
+            </screen>
+            <para>
+              or equivalently,
+            </para>
+            <screen>
+<literal>spdaqxx&gt;</literal> <command>dumper</command>
+            </screen>
+
+            <para>
+              The dumper terminal session will probably start spewing stuff at
+              to the console once the run starts at a rate that is unreadable. 
+              It is generally useful then to limit
+              the number of ring items processed by the dumper by passing the
+              <option>--count</option> option. The value provided to this at
+              launch determines the number of items to process before exiting.
+            </para>
+
+            <para>
+              You should now attach this to the ring buffer that will 
+              contain your Readout program's output. Its name will default to
+              your username. For illustration purposes, we once again assume
+              your username is "user0". Here is how to tell the dumper program
+              to dump the first 10 events that pass through it.
+            </para>
+
+            <screen>
+<literal>spdaqxx&gt;</literal> <command>dumper --source=tcp://localhost/user0 --count=10</command>
+            </screen>
+
+            <para>
+              If this failed with some output like this:
+            </para>
+            <screen>
+<literal>spdaqxx&gt;</literal> <command>dumper --source=tcp://localhost/user0 --count=10</command>
+Failed to open data source tcp://localhost/user0
+No such file or directory
+exiting
+            </screen>
+            <para>
+              it just means that the ring buffer has not been created yet. You
+              should create it and then start your dumper program again. Here is
+              how you do that:
+            </para>
+            <screen>
+<literal>spdaqxx&gt;</literal> <command>ringbuffer create user0</command>
+<literal>spdaqxx&gt;</literal> <command>dumper --source=tcp://localhost/user0 --count=10</command>
+            </screen>
+          </section>
+        </section>
+
+        <section>
+            <title>Running the Readout Program</title>
+
+            <para>
+              The Readout program must run on a system that is physically
+              connected to the VME crate containing your hardware. Note that
+              the ReadoutShell tool can be used to wrap your program with a
+              Graphical user interface (GUI), and run it on the requested
+              remote system. While debugging your software we do not recommend
+              this. It's better just to run the software from the command line,
+              or under control of the gdb symbolic debugger (see man gdb for
+              more information about this extremely powerful debugging tool).
+            </para>
+
+            <para>
+              In this section we will show how to use the command line to start
+              your Readout program, start data taking, stop data taking, and
+              exit it.
+            </para>
+
+
+
+            <para>
+              To start the readout software, form another terminal session to
+              the computer that is connected to your VME crate, set the default
+              directory to where you built your software and start the Readout
+              program.
+            </para>
+
+            <screen>
+<literal>spdaqxx&gt;</literal> <command>cd ~/experiment/readout</command>
+<literal>spdaqxx&gt;</literal> <command>./Readout</command>
+            </screen>
+
+            <para>
+              When Readout starts, it will prompt you for input with a
+              <literal>%</literal> symbol.
+            </para>
+            <para>
+              The Readout program you have built runs an extended Tcl
+              interpreter. Tcl is a scripting language that is widely used
+              throughout the NSCL as an extension language. It provides a
+              common base language for programming applications. Each program
+              in turn extends this language with a set of commands that allow
+              you to control the application itself. 
+            </para>
+
+            <para>
+              The commands we will be working with are:
+            </para>
+
+            <variablelist>
+              <varlistentry>
+                <term><emphasis>begin</emphasis></term>
+
+                <listitem>
+                  <para>
+                    Begins a run. From the point of view of your code, the
+                    initialize and clear member functions of your event segment
+                    will be called. The Readout framework will continually check
+                    whether your trigger is satisfied and then call the
+                    read member function of your event segment when it is.
+                  </para>
+                </listitem>
+              </varlistentry>
+
+              <varlistentry>
+                <term><emphasis>end</emphasis></term>
+                <listitem>
+                  <para>
+                    Ends a run. The readout framework stops responding to
+                    triggers.
+                  </para>
+                </listitem>
+              </varlistentry>
+            </variablelist>
+
+            <para>
+              Tell the readout program to start a run:
+            </para>
+
+            <screen>
+% <command>begin</command>
+            </screen>
+
+            <para>
+              After some time passes and you are ready to end the run, you can
+              do so by typing:
+            </para>
+
+            <screen>
+% <command>end</command>              
+            </screen>
+
+            <para>
+              At this point, you can either start a new run in the same way you
+              just did or exit the Readout program entirely. To exit the
+              program, you simply type:
+            </para>
+            <screen>
+% <command>exit</command>              
+            </screen>
+
+          </section>
+
+          <section>
+            <title>Interpreting the dumper output</title>
+
+            <para>
+              When the run started, the <command>dumper</command> program should
+              have dumped the data contained in the first ten ring items. Each
+              chunk of data is separated from the next by a row of dashes. The
+              first ring item specified the data format; the second, some
+              information about the transition to actively taking data; the
+              third, documentation about the packet we defined; and the forth, event
+              statistics information. This is effectively what those look like.
+            </para>
+
+            <screen>
+              <computeroutput>
+-----------------------------------------------------------
+Ring items formatted for: 11.0
+-----------------------------------------------------------
+Fri Feb 20 13:56:08 2015 : Run State change : Begin Run at 0 seconds into the run
+Body Header:
+Timestamp:    18446744073709551615
+SourceID:     0
+Barrier Type: 1
+Title     : Set New Title
+Run Number: 0
+-----------------------------------------------------------
+Fri Feb 20 13:56:08 2015 : Documentation item Packet typesBody Header:
+Timestamp:    18446744073709551615
+SourceID:     0
+Barrier Type: 0
+0 seconds in to the run
+My Packet:0xff00:Sample documented packet:1.0:Fri Feb 20 13:56:04 2015
+
+-----------------------------------------------------------
+No body header
+Fri Feb 20 13:56:08 2015 : 0 Triggers accepted as of 0 seconds into the run
+ Average accepted trigger rate: -nan events/second
+              </computeroutput>
+            </screen>
+
+            <para>
+              The remainder of the output should have been event data that was
+              filled in by the MyEventSegment::read() method. Each of these
+              starts off indicating the size of the event body. They are all 22
+              bytes long. The next four lines specify the information contained
+              in the body header, and then the body data is the list of
+              16-bit-wide, hexadecimal numbers that follow. The first two of
+              these words specify the inclusive size of the entire body in units of
+              16-bit words; it was added by the Readout framework for us. Here is a
+              sample of the first dumped event.
+            </para>
+            <screen>
+              <computeroutput>
+-----------------------------------------------------------
+Event 22 bytes long
+Body Header:
+Timestamp:    0
+SourceID:     0
+Barrier Type: 0
+000b 0000 0009 0000 ff00 5200 0100 5001
+4e2a 5400 0000
+              </computeroutput>
+            </screen>
+            <para>
+              You can see that the body header contains correct information. We
+              derived the timestamp from the event count and this is the first
+              event, so it should be zero.  You should see that the subsequent
+              events have timestamps that increment by one from one event to the
+              next. The source id is 0, because that is the default value and we
+              didn't specify an alternative. Finally, the barrier type is 0,
+              which is correct for all physics events.
+            </para>
+            <para>
+              The first 32-bits of the body form the inclusive size. Here that number 
+              is 0x0000000b or 11. That makes good sense because we can
+              count 11 16-bit words in the body that was dumped.
+            </para>
+            <para>
+              The remainder of the body is the packet we defined in our
+              MyEventSegment::read() function. The structure of the documented
+              packet is a 32-bit inclusive size, 16-bit type, and then generic
+              data filled in by the V785. By looking at the manual for the V785, we learn that 
+              it adds a series of 32-bit words. So to help understand the
+              data in our packet, I will rewrite it in a clearer way by
+              reordering and grouping these 16-bit chunks. The packet has the
+              form:
+            </para>
+            <example>
+              <title>The Packet Data </title>
+              <programlisting>
+00000009 <co id="docpkt_size"/>
+ff00     <co id="docpkt_id"/>
+52000100 <co id="docpkt_bufstart"/>
+50014e2a <co id="docpkt_data"/>
+54000000 <co id="docpkt_end"/>
+              </programlisting>
+
+            <calloutlist>
+              <callout arearefs="docpkt_size">
+                <para>
+                  The 32-bit inclusive size is just 9 16-bit words.
+                </para>
+              </callout>
+              <callout arearefs="docpkt_id">
+                <para>
+                  The 16-bit packet type is the number 0xff00 that we defined.
+                </para>
+              </callout>
+              <callout arearefs="docpkt_bufstart">
+                <para>
+                  This is the 32-bit buffer header produced by the V785. It
+                  encodes the following information: slot=10, pieces of data in
+                  buffer = 1.
+                </para>
+              </callout>
+              <callout arearefs="docpkt_data">
+                <para>
+                  The only piece of the data in the buffer produced by the V785.
+                  This says that the value was 0xe2a or 3626 and that it
+                  corresponds to channel 1 of of the module in slot 10.
+                </para>
+              </callout>
+              <callout arearefs="docpkt_end">
+                <para>
+                  The final 32-bit word is the end of block marker for the V785.
+                  The lower 24-bits form the event count and it specifies it is
+                  for the card in slot 10. Because this is the first event, the
+                  event count is 0.
+                </para>
+              </callout>
+            </calloutlist>
+          </example>
+          <para>
+            The makes complete sense and this we can now rest assured that our
+            system is set up correctly.
+          </para>
+    </section>
+</chapter>
+<!-- /chapter -->

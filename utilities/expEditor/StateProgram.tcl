@@ -65,6 +65,7 @@ snit::type StateProgram {
     delegate method getPosition   to gui
     delegate method getId         to gui
     delegate method size          to gui
+    delegate method bind          to gui
 
     
     ##
@@ -115,5 +116,12 @@ snit::type StateProgram {
         $newObject _replaceData [$data clone]
         
         return $newObject
+    }
+    ##
+    # type
+    #   Return the object type.
+    #
+    method type {} {
+        return state-program
     }
 }

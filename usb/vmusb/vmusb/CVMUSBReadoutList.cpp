@@ -154,6 +154,16 @@ CVMUSBReadoutList::get() const
 {
    return m_list;
 }
+
+/*!
+  Append the contents of another readoutlist to this one
+*/
+void CVMUSBReadoutList::append(const CVMUSBReadoutList& list)
+{
+  const std::vector<uint32_t>& other = list.get();
+  m_list.insert(m_list.end(), other.begin(), other.end());
+}
+
 /////////////////////////////////////////////////////////////////////
 //  register operations.
 
@@ -409,7 +419,7 @@ CVMUSBReadoutList::addBlockRead32(uint32_t baseAddress, uint8_t amod,
   Add a 32 block >write< to the list.
   - The base address must be longword aligned.
   - The address modifier must be one of the block transfer mode.
-  - At most 256 bytes can be transferred (256 bytes - 1 long).
+  - There must be at least 2 transfers specified. Using this to transfer 1 word will fail.
   @param baseAddress - Base of the target block.
   @param amod        - address modifier.
   @param data        - Data to transfer.
@@ -419,18 +429,18 @@ void
 CVMUSBReadoutList::addBlockWrite32(uint32_t baseAddress, uint8_t amod,
 				   void* data, size_t transfers)
 {
-  uint32_t mode   = (static_cast<uint32_t>(amod) << modeAMShift) & modeAMMask;
-  mode           |= (transfers) << modeBLTShift;
+
+  // full universal MBLT -- doesn't seem to work
+  uint32_t mode = (static_cast<uint32_t>(amod) << modeAMShift) & modeAMMask;
+  mode         |= (0xff<<24);
+
   m_list.push_back(mode);
+  m_list.push_back(transfers);
   m_list.push_back(baseAddress);
   
   // Put the data in the list too:
-  
   uint32_t* src = reinterpret_cast<uint32_t*>(data);
-  while (transfers) {
-    m_list.push_back(*src++);
-    transfers--;
-  }
+  m_list.insert(m_list.end(), src, src+transfers);
   
 }
 

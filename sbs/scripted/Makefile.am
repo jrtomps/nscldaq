@@ -112,7 +112,7 @@ ScriptedReadout_LDADD = @top_builddir@/sbs/scripted/libScriptedRdo.la   \
 	-lpthread
 
 
-EXTRA_DIST=Makefile.skel scriptedreadout_Makefile.include scripted.xml
+EXTRA_DIST=@srcdir@/Makefile.skel @srcdir@/scriptedreadout_Makefile.include @srcdir@/scripted.xml
 
 
 #
@@ -141,8 +141,8 @@ install-exec-local:
 	$(INSTALL_DATA)   @srcdir@/*.h   @prefix@/skeletons/scriptedReadout/include
 	$(INSTALL_DATA)    @srcdir@/Skeleton.cpp @srcdir@/Skeleton.h  \
 				@prefix@/skeletons/scriptedReadout/skel
-	echo INSTDIR=@prefix@                                 > Makefile.user
-	cat  @srcdir@/Makefile.skel                                    >> Makefile.user
+	echo INSTDIR=@prefix@                                 > @srcdir@/Makefile.user
+	cat  @srcdir@/Makefile.skel                                    >> @srcdir@/Makefile.user
 	$(INSTALL_DATA) @srcdir@/Makefile.user \
 		@prefix@/skeletons/scriptedReadout/skel/Makefile
 	$(INSTALL_DATA) @srcdir@/scriptedreadout_Makefile.include \

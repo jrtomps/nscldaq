@@ -1,5 +1,5 @@
 <!-- chapter frameworks -->
-<chapter>
+<chapter id="chapter.evb-orderer-dev0">
     <title>Event orderer and its user interface</title>
     <para>
         The NSCL event builder is a two stage pipeline.  The first stage of the
@@ -430,7 +430,7 @@ EVB::maintainGUI .test                 <co id='orderstart_maintain' />
         </variablelist>
     </section>
 </chapter>
-<chapter>
+<chapter id="chapter.evb-orderer-dev">
     <title>Event builder client framework</title>
     <para>
         <link linkend='evbapi_chap' endterm='evbapi_chaptitle' /> describes a low
@@ -4737,7 +4737,7 @@ EVB::getSourceTimeout
             </cmdsynopsis>
             <cmdsynopsis>
                 <command>
-EVB::startRingFragmentSource <replaceable>url tsex id desc exitmsg</replaceable>
+EVB::startRingFragmentSource <replaceable>url tsex id desc ?expectHeaders oneshot timeout?</replaceable>
                 </command>
             </cmdsynopsis>
             <cmdsynopsis>
@@ -4906,7 +4906,7 @@ EVB::startGretinaFragmentSource <replaceable>url id ?desc?</replaceable>
                 <term>
                     <cmdsynopsis>
                         <command>
-        EVB::startRingFragmentSource <replaceable>url tsex id desc exitmsg</replaceable>
+        EVB::startRingFragmentSource <replaceable>url tsex id desc ?expectHeaders oneshot timeout?</replaceable>
                         </command>
                     </cmdsynopsis>
                 </term>
@@ -4928,11 +4928,33 @@ EVB::startGretinaFragmentSource <replaceable>url id ?desc?</replaceable>
                         the source will provide the event builder when it starts.
                     </para>
                     <para>
-                        The event source runs as a child process whose
-                        stdout and stderr are a pipeline that is monitored.
-                        If an end of file is sensed on that pipe, a message
-                        including <parameter>exitmsg</parameter> is displayed
-                        as a dialog on the UI.
+                        The <parameter>expectHeaders</parameter> optional parameter
+                        is a valid Tcl boolean. When true, the source expects
+                        the ring items will have valid body headers.  If true,
+                        the <parameter>tsex</parameter> and <parameter>id </parameter>
+                        parameters will be ignored and
+                        those data will be pulled from the item body headers.
+                        the default value is false.
+                    </para>
+                    <para>
+                        The <parameter>oneshot</parameter> and
+                        <parameter>timeout</parameter> parameters cooperate to
+                        enable the data source to exit after sensing the run has
+                        ended.   <parameter>oneshot</parameter> if present
+                        and non-zero tells the fragment source to exit
+                        after <parameter>oneshot</parameter> end run items
+                        have been seen.  <parameter>oneshot</parameter> can be
+                        any positive integer, allowing for hierarchical
+                        event building.
+                    </para>
+                    <para>
+                        <parameter>timeout</parameter>, if present is the
+                        maximum number of seconds that can elapse between
+                        observing the first end run item and the last end run
+                        item (<parameter>oneshot</parameter> nonzero).  If
+                        this time elapses, the ring fragment source times out
+                        and exits.  The default value for this parameter is
+                        <literal>10</literal>.
                     </para>
                 </listitem>
             </varlistentry>
@@ -5368,7 +5390,16 @@ EVB::config get <replaceable>name</replaceable>
                                     Each element of this list is itself a sublist
                                     that contains in order, the source id,
                                     the number of fragments in the queue
-                                    (depth) and the oldest fragment in the queue.
+                                    (depth), the timestamp of the oldest
+                                    fragment in the queue, the number of bytes
+                                    in the fragments queued in the queue and
+                                    the number of bytes that have been dequeued
+                                    from the queue.
+                                </para>
+                                <para>
+                                    All of these statistics get reset when the
+                                    <command>EVB::reset</command> command is
+                                    executed.
                                 </para>
                             </listitem>
                         </itemizedlist>

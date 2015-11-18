@@ -58,7 +58,7 @@ class CReadoutHardware;
 
 \verbatim
    This command is an ensemble of the form:
-   xxx create name -slot n
+   xxx create name
    xxx config name option-value-pairs
    xxx cget   name
 \endverbatim

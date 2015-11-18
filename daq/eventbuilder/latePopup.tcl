@@ -56,6 +56,9 @@ package require EVB::Late
         pack $contents -fill both -expand 1;           # let it grow with the toplevel.
         
         $self configurelist $args
+        
+        set me $::tcl_platform(user)
+        wm title $win "Late frags $me"
     }
     
  }

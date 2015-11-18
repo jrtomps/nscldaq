@@ -58,6 +58,9 @@ namespace eval EVB {
 #  - -hottestcount     - Number of fragments output by -hottestid.
 #  - -coldestid        - Source id with the fewest output fragments.
 #  - -coldestcount     - Number of fragments output by -coldestid.
+#  - -outbytes         - Total number of bytes output.
+#  - -outrate          - Output rate.
+#
 #
 #  LAYOUT:
 #   Rough layout.
@@ -65,6 +68,8 @@ namespace eval EVB {
 #
 #   +-----------------------------------------+
 #   |Total Fragments          <fragcount>     |
+#   |Total bytes              <outbytes>      |
+#   |Output Rate              <outrate>       |
 #   |           id            count           |
 #   | hottest   <id>          <fragcount>     |
 #   | coldest   <id>          <fragcount>     |
@@ -77,6 +82,8 @@ snit::widgetadaptor ::EVB::outputSummary {
     option -hottestcount -default "" -configuremethod _unsignedOption
     option -coldestid    -default ""
     option -coldestcount -default "" -configuremethod _unsignedOption
+    option -outbytes     -default 0  -configuremethod _unsignedOption
+    option -outrate      -default 0.0
     
     delegate option -text to hull
     
@@ -86,12 +93,17 @@ snit::widgetadaptor ::EVB::outputSummary {
         #  Create the widgets (all ttk::label s)
         
         ttk::label $win.fragl   -text {Total Fragments}
+        ttk::label $win.bytesl  -text {Total bytes}
+        ttk::label $win.ratel   -text {Output rate}
         ttk::label $win.idl     -text {Source ID}
         ttk::label $win.countl  -text {Fragment Count}
         ttk::label $win.hotl    -text {Hottest}
         ttk::label $win.coldl   -text {Coldest}
+
         
         ttk::label $win.frag           -textvariable ${selfns}::options(-fragments)
+        ttk::label $win.bytes          -textvariable ${selfns}::options(-outbytes)
+        ttk::label $win.rate           -textvariable ${selfns}::options(-outrate)
         ttk::label $win.hotid          -textvariable ${selfns}::options(-hottestid)
         ttk::label $win.hotcount       -textvariable ${selfns}::options(-hottestcount)
         ttk::label $win.coldid         -textvariable ${selfns}::options(-coldestid)
@@ -99,7 +111,9 @@ snit::widgetadaptor ::EVB::outputSummary {
         
         # Lay them out
         
-        grid $win.fragl   -           $win.frag 
+        grid $win.fragl   -           $win.frag
+        grid $win.bytesl  -           $win.bytes
+        grid $win.ratel   -           $win.rate
         grid x            $win.idl    $win.countl
         grid $win.hotl    $win.hotid  $win.hotcount  
         grid $win.coldl   $win.coldid $win.coldcount 

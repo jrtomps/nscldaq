@@ -43,7 +43,8 @@ using namespace std;
 #include <CSynchronizedThread.h>
 
 class CCCUSB;
-class CControlModule;
+//class CControlModule;
+#include <CControlModule.h>
 class CTCLInterpreter;
 
 /*!
@@ -95,18 +96,20 @@ public:
   void start(int port, const char* configFile, CCCUSB& vme);
   CControlModule* findModule(std::string name);
   void            addModule(CControlModule* pNewModule);
-  void            setResult(std::string resultText);
+  virtual void            setResult(std::string resultText);
 
   virtual void    init();
   CTCLInterpreter* getInterp() { return m_pInterpreter; }
+
+  void readConfigFile();
+  void initModules();
+
   void  scheduleExit();
 protected:
   void operator()();
 
 private:
   void initInterpreter();
-  void readConfigFile();
-  void initModules();
   void startTcpServer();
   void EventLoop();
   static void updateVariables(void* pThis);

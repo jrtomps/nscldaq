@@ -79,9 +79,6 @@ CFilterMain::CFilterMain(int argc, char** argv)
     std::cout << exc.WasDoing() << std::endl;
     throw CFatalException();
   }
-  catch (...) {
-    throw CFatalException();
-  }
 }
 
 

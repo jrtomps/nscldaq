@@ -1,0 +1,182 @@
+<!-- manpage 1daq -->
+<refentry id="manpage.ringbuffer">
+  <refmeta>
+     <refentrytitle>ringbuffer</refentrytitle>
+     <manvolnum>1daq</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>ringbuffer</refname>
+     <refpurpose>Manage ring buffers.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <cmdsynopsis>
+	<command>
+ringbuffer create <replaceable>?--datasize=n? ?--maxconsumers=n?   name</replaceable>
+	</command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+ringbuffer format <replaceable>?--maxconsumers=n? name</replaceable>
+        </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+ringbuffer delete <replaceable>name</replaceable>
+        </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+ringbuffer status <replaceable>?--host=hostname? ?pattern?</replaceable>
+        </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+ringbuffer list   <replaceable>?--host=hostname?</replaceable>
+        </command>
+    </cmdsynopsis>
+
+
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+	The <command>ringbuffer</command> command is an ensemble of commands
+        that manipulate NSCL ring buffers.  A command ensemble is a single command
+        that has subcommands.  The subcommands determine what is actually done.
+        See ENSEMBLE COMMANDS for a description of each ensemble subcommand.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>ENSEMBLE COMMANDS</title>
+     <variablelist>
+	<varlistentry>
+	    <term><command>ringbuffer create <replaceable>?--datasize=n? ?--maxconsumers=n?   name</replaceable></command></term>
+	    <listitem>
+		<para>
+                    Creates a new ring buffer.  The <parameter>name</parameter>
+                    parameter is mandatory and is the name of the new ring buffer.
+                    The ringbuffer name must not have any <literal>/</literal>
+                    characters embedded in it.  Since the
+                    <command>ringbuffer</command> command is actually a
+                    <application>Tcl</application> script it's probably a good
+                    idea to avoid characters that have special meaning to Tcl
+                    as well.
+		</para>
+	    </listitem>
+	</varlistentry>
+        <varlistentry>
+            <term><command>ringbuffer format <replaceable>?--maxconsumers=n? name</replaceable></command></term>
+            <listitem>
+                <para>
+                    Formats the header of the ring buffer <parameter>name</parameter>.
+                    <parameter>name</parameter> must already exist.
+                    If provided, the value of the optional option
+                    <option>--maxconsumers</option> determines how many
+                    consumers can simultaneously connect to the ring buffer.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><command>ringbuffer delete <replaceable>name</replaceable></command></term>
+            <listitem>
+                <para>
+                    Marks the ring buffer
+                    <parameter>name</parameter>
+                    for deletion.
+                    <parameter>name</parameter>
+                    immediately is no longer available for new attachments.
+                    Once all existing attached clients have detached, the
+                    ring buffer shared memory region will be deleted.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><command>ringbuffer status <replaceable>?--host=hostname? ?pattern?</replaceable></command></term>
+            <listitem>
+                <para>
+                    Outputs the status of all active ring buffers that match
+                    <parameter>pattern</parameter> to stdout.  If <parameter>pattern</parameter>
+                    is not supplied, it defaults to <literal>*</literal> which
+                    matches the names of all ring buffers.  Note that if you use
+                    patterns with wildcards you should quote the pattern to
+                    suppress the command shell's attempts to do file name
+                    expansions. Note that a ring buffer is active if it has
+                    attached clients.
+                </para>
+                <para>
+                    If the <option>--host</option> option is supplied, its value
+                    is the name of the system whose ring buffers are inquired.
+                    This defaults to <literal>localhost</literal>.
+                </para>
+                <para>
+                    The ring buffer status is listed in tabular form.
+                    Here is some sample output:
+                </para>
+                <example>
+                    <title>Sample output from <command>ringbuffer status</command></title>
+                    <screen>
+<computeroutput>
++------+------------+-------+-------------+--------+---------+---------+------+-------------+
+|Name  |data-size(k)|free(k)|max_consumers|producer|maxget(k)|minget(k)|client|clientdata(k)|
++------+------------+-------+-------------+--------+---------+---------+------+-------------+
+|timing|8195        |6147   |100          |22311   |2048     |2048     |-     |-            |
+|-     |-           |-      |-            |-       |-        |-        |22281 |2048         |
+|-     |-           |-      |-            |-       |-        |-        |22297 |2048         |
++------+------------+-------+-------------+--------+---------+---------+------+-------------+
+
+</computeroutput>
+                    </screen>
+                </example>
+                <para>
+                    The <literal>Name</literal> column gives the name of a ring
+                    buffer.  The remaining line provides information about the
+                    ring buffer and any consumer it may have.  Subsequent lines
+                    provide information about consumers.
+                </para>
+                <para>
+                    Information provided about the ring buffer includes
+                    <literal>data-size(k)</literal> the size of the data area
+                    in kilobytes.  <literal>free</literal> the number of kilobytes
+                    the producer can put without blocking.
+                    <literal>max_consumers</literal> the maximum number
+                    of consumers that can connect to the ring.
+                    <literal>producer</literal> the PID of the producer
+                    process, which is -1 if there is no producer.
+                    <literal>maxget(K)</literal> the amount of data available
+                    for the consumer that is furthest behind in consuming data
+                    in kilobytes.
+                    <literal>minget</literal> the amount of data avilable to
+                    the consumer that is most caught up in kilobytes.
+                </para>
+                <para>
+                    Subsequent lines of the table provide the process id
+                    of a <literal>client</literal> and the numuber
+                    of kilobytes of un-consumed data for the client
+                    (<literal>clientdata(k)</literal>) in kilobytes.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><command>ringbuffer list <replaceable>?--host=hostname?</replaceable></command></term>
+            <listitem>
+                <para>
+                    Lists the names of the active ringbuffers one per line to stdout.
+                    By default the ring buffers active in <literal>localhost</literal>
+                    are listed.  Using the <option>--host</option> option allows
+                    you to specify a different host.  Active ring buffers are only
+                    those that have clients attached.
+                </para>
+            </listitem>
+        </varlistentry>
+     </variablelist>
+  </refsect1>
+  <refsect1>
+     <title>EXAMPLES</title>
+     <para>
+     </para>
+  </refsect1>
+
+</refentry>
+
+<!-- /manpage -->

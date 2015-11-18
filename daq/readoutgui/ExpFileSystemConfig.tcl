@@ -26,6 +26,7 @@
 
 package provide ExpFileSystemConfig 1.0
 package require Configuration
+package require StateManager
 
 namespace eval  ExpFileSystemConfig {
 
@@ -68,3 +69,8 @@ proc ExpFileSystemConfig::getExperimentDirectory {} {
 #
 ExpFileSystemConfig::setDefaults
 ExpFileSystemConfig::environmentOverrides
+
+
+set sm [StateManagerSingleton %AUTO%]
+$sm addStateVariable StageArea Configuration::get Configuration::Set
+

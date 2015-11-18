@@ -1,0 +1,300 @@
+
+
+package require tcltest
+package require MockCCUSB
+
+tcltest::test pkgrequire-0 {Make sure we can require the package
+} {package require ortecccf8200} 11.0
+
+# we don't want to deal with swig vector<uint16_t> so fool the system
+# by redefining our conversion function
+namespace eval CCUSBDriverSupport {
+  proc shortsListToTclList {stackvar {grouping 2}} {
+    upvar $stackvar stack
+    return $stack
+  }
+}
+
+proc setup {} {
+  MockCCUSB::Controller ::ctlr
+  AOrtecCCF8200 ::dev ::ctlr 10
+
+  MockCCUSB::ReadoutList ::stack
+
+  rename cccusbreadoutlist::CCCUSBReadoutList _old
+  rename MockCCUSB::ReadoutList cccusbreadoutlist::CCCUSBReadoutList
+
+}
+
+
+proc tearDown {} {
+  ::ctlr destroy
+  ::stack destroy
+  itcl::delete object ::dev
+
+  rename cccusbreadoutlist::CCCUSBReadoutList MockCCUSB::ReadoutList 
+  rename _old cccusbreadoutlist::CCCUSBReadoutList
+}
+
+
+
+tcltest::test writeThreshold-0 {Writing thresholds does the correct thing
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev WriteThreshold 5 255 
+  ::ctlr getHistory
+} -result "{write24 10 5 16 255}"
+
+
+tcltest::test writeThreshold-1 {Writing thresholds to bad channel fails 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev WriteThreshold 8 255 
+  ::ctlr getHistory
+} -result {AOrtecCCF8200::WriteThreshold Channel argument out of bounds. Must be in range [0,7].} -returnCodes 1
+
+
+tcltest::test writeThreshold-2 {Writing threshold out of range fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev WriteThreshold 1 256 
+  ::ctlr getHistory
+} -result {AOrtecCCF8200::WriteThreshold Threshold argument out of bounds. Must be in range [0,255].} -returnCodes 1
+
+
+
+
+
+
+tcltest::test writeAWidth-0 {Writing width does the correct thing
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev WriteAWidth 255
+  ::ctlr getHistory
+} -result "{write24 10 0 17 255}"
+
+
+tcltest::test writeAWidth-1 {Writing width out of range fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev WriteAWidth 256 
+  ::ctlr getHistory
+} -result {AOrtecCCF8200::WriteAWidth Width argument out of bounds. Must be in range [0,255].} -returnCodes 1
+
+
+
+
+
+tcltest::test writeBWidth-0 {Writing width does the correct thing
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev WriteBWidth 255
+  ::ctlr getHistory
+} -result "{write24 10 1 17 255}"
+
+
+tcltest::test writeBWidth-1 {Writing width out of range fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev WriteBWidth 256 
+  ::ctlr getHistory
+} -result {AOrtecCCF8200::WriteBWidth Width argument out of bounds. Must be in range [0,255].} -returnCodes 1
+
+
+
+tcltest::test writeInhibitMask-0 {Writing inhibit mask does the correct thing
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev WriteInhibitMask 0xaa
+  ::ctlr getHistory
+} -result "{write24 10 2 17 0xaa}"
+
+
+tcltest::test writeInhibitMask-0 {Writing inhibit mask out of range fails 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev WriteInhibitMask 0x1aa
+  ::ctlr getHistory
+} -result "AOrtecCCF8200::WriteInhibitMask Mask sets bits other than bits 0-7." \
+-returnCodes 1
+
+
+
+tcltest::test readThreshold-0 {Reading thresholds does the correct thing
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev ReadThreshold 5
+  ::ctlr getHistory
+} -result "{read24 10 5 0 0}"
+
+
+tcltest::test readThreshold-1 {Reading thresholds to bad channel fails 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev ReadThreshold 8
+  ::ctlr getHistory
+} -result {AOrtecCCF8200::ReadThreshold Channel argument out of bounds. Must be in range [0,7].} -returnCodes 1
+
+
+
+
+
+tcltest::test readAWidth-0 {Reading A width does the correct thing
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev ReadAWidth
+  ::ctlr getHistory
+} -result "{read24 10 0 1 0}"
+
+
+
+
+tcltest::test readBWidth-0 {Reading B width does the correct thing
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev ReadBWidth
+  ::ctlr getHistory
+} -result "{read24 10 1 1 0}"
+
+
+
+
+tcltest::test readInhibitMask-0 {Reading inhibit mask does the correct thing
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev ReadInhibitMask
+  ::ctlr getHistory
+} -result "{read24 10 2 1 0}"
+
+
+
+tcltest::test clear-0 {Clearing the module does the right thing
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev Clear
+  ::ctlr getHistory
+} -result "{control 10 0 9}"
+
+
+
+tcltest::test generateTest-0 {Generating the test signal adds the proper NAF
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev GenerateTest
+  ::ctlr getHistory
+} -result "{control 10 0 25}"
+
+
+
+tcltest::test writeThresholds-0 {Less than 8 values in list fails
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev WriteThresholds {0}
+} -result "AOrtecCCF8200::WriteThresholds Fewer than 8 threshold values provided." \
+-returnCodes 1
+
+# The following is hard to test without a module because it demands that I read back
+# what I wrote and that is not well supported for the MockCCUSB used with these tests. 
+if {0} {
+tcltest::test writeThresholds-1 {Writing 8 values produces the correct stack execution
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev WriteThresholds {0 11 22 33 44 55 66 77}
+  ::ctlr getHistory
+} -result [list {write24 10 0 16 0} \
+                {read24 10 0 0 0} \
+                {write24 10 1 16 11} \
+                {read24 10 1 0 0} \
+                {write24 10 2 16 22} \
+                {read24 10 2 0 0} \
+                {write24 10 3 16 33} \
+                {read24 10 3 0 0} \
+                {write24 10 4 16 44} \
+                {read24 10 4 0 0} \
+                {write24 10 5 16 55} \
+                {read24 10 5 0 0} \
+                {write24 10 6 16 66} \
+                {read24 10 6 0 0} \
+                {write24 10 7 16 77} \
+                {read24 10 7 0 0} ]
+                
+}
+
+tcltest::test writeWidths-0 {Ensure that we can write both registers 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev WriteWidths {255 253}
+  ::ctlr getHistory
+} -result [list {write24 10 0 17 255} {write24 10 1 17 253}]
+
+
+tcltest::test writeWidths-1 {List containing different than 2 values is an error
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev WriteWidths {255}
+} -result "AOrtecCCF8200::WriteWidths List provided contains more or less than 2 values." \
+-returnCodes 1
+
+
+
+tcltest::cleanupTests

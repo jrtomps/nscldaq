@@ -82,6 +82,8 @@ public:
   ScalerIterator end();
 
   virtual bool   isComposite() const;
+  virtual uint64_t timestamp();
+  virtual int      sourceId();
   
   void visit(CVisitor& visitor); //!< shallow visitation.
 };

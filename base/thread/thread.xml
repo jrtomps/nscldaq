@@ -1851,7 +1851,71 @@ Macros:
            </variablelist>
         </refsect1>
      </refentry>     
+<refentry id="daq3_critical_section">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id='daq3_critical_setion_title'>CriticalSection</refentrytitle>
+     <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>CriticalSection</refname>
+     <refpurpose>Simple, safe critical section</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+#include &lt;CMutex.h&gt;
+       <ooclass><classname>CriticalSection</classname></ooclass>
+      <constructorsynopsis>
+     <methodname>CriticalSection</methodname>
+     <methodparam>
+        <type>CMutex&amp;</type> <parameter>mutex</parameter>
+     </methodparam>
+      </constructorsynopsis>
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        Implements an easy to use critical section on top of a mutex.
+        To use, simply construct the CriticalSection object in the block
+        that needs synchronization. The constructor will lock the mutex and unlock
+        it when destroyed (when the block is exited)
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    EXAMPLE
+     </title>
+     <informalexample>
+        <programlisting>
+#include &lt;CMutex.h&gt;
+...
 
+CMutex guard;
+...
+{
+    CriticalSection s(guard);                 // Locks guard
+    ...
+    throw someException;                    // unlocks guard.
+    ...
+    
+}                                           // unlocks guard.
+
+        </programlisting>
+     </informalexample>
+   </refsect1>
+</refentry>     
 	 <refentry id="manpage.ccondition">
        <refmeta>
           <refentrytitle id="manpage.ccondition-title">CCondition</refentrytitle>

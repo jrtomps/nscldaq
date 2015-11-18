@@ -103,6 +103,7 @@ class COutputThread  : public Thread
    // Private data type:
    
    typedef uint64_t (*TimestampExtractor)(void*);
+   typedef void     (*StateChangeCallback)();
    
   // Thread local data:
 private:
@@ -127,6 +128,7 @@ private:
   unsigned    m_nBuffersBeforeEventCount; //!< Buffers to go before an event count item.
   TimestampExtractor m_pEvtTimestampExtractor;
   TimestampExtractor m_pSclrTimestampExtractor;
+  StateChangeCallback m_pBeginRunCallback;
 
 
   // Constuctors and other canonicals.
@@ -169,6 +171,9 @@ private:
   void attachRing();
   void outputTriggerCount(uint32_t runOffset);
   void getTimestampExtractor();
+
+  bool hasOptionalHeader();
+  void closeOut();
 };
 
 

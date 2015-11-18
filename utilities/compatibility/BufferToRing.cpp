@@ -172,6 +172,11 @@ setOptions(int argc, char** argv)
     
     
     BUFFERSIZE = args.buffersize_arg;
+    if (BUFFERSIZE == 0) {
+      std::cerr <<
+        "FAILURE: The --buffersize must be greater than 0\n";
+      exit(EXIT_FAILURE);
+    }
 }
 
 /**
@@ -688,6 +693,7 @@ bool bufferToRing (void* pBuffer)
 
 int main (int argc, char *argv[])
 {
+
   setOptions(argc, argv);
   uint16_t    dataBuffer[BUFFERSIZE/sizeof(uint16_t)];
 

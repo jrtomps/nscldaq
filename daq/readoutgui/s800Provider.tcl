@@ -133,9 +133,10 @@ proc ::S800::check id {
 proc ::S800::stop id {
     
     # If still alive and necessary stop the run.
+    set rctl [::S800::_getConnectionObject $id]
     
     if {([::S800::_getState $id] ne "halted") && [::S800::check $id]} {
-        set rctl [::S800::_getConnectionObject $id]
+        
         set status [$rctl getState]
         if {$status eq "active"} {
             $rctl end
@@ -143,6 +144,15 @@ proc ::S800::stop id {
         # Regardless, _failed will run down the rest of this.
         
         ::S800::_failed $id;    # Will do all the right stuff.
+                                # including destroying the connection object
+        
+    }
+
+    # because ::S800::_failed could have been called in the conditional,
+    # we need to make sure that the connection object has not been destroyed
+    # already before we destroy it ourselves.
+    if {$rctl in [::s800rctl info instances]} {
+      $rctl destroy
     }
     # Already in halted state since check took care of that for us.
 }
@@ -203,6 +213,27 @@ proc ::S800::end id {
         $rctl setSlave
     }
     ::S800::_setState $id idle
+}
+
+##
+# init 
+#    Initializes data sources in remote DAQ.  
+#
+# @param id - Id of the source to end.
+#
+proc ::S800::init id {
+    ::S800::_errorIfDead $id
+    
+    # Check the s800 state.. if the state is already not active,
+    # we don't ask it to do anything but give us our slave control back.
+    
+    set rctl [::S800::_getConnectionObject $id]
+    set state [$rctl getState]
+    if {$state eq "inactive"} {
+        $rctl init 
+    } else {
+      error "Cannot initialize source $id when not idle."
+    }
 }
 ##
 # capabilities

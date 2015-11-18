@@ -69,8 +69,8 @@ snit::type connector {
     option -canvas -readonly 1 -default ""
     
     variable id "";                 # Id of my line.
-    variable priorX;                # To compute dx
-    variable priorY;                # To computer dy.
+    variable priorX "";                # To compute dx
+    variable priorY "";                # To computer dy.
     
     ##
     # constructor

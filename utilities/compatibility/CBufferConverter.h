@@ -68,12 +68,12 @@ public:
 
   // Utility functions:
 private:
-  RingItem* getItem() throw(std::string);
+  RingItem* getItem() throw(std::string, int);
   void        outputItem(RingItem* pItem) throw(std::string);
 
   // I/O stuff.
 
-  void        readOrThrow(void* pData, size_t nBytes) throw(std::string);
+  void        readOrThrow(void* pData, size_t nBytes) throw(std::string, int);
   void        writeOrThrow(void* pData, size_t nBytes) throw(std::string);
   void        flush() throw(std::string);
 

@@ -253,6 +253,10 @@ snit::widget MissingSourceConfigUIView {
       $self configure -missing 0
     }
   }
+
+  method setSourceID {id} {
+    $self configure -id $id
+  }
 }
 
 # End of MissingSourceConfigUIView code

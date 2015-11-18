@@ -54,6 +54,9 @@ class CTCLObject;
  *      # oldest- the timestamp of the fragment at the front of the queue.
  *                by the specifications of data sources, this is the
  *                oldest queued fragment from that data source.
+ *      # bytes - the number of bytes in the queue.
+ *      # dequeued -Number of bytes dequeued from the queue.
+ *      # totalqueued - Cumulative bytes that have been put in the queue.
  *
  */
 class CInputStatsCommand : public CTCLObjectProcessor 

@@ -13,7 +13,7 @@
 #
 #  
 #  NOTE: As of September 19, 2013 the tab to use is
-#       libtclplus-v1.2-002
+#       libtclplus-v2.0-001
 # 
 
 baseURL="https://svn.code.sf.net/p/nscldaq/code/tags"

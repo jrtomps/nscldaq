@@ -115,7 +115,16 @@ CInputStatsCommand::operator()(CTCLInterpreter& interp, std::vector<CTCLObject>&
 
     wideInt     = (Tcl_WideInt)(stats.s_queueStats[i].s_oldestElement);
     aQueueStat += wideInt;
-
+ 
+    wideInt    = (Tcl_WideInt)(stats.s_queueStats[i].s_queuedBytes);
+    aQueueStat += wideInt;
+    
+    wideInt     = (Tcl_WideInt)(stats.s_queueStats[i].s_dequeuedBytes);
+    aQueueStat += wideInt;
+    
+    wideInt     = (Tcl_WideInt)(stats.s_queueStats[i].s_totalQueuedBytes);
+    aQueueStat += wideInt;
+    
     QueueStatList += aQueueStat;
   }
   result += QueueStatList;

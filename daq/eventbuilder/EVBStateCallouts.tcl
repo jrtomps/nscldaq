@@ -34,8 +34,11 @@ namespace eval EVBStateCallouts {
       EVBC::onEnd
     } 
 
+    # This transition is a failure mode... we shouldn't expect 
+    # an end run. Because EVBC::onEnd blocks until an end run,
+    # it is not safe here because we could deadlock waiting for an 
+    # END_RUN that never comes along.
     if {($from in [list Active Paused Halted]) && ($to eq "NotReady")} {
-      EVBC::onEnd
       EVBC::stop
     } 
 

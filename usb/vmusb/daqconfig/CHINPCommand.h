@@ -17,9 +17,7 @@
 #ifndef __CHINPCOMMAND_H
 #define __CHINPCOMMAND_H
 
-#ifndef __TCLOBJECTPROCESSOR_H
-#include <TCLObjectProcessor.h>
-#endif
+#include "CDeviceCommand.h"
 
 #ifndef __STL_VECTOR
 #include <vector>
@@ -78,7 +76,7 @@ puts [hinp cget hinp1]
 \endverbatim
 
 */
-class CHINPCommand : public CTCLObjectProcessor
+class CHINPCommand : public CDeviceCommand
 {
 private:
   CConfiguration& m_Config;
@@ -97,18 +95,12 @@ public:
 
   // command entry point:
 protected:
-  virtual int operator()(CTCLInterpreter& interp,
-			 std::vector<CTCLObject>& objv);
 
   CConfiguration* getConfiguration();
 
 private:
   virtual int create(CTCLInterpreter& interp, 
 		     std::vector<CTCLObject>& objv);
-  virtual int config(CTCLInterpreter& interp,
-		     std::vector<CTCLObject>& objv);
-  virtual int cget(CTCLInterpreter& interp,
-		   std::vector<CTCLObject>& objv);
-  virtual void Usage(std::string msg, std::vector<CTCLObject>& objv);
+
 };
 #endif

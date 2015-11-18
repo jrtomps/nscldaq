@@ -1,0 +1,250 @@
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2014.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Author:
+#    Jeromy Tompkins
+#	   NSCL
+#	   Michigan State University
+#	   East Lansing, MI 48824-1321
+
+
+package require tcltest
+
+
+tcltest::test pkgrequire-0 {Ensure we can require the package 
+} {package require mcfd16memorizer} 1.0
+
+proc setup {} {
+  MCFD16Memorizer ::dev
+}
+
+proc tearDown {} {
+  ::dev destroy
+}
+
+tcltest::test threshold-0 {Thresholds settings work
+} -setup { 
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  set res [list]
+  # value not previously written to defaults to NA
+  lappend res [::dev GetThreshold 0]
+
+  ::dev SetThreshold 0 23
+  lappend res [::dev GetThreshold 0]
+
+  ::dev SetThreshold 4 23
+  lappend res [::dev GetThreshold 4]
+
+  set res
+} -result {NA 23 23}
+
+tcltest::test gain-0 {Gain settings work
+} -setup { 
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  set res [list]
+  # unwritten values for channels return NA
+  lappend res [::dev GetGain 2]
+
+  ::dev SetGain 2 23
+  lappend res [::dev GetGain 2]
+
+  ::dev SetGain 4 23
+  lappend res [::dev GetGain 4]
+
+  set res
+} -result {NA 23 23}
+
+tcltest::test width-0 {Width settings work
+} -setup { 
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  set res [list]
+  lappend res [::dev GetWidth 2]
+
+  ::dev SetWidth 2 23
+  lappend res [::dev GetWidth 2]
+
+  ::dev SetWidth 4 23
+  lappend res [::dev GetWidth 4]
+
+  set res
+} -result {NA 23 23}
+
+tcltest::test deadtime-0 {Deadtime settings work
+} -setup { 
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  set res [list]
+  # initial values for parameters is NA...this should return NA b/c nothing
+  # has been written to channel 2
+  lappend res [::dev GetDeadtime 2]
+
+  ::dev SetDeadtime 2 23
+  lappend res [::dev GetDeadtime 2]
+
+  ::dev SetDeadtime 4 23
+  lappend res [::dev GetDeadtime 4]
+
+  set res
+} -result {NA 23 23}
+
+
+tcltest::test delay-0 {Delay settings work
+} -setup { 
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  set res [list]
+  # initial values for parameters is NA...this should return NA b/c nothing
+  # has been written to channel 2
+  lappend res [::dev GetDelay 2]
+
+  ::dev SetDelay 2 23
+  lappend res [::dev GetDelay 2]
+
+  ::dev SetDelay 4 23
+  lappend res [::dev GetDelay 4]
+
+  set res
+} -result {NA 23 23}
+
+
+tcltest::test fraction-0 {Fraction settings work
+} -setup { 
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  set res [list]
+  # initial values for parameters is NA...this should return NA b/c nothing
+  # has been written to channel 2
+  lappend res [::dev GetFraction 2]
+
+  ::dev SetFraction 2 20
+  lappend res [::dev GetFraction 2]
+
+  ::dev SetFraction 4 40
+  lappend res [::dev GetFraction 4]
+
+  set res
+} -result {NA 20 40}
+
+
+tcltest::test polarity-0 {Polarity settings work
+} -setup { 
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  set res [list]
+  # initial values for parameters is NA...this should return NA b/c nothing
+  # has been written to channel 2
+  lappend res [::dev GetPolarity 2]
+
+  ::dev SetPolarity 2 neg
+  lappend res [::dev GetPolarity 2]
+
+  ::dev SetPolarity 4 pos
+  lappend res [::dev GetPolarity 4]
+
+  set res
+} -result {NA neg pos}
+
+
+tcltest::test mode-0 {Mode settings work
+} -setup { 
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  set res [list]
+  # initial values for parameters is NA...this should return NA b/c nothing
+  lappend res [::dev GetMode]
+
+  ::dev SetMode common
+  lappend res [::dev GetMode]
+
+  ::dev SetMode individual
+  lappend res [::dev GetMode]
+
+  set res
+} -result {NA common individual}
+
+
+tcltest::test rc-0 {RC state is remembered
+} -setup { 
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  set res [list]
+  # initial values for parameters is NA...this should return NA b/c nothing
+  lappend res [::dev RCEnabled]
+
+  # we allow any boolean type
+  ::dev EnableRC false 
+
+  # but we expect only 0 or 1 to be returned
+  lappend res [::dev RCEnabled]
+
+  ::dev EnableRC on
+  lappend res [::dev RCEnabled]
+
+  set res
+} -result {NA 0 1}
+
+
+tcltest::test mask-0 {Channel mask is remembered
+} -setup { 
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  set res [list]
+  # initial values for parameters is NA...this should return NA b/c nothing
+  lappend res [::dev GetChannelMask]
+
+  ::dev SetChannelMask 255
+  lappend res [::dev GetChannelMask]
+
+  set res
+} -result {NA 255}
+
+
+tcltest::test pulser-0 {Written pulser state is remembered
+} -setup { 
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  set res [list]
+  # initial values for parameters is NA...this should return NA b/c nothing
+  lappend res [::dev PulserEnabled]
+
+  ::dev EnablePulser 2
+  lappend res [::dev PulserEnabled]
+
+  ::dev DisablePulser
+  lappend res [::dev PulserEnabled]
+
+  set res
+} -result {NA 2 0}
+
+
+tcltest::cleanupTests

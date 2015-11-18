@@ -826,31 +826,31 @@ Work on 11.0-rc11 begins
            of 100Mbytes and low water mark of 80Mbytes.
         
 11.0-rc16:
-	Bug #2073 Properly interpret bit 12 of VMUSB buffer header as part of the
+	*  Bug #2073 Properly interpret bit 12 of VMUSB buffer header as part of the
 	number of events in the buffer.
-	Bug #2057 A - add -incremental option to VMUSBReadout stack module
+	*  Bug #2057 A - add -incremental option to VMUSBReadout stack module
 	driver so that the scalers ring items can be marked as
 	incremental.
-	Bug #2057 B - add -incremental option to CCUSBReadout stack module
+	*  Bug #2057 B - add -incremental option to CCUSBReadout stack module
 	driver as well.
-        Feature #2355 Add support for ABNORMAL_END ring items to the system.
-        Feature #2346 Enable BufferToRing to produce body headers if
+        *  Feature #2355 Add support for ABNORMAL_END ring items to the system.
+        *  Feature #2346 Enable BufferToRing to produce body headers if
         desired or specified by user.
-        Feature #1826 - Tell user when xxUSBReadout config file exceeds
+        *  Feature #1826 - Tell user when xxUSBReadout config file exceeds
 	the available stack space.
-        Feature #2173 - Provide VMUSB-tcl package.
-        Feature #2975 - Add ability to place callout bundle anywhere in the
+        *  Feature #2173 - Provide VMUSB-tcl package.
+        *  Feature #2975 - Add ability to place callout bundle anywhere in the
                         ordered list of registered callout bundles.
-        Bug #2130 - Don't allow a new run to start until the event builder
+        *  Bug #2130 - Don't allow a new run to start until the event builder
                     has flushed all its data out the output ring.
-        Feature #2099  - Add put(char* data, int nbytes) method to CDataSink interface
-        Bug #2034 - ringFragmentSources register to wrong event builder when
+        *  Feature #2099  - Add put(char* data, int nbytes) method to CDataSink interface
+        *  Bug #2034 - ringFragmentSources register to wrong event builder when
         starting duplicate event builder.  Note this may  not really fix the
         issue of a hanging event building pipeline since the next thing you're
         likely to run into is that glom is still alive and is the ring producer
         so the new pipeline won't start up right uniless the destination ring
         is modified.
-        Feature #868 - Remove NSCLDAQ's dependency on BLT as that is not being
+        *  Feature #868 - Remove NSCLDAQ's dependency on BLT as that is not being
         sufficiently supported for me to have confidence that it won't break (again)
         when we go to Tcl 8.6
         Bug #2915 - Don't emit body headers if there's no scaler timestamp extractor.
@@ -889,3 +889,190 @@ Work on 11.0-rc11 begins
 	Feature #4738  - Create properties and property editor.
 	Feature #4741  - Create editor objects
 	Feature #4744 - Get basic toolbar working.
+        *  Bug #2915 - Don't emit body headers if there's no scaler timestamp extractor.
+        - Add try/catch block around the action register write that
+	triggers the vmusbreadout monitor list as this intermittently
+	fails.
+11.0-rc17 (Evidently I was not keeping up with starting new release candidates above).
+        *  Feature #3175 - ringFragmentSource stuff that used to go to source#.txt now goes
+        to stderr which in turn goes to an output window tab of the UI.
+        *  Feature #3205 - Only end run if the state is active or paused...this prevents
+        attempting to end the run while the rdothread is busy initializing the run.
+        *  Bug #3208 - Set paused state when pausing run so that resume is allowed.
+        Feature #3164 - For event builder windows put functional titles in that also
+        give a disambiguating username.
+        *  Bug #3155 - Don't emit EOF message in compatibilitybuffer method.
+        *  Feature #3202 - Don't let exceptions propagate out of the reaout thread into the
+        last chance exception handler.
+        *  Feature #3229 - Make timestamp extractors for XXUSBReadout aware of run starts
+        *  Bug #3238 - Fix VMUSBReadout OutputThread fails when run title is too long
+        *  Bug #3235 - Loop over drain/retries on writing the action register.  Note that the
+           original trigger was Bug #3238 which is fixed in this release as well.
+        *  Feature #3232 - Add mechanism to get the source id from sbsReadout CDExperiment objects
+        and document how to have an event segment produce its own event segments.
+        *  Feature #3217 - Provide indications of the Eventbuilder queue depth and throughputs in
+        bytes/sec.
+        *  Feature #3220 - Add Event builder diagnostics/display for out of order timestamps
+          in the input queue(s).
+        *  Feature #3223 - Diagnostic for output ring full - implemented as a tab on
+          the status display that  provides the output ring statistics.  This allows
+          users to see where the output ring buffers are rather than just an output ring
+          full indicator.
+        *  Feature #3161 - Here be dragons!!! save the stagearea value set in the
+          UI in the ~/stagearea/.settings.tcl file.  This may surprise test users.
+        *  Feature #3274:
+	   *   Add class CriticalSection safe critical sections via mutex (base/thread)
+	   *   Add Mutex to CXXUSB classes and encapsulate
+	      writeActionRegister, transaction and readUSB in a
+              CriticalSection to make the libusb stuff all thread
+              protected.
+	   *   Add a marker slow control module so any periodic flush of
+	      the physics buffer is at the discretion of the experimenter.
+       *  Merged rc17 development branch to nscldaq-11.0 development branch.
+11.0-rc18
+       * Bug #3367 - Swap order of type/name in the CCUSB TclServer Module command.
+       * Bug #2033 - If the file exists in /dev/shm but is not known by the ring
+         master when CRingBuffer::Create take action as follows:  If the file is
+         formatted as a ring buffer, just re-register it.  If the file is not
+         formatted as a ring buffer, then throw an error.
+       * Bug #3325 - Clean up the way that data source exits are handled in the readout GUI
+         specifically;
+         *  Had been first transitioning to Ready then NotReady...just go directly to notready.
+         *  In event log bundle {Active, Paused} -> NotReady kills eventlogger
+            does a clean run finalization.
+         *  In event builder these transitions kill off the event bulder.
+       * Bug #3400 - Event builder should protect itself from attempts to register the bundle
+         more than once.  Note that this makes the docs correct as it does not hurt to
+         useEventBuilder in the OnStart without protection.
+       * Fix error that -inrate would go negative if the event builder was
+	used persistently because of the counter resets.  If the rates
+	look negative assume there's been a reset.  Note for _very long_
+	runs (more than 4billion [2^32] or is it 2^64 fragents in a queue), there
+	may be one update cycle with an inaccurate rate because of the
+	counter wrap.  I'm not going to worry about that now.  What would
+	be needed to worry about it is knowledge in the GUI of when a
+	reset happens so that wraps are handled properly and resets set
+	the last counters to zero instead.
+         
+11.0-000  
+	* Feature #3413 Merge in MTDC support from CAEN.
+	* Support callout extensions for scaler display.
+	* Added documentation for the xyplotcontainer and marker snidgets.
+	* Added simplesetup form v785
+	* Feature #3485 - Add mtdc VMUSB documentation.
+	
+11.0-002
+	* Bug #3979 - Don't sysreset vmusbreadout end of run.
+	
+11.0-003
+	* Good builds on Ubuntu 12.04 with gcc/g++-4.8 installed.
+	* Roll in shmmap status check fixes from 10.2 that were missed.
+	* Fix some link order problems that express in gcc/g++4.8
+	* If zmq.hpp needs a prerequisite #include <algorithm> don't fail the 
+	config
+	* If there is no nscldaq-10.x installation then don't do the 
+	evbrdocallouts10 test as it is going to require that.
+11.0-004
+	* Roll in changes from Dave Caussyn (FSU) for the VMUSB SIS3820
+	scaler support.  Specifically when -timestamp is true, use
+	external LNE as well.  Furthermore support configuration in the
+	create command.
+11.0-007
+	* Issue #4447 get ring clients deleted again when ring buffers are
+	  destroyed.
+	* Issue 459 - Make ring master launch ringtostdout with an extra
+	  param that identifies the target host.
+	
+11.0-008
+	* Added multilogger package - provides for logging from multiple
+	rings
+11.0-009
+	* Feature #4531 - Better error recovery on script errors for
+	  begin run.  Specifically, catch CTCLExceptions and dump out
+	  the errorInfo variable value in the error message.
+	* Bug #4477 - Add missing table in VMUSB V977 documentation.
+	  describes what gets read depending on the -readmode and -reset 
+	  option values.
+	* Bug #4534 - Fix issues with how the ULMTrigggerGUI control panel
+	  gets the ring buffer
+11.0-010
+	* Bug #4474 - Add missing docs for V1495sc (VMUSBReadout).
+	* Bug #4516  - Fragments with assigned timestamps should not
+	  be counted as having a duplicate timestamp as by definition they
+	do.
+	* Bug #4540 - Wrap simpleXXX operations in CCUSB.h with 
+	  checkExecuteError which throws std::runtime_error if there's an
+	  error.  This blows away tclsh with the message in the exception.
+	* Feature #2241 - Add CCUSB and VMUSB modules to control server by
+	default.
+	* Feature #4537 - Make module for ULMTriggerGUI default to the
+	  auto-registered ccusb slow controls device.
+        * Close timing hole in the buffer queue class.  If between
+	  testing for data in the queue and locking the semaphore
+	  prior to waiting for data the queue completely fills, the
+	  condwait will never see a signal.  Solve this by 
+	  putting a timeout on the wait which, when rarely hit
+	  will cause get to take another stab at getting data.
+        * Feature #4507  Improve logic of EVB end run monitor thread so
+	that it can detect the end run even if one or more data sources
+	has exited.
+	
+11.0-015
+	* Feature #3277-  Provide a bit more activity in thread final
+	  catch blocks to ensure that XXUSB's in the stopped state and
+	  its fifos are flushed.
+	* Feature #3394 - Provide a method for Scaler events in SBS
+	readout to have a real assinged timestamp.
+	* Feature #2352 - add oneshot logic to ringfragmentsource
+	* Feature #4441 - Use non UI blocking waits for event log and evb
+	  to exit.
+	* Fix scaler display error in wrapping counts when channel is in
+    	  non-incremental mode.
+	* Ensure that the strip chart plot limits get reset at the start
+	  of a new run rather than remaining off to the right somewhere.
+11.0-018
+        * Fix Bug #4873 - Remove dependency on ::CAEN::digitizer decimate
+	from the nscl version of xyplot.tcl  Use the old inlined code
+	instead.
+	* Fix Bug #4933 - after recording run control buttons are not
+	re-enabled
+11.0-019
+	* Supply Feature #4672 - remove ringfragmentsource as bottleneck
+	in event building systems.	
+	* Fix Bug #4945 - Sources permuted between ReadoutGUI sessions. The
+	 DataSourceManager::sources method now returns a properly ordered list
+	 of parameter dicts, and reading in .settings.tcl causes sources to 
+	 be added in the order of their source ids.
+	* Fixes bug #4906 - MCFD16Control fails to properly display state of
+	  channel mask in the GUI.
+	* Fixes bug #4948 - CCUSBReadout fails to output END_RUN.
+	* Bug #4675 - User interface changes for multilogger so that
+	record always can be user selected.
+	*  Multilogger - If recording always increment run number when run
+	ends and not globally recording.
+	*  Fix errror in remote gui back connection - would fail if the
+	service desired was not the last on in the port manager list.
+	* Feature #4699 - When a ReadoutShell is enslaved save the run
+	number and title. When it regains mastery, restore those two bits
+	of data.
+	* Feature 4684 - Do piles more failure handling at end run.
+	
+11.0-003
+	* Good builds on Ubuntu 12.04 with gcc/g++-4.8 installed.
+	* Roll in shmmap status check fixes from 10.2 that were missed.
+	* Fix some link order problems that express in gcc/g++4.8
+	* If zmq.hpp needs a prerequisite #include <algorithm> don't fail the 
+	config
+	* If there is no nscldaq-10.x installation then don't do the 
+	evbrdocallouts10 test as it is going to require that.
+11.0-004
+	* Roll in changes from Dave Caussyn (FSU) for the VMUSB SIS3820
+	scaler support.  Specifically when -timestamp is true, use
+	external LNE as well.  Furthermore support configuration in the
+	create command.
+
+11.1-000
+	Good compilation of mergeer of 11.1 and 11.0head.
+	
+11.1-varmgr
+	merge 11.1 trunk with work done so far.

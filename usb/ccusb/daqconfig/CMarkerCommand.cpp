@@ -13,310 +13,287 @@
 	     Michigan State University
 	     East Lansing, MI 48824-1321
 */
-/**
- * @file CMarkerCommand.cpp
- * @brief Implementation of the CCUSBReadout's marker daqconfig command.
- * @author Ron Fox <fox@nscl.msu.edu>
- */
 
+#include <config.h>
 #include "CMarkerCommand.h"
+
 #include <TCLInterpreter.h>
 #include <TCLObject.h>
-#include <CConfiguration.h>
-#include <CReadoutModule.h>
+#include "CConfiguration.h"
 #include <CMarker.h>
-#include <Exception.h>
+#include <CReadoutModule.h>
+#include <CConfigurableObject.h>
 
-/**
- *------------------------------------------------------------------------------------
- * Canonical methods.  Note those that were declared as private are actually forbidden.
- */
+#include <stdlib.h>
+#include <errno.h>
+#include <stdint.h>
+
+using std::string;
+using std::vector;
 
 
-/**
- * constructor
- *   Create the command and save the global configuration so we can add'
- *   hardware modules to it.
- *
- * @param interp - The interpreter that will run this command (the command gets 
- *                 auto-registered on.
- * @param config - The global configuration that we manipulate.
- *
- */
-CMarkerCommand::CMarkerCommand(CTCLInterpreter& interp, CConfiguration& config) :
-  CTCLObjectProcessor(interp, "marker", true),
+//////////////////////////////////////////////////////////////////////////////
+///////////////////// Implemented Canonicals /////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+
+
+
+/*!
+
+   Construct the command and register it (base constructor does this
+   by default.
+   \param interp : CTCLInterpreter&
+       Tcl interpreter on which the command will be registered.
+   \param config : CConfiguration& config
+       The configuration of ADCs that will be manipulated by this command.
+   \param commandName std::string
+       Name of the command to register.
+*/
+CMarkerCommand::CMarkerCommand(CTCLInterpreter&   interp,
+			       CConfiguration&    config,
+			       std::string        commandName) :
+  CTCLObjectProcessor(interp, commandName),
   m_Config(config)
 {}
 
-/**
- * destructor
- *   The base destructor will take care of all the heavy lifting.
- */
-CMarkerCommand::~CMarkerCommand() 
-{}
-
-
-/*------------------------------------------------------------------------------------
- *  Command processing.
- */
-
-/**
- * operator()
- *
- *   Called in response to the marker command:
- *   *  Ensure there's a subcommand.
- *   *  Dispatch to the sub command processor depending on the keyword or error for illegal subcommands.
- *
- *  @param interp - The Tcl Interpreter that is exectuting the command.
- *  @param objv   - The vector of command words that make up the command.
- *
- * @return int
- * @retval  TCL_OK - the command succeedded.
- * @retval  TCL_ERROR - the command failed.
- */
-int
-CMarkerCommand::operator()(CTCLInterpreter& interp,
-			  std::vector<CTCLObject>& objv)
+/*!
+   Destructor:
+*/
+CMarkerCommand::~CMarkerCommand()
 {
-  bindAll(interp, objv);
+}
+//////////////////////////////////////////////////////////////////////
+//////////////// Command processing //////////////////////////////////
+/////////////////////////////////////////////////////////////////////
 
-  // We'll use string exceptions to report errors.  The string will become the 
-  // result:
+/*
+  The command entry just:
+  - Ensures there is at least 3 parameters, the command, subcommand and
+    module name.
+  - Dispatches to the appropriate subcommand processor... or
+  - Returns an error if the subcommand keyword is not recognized.
+  Parameters:
+    CTCLInterpreter& interp        - Interpreter running the command.
+    std::vector<CTCLObject>& objv  - Command line words.
+  Returns:
+    int: 
+       TCL_OK      - Command was successful.
+       TCL_ERROR   - Command failed.
+  Side effects:
+     The interpreter's result will be set in a manner that depends on 
+     success/failure and the subcommand's operation.
 
-  try {
-    // All commands must have at least a subcommand and the name of the module the affect:
+*/
+int
+CMarkerCommand::operator()(CTCLInterpreter& interp, vector<CTCLObject>& objv)
+{
+  // require at least 3 parameters.
 
-    requireAtLeast(objv, 3, Usage("Incorrect Number of command Parameters", objv).c_str());
-
-    std::string subcommand = objv[1];
-    if (subcommand == "create") {
-      create(interp, objv);
-    } else if (subcommand == "config") {
-      config(interp, objv);
-    } else if (subcommand == "cget") {
-      cget(interp, objv);
-    } else {
-      throw Usage("Invalid subcommand", objv);
-    }
-  } 
-  catch(std::string msg) {
-    interp.setResult(msg);
+  if (objv.size() < 3) {
+    Usage("Insufficient command parameters", objv);
     return TCL_ERROR;
   }
-  return TCL_OK;
+  // Get the subcommand keyword and dispatch or error:
+
+  string subcommand = objv[1];
+  if (subcommand == string("create")) {
+    return create(interp, objv);
+  }
+  else if (subcommand == string("config")) {
+    return config(interp, objv);
+  } 
+  else if (subcommand == string("cget")) {
+    return cget(interp, objv);
+  }
+  else {
+    Usage("Invalid subcommand", objv);
+    return TCL_ERROR;
+  }
 }
 
-/**
- * create
- *
- *   Create a new object and store it in the configuration where it can be found and manipulated.
- *   It is an error to create a device with the same name as an existing object.
- *
- *  @param interp - The Tcl Interpreter that is exectuting the command.
- *  @param objv   - The vector of command words that make up the command.
- *
- * @throws std::string - error message.
- */
-void
-CMarkerCommand::create(CTCLInterpreter& interp,  std::vector<CTCLObject>& objv)
+/*
+   Process the create subcommand:
+   - ensure we have enough values on the command line.
+   - ensure we have a valid adc name, and base address.
+   - ensure that there is no other adc with the same name.
+   - Create the new adc module
+   - Add it to the configuration.
+   Parameters:
+     CTCLInterpreter&    interp   - Interpreter that is executing this command.
+     vector<CTCLObject>& objv     - Vector of command words.
+  Returns:
+    int: 
+       TCL_OK      - Command was successful.
+       TCL_ERROR   - Command failed.
+  Side effects:
+     The result for the interpreter is set as follows:
+     - On error this is an error message of the form ERROR: message
+     - On success, this is the name of the module. allowing e.g.
+       adc config [adc create adc1 0x80000000] ....
+*/
+int
+CMarkerCommand::create(CTCLInterpreter& interp, vector<CTCLObject>& objv)
 {
-  // There can be additional parameters.  We're going to pretend we don't know
-  // how many options there are so we require only an odd number of parameters:
+  // Need to have exactly 4 elements, command 'create' name base.
 
-
-  if((objv.size() % 2) == 0) {
-    throw Usage("Invalid number of parameters", objv);
+  if (objv.size() != 4) {
+    Usage("Not enough parameters for create subcommand", objv);
+    return TCL_ERROR;
   }
 
-  std::string name = objv[2];
-  
-  // check for duplicate name and throw if so:
+  // Get the command elements and validate them:
 
+  string name    = objv[2];
+  string sValue   = objv[3];
+
+  errno = 0;
+  uint32_t value  = strtoul(sValue.c_str(), NULL, 0);
+  if ((value == 0) && (errno != 0)) {
+    Usage("Invalid value for marker value.", objv);
+    return TCL_ERROR;
+  }
   CReadoutModule* pModule = m_Config.findAdc(name);
-  if(pModule) {
-    throw Usage("Duplicate module", objv);
+  if (pModule) {
+    Usage("Duplicate module creation attempted", objv);
+    return TCL_ERROR;
   }
-  // Create it and configure it.
-
+  // This is a unique module so we can create it:
 
   CMarker* pMarker = new CMarker;
-  pModule          = new CReadoutModule(name, *pMarker);
-  try {
-    configure(interp, pModule, objv);
-    m_Config.addAdc(pModule);
-    m_Config.setResult(name);
-  }
-  catch(...) {
-    delete pModule;
-    delete pMarker;
-    throw;
-  }
+  pModule    = new CReadoutModule(name, *pMarker);
+  pModule->configure("-value", sValue);
 
+  m_Config.addAdc(pModule);
+
+  m_Config.setResult(name);
+  return TCL_OK;
+  
 }
-/**
- * config
- *    Process the config subcommand.
- *    * ensure there are an odd number of parameters.
- *    * Locate the module (complain if we can't).
- *    * configure.
- *
-*
- *  @param interp - The Tcl Interpreter that is exectuting the command.
- *  @param objv   - The vector of command words that make up the command.
- *
- * @throws std::string - error message.
- */
-void
-CMarkerCommand::config(CTCLInterpreter& interp,  std::vector<CTCLObject>& objv)
-{
-  if ((objv.size() % 2) == 0) {
-    throw Usage("Invalid number of parameters", objv);
-  }
 
-  std::string name =objv[2];
+/*
+    Configure an adc module.
+    - Ensure that there are enough command line parameters.  These means
+      at least 5 parameters in order to have at least one configuration
+      keyword value pair... and that there are an odd number of params
+      (to ensure that all keywords have values).
+    - Ensure the module exists.
+    - For each command keyword/value pair, configure the module.
+
+   Parameters:
+     CTCLInterpreter&    interp   - Interpreter that is executing this command.
+     vector<CTCLObject>& objv     - Vector of command words.
+  Returns:
+    int: 
+       TCL_OK      - Command was successful.
+       TCL_ERROR   - Command failed.
+  Side effects:
+     The interpreter result is set with an error message if the return value
+     is TCL_ERROR, otherwise it is set with the module name.
+     Note that all error messages will start with the text "ERROR:"
+*/
+int
+CMarkerCommand::config(CTCLInterpreter& interp, vector<CTCLObject>& objv)
+{
+  if ( (objv.size() < 5) || ((objv.size() & 1) == 0)) {
+    Usage("Incorrect number of command parameters for config", objv);
+    return TCL_ERROR;
+  }
+  /* Get the module name and use it to locate the module or report an error. */
+
+  string name = objv[2];
   CReadoutModule* pModule = m_Config.findAdc(name);
-  if(!pModule) {
-    throw Usage("No such module", objv);
+  if (!pModule) {
+    Usage("Marker module does not exist", objv);
+    return TCL_ERROR;
+  }
+  /* Process the configuration... this is done inside a try/catch block
+    as the configure can throw.
+  */
+  try {
+    for (int i = 3; i < objv.size(); i += 2) {
+      string key   = objv[i];
+      string value = objv[i+1];
+      pModule->configure(key, value);
+    }
+  }
+  catch (string msg) {		// BUGBUG - This may partially configure object.
+    Usage(msg, objv);
+    return TCL_ERROR;
   }
 
-  configure(interp, pModule, objv);
-  interp.setResult(name);
+  m_Config.setResult(name);
+  return TCL_OK;
 }
-/**
- * cget
- *   Process the cget subcommand.
- *   * Locate the module.
- *   * Fetch its configuration 
- *   * organize it into a list of name/value pairs.
- *
- *  @param interp - The Tcl Interpreter that is exectuting the command.
- *  @param objv   - The vector of command words that make up the command.
- *
- * @throws std::string - error message.
- */
-void
-CMarkerCommand::cget(CTCLInterpreter& interp,  std::vector<CTCLObject>& objv)
+/*
+   Get the configuration of a module and return it as a list of
+   keyword/value pairs.
+   - ensure we have enough command line parameters (exactly 3).
+   - Ensure the module exists and get its pointer.
+   - Fetch the module's configuration.
+   - Map the configuration into a list of 2 element lists and set the
+     result accordingly.
+
+   Parameters:
+     CTCLInterpreter&    interp   - Interpreter that is executing this command.
+     vector<CTCLObject>& objv     - Vector of command words.
+  Returns:
+    int: 
+       TCL_OK      - Command was successful.
+       TCL_ERROR   - Command failed.
+  Side effects:
+     The interpreter result is set.  If the command returned an error, 
+     This is a string that begins with the text ERROR:  otherwise it is a 
+     list of 2 element sublists where each sublist is a configuration keyword
+     value pair...e.g. {-base 0x80000000} ...
+*/
+int
+CMarkerCommand::cget(CTCLInterpreter& interp, vector<CTCLObject>& objv)
 {
-    requireExactly(objv, 3, Usage("Invalid number of command parameters", objv).c_str());
-    
-    std::string name = objv[2];
-    CReadoutModule* pModule = m_Config.findAdc(name);
-    if (!pModule) {
-        throw Usage("No such module", objv);
-    }
-    CConfigurableObject::ConfigurationArray config = pModule->cget();
-    CTCLObject result;
-    result.Bind(interp);
-    
-    for (int i =0; i < config.size(); i++) {
-        CTCLObject key;
-        CTCLObject value;
-        CTCLObject sublist;
-        key.Bind(interp); value.Bind(interp); sublist.Bind(interp);
-        
-        key   = config[i].first;
-        value = config[i].second;
-        
-        sublist += key;
-        sublist += value;
-        
-        result += sublist;
-    }
-    interp.setResult(result);
-    
+  if (objv.size() != 3) {
+    Usage("Invalid command parameter count for cget", objv);
+    return TCL_ERROR;
+  }
+  string           name    = objv[2];
+  CReadoutModule *pModule = m_Config.findAdc(name);
+  if (!pModule) {
+    Usage("No such  module", objv);
+    return TCL_ERROR;
+  }
+  CConfigurableObject::ConfigurationArray config = pModule->cget();
+
+  Tcl_Obj* pResult = Tcl_NewListObj(0, NULL);
+
+  for (int i =0; i < config.size(); i++) {
+    Tcl_Obj* key   = Tcl_NewStringObj(config[i].first.c_str(), -1);
+    Tcl_Obj* value = Tcl_NewStringObj(config[i].second.c_str(), -1);
+
+    Tcl_Obj* sublist[2] = {key, value};
+    Tcl_Obj* sl = Tcl_NewListObj(2, sublist);
+    Tcl_ListObjAppendElement(interp.getInterpreter(), pResult, sl);
+  }
+  Tcl_SetObjResult(interp.getInterpreter(), pResult);
+  return TCL_OK;
+
 }
-/**
- * Usage:
- *    Returns command usage information preceded by an error message.
- *
- *  @param msg - The error message.
- *  @param objv - Vector of objects that make up the command words.
- *  @return std::string - fully constructed error message.
- */
-std::string
+////////////////////////////////////////////////////////////////////////////////
+/////////////////////////// Utility function(s) ////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+void
 CMarkerCommand::Usage(std::string msg, std::vector<CTCLObject>& objv)
 {
-    // Prefix:
-    
-    std::string result = "Error: ";
-    result            += msg;
-    result            += "\n";
-    
-    // The full command:
-    
-    for (int i = 0; i < objv.size(); i++) {
-        result += std::string(objv[i]);
-        result += " ";
-    }
-    result += "\n";
-    
-    // Helpful usage information:
-    
-    result += "Usage:\n";
-    result += "   marker create name ?options?\n";
-    result += "   marker config name ?options?\n";
-    result += "   marker cget name\n";
-    
-    return result;
-}
+  string result("ERROR: ");
+  result += msg;
+  result += "\n";
+  for (int i = 0; i < objv.size(); i++) {
+    result += string(objv[i]);
+    result += ' ';
+  }
+  result += "\n";
+  result += "Usage\n";
+  result += "    marker create name value\n";
+  result += "    marker config name config-params...\n";
+  result += "    marker cget name";
 
-/**
- * configure
- *   Does the actual work of extracting key/value pairs from command line
- *   words and using them to configure the object.  Note that configuration
- *   is not atomic.  If there's an error/failure, all options up until the
- *   failed on succeed.
- *
- * @param interp  - Interpreter running the command.
- * @param pModule - Module being configured.
- * @param objv    - Vector of command words
- * @param first   - Index into objv of the first configuration keywords.
- *
- * @note the caller must have ensured that [first:end] are an even number
- *       of elements.
- *  @throw std::string on error.
- */
-void
-CMarkerCommand::configure(
-    CTCLInterpreter& interp, CReadoutModule* pModule, std::vector<CTCLObject>& objv,
-    int firstPair
-)
-{
-    // The try block below converts all exceptions to string exceptions.
-    
-    std::string failingPair;
-    
-    try {
-        for (int i = firstPair; i < objv.size(); i +=2) {
-            std::string key = objv[i];
-            std::string value = objv[i+1];
-            failingPair = "Failing pair was: ";
-            failingPair += key;
-            failingPair += value;
-            
-            pModule->configure(key, value);
-        }
-    }
-    catch (std::string msg) {
-        msg += " ";
-        msg += failingPair;
-        throw Usage(msg, objv);
-    }
-    catch (CException& e) {
-        std::string msg = e.ReasonText();
-        msg += " ";
-        msg += failingPair;
-        throw Usage(msg, objv);
-    }
-    catch (const char* msg) {
-        std::string message = msg;
-        message += " ";
-        message += failingPair;
-        throw Usage(message, objv);
-    }
-    catch (...) {
-        std::string msg = "Some unanticiapted exception type: ";
-        msg += failingPair;
-        throw Usage(msg, objv);
-    }
+  m_Config.setResult(result);
 }

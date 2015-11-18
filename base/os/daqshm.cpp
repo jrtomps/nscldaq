@@ -71,6 +71,9 @@ static const char*  pMessages[] = {
 const char** CDAQShm::m_ppMessages = pMessages;
 const int    CDAQShm::m_nMessages  = sizeof(pMessages)/sizeof(const char*);
 
+// This is Linux specific -- directory holding the shared memory files.:
+
+
 
 /**
  * Create a new shared memory region.
@@ -220,7 +223,7 @@ CDAQShm::attach(std::string name)
   if (!pMemory) {
     pMemory = mmap(NULL, fileSize, PROT_READ, MAP_SHARED, fd, 0);
   }
-  if (!pMemory) {
+  if (pMemory == reinterpret_cast<void*>(-1)) {
     if (errno == EACCES) {
       m_nLastError = NoAccess;
     } else {
@@ -341,6 +344,43 @@ CDAQShm::errorMessage(int errorCode)
   return std::string(m_ppMessages[errorCode]);
 
 }
+
+/**
+ * stat
+ *    Return a stat struct for the shared memory special file.  This is POSIX
+ *    compliant via shm_open/fstat.
+ *
+ * @param name - name of the shared memory region
+ * @param pStat - Pointer to buffer to hold the status info.
+ * @return int  - 0 success, -1 failure with m_nLastError set with the reason.
+ */
+int
+CDAQShm::stat(std::string name, struct stat* pStat)
+{
+  // Open the file:
+  
+  int fd = shm_open(name.c_str(), O_RDONLY, 0);
+  if (fd < 0) {
+    m_nLastError = CDAQShm::CheckOSError;
+    return -1;
+  }
+  
+  // Do the stat:
+
+  int result = fstat(fd, pStat);
+  int eno = errno;                        // Close modifies errno
+  close(fd);
+  
+  errno = eno;
+  if (result < 0) {
+    m_nLastError =  CheckOSError;
+  } else {
+    m_nLastError = Success;
+  }
+  return result;
+  
+}
+
 /*-----------------------------------------------------------------------------------*/
 /* Private methods:                                                                 */
 

@@ -283,7 +283,7 @@ void FactoryTests::createURIFile()
 {
     std::string uri = "file://";
     char wd[PATH_MAX+1];
-    uri += getwd(wd);
+    uri += getcwd(wd, PATH_MAX);
     uri += "/";
     uri += m_tempFile;
     

@@ -41,10 +41,16 @@ package require propertyEditor
 #   - Enables dragging the object around.
 #   - Enables double-click to bring up a property list for the object.
 #
+#    OPTIONS:
+#        -installcmd  - script called when an object was installed. Substitutions:
+#            %W  - The canvas being installed on.
+#            %O  - The object that was installed.
+#
 snit::type ObjectInstaller {
+    option -installcmd [list]
     
     #---------------------------------------------------------------------------
-    # Public methods
+    # Private
     #
     
     ##
@@ -75,6 +81,23 @@ snit::type ObjectInstaller {
         .p modal
         destroy .p
     }
+    ##
+    # _dispatch
+    #    Dispatch a script.
+    #
+    # @param optname  - name of the option containing the script,.
+    # @param submap   - subst map.
+    
+    method _dispatch {optname submap} {
+        set script $options($optname)
+        if {$script ne ""} {
+            set script [string map $submap $script]
+            uplevel #1 $script
+        }
+    }
+    #-------------------------------------------------------------------------
+    # Public methods:
+    
     
     ##
     # install
@@ -105,8 +128,10 @@ snit::type ObjectInstaller {
         
         set id [$newObject getId]
         
-        $to bind $id <B1-Motion> [mymethod _drag $newObject %x %y ]; # Drag.
-        $to bind $id <Double-Button-1> [mymethod _editProperties $newObject]
+        $newObject bind <B1-Motion> [mymethod _drag $newObject %x %y ]; # Drag.
+        $newObject bind <Double-Button-1> [mymethod _editProperties $newObject]
+        
+        $self _dispatch -installcmd [list %W $to %O $newObject]
         
         return $newObject
     }

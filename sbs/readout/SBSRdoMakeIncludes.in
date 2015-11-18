@@ -3,7 +3,7 @@
 #
 
 CC=@CC@
-CXX=@CXX@
+CXX=@CXX@ -std=c++11
 CXXLD=@CXX@
 CCLD=@CC@
 

@@ -14,7 +14,7 @@ CRingItem*
 CAbnormalEndRunFilterHandler::handleRingItem(CRingItem* item) {
 
   if (item->type() == ABNORMAL_ENDRUN) {
-    m_sink.putItem(*item);
+    m_sink.put(item->getItemPointer(), item->size());
     throw CException("Found an abnormal end run item. Shutting down!");
   }
 

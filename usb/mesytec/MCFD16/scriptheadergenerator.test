@@ -1,0 +1,74 @@
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2014.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Author:
+#    Jeromy Tompkins
+#	   NSCL
+#	   Michigan State University
+#	   East Lansing, MI 48824-1321
+
+
+package require tcltest
+
+set loadFailure 0
+tcltest::test pkgrequire-0 {Require the package 
+} {set ::loadFailure [catch {package require scriptheadergenerator}]} 0
+
+if $::loadFailure {
+  tcltest::cleanupTests
+  exit 
+}
+
+set loadFailure [catch {package require mcfd16guiapp}]
+if $::loadFailure {
+  tcltest::cleanupTests
+  exit 
+}
+
+
+tcltest::test usb-0 {Generate proper usb header 
+} -setup {
+  MCFD16AppOptions opts -protocol usb -serialfile dummy
+} -cleanup {
+  generator destroy
+  opts destroy
+} -body {
+  ScriptHeaderGenerator generator opts
+
+  generator generateHeader
+} -result [list \
+"package require mcfd16usb" \
+"package require mcfd16channelnames" \
+"set serialFile dummy"  \
+{} \
+"if \{!\[file exists \$serialFile\]\} \{" \
+{  puts "Serial file \"$serialFile\" provided but does not exist."} \
+{  exit} \
+"\}" \
+{MCFD16USB ::dev $serialFile} \
+]  
+
+tcltest::test mxdcrcbus-0 {Generate proper mxdcrcbus header 
+} -setup {
+  MCFD16AppOptions opts -protocol mxdcrcbus -module rcbus -host h \
+                        -port 1230 -devno 2 
+} -cleanup {
+  generator destroy
+  opts destroy
+} -body {
+  ScriptHeaderGenerator generator opts -name dev
+
+  generator generateHeader
+} -result [list \
+{package require mcfd16rc} \
+{package require mcfd16channelnames} \
+{MXDCRCProxy ::proxy -server h -port 1230 -module rcbus -devno 2} \
+{# use the proxy created to construct an MCFD16RC} \
+{MCFD16RC dev ::proxy} ]
+
+tcltest::cleanupTests

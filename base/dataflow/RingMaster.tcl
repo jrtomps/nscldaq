@@ -199,7 +199,7 @@ proc RemoteHoist {socket client tail} {
 	puts $socket "ERROR $ringname does not exist"
     } else {
 	puts $socket "OK BINARY FOLLOWS"
-	exec $::hoisterProgram $ringname >@ $socket  &
+	exec $::hoisterProgram $ringname $client >@ $socket  &
 	releaseResources $socket $client
     }
 

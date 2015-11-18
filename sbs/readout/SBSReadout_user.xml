@@ -1,0 +1,1197 @@
+<!-- chapter frameworks -->
+<chapter id='chap-sbsrdo'>
+    <title id='chap-sbsrdo-title'>The SBS Readout framework</title>
+    <para>
+        This chapter describes a framework for reading out events via the SBS
+        PCI/VME bus bridge interface.  This chapter describes
+        <itemizedlist>
+            <listitem>
+                <para>Basic concepts that underlie the framework</para>
+                </listitem>
+            <listitem>
+                <para>How to obtain a skeleton application which you can expand
+                    into a real application, and build it.</para>
+                </listitem>
+            <listitem>
+                <para>
+                    What parts of the skeleton application you will most likely
+                    have to modify to produce a real application.
+                    </para>
+                </listitem>
+            <!--
+            <listitem>
+                <para>
+                    How to hook the readout program into the NSCLDAQ-11.0 state
+                    manager.  See
+                    <link linkend='chap.statemgr' endterm='chap.statemgr.title' />
+                    for more information about the state manager.
+                </para>
+            </listitem>
+            -->
+        </itemizedlist>
+    </para>
+    <para>
+        Complete reference information is available in the 3sbsreadout part of
+        this manual.
+        </para>
+    <section>
+        <title>SBS Readout concepts</title>
+        <para>
+            The SBS readout is an application framework.  Application frameworks
+            are nice because they already supply the main flow of control.  Your
+            job as an application programmer is to fill in the experiment specific
+            pieces of the framework.
+            </para>
+        <para>
+            The disadvantage of an application framework is that it can be hard
+            to figure out how to get started without a good orientation.  This
+            section aims to be that orientation.  We will describe the flow
+            of the application and the concepts you'll have to deal with.
+            </para>
+        <para>
+            Normally you will only need to be concerned with how the framework
+            operates when data taking is active.  When data taking is active,
+            An independent thread loops checking a pair of
+            <firstterm>triggers</firstterm>.  These
+            triggers are called the
+            <firstterm>event trigger</firstterm> and tthe
+            <firstterm>scaler triger</firstterm>.
+            Each trigger has associated with it a set of code to execute.
+            This code is organized hierarchically as <firstterm>event segments</firstterm>
+            in the case of the event trigger and <firstterm>scaler banks</firstterm>
+            in the case of the scaler trigger.
+            </para>
+        <para>
+            Triggers and the code that responds to them must be registered with
+            the framework if it is to know about it.  The specific triggers
+            themselves must also be registered.
+            </para>
+        <para>
+            This section therefore will discuss the following objects:
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        Event segments.
+                        </para>
+                    </listitem>
+                <listitem>
+                    <para>
+                        Scaler banks
+                        </para>
+                    </listitem>
+                <listitem>
+                    <para>
+                        Triggers
+                        </para>
+                    </listitem>
+                <listitem>
+                    <para>
+                        Busys
+                        </para>
+                    </listitem>
+                </itemizedlist>
+            </para>
+        <formalpara>
+            <title>Event Segments</title>
+            <para>
+                An event segment is a logical unit of data acquisitition. There
+                are two useful base classes:
+                <classname>CEventSegment</classname> provides a primitive segment.
+                You extend <classname>CEventSegment</classname> to build a class
+                that actually initializes, reads and clears some digitizer modules.
+                <classname>CCompoundEventSegment</classname> provides a container
+                for other event segments (including other
+                <classname>CCompoundEventSegment</classname> objects).
+                <classname>CCompoundEventSegment</classname> provides the
+                glue that allows you to build an experiment readout from logical
+                chunks.
+                </para>
+            </formalpara>
+        <para>
+            To use the <classname>CEventSegment</classname> class, you create
+            a derived class and implement the pure virtual methods of 
+            <classname>CEventSegment</classname>.  You can optionally override
+            the virtual methods supplied by <classname>CEvenSegment</classname>
+            (which are implemented to do nothing) if your electronics requires this.
+            </para>
+        <para>
+            The virtual methods you can implement are:
+            </para>
+        <variablelist>
+            <varlistentry>
+                <term><type>void</type> <methodname>initialize</methodname>()</term>
+                <listitem>
+                    <para>
+                        This method is called once as data taking transitions to
+                        the active state (resume or begin).  It is expected to perform
+                        any one-time initialization of the hardware managed by this
+                        event segment.  This includes returning the module to a known
+                        state, reading setup files and applying them to the module,
+                        enabling data taking and so on.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><type>void</type> <methodname>clear</methodname>()</term>
+                <listitem>
+                    <para>
+                        Clears any pending data from the module.  This is called
+                        after <methodname>initialize</methodname> during startup.
+                        It is also called after each event has been read.
+                        You should implement this if the hardware this segment is reading
+                        requires any post readout attention to be made ready for
+                        the next event.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><type>void</type> <methodname>disable</methodname>() </term>
+                <listitem>
+                    <para>
+                        Called as data taking is being transitioned to an inactive
+                        state (paused or ended).  This is expected to do any
+                        work needed to disable dat taking in the modules managed
+                        by this segment.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><type>size_t</type> <methodname>read</methodname>(
+                <type>void*</type> <parameter>pBuffer</parameter>,
+                <type>size_t</type> <parameter>maxwords</parameter>)</term>
+                <listitem>
+                    <para>
+                        Called in response to a trigger. This function is expected
+                        to read the hardware directly into <parameter>pBuffer</parameter>
+                        which has <parameter>maxwords</parameter> of 16 bit words
+                        available.  On return, the actual number of 16 bit words read
+                        should be returned.
+                        </para>
+                        <para>
+                            If your Readout is participating in distributed event
+                            building your <methodname>read</methodname> method
+                            must provide the event timestamp and, may optionally,
+                            provide the source id associated with the event.
+                            If not provided, the source id is taken from
+                            value of othe <option>--sourceid</option> command
+                            line option.
+                        </para>
+                        <para>
+                            The base class, <classname>CEventSegment</classname>
+                            provides some utilities that can be useful when
+                            reading and event segment.  Refer to
+                            the manpage 
+                            <link linkend='manpage.ceventsegment'
+                                endterm='manpage.ceventsegment_title' />
+                            for reference material that covers the utilities
+                            described below
+                        </para>
+                        <para>
+                            One set of utilties allow event segments to prevent
+                            the event from appearing in the data stream.
+                            By callilng <methodname>reject</methodname> all subsequent
+                            event segments still run but the resulting event is
+                            discarded.  If you know that it is not necessary
+                            for subsequent event segments to run (e.g. to keep
+                            the hardware sane), you can call <methodname>rejectImmediatly</methodname>.
+                            That function aborts event segment processing when
+                            the current segment returns and discards the data
+                            read to this point.
+                        </para>
+                        <para>
+                            The <methodname>keep</methodname> method can be called
+                            to reset the state of the event to prevent it from
+                            being discarded.  This can happen if either the
+                            event segment assumes an event is bad and needs to be
+                            convinced otherwise or if a subsequent event segment
+                            wants to ensure that an <methodname>reject</methodname>
+                            by a prior event segment is not honored.
+                        </para>
+                        <para>
+                            Finally, the <methodname>setTimestamp</methodname>
+                            and <methodname>setSourceId</methodname> methods
+                            ensure the event has an event header that contains
+                            the timestamp and source id specified to those
+                            methods.  This must be used in an environment
+                            that employs the NSCL event builder in order to
+                            provide events with the information needed by the
+                            ring data source so that the timestamp and source id
+                            can be automatically deduced.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        <para>
+            For reference information on this class see:
+            <link linkend='manpage.ceventsegment'>CEventSegment(3sbsreadout)</link>.
+            Closely allied with this is the concept of packets.  Packets are supported
+            via the <link linkend='manpage.cdocumentedpacket'>CDocumentedPacket(3sbsreadout)</link>.
+            The <link linkend='manpage.ceventpacket'>CEventPacket(3sbsreadout)</link>
+            class extends  <classname>CEventSegment</classname> to provide a base
+            class for event segments that are wrapped in a packet.
+            </para>
+        <para>
+            Event segments are organized by placing them in <classname>CCompoundEventSegment</classname>
+            objects. <classname>CCompoundEventSegment</classname> is itself an
+            <classname>CEventSegment</classname> and therefore can contain other
+            compounds, which supports a hierarchical organization of the
+            experimental readout.
+            </para>
+        <para>
+            Ordinarily you will use a <classname>CCompoundEventSegment</classname>
+            by creating an instance of it and inserting other segments into it.
+            Here are the methods that allow you to manipulate the event segments
+            in a compound event segment.
+            </para>
+        <variablelist>
+            <varlistentry>
+                <term><type>void</type> <methodname>AddEventSegment</methodname>(
+                <type>CEventSegment*</type> <parameter>pSegment</parameter>
+                )</term>
+                <listitem>
+                    <para>
+                        Adds an event segment to the end of the ordered collection
+                        of event segments in the list.  Whenever a method like
+                        <methodname>initialize</methodname> or<methodname>read</methodname>
+                        is invoked on a compound event segment it will invoke the
+                        corresponding method in the elements it contains in
+                        the order in which they were added.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><type>void</type> <methodname>DeleteEventSegment</methodname>
+                (
+                    <type>CEventSegment*</type> <parameter>pSegment</parameter>
+                )</term>
+                <listitem>
+                    <para>
+                        If <parameter>pSegment</parameter> is contained by
+                        the compound, it will be removed from the container.
+                        If not this method does nothing.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><type>CCompoundEventSegment::EventSegmentIterator</type>
+                <methodname>begin</methodname>()</term>
+                <listitem>
+                    <para>
+                        Returns an iterator which 'points' to the beginning of the
+                        collection.  Refer to the description below for information
+                        about iterators.  
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><type>CCompoundEventSegment::EventSegmentIterator</type>
+                <methodname>end</methodname>()</term>
+                <listitem>
+                    <para>
+                        Returns an iterator that points just off the end of
+                        the collection.  A typical usage pattern is shown below
+                        <informalexample>
+                            <programlisting>
+CCompoundEventSegment seg;
+...
+CCompoundEventSegment::EventIterator p = seg.begin();
+while (p != seg.end()) {
+   // Do something with the event segment pointed to by *p
+   
+   p++;
+}
+                                </programlisting>
+                            </informalexample>
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        <para>
+            The <type>CCompoundEventSegment::EventSegmentIterator</type>
+            data typeis a pointer like object within the collection of
+            event segments.  Dereferencing it gives you a pointer to the
+            event segmet at the current location. Increment advances the
+            iterator to the next element of the collection.
+            </para>
+        <para>
+            For reference information about the <classname>CCompoundEventSegment</classname>
+            class see
+            <link linkend='manpage.ccompoundeventsegment'>CCompoundEventSegment(3sbsreadout)</link>.
+            </para>
+        <para>
+            The readout software has a single object from the
+            <link linkend='manpage.cexperiment'>CExperiment(3sbsreadout)</link>
+            class.   This object contains a top level <classname>CCompoundEventSegment</classname>.
+            It also provides a member function <methodname>AddEventSegment</methodname> that
+            allows you to add an event segment (or compound event segment) to
+            that top level segment.
+            </para>
+        <para>
+            See the section:
+            <link linkend='sbsrdo.sec.skeleton'>Modifying the skeleton application to meet your needs</link>
+            for information about where to add event segments.
+            </para>
+        <formalpara>
+            <title>Scaler banks</title>
+            <para>
+                The Readout program supports a second trigger that reads out scaler
+                banks.  Scaler banks usually read out a set of counters that
+                describe the rates in various detectors subsystems and other
+                items of interest.   Scaler banks operate in a manner analagous
+                to the event segments we have just described.
+                </para>
+            
+            </formalpara>
+        <para>
+            The <classname>CScaler</classname> class is intended to read a single
+            scaler module.  <classname>CScalerBank</classname> is a container for
+            other <classname>CScaler</classname> objects including other
+            <classname>CScalerBank</classname> objects.  This pair of classes
+            allows you to build a modular hierarchy of scalers to read in
+            response to the scaler trigger.  The scaler trigger is assumed
+            to come at a much lower rate than the event trigger and therefore can
+            tolerate alonger deadtime.
+            </para>
+        <para>
+            <classname>CScaler</classname> is an abstract base class.  You use
+            it by extending it by supplying code for the pure virtual methods,
+            and overriding the other virtual methods you need to override.
+            The virtual methods that are fair game to be overidden are:
+            </para>
+        <variablelist>
+            <varlistentry>
+                <term><type>void</type> <methodname>initialize</methodname>()</term>
+                <listitem>
+                    <para>
+                        Invoked once as the readout program begins taking data.
+                        This happens after a begin and after a resume.
+                        The code you supply here is supposed to prepare modules
+                        for data taking.  The base class implementation does nothing
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><type>void</type> <methodname>clear</methodname>()</term>
+                <listitem>
+                    <para>
+                        Invoked once as data taking becomes active (begin or resume),
+                        and after the scaler is read.  If something must be done
+                        to clear  a scaler after it has been read write this method
+                        and put that code here.  Note that many scalers have a destructive
+                        read method and that should be used by preference as it ensures
+                        that scaler counts will not be lost (those accepted between
+                        read and clear).
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><type>void</type> <methodname>disable</methodname>()</term>
+                <listitem>
+                    <para>
+                        Called as data taking is halted (due to an end or pause).
+                        If a module requires special handling to disable it
+                        implement this method.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><type>std::vector&lt;uint32_t&gt;</type>
+                <methodname>read</methodname>
+                </term>
+                <listitem>
+                    <para>
+                        Reads the scaler(s) managed by this class.  The
+                        scalers are returned as an STL vector of 32 bit
+                        unsigned values.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        <para>
+            The <classname>CScalerBank</classname> class is a parallel to the
+            <classname>CCompoundEventSegment</classname>.  It is a
+            <classname>CScaler</classname> that contains other
+            <classname>CScaler</classname> objects, including
+            <classname>CCompoundEventSegment</classname> objects.
+            </para>
+        <para>
+            The following methods allow you to manipulate the container
+            in a <classname>CScalerBank</classname> object:
+            </para>
+        <variablelist>
+            <varlistentry>
+                <term><type>void</type> <methodname>AddScalerModule</methodname>(
+                    <type>CScaler*</type> <parameter>pScaler</parameter>
+                )
+                </term>
+                <listitem>
+                    <para>
+                        Adds a scaler module to the end of the ordered container
+                        of scaler modules that is managed by this object. The
+                        virtual functions that make this module look like a
+                        <classname>CScaler</classname> iterate through the
+                        set of scaler objects in the container in the order in
+                        which they were added and invoke the corresponding
+                        function in those objects.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><type>void</type> <methodname>DeleteScaler</methodname>(
+                <type>CScaler*</type> <parameter>pScaler</parameter>
+                )
+                </term>
+                <listitem>
+                    <para>
+                        If the scaler pointed to by <parameter>pScaler</parameter>
+                        is in the container (shallow inclusion), it is removed
+                        from the container.  Note that the object is not destroyed.
+                        IF <parameter>pScaler</parameter> is not in the collection
+                        this function does nothing.
+                        </para>  
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><type>CScalerBank::ScalerIterator</type>
+                <methodname>begin</methodname>()</term>
+                <listitem>
+                    <para>
+                        Returns an iterator that 'points' to the first item in
+                        the container.  Dereferencing a
+                        <type>CScalerBank::ScalerIterator</type> will
+                        result in a <type>CScaler*</type>.  Incrementing the
+                        iterator will make it 'point' to the next object in the
+                        container.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><type>CScalerBank::ScalerIterator</type>
+                <methodname>end</methodname>()</term>
+                <listitem>
+                    <para>
+                        Returns an iterator that points just off the end of the
+                        collection.  A typical use for this is:
+                        <informalexample>
+                            <programlisting>
+CScalerBank bank;
+...
+CScalerBank::ScalerIterator p = bank.begin();
+while (p != bank.end()) {
+    CScaler* pScaler = *p;
+    
+    // do something with the scaler.
+    
+    p++;            // Next scaler.
+}
+                                </programlisting>
+                            </informalexample>
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        <para>
+            For reference information see
+            <link linkend='manpage.cscalerbank'>CScalerBank</link>
+            </para>
+        <para>
+            As with event segments, the <classname>CExperiment</classname>
+            encapsulate as <classname>ScalerBank</classname> that is the
+            top level of the scaler readout hierarchy.
+            <classname>CExperiment</classname> exports methods that
+            allow you to add and remove scaler modules (including scaler banks)
+            to this top level scaler bank.  See
+            <link linkend='sbsrdo.sec.skeleton'>Modifying the skeleton application to meet your needs</link>
+            for iformation about how to use these.
+            </para>
+        <formalpara>
+            <title>Triggers</title>
+            <para>
+                We have seen how to build the list of stuff the readout program
+                will read.  <firstterm>Triggers</firstterm> determine when the
+                top level event segment and scaler bank are read.  In order to
+                make Readout to do anything with these you must supply appropriate
+                trigger objects and register them with the <classname>CExperiment</classname>
+                object.  This registration is described in
+                <link linkend='sbsrdo.sec.skeleton'>"Modifying the skeleton application to meet your needs"</link>
+                below.
+                </para>
+            </formalpara>
+        <para>
+            All triggers are subclasses of <classname>CEventTrigger</classname>.
+            Several of the commonly used triggers have been defined for you.  You
+            can also build custom triggers by extending <classname>CEventTrigger</classname>
+            or any of the prebuilt classes that are close to what you want.
+            </para>
+        <para>
+            You write a trigger class by overriding the virtual methods in
+            <classname>CEventTrigger</classname> supplying code that is
+            appropriate to your needs.  You must define and implement
+            <methodname>operator()</methodname> which is a pure virtual
+            method of <classname>CEventTrigger</classname>.
+            </para>
+        <para>
+            The virtual member functions in the <classname>CEventTrigger</classname>
+            class are:
+            </para>
+        <variablelist>
+            <varlistentry>
+                <term><type>void</type> <methodname>setup</methodname>()</term>
+                <listitem>
+                    <para>
+                        Called when data taking becomes active (begin or resume).
+                        This should perform any initialization of the trigger
+                        hardware or software.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><type>void</type> <methodname>teardown</methodname>()</term>
+                <listitem>
+                    <para>
+                        Called as data taking halts (end or pause).  Any code
+                        required to make the trigger hardware or software
+                        insenstive to additional triggers should be supplied here.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><type>bool</type> <methodname>operator()</methodname>()</term>
+                <listitem>
+                    <para>
+                        This is periodically called and should return
+                        <literal>true</literal> if the trigger actions should
+                        be peformed.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        <para>
+            The following trigger classes are in the Readout library and can be
+            used simplly by instantiatig and registering them.
+            </para>
+        <variablelist>
+            <varlistentry>
+                <term><classname>CCAENV262Trigger</classname></term>
+                <listitem>
+                    <para>
+                        Triggers using the CAEN V262 module.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><classname>CNullTrigger</classname></term>
+                <listitem>
+                    <para>
+                        Trigger that never fires.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><classname>CTimedTrigger</classname></term>
+                <listitem>
+                    <para>
+                        Trigger that fires periodically
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><classname>CV977Trigger</classname></term>
+                <listitem>
+                    <para>
+                        Trigger that uses the CAEN V977 module.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        <formalpara>
+            <title>Busys</title>
+            <para>
+                During the time in which Readout is responding to a trigger it
+                is unable to accept a new trigger.  During this time it is often
+                important to veto external electronics until the system is able to
+                accept the next trigger.  This is the function of <firstterm>Busy</firstterm>
+                objects.
+                </para>
+            </formalpara>
+        <para>
+            Busy objects are members of classes that are derived from
+            <classname>CBusy</classname> which has the following pure virtual
+            members:
+            </para>
+        <variablelist>
+            <varlistentry>
+                <term><type>void</type> <methodname>GoBusy</methodname></term>
+                <listitem>
+                    <para>
+                    This is called when due to software reasons the computer will
+                    be unable to accept a trigger.  For example, as the run ends.
+                    It is important to note that the actual event by event busy should
+                    be generated by hardware and then only cleared by software.
+                    </para>
+                    </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><type>void</type> <methodname>GoClear</methodname></term>
+                <listitem>
+                    <para>
+                        Called when the software is able to accept the next
+                        trigger.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        <para>
+            The readout framework provides
+            <link linkend='manpage.ccaenv262busy'><classname>CCAENV262Busy</classname></link>,
+            and
+            <link linkend='manpage.cv977busy'><classname>CV977Busy</classname></link> as
+            prebuilt busy classes.  This, and any busy class you create must be
+            registered to be used.  The example below shows the creation and
+            registration of a <classname>CV977Busy</classname> object to
+            manage the busy.  The physicsal module is in VME crate 0 and has a base
+            address of 0x00444400.
+            </para>
+        <informalexample>
+            <programlisting>
+#include &lt;CV977Busy.h&gt;
+...
+void
+Skeleton::SetupReadout(CExperiment* pExperiment)
+{
+   ...
+   pExperiment-&gt;EstablishBusy(new CV977Busy(0x444400));
+   ...
+}
+                </programlisting>
+            </informalexample>
+            <para>
+                There are cases where you will want to directly emit ring items
+                from your readout segment.  Imagine, for example, you have a
+                block trigger.   That is a trigger that produces
+                several events.  While you can build your trigger so that it will
+                immediately re-trigger, it may be more efficient to emit the
+                ring items associated with the trigger directly.
+            </para>
+            <para>
+                The keys to the example below are that:
+            </para>
+            <itemizedlist>
+                <listitem><para>
+                    The Ring buffer (<classname>CRingBuffer</classname> object)
+                    to which data are emitted is held by the
+                    <classname>CExperiment</classname> object which has a method
+                    for getting a pointer back to the ring buffer.
+                </para></listitem>
+                <listitem><para>
+                    The <classname>CPhysicsEventItem</classname> class allows
+                    you to create physics event items.
+                </para></listitem>
+                <listitem><para>
+                    <classname>CRingItem</classname> is the base class
+                    for <classname>CPhysicsEventItem</classname> and it
+                    has methods that allow you to fill a ring item and
+                    submit it to a ring buffer.
+                </para></listitem>
+            </itemizedlist>
+            <para>
+                The example is in two parts. The first part shows how to
+                construct an event segment so that it has the ring buffer
+                which it can hold as member data.  The second part shows
+                how to use that to emit an event from data taken in a buffer
+                that is internal to your event segment.
+            </para>
+            <example>
+                <title>Passing the ring buffer to the construction of an Event segment.</title>
+                <programlisting>
+void
+Skeleton::setupReadout(CExperiment* pExperiment)
+{
+    CReadoutMain::SetupReadout(pExperiment);
+    
+    pExperiment->EstablishTrigger(new CMyTrigger());       <co id='specialring-normal-stuff' />
+    pExperiment->EstablishBusy(new CMyBusy());
+    
+    CRingBuffer* pRing = pExperiment->getRing();         <co id='specialring-getring' />
+    pExperiment->AddEventSegment(new MySegment(pExperiment, pRing)); <co id='specialring-newseg' />
+}
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs='specialring-normal-stuff'>
+                    <para>
+                        This is part of the usual stuff that's needed in
+                        <methodname>setupReadout</methodname>, the triggter and
+                        busy systems you use are created and registered.  How you do
+                        this will, of course, vary depending on what the constructors
+                        for those classes require in your application.
+                    </para>
+                </callout>
+                <callout arearefs='specialring-getring'>
+                    <para>
+                        This line obtains a pointer to the ring buffer into
+                        which data will be written by this program.
+                    </para>
+                </callout>
+                <callout arearefs='specialring-getring'>
+                    <para>
+                        When you create the event segment, you pass in the ring
+                        buffer pointer and a pointer to the experiment
+                        object.  The experiment object, among other things,
+                        allows you to obtain the data source id which you
+                        will need when creating ring items.
+                    </para>
+                </callout>
+            </calloutlist>
+            <para>
+                Lets now look at a code fragment from the event read
+                method in the event segment.  We are going to assume
+                that the event segment has read several events
+                into a buffer called <varname>buffer</varname> and
+                that you have a few methods that help you to deconstruct
+                the buffer, specifically:
+            </para>
+            <itemizedlist>
+                <listitem><para>
+                    <methodname>eventCount</methodname> which returns the number
+                    of events in the buffer.
+                </para></listitem>
+                <listitem><para>
+                    <methodname>eventPtr</methodname> which returns a pointer to
+                    the first unprocessed event
+                </para></listitem>
+                <listitem><para>
+                    <methodname>eventSize</methodname> which returns the number
+                    of bytes in the event.
+                </para></listitem>
+                <listitem><para>
+                    <methodname>timestamp</methodname> Given an event returns its timestamp.
+                </para></listitem>
+                <listitem>
+                    <para>
+                        <methodname>nextEvent</methodname> which informs the
+                        event unpacker that you are done with the current.
+                    </para>
+                </listitem>
+            </itemizedlist>
+            <para>
+                It's important to note that you don't have to do it this way.
+                These assumptions are made just to make it easier to present
+                the code that actually is responsible for creating ring item
+                events.
+            </para>
+            <note>
+                <title>NOTE</title>
+                <para>
+                    When you take over creating events, and produce more than
+                    one event ring item per trigger, the trigger count items
+                    will reflect the number of triggers rather than the number
+                    of events produced.  SpecTcl's event analysis fraction will
+                    therefore be incorrect.
+                </para>
+            </note>
+            <example>
+                <title>Creating Events</title>
+                <programlisting>
+...
+unsigned nEvents = eventCount();                           <co id='specialring_getevtcount'></co>
+while(nEvents) {
+    void*    pEvent = eventPtr();
+    uint64_t tstamp = timestamp(pEvent);                    <co id='specialring_geteventinfo' />
+    size_t   nBytes = eventSize(pEvent); 
+    
+    CPhysicsEventItem event(
+        timestamp, m_pExperiment->getSourceId(), 0         <co id='specialring_makeitem' />
+    );  
+    void* pCursor = event.getBodyCursor();                 <co id='specialring_fillitem' />       
+    memcpy(pCursor, pEvent, nBytes);
+    
+    pCursor = reinterpret_cast&lt;void*&gt;(
+        reinterpret_cast&lt;uint8_t&gt;(pCursor) + nBytes  <co id='specialring_updatecursor' />
+    );
+    event.setBodyCursor(pCursor);
+    event.commitToRing(*m_pRing);                          <co id='specialring_commit' />
+    
+    nextEvent();                                           <co id='specialring_bookkeeping' />
+    nEvent--;
+}
+...
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs='specialring_getevtcount'>
+                    <para>
+                        To set up for the loop that emits ring items we first
+                        fetch the number of events that have been read.
+                    </para>
+                </callout>
+                <callout arearefs='specialring_geteventinfo'>
+                    <para>
+                        This section of code gets the informatino about the event
+                        that we need to create the ring item; a pointer to the  event data,
+                        the timestamp and the number of bytes of event data to put in the
+                        event.  There is an implicit assumption in this code that,
+                        in keeping with the normal formatting of
+                        NSCLDAQ events, the data pointed to by
+                        <varname>pEvent</varname> has a leading
+                        word count.  If this is not the case
+                        then code can be added to this example that computes
+                        and inserts that data from the <varname>nBytes</varname>
+                        variable.
+                    </para>
+                </callout>
+                <callout arearefs='specialring_makeitem'>
+                    <para>
+                        This line creates a ring item.  The form of this
+                        constructor creates a skeletal physics event
+                        ring item with a body header.  Note that
+                        our assumption is that when our event
+                        segment was constructed with the experiment object
+                        pointer as a construction parameter, that pointer
+                        was stored in the member variable.
+                        <varname>m_pExperiment</varname>.  That is then
+                        used to obtain the event source id from that object.
+                    </para>
+                </callout>
+                <callout arearefs='specialring_fillitem'>
+                    <para>
+                        The <methodname>getBodyCursor</methodname> method
+                        of the <classname>CPhysicsEventItem</classname> class
+                        provides a pointer to the body of the ring item
+                        (first byte following the body header).  The following
+                        <function>memcpy</function> call fill in the body with the
+                        event data.
+                    </para>
+                </callout>
+                <callout arearefs='specialring_updatecursor'>
+                    <para>
+                        This line computes a pointer to the first unused byte
+                        of data following the data we just inserted in the ring
+                        item.  This is then passed back to the ring item
+                        so that it can compute the actual size of the ring item.
+                        If you are filling in a ring item in multiple bits of
+                        independent code, <methodname>getBodyCursor</methodname>
+                        can also be used by the next section of code to know where
+                        to put its data.
+                    </para>
+                </callout>
+                <callout arearefs='specialring_commit' >
+                    <para>
+                        Puts the ring item into the ring buffer.  We've assumed
+                         the ring item pointer passed to the constructor
+                         was saved in the <varname>m_pRing</varname>
+                         member variable.  Note that <methodname>commitToRing</methodname>
+                         takes a ring buffer reference, not a pointer.
+                    </para>
+                </callout>
+                <callout arearefs='specialring_bookkeeping'>
+                    <para>
+                        This bit of book keeping prepares for the next pass through
+                        the loop.
+                    </para>
+                </callout>
+            </calloutlist>
+            <note>
+                <title>NOTE</title>
+                <para>
+                    If you build your own ring itesm, the read function should
+                    indicate that it has not read any data to its caller so that
+                    no ring item will be created by that level of the code.
+                </para>
+            </note>
+        </section>
+    <section>
+        <title>Obtaining and building the skeleton application</title>
+        <para>
+            The readout framework provides a skeleton application that you
+            can extend to a create a real readout application.
+            This section provides best practice methods to obtain the skeleton
+            and build it.
+            </para>
+        <para>
+            Framework skeletons are all installed in the <filename>skeletons</filename>
+            directory of the NSCLDAQ installation tree.  The following example shows
+            how we recommend obtaining this skeleton and how to perform a test build
+            of the skeleton. 
+            </para>
+        <example>
+            <title>Obtaining the SBS readout skeleton</title>
+            <programlisting>
+cd ~
+mkdir -p experiment/readout
+cd experiment/readout
+cp $DAQROOT/skeletons/sbs/* .
+
+make
+
+                </programlisting>
+            </example>
+        <para>
+            The example creates the directory 
+	    <filename>~/experiment/readout</filename>.
+            Next the skeleton files are copied to that directory.
+            <command>make</command> is used to do a test build of the skeleton.            
+            </para>
+        <note>
+            <title>NOTE!</title>
+            <para>
+                By itself the skeleton cannot take any useful data.  You must
+                modify it to meet you readout needs, and build the modified
+                version.  See
+                <link linkend='sbsrdo.sec.skeleton'>"Modify8ing the skeleton application to meet your needs</link>,
+                the next section for information about how to do this.
+                </para>
+            </note>
+        </section>
+    <section id='sbsrdo.sec.skeleton'>
+        <title>Modifying the skeleton application to meet your needs</title>
+        <para>
+            The skeleton provides several member functions that are called
+            in a specific order.  You should fill some or all of these member
+            function in with actual code to set up the framwork to do what
+            you want it to do.
+            </para>
+        <para>
+            If you add additional source files, you should modify the
+            <filename>Makefile</filename> as well so that they are incorporated
+            into the build.  The simplest way to do this is to add them to the
+            definition of the <literal>OBJECTS</literal>macro in the
+            <filename>Makefile</filename>.
+            </para>
+        <para>
+            Let's look at the member functions in <filename>Skeleton.cpp</filename>
+            that you may have to fill in.  These are listed in order of likelyhood
+            you'll need or want to add code to them.  Note that all of these members
+            invoke the base class member functions they override. This ensures that
+            important functionality provided by those members is provided.
+            </para>
+        <variablelist>
+            <varlistentry>
+                <term><type>void</type> <methodname>SetupReadout</methodname>(
+                    <type>CExperiment*</type> <parameter>pExperiment</parameter>
+                )</term>
+                <listitem>
+                    <para>
+                        Fill in code here to setup the event by event reaout
+                        part of the framework.  Specific work you must do is:
+                        <itemizedlist>
+                            <listitem>
+                                <para>
+                                    Create and register an event trigger.
+                                    </para>
+                                </listitem>
+                            <listitem>
+                                <para>
+                                    Create event segments and glue them together
+                                    into a coherent event segment hierarchy.
+                                    </para>
+                                </listitem>
+                            <listitem>
+                                <para>
+                                    Register the top end event segment hierarchy
+                                    elements in the experiment's top level event
+                                    segment so that they will be invoked
+                                    at appropriate times.
+                                    </para>
+                                </listitem>
+                            </itemizedlist>
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><type>void</type> <methodname>SetupScalers</methodname> (
+                    <type>CExperiment*</type> <parameter>pExperiment</parameter>
+                )</term>
+                <listitem>
+                    <para>
+                        Fill in code here to set up the scaler readout.
+                        This involves:
+                        </para>
+                    <itemizedlist>
+                        <listitem>
+                            <para>
+                                Create and register a scaler trigger.  The
+                                Skeleton provides sample code for registering
+                                a timed trigger.
+                                </para>
+                            </listitem>
+                        <listitem>
+                            <para>
+                                Create your scalers and glue them together
+                                into a coherent scaler readout hierarchy via
+                                scaler banks.
+                                </para>
+                            </listitem>
+                        <listitem>
+                            <para>
+                                Register the top elements of the scaler readout
+                                hierarchy with <parameter>pExperiment</parameter>'s
+                                top level scaler bank so that your elements will
+                                be invoked at the proper times.
+                                </para>
+                            </listitem>
+                                
+                        </itemizedlist>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><type>void</type> <methodname>addCommands</methodname> (
+                    <type>CTCLInterpreter*</type> <parameter>pInterp</parameter>
+                )</term>
+                <listitem>
+                    <para>
+                        If you want to add application specific commands to the
+                        framework, add them here.  This is usually done by
+                        writing subclasses derived from <classname>CTCLObjectProcessor</classname>,
+                        and creating an instance for each of these classes.
+                        The comments prior to this method describe what you need
+                        to do if you have existing procedural commands you want
+                        to register.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><type>void</type> <methodname>SetupRunVariables</methodname> (
+                    <type>CTCLInterpreter*</type> <parameter>pInterp</parameter>
+                )</term>
+                <listitem>
+                    <para>
+                        If you want to setup some pre-existing run variables, but
+                        don't want to use a script to do this, you can define
+                        them here.  The simplest way to define a runvar is to
+                        create the appropriate <command>runvar</command> command
+                        string and pass it to <parameter>pInterp</parameter>-&gt;<methodname>Eval</methodname>.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><type>void</type> <methodname>SetupStateVariables</methodname> (
+                <type>CTCLInterpreter*</type> <parameter>pInterp</parameter>
+                )</term>
+                <listitem>
+                    <para>
+                        If you want to set up some pre-existing state variables, but
+                        don't want to use a script to do this, you can define
+                        them here.  The simplest way to define a statevar is to
+                        create the appropriate <command>statevar</command> command
+                        string and passi to <parameter>pInterp</parameter>-&gt;<methodname>Eval</methodname>.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+    
+        </section>
+    <section id="sbsrdo.sec.commands">
+        <title>Readout commands</title>
+        <para>
+            The SBS Readout framework automatically adds several commands.
+            These are described fully in the 1sbsReadout reference pages.
+            A brief summary of these commands is given here.
+            </para>
+        <para>
+            A cluster of commands allows you to perform run control operations.
+            These are the <command>begin</command>, <command>end</command>,
+            <command>pause</command> and <command>resume</command> commands.
+            </para>
+        <para>
+            The <command>begin</command> command also uses two Tcl global
+            variables to set the run state.  These are:
+            <varname>title</varname> and <varname>run</varname>.
+            </para>
+        <para>
+            In addition the <command>statevar</command> and <command>runvar</command>
+            commands are defined.  These allow the creation, listing and deleting
+            of Tcl variables that will be logged to the event stream periodically.
+            State variables are write-protected from Tcl scripts while the run is
+            active.  Run variables can be modified during the active part of the
+            run.
+            </para>
+        <para>
+            Thus State variables are intended to log fixed unchanging parameters
+            of a run, such as documentation of the target, or beam ion or beam
+            species.  Run variables are intended to log things that may change
+            over time, such as the temperature of the chamber, beamline magnet
+            readings and so on.
+            </para>
+        </section>
+    <section id='sbsrdo.sec.server'>
+        <title>Embedded Tcl server</title>
+        <para>
+            If requested, the readout program will run a Tcl server.  This is
+            requested via the <option>--port</option> option when Readout is started.
+            If the value of the <option>--port</option> is an integer, that is
+            taken to be the port on which the server will listen for connections.
+            If the value of <option>--port</option> is <literal>managed</literal>,
+            the port manager will be contacted to dynamically allocate a port
+            for the <literal>Readout</literal> application.  The server will
+            listen on that port.
+            </para>
+        <para>
+            One use of the tcl server is to modify run variables.   For example,
+            an external program such as <application>controlpush</application>
+            can be run to data on specified EPICS process variables.l
+            </para>
+        </section>
+    <section id='sbsrdo.sec.running'>
+        <title>Running a readout application</title>
+        <para>
+            The readout application recognizes a few command options.
+            The full Readout command reference is described in
+            <link linkend='manpage.1sbsreadout'>Readout(1sbsReadout)</link>.
+            You can get a summary of the options by invoking Readout with
+            the <option>--help</option> option.
+            </para>
+        </section>
+        <!--
+    <section>
+        <title>Using SBSReadout with the state manager</title>
+        <para>
+            The SBS Readout program can be used with the state manager, and boot
+            manager.  This allows you to use the experiment configuration tool to
+            define the elements of an experiment and to have the boot manager
+            automatically create and destroy those elements as needed.  When hooked
+            to the state manager, the SBSReadout program will also start a run
+            when the state manager indicates the state is <literal>Active</literal>,
+            stop any active run when the state becomes <literal>Ready</literal> and
+            exit if the state becomes <literal>NotReady</literal>.
+        </para>
+        <para>
+            The SBSReadout state manager interface is accomplished
+            via the <literal>ReadoutStateHook</literal> Tcl package.
+            This package starts up the Tcl state monitor API and registers
+            interest in the <literal>Active</literal> <literal>Ready</literal>
+            and <literal>NotReady</literal> states taking appropriate
+            action when those states are entered.  The interface also creates a
+            <command>onTriggerFail</command> proc that gets control if the readout
+            fails when the run is active.
+        </para>
+        <para>
+            The key to using this package is the <option>init-script</option>
+            command line option.  When you describe the Readout program to the
+            experiment configuration editor be sure to include an
+            <option>init-script</option> command line parameter that runs
+            an initialization script that includes the <literal>ReadoutStateHook</literal>
+            package.
+        </para>
+        <para>
+            If the <literal>DAQROOT</literal> environment variable is defined (by
+            sourcing the daqsetup.bash), and if Readout is run under the boot
+            manager, the example below will connect your readout
+            program to the state manager:
+        </para>
+        <example>
+            <title>Script to attach SBSReadout to the state manager</title>
+            <programlisting>
+set pkgDirs [file join $env(DAQROOT) TclLibs]
+lappend auto_path $pkgDirs
+
+package require ReadoutStateHook
+
+            </programlisting>
+        </example>
+    </section>
+    -->
+</chapter>
+    
+    
+<!-- /chapter -->

@@ -43,11 +43,7 @@
 
 #include <config.h>
 #include <stdint.h>
-
-
-#ifndef __VMEMODULE_H
 #include <VmeModule.h>
-#endif
 
 class CCaenIO : public CVmeModule
 {
@@ -95,6 +91,9 @@ class CCaenIO : public CVmeModule
   uint16_t* getPulsedOutputPointer();
   uint16_t* getLatchedOutputPointer();
   uint16_t* getECLOutputPointer();
+
+private:
+  void throwIfUnrecognized(uint32_t base);
 
 };
 

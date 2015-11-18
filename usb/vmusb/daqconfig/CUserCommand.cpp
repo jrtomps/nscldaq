@@ -145,7 +145,8 @@ CUserCommand::create(CTCLInterpreter& interp,
   CReadoutHardware* pNewModule   = m_pTemplate->clone();
   pModule        = new CReadoutModule(name, *pNewModule); // Also attaches pAdc to configuration.
 
-  // If there are configuration parametesr, process them
+  // If there are configuration parametesr, process them; Relies on the fact that
+  // all commands have the same length prefix:  type subcommand module-name ...
 
   int status = TCL_OK;
   if (objv.size() > 3) {
@@ -299,7 +300,7 @@ CUserCommand::Usage(std::string msg, std::vector<CTCLObject> objv)
   result += "Usage\n";
   result += "    ";
   result += cmdName;
-  result += "  create name -slot n\n";
+  result += "  create name ?config-params...? n\n";
   result += "    ";
   result += cmdName;
   result += " config name config-params...\n";

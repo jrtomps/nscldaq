@@ -36,14 +36,18 @@ package require Tk
 #    cloning and placing an initial copy of the toolbar entity, a connector must
 #    be formed by picking two 'eligible' objects.
 #
-#  TODO:  Define eligible in a way that prevents connectors from being attached
-#         to connectors.
+#  TODO:  Define eligible in a way that only allows programs <-> rings.
 #
 #   Once both objects are chosen, the the connector is drawn between them.
 #
+#  OPTIONS
+#    -installcmd - script invoked when a connector is installed. Substitutions:
+#            %C - ordered list of connected objects.
+#            %W - Widget he connector is installed on.
+#            %O - Object that was installed
 #
 snit::type ConnectorInstaller {
-    
+    option -installcmd [list]
     variable item1 ""
     variable item2 ""
     
@@ -145,7 +149,20 @@ snit::type ConnectorInstaller {
         return [_minimumDistancePair $pairs]
         
     }
-    
+    ##
+    # _dispatch
+    #   Dispatch scripts.
+    #
+    # @param optname - name of option holding the script.
+    # @param submap  - Substitution map.
+    #
+    method _dispatch {optname submap} {
+        set script $options($optname)
+        if {$script ne ""} {
+            set script [string map $submap $script]
+            uplevel #0 $script
+        }
+    }
     ##
     # _connect
     #   item1 and item2 will be connected.
@@ -159,9 +176,11 @@ snit::type ConnectorInstaller {
         
         
         
-        connector %AUTO% \
+        set item [connector %AUTO% \
             -from $item1 -to $item2 -fromcoords $from -tocoords $to \
-            -arrow last -canvas $c
+            -arrow last -canvas $c]
+        
+        $self _dispatch -installcmd "%W $c %C [list $item1 $item2] %O $item"
         
         #  Now we have no items:
         #

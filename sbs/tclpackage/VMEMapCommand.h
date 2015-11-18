@@ -24,16 +24,14 @@
 #include <TCLProcessor.h>
 #endif
 
-#ifndef __VMEMODULE_H
 #include <VmeModule.h>
-#endif
 
                          
 class CVMEMapCommand  : public CTCLProcessor        
 { 
-  unsigned long       m_nPhysBase;  //!< VME  base address of map.
-  UInt_t              m_nSize;      //!< Size of segment in bytes.
-  UInt_t              m_nCrate;      //!< Crate segment lives in.
+  uint32_t            m_nPhysBase;  //!< VME  base address of map.
+  uint32_t            m_nSize;      //!< Size of segment in bytes.
+  uint32_t            m_nCrate;      //!< Crate segment lives in.
   CVmeModule*         m_pSpace;     //!< Accessor for the space.
   std::string         m_Name;       //!< Name of the space.
 
@@ -51,15 +49,15 @@ public:
 
   CVMEMapCommand ( std::string      Name, 
 		   CTCLInterpreter* pInterp,
-		   ULong_t          Base, 
-		   UInt_t           nSize,
-		   UInt_t           nCrate,
+		   uint32_t         Base, 
+		   uint32_t         nSize,
+		   uint32_t         nCrate,
 		   CVmeModule::Space space);
    ~ CVMEMapCommand ( ); 
 
    /// Selectors:
 
-   ULong_t getBase() const {
+   uint32_t getBase() const {
      return m_nPhysBase;
    }
   

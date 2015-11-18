@@ -23,13 +23,8 @@
 #include "CCAENV830Command.h"
 #include "CMarkerCommand.h"
 #include "CStackCommand.h"
-#include "CSIS3804Command.h"
-#include "CNADC2530Command.h"
-#include "CMADCCommand.h"
+#include <CNADC2530.h>
 #include "CMADCScalerCommand.h"
-#include "CV1x90Command.h"
-#include "CV977Command.h"
-#include "CMASECommand.h"
 #include "CMADCChainCommand.h"
 #include "CPSDCommand.h"
 #include "CHINPCommand.h"
@@ -49,8 +44,15 @@
 #include "CCBD8210CrateController.h"
 #include "CCBD8210ReadoutList.h"
 #include "CUserCommand.h"
-//#include "C3820TstampCommand.h"
+
+#include <CMASE.h>
+#include <CMADC32.h>
 #include "CXLMTimestamp.h"
+#include "CMQDC32RdoHdwr.h"
+#include <CMTDC32.h>
+#include <C3804.h>
+#include <CV977.h>
+#include <CV1x90.h>
 
 #include <CReadoutModule.h>
 #include <TCLInterpreter.h>
@@ -88,18 +90,19 @@ CConfiguration::CConfiguration() :
   m_Commands.push_back(new CADCCommand(*m_pInterp, *this));
   m_Commands.push_back(new CADCCommand(*m_pInterp, *this, "caenv965"));
   m_Commands.push_back(new CADCCommand(*m_pInterp, *this, "caenv792"));
+  
   m_Commands.push_back(new CCAENChainCommand(*m_pInterp, *this));
   m_Commands.push_back(new CScalerCommand(*m_pInterp, *this));
   m_Commands.push_back(new CCAENV830Command(*m_pInterp, *this));
   m_Commands.push_back(new CMarkerCommand(*m_pInterp, *this));
   m_Commands.push_back(new CStackCommand(*m_pInterp, *this));
-  m_Commands.push_back(new CSIS3804Command(*m_pInterp, *this));
-  m_Commands.push_back(new CNADC2530Command(*m_pInterp, *this));
-  m_Commands.push_back(new CMADCCommand(*m_pInterp, *this));
+  m_Commands.push_back(new CUserCommand(*m_pInterp, *this, "sis3804", new C3804));
+  m_Commands.push_back(new CUserCommand(*m_pInterp, *this, "hytec", new CNADC2530));
+  m_Commands.push_back(new CUserCommand(*m_pInterp, *this, "madc", new CMADC32));
   m_Commands.push_back(new CMADCScalerCommand(*m_pInterp, *this));
-  m_Commands.push_back(new CV1x90Command(*m_pInterp, *this));
-  m_Commands.push_back(new CV977Command(*m_pInterp, *this));
-  m_Commands.push_back(new CMASECommand(*m_pInterp, *this));
+  m_Commands.push_back(new CUserCommand(*m_pInterp, *this, "tdc1x90", new CV1x90));
+  m_Commands.push_back(new CUserCommand(*m_pInterp, *this, "v977", new CV977));
+  m_Commands.push_back(new CUserCommand(*m_pInterp, *this, "mase", new CMASE));
   m_Commands.push_back(new CMADCChainCommand(*m_pInterp, *this));
   m_Commands.push_back(new CPSDCommand(*m_pInterp, *this));
   m_Commands.push_back(new CHINPCommand(*m_pInterp, *this));
@@ -109,6 +112,8 @@ CConfiguration::CConfiguration() :
   m_Commands.push_back(new CHiRACommand(*m_pInterp, *this));
   m_Commands.push_back(new CVMUSBCommand(*m_pInterp, *this));
 
+  m_Commands.push_back(new CUserCommand(*m_pInterp, *this, "mtdc", new CMTDC32));
+
   m_Commands.push_back(new CUserCommand(*m_pInterp, *this, "delay", new CDelay));
 
   m_Commands.push_back(new CUserCommand(*m_pInterp, *this, "XLMFERA", new CXLMFERA));
@@ -117,6 +122,7 @@ CConfiguration::CConfiguration() :
                                         new CCBDCamacBranch) );
   m_Commands.push_back(new CUserCommand(*m_pInterp, *this, "XLMTimestamp", 
                                         new CXLMTimestamp) );
+  m_Commands.push_back(new CUserCommand(*m_pInterp, *this, "mqdc", new CMQDC32RdoHdwr) );
 
   // Add hybrid drivers
   typedef CCBD8210CrateController Ctlr;

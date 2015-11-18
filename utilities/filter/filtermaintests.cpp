@@ -40,7 +40,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2014, Al
 #define private public
 #define protected public
 #include "CFilterMain.h"
-#include "COneShotMediator.h"
+#include "CFakeMediator.h"
 #undef private
 #undef protected
 
@@ -57,7 +57,7 @@ class CFilterMainTest : public CppUnit::TestFixture
     CPPUNIT_TEST ( testBadSinkFail );
     CPPUNIT_TEST ( testSkipTransmitted );
     CPPUNIT_TEST ( testCountTransmitted );
-    CPPUNIT_TEST ( testOneShot );
+//    CPPUNIT_TEST ( testOneShot );
     CPPUNIT_TEST ( testMultiProducersOnRingIsFatal );
     CPPUNIT_TEST ( mainLoop_0 );
 
@@ -74,7 +74,7 @@ class CFilterMainTest : public CppUnit::TestFixture
     void testCountTransmitted();
 
     void testSetMembers();
-    void testOneShot();
+//    void testOneShot();
     void testMultiProducersOnRingIsFatal();
     void mainLoop_0();
 
@@ -148,15 +148,15 @@ void CFilterMainTest::testCountTransmitted()
   CPPUNIT_ASSERT_EQUAL(5, app.m_mediator->m_nToProcess);
 }
 
-void CFilterMainTest::testOneShot()
-{
-  int argc = 2;
-  const char* argv[] = {"Main",
-                      "--oneshot"};
-  CFilterMain app(argc, const_cast<char**>(argv)); 
-  CPPUNIT_ASSERT(0 != &(dynamic_cast<COneShotMediator*>(app.m_mediator)->m_oneShot));
-}
-
+//void CFilterMainTest::testOneShot()
+//{
+//  int argc = 2;
+//  const char* argv[] = {"Main",
+//                      "--oneshot"};
+//  CFilterMain app(argc, const_cast<char**>(argv)); 
+//  CPPUNIT_ASSERT(0 != &(dynamic_cast<COneShotMediator*>(app.m_mediator)->m_oneShot));
+//}
+//
 void CFilterMainTest::testMultiProducersOnRingIsFatal()
 {
    CRingBuffer *ring = 0;
@@ -199,26 +199,6 @@ void CFilterMainTest::testMultiProducersOnRingIsFatal()
 
 }
 
-class CFakeMediator : public CMediator {
-  private:
-    std::vector<std::string> m_log;
-  
-  public:
-    CFakeMediator(): CMediator(nullptr, nullptr, nullptr), m_log() {}
-    void mainLoop() {
-      m_log.push_back("mainLoop");
-    }
-
-    void initialize() {
-      m_log.push_back("initialize");
-    }
-
-    void finalize() {
-      m_log.push_back("finalize");
-    }
-
-    std::vector<std::string> getLog () const { return m_log;}
-};
 
 void CFilterMainTest::mainLoop_0()
 {

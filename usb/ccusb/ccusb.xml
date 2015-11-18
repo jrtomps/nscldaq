@@ -1363,7 +1363,8 @@ stack config events -modules [list itclmarker snitmarker testing tdc] -type even
             
     </section>
     <section>
-        <title>The slow controls subsystem</title>
+      <title>The slow controls subsystem</title>
+        <anchor id="ccusb.slowcontrols.intro"/>
         <para>
             There is nothing to stop you from creating device support that
             does not do anything in its <methodname>addReadoutList</methodname>.
@@ -1403,7 +1404,7 @@ stack config events -modules [list itclmarker snitmarker testing tdc] -type even
         </para>
         <informalexample>
             <programlisting>
-Module create ph7106  led
+Module create led ph7106
 Module config led -slot 3
             </programlisting>
         </informalexample>
@@ -1556,6 +1557,12 @@ CC-USB scriptable readout version V2.0
                         to the event and is supposed to return a
                         <type>uint64_t</type> value that is that event's
                         timestamp.
+                    </para>
+                    <para>
+                        If the library has a further entry named
+                        <function>onBeginRun</function>, taking no parametesr and
+                        having no return value, this funtion is called when the run
+                        starts.
                     </para>
                 </listitem>
             </varlistentry>
@@ -2559,7 +2566,7 @@ Sampledriver_Init(Tcl_Interp* pInterp)       <co id='ccusb-slowdriver-init-name'
                             <para>
                                 This line instantiates a creator for the sample
                                 driver and registers it with the module factory.
-                                This registration allows the <command>Module crate</command>
+                                This registration allows the <command>Module create</command>
                                 command to create instances of our driver.
                             </para>
                         </callout>
@@ -3156,7 +3163,274 @@ Module config mydriver -ensemble $mydriver
             </programlisting>
         </example>
     </section>
+    <section>
+      <title>The ccusbcamac Tcl package </title>
+      <anchor id="intro.ccusbcamac"/>
+      <para>
+        Now that you have been introduced to the slow-controls server and how to
+        write your own custom drivers to work with it, we will discuss a fully
+        implemented example of how this system might be used.  In the 
+        <link linkend="ccusb.slowcontrols.intro">Slow controls subsystem section</link>,
+        you were shown the <command>Module</command> command and instructed on how 
+        it can be used to register a slow-controls driver for a CAMAC discriminator. 
+        It can also be used to create a module of type <literal>ccusb</literal>, which 
+        is a module that enables remote control over the CC-USB from a client program. 
+        This chapter will focus on the the <literal>ccusbcamac</literal> Tcl package, 
+        which provides a client-side API to execute remote CAMAC commands through the 
+        <literal>ccusb</literal> module.
+      </para>
+      <para>
+        The <literal>ccusbcamac</literal> package provides an API compatible with 
+        the <literal>camac</literal> and <literal>wienercamac</literal> packages. It is 
+        therefore intended to be a drop in replacement for those two. 
+        The <literal>ccusbcamac</literal> package allows Tcl scripts to send
+        remote commands to the CC-USB device attached to the slow-controls server
+        it is connected to in a transparent way.
+      </para>
+      <para>
+        The package can be used to communicate with up to 56, unrelated CAMAC 
+        crates at the same time. Each of these crates is uniquely identified
+        by a pair of branch ane crate indices. It is important to understand that 
+        there are no physical CAMAC branches being referred to. Instead, the branch
+        and crate indices are used to uniquely identify a specific crate and
+        to store the connection information with it. A major benefit of maintaining
+        the branch and crate parameters is the maintaining of compatibility with the
+        <literal>camac</literal> and <literal>wienercamac</literal> packages.
+      </para>
+      <para>
+        The remainder of this chapter describes:
+        <itemizedlist>
+          <listitem>
+            <para>
+              How to incorporate this package in your scripts.
+            </para>
+          </listitem>
+          <listitem>
+            <para>
+              How to use the package itself and configure the CCUSBReadout 
+              slow-controls server.
+            </para>
+          </listitem>
+        </itemizedlist>
+      </para>
+      <para>
+        Reference material is available at
+        <link linkend="manpage.ccusbcamac">ccusbcamac(3tcl)</link>.
+      </para>
+      <section>
+        <title>Incorporating ccusbcamac in your scripts.</title>
+        <para>
+          Incorporating <literal>ccusbcamac</literal> in your scripts is a
+          three step process:
+          <orderedlist>
+            <listitem>
+              <para>
+                The NSCLDAQ Tcl package repository must be added to the
+                Tcl interpreter's package search path.
+              </para>
+            </listitem>
+            <listitem>
+              <para>
+                The NSCLDAQ lib directory must be added to the
+                Tcl interpreter's package search path.
+              </para>
+            </listitem>
+            <listitem>
+              <para>
+                The ccusbcamac package must be loaded into the interpreter
+                via an explicit <command>package require</command> command.
+              </para>
+            </listitem>
+          </orderedlist>
+        </para>
+        <para>
+          There are two ways to manipulate the Tcl interpreter package load
+          search path.  The environment variable <varname>TCLLIBPATH</varname>
+          is a space separated set of additional directories to search for packages.
+          The Tcl global variable <varname>auto_path</varname> is one of the
+          several Tcl variables that control the package search path.
+        </para>
+        <para>
+          From now on we will assume that the environment variable
+          <varname>DAQROOT</varname> has been defined to point to the
+          top level of the NSCLDAQ installation directory tree.
+          A bash shell script fragment that shows how to append the
+          NSCLDAQ Tcl package repository and lib path to the <varname>TCLLIBPATH</varname>
+          environment variable is shown below:
+        </para>
+        <informalexample>
+          <programlisting>
+            export TCLLIBPATH="$TCLLIBPATH $DAQROOT/TclLibs $DAQROOT/lib"
+          </programlisting>
+        </informalexample>
+        <para>
+          Similarly the code to add the NSCLDAQ Tcl package repository and 
+          lib directory to the <varname>auto_path</varname> interpreter global is shown
+          below:
+        </para>
+        <informalexample>
+          <programlisting>
+            global env
+            global auto_path
+            lappend auto_path [file join $env(DAQROOT) TclLibs]
+            lappend auto_path [file join $env(DAQROOT) lib]
+          </programlisting>
+        </informalexample>
+        <para>
+          Once these directories have been added to the
+          repository search path, an explicit <command>package require</command>
+          as shown below must be issued prior to using the package commands:
+        </para>
+        <informalexample>
+          <programlisting>
+            package require ccusbcamac
+          </programlisting>
+        </informalexample>
+        <para>
+          The commands defined by <literal>ccusbcamac</literal> are
+          defined in the <literal>ccusbcamac::</literal> namespace.
+          The examples in the next section will use fully qualified command
+          names (e.g. <command>::ccusbcamac::cdreg 1 1</command>).  It is
+          also possible to import the commands from that namespace
+          using the <command>namespace import</command> command.
+          If you are also using the <literal>wienercamac</literal> or <literal>camac</literal> 
+          package, this is not advisable as both packages share many of the same command names.
+        </para>
+      </section>
+      <section>
+        <title>Using ccusbcamac</title>
+        <para>
+          The ccusbcamac package is the client code to the slow-controls
+          server in the CCUSBReadout program. All communication with the 
+          server is via the TCP/IP protocol and must proceed after a connection
+          has been established. The server-side handler is the CCCUSBControl
+          class, which must be registered to the slow controls server by adding
+          a line to the controlconfig.tcl script such as:
+        </para>
+        <informalexample>
+          <programlisting>
+            Module create ccusb ctlr
+          </programlisting>
+        </informalexample>
+        <para>
+          The example creates a new control module named "ctlr" and is of type
+          ccusb. In order to establish a functional connection, the name of
+          the module, the name of the host running the server, and the port
+          on which it listens must be provided to the ccusbcamac package. 
+          These three pieces of connection information are associated and stored with a 
+          branch and crate index by the <command>cdconn</command>
+          command. This leads us to the major difference between the <literal>ccusbcamac</literal>
+          package and the <literal>wienercamac</literal>
+          packages that affects the user. The difference is that the 
+          <command>cdconn</command> command MUST be
+          called prior to any other methods for a given branch and crate index combination. 
+          If for some reason the
+          user forgets to call <command>cdconn</command> prior to calling <command>cdreg</command>, they
+          will be presented with an error. It is not essential, but it is not
+          a bad idea to check whether or not the server is accepting connections
+          before calling <command>cdreg</command> using the <command>isOnline</command>
+          procedure.
+        </para>
+        <para>
+          The commands in the package are loosely based on a subset of the
+          ESONE CAMAC function standard (IEEE 785).  In that standard, the unit
+          of address is a single CAMAC module.  The <command>cdreg</command>
+          produces a handle to a module which is then used in subsequent
+          commands that operate on that module. Extensions to the standard
+          include commands that allow you to get the graded lam register values,
+          sense and control the inhibit and determine if the crate is online.
+        </para>
+        <para>
+          While the ESONE block transfer functions are supported, connecting
+          a LAM to a script is not.  The example below enables the LAM on a module
+          in Slot 15 of the crate labeled by the user as branch 0 and crate 1.
+        </para>
+        <example>
+          <title>Enabling a module Lam with <literal>ccusbcamac</literal></title>
+          <programlisting>
 
+            # Load the package.
+
+            lappend auto_path [file join $env(DAQROOT) TclLibs]
+            lappend auto_path [file join $env(DAQROOT) lib]
+            package require ccusbcamac
+
+            # Provide the connection information for b=0, c=1
+            set host   localhost
+            set port   27000      ;# The standard slow-controls server port
+            set module ctlr
+            ccusbcamac::cdconn 0 1 $host $port $module
+
+            #  Initialize the crate and uninhibit it
+
+            ccusbcamac::C 0 1
+            ccusbcamac::Z 0 1
+            ccusbcamac::Inhibit 0 1 false
+
+            # Make the module handle:
+
+            set module [ccusbcamac::cdreg 0 1 15]
+
+            # F26 at any subaddress normally enables LAM:
+
+            ccusbcamac::cssa $module 26 0
+          </programlisting>
+        </example>
+
+      </section>
+    </section> 
+    <!-- end of ccusbcamac tcl package-->
+
+    <section>
+        <title>Integrating CCUSBReadout with the statemanager</title>
+        <para>
+            The state manager/boot manager are described in
+            <link linkend='chap.statemgr' endterm='chap.statemgr.title' />
+            and
+            <link linkend='chap.boot' endterm='chap.boot.title' />.
+            Used together with the experiment configuration editor
+            (<link linkend='chap.expconfig' endterm='chap.expconfig.title' />), they
+            provide the next generation of experiment definition and control.
+        </para>
+        <para>
+            The <literal>ReadoutStateHook</literal> package provides a standard
+            mechanism for Tcl based Readout programs with the normal run
+            control commands to become aware of state manager state changes and
+            react appropriately.  It also provides a mechanism to intiate a
+            <literal>FAIL</literal> transition should CCUSBReadout suffer an
+            unrecoverable error.
+        </para>
+        <para>
+            To integrate <filename>CCUSBReadout</filename> with the state manager
+            requires that you:
+        </para>
+        <itemizedlist>
+            <listitem>
+                <para>
+                    Write a small script that incorporates the
+                    <literal>ReadoutStateHook</literal> into the
+                    <filename>CCUSBReadout</filename>'s Tcl interpreter at start
+                    time.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    Configure the experiment to use the <option>--init-script</option>
+                    option to load that small script at start time (when the
+                    experiment is booted).
+                </para>
+            </listitem>
+        </itemizedlist>
+        <para>
+            The script below shows what you need to do to load the
+            <literal>ReadoutStateHook</literal> package into the CCUSBReadout
+            interpreter:
+        </para>
+        <example>
+            <title>Script to incorporate <literal>ReadoutStateHook</literal></title>
+            <programlisting>
+set pkgDirs [file join $env(DAQROOT) TclLibs]
+lappend auto_path $pkgDirs
 </chapter>
 <!-- /chapter -->
 
@@ -4061,6 +4335,48 @@ ccusb cget name
                         Enum that specifies the buffer size used by the CCUSB. This can
                         be any of the following values: 4096, 2048, 1024, 512, 256, 128, 
                         64, singleevent
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-forcescalerdump</option></term>
+                <listitem>
+                    <para>
+                      When true, this causes the CC-USB to flush its buffers
+                      after every scaler stack execution. It is very useful
+                      when there is either a very low data rate or only
+                      a scaler stack defined. The default value is false.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-mixedbuffer</option></term>
+                <listitem>
+                    <para>
+                      When true, this allows the CC-USB to put scaler-type data
+                      and event-type data in the same buffer. This defaults to
+                      false.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-triggerlatch</option></term>
+                <listitem>
+                    <para>
+                      When true, the execution of a scaler stack causes the
+                      the event stack to execute immediately at completion.
+                      The default value is false.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-printconfig</option></term>
+                <listitem>
+                    <para>
+                      When true, all register values for the CC-USB are read and
+                      printed at the completion of the initialization stage.
+                      This is useful for inspecting the exact register contents
+                      used for an ongoing run. The default value is false.
                     </para>
                 </listitem>
             </varlistentry>
@@ -5073,7 +5389,7 @@ stack config events -delay 10 -lamtimeout 8                 <co id ="timing" />
         <refsynopsisdiv>
           <cmdsynopsis>
          <command>
-Module create <replaceable>type name</replaceable>
+Module create <replaceable>name type</replaceable>
           </command>
           </cmdsynopsis>
           <cmdsynopsis>
@@ -5094,7 +5410,8 @@ Module cget <replaceable>name</replaceable>
             control devices.  It must appear in the control configuration script
             rather than the daq configuration script.  The <command>create</command>
             subcommand creates an object with the specified <parameter>type</parameter>
-            and <parameter>name</parameter>.  Currently the following device types
+            and <parameter>name</parameter>. The ORDERING OF TYPE AND NAME ARE OPPOSITE
+            THAT OF VMUSBREADOUT!!! Currently the following device types
             are supported:
             <variablelist>
                 <varlistentry>
@@ -5110,6 +5427,17 @@ Module cget <replaceable>name</replaceable>
                     <listitem>
                         <para>
                             A Phillips Ph7106 leading edge discriminator.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>ccusb</term>
+                    <listitem>
+                        <para>
+                            Allows a remote client to execute stacks on
+                            the CC-USB controlled by this CCUSBReadout program.
+                            (The CCCUSBRemote class serves as the
+                            remote client.)
                         </para>
                     </listitem>
                 </varlistentry>
@@ -6373,6 +6701,12 @@ Get <replaceable>name parameter</replaceable>
                 </methodparam>
             </methodsynopsis>
             <methodsynopsis>
+                <type>int</type> <methodname>readCAMACLams</methodname>
+                <methodparam>
+                    <type>uint32_t&amp;</type> <parameter>value</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
                 <type>int</type> <methodname>readUSBBulkTransferSetup</methodname>
                 <methodparam>
                     <type>uint32_t&amp;</type> <parameter>value</parameter>
@@ -6398,6 +6732,10 @@ Get <replaceable>name parameter</replaceable>
             </methodsynopsis>
             <methodsynopsis>
                 <type>int</type> <methodname>uninhibit</methodname>
+                <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>bool</type> <methodname>isInhibited</methodname>
                 <void />
             </methodsynopsis>
             <methodsynopsis>
@@ -7218,10 +7556,7 @@ Get <replaceable>name parameter</replaceable>
                       </methodsynopsis></term>
                     <listitem>
                         <para>
-                            Writes the CCUSB's action register. The class also
-                            supplies symoblic definitions for bits in the action
-                            register.  See the Action register section of 
-                            PUBLIC VARIABLES, TYPES and CONSTANTS below.
+                            THIS IS A PURELY VIRTUAL METHOD.
                         </para>
                     </listitem>
                 </varlistentry>
@@ -7749,6 +8084,23 @@ Get <replaceable>name parameter</replaceable>
                 <varlistentry>
                     <term>
                         <methodsynopsis>
+                            <type>int</type> <methodname>readCAMACLams</methodname>
+                            <methodparam>
+                                <type>uint32_t&amp;</type> <parameter>value</parameter>
+                            </methodparam>
+                        </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Reads the contents of the CAMAC LAM register. This register
+                            mirrors the state of the LAM lines of the CAMAC crate. Only
+                            the lower 24-bits are returned by this function.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <methodsynopsis>
                             <type>int</type> <methodname>readUSBBulkTransferSetup</methodname>
                             <methodparam>
                                 <type>uint32_t&amp;</type> <parameter>value</parameter>
@@ -7837,6 +8189,21 @@ Get <replaceable>name parameter</replaceable>
                 <varlistentry>
                     <term>
                         <methodsynopsis>
+                            <type>bool</type> <methodname>isInhibited</methodname>
+                            <void />
+                        </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para> 
+                            Reads the state of the dataway I line (inhibit). This is only
+                            meaningful if the firmware version is greater than 0x8e000601. Otherwise,
+                            the behavior is undefined.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <methodsynopsis>
                             <type>int</type> <methodname>executeList</methodname>
                             <methodparam>
                                 <type>CCCUSBReadoutList&amp;</type> <parameter>list</parameter>
@@ -7853,6 +8220,10 @@ Get <replaceable>name parameter</replaceable>
                         </methodsynopsis>
                     </term>
                     <listitem>
+                        <para>
+                            THIS IS A PURELY VIRTUAL METHOD. See CCUSBusb and CCCUSBRemote classes for
+                            implementation.
+                        </para>
                         <para>
                             Performs a CAMAC list operation in immediate mode.
                             In order to do this data taking mode must not
@@ -7890,6 +8261,10 @@ Get <replaceable>name parameter</replaceable>
                     </term>
                     <listitem>
                         <para>
+                            THIS IS A PURELY VIRTUAL METHOD. See CCUSBusb and CCCUSBRemote classes for
+                            implementation.
+                        </para>
+                        <para>
                             Loads a list into the CC-USB. The <parameter>listNumber</parameter>
                             must be 0 for the event list and 1 for the scaler list.
                             If it is any value other than this, the function
@@ -7921,6 +8296,10 @@ Get <replaceable>name parameter</replaceable>
                         </methodsynopsis>
                     </term>
                     <listitem>
+                        <para>
+                            THIS IS A PURELY VIRTUAL METHOD. See CCUSBusb and CCCUSBRemote classes for
+                            implementation.
+                        </para>
                         <para>
                             Pefroms a bulk read on the data transfer endpoint
                             of the CC-USB.  Normally this only needs to be called
@@ -9942,6 +10321,690 @@ uint32_t revision = (d &amp; CCCUSB::FirmwareRegister::revisionMask)
             </para>
         </refsect1>
      </refentry>
+
+	 <refentry id="ccusb3-CCCUSBusb">
+       <refmeta>
+          <refentrytitle>CCCUSBusb</refentrytitle>
+          <manvolnum>3ccusb</manvolnum>
+       </refmeta>
+       <refnamediv>
+          <refname>CCCUSBusb</refname>
+          <refpurpose>Provide access to a connected CC-USB device.</refpurpose>
+       </refnamediv>
+       
+       <refsynopsisdiv>
+        <programlisting>
+        <synopsis>
+            class <ooclass><classname>CCCUSBusb</classname></ooclass> : public <ooclass><classname>CCCUSB</classname></ooclass> {
+            
+           <constructorsynopsis>
+             <methodname>CCCUSBusb</methodname>
+              <methodparam>
+                <type>struct usb_device*</type><parameter>UsbDevice</parameter>
+              </methodparam>
+             </constructorsynopsis>
+            
+            <methodsynopsis>
+              <type>void</type>
+              <methodname>writeActionRegister</methodname>
+              <methodparam>
+                <type>uint16_t</type> <parameter>value</parameter>
+              </methodparam>
+            </methodsynopsis>
+
+            <methodsynopsis>
+                <type>int</type> <methodname>executeList</methodname>
+                <methodparam>
+                    <type>CCCUSBReadoutList&amp;</type> <parameter>list</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>void*</type><parameter>pReadBuffer</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>size_t</type><parameter>readBufferSize</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>size_t*</type><parameter>bytesRead</parameter>
+                </methodparam>
+            </methodsynopsis>
+
+            <methodsynopsis>
+                <type>int</type> <methodname>loadList</methodname>
+                <methodparam>
+                    <type>uint8_t</type><parameter>listNumber</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>CCCUSBReadoutList&amp;</type><parameter>list</parameter>
+                </methodparam>
+            </methodsynopsis>
+
+            <methodsynopsis>
+                <type>int</type> <methodname>usbRead</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>data</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>size_t</type> <parameter>bufferSize</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>size_t*</type><parameter> transferCount</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>timeout</parameter>
+                    <initializer> 2000</initializer>
+                </methodparam>
+            </methodsynopsis>
+
+            <methodsynopsis>
+                <type>void</type> <methodname>setDefaultTimeout</methodname>
+                <methodparam>
+                    <type>int</type> <parameter>ms</parameter>
+                </methodparam>
+            </methodsynopsis>
+          };
+       </synopsis>
+        </programlisting>   
+       </refsynopsisdiv>
+       <refsect1>
+          <title>DESCRIPTION</title>
+          <para>
+          This class is the low level support for the Wiener/JTEC CCUSB module.
+          the CCUSB is a USB CAMAC controller.  To use this class you must first locate
+          a module by invoking enumerate.  enumerate  returns a vector of
+          usb_device*s.   One of those can be used to instantiate the CCCUSBusb 
+          object which can the ben operated on.
+          </para>
+          <para>
+          Most all of the functionality is implemented in te base class CCCUSB. 
+          The methods defined in this class are the minimum needed to be implemented
+          in order to attach to a locally connected usb device (i.e. the usb device
+          is directly connected to the computer).
+          </para>
+       </refsect1>
+       <refsect1>
+          <title>
+         METHODS
+          </title>
+          <para>
+            In the functions listed below, any function that returns an <type>int</type>
+            returns <literal>0</literal> on success, <literal>-1</literal> if
+            the write operation to the device failed or <literal>-2</literal>
+            if the read operation failed.  Negative values result in the
+            <varname>errno</varname> variable set to the actual reason for the
+            failure.
+          </para>
+            <variablelist>
+                <varlistentry>
+                    <term><constructorsynopsis>
+                    <methodname>CCCUSBusb</methodname>
+                    <methodparam>
+                      <type>struct usb_device*</type><parameter>ccUsbDevice</parameter>
+                    </methodparam>
+                     </constructorsynopsis></term>
+                    <listitem>
+                        <para>
+                            Constructs a <classname>CCCUSB</classname> object.
+                            The resulting object can be used to communicate
+                            with the CC-USB represented by the
+                            <parameter>ccUsbDevice</parameter> object.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <methodsynopsis>
+                        <type>void</type>
+                        <methodname>writeActionRegister</methodname>
+                        <methodparam>
+                          <type>uint16_t</type> <parameter>value</parameter>
+                        </methodparam>
+                      </methodsynopsis></term>
+                    <listitem>
+                        <para>
+                            Writes the CCUSB's action register. The class also
+                            supplies symoblic definitions for bits in the action
+                            register.  See the Action register section of 
+                            PUBLIC VARIABLES, TYPES and CONSTANTS below.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <methodsynopsis>
+                            <type>int</type> <methodname>executeList</methodname>
+                            <methodparam>
+                                <type>CCCUSBReadoutList&amp;</type> <parameter>list</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>void*</type><parameter>pReadBuffer</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>size_t</type><parameter>readBufferSize</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>size_t*</type><parameter>bytesRead</parameter>
+                            </methodparam>
+                        </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Performs a CAMAC list operation in immediate mode.
+                            In order to do this data taking mode must not
+                            be on.   The <parameter>list</parameter> is built up
+                            by constructing a <classname>CCCUSBReadoutList</classname>
+                            (see <xref linkend='ccusb3-CCCUSBReadoutList' />)
+                            object and using its methods to add the appropriate
+                            set of instructions to the list.
+                        </para>
+                        <para>
+                            <parameter>pReadBuffer</parameter> is a pointer to
+                            a buffer you have prepared to receive the results
+                            of the read operations in the list.  This buffer
+                            has <parameter>readBufferSize</parameter> bytes
+                            of data.  On successful return,
+                            <parameter>bytesRead</parameter> will contain the
+                            actual number of bytes transferred into your buffer.
+                            On failure (return value other than <literal>0</literal>),
+                            the value of <parameter>bytesRead</parameter> is not
+                            well defined.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <methodsynopsis>
+                           <type>int</type> <methodname>loadList</methodname>
+                           <methodparam>
+                               <type>uint8_t</type><parameter>listNumber</parameter>
+                           </methodparam>
+                           <methodparam>
+                               <type>CCCUSBReadoutList&amp;</type><parameter>list</parameter>
+                           </methodparam>
+                       </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Loads a list into the CC-USB. The <parameter>listNumber</parameter>
+                            must be 0 for the event list and 1 for the scaler list.
+                            If it is any value other than this, the function
+                            will return <literal>-4</literal>.
+                            <parameter>list</parameter>   is the
+                            <classname>CCCUSBReadoutList</classname> to load.
+                            See <xref linkend='ccusb3-CCCUSBReadoutList' /> for
+                            information about this parameter and how to build it.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <methodsynopsis>
+                            <type>int</type> <methodname>usbRead</methodname>
+                            <methodparam>
+                                <type>void*</type> <parameter>data</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>size_t</type> <parameter>bufferSize</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>size_t*</type><parameter> transferCount</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>int</type> <parameter>timeout</parameter>
+                                <initializer>2000</initializer>
+                            </methodparam>
+                        </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Pefroms a bulk read on the data transfer endpoint
+                            of the CC-USB.  Normally this only needs to be called
+                            by the CCUSBReadout framework when in data taking mode.
+                            <parameter>data</parameter> is a buffer
+                            into which data read should be transferred.
+                            <parameter>bufferSize</parameter> is the number
+                            of bytes that can be stored in <parameter>buffer</parameter>
+                            <parameter>transferCount</parameter> points to a
+                            buffer that will contain the number of bytes actually
+                            transferred to the buffer. <parameter>timeout</parameter>
+                            is the number of milliseconds to wait for the transfer
+                            to complete before ending with a timeout condition.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <methodsynopsis>
+                            <type>void</type> <methodname>setDefaultTimeout</methodname>
+                            <methodparam>
+                                <type>int</type> <parameter>ms</parameter>
+                            </methodparam>
+                        </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Most of the immediate operations require a write to the
+                            CC-USB followed by a read to get status and/or data.
+                            This function allows you to override the default
+                            timeout for the read. <parameter>ms</parameter> is
+                            the number of milliseconds in the new timeout.
+                            Normally you will not need to call this.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>  
+       </refsect1>
+        <refsect1>
+            <title>SEE ALSO</title>
+            <para>
+                <xref linkend='ccusb3-CCCUSBReadoutList' />
+                <xref linkend='ccusb3-CCCUSB' />
+            </para>
+        </refsect1>
+     </refentry>
+	 <refentry id="ccusb3-CCCUSBRemote">
+       <refmeta>
+          <refentrytitle>CCCUSBRemote</refentrytitle>
+          <manvolnum>3ccusb</manvolnum>
+       </refmeta>
+       <refnamediv>
+          <refname>CCCUSBRemote</refname>
+          <refpurpose>Provide remote access to a CC-USB device through CCUSBReadout's slow-controls server.</refpurpose>
+       </refnamediv>
+       
+       <refsynopsisdiv>
+        <programlisting>
+        <synopsis>
+            class <ooclass><classname>CCCUSBRemote</classname></ooclass> : public <ooclass><classname>CCCUSB</classname></ooclass> {
+            
+           <constructorsynopsis>
+             <methodname>CCCUSBRemote</methodname>
+              <methodparam>
+                <type>std::string</type><parameter>moduleName</parameter>
+              </methodparam>
+              <methodparam>
+                <type>std::string</type><parameter>host</parameter>
+              </methodparam>
+              <methodparam>
+                <type>unsigned int</type><parameter>port</parameter>
+              </methodparam>
+             </constructorsynopsis>
+            
+            <methodsynopsis>
+              <type>void</type>
+              <methodname>writeActionRegister</methodname>
+              <methodparam>
+                <type>uint16_t</type> <parameter>value</parameter>
+              </methodparam>
+            </methodsynopsis>
+
+            <methodsynopsis>
+                <type>int</type> <methodname>executeList</methodname>
+                <methodparam>
+                    <type>CCCUSBReadoutList&amp;</type> <parameter>list</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>void*</type><parameter>pReadBuffer</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>size_t</type><parameter>readBufferSize</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>size_t*</type><parameter>bytesRead</parameter>
+                </methodparam>
+            </methodsynopsis>
+
+            <methodsynopsis>
+                <type>int</type> <methodname>loadList</methodname>
+                <methodparam>
+                    <type>uint8_t</type><parameter>listNumber</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>CCCUSBReadoutList&amp;</type><parameter>list</parameter>
+                </methodparam>
+            </methodsynopsis>
+
+            <methodsynopsis>
+                <type>int</type> <methodname>usbRead</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>data</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>size_t</type> <parameter>bufferSize</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>size_t*</type><parameter> transferCount</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>timeout</parameter>
+                    <initializer> 2000</initializer>
+                </methodparam>
+            </methodsynopsis>
+
+            <methodsynopsis>
+                <type>std::string</type> <methodname>getHost</methodname>
+                <void/>
+            </methodsynopsis>
+
+            <methodsynopsis>
+                <type>unsigned int</type> <methodname>getPort</methodname>
+            <void/>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>reconnect</methodname>
+                <void/>
+            </methodsynopsis>
+
+
+            <methodsynopsis>
+                <type>void</type> <methodname>connect</methodname>
+            <void/>
+            </methodsynopsis>
+
+            <methodsynopsis>
+                <type>void</type> <methodname>disconnect</methodname>
+                <void/>
+            </methodsynopsis>
+
+            <methodsynopsis>
+                <type>std::string</type> <methodname>marshallList</methodname>
+                <methodparam>
+                  <type>CCCUSBReadoutList&amp;</type> <parameter>list</parameter>
+                </methodparam>
+            </methodsynopsis>
+
+            <methodsynopsis>
+                <type>size_t</type> <methodname>marshallOutputData</methodname>
+                <methodparam>
+                  <type>void*</type> <parameter>pOutputBuffer</parameter>
+                </methodparam>
+                <methodparam>
+                  <type>const char*</type> <parameter>reply</parameter>
+                </methodparam>
+                <methodparam>
+                  <type>size_t</type> <parameter>maxOutputSize</parameter>
+                </methodparam>
+            </methodsynopsis>
+          };
+       </synopsis>
+        </programlisting>   
+       </refsynopsisdiv>
+       <refsect1>
+         <title>DESCRIPTION</title>
+         <para>
+           This class provides remote access to the CC-USB through the
+           CCUSBModule support in the tcl server.
+           An external program can link to libCCUSB, instantiate
+           this class and pretty much have its way with the CC-USB
+           as if it owned it.  
+         </para>
+         <para>Restrictions:</para>
+         <itemizedlist>
+           <listitem>
+             <para>
+               lists cannot be downloaded (only immediate lists can be run).
+             </para>
+           </listitem>
+           <listitem>
+             <para> 
+               the action register is not accessible.
+             </para>
+           </listitem>
+           <listitem>
+             <para> 
+               The IRQ Mask cannot be written as that abomination requires 
+               action register operations
+             </para>
+           </listitem>
+           <listitem>
+             <para> 
+               while internal registers can be manipulated be aware that
+               This may cause an active readout to have undefined results.
+               Registers you write may be overwritten by Readout's startup 
+               code.
+             </para>
+           </listitem>
+         </itemizedlist>
+       </refsect1>
+
+        <refsect1>
+          <title>
+         METHODS
+          </title>
+            <variablelist>
+                <varlistentry>
+                    <term><constructorsynopsis>
+                    <methodname>CCCUSBRemote</methodname>
+                    <methodparam>
+                      <type>std::string</type><parameter>moduleName</parameter>
+                    </methodparam>
+                    <methodparam>
+                      <type>std::string</type><parameter>host</parameter>
+                    </methodparam>
+                    <methodparam>
+                      <type>unsigned int</type><parameter>port</parameter>
+                    </methodparam>
+                     </constructorsynopsis></term>
+                    <listitem>
+                        <para>
+                            Constructs a <classname>CCCUSBRemote</classname> object.
+                            The resulting object can be used to communicate with
+                            a CC-USB controlled by a CCUSBReadout program if it has
+                            a ccusb module loaded into the slow-controls server named
+                            <parameter>moduleName</parameter>. A CException is thrown
+                            if the connection with the slow-controls server at <parameter>host</parameter> and 
+                            <parameter>port</parameter> is unsuccessful.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <methodsynopsis>
+                        <type>void</type>
+                        <methodname>writeActionRegister</methodname>
+                        <methodparam>
+                          <type>uint16_t</type> <parameter>value</parameter>
+                        </methodparam>
+                      </methodsynopsis></term>
+                    <listitem>
+                        <para>
+                            The writeAction register method is not fully implemented in the CCCUSBRemote.
+                            It maintains an implementation that does nothing more than print a message
+                            to the screen stating that it does nothing.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <methodsynopsis>
+                            <type>int</type> <methodname>executeList</methodname>
+                            <methodparam>
+                                <type>CCCUSBReadoutList&amp;</type> <parameter>list</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>void*</type><parameter>pReadBuffer</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>size_t</type><parameter>readBufferSize</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>size_t*</type><parameter>bytesRead</parameter>
+                            </methodparam>
+                        </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Performs a CAMAC list operation in immediate mode.
+                            In order to do this, data taking mode must not
+                            be on.   The <parameter>list</parameter> is built up
+                            by constructing a <classname>CCCUSBReadoutList</classname>
+                            (see <xref linkend='ccusb3-CCCUSBReadoutList' />)
+                            object and using its methods to add the appropriate
+                            set of instructions to the list.
+                        </para>
+                        <para>
+                            <parameter>pReadBuffer</parameter> is a pointer to
+                            a buffer you have prepared to receive the results
+                            of the read operations in the list.  This buffer
+                            has <parameter>readBufferSize</parameter> bytes
+                            of data.  On successful return,
+                            <parameter>bytesRead</parameter> will contain the
+                            actual number of bytes transferred into your buffer.
+                            On failure (return value other than <literal>0</literal>),
+                            the value of <parameter>bytesRead</parameter> is not
+                            well defined.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <methodsynopsis>
+                           <type>int</type> <methodname>loadList</methodname>
+                           <methodparam>
+                               <type>uint8_t</type><parameter>listNumber</parameter>
+                           </methodparam>
+                           <methodparam>
+                               <type>CCCUSBReadoutList&amp;</type><parameter>list</parameter>
+                           </methodparam>
+                       </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            The loadList method is not fully supported in the CCCUSBRemote 
+                            class. Instead, it is just a method that prints to the terminal
+                            that it is not supported. 
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <methodsynopsis>
+                            <type>int</type> <methodname>usbRead</methodname>
+                            <methodparam>
+                                <type>void*</type> <parameter>data</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>size_t</type> <parameter>bufferSize</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>size_t*</type><parameter> transferCount</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>int</type> <parameter>timeout</parameter>
+                                <initializer>2000</initializer>
+                            </methodparam>
+                        </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Like the loadList and writeActionRegister methods, this is not
+                            fully implemented. It only prints a message to the terminal to
+                            indicate that it is not implemented.
+                        </para>
+                    </listitem>
+                </varlistentry>
+
+
+                <varlistentry>
+                    <term>
+                      <methodsynopsis>
+                         <type>void</type> <methodname>reconnect</methodname>
+                         <void/>
+                       </methodsynopsis>
+                    </term>
+                    <listitem>
+                      <para>
+                        Forcibly disconnects from the slow controls server and connects using the
+                        host and port provided at construction. It is essentially just a call to
+                        disconnect followed by a call to connect.
+                      </para>
+                    </listitem>
+                </varlistentry>
+
+                <varlistentry>
+                    <term>
+                      <methodsynopsis>
+                         <type>void</type> <methodname>connect</methodname>
+                     <void/>
+                       </methodsynopsis>
+                    </term>
+                    <listitem>
+                      <para>
+                        Connects to the server identified by the 
+                        host and port parameters provided at construction. It also does create
+                        a new TCL interpreter instance for communicating. A CException can be
+                        thrown if the connection fails.
+                      </para>
+                    </listitem>
+                </varlistentry>
+
+                <varlistentry>
+                    <term>
+                      <methodsynopsis>
+                         <type>void</type> <methodname>disconnect</methodname>
+                         <void/>
+                       </methodsynopsis>
+                    </term>
+                    <listitem>
+                      <para>
+                        Forcibly disconnects from the server. The current TCL interpreter owned by
+                        by the class instance is also deleted.
+                      </para>
+                    </listitem>
+                </varlistentry>
+
+                <varlistentry>
+                    <term>
+                      <methodsynopsis>
+                         <type>std::string</type> <methodname>marshallList</methodname>
+                         <methodparam>
+                            <type>CCCUSBReadoutList&amp;</type> <parameter>list</parameter>
+                         </methodparam>
+                       </methodsynopsis>
+                    </term>
+                    <listitem>
+                      <para>
+                        This converts a CCCUSBReadoutList into a string format equivalent to a list. The format
+                        produced is actually a list of lists. The first list element contains the max size of 
+                        the read buffer and the second element is the list of commands.                     
+                      </para>
+                    </listitem>
+                </varlistentry>
+
+                <varlistentry>
+                    <term>
+                      <methodsynopsis>
+                         <type>size_t</type> <methodname>marshallOutputData</methodname>
+                         <methodparam>
+                            <type>void*</type> <parameter>pBuffer</parameter>
+                         </methodparam>
+                         <methodparam>
+                            <type>const char*</type> <parameter>reply</parameter>
+                         </methodparam>
+                       <methodparam>
+                         <type>size_t</type> <parameter>maxOutputSize</parameter>
+                       </methodparam>
+                     </methodsynopsis>
+                    </term>
+                    <listitem>
+                      <para>
+                        This transfers the <parameter>reply</parameter> from the server
+                        into the user's buffer, i.e. <parameter>pBuffer</parameter>. The 
+                        maximum size of the user's buffer is provided by <parameter>maxOutputSize</parameter>.
+                        The value returned from the method is the number of bytes that were actually
+                        transferred into the user's buffer.                        
+                      </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>  
+       </refsect1>
+        <refsect1>
+            <title>SEE ALSO</title>
+            <para>
+                <xref linkend='ccusb3-CCCUSBReadoutList' />
+                <xref linkend='ccusb3-CCCUSB' />
+            </para>
+        </refsect1>
+     </refentry>
          
 	 <refentry id="ccusb3-CCCUSBReadoutList">
        <refmeta>
@@ -9959,6 +11022,13 @@ uint32_t revision = (d &amp; CCCUSB::FirmwareRegister::revisionMask)
            <constructorsynopsis>
           <methodname> CCCUSBReadoutList</methodname>
           <void />
+           </constructorsynopsis>
+           <constructorsynopsis>
+            <methodname> CCCUSBReadoutList</methodname>
+            <methodparam>
+                <modifier>const</modifier> <type>std::vector&lt;uint16_t&gt;&amp;</type>
+                <parameter>list</parameter>
+            </methodparam>
            </constructorsynopsis>
            <constructorsynopsis>
             <methodname> CCCUSBReadoutList</methodname>
@@ -10112,6 +11182,7 @@ uint32_t revision = (d &amp; CCCUSB::FirmwareRegister::revisionMask)
                     <initializer>false</initializer>
                 </methodparam>
             </methodsynopsis>
+
             <methodsynopsis>
                 <type>void</type> <methodname>addRepeat</methodname>
                 <methodparam>
@@ -10128,6 +11199,24 @@ uint32_t revision = (d &amp; CCCUSB::FirmwareRegister::revisionMask)
                     <initializer>false</initializer>
                 </methodparam>
             </methodsynopsis>
+
+            <methodsynopsis>
+                <type>void</type> <methodname>addAddressPatternRead16</methodname>
+                <methodparam>
+                    <type>int</type> <parameter>n</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>a</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>f</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>bool</type><parameter>lamWait</parameter>
+                    <initializer>false</initializer>
+                </methodparam>
+            </methodsynopsis>
+
             <methodsynopsis>
                 <type>void</type> <methodname>addMarker</methodname>
                 <methodparam>
@@ -10159,6 +11248,25 @@ uint32_t revision = (d &amp; CCCUSB::FirmwareRegister::revisionMask)
                     <listitem>
                         <para>
                             Constructs a new readout list.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <constructorsynopsis>
+                       <methodname>CCCUSBReadoutList</methodname>
+                       <methodparam>
+                          <modifier>const</modifier> <type>std::vector&lt;uint16_t&gt;&amp;</type>
+                          <parameter>list</parameter>
+                        </methodparam> 
+                        </constructorsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Constructs a new readout list from a raw list of stack commands. 
+                            The contents of the list passed into the constructor will be copied into
+                            the list managed by this object. All subsequent commands will be appended
+                            to the new list.
                         </para>
                     </listitem>
                 </varlistentry>
@@ -10518,10 +11626,52 @@ uint32_t revision = (d &amp; CCCUSB::FirmwareRegister::revisionMask)
                         </para>
                     </listitem>
                     </varlistentry>
-                <varlistentry>
-                    <term>
-                         <methodsynopsis>
-                             <type>void</type> <methodname>addMarker</methodname>
+
+                    <varlistentry>
+                      <term>
+                        <methodsynopsis>
+                          <type>void</type>
+                          <methodname>addAddressPatternRead16</methodname>
+                          <methodparam>
+                            <type>int</type> <parameter>n</parameter>
+                          </methodparam>
+                          <methodparam>
+                            <type>int</type> <parameter>a</parameter>
+                          </methodparam>
+                          <methodparam>
+                            <type>int</type> <parameter>f</parameter>
+                          </methodparam>
+                          <methodparam>
+                            <type>bool</type><parameter>lamWait</parameter>
+                            <initializer>false</initializer>
+                          </methodparam>
+                        </methodsynopsis>
+                      </term>
+                      <listitem>
+                        <para>
+                          Adds an address pattern read to the stack. The data
+                          read by the provided NAF is interpreted as a list of 
+                          A values to use when calling the NAF of the
+                          subsequent command in the stack. For each nonzero bit
+                          in the data returned, the subsequent command's N and
+                          F values are used with each of the present A values
+                          to form an NAF command.  In other words, if the NAF
+                          of this read returns a value of 0x7 and the next
+                          command in the stack is N(4)AF(0), then three
+                          commands will be executed in succession:
+                          N(4)A(0)F(0), N(4)A(1)F(0), and N(4)A(2)F(0). Note
+                          that this is a setup command for the next NAF
+                          operation that is added to the stack. If the lamWait
+                          is true, the read will wait until a LAM is identified
+                          or a timeout occurs. 
+                        </para>
+                      </listitem>
+                    </varlistentry>
+
+                    <varlistentry>
+                      <term>
+                        <methodsynopsis>
+                          <type>void</type> <methodname>addMarker</methodname>
                              <methodparam>
                                  <type>uint16_t</type> <parameter>value</parameter>
                              </methodparam>
@@ -14654,6 +15804,457 @@ $l addWrite16 $n $a $f $d
        </refsect1>
 
      </refentry>     
+
+     <refentry id="ccusb3-CCCUSBControl">
+       <refmeta>
+         <refentrytitle id="ccusb3-CCCUSBControl-title">CCCUSBControl</refentrytitle>
+         <manvolnum>3ccusb</manvolnum>
+       </refmeta>
+       <refnamediv>
+         <refname>CCCUSBControl</refname>
+         <refpurpose>A slow-controls driver for receiving and executing remote commands</refpurpose>
+       </refnamediv>
+
+       <refsynopsisdiv>
+         <synopsis>
+           class <ooclass><classname>CCCUSBControl : public CControlHardware</classname></ooclass> {
+
+           <constructorsynopsis>
+             <methodname>CCCUSBControl</methodname>
+             <methodparam>
+               <type>std::string</type><parameter> name</parameter>
+             </methodparam>
+           </constructorsynopsis>
+
+           <methodsynopsis>
+             <modifier></modifier>
+             <type>void</type>
+             <methodname>Initialize</methodname>
+             <methodparam>
+               <type>CCCUSB&amp;</type> <parameter>crate</parameter>
+             </methodparam>
+
+             <modifier></modifier>
+           </methodsynopsis>
+           <methodsynopsis>
+             <modifier></modifier>
+             <type>std::string</type>
+             <methodname> Update</methodname>
+             <methodparam>
+               <type>CCCUSB&amp;</type><parameter> crate</parameter>   
+             </methodparam>
+
+             <modifier></modifier>
+           </methodsynopsis>  
+           <methodsynopsis>
+             <modifier></modifier>
+             <type>std::string</type>
+             <methodname> Set</methodname>
+             <methodparam>
+               <type>CCCUSB&amp;</type><parameter> crate</parameter>
+             </methodparam>
+             <methodparam>
+               <modifier>const</modifier><type> char*</type>
+               <parameter> what</parameter>
+             </methodparam>
+             <methodparam>
+               <modifier>const</modifier><type> char*</type>
+               <parameter>value</parameter>
+             </methodparam>
+
+             <modifier></modifier>
+           </methodsynopsis>  
+           <methodsynopsis>
+             <modifier></modifier>
+             <type>std::string </type>
+             <methodname>Get</methodname>
+             <methodparam>
+               <type>CCCUSB&amp;</type><parameter> crate</parameter>
+             </methodparam>
+             <methodparam>
+               <modifier>const</modifier><type> char*</type>
+               <parameter>what</parameter>
+             </methodparam>
+
+             <modifier></modifier>
+           </methodsynopsis>  
+           };           
+         </synopsis>
+       </refsynopsisdiv>
+       <refsect1>
+         <title>DESCRIPTION</title>
+         <para>
+           CCCUSBControl allows arbitrary CAMAC access by a client and is the receiver of 
+           commands executed by the CCCUSBRemote class. The only method implemented
+           with functionality is Set. All of the other methods do nothing. The idea is that a set command
+           will provide a remote procedure call for the CCCUSB::executeList method.
+           The syntax is
+         </para>
+         <programlisting>
+           Set name [list hexadecimalized-vmusbreadoutlist read-buffer-requirements]
+         </programlisting>
+         <para>
+           Where 
+         </para>
+         <itemizedlist>
+           <listitem> 
+             <para>
+               <literal>hexadedimalized-vmusbreadoutlist</literal> is the contents of a CCCUSBReadoutList converted to a
+               Tcl list of hexadecimal long words.
+             </para>
+           </listitem>
+           <listitem>
+             <para>
+               <literal>read-buffer-requirements</literal> is the size of the required read buffer for the readout list.
+             </para>
+           </listitem>
+         </itemizedlist>
+         <para>
+           Success will return:  OK hexadecimalized-output-buffer
+           Where <literal>hexadecimalized-output-buffer</literal> is the reply buffer converted to a hexadecimal representation
+           of each byte as a Tcl list.  Note that if no output data are available, an empty list will
+           be returned.
+         </para>
+         <para>
+           Note that this function can therefore also provide all single shot operations as those are just
+           lists with one element... however if the run is active each list execution will pause/resume
+           the run so be aware and use with caution.
+         </para>
+       </refsect1>
+
+     </refentry>     
+     <refentry id="manpage.ccusbcamac">
+       <refmeta>
+         <refentrytitle>ccusbcamac</refentrytitle>
+         <manvolnum>3ccusb</manvolnum>
+       </refmeta>
+       <refnamediv>
+         <refname>ccusbcamac</refname>
+         <refpurpose>Tcl Script CAMAC access CCUSBReadout slow-controls server</refpurpose>
+       </refnamediv>
+
+       <refsynopsisdiv>
+         <cmdsynopsis>
+           <command>
+             package require ccusbcamac
+           </command>
+         </cmdsynopsis>
+
+         <cmdsynopsis>
+           <command>
+             ccusbcamac::cdconn  b c host port module 
+           </command>
+         </cmdsynopsis>
+         <cmdsynopsis>
+           <command>
+             ccusbcamac::cdreg  b c n 
+           </command>
+         </cmdsynopsis>
+         <cmdsynopsis>
+           <command>
+             ccusbcamac::cfsa   reg f a ?d?       
+           </command>
+         </cmdsynopsis>
+         <cmdsynopsis>
+           <command>
+             ccusbcamac::cssa   reg f a ?d?       
+           </command>
+         </cmdsynopsis>
+         <cmdsynopsis>
+           <command>
+             ccusbcamac::qstop  reg f a ?maxn?    
+           </command>
+         </cmdsynopsis>
+         <cmdsynopsis>
+           <command>
+             ccusbcamac::qscan  reg f a ?maxn?    
+           </command>
+         </cmdsynopsis>
+         <cmdsynopsis>
+           <command>
+             ccusbcamac::cblock reg f a num      
+           </command>
+         </cmdsynopsis>
+         <cmdsynopsis>
+           <command>
+             ccusbcamac::isOnline b c
+           </command>
+         </cmdsynopsis>
+         <cmdsynopsis>
+           <command>
+             ccusbcamac::getGl    b 
+           </command>
+         </cmdsynopsis>
+         <cmdsynopsis>
+           <command>
+             ccusbcamac::C        b c 
+           </command>
+         </cmdsynopsis>
+         <cmdsynopsis>
+           <command>
+             ccusbcamac::Z        b c
+           </command>
+         </cmdsynopsis>
+         <cmdsynopsis>
+           <command>
+             ccusbcamac::isInhibited b c 
+           </command>
+         </cmdsynopsis>
+         <cmdsynopsis>
+           <command>
+             ccusbcamac::Inhibit  b c  bool
+           </command>
+         </cmdsynopsis>
+         <cmdsynopsis>
+           <command>
+             ccusbcamac::ReadLams b c 
+           </command>
+         </cmdsynopsis>
+       </refsynopsisdiv>
+       <refsect1>
+         <title>DESCRIPTION</title>
+         <para>
+           Summary of the command
+         </para>
+       </refsect1>
+       <refsect1>
+         <title>
+           PACKAGE COMMANDS
+         </title>
+         <para>
+           The commands below share many of the same parameters:
+           <variablelist>
+             <varlistentry>
+               <term><replaceable>b</replaceable></term>
+               <listitem>
+                 <para>
+                   The branch index to use when computing the CC-USB's
+                   unique index.
+                 </para>
+               </listitem>
+             </varlistentry>
+             <varlistentry>
+               <term><replaceable>c</replaceable></term>
+               <listitem>
+                 <para>
+                   A CAMAC crate number to be used when computing the 
+                   CC-USB's unique index.
+                 </para>
+               </listitem>
+             </varlistentry>
+             <varlistentry>
+               <term><replaceable>n</replaceable></term>
+               <listitem>
+                 <para>
+                   The slot number of a module in a CAMAC crate.  Slots in
+                   a CAMAC crate are numbered from 1 starting at the left.
+                 </para>
+               </listitem>
+             </varlistentry>
+             <varlistentry>
+               <term><replaceable>a</replaceable></term>
+               <listitem>
+                 <para>
+                   The subaddress within a module.   A CAMAC modules is
+                   defined to have 16 subaddresses numbered 0-15.
+                   Each module uses this set of subaddresses differently.\
+                 </para>
+               </listitem>
+             </varlistentry>
+             <varlistentry>
+               <term><replaceable>reg</replaceable></term>
+               <listitem>
+                 <para>
+                   A CAMAC module handle.  These are produced using the
+                   <command>ccusbcamac::cdreg</command> command below.  This is
+                   used to select the CAMAC module operated on by several
+                   of the commands.
+                 </para>
+               </listitem>
+             </varlistentry>
+           </variablelist>
+         </para>
+         <cmdsynopsis>
+           <command>
+             package require ccusbcamac
+           </command>
+         </cmdsynopsis>
+         <para>
+           Loads the commands in the <literal>ccusbcamac</literal> package
+           into the interpreter provided that the NSCLDAQ Tcl package repository
+           and lib directory are in the interpreter search path.  See
+           <link linkend='intro.ccusbcamac'>The ccusbcamac Tcl Package</link> chapter
+           for information about how to add the NSCLDAQ Tcl package repository to
+           the interpreter search path.
+         </para>
+         <cmdsynopsis>
+           <command>
+             ccusbcamac::cdconn  b c host port module 
+           </command>
+         </cmdsynopsis>
+         <para>
+           Registers the name of the host running the CCUSBReadout program 
+           (i.e. <parameter>host</parameter>), the
+           port it listens for connections on (i.e. <parameter>port</parameter>), 
+           and the name of the module loaded
+           into the slow-controls server (i.e. <parameter>module</parameter>) into a connection information database.
+           The <parameter>b</parameter> and <parameter>c</parameter> parameters are
+           used to compute a unique index to associate the connection information
+           to. For any given <parameter>b</parameter> and <parameter>c</parameter>
+           combination, this MUST be called before any other procs sharing the same
+           comabination of <parameter>b</parameter> and <parameter>c</parameter>.
+         </para>
+         <cmdsynopsis>
+           <command>
+             ccusbcamac::cdreg  b c n
+           </command>
+         </cmdsynopsis>
+         <para>
+           Creates a handle to a module in the CAMAC system.  
+           The command returns a handle which is the <parameter>reg</parameter>
+           parameter in subsequent commands that operate on a module. A connection
+           is established with the slow-controls server using the information passed
+           in the <command>cdconn</command> proc.
+         </para>
+         <cmdsynopsis>
+           <command>
+             ccusbcamac::cfsa   reg f a ?d?       
+           </command>
+         </cmdsynopsis>
+         <para>
+           Performs a CAMAC operation on the module <parameter>reg</parameter>.
+           <parameter>reg</parameter> is a module handle created by a call to
+           <command>cdreg</command>.  If the function transfers data the least
+           significant 24 bits of data are transferred.  If the function is a write
+           operation, the <parameter>d</parameter> parameter is required and is the
+           data to write.
+         </para>
+         <para>
+           The return value is a 3 element Tcl list.  The second element of the list
+           is the Q response.  The third element of the list is the X response. The
+           meaning of the first element of the list depends on the <parameter>f</parameter>
+           parameter.  If <parameter>f</parameter> is the read operation, this
+           will be the value read from the module.  If <parameter>f</parameter> is
+           a write operation, this will be the <parameter>d</parameter> parameter.
+           If <parameter>f</parameter> is a control operation (non data transfer),
+           this will be zero.
+         </para>
+         <cmdsynopsis>
+           <command>
+             ccusbcamac::cssa   reg f a ?d?       - perform a 16 bit camac operation
+           </command>
+         </cmdsynopsis>
+         <para>
+           Identical to <command>ccusbcamac::cfsa</command> however all data transfers
+           only transfer the least significant 16 bits.  Since the data path to the
+           controller is only 16 bits, this is significantly faster than 24 bit transfers
+           when the top bits are not required.
+         </para>
+         <cmdsynopsis>
+           <command>
+             ccusbcamac::qstop  reg f a ?maxn?    
+           </command>
+         </cmdsynopsis>
+         <para>
+           Performs the same read operation until the operation no longer returns
+           a Q.  If the optional <parameter>maxn</parameter> parameter is present
+           this also sets an upper limit in the number of transferrs.  The return
+           value from this is a list of the data read from the module.  Only read functions
+           are suportedby this and all block functions. At the moment, these only
+           support 16-bit dataway operations.
+         </para>
+         <cmdsynopsis>
+           <command>
+             ccusbcamac::qscan  reg f a ?maxn?    
+           </command>
+         </cmdsynopsis>
+         <para>
+           Performs a Qscan block transfer.  After each read operation,
+           the subaddress is incremented.  Once a module no longer responds
+           with a Q, the subaddress is reset to zero and the slot is incremented.
+           This continues until no X response is returned.  If the optional
+           parameter <parameter>maxn</parameter> is provided, it limits the
+           maximum transfer count to <parameter>maxn</parameter>. At the moment,
+           these only support 16-bit dataway operations.
+         </para>
+         <para>
+           The return value is a list of data that was returned from the module.
+           These are textual ascii values, not a binary block.
+         </para>
+         <cmdsynopsis>
+           <command>
+             ccusbcamac::cblock reg f a num       
+           </command>
+         </cmdsynopsis>
+         <para>
+           Peforms <parameter>num</parameter> read operations on the module
+           specified by <parameter>reg</parameter>.  Data read are returned as the
+           module's result in a Tcl list.
+         </para>
+         <cmdsynopsis>
+           <command>
+             ccusbcamac::isOnline b c     
+           </command>
+         </cmdsynopsis>
+         <para>
+           Returns true if the specified VME create is online (attached to the
+           controller and powered up).
+         </para>  
+         <cmdsynopsis>
+           <command>
+             ccusbcamac::getGl    b        
+           </command>
+         </cmdsynopsis>
+         <para>
+           NOT IMPLEMENTED in the ccusbcamac package because there is not meaningful
+           translation of it to a CC-USB.
+         </para>
+         <cmdsynopsis>
+           <command>
+             ccusbcamac::C        b c       
+           </command>
+         </cmdsynopsis>
+         <para>
+           Peforms a C cycle on the selected crate
+         </para>
+         <cmdsynopsis>
+           <command>
+             ccusbcamac::Z        b c       
+           </command>
+         </cmdsynopsis>
+         <para>
+           Performs a Z cycle on the selected crate.
+         </para>
+         <cmdsynopsis>
+           <command>
+             ccusbcamac::isInhibited b c
+           </command>
+         </cmdsynopsis>
+         <para>
+           Returns non zero if te specified crate is inhibited
+         </para>
+         <cmdsynopsis>
+           <command>
+             ccusbcamac::Inhibit  b c  bool
+           </command>
+         </cmdsynopsis>
+         <para>
+           Sets or clears the inhibits for the selected crate.
+           If <parameter>bool</parameter> is on zero the crate is
+           inhibited otherwise it's uninhibited.
+         </para>
+         <cmdsynopsis>
+           <command>
+             ccusbcamac::ReadLams b c  
+           </command>
+         </cmdsynopsis>
+         <para>
+           Reads the crate LAM register.
+         </para>
+       </refsect1>
+
+     </refentry>
+
 
 <!-- /manpage -->
 

@@ -191,12 +191,14 @@ template<class T> void
 CBufferQueue<T>::wait(int timeout)
 {
   Enter();			// Blocking on the condition var requires this.
+  
   int status;
   if (timeout == -1) {
-    status = pthread_cond_wait(&m_condition, &mutex());
+    struct timespec endwait = msToAbsTime(500);
+    status = pthread_cond_timedwait(&m_condition, &mutex(), &endwait);
   } else {
     struct timespec abstime;
-
+    
     
     struct timeval  now;
     struct timeval  dt;
@@ -239,4 +241,34 @@ CBufferQueue<T>::wake()
   if (status) {
     throw CErrnoException("Waking up buffer queue waiters");
   }
+}
+
+/**
+ *  msToAbsTime
+ *    Convert a ms time offset into an absolute time (timespec).
+ *
+ *  @param ms - number of milliseconds.
+ *  @return struct timespec - corresponding absolute time specification.
+ */
+template <class T> struct timespec
+CBufferQueue<T>::msToAbsTime(unsigned ms)
+{
+  // Break this in to seconds and microseconds.
+  
+  unsigned secs = ms / 1000;
+  unsigned msec = ms % 1000;
+  
+  // Get the time of day and add the secs/msec to it:
+  
+  struct timeval now;
+  gettimeofday(&now, NULL);
+  
+  struct timespec result;
+  
+  result.tv_sec = now.tv_sec + secs;
+  result.tv_nsec= (now.tv_usec + msec * 1000) * 1000;
+  result.tv_sec += result.tv_nsec/(1000*1000*1000);
+  result.tv_nsec = result.tv_nsec % (1000*1000*1000);
+  
+  return result;
 }

@@ -1,0 +1,282 @@
+
+<!-- chapter libraries -->
+
+<chapter id='tclringbuffer_descripton'>
+  <title id='tclringbuffer_description_title'>TclRingBuffer Tcl package.</title>
+  
+  <section>
+    <title>What is it?</title>
+    <para>
+      The TclRingBuffer package is a loadable Tcl package
+      that provides access to ring buffer data.  Using this package Tcl scripts
+      can attach any number of ringbuffers and selectively obtain datat from
+      those rings.
+    </para>
+    <para>
+      Ring items are translated into Tcl dicts making them easy to access
+      from within your script.
+    </para>
+  </section>
+  <section>
+    <title>How do I use it?</title>
+    <para>
+      The TclRingBuffer  package can be incorporated in your
+      script by:
+      <itemizedlist>
+	<listitem><para>
+	  Ensuring the Tcl package load path includes the NSCLDAQ Tcl library
+	  directory tree.
+	</para></listitem>
+	<listitem><para>
+	  Using the <command>package require</command> command to
+	  actually load the package.
+	</para></listitem>
+      </itemizedlist>
+    </para>
+    <para>
+      Here is a script fragment that takes care of this, assuming that you have
+      sourced the <filename>daqsetup.bash</filename> into your shell:
+    </para>
+    <informalexample>
+      <programlisting>
+lappend auto_path [file join $::env(DAQROOT) TclLibs]
+package require TclRingBuffer
+      </programlisting>
+    </informalexample>
+    <para>
+      The package provides a new command ensemble named <command>ring</command>.
+      The example below shows a typical initialization and event processing loop:
+    </para>
+    <example>
+      <title>Processing ring items in Tcl.</title>
+      <programlisting>
+...
+ring attach $someRingUri                    <co id='tclring_attach' />
+while {[continueProcessing]} {
+  set item [ring get $someRingUri $itemTypes] <co id='tclring_get' />
+  processItem $item
+}
+ring detach $someRingUri                     <co id='tclring_detach' />
+...
+      </programlisting>
+    </example>
+    <para>
+      This generic processing loop externalizes a test for completion in the
+      <command>continueProcessing</command> command.  The actual
+      processing of ring items is also externalized in
+      <command>processItem</command>. Here's a description of the use of the
+      TclRingBuffer opackage in this script fragment.
+    </para>
+    <calloutlist>
+      <callout arearefs='tclring_attach'>
+	<para>
+	  This command attaches the ringbuffer specified by the
+	  URI in the variable named <varname>someRingUri</varname>.
+	  The URI is used to identify the ringbuffer for any commands that
+	  operate on the ring.  The resources associated with the attached
+	  ring are looked up by exact textual matching of the ringbuffer
+	  (e.g. <literal>tcp://spdaq19/aring</literal>
+	  is considered a different ring from
+	  <literal>tcp://spdaq19.nscl.msu.edu/aring</literal>).
+	</para>
+      </callout>
+      <callout arearefs='tclring_get'>
+	<para>
+	  the <command>ring get</command> command blocks until
+	  a ring items is available from the ring attached at
+	  <varname>someRingUri</varname>.  Only ring items
+	  that match the type list in <varname>itemType</varname>
+	  are returned.  
+	</para>
+	<para>
+	  The next matching ring items is translated to a dict (see
+	  the reference page for the structure of this dict) and
+	  and returned as the result of the <command>ring get</command>
+	  command.  
+	</para>
+      </callout>
+      <callout arearefs='tclring_detach'>
+	<para>
+	  Once processing is done, the ring is detached.  Once detached,
+	  it is no longer available for use in a <command>ring get</command>
+	  command.
+	</para>
+      </callout>
+    </calloutlist>
+    <para>
+      For reference information see:
+      <link linkend='tcl3_tclringbuffer' endterm='tcl3_tclringbuffer_title' />
+    </para>
+  </section>
+  <section>
+    <title>Using TclRingBuffer in event driven software</title>
+    <para>
+      Since the <command>ring get</command> command blocks, scripts that use
+      the event loop can be a little complicated to get right.  For example, a
+      Tk based user interface will block until a ring item arrives. To make
+      matters worse, the ring item processing will usually not invoke the
+      event loop.  All of these factors would make the user interface
+      unresponsive.
+    </para>
+    <para>
+      The normal solution to this problem is to use the Tcl Thread package
+      to create a thread that gets ring items and posts them as events to the
+      main thread.  One program that uses this strategy is the script for
+      which the TclRingBuffer package was originally created; the Scaler
+      Display program.
+    </para>
+    <para>
+      Let's see how this is done by looking at the code that creates
+      and starts the thread used by the scaler display program.
+    </para>
+    <example>
+      <title>The Scaler Display ring buffer thread</title>
+      <programlisting>
+
+package require Thread
+package require TclRingBuffer
+....
+
+proc startAcqThread {ringUrl} {
+    set acqThread [thread::create -joinable]                    <co id='sclthread_create' />
+    if {[thread::send $acqThread [list lappend auto_path $::libdir] result]} { <co id='sclthread_auto_path' />
+        puts "Could not extend thread's auto-path"
+        exit -1
+    }
+    if {[thread::send $acqThread [list package require TclRingBuffer] result]} { <co id='sclthread_require' />
+        puts "Could not load RingBuffer package in acqthread: $result"
+        exit -1
+    }
+    
+    if {[thread::send $acqThread [list ring attach $ringUrl] result]} {   <co id='sclthread_attachring'/>
+        puts "Could not attach to scaler ring buffer in acqthread $result"
+        exit -1
+    }
+    
+    #  The main loop will forward data to our handleData item.
+    
+    set myThread [thread::id]                                  <co id='sclthread_parentid' />
+    set getItems "proc getItems {tid uri} {                    <co id='sclthread_procloop' />
+        while 1 {                                             
+            set ringItem \[ring get \$uri {1 2 20}]             
+            thread::send \$tid \[list handleData \$ringItem]  <co id='sclthread_postevent' />
+        }                                                     
+    }                                                         
+    getItems $myThread $ringUrl                               <co id='sclthread_startprocessing' />
+    "
+    thread::send -async $acqThread $getItems                  <co id='sclthread_bgthread' />
+
+    
+    return $acqThread
+}	
+      </programlisting>
+    </example>
+    <para>
+      The main purpose of this proc is to create a thread and populate the thread's
+      interpreter with a ring item processing loop very much like our previous
+      example.  Instead of processing ring items locally, however, the thread
+      posts an event that will cause the main thread to execute a command with the
+      ring item as a parameter.
+    </para>
+    <calloutlist>
+      <callout arearefs='sclthread_create'>
+	<para>
+	  Creates a thread.  In Tcl a thread is an interpreter that has an
+	  event loop.  Threads can be sent commands which their event loop
+	  cause to be executed in the context of the thread.  
+	</para>
+	<para>
+	  Commands
+	  can be sent synchronously (by default) or asynchronously.  Synchronous
+	  commands cause the sending thread to block until the command is
+	  executed.  Synchronous sends return the status of the sent command.
+	  Asynchronous sends return to the caller without waiting for the
+	  command to complete.
+	</para>
+	<para>
+	  Normally synchronous sends are used to populate the thread's interpreter
+	  with commands (procs) and data needed to run some asynchronous
+	  send.  Asynchronous sends are used to run commands that may takes some
+	  time or may block in inconvenient manner (e.g. <command>ring get</command>).
+	</para>
+	<para>
+	  The <command>thread::create</command> command returns a value called the
+	  <firstterm>thread id</firstterm> that can be used to interact with the
+	  thread in the future.
+	</para>
+      </callout>
+      <callout arearefs='sclthread_auto_path'>
+	<para>
+	  The environment a thread interpreter starts with is fairly minimal. It
+	  inherits little if anything from its parent.  This command appends
+	  the parent thread's <varname>libdir</varname> global variable to the
+	  child thread's Tcl library path variable (<varname>auto_path</varname>).
+	  In this program, <varname>libdir</varname> contains the path to the
+	  NSCLDAQ  Tcl library directory tree.  This is done so that the
+	  TclRingBuffer package is visible to the thread's
+	  interpreter.
+	</para>
+      </callout>
+      <callout arearefs='sclthread_require'>
+	<para>
+	  Now that the NSCLDAQ Tcl libraries are visible, the thread is asked
+	  to load the TclRingBuffer package.
+	</para>
+      </callout>
+      <callout arearefs='sclthread_attachring'>
+	<para>
+	  With the Tcl Ring buffer package loaded <command>ringbuffer</command>
+	  command can be issued by the thread.  This command has the thread
+	  attach the ring buffer specified by the <varname>ringUrl</varname>
+	  proc parameter.
+	</para>
+      </callout>
+      <callout arearefs='sclthread_parentid'>
+	<para>
+	  As we have seen, in order to send a command to a thread you must know
+	  it's thread id.  This command gets the thread id of the parent's thread.
+	  We will pass that in to the child thread so that it can issue
+	  <command>thread::send</command> commands to the parent when a ring
+	  item is received.
+	</para>
+      </callout>
+      <callout arearefs='sclthread_procloop'>
+	<para>
+	  This set of lines defines a <command>proc</command> that will
+	  be passed into the child thread.  Note that some substitutions
+	  must be done in the parent thread, while other substitutions
+	  must be done in the child thread.  The subtitutions that must
+	  be done in the child thread therefor use a backslash escape like:
+	  <literal>\[ring get \$uri {1 2 20}] </literal> which escapes both
+	  commnd substitution and variable substitution.
+	</para>
+      </callout>
+      <callout arearefs='sclthread_postevent'>
+	<para>
+	  This line posts an event to the parent thread.  The event invokes the
+	  <command>handleData</command> command in the parent thread, passing
+	  it the ring item received by the data taking thread.  This could
+	  probably be an <option>-async</option> send but the rates at which
+	  this happen are usually every few seconds and so don't make it
+	  necessary.
+	</para>
+      </callout>
+      <callout arearefs='sclthread_startprocessing'>
+	<para>
+	  The last line of the code sent to the thread actually start
+	  processing ring items by invoking <command>getItems</command>.
+	</para>
+      </callout>
+      <callout arearefs='sclthread_bgthread' >
+	<para>
+	  Finally the thread code is sent to the thread asyncrhonously
+	  so that it can accept ring items in the background, passing
+	  state change and scaler items to the parent thread as
+	  described above.
+	</para>
+      </callout>
+    </calloutlist>
+  </section>
+</chapter>
+
+<!-- /chapter -->

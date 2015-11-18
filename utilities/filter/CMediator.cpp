@@ -32,6 +32,8 @@ static const char* Copyright = "(C) Copyright Michigan State University 2014, Al
 #include <CRingPhysicsEventCountItem.h>
 #include <CRingFragmentItem.h>
 
+using namespace std;
+
 /**! Constructor
 
   Constructs the mediator object. This object owns its referenced members.
@@ -42,9 +44,14 @@ static const char* Copyright = "(C) Copyright Michigan State University 2014, Al
 
 */
 CMediator::CMediator(CDataSource* source, CFilter* filter, CDataSink* sink)
-: m_pSource(source),
-  m_pFilter(filter),
-  m_pSink(sink),
+: CBaseMediator(unique_ptr<CDataSource>(source), unique_ptr<CDataSink>(sink)), 
+  m_pFilter(unique_ptr<CFilter>(filter)),
+  m_nToProcess(-1),
+  m_nToSkip(-1)
+{}
+CMediator::CMediator(unique_ptr<CDataSource> source, unique_ptr<CFilter> filter, unique_ptr<CDataSink> sink)
+: CBaseMediator(move(source), move(sink)),
+  m_pFilter(move(filter)),
   m_nToProcess(-1),
   m_nToSkip(-1)
 {}
@@ -59,21 +66,6 @@ CMediator::CMediator(CDataSource* source, CFilter* filter, CDataSink* sink)
 */
 CMediator::~CMediator() 
 {
-
-  if (m_pSource!=0) {
-    delete m_pSource;
-    m_pSource = 0;
-  }
-
-  if (m_pFilter!=0) {
-    delete m_pFilter;
-    m_pFilter = 0;
-  }
-
-  if (m_pSink!=0) {
-    delete m_pSink;
-    m_pSink = 0;
-  }
 
   m_nToProcess = -1;
   m_nToSkip = -1;

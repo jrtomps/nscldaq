@@ -40,6 +40,7 @@
 #include <CRingTextItem.h>
 #include <dlfcn.h>
 #include <CStack.h>
+#include <CControlQueues.h>
 
 #include <fragment.h>
 
@@ -127,8 +128,24 @@ void
 COutputThread::init()
 {
 
+  try {
     attachRing();		// Attach to the ring, creating it if needed.
     getTimestampExtractor(); 
+  } catch (string msg) {
+    cerr << "COutput thread caught a string exception: " << msg << endl;
+    exit(EXIT_FAILURE);
+  } catch (char* msg) {
+    cerr << "COutput thread caught a char* exception: " << msg << endl;
+    exit(EXIT_FAILURE);
+  }
+  catch (CException& err) {
+    cerr << "COutputThread thread caught a daq exception: "
+	 << err.ReasonText() << " while " << err.WasDoing() << endl;
+    exit(EXIT_FAILURE);
+  } catch (...) {
+    cerr << "COutput thread caught an exception of unknown type: " << endl;
+    exit(EXIT_FAILURE);
+  }
  
 
 }
@@ -151,21 +168,35 @@ COutputThread::operator()()
   }
   catch (string msg) {
     cerr << "COutput thread caught a string exception: " << msg << endl;
-    throw;
   }
   catch (char* msg) {
     cerr << "COutput thread caught a char* exception: " << msg << endl;
-    throw;
   }
   catch (CException& err) {
     cerr << "COutputThread thread caught a daq exception: "
 	 << err.ReasonText() << " while " << err.WasDoing() << endl;
-    throw;
   }
   catch (...) {
     cerr << "COutput thread caught some other exception type.\n";
-    throw;
   }
+  /**
+   * We can only get here on an exception
+   *   -   End data taking if active.
+   *   -   If necessary, flush buffers.
+   *   -   Exit with failure status.
+   */
+  CRunState* pState = CRunState::getInstance();
+  if (pState->getState() == CRunState::Active) {
+    CControlQueues *pControl = CControlQueues::getInstance();
+    pControl->EndRun();
+    while (true) {
+      DataBuffer& buffer(getBuffer());
+      if(buffer.s_bufferType == TYPE_STOP) break;
+      
+      freeBuffer(buffer);
+    }
+  }
+  exit(EXIT_FAILURE);
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -284,7 +315,11 @@ COutputThread::startRun(DataBuffer& buffer)
   if (time(&timestamp) == -1) {
     throw CErrnoException("Failed to get the time in COutputThread::startRun");
   }
-
+  // Call the timestamp extractor's callback if they have one
+  
+  if (m_pBeginRunCallback) {
+    (*m_pBeginRunCallback)();
+  }
   // Update our concept of run state.
 
   CRunState* pState = CRunState::getInstance();
@@ -301,12 +336,13 @@ COutputThread::startRun(DataBuffer& buffer)
   CDataFormatItem format;
   format.commitToRing(*m_pRing);
 
+
   CRingStateChangeItem begin(NULL_TIMESTAMP, Globals::sourceId, BARRIER_START,
                              BEGIN_RUN,
 			     m_runNumber,
 			     0,
 			     static_cast<uint32_t>(timestamp),
-			     m_title);
+			     m_title.substr(0, TITLE_MAXSIZE-1));
 
   begin.commitToRing(*m_pRing);
   
@@ -395,14 +431,34 @@ COutputThread::scaler(void* pData)
 
   // Figure out how many words/scalers there are:
 
-  size_t        nWords   =  header & CCUSBEventLengthMask;
-  size_t        nScalers =  nWords/(sizeof(uint32_t)/sizeof(uint16_t));
+  size_t nWords   =  header & CCUSBEventLengthMask;
+  size_t nShortsPerLong = sizeof(uint32_t)/sizeof(uint16_t);
+  size_t nScalers       = nWords/nShortsPerLong;
 
   // Marshall the scalers into an std::vector:
 
   std::vector<uint32_t> counterData;
   for (int i = 0; i < nScalers; i++) {
     counterData.push_back((*pBody++));; // & 0xffffff); // 24 bits of data allows top bits are x/q e.g
+  }
+
+  // if the number of words did not evenly divide by nShortsPerLong, we need to handle
+  // the leftover word. Do so here in terms of bytes. They just get shoved in the
+  // lowest bytes of another 32-bit word.
+
+  size_t nLeftOverBytes = (nWords % nShortsPerLong)*sizeof(uint16_t);
+  if (nLeftOverBytes != 0) {
+
+    union IOU32 {
+      uint32_t value;
+      char     bytes[sizeof(uint32_t)];
+    } slopBytes;
+
+    slopBytes.value = 0;
+    uint8_t* pBytes = reinterpret_cast<uint8_t*>(pBody);
+    std::copy(pBytes, pBytes+nLeftOverBytes, slopBytes.bytes);
+
+    counterData.push_back(slopBytes.value);
   }
 
   // The CCUSB does not timestamp scaler data for us at this time so we
@@ -662,8 +718,14 @@ COutputThread::setRing(const char* pRingname)
 void
 COutputThread::outputTriggerCount(uint32_t runOffset)
 {
-  CRingPhysicsEventCountItem item(m_nEventsSeen, runOffset);
-  item.commitToRing(*m_pRing);
+  if ((m_pEvtTimestampExtractor != nullptr) || (m_pSclrTimestampExtractor != nullptr)) {
+    CRingPhysicsEventCountItem item(NULL_TIMESTAMP, Globals::sourceId, BARRIER_NOTBARRIER,
+                                    m_nEventsSeen, runOffset, time(NULL));
+    item.commitToRing(*m_pRing);
+  } else {
+    CRingPhysicsEventCountItem item(m_nEventsSeen, runOffset);
+    item.commitToRing(*m_pRing);
+  }
 }
 /**
  * stringBuffer:
@@ -753,7 +815,7 @@ COutputThread::getTimestampExtractor()
                       << " timestamp extractor function" << std::endl;
             exit(EXIT_FAILURE);
         }
-
+        m_pBeginRunCallback = reinterpret_cast<StateChangeCallback>(dlsym(pDllHandle, "onBeginRun"));
         dlclose(pDllHandle);
         
     }

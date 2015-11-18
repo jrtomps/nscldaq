@@ -15,7 +15,7 @@
 */
 #include <config.h>
 #include "CScaler.h"
-
+#include <fragment.h>
 /*!
    It is expected that derived classes can override this to 
    provide any initialization required for the module that is being
@@ -80,4 +80,38 @@ bool
 CScaler::isComposite() const
 {
   return false;
+}
+/**
+ * timestamp
+ *    Return a timestamp.  When used to provide a scaler timestamp, normally
+ *    the read method gets the timestamp  and saves it while this method returns
+ *    the most recently read timestamp.  You are assured that for each scaler
+ *    event, all read() methods in the scaler set are invoked prior to the
+ *    timestamp() methods.
+ *
+ *  @return uint64_t  - By default this returns NULL_TIMESTAMP
+ *
+ *  You must override this to return a sensible timestamp.
+ *  See also the timestamp implementation in the CScalerBank class.
+ */
+uint64_t
+CScaler::timestamp()
+{
+  return NULL_TIMESTAMP;
+}
+/**
+ * sourceId
+ *    Potentially returns an override for the source id in the scaler ring item
+ *    body header.
+ *
+ *  @return int
+ *  @retval -1 - Use the source id defined in the --sourceid option
+ *  @retval other - override the source id defined in the --sourceid option.
+ *
+ *  @note see the implementation in CScalerBank
+ */
+int
+CScaler::sourceId()
+{
+  return -1;                  // Default to --sourceid
 }

@@ -41,6 +41,7 @@ libSBSProductionReadout_la_SOURCES	=				\
 						CPauseCommand.cpp		\
 						CResumeCommand.cpp		\
 						CEndCommand.cpp			\
+						CInitCommand.cpp			\
 						CDocumentedPacket.cpp		\
 						CDocumentedPacketManager.cpp	\
 						CReadoutException.cpp	\
@@ -66,7 +67,7 @@ noinst_HEADERS	=	CReadoutMain.h Skeleton.h CTCLAuthorizer.h	\
 			CCAENV262Trigger.h CV977Trigger.h 	\
 			CTriggerLoop.h CRunControlPackage.h options.h	\
 			CBeginCommand.h CPauseCommand.h CResumeCommand.h	\
-			CEndCommand.h CDocumentedPacket.h CDocumentedPacketManager.h \
+			CEndCommand.h CInitCommand.h CDocumentedPacket.h CDocumentedPacketManager.h \
 			CReadoutException.h CInvalidPacketStateException.h	\
 			CEventPacket.h CVarList.h CDocumentedVars.h CVariableBuffers.h \
 			CBusy.h CCAENV262Busy.h CV977Busy.h CRingCommand.h
@@ -87,7 +88,8 @@ libSBSProductionReadout_la_LIBADD	=	@top_builddir@/sbs/vmemodules/libSBSDeviceSu
 libSBSProductionReadout_la_LDFLAGS	=	-version-info	1:0:0	\
 						@LIBTCLPLUS_LDFLAGS@ $(TCL_LDFLAGS) $(THREADLD_FLAGS)
 
-EXTRA_DIST	=	options.ggo Skeleton.cpp UserMakefile.in SBSRdoMakeIncludes.in SBSReadout.xml \
+EXTRA_DIST	=	options.ggo Skeleton.cpp UserMakefile.in SBSRdoMakeIncludes.in SBSReadout_user.xml \
+							SBSReadout_man.xml \
 			$(TCLPACKAGES)
 
 
@@ -160,6 +162,7 @@ tests_LDADD = 	libSBSProductionReadout_la-CExperiment.lo	\
 		libSBSProductionReadout_la-CPauseCommand.lo				\
 		libSBSProductionReadout_la-CResumeCommand.lo				\
 		libSBSProductionReadout_la-CEndCommand.lo					\
+		libSBSProductionReadout_la-CInitCommand.lo					\
 		libSBSProductionReadout_la-CTriggerLoop.lo					\
 		libSBSProductionReadout_la-CDocumentedPacket.lo libSBSProductionReadout_la-CDocumentedPacketManager.lo \
 		libSBSProductionReadout_la-CReadoutException.lo libSBSProductionReadout_la-CInvalidPacketStateException.lo \
