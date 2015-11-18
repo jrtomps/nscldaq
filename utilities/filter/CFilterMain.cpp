@@ -32,6 +32,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2014, Al
 #include <stdlib.h>
 #include "filterargs.h"
 #include "CFatalException.h"
+#include <stdexcept>
 
 /**! Constructor
   Constructs a mediator object with a CCompositeFilter
@@ -75,8 +76,24 @@ CFilterMain::CFilterMain(int argc, char** argv)
 
 
   } catch (CException& exc) {
-    std::cout << exc.ReasonText() << std::endl;
-    std::cout << exc.WasDoing() << std::endl;
+    std::cerr << exc.ReasonText() << std::endl;
+    std::cerr << exc.WasDoing() << std::endl;
+    throw CFatalException();
+  } 
+  catch (std::string msg) {
+    std::cerr << "String exception caught: " << msg << std::endl;
+    throw CFatalException();
+  }
+  catch (const char* msg) {
+    std::cerr << "const char* exception caught: " << msg << std::endl;
+    throw CFatalException();
+  }
+  catch (std::exception& e) {
+    std::cerr << "Std::exception caught: " << e.what() << std::endl;
+    throw CFatalException();
+  }
+  catch (...) {
+    std::cerr << "Unanticipated exception caught. \n";
     throw CFatalException();
   }
 }
