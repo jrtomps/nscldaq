@@ -343,5 +343,5 @@ check-TESTS:
 	BINDIR="@bindir@" PYTHONPATH=@prefix@/pythonLibs @builddir@/stateTests
 	DAQBIN="@bindir@" TCLLIBPATH=@prefix@/TclLibs PYTHONPATH=@prefix@/pythonLibs @TCLSH_CMD@ @srcdir@/stateclient.test
 	DAQBIN="@bindir@" TCLLIBPATH=@prefix@/TclLibs PYTHONPATH=@prefix@/pythonLibs @TCLSH_CMD@ @srcdir@/statemgr.test	-constraints "{oldTest newtest}"
-	DAQBIN="@bindir@" TCLLIBPATH=@prefix@/TclLibs PYTHONPATH=@prefix@/pythonLibs @PYTHON@ @srcdir@StateClientTests.py
-	DAQBIN="@bindir@" TCLLIBPATH=@prefix@/TclLibs PYTHONPATH=@prefix@/pythonLibs @PYTHON@ @srcdir@StateManagerTests.py
+	DAQBIN="@bindir@" TCLLIBPATH=@prefix@/TclLibs PYTHONPATH=@prefix@/pythonLibs @PYTHON@ @srcdir@/StateClientTests.py
+	DAQBIN="@bindir@" TCLLIBPATH=@prefix@/TclLibs PYTHONPATH=@prefix@/pythonLibs @PYTHON@ @srcdir@/StateManagerTests.py
