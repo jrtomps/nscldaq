@@ -501,7 +501,7 @@ void ScmonTests::multitransition()
     
     m_pApi->set("/RunState/State", "Readying");
     m_pApi->set("/RunState/State", "Ready");
-    usleep(100);                                   // Give the monitor thread time to see
+    usleep(500);                                   // Give the monitor thread time to see
     std::string newState;                          // both notifications...
     ASSERT(api.waitTransition(newState, 1000));   // should know within a second.
     
