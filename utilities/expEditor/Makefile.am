@@ -17,7 +17,7 @@ install-exec-local:
 TCLTESTS=properties.test proplist.test ringobject.test SPData.test svcdata.test
 
 check-TESTS:
-	for f in $(TCLTESTS); do TCLLIBPATH=@prefix@/TclLibs @TCLSH_CMD@ $$f; done
+	for f in $(TCLTESTS); do TCLLIBPATH=@prefix@/TclLibs @TCLSH_CMD@ @srcdir@/$$f; done
 
 
 EXTRA_DIST = $(TCLPACKAGES) $(TCLTESTS) $(IMAGES)
