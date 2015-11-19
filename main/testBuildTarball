@@ -10,7 +10,7 @@ rm -rf nscldaq-${version}
 tar xzf nscldaq-${version}.tar.gz
 cd nscldaq-${version}
 
-./configure --prefix=${WORKSPACE}/11.0 --enable-usb
+./configure --prefix=${WORKSPACE}/11.0 --enable-usb --enable-sbs=/lib/modules/`uname -r` --enable-epics-tools=yes --with-epics-rootdir=/usr/lib/epics --enable-docs
 make clean all
 make install
 chmod u+x nscldaq
