@@ -43,7 +43,7 @@ check-TESTS:
 	DAQBIN=@prefix@/bin PYTHONPATH=@prefix@/pythonLibs: \
 	   TCLLIBPATH=@prefix@/TclLibs @TCLSH@ @srcdir@/TclServices.test
 	DAQBIN=@prefix@/bin PYTHONPATH=@prefix@/pythonLibs: \
-	   TCLLIBPATH=@prefix@/TclLibs @PYTHON@ apiTests.py
+	   TCLLIBPATH=@prefix@/TclLibs @PYTHON@ @srcdir@/apiTests.py
 
 
 install-exec-hook:
