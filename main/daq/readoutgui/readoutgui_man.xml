@@ -2928,7 +2928,7 @@ $mymenu add command -label "a command" -command handleACommand
         <refsynopsisdiv>
           <cmdsynopsis>
             <command>
-package require RunStateMachine
+package require RunstateMachine
           </command>
           </cmdsynopsis>
             <cmdsynopsis>
