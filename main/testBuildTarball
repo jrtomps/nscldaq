@@ -1,0 +1,26 @@
+#!/bin/bash -xe
+
+
+target=${WORKSPACE}/${GIT_BRANCH}-${BUILD_NUMBER}-fromdist
+rm -rf ${target}
+
+acversion=`grep AC_INIT configure.ac | cut -f2 -d"," | sed s/,// | sed s/")"//`
+
+rm -rf nscldaq-${acversion} nscldaq-${acversion}
+
+tarball=nscldaq-${acversion}.tar.gz
+version=${acversion}
+
+
+
+tar xzf ${tarball}
+
+cd `basename ${tarball} .tar.gz`
+
+./configure --prefix=${target}
+make clean all
+make install
+make check
+make installcheck
+
+rm -rf `basename ${tarball} .tar.gz`
