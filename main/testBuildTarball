@@ -1,23 +1,26 @@
 #!/bin/bash -xe
 
 
-rm -rf ${WORKSPACE}/11.1
+target=${WORKSPACE}/${GIT_BRANCH}-${BUILD_NUMBER}-fromdist
+rm -rf ${target}
 
-version=`grep AC_INIT configure.ac | cut -f2 -d" " | sed s/,//`
+acversion=`grep AC_INIT configure.ac | cut -f2 -d"," | sed s/,// | sed s/")"//`
 
-rm -rf nscldaq-${version}
+rm -rf nscldaq-${acversion} nscldaq-${acversion}
 
-tar xzf nscldaq-${version}.tar.gz
-cd nscldaq-${version}
+tarball=nscldaq-${acversion}.tar.gz
+version=${acversion}
 
-./configure --prefix=${WORKSPACE}/11.1 --enable-usb --enable-sbs=/lib/modules/`uname -r`/build --enable-epics-tools=yes --with-epics-rootdir=/usr/lib/epics --enable-docs
+
+
+tar xzf ${tarball}
+
+cd `basename ${tarball} .tar.gz`
+
+./configure --prefix=${target}
 make clean all
 make install
-chmod u+x nscldaq
-./nscldaq start
-sleep 10
 make check
-./nscldaq stop
+make installcheck
 
-rm -rf nscldaq-${version}
-rm -rf ${WORKSPACE}/11.1
+rm -rf `basename ${tarball} .tar.gz`
