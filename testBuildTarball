@@ -21,6 +21,9 @@ cd `basename ${tarball} .tar.gz`
 make clean all
 make install
 make check
+./nscldaq start 
 make installcheck
+./nscldaq stop
+
 
 rm -rf `basename ${tarball} .tar.gz`
