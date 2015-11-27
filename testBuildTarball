@@ -20,8 +20,8 @@ cd `basename ${tarball} .tar.gz`
 ./configure --prefix=${target} --enable-usb --enable-sbs=/lib/modules/`uname -r`/build --enable-epics-tools=yes --with-epics-rootdir=/usr/lib/epics
 make clean all
 make install
-make check
 ./nscldaq start 
+make check
 make installcheck
 ./nscldaq stop
 
