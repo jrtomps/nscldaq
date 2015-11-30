@@ -153,12 +153,23 @@ CRingBuffer::create(std::string name,
       //  *   If the ring master does not know about it and it's  ring, make it known to the ring master.
       
       CRingMaster master;
-      bool exists = false;
+      bool exists = true;
       try {
-        master.requestUsage();
+	std::string usage = master.requestUsage();
+
+	// If the ring exists, the string "{ringname " will be present in
+	// the usage information:
+
+	std::string ifexists = "{";
+	ifexists += name;
+	ifexists += " ";
+	if (usage.find(ifexists) == std::string::npos) {
+	  exists = false;
+	}
+
       }
       catch (...) {
-        exists = true;                  // For now assume existence for any exxception
+        exists = false;		// Throws happen if the ring master does _not_ know about the ring
       }
       if (exists) {
         errno  = EEXIST;
@@ -247,13 +258,12 @@ CRingBuffer::remove(string name)
   
   connectToRingMaster();
 
-
+  // At this point RM has acked so we can kill the ring itself:
   // Tell the ringmaster to forget the ring and kill the clients
 
   m_pMaster->notifyDestroy(name);
 
-  // At this point RM has acked so we can kill the ring itself:
-
+  // Delete the ring shared memory special file.
   
   string fullName   = shmName(name);
 
