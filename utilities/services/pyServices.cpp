@@ -329,6 +329,7 @@ remove(PyObject* self, PyObject* args)
     catch (std::exception& e) {
         PyErr_SetString(exception, e.what());
     }
+    Py_RETURN_NONE;
     
 }
 
