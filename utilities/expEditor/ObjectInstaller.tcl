@@ -46,7 +46,8 @@ package require propertyEditor
 #            %W  - The canvas being installed on.
 #            %O  - The object that was installed.
 #     *  -deletecmd - Script invoked when an object is about to be deleted.
-#           substitutions are the same as for -installcmd.  Note that the script
+#           substitutions are the same as for -installcmd with the addition of
+#           %I the id of the canvas object.  Note that the script
 #           called can abort the delete by returning false and allow it to proceed
 #           by returning true.
 #
@@ -128,7 +129,8 @@ snit::type ObjectInstaller {
         if {$confirm eq "yes"} {
             set confirm [$self _dispatch \
                  -deletecmd              \
-                 [list %W [$objectContext cget -canvas] %O $objectContext]]
+                 [list %W [$objectContext cget -canvas] %O $objectContext \
+                       %I [$objectContext cget -id]]
             if {$confirm} {
                 $objectContext destroy                       
             }

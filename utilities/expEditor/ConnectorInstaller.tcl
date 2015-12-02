@@ -51,6 +51,16 @@ snit::type ConnectorInstaller {
     variable item1 ""
     variable item2 ""
     
+    # connectors is a list of connector definitions.  Each connecto is defined
+    # by a dict consisting of the following keys:
+    #
+    #  *  object   - The connector object.
+    #  *  from     - The from object.
+    #   * to       - The to object.
+    #
+    
+    variable currentConnectors [list]
+    
     #---------------------------------------------------------------------------
     # Private methods
     #
@@ -179,6 +189,9 @@ snit::type ConnectorInstaller {
         set item [connector %AUTO% \
             -from $item1 -to $item2 -fromcoords $from -tocoords $to \
             -arrow last -canvas $c]
+        
+        lappend currentConnectors [dict create object $item from $item1 to $item2]
+        puts $currentConnectors
         
         $self _dispatch -installcmd "%W $c %C [list $item1 $item2] %O $item"
         
