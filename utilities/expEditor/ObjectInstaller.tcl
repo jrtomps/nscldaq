@@ -42,12 +42,17 @@ package require propertyEditor
 #   - Enables double-click to bring up a property list for the object.
 #
 #    OPTIONS:
-#        -installcmd  - script called when an object was installed. Substitutions:
+#     *  -installcmd  - script called when an object was installed. Substitutions:
 #            %W  - The canvas being installed on.
 #            %O  - The object that was installed.
+#     *  -deletecmd - Script invoked when an object is about to be deleted.
+#           substitutions are the same as for -installcmd.  Note that the script
+#           called can abort the delete by returning false and allow it to proceed
+#           by returning true.
 #
 snit::type ObjectInstaller {
     option -installcmd [list]
+    option -deletecmd  [list]
     
     #
     #  The array below maintains the object context menus for
@@ -99,7 +104,9 @@ snit::type ObjectInstaller {
         set script $options($optname)
         if {$script ne ""} {
             set script [string map $submap $script]
-            uplevel #1 $script
+            return [uplevel #1 $script]
+        } else {
+            return true;               # for -delcommand.
         }
     }
     ##
@@ -119,7 +126,13 @@ snit::type ObjectInstaller {
             -message "Are you sure you want to delete '$objName'?"  \
         ]
         if {$confirm eq "yes"} {
-           $objectContext destroy           
+            set confirm [$self _dispatch \
+                 -deletecmd              \
+                 [list %W [$objectContext cget -canvas] %O $objectContext]]
+            if {$confirm} {
+                $objectContext destroy                       
+            }
+           
         }
         
         set objectContext ""
