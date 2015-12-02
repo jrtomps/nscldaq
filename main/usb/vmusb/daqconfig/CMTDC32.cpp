@@ -258,10 +258,10 @@ CMTDC32::onAttach(CReadoutModule& configuration)
     m_pConfiguration->addIntegerParameter("-tsdivisor", 1, 65535, 1);  // avoid 65536 special case.
     
     m_pConfiguration->addBooleanParameter("-tstamp");
-    m_pConfiguration->addIntegerParameter("-multlow0", 0, 32, 0);
-    m_pConfiguration->addIntegerParameter("-multhi0", 0, 32, 32);
-    m_pConfiguration->addIntegerParameter("-multlow1", 0, 32, 0);
-    m_pConfiguration->addIntegerParameter("-multhi1", 0, 16, 16);
+    m_pConfiguration->addIntegerParameter("-multlow0", 0, 255, 0);
+    m_pConfiguration->addIntegerParameter("-multhi0", 0, 255, 255);
+    m_pConfiguration->addIntegerParameter("-multlow1", 0, 255, 0);
+    m_pConfiguration->addIntegerParameter("-multhi1", 0, 255, 255);
 }
 /**
  * Initialize

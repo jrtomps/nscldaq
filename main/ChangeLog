@@ -1037,4 +1037,7 @@ Work on 11.0-rc11 begins
 
 11.1-000
 	Good compilation of mergeer of 11.1 and 11.0head.
+	* Fixes Bug #4999 by allowing -multhi0 and -multhi1 to span from 0
+	  to 255 in mtdc driver. It also sets the default value to be 255
+		for each of these.
 	
