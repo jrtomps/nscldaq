@@ -49,6 +49,13 @@ package require propertyEditor
 snit::type ObjectInstaller {
     option -installcmd [list]
     
+    #
+    #  The array below maintains the object context menus for
+    #  each canvas.  As objects are created, if there is not a canvas context
+    #  menu one is created and added  to this array:
+    
+    variable contextMenus -array [dict create]
+    variable objectContext ""
     #---------------------------------------------------------------------------
     # Private
     #
@@ -95,6 +102,73 @@ snit::type ObjectInstaller {
             uplevel #1 $script
         }
     }
+    ##
+    # _delObject
+    #   context menu handler to delete an object.
+    #
+    method _delObject {} {
+        
+        ##
+        # TODO - provide a mechanism for connectors to kill themselves off if
+        # they have one end attached to the object.
+        set objProperties [$objectContext getProperties]
+        set nameProp      [$objProperties find name]
+        set objName       [$nameProp cget -value]
+        set confirm [tk_messageBox                                \
+            -title {Destroy object} -type yesno -default no -icon question \
+            -message "Are you sure you want to delete '$objName'?"  \
+        ]
+        if {$confirm eq "yes"} {
+           $objectContext destroy           
+        }
+        
+        set objectContext ""
+    }
+    
+    ##
+    # _editProps
+    #   context menu handler to edit the properties of an object.
+    #
+    method _editProps {} {
+        $self _editProperties $objectContext
+        set objectContext ""
+    }
+    ##
+    # _getContextMenu
+    #    Returns a context menu for the canvas.
+    #    If necessary a new context menu is created.
+    #
+    # @param c   - canvas for which the context menu is being created.
+    # @note the context menu will have the following commands:
+    #        *  Delete...    - deletes this object.
+    #        *  Properties.. - edit object properties.
+    #
+    method _getContextMenu {c} {
+       
+        if {[array names contextMenus $c] eq "" }    {
+            set m [menu $c.objectContext -tearoff 0 -takefocus 1]
+            $m add command -label Delete...     -command [mymethod _delObject ]
+            $m add command -label Properties... -command [mymethod _editProps]
+            
+            set contextMenus($c) $m
+        }
+        return $contextMenus($c)
+    }
+    ##
+    # _popupContextMenu
+    #
+    #  Pop up a context menu, setting our object context as well so the
+    #  menu commands know what to operate on.
+    #
+    # @param menu   - menu widget id.
+    # @param x,y    - Where in the root window to post the menu.
+    # @param object - The object for which the menu is being posted.
+    #
+    method _popupContextMenu {menu x y object} {
+        set objectContext $object
+        tk_popup $menu $x $y
+        
+    }
     #-------------------------------------------------------------------------
     # Public methods:
     
@@ -124,12 +198,16 @@ snit::type ObjectInstaller {
         $newObject configure -canvas $to
         $newObject drawat $x $y
         
+        
         #  Now set up the object's behavior in the GUI.
         
         set id [$newObject getId]
+        set ctxMenu [$self _getContextMenu $to] 
         
         $newObject bind <B1-Motion> [mymethod _drag $newObject %x %y ]; # Drag.
-        $newObject bind <Double-Button-1> [mymethod _editProperties $newObject]
+        $newObject bind <Button-3>  [mymethod \
+            _popupContextMenu $ctxMenu %X %Y $newObject \
+        ];                                                      # context menu.
         
         $self _dispatch -installcmd [list %W $to %O $newObject]
         

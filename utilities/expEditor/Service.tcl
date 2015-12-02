@@ -84,7 +84,13 @@ snit::type Service {
         
         $self configurelist $args
     }
-    
+    ##
+    # destructor -- destroy our components.
+    #
+    destructor {
+        $data destroy
+        $gui destroy
+    }
     ##
     #  clone
     #   Create a copy of self.

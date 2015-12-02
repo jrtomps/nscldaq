@@ -53,17 +53,20 @@ grid columnconfigure . 1 -weight 1
 
 # Create and add some tools:
 
-tool ring [RingBufferObject %AUTO%] [ObjectInstaller %AUTO%]
+set os [ObjectInstaller %AUTO%]
+
+tool ring [RingBufferObject %AUTO%] $os
 .t add ring
 
-tool statePgm [StateProgram %AUTO%] [ObjectInstaller %AUTO%]
+tool statePgm [StateProgram %AUTO%] $os
 .t add statePgm
 
-tool service [Service %AUTO%] [ObjectInstaller %AUTO%]
+tool service [Service %AUTO%] $os
 .t add service
 
 # Connector
 
-tool knect [ConnectorObject %AUTO%] [ConnectorInstaller %AUTO%];   # Need new installer
+set cs [ConnectorInstaller %AUTO%]
+tool knect [ConnectorObject %AUTO%] $cs;   # Need new installer
 .t add knect
 

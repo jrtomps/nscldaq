@@ -84,6 +84,15 @@ snit::type RingBufferObject {
         install gui  using DaqObject %AUTO% -image RingBufferIcon
         
         $self configurelist $args
+        
+    }
+    ##
+    # destructor
+    #   Destroy our components.
+    
+    destructor  {
+        $data destroy
+        $gui  destroy
     }
     
     ##
