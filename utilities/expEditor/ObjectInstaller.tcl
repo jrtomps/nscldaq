@@ -51,6 +51,8 @@ package require propertyEditor
 #           called can abort the delete by returning false and allow it to proceed
 #           by returning true.
 #
+#   METHODS:
+#      *   install  installs an object clone onto a canvas.
 snit::type ObjectInstaller {
     option -installcmd [list]
     option -deletecmd  [list]
@@ -130,7 +132,7 @@ snit::type ObjectInstaller {
             set confirm [$self _dispatch \
                  -deletecmd              \
                  [list %W [$objectContext cget -canvas] %O $objectContext \
-                       %I [$objectContext cget -id]]
+                       %I [$objectContext getId]]]
             if {$confirm} {
                 $objectContext destroy                       
             }

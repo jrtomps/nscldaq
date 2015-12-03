@@ -106,6 +106,18 @@ snit::type connector {
         $c bind t${id}_to <B1-Motion> [mymethod _moveTo %x %y]
         
     }
+    ##
+    # destructor
+    #   If we've been drawn, remove ourself from the canvas and kill our tags.
+    #
+    destructor {
+        if {$id ne ""} {
+            set c $options(-canvas)
+            $c delete $id
+            $c dtag t${id}_from
+            $c dtag t${id}_to
+        }
+    }
     #--------------------------------------------------------------------------
     #  Private methods.
     

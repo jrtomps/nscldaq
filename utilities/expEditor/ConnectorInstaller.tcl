@@ -46,6 +46,10 @@ package require Tk
 #            %W - Widget he connector is installed on.
 #            %O - Object that was installed
 #
+#  METHODS:
+#     *  install   - install a new connector.
+#     *  uninstall - Remove a connector from the system.
+#
 snit::type ConnectorInstaller {
     option -installcmd [list]
     variable item1 ""
@@ -56,8 +60,8 @@ snit::type ConnectorInstaller {
     #
     #  *  object   - The connector object.
     #  *  from     - The from object.
-    #   * to       - The to object.
-    #
+    #  * to        - The to object.
+    #  * canvas    -  The canvas on which the connector is drawn. 
     
     variable currentConnectors [list]
     
@@ -190,8 +194,7 @@ snit::type ConnectorInstaller {
             -from $item1 -to $item2 -fromcoords $from -tocoords $to \
             -arrow last -canvas $c]
         
-        lappend currentConnectors [dict create object $item from $item1 to $item2]
-        puts $currentConnectors
+        lappend currentConnectors [dict create object $item from $item1 to $item2 canvas $c]
         
         $self _dispatch -installcmd "%W $c %C [list $item1 $item2] %O $item"
         
@@ -320,7 +323,26 @@ snit::type ConnectorInstaller {
         
         return [lindex [_minimumDistancePair $minpair] 1]
     }
-    
+    ##
+    # _findConnectionFromOrTo
+    #    Locate the first connection that either originates or ends in the
+    #    specified canvas/id.
+    #
+    # @param id   - Id of one of the terminations.
+    # @param c    - Canvas
+    #
+    method _findConnectionFromOrTo {id c} {
+        for {set i 0} {$i < [llength $currentConnectors]} {incr i} {
+            set connection [lindex $currentConnectors $i]
+            set ca [dict get $connection canvas]
+            set f  [dict get $connection from]
+            set t  [dict get $connection to]
+            if {($c == $ca) && (($f == $id) || ($t == $id))} {
+                return $i
+            }
+        }
+        return -1
+    }
     #---------------------------------------------------------------------------
     # Public methods.
     
@@ -338,5 +360,24 @@ snit::type ConnectorInstaller {
     method install {object from to} {
         $self _tagAllItems $to
         $self _makeBindings $to
+    }
+    ##
+    # uninstall
+    #    Call when a connected item is being deleted to destroy all connectors
+    #    that originate or terminate in the object.
+    #
+    # @param from   - canvas id of one of the objects.
+    # @param c      - canvas.
+    #
+    method uninstall {from c} {
+        set id [$self _findConnectionFromOrTo $from $c]
+        while {$id != -1} {
+            set connector [lindex $currentConnectors $id]
+            set cobj [dict get $connector object]
+            $cobj destroy
+            set currentConnectors [lreplace $currentConnectors $id $id]
+            set id [$self _findConnectionFromOrTo $from $c]
+        }
+        return true
     }
 }
