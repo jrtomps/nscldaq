@@ -221,6 +221,7 @@ snit::type ConnectorInstaller {
     method _removeBindings c {
         $c bind connectable <Button-1> ""
         $c bind connectable <Button-3> ""
+        bind $c <KeyPress-Escape> ""
     }
     ##
     #  _select
@@ -268,6 +269,40 @@ snit::type ConnectorInstaller {
     method _makeBindings c {
         $c bind connectable <Button-1> [mymethod _select %W %x %y]
         $c bind connectable <Button-3> [mymethod _deselect %W %x %y]
+    }
+    ##
+    # _findConnectionFromOrTo
+    #    Locate the first connection that either originates or ends in the
+    #    specified canvas/id.
+    #
+    # @param id   - Id of one of the terminations.
+    # @param c    - Canvas
+    #
+    method _findConnectionFromOrTo {id c} {
+        for {set i 0} {$i < [llength $currentConnectors]} {incr i} {
+            set connection [lindex $currentConnectors $i]
+            set ca [dict get $connection canvas]
+            set f  [dict get $connection from]
+            set t  [dict get $connection to]
+            if {($c == $ca) && (($f == $id) || ($t == $id))} {
+                return $i
+            }
+        }
+        return -1
+    }
+    ##
+    # _abortConnection
+    #    Called to stop doing a connection.
+    #    - Bindings on the canvas are turned off.
+    #    - item1, item2 are cleared.
+    #
+    # @param c - the canvas on which the connector is being drawn.
+    #
+    method _abortConnection c {
+        $self _removeBindings $c
+        $self _removeTags     $c
+        set item1 ""
+        set item2 ""
     }
     #---------------------------------------------------------------------------
     # private procs (static methods).
@@ -323,26 +358,6 @@ snit::type ConnectorInstaller {
         
         return [lindex [_minimumDistancePair $minpair] 1]
     }
-    ##
-    # _findConnectionFromOrTo
-    #    Locate the first connection that either originates or ends in the
-    #    specified canvas/id.
-    #
-    # @param id   - Id of one of the terminations.
-    # @param c    - Canvas
-    #
-    method _findConnectionFromOrTo {id c} {
-        for {set i 0} {$i < [llength $currentConnectors]} {incr i} {
-            set connection [lindex $currentConnectors $i]
-            set ca [dict get $connection canvas]
-            set f  [dict get $connection from]
-            set t  [dict get $connection to]
-            if {($c == $ca) && (($f == $id) || ($t == $id))} {
-                return $i
-            }
-        }
-        return -1
-    }
     #---------------------------------------------------------------------------
     # Public methods.
     
@@ -360,6 +375,12 @@ snit::type ConnectorInstaller {
     method install {object from to} {
         $self _tagAllItems $to
         $self _makeBindings $to
+        
+        #  Arrange for the escape key to abor the process of creating the connection.
+        
+        focus $to
+        bind $to <KeyPress-Escape> [mymethod _abortConnection $to]
+        
     }
     ##
     # uninstall
