@@ -86,7 +86,8 @@ ringFragmentSource_LDADD=  		 \
 
 EXTRA_DIST=ringsource.xml ringtestoptions.ggo
 
-unittests_SOURCES = TestRunner.cpp CRingSource.cpp CRingItemToFragmentTransform.cpp cringsourcetests.cpp rfcmdline.c
+unittests_SOURCES = TestRunner.cpp CRingSource.cpp CRingItemToFragmentTransform.cpp \
+                    cringitemtofragtransformtests.cpp cringsourcetests.cpp rfcmdline.c
 unittests_LDADD = \
 	@top_builddir@/daq/eventbuilder/libEventBuilderClient.la \
 	@top_builddir@/daq/format/libdataformat.la \

@@ -58,6 +58,30 @@ static size_t max_event(1024*1024*10); // initial Max bytes of events in a getDa
  * Canonicals
  */
 
+CRingSource::CRingSource(CRingBuffer* pBuffer, 
+    const std::vector<uint32_t>& allowedIds, 
+    uint32_t defaultId, 
+    tsExtractor extractor)
+  : m_pArgs(nullptr),
+  m_pBuffer(pBuffer),
+  m_allowedSourceIds(allowedIds),
+  m_defaultSourceId(defaultId),
+  m_timestamp(extractor),
+  m_stall(false),
+  m_stallCount(0),
+  m_expectBodyHeaders(false),
+  m_fOneshot(false),
+  m_nEndRuns(1),
+  m_nEndsSeen(0),
+  m_nTimeout(0),
+  m_nTimeWaited(0),
+  m_wrapper(0)
+{
+  m_wrapper.setTimestampExtractor(m_timestamp);
+  m_wrapper.setAllowedSourceIds(m_allowedSourceIds);
+  m_wrapper.setDefaultSourceId(m_defaultSourceId);
+  m_wrapper.setExpectBodyHeaders(m_expectBodyHeaders);
+}
 
 /**
  * constructor:
@@ -253,12 +277,30 @@ CRingSource::dataReady(int ms)
 void
 CRingSource::getEvents()
 {
+  m_frags.clear(); // start fresh
+
+  uint8_t* pBuffer = reinterpret_cast<uint8_t*>(malloc(max_event*2));
+  // transforms avail data to fragments and adds to m_frags
+  transformAvailableData(pBuffer);
+  
+  // Send those fragments to the event builder:
+
+  if (m_frags.size()) {
+    CEVBClientFramework::submitFragmentList(m_frags);
+  }
+
+  if (oneshotComplete()) {
+    exit(EXIT_SUCCESS);
+  }
+
+  delete [] pBuffer;
+}
+
+void CRingSource::transformAvailableData(uint8_t*& pFragments)
+{
   size_t bytesPackaged(0);
   CAllButPredicate all;		// Predicate to selecdt all ring items.
-  CEVBFragmentList frags;
-  uint8_t*         pFragments = reinterpret_cast<uint8_t*>(malloc(max_event*2));
   uint8_t*         pDest = pFragments;
-  bool             doExit(false);
   if (pFragments == 0) {
     throw std::string("CRingSource::getEvents - memory allocation failed");
   }
@@ -266,6 +308,11 @@ CRingSource::getEvents()
   while ((bytesPackaged < max_event) && m_pBuffer->availableData()) {
     std::unique_ptr<CRingItem> p(CRingItem::getFromRing(*m_pBuffer, all)); // should not block.
     RingItem*  pRingItem = p->getItemPointer();
+
+    // check for end runs for oneshot logic
+    if (pRingItem->s_header.s_type == END_RUN) {
+      m_nEndsSeen++;
+    }
 
     // If we got here but the data is bigger than our safety margin
     //we need to resize pFragments:
@@ -281,21 +328,10 @@ CRingSource::getEvents()
     ClientEventFragment frag = m_wrapper(p.get(), pDest);
     pDest += frag.s_size;
     bytesPackaged += frag.s_size;
-    frags.push_back(frag);
 
-  
-    
+    m_frags.push_back(frag);
+
   }
-  // Send those fragments to the event builder:
-
-  if (frags.size()) {
-
-    CEVBClientFramework::submitFragmentList(frags);
-  }
-
-
-  delete []pFragments;		// free storage.
-  
 }
 
 /**
