@@ -263,11 +263,7 @@ proc EVBC::start args {
     
     # Push the startup script into the pipe:
     
-    set infd [open $orderer r]
-    while {![eof $infd]} {
-        set line [gets $infd]
-        puts $EVBC::pipefd $line
-    }
+    puts $EVBC::pipefd "source $orderer"
     ::flush $EVBC::pipefd
     puts $EVBC::pipefd "set ::OutputRing [$options cget -destring]"
     ::flush $EVBC::pipefd
@@ -283,7 +279,6 @@ proc EVBC::start args {
         }
     }
     
-    close $infd
         
 
     #
