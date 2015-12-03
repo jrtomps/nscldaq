@@ -281,6 +281,7 @@ CRingSource::getEvents()
     ClientEventFragment frag = m_wrapper(p.get(), pDest);
     pDest += frag.s_size;
     bytesPackaged += frag.s_size;
+    frags.push_back(frag);
 
   
     
