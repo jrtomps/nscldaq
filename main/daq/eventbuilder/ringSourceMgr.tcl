@@ -304,19 +304,22 @@ namespace eval ::RingSourceMgr {
 # @param port             the port of the orderer server
 # @param url              url of the ring 
 # @param tstampExtractor  path to tstamp extractor lib
-# @param id               source id associated with source
+# @param ids              list of source ids associated with source
 # @param info             description of the source
 # @param expectHeaders    boolean to specify --expectbodyheaders flag
 # @param oneshot          --oneshot count "" if not using.
 # @param timeout          --timeout seconds or "" if default.
 # @returns string containing command line arguments to use
 #
-proc ::RingSourceMgr::_computeRingSourceSwitches {port url tstampExtractor id
+proc ::RingSourceMgr::_computeRingSourceSwitches {port url tstampExtractor ids
   info expectHeaders oneshot timeout} {
 
   set switches ""
   append switches " --evbhost=localhost --evbport=$port"
-  append switches " --info=$info --ids=$id --ring=$url"
+  append switches " --info=$info --ring=$url"
+  foreach id $ids {
+    append switches " --ids=$id"
+  }
 
   if {$tstampExtractor ne ""} {
     append switches " --timestampextractor=[file normalize $tstampExtractor]"

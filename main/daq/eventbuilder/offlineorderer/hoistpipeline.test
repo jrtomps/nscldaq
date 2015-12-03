@@ -146,7 +146,7 @@ tcltest::test validateId-0 {Test that a negative id appends a message
   set errors [list]
   $params validateId errors
   set errors
-} -result [list "Source id for ringFragmentSource must be greater than or equal to 0. User specified -1."]
+} -result [list "Source ids for ringFragmentSource must be greater than or equal to 0. User specified -1."]
 
 tcltest::test validateId-1 {Test that a 0 id doesn't append a message
 } -setup {
