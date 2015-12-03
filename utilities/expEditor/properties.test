@@ -41,9 +41,10 @@ tcltest::test property-construct-ok {Construct a property properly} \
     lappend result [$p cget -name]
     lappend result [$p cget -value]
     lappend result [$p cget -validate]
+    lappend result [$p cget -editable]
     
     set result
-} -result [list test "" ""]
+} -result [list test "" "" 1]
 
 tcltest::test property-namerdo {Property names are invariant} \
 -setup {
@@ -81,6 +82,42 @@ tcltest::test property-set-validator2 {Set with validator - bad value} \
 -body {
     catch {$p configure -value 20}
 } -result 1
+
+tcltest::test property-editable-1 {Editable can be set false} \
+-setup {
+    set p [property %AUTO% -name test]
+} \
+-cleanup {
+    $p destroy
+} \
+-body {
+    $p configure -editable 0
+    $p cget -editable
+} -result 0
+
+tcltest::test property-editable-2 {editable can be set true} \
+-setup {
+    set p [property %AUTO% -name test -editable 0]
+} \
+-cleanup {
+    $p destroy
+} \
+-body {
+    $p config -editable 1
+    $p cget -editable
+} -result 1
+
+tcltest::test property-editable-3 {editable can't be set a non bool value} \
+-setup {
+    set p [property %AUTO% -name test -editable 0]
+} \
+-cleanup {
+    $p destroy
+} \
+-body {
+    catch {$p configure -editable george}
+} -result 1
+
 # End/summarize the tests - note the magic below is intended to ensure that
 # a failed test fails the makefile test target too.
 

@@ -45,11 +45,12 @@ package require snit
 #    -name     - Name of the property.
 #    -value    - Property value.
 #    -validate - validation object for value (snit::validation object).
-
+#    -editable - the property can be modified by a user via GUI.
 snit::type property {
     option -name -readonly 1
     option -value -default "" -configuremethod _validate
     option -validate -default ""
+    option -editable -default 1 -type snit::boolean
     
     constructor args {
         $self configurelist $args

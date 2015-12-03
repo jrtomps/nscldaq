@@ -151,9 +151,15 @@ snit::widgetadaptor propertyEditor {
                 ttk::label $contents.n$i \
                     -text [$property cget -name] -relief solid -borderwidth 1
                 
+                if {[$property cget -editable]} {
+                    set state normal
+                } else {
+                    set state disabled
+                }
                 ttk::entry $contents.v$i                                  \
                     -validate focusout                                    \
-                    -validatecommand [mymethod _validate $property $contents.v$i]
+                    -validatecommand [mymethod _validate $property $contents.v$i] \
+                    -state $state
                 $contents.v$i insert end [$property cget -value]
                 
                 grid $contents.n$i $contents.v$i -sticky new

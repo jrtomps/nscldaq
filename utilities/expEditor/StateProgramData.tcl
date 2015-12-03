@@ -54,8 +54,8 @@ snit::type StateProgramData {
             -name standalone -value false -validate snit::boolean]
         $properties add [property %AUTO% -name path ]
         $properties add [property %AUTO% -name host ]
-        $properties add [property %AUTO% -name {Input Ring}]
-        $properties add [property %AUTO% -name {Output Ring}]
+        $properties add [property %AUTO% -name {Input Ring} -editable 0]
+        $properties add [property %AUTO% -name {Output Ring} -editable 0]  
     }
     ##
     # destructor
