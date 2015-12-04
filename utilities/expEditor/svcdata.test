@@ -28,6 +28,7 @@ exec tclsh "$0" ${1+"$@"}
 
 set here [file dirname [info script]]
 source [file join $here ServiceData.tcl]
+source [file join $here Service.tcl]
 
 package require tcltest
 package require properties
@@ -99,6 +100,19 @@ tcltest::test clone-3 {Cloning preserves the command line property} \
     $p cget -value
 } -result /usr/bin/emacs
 
+tcltest::test connectible {Can never connect to/from this} \
+-setup {
+    set obj [Service %AUTO%]
+    
+} \
+-cleanup {
+    $obj destroy
+} \
+-body {
+    lappend result [$obj isConnectable from]
+    lappend result [$obj isConnectable to]
+    
+} -result [list false false]
 
 # End/summarize the tests - note the magic below is intended to ensure that
 # a failed test fails the makefile test target too.
