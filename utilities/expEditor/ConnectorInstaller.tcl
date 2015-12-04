@@ -202,8 +202,6 @@ snit::type ConnectorInstaller {
         foreach id [array names currentObjects] {
             set o [$self _findObject $currentObjects($id) $c]
             if {[$o isConnectable $dir]} {
-                puts "$o isConnectable $dir : $id"
-                parray currentObjects
                 $c addtag connectable withtag $id
             }
         }   
@@ -300,6 +298,8 @@ snit::type ConnectorInstaller {
         }]
         if {$status} {
             $self _abortConnection $c
+            tk_messageBox -type ok -icon error -title "not allowed" \
+                -message {Connection is rejected by one of the objects as illegal from/to type.}
             return
         }
         
@@ -331,7 +331,6 @@ snit::type ConnectorInstaller {
     # @param c - Canvas on which we are removing tagging.
     #
     method _removeTags c {
-        puts "Untagging connectables"
         $c dtag connectable
     }
     ##
@@ -341,7 +340,6 @@ snit::type ConnectorInstaller {
     # @param c - the canvas.
     
     method _removeBindings c {
-        puts "Removing all bindings"
         $c bind connectable <Button-1> ""
         bind $c <KeyPress-Escape> ""
     }
@@ -356,7 +354,6 @@ snit::type ConnectorInstaller {
     # @param x,y - coordinates of the pointer.
     #
     method _select {c x y} {
-        puts "Select"     
         
         if  {$item1 eq ""} {
             set item [$c find closest $x $y]
