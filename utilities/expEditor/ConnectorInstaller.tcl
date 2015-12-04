@@ -78,6 +78,22 @@ snit::type ConnectorInstaller {
     
     variable currentConnectors [list]
     
+    ##
+    # currentObjects is the set of objects known to the  installer if it's been
+    # hooked into the corresponding object installer object for objects it can
+    # connect.
+    #  This is an array indexed by cavas id containing a list of  dicts containing:
+    #
+    #   -  object  - the object ensemble command.
+    #   -  canvas  - canvas on which this object is drawn.
+    #
+    # List because in theory we can be managing the installation for more than one
+    # canvas and two distinct objects could have the same canvas id but be on
+    # different canvases.
+    #
+    
+    variable currentObjects -array [list]
+    
     #---------------------------------------------------------------------------
     # Private methods
     #
@@ -106,9 +122,27 @@ snit::type ConnectorInstaller {
         bind $c <Motion> [list $c coords $tempArrowId $tempArrowStartX $tempArrowStartY %x %y]
         $c bind $tempArrowId <Button-1> [mymethod _select $c %x %y]
     }
+
+    ##
+    # _findObject
+    #     Given a list of object info dicts (an element of currentObjects), find
+    #     and return the object that is on the specified canvas.
     #
-    #    Create a rubber band arrow to follow the cursor grounded in a starting
-    #    point.  This gives the user visual feedback about the 
+    # @param dList - list of dicts.
+    # @param c     - canvas to match.
+    # @return command - base command of an object command ensemble.
+    #
+    method _findObject {dList c} {
+        foreach d $dList {
+            if {[dict get $d canvas] == $c} {
+                return [dict get $d object]
+            }
+        }
+        #   Empty object if not found.
+        
+        return ""
+    }
+    
     ##
     # _connectionPoints
     #   Given an image object and its center point produce a set of 8 coordinate
@@ -156,16 +190,40 @@ snit::type ConnectorInstaller {
     #   tags eligible connectable items with 'connectable'
     #   TODO: For now all image items are tagged.
     #
-    #  @param c - canvas on which we're working.
+    #  @param c   - canvas on which we're working.
+    #  @param dir - direction of the connection (from to)
     #
-    method _tagAllItems c {
-        set items [$c find all]
-        foreach item $items {
-            if {[$c type $item] eq "image"} {
-                $c addtag  connectable withtag $item
+    method _tagAllItems {c dir} {
+        
+        # Iterate through the objects - for each id if it has objects on the
+        # canvas, ask that object if it can be connected in the requested direction.
+        # If so, add the connectable tag to the object's canvas rendition:
+        
+        foreach id [array names currentObjects] {
+            set o [$self _findObject $currentObjects($id) $c]
+            if {[$o isConnectable $dir]} {
+                puts "$o isConnectable $dir : $id"
+                parray currentObjects
+                $c addtag connectable withtag $id
             }
-        }
+        }   
     }
+ 
+
+    ##
+    # _makeBindings
+    #    Add the bindings required to select connected objects.
+    #
+    # @param c - the canvas.
+    #
+    method _makeBindings c {
+        $c bind connectable <Button-1> [mymethod _select %W %x %y]
+        #  Arrange for the escape key to abor the process of creating the connection.
+        
+        focus $c
+        bind $c <KeyPress-Escape> [mymethod _abortConnection $c]
+    }
+
     ##
     # _computeConnectionCoords
     #
@@ -224,6 +282,27 @@ snit::type ConnectorInstaller {
     # @param c - the canvas on which the arrow line is being drawn.
     #
     method _connect {c} {
+        
+        # find the objects themselves and let them know they were connected.
+        # This is done first so that if an error is thrown, we can _abortConnection.
+        #
+        
+        set status [catch {
+            set fromDicts $currentObjects($item1)
+            set toDicts   $currentObjects($item2)
+            
+            set fromObj [$self _findObject $fromDicts $c]
+            set toObj   [$self _findObject $toDicts   $c]
+            
+            $fromObj connect from $toObj
+            $toObj   connect to   $fromObj
+            
+        }]
+        if {$status} {
+            $self _abortConnection $c
+            return
+        }
+        
         set connections [$self _computeConnectionCoords $c]
         set from [lindex $connections 0]
         set to   [lindex $connections 1]
@@ -237,6 +316,8 @@ snit::type ConnectorInstaller {
         lappend currentConnectors [dict create object $item from $item1 to $item2 canvas $c]
         
         $self _dispatch -installcmd "%W $c %C [list $item1 $item2] %O $item"
+                    
+        
         
         #  Now we have no items:
         #
@@ -250,7 +331,8 @@ snit::type ConnectorInstaller {
     # @param c - Canvas on which we are removing tagging.
     #
     method _removeTags c {
-        $c dtag connectable connectable
+        puts "Untagging connectables"
+        $c dtag connectable
     }
     ##
     # _removeBindings
@@ -259,6 +341,7 @@ snit::type ConnectorInstaller {
     # @param c - the canvas.
     
     method _removeBindings c {
+        puts "Removing all bindings"
         $c bind connectable <Button-1> ""
         bind $c <KeyPress-Escape> ""
     }
@@ -273,7 +356,7 @@ snit::type ConnectorInstaller {
     # @param x,y - coordinates of the pointer.
     #
     method _select {c x y} {
-        puts "Select:"
+        puts "Select"     
         
         if  {$item1 eq ""} {
             set item [$c find closest $x $y]
@@ -281,12 +364,34 @@ snit::type ConnectorInstaller {
             
             $self _createRubberBandArrow $c $x $y
             
+            # Bind to the objects that can be destinations:
+            
+            $self _removeBindings $c
+            $self _removeTags $c
+            
+            $self _tagAllItems $c to
+            $self _makeBindings $c
+            
         } else {
             set item [$c find closest $x $y 5 $tempArrowId]
             if {$item eq $item1} {
                 tk_messageBox -title "Bad connection" -icon error -type ok \
                     -message {You cannot connect an item to itself}
             } else {
+                #
+                #  With the rubber band arrow requiring a <button-1> binding
+                #  on the _canvas_ we need to see if the item is connectable.
+                #  If not ignore the click:
+                
+                if {[array names currentObjects $item] eq ""} {
+                    return
+                }
+                set o        [$self _findObject $currentObjects($item) $c]
+                if {($o eq "") || ![$o isConnectable to]} {
+                    return
+                }
+                
+                # Connection can proceed
                 
                 set item2 $item
                 $self _removeTags $c
@@ -299,25 +404,7 @@ snit::type ConnectorInstaller {
             }
         }
     }
-    ##
-    # _deselect
-    #   Unselect item 1.
-    #     Unless we want to require the user point at the item being deselected
-    #     don't actually need the parameters.
-    #
-    method _deselect {w x y} {
-        set item1 "";               # All that's really needed.
-    }
     
-    ##
-    # _makeBindings
-    #    Add the bindings required to select connected objects.
-    #
-    # @param c - the canvas.
-    #
-    method _makeBindings c {
-        $c bind connectable <Button-1> [mymethod _select %W %x %y]
-    }
     ##
     # _findConnectionFromOrTo
     #    Locate the first connection that either originates or ends in the
@@ -349,6 +436,11 @@ snit::type ConnectorInstaller {
     method _abortConnection c {
         $self _removeBindings $c
         $self _removeTags     $c
+        
+        if {$tempArrowId ne ""} {
+            $c delete $tempArrowId
+        }
+        
         set item1 ""
         set item2 ""
         set tempArrowid ""
@@ -422,13 +514,10 @@ snit::type ConnectorInstaller {
     # @param from - Information about the from object. This is also useless.
     # @param to   - Canvas in which the connector is being generated.
     method install {object from to} {
-        $self _tagAllItems $to
+        $self _tagAllItems $to from
         $self _makeBindings $to
         
-        #  Arrange for the escape key to abor the process of creating the connection.
-        
-        focus $to
-        bind $to <KeyPress-Escape> [mymethod _abortConnection $to]
+
         
     }
     ##
@@ -436,10 +525,14 @@ snit::type ConnectorInstaller {
     #    Call when a connected item is being deleted to destroy all connectors
     #    that originate or terminate in the object.
     #
+    # @param object - base command of deleted object's command ensembloe.
     # @param from   - canvas id of one of the objects.
     # @param c      - canvas.
-    #
-    method uninstall {from c} {
+    # @param object
+    method uninstall {object from c} {
+
+        # Destroy any connectors to/from the defuct object.
+    
         set id [$self _findConnectionFromOrTo $from $c]
         while {$id != -1} {
             set connector [lindex $currentConnectors $id]
@@ -448,6 +541,41 @@ snit::type ConnectorInstaller {
             set currentConnectors [lreplace $currentConnectors $id $id]
             set id [$self _findConnectionFromOrTo $from $c]
         }
+        
+        # Destroy  our record of the object each canvas really is only allowed
+        # to have one guy with any one id:
+        
+        if {[array names currentObjects $from] ne ""}  {
+            set obDicts $currentObjects($from)
+            for {set i 0} {$i < [llength $currentObjects]} {incr i} {
+                set oDict [lindex $obDicts $i]
+                set obj   [dict get $oDict object]
+                set canv  [dict get $oDict canvas]
+                
+                # If this object matches, remove it from the list and update
+                # currentObjects - then break out of the loop.  Really object names
+                # should be a sufficient test.
+                
+                if {($object eq $obj) && ($c == $canv)} {
+                    set obDicts [lreplace $obDicts $i $i]
+                    set currentObjects($from) $obDicts
+                    break
+                }
+            }
+        }
         return true
+    }
+    ##
+    # newObject %O %I %W
+    #
+    #    Call this when a new object has been created/installed.   This maintains
+    #    the set of objects that might be connectable on the canvas.
+    #
+    # @param obj    - object's command ensemble command.
+    # @param id     - object's visual representation canvas id.
+    # @param c      - canvas on which the object was installed.
+    #
+    method newObject {obj id c} {
+        lappend currentObjects($id) [dict create object $obj canvas $c]       
     }
 }

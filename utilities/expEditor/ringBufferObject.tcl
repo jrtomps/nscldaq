@@ -145,6 +145,7 @@ snit::type RingBufferObject {
     # @param object    - Object we are being connected to/from.
     #
     method connect {direction object} {
+        puts "Connecting ring $direction"
         if {$direction eq "to"} {
             set sourceObject $object
         } else {
@@ -174,6 +175,7 @@ snit::type RingBufferObject {
     # @return bool     - True if the object can be connected as desired.
     #
     method isConnectable direction {
+        puts "isConnectable $direction"
         if {$direction eq "from"} {
             # we can always source connections (well really there are limits
             # But the default is 100 sinks).
@@ -182,6 +184,7 @@ snit::type RingBufferObject {
         } elseif {$direction eq "to"} {
             # We can only be a sink for one object:
             
+            puts "$sourceObject"
             return [expr {$sourceObject eq ""}]
         }
     }

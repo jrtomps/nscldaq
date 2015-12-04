@@ -45,6 +45,7 @@ package require propertyEditor
 #     *  -installcmd  - script called when an object was installed. Substitutions:
 #            %W  - The canvas being installed on.
 #            %O  - The object that was installed.
+#            %I  - the canvas ID associated with the object.
 #     *  -deletecmd - Script invoked when an object is about to be deleted.
 #           substitutions are the same as for -installcmd with the addition of
 #           %I the id of the canvas object.  Note that the script
@@ -226,7 +227,7 @@ snit::type ObjectInstaller {
             _popupContextMenu $ctxMenu %X %Y $newObject \
         ];                                                      # context menu.
         
-        $self _dispatch -installcmd [list %W $to %O $newObject]
+        $self _dispatch -installcmd [list %W $to %O $newObject %I $id]
         
         return $newObject
     }

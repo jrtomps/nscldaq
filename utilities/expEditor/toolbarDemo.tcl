@@ -67,7 +67,8 @@ tool service [Service %AUTO%] $os
 # Connector
 
 set cs [ConnectorInstaller %AUTO%]
-$os configure -deletecmd [list $cs uninstall %I %W]
+$os configure -deletecmd [list $cs uninstall %O %I %W]
+$os configure -installcmd [list $cs newObject %O %I %W]
 tool knect [ConnectorObject %AUTO%] $cs;   # Need new installer
 .t add knect
 
