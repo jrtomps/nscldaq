@@ -544,7 +544,7 @@ snit::type ConnectorInstaller {
         
         if {[array names currentObjects $from] ne ""}  {
             set obDicts $currentObjects($from)
-            for {set i 0} {$i < [llength $currentObjects]} {incr i} {
+            for {set i 0} {$i < [llength $obDicts]} {incr i} {
                 set oDict [lindex $obDicts $i]
                 set obj   [dict get $oDict object]
                 set canv  [dict get $oDict canvas]
