@@ -754,15 +754,32 @@ snit::widgetadaptor RunControl {
     method _beginend {} {
         set stateMachine [RunstateMachineSingleton %AUTO%]
         set state [$stateMachine getState]
-        $stateMachine destroy
 
-        if {$state eq "Halted"} {
-          begin
-        } elseif {$state in [list Paused Active]} {
-          end
-        } else {
+        RunControlDisable::register
+        RunControlEnable::register
+
+        puts [$stateMachine listCalloutBundles]
+        $stateMachine destroy
+        if {[catch {
+          if {$state eq "Halted"} {
+            begin
+          } elseif {$state in [list Paused Active]} {
+            end
+          } else {
             error "ERROR: begin/end button clicked when state is $state which should not happen"
+          }
+        } msg]} {
+          puts "failed... unreg"
+          RunControlDisable::unregister
+          RunControlEnable::unregister
+
+          # rethrow
+          error $msg
         }
+
+        RunControlDisable::unregister
+        RunControlEnable::unregister
+
     }
     ##
     # _pauseresume
@@ -776,13 +793,29 @@ snit::widgetadaptor RunControl {
         set stateMachine [RunstateMachineSingleton %AUTO%]
         set state [$stateMachine getState]
         $stateMachine destroy
-        if {$state eq "Paused"} {
-          resume
-        } elseif {$state eq "Active"} {
-          pause
-        } else {
+
+        RunControlDisable::register
+        RunControlEnable::register
+
+        if {[catch {
+          if {$state eq "Paused"} {
+            resume
+          } elseif {$state eq "Active"} {
+            pause
+          } else {
             error "ERROR: pause/resume button clicked when state is $state which should not happen"
+          }
+        } msg]} {
+
+          RunControlDisable::unregister
+          RunControlEnable::unregister
+
+          # rethrow
+          error $msg
         }
+
+        RunControlDisable::unregister
+        RunControlEnable::unregister
     }
     
     #---------------------------------------------------------------------------
@@ -837,6 +870,92 @@ snit::widgetadaptor RunControl {
         }
     }
 }
+
+## A callout bundles to disable the control widget state
+#
+#  This unconditionally disables the control widgets at the start
+#  of any transition.
+namespace eval RunControlDisable {
+
+  variable prevState normal
+
+  proc attach {to} {
+    variable prevState
+    set rc [RunControlSingleton::getInstance]
+    set prevState [$rc cget -state]
+  }
+
+  proc leave {from to} {
+    set rc [RunControlSingleton::getInstance]
+    $rc configure -state disabled
+    puts "leave disable"
+  }
+
+  proc enter {from to} {}
+
+  proc register {} {
+    set sm [RunstateMachineSingleton %AUTO%]
+    set bundles [$sm listCalloutBundles]
+    $sm addCalloutBundle RunControlDisable [lindex $bundles 0]
+    $sm destroy
+  }
+
+  proc unregister {} {
+    variable prevState 
+    set rc [RunControlSingleton::getInstance]
+    $rc configure -state $prevState
+
+    set sm [RunstateMachineSingleton %AUTO%]
+    $sm removeCalloutBundle RunControlDisable
+    $sm destroy
+  }
+
+  namespace export attach leave enter
+}
+
+## A callout bundle to enable the control widget state
+#
+# This unconditionally enables the control widget the the
+# end of any transition
+#
+namespace eval RunControlEnable {
+
+  variable prevState normal
+
+  proc attach {to} {
+    variable prevState 
+    set rc [RunControlSingleton::getInstance]
+    set prevState [$rc cget -state]
+  }
+
+  proc leave {from to} {}
+
+  proc enter {from to} {
+    set rc [RunControlSingleton::getInstance]
+    $rc configure -state normal
+    puts "enter normal"
+  }
+
+  proc register {} {
+    set sm [RunstateMachineSingleton %AUTO%]
+    $sm addCalloutBundle RunControlEnable 
+    $sm destroy
+  }
+
+  proc unregister {} {
+    variable prevState 
+    set rc [RunControlSingleton::getInstance]
+    $rc configure -state $prevState
+
+    set sm [RunstateMachineSingleton %AUTO%]
+    $sm removeCalloutBundle RunControlEnable
+    $sm destroy
+  }
+
+  namespace export attach leave enter
+}
+
+
 ##
 #   The functions/namespace below implement the run control singleton pattern.
 #
@@ -884,15 +1003,18 @@ proc ::RunControlSingleton::attach {state} {
 # @param to   - Current state
 #
 proc ::RunControlSingleton::enter {from to} {
-    set rctl [::RunControlSingleton::getInstance]
-    $rctl _updateAppearance
-
+  set rctl [::RunControlSingleton::getInstance]
+  $rctl _updateAppearance
+  if {$from ne "Starting"} {
+    $rctl configure -state disabled
+  }
 }
 ##
 #  leave
 #   Called whenn the state machine leaves a state (unused)
 #
-proc ::RunControlSingleton::leave {from to} {}
+proc ::RunControlSingleton::leave {from to} {
+}
 
 ##
 #  API elements for all this fun:
