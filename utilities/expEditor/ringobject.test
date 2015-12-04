@@ -29,6 +29,8 @@ exec tclsh "$0" ${1+"$@"}
 set here [file dirname [info script]]
 
 source [file join $here ringBuffer.tcl]
+source [file join $here ringBufferObject.tcl]
+
 package require tcltest
 
 tcltest::test construct-1 {Construction makes object with no provider.} \
@@ -241,7 +243,7 @@ tcltest::test clone-3 {Cloning gives same host} \
     $host cget -value
 } -result some.host.some.where
 
-tcltest::test clone-4 {Cloningt gives same ring name} \
+tcltest::test clone-4 {Cloning gives same ring name} \
 -setup {
     set o [RingBuffer %AUTO% -provider ptest]
     $o addSink sink1
@@ -265,6 +267,99 @@ tcltest::test clone-4 {Cloningt gives same ring name} \
     set name [$props find name]
     $name cget -value
 } -result myring
+
+#----
+#  Connections API.
+#
+
+tcltest::test canconnect-1 {Initially a ring buffer can be a from connection} \
+-setup {
+    set o [RingBufferObject %AUTO% -provider ptest]
+    set props [$o getProperties]
+    set name [$props find name]
+    $name configure -value "myring"
+    set host [$props find host]
+    $host configure -value "some.host.some.where"
+    
+} \
+-cleanup {
+    $o  destroy
+} \
+-body {
+    $o isConnectable from
+} -result true
+
+tcltest::test canconnect-2 {Initially a ring buffer can be a to connection} \
+-setup {
+    set o [RingBufferObject %AUTO% -provider ptest]
+    set props [$o getProperties]
+    set name [$props find name]
+    $name configure -value "myring"
+    set host [$props find host]
+    $host configure -value "some.host.some.where"
+    
+} \
+-cleanup {
+    $o  destroy
+} \
+-body {
+    $o isConnectable to
+} -result 1
+
+tcltest::test canconnect-3 {If a ring has sinks it can stil be connected from} \
+-setup {
+    set o [RingBufferObject %AUTO% -provider ptest]
+    set props [$o getProperties]
+    set name [$props find name]
+    $name configure -value "myring"
+    set host [$props find host]
+    $host configure -value "some.host.some.where"
+    
+} \
+-cleanup {
+    $o  destroy
+} \
+-body {
+    $o addSink junk
+    $o isConnectable from
+} -result true
+
+tcltest::test refuseconnection {If a ring has a source it cannot be connected to} \
+-setup {
+    set o [RingBufferObject %AUTO% -provider ptest]
+    set props [$o getProperties]
+    set name [$props find name]
+    $name configure -value "myring"
+    set host [$props find host]
+    $host configure -value "some.host.some.where"
+    
+} \
+-cleanup {
+    $o  destroy
+} \
+-body {
+    $o connect to junk
+    $o isConnectable to
+} -result 0
+
+tcltest::test canconnect-4 {If a ring was a sink and that sink was disconnected a ring can be a sink} \
+-setup {
+    set o [RingBufferObject %AUTO% -provider ptest]
+    set props [$o getProperties]
+    set name [$props find name]
+    $name configure -value "myring"
+    set host [$props find host]
+    $host configure -value "some.host.some.where"
+    
+    $o connect to junk
+} \
+-cleanup {
+    $o  destroy
+} \
+-body {
+    $o disconnect junk
+    $o isConnectable to
+} -result 1
 
 # End/summarize the tests - note the magic below is intended to ensure that
 # a failed test fails the makefile test target too.

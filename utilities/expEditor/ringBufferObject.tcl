@@ -65,6 +65,10 @@ snit::type RingBufferObject {
     delegate method size          to gui
     delegate method bind          to gui
     
+    # If not blank, this is the source object.
+    
+    variable sourceObject ""
+    
     ##
     # typeconstructor
     #    Create the image that will be bound into all our GUI elements.
@@ -131,5 +135,54 @@ snit::type RingBufferObject {
     method type {} {
         return ring
     
+    }
+    ##
+    # connect
+    #   Called when the object is connected to another object.
+    #
+    # @param direction - from if we are the source of the connection.
+    #                    to if we are the sink for the connection.
+    # @param object    - Object we are being connected to/from.
+    #
+    method connect {direction object} {
+        if {$direction eq "to"} {
+            set sourceObject $object
+        } else {
+            $self addSink $object
+        }
+    }
+    ##
+    # disconnect
+    #    Called when an object is being disconnected
+    # @param object - object we are being disconnected from/to.
+    #
+    method disconnect object {
+        if {$object eq $sourceObject} {
+            set sourceObject ""
+        } else {
+            $self rmSink $object
+        }
+    }
+    ##
+    # isConnectable
+    #
+    #   Called to determine if the object can accept a specific type of
+    #   connection:
+    #
+    # @param direction - either 'from' or 'to' indicating whether the desired
+    #                    connection is from or to this object.
+    # @return bool     - True if the object can be connected as desired.
+    #
+    method isConnectable direction {
+        if {$direction eq "from"} {
+            # we can always source connections (well really there are limits
+            # But the default is 100 sinks).
+            
+            return true
+        } elseif {$direction eq "to"} {
+            # We can only be a sink for one object:
+            
+            return [expr {$sourceObject eq ""}]
+        }
     }
 }

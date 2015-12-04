@@ -119,5 +119,34 @@ snit::type Service {
     method type {} {
         return service
     }
+    ##
+    # connect
+    #   This tosses an error since we've told the world we can't be a party
+    #   to any connections.
+    #
+    # @param direction
+    # @param object
+    #
+    method connect {direction object} {
+        error "This object cannot participate in any connections"
+    }
+    ##
+    # disconnect
+    #   Throws an error since we can't have been connected to anything.
+    #
+    # @param object
+    #
+    method disconnect object {
+        error "disconnect - This object cannot have been connected to anything."
+    }
+    ##
+    # isConnectable
+    #
+    #  @param direction
+    #  @return false
+    #
+    method isConnectable direction {
+        return false
+    }
     
 }

@@ -103,7 +103,7 @@ tcltest::test property-editable-2 {editable can be set true} \
     $p destroy
 } \
 -body {
-    $p config -editable 1
+    $p configure -editable 1
     $p cget -editable
 } -result 1
 

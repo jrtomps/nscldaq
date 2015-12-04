@@ -67,6 +67,8 @@ snit::type StateProgram {
     delegate method size          to gui
     delegate method bind          to gui
 
+    variable inRingObj ""
+    variable outRingObj ""
     
     ##
     # typeconstructor
@@ -96,6 +98,9 @@ snit::type StateProgram {
         $gui  destroy
         
     }
+    #---------------------------------------------------------------------------
+    # Private methods
+    
     ##
     # _replaceData
     #   Used in a clone operation to replace the data with the data to be copied.
@@ -106,6 +111,57 @@ snit::type StateProgram {
         $data destroy
         set data $newData
     }
+    ##
+    # _getProperty
+    #   Return the value of a named property from an object that supports
+    #   the property list API.
+    #
+    # @param propName  - Name of the properties.
+    #
+    method _getProperty {object propName} {
+        set props [$object getProperties]
+        set prop  [$props find $propName]
+        return [$prop cget -value]
+        
+    }
+ 
+    ##
+    # _setProperty
+    #   sets a named propert on an object.
+    #
+    # @param object   - object to modify.
+    # @param propName - Name of the property.
+    # @param value    - new property vale.
+    #
+    method _setProperty {object propName value} {
+        set props [$object getProperties]
+        set prop  [$props find $propName]
+        $prop configure -value $value
+    }
+    ##
+    # _getUri
+    #    Return the URI associated with a ring buffer object.
+    #
+    # @param ring - the ring buffer object.
+    #
+    method _getUri ring {
+        set host     [$self _getProperty $ring host]
+        set ringName [$self _getProperty $ring name]
+        
+        return tcp://$host/$ringName
+    }
+    ##
+    # _getName
+    #   Return the name of a ringbuffer.
+    #
+    # @param ring - ring buffer object.
+    #
+    method _getName ring {
+        return [$self _getProperty $ring name]
+        
+    }
+    #---------------------------------------------------------------------------
+    # Public methods
     
     ##
     # clone
@@ -123,5 +179,77 @@ snit::type StateProgram {
     #
     method type {} {
         return state-program
+    }
+    ##
+    # connect
+    #   Called when the program is connected to something.
+    #
+    #  @param direction - from if we are the source of the connection and to if
+    #                     we are the sink end of the connection.
+    #  @param object    - Who we are being connected to.
+    #
+    method connect {direction object} {
+        if {[$object type] ne "ring"} {
+            error "State programs can only be connected to rings."
+        }
+        if {$direction eq "from"} {
+            set property {Output Ring}
+            set value [$self _getUri $object]
+            set outRingObj $object
+        } elseif {$direction eq "to" } {
+            set property {Input Ring}
+            set value [$self _getName $object]
+            set inRingObj $object
+        } else {
+            error "Invalid direction on connect"
+        }
+        $self _setProperty $self $property $value
+    }
+    ##
+    # disconnect
+    #   Called when the program is disconnected from an object
+    #
+    #  @param object
+    #
+    method disconnect object {
+        
+        set objUri  [$self _getUri $object]
+        set objName [$self _getName $object]
+        
+        set sink [$self _getProperty $self {Output Ring}]
+        set source [$self _getProperty $self {Input Ring}]
+        
+        # Take appropriate action depending on whether this is the from or to obj.
+        
+        if {$object eq $outRingObj} {
+            $self _setProperty $self {Output Ring} {}
+            set outRingObj ""
+        } elseif {$object eq $inRingObj} {
+            $self _setProperty $self {Input Ring} {}
+            set inRingObj ""
+        } else {
+            error "$objName is not connected to [$self _getProperty $self name]"
+        }
+    }
+    ##
+    # isConnectable
+    #   Determine if the object can accept the specified connection type:
+    #
+    # @param direction - from or to indicating whether we are a source or sink.
+    # @return boolean true if the requested connection direction is acceptable.
+    #
+    method isConnectable direction {
+        if {$direction eq "from" } {
+            set obj $outRingObj
+        } elseif {$direction eq "to"} {
+            set obj $inRingObj
+        } else {
+            error "Ivalid connection direction: $direction"
+        }
+        
+        # Connections are allowed if there is no current connection in that
+        # direction:
+        
+        return [expr {$obj eq ""}]
     }
 }

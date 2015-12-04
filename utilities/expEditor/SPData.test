@@ -27,8 +27,12 @@ exec tclsh "$0" ${1+"$@"}
 #
 
 package require tcltest
+package require snit
+
 set here [file dirname [info script]]
 source [file join $here StateProgramData.tcl]
+source [file join $here StateProgram.tcl]
+source [file join $here ringBufferObject.tcl]
 
 proc getValue {obj propname} {
     set pl [$obj getProperties]
@@ -40,6 +44,14 @@ proc setValue {obj propname value} {
     set pl [$obj getProperties]
     set p [$pl find $propname]
     $p configure -value $value
+}
+
+# Test fixtures used in the connectability tests.
+
+
+snit::type notring {
+    method type {} {return not-ring}
+    
 }
 
 tcltest::test construct-1 {Construction enable is true} \
@@ -194,6 +206,103 @@ tcltest::test clone-4 {Clone keeps output ring} \
     getValue $obj {Output Ring}
 } -result outring
 
+##
+#  Connection tests.
+#
+
+tcltest::test  isconnectable-1 {Initially can source connections} \
+-setup {
+    set obj [StateProgram %AUTO%]
+} \
+-cleanup {
+    $obj destroy
+} \
+-body {
+    $obj isConnectable from
+} -result 1
+
+tcltest::test isconnectable-2 {Initially can sink connections} \
+-setup {
+    set obj [StateProgram %AUTO%]
+} \
+-cleanup {
+    $obj destroy
+} \
+-body {
+    $obj isConnectable to
+} -result 1
+
+tcltest::test isconnectable-3 {If a we have a source we can't have another} \
+-setup {
+    set obj [StateProgram %AUTO%]
+    set ring [RingBufferObject %AUTO%]
+} \
+-cleanup {
+    $obj destroy
+    $ring destroy
+} \
+-body {
+    $obj connect from  $ring
+    $obj isConnectable from
+} -result 0
+ 
+tcltest::test isconnectable-4 {If we have a sink we can't have anohter} \
+-setup {
+    set obj [StateProgram %AUTO%]
+    set ring [RingBufferObject %AUTO%]
+} \
+-cleanup {
+    $obj destroy
+    $ring destroy
+} \
+-body {
+    $obj connect to  $ring
+    $obj isConnectable to
+} -result 0
+
+
+tcltest::test connect-1 {Connection of non-ring should fail} \
+-setup {
+    set obj [StateProgram %AUTO%]
+    set nr [notring %AUTO%]
+} \
+-cleanup {
+    $obj destroy
+    $nr destroy
+} \
+-body {
+    lappend result [catch {$obj connect from $nr}]
+    lappend result [catch {$obj connect to $nr}]
+} -result [list 1 1]
+tcltest::test disconnnect-1 {If a to is connected we can connect as a to.} \
+-setup {
+    set obj [StateProgram %AUTO%]
+    set ring [RingBufferObject %AUTO%]
+    $obj connect to  $ring
+} \
+-cleanup {
+    $obj destroy
+    $ring destroy
+} \
+-body {
+    $obj disconnect $ring
+    $obj isConnectable to
+} -result 1
+
+tcltest::test disconnect-2 {If a from is disconnected we can connect as a from} \
+-setup {
+    set obj [StateProgram %AUTO%]
+    set ring [RingBufferObject %AUTO%]
+    $obj connect from  $ring
+} \
+-cleanup {
+    $obj destroy
+    $ring destroy
+} \
+-body {
+    $obj disconnect $ring
+    $obj isConnectable from
+} -result 1
 
 # End/summarize the tests - note the magic below is intended to ensure that
 # a failed test fails the makefile test target too.
