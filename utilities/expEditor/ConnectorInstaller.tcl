@@ -260,7 +260,6 @@ snit::type ConnectorInstaller {
     
     method _removeBindings c {
         $c bind connectable <Button-1> ""
-        $c bind connectable <Button-3> ""
         bind $c <KeyPress-Escape> ""
     }
     ##
@@ -318,7 +317,6 @@ snit::type ConnectorInstaller {
     #
     method _makeBindings c {
         $c bind connectable <Button-1> [mymethod _select %W %x %y]
-        $c bind connectable <Button-3> [mymethod _deselect %W %x %y]
     }
     ##
     # _findConnectionFromOrTo
