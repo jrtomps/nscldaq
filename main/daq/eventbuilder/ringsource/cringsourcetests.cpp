@@ -68,7 +68,7 @@ class CRingSourceTest : public CppUnit::TestFixture
         m_ownRing = false;
       }
 
-      m_pRing = new CTestRingBuffer("test");
+      m_pRing = new CTestRingBuffer("__test__");
       m_pSource.reset(new CRingSource(m_pRing,
             {2}, 2, tstamp));
     }
