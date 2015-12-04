@@ -50,6 +50,7 @@ class CRingSourceTest : public CppUnit::TestFixture
   private:
     unique_ptr<CRingSource> m_pSource;
     CTestRingBuffer *m_pRing;
+    bool m_ownRing;
 
   public:
 
@@ -60,12 +61,23 @@ class CRingSourceTest : public CppUnit::TestFixture
 
   public:
     void setUp() {
-      m_pRing = new CTestRingBuffer;
+      try {
+        CRingBuffer::create("__test__");
+        m_ownRing = true;
+      } catch (...) {
+        m_ownRing = false;
+      }
+
+      m_pRing = new CTestRingBuffer("test");
       m_pSource.reset(new CRingSource(m_pRing,
             {2}, 2, tstamp));
     }
 
-    void tearDown() {}
+    void tearDown() {
+      if (m_ownRing) {
+        CRingBuffer::remove("__test__");
+      }
+    }
 
     
     void getEvent_0() {

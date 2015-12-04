@@ -5,8 +5,8 @@
 
 using namespace std;
 
-CTestRingBuffer::CTestRingBuffer()
-  : CRingBuffer("test")
+CTestRingBuffer::CTestRingBuffer(string name)
+  : CRingBuffer(name)
 {
 }
 

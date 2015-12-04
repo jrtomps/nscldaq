@@ -15,7 +15,7 @@ class CTestRingBuffer : public CRingBuffer
 
   public:
 
-    CTestRingBuffer();
+    CTestRingBuffer(std::string name);
 
     /*! \brief Insert data into the sink
      *
