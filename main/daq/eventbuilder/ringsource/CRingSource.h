@@ -75,11 +75,13 @@ private:
   tsExtractor           m_timestamp;
   bool                  m_stall;
   uint32_t              m_stallCount;
+  bool                  m_expectBodyHeaders;
   bool             m_fOneshot;
   unsigned         m_nEndRuns;
   unsigned         m_nEndsSeen;
   unsigned         m_nTimeout;
   unsigned         m_nTimeWaited;
+  CEVBFragmentList  m_frags;
 
   CRingItemToFragmentTransform  m_wrapper;
  
@@ -87,6 +89,10 @@ private:
   // Canonicals:
 
 public:
+  CRingSource(CRingBuffer* pBuffer, 
+              const std::vector<uint32_t>& allowedIds, 
+              uint32_t defaultId, 
+              tsExtractor extractor);
   CRingSource(int argc, char** argv);
   virtual ~CRingSource();
 
@@ -101,6 +107,13 @@ public:
   virtual bool dataReady(int ms);
   virtual void getEvents();
   virtual void shutdown();
+
+  void transformAvailableData(uint8_t*& pBuffer);
+  const CEVBFragmentList& getFragmentList() const { return m_frags; }
+
+  void setOneshot(bool val) { m_fOneshot = val; }
+  void setNumberOfSources(unsigned nsources) { m_nEndRuns = nsources; }
+  bool oneshotComplete() { return (m_fOneshot && (m_nEndsSeen >= m_nEndRuns)); }
 
 public:
   std::string copyLib(std::string original);
