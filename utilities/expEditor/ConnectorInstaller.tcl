@@ -52,8 +52,21 @@ package require Tk
 #
 snit::type ConnectorInstaller {
     option -installcmd [list]
+    
+    #  These are the from (item1) and to (item2) objects being connecte.
+    
+    
     variable item1 ""
     variable item2 ""
+    
+    #  The following variables are used to manage the rubber band arrow that's
+    #  drawn during connector creation.
+    #  *  tempArrowId  is the canvas Id of the item.
+    #  *  tempArrowStartX, tempArrowStartY are the starting coordinates of the arrow (the end point
+    #    tracks the pointer position via a <Motion> event binding).
+    variable tempArrowId ""
+    variable tempArrowStartX
+    variable tempArrowStartY
     
     # connectors is a list of connector definitions.  Each connecto is defined
     # by a dict consisting of the following keys:
@@ -69,6 +82,33 @@ snit::type ConnectorInstaller {
     # Private methods
     #
     
+    method _moveRubberBandArrow {c x y} {
+
+        $c coords $tempArrowId $tempArrowStartX $tempArrowStartY $x $y
+    }
+    
+    ##
+    # _createRubberBandArrow 
+    #   Create the rubber band arrow that will track the creation of the
+    #   connector.
+    #
+    # @param c - the canvas on which we are drawing.
+    # @param x - the starting x coordinate of the arrow (end point tracks the pointer)
+    # @param y - the starting y coordinate of the arrow (end point tracksthe pointer).
+    #
+    #  @note - for convenience, the initial end point of the line is x+1, y+1
+    #          the motion event will soon correct this.
+    #
+    method _createRubberBandArrow {c x y} {
+        set tempArrowStartX $x
+        set tempArrowStartY $y
+        set tempArrowId [$c create line $x $y [incr x] [incr y] -dash - -arrow last]
+        bind $c <Motion> [list $c coords $tempArrowId $tempArrowStartX $tempArrowStartY %x %y]
+        $c bind $tempArrowId <Button-1> [mymethod _select $c %x %y]
+    }
+    #
+    #    Create a rubber band arrow to follow the cursor grounded in a starting
+    #    point.  This gives the user visual feedback about the 
     ##
     # _connectionPoints
     #   Given an image object and its center point produce a set of 8 coordinate
@@ -234,19 +274,29 @@ snit::type ConnectorInstaller {
     # @param x,y - coordinates of the pointer.
     #
     method _select {c x y} {
-        set item [$c find closest $x $y]
+        puts "Select:"
+        
         if  {$item1 eq ""} {
+            set item [$c find closest $x $y]
             set item1 $item
+            
+            $self _createRubberBandArrow $c $x $y
+            
         } else {
+            set item [$c find closest $x $y 5 $tempArrowId]
             if {$item eq $item1} {
                 tk_messageBox -title "Bad connection" -icon error -type ok \
                     -message {You cannot connect an item to itself}
             } else {
+                
                 set item2 $item
                 $self _removeTags $c
                 $self _removeBindings $c
                 $self _connect $c
                
+                $c delete $tempArrowId;               # Destroy rubberband arrow.
+                set tempArrowId ""
+                bind $c <Motion> ""
             }
         }
     }
@@ -303,6 +353,7 @@ snit::type ConnectorInstaller {
         $self _removeTags     $c
         set item1 ""
         set item2 ""
+        set tempArrowid ""
     }
     #---------------------------------------------------------------------------
     # private procs (static methods).
