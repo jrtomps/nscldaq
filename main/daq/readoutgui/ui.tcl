@@ -738,22 +738,9 @@ snit::widgetadaptor RunControl {
     method _start {} {
       set stateMachine [RunstateMachineSingleton %AUTO%]
 
-      RunControlDisable::register
-      RunControlEnable::register
-      
-      if {[catch {
-        $stateMachine transition Starting
-      } msg]} {
-        RunControlDisable::unregister
-        RunControlEnable::unregister
+      RunControlSingleton::updateStateBundleOrder
 
-        $stateMachine destroy 
-        # rethrow
-        error $msg
-      }
-
-      RunControlDisable::unregister
-      RunControlEnable::unregister
+      $stateMachine transition Starting
 
       $stateMachine destroy 
     }
@@ -771,29 +758,17 @@ snit::widgetadaptor RunControl {
     method _beginend {} {
         set stateMachine [RunstateMachineSingleton %AUTO%]
         set state [$stateMachine getState]
-
-        RunControlDisable::register
-        RunControlEnable::register
-
         $stateMachine destroy
-        if {[catch {
-          if {$state eq "Halted"} {
-            begin
-          } elseif {$state in [list Paused Active]} {
-            end
-          } else {
-            error "ERROR: begin/end button clicked when state is $state which should not happen"
-          }
-        } msg]} {
-          RunControlDisable::unregister
-          RunControlEnable::unregister
 
-          # rethrow
-          error $msg
+        RunControlSingleton::updateStateBundleOrder
+
+        if {$state eq "Halted"} {
+          begin
+        } elseif {$state in [list Paused Active]} {
+          end
+        } else {
+          error "ERROR: begin/end button clicked when state is $state which should not happen"
         }
-
-        RunControlDisable::unregister
-        RunControlEnable::unregister
 
     }
     ##
@@ -809,28 +784,15 @@ snit::widgetadaptor RunControl {
         set state [$stateMachine getState]
         $stateMachine destroy
 
-        RunControlDisable::register
-        RunControlEnable::register
+        RunControlSingleton::updateStateBundleOrder
 
-        if {[catch {
-          if {$state eq "Paused"} {
-            resume
-          } elseif {$state eq "Active"} {
-            pause
-          } else {
-            error "ERROR: pause/resume button clicked when state is $state which should not happen"
-          }
-        } msg]} {
-
-          RunControlDisable::unregister
-          RunControlEnable::unregister
-
-          # rethrow
-          error $msg
+        if {$state eq "Paused"} {
+          resume
+        } elseif {$state eq "Active"} {
+          pause
+        } else {
+          error "ERROR: pause/resume button clicked when state is $state which should not happen"
         }
-
-        RunControlDisable::unregister
-        RunControlEnable::unregister
     }
     
     #---------------------------------------------------------------------------
@@ -1028,6 +990,22 @@ namespace eval ::RunControlSingleton {
     variable theInstance ""
     namespace export attach enter leave
 }
+
+##
+# Register (or reregister) the RunControlEnable/Disable bundles 
+#
+# This unregisters and then registers the RunControlEnable and 
+# RunControlDisable bundles to ensure that the Disable budnle
+# is first and the Enable bundle is last.
+#
+proc ::RunControlSingleton::updateStateBundleOrder {} {
+  catch {RunControlEnable::unregister}
+  catch {RunControlDisable::unregister}
+
+  RunControlEnable::register
+  RunControlDisable::register
+
+}
 ##
 #  ::RunControlSingleton::getInstance
 #
@@ -1040,7 +1018,7 @@ proc ::RunControlSingleton::getInstance {{path ""} args} {
     if {$::RunControlSingleton::theInstance eq ""} {
         set ::RunControlSingleton::theInstance [RunControl $path {*}$args]
 
-        $::RunControlSingleton::theInstance _updateAppearance
+       RunControlSingleton::updateStateBundleOrder
 
     } elseif {[llength $args] > 0} {
         $::RunControlSingleton::theInstance configure {*}$args
