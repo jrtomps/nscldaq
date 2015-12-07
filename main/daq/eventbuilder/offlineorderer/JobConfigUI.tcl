@@ -640,6 +640,10 @@ snit::type JobConfigUIPresenter {
       $missingWidget setSourceID $suggestedId
     }
 
+    dict for {id value} $sourceMap {
+      puts "$id:"
+      puts "\t$value"
+    }
     set ids [dict keys $sourceMap]
 
     set index [lsearch -exact $ids 4294967295]
@@ -710,7 +714,23 @@ snit::type JobConfigUIPresenter {
         update
 
         if {$answer == "yes"} {
-          return $id
+          return [lindex $ids 0]
+        }
+      } elseif {($id == 4294967295) && ([dict get $statistics $id BEGIN_RUN] == 0)} {
+
+        set msg "Analysis of the file revealed that body headers were not included on "
+        append msg "some items. There are no BEGIN_RUN items without body headers so "
+        append msg "it is likely that these items should be labeled with one of the source "
+        append msg "ids that has been found. Do you want to use the lower value source id "
+        append msg "for the body headerless items? If not, you should manually enter "
+        append msg "a source id for these that matches one of the known source ids. "
+        append msg "Failure to do so will result in problems. \n"
+        append msg "\nShould I use the lowest source id?"
+        set answer [tk_messageBox -icon question -message $msg -type yesno -parent $m_view]
+        update
+
+        if {$answer == "yes"} {
+          return [lindex $ids 0]
         }
       }
     }
@@ -1043,10 +1063,10 @@ snit::widget ConfigurationFrame {
     ttk::frame $top 
 
     ttk::label $top.nsrcsLbl -text "Number of end runs to expect"
-    ttk::entry $top.nsrcsEntry -textvariable [myvar options(-nsources)] -width 8
+    ttk::entry $top.nsrcsEntry -textvariable [myvar options(-nsources)] -width 12 
 
-    ttk::label $top.idsLabel -text "Allowed of source ids (e.g. 1, 2, 3)"
-    ttk::entry $top.idsEntry -textvariable [myvar options(-expectedids)] -width 8 \
+    ttk::label $top.idsLabel -text "Allowed source ids (e.g. 1, 2, 3)"
+    ttk::entry $top.idsEntry -textvariable [myvar options(-expectedids)] -width 12 \
       -validate focusout -validatecommand [mymethod validateIdList] \
       -invalidcommand [mymethod invalidIdList %s]
 
