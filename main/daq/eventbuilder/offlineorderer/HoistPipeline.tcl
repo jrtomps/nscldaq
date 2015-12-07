@@ -111,7 +111,11 @@ snit::type OfflineEVBHoistPipeParams {
   method validateId {errors_} {
     upvar $errors_ errors
     
+    puts $options(-id)
     foreach id $options(-id) {
+      if {![string is integer $id]} {
+        lappend errors "Source ids for ringFragmentSource must be integers. User specified $id."
+      }
       if {$id < 0} {
         lappend errors "Source ids for ringFragmentSource must be greater than or equal to 0. User specified $id."
       }

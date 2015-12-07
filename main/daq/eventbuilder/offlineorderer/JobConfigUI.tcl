@@ -622,7 +622,7 @@ snit::type JobConfigUIPresenter {
     set endCount 0
     dict for {id itemCounts} $sourceMap {
       incr beginCount [dict get $itemCounts BEGIN_RUN]
-      incr endCount [dict get $itemCounts END_RUN]
+      incr endCount   [dict get $itemCounts END_RUN]
     }
 
     if {$beginCount != $endCount} {
@@ -639,6 +639,15 @@ snit::type JobConfigUIPresenter {
       set suggestedId [$self generateSuggestedID $sourceMap]
       $missingWidget setSourceID $suggestedId
     }
+
+    set ids [dict keys $sourceMap]
+
+    set index [lsearch -exact $ids 4294967295]
+    if {$index != -1} {
+      set ids [lreplace $ids $index $index]
+    }
+    set idString [join $ids ", "]
+    $m_view configure -expectedids $idString
 
   }
 
@@ -1000,7 +1009,7 @@ snit::widget ConfigurationFrame {
   option -jobname         -default "Job"    ;#< name of job (not used)
   option -missingwidget   -default ""       ;#< name of missing source widget
   option -buildwidget     -default ""       ;#< name of buildevents widget
-  option -expectedids   -default 0        ;#< min id 
+  option -expectedids   -default "0"        ;#< min id 
 
   option -showbuttons     -default 1        ;#< show buttons or not? 
   option -buttontext      -default "Create" ;#< Label to put on button
@@ -1037,7 +1046,9 @@ snit::widget ConfigurationFrame {
     ttk::entry $top.nsrcsEntry -textvariable [myvar options(-nsources)] -width 8
 
     ttk::label $top.idsLabel -text "Allowed of source ids (e.g. 1, 2, 3)"
-    ttk::entry $top.idsEntry -textvariable [myvar options(-expectedids)] -width 8
+    ttk::entry $top.idsEntry -textvariable [myvar options(-expectedids)] -width 8 \
+      -validate focusout -validatecommand [mymethod validateIdList] \
+      -invalidcommand [mymethod invalidIdList %s]
 
 
     set analyze $top.analyze
@@ -1110,6 +1121,18 @@ snit::widget ConfigurationFrame {
     $m_presenter onAnalyze
   }
 
+  method validateIdList {} {
+    puts "validating : [$self cget -expectedids]"
+    set result [regexp {^\s*(\d)+(,\s*\d+)*$} [$self cget -expectedids]]
+    puts "result = $result"
+    return $result
+  }
+
+  method invalidIdList {previous} {
+    tk_messageBox -icon error \
+      -message "User must specify a comma separated list of integers for the id list"
+    $self configure -expectedids $previous
+  }
 }
 
 ##
