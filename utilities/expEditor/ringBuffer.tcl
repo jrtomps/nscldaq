@@ -43,10 +43,11 @@ package require properties
 #
 #
 snit::type RingBuffer {
+    component properties 
     option -provider
     
+    delegate option -changecmd to properties
 
-    variable properties ""
     variable sinks      [list]
 
     
@@ -59,7 +60,7 @@ snit::type RingBuffer {
         set host [property %AUTO% -name host]
         set name [property %AUTO% -name name]
         
-        set properties [propertylist %AUTO%]
+        install properties using propertylist %AUTO%
         $properties add $host
         $properties add $name
         

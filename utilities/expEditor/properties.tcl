@@ -42,15 +42,25 @@ package require snit
 #    Defines a single property:
 #
 # OPTIONS
-#    -name     - Name of the property.
-#    -value    - Property value.
-#    -validate - validation object for value (snit::validation object).
-#    -editable - the property can be modified by a user via GUI.
+#    * -name     - Name of the property.
+#    * -value    - Property value.
+#    * -validate - validation object for value (snit::validation object).
+#    * -editable - the property can be modified by a user via GUI.
+#    * -changecmd- Script called when the value of the property changed.
+#
+# SCRIPT SUBSTITUTIONS:
+#   The -changecmd script accepts the following substitutions:
+#
+#    *   %P  - The property object.
+#    *   %N  - Name of the property.
+#    *   %V  - New value of the property.
+#
 snit::type property {
     option -name -readonly 1
     option -value -default "" -configuremethod _validate
     option -validate -default ""
     option -editable -default 1 -type snit::boolean
+    option -changecmd -default [list]
     
     constructor args {
         $self configurelist $args
@@ -75,6 +85,33 @@ snit::type property {
             set validator $options(-validate)
             set options($optname) [$validator validate $value]
         }
+        #  Validation makes an error so we only get here if the config succeeded.
+        
+        $self _dispatch \
+            -changecmd [list %P $self %N [list $options(-name)] %V [list $options($optname)]]
+    }
+    ##
+    # _dispatch
+    #   Dispatch a callback
+    #
+    # @param optname - Name of the option holding the callback script.
+    # @param substs  - Map string holding the parameter substitutions.
+    #                  this is in the same format as a mapping string for
+    #                  [stiring map].
+    #
+    # @return - the return value of the script which is executed at the global level.
+    # @note If there is no script "" is returned.
+    # @note The script is run at the global level.
+    #
+    method _dispatch {optname substs} {
+
+        set script $options($optname)
+        if {$script ne ""} {
+            set script [string map $substs $script]
+            return [uplevel #0  $script]
+        } else {
+            return ""
+        }
     }
 }
 ##
@@ -87,8 +124,39 @@ snit::type property {
 #    clear - Clear the property list.
 #    foreach - Execute a script for each property in the list.
 #
+# OPTIONS
+#   *  -changecmd - Sets the -changecmd of all properties in the list.
+#                this is memorized so that as new properties are added to the
+#                list this is set for them as well.
+#
 snit::type propertylist {
     variable props [list]
+    
+    option -changecmd -default [list] -configuremethod _setChangeCmd
+    
+    
+    constructor args {
+        $self configurelist $args
+    }
+    ##
+    # _setChangeCmde
+    #   Modifies the -changecmd option
+    #   *   Set the value for all current properties.
+    #   *   Save it to set in future properties.
+    #
+    # @param optname - Name of the option to change.
+    # @param value   - new script value    
+    method _setChangeCmd {optname value} {
+        set options($optname) $value
+        $self foreach p  {
+            $p configure -changecmd $value
+        }
+    }
+    
+    #--------------------------------------------------------------------------
+    #  Public methods
+    #
+    
     
     ##
     # get
@@ -104,6 +172,7 @@ snit::type propertylist {
     # @param property  - property object to append.
     method add {property} {
         lappend props $property
+        $property configure -changecmd $options(-changecmd)
     
     }
     ##

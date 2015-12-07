@@ -80,8 +80,6 @@ set c [connector %AUTO% \
     -canvas .c -from $pid -to $did -fromcoords [list $fromx $y]   \
     -tocoords [list $tox $y] -arrow last]
 
-puts [.c gettags $pid]
-puts [.c gettags $did]
 
 ## Let the icons be movable:
 

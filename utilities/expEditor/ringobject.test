@@ -361,6 +361,46 @@ tcltest::test canconnect-4 {If a ring was a sink and that sink was disconnected 
     $o isConnectable to
 } -result 1
 
+tcltest::test changecmd-1 {changecmd should dispatch on RingBuffer changes} \
+-setup {
+    set o [RingBuffer %AUTO% -changecmd [list lappend changes [list %N %V]]]
+    set changes [list]
+} \
+-cleanup {
+    $o destroy
+    unset changes
+} \
+-body {
+    
+    # This test is whitebox wrt the order of properties in the list.
+    
+    set proplist [[$o getProperties] get]
+    [lindex $proplist 0] configure -value localhost
+    [lindex $proplist 1] configure -value fox
+    
+    set changes
+} -result [list [list host localhost] [list name fox]]
+
+tcltest::test changecmd-2 {changecmd should dispatch on RingBufferObject changes} \
+-setup {
+    set o [RingBufferObject %AUTO% -changecmd [list lappend changes [list %N %V]]]
+    set changes [list]
+} \
+-cleanup {
+    $o destroy
+    unset changes
+} \
+-body {
+    
+    # This test is whitebox wrt the order of properties in the list.
+    
+    set proplist [[$o getProperties] get]
+    [lindex $proplist 0] configure -value localhost
+    [lindex $proplist 1] configure -value fox
+    
+    set changes
+} -result [list [list host localhost] [list name fox]]
+
 # End/summarize the tests - note the magic below is intended to ensure that
 # a failed test fails the makefile test target too.
 

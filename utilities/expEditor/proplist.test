@@ -126,10 +126,60 @@ tcltest::test find-2 {Find with match gives correcty one} \
     $p add $p1
     $p add $p2
 } \
+-cleanup {
+   $p  destroy
+   $p1 destroy
+   $p2 destroy
+} \
 -body {
     set prop [$p find test2]
     $prop cget -value
 } -result 4567
+
+tcltest::test dispatch-1 {setting -changecmd propagates to existing list members} \
+-setup {
+    set p1   [property %AUTO% -name test1 -value 1234]
+    set p2   [property %AUTO% -name test2 -value 4567]
+    set p [propertylist %AUTO%]
+    
+    $p add $p1
+    $p add $p2
+} -cleanup {
+    $p destroy
+    $p1 destroy
+    $p2 destroy
+     
+} \
+-body {
+    $p configure -changecmd [list puts "HI"]
+    set result [list]
+    lappend result [$p1 cget -changecmd]
+    lappend result [$p2 cget -changecmd]
+} -result [list [list puts HI] [list puts HI]]
+
+tcltest::test dispatch-2 {setting -changecmd propagates to newly added properties} \
+-setup {
+    set p1   [property %AUTO% -name test1 -value 1234]
+    set p2   [property %AUTO% -name test2 -value 4567]
+    set p3   [property %AUTO% -name test3 -value 89]
+    set p [propertylist %AUTO%]
+    $p add $p1
+    $p add $p2
+    
+    
+    $p configure -changecmd [list puts HI]
+    
+} -cleanup {
+    $p destroy
+    $p1 destroy
+    $p2 destroy
+    $p3 destroy
+} \
+-body {
+    $p add $p3;          # Should get list's -changecmd:
+    $p3 cget -changecmd
+} -result [list puts HI]
+
 
 # End/summarize the tests - note the magic below is intended to ensure that
 # a failed test fails the makefile test target too.

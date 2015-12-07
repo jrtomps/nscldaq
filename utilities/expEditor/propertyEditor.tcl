@@ -158,9 +158,9 @@ snit::widgetadaptor propertyEditor {
                 }
                 ttk::entry $contents.v$i                                  \
                     -validate focusout                                    \
-                    -validatecommand [mymethod _validate $property $contents.v$i] \
-                    -state $state
+                    -validatecommand [mymethod _validate $property $contents.v$i]
                 $contents.v$i insert end [$property cget -value]
+                $contents.v$i configure -state  $state
                 
                 grid $contents.n$i $contents.v$i -sticky new
                 

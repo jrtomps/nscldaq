@@ -55,7 +55,6 @@ pack .t1.e1
 
 set done 0
 proc done1 {wid entry list prop value new} {
-    puts "$wid $entry $list $prop $value $new"
     $prop configure -value $new
 }
 

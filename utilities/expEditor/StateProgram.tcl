@@ -44,7 +44,9 @@ snit::type StateProgram {
     component data
     component gui
  
-    delegate option -provider to data
+    delegate option -provider  to data
+    delegate option -changecmd to data
+    
     delegate option -canvas   to gui
     
     # Expose all but clone (which we have to handle)
@@ -137,6 +139,7 @@ snit::type StateProgram {
         set props [$object getProperties]
         set prop  [$props find $propName]
         $prop configure -value $value
+        
     }
     ##
     # _getUri
@@ -159,6 +162,40 @@ snit::type StateProgram {
     method _getName ring {
         return [$self _getProperty $ring name]
         
+    }
+    ##
+    # _setOutRingInfo
+    #   Set information about our output ring from an output ring item
+    #
+    # @param ring - the ring attached to us as an output ring.
+    # @note  This program must run in the same host as the output ring.
+    #        We'll remind the user of this fact if our host and the ring's
+    #        host differ, and set our host to the ring's host.
+    #
+    method _setOutRingInfo {ring} {
+        $self _setProperty $self {Output Ring} [$self _getName $ring]
+        
+        set myHost [$self _getProperty $self host]
+        set ringHost [$self _getProperty $ring host]
+        
+        if {$myHost ne $ringHost} {
+            set myName [$self _getProperty $self name]
+            tk_messageBox \
+                -title "Host mismatch" -type ok -icon info \
+                -message "State programs must live in the same host as their output rings.  \
+Therefore the host that '$myName' runs in is being changed to '$ringHost'"
+            $self _setProperty $self host $ringHost
+            
+        }
+    }
+    ##
+    # _setInRingInfo
+    #   Set information about our input ring from an input ring item:
+    #
+    # @param ring - the ring attached to us as an input ring.
+    #
+    method _setInRingInfo {ring} {
+        $self _setProperty $self {Input Ring} [$self _getUri $ring]
     }
     #---------------------------------------------------------------------------
     # Public methods
@@ -193,17 +230,15 @@ snit::type StateProgram {
             error "State programs can only be connected to rings."
         }
         if {$direction eq "from"} {
-            set property {Output Ring}
-            set value [$self _getUri $object]
+            $self _setOutRingInfo $object
             set outRingObj $object
         } elseif {$direction eq "to" } {
-            set property {Input Ring}
-            set value [$self _getName $object]
+            $self _setInRingInfo $object
             set inRingObj $object
         } else {
             error "Invalid direction on connect"
         }
-        $self _setProperty $self $property $value
+
     }
     ##
     # disconnect
@@ -246,10 +281,27 @@ snit::type StateProgram {
         } else {
             error "Ivalid connection direction: $direction"
         }
-        
         # Connections are allowed if there is no current connection in that
         # direction:
         
         return [expr {$obj eq ""}]
+    }
+    ##
+    # connectionPropertyChanged
+    #   Called when the properties of an object we are connected to changed.
+    #   In our case this allows us to update the information for our input
+    #   and output rings (those are the only things we can have connections
+    #   to).
+    #
+    # @param obj - the object whose properties changed.
+    #
+    method connectionPropertyChanged obj {
+        if {$obj eq $inRingObj} {
+            $self _setInRingInfo $obj
+        } elseif {$obj eq $outRingObj} {
+            $self _setOutRingInfo $obj
+        } else {
+            error "connectionPropertyChanged - $obj is not connected to us"
+        }
     }
 }

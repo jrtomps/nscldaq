@@ -114,6 +114,43 @@ tcltest::test connectible {Can never connect to/from this} \
     
 } -result [list false false]
 
+tcltest::test dispatch-1 {-changecmd works for ServiceData} \
+-setup {
+    set s [ServiceData %AUTO% -changecmd [list lappend calltrace [list %N %V]]]
+    set calltrace [list]
+} \
+-cleanup {
+    $s destroy
+} -body {
+    set proplist [$s getProperties]
+    set pl       [$proplist get]
+    
+    
+    [lindex $pl 0] configure -value test;            # name
+    [lindex $pl 1] configure -value charlie;         # host
+    [lindex $pl 2] configure -value /usr/bin/ls;     #path.
+    
+    set calltrace
+} -result [list [list name test] [list host charlie] [list path /usr/bin/ls]]
+
+tcltest::test dispatch-2 {-changecmd works for Service object} \
+-setup {
+    set s [Service %AUTO% -changecmd [list lappend calltrace [list %N %V]]]
+    set calltrace [list]
+} \
+-cleanup {
+    $s destroy
+} -body {
+    set proplist [$s getProperties]
+    set pl       [$proplist get]
+    
+    [lindex $pl 0] configure -value test;            # name
+    [lindex $pl 1] configure -value charlie;         # host
+    [lindex $pl 2] configure -value /usr/bin/ls;     #path.
+    
+    set calltrace
+} -result [list [list name test] [list host charlie] [list path /usr/bin/ls]] 
+
 # End/summarize the tests - note the magic below is intended to ensure that
 # a failed test fails the makefile test target too.
 

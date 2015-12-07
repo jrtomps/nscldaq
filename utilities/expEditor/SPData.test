@@ -304,6 +304,52 @@ tcltest::test disconnect-2 {If a from is disconnected we can connect as a from} 
     $obj isConnectable from
 } -result 1
 
+tcltest::test changecmd-1 {If data are changed we should get notified} \
+-setup {
+    set sd [StateProgramData %AUTO% -changecmd [list lappend changelog [list %N %V]]]
+    set changelog [list]
+} \
+-cleanup {
+    $sd destroy
+} \
+-body {
+     set plo [$sd getProperties]
+     set ps  [$plo get]
+     
+     foreach p $ps value [list \
+        test false true /usr/bin/test charlie tcp://localhost/test fox] {
+        $p configure -value $value
+     }
+     set changelog
+     
+} -result [list [list name test] [list enable false] [list standalone true] \
+    [list path /usr/bin/test] [list host charlie] \
+    [list "Input Ring" tcp://localhost/test] [list "Output Ring" fox]]
+
+tcltest::test changecmd-2 {If data are changed in the packaged object we get notified} \
+-setup {
+    set sd [StateProgram %AUTO% -changecmd [list lappend changelog [list %N %V]]]
+    set changelog [list]
+} \
+-cleanup {
+    $sd destroy
+} \
+-body {
+     set plo [$sd getProperties]
+     set ps  [$plo get]
+     
+     foreach p $ps value [list \
+        test false true /usr/bin/test charlie tcp://localhost/test fox] {
+        $p configure -value $value
+     }
+     set changelog
+     
+} -result [list [list name test] [list enable false] [list standalone true] \
+    [list path /usr/bin/test] [list host charlie] \
+    [list "Input Ring" tcp://localhost/test] [list "Output Ring" fox]]
+
+
+
 # End/summarize the tests - note the magic below is intended to ensure that
 # a failed test fails the makefile test target too.
 

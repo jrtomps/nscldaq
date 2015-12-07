@@ -60,7 +60,7 @@ $obj1 drawat $x $y
 # to that tag that will move the object:
 
 $obj1 addtag obj1
-puts [$obj1 tags]
+
 # .c bind obj1 <B1-Motion> [list drag $obj1 %x %y]
 .c bind obj1 <Double-Button-1> [list duplicate $obj1 %x %y]
 

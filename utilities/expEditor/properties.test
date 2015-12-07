@@ -118,6 +118,23 @@ tcltest::test property-editable-3 {editable can't be set a non bool value} \
     catch {$p configure -editable george}
 } -result 1
 
+tcltest::test property-dispatch {Can dispatch a command on property change} \
+-setup {
+    set p [ property %AUTO% -name test -changecmd]
+    $p configure -changecmd [list set ::a [list %N %V]]
+    set ::prop $p
+
+} \
+-cleanup {
+    $p destroy
+    unset ::a
+    
+} \
+-body {
+    $p configure -value 1234
+    set ::a
+} -result [list  test 1234]
+
 # End/summarize the tests - note the magic below is intended to ensure that
 # a failed test fails the makefile test target too.
 

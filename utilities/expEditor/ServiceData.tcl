@@ -39,6 +39,7 @@ package require properties
 #
 snit::type ServiceData {
     component propertylist;              # The properties in the data.
+    delegate option -changecmd to propertylist
     
     ##
     # constructor
@@ -50,6 +51,8 @@ snit::type ServiceData {
         $propertylist add [property %AUTO% -name name]
         $propertylist add [property %AUTO% -name host]
         $propertylist add [property %AUTO% -name path]
+        
+        $self configurelist $args
         
     }
     ##

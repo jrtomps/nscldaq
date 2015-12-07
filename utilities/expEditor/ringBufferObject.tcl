@@ -42,7 +42,8 @@ snit::type RingBufferObject {
     component data
     component gui
     
-    delegate option -provider to data
+    delegate option -provider  to data
+    delegate option -changecmd to data
     delegate option -canvas   to gui
     
     # Expose all but clone (which we have to handle)
@@ -185,4 +186,13 @@ snit::type RingBufferObject {
             return [expr {$sourceObject eq ""}]
         }
     }
+    ##
+    # connectionPropertyChanged
+    #
+    #   Called if the properties of a connected object change.  At present
+    #   we don't need to take any action.
+    #
+    # @param obj - the object whose properties changed.
+    #
+    method connectionPropertyChanged obj {}
 }

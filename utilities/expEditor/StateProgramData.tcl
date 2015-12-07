@@ -39,6 +39,8 @@ package require properties
 snit::type StateProgramData {
     component properties
     
+    delegate option -changecmd to properties
+    
     ##
     # constructor
     #   Create the propertylist.
@@ -55,7 +57,9 @@ snit::type StateProgramData {
         $properties add [property %AUTO% -name path ]
         $properties add [property %AUTO% -name host ]
         $properties add [property %AUTO% -name {Input Ring} -editable 0]
-        $properties add [property %AUTO% -name {Output Ring} -editable 0]  
+        $properties add [property %AUTO% -name {Output Ring} -editable 0]
+        
+        $self configurelist $args
     }
     ##
     # destructor

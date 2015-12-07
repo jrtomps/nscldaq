@@ -43,6 +43,8 @@ snit::type Service {
     component gui
  
     delegate option -provider to data
+    delegate option -changecmd to data
+    
     delegate option -canvas   to gui
     
     # Expose all but clone (which we have to handle)
@@ -148,5 +150,12 @@ snit::type Service {
     method isConnectable direction {
         return false
     }
+    ##
+    # connectionPropertyChanged
+    #    Called if the properties of an object we are connected to changed.
+    #    Note that since we cannot be connected to anything this is a no-op.
+    # @param object - the object whose properties changed.
+    #
+    method connectionPropertyChanged obj {}
     
 }

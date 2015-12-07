@@ -496,6 +496,35 @@ snit::type ConnectorInstaller {
         
         return [lindex [_minimumDistancePair $minpair] 1]
     }
+    
+    
+    ##
+    # _notifyDisconnect
+    #    Invoke the disconnect method of the other end of a connection when
+    #    one end is being destroyedl
+    #
+    # @param object  - the object being destroyed.  We don't bother calling its
+    #                  disconnect method.
+    # @param connection - The connection dict.
+    # @param c          - Canvas.
+    #
+    method _notifyDisconnect {object connection c} {
+        
+        #  Get the from/to ids and look up the objects they represent:
+        
+        set from [dict get $connection from]
+        set to   [dict get $connection to]
+        
+        set fromObj [$self _findObject $currentObjects($from) $c]
+        set toObj   [$self _findObject $currentObjects($to) $c]
+        
+        if {$fromObj ne $object} {
+            $fromObj disconnect $object
+        }
+        if {$toObj ne $object} {
+            $toObj disconnect $object
+        }
+    }
     #---------------------------------------------------------------------------
     # Public methods.
     
@@ -522,7 +551,7 @@ snit::type ConnectorInstaller {
     #    Call when a connected item is being deleted to destroy all connectors
     #    that originate or terminate in the object.
     #
-    # @param object - base command of deleted object's command ensembloe.
+    # @param object - base command of deleted object's command ensemble.
     # @param from   - canvas id of one of the objects.
     # @param c      - canvas.
     # @param object
@@ -533,11 +562,14 @@ snit::type ConnectorInstaller {
         set id [$self _findConnectionFromOrTo $from $c]
         while {$id != -1} {
             set connector [lindex $currentConnectors $id]
+            $self _notifyDisconnect $object $connector $c
             set cobj [dict get $connector object]
             $cobj destroy
-            set currentConnectors [lreplace $currentConnectors $id $id]
+            set currentConnectors [lreplace $currentConnectors $id $id]            
             set id [$self _findConnectionFromOrTo $from $c]
+            
         }
+        
         
         # Destroy  our record of the object each canvas really is only allowed
         # to have one guy with any one id:
@@ -555,7 +587,11 @@ snit::type ConnectorInstaller {
                 
                 if {($object eq $obj) && ($c == $canv)} {
                     set obDicts [lreplace $obDicts $i $i]
-                    set currentObjects($from) $obDicts
+                    if {[llength $obDicts] > 0} {
+                        set currentObjects($from) $obDicts
+                    } else {
+                        array unset currentObjects $from
+                    }
                     break
                 }
             }
