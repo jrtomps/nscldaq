@@ -737,7 +737,24 @@ snit::widgetadaptor RunControl {
     #
     method _start {} {
       set stateMachine [RunstateMachineSingleton %AUTO%]
-      $stateMachine transition Starting
+
+      RunControlDisable::register
+      RunControlEnable::register
+      
+      if {[catch {
+        $stateMachine transition Starting
+      } msg]} {
+        RunControlDisable::unregister
+        RunControlEnable::unregister
+
+        $stateMachine destroy 
+        # rethrow
+        error $msg
+      }
+
+      RunControlDisable::unregister
+      RunControlEnable::unregister
+
       $stateMachine destroy 
     }
     ##
@@ -758,7 +775,6 @@ snit::widgetadaptor RunControl {
         RunControlDisable::register
         RunControlEnable::register
 
-        puts [$stateMachine listCalloutBundles]
         $stateMachine destroy
         if {[catch {
           if {$state eq "Halted"} {
@@ -769,7 +785,6 @@ snit::widgetadaptor RunControl {
             error "ERROR: begin/end button clicked when state is $state which should not happen"
           }
         } msg]} {
-          puts "failed... unreg"
           RunControlDisable::unregister
           RunControlEnable::unregister
 
@@ -888,7 +903,6 @@ namespace eval RunControlDisable {
   proc leave {from to} {
     set rc [RunControlSingleton::getInstance]
     $rc configure -state disabled
-    puts "leave disable"
   }
 
   proc enter {from to} {}
@@ -896,14 +910,7 @@ namespace eval RunControlDisable {
   proc register {} {
     set sm [RunstateMachineSingleton %AUTO%]
     set bundles [$sm listCalloutBundles]
-    set index [lsearch $bundles RunControlSingleton]
-    if {$index == -1} {
-      $sm addCalloutBundle RunControlDisable [lindex $bundles 0]
-    } else {
-      puts "Found index @ $index"
-      $sm addCalloutBundle RunControlDisable [lindex $bundles [expr $index+1]]
-      puts [$sm listCalloutBundles]
-    }
+    $sm addCalloutBundle RunControlDisable [lindex $bundles 0]
     $sm destroy
   }
 
@@ -935,12 +942,12 @@ namespace eval RunControlEnable {
     set prevState [$rc cget -state]
   }
 
-  proc leave {from to} {}
+  proc leave {from to} {
+  }
 
   proc enter {from to} {
     set rc [RunControlSingleton::getInstance]
-    $rc configure -state normal
-    puts "enter normal"
+    $rc _updateAppearance
   }
 
   proc register {} {
@@ -1000,18 +1007,21 @@ proc ::RunControlSingleton::getInstance {{path ""} args} {
 proc ::RunControlSingleton::attach {state} {
     set rctl [::RunControlSingleton::getInstance]
     $rctl _updateAppearance
-
 }
 ##
 # enter
-#    Called when the state machine enters a new state.
+#    Called when the state machine enters a new state. 
+#    This only adjusts the appearance if the transition is to
+#    Starting or Halted.
 #
 # @param from - old state.
 # @param to   - Current state
 #
 proc ::RunControlSingleton::enter {from to} {
-  set rctl [::RunControlSingleton::getInstance]
-  $rctl _updateAppearance
+#  if {$to ni [list Active Paused]} {
+#    set rctl [::RunControlSingleton::getInstance]
+#    $rctl _updateAppearance
+#  }
 }
 ##
 #  leave
