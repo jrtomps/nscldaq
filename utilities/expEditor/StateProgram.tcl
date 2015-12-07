@@ -238,6 +238,7 @@ Therefore the host that '$myName' runs in is being changed to '$ringHost'"
         } else {
             error "Invalid direction on connect"
         }
+        return 1
 
     }
     ##

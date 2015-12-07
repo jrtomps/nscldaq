@@ -68,13 +68,14 @@ snit::type ConnectorInstaller {
     variable tempArrowStartX
     variable tempArrowStartY
     
-    # connectors is a list of connector definitions.  Each connecto is defined
+    # connectors is a list of connector definitions.  Each connector is defined
     # by a dict consisting of the following keys:
     #
     #  *  object   - The connector object.
     #  *  from     - The from object.
     #  * to        - The to object.
-    #  * canvas    -  The canvas on which the connector is drawn. 
+    #  * canvas    -  The canvas on which the connector is drawn.
+    
     
     variable currentConnectors [list]
     
@@ -86,6 +87,7 @@ snit::type ConnectorInstaller {
     #
     #   -  object  - the object ensemble command.
     #   -  canvas  - canvas on which this object is drawn.
+    #   -  id      - Id of object on canvas (avoids rev. lookups).
     #
     # List because in theory we can be managing the installation for more than one
     # canvas and two distinct objects could have the same canvas id but be on
@@ -295,11 +297,11 @@ snit::type ConnectorInstaller {
             $fromObj connect from $toObj
             $toObj   connect to   $fromObj
             
-        }]
+        } msg]
         if {$status} {
             $self _abortConnection $c
             tk_messageBox -type ok -icon error -title "not allowed" \
-                -message {Connection is rejected by one of the objects as illegal from/to type.}
+                -message "Connection is rejected by one of the objects as illegal from/to type: $msg $::errorInfo"
             return
         }
         
@@ -525,6 +527,38 @@ snit::type ConnectorInstaller {
             $toObj disconnect $object
         }
     }
+    ##
+    # _propertyChanged
+    #    Callback invoked by an object property that has changed.
+    #
+    # @param desc - Dict describing the object with the keys:
+    #               * object - object ensemble command.
+    #               * canvas - canvas on which the object's graphical rep is drawn.
+    #               * id     - Canvas id of the object's graphical representation.
+    #
+    method _propertyChanged desc {
+        set objid [dict get $desc id]
+        set c     [dict get $desc canvas]
+        set o     [dict get $desc object]
+        #  Use currentConnectors to locate the objects we are connected to:
+        
+        set connectedList [list]
+        foreach connection $currentConnectors {
+            if {[dict get $connection from] == $objid} {
+                lappend connectedList [dict get $connection to]
+            }
+            if {[dict get $connection to] == $objid} {
+                lappend connectedList [dict get $connection from]
+            }
+        }
+        #  Invoke the connectionPropertyChanged method on each of the connected
+        #  objects.
+        
+        foreach id $connectedList {
+            set co [$self _findObject $currentObjects($id) $c]
+            $co connectionPropertyChanged $o
+        }
+    }
     #---------------------------------------------------------------------------
     # Public methods.
     
@@ -609,6 +643,11 @@ snit::type ConnectorInstaller {
     # @param c      - canvas on which the object was installed.
     #
     method newObject {obj id c} {
-        lappend currentObjects($id) [dict create object $obj canvas $c]       
+        set objDesc [dict create object $obj canvas $c id $id]
+        lappend currentObjects($id) $objDesc
+        
+        # Hook into the property change callback:
+        
+        $obj configure -changecmd [mymethod _propertyChanged $objDesc]
     }
 }
