@@ -896,7 +896,14 @@ namespace eval RunControlDisable {
   proc register {} {
     set sm [RunstateMachineSingleton %AUTO%]
     set bundles [$sm listCalloutBundles]
-    $sm addCalloutBundle RunControlDisable [lindex $bundles 0]
+    set index [lsearch $bundles RunControlSingleton]
+    if {$index == -1} {
+      $sm addCalloutBundle RunControlDisable [lindex $bundles 0]
+    } else {
+      puts "Found index @ $index"
+      $sm addCalloutBundle RunControlDisable [lindex $bundles [expr $index+1]]
+      puts [$sm listCalloutBundles]
+    }
     $sm destroy
   }
 
@@ -1005,9 +1012,6 @@ proc ::RunControlSingleton::attach {state} {
 proc ::RunControlSingleton::enter {from to} {
   set rctl [::RunControlSingleton::getInstance]
   $rctl _updateAppearance
-  if {$from ne "Starting"} {
-    $rctl configure -state disabled
-  }
 }
 ##
 #  leave
