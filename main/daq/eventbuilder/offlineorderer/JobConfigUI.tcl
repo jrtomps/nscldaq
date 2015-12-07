@@ -390,10 +390,14 @@ snit::type JobConfigUIPresenter {
     [dict get $m_model -outputparams] configure -nsources [$m_view cget -nsources]
 
     # form the range of accepted ids
-    set lowId [$m_view cget -expectedidlow]
-    set highId [$m_view cget -expectedidhigh]
-    set idRange [Utils::sequence $lowId [expr $highId+1]]
-    [dict get $m_model -hoistparams] configure -id $idRange
+    set ids [$m_view cget -expectedids]
+    set ids [split $ids ","]
+    set cleanedIds [list]
+    foreach id $ids {
+      lappend cleanIds [string trim $id]
+    }
+    
+    [dict get $m_model -hoistparams] configure -id $cleanIds
   }  
 
   ## @brief Validate the data that the user provided
@@ -996,8 +1000,7 @@ snit::widget ConfigurationFrame {
   option -jobname         -default "Job"    ;#< name of job (not used)
   option -missingwidget   -default ""       ;#< name of missing source widget
   option -buildwidget     -default ""       ;#< name of buildevents widget
-  option -expectedidlow   -default 0        ;#< min id 
-  option -expectedidhigh  -default 10       ;#< max id
+  option -expectedids   -default 0        ;#< min id 
 
   option -showbuttons     -default 1        ;#< show buttons or not? 
   option -buttontext      -default "Create" ;#< Label to put on button
@@ -1031,13 +1034,10 @@ snit::widget ConfigurationFrame {
     ttk::frame $top 
 
     ttk::label $top.nsrcsLbl -text "Number of end runs to expect"
-    ttk::entry $top.nsrcsEntry -textvariable [myvar options(-nsources)] -width 3
+    ttk::entry $top.nsrcsEntry -textvariable [myvar options(-nsources)] -width 8
 
-    ttk::label $top.idRangeLabel -text "Range of source ids"
-    ttk::label $top.idRangeLowLabel -text "Min" -width 4 -justify right
-    ttk::label $top.idRangeHighLabel -text "Max" -width 4 -justify right
-    ttk::entry $top.idRangeLowEntry -textvariable [myvar options(-expectedidlow)] -width 3
-    ttk::entry $top.idRangeHighEntry -textvariable [myvar options(-expectedidhigh)] -width 3
+    ttk::label $top.idsLabel -text "Allowed of source ids (e.g. 1, 2, 3)"
+    ttk::entry $top.idsEntry -textvariable [myvar options(-expectedids)] -width 8
 
 
     set analyze $top.analyze
@@ -1056,9 +1056,8 @@ snit::widget ConfigurationFrame {
                                 -command [mymethod onCreate]
     grid $buttons.cancel $buttons.create -sticky e -padx {9 0}
 
-    grid $top.nsrcsLbl - $top.nsrcsEntry - - -sticky nw 
-    grid $top.idRangeLabel $top.idRangeLowLabel $top.idRangeLowEntry \
-          $top.idRangeHighLabel $top.idRangeHighEntry -sticky nw
+    grid $top.nsrcsLbl $top.nsrcsEntry -sticky nw 
+    grid $top.idsLabel $top.idsEntry -sticky nw 
     if {$options(-missingwidget) ne ""} {
       $self gridMissingWidget $options(-missingwidget)
     }
@@ -1077,14 +1076,14 @@ snit::widget ConfigurationFrame {
   ## @brief Grid the missing sources widget
   # @param name name of the widget
   method gridMissingWidget {name} {
-    grid $name - - - - -row 2 -sticky new -pady 9 -in $m_paramFrame
+    grid $name - -row 2 -sticky new -pady 9 -in $m_paramFrame
     $self configure -missingwidget $name
   }
 
   ## @brief Grid the build event widget
   # @param name of the widget
   method gridBuildWidget {name} {
-    grid $name - - - - -row 3 -sticky new -in $m_paramFrame
+    grid $name - -row 3 -sticky new -in $m_paramFrame
   }
 
   ## @brief Forward button press event to presenter
