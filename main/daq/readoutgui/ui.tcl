@@ -894,12 +894,24 @@ namespace eval RunControlDisable {
 
   variable prevState normal
 
+  ##
+  #  attach
+  #   Called when the bundle is attached to the run control state machine.
+  #   Caches the state of the run control buttons.
+  #
+  # @param to - the current machine state.
   proc attach {to} {
     variable prevState
     set rc [RunControlSingleton::getInstance]
     set prevState [$rc cget -state]
   }
 
+##
+#  leave
+#   Called when the state machine leaves a state. 
+#   Sets the state of the widgets to disabled every
+#   time.
+#
   proc leave {from to} {
     set rc [RunControlSingleton::getInstance]
     $rc configure -state disabled
@@ -907,6 +919,11 @@ namespace eval RunControlDisable {
 
   proc enter {from to} {}
 
+  ## 
+  # register bundle
+  #
+  # Inserts the callout bundle at the very start of the callout bundle
+  # list.
   proc register {} {
     set sm [RunstateMachineSingleton %AUTO%]
     set bundles [$sm listCalloutBundles]
@@ -914,6 +931,12 @@ namespace eval RunControlDisable {
     $sm destroy
   }
 
+  ##
+  # Unregisters bundle from state machine
+  #
+  # Besides unregistering, this also sets the state of the 
+  # widgets to the state they were at registration. This is just
+  # a cleanup step.
   proc unregister {} {
     variable prevState 
     set rc [RunControlSingleton::getInstance]
@@ -936,26 +959,54 @@ namespace eval RunControlEnable {
 
   variable prevState normal
 
+  #  attach
+  #   Called when the bundle is attached to the run control state machine.
+  # @param to - the current machine state.
+  # 
   proc attach {to} {
     variable prevState 
     set rc [RunControlSingleton::getInstance]
     set prevState [$rc cget -state]
   }
 
+  ##
+  #  leave
+  #   Called whenn the state machine leaves a state (unused)
+  #
   proc leave {from to} {
   }
 
+  ##
+  # enter
+  #    Called when the state machine enters a new state. 
+  #    This only adjusts the appearance if the transition is to
+  #    Starting or Halted.
+  #
+  # @param from - old state.
+  # @param to   - Current state
+  #
   proc enter {from to} {
     set rc [RunControlSingleton::getInstance]
     $rc _updateAppearance
   }
 
+  ## 
+  # register bundle
+  #
+  # Inserts the callout bundle at the very start of the callout bundle
+  # list.
   proc register {} {
     set sm [RunstateMachineSingleton %AUTO%]
     $sm addCalloutBundle RunControlEnable 
     $sm destroy
   }
 
+  ##
+  # Unregisters bundle from state machine
+  #
+  # Besides unregistering, this also sets the state of the 
+  # widgets to the state they were at registration. This is just
+  # a cleanup step.
   proc unregister {} {
     variable prevState 
     set rc [RunControlSingleton::getInstance]
@@ -989,9 +1040,7 @@ proc ::RunControlSingleton::getInstance {{path ""} args} {
     if {$::RunControlSingleton::theInstance eq ""} {
         set ::RunControlSingleton::theInstance [RunControl $path {*}$args]
 
-        set stateMachine [RunstateMachineSingleton %AUTO%]
-        $stateMachine addCalloutBundle RunControlSingleton
-        $stateMachine destroy
+        $::RunControlSingleton::theInstance _updateAppearance
 
     } elseif {[llength $args] > 0} {
         $::RunControlSingleton::theInstance configure {*}$args
@@ -1005,8 +1054,6 @@ proc ::RunControlSingleton::getInstance {{path ""} args} {
 # @param state - the current machine state.
 # 
 proc ::RunControlSingleton::attach {state} {
-    set rctl [::RunControlSingleton::getInstance]
-    $rctl _updateAppearance
 }
 ##
 # enter
@@ -1018,10 +1065,6 @@ proc ::RunControlSingleton::attach {state} {
 # @param to   - Current state
 #
 proc ::RunControlSingleton::enter {from to} {
-#  if {$to ni [list Active Paused]} {
-#    set rctl [::RunControlSingleton::getInstance]
-#    $rctl _updateAppearance
-#  }
 }
 ##
 #  leave
