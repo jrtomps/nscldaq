@@ -613,7 +613,7 @@ snit::type JobConfigUIPresenter {
 
 
     # clean up.
-#    file delete $resultFile
+    file delete $resultFile
 
     # Do some basic analysis
     
