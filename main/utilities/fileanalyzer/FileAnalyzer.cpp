@@ -25,62 +25,73 @@
 #include <string>
 #include <cstring>
 #include <cstdlib>
+using namespace std;
+
+struct CmdlineArgs {
+  string s_outputFile;
+  bool   s_built;
+};
 
 void printSpecialUsage() {
-  std::cout << "  -O" << std::endl;
-  std::cout << "  --output-file   The name of the file to write statistics to" << std::endl;
+  cout << "  -O" << endl;
+  cout << "  --output-file   The name of the file to write statistics to" << endl;
+
+  cout << "\n  -u" << endl;
+  cout << "  --unbuilt       If present, data is not treated as built data." << endl;
 }
 
-std::vector<std::string> argV;
-std::string outputFile;
 
-std::vector<std::string> 
+vector<string> 
 cArgsToCppArgs(int argc, char* argv[]) 
 {
-  std::vector<std::string> args(argc);
+  vector<string> args(argc);
   for (int i=0; i<argc; ++i) {
-    args[i] = std::string(argv[i]);
+    args[i] = string(argv[i]);
   }
   return args;
 }
 
 
-std::vector<std::string> 
-processAndRemoveSpecialArgs(const std::vector<std::string>& argv)
+pair<vector<string>, CmdlineArgs>
+processAndRemoveSpecialArgs(const vector<string>& argv)
 {
-  std::vector<std::string> filteredArgv;
+  CmdlineArgs cmdArgs = {"", true};
+
+  vector<string> filteredArgv;
   for (size_t i=0; i<argv.size(); ++i) {
-    std::string option(argv[i]);
-//    std::cout << option << std::endl;
+    string option(argv[i]);
     if (option.find("--output-file") == 0) {
       if (option.size() == 13) {
-        outputFile = argv[i+1]; 
+        cmdArgs.s_outputFile = argv[i+1]; 
         ++i;
       } else {
-        outputFile = option.substr(14); 
+        cmdArgs.s_outputFile = option.substr(14); 
       }
     } else if (option.find("-O")== 0 ) {
       if (option.size() == 2) {
-        outputFile = argv[i+1]; 
+        cmdArgs.s_outputFile = argv[i+1]; 
         ++i;
       } else {
-        outputFile = option.substr(3); 
+        cmdArgs.s_outputFile = option.substr(3); 
       }
+    } else if (option == "--unbuilt" || option == "-u") {
+      cmdArgs.s_built = false;
     } else if (option == "--help" || option == "-h") {
       atexit( printSpecialUsage );
     } else {
-      filteredArgv.push_back(std::string(argv.at(i)));
+      filteredArgv.push_back(string(argv.at(i)));
     } 
   }
-  return filteredArgv;
+  return make_pair(filteredArgv, cmdArgs);
 }
 
-char** createNewCArgV(const std::vector<std::string>& argV)
+char** createNewCArgV(const vector<string>& argV)
 {
   char** pArgV = new char*[argV.size()];
   for (int i=0; i<argV.size(); ++i) {
-    pArgV[i] = new char[argV[i].size()];
+    pArgV[i] = new char[argV[i].size()+1];
     strcpy(pArgV[i], argV[i].data());
+    pArgV[i][argV[i].size()] = 0;
   }
 
   return pArgV;
@@ -101,10 +112,12 @@ int main(int argc, char* argv[])
 
   try {
 
-    auto newArgV = cArgsToCppArgs(argc, argv);
-    newArgV = processAndRemoveSpecialArgs(newArgV);
+    auto argV         = cArgsToCppArgs(argc, argv);
+    auto parserResult    = processAndRemoveSpecialArgs(argV);
+    vector<string> newArgV  = parserResult.first;
+
     if (newArgV == argV) {
-      std::cout << "User did not provide an output file. Specify --output-file or -O option" << std::endl;
+      cout << "User did not provide an output file. Specify --output-file or -O option" << endl;
       return 1;
     }
 
@@ -114,8 +127,10 @@ int main(int argc, char* argv[])
     // Create the main
     CFilterMain theApp(argc,argv);
 
+    auto cmdLineOpts = parserResult.second;
     // Construct filter(s) here.
-    CSourceCounterFilter srcCounter(std::numeric_limits<uint32_t>::max(), outputFile);
+    CSourceCounterFilter srcCounter(numeric_limits<uint32_t>::max(), cmdLineOpts.s_outputFile);
+    srcCounter.setBuiltData(cmdLineOpts.s_built);
 
     theApp.registerFilter(&srcCounter);
 
@@ -125,7 +140,7 @@ int main(int argc, char* argv[])
   } catch (CFatalException exc) {
     status = 1;
   } catch (...) {
-    std::cout << "Caught unknown fatal error...!" << std::endl;
+    cout << "Caught unknown fatal error...!" << endl;
     status = 2;
   }
 
