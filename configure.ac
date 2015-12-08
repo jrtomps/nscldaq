@@ -465,6 +465,7 @@ AC_CONFIG_FILES([Makefile
 		 utilities/services/lsservices
 		 utilities/services/svcpropset
 		 utilities/services/svcwiz
+		 utilities/vardbEventbuilder/Makefile
 		 utilities/expEditor/Makefile
 		 utilities/dumpend/Makefile
                  epics/chanlog/Makefile

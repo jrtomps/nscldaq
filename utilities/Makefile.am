@@ -23,9 +23,10 @@ SUBDIRS = 				daqstart \
 					runcontrol		\
 					bootmanager	\
 					services	\
+					vardbEventbuilder
 					dumpend		\
 					expEditor	\
-					fileanalyzer
+					fileanalyzer	
 
 
 # scalerdisplay - removed in favor of newscaler
