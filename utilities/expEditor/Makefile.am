@@ -6,7 +6,7 @@ TCLPACKAGES=properties.tcl propertyEditor.tcl daqobject.tcl ringBuffer.tcl \
 
 IMAGES=program.png ringbuffer.png sysprogram.png arrow.png
 
-install-exec-local:
+install-exec-hook:
 	$(mkinstalldirs) @prefix@/TclLibs
 	$(mkinstalldirs) @prefix@/TclLibs/expeditor
 	for f in $(TCLPACKAGES) ; do $(INSTALL_SCRIPT) @srcdir@/$$f @prefix@/TclLibs/expeditor; done
