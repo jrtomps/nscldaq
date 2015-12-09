@@ -28,6 +28,7 @@ exec tclsh "$0" ${1+"$@"}
 
 set here [file dirname [info script]]
 
+source [file join $here properties.tcl]
 source [file join $here ringBuffer.tcl]
 source [file join $here ringBufferObject.tcl]
 
