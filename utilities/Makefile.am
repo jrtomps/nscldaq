@@ -23,7 +23,7 @@ SUBDIRS = 				daqstart \
 					runcontrol		\
 					bootmanager	\
 					services	\
-					vardbEventbuilder
+					vardbEventbuilder   \
 					dumpend		\
 					expEditor	\
 					fileanalyzer	
