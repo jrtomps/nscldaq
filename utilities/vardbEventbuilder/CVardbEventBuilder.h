@@ -22,6 +22,8 @@
 #ifndef CVARDBEVENTBUILDER_H
 #define CVARDBEVENTBUILDER_H
 
+#include <string>
+
 class CVarMgrApi;
 
 /**
@@ -67,11 +69,17 @@ public:
     
     void createEventBuilder(
         const char* name, const char* host, unsigned coincidenceInterval,
-        unsigned outputSourceId = 0, const char* servicePrefix = 0,
-        bool build = true, TimestampPolicy = earliest,
-        const char* serviceSuffix = 0
+        unsigned outputSourceId = 0, const char* servicePrefix = "ORDERER",
+        bool build = true, TimestampPolicy tsPolicy = earliest,
+        const char* serviceSuffix = ""
     );
     
+    // Utility methods:
+private:
+    std::string uIntToString(unsigned value);
+    std::string boolToString(bool value);
+    std::string tsPolicyToString(TimestampPolicy value);
+    void definePolicies();
 };
 
 #endif 
