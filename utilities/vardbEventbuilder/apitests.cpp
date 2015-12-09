@@ -14,6 +14,8 @@
 #include <unistd.h>
 #include <limits.h>
 #include <string.h>
+#include <stdexcept>
+#include <stdio.h>
 
 
 class VarMgrEvbtests : public CppUnit::TestFixture {
@@ -24,7 +26,38 @@ class VarMgrEvbtests : public CppUnit::TestFixture {
   CPPUNIT_TEST(createWhenExists);
   
   CPPUNIT_TEST(createEvb);
-  //CPPUNIT_TEST(createEvbExists);
+  CPPUNIT_TEST(createEvbExists);
+
+  // We'll use set host tests to ensure that
+  // nonexistent hosts throw.
+  
+  CPPUNIT_TEST(evbsethost);
+  CPPUNIT_TEST(evbsethostnox);
+  
+  CPPUNIT_TEST(evbsetinterval);
+  CPPUNIT_TEST(evbsetid);
+  CPPUNIT_TEST(setprefix);
+  CPPUNIT_TEST(setsuffix);
+  CPPUNIT_TEST(disablebuild);
+  CPPUNIT_TEST(enablebuild);
+  CPPUNIT_TEST(settspolicy);
+
+  // Event builder removal:
+  
+  CPPUNIT_TEST(rmEventBuilder);
+  CPPUNIT_TEST(rmNoxEventBuilder);
+  
+  // Get event builder info:
+  
+  CPPUNIT_TEST(evbinfo);
+  CPPUNIT_TEST(evbNoxInfo);
+  CPPUNIT_TEST(evbls);
+  
+  // Data source creation:
+  
+  CPPUNIT_TEST(mkDs);
+  CPPUNIT_TEST(mkDsDup);
+  CPPUNIT_TEST(mkDsNoxEvb);
   CPPUNIT_TEST_SUITE_END();
 
 protected:
@@ -33,7 +66,28 @@ protected:
   void createSchema();
   void createWhenExists();
   void createEvb();
+  void createEvbExists();
   
+  void evbsethost();
+  void evbsethostnox();
+  void evbsetinterval();
+  void evbsetid();
+  void setprefix();
+  void setsuffix();
+  void disablebuild();
+  void enablebuild();
+  void settspolicy();
+  
+  void rmEventBuilder();
+  void rmNoxEventBuilder();
+  
+  void evbinfo();
+  void evbNoxInfo();
+  void evbls();
+  
+  void mkDs();
+  void mkDsDup();
+  void mkDsNoxEvb();
 private:
   CVarMgrApi*         m_pApi;
   CVardbEventBuilder* m_pEvbApi;
@@ -77,11 +131,32 @@ public:
     delete m_pEvbApi;
     unlink(m_dbFile.c_str());
   }
-
+private:
+  void setup2();
+  void setup3();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(VarMgrEvbtests);
 
+void VarMgrEvbtests::setup2()
+{
+  m_pEvbApi->createSchema();
+  m_pEvbApi->createEventBuilder(
+    "test", "charlie", 10);
+  
+}
+
+void VarMgrEvbtests::setup3()
+{
+  setup2();
+  std::vector<unsigned> ids;
+  ids.push_back(1);
+  ids.push_back(2);
+  m_pEvbApi->addDataSource(
+    "test", "ds1", "charlie", "/usr/opt/daq/current/bin/ringFragmentSource",
+    "tcp://charlie/fox", ids, "Test data source"
+  );
+}
 // Unless created the event builder db won't exist:
 
 void VarMgrEvbtests::existsNo() {
@@ -111,9 +186,7 @@ void VarMgrEvbtests::createWhenExists()
 
 void VarMgrEvbtests::createEvb()
 {
-  m_pEvbApi->createSchema();
-  m_pEvbApi->createEventBuilder(
-    "test", "charlie", 10);
+  setup2();
   
   // If the directory exists we can cd to it:
   
@@ -134,4 +207,200 @@ void VarMgrEvbtests::createEvb()
     }
   );
   
+}
+void VarMgrEvbtests::createEvbExists()
+{
+  setup2();
+  
+  // Creating another test event builder will throw.
+  
+  CPPUNIT_ASSERT_THROW(
+      m_pEvbApi->createEventBuilder(
+        "test", "charlie", 10),
+      std::runtime_error
+  );
+  
+}
+
+void VarMgrEvbtests::evbsethost()
+{
+  setup2();
+  m_pEvbApi->evbSetHost("test", "spdaq22");
+  
+  EQ(std::string("spdaq22"), m_pApi->get("EventBuilder/test/host"));
+}
+void VarMgrEvbtests::evbsethostnox()
+{
+  CPPUNIT_ASSERT_THROW(
+    m_pEvbApi->evbSetHost("test", "spaq22"),
+    std::runtime_error
+  );
+  
+}
+void VarMgrEvbtests::evbsetinterval()
+{
+  setup2();
+  m_pEvbApi->evbSetCoincidenceInterval("test", 15);
+  EQ(std::string("15"), m_pApi->get("EventBuilder/test/coincidenceInterval"));
+  
+}
+
+void VarMgrEvbtests::evbsetid()
+{
+  setup2();
+  m_pEvbApi->evbSetSourceId("test", 1);
+  EQ(std::string("1"), m_pApi->get("EventBuilder/test/sourceId"));
+}
+
+void VarMgrEvbtests::setprefix()
+{
+  setup2();
+  m_pEvbApi->evbSetServicePrefix("test", "junk");
+  EQ(std::string("junk"), m_pApi->get("EventBuilder/test/servicePrefix"));
+}
+void VarMgrEvbtests::setsuffix()
+{
+  setup2();
+  m_pEvbApi->evbSetServiceSuffix("test", "fox");
+  EQ(std::string("fox"), m_pApi->get("EventBuilder/test/serviceSuffix"));
+}
+void VarMgrEvbtests::disablebuild()
+{
+  setup2();
+  m_pEvbApi->evbDisableBuild("test");
+  EQ(std::string("false"), m_pApi->get("EventBuilder/test/build"));
+}
+
+void VarMgrEvbtests::enablebuild()
+{
+ setup2();
+  m_pEvbApi->evbDisableBuild("test");   // false
+  m_pEvbApi->evbEnableBuild("test");    // now true
+  EQ(std::string("true"), m_pApi->get("EventBuilder/test/build")); 
+}
+void VarMgrEvbtests::settspolicy()
+{
+  setup2();
+  m_pEvbApi->evbSetTimestampPolicy("test", CVardbEventBuilder::latest);
+  EQ(std::string("latest"), m_pApi->get("EventBuilder/test/timestampPolicy"));
+  m_pEvbApi->evbSetTimestampPolicy("test", CVardbEventBuilder::average);
+  EQ(std::string("average"), m_pApi->get("EventBuilder/test/timestampPolicy"));
+  m_pEvbApi->evbSetTimestampPolicy("test", CVardbEventBuilder::earliest);
+  EQ(std::string("earliest"), m_pApi->get("EventBuilder/test/timestampPolicy"));
+}
+
+void VarMgrEvbtests::rmEventBuilder()
+{
+  setup2();
+  m_pEvbApi->rmEventBuilder("test");
+  CPPUNIT_ASSERT_THROW(
+    m_pApi->cd("EventBuilder/test"),
+    std::runtime_error
+  );
+}
+void VarMgrEvbtests::rmNoxEventBuilder()
+{
+  setup2();
+  CPPUNIT_ASSERT_THROW(
+    m_pEvbApi->rmEventBuilder("junk"),
+    std::runtime_error
+  );
+}
+
+void VarMgrEvbtests::evbinfo()
+{
+  setup2();
+  CVardbEventBuilder::EvbDescription info = m_pEvbApi->evbInfo("test");
+  
+  EQ(std::string("test"),    info.s_name);
+  EQ(std::string("charlie"), info.s_host);
+  EQ(unsigned(10),           info.s_coincidenceInterval);
+  EQ(std::string("ORDERER"), info.s_servicePrefix);
+  EQ(std::string(""),        info.s_serviceSuffix);
+  EQ(true,                   info.s_build);
+  EQ(CVardbEventBuilder::earliest, info.s_timestampPolicy);
+  EQ(unsigned(0),            info.s_sourceId);
+}
+
+void VarMgrEvbtests::evbNoxInfo()
+{
+  setup2();
+  CPPUNIT_ASSERT_THROW(
+    m_pEvbApi->evbInfo("junk"),
+    std::runtime_error
+  );
+}
+
+void VarMgrEvbtests::evbls()
+{
+  setup2();   // that gives us test, event source 0.
+  m_pEvbApi->rmEventBuilder("test");   // So get rid of it.
+  
+  // Create the event builders:
+  
+  for (int i =0; i < 10; i++) {
+    char name[100];
+    sprintf(name, "test%d", i );
+    m_pEvbApi->createEventBuilder(name, "charlie", 10, i);
+  }
+  std::vector<CVardbEventBuilder::EvbDescription> evbs = m_pEvbApi->listEventBuilders();
+  
+  EQ(size_t(10), evbs.size());
+  for (int i = 0; i < 10; i++) {
+    char name[100];
+    sprintf(name, "test%d", i);
+    EQ(std::string(name), evbs[i].s_name);
+    EQ(unsigned(i), evbs[i].s_sourceId);
+  }
+}
+
+void VarMgrEvbtests::mkDs()
+{
+  setup3();
+  
+  CPPUNIT_ASSERT_NO_THROW(
+    m_pApi->cd("/EventBuilder/test/ds1")
+  );
+  CPPUNIT_ASSERT_NO_THROW(EQ(std::string("charlie"), m_pApi->get("host")));
+  CPPUNIT_ASSERT_NO_THROW(
+    EQ(
+      std::string("/usr/opt/daq/current/bin/ringFragmentSource"),
+      m_pApi->get("path")
+    )
+  );
+  CPPUNIT_ASSERT_NO_THROW(EQ(std::string("Test data source"), m_pApi->get("info")));
+  CPPUNIT_ASSERT_NO_THROW(EQ(std::string("1"), m_pApi->get("id0")));
+  CPPUNIT_ASSERT_NO_THROW(EQ(std::string("2"), m_pApi->get("id1")));
+  CPPUNIT_ASSERT_NO_THROW(EQ(std::string("tcp://charlie/fox"), m_pApi->get("ring")));
+  CPPUNIT_ASSERT_NO_THROW(EQ(std::string("0"), m_pApi->get("default-id")));
+  CPPUNIT_ASSERT_NO_THROW(EQ(std::string(""), m_pApi->get("timestamp-extractor")));
+  CPPUNIT_ASSERT_NO_THROW(EQ(std::string("true"), m_pApi->get("expect-bodyheaders")));
+    
+}
+
+void VarMgrEvbtests::mkDsDup()
+{
+  setup3();
+  std::vector<unsigned> ids;
+  
+  // Throw for duplicate event builder source.
+  
+  CPPUNIT_ASSERT_THROW(
+    m_pEvbApi->addDataSource("test", "ds1", "anything", "something", "ring", ids),
+    std::runtime_error
+  );
+}
+
+
+void VarMgrEvbtests::mkDsNoxEvb()
+{
+  setup3();
+  std::vector<unsigned> ids;
+  
+  
+    // Throw for no such event builder.
+  CPPUNIT_ASSERT_THROW(
+    m_pEvbApi->addDataSource("testing", "ds2", "anything", "something", "ring", ids),
+    std::runtime_error
+  );
 }

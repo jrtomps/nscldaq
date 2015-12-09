@@ -23,6 +23,7 @@
 #define CVARDBEVENTBUILDER_H
 
 #include <string>
+#include <vector>
 
 class CVarMgrApi;
 
@@ -50,6 +51,18 @@ public:
         earliest, latest, average
     } TimestampPolicy;
     
+    typedef struct _EvbDescription {
+        std::string     s_name;
+        std::string     s_host;
+        unsigned        s_coincidenceInterval;
+        std::string     s_servicePrefix;
+        std::string     s_serviceSuffix;
+        bool            s_build;
+        unsigned        s_sourceId;
+        TimestampPolicy s_timestampPolicy;
+        
+    } EvbDescription, *pEvbDescription;
+    
     // Internal attributes
 private:
    CVarMgrApi*   m_pApi;                  // underlying database api.
@@ -74,12 +87,62 @@ public:
         const char* serviceSuffix = ""
     );
     
+    // Modify existing event builders:
+    
+    void evbSetHost(const char* name, const char* newHost);
+    void evbSetCoincidenceInterval(const char* name,unsigned newInterval);
+    void evbSetSourceId(const char* name, unsigned newSourceId);
+    void evbSetServicePrefix(const char* name, const char* newPrefix);
+    void evbEnableBuild(const char* name);
+    void evbDisableBuild(const char* name);
+    void evbSetTimestampPolicy(const char* name,  TimestampPolicy newPolicy);
+    void evbSetServiceSuffix(const char* name, const char* newSuffix);
+
+    // Listing/deleting event builders:
+    
+    void rmEventBuilder(const char* name);
+    EvbDescription evbInfo(const char* name);
+    std::vector<EvbDescription> listEventBuilders();
+    
+    // data sources:
+    
+    void addDataSource(
+        const char* evbName, const char* srcName, const char* host,
+        const char* path, const char* ringUri,
+        std::vector<unsigned> ids, const char* info="",
+        bool expectBodyHeaders = true, unsigned defaultId = 0,
+        const char* timestampExtractor = ""
+    );
+    void dsSetHost(const char* evbName, const char* srcName, const char* host);
+    void dsSetPath(const char* evbName, const char* srcName, const char* path);
+    void dsSetRingUri(
+        const char* evbName, const char* srcName, const char* ringUri
+    );
+    void dsSetIds(
+        const char* evbName, const char* srcName, std::vector<unsigned> ids
+    );
+    void dsSetInfo(const char* evbName, const char* srcName, const char* info);
+    void dsSetDefaultId(const char* evbName, const char* srcName, unsigned id);
+    void dsExpectBodyHeaders(const char* evbName, const char* srcName);
+    void dsDontExpectBodyHeaders(const char* evbName, const char* srcName);
+    void dsSetTimstampExtractor(
+        const char* evbName, const char* srcName, const char* path
+    );
+    
+    
+    
+    
+    
     // Utility methods:
 private:
     std::string uIntToString(unsigned value);
     std::string boolToString(bool value);
     std::string tsPolicyToString(TimestampPolicy value);
     void definePolicies();
+    std::string evbDirname(const char* name);
+    void rmTree(const char* name);
+    TimestampPolicy textToPolicy(std::string value);
+    
 };
 
 #endif 
