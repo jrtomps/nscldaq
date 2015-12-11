@@ -586,7 +586,65 @@ CVardbEventBuilder::listEventBuilders()
     
     m_pApi->cd("/");
  }
- 
+ /**
+  * dsSetTimestampExtractor
+  *    Change the timestamp extractor shared library used by the source when
+  *    an item has no body header from which to extract  its timestamp.
+  *
+  *  @param evb  - Event builder.
+  *  @param ds   - Data Source
+  *  @param newLib - New path to timestamp extraction library.
+  */
+ void
+ CVardbEventBuilder::dsSetTimestampExtractor(
+    const char* evb, const char* ds, const char* newLib
+)
+ {
+    m_pApi->cd(dsDirName(evb, ds).c_str());
+    m_pApi->set("timestamp-extractor", newLib);
+    m_pApi->cd("/");
+ }
+ /**
+  * dsInfo
+  *    Provide information about a data source.
+  *
+  * @param evb - the event builder.
+  * @param ds  - The data source.
+  */
+ CVardbEventBuilder::DsDescription
+ CVardbEventBuilder::dsInfo(const char* evb, const char* ds)
+ {
+    m_pApi->cd(dsDirName(evb, ds).c_str());
+    DsDescription result;
+    try {
+        result.s_name = ds;
+        result.s_host = m_pApi->get("host");
+        result.s_path = m_pApi->get("path");
+        result.s_info = m_pApi->get("info");
+        result.s_ringUri = m_pApi->get("ring");
+        result.s_expectBodyheaders =
+            m_pApi->get("expect-bodyheaders") == "true" ? true : false;
+        result.s_defaultId = (unsigned)atoi(m_pApi->get("default-id").c_str());
+        result.s_timestampExtractor = m_pApi->get("timestamp-extractor");
+        
+        // Now we need to go over all the variables turning the id* ones int
+        // elements of the s_ids vector.
+        
+        std::vector<CVarMgrApi::VarInfo> vars = m_pApi->lsvar();
+        for (int i = 0; i < vars.size(); i++) {
+            if (vars[i].s_name.substr(0,2) == std::string("id")) {
+                result.s_ids.push_back(unsigned(atoi(vars[i].s_value.c_str())));
+            }
+        }
+    }
+    catch (...) {
+        m_pApi->cd("/");
+        throw;
+    }
+    
+    m_pApi->cd("/");
+    return result;
+ }
 /*-----------------------------------------------------------------------------
  *  Utility functions
  */

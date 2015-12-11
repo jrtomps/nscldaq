@@ -63,6 +63,19 @@ public:
         
     } EvbDescription, *pEvbDescription;
     
+    typedef struct _DsDescription {
+        std::string   s_name;
+        std::string   s_host;
+        std::string   s_path;
+        std::string   s_info;
+        std::vector<unsigned> s_ids;
+        std::string   s_ringUri;
+        bool          s_expectBodyheaders;
+        unsigned      s_defaultId;
+        std::string   s_timestampExtractor;
+        
+    } DsDescription, *pDsDescription;
+    
     // Internal attributes
 private:
    CVarMgrApi*   m_pApi;                  // underlying database api.
@@ -125,11 +138,13 @@ public:
     void dsSetDefaultId(const char* evbName, const char* srcName, unsigned id);
     void dsExpectBodyHeaders(const char* evbName, const char* srcName);
     void dsDontExpectBodyHeaders(const char* evbName, const char* srcName);
-    void dsSetTimstampExtractor(
+    void dsSetTimestampExtractor(
         const char* evbName, const char* srcName, const char* path
     );
     
-    
+    DsDescription dsInfo(const char* evb, const char* ds);
+    std::vector<DsDescription> listDataSources(const char* evb);
+    void rmDataSource(const char* evb, const char* ds);
     
     
     

@@ -70,6 +70,13 @@ class VarMgrEvbtests : public CppUnit::TestFixture {
   CPPUNIT_TEST(dsSetDefaultId);
   CPPUNIT_TEST(dsExpectBodyHeaders);
   CPPUNIT_TEST(dsDontExpectBodyHeaders);
+  CPPUNIT_TEST(dsSetTimestampExt);
+
+  CPPUNIT_TEST(dsInfo);
+  //CPPUNIT_TEST(dsInfoNox);
+  //CPPUNIT_TEST(lsds);
+  //CPPUNIT_TEST(rmds);
+  //CPPUNIT_TEST(rmnoxds);
   CPPUNIT_TEST_SUITE_END();
 
 protected:
@@ -109,6 +116,9 @@ protected:
   void dsSetDefaultId();
   void dsExpectBodyHeaders();
   void dsDontExpectBodyHeaders();
+  void dsSetTimestampExt();
+  
+  void dsInfo();
 private:
   CVarMgrApi*         m_pApi;
   CVardbEventBuilder* m_pEvbApi;
@@ -494,4 +504,32 @@ void VarMgrEvbtests::dsDontExpectBodyHeaders()
   EQ(
     std::string("false"),
     m_pApi->get("/EventBuilder/test/ds1/expect-bodyheaders"));
+}
+
+void VarMgrEvbtests::dsSetTimestampExt()
+{
+  setup3();
+  m_pEvbApi->dsSetTimestampExtractor("test", "ds1", "/user/fox/lib/libtsextract.so");
+  EQ(
+    std::string("/user/fox/lib/libtsextract.so"),
+    m_pApi->get("/EventBuilder/test/ds1/timestamp-extractor")
+  );
+}
+
+void VarMgrEvbtests::dsInfo()
+{
+  setup3();
+  CVardbEventBuilder::DsDescription Info = m_pEvbApi->dsInfo("test", "ds1");
+  
+  EQ(std::string("ds1"),     Info.s_name);
+  EQ(std::string("charlie"), Info.s_host);
+  EQ(std::string("/usr/opt/daq/current/bin/ringFragmentSource"), Info.s_path);
+  EQ(std::string("Test data source"), Info.s_info);
+  EQ(size_t(2), Info.s_ids.size());
+  EQ(unsigned(1), Info.s_ids[0]);
+  EQ(unsigned(2), Info.s_ids[1]);
+  EQ(std::string("tcp://charlie/fox"), Info.s_ringUri);
+  EQ(true, Info.s_expectBodyheaders);
+  EQ(unsigned(0), Info.s_defaultId);
+  EQ(std::string(""), Info.s_timestampExtractor);
 }
