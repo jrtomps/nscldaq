@@ -47,6 +47,7 @@ class VarMgrEvbtests : public CppUnit::TestFixture {
   CPPUNIT_TEST(rmEventBuilder);
   CPPUNIT_TEST(rmNoxEventBuilder);
   
+  
   // Get event builder info:
   
   CPPUNIT_TEST(evbinfo);
@@ -58,6 +59,17 @@ class VarMgrEvbtests : public CppUnit::TestFixture {
   CPPUNIT_TEST(mkDs);
   CPPUNIT_TEST(mkDsDup);
   CPPUNIT_TEST(mkDsNoxEvb);
+  
+  // data source modification:
+  
+  CPPUNIT_TEST(dsSetHost);
+  CPPUNIT_TEST(dsSetPath);
+  CPPUNIT_TEST(dsSetRingUri);
+  CPPUNIT_TEST(dsSetIds);
+  CPPUNIT_TEST(dsSetInfo);
+  CPPUNIT_TEST(dsSetDefaultId);
+  CPPUNIT_TEST(dsExpectBodyHeaders);
+  CPPUNIT_TEST(dsDontExpectBodyHeaders);
   CPPUNIT_TEST_SUITE_END();
 
 protected:
@@ -88,6 +100,15 @@ protected:
   void mkDs();
   void mkDsDup();
   void mkDsNoxEvb();
+  
+  void dsSetHost();
+  void dsSetPath();
+  void dsSetRingUri();
+  void dsSetIds();
+  void dsSetInfo();
+  void dsSetDefaultId();
+  void dsExpectBodyHeaders();
+  void dsDontExpectBodyHeaders();
 private:
   CVarMgrApi*         m_pApi;
   CVardbEventBuilder* m_pEvbApi;
@@ -403,4 +424,74 @@ void VarMgrEvbtests::mkDsNoxEvb()
     m_pEvbApi->addDataSource("testing", "ds2", "anything", "something", "ring", ids),
     std::runtime_error
   );
+}
+
+void VarMgrEvbtests::dsSetHost()
+{
+  setup3();
+  m_pEvbApi->dsSetHost("test", "ds1", "spdaq22.nscl.msu.edu");
+  EQ(std::string("spdaq22.nscl.msu.edu"), m_pApi->get("/EventBuilder/test/ds1/host"));
+}
+
+void VarMgrEvbtests::dsSetPath()
+{
+  setup3();
+  m_pEvbApi->dsSetPath("test", "ds1", "/usr/bin/ls");
+  EQ(std::string("/usr/bin/ls"), m_pApi->get("/EventBuilder/test/ds1/path"));
+}
+
+void VarMgrEvbtests::dsSetRingUri()
+{
+  setup3();
+  m_pEvbApi->dsSetRingUri("test", "ds1", "tcp://spdaq20/0400x");
+  EQ(std::string("tcp://spdaq20/0400x"), m_pApi->get("/EventBuilder/test/ds1/ring"));
+}
+
+void VarMgrEvbtests::dsSetIds()
+{
+  setup3();
+  std::vector<unsigned> ids;
+  ids.push_back(5);
+  ids.push_back(4);
+  ids.push_back(3);
+  m_pEvbApi->dsSetIds("test", "ds1", ids);
+  
+  m_pApi->cd("/EventBuilder/test/ds1");
+  
+  EQ(std::string("5"), m_pApi->get("id0"));
+  EQ(std::string("4"), m_pApi->get("id1"));
+  EQ(std::string("3"), m_pApi->get("id2"));
+}
+
+void VarMgrEvbtests::dsSetInfo()
+{
+  setup3();
+  
+  m_pEvbApi->dsSetInfo("test", "ds1", "My new information");
+  EQ(std::string("My new information"), m_pApi->get("/EventBuilder/test/ds1/info"));
+}
+void VarMgrEvbtests::dsSetDefaultId()
+{
+  setup3();
+  
+  m_pEvbApi->dsSetDefaultId("test", "ds1", 666);
+  EQ(std::string("666"), m_pApi->get("/EventBuilder/test/ds1/default-id"));
+}
+
+void VarMgrEvbtests::dsExpectBodyHeaders()
+{
+  setup3();
+  m_pEvbApi->dsExpectBodyHeaders("test", "ds1");
+  EQ(
+    std::string("true"),
+    m_pApi->get("/EventBuilder/test/ds1/expect-bodyheaders"));
+}
+
+void VarMgrEvbtests::dsDontExpectBodyHeaders()
+{
+  setup3();
+  m_pEvbApi->dsDontExpectBodyHeaders("test", "ds1");
+  EQ(
+    std::string("false"),
+    m_pApi->get("/EventBuilder/test/ds1/expect-bodyheaders"));
 }

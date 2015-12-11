@@ -432,6 +432,160 @@ CVardbEventBuilder::listEventBuilders()
     }
     m_pApi->cd("/");
  }
+ /**
+  * dsSetHost
+  *    Modify the host name of an existing event builder data source.
+  *
+  *   @param evb -name of event builder.
+  *   @param ds  -name of datasource.
+  *   @param newHost - new host name.
+  */
+ void
+ CVardbEventBuilder::dsSetHost(const char* evb, const char* ds, const char* newHost)
+ {
+    std::string dsDir = dsDirName(evb, ds);
+    m_pApi->cd(dsDir.c_str());
+    m_pApi->set("host", newHost);
+    
+    m_pApi->cd("/");
+ }
+ /**
+  * dsSetPath
+  *    Set the path to the data source program.
+  *
+  *  @param evbName - name of event builder.
+  *  @param dsName  - name of its data source.
+  *  @param newPath - New path to the data source's program.
+  */
+ void
+ CVardbEventBuilder::dsSetPath(
+    const char* evbName, const char* dsName, const char* newPath
+)
+ {
+    std::string dsDir = dsDirName(evbName, dsName);
+    m_pApi->cd(dsDir.c_str());
+    m_pApi->set("path", newPath);
+    
+    m_pApi->cd("/");    
+ }
+ /**
+  * dsSetRingUri
+  *    Modifies the URI of the ring from which data will be taken and squirted
+  *    to the event builder.
+  *
+  *  @param evb    - Event builder name.
+  *  @param ds     - Name of data source for this event builder.
+  *  @param newRing - New URI of the ring.
+  */
+ void
+ CVardbEventBuilder::dsSetRingUri(const char* evb, const char* ds, const char* newRing)
+ {
+    std::string dsDir = dsDirName(evb, ds);
+    m_pApi->cd(dsDir.c_str());
+    m_pApi->set("ring", newRing);
+    
+    m_pApi->cd("/");
+ }
+ /**
+  * dsSetIds
+  *    Set the ids produced by the data source to a new set of values.
+  *
+  *  @param evb    - name of the event builder.
+  *  @param ds     - name of that event builder's data source.
+  *  @param ids    - new vector of ids.
+  */
+ void
+ CVardbEventBuilder::dsSetIds(const char* evb, const char* ds, std::vector<unsigned> ids)
+ {
+    m_pApi->cd(dsDirName(evb, ds).c_str());
+    
+    // First we need to destroy the existing variables whose names start with
+    // id.  While we create variables like id1, id2... the specification
+    // says that any variable whose name is id* is a source id.  This code
+    // ensures that any manually created source ids are also destroed (e.g
+    // id-special).
+    
+    std::vector<CVarMgrApi::VarInfo> vars = m_pApi->lsvar();
+    for (int i = 0; i < vars.size(); i++) {
+        if (vars[i].s_name.substr(0, 2) == std::string("id")) {
+            m_pApi->rmvar(vars[i].s_name.c_str());
+        }
+    }
+    // Now we can create new variables.
+    
+    for (int i = 0; i < ids.size(); i++) {
+        char varname[100];
+        sprintf(varname, "id%d", i);
+        m_pApi->declare(varname, "integer", uIntToString(ids[i]).c_str());
+    }
+    
+    m_pApi->cd("/");
+ }
+ /**
+  * dsSetInfo
+  *    Sets the information string for a data source.
+  *   @param evb - event builder name.
+  *   @param ds  - Data source name.
+  *   @param newInfo - new info string.
+  */
+ void
+ CVardbEventBuilder::dsSetInfo(const char* evb, const char* ds, const char* newInfo)
+ {
+    m_pApi->cd(dsDirName(evb, ds).c_str());
+    m_pApi->set("info", newInfo);
+    m_pApi->cd("/");
+ }
+ 
+ /**
+  * dsSetDefaultId
+  *
+  *    Set a new value for the default id.  The default id is used to supply
+  *    a data source id in the event a ring item does not have a body header.
+  *
+  *  @param evb    - Event builder being modified.
+  *  @param ds     - Data source for that event builder that is modified.
+  *  @param newId  - New default id.
+  */
+ void
+ CVardbEventBuilder::dsSetDefaultId(const char* evb, const char* ds, unsigned newId)
+ {
+    m_pApi->cd(dsDirName(evb, ds).c_str());
+    m_pApi->set("default-id", uIntToString(newId).c_str());
+    m_pApi->cd("/");
+ }
+ 
+ /**
+  * dsExpectBodyHeaders
+  *
+  *     Tells a data source that it should expect body headers in all fragments
+  *     when run in this manner,
+  *     a ring item without a body header is considered an error.
+  *  @param evb  - Event builder name.
+  *  @param ds   - Data source name within the event builder
+  */
+ void
+ CVardbEventBuilder::dsExpectBodyHeaders(const char* evb, const char* ds)
+ {
+    m_pApi->cd(dsDirName(evb, ds).c_str());
+    m_pApi->set("expect-bodyheaders", "true");
+    
+    m_pApi->cd("/");
+ }
+ /**
+  *  dsDontExpectBodyHeaders
+  *     Tells a data source there can be ring items that don't have body headers.
+  *
+  *  @param evb - event builder name.
+  *  @param ds - Data source name.
+  */
+ void
+ CVardbEventBuilder::dsDontExpectBodyHeaders(const char* evb, const char* ds)
+  {
+    m_pApi->cd(dsDirName(evb, ds).c_str());
+    m_pApi->set("expect-bodyheaders", "false");
+    
+    m_pApi->cd("/");
+ }
  
 /*-----------------------------------------------------------------------------
  *  Utility functions
@@ -548,4 +702,21 @@ CVardbEventBuilder::textToPolicy(std::string value)
         if (p->second == value) return p->first;
         p++;
     }
+}
+/**
+ *  dsDirName
+ *     Return the directory in which information about a specific data source
+ *     is stored.
+ *  @param evbName - name of the event builder.
+ *  @param dsName  - Name of the data source.
+ *  @return std::string.
+ */
+std::string
+CVardbEventBuilder::dsDirName(const char* evbName, const char* dsName)
+{
+    std::string result = evbDirname(evbName);
+    result += "/";
+    result += dsName;
+    
+    return result;
 }

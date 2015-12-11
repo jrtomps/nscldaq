@@ -140,6 +140,7 @@ private:
     std::string tsPolicyToString(TimestampPolicy value);
     void definePolicies();
     std::string evbDirname(const char* name);
+    std::string dsDirName(const char* evbName, const char* dsName);
     void rmTree(const char* name);
     TimestampPolicy textToPolicy(std::string value);
     
