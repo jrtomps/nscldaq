@@ -62,6 +62,9 @@ BOOKDIRS = 	@top_srcdir@ \
 						@top_srcdir@/simplesetups/v785 \
 						@top_srcdir@/utilities/bufdump \
 						@top_srcdir@/utilities/eventlog \
+						@top_srcdir@/utilities/dumpend \
+						@top_srcdir@/utilities/runcontrol 	\
+						@top_srcdir@/utilities/bootmanager	\
 						@top_srcdir@/servers/portmanager \
 						@top_srcdir@/servers/tclserver \
 						@top_srcdir@/usb/mesytec/MCFD16 \
@@ -100,12 +103,9 @@ BOOKDIRS = 	@top_srcdir@ \
 						@top_srcdir@/base/os \
 						@top_srcdir@/base/tclwidgets  \
 						@top_srcdir@/libtcl/tclplus  \
-						@top_srcdir@/libtcl/exception 
+						@top_srcdir@/libtcl/exception 	\
+						@top_srcdir@/utilities/varmanager
 
-#						@top_srcdir@/utilities/boot 
-#						@top_srcdir@/utilities/statemanager 
-#						@top_srcdir@/utilities/experimentConfiguration
-#						@top_srcdir@/utilities/cpanel 
 
 
 
