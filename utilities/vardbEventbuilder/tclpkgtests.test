@@ -1,0 +1,109 @@
+#!/bin/sh
+# -*- tcl -*-
+# The next line is executed by /bin/sh, but not tcl \
+exec tclsh "$0" ${1+"$@"}
+
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2014.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Authors:
+#             Ron Fox
+#             Jeromy Tompkins 
+#	     NSCL
+#	     Michigan State University
+#	     East Lansing, MI 48824-1321
+
+
+
+##
+# @file tclpkgtests.tcl.tcl
+# @brief <brief purpose>
+# @author Ron Fox <fox@nscl.msu.edu>
+#
+
+package require tcltest
+
+#-----------------------------------------------------------------
+# Utility functions:
+
+proc createDbFile {} {
+    set dir [tcltest::config -tmpdir]
+    set path [tcltest::makeFile {} test.db $dir]
+    
+}
+
+#-----------------------------------------------------------------
+# The tests
+
+tcltest::test pkgexists {The package can be loaded} \
+-body {
+    catch {package require vardbEventBuilder}
+} -result 0
+
+tcltest::test cmdexists {The command ensemble base command exists.}\
+-setup {
+    package require vardbEventBuilder
+} \
+-body {
+    info commands ::nscldaq::evb
+} -result ::nscldaq::evb
+ 
+
+tcltest::test check-schema-2 {DB File with schema } -result 1
+
+tcltest::test make-schema {Create database schema} -result 1
+
+
+tcltest::test create-1 {need sufficent parameters} \
+-setup {
+    package require vardbEventBuilder
+    set testdir [tcltest::configure -tmpdir]
+} \
+-body {
+    set stat0 [catch {nscldaq::evb create}]
+    set stat1 [catch {::nscldaq::evb create file://$testdir/junk.db}]
+
+    list $stat0 $stat1    
+} -result [list 1 1]
+
+tcltest::test create-2 {Connect on bad database fails} \
+-setup {
+    package require vardbEventBuilder
+    set testdir [tcltest::configure -tmpdir]
+} \
+-body {
+    catch {::nscldaq::evb create testing file://$testdir/this-does-not-exist.db}
+    
+} -result 1
+
+tcltest::test create-3 {Connct on a good database works} \
+-setup {
+    package require vardbEventBuidler
+    set file [createDbFile]
+    
+} \
+-cleanup {
+    ::nscldaq::evb destroy testing
+    destroyDbFile $file
+    
+} \
+-body {
+    catch {::nscldaq::evb create testing file://$file}
+} -result 0 -constraints unimplementedtest
+
+#-------------------------------------------------------------------------------
+#
+#   Global test teardown/reporting.
+
+proc tcltest::cleanupTestsHook {} {
+    variable numTests
+    set ::exitCode $numTests(Failed)
+}
+
+
+tcltest::cleanupTests
