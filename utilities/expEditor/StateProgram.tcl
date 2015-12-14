@@ -197,6 +197,31 @@ Therefore the host that '$myName' runs in is being changed to '$ringHost'"
     method _setInRingInfo {ring} {
         $self _setProperty $self {Input Ring} [$self _getUri $ring]
     }
+    ##
+    # _disableHostProperty
+    #
+    #   Turn off editing of the host property.  This is done when we have an
+    #   output ring connection.  In that case the output ring forces us ot live
+    #   in the same ost as that ring due to the way in which the API for
+    #   producers works.
+    #
+    method _disableHostProperty {} {
+        set props [$data getProperties]
+        set prop  [$props find "host"]
+        $prop configure -editable 0
+    }
+    ##
+    # _enableHostProperty
+    #
+    #   Allow editing of the host property.  Ths is required when the object doe
+    #   not have an output ring.  In that case there's no restriction on
+    #   which host can run the program.
+    #
+    method _enableHostProperty {} {
+        set props [$data getProperties]
+        set prop  [$props find "host"]
+        $prop configure -editable 1
+    }
     #---------------------------------------------------------------------------
     # Public methods
     
@@ -232,6 +257,9 @@ Therefore the host that '$myName' runs in is being changed to '$ringHost'"
         if {$direction eq "from"} {
             $self _setOutRingInfo $object
             set outRingObj $object
+            
+            $self _disableHostProperty
+            
         } elseif {$direction eq "to" } {
             $self _setInRingInfo $object
             set inRingObj $object
@@ -260,6 +288,9 @@ Therefore the host that '$myName' runs in is being changed to '$ringHost'"
         if {$object eq $outRingObj} {
             $self _setProperty $self {Output Ring} {}
             set outRingObj ""
+            
+            $self _enableHostProperty
+            
         } elseif {$object eq $inRingObj} {
             $self _setProperty $self {Input Ring} {}
             set inRingObj ""
