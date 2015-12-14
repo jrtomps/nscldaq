@@ -73,9 +73,9 @@ class VarMgrEvbtests : public CppUnit::TestFixture {
   CPPUNIT_TEST(dsSetTimestampExt);
 
   CPPUNIT_TEST(dsInfo);
-  //CPPUNIT_TEST(dsInfoNox);
-  //CPPUNIT_TEST(lsds);
-  //CPPUNIT_TEST(rmds);
+  CPPUNIT_TEST(dsInfoNox);
+  CPPUNIT_TEST(lsds);
+  CPPUNIT_TEST(rmds);
   //CPPUNIT_TEST(rmnoxds);
   CPPUNIT_TEST_SUITE_END();
 
@@ -119,6 +119,9 @@ protected:
   void dsSetTimestampExt();
   
   void dsInfo();
+  void dsInfoNox();
+  void lsds();
+  void rmds();
 private:
   CVarMgrApi*         m_pApi;
   CVardbEventBuilder* m_pEvbApi;
@@ -532,4 +535,83 @@ void VarMgrEvbtests::dsInfo()
   EQ(true, Info.s_expectBodyheaders);
   EQ(unsigned(0), Info.s_defaultId);
   EQ(std::string(""), Info.s_timestampExtractor);
+}
+
+void VarMgrEvbtests::dsInfoNox()
+{
+  setup2();
+  
+  CPPUNIT_ASSERT_THROW(
+    CVardbEventBuilder::DsDescription Info = m_pEvbApi->dsInfo("test", "ds1"),
+    std::runtime_error
+  );
+}
+
+void VarMgrEvbtests::lsds()
+{
+  setup3();                       // ds1 is built.
+  std::vector<unsigned> ids;
+  
+  ids.push_back(2);
+  ids.push_back(3);    
+  ids.push_back(5);    // Prime example of a vector of source ids.
+  ids.push_back(7);
+  ids.push_back(11);
+  
+  m_pEvbApi->addDataSource(
+    "test", "ds2", "spdaq20", "/usr/opt/daq/current/bin/ringFragmentSource",
+    "tcp://spdaq20/0400x", ids, "2nd Test data source"
+  );
+  m_pEvbApi->addDataSource(
+    "test", "ds3", "charlie", "/usr/opt/daq/current/bin/ringFragmentSource",
+    "tcp://spdaq30/0400x", ids, "remote Test data source"
+    );
+  
+    std::vector<CVardbEventBuilder::DsDescription> desc =
+      m_pEvbApi->listDataSources("test");
+      
+    EQ(size_t(3), desc.size());
+    
+    EQ(std::string("ds1"), desc[0].s_name);
+    EQ(std::string("charlie"), desc[0].s_host);
+    
+    EQ(std::string("ds2"), desc[1].s_name);
+    EQ(std::string("spdaq20"), desc[1].s_host);
+    EQ(std::string("tcp://spdaq20/0400x"), desc[1].s_ringUri);
+    EQ(std::string("2nd Test data source"), desc[1].s_info);
+    
+    EQ(std::string("ds3"), desc[2].s_name);   // If the prior tests are ok this
+                                              // is probably sufficient.
+    
+}
+
+void VarMgrEvbtests::rmds()
+{
+setup3();                       // ds1 is built.
+  std::vector<unsigned> ids;
+  
+  ids.push_back(2);
+  ids.push_back(3);    
+  ids.push_back(5);    // Prime example of a vector of source ids.
+  ids.push_back(7);
+  ids.push_back(11);
+  
+  m_pEvbApi->addDataSource(
+    "test", "ds2", "spdaq20", "/usr/opt/daq/current/bin/ringFragmentSource",
+    "tcp://spdaq20/0400x", ids, "2nd Test data source"
+  );
+  m_pEvbApi->addDataSource(
+    "test", "ds3", "charlie", "/usr/opt/daq/current/bin/ringFragmentSource",
+    "tcp://spdaq30/0400x", ids, "remote Test data source"
+    );
+  
+  m_pEvbApi->rmDataSource("test", "ds2");
+  std::vector<CVardbEventBuilder::DsDescription> desc =
+      m_pEvbApi->listDataSources("test");
+      
+  EQ(size_t(2), desc.size());
+  
+  EQ(std::string("ds1"), desc[0].s_name);
+  EQ(std::string("ds3"), desc[1].s_name);
+  
 }

@@ -645,6 +645,43 @@ CVardbEventBuilder::listEventBuilders()
     m_pApi->cd("/");
     return result;
  }
+ /**
+  * listDataSources
+  *    Return a vector of the data source descriptions for the data
+  *    sources that are defined for an event builder.
+  *
+  *  @param evb - event builder name.
+  *  @return std::vector<DsDescription> - vector of event source descriptors.
+  */
+ std::vector<CVardbEventBuilder::DsDescription>
+ CVardbEventBuilder::listDataSources(const char* evb)
+ {
+    // list the event source directories first:
+    
+    std::vector<std::string> names = m_pApi->ls(evbDirname(evb).c_str());
+    
+    // Now for each name add an info element to the result vector:
+    
+    std::vector<DsDescription> result;
+    for (int i = 0; i < names.size(); i++) {
+        result.push_back(dsInfo(evb, names[i].c_str()));
+    }
+    return result;
+ }
+ /**
+  * rmDataSource
+  *    Remove a data source from an event builder.
+  *
+  *  @param evb - name of the event builder.
+  *  @param ds  - data source name (within the event builder).
+  */
+ void
+ CVardbEventBuilder::rmDataSource(const char* evb, const char* ds)
+ {
+    std::string dir = dsDirName(evb, ds);
+    rmTree(dir.c_str());
+    m_pApi->rmdir(dir.c_str());
+ }
 /*-----------------------------------------------------------------------------
  *  Utility functions
  */
