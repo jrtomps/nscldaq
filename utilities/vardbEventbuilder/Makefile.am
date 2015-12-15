@@ -42,3 +42,5 @@ TESTS_ENVIRONMENT=TCLLIBPATH=@prefix@/TclLibs; export TCLLIBPATH;
 
 TESTS=@builddir@/unittests tclpkgtests.test
 
+EXTRA_DIST=tclpkgtests.test
+
