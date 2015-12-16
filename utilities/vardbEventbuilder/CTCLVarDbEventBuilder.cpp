@@ -134,7 +134,29 @@ void CTCLVarDbEventBuilder::create(CTCLInterpreter& interp, std::vector<CTCLObje
     m_Connections[newCommand] = pCommand;
     
 }
+/**
+ * destroy
+ *   Destroy an existing command.
+ *   -  Ensure we have a command name.
+ *   -  Ensure the command exists.
+ *   -  delete the command object.
+ *   -  destroy the map entry for it.
+ *  @param interp - references the interpreter running the command.
+ *  @param objv   - Command line parameters.
+ */
 void CTCLVarDbEventBuilder::destroy(CTCLInterpreter& interp, std::vector<CTCLObject>& objv)
 {
+    requireExactly(objv, 3, "Incorrect number of command parameters");
+    std::string cmdName = objv[2];
+    
+    std::map<std::string, CTCLObjectProcessor*>::iterator p =
+        m_Connections.find(cmdName);
+        
+    if(p == m_Connections.end()) {
+        throw std::runtime_error("No event builder API command by that name");
+    }
+    
+    delete p->second;
+    m_Connections.erase(p);
     
 }

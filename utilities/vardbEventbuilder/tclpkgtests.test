@@ -27,14 +27,20 @@ exec tclsh "$0" ${1+"$@"}
 #
 
 package require tcltest
+package require vardb
 
 #-----------------------------------------------------------------
 # Utility functions:
 
 proc createDbFile {} {
-    set dir [tcltest::config -tmpdir]
+    set dir [tcltest::configure -tmpdir]
     set path [tcltest::makeFile {} test.db $dir]
-    
+    vardb::create $path    
+    return $path
+}
+
+proc destroyDbFile path {
+    file delete -force $path
 }
 
 #-----------------------------------------------------------------
@@ -53,11 +59,6 @@ tcltest::test cmdexists {The command ensemble base command exists.}\
     info commands ::nscldaq::evb
 } -result ::nscldaq::evb
  
-
-tcltest::test check-schema-2 {DB File with schema } -result 1
-
-tcltest::test make-schema {Create database schema} -result 1
-
 
 tcltest::test create-1 {need sufficent parameters} \
 -setup {
@@ -83,7 +84,7 @@ tcltest::test create-2 {Connect on bad database fails} \
 
 tcltest::test create-3 {Connct on a good database works} \
 -setup {
-    package require vardbEventBuidler
+    package require vardbEventBuilder
     set file [createDbFile]
     
 } \
@@ -94,16 +95,395 @@ tcltest::test create-3 {Connct on a good database works} \
 } \
 -body {
     catch {::nscldaq::evb create testing file://$file}
-} -result 0 -constraints unimplementedtest
+    
+} -result 0
+
+tcltest::test create-4 {Test for command creation and destruction} \
+-setup {
+    package require vardbEventBuilder
+    set file [createDbFile]
+    
+} \
+-cleanup {
+    destroyDbFile $file
+    
+} \
+-body {
+    ::nscldaq::evb create mytest file://$file
+    set cmd [info command mytest]
+    
+    ::nscldaq::evb destroy mytest
+    set nocmd [info command mytest]
+    
+    list $cmd $nocmd
+} -result [list mytest ""]
+
+
+tcltest::test check-schema-1 {Initially created db has no evb schema} \
+-setup {
+    package require vardbEventBuilder
+    set file [createDbFile]
+    ::nscldaq::evb create evb file://$file
+} \
+-cleanup {
+    ::nscldaq::evb destroy evb
+    destroyDbFile $file
+    
+} \
+-body {
+    evb haveSchema
+} -result 0
+    
+tcltest::test make-schema {Create database schema}  \
+-setup {
+    package require vardbEventBuilder
+    set file [createDbFile]
+    ::nscldaq::evb create evb file://$file
+} \
+-cleanup {
+    ::nscldaq::evb destroy evb
+    destroyDbFile $file
+    
+} \
+-body {
+    evb createSchema
+    evb haveSchema
+} -result 1
+
+tcltest::test create-evb-1 {create event builder with defaults} \
+-setup {
+    package require vardbEventBuilder
+    set file [createDbFile]
+    ::nscldaq::evb create evb file://$file
+    evb createSchema
+    
+    set h [::vardb::open $file]
+} \
+-cleanup {
+    ::nscldaq::evb destroy evb
+    ::vardb::close $h
+    destroyDbFile $file
+    
+} \
+-body {
+    evb createEventBuilder test charlie
+    
+    ::vardb::cd $h /EventBuilder/test
+    set info [list]
+    lappend info [::vardb::var get $h host]
+    lappend info [::vardb::var get $h servicePrefix]
+    lappend info [::vardb::var get $h serviceSuffix]
+    lappend info [::vardb::var get $h coincidenceInterval]
+    lappend info [::vardb::var get $h build]
+    lappend info [::vardb::var get $h timestampPolicy]
+    lappend info [::vardb::var get $h sourceId]
+    
+} -result [list charlie ORDERER "" 1 true earliest 0]
+
+tcltest::test create-evb-2 {Create event builder with defaults overriden} \
+-setup {
+    package require vardbEventBuilder
+    set file [createDbFile]
+    ::nscldaq::evb create evb file://$file
+    evb createSchema
+    
+    set h [::vardb::open $file]
+} \
+-cleanup {
+    ::nscldaq::evb destroy evb
+    ::vardb::close $h
+    destroyDbFile $file
+    
+} \
+-body {
+    evb createEventBuilder test charlie [dict create \
+        dt 1234 sourceId 5 prefix Foxy build false suffix yxoF tspolicy average
+    ]
+    
+    
+    ::vardb::cd $h /EventBuilder/test
+    set info [list]
+    lappend info [::vardb::var get $h host]
+    lappend info [::vardb::var get $h servicePrefix]
+    lappend info [::vardb::var get $h serviceSuffix]
+    lappend info [::vardb::var get $h coincidenceInterval]
+    lappend info [::vardb::var get $h build]
+    lappend info [::vardb::var get $h timestampPolicy]
+    lappend info [::vardb::var get $h sourceId]
+    
+} -result [list charlie Foxy yxoF 1234 false average 5]
+
+tcltest::test sethost-1 {Set new host for existing eventbuilder } \
+-setup {
+    package require vardbEventBuilder
+    set file [createDbFile]
+    ::nscldaq::evb create evb file://$file
+    evb createSchema
+    
+    evb createEventBuilder test charlie
+    
+    set h [::vardb::open $file]
+} \
+-cleanup {
+    ::nscldaq::evb destroy evb
+    ::vardb::close $h
+    destroyDbFile $file
+    
+} \
+-body {
+    evb evbSetHost test spdaq20
+    
+    ::vardb::var get $h /EventBuilder/test/host
+} -result spdaq20
+    
+tcltest::test setdt-1 {Set a new coincidence interval for existing event bulder} \
+-setup {
+    package require vardbEventBuilder
+    set file [createDbFile]
+    ::nscldaq::evb create evb file://$file
+    evb createSchema
+    
+    evb createEventBuilder test charlie
+    
+    set h [::vardb::open $file]
+} \
+-cleanup {
+    ::nscldaq::evb destroy evb
+    ::vardb::close $h
+    destroyDbFile $file
+    
+} \
+-body {
+    evb evbSetCoincidenceInterval test 12
+    ::vardb::var get $h /EventBuilder/test/coincidenceInterval
+} -result 12
+
+
+tcltest::test setId-1 {set source id for existing event builder} \
+-setup {
+    package require vardbEventBuilder
+    set file [createDbFile]
+    ::nscldaq::evb create evb file://$file
+    evb createSchema
+    
+    evb createEventBuilder test charlie
+    
+    set h [::vardb::open $file]
+} \
+-cleanup {
+    ::nscldaq::evb destroy evb
+    ::vardb::close $h
+    destroyDbFile $file
+    
+} \
+-body {
+    evb evbSetSourceId test 66
+    ::vardb::var get $h /EventBuilder/test/sourceId
+} -result 66
+
+tcltest::test setservprefix-1 {Set service prefix for existing event builder} \
+-setup {
+    package require vardbEventBuilder
+    set file [createDbFile]
+    ::nscldaq::evb create evb file://$file
+    evb createSchema
+    
+    evb createEventBuilder test charlie
+    
+    set h [::vardb::open $file]
+} \
+-cleanup {
+    ::nscldaq::evb destroy evb
+    ::vardb::close $h
+    destroyDbFile $file
+    
+} \
+-body {
+    evb evbSetServicePrefix test "MyPrefix"
+    ::vardb::var get $h /EventBuilder/test/servicePrefix
+} -result MyPrefix
+
+tcltest::test disablebuild-1 {Disable event building in an existing evb} \
+-setup {
+    package require vardbEventBuilder
+    set file [createDbFile]
+    ::nscldaq::evb create evb file://$file
+    evb createSchema
+    
+    evb createEventBuilder test charlie
+    
+    set h [::vardb::open $file]
+} \
+-cleanup {
+    ::nscldaq::evb destroy evb
+    ::vardb::close $h
+    destroyDbFile $file
+    
+} \
+-body {
+    evb evbDisableBuild test
+    ::vardb::var get $h /EventBuilder/test/build
+} -result false
+
+tcltest::test enablebuild-1 {Enable event building in an existing evb} \
+-setup {
+    package require vardbEventBuilder
+    set file [createDbFile]
+    ::nscldaq::evb create evb file://$file
+    evb createSchema
+    
+    evb createEventBuilder test charlie [dict create build false]
+    
+    set h [::vardb::open $file]
+} \
+-cleanup {
+    ::nscldaq::evb destroy evb
+    ::vardb::close $h
+    destroyDbFile $file
+    
+} \
+-body {
+    evb evbEnableBuild test
+ ::vardb::var get $h /EventBuilder/test/build
+} -result true
+
+tcltest::test setspolicy-1 {Set the timestamp policy of an existing evb} \
+-setup {
+    package require vardbEventBuilder
+    set file [createDbFile]
+    ::nscldaq::evb create evb file://$file
+    evb createSchema
+    
+    evb createEventBuilder test charlie 
+    
+    set h [::vardb::open $file]
+} \
+-cleanup {
+    ::nscldaq::evb destroy evb
+    ::vardb::close $h
+    destroyDbFile $file
+    
+} \
+-body {
+    set info [list]
+    evb evbSetTimestampPolicy test latest
+    lappend info [::vardb::var get $h /EventBuilder/test/timestampPolicy]
+    
+    evb evbSetTimestampPolicy test average
+    lappend info [::vardb::var get $h /EventBuilder/test/timestampPolicy]
+    
+    evb evbSetTimestampPolicy test earliest
+    lappend info [::vardb::var get $h /EventBuilder/test/timestampPolicy]
+} -result [list latest average earliest]
+
+tcltest::test setsvcsuffix-1 {Set service suffix of an existing evb} \
+-setup {
+    package require vardbEventBuilder
+    set file [createDbFile]
+    ::nscldaq::evb create evb file://$file
+    evb createSchema
+    
+    evb createEventBuilder test charlie 
+    
+    set h [::vardb::open $file]
+} \
+-cleanup {
+    ::nscldaq::evb destroy evb
+    ::vardb::close $h
+    destroyDbFile $file
+    
+} \
+-body {
+    evb evbSetServiceSuffix test MySuffix
+    ::vardb::var get $h /EventBuilder/test/serviceSuffix
+} -result MySuffix
+
+tcltest::test rmevb-1 {Remove an event builder} \
+-setup {
+    package require vardbEventBuilder
+    set file [createDbFile]
+    ::nscldaq::evb create evb file://$file
+    evb createSchema
+    
+    evb createEventBuilder test charlie 
+    
+    set h [::vardb::open $file]
+} \
+-cleanup {
+    ::nscldaq::evb destroy evb
+    ::vardb::close $h
+    destroyDbFile $file
+    
+} \
+-body {
+    evb rmevb test
+    catch {::vardb::cd /EventBuilder/test}
+} -result 1
+
+tcltest::test evbInfo-1 {Get info about an event builer} \
+-setup {
+    package require vardbEventBuilder
+    set file [createDbFile]
+    ::nscldaq::evb create evb file://$file
+    evb createSchema
+    
+    evb createEventBuilder test charlie 
+    
+    set h [::vardb::open $file]
+} \
+-cleanup {
+    ::nscldaq::evb destroy evb
+    ::vardb::close $h
+    destroyDbFile $file
+    
+} \
+-body {
+    evb evbInfo test
+    
+} -result [dict create \
+    name test host charlie dt 1 prefix ORDERER suffix "" build true \
+    sourceId 0 tspolicy earliest        \
+]
+
+tcltest::test evbList-1 {Get info about all event builers} \
+-setup {
+    package require vardbEventBuilder
+    set file [createDbFile]
+    ::nscldaq::evb create evb file://$file
+    evb createSchema
+    
+    evb createEventBuilder test charlie 
+    evb createEventBuilder test1 spdaq20 [dict create tspolicy latest]
+    set h [::vardb::open $file]
+} \
+-cleanup {
+    ::nscldaq::evb destroy evb
+    ::vardb::close $h
+    destroyDbFile $file
+    
+} \
+-body {
+    evb evbList
+} -result [list [dict create \
+    name test host charlie dt 1 prefix ORDERER suffix "" build true \
+    sourceId 0 tspolicy earliest        \
+    ] [dict create \
+       name test1 host spdaq20 dt 1 prefix ORDERER suffix "" build true \
+        sourceId 0 tspolicy latest        \
+    ] \
+]
 
 #-------------------------------------------------------------------------------
 #
 #   Global test teardown/reporting.
 
+
 proc tcltest::cleanupTestsHook {} {
     variable numTests
     set ::exitCode $numTests(Failed)
-}
+}    
 
 
 tcltest::cleanupTests
+
+exit $exitCode
