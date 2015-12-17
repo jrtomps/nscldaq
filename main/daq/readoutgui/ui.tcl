@@ -929,6 +929,7 @@ namespace eval RunControlEnable {
     variable prevState 
     set rc [RunControlSingleton::getInstance]
     set prevState [$rc cget -state]
+    $rc _updateAppearance
   }
 
   ##
