@@ -27,7 +27,6 @@
 #include <stdexcept>
 #include <stdlib.h>
 
-
 /**
  * constructor
  *    Construct a new instance command.
@@ -101,6 +100,32 @@ CTCLEvbInstance::operator()(
             evbInfo(interp, objv);
         } else if (subcommand == "evbList") {
             evbList(interp, objv);
+        } else if (subcommand == "addSource") {
+            addSource(interp, objv);
+        } else if (subcommand == "dsSetHost") {
+            dsSetHost(interp, objv);
+        } else if (subcommand == "dsSetPath") {
+            dsSetPath(interp, objv);
+        } else if (subcommand == "dsSetRingUri") {
+            dsSetRingUri(interp, objv);
+        }  else if (subcommand == "dsSetIds") {
+            dsSetIds(interp, objv);
+        } else if (subcommand == "dsSetInfo") {
+            dsSetInfo(interp, objv);
+        } else if (subcommand == "dsSetDefaultId") {
+            dsSetDefaultId(interp, objv);
+        } else if (subcommand == "dsExpectBodyHeaders") {
+            dsEnableBodyHeaders(interp, objv);
+        } else if (subcommand == "dsDontExpectBodyHeaders") {
+            dsDisableBodyHeaders(interp, objv);
+        } else if (subcommand == "dsSetTimestampExtractor") {
+            dsSetTimestampExtractor(interp, objv);
+        } else if (subcommand == "dsInfo") {
+            dsInfo(interp, objv);
+        } else if (subcommand == "listSources") {
+            listSources(interp, objv);
+        } else if (subcommand == "rmSource") {
+            rmSource(interp, objv);
         } else {
             throw std::runtime_error("invalid subcommand");
         }
@@ -451,7 +476,342 @@ CTCLEvbInstance::evbList(CTCLInterpreter& interp, std::vector<CTCLObject>& objv)
     
     interp.setResult(result);
 }
+/**
+ * addSource
+ *    Add an event source for an existing event builder.
+ *   At a minimum this needs parameters for the
+ *   -  Event builder name.
+ *   -  New source name.
+ *   -  Host in which the source runs.
+ *   -  New source path
+ *   -  ring URL
+ *   -  List of source ids.
+ *
+ *   Additionally there can be an optional dict that can override
+ *   default values for the remaining data source parameters.
+ *
+ *   -  defaultId - default data source id for items without body headers.
+ *   -  timestampExtractor - Path to timestamp extractor .so which is used
+ *      to get timestamps from ring items with no body header.
+ *   -  expectBodyHeaders - true if all ring items are expected to have
+ *      boy headers, false if not.
+ *
+ *  @param interp - interpreter running the command.
+ *  @param objv   - vector of command line words.
+ */
+void
+CTCLEvbInstance::addSource(CTCLInterpreter& interp, std::vector<CTCLObject>& objv)
+{
+    requireAtLeast(objv, 8);            // without override dicst.
+    requireAtMost(objv, 9);             // with override dict.
+    
+    std::string evbName = objv[2];
+    std::string srcName = objv[3];
+    std::string host    = objv[4];
+    std::string path    = objv[5];
+    std::string ringUri = objv[6];
+    
+    // Marshall objv[6] into a vector<unsigned>
+    
+    std::vector<unsigned> srcIds;
+    for (int i =0;  i < objv[7].llength(); i++) {
+        int id = objv[7].lindex(i);
+        srcIds.push_back(unsigned(id));
+    }
+    // The override dict will either be an empty dict or
+    // objv[8] if there are 9 parameters.
+    
+    Tcl_Obj* overrides;
+    if (objv.size() == 9) {
+       overrides = objv[8].getObject(); 
+    } else {
+        overrides = Tcl_NewDictObj();
+    }
+    // Set default values for the remaining parameters:
+    
+    std::string info;
+    bool        expectBodyHeaders(true);
+    unsigned    defaultId(0);
+    std::string tsExtractLib;
+    
+    // Overide with dict items.
+    
+    std::string strValue;
+    unsigned    usValue;
+    bool        bValue;
+    
+    if(getDictValue(strValue, interp, overrides, "info")) {
+        info = strValue;
+    }
+    if (getDictValue(bValue, interp, overrides, "expectBodyHeaders")) {
+        expectBodyHeaders = bValue;
+    }
+    if (getDictValue(usValue, interp, overrides, "defaultId")) {
+        defaultId = usValue;
+    }
+    if (getDictValue(strValue, interp, overrides, "timestampExtractor")) {
+        tsExtractLib = strValue;
+    }
+    
+    m_pApi->addDataSource(
+        evbName.c_str(), srcName.c_str(), host.c_str(),
+        path.c_str(), ringUri.c_str(),
+        srcIds, info.c_str(), expectBodyHeaders, defaultId, tsExtractLib.c_str()
+        
+    );
+    
+    
+}
+/**
+ * dsSetHost
+ *    set the host of an existing event source.
+ *
+ *  @param interp - interpreter running the command.
+ *  @param objv   - vector of command line words.
+ */
+void
+CTCLEvbInstance::dsSetHost(CTCLInterpreter& interp, std::vector<CTCLObject>& objv)
+{
+    requireExactly(objv, 5);
+    
+    std::string evbName = objv[2];
+    std::string dsName  = objv[3];
+    std::string host    = objv[4];
+    
+    m_pApi->dsSetHost(evbName.c_str(), dsName.c_str(), host.c_str());
+}
+/**
+ * dsSetPath
+ *   Change the path to an existing event source.
+ *
+ *  @param interp - interpreter running the command.
+ *  @param objv   - vector of command line words.
+ */
+void
+CTCLEvbInstance::dsSetPath(CTCLInterpreter& interp, std::vector<CTCLObject>& objv)
+{
+requireExactly(objv, 5);
+    
+    std::string evbName = objv[2];
+    std::string dsName  = objv[3];
+    std::string path    = objv[4];
+    
+    m_pApi->dsSetPath(evbName.c_str(), dsName.c_str(), path.c_str());
+}
+/** dsSetRingUri
+ *    Change the input ring URI for an existing data source.
+ *
+ *  @param interp - interpreter running the command.
+ *  @param objv   - vector of command line words.
+ */
+void
+CTCLEvbInstance::dsSetRingUri(CTCLInterpreter& interp, std::vector<CTCLObject>& objv)
+{
+    requireExactly(objv, 5);
+    std::string evbName = objv[2];
+    std::string dsName  = objv[3];
+    std::string ring    = objv[4];
+    
+    m_pApi->dsSetRingUri(evbName.c_str(), dsName.c_str(), ring.c_str());
+}
+/**
+ * dsSetIds
+ *    Set a new list of data source ids for an existing data source.
+ *
+ *  @param interp - interpreter running the command.
+ *  @param objv   - vector of command line words.
+ */
+ void
+ CTCLEvbInstance::dsSetIds(CTCLInterpreter& interp, std::vector<CTCLObject>& objv)
+ {
+    requireExactly(objv, 5);
+    std::string evbName = objv[2];
+    std::string dsName  = objv[3];
+    
+    std::vector<unsigned> ids;
+    for (int i =0; i < objv[4].llength(); i++) {
+        ids.push_back(int(objv[4].lindex(i)));
+    }
+    m_pApi->dsSetIds(evbName.c_str(), dsName.c_str(), ids);
+ }
+ /**
+  * dsSetInfo
+  *    Sets the info string of an existing data source.
+  *
+  *  @param interp - interpreter running the command.
+  *  @param objv   - vector of command line words.
+ */
+void
+CTCLEvbInstance::dsSetInfo(CTCLInterpreter& interp, std::vector<CTCLObject>& objv)
+{
+    requireExactly(objv, 5);
+    std::string evb = objv[2];
+    std::string src = objv[3];
+    std::string info = objv[4];
+    
+    m_pApi->dsSetInfo(evb.c_str(), src.c_str(), info.c_str());
+}
 
+/**
+ * dsSetDefaultId
+ *    Set a new default source id for an existing data source.
+ *
+  *  @param interp - interpreter running the command.
+  *  @param objv   - vector of command line words.
+ */
+void
+CTCLEvbInstance::dsSetDefaultId(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
+{
+    requireExactly(objv, 5);
+    std::string evb = objv[2];
+    std::string src = objv[3];
+    int         id  = objv[4];
+    
+    m_pApi->dsSetDefaultId(evb.c_str(), src.c_str(), id);
+}
+/**
+ * dsEnableBodyHeaders
+ *    Turn on the expect body headers flag.
+  *  @param interp - interpreter running the command.
+  *  @param objv   - vector of command line words.
+ */
+void
+CTCLEvbInstance::dsEnableBodyHeaders(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
+{
+    requireExactly(objv, 4);
+    std::string evb = objv[2];
+    std::string ds  = objv[3];
+    
+    m_pApi->dsExpectBodyHeaders(evb.c_str(), ds.c_str());
+}
+/**
+ * disableBodyHeaders
+ *    turn off the expect body headers flag.
+ *
+  *  @param interp - interpreter running the command.
+  *  @param objv   - vector of command line words.
+ */
+void
+CTCLEvbInstance::dsDisableBodyHeaders(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
+{
+    requireExactly(objv, 4);
+    std::string evb = objv[2];
+    std::string ds  = objv[3];
+    
+    m_pApi->dsDontExpectBodyHeaders(evb.c_str(), ds.c_str());
+}
+
+/**
+ * dsSetTimestampExtractor
+ *    modify an data source's timestamp extractor library
+ *    spec.
+ *
+  *  @param interp - interpreter running the command.
+  *  @param objv   - vector of command line words.
+ */
+void
+CTCLEvbInstance::dsSetTimestampExtractor(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
+{
+     requireExactly(objv, 5);
+    std::string evb = objv[2];
+    std::string ds  = objv[3];
+    std::string ts  = objv[4];
+    
+    m_pApi->dsSetTimestampExtractor(evb.c_str(), ds.c_str(), ts.c_str());
+}
+
+/**
+ * dsInfo
+ *
+ *  Sets the interpreter result to a dict that describes
+ *  a data source.  The dict has the following keys:
+ *
+ *  *  name - Name of the data source.
+ *  *  host - host in which the data source runs.
+ *  *  path - Path to the data source program in host.
+ *  *  info - Information string.
+ *  *  ring - Ring buffer URI from which pogram takes data.
+ *  *  ids  - list of ids
+ *  *  defaultId - data source id for items that don't have body headers.
+ *  *  timestampExtractor - path to the timestamp extractor.
+ *  *  expectBodyHeaders - true if data are supposed to all have bodfy
+ *  *                      headers.
+ *
+   *  @param interp - interpreter running the command.
+  *   @param objv   - vector of command line words.
+ */
+void
+CTCLEvbInstance::dsInfo(CTCLInterpreter& interp, std::vector<CTCLObject>& objv)
+{
+    requireExactly(objv, 4);
+    std::string evb = objv[2];
+    std::string src = objv[3];
+    
+    CVardbEventBuilder::DsDescription desc =
+        m_pApi->dsInfo(evb.c_str(), src.c_str());
+        
+        // convert to tcl dict.
+    
+    CTCLObject result;
+    result.Bind(interp);
+    dsInfoToDict(result, interp, desc);
+    
+    interp.setResult(result);
+}
+/**
+ * listSources
+ *    Produce a list of dicts that contain information about the data
+ *    sources for an event builder.  The dicts have the same form as those
+ *    returned by dsInfo for a specific data source
+ *
+ *  @param interp - interpreter running the command.
+ *   @param objv   - vector of command line words.
+*/
+void
+CTCLEvbInstance::listSources(
+    CTCLInterpreter& interp, std::vector<CTCLObject>& objv
+)
+{
+    requireExactly(objv, 3);
+    std::string evb = objv[2];
+    
+    std::vector<CVardbEventBuilder::DsDescription> descriptions =
+        m_pApi->listDataSources(evb.c_str());
+        
+    CTCLObject result;
+    result.Bind(interp);
+    for (int i = 0; i < descriptions.size(); i++) {
+        CTCLObject element;
+        element.Bind(interp);
+        dsInfoToDict(element, interp, descriptions[i]);
+        result += element;
+    }
+    interp.setResult(result);
+}
+/**
+ * rmSource
+ *   Remove a data source.
+ *
+ *  @param interp - interpreter running the command.
+ *   @param objv   - vector of command line words.
+*/
+void
+CTCLEvbInstance::rmSource(CTCLInterpreter& interp, std::vector<CTCLObject>& objv)
+{
+    requireExactly(objv, 4);
+    std::string evb = objv[2];
+    std::string ds  = objv[3];
+    
+    m_pApi->rmDataSource(evb.c_str(), ds.c_str());
+}
 /*-------------------------------------------------------------------
  * utility methods
  */
@@ -536,6 +896,7 @@ CTCLEvbInstance::getDictValue(
     if (status != TCL_OK) return false;
     
     value = bool(iBool);
+    return true;
     
 }
 /**
@@ -666,4 +1027,58 @@ CTCLEvbInstance::evbInfoToDict(
     );
 
     infoDict = pDict;   
+}
+
+/**
+ * dsInfoToDict
+ *    Convert data source information (DsDescription) to a dict that
+ *    describes the data source in a natural way for Tcl scripts.
+ *
+ *  @param[out] result - CTCLObject reference that encapsulates the resulting
+ *                       dict.  The caller should have bound this to an
+ *                       interpreter
+ *  @param interp      - Interpreter used by the dict functions in the Tcl API
+ *  @param desc        - Description of the data source.
+ *  @note when completed, result will be a dict with the following keys:
+ *  *  name - Name of the data source.
+ *  *  host - host in which the data source runs.
+ *  *  path - Path to the data source program in host.
+ *  *  info - Information string.
+ *  *  ring - Ring buffer URI from which pogram takes data.
+ *  *  ids  - list of ids
+ *  *  defaultId - data source id for items that don't have body headers.
+ *  *  timestampExtractor - path to the timestamp extractor.
+ *  *  expectBodyHeaders - true if data are supposed to all have bodfy
+ *  *                      headers.
+ */
+void
+CTCLEvbInstance::dsInfoToDict(
+        CTCLObject& result, CTCLInterpreter& interp,
+        const CVardbEventBuilder::DsDescription& desc
+)
+{
+    Tcl_Obj* dict = Tcl_NewDictObj();       // Build the dict in this.
+    setDictValue(interp, dict, "name", desc.s_name.c_str());
+    setDictValue(interp, dict, "host", desc.s_host.c_str());
+    setDictValue(interp, dict, "path", desc.s_path.c_str());
+    setDictValue(interp, dict, "info", desc.s_info.c_str());
+    setDictValue(interp, dict, "ring", desc.s_ringUri.c_str());
+    // Marshall the ids into a list:
+    
+    CTCLObject ids;
+    ids.Bind(interp);
+    for (int i = 0; i < desc.s_ids.size(); i++) {
+        ids += int(desc.s_ids[i]);
+    }
+    setDictValue(interp, dict, "ids", std::string(ids).c_str());
+    setDictValue(interp, dict, "defaultId", desc.s_defaultId);
+    setDictValue(
+        interp, dict, "timestampExtractor", desc.s_timestampExtractor.c_str()
+    );
+    setDictValue(interp, dict, "expectBodyHeaders", desc.s_expectBodyheaders);
+    
+    // Set the resulting CTCLObject
+    
+    result = dict;
+    
 }

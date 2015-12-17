@@ -473,6 +473,410 @@ tcltest::test evbList-1 {Get info about all event builers} \
     ] \
 ]
 
+tcltest::test addSource-1 {Add data source with all the defaults} \
+-setup {
+    package require vardbEventBuilder
+    set file [createDbFile]
+    ::nscldaq::evb create evb file://$file
+    evb createSchema
+    
+    evb createEventBuilder test charlie 
+    evb createEventBuilder test1 spdaq20 [dict create tspolicy latest]
+    set h [::vardb::open $file]
+} \
+-cleanup {
+    ::nscldaq::evb destroy evb
+    ::vardb::close $h
+    destroyDbFile $file
+    
+} \
+-body {
+    evb addSource test src1 charlie \
+        /usr/opt/daq/current/bin/ringFragmentSource tcp://charlie/fox [list 1]
+    
+    set info [list]
+    ::vardb::cd $h /EventBuilder/test/src1
+    lappend info [::vardb::var get $h host ]
+    lappend info [::vardb::var get $h path]
+    lappend info [::vardb::var get $h info]
+    lappend info [::vardb::var get $h id0]
+    lappend info [::vardb::var get $h ring]
+    lappend info [::vardb::var get $h default-id]
+    lappend info [::vardb::var get $h timestamp-extractor]
+    lappend info [::vardb::var get $h expect-bodyheaders]
+    
+} -result [list \
+    charlie /usr/opt/daq/current/bin/ringFragmentSource "" 1 tcp://charlie/fox \
+    0 "" true           \
+]
+tcltest::test addSource-2 {Add data source with defaults overidden}  \
+-setup {
+    package require vardbEventBuilder
+    set file [createDbFile]
+    ::nscldaq::evb create evb file://$file
+    evb createSchema
+    
+    evb createEventBuilder test charlie 
+    evb createEventBuilder test1 spdaq20 [dict create tspolicy latest]
+    set h [::vardb::open $file]
+} \
+-cleanup {
+    ::nscldaq::evb destroy evb
+    ::vardb::close $h
+    destroyDbFile $file
+    
+} \
+-body {
+    evb addSource test src1 charlie \
+        /usr/opt/daq/current/bin/ringFragmentSource tcp://charlie/fox [list 1] \
+        [dict create info {Test string} defaultId 1 expectBodyHeaders false \
+         timestampExtractor /usr/bin/ls]
+    
+    set info [list]
+    ::vardb::cd $h /EventBuilder/test/src1
+    lappend info [::vardb::var get $h host ]
+    lappend info [::vardb::var get $h path]
+    lappend info [::vardb::var get $h info]
+    lappend info [::vardb::var get $h id0]
+    lappend info [::vardb::var get $h ring]
+    lappend info [::vardb::var get $h default-id]
+    lappend info [::vardb::var get $h timestamp-extractor]
+    lappend info [::vardb::var get $h expect-bodyheaders]
+    
+} -result [list \
+    charlie /usr/opt/daq/current/bin/ringFragmentSource "Test string" 1 tcp://charlie/fox \
+    1 "/usr/bin/ls" false           \
+]
+
+tcltest::test dsSethost-1 {Set the host of a data source that exists} \
+-setup {
+    package require vardbEventBuilder
+    set file [createDbFile]
+    ::nscldaq::evb create evb file://$file
+    evb createSchema
+    
+    evb createEventBuilder test charlie 
+    evb createEventBuilder test1 spdaq20 [dict create tspolicy latest]
+    set h [::vardb::open $file]
+    
+    evb addSource test src1 charlie \
+        /usr/opt/daq/current/bin/ringFragmentSource tcp://charlie/fox [list 1]
+} \
+-cleanup {
+    ::nscldaq::evb destroy evb
+    ::vardb::close $h
+    destroyDbFile $file
+    
+} \
+-body {
+    evb dsSetHost test src1 spdaq20
+    
+    ::vardb::var get $h /EventBuilder/test/src1/host
+} -result spdaq20
+    
+tcltest::test dsSetPath {Change path of existing data source} \
+-setup {
+    package require vardbEventBuilder
+    set file [createDbFile]
+    ::nscldaq::evb create evb file://$file
+    evb createSchema
+    
+    evb createEventBuilder test charlie 
+    evb createEventBuilder test1 spdaq20 [dict create tspolicy latest]
+    set h [::vardb::open $file]
+    
+    evb addSource test src1 charlie \
+        /usr/opt/daq/current/bin/ringFragmentSource tcp://charlie/fox [list 1]
+} \
+-cleanup {
+    ::nscldaq::evb destroy evb
+    ::vardb::close $h
+    destroyDbFile $file
+    
+} \
+-body {
+    evb dsSetPath test src1 /usr/bin/ls
+    vardb::var get $h /EventBuilder/test/src1/path
+    
+} -result /usr/bin/ls
+
+tcltest::test dsSetRingUri {Set input ring of existing data source } \
+-setup {
+    package require vardbEventBuilder
+    set file [createDbFile]
+    ::nscldaq::evb create evb file://$file
+    evb createSchema
+    
+    evb createEventBuilder test charlie 
+    evb createEventBuilder test1 spdaq20 [dict create tspolicy latest]
+    set h [::vardb::open $file]
+    
+    evb addSource test src1 charlie \
+        /usr/opt/daq/current/bin/ringFragmentSource tcp://charlie/fox [list 1]
+} \
+-cleanup {
+    ::nscldaq::evb destroy evb
+    ::vardb::close $h
+    destroyDbFile $file
+    
+} \
+-body {
+    evb dsSetRingUri test src1 tcp://spdaq20/0400x
+    
+    vardb::var get $h /EventBuilder/test/src1/ring
+} -result tcp://spdaq20/0400x
+
+tcltest::test dsSetIds-1 {set new Id list for data source} \
+-setup {
+    package require vardbEventBuilder
+    set file [createDbFile]
+    ::nscldaq::evb create evb file://$file
+    evb createSchema
+    
+    evb createEventBuilder test charlie 
+    evb createEventBuilder test1 spdaq20 [dict create tspolicy latest]
+    set h [::vardb::open $file]
+    
+    evb addSource test src1 charlie \
+        /usr/opt/daq/current/bin/ringFragmentSource tcp://charlie/fox [list 1]
+} \
+-cleanup {
+    ::nscldaq::evb destroy evb
+    ::vardb::close $h
+    destroyDbFile $file
+    
+} \
+-body {
+    evb dsSetIds test src1 [list 1 2 3]
+    
+    set info [list]
+    lappend info [vardb::var get $h /EventBuilder/test/src1/id0]
+    lappend info [vardb::var get $h /EventBuilder/test/src1/id1]
+    lappend info [vardb::var get $h /EventBuilder/test/src1/id2]
+} -result [list 1 2 3]
+
+tcltest::test dsSetInfo-1 {Set the information string of a data source} \
+-setup {
+    package require vardbEventBuilder
+    set file [createDbFile]
+    ::nscldaq::evb create evb file://$file
+    evb createSchema
+    
+    evb createEventBuilder test charlie 
+    evb createEventBuilder test1 spdaq20 [dict create tspolicy latest]
+    set h [::vardb::open $file]
+    
+    evb addSource test src1 charlie \
+        /usr/opt/daq/current/bin/ringFragmentSource tcp://charlie/fox [list 1]
+} \
+-cleanup {
+    ::nscldaq::evb destroy evb
+    ::vardb::close $h
+    destroyDbFile $file
+    
+} \
+-body {
+    evb dsSetInfo test src1 {This is a test}
+    vardb::var get $h /EventBuilder/test/src1/info
+} -result {This is a test}
+
+tcltest::test dsSetDefaultId-1 {Set a new default id form a data source} \
+-setup {
+    package require vardbEventBuilder
+    set file [createDbFile]
+    ::nscldaq::evb create evb file://$file
+    evb createSchema
+    
+    evb createEventBuilder test charlie 
+    evb createEventBuilder test1 spdaq20 [dict create tspolicy latest]
+    set h [::vardb::open $file]
+    
+    evb addSource test src1 charlie \
+        /usr/opt/daq/current/bin/ringFragmentSource tcp://charlie/fox [list 1]
+} \
+-cleanup {
+    ::nscldaq::evb destroy evb
+    ::vardb::close $h
+    destroyDbFile $file
+    
+} \
+-body {
+    evb dsSetDefaultId test src1 666
+    vardb::var get $h /EventBuilder/test/src1/default-id
+} -result 666
+
+tcltest::test dsEnableBodyHeaders-1 {Turn on expect-bodyheaders for a data src} \
+-setup {
+    package require vardbEventBuilder
+    set file [createDbFile]
+    ::nscldaq::evb create evb file://$file
+    evb createSchema
+    
+    evb createEventBuilder test charlie 
+    evb createEventBuilder test1 spdaq20 [dict create tspolicy latest]
+    set h [::vardb::open $file]
+    
+    evb addSource test src1 charlie \
+        /usr/opt/daq/current/bin/ringFragmentSource tcp://charlie/fox [list 1] \
+        [dict create expectBodyHeaders false]
+} \
+-cleanup {
+    ::nscldaq::evb destroy evb
+    ::vardb::close $h
+    destroyDbFile $file
+    
+} \
+-body {
+    evb dsExpectBodyHeaders test src1
+    
+    vardb::var get $h /EventBuilder/test/src1/expect-bodyheaders
+} -result true
+
+tcltest::test dsDisableBodyHeaders-1 {Turn off expect-bodyheaders} \
+-setup {
+    package require vardbEventBuilder
+    set file [createDbFile]
+    ::nscldaq::evb create evb file://$file
+    evb createSchema
+    
+    evb createEventBuilder test charlie 
+    evb createEventBuilder test1 spdaq20 [dict create tspolicy latest]
+    set h [::vardb::open $file]
+    
+    evb addSource test src1 charlie \
+        /usr/opt/daq/current/bin/ringFragmentSource tcp://charlie/fox [list 1]
+} \
+-cleanup {
+    ::nscldaq::evb destroy evb
+    ::vardb::close $h
+    destroyDbFile $file
+    
+} \
+-body {
+    evb dsDontExpectBodyHeaders test src1
+    
+    vardb::var get $h /EventBuilder/test/src1/expect-bodyheaders
+} -result false
+
+tcltest::test dsSetTsExtractor-1 {Change the timestamp extractor} \
+-setup {
+    package require vardbEventBuilder
+    set file [createDbFile]
+    ::nscldaq::evb create evb file://$file
+    evb createSchema
+    
+    evb createEventBuilder test charlie 
+    evb createEventBuilder test1 spdaq20 [dict create tspolicy latest]
+    set h [::vardb::open $file]
+    
+    evb addSource test src1 charlie \
+        /usr/opt/daq/current/bin/ringFragmentSource tcp://charlie/fox [list 1]
+} \
+-cleanup {
+    ::nscldaq::evb destroy evb
+    ::vardb::close $h
+    destroyDbFile $file
+    
+} \
+-body {
+    evb dsSetTimestampExtractor test src1 /usr/bin/ls
+    
+    ::vardb::var get $h /EventBuilder/test/src1/timestamp-extractor
+} -result /usr/bin/ls
+
+tcltest::test dsInfo-1 {Get information about a data source} \
+-setup {
+    package require vardbEventBuilder
+    set file [createDbFile]
+    ::nscldaq::evb create evb file://$file
+    evb createSchema
+    
+    evb createEventBuilder test charlie 
+    evb createEventBuilder test1 spdaq20 [dict create tspolicy latest]
+    set h [::vardb::open $file]
+    
+    evb addSource test src1 charlie \
+        /usr/opt/daq/current/bin/ringFragmentSource tcp://charlie/fox [list 1]
+} \
+-cleanup {
+    ::nscldaq::evb destroy evb
+    ::vardb::close $h
+    destroyDbFile $file
+    
+} \
+-body {
+    evb dsInfo test src1
+} -result [dict create \
+    name src1 host charlie path /usr/opt/daq/current/bin/ringFragmentSource \
+    info {} ring tcp://charlie/fox ids [list 1] defaultId 0 \
+    timestampExtractor {} expectBodyHeaders true      \
+]
+
+tcltest::test dsList-1 {List data sources when there's more than one} \
+-setup {
+    package require vardbEventBuilder
+    set file [createDbFile]
+    ::nscldaq::evb create evb file://$file
+    evb createSchema
+    
+    evb createEventBuilder test charlie 
+ 
+    
+    evb addSource test src1 charlie \
+        /usr/opt/daq/current/bin/ringFragmentSource tcp://charlie/fox [list 1]
+    evb addSource test src2 ddasdaq5 \
+        /usr/bin/ls tcp://spdaq20/0400x [list 2 3] \
+            [dict create expectBodyHeaders false info "Second source"]
+} \
+-cleanup {
+    ::nscldaq::evb destroy evb
+    destroyDbFile $file
+    
+} \
+-body {
+    evb listSources test
+} -result [list [dict create \
+    name src1 host charlie path /usr/opt/daq/current/bin/ringFragmentSource \
+    info {} ring tcp://charlie/fox ids [list 1] defaultId 0 \
+    timestampExtractor {} expectBodyHeaders true      \
+    ]  \
+    [dict create \
+        name src2 host ddasdaq5 path /usr/bin/ls info {Second source}  \
+        ring tcp://spdaq20/0400x ids [list 2 3] defaultId 0 timestampExtractor {} \
+        expectBodyHeaders false   \
+    ]
+]
+
+tcltest::test rmDs-1 {Remove existing data source} \
+-setup {
+    package require vardbEventBuilder
+    set file [createDbFile]
+    ::nscldaq::evb create evb file://$file
+    evb createSchema
+    
+    evb createEventBuilder test charlie 
+ 
+    
+    evb addSource test src1 charlie \
+        /usr/opt/daq/current/bin/ringFragmentSource tcp://charlie/fox [list 1]
+    evb addSource test src2 ddasdaq5 \
+        /usr/bin/ls tcp://spdaq20/0400x [list 2 3] \
+            [dict create expectBodyHeaders false info "Second source"]
+} \
+-cleanup {
+    ::nscldaq::evb destroy evb
+    destroyDbFile $file
+    
+} \
+-body {
+    evb rmSource test src1
+    evb listSources test
+} -result [list [dict create \
+        name src2 host ddasdaq5 path /usr/bin/ls info {Second source}  \
+        ring tcp://spdaq20/0400x ids [list 2 3] defaultId 0 timestampExtractor {} \
+        expectBodyHeaders false   \
+    ] \
+] 
 #-------------------------------------------------------------------------------
 #
 #   Global test teardown/reporting.
@@ -486,4 +890,4 @@ proc tcltest::cleanupTestsHook {} {
 
 tcltest::cleanupTests
 
-exit $exitCode
+exit $exitCode;

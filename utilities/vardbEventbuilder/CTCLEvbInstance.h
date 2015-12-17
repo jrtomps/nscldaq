@@ -72,6 +72,20 @@ private:
     void evbInfo(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
     void evbList(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
     
+    void addSource(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void dsSetHost(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void dsSetPath(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void dsSetRingUri(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void dsSetIds(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void dsSetInfo(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void dsSetDefaultId(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void dsEnableBodyHeaders(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void dsDisableBodyHeaders(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void dsSetTimestampExtractor(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void dsInfo(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void listSources(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    void rmSource(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+    
     // Utilities
 private:
     
@@ -111,6 +125,13 @@ private:
         CVardbEventBuilder::pEvbDescription pInfo
     );
     
+    // Data sourceutilities:
+    
+    
+    void dsInfoToDict(
+        CTCLObject& result, CTCLInterpreter& interp,
+        const CVardbEventBuilder::DsDescription& desc
+    );
 };
 
 
