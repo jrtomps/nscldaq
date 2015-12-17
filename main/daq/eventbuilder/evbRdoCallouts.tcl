@@ -424,12 +424,17 @@ proc EVBC::getOrdererPort {} {
 #                                 with an input queue.
 # @param info                   - Long description used to identify the source
 #                                 in the event orderer GUI.
+# @param expectHdrs             - All data must have body headers. Timestamp lib
+#                                 and id can be left as empty strings
+# @param oneshot                - If provided number of ends that result in exit.
+# @param timeout                - If provided, timeout in seconds after first end to 
+#                                 wait for all ends in --oneshot mode.
 # @note Event sources are subprocesses of us but not subprocesses of the
 #       the event building pipeline.
 #
 #
-proc ::EVBC::registerRingSource {source lib id info {expectHdrs 0}} {
-   ::RingSourceMgr::addSource $source $lib $id $info $expectHdrs
+proc ::EVBC::registerRingSource {source lib id info {expectHdrs 0} {oneshot {}} {timeout {}}} {
+   ::RingSourceMgr::addSource $source $lib $id $info $expectHdrs $oneshot $timeout
 }
 
 #------------------------------------------------------------------------------

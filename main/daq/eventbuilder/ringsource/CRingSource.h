@@ -113,7 +113,7 @@ public:
 
   void setOneshot(bool val) { m_fOneshot = val; }
   void setNumberOfSources(unsigned nsources) { m_nEndRuns = nsources; }
-  bool oneshotComplete() { return (m_fOneshot && (m_nEndsSeen >= m_nEndRuns)); }
+  bool oneshotComplete();
 
 public:
   std::string copyLib(std::string original);

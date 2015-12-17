@@ -222,7 +222,10 @@ proc ::RingSourceMgr::onBegin {} {
       set id [dict get $paramDict id]
       set info [dict get $paramDict info]
       set expectHeaders [dict get $paramDict expecthdrs]
-      set fd [::RingSourceMgr::startSource $source $lib $id $info $expectHeaders]
+      set oneshot [dict get $paramDict oneshot]
+      set timeout [dict get $paramDict timeout]
+      set fd [::RingSourceMgr::startSource $source $lib $id $info \
+                                           $expectHeaders $oneshot $timeout]
       dict set sourceDict $source fd $fd
     }
   }

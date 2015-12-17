@@ -95,6 +95,10 @@ CRingSource::CRingSource(int argc, char** argv) :
   m_pArgs(0),
   m_pBuffer(0),
   m_timestamp(0),
+  m_nEndRuns(1),
+  m_nEndsSeen(0),
+  m_nTimeout(0),
+  m_nTimeWaited(0),
   m_wrapper(0)
 {
   GetOpt parsed(argc, argv);
@@ -333,6 +337,12 @@ void CRingSource::transformAvailableData(uint8_t*& pFragments)
 
   }
 }
+
+bool CRingSource::oneshotComplete()
+{
+     return (m_fOneshot && (m_nEndsSeen >= m_nEndRuns));
+}
+
 
 /**
  * shutdown 
