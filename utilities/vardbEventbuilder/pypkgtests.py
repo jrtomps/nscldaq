@@ -196,6 +196,14 @@ class TestEventBuidlerApi(unittest.TestCase):
         self._db.cd('/EventBuilder/test');
         self.assertEqual('fox', self._db.get('serviceSuffix'))
         
+    def test_rmEvb(self):
+        obj = self.mkDefaultEvb()
+        obj.rmEventBuilder('test')
+        
+        with self.assertRaises(varmgr.error) :
+            self._db.cd('/EventBuilder/test')
+    
+        
 if __name__ == '__main__':
     unittest.main()
 

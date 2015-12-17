@@ -453,6 +453,34 @@ VardbEvb_setEvbServiceSuffix(PyObject* self, PyObject* args)
     }
     Py_RETURN_NONE;
 }
+/**
+ * VardbEvb_rmEventBuilder
+ *    Remove an existing event builder definition.
+ *
+ *  @param self - Object on which this method is being called.
+ *  @param args - method positonal arguments : evbname, service-Suffix.
+ *  @return Py_None
+ */
+static PyObject*
+VardbEvb_rmEventBuilder(PyObject* self, PyObject* args)
+{
+    char* evb;
+    
+    if(!PyArg_ParseTuple(args, "s", &evb)) {
+        return NULL;
+    }
+    
+    CVardbEventBuilder* pApi = getApi(self);
+    
+    try {
+        pApi->rmEventBuilder(evb);
+    }
+    catch(std::exception& e) {
+        PyErr_SetString(exception, e.what());
+        return NULL;
+    }
+    Py_RETURN_NONE;
+}
 /*---------------------------------------------------------------------------
  * Canonical methods for the VardbEvb class (instantiation/destruction).
  */
@@ -576,6 +604,9 @@ static PyMethodDef VarDbEvbMethods[] = {
     },
     {"setEvbServiceSuffix", VardbEvb_setEvbServiceSuffix, METH_VARARGS,
         "Set a new suffix for the advertised service of an existing event builder"
+    },
+    {"rmEventBuilder", VardbEvb_rmEventBuilder, METH_VARARGS,
+        "Remove/destroy an existing event builder definition."
     },
     {NULL, NULL, 0, NULL}                /* End of method definition marker */   
     
