@@ -315,8 +315,8 @@ CRingAccess::startFeeder(string proxyName, int socket)
   int status = dup2(socket, STDIN_FILENO);
 
 
-  //  close(STDOUT_FILENO);
-  //  close(STDERR_FILENO);
+  close(STDOUT_FILENO);
+  close(STDERR_FILENO);
 
   // Detach from the current terminal
 
