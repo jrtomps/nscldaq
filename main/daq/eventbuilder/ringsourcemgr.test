@@ -52,7 +52,6 @@ tcltest::test addSource-0 {Ability to add a ring fragment source
 
   set ::RingSourceMgr::sourceDict [dict create]
 
-  puts $resList
   set resList
 } {{} {tcp://thesrc/ring {tstamplib lib id 43 info asdf expecthdrs 1 oneshot {} timeout {} fd {}}}}
 
@@ -73,8 +72,8 @@ tcltest::test transition-0 {Transition from halted to active starts sources
 } {
   set body0 [info body ::RingSourceMgr::startSource]
   set ::opList [list]
-  proc ::RingSourceMgr::startSource {src lib id info hdr} {
-    lappend ::opList [list $src $lib $id $info $hdr]
+  proc ::RingSourceMgr::startSource {src lib id info hdr one time} {
+    lappend ::opList [list $src $lib $id $info $hdr $one $time]
   }
 
 
@@ -89,12 +88,12 @@ tcltest::test transition-0 {Transition from halted to active starts sources
   sm transition Active
 
   sm destroy
-  proc ::RingSourceMgr::startSource {src lib id {info ""} {hdr ""}} $body0
+  proc ::RingSourceMgr::startSource {src lib id {info ""} {hdr ""} {one ""} {time ""}} $body0
 
   ::RingSourceMgr::clearSources
 
   set ::opList
-} {{a b c d e} {f g h i j} {k l m n o}}
+} {{a b c d e {} {}} {f g h i j {} {}} {k l m n o {} {}}}
 
 
 #
@@ -103,8 +102,8 @@ tcltest::test multipleTransitions-0 {Only first transition should start a source
 } {
   set body0 [info body ::RingSourceMgr::startSource]
   set ::opList [list]
-  proc ::RingSourceMgr::startSource {src lib id info hdr} {
-    lappend ::opList [list $src $lib $id $info $hdr]
+  proc ::RingSourceMgr::startSource {src lib id info hdr one time} {
+    lappend ::opList [list $src $lib $id $info $hdr $one $time]
     return "chan1"
   }
 
@@ -128,12 +127,12 @@ tcltest::test multipleTransitions-0 {Only first transition should start a source
   sm transition Active
 
   sm destroy
-  proc ::RingSourceMgr::startSource {src lib id {info ""} {hdr ""}} $body0
+  proc ::RingSourceMgr::startSource {src lib id {info ""} {hdr ""} {one ""} {time ""}} $body0
 
   ::RingSourceMgr::clearSources
 
   set ::opList
-} {{a b c d e}}
+} {{a b c d e {} {}}}
 
 
 #
@@ -142,8 +141,8 @@ tcltest::test multipleTransitions-1 {Transition to NotReady resets for next tran
 } {
   set body0 [info body ::RingSourceMgr::startSource]
   set ::opList [list]
-  proc ::RingSourceMgr::startSource {src lib id info hdr} {
-    lappend ::opList [list $src $lib $id $info $hdr]
+  proc ::RingSourceMgr::startSource {src lib id info hdr one time} {
+    lappend ::opList [list $src $lib $id $info $hdr $one $time]
     return "chan1"
   }
 
@@ -170,12 +169,12 @@ tcltest::test multipleTransitions-1 {Transition to NotReady resets for next tran
   sm transition Active
 
   sm destroy
-  proc ::RingSourceMgr::startSource {src lib id {info ""} {hdr ""}} $body0
+  proc ::RingSourceMgr::startSource {src lib id {info ""} {hdr ""} {one ""} {time ""}} $body0
 
   ::RingSourceMgr::clearSources
 
   set ::opList
-} {{a b c d e} {a b c d e}}
+} {{a b c d e {} {}} {a b c d e {} {}}}
 
 #
 #
