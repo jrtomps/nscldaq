@@ -58,5 +58,5 @@ TESTS_ENVIRONMENT=TCLLIBPATH=@prefix@/TclLibs; export TCLLIBPATH; \
 
 TESTS=@builddir@/unittests tclpkgtests.test pyevbtests.py pydstests.py
 
-EXTRA_DIST=tclpkgtests.test pyevbtests.py pydstests.py
+EXTRA_DIST=tclpkgtests.test pyevbtests.py pydstests.py 5evb.xml 3evb.xml
 
