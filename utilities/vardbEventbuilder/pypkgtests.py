@@ -203,6 +203,46 @@ class TestEventBuidlerApi(unittest.TestCase):
         with self.assertRaises(varmgr.error) :
             self._db.cd('/EventBuilder/test')
     
+    def test_getEvbInfo(self):
+        obj  = self.mkDefaultEvb()
+        info = obj.evbInfo('test')
+        
+        self.assertEqual('test', info['name'])
+        self.assertEqual('charlie', info['host'])
+        self.assertEqual(1, info['coincidenceInterval'])
+        self.assertEqual('ORDERER', info['servicePrefix'])
+        self.assertEqual('', info['serviceSuffix'])
+        self.assertEqual(True, info['build'])
+        self.assertEqual(0, info['sourceId'])
+        self.assertEqual('earliest', info['timestampPolicy'])
+        
+    def test_listEvbs(self):
+        obj = self.mkDefaultEvb()     # makes test.
+        obj.createEventBuilder('test1', 'spdaq20', 10,
+           sourceId=2, servicePrefix='fox', build=False, tsPolicy='average',
+           serviceSuffix='ron'
+        )
+        
+        result = obj.listEventBuilders()
+        info = result[0]
+        self.assertEqual('test', info['name'])
+        self.assertEqual('charlie', info['host'])
+        self.assertEqual(1, info['coincidenceInterval'])
+        self.assertEqual('ORDERER', info['servicePrefix'])
+        self.assertEqual('', info['serviceSuffix'])
+        self.assertEqual(True, info['build'])
+        self.assertEqual(0, info['sourceId'])
+        self.assertEqual('earliest', info['timestampPolicy'])
+        
+        info = result[1]
+        self.assertEqual('test1', info['name'])
+        self.assertEqual('spdaq20', info['host'])
+        self.assertEqual(10, info['coincidenceInterval'])
+        self.assertEqual('fox', info['servicePrefix'])
+        self.assertEqual('ron', info['serviceSuffix'])
+        self.assertEqual(False, info['build'])
+        self.assertEqual(2, info['sourceId'])
+        self.assertEqual('average', info['timestampPolicy'])
         
 if __name__ == '__main__':
     unittest.main()

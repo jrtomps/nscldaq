@@ -42,11 +42,16 @@ static PyObject* exception;
  * Utility Methods
  */
 
+
+// Pull the api from object storage.
+
 static CVardbEventBuilder* getApi(PyObject* self)
 {
     vardbEvb_Data* pThis = reinterpret_cast<vardbEvb_Data*>(self);
     return pThis->m_pApi;
 }
+
+// Convert a string to the corresponding timestamp policy.
 
 static CVardbEventBuilder::TimestampPolicy
 strToTsPolicy(const char* strPolicy)
@@ -64,6 +69,73 @@ strToTsPolicy(const char* strPolicy)
     }
 }
 
+static std::string
+tsPolicyToString(CVardbEventBuilder::TimestampPolicy policy)
+{
+    switch (policy) {
+    case CVardbEventBuilder::earliest:
+        return std::string("earliest");
+    case CVardbEventBuilder::latest:
+        return std::string("latest");
+    case CVardbEventBuilder::average:
+        return std::string("average");
+    }
+    return std::string("invalid timestamp policy!!");
+}
+
+// Functions to add objets to dicts.
+
+static void
+AddToDict(PyObject* dict, const char* key, const char* data)
+{
+    // Turn the character data into a PyObject*
+    
+    PyObject* objString = PyString_FromString(data);
+    PyDict_SetItemString(dict, key, objString);
+}
+
+static void
+AddToDict(PyObject* dict, const char* key, bool data)
+{
+    // Convert the boolean into an object:
+    
+    PyObject* bObject = data ? Py_True: Py_False;
+    PyDict_SetItemString(dict, key, bObject);
+}
+
+static void
+AddToDict(PyObject* dict, const char* key, unsigned data)
+{
+    PyObject* uObject = PyLong_FromUnsignedLong(data);
+    PyDict_SetItemString(dict, key, uObject);
+}
+
+/**
+ * evbInfoToDict
+ *    Given a CVardbEventBuilder::EvbDescription, returns the equivalent
+ *    Python Dict for that description.
+ *
+ *  @param info - Information about an event buider.
+ *  @return PyObject - dict, see VardbEvb_evbInfo for the keys.
+ */
+static PyObject*
+evbInfoToDict(const CVardbEventBuilder::EvbDescription& info)
+{
+    PyObject* result = PyDict_New();
+    AddToDict(result, "name", info.s_name.c_str());
+    AddToDict(result, "host", info.s_host.c_str());
+    AddToDict(result, "coincidenceInterval", info.s_coincidenceInterval);
+    AddToDict(result, "servicePrefix", info.s_servicePrefix.c_str());
+    AddToDict(result, "serviceSuffix", info.s_serviceSuffix.c_str());
+    AddToDict(result, "build", info.s_build);
+    AddToDict(result, "sourceId", info.s_sourceId);
+    AddToDict(
+        result, "timestampPolicy",
+        tsPolicyToString(info.s_timestampPolicy).c_str()
+    );
+    
+    return result;
+}
 /*--------------------------------------------------------------------------
  * Methods on constructed objects of VardbEvb type:
  */
@@ -481,6 +553,90 @@ VardbEvb_rmEventBuilder(PyObject* self, PyObject* args)
     }
     Py_RETURN_NONE;
 }
+
+/**
+ * VardbEvb_evbInfo
+ *    Return information about an existing event builder.
+ *
+ *  @param self - PyObject representing the API object.
+ *  @param args - Positional arguments, evbname
+ *  @return PyObject* - dict with the following keys:
+ *               - name - name of the event builder.  Matches the parameter.
+ *               - host - name of host on which the event builder will be started.
+ *               - coincidenceInterval - The number of ticks fragments must be
+ *                        within the first fragment to be built into an event.
+ *               - servicePrefix - Prefix of the service name under which the
+ *                        event builder advertises for data source connections.
+ *               - serviceSuffix - Suffix of the service name under which the
+ *                        event builder advertises for data source connections.
+ *               - build - Flag that is True if the event builder will emit
+ *                         built events.  If not the event builder only emits
+ *                         time ordered fragments.
+ *               - sourceId - Source id placed in built events emitted by this
+ *                          event builder.
+ *               = timestampPolicy - Policy that describes how the timestamp
+ *                          for built events is computed.  This can be one of
+ *                          'earliest', 'latest', or 'average' with obvious
+ *                          meanings.
+ */
+static PyObject*
+VardbEvb_evbInfo(PyObject* self, PyObject* args)
+{
+    char* evb;
+    
+    if (!PyArg_ParseTuple(args, "s", &evb)) {
+        return NULL;
+    }
+    
+    CVardbEventBuilder*                pApi;
+    CVardbEventBuilder::EvbDescription info;
+    
+    pApi = getApi(self);
+    try {
+        info = pApi->evbInfo(evb);
+    }
+    catch (std::exception& e) {
+        PyErr_SetString(exception, e.what());
+        return NULL;
+    }
+    
+    PyObject* result = evbInfoToDict(info);
+    
+    return result;
+}
+/**
+ * VardbEvb_listEventBuilders
+ *    Return a list of dicts that provide information about all event
+ *    builders.   See VadbEvb_evbInfo for the keys dicts in this list hold.
+ *
+ *  @param self  - PyObject* pointer to the object running this method.
+ *  @param args  - Positional parameters (must be empty).
+ *  @return PyObject* list of dicts.
+ */
+static PyObject*
+VardbEvb_listEventBuilders(PyObject* self, PyObject* args)
+{
+    if (PyTuple_Size(args) > 0) {
+        PyErr_SetString(exception, "listEventBuilders takes no parameters");
+        return NULL;
+    }
+    
+    CVardbEventBuilder*                              pApi = getApi(self);
+    std::vector<CVardbEventBuilder::EvbDescription> vResult;
+    try {
+        vResult = pApi->listEventBuilders();
+    }
+    catch (std::exception& e) {
+        PyErr_SetString(exception, e.what());
+        return NULL;
+    }
+    
+    PyObject* result = PyList_New(vResult.size());
+    for (int i  = 0; i < vResult.size(); i++)  {
+        PyList_SetItem(result, i, evbInfoToDict(vResult[i]));
+    }
+    return result;
+}
 /*---------------------------------------------------------------------------
  * Canonical methods for the VardbEvb class (instantiation/destruction).
  */
@@ -607,6 +763,12 @@ static PyMethodDef VarDbEvbMethods[] = {
     },
     {"rmEventBuilder", VardbEvb_rmEventBuilder, METH_VARARGS,
         "Remove/destroy an existing event builder definition."
+    },
+    {"evbInfo", VardbEvb_evbInfo, METH_VARARGS,
+        "Get information about an existing event builder definition"
+    },
+    {"listEventBuilders", VardbEvb_listEventBuilders, METH_VARARGS,
+        "Get information about all defined event builders"
     },
     {NULL, NULL, 0, NULL}                /* End of method definition marker */   
     
