@@ -244,6 +244,10 @@ class TestEventBuidlerApi(unittest.TestCase):
         self.assertEqual(2, info['sourceId'])
         self.assertEqual('average', info['timestampPolicy'])
         
+        #-----------------------------------------------------------------------
+        
+        
+        
 if __name__ == '__main__':
     unittest.main()
 

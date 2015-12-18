@@ -136,6 +136,81 @@ evbInfoToDict(const CVardbEventBuilder::EvbDescription& info)
     
     return result;
 }
+
+
+// Turn an iterable into an vector<unsigned>, raises an exception on failure.
+// 
+static std::vector<unsigned>
+iterableToUnsignedVector(PyObject* o)
+{
+    std::vector<unsigned> result;
+    PyObject* p = PyObject_GetIter(o);
+    if (!p) {
+        PyErr_SetString(exception, "Object must be an interable");
+        throw std::string("Object must be an iterable");
+    }
+    
+    
+    PyObject* item;
+    while(item = PyIter_Next(p)) {
+        if (!PyInt_Check(item)) {
+            PyErr_SetString(exception, "All items must be integer");
+            Py_DECREF(item);
+            Py_DECREF(p);
+            throw std::string("A non integer item encountered");
+        }
+        unsigned i = static_cast<unsigned>(PyInt_AsLong(item));
+        result.push_back(i);
+        
+        Py_DECREF(item);
+    }
+    
+    Py_DECREF(p);
+    
+    return result;
+    
+}
+
+// convert a std::vector<unsigned> to a PyTuple:
+
+PyObject*
+usVectorToTuple(const std::vector<unsigned>& v)
+{
+    PyObject* result = PyTuple_New(v.size());
+    for (int i = 0; i < v.size(); i++) {
+        PyObject* element = PyInt_FromLong(v[i]);
+        PyTuple_SetItem(result, i, element);
+    }
+    
+    return result;
+}
+
+/**
+ * dsInfoToDict
+ *    Turn a data source description struct into a dict.
+ *    See VardbEvb_dsInfo for the keys and their meanings.
+ *
+ * @param info - the DsDescription of the data source.
+ * @return PyDict*
+ */
+PyObject*
+dsInfoToDict(const CVardbEventBuilder::DsDescription& info)
+{
+    PyObject* result = PyDict_New();
+    
+    AddToDict(result, "name", info.s_name.c_str());
+    AddToDict(result, "host", info.s_host.c_str());
+    AddToDict(result, "path", info.s_path.c_str());
+    AddToDict(result, "info", info.s_info.c_str());
+    PyDict_SetItemString(result, "ids", usVectorToTuple(info.s_ids));
+    AddToDict(result, "ring", info.s_ringUri.c_str());
+    AddToDict(result, "bodyheaders", info.s_expectBodyheaders);
+    AddToDict(result, "defaultId", info.s_defaultId);
+    AddToDict(result, "tsextractor", info.s_timestampExtractor.c_str());
+    
+    return result;
+
+}
 /*--------------------------------------------------------------------------
  * Methods on constructed objects of VardbEvb type:
  */
@@ -637,6 +712,465 @@ VardbEvb_listEventBuilders(PyObject* self, PyObject* args)
     }
     return result;
 }
+
+/**
+ *  VardbEvb_addDataSource
+ *     Add a data source to an existing event builder.
+ *     As with createEventbuilder this takes a set of mandatory, positional
+ *     parameters and a set of keyword parameters that are all optional.
+ *     The keyword parameters are:
+ *     -  info  - an information string associated with the event builder
+ *     -  bodyHeaders - a bool that indicates whether or not the data should
+ *                all have body headers.
+ *     -  defaultId - The source id to associate with a fragment if it has no body
+ *                header.
+ *     -  tsextractor - The the path to the shared library that will provide
+ *                 timestamps for items that have no body headers.
+ *
+ *  @param self   - pointer to our data.
+ *  @param args   - Tuple containing positional actual parameters.
+ *  @param kwargs - Dict containing keyword parameters present.
+ *  @return Py_NONE
+ */
+
+static PyObject*
+VardbEvb_addDataSource(PyObject* self, PyObject* args, PyObject* kwargs)
+{
+    // We need to pull this stuff from the parameters - defaults are also provided
+    // where appropriate.  Note that for some we need two sets of variables
+    // as the stuff provided by PyArg_ParseTupleAndKeywords needs post processing.
+    
+    char*                 evbName(0);
+    char*                 srcName(0);
+    char*                 host(0);
+    char*                 dsPath(0);
+    char*                 ringUri(0);
+    std::vector<unsigned> ids;
+    PyObject*             oIds(0);                 // iterable of ids.
+    const char*           info = "";
+    bool                  bodyHeaders(true);
+    PyObject*             oBodyHeader(0);         // Py Boolean of body header flag.
+    unsigned              defaultId(0);
+    const char*           timestampExtractor = "";
+    
+    // These are the keywords we recognize.  Note that we need to supply keywords
+    // for the positional parameters a s well:
+    
+    static const char* keywords []  = {
+        "evbname", "dsname", "host", "path", "ring", "ids", // positional params
+        "info", "bodyHeaders", "defaultId", "tsextractor",  // kw params
+        NULL  
+    };
+    
+    // Process the parameters:
+    // -   Parse them.
+    // -   Perform any post procesing needed to marshall them into addDataSource
+    //     parameters.
+    
+    if (!PyArg_ParseTupleAndKeywords(
+        args, kwargs, "sssssO|sOIs",  const_cast<char**>(keywords),
+        &evbName, &srcName, &host, &dsPath, &ringUri, &oIds,
+        &info, &oBodyHeader, &defaultId, &timestampExtractor
+    )) {
+        return NULL;
+    }
+    // oids must be iterable -- containng integers that can be pulled into ids.
+    
+    try {
+        ids = iterableToUnsignedVector(oIds);
+    }
+    catch (...) {
+        return NULL;      //i...Vector raised the python exception too.
+    }
+    // oBody Headers must be bool - update bodyHeaders from it:
+    
+    if (oBodyHeader) {
+        if (!PyBool_Check(oBodyHeader)) {
+            PyErr_SetString(exception, "bodyHeaders must be a boolean");
+            return NULL;
+        }
+        bodyHeaders = oBodyHeader == Py_True ? true : false;
+    }
+    
+    // Now do the call:
+    
+    CVardbEventBuilder* pApi = getApi(self);
+    try {
+        pApi->addDataSource(
+            evbName, srcName, host, dsPath, ringUri, ids, info, bodyHeaders,
+            defaultId, timestampExtractor
+        );
+        
+    }
+    catch (std::exception& e) {
+        PyErr_SetString(exception, e.what());
+        return NULL;
+    }
+    Py_RETURN_NONE;
+}
+
+/**
+ * VardbEvb_dsSetHost
+ *    Set a data source host for an existing data source.
+ *
+ *  @param self - Object on which this method is being called.
+ *  @param args - method positonal arguments : ebname, dsname, newhost
+ *  @return Py_None
+ */
+static PyObject*
+VardbEvb_dsSetHost(PyObject* self, PyObject* args)
+{
+    char* evb;
+    char* ds;
+    char* host;
+    
+    if (!PyArg_ParseTuple(args, "sss", &evb, &ds, &host)) {
+        return NULL;
+    }
+    
+    CVardbEventBuilder* pApi = getApi(self);
+    try {
+        pApi->dsSetHost(evb, ds, host);
+    }
+    catch (std::exception& e) {
+        PyErr_SetString(exception, e.what());
+        return NULL;
+    }
+    
+    Py_RETURN_NONE;
+}
+
+/**
+ * VardbEvb_dsSetPath
+ *    Set a new program path for an existing data source.
+ *
+ *  @param self - Object on which this method is being called.
+ *  @param args - method positonal arguments : evbname, dsName, newPath
+ *  @return Py_None
+ */
+static PyObject*
+VardbEvb_dsSetPath(PyObject* self, PyObject* args)
+{
+    char* evb;
+    char* ds;
+    char* path;
+    
+    if (!PyArg_ParseTuple(args, "sss", &evb, &ds, &path)) {
+        return NULL;
+    }
+    
+    CVardbEventBuilder* pApi = getApi(self);
+    try {
+        pApi->dsSetPath(evb, ds, path);
+    }
+    catch (std::exception& e) {
+        PyErr_SetString(exception, e.what());
+        return NULL;
+    }
+    
+    Py_RETURN_NONE;
+    
+}
+/**
+ * VardbEvb_dsSetRingUri
+ *   Change the value of the ringbuffer uri an existing data source
+ *   uses as its source of fragments.
+ *  @param self - Object on which this method is being called.
+ *  @param args - method positonal arguments : evbname, dsName, newUri.
+ *  @return Py_None
+ */
+static PyObject*
+VardbEvb_dsSetRingUri(PyObject* self, PyObject* args)
+{
+    char* evb;
+    char* ds;
+    char* ring;
+    
+    if(!PyArg_ParseTuple(args, "sss", &evb, &ds, &ring)) {
+        return NULL;
+    }
+    
+    CVardbEventBuilder* pApi = getApi(self);
+    try {
+        pApi->dsSetRingUri(evb, ds, ring);
+    }
+    catch (std::exception& e) {
+        PyErr_SetString(exception, e.what());
+        return NULL;
+    }
+    
+    Py_RETURN_NONE;
+}
+/**
+ * VardbEvb_dsSetInfo
+ *    Change the information string of a data source.
+ *
+ *  @param self - Object on which this method is being called.
+ *  @param args - method positonal arguments : evbname, dsName, newInfo
+ *  @return Py_None
+ */
+static PyObject*
+VardbEvb_dsSetInfo(PyObject* self, PyObject* args)
+{
+    char* evb;
+    char* ds;
+    char* info;
+    
+    if (!PyArg_ParseTuple(args, "sss", &evb, &ds, &info)) {
+        return NULL;
+    }
+    
+    CVardbEventBuilder* pApi = getApi(self);
+    try {
+        pApi->dsSetInfo(evb, ds, info);
+    }
+    catch (std::exception& e) {
+        PyErr_SetString(exception, e.what());
+        return NULL;
+    }
+    Py_RETURN_NONE;
+}
+/**
+ * VardbEvb_dsSetDefaultId
+ *    Set a new default fragment id for fragments without a body header for
+ *    a data source.
+ *
+ *  @param self - Object on which this method is being called.
+ *  @param args - method positonal arguments : evbname, dsName, newId.
+ *  @return Py_None
+ */
+static PyObject*
+VardbEvb_dsSetDefaultId(PyObject* self, PyObject* args)
+{
+    char* evb;
+    char* ds;
+    unsigned id;
+    
+    if (!PyArg_ParseTuple(args, "ssI", &evb, &ds, &id)) {
+        return NULL;
+    }
+    
+    CVardbEventBuilder* pApi = getApi(self);
+    
+    try {
+        pApi->dsSetDefaultId(evb, ds, id);
+    }
+    catch (std::exception& e) {
+        PyErr_SetString(exception, e.what());
+        return NULL;
+    }
+    Py_RETURN_NONE;
+}
+
+/**
+ * VardbEvb_dsDontExpectBodyHeaders
+ *     Turns of the expect-bodyheaders flag for a data source.  When this
+ *     is false, a default-id and timestamp extractor must be provided
+ *     to provide the source id and timestamp of items that don't come with a
+ *     body header.
+ *  @param self - Object on which this method is being called.
+ *  @param args - method positonal arguments : evbname, dsName
+ *  @return Py_None
+
+ */
+static PyObject*
+VardbEvb_dsDontExpectBodyHeaders(PyObject* self, PyObject* args)
+{
+    char* evb;
+    char* ds;
+    
+    if(!PyArg_ParseTuple(args, "ss", &evb, &ds)) {
+        return NULL;
+    }
+    
+    CVardbEventBuilder* pApi = getApi(self);
+    try {
+        pApi->dsDontExpectBodyHeaders(evb, ds);
+        
+    }
+    catch(std::exception& e) {
+        PyErr_SetString(exception, e.what());
+        return NULL;
+    }
+    Py_RETURN_NONE;
+}
+
+/**
+ * VardbEvb_dsExpectBodyHeaders
+ *     Turns on the expect-bodyheaders flag for a data source.  When this is
+ *     true, the data source assumes that all items have body headers and that
+ *     the data source id and the timestamp can be gotten from the body header
+ *     without knowning anything about the payload.
+ *     
+ *  @param self - Object on which this method is being called.
+ *  @param args - method positonal arguments : evbname, dsName
+ *  @return Py_None
+ */
+static PyObject*
+VardbEvb_dsExpectBodyHeaders(PyObject* self, PyObject* args)
+{
+    char* evb;
+    char* ds;
+    
+    if(!PyArg_ParseTuple(args, "ss", &evb, &ds)) {
+        return NULL;
+    }
+    
+    CVardbEventBuilder* pApi = getApi(self);
+    try {
+        pApi->dsExpectBodyHeaders(evb, ds);
+        
+    }
+    catch(std::exception& e) {
+        PyErr_SetString(exception, e.what());
+        return NULL;
+    }
+    Py_RETURN_NONE;
+}
+/**
+ * VardbEvb_dsSetTimestampExtractor
+ *    Set a new timestamp extraction library for the data source.  This is used
+ *    when
+ *    -   An item does not have a body header.
+ *    -   Body headers are not required.
+ *    
+ *    In that event functions within the library access the body of the event to
+ *    extract a timestamp from it.
+ *  @param self - Object on which this method is being called.
+ *  @param args - method positonal arguments : evbname, dsName, extractorlib.
+ *  @return Py_None
+ *
+ */
+static PyObject*
+VardbEvb_dsSetTimestampExtractor(PyObject* self, PyObject* args)
+{
+    char* evb;
+    char* ds;
+    char* tsLibName;
+    
+    if(!PyArg_ParseTuple(args, "sss", &evb, &ds, &tsLibName)) {
+        return NULL;
+    }
+    
+    CVardbEventBuilder* pApi = getApi(self);
+    try {
+        pApi->dsSetTimestampExtractor(evb, ds, tsLibName);
+    }
+    catch (std::exception& e) {
+        PyErr_SetString(exception, e.what());
+        return NULL;
+    }
+    
+    Py_RETURN_NONE;
+}
+
+/**
+ * VardbEvb_dsInfo
+ *    Returns a dict that describes a data source.  The dict has the
+ *    following (text) keys:
+ *    -   name  - Name of the data source.
+ *    -   host  - Host running the data source.
+ *    -   path  - Path to the program that is the data source.
+ *    -   info  - Information string.
+ *    -   ids   - Tuple of source ids the data source produces.
+ *    -   ring  - URI of the ring from which data will be taken.
+ *    -   bodyheaders - bool - True if body headers are required.
+ *    -   defaultId - default data source id.
+ *    -   textractor - path to timestamp extractor library file.
+ *  @param self - Object on which this method is being called.
+ *  @param args - method positonal arguments : evbname, dsName
+ *  @return PyDict*
+ *
+ */
+static PyObject*
+VardbEvb_dsInfo(PyObject* self, PyObject* args)
+{
+    char* evb;
+    char* ds;
+    
+    if(!PyArg_ParseTuple(args, "ss", &evb, &ds)) {
+        return NULL;
+    }
+    
+    CVardbEventBuilder*               pApi = getApi(self);
+    CVardbEventBuilder::DsDescription info;
+    
+    try {
+        info = pApi->dsInfo(evb, ds);
+    }
+    catch(std::exception& e) {
+        PyErr_SetString(exception, e.what());
+        return NULL;
+    }
+    
+    return dsInfoToDict(info);
+}
+
+/**
+ * VardbEvb_listDataSources
+ *    List all of the data sources for an event builder.  The result
+ *    is a tuple whose values are dicts of the sort returned by
+ *    dsInfo.
+ *
+ *  @param self - Object on which this method is being called.
+ *  @param args - method positonal arguments : evbname
+ *  @return PyTuple* - of info dicts.
+ */
+static PyObject*
+VardbEvb_listDataSources(PyObject* self, PyObject* args)
+{
+    char* evb;
+    
+    if (!PyArg_ParseTuple(args, "s", &evb)) {
+        return NULL;
+    }
+    
+    CVardbEventBuilder* pApi = getApi(self);
+    std::vector<CVardbEventBuilder::DsDescription> vinfo;
+    try {
+        vinfo =  pApi->listDataSources(evb);
+    }
+    catch(std::exception& e) {
+        PyErr_SetString(exception, e.what());
+        return NULL;
+    }
+    
+    PyObject* result = PyTuple_New(vinfo.size());
+    for (int i = 0; i < vinfo.size(); i++) {
+        PyTuple_SetItem(result, i, dsInfoToDict(vinfo[i]));
+    }
+    
+    return result;
+}
+
+/** VardbEvb_rmDataSource
+ *    Remove the definition of an existing data source.
+ *
+ *  @param self - Object on which this method is being called.
+ *  @param args - method positonal arguments : evbname
+ *  @return Py_NONE
+*/
+static PyObject*
+VardbEvb_rmDataSource(PyObject* self, PyObject* args)
+{
+    char* evb;
+    char* ds;
+    
+    if (!PyArg_ParseTuple(args, "ss", &evb, &ds)) {
+        return NULL;
+    }
+    
+    CVardbEventBuilder* pApi = getApi(self);
+    try {
+        pApi->rmDataSource(evb, ds);
+    }
+    catch (std::exception& e) {
+        PyErr_SetString(exception, e.what());
+        return NULL;
+    }
+    
+    Py_RETURN_NONE;
+}
 /*---------------------------------------------------------------------------
  * Canonical methods for the VardbEvb class (instantiation/destruction).
  */
@@ -769,6 +1303,41 @@ static PyMethodDef VarDbEvbMethods[] = {
     },
     {"listEventBuilders", VardbEvb_listEventBuilders, METH_VARARGS,
         "Get information about all defined event builders"
+    },
+    {"addDataSource", (PyCFunction)VardbEvb_addDataSource,
+        METH_VARARGS | METH_KEYWORDS,
+        "Add a new data source to an event builder"
+    },
+    {"dsSetHost", VardbEvb_dsSetHost, METH_VARARGS,
+        "Set the host for an existingt data source"
+    },
+    {"dsSetPath", VardbEvb_dsSetPath, METH_VARARGS,
+        "Set new path for the program that is a data source"
+    },
+    {"dsSetRingUri", VardbEvb_dsSetRingUri, METH_VARARGS,
+        "Set a new input ring uri for a data source"
+    },
+    {"dsSetInfo", VardbEvb_dsSetInfo, METH_VARARGS,
+        "Change the information string of a data source"
+    },
+    {"dsSetDefaultId", VardbEvb_dsSetDefaultId, METH_VARARGS,
+        "Change the default id of a data source"
+    },
+    {"dsDontExpectBodyHeaders", VardbEvb_dsDontExpectBodyHeaders, METH_VARARGS,
+        "Turn off expectation of body headers."
+    },
+    {"dsExpectBodyHeaders", VardbEvb_dsExpectBodyHeaders, METH_VARARGS,
+        "Turn off expectation of body headers."
+    },
+    {"dsSetTimestampExtractor", VardbEvb_dsSetTimestampExtractor, METH_VARARGS,
+        "Set a new timestamp extraction library"
+    },
+    {"dsInfo", VardbEvb_dsInfo, METH_VARARGS, "Get dict describing a source"},
+    {"listDataSources", VardbEvb_listDataSources, METH_VARARGS,
+        "Describe all of an event builder's data sources."
+    },
+    {"rmDataSource", VardbEvb_rmDataSource, METH_VARARGS,
+        "Destroy a data source definition"
     },
     {NULL, NULL, 0, NULL}                /* End of method definition marker */   
     

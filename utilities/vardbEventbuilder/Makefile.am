@@ -56,7 +56,7 @@ PY_LOG_COMPILER=@PYTHON@
 TESTS_ENVIRONMENT=TCLLIBPATH=@prefix@/TclLibs; export TCLLIBPATH; \
 	PYTHONPATH=@prefix@/pythonLibs; export PYTHONPATH;
 
-TESTS=@builddir@/unittests tclpkgtests.test pypkgtests.py
+TESTS=@builddir@/unittests tclpkgtests.test pyevbtests.py pydstests.py
 
-EXTRA_DIST=tclpkgtests.test pypkgtests.py
+EXTRA_DIST=tclpkgtests.test pyevbtests.py pydstests.py
 
