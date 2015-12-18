@@ -29,7 +29,7 @@ from nscldaq.vardb import VardbEvb
 from nscldaq.vardb import vardb
 from nscldaq.vardb import varmgr
 
-class TestEventBuidlerApi(unittest.TestCase):
+class TestEventBuilderApi(unittest.TestCase):
     #
     #  Common setup requires the creation of a database and its initialization
     #  to be a variable database.
