@@ -1,0 +1,1847 @@
+<refentry id="daq3_cvardbeventbuilder">
+  <refentryinfo>
+    <author>
+        <personname>
+            <firstname>Ron</firstname>
+            <surname>Fox</surname>
+        </personname>
+    </author>
+    <productname>NSCLDAQ</productname>
+    <productnumber></productnumber>
+  </refentryinfo>
+  <refmeta>
+     <refentrytitle id="daq3_cvardbeventbuilder_title">CVardbEventBuilder</refentrytitle>
+     <manvolnum>3daq</manvolnum>
+         <refmiscinfo class='empty'></refmiscinfo>
+  </refmeta>
+  <refnamediv>
+     <refname>CVardbEventBuilder</refname>
+     <refpurpose>C++ API to variable database description of event builder/sources</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+   <synopsis>
+#include &lt;CVardbEventBuilder.h&gt;
+class <ooclass><classname>CVardbEventBuilder</classname></ooclass>
+{
+public:
+    typedef enum _TimestampPolicy {
+        earliest, latest, average
+    } TimestampPolicy;
+    
+    typedef struct _EvbDescription {
+        std::string     s_name;
+        std::string     s_host;
+        unsigned        s_coincidenceInterval;
+        std::string     s_servicePrefix;
+        std::string     s_serviceSuffix;
+        bool            s_build;
+        unsigned        s_sourceId;
+        TimestampPolicy s_timestampPolicy;
+        
+    } EvbDescription, *pEvbDescription;
+    
+    typedef struct _DsDescription {
+        std::string   s_name;
+        std::string   s_host;
+        std::string   s_path;
+        std::string   s_info;
+        std::vector&lt;unsigned&gt; s_ids;
+        std::string   s_ringUri;
+        bool          s_expectBodyheaders;
+        unsigned      s_defaultId;
+        std::string   s_timestampExtractor;
+        
+    } DsDescription, *pDsDescription;
+    
+
+public:
+<constructorsynopsis>
+   <methodname>CVardbEventBuilder</methodname>
+   <methodparam>
+    <modifier>const </modifier><type>char* </type>
+        <parameter>uri</parameter>
+   </methodparam>
+</constructorsynopsis>
+<methodsynopsis>
+    <modifier></modifier>
+    <type>bool </type>
+    <methodname>schemaExists</methodname>
+    <void />
+</methodsynopsis>  
+<methodsynopsis>
+    <modifier></modifier>
+    <type>void </type>
+    <methodname>createSchema</methodname>
+    <void />
+</methodsynopsis>  
+<methodsynopsis>
+    <modifier></modifier>
+    <type> void </type>
+    <methodname>createEventBuilder</methodname>
+    <methodparam>
+        <modifier>const </modifier><type>char*</type>
+            <parameter> name</parameter>
+    </methodparam>
+    <methodparam>
+        <modifier>const</modifier><type> char* </type>
+            <parameter>host</parameter>
+    </methodparam>
+    <methodparam>
+        <modifier></modifier><type>unsigned </type>
+            <parameter>coincidenceInterval</parameter>
+    </methodparam>
+    <methodparam>
+        <modifier></modifier><type>unsigned </type>
+            <parameter>outputSourceId</parameter>
+            <initializer> 0</initializer>
+    </methodparam>
+    <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>servicePrefix </parameter>
+            <initializer>"ORDERER"</initializer>
+    </methodparam>
+    <methodparam>
+        <modifier></modifier><type>bool </type>
+            <parameter>build </parameter>
+            <initializer>true</initializer>
+    </methodparam>
+    <methodparam>
+        <modifier></modifier><type>TimestampPolicy </type>
+            <parameter>tsPolicy </parameter>
+            <initializer> earliest</initializer>
+    </methodparam>
+    <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>serviceSuffix</parameter>
+            <initializer>""</initializer>
+    </methodparam>
+    <modifier></modifier>
+</methodsynopsis>      
+<methodsynopsis>
+    <modifier></modifier>
+    <type>void </type>
+    <methodname>evbSetHost</methodname>
+    <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>name</parameter>
+    </methodparam>
+    <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>newHost</parameter>
+    </methodparam>
+    <modifier></modifier>
+</methodsynopsis>  
+<methodsynopsis>
+    <modifier></modifier>
+    <type>void </type>
+    <methodname>evbSetCoincidenceInterval</methodname>
+    <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>name</parameter>
+    </methodparam>
+    <methodparam>
+        <modifier></modifier><type>unsigned </type>
+            <parameter>newInterval</parameter>
+    </methodparam>
+    <modifier></modifier>
+</methodsynopsis>
+<methodsynopsis>
+    <modifier></modifier>
+    <type>void </type>
+    <methodname>evbSetSourceId</methodname>
+    <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>name</parameter>
+    </methodparam>
+    <methodparam>
+        <modifier></modifier><type>unsigned </type>
+            <parameter>newSourceId</parameter>
+    </methodparam>
+    <modifier></modifier>
+</methodsynopsis>  
+<methodsynopsis>
+    <modifier></modifier>
+    <type>void </type>
+    <methodname>evbSetServicePrefix</methodname>
+    <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>name</parameter>
+    </methodparam>
+    <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>newPrefix</parameter>
+    </methodparam>
+    <modifier></modifier>
+</methodsynopsis>  
+<methodsynopsis>
+    <modifier></modifier>
+    <type>void </type>
+    <methodname>evbEnableBuild</methodname>
+    <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>name</parameter>
+    </methodparam>
+    <modifier></modifier>
+</methodsynopsis>
+<methodsynopsis>
+    <modifier></modifier>
+    <type>void </type>
+    <methodname>evbDisableBuild</methodname>
+    <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>name</parameter>
+    </methodparam>
+    <modifier></modifier>
+</methodsynopsis>  
+<methodsynopsis>
+    <modifier></modifier>
+    <type>void </type>
+    <methodname>evbSetTimestampPolicy</methodname>
+    <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>name</parameter>
+    </methodparam>
+    <methodparam>
+        <modifier></modifier><type>TimestampPolicy </type>
+            <parameter>newPolicy</parameter>
+    </methodparam>
+    <modifier></modifier>
+</methodsynopsis>
+<methodsynopsis>
+    <modifier></modifier>
+    <type>void </type>
+    <methodname>evbSetServiceSuffix</methodname>
+    <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>name</parameter>
+    </methodparam>
+    <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>newSuffix</parameter>
+    </methodparam>
+    <modifier></modifier>
+</methodsynopsis>  
+<methodsynopsis>
+    <modifier></modifier>
+    <type>void </type>
+    <methodname>rmEventBuilder</methodname>
+    <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>name</parameter>
+    </methodparam>
+    <modifier></modifier>
+</methodsynopsis>  
+<methodsynopsis>
+    <modifier></modifier>
+    <type>EvbDescription </type>
+    <methodname>evbInfo</methodname>
+    <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>name</parameter>
+    </methodparam>
+    <modifier></modifier>
+</methodsynopsis>  
+<methodsynopsis>
+    <modifier></modifier>
+    <type>std::vector&lt;EvbDescription&gt; </type>
+    <methodname>listEventBuilders</methodname>
+    <void />
+    <modifier></modifier>
+</methodsynopsis>  
+<methodsynopsis>
+    <modifier></modifier>
+    <type>void </type>
+    <methodname>addDataSource</methodname>
+    <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>evbName</parameter>
+    </methodparam>
+    <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>srcName</parameter>
+    </methodparam>
+    <methodparam>
+        <modifier> const </modifier><type>char* </type>
+            <parameter>host</parameter>
+    </methodparam>
+    <methodparam>
+        <modifier> const </modifier><type>char* </type>
+            <parameter>path</parameter>
+    </methodparam>
+    <methodparam>
+        <modifier>const</modifier><type> char* </type>
+            <parameter>ringUri</parameter>
+    </methodparam>
+    <methodparam>
+        <modifier></modifier><type>std::vector&lt;unsigned&gt; </type>
+            <parameter>ids</parameter>
+    </methodparam>
+    <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>info</parameter>
+            <initializer>""</initializer>
+    </methodparam>
+    <methodparam>
+        <modifier></modifier><type>bool </type>
+            <parameter>expectBodyHeaders</parameter>
+            <initializer>  true</initializer>
+    </methodparam>
+    <methodparam>
+        <modifier></modifier><type>unsigned </type>
+            <parameter>defaultId </parameter>
+            <initializer>0</initializer>
+    </methodparam>
+    <methodparam>
+        <modifier>const </modifier><type>char*</type>
+            <parameter> timestampExtractor</parameter>
+            <initializer>""</initializer>
+    </methodparam>
+    <modifier></modifier>
+</methodsynopsis>      
+<methodsynopsis>
+    <modifier></modifier>
+    <type>void </type>
+    <methodname>dsSetHost</methodname>
+    <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>evbName</parameter>
+    </methodparam>
+    <methodparam>
+        <modifier>const </modifier><type>char*</type>
+            <parameter> srcName</parameter>
+    </methodparam>
+    <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>host</parameter>
+    </methodparam>
+    <modifier></modifier>
+</methodsynopsis>  
+<methodsynopsis>
+    <modifier></modifier>
+    <type>void </type>
+    <methodname>dsSetPath</methodname>
+    <methodparam>
+        <modifier>const </modifier><type>char*</type>
+            <parameter> evbName</parameter>
+    </methodparam>
+    <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>srcName</parameter>
+    </methodparam>
+    <methodparam>
+        <modifier>const</modifier><type> char* </type>
+            <parameter>path</parameter>
+    </methodparam>
+    <modifier></modifier>
+</methodsynopsis>  
+<methodsynopsis>
+    <modifier></modifier>
+    <type> void </type>
+    <methodname>dsSetRingUri</methodname>
+    <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>evbName</parameter>
+    </methodparam>
+    <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>srcName</parameter>
+    </methodparam>
+    <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>ringUri</parameter>
+    </methodparam>
+    <modifier></modifier>
+</methodsynopsis>      
+
+<methodsynopsis>
+    <modifier></modifier>
+    <type>void </type>
+    <methodname>dsSetIds</methodname>
+    <methodparam>
+        <modifier>const </modifier><type>char*</type>
+            <parameter> evbName</parameter>
+    </methodparam>
+    <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>srcName</parameter>
+    </methodparam>
+    <methodparam>
+        <modifier></modifier><type>std::vector&lt;unsigned&gt; </type>
+            <parameter>ids</parameter>
+    </methodparam>
+    <modifier></modifier>
+</methodsynopsis>  
+<methodsynopsis>
+    <modifier></modifier>
+    <type>void </type>
+    <methodname>dsSetInfo</methodname>
+    <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>evbName</parameter>
+    </methodparam>
+    <methodparam>
+        <modifier>const</modifier><type> char* </type>
+            <parameter>srcName</parameter>
+    </methodparam>
+    <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>info</parameter>
+    </methodparam>
+    <modifier></modifier>
+</methodsynopsis>
+<methodsynopsis>
+    <modifier></modifier>
+    <type>void </type>
+    <methodname>dsSetDefaultId</methodname>
+    <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>evbName</parameter>
+    </methodparam>
+    <methodparam>
+        <modifier>const </modifier><type>char* srcName, unsigned id</type>
+            <parameter></parameter>
+    </methodparam>
+    <modifier></modifier>
+</methodsynopsis>  
+<methodsynopsis>
+    <modifier></modifier>
+    <type>void </type>
+    <methodname>dsExpectBodyHeaders</methodname>
+    <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>evbName</parameter>
+    </methodparam>
+    <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>srcName</parameter>
+    </methodparam>
+    <modifier></modifier>
+</methodsynopsis>  
+<methodsynopsis>
+    <modifier></modifier>
+    <type>void </type>
+    <methodname>dsDontExpectBodyHeaders</methodname>
+    <methodparam>
+        <modifier>const</modifier><type> char* </type>
+            <parameter>evbName</parameter>
+    </methodparam>
+    <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>srcName</parameter>
+    </methodparam>
+    <modifier></modifier>
+</methodsynopsis>  
+<methodsynopsis>
+    <modifier></modifier>
+    <type>void </type>
+    <methodname>dsSetTimestampExtractor</methodname>
+    <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>evbName</parameter>
+    </methodparam>
+    <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>srcName</parameter>
+    </methodparam>
+    <methodparam>
+        <modifier>const </modifier><type>char*</type>
+            <parameter> path</parameter>
+    </methodparam>
+    <modifier></modifier>
+</methodsynopsis>  
+<methodsynopsis>
+    <modifier></modifier>
+    <type>DsDescription </type>
+    <methodname>dsInfo</methodname>
+    <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>evb</parameter>
+    </methodparam>
+    <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>ds</parameter>
+    </methodparam>
+    <modifier></modifier>
+</methodsynopsis>  
+<methodsynopsis>
+    <modifier></modifier>
+    <type>std::vector&lt;DsDescription&gt; </type>
+    <methodname>listDataSources</methodname>
+    <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>evb</parameter>
+    </methodparam>
+    <modifier></modifier>
+</methodsynopsis>  
+<methodsynopsis>
+    <modifier></modifier>
+    <type>void </type>
+    <methodname>rmDataSource</methodname>
+    <methodparam>
+        <modifier>const </modifier><type>char* </type>
+            <parameter>evb</parameter>
+    </methodparam>
+    <methodparam>
+        <modifier>const </modifier><type>char*</type>
+            <parameter> ds</parameter>
+    </methodparam>
+    <modifier></modifier>
+</methodsynopsis>  
+
+};
+   </synopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        This class provides a C++ API to the variable database section dedicated
+        to describing event builders and their data sources. Each object of type
+        <classname>CVardbEventBuilder</classname> represents a connection to a
+        single experiment variable database file and its associated variables for
+        configuring event builders and their data sources.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    METHODS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term>
+                <constructorsynopsis>
+                   <methodname>CVardbEventBuilder</methodname>
+                   <methodparam>
+                    <modifier>const </modifier><type>char* </type>
+                        <parameter>uri</parameter>
+                   </methodparam>
+                </constructorsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    When constructing a <clasname>CVardbEventBuilder</clasname>
+                    object you must specify the database connection.  This is
+                    done by supplying a <parameter>uri</parameter>.  If the
+                    <parameter>uri</parameter> specifies the <literal>file:</literal>
+                    protocol, the path is a path to the database file which
+                    is directory opened.  If the uri specifies the
+                    <literal>tcp:</literal> protocol the path specifies a database
+                    server connection and all operations will be performed
+                    through that server.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>bool </type>
+                    <methodname>schemaExists</methodname>
+                    <void />
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    In order to specify event builders and their sources
+                    a directory structure must be in place. This methods
+                    tests to see if that struture exists.  If so
+                    <literal>true</literal> is returned, if not,
+                    <literal>false</literal>.
+                </para>
+                <para>
+                    See <methodname>createSchema below as well.</methodname>
+                </para>
+            </listitem>
+        </varlistentry>        
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>createSchema</methodname>
+                    <void />
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Creates the empty skeleton for representing event builders
+                    and their sources.   If that framework of directories
+                    already exists, this function silently does nothing.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type> void </type>
+                    <methodname>createEventBuilder</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char*</type>
+                            <parameter> name</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier>const</modifier><type> char* </type>
+                            <parameter>host</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier></modifier><type>unsigned </type>
+                            <parameter>coincidenceInterval</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier></modifier><type>unsigned </type>
+                            <parameter>outputSourceId</parameter>
+                            <initializer> 0</initializer>
+                    </methodparam>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>servicePrefix </parameter>
+                            <initializer>"ORDERER"</initializer>
+                    </methodparam>
+                    <methodparam>
+                        <modifier></modifier><type>bool </type>
+                            <parameter>build </parameter>
+                            <initializer>true</initializer>
+                    </methodparam>
+                    <methodparam>
+                        <modifier></modifier><type>TimestampPolicy </type>
+                            <parameter>tsPolicy </parameter>
+                            <initializer> earliest</initializer>
+                    </methodparam>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>serviceSuffix</parameter>
+                            <initializer>""</initializer>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>      
+            </term>
+            <listitem>
+                <para>
+                    Creates a new event builder definition.  Note that no actual
+                    event builder is started.  This method only describes
+                    an event builder for the next start pass of the boot manager
+                    to start.
+                </para>
+                <para>
+                    This method has quite a few parameters, however very few are
+                    required and the order of the optional parametesr is
+                    chosen in order of perceived decreasing frequency of use:
+                </para>
+                <variablelist>
+                    <varlistentry>
+                        <term><parameter>name</parameter></term>
+                        <listitem>
+                            <para>
+                                The name to be given to the event builder.
+                                This is used in all methods that must select
+                                an event builder on which to operate.
+                                Event builder names must be unique.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><parameter>host</parameter></term>
+                        <listitem>
+                            <para>
+                                Specifies the system in which the event builder
+                                runs.  This can be either an unambiguous
+                                DNS name or the IP address of the host.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><parameter>coincidenceInterval</parameter></term>
+                        <listitem>
+                            <para>
+                                When event building (glomming) is enabled, this
+                                value is the number of timestamp ticks in an
+                                event coincidence interval.  Event fragments that
+                                are within <parameter>coincidenceInterval</parameter>
+                                of a first fragment are glommed onto the same
+                                output event.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><parameter>outputSourceId</parameter></term>
+                        <listitem>
+                            <para>
+                                Specifies the source id output events are
+                                tagged with.  This is used when this event builder
+                                is not the top level event builder in a hieararchical
+                                event builder system.  This value should normally
+                                be distinct from all source ids in the system
+                                including not only raw data sources but the
+                                outputs of other event builders.
+                            </para>
+                            <para>
+                                This parameter is optional and defaults to
+                                <literal>0</literal>
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><parameter>servicePrefix</parameter></term>
+                        <listitem>
+                            <para>
+                                The event builder is fed data via a set
+                                of data sources that connect via TCP/IP to the
+                                event builder's ordering stage.  The event builder
+                                uses the NSCLDAQ port manager to advertise itself
+                                to the data sources.  
+                            </para>
+                            <para>
+                                In constructing its service name is glues
+                                together the running users's name with a
+                                prefix and a suffix.  This parameter allows you
+                                to override the default prefix of
+                                <literal>ORDERER</literal>.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><parameter>build</parameter></term>
+                        <listitem>
+                            <para>
+                                The event builder normally runs in build mode.
+                                In this mode, a stage called the
+                                <literal>glommer</literal> pastes event fragments
+                                that have timestamps with the coincidence
+                                interval from a first fragment into output
+                                events.
+                            </para>
+                            <para>
+                                It is also possible to disable the glomming
+                                together of output events and only emit a
+                                stream of totally ordered event fragments.
+                                This is done by passing this parameter with
+                                a <literal>false</literal> value.
+                            </para>
+                            <para>
+                                The default value for this parameter is
+                                <literal>true</literal> which enables
+                                glomming.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><parameter>tsPolicy</parameter></term>
+                        <listitem>
+                            <para>
+                                Glommed output events are assigned a timestamp
+                                so that they can participated in downstream
+                                event building.  This parameter determines how
+                                that timestamp is computed.
+                            </para>
+                            <para>
+                                The parameter has one of three values:
+                                <literal>earliest</literal> - the default, the earliest
+                                timestamp in the event is used.
+                                <literal>latest</literal> - the latest timestamp
+                                in the event is used.
+                                <literal>average</literal> - the average of all
+                                timestamps in the event is computed and used.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><parameter>serviceSuffix</parameter></term>
+                        <listitem>
+                            <para>
+                                See <parameter>servicePrefix</parameter> for
+                                information about this.  This parameter supplies
+                                the suffix for the service advertised by the
+                                event builder.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                </variablelist>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>evbSetHost</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>newHost</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis> 
+            </term>
+            <listitem>
+                <para>
+                    Given an existing event builder named <parameter>name</parameter>,
+                    changes the host in which this event builder will next
+                    be started to <parameter>host</parameter>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>evbSetCoincidenceInterval</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier></modifier><type>unsigned </type>
+                            <parameter>newInterval</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Sets the coincidence interval for an existing
+                    event builder named <parameter>name</parameter> to
+                    <parameter>newInterval</parameter>.  See
+                    <methodname>createEventBuilder</methodname> for a
+                    detailed discussion of the meaning of the coincidence
+                    interval.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>evbSetSourceId</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier></modifier><type>unsigned </type>
+                            <parameter>newSourceId</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Sets the output event source id to <parameter>newSourceId</parameter>
+                    for the event builder <parameter>name</parameter>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>evbSetServicePrefix</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>newPrefix</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Sets the service name prefix for the event builder
+                     <parameter>name</parameter> to <parameter>newPrefix</parameter>.
+                     See <methodname>createEventBuilder</methodname> for more
+                     information about the service name prefix.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>evbEnableBuild</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    If event building for the event builder
+                    <parameter>name</parameter> is disabled, this turns it on.
+                    If event building is already enabled, this method is a
+                    silent no-op.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>evbDisableBuild</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    If event building for the event builder <parameter>name</parameter>
+                    is enabled this call disables it.  If event building is
+                    already disabled, this method is a silent no-op.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>evbSetTimestampPolicy</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier></modifier><type>TimestampPolicy </type>
+                            <parameter>newPolicy</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Sets a new timestamp policy for the event builder
+                    <parameter>name</parameter> to <parameter>newPolicy</parameter>.
+                    See <literal>PUBLIC VARIABLES, TYPES AND CONSTANTS</literal>
+                    below for information about legal values, and their meanings
+                    for <parameter>newPolicy</parameter>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>evbSetServiceSuffix</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>newSuffix</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Sets the event builder <parameter>name</parameter>'s
+                    service suffix to <parameter>newSuffix</parameter>.
+                    See <methodname>createEventBuilder</methodname> for more
+                    information about the role of the service name
+                    suffix.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>rmEventBuilder</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Destroys the definition for the event builder
+                    <parameter>name</parameter>.   Event builder
+                    <parameter>name</parameter> must exist or an
+                    <classname>std::exception</classname> will be thrown.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>EvbDescription </type>
+                    <methodname>evbInfo</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>name</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns detailed information about the event builder
+                    <parameter>name</parameter>.  See
+                    <literal>PUBLIC VARIABLES, TYPES AND CONSTANTS</literal>
+                    below for information about the
+                    <type>CVardbEventBuilder::EvbDescription</type>
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>std::vector&lt;EvbDescription&gt; </type>
+                    <methodname>listEventBuilders</methodname>
+                    <void />
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns a vector of <type>CVardbEventBuilder::EvbDescription</type>
+                     structs that describe <emphasis>all</emphasis> defined
+                     event builders.  See
+                    <literal>PUBLIC VARIABLES, TYPES AND CONSTANTS</literal>
+                    for information about the
+                    <type>CVardbEventBuilder::EvbDescription</type> structure
+                    and its fields.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>addDataSource</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>evbName</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>srcName</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier> const </modifier><type>char* </type>
+                            <parameter>host</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier> const </modifier><type>char* </type>
+                            <parameter>path</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier>const</modifier><type> char* </type>
+                            <parameter>ringUri</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier></modifier><type>std::vector&lt;unsigned&gt; </type>
+                            <parameter>ids</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>info</parameter>
+                            <initializer>""</initializer>
+                    </methodparam>
+                    <methodparam>
+                        <modifier></modifier><type>bool </type>
+                            <parameter>expectBodyHeaders</parameter>
+                            <initializer>  true</initializer>
+                    </methodparam>
+                    <methodparam>
+                        <modifier></modifier><type>unsigned </type>
+                            <parameter>defaultId </parameter>
+                            <initializer>0</initializer>
+                    </methodparam>
+                    <methodparam>
+                        <modifier>const </modifier><type>char*</type>
+                            <parameter> timestampExtractor</parameter>
+                            <initializer>""</initializer>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>                      
+            </term>
+            <listitem>
+                <para>
+                    Adds a data source (<parameter>srcName</parameter>)
+                    definition to the event builder <parameter>evbName</parameter>.
+                    The program specified is assumed to transmit event fragments
+                    to the event builder.
+                </para>
+                <para>
+                    There are a large number of parameters however, as with
+                    <methodname>createEventBuilder</methodname>, an effort
+                    has ben made to make as many of theses as possible optional
+                    with reasonable default values.
+                </para>
+                <para>
+                    Here's the set of parameters the method accepts:
+                </para>
+                <variablelist>
+                    <varlistentry>
+                        <term><parameter>evbName</parameter></term>
+                        <listitem>
+                            <para>
+                                Name of the event builder to which this
+                                source will transmit fragments.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><parameter>srcName</parameter></term>
+                        <listitem>
+                            <para>
+                                Data source name.  The data source name must
+                                be unique within the data source names for the
+                                event builder.  
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><parameter>host</parameter></term>
+                        <listitem>
+                            <para>
+                                The system in which the data source program
+                                will run.   This can be either an unambiguour
+                                DNS name or a dotted IP address string.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><parameter>path</parameter></term>
+                        <listitem>
+                            <para>
+                                The path to the data source program. Normally
+                                this will be something like
+                                <literal>$DAQBIN/ringFragmentSource</literal>
+                                where <literal>$DAQBIN</literal> is the binary
+                                directory of the selected version of NSCLDAQ.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><parameter>ringUri</parameter></term>
+                        <listitem>
+                            <para>
+                                The URI of the ring buffer from which fragments
+                                will be taken.  
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><parameter>ids</parameter></term>
+                        <listitem>
+                            <para>
+                                When the source connects to the event builder
+                                it must provide a list of the source ids of the
+                                data sources it will be transmitting.  This vector
+                                must be initialized to that set of ids.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><parameter>info</parameter></term>
+                        <listitem>
+                            <para>
+                                Optional parameter that defaults to an empty
+                                string.  If provided, this is the information
+                                string that will be used to document the purpose
+                                of the event source on the event builder GUI.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><parameter>expectBodyHeaders</parameter></term>
+                        <listitem>
+                            <para>
+                                Optional parameter that defaults to <literal>true</literal>.
+                                When <literal>true</literal>, the source expects
+                                that all fragments will have body headers from
+                                which the timestamp and the data source id
+                                can be gotten.
+                            </para>
+                            <para>
+                                If this is <literal>true</literal> and a fragment
+                                arrives without a body header that is an error.
+                                If <literal>false</literal>, you must also provide
+                                a meaningful default source id and a
+                                timestamp extractor shared library that will
+                                be used to set the data source and decode the
+                                timestamp for events that don't have body headers.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><parameter>defaultId</parameter></term>
+                        <listitem>
+                            <para>
+                                When <parameter>expectBodyHeaders</parameter> is
+                                <literal>false</literal>, this value is
+                                used as the source id for any fragment that does
+                                not have a body header.  If
+                                <parameter>expectBodyHeaders</parameter> is
+                                <literal>true</literal>, this parameter is
+                                ignored as data source ids will be taken from
+                                the body headers of ring items.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><parameter>timestampExtractor</parameter></term>
+                        <listitem>
+                            <para>
+                                If <parameter>expectBodyHeaders</parameter> is
+                                <literal>false</literal>, this string must be
+                                provided and is the filesystem path to a
+                                shared library that will be used to extract
+                                timestamps from the bodies of ring items that
+                                don't have body headers.
+                            </para>
+                            <para>
+                                If <parameter>expectBodyHeaders</parameter> is
+                                <literal>true</literal>, a timestamp extractor
+                                is not necessary as the timestamps will be
+                                provided by the body headers of each ring
+                                item.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                </variablelist>
+            </listitem>
+        </varlistentry>        
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>dsSetHost</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>evbName</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier>const </modifier><type>char*</type>
+                            <parameter> srcName</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>host</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Changes the <parameter>host</parameter> in which the
+                    data source named <parameter>srcName</parameter> for
+                    the event builder <parameter>evbName</parameter>
+                    will be run.
+                </para>
+            </listitem>
+        </varlistentry>        
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>dsSetPath</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char*</type>
+                            <parameter> evbName</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>srcName</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier>const</modifier><type> char* </type>
+                            <parameter>path</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Sets the path to the program that will be run as the
+                    data source program <parameter>srcName</parameter>
+                    for the event builder <parameter>evbName</parameter>to
+                    <parameter>path</parameter>.
+                </para>
+            </listitem>
+        </varlistentry>        
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type> void </type>
+                    <methodname>dsSetRingUri</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>evbName</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>srcName</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>ringUri</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>      
+            </term>
+            <listitem>
+                <para>
+                    Sets a new URI for the ringbuffer from which
+                    the data source <parameter>srcName</parameter> for the
+                    event builder <parameter>evbName</parameter> will
+                    take data from to <parameter>ringUri</parameter>
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>dsSetIds</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char*</type>
+                            <parameter> evbName</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>srcName</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier></modifier><type>std::vector&lt;unsigned&gt; </type>
+                            <parameter>ids</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Provides a new set of data source ids, <parameter>ids</parameter>,
+                    for the data source <parameter>srcName</parameter> to the
+                    event builder <parameter>evbName</parameter>.
+                </para>
+            </listitem>
+        </varlistentry>        
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>dsSetInfo</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>evbName</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier>const</modifier><type> char* </type>
+                            <parameter>srcName</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>info</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    
+                </para>
+            </listitem>
+        </varlistentry>        
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>dsSetDefaultId</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>evbName</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* srcName, unsigned id</type>
+                            <parameter></parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Modifies the default data source id to <parameter>id</parameter>
+                    for the data source <parameter>srcName</parameter> in the
+                    event builder <parameter>evbName</parameter>.
+                </para>
+            </listitem>
+        </varlistentry>        
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>dsExpectBodyHeaders</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>evbName</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>srcName</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Tells the data source named <parameter>srcName</parameter>
+                    for the event builder <parameter>evbName</parameter> that its
+                    ring items will all have body headers.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>dsDontExpectBodyHeaders</methodname>
+                    <methodparam>
+                        <modifier>const</modifier><type> char* </type>
+                            <parameter>evbName</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>srcName</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Tells the data source named <parameter>srcName</parameter>
+                    for the event builder <parameter>evbName</parameter>
+                    that is ring items may not all have body headers.
+                </para>
+            </listitem>
+        </varlistentry>        
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>dsSetTimestampExtractor</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>evbName</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>srcName</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier>const </modifier><type>char*</type>
+                            <parameter> path</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Sets the timestamp extractor shared library path for
+                    the data source <parameter>srcName</parameter> for the
+                    event builder <parameter>evbName</parameter> to be
+                    <parameter>path</parameter>.  This must be a path
+                    to a shared object that will be called upon to pull
+                    timestamps out of ring items that don't have body headers.
+                </para>
+            </listitem>
+        </varlistentry>        
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>DsDescription </type>
+                    <methodname>dsInfo</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>evb</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>ds</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns a description of the data source specified by
+                    <parameter>ds</parameter> and event builder <parameter>evb</parameter>.
+                    For information about the fields in the data structure
+                    <type>CVardbEventBuilder::DsDescription</type>, see
+                    <literal>PUBLIC VARIABLES, TYPES and CONSTANTS</literal>
+                </para>
+            </listitem>
+        </varlistentry>        
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>std::vector&lt;DsDescription&gt; </type>
+                    <methodname>listDataSources</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>evb</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Returns a vector of
+                    <type>CVardbEventBuilder::DsDescription</type> describing
+                    all data sources for the event builder <parameter>evb</parameter>.
+                    For information about the fields in the data structure
+                    <type>CVardbEventBuilder::DsDescription</type>, see
+                    <literal>PUBLIC VARIABLES, TYPES and CONSTANTS</literal>
+                </para>
+            </listitem>
+        </varlistentry>        
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                    <modifier></modifier>
+                    <type>void </type>
+                    <methodname>rmDataSource</methodname>
+                    <methodparam>
+                        <modifier>const </modifier><type>char* </type>
+                            <parameter>evb</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <modifier>const </modifier><type>char*</type>
+                            <parameter> ds</parameter>
+                    </methodparam>
+                    <modifier></modifier>
+                </methodsynopsis>  
+            </term>
+            <listitem>
+                <para>
+                    Remove the data source definition specified by the
+                    source <parameter>ds</parameter> and event builder
+                    <parameter>evb</parameter>
+                </para>
+            </listitem>
+        </varlistentry>        
+                
+                
+
+     </variablelist>
+  </refsect1>
+   <refsect1>
+      <title>PUBLIC VARIABLES, TYPES and CONSTANTS</title>
+      <refsect2>
+        <title><type>CVardbEventBuilder::TimestampPolicy</type></title>
+        <para>
+            This type is an enumerated type that defines the manner in which
+            event builder output fragments are computed from the fragments that
+            make up a glommed event.  Values are:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term>
+                    <literal>CVardbEventBuilder::earliest</literal>
+                </term>
+                <listitem>
+                    <para>
+                        The output timestamp is the earliest (oldest) in the
+                        list of fragments in the event.  Note that if the
+                        timestamp wraps in the middle of the event, this value
+                        may not be the lowest timestamp value.  It will, however
+                        always be the timestamp of the first fragment in the
+                        event.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><literal>CVardbEventBuilder::latest</literal></term>
+                <listitem>
+                    <para>
+                        The output timestamp is the latest (newest) in the
+                        list of fragments in the event.   This will be the
+                        timestamp for the last fragment in the event.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><literal>CVardbEventBuilder::average</literal></term>
+                <listitem>
+                    <para>
+                        The output timestamp is computed by averaging
+                        all timestamps in the event.
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+      </refsect2>
+      <refsect2>
+        <title><type>CVardbEventBuilder::EvbDescription</type></title>
+        <para>
+            Provides a description of an event builder.  Note that the type
+            <type>CVardbEventBuilder:pEvbDescription</type> is a pointer to
+            this struct.
+        </para>
+        <para>
+            The struct has the following fields:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term>
+                    <type>std::string     </type><structfield>s_name</structfield>
+                </term>
+                <listitem>
+                    <para>
+                        Contains the name of the event builder.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <type>std::string     </type><structfield>s_host</structfield>
+                </term>
+                <listitem>
+                    <para>
+                        Contains the host in which the event builder will be run.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <type>unsigned        </type><structfield>s_coincidenceInterval</structfield>
+                </term>
+                <listitem>
+                    <para>
+                        Contains the event builder's glom coincidence interval.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <type>std::string     </type><structfield>s_servicePrefix</structfield>
+                </term>
+                <listitem>
+                    <para>
+                        Contains the prefix for the advertised service.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <type>std::string     </type><structfield>s_serviceSuffix</structfield>
+                </term>
+                <listitem>
+                    <para>
+                        Contains the suffix for the advertised service.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <type>bool            </type><structfield>s_build</structfield>
+                </term>
+                <listitem>
+                    <para>
+                        <literal>true</literal> if the event builder will
+                        produced glommed events and <literal>false</literal>
+                        if it will not.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <type>unsigned        </type><structfield>s_sourceId</structfield>
+                </term>
+                <listitem>
+                    <para>
+                        Contains the source id that will be put in glommed
+                        output events.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <type>CVardbEventBuilder::TimestampPolicy </type><structfield>s_timestampPolicy</structfield>
+                </term>
+                <listitem>
+                    <para>
+                        Contains the mechanism that will be used to compute the
+                        timestamp of the glommed events that are output.
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+      </refsect2>    
+      <refsect2>
+        <title><type>CVardbEventBuilder::DsDescription</type></title>
+        <para>
+            This type
+            is a struct that
+            describes event sources.  Note that whenever it is
+            returned it is always with respect to some event builder.
+            The type <type>CVardbEventBuilder::pDsDescription</type> is also
+            defined as a pointer to this struct.
+        </para>
+        <para>
+            The struct has the following fields:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term>
+                    <type>std::string   </type><structfield>s_name</structfield>
+                </term>
+                <listitem>
+                    <para>
+                        Name of the data source.  Note that the name of the
+                        event builder is implied by the call that produced
+                        this struct.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <type>std::string   </type><structfield>s_host</structfield>
+                </term>
+                <listitem>
+                    <para>
+                        Host in which the data source will be run.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <type>std::string   </type><structfield>s_path</structfield>
+                </term>
+                <listitem>
+                    <para>
+                        Path to the data source program.  Normally this will be
+                        a path to a <application>ringFragmentSource</application>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <type>std::string   </type><structfield>s_info</structfield>
+                </term>
+                <listitem>
+                    <para>
+                        Contains an information string that is sent to the
+                        event builder when this data source connects. The
+                        string is displayed verbatim on the Event Builder user
+                        interface to help identify the purpose of the data source.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <type>std::vector&lt;unsigned&gt; </type><structfield>s_ids</structfield>
+                </term>
+                <listitem>
+                    <para>
+                        Vector of the ids that the data source can send to the
+                        event builder.  Note that this is a vector taken from
+                        the variables whose names start with <literal>id</literal>.
+                        The order of the variables is alphabetical by variable
+                        name. 
+                    </para>
+                    <para>
+                        The order is not important to the data source or to the
+                        event builder.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <type>std::string   </type><structfield>s_ringUri</structfield>
+                </term>
+                <listitem>
+                    <para>
+                        The URI that specifies the ring buffer from which the
+                        data source will get its fragments.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <type> bool          </type><structfield>s_expectBodyheaders</structfield>
+                </term>
+                <listitem>
+                    <para>
+                        If <literal>true</literal>, the data source can assume
+                        that all items fromt he source ring will have body headers.
+                        if <literal>false</literal>, this assumption cannot be
+                        made and items without body headers will require a
+                        reasonable value for <structfield>s_defaultId</structfield>
+                        to provide a source id for such items and a time stamp
+                        extraction library specified by <structfield>s_timestampExtractor</structfield>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <type>unsigned      </type><structfield>s_defaultId</structfield>
+                </term>
+                <listitem>
+                    <para>
+                        This variable is only important if
+                        <structfield>s_expectBodyheaders</structfield> is
+                        <literal>false</literal>.  In this case, items can
+                        be encountered that don't have body headers.  For
+                        items without body headers, the value of this
+                        field will be set as the source id for that item.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <type>std::string   </type><structfield>s_timestampExtractor</structfield>
+                </term>
+                <listitem>
+                    <para>
+                        If <structfield>s_expectBodyheaders</structfield> is
+                        false, this supplied a path to a shared library which will
+                        be used to extract timestamps from the items that don't
+                        have body headers.
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+    </refsect2>
+
+    
+
+      
+   </refsect1>
+</refentry>     

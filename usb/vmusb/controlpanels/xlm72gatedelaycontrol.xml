@@ -91,12 +91,14 @@ Module config xlmloader -validate on -signature [expr 0xdaba0006]
       Daniel Bazin for the proper firmware signature to use.
       
       <important>
-        If you are using different
-        firmware than gd16.bit, you should have no expectation that any NSCLDAQ
-        drivers will work properly. Remember that the gate and delay generator's
-        behavior is defined by both the hardware and the firmware. If you choose
-        to use a different firmware, you are essentially using a different module
-        than any of the drivers in NSCLDAQ were written to support.
+        <para>
+          If you are using different
+          firmware than gd16.bit, you should have no expectation that any NSCLDAQ
+          drivers will work properly. Remember that the gate and delay generator's
+          behavior is defined by both the hardware and the firmware. If you choose
+          to use a different firmware, you are essentially using a different module
+          than any of the drivers in NSCLDAQ were written to support.
+        </para>
       </important>
     </para>
 
@@ -226,11 +228,13 @@ XLM72GateDelayControl -module value ?option value? :
 User must pass a valid value for the -module option
     </programlisting>
 
-    <para>
+    
       <important>
-        It is important to note that at the moment the GUI only works when the -host parameter is localhost.
+        <para>
+          It is important to note that at the moment the GUI only works when the -host parameter is localhost.
+        </para>
       </important>
-    </para>
+
 
     <para>
       This command should cause a window to open that looks like this:

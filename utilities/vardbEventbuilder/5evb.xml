@@ -1,0 +1,223 @@
+      <refentry id="daq5_vardbevb">
+        <refentryinfo>
+          <author>
+                  <personname>
+                          <firstname>Ron</firstname>
+                          <surname>Fox</surname>
+                  </personname>
+          </author>
+          <productname>NSCLDAQ</productname>
+          <productnumber></productnumber>
+        </refentryinfo>
+        <refmeta>
+           <refentrytitle id="daq5_vardbevb_title">Variable data base schema for event builders</refentrytitle>
+           <manvolnum>5daq</manvolnum>
+           <refmiscinfo class='empty'></refmiscinfo>
+        </refmeta>
+        <refnamediv>
+           <refname>VardbEventBuilder</refname>
+           <refpurpose>Store event builder/data source configurations in vardb</refpurpose>
+        </refnamediv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            This page describes the variable database's representation of event
+            builders and their data sources.  NSCLDAQ supports hierarchical event
+            building.  The implication for this for the schema is that it must
+            be possible to describe more than one event builder.
+           </para>
+           <para>
+            Event builders live in the <filename>/EventBuilder</filename>.  The
+            configuration of each event builder is a set of well defined variables
+            in a subdirectory below <filename>/EventBuilder</filename>.  The
+            name of the subdirectory is said to also be the name of the event
+            builder.
+           </para>
+           <para>
+            Each event builder can have several data sources.  Data sources are
+            programs that connect to the orderer stage of the event building
+            pipeline and pass it fragments of events from one or more data
+            sources.  Each data source is represented as a subdirectory within
+            directory of the event builder to which it connects.  The configuration
+            of a data source is, like the configuration of an event builder
+            a set of well defined variables in its subdirectory.
+           </para>
+
+          <refsect2>
+              <title>Event builder configuration variables</title>
+              <para>
+                  These are the variables that define the configuration of
+                  an event builder:
+              </para>
+              <segmentedlist>
+                  <segtitle>Variable</segtitle>
+                  <segtitle>Type</segtitle>
+                  <segtitle>Contents</segtitle>
+                  <seglistitem>
+                      <seg>host</seg>
+                      <seg>string</seg>
+                      <seg>Name of the system in which the even builder pipeline will run.</seg>
+                  </seglistitem>
+                  
+                  <seglistitem>
+                      <seg>servicePrefix</seg>
+                      <seg>string</seg>
+                      <seg>Defines a prefix string to the service the event builder
+                           will advertise to the port manager.
+                      </seg>
+                  </seglistitem>
+                  <seglistitem>
+                    <seg>coincidenceInterval</seg>
+                    <seg>integer</seg>
+                    <seg>When the event builder is gluing fragments together to form
+                      events, fragments must be within this number of timestamp ticks
+                      from the first fragment in a bunch to qualify as part of
+                      an event.
+                    </seg>
+                  </seglistitem>
+                  <seglistitem>
+                    <seg>timestampPolicy</seg>
+                    <seg>enum {earliest, latest, average}</seg>
+                    <seg>
+                      Events output from the event builder have a time stamp of their
+                      own.  This variable determines how that time stamp is computed
+                      from the time stamps of the fragments in the event.
+                    </seg>
+                  </seglistitem>
+                  <seglistitem>
+                    <seg>sourceId</seg>
+                    <seg>integer</seg>
+                    <seg>
+                      Events output from the event builder have a source id.  This
+                      allows them to participate in a next stage of hierarchical
+                      event building.  This variable holds the source id that will
+                      be assigned to output events.
+                    </seg>
+                  </seglistitem>
+              </segmentedlist>
+          </refsect2>
+          <refsect2>
+            <title>Data sources</title>
+            <para>
+              A data source connects to the service advertised by the event builder
+              and transmits fragments.  At the time this is being written there is
+              a single data source program <application>ringFragmentSource</application>
+              which pulls items from a ring buffer and sends them packaged as
+              event fragments to the event builder.
+            </para>
+            <para>
+              In NSCLDAQ-11.0 and later, ring items can have an optional body
+              header.  If an item has that header, it contains, among other things,
+              the timestamp and source id of that fragment.   Therefore,
+              the operation of the <application>ringFragmentSource</application>
+              is greatly simplified if it can be assured that all ring items
+              contain body headers.
+            </para>
+            <para>
+              If not all ring fragment items have body headers, the source
+              needs to be provided with a shared library that it will dynamically
+              load.  That library will be used to extract the timestamp for
+              events with no body header.  Furthermore, the source must be provided
+              with a source id that is used when an event has no body header.
+            </para>
+            <para>
+              In the database, information needed to start a data source is held
+              in subdirectories below the directory that describes the event builder
+              to which the source will connect.  The configuration of a ring
+              fragment source is stored in several well defined variables within
+              that subdirectory.  The subdirectory name is used as the data source
+               name.
+            </para>
+            <para>
+              Below are the variables used to parameterize a data source.
+            </para>
+            <segmentedlist>
+              <segtitle>Variable</segtitle>
+              <segtitle>Data Type</segtitle>
+              <segtitle>Contents</segtitle>
+              <seglistitem>
+                <seg>host</seg>
+                <seg>string</seg>
+                <seg>The name or IP address of the host in which the
+                  data source will run.  This need not be the same as the host
+                   in which the event builder itself runs.
+                </seg>
+              </seglistitem>
+              <seglistitem>
+                <seg>path</seg>
+                <seg>string</seg>
+                <seg>
+                  The filesystem path to the event source program.  providing this
+                  variable allows you to choose ring fragment sources from a
+                  different but compatibile version of NSCLDAQ than your default
+                  as well as to choose a totally different event source, as long
+                  as it has a compatible set of command options.
+                </seg>
+              </seglistitem>
+              <seglistitem>
+                <seg>info</seg>
+                <seg>string</seg>
+                <seg>
+                  Each data source can provide an information or comment string.
+                  This string is displayed in the event builder user interface.
+                  The <varname>info</varname> variable contains the string that
+                  will be provided to the event builder.
+                </seg>
+              </seglistitem>
+              <seglistitem>
+                <seg>id*</seg>
+                <seg>integer</seg>
+                <seg>
+                  This is actually a set of variables whose names begin with
+                  <literal>id</literal>.  Data sources must pre-declare to the
+                  event builder the set of source ids for which they will
+                  transmit fragments.  Variables that begin with the name
+                  <literal>id</literal> hold that set of integers.
+                  By convention the software will produce names like
+                  <literal>id0</literal>, <literal>id1</literal> ...
+                </seg>
+              </seglistitem>
+              <seglistitem>
+                <seg>ring</seg>
+                <seg>string</seg>
+                <seg>
+                  Defines the ringbuffer from which the data source will
+                  transmit fragments.  Since the rinFragmentSource is a consumer,
+                  this is a ring buffer URI not a ring name.  It is therefore possible
+                  for a data source to be involved with three separate hosts:
+                  The host in which the ring buffer lives, the host in which it runs
+                  and the host that runs the event builder.
+                </seg>
+              </seglistitem>
+              <seglistitem>
+                <seg>default-id</seg>
+                <seg>integer</seg>
+                <seg>
+                  If a ring item does not have a body header, the value of this
+                  variable is used to provide the source id of that item. This defaults
+                  to <literal>0</literal>.
+                </seg>
+              </seglistitem>
+              <seglistitem>
+                <seg>timestamp-extractor</seg>
+                <seg>string</seg>
+                <seg>
+                  This string is a path to the shared library that will be used
+                  to extract a timestamp from ring items that don't have a body
+                  header.
+                </seg>
+              </seglistitem>
+              <seglistitem>
+                <seg>expect-bodyheaders</seg>
+                <seg>boolean</seg>
+                <seg>If <literal>true</literal>, it is not necessary to provide a
+                   timestamp extractor library and it will be an error if the
+                   ring fragment source encounters an item without a body header.
+                   If <literal>false</literal>, a timestamp extractor library
+                   must be provided.
+                </seg>
+              </seglistitem>
+            </segmentedlist>
+          </refsect2>
+        </refsect1>
+      </refentry>
