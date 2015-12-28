@@ -1,3 +1,5 @@
+<!-- manpage 5daq -->
+
       <refentry id="daq5_vardbevb">
         <refentryinfo>
           <author>
@@ -221,3 +223,4 @@
           </refsect2>
         </refsect1>
       </refentry>
+<!-- /manpage -->

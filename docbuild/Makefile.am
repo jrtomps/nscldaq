@@ -49,7 +49,8 @@ daq.mans: daq.xml
 #	touch daq.mans
 
 BOOKDIRS = 	@top_srcdir@ \
-            @top_srcdir@/base/dataflow\
+						@top_srcdir@/base/dataflow \
+						@top_srcdir@/base/factories \
 						@top_srcdir@/daq/format \
 						@top_srcdir@/usb \
 						@top_srcdir@/usb/vmusb \
@@ -65,6 +66,7 @@ BOOKDIRS = 	@top_srcdir@ \
 						@top_srcdir@/utilities/dumpend \
 						@top_srcdir@/utilities/runcontrol 	\
 						@top_srcdir@/utilities/bootmanager	\
+						@top_srcdir@/utilities/varmanager/scripts \
 						@top_srcdir@/servers/portmanager \
 						@top_srcdir@/servers/tclserver \
 						@top_srcdir@/usb/mesytec/MCFD16 \
@@ -104,7 +106,9 @@ BOOKDIRS = 	@top_srcdir@ \
 						@top_srcdir@/base/tclwidgets  \
 						@top_srcdir@/libtcl/tclplus  \
 						@top_srcdir@/libtcl/exception 	\
-						@top_srcdir@/utilities/varmanager
+						@top_srcdir@/utilities/varmanager \
+						@top_srcdir@/utilities/varmanager/server \
+						@top_srcdir@/utilities/vardbEventbuilder
 
 
 
