@@ -76,7 +76,11 @@ class VarMgrEvbtests : public CppUnit::TestFixture {
   CPPUNIT_TEST(dsInfoNox);
   CPPUNIT_TEST(lsds);
   CPPUNIT_TEST(rmds);
-  //CPPUNIT_TEST(rmnoxds);
+
+  // Other tests:
+  
+  CPPUNIT_TEST(rmEvbWSources);
+  
   CPPUNIT_TEST_SUITE_END();
 
 protected:
@@ -122,6 +126,8 @@ protected:
   void dsInfoNox();
   void lsds();
   void rmds();
+  
+  void rmEvbWSources();
 private:
   CVarMgrApi*         m_pApi;
   CVardbEventBuilder* m_pEvbApi;
@@ -328,7 +334,7 @@ void VarMgrEvbtests::rmEventBuilder()
   setup2();
   m_pEvbApi->rmEventBuilder("test");
   CPPUNIT_ASSERT_THROW(
-    m_pApi->cd("EventBuilder/test"),
+    m_pApi->cd("/EventBuilder/test"),
     std::runtime_error
   );
 }
@@ -606,6 +612,12 @@ setup3();                       // ds1 is built.
     );
   
   m_pEvbApi->rmDataSource("test", "ds2");
+  
+  CPPUNIT_ASSERT_THROW(
+    m_pApi->cd("/EventBuilder/test/ds2"),
+    std::runtime_error
+  );
+  
   std::vector<CVardbEventBuilder::DsDescription> desc =
       m_pEvbApi->listDataSources("test");
       
@@ -614,4 +626,26 @@ setup3();                       // ds1 is built.
   EQ(std::string("ds1"), desc[0].s_name);
   EQ(std::string("ds3"), desc[1].s_name);
   
+}
+
+// Remove an event builder that has sources:
+
+void VarMgrEvbtests::rmEvbWSources()
+{
+  setup3();
+  CPPUNIT_ASSERT_NO_THROW(
+    m_pEvbApi->rmEventBuilder("test")
+  );
+  // Data source dir should be gone:
+  
+  CPPUNIT_ASSERT_THROW(
+    m_pApi->cd("/EventBuilder/test/ds1"),
+    std::runtime_error
+  );
+  // Event builder dir should be gone:
+  
+  CPPUNIT_ASSERT_THROW(
+    m_pApi->cd("/EventBuilder/test"),
+    std::runtime_error
+  );
 }

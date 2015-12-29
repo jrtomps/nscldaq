@@ -305,7 +305,7 @@ CVardbEventBuilder::rmEventBuilder(const char* name)
 {
     std::string dir = evbDirname(name);
     rmTree(dir.c_str());
-    m_pApi->rmdir(dir.c_str());
+
 }
 
 /**
@@ -680,7 +680,6 @@ CVardbEventBuilder::listEventBuilders()
  {
     std::string dir = dsDirName(evb, ds);
     rmTree(dir.c_str());
-    m_pApi->rmdir(dir.c_str());
  }
 /*-----------------------------------------------------------------------------
  *  Utility functions
@@ -778,9 +777,10 @@ CVardbEventBuilder::rmTree(const char* name)
         rmTree(subdirs[i].c_str());
     }
     
-    //
+    //  restore the wd and kill off the top level dir.
     
     m_pApi->cd(wd.c_str());
+    m_pApi->rmdir(name);
 }
 /**
  * textToPolicy
