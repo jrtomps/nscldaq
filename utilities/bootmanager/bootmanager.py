@@ -35,6 +35,8 @@
 import nscldaq.vardb.statemanager
 from  nscldaq.programs import ssh
 from  nscldaq.programs import programs
+from  nscldaq.vardb    import VardbEvb
+from  nscldaq.programs import eventbuilders
 
 import argparse
 import time
@@ -48,6 +50,16 @@ import fcntl
 #  Global variable that will get the changes caught by processMessages.
 
 changes = []
+
+
+##
+# @class evbapi - VardbEvb.VardbEvb - but with ability to fetch the URI:
+#
+class evbapi(VardbEvb.VardbEvb):
+    def __init__(self, requri):
+        self.uri = requri
+        super(evbapi, self).__init__(requri)
+    
 
 ##
 # setFlag
@@ -127,11 +139,13 @@ def makeAbsoluteUri(uri):
 def processChanges(changes):
     for c in changes:
         if c['state'] == 'Readying':
+            eventBuilders.start()
             programs.start()
             client.waitTransition()
         elif c['state'] == 'NotReady':
             print('system shutting down')
             programs.stop()
+            eventBuilders.stop()
 
 ##
 # relayProgramOutput
@@ -148,19 +162,35 @@ def relayProgramOutput(program, data):
 # @param readable - list of readable program pipes.
 #
 def processProgramInput(readable):
+    print("Process ProgramInput")
     for f in readable:
 
         try:
             program = programs.getProgram(f)
+            print("found program: " + program.name())
+        except:
+            try:
+                program = eventBuilders.findProgram(f)
+                print("found in event builders: " + program.name())
+            except:
+                print("found nothing matching")
+                return
+
+        try :
+            print 'setflag'
             setFlag(f, os.O_NONBLOCK)
+            print 'read'
             line    = f.read()               # program may have exited.
+            print 'clearflag'
             clearFlag(f, os.O_NONBLOCK)
         except:
-            return
+            print("read failed")
+            return                            # In case read failed.
         
         if (line == ''):
             print("A program %s exited. Shutting down system" % program.name())
             programs.stop()
+            eventBuilders.stop()
             try :
                 client.setProgramState(program.name(), 'NotReady')
             except:
@@ -208,7 +238,15 @@ reqUri = makeAbsoluteUri(result[0])
 subUri = makeAbsoluteUri(result[1])
 
 
+#
+#   Create the event builders and their data sources.
+#   These are created as persistent.
+#  
 
+evbApi = evbapi(reqUri)
+evbApi.createSchema()
+
+eventBuilders = eventbuilders.EventBuilders(evbApi)
 
 # Main loop: alternate between processing messages and waiting
 # for input from the processes.
@@ -226,7 +264,9 @@ while True :
         processChanges(changes)
 
     inWaits = programs.getFiles()
+    inWaits.extend(eventBuilders.getFiles())
     result = select.select(inWaits, [], [], 1)
+    
     readReady = result[0]
     if len(readReady) > 0:
         processProgramInput(readReady)

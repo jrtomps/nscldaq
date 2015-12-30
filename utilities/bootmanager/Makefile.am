@@ -1,5 +1,5 @@
 PYTHONPROGS=@srcdir@/bootmanager.py 
-PYTHONPKGS=@srcdir@/programs.py  @srcdir@/ssh.py
+PYTHONPKGS=@srcdir@/programs.py  @srcdir@/ssh.py @srcdir@/eventbuilders.py
 
 install-exec-local:
 	$(mkinstalldirs) @prefix@/pythonLibs/nscldaq/bootmanager
