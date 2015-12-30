@@ -57,7 +57,7 @@ class TestEventBuilderApi(unittest.TestCase):
     
     def mkDefaultEvb(self):
         obj  = self.dbInit()
-        obj.createEventBuilder('test', 'charlie', 1)
+        obj.createEventBuilder('test', 'charlie', 1, 'fox')
         return obj
     
         
@@ -96,6 +96,7 @@ class TestEventBuilderApi(unittest.TestCase):
         self.assertEquals('ORDERER', self._db.get('servicePrefix'))
         self.assertEquals('', self._db.get('serviceSuffix'))
         self.assertEquals('1', self._db.get('coincidenceInterval'))
+        self.assertEquals('fox', self._db.get('ring'))
         self.assertEquals('true', self._db.get('build'))
         self.assertEquals('earliest', self._db.get('timestampPolicy'))
         self.assertEquals('0', self._db.get('sourceId'))
@@ -103,7 +104,7 @@ class TestEventBuilderApi(unittest.TestCase):
     def test_makeEvbOverrides(self):
         obj = self.dbInit()
         obj.createEventBuilder(
-            'test', 'charlie', 2,
+            'test', 'charlie', 2, 'fox',
             sourceId=5, tsPolicy='latest', build=False, servicePrefix='fox',
             serviceSuffix='foxy'
         )
@@ -114,6 +115,7 @@ class TestEventBuilderApi(unittest.TestCase):
         self.assertEquals('fox', self._db.get('servicePrefix'))
         self.assertEquals('foxy', self._db.get('serviceSuffix'))
         self.assertEquals('2', self._db.get('coincidenceInterval'))
+        self.assertEquals('fox', self._db.get('ring'))
         self.assertEquals('false', self._db.get('build'))
         self.assertEquals('latest', self._db.get('timestampPolicy'))
         self.assertEquals('5', self._db.get('sourceId'))
@@ -121,12 +123,12 @@ class TestEventBuilderApi(unittest.TestCase):
     def test_makeEvbBadTsPolicy(self):
         obj = self.dbInit()
         with self.assertRaises(VardbEvb.exception) :
-            obj.createEventBuilder('test', 'charlie', 2, tsPolicy='junk')
+            obj.createEventBuilder('test', 'charlie', 2, 'fox', tsPolicy='junk')
     
     def test_makeEvbBuildNotBool(self):
         obj = self.dbInit()
         with self.assertRaises(VardbEvb.exception):
-            obj.createEventBuilder('test', 'charlie', 2, build=1)
+            obj.createEventBuilder('test', 'charlie', 2, 'fox', build=1)
         
     
     def test_setEvbHost(self):
@@ -143,6 +145,12 @@ class TestEventBuilderApi(unittest.TestCase):
         self._db.cd('/EventBuilder/test')
         self.assertEquals('2', self._db.get('coincidenceInterval'))
      
+    def test_setEvbRing(self):
+        obj = self.mkDefaultEvb()
+        obj.setEvbRing('test', 'wolf')
+        self._db.cd('/EventBuilder/test')
+        self.assertEquals('wolf', self._db.get('ring'))
+        
     def test_setEvbSourceId(self):
         obj = self.mkDefaultEvb()
         obj.setEvbSourceId('test', 666)
@@ -210,6 +218,7 @@ class TestEventBuilderApi(unittest.TestCase):
         self.assertEqual('test', info['name'])
         self.assertEqual('charlie', info['host'])
         self.assertEqual(1, info['coincidenceInterval'])
+        self.assertEqual('fox', info['ring'])
         self.assertEqual('ORDERER', info['servicePrefix'])
         self.assertEqual('', info['serviceSuffix'])
         self.assertEqual(True, info['build'])
@@ -218,7 +227,7 @@ class TestEventBuilderApi(unittest.TestCase):
         
     def test_listEvbs(self):
         obj = self.mkDefaultEvb()     # makes test.
-        obj.createEventBuilder('test1', 'spdaq20', 10,
+        obj.createEventBuilder('test1', 'spdaq20', 10, 'thing', 
            sourceId=2, servicePrefix='fox', build=False, tsPolicy='average',
            serviceSuffix='ron'
         )
@@ -228,6 +237,7 @@ class TestEventBuilderApi(unittest.TestCase):
         self.assertEqual('test', info['name'])
         self.assertEqual('charlie', info['host'])
         self.assertEqual(1, info['coincidenceInterval'])
+        self.assertEqual('fox', info['ring'])
         self.assertEqual('ORDERER', info['servicePrefix'])
         self.assertEqual('', info['serviceSuffix'])
         self.assertEqual(True, info['build'])
@@ -238,6 +248,7 @@ class TestEventBuilderApi(unittest.TestCase):
         self.assertEqual('test1', info['name'])
         self.assertEqual('spdaq20', info['host'])
         self.assertEqual(10, info['coincidenceInterval'])
+        self.assertEqual('thing', info['ring'])
         self.assertEqual('fox', info['servicePrefix'])
         self.assertEqual('ron', info['serviceSuffix'])
         self.assertEqual(False, info['build'])

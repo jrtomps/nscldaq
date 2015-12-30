@@ -120,6 +120,8 @@ CVardbEventBuilder::createSchema()
  *  @param name -  Event builder name
  *  @param host -  Host in which the event builder will live.
  *  @param coincidenceInterval - Event glom time interval in timestamp ticks.
+ *  @param ring - name of ring buffer (not URI) the event builder will output data
+ *                 to.
  *  @param outputSourceId - the source id assigned to output events.  Defaults to 0.
  *  @param servicePrefix  - the event builder service prefix advertised.  This defaults
  *                          to ORDERER.
@@ -134,6 +136,7 @@ CVardbEventBuilder::createSchema()
 void
 CVardbEventBuilder::createEventBuilder(
     const char* name, const char* host, unsigned coincidenceInterval,
+    const char* ring,
     unsigned outputSourceId, const char* servicePrefix, bool build,
     TimestampPolicy tsPolicy, const char* serviceSuffix
 )
@@ -152,6 +155,7 @@ CVardbEventBuilder::createEventBuilder(
         m_pApi->declare("host", "string", host);
         m_pApi->declare("servicePrefix", "string", servicePrefix);
         m_pApi->declare("serviceSuffix", "string", serviceSuffix);
+        m_pApi->declare("ring", "string", ring);
         m_pApi->declare(
             "coincidenceInterval", "integer",
             uIntToString(coincidenceInterval).c_str()
@@ -204,6 +208,21 @@ CVardbEventBuilder::evbSetCoincidenceInterval(
     std::string dir = evbDirname(name);
     m_pApi->cd(dir.c_str());
     m_pApi->set("coincidenceInterval", uIntToString(newInterval).c_str());
+    m_pApi->cd("/");
+}
+/**
+ * evbSetRing
+ *   Set a new output ring for the ringbuffer.
+ *
+ *   @param name - event builder name.
+ *   @param ring - name (not URI) of new output ring.
+ */
+void
+CVardbEventBuilder::evbSetRing(const char* name, const char* ring)
+{
+    std::string dir = evbDirname(name);
+    m_pApi->cd(dir.c_str());
+    m_pApi->set("ring", ring);
     m_pApi->cd("/");
 }
 /**
@@ -329,6 +348,7 @@ CVardbEventBuilder::evbInfo(const char* name)
     result.s_servicePrefix = m_pApi->get("servicePrefix");
     result.s_serviceSuffix = m_pApi->get("serviceSuffix");
     result.s_coincidenceInterval = atoi(m_pApi->get("coincidenceInterval").c_str());
+    result.s_ring          = m_pApi->get("ring");
     result.s_build         = m_pApi->get("build") == std::string("true") ? true : false;
     result.s_timestampPolicy = textToPolicy(m_pApi->get("timestampPolicy"));
     result.s_sourceId     = atoi(m_pApi->get("sourceId").c_str());

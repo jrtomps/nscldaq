@@ -125,6 +125,7 @@ evbInfoToDict(const CVardbEventBuilder::EvbDescription& info)
     AddToDict(result, "name", info.s_name.c_str());
     AddToDict(result, "host", info.s_host.c_str());
     AddToDict(result, "coincidenceInterval", info.s_coincidenceInterval);
+    AddToDict(result, "ring", info.s_ring.c_str());
     AddToDict(result, "servicePrefix", info.s_servicePrefix.c_str());
     AddToDict(result, "serviceSuffix", info.s_serviceSuffix.c_str());
     AddToDict(result, "build", info.s_build);
@@ -308,7 +309,7 @@ VardbEvb_createEventBuilder(PyObject* self, PyObject* args, PyObject* kwArgs)
     // The keyword list.  Seems like we need to invent keywords for the
     // positionals as well.
     static const char* keywords[] = {
-        "name", "host", "dt",                  // Positional actually.
+        "name", "host", "dt", "ring",                 // Positional actually.
         "sourceId", "servicePrefix", "build", "tsPolicy", "serviceSuffix",
         NULL
     };
@@ -319,6 +320,7 @@ VardbEvb_createEventBuilder(PyObject* self, PyObject* args, PyObject* kwArgs)
     char* name;
     char* host;
     unsigned dt;
+    char* ring;
     
     // keyword params need defaults:
     
@@ -332,8 +334,8 @@ VardbEvb_createEventBuilder(PyObject* self, PyObject* args, PyObject* kwArgs)
     // Process the parameters.
     
     if (! PyArg_ParseTupleAndKeywords(
-        args, kwArgs, "ssi|isOss", const_cast<char**>(keywords),
-        &name, &host, &dt, &sourceId, &servicePrefix,
+        args, kwArgs, "ssis|isOss", const_cast<char**>(keywords),
+        &name, &host, &dt, &ring, &sourceId, &servicePrefix,
         &oBuild, &tsPolicy, &serviceSuffix
         )
     ) {
@@ -352,7 +354,7 @@ VardbEvb_createEventBuilder(PyObject* self, PyObject* args, PyObject* kwArgs)
     CVardbEventBuilder* pApi = getApi(self);
     try {
         pApi->createEventBuilder(
-            name, host, dt, sourceId, servicePrefix, (build != 0),
+            name, host, dt, ring, sourceId, servicePrefix, (build != 0),
             strToTsPolicy(tsPolicy), serviceSuffix
         );
     }
@@ -391,7 +393,7 @@ VardbEvb_setEvbHost(PyObject* self, PyObject* args)
     Py_RETURN_NONE;
 }
 /**
- * setEvbCoincidenceInterval
+ * VardbEvb_setEvbCoincidenceInterval
  *    Set a new coincidence interval for event building in an event builder.
  *
  *  @param self - Object on which this method is being called.
@@ -399,7 +401,7 @@ VardbEvb_setEvbHost(PyObject* self, PyObject* args)
  *  @return Py_None
  */
 static PyObject*
-setEvbCoincidenceInterval(PyObject* self, PyObject* args)
+VardbEvb_setEvbCoincidenceInterval(PyObject* self, PyObject* args)
 {
     char*    evb;
     unsigned interval;
@@ -416,6 +418,36 @@ setEvbCoincidenceInterval(PyObject* self, PyObject* args)
         PyErr_SetString(exception, e.what());
         return NULL;
     }
+    Py_RETURN_NONE;
+}
+/**
+ * VardbEvb_setEvbRing
+ *    set a new output ring for the event builder
+ *
+ *    @param self - Object on which the method is being invoked.
+ *    @param args - position args: event builder name, new ring name.
+ *    @return Py_None
+ */
+static PyObject*
+VardbEvb_setEvbRing(PyObject* self, PyObject* args)
+{
+    char*   name;
+    char*   ring;
+    
+    if (!PyArg_ParseTuple(args, "ss", &name, &ring)) {
+        return NULL;
+    }
+    
+    CVardbEventBuilder* pApi = getApi(self);
+    
+    try {
+        pApi->evbSetRing(name, ring);
+    }
+    catch (std::exception& e) {
+        PyErr_SetString(exception, e.what());
+        return NULL;
+    }
+    
     Py_RETURN_NONE;
 }
 /**
@@ -1306,9 +1338,10 @@ static PyMethodDef VarDbEvbMethods[] = {
         "Create a new event builder definition"},
     {"setEvbHost", VardbEvb_setEvbHost, METH_VARARGS,
         "Change event builder host"},
-    {"setEvbCoincidenceInterval", setEvbCoincidenceInterval, METH_VARARGS,
+    {"setEvbCoincidenceInterval", VardbEvb_setEvbCoincidenceInterval, METH_VARARGS,
         "Change coincidence interval for an eventbuilder"
     },
+    {"setEvbRing", VardbEvb_setEvbRing, METH_VARARGS, "Change output ring buffer"}, 
     {"setEvbSourceId", VardbEvb_setEvbSourceId, METH_VARARGS,
         "Change the output source id of a defined event builder."
     },

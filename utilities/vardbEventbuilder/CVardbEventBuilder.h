@@ -55,6 +55,7 @@ public:
         std::string     s_name;
         std::string     s_host;
         unsigned        s_coincidenceInterval;
+        std::string     s_ring;
         std::string     s_servicePrefix;
         std::string     s_serviceSuffix;
         bool            s_build;
@@ -95,6 +96,7 @@ public:
     
     void createEventBuilder(
         const char* name, const char* host, unsigned coincidenceInterval,
+        const char* outputRing,
         unsigned outputSourceId = 0, const char* servicePrefix = "ORDERER",
         bool build = true, TimestampPolicy tsPolicy = earliest,
         const char* serviceSuffix = ""
@@ -104,6 +106,7 @@ public:
     
     void evbSetHost(const char* name, const char* newHost);
     void evbSetCoincidenceInterval(const char* name,unsigned newInterval);
+    void evbSetRing(const char* name, const char* ring);
     void evbSetSourceId(const char* name, unsigned newSourceId);
     void evbSetServicePrefix(const char* name, const char* newPrefix);
     void evbEnableBuild(const char* name);

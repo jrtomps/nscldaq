@@ -60,6 +60,7 @@ private:
     void evbSetCoincidenceInterval(
        CTCLInterpreter& interp, std::vector<CTCLObject>& objv     
     );
+    void evbSetRing(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
     void evbSetSourceId(CTCLInterpreter& interp, std::vector<CTCLObject>& objv );
     void evbSetServicePrefix(
         CTCLInterpreter& interp, std::vector<CTCLObject>& objv

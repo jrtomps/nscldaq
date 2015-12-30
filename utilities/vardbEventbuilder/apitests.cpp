@@ -35,6 +35,7 @@ class VarMgrEvbtests : public CppUnit::TestFixture {
   CPPUNIT_TEST(evbsethostnox);
   
   CPPUNIT_TEST(evbsetinterval);
+  CPPUNIT_TEST(evbsetRing);
   CPPUNIT_TEST(evbsetid);
   CPPUNIT_TEST(setprefix);
   CPPUNIT_TEST(setsuffix);
@@ -94,6 +95,7 @@ protected:
   void evbsethost();
   void evbsethostnox();
   void evbsetinterval();
+  void evbsetRing();
   void evbsetid();
   void setprefix();
   void setsuffix();
@@ -182,7 +184,7 @@ void VarMgrEvbtests::setup2()
 {
   m_pEvbApi->createSchema();
   m_pEvbApi->createEventBuilder(
-    "test", "charlie", 10);
+    "test", "charlie", 10, "fox");
   
 }
 
@@ -239,6 +241,7 @@ void VarMgrEvbtests::createEvb()
     {
       EQ(std::string("charlie"), m_pApi->get("host"));
       EQ(std::string("10"),      m_pApi->get("coincidenceInterval"));
+      EQ(std::string("fox"),     m_pApi->get("ring"));
       EQ(std::string("0"),       m_pApi->get("sourceId"));
       EQ(std::string("ORDERER"), m_pApi->get("servicePrefix"));
       EQ(std::string("true"),    m_pApi->get("build"));
@@ -256,7 +259,7 @@ void VarMgrEvbtests::createEvbExists()
   
   CPPUNIT_ASSERT_THROW(
       m_pEvbApi->createEventBuilder(
-        "test", "charlie", 10),
+        "test", "charlie", 10, "fox"),
       std::runtime_error
   );
   
@@ -283,6 +286,13 @@ void VarMgrEvbtests::evbsetinterval()
   m_pEvbApi->evbSetCoincidenceInterval("test", 15);
   EQ(std::string("15"), m_pApi->get("EventBuilder/test/coincidenceInterval"));
   
+}
+
+void VarMgrEvbtests::evbsetRing()
+{
+  setup2();
+  m_pEvbApi->evbSetRing("test", "hound");
+  EQ(std::string("hound"), m_pApi->get("/EventBuilder/test/ring"));
 }
 
 void VarMgrEvbtests::evbsetid()
@@ -355,6 +365,7 @@ void VarMgrEvbtests::evbinfo()
   EQ(std::string("test"),    info.s_name);
   EQ(std::string("charlie"), info.s_host);
   EQ(unsigned(10),           info.s_coincidenceInterval);
+  EQ(std::string("fox"),     info.s_ring);
   EQ(std::string("ORDERER"), info.s_servicePrefix);
   EQ(std::string(""),        info.s_serviceSuffix);
   EQ(true,                   info.s_build);
@@ -381,7 +392,7 @@ void VarMgrEvbtests::evbls()
   for (int i =0; i < 10; i++) {
     char name[100];
     sprintf(name, "test%d", i );
-    m_pEvbApi->createEventBuilder(name, "charlie", 10, i);
+    m_pEvbApi->createEventBuilder(name, "charlie", 10, "fox", i);
   }
   std::vector<CVardbEventBuilder::EvbDescription> evbs = m_pEvbApi->listEventBuilders();
   

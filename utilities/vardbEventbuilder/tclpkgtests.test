@@ -166,7 +166,7 @@ tcltest::test create-evb-1 {create event builder with defaults} \
     
 } \
 -body {
-    evb createEventBuilder test charlie
+    evb createEventBuilder test charlie fox
     
     ::vardb::cd $h /EventBuilder/test
     set info [list]
@@ -174,11 +174,12 @@ tcltest::test create-evb-1 {create event builder with defaults} \
     lappend info [::vardb::var get $h servicePrefix]
     lappend info [::vardb::var get $h serviceSuffix]
     lappend info [::vardb::var get $h coincidenceInterval]
+    lappend info [::vardb::var get $h ring]
     lappend info [::vardb::var get $h build]
     lappend info [::vardb::var get $h timestampPolicy]
     lappend info [::vardb::var get $h sourceId]
     
-} -result [list charlie ORDERER "" 1 true earliest 0]
+} -result [list charlie ORDERER "" 1 fox true earliest 0]
 
 tcltest::test create-evb-2 {Create event builder with defaults overriden} \
 -setup {
@@ -196,7 +197,7 @@ tcltest::test create-evb-2 {Create event builder with defaults overriden} \
     
 } \
 -body {
-    evb createEventBuilder test charlie [dict create \
+    evb createEventBuilder test charlie fox [dict create \
         dt 1234 sourceId 5 prefix Foxy build false suffix yxoF tspolicy average
     ]
     
@@ -220,7 +221,7 @@ tcltest::test sethost-1 {Set new host for existing eventbuilder } \
     ::nscldaq::evb create evb file://$file
     evb createSchema
     
-    evb createEventBuilder test charlie
+    evb createEventBuilder test charlie fox
     
     set h [::vardb::open $file]
 } \
@@ -243,7 +244,7 @@ tcltest::test setdt-1 {Set a new coincidence interval for existing event bulder}
     ::nscldaq::evb create evb file://$file
     evb createSchema
     
-    evb createEventBuilder test charlie
+    evb createEventBuilder test charlie fox
     
     set h [::vardb::open $file]
 } \
@@ -258,6 +259,27 @@ tcltest::test setdt-1 {Set a new coincidence interval for existing event bulder}
     ::vardb::var get $h /EventBuilder/test/coincidenceInterval
 } -result 12
 
+tcltest::test setRing-1 {Change the outpur ring} \
+-setup {
+    package require vardbEventBuilder
+    set file [createDbFile]
+    ::nscldaq::evb create evb file://$file
+    evb createSchema
+    
+    evb createEventBuilder test charlie fox
+    
+    set h [::vardb::open $file]
+} \
+-cleanup {
+    ::nscldaq::evb destroy evb
+    ::vardb::close $h
+    destroyDbFile $file
+    
+} \
+-body {
+    evb evbSetRing test wolf
+    ::vardb::var get $h /EventBuilder/test/ring
+} -result wolf
 
 tcltest::test setId-1 {set source id for existing event builder} \
 -setup {
@@ -266,7 +288,7 @@ tcltest::test setId-1 {set source id for existing event builder} \
     ::nscldaq::evb create evb file://$file
     evb createSchema
     
-    evb createEventBuilder test charlie
+    evb createEventBuilder test charlie fox
     
     set h [::vardb::open $file]
 } \
@@ -288,7 +310,7 @@ tcltest::test setservprefix-1 {Set service prefix for existing event builder} \
     ::nscldaq::evb create evb file://$file
     evb createSchema
     
-    evb createEventBuilder test charlie
+    evb createEventBuilder test charlie fox
     
     set h [::vardb::open $file]
 } \
@@ -310,7 +332,7 @@ tcltest::test disablebuild-1 {Disable event building in an existing evb} \
     ::nscldaq::evb create evb file://$file
     evb createSchema
     
-    evb createEventBuilder test charlie
+    evb createEventBuilder test charlie fox
     
     set h [::vardb::open $file]
 } \
@@ -332,7 +354,7 @@ tcltest::test enablebuild-1 {Enable event building in an existing evb} \
     ::nscldaq::evb create evb file://$file
     evb createSchema
     
-    evb createEventBuilder test charlie [dict create build false]
+    evb createEventBuilder test charlie fox [dict create build false]
     
     set h [::vardb::open $file]
 } \
@@ -354,7 +376,7 @@ tcltest::test setspolicy-1 {Set the timestamp policy of an existing evb} \
     ::nscldaq::evb create evb file://$file
     evb createSchema
     
-    evb createEventBuilder test charlie 
+    evb createEventBuilder test charlie fox
     
     set h [::vardb::open $file]
 } \
@@ -383,7 +405,7 @@ tcltest::test setsvcsuffix-1 {Set service suffix of an existing evb} \
     ::nscldaq::evb create evb file://$file
     evb createSchema
     
-    evb createEventBuilder test charlie 
+    evb createEventBuilder test charlie fox
     
     set h [::vardb::open $file]
 } \
@@ -405,7 +427,7 @@ tcltest::test rmevb-1 {Remove an event builder} \
     ::nscldaq::evb create evb file://$file
     evb createSchema
     
-    evb createEventBuilder test charlie 
+    evb createEventBuilder test charlie  fox
     
     set h [::vardb::open $file]
 } \
@@ -427,7 +449,7 @@ tcltest::test evbInfo-1 {Get info about an event builer} \
     ::nscldaq::evb create evb file://$file
     evb createSchema
     
-    evb createEventBuilder test charlie 
+    evb createEventBuilder test charlie fox
     
     set h [::vardb::open $file]
 } \
@@ -441,7 +463,7 @@ tcltest::test evbInfo-1 {Get info about an event builer} \
     evb evbInfo test
     
 } -result [dict create \
-    name test host charlie dt 1 prefix ORDERER suffix "" build true \
+    name test host charlie dt 1 ring fox prefix ORDERER suffix "" build true \
     sourceId 0 tspolicy earliest        \
 ]
 
@@ -452,8 +474,8 @@ tcltest::test evbList-1 {Get info about all event builers} \
     ::nscldaq::evb create evb file://$file
     evb createSchema
     
-    evb createEventBuilder test charlie 
-    evb createEventBuilder test1 spdaq20 [dict create tspolicy latest]
+    evb createEventBuilder test charlie fox
+    evb createEventBuilder test1 spdaq20 0400x [dict create tspolicy latest]
     set h [::vardb::open $file]
 } \
 -cleanup {
@@ -465,10 +487,10 @@ tcltest::test evbList-1 {Get info about all event builers} \
 -body {
     evb evbList
 } -result [list [dict create \
-    name test host charlie dt 1 prefix ORDERER suffix "" build true \
+    name test host charlie dt 1 ring fox prefix ORDERER suffix "" build true \
     sourceId 0 tspolicy earliest        \
     ] [dict create \
-       name test1 host spdaq20 dt 1 prefix ORDERER suffix "" build true \
+       name test1 host spdaq20 dt 1 ring 0400x prefix ORDERER suffix "" build true \
         sourceId 0 tspolicy latest        \
     ] \
 ]
@@ -480,8 +502,8 @@ tcltest::test addSource-1 {Add data source with all the defaults} \
     ::nscldaq::evb create evb file://$file
     evb createSchema
     
-    evb createEventBuilder test charlie 
-    evb createEventBuilder test1 spdaq20 [dict create tspolicy latest]
+    evb createEventBuilder test charlie  fox
+    evb createEventBuilder test1 spdaq20 0400x [dict create tspolicy latest]
     set h [::vardb::open $file]
 } \
 -cleanup {
@@ -516,8 +538,8 @@ tcltest::test addSource-2 {Add data source with defaults overidden}  \
     ::nscldaq::evb create evb file://$file
     evb createSchema
     
-    evb createEventBuilder test charlie 
-    evb createEventBuilder test1 spdaq20 [dict create tspolicy latest]
+    evb createEventBuilder test charlie fox
+    evb createEventBuilder test1 spdaq20 0400x [dict create tspolicy latest]
     set h [::vardb::open $file]
 } \
 -cleanup {
@@ -555,8 +577,8 @@ tcltest::test dsSethost-1 {Set the host of a data source that exists} \
     ::nscldaq::evb create evb file://$file
     evb createSchema
     
-    evb createEventBuilder test charlie 
-    evb createEventBuilder test1 spdaq20 [dict create tspolicy latest]
+    evb createEventBuilder test charlie fox
+    evb createEventBuilder test1 spdaq20 0400x [dict create tspolicy latest]
     set h [::vardb::open $file]
     
     evb addSource test src1 charlie \
@@ -581,8 +603,8 @@ tcltest::test dsSetPath {Change path of existing data source} \
     ::nscldaq::evb create evb file://$file
     evb createSchema
     
-    evb createEventBuilder test charlie 
-    evb createEventBuilder test1 spdaq20 [dict create tspolicy latest]
+    evb createEventBuilder test charlie fox
+    evb createEventBuilder test1 spdaq20 0400x [dict create tspolicy latest]
     set h [::vardb::open $file]
     
     evb addSource test src1 charlie \
@@ -607,8 +629,8 @@ tcltest::test dsSetRingUri {Set input ring of existing data source } \
     ::nscldaq::evb create evb file://$file
     evb createSchema
     
-    evb createEventBuilder test charlie 
-    evb createEventBuilder test1 spdaq20 [dict create tspolicy latest]
+    evb createEventBuilder test charlie fox
+    evb createEventBuilder test1 spdaq20 0400x [dict create tspolicy latest]
     set h [::vardb::open $file]
     
     evb addSource test src1 charlie \
@@ -633,8 +655,8 @@ tcltest::test dsSetIds-1 {set new Id list for data source} \
     ::nscldaq::evb create evb file://$file
     evb createSchema
     
-    evb createEventBuilder test charlie 
-    evb createEventBuilder test1 spdaq20 [dict create tspolicy latest]
+    evb createEventBuilder test charlie fox
+    evb createEventBuilder test1 spdaq20 0400x [dict create tspolicy latest]
     set h [::vardb::open $file]
     
     evb addSource test src1 charlie \
@@ -662,8 +684,8 @@ tcltest::test dsSetInfo-1 {Set the information string of a data source} \
     ::nscldaq::evb create evb file://$file
     evb createSchema
     
-    evb createEventBuilder test charlie 
-    evb createEventBuilder test1 spdaq20 [dict create tspolicy latest]
+    evb createEventBuilder test charlie fox
+    evb createEventBuilder test1 spdaq20 0400x [dict create tspolicy latest]
     set h [::vardb::open $file]
     
     evb addSource test src1 charlie \
@@ -687,8 +709,8 @@ tcltest::test dsSetDefaultId-1 {Set a new default id form a data source} \
     ::nscldaq::evb create evb file://$file
     evb createSchema
     
-    evb createEventBuilder test charlie 
-    evb createEventBuilder test1 spdaq20 [dict create tspolicy latest]
+    evb createEventBuilder test charlie fox
+    evb createEventBuilder test1 spdaq20 0400x [dict create tspolicy latest]
     set h [::vardb::open $file]
     
     evb addSource test src1 charlie \
@@ -712,8 +734,8 @@ tcltest::test dsEnableBodyHeaders-1 {Turn on expect-bodyheaders for a data src} 
     ::nscldaq::evb create evb file://$file
     evb createSchema
     
-    evb createEventBuilder test charlie 
-    evb createEventBuilder test1 spdaq20 [dict create tspolicy latest]
+    evb createEventBuilder test charlie fox
+    evb createEventBuilder test1 spdaq20 0400x [dict create tspolicy latest]
     set h [::vardb::open $file]
     
     evb addSource test src1 charlie \
@@ -739,8 +761,8 @@ tcltest::test dsDisableBodyHeaders-1 {Turn off expect-bodyheaders} \
     ::nscldaq::evb create evb file://$file
     evb createSchema
     
-    evb createEventBuilder test charlie 
-    evb createEventBuilder test1 spdaq20 [dict create tspolicy latest]
+    evb createEventBuilder test charlie fox
+    evb createEventBuilder test1 spdaq20 0400x [dict create tspolicy latest]
     set h [::vardb::open $file]
     
     evb addSource test src1 charlie \
@@ -765,8 +787,8 @@ tcltest::test dsSetTsExtractor-1 {Change the timestamp extractor} \
     ::nscldaq::evb create evb file://$file
     evb createSchema
     
-    evb createEventBuilder test charlie 
-    evb createEventBuilder test1 spdaq20 [dict create tspolicy latest]
+    evb createEventBuilder test charlie fox
+    evb createEventBuilder test1 spdaq20 0400x [dict create tspolicy latest]
     set h [::vardb::open $file]
     
     evb addSource test src1 charlie \
@@ -791,8 +813,8 @@ tcltest::test dsInfo-1 {Get information about a data source} \
     ::nscldaq::evb create evb file://$file
     evb createSchema
     
-    evb createEventBuilder test charlie 
-    evb createEventBuilder test1 spdaq20 [dict create tspolicy latest]
+    evb createEventBuilder test charlie fox
+    evb createEventBuilder test1 spdaq20 0400x [dict create tspolicy latest]
     set h [::vardb::open $file]
     
     evb addSource test src1 charlie \
@@ -819,7 +841,7 @@ tcltest::test dsList-1 {List data sources when there's more than one} \
     ::nscldaq::evb create evb file://$file
     evb createSchema
     
-    evb createEventBuilder test charlie 
+    evb createEventBuilder test charlie fox
  
     
     evb addSource test src1 charlie \
@@ -854,7 +876,7 @@ tcltest::test rmDs-1 {Remove existing data source} \
     ::nscldaq::evb create evb file://$file
     evb createSchema
     
-    evb createEventBuilder test charlie 
+    evb createEventBuilder test charlie fox
  
     
     evb addSource test src1 charlie \

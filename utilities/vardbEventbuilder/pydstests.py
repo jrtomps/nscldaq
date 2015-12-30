@@ -42,7 +42,7 @@ class TestDataSourceApi(unittest.TestCase):
     
     def mkDefaultEvb(self):
         obj  = self.dbInit()
-        obj.createEventBuilder('test', 'charlie', 1)
+        obj.createEventBuilder('test', 'charlie', 1, 'ring')
         return obj
     
     def addDefaultDs(self):

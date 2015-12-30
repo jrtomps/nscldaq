@@ -82,6 +82,8 @@ CTCLEvbInstance::operator()(
             evbSetHost(interp, objv);
         } else if (subcommand == "evbSetCoincidenceInterval") {
             evbSetCoincidenceInterval(interp, objv);
+        } else if (subcommand == "evbSetRing") {
+            evbSetRing(interp, objv);
         } else if (subcommand == "evbSetSourceId") {
             evbSetSourceId(interp, objv);
         } else if (subcommand == "evbSetServicePrefix") {
@@ -199,17 +201,18 @@ CTCLEvbInstance::createEventBuilder(
     CTCLInterpreter& interp, std::vector<CTCLObject>& objv
 )
 {
-    requireAtLeast(objv, 4);
+    requireAtLeast(objv, 5);
     std::string name = objv[2];
     std::string host = objv[3];
+    std::string ring = objv[4];
     
     // If there's an override dict set that otherwise just
     // use an empty dict for simplicity.
     
-    requireAtMost(objv, 5);
+    requireAtMost(objv, 6);
     Tcl_Obj* overrides;
-    if (objv.size() == 5) {
-        overrides = objv[4].getObject();
+    if (objv.size() == 6) {
+        overrides = objv[5].getObject();
     } else {
         overrides = Tcl_NewDictObj();   
     }
@@ -254,7 +257,7 @@ CTCLEvbInstance::createEventBuilder(
     // Create the event builder.
     
     m_pApi->createEventBuilder(
-        name.c_str(), host.c_str(), dt, sourceId, svcPrefix.c_str(),
+        name.c_str(), host.c_str(), dt, ring.c_str(), sourceId, svcPrefix.c_str(),
         build, tsPolicy, svcSuffix.c_str()
     );
 }
@@ -293,6 +296,22 @@ CTCLEvbInstance::evbSetCoincidenceInterval(
     int         dt   = objv[3];
     
     m_pApi->evbSetCoincidenceInterval(name.c_str(), dt);
+}
+/**
+ * evbSetRing
+ *    Set a new event builder output ring buffer.
+ *
+ *  @param interp - interpreter running the command.
+ *  @param objv   - command words vector.
+ */
+void
+CTCLEvbInstance::evbSetRing(CTCLInterpreter& interp, std::vector<CTCLObject>& objv)
+{
+    requireExactly(objv, 4);
+    std::string name = objv[2];
+    std::string ring = objv[3];
+    
+    m_pApi->evbSetRing(name.c_str(), ring.c_str());
 }
 /**
  * evbSetSourceId
@@ -1017,6 +1036,7 @@ CTCLEvbInstance::evbInfoToDict(
     setDictValue(interp, pDict, "name", pInfo->s_name.c_str());
     setDictValue(interp, pDict, "host", pInfo->s_host.c_str());
     setDictValue(interp, pDict, "dt",   pInfo->s_coincidenceInterval);
+    setDictValue(interp, pDict, "ring", pInfo->s_ring.c_str());
     setDictValue(interp, pDict, "prefix", pInfo->s_servicePrefix.c_str());
     setDictValue(interp, pDict, "suffix", pInfo->s_serviceSuffix.c_str());
     setDictValue(interp, pDict, "build", pInfo->s_build);
