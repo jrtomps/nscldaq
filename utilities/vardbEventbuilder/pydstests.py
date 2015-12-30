@@ -187,6 +187,12 @@ class TestDataSourceApi(unittest.TestCase):
             '/usr/bin/ls',
             self._db.get('/EventBuilder/test/ds1/timestamp-extractor')
         )
+    def test_setIds(self):
+        self.addDefaultDs()
+        self._api.dsSetIds('test', 'ds1', [9,8,7])
+        self.assertEqual('9', self._db.get('/EventBuilder/test/ds1/id0'))
+        self.assertEqual('8', self._db.get('/EventBuilder/test/ds1/id1'))
+        self.assertEqual('7', self._db.get('/EventBuilder/test/ds1/id2'))
         
     def test_Info(self):
         self.addDefaultDs()

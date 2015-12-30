@@ -1063,6 +1063,38 @@ VardbEvb_dsSetTimestampExtractor(PyObject* self, PyObject* args)
     
     Py_RETURN_NONE;
 }
+/**
+ *  VardbEvb_dsSetIds
+ *     Change the set of data source ids a data source may emit.
+ *
+ *  @param self - object onwhich this method is being invoked.
+ *  @param args - method positional parameters, evbname, dsname, sources
+ *  @return Py_None
+ *  @note the sources can be any type that supports iteration.
+ */
+static PyObject*
+VardbEvb_dsSetIds(PyObject* self, PyObject* args)
+{
+    char*                 evb;
+    char*                 ds;
+    PyObject*             idsObj;
+    std::vector<unsigned> ids;
+    
+    if (!PyArg_ParseTuple(args, "ssO", &evb, &ds, &idsObj)) {
+        return NULL;
+    }
+    
+    CVardbEventBuilder* pApi = getApi(self);
+    try {
+        ids = iterableToUnsignedVector(idsObj);
+        pApi->dsSetIds(evb, ds, ids);
+    }
+    catch(std::exception& e) {
+        PyErr_SetString(exception, e.what());
+        return NULL;
+    }
+    Py_RETURN_NONE;
+}
 
 /**
  * VardbEvb_dsInfo
@@ -1332,6 +1364,7 @@ static PyMethodDef VarDbEvbMethods[] = {
     {"dsSetTimestampExtractor", VardbEvb_dsSetTimestampExtractor, METH_VARARGS,
         "Set a new timestamp extraction library"
     },
+    {"dsSetIds", VardbEvb_dsSetIds, METH_VARARGS, "Set data source ids"},
     {"dsInfo", VardbEvb_dsInfo, METH_VARARGS, "Get dict describing a source"},
     {"listDataSources", VardbEvb_listDataSources, METH_VARARGS,
         "Describe all of an event builder's data sources."
