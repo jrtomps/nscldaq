@@ -1,4 +1,4 @@
-<!-- manpage daq3 -->
+<!-- manpage 3daq -->
 
 <refentry id="daq3_cvardbeventbuilder">
   <refentryinfo>
@@ -521,7 +521,7 @@ public:
             </term>
             <listitem>
                 <para>
-                    When constructing a <clasname>CVardbEventBuilder</clasname>
+                    When constructing a <classname>CVardbEventBuilder</classname>
                     object you must specify the database connection.  This is
                     done by supplying a <parameter>uri</parameter>.  If the
                     <parameter>uri</parameter> specifies the <literal>file:</literal>
@@ -1872,18 +1872,12 @@ public:
   <command>
 package require vardbEventBuilder
   </command>
-    </cmdsynopsis>
-<cmdsynopsis>
   <command>
 ::nscldaq::evb create <replaceable>name dburi</replaceable>
   </command>
-</cmdsynopsis>
-<cmdsynopsis>
   <command>
 <replaceable>name subcommand parameter....</replaceable>
   </command>
-</cmdsynopsis>
-<cmdsynopsis>
   <command>
 ::nscldaq::evb destroy <replaceable>name</replaceable>
   </command>
@@ -2577,63 +2571,39 @@ api = VardbEvb.VardbEvb(dbUri)
       <command>
 api.schemaExists()
       </command>
-    </cmdsynopsis>
-    <cmdsynopsis>
       <command>
 api.createSchema()
       </command>
-    </cmdsynopsis>
-    <cmdsynopsis>
       <command>
 api.createEventBuilder(name, host, dt[, keyword-params])
       </command>
-    </cmdsynopsis>
-    <cmdsynopsis>
       <command>
 api.setEvbHost(evbName, host)
       </command>
-    </cmdsynopsis>
-    <cmdsynopsis>
       <command>
 api.setEvbSourceId(evbName, id)
       </command>
-    </cmdsynopsis>
-    <cmdsynopsis>
       <command>
 api.setEvbServicePrefix(evbName, prefix)
       </command>
-    </cmdsynopsis>
-    <cmdsynopsis>
       <command>
 api.disableEvbBuild(evbName)
       </command>
-    </cmdsynopsis>
-    <cmdsynopsis>
       <command>
 api.enableEvbBuild(evbName)
       </command>
-    </cmdsynopsis>
-    <cmdsynopsis>
       <command>
 api.setEvbTimestampPolicy(evbName, policy)
       </command>
-    </cmdsynopsis>
-    <cmdsynopsis>
       <command>
 api.setEvbServiceSuffix(evbName, suffix)
       </command>
-    </cmdsynopsis>
-    <cmdsynopsis>
       <command>
 api.rmEventBuilder(evbName)
       </command>
-    </cmdsynopsis>
-    <cmdsynopsis>
       <command>
 info = api.evbInfo(evbName)
       </command>
-    </cmdsynopsis>
-    <cmdsynopsis>
       <command>
 infoList = api.listEventBuilders()
       </command>
@@ -2642,58 +2612,36 @@ infoList = api.listEventBuilders()
       <command>
 api.addDataSource(evbName, srcName, host, path, ring ids[, option-dict])
       </command>
-    </cmdsynopsis>
-    <cmdsynopsis>
       <command>
 api.dsSetHost(evbName, srcName, host)
       </command>
-    </cmdsynopsis>
-    <cmdsynopsis>
       <command>
 api.dsSetPath(evbName, srcName, path)
       </command>
-    </cmdsynopsis>
-    <cmdsynopsis>
       <command>
 api.dsSetRingUri(evbName, srcName, uri)
       </command>
-    </cmdsynopsis>
-    <cmdsynopsis>
       <command>
 api.dsSetInfo(evbName, srcName, info)
       </command>
-    </cmdsynopsis>
-    <cmdsynopsis>
       <command>
 api.dsSetDefaultId(evbName, srcName, id)
       </command>
-    </cmdsynopsis>
-    <cmdsynopsis>
       <command>
 api.dsExpectBodyHeaders(evbName, srcName)
       </command>
-    </cmdsynopsis>
-    <cmdsynopsis>
       <command>
 api.dsDontExpectBodyHeaders(evbName, srcName)
       </command>
-    </cmdsynopsis>
-    <cmdsynopsis>
       <command>
 api.dsSetTimestampExtractor(evbName, srcName, libPath)
       </command>
-    </cmdsynopsis>
-    <cmdsynopsis>
       <command>
 info = api.dsInfo(evbName, srcName)
       </command>
-    </cmdsynopsis>
-    <cmdsynopsis>
       <command>
 infoList = api.listDataSources(evbName)
       </command>
-    </cmdsynopsis>
-    <cmdsynopsis>
       <command>
 api.rmDataSource(evbName, srcName)
       </command>
