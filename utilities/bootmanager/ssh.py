@@ -59,7 +59,7 @@ class sshPrimitive:
     # @param command - The command string.
     #
     def __init__(self, host, command):
-        self._command = 'ssh -t -t %s "%s"' % (host, command)
+        self._command = 'ssh -Y -t -t %s "%s"' % (host, command)
         self._pipe    = subprocess.Popen(
             self._command, shell=True,
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
@@ -187,7 +187,7 @@ class shell(object):
     # writeLine
     #   Write a command to the shell.
     #
-    # @param command - command to write, a "\" is appended to it.
+    # @param command - command to write, a "\n" is appended to it.
     #
     def writeLine(self, command):
         cmd = command + "\n"
