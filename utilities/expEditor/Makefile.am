@@ -4,7 +4,8 @@ TCLPACKAGES=properties.tcl propertyEditor.tcl daqobject.tcl ringBuffer.tcl \
 	toolbar.tcl ConnectorObject.tcl ConnectorInstaller.tcl
 
 
-IMAGES=program.png ringbuffer.png sysprogram.png arrow.png
+IMAGES=program.png ringbuffer.png sysprogram.png arrow.png eventBuilder.png
+
 
 install-exec-hook:
 	$(mkinstalldirs) @prefix@/TclLibs
