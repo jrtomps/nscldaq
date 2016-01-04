@@ -69,12 +69,43 @@
                       </seg>
                   </seglistitem>
                   <seglistitem>
+                    <seg>serviceSuffix</seg>
+                    <seg>Defines a suffix string to the service the event
+                      builder will advertise to the port manager.
+                    </seg>
+                  </seglistitem>
+                  <seglistitem>
                     <seg>coincidenceInterval</seg>
                     <seg>integer</seg>
                     <seg>When the event builder is gluing fragments together to form
                       events, fragments must be within this number of timestamp ticks
                       from the first fragment in a bunch to qualify as part of
                       an event.
+                    </seg>
+                  </seglistitem>
+                  <seglistitem>
+                    <seg>build</seg>
+                    <seg>bool (enum true|false).</seg>
+                    <seg>
+                      When
+                      <literal>true</literal>
+                      the event builder uses the coincidence interval
+                      to glue together output fragments into events.  Runs of
+                      fragments that are within the coincidence interval of
+                      a first fragment are considered an event.  If
+                      <literal>false</literal>, the event builder outputs
+                      a stream of totally ordered fragments.
+                    </seg>
+                  </seglistitem>
+                  <seglistitem>
+                    <seg>ring</seg>
+                    <seg>string</seg>
+                    <seg>
+                      The ring buffer to which the event builder outputs its data.
+                      This must be the name of a ringbuffer in the host in which
+                      the event builder runs, not a URI.  What the event builder
+                      outputs depends on the value of the
+                      <varname>build</varname> variable described above.
                     </seg>
                   </seglistitem>
                   <seglistitem>

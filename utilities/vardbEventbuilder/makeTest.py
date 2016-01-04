@@ -41,7 +41,7 @@ try:
 except:
     pass
 
-api.createEventBuilder('test', 'charlie', 100)
+api.createEventBuilder('test', 'charlie', 100, 'hehehe', serviceSuffix='hehehe')
 api.addDataSource(
     'test', 'fox', 'charlie', os.getenv('DAQBIN') + '/ringFragmentSource',
     'tcp://charlie/fox', [1,2],

@@ -122,7 +122,7 @@ class DataSource(object):
         cmd = cmd + ' --evbhost=' + self._evbInfo['host']
         cmd = cmd + ' --evbport=managed'
         cmd = cmd + ' --evbname=' + self._computeEvbServiceName()
-        cmd = cmd + ' --info='    + self._srcInfo['info']
+        cmd = cmd + ' --info="'    + self._srcInfo['info'] + '"'
         cmd = cmd + ' --ids='     + ','.join(str(item) for item in self._srcInfo['ids'])
         cmd = cmd + ' --ring='     + self._srcInfo['ring']
         
@@ -294,7 +294,7 @@ class EventBuilder(object):
             glomcmd = glomcmd + ' --sourceid=' + str(self._info['sourceId'])
 
         stdintoring = path.join(bindir, 'stdintoring')
-        stdintoring = stdintoring + ' hehehe'
+        stdintoring = stdintoring + ' ' + self._info['ring']
         return glomcmd + '|' + stdintoring
     
     ##
@@ -308,7 +308,7 @@ class EventBuilder(object):
         # TODO below - tclsh should really be the value of the @TCLSH@ automake
         #              symbol.
         
-        return 'tclsh '   #  | ' + glom
+        return 'tclsh ' + ' | ' + glom
     
     ##
     # _constructOrderScript
@@ -324,8 +324,8 @@ class EventBuilder(object):
 
         result.append('source ' + startScript)
         result.append('set ::AppnamePrefix ' + self._info['servicePrefix'])
-        result.append('set ::OutputRing hehehe')
-        result.append('start "' + "hehehe" + '"')
+        result.append('set ::OutputRing ' + self._info['ring'])
+        result.append('start "' + self._info['serviceSuffix'] + '"')
     
         return result
     

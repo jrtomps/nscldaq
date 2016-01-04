@@ -94,6 +94,10 @@ public:
             <parameter>coincidenceInterval</parameter>
     </methodparam>
     <methodparam>
+      <modifier>const</modifier><type>char*</type>
+        <parameter>outRing</parameter>
+    </methodparam>
+    <methodparam>
         <modifier></modifier><type>unsigned </type>
             <parameter>outputSourceId</parameter>
             <initializer> 0</initializer>
@@ -148,6 +152,20 @@ public:
     </methodparam>
     <modifier></modifier>
 </methodsynopsis>
+<methodsynopsis>
+    <modifier></modifier>
+    <type>void</type>
+    <methodname>evbSetRing</methodname>
+    <methodparam>
+      <modifier>const</modifier><type>char*</type>
+        <parameter>name</parameter>
+    </methodparam>
+    <methodparam>
+      <modifier>const</modifier><type>char*</type>
+        <parameter>ring</parameter>
+    </methodparam>
+    <modifier></modifier>
+</methodsynopsis>  
 <methodsynopsis>
     <modifier></modifier>
     <type>void </type>
@@ -591,6 +609,10 @@ public:
                             <parameter>coincidenceInterval</parameter>
                     </methodparam>
                     <methodparam>
+                      <modifier>const</modifier><type>char*</type>
+                        <parameter>outRing</parameter>
+                    </methodparam>
+                    <methodparam>
                         <modifier></modifier><type>unsigned </type>
                             <parameter>outputSourceId</parameter>
                             <initializer> 0</initializer>
@@ -662,6 +684,18 @@ public:
                                 are within <parameter>coincidenceInterval</parameter>
                                 of a first fragment are glommed onto the same
                                 output event.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><parameter>ring</parameter></term>
+                        <listitem>
+                            <para>
+                              Name of the ringbuffer into which the ouptut events
+                              or ordered fragments (see <parameter>build</parameter>
+                              below) will be put.  Note that since the event
+                              builder is a producer this must be a ring name
+                              not a ring URI.
                             </para>
                         </listitem>
                     </varlistentry>
@@ -811,6 +845,34 @@ public:
                     <methodname>createEventBuilder</methodname> for a
                     detailed discussion of the meaning of the coincidence
                     interval.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+              <methodsynopsis>
+                  <modifier></modifier>
+                  <type>void</type>
+                  <methodname>evbSetRing</methodname>
+                  <methodparam>
+                    <modifier>const</modifier><type>char*</type>
+                      <parameter>name</parameter>
+                  </methodparam>
+                  <methodparam>
+                    <modifier>const</modifier><type>char*</type>
+                      <parameter>ring</parameter>
+                  </methodparam>
+                  <modifier></modifier>
+              </methodsynopsis>  
+
+            </term>
+            <listitem>
+                <para>
+                  Modifies the name of the output ring for the event
+                  builder <parameter>name</parameter> to
+                  <parameter>ring</parameter>.  Note that since event builders
+                  are producers, this must be the name of a ring in the host
+                  in which the event builder will run.
                 </para>
             </listitem>
         </varlistentry>
@@ -1948,17 +2010,22 @@ if {! [api haveSchema]} {
       </varlistentry>
       <varlistentry>
           <term>
-            <command>createEventBuilder</command> <replaceable>name host ?option-dict?</replaceable>
+            <command>createEventBuilder</command> <replaceable>name host ring ?option-dict?</replaceable>
           </term>
           <listitem>
               <para>
-                Creates a new event builder definition.  Two mandatory and one
+                Creates a new event builder definition.  Three mandatory and one
                 optional parameter are required.  The mandatory
                 <parameter>name</parameter>
                 parameter provides a name for the new event builder. This name
                 must be unique amongst all event builders defined in the database.
                 The <parameter>host</parameter> parameter is a DNS name
                 or dotted IP address describing where the event builder will run.
+                Finally <parameter>ring</parameter> provides the name of the
+                ring buffer into which the event builder will put its output.
+                Since the event builder is a producer, this must be the name
+                of a ring buffer that is located in <parameter>host</parameter>
+                rather than a URI.
               </para>
               <para>
                 The optional <parameter>option-dict</parameter> parameter is a
@@ -2064,6 +2131,15 @@ if {! [api haveSchema]} {
               <para>
                 For an existing event buidler <parameter>evbname</parameter>
                 sets a new coincidence interval to <parameter>dt</parameter>.
+              </para>
+          </listitem>
+      </varlistentry>
+      <varlistentry>
+          <term><command>evbSetRing</command> <replaceable>name ring</replaceable></term>
+          <listitem>
+              <para>
+                Sets a new output <parameter>ring</parameter> for the event
+                builder named <parameter>name</parameter>.
               </para>
           </listitem>
       </varlistentry>
@@ -2575,10 +2651,16 @@ api.schemaExists()
 api.createSchema()
       </command>
       <command>
-api.createEventBuilder(name, host, dt[, keyword-params])
+api.createEventBuilder(name, host, dt, ring[, keyword-params])
       </command>
       <command>
 api.setEvbHost(evbName, host)
+      </command>
+      <command>
+api.setEvbCoincidenceLevel(name, dt)        
+      </command>
+      <command>
+api.setEvbRing(name, ring)
       </command>
       <command>
 api.setEvbSourceId(evbName, id)
@@ -2822,7 +2904,34 @@ api.rmDataSource(evbName, srcName)
               <parameter>evbName</parameter> to <parameter>id</parameter>.
              </para>
          </listitem>
-     </varlistentry>     
+     </varlistentry>
+     <varlistentry>
+         <term>
+            <command>
+        api.setEvbCoincidenceLevel(name, dt)        
+          </command>
+         </term>
+         <listitem>
+             <para>
+              Sets the coincidence interval for the event builder
+              <parameter>name</parameter> to be <parameter>dt</parameter>
+              timestamp ticks.
+             </para>
+         </listitem>
+     </varlistentry>
+     <varlistentry>
+         <term>
+            <command>
+        api.setEvbRing(name, ring)
+            </command>
+         </term>
+         <listitem>
+             <para>
+              Sets the name of the output ring buffer for the event builder
+              <parameter>name</parameter> to <parameter>ring</parameter>.
+             </para>
+         </listitem>
+     </varlistentry>
      <varlistentry>
          <term>
           <cmdsynopsis>

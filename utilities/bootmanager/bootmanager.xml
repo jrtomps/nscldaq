@@ -8,17 +8,21 @@
     </para>
     <itemizedlist>
         <listitem><para>
+            Starts all event buider pipelines and their data sources.
+        </para></listitem>
+        <listitem><para>
             Starts all programs when a global state transition to
             <literal>Readying</literal> is performed.
         </para></listitem>
         <listitem>
             <para>
                 Ensures that all programs exit when a global state transition
-                to <literal>NotReADY</literal> is performed.
+                to <literal>NotReady</literal> is performed.  This includes
+                state sensitive programs, event builders and their data sources.
             </para>
         </listitem>
         <listitem><para>
-            Monitors running programs.  If any program exits, the boot manager
+            Monitors all running programs.  If any program exits, the boot manager
             forces a global state transition to <literal>NotReady</literal>
             which, in turn, shuts down the entire system.
         </para></listitem>
@@ -27,6 +31,9 @@
         The remainder of this chapter:
     </para>
     <itemizedlist>
+        <listitem><para>
+            Describes what defines ane event builder and its data sources.
+        </para></listitem>
         <listitem><para>
             Describes what defines a registered program and how to register one.
         </para></listitem>
@@ -38,6 +45,34 @@
             Provides pointers to relevant reference material.
         </para></listitem>
     </itemizedlist>
+    <section>
+        <title>Event builders and data sources</title>
+        <para>
+            Event builders are described by a set of variables in
+            subdirectories of the
+            <filename>/EventBuilder</filename> directory.
+            The name of the directory is used as the name of that event builder
+            when referring to the event builder.
+            Normally event
+            builders are defined and configured using the experiment setup
+            graphical program.
+        </para>
+        <para>
+            Within each event builder directory are variables that configure the
+            event builder itself and subdirectories, one for each data source.
+            The subdirectory names are used as the name of the data source (these
+            names are qualified by the name of the event builder they feed
+            data to).  Variables within each data source subdirectory define
+            the configuration of the data source.  The event builder to which
+            a data source feeds data is implied by the event builder described
+            in its parent directory.
+        </para>
+        <para>
+            The variables that define the operation of event builders and their
+            data sources are described in:
+            <link linkend="daq5_vardbevb" endterm="daq5_vardbevb_title" />
+        </para>
+    </section>
     <section>
         <title>Registered programs</title>
         <para>
@@ -181,7 +216,7 @@
         </variablelist>
     </section>
     <section>
-        <title>The environment in which a program runs.</title>
+        <title>The environment in which a state sensitiveprogram runs.</title>
         <para>
             Programs started by the boot manager run in a specific, well
             defined environment.  This may not, however be the environment
