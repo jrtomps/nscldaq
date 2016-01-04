@@ -4,7 +4,7 @@ TCLPACKAGES=properties.tcl propertyEditor.tcl daqobject.tcl ringBuffer.tcl \
 	toolbar.tcl ConnectorObject.tcl ConnectorInstaller.tcl
 
 
-IMAGES=program.png ringbuffer.png sysprogram.png arrow.png eventBuilder.png
+IMAGES=program.png ringbuffer.png sysprogram.png arrow.png eventBuilder.png dsource.png
 
 
 install-exec-hook:
