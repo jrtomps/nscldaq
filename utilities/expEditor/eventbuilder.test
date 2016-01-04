@@ -391,6 +391,7 @@ tcltest::test clone {Clone should produce identical property lists} \
             dict set result $name [list $ovalue $nvalue]
         }
     }
+    set result
     
     
 } -result [dict create]

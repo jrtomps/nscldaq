@@ -2,7 +2,7 @@ TCLPACKAGES=properties.tcl propertyEditor.tcl daqobject.tcl ringBuffer.tcl \
 	ringBufferObject.tcl StateProgramData.tcl StateProgram.tcl	\
 	ServiceData.tcl Service.tcl connector.tcl tool.tcl ObjectInstaller.tcl \
 	toolbar.tcl ConnectorObject.tcl ConnectorInstaller.tcl eventBuilder.tcl \
-	eventBuilderObject.tcl
+	eventBuilderObject.tcl dataSource.tcl
 
 
 
@@ -18,10 +18,16 @@ install-exec-hook:
 
 
 TCLTESTS=properties.test proplist.test ringobject.test SPData.test svcdata.test \
-	eventbuilder.test
+	eventbuilder.test datasource.test
 
-check-TESTS:
-	for f in $(TCLTESTS); do TCLLIBPATH=@prefix@/TclLibs @TCLSH_CMD@ @srcdir@/$$f; done
+TEST_EXENSTIONS=.test .py
+TEST_LOG_COMPILER=@TCLSH@
+PY_LOG_COMPILER=@PYTHON@
+TESTS_ENVIRONMENT=TCLLIBPATH=@prefix@/TclLibs; export TCLLIBPATH; \
+	PYTHONPATH=@prefix@/pythonLibs; export PYTHONPATH;
+
+TESTS = $(TCLTESTS)
+
 
 
 EXTRA_DIST = $(TCLPACKAGES) $(TCLTESTS) $(IMAGES)

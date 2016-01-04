@@ -1,0 +1,315 @@
+#!/bin/sh
+# -*- tcl -*-
+# The next line is executed by /bin/sh, but not tcl \
+exec tclsh "$0" ${1+"$@"}
+
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2014.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Authors:
+#             Ron Fox
+#             Jeromy Tompkins 
+#	     NSCL
+#	     Michigan State University
+#	     East Lansing, MI 48824-1321
+
+
+
+##
+# @file datasource.test
+# @brief Tests for the DataSource class
+# @author Ron Fox <fox@nscl.msu.edu>
+#
+
+package require tcltest
+package require dataSource
+
+proc getProp {ds name} {
+    set pl [$ds getProperties]
+    [$pl find $name] cget -value
+}
+
+proc setProp {ds name value} {
+    set pl [$ds getProperties]
+    [$pl find $name] configure -value $value
+}
+
+#   Tests to check that construction got the right properties and initial values.
+
+tcltest::test construct-name {Initially name is empty} \
+-setup {
+    set ds [DataSource %AUTO%]
+} \
+-cleanup {
+    $ds destroy
+} \
+-body {
+    getProp $ds name
+} -result ""
+
+tcltest::test construct-host {Initially host name is empty} \
+-setup {
+    set ds [DataSource %AUTO%]
+} \
+-cleanup {
+    $ds destroy
+} \
+-body {
+    getProp $ds host
+} -result ""
+
+tcltest::test construct-path {Path should end in ringFragmentSource} \
+-setup {
+    set ds [DataSource %AUTO%]
+} \
+-cleanup {
+    $ds destroy
+} \
+-body {
+    file tail [getProp $ds path]
+} -result ringFragmentSource
+
+tcltest::test construct-info {Info string is empty} \
+-setup {
+    set ds [DataSource %AUTO%]
+} \
+-cleanup {
+    $ds destroy
+} \
+-body {
+    getProp $ds info
+} -result ""
+
+tcltest::test construct-ids {No ids initially} \
+-setup {
+    set ds [DataSource %AUTO%]
+} \
+-cleanup {
+    $ds destroy
+} \
+-body {
+    getProp $ds ids
+} -result [list]
+
+tcltest::test construct-ring {No input ring URI yet} \
+-setup {
+    set ds [DataSource %AUTO%]
+} \
+-cleanup {
+    $ds destroy
+} \
+-body {
+    getProp $ds ring
+} -result ""
+
+tcltest::test construct-defaultId { Default id is 0} \
+-setup {
+    set ds [DataSource %AUTO%]
+} \
+-cleanup {
+    $ds destroy
+} \
+-body {
+    getProp $ds defaultId
+} -result 0
+
+tcltest::test construct-tsextract {Timestamp extractor is empty} \
+-setup {
+    set ds [DataSource %AUTO%]
+} \
+-cleanup {
+    $ds destroy
+} \
+-body {
+    getProp $ds timestampExtractor
+} -result ""
+
+tcltest::test construct-bh {Expect Body headers is true} \
+-setup {
+    set ds [DataSource %AUTO%]
+} \
+-cleanup {
+    $ds destroy
+} \
+-body {
+    getProp $ds expectBodyHeaders
+} -result true
+
+#    Tests of the validators.  These come in clumps that check both leal and
+#    illegal values.
+
+
+#     ids - must be a list of integers.
+
+tcltest::test ids-ok {Providing a list of integers values is good} \
+-setup {
+    set ds [DataSource %AUTO%]
+} \
+-cleanup {
+    $ds destroy
+} \
+-body {
+    setProp $ds ids [list 1 2 3 4]
+    getProp $ds ids
+} -result [list 1 2 3 4]
+
+tcltest::test ids-notlist {Error if this is not a legitimate list} \
+-setup {
+    set ds [DataSource %AUTO%]
+} \
+-cleanup {
+    $ds destroy
+} \
+-body {
+    catch {setProp $ds ids "\{1 2 3 4" }
+} -result 1
+
+tcltest::test ids-noninteger {Error if there's a list with a non integer} \
+-setup {
+    set ds [DataSource %AUTO%]
+} \
+-cleanup {
+    $ds destroy
+} \
+-body {
+    catch {setProp $ds ids [list 1 2 3.1416 4]}
+} -result 1
+
+#    default id - integer >= 0:
+
+tcltest::test defaultid-ok {Integer >= 0 are ok} \
+ -setup {
+    set ds [DataSource %AUTO%]
+} \
+-cleanup {
+    $ds destroy
+} \
+-body {
+    setProp $ds defaultId 0
+    getProp $ds defaultId
+} -result 0
+
+tcltest::test defaultid-range {Integer < 0 is bad} \
+-setup {
+    set ds [DataSource %AUTO%]
+} \
+-cleanup {
+    $ds destroy
+} \
+-body {
+    catch {setProp $ds defaultid -1}
+} -result 1
+
+tcltest::test defaultid-noninteger {Non integer ids are bad} \
+-setup {
+    set ds [DataSource %AUTO%]
+} \
+-cleanup {
+    $ds destroy
+} \
+-body {
+    catch {setProp $ds defaultId 2.302}
+} -result 1
+
+
+#  expectBodyHeaders is a bool:
+
+tcltest::test expectBh-true {true is a legal value} \
+-setup {
+    set ds [DataSource %AUTO%]
+} \
+-cleanup {
+    $ds destroy
+} \
+-body {
+    setProp $ds expectBodyHeaders true
+    getProp $ds expectBodyHeaders
+} -result true
+
+tcltest::test expectBh-false {false is a legal value too} \
+-setup {
+    set ds [DataSource %AUTO%]
+} \
+-cleanup {
+    $ds destroy
+} \
+-body {
+    setProp $ds expectBodyHeaders false
+    getProp $ds expectBodyHeaders
+} -result false
+
+
+tcltest::test expectBh-nonbool {non boolean values are bad } \
+-setup {
+    set ds [DataSource %AUTO%]
+} \
+-cleanup {
+    $ds destroy
+} \
+-body {
+    catch {setProp $ds expectBodyHeaders 1234}
+} -result 1
+
+
+#  Ensure that cloning produces a duplicate
+
+
+tcltest::test clone {Cloning produces identical properties} \
+-setup {
+    set ds [DataSource %AUTO%]
+} \
+-cleanup {
+    $ds destroy
+    $ni destroy
+} \
+-body {
+    #  Change all the properties for good fun:
+    
+    setProp $ds name testing
+    setProp $ds host spdaq20
+    setProp $ds path /usr/bin/ls
+    setProp $ds info {This is a test info string}
+    setProp $ds ids  [list 2 3 5 7 11];   # Prime real estate.
+    setProp $ds ring tcp://spdaq20/0400x
+    setProp $ds defaultId 4
+    setProp $ds timestampExtractor /some/file.so
+    setProp $ds expectBodyHeaders 0
+    
+    #  Clone and compute a dict that shows differences in the property lists.
+    #  The key is a property name and the values are a list of should be and is
+    #  values.
+    
+    set ni [$ds clone]
+    
+    set sbProps [$ds getProperties]
+    set isProps [$ni getProperties]
+    
+    set result [dict create]
+    $sbProps foreach p {
+        set name [$p cget -name]
+        set v    [$p cget -value]
+        set is   [$isProps find $name]
+        set isv  [$is cget -value]
+        
+        if {$v ne $isv} {
+            dict set result $name [list $v $isv]
+        }
+        set result
+    }
+} -result [dict create]
+
+# End/summarize the tests - note the magic below is intended to ensure that
+# a failed test fails the makefile test target too.
+
+proc tcltest::cleanupTestsHook {} {
+    variable numTests
+    set ::exitCode $numTests(Failed)
+}
+
+
+tcltest::cleanupTests
