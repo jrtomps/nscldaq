@@ -1,0 +1,409 @@
+#!/bin/sh
+# -*- tcl -*-
+# The next line is executed by /bin/sh, but not tcl \
+exec tclsh "$0" ${1+"$@"}
+
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2014.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Authors:
+#             Ron Fox
+#             Jeromy Tompkins 
+#	     NSCL
+#	     Michigan State University
+#	     East Lansing, MI 48824-1321
+
+
+
+##
+# @file evetbuilder.test
+# @brief tests for the EventBuilder data class.
+# @author Ron Fox <fox@nscl.msu.edu>
+#
+package require tcltest
+package require eventBuilder
+
+proc setProp {pl name value} {
+    set p [$pl find $name]
+    $p configure -value $value
+}
+proc getProp {pl name} {
+    set p [$pl find $name]
+    return [$p cget -value]
+}
+
+
+#
+#  These tests one by one ensure the creation of properties with correct
+#  default values
+#
+tcltest::test construct-name {Check for name property with empty string def.} \
+-setup {
+    set e [EventBuilder %AUTO%]
+} \
+-cleanup {
+    $e destroy
+} \
+-body {
+    set pl [$e getProperties]
+    set p  [$pl find name]
+    $p cget -value
+} -result ""
+
+tcltest::test construct-host {Check for host property with correct default} \
+-setup {
+    set e [EventBuilder %AUTO%]
+} \
+-cleanup {
+    $e destroy
+} \
+-body {
+    set pl [$e getProperties]
+    set p  [$pl find host]
+    $p cget -value
+} -result ""
+
+tcltest::test construct-servicePrefix {Check for service prefix property with correct default} \
+-setup {
+    set e [EventBuilder %AUTO%]
+} \
+-cleanup {
+    $e destroy
+} \
+-body {
+    set pl [$e getProperties]
+    set p  [$pl find servicePrefix]
+    $p cget -value
+} -result ORDERER
+
+
+tcltest::test construct-serviceSuffix {check for service suffix with correct default} \
+-setup {
+    set e [EventBuilder %AUTO%]
+} \
+-cleanup {
+    $e destroy
+} \
+-body {
+    set pl [$e getProperties]
+    set p  [$pl find serviceSuffix]
+    $p cget -value
+} -result ""
+
+tcltest::test construct-dt {Construction coincidence interval = 1} \
+-setup {
+    set e [EventBuilder %AUTO%]
+} \
+-cleanup {
+    $e destroy
+} \
+-body {
+    set pl [$e getProperties]
+    set p  [$pl find coincidenceInterval]
+    $p cget -value
+} -result 1                                
+
+tcltest::test construct-build {Construction has build true} \
+-setup {
+    set e [EventBuilder %AUTO%]
+} \
+-cleanup {
+    $e destroy
+} \
+-body {
+    set pl [$e getProperties]
+    set p  [$pl find build]
+    $p cget -value
+} -result true
+
+tcltest::test construct-tspolicy {Construction with earliest ts policy} \
+-setup {
+    set e [EventBuilder %AUTO%]
+} \
+-cleanup {
+    $e destroy
+} \
+-body {
+    set pl [$e getProperties]
+    set p  [$pl find timestampPolicy]
+    $p cget -value
+} -result earliest
+
+tcltest::test construct-sourceId {Source id is 0} \
+-setup {
+    set e [EventBuilder %AUTO%]
+} \
+-cleanup {
+    $e destroy
+} \
+-body {
+    set pl [$e getProperties]
+    set p  [$pl find sourceId]
+    $p cget -value
+} -result 0
+
+##
+#  Tests for constraints on property values.  These come in groups for legal
+#  and illegal changes.
+
+
+tcltest::test coincidenceInterval-ok {Legal values are integers 1 or larger -- 2 ok.} \
+-setup {
+    set e [EventBuilder %AUTO%]
+} \
+-cleanup {
+    $e destroy
+} \
+-body {
+    set pl [$e getProperties]
+    set p  [$pl find coincidenceInterval]
+    
+    $p configure -value 2
+    $p cget -value
+} -result 2
+
+tcltest::test coincidenceInterval-bad-1 {Legal values are integers >=1 0 is bad} \
+-setup {
+    set e [EventBuilder %AUTO%]
+} \
+-cleanup {
+    $e destroy
+} \
+-body {
+    set pl [$e getProperties]
+    set p  [$pl find coincidenceInterval]
+    
+    catch {$p configure -value 0}
+} -result 1
+
+tcltest::test coincidenceInterval-bad-2 {Legal values are integers 3.1416 is bad} \
+-setup {
+    set e [EventBuilder %AUTO%]
+} \
+-cleanup {
+    $e destroy
+} \
+-body {
+    set pl [$e getProperties]
+    set p  [$pl find coincidenceInterval]
+    
+    catch {$p configure -value 3.1416}
+} -result 1
+
+#     Build is a boolean.
+
+tcltest::test build-ok-1  {false is an ok value} \
+-setup {
+    set e [EventBuilder %AUTO%]
+} \
+-cleanup {
+    $e destroy
+} \
+-body {
+    set pl [$e getProperties]
+    set p  [$pl find build]
+    
+    $p configure -value false
+    $p cget -value
+} -result false
+
+tcltest::test build-ok-2 {true is an ok value} \
+-setup {
+    set e [EventBuilder %AUTO%]
+} \
+-cleanup {
+    $e destroy
+} \
+-body {
+    set pl [$e getProperties]
+    set p  [$pl find build]
+    
+    $p configure -value 1
+    $p cget -value
+} -result 1
+
+tcltest::test build-bad {non booleans are bad} \
+-setup {
+    set e [EventBuilder %AUTO%]
+} \
+-cleanup {
+    $e destroy
+} \
+-body {
+    set pl [$e getProperties]
+    set p  [$pl find build]
+    
+    catch {$p configure -value crap}
+    
+} -result 1
+
+#
+#      timestamp policy legal values earliest, latest, average all other
+#      values are bad:
+
+tcltest::test tspolicy-ok-1 {earliest is legal} \
+-setup {
+    set e [EventBuilder %AUTO%]
+} \
+-cleanup {
+    $e destroy
+} \
+-body {
+    set pl [$e getProperties]
+    set p  [$pl find timestampPolicy]
+    
+    $p configure -value earliest
+    $p cget -value
+} -result earliest
+
+tcltest::test tspolicy-ok-2 {latest is legal} \
+-setup {
+    set e [EventBuilder %AUTO%]
+} \
+-cleanup {
+    $e destroy
+} \
+-body {
+    set pl [$e getProperties]
+    set p  [$pl find timestampPolicy]
+    
+    $p configure -value latest
+    $p cget -value
+} -result latest
+
+tcltest::test tspolicy-ok-3 {average is legal} \
+-setup {
+    set e [EventBuilder %AUTO%]
+} \
+-cleanup {
+    $e destroy
+} \
+-body {
+    set pl [$e getProperties]
+    set p  [$pl find timestampPolicy]
+    
+    $p configure -value average
+    $p cget -value
+} -result average
+
+tcltest::test tspolicy-bad {antyhing not earliest|latest|average is bad} \
+-setup {
+    set e [EventBuilder %AUTO%]
+} \
+-cleanup {
+    $e destroy
+} \
+-body {
+    set pl [$e getProperties]
+    set p  [$pl find timestampPolicy]
+    
+    catch {$p configure -value no-good}
+
+} -result 1
+#    sourceIds are unsigned integers.
+
+tcltest::test sid-ok {Values >= 0 are ok} \
+-setup {
+    set e [EventBuilder %AUTO%]
+} \
+-cleanup {
+    $e destroy
+} \
+-body {
+    set pl [$e getProperties]
+    set p  [$pl find sourceId]
+    
+    $p configure -value 0
+    $p cget -value                               
+} -result 0
+
+tcltest::test sid-bad-1 {Integers < 0 are bad} \
+-setup {
+    set e [EventBuilder %AUTO%]
+} \
+-cleanup {
+    $e destroy
+} \
+-body {
+    set pl [$e getProperties]
+    set p  [$pl find sourceId]
+    
+    catch {$p configure -value -1}
+                           
+} -result 1
+
+tcltest::test sid-bad-2 {Non integers are bad} \
+-setup {
+    set e [EventBuilder %AUTO%]
+} \
+-cleanup {
+    $e destroy
+} \
+-body {
+    set pl [$e getProperties]
+    set p  [$pl find sourceId]
+    
+    catch {$p configure -value 1.414}
+                           
+} -result 1
+
+#    Clone
+
+tcltest::test clone {Clone should produce identical property lists} \
+-setup {
+    set e [EventBuilder %AUTO%]
+} \
+-cleanup {
+    $e destroy
+    $copy destroy
+} \
+-body {
+    set original [$e getProperties]
+
+    # Mung up the properties of the original a bit so none are empty.
+    
+    setProp $original name george
+    setProp $original host charlie
+    setProp $original serviceSuffix extra
+    setProp $original coincidenceInterval 10
+    
+    set copy [$e clone]
+    set dup  [$copy getProperties]
+    
+    #  Make a dict of differences.
+    #  keys are properties for which the values differ and values are lists of
+    #  original, new values
+    
+    set result [dict create]
+    $original foreach op {
+        set name   [$op cget -name]
+        set ovalue [$op cget -value]
+        
+        set np [$dup find $name]
+        set nvalue [$np cget -value]
+        
+        if {$ovalue ne $nvalue} {
+            dict set result $name [list $ovalue $nvalue]
+        }
+    }
+    
+    
+} -result [dict create]
+
+
+
+# End/summarize the tests - note the magic below is intended to ensure that
+# a failed test fails the makefile test target too.
+
+proc tcltest::cleanupTestsHook {} {
+    variable numTests
+    set ::exitCode $numTests(Failed)
+}
+
+
+tcltest::cleanupTests
