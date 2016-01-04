@@ -1,7 +1,9 @@
 TCLPACKAGES=properties.tcl propertyEditor.tcl daqobject.tcl ringBuffer.tcl \
 	ringBufferObject.tcl StateProgramData.tcl StateProgram.tcl	\
 	ServiceData.tcl Service.tcl connector.tcl tool.tcl ObjectInstaller.tcl \
-	toolbar.tcl ConnectorObject.tcl ConnectorInstaller.tcl eventBuilder.tcl
+	toolbar.tcl ConnectorObject.tcl ConnectorInstaller.tcl eventBuilder.tcl \
+	eventBuilderObject.tcl
+
 
 
 IMAGES=program.png ringbuffer.png sysprogram.png arrow.png eventBuilder.png dsource.png
