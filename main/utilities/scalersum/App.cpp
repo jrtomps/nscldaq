@@ -21,10 +21,21 @@
 */
 
 #include "App.h"
+#include <CDataSource.h>
+#include <CDataSourceFactory.h>
+#include <ErrnoException.h>
+
 #include <stdexcept>
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <memory>
+
+#include <limits.h>
+#include <stdlib.h>
+#include <string.h>
+#include <errno.h>
+
 
 
 /**
@@ -34,7 +45,8 @@
  */
 App::App(struct gengetopt_args_info& args) :
     m_omitLabels(false),
-    m_flip(false)
+    m_flip(false),
+    m_state(App::expectingStart)
 {
     // Process the cooked parameters:
     
@@ -48,12 +60,54 @@ App::App(struct gengetopt_args_info& args) :
        m_files.push_back(args.inputs[i]);
     }
 }
-
+/**
+ * operator()
+ *     Runs the analysis. Either process all the lines or 
 
 /*---------------------------------------------------------------------------
  * public methods
  */
 
+/**
+ * operator()
+ *     Process all of the input:
+ *     -   If there are no input files, a data source for stdin is created
+ *         and processed.
+ *     -   If there are input files those are processed.
+ *  @note living above all of this is a simple state machine with the state:
+ *        -  expectingStart - Looking for a begin run.
+ *        -  expectingEnd   - Processing scalers until an end run.
+ */
+void
+App::operator()()
+{
+    std::vector<uint16_t> dummy;
+    if (m_files.size() == 0) {
+        std::unique_ptr<CDataSource>
+            pDs(CDataSourceFactory::makeSource("-", dummy, dummy));
+        processFile(*pDs);
+    } else {
+        for(auto p = m_files.begin(); p != m_files.end(); p++) {
+            try {
+                std::string uri = makeFileUri(*p);
+                std::cerr << "Processing: " << uri << std::endl;
+                std::unique_ptr<CDataSource> 
+                    pDs(CDataSourceFactory::makeSource(uri, dummy, dummy));
+                processFile(*pDs);
+            }
+            catch (CErrnoException& e) {
+                std::string msg = "Unable to process file : ";
+                msg += *p;
+                msg += " : ";
+                msg += e.ReasonText();
+                throw std::runtime_error(msg);
+            }
+        }
+    }
+}
+
+void
+App::processFile(CDataSource& ds) {}
 
 /**
  * dumpScalerNames
@@ -126,6 +180,56 @@ App::processNameFile(const char* name)
     
     
 }
+/**
+ * getScalerName
+ *    Returns the name of a channel.  The name is looked up in the m_channelNames
+ *    map.  If not found an default name is generated and returned.
+ *
+ *  @param ch  - Channel specification (source and channel number).
+ *  @return std::string - the channel label.
+ *  @note   m_channelNames may be modified.
+ */
+std::string
+App::getScalerName(App::Channel& ch)
+{
+    // If necessary create/insert a new name:
+    
+    if (m_channelNames.find(ch) == m_channelNames.end()) {
+        std::stringstream name;
+        name << "Scaler-" << ch.s_dataSource << '.' << ch.s_channel;
+        m_channelNames[ch] = name.str();
+    }
+    return m_channelNames[ch];
+}
+/**
+ * makeFileUri
+ *    Turn a filename into a URI
+ *
+ *  @param name - name of the file.
+ *  @return std::string - URI pointing at the file.
+ */
+std::string
+App::makeFileUri(std::string name)
+{
+      char*  fullPath = realpath(name.c_str(), NULL);
+      if (fullPath) {
+        std::string uri = "file://";
+        uri += fullPath;
+        free(fullPath);
+        return uri;
+      } else {
+        // Error creating the path:
+        
+        std::string errnomsg = strerror(errno);
+        std::string msg = "Unable to create a URI for ";
+        msg += name;
+        msg += " : ";
+        msg += errnomsg;
+        throw std::runtime_error(msg);
+        
+      }
+}
+
 /*-------------------------------------------------------------------------
  * In order to do a map whose keys are Channel structs wwe need to impose
  * a collation ordering.   We do that by first ordering by data source

@@ -45,6 +45,7 @@ int main(int argc, char** argv)
     }
     try {
         App app(processParams);
+        app();
         
     }
     catch(std::exception& e) {

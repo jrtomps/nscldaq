@@ -29,7 +29,11 @@
 #include <string>
 
 
+
 #include "options.h"
+
+class CDataSource;
+
 /**
  * @class App
  *    The application class for the scaler sum program.
@@ -46,13 +50,17 @@ public:
         int operator<=(const struct _Channel& rhs) const;
         int operator>=(const struct _Channel& rhs) const;
     } Channel, *pChannel;
+    
+    typedef enum _States {
+        expectingStart, expectingEnd
+    } States;
 private:
     bool m_omitLabels;
     bool m_flip;
     
     std::vector<std::string>         m_files;
     std::map<Channel, std::string>   m_channelNames;
-    
+    States                           m_state;
 public:
     App(struct gengetopt_args_info& args);
     virtual ~App() {}
@@ -66,7 +74,9 @@ public:
 
 private:
     void processNameFile(const char* name);
-    std::string getScalerName(unsigned chNum);
+    std::string getScalerName(Channel& ch);
+    void processFile(CDataSource& ds);
+    std::string makeFileUri(std::string name);
 
 };
 
