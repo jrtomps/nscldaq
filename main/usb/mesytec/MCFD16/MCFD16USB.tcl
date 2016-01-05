@@ -533,6 +533,47 @@ snit::type MCFD16USB {
   }
 
 
+  method SetTriggerSource {trigId source veto} {
+    if {$trigId ni [list 0 1 2]} {
+        set msg "Invalid trigger id argument provided. Must be 0, 1, or 2."
+        return -code error -errorinfo MCFD16USB::SetTriggerSource $msg
+    }
+
+    set sourceBits [dict create or 1 multiplicity 2 pair_coinc 4 mon 8 pat_or_0 16 pat_or_1 32]
+    if {$source ni [dict keys $sourceBits]} {
+        set msg "Invalid source provided. Must be or, multiplicity, pair_coinc, mon, pat_or_0, or pat_or_1."
+        return -code error -errorinfo MCFD16USB::SetTriggerSource $msg
+    }
+
+    set value [dict get $sourceBits $source]
+    if {[string is true $veto]} {
+        set value [expr {$value + 0x40}]
+    }
+
+    return [$self _Transaction "TR $trigId $value"]
+  }
+
+  method SetTriggerOrPattern {trigId pattern} {
+    if {$trigId ni [list 0 1]} {
+        set msg "Invalid pattern id argument provided. Must be 0 or 1."
+        return -code error -errorinfo MCFD16USB::SetTriggerOrPattern $msg
+    }
+
+    if {![Utils::isInRange 0 0xffff $pattern]} {
+      set msg {Invalid bit pattern provided. Must be in range [0,65535].}
+      return -code error -errorinfo MCFD16USB::SetTriggerOrPattern $msg
+    }
+
+    set lowBits [expr {$pattern & 0xff}]
+    set highBits [expr {($pattern>>8) & 0xff}]
+
+    set trigOffset [expr {$trigId*2}]
+
+    set result [$self _Transaction "TP $trigOffset $lowBits"]
+    return [$self _Transaction "TP [expr {$trigOffset+1}] $highBits"]
+  }
+
+
   ## @brief Check whether in remote control mode
   #
   # @returns boolean
