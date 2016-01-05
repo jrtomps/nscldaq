@@ -1,6 +1,6 @@
 bin_PROGRAMS = sumscaler
 
-sumscaler_SOURCES=   main.cpp App.cpp App.h options.c
+sumscaler_SOURCES=   main.cpp App.cpp App.h options.c CRun.h CRun.cpp
 
 sumscaler_CPPFLAGS=-I@top_srcdir@/utilities/IO @LIBTCLPLUS_CFLAGS@
 sumscaler_LDFLAGS = @top_builddir@/utilities/IO/libdaqio.la \
