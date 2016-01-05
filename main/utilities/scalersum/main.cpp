@@ -22,6 +22,8 @@
 
 #include <iostream>
 #include <stdlib.h>
+#include <exception>
+#include "App.h"
 
 #include "options.h"
 
@@ -41,7 +43,14 @@ int main(int argc, char** argv)
     if (cmdline_parser(argc, argv, &processParams)) {
         exit(EXIT_FAILURE);             // cmdline_parser writes error msgs.
     }
-    
+    try {
+        App app(processParams);
+        
+    }
+    catch(std::exception& e) {
+        std::cerr << e.what() << std::endl;
+        exit(EXIT_FAILURE);
+    }
     
     exit(EXIT_SUCCESS);
 }
