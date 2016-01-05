@@ -91,6 +91,26 @@ Switch settings: BWL: Off, Discr.: Constant fraction
 mcfd-16>
 }
 
+set dtResponse {DT
+
+MCFD-16 trigger settings:
+
+Fast Veto: disabled
+Multiplicity:             from 2 to 16
+Trigger monitor channels: 0: 0, 1: 2
+Ored patterns:            0: 00FF, 1: 0004
+
+Trigger / gate sources:
+        GG  VE  P1  P0  M0  PC  MU  OR
+Trig0:  0   0   0   1   0   0   0   0
+Trig1:  0   0   1   0   0   0   0   0
+GG:     0   0   0   0   0   1   0   0
+
+        GG  VE  P1  P0  M1  PC  MU  OR
+Trig2:  1   0   0   0   0   0   0   0
+mcfd-16>
+}
+
 set parsedDSDict [dict create Threshold {0 20 20 40 20 20 20 20 20 20 20 20 20 20 20 20 20} \
                        Gain {1 1 1 1 3 1 1 1 1} \
                        Width {100 50 40 50 50 50 50 50 50} \
@@ -107,6 +127,7 @@ set parsedDSDict [dict create Threshold {0 20 20 40 20 20 20 20 20 20 20 20 20 2
                        WidthRaw {72 45 39 45 45 45 45 45 45} \
                        DeadtimeRaw {45 45 45 45 117 45 45 45 27} ]
           
+
 
 ###############################################################################
 # BEGIN TESTS
