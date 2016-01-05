@@ -532,7 +532,15 @@ snit::type MCFD16USB {
                 {Individual individual Common common}]
   }
 
-
+  ## @brief Set the a trigger source
+  #
+  # @param trigId   the trigger id to target (0, 1, or 2)
+  # @param source   the source to use for the trigger (or, multiplicity, pair_coinc, mon, pat_or_0, pat_or_1)
+  # @param veto     whether to enable vetoing (boolean)
+  #
+  # This is just high level implementation of the TR command
+  #
+  # @returns result of _Transaction
   method SetTriggerSource {trigId source veto} {
     if {$trigId ni [list 0 1 2]} {
         set msg "Invalid trigger id argument provided. Must be 0, 1, or 2."
@@ -553,6 +561,15 @@ snit::type MCFD16USB {
     return [$self _Transaction "TR $trigId $value"]
   }
 
+  ## @brief Set which channels contribute to the OR
+  #
+  # @param trigId   the or pattern to set (0 or 1)
+  # @param pattern  channels to set (must be in range [0, 65535])
+  #
+  # The pattern should specify the channels to use by setting bits. Each bit corresponds to 
+  # a channel. Bit 0 --> Channel 0, Bit 1 --> Channel 1, etc. 
+  # 
+  # @returns result of last transactions
   method SetTriggerOrPattern {trigId pattern} {
     if {$trigId ni [list 0 1]} {
         set msg "Invalid pattern id argument provided. Must be 0 or 1."
