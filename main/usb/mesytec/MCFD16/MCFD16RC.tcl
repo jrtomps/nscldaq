@@ -451,6 +451,117 @@ snit::type MCFD16RC {
     return [$_proxy Read $adr]
   }
 
+  ## @brief Set the a trigger source
+  #
+  # @param trigId   the trigger id to target (0, 1, or 2)
+  # @param source   the source to use for the trigger (or, multiplicity, pair_coinc, mon, pat_or_0, pat_or_1, gg)
+  # @param veto     whether to enable vetoing (boolean)
+  #
+  # This is just high level implementation of the TR command
+  #
+  # @returns result of _Transaction
+  method SetTriggerSource {trigId source veto} {
+
+    if {$trigId ni [list 0 1 2]} {
+        set msg "Invalid trigger id argument provided. Must be 0, 1, or 2."
+        return -code error -errorinfo MCFD16RC::SetTriggerSource $msg
+    }
+
+    set sourceBits [dict create or 1 multiplicity 2 pair_coinc 4 mon 8 pat_or_0 16 pat_or_1 32 gg 128]
+    if {$source ni [dict keys $sourceBits]} {
+        set msg "Invalid source provided. Must be or, multiplicity, pair_coinc, mon, pat_or_0, pat_or_1, or gg."
+        return -code error -errorinfo MCFD16RC::SetTriggerSource $msg
+    }
+
+    set value [dict get $sourceBits $source]
+    if {[string is true $veto]} {
+        set value [expr {$value + 0x40}]
+    }
+
+    set adr [dict get $offsetsMap trig${trigId}_source]
+    return [$_proxy Write $adr $value]
+  }
+
+  ## @brief Retrieve the trigger source
+  #
+  # @param trigId   the trigger index (must be 0, 1, or 2)
+  #
+  # @returns list. first element is source, second element is veto enabled
+  method GetTriggerSource {trigId} {
+
+    if {$trigId ni [list 0 1 2]} {
+        set msg "Invalid trigger id argument provided. Must be 0, 1, or 2."
+        return -code error -errorinfo MCFD16RC::SetTriggerSource $msg
+    }
+
+    set adr [dict get $offsetsMap trig${trigId}_source]
+    set code [$_proxy Read $adr]
+
+
+    set vetoEnabled [expr {($code&0x40)!=0}]
+    set source      [expr {$code&0xbf}]
+  
+    set sourceNameMap [dict create  1 or 2 multiplicity 4 pair_coinc 8 \
+                                    mon 16 pat_or_0 32 pat_or_1 128 gg]
+
+    return [list [dict get $sourceNameMap $source] $vetoEnabled]
+  }
+
+  ## @brief Set which channels contribute to the OR
+  #
+  # @param trigId   the or pattern to set (0 or 1)
+  # @param pattern  channels to set (must be in range [0, 65535])
+  #
+  # The pattern should specify the channels to use by setting bits. Each bit corresponds to 
+  # a channel. Bit 0 --> Channel 0, Bit 1 --> Channel 1, etc. 
+  # 
+  # @returns result of last transactions
+  method SetTriggerOrPattern {patternId pattern} {
+    if {$patternId ni [list 0 1]} {
+        set msg "Invalid pattern id argument provided. Must be 0 or 1."
+        return -code error -errorinfo MCFD16RC::SetTriggerOrPattern $msg
+    }
+
+    if {![Utils::isInRange 0 0xffff $pattern]} {
+      set msg {Invalid bit pattern provided. Must be in range [0,65535].}
+      return -code error -errorinfo MCFD16RC::SetTriggerOrPattern $msg
+    }
+
+    set lowBits [expr {$pattern & 0xff}]
+    set highBits [expr {($pattern>>8) & 0xff}]
+
+    set lowAddr [dict get $offsetsMap or${patternId}_pattern_lo]
+    set highAddr [dict get $offsetsMap or${patternId}_pattern_hi]
+
+    set result0 [$_proxy Write $lowAddr $lowBits]
+    set result1 [$_proxy Write $highAddr $highBits]
+
+    return [list $result0 $result1]
+  }
+
+  ## @brief Retrieve the configurable OR pattern
+  #
+  # @param patternId    index of the pattern (must be 0 or 1)
+  #
+  # @returns integer whose set bits represent the channel states.
+  #
+  method GetTriggerOrPattern {patternId} {
+
+    if {$patternId ni [list 0 1]} {
+        set msg "Invalid pattern id argument provided. Must be 0 or 1."
+        return -code error -errorinfo MCFD16RC::SetTriggerOrPattern $msg
+    }
+
+    set lowAddr [dict get $offsetsMap or${patternId}_pattern_lo]
+    set highAddr [dict get $offsetsMap or${patternId}_pattern_hi]
+
+    set lowBits [$_proxy Read $lowAddr]
+    set highBits [$_proxy Read $highAddr]
+
+    set value [expr {$lowBits | ($highBits<<8)}]
+    return $value
+  }
+
   ## @brief Set the remote control mode
   #
   # @param on   desired rc state (must be boolean)
@@ -485,7 +596,6 @@ snit::type MCFD16RC {
   #############################################################################
   #
   # TYPE METHODS
-
   
   typevariable offsetsMap ;# maps parameter name to corresponding address
   typevariable paramRangeMap ;#  dict of ranges for each param
@@ -503,7 +613,14 @@ snit::type MCFD16RC {
                                 mode      72 \
                                 rc        73 \
                                 mask      83 \
-                                pulser    118 ]
+                                pulser    118 \
+                                or0_pattern_lo 124 \
+                                or0_pattern_hi 125 \
+                                or1_pattern_lo 126 \
+                                or1_pattern_hi 127 \
+                                trig0_source 128 \
+                                trig1_source 129 \
+                                trig2_source 130]
 
     set paramRangeMap [dict create threshold {low 0 high 16} \
                                    gain      {low 0 high  8}\

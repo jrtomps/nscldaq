@@ -592,6 +592,33 @@ tcltest::test rcenabled-0 {Reading state of rc forms the correct cmd
 
 #---------
 
+tcltest::test setTriggerSource-0 {Check that trigger source settings work
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev SetTriggerSource 0 or 1
+  ::dev SetTriggerSource 1 pair_coinc 0
+  ::dev SetTriggerSource 2 pat_or_1 1
+  ::comObj getRecord
+} -result {{Write 128 65} {Write 129 4} {Write 130 96}}
+
+#---------
+
+tcltest::test setTriggerOrPattern-0 {Check that trigger or pattern settings work
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev SetTriggerOrPattern 0 0x0a0b
+  ::dev SetTriggerOrPattern 1 0x0f12
+  ::comObj getRecord
+} -result {{Write 124 11} {Write 125 10} {Write 126 18} {Write 127 15}}
+
+#---------
+#
 tcltest::test computeAddress-0 {Given a parameter and ch, return proper addr
 } -setup {
   setup
