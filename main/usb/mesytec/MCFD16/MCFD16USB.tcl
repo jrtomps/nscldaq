@@ -606,6 +606,11 @@ snit::type MCFD16USB {
     set response [$self _Transaction "DS"]
 
     set m_moduleState [$self _ParseDSResponse $response]
+
+    set response [$self _Transaction "DT"]
+    
+    dict append m_moduleState [$self _ParseDTResponse $response]
+
     set m_needsUpdate 0
   }
 
@@ -807,10 +812,8 @@ snit::type MCFD16USB {
 
   method _ParseOredPattern line {
     set parse1 [$self _SplitAndTrim $line ","]
-    set or0Pattern [lindex [$self _SplitAndTrim [lindex $parse1 0] ":"] 2]
 
-    puts $parse1
-    puts [$self _SplitAndTrim [lindex $parse1 0] ":"]
+    set or0Pattern [lindex [$self _SplitAndTrim [lindex $parse1 0] ":"] 2]
     set or1Pattern [lindex [$self _SplitAndTrim [lindex $parse1 1] ":"] 1]
 
     set or0Pattern [expr "0x[string trimleft $or0Pattern 0]"]

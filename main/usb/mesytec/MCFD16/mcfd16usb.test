@@ -46,7 +46,7 @@ snit::method MCFD16USB _Read {} {
 }
 
 snit::method MCFD16USB Update {} {
-  set m_moduleState $::parsedDSDict
+  set m_moduleState $::fullDict
 }
 
 proc setNeedsUpdate {objname state} {
@@ -59,7 +59,7 @@ proc setNeedsUpdate {objname state} {
 # the stored state of the driver
 proc setupForRead {} {
   setup
-  ::dev _CacheModuleState $::parsedDSDict
+  ::dev _CacheModuleState $::fullDict
   setNeedsUpdate ::dev 0
 }
 
@@ -125,7 +125,14 @@ set parsedDSDict [dict create Threshold {0 20 20 40 20 20 20 20 20 20 20 20 20 2
                        {Remote Control} Off \
                        {Test pulser} On \
                        WidthRaw {72 45 39 45 45 45 45 45 45} \
-                       DeadtimeRaw {45 45 45 45 117 45 45 45 27} ]
+                       DeadtimeRaw {45 45 45 45 117 45 45 45 27}]
+
+set fullDict [dict create {*}$parsedDSDict \
+                       or0_pattern 255 \
+                       or1_pattern 4 \
+                       Trig0_src 16 \
+                       Trig1_src 32 \
+                       Trig2_src 128]
           
 
 
