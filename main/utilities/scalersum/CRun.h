@@ -27,6 +27,9 @@
 #include <map>
 #include <cstdint>
 
+
+class CChannel;
+
 /**
  * @class CRun
  *    Encapsulates all of the information for a run.  This includes;
@@ -36,7 +39,13 @@
 class CRun {
 private:
     unsigned                                  m_runNumber;
-    std::map<unsigned, std::vector<uint64_t>> m_scalerSums;  // key is sourceid.
+    
+    // A bit of explanation about this map.
+    // the outer map is keyed by source id.
+    // The inner map is keyed by channel number within the source id.
+    // the CChannel actual type depends on the type of scaler.
+    
+    std::map<unsigned, std::map<unsigned, CChannel*> > m_scalerSums;  
     
 public:
     CRun(unsigned runNumber);
@@ -44,10 +53,16 @@ public:
     
 public:
     
-    void                  add(unsigned srcId, std::vector<uint32_t> scalers);
+    void update(
+        unsigned src, unsigned channel, unsigned value, bool incremental,
+        unsigned width = 32);
+    
     std::vector<unsigned> sources();
     std::vector<uint64_t> sums(unsigned srcId);
     unsigned              getRun() const;
+
+private:
+    CChannel* getChan(unsigned src, unsigned ch, bool incremental);
 };
 
 #endif

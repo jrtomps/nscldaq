@@ -20,7 +20,8 @@
 # @author <fox@nscl.msu.edu>
 */
 #include "CRun.h"
-
+#include "CIncrementalChannel.h"
+#include "CCumulativeChannel.h"
 
 /**
  * constructor
@@ -34,45 +35,48 @@ CRun::CRun(unsigned runNumber) :
 /**
  * destructor
  */
-CRun::~CRun() {}
+CRun::~CRun() {
+    
+    // Need to delete the channel objects:
+    
+    for (auto pSrc = m_scalerSums.begin(); pSrc != m_scalerSums.end(); pSrc++) {
+        std::map<unsigned, CChannel*>& inner(pSrc->second);
+        for(auto pChan = inner.begin(); pChan != inner.end(); pChan++) {
+            delete pChan->second;
+        }
+    }
+    // The map itself gets cleaned up properly.
+    
+}
 
 
 /**
- * add
- *    Add scalers to the sums for this run.
- *    -   If necessary a new source id is created.
- *    -   If necessary the vector is expanded zero filled to match the
- *        size of the input vector
- *    -   Values in the input vector are added to corresponding value in the
- *        vector for the source id.
- *  @param srcId  - Id of the source for which this scaler has been supplied.
- *  @param scalers - The scalers for this period.
+ * update
+ *    Update a single channel for this run.
+ *
+ *  @param src  - id of the source the channel comes from.
+ *  @param chan - Channel number for the data.
+ *  @param value - Scaler raw value.
+ *  @param incremental - True if the scaler is incremental false if cumulative.
+ *  @param width - Number of bits of scaler width.
+ *
+ * @note - if the channel has not come into existence first it is created
+ *         and addeed to the m_scalerSums map.
  */
 void
-CRun::add(unsigned srcId, std::vector<uint32_t> scalers)
+CRun::update(
+    unsigned src, unsigned chan, unsigned value, bool incremental,
+    unsigned width
+)
 {
-    std::vector<uint64_t>& sums(m_scalerSums[srcId]);  // Creates empty vector if needed.
-    
-    // If needed expand the sum vector:
-    
-    while (sums.size() < scalers.size()) {
-        sums.push_back(0);                      // Expand zero filled.
-    }
-    
-    // This loop works because we've ensured the sums vector is at least as
-    // long as the scalers vector:
-    
-    auto o = sums.begin();
-    for (auto i = scalers.begin(); i != scalers.end(); i++, o++) {
-        *o += *i;
-    }
+    CChannel* pChan = getChan(src,chan, incremental);
+    pChan->update(value, width);
 }
+
 /**
  * sources
- *    Returns a vector containing all the data source ids seen so far for this
- *    run.
- *
- * @return std::vector<unsigned>
+ *  @return std::vector<unsigned> returns the ids of the sources in this run.
+ *          this can be sparse.
  */
 std::vector<unsigned>
 CRun::sources()
@@ -82,31 +86,73 @@ CRun::sources()
     for(auto p = m_scalerSums.begin(); p != m_scalerSums.end(); p++) {
         result.push_back(p->first);
     }
-    
     return result;
 }
 /**
  * sums
- *    Returns the sums for a source id.
+ *    Returns the susm from a specified data source.
+ *    While theoretically, given how processing works, this could be
+ *    a sparse vector, in fact, given the format of a scaler ring item
+ *    it will not be.  Furthermore we can rely on the facts that:
+ *    
+ *    - Traversal of a map via interators is sorted by key.
+ *    - Referencing a nonexistent data source will give an empty map and hence
+ *      an empty vector.
  *
- *  @param srcId - the source we want the sums for.
- *  @return std::vector<uint64_t>
- *  @note - if there are no sums for this srcid an empty vector is returned:
+ * @param src  - source id we want the sums for.
+ * @return std::vector<uint64_t> - vector (possibily empty) of scaler sums.
  */
 std::vector<uint64_t>
-CRun::sums(unsigned srcId)
+CRun::sums(unsigned srcid)
 {
-    return m_scalerSums[srcId];
+    std::vector<uint64_t> result;
+    
+    std::map<unsigned, CChannel*>& srcData(m_scalerSums[srcid]);
+    for(auto p = srcData.begin(); p != srcData.end(); p++) {
+        result.push_back(*(p->second));
+    }
+    return result;
 }
-
 /**
  * getRun
- *    Return the run number
- *
- *  @return unsigned
+ *   @return the run number.
  */
 unsigned
 CRun::getRun() const
 {
     return m_runNumber;
 }
+
+/*-----------------------------------------------------------------------------
+ *
+ *  private methods:
+ */
+
+/**
+ * getChan
+ *   Get the channel for the specified src/channel no.  If necessary the
+ *   correct type of channel is created and inserted in the map.
+ *
+ * @param src  - Source id.
+ * @param chan - Channel number.
+ * @param incremental - boolean, true if this is an incremental channel.
+ */
+CChannel*
+CRun::getChan(unsigned src, unsigned chan, bool incremental)
+{
+    CChannel* pResult = m_scalerSums[src][chan];
+    
+    // If there isn't a channel in that slot make one.
+    
+    if(!pResult) {
+        if (incremental) {
+            pResult = new CIncrementalChannel;
+        } else {
+            pResult = new CCumulativeChannel;
+        }
+        m_scalerSums[src][chan] = pResult;
+    }
+    return pResult;
+}
+
+
