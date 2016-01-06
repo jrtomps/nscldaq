@@ -48,8 +48,8 @@ CCumulativeChannel::update(unsigned value, unsigned width)
     wrapvalue     = mask << width;             // What a wrap means.
     mask          = wrapvalue - 1;             // mask of channel.
     
-    uint64_t scaler = width;
-    scaler          = width & mask;
+    uint64_t scaler = value;
+    scaler          = scaler & mask;
     
     if (scaler < m_lastValue) {
         m_WrapAdjust += wrapvalue;
