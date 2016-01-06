@@ -24,8 +24,8 @@ clean-local:
 
 noinst_PROGRAMS=unittests
 
-unittests_SOURCES=Asserts.h TestRunner.cpp channelTests.cpp \
-	CCumulativeChannel.cpp CIncrementalChannel.cpp '
+unittests_SOURCES=Asserts.h TestRunner.cpp channelTests.cpp runTests.cpp \
+	CRun.cpp CCumulativeChannel.cpp CIncrementalChannel.cpp 
 
 unittests_CPPFLAGS=$(sumscaler_CPPFLAGS) @CPPUNIT_CFLAGS@
 unittests_LDFLAGS=$(sumscaler_LDFLAGS)   @CPPUNIT_LDFLAGS@
