@@ -1083,10 +1083,27 @@ tcltest::test setTriggerSource-2 {Invalid source causes exception
 } -body {
     dev SetTriggerSource 0 not_an_option 0
 
-} -returnCodes 1 -result "Invalid source provided. Must be or, multiplicity, pair_coinc, mon, pat_or_0, or pat_or_1."
+} -returnCodes 1 -result "Invalid source provided. Must be or, multiplicity, pair_coinc, mon, pat_or_0, pat_or_1, or gg."
 
 
+tcltest::test getTriggerSource-0 {Ensre we can get the right cached
+} -setup {
+    setup
+} -cleanup {
+    tearDown
+} -body {
+  dev GetTriggerSource 0
+} -result {pat_or_0 0}
 
+
+tcltest::test getTriggerSource-1 {Ensre we can get the right cached
+} -setup {
+    setup
+} -cleanup {
+    tearDown
+} -body {
+  dev GetTriggerSource 1
+} -result {pat_or_1 0}
 
 
 
@@ -1125,6 +1142,15 @@ tcltest::test setTriggerOrPattern-2 {Invalid bit pattern causes exception
 } -returnCodes 1 -result {Invalid bit pattern provided. Must be in range [0,65535].}
 
 
+tcltest::test getTriggerOrPattern-0 {Ensure we can get the cached value
+} -setup {
+    setup
+} -cleanup {
+    tearDown
+} -body {
+    dev GetTriggerOrPattern 0
+} -result {255}
+
 
 tcltest::test parseDTResponse {Check that we can parse the DT response 
 } -setup {
@@ -1132,7 +1158,7 @@ tcltest::test parseDTResponse {Check that we can parse the DT response
 } -cleanup {
   tearDown
 } -body {
-  dev _parseDTResponse $dtResponse
+  dev _ParseDTResponse $dtResponse
 } -result [dict create  or0_pattern 255 or1_pattern 4 Trig0_src 16 Trig1_src 32 Trig2_src 128]
 
 #-----------------------------------------------------------------------------#

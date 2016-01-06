@@ -535,7 +535,7 @@ snit::type MCFD16USB {
   ## @brief Set the a trigger source
   #
   # @param trigId   the trigger id to target (0, 1, or 2)
-  # @param source   the source to use for the trigger (or, multiplicity, pair_coinc, mon, pat_or_0, pat_or_1)
+  # @param source   the source to use for the trigger (or, multiplicity, pair_coinc, mon, pat_or_0, pat_or_1, gg)
   # @param veto     whether to enable vetoing (boolean)
   #
   # This is just high level implementation of the TR command
@@ -547,9 +547,9 @@ snit::type MCFD16USB {
         return -code error -errorinfo MCFD16USB::SetTriggerSource $msg
     }
 
-    set sourceBits [dict create or 1 multiplicity 2 pair_coinc 4 mon 8 pat_or_0 16 pat_or_1 32]
+    set sourceBits [dict create or 1 multiplicity 2 pair_coinc 4 mon 8 pat_or_0 16 pat_or_1 32 gg 128]
     if {$source ni [dict keys $sourceBits]} {
-        set msg "Invalid source provided. Must be or, multiplicity, pair_coinc, mon, pat_or_0, or pat_or_1."
+        set msg "Invalid source provided. Must be or, multiplicity, pair_coinc, mon, pat_or_0, pat_or_1, or gg."
         return -code error -errorinfo MCFD16USB::SetTriggerSource $msg
     }
 
@@ -559,6 +559,29 @@ snit::type MCFD16USB {
     }
 
     return [$self _Transaction "TR $trigId $value"]
+  }
+
+  method GetTriggerSource {trigId} {
+
+    if {$trigId ni [list 0 1 2]} {
+        set msg "Invalid trigger id argument provided. Must be 0, 1, or 2."
+        return -code error -errorinfo MCFD16USB::GetTriggerSource $msg
+    }
+
+    if {$m_needsUpdate} {
+      $self Update
+    }
+
+    set code [dict get $m_moduleState Trig${trigId}_src]
+
+    set vetoEnabled [expr {($code&0x40)!=0}]
+    set source      [expr {$code&0xbf}]
+  
+    set sourceNameMap [dict create  1 or 2 multiplicity 4 pair_coinc 8 \
+                                    mon 16 pat_or_0 32 pat_or_1 128 gg]
+    set sourceName [dict get $sourceNameMap $source]
+
+    return [list $sourceName $vetoEnabled]
   }
 
   ## @brief Set which channels contribute to the OR
@@ -591,6 +614,21 @@ snit::type MCFD16USB {
   }
 
 
+  method GetTriggerOrPattern {patternId} {
+
+    if {$patternId ni [list 0 1]} {
+        set msg "Invalid pattern id argument provided. Must be 0 or 1."
+        return -code error -errorinfo MCFD16USB::GetTriggerOrPattern $msg
+    }
+
+    if {$m_needsUpdate} {
+      $self Update
+    }
+
+    return [dict get $m_moduleState or${patternId}_pattern]
+  }
+
+
   ## @brief Check whether in remote control mode
   #
   # @returns boolean
@@ -609,7 +647,12 @@ snit::type MCFD16USB {
 
     set response [$self _Transaction "DT"]
     
-    dict append m_moduleState [$self _ParseDTResponse $response]
+    set triggerDict [$self _ParseDTResponse $response]
+    dict for {key val} $triggerDict {
+      dict set m_moduleState $key $val
+    }
+
+    puts $m_moduleState
 
     set m_needsUpdate 0
   }
@@ -794,7 +837,7 @@ snit::type MCFD16USB {
     return $stateDict
   }
 
-  method _parseDTResponse {response} {
+  method _ParseDTResponse {response} {
     set parsedResponse [list]
 
     set responseLines [split $response "\n"]
@@ -805,7 +848,6 @@ snit::type MCFD16USB {
     lappend parsedResponse [$self _ParseTriggerSource [lindex $responseLines 12]]
     lappend parsedResponse [$self _ParseTriggerSource [lindex $responseLines 16]]
 
-    puts $parsedResponse
     set stateDict [$self _TransformToDict $parsedResponse]
     return $stateDict
   }
