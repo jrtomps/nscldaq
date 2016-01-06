@@ -85,6 +85,29 @@ snit::type MCFD16Memorizer {
   method DisablePulser {} { dict set _memory pulser 0}
   method PulserEnabled {} { return [dict get $_memory pulser]}
 
+  method SetTriggerSource {trigId source veto} { 
+    dict set _memory trig${trigId}_source [list $source $veto]
+  }
+
+  method GetTriggerSource {trigId} {
+    set state [dict get $_memory trig${trigId}_source]
+
+    return $state
+  }
+  method SetTriggerOrPattern {patternId pattern} {
+    dict set _memory or${patternId}_pattern $pattern
+  }
+
+  method GetTriggerOrPattern {patternId} {
+    set state [dict get $_memory or${patternId}_pattern]
+
+    if {$state ne "NA"} {
+      return [expr $state]
+    } else {
+      return $state
+    }
+  }
+
   ## @brief Construct the structure of the dictionary
   #
   # Each parameter name has a key associated with it. Parameters that have
@@ -118,6 +141,11 @@ snit::type MCFD16Memorizer {
     dict set _memory rc NA
     dict set _memory mask NA
     dict set _memory pulser NA
+    dict set _memory trig0_source NA
+    dict set _memory trig1_source NA
+    dict set _memory trig2_source NA
+    dict set _memory or0_pattern NA
+    dict set _memory or1_pattern NA
   }
 
   ## @brief Utilty method for adding a parameter with channel to the dict
