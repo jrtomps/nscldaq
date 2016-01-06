@@ -561,6 +561,13 @@ snit::type MCFD16USB {
     return [$self _Transaction "TR $trigId $value"]
   }
 
+  ## @brief Retrieve the trigger source
+  #
+  # If necessary, this will update the cached state of the device.
+  #
+  # @param trigId   the trigger index (must be 0, 1, or 2)
+  #
+  # @returns list. first element is source, second element is veto enabled
   method GetTriggerSource {trigId} {
 
     if {$trigId ni [list 0 1 2]} {
@@ -614,6 +621,14 @@ snit::type MCFD16USB {
   }
 
 
+  ## @brief Retrieve the configurable OR pattern
+  #
+  # This updates the cached state if necessary.
+  #
+  # @param patternId    index of the pattern (must be 0 or 1)
+  #
+  # @returns integer whose set bits represent the channel states.
+  #
   method GetTriggerOrPattern {patternId} {
 
     if {$patternId ni [list 0 1]} {
