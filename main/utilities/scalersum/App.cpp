@@ -21,8 +21,17 @@
 */
 
 #include "App.h"
+#include "CRun.h"
+
 #include <CDataSource.h>
 #include <CDataSourceFactory.h>
+#include <CRingItem.h>
+#include <CRingStateChangeItem.h>
+#include <CRingScalerItem.h>
+#include <CRingItemFactory.h>
+#include <CDataFormatItem.h>
+#include <DataFormat.h>
+
 #include <ErrnoException.h>
 
 #include <stdexcept>
@@ -46,7 +55,8 @@
 App::App(struct gengetopt_args_info& args) :
     m_omitLabels(false),
     m_flip(false),
-    m_state(App::expectingStart)
+    m_state(App::expectingStart),
+    m_pCurrentRun(0)
 {
     // Process the cooked parameters:
     
@@ -60,6 +70,9 @@ App::App(struct gengetopt_args_info& args) :
        m_files.push_back(args.inputs[i]);
     }
 }
+
+// TODO:   Implement destructor to kill off m_completeRuns.
+
 /**
  * operator()
  *     Runs the analysis. Either process all the lines or 
@@ -104,10 +117,106 @@ App::operator()()
             }
         }
     }
+    // If the state is not expectingStart  we've got a partial run to warn
+    // about
+    
+    if ((m_state != expectingStart) && m_pCurrentRun) {
+        std::cerr << "Warning - end of all input in the middle of a run.\n";
+        std::cerr << "Saving the sums for this partial run: " << m_pCurrentRun->getRun();
+        std::cerr << std::endl;
+        m_completeRuns.push_back(m_pCurrentRun);
+        m_pCurrentRun = 0;
+    }
 }
 
+/**
+ *  processFile
+ *     Process the data on an input source. Note that a input source could be
+ *     part of a run, all of a run or (e.g. in the case of stdin) several
+ *     runs.  Here's a rough go of the action.
+ *
+ *     I'd like to require a data source begin with a data format item however
+ *     we can't since only the first segment of each multi file run has them
+ *     at present.
+ *
+ *     The system starts out expecting the beginning of a run.
+ *     Items are skipped until a begin run is found.  At that point in time
+ *     a new CRun object (m_pCurrentRun) is created and the state is set to
+ *     expectingEnd
+ *
+ *     In expectingEnd we process scaler items summing them in or setting them
+ *     (if the scalers are not incremental).  This continues until an end
+ *     run item is seen at which time the current run object is appended to
+ *     the completed runs vector and we transition back into expectingStart.
+ *
+ *     There are a few exceptional cases:
+ *     -  scalers seen in expectingStart are ignored.
+ *     -  Begin items seen in expectingEnd give a warning but act like an
+ *        end run followed by the start we got.
+ *     -  Data source may hit the end of data in either state (think about
+ *        multi file segmented runs here).
+ *
+ * @param ds - data source that provides us with ring items.
+ * @note - Online data can be collected by processin data from stdin where
+ *         stdin is piped from ringtostdout.  If you do this, since the program
+ *         outputs data only once the data sources are exhausted, you must
+ *         get output by killing the data source so that we see the EOF.
+ */
 void
-App::processFile(CDataSource& ds) {}
+App::processFile(CDataSource& ds) {
+    try {
+        CRingItem* pRawItem;
+        while (pRawItem = ds.getItem()) {
+            // What we do depends on type and state:
+            
+            switch (pRawItem->type()) {
+            case BEGIN_RUN:
+                if(m_state == expectingEnd) {
+                    std::cerr << "Warning, got a begin run in the middle of processing run ";
+                    std::cerr << m_pCurrentRun->getRun() << std::endl;
+                    std::cerr << "Saving partial run  sums and continuing.";
+                    end();
+                }
+                begin(*pRawItem);
+                m_state = expectingEnd;
+                break;
+            case END_RUN:
+                if (m_state == expectingStart) {
+                    std::cerr << "Warning - got an end run while expecting a begin\n";
+                    std::cerr << "Continuing processing\n";
+                    
+                    // probably don't have one but in case we do:
+                    
+                    delete m_pCurrentRun;
+                    m_pCurrentRun = 0;
+                } else {
+                    end();
+                    m_state = expectingStart;
+                }
+                break;
+            case PERIODIC_SCALERS:
+                if (m_state == expectingEnd) {
+                    scaler(*pRawItem);
+                }
+                break;
+            defaut:
+                break;
+            }
+            
+            delete pRawItem;       // - it was dynamic.
+        }
+        // Null item be sure this is an EOF else throw the errno.
+        
+        if (errno != 0) {
+            throw int(errno);
+        }
+    }
+    catch (int i) {                      // getItem can throw ints.
+        std::string msg = "Error processing a data source: ";
+        msg += strerror(i);
+        throw std::runtime_error(msg);
+    }
+}
 
 /**
  * dumpScalerNames
@@ -121,10 +230,10 @@ App::dumpScalerNames(std::ostream& f)
 {
     for(auto p = m_channelNames.begin(); p != m_channelNames.end(); p++) {
         Channel        c = p->first;
-        std::string name = p->second;
+        std::string name = (p->second).s_channelName;
         
         f << "Channel: " << c.s_dataSource << '.' << c.s_channel << " - " <<
-            name << std::endl;
+            name << " " << (p->second).s_width << " bits\n";
     }
     
 }
@@ -154,7 +263,8 @@ App::processNameFile(const char* name)
     }
     
     Channel chanSpec;
-    std::string chname;
+    ChannelInfo info;
+    
     
     // TODO: parse lines via intermediate string so we can give better
     //       diagnostics.
@@ -166,16 +276,16 @@ App::processNameFile(const char* name)
         std::stringstream sline(line);
         
         
-        sline >> chanSpec.s_dataSource >> chanSpec.s_channel;
+        sline >> chanSpec.s_dataSource >> chanSpec.s_channel >> info.s_width;
         if(sline.fail()) {
             throw std::runtime_error("Invalid line in scaler name file");
         }
-        std::getline(sline, chname, '\n');
+        std::getline(sline, info.s_channelName, '\n');
         if (m_channelNames.find(chanSpec) != m_channelNames.end()) {
             std::cerr << "Warning redefining channel " << chanSpec.s_dataSource
-                << '.' << chanSpec.s_channel << " name to be: " << chname << std::endl;
+                << '.' << chanSpec.s_channel << " name to be: " << info.s_channelName << std::endl;
         }
-        m_channelNames[chanSpec] = chname;
+        m_channelNames[chanSpec] = info;
     }
     
     
@@ -183,7 +293,8 @@ App::processNameFile(const char* name)
 /**
  * getScalerName
  *    Returns the name of a channel.  The name is looked up in the m_channelNames
- *    map.  If not found an default name is generated and returned.
+ *    map.  If not found an default name is generated and returned (the resulting)
+ *    scaler is set to the 32 bit width default.
  *
  *  @param ch  - Channel specification (source and channel number).
  *  @return std::string - the channel label.
@@ -195,11 +306,28 @@ App::getScalerName(App::Channel& ch)
     // If necessary create/insert a new name:
     
     if (m_channelNames.find(ch) == m_channelNames.end()) {
+        ChannelInfo info;
         std::stringstream name;
         name << "Scaler-" << ch.s_dataSource << '.' << ch.s_channel;
-        m_channelNames[ch] = name.str();
+        info.s_channelName = name.str();
+        info.s_width = 32;
+        m_channelNames[ch] = info;
     }
-    return m_channelNames[ch];
+    
+    return m_channelNames[ch].s_channelName;
+}
+/**
+ * getScalerWidth
+ *    Returns the width of a channel.  This is not done that efficiently
+ *    - first the name is gotten to ensure the existence in the map
+ *    - then the width is retrned
+ * @return unsigned
+ */
+unsigned
+App::getScalerWidth(Channel& ch)
+{
+    getScalerName(ch);               // Now we know it's in the map.
+    return m_channelNames[ch].s_width;
 }
 /**
  * makeFileUri
@@ -228,6 +356,35 @@ App::makeFileUri(std::string name)
         throw std::runtime_error(msg);
         
       }
+}
+
+/**
+ * begin
+ *    Begin run processing
+ *    - Get the run number from the item.
+ *    - Create a new CRun object at m_pCurrent Run.
+ *    - Redundant but set the state to expectingEnd.
+ * @param item - the undifferentiated item.
+ */
+void
+App::begin(CRingItem& item)
+{
+    CRingStateChangeItem* pBegin =
+        dynamic_cast<CRingStateChangeItem*>(CRingItemFactory::createRingItem(item));
+    m_pCurrentRun = new CRun(pBegin->getRunNumber());
+    
+    delete pBegin;
+    m_state = expectingEnd;
+}
+void
+App::end()
+{
+    
+}
+void
+App::scaler(CRingItem& item)
+{
+
 }
 
 /*-------------------------------------------------------------------------

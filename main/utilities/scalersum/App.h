@@ -32,7 +32,10 @@
 
 #include "options.h"
 
+
 class CDataSource;
+class CRun;
+class CRingItem;
 
 /**
  * @class App
@@ -43,6 +46,7 @@ public:
     typedef struct _Channel {
         unsigned s_dataSource;
         unsigned s_channel;
+        
         int operator>(const struct _Channel& rhs) const;
         int operator<(const struct _Channel& rhs) const;
         int operator==(const struct _Channel& rhs) const;
@@ -50,6 +54,11 @@ public:
         int operator<=(const struct _Channel& rhs) const;
         int operator>=(const struct _Channel& rhs) const;
     } Channel, *pChannel;
+    
+    typedef struct _ChannelInfo {
+        unsigned    s_width;
+        std::string s_channelName;
+    } ChannelInfo, *pChannelInfo;
     
     typedef enum _States {
         expectingStart, expectingEnd
@@ -59,8 +68,11 @@ private:
     bool m_flip;
     
     std::vector<std::string>         m_files;
-    std::map<Channel, std::string>   m_channelNames;
+    std::map<Channel, ChannelInfo>   m_channelNames;
     States                           m_state;
+    
+    std::vector<CRun*>                m_completeRuns;
+    CRun*                             m_pCurrentRun;              
 public:
     App(struct gengetopt_args_info& args);
     virtual ~App() {}
@@ -75,9 +87,15 @@ public:
 private:
     void processNameFile(const char* name);
     std::string getScalerName(Channel& ch);
+    unsigned    getScalerWidth(Channel& ch);
+    
     void processFile(CDataSource& ds);
     std::string makeFileUri(std::string name);
 
+    void begin(CRingItem& item);
+    void end();
+    void scaler(CRingItem& item);
+    
 };
 
 #endif
