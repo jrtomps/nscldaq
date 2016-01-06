@@ -789,6 +789,58 @@ snit::type MCFD16USB {
     return $stateDict
   }
 
+  method _parseDTResponse {response} {
+    set parsedResponse [list]
+
+    set responseLines [split $response "\n"]
+    set orPatterns [$self _ParseOredPattern [lindex $responseLines 7]]
+    set parsedResponse [concat $orPatterns]
+
+    lappend parsedResponse [$self _ParseTriggerSource [lindex $responseLines 11]]
+    lappend parsedResponse [$self _ParseTriggerSource [lindex $responseLines 12]]
+    lappend parsedResponse [$self _ParseTriggerSource [lindex $responseLines 16]]
+
+    puts $parsedResponse
+    set stateDict [$self _TransformToDict $parsedResponse]
+    return $stateDict
+  }
+
+  method _ParseOredPattern line {
+    set parse1 [$self _SplitAndTrim $line ","]
+    set or0Pattern [lindex [$self _SplitAndTrim [lindex $parse1 0] ":"] 2]
+
+    puts $parse1
+    puts [$self _SplitAndTrim [lindex $parse1 0] ":"]
+    set or1Pattern [lindex [$self _SplitAndTrim [lindex $parse1 1] ":"] 1]
+
+    set or0Pattern [expr "0x[string trimleft $or0Pattern 0]"]
+    set or1Pattern [expr "0x[string trimleft $or1Pattern 0]"]
+
+    return [list [dict create name or0_pattern values $or0Pattern] \
+                 [dict create name or1_pattern values $or1Pattern] ]
+  }
+
+  method _ParseTriggerSource line {
+    set results [$self _SplitAndTrim $line ":"]
+    set values [split [lindex $results 1] " "]
+
+    set bits [list]
+    foreach value $values {
+      if {$value ne {}} {
+        lappend bits $value
+      }
+    }
+
+    set bits [lreverse $bits]
+
+    set value 0
+    for {set i 0} {$i<[llength $bits]} {incr i} {
+        set value [expr {$value | ([lindex $bits $i]<<$i)}]
+    }
+
+    return [dict create name "[lindex $results 0]_src" values $value]
+  }
+
   ## @brief Split a line into tokens that are trimmed
   #
   # Examplified behavior...
@@ -806,10 +858,12 @@ snit::type MCFD16USB {
     set split [split $line $del]
 
     # trim each part
-    set name [string trim [lindex $split 0]]
-    set valStr [string trim [lindex $split 1]]
+    set result [list]
+    foreach token $split {
+      lappend result [string trim $token]
+    }
 
-    return [list $name $valStr]
+    return $result
   }
 
   ## @brief Remove all dashes from a string

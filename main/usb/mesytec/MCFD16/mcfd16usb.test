@@ -1118,6 +1118,16 @@ tcltest::test setTriggerOrPattern-2 {Invalid bit pattern causes exception
 } -returnCodes 1 -result {Invalid bit pattern provided. Must be in range [0,65535].}
 
 
+
+tcltest::test parseDTResponse {Check that we can parse the DT response 
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  dev _parseDTResponse $dtResponse
+} -result [dict create  or0_pattern 255 or1_pattern 4 Trig0_src 16 Trig1_src 32 Trig2_src 128]
+
 #-----------------------------------------------------------------------------#
 # Retrieve state
 
