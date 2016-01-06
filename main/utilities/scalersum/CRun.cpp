@@ -109,6 +109,9 @@ CRun::sums(unsigned srcid)
     
     std::map<unsigned, CChannel*>& srcData(m_scalerSums[srcid]);
     for(auto p = srcData.begin(); p != srcData.end(); p++) {
+        
+        // This inner loop is wher we rely on iterator ordering and dense packing.
+        
         result.push_back(*(p->second));
     }
     return result;
