@@ -22,3 +22,12 @@ options.h: options.ggo
 clean-local:
 	-rm -rf options.h options.h
 
+noinst_PROGRAMS=unittests
+
+unittests_SOURCES=Asserts.h TestRunner.cpp channelTests.cpp \
+	CCumulativeChannel.cpp CIncrementalChannel.cpp '
+
+unittests_CPPFLAGS=$(sumscaler_CPPFLAGS) @CPPUNIT_CFLAGS@
+unittests_LDFLAGS=$(sumscaler_LDFLAGS)   @CPPUNIT_LDFLAGS@
+
+TESTS = unittests
