@@ -1,9 +1,14 @@
 bin_PROGRAMS = sumscaler
 
-sumscaler_SOURCES=   main.cpp App.cpp App.h options.c CRun.h CRun.cpp
+sumscaler_SOURCES=   main.cpp App.cpp App.h options.c CRun.h CRun.cpp \
+	CChannel.h CIncrementalChannel.j CIncrementalChannel.cpp \
+	CCumulativeChannel.h CCumulativeChannel.cpp
 
-sumscaler_CPPFLAGS=-I@top_srcdir@/utilities/IO @LIBTCLPLUS_CFLAGS@
-sumscaler_LDFLAGS = @top_builddir@/utilities/IO/libdaqio.la \
+sumscaler_CPPFLAGS=-I@top_srcdir@/utilities/IO 			\
+		    -I@top_srcdir@/daq/format			\
+		    @LIBTCLPLUS_CFLAGS@
+sumscaler_LDFLAGS = @top_builddir@/utilities/IO/libdaqio.la 	\
+    @top_builddir@/daq/format/libdataformat.la			\
     @LIBEXCEPTION_LDFLAGS@
 
 BUILT_SOURCES	= options.c
@@ -16,4 +21,4 @@ options.h: options.ggo
 
 clean-local:
 	-rm -rf options.h options.h
-	
+
