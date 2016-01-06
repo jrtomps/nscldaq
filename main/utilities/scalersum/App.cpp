@@ -103,7 +103,6 @@ App::operator()()
         for(auto p = m_files.begin(); p != m_files.end(); p++) {
             try {
                 std::string uri = makeFileUri(*p);
-                std::cerr << "Processing: " << uri << std::endl;
                 std::unique_ptr<CDataSource> 
                     pDs(CDataSourceFactory::makeSource(uri, dummy, dummy));
                 processFile(*pDs);
@@ -376,15 +375,59 @@ App::begin(CRingItem& item)
     delete pBegin;
     m_state = expectingEnd;
 }
+/**
+ * end
+ *    End of a run.  The current run object is saved in the list of
+ *    completely processed runs, its pointer member is zeroed and
+ *    the state is set to expectingStart:
+ */
 void
 App::end()
 {
-    
+    m_completeRuns.push_back(m_pCurrentRun);
+    m_pCurrentRun = 0;
+    m_state = expectingStart;
 }
+
+/**
+ * scaler
+ *    Process a scaler item
+ *    - Convert the item to a scaler item.
+ *    - Pull out the incremental flag and the data source
+ *    - Pass the increments to the run one by one...getting the scaler width
+ *      as we do.
+ * @param item - references the ring item that is being processed.
+ */
 void
 App::scaler(CRingItem& item)
 {
-
+    CRingScalerItem* pScaler =
+        reinterpret_cast<CRingScalerItem*>(CRingItemFactory::createRingItem(item));
+        
+    // Source id is 0 if there's no body header:
+    
+    unsigned srcId;
+    if (pScaler->hasBodyHeader()) {
+        srcId = pScaler->getSourceId();
+    } else {
+        srcId = 0;
+    }
+    // Figure out if the scalers are incremental or not and get the counters.
+    
+    bool incremental = pScaler->isIncremental();
+    std::vector<uint32_t> scalers = pScaler->getScalers();
+    
+    // Make a Channel struct and use it to iterate over the scalers in the
+    // vector:
+    
+    Channel ch = {srcId, 0}; 
+    for (ch.s_channel = 0; ch.s_channel < scalers.size(); ch.s_channel++) {
+        unsigned width = getScalerWidth(ch);
+        m_pCurrentRun->update(
+            ch.s_dataSource, ch.s_channel, scalers[ch.s_channel],
+            incremental, width
+        );
+    }
 }
 
 /*-------------------------------------------------------------------------

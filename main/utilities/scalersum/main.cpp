@@ -39,17 +39,24 @@
 int main(int argc, char** argv)
 {
     struct gengetopt_args_info processParams;
+    App* pApp;
     
     if (cmdline_parser(argc, argv, &processParams)) {
         exit(EXIT_FAILURE);             // cmdline_parser writes error msgs.
     }
     try {
-        App app(processParams);
+        pApp = new App(processParams);
+        App& app(*pApp);
         app();
+        // app.outputResults(std::cout);
         
     }
     catch(std::exception& e) {
         std::cerr << e.what() << std::endl;
+        
+        std::cerr << "Fatal error, dumping what we've got so far";
+        // pApp->outputResults(std::cout);
+        
         exit(EXIT_FAILURE);
     }
     
