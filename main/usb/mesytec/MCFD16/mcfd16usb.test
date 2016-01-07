@@ -111,6 +111,26 @@ Trig2:  1   0   0   0   0   0   0   0
 mcfd-16>
 }
 
+set dtResponse1 {DT
+
+MCFD-16 trigger settings:
+
+Fast Veto: disabled
+Multiplicity:             from 2 to 16
+Trigger monitor channels: 0: 0, 1: 2
+Ored patterns:            0: 0000, 1: 0000
+
+Trigger / gate sources:
+        GG  VE  P1  P0  M0  PC  MU  OR
+Trig0:  0   0   0   0   0   0   0   0
+Trig1:  0   0   0   0   0   0   0   0
+GG:     0   0   0   0   0   1   0   0
+
+        GG  VE  P1  P0  M1  PC  MU  OR
+Trig2:  0   0   0   0   0   0   0   0
+mcfd-16>
+}
+
 set parsedDSDict [dict create Threshold {0 20 20 40 20 20 20 20 20 20 20 20 20 20 20 20 20} \
                        Gain {1 1 1 1 3 1 1 1 1} \
                        Width {100 50 40 50 50 50 50 50 50} \
@@ -1161,6 +1181,14 @@ tcltest::test parseDTResponse {Check that we can parse the DT response
   dev _ParseDTResponse $dtResponse
 } -result [dict create  or0_pattern 255 or1_pattern 4 Trig0_src 16 Trig1_src 32 Trig2_src 128]
 
+tcltest::test parseDTResponse-1 {Check that or patterns of 0 are properly handled
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  dev _ParseDTResponse $dtResponse1
+} -result [dict create  or0_pattern 0 or1_pattern 0 Trig0_src 0 Trig1_src 0 Trig2_src 0]
 #-----------------------------------------------------------------------------#
 # Retrieve state
 

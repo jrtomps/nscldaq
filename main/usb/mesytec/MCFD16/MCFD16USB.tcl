@@ -873,8 +873,21 @@ snit::type MCFD16USB {
     set or0Pattern [lindex [$self _SplitAndTrim [lindex $parse1 0] ":"] 2]
     set or1Pattern [lindex [$self _SplitAndTrim [lindex $parse1 1] ":"] 1]
 
-    set or0Pattern [expr "0x[string trimleft $or0Pattern 0]"]
-    set or1Pattern [expr "0x[string trimleft $or1Pattern 0]"]
+    set or0Pattern "0x[string trimleft $or0Pattern 0]"
+    set or1Pattern "0x[string trimleft $or1Pattern 0]"
+
+    if {$or0Pattern eq "0x"} {
+      set or0Pattern 0
+    } else {
+      set or0Pattern [expr $or0Pattern]
+    }
+
+
+    if {$or1Pattern eq "0x"} {
+      set or1Pattern 0
+    } else {
+      set or1Pattern [expr $or1Pattern]
+    }
 
     return [list [dict create name or0_pattern values $or0Pattern] \
                  [dict create name or1_pattern values $or1Pattern] ]
