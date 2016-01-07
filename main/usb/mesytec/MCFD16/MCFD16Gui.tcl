@@ -360,8 +360,7 @@ snit::widget MCFD16IndividualView {
                         -defaultstring "Ch$ch"
 
     ttk::spinbox $w.th$ch -textvariable "[$self mcfd](th$ch)" -width 4 \
-                        -style "$style.TSpinbox" -from 0 -to 255 \
-                        -state readonly
+                        -style "$style.TSpinbox" -from 0 -to 255 ;# -state readonly
     set pair [expr $ch/2]
     ttk::radiobutton $w.poneg$pair -variable "[$self mcfd](po$pair)" \
                                    -value neg -text neg \
@@ -373,11 +372,11 @@ snit::widget MCFD16IndividualView {
 
     ttk::spinbox $w.wi$pair -textvariable "[$self mcfd](wi$pair)" \
       -style "$style.TSpinbox" -width 4 \
-      -from 16 -to 222 -state readonly
+      -from 16 -to 222 ; #-state readonly
 
     ttk::spinbox $w.dt$pair -textvariable "[$self mcfd](dt$pair)" \
       -style "$style.TSpinbox" -width 4 \
-      -from 27 -to 222 -state readonly
+      -from 27 -to 222 ; #-state readonly
 
     ttk::spinbox $w.dl$pair -textvariable "[$self mcfd](dl$pair)" \
       -style "$style.TSpinbox" -width 4 \
@@ -399,8 +398,8 @@ snit::widget MCFD16IndividualView {
                         -defaultstring "Ch$ch"
 
     ttk::spinbox $w.th$ch -textvariable "[$self mcfd](th$ch)" -width 4 \
-      -style "$style.TSpinbox" -from 0 -to 255 \
-      -state readonly
+      -style "$style.TSpinbox" -from 0 -to 255 ;# -state readonly
+
 
     ttk::radiobutton $w.popos$pair -variable "[$self mcfd](po$pair)" \
                                    -value pos -text pos \
@@ -1170,6 +1169,16 @@ snit::widget SaveToFileForm {
     $control configure -handle $realHandle
     $control Update
 
+    set enableDisable [$_theApp GetEnableDisablePresenter]
+    $enableDisable SetCommandLoggerAsHandle $logger
+    $enableDisable CommitMask
+    $enableDisable configure -handle $realHandle
+
+    set orPattern [$_theApp GetOrPatternPresenter]
+    $orPattern SetCommandLoggerAsHandle $logger
+    $orPattern CommitViewToModel
+    $orPattern configure -handle $realHandle
+
     # write the name of the channels to the logfile
     $self WriteChannelNames $logFile MCFD16ChannelNames
 
@@ -1459,6 +1468,10 @@ snit::type LoadFromFilePresenter {
     lappend _validAPICalls {^\s*[[:alnum:]:]+\s+EnablePulser\s+\d+$}
     lappend _validAPICalls {^\s*[[:alnum:]:]+\s+DisablePulser$}
     lappend _validAPICalls {^\s*[[:alnum:]:]+\s+PulserEnabled$}
+    lappend _validAPICalls {^\s*[[:alnum:]:]+\s+SetTriggerSource\s+\d+\s+[[:alnum:]_]+\s+[01]{1}$}
+    lappend _validAPICalls {^\s*[[:alnum:]:]+\s+GetTriggerSource\s+\d$}
+    lappend _validAPICalls {^\s*[[:alnum:]:]+\s+SetTriggerOrPattern\s+[01]{1}\s+\w+$}
+    lappend _validAPICalls {^\s*[[:alnum:]:]+\s+GetTriggerOrPattern\s+[01]{1}$}
     lappend _validAPICalls {^\s*set\s+(::)*MCFD16ChannelNames::chan\d+.+$}
     lappend _validAPICalls {^\s*namespace\s+::MCFD16ChannelNames\s+eval\s+{\s*}\s*$}
   }
@@ -1713,6 +1726,8 @@ snit::type ChannelEnableDisablePresenter {
       tk_messageBox -icon error -message $msg
     } else {
 
+      puts $mask
+
       # split the mask into a list of bits
       set bits [$self DecodeMaskIntoBits $mask]
 
@@ -1769,7 +1784,7 @@ snit::type ChannelEnableDisablePresenter {
   # @returns list of 8 bits (least significant bit first)
   method DecodeMaskIntoBits {mask} {
     set bits [list]
-
+    puts "mask = $mask"
     # interpret mask as an actual byte
     set byteValue [binary format s1 $mask]
 
@@ -1843,6 +1858,18 @@ snit::type ChannelEnableDisablePresenter {
     if {$view ne {}} {
       $self UpdateViewFromModel
     }
+  }
+
+  ## @brief This allows swapping in a MCFD16CommandLogger for the handle without err
+  #
+  #  Because the command logger doesn't have any state, there will be an error if we
+  #  swap it in as any normal handle.  We just need to avoid trying to update the
+  #  view from the model.
+  #
+  # @param logger   the logger
+  #
+  method SetCommandLoggerAsHandle {logger} {
+    set options(-handle) $logger
   }
 }
 
@@ -2352,6 +2379,16 @@ snit::type ORPatternPanelPresenter {
       $self Update
     }
   }
+
+
+  ## @brief Set handle to command logger
+  #
+  # Setting the handle to a command logger is somewhat differet than setting
+  # a normal handle because it maintains no state. We need to therefore avoid
+  # updatig the view from the logger.
+  method SetCommandLoggerAsHandle logger {
+    set options(-handle) $logger
+  }
 }
 
 
@@ -2415,6 +2452,11 @@ snit::widget ORPatternConfiguration {
     $panel1Presenter Update 
   }
 
+  method CommitViewToModel {} {
+    $panel0Presenter CommitViewToModel
+    $panel1Presenter CommitViewToModel
+  }
+
   ## @brief Set the handle and pass it to the presenters
   #
   method SetHandle {opt val} {
@@ -2428,6 +2470,19 @@ snit::widget ORPatternConfiguration {
     if {$panel1Presenter ne {}} {
       $panel1Presenter configure $opt $val
     }
+  }
+
+  ## @brief Set handle to command logger
+  #
+  # Setting the handle to a command logger is somewhat differet than setting
+  # a normal handle because it maintains no state. We need to therefore avoid
+  # updatig the view from the logger.
+  method SetCommandLoggerAsHandle logger {
+
+    $panel0Presenter SetCommandLoggerAsHandle $logger
+
+    $panel1Presenter SetCommandLoggerAsHandle $logger
+
   }
 }
 

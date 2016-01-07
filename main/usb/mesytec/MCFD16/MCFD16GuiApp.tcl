@@ -386,6 +386,14 @@ snit::type MCFD16GuiApp {
     return $_controlPrsntr
   }
 
+  method GetEnableDisablePresenter {} {
+    return $_enable
+  }
+
+  method GetOrPatternPresenter {} {
+    return $_orPatternFr
+  }
+
   ## @brief Getter for the MCFD16AppOptions 
   #
   # @returns the instance of the options that this snit::type delegates to.

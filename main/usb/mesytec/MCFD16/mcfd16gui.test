@@ -674,7 +674,11 @@ proc generateTestAPICalls {} {
     "asdf GetChannelMask" \
     "asdf EnablePulser 2" \
     "asdf DisablePulser" \
-    "asdf PulserEnabled"]
+    "asdf PulserEnabled" \
+    "asdf SetTriggerSource 0 pat_or_1 1" \
+    "asdf GetTriggerSource 1" \
+    "asdf SetTriggerOrPattern 0 0xffff" \
+    "asdf GetTriggerOrPattern 1"]
 }
 
 tcltest::test loader_filterOutNonAPICalls-0 { Verify all lines of valid API call are accepted
@@ -747,8 +751,10 @@ tcltest::test loader_evaluateLines-0 {establish that evaluating lines produces s
   lappend res [::asdf RCEnabled]
   lappend res [::asdf PulserEnabled]
   lappend res [::asdf GetChannelMask]
+  lappend res [::asdf GetTriggerSource 0]
+  lappend res [::asdf GetTriggerOrPattern 0]
   set res 
-} -result {2 2 2 2 3 20 neg common 1 0 0}
+} -result {2 2 2 2 3 20 neg common 1 0 0 {pat_or_1 1} 65535}
 
 
 
