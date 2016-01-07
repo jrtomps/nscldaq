@@ -2128,22 +2128,15 @@ snit::type PulserPresenter {
   }
 }
 
-snit::type ViewState {
-  option -presenter -default {}
 
-  constructor args {
-    $self configurelist $args
-  }
-}
 
-snit::type PresenterState {
-  option -view       -default {}
-
-  constructor args {
-    $self configurelist $args
-  }
-}
-
+## @brief View for configuring the OR trigger pattern 
+#
+# This is a megawidget to configure a single 16 channel
+# configurable OR. One of these forms a column of the 
+# ORPatternConfiguration megawidget. This is the a dumby view
+# and does little more than relay events to its presenter.
+#
 snit::widget ORPatternPanelView {
 
 
@@ -2158,6 +2151,7 @@ snit::widget ORPatternPanelView {
     $self configurelist $args 
 
     $self BuildGUI
+
   }
 
   destructor {
@@ -2165,32 +2159,36 @@ snit::widget ORPatternPanelView {
 
 
   method BuildGUI {} {
+    set top [ttk::frame $win.frame]
 
-    ttk::label $win.title -textvariable [myvar options(-title)] -style Title.TLabel
+    ttk::label $top.title -textvariable [myvar options(-title)] -style Title.TLabel
 
-    ttk::label $win.chHeader -text "Channel" -style "Header.TLabel"
-    ttk::label $win.enableHeader -text "Include?" -style "Header.TLabel"
+    ttk::label $top.chHeader -text "Channel" -style "Header.TLabel"
+    ttk::label $top.enableHeader -text "Include?" -style "Header.TLabel"
     for {set ch 0} {$ch < 16} {incr ch} {
     # construct first row
-      ChannelLabel $win.na$ch -width 8 -textvariable MCFD16ChannelNames::chan$ch \
+      ChannelLabel $top.na$ch -width 8 -textvariable MCFD16ChannelNames::chan$ch \
         -defaultstring "Ch$ch"  -state readonly
-      ttk::checkbutton $win.enable$ch -variable [myvar enabled($ch)] -onvalue 1 -offvalue 0
+      ttk::checkbutton $top.enable$ch -variable [myvar enabled($ch)] -onvalue 1 -offvalue 0
     }
 
-    ttk::label $win.vetoLabel -text "Enable Veto?"
-    ttk::checkbutton $win.vetoButton -variable [myvar vetoEnabled]
+    ttk::label $top.vetoLabel -text "Enable Veto?"
+    ttk::checkbutton $top.vetoButton -variable [myvar vetoEnabled]
 
-
-    grid $win.title - -sticky nsew
-    grid $win.chHeader $win.enableHeader -sticky nsew
+    grid $top.title - -sticky nsew
+    grid $top.chHeader $top.enableHeader -sticky nsew
     for {set ch 0} {$ch < 16} {incr ch} {
-      grid $win.na$ch $win.enable$ch -sticky nsew
+      grid $top.na$ch $top.enable$ch -sticky nsew
     }
-    grid $win.vetoLabel $win.vetoButton -sticky nsew
+    grid $top.vetoLabel $top.vetoButton -sticky nsew
 
+    grid rowconfigure $top all -weight 1
+    grid columnconfigure $top all -weight 1
+
+
+    grid $top -sticky nsew
     grid rowconfigure $win all -weight 1
     grid columnconfigure $win all -weight 1
-
   }
 
   method GetChannelEnabled {ch} {
@@ -2211,13 +2209,18 @@ snit::widget ORPatternPanelView {
 
 }
 
-
+## @brief The logic for the ORPatternPanelView
+#
+# This handles the logic for when the user presses commit or update.
+# In this, the model this manipulates is the handle to the device. We
+# can update the view from the handle or update the handle from the 
+# view. This mediates between the two.
+#
 snit::type ORPatternPanelPresenter {
 
   option -patternid
   option -handle -default {} -configuremethod SetHandle
   option -view -default {} -configuremethod SetView
-
 
   constructor args {
 
@@ -2227,6 +2230,9 @@ snit::type ORPatternPanelPresenter {
   destructor {
   }
 
+  ##
+  #
+  #
   method Commit {} {
     set handle [$self cget -handle]
     if {$handle eq {}} {
@@ -2242,6 +2248,9 @@ snit::type ORPatternPanelPresenter {
     $self Update
   }
 
+  ##
+  #
+  #
   method CommitViewToModel {} {
     set handle [$self cget -handle]
     set view   [$self cget -view]
@@ -2258,7 +2267,9 @@ snit::type ORPatternPanelPresenter {
     $handle SetTriggerOrPattern $options(-patternid) $value
   }
 
-
+  ##
+  #
+  #
   method Update {} {
     set handle [$self cget -handle]
     if {$handle eq {}} {
@@ -2272,6 +2283,9 @@ snit::type ORPatternPanelPresenter {
     $self UpdateViewFromModel
   }
 
+  ##
+  #
+  #
   method UpdateViewFromModel {} {
     set handle [$self cget -handle]
     set view [$self cget -view]
@@ -2340,6 +2354,16 @@ snit::type ORPatternPanelPresenter {
   }
 }
 
+
+## @brief Megawidget for configuring OR patterns
+#
+# This is the actual widget that is interacted with when the user navigates
+# to the Or Pattern configuration through the menu. It does not maintain the 
+# distinction between widgets and logic. Rather it owns two views for managing a
+# single OR pattern 
+# corresponding presenters. It is pretty basic. 
+#
+#
 snit::widget ORPatternConfiguration {
 
   option -handle -default {} -configuremethod SetHandle
@@ -2349,6 +2373,8 @@ snit::widget ORPatternConfiguration {
   variable panel0Presenter {}
   variable panel1Presenter {}
 
+  ## @brief Construct and assemble megawidget
+  #
   constructor {args} {
 
 
@@ -2377,16 +2403,20 @@ snit::widget ORPatternConfiguration {
     catch {$panel1Presenter destroy}
   }
 
+  ## Handle presses of the Commit button
   method OnCommit {} {
     $panel0Presenter Commit
     $panel1Presenter Commit
   }
 
+  ## Handle presses of the Update button
   method OnUpdate {} {
     $panel0Presenter Update 
     $panel1Presenter Update 
   }
 
+  ## @brief Set the handle and pass it to the presenters
+  #
   method SetHandle {opt val} {
     set options($opt) $val
 
