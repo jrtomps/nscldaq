@@ -19,6 +19,9 @@ options.h: options.ggo
 	$(GENGETOPT) < @srcdir@/options.ggo --file=options \
 	    --unamed-opts
 
+install-exec-hook:
+	$(INSTALL_SCRIPT) @srcdir@/makeNameFile.tcl @bindir@/makeNameFile
+
 clean-local:
 	-rm -rf options.h options.h
 
@@ -31,3 +34,5 @@ unittests_CPPFLAGS=$(sumscaler_CPPFLAGS) @CPPUNIT_CFLAGS@
 unittests_LDFLAGS=$(sumscaler_LDFLAGS)   @CPPUNIT_LDFLAGS@
 
 TESTS = unittests
+
+EXTRA_DIST = makeNameFile.tcl
