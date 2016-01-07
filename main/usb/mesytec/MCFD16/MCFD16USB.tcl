@@ -667,8 +667,6 @@ snit::type MCFD16USB {
       dict set m_moduleState $key $val
     }
 
-    puts $m_moduleState
-
     set m_needsUpdate 0
   }
 
