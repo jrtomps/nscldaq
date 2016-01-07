@@ -39,6 +39,8 @@
 #include <fstream>
 #include <sstream>
 #include <memory>
+#include <set>
+#include <iomanip>
 
 #include <limits.h>
 #include <stdlib.h>
@@ -61,7 +63,7 @@ App::App(struct gengetopt_args_info& args) :
     // Process the cooked parameters:
     
     if (args.omit_labels_given) m_omitLabels = true;
-    if (args.flip_given)        m_flip       = false;
+    if (args.flip_given)        m_flip       = true;
     if (args.name_file_given) {
         processNameFile(args.name_file_arg);
     }
@@ -125,6 +127,59 @@ App::operator()()
         std::cerr << std::endl;
         m_completeRuns.push_back(m_pCurrentRun);
         m_pCurrentRun = 0;
+    }
+}
+/**
+ * outputResults
+ *     Output information about all the runs we have so far to the stream
+ *     provided.
+ *
+ * @param out  - output stream to which the data will be written.
+ * @note  All uncontrolled textual data will be quoted and embedded " characters
+ *        appropriately mapped to "" as per the CSV spec.  At this point
+ *        the only uncontrolled textual data are scaler names.
+ */
+void
+App::outputResults(std::ostream& out)
+{
+    // How we output the data depends entirely on the flipped flag.
+    // Normally scaler values are rows, and columns are runs.
+    // flipped means runs are rows and columns are scaler sums.
+    
+    // Regardless, our first bit of work is to make a two dimensional 'array'
+    // indexed by run number string and by scaler name.  Doing this allows us
+    // to handle cases where some runs have a different set of data sources
+    // or different number of scalers than others.
+    
+    //        run number   channel name         scaler sum.
+    
+    std::map<unsigned, std::map<std::string, uint64_t> > sums;
+    for (auto r = m_completeRuns.begin(); r != m_completeRuns.end(); r++) {
+        CRun& thisRun(*(*r));
+        unsigned run = thisRun.getRun();
+        
+        // Get the list of sourceids for this run, and iterate over them and
+        // each source ids' scaler vector to fill in the map for this run.
+        
+        std::vector<unsigned> srcIds = thisRun.sources();
+        
+        Channel ch;                    // Lookup in to names dict.
+        
+        for (auto s = srcIds.begin(); s != srcIds.end(); s++) {
+            ch.s_dataSource = *s;
+            std::vector<uint64_t> values = thisRun.sums(ch.s_dataSource);
+            for (ch.s_channel = 0; ch.s_channel < values.size(); ch.s_channel++) {
+                std::string name = getScalerName(ch);
+                sums[run][name] = values[ch.s_channel];
+            }
+        }
+    }
+    // Now we can output the data in whatever order desired:
+    
+    if (m_flip) {
+        outputByRuns(out, sums);
+    } else {
+        outputByScaler(out, sums);
     }
 }
 
@@ -307,7 +362,13 @@ App::getScalerName(App::Channel& ch)
     if (m_channelNames.find(ch) == m_channelNames.end()) {
         ChannelInfo info;
         std::stringstream name;
-        name << "Scaler-" << ch.s_dataSource << '.' << ch.s_channel;
+        unsigned w = name.width();
+        char     f = name.fill();
+        
+        name << "Scaler-" << ch.s_dataSource << '.' <<
+        std::setw(6) << std::setfill('0') << ch.s_channel <<
+        std::setw(w) << std::setfill(f);
+        
         info.s_channelName = name.str();
         info.s_width = 32;
         m_channelNames[ch] = info;
@@ -428,6 +489,165 @@ App::scaler(CRingItem& item)
             incremental, width
         );
     }
+}
+
+/**
+ * outputByRuns
+ *     Outputs the data so that the columns are scaler numbers and the rows
+ *     are runs.
+ *     Note that m_omitLabels can turn off column and row labels.
+ *
+ *   @param out   - Refers to an output stream on which data will be written.
+ *   @param data  - nested map, outer indices are run numbers, inner indices are
+ *                  channel names, values are scaler sums specified by this.
+ */
+void
+App::outputByRuns(
+    std::ostream& out,
+    std::map<unsigned, std::map<std::string, uint64_t> >& data
+)
+{
+    // We need to collect all of the scaler names - into a set.
+    // If labeling is enabled we write a row of scaler labels.
+    // The resulting set is also used to index scalers within the map as we
+    // output the data for each run.
+    
+    std::set<std::string> names;
+    for(auto r = data.begin(); r != data.end(); r++) {
+        std::map<std::string, uint64_t>& run(r->second);
+        for (auto n = run.begin(); n != run.end(); n++) {
+            names.insert(n->first);
+        }
+    }
+    // names can now be treated as the sorted collection of all scaler names.
+   
+    if (! m_omitLabels) { 
+        std::ostringstream line;
+        line << ",";                      // First column is blank for run labels
+        for (auto p = names.begin(); p != names.end(); p++) {
+            line << quoteString(*p) << ",";    // We don't care about trailing empties.
+        }
+        out << line.str() << std::endl;
+    }
+    
+    // Now output the runs, if labels are turned on the first field is a run label.
+    // of the form run n.
+    
+    for (auto pR = data.begin(); pR != data.end(); pR++) {
+        int run = pR->first;
+        std::map<std::string, uint64_t>& scalers(pR->second);
+        std::ostringstream line;
+        
+        if (!m_omitLabels) {
+            line << "Run " << run << ",";
+        }
+        for (auto pN = names.begin(); pN != names.end(); pN++) {
+            std::string name = *pN;
+            uint64_t value = scalers[name];
+            line << value << ",";
+        }
+        out << line.str() << std::endl;
+    }
+    
+}
+
+/**
+ * outputByScaler
+ *    Output the data such that the runs are columns and the rows are
+ *    scalers.
+ *
+ *  @param out - the output stream to which the data will be written.
+ *  @param data - nested maps outer indices are run numbers inner indices
+ *                are scaler names.
+ */
+void
+App::outputByScaler(
+    std::ostream& out,
+    std::map<unsigned, std::map<std::string, uint64_t> >& data    
+)
+{
+    // List the scaler names because we'll want rows for all scalers
+    // even if some of them don't exist in some runs.
+    // While we're at it if labels are enabled, the top line of labels
+    // are run numbers:
+    
+    std::ostringstream title;
+    if (!m_omitLabels) {
+        title << ",";       // First column are scaler labels.
+    }
+    
+    std::set<std::string> names;
+    for(auto pR = data.begin(); pR != data.end(); pR++) {
+        std::map<std::string, uint64_t>& scls(pR->second);
+        for (auto pN = scls.begin(); pN != scls.end(); pN++) {
+            names.insert(pN->first);
+        }
+        if (!m_omitLabels) {
+            title << "Run " << pR->first << ',';
+        }
+    }
+    if (!m_omitLabels) {
+        out << title.str() << std::endl;
+    }
+    
+    // Now we can output the data for each scaler for each run.  This means
+    // an outer loop iterating over the scaler name set.
+    // We're also taking advantage of the fact that if we reference a nonexistent
+    // inner map entry we'll get one created for us that has a scaler sum value
+    // of 0.
+    
+    for (auto pN = names.begin(); pN != names.end(); pN++) {
+        std::ostringstream line;
+        std::string scaler = *pN;
+        if (!m_omitLabels) {
+            line << quoteString(scaler) << ',';
+        }
+        // add values for this scaler for each run to the line:
+        
+        for (auto pR = data.begin(); pR != data.end(); pR++) {
+            std::map<std::string, uint64_t>& values(pR->second);
+            line << values[scaler] << ',';
+        }
+        
+        out << line.str() << std::endl;
+    }
+    
+    
+    
+}
+
+/**
+ * quoteString
+ *   Uncontrolled strings in CSV files (where we can't predict content) need to
+ *   be quoted with " in case there are embedded , characters. Furthermore,
+ *   since there may also be embedded " in the string those need to be doubled
+ *   so an input string like:
+ *   
+ *   This scaler, has a " in it
+ *
+ *   Gets transformed to : "This scaler, has a "" in it"
+ *
+ *   @param s  - input string.
+ *   @return std::string - properly quoted/escaped string.
+ */
+std::string
+App::quoteString(std::string s)
+{
+    // Double and " -> ""
+    
+    std::string result("\"");                          // Opening "
+    for (auto p = s.begin(); p != s.end(); p++) {
+        result.push_back(*p);
+        if (*p == '"') {
+            result.push_back('"');                     // double any " chars.
+        }
+    }
+    // Now enclose the string in ":
+    
+    result += '"';                                    // Closing quote.
+    
+    
+    return result;
 }
 
 /*-------------------------------------------------------------------------

@@ -96,6 +96,17 @@ private:
     void end();
     void scaler(CRingItem& item);
     
+    void outputByRuns(
+        std::ostream& out,
+        std::map<unsigned, std::map<std::string, uint64_t> >& data
+    );
+    void outputByScaler(
+        std::ostream& out,
+        std::map<unsigned, std::map<std::string, uint64_t> >& data
+    );
+    
+    std::string quoteString(std::string s);
+    
 };
 
 #endif
