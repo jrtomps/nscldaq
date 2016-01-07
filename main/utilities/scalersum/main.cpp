@@ -48,14 +48,14 @@ int main(int argc, char** argv)
         pApp = new App(processParams);
         App& app(*pApp);
         app();
-        // app.outputResults(std::cout);
+        app.outputResults(std::cout);
         
     }
     catch(std::exception& e) {
         std::cerr << e.what() << std::endl;
         
         std::cerr << "Fatal error, dumping what we've got so far";
-        // pApp->outputResults(std::cout);
+        pApp->outputResults(std::cout);
         
         exit(EXIT_FAILURE);
     }
