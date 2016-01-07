@@ -2128,4 +2128,276 @@ snit::type PulserPresenter {
   }
 }
 
+snit::type ViewState {
+  option -presenter -default {}
+
+  constructor args {
+    $self configurelist $args
+  }
+}
+
+snit::type PresenterState {
+  option -view       -default {}
+
+  constructor args {
+    $self configurelist $args
+  }
+}
+
+snit::widget ORPatternPanelView {
+
+
+  option -title -default {}
+  option -presenter -default {}
+
+  variable enabled -array {}
+  variable vetoEnabled
+
+  constructor {args} {
+
+    $self configurelist $args 
+
+    $self BuildGUI
+  }
+
+  destructor {
+  }
+
+
+  method BuildGUI {} {
+
+    ttk::label $win.title -textvariable [myvar options(-title)] -style Title.TLabel
+
+    ttk::label $win.chHeader -text "Channel" -style "Header.TLabel"
+    ttk::label $win.enableHeader -text "Include?" -style "Header.TLabel"
+    for {set ch 0} {$ch < 16} {incr ch} {
+    # construct first row
+      ChannelLabel $win.na$ch -width 8 -textvariable MCFD16ChannelNames::chan$ch \
+        -defaultstring "Ch$ch"  -state readonly
+      ttk::checkbutton $win.enable$ch -variable [myvar enabled($ch)] -onvalue 1 -offvalue 0
+    }
+
+    ttk::label $win.vetoLabel -text "Enable Veto?"
+    ttk::checkbutton $win.vetoButton -variable [myvar vetoEnabled]
+
+
+    grid $win.title - -sticky nsew
+    grid $win.chHeader $win.enableHeader -sticky nsew
+    for {set ch 0} {$ch < 16} {incr ch} {
+      grid $win.na$ch $win.enable$ch -sticky nsew
+    }
+    grid $win.vetoLabel $win.vetoButton -sticky nsew
+
+    grid rowconfigure $win all -weight 1
+    grid columnconfigure $win all -weight 1
+
+  }
+
+  method GetChannelEnabled {ch} {
+    return $enabled($ch)
+  }
+
+  method GetVetoEnabled {} {
+    return $vetoEnabled
+  }
+
+  method SetChannelEnabled {ch state} {
+    set enabled($ch) $state
+  }
+
+  method SetVetoEnabled {state} {
+    set vetoEnabled $state
+  }
+
+}
+
+
+snit::type ORPatternPanelPresenter {
+
+  option -patternid
+  option -handle -default {} -configuremethod SetHandle
+  option -view -default {} -configuremethod SetView
+
+
+  constructor args {
+
+    $self configurelist $args
+  }
+
+  destructor {
+  }
+
+  method Commit {} {
+    set handle [$self cget -handle]
+    if {$handle eq {}} {
+       return -code error "User cannot commit unless a device exists"
+    }
+
+    set view [$self cget -view]
+    if {$view eq {}} {
+       return -code error "User cannot commit unless a view exists"
+    }
+
+    $self CommitViewToModel
+    $self Update
+  }
+
+  method CommitViewToModel {} {
+    set handle [$self cget -handle]
+    set view   [$self cget -view]
+
+    set veto [$view GetVetoEnabled]
+    $handle SetTriggerSource $options(-patternid) pat_or_$options(-patternid) $veto
+
+    set value 0
+    for {set ch 0} {$ch < 16} {incr ch} {
+      set state [$view GetChannelEnabled $ch]
+      set value [expr {$value | ($state<<$ch)}]
+    }
+
+    $handle SetTriggerOrPattern $options(-patternid) $value
+  }
+
+
+  method Update {} {
+    set handle [$self cget -handle]
+    if {$handle eq {}} {
+       return -code error "User cannot commit unless a device exists"
+    }
+
+    set view [$self cget -view]
+    if {$view eq {}} {
+       return -code error "User cannot commit unless a view exists"
+    }
+    $self UpdateViewFromModel
+  }
+
+  method UpdateViewFromModel {} {
+    set handle [$self cget -handle]
+    set view [$self cget -view]
+
+    set pattern [$handle GetTriggerOrPattern $options(-patternid)]
+
+    for {set ch 0} {$ch < 16} {incr ch} {
+      set bit [expr {($pattern & ( 1<<$ch) ) >> $ch}]
+      $view SetChannelEnabled $ch $bit
+    }
+
+    set triggerSource [$handle GetTriggerSource $options(-patternid)]
+    if {[lindex $triggerSource 0] ne "pat_or_$options(-patternid)"} {
+      return -code error "Device is not set up for to use pattern OR $options(-patternid)"
+    }
+
+    $view SetVetoEnabled [lindex $triggerSource 1]
+  }
+
+
+  ## @brief Callback for a "configure -view" operation
+  # 
+  # Performs the handshake required when the view is set. A new view is passed
+  # $self as the value to its -presenter option. If a handle exists, it is
+  # appropriate to update the state of the view from it.
+  #
+  # @param opt    option name (should be -view)
+  # @param val    value (name of view)
+  method SetView {opt val} {
+    # store the new view (opt="-view", val = new view name)
+    set options($opt) $val
+    $val configure -presenter $self
+
+    # we have a handle already, then update!
+    set handle [$self cget -handle]
+    if {$handle ne {}} {
+      $self UpdateViewFromModel
+    }
+  }
+
+  ## @brief Callback for a "configure -handle" operation
+  #
+  # Sets the -handle option to the new value and also updates the view from it
+  # if the -view option is set.
+  #
+  # @param opt  option name (should be -handle)
+  # @param val  value (name of handle)
+  #
+  method SetHandle {opt val} {
+    # store the new handle (opt="-handle", val = new handle name)
+    set options($opt) $val
+
+    if {$val eq {}} return
+
+    set id $options(-patternid)
+    set state [$val GetTriggerSource $id]
+    if {[lindex $state 0] ne "pat_or_$id"} {
+      $val SetTriggerSource $id pat_or_$id 0 
+    }
+
+    # we have a view already, then update!
+    set view [$self cget -view]
+    if {$view ne {}} {
+      $self Update
+    }
+  }
+}
+
+snit::widget ORPatternConfiguration {
+
+  option -handle -default {} -configuremethod SetHandle
+
+  variable panel0
+  variable panel1
+  variable panel0Presenter {}
+  variable panel1Presenter {}
+
+  constructor {args} {
+
+
+    set panel0 [ORPatternPanelView $win.panel0 -title {OR Pattern 0}]
+    set panel1 [ORPatternPanelView $win.panel1 -title {OR Pattern 1}]
+
+    set panel0Presenter [ORPatternPanelPresenter %AUTO% -view $panel0 -handle $options(-handle) -patternid 0]
+    set panel1Presenter [ORPatternPanelPresenter %AUTO% -view $panel1 -handle $options(-handle) -patternid 1]
+
+    ttk::button $win.commit -text "Commit to Device" -command [mymethod OnCommit] \
+                             -style "Commit.TButton"
+    ttk::button $win.update -text "Update From Device" -command [mymethod OnUpdate] \
+                            -style "Commit.TButton"
+    grid $panel0 $panel1 -sticky nsew -padx 8 -pady 8
+
+    grid $win.commit $win.update -sticky nsew -padx 8 -pady 8
+    grid rowconfigure $win 0 -weight 1
+
+    $self configurelist $args 
+  }
+
+  destructor {
+    catch {destroy $panel0}
+    catch {destroy $panel1}
+    catch {$panel0Presenter destroy}
+    catch {$panel1Presenter destroy}
+  }
+
+  method OnCommit {} {
+    $panel0Presenter Commit
+    $panel1Presenter Commit
+  }
+
+  method OnUpdate {} {
+    $panel0Presenter Update 
+    $panel1Presenter Update 
+  }
+
+  method SetHandle {opt val} {
+    set options($opt) $val
+
+    if {$val eq {}} return
+
+    if {$panel0Presenter ne {}} {
+      $panel0Presenter configure $opt $val
+    }
+    if {$panel1Presenter ne {}} {
+      $panel1Presenter configure $opt $val
+    }
+  }
+}
 
