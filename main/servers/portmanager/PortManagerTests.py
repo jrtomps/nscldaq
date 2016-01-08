@@ -56,7 +56,7 @@ class PortManagerTests(unittest.TestCase):
     #   with -5 (?) error.
     #
     def test_connection_fail(self):
-        host='no.such.host'
+        host='no.such.host.nscl.msu.edu'
         port=30000
         threw      =  False
         rightThrow = False
