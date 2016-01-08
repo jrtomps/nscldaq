@@ -1,7 +1,7 @@
 bin_PROGRAMS = sumscaler
 
 sumscaler_SOURCES=   main.cpp App.cpp App.h options.c CRun.h CRun.cpp \
-	CChannel.h CIncrementalChannel.j CIncrementalChannel.cpp \
+	CChannel.h CIncrementalChannel.h CIncrementalChannel.cpp \
 	CCumulativeChannel.h CCumulativeChannel.cpp
 
 sumscaler_CPPFLAGS=-I@top_srcdir@/utilities/IO 			\
