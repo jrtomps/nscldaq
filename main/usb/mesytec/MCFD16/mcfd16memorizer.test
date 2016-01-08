@@ -289,5 +289,21 @@ tcltest::test setTriggerOrPattern-0 {Written trigger or pattern is remembered
 } -result {NA NA 257 17476}
 
 
+tcltest::test setFastVeto-0 {Written fast veto gets remembered
+} -setup { 
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  set res [list]
+  # initial values for parameters is NA...this should return NA b/c nothing
+  lappend res [::dev GetFastVeto]
+
+  ::dev SetFastVeto 1
+  lappend res [::dev GetFastVeto]
+
+  set res
+} -result {NA 1}
+
 
 tcltest::cleanupTests

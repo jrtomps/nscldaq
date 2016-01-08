@@ -108,6 +108,14 @@ snit::type MCFD16Memorizer {
     }
   }
 
+  method SetFastVeto {onoff} {
+    dict set _memory fast_veto [string is true $onoff]
+  }
+
+  method GetFastVeto {} {
+    return [dict get $_memory fast_veto]
+  }
+
   ## @brief Construct the structure of the dictionary
   #
   # Each parameter name has a key associated with it. Parameters that have
@@ -146,6 +154,7 @@ snit::type MCFD16Memorizer {
     dict set _memory trig2_source NA
     dict set _memory or0_pattern NA
     dict set _memory or1_pattern NA
+    dict set _memory fast_veto NA
   }
 
   ## @brief Utilty method for adding a parameter with channel to the dict
