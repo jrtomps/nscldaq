@@ -655,7 +655,7 @@ snit::type MCFD16USB {
     return [$self _Transaction "SV [string is true $onoff]"]
   }
 
-  ## @brief Write the fast veto register
+  ## @brief Read the fast veto register
   #
   #  If needed ,this will update the internally cached state of 
   #  the module.

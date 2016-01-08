@@ -618,6 +618,20 @@ tcltest::test setTriggerOrPattern-0 {Check that trigger or pattern settings work
 } -result {{Write 124 11} {Write 125 10} {Write 126 18} {Write 127 15}}
 
 #---------
+
+tcltest::test getFastVeto-0 {Check that we can write fast veto
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+  ::dev SetFastVeto 0
+  ::dev SetFastVeto 1
+  ::dev GetFastVeto
+  ::comObj getRecord
+} -result {{Write 77 0} {Write 77 1} {Read 77}}
+
+#---------
 #
 tcltest::test computeAddress-0 {Given a parameter and ch, return proper addr
 } -setup {

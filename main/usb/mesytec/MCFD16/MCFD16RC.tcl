@@ -562,6 +562,24 @@ snit::type MCFD16RC {
     return $value
   }
 
+  ## @brief Write the fast veto register
+  #
+  # This turns on and off direct vetoing of the discriminators
+  #
+  # @param onoff  boolean value 
+  #
+  # @returns repsonse of the device
+  method SetFastVeto {onoff} {
+    return [$_proxy Write [dict get $offsetsMap fast_veto] [string is true $onoff]]    
+  }
+
+  ## @brief Read the fast veto register
+  #
+  # @returns  boolean
+  method GetFastVeto {} {
+    return [$_proxy Read [dict get $offsetsMap fast_veto]]
+  }
+
   ## @brief Set the remote control mode
   #
   # @param on   desired rc state (must be boolean)
@@ -612,6 +630,7 @@ snit::type MCFD16RC {
                                 polarity  {indiv 56 common 70} \
                                 mode      72 \
                                 rc        73 \
+                                fast_veto 77 \
                                 mask      83 \
                                 pulser    118 \
                                 or0_pattern_lo 124 \
