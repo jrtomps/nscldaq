@@ -207,6 +207,72 @@
 
   <section>
     <title>
+      Configuration menu
+    </title>
+
+    <para>
+      To provide some extra configuration control of the device, there are a few
+      specialized configuration dialogs that can be reached from the "Configure"
+      drop down menu. They are described here.
+    </para>
+
+    <section>
+      <title>Enable/Disable Channel</title>
+
+      <para>
+        The output for channels can be disabled in the MCFD-16. Support for this 
+        feature is provided through the dialog at "Configure > Enable/disable..."
+        It is important to realize that enabling and disabling a channel is done
+        for channel pairs rather than individual channels. The same semantics apply 
+        to this dialog for committing settings to the module as for the rest of
+        the application. You must press "Commit" to transfer the state of the GUI to
+        the module. You can read the state of the module by pressing the "Update" button.
+        Each commit operation is always followed by an update operation intrinsically so
+        that you can see whether a change succeeded or failed.
+      </para>
+
+      <figure id="mcfd16control_enabledisable_config">
+        <title>Channel Enable/Disable Configuration Dialog</title>
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="figures/MCFD16Control-enabledisable-config-0.png" align="center" format='PNG'/>
+          </imageobject>
+        </mediaobject>
+      </figure>
+    </section>
+    <section>
+      <title>Configurable 16-Channel OR Trigger</title>
+
+      <para>
+        The MCFD-16 provides 3 trigger outputs that can be defined to emit
+        signals defined by various logic internal to the device. NSCLDAQ supports
+        setting two of these [trigger 0 (front panel output) and trigger 1 (back
+        panel output)] to emit a configurable 16-channel OR. Each of these is
+        configurable through the "Configure > Trigger OR..." menu. In the dialog,
+        there are two columns labeled "OR Pattern 0" and "OR Pattern 1". The OR
+        Pattern 0 column configures the output for trigger 0 and the OR Pattern 1
+        column configures the output for trigger 1.  The same semantics hold
+        for causing a change to the device as for the rest of the MCFD16Control application. 
+        Changes to the GUI are not applied to the device until the "Commit
+        to Device" button is pressed. If you want to update the GUI to reflect
+        the state of the module, you should press the "Update From Device"
+        button. Note that when you press "Commit to Device", the GUI will
+        automatically follow the writes to the module with a read.  The read does
+        the same thing as when you press "Update From Device".
+      </para>
+
+      <figure id="mcfd16control_orpattern_config">
+        <title>OR Pattern Configuration Dialog</title>
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="figures/MCFD16Control-triggerOR-config-0.png" align="center" format='PNG'/>
+          </imageobject>
+        </mediaobject>
+      </figure>
+    </section>
+  </section>
+  <section>
+    <title>
       Saving and restoring state
     </title>
 
