@@ -1472,6 +1472,8 @@ snit::type LoadFromFilePresenter {
     lappend _validAPICalls {^\s*[[:alnum:]:]+\s+GetTriggerSource\s+\d$}
     lappend _validAPICalls {^\s*[[:alnum:]:]+\s+SetTriggerOrPattern\s+[01]{1}\s+\w+$}
     lappend _validAPICalls {^\s*[[:alnum:]:]+\s+GetTriggerOrPattern\s+[01]{1}$}
+    lappend _validAPICalls {^\s*[[:alnum:]:]+\s+SetFastVeto\s+[[:alnum:]]+$}
+    lappend _validAPICalls {^\s*[[:alnum:]:]+\s+GetFastVeto$}
     lappend _validAPICalls {^\s*set\s+(::)*MCFD16ChannelNames::chan\d+.+$}
     lappend _validAPICalls {^\s*namespace\s+::MCFD16ChannelNames\s+eval\s+{\s*}\s*$}
   }
@@ -2404,6 +2406,7 @@ snit::widget ORPatternConfiguration {
 
   variable panel0
   variable panel1
+  variable fastVeto
   variable panel0Presenter {}
   variable panel1Presenter {}
 
@@ -2411,12 +2414,18 @@ snit::widget ORPatternConfiguration {
   #
   constructor {args} {
 
-
     set panel0 [ORPatternPanelView $win.panel0 -title {OR Pattern 0}]
     set panel1 [ORPatternPanelView $win.panel1 -title {OR Pattern 1}]
 
     set panel0Presenter [ORPatternPanelPresenter %AUTO% -view $panel0 -handle $options(-handle) -patternid 0]
     set panel1Presenter [ORPatternPanelPresenter %AUTO% -view $panel1 -handle $options(-handle) -patternid 1]
+
+    set fvFrame [ttk::frame $win.fastVetoFr]
+    ttk::label $fvFrame.fastVeto -text "Enable direct vetoing of discriminators?"
+    ttk::checkbutton $fvFrame.fastVetoButton -variable [myvar fastVeto] -onvalue 1 -offvalue 0 
+    grid $fvFrame.fastVeto $fvFrame.fastVetoButton -sticky nsew
+    grid rowconfigure $fvFrame all -weight 1
+    grid columnconfigure $fvFrame all -weight 1
 
     ttk::button $win.commit -text "Commit to Device" -command [mymethod OnCommit] \
                              -style "Commit.TButton"
@@ -2424,6 +2433,7 @@ snit::widget ORPatternConfiguration {
                             -style "Commit.TButton"
     grid $panel0 $panel1 -sticky nsew -padx 8 -pady 8
 
+    grid $fvFrame - -sticky nsew -padx 8 -pady 8
     grid $win.commit $win.update -sticky nsew -padx 8 -pady 8
     grid rowconfigure $win 0 -weight 1
 
@@ -2441,17 +2451,23 @@ snit::widget ORPatternConfiguration {
   method OnCommit {} {
     $panel0Presenter Commit
     $panel1Presenter Commit
+
+    [$self cget -handle] SetFastVeto $fastVeto
   }
 
   ## Handle presses of the Update button
   method OnUpdate {} {
     $panel0Presenter Update 
     $panel1Presenter Update 
+
+    set fastVeto [[$self cget -handle] GetFastVeto]
   }
 
   method CommitViewToModel {} {
     $panel0Presenter CommitViewToModel
     $panel1Presenter CommitViewToModel
+
+    [$self cget -handle] SetFastVeto $fastVeto
   }
 
   ## @brief Set the handle and pass it to the presenters
@@ -2467,6 +2483,8 @@ snit::widget ORPatternConfiguration {
     if {$panel1Presenter ne {}} {
       $panel1Presenter configure $opt $val
     }
+
+    set fastVeto [$val GetFastVeto]
   }
 
   ## @brief Set handle to command logger
@@ -2480,6 +2498,7 @@ snit::widget ORPatternConfiguration {
 
     $panel1Presenter SetCommandLoggerAsHandle $logger
 
+    set options(-handle) $logger
   }
 }
 
