@@ -714,6 +714,7 @@ snit::type MCFD16IndividualPresenter {
     $self CommitViewDelays
     update
     $self CommitViewFractions
+    update
   }
 
   ## Commit data to module
