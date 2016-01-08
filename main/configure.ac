@@ -428,6 +428,7 @@ AC_CONFIG_FILES([Makefile
     utilities/FormattedIO/Makefile
     utilities/newscaler/Makefile
     utilities/newscaler/ScalerDisplay.tcl
+    utilities/scalersum/Makefile
     epics/chanlog/Makefile
     epics/controlpush/Makefile
     epics/epicsdisplay/Makefile
