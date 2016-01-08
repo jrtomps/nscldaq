@@ -402,5 +402,31 @@ tcltest::test getTriggerOrPattern-0 {Getting trigger or pattern gets written to 
   tcltest::viewFile $::logFile
 } -result {::dev GetTriggerOrPattern 0}
 
+tcltest::test setFastVeto-0 {Setting fast veto gets written to file
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+
+  ::logger SetFastVeto 0
+  ::logger Flush
+    
+  tcltest::viewFile $::logFile
+} -result {::dev SetFastVeto 0}
+
+tcltest::test getFastVeto-0 {Getting fast veto gets written to file
+} -setup {
+  setup
+} -cleanup {
+  tearDown
+} -body {
+
+  ::logger GetFastVeto
+  ::logger Flush
+    
+  tcltest::viewFile $::logFile
+} -result {::dev GetFastVeto}
+
 
 tcltest::cleanupTests

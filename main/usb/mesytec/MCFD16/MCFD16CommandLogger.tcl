@@ -210,6 +210,15 @@ snit::type MCFD16CommandLogger {
     chan puts $_logFile "[$self cget -name] GetTriggerOrPattern $patternId"
   }
 
+  method SetFastVeto {onoff} {
+    chan puts $_logFile "[$self cget -name] SetFastVeto $onoff"
+  }
+
+  method GetFastVeto {} {
+    chan puts $_logFile "[$self cget -name] GetFastVeto"
+  }
+
+
   ## @brief Convenience wrapper around a "chan flush" command
   method Flush {} {
     chan flush $_logFile
