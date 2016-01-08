@@ -1041,3 +1041,6 @@ Work on 11.0-rc11 begins
 	  to 255 in mtdc driver. It also sets the default value to be 255
 		for each of these.
 	
+11.1-001 
+	*  Feature #4849 - add offline scaler sum program.
+	
