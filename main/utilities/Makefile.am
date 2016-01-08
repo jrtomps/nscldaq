@@ -17,7 +17,8 @@ SUBDIRS = 				daqstart \
 					tkbufdump \
 					compatibility \
 					newscaler	\
-					fileanalyzer
+					fileanalyzer	\
+					scalersum
 
 # scalerdisplay - removed in favor of newscaler
 
