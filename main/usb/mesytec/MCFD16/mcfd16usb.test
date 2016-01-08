@@ -148,6 +148,7 @@ set parsedDSDict [dict create Threshold {0 20 20 40 20 20 20 20 20 20 20 20 20 2
                        DeadtimeRaw {45 45 45 45 117 45 45 45 27}]
 
 set fullDict [dict create {*}$parsedDSDict \
+                       fast_veto 0 \
                        or0_pattern 255 \
                        or1_pattern 4 \
                        Trig0_src 16 \
@@ -1172,6 +1173,28 @@ tcltest::test getTriggerOrPattern-0 {Ensure we can get the cached value
 } -result {255}
 
 
+tcltest::test setFastVeto-0 {Ensure we can set the fast veto
+} -setup {
+    setup
+} -cleanup {
+    tearDown
+} -body {
+    dev SetFastVeto 0
+    dev SetFastVeto 1
+
+    tcltest::viewFile $::serialFile
+} -result {SV 0
+SV 1}
+
+tcltest::test getFastVeto-0 {Ensure we can retrieve the fast veto cached value
+} -setup {
+    setup
+} -cleanup {
+    tearDown
+} -body {
+    dev GetFastVeto
+} -result 0
+
 tcltest::test parseDTResponse {Check that we can parse the DT response 
 } -setup {
   setup
@@ -1179,7 +1202,7 @@ tcltest::test parseDTResponse {Check that we can parse the DT response
   tearDown
 } -body {
   dev _ParseDTResponse $dtResponse
-} -result [dict create  or0_pattern 255 or1_pattern 4 Trig0_src 16 Trig1_src 32 Trig2_src 128]
+} -result [dict create  fast_veto 0 or0_pattern 255 or1_pattern 4 Trig0_src 16 Trig1_src 32 Trig2_src 128]
 
 tcltest::test parseDTResponse-1 {Check that or patterns of 0 are properly handled
 } -setup {
@@ -1188,7 +1211,7 @@ tcltest::test parseDTResponse-1 {Check that or patterns of 0 are properly handle
   tearDown
 } -body {
   dev _ParseDTResponse $dtResponse1
-} -result [dict create  or0_pattern 0 or1_pattern 0 Trig0_src 0 Trig1_src 0 Trig2_src 0]
+} -result [dict create  fast_veto 0 or0_pattern 0 or1_pattern 0 Trig0_src 0 Trig1_src 0 Trig2_src 0]
 #-----------------------------------------------------------------------------#
 # Retrieve state
 

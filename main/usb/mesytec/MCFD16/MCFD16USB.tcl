@@ -644,6 +644,33 @@ snit::type MCFD16USB {
   }
 
 
+  ## @brief Write the fast veto register
+  #
+  # This turns on and off direct vetoing of the discriminators
+  #
+  # @param onoff  boolean value 
+  #
+  # @returns repsonse of the device
+  method SetFastVeto {onoff} {
+    return [$self _Transaction "SV [string is true $onoff]"]
+  }
+
+  ## @brief Write the fast veto register
+  #
+  #  If needed ,this will update the internally cached state of 
+  #  the module.
+  #
+  # @returns  boolean
+  #
+  method GetFastVeto {} {
+
+    if {$m_needsUpdate} {
+      $self Update
+    }
+
+    return [dict get $m_moduleState fast_veto]
+  }
+
   ## @brief Check whether in remote control mode
   #
   # @returns boolean
@@ -854,8 +881,11 @@ snit::type MCFD16USB {
     set parsedResponse [list]
 
     set responseLines [split $response "\n"]
+
+    lappend parsedResponse [$self _ParseFastVeto [lindex $responseLines 4]]
+
     set orPatterns [$self _ParseOredPattern [lindex $responseLines 7]]
-    set parsedResponse [concat $orPatterns]
+    set parsedResponse [concat $parsedResponse [concat $orPatterns]]
 
     lappend parsedResponse [$self _ParseTriggerSource [lindex $responseLines 11]]
     lappend parsedResponse [$self _ParseTriggerSource [lindex $responseLines 12]]
@@ -864,6 +894,18 @@ snit::type MCFD16USB {
     set stateDict [$self _TransformToDict $parsedResponse]
     return $stateDict
   }
+
+  method _ParseFastVeto {line} {
+    set result [$self _SplitAndTrim $line ":"]
+
+    set state 1
+    if {[lindex $result 1] eq "disabled"} {
+      set state 0
+    }
+
+    return [dict create name fast_veto values $state]
+  }
+
 
   method _ParseOredPattern line {
     set parse1 [$self _SplitAndTrim $line ","]
