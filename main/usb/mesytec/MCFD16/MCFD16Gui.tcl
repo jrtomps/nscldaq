@@ -1433,7 +1433,6 @@ snit::type LoadFromFilePresenter {
 
   method EvaluateAPILines {lines} {
     foreach line $lines {
-      #puts $line
       uplevel #0 eval $line
     }
   }
@@ -1726,8 +1725,6 @@ snit::type ChannelEnableDisablePresenter {
       tk_messageBox -icon error -message $msg
     } else {
 
-      puts $mask
-
       # split the mask into a list of bits
       set bits [$self DecodeMaskIntoBits $mask]
 
@@ -1784,7 +1781,6 @@ snit::type ChannelEnableDisablePresenter {
   # @returns list of 8 bits (least significant bit first)
   method DecodeMaskIntoBits {mask} {
     set bits [list]
-    puts "mask = $mask"
     # interpret mask as an actual byte
     set byteValue [binary format s1 $mask]
 
