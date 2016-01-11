@@ -49,6 +49,7 @@ package require header
 package require scalerReport
 package require Plotchart::xyplotContainer
 package require scaleControl
+package require zoomPrompt
 
 
 ## Ensure the user supplied a configuration file:
