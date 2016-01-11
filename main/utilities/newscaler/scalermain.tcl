@@ -164,12 +164,16 @@ proc yScaleChanged {newValue} {
         # Now determine the new scale range, from that ymax and set it:
         
         set newRange [expr {$::initialYRange / $zoom}]
-        puts "$zoom $::initialYRange $newRange"
         $::stripcharts configure -ymax [expr {$ymin + $newRange}]
     }
 }
+##
+# yminChanged
+#    Called when the user wants a non zero value for the strip chart minimum y.
+#
+# @param newValue - the new value of the strip chart ymin.k
 proc yMinChanged {newValue} {
-    
+    $::stripcharts configure -ymin $newValue
 }
 
 #---------------------------------------------------------------------------
