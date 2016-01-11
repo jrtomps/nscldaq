@@ -248,17 +248,26 @@
         signals defined by various logic internal to the device. NSCLDAQ supports
         setting two of these [trigger 0 (front panel output) and trigger 1 (back
         panel output)] to emit a configurable 16-channel OR. Each of these is
-        configurable through the "Configure > Trigger OR..." menu. In the dialog,
-        there are two columns labeled "OR Pattern 0" and "OR Pattern 1". The OR
-        Pattern 0 column configures the output for trigger 0 and the OR Pattern 1
-        column configures the output for trigger 1.  The same semantics hold
-        for causing a change to the device as for the rest of the MCFD16Control application. 
-        Changes to the GUI are not applied to the device until the "Commit
-        to Device" button is pressed. If you want to update the GUI to reflect
-        the state of the module, you should press the "Update From Device"
-        button. Note that when you press "Commit to Device", the GUI will
-        automatically follow the writes to the module with a read.  The read does
-        the same thing as when you press "Update From Device".
+        configurable through the "Configure > Trigger OR..." menu. In the
+        dialog, there are two columns labeled "OR Pattern 0" and "OR Pattern
+        1". The OR Pattern 0 column configures the output for trigger 0 and the
+        OR Pattern 1 column configures the output for trigger 1.  The same
+        semantics hold for causing a change to the device as for the rest of
+        the MCFD16Control application.  Changes to the GUI are not applied to
+        the device until the "Commit to Device" button is pressed. If you want
+        to update the GUI to reflect the state of the module, you should press
+        the "Update From Device" button. Note that when you press "Commit to
+        Device", the GUI will automatically follow the writes to the module
+        with a read.  The read does the same thing as when you press "Update
+        From Device".
+      </para>
+
+      <para>
+        Another control accessible from this dialog is the ability to enable
+        and disable the veto. This veto is described in the RC-bus section of
+        the manual as being able to "directly veto the input discriminators
+        with veto input." If you are using the veto input for either of the OR
+        patterns, it is recommended to leave this disabled.
       </para>
 
       <figure id="mcfd16control_orpattern_config">
