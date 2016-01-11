@@ -2438,6 +2438,8 @@ snit::widget ORPatternConfiguration {
     grid rowconfigure $win 0 -weight 1
 
     $self configurelist $args 
+
+    $self OnUpdate
   }
 
   destructor {
