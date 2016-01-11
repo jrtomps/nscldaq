@@ -48,7 +48,7 @@ package require scalerconfig
 package require header
 package require scalerReport
 package require Plotchart::xyplotContainer
-
+package require scaleControl
 
 
 ## Ensure the user supplied a configuration file:
@@ -69,6 +69,13 @@ set duration  0;                  # Number of seconds in the run.
 set stripcharts "";               # xyplotContainer with the stripchart.
 set alarmcontrol 1;               # start with alarms on.
 
+#  Y scaling variables
+#
+#  initialYrange is the basis for the scale multiplier (remember magnification
+#  is inverse to scale so a magnification of 3x means that ymax = ymin + (initialYRange/3)).
+
+set autoY 1;                      # If true autoscaling y axis.
+set initialYrange  "";            # Range of y values when autoscale turned off.
 
 
 #-------------------------------------------------------------------------
@@ -116,7 +123,52 @@ proc getRunNumber {} {
 #
 proc getState {} {
     set h [getHeader]
-    retunr [$h cget -state]
+    return [$h cget -state]
+}
+
+#---------------------------------------------------------------------------
+# Strip chart y axis scale handling:
+#
+
+proc yScaleChanged {newValue} {
+    
+    #  Two special values are Auto and Custom...
+    
+    if {$newValue eq "Auto"} {
+        set ::autoY 1
+    } else {
+        if {$newValue eq "Custom..."} {
+            #  Must prompt.
+           
+           set zoom [getNewZoom]
+           if {$zoom eq ""} return;                 # Cancel or invalid zoom...
+            
+        } else {
+            # Decode from scale value  it's of the form nnx where nn is a zoom
+            # factor.
+            
+            set zoom [string range $newValue 0 end-1]
+        }
+        #  If autoY is set, we need to record the range so that our expansions
+        #  relate to that -- and we need to turn off autoY:
+        
+        set ymin [$::stripcharts cget -ymin]
+        if {$::autoY} {
+            set ymax [$::stripcharts cget -ymax]
+            
+            set ::initialYRange [expr {$ymax - $ymin}]
+            set ::autoY 0
+        }
+
+        # Now determine the new scale range, from that ymax and set it:
+        
+        set newRange [expr {$::initialYRange / $zoom}]
+        puts "$zoom $::initialYRange $newRange"
+        $::stripcharts configure -ymax [expr {$ymin + $newRange}]
+    }
+}
+proc yMinChanged {newValue} {
+    
 }
 
 #---------------------------------------------------------------------------
@@ -241,7 +293,7 @@ proc saveStripcharts   {filename} {
 ##
 # updateStripcharts
 #   For each series, that has a new time a new point is drawn for that series.
-#   If the y value of that point is larger than the current -ymax, -ymax is
+#   In autoscale; y value of that point is larger than the current -ymax, -ymax is
 #   changed to be 10% larger than the requested y value.
 #
 proc updateStripcharts {} {
@@ -262,11 +314,12 @@ proc updateStripcharts {} {
 	# If needed update the -ymax to autoscale that axis.
 	
 	
-	
-	if {$ymax > [$::stripcharts cget -ymax]} {
-	    set ymax [expr {$ymax * 1.1}]
-	    $::stripcharts configure -ymax $ymax
-	}
+	if {$::autoY} {
+            if {$ymax > [$::stripcharts cget -ymax]} {
+                set ymax [expr {$ymax * 1.1}]
+                $::stripcharts configure -ymax $ymax
+            }
+        }
     }
 }
 
@@ -517,7 +570,10 @@ proc setupGui {} {
     ttk::frame .alarmcontrol
     ttk::checkbutton .alarmcontrol.enable -text {Enable Alarms} -variable alarmcontrol \
         -command [list enableDisableAlarms .alarmcontrol.enable]
-    grid .alarmcontrol.enable -sticky w
+    grid .alarmcontrol.enable -sticky w -row 0 -column 0
+    
+   
+    
     pack .alarmcontrol -fill x -expand 1
 }
 
@@ -532,6 +588,29 @@ proc setupGui {} {
 # @param charts - List of strip charts to create
 #
 proc setupStripchart charts {
+    
+    # Axis controls go in the alarm strip for brevity:
+    
+    ttk::labelframe .alarmcontrol.y -text {Y axis}
+    ScaleControl    .alarmcontrol.y.s -menulist [list 1x 2x 4x 8x 16x 32x Custom... Auto]
+    .alarmcontrol.y.s configure -zoomrange [list 0 5]
+    .alarmcontrol.y.s configure -current Auto
+    .alarmcontrol.y.s configure -command [list yScaleChanged %S] \
+        -mincommand [list yMinChanged %M]
+    
+    ttk::labelframe .alarmcontrol.x -text {X axis}
+    ScaleControl    .alarmcontrol.x.s -menulist [list 1x 2x 4x 8x 16x 32x Custom... Auto]
+    .alarmcontrol.x.s configure -zoomrange [list 0 5]
+    .alarmcontrol.x.s configure -current Auto
+    
+    
+    pack .alarmcontrol.y.s -fill both -expand 1
+    pack .alarmcontrol.x.s -fill both -expand 1
+    grid .alarmcontrol.y  -sticky nsew -row 0 -column 1
+    grid .alarmcontrol.x  -sticky nswe -row 0 -column 2
+  
+    # The strip charts themselves:
+    
     canvas .stripcharts
     pack .stripcharts -fill x -expand 1
     
