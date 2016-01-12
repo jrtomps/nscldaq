@@ -29,6 +29,7 @@ exec tclsh "$0" ${1+"$@"}
 package provide dataSource 1.0
 package require snit
 package require properties
+package require daqObject
 
 ##
 # @class IntegerList
