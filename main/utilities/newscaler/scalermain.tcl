@@ -48,7 +48,8 @@ package require scalerconfig
 package require header
 package require scalerReport
 package require Plotchart::xyplotContainer
-
+package require scaleControl
+package require zoomPrompt
 
 
 ## Ensure the user supplied a configuration file:
@@ -69,6 +70,13 @@ set duration  0;                  # Number of seconds in the run.
 set stripcharts "";               # xyplotContainer with the stripchart.
 set alarmcontrol 1;               # start with alarms on.
 
+#  Y scaling variables
+#
+#  initialYrange is the basis for the scale multiplier (remember magnification
+#  is inverse to scale so a magnification of 3x means that ymax = ymin + (initialYRange/3)).
+
+set autoY 1;                      # If true autoscaling y axis.
+set initialYrange  "";            # Range of y values when autoscale turned off.
 
 
 #-------------------------------------------------------------------------
@@ -116,8 +124,140 @@ proc getRunNumber {} {
 #
 proc getState {} {
     set h [getHeader]
-    retunr [$h cget -state]
+    return [$h cget -state]
 }
+
+#---------------------------------------------------------------------------
+# Strip chart y axis scale handling:
+#
+
+proc yScaleChanged {newValue} {
+    
+    #  Two special values are Auto and Custom...
+    
+    if {$newValue eq "Auto"} {
+        #
+        #  If not auto before, reset the scale and set the auto flag:
+        
+        if {! $::autoY} {
+            set xmin [$::stripcharts cget -xmin]
+            $::stripcharts configure -ymax [expr {$xmin + $::initialYRange}]
+            set ::autoY 1    
+        }
+            
+        
+    
+    } else {
+        if {$newValue eq "Custom..."} {
+            #  Must prompt.
+           
+           set zoom [getNewZoom]
+           if {$zoom eq ""} return;                 # Cancel or invalid zoom...
+            
+        } else {
+            # Decode from scale value  it's of the form nnx where nn is a zoom
+            # factor.
+            
+            set zoom [string range $newValue 0 end-1]
+        }
+        #  If autoY is set, we need to record the range so that our expansions
+        #  relate to that -- and we need to turn off autoY:
+        
+        set ymin [$::stripcharts cget -ymin]
+        if {$::autoY} {
+            set ymax [$::stripcharts cget -ymax]
+            
+            set ::initialYRange [expr {$ymax - $ymin}]
+            set ::autoY 0
+        }
+
+        # Now determine the new scale range, from that ymax and set it:
+        
+        set newRange [expr {$::initialYRange / $zoom}]
+        $::stripcharts configure -ymax [expr {$ymin + $newRange}]
+    }
+}
+##
+# yminChanged
+#    Called when the user wants a non zero value for the strip chart minimum y.
+#
+# @param newValue - the new value of the strip chart ymin.k
+proc yMinChanged {newValue} {
+    set ymin [$::stripcharts cget -ymin]
+    set ymax [$::stripcharts cget -ymax]
+    set dy   [expr {$ymax - $ymin}]
+    
+    $::stripcharts configure -ymin $newValue -ymax [expr {$newValue + $dy}]
+}
+#------------------------------------------------------------------------------
+# strip chart x axis scaling.
+#
+##
+# setXaxis
+#
+#   Set new values for the x axis limits
+#
+# @param min - xmin
+# @param zoom - Zoom factor.
+#
+proc setXaxis {min zoom} {
+        # Figure out the new range:
+        
+        set newRange  [expr {$::scalerconfig::stripChartOptions(-timeaxis)/$zoom}]
+        $::stripcharts configure -xmin $min -xmax [expr {$min + $newRange}]
+            
+}
+
+##
+# xScaleChanged
+#
+#   Called when the zoom settings for the xscale changed.
+#   Determine the original range (that's a config parameter)
+#   and set a new xmin/xmax range basd on the scaled range.
+#
+proc xScaleChanged {min value} {
+    
+    # Auto just sets the xmin -0 and xmax to the initial range.  This will
+    #  slide next time there's an update:
+    
+    if {$value eq "Auto"} {
+        $::stripcharts configure -xmin 0 -xmax $::scalerconfig::stripChartOptions(-timeaxis)
+        
+    } else {
+        if {$value eq "Custom..."} {
+            
+            #Need to prompt for a custom zoom range
+            
+            set zoom  [getNewZoom]
+            if {$zoom eq ""} return;              # Zoom not accepted.
+        } else {
+            set zoom [string range $value  0 end-1]
+            
+            
+        }
+        setXaxis $min $zoom
+        
+    }
+}
+##
+# xMinChanged
+#
+#   Called when the xmin changed
+#
+# @param min - new minimum value
+#
+proc xMinChanged {min} {
+    
+    # Figure out the current extent:
+    
+    set xmin [$::stripcharts cget -xmin]
+    set xmax [$::stripcharts cget -xmax]
+    set dx   [expr {$xmax - $xmin}]
+    
+    $::stripcharts configure -xmin $xmin -xmax [expr {$xmin + $dx}]
+}
+    
+
 
 #---------------------------------------------------------------------------
 # Internal private procs
@@ -213,7 +353,14 @@ proc clearStripcharts {} {
 
 	#  Reset the ymax to 1 so autoscale will start up again.:
 	
-	$::stripcharts configure -ymax 1 -xmin 0 -xmax $::scalerconfig::stripChartOptions(-timeaxis)
+        if {$::autoY} {
+            $::stripcharts configure -ymax 1 
+        }
+        #  Reset the X axis to the current zoom but xmin = 0.
+        
+        set xmin [$::stripcharts cget -xmin]
+        set xmax [$::stripcharts cget -xmax]
+        set dx   [expr {$xmax - $xmin}]
 
 	# Create empty series...to re-establish colors.
 	#
@@ -224,6 +371,9 @@ proc clearStripcharts {} {
 	    $series clear;                          # Invalidate the time.
 	    $::stripcharts series [$series name] [list] [list] $color
 	}
+        #  Reset the zooms:
+        
+        
 
     }
 }
@@ -241,7 +391,7 @@ proc saveStripcharts   {filename} {
 ##
 # updateStripcharts
 #   For each series, that has a new time a new point is drawn for that series.
-#   If the y value of that point is larger than the current -ymax, -ymax is
+#   In autoscale; y value of that point is larger than the current -ymax, -ymax is
 #   changed to be 10% larger than the requested y value.
 #
 proc updateStripcharts {} {
@@ -262,11 +412,12 @@ proc updateStripcharts {} {
 	# If needed update the -ymax to autoscale that axis.
 	
 	
-	
-	if {$ymax > [$::stripcharts cget -ymax]} {
-	    set ymax [expr {$ymax * 1.1}]
-	    $::stripcharts configure -ymax $ymax
-	}
+	if {$::autoY} {
+            if {$ymax > [$::stripcharts cget -ymax]} {
+                set ymax [expr {$ymax * 1.1}]
+                $::stripcharts configure -ymax $ymax
+            }
+        }
     }
 }
 
@@ -517,7 +668,10 @@ proc setupGui {} {
     ttk::frame .alarmcontrol
     ttk::checkbutton .alarmcontrol.enable -text {Enable Alarms} -variable alarmcontrol \
         -command [list enableDisableAlarms .alarmcontrol.enable]
-    grid .alarmcontrol.enable -sticky w
+    grid .alarmcontrol.enable -sticky w -row 0 -column 0
+    
+   
+    
     pack .alarmcontrol -fill x -expand 1
 }
 
@@ -532,6 +686,31 @@ proc setupGui {} {
 # @param charts - List of strip charts to create
 #
 proc setupStripchart charts {
+    
+    # Axis controls go in the alarm strip for brevity:
+    
+    ttk::labelframe .alarmcontrol.y -text {Y axis}
+    ScaleControl    .alarmcontrol.y.s -menulist [list 1x 2x 4x 8x 16x 32x Custom... Auto]
+    .alarmcontrol.y.s configure -zoomrange [list 0 5]
+    .alarmcontrol.y.s configure -current Auto
+    .alarmcontrol.y.s configure -command [list yScaleChanged %S] \
+        -mincommand [list yMinChanged %M]
+    
+    ttk::labelframe .alarmcontrol.x -text {X axis} 
+    ScaleControl    .alarmcontrol.x.s -menulist [list 1x 2x 4x 8x 16x 32x Custom... Auto]
+    .alarmcontrol.x.s configure -zoomrange [list 0 5]
+    .alarmcontrol.x.s configure -current Auto -enablemin false
+    .alarmcontrol.x.s configure -command [list xScaleChanged %M %S] \
+        -mincommand [list xMinChanged %M]
+    
+    
+    pack .alarmcontrol.y.s -fill both -expand 1
+    pack .alarmcontrol.x.s -fill both -expand 1
+    grid .alarmcontrol.y  -sticky nsew -row 0 -column 1
+    grid .alarmcontrol.x  -sticky nswe -row 0 -column 2
+  
+    # The strip charts themselves:
+    
     canvas .stripcharts
     pack .stripcharts -fill x -expand 1
     
