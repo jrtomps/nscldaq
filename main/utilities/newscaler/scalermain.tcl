@@ -136,7 +136,17 @@ proc yScaleChanged {newValue} {
     #  Two special values are Auto and Custom...
     
     if {$newValue eq "Auto"} {
-        set ::autoY 1
+        #
+        #  If not auto before, reset the scale and set the auto flag:
+        
+        if {! $::autoY} {
+            set xmin [$::stripcharts cget -xmin]
+            $::stripcharts configure -ymax [expr {$xmin + $::initialYRange}]
+            set ::autoY 1    
+        }
+            
+        
+    
     } else {
         if {$newValue eq "Custom..."} {
             #  Must prompt.
@@ -211,7 +221,7 @@ proc xScaleChanged {min value} {
     #  slide next time there's an update:
     
     if {$value eq "Auto"} {
-        $::stripcharts configure -xmin 0 -xmax $::scalerconfig::stripChartOptions(-timeaxis)'
+        $::stripcharts configure -xmin 0 -xmax $::scalerconfig::stripChartOptions(-timeaxis)
         
     } else {
         if {$value eq "Custom..."} {
@@ -686,10 +696,10 @@ proc setupStripchart charts {
     .alarmcontrol.y.s configure -command [list yScaleChanged %S] \
         -mincommand [list yMinChanged %M]
     
-    ttk::labelframe .alarmcontrol.x -text {X axis}
+    ttk::labelframe .alarmcontrol.x -text {X axis} 
     ScaleControl    .alarmcontrol.x.s -menulist [list 1x 2x 4x 8x 16x 32x Custom... Auto]
     .alarmcontrol.x.s configure -zoomrange [list 0 5]
-    .alarmcontrol.x.s configure -current Auto
+    .alarmcontrol.x.s configure -current Auto -enablemin false
     .alarmcontrol.x.s configure -command [list xScaleChanged %M %S] \
         -mincommand [list xMinChanged %M]
     
