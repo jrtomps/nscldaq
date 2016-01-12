@@ -200,6 +200,7 @@ ScaleControl <replaceable>widget-path</replaceable>
             <variablelist>
                 <varlistentry>
                     <term><literal>%W</literal></term>
+
                     <listitem>
                         <para>
                             Widget path.

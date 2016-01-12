@@ -13,4 +13,4 @@ TCLTESTS=tclTests.tcl framemanager.test framesequencer.test channellabel.test tr
 check-TESTS:
 	TCLLIBPATH=@prefix@/TclLibs HERE=@srcdir@ tcl=@TCLSH_CMD@ @TCLSH_CMD@ @srcdir@/tclTests.tcl
 
-EXTRA_DIST = $(SCRIPT_FILES) ReDistribNotes $(TCLTESTS)
+EXTRA_DIST = $(SCRIPT_FILES) ReDistribNotes $(TCLTESTS) RingStatus.xml ScaleControl_man.xml
